@@ -14,7 +14,7 @@ public class MapPicker : MonoBehaviour
     //Province color dictionary
     public static Dictionary<Color32, Province> provinceColorDictionary;
 
-    private void Start() {
+    void Start() {
         // Setup province dictionary
         provinceColorDictionary = new Dictionary<Color32, Province>(20000);
 
