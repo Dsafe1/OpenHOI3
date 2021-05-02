@@ -10,7 +10,6 @@ public class Data
     public static List<Province> provinces = new List<Province>();
     public static Dictionary<Color32, Province> colorToProvince = new Dictionary<Color32, Province>();
     public static Dictionary<int, Province> idToProvince = new Dictionary<int, Province>();
-    public static Dictionary<string, Province> nameToProvince = new Dictionary<string, Province>();
 
     //Base game directory (TODO may change on build)
     public static string BaseDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/')+1);
@@ -45,7 +44,6 @@ public class Data
         {
             colorToProvince.Add(province.color, province);
             idToProvince.Add(province.id, province);
-            nameToProvince.Add(province.name, province);
         }
     }
 
