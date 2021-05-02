@@ -2,7 +2,7 @@ using System;
 using Pdoxcl2Sharp;
 using System.Collections.Generic;
 
-namespace Parser
+namespace GeneratedParsers
 {
     public partial class ProvinceHistory : IParadoxRead, IParadoxWrite
     {
