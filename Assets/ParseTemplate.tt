@@ -22,6 +22,24 @@ namespace Parser
 
 var classes = new[] {
     new {
+        Name = "ProvinceHistory",
+        Props = new[] {
+            new Property() { Type = "string", Name = "owner"},
+            new Property() { Type = "string", Name = "controller" },
+            new Property() { Type = "string", Name = "add_core" },
+            new Property() { Type = "int", Name = "points" },
+            new Property() { Type = "float", Name = "metal" },
+            new Property() { Type = "float", Name = "energy" },
+            new Property() { Type = "float", Name = "rare_materials" },
+            new Property() { Type = "int", Name = "industry" },
+            new Property() { Type = "int", Name = "infra" },
+        }
+    }
+};
+
+/*
+var classes = new[] {
+    new {
         Name = "Province",
         Props = new[] {
             new Property() { Type = "string", Name = "Name", Quoted = true },
@@ -59,6 +77,7 @@ var classes = new[] {
         }
     }
 };
+*/
 
 // end add
 

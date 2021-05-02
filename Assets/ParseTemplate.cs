@@ -4,118 +4,19 @@ using System.Collections.Generic;
 
 namespace Parser
 {
-    public partial class Province : IParadoxRead, IParadoxWrite
+    public partial class ProvinceHistory : IParadoxRead, IParadoxWrite
     {
-        public string Name { get; set; }
-        public double Tax { get; set; }
-        public IList<string> Cores { get; set; }
-        public IList<string> TopProvinces { get; set; }
-        public IList<Army> Armies { get; set; }
+        public string owner { get; set; }
+        public string controller { get; set; }
+        public string add_core { get; set; }
+        public int points { get; set; }
+        public float metal { get; set; }
+        public float energy { get; set; }
+        public float rare_materials { get; set; }
+        public int industry { get; set; }
+        public int infra { get; set; }
 
-        public Province()
-        {
-            Cores = new List<string>();
-            Armies = new List<Army>();
-        }
-
-        public void TokenCallback(ParadoxParser parser, string token)
-        {
-            switch (token)
-            {
-            case "name": Name = parser.ReadString(); break;
-            case "tax": Tax = parser.ReadDouble(); break;
-            case "add_core": Cores.Add(parser.ReadString()); break;
-            case "top_provinces": TopProvinces = parser.ReadStringList(); break;
-            case "army": Armies.Add(parser.Parse(new Army())); break;
-            }
-        }
-
-        public void Write(ParadoxStreamWriter writer)
-        {
-            if (Name != null)
-            {
-                writer.WriteLine("name", Name, ValueWrite.Quoted);
-            }
-            writer.WriteLine("tax", Tax);
-            foreach(var val in Cores)
-            {
-                writer.WriteLine("add_core", val);
-            }
-            if (TopProvinces != null)
-            {
-                writer.Write("top_provinces={ ");
-                foreach (var val in TopProvinces)
-                {
-                    writer.Write(val, ValueWrite.Quoted);
-                    writer.Write(" ");
-                }
-                writer.WriteLine("}");
-            }
-            foreach(var val in Armies)
-            {
-                writer.Write("army", val);
-            }
-        }
-    }
-
-    public partial class Army : IParadoxRead, IParadoxWrite
-    {
-        public string Name { get; set; }
-        public ParadoxId Leader { get; set; }
-        public IList<Unit> Units { get; set; }
-        public IList<ParadoxId> Attachments { get; set; }
-
-        public Army()
-        {
-            Units = new List<Unit>();
-        }
-
-        public void TokenCallback(ParadoxParser parser, string token)
-        {
-            switch (token)
-            {
-            case "name": Name = parser.ReadString(); break;
-            case "leader": Leader = parser.Parse(new ParadoxId()); break;
-            case "unit": Units.Add(parser.Parse(new Unit())); break;
-            case "attachments": Attachments = parser.ReadList(() => parser.Parse (new ParadoxId())); break;
-            }
-        }
-
-        public void Write(ParadoxStreamWriter writer)
-        {
-            if (Name != null)
-            {
-                writer.WriteLine("name", Name, ValueWrite.Quoted);
-            }
-            if (Leader != null)
-            {
-                writer.Write("leader", Leader);
-            }
-            foreach(var val in Units)
-            {
-                writer.Write("unit", val);
-            }
-            if (Attachments != null)
-            {
-                writer.Write("attachments", w =>
-                {
-                    foreach (var val in Attachments)
-                    {
-                        w.Write(String.Empty, val);
-                    }
-                });
-            }
-        }
-    }
-
-    public partial class Unit : IParadoxRead, IParadoxWrite
-    {
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public double Morale { get; set; }
-        public double Strength { get; set; }
-
-        public Unit()
+        public ProvinceHistory()
         {
         }
 
@@ -123,50 +24,38 @@ namespace Parser
         {
             switch (token)
             {
-            case "name": Name = parser.ReadString(); break;
-            case "type": Type = parser.ReadString(); break;
-            case "morale": Morale = parser.ReadDouble(); break;
-            case "strength": Strength = parser.ReadDouble(); break;
+            case "owner": owner = parser.ReadString(); break;
+            case "controller": controller = parser.ReadString(); break;
+            case "add_core": add_core = parser.ReadString(); break;
+            case "points": points = parser.ReadInt32(); break;
+            case "metal": metal = parser.ReadFloat(); break;
+            case "energy": energy = parser.ReadFloat(); break;
+            case "rare_materials": rare_materials = parser.ReadFloat(); break;
+            case "industry": industry = parser.ReadInt32(); break;
+            case "infra": infra = parser.ReadInt32(); break;
             }
         }
 
         public void Write(ParadoxStreamWriter writer)
         {
-            if (Name != null)
+            if (owner != null)
             {
-                writer.WriteLine("name", Name, ValueWrite.Quoted);
+                writer.WriteLine("owner", owner);
             }
-            if (Type != null)
+            if (controller != null)
             {
-                writer.WriteLine("type", Type);
+                writer.WriteLine("controller", controller);
             }
-            writer.WriteLine("morale", Morale);
-            writer.WriteLine("strength", Strength);
-        }
-    }
-
-    public partial class ParadoxId : IParadoxRead, IParadoxWrite
-    {
-        public int Id { get; set; }
-        public int Type { get; set; }
-
-        public ParadoxId()
-        {
-        }
-
-        public void TokenCallback(ParadoxParser parser, string token)
-        {
-            switch (token)
+            if (add_core != null)
             {
-            case "id": Id = parser.ReadInt32(); break;
-            case "type": Type = parser.ReadInt32(); break;
+                writer.WriteLine("add_core", add_core);
             }
-        }
-
-        public void Write(ParadoxStreamWriter writer)
-        {
-            writer.WriteLine("id", Id);
-            writer.WriteLine("type", Type);
+            writer.WriteLine("points", points);
+            writer.WriteLine("metal", metal);
+            writer.WriteLine("energy", energy);
+            writer.WriteLine("rare_materials", rare_materials);
+            writer.WriteLine("industry", industry);
+            writer.WriteLine("infra", infra);
         }
     }
 
