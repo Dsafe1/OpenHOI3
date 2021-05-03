@@ -63,10 +63,13 @@ public class Data
 
         for (int y = 1; y < texHeight - 1; y++)
         {
+            //Pre calculate y offset - PERFORMANCE
+            int yOffset = y * texWidth;
+
             for (int x = 0; x < texWidth; x++)
             {
                 //Current color
-                Color32 currColor = tex.GetPixel(y, x);
+                Color32 currColor = tex.GetPixelPreOffset(yOffset, x);
 
                 //Ignore white color
                 if (currColor.r == 255 && currColor.g == 255 && currColor.b == 255)
@@ -108,19 +111,19 @@ public class Data
 
                 //Neighbor colors (NSEW)
                 Color32[] neighborColors = new Color32[4];
-                neighborColors[0] = tex.GetPixel(y - 1, x);
-                neighborColors[1] = tex.GetPixel(y + 1, x);
+                neighborColors[0] = tex.GetPixelPreOffset(yOffset - 1, x);
+                neighborColors[1] = tex.GetPixelPreOffset(yOffset + 1, x);
 
                 //Special cases wrap around horizontally on x axis
                 if (x == 0)
-                    neighborColors[2] = tex.GetPixel(y, texWidth - 1);
+                    neighborColors[2] = tex.GetPixelPreOffset(yOffset, texWidth - 1);
                 else
-                    neighborColors[2] = tex.GetPixel(y, x - 1);
+                    neighborColors[2] = tex.GetPixelPreOffset(yOffset, x - 1);
 
                 if (x == texWidth - 1)
-                    neighborColors[3] = tex.GetPixel(y, 0);
+                    neighborColors[3] = tex.GetPixelPreOffset(yOffset, 0);
                 else
-                    neighborColors[3] = tex.GetPixel(y, x + 1);
+                    neighborColors[3] = tex.GetPixelPreOffset(yOffset, x + 1);
 
                 //Setup neighbor connections
                 for (int i = 0; i < neighborColors.Length; i++)
@@ -180,7 +183,7 @@ public class Data
 
         GenerateProvinceAdjancencies();
 
-        // TODO Load costum adjancencies.csv
+        // TODO Load custom adjancencies.csv
 
         // TODO Load Province history
     }
