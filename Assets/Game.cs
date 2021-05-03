@@ -42,7 +42,14 @@ public class Game : MonoBehaviour
         {
             Province selectedProvince = ProvinceOnMouse();
             if (selectedProvince != null)
+            {
                 Debug.Log(selectedProvince.name);
+                Debug.Log("Neighbors:");
+                foreach (var connection in selectedProvince.connections)
+                {
+                    Debug.Log(connection.neighbor.name);
+                }
+            }
         }
     }
 }
