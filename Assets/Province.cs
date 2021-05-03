@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Connection
 {
+    public bool isLand;
     public Province neighbor;
     //TODO rivers
 }

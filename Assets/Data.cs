@@ -98,13 +98,13 @@ public class Data
                         currProvince = colorToProvince[currColor];
                     }
                     catch { }
-
-                    //No province with this color
-                    if (currProvince == null)
-                        continue;
                 }
                 else
                     wasInReuse = true;
+
+                //No province with this color
+                if (currProvince == null)
+                    continue;
 
                 //Neighbor colors (NSEW)
                 Color32[] neighborColors = new Color32[4];
@@ -128,18 +128,38 @@ public class Data
                     Color32 cl = neighborColors[i];
                     if (!Utils.SameColor32(currColor, cl))
                     {
-                        try
-                        {
-                            Province neighbor = colorToProvince[cl];
+                        Province neighbor = null;
 
-                            if (!currProvince.GetConnectedProvinces().Contains(neighbor))
+                        if (Utils.SameColor32(prevColor, cl))
+                            neighbor = prevProvince;
+
+                        if (neighbor == null)
+                        {
+                            try
                             {
-                                Connection connection = new Connection();
-                                connection.neighbor = neighbor;
-                                currProvince.connections.Add(connection);
+                                neighbor = reuseColorToProvince[cl];
                             }
+                            catch { }
                         }
-                        catch { }
+
+                        if (neighbor == null)
+                        {
+                            try
+                            {
+                                neighbor = colorToProvince[cl];
+                            }
+                            catch { }
+                        }
+
+                        if (neighbor == null)
+                            continue;
+
+                        if (!currProvince.GetConnectedProvinces().Contains(neighbor))
+                        {
+                            Connection connection = new Connection();
+                            connection.neighbor = neighbor;
+                            currProvince.connections.Add(connection);
+                        }
                     }
                 }
 
