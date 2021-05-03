@@ -10,7 +10,7 @@ public class Game : MonoBehaviour
 
     public static Data data;
 
-    public Province ClickedProvince()
+    public Province ProvinceOnMouse()
     {
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
@@ -40,7 +40,7 @@ public class Game : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            Province selectedProvince = ClickedProvince();
+            Province selectedProvince = ProvinceOnMouse();
             if (selectedProvince != null)
                 Debug.Log(selectedProvince.name);
         }

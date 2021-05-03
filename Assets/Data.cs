@@ -12,7 +12,7 @@ public class Data
     public static Dictionary<int, Province> idToProvince = new Dictionary<int, Province>();
 
     //Base game directory (TODO may change on build)
-    public static string BaseDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/')+1);
+    public static string BaseDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/') + 1);
 
     private void LoadProvinceDefinition()
     {
@@ -47,15 +47,122 @@ public class Data
         }
     }
 
+    public void GenerateProvinceAdjancencies()
+    {
+        //Get pixel mat
+        Utils.PixelMatrix tex = new Utils.PixelMatrix(GameObject.Find("Game").GetComponent<Game>().colourMap);
+        int texWidth = tex.width;
+        int texHeight = tex.height;
+
+        //Re-use dictionary - PERFORMANCE
+        Dictionary<Color32, Province> reuseColorToProvince = new Dictionary<Color32, Province>();
+
+        //Previous pixel data - PERFORMANCE
+        Color32 prevColor = Color.black;
+        Province prevProvince = null;
+
+        for (int y = 1; y < texHeight - 1; y++)
+        {
+            for (int x = 0; x < texWidth; x++)
+            {
+                //Current color
+                Color32 currColor = tex.GetPixel(y, x);
+
+                //Ignore white color
+                if (currColor.r == 255 && currColor.g == 255 && currColor.b == 255)
+                    continue;
+
+                //Province with current color
+                Province currProvince = null;
+
+                //Look at previous province color - PERFORMANCE
+                if (Utils.SameColor32(prevColor, currColor))
+                    currProvince = prevProvince;
+
+                //Look at reuse provinces dictionary - PERFORMANCE
+                bool wasInReuse = false;
+                if (currProvince == null)
+                {
+                    try
+                    {
+                        currProvince = reuseColorToProvince[currColor];
+                    }
+                    catch { }
+                }
+
+                //Look at complete dictionary
+                if (currProvince == null)
+                {
+                    try
+                    {
+                        currProvince = colorToProvince[currColor];
+                    }
+                    catch { }
+
+                    //No province with this color
+                    if (currProvince == null)
+                        continue;
+                }
+                else
+                    wasInReuse = true;
+
+                //Neighbor colors (NSEW)
+                Color32[] neighborColors = new Color32[4];
+                neighborColors[0] = tex.GetPixel(y - 1, x);
+                neighborColors[1] = tex.GetPixel(y + 1, x);
+
+                //Special cases wrap around horizontally on x axis
+                if (x == 0)
+                    neighborColors[2] = tex.GetPixel(y, texWidth - 1);
+                else
+                    neighborColors[2] = tex.GetPixel(y, x - 1);
+
+                if (x == texWidth - 1)
+                    neighborColors[3] = tex.GetPixel(y, 0);
+                else
+                    neighborColors[3] = tex.GetPixel(y, x + 1);
+
+                //Setup neighbor connections
+                for (int i = 0; i < neighborColors.Length; i++)
+                {
+                    Color32 cl = neighborColors[i];
+                    if (!Utils.SameColor32(currColor, cl))
+                    {
+                        try
+                        {
+                            Province neighbor = colorToProvince[cl];
+
+                            if (!currProvince.GetConnectedProvinces().Contains(neighbor))
+                            {
+                                Connection connection = new Connection();
+                                connection.neighbor = neighbor;
+                                currProvince.connections.Add(connection);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                //Store in reuse dictionary
+                if (!wasInReuse)
+                    reuseColorToProvince[currColor] = currProvince;
+
+                //Current becomes previous
+                prevColor = currColor;
+                prevProvince = currProvince;
+            }
+        }
+    }
+
     public void FullLoad()
     {
         LoadProvinceDefinition();
 
-        // Load Map and associate with provinces
+        GenerateProvinceAdjancencies();
 
-        // Generate adjacencies (and load custom ones)
+        // TODO Load costum adjancencies.csv
 
-        // Load Province history
+        // TODO Load Province history
     }
 
 }
