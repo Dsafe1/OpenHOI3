@@ -7,6 +7,17 @@ public class Connection
     public bool isLand;
     public Province neighbor;
     //TODO rivers
+    public enum Type
+    {
+        //Automatic
+        REGULAR,
+        //Special - adjacencies.csv
+        SEA,
+        CANAL
+    }
+    public Type type;
+    //Province passed through if special type of connection
+    public Province through;
 }
 
 public class Province

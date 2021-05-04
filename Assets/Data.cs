@@ -14,6 +14,7 @@ public class Data
     //Base game directory (TODO may change on build)
     public static string BaseDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/') + 1);
 
+    //Load province definitions and create them
     private void LoadProvinceDefinition()
     {
         string path = BaseDir + "/Data/map/definition.csv";
@@ -47,7 +48,66 @@ public class Data
         }
     }
 
-    public void GenerateProvinceAdjancencies()
+    //Load custom province adjacencies
+    private void LoadProvinceAdjacencies()
+    {
+        string path = BaseDir + "/Data/map/adjacencies.csv";
+
+        System.IO.StreamReader file = new System.IO.StreamReader(path);
+        string line;
+        while ((line = file.ReadLine()) != null)
+        {
+            // Check first char is number (ignore first line and others)
+            char firstChar = line[0];
+            if (char.IsDigit(firstChar))
+            {
+                string[] parts = line.Split(';');
+
+                // One Way
+
+                Connection way1 = new Connection();
+                way1.neighbor = idToProvince[int.Parse(parts[1])];
+                switch (parts[2])
+                {
+                    case "sea":
+                        way1.type = Connection.Type.SEA;
+                        break;
+                    case "canal":
+                        way1.type = Connection.Type.CANAL;
+                        break;
+                    //Unknown type, ignore
+                    default:
+                        continue;
+                }
+                way1.through = idToProvince[int.Parse(parts[3])];
+
+                idToProvince[int.Parse(parts[0])].connections.Add(way1);
+
+                // Two Way
+
+                Connection way2 = new Connection();
+                way2.neighbor = idToProvince[int.Parse(parts[0])];
+                switch (parts[2])
+                {
+                    case "sea":
+                        way2.type = Connection.Type.SEA;
+                        break;
+                    case "canal":
+                        way2.type = Connection.Type.CANAL;
+                        break;
+                    //Unknown type, ignore
+                    default:
+                        continue;
+                }
+                way2.through = idToProvince[int.Parse(parts[3])];
+
+                idToProvince[int.Parse(parts[1])].connections.Add(way2);
+            }
+        }
+    }
+
+    //Generate pixel province connections
+    private void GenerateProvinceAdjancencies()
     {
         //Get pixel mat
         Utils.PixelMatrix tex = new Utils.PixelMatrix(GameObject.Find("Game").GetComponent<Game>().colourMap);
@@ -161,6 +221,7 @@ public class Data
                         {
                             Connection connection = new Connection();
                             connection.neighbor = neighbor;
+                            connection.type = Connection.Type.REGULAR;
                             currProvince.connections.Add(connection);
                         }
                     }
@@ -183,7 +244,7 @@ public class Data
 
         GenerateProvinceAdjancencies();
 
-        // TODO Load custom adjancencies.csv
+        LoadProvinceAdjacencies();
 
         // TODO Load Province history
     }
