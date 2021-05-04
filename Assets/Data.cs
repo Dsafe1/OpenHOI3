@@ -22,7 +22,7 @@ public class Data
         //Create provinces
         System.IO.StreamReader file = new System.IO.StreamReader(path);
         string line;
-        while ((line = file.ReadLine()) != null)
+        while ((line = Utils.ReadLineUncommented(file.ReadLine())) != null)
         {
             // Check first char is number (ignore first line and others)
             char firstChar = line[0];
@@ -55,7 +55,7 @@ public class Data
 
         System.IO.StreamReader file = new System.IO.StreamReader(path);
         string line;
-        while ((line = file.ReadLine()) != null)
+        while ((line = Utils.ReadLineUncommented(file.ReadLine())) != null)
         {
             // Check first char is number (ignore first line and others)
             char firstChar = line[0];

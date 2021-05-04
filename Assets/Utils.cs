@@ -9,7 +9,6 @@ public static class Utils
         return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b;
     }
 
-    //Array of pixels with facilitators to use with Unity SetPixels
     public class PixelMatrix
     {
 
@@ -36,5 +35,12 @@ public static class Utils
             return pixels[yoffset + x];
         }
 
+    }
+
+    public static string ReadLineUncommented(string line)
+    {
+        if (line == null)
+            return null;
+        return line.Split('#')[0];
     }
 }
