@@ -34,6 +34,14 @@ var classes = new[] {
             new Property() { Type = "int", Name = "industry" },
             new Property() { Type = "int", Name = "infra" },
         }
+    },
+    new {
+        Name = "Country",
+        Props = new[] {
+            new Property() { Type = "[ConsecutiveElements] IList<string>", Name = "color"},
+            new Property() { Type = "string", Name = "graphical_culture"},
+            //TODO add rest of data
+        }
     }
 };
 

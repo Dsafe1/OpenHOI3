@@ -2,10 +2,18 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+
+using Pdoxcl2Sharp;
+
 using UnityEngine;
 
 public class Data
 {
+    //Countries
+    public static List<Country> countries = new List<Country>();
+    public static Dictionary<string, Country> tagToCountry = new Dictionary<string, Country>();
+
     //Provinces
     public static List<Province> provinces = new List<Province>();
     public static Dictionary<Color32, Province> colorToProvince = new Dictionary<Color32, Province>();
@@ -14,10 +22,10 @@ public class Data
     //Base game directory (TODO may change on build)
     public static string BaseDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/') + 1);
 
-    //Load province definitions and create them
+    //Load province definitions and create them - definition.csv
     private void LoadProvinceDefinition()
     {
-        string path = BaseDir + "/Data/map/definition.csv";
+        string path = BaseDir + "Data/map/definition.csv";
 
         //Create provinces
         System.IO.StreamReader file = new System.IO.StreamReader(path);
@@ -48,10 +56,10 @@ public class Data
         }
     }
 
-    //Load custom province adjacencies
+    //Load custom province adjacencies - adjacencies.csv
     private void LoadProvinceAdjacencies()
     {
-        string path = BaseDir + "/Data/map/adjacencies.csv";
+        string path = BaseDir + "Data/map/adjacencies.csv";
 
         System.IO.StreamReader file = new System.IO.StreamReader(path);
         string line;
@@ -103,6 +111,55 @@ public class Data
 
                 idToProvince[int.Parse(parts[1])].connections.Add(way2);
             }
+        }
+    }
+
+    //Load country definition - countries.txt
+    private void LoadCountriesDefinition()
+    {
+        string path = BaseDir + "Data/common/countries.txt";
+
+        System.IO.StreamReader file = new System.IO.StreamReader(path);
+        string line;
+        while ((line = Utils.ReadLineUncommented(file.ReadLine())) != null)
+        {
+            string[] parts = line.Split('=');
+
+            if (parts.Length != 2)
+                continue;
+
+            string tag = Utils.RemoveWhitespace(parts[0]);
+
+            string countryFile = parts[1].Substring(parts[1].IndexOf('/') + 1, parts[1].IndexOf('.') - parts[1].IndexOf('/')-1);
+
+            Country country = new Country();
+            country.name = countryFile;
+            country.tag = tag;
+            countries.Add(country);
+        }
+
+        //Add to dictionaries
+        foreach (Country country in countries)
+        {
+            tagToCountry.Add(country.tag, country);
+        }
+    }
+
+    //Load countries proper - countries/[country].txt
+    private void LoadCountriesProper()
+    {
+        string path = BaseDir + "Data/common/countries/";
+
+        foreach (var country in countries)
+        {
+            Parsers.Country partialCountry;
+            using (FileStream fs = new FileStream(path + country.name + ".txt", FileMode.Open))
+            {
+                partialCountry = ParadoxParser.Parse<Parsers.Country>(fs, new Parsers.Country());
+            }
+
+            //TODO load rest of data
+            country.color = new Color32(byte.Parse(partialCountry.color[0]), byte.Parse(partialCountry.color[1]), byte.Parse(partialCountry.color[2]), 255);
         }
     }
 
@@ -246,7 +303,11 @@ public class Data
 
         LoadProvinceAdjacencies();
 
-        // TODO Load Province history
+        LoadCountriesDefinition();
+
+        LoadCountriesProper();
+
+        //TODO Load Province history
     }
 
 }

@@ -1,5 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System;
+
 using UnityEngine;
 
 public static class Utils
@@ -42,5 +45,12 @@ public static class Utils
         if (line == null)
             return null;
         return line.Split('#')[0];
+    }
+
+    public static string RemoveWhitespace(string input)
+    {
+        return new string(input.ToCharArray()
+            .Where(c => !Char.IsWhiteSpace(c))
+            .ToArray());
     }
 }

@@ -59,4 +59,41 @@ namespace GeneratedParsers
         }
     }
 
+    public partial class Country : IParadoxRead, IParadoxWrite
+    {
+        public IList<string> color { get; set; }
+        public string graphical_culture { get; set; }
+
+        public Country()
+        {
+        }
+
+        public void TokenCallback(ParadoxParser parser, string token)
+        {
+            switch (token)
+            {
+            case "color": color = parser.ReadStringList(); break;
+            case "graphical_culture": graphical_culture = parser.ReadString(); break;
+            }
+        }
+
+        public void Write(ParadoxStreamWriter writer)
+        {
+            if (color != null)
+            {
+                writer.Write("color={ ");
+                foreach (var val in color)
+                {
+                    writer.Write(val);
+                    writer.Write(" ");
+                }
+                writer.WriteLine("}");
+            }
+            if (graphical_culture != null)
+            {
+                writer.WriteLine("graphical_culture", graphical_culture);
+            }
+        }
+    }
+
 }

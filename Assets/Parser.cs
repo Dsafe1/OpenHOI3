@@ -60,4 +60,35 @@ namespace Parsers
         }
     }
 
+    public partial class Country : IParadoxRead, IParadoxWrite
+    {
+        public IList<string> color { get; set; }
+
+        public Country()
+        {
+        }
+
+        public void TokenCallback(ParadoxParser parser, string token)
+        {
+            switch (token)
+            {
+            case "color": color = parser.ReadStringList(); break;
+            }
+        }
+
+        public void Write(ParadoxStreamWriter writer)
+        {
+            if (color != null)
+            {
+                writer.Write("color={ ");
+                foreach (var val in color)
+                {
+                    writer.Write(val);
+                    writer.Write(" ");
+                }
+                writer.WriteLine("}");
+            }
+        }
+    }
+
 }
