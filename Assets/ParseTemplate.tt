@@ -28,9 +28,9 @@ var classes = new[] {
             new Property() { Type = "string", Name = "controller" },
             new Property() { Type = "string", Name = "add_core" },
             new Property() { Type = "int", Name = "points" },
-            new Property() { Type = "float", Name = "metal" },
-            new Property() { Type = "float", Name = "energy" },
-            new Property() { Type = "float", Name = "rare_materials" },
+            new Property() { Type = "double", Name = "metal" },
+            new Property() { Type = "double", Name = "energy" },
+            new Property() { Type = "double", Name = "rare_materials" },
             new Property() { Type = "int", Name = "industry" },
             new Property() { Type = "int", Name = "infra" },
         }

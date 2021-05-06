@@ -20,7 +20,7 @@ public class Connection
     public Province through;
 }
 
-public class Province
+public partial class Province
 {
     //Definition
     public int id;

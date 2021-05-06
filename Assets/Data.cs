@@ -130,7 +130,7 @@ public class Data
 
             string tag = Utils.RemoveWhitespace(parts[0]);
 
-            string countryFile = parts[1].Substring(parts[1].IndexOf('/') + 1, parts[1].IndexOf('.') - parts[1].IndexOf('/')-1);
+            string countryFile = parts[1].Substring(parts[1].IndexOf('/') + 1, parts[1].IndexOf('.') - parts[1].IndexOf('/') - 1);
 
             Country country = new Country();
             country.name = countryFile;
@@ -150,16 +150,46 @@ public class Data
     {
         string path = BaseDir + "Data/common/countries/";
 
-        foreach (var country in countries)
+        for (int i = 0; i < countries.Count; i++)
         {
-            Parsers.Country partialCountry;
-            using (FileStream fs = new FileStream(path + country.name + ".txt", FileMode.Open))
+            using (FileStream fs = new FileStream(path + countries[i].name + ".txt", FileMode.Open))
             {
-                partialCountry = ParadoxParser.Parse<Parsers.Country>(fs, new Parsers.Country());
+                countries[i] = ParadoxParser.Parse<Country>(fs, countries[i]);
             }
 
-            //TODO load rest of data
-            country.color = new Color32(byte.Parse(partialCountry.color[0]), byte.Parse(partialCountry.color[1]), byte.Parse(partialCountry.color[2]), 255);
+            //Setup special data
+            countries[i].colorProper = new Color32(byte.Parse(countries[i].color[0]), byte.Parse(countries[i].color[1]), byte.Parse(countries[i].color[2]), 255);
+        }
+    }
+
+    //Load province history - history/provinces/[province].txt
+    private void LoadProvinceHistory()
+    {
+        string path = BaseDir + "Data/history/provinces/";
+
+        string[] allfiles = Directory.GetFiles(path, "*.txt*", SearchOption.AllDirectories);
+
+        for (int i = 0; i < allfiles.Length; i++)
+        {
+            //Get id from name
+            string provinceIdStr = new string(allfiles[i].Split('\\')[1].SkipWhile(c => !char.IsDigit(c))
+                         .TakeWhile(c => char.IsDigit(c))
+                         .ToArray());
+            int provinceId = int.Parse(provinceIdStr);
+
+            using (FileStream fs = new FileStream(allfiles[i], FileMode.Open))
+            {
+                idToProvince[provinceId] = ParadoxParser.Parse<Province>(fs, idToProvince[provinceId]);
+            }
+
+            //Add to controller
+            if (idToProvince[provinceId].controller != null)
+                tagToCountry[idToProvince[provinceId].controller].controlled.Add(idToProvince[provinceId]);
+            else
+                Debug.Log("Province " + provinceId + " null controller (" + allfiles[i] + ")");
+
+
+            //TODO add to countries cores (fix province only one add_core)
         }
     }
 
@@ -307,7 +337,7 @@ public class Data
 
         LoadCountriesProper();
 
-        //TODO Load Province history
+        LoadProvinceHistory();
     }
 
 }

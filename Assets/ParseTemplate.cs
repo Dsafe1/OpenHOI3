@@ -10,9 +10,9 @@ namespace GeneratedParsers
         public string controller { get; set; }
         public string add_core { get; set; }
         public int points { get; set; }
-        public float metal { get; set; }
-        public float energy { get; set; }
-        public float rare_materials { get; set; }
+        public double metal { get; set; }
+        public double energy { get; set; }
+        public double rare_materials { get; set; }
         public int industry { get; set; }
         public int infra { get; set; }
 
@@ -28,9 +28,9 @@ namespace GeneratedParsers
             case "controller": controller = parser.ReadString(); break;
             case "add_core": add_core = parser.ReadString(); break;
             case "points": points = parser.ReadInt32(); break;
-            case "metal": metal = parser.ReadFloat(); break;
-            case "energy": energy = parser.ReadFloat(); break;
-            case "rare_materials": rare_materials = parser.ReadFloat(); break;
+            case "metal": metal = parser.ReadDouble(); break;
+            case "energy": energy = parser.ReadDouble(); break;
+            case "rare_materials": rare_materials = parser.ReadDouble(); break;
             case "industry": industry = parser.ReadInt32(); break;
             case "infra": infra = parser.ReadInt32(); break;
             }
