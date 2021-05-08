@@ -25,6 +25,10 @@ public class Game : MonoBehaviour
         // Fetch the colour of the pixel we hit.
         var color = (Color32)colourMap.GetPixel(hitPoint.x, hitPoint.y);
 
+        // White is special color for void
+        if (color == Color.white)
+            return null;
+
         return Data.colorToProvince[color];
     }
 
@@ -33,7 +37,23 @@ public class Game : MonoBehaviour
     {
         data = new Data();
         data.FullLoad();
+
+        countryTex = new RenderTexture(colourMap.width, colourMap.height, 0, RenderTextureFormat.ARGB32);
+        countryTex.filterMode = FilterMode.Point;
+        countryTex.antiAliasing = 1;
+        countryTex.anisoLevel = 0;
+        countryTex.Create();
+
+        countryTex2 = new RenderTexture(colourMap.width, colourMap.height, 0, RenderTextureFormat.ARGB32);
+        countryTex2.filterMode = FilterMode.Point;
+        countryTex2.antiAliasing = 1;
+        countryTex2.anisoLevel = 0;
+        countryTex2.Create();
     }
+
+    RenderTexture countryTex;
+    RenderTexture countryTex2;
+    public Material colorReplacer;
 
     // Update is called once per frame
     void Update()
@@ -43,13 +63,33 @@ public class Game : MonoBehaviour
             Province selectedProvince = ProvinceOnMouse();
             if (selectedProvince != null)
             {
-                Debug.Log(selectedProvince.name);
-                Debug.Log("Neighbors:");
-                foreach (var connection in selectedProvince.connections)
-                {
-                    Debug.Log(connection.neighbor.name);
-                }
+                Debug.Log(selectedProvince.id + " - " + selectedProvince.controller + " - " + selectedProvince.color.ToString());
             }
+        }
+
+        //TODO do this for all at the start and then do once per controller change
+        //(find position in province map that matches color to replace but write to country map that is already painted)
+        //(is dynamic to allow stripes difference between owner and controller like hoi3)
+        if (Input.GetMouseButtonDown(1))
+        {
+            colorReplacer.SetTexture("_ProvincesTex", colourMap);
+            //TODO Optimization, dont need to do this for sea or white provinces
+            //TODO Optimization, shader cant do too much branching but surely can replace 5/10/15 colors at a time (benchmark)
+            for (int i = 0; i < Data.provinces.Count; i++)
+            {
+                if(Data.provinces[i].controller == null)
+                    continue;
+
+                colorReplacer.SetColor("_SearchColor", Data.provinces[i].color);
+                colorReplacer.SetColor("_NewColor", Data.tagToCountry[Data.provinces[i].controller].colorProper);
+
+                Graphics.Blit(countryTex, countryTex2, colorReplacer);
+
+                RenderTexture tmp = countryTex;
+                countryTex = countryTex2;
+                countryTex2 = tmp;
+            }
+            GameObject.Find("CountryMap").GetComponent<Renderer>().material.mainTexture = countryTex2;
         }
     }
 }

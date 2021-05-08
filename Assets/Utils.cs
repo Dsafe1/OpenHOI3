@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System;
 
 using UnityEngine;
@@ -38,6 +39,16 @@ public static class Utils
             return pixels[yoffset + x];
         }
 
+        public void SetPixel(int y, int x, Color32 cl)
+        {
+            pixels[y * width + x] = cl;
+        }
+
+        public void SetPixelPreOffset(int yoffset, int x, Color32 cl)
+        {
+            pixels[yoffset + x] = cl;
+        }
+
     }
 
     public static string ReadLineUncommented(string line)
@@ -52,5 +63,15 @@ public static class Utils
         return new string(input.ToCharArray()
             .Where(c => !Char.IsWhiteSpace(c))
             .ToArray());
+    }
+
+    public static Stream GenerateStreamFromString(string s)
+    {
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.Write(s);
+        writer.Flush();
+        stream.Position = 0;
+        return stream;
     }
 }

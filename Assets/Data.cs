@@ -177,7 +177,25 @@ public class Data
                          .ToArray());
             int provinceId = int.Parse(provinceIdStr);
 
-            using (FileStream fs = new FileStream(allfiles[i], FileMode.Open))
+            //Remove date history
+            string text = File.ReadAllText(allfiles[i]);
+            string[] parts = text.Split('\n');
+            bool ignore = false;
+            string final = "";
+            for (int j = 0; j < parts.Length; j++)
+            {
+                if (parts[j].Contains('{'))
+                    ignore = true;
+
+                if (!ignore)
+                    final += parts[j] + "\n";
+
+                if (parts[j].Contains('}'))
+                    ignore = false;
+            }
+
+            //Using stream from cleaned string
+            using (Stream fs = Utils.GenerateStreamFromString(final))
             {
                 idToProvince[provinceId] = ParadoxParser.Parse<Province>(fs, idToProvince[provinceId]);
             }
