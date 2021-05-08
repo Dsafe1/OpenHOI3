@@ -27,6 +27,10 @@ public partial class Province
     public Color32 color;
     public string name;
 
+    public List<int> pixelsX = new List<int>();
+    public List<int> pixelsY = new List<int>();
+    public Vector2Int centroid;
+
     public List<Connection> connections = new List<Connection>();
 
     public GeneratedParsers.ProvinceHistory provinceHistory;

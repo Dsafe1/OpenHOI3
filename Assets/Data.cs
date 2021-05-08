@@ -19,7 +19,7 @@ public class Data
     public static Dictionary<Color32, Province> colorToProvince = new Dictionary<Color32, Province>();
     public static Dictionary<int, Province> idToProvince = new Dictionary<int, Province>();
 
-    //Base game directory (TODO may change on build)
+    //Base game directory
     public static string BaseDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/') + 1);
 
     //Load province definitions and create them - definition.csv
@@ -274,6 +274,10 @@ public class Data
                 if (currProvince == null)
                     continue;
 
+                //Add pixel to province positions
+                currProvince.pixelsX.Add(x);
+                currProvince.pixelsY.Add(y);
+
                 //Neighbor colors (NSEW)
                 Color32[] neighborColors = new Color32[4];
                 neighborColors[0] = tex.GetPixelPreOffset(yOffset - 1, x);
@@ -343,11 +347,25 @@ public class Data
         }
     }
 
+    //Calculate centroids of each province
+    private void CalculateProvinceCentroids()
+    {
+        for (int i = 0; i < provinces.Count; i++)
+        {
+            int totalX = provinces[i].pixelsX.Sum();
+            int totalY = provinces[i].pixelsY.Sum();
+
+            provinces[i].centroid = new Vector2Int(Mathf.RoundToInt((float)totalX / provinces[i].pixelsX.Count), Mathf.RoundToInt((float)totalY / provinces[i].pixelsY.Count));
+        }
+    }
+
     public void FullLoad()
     {
         LoadProvinceDefinition();
 
         GenerateProvinceAdjancencies();
+
+        CalculateProvinceCentroids();
 
         LoadProvinceAdjacencies();
 

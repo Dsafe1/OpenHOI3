@@ -73,8 +73,6 @@ public class Game : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             colorReplacer.SetTexture("_ProvincesTex", colourMap);
-            //TODO Optimization, dont need to do this for sea or white provinces
-            //TODO Optimization, shader cant do too much branching but surely can replace 5/10/15 colors at a time (benchmark)
             for (int i = 0; i < Data.provinces.Count; i++)
             {
                 if(Data.provinces[i].controller == null)
