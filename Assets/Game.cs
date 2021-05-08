@@ -6,10 +6,22 @@ public class Game : MonoBehaviour
 {
 
     public MeshCollider mapShape;
-    public Texture2D colourMap;
+
+    public Texture2D provinceMap;
 
     public static Data data;
 
+    //Country Map
+    public Material colorReplacer;
+    public RenderTexture countryMapTemp;
+    public RenderTexture countryMap;
+
+    //Selected Province Map
+    public Material provinceSelector;
+    public RenderTexture selectedProvinceMapTemp;
+    public RenderTexture selectedProvinceMap;
+
+    //Get province under mouse
     public Province ProvinceOnMouse()
     {
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -19,11 +31,11 @@ public class Game : MonoBehaviour
             return null;
 
         // Map the hit point on the quad to a pixel coordinate
-        var mapSize = new Vector2(colourMap.width, colourMap.height);
+        var mapSize = new Vector2(provinceMap.width, provinceMap.height);
         var hitPoint = Vector2Int.RoundToInt(Vector2.Scale(hit.textureCoord, mapSize));
 
         // Fetch the colour of the pixel we hit.
-        var color = (Color32)colourMap.GetPixel(hitPoint.x, hitPoint.y);
+        var color = (Color32)provinceMap.GetPixel(hitPoint.x, hitPoint.y);
 
         // White is special color for void
         if (color == Color.white)
@@ -38,22 +50,34 @@ public class Game : MonoBehaviour
         data = new Data();
         data.FullLoad();
 
-        countryTex = new RenderTexture(colourMap.width, colourMap.height, 0, RenderTextureFormat.ARGB32);
-        countryTex.filterMode = FilterMode.Point;
-        countryTex.antiAliasing = 1;
-        countryTex.anisoLevel = 0;
-        countryTex.Create();
+        countryMapTemp = new RenderTexture(provinceMap.width, provinceMap.height, 0, RenderTextureFormat.ARGB32);
+        countryMapTemp.filterMode = FilterMode.Point;
+        countryMapTemp.antiAliasing = 1;
+        countryMapTemp.anisoLevel = 0;
+        countryMapTemp.Create();
 
-        countryTex2 = new RenderTexture(colourMap.width, colourMap.height, 0, RenderTextureFormat.ARGB32);
-        countryTex2.filterMode = FilterMode.Point;
-        countryTex2.antiAliasing = 1;
-        countryTex2.anisoLevel = 0;
-        countryTex2.Create();
+        countryMap = new RenderTexture(provinceMap.width, provinceMap.height, 0, RenderTextureFormat.ARGB32);
+        countryMap.filterMode = FilterMode.Point;
+        countryMap.antiAliasing = 1;
+        countryMap.anisoLevel = 0;
+        countryMap.Create();
+
+        colorReplacer.SetTexture("_ProvincesTex", provinceMap);
+
+        selectedProvinceMap = new RenderTexture(provinceMap.width, provinceMap.height, 0, RenderTextureFormat.ARGB32);
+        selectedProvinceMap.filterMode = FilterMode.Point;
+        selectedProvinceMap.antiAliasing = 1;
+        selectedProvinceMap.anisoLevel = 0;
+        selectedProvinceMap.Create();
+
+        selectedProvinceMapTemp = new RenderTexture(provinceMap.width, provinceMap.height, 0, RenderTextureFormat.ARGB32);
+        selectedProvinceMapTemp.filterMode = FilterMode.Point;
+        selectedProvinceMapTemp.antiAliasing = 1;
+        selectedProvinceMapTemp.anisoLevel = 0;
+        selectedProvinceMapTemp.Create();
+
+        provinceSelector.SetTexture("_ProvincesTex", provinceMap);
     }
-
-    RenderTexture countryTex;
-    RenderTexture countryTex2;
-    public Material colorReplacer;
 
     // Update is called once per frame
     void Update()
@@ -64,6 +88,11 @@ public class Game : MonoBehaviour
             if (selectedProvince != null)
             {
                 Debug.Log(selectedProvince.id + " - " + selectedProvince.controller + " - " + selectedProvince.color.ToString());
+
+                //Province selector effect
+                provinceSelector.SetColor("_SearchColor", selectedProvince.color);
+                Graphics.Blit(selectedProvinceMapTemp, selectedProvinceMap, provinceSelector);
+                GameObject.Find("SelectedProvinceMap").GetComponent<Renderer>().material.mainTexture = selectedProvinceMap;
             }
         }
 
@@ -72,7 +101,6 @@ public class Game : MonoBehaviour
         //(is dynamic to allow stripes difference between owner and controller like hoi3)
         if (Input.GetMouseButtonDown(1))
         {
-            colorReplacer.SetTexture("_ProvincesTex", colourMap);
             for (int i = 0; i < Data.provinces.Count; i++)
             {
                 if(Data.provinces[i].controller == null)
@@ -81,13 +109,13 @@ public class Game : MonoBehaviour
                 colorReplacer.SetColor("_SearchColor", Data.provinces[i].color);
                 colorReplacer.SetColor("_NewColor", Data.tagToCountry[Data.provinces[i].controller].colorProper);
 
-                Graphics.Blit(countryTex, countryTex2, colorReplacer);
+                Graphics.Blit(countryMapTemp, countryMap, colorReplacer);
 
-                RenderTexture tmp = countryTex;
-                countryTex = countryTex2;
-                countryTex2 = tmp;
+                RenderTexture tmp = countryMapTemp;
+                countryMapTemp = countryMap;
+                countryMap = tmp;
             }
-            GameObject.Find("CountryMap").GetComponent<Renderer>().material.mainTexture = countryTex2;
+            GameObject.Find("CountryMap").GetComponent<Renderer>().material.mainTexture = countryMap;
         }
     }
 }

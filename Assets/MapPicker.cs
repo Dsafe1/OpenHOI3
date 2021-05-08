@@ -9,7 +9,7 @@ public class MapPicker : MonoBehaviour
     public MeshCollider mapShape;
 
     //Texture to lookup
-    public Texture2D colourMap;
+    public Texture2D provinceMap;
 
     //Province color dictionary
     public static Dictionary<Color32, Province> provinceColorDictionary;
@@ -19,7 +19,7 @@ public class MapPicker : MonoBehaviour
         provinceColorDictionary = new Dictionary<Color32, Province>(20000);
 
         // Generate province for each unique color
-        var pixels = colourMap.GetPixels32();
+        var pixels = provinceMap.GetPixels32();
         foreach(var pixel in pixels) {
             if (provinceColorDictionary.ContainsKey(pixel))
                 continue;
@@ -42,11 +42,11 @@ public class MapPicker : MonoBehaviour
             return;
 
         // Map the hit point on the quad to a pixel coordinate
-        var mapSize = new Vector2(colourMap.width, colourMap.height);
+        var mapSize = new Vector2(provinceMap.width, provinceMap.height);
         var hitPoint = Vector2Int.RoundToInt(Vector2.Scale(hit.textureCoord, mapSize));
 
         // Fetch the colour of the pixel we hit.
-        var colour = (Color32)colourMap.GetPixel(hitPoint.x, hitPoint.y);
+        var colour = (Color32)provinceMap.GetPixel(hitPoint.x, hitPoint.y);
 
         // Get province
         var territory = provinceColorDictionary[colour];

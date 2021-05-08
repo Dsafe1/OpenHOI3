@@ -215,7 +215,7 @@ public class Data
     private void GenerateProvinceAdjancencies()
     {
         //Get pixel mat
-        Utils.PixelMatrix tex = new Utils.PixelMatrix(GameObject.Find("Game").GetComponent<Game>().colourMap);
+        Utils.PixelMatrix tex = new Utils.PixelMatrix(GameObject.Find("Game").GetComponent<Game>().provinceMap);
         int texWidth = tex.width;
         int texHeight = tex.height;
 
