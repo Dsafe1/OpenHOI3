@@ -15,6 +15,7 @@ public class Game : MonoBehaviour
     public static Texture2D provinceMap;
 
     //Country Map
+    public Material singleColorReplacer;
     public Material multiColorReplacer;
     public static RenderTexture countryMapTemp;
     public static RenderTexture countryMap;
@@ -84,6 +85,7 @@ public class Game : MonoBehaviour
         countryMap.Create();
 
         multiColorReplacer.SetTexture("_ProvincesTex", provinceMap);
+        singleColorReplacer.SetTexture("_ProvincesTex", provinceMap);
 
         //Setup selected province map RTs
         selectedProvinceMap = new RenderTexture(provinceMap.width, provinceMap.height, 0, RenderTextureFormat.ARGB32);
@@ -474,6 +476,15 @@ public class Game : MonoBehaviour
             }
         }
 
+        GameObject.Find("CountryMap").GetComponent<Renderer>().material.mainTexture = countryMap;
+    }
+
+    //Change single province controller
+    private void ChangeSingleProvinceControllerMap(Color32 search, Color32 replace)
+    {
+        singleColorReplacer.SetColor("_SearchColor", search);
+        singleColorReplacer.SetColor("_NewColor", replace);
+        Graphics.Blit(countryMapTemp, countryMap, singleColorReplacer);
         GameObject.Find("CountryMap").GetComponent<Renderer>().material.mainTexture = countryMap;
     }
 

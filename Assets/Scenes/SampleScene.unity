@@ -151,6 +151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mapShape: {fileID: 1395852093}
+  singleColorReplacer: {fileID: 2100000, guid: 7c975456b2755fc45ac384ebf00ecf56, type: 2}
   multiColorReplacer: {fileID: 2100000, guid: 7462e747210ea4a4b9b129d95413d446, type: 2}
   provinceSelector: {fileID: 2100000, guid: 1bbe882d98d9d244a93e4f66f92f4839, type: 2}
 --- !u!4 &288934995
@@ -491,7 +492,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1395852091}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
