@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ColorReplacer
-  m_Shader: {fileID: 4800000, guid: 0a5e492211e08ba4ea821079d3982b94, type: 3}
+  m_Name: MultiColorReplacer
+  m_Shader: {fileID: 4800000, guid: 2015f5aa79aa83440813a567eb1550cd, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0

@@ -1,4 +1,4 @@
-﻿Shader "Custom/ColorReplacer"
+﻿Shader "Custom/MultiColorReplacer"
 {
     Properties
     {
