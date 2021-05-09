@@ -4,6 +4,8 @@ using System.Linq;
 using System.IO;
 using System;
 
+using B83.Image.BMP;
+
 using UnityEngine;
 
 public static class Utils
@@ -74,4 +76,25 @@ public static class Utils
         stream.Position = 0;
         return stream;
     }
+
+    public static Texture2D LoadTexture(string filePath)
+{
+    Texture2D tex = null;
+    byte[] fileData;
+
+    if (File.Exists(filePath))
+    {
+        fileData = File.ReadAllBytes(filePath);
+
+        BMPLoader bmpLoader = new BMPLoader();
+        //bmpLoader.ForceAlphaReadWhenPossible = true; //Uncomment to read alpha too
+
+        //Load the BMP data
+        BMPImage bmpImg = bmpLoader.LoadBMP(fileData);
+
+        //Convert the Color32 array into a Texture2D
+        tex = bmpImg.ToTexture2D();
+    }
+    return tex;
+}
 }

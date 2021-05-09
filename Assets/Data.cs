@@ -22,6 +22,18 @@ public class Data
     //Base game directory
     public static string BaseDir = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/') + 1);
 
+    //Load map files (loading using BMPLoader, Unity reads .png wrong)
+    private void LoadMapImages()
+    {
+        string path = BaseDir + "Data/map/";
+
+        //Load provinces.bmp
+        Game.provinceMap = new Texture2D(2,2);
+        Game.provinceMap = Utils.LoadTexture(path + "provinces.bmp");
+        Game.provinceMap.filterMode = FilterMode.Point;
+        GameObject.Find("ProvinceMap").GetComponent<Renderer>().material.mainTexture = Game.provinceMap;
+    }
+
     //Load province definitions and create them - definition.csv
     private void LoadProvinceDefinition()
     {
@@ -215,7 +227,7 @@ public class Data
     private void GenerateProvinceAdjancencies()
     {
         //Get pixel mat
-        Utils.PixelMatrix tex = new Utils.PixelMatrix(GameObject.Find("Game").GetComponent<Game>().provinceMap);
+        Utils.PixelMatrix tex = new Utils.PixelMatrix(Game.provinceMap);
         int texWidth = tex.width;
         int texHeight = tex.height;
 
@@ -361,6 +373,8 @@ public class Data
 
     public void FullLoad()
     {
+        LoadMapImages();
+
         LoadProvinceDefinition();
 
         GenerateProvinceAdjancencies();

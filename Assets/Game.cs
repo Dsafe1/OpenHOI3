@@ -7,7 +7,7 @@ public class Game : MonoBehaviour
 
     public MeshCollider mapShape;
 
-    public Texture2D provinceMap;
+    public static Texture2D provinceMap;
 
     public static Data data;
 
@@ -101,6 +101,7 @@ public class Game : MonoBehaviour
         //(is dynamic to allow stripes difference between owner and controller like hoi3)
         if (Input.GetMouseButtonDown(1))
         {
+            //TODO do at least 4 at same time
             for (int i = 0; i < Data.provinces.Count; i++)
             {
                 if(Data.provinces[i].controller == null)
