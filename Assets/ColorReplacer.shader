@@ -32,8 +32,22 @@
             sampler2D _MainTex;
             sampler2D _ProvincesTex;
             float4 _MainTex_ST;
-            fixed4 _SearchColor;
-            fixed4 _NewColor;
+            fixed4 _SearchColor1;
+            fixed4 _NewColor1;
+            fixed4 _SearchColor2;
+            fixed4 _NewColor2;
+            fixed4 _SearchColor3;
+            fixed4 _NewColor3;
+            fixed4 _SearchColor4;
+            fixed4 _NewColor4;
+            fixed4 _SearchColor5;
+            fixed4 _NewColor5;
+            fixed4 _SearchColor6;
+            fixed4 _NewColor6;
+            fixed4 _SearchColor7;
+            fixed4 _NewColor7;
+            fixed4 _SearchColor8;
+            fixed4 _NewColor8;
 
             v2f vert (appdata v)
             {
@@ -47,10 +61,52 @@
             {
                 fixed4 col = tex2D(_ProvincesTex, i.uv);
 
-                fixed d = distance(_SearchColor.rgb, col.rgb);
+                fixed d = distance(_SearchColor1.rgb, col.rgb);
                 if (d <= 1/255)
                 {
-                    return _NewColor;
+                    return _NewColor1;
+                }
+
+                d = distance(_SearchColor2.rgb, col.rgb);
+                if (d <= 1/255)
+                {
+                    return _NewColor2;
+                }
+
+                d = distance(_SearchColor3.rgb, col.rgb);
+                if (d <= 1/255)
+                {
+                    return _NewColor3;
+                }
+
+                d = distance(_SearchColor4.rgb, col.rgb);
+                if (d <= 1/255)
+                {
+                    return _NewColor4;
+                }
+
+                d = distance(_SearchColor5.rgb, col.rgb);
+                if (d <= 1/255)
+                {
+                    return _NewColor5;
+                }
+
+                d = distance(_SearchColor6.rgb, col.rgb);
+                if (d <= 1/255)
+                {
+                    return _NewColor6;
+                }
+
+                d = distance(_SearchColor7.rgb, col.rgb);
+                if (d <= 1/255)
+                {
+                    return _NewColor7;
+                }
+
+                d = distance(_SearchColor8.rgb, col.rgb);
+                if (d <= 1/255)
+                {
+                    return _NewColor8;
                 }
 
                 return tex2D(_MainTex, i.uv);

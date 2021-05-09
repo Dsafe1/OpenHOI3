@@ -101,21 +101,35 @@ public class Game : MonoBehaviour
         //(is dynamic to allow stripes difference between owner and controller like hoi3)
         if (Input.GetMouseButtonDown(1))
         {
-            //TODO do at least 4 at same time
-            for (int i = 0; i < Data.provinces.Count; i++)
+            List<Province> toPaint = new List<Province>();
+            RenderTexture tmp = countryMapTemp;
+            for (int i = 0; i < Data.provinces.Count; i += 1)
             {
-                if(Data.provinces[i].controller == null)
-                    continue;
+                //Is land so add to paint list
+                if (Data.provinces[i].isLand)
+                {
+                    toPaint.Add(Data.provinces[i]);
+                }
 
-                colorReplacer.SetColor("_SearchColor", Data.provinces[i].color);
-                colorReplacer.SetColor("_NewColor", Data.tagToCountry[Data.provinces[i].controller].colorProper);
+                //Once have N to paint or reached last province
+                if (toPaint.Count == 8 || i == Data.provinces.Count-1)
+                {
+                    for (int j = 0; j < toPaint.Count; j++)
+                    {
+                        colorReplacer.SetColor("_SearchColor" + (j+1), toPaint[j].color);
+                        colorReplacer.SetColor("_NewColor" + (j+1), Data.tagToCountry[toPaint[j].controller].colorProper);
+                    }
 
-                Graphics.Blit(countryMapTemp, countryMap, colorReplacer);
+                    Graphics.Blit(countryMapTemp, countryMap, colorReplacer);
 
-                RenderTexture tmp = countryMapTemp;
-                countryMapTemp = countryMap;
-                countryMap = tmp;
+                    tmp = countryMapTemp;
+                    countryMapTemp = countryMap;
+                    countryMap = tmp;
+
+                    toPaint.Clear();
+                }
             }
+
             GameObject.Find("CountryMap").GetComponent<Renderer>().material.mainTexture = countryMap;
         }
     }

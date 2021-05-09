@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Connection
 {
-    public bool isLand;
     public Province neighbor;
     //TODO rivers
     public enum Type
@@ -26,6 +25,7 @@ public partial class Province
     public int id;
     public Color32 color;
     public string name;
+    public bool isLand = false;
 
     public List<int> pixelsX = new List<int>();
     public List<int> pixelsY = new List<int>();

@@ -191,18 +191,18 @@ public class Data
 
             //Remove date history
             string text = File.ReadAllText(allfiles[i]);
-            string[] parts = text.Split('\n');
+            string[] lines = text.Split('\n');
             bool ignore = false;
             string final = "";
-            for (int j = 0; j < parts.Length; j++)
+            for (int j = 0; j < lines.Length; j++)
             {
-                if (parts[j].Contains('{'))
+                if (lines[j].IndexOf('{') != -1)
                     ignore = true;
 
                 if (!ignore)
-                    final += parts[j] + "\n";
+                    final += lines[j] + "\n";
 
-                if (parts[j].Contains('}'))
+                if (lines[j].IndexOf('}') != -1)
                     ignore = false;
             }
 
@@ -214,7 +214,11 @@ public class Data
 
             //Add to controller
             if (idToProvince[provinceId].controller != null)
+            {
+                //Only provinces with controller are land
+                idToProvince[provinceId].isLand = true;
                 tagToCountry[idToProvince[provinceId].controller].controlled.Add(idToProvince[provinceId]);
+            }
             else
                 Debug.Log("Province " + provinceId + " null controller (" + allfiles[i] + ")");
 

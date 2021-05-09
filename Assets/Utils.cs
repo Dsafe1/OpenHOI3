@@ -78,23 +78,23 @@ public static class Utils
     }
 
     public static Texture2D LoadTexture(string filePath)
-{
-    Texture2D tex = null;
-    byte[] fileData;
-
-    if (File.Exists(filePath))
     {
-        fileData = File.ReadAllBytes(filePath);
+        Texture2D tex = null;
+        byte[] fileData;
 
-        BMPLoader bmpLoader = new BMPLoader();
-        //bmpLoader.ForceAlphaReadWhenPossible = true; //Uncomment to read alpha too
+        if (File.Exists(filePath))
+        {
+            fileData = File.ReadAllBytes(filePath);
 
-        //Load the BMP data
-        BMPImage bmpImg = bmpLoader.LoadBMP(fileData);
+            BMPLoader bmpLoader = new BMPLoader();
+            //bmpLoader.ForceAlphaReadWhenPossible = true; //Uncomment to read alpha too
 
-        //Convert the Color32 array into a Texture2D
-        tex = bmpImg.ToTexture2D();
+            //Load the BMP data
+            BMPImage bmpImg = bmpLoader.LoadBMP(fileData);
+
+            //Convert the Color32 array into a Texture2D
+            tex = bmpImg.ToTexture2D();
+        }
+        return tex;
     }
-    return tex;
-}
 }
