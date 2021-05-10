@@ -25,6 +25,11 @@ public partial class Game : MonoBehaviour
     public static RenderTexture selectedProvinceMapTemp;
     public static RenderTexture selectedProvinceMap;
 
+    //Border Map
+    public Material border;
+    public static RenderTexture borderMapTemp;
+    public static RenderTexture borderMap;
+
     //Countries
     public static List<Country> countries = new List<Country>();
     public static Dictionary<string, Country> tagToCountry = new Dictionary<string, Country>();

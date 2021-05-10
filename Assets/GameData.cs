@@ -51,6 +51,19 @@ public partial class Game : MonoBehaviour
         selectedProvinceMapTemp.Create();
 
         provinceSelector.SetTexture("_ProvincesTex", provinceMap);
+
+        //Setup border map RTs
+        borderMap = new RenderTexture(provinceMap.width, provinceMap.height, 0, RenderTextureFormat.ARGB32);
+        borderMap.filterMode = FilterMode.Point;
+        borderMap.autoGenerateMips = true;
+        borderMap.Create();
+
+        borderMapTemp = new RenderTexture(provinceMap.width, provinceMap.height, 0, RenderTextureFormat.ARGB32);
+        borderMapTemp.filterMode = FilterMode.Point;
+        borderMapTemp.autoGenerateMips = true;
+        borderMapTemp.Create();
+
+        border.SetTexture("_ProvincesTex", provinceMap);
     }
 
     //Load province definitions and create them - definition.csv
@@ -427,6 +440,13 @@ public partial class Game : MonoBehaviour
         }
 
         GameObject.Find("CountryMap").GetComponent<Renderer>().material.mainTexture = countryMap;
+    }
+
+    //Generate Province Map
+    private void GenerateProvinceBorderMap()
+    {
+        Graphics.Blit(borderMapTemp, borderMap, border);
+        GameObject.Find("BorderMap").GetComponent<Renderer>().material.mainTexture = borderMap;
     }
 
 }
