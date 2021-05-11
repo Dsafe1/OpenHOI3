@@ -17,7 +17,7 @@ public partial class Game : MonoBehaviour
 
         //Load provinces.bmp
         Game.provinceMap = new Texture2D(2, 2);
-        Game.provinceMap = Utils.LoadTexture(path + "provinces.bmp");
+        Game.provinceMap = Utils.LoadTextureBMP(path + "provinces.bmp");
         Game.provinceMap.filterMode = FilterMode.Point;
         GameObject.Find("ProvinceMap").GetComponent<Renderer>().material.mainTexture = Game.provinceMap;
 

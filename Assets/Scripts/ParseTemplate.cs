@@ -4,6 +4,63 @@ using System.Collections.Generic;
 
 namespace GeneratedParsers
 {
+    public partial class SpriteTypes : IParadoxRead, IParadoxWrite
+    {
+        public IList<SpriteType> spriteTypes { get; set; }
+
+        public SpriteTypes()
+        {
+            spriteTypes = new List<SpriteType>();
+        }
+
+        public void TokenCallback(ParadoxParser parser, string token)
+        {
+            switch (token)
+            {
+            case "sprite_type": spriteTypes.Add(parser.Parse(new SpriteType())); break;
+            }
+        }
+
+        public void Write(ParadoxStreamWriter writer)
+        {
+            foreach(var val in spriteTypes)
+            {
+                writer.Write("sprite_type", val);
+            }
+        }
+    }
+
+    public partial class SpriteType : IParadoxRead, IParadoxWrite
+    {
+        public string name { get; set; }
+        public string texturefile { get; set; }
+
+        public SpriteType()
+        {
+        }
+
+        public void TokenCallback(ParadoxParser parser, string token)
+        {
+            switch (token)
+            {
+            case "name": name = parser.ReadString(); break;
+            case "texturefile": texturefile = parser.ReadString(); break;
+            }
+        }
+
+        public void Write(ParadoxStreamWriter writer)
+        {
+            if (name != null)
+            {
+                writer.WriteLine("name", name, ValueWrite.Quoted);
+            }
+            if (texturefile != null)
+            {
+                writer.WriteLine("texturefile", texturefile, ValueWrite.Quoted);
+            }
+        }
+    }
+
     public partial class ProvinceHistory : IParadoxRead, IParadoxWrite
     {
         public string owner { get; set; }

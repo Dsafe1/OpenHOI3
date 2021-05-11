@@ -22,6 +22,19 @@ namespace GeneratedParsers
 
 var classes = new[] {
     new {
+        Name = "SpriteTypes",
+        Props = new[] {
+            new Property() { Type = "IList<SpriteType>", Name = "spriteTypes" },
+        }
+    },
+    new {
+        Name = "SpriteType",
+        Props = new[] {
+            new Property() { Type = "string", Name = "name", Quoted = true },
+            new Property() { Type = "string", Name = "texturefile", Quoted = true },
+        }
+    },
+    new {
         Name = "ProvinceHistory",
         Props = new[] {
             new Property() { Type = "string", Name = "owner"},
