@@ -94,6 +94,8 @@ public partial class Game : MonoBehaviour
         LoadProvinceHistory();
 
         GenerateStartingCountryMap();
+
+        GenerateProvinceBorderMap();
     }
 
     void Awake()

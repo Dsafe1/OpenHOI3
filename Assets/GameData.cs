@@ -221,25 +221,7 @@ public partial class Game : MonoBehaviour
                          .ToArray());
             int provinceId = int.Parse(provinceIdStr);
 
-            //Remove date history
-            string text = File.ReadAllText(allfiles[i]);
-            string[] lines = text.Split('\n');
-            bool ignore = false;
-            string final = "";
-            for (int j = 0; j < lines.Length; j++)
-            {
-                if (lines[j].IndexOf('{') != -1)
-                    ignore = true;
-
-                if (!ignore)
-                    final += lines[j] + "\n";
-
-                if (lines[j].IndexOf('}') != -1)
-                    ignore = false;
-            }
-
-            //Using stream from cleaned string
-            using (Stream fs = Utils.GenerateStreamFromString(final))
+            using (FileStream fs = new FileStream(allfiles[i], FileMode.Open))
             {
                 idToProvince[provinceId] = ParadoxParser.Parse<Province>(fs, idToProvince[provinceId]);
             }
