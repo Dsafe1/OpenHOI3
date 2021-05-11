@@ -23,9 +23,14 @@ public class CameraController : MonoBehaviour
         //Mouse Zoom
         if (Input.GetAxis("Mouse ScrollWheel") > 0)
             ZoomOrthoCamera(Camera.main.ScreenToWorldPoint(Input.mousePosition), zoomSpeed);
-
-        if (Input.GetAxis("Mouse ScrollWheel") < 0)
+        else if (Input.GetAxis("Mouse ScrollWheel") < 0)
             ZoomOrthoCamera(Camera.main.ScreenToWorldPoint(Input.mousePosition), -zoomSpeed);
+
+        //Disable borders when too far
+        if (camera.orthographicSize > 1.6f)
+            GameObject.Find("BorderMap").GetComponent<MeshRenderer>().enabled = false;
+        else
+            GameObject.Find("BorderMap").GetComponent<MeshRenderer>().enabled = true;
 
         //Mouse Drag
         if (Input.GetMouseButton(2))
