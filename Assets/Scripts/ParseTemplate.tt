@@ -21,10 +21,83 @@ namespace GeneratedParsers
 // to get you started.
 
 var classes = new[] {
+
+    // GUI LAYOUT
+
+    new {
+        Name = "GuiTypesWrapper",
+        Props = new[] {
+            new Property() { Type = "GuiTypes", Name = "guiTypes" },
+        }
+    },
+    new {
+        Name = "GuiTypes",
+        Props = new[] {
+            new Property() { Type = "IList<WindowType>", Name = "windowType" },
+        }
+    },
+    new {
+        Name = "WindowType",
+        Props = new[] {
+            new Property() { Type = "string", Name = "name", Quoted = true },
+            new Property() { Type = "Coordinates", Name = "position" },
+            new Property() { Type = "Coordinates", Name = "size" },
+            new Property() { Type = "IList<IconType>", Name = "iconType" },
+            new Property() { Type = "IList<InstantTextBoxType>", Name = "instantTextBoxType" },
+            new Property() { Type = "IList<TextBoxType>", Name = "textBoxType" },
+            new Property() { Type = "IList<GuiButtonType>", Name = "guiButtonType" },
+        }
+    },
+    new {
+        Name = "IconType",
+        Props = new[] {
+            new Property() { Type = "string", Name = "name", Quoted = true },
+            new Property() { Type = "string", Name = "spriteType", Quoted = true },
+            new Property() { Type = "Coordinates", Name = "position" },
+        }
+    },
+    new {
+        Name = "TextBoxType",
+        Props = new[] {
+            new Property() { Type = "string", Name = "name", Quoted = true },
+            new Property() { Type = "Coordinates", Name = "position" },
+        }
+    },
+    new {
+        Name = "InstantTextBoxType",
+        Props = new[] {
+            new Property() { Type = "string", Name = "name", Quoted = true },
+            new Property() { Type = "Coordinates", Name = "position" },
+        }
+    },
+    new {
+        Name = "GuiButtonType",
+        Props = new[] {
+            new Property() { Type = "string", Name = "name", Quoted = true },
+            new Property() { Type = "string", Name = "quadTextureSprite", Quoted = true },
+            new Property() { Type = "Coordinates", Name = "position" },
+        }
+    },
+    new {
+        Name = "Coordinates",
+        Props = new[] {
+            new Property() { Type = "int", Name = "x" },
+            new Property() { Type = "int", Name = "y" }
+        }
+    },
+
+    // SPRITES
+
+    new {
+        Name = "SpriteTypesWrapper",
+        Props = new[] {
+            new Property() { Type = "SpriteTypes", Name = "spriteTypes" },
+        }
+    },
     new {
         Name = "SpriteTypes",
         Props = new[] {
-            new Property() { Type = "IList<SpriteType>", Name = "spriteTypes" },
+            new Property() { Type = "IList<SpriteType>", Name = "spriteType" },
         }
     },
     new {
@@ -34,6 +107,9 @@ var classes = new[] {
             new Property() { Type = "string", Name = "texturefile", Quoted = true },
         }
     },
+
+    // DATA FILES
+
     new {
         Name = "ProvinceHistory",
         Props = new[] {

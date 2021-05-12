@@ -300,6 +300,14 @@ MonoBehaviour:
   multiColorReplacer: {fileID: 2100000, guid: 7462e747210ea4a4b9b129d95413d446, type: 2}
   provinceSelector: {fileID: 2100000, guid: 1bbe882d98d9d244a93e4f66f92f4839, type: 2}
   border: {fileID: 2100000, guid: ccd8ca7cf46de7f449f957dd017d2a98, type: 2}
+  buttonPrefab: {fileID: 4158250316443125324, guid: 1d1a8315d4068c4448c2aac72b2773a5,
+    type: 3}
+  imagePrefab: {fileID: 3635602235779385186, guid: b4d51262ce5e370459dcd64f11c1e47f,
+    type: 3}
+  textPrefab: {fileID: 3282269855588291405, guid: 5f5111aeb0cca2f4db8196a99b832342,
+    type: 3}
+  windowPrefab: {fileID: 8315034808333778501, guid: eeffc311332354346b702fa056cbd1f0,
+    type: 3}
 --- !u!4 &288934995
 Transform:
   m_ObjectHideFlags: 0
