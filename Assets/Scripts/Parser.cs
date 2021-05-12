@@ -69,6 +69,9 @@ public partial class WindowType : IParadoxRead, IParadoxWrite
         instantTextBoxType = new List<InstantTextBoxType>();
         textBoxType = new List<TextBoxType>();
         guiButtonType = new List<GuiButtonType>();
+        position = new Coordinates();
+        position.x = 0;
+        position.y = 0;
     }
 
     public void TokenCallback(ParadoxParser parser, string token)
@@ -126,6 +129,9 @@ public partial class IconType : IParadoxRead, IParadoxWrite
 
     public IconType()
     {
+        position = new Coordinates();
+        position.x = 0;
+        position.y = 0;
     }
 
     public void TokenCallback(ParadoxParser parser, string token)
@@ -156,35 +162,38 @@ public partial class IconType : IParadoxRead, IParadoxWrite
 }
 
 public partial class TextBoxType : IParadoxRead, IParadoxWrite
+{
+    public string name { get; set; }
+    public Coordinates position { get; set; }
+
+    public TextBoxType()
     {
-        public string name { get; set; }
-        public Coordinates position { get; set; }
+        position = new Coordinates();
+        position.x = 0;
+        position.y = 0;
+    }
 
-        public TextBoxType()
+    public void TokenCallback(ParadoxParser parser, string token)
+    {
+        switch (token)
         {
-        }
-
-        public void TokenCallback(ParadoxParser parser, string token)
-        {
-            switch (token)
-            {
             case "name": name = parser.ReadString(); break;
             case "position": position = parser.Parse(new Coordinates()); break;
-            }
-        }
-
-        public void Write(ParadoxStreamWriter writer)
-        {
-            if (name != null)
-            {
-                writer.WriteLine("name", name, ValueWrite.Quoted);
-            }
-            if (position != null)
-            {
-                writer.Write("position", position);
-            }
         }
     }
+
+    public void Write(ParadoxStreamWriter writer)
+    {
+        if (name != null)
+        {
+            writer.WriteLine("name", name, ValueWrite.Quoted);
+        }
+        if (position != null)
+        {
+            writer.Write("position", position);
+        }
+    }
+}
 
 public partial class InstantTextBoxType : IParadoxRead, IParadoxWrite
 {
@@ -193,6 +202,9 @@ public partial class InstantTextBoxType : IParadoxRead, IParadoxWrite
 
     public InstantTextBoxType()
     {
+        position = new Coordinates();
+        position.x = 0;
+        position.y = 0;
     }
 
     public void TokenCallback(ParadoxParser parser, string token)
@@ -225,6 +237,9 @@ public partial class GuiButtonType : IParadoxRead, IParadoxWrite
 
     public GuiButtonType()
     {
+        position = new Coordinates();
+        position.x = 0;
+        position.y = 0;
     }
 
     public void TokenCallback(ParadoxParser parser, string token)

@@ -7,6 +7,7 @@ using System.IO;
 using Pdoxcl2Sharp;
 
 using UnityEngine;
+using UnityEngine.UI;
 
 public partial class Game : MonoBehaviour
 {
@@ -41,29 +42,12 @@ public partial class Game : MonoBehaviour
 
                 for (int s = 0; s < sprites.spriteTypes.Count; s++)
                 {
-                    //Load texture file
-                    //(for some reason sometimes files are defined as dds but are actually tga, and vice-versa)
-                    //(similarly, some files defined dont exist at all)
+                    //Load texture file (only tga allowed)
                     if (sprites.spriteTypes[s].texturefile != null)
                     {
-                        string actualFile = sprites.spriteTypes[s].texturefile;
-
-                        if (!File.Exists(dataPath + actualFile))
+                        if (File.Exists(dataPath + sprites.spriteTypes[s].texturefile))
                         {
-                            if(actualFile.Contains(".dds"))
-                                actualFile = actualFile.Replace(".dds", ".tga");
-                            else
-                                actualFile = actualFile.Replace(".tga", ".dds");
-                        }
-
-                        bool existsFile = File.Exists(dataPath + actualFile);
-
-                        if (existsFile)
-                        {
-                            if (actualFile.Contains(".dds"))
-                                Game.sprites.Add(sprites.spriteTypes[s].name, Utils.LoadTextureDXT(dataPath + actualFile, TextureFormat.DXT5));
-                            if (actualFile.Contains(".tga"))
-                                Game.sprites.Add(sprites.spriteTypes[s].name, Utils.LoadTextureTGA(dataPath + actualFile));
+                            Game.sprites.Add(sprites.spriteTypes[s].name, Utils.LoadTextureTGA(dataPath + sprites.spriteTypes[s].texturefile));
                         }
                     }
                 }
@@ -92,7 +76,7 @@ public partial class Game : MonoBehaviour
                     GameObject windowInstance = Instantiate(windowPrefab, Vector3.zero, Quaternion.identity);
 
                     //Set dimensions
-                    windowInstance.GetComponent<RectTransform>().position = new Vector3(windowType.position.x, Screen.height-windowType.position.y, 0);
+                    windowInstance.GetComponent<RectTransform>().position = new Vector3(windowType.position.x, Screen.height - windowType.position.y, 0);
                     windowInstance.GetComponent<RectTransform>().sizeDelta = new Vector2(windowType.size.x, windowType.size.y);
 
                     //Set name
@@ -101,7 +85,32 @@ public partial class Game : MonoBehaviour
                     //Add to Canvas
                     windowInstance.transform.SetParent(GameObject.Find("Canvas").transform);
 
-                    //TODO children GUI
+                    //Children Button
+                    for (int c = 0; c < windowType.guiButtonType.Count; c++)
+                    {
+                        GuiButtonType guiButtonType = windowType.guiButtonType[c];
+
+                        if (!sprites.ContainsKey(guiButtonType.quadTextureSprite))
+                        {
+                            Debug.Log(guiButtonType.quadTextureSprite + " texture not found");
+                            continue;
+                        }
+
+                        Texture2D buttonText = sprites[guiButtonType.quadTextureSprite];
+
+                        GameObject buttonInstance = Instantiate(buttonPrefab, Vector3.zero, Quaternion.identity);
+
+                        buttonInstance.GetComponent<RectTransform>().position = new Vector3(guiButtonType.position.x, -guiButtonType.position.y, 0);
+                        buttonInstance.GetComponent<RectTransform>().sizeDelta = new Vector2(buttonText.width, buttonText.height);
+
+                        buttonInstance.GetComponent<Image>().sprite = Sprite.Create(buttonText, new Rect(0, 0, buttonText.width, buttonText.height), Vector2.zero);
+
+                        buttonInstance.name = guiButtonType.name;
+
+                        buttonInstance.transform.SetParent(windowInstance.transform);
+                    }
+
+                    //TODO Children gui
 
                     //TODO add to dicitonary
                 }
