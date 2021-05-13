@@ -27,7 +27,7 @@ public class CameraController : MonoBehaviour
             ZoomOrthoCamera(Camera.main.ScreenToWorldPoint(Input.mousePosition), -zoomSpeed);
 
         //Disable borders when too far
-        if (camera.orthographicSize > 1.6f)
+        if (camera.orthographicSize > 0.75f)
             GameObject.Find("BorderMap").GetComponent<MeshRenderer>().enabled = false;
         else
             GameObject.Find("BorderMap").GetComponent<MeshRenderer>().enabled = true;
