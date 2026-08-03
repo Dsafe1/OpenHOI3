@@ -1,0 +1,52 @@
+{
+	// The Godot executable is read from the "godotTools.editorPath.godot4" setting
+	// provided by the Godot Tools extension. Set it per machine in .vscode/settings.json
+	// (git-ignored) or in your VS Code user settings.
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Play OpenHOI3",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build",
+			"program": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		},
+		{
+			"name": "Play OpenHOI3 (headless)",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build",
+			"program": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}",
+				"--headless"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		},
+		{
+			"name": "Open Godot Editor",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build",
+			"program": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}",
+				"-e"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		}
+	]
+}
