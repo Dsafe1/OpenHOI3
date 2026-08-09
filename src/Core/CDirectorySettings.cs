@@ -36,6 +36,16 @@ public sealed class CDirectorySettings
 	}
 
 	/// <summary>
+	/// Uses a given directory as the install root instead of searching for one. Lets a
+	/// caller point at an install in an unusual place, and lets the layering and path
+	/// resolution be exercised against a fixture directory.
+	/// </summary>
+	public static CDirectorySettings At(string gameRoot)
+	{
+		return new CDirectorySettings(Path.GetFullPath(gameRoot));
+	}
+
+	/// <summary>
 	/// Searches for the install beside the repository, as documented in the readme:
 	/// a "Hearts of Iron 3" folder in the parent of the project directory. Walks
 	/// further up as a convenience for differently nested checkouts.

@@ -5,4 +5,13 @@
     <RootNamespace>OpenHOI3</RootNamespace>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Godot.NET.Sdk globs every .cs file under the project directory, which would pull
+      the test project's sources into the game assembly and fail the build on the
+      missing xunit references.
+    -->
+    <Compile Remove="tests/**/*.cs" />
+  </ItemGroup>
 </Project>

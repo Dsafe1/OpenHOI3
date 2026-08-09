@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Tests run as a plain .NET project rather than inside Godot. The code under test is
+    engine-independent: it only uses Godot value types such as Vector2 and Color, which
+    are ordinary structs in GodotSharp, so no engine has to be running.
+
+    Source files are compiled in directly instead of referencing OpenHOI3.csproj. A
+    project reference would drag in Godot.NET.Sdk's build targets and its glob of every
+    .cs file in the repository, including the scene-bound Node classes that do need the
+    engine.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>OpenHOI3.Tests</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="*.cs" />
+    <Compile Include="../../src/Core/ClausewitzParser.cs" />
+    <Compile Include="../../src/Core/CDirectorySettings.cs" />
+    <Compile Include="../../src/Core/CLocalisation.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GodotSharp" Version="4.7.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>
