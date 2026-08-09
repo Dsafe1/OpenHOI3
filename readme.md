@@ -45,10 +45,63 @@ To run without VS Code:
 
 ```
 scenes/Main.tscn     main scene (run/main_scene)
-src/                 C# source
+src/Core/            script parsing, install discovery, localisation
+src/Gfx/             sprite definitions, texture loading, bitmap fonts
+src/Gui/             parsed .gui types and the live controls built from them
+src/FrontEnd/        the main menu screen
 tools/ghidra/        Ghidra scripts for analysing the original binary
 docs/                generated class reference - do not edit by hand
 ```
+
+Class names follow the original where the mapping is clear, per the goal above. The
+`C*Type` classes are parsed file definitions and the rest are live objects, which is
+the split the original uses:
+
+| Original | Here |
+| --- | --- |
+| `CGuiType` / `CWindowType` | parsed `.gui` entries |
+| `CSpriteType` | parsed `.gfx` entries |
+| `CGuiObject` / `TWindow` / `TButton` | controls on screen |
+| `CBitmapFont` | `.fnt` + `.tga` fonts |
+| `CFrontEnd` | the main menu |
+
+## Interface data
+
+Screens are not authored in Godot. They are read at runtime from the player's own
+files, so the layout is the game's rather than a reproduction of it.
+
+### Expansion layers
+
+The install root holds **For the Motherland**. **Their Finest Hour** lives in `tfh/`,
+which mirrors the entire tree and replaces only the files it ships. Every lookup walks
+the layers highest priority first, so `tfh/` wins where it has a file and the base
+install supplies the rest - the TFH front end uses its own backdrop and layout, but
+falls back to the base `frontend_button` and `frontend_tile` textures.
+
+Reading the root alone is not an error that announces itself: everything loads and
+renders, you just get the previous expansion's interface. Layer order also decides
+conflicts, so files are loaded base first and later definitions overwrite earlier ones.
+
+Adding `tfh/` took the front end from 33 379 strings, 1308 sprites and 58 fonts to
+34 513, 1468 and 60.
+
+### File types
+
+- `interface/*.gui` - window and control layout
+- `interface/*.gfx` - `GFX_*` sprite names to texture files, and font declarations
+- `localisation/*.csv` - the string table, semicolon separated, one column per language
+- `gfx/fonts/*.fnt` - AngelCode BMFont descriptors with `.tga` atlases
+
+Two quirks of the shipped data are worth knowing, since both look like bugs in a
+reader that assumes well-formed input:
+
+- Script files name textures with the wrong extension - the front end asks for
+  `frontend_tile.tga` when only `frontend_tile.dds` exists - so texture lookups retry
+  across the known image extensions.
+- The `.fnt` descriptors declare `pages=1` but omit the `page` line naming the atlas,
+  because the original loader assumed the image shares the descriptor's base name. A
+  standards-compliant reader gets glyph rectangles with no texture and draws nothing,
+  so the atlas is attached by hand after loading.
 
 ## What we know about the original binary
 
@@ -64,6 +117,14 @@ The target is `hoi3_tfh.exe` (~21 MB) from the Their Finest Hour install.
   addresses appear in the vftables of unrelated class hierarchies, meaning distinct
   functions that compiled to identical code were merged onto one address. Any analysis
   that maps addresses back to classes has to account for this.
+
+  Folding is heavier than that figure suggests. Only **523 distinct functions** sit in
+  vftable slot 0 across the whole binary, and **104 of them are shared between classes**,
+  covering **2114 classes** - one is reached from 477 luabind instantiations, another
+  from `CButtonObserver` and all 171 of its observer glue adapters. Destructors fold
+  readily because most are near-identical, so a name written per class will silently
+  overwrite another class's. `CAir` and `CNavy` share a destructor for exactly this
+  reason; `CArmy` does not, because its layout differs.
 
 Recovered from RTTI:
 
@@ -116,12 +177,29 @@ earlier Ghidra 11.2.1 pass. It is superseded by the files above.
 
 ## Ghidra tooling
 
-Two scripts live in `tools/ghidra/`. Add that directory via *Script Manager → Manage Script
-Directories*; both appear under category **C++**. Neither is specific to this game — retarget
-them by editing their `LIBRARY_NAMESPACES` / `LIBRARY_PREFIXES` constants.
+Four scripts live in `tools/ghidra/`. Add that directory via *Script Manager → Manage
+Script Directories*; they appear under category **C++**. Keep that the only copy - Ghidra's
+own `~/ghidra_scripts` takes precedence over any `-scriptPath`, so a stale duplicate there
+runs instead of the one you are editing, silently.
 
-Both parse the MSVC RTTI structures directly out of memory instead of going through
-Ghidra's own RTTI classes, so they do not depend on which analyzers were run.
+Run them in this order, after auto-analysis has finished:
+
+| Order | Script | Does |
+| --- | --- | --- |
+| 1 | `ReconstructClassesFromRtti` | class namespaces, vftables, virtual functions |
+| 2 | `ChaseConstructorsAndDestructors` | constructors and destructors |
+| 3 | `ApplyKnownNames` | names worked out by reading code |
+| 4 | `ExportClassHierarchy` | regenerates `docs/` |
+
+Only the first and last are truly standalone; the middle two expect the class namespaces
+to exist already. None is specific to this game — retarget them by editing their
+`LIBRARY_NAMESPACES` / `LIBRARY_PREFIXES` constants.
+
+They parse the MSVC RTTI structures directly out of memory instead of going through
+Ghidra's own RTTI classes, so they do not depend on which analyzers were run. The two
+that classify code are the exception: they use Ghidra's function boundaries rather than
+scanning for padding, because a hand-rolled boundary scan will happily place a function
+in the middle of another one.
 
 ### `ReconstructClassesFromRtti.java`
 
@@ -137,6 +215,42 @@ Where no referencing class is an ancestor of the rest, the address is shared bet
 unrelated hierarchies because of ICF, and it is left alone rather than misattributed.
 
 Run it after auto-analysis. It executes as a single transaction, so one undo reverts it.
+
+### `ChaseConstructorsAndDestructors.java`
+
+Names the constructors and destructors of every class. Only a constructor or a
+destructor writes a class's vftable pointer into the object, so one sweep of code for
+each known vftable address as an instruction immediate finds exactly those functions.
+
+Telling them apart uses the MSVC layout: vftable slot 0 holds the scalar deleting
+destructor, and whatever it calls is the real one, leaving the other vftable writers as
+constructors. Slot 0 is checked for the right shape first - it tests bit 0 of a flags
+argument and calls something - because a class without a virtual destructor has an
+ordinary method there instead.
+
+Three things it refuses to guess at, each reported rather than hidden:
+
+- A function writing several vftables belongs to the most derived of them, resolved
+  from the RTTI hierarchy. One writing vftables of unrelated hierarchies is skipped.
+- Where COMDAT folding gives several classes one function, the base class takes the
+  primary name if one claimant is an ancestor of all the rest; otherwise the first
+  alphabetically does, and every other class gets its own label at the same address so
+  it stays navigable. This is the common case, not an edge case.
+- Function boundaries come from Ghidra's analysis, never from scanning for padding.
+
+Run it after auto-analysis and after `ReconstructClassesFromRtti`. It renames on the
+order of 7500 functions, so save the project first; everything it writes is analysis
+sourced, so re-running is safe and hand-written names are left alone.
+
+### `ApplyKnownNames.java`
+
+Names the functions worked out by reading the code. RTTI proves structure but carries
+no names, so this is the manual layer on top: a table of address, name, confidence and
+the evidence behind it, applied as symbols plus plate comments.
+
+Run it after `ReconstructClassesFromRtti` so the class namespaces exist. Addresses are
+image-base relative, so it survives a rebase, and anything you have renamed by hand is
+left alone. Extend the table as more is identified.
 
 ### `ExportClassHierarchy.java`
 
