@@ -35,7 +35,9 @@ import ghidra.app.script.GhidraScript;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
+import ghidra.program.model.lang.Register;
 import ghidra.program.model.listing.Instruction;
+import ghidra.program.model.listing.InstructionIterator;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.program.model.scalar.Scalar;
 import ghidra.program.model.symbol.Namespace;
@@ -46,6 +48,25 @@ import ghidra.program.model.symbol.SymbolTable;
 public class ChaseConstructorsAndDestructors extends GhidraScript {
 
 	private static final int MAX_VFTABLE_SLOTS = 4096;
+
+	/**
+	 * Most distinct functions that may write a class's vftable before its constructors
+	 * are treated as inlined and left unnamed.
+	 *
+	 * A class has a handful of constructors, so a handful of functions write its
+	 * vftable. When the compiler inlines a constructor the write appears inside every
+	 * caller instead, and those callers belong to other classes entirely. Naming them
+	 * all as constructors of the inlined class buries the real ones.
+	 *
+	 * Measured against this binary, 97% of classes have five or fewer writers and the
+	 * count then jumps sharply: CCurrentGameState is written from 2316 distinct
+	 * functions, CCommand from 352, CTrigger from 173. Five is comfortably above every
+	 * plausible constructor count and well below the inlined cases.
+	 *
+	 * Only constructors are suppressed. The destructor is found through vftable slot 0
+	 * rather than through the writes, so it stays valid however much inlining happened.
+	 */
+	private static final int MAX_VFTABLE_WRITERS = 5;
 
 	/// How far back to look for the opcode that owns an immediate operand.
 	private static final int OPCODE_LOOKBACK = 6;
@@ -87,6 +108,15 @@ public class ChaseConstructorsAndDestructors extends GhidraScript {
 	private int shared;
 	private int kept;
 
+	private int recoveredByThis;
+
+	/// Classes whose constructors were left unnamed because they were inlined.
+	private final List<String> inlined = new ArrayList<>();
+
+	/// vftable address -> the class owning it, and the subobject offset it sits at.
+	private final Map<Long, RttiClass> vftableOwner = new HashMap<>();
+	private final Map<Long, Integer> vftableOffset = new HashMap<>();
+
 	// =========================================================================
 
 	@Override
@@ -107,8 +137,10 @@ public class ChaseConstructorsAndDestructors extends GhidraScript {
 		// vftable address -> owning class
 		Map<Long, RttiClass> owners = new HashMap<>();
 		for (RttiClass c : classesByTd.values()) {
-			for (long address : c.vftables.values()) {
-				owners.put(address, c);
+			for (Map.Entry<Integer, Long> vftable : c.vftables.entrySet()) {
+				owners.put(vftable.getValue(), c);
+				vftableOwner.put(vftable.getValue(), c);
+				vftableOffset.put(vftable.getValue(), vftable.getKey());
 			}
 		}
 		println("Vftables: " + owners.size());
@@ -126,8 +158,22 @@ public class ChaseConstructorsAndDestructors extends GhidraScript {
 		println("  scalar deleting destructors : " + deleting);
 		println("  classes with no virtual dtor: " + unclassified);
 		println("  left alone (your names)     : " + kept);
+		println("  recovered by this pointer   : " + recoveredByThis
+			+ "  (inlined member constructors)");
 		println("  skipped, owner ambiguous    : " + ambiguous
 			+ "  (write vftables of unrelated hierarchies)");
+		println("  constructors inlined        : " + inlined.size()
+			+ "  (classes over " + MAX_VFTABLE_WRITERS + " vftable writers)");
+
+		if (!inlined.isEmpty()) {
+			println("");
+			println("=== constructors left unnamed, inlined into their callers ===");
+			for (String line : inlined) {
+				println("  " + line);
+			}
+			println("  Their destructors are still named; only the constructors are");
+			println("  suppressed. Raise MAX_VFTABLE_WRITERS to include them anyway.");
+		}
 		println("  functions shared by classes : " + shared
 			+ "  (COMDAT-folded; extra labels added per class)");
 	}
@@ -218,6 +264,16 @@ public class ChaseConstructorsAndDestructors extends GhidraScript {
 					break;
 				}
 			}
+			if (owner == null) {
+				// Inlined *member* constructors, which ancestry cannot explain: a class
+				// constructing its members in place writes their vftables too, and none
+				// of them is related to it. Fall back to reading the code.
+				owner = resolveByThisPointer(entry.getKey(), candidates);
+				if (owner != null) {
+					recoveredByThis++;
+				}
+			}
+
 			if (owner != null) {
 				byClass.computeIfAbsent(owner, k -> new LinkedHashSet<>()).add(entry.getKey());
 			}
@@ -226,6 +282,114 @@ public class ChaseConstructorsAndDestructors extends GhidraScript {
 			}
 		}
 		return byClass;
+	}
+
+	/**
+	 * Works out which class a function belongs to by following its this pointer.
+	 *
+	 * A constructor writes its own vftable through the this pointer at the subobject's
+	 * own offset. Everything else it writes belongs to something else: an embedded
+	 * member sits at a different displacement, and a member built on the heap is
+	 * written through a different register entirely. Matching both the register and the
+	 * displacement therefore picks out the one class the function is really about.
+	 *
+	 * The this pointer arrives either in ECX or, in much of this binary, as the first
+	 * stack argument, so both are followed to wherever they are first copied.
+	 */
+	private RttiClass resolveByThisPointer(Function function, Set<RttiClass> candidates) {
+		Register thisRegister = null;
+		var owners = new LinkedHashSet<RttiClass>();
+
+		InstructionIterator instructions =
+			currentProgram.getListing().getInstructions(function.getBody(), true);
+		while (instructions.hasNext()) {
+			Instruction instruction = instructions.next();
+			if (!instruction.getMnemonicString().equalsIgnoreCase("MOV")) {
+				continue;
+			}
+
+			if (thisRegister == null) {
+				Register moved = destinationOfThis(instruction);
+				if (moved != null) {
+					thisRegister = moved;
+					continue;
+				}
+			}
+
+			if (thisRegister == null) {
+				continue;
+			}
+
+			// MOV dword ptr [reg + disp], <vftable>
+			Object[] source = instruction.getOpObjects(1);
+			if (source.length != 1 || !(source[0] instanceof Scalar written)) {
+				continue;
+			}
+			RttiClass owner = vftableOwner.get(written.getUnsignedValue());
+			if (owner == null || !candidates.contains(owner)) {
+				continue;
+			}
+
+			Object[] destination = instruction.getOpObjects(0);
+			Register base = null;
+			long displacement = 0L;
+			for (Object part : destination) {
+				if (part instanceof Register register) {
+					if (base != null) {
+						base = null;              // indexed address, not a plain member
+						break;
+					}
+					base = register;
+				}
+				else if (part instanceof Scalar scalar) {
+					displacement = scalar.getSignedValue();
+				}
+			}
+
+			if (base != null && base.equals(thisRegister)
+				&& displacement == vftableOffset.getOrDefault(written.getUnsignedValue(), -1)) {
+				owners.add(owner);
+			}
+		}
+
+		if (owners.size() == 1) {
+			return owners.iterator().next();
+		}
+		// Several subobjects of one hierarchy can qualify; the most derived wins, as
+		// it does everywhere else.
+		for (RttiClass candidate : owners) {
+			boolean derivedFromAll = true;
+			for (RttiClass other : owners) {
+				if (other != candidate && !candidate.allAncestors.contains(other)) {
+					derivedFromAll = false;
+					break;
+				}
+			}
+			if (derivedFromAll) {
+				return candidate;
+			}
+		}
+		return null;
+	}
+
+	/// Recognises "MOV reg, ECX" and "MOV reg, [EBP + 8]", the two ways this arrives.
+	private Register destinationOfThis(Instruction instruction) {
+		Object[] destination = instruction.getOpObjects(0);
+		if (destination.length != 1 || !(destination[0] instanceof Register target)) {
+			return null;
+		}
+
+		Object[] source = instruction.getOpObjects(1);
+		if (source.length == 1 && source[0] instanceof Register register
+			&& register.getName().equalsIgnoreCase("ECX")) {
+			return target;
+		}
+		if (source.length == 2 && source[0] instanceof Register frame
+			&& frame.getName().equalsIgnoreCase("EBP")
+			&& source[1] instanceof Scalar offset && offset.getSignedValue() == 8L) {
+			return target;
+		}
+		return null;
 	}
 
 	// ---- step 3: classify and name ------------------------------------------
@@ -249,6 +413,13 @@ public class ChaseConstructorsAndDestructors extends GhidraScript {
 			c.namespace = ensureClass(c.name);
 			if (c.namespace == null) {
 				continue;
+			}
+
+			// Too many writers means the constructor was inlined into its callers, so
+			// those functions belong to whoever called it, not to this class.
+			boolean constructorInlined = found.size() > MAX_VFTABLE_WRITERS;
+			if (constructorInlined) {
+				inlined.add(String.format("%-44s %d writers", c.name, found.size()));
 			}
 
 			// Slot 0 of the primary vftable holds the scalar deleting destructor, but
@@ -295,7 +466,13 @@ public class ChaseConstructorsAndDestructors extends GhidraScript {
 			}
 
 			// Whatever is left writes the vftable without being the destructor, which
-			// leaves only constructors.
+			// leaves only constructors - unless the constructor was inlined, in which
+			// case the writers are other classes' functions and naming them would be
+			// worse than leaving them alone.
+			if (constructorInlined)
+			{
+				continue;
+			}
 			int index = 0;
 			for (Function f : found) {
 				if (f.equals(dtor) || f.equals(deletingDtor)) {
