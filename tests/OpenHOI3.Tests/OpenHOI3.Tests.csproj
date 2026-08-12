@@ -24,6 +24,17 @@
     <Compile Include="../../src/Core/ClausewitzParser.cs" />
     <Compile Include="../../src/Core/CDirectorySettings.cs" />
     <Compile Include="../../src/Core/CLocalisation.cs" />
+    <!--
+      Compiled but never called: the loaders' default diagnostic sink reaches the
+      engine, so tests always pass their own. Godot's logging is a native call and
+      brings the test host down when no engine is running.
+    -->
+    <Compile Include="../../src/Core/CDiagnostics.cs" />
+    <Compile Include="../../src/Game/CDate.cs" />
+    <Compile Include="../../src/Game/CCountry.cs" />
+    <Compile Include="../../src/Game/CCountries.cs" />
+    <Compile Include="../../src/Game/CBookmark.cs" />
+    <Compile Include="../../src/Game/CScenario.cs" />
   </ItemGroup>
 
   <ItemGroup>

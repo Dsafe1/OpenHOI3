@@ -1,0 +1,116 @@
+using System;
+using System.Collections.Generic;
+using Godot;
+using OpenHOI3.Core;
+
+namespace OpenHOI3.Game;
+
+/// <summary>
+/// Every country the game defines.
+///
+/// <c>common/countries.txt</c> is a flat list of tag to definition file. Each
+/// definition holds the colour and graphical culture; the readable name comes from
+/// localisation, keyed by the tag. Definition files are resolved through the normal
+/// layering, so an expansion can replace one country without restating the list.
+/// </summary>
+public sealed class CCountries
+{
+	private const string TagListFile = "common/countries.txt";
+
+	private readonly Dictionary<string, CCountry> _byTag =
+		new(StringComparer.OrdinalIgnoreCase);
+	private readonly List<CCountry> _all = new();
+
+	public int Count => _all.Count;
+
+	/// <summary>All countries, sorted by name for direct use in a list.</summary>
+	public IReadOnlyList<CCountry> All => _all;
+
+	/// <summary>
+	/// Reads the country list. Diagnostics go to <paramref name="warn"/> rather than
+	/// straight to the engine, so the loaders stay usable outside a running Godot -
+	/// calling into the engine from a plain process takes the whole thing down.
+	/// </summary>
+	public static CCountries Load(CDirectorySettings directories, CLocalisation localisation,
+		Action<string>? warn = null)
+	{
+		warn ??= CDiagnostics.Warn;
+		var countries = new CCountries();
+
+		string listPath = directories.Resolve(TagListFile);
+		ClausewitzNode list;
+		try
+		{
+			list = ClausewitzParser.ParseFile(listPath);
+		}
+		catch (Exception e)
+		{
+			warn($"Could not read '{listPath}': {e.Message}");
+			return countries;
+		}
+
+		foreach (ClausewitzNode entry in list.Children)
+		{
+			if (entry.Key is null || entry.Value is null)
+			{
+				continue;
+			}
+			if (!CCountryTag.TryParse(entry.Key, out CCountryTag tag))
+			{
+				continue;
+			}
+
+			CCountry country = Read(directories, localisation, tag, entry.Value, warn);
+			if (countries._byTag.TryAdd(tag.Value, country))
+			{
+				countries._all.Add(country);
+			}
+		}
+
+		countries._all.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCulture));
+		return countries;
+	}
+
+	private static CCountry Read(CDirectorySettings directories, CLocalisation localisation,
+		CCountryTag tag, string definitionFile, Action<string> warn)
+	{
+		Color color = Colors.Gray;
+		string culture = "";
+
+		string path = directories.Resolve("common/" + definitionFile);
+		try
+		{
+			ClausewitzNode definition = ClausewitzParser.ParseFile(path);
+			color = definition.GetRgb("color", Colors.Gray);
+			culture = definition.GetString("graphical_culture");
+		}
+		catch (Exception e)
+		{
+			// A missing definition costs the colour, not the country.
+			warn($"Could not read country file '{path}': {e.Message}");
+		}
+
+		return new CCountry
+		{
+			Tag = tag,
+			Name = localisation.Localise(tag.Value),
+			DefinitionFile = definitionFile,
+			Color = color,
+			GraphicalCulture = culture,
+		};
+	}
+
+	public CCountry? Find(CCountryTag tag)
+	{
+		return Find(tag.Value);
+	}
+
+	public CCountry? Find(string? tag)
+	{
+		if (string.IsNullOrEmpty(tag))
+		{
+			return null;
+		}
+		return _byTag.TryGetValue(tag, out CCountry? country) ? country : null;
+	}
+}

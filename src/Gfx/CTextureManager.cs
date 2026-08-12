@@ -44,12 +44,28 @@ public sealed class CTextureManager
 		{
 			return cached;
 		}
-		Texture2D? texture = LoadAbsolute(absolute);
+		Image? image = LoadImageAbsolute(absolute);
+		Texture2D? texture = image is null ? null : ImageTexture.CreateFromImage(image);
 		_cache[absolute] = texture;
 		return texture;
 	}
 
-	private static Texture2D? LoadAbsolute(string absolutePath)
+	/// <summary>
+	/// Decodes to a raw image rather than a texture, for callers that need the pixels -
+	/// compositing a country shield from a flag and a frame, for instance.
+	/// </summary>
+	public Image? LoadImage(string gameRelative)
+	{
+		string? absolute = _directories.ResolveTexture(gameRelative);
+		if (absolute is null)
+		{
+			GD.PushWarning($"Texture not found for '{gameRelative}'");
+			return null;
+		}
+		return LoadImageAbsolute(absolute);
+	}
+
+	private static Image? LoadImageAbsolute(string absolutePath)
 	{
 		byte[] bytes;
 		try
@@ -82,7 +98,7 @@ public sealed class CTextureManager
 			GD.PushWarning($"Could not decode '{absolutePath}' ({error})");
 			return null;
 		}
-		return ImageTexture.CreateFromImage(image);
+		return image;
 	}
 
 	/// <summary>

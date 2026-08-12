@@ -1,13 +1,13 @@
 using Godot;
-using OpenHOI3.FrontEnd;
 
 namespace OpenHOI3;
 
 /// <summary>
-/// Entry point. A Control rather than a plain Node so the interface below it has a
-/// parent rect to anchor against: Godot only propagates the viewport size to Control
-/// children, and anchoring inside a zero-sized parent collapses everything onto the
-/// top-left corner.
+/// Entry point.
+///
+/// The game's own interface has not been built yet. What exists so far is the reading
+/// side of the asset converter, under <c>src/Core</c> and <c>src/Gfx</c>, which has no
+/// screen of its own.
 /// </summary>
 public partial class Main : Control
 {
@@ -15,6 +15,15 @@ public partial class Main : Control
 	{
 		GD.Print("OpenHOI3 starting.");
 		MouseFilter = MouseFilterEnum.Ignore;
-		AddChild(new CFrontEnd());
+
+		var placeholder = new Label
+		{
+			Text = "OpenHOI3",
+			HorizontalAlignment = HorizontalAlignment.Center,
+			VerticalAlignment = VerticalAlignment.Center,
+			MouseFilter = MouseFilterEnum.Ignore,
+		};
+		placeholder.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+		AddChild(placeholder);
 	}
 }

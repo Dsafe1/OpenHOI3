@@ -86,6 +86,41 @@ public sealed class ClausewitzNode
 		return new Vector2(node.GetFloat("x", fallback.X), node.GetFloat("y", fallback.Y));
 	}
 
+	/// <summary>
+	/// Reads a <c>{ r g b }</c> list of 0-255 components, the shape the game data uses
+	/// for country, unit and centre-of-trade colours.
+	/// </summary>
+	public Color GetRgb(string key, Color fallback = default)
+	{
+		ClausewitzNode? node = Get(key);
+		if (node is null || !node.IsBlock)
+		{
+			return fallback;
+		}
+
+		Span<float> parts = stackalloc float[3];
+		int found = 0;
+		foreach (ClausewitzNode child in node.Children)
+		{
+			if (child.Value is null || found == 3)
+			{
+				continue;
+			}
+			if (float.TryParse(child.Value, NumberStyles.Float, CultureInfo.InvariantCulture,
+				out float component))
+			{
+				parts[found++] = component;
+			}
+		}
+		if (found < 3)
+		{
+			return fallback;
+		}
+		// Components are written as bytes, but a few files use 0-1 floats instead.
+		float scale = parts[0] > 1f || parts[1] > 1f || parts[2] > 1f ? 255f : 1f;
+		return new Color(parts[0] / scale, parts[1] / scale, parts[2] / scale);
+	}
+
 	/// <summary>Reads an <c>0xAARRGGBB</c> literal as used by <c>bitmapfont</c> entries.</summary>
 	public Color GetColor(string key, Color fallback)
 	{
