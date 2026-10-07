@@ -21,7 +21,10 @@ public partial class CSession : Node
 	private CDirectorySettings _directories = null!;
 	private CMapView _mapView = null!;
 	private CLocalisation _localisation = null!;
+	private CSimulation _simulation = null!;
+	private Label _dateLabel = null!;
 	private Label _provinceLabel = null!;
+	private int _shownProvince;
 
 	public CGameState State { get; private set; } = null!;
 
@@ -48,6 +51,8 @@ public partial class CSession : Node
 		GD.Print($"Loaded {Map.ProvinceCount - 1} provinces and {countries.Count} countries " +
 			$"for {State.Date} in {clock.ElapsedMilliseconds} ms.");
 
+		_simulation = new CSimulation(State);
+
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(Map, State);
 		AddChild(_mapView);
@@ -70,7 +75,6 @@ public partial class CSession : Node
 
 		var date = new Label
 		{
-			Text = State.Date.ToDisplayString(localisation.Localise),
 			Position = new Vector2(16, 12),
 			MouseFilter = Control.MouseFilterEnum.Ignore,
 		};
@@ -78,6 +82,8 @@ public partial class CSession : Node
 		date.AddThemeColorOverride("font_outline_color", Colors.Black);
 		date.AddThemeConstantOverride("outline_size", 6);
 		layer.AddChild(date);
+		_dateLabel = date;
+		ShowClock();
 
 		_provinceLabel = new Label
 		{
@@ -90,8 +96,55 @@ public partial class CSession : Node
 		layer.AddChild(_provinceLabel);
 	}
 
+	/// <summary>
+	/// Feeds the frame's length to the game. Whether any hours come of it is the
+	/// clock's decision - none while paused, as a new game is.
+	/// </summary>
+	public override void _Process(double delta)
+	{
+		// The readout is refreshed once a frame and not once an hour: at the top speed a
+		// frame holds thousands of hours.
+		if (_simulation.Advance(delta) > 0)
+		{
+			ShowClock();
+			ShowProvince(_shownProvince);                       // its figures move with the days
+		}
+	}
+
+	/// <summary>Space or Pause stops and starts time; plus and minus change its speed.</summary>
+	public override void _UnhandledInput(InputEvent @event)
+	{
+		if (@event is not InputEventKey { Pressed: true, Echo: false } key)
+		{
+			return;
+		}
+		switch (key.Keycode)
+		{
+			case Key.Space or Key.Pause:
+				_simulation.Clock.Paused = !_simulation.Clock.Paused;
+				break;
+			case Key.KpAdd or Key.Plus or Key.Equal:
+				_simulation.Clock.Speed++;
+				break;
+			case Key.KpSubtract or Key.Minus:
+				_simulation.Clock.Speed--;
+				break;
+			default:
+				return;
+		}
+		ShowClock();
+	}
+
+	private void ShowClock()
+	{
+		CClock clock = _simulation.Clock;
+		string pace = clock.Paused ? "Paused" : $"Speed {clock.Speed + 1} of {CClock.SpeedCount}";
+		_dateLabel.Text = State.Date.ToDisplayString(_localisation.Localise, State.Hour) + "    " + pace;
+	}
+
 	private void ShowProvince(int provinceId)
 	{
+		_shownProvince = provinceId;
 		if (provinceId == 0)
 		{
 			_provinceLabel.Text = "";
@@ -111,6 +164,37 @@ public partial class CSession : Node
 				text += "\nTerrain: " + _localisation.Localise(province.Terrain.Name);
 			}
 			text += "\nOwner: " + CountryName(province.Owner);
+			if (State.Country(province.Owner) is { } owner)
+			{
+				text += $"   (IC {owner.TotalIc}, base {owner.BaseIc})";
+			}
+			if (State.Country(province.Owner) is { } producer && producer.HomeProduced.ToString() is { Length: > 0 } home)
+			{
+				text += "\nHome production: " + home;
+			}
+			if (State.Country(province.Owner) is { } holder && State.Stockpile(holder)?.ToString() is { Length: > 0 } stockpile)
+			{
+				text += "\nStockpile: " + stockpile + (State.IsAtWar(holder.Tag) ? "   (at war)" : "");
+			}
+			if (State.Country(province.Owner) is { } spender)
+			{
+				text += "\nShares of IC: " + string.Join("  ", spender.ProductionShares.Select(share => share.ToString()));
+				if (spender.Usage.ToString() is { Length: > 0 } usage)
+				{
+					text += "\nUsed today: " + usage;
+				}
+				if (spender.Dissent > CFixedPoint.Zero)
+				{
+					text += "\nDissent: " + spender.Dissent;
+				}
+			}
+			string built = string.Join(", ", State.Buildings
+				.Where(building => province.BuildingLevel(building) > CFixedPoint.Zero)
+				.Select(building => $"{_localisation.Localise(building.Key)} {province.BuildingLevel(building).ToInt()}"));
+			if (built.Length > 0)
+			{
+				text += "\n" + built;
+			}
 			if (!Equals(province.Owner, province.Controller))
 			{
 				text += "\nController: " + CountryName(province.Controller);
@@ -136,7 +220,8 @@ public partial class CSession : Node
 	/// Arguments after <c>--</c> on the command line, for looking at the map without
 	/// driving it by hand:
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
-	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map, and
+	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map,
+	/// <c>--run</c> starts the clock at the top speed instead of paused, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.
 	/// </summary>
 	private async void RunDeveloperArguments()
@@ -154,6 +239,12 @@ public partial class CSession : Node
 			{
 				int.TryParse(argument["--centre=".Length..], NumberStyles.Integer,
 					CultureInfo.InvariantCulture, out centre);
+			}
+			else if (argument == "--run")
+			{
+				_simulation.Clock.Paused = false;
+				_simulation.Clock.Speed = CClock.SpeedCount - 1;
+				ShowClock();
 			}
 			else if (argument == "--mode=terrain")
 			{

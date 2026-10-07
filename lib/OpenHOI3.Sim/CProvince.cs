@@ -11,6 +11,8 @@ namespace OpenHOI3.Sim;
 /// </summary>
 public sealed class CProvince
 {
+	private CFixedPoint[] _buildingLevels = System.Array.Empty<CFixedPoint>();
+
 	public CProvince(int id, string name, bool isSea)
 	{
 		Id = id;
@@ -34,11 +36,69 @@ public sealed class CProvince
 	/// <summary>The countries that claim it as rightfully theirs, in the order the claims were made.</summary>
 	public List<CCountryTag> Cores { get; } = new();
 
+	/// <summary>What the province could yield in a day. Only resources are ever set.</summary>
+	public CGoodsPool MaxProducing { get; } = new();
+
+	/// <summary>
+	/// What it yields in a day now. The same as the most it could until something
+	/// damages it.
+	/// </summary>
+	public CGoodsPool CurrentProducing { get; } = new();
+
+	/// <summary>
+	/// What is lying in the province. In a capital this is the country's stockpile: see
+	/// <c>docs/mechanics/stockpile.md</c>, section 1.
+	/// </summary>
+	public CGoodsPool Pool { get; } = new();
+
+	public CFixedPoint Manpower { get; set; }
+
+	public CFixedPoint Leadership { get; set; }
+
+	/// <summary>Victory points.</summary>
+	public int Points { get; set; }
+
 	/// <summary>
 	/// What the ground is. The map gives every province one, and its history file may
 	/// replace it. Null only for the "no province" entry or a map with no terrain data.
 	/// </summary>
 	public CTerrain? Terrain { get; set; }
+
+	/// <summary>
+	/// How much of a building there is here. There is one level per building for now:
+	/// the original keeps a maximum and a current level, which differ only under damage.
+	/// </summary>
+	public CFixedPoint BuildingLevel(CBuilding building)
+	{
+		return building.Index < _buildingLevels.Length ? _buildingLevels[building.Index] : CFixedPoint.Zero;
+	}
+
+	public void SetBuildingLevel(CBuilding building, CFixedPoint level)
+	{
+		if (building.Index >= _buildingLevels.Length)
+		{
+			System.Array.Resize(ref _buildingLevels, building.Index + 1);
+		}
+		_buildingLevels[building.Index] = level;
+	}
+
+	/// <summary>
+	/// This province's value for one kind of modifier: over its buildings, the level
+	/// times what one level is worth. See <c>docs/mechanics/ic.md</c>, section 2.
+	/// </summary>
+	public CFixedPoint ModifierValue(IReadOnlyList<CBuilding> buildings, string modifierKey)
+	{
+		CFixedPoint total = CFixedPoint.Zero;
+		foreach (CBuilding building in buildings)
+		{
+			if (building.Index < _buildingLevels.Length
+				&& building.ModifierKey.Equals(modifierKey, System.StringComparison.OrdinalIgnoreCase))
+			{
+				total += _buildingLevels[building.Index] * building.ModifierValue;
+			}
+		}
+		return total;
+	}
 
 	/// <summary>Ids of the provinces this one touches, ascending. Filled from the map.</summary>
 	public IReadOnlyList<int> Neighbours { get; set; } = System.Array.Empty<int>();

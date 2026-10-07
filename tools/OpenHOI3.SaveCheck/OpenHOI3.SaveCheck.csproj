@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A console tool that loads an install through the two libraries and reports where the
+    result disagrees with a savegame the original wrote. It reads both and writes neither,
+    and nothing from either is kept in the repository.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>OpenHOI3.SaveCheck</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../lib/OpenHOI3.Sim/OpenHOI3.Sim.csproj" />
+    <ProjectReference Include="../../lib/OpenHOI3.Content/OpenHOI3.Content.csproj" />
+  </ItemGroup>
+
+</Project>

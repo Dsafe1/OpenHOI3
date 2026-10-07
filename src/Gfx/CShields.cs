@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using OpenHOI3.Content;
 using OpenHOI3.Sim;
 
 namespace OpenHOI3.Gfx;
@@ -93,7 +94,7 @@ public sealed class CShields
 		}
 		else
 		{
-			GD.PushWarning($"Shield frame missing: {FramePath}");
+			CDiagnostics.Warn($"Shield frame missing: {FramePath}");
 		}
 		return _frame;
 	}

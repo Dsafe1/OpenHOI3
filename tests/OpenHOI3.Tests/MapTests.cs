@@ -437,7 +437,8 @@ public class MapLoadingTests : IDisposable
 
 	private void WriteStartFiles()
 	{
-		Write("common/defines.lua", "NDefines = {\n\tstart_date = '1936.1.1',\n\tend_date = '1948.1.1',\n}\n");
+		Write("common/defines.lua",
+			"NDefines = {\n\tstart_date = '1936.1.1',\n\tend_date = '1948.1.1',\n\teconomy = {\n\t\tIC_TO_MONEY = 0.05, -- per IC\n\t\tIC_TO_SUPPLIES = 7.0,\n\t},\n}\n");
 		Write("common/countries.txt",
 			"GER = \"countries/Germany.txt\"\nFRA = \"countries/France.txt\"\n" +
 			"ITA = \"countries/Italy.txt\"\nENG = \"countries/Britain.txt\"\n");
@@ -446,6 +447,53 @@ public class MapLoadingTests : IDisposable
 			Write($"common/countries/{name}.txt", "color = { 1 2 3 }\n");
 		}
 		Write("localisation/names.csv", "PROV1;Alphaville;x\nPROV2;Betaburg;x\n");
+		Write("common/buildings.txt", @"
+			air_base = { on_completion = construction_practical air_capacity = 1 capital = yes cost = 4 time = 90 max_level = 10 }
+			industry = { completion_size = 0.67 ic = 1 capital = yes onmap = no cost = 5 time = 365 max_level = 10 }
+			infra = { infrastructure = 0.1 onmap = no cost = 0.5 time = 180 max_level = 10 damage_factor = 0.25 }");
+
+		Write("common/laws.txt", @"
+			economic_law = {
+				full_civilian_economy = { cost = 0.5 allow = { } global_ic = -0.5 global_money = 0.15 }
+				war_economy = { cost = 0.5 allow = { war = yes } global_ic = 0.25 }
+			}
+			press_laws = {
+				free_press = { cost = 0.5 allow = { } drift_speed = 0.1 }
+			}");
+		Write("common/minister_types.txt", @"
+			administrative_genius = { global_ic = 0.1 }
+			silent_workhorse = { global_money = 0.05 decay = 1 }");
+		Write("common/static_modifiers.txt", @"
+			hard_player = { global_ic = -0.1 icon = 3 }
+			base_values = { peace_consumer_goods_demand = 0.25 global_manpower = 4 ic = 5 }");
+		Write("technologies/industry.txt", @"
+			steel_production = {
+				metal_production = 0.05
+				research_bonus_from = { mechanicalengineering_theory = 0.5 }
+				on_completion = mechanicalengineering_theory
+				difficulty = 2
+				start_year = 1918
+				first_offset = 1932
+				additional_offset = 2
+				max_level = 12
+				folder = industry_folder
+			}
+			industral_production = { ic_modifier = 0.025 difficulty = 2 max_level = 12 folder = industry_folder }
+			lighttank_brigade = { activate_unit = light_armor_brigade difficulty = 3 start_year = 1918 }");
+		Write("common/government_positions.txt",
+			"head_of_state = { changeable = no }\narmament_minister = { }\n");
+		Write("common/countries/Germany.txt", @"
+			color = { 1 2 3 }
+			ministers = {
+				1 = {
+					name = ""The Leader""
+					head_of_state = silent_workhorse
+					armament_minister = administrative_genius
+					start_date = 1936.1.1
+				}
+				2 = { name = ""The Other"" armament_minister = administrative_genius }
+				3 = { name = ""The Clerk"" head_of_state = silent_workhorse }
+			}");
 	}
 
 	private CGameState LoadStart()
@@ -500,6 +548,240 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal("countries/France.txt", state.Country(alpha.Owner)?.DefinitionFile);
 	}
 
+	// --- laws and governments ---
+
+	private static CCountry Germany(CGameState state) => state.Country(new CCountryTag("GER"))!;
+
+	[Fact]
+	public void ACountrysHistoryPutsItsLawsAndItsGovernmentInPlace()
+	{
+		WriteStartFiles();
+		Write("history/countries/GER - Germany.txt", @"
+			economic_law = full_civilian_economy
+			press_laws = free_press
+			head_of_state = 1
+			armament_minister = 2
+			1936.1.1 = { economic_law = war_economy }
+			1939.9.1 = { economic_law = full_civilian_economy head_of_state = 3 }");
+		CCountry germany = Germany(LoadStart());
+
+		Assert.Equal(3, germany.Ministers.Count);
+		Assert.Equal("war_economy", germany.Laws["economic_law"].Name);   // dated on the start date
+		Assert.Equal("free_press", germany.Laws["press_laws"].Name);
+		Assert.Equal("The Leader", germany.Government["head_of_state"].Name);
+		Assert.Equal("The Other", germany.Government["armament_minister"].Name);
+	}
+
+	[Fact]
+	public void ACountrysModifierIsItsLawsAndItsMinistersAddedUp()
+	{
+		WriteStartFiles();
+		Write("history/countries/GER - Germany.txt",
+			"economic_law = war_economy\npress_laws = free_press\nhead_of_state = 1\narmament_minister = 2");
+		CGameState state = LoadStart();
+		_ = new CSimulation(state);                             // entering a game rebuilds it
+
+		CModifier modifier = Germany(state).Modifier;
+		Assert.Equal(CFixedPoint.Parse("0.35"), modifier["global_ic"]);       // the law's 0.25 and the minister's 0.1
+		Assert.Equal(CFixedPoint.Parse("0.05"), modifier["global_money"]);
+		Assert.Equal(CFixedPoint.Parse("0.1"), modifier["drift_speed"]);
+
+		// A block's own keys are not modifiers.
+		Assert.Equal(CFixedPoint.Zero, modifier["cost"]);
+		Assert.Equal(CFixedPoint.Zero, modifier["decay"]);
+		Assert.Equal(CFixedPoint.Zero, modifier["war"]);
+	}
+
+	[Fact]
+	public void AMinisterIsWorthWhatHisTypeForTheSeatHeHoldsIsWorth()
+	{
+		WriteStartFiles();
+		// The same man: a workhorse as head of state, a genius at armaments.
+		Write("history/countries/GER - Germany.txt", "armament_minister = 1");
+		CGameState state = LoadStart();
+		_ = new CSimulation(state);
+
+		Assert.Equal(CFixedPoint.Parse("0.1"), Germany(state).Modifier["global_ic"]);
+		Assert.Equal(CFixedPoint.Zero, Germany(state).Modifier["global_money"]);
+	}
+
+	[Fact]
+	public void ReportsLawsAndMinistersThatDoNotExistAndSeatsThatAddNothing()
+	{
+		WriteStartFiles();
+		Write("history/countries/GER - Germany.txt", @"
+			economic_law = planned_economy
+			head_of_state = 99
+			armament_minister = 3");
+		Write("history/countries/XYZ - Nowhere.txt", "economic_law = war_economy");
+		Write("history/countries/notes.txt", "economic_law = war_economy");
+		CCountry germany = Germany(LoadStart());
+
+		Assert.Empty(germany.Laws);
+		Assert.False(germany.Government.ContainsKey("head_of_state"));
+		Assert.Contains(_warnings, warning => warning.Contains("economic_law = planned_economy"));
+		Assert.Contains(_warnings, warning => warning.Contains("1 positions with ministers the country does not declare"));
+		Assert.Contains(_warnings, warning => warning.Contains("1 ministers hold a position"));   // The Clerk at armaments
+		Assert.Contains(_warnings, warning => warning.Contains("there is no country 'XYZ'"));
+		Assert.Contains(_warnings, warning => warning.Contains("does not start with a country tag"));
+	}
+
+	[Fact]
+	public void TheExpansionReplacesACountrysHistoryFile()
+	{
+		WriteStartFiles();
+		Write("history/countries/GER - Germany.txt", "economic_law = full_civilian_economy");
+		Write("tfh/history/countries/GER - Germany.txt", "economic_law = war_economy");
+		CCountry germany = Germany(LoadStart());
+
+		Assert.Equal("war_economy", germany.Laws["economic_law"].Name);
+	}
+
+	// --- resources, technologies and the static modifiers ---
+
+	[Fact]
+	public void AProvinceFileGivesItsResourcesManpowerLeadershipAndVictoryPoints()
+	{
+		WriteStartFiles();
+		Write("history/provinces/west/1 - Alpha.txt", @"
+			owner = GER
+			points = 30
+			metal = 12.00
+			energy = 25.00
+			crude_oil = 0.5
+			manpower = 10.00
+			leadership = 3.00");
+		CProvince alpha = LoadStart().Province(1);
+
+		Assert.Equal(CFixedPoint.FromInt(12), alpha.MaxProducing[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.FromInt(12), alpha.CurrentProducing[EGoods.Metal]);   // it starts at all it can
+		Assert.Equal(CFixedPoint.FromInt(25), alpha.CurrentProducing[EGoods.Energy]);
+		Assert.Equal(CFixedPoint.Parse("0.5"), alpha.CurrentProducing[EGoods.CrudeOil]);
+		Assert.Equal(CFixedPoint.Zero, alpha.CurrentProducing[EGoods.RareMaterials]);
+		Assert.Equal(CFixedPoint.FromInt(10), alpha.Manpower);
+		Assert.Equal(CFixedPoint.FromInt(3), alpha.Leadership);
+		Assert.Equal(30, alpha.Points);
+	}
+
+	[Fact]
+	public void ATechnologyIsReadForWhatALevelIsWorthAndNothingElse()
+	{
+		WriteStartFiles();
+		CGameState state = LoadStart();
+
+		Assert.Equal(3, state.Technologies.Count);
+		CTechnology steel = state.Technologies["steel_production"];
+		Assert.Equal(12, steel.MaxLevel);
+		Assert.Equal(CFixedPoint.Parse("0.05"), steel.EffectPerLevel["metal_production"]);
+
+		// How hard it is and when it appears describe the technology, not its effect.
+		Assert.Equal(new[] { "metal_production" }, steel.EffectPerLevel.Values.Keys);
+		Assert.Empty(state.Technologies["lighttank_brigade"].EffectPerLevel.Values);
+	}
+
+	[Fact]
+	public void ACountrysHistoryGivesItsCapitalAndItsTechnologyLevels()
+	{
+		WriteStartFiles();
+		Write("history/countries/GER - Germany.txt", @"
+			capital = 1
+			steel_production = 2
+			industral_production = 4
+			infantry_theory = 10
+			1936.1.1 = { steel_production = 3 }
+			1937.1.1 = { steel_production = 9 }");
+		CGameState state = LoadStart();
+		_ = new CSimulation(state);
+		CCountry germany = Germany(state);
+
+		Assert.Equal(1, germany.Capital);
+		Assert.Equal(3, germany.TechnologyLevels["steel_production"]);
+		Assert.Equal(4, germany.TechnologyLevels["industral_production"]);
+		Assert.False(germany.TechnologyLevels.ContainsKey("infantry_theory"));   // not a technology
+
+		Assert.Equal(CFixedPoint.Parse("0.15"), germany.Technology["metal_production"]);
+		Assert.Equal(CFixedPoint.Parse("0.1"), germany.Technology["ic_modifier"]);
+	}
+
+	[Fact]
+	public void StaticModifiersAreKnownByName()
+	{
+		WriteStartFiles();
+		CGameState state = LoadStart();
+
+		Assert.Equal(CFixedPoint.FromInt(5), state.StaticModifier("base_values", "ic"));
+		Assert.Equal(CFixedPoint.Parse("-0.1"), state.StaticModifier("hard_player", "global_ic"));
+		Assert.Equal(CFixedPoint.Zero, state.StaticModifier("hard_player", "icon"));      // its own key, not a modifier
+		Assert.Equal(CFixedPoint.Zero, state.StaticModifier("no_such_modifier", "ic"));
+	}
+
+	// --- buildings ---
+
+	[Fact]
+	public void ABuildingsOneUnknownKeyIsItsModifier()
+	{
+		WriteStartFiles();
+		CGameState state = LoadStart();
+
+		Assert.Equal(new[] { "air_base", "industry", "infra" }, state.Buildings.Select(building => building.Key));
+		Assert.Equal(new[] { 0, 1, 2 }, state.Buildings.Select(building => building.Index));
+
+		CBuilding industry = state.Buildings[1];
+		Assert.Equal("ic", industry.ModifierKey);                 // not cost, time or any other field
+		Assert.Equal(CFixedPoint.One, industry.ModifierValue);
+		Assert.Equal(10, industry.MaxLevel);
+		Assert.Equal("infrastructure", state.Buildings[2].ModifierKey);
+		Assert.Equal(CFixedPoint.Parse("0.1"), state.Buildings[2].ModifierValue);
+	}
+
+	[Fact]
+	public void ABuildingHoldsOneModifierSoASecondReplacesTheFirstAndIsReported()
+	{
+		WriteStartFiles();
+		Write("common/buildings.txt", "factory = { ic = 1 max_level = 5 local_ic = 0.5 }\nfactory = { ic = 9 }");
+		CGameState state = LoadStart();
+
+		CBuilding factory = Assert.Single(state.Buildings);
+		Assert.Equal("local_ic", factory.ModifierKey);
+		Assert.Contains(_warnings, warning => warning.Contains("has two modifiers"));
+		Assert.Contains(_warnings, warning => warning.Contains("declared twice"));
+	}
+
+	[Fact]
+	public void AProvinceFileSetsBuildingLevelsAndALaterLineReplacesAnEarlierOne()
+	{
+		WriteStartFiles();
+		Write("history/provinces/west/1 - Alpha.txt", @"
+			owner = GER
+			industry = 3
+			infra = 4
+			infra = 6
+			1936.1.1 = { industry = 5 }
+			1937.1.1 = { industry = 9 }");
+		CGameState state = LoadStart();
+
+		CProvince alpha = state.Province(1);
+		Assert.Equal(CFixedPoint.FromInt(5), alpha.BuildingLevel(state.Buildings[1]));   // set, not added
+		Assert.Equal(CFixedPoint.FromInt(6), alpha.BuildingLevel(state.Buildings[2]));
+		Assert.Equal(CFixedPoint.Zero, alpha.BuildingLevel(state.Buildings[0]));
+		Assert.Equal(CFixedPoint.Zero, state.Province(2).BuildingLevel(state.Buildings[1]));
+
+		// Five levels of industry at one IC each, and six of infrastructure at a tenth.
+		Assert.Equal(CFixedPoint.FromInt(5), alpha.ModifierValue(state.Buildings, "ic"));
+		Assert.Equal(CFixedPoint.Parse("0.6"), alpha.ModifierValue(state.Buildings, "infrastructure"));
+	}
+
+	[Fact]
+	public void ABuildingLevelThatIsNotANumberIsIgnoredAndCounted()
+	{
+		WriteStartFiles();
+		Write("history/provinces/west/1 - Alpha.txt", "owner = GER\nindustry = lots");
+		CGameState state = LoadStart();
+
+		Assert.Equal(CFixedPoint.Zero, state.Province(1).BuildingLevel(state.Buildings[1]));
+		Assert.Contains(_warnings, warning => warning.Contains("1 building levels and amounts"));
+	}
+
 	[Fact]
 	public void TheExpansionReplacesAProvinceFileAtTheSamePath()
 	{
@@ -536,6 +818,173 @@ public class MapLoadingTests : IDisposable
 
 		Assert.Contains(_warnings, warning => warning.Contains("not defined") && warning.Contains("XXX"));
 		Assert.Equal(2, _warnings.Count(warning => warning.Contains("does not start with a province id")));
+	}
+
+	// --- the defines ---
+
+	[Fact]
+	public void ReadsTheDefinesBySectionPastCommentsCommasAndQuotes()
+	{
+		Write("common/defines.lua", @"
+			defines = {
+			start_date = '1936.1.1',   -- when it begins
+			base_militia = ""militia_brigade"",
+			economy = {
+				IC_TO_MONEY 			= 0.05,
+				IC_TO_SUPPLIES = 7.0,	-- supplies per IC, = 7
+				LAST_ONE = 96  -- no comma after the last
+			},
+			weather = {
+				COLD = -0.75,
+				IC_TO_MONEY = 3,
+				deeper = { HIDDEN = 1 },
+			},
+			}");
+		// IC_TO_SUPPLIES is there, so nothing this project reads is missing.
+		CDefines defines = CDefinesReader.Read(CDirectorySettings.At(_root), _warnings.Add);
+
+		Assert.Equal(CFixedPoint.Parse("0.05"), defines["economy", "IC_TO_MONEY"]);
+		Assert.Equal(CFixedPoint.FromInt(7), defines["economy", "IC_TO_SUPPLIES"]);
+		Assert.Equal(CFixedPoint.FromInt(96), defines["economy", "LAST_ONE"]);
+		Assert.Equal(CFixedPoint.Parse("-0.75"), defines["weather", "COLD"]);
+		Assert.Equal(CFixedPoint.FromInt(3), defines["weather", "IC_TO_MONEY"]);   // a name belongs to its section
+		Assert.False(defines.Has("weather", "HIDDEN"));
+		Assert.False(defines.Has("deeper", "HIDDEN"));
+		Assert.Equal(CFixedPoint.Zero, defines["economy", "NOT_THERE"]);
+		Assert.Equal(5, defines.Count);                        // the two outside any section are not numbers to ask for
+		Assert.Empty(_warnings);
+	}
+
+	[Fact]
+	public void ReportsADefineThisProjectReadsAndTheFileDoesNotGive()
+	{
+		Write("common/defines.lua", "defines = {\n\tstart_date = '1936.1.1',\n\teconomy = { IC_TO_SUPPLIES = 7 },\n}\n");
+		CDefinesReader.Read(CDirectorySettings.At(_root), _warnings.Add);
+
+		string warning = Assert.Single(_warnings);
+		Assert.Contains("economy.IC_TO_MONEY", warning);
+		Assert.Contains("zero", warning);
+		Assert.DoesNotContain("IC_TO_SUPPLIES", warning);
+	}
+
+	// --- wars ---
+
+	private List<CWar> Wars(CDate date)
+	{
+		CDirectorySettings directories = CDirectorySettings.At(_root);
+		CLocalisation localisation = CLocalisation.Load(directories, warn: _warnings.Add);
+		CCountries countries = CCountries.Load(directories, localisation, _warnings.Add);
+		return CWarReader.Read(directories, countries, date, _warnings.Add);
+	}
+
+	[Fact]
+	public void AWarIsWhoHasJoinedAndNotLeftByTheDate()
+	{
+		WriteStartFiles();
+		Write("history/wars/First.txt", @"
+			name = ""The First War""
+			limited_war = yes
+			1935.10.3 = {
+				add_attacker = ITA
+				add_defender = ENG
+				add_defender = FRA
+				war_goal = { casus_belli = puppet actor = ""ITA"" receiver = ""ENG"" }
+			}
+			1935.12.1 = { rem_defender = FRA }
+			1936.5.9 = { rem_attacker = ITA rem_defender = ENG }");
+		Write("history/wars/Later.txt", "name = \"Later\"\n1937.7.7 = { add_attacker = GER add_defender = FRA }");
+		Write("history/wars/Over.txt",
+			"name = \"Over\"\n1930.1.1 = { add_attacker = GER add_defender = FRA }\n1931.1.1 = { rem_attacker = GER rem_defender = FRA }");
+
+		CWar war = Assert.Single(Wars(new CDate(1936, 1, 1)));
+		Assert.Equal("The First War", war.Name);
+		Assert.Equal(new[] { "ITA" }, war.Attackers.Select(tag => tag.Value));
+		Assert.Equal(new[] { "ENG" }, war.Defenders.Select(tag => tag.Value));
+		Assert.Empty(_warnings);
+
+		Assert.Equal(new[] { "Later" }, Wars(new CDate(1937, 7, 7)).Select(later => later.Name));
+	}
+
+	[Fact]
+	public void AWarFileIsReplacedByTheExpansionsAndWhatItDoesNotUnderstandIsReported()
+	{
+		WriteStartFiles();
+		Write("history/wars/First.txt", "name = \"Base\"\n1935.1.1 = { add_attacker = ITA add_defender = ENG }");
+		Write("tfh/history/wars/First.txt", @"
+			name = ""Expansion""
+			1935.1.1 = { add_attacker = GER add_defender = FRA add_defender = XYZ add_neutral = ENG }");
+
+		CWar war = Assert.Single(Wars(new CDate(1936, 1, 1)));
+		Assert.Equal("Expansion", war.Name);
+		Assert.Equal(new[] { "FRA" }, war.Defenders.Select(tag => tag.Value));
+		Assert.Contains(_warnings, warning => warning.Contains("not understood") && warning.Contains("add_neutral"));
+		Assert.Contains(_warnings, warning => warning.Contains("not defined") && warning.Contains("XYZ"));
+	}
+
+	// --- what a country holds at the start ---
+
+	[Fact]
+	public void ANewGameFillsEveryStockpile()
+	{
+		WriteStartFiles();
+		Write("history/provinces/west/1 - Alpha.txt", "owner = GER\ncontroller = GER\nindustry = 5");
+		Write("history/provinces/west/3 - Gamma.txt", "owner = ITA\ncontroller = ITA");
+		Write("history/countries/GER - Germany.txt", @"
+			capital = 1
+			rare_materials = 100
+			rare_materials = 50
+			1937.1.1 = { rare_materials = 999 }");
+		Write("history/countries/ITA - Italy.txt", "capital = 3");
+		Write("history/wars/First.txt", "name = \"A War\"\n1935.10.3 = { add_attacker = ITA add_defender = ENG }");
+		CGameState state = LoadStart();
+
+		// Germany: ten IC at peace, and what its history gives by the start date on top.
+		CGoodsPool berlin = state.Stockpile(Germany(state))!;
+		Assert.Same(state.Province(1).Pool, berlin);
+		Assert.Equal(CFixedPoint.FromInt(900), berlin[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.FromInt(1800), berlin[EGoods.Energy]);
+		Assert.Equal(CFixedPoint.FromInt(600), berlin[EGoods.RareMaterials]);
+		Assert.Equal(CFixedPoint.Parse("2.25"), berlin[EGoods.Money]);
+
+		// Italy: the five IC every country has, and seventy-five days of it for being at war.
+		Assert.True(state.IsAtWar(new CCountryTag("ITA")));
+		Assert.Equal(CFixedPoint.FromInt(375), state.Province(3).Pool[EGoods.Metal]);
+
+		// Britain is at war too, but has no capital to keep anything in.
+		Assert.Null(state.Stockpile(state.Country(new CCountryTag("ENG"))!));
+		Assert.DoesNotContain(_warnings, warning => warning.Contains("history") || warning.Contains("defines"));
+	}
+
+	[Fact]
+	public void TheSimulationWorksThroughCountriesInTheOrderTheyAreDeclared()
+	{
+		WriteStartFiles();
+		CGameState state = LoadStart();
+
+		Assert.Equal(new[] { "GER", "FRA", "ITA", "ENG" }, state.Countries.Select(country => country.Tag.Value));
+	}
+
+	[Fact]
+	public void MoneyInADayUsesTheRateTheDefinesGive()
+	{
+		WriteStartFiles();
+		Write("history/provinces/west/1 - Alpha.txt", "owner = GER\ncontroller = GER\nindustry = 5");
+		Write("history/countries/GER - Germany.txt", "capital = 1\neconomic_law = full_civilian_economy");
+		CGameState state = LoadStart();
+		_ = new CSimulation(state);
+
+		// Ten IC at 0.05, and the law's +15%.
+		Assert.Equal(CFixedPoint.Parse("0.575"), Germany(state).HomeProduced[EGoods.Money]);
+	}
+
+	[Fact]
+	public void AnAmountOfGoodsThatIsNotANumberIsReported()
+	{
+		WriteStartFiles();
+		Write("history/countries/GER - Germany.txt", "capital = 1\nmoney = plenty");
+		LoadStart();
+
+		Assert.Contains(_warnings, warning => warning.Contains("1 amounts of goods in country history"));
 	}
 }
 

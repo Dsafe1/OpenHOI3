@@ -19,7 +19,10 @@ repository's history will find that stance everywhere; it is no longer the one t
 
 **The tree is early and provisional.** What exists is one iteration - a Clausewitz reader, an
 install layerer, texture and font decoding, the map with the start-date ownership and
-terrain of its provinces, a map view, 95 tests - and it is
+terrain of its provinces, a map view, fixed-point numbers, the command queue, an hourly tick
+whose daily pass rebuilds each country's modifier, its IC and its home production, adds that
+to its stockpile and runs its six shares of IC, a tool that checks all of it against a
+savegame, 242 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -68,6 +71,9 @@ Nothing should be designed around these coming back.
   BlackICE then becomes a third layer over it.
 - **Fixed-point numbers in the simulation.** Thousandths, as the original stores them, for
   determinism and for rounding the way the original does. No `float` or `double` in game state.
+  The original has a second kind, with 15 binary places, for shares of IC and of leadership;
+  it is `CFixed15` here, and a rule worked out in one kind is never computed in the other
+  (`docs/mechanics/numbers.md`).
 - **Every change to the game state is a command.** Nothing mutates the simulation directly;
   that is what makes a run replayable and, later, shareable between players.
 - **A game is an object, not the process.** The plan starts at the map and reaches the main
@@ -141,7 +147,7 @@ adds 20.
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 85 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 86 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -199,7 +205,17 @@ beside the repository.
 ## Always
 
 - **Never commit unless asked.**
-- Tests are where a silent misreading gets caught. The parser, the layering and the map carry 95 of them
+- **Keep `readme.md`'s *Next up* and *Loose ends* current.** They are what a session with no
+  memory of the last one starts from. When a piece of the plan lands, move it out of *Next
+  up* and into *Where things stand*; when something is deferred, it goes under *Loose ends*.
+- **Check against the savegame.** `tools/OpenHOI3.SaveCheck` loads an install and reports,
+  field by field, where the result differs from a savegame the original wrote on the start
+  date. Run it after touching a loader or a formula; a rule that reproduces the save to the
+  thousandth is worth more than one that reads well. The maintainer's save is normally at
+  `Documents\Paradox Interactive\Hearts of Iron III\save games\Germany1936_01_01_00.hoi3`.
+  Never copy a savegame, or anything from one, into the repository; a formula measured from
+  it goes in the spec marked *measured*, with the figure it reproduced.
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile and production carry 242 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

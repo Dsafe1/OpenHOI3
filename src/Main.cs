@@ -18,7 +18,12 @@ public partial class Main : Control
 	{
 		// The content library reports to standard error until told otherwise, because
 		// it has no engine in it. From here on its diagnostics reach Godot's own log.
-		CDiagnostics.WarnSink = message => GD.PushWarning(message);
+		//
+		// A warning is printed as a plain line and an error is pushed. Godot attaches a
+		// stack trace to anything pushed, which is worth having for an error and is
+		// noise for a warning: these describe the install's files, and where in our
+		// code the line was written says nothing about them.
+		CDiagnostics.WarnSink = message => GD.Print("WARNING: " + message);
 		CDiagnostics.ErrorSink = message => GD.PushError(message);
 
 		GD.Print("OpenHOI3 starting.");

@@ -37,7 +37,7 @@ public sealed class CTextureManager
 		string? absolute = _directories.ResolveTexture(gameRelative);
 		if (absolute is null)
 		{
-			GD.PushWarning($"Texture not found for '{gameRelative}'");
+			CDiagnostics.Warn($"Texture not found for '{gameRelative}'");
 			return null;
 		}
 		if (_cache.TryGetValue(absolute, out Texture2D? cached))
@@ -59,7 +59,7 @@ public sealed class CTextureManager
 		string? absolute = _directories.ResolveTexture(gameRelative);
 		if (absolute is null)
 		{
-			GD.PushWarning($"Texture not found for '{gameRelative}'");
+			CDiagnostics.Warn($"Texture not found for '{gameRelative}'");
 			return null;
 		}
 		return LoadImageAbsolute(absolute);
@@ -74,7 +74,7 @@ public sealed class CTextureManager
 		}
 		catch (IOException e)
 		{
-			GD.PushWarning($"Could not read '{absolutePath}': {e.Message}");
+			CDiagnostics.Warn($"Could not read '{absolutePath}': {e.Message}");
 			return null;
 		}
 
@@ -95,7 +95,7 @@ public sealed class CTextureManager
 
 		if (error != Error.Ok || image.IsEmpty())
 		{
-			GD.PushWarning($"Could not decode '{absolutePath}' ({error})");
+			CDiagnostics.Warn($"Could not decode '{absolutePath}' ({error})");
 			return null;
 		}
 		return image;

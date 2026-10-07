@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Sim;
 
@@ -11,16 +9,16 @@ namespace OpenHOI3.Content;
 /// <summary>
 /// Builds the one start: the state of the world on the start date, from an install.
 ///
-/// So far that is the provinces - their names, their neighbours and who holds them.
-/// The rules are in <c>docs/mechanics/map.md</c>, sections 2 and 7.
+/// So far that is the provinces - their names, their neighbours, who holds them and
+/// what is built in them - the countries' laws, governments and technology, the wars
+/// being fought, and what each country holds. The rules are in
+/// <c>docs/mechanics/map.md</c>, sections 2 and 7, <c>docs/mechanics/ic.md</c>,
+/// section 1, and <c>docs/mechanics/stockpile.md</c>, section 2.
 /// </summary>
 public static class CGameStateLoader
 {
 	private const string DefinesFile = "common/defines.lua";
 	private const string ProvinceHistoryDirectory = "history/provinces";
-
-	private static readonly Regex StartDatePattern =
-		new(@"\bstart_date\s*=\s*['""]([^'""]+)['""]", RegexOptions.Compiled);
 
 	public static CGameState LoadStart(CDirectorySettings directories, CMap map,
 		CLocalisation localisation, CCountries countries, Action<string>? warn = null)
@@ -39,20 +37,29 @@ public static class CGameStateLoader
 			};
 		}
 
-		ApplyProvinceHistory(directories, provinces, start, countries, map.Terrains, warn);
-		return new CGameState(start, provinces, countries.All);
+		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn);
+		Dictionary<string, CGoodsPool> goodsGiven =
+			CCountryHistory.Apply(directories, countries, start, warn, technologies);
+
+		CBuilding[] buildings = CBuildingReader.Read(directories, warn);
+		ApplyProvinceHistory(directories, provinces, start, countries, map.Terrains, buildings, warn);
+		List<CModifier> staticModifiers = CModifierReader.ReadStaticModifiers(directories, warn);
+		CDefines defines = CDefinesReader.Read(directories, warn);
+		List<CWar> wars = CWarReader.Read(directories, countries, start, warn);
+
+		var state = new CGameState(start, provinces, countries.Declared, buildings, technologies, staticModifiers,
+			defines, wars);
+		CStockpile.FillAtStart(state, goodsGiven);
+		CProduction.SetStartingShares(state);
+		return state;
 	}
 
-	/// <summary>
-	/// The start date, which the original keeps in a Lua table. Only the one line is
-	/// wanted, so it is matched rather than run.
-	/// </summary>
+	/// <summary>The start date, which the original keeps with its defines.</summary>
 	public static CDate ReadStartDate(CDirectorySettings directories)
 	{
 		string path = directories.Resolve(DefinesFile);
-		string text = Encoding.Latin1.GetString(File.ReadAllBytes(path));
-		Match match = StartDatePattern.Match(text);
-		if (!match.Success || !CDate.TryParse(match.Groups[1].Value, out CDate date))
+		if (!CDefinesReader.ReadText(path).TryGetValue(("", "start_date"), out string? text)
+			|| !CDate.TryParse(text, out CDate date))
 		{
 			throw new InvalidDataException($"'{path}' has no readable start_date");
 		}
@@ -65,8 +72,15 @@ public static class CGameStateLoader
 	/// people.
 	/// </summary>
 	public static void ApplyProvinceHistory(CDirectorySettings directories, CProvince[] provinces,
-		CDate start, CCountries countries, IReadOnlyList<CTerrain> terrains, Action<string> warn)
+		CDate start, CCountries countries, IReadOnlyList<CTerrain> terrains,
+		IReadOnlyList<CBuilding> buildings, Action<string> warn)
 	{
+		var buildingByKey = new Dictionary<string, CBuilding>(StringComparer.OrdinalIgnoreCase);
+		foreach (CBuilding building in buildings)
+		{
+			buildingByKey.TryAdd(building.Key, building);
+		}
+		int badLevels = 0;
 		var terrainByName = new Dictionary<string, CTerrain>(StringComparer.OrdinalIgnoreCase);
 		foreach (CTerrain terrain in terrains)
 		{
@@ -99,8 +113,8 @@ public static class CGameStateLoader
 			}
 
 			filesRead[id]++;
-			Apply(provinces[id], CHistory.Fold(root, start), countries, unknownTags, terrainByName,
-				unknownTerrains);
+			badLevels += Apply(provinces[id], CHistory.Fold(root, start), countries, unknownTags,
+				terrainByName, unknownTerrains, buildingByKey);
 		}
 
 		if (unreadable > 0)
@@ -113,6 +127,10 @@ public static class CGameStateLoader
 				string.Join(", ", unknownTags));
 		}
 
+		if (badLevels > 0)
+		{
+			warn($"{badLevels} building levels and amounts in province history are not numbers and were ignored");
+		}
 		if (unknownTerrains.Count > 0)
 		{
 			warn($"province history names {unknownTerrains.Count} terrains that are not defined: " +
@@ -136,14 +154,73 @@ public static class CGameStateLoader
 		}
 	}
 
-	private static void Apply(CProvince province, List<ClausewitzNode> entries, CCountries countries,
+	/// <summary>Applies one province's folded history and returns how many building levels were unreadable.</summary>
+	private static int Apply(CProvince province, List<ClausewitzNode> entries, CCountries countries,
 		SortedSet<string> unknownTags, Dictionary<string, CTerrain> terrainByName,
-		SortedSet<string> unknownTerrains)
+		SortedSet<string> unknownTerrains, Dictionary<string, CBuilding> buildingByKey)
 	{
+		int badLevels = 0;
 		foreach (ClausewitzNode entry in entries)
 		{
 			if (entry.Key is null || entry.Value is null)
 			{
+				continue;
+			}
+
+			// What the province yields. It starts producing all it can.
+			if (CGoodsPool.TryParseKey(entry.Key, out EGoods goods))
+			{
+				if (CFixedPoint.TryParse(entry.Value, out CFixedPoint amount))
+				{
+					province.MaxProducing[goods] = amount;
+					province.CurrentProducing[goods] = amount;
+				}
+				else
+				{
+					badLevels++;
+				}
+				continue;
+			}
+			if (entry.Key.Equals("manpower", StringComparison.OrdinalIgnoreCase)
+				|| entry.Key.Equals("leadership", StringComparison.OrdinalIgnoreCase))
+			{
+				if (CFixedPoint.TryParse(entry.Value, out CFixedPoint amount))
+				{
+					if (entry.Key.Equals("manpower", StringComparison.OrdinalIgnoreCase))
+					{
+						province.Manpower = amount;
+					}
+					else
+					{
+						province.Leadership = amount;
+					}
+				}
+				else
+				{
+					badLevels++;
+				}
+				continue;
+			}
+			if (entry.Key.Equals("points", StringComparison.OrdinalIgnoreCase))
+			{
+				if (int.TryParse(entry.Value, out int points))
+				{
+					province.Points = points;
+				}
+				continue;
+			}
+
+			// A building's key sets its level here. A later line replaces an earlier one.
+			if (buildingByKey.TryGetValue(entry.Key, out CBuilding? building))
+			{
+				if (CFixedPoint.TryParse(entry.Value, out CFixedPoint level))
+				{
+					province.SetBuildingLevel(building, level);
+				}
+				else
+				{
+					badLevels++;
+				}
 				continue;
 			}
 
@@ -202,6 +279,7 @@ public static class CGameStateLoader
 				province.Cores.Remove(tag);
 			}
 		}
+		return badLevels;
 	}
 
 	private static bool TryReadLeadingId(string fileName, out int id)

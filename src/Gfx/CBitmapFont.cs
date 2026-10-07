@@ -113,12 +113,12 @@ public sealed class CBitmapFonts
 			}
 			else
 			{
-				GD.PushWarning($"Could not load font '{fontName}' ({error})");
+				CDiagnostics.Warn($"Could not load font '{fontName}' ({error})");
 			}
 		}
 		else
 		{
-			GD.PushWarning($"Font file missing: {path}");
+			CDiagnostics.Warn($"Font file missing: {path}");
 		}
 
 		_files[fontName] = loaded;
@@ -138,7 +138,7 @@ public sealed class CBitmapFonts
 		string? texturePath = _directories.ResolveTexture($"gfx/fonts/{fontName}.tga");
 		if (texturePath is null)
 		{
-			GD.PushWarning($"No glyph atlas alongside font '{fontName}'");
+			CDiagnostics.Warn($"No glyph atlas alongside font '{fontName}'");
 			return;
 		}
 
@@ -146,7 +146,7 @@ public sealed class CBitmapFonts
 		Error error = image.LoadTgaFromBuffer(File.ReadAllBytes(texturePath));
 		if (error != Error.Ok)
 		{
-			GD.PushWarning($"Could not decode glyph atlas '{texturePath}' ({error})");
+			CDiagnostics.Warn($"Could not decode glyph atlas '{texturePath}' ({error})");
 			return;
 		}
 

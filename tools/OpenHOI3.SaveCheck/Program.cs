@@ -1,0 +1,402 @@
+// Checks what this project computes against a savegame the original wrote.
+//
+//   dotnet run --project tools/OpenHOI3.SaveCheck -- <install folder> <savegame> [examples]
+//
+// The savegame has to be from the start date, without mods, so that it describes the same
+// world the loaders build. Nothing is written: both the install and the save are read only.
+// The save is the oracle, so a disagreement here is a fault in this project until shown
+// otherwise - and the place to look is docs/mechanics/.
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using OpenHOI3.Content;
+using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Sim;
+
+if (args.Length < 2)
+{
+	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");
+	return 2;
+}
+int examples = args.Length > 2 && int.TryParse(args[2], out int wanted) ? wanted : 5;
+
+var warnings = new List<string>();
+CDirectorySettings directories = CDirectorySettings.At(args[0]);
+CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
+CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
+CMap map = CMap.Load(directories, warnings.Add);
+CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add);
+
+ClausewitzNode save = ClausewitzParser.ParseFile(args[1]);
+Console.WriteLine($"savegame: date {save.GetString("date")}, player {save.GetString("player")}");
+Console.WriteLine($"ours:     date {state.Date}.{state.Hour}, {state.Provinces.Count - 1} provinces, {state.Countries.Count} countries");
+Console.WriteLine();
+
+var findings = new Dictionary<string, List<string>>();
+var compared = new Dictionary<string, int>();
+void Compare(string what, bool agrees, Func<string> detail)
+{
+	compared[what] = compared.GetValueOrDefault(what) + 1;
+	if (agrees)
+	{
+		return;
+	}
+	if (!findings.TryGetValue(what, out List<string>? list))
+	{
+		findings[what] = list = new List<string>();
+	}
+	list.Add(detail());
+}
+
+CFixedPoint Number(string? text) => CFixedPoint.TryParse(text, out CFixedPoint value) ? value : CFixedPoint.Zero;
+EGoods[] resources = { EGoods.Metal, EGoods.Energy, EGoods.RareMaterials, EGoods.CrudeOil };
+
+// ---- provinces: everything the history files decide
+foreach (ClausewitzNode node in save.Children)
+{
+	if (node.Key is null || !node.IsBlock
+		|| !int.TryParse(node.Key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
+		|| id <= 0 || id >= state.Provinces.Count)
+	{
+		continue;
+	}
+	CProvince province = state.Provinces[id];
+	string where = $"{id} {province.Name}";
+
+	Compare("province owner", node.GetString("owner") == (province.Owner?.Value ?? ""),
+		() => $"{where}: save '{node.GetString("owner")}', ours '{province.Owner?.Value}'");
+	Compare("province controller", node.GetString("controller") == (province.Controller?.Value ?? ""),
+		() => $"{where}: save '{node.GetString("controller")}', ours '{province.Controller?.Value}'");
+
+	List<string> savedCores = node.All("core").Select(core => core.Value ?? "").OrderBy(core => core).ToList();
+	List<string> ourCores = province.Cores.Select(core => core.Value).OrderBy(core => core).ToList();
+	Compare("province cores", savedCores.SequenceEqual(ourCores),
+		() => $"{where}: save [{string.Join(' ', savedCores)}], ours [{string.Join(' ', ourCores)}]");
+
+	foreach (CBuilding building in state.Buildings)
+	{
+		// The save writes a pair for each building. At the start the two are equal.
+		ClausewitzNode? pair = node.Get(building.Key);
+		CFixedPoint first = pair is { IsBlock: true, Children.Count: >= 2 } ? Number(pair.Children[0].Value) : CFixedPoint.Zero;
+		CFixedPoint second = pair is { IsBlock: true, Children.Count: >= 2 } ? Number(pair.Children[1].Value) : CFixedPoint.Zero;
+		CFixedPoint ours = province.BuildingLevel(building);
+		Compare("province buildings", first == ours && second == ours,
+			() => $"{where} {building.Key}: save {first} / {second}, ours {ours}");
+	}
+
+	foreach (EGoods goods in resources)
+	{
+		string key = CGoodsPool.KeyOf(goods);
+		CFixedPoint current = Number(node.Get("current_producing")?.GetString(key));
+		CFixedPoint most = Number(node.Get("max_producing")?.GetString(key));
+		Compare("province production", current == province.CurrentProducing[goods] && most == province.MaxProducing[goods],
+			() => $"{where} {key}: save {current} of {most}, ours {province.CurrentProducing[goods]} of {province.MaxProducing[goods]}");
+	}
+
+	Compare("province manpower", Number(node.GetString("manpower")) == province.Manpower,
+		() => $"{where}: save {node.GetString("manpower")}, ours {province.Manpower}");
+	Compare("province leadership", Number(node.GetString("leadership")) == province.Leadership,
+		() => $"{where}: save {node.GetString("leadership")}, ours {province.Leadership}");
+	Compare("province victory points", node.GetInt("points") == province.Points,
+		() => $"{where}: save {node.GetInt("points")}, ours {province.Points}");
+}
+
+// ---- countries: what the history files decide
+Dictionary<string, Dictionary<string, CLaw>> lawBook = CModifierReader.ReadLaws(directories, warnings.Add);
+HashSet<string> seats = CModifierReader.ReadGovernmentPositions(directories, warnings.Add);
+var savedCountries = new List<(ClausewitzNode Node, CCountry Country)>();
+foreach (ClausewitzNode node in save.Children)
+{
+	if (node.Key is not null && node.IsBlock && CCountryTag.TryParse(node.Key, out CCountryTag tag)
+		&& state.Country(tag) is { } country)
+	{
+		savedCountries.Add((node, country));
+	}
+}
+
+foreach ((ClausewitzNode node, CCountry country) in savedCountries)
+{
+	string tag = country.Tag.Value;
+	bool existsAtStart = state.Provinces.Any(province => province.Owner?.Value == tag);
+
+	Compare("country capital", node.GetInt("capital") == country.Capital,
+		() => $"{tag}: save {node.GetInt("capital")}, ours {country.Capital}");
+
+	foreach (string seat in seats)
+	{
+		string ours = country.Government.TryGetValue(seat, out CMinister? minister)
+			? minister.Id.ToString(CultureInfo.InvariantCulture) : "";
+		// The original fills the government of a country that does not exist yet by itself.
+		Compare(existsAtStart ? "country government" : "country government (no provinces at the start)",
+			node.GetString(seat) == ours, () => $"{tag} {seat}: save '{node.GetString(seat)}', ours '{ours}'");
+	}
+
+	foreach (string group in lawBook.Keys)
+	{
+		string ours = country.Laws.TryGetValue(group, out CLaw? law) ? law.Name : "";
+		Compare("country laws (the original's AI has already chosen its own by the first save)",
+			node.GetString(group).Equals(ours, StringComparison.OrdinalIgnoreCase),
+			() => $"{tag} {group}: save '{node.GetString(group)}', ours '{ours}'");
+	}
+
+	ClausewitzNode? technology = node.Get("technology");
+	if (technology is not null)
+	{
+		foreach (ClausewitzNode entry in technology.Children)
+		{
+			if (entry.Key is null || !entry.IsBlock || entry.Children.Count == 0 || !state.Technologies.ContainsKey(entry.Key))
+			{
+				continue;
+			}
+			int saved = (int)Number(entry.Children[0].Value).ToInt();
+			int ours = country.TechnologyLevels.GetValueOrDefault(entry.Key);
+			Compare("country technology levels", saved == ours, () => $"{tag} {entry.Key}: save {saved}, ours {ours}");
+		}
+	}
+}
+
+// ---- what a new game starts with. The save is two daily passes on from that, so two days of
+// its own home production and usage come off its stockpile first. Stockpiles are compared by
+// capital, because two countries with one capital share one.
+EGoods[] startingGoods = { EGoods.Metal, EGoods.RareMaterials, EGoods.Money };
+foreach (IGrouping<int, (ClausewitzNode Node, CCountry Country)> sharing in savedCountries.GroupBy(saved => saved.Country.Capital))
+{
+	CProvince capital = state.Province(sharing.Key);
+	ClausewitzNode? savedCapital = save.Get(sharing.Key.ToString(CultureInfo.InvariantCulture));
+	if (capital.Id == 0 || savedCapital?.Get("pool") is not { } savedPool
+		|| !sharing.Any(saved => CResources.HoldsCapital(state, saved.Country)))
+	{
+		continue;                                            // nobody's stockpile: what was put there has been moved on
+	}
+
+	string who = string.Join("+", sharing.Select(saved => saved.Country.Tag.Value));
+	foreach (EGoods goods in startingGoods)
+	{
+		string key = CGoodsPool.KeyOf(goods);
+		CFixedPoint expected = Number(savedPool.GetString(key));
+		foreach ((ClausewitzNode node, CCountry country) in sharing)
+		{
+			CFixedPoint home = Number(node.Get("home")?.GetString(key));
+			CFixedPoint usage = Number(node.Get("usage")?.GetString(key));
+			// A country that does not exist has its usage reset each day and its home
+			// production never, so the save holds one day of the first and two of the second.
+			expected -= CResources.HoldsCapital(state, country) ? home + home - usage - usage : home - usage - usage;
+		}
+		Compare("stockpile at the start: " + key, expected == capital.Pool[goods],
+			() => $"{who}: the save implies {expected}, ours {capital.Pool[goods]}  (off by {expected - capital.Pool[goods]})");
+	}
+}
+
+// ---- what is computed. The original's AI has changed laws by the time anything can be saved,
+// so each country is first given the laws and the government the save says it has.
+var historyLaws = new Dictionary<string, Dictionary<string, CLaw>>();
+foreach ((ClausewitzNode node, CCountry country) in savedCountries)
+{
+	historyLaws[country.Tag.Value] = new Dictionary<string, CLaw>(country.Laws, StringComparer.OrdinalIgnoreCase);
+	foreach ((string group, Dictionary<string, CLaw> laws) in lawBook)
+	{
+		if (laws.TryGetValue(node.GetString(group), out CLaw? law))
+		{
+			country.Laws[group] = law;
+		}
+	}
+	country.Government.Clear();
+	foreach (string seat in seats)
+	{
+		if (int.TryParse(node.GetString(seat), NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
+			&& country.Ministers.TryGetValue(id, out CMinister? minister))
+		{
+			country.Government[seat] = minister;
+		}
+	}
+
+	// The save has technology levels the history files do not give, and the shares of IC
+	// are whatever the country had when it was written.
+	foreach (ClausewitzNode entry in node.Get("technology")?.Children ?? new List<ClausewitzNode>())
+	{
+		if (entry.Key is not null && entry.IsBlock && entry.Children.Count > 0 && state.Technologies.ContainsKey(entry.Key))
+		{
+			country.TechnologyLevels[entry.Key] = (int)Number(entry.Children[0].Value).ToInt();
+		}
+	}
+	List<ClausewitzNode> shares = node.Get("distribution")?.Children ?? new List<ClausewitzNode>();
+	for (int i = 0; i < CProduction.CategoryCount && shares.Count == CProduction.CategoryCount; i++)
+	{
+		country.ProductionShares[i] = Share(shares[i].Value);
+	}
+}
+CTick.RunEntryPass(state);
+
+// A share is written with five decimals; the nearest value with fifteen binary places is it.
+static CFixed15 Share(string? text)
+{
+	return decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal value)
+		? new CFixed15((long)Math.Round(value * CFixed15.Scale))
+		: CFixed15.Zero;
+}
+
+// Nothing moves the shares of a country nobody plays and no AI runs: one that does not exist,
+// and the one the player had not touched. For those, the save's figures are what its shares give.
+string player = save.GetString("player");
+bool Untouched(CCountry country) => !CResources.HoldsCapital(state, country) || country.Tag.Value == player;
+
+foreach ((ClausewitzNode node, CCountry country) in savedCountries)
+{
+	string tag = country.Tag.Value;
+	ClausewitzNode? home = node.Get("home");
+	foreach (EGoods goods in resources)
+	{
+		string key = CGoodsPool.KeyOf(goods);
+		CFixedPoint saved = Number(home?.GetString(key));
+		if (saved == CFixedPoint.Zero && country.HomeProduced[goods] == CFixedPoint.Zero)
+		{
+			continue;
+		}
+		Compare("home production of " + key, saved == country.HomeProduced[goods],
+			() => $"{tag}: save {saved}, ours {country.HomeProduced[goods]}  (off by {saved - country.HomeProduced[goods]})");
+	}
+
+	// A country that does not exist never has its home production reset, so two days in
+	// its money and its supplies are two days' worth.
+	bool exists = CResources.HoldsCapital(state, country);
+	if (CProduction.TakesPart(state, country))
+	{
+		CFixedPoint money = Number(home?.GetString("money"));
+		CFixedPoint ourMoney = country.HomeProduced[EGoods.Money] * (exists ? 1 : 2);
+		Compare("money made in a day", money == ourMoney, () => $"{tag}: save {money}, ours {ourMoney}  (off by {money - ourMoney})");
+	}
+
+	// IC is not saved. What industry used is, and it cannot be more than there was.
+	CFixedPoint used = Number(node.Get("usage")?.GetString("metal"));
+	if (used > CFixedPoint.Zero)
+	{
+		Compare("IC is at least what the save says industry used", used <= CFixedPoint.FromInt(country.TotalIc),
+			() => $"{tag}: the save used {used}, ours has {country.TotalIc} (base {country.BaseIc})");
+	}
+}
+
+// ---- one day of the shares. Only consumer goods and supplies spend anything here, so a
+// country with no units and nothing in its build queue should use exactly what the save says,
+// and one with either should use no more than that.
+//
+// The laws the save shows are not always the laws the last day was run under: the AI goes on
+// changing them afterwards, without the date moving. So where a country's figures do not fit
+// the save's laws, the laws its history gave it are tried in their place, group by group, and
+// the smallest set of them that fits is taken to be what the day saw.
+CFixedPoint OurSupplies(CCountry country) =>
+	CProduction.SuppliesMade(state, country) * (CResources.HoldsCapital(state, country) ? 1 : 2);
+bool Fits(ClausewitzNode node, CCountry country)
+{
+	bool supplies = Number(node.Get("home")?.GetString("supplies")) == OurSupplies(country);
+	bool usage = Number(node.Get("usage")?.GetString("metal")) ==
+		CProduction.Spent(country, EProductionCategory.ConsumerGoods) + CProduction.Spent(country, EProductionCategory.Supplies);
+	return supplies && (usage || CResources.HoldsCapital(state, country));   // the player has units to pay for too
+}
+var putBack = new List<string>();
+foreach ((ClausewitzNode node, CCountry country) in savedCountries)
+{
+	if (!CProduction.TakesPart(state, country) || !Untouched(country) || Fits(node, country))
+	{
+		continue;
+	}
+	Dictionary<string, CLaw> savedLaws = new(country.Laws, StringComparer.OrdinalIgnoreCase);
+	List<string> changed = historyLaws[country.Tag.Value]
+		.Where(law => !savedLaws.TryGetValue(law.Key, out CLaw? now) || now != law.Value)
+		.Select(law => law.Key).OrderBy(group => group).ToList();
+	string? found = null;
+	foreach (int subset in Enumerable.Range(1, (1 << changed.Count) - 1).OrderBy(bits => System.Numerics.BitOperations.PopCount((uint)bits)))
+	{
+		foreach ((string group, CLaw law) in savedLaws)
+		{
+			country.Laws[group] = law;
+		}
+		var groups = changed.Where((_, index) => (subset & (1 << index)) != 0).ToList();
+		foreach (string group in groups)
+		{
+			country.Laws[group] = historyLaws[country.Tag.Value][group];
+		}
+		CTick.RunEntryPass(state);
+		if (Fits(node, country))
+		{
+			found = string.Join(", ", groups);
+			break;
+		}
+	}
+	if (found is null)
+	{
+		foreach ((string group, CLaw law) in savedLaws)
+		{
+			country.Laws[group] = law;
+		}
+		CTick.RunEntryPass(state);
+	}
+	else
+	{
+		putBack.Add($"{country.Tag.Value} ({found})");
+	}
+}
+
+foreach ((ClausewitzNode node, CCountry country) in savedCountries)
+{
+	if (CProduction.TakesPart(state, country) && Untouched(country))
+	{
+		CFixedPoint supplies = Number(node.Get("home")?.GetString("supplies"));
+		Compare("supplies made in a day, where nothing has moved the shares", supplies == OurSupplies(country),
+			() => $"{country.Tag.Value}: save {supplies}, ours {OurSupplies(country)}  (off by {supplies - OurSupplies(country)})");
+	}
+}
+
+CProduction.RunDaily(state);
+foreach ((ClausewitzNode node, CCountry country) in savedCountries)
+{
+	if (!CProduction.TakesPart(state, country) || !Untouched(country))
+	{
+		continue;
+	}
+	string tag = country.Tag.Value;
+	ClausewitzNode? usage = node.Get("usage");
+	if (CResources.HoldsCapital(state, country))
+	{
+		CFixedPoint used = Number(usage?.GetString("metal"));
+		Compare("what the player's consumer goods and supplies cost is no more than the save says it used",
+			country.Usage[EGoods.Metal] <= used, () => $"{tag}: the save used {used}, ours {country.Usage[EGoods.Metal]}");
+		continue;
+	}
+	foreach (EGoods goods in new[] { EGoods.Metal, EGoods.Energy, EGoods.RareMaterials })
+	{
+		string key = CGoodsPool.KeyOf(goods);
+		CFixedPoint used = Number(usage?.GetString(key));
+		Compare("what a country that does not exist uses in a day: " + key, used == country.Usage[goods],
+			() => $"{tag}: save {used}, ours {country.Usage[goods]}  (off by {used - country.Usage[goods]})");
+	}
+}
+
+// ---- report
+int faults = 0;
+foreach ((string what, int count) in compared.OrderBy(entry => entry.Key))
+{
+	int wrong = findings.TryGetValue(what, out List<string>? list) ? list.Count : 0;
+	Console.WriteLine($"{(wrong == 0 ? "agree   " : "DISAGREE")}  {what}: {count - wrong} of {count}");
+	if (list is not null)
+	{
+		faults += wrong;
+		foreach (string line in list.Take(examples))
+		{
+			Console.WriteLine("            " + line);
+		}
+	}
+}
+if (putBack.Count > 0)
+{
+	Console.WriteLine();
+	Console.WriteLine($"{putBack.Count} countries fit only with laws from their history put back, which the AI changed after the last day was run:");
+	Console.WriteLine("   " + string.Join("; ", putBack));
+}
+Console.WriteLine();
+Console.WriteLine($"{warnings.Count} warnings while loading");
+foreach (string warning in warnings.Take(examples))
+{
+	Console.WriteLine("   " + (warning.Length > 200 ? warning[..200] + " ..." : warning));
+}
+return faults == 0 ? 0 : 1;

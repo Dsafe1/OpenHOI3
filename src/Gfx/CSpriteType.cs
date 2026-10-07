@@ -70,7 +70,7 @@ public sealed class CSpriteTypes
 			}
 			catch (Exception e)
 			{
-				GD.PushWarning($"Could not parse '{file}': {e.Message}");
+				CDiagnostics.Warn($"Could not parse '{file}': {e.Message}");
 				continue;
 			}
 			foreach (ClausewitzNode container in root.All("spriteTypes"))

@@ -20,11 +20,19 @@ public sealed class CCountries
 	private readonly Dictionary<string, CCountry> _byTag =
 		new(StringComparer.OrdinalIgnoreCase);
 	private readonly List<CCountry> _all = new();
+	private readonly List<CCountry> _declared = new();
 
 	public int Count => _all.Count;
 
 	/// <summary>All countries, sorted by name for direct use in a list.</summary>
 	public IReadOnlyList<CCountry> All => _all;
+
+	/// <summary>
+	/// All countries in the order <c>countries.txt</c> declares them, which is the order
+	/// the simulation works through them in. Where two countries share something, the
+	/// one declared first comes first.
+	/// </summary>
+	public IReadOnlyList<CCountry> Declared => _declared;
 
 	/// <summary>
 	/// Reads the country list. Diagnostics go to <paramref name="warn"/>, and to
@@ -63,6 +71,7 @@ public sealed class CCountries
 			if (countries._byTag.TryAdd(tag.Value, country))
 			{
 				countries._all.Add(country);
+				countries._declared.Add(country);
 			}
 		}
 
