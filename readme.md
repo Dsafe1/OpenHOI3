@@ -20,6 +20,29 @@ format is awkward, the converter absorbs the awkwardness and our format stays cl
 Players who want to use the original's content must own a legitimate copy. No game
 assets or data files are redistributed here.
 
+## Not carried over
+
+Being in the spirit of the original means choosing what not to take. These are settled
+decisions rather than things merely unbuilt, so nothing should be designed around them
+coming back later.
+
+- **Custom game starts.** No screen for assembling a game from arbitrary settings
+  before it begins.
+- **Bookmarked starts.** The original offers eight dated entry points, from 1936 to
+  1944, each with its own suggested countries and flavour text. There is one starting
+  point here.
+- **Isolated scenarios.** The original ships nine self-contained battles - Fall Blau,
+  the Bulge, Operation Downfall and so on - each with its own dates, map extent and
+  victory conditions, living apart from the campaign. There are none.
+
+Together these collapse the original's four ways into a game down to one. That is the
+point: a single canonical start is one set of starting conditions to balance, one code
+path into the simulation, and one thing for the converter to produce. Every extra entry
+point is a permanent tax on all three.
+
+It also means the converter has no reason to read `common/bookmarks.txt` or
+`scenarios/`, and no lobby is needed to choose between them.
+
 ## Where things stand
 
 Early. What exists is the reading half of the converter, plus the beginnings of a data
@@ -27,10 +50,11 @@ model:
 
 | Area | What it does |
 | --- | --- |
-| `src/Core` | Reads the original's Clausewitz script format, its layered install, and its localisation tables |
+| `src/Clausewitz` | Reads the Clausewitz script format the original's data files are written in |
+| `src/Core` | Finds and layers a Hearts of Iron 3 install, and reads its localisation tables |
 | `src/Gfx` | Decodes the original's DDS/TGA textures, bitmap fonts and sprite declarations |
-| `src/Game` | Dates, countries, bookmarks and scenarios - the beginnings of our own model |
-| `tests/` | 70 tests over the parsing and layering, where silent misreadings are expensive |
+| `src/Game` | Dates and countries - the beginnings of our own model |
+| `tests/` | 66 tests over the parsing and layering, where silent misreadings are expensive |
 
 Not built yet: our own asset formats, the converter's writing half, the interface, the
 map, and the simulation.
@@ -69,7 +93,8 @@ the parent of this repository.
 
 ```
 scenes/Main.tscn     main scene (run/main_scene)
-src/Core/            reading the original's script format and install
+src/Clausewitz/      the Clausewitz script format reader
+src/Core/            locating and layering an install, localisation
 src/Gfx/             decoding the original's textures and fonts
 src/Game/            our own data model
 tests/               parser, layering and data tests
