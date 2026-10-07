@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
-using OpenHOI3.Core;
+using OpenHOI3.Content;
 
 namespace OpenHOI3.Tests;
 

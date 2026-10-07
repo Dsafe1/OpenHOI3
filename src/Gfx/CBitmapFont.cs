@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Godot;
-using OpenHOI3.Core;
+using OpenHOI3.Content;
+using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Sim;
 
 namespace OpenHOI3.Gfx;
 
@@ -59,7 +61,7 @@ public sealed class CBitmapFonts
 					{
 						Name = entry.GetString("name"),
 						FontName = entry.GetString("fontname"),
-						Color = entry.GetColor("color", Colors.White),
+						Color = entry.GetColor("color", CColor.White).ToGodot(),
 					};
 					if (font.Name.Length != 0)
 					{

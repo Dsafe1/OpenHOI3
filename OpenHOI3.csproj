@@ -10,8 +10,19 @@
     <!--
       Godot.NET.Sdk globs every .cs file under the project directory, which would pull
       the test project's sources into the game assembly and fail the build on the
-      missing xunit references.
+      missing xunit references - and would compile the libraries' sources a second
+      time, along with the generated files under their obj folders.
     -->
     <Compile Remove="tests/**/*.cs" />
+    <Compile Remove="lib/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      This project is the client: the scenes, the drawing, the input. Everything that
+      can run without an engine lives in these two and is referenced, not compiled in.
+    -->
+    <ProjectReference Include="lib/OpenHOI3.Sim/OpenHOI3.Sim.csproj" />
+    <ProjectReference Include="lib/OpenHOI3.Content/OpenHOI3.Content.csproj" />
   </ItemGroup>
 </Project>

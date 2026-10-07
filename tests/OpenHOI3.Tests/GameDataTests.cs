@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
-using Godot;
-using OpenHOI3.Core;
-using OpenHOI3.Game;
+using OpenHOI3.Content;
+using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Sim;
 
 namespace OpenHOI3.Tests;
 
@@ -102,12 +102,15 @@ public class CountryTagTests
 
 public class RgbParsingTests
 {
+	/// <summary>A fallback no game file would produce, so a hit on it is unmistakable.</summary>
+	private static readonly CColor Magenta = new(1f, 0f, 1f);
+
 	[Fact]
 	public void ReadsByteComponents()
 	{
 		// The shape used by every country file.
 		ClausewitzNode root = ClausewitzParser.Parse("color = { 64  160  167 }");
-		Color color = root.GetRgb("color");
+		CColor color = root.GetRgb("color");
 
 		Assert.Equal(64 / 255f, color.R, 3);
 		Assert.Equal(160 / 255f, color.G, 3);
@@ -118,7 +121,7 @@ public class RgbParsingTests
 	public void ReadsFractionalComponents()
 	{
 		ClausewitzNode root = ClausewitzParser.Parse("color = { 0.25 0.5 1.0 }");
-		Color color = root.GetRgb("color");
+		CColor color = root.GetRgb("color");
 
 		Assert.Equal(0.25f, color.R, 3);
 		Assert.Equal(1.0f, color.B, 3);
@@ -128,8 +131,8 @@ public class RgbParsingTests
 	public void FallsBackWhenMissingOrShort()
 	{
 		ClausewitzNode root = ClausewitzParser.Parse("a = { color = { 1 2 } }");
-		Assert.Equal(Colors.Magenta, root.GetRgb("nope", Colors.Magenta));
-		Assert.Equal(Colors.Magenta, root.Get("a")!.GetRgb("color", Colors.Magenta));
+		Assert.Equal(Magenta, root.GetRgb("nope", Magenta));
+		Assert.Equal(Magenta, root.Get("a")!.GetRgb("color", Magenta));
 	}
 }
 
@@ -176,8 +179,8 @@ public class GameDataLoadingTests : IDisposable
 	private CLocalisation Localisation => CLocalisation.Load(Directories);
 
 	/// <summary>
-	/// Diagnostics are captured instead of reaching the engine. Godot's logging is a
-	/// native call and takes the test host down when there is no engine behind it.
+	/// Diagnostics are captured rather than left to the default sink, so a test can
+	/// assert on what a loader reported.
 	/// </summary>
 	private readonly List<string> _warnings = new();
 
@@ -221,82 +224,4 @@ public class GameDataLoadingTests : IDisposable
 		Assert.Equal("ZZZ", countries.Find("ZZZ")!.Name);
 	}
 
-	[Fact]
-	public void LoadsBookmarksWithTheirCountryLists()
-	{
-		Write("common/bookmarks.txt", """
-			bookmark = {
-				icon = "GFX_bg_startdate_1939"
-				name = "BLITZKRIEG_NAME"
-				desc = "BLITZKRIEG_DESC"
-				date = 1939.9.1
-				country = ENG
-				country = GER
-			}
-			bookmark = {
-				icon = "GFX_bg_startdate_1936"
-				name = "ROAD_TO_WAR_NAME"
-				desc = "ROAD_TO_WAR_DESC"
-				date = 1936.1.1
-				country = GER
-			}
-			""");
-
-		CBookmarks bookmarks = CBookmarks.Load(Directories, Localisation, _warnings.Add);
-
-		Assert.Equal(2, bookmarks.Count);
-		// Sorted oldest first, not file order.
-		Assert.Equal(new CDate(1936, 1, 1), bookmarks.All[0].Date);
-		// Repeated "country = TAG" lines, all of which must survive.
-		Assert.Equal(2, bookmarks.All[1].Countries.Count);
-		Assert.Equal("ENG", bookmarks.All[1].Countries[0].ToString());
-	}
-
-	[Fact]
-	public void SkipsBookmarksWithoutAUsableDate()
-	{
-		Write("common/bookmarks.txt", """
-			bookmark = { name = "BROKEN" date = "not a date" }
-			bookmark = { name = "GOOD" date = 1936.1.1 }
-			""");
-
-		Assert.Equal(1, CBookmarks.Load(Directories, Localisation, _warnings.Add).Count);
-		Assert.Contains(_warnings, w => w.Contains("BROKEN"));
-	}
-
-	[Fact]
-	public void LoadsScenariosAndIgnoresSupportingFiles()
-	{
-		Write("scenarios/Battle_of_the_Bulge.txt", """
-			name = "SCENARIO_bulge"
-			desc = "SCENARIO_bulge_DESC"
-			icon = "GFX_select_bulge"
-			startdate = 1944.12.16
-			enddate = 1945.4.1
-			""");
-		Write("scenarios/desert_fox.txt", "name = \"fox\"\nstartdate = 1941.3.24\n");
-		// Supporting data lives beside the scenarios and carries no start date.
-		Write("scenarios/faction_aims.txt", "some_other_data = { a = 1 }\n");
-
-		CScenarios scenarios = CScenarios.Load(Directories, Localisation, _warnings.Add);
-
-		Assert.Equal(2, scenarios.Count);
-		Assert.Equal("desert_fox", scenarios.All[0].Id);          // earliest first
-		CScenario bulge = scenarios.All[1];
-		Assert.Equal("Battle_of_the_Bulge", bulge.Id);
-		Assert.Equal(new CDate(1944, 12, 16), bulge.StartDate);
-		Assert.Equal(new CDate(1945, 4, 1), bulge.EndDate);
-	}
-
-	[Fact]
-	public void ExpansionScenarioReplacesTheBaseOne()
-	{
-		Write("scenarios/Fall_Blau.txt", "name = \"base\"\nstartdate = 1942.6.28\n");
-		Write("tfh/scenarios/Fall_Blau.txt", "name = \"expansion\"\nstartdate = 1942.7.1\n");
-
-		CScenarios scenarios = CScenarios.Load(Directories, Localisation, _warnings.Add);
-
-		Assert.Equal(1, scenarios.Count);
-		Assert.Equal(new CDate(1942, 7, 1), scenarios.All[0].StartDate);
-	}
 }

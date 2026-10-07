@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Tests run as a plain .NET project rather than inside Godot. The code under test is
-    engine-independent: it only uses Godot value types such as Vector2 and Color, which
-    are ordinary structs in GodotSharp, so no engine has to be running.
+    Tests run as a plain .NET project rather than inside Godot, against the two
+    libraries under lib/. Neither references the engine, so nothing here does either -
+    which is the point of the split: before it, sources were compiled in one by one
+    and GodotSharp came along for its value types.
 
-    Source files are compiled in directly instead of referencing OpenHOI3.csproj. A
-    project reference would drag in Godot.NET.Sdk's build targets and its glob of every
-    .cs file in the repository, including the scene-bound Node classes that do need the
-    engine.
+    The client project is deliberately not referenced. That would drag in
+    Godot.NET.Sdk's build targets and the scene-bound Node classes, which do need an
+    engine running.
   -->
 
   <PropertyGroup>
@@ -16,29 +16,14 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <RootNamespace>OpenHOI3.Tests</RootNamespace>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="*.cs" />
-    <Compile Include="../../src/Core/ClausewitzParser.cs" />
-    <Compile Include="../../src/Core/CDirectorySettings.cs" />
-    <Compile Include="../../src/Core/CLocalisation.cs" />
-    <!--
-      Compiled but never called: the loaders' default diagnostic sink reaches the
-      engine, so tests always pass their own. Godot's logging is a native call and
-      brings the test host down when no engine is running.
-    -->
-    <Compile Include="../../src/Core/CDiagnostics.cs" />
-    <Compile Include="../../src/Game/CDate.cs" />
-    <Compile Include="../../src/Game/CCountry.cs" />
-    <Compile Include="../../src/Game/CCountries.cs" />
-    <Compile Include="../../src/Game/CBookmark.cs" />
-    <Compile Include="../../src/Game/CScenario.cs" />
+    <ProjectReference Include="../../lib/OpenHOI3.Sim/OpenHOI3.Sim.csproj" />
+    <ProjectReference Include="../../lib/OpenHOI3.Content/OpenHOI3.Content.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GodotSharp" Version="4.7.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Godot;
-using OpenHOI3.Core;
+using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Sim;
 
-namespace OpenHOI3.Game;
+namespace OpenHOI3.Content;
 
 /// <summary>
 /// Every country the game defines.
@@ -27,9 +27,8 @@ public sealed class CCountries
 	public IReadOnlyList<CCountry> All => _all;
 
 	/// <summary>
-	/// Reads the country list. Diagnostics go to <paramref name="warn"/> rather than
-	/// straight to the engine, so the loaders stay usable outside a running Godot -
-	/// calling into the engine from a plain process takes the whole thing down.
+	/// Reads the country list. Diagnostics go to <paramref name="warn"/>, and to
+	/// <see cref="CDiagnostics"/> when the caller does not pass one.
 	/// </summary>
 	public static CCountries Load(CDirectorySettings directories, CLocalisation localisation,
 		Action<string>? warn = null)
@@ -74,14 +73,14 @@ public sealed class CCountries
 	private static CCountry Read(CDirectorySettings directories, CLocalisation localisation,
 		CCountryTag tag, string definitionFile, Action<string> warn)
 	{
-		Color color = Colors.Gray;
+		CColor color = CColor.Gray;
 		string culture = "";
 
 		string path = directories.Resolve("common/" + definitionFile);
 		try
 		{
 			ClausewitzNode definition = ClausewitzParser.ParseFile(path);
-			color = definition.GetRgb("color", Colors.Gray);
+			color = definition.GetRgb("color", CColor.Gray);
 			culture = definition.GetString("graphical_culture");
 		}
 		catch (Exception e)

@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace OpenHOI3.Game;
+namespace OpenHOI3.Sim;
 
 /// <summary>
 /// A date as the game data writes it: <c>1936.1.1</c>, year first and no padding.
@@ -71,11 +71,13 @@ public readonly record struct CDate(int Year, int Month, int Day) : IComparable<
 
 	/// <summary>
 	/// The form the interface uses: <c>0:00, 1 January, 1936</c>. The hour is always
-	/// midnight because the data these come from carries a date only.
+	/// midnight because the data these come from carries a date only. The month name
+	/// comes through <paramref name="localise"/> because the string table belongs to
+	/// the content library, which this one does not reference.
 	/// </summary>
-	public string ToDisplayString(Core.CLocalisation localisation)
+	public string ToDisplayString(Func<string, string> localise)
 	{
-		string month = MonthKey.Length == 0 ? "" : localisation.Localise(MonthKey);
+		string month = MonthKey.Length == 0 ? "" : localise(MonthKey);
 		return $"0:00, {Day} {month}, {Year}";
 	}
 

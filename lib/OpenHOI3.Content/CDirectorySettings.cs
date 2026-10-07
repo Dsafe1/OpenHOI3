@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Godot;
 
-namespace OpenHOI3.Core;
+namespace OpenHOI3.Content;
 
 /// <summary>
 /// Locates the player's Hearts of Iron 3 installation and turns the game-relative,
@@ -49,20 +48,13 @@ public sealed class CDirectorySettings
 	/// Searches for the install beside the repository, as documented in the readme:
 	/// a "Hearts of Iron 3" folder in the parent of the project directory. Walks
 	/// further up as a convenience for differently nested checkouts.
+	///
+	/// The project directory is passed in rather than asked for, because only the
+	/// engine knows where <c>res://</c> is and this library does not reference it.
 	/// </summary>
-	public static CDirectorySettings? Discover()
+	public static CDirectorySettings? Discover(string projectDir)
 	{
-		string projectDir = ProjectSettings.GlobalizePath("res://");
-		var candidates = new List<string>();
-
-		DirectoryInfo? dir = new DirectoryInfo(projectDir);
-		for (int depth = 0; depth < 4 && dir is not null; depth++)
-		{
-			candidates.Add(Path.Combine(dir.FullName, "Hearts of Iron 3"));
-			dir = dir.Parent;
-		}
-
-		foreach (string candidate in candidates)
+		foreach (string candidate in SearchedLocations(projectDir))
 		{
 			if (IsGameRoot(candidate))
 			{
@@ -72,9 +64,8 @@ public sealed class CDirectorySettings
 		return null;
 	}
 
-	public static string[] SearchedLocations()
+	public static string[] SearchedLocations(string projectDir)
 	{
-		string projectDir = ProjectSettings.GlobalizePath("res://");
 		var result = new List<string>();
 		DirectoryInfo? dir = new DirectoryInfo(projectDir);
 		for (int depth = 0; depth < 4 && dir is not null; depth++)
@@ -206,6 +197,49 @@ public sealed class CDirectorySettings
 		for (int i = 0; i < names.Count; i++)
 		{
 			result[i] = chosen[names[i]];
+		}
+		return result;
+	}
+
+	/// <summary>A file found under a game-relative directory, and where it sits inside it.</summary>
+	public readonly record struct LayeredFile(string RelativePath, string AbsolutePath);
+
+	/// <summary>
+	/// Files matching a pattern anywhere under a directory, across every layer.
+	///
+	/// Here a file is identified by its path below the directory rather than by its
+	/// name alone, because that is how the history folders layer: the expansion
+	/// replaces <c>africa/9785 - Mekele.txt</c> with a file at the same place, and two
+	/// folders are free to hold files of the same name. The results are ordered by
+	/// that relative path, compared without regard to case, so the order does not
+	/// depend on which layer a file came from or on how the disk lists a folder.
+	/// </summary>
+	public LayeredFile[] ListFilesRecursive(string gameRelativeDirectory, string searchPattern)
+	{
+		string normalised = Normalise(gameRelativeDirectory);
+		var chosen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+		foreach (string layer in Layers)
+		{
+			string dir = InLayer(layer, normalised);
+			if (!Directory.Exists(dir))
+			{
+				continue;
+			}
+			foreach (string file in Directory.GetFiles(dir, searchPattern, SearchOption.AllDirectories))
+			{
+				string relative = Path.GetRelativePath(dir, file).Replace('\\', '/');
+				chosen.TryAdd(relative, file);            // the first layer to have it wins
+			}
+		}
+
+		var relatives = new List<string>(chosen.Keys);
+		relatives.Sort(StringComparer.OrdinalIgnoreCase);
+
+		var result = new LayeredFile[relatives.Count];
+		for (int i = 0; i < relatives.Count; i++)
+		{
+			result[i] = new LayeredFile(relatives[i], chosen[relatives[i]]);
 		}
 		return result;
 	}

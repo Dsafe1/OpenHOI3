@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Reads a Hearts of Iron 3 install: the Clausewitz script format, the layering of an
+    expansion over the base game, the localisation tables, and the loaders that turn
+    those into OpenHOI3.Sim's model. A plain .NET library with no Godot in it, so it
+    runs under test and from a command line as well as inside the game.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>OpenHOI3.Content</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../OpenHOI3.Sim/OpenHOI3.Sim.csproj" />
+  </ItemGroup>
+
+</Project>

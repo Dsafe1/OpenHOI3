@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using OpenHOI3.Core;
+using OpenHOI3.Content;
+using OpenHOI3.Content.Clausewitz;
 
 namespace OpenHOI3.Gfx;
 
@@ -38,7 +39,7 @@ public sealed class CSpriteType
 			Name = node.GetString("name"),
 			TextureFile = node.GetString("textureFile"),
 			FrameCount = Math.Max(1, node.GetInt("noOfFrames", 1)),
-			TileSize = node.GetVector2("size"),
+			TileSize = node.GetVector2("size").ToGodot(),
 		};
 	}
 }

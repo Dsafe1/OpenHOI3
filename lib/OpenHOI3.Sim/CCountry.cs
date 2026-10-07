@@ -1,7 +1,6 @@
 using System;
-using Godot;
 
-namespace OpenHOI3.Game;
+namespace OpenHOI3.Sim;
 
 /// <summary>
 /// A country's three-letter tag, the key everything else hangs off: history files,
@@ -60,7 +59,7 @@ public sealed class CCountry
 	/// <summary>Game-relative path from <c>common/countries.txt</c>.</summary>
 	public required string DefinitionFile { get; init; }
 
-	public Color Color { get; init; } = Colors.Gray;
+	public CColor Color { get; init; } = CColor.Gray;
 
 	public string GraphicalCulture { get; init; } = "";
 

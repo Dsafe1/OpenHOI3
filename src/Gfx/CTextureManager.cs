@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Godot;
-using OpenHOI3.Core;
+using OpenHOI3.Content;
 
 namespace OpenHOI3.Gfx;
 

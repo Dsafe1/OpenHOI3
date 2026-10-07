@@ -1,6 +1,8 @@
 using System.Linq;
-using Godot;
-using OpenHOI3.Core;
+using System.Numerics;
+using OpenHOI3.Content;
+using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Sim;
 
 namespace OpenHOI3.Tests;
 
@@ -120,7 +122,7 @@ public class ClausewitzParserTests
 	{
 		// bitmapfont entries use 0xAARRGGBB.
 		ClausewitzNode root = ClausewitzParser.Parse("f = { color = 0xff000000 }");
-		Color black = root.Get("f")!.GetColor("color", Colors.White);
+		CColor black = root.Get("f")!.GetColor("color", CColor.White);
 
 		Assert.Equal(0f, black.R);
 		Assert.Equal(0f, black.G);

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using OpenHOI3.Game;
+using OpenHOI3.Sim;
 
 namespace OpenHOI3.Gfx;
 

@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Godot;
 
-namespace OpenHOI3.Core;
+namespace OpenHOI3.Content;
 
 /// <summary>
 /// The game's string table. Every file in <c>localisation/</c> is a semicolon
@@ -29,17 +28,18 @@ public sealed class CLocalisation
 	public int Count => _entries.Count;
 
 	public static CLocalisation Load(CDirectorySettings directories,
-		Language language = Language.English)
+		Language language = Language.English, Action<string>? warn = null)
 	{
+		warn ??= CDiagnostics.Warn;
 		var localisation = new CLocalisation();
 		foreach (string file in directories.ListFiles("localisation", "*.csv"))
 		{
-			localisation.LoadFile(file, (int)language);
+			localisation.LoadFile(file, (int)language, warn);
 		}
 		return localisation;
 	}
 
-	private void LoadFile(string absolutePath, int column)
+	private void LoadFile(string absolutePath, int column, Action<string> warn)
 	{
 		string text;
 		try
@@ -48,7 +48,7 @@ public sealed class CLocalisation
 		}
 		catch (IOException e)
 		{
-			GD.PushWarning($"Could not read localisation '{absolutePath}': {e.Message}");
+			warn($"Could not read localisation '{absolutePath}': {e.Message}");
 			return;
 		}
 

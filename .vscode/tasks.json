@@ -14,6 +14,57 @@
 				"isDefault": true
 			},
 			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "test",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"test",
+				"${workspaceFolder}/tests/OpenHOI3.Tests"
+			],
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"problemMatcher": "$msCompile"
+		},
+		// The same three as launch.json, without the debugger. The Godot executable comes
+		// from the "godotTools.editorPath.godot4" setting, as it does there.
+		{
+			"label": "Play OpenHOI3",
+			"type": "process",
+			"command": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}"
+			],
+			"dependsOn": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Play OpenHOI3 (headless)",
+			"type": "process",
+			"command": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}",
+				"--headless"
+			],
+			"dependsOn": "build",
+			"problemMatcher": []
+		},
+		{
+			"label": "Open Godot Editor",
+			"type": "process",
+			"command": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}",
+				"-e"
+			],
+			"dependsOn": "build",
+			"problemMatcher": []
 		}
 	]
 }

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The model and the simulation. A plain .NET library that references nothing - not
+    Godot, and not OpenHOI3.Content - so the whole simulation can run headless, under
+    test, with no engine and no install anywhere near it.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>OpenHOI3.Sim</RootNamespace>
+  </PropertyGroup>
+
+</Project>
