@@ -38,6 +38,10 @@ The folder below, `units/models`, is not types (section 5). `confirmed`
   circumstance does to the type: any of `attack`, `defence`, `movement`, `attrition`.
 - `usable_by` lists the countries that may build it.
 
+What `active`, `is_buildable`, `usable_by`, `unit_group`, `minimum_of_type` and
+`max_percentage_of_type` decide - which types a country may order, and how many - is
+`builders.md`, section 2; `unit_group` is the combined arms group, section 4 there.
+
 **Ours**: a key that is none of those is reported, where the original drops it. Two blocks
 are read and not kept, because nothing uses them yet: `available_trigger`, which is
 script, and `extra_amphibious_defence`.
@@ -127,8 +131,12 @@ Seven keywords declare a unit, and a unit may hold units: `theatre`, `armygroup`
 its reader takes one word for the value, so an unknown key with a block is followed by the
 block's contents being read as keys of the unit around it.
 
-`military_construction` at the top of the file is a unit being built when the game starts.
-The build queue is not built, so it is left out and counted - but see the numbering.
+`military_construction` at the top of the file is a unit being built when the game starts:
+a line of its country's build queue. It takes `country`, `cost`, `progress`, `duration`,
+`size`, `status`, `is_reserve`, `manpower`, `factor`, `name`, and a block named after a
+unit type for each brigade, with `name`, `historical_model`, `experience` and - as a
+savegame writes it - `model`. What a new game makes of one is `buildqueue.md`, section 5:
+its `duration` is the days it still has to go, and its `cost` and `progress` are not used.
 
 ### Reserves
 
@@ -154,10 +162,11 @@ country in turn, and **each block takes the next number as it closes** - so a un
 brigades are numbered before it, and a division before the corps it is in. A file need
 not give numbers, and none of the base game's do. `confirmed`
 
-**A unit under construction takes five.** `measured`: the count only comes out right if
-each `military_construction` is given five, and in the save the construction holds the
-first of them and the brigade it is building the fifth. All thirty in the base game build
-one brigade. **Ours**: a construction with more brigades is given one more number for each.
+**A unit under construction takes five**: one for the line of the queue, one for the unit
+it will make, two that are passed over, and one for each of its brigades - which is one,
+in all thirty of the base game's. `confirmed`, and (measured) every line, unit and brigade
+has the save's number. Of the two passed over, the first is what the finished unit's place
+among those waiting to be put on the map is numbered with (`buildqueue.md`, section 6).
 
 A sub unit left out for its type is numbered all the same, and so is a unit thrown away
 for having no location. `inferred` from where the number is given.
@@ -191,9 +200,10 @@ model. Its line sets what it sets. Then: `confirmed`
   `inferred` for the rule, and **measured**: it is what makes every reserve in the save
   come out right, sixty of them at full strength.
 - **Organisation is held to the type's figure and nothing else**, because no game is
-  running yet. Once one is, the ceiling has four more parts, none of them built: what the
-  army headquarters above adds for its leader's skill, the same reserve share, the
-  country's officer ratio, and its land, naval or air organisation modifier. `confirmed`
+  running yet. Once one is, the ceiling has four more parts: what the army headquarters
+  above adds for its leader's skill, the same reserve share, the country's officer ratio,
+  and its land, naval or air organisation modifier. `confirmed` They are
+  `organisation.md`, section 2, and all but the leader's are built.
 - **A brigade whose line names no historical model gets none of this**: every level stays
   at nothing and it keeps its 100 and 100. `confirmed` Every line in the base game names one.
 
@@ -326,8 +336,10 @@ Three things the comparison had to allow for, each of which says something:
   established. **Ours, decided by the maintainer the same day: the player's country keeps
   its history's laws**, and its units are made under them - `docs/compatibility.md`, entry
   6. So Germany's reserves starting at a quarter here is meant.
-- **Organisation moves from the first hour.** Two days in, 958 brigades are where section
-  4 put them, 2745 are below and 3 above. Nothing is judged from that.
+- **Organisation is not where section 4 put it two days in**: 958 brigades are, 2745 are
+  below and 3 above. All three groups are accounted for in `organisation.md`, section 7 -
+  a change of law held the 2745 to the running game's ceiling, and the 3 had an hour to
+  gain in.
 
 ## What is not built
 
@@ -335,22 +347,25 @@ Three things the comparison had to allow for, each of which says something:
   each day - supplies and fuel, rotation, reinforcement and upgrades - is built, and is
   `upkeep.md`.
 - **Leaders.** The number a file gives a unit is kept and nothing more.
-- **Units under construction.** Left out, though numbered.
+- ~~**Units under construction.**~~ Built 2026-10-08: `buildqueue.md`.
 - **The AI's theatres**, and its choice of laws before the units are made - for the
   countries it runs. For the player's country the history's laws are the decision
   (section 8), so Germany's reserves start at a quarter where the original's start at a
   half, and that stays.
-- **The ceiling on organisation once a game is running** (section 4), the officer ratio
-  it needs, and whatever raises and lowers organisation.
 - **Names for wings and air groups.**
+
+The ceiling on organisation once a game is running, the officer ratio it needs and the
+hourly return of organisation were on this list until 2026-10-08. They are built, and are
+`organisation.md`.
 
 ## What is not established, in one place
 
-- where the history's `officers_ratio` is read, and where the officer ratio the game
-  shows is capped - Germany's history says 1.5 and its reserves behave as though it were 1.4;
+- where the history's `officers_ratio` is read. (Where the ratio the game shows is capped
+  was on this line and is answered: the define `MAX_OFFICERS`, 1.4, which is why Germany's
+  reserves behave as though its history's 1.5 were that. `organisation.md`, section 1.)
 - what gives a wing, a ship or an air group its name;
-- what the three numbers a construction takes and no savegame shows are spent on, and what
-  a construction of several brigades takes;
+- ~~what the three numbers a construction takes and no savegame shows are spent on, and what
+  a construction of several brigades takes;~~ read 2026-10-08, section 3;
 - whether a ship takes its fleet's `is_reserve`: the regiment's rule was read and the
   wing's, not the ship's;
 - the least strength a brigade may be held to: the original floors the most it may have

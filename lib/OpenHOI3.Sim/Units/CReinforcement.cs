@@ -55,12 +55,14 @@ public static class CReinforcement
 	/// <summary>
 	/// How fast a unit's brigades are brought back, in thousandths of the usual. A unit
 	/// that went short of supplies is reinforced that much slower, and one that got none
-	/// not at all. The original also slows ships and wings whose base is crowded.
+	/// not at all; so are the ships and wings of a crowded base.
 	/// </summary>
-	public static long Speed(CCountry owner, CUnit unit)
+	/// <param name="crowding">How much of its work the unit's base does, in thousandths: <see cref="CBaseCrowding.Of"/>.</param>
+	public static long Speed(CCountry owner, CUnit unit, long crowding = CFixedPoint.Scale)
 	{
 		long speed = (CFixedPoint.Scale + owner.Modifier[Bonus].Raw)
 			* (CFixedPoint.Scale + owner.Modifier[UnitRepair].Raw) / CFixedPoint.Scale;
+		speed = speed * crowding / CFixedPoint.Scale;
 		return speed * unit.SuppliesReceived.Raw / CFixedPoint.Scale;
 	}
 
@@ -83,9 +85,10 @@ public static class CReinforcement
 		long startExperience = country.Modifier[CUnits.UnitStartExperience].Raw;
 		long prideBonus = state.Defines[CManpower.MilitarySection, PrideBonus].Raw;
 
+		var crowding = new CBaseCrowding(state);
 		foreach (CUnit unit in CUnits.InWorkingOrder(country, unit => unit.MayReinforce))
 		{
-			long speed = Speed(country, unit);
+			long speed = Speed(country, unit, crowding.Of(unit));
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
 				if (!CanBeReinforced(state, country, unit, subUnit))

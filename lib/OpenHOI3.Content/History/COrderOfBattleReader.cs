@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Units;
@@ -70,8 +71,21 @@ public static class COrderOfBattleReader
 
 	private const string Construction = "military_construction";
 
+	/// <summary>What a unit under construction may also carry in the original, and that is not kept here.</summary>
+	private static readonly HashSet<string> ConstructionKeysNotKept = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"id", "unit", "country", "builder", "location", "target",
+	};
+
+	/// <summary>The same for one of its brigades.</summary>
+	private static readonly HashSet<string> BrigadeOrderKeysNotKept = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"id", "upgrading_from_subunit", "upgrading_from_subunit_str",
+	};
+
 	/// <summary>
-	/// Gives every country in turn the units its order of battle declares.
+	/// Gives every country in turn the units its order of battle declares, and the
+	/// units it is building.
 	/// </summary>
 	/// <param name="provinceCount">One more than the highest province id there is.</param>
 	/// <returns>The last number given to a unit or a brigade.</returns>
@@ -119,9 +133,9 @@ public static class COrderOfBattleReader
 						country.Units.Add(unit);
 					}
 				}
-				else if (entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
+				else if (entry.IsBlock && entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
 				{
-					reading.SkipConstruction(entry);
+					reading.ReadConstruction(entry, country);
 				}
 				else if (CountryKeysNotApplied.Contains(entry.Key))
 				{
@@ -141,10 +155,6 @@ public static class COrderOfBattleReader
 		Report(warn, reading.BadLocations, "units are in a province that does not exist and were put in province 1");
 		Report(warn, reading.BadNumbers, "figures in orders of battle are not numbers and were ignored");
 		Report(warn, reading.NotApplied, "keys of the country's own in orders of battle are not applied from there");
-		if (reading.Constructions > 0)
-		{
-			warn($"{reading.Constructions} units under construction in orders of battle were left out: the build queue is not built");
-		}
 		return reading.LastId;
 	}
 
@@ -173,27 +183,133 @@ public static class COrderOfBattleReader
 
 		public int LastId { get; private set; }
 
-		public int Constructions { get; private set; }
-
 		/// <summary>
-		/// A unit under construction is not made, but it is numbered: the construction
-		/// takes a number, three more go to things a savegame does not show, and the
-		/// brigade being built takes the one after. Measured on the thirty in the base
-		/// game, each of which builds one brigade; one more number for each further
-		/// brigade is this project's guess.
+		/// A unit being built as the game starts: a line of its country's build queue, as
+		/// the file gives it. What it costs and how far it has got are worked out when the
+		/// game starts, by <see cref="CBuildQueue.SetUpAtStart"/>; what the file calls
+		/// its duration is the days it still has to go.
+		///
+		/// It takes numbers as it closes: one for the line, one for the unit it will
+		/// make, two that are passed over, and one for each of its brigades.
 		/// </summary>
-		public void SkipConstruction(ClausewitzNode block)
+		public void ReadConstruction(ClausewitzNode block, CCountry owner)
 		{
-			Constructions++;
-			int brigades = 0;
+			var construction = new CConstruction(owner.Tag);
 			foreach (ClausewitzNode entry in block.Children)
 			{
-				if (entry.Key is not null && entry.IsBlock && _unitTypes.ContainsKey(entry.Key))
+				if (entry.Key is null)
 				{
-					brigades++;
+					continue;
+				}
+				string key = entry.Key;
+				if (entry.IsBlock && _unitTypes.TryGetValue(key, out CSubUnitType? type))
+				{
+					construction.Brigades.Add(ReadBrigadeOrder(entry, type));
+				}
+				else if (key.Equals("name", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.Name = entry.Value ?? "";
+				}
+				else if (key.Equals("size", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.Size = Whole(entry.Value);
+				}
+				else if (key.Equals("cost", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.Cost = Number(entry, construction.Cost);
+				}
+				else if (key.Equals("duration", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.Duration = Number(entry, construction.Duration);
+				}
+				else if (key.Equals("progress", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.Progress = Number(entry, construction.Progress);
+				}
+				else if (key.Equals("status", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.Status = Number(entry, construction.Status);
+				}
+				else if (key.Equals("is_reserve", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.IsReserve = IsYes(entry.Value);
+				}
+				else if (key.Equals("manpower", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.Manpower = Number(entry, construction.Manpower);
+				}
+				else if (key.Equals("factor", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.ReservesFactor = Number(entry, construction.ReservesFactor);
+				}
+				else if (key.Equals("accumulated_experiance", StringComparison.OrdinalIgnoreCase))
+				{
+					// The original's own spelling.
+					construction.AccumulatedExperience = Number(entry, construction.AccumulatedExperience);
+				}
+				else if (key.Equals("accumulated_progress", StringComparison.OrdinalIgnoreCase))
+				{
+					construction.AccumulatedProgress = Number(entry, construction.AccumulatedProgress);
+				}
+				else if (!ConstructionKeysNotKept.Contains(key))
+				{
+					UnknownKeys.Add($"{key} in a {block.Key}");
 				}
 			}
-			LastId += 4 + Math.Max(1, brigades);
+
+			construction.Id = ++LastId;
+			construction.UnitId = ++LastId;
+			LastId += 2;
+			foreach (CBrigadeOrder order in construction.Brigades)
+			{
+				order.Id = ++LastId;
+			}
+
+			// A file's line builds one unit, whatever size it gives.
+			if (construction.Size > 1)
+			{
+				construction.Size = 1;
+			}
+			owner.Constructions.Add(construction);
+		}
+
+		private CBrigadeOrder ReadBrigadeOrder(ClausewitzNode block, CSubUnitType type)
+		{
+			var order = new CBrigadeOrder(type);
+			foreach (ClausewitzNode entry in block.Children)
+			{
+				if (entry.Key is null)
+				{
+					continue;
+				}
+				string key = entry.Key;
+				if (key.Equals("name", StringComparison.OrdinalIgnoreCase))
+				{
+					order.Name = entry.Value ?? "";
+				}
+				else if (key.Equals("historical_model", StringComparison.OrdinalIgnoreCase))
+				{
+					order.HistoricalModel = Whole(entry.Value);
+				}
+				else if (key.Equals("experience", StringComparison.OrdinalIgnoreCase))
+				{
+					order.Experience = Number(entry, order.Experience);
+				}
+				else if (entry.IsBlock && key.Equals("model", StringComparison.OrdinalIgnoreCase))
+				{
+					// The levels themselves, as a savegame writes them.
+					order.Model.Clear();
+					foreach (ClausewitzNode level in entry.Children)
+					{
+						order.Model.Add(Whole(level.Value));
+					}
+				}
+				else if (!BrigadeOrderKeysNotKept.Contains(key))
+				{
+					UnknownKeys.Add($"{key} in a {block.Key} under construction");
+				}
+			}
+			return order;
 		}
 
 		public SortedSet<string> UnknownKeys { get; } = new(StringComparer.OrdinalIgnoreCase);

@@ -136,6 +136,7 @@ public static class CUpgrades
 					// Its figures are worked out again, and it is held to what they allow.
 					CUnits.RebuildStats(subUnit);
 					subUnit.Strength = CFixedPoint.Min(subUnit.Strength, CUnits.MaxStrength(state, country, subUnit));
+					subUnit.Organisation = CFixedPoint.Min(subUnit.Organisation, COrganisation.Ceiling(state, country, subUnit));
 					if (subUnit.Strength > subUnit.Highest)
 					{
 						subUnit.Highest = subUnit.Strength;

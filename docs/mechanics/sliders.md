@@ -76,7 +76,7 @@ shares that have one:
 | share | its need |
 | --- | --- |
 | consumer goods | the fraction of its IC at which the country's dissent stands still - what it demands, and what its dissent modifier adds - times its IC. `confirmed` |
-| production | what the things being built want. `confirmed` |
+| production | what the things being built want: a full day of every line in the queue (`buildqueue.md`, section 4). `confirmed` |
 | reinforcement, upgrades | what reinforcing and upgrading currently cost. `confirmed` |
 | supplies | not read |
 | research | **the number of projects on the queue.** `confirmed` |

@@ -161,6 +161,37 @@ public class GuiTypesTests
 	}
 
 	[Fact]
+	public void AKeyGivenTwiceLeavesWhatTheSecondSaidAndIsReported()
+	{
+		// brigade_entry_3's button is written this way and is drawn at the later place.
+		var warnings = new List<string>();
+		CGuiWindowType line = Read("""
+			guiTypes = {
+				windowType = {
+					name = "line"
+					guiButtonType = {
+						name = "select"
+						position = { x = 0 y = 4 }
+						quadTextureSprite = "GFX_listbutton"
+						position = { x = 3 y = 0 }
+					}
+					iconType = { name = "a" spriteType = "x" position = { x = 1 y = 1 } }
+					iconType = { name = "b" spriteType = "x" position = { x = 2 y = 2 } }
+				}
+			}
+			""", warnings).FindWindow("line")!;
+
+		Assert.Equal(new CGuiPoint(3, 0), line.Find<CGuiButtonType>("select")!.Position);
+		Assert.Equal("GFX_listbutton", line.Find<CGuiButtonType>("select")!.Sprite);
+		// Elements of one kind are each their own and are all kept.
+		Assert.Equal(new CGuiPoint(1, 1), line.Find<CGuiIconType>("a")!.Position);
+		Assert.Equal(new CGuiPoint(2, 2), line.Find<CGuiIconType>("b")!.Position);
+		Assert.Equal(3, line.Children.Count);
+		string warning = Assert.Single(warnings);
+		Assert.Contains("guiButtonType gives 'position' more than once", warning);
+	}
+
+	[Fact]
 	public void AKeyAnElementDoesNotTakeIsReportedOnceHoweverOftenItComesUp()
 	{
 		var warnings = new List<string>();

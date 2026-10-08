@@ -1,4 +1,5 @@
 using System;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Units;
@@ -9,10 +10,10 @@ namespace OpenHOI3.Sim.Economy;
 /// The daily split of a country's IC between its six shares, and what spending IC costs.
 /// See <c>docs/mechanics/production.md</c>.
 ///
-/// Consumer goods and supplies are here, and reinforcement and upgrades are run from
-/// here (<see cref="CReinforcement"/>, <see cref="CUpgrades"/>). The build queue is not
-/// built and lend-lease has not been read: IC in those two shares is wasted, and
-/// wasted IC costs nothing.
+/// Consumer goods and supplies are here, and the build queue, reinforcement and
+/// upgrades are run from here (<see cref="CBuildQueue"/>, <see cref="CReinforcement"/>,
+/// <see cref="CUpgrades"/>). Lend-lease has not been read: IC in that share is wasted,
+/// and wasted IC costs nothing.
 /// </summary>
 public static class CProduction
 {
@@ -114,8 +115,8 @@ public static class CProduction
 	/// <summary>
 	/// The IC one of a country's shares spends in a day, in thousandths, which is what it
 	/// is charged resources for. Consumer goods and supplies spend all they are given;
-	/// reinforcement and upgrades spend what their units take; nothing spends the other
-	/// two yet.
+	/// production spends what its queue takes, and reinforcement and upgrades what
+	/// their units take; nothing spends lend-lease yet.
 	/// </summary>
 	public static CFixedPoint Spent(CCountry country, EProductionCategory category)
 	{
@@ -126,7 +127,8 @@ public static class CProduction
 			// how the original's figures come to what they do.
 			EProductionCategory.ConsumerGoods => new CFixedPoint(share.ToThousandths().Raw * country.TotalIc),
 			EProductionCategory.Supplies => Given(country, category),
-			// These two spend what their units took, which is what the last day's was.
+			// These three spend what their work took, which is what the last day's was.
+			EProductionCategory.Production => country.ProductionSpent,
 			EProductionCategory.Reinforcement => country.ReinforcementSpent,
 			EProductionCategory.Upgrades => country.UpgradeSpent,
 			_ => CFixedPoint.Zero,
@@ -142,8 +144,8 @@ public static class CProduction
 	/// <summary>
 	/// What a share wants, in IC: what its slider shows as its need. Consumer goods want
 	/// what keeps dissent still; supplies, what makes as much as the units asked for
-	/// today; reinforcement and upgrades, what a day of their work costs. The build
-	/// queue wants nothing until there is one, and lend-lease has no need.
+	/// today; production, a full day of every line in the queue; reinforcement and
+	/// upgrades, what a day of their work costs. Lend-lease has no need.
 	/// </summary>
 	public static CFixedPoint Needed(CGameState state, CCountry country, EProductionCategory category)
 	{
@@ -153,6 +155,8 @@ public static class CProduction
 				return ConsumerGoodsNeeded(state, country) * country.TotalIc;
 			case EProductionCategory.Supplies:
 				return SuppliesNeeded(state, country);
+			case EProductionCategory.Production:
+				return country.ProductionCost;
 			case EProductionCategory.Reinforcement:
 				return country.ReinforcementCost;
 			case EProductionCategory.Upgrades:
@@ -231,6 +235,7 @@ public static class CProduction
 			country.ConversionMade.Clear();
 			country.ReinforcementSpent = CFixedPoint.Zero;
 			country.UpgradeSpent = CFixedPoint.Zero;
+			country.ProductionSpent = CFixedPoint.Zero;
 			if (state.Stockpile(country) is not { } stockpile || !TakesPart(state, country))
 			{
 				country.Usage.Clear();
@@ -259,10 +264,29 @@ public static class CProduction
 
 			country.Usage.Clear();
 			RunConsumerGoods(state, country, stockpile);
+			RunBuildQueue(state, country, stockpile);
 			RunSupplies(state, country, stockpile);
 			RunReinforcement(state, country, stockpile);
 			RunUpgrades(state, country, stockpile);
 		}
+	}
+
+	/// <summary>
+	/// The share that builds pays line by line, and a line the stockpile cannot pay for
+	/// that day gets nothing.
+	/// </summary>
+	private static void RunBuildQueue(CGameState state, CCountry country, CGoodsPool stockpile)
+	{
+		CFixed15 allocation = country.ProductionShares[(int)EProductionCategory.Production] * CFixed15.FromInt(country.TotalIc);
+		country.ProductionSpent = CBuildQueue.RunDaily(state, country, allocation, ic =>
+		{
+			if (SupportedIc(stockpile) < ic)
+			{
+				return false;
+			}
+			Charge(country, stockpile, ic);
+			return true;
+		});
 	}
 
 	/// <summary>The share that brings units back to strength pays as it goes, brigade by brigade.</summary>

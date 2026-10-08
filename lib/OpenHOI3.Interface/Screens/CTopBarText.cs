@@ -109,11 +109,11 @@ public static class CTopBarText
 
 	/// <summary>
 	/// What the box named for leadership shows, which is how many of the officers its
-	/// units want the country has. There are no units to want any, so there is no ratio.
+	/// units want the country has. A country with no units has all it wants.
 	/// </summary>
 	public static string OfficerRatio(CCountry country)
 	{
-		return None;
+		return OfficerRatio(country.OfficerRatio);
 	}
 
 	/// <summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Units;
@@ -144,6 +145,20 @@ public sealed class CCountry
 	public CFixedPoint OfficersRatio { get; set; }
 
 	/// <summary>
+	/// The officers its brigades, ships and wings call for between them. Counted again
+	/// every hour by <see cref="COfficers"/>.
+	/// </summary>
+	public CFixedPoint OfficersNeeded { get; set; }
+
+	/// <summary>
+	/// How many of the officers its units call for it has, where 1 is all of them: the
+	/// figure the top bar shows, and one of the things a brigade's organisation is held
+	/// to. Never above the define's most, and 1 for a country with no units. Written by
+	/// <see cref="COfficers"/>; not to be confused with what its history gives, above.
+	/// </summary>
+	public CFixedPoint OfficerRatio { get; set; } = CFixedPoint.One;
+
+	/// <summary>
 	/// The order of battle its history names, relative to <c>history/units</c>, or an
 	/// empty string for a country that starts with nothing.
 	/// </summary>
@@ -168,6 +183,28 @@ public sealed class CCountry
 	public Dictionary<string, SortedDictionary<int, Dictionary<string, int>>> HistoricalModels { get; } =
 		new(StringComparer.OrdinalIgnoreCase);
 
+	/// <summary>
+	/// The divisions it keeps ready to order, as its file's <c>default_templates</c>
+	/// gives them and as the player has changed them since.
+	/// </summary>
+	public List<CDivisionTemplate> Templates { get; } = new();
+
+	/// <summary>
+	/// The names its file gives new units, by unit type: a division's are under the type
+	/// of its first brigade, a ship's and a wing's under their own.
+	/// </summary>
+	public Dictionary<string, List<string>> UnitNames { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// For trying things out: the country may order any unit type that can be built at
+	/// all, whatever technology would have to unlock it and whichever countries its file
+	/// keeps it to. Nothing in a game sets it; <c>CUnlockEveryUnitCommand</c> does.
+	/// </summary>
+	public bool EveryUnitUnlocked { get; set; }
+
+	/// <summary>Where it has got to in each of those lists: the place of the name it last took.</summary>
+	public Dictionary<string, int> UnitNameCursors { get; } = new(StringComparer.OrdinalIgnoreCase);
+
 	/// <summary>Every unit it has, at every level, each before the units under it.</summary>
 	public IEnumerable<CUnit> AllUnits()
 	{
@@ -191,6 +228,26 @@ public sealed class CCountry
 		units.Sort((a, b) => a.Id.CompareTo(b.Id));
 		return units;
 	}
+
+	/// <summary>
+	/// What it is building, in the order the production share works through it: the
+	/// first line is paid for first. Changed only by a command, and by a unit being
+	/// finished. See <c>docs/mechanics/buildqueue.md</c>.
+	/// </summary>
+	public List<CConstruction> Constructions { get; } = new();
+
+	/// <summary>
+	/// The units it has finished and not yet put anywhere. They are its units in that
+	/// they eat and call for officers, and not in that nothing reinforces or upgrades
+	/// them and they are in no province.
+	/// </summary>
+	public List<CUnit> Deployments { get; } = new();
+
+	/// <summary>The IC a full day's work on everything in its queue takes: the production share's need.</summary>
+	public CFixedPoint ProductionCost { get; set; }
+
+	/// <summary>The IC its production share spent today.</summary>
+	public CFixedPoint ProductionSpent { get; set; }
 
 	/// <summary>What its units asked for today: supplies and fuel. Cleared and counted again each day.</summary>
 	public CGoodsPool UnitDemand { get; } = new();

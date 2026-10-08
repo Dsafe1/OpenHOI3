@@ -4,6 +4,7 @@ using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 
@@ -37,8 +38,23 @@ public partial class CProductionView : CCountryView
 	private CGuiTextBox? _transports;
 	private CGuiTextBox? _escorts;
 	private CGuiOverlappingBox? _strategicResources;
+	private CGuiListBox? _queueList;
+	private readonly List<CBuildQueueEntry> _queue = new();
 	private CSliderPanel? _sliders;
 	private string _shownResources = "\0";
+	private readonly CDivisionDesignerView _designer = new();
+	private readonly CShipBuilderView _ships = new();
+	private readonly CAirBuilderView _wings = new();
+	private readonly CBrigadeBuilderView _brigades = new();
+	private readonly List<CBuilderWindow> _builders = new();
+
+	/// <summary>What is left of the screen's own window while a builder window is up.</summary>
+	private static readonly string[] FrameIcons = { "bg_countryskin", "bg_mainshadow", "production_topitem" };
+	private static readonly string[] FrameButtons = { "close_button", "mode_arrow_right", "mode_arrow_left" };
+	private static readonly string[] FrameTexts = { "headline_prod", "automation_setting" };
+
+	/// <summary>The parts of the window put away for a builder, to be brought back.</summary>
+	private readonly List<Godot.CanvasItem> _hidden = new();
 
 	protected override string WindowName => "country_production";
 	protected override string TopColourName => "topcolor_production";
@@ -57,12 +73,20 @@ public partial class CProductionView : CCountryView
 		_transports = window.FindTextBox("transports_value");
 		_escorts = window.FindTextBox("escorts_value");
 		_strategicResources = window.FindBox("strat_resources");
+		_queueList = window.FindListBox("build_queue");
 
 		// The original hides this one whenever the screen is drawn.
 		if (window.TryFindButton("theatres_calc_button") is { } calculate)
 		{
 			calculate.Visible = false;
 		}
+
+		// The four windows a unit is ordered from are the screen's own, as they are in
+		// the original, and come up over it.
+		AddBuilder(window, "build_division_button", _designer);
+		AddBuilder(window, "build_ship_button", _ships);
+		AddBuilder(window, "build_air_button", _wings);
+		AddBuilder(window, "brig_attach", _brigades);
 
 		_sliders = new CSliderPanel(Context, window, "domesticpanel_slider", "domestic_eco_slider_start",
 			"domestic_eco_slider_offset", SliderOrder,
@@ -78,6 +102,145 @@ public partial class CProductionView : CCountryView
 			_sliders.Move(share, Need((EProductionCategory)share));
 			_sliders.Group.SetHeld(share, true);
 		};
+	}
+
+	private void AddBuilder(CGuiWindow window, string button, CBuilderWindow builder)
+	{
+		builder.Setup(Context, Simulation, Player);
+		AddChild(builder);
+		_builders.Add(builder);
+		// The screen's own window is put away while one of them is up, and comes back
+		// when it goes.
+		builder.Closed += () =>
+		{
+			if (!_builders.Any(other => other.IsOpen))
+			{
+				ShowWholeWindow();
+			}
+		};
+		if (window.FindButton(button) is { } open)
+		{
+			open.Pressed += () => OpenBuilder(builder);
+		}
+	}
+
+	/// <summary>One window at a time: the one that was up comes down.</summary>
+	private void OpenBuilder(CBuilderWindow builder)
+	{
+		foreach (CBuilderWindow other in _builders)
+		{
+			if (!ReferenceEquals(other, builder))
+			{
+				other.Close();
+			}
+		}
+		builder.Player = Player;
+		builder.Open();
+		if (builder.IsOpen)
+		{
+			ShowFrameOnly();
+		}
+	}
+
+	/// <summary>
+	/// With a builder window up, the screen's own window shows nothing but its frame:
+	/// the country's picture, the shadow, the top piece, the close button, the headline
+	/// and the automation line with its arrows. The builders' own art is drawn to go
+	/// over exactly that.
+	/// </summary>
+	private void ShowFrameOnly()
+	{
+		if (Window is null || _hidden.Count > 0)
+		{
+			return;
+		}
+		var kept = new HashSet<Godot.Node>();
+		foreach (string icon in FrameIcons)
+		{
+			if (Window.TryFindIcon(icon) is { } found)
+			{
+				kept.Add(found);
+			}
+		}
+		foreach (string button in FrameButtons)
+		{
+			if (Window.TryFindButton(button) is { } found)
+			{
+				kept.Add(found);
+			}
+		}
+		foreach (string text in FrameTexts)
+		{
+			if (Window.FindTextBox(text) is { } found)
+			{
+				kept.Add(found);
+			}
+		}
+		foreach (Godot.Node child in Window.GetChildren())
+		{
+			if (child is Godot.CanvasItem { Visible: true } item && !kept.Contains(child))
+			{
+				item.Visible = false;
+				_hidden.Add(item);
+			}
+		}
+	}
+
+	private void ShowWholeWindow()
+	{
+		foreach (Godot.CanvasItem item in _hidden)
+		{
+			item.Visible = true;
+		}
+		_hidden.Clear();
+	}
+
+	/// <summary>
+	/// Opens one of the four windows by name and, where something is named after a
+	/// colon, puts it in: <c>division:infantry_brigade,artillery_brigade</c>,
+	/// <c>ship:destroyer</c>, <c>air:interceptor</c>, <c>brigade:engineer_brigade</c>.
+	/// </summary>
+	public void OpenBuilder(string what)
+	{
+		// An exclamation mark at the end gives the order as well.
+		bool accept = what.EndsWith('!');
+		what = what.TrimEnd('!');
+		OpenNamedBuilder(what);
+		if (accept)
+		{
+			foreach (CBuilderWindow builder in _builders)
+			{
+				if (builder.IsOpen && !builder.Accept())
+				{
+					Godot.GD.Print($"--builder: '{what}' may not be ordered now.");
+				}
+			}
+		}
+	}
+
+	private void OpenNamedBuilder(string what)
+	{
+		string[] parts = what.Split(':', 2);
+		string[] keys = parts.Length > 1 ? parts[1].Split(',', System.StringSplitOptions.RemoveEmptyEntries) : System.Array.Empty<string>();
+		switch (parts[0])
+		{
+			case "division":
+				OpenBuilder(_designer);
+				_designer.Design(keys);
+				break;
+			case "ship":
+				OpenBuilder(_ships);
+				_ships.PickByKey(keys.FirstOrDefault(""));
+				break;
+			case "air":
+				OpenBuilder(_wings);
+				_wings.PickByKey(keys.FirstOrDefault(""));
+				break;
+			case "brigade":
+				OpenBuilder(_brigades);
+				_brigades.PickByKey(keys.FirstOrDefault(""));
+				break;
+		}
 	}
 
 	protected override void Refresh()
@@ -97,7 +260,41 @@ public partial class CProductionView : CCountryView
 		Set(_escorts, CProductionScreenText.Convoys(0, 0));
 
 		ShowStrategicResources(country);
+		ShowQueue(state, country);
 		ShowSliders(country);
+	}
+
+	/// <summary>
+	/// The build queue: made again when the lines are not the ones shown, or not in the
+	/// order shown, and otherwise each line filled.
+	/// </summary>
+	private void ShowQueue(CGameState state, CCountry country)
+	{
+		if (_queueList is null)
+		{
+			return;
+		}
+		if (!_queue.Select(line => line.Construction).SequenceEqual(country.Constructions))
+		{
+			_queueList.Clear();
+			_queue.Clear();
+			foreach (CConstruction construction in country.Constructions)
+			{
+				if (CBuildQueueEntry.Create(Context, construction) is not { } line)
+				{
+					break;
+				}
+				int id = construction.Id;
+				line.Cancelled += () => Simulation.Post(new CCancelConstructionCommand(Player.Tag, id));
+				line.Moved += move => Simulation.Post(new CMoveConstructionCommand(Player.Tag, id, move));
+				_queueList.Add(line.Window);
+				_queue.Add(line);
+			}
+		}
+		foreach (CBuildQueueEntry line in _queue)
+		{
+			line.Update(state, Context.Localisation.Localise);
+		}
 	}
 
 	private void ShowSliders(CCountry country)
@@ -169,6 +366,10 @@ public partial class CProductionView : CCountryView
 	protected override void Closing()
 	{
 		Send(_sliders?.Flush());
+		foreach (CBuilderWindow builder in _builders)
+		{
+			builder.Close();
+		}
 	}
 
 	private void Send(CFixed15[]? shares)

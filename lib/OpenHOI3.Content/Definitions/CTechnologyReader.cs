@@ -175,6 +175,10 @@ public static class CTechnologyReader
 					? ReadGroup(allow, EResearchCondition.All, names, categoryNames, unknownConditions)
 					: null,
 				HasPrecondition = block.Get("allow") is { IsBlock: true, Children.Count: > 0 },
+				ActivatesUnits = block.All("activate_unit")
+					.Where(entry => entry.Value is { Length: > 0 })
+					.Select(entry => entry.Value!)
+					.ToList(),
 				Change = !block.GetString("change").Equals("no", StringComparison.OrdinalIgnoreCase),
 				CanUpgrade = !block.GetString("can_upgrade").Equals("no", StringComparison.OrdinalIgnoreCase),
 			};

@@ -19,6 +19,24 @@
 			"stopAtEntry": false
 		},
 		{
+			// Every unit type is there to order from the start: a carrier and its air
+			// groups, and the brigades a file keeps to one country.
+			"name": "Play OpenHOI3 (all units)",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build",
+			"program": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}",
+				"--",
+				"--all-units"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		},
+		{
 			"name": "Play OpenHOI3 (headless)",
 			"type": "coreclr",
 			"request": "launch",

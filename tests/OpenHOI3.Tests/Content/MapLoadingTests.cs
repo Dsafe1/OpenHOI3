@@ -317,7 +317,8 @@ public class MapLoadingTests : IDisposable
 			"\tcountry = {\n\t\tBASE_TECH_DECAY = -0.025,\n\t\tMAX_TECH_ABILITY = 99,\n\t\tTECH_ABILITY_GAIN_DIVISOR = 10,\n" +
 			"\t\tTECHNOLOGY_YEAR_IMPACT = 1.5,\n\t\tPEACETIME_MANPOWER_ROTATION_LOW_SUPPLY_FACTOR = 1.25,\n\t},\n" +
 			"\tmilitary = {\n\t\tMAX_MANPOWER = 10,\n\t\tPRIDE_BONUS_EXP = 10,\n\t\tSHIP_UPGRADE_SPEED_MOD = 4.0,\n" +
-			"\t\tAIR_UPGRADE_SPEED_MOD = 1.0,\n\t\tLAND_UPGRADE_SPEED_MOD = 1.0,\n\t},\n}\n");
+			"\t\tAIR_UPGRADE_SPEED_MOD = 1.0,\n\t\tLAND_UPGRADE_SPEED_MOD = 1.0,\n" +
+			"\t\tMAX_OFFICERS = 1.4,\n\t\tLOW_ORG_REGAIN_BONUS = 0.3,\n\t\tNAVAL_BASE_EFFICIENCY = 6,\n\t},\n}\n");
 		Write("common/technology.txt",
 			"theoretical = {\n\tmechanicalengineering_theory\n\tinfantry_theory\n}\npractical = {\n\tinfantry_practical\n}\nfolders = {\n\tindustry_folder\n}\n");
 		Write("common/countries.txt",
@@ -717,7 +718,7 @@ public class MapLoadingTests : IDisposable
 				LAST_ONE = 96  -- no comma after the last
 			},
 			country = { BASE_TECH_DECAY = -0.025, MAX_TECH_ABILITY = 99, TECH_ABILITY_GAIN_DIVISOR = 10, TECHNOLOGY_YEAR_IMPACT = 1.5, PEACETIME_MANPOWER_ROTATION_LOW_SUPPLY_FACTOR = 1.25 },
-			military = { MAX_MANPOWER = 10, PRIDE_BONUS_EXP = 10, SHIP_UPGRADE_SPEED_MOD = 4.0, AIR_UPGRADE_SPEED_MOD = 1.0, LAND_UPGRADE_SPEED_MOD = 1.0 },
+			military = { MAX_MANPOWER = 10, PRIDE_BONUS_EXP = 10, SHIP_UPGRADE_SPEED_MOD = 4.0, AIR_UPGRADE_SPEED_MOD = 1.0, LAND_UPGRADE_SPEED_MOD = 1.0, MAX_OFFICERS = 1.4, LOW_ORG_REGAIN_BONUS = 0.3, NAVAL_BASE_EFFICIENCY = 6 },
 			weather = {
 				COLD = -0.75,
 				IC_TO_MONEY = 3,
@@ -735,7 +736,7 @@ public class MapLoadingTests : IDisposable
 		Assert.False(defines.Has("weather", "HIDDEN"));
 		Assert.False(defines.Has("deeper", "HIDDEN"));
 		Assert.Equal(CFixedPoint.Zero, defines["economy", "NOT_THERE"]);
-		Assert.Equal(18, defines.Count);                       // the two outside any section are not numbers to ask for
+		Assert.Equal(21, defines.Count);                       // the two outside any section are not numbers to ask for
 		Assert.Empty(_warnings);
 	}
 
@@ -745,7 +746,7 @@ public class MapLoadingTests : IDisposable
 		Write("common/defines.lua", "defines = {\n\tstart_date = '1936.1.1',\n\teconomy = { IC_TO_SUPPLIES = 7,\n" +
 			"\t\tLEADERSHIP_TO_OFFICERS = 4, LEADERSHIP_TO_DIPLOMACY = 0.5, LEADERSHIP_TO_SPIES = 0.15 },\n" +
 			"\tcountry = { BASE_TECH_DECAY = -0.025, MAX_TECH_ABILITY = 99, TECH_ABILITY_GAIN_DIVISOR = 10, TECHNOLOGY_YEAR_IMPACT = 1.5, PEACETIME_MANPOWER_ROTATION_LOW_SUPPLY_FACTOR = 1.25 },\n" +
-			"\tmilitary = { MAX_MANPOWER = 10, PRIDE_BONUS_EXP = 10, SHIP_UPGRADE_SPEED_MOD = 4.0, AIR_UPGRADE_SPEED_MOD = 1.0, LAND_UPGRADE_SPEED_MOD = 1.0 },\n}\n");
+			"\tmilitary = { MAX_MANPOWER = 10, PRIDE_BONUS_EXP = 10, SHIP_UPGRADE_SPEED_MOD = 4.0, AIR_UPGRADE_SPEED_MOD = 1.0, LAND_UPGRADE_SPEED_MOD = 1.0, MAX_OFFICERS = 1.4, LOW_ORG_REGAIN_BONUS = 0.3, NAVAL_BASE_EFFICIENCY = 6 },\n}\n");
 		CDefinesReader.Read(CDirectorySettings.At(_root), _warnings.Add);
 
 		string warning = Assert.Single(_warnings);

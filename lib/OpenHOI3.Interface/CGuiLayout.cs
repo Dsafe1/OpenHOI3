@@ -66,6 +66,17 @@ public static class CGuiLayout
 	}
 
 	/// <summary>
+	/// How many lines a list box shows at once: as many of that height as go whole into
+	/// the box's, the rest cut off the count and not off the line. The build queue's box
+	/// is 280 high and its lines 40, which is seven; the brigade builder's is 300 and
+	/// its lines 24, which is twelve with half a line's room left empty.
+	/// </summary>
+	public static int ListRows(int boxHeight, float lineHeight)
+	{
+		return lineHeight > 0f && boxHeight > 0 ? (int)(boxHeight / lineHeight) : 0;
+	}
+
+	/// <summary>
 	/// The part of a sprite sheet one frame takes, as fractions of the texture's width:
 	/// where it starts and how wide it is. Frames are counted from one, as the original
 	/// counts them; a number outside the sheet gets the nearest frame that is in it.

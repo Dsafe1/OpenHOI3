@@ -1,0 +1,360 @@
+# The build queue: ordering a unit, building it, and what comes out
+
+How the original builds units, written as rules this project can implement. No addresses
+and no offsets. Each rule says how sure it is - `confirmed`, `likely`, `inferred` in the
+fact base's vocabulary - or **measured**, meaning checked on 2026-10-08 against savegames
+of one unmodded game played as Germany: the save of 1 January 1936, two days in, and four
+later ones up to 20 April. Where this project chooses its own behaviour the paragraph is
+marked **Ours**.
+
+Sources: `reversing/findings/FINDINGS-buildqueue.md` (read for this spec),
+`reversing/findings/FINDINGS-production.md` (the day's loop),
+`reversing/findings/FINDINGS-oob.md` (what `status` is),
+`reversing/findings/FINDINGS-unitdaily.md`, section 6 (what a unit costs and takes).
+
+The production share and what a point of IC costs are `production.md`; what a brigade
+costs and how long it takes, before the queue's own term, is `upkeep.md`, section 6; the
+units themselves are `units.md`.
+
+All arithmetic is in thousandths and every division truncates, except where it says the
+shares' kind of number (`numbers.md`, section 2).
+
+## 1. A line
+
+A country's queue is a list of lines, and **its order is all the priority there is**: the
+first line is paid first. `confirmed`
+
+A line builds one unit, or several of the same unit one after another. It holds:
+
+| | |
+| --- | --- |
+| what the unit is made of | one or more brigades, ships or wings, each with a type, a name and **a model**: the level it will have of each technology of its type |
+| `size` | how many of the unit are still to come |
+| `cost` | the IC a full day's work takes |
+| `duration` | the days of work one unit takes |
+| `progress` | the days of work done on the one being built |
+| `status` | how much of a day it was paid the last time the queue was worked through: 1 for all of it |
+| `manpower` | the men one unit took when it was ordered |
+| the experience gathered, and how much of the building that was | section 4 |
+| whether they are reserves, and the share of a brigade that leaves | 1 plus the country's `reserves_penalty_size`, kept from when the line was queued |
+
+A unit is all land, all sea or all air, and what it is - a division, a fleet, an air unit -
+goes by its first brigade. `confirmed`
+
+## 2. What a line costs and how long it takes
+
+For each brigade of the unit, with `levels` the sum of the levels its model gives it:
+
+    cost = build_cost_ic * (1 + 0.01 * levels - discount)
+           reserves: * (1 + reserves_penalty_size)
+    days = build_time * (1 + 0.01 * levels + unit_recruitment_time - discount) * (1 + the speed modifier of its kind)
+           the two brackets multiplied out never under 0.05; whole days
+
+with the discount, the modifiers and the brigade's own figures as `upkeep.md`, section 6,
+has them. `confirmed`
+
+- **Every level a brigade is built with, of any of its technologies, makes it a hundredth
+  dearer and a hundredth slower to build.** It is the one term the queue has that an
+  upgrade does not: upgrades are priced with `levels` at nothing. `confirmed`
+- **A unit of one brigade costs what the brigade costs a day and takes what it takes.**
+- **A unit of several takes as long as its slowest brigade, and costs a day what would pay
+  for every brigade's own days over that time:**
+
+      duration = the most of the brigades' days
+      cost     = (the sum of each brigade's cost * its days) / duration
+
+  Infantry at 2 IC for 100 days with artillery at 3 IC for 60 is `(200 + 180) / 100`,
+  3.8 IC a day for 100 days. `confirmed`
+
+**When it is worked out.** Not daily. `confirmed`
+
+- when the line is queued;
+- for every line left in the queue, on a day anything in it is finished;
+- for a line going on to the next unit of its series;
+- for every line of a new game (section 5);
+- **for every line of a country, on any change of its laws.**
+
+**The work done on a line is left alone** when it is priced again: a change to a slower
+training law makes a nearly finished ship less nearly finished, and one to a faster law
+can leave a line with more days done than it takes, which finishes it the next day.
+
+So what a practical's decay does to a cost reaches the queue late. (measured: Germany's
+destroyers cost 4.860 a day from January until a cruiser is finished in March, and 4.941
+from then - its destroyer practical having fallen from 5 to 4.811 in the two months.)
+
+(measured, and exact) All thirty lines of the start save have this cost and these days
+under the laws the save shows. The Graf Spee is built with twelve levels between its seven
+technologies: `6 * (1 + 0.12 + 0.05)` is its 7.020 IC and `280 * (1 + 0.12 + 0.05 + 0.20)`
+its 383 days, Germany being on a policy that takes 15% off industrial efficiency with four
+levels of the technology that gives 2.5% back, and on specialist training.
+
+*Ours:* the original has one more term in each, what technology has done to that one unit
+type's cost and time, which no file of Their Finest Hour sets (`upkeep.md`, section 6).
+And it has a second way to price a line, for a brigade in the field being turned into
+another type: not built.
+
+## 3. Ordering
+
+    for each brigade of the unit:
+        men = build_cost_manpower * (1 + reserves_penalty_size for reserves)      the bracket never under 0.05
+    the line's manpower = the sum
+    the country's manpower -= that * the number ordered                           not below nothing
+
+`confirmed`
+
+- **The men are taken when the unit is ordered, for the whole series at once.** The IC is
+  paid day by day.
+- **Reserves take the share of their men the conscription law leaves.**
+- The line goes to the back of the queue, priced as section 2, with no work done and a
+  `status` of 1.
+- **The original's command does not ask whether the country has the men**: the pool stops
+  at nothing. **What refuses an order is the window it is given from**, which disables its
+  button: `builders.md`, sections 2, 4 and 6.
+- **A brigade ordered has the country's own level of every technology of its type** - and a
+  ship the level its builder was set to of each, anything from nothing to the country's
+  (`builders.md`, section 7). `confirmed`
+- **A unit of several is named as it is ordered, and every brigade, ship and wing**:
+  `builders.md`, section 8.
+
+*Ours:*
+
+- **An order is refused** if the country has not the men for the whole series, if a type
+  does not exist, if its file says `is_buildable = no`, if it names in `usable_by` countries
+  that do not include this one, if the country has not unlocked it or may have no more of
+  it, if the brigades are not all of one branch or are more land brigades than a division
+  may have, or if equipment is asked for that is better than the country's. The original's
+  command refuses none of this; its windows do (`builders.md`, section 9).
+- The original also takes a province and a unit to join, and can build a unit at once for
+  nothing, which is how its history files make a unit. None of the three is built.
+
+## 4. A day
+
+The production share - the third of the six, after consumer goods - with the IC it is
+given (`production.md`, section 1) in the shares' kind of number. For each line in order:
+
+    need = the line's cost, turned into the shares' kind of number
+    if nothing is left:        the line is paid nothing
+    else
+        share  = what is left / need, no more than 1
+        wanted = share * need
+        if the stockpile can pay for `wanted` IC (production.md, section 2):
+            the resources are charged
+            what is left -= need               the whole of it, paid in full or not
+            the line is paid `share` of a day
+        else
+            the line is paid nothing, and what is left stays as it was
+
+`confirmed`
+
+- **A line is paid a whole day or what is left, and the line the share runs out on is the
+  last to get anything.** What comes off is the day's whole cost, so there is no sliver
+  for the line after it.
+- **A line the stockpile cannot pay for is skipped that day, and a cheaper line after it
+  can still be paid.**
+- **The share's need** - what its slider shows - is the sum of every line's cost.
+
+**Being paid** `amount` of a day, in thousandths:
+
+    fraction  = amount * 1000 / duration                       how much of the whole building that is
+    the experience gathered += rate * fraction / 1000
+    the building counted    += fraction
+    progress += amount
+    status    = amount, or 1 for a whole day, or nothing for a line with no cost that was paid less
+
+where `rate` is the country's `unit_start_experience`, and for reserves that times the
+line's share of a brigade. `confirmed`
+
+**So a unit is built with its country's starting experience at the rate of each day it was
+paid for.** A change of training law half way through shows in what comes out.
+
+A line with `progress >= duration` after its day delivers its unit (section 6).
+
+The original also spends, before any of this, the IC it was lent, which costs no
+resources. *Ours:* there is no lend-lease.
+
+(measured, and exact) Two days of this on Germany's three ships give the start save's
+`progress`, experience, building counted and `status` on all three. And with the queue's
+13.982 IC in, **Germany's industry used 121.187 IC on the save's last day, which is the
+save's own figure to the thousandth**: 44.823 on consumer goods, 31.191 on supplies, and
+31.191 on upgrades. Over the four later saves, 31, 28, 31 and 19 days apart, every figure
+of Germany's lines agrees: 10 of 10.
+
+## 5. A new game
+
+An order of battle may hold `military_construction` blocks: units being built as the game
+starts (`units.md`, section 3). Thirty of them in the base game, all of one ship or wing but
+Belgium's, which is one brigade.
+
+    military_construction = {
+        country = GER
+        heavy_cruiser = { name = "Graf Spee" historical_model = 3 }
+        cost = 5.60
+        progress = 0
+        duration = 6
+    }
+
+**As the game starts, each line is priced as section 2, and what its file called its
+duration is taken as the days it still has to go:** `confirmed`
+
+    progress = the days it takes - the file's duration            not below nothing
+
+- **The file's `cost` and `progress` are thrown away.** The line costs what the country's
+  laws and technology make it cost.
+- A line with further to go than it takes starts from nothing.
+- **A brigade's `historical_model` is turned into its model then**: the model's level of
+  each technology of its type, in the type's order - and *nothing* for a technology the
+  model does not list, so that the levels after it move up a place. `confirmed`, and it is
+  not what the original does for a unit in the field (`units.md`, section 4), where an
+  unlisted technology is left alone. No model of the base game's thirty lines leaves one
+  out.
+- **A file's line of reserves is not given its law's share of a brigade**: it is queued
+  before its `is_reserve` is read, so it is priced as reserves, and gathers experience and
+  teaches its practical as regulars would - unless the file gives `factor`. `confirmed`,
+  and (measured) on Belgium's, which gathers its experience at the full rate.
+- **A file's line builds one unit**, whatever `size` it gives. `confirmed`
+- It takes numbers as `units.md`, section 3, has them: one for the line, one for its unit,
+  two passed over, one a brigade.
+
+(measured) The Graf Spee's file says 6. By Germany's history laws it takes 313 days, and
+two days in the save has it at 309. Germany's other two, with 61 to go of 206 and 244, are
+at 147 and 185.
+
+*Ours:* built as read. The country being played keeps its history's laws
+(`docs/compatibility.md`, entry 6), so its lines start where the original's do; the others
+start where their history's laws put them, where the original's AI has changed laws and
+ministers first (section 9).
+
+## 6. Finishing
+
+    if the country is not the rebels and owns no province:   the line is dropped, and nothing made
+    what was never counted of the building is counted now:
+        the experience gathered += (1 - the building counted) * rate
+
+    the unit: a fleet, an air unit or a division, by its first brigade, with the line's number for it
+    each brigade, with the number, the name and the model its line gives it:
+        experience   = the greater of what its line gave it and the experience gathered, no more than 100
+        strength     = max_strength * the line's share of a brigade, and no more than it may have
+        organisation = default_organisation * (1 + its branch's organisation modifier)
+        the country's practical for its type gains completion_size
+            reserves: * the line's share ;  and as research gains one (research.md, section 6)
+    the unit is called what its line is, for a division; else what its first brigade is
+
+    the unit joins those waiting to be placed
+    progress -= duration ;  size -= 1
+    a line with more to come is priced again and, for reserves, takes its law's share afresh
+
+`confirmed`
+
+- **A new brigade has its own organisation and nothing else**, whatever its country's
+  officers and whether or not it is a reserve: it is given it before it is put in its unit,
+  and the ceiling of `organisation.md`, section 2, counts neither for a brigade in no unit.
+- **The practical is gained in full, once, when the unit is done.**
+- **A series keeps what was left over** of the day that finished a unit.
+- **A unit finished is not on the map.** It waits to be placed (section 7). While it waits
+  it draws supplies (`upkeep.md`, section 2) and its brigades call for officers
+  (`organisation.md`, section 1); it loses no men to rotation, and is neither reinforced
+  nor upgraded.
+- After any unit is finished, every line left is priced again (section 2).
+
+(measured, and exact) The Graf Spee is finished in the middle of March. The 1 April save
+has it waiting to be placed with an experience of 24.940 - the 3.040 the 1 March save
+shows, fifteen more days at `25 * 0.002`, and `(1 - 0.154) * 25` for the days its file
+started it with - a strength of 100, and **an organisation of 30, where Germany's officers
+would allow it 42**. Germany's cruiser practical goes from 4.811 to 6.276 over the month:
+1.6 gained, then April's decay. Four more units finished between the saves, in countries an
+AI runs, have the experience this gives: 5 of 5.
+
+*Ours:* the original gives the unit's waiting place the number after the unit's and the
+next unit of a series the one after that, which collides with the first brigade's. Here
+the next of a series takes fresh numbers for its unit and its brigades. And a line may be
+aimed at a unit in the field, which the finished brigade then joins: not built.
+
+## 7. Cancelling, moving and placing
+
+**Cancelling a line gives back the men of every unit of it still to come**, and nothing
+of the IC spent. `confirmed`
+
+**A line is moved** to the front of the queue, to the back, or one place either way. A
+line already at the end it is sent towards stays. `confirmed`
+
+**A finished unit is placed in a province** by a command of its own. The original asks:
+`confirmed`
+
+- for a fleet, a naval base there; for an air unit, an air base;
+- that the province is in the same *area* as the country's capital - an area being a
+  block of land under one owner.
+
+*Ours:* an area is taken to be the land a country owns and holds that is joined to its
+capital, over land, through land it owns and holds. `inferred`: how the original bounds an
+area was not read. A fleet or an air unit placed takes the province as its base. A unit
+placed answers to nothing above it.
+
+## 8. Ours
+
+- **The queue is `OpenHOI3.Sim.Construction`**: `CBuildQueue` has the rules, a line is a
+  `CConstruction` of `CBrigadeOrder`s, and four commands change it - order, cancel, move,
+  place.
+- **Only the player's queue moves by anything but the day.** There is no AI, so no other
+  country orders, cancels or places anything; a unit one of them finishes waits for ever.
+- **Nothing calls the pricing on a change of law**, there being nothing that changes a law
+  (`organisation.md`, section 5, is the same). It is built and tested.
+- **Buildings and convoys are not built.** The original's queue holds three kinds of line
+  and this one holds units.
+
+## 9. Against the savegames
+
+`tools/OpenHOI3.SaveCheck` reads the lines as a new game does, gives each country the laws
+and the technology its save shows, and compares. The start save:
+
+| | agree |
+| --- | --- |
+| each line's number, its unit's and each brigade's | 30 of 30 |
+| the model each brigade will be built with | 30 of 30 |
+| what a line costs a day, under the laws the save shows | 30 of 30 |
+| the days a line takes, under the laws the save shows | 30 of 30 |
+| progress, experience, building counted and `status` two days on: the player's country | 3 of 3 each |
+| the same: the others | 4, 12, 12 and 14 of 27 |
+| where a line stood as the game started, by the save's less at most two days' work | 16 of 30 |
+| what the player's industry used on the last day, the queue with it | 1 of 1 |
+
+and, as `OpenHOI3.SaveCheck research <install> <earlier> <later>`, each pair of later
+saves run forward from the earlier with every line paid in full, for the countries whose
+lines were:
+
+| | agree |
+| --- | --- |
+| progress, experience and building counted, over 31, 28, 31 and 19 days: the player's country | 10 of 10 each |
+| the same: the others | 26 of 26 each |
+| cost and days at the later save: the player's country | 10 of 10 each |
+| the same: the others | 24 and 25 of 26 |
+| the experience of a unit finished in between | 5 of 5 |
+| a finished unit waiting to be placed: strength, and organisation | 1 of 1 each |
+
+**What disagrees is the AI's.** Six countries' lines - Britain's, the United States',
+Japan's, France's, Belgium's and the Netherlands' - stood somewhere else as the game
+started than their history's laws or the save's would put them: the original priced them
+under laws or ministers its AI has since changed again. And the countries an AI runs have
+had their shares moved since the last day. The two lines whose price differs at a later
+save are in countries where something else was finished in between - a building or a
+convoy prices every line again too, and there are none here.
+
+## What is not built
+
+- ~~**The windows a unit is ordered from.**~~ Built 2026-10-08: `builders.md`.
+- **Anywhere to place a unit from.** The command is built and nothing on screen posts it.
+- **An AI**, to order, to place, and to change the laws that price a queue.
+- **Buildings and convoys**, the queue's other two kinds of line.
+- **Turning a brigade in the field into another type**, and building a brigade for a
+  division that exists.
+- **Lend-lease**, and so the IC a queue may spend without resources.
+- ~~**Unlocking unit types by technology.**~~ Built 2026-10-08: `builders.md`, section 2.
+
+## What is not established, in one place
+
+- ~~**What refuses an order** in the original.~~ The windows do: `builders.md`.
+- ~~**How a builder window makes a brigade's model.**~~ `builders.md`, section 7.
+- **What bounds an area**, for placing.
+- **The second rule for placing** that one kind of session uses in place of the area.
+- **Why six countries' lines start where they do**: which laws and ministers the
+  original's AI had given them when the game started.
+- **What a line aimed at a unit does**, past that it joins it.

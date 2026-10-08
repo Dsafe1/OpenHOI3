@@ -28,6 +28,8 @@ public partial class CGuiButton : CGuiObject
 	private bool _hovered;
 	private bool _held;
 	private bool _disabled;
+	private bool _checked;
+	private CGuiContext? _context;
 
 	/// <summary>Raised when the button is clicked, or its shortcut key is pressed.</summary>
 	public event Action? Pressed;
@@ -35,8 +37,46 @@ public partial class CGuiButton : CGuiObject
 	/// <summary>Raised when the button is clicked twice in quick succession, after <see cref="Pressed"/> for the first.</summary>
 	public event Action? DoublePressed;
 
+	/// <summary>Declared with <c>checkboxType</c>: a click ticks it or clears it.</summary>
+	public bool IsCheckbox { get; private set; }
+
+	/// <summary>
+	/// Whether a checkbox is ticked. The sheet's first frame is the empty box and its
+	/// second the ticked one.
+	/// </summary>
+	public bool Checked
+	{
+		get => _checked;
+		set
+		{
+			_checked = value;
+			SetFrame(value ? 2 : 1);
+		}
+	}
+
+	/// <summary>Whether the mouse is being held down on it now.</summary>
+	public bool IsDown => _held && !_disabled;
+
+	/// <summary>
+	/// Gives the button another sprite out of the <c>.gfx</c> files. One that no file
+	/// declares, or whose texture is missing, leaves it as it was and answers false.
+	/// </summary>
+	public bool SetSprite(string name)
+	{
+		if (_context?.Sprites.Find(name) is not { } sprite || _context.Textures.Load(sprite) is not { } texture)
+		{
+			return false;
+		}
+		_sprite = sprite;
+		_texture = texture;
+		ShowFrame();
+		return true;
+	}
+
 	public void Initialise(CGuiButtonType type, CGuiContext context)
 	{
+		_context = context;
+		IsCheckbox = type.IsCheckbox;
 		_sprite = context.Sprites.Find(type.Sprite);
 		if (_sprite is null && type.Sprite.Length > 0)
 		{
@@ -120,7 +160,11 @@ public partial class CGuiButton : CGuiObject
 		}
 	}
 
-	private void SetHovered(bool hovered)
+	/// <summary>
+	/// Whether the mouse is over the button. The button knows when nothing lies on it;
+	/// an icon that does says so for it. Leaving lets go of a press.
+	/// </summary>
+	public void SetHovered(bool hovered)
 	{
 		_hovered = hovered;
 		if (!hovered)
@@ -143,11 +187,19 @@ public partial class CGuiButton : CGuiObject
 
 	public override void _GuiInput(InputEvent @event)
 	{
-		if (@event is not InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse)
+		if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse)
 		{
-			return;
+			AcceptEvent();
+			Click(mouse);
 		}
-		AcceptEvent();
+	}
+
+	/// <summary>
+	/// The left mouse button going down or coming up on the button: its own, or one an
+	/// icon lying over the button hands on to it.
+	/// </summary>
+	public void Click(InputEventMouseButton mouse)
+	{
 		if (_disabled)
 		{
 			return;
@@ -170,6 +222,10 @@ public partial class CGuiButton : CGuiObject
 		Tint();
 		if (wasHeld)
 		{
+			if (IsCheckbox)
+			{
+				Checked = !Checked;
+			}
 			Pressed?.Invoke();
 		}
 	}

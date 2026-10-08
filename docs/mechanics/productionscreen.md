@@ -93,25 +93,78 @@ of its name.
 `confirmed` `theatres_calc_button` is hidden whenever the screen is drawn. `escort` is
 disabled until a technology allows escorts.
 
-*Not read:* what any of the buttons does. *Ours:* `theatres_calc_button` is hidden; the
-rest are drawn as their files have them and do nothing - there are no units to build and
-no buildings to place.
+`confirmed` **Four buttons order units, each by bringing up a window of its own**:
+`build_division_button` the division designer, `build_ship_button` the ship builder,
+`build_air_button` the air builder, and `brig_attach` the brigade builder. Each puts away
+everything in the screen's own window but its frame - the country's picture, the shadow,
+the top piece, the close button, the headline and the automation line with its arrows -
+and the window comes up over that. `builders.md` has the four. Built 2026-10-08.
+
+*Not read:* what the other buttons do. *Ours:* `theatres_calc_button` is hidden; the rest
+are drawn as their files have them and do nothing. There are no buildings to place.
 
 ## 6. The four lists
 
 `confirmed` `build_queue`, `ai_need_queue`, `trade_list` and `convoy_queue` are each made
 again when their length is not the model's, and otherwise have each line filled.
 
-*Not read:* the lines. *Ours:* all four are empty: nothing is built, no AI asks for
-anything, and there is no trade and no convoy.
+### A line of the build queue
+
+`confirmed` Each line of `build_queue` is a window of the type `queue_entry`, for one line
+of the country's queue (`buildqueue.md`, section 1). Source:
+`reversing/findings/FINDINGS-buildqueue.md`, section 8.
+
+| element | what goes in it |
+| --- | --- |
+| `production_queue_green`, `production_queue_orange`, `production_queue_red` | one of the three: green for a line paid more than 0.990 of a day the last time the queue was worked through, orange for one paid anything, red for one paid nothing |
+| `production_speed` | what it was last paid, as a whole percentage: `100%` |
+| `ic_cost` | what a full day of it costs, to two decimals, cut, with the text of the key `IC` straight after: `7.02IC` |
+| `eta_date` | the day it will be done at the pace it was last paid, or `---` for a line paid nothing |
+| `series_info` | `+` and how many more of the unit follow, for a series; nothing for a line of one |
+| `prodqueue_progress` | how far the one being built has got, as a whole percentage |
+| `production_queue_naval`, `production_queue_division`, `production_queue_air`, `production_queue_buildings` | one of the four, by what the line builds |
+| `counter_type` | the sprite `GFX_counter_` and the first brigade's type key |
+| `unit_name` | the line's name, or its first brigade's where it has none |
+| `unit_target` | `=> ` and the name of the unit the line is built for |
+| `original_country` | a shield, for a line built for another country |
+
+and five buttons: `cancel`, `max_prio`, `prio`, `non_prio`, `max_non_prio`.
+
+**The date:** a line no day has yet worked on is taken to be paid in full.
+
+    left = (duration - progress) / what it was last paid          a part of a day counts as a whole one
+    the date that many days on
+
+**The text of `IC` is put straight after the number, with nothing between.** The German
+table gives the key a space of its own, ` IK`; the English has none. `confirmed`
+
+*Not read:* what the five buttons post, and how the date is written. *Ours:*
+
+- **The buttons** cancel the line and move it to the front, one place towards it, one
+  place back and to the back (`buildqueue.md`, section 7), which is what their sprites are
+  called: top, up, down, bottom.
+- **The date** is written as the research queue's is, year first
+  (`technologyscreen.md`, section 6).
+- `unit_target` is empty and `original_country` hidden: nothing is built for a unit in
+  the field or for another country.
+
+### The other three
+
+*Not read:* the lines. *Ours:* all three are empty: no AI asks for anything, and there is
+no trade and no convoy.
 
 ## 7. Ours
 
 - **The screen is opened by the top bar's Production button**, or with
   `--screen=production` after `--` on the command line.
-- **What each element says is worked out in `OpenHOI3.Interface`** - `CProductionScreenText`
-  and `CSliderText` - and tested. `src/Screens/CProductionView.cs` finds the elements and
-  sets them.
+- **What each element says is worked out in `OpenHOI3.Interface`** - `CProductionScreenText`,
+  `CBuildQueueText` and `CSliderText` - and tested. `src/Screens/CProductionView.cs` finds
+  the elements and sets them, and `CBuildQueueEntry.cs` those of a queue's line.
+- **`--order=type,type`** after `--` on the command line orders one unit of those brigades,
+  ships or wings for the country played, each called by its type's own name. And
+  **`--builder=division:type,type`** - or `ship:`, `air:`, `brigade:` and one type - opens
+  the window that orders one with that in it; an exclamation mark at the end gives the
+  order as well.
 - **`slider_automation_setting`** and the two arrows beside it are drawn as their file has
   them; what the original writes there was not read.
 
@@ -119,9 +172,11 @@ anything, and there is no trade and no convoy.
 
 1. **Little was seen running.** The maintainer confirmed one thing on 2026-10-08: a
    falling resource is a red number with no minus sign. The rest is from the bytes.
-2. **What the buttons do**: the three unit builders, the building buttons, the convoy and
-   theatre buttons, the checkbox.
-3. **The lines of the four lists.**
+2. **What the buttons do**: the building buttons, the convoy and theatre buttons, the
+   checkbox - and the five on a line of the build queue. The four that order units are
+   read (`builders.md`).
+3. **The lines of three of the four lists.** The build queue's are read (section 6), all
+   but how its date is written; **none of it has been looked at beside the running game**.
 4. **`slider_automation_setting`** and its arrows.
 5. **The trade list and the convoy list**, whose builders were found and not read.
 6. **Tooltips.** The screen's builder was found long ago

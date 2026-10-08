@@ -1,0 +1,64 @@
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+
+namespace OpenHOI3.Sim.Units;
+
+/// <summary>
+/// The officer ratio: how many of the officers a country's units call for it has. See
+/// <c>docs/mechanics/organisation.md</c>, section 1.
+/// </summary>
+public static class COfficers
+{
+	/// <summary>The define the ratio is never above.</summary>
+	public const string MostRatio = "MAX_OFFICERS";
+
+	/// <summary>
+	/// The officers a country's units call for: each brigade's, ship's and wing's own
+	/// figure, whatever state it is in - those of a unit finished and not yet placed
+	/// among them.
+	/// </summary>
+	public static CFixedPoint Needed(CCountry country)
+	{
+		CFixedPoint needed = CFixedPoint.Zero;
+		foreach (CUnit unit in country.AllUnits())
+		{
+			foreach (CSubUnit subUnit in unit.SubUnits)
+			{
+				needed += subUnit.Stats[CSubUnitType.Officers];
+			}
+		}
+		foreach (CUnit unit in country.Deployments)
+		{
+			foreach (CSubUnit subUnit in unit.SubUnits)
+			{
+				needed += subUnit.Stats[CSubUnitType.Officers];
+			}
+		}
+		return needed;
+	}
+
+	/// <summary>
+	/// What it has over what is called for, and never above the define. A country whose
+	/// units call for none has all it needs.
+	/// </summary>
+	public static CFixedPoint Ratio(CGameState state, CFixedPoint officers, CFixedPoint needed)
+	{
+		if (needed.Raw <= 0)
+		{
+			return CFixedPoint.One;
+		}
+		long ratio = officers.Raw * CFixedPoint.Scale / needed.Raw;
+		long most = state.Defines[CManpower.MilitarySection, MostRatio].Raw;
+		return new CFixedPoint(ratio > most ? most : ratio);
+	}
+
+	/// <summary>Counts every country's need again and works out its ratio.</summary>
+	public static void Update(CGameState state)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			country.OfficersNeeded = Needed(country);
+			country.OfficerRatio = Ratio(state, country.Officers, country.OfficersNeeded);
+		}
+	}
+}

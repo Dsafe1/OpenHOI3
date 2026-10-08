@@ -64,7 +64,8 @@ made.
 **When.** A country's units are seen to before its economy is run: each unit first loses
 its rotated men (section 3) and then draws, and only after every unit has drawn does the
 country make its supplies and run its shares. A unit that is built and not yet placed draws
-too. `confirmed`
+too, after the others, and loses no men first. `confirmed`, and built
+(`buildqueue.md`, section 6).
 
 **How much.** A unit asks for what section 1 gives and is given what there is:
 
@@ -176,10 +177,11 @@ Six things about it, the first two of which a player sees:
   brigades crosses the line together.
 
 `reinforcement_bonus` is what mobilising gives (`initial_mobilization`, +1.0: twice as
-fast). The speed has one more factor in the original, for ships and wings: the room their
-base has over the brigades stationed at it, never under a quarter.
+fast). The speed has one more factor, for ships and wings: the room their base has over
+what is based there, never under a quarter. It is the same figure that slows the return
+of their organisation, and is set out there: `organisation.md`, section 4.
 
-*Ours:* a base always has room, and a fleet counts as in port when it is where its order
+*Ours:* a fleet counts as in port when it is where its order
 of battle bases it. The original adds `PRIDE_BONUS_EXP` to the experience of the pride of
 the fleet each time it is reinforced, before the watering down; that is built as read,
 though it reads like a mistake of theirs (`reversing/findings/FINDINGS-unitdaily.md`,
@@ -226,7 +228,8 @@ technology a brigade is behind in moves at once, each one level at a time.
     the country's need goes up by daily
 
 When a brigade gains a level its figures are worked out again (`units.md`, section 2), and
-it is held to the strength they allow. The resources for the day's IC are charged once, at
+it is held to the strength they allow and to the organisation it may now have
+(`organisation.md`, section 2). The resources for the day's IC are charged once, at
 the end.
 
 - **A doctrine costs nothing and reaches a brigade a level a day**, whatever the share is
@@ -256,7 +259,9 @@ that was nothing on the day and is something in the save, or the other way about
 
 ## 6. What a unit costs, and how long it takes
 
-Upgrades are priced from these, and the build queue will be.
+Upgrades are priced from these, and so is the build queue - with one more term, a
+hundredth on both for every level the brigade is to be built with, which an upgrade does
+not have (`buildqueue.md`, section 2).
 
     discount = the practical's part
                + the country's industrial_efficiency modifier
@@ -364,13 +369,10 @@ supply network, which is not here.
 - **The supply network.** Every unit draws on its country's stockpile (section 2).
 - **Leaders.** The three terms they add to what a unit uses (section 1).
 - **Anything that moves**, so no army or air unit burns fuel.
-- **The room a base has** for reinforcing ships and wings (section 4).
-- **Organisation.** A brigade that gains a level is held to the strength its new figures
-  allow; the original holds its organisation to them as well. What an organisation may be
-  is `units.md`, section 4, and waits for the officer ratio.
 - **An AI to move the shares.** Only the player's reinforcement and upgrade shares are
   anything but what they started as.
-- **The build queue**, which is what section 6 is for besides.
+
+The build queue, which section 6 is for besides, is built: `buildqueue.md`.
 
 ## What is not established, in one place
 

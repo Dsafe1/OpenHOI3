@@ -6,6 +6,7 @@ using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.History;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
@@ -75,6 +76,8 @@ public static class CGameStateLoader
 		{
 			TechnologyFolders = CTechnologyReader.ReadFolders(directories),
 			SubUnitTypes = unitTypes,
+			CombinedArmsGroups = CCombinedArmsReader.Read(directories, warn),
+			NameTexts = ReadNameTexts(localisation, unitTypes.Values),
 		};
 		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);
@@ -88,24 +91,83 @@ public static class CGameStateLoader
 			CHistoricalModels.DefaultCount(state), warn);
 		ReadUnits(directories, state, warn);
 		CUnits.SetAtStart(state);
+		CBuildQueue.SetUpAtStart(state);
 		CStockpile.AddUnitGoodsAtStart(state);
 		return state;
 	}
 
 	/// <summary>
-	/// Gives every country the units its order of battle declares, as the file gives
-	/// them and in place of any it had. What they then start with is
-	/// <see cref="CUnits.SetAtStart"/>, which depends on the country's laws - so a
-	/// caller that changes those can read the units again and set them up afresh.
+	/// Gives every country the units its order of battle declares, and the ones it is
+	/// building, as the file gives them and in place of any it had. What they then
+	/// start with is <see cref="CUnits.SetAtStart"/> and
+	/// <see cref="CBuildQueue.SetUpAtStart"/>, which depend on the country's laws - so
+	/// a caller that changes those can read the units again and set them up afresh.
 	/// </summary>
 	public static void ReadUnits(CDirectorySettings directories, CGameState state, Action<string>? warn = null)
 	{
 		foreach (CCountry country in state.Countries)
 		{
 			country.Units.Clear();
+			country.Constructions.Clear();
+			country.Deployments.Clear();
 		}
 		state.LastUnitId = COrderOfBattleReader.Read(directories, state.Countries, state.SubUnitTypes,
 			state.Technologies, state.Provinces.Count, warn);
+		RegisterUnitNames(state);
+	}
+
+	/// <summary>
+	/// Every name the orders of battle gave is in use from the start, so that a unit
+	/// ordered later is not called what one already is.
+	/// </summary>
+	private static void RegisterUnitNames(CGameState state)
+	{
+		state.UnitNamesInUse.Clear();
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (CUnit unit in country.AllUnits())
+			{
+				CUnitNames.Register(state, unit.Name);
+				foreach (CSubUnit subUnit in unit.SubUnits)
+				{
+					CUnitNames.Register(state, subUnit.Name);
+				}
+			}
+			foreach (CConstruction construction in country.Constructions)
+			{
+				CUnitNames.Register(state, construction.Name);
+				foreach (CBrigadeOrder order in construction.Brigades)
+				{
+					CUnitNames.Register(state, order.Name);
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// The words a new unit's name is made of once its country's own lists run out: the
+	/// three patterns, the four ordinal endings, and every unit type's short name. A
+	/// text the localisation has not got is its key, as it would be in the original.
+	/// </summary>
+	private static CUnitNameTexts ReadNameTexts(CLocalisation localisation, IEnumerable<CSubUnitType> types)
+	{
+		var ordinals = new string[CUnitNameTexts.OrdinalKeys.Length];
+		for (int index = 0; index < ordinals.Length; index++)
+		{
+			ordinals[index] = localisation.Localise(CUnitNameTexts.OrdinalKeys[index]);
+		}
+		var texts = new CUnitNameTexts
+		{
+			Division = localisation.Localise(CUnitNameTexts.DivisionKey),
+			Brigade = localisation.Localise(CUnitNameTexts.BrigadeKey),
+			SubUnit = localisation.Localise(CUnitNameTexts.SubUnitKey),
+			Ordinals = ordinals,
+		};
+		foreach (CSubUnitType type in types)
+		{
+			texts.ShortNames[type.Key] = localisation.Localise(type.Key + CUnitNameTexts.ShortSuffix);
+		}
+		return texts;
 	}
 
 	/// <summary>

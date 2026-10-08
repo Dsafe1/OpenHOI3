@@ -76,6 +76,12 @@ public sealed class CTechnology
 	/// </summary>
 	public bool CanUpgrade { get; init; } = true;
 
+	/// <summary>
+	/// The unit types a level of it gives the country the use of, by key: each
+	/// <c>activate_unit</c> of its block.
+	/// </summary>
+	public IReadOnlyList<string> ActivatesUnits { get; init; } = Array.Empty<string>();
+
 	/// <summary>What a level of it adds to each unit type, by the type's key.</summary>
 	public Dictionary<string, CSubUnitStats> UnitEffects { get; } = new(StringComparer.OrdinalIgnoreCase);
 

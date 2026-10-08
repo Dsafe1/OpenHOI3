@@ -78,10 +78,10 @@ exile.
 So the first number is red whenever anything is going to waste, and the second whenever a
 shortage has cost IC. The original's: `§R10/§G21/21`.
 
-*Ours:* two of the six shares spend nothing until there is a build queue and lend-lease,
-and reinforcement and upgrades spend only what their units take (`production.md`,
-`upkeep.md`), so much of a country's IC shows as wasted, in red. That is true, and it is
-the bar saying so.
+*Ours:* lend-lease spends nothing, and production, reinforcement and upgrades spend only
+what their queue and their units take (`production.md`, `buildqueue.md`, `upkeep.md`), so
+much of a country's IC shows as wasted, in red, until its sliders are set to what is
+needed. That is true, and it is the bar saying so.
 How the original rounds each share's spare IC before adding them is not read; here the
 five are added in thousandths and cut once.
 
@@ -149,12 +149,13 @@ of the officers its units want that the country has**, as a whole percentage:
 
 The original's: `§G108%`.
 
-*Ours:* the ratio is not worked out, so the box shows `-` as the original does for a
-figure that does not apply. The units and the officers they bring a country exist since
-2026-10-08 (`units.md`, section 7); what is missing is how the original turns the two into
-the ratio, and where it caps it - a savegame has Germany behaving as though at 140% on a
-history that gives it half as many officers again as it needs. The format and the colours
-are built and tested for when there is one.
+The ratio is the officers the country has over what its brigades, ships and wings call for,
+never above the define `MAX_OFFICERS`, and worked out again every hour: `organisation.md`,
+section 1. A country with no units has all it wants and shows `§G100%`. `confirmed`
+
+Built 2026-10-08. Germany, whose history gives it half as many officers again as it needs,
+shows `§G140%` here - the ratio its brigades in the original's start save are held with
+(`organisation.md`, section 7). The original's own first screen was not looked at for it.
 
 ## 10. Spies
 

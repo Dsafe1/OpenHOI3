@@ -19,6 +19,8 @@ public partial class CGuiIcon : CGuiObject
 	private TextureRect? _rect;
 	private int _frame = 1;
 	private int _progress;
+	private CGuiButton? _over;
+	private CGuiButton? _pressed;
 
 	public void Initialise(CGuiIconType type, CGuiContext context)
 	{
@@ -37,6 +39,86 @@ public partial class CGuiIcon : CGuiObject
 
 		Place(type, Vector2.Zero);
 		Use(context.Sprites.Find(type.Sprite), type.Sprite);
+		MouseExited += () => HoverOver(null);
+	}
+
+	/// <summary>
+	/// An icon keeps a click from the map and not from a button of its own window that
+	/// it lies on: the counter on a line of a list is over the line's button, and a click
+	/// on it picks the line. What the mouse does to the icon it does to that button.
+	/// </summary>
+	public override void _GuiInput(InputEvent @event)
+	{
+		if (@event is InputEventMouseMotion motion)
+		{
+			HoverOver(ButtonUnder(motion.Position));
+			return;
+		}
+		if (@event is not InputEventMouseButton { ButtonIndex: MouseButton.Left } mouse)
+		{
+			return;
+		}
+
+		CGuiButton? button = ButtonUnder(mouse.Position);
+		if (mouse.Pressed)
+		{
+			HoverOver(button);
+			_pressed = button;
+			button?.Click(mouse);
+			return;
+		}
+
+		// The press counts when the mouse comes up over the button it went down on.
+		CGuiButton? pressed = _pressed;
+		_pressed = null;
+		if (pressed is null || !IsInstanceValid(pressed))
+		{
+			return;
+		}
+		if (ReferenceEquals(pressed, button))
+		{
+			pressed.Click(mouse);
+		}
+		else
+		{
+			pressed.SetHovered(false);
+		}
+	}
+
+	/// <summary>
+	/// The uppermost button drawn under this icon, in the same window, at a point of the
+	/// icon - or null.
+	/// </summary>
+	private CGuiButton? ButtonUnder(Vector2 point)
+	{
+		if (GetParent() is not { } parent)
+		{
+			return null;
+		}
+		Vector2 inParent = Position + point;
+		for (int index = GetIndex() - 1; index >= 0; index--)
+		{
+			if (parent.GetChild(index) is CGuiButton { Visible: true } button
+				&& new Rect2(button.Position, button.Size).HasPoint(inParent))
+			{
+				return button;
+			}
+		}
+		return null;
+	}
+
+	private void HoverOver(CGuiButton? button)
+	{
+		if (ReferenceEquals(button, _over))
+		{
+			return;
+		}
+		if (_over is not null && IsInstanceValid(_over))
+		{
+			_over.SetHovered(false);
+		}
+		_over = button;
+		button?.SetHovered(true);
 	}
 
 	/// <summary>

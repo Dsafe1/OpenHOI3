@@ -14,8 +14,8 @@ namespace OpenHOI3.Content.Gui;
 ///
 /// Stricter than the original, which drops what it does not know without a word: a
 /// top-level key other than <c>guiTypes</c>, an element keyword nothing knows, a key an
-/// element does not take and an orientation that is not one of the seven are each
-/// reported.
+/// element does not take, a key an element gives twice and an orientation that is not
+/// one of the seven are each reported.
 /// </summary>
 public sealed class CGuiTypes
 {
@@ -201,7 +201,9 @@ public sealed class CGuiTypes
 			return null;
 		}
 
-		string keyword = node.Key.ToLowerInvariant();
+		string kind = node.Key;
+		string keyword = kind.ToLowerInvariant();
+		node = Settled(node);
 		switch (keyword)
 		{
 			case "windowtype":
@@ -214,7 +216,7 @@ public sealed class CGuiTypes
 				return new CGuiButtonType
 				{
 					Name = node.GetString("name"),
-					Keyword = node.Key,
+					Keyword = kind,
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
 					Sprite = node.GetString("quadTextureSprite"),
@@ -231,7 +233,7 @@ public sealed class CGuiTypes
 				return new CGuiIconType
 				{
 					Name = node.GetString("name"),
-					Keyword = node.Key,
+					Keyword = kind,
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
 					Sprite = node.GetString("spriteType"),
@@ -246,7 +248,7 @@ public sealed class CGuiTypes
 				return new CGuiTextBoxType
 				{
 					Name = node.GetString("name"),
-					Keyword = node.Key,
+					Keyword = kind,
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
 					Font = node.GetString("font"),
@@ -264,7 +266,7 @@ public sealed class CGuiTypes
 				return new CGuiPositionType
 				{
 					Name = node.GetString("name"),
-					Keyword = node.Key,
+					Keyword = kind,
 					Position = Point(node, "position"),
 				};
 
@@ -273,7 +275,7 @@ public sealed class CGuiTypes
 				return new CGuiListBoxType
 				{
 					Name = node.GetString("name"),
-					Keyword = node.Key,
+					Keyword = kind,
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
 					Size = Point(node, "size"),
@@ -291,7 +293,7 @@ public sealed class CGuiTypes
 				return new CGuiOverlappingBoxType
 				{
 					Name = node.GetString("name"),
-					Keyword = node.Key,
+					Keyword = kind,
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
 					Size = Point(node, "size"),
@@ -309,7 +311,7 @@ public sealed class CGuiTypes
 				return new CGuiOtherType
 				{
 					Name = node.GetString("name"),
-					Keyword = node.Key,
+					Keyword = kind,
 					Position = Point(node, "position"),
 					Orientation = Orientation(node),
 					Size = Point(node, "size"),
@@ -389,6 +391,53 @@ public sealed class CGuiTypes
 			}
 		}
 		return scrollbar;
+	}
+
+	/// <summary>
+	/// An element as it stands once every key has been read. The original reads an
+	/// element a key at a time, each into its own place, so a key given twice leaves
+	/// what the second said: <c>brigade_entry_3</c>'s button has two positions and is
+	/// drawn at the later one. Elements declared inside are all kept, in their order.
+	/// </summary>
+	private ClausewitzNode Settled(ClausewitzNode node)
+	{
+		var last = new Dictionary<string, ClausewitzNode>(StringComparer.OrdinalIgnoreCase);
+		bool repeats = false;
+		foreach (ClausewitzNode child in node.Children)
+		{
+			if (child.Key is null || IsElement(child))
+			{
+				continue;
+			}
+			if (last.ContainsKey(child.Key))
+			{
+				// Valid, and what the original does with it is known; it is said because
+				// the earlier value is almost never what the file's author thinks is used.
+				Complain($"{node.Key} gives '{child.Key}' more than once and the last is the one used");
+				repeats = true;
+			}
+			last[child.Key] = child;
+		}
+		if (!repeats)
+		{
+			return node;
+		}
+
+		var settled = new ClausewitzNode { Key = node.Key, Value = node.Value };
+		foreach (ClausewitzNode child in node.Children)
+		{
+			if (child.Key is null || IsElement(child) || ReferenceEquals(last[child.Key], child))
+			{
+				settled.Children.Add(child);
+			}
+		}
+		return settled;
+	}
+
+	private static bool IsElement(ClausewitzNode node)
+	{
+		string key = node.Key!.ToLowerInvariant();
+		return node.IsBlock && (ChildKeywords.Contains(key) || OtherKeys.ContainsKey(key));
 	}
 
 	/// <summary>A plain number an element gives, or nothing when it gives none or one that is no number.</summary>

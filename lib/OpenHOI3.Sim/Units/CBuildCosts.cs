@@ -6,7 +6,7 @@ namespace OpenHOI3.Sim.Units;
 
 /// <summary>
 /// What a kind of unit costs a country in IC and in days. Upgrades are priced from it,
-/// and the build queue will be. See <c>docs/mechanics/upkeep.md</c>, section 5.
+/// and so is the build queue. See <c>docs/mechanics/upkeep.md</c>, section 6.
 /// </summary>
 public static class CBuildCosts
 {
@@ -79,14 +79,21 @@ public static class CBuildCosts
 		};
 	}
 
+	/// <summary>A hundredth dearer and slower for each level the build queue counts.</summary>
+	private const long PerLevel = 10;
+
 	/// <summary>
 	/// The days the country would take to build this brigade as it is now equipped, in
 	/// whole days.
 	/// </summary>
-	public static long BuildTime(CCountry country, CSubUnit subUnit)
+	/// <param name="levels">
+	/// The levels the brigade holds of all its technologies together, where the build
+	/// queue is asking: each makes it a hundredth slower. Upgrades ask with none.
+	/// </param>
+	public static long BuildTime(CCountry country, CSubUnit subUnit, long levels = 0)
 	{
 		CSubUnitType type = subUnit.Type;
-		long factor = CFixedPoint.Scale + country.Modifier[RecruitmentTime].Raw
+		long factor = CFixedPoint.Scale + levels * PerLevel + country.Modifier[RecruitmentTime].Raw
 			- CategoryDiscount(country, type.OnCompletion);
 		long speed = CFixedPoint.Scale + country.Modifier[SpeedModifier(type)].Raw;
 		long scaled = Math.Max(speed * factor / CFixedPoint.Scale, LeastTime);
@@ -97,9 +104,10 @@ public static class CBuildCosts
 	/// The IC a day the country would pay to build this brigade as it is now equipped,
 	/// in thousandths. A reserve costs the share of it that the conscription law leaves.
 	/// </summary>
-	public static long BuildCost(CCountry country, CSubUnit subUnit)
+	/// <param name="levels">As for <see cref="BuildTime"/>: each makes it a hundredth dearer.</param>
+	public static long BuildCost(CCountry country, CSubUnit subUnit, long levels = 0)
 	{
-		long multiplier = CFixedPoint.Scale - CategoryDiscount(country, subUnit.Type.OnCompletion);
+		long multiplier = CFixedPoint.Scale + levels * PerLevel - CategoryDiscount(country, subUnit.Type.OnCompletion);
 		long cost = multiplier * subUnit.Stats[CSubUnitStats.BuildCostIc].Raw / CFixedPoint.Scale;
 		if (subUnit.IsReserve)
 		{

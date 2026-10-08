@@ -5,7 +5,8 @@
 // Every country is given what the earlier save says it has - laws, government, technology
 // levels, abilities - and one day's gain is worked out for each technology it was
 // researching. That, times the days between the two saves, is set against how far the
-// later save says the technology got. The month's decay of abilities is checked the same way.
+// later save says the technology got. The month's decay of abilities is checked the same way,
+// and so is the build queue: see CBuildQueueBetweenSaves.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -201,6 +202,9 @@ internal static class CResearchCheck
 			}
 		}
 
+		// ---- the build queue over the same days, before anything below moves an ability
+		int queuesLeftOut = CBuildQueueBetweenSaves.Compare(state, pairs, earlier.GetString("player"), days, Compare);
+
 		// ---- the decay between the two saves, and which abilities something else moved. What
 		// slows the decay is the shares of IC on the day it happens, and the later save - an hour
 		// after it, where the two are a month apart - is the nearer witness to those.
@@ -291,6 +295,7 @@ internal static class CResearchCheck
 		Console.WriteLine();
 		Console.WriteLine($"not compared: {finished} that finished a level in between, {leadershipChanged} whose leadership changed, " +
 			$"{abilityChanged} whose cost changed with an ability; {notResearched} technologies had progress and no leadership");
+		Console.WriteLine($"not compared: the build queues of {queuesLeftOut} countries with a line that was not being paid in full in one save or the other");
 		Console.WriteLine($"{warnings.Count} warnings while loading");
 		foreach (string warning in warnings.Take(examples))
 		{

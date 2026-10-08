@@ -53,7 +53,7 @@ What a particular screen puts in its elements is that screen's own spec: `topbar
 | `windowType` | 358 | a box of elements, windows among them | yes |
 | `textBoxType` | 341 | a box of text | yes |
 | `listboxType` | 128 | a scrolling list the code fills | yes |
-| `checkboxType` | 99 | a button that stays down | as a button |
+| `checkboxType` | 99 | a button that stays down | yes |
 | `scrollbarType` | 34 | four buttons and a range | yes |
 | `shieldtype` | 22 | a country's flag in a frame, in a dialog | no |
 | `OverlappingElementsBoxType` | 21 | a row of things that may overlap | yes |
@@ -77,14 +77,27 @@ A mod that uses a key the base game never does will be told so and may be right.
 `Orientation` and `orientation`, `listboxType` and `listBoxType`, and both work in the
 original.
 
-*Ours, and stricter than the original:* a top-level key that is not `guiTypes`, a keyword
-that is no kind of element, a key a kind does not take, and an orientation or a format
-that is not a known word are each reported, once for each kind of complaint with a count.
-The 58 files give none.
+**A key an element gives twice leaves what the second said.** `inferred`: the original
+reads an element a key at a time, each into its own place, so a later one writes over an
+earlier (`reversing/findings/FINDINGS-guicontainers.md`). It matters once in the base
+game: `brigade_entry_3`'s `select` button has `position = { x=0 y=4 }` and then
+`position = { x= 3 y = 0 }`, and the line it is the ground of sits at the second - drawn
+at the first it was "a little too low and left" beside the original (the maintainer,
+2026-10-08; `reversing/findings/FINDINGS-builders.md`, section 6). Elements declared
+inside an element are each their own, however many share a keyword.
 
-**Three kinds hold what the code puts in them**, and the files say only how. None of the
-three was read out of the original; each is drawn here by the plain reading of its
-declaration, and each is *ours* until one is.
+*Ours, and stricter than the original:* a top-level key that is not `guiTypes`, a keyword
+that is no kind of element, a key a kind does not take, a key given twice, and an
+orientation or a format that is not a known word are each reported, once for each kind
+of complaint with a count. The 58 files give six of the fourth - the position above, a
+`format` on a text box in two files and four of a window's keys in `metaserver.gui` -
+and none of the others.
+
+**Three kinds hold what the code puts in them**, and the files say only how. The list box
+has been read out of the original. The other two have not; each of those is drawn here
+by the plain reading of its declaration, and is *ours* until it is - **which is what the
+list box was, and it was wrong**: its lines were spaced and cut off where the original
+does neither.
 
 - **A scrollbar** has a `size`, a range - `minValue`, `maxValue`, `startValue`,
   `stepSize` - a direction (`horizontal`) and four buttons declared inside it, which its
@@ -100,10 +113,40 @@ declaration, and each is *ours* until one is.
   way round here). So the file's sprites are not swapped, as this project's readme said
   for a long time; the bar is read from the bottom. A list is at its top when its bar
   is at its most.
-- **A list box** has a `size`, a `spacing` and the name of a top-level scrollbar. *Ours:*
-  the windows put in it are stacked from the top with the spacing between them and cut
-  off at the box's edge; when they do not all fit the scrollbar appears along the right
-  edge, as long as the box is high, and the wheel moves the list too.
+- **A list box** has a `size`, a `spacing` and the name of a top-level scrollbar, **and
+  lays what is put in it out in rows.** `confirmed`, read on 2026-10-09
+  (`reversing/findings/FINDINGS-listbox.md`); until then this was drawn by the plain
+  reading of the declaration, which was wrong in three ways.
+
+      rows  = the box's height / the height of the line last put in, cut to a whole number
+      shown = `rows` lines, from the one the scrollbar is at
+      each goes one FIRST line's height under the one before, the first at the top
+
+  - **A box shows a whole number of lines.** One with no row is not drawn at all.
+    Nothing is cut off at the box's edge, top, bottom or side, and there is never half
+    a line at the bottom.
+  - **`spacing` plays no part.** Lines touch. The files are written to it: the build
+    queue's box is 280 high and its lines 40, the needs' 176 and 44, the convoys' 132
+    and 22 - seven, four and six lines exactly, each with `spacing = 2` beside it.
+    `measured`
+  - **Nothing but the box's height limits it.** A box higher than the frame drawn for it
+    shows lines past the frame: `builders.md`, section 10, has the one that matters.
+  - **Scrolling is by the line.** The scrollbar appears when there are more lines than
+    rows and has a step for each line that has none.
+  - The first line starts, both ways, at the first of `borderSize`'s two numbers.
+    `likely`; every list drawn here gives nought.
+
+  Two lists in the whole game go by their lines' own heights instead, with `spacing`
+  between them, and neither is drawn here; one is made as the game is entered.
+
+  *Ours:* the scrollbar stands along the box's right edge, as long as the box is high,
+  and a notch of the wheel is a line.
+  **The box takes no click itself; only what is in it does.** `inferred`, from what has
+  to work in the original: the builders' `stats_pos` is one line in a box 533 by 620 that
+  lies over the buttons that order and close, and those are pressed through it. Here
+  the box had taken every click in its rectangle, and until 2026-10-09 none of those
+  buttons could be pressed. *Ours:* the wheel scrolls the list the mouse is over,
+  whatever of it the mouse is on, a line's own button included.
 - **A box of overlapping elements** has a `size`, a `spacing` and a `format`. *Ours:* the
   windows put in it stand in a row from the end the format names, the spacing between
   them; when they are wider than the box each starts sooner by an equal amount, so
@@ -160,6 +203,26 @@ files, with nothing in it placed by hand.
 
 ## 5. Sprites, frames and flags
 
+- **A texture named `.tga` is its `.dds` wherever one exists, and the `.tga` only where
+  none does.** `confirmed` (`reversing/findings/FINDINGS-textureload.md`). The original
+  swaps the first `.tga` in the name for `.dds`, asks whether that file exists, and opens
+  it if so and the name as written if not. Four things follow:
+  - *It goes one way.* A name written `.dds` is opened as written and never looked for
+    as a `.tga`.
+  - *It is over every layer at once.* `likely` A `.dds` in the base game is found before
+    a `.tga` in an expansion or a mod is looked at, **so a mod's `.tga` does not replace
+    a picture the base game holds as `.dds`.**
+  - *It is lower case and the first found.* A name written `.TGA` is opened as written.
+  - *Nothing else is known*, `.png` included.
+
+  Their Finest Hour names 652 textures `.tga`; most exist only as `.dds`. Three exist as
+  both and differ: `select_ship_button`, where the `.tga` is an older picture 60 wider
+  that runs over the ship builder's frame - which is how this was found, the maintainer
+  seeing the lines overflow here and not in the game - `divdesigner_listbutton2`, a row
+  higher, and `gfx/test/factions`. `measured`
+
+  *Ours:* a name no layer has under either extension is then tried with the others,
+  `.png` among them, where the original reports the file missing and draws nothing.
 - **A frame is the texture's width divided by `noOfFrames`.** `confirmed` as the
   declaration; so a sharper texture needs no change to any file. *Ours:* frames are worked
   in fractions of the texture throughout.
@@ -195,6 +258,12 @@ files, with nothing in it placed by hand.
 - **`allwaystransparent = yes` lets clicks through.** `inferred` from the name. *Ours:* any
   other icon takes the click, so the map under the bar does not; the original tests the
   pixel (`transparencecheck`), and this does not.
+- **An icon lying on a button does not keep a click from it.** The maintainer,
+  2026-10-09: "The original allows clicks on the icon" - the counter on a line of a
+  builder's list, whose sprite has `transparencecheck` and is solid where it was
+  clicked. *Ours* for how: the icon hands the press, the release and the mouse's being
+  over it to the uppermost button of its own window drawn under it. The last section,
+  item 13.
 
 ## 6. Text
 
@@ -338,6 +407,12 @@ scalable canvas of section 3 could not survive. So:
   each came from. Which stands for which is one table in the client.
 - **A button's shortcut is read** for function keys, `ESCAPE`, `ENTER` and single letters
   and digits. The other words the files use are not yet keys.
+- **A checkbox is a button that a click ticks or clears**, showing the second frame of
+  its sprite while ticked and the first while not. That the frames are those was not
+  read; a look at the original would settle it.
+- **A button says whether the mouse is held down on it**, which is what lets a screen
+  repeat a step while it is (`builders.md`, section 6), and can be given another sprite
+  by name.
 
 ## What is not established, in one place
 
@@ -357,6 +432,18 @@ scalable canvas of section 3 could not survive. So:
 8. **What a mask in a `maskedShieldType` is for**, given that both shipped are blank.
 9. **What `transparencecheck` tests**, and against which texture.
 10. **Tooltips.** `pdx_tooltip` and the three tooltip keys of a button are read past.
-11. **How a scrollbar, a list box and a box of overlapping elements lay themselves
-    out.** All three are drawn by the plain reading of their declarations (section 2).
-12. **What a checkbox does when pressed.** It is drawn as a button and stays as it is.
+11. **How a scrollbar and a box of overlapping elements lay themselves out.** Both are
+    drawn by the plain reading of their declarations (section 2). The list box was too,
+    until it was read. Of the list box there is left: where its scrollbar stands, how far
+    a notch of the wheel moves it, and the two lists that go by their lines' heights.
+12. **Which frame a ticked checkbox shows.** The second here (section 7), unread.
+13. **Which element takes a click.** Nothing of how the original hands the mouse to an
+    element was read; two things are known from the maintainer's eye. A list box does
+    not keep a click from what it lies over (section 2), and **an icon does not keep
+    one from a button under it** - a click on the counter of a line of a list picks the
+    line (2026-10-09). Here a button, a scrollbar and any icon not `allwaystransparent`
+    take a click, the uppermost first, and a window, a text box and a list box do not;
+    an icon hands what the mouse does to it on to the uppermost button of its own
+    window drawn under it, and keeps it from the map either way. That it is only a
+    button of the same window, and that an icon still keeps a click from an icon, a
+    scrollbar or a button of another window beneath it, is *ours*.

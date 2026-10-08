@@ -107,6 +107,18 @@ public sealed class CGameState
 	public IReadOnlyDictionary<string, CSubUnitType> SubUnitTypes { get; init; } =
 		new Dictionary<string, CSubUnitType>(StringComparer.OrdinalIgnoreCase);
 
+	/// <summary>The combined arms groups, in the order their file lists them.</summary>
+	public IReadOnlyList<CCombinedArmsGroup> CombinedArmsGroups { get; init; } = Array.Empty<CCombinedArmsGroup>();
+
+	/// <summary>The words a new unit's name is made of once its country's lists run out.</summary>
+	public CUnitNameTexts NameTexts { get; init; } = new();
+
+	/// <summary>
+	/// Every name a unit, a brigade, a ship or a wing has been given, in any country:
+	/// a new one is never called what something already is.
+	/// </summary>
+	public HashSet<string> UnitNamesInUse { get; } = new(StringComparer.Ordinal);
+
 	/// <summary>
 	/// The last number given to a unit or a sub unit. The next one made takes the one
 	/// after it.

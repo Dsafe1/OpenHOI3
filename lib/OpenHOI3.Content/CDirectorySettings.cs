@@ -16,6 +16,12 @@ public sealed class CDirectorySettings
 	/// <summary>Tried in order when a referenced file does not exist verbatim.</summary>
 	private static readonly string[] TextureExtensions = { ".dds", ".tga", ".png" };
 
+	/// <summary>The extension a texture's name is written with and need not be stored under.</summary>
+	private const string SwappedExtension = ".tga";
+
+	/// <summary>The extension looked for in its place.</summary>
+	private const string PreferredExtension = ".dds";
+
 	/// <summary>
 	/// Expansion directories layered over the base install, highest priority first.
 	///
@@ -126,14 +132,35 @@ public sealed class CDirectorySettings
 	}
 
 	/// <summary>
-	/// Resolves a texture reference across the layers, retrying with the other image
-	/// extensions. Script files routinely name a file that shipped in a different
-	/// format - the front end asks for <c>frontend_tile.tga</c> but only <c>.dds</c>
-	/// exists.
+	/// Resolves a texture reference across the layers.
+	///
+	/// A name that says <c>.tga</c> is first looked for as <c>.dds</c>, in every layer,
+	/// and the <c>.tga</c> is used only when no layer has one: that is the original's
+	/// rule, and the files lean on it - the front end asks for <c>frontend_tile.tga</c>
+	/// where only a <c>.dds</c> exists, and <c>select_ship_button</c> ships as both, the
+	/// two not the same picture. See <c>docs/mechanics/interface.md</c>, section 5.
+	///
+	/// A name that is in no layer under either is then tried with the other image
+	/// extensions, which the original does not do; it reports the file missing.
 	/// </summary>
 	public string? ResolveTexture(string gameRelative)
 	{
 		string normalised = Normalise(gameRelative);
+		// The original swaps the first ".tga" it finds in the name, written small.
+		int swapped = normalised.IndexOf(SwappedExtension, StringComparison.Ordinal);
+		if (swapped >= 0)
+		{
+			string preferred = normalised[..swapped] + PreferredExtension
+				+ normalised[(swapped + SwappedExtension.Length)..];
+			foreach (string layer in Layers)
+			{
+				string candidate = InLayer(layer, preferred);
+				if (File.Exists(candidate))
+				{
+					return candidate;
+				}
+			}
+		}
 		foreach (string layer in Layers)
 		{
 			string direct = InLayer(layer, normalised);

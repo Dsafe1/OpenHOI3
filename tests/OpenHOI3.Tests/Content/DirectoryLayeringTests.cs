@@ -94,6 +94,39 @@ public class DirectoryLayeringTests : IDisposable
 	}
 
 	[Fact]
+	public void ATextureNamedTgaIsTheDdsWhereBothExist()
+	{
+		// select_ship_button ships as both, and they are not the same picture: the
+		// original looks for the .dds first and draws that.
+		Write("gfx/interface/select_ship_button.tga", "the older picture");
+		Write("gfx/interface/select_ship_button.dds", "the picture drawn");
+
+		string? found = Settings.ResolveTexture("gfx\\interface\\select_ship_button.tga");
+		Assert.Equal("the picture drawn", File.ReadAllText(found!));
+	}
+
+	[Fact]
+	public void ADdsInTheBaseGameBeatsATgaInTheExpansion()
+	{
+		// The .dds is looked for in every layer before the name as it is written.
+		Write("gfx/interface/listbutton.dds", "base dds");
+		Write("tfh/gfx/interface/listbutton.tga", "expansion tga");
+
+		string? found = Settings.ResolveTexture("gfx\\interface\\listbutton.tga");
+		Assert.Equal("base dds", File.ReadAllText(found!));
+	}
+
+	[Fact]
+	public void ATextureNamedDdsIsNotLookedForAsTga()
+	{
+		Write("gfx/interface/both.tga", "tga");
+		Write("gfx/interface/both.dds", "dds");
+
+		string? found = Settings.ResolveTexture("gfx\\interface\\both.dds");
+		Assert.Equal("dds", File.ReadAllText(found!));
+	}
+
+	[Fact]
 	public void MissingTextureReturnsNull()
 	{
 		Assert.Null(Settings.ResolveTexture("gfx/interface/nothing_here.dds"));

@@ -10,8 +10,8 @@ Sources: `reversing/findings/FINDINGS-distribute.md`,
 `reversing/findings/FINDINGS-production.md`, `reversing/findings/FINDINGS-manpower.md`,
 `reversing/CLASSES.md` (*Industrial capacity, and the six sliders*).
 
-Reinforcement and upgrades spend IC on units and have a spec of their own, `upkeep.md`.
-The build queue is not built.
+Reinforcement and upgrades spend IC on units and have a spec of their own, `upkeep.md`;
+so has the build queue, `buildqueue.md`.
 
 ## 1. The six shares
 
@@ -133,13 +133,11 @@ see section 7 for why it is not the one the save shows.)
 
 - **Lend-lease**: not read.
 - **Production** hands each item in the queue, in queue order, up to one day of its cost,
-  from the free part first and then against the resource check. `confirmed`
+  from the free part first and then against the resource check. `confirmed` It is built:
+  `buildqueue.md`, section 4.
 - **Reinforcement** and **upgrades** walk the country's units, and are built:
   `upkeep.md`, sections 4 and 5. Each charges for the IC it spends as section 2 says -
-  reinforcement brigade by brigade, upgrades once for the day.
-
-Production waits for the build queue. `reversing/findings/FINDINGS-production.md` has
-what is known.
+  production line by line, reinforcement brigade by brigade, upgrades once for the day.
 
 **What each slider shows as its need** is `upkeep.md`, section 8, for supplies,
 reinforcement and upgrades, and section 3 here for consumer goods.
@@ -150,9 +148,10 @@ reinforcement and upgrades, and section 3 here for consumer goods.
 - **Every country but the rebels runs its shares**, as in the original, so a country that
   does not exist earns money, makes supplies and uses resources in whoever holds its
   capital. This replaces the earlier choice not to (`stockpile.md`, section 5).
-- **Lend-lease and production spend nothing yet.** Their shares are there and can be
-  set; the IC in them is wasted and costs nothing. Reinforcement and upgrades spend what
-  their units take (`upkeep.md`), and the rest of what they are given is wasted too.
+- **Lend-lease spends nothing yet.** Its share is there and can be set; the IC in it is
+  wasted and costs nothing. Production spends what its queue takes (`buildqueue.md`), and
+  reinforcement and upgrades what their units take (`upkeep.md`); the rest of what the
+  three are given is wasted too.
 - **The standing-army term is zero**: the units are there now, and neutrality is not.
 - **All the supplies go to the stockpile.** Provinces other than the capital do not hold
   goods until there is a supply network to move them.
@@ -187,6 +186,14 @@ One rounding rule came out of this and is not in the fact base: the consumer goo
 the share turned into thousandths *first* and then multiplied by the IC, where the supply
 bill is multiplied out first and turned into thousandths after. (measured: East Germany's
 0.557 is 0.099 x 2 + 0.359, and every one of the twenty fits that and nothing else tried.)
+
+**The whole of Germany's last day agrees** now that the build queue is in: its industry
+used 121.187 IC by the save, and here 44.823 on consumer goods, 13.982 on its three ships,
+31.191 on supplies and 31.191 on upgrades, which is 121.187. (`buildqueue.md`, section 4.
+The readme carried this for a time as a check that did not come out, 13.781 for the ships
+against a cost of 16.160: the 16.160 was the cost under the laws the save shows, which a
+change of law made after the last day, and the consumer goods bill is 44.823 and not the
+45.024 the sum assumed.)
 
 Not checked: dissent, because nothing in the save has any to speak of; and the
 standing-army term, which this project cannot compute yet.

@@ -97,4 +97,87 @@ public class GameDataLoadingTests : IDisposable
 		Assert.Equal("ZZZ", countries.Find("ZZZ")!.Name);
 	}
 
+	[Fact]
+	public void ACountrysFileGivesItsDivisionTemplatesAndTheNamesOfItsNewUnits()
+	{
+		Write("common/countries/Germany.txt", """
+			color = { 64 160 167 }
+			default_templates = {
+				GER_panzer_1936 = {
+					light_armor_brigade
+					light_armor_brigade
+					motorized_brigade
+				}
+				GER_motorised = { motorized_brigade motorized_brigade }
+			}
+			unit_names = {
+				infantry_brigade = {
+					"1. Infanterie-Division" "5. Infanterie-Division"
+					"6. Infanterie-Division"
+				}
+				destroyer = { "1. Zerstörergeschwader" }
+			}
+			""");
+
+		CCountry germany = CCountries.Load(Directories, Localisation, _warnings.Add).Find("GER")!;
+
+		Assert.Equal(new[] { "GER_panzer_1936", "GER_motorised" }, germany.Templates.Select(template => template.Name));
+		Assert.Equal(new[] { "light_armor_brigade", "light_armor_brigade", "motorized_brigade" }, germany.Templates[0].Brigades);
+		Assert.Equal(new[] { "1. Infanterie-Division", "5. Infanterie-Division", "6. Infanterie-Division" },
+			germany.UnitNames["infantry_brigade"]);
+		Assert.Equal(new[] { "1. Zerstörergeschwader" }, germany.UnitNames["destroyer"]);
+		Assert.Empty(CCountries.Load(Directories, Localisation, _warnings.Add).Find("ENG")!.Templates);
+	}
+
+	[Fact]
+	public void CombinedArmsGroupsAreReadInTheirFilesOrderWithTheBaseOnesMarked()
+	{
+		Write("common/combined_arms.txt", """
+			# combined arms spec
+			combined_arms = {
+				infantry_unit_type = {
+					base = yes
+					value = 0
+				}
+				armor_unit_type = {
+					value = 0.05
+					colour = red
+				}
+			}
+			""");
+
+		List<OpenHOI3.Sim.Units.CCombinedArmsGroup> groups = CCombinedArmsReader.Read(Directories, _warnings.Add);
+
+		Assert.Equal(new[] { "infantry_unit_type", "armor_unit_type" }, groups.Select(group => group.Name));
+		Assert.True(groups[0].IsBase);
+		Assert.False(groups[1].IsBase);
+		Assert.Equal(OpenHOI3.Sim.CFixedPoint.Parse("0.05"), groups[1].Value);
+		Assert.Contains(_warnings, warning => warning.Contains("colour"));
+	}
+
+	[Fact]
+	public void ATechnologyNamesTheUnitTypesItGivesTheUseOf()
+	{
+		Write("technologies/land.txt", """
+			combined_arms_warfare = {
+				armor_unit_type = 0.1
+				activate_unit = sp_rct_artillery_brigade
+				activate_unit = engineer_brigade
+				max_level = 1
+			}
+			superior_firepower = {
+				division_size = 1
+			}
+			""");
+
+		List<OpenHOI3.Sim.Research.CTechnology> technologies = CTechnologyReader.Read(Directories, _warnings.Add);
+
+		OpenHOI3.Sim.Research.CTechnology warfare = technologies.Single(technology => technology.Name == "combined_arms_warfare");
+		Assert.Equal(new[] { "sp_rct_artillery_brigade", "engineer_brigade" }, warfare.ActivatesUnits);
+		Assert.Equal(OpenHOI3.Sim.CFixedPoint.Parse("0.1"), warfare.EffectPerLevel["armor_unit_type"]);
+		OpenHOI3.Sim.Research.CTechnology firepower = technologies.Single(technology => technology.Name == "superior_firepower");
+		Assert.Empty(firepower.ActivatesUnits);
+		Assert.Equal(OpenHOI3.Sim.CFixedPoint.One, firepower.EffectPerLevel["division_size"]);
+	}
+
 }

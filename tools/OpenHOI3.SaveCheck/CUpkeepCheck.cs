@@ -42,14 +42,22 @@ internal static class CUpkeepCheck
 		"regiment", "ship", "wing",
 	};
 
-	private sealed record Kept(CFixedPoint Strength, CFixedPoint Highest, CFixedPoint Experience,
+	private sealed record Kept(CFixedPoint Strength, CFixedPoint Highest, CFixedPoint Experience, CFixedPoint Organisation,
 		Dictionary<string, int> Levels, Dictionary<string, CFixedPoint> Progress);
 
+	/// <param name="held">
+	/// The countries whose brigades the save shows held to the ceiling on their
+	/// organisation, which is what a change of law after the two days does.
+	/// </param>
+	/// <param name="notHeld">The countries whose brigades it shows above that ceiling.</param>
 	/// <returns>The countries whose upgrades fit a law out of their history better than the save's, and which law.</returns>
 	public static List<string> Run(IReadOnlyList<(ClausewitzNode Node, CCountry Country)> countries, CGameState state,
 		ClausewitzNode save, IReadOnlyDictionary<string, Dictionary<string, CLaw>> historyLaws,
-		Action<string, bool, Func<string>> compare)
+		IReadOnlyDictionary<string, Dictionary<string, CLaw>> lawBook,
+		Action<string, bool, Func<string>> compare, out List<string> held, out List<string> notHeld)
 	{
+		held = new List<string>();
+		notHeld = new List<string>();
 		string player = save.GetString("player");
 		var savedUnits = new Dictionary<int, ClausewitzNode>();
 		var savedSubUnits = new Dictionary<int, ClausewitzNode>();
@@ -64,7 +72,10 @@ internal static class CUpkeepCheck
 			string tag = country.Tag.Value;
 			CFixedPoint manpower = country.Manpower;
 			Dictionary<int, Kept> start = Keep(country);
-			if (start.Count == 0)
+			var queue = new CBuildQueueCheck.CKept(country);
+			Dictionary<int, ClausewitzNode> savedQueue = CBuildQueueCheck.Collect(node);
+			var abilities = new Dictionary<string, CFixedPoint>(country.Abilities, StringComparer.OrdinalIgnoreCase);
+			if (start.Count == 0 && queue.Lines.Count == 0)
 			{
 				continue;
 			}
@@ -84,8 +95,8 @@ internal static class CUpkeepCheck
 			{
 				PutBack(country, start);
 				Give(state, country, choice, found, history);
-				RunDays(state, country);
-				int faults = Faults(country, savedSubUnits);
+				RunDays(state, country, queue, abilities);
+				int faults = Faults(country, savedSubUnits) + CBuildQueueCheck.Faults(country, savedQueue);
 				if (faults < fewest)
 				{
 					fewest = faults;
@@ -94,7 +105,8 @@ internal static class CUpkeepCheck
 			}
 			PutBack(country, start);
 			Give(state, country, best, found, history);
-			RunDays(state, country);
+			RunDays(state, country, queue, abilities);
+			CBuildQueueCheck.CompareProgress(country, savedQueue, tag == player, queue, compare);
 			List<string> put = Groups.Where((group, index) => (best & (1 << index)) != 0 && history[group] != found[group]).ToList();
 			if (put.Count > 0)
 			{
@@ -102,26 +114,82 @@ internal static class CUpkeepCheck
 			}
 
 			Compare(state, node, country, save, savedUnits, savedSubUnits, tag == player, compare);
+			if (COrganisationCheck.Compare(state, node, country, savedUnits, savedSubUnits, compare) is { } wasHeld)
+			{
+				(wasHeld ? held : notHeld).Add(tag);
+			}
 
-			// As it was found.
+			// As it was found: what a line costs and takes is what the laws the save
+			// shows make of it, a change of law being what works it out again.
 			PutBack(country, start);
 			Give(state, country, 0, found, history);
 			country.Manpower = manpower;
+			country.Abilities.Clear();
+			foreach ((string category, CFixedPoint ability) in abilities)
+			{
+				country.Abilities[category] = ability;
+			}
+			if (queue.Lines.Count != 0)
+			{
+				var asFound = new Dictionary<string, CLaw>(country.Laws, StringComparer.OrdinalIgnoreCase);
+				foreach ((string group, Dictionary<string, CLaw> laws) in lawBook)
+				{
+					if (laws.TryGetValue(node.GetString(group), out CLaw? law))
+					{
+						country.Laws[group] = law;
+					}
+				}
+				CCountryModifiers.Rebuild(state);
+				CBuildQueueCheck.SetUpAsAtStart(state, country, queue);
+				CBuildQueueCheck.ComparePrices(state, country, savedQueue, compare);
+
+				// And then as the last day is judged to have found it, for the day run after this.
+				country.Laws.Clear();
+				foreach ((string group, CLaw law) in asFound)
+				{
+					country.Laws[group] = law;
+				}
+				CCountryModifiers.Rebuild(state);
+				CBuildQueueCheck.SetUpAsAtStart(state, country, queue);
+			}
 		}
 		return fromHistory;
 	}
 
-	private static void RunDays(CGameState state, CCountry country)
+	private static void RunDays(CGameState state, CCountry country, CBuildQueueCheck.CKept queue,
+		Dictionary<string, CFixedPoint> abilities)
 	{
+		// Its queue as a new game makes it, under the laws it has been given, and what it
+		// knew before anything was finished.
+		country.Abilities.Clear();
+		foreach ((string category, CFixedPoint ability) in abilities)
+		{
+			country.Abilities[category] = ability;
+		}
+		CBuildQueueCheck.SetUpAsAtStart(state, country, queue);
+
+		// The officers it starts with over what its own units call for, as the original
+		// has it before its AI has added a headquarters.
+		CFixedPoint ratio = country.OfficerRatio;
+		country.OfficerRatio = COfficers.Ratio(state, country.Officers, COfficers.Needed(country));
+
 		for (int day = 0; day < DaysBehind; day++)
 		{
+			// An hour comes before its day.
+			COrganisationCheck.RunHourBeforeTheGame(state, country);
+			CBuildQueueCheck.RunDay(state, country);
+
 			foreach (CUnit unit in country.UnitsInOrder())
 			{
 				CUnitUpkeep.Rotate(state, country, unit);
 			}
 			CReinforcement.Run(state, country, CProduction.Given(country, EProductionCategory.Reinforcement), apply: true);
+
+			Dictionary<int, CFixedPoint> organisation = COrganisationCheck.Keep(country);
 			country.UpgradeSpent = CUpgrades.Run(state, country, CProduction.Given(country, EProductionCategory.Upgrades), apply: true);
+			COrganisationCheck.HoldAsBeforeTheGame(country, organisation);
 		}
+		country.OfficerRatio = ratio;
 	}
 
 	/// <summary>Gives the country, for each group, the law it was found with or its history's, as the bits of the choice say.</summary>
@@ -151,7 +219,7 @@ internal static class CUpkeepCheck
 		{
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
-				kept[subUnit.Id] = new Kept(subUnit.Strength, subUnit.Highest, subUnit.Experience,
+				kept[subUnit.Id] = new Kept(subUnit.Strength, subUnit.Highest, subUnit.Experience, subUnit.Organisation,
 					new Dictionary<string, int>(subUnit.TechnologyLevels, StringComparer.OrdinalIgnoreCase),
 					new Dictionary<string, CFixedPoint>(subUnit.TechnologyProgress, StringComparer.OrdinalIgnoreCase));
 			}
@@ -169,6 +237,7 @@ internal static class CUpkeepCheck
 				subUnit.Strength = was.Strength;
 				subUnit.Highest = was.Highest;
 				subUnit.Experience = was.Experience;
+				subUnit.Organisation = was.Organisation;
 				subUnit.TechnologyLevels.Clear();
 				foreach ((string technology, int level) in was.Levels)
 				{

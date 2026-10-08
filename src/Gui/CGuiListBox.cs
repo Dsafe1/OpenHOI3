@@ -1,36 +1,42 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gfx;
+using OpenHOI3.Interface;
 using OpenHOI3.Sim;
 
 namespace OpenHOI3.Gui;
 
 /// <summary>
-/// A <c>listboxType</c>: entries stacked one under the other with the box's spacing
-/// between them, cut off at the box's edge, and scrolled by the wheel or by the
-/// scrollbar the box names when they do not all fit.
+/// A <c>listboxType</c>, laid out the way the original lays out all but two of its
+/// lists: in rows. The box shows as many lines as go whole into its height, one
+/// straight under the other with nothing between them, and a line that does not fit is
+/// not drawn at all - nothing is cut off. When there are more lines than rows the
+/// scrollbar the box names appears, and it and the wheel move the list a line at a
+/// time. The box's <c>spacing</c> has no part in it.
 ///
-/// The original's stacking and scrolling were not read; this is the plain reading of
-/// the declaration. See <c>docs/mechanics/interface.md</c>, section 2.
+/// See <c>docs/mechanics/interface.md</c>, section 2, and
+/// <c>reversing/findings/FINDINGS-listbox.md</c>.
 /// </summary>
 public partial class CGuiListBox : CGuiObject
 {
-	/// <summary>How far one notch of the wheel moves the list, in the file's units.</summary>
-	private const float WheelStep = 40f;
-
 	private readonly List<Control> _entries = new();
 	private Control _content = null!;
 	private CGuiScrollbar? _scrollbar;
 	private CGuiListBoxType _type = null!;
-	private float _contentHeight;
-	private float _offset;
+	private int _rows;
+	private int _first;
 
 	public void Initialise(CGuiListBoxType type, CGuiContext context)
 	{
 		_type = type;
 		Place(type, new Vector2(type.Size.X, type.Size.Y));
-		MouseFilter = MouseFilterEnum.Pass;
+		// The box takes no click itself, and neither does what holds its entries: only
+		// the entries do. A box is often far larger than what is in it and lies over
+		// other things - the builders' `stats_pos` is one line in a box 620 high that
+		// covers the buttons that order and close - and those have to stay reachable.
+		MouseFilter = MouseFilterEnum.Ignore;
 
 		CSpriteType? background = context.Sprites.Find(type.Background);
 		if (background is not null && context.Textures.Load(background) is { } texture)
@@ -47,12 +53,11 @@ public partial class CGuiListBox : CGuiObject
 			AddChild(behind);
 		}
 
-		// The entries are cut off at the box; the scrollbar stands outside it, to the right.
-		var clip = new Control { Name = "Clip", ClipContents = true, MouseFilter = MouseFilterEnum.Pass };
-		clip.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		AddChild(clip);
-		_content = new Control { Name = "Entries", MouseFilter = MouseFilterEnum.Pass };
-		clip.AddChild(_content);
+		// Nothing cuts the entries off: one that is not among the rows is hidden whole,
+		// and one that is may be as wide as it likes. The files give lists 533 wide lines
+		// whose columns run to 850 and beyond.
+		_content = new Control { Name = "Entries", MouseFilter = MouseFilterEnum.Ignore };
+		AddChild(_content);
 
 		if (context.Types.FindScrollbar(type.Scrollbar) is { } scrollbarType)
 		{
@@ -62,7 +67,8 @@ public partial class CGuiListBox : CGuiObject
 			_scrollbar.Visible = false;
 			// A bar that runs up and down has its greatest value at the top, so the top
 			// of the list is the bar's whole and the bottom its nothing.
-			_scrollbar.Moved += value => ScrollTo((1f - value.Raw / (float)CFixedPoint.Scale) * Overflow);
+			_scrollbar.Moved += value =>
+				ShowFrom(Mathf.RoundToInt((1f - value.Raw / (float)CFixedPoint.Scale) * Unseen));
 			AddChild(_scrollbar);
 		}
 	}
@@ -72,13 +78,18 @@ public partial class CGuiListBox : CGuiObject
 
 	public IReadOnlyList<Control> Entries => _entries;
 
-	/// <summary>Puts an entry at the end of the list. The entry's own height is what it takes.</summary>
+	/// <summary>How many lines the box shows at once.</summary>
+	public int Rows => _rows;
+
+	/// <summary>
+	/// Puts an entry at the end of the list. The rows the box has are counted again by
+	/// this entry's height: as many as go whole into the box's.
+	/// </summary>
 	public void Add(Control entry)
 	{
-		entry.Position = new Vector2(_type.BorderSize.X, _type.BorderSize.Y + _contentHeight);
 		_content.AddChild(entry);
 		_entries.Add(entry);
-		_contentHeight += entry.Size.Y + _type.Spacing;
+		_rows = CGuiLayout.ListRows(_type.Size.Y, entry.Size.Y);
 		Settle();
 	}
 
@@ -91,47 +102,61 @@ public partial class CGuiListBox : CGuiObject
 			entry.QueueFree();
 		}
 		_entries.Clear();
-		_contentHeight = 0f;
 		Settle();
 	}
 
-	/// <summary>How much of the entries does not fit in the box.</summary>
-	private float Overflow => Mathf.Max(_contentHeight - _type.Spacing + 2f * _type.BorderSize.Y - Size.Y, 0f);
+	/// <summary>How many of the entries have no row.</summary>
+	private int Unseen => Math.Max(_entries.Count - _rows, 0);
 
 	private void Settle()
 	{
 		if (_scrollbar is not null)
 		{
-			_scrollbar.Visible = Overflow > 0f;
+			_scrollbar.Visible = Unseen > 0;
 		}
-		ScrollTo(_offset);
+		ShowFrom(_first);
 	}
 
-	private void ScrollTo(float offset)
+	/// <summary>
+	/// Shows a row's worth of entries from one of them on, each a first entry's height
+	/// under the one before, and hides the rest.
+	/// </summary>
+	private void ShowFrom(int first)
 	{
-		_offset = Mathf.Clamp(offset, 0f, Overflow);
-		_content.Position = new Vector2(0f, -Mathf.Round(_offset));
-		if (_scrollbar is not null && Overflow > 0f && !_scrollbar.Held)
+		_first = Math.Clamp(first, 0, Unseen);
+		float pitch = _entries.Count > 0 ? _entries[0].Size.Y : 0f;
+		// The original starts both ways from the first of borderSize's two numbers.
+		var place = new Vector2(_type.BorderSize.X, _type.BorderSize.X);
+		for (int index = 0; index < _entries.Count; index++)
 		{
-			_scrollbar.Value = new CFixedPoint((long)((1f - _offset / Overflow) * CFixedPoint.Scale));
+			Control entry = _entries[index];
+			bool shown = index >= _first && index < _first + _rows;
+			entry.Visible = shown;
+			if (shown)
+			{
+				entry.Position = place;
+				place.Y += pitch;
+			}
+		}
+		if (_scrollbar is not null && Unseen > 0 && !_scrollbar.Held)
+		{
+			_scrollbar.Value = new CFixedPoint((long)((1f - _first / (float)Unseen) * CFixedPoint.Scale));
 		}
 	}
 
-	public override void _GuiInput(InputEvent @event)
+	/// <summary>
+	/// The wheel scrolls the list the mouse is over, a line a notch, whatever of the
+	/// list it is over - a line's button would otherwise keep the turn to itself.
+	/// </summary>
+	public override void _Input(InputEvent @event)
 	{
-		if (@event is not InputEventMouseButton { Pressed: true } wheel || Overflow <= 0f)
+		if (@event is not InputEventMouseButton { Pressed: true } wheel || Unseen <= 0
+			|| wheel.ButtonIndex is not (MouseButton.WheelUp or MouseButton.WheelDown)
+			|| !IsVisibleInTree() || !new Rect2(Vector2.Zero, Size).HasPoint(GetLocalMousePosition()))
 		{
 			return;
 		}
-		if (wheel.ButtonIndex == MouseButton.WheelUp)
-		{
-			AcceptEvent();
-			ScrollTo(_offset - WheelStep);
-		}
-		else if (wheel.ButtonIndex == MouseButton.WheelDown)
-		{
-			AcceptEvent();
-			ScrollTo(_offset + WheelStep);
-		}
+		GetViewport().SetInputAsHandled();
+		ShowFrom(_first + (wheel.ButtonIndex == MouseButton.WheelUp ? -1 : 1));
 	}
 }

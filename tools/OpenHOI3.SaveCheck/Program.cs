@@ -473,9 +473,11 @@ foreach ((int capitalId, (string who, CGoodsPool change)) in conversions)
 
 // ---- the units two days on, which is where the save is: now that each country has the laws,
 // the technology and the shares its last day was run with.
-List<string> upkeepLaws = CUpkeepCheck.Run(savedCountries, state, save, historyLaws, Compare);
+List<string> upkeepLaws = CUpkeepCheck.Run(savedCountries, state, save, historyLaws, lawBook, Compare,
+	out List<string> heldToCeilings, out List<string> notHeldToCeilings);
 
 CProduction.RunDaily(state);
+string playersDay = "";
 foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 {
 	if (!CProduction.TakesPart(state, country) || !Untouched(country))
@@ -487,8 +489,14 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 	if (CResources.HoldsCapital(state, country))
 	{
 		CFixedPoint used = Number(usage?.GetString("metal"));
-		Compare("what the player's shares but the build queue cost is no more than the save says it used",
-			country.Usage[EGoods.Metal] <= used, () => $"{tag}: the save used {used}, ours {country.Usage[EGoods.Metal]}");
+		playersDay = $"{tag}'s last day, by share, spent of given: " + string.Join(", ",
+			Enum.GetValues<EProductionCategory>().Select(category =>
+				$"{category} {CProduction.Spent(country, category)} of {CProduction.Given(country, category)}"));
+		Compare("what the player's industry used on the save's last day, the build queue with it",
+			country.Usage[EGoods.Metal] == used,
+			() => $"{tag}: the save used {used}, ours {country.Usage[EGoods.Metal]}  (off by {used - country.Usage[EGoods.Metal]}; " +
+				string.Join(", ", Enum.GetValues<EProductionCategory>().Select(category =>
+					$"{category} {CProduction.Spent(country, category)} of {CProduction.Given(country, category)}")) + ")");
 		continue;
 	}
 	foreach (EGoods goods in new[] { EGoods.Metal, EGoods.Energy, EGoods.RareMaterials })
@@ -595,6 +603,11 @@ foreach ((string what, int count) in compared.OrderBy(entry => entry.Key))
 		}
 	}
 }
+if (playersDay.Length > 0)
+{
+	Console.WriteLine();
+	Console.WriteLine(playersDay);
+}
 if (putBack.Count > 0)
 {
 	Console.WriteLine();
@@ -612,6 +625,14 @@ if (upkeepLaws.Count > 0)
 	Console.WriteLine();
 	Console.WriteLine($"{upkeepLaws.Count} countries' upgrades over the two days fit a law out of their history better than the save's, which the AI changed after the last day was run:");
 	Console.WriteLine("   " + string.Join("; ", upkeepLaws));
+}
+if (heldToCeilings.Count + notHeldToCeilings.Count > 0)
+{
+	Console.WriteLine();
+	Console.WriteLine($"{heldToCeilings.Count} countries' brigades are held to the ceiling on their organisation, as a change of law after the two days holds them:");
+	Console.WriteLine("   " + string.Join(" ", heldToCeilings));
+	Console.WriteLine($"{notHeldToCeilings.Count} countries' brigades are above it, as the two days left them:");
+	Console.WriteLine("   " + string.Join(" ", notHeldToCeilings));
 }
 Console.WriteLine();
 Console.WriteLine($"{warnings.Count} warnings while loading");

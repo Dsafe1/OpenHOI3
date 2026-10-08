@@ -37,6 +37,20 @@ public class GuiLayoutTests
 	}
 
 	[Fact]
+	public void AListBoxShowsAsManyLinesAsGoWholeIntoItsHeight()
+	{
+		// The production screen's three lists are whole numbers of their lines.
+		Assert.Equal(7, CGuiLayout.ListRows(280, 40f));
+		Assert.Equal(4, CGuiLayout.ListRows(176, 44f));
+		Assert.Equal(6, CGuiLayout.ListRows(132, 22f));
+		// The brigade builder's is not, and the half line over is no row.
+		Assert.Equal(12, CGuiLayout.ListRows(300, 24f));
+		// A box lower than a line has none, and neither has a line with no height.
+		Assert.Equal(0, CGuiLayout.ListRows(20, 24f));
+		Assert.Equal(0, CGuiLayout.ListRows(300, 0f));
+	}
+
+	[Fact]
 	public void AFrameIsAFractionOfTheTextureSoItsResolutionDoesNotMatter()
 	{
 		// Six frames: the first starts at the left edge and each is a sixth wide.

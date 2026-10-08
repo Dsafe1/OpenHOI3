@@ -31,4 +31,23 @@ public static class CNumberText
 		}
 		return text;
 	}
+
+	/// <summary>
+	/// A number with as many of its three decimal places as it needs and no more:
+	/// <c>2</c>, <c>0.5</c>, <c>1.25</c>. It is the original's second way of writing one.
+	/// </summary>
+	public static string Trimmed(CFixedPoint value)
+	{
+		string text = Format(value, 3);
+		int end = text.Length;
+		while (text[end - 1] == '0')
+		{
+			end--;
+		}
+		if (text[end - 1] == '.')
+		{
+			end--;
+		}
+		return text[..end];
+	}
 }

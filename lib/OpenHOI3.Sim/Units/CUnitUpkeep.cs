@@ -39,6 +39,15 @@ public static class CUnitUpkeep
 					CUnitSupply.Draw(country, unit, stockpile);
 				}
 			}
+
+			// A unit finished and not yet placed eats too, though no men leave it.
+			if (stockpile is not null)
+			{
+				foreach (CUnit unit in country.Deployments)
+				{
+					CUnitSupply.Draw(country, unit, stockpile);
+				}
+			}
 		}
 	}
 

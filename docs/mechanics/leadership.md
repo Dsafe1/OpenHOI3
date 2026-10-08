@@ -153,8 +153,11 @@ fast it goes and what finishing it does is `research.md`.
 - **The four shares are changed only by a command**, which refuses four numbers that are
   not all at least nothing and no more than one between them.
 - **Officers, influence and spies in training accumulate; nothing spends them yet.**
-  Officers are for units, influence for diplomacy and spies for espionage, none of which
-  exists here. Spies are not sent anywhere, so the figure is a pool that only grows.
+  Influence is for diplomacy and spies for espionage, neither of which exists here. Spies
+  are not sent anywhere, so the figure is a pool that only grows. **Officers are used
+  though not spent**: how many a country has against what its units call for is the
+  officer ratio, which sets how much organisation its brigades can hold and how fast it
+  comes back (`organisation.md`). What takes officers away is battle, which is not built.
 - **Officers start with what the country's units bring** (`units.md`, section 7).
 - **There is no sharing of technology**, so nothing is taken off the total for it.
 - **The research share is spent on the country's queue** (`research.md`). The number of

@@ -24,10 +24,14 @@ whose daily pass works out who has which strategic resource, rebuilds each provi
 works out its leadership, its IC and its home production, adds that to its stockpile and runs
 its six shares of IC and its four of leadership, research among them, the unit types and
 every country's order of battle with what each brigade holds on the first hour, what a
-unit draws each day - supplies and fuel, troop rotation, reinforcement and upgrades - a tool that
+unit draws each day - supplies and fuel, troop rotation, reinforcement and upgrades - the
+officer ratio and the hourly return of a brigade's organisation under it, the build queue
+from an order to a unit waiting to be placed, which unit types a country may build and
+what a new unit is called, a tool that
 checks all of it against savegames, an interface runtime that builds windows from the
 original's `.gui` files and draws their text in outline fonts, three screens on it - the
-top bar, production and technology - 651 tests - and it is
+top bar, production and technology - and the four windows the production screen orders a
+unit from, 755 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -115,11 +119,17 @@ Decided 2026-10-07. The `.gui` files are neither discarded nor translated once o
 because mods ship their own - BlackICE changes all 33 it shares with Their Finest Hour and
 adds 20.
 
-**Built 2026-10-08, as far as three screens need.** `docs/mechanics/interface.md` is the
-spec, and `topbar.md`, `countryviews.md`, `sliders.md`, `productionscreen.md` and
-`technologyscreen.md` the screens'; `lib/OpenHOI3.Content/Gui` reads the files, `src/Gui`
-builds windows, icons, buttons, text boxes, scrollbars, list boxes and boxes of
-overlapping elements from them, and `src/Screens` holds the screens. Edit boxes and
+**Built 2026-10-08, as far as three screens and four windows need.**
+`docs/mechanics/interface.md` is the spec, and `topbar.md`, `countryviews.md`,
+`sliders.md`, `productionscreen.md`, `technologyscreen.md` and `builders.md` the
+screens'; `lib/OpenHOI3.Content/Gui` reads the files, `src/Gui` builds windows, icons,
+buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements
+from them, and `src/Screens` holds the screens. **The four windows a unit is ordered
+from - `builders.md` - have been tried by hand once and never measured against the
+original.** That try found seven buttons that could not be pressed in windows every
+scripted check had passed, because the checks opened and filled them by name and pressed
+nothing: **check a screen with `--click`, which sends the mouse's own events, before
+calling it working.** Edit boxes and
 shields are read and not drawn. **The two later screens were built from a reading nothing
 checked against a running game.** The maintainer tried them twice on 2026-10-08 and
 what was wrong is mended - the readme's *Next up* and *Loose ends* say what is left.
@@ -203,7 +213,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 95 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 100 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -239,7 +249,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 2602-address, 301-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 2695-address, 304-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -257,7 +267,9 @@ fine, because the framework version and the SDK version are independent.
     dotnet build OpenHOI3.sln
     dotnet test tests/OpenHOI3.Tests
 
-From VS Code, `F5` offers *Play OpenHOI3*, *Play OpenHOI3 (headless)* and *Open Godot Editor*.
+From VS Code, `F5` offers *Play OpenHOI3*, *Play OpenHOI3 (all units)* - every unit type
+there to order from the start, for trying the builder windows - *Play OpenHOI3 (headless)*
+and *Open Godot Editor*.
 The Godot executable path comes from the `godotTools.editorPath.godot4` setting rather than
 being hardcoded, so set it in `.vscode/settings.json` (git-ignored) or in user settings.
 
@@ -310,13 +322,13 @@ beside the repository.
   thousandth is worth more than one that reads well. The maintainer's save is normally at
   `Documents\Paradox Interactive\Hearts of Iron III\save games\Germany1936_01_01_00.hoi3`.
   **Anything that moves from day to day is checked against two saves of one game**:
-  `OpenHOI3.SaveCheck research <install> <earlier save> <later save>` does it for research
-  and the monthly decay, and the same folder has four later saves of that game - the three
+  `OpenHOI3.SaveCheck research <install> <earlier save> <later save>` does it for research,
+  the monthly decay and the build queue, and the same folder has four later saves of that game - the three
   autosaves and `Germany1936_04_20_03.hoi3`. An autosave is overwritten as the game goes
   on, so a comparison that matters should say which dates it was run against.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the interface files, font descriptors, the sliders and the three screens' figures carry 651 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows' carry 755 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

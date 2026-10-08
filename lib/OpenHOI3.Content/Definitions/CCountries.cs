@@ -86,11 +86,12 @@ public sealed class CCountries
 		CColor color = CColor.Gray;
 		string culture = "";
 		bool major = false;
+		ClausewitzNode? definition = null;
 
 		string path = directories.Resolve("common/" + definitionFile);
 		try
 		{
-			ClausewitzNode definition = ClausewitzParser.ParseFile(path);
+			definition = ClausewitzParser.ParseFile(path);
 			color = definition.GetRgb("color", CColor.Gray);
 			culture = definition.GetString("graphical_culture");
 			major = definition.GetString("major").Equals("yes", StringComparison.OrdinalIgnoreCase);
@@ -101,7 +102,7 @@ public sealed class CCountries
 			warn($"Could not read country file '{path}': {e.Message}");
 		}
 
-		return new CCountry
+		var country = new CCountry
 		{
 			Tag = tag,
 			Name = localisation.Localise(tag.Value),
@@ -110,6 +111,71 @@ public sealed class CCountries
 			GraphicalCulture = culture,
 			IsMajor = major,
 		};
+		if (definition is not null)
+		{
+			ReadTemplates(definition, country);
+			ReadUnitNames(definition, country);
+		}
+		return country;
+	}
+
+	/// <summary>
+	/// <c>default_templates</c>: a block for each division the country keeps ready to
+	/// order, holding its brigades' unit types one after another.
+	/// </summary>
+	private static void ReadTemplates(ClausewitzNode definition, CCountry country)
+	{
+		if (definition.Get("default_templates") is not { IsBlock: true } templates)
+		{
+			return;
+		}
+		foreach (ClausewitzNode entry in templates.Children)
+		{
+			if (entry.Key is null || !entry.IsBlock)
+			{
+				continue;
+			}
+			var template = new CDivisionTemplate(entry.Key);
+			foreach (ClausewitzNode brigade in entry.Children)
+			{
+				if (brigade.Value is { Length: > 0 } type)
+				{
+					template.Brigades.Add(type);
+				}
+			}
+			country.Templates.Add(template);
+		}
+	}
+
+	/// <summary>
+	/// <c>unit_names</c>: for a unit type, the names the country gives new units - a
+	/// division's under the type of its first brigade.
+	/// </summary>
+	private static void ReadUnitNames(ClausewitzNode definition, CCountry country)
+	{
+		if (definition.Get("unit_names") is not { IsBlock: true } lists)
+		{
+			return;
+		}
+		foreach (ClausewitzNode entry in lists.Children)
+		{
+			if (entry.Key is null || !entry.IsBlock)
+			{
+				continue;
+			}
+			// A type listed twice has its second list after its first.
+			if (!country.UnitNames.TryGetValue(entry.Key, out List<string>? names))
+			{
+				country.UnitNames[entry.Key] = names = new List<string>();
+			}
+			foreach (ClausewitzNode name in entry.Children)
+			{
+				if (name.Value is { Length: > 0 } text)
+				{
+					names.Add(text);
+				}
+			}
+		}
 	}
 
 	public CCountry? Find(CCountryTag tag)

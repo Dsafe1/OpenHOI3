@@ -45,6 +45,10 @@ public static class CTick
 	/// </summary>
 	private static void RunHourlyPass(CGameState state)
 	{
+		// The units go first, so an hour's organisation is worked out with the officer
+		// ratio the hour before left.
+		COrganisation.RunHourly(state);
+		COfficers.Update(state);
 	}
 
 	/// <summary>
@@ -86,6 +90,7 @@ public static class CTick
 		CIndustrialCapacity.Update(state);
 		CResources.UpdateHomeProduction(state);
 		CProduction.Estimate(state);
+		COfficers.Update(state);
 	}
 
 	/// <summary>

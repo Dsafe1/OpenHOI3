@@ -231,9 +231,16 @@ public class TopBarTextTests
 	}
 
 	[Fact]
-	public void WithNoUnitsThereIsNoOfficerRatioToShow()
+	public void ACountryWithNoUnitsHasAllTheOfficersItWants()
 	{
-		Assert.Equal("-", CTopBarText.OfficerRatio(_country));
+		Assert.Equal("§G100%", CTopBarText.OfficerRatio(_country));
+	}
+
+	[Fact]
+	public void TheBoxShowsTheCountrysOwnRatio()
+	{
+		_country.OfficerRatio = CFixedPoint.Parse("1.4");
+		Assert.Equal("§G140%", CTopBarText.OfficerRatio(_country));
 	}
 
 	[Fact]

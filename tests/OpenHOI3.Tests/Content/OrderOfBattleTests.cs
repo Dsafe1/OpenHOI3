@@ -7,6 +7,7 @@ using OpenHOI3.Content;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.History;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Units;
@@ -427,7 +428,7 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
-	public void AUnitUnderConstructionIsNotMadeButTakesFiveNumbers()
+	public void AUnitUnderConstructionIsALineOfTheQueueAndTakesFiveNumbers()
 	{
 		(CCountry country, _, int last) = Read("""
 			military_construction = {
@@ -440,10 +441,51 @@ public class OrderOfBattleTests : IDisposable
 			division = { name = "A" location = 1 regiment = { type = foot_brigade historical_model = 0 } }
 			""");
 
+		// The line, the unit it will make, two passed over, and its one brigade.
 		CUnit division = Assert.Single(country.Units);
 		Assert.Equal(6, division.SubUnits[0].Id);
 		Assert.Equal(7, last);
-		Assert.Contains(_warnings, warning => warning.Contains("under construction"));
+
+		CConstruction construction = Assert.Single(country.Constructions);
+		Assert.Equal(1, construction.Id);
+		Assert.Equal(2, construction.UnitId);
+		Assert.Equal(CFixedPoint.FromInt(60), construction.Duration);       // which a new game takes as the days to go
+		Assert.Equal(CFixedPoint.FromInt(5), construction.Cost);
+		Assert.Equal(1, construction.Size);
+		CBrigadeOrder order = Assert.Single(construction.Brigades);
+		Assert.Equal(5, order.Id);
+		Assert.Equal("flat_top", order.Type.Key);
+		Assert.Equal("Next", order.Name);
+		Assert.Equal(1, order.HistoricalModel);
+		Assert.Empty(_warnings);
+	}
+
+	[Fact]
+	public void AConstructionOfSeveralBrigadesTakesANumberForEach()
+	{
+		(CCountry country, _, int last) = Read("""
+			military_construction = {
+				country = AAA
+				is_reserve = yes
+				size = 3
+				manpower = 0.56
+				foot_brigade = { name = "One" historical_model = 0 }
+				foot_brigade = { name = "Two" experience = 20 model = { 2 1 } }
+				duration = 30
+				nonsense = 4
+			}
+			""");
+
+		CConstruction construction = Assert.Single(country.Constructions);
+		Assert.Equal(new[] { 5, 6 }, construction.Brigades.ConvertAll(order => order.Id));
+		Assert.Equal(6, last);
+		Assert.True(construction.IsReserve);
+		Assert.Equal(CFixedPoint.One, construction.ReservesFactor);         // a file's line is not given its law's share
+		Assert.Equal(CFixedPoint.Parse("0.56"), construction.Manpower);
+		Assert.Equal(1, construction.Size);                                 // a file's line builds one, whatever it says
+		Assert.Equal(CFixedPoint.FromInt(20), construction.Brigades[1].Experience);
+		Assert.Equal(new[] { 2, 1 }, construction.Brigades[1].Model);
+		Assert.Contains(_warnings, warning => warning.Contains("nonsense in a military_construction"));
 	}
 
 	[Fact]

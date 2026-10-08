@@ -298,14 +298,21 @@ public partial class CSession : Node
 	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map,
 	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen,
 	/// <c>--research=key,key</c> puts technologies on the research queue,
+	/// <c>--all-units</c> lets the country played order every unit type that can be built,
+	/// <c>--order=type,type</c> orders one unit made of those brigades, ships or wings,
+	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
+	/// type) opens the window that orders one, with that in it,
 	/// <c>--technology=key</c> chooses one on the technology screen,
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
+	/// <c>--click=700,310;1240,886</c> clicks at those points of the canvas, in turn, once
+	/// everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.
 	/// </summary>
 	private async void RunDeveloperArguments()
 	{
 		string? screenshot = null;
+		string? clicks = null;
 		int centre = 0;
 		float? zoom = null;
 		foreach (string argument in OS.GetCmdlineUserArgs())
@@ -313,6 +320,10 @@ public partial class CSession : Node
 			if (argument.StartsWith("--screenshot="))
 			{
 				screenshot = argument["--screenshot=".Length..];
+			}
+			else if (argument.StartsWith("--click="))
+			{
+				clicks = argument["--click=".Length..];
 			}
 			else if (argument.StartsWith("--centre="))
 			{
@@ -365,6 +376,43 @@ public partial class CSession : Node
 				}
 				_simulation.Post(new CSetResearchQueueCommand(Player.Tag, queue));
 			}
+			else if (argument == "--all-units" && Player is not null)
+			{
+				// Gives the country played every unit type to order, whatever technology
+				// or country its file keeps it to - a carrier and its air groups in 1936.
+				// Carried out at once, so that a switch after this one finds it done.
+				_simulation.Post(new CUnlockEveryUnitCommand(Player.Tag));
+				_simulation.Pump();
+			}
+			else if (argument.StartsWith("--builder="))
+			{
+				// Opens one of the windows a unit is ordered from over the production
+				// screen: --builder=division:infantry_brigade,artillery_brigade.
+				if (_production is { IsOpen: false })
+				{
+					Toggle(_production);
+				}
+				_production?.OpenBuilder(argument["--builder=".Length..]);
+			}
+			else if (argument.StartsWith("--order=") && Player is not null)
+			{
+				// Orders one unit of the brigades, ships or wings named: --order=a,b,c. Each
+				// is called by its type's own name, there being no builder to name it in.
+				var brigades = new System.Collections.Generic.List<(string, string)>();
+				foreach (string key in argument["--order=".Length..].Split(','))
+				{
+					brigades.Add((key, _localisation.Localise(key)));
+				}
+				var order = new COrderUnitCommand(Player.Tag, brigades);
+				if (order.MayExecute(State))
+				{
+					_simulation.Post(order);
+				}
+				else
+				{
+					GD.Print($"--order: {Player.Tag} may not order '{argument["--order=".Length..]}' now.");
+				}
+			}
 			else if (argument.StartsWith("--zoom=")
 				&& float.TryParse(argument["--zoom=".Length..], NumberStyles.Float,
 					CultureInfo.InvariantCulture, out float parsed))
@@ -380,6 +428,11 @@ public partial class CSession : Node
 			ShowProvince(centre);
 		}
 
+		if (clicks is not null)
+		{
+			await Click(clicks);
+		}
+
 		if (screenshot is null)
 		{
 			return;
@@ -392,5 +445,49 @@ public partial class CSession : Node
 		Error error = GetViewport().GetTexture().GetImage().SavePng(screenshot);
 		GD.Print(error == Error.Ok ? $"Saved {screenshot}" : $"Could not save {screenshot}: {error}");
 		GetTree().Quit();
+	}
+
+	/// <summary>
+	/// Clicks the left mouse button at each of some points of the 1920 x 1080 canvas, in
+	/// turn, as a hand would: the pointer moves there, the button goes down and comes up.
+	/// The clicks go in at the same door as real ones, so what would stop a real click
+	/// stops these.
+	/// </summary>
+	private async System.Threading.Tasks.Task Click(string points)
+	{
+		foreach (string point in points.Split(';', System.StringSplitOptions.RemoveEmptyEntries))
+		{
+			string[] parts = point.Split(',');
+			if (parts.Length != 2
+				|| !float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float x)
+				|| !float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float y))
+			{
+				GD.Print($"--click: '{point}' is not a point.");
+				continue;
+			}
+			var at = new Vector2(x, y);
+			await Frames(3);
+			GetViewport().PushInput(new InputEventMouseMotion { Position = at, GlobalPosition = at }, true);
+			await Frames(1);
+			GetViewport().PushInput(new InputEventMouseButton
+			{
+				Position = at, GlobalPosition = at, ButtonIndex = MouseButton.Left, Pressed = true,
+				ButtonMask = MouseButtonMask.Left,
+			}, true);
+			await Frames(2);
+			GetViewport().PushInput(new InputEventMouseButton
+			{
+				Position = at, GlobalPosition = at, ButtonIndex = MouseButton.Left, Pressed = false,
+			}, true);
+			await Frames(2);
+		}
+	}
+
+	private async System.Threading.Tasks.Task Frames(int count)
+	{
+		for (int frame = 0; frame < count; frame++)
+		{
+			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+		}
 	}
 }

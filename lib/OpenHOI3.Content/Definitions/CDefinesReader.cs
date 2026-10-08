@@ -36,6 +36,9 @@ public static class CDefinesReader
 		(CManpower.MilitarySection, CUpgrades.ShipSpeed),
 		(CManpower.MilitarySection, CUpgrades.AirSpeed),
 		(CManpower.MilitarySection, CUpgrades.LandSpeed),
+		(CManpower.MilitarySection, COfficers.MostRatio),
+		(CManpower.MilitarySection, COrganisation.LowRegainBonus),
+		(CManpower.MilitarySection, CBaseCrowding.NavalBaseEfficiency),
 	};
 
 	/// <summary>Every numeric value, by section and name.</summary>

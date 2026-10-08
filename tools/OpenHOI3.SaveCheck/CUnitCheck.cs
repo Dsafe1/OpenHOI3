@@ -287,10 +287,7 @@ internal static class CUnitCheck
 			() => $"{who}: save {experience}, ours {subUnit.Experience}  (reserve {subUnit.IsReserve}, " +
 				$"the law gives {country.Modifier[CUnits.UnitStartExperience]})");
 
-		// Organisation moves both ways from the first hour, and by rules that are not built.
-		CFixedPoint organisation = Number(node.GetString("organisation"));
-		string moved = organisation == subUnit.Organisation ? "the same as" : organisation < subUnit.Organisation ? "below" : "above";
-		compare($"brigades: organisation two days in is {moved} what each started with (counted, not judged)", true, () => "");
+		// Organisation is not what it started with two days in. COrganisationCheck judges it.
 
 		foreach (CTechnology technology in subUnit.Type.Technologies)
 		{
