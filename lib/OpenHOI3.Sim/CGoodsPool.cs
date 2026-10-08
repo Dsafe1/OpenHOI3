@@ -90,29 +90,3 @@ public sealed class CGoodsPool
 		return string.Join(", ", parts);
 	}
 }
-
-/// <summary>
-/// One technology, as a file under <c>technologies/</c> declares it. Each level a
-/// country has of it is worth the same again of every effect.
-/// </summary>
-public sealed class CTechnology
-{
-	public CTechnology(string name, int maxLevel, CModifier effectPerLevel)
-	{
-		Name = name;
-		MaxLevel = maxLevel;
-		EffectPerLevel = effectPerLevel;
-	}
-
-	public string Name { get; }
-
-	/// <summary>The highest level the file allows, or 0 when it does not say.</summary>
-	public int MaxLevel { get; }
-
-	public CModifier EffectPerLevel { get; }
-
-	public override string ToString()
-	{
-		return Name;
-	}
-}

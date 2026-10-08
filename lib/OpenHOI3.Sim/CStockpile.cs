@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace OpenHOI3.Sim;
@@ -6,20 +7,55 @@ namespace OpenHOI3.Sim;
 /// What countries hold: what a stockpile is filled with when a game begins, and what a
 /// day adds to it. See <c>docs/mechanics/stockpile.md</c>.
 ///
-/// The starting amounts were measured from a savegame of the original rather than read
-/// out of it. Nothing is taken out of a stockpile yet: industry's usage, the conversions
-/// and what the units draw arrive with the systems that cause them.
+/// Supplies and fuel start at nothing here: the original gives each country as many
+/// days of what its units use, and there are no units yet.
 /// </summary>
 public static class CStockpile
 {
-	/// <summary>How many days of its industry's needs a country at peace starts with.</summary>
-	public const int DaysAtPeace = 90;
+	/// <summary>The days every country starts with, whatever else is true of it.</summary>
+	public const int DaysAlways = 30;
 
-	/// <summary>And a country at war.</summary>
-	public const int DaysAtWar = 75;
+	/// <summary>The days added for each month of the year a country has not spent at war.</summary>
+	public const int DaysPerMonthOfPeace = 5;
 
-	/// <summary>Money per IC per day of the above, in ten-thousandths: 0.0025.</summary>
-	private const long MoneyPerIcDay = 25;
+	/// <summary>The months counted: a year, and never fewer than two however long the war.</summary>
+	public const int MonthsCounted = 12;
+	public const int LeastMonthsCounted = 2;
+
+	/// <summary>
+	/// The fraction of what the stockpile's IC-days would earn that is given as money, in
+	/// thousandths. It is built into the original.
+	/// </summary>
+	private const long MoneyShare = 50;
+
+	/// <summary>
+	/// How many whole months the country has been in the oldest war it is still
+	/// fighting, by the calendar: October to January is three. Nothing for a country at peace.
+	/// </summary>
+	public static int MonthsAtWar(CGameState state, CCountry country)
+	{
+		CDate now = state.Date;
+		CDate earliest = now;
+		foreach (CWar war in state.Wars)
+		{
+			// A war nobody dated is taken to have just begun.
+			if (war.Involves(country.Tag) && war.Started.IsValid && war.Started.CompareTo(earliest) < 0)
+			{
+				earliest = war.Started;
+			}
+		}
+		return (now.Year * 12 + now.Month) - (earliest.Year * 12 + earliest.Month);
+	}
+
+	/// <summary>
+	/// How many days of its industry's needs a country starts with: ninety at peace, five
+	/// fewer for each month it has been at war, and never fewer than forty.
+	/// </summary>
+	public static int DaysAtStart(CGameState state, CCountry country)
+	{
+		int months = Math.Max(LeastMonthsCounted, MonthsCounted - MonthsAtWar(state, country));
+		return DaysAlways + DaysPerMonthOfPeace * months;
+	}
 
 	/// <summary>
 	/// Fills every stockpile for the first day of a new game.
@@ -28,6 +64,7 @@ public static class CStockpile
 	public static void FillAtStart(CGameState state, IReadOnlyDictionary<string, CGoodsPool>? fromHistory = null)
 	{
 		// It is the base that counts, which no law or minister changes.
+		CProvinceModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
 
 		// What the history files give comes first, because it decides who gets money.
@@ -42,6 +79,8 @@ public static class CStockpile
 			}
 		}
 
+		long icToMoney = state.Defines[CResources.EconomySection, CResources.IcToMoney].Raw;
+
 		// In the order the countries are declared, which matters where two share a capital.
 		foreach (CCountry country in state.Countries)
 		{
@@ -52,17 +91,21 @@ public static class CStockpile
 				continue;
 			}
 
-			long icDays = (long)country.BaseIc * (state.IsAtWar(country.Tag) ? DaysAtWar : DaysAtPeace);
-			foreach ((EGoods goods, CFixedPoint perIc) in CResources.NeededPerIc)
-			{
-				stockpile[goods] += new CFixedPoint(icDays * perIc.Raw);
-			}
-			stockpile[EGoods.CrudeOil] += new CFixedPoint(icDays * CFixedPoint.Scale);
+			// Its base IC for that many days, in thousandths. A subject country's is held to
+			// a thousand in the original; there are no subjects here yet.
+			long icDays = (long)country.BaseIc * DaysAtStart(state, country) * CFixedPoint.Scale;
 
-			// The resources are added. Money is given only where there is none.
+			stockpile[EGoods.CrudeOil] += new CFixedPoint(icDays);
+			stockpile[EGoods.Metal] += new CFixedPoint(icDays);
+			stockpile[EGoods.Energy] += new CFixedPoint(icDays * 2);
+			stockpile[EGoods.RareMaterials] += new CFixedPoint(icDays / 2);
+
+			// The resources are added. Money is given only where there is none: a twentieth
+			// of what that much IC would earn in a day.
 			if (stockpile[EGoods.Money] == CFixedPoint.Zero)
 			{
-				stockpile[EGoods.Money] = new CFixedPoint(icDays * MoneyPerIcDay / 10);
+				long money = icDays * icToMoney / CFixedPoint.Scale;
+				stockpile[EGoods.Money] = new CFixedPoint(money * MoneyShare / CFixedPoint.Scale);
 			}
 		}
 	}

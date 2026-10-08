@@ -8,11 +8,12 @@ namespace OpenHOI3.Sim;
 /// game. The formula and what each step rests on are in <c>docs/mechanics/ic.md</c>,
 /// section 3.
 ///
-/// What follows the total in the original - the resources industry needs, the
-/// conversion of energy to oil, the cap a shortage imposes, lend-lease - is not here,
-/// because there is no stockpile yet to compute it from. The country's own bonus is
-/// whatever its modifier holds for <c>global_ic</c>, which today is its laws and
-/// ministers, plus what its technologies give it.
+/// What follows the total in the original is elsewhere: the conversions in
+/// <see cref="CConversions"/> and the cap a shortage imposes in <see cref="CProduction"/>.
+/// A province's IC is read from its modifier, which has to be current: see
+/// <see cref="CProvinceModifiers"/>. The country's own bonus is whatever its modifier
+/// holds for <c>global_ic</c>, which today is its laws and ministers, plus what its
+/// technologies give it.
 /// </summary>
 public static class CIndustrialCapacity
 {
@@ -27,8 +28,6 @@ public static class CIndustrialCapacity
 
 	public static void Update(CGameState state)
 	{
-		List<CBuilding> icBuildings = BuildingsGiving(state, ProvinceIc);
-		List<CBuilding> localIcBuildings = BuildingsGiving(state, ProvinceLocalIc);
 		var sums = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 		long seed = state.StaticModifier(BaseValues, BaseValuesIc).Raw;
 
@@ -41,12 +40,12 @@ public static class CIndustrialCapacity
 				continue;
 			}
 
-			long ic = Sum(province, icBuildings);
+			long ic = province.Modifier[ProvinceIc].Raw;
 			if (ic == 0)
 			{
 				continue;
 			}
-			long localIc = Sum(province, localIcBuildings);
+			long localIc = province.Modifier[ProvinceLocalIc].Raw;
 			long contribution = ic * (CFixedPoint.Scale + localIc) / CFixedPoint.Scale;
 			if (contribution <= 0)
 			{
@@ -83,27 +82,4 @@ public static class CIndustrialCapacity
 		}
 	}
 
-	private static List<CBuilding> BuildingsGiving(CGameState state, string modifierKey)
-	{
-		var result = new List<CBuilding>();
-		foreach (CBuilding building in state.Buildings)
-		{
-			if (building.ModifierKey.Equals(modifierKey, StringComparison.OrdinalIgnoreCase))
-			{
-				result.Add(building);
-			}
-		}
-		return result;
-	}
-
-	/// <summary>A province's value for one modifier: level times worth, over the buildings that give it.</summary>
-	private static long Sum(CProvince province, List<CBuilding> buildings)
-	{
-		long total = 0;
-		foreach (CBuilding building in buildings)
-		{
-			total += (province.BuildingLevel(building) * building.ModifierValue).Raw;
-		}
-		return total;
-	}
 }

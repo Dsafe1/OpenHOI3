@@ -22,11 +22,17 @@ public static class CCountryHistory
 
 	/// <returns>The goods each country's history file gives it by the start date, by tag.</returns>
 	public static Dictionary<string, CGoodsPool> Apply(CDirectorySettings directories, CCountries countries, CDate start,
-		Action<string>? warn = null, IReadOnlyCollection<CTechnology>? technologies = null)
+		Action<string>? warn = null, IReadOnlyCollection<CTechnology>? technologies = null,
+		IReadOnlyCollection<CTechnologyCategory>? categories = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var goodsGiven = new Dictionary<string, CGoodsPool>(StringComparer.OrdinalIgnoreCase);
 		int badAmounts = 0;
+		var categoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (CTechnologyCategory category in categories ?? Array.Empty<CTechnologyCategory>())
+		{
+			categoryNames.Add(category.Name);
+		}
 		var technologyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (CTechnology technology in technologies ?? Array.Empty<CTechnology>())
 		{
@@ -114,6 +120,18 @@ public static class CCountryHistory
 							goodsGiven[tag.Value] = given = new CGoodsPool();
 						}
 						given[goods] += amount;
+					}
+					else
+					{
+						badAmounts++;
+					}
+				}
+				else if (categoryNames.Contains(entry.Key))
+				{
+					// A category's key sets the country's ability in it.
+					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint ability))
+					{
+						country.Abilities[entry.Key] = ability;
 					}
 					else
 					{

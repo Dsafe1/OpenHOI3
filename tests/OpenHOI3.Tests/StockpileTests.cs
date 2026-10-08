@@ -41,9 +41,10 @@ public class StockpileTests
 			new[] { baseValues }, defines, wars);
 	}
 
-	private static CWar War(string attacker, string defender)
+	/// <summary>A war begun on 3 October 1935 unless told otherwise, as Italy's on Ethiopia was.</summary>
+	private static CWar War(string attacker, string defender, int year = 1935, int month = 10, int day = 3)
 	{
-		var war = new CWar("a war");
+		var war = new CWar("a war", new CDate(year, month, day));
 		war.Attackers.Add(new CCountryTag(attacker));
 		war.Defenders.Add(new CCountryTag(defender));
 		return war;
@@ -100,6 +101,48 @@ public class StockpileTests
 		CStockpile.FillAtStart(state);
 
 		Assert.Equal(CFixedPoint.FromInt(900), state.Province(1).Pool[EGoods.Metal]);
+	}
+
+	[Theory]
+	[InlineData(1936, 1, 1, 90)]     // begun today: nothing is lost yet
+	[InlineData(1935, 12, 31, 85)]   // a day ago, but in last month
+	[InlineData(1935, 10, 3, 75)]    // Italy in Ethiopia
+	[InlineData(1935, 1, 1, 40)]     // a year: twelve months gone, and two are always counted
+	[InlineData(1930, 1, 1, 40)]
+	public void ACountryAtWarStartsWithFiveDaysFewerForEachMonthOfIt(int year, int month, int day, int days)
+	{
+		CCountry italy = Country("ITA", 1);
+		CCountry germany = Country("GER", 3);
+		CGameState state = State(new[] { italy, Country("ETH", 2), germany },
+			new[] { Land(1, "ITA"), Land(2, "ETH"), Land(3, "GER") }, War("ITA", "ETH", year, month, day));
+
+		Assert.Equal(days, CStockpile.DaysAtStart(state, italy));
+		Assert.Equal(90, CStockpile.DaysAtStart(state, germany));
+	}
+
+	[Fact]
+	public void ItIsTheOldestWarStillBeingFoughtThatCounts()
+	{
+		CCountry italy = Country("ITA", 1);
+		CGameState state = State(new[] { italy, Country("ETH", 2), Country("GRE", 3) },
+			new[] { Land(1, "ITA"), Land(2, "ETH"), Land(3, "GRE") },
+			War("ITA", "GRE", 1935, 12, 1), War("ITA", "ETH", 1935, 6, 1));
+
+		Assert.Equal(7, CStockpile.MonthsAtWar(state, italy));
+		Assert.Equal(55, CStockpile.DaysAtStart(state, italy));
+	}
+
+	[Fact]
+	public void TheMoneyAStockpileStartsWithFollowsTheRateTheDefinesGive()
+	{
+		// A twentieth of what ninety days of five IC would earn: at 0.05 an IC that is
+		// 1.125, and at twice the rate twice as much.
+		CGameState state = State(new[] { Country("GER", 1) }, new[] { Land(1, "GER") });
+		state.Defines.Set("economy", "IC_TO_MONEY", CFixedPoint.Parse("0.1"));
+
+		CStockpile.FillAtStart(state);
+
+		Assert.Equal(CFixedPoint.Parse("2.25"), state.Province(1).Pool[EGoods.Money]);
 	}
 
 	[Fact]

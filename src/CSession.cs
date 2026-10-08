@@ -187,6 +187,16 @@ public partial class CSession : Node
 				{
 					text += "\nDissent: " + spender.Dissent;
 				}
+				text += $"\nManpower: {spender.Manpower}   ({spender.MonthlyManpower} a month)";
+				text += $"\nLeadership: {spender.TotalLeadership}   (research projects {CLeadership.ResearchSlots(spender)})";
+				text += $"\nOfficers {spender.Officers}   Influence {spender.DiplomaticInfluence}   Spies in training {spender.SpiesInTraining}";
+				if (spender.ResearchQueue.Count > 0)
+				{
+					text += "\nResearching: " + string.Join(", ", spender.ResearchQueue.Take(4)
+						.Select(name => $"{_localisation.Localise(name)} " +
+							(spender.ResearchProgress.TryGetValue(name, out CFixed15 progress) ? progress : CFixed15.Zero)))
+						+ (spender.ResearchQueue.Count > 4 ? $" and {spender.ResearchQueue.Count - 4} more" : "");
+				}
 			}
 			string built = string.Join(", ", State.Buildings
 				.Where(building => province.BuildingLevel(building) > CFixedPoint.Zero)

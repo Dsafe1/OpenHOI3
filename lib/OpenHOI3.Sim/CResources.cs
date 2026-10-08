@@ -15,6 +15,7 @@ namespace OpenHOI3.Sim;
 public static class CResources
 {
 	private const string GlobalResources = "global_resources";
+	private const string LocalResources = "local_resources";
 	private const string GlobalMoney = "global_money";
 
 	/// <summary>The define that turns IC into money, and the section of the defines it is in.</summary>
@@ -67,8 +68,11 @@ public static class CResources
 				{
 					continue;
 				}
-				// Province by province, each multiplication truncated in turn.
-				long scaled = yield * lawFactor / CFixedPoint.Scale;
+				// Province by province, each multiplication truncated in turn: what the
+				// province's own modifier leaves of it first, then the country's.
+				long localFactor = Math.Max(0, CFixedPoint.Scale + province.Modifier[LocalResources].Raw);
+				long scaled = yield * localFactor / CFixedPoint.Scale;
+				scaled = scaled * lawFactor / CFixedPoint.Scale;
 				if (technologyKey.Length != 0)
 				{
 					long technologyFactor = CFixedPoint.Scale + country.Technology[technologyKey].Raw;

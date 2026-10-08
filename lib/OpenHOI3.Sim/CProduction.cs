@@ -165,17 +165,28 @@ public static class CProduction
 	}
 
 	/// <summary>
-	/// One day of every country's shares, in the order the countries are declared and,
-	/// within a country, in the order of the shares.
+	/// One day of every country's economy, in the order the countries are declared. Within
+	/// a country: energy into crude oil, the cut a shortage makes to its IC, crude oil into
+	/// fuel, and then its shares in their own order.
 	/// </summary>
 	public static void RunDaily(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			country.Usage.Clear();
+			country.ConversionUsed.Clear();
+			country.ConversionMade.Clear();
 			if (state.Stockpile(country) is not { } stockpile || !TakesPart(state, country))
 			{
+				country.Usage.Clear();
 				continue;
+			}
+
+			// The conversions are part of a country's own day, which only a country that
+			// exists has. The first still has yesterday's usage to go by.
+			bool exists = CResources.HoldsCapital(state, country);
+			if (exists)
+			{
+				CConversions.EnergyIntoCrudeOil(country, stockpile);
 			}
 
 			// A shortage costs IC across the board, before any of it is shared out.
@@ -185,6 +196,12 @@ public static class CProduction
 				country.TotalIc = supported;
 			}
 
+			if (exists)
+			{
+				CConversions.CrudeOilIntoFuel(country, stockpile);
+			}
+
+			country.Usage.Clear();
 			RunConsumerGoods(state, country, stockpile);
 			RunSupplies(state, country, stockpile);
 		}

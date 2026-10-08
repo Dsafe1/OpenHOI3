@@ -65,6 +65,21 @@ public sealed class CProvince
 	public CTerrain? Terrain { get; set; }
 
 	/// <summary>
+	/// The strategic resource found here, by name, or an empty string. Whoever controls
+	/// the province has what the resource is worth: see <see cref="CCountryModifiers"/>.
+	/// </summary>
+	public string StrategicResource { get; set; } = "";
+
+	/// <summary>The continent it is on, by the name the map gives it. Empty for the sea.</summary>
+	public string Continent { get; init; } = "";
+
+	/// <summary>
+	/// The sum of everything that currently applies to the province. Rebuilt, never
+	/// adjusted: see <see cref="CProvinceModifiers"/>.
+	/// </summary>
+	public CModifier Modifier { get; } = new();
+
+	/// <summary>
 	/// How much of a building there is here. There is one level per building for now:
 	/// the original keeps a maximum and a current level, which differ only under damage.
 	/// </summary>
@@ -80,24 +95,6 @@ public sealed class CProvince
 			System.Array.Resize(ref _buildingLevels, building.Index + 1);
 		}
 		_buildingLevels[building.Index] = level;
-	}
-
-	/// <summary>
-	/// This province's value for one kind of modifier: over its buildings, the level
-	/// times what one level is worth. See <c>docs/mechanics/ic.md</c>, section 2.
-	/// </summary>
-	public CFixedPoint ModifierValue(IReadOnlyList<CBuilding> buildings, string modifierKey)
-	{
-		CFixedPoint total = CFixedPoint.Zero;
-		foreach (CBuilding building in buildings)
-		{
-			if (building.Index < _buildingLevels.Length
-				&& building.ModifierKey.Equals(modifierKey, System.StringComparison.OrdinalIgnoreCase))
-			{
-				total += _buildingLevels[building.Index] * building.ModifierValue;
-			}
-		}
-		return total;
 	}
 
 	/// <summary>Ids of the provinces this one touches, ascending. Filled from the map.</summary>

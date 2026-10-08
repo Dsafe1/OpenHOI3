@@ -33,25 +33,54 @@ public static class CGameStateLoader
 			provinces[id] = new CProvince(id, id == 0 ? "" : localisation.Localise($"PROV{id}"), map.IsSea(id))
 			{
 				Neighbours = map.Neighbours[id],
+				Continent = map.Continents[id],
 				Terrain = map.MajorityTerrain[id],
 			};
 		}
 
-		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn);
+		List<CTechnologyCategory> categories = CTechnologyReader.ReadCategories(directories, warn);
+		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn, categories);
 		Dictionary<string, CGoodsPool> goodsGiven =
-			CCountryHistory.Apply(directories, countries, start, warn, technologies);
+			CCountryHistory.Apply(directories, countries, start, warn, technologies, categories);
 
 		CBuilding[] buildings = CBuildingReader.Read(directories, warn);
 		ApplyProvinceHistory(directories, provinces, start, countries, map.Terrains, buildings, warn);
 		List<CModifier> staticModifiers = CModifierReader.ReadStaticModifiers(directories, warn);
+		List<CModifier> strategicResources = CModifierReader.ReadStrategicResources(directories, warn);
 		CDefines defines = CDefinesReader.Read(directories, warn);
 		List<CWar> wars = CWarReader.Read(directories, countries, start, warn);
 
 		var state = new CGameState(start, provinces, countries.Declared, buildings, technologies, staticModifiers,
-			defines, wars);
+			defines, wars, strategicResources, categories);
+		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);
 		CProduction.SetStartingShares(state);
+		CLeadership.SetAtStart(state);
+		CManpower.SetAtStart(state);
 		return state;
+	}
+
+	/// <summary>
+	/// A province naming a strategic resource nothing declares is left with none. The
+	/// original would say nothing about it.
+	/// </summary>
+	private static void ReportUnknownStrategicResources(CGameState state, Action<string> warn)
+	{
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.StrategicResource.Length != 0
+				&& state.FindStrategicResource(province.StrategicResource) is null)
+			{
+				unknown.Add(province.StrategicResource);
+				province.StrategicResource = "";
+			}
+		}
+		if (unknown.Count > 0)
+		{
+			warn($"province history names {unknown.Count} strategic resources that are not defined: " +
+				string.Join(", ", unknown));
+		}
 	}
 
 	/// <summary>The start date, which the original keeps with its defines.</summary>
@@ -199,6 +228,11 @@ public static class CGameStateLoader
 				{
 					badLevels++;
 				}
+				continue;
+			}
+			if (entry.Key.Equals("strategic_resource", StringComparison.OrdinalIgnoreCase))
+			{
+				province.StrategicResource = entry.Value;        // checked against the list once all are read
 				continue;
 			}
 			if (entry.Key.Equals("points", StringComparison.OrdinalIgnoreCase))

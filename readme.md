@@ -74,7 +74,7 @@ Agreed 2026-10-07. Each stage ends with something that runs.
 | Stage | What gets built | Done when |
 | --- | --- | --- |
 | 1. The world on screen | Provinces, adjacency, terrain, countries and start-date ownership read from an install; a political map with pan, zoom and province picking | The map of the start date is on screen. **Reached 2026-10-07** |
-| 2. The clock and the economy | The hourly tick with its daily and monthly passes in the original's order; every state change as a command; IC, resources, manpower, production, research. The interface runtime arrives here, with the top bar as its first screen | A 1936-1948 run completes headless with totals that are plausible against a real savegame. **The clock, the command queue, fixed-point numbers, buildings, laws, ministers, technology levels, each country's IC, its home production, what its stockpile starts with, its six shares of IC and what consumer goods and supplies do with theirs are in (2026-10-07) and checked against a savegame; everything that needs units is not** |
+| 2. The clock and the economy | The hourly tick with its daily and monthly passes in the original's order; every state change as a command; IC, resources, manpower, production, research. The interface runtime arrives here, with the top bar as its first screen | A 1936-1948 run completes headless with totals that are plausible against a real savegame. **The clock, the command queue, fixed-point numbers, buildings, laws, ministers, technology levels, each country's IC, its home production, what its stockpile starts with, its six shares of IC and what consumer goods and supplies do with theirs, its leadership with what its four shares make, and research, are in (2026-10-08) and checked against savegames; manpower and everything that needs units are not** |
 | 3. Units and war | Orders of battle, units on the map, movement, land combat, supply; then air and naval | Two countries can fight a land war to a result |
 | 4. Politics and script | Events and decisions with their triggers and effects; diplomacy, factions, politics, espionage, occupation, revolt | The base game's events load with no unknown key and fire on schedule |
 | 5. AI | The planning and scoring layers, last because they consume everything else | A whole game runs with no human player |
@@ -98,25 +98,37 @@ Four choices sit under all of it:
 
 ### Next up
 
-As of 2026-10-07, inside stage 2. Kept current as work lands, so that picking this up cold
+As of 2026-10-08, inside stage 2. Kept current as work lands, so that picking this up cold
 needs nothing but this file and `docs/mechanics/`.
 
-1. **The two conversions**: crude oil into fuel, which is read and written down
-   (`docs/mechanics/ic.md`, section 4) and only needs building, and energy into crude
-   oil, whose cost the savegame shows and the write-up does not explain.
-2. **Leadership and its four shares** - officers, diplomacy, espionage, research - which
-   are divided the same way IC is and can reuse what production built. Then **research**:
-   technology levels are read, and only their plain effects are used.
-3. **Manpower**: what provinces give, and what laws do to it.
-4. **The interface runtime, with the top bar as its first screen.** There are real numbers
-   for it to show now.
-5. **Units**, which is stage 3, and which the rest of the economy is waiting on: the build
-   queue, reinforcement and upgrades spend IC on them, and they are what draws supplies
-   and fuel. `docs/mechanics/production.md`, section 5.
+1. **The interface runtime, with the top bar as its first screen.** There are real numbers
+   for it to show now: IC, the stockpile, manpower, leadership and what its shares make.
+2. **Units**, which is stage 3, and which the rest of the economy is waiting on: the build
+   queue, reinforcement and upgrades spend IC and manpower on them, and they are what
+   draws supplies and fuel. `docs/mechanics/production.md`, section 5.
 
-Done so far inside this stage: the stockpile (`docs/mechanics/stockpile.md`), and the six
+Worth doing before either, in the fact base: **read the rest of the routine that rebuilds a
+country's modifier.** Every figure checked so far that does not fit the savegame fails for
+something that routine decides - triggered modifiers, event modifiers, when a strategic
+resource counts. See *Loose ends*.
+
+Done so far inside this stage: the stockpile (`docs/mechanics/stockpile.md`); the six
 shares of IC with the two that spend without units, consumer goods and supplies
-(`docs/mechanics/production.md`).
+(`docs/mechanics/production.md`); the two conversions, energy into crude oil and crude
+oil into fuel (`docs/mechanics/ic.md`, section 4); leadership with its four shares, of
+which officers, diplomatic influence and spies are made each day
+(`docs/mechanics/leadership.md`); research - the queue, what a level costs, what a day
+adds, what finishing one does, and the monthly decay of what a country knows
+(`docs/mechanics/research.md`); and manpower - what a day adds and what a new game starts
+a country with (`docs/mechanics/manpower.md`).
+
+There are five savegames of one game to check against now, from 1 January to 20 April
+1936. The first is the start; the later four are a month or less apart, which is what
+checks anything that moves from day to day.
+
+**When a spec needs something read out of the executable**, the reading is done in the
+fact base and entered in its record, not only written up: this repository's `CLAUDE.md`,
+*Where knowledge about the original comes from*.
 
 ### Loose ends
 
@@ -128,11 +140,43 @@ None of these blocks the list above.
 - **The game does not stop at the end date** in `common/defines.lua`.
 - **Things the savegame shows that are not explained**: 476 technology levels higher
   than the history files give, home production for three countries, governments for
-  countries that do not exist yet (`docs/mechanics/resources.md`, section 5), money per
-  day for three countries, why a country at war starts with 75 days of resources
-  where the rest get 90 (`docs/mechanics/stockpile.md`), what sets a country's shares of
-  IC at the start, and why nine untouched countries make 10% more supplies than their
-  laws give (`docs/mechanics/production.md`).
+  countries that do not exist yet (`docs/mechanics/resources.md`, section 5), what sets a
+  country's shares of IC at the start, and why nine untouched countries make 10% more
+  supplies than their laws give (`docs/mechanics/production.md`). Two that were on this
+  list are answered: three countries' extra money is the gold they hold, and a country at
+  war starts with five days fewer of resources for each month of the war
+  (`docs/mechanics/stockpile.md`, section 2).
+- **Triggered modifiers are not applied, and one of them touches nearly everybody.**
+  `common/triggered_modifiers.txt` gives a modifier while a condition holds, and the
+  conditions are the script's, which is stage 4. `neutrality` takes 5% off the research of
+  every country outside the three factions - ninety of them in 1936 - so research here is
+  that much too fast for them. Five countries' leadership is also a little low for want of
+  others, and France has half as much manpower again as it should. `docs/mechanics/research.md`, section 8,
+  `docs/mechanics/leadership.md`, section 8, and `docs/mechanics/manpower.md`, section 6.
+- **Nothing spends manpower**, so the pool only grows. Building units and bringing them
+  back to strength are what take it, and wait for units.
+- **A country starts with the manpower its history's laws give**, where the original's AI
+  has already chosen its own: Germany begins with 469 here and 882 there. The same goes
+  for the decision the United States' AI takes at once, which costs it three quarters of
+  its manpower. `docs/mechanics/manpower.md`, sections 4 and 6.
+- **The United Kingdom gains a tenth more manpower a day than anything found gives it**,
+  and its leadership is off in the same way.
+- **Nothing queues research but a command.** There is no AI and no screen, so no country
+  researches anything in a run nobody drives.
+- **A technology's `allow` block is read for the six kinds of condition the base game
+  uses**, and none of the six has been read out of the original. Whether a port is a
+  naval base, and whether it is owning or controlling a province that counts, are guesses.
+  A mod that uses any other condition gets a warning and the condition left out.
+  `docs/mechanics/research.md`, section 5.
+- **What a country's modifier is made of has only partly been read.** The original's
+  routine starts from `base_values` and the faction and takes in the modifier of every
+  province the country controls; where laws, ministers, strategic resources and triggered
+  and event modifiers join it is the next thing to read there. It would settle whether a
+  strategic resource counts once or once a province, and why one is missing when a new
+  game is set up. `docs/mechanics/modifiers.md`, section 4.
+- **Leadership makes officers, influence and spies that nothing spends.** They accumulate
+  until units, diplomacy and espionage exist. Officers start at nothing where the original
+  gives a country what its units need.
 - **The original's AI script changes laws and ministers before the first hour**, for every
   country including the player's, so what a player sees on the first screen is not what
   the history files say. This project has no AI, so its countries start with the
@@ -144,9 +188,11 @@ None of these blocks the list above.
   day nought. A stockpile here on 1 January is what the original had before those two
   days. `docs/mechanics/stockpile.md`, section 3.
 - **Puppets are not read**, and one consequence shows already: Manchukuo starts with 1890
-  metal where the original gives it 1000. Wars are read, but only for who is in them.
-- **Supplies and fuel start at nothing.** What the original gives is not IC-based and is
-  not worked out; it probably follows the units. `docs/mechanics/stockpile.md`, section 2.
+  metal where the original holds a subject to 1000. Wars are read for who is in them and
+  when they began.
+- **Supplies and fuel start at nothing.** The original gives each country as many days of
+  what its units use as it gives of resources, so this waits for units.
+  `docs/mechanics/stockpile.md`, section 2.
 - **Four of the six shares of IC spend nothing**: lend-lease, production, reinforcement
   and upgrades. IC put in them is wasted until there are units, and wasted IC costs no
   resources, so stockpiles still grow faster than they should.
@@ -157,14 +203,20 @@ None of these blocks the list above.
   and no screen to move them with, so every country keeps the shares it started with.
 - **A misspelt modifier is not reported.** The modifier kinds are not a closed list here,
   so any key a block does not own is taken as one. `docs/mechanics/modifiers.md`, section 5.
-- **A country's modifier is `base_values`, its laws and its ministers.** The other static
-  modifiers - difficulty, war and peace - ideology and technology do not feed it yet, and
-  for most of those how the original applies them is not established.
+- **A country's modifier is `base_values`, its laws, its ministers and its strategic
+  resources.** The other static modifiers - difficulty, war and peace - and ideology do
+  not feed it yet, and for most of those how the original applies them is not established.
+- **A province's modifier is its buildings, `overseas` and `non_core`.** Terrain, the
+  coast, occupation policies, nationalism and revolt risk do not feed it yet.
+  `docs/mechanics/modifiers.md`, section 3.
 - **Each spec ends with what is not established.** Those are questions for the reverse
-  engineering. Four of production's were answered by reading the executable, and that
-  reading is in the fact base as `reversing/findings/FINDINGS-distribute.md` - **as prose
-  only: it has not been entered in the fact base's record or applied to Ghidra.** The
-  rest have not been filed in its work queue.
+  engineering. Production's, the oil conversions', leadership's, the starting
+  stockpile's, research's and manpower's were answered by reading the executable; those
+  readings are `reversing/findings/FINDINGS-distribute.md`,
+  `reversing/findings/FINDINGS-leadership.md`,
+  `reversing/findings/FINDINGS-researchshare.md` and
+  `reversing/findings/FINDINGS-manpowergain.md`, and are entered in the fact base's record.
+  The rest have not been filed in its work queue.
 
 Being in the spirit of the original means choosing what not to take. These are settled
 decisions rather than things merely unbuilt, so nothing should be designed around them
@@ -194,12 +246,12 @@ in three projects:
 
 | Area | What it does |
 | --- | --- |
-| `lib/OpenHOI3.Sim` | The game state - dates, countries, provinces, terrain - and what drives it: fixed-point numbers, the command queue, and the hourly tick with its daily, monthly and yearly passes, and the first systems in them: each country's modifier from its laws and ministers, its IC, what it produces at home, the stockpile that goes into, and the six shares its IC is divided between, with the money, supplies, dissent and resource bill that come of them. References nothing, so the simulation runs headless |
-| `lib/OpenHOI3.Content` | Reads the Clausewitz script format, finds and layers a Hearts of Iron 3 install, and reads its localisation tables, its map, its defines, its buildings, laws, ministers and technologies, and its province, country and war history. No engine in it either |
+| `lib/OpenHOI3.Sim` | The game state - dates, countries, provinces, terrain - and what drives it: fixed-point numbers, the command queue, and the hourly tick with its daily, monthly and yearly passes, and the first systems in them: each province's modifier and each country's, from its laws, ministers and strategic resources; its IC, what it produces at home, the stockpile that goes into, the six shares its IC is divided between, with the money, supplies, dissent and resource bill that come of them, the conversions of energy into crude oil and crude oil into fuel, its manpower, its leadership with the officers, influence and spies its shares make, and its research with the monthly decay of its theories and practicals. References nothing, so the simulation runs headless |
+| `lib/OpenHOI3.Content` | Reads the Clausewitz script format, finds and layers a Hearts of Iron 3 install, and reads its localisation tables, its map with its continents, its defines, its buildings, laws, ministers, technologies and strategic resources, and its province, country and war history. No engine in it either |
 | `src/Map` | The map, political or by terrain: drawn by a shader from a province-id texture and a colour per province, with pan, zoom and picking |
 | `src/Gfx` | The Godot client's side: decodes the original's DDS/TGA textures, bitmap fonts and sprite declarations |
-| `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field. The oracle for everything above |
-| `tests/` | 242 tests over the parsing, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile and production, where silent misreadings are expensive |
+| `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. The oracle for everything above |
+| `tests/` | 357 tests over the parsing, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research and manpower, where silent misreadings are expensive |
 
 Not built yet: the cached asset build, the interface runtime, and nearly every system the
 tick is there to run. The game also does not stop at the end date.

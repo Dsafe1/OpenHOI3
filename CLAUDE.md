@@ -20,9 +20,11 @@ repository's history will find that stance everywhere; it is no longer the one t
 **The tree is early and provisional.** What exists is one iteration - a Clausewitz reader, an
 install layerer, texture and font decoding, the map with the start-date ownership and
 terrain of its provinces, a map view, fixed-point numbers, the command queue, an hourly tick
-whose daily pass rebuilds each country's modifier, its IC and its home production, adds that
-to its stockpile and runs its six shares of IC, a tool that checks all of it against a
-savegame, 242 tests - and it is
+whose daily pass rebuilds each province's and each country's modifier, adds to its manpower,
+works out its leadership, its IC and its home production, adds that to its stockpile and runs
+its six shares of IC and its four of leadership, research among them, a tool that checks all
+of it against savegames, 357 tests -
+and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -147,11 +149,19 @@ adds 20.
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 86 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 89 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
 side, including the ones written here.
+
+**When a spec needs something nobody has read, the reading belongs to the fact base, and
+all of it.** Read it there, by that repository's rules; write the findings file; **and
+enter what was read in its `project.json`** - the maintainer's standing instruction, and
+the fact base's `CLAUDE.md` has the steps. This project then cites the findings file and
+takes nothing but the prose. The record is not optional because the rewrite was the one
+asking: on 2026-10-07 four functions were read for `docs/mechanics/production.md` and left
+as prose, and had to be entered afterwards.
 
 **Much of this project does not need the executable at all.** The loaders, the map and the
 data model are driven by the original's `.txt` files, which are plain text and largely
@@ -174,7 +184,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 2467-address, 291-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 2490-address, 292-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -213,9 +223,14 @@ beside the repository.
   date. Run it after touching a loader or a formula; a rule that reproduces the save to the
   thousandth is worth more than one that reads well. The maintainer's save is normally at
   `Documents\Paradox Interactive\Hearts of Iron III\save games\Germany1936_01_01_00.hoi3`.
+  **Anything that moves from day to day is checked against two saves of one game**:
+  `OpenHOI3.SaveCheck research <install> <earlier save> <later save>` does it for research
+  and the monthly decay, and the same folder has four later saves of that game - the three
+  autosaves and `Germany1936_04_20_03.hoi3`. An autosave is overwritten as the game goes
+  on, so a comparison that matters should say which dates it was run against.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile and production carry 242 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research and manpower carry 357 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

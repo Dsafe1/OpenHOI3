@@ -22,6 +22,8 @@ public static class CModifierReader
 
 	private static readonly HashSet<string> StaticModifierKeys = new(StringComparer.OrdinalIgnoreCase) { "icon" };
 
+	private static readonly HashSet<string> NoKeys = new(StringComparer.OrdinalIgnoreCase);
+
 	/// <summary>
 	/// A block's modifier: every key that is not one of its own, with its number.
 	/// Returns how many such keys had something other than a number.
@@ -147,6 +149,37 @@ public static class CModifierReader
 			warn($"'{path}': {unreadable} entries inside static modifiers are not numbers");
 		}
 		return modifiers;
+	}
+
+	/// <summary>
+	/// <c>common/strategic_resources.txt</c>: what each strategic resource is worth to
+	/// the country that has it. A block has no keys of its own, so every one is a modifier.
+	/// </summary>
+	public static List<CModifier> ReadStrategicResources(CDirectorySettings directories, Action<string> warn)
+	{
+		var resources = new List<CModifier>();
+		ClausewitzNode? root = ParseIfPresent(directories, "common/strategic_resources.txt", "strategic resources",
+			warn, out string path);
+		if (root is null)
+		{
+			return resources;
+		}
+
+		int unreadable = 0;
+		foreach (ClausewitzNode block in root.Children)
+		{
+			if (block.Key is null || !block.IsBlock)
+			{
+				continue;
+			}
+			resources.Add(ReadBlock(block, NoKeys, out int bad));
+			unreadable += bad;
+		}
+		if (unreadable > 0)
+		{
+			warn($"'{path}': {unreadable} entries inside strategic resources are not numbers");
+		}
+		return resources;
 	}
 
 	/// <summary><c>common/government_positions.txt</c>: the seats a government has.</summary>

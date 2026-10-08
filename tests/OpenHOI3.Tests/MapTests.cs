@@ -188,7 +188,11 @@ public class MapLoadingTests : IDisposable
 			sea_starts = { 4 }
 			definitions = ""definition.csv""
 			provinces = ""provinces.bmp""
-			adjacencies = ""adjacencies.csv""");
+			adjacencies = ""adjacencies.csv""
+			continent = ""continent.txt""");
+
+		// Alpha, Beta and Gamma on one continent and Epsilon on another.
+		Write("map/continent.txt", "west = {\n\t1 2 3\n}\neast = { 5 }\n");
 		Write("map/definition.csv",
 			"province;red;green;blue;x;x\n" +
 			"1;10;0;0;Alpha;x\n2;20;0;0;Beta;x\n3;30;0;0;Gamma;x\n4;40;0;0;Delta;x\n5;50;0;0;Epsilon;x\n" +
@@ -438,7 +442,12 @@ public class MapLoadingTests : IDisposable
 	private void WriteStartFiles()
 	{
 		Write("common/defines.lua",
-			"NDefines = {\n\tstart_date = '1936.1.1',\n\tend_date = '1948.1.1',\n\teconomy = {\n\t\tIC_TO_MONEY = 0.05, -- per IC\n\t\tIC_TO_SUPPLIES = 7.0,\n\t},\n}\n");
+			"NDefines = {\n\tstart_date = '1936.1.1',\n\tend_date = '1948.1.1',\n\teconomy = {\n\t\tIC_TO_MONEY = 0.05, -- per IC\n\t\tIC_TO_SUPPLIES = 7.0,\n" +
+			"\t\tLEADERSHIP_TO_OFFICERS = 4,\n\t\tLEADERSHIP_TO_DIPLOMACY = 0.5,\n\t\tLEADERSHIP_TO_SPIES = 0.15,\n\t},\n" +
+			"\tcountry = {\n\t\tBASE_TECH_DECAY = -0.025,\n\t\tMAX_TECH_ABILITY = 99,\n\t\tTECH_ABILITY_GAIN_DIVISOR = 10,\n" +
+			"\t\tTECHNOLOGY_YEAR_IMPACT = 1.5,\n\t},\n\tmilitary = {\n\t\tMAX_MANPOWER = 10,\n\t},\n}\n");
+		Write("common/technology.txt",
+			"theoretical = {\n\tmechanicalengineering_theory\n\tinfantry_theory\n}\npractical = {\n\tinfantry_practical\n}\nfolders = {\n\tindustry_folder\n}\n");
 		Write("common/countries.txt",
 			"GER = \"countries/Germany.txt\"\nFRA = \"countries/France.txt\"\n" +
 			"ITA = \"countries/Italy.txt\"\nENG = \"countries/Britain.txt\"\n");
@@ -767,8 +776,8 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal(CFixedPoint.Zero, state.Province(2).BuildingLevel(state.Buildings[1]));
 
 		// Five levels of industry at one IC each, and six of infrastructure at a tenth.
-		Assert.Equal(CFixedPoint.FromInt(5), alpha.ModifierValue(state.Buildings, "ic"));
-		Assert.Equal(CFixedPoint.Parse("0.6"), alpha.ModifierValue(state.Buildings, "infrastructure"));
+		Assert.Equal(CFixedPoint.FromInt(5), alpha.Modifier["ic"]);
+		Assert.Equal(CFixedPoint.Parse("0.6"), alpha.Modifier["infrastructure"]);
 	}
 
 	[Fact]
@@ -832,15 +841,18 @@ public class MapLoadingTests : IDisposable
 			economy = {
 				IC_TO_MONEY 			= 0.05,
 				IC_TO_SUPPLIES = 7.0,	-- supplies per IC, = 7
+				LEADERSHIP_TO_OFFICERS = 4, LEADERSHIP_TO_DIPLOMACY = 0.5, LEADERSHIP_TO_SPIES = 0.15,
 				LAST_ONE = 96  -- no comma after the last
 			},
+			country = { BASE_TECH_DECAY = -0.025, MAX_TECH_ABILITY = 99, TECH_ABILITY_GAIN_DIVISOR = 10, TECHNOLOGY_YEAR_IMPACT = 1.5 },
+			military = { MAX_MANPOWER = 10 },
 			weather = {
 				COLD = -0.75,
 				IC_TO_MONEY = 3,
 				deeper = { HIDDEN = 1 },
 			},
 			}");
-		// IC_TO_SUPPLIES is there, so nothing this project reads is missing.
+		// Everything this project reads is there, so nothing is reported missing.
 		CDefines defines = CDefinesReader.Read(CDirectorySettings.At(_root), _warnings.Add);
 
 		Assert.Equal(CFixedPoint.Parse("0.05"), defines["economy", "IC_TO_MONEY"]);
@@ -851,14 +863,17 @@ public class MapLoadingTests : IDisposable
 		Assert.False(defines.Has("weather", "HIDDEN"));
 		Assert.False(defines.Has("deeper", "HIDDEN"));
 		Assert.Equal(CFixedPoint.Zero, defines["economy", "NOT_THERE"]);
-		Assert.Equal(5, defines.Count);                        // the two outside any section are not numbers to ask for
+		Assert.Equal(13, defines.Count);                       // the two outside any section are not numbers to ask for
 		Assert.Empty(_warnings);
 	}
 
 	[Fact]
 	public void ReportsADefineThisProjectReadsAndTheFileDoesNotGive()
 	{
-		Write("common/defines.lua", "defines = {\n\tstart_date = '1936.1.1',\n\teconomy = { IC_TO_SUPPLIES = 7 },\n}\n");
+		Write("common/defines.lua", "defines = {\n\tstart_date = '1936.1.1',\n\teconomy = { IC_TO_SUPPLIES = 7,\n" +
+			"\t\tLEADERSHIP_TO_OFFICERS = 4, LEADERSHIP_TO_DIPLOMACY = 0.5, LEADERSHIP_TO_SPIES = 0.15 },\n" +
+			"\tcountry = { BASE_TECH_DECAY = -0.025, MAX_TECH_ABILITY = 99, TECH_ABILITY_GAIN_DIVISOR = 10, TECHNOLOGY_YEAR_IMPACT = 1.5 },\n" +
+			"\tmilitary = { MAX_MANPOWER = 10 },\n}\n");
 		CDefinesReader.Read(CDirectorySettings.At(_root), _warnings.Add);
 
 		string warning = Assert.Single(_warnings);
@@ -985,6 +1000,171 @@ public class MapLoadingTests : IDisposable
 		LoadStart();
 
 		Assert.Contains(_warnings, warning => warning.Contains("1 amounts of goods in country history"));
+	}
+
+	// --- research ---
+
+	[Fact]
+	public void ReadsTheTechnologyCategoriesTheoriesFirst()
+	{
+		WriteStartFiles();
+		CGameState state = LoadStart();
+
+		Assert.Equal(new[] { "mechanicalengineering_theory", "infantry_theory", "infantry_practical" },
+			state.TechnologyCategories.Select(category => category.Name));
+		Assert.Equal(new[] { true, true, false }, state.TechnologyCategories.Select(category => category.IsTheory));
+	}
+
+	[Fact]
+	public void ATechnologyBlockSaysWhatResearchingItTakes()
+	{
+		WriteStartFiles();
+		Write("technologies/more.txt", @"
+			small_arms = {
+				infantry_brigade = { soft_attack = 0.6 }
+				allow = {
+					steel_production = 2
+					infantry_practical = 5
+					OR = { industral_production = 1 num_of_ports = 3 }
+					any_owned_province = { has_building = industry }
+				}
+				research_bonus_from = { infantry_theory = 0.3 infantry_practical = 0.7 }
+				on_completion = infantry_theory
+				decay = { infantry_theory = -0.1 }
+				difficulty = 0.5
+				start_year = 1918
+				is_nuclear = yes
+				change = no
+				folder = industry_folder
+			}");
+		CGameState state = LoadStart();
+
+		CTechnology steel = state.Technologies["steel_production"];
+		Assert.Equal(2, steel.Difficulty);
+		Assert.Equal(1918, steel.StartYear);
+		Assert.Equal(1932, steel.FirstOffset);
+		Assert.Equal(2, steel.AdditionalOffset);
+		Assert.Equal(12, steel.HighestLevel);
+		Assert.False(steel.IsSingleLevel);
+		Assert.Equal("mechanicalengineering_theory", steel.OnCompletion);
+		Assert.Equal(("mechanicalengineering_theory", CFixedPoint.Parse("0.5")), Assert.Single(steel.ResearchBonusFrom));
+		Assert.Null(steel.Allow);
+
+		CTechnology arms = state.Technologies["small_arms"];
+		Assert.Equal(0, arms.Difficulty);                    // a fraction is dropped
+		Assert.True(arms.IsSingleLevel);
+		Assert.Equal(1, arms.HighestLevel);                  // no max_level
+		Assert.True(arms.IsNuclear);
+		Assert.Equal(("infantry_theory", CFixedPoint.Parse("-0.1")), Assert.Single(arms.Decay));
+		Assert.Empty(arms.EffectPerLevel.Values);            // none of its own keys is an effect
+		Assert.Equal(new[] { EResearchCondition.TechnologyLevel, EResearchCondition.Ability, EResearchCondition.Any, EResearchCondition.OwnsProvinceWithBuilding },
+			arms.Allow!.Children.Select(condition => condition.Kind));
+		Assert.Equal(new[] { EResearchCondition.TechnologyLevel, EResearchCondition.Ports },
+			arms.Allow.Children[2].Children.Select(condition => condition.Kind));
+		Assert.DoesNotContain(_warnings, warning => warning.Contains("technolog"));
+	}
+
+	[Fact]
+	public void AConditionOrACategoryNobodyKnowsIsReportedAndLeftOut()
+	{
+		WriteStartFiles();
+		Write("technologies/more.txt", @"
+			odd = {
+				allow = { steel_production = 1 has_flying_saucers = yes war = { limited = no } }
+				research_bonus_from = { infantry_theory = 0.5 alchemy = 0.5 }
+				on_completion = alchemy
+				difficulty = 1
+			}");
+		CGameState state = LoadStart();
+
+		CTechnology odd = state.Technologies["odd"];
+		Assert.Single(odd.Allow!.Children);
+		Assert.Single(odd.ResearchBonusFrom);
+		Assert.Equal("", odd.OnCompletion);
+		Assert.Contains(_warnings, warning => warning.Contains("2 conditions that are not understood")
+			&& warning.Contains("has_flying_saucers") && warning.Contains("war"));
+		Assert.Contains(_warnings, warning => warning.Contains("categories that are not defined") && warning.Contains("alchemy"));
+	}
+
+	[Fact]
+	public void ACountrysHistoryGivesItsAbilities()
+	{
+		WriteStartFiles();
+		Write("history/countries/GER - Germany.txt", @"
+			capital = 1
+			infantry_theory = 10
+			infantry_practical = 2.5
+			1937.1.1 = { infantry_theory = 99 }");
+		CCountry germany = Germany(LoadStart());
+
+		Assert.Equal(CFixedPoint.FromInt(10), germany.Ability("infantry_theory"));
+		Assert.Equal(CFixedPoint.Parse("2.5"), germany.Ability("infantry_practical"));
+		Assert.Equal(CFixedPoint.Zero, germany.Ability("mechanicalengineering_theory"));
+	}
+
+	// --- continents, strategic resources and leadership ---
+
+	[Fact]
+	public void ReadsWhichContinentEachProvinceIsOn()
+	{
+		CMap map = Load();
+
+		Assert.Equal("west", map.Continents[1]);
+		Assert.Equal("west", map.Continents[3]);
+		Assert.Equal("east", map.Continents[5]);
+		Assert.Equal("", map.Continents[4]);                 // the sea is on none
+		Assert.Equal("", map.Continents[0]);
+	}
+
+	[Fact]
+	public void AContinentFileNamingAProvinceTwiceOrOneThatIsNotThereIsReported()
+	{
+		Write("map/continent.txt", "west = { 1 2 3 99 }\neast = { 5 3 }\n");
+		CMap map = Load();
+
+		Assert.Equal("west", map.Continents[3]);             // the first to name it keeps it
+		Assert.Contains(_warnings, warning => warning.Contains("1 entries are not the id of a province"));
+		Assert.Contains(_warnings, warning => warning.Contains("1 provinces are listed on more than one continent"));
+	}
+
+	[Fact]
+	public void AProvinceFileNamesItsStrategicResourceAndOneNobodyDeclaredIsReported()
+	{
+		WriteStartFiles();
+		Write("common/strategic_resources.txt", "gold = { global_money = 0.33 }\nrubber = { amm_movement_speed = 0.15 }\n");
+		Write("history/provinces/west/1 - Alpha.txt", "owner = GER\ncontroller = GER\nstrategic_resource = gold");
+		Write("history/provinces/west/3 - Gamma.txt", "owner = GER\ncontroller = GER\nstrategic_resource = unobtainium");
+		Write("history/countries/GER - Germany.txt", "capital = 1");
+		CGameState state = LoadStart();
+		_ = new CSimulation(state);
+
+		Assert.Equal("gold", state.Province(1).StrategicResource);
+		Assert.Equal("", state.Province(3).StrategicResource);
+		Assert.Contains(_warnings, warning => warning.Contains("strategic resources that are not defined") && warning.Contains("unobtainium"));
+
+		// Five IC at 0.05, and a third more for the gold.
+		Assert.Equal(CFixedPoint.Parse("0.332"), Germany(state).HomeProduced[EGoods.Money]);
+	}
+
+	[Fact]
+	public void ANewGameWorksOutEveryCountrysLeadershipAndSplitsItInQuarters()
+	{
+		WriteStartFiles();
+		Write("common/static_modifiers.txt", @"
+			base_values = { global_leadership = 3.5 ic = 5 }
+			overseas = { local_leadership_modifier = -0.9 }");
+		Write("history/provinces/west/3 - Gamma.txt", "owner = GER\ncontroller = GER\nadd_core = GER\nleadership = 2");
+		Write("history/provinces/east/5 - Epsilon.txt", "owner = GER\ncontroller = GER\nadd_core = GER\nleadership = 1");
+		Write("history/countries/GER - Germany.txt", "capital = 3");
+		CGameState state = LoadStart();
+		_ = new CSimulation(state);
+
+		// Epsilon is on the other continent and does not touch Gamma, so it gives a tenth.
+		CCountry germany = Germany(state);
+		Assert.Equal(CFixedPoint.Parse("5.6"), germany.TotalLeadership);
+		Assert.All(germany.LeadershipShares, share => Assert.Equal(8192, share.Raw));
+		Assert.Equal(CFixedPoint.One, germany.DiplomaticInfluence);
+		Assert.Equal(1, CLeadership.ResearchSlots(germany));
 	}
 }
 

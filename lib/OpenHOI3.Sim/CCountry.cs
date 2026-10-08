@@ -116,8 +116,71 @@ public sealed class CCountry
 	/// <summary>The resources its industry used today. Cleared and counted again each day.</summary>
 	public CGoodsPool Usage { get; } = new();
 
+	/// <summary>What turning one good into another used today: energy, and crude oil.</summary>
+	public CGoodsPool ConversionUsed { get; } = new();
+
+	/// <summary>And what it made: crude oil, and fuel.</summary>
+	public CGoodsPool ConversionMade { get; } = new();
+
 	/// <summary>How unhappy its people are. Never below nothing.</summary>
 	public CFixedPoint Dissent { get; set; }
+
+	/// <summary>The men it has to put in uniform. Never below nothing.</summary>
+	public CFixedPoint Manpower { get; set; }
+
+	/// <summary>What a month adds to its manpower. Written by <see cref="CManpower"/>.</summary>
+	public CFixedPoint MonthlyManpower { get; set; }
+
+	/// <summary>
+	/// So many years of what it gets, which is what a new game starts it with. At least 1.
+	/// The pool is not held to it. Written by <see cref="CManpower"/>.
+	/// </summary>
+	public CFixedPoint MaxManpower { get; set; }
+
+	/// <summary>
+	/// The leadership it has to divide each day. At least 1. Written by
+	/// <see cref="CLeadership"/>.
+	/// </summary>
+	public CFixedPoint TotalLeadership { get; set; }
+
+	/// <summary>
+	/// The fraction of its leadership that goes to each of the four things it is spent
+	/// on, by <see cref="ELeadershipCategory"/>. Changed only by a command.
+	/// </summary>
+	public CFixed15[] LeadershipShares { get; } = new CFixed15[CLeadership.CategoryCount];
+
+	/// <summary>The officers it has. Never below nothing.</summary>
+	public CFixedPoint Officers { get; set; }
+
+	/// <summary>What it has to spend on diplomacy. Never below nothing.</summary>
+	public CFixedPoint DiplomaticInfluence { get; set; }
+
+	/// <summary>Spies trained and not yet sent anywhere. A whole spy is 1.</summary>
+	public CFixedPoint SpiesInTraining { get; set; }
+
+	/// <summary>
+	/// Its level in each technology category - its theories and practicals - by the
+	/// category's name. Absent means none.
+	/// </summary>
+	public Dictionary<string, CFixedPoint> Abilities { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// The technologies it is researching, in the order they are given leadership.
+	/// Changed by a command, and by a level being finished.
+	/// </summary>
+	public List<string> ResearchQueue { get; } = new();
+
+	/// <summary>How far each technology's next level has got, where 32768 is the whole level.</summary>
+	public Dictionary<string, CFixed15> ResearchProgress { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>The leadership each technology was given today. Cleared and filled again each day.</summary>
+	public Dictionary<string, CFixedPoint> ResearchLeadership { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>Its ability in a category, which is nothing for one it has never had any in.</summary>
+	public CFixedPoint Ability(string category)
+	{
+		return Abilities.TryGetValue(category, out CFixedPoint level) ? level : CFixedPoint.Zero;
+	}
 
 	/// <summary>Game-relative path to the flag, which is named after the tag.</summary>
 	public string FlagFile => $"gfx/flags/{Tag}.tga";

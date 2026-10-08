@@ -50,6 +50,7 @@ public class IndustrialCapacityTests
 			Province(2, Ger, "2.6"),
 			Province(3, Fra, "4"));
 
+		CProvinceModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
 
 		Assert.Equal(5, state.Country(Ger)!.BaseIc);            // 5.6, and the fraction is dropped
@@ -62,6 +63,7 @@ public class IndustrialCapacityTests
 	{
 		CGameState state = State(Province(1, Ger, "0.5"), Province(2, Ger, "0.5"), Province(3, Ger, "0.9"));
 
+		CProvinceModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
 
 		Assert.Equal(1, state.Country(Ger)!.BaseIc);            // 1.9 in all, not three zeroes
@@ -72,6 +74,7 @@ public class IndustrialCapacityTests
 	{
 		CGameState state = State(Province(1, Ger, "6", owner: Fra));
 
+		CProvinceModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
 
 		Assert.Equal(6, state.Country(Ger)!.BaseIc);
@@ -85,6 +88,7 @@ public class IndustrialCapacityTests
 		boosted.SetBuildingLevel(Boost, CFixedPoint.FromInt(1));    // a quarter more
 		CGameState state = State(boosted, Province(2, Ger, "4"));
 
+		CProvinceModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
 
 		Assert.Equal(9, state.Country(Ger)!.BaseIc);            // 4 * 1.25 + 4
@@ -97,6 +101,7 @@ public class IndustrialCapacityTests
 		blighted.SetBuildingLevel(Blight, CFixedPoint.FromInt(1));  // 4 * (1 - 2) is -4
 		CGameState state = State(blighted, Province(2, Ger, "3"));
 
+		CProvinceModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
 
 		Assert.Equal(3, state.Country(Ger)!.BaseIc);
@@ -107,6 +112,7 @@ public class IndustrialCapacityTests
 	{
 		CGameState state = State(Province(1, Ger, "3"));
 
+		CProvinceModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
 
 		CCountry luxembourg = state.Country(new CCountryTag("LUX"))!;
@@ -185,6 +191,7 @@ public class IndustrialCapacityTests
 	{
 		CGameState state = State(Province(1, null, "8"), Province(2, Ger, "2"));
 
+		CProvinceModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
 
 		Assert.Equal(2, state.Country(Ger)!.BaseIc);

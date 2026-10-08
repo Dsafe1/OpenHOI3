@@ -14,6 +14,12 @@ using OpenHOI3.Content;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Sim;
 
+// Research is checked against two later saves of one game: see CResearchCheck.
+if (args.Length > 0 && args[0] == "research")
+{
+	return CResearchCheck.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");
@@ -140,6 +146,16 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 			() => $"{tag} {group}: save '{node.GetString(group)}', ours '{ours}'");
 	}
 
+	foreach (CTechnologyCategory category in state.TechnologyCategories)
+	{
+		CFixedPoint saved = Number(node.GetString(category.Name));
+		CFixedPoint ours = country.Ability(category.Name);
+		if (saved != CFixedPoint.Zero || ours != CFixedPoint.Zero)
+		{
+			Compare("country abilities", saved == ours, () => $"{tag} {category.Name}: save {saved}, ours {ours}");
+		}
+	}
+
 	ClausewitzNode? technology = node.Get("technology");
 	if (technology is not null)
 	{
@@ -160,6 +176,7 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 // its own home production and usage come off its stockpile first. Stockpiles are compared by
 // capital, because two countries with one capital share one.
 EGoods[] startingGoods = { EGoods.Metal, EGoods.RareMaterials, EGoods.Money };
+var conversions = new Dictionary<int, (string Who, CGoodsPool Change)>();
 foreach (IGrouping<int, (ClausewitzNode Node, CCountry Country)> sharing in savedCountries.GroupBy(saved => saved.Country.Capital))
 {
 	CProvince capital = state.Province(sharing.Key);
@@ -186,6 +203,24 @@ foreach (IGrouping<int, (ClausewitzNode Node, CCountry Country)> sharing in save
 		Compare("stockpile at the start: " + key, expected == capital.Pool[goods],
 			() => $"{who}: the save implies {expected}, ours {capital.Pool[goods]}  (off by {expected - capital.Pool[goods]})");
 	}
+
+	// Energy and crude oil have the two conversions between the start and the save as well.
+	// What is left over once production and usage are taken off is what they did, and it is
+	// compared further down, once the countries have the IC and technology the save gives them.
+	var converted = new CGoodsPool();
+	foreach (EGoods goods in new[] { EGoods.Energy, EGoods.CrudeOil })
+	{
+		string key = CGoodsPool.KeyOf(goods);
+		CFixedPoint expected = Number(savedPool.GetString(key));
+		foreach ((ClausewitzNode node, CCountry country) in sharing)
+		{
+			CFixedPoint home = Number(node.Get("home")?.GetString(key));
+			CFixedPoint usage = Number(node.Get("usage")?.GetString(key));
+			expected -= CResources.HoldsCapital(state, country) ? home + home - usage - usage : home - usage - usage;
+		}
+		converted[goods] = expected - capital.Pool[goods];
+	}
+	conversions[sharing.Key] = (who, converted);
 }
 
 // ---- what is computed. The original's AI has changed laws by the time anything can be saved,
@@ -347,6 +382,38 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 	}
 }
 
+// ---- the two conversions. Each capital's holder is given its first day as this project would
+// run it - the day's production in, energy into crude oil, crude oil into fuel - and twice
+// that is set against what the save's stockpile is short of, or over, by.
+foreach ((int capitalId, (string who, CGoodsPool change)) in conversions)
+{
+	CProvince capital = state.Province(capitalId);
+	CCountry? holder = savedCountries.Select(saved => saved.Country)
+		.FirstOrDefault(country => country.Capital == capitalId && CResources.HoldsCapital(state, country));
+	if (holder is null)
+	{
+		continue;
+	}
+	var day = new CGoodsPool();
+	day.CopyFrom(capital.Pool);
+	foreach (EGoods goods in resources)
+	{
+		day[goods] += holder.HomeProduced[goods];
+	}
+	CFixedPoint energy = CConversions.EnergyToConvert(holder, day);
+	CFixedPoint oil = energy * CConversions.OilRate(holder);
+	day[EGoods.Energy] -= energy;
+	day[EGoods.CrudeOil] += oil;
+	CFixedPoint refined = CConversions.CrudeOilToRefine(holder, day);
+
+	CFixedPoint energyGone = CFixedPoint.Zero - change[EGoods.Energy];
+	Compare("energy turned into crude oil in the save's two days", energyGone == energy + energy,
+		() => $"{who}: the save is {energyGone} down, ours would be {energy + energy}  (IC {holder.TotalIc}, {CConversions.OilRate(holder)} oil a unit)");
+	CFixedPoint ourOil = oil + oil - refined - refined;
+	Compare("crude oil made and refined in the save's two days", change[EGoods.CrudeOil] == ourOil,
+		() => $"{who}: the save is {change[EGoods.CrudeOil]} up, ours would be {ourOil}  (IC {holder.TotalIc})");
+}
+
 CProduction.RunDaily(state);
 foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 {
@@ -370,6 +437,77 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 		Compare("what a country that does not exist uses in a day: " + key, used == country.Usage[goods],
 			() => $"{tag}: save {used}, ours {country.Usage[goods]}  (off by {used - country.Usage[goods]})");
 	}
+}
+
+// ---- leadership. The total is not saved, but what three of its four shares made in the save's
+// two days is: spies in training outright, and officers and diplomatic influence on top of a
+// whole number the country started with. The countries have the laws the save shows, or the
+// history's where those were put back above.
+foreach ((ClausewitzNode node, CCountry country) in savedCountries)
+{
+	if (!CLeadership.TakesPart(country))
+	{
+		continue;
+	}
+	string tag = country.Tag.Value;
+	string facts = $"leadership {country.TotalLeadership}";
+
+	List<ClausewitzNode> shares = node.Get("leadership")?.Children ?? new List<ClausewitzNode>();
+	bool sameShares = shares.Count == CLeadership.CategoryCount;
+	for (int i = 0; i < CLeadership.CategoryCount && sameShares; i++)
+	{
+		sameShares = Share(shares[i].Value) == country.LeadershipShares[i];
+	}
+	Compare("shares of leadership", sameShares,
+		() => $"{tag}: save {string.Join(" ", shares.Select(share => share.Value))}, ours {string.Join(" ", country.LeadershipShares)}");
+
+	// A country that has somewhere to send spies has sent the whole ones already.
+	CFixedPoint spies = Number(node.GetString("spies"));
+	CFixedPoint ourSpies = CLeadership.SpiesMade(state, country) * 2;
+	CFixedPoint sent = ourSpies - spies;
+	Compare("spies trained in the save's two days, less whole spies sent out",
+		sent >= CFixedPoint.Zero && sent.Raw % CFixedPoint.Scale == 0,
+		() => $"{tag}: save {spies}, ours {ourSpies}  ({facts})");
+
+	CFixedPoint influence = Number(node.GetString("diplo_influence")) - CLeadership.InfluenceMade(state, country) * 2;
+	Compare("diplomatic influence, less two days of it, is a whole number", influence.Raw % CFixedPoint.Scale == 0,
+		() => $"{tag}: save {node.GetString("diplo_influence")}, two days here {CLeadership.InfluenceMade(state, country) * 2}  ({facts})");
+	Compare(CResources.HoldsCapital(state, country)
+			? "diplomatic influence at the start"
+			: "diplomatic influence at the start, for a country that does not exist",
+		influence == country.DiplomaticInfluence,
+		() => $"{tag}: the save implies it started with {influence}, ours {country.DiplomaticInfluence}  (base IC {country.BaseIc})");
+
+	CFixedPoint officers = Number(node.GetString("officers")) - CLeadership.OfficersMade(state, country) * 2;
+	Compare("officers, less two days of them, are a whole number", officers.Raw % CFixedPoint.Scale == 0,
+		() => $"{tag}: save {node.GetString("officers")}, two days here {CLeadership.OfficersMade(state, country) * 2}  ({facts}, recruitment {country.Modifier["officer_recruitment"]})");
+}
+
+// ---- manpower. A new game gives a country its most, and the save is two days of income on
+// from that. Both are worked out here from the laws and the technology the save shows, because
+// the original's AI has chosen its laws before a country is set up. The start is worked out
+// before strategic resources count, and the two days after.
+HashSet<string> landowners = CManpower.Landowners(state);
+var startingManpower = new Dictionary<string, CFixedPoint>();
+CCountryModifiers.Rebuild(state, strategicResources: false);
+CManpower.UpdateMost(state);
+foreach ((ClausewitzNode _, CCountry country) in savedCountries)
+{
+	startingManpower[country.Tag.Value] = CManpower.AtStart(state, country, landowners.Contains(country.Tag.Value));
+}
+CTick.RunEntryPass(state);
+foreach ((ClausewitzNode node, CCountry country) in savedCountries)
+{
+	string tag = country.Tag.Value;
+	CFixedPoint saved = Number(node.GetString("manpower"));
+	CFixedPoint start = startingManpower[tag];
+	CFixedPoint ours = start + CManpower.MadeToday(state, country) * 2;
+	string facts = $"started with {start} of {country.MaxManpower}, {country.MonthlyManpower} a month, " +
+		$"law {country.Modifier["global_manpower_modifier"]}, technology {country.Technology["manpower_gain"]}" +
+		(state.IsAtWar(country.Tag) ? $", at war {CStockpile.MonthsAtWar(state, country)} months" : "");
+	bool exists = landowners.Contains(tag);
+	Compare(exists ? "manpower two days in" : "manpower two days in, for a country that does not exist", saved == ours,
+		() => $"{tag}: save {saved}, ours {ours}  (off by {saved - ours}; {facts})");
 }
 
 // ---- report

@@ -24,6 +24,9 @@ public sealed class CGameState
 	private readonly Dictionary<string, CTechnology> _technologies =
 		new(StringComparer.OrdinalIgnoreCase);
 
+	private readonly Dictionary<string, CModifier> _strategicResources =
+		new(StringComparer.OrdinalIgnoreCase);
+
 	public const int HoursPerDay = 24;
 
 	/// <summary>
@@ -34,10 +37,17 @@ public sealed class CGameState
 
 	public CGameState(CDate date, IReadOnlyList<CProvince> provinces, IEnumerable<CCountry> countries,
 		IReadOnlyList<CBuilding>? buildings = null, IEnumerable<CTechnology>? technologies = null,
-		IEnumerable<CModifier>? staticModifiers = null, CDefines? defines = null, IEnumerable<CWar>? wars = null)
+		IEnumerable<CModifier>? staticModifiers = null, CDefines? defines = null, IEnumerable<CWar>? wars = null,
+		IEnumerable<CModifier>? strategicResources = null,
+		IEnumerable<CTechnologyCategory>? technologyCategories = null)
 	{
+		TechnologyCategories = new List<CTechnologyCategory>(technologyCategories ?? Array.Empty<CTechnologyCategory>());
 		Defines = defines ?? new CDefines();
 		Wars = new List<CWar>(wars ?? Array.Empty<CWar>());
+		foreach (CModifier resource in strategicResources ?? Array.Empty<CModifier>())
+		{
+			_strategicResources.TryAdd(resource.Name, resource);
+		}
 		foreach (CModifier modifier in staticModifiers ?? Array.Empty<CModifier>())
 		{
 			_staticModifiers.TryAdd(modifier.Name, modifier);
@@ -81,6 +91,9 @@ public sealed class CGameState
 
 	public IReadOnlyDictionary<string, CTechnology> Technologies => _technologies;
 
+	/// <summary>The theories and practicals there are, in the order the file lists them.</summary>
+	public IReadOnlyList<CTechnologyCategory> TechnologyCategories { get; }
+
 	/// <summary>The numbers out of <c>common/defines.lua</c>.</summary>
 	public CDefines Defines { get; }
 
@@ -123,6 +136,12 @@ public sealed class CGameState
 	public CModifier? FindStaticModifier(string name)
 	{
 		return _staticModifiers.TryGetValue(name, out CModifier? modifier) ? modifier : null;
+	}
+
+	/// <summary>What a strategic resource is worth to whoever has it, or null when none has that name.</summary>
+	public CModifier? FindStrategicResource(string name)
+	{
+		return _strategicResources.TryGetValue(name, out CModifier? resource) ? resource : null;
 	}
 
 	/// <summary>The province with that id, or the "no province" entry when it is out of range.</summary>

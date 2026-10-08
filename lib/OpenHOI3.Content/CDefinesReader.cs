@@ -20,6 +20,14 @@ public static class CDefinesReader
 	{
 		(CResources.EconomySection, CResources.IcToMoney),
 		(CResources.EconomySection, CProduction.IcToSupplies),
+		(CResources.EconomySection, CLeadership.LeadershipToOfficers),
+		(CResources.EconomySection, CLeadership.LeadershipToDiplomacy),
+		(CResources.EconomySection, CLeadership.LeadershipToSpies),
+		(CManpower.MilitarySection, CManpower.MaxManpower),
+		(CResearch.CountrySection, CResearch.YearImpact),
+		(CResearch.CountrySection, CResearch.BaseDecay),
+		(CResearch.CountrySection, CResearch.MostAbility),
+		(CResearch.CountrySection, CResearch.AbilityGainDivisor),
 	};
 
 	/// <summary>Every numeric value, by section and name.</summary>

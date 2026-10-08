@@ -22,6 +22,24 @@ public static class CWarReader
 		"name", "limited_war", "war_goal",
 	};
 
+	/// <summary>
+	/// When a war began: the earliest date its file has an entry for, as long as that is
+	/// not after <paramref name="date"/>. A file with no dated entry gives the date asked about.
+	/// </summary>
+	private static CDate FirstDate(ClausewitzNode root, CDate date)
+	{
+		CDate first = date;
+		foreach (ClausewitzNode entry in root.Children)
+		{
+			if (entry.Key is not null && entry.IsBlock && CDate.TryParse(entry.Key, out CDate dated)
+				&& dated.CompareTo(first) < 0)
+			{
+				first = dated;
+			}
+		}
+		return first;
+	}
+
 	/// <summary>The wars with someone on both sides on <paramref name="date"/>.</summary>
 	public static List<CWar> Read(CDirectorySettings directories, CCountries countries, CDate date,
 		Action<string>? warn = null)
@@ -44,7 +62,7 @@ public static class CWarReader
 				continue;
 			}
 
-			var war = new CWar(root.GetString("name"));
+			var war = new CWar(root.GetString("name"), FirstDate(root, date));
 			foreach (ClausewitzNode entry in CHistory.Fold(root, date))
 			{
 				if (entry.Key is null || ReadPast.Contains(entry.Key))

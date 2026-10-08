@@ -43,7 +43,7 @@ public sealed class CMap
 
 	private CMap(int width, int height, ushort[] raster, bool[] isSea,
 		CProvinceShape[] shapes, int[][] neighbours, CExplicitAdjacency[] explicitAdjacencies,
-		CTerrain[] terrains, CTerrain?[] majorityTerrain, string[] sourceFiles)
+		CTerrain[] terrains, CTerrain?[] majorityTerrain, string[] continents, string[] sourceFiles)
 	{
 		Width = width;
 		Height = height;
@@ -54,6 +54,7 @@ public sealed class CMap
 		ExplicitAdjacencies = explicitAdjacencies;
 		Terrains = terrains;
 		MajorityTerrain = majorityTerrain;
+		Continents = continents;
 		SourceFiles = sourceFiles;
 	}
 
@@ -80,6 +81,12 @@ public sealed class CMap
 	/// or null where none was counted. A province's history file may say otherwise.
 	/// </summary>
 	public IReadOnlyList<CTerrain?> MajorityTerrain { get; }
+
+	/// <summary>
+	/// Per province id, the name of the continent it is on, or an empty string for a
+	/// province no continent lists - every sea province, for one.
+	/// </summary>
+	public IReadOnlyList<string> Continents { get; }
 
 	/// <summary>Every file this was built from, for whatever needs to know when one changes.</summary>
 	public IReadOnlyList<string> SourceFiles { get; }
@@ -222,9 +229,62 @@ public sealed class CMap
 			warn($"no terrain: '{terrainTxt}' or '{terrainBmp}' is missing");
 		}
 
+		string continentTxt = directories.Resolve("map/" + definition.GetString("continent", "continent.txt"));
+		string[] continents = ReadContinents(continentTxt, provinceCount, warn);
+
 		return new CMap(bitmap.Width, bitmap.Height, raster, isSea, shapes, neighbours,
-			explicitAdjacencies, terrains, majorityTerrain,
-			new[] { definitionPath, provincesCsv, provincesBmp, adjacenciesCsv, terrainTxt, terrainBmp });
+			explicitAdjacencies, terrains, majorityTerrain, continents,
+			new[] { definitionPath, provincesCsv, provincesBmp, adjacenciesCsv, terrainTxt, terrainBmp, continentTxt });
+	}
+
+	/// <summary>
+	/// Reads the continents: one block each, named, listing the provinces on it. A
+	/// province listed twice keeps the first continent that named it.
+	/// </summary>
+	private static string[] ReadContinents(string path, int provinceCount, Action<string> warn)
+	{
+		var continents = new string[provinceCount];
+		Array.Fill(continents, "");
+		if (!File.Exists(path))
+		{
+			warn($"no continents: '{path}' is missing");
+			return continents;
+		}
+
+		int unknown = 0;
+		int repeated = 0;
+		foreach (ClausewitzNode block in ClausewitzParser.ParseFile(path).Children)
+		{
+			if (block.Key is null || !block.IsBlock)
+			{
+				continue;
+			}
+			foreach (ClausewitzNode entry in block.Children)
+			{
+				if (!int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
+					|| id <= 0 || id >= provinceCount)
+				{
+					unknown++;
+				}
+				else if (continents[id].Length != 0)
+				{
+					repeated++;
+				}
+				else
+				{
+					continents[id] = block.Key;
+				}
+			}
+		}
+		if (unknown > 0)
+		{
+			warn($"'{path}': {unknown} entries are not the id of a province");
+		}
+		if (repeated > 0)
+		{
+			warn($"'{path}': {repeated} provinces are listed on more than one continent; the first was kept");
+		}
+		return continents;
 	}
 
 	private static int ColourKey(int red, int green, int blue)

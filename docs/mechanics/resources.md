@@ -62,6 +62,11 @@ Piece by piece:
   purpose: Japan's islands, Denmark's and Sicily all count as joined, and their figures
   match only if they do. (measured)
 - **`GLOBAL_RESOURCES`** is the country's modifier of that name - its laws and ministers.
+- **`LOCAL_RESOURCES`** is the province's own modifier of that name, which `non_core` and
+  the occupation policies set (`modifiers.md`, section 3). *Ours:* each province's yield
+  is scaled by one plus it, never below nothing, before the country's factors. Where the
+  original applies it has not been read, and nothing in the 1936 savegame shows it: no
+  province joined to a capital there is without its owner's core.
 - **The technology bonus is per good**, and multiplies rather than adds:
   `metal_production`, `energy_production` and `rares_production`, each worth 5% a level in
   Their Finest Hour. **Crude oil has none**; `refinery_efficiency` is about turning oil into

@@ -49,13 +49,18 @@ public static class CTick
 	/// </summary>
 	private static void RunDailyPass(CGameState state)
 	{
-		// A country's day, in the original's order: what its provinces produced reaches
-		// the stockpile, its IC is worked out, and then its six shares are run.
+		// A country's day, in the original's order: its manpower grows, its leadership is
+		// worked out, what its provinces produced reaches the stockpile, its IC is worked
+		// out, and then its six shares of IC are run and its four of leadership after them.
+		CProvinceModifiers.Rebuild(state);
 		CCountryModifiers.Rebuild(state);
+		CManpower.RunDaily(state);
+		CLeadership.Update(state);
 		CResources.UpdateHomeProduction(state);
 		CStockpile.AddHomeProduction(state);
 		CIndustrialCapacity.Update(state);
 		CProduction.RunDaily(state);
+		CLeadership.RunDaily(state);
 	}
 
 	/// <summary>
@@ -65,7 +70,11 @@ public static class CTick
 	/// </summary>
 	public static void RunEntryPass(CGameState state)
 	{
+		CProvinceModifiers.Rebuild(state);
 		CCountryModifiers.Rebuild(state);
+		CLeadership.Update(state);
+		CManpower.UpdateMost(state);
+		CManpower.Update(state);
 		CIndustrialCapacity.Update(state);
 		CResources.UpdateHomeProduction(state);
 		CProduction.Estimate(state);
@@ -73,11 +82,13 @@ public static class CTick
 
 	/// <summary>
 	/// Order: each province's modifiers and the decay of its nationalism; each
-	/// country's monthly work, which is where technology decays; the rebuild of every
-	/// country's list of candidate events.
+	/// country's monthly work, which is where technology decays and its most manpower is
+	/// worked out; the rebuild of every country's list of candidate events.
 	/// </summary>
 	private static void RunMonthlyPass(CGameState state)
 	{
+		CResearch.DecayMonthly(state);
+		CManpower.UpdateMost(state);
 	}
 
 	/// <summary>Not established for the original.</summary>

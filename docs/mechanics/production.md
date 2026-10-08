@@ -107,9 +107,8 @@ is "in service" if it is not a reserve, or if the country has mobilised - so mob
 raises the demand twice over. Effective neutrality is neutrality less the threat the
 country feels, from 0 to 100. The 0.25 is built into the original and no file changes it.
 
-That `base_values` reaches the country's modifier is `inferred` from this: the demand is
-read from the modifier and nowhere else, and without `base_values` in it every country's
-demand would be negative.
+`base_values` is added whole to every country's modifier, before anything else.
+`confirmed` (`modifiers.md`, section 4).
 
 ## 4. Supplies
 

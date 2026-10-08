@@ -7,6 +7,7 @@ Their Finest Hour install on 2026-10-07. Where this project chooses its own beha
 paragraph is marked **Ours**.
 
 Sources: `reversing/findings/FINDINGS-ic.md`, `reversing/findings/FINDINGS-distribute.md`,
+`reversing/findings/FINDINGS-leadership.md` (section 7),
 `reversing/findings/FINDINGS-mapmode.md` (*Building levels*), and `reversing/CLASSES.md` (*buildings.txt, key by key* and
 *Modifiers*).
 
@@ -63,16 +64,17 @@ marked.
 
     contribution = province IC * (1 + province LOCAL_IC)
 
-and it is added to the running sum **only if it is positive**. *Which* provinces - the ones
-the country owns or the ones it controls - is **not established**; the fact base leans
-towards controlled. *Ours:* controlled, until it is read.
+and it is added to the running sum **only if it is positive**. The provinces are the ones
+the country **controls**, not the ones it owns. `confirmed`
+
+`LOCAL_IC` is where a province held without a claim loses half its IC: the `non_core`
+static modifier has `local_ic = -0.5` (`modifiers.md`, section 3).
 
 **The sum does not start at zero.** One game-wide modifier's IC is added to every country's
-as a flat amount; `confirmed`. **It is `base_values` in `static_modifiers.txt`, which has
-`ic = 5`** - (measured) on 2026-10-07: it is the only static modifier with an `ic` in it,
-and once it is added no country in the original's savegame uses more IC than this project
-gives it, where 35 did before. So every country has five IC before any province is
-counted, including one that holds nothing.
+as a flat amount, and **it is `base_values` in `static_modifiers.txt`, which has
+`ic = 5`**. `confirmed` - first (measured) on 2026-10-07, as the only static modifier with
+an `ic` in it, and then read. So every country has five IC before any province is counted,
+including one that holds nothing.
 
 **The base.**
 
@@ -101,9 +103,30 @@ shortage cap until the first midnight. `confirmed`
 
 - **What the industry needs.** Per point of total IC, per day: **1 metal, 2 energy, 0.5 rare
   materials**, for every country without exception.
-- **Energy into crude oil.** A country turns spare energy into crude oil at a rate of
-  `1 + 2 * the technology conversion bonus`, capped at `max(total IC * 0.05, 1)` a day and
-  at the energy left once industry has taken its `total IC * 2`.
+- **Energy into crude oil.** A unit of energy makes `0.1 + the technology bonus` units of
+  crude oil - the technology's `energy_to_oil_conversion`; the tenth is built into the
+  original. Three things limit how much energy is converted in a day, and the smallest
+  wins:
+  - **what industry can make**: `max(0.05 * total IC, 1)` crude oil, so that many times
+    `1 / rate` energy - and never less than one energy a unit;
+  - **the balance**: only as much as leaves the country holding exactly twice as much
+    energy as crude oil, counting the day's net flow of each. A country with less than
+    twice as much energy as crude oil converts nothing;
+  - **what industry needs today**: never more than the stockpile's energy less
+    `2 * total IC`.
+
+  In thousandths, with every division truncating:
+
+      rate   = 100 + the technology bonus
+      wanted = (energy + energyNet - 2 * (crude + crudeNet)) * 1000 / (1000 + 2 * rate)
+      energy converted = min( max(50 * IC, 1000) * max(1000000 / rate, 1000) / 1000,
+                              wanted,  energy - 2000 * IC )
+      crude oil made   = energy converted * rate / 1000
+
+  `confirmed`, from `reversing/findings/FINDINGS-distribute.md`, section 6, which reads it
+  through and corrects the earlier summary. (measured: of the 78 countries in the savegame
+  that exist, **71 are down by exactly this much energy** over the two days it has behind
+  it - Bhutan 10 a day, the United States 38.25, Germany 33.496.)
 - **The resource cap.** The IC the stockpile can pay for is the smallest of its metal, half
   its energy and twice its rare materials; where that is below the total, the total is cut
   to it. `production.md`, section 2.
@@ -119,11 +142,24 @@ And straight after the IC calculation, each day: `confirmed`, from
   the two multiplied. It does not refine at all once it holds 99,000 fuel, nor when it
   holds both more fuel than a year of the crude oil coming in and more than twice its
   crude oil. The fuel is made where the factories are, like supplies (`production.md`,
-  section 4). (measured: Luxembourg and Honduras, with 4 IC, hold exactly 4 fuel after the
-  two days a savegame has behind it.)
+  section 4). (measured: 70 of the 78 have exactly the crude oil the two conversions leave
+  them after the savegame's two days.)
 
-*Ours:* the cap is applied each day, before the shares are run. The other three and the
-refining are not there yet. A country's total before the cap is its base
+Both conversions are for a country that exists. One that holds nothing runs its shares of
+IC (`production.md`, section 1) and converts nothing. `confirmed`
+
+*Ours:* both conversions and the cap are applied each day, in that order around each
+other - energy into crude oil, the cap, crude oil into fuel - before the shares are run.
+
+- The day's net flows are what this project tracks so far: today's home production, less
+  yesterday's usage for energy. The original sums fifteen pools.
+- All the fuel goes to the stockpile, as all the supplies do.
+- The original rounds the energy through single-precision floats. Whole thousandths go
+  through that unchanged up to about 16,000 units, which the smallest of the three limits
+  always is; this project uses integers.
+- Industry's need is not kept as a figure of its own, and there is no lend-lease.
+
+A country's total before the cap is its base
 times `1 + GLOBAL_IC + the technology bonus`. `GLOBAL_IC` is what its laws and ministers
 give it (`modifiers.md`, section 5), and the technology bonus is `ic_modifier` summed over
 its technology levels (`resources.md`, section 4). **The original does not save IC**, so
@@ -132,7 +168,6 @@ lower bound, and every country clears it.
 
 ## What is not established, in one place
 
-- whether the province sum walks the **owned or the controlled** provinces;
-- what the **energy into crude oil** conversion costs: the savegame shows a small country
-  losing 10 energy a day for one crude oil, which the rate above does not explain;
+- which of a country's pools hold **yesterday's figures and which today's** at the moment
+  the energy conversion reads them, which decides the balance term on a day it binds;
 - whether a history line **sets or adds to** a building level.
