@@ -91,4 +91,10 @@ public sealed class CLocalisation
 		}
 		return _entries.TryGetValue(key, out string? value) ? value : key;
 	}
+
+	/// <summary>The text of a key, or null when no table has it - for a caller with something else to try.</summary>
+	public string? Find(string key)
+	{
+		return _entries.TryGetValue(key, out string? value) ? value : null;
+	}
 }

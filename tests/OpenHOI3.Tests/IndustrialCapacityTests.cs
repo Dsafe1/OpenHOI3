@@ -183,7 +183,10 @@ public class IndustrialCapacityTests
 
 		germany.Laws.Clear();
 		CTick.RunEntryPass(state);
-		Assert.Empty(germany.Modifier.Values);
+		Assert.Equal(CFixedPoint.Zero, germany.Modifier["global_ic"]);
+
+		// What is left is what its province has, which a country's modifier takes in whole.
+		Assert.Equal(CFixedPoint.FromInt(10), germany.Modifier["ic"]);
 	}
 
 	[Fact]

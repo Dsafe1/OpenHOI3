@@ -189,6 +189,7 @@ to their African provinces (`modifiers.md`, section 3).
 ## What is not established, in one place
 
 - what a country's **officers** start as;
-- what else a **country's modifier** is made of - triggered modifiers reach it, by the
-  five above (`modifiers.md`, section 4);
+- which **triggered modifier** each of the five above has: what a country's modifier is
+  made of is read now (`modifiers.md`, sections 4 and 5), and their conditions are the
+  script's;
 - who records what a country **shares technology** with.

@@ -3,9 +3,6 @@ using System.Collections.Generic;
 
 namespace OpenHOI3.Sim;
 
-/// <summary>A technology category: a theory or a practical a country has a level in.</summary>
-public sealed record CTechnologyCategory(string Name, bool IsTheory);
-
 /// <summary>
 /// Research: what a level of a technology costs a country, what a day's leadership adds
 /// to it, what finishing it does, and the monthly decay of what a country knows. See
@@ -151,6 +148,55 @@ public static class CResearch
 	}
 
 	/// <summary>
+	/// What each technology on the queue would be given of a day's research leadership:
+	/// a whole point, or what is left when less is, in the queue's order; nothing for one
+	/// the country may not research, which keeps its place. A technology the leadership
+	/// ran out before is not in the answer.
+	/// </summary>
+	/// <param name="allocation">The research share's leadership for the day.</param>
+	public static Dictionary<string, CFixedPoint> ShareOut(CGameState state, CCountry country, CFixed15 allocation)
+	{
+		var given = new Dictionary<string, CFixedPoint>(StringComparer.OrdinalIgnoreCase);
+		long remaining = allocation.Raw;
+		foreach (string name in country.ResearchQueue)
+		{
+			if (remaining <= 0)
+			{
+				break;
+			}
+			if (!state.Technologies.TryGetValue(name, out CTechnology? technology))
+			{
+				continue;
+			}
+			if (!MayResearchNext(state, country, technology))
+			{
+				given[name] = CFixedPoint.Zero;
+				continue;
+			}
+			long share = Math.Min(CFixed15.Scale, remaining);
+			remaining -= share;
+			given[name] = new CFixed15(share).ToThousandths();
+		}
+		return given;
+	}
+
+	/// <summary>
+	/// How many days that much leadership a day takes to finish the level a country is
+	/// on: what is left of the level over a day's gain, and one. -1 when a day gains nothing.
+	/// </summary>
+	public static int DaysToFinish(CGameState state, CCountry country, CTechnology technology, CFixedPoint leadership)
+	{
+		int level = country.TechnologyLevels.GetValueOrDefault(technology.Name) + 1;
+		CFixed15 gain = Gain(state, country, technology, level, leadership);
+		if (gain <= CFixed15.Zero)
+		{
+			return -1;
+		}
+		CFixed15 left = CFixed15.One - country.ResearchProgress.GetValueOrDefault(technology.Name);
+		return (int)(left.Raw / gain.Raw) + 1;
+	}
+
+	/// <summary>
 	/// One day of a country's research: its queue is worked through in order, each
 	/// technology taking a point of leadership or what is left, until none is.
 	/// </summary>
@@ -264,10 +310,13 @@ public static class CResearch
 		return (shares * CFixedPoint.Scale) >> CFixed15.Places;
 	}
 
-	/// <summary>What a country's technologies add up to for a category's decay, in thousandths.</summary>
+	/// <summary>
+	/// What a country's ministers and its technologies add up to for a category's decay,
+	/// in thousandths.
+	/// </summary>
 	public static long DecayModifier(CGameState state, CCountry country, string category)
 	{
-		long total = 0;
+		long total = CCountryModifiers.MinisterDecay(country, category);
 		foreach ((string name, int level) in country.TechnologyLevels)
 		{
 			if (level <= 0 || !state.Technologies.TryGetValue(name, out CTechnology? technology))

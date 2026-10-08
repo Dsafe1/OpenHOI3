@@ -84,6 +84,7 @@ public sealed class CCountries
 	{
 		CColor color = CColor.Gray;
 		string culture = "";
+		bool major = false;
 
 		string path = directories.Resolve("common/" + definitionFile);
 		try
@@ -91,6 +92,7 @@ public sealed class CCountries
 			ClausewitzNode definition = ClausewitzParser.ParseFile(path);
 			color = definition.GetRgb("color", CColor.Gray);
 			culture = definition.GetString("graphical_culture");
+			major = definition.GetString("major").Equals("yes", StringComparison.OrdinalIgnoreCase);
 		}
 		catch (Exception e)
 		{
@@ -105,6 +107,7 @@ public sealed class CCountries
 			DefinitionFile = definitionFile,
 			Color = color,
 			GraphicalCulture = culture,
+			IsMajor = major,
 		};
 	}
 

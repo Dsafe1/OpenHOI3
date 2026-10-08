@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using Godot;
-using OpenHOI3.Content;
 using OpenHOI3.Content.Clausewitz;
 
 namespace OpenHOI3.Gfx;
@@ -21,15 +19,40 @@ public sealed class CSpriteType
 	public string TextureFile { get; init; } = "";
 
 	/// <summary>
-	/// Horizontal strip count. Button states use a shader rather than frames in this
-	/// game, so this is almost always 1.
+	/// A masked shield has two textures and none of its own picture: what is drawn over
+	/// the flag, and the mask the flag is cut with.
+	/// </summary>
+	public string OverlayFile { get; init; } = "";
+	public string MaskFile { get; init; } = "";
+
+	/// <summary>
+	/// How many frames the texture holds, side by side. A frame is the texture's width
+	/// divided by this, whatever the texture's resolution.
 	/// </summary>
 	public int FrameCount { get; init; } = 1;
 
-	/// <summary>Cell size of a cornered tile; zero for ordinary sprites.</summary>
+	/// <summary>
+	/// The <c>size</c> a declaration gives: the cell of a cornered tile, the size of a
+	/// progress bar. Zero for ordinary sprites, which take theirs from the texture.
+	/// </summary>
 	public Vector2 TileSize { get; init; }
 
+	/// <summary>How much of each edge of a cornered tile is kept unstretched.</summary>
+	public Vector2 Border { get; init; }
+
+	/// <summary>Never takes a click: what is under it does.</summary>
+	public bool AlwaysTransparent { get; init; }
+
 	public bool IsTiled => Kind.Equals("corneredTileSpriteType", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>Draws a country's flag, not a picture of its own.</summary>
+	public bool IsMaskedShield => Kind.Equals("maskedShieldType", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// A bar that fills from the left: <see cref="OverlayFile"/> is drawn over the part
+	/// that is filled and <see cref="MaskFile"/> over the rest, in a box of <see cref="TileSize"/>.
+	/// </summary>
+	public bool IsProgressBar => Kind.Equals("progressbartype", StringComparison.OrdinalIgnoreCase);
 
 	public static CSpriteType FromNode(string kind, ClausewitzNode node)
 	{
@@ -38,79 +61,12 @@ public sealed class CSpriteType
 			Kind = kind,
 			Name = node.GetString("name"),
 			TextureFile = node.GetString("textureFile"),
+			OverlayFile = node.GetString("textureFile1"),
+			MaskFile = node.GetString("textureFile2"),
 			FrameCount = Math.Max(1, node.GetInt("noOfFrames", 1)),
 			TileSize = node.GetVector2("size").ToGodot(),
+			Border = node.GetVector2("borderSize").ToGodot(),
+			AlwaysTransparent = node.GetBool("allwaystransparent"),
 		};
-	}
-}
-
-/// <summary>Every sprite declared across the game's <c>.gfx</c> files, by name.</summary>
-public sealed class CSpriteTypes
-{
-	private static readonly string[] SpriteKinds =
-	{
-		"spriteType", "textSpriteType", "corneredTileSpriteType", "maskedShieldType",
-		"progressbartype", "tileSpriteType", "LineChartType", "PieChartType",
-	};
-
-	private readonly Dictionary<string, CSpriteType> _sprites =
-		new(StringComparer.OrdinalIgnoreCase);
-
-	public int Count => _sprites.Count;
-
-	public static CSpriteTypes Load(CDirectorySettings directories)
-	{
-		var registry = new CSpriteTypes();
-		foreach (string file in directories.ListFiles("interface", "*.gfx"))
-		{
-			ClausewitzNode root;
-			try
-			{
-				root = ClausewitzParser.ParseFile(file);
-			}
-			catch (Exception e)
-			{
-				CDiagnostics.Warn($"Could not parse '{file}': {e.Message}");
-				continue;
-			}
-			foreach (ClausewitzNode container in root.All("spriteTypes"))
-			{
-				registry.AddFrom(container);
-			}
-		}
-		return registry;
-	}
-
-	private void AddFrom(ClausewitzNode container)
-	{
-		foreach (ClausewitzNode child in container.Children)
-		{
-			if (child.Key is null || !child.IsBlock)
-			{
-				continue;
-			}
-			if (Array.IndexOf(SpriteKinds, child.Key) < 0 &&
-				!child.Key.EndsWith("SpriteType", StringComparison.OrdinalIgnoreCase))
-			{
-				continue;
-			}
-			CSpriteType sprite = CSpriteType.FromNode(child.Key, child);
-			if (sprite.Name.Length == 0 || sprite.TextureFile.Length == 0)
-			{
-				continue;
-			}
-			// Last declaration wins. Files arrive base layer first, so an expansion
-			// redefining a sprite replaces the base version.
-			_sprites[sprite.Name] = sprite;
-		}
-	}
-
-	public CSpriteType? Find(string name)
-	{
-		if (string.IsNullOrEmpty(name))
-		{
-			return null;
-		}
-		return _sprites.TryGetValue(name, out CSpriteType? sprite) ? sprite : null;
 	}
 }

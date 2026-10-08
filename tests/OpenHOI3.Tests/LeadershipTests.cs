@@ -218,42 +218,6 @@ public class LeadershipTests
 		Assert.Equal(CFixedPoint.Zero, taken.Modifier["local_leadership_modifier"]);
 	}
 
-	// --- strategic resources ---
-
-	[Fact]
-	public void AStrategicResourceIsWorthItsModifierToWhoeverControlsTheProvince()
-	{
-		CCountry holland = Country("HOL", 1);
-		CCountry japan = Country("JAP", 3);
-		CProvince goldfield = Land(2, "HOL", continent: "east");
-		goldfield.StrategicResource = "gold";
-		CGameState state = State(new[] { holland, japan }, Land(1, "HOL"), goldfield, Land(3, "JAP"));
-		Refresh(state);
-
-		Assert.Equal(CFixedPoint.Parse("0.33"), holland.Modifier["global_money"]);
-		Assert.Equal(CFixedPoint.Zero, japan.Modifier["global_money"]);
-
-		goldfield.Controller = japan.Tag;
-		Refresh(state);
-
-		Assert.Equal(CFixedPoint.Zero, holland.Modifier["global_money"]);
-		Assert.Equal(CFixedPoint.Parse("0.33"), japan.Modifier["global_money"]);
-	}
-
-	[Fact]
-	public void TwoProvincesOfOneResourceCountOnce()
-	{
-		CCountry southAfrica = Country("SAF", 1);
-		CProvince first = Land(1, "SAF");
-		CProvince second = Land(2, "SAF");
-		first.StrategicResource = "gold";
-		second.StrategicResource = "gold";
-		CGameState state = State(new[] { southAfrica }, first, second);
-		Refresh(state);
-
-		Assert.Equal(CFixedPoint.Parse("0.33"), southAfrica.Modifier["global_money"]);
-	}
-
 	// --- the four shares ---
 
 	[Fact]

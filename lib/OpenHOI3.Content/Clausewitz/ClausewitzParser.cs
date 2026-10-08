@@ -80,8 +80,11 @@ public static class ClausewitzParser
 				var sb = new StringBuilder();
 				while (i < text.Length && text[i] != '"')
 				{
-					// The files escape path separators as "gfx\\interface\\x.dds".
-					if (text[i] == '\\' && i + 1 < text.Length)
+					// The files escape path separators as "gfx\\interface\\x.dds" - and here
+					// and there forget to, writing "gfx\mapitems\\x.tga". Both name a file
+					// that is there, so a backslash on its own is a backslash too and only
+					// a doubled one, or one before a quote, is an escape.
+					if (text[i] == '\\' && i + 1 < text.Length && (text[i + 1] == '\\' || text[i + 1] == '"'))
 					{
 						i++;
 					}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Sim;
 
@@ -56,6 +57,28 @@ public static class CTechnologyReader
 			}
 		}
 		return categories;
+	}
+
+	/// <summary>
+	/// The folders the technology screen sorts technologies into, in the order the file
+	/// lists them under <c>folders</c>.
+	/// </summary>
+	public static List<string> ReadFolders(CDirectorySettings directories)
+	{
+		var folders = new List<string>();
+		string path = directories.Resolve(CategoryFile);
+		if (!File.Exists(path))
+		{
+			return folders;
+		}
+		foreach (ClausewitzNode entry in ClausewitzParser.ParseFile(path).Get("folders")?.Children ?? new List<ClausewitzNode>())
+		{
+			if (entry.Value is { Length: > 0 } name && !folders.Contains(name, StringComparer.OrdinalIgnoreCase))
+			{
+				folders.Add(name);
+			}
+		}
+		return folders;
 	}
 
 	public static List<CTechnology> Read(CDirectorySettings directories, Action<string>? warn = null,
@@ -132,6 +155,7 @@ public static class CTechnologyReader
 				AdditionalOffset = WholeNumber(block.GetString("additional_offset")),
 				IsNuclear = block.GetString("is_nuclear").Equals("yes", StringComparison.OrdinalIgnoreCase),
 				OnCompletion = onCompletion,
+				Folder = block.GetString("folder"),
 				ResearchBonusFrom = ReadAmounts(block.Get("research_bonus_from"), categories is null ? null : categoryNames, unknownCategories),
 				Decay = ReadAmounts(block.Get("decay"), categories is null ? null : categoryNames, unknownCategories),
 				Allow = block.Get("allow") is { IsBlock: true } allow

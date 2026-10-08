@@ -2,17 +2,6 @@ using System;
 
 namespace OpenHOI3.Sim;
 
-/// <summary>The six things a country divides its IC between, in the original's order.</summary>
-public enum EProductionCategory
-{
-	LendLease,
-	ConsumerGoods,
-	Production,
-	Supplies,
-	Reinforcement,
-	Upgrades,
-}
-
 /// <summary>
 /// The daily split of a country's IC between its six shares, and what spending IC costs.
 /// See <c>docs/mechanics/production.md</c>.
@@ -27,7 +16,7 @@ public static class CProduction
 
 	private const string WarDemand = "war_consumer_goods_demand";
 	private const string PeaceDemand = "peace_consumer_goods_demand";
-	private const string DissentChange = "dissent";
+	private const string DissentModifier = "dissent";
 	private const string GlobalSupplies = "global_supplies";
 	private const string TechnologySupplies = "ic_to_supplies";
 
@@ -209,8 +198,6 @@ public static class CProduction
 
 	private static void RunConsumerGoods(CGameState state, CCountry country, CGoodsPool stockpile)
 	{
-		CFixed15 share = country.ProductionShares[(int)EProductionCategory.ConsumerGoods];
-
 		// Money comes of having IC at all, not of the share.
 		if (country.TotalIc != 0)
 		{
@@ -221,11 +208,49 @@ public static class CProduction
 
 		Charge(country, stockpile, Spent(country, EProductionCategory.ConsumerGoods));
 
-		// One for one: a share a point under the demand is a point of dissent a day.
-		CFixed15 change = CFixed15.FromThousandths(ConsumerGoodsDemand(state, country)) - share
-			+ CFixed15.FromThousandths(country.Modifier[DissentChange]);
-		CFixedPoint dissent = country.Dissent + change.ToThousandths();
+		CFixedPoint dissent = country.Dissent + DissentChange(state, country).ToThousandths();
 		country.Dissent = dissent < CFixedPoint.Zero ? CFixedPoint.Zero : dissent;
+	}
+
+	/// <summary>
+	/// What a day does to the country's dissent with its consumer goods share where it
+	/// is. One for one: a share a point under the demand is a point of dissent a day.
+	/// </summary>
+	public static CFixed15 DissentChange(CGameState state, CCountry country)
+	{
+		return CFixed15.FromThousandths(ConsumerGoodsDemand(state, country))
+			- country.ProductionShares[(int)EProductionCategory.ConsumerGoods]
+			+ CFixed15.FromThousandths(country.Modifier[DissentModifier]);
+	}
+
+	/// <summary>
+	/// The fraction of its IC on consumer goods at which the country's dissent stands
+	/// still: what it demands, and what its dissent modifier adds. What the consumer
+	/// goods slider shows as its need.
+	/// </summary>
+	public static CFixedPoint ConsumerGoodsNeeded(CGameState state, CCountry country)
+	{
+		return ConsumerGoodsDemand(state, country) + country.Modifier[DissentModifier];
+	}
+
+	/// <summary>
+	/// The IC the country has put where nothing uses it, in whole IC: what each share
+	/// but lend-lease was given beyond what it spent, added up and the fraction dropped.
+	/// </summary>
+	public static int Wasted(CCountry country)
+	{
+		long spare = 0;
+		for (int index = (int)EProductionCategory.ConsumerGoods; index < CategoryCount; index++)
+		{
+			var category = (EProductionCategory)index;
+			long given = (country.ProductionShares[index] * CFixed15.FromInt(country.TotalIc)).ToThousandths().Raw;
+			long over = given - Spent(country, category).Raw;
+			if (over > 0)
+			{
+				spare += over;
+			}
+		}
+		return (int)(spare / CFixedPoint.Scale);
 	}
 
 	private static void RunSupplies(CGameState state, CCountry country, CGoodsPool stockpile)

@@ -83,6 +83,18 @@ public class ClausewitzParserTests
 	}
 
 	[Fact]
+	public void ABackslashOnItsOwnIsStillASeparator()
+	{
+		// A few paths forget to double one or two of theirs, and still name a file that
+		// is there: only a doubled backslash is an escape.
+		ClausewitzNode root = ClausewitzParser.Parse(
+			"""spriteType = { texturefile = "gfx\mapitems\resources\\a_small.tga" }""");
+
+		Assert.Equal("gfx\\mapitems\\resources\\a_small.tga",
+			root.Get("spriteType")!.GetString("texturefile"));
+	}
+
+	[Fact]
 	public void SkipsCommentsAnywhere()
 	{
 		ClausewitzNode root = ClausewitzParser.Parse("""

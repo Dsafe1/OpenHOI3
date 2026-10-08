@@ -8,22 +8,6 @@ using OpenHOI3.Sim;
 
 namespace OpenHOI3.Content;
 
-/// <summary>A province's place on the raster: its pixel bounding box and how much of it there is.</summary>
-public readonly record struct CProvinceShape(int MinX, int MinY, int MaxX, int MaxY, int PixelCount)
-{
-	public bool IsEmpty => PixelCount == 0;
-
-	/// <summary>The centre of the bounding box, which is the original's default position.</summary>
-	public int CentreX => (MinX + MaxX) / 2;
-
-	public int CentreY => (MinY + MaxY) / 2;
-}
-
-/// <summary>A connection the raster cannot show, from <c>adjacencies.csv</c>.</summary>
-/// <param name="Kind">As written: <c>sea</c> for a strait, <c>canal</c> or <c>river</c>.</param>
-/// <param name="Through">The sea province a strait crosses, or 0 when the row names none.</param>
-public readonly record struct CExplicitAdjacency(int From, int To, string Kind, int Through);
-
 /// <summary>
 /// The map as geography: which province every point belongs to, and which provinces
 /// touch. None of it changes during a game, which is why it is not part of the game

@@ -129,6 +129,16 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 	Compare("country capital", node.GetInt("capital") == country.Capital,
 		() => $"{tag}: save {node.GetInt("capital")}, ours {country.Capital}");
 
+	// Nothing moves national unity here, and in the save foreign spies have had two
+	// days at it - a thousandth or two a day. So it is the history's whole number
+	// that is compared.
+	if (CFixedPoint.TryParse(node.Get("national_unity")?.Value, out CFixedPoint savedUnity))
+	{
+		long nearest = (savedUnity.Raw + CFixedPoint.Scale / 2) / CFixedPoint.Scale;
+		Compare("country national unity, to the nearest whole number", nearest == country.NationalUnity.ToInt(),
+			() => $"{tag}: save {savedUnity}, ours {country.NationalUnity}");
+	}
+
 	foreach (string seat in seats)
 	{
 		string ours = country.Government.TryGetValue(seat, out CMinister? minister)
@@ -261,6 +271,10 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 		country.ProductionShares[i] = Share(shares[i].Value);
 	}
 }
+
+// The save is two days in, and a day begins by working out who has which strategic resource.
+CTick.RunEntryPass(state);
+CStrategicResources.Update(state);
 CTick.RunEntryPass(state);
 
 // A share is written with five decimals; the nearest value with fifteen binary places is it.
@@ -489,12 +503,17 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 // before strategic resources count, and the two days after.
 HashSet<string> landowners = CManpower.Landowners(state);
 var startingManpower = new Dictionary<string, CFixedPoint>();
-CCountryModifiers.Rebuild(state, strategicResources: false);
+foreach (CCountry country in state.Countries)
+{
+	country.StrategicResources.Clear();                  // none is worked out until the first day is run
+}
+CCountryModifiers.Rebuild(state);
 CManpower.UpdateMost(state);
 foreach ((ClausewitzNode _, CCountry country) in savedCountries)
 {
 	startingManpower[country.Tag.Value] = CManpower.AtStart(state, country, landowners.Contains(country.Tag.Value));
 }
+CStrategicResources.Update(state);
 CTick.RunEntryPass(state);
 foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 {

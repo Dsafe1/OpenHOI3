@@ -94,6 +94,9 @@ public sealed class CGameState
 	/// <summary>The theories and practicals there are, in the order the file lists them.</summary>
 	public IReadOnlyList<CTechnologyCategory> TechnologyCategories { get; }
 
+	/// <summary>The folders technologies are sorted into for the player, in the order the file lists them.</summary>
+	public IReadOnlyList<string> TechnologyFolders { get; init; } = Array.Empty<string>();
+
 	/// <summary>The numbers out of <c>common/defines.lua</c>.</summary>
 	public CDefines Defines { get; }
 

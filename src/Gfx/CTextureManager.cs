@@ -32,6 +32,15 @@ public sealed class CTextureManager
 		return LoadFromGamePath(sprite.TextureFile);
 	}
 
+	/// <summary>
+	/// Whether the install has that picture, under the extension given or another it is
+	/// known by. For a name built at run time, where its absence is no fault.
+	/// </summary>
+	public bool Exists(string gameRelative)
+	{
+		return _directories.ResolveTexture(gameRelative) is not null;
+	}
+
 	public Texture2D? LoadFromGamePath(string gameRelative)
 	{
 		string? absolute = _directories.ResolveTexture(gameRelative);

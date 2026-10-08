@@ -483,6 +483,41 @@ public class ResearchTests
 	}
 
 	[Fact]
+	public void WhatEachProjectWouldBeGivenIsWhatADayGivesIt()
+	{
+		CCountry country = Country();
+		var needsOther = new CResearchCondition(EResearchCondition.All);
+		needsOther.Children.Add(new CResearchCondition(EResearchCondition.TechnologyLevel, "a", CFixedPoint.One));
+		CGameState state = State(country, Technology("a"), Technology("blocked", allow: needsOther), Technology("c"),
+			Technology("d"));
+		country.ResearchQueue.AddRange(new[] { "a", "blocked", "c", "d" });
+
+		Dictionary<string, CFixedPoint> given = CResearch.ShareOut(state, country,
+			CFixed15.FromThousandths(CFixedPoint.Parse("1.5")));
+
+		Assert.Equal(CFixedPoint.One, given["a"]);
+		Assert.Equal(CFixedPoint.Zero, given["blocked"]);                 // keeps its place and takes nothing
+		Assert.Equal(CFixedPoint.Parse("0.5"), given["c"]);
+		Assert.False(given.ContainsKey("d"));                             // the leadership ran out before it
+		Assert.Empty(country.ResearchLeadership);                         // asking changes nothing
+	}
+
+	[Fact]
+	public void TheDaysALevelTakesAreWhatIsLeftOverADaysGainAndOne()
+	{
+		CCountry country = Country();
+		CTechnology technology = Technology("a");
+		CGameState state = State(country, technology);
+
+		// 218 of 32768 a day: 150 whole days, and the one that finishes it.
+		Assert.Equal(151, CResearch.DaysToFinish(state, country, technology, CFixedPoint.One));
+
+		country.ResearchProgress["a"] = new CFixed15(CFixed15.Scale / 2);
+		Assert.Equal(76, CResearch.DaysToFinish(state, country, technology, CFixedPoint.One));
+		Assert.Equal(-1, CResearch.DaysToFinish(state, country, technology, CFixedPoint.Zero));
+	}
+
+	[Fact]
 	public void TheQueueIsSetByACommandThatRefusesWhatCannotBeResearched()
 	{
 		CCountry country = Country();

@@ -18,25 +18,33 @@ one-way converter, with "our format stays clean" as the test. A session reading 
 repository's history will find that stance everywhere; it is no longer the one to apply.
 
 **The tree is early and provisional.** What exists is one iteration - a Clausewitz reader, an
-install layerer, texture and font decoding, the map with the start-date ownership and
+install layerer, texture decoding, the map with the start-date ownership and
 terrain of its provinces, a map view, fixed-point numbers, the command queue, an hourly tick
-whose daily pass rebuilds each province's and each country's modifier, adds to its manpower,
+whose daily pass works out who has which strategic resource, rebuilds each province's and each country's modifier, adds to its manpower,
 works out its leadership, its IC and its home production, adds that to its stockpile and runs
 its six shares of IC and its four of leadership, research among them, a tool that checks all
-of it against savegames, 357 tests -
-and it is
+of it against savegames, an interface runtime that builds windows from the original's `.gui`
+files and draws their text in outline fonts, three screens on it - the top bar, production
+and technology - 544 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
-## Three projects, and which way they may reference
+## Four projects, and which way they may reference
 
-Split on 2026-10-07, so that the simulation can run headless and under test:
+Split on 2026-10-07, so that the simulation can run headless and under test; the fourth
+was added on 2026-10-08 with the interface, for the same reason:
 
 | project | what it is | may reference |
 | --- | --- | --- |
 | `lib/OpenHOI3.Sim` | the model and the simulation | **nothing** - not Godot, not `Content` |
-| `lib/OpenHOI3.Content` | reading an install: the Clausewitz format, layering, localisation, the loaders | `Sim` |
-| `OpenHOI3.csproj`, with `src/` | the Godot client: scenes, drawing, input, texture and font decoding | both |
+| `lib/OpenHOI3.Content` | reading an install: the Clausewitz format, layering, localisation, the loaders, the `.gui` declarations | `Sim` |
+| `lib/OpenHOI3.Interface` | what the screens show, with no engine: the text of each figure as the original writes it, colour escapes, where an element goes | `Sim`, `Content` |
+| `OpenHOI3.csproj`, with `src/` | the Godot client: scenes, drawing, input, texture decoding, typefaces, the live interface | all three |
+
+**A screen is two halves.** What it says is a class in `OpenHOI3.Interface` - `CTopBarText` -
+tested against the original's own strings; the class in `src/Screens/` finds the elements by
+the original's names and sets them. Keep doing that: a format or a colour that lives only in
+the client can only be checked by looking.
 
 **Nothing under `lib/` may reference Godot** - not for a `Color`, not for a log call. That is
 the whole point of the split, and one `using Godot;` there undoes it: the tests stop being a
@@ -98,6 +106,18 @@ Decided 2026-10-07. The `.gui` files are neither discarded nor translated once o
 because mods ship their own - BlackICE changes all 33 it shares with Their Finest Hour and
 adds 20.
 
+**Built 2026-10-08, as far as three screens need.** `docs/mechanics/interface.md` is the
+spec, and `topbar.md`, `countryviews.md`, `sliders.md`, `productionscreen.md` and
+`technologyscreen.md` the screens'; `lib/OpenHOI3.Content/Gui` reads the files, `src/Gui`
+builds windows, icons, buttons, text boxes, scrollbars, list boxes and boxes of
+overlapping elements from them, and `src/Screens` holds the screens. Edit boxes and
+shields are read and not drawn. **The two later screens were built from a reading nothing
+checked against a running game.** The maintainer tried them twice on 2026-10-08 and
+what was wrong is mended - the readme's *Next up* and *Loose ends* say what is left.
+**When something on screen is a unit or two from the original, measure a screenshot
+against the art and read the routine**; two guesses at where centred text goes were
+wrong before the font's own arithmetic was read. What follows is the reasoning, which still holds.
+
 - **The files do not assume a screen size.** Every element has a pixel size, a pixel position
   and an `orientation` naming the corner or centre of its parent the position is measured from.
   184 of the 1573 orientations in Their Finest Hour's 36 files are something other than
@@ -114,8 +134,30 @@ adds 20.
   write-ups - `reversing/findings/FINDINGS-gui.md`, `reversing/findings/FINDINGS-guistatic.md`,
   `reversing/findings/FINDINGS-guicontainers.md`, `reversing/findings/FINDINGS-guilive.md` -
   are where the element kinds and the lookup rules are.
-- **Bitmaps do not gain detail, so a texture may be supplied at any resolution.** Icons and the
-  original's bitmap fonts soften when enlarged; the answer is that a mod can ship a sharper
+- **The original's bitmap fonts are not drawn.** The maintainer's decision, 2026-10-08, on
+  seeing the top bar scaled: glyphs a dozen pixels high cannot be enlarged into anything
+  readable, so the old font system is replaced. A font is still *named* exactly as the
+  files name it - `font = "Arial12"`, a `bitmapfont` entry, a `.fnt` in `gfx/fonts` - and
+  the `.fnt` is still read, for three things: the typeface its `info` line says the
+  glyphs were made from, how wide its characters came out, and the height of a line.
+  The typeface is then drawn as outlines at the size that reproduces those widths, so
+  text fits the boxes the `.gui` files give it. A `.ttf` or `.otf` of the font's name
+  beside the descriptor is used first, which is how a mod supplies one and stays valid
+  in the original; otherwise an open typeface from `fonts/` that stands for the one
+  named, narrowed to fit where its letters are wider. **Do not bring the glyph textures
+  back**, and do not size text from a descriptor's `size` figure - two copies of one
+  font disagree on it. `docs/mechanics/interface.md`, section 6.
+- **Typefaces are shipped, and nothing is taken from the machine.** The maintainer's
+  word, 2026-10-08: "I dont want a software that depends on the local pc installs." So
+  no `SystemFont`, no lookup of an installed font by name, and `allow_system_fallback`
+  off on every typeface, in its `.import` file and in code - a character a typeface
+  lacks stays missing. Everything drawn comes from `fonts/` or from a mod's own
+  `gfx/fonts`. Those files are open typefaces under the SIL Open Font License, which is
+  why they may be here when the original's may not: **a font goes in `fonts/` only with
+  its licence text beside it and a row in `fonts/readme.md` saying where it came from**,
+  and never one extracted from an install or copied from a system folder.
+- **Bitmaps do not gain detail, so a texture may be supplied at any resolution.** Icons
+  soften when enlarged; the answer is that a mod can ship a sharper
   file, and the runtime works in ratios of the texture rather than in its pixel counts. Two
   things follow from how the files are written:
   - *An element's size on screen must never come from a replacement's pixel count.* Icons,
@@ -124,14 +166,17 @@ adds 20.
     was designed at. **How is not decided** (2026-10-07). The leading idea is that the
     original file stays as the size reference and a sharper one overrides its pixels from a
     higher layer, which needs no new syntax and leaves the mod valid in the original.
+    **The runtime as built does the thing this warns against**: an icon or a button is the
+    pixel size of whatever texture loaded. Right for the original's art, wrong the day a
+    sharper file is dropped in, and it is in the readme's *Loose ends* until this is decided.
   - *Sprite sheets need no naming scheme.* A sheet declares its frame count in the `.gfx`
     entry (`noOfFrames`, on 226 of about 1,300 `spriteType` entries), so a frame is the
     texture's width divided by that count at any resolution. The pixel-valued sprite keys -
     `size` and `borderSize` on the cornered-tile, tile and progress-bar kinds - scale by the
     same ratio as the texture they describe.
 - **There is prior art in history.** `src/Gui/` and `src/FrontEnd/` ran the original's main menu
-  from its `.gui` files and were removed in commit `4269708`. Start from `src/Gui/`; the lobby
-  that `src/FrontEnd/` drove is not coming back.
+  from its `.gui` files and were removed in commit `4269708`. Today's `src/Gui/` started from
+  that one; the lobby that `src/FrontEnd/` drove is not coming back.
 
 ## What this repository may not do
 
@@ -149,7 +194,7 @@ adds 20.
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 89 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 93 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -180,11 +225,12 @@ Two things the reverse engineering established that are worth knowing regardless
   vftable addresses and is not for this project.
 - **The data formats carry a lot of accidental history.** Interface files name textures with the
   wrong extension; font descriptors declare a texture page and then omit the line naming it; a
-  scrollbar definition has its arrow sprites swapped; a map editor is present but hidden behind
+  scrollbar that runs up and down is read from the bottom, so its definition looks as though
+  its arrow sprites are swapped; a map editor is present but hidden behind
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 2490-address, 292-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 2589-address, 301-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -215,6 +261,27 @@ beside the repository.
 ## Always
 
 - **Never commit unless asked.**
+- **Every class in its own file, named after it.** The maintainer's instruction,
+  2026-10-08, after finding several to a file. It covers every top-level type - a class, a
+  record, a struct, an enum, an interface - in `lib/`, `src/`, `tools/` and `tests/` alike,
+  so a small enum or a one-line record that only one class uses still gets its own file. A
+  type nested inside another stays where it is. A new file under `src/` needs the `.uid`
+  file Godot writes beside it: run the editor's import once and add it.
+- **After creating `.cs` files from outside the editor, `touch` the project file that owns
+  them.** VS Code's C# language server did not notice 34 files a script created on
+  2026-10-08 and reported `CS0246` for every type that had moved, while `dotnet build` was
+  clean. Changing a `.csproj`'s timestamp makes it reload the project and find them; so
+  does *.NET: Restart Language Server*. Seen once, so whether it misses every file made
+  outside the editor or only a burst of them is not known.
+- **A deliberate departure from the original goes in `docs/compatibility.md`, in the
+  session it is decided.** The maintainer's word, 2026-10-08: "maybe we should start
+  tracking our decisions on what was deliberately changed in terms of compatibility."
+  It is for decisions - a file that is valid in the original and that here means
+  something else, or nothing, because somebody chose that - with who chose, when, what
+  a mod loses and what would undo it. It is not for what is unbuilt (*Loose ends*) or
+  for what nobody has read (a spec's **Ours**). When the maintainer settles a question
+  like "keep ours or read the file's", the entry is written before the session ends,
+  and a reversed decision is struck through, not deleted.
 - **Keep `readme.md`'s *Next up* and *Loose ends* current.** They are what a session with no
   memory of the last one starts from. When a piece of the plan lands, move it out of *Next
   up* and into *Where things stand*; when something is deferred, it goes under *Loose ends*.
@@ -230,7 +297,7 @@ beside the repository.
   on, so a comparison that matters should say which dates it was run against.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research and manpower carry 357 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, the interface files, font descriptors, the sliders and the three screens' figures carry 544 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

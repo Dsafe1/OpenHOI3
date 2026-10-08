@@ -9,6 +9,8 @@ namespace OpenHOI3.Tests;
 /// </summary>
 public class ManpowerTests
 {
+	private static readonly CBuilding Infra = new(0, "infra", 10, "infrastructure", CFixedPoint.Parse("0.1"));
+
 	private static CModifier Modifier(string name, params (string Kind, string Value)[] values)
 	{
 		var modifier = new CModifier(name);
@@ -82,7 +84,7 @@ public class ManpowerTests
 		defines.Set("military", "MAX_MANPOWER", CFixedPoint.Parse(years));
 		var technologies = new[] { new CTechnology("agriculture", 12, Modifier("agriculture", ("manpower_gain", "0.1"))) };
 		var resources = new[] { Modifier("black_soil", ("global_manpower_modifier", "0.1")) };
-		return new CGameState(date ?? new CDate(1936, 1, 1), all, countries, technologies: technologies,
+		return new CGameState(date ?? new CDate(1936, 1, 1), all, countries, new[] { Infra }, technologies,
 			staticModifiers: statics, defines: defines, wars: wars, strategicResources: resources);
 	}
 
@@ -295,11 +297,15 @@ public class ManpowerTests
 		CCountry soviet = Country("SOV", 1, law: "-0.5");
 		CProvince poltava = Land(1, "SOV", "100");
 		poltava.StrategicResource = "black_soil";
+		poltava.SetBuildingLevel(Infra, CFixedPoint.FromInt(6));
 		CGameState state = State(new[] { soviet }, new[] { poltava });
 		CManpower.SetAtStart(state);
 
 		Assert.Equal(CFixedPoint.FromInt(540), soviet.Manpower);             // 100 x 0.5 + 4
-		Assert.Equal(CFixedPoint.FromInt(640), soviet.MaxManpower);          // 100 x 0.6 + 4, from then on
-		Assert.Equal(CFixedPoint.Parse("5.333"), soviet.MonthlyManpower);
+		Assert.Equal(CFixedPoint.Parse("4.5"), soviet.MonthlyManpower);
+
+		// Nobody has the use of a resource until a day has been run.
+		RunDays(state, 1);
+		Assert.Equal(CFixedPoint.Parse("5.333"), soviet.MonthlyManpower);    // 100 x 0.6 + 4, from then on
 	}
 }

@@ -10,7 +10,7 @@ install on 2026-10-07. Where this project chooses its own behaviour the paragrap
 Sources: `reversing/CLASSES.md` (*Modifiers*, *buildings.txt, key by key*),
 `reversing/findings/FINDINGS-revolt.md` (section 3),
 `reversing/findings/FINDINGS-leadership.md` (sections 7 to 9),
-`reversing/findings/FINDINGS-manpowergain.md` (section 6),
+`reversing/findings/FINDINGS-countrymodifier.md` (all of section 4 to 6 here),
 `reversing/findings/FINDINGS-occupation.md`
 (section 1.4), `reversing/findings/FINDINGS-espionage.md`,
 `reversing/findings/FINDINGS-startup.md` (section 7), `reversing/findings/FINDINGS-definitions.md`.
@@ -70,7 +70,14 @@ be in it**: `head_of_state = power_hungry_demagogue`. The ten positions are in
 
 So a minister contributes **the modifier of the type he has for the position he holds** -
 the same man is a different modifier as head of state than as head of government.
-`inferred` from the files; the code that resolves it has not been read.
+`confirmed`; and one seated where he was declared no type for adds nothing.
+
+**A minister type has one key of its own, `decay`**: a block naming technology categories,
+each with how much the type adds to that category's monthly decay (section 4).
+
+**Factions.** A country's history file puts it in one with `join_faction = <name>` and takes
+it out with `leave_faction`. (measured) **Majors.** A country's own file under
+`common/countries/` says `major = yes` for the seven of them. (measured)
 
 ## 3. A province's modifier
 
@@ -109,81 +116,156 @@ whenever something that feeds it changes - a building's level, for one.
 ## 4. A country's modifier
 
 The country has a rebuild of the same shape, called after anything that could change the
-answer. **Most of what it adds is not established**: the routine is long and only four
-parts of it have been read. `confirmed` for these:
+answer. It has been read from end to end. **It clears the modifier and adds these, in this
+order**; `confirmed` throughout.
 
-- **It starts from `base_values`, added whole.** That is how every country comes to have
-  3.5 leadership, 4 manpower and its two demands for consumer goods before anything of its
-  own is counted.
-- **Its faction's modifier comes next**, when it is in one.
-- **The whole modifier of every province it controls is added to it**, value for value. So
-  anything a province's modifier holds reaches its controller's, once for each province -
-  the country-wide kinds included. The local kinds come along too; nothing reads them off
-  a country.
-- **Espionage**: another country's spies on the "lower national unity" and "raise national
-  unity" missions each contribute a static modifier scaled by their strength - which is why
-  national unity moves the moment a spy is placed, rather than drifting daily.
+1. **`base_values`**, whole. That is how every country comes to have 3.5 leadership, 4
+   manpower and its two demands for consumer goods before anything of its own is counted.
+2. **Its faction's own modifier**, when it is in one. What a faction's modifier is loaded
+   from has not been read.
+3. **Each minister in its government, as the minister type he has for the seat he holds.**
+   The same man is a different modifier in a different seat; one seated where he was
+   declared no type for adds nothing.
+4. **Each of its laws.**
+5. **Its government**, which is a modifier too. In Their Finest Hour no government declares
+   anything but which ideologies and positions it allows, so this adds nothing there.
+6. **Each strategic resource it has the use of, multiplied by how much of it it has**
+   (section 6).
+7. **The whole modifier of every province it controls**, value for value. So anything a
+   province's modifier holds reaches its controller's, once for each province. The local
+   kinds come along too; nothing reads them off a country.
+8. **`war` if it is at war with anybody, otherwise `peace`.**
+9. **Espionage**: another country's spies on the "lower national unity" and "raise national
+   unity" missions each contribute a static modifier scaled by their strength.
+10. **`war_exhaustion`, multiplied by its war exhaustion.**
+11. **`dissent`, multiplied by its dissent.** What `static_modifiers.txt` gives is for one
+    point: `global_ic = -0.01` there is 1% of IC for each point of dissent.
+12. **`neutrality`, multiplied by its effective neutrality over 100** - its neutrality less
+    the threat it feels from the country that threatens it most, never below nothing.
+13. **Its event modifiers**: what an event or a decision gave it, each with a date it lasts
+    until. One whose date has passed is dropped here; one dated in year 1 never ends.
+14. **Its triggered modifiers** (section 5).
+15. For a subject that is in no faction while its overlord is: the overlord's faction's
+    `align_towards_...` modifier.
+16. **A difficulty block**: `very_easy_player`, `easy_player`, nothing, `hard_player` or
+    `very_hard_player` for a country somebody plays, and the four `..._ai` blocks for one
+    nobody does. Normal adds nothing either way.
+17. `government_in_exile`, for one.
+18. `fractured_government`, on a test that has not been read.
 
-That laws and ministers are added to it is `inferred`: they are modifiers, a country has
-them, and nothing else could make a law's `global_ic` reach the IC calculation, which reads
-the country's modifier and nothing else.
-
-Two more sources are (measured) from the savegame and have not been read:
-
-- **Strategic resources.** `common/strategic_resources.txt` gives each resource a modifier,
-  and a province's history file may name one. Gold is `global_money = 0.33`, three provinces
-  have gold, and the three countries that hold them - the Netherlands, the Philippines and
-  South Africa - are exactly the three whose daily money is a third of base more than their
-  laws give. The Dutch gold is in the East Indies, so the province need not be joined to
-  the capital. Whether a resource counts once or once a province, and whether it is
-  holding or owning the province that matters, is **not established**: no country has two
-  of one, and nobody holds another's. `likely` it comes in with the province's modifier,
-  above, which would make it once a province and the controller's; the step that would put
-  a resource into a province's modifier was looked for and not found. **It is not there
-  when a new game is set up**: the two countries with black soil start with manpower
-  worked out without it (`manpower.md`, section 4).
-- **Triggered modifiers.** `common/triggered_modifiers.txt` declares modifiers that apply
-  while a condition holds. Five countries' leadership fits only with one each
-  (`leadership.md`, section 8), ninety countries' research fits only with `neutrality`,
-  which takes 5% off research for a country in none of the factions (`research.md`,
-  section 8), and France's manpower only with `population_crisis` (`manpower.md`,
-  section 6).
-- **Event modifiers.** `common/event_modifiers.txt` declares modifiers an event or a
-  decision gives a country for a time. The United States has one two days into a game,
-  from a decision its AI takes at once, and its manpower fits only with it.
-
-**Measured against a savegame of the original**, 2026-10-07: with a country's modifier taken
-as its laws and ministers and nothing else, its home production of crude oil - which is
-its provinces' yield times `1 + global_resources` - comes out right to the thousandth for
-all 20 countries that produce any. So for `global_resources` at least, at the start of a
-game, **laws and ministers are the whole of it.** See `resources.md`.
+**An ideology adds nothing.** **Technology is kept apart**: the IC calculation reads its
+technology bonus beside the modifier, and so do resource production, leadership and
+manpower.
 
 **`base_values` is also read directly by the IC calculation**, which takes its `ic`
 straight from it and adds it before the base is truncated (`ic.md`, section 3).
 
-**Not established:** whether ideology and government add to the country's modifier; how the
-difficulty, war and peace static modifiers are chosen. Technology is kept *apart* from the
-modifier: the IC calculation reads its technology bonus separately, and so do resource
-production and leadership.
+**A minister also changes how fast a country forgets.** A minister type may carry
+`decay = { a_category = -0.25 }`. The rebuild adds that, for each sitting minister's type
+in his seat, to the country's figure for the category, which the monthly decay of theories
+and practicals multiplies by (`research.md`, section 7). `confirmed`, and (measured): 140
+more monthly ability figures in the savegames agree once it is counted.
 
-## 5. Ours
+## 5. Triggered modifiers
+
+`common/triggered_modifiers.txt` declares modifiers with two conditions each, `potential`
+and `trigger`. `confirmed`:
+
+- **Once a day, for every country, straight before its modifier is rebuilt**, each entry
+  of the file is tested in file order. One whose `potential` and `trigger` both hold joins
+  the country's list; one on the list for which they no longer both hold leaves it.
+- The same test runs on entering a game.
+- The rebuild adds whatever is on the list. So a triggered modifier is on or off from the
+  day its conditions change.
+
+The conditions are the script's, which this project does not evaluate yet. (measured) Five
+countries' leadership fits only with one each (`leadership.md`, section 8), ninety
+countries' research only with `neutrality`, which takes 5% off research for a country in
+none of the factions (`research.md`, section 8), and France's manpower only with
+`population_crisis` (`manpower.md`, section 6).
+
+## 6. Strategic resources
+
+`common/strategic_resources.txt` gives each resource a modifier, and a province's history
+file may name one. `confirmed` unless marked.
+
+**How much a province gives.**
+
+    standing   = infrastructure * (1 + LOCAL_INFRASTRUCTURE + GLOBAL_INFRASTRUCTURE)
+    standing   is never counted as less than 0.01 nor as more than 1
+    efficiency = standing / what the province's infrastructure was built to
+
+- The figures are the province's own modifier's. **So a resource is worth the share of its
+  province's infrastructure that is still standing**: all of it in an undamaged province,
+  less in a bombed one.
+- **A province with no infrastructure gives nothing.**
+- One more province modifier value is added to the efficiency flat. Which script key sets
+  it has not been established; nothing in Their Finest Hour's files looks like it.
+
+**How much a country has.** For each resource, the best efficiency among the provinces
+that have it and whose controller's resources the country is given.
+
+- **So a resource counts once**, however many provinces of it there are.
+- **The figure is only ever raised** where it is worked out: `confirmed`. **That nothing
+  else lowers it is `likely`**, not confirmed: a search of the original found no other
+  place that writes it but the one that sets every country back to nothing when a session
+  is reset, and it has not been watched in a running game. If it holds, a country that
+  loses the province keeps the resource at the best it ever had it, which reads like an
+  oversight.
+- A country that owns no province gets none.
+- The country's modifier takes the resource's modifier with every value multiplied by the
+  figure, each product dropping what does not fit.
+
+**Whose resources a country is given.** Its own, always. Another country's when the two
+are not at war with each other and one of these holds:
+
+- it is a **major** - its own file says `major = yes` - **or has more than 100 base IC**,
+  and the two are in the same faction;
+- it is the **leader of a faction and at war**, the other is *not* in that faction, and the
+  other's alignment is within `FACTION_STRAT_BONUS_DIST` of it;
+
+and then one of these:
+
+- their capitals are on the same continent;
+- both have a naval base beside the same sea region. The arithmetic of this was read and
+  what a region is here was not.
+
+(measured) France holds black soil in Indochina. The United Kingdom, a major in the same
+faction with its capital in the same continent, gains manpower with black soil's 10% from
+the first day; nobody else does. Gold is in the Netherlands', the Philippines' and South
+Africa's hands, none of them in a faction with a major on its own continent, and those
+three are exactly the countries whose money shows it.
+
+**When.** At the start of every day, before any country's own work; and after a game is
+loaded. **Not when a new game is entered**: no country has the use of any resource until
+the first day is run, which is why a new game's starting manpower leaves black soil out
+(`manpower.md`, section 4).
+
+## 7. Ours
 
 - **A modifier is a set of named values**, holding only the kinds that are not zero. The
   kinds are not a closed list yet: with no list of the 143 in prose, any key that is not
   one of a block's own is taken as a modifier. So a misspelt modifier is *not* reported
   yet, which is the opposite of what this project wants, and it stays a loose end until the
   list exists.
-- **A country's modifier is `base_values`, its seven laws, its ten ministers and its
-  strategic resources, summed.** Nothing else feeds it yet. Its technology is summed
-  separately, beside it.
-- **A strategic resource counts once, for whoever controls a province that has it.** Both
-  halves of that are this project's reading of the three cases the savegame has. It is
-  left out once, as the original leaves it out: when a new game works out what manpower a
-  country starts with.
-- **It is rebuilt once a day, before IC, and on entering a game** - not at each change.
-  Rebuilding is cheap, and doing it on a schedule cannot be forgotten at a call site. The
-  cost is that a change takes effect at midnight rather than at once; when something needs
-  it sooner, that thing's command rebuilds it.
+- **A country's modifier is steps 1, 3, 4, 6, 7, 8 and 11 of section 4**: `base_values`,
+  its ministers, its laws, its strategic resources, its provinces' modifiers, `war` or
+  `peace`, and `dissent`. The rest wait for what they need: factions' modifiers,
+  governments', espionage, war exhaustion, neutrality, events and decisions, the script's
+  conditions, subjects, a difficulty setting and governments in exile.
+- **Strategic resources are shared within a faction as the original shares them**, to a
+  major or a country with more than 100 base IC whose capital is on the holder's
+  continent. The other two roads are not built: the faction leader at war needs alignment,
+  and the sea-region link needs to know what a region is.
+- **Nothing damages infrastructure yet**, so every province with any gives its resource
+  whole, and the one unidentified modifier value is taken as nothing.
+- **A country's faction is what its history file says** with `join_faction` and
+  `leave_faction`. The original also puts a faction leader's subjects in its faction, and
+  subjects are not read.
+- **It is rebuilt once a day and on entering a game** - not at each change. Rebuilding is
+  cheap, and doing it on a schedule cannot be forgotten at a call site. The cost is that a
+  change takes effect at midnight rather than at once; when something needs it sooner,
+  that thing's command rebuilds it.
 - **A province's modifier is its buildings, `overseas` and `non_core`**: steps 1 to 3 of
   the nine, without `blockaded`. It is rebuilt once a day, before the country's, and on
   entering a game. Steps 4 to 9 arrive with the systems they belong to.
@@ -194,13 +276,10 @@ production and leadership.
 ## What is not established, in one place
 
 - the **list of the 143 modifier kinds**, in a form this project may read;
-- what the **country's rebuild** adds, beyond `base_values`, the faction, its provinces'
-  modifiers and espionage: where laws, ministers, strategic resources and triggered and
-  event modifiers come in, and in what order;
-- whether a **strategic resource** counts once or once a province, and for the controller
-  or the owner; and why it is missing when a new game is set up;
+- what a **faction's own modifier** is loaded from;
+- what a **region** is in the link that lets two countries on different continents share
+  a strategic resource, and which script key sets the value added to a province's
+  efficiency;
+- the test for **`fractured_government`**;
 - what marks the edge of an **area**: whether it is land a country owns or controls, and
-  whether a strait joins two;
-- how a **minister's type for his position** is resolved, and what `decay` on a minister
-  type does;
-- how the **difficulty, war and peace** static modifiers are selected.
+  whether a strait joins two.

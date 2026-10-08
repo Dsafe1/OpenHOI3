@@ -61,6 +61,12 @@ section 2). Then, **in queue order, while any allocation is left**:
 The leadership given is turned into thousandths, rounded down, before the gain is worked
 out, and is what the savegame records beside each technology.
 
+*Ours:* the technology screen asks the same question without running a day - what would
+each project be given now - so that its queue is right the moment it is changed
+(`CResearch.ShareOut`). `confirmed` And the days a level will take are what is left of it
+over a day's gain, and one; no day at all when a day gains nothing
+(`CResearch.DaysToFinish`; `technologyscreen.md`, section 6).
+
 ## 3. What a day adds
 
 For the level being researched - one more than the country has:
@@ -172,10 +178,12 @@ On the first of each month every ability of every country shrinks: `confirmed`
     ability = ability * (1 + step)
 
 - `BASE_TECH_DECAY` is a define, -0.025 in Their Finest Hour: 2.5% a month.
-- **The category's decay modifier** is what the country's technologies' `decay` entries
-  add up to for that category - fourteen technologies have one, each taking a tenth off a
-  category's decay a level. A modifier of -1 or less stops the decay; it cannot turn it
-  into a gain.
+- **The category's decay modifier** is two things added together: what the `decay` of each
+  sitting minister's type gives the category - 24 minister types have one, most taking a
+  quarter off one category - and what the country's technologies' `decay` entries add up
+  to for it - fourteen technologies have one, each taking a tenth off a category's decay a
+  level. It is worked out when the country's modifier is rebuilt (`modifiers.md`, section
+  4). A modifier of -1 or less stops the decay; it cannot turn it into a gain.
 - **`slack` is the reinforcement share plus the upgrade share** of the country's IC
   (`production.md`, section 1): the positions of the two sliders, whether or not anything
   is spent through them. A country with a tenth of its IC on each loses a fifth less.
@@ -205,8 +213,6 @@ progress needs.
 - **A level's effect applies at once**, by rebuilding the country's technology totals.
 - **Nothing is shared between countries**, and the custom-game ceiling on a technology's
   level is not there.
-- **A minister's `decay`** is not applied. Minister types carry the key; how the original
-  combines it with the technologies' is not established.
 - **A history file's abilities and levels are taken as written.** (measured: the savegame
   of 1 January has every country's abilities exactly as its history file gives them, 1316
   of 1316.)
@@ -219,9 +225,13 @@ the five decimals the save prints.
 
 | from | to | days | technologies that agree |
 | --- | --- | --- | --- |
-| 1 February | 1 March | 28 | 156 of 158 |
-| 1 March | 1 April | 31 | 127 of 131 |
+| 1 February | 1 March | 28 | 231 of 233 |
+| 1 March | 1 April | 31 | 273 of 280 |
 | 1 April | 20 April | 19 | 375 of 376 |
+
+The first two rows compared 158 and 131 technologies before ministers' `decay` was counted:
+a technology is left out where an ability its cost depends on does not match the save, and
+many more abilities match now.
 
 The few that do not are countries whose queue or shares the AI moved between the two
 saves. Technologies that finished a level in between, or whose leadership or cost changed,
@@ -230,22 +240,24 @@ are left out and counted.
 - **One thing is given by hand to get there.** `common/triggered_modifiers.txt` has a
   modifier, `neutrality`, that takes 5% off the research efficiency of every country in
   none of the three factions - ninety of them in early 1936. Triggered modifiers are not
-  applied by this project yet (`modifiers.md`, section 4), so the tool adds that one itself,
+  applied by this project yet (`modifiers.md`, section 5), so the tool adds that one itself,
   from the file's figure and the save's factions. Without it only the factions' members
   fit, and everyone else is 5% fast.
 - **The rough square root is needed**: with a true one in its place, ten of the 375 stop
   agreeing.
-- **The decay** agrees to the thousandth for 933 of 983 abilities over February and 911 of
-  1084 over March, with the slack taken from the later save's shares of IC. What does not
-  agree is whole countries at a time, whose shares the AI moved in the hour between the
-  decay and the save.
+- **The decay** agrees to the thousandth for 1067 of 1123 abilities over February and 1042
+  of 1240 over March, with the slack taken from the later save's shares of IC and each
+  minister's `decay` counted. What does not agree is whole countries at a time - the Soviet
+  Union, France - whose shares the AI is taken to have moved in the hour between the decay
+  and the save; that has not been checked.
+- **A strategic resource reaches research**: the Soviet Union's atomic research agrees
+  only with its heavy water counted, which is worth 40% to `nuke_research`.
 
 ## What is not established, in one place
 
 - the six `allow` conditions of section 5, none of which has been read;
 - **triggered modifiers**, which make every unaligned country's research 5% slower than
   this project has it;
-- what a **minister's `decay`** does;
 - how abilities are **recomputed when a game starts**;
 - how the original **orders its technology categories**, which only matters to an
   interface.

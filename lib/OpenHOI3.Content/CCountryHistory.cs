@@ -40,7 +40,7 @@ public static class CCountryHistory
 		}
 
 		Dictionary<string, Dictionary<string, CLaw>> laws = CModifierReader.ReadLaws(directories, warn);
-		Dictionary<string, CModifier> ministerTypes = CModifierReader.ReadMinisterTypes(directories, warn);
+		Dictionary<string, CMinisterType> ministerTypes = CModifierReader.ReadMinisterTypes(directories, warn);
 		HashSet<string> positions = CModifierReader.ReadGovernmentPositions(directories, warn);
 
 		var unknownTypes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -108,6 +108,25 @@ public static class CCountryHistory
 					if (int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int capital))
 					{
 						country.Capital = capital;
+					}
+				}
+				else if (entry.Key.Equals("national_unity", StringComparison.OrdinalIgnoreCase))
+				{
+					// The original holds it between 1 and 100.
+					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint unity))
+					{
+						country.NationalUnity = CFixedPoint.Clamp(unity, CFixedPoint.One, CFixedPoint.FromInt(100));
+					}
+				}
+				else if (entry.Key.Equals("join_faction", StringComparison.OrdinalIgnoreCase))
+				{
+					country.Faction = entry.Value;
+				}
+				else if (entry.Key.Equals("leave_faction", StringComparison.OrdinalIgnoreCase))
+				{
+					if (country.Faction.Equals(entry.Value, StringComparison.OrdinalIgnoreCase))
+					{
+						country.Faction = "";
 					}
 				}
 				else if (CGoodsPool.TryParseKey(entry.Key, out EGoods goods))
@@ -190,7 +209,7 @@ public static class CCountryHistory
 	/// line per position he could hold, naming the minister type he would be in it.
 	/// </summary>
 	private static void ReadMinisters(CDirectorySettings directories, CCountry country,
-		HashSet<string> positions, Dictionary<string, CModifier> ministerTypes,
+		HashSet<string> positions, Dictionary<string, CMinisterType> ministerTypes,
 		SortedSet<string> unknownTypes)
 	{
 		string path = directories.Resolve("common/" + country.DefinitionFile);
@@ -220,7 +239,7 @@ public static class CCountryHistory
 					{
 						continue;
 					}
-					if (ministerTypes.TryGetValue(line.Value, out CModifier? type))
+					if (ministerTypes.TryGetValue(line.Value, out CMinisterType? type))
 					{
 						minister.SetType(line.Key, type);
 					}

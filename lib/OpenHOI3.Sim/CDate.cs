@@ -107,15 +107,15 @@ public readonly record struct CDate(int Year, int Month, int Day) : IComparable<
 	};
 
 	/// <summary>
-	/// The form the interface uses: <c>13:00, 1 January, 1936</c>. A date carries no
-	/// hour of its own, so the caller supplies one. The month name comes through
+	/// The form the original's top bar uses: <c>13:00 1, January 1936</c>. A date carries
+	/// no hour of its own, so the caller supplies one. The month name comes through
 	/// <paramref name="localise"/> because the string table belongs to the content
 	/// library, which this one does not reference.
 	/// </summary>
 	public string ToDisplayString(Func<string, string> localise, int hour = 0)
 	{
 		string month = MonthKey.Length == 0 ? "" : localise(MonthKey);
-		return $"{hour}:00, {Day} {month}, {Year}";
+		return $"{hour}:00 {Day}, {month} {Year}";
 	}
 
 	/// <summary>The compact form the data files themselves use.</summary>

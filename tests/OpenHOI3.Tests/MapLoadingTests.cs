@@ -4,147 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using OpenHOI3.Content;
-using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Sim;
 
 namespace OpenHOI3.Tests;
-
-/// <summary>Builds the bytes of an uncompressed bitmap, so no test needs one from an install.</summary>
-internal static class TestBitmap
-{
-	/// <param name="storedRows">Rows in the order the file stores them, each pixel as red, green, blue.</param>
-	public static byte[] Rgb24(int width, (byte R, byte G, byte B)[][] storedRows)
-	{
-		int stride = (width * 3 + 3) & ~3;
-		int height = storedRows.Length;
-		var bytes = new byte[54 + stride * height];
-		using var writer = new BinaryWriter(new MemoryStream(bytes));
-		writer.Write((byte)'B');
-		writer.Write((byte)'M');
-		writer.Write(bytes.Length);
-		writer.Write(0);
-		writer.Write(54);                                     // where the pixels start
-		writer.Write(40);                                     // info header size
-		writer.Write(width);
-		writer.Write(height);
-		writer.Write((ushort)1);
-		writer.Write((ushort)24);
-		writer.Write(0);                                      // no compression
-
-		for (int row = 0; row < height; row++)
-		{
-			for (int x = 0; x < width; x++)
-			{
-				int at = 54 + row * stride + x * 3;
-				bytes[at] = storedRows[row][x].B;
-				bytes[at + 1] = storedRows[row][x].G;
-				bytes[at + 2] = storedRows[row][x].R;
-			}
-		}
-		return bytes;
-	}
-
-	/// <param name="storedRows">Rows in the order the file stores them, each pixel a palette index.</param>
-	public static byte[] Indexed8(int width, byte[][] storedRows)
-	{
-		const int pixels = 54 + 256 * 4;                       // the palette sits between header and pixels
-		int stride = (width + 3) & ~3;
-		int height = storedRows.Length;
-		var bytes = new byte[pixels + stride * height];
-		using var writer = new BinaryWriter(new MemoryStream(bytes));
-		writer.Write((byte)'B');
-		writer.Write((byte)'M');
-		writer.Write(bytes.Length);
-		writer.Write(0);
-		writer.Write(pixels);
-		writer.Write(40);
-		writer.Write(width);
-		writer.Write(height);
-		writer.Write((ushort)1);
-		writer.Write((ushort)8);
-		writer.Write(0);
-
-		for (int row = 0; row < height; row++)
-		{
-			storedRows[row].CopyTo(bytes, pixels + row * stride);
-		}
-		return bytes;
-	}
-}
-
-public class BitmapFileTests
-{
-	[Fact]
-	public void ReadsRowsInStoredOrderAndSkipsPadding()
-	{
-		// Three pixels wide is nine bytes a row, padded to twelve.
-		byte[] bytes = TestBitmap.Rgb24(3, new[]
-		{
-			new (byte, byte, byte)[] { (1, 2, 3), (4, 5, 6), (7, 8, 9) },
-			new (byte, byte, byte)[] { (10, 20, 30), (40, 50, 60), (70, 80, 90) },
-		});
-
-		CBitmapFile bitmap = CBitmapFile.Parse(bytes);
-
-		Assert.Equal(3, bitmap.Width);
-		Assert.Equal(2, bitmap.Height);
-		Assert.Equal(9, bitmap.StoredRow(0).Length);
-		// Blue, green, red.
-		Assert.Equal(new byte[] { 3, 2, 1, 6, 5, 4, 9, 8, 7 }, bitmap.StoredRow(0).ToArray());
-		Assert.Equal(new byte[] { 30, 20, 10 }, bitmap.StoredRow(1)[..3].ToArray());
-	}
-
-	[Fact]
-	public void RefusesWhatItCannotRead()
-	{
-		Assert.Throws<InvalidDataException>(() => CBitmapFile.Parse(new byte[10]));
-		Assert.Throws<InvalidDataException>(() => CBitmapFile.Parse(Encoding.ASCII.GetBytes(new string('x', 80))));
-
-		// A file cut short must not be read past its end.
-		byte[] whole = TestBitmap.Rgb24(2, new[] { new (byte, byte, byte)[] { (1, 1, 1), (2, 2, 2) } });
-		Assert.Throws<InvalidDataException>(() => CBitmapFile.Parse(whole[..^4]));
-	}
-}
-
-public class HistoryFoldTests
-{
-	private static string Summary(string text, CDate date)
-	{
-		return string.Join(" ", CHistory.Fold(ClausewitzParser.Parse(text), date)
-			.Select(entry => $"{entry.Key}={entry.Value}"));
-	}
-
-	[Fact]
-	public void UndatedEntriesComeFirstThenDatedOnesInDateOrder()
-	{
-		// The 1935 block is written after the 1936 one and still applies before it.
-		const string text = @"
-			owner = GER
-			1936.1.1 = { owner = FRA }
-			1935.6.1 = { owner = ITA }
-			controller = GER";
-
-		Assert.Equal("owner=GER controller=GER owner=ITA owner=FRA", Summary(text, new CDate(1936, 1, 1)));
-	}
-
-	[Fact]
-	public void ABlockOnTheDateCountsAndOneAfterItDoesNot()
-	{
-		const string text = "owner = GER  1936.1.1 = { owner = FRA }  1936.1.2 = { owner = ENG }";
-
-		Assert.Equal("owner=GER owner=FRA", Summary(text, new CDate(1936, 1, 1)));
-		Assert.Equal("owner=GER", Summary(text, new CDate(1935, 12, 31)));
-		Assert.Equal("owner=GER owner=FRA owner=ENG", Summary(text, new CDate(1936, 1, 2)));
-	}
-
-	[Fact]
-	public void BlocksSharingADateKeepFileOrder()
-	{
-		const string text = "1936.1.1 = { owner = FRA }  1936.1.1 = { owner = ENG }";
-
-		Assert.Equal("owner=FRA owner=ENG", Summary(text, new CDate(1936, 1, 1)));
-	}
-}
 
 /// <summary>
 /// A map four pixels wide and three high, written out as an install would hold it.
@@ -1132,17 +994,20 @@ public class MapLoadingTests : IDisposable
 	{
 		WriteStartFiles();
 		Write("common/strategic_resources.txt", "gold = { global_money = 0.33 }\nrubber = { amm_movement_speed = 0.15 }\n");
-		Write("history/provinces/west/1 - Alpha.txt", "owner = GER\ncontroller = GER\nstrategic_resource = gold");
+		Write("history/provinces/west/1 - Alpha.txt", "owner = GER\ncontroller = GER\nstrategic_resource = gold\ninfra = 4");
 		Write("history/provinces/west/3 - Gamma.txt", "owner = GER\ncontroller = GER\nstrategic_resource = unobtainium");
 		Write("history/countries/GER - Germany.txt", "capital = 1");
 		CGameState state = LoadStart();
-		_ = new CSimulation(state);
+		var simulation = new CSimulation(state);
 
 		Assert.Equal("gold", state.Province(1).StrategicResource);
 		Assert.Equal("", state.Province(3).StrategicResource);
 		Assert.Contains(_warnings, warning => warning.Contains("strategic resources that are not defined") && warning.Contains("unobtainium"));
 
-		// Five IC at 0.05, and a third more for the gold.
+		// Nobody has the use of a resource until a day has been run. Then: five IC at
+		// 0.05, and a third more for the gold.
+		Assert.Equal(CFixedPoint.Parse("0.25"), Germany(state).HomeProduced[EGoods.Money]);
+		simulation.RunHours(24);
 		Assert.Equal(CFixedPoint.Parse("0.332"), Germany(state).HomeProduced[EGoods.Money]);
 	}
 
@@ -1165,53 +1030,5 @@ public class MapLoadingTests : IDisposable
 		Assert.All(germany.LeadershipShares, share => Assert.Equal(8192, share.Raw));
 		Assert.Equal(CFixedPoint.One, germany.DiplomaticInfluence);
 		Assert.Equal(1, CLeadership.ResearchSlots(germany));
-	}
-}
-
-public class RecursiveLayeringTests : IDisposable
-{
-	private readonly string _root;
-
-	public RecursiveLayeringTests()
-	{
-		_root = Path.Combine(Path.GetTempPath(), "openhoi3-layers-" + Guid.NewGuid().ToString("N"));
-		Directory.CreateDirectory(_root);
-	}
-
-	public void Dispose()
-	{
-		Directory.Delete(_root, recursive: true);
-	}
-
-	private void Write(string relative)
-	{
-		string path = Path.Combine(_root, relative.Replace('/', Path.DirectorySeparatorChar));
-		Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-		File.WriteAllText(path, relative);
-	}
-
-	[Fact]
-	public void IdentifiesAFileByItsPathBelowTheDirectory()
-	{
-		Write("history/provinces/asia/7 - Same.txt");
-		Write("history/provinces/soviet/7 - Same.txt");       // same name, different folder: both stay
-		Write("history/provinces/asia/9 - Base.txt");
-		Write("tfh/history/provinces/asia/9 - Base.txt");     // replaces the base copy
-		Write("tfh/history/provinces/asia/3 - New.txt");
-
-		CDirectorySettings.LayeredFile[] files =
-			CDirectorySettings.At(_root).ListFilesRecursive("history/provinces", "*.txt");
-
-		Assert.Equal(
-			new[] { "asia/3 - New.txt", "asia/7 - Same.txt", "asia/9 - Base.txt", "soviet/7 - Same.txt" },
-			files.Select(file => file.RelativePath));
-		Assert.Contains("tfh", files[2].AbsolutePath);
-		Assert.DoesNotContain("tfh", files[1].AbsolutePath);
-	}
-
-	[Fact]
-	public void AMissingDirectoryIsSimplyEmpty()
-	{
-		Assert.Empty(CDirectorySettings.At(_root).ListFilesRecursive("history/provinces", "*.txt"));
 	}
 }

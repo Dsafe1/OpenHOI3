@@ -79,6 +79,7 @@ public static class CIndustrialCapacity
 
 			country.BaseIc = (int)baseIc;
 			country.TotalIc = (int)total;
+			country.MaxIc = (int)total;
 		}
 	}
 

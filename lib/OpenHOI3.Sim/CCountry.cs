@@ -4,49 +4,6 @@ using System.Collections.Generic;
 namespace OpenHOI3.Sim;
 
 /// <summary>
-/// A country's three-letter tag, the key everything else hangs off: history files,
-/// flags, colours and every reference in the scenario data.
-///
-/// Like the date type, the original has no RTTI for this, so the name follows the
-/// mangled luabind signatures in the binary, which spell it CCountryTag.
-/// </summary>
-public readonly record struct CCountryTag(string Value)
-{
-	public const int Length = 3;
-
-	public bool IsValid => Value is { Length: Length };
-
-	public static bool TryParse(string? text, out CCountryTag tag)
-	{
-		tag = default;
-		if (text is null)
-		{
-			return false;
-		}
-		string trimmed = text.Trim();
-		if (trimmed.Length != Length)
-		{
-			return false;
-		}
-		foreach (char c in trimmed)
-		{
-			// Tags are upper case letters, with the odd digit or underscore.
-			if (!char.IsAsciiLetterUpper(c) && !char.IsAsciiDigit(c) && c != '_')
-			{
-				return false;
-			}
-		}
-		tag = new CCountryTag(trimmed);
-		return true;
-	}
-
-	public override string ToString()
-	{
-		return Value ?? "";
-	}
-}
-
-/// <summary>
 /// One country, as far as the front end needs it: what it is called, what colour it
 /// flies, and where its definition lives.
 /// </summary>
@@ -66,6 +23,19 @@ public sealed class CCountry
 
 	/// <summary>The id of the capital province, or 0 for a country that has none.</summary>
 	public int Capital { get; set; }
+
+	/// <summary>Whether its own file calls it a major power.</summary>
+	public bool IsMajor { get; init; }
+
+	/// <summary>The faction it is in, by the faction's name, or nothing for a country in none.</summary>
+	public string Faction { get; set; } = "";
+
+	/// <summary>
+	/// How much of each strategic resource it has the use of, by the resource's name:
+	/// 1 for a whole one. Within a game it only ever rises. Written by
+	/// <see cref="CStrategicResources"/>.
+	/// </summary>
+	public Dictionary<string, CFixedPoint> StrategicResources { get; } = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>The level it has of each technology, by the technology's name. Absent means none.</summary>
 	public Dictionary<string, int> TechnologyLevels { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -108,6 +78,12 @@ public sealed class CCountry
 	public int TotalIc { get; set; }
 
 	/// <summary>
+	/// The IC it would have with resources enough: <see cref="TotalIc"/> as calculated,
+	/// before a day's shortage cuts it. Written by <see cref="CIndustrialCapacity"/>.
+	/// </summary>
+	public int MaxIc { get; set; }
+
+	/// <summary>
 	/// The fraction of its IC that goes to each of the six things IC is spent on, by
 	/// <see cref="EProductionCategory"/>. Changed only by a command.
 	/// </summary>
@@ -124,6 +100,12 @@ public sealed class CCountry
 
 	/// <summary>How unhappy its people are. Never below nothing.</summary>
 	public CFixedPoint Dissent { get; set; }
+
+	/// <summary>
+	/// How far its people will go before giving up, from 1 to 100. Read from its history,
+	/// and 1 for a country whose history gives none; nothing moves it yet.
+	/// </summary>
+	public CFixedPoint NationalUnity { get; set; } = CFixedPoint.One;
 
 	/// <summary>The men it has to put in uniform. Never below nothing.</summary>
 	public CFixedPoint Manpower { get; set; }

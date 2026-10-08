@@ -21,9 +21,10 @@
   <ItemGroup>
     <!--
       This project is the client: the scenes, the drawing, the input. Everything that
-      can run without an engine lives in these two and is referenced, not compiled in.
+      can run without an engine lives in these three and is referenced, not compiled in.
     -->
     <ProjectReference Include="lib/OpenHOI3.Sim/OpenHOI3.Sim.csproj" />
     <ProjectReference Include="lib/OpenHOI3.Content/OpenHOI3.Content.csproj" />
+    <ProjectReference Include="lib/OpenHOI3.Interface/OpenHOI3.Interface.csproj" />
   </ItemGroup>
 </Project>

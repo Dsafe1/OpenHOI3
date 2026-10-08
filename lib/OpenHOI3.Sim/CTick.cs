@@ -53,6 +53,7 @@ public static class CTick
 		// worked out, what its provinces produced reaches the stockpile, its IC is worked
 		// out, and then its six shares of IC are run and its four of leadership after them.
 		CProvinceModifiers.Rebuild(state);
+		CStrategicResources.Update(state);                  // the first thing the original's day does
 		CCountryModifiers.Rebuild(state);
 		CManpower.RunDaily(state);
 		CLeadership.Update(state);

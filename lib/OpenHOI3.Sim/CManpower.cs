@@ -175,23 +175,20 @@ public static class CManpower
 	}
 
 	/// <summary>
-	/// Gives every country the manpower a new game starts with. Its most is worked out
-	/// for this before its strategic resources count, as the original's is.
+	/// Gives every country the manpower a new game starts with. No country has the use
+	/// of a strategic resource yet: those are first worked out when the first day is run.
 	/// </summary>
 	public static void SetAtStart(CGameState state)
 	{
 		CProvinceModifiers.Rebuild(state);
-		CCountryModifiers.Rebuild(state, strategicResources: false);
+		CCountryModifiers.Rebuild(state);
 		UpdateMost(state);
+		Update(state);
 
 		HashSet<string> owners = Landowners(state);
 		foreach (CCountry country in state.Countries)
 		{
 			country.Manpower = AtStart(state, country, owners.Contains(country.Tag.Value));
 		}
-
-		CCountryModifiers.Rebuild(state);
-		UpdateMost(state);
-		Update(state);
 	}
 }

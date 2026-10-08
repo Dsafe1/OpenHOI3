@@ -110,7 +110,7 @@ public class DirectoryLayeringTests : IDisposable
 		string[] files = Settings.ListFiles("interface", "*.gfx");
 
 		Assert.Equal(3, files.Length);
-		Assert.Single(files.Where(f => Path.GetFileName(f) == "core.gfx"));
+		Assert.Single(files, f => Path.GetFileName(f) == "core.gfx");
 		Assert.Equal("expansion",
 			File.ReadAllText(files.Single(f => Path.GetFileName(f) == "core.gfx")));
 	}

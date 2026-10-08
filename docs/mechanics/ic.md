@@ -161,7 +161,7 @@ other - energy into crude oil, the cap, crude oil into fuel - before the shares 
 
 A country's total before the cap is its base
 times `1 + GLOBAL_IC + the technology bonus`. `GLOBAL_IC` is what its laws and ministers
-give it (`modifiers.md`, section 5), and the technology bonus is `ic_modifier` summed over
+give it (`modifiers.md`, section 7), and the technology bonus is `ic_modifier` summed over
 its technology levels (`resources.md`, section 4). **The original does not save IC**, so
 the total cannot be checked directly; what it saves is what industry used, which is a
 lower bound, and every country clears it.

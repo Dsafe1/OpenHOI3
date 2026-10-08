@@ -92,10 +92,10 @@ public static class CModifierReader
 	}
 
 	/// <summary><c>common/minister_types.txt</c>: what a minister can be, each a modifier.</summary>
-	public static Dictionary<string, CModifier> ReadMinisterTypes(CDirectorySettings directories,
+	public static Dictionary<string, CMinisterType> ReadMinisterTypes(CDirectorySettings directories,
 		Action<string> warn)
 	{
-		var types = new Dictionary<string, CModifier>(StringComparer.OrdinalIgnoreCase);
+		var types = new Dictionary<string, CMinisterType>(StringComparer.OrdinalIgnoreCase);
 		ClausewitzNode? root = ParseIfPresent(directories, "common/minister_types.txt", "minister types",
 			warn, out string path);
 		if (root is null)
@@ -110,8 +110,26 @@ public static class CModifierReader
 			{
 				continue;
 			}
-			types[type.Key] = ReadBlock(type, MinisterTypeKeys, out int bad);
+			var read = new CMinisterType(ReadBlock(type, MinisterTypeKeys, out int bad));
 			unreadable += bad;
+
+			// decay = { a_category = -0.25 }: what he adds to that category's decay. A type
+			// may have several such blocks, and a category named twice adds up.
+			foreach (ClausewitzNode decay in type.All("decay"))
+			{
+				foreach (ClausewitzNode entry in decay.Children)
+				{
+					if (entry.Key is not null && CFixedPoint.TryParse(entry.Value, out CFixedPoint amount))
+					{
+						read.Decay[entry.Key] = read.Decay.GetValueOrDefault(entry.Key) + amount;
+					}
+					else
+					{
+						unreadable++;
+					}
+				}
+			}
+			types[type.Key] = read;
 		}
 		if (unreadable > 0)
 		{

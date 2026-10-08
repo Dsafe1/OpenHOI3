@@ -3,21 +3,6 @@ using System;
 namespace OpenHOI3.Sim;
 
 /// <summary>
-/// The seven goods, in the original's own order. Money is in the list but is not
-/// traded like the others: it is the price of the other six.
-/// </summary>
-public enum EGoods
-{
-	Supplies,
-	Fuel,
-	Money,
-	CrudeOil,
-	Metal,
-	Energy,
-	RareMaterials,
-}
-
-/// <summary>
 /// An amount of each of the seven goods. A province's production is one, a country's
 /// daily home production another, a stockpile a third. See
 /// <c>docs/mechanics/resources.md</c>.

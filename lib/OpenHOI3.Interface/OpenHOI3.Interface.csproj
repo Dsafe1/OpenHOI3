@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    What the screens show, with no engine in it: the text of each figure as the
+    original writes it, the colour escapes in that text, and the arithmetic that places
+    an element. A plain .NET library, so a wrong format or a wrong colour is caught
+    by a test and not by looking at the screen. The Godot client draws what this
+    works out.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>OpenHOI3.Interface</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../OpenHOI3.Sim/OpenHOI3.Sim.csproj" />
+    <ProjectReference Include="../OpenHOI3.Content/OpenHOI3.Content.csproj" />
+  </ItemGroup>
+
+</Project>

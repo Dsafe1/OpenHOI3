@@ -3,15 +3,6 @@ using System.Collections.Generic;
 
 namespace OpenHOI3.Sim;
 
-/// <summary>The four things a country divides its leadership between, in the original's order.</summary>
-public enum ELeadershipCategory
-{
-	Officers,
-	Diplomacy,
-	Espionage,
-	Research,
-}
-
 /// <summary>
 /// A country's leadership: how much it has, and what its four shares of it make each
 /// day. See <c>docs/mechanics/leadership.md</c>.

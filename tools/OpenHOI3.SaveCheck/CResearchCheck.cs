@@ -116,14 +116,13 @@ internal static class CResearchCheck
 				country.ProductionShares[i] = Share(shares[i].Value);
 			}
 		}
-		CProvinceModifiers.Rebuild(state);
-		CCountryModifiers.Rebuild(state);
-
-		// Triggered modifiers are not applied by this project yet, and one of them touches
-		// nearly every country's research: `neutrality`, for a country in none of the factions.
-		// It is given here by hand, from the file's own figure and the save's own factions, so
-		// that what is compared is the research and not that omission.
+		// Who is in which faction is the save's to say: it decides who is given whose
+		// strategic resources.
 		var aligned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (CCountry country in state.Countries)
+		{
+			country.Faction = "";
+		}
 		foreach (ClausewitzNode faction in earlier.Get("faction")?.Children ?? new List<ClausewitzNode>())
 		{
 			foreach (ClausewitzNode member in faction.Children)
@@ -131,9 +130,26 @@ internal static class CResearchCheck
 				if (member.Value is { Length: CCountryTag.Length } tag)
 				{
 					aligned.Add(tag);
+					if (faction.Key is not null && state.Country(new CCountryTag(tag)) is { } country)
+					{
+						country.Faction = faction.Key;
+					}
 				}
 			}
 		}
+
+		// A day begins by working out who has the use of which strategic resource, and that
+		// needs each country's industry first.
+		CProvinceModifiers.Rebuild(state);
+		CCountryModifiers.Rebuild(state);
+		CIndustrialCapacity.Update(state);
+		CStrategicResources.Update(state);
+		CCountryModifiers.Rebuild(state);
+
+		// Triggered modifiers are not applied by this project yet, and one of them touches
+		// nearly every country's research: `neutrality`, for a country in none of the factions.
+		// It is given here by hand, from the file's own figure and the save's own factions, so
+		// that what is compared is the research and not that omission.
 		CFixedPoint unaligned = Number(ClausewitzParser.ParseFile(directories.Resolve("common/triggered_modifiers.txt"))
 			.Get("neutrality")?.GetString("research_efficiency"));
 		int givenByHand = 0;

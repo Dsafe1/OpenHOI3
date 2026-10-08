@@ -3,7 +3,9 @@ using System.Globalization;
 using System.Linq;
 using Godot;
 using OpenHOI3.Content;
+using OpenHOI3.Gui;
 using OpenHOI3.Map;
+using OpenHOI3.Screens;
 using OpenHOI3.Sim;
 
 namespace OpenHOI3;
@@ -22,11 +24,19 @@ public partial class CSession : Node
 	private CMapView _mapView = null!;
 	private CLocalisation _localisation = null!;
 	private CSimulation _simulation = null!;
-	private Label _dateLabel = null!;
+	private CTopBar? _topBar;
+	private CProductionView? _production;
+	private CTechnologyView? _technology;
 	private Label _provinceLabel = null!;
 	private int _shownProvince;
 
+	/// <summary>The country played when nothing says which. There is no screen to choose one on yet.</summary>
+	private const string DefaultPlayer = "GER";
+
 	public CGameState State { get; private set; } = null!;
+
+	/// <summary>The country the interface is about, or null when the install has none of that tag.</summary>
+	public CCountry? Player { get; private set; }
 
 	public CMap Map { get; private set; } = null!;
 
@@ -52,6 +62,8 @@ public partial class CSession : Node
 			$"for {State.Date} in {clock.ElapsedMilliseconds} ms.");
 
 		_simulation = new CSimulation(State);
+		Player = State.Country(new CCountryTag(PlayerArgument() ?? DefaultPlayer))
+			?? State.Country(new CCountryTag(DefaultPlayer));
 
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(Map, State);
@@ -64,36 +76,71 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
-	/// A date and a province readout, in plain engine controls. This is scaffolding:
-	/// the game's own interface comes from the original's interface files, and arrives
-	/// with the top bar.
+	/// The game's own interface, from the original's interface files: so far the top
+	/// bar. Under it a province readout in a plain engine label, which is scaffolding
+	/// and goes when the province view comes.
 	/// </summary>
 	private void BuildHud(CLocalisation localisation)
 	{
 		var layer = new CanvasLayer { Name = "Hud" };
 		AddChild(layer);
 
-		var date = new Label
+		var clock = Stopwatch.StartNew();
+		CGuiContext gui = CGuiContext.Load(_directories, localisation);
+		GD.Print($"Loaded {gui.Types.Count} interface elements and {gui.Sprites.Count} sprites " +
+			$"in {clock.ElapsedMilliseconds} ms.");
+		if (Player is not null)
 		{
-			Position = new Vector2(16, 12),
-			MouseFilter = Control.MouseFilterEnum.Ignore,
-		};
-		date.AddThemeFontSizeOverride("font_size", 22);
-		date.AddThemeColorOverride("font_outline_color", Colors.Black);
-		date.AddThemeConstantOverride("outline_size", 6);
-		layer.AddChild(date);
-		_dateLabel = date;
-		ShowClock();
+			// The screens go under the top bar, which is drawn over whatever is open.
+			_production = new CProductionView();
+			_production.Setup(gui, _simulation, Player);
+			layer.AddChild(_production);
+			_technology = new CTechnologyView();
+			_technology.Setup(gui, _simulation, Player);
+			layer.AddChild(_technology);
+
+			_topBar = new CTopBar();
+			_topBar.Setup(gui, _simulation, Player);
+			layer.AddChild(_topBar);
+			_topBar.ProductionPressed += () => Toggle(_production);
+			_topBar.TechnologyPressed += () => Toggle(_technology);
+		}
 
 		_provinceLabel = new Label
 		{
-			Position = new Vector2(16, 48),
+			Position = new Vector2(16, 96),
 			MouseFilter = Control.MouseFilterEnum.Ignore,
 		};
 		_provinceLabel.AddThemeFontSizeOverride("font_size", 18);
 		_provinceLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
 		_provinceLabel.AddThemeConstantOverride("outline_size", 6);
 		layer.AddChild(_provinceLabel);
+	}
+
+	/// <summary>
+	/// A top bar button brings its screen up, or takes it down if it is up already. One
+	/// screen at a time: the one that was up comes down. That the original does the
+	/// same was not read; it is how the game is remembered.
+	/// </summary>
+	private void Toggle(CCountryView? view)
+	{
+		if (view is null)
+		{
+			return;
+		}
+		if (view.IsOpen)
+		{
+			view.Close();
+			return;
+		}
+		foreach (CCountryView? other in new CCountryView?[] { _production, _technology })
+		{
+			if (!ReferenceEquals(other, view))
+			{
+				other?.Close();
+			}
+		}
+		view.Open();
 	}
 
 	/// <summary>
@@ -106,7 +153,6 @@ public partial class CSession : Node
 		// frame holds thousands of hours.
 		if (_simulation.Advance(delta) > 0)
 		{
-			ShowClock();
 			ShowProvince(_shownProvince);                       // its figures move with the days
 		}
 	}
@@ -132,14 +178,19 @@ public partial class CSession : Node
 			default:
 				return;
 		}
-		ShowClock();
 	}
 
-	private void ShowClock()
+	/// <summary>The tag given with <c>--country=</c> on the command line, or null.</summary>
+	private static string? PlayerArgument()
 	{
-		CClock clock = _simulation.Clock;
-		string pace = clock.Paused ? "Paused" : $"Speed {clock.Speed + 1} of {CClock.SpeedCount}";
-		_dateLabel.Text = State.Date.ToDisplayString(_localisation.Localise, State.Hour) + "    " + pace;
+		foreach (string argument in OS.GetCmdlineUserArgs())
+		{
+			if (argument.StartsWith("--country=") && CCountryTag.TryParse(argument["--country=".Length..], out CCountryTag tag))
+			{
+				return tag.Value;
+			}
+		}
+		return null;
 	}
 
 	private void ShowProvince(int provinceId)
@@ -188,6 +239,12 @@ public partial class CSession : Node
 					text += "\nDissent: " + spender.Dissent;
 				}
 				text += $"\nManpower: {spender.Manpower}   ({spender.MonthlyManpower} a month)";
+				if (spender.StrategicResources.Count > 0)
+				{
+					text += "\nStrategic resources: " + string.Join(", ", spender.StrategicResources
+						.Where(held => held.Value > CFixedPoint.Zero)
+						.Select(held => $"{_localisation.Localise(held.Key)} {held.Value}"));
+				}
 				text += $"\nLeadership: {spender.TotalLeadership}   (research projects {CLeadership.ResearchSlots(spender)})";
 				text += $"\nOfficers {spender.Officers}   Influence {spender.DiplomaticInfluence}   Spies in training {spender.SpiesInTraining}";
 				if (spender.ResearchQueue.Count > 0)
@@ -230,7 +287,12 @@ public partial class CSession : Node
 	/// Arguments after <c>--</c> on the command line, for looking at the map without
 	/// driving it by hand:
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
+	/// <c>--country=ENG</c> plays that country and not Germany,
 	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map,
+	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen,
+	/// <c>--research=key,key</c> puts technologies on the research queue,
+	/// <c>--technology=key</c> chooses one on the technology screen,
+	/// <c>--lock=Supplies</c> locks that slider of the production screen,
 	/// <c>--run</c> starts the clock at the top speed instead of paused, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.
 	/// </summary>
@@ -254,11 +316,47 @@ public partial class CSession : Node
 			{
 				_simulation.Clock.Paused = false;
 				_simulation.Clock.Speed = CClock.SpeedCount - 1;
-				ShowClock();
 			}
 			else if (argument == "--mode=terrain")
 			{
 				_mapView.Mode = CMapView.MapMode.Terrain;
+			}
+			else if (argument == "--screen=production")
+			{
+				Toggle(_production);
+			}
+			else if (argument == "--screen=technology")
+			{
+				Toggle(_technology);
+			}
+			else if (argument.StartsWith("--lock=")
+				&& System.Enum.TryParse(argument["--lock=".Length..], ignoreCase: true, out EProductionCategory locked))
+			{
+				_production?.Lock(locked);
+			}
+			else if (argument.StartsWith("--technology="))
+			{
+				_technology?.SelectByKey(argument["--technology=".Length..]);
+			}
+			else if (argument.StartsWith("--research=") && Player is not null)
+			{
+				// Queues technologies by key, in the order given: --research=a,b,c. One the
+				// country may not research would have the whole queue refused, so it is
+				// left out and named.
+				var queue = new System.Collections.Generic.List<string>();
+				foreach (string key in argument["--research=".Length..].Split(','))
+				{
+					if (State.Technologies.TryGetValue(key, out CTechnology? technology)
+						&& CResearch.MayResearchNext(State, Player, technology))
+					{
+						queue.Add(key);
+					}
+					else
+					{
+						GD.Print($"--research: '{key}' is not a technology {Player.Tag} may research now.");
+					}
+				}
+				_simulation.Post(new CSetResearchQueueCommand(Player.Tag, queue));
 			}
 			else if (argument.StartsWith("--zoom=")
 				&& float.TryParse(argument["--zoom=".Length..], NumberStyles.Float,

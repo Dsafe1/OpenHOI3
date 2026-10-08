@@ -51,7 +51,10 @@ public static class CGameStateLoader
 		List<CWar> wars = CWarReader.Read(directories, countries, start, warn);
 
 		var state = new CGameState(start, provinces, countries.Declared, buildings, technologies, staticModifiers,
-			defines, wars, strategicResources, categories);
+			defines, wars, strategicResources, categories)
+		{
+			TechnologyFolders = CTechnologyReader.ReadFolders(directories),
+		};
 		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);
 		CProduction.SetStartingShares(state);

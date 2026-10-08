@@ -7,8 +7,9 @@ or **measured**, meaning checked on 2026-10-08 against savegames the original wr
 mods: one from 1 January 1936 and four later ones of the same game. Where this project
 chooses its own behaviour the paragraph is marked **Ours**.
 
-Sources: `reversing/findings/FINDINGS-manpowergain.md`, and for what takes manpower away
-`reversing/findings/FINDINGS-manpower.md`.
+Sources: `reversing/findings/FINDINGS-manpowergain.md`,
+`reversing/findings/FINDINGS-countrymodifier.md` (section 4, for strategic resources), and
+for what takes manpower away `reversing/findings/FINDINGS-manpower.md`.
 
 All arithmetic is in thousandths and every division truncates; see `numbers.md`.
 
@@ -90,7 +91,7 @@ years of what it gets.**
 
 ## 4. What a new game starts with
 
-`confirmed`, and (measured) for 97 of the 101 countries in the savegame.
+`confirmed`, and (measured) for 98 of the 101 countries in the savegame.
 
     manpower = most
 
@@ -109,16 +110,17 @@ years of what it gets.**
   picks its laws before the country is set up (`resources.md`, section 5). Germany's
   history says volunteer army, which would start it with 469; it starts with 882, on the
   two-year draft its AI took.
-- **A strategic resource does not count yet.** (measured) The Soviet Union and France hold
-  the two provinces with black soil, worth 10% more manpower. Both start with a most worked
-  out without it and gain manpower with it from the first day. Why has not been read.
+- **A strategic resource does not count yet.** `confirmed`: who has the use of which is
+  not worked out when a new game is entered, only when its first day is run
+  (`modifiers.md`, section 6). (measured) The Soviet Union and France hold the two
+  provinces with black soil, worth 10% more manpower, and the United Kingdom is given
+  France's. All three start with a most worked out without it and gain manpower with it
+  from the first day.
 
 ## 5. Ours
 
 - **The income is worked out and added once a day**, before leadership, and the most once a
   month and on entering a game - the original's own times.
-- **A new game works out the most twice**: once without strategic resources, for the pool
-  to start from, and again with them, which is the figure shown from then on.
 - **There is no AI**, so a country starts under its history's laws: Germany with 469 here
   where the original gives it 882.
 - **Nothing spends manpower.** The pool only grows until there are units.
@@ -131,10 +133,11 @@ levels the start save has, works out what it started with and two days of income
 compares that with the save's manpower:
 
 - **all 23 countries that do not exist yet**, to the thousandth;
-- **74 of the 78 that do**. Every one of them has units, so units cost no manpower in a
-  game's first two days.
+- **75 of the 78 that do**. Every one of them has units, so units cost no manpower in a
+  game's first two days. The United Kingdom is among them only because it is given
+  France's black soil.
 
-The four that do not fit, each for something this project does not have:
+The three that do not fit, each for something this project does not have:
 
 - **The United States** has 254.936 where 1050.564 is worked out. Its AI takes the New Deal
   decision before the country is set up, and the modifier that gives takes 40% off; with it
@@ -143,9 +146,6 @@ The four that do not fit, each for something this project does not have:
   is also stage 4.
 - **Brazil** fits with one minister's 5% left out: its AI appointed him after the last day
   was run, as it does with laws (`production.md`, section 7).
-- **The United Kingdom** starts as worked out and then gains 0.130 a day where 0.111 is
-  worked out - what 10% more would give. Nothing that gives it was found. Its leadership
-  is unexplained in the same way (`leadership.md`, section 8).
 
 The later saves cannot check the income of a country that has units, because by then its
 manpower has been spent on them as well. They do check a country without any: East Germany,
@@ -153,11 +153,8 @@ above.
 
 ## What is not established, in one place
 
-- why a **strategic resource** is missing from a country's modifier when a new game is set
-  up, and how one gets there at all (`modifiers.md`, section 4);
 - the original's **rule for a government in exile**: when working out the month's figure,
   and only then, it replaces the whole sum with a tenth of the manpower of a province the
   country is listed as controlling and does not control. Whether that can happen, and
   whether replacing rather than adding is a slip, were not settled;
-- where the **United Kingdom's** extra tenth comes from;
 - two more places the original works out the most, which were not read.
