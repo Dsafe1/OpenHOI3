@@ -67,8 +67,9 @@ over 31, 28 and 30 days.
 - **A day in February is worth more than a day in January**, because the month's figure is
   shared between fewer of them. February always has 28.
 - Every country gets it, each day, before its leadership is worked out (`leadership.md`).
-- **Nothing takes manpower away here.** What does - building units, bringing them back to
-  strength, and so on - is in `reversing/findings/FINDINGS-manpower.md` and waits for units.
+- **Bringing units back to strength takes manpower** (`upkeep.md`, section 4). Building
+  them takes most of it and waits for the build queue; the rest of what does is in
+  `reversing/findings/FINDINGS-manpower.md`.
 
 A government in exile has a rule of its own in the original that was read and not
 understood; see the last section.
@@ -123,7 +124,8 @@ years of what it gets.**
   month and on entering a game - the original's own times.
 - **There is no AI**, so a country starts under its history's laws: Germany with 469 here
   where the original gives it 882.
-- **Nothing spends manpower.** The pool only grows until there are units.
+- **Only reinforcement spends manpower** (`upkeep.md`, section 4). Nothing is built, so
+  the pool mostly grows.
 - **A government in exile is treated as any other country.** There are none yet.
 
 ## 6. What the savegame does and does not confirm

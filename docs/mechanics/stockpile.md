@@ -167,17 +167,20 @@ Three things about it that matter now:
 - A new game fills the stockpiles as section 2 says. Wars are read from `history/wars`,
   for who is in each and when it began: a war began on the earliest date its file has an
   entry for. **Puppets are not read**, so Manchukuo starts with the full 1890 metal.
-- **Supplies and fuel start at nothing**, and so does war exhaustion: the first two follow
-  the units, and nothing here reads the third.
+- **Supplies and fuel start as section 2 says**, once the units have been made: so many
+  days of what they use (`upkeep.md`, sections 1 and 7). War exhaustion starts at nothing:
+  nothing here reads it.
 - Each day a country that holds its capital has what its provinces produced added to its
   stockpile. Then every country's shares of IC are run (`production.md`): money and
   supplies come in, and what consumer goods and supplies cost in metal, energy and rare
   materials goes out.
 - A country that exists also turns energy into crude oil and crude oil into fuel each
   day (`ic.md`, section 4).
-- **Most of what will be taken out is not taken yet.** The build queue, reinforcement and
-  upgrades spend IC on units, and supplies and fuel are drawn by units. Until those exist
-  a stockpile mostly grows.
+- **Units draw their supplies from it every day**, and their fuel when they burn any, and
+  reinforcement and upgrades spend IC that is charged to it (`upkeep.md`). The original
+  moves supplies out to the provinces through its supply network and units draw there;
+  here they draw on the stockpile, which is the original's own arcade rule.
+- **The build queue takes nothing yet**, nor do trade and convoys.
 - **A country that does not exist has an economy all the same**, as in the original: East
   Germany, which does not exist in 1936, earns money, makes supplies and uses IC every
   day, all of it in Berlin's pool. (measured, and `confirmed` since: the daily loop over

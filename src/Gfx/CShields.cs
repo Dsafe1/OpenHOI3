@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Content;
-using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Gfx;
 

@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using OpenHOI3.Content.Gui;
 using OpenHOI3.Gui;
-using OpenHOI3.Interface;
+using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Commands;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Research;
 
 namespace OpenHOI3.Screens;
 

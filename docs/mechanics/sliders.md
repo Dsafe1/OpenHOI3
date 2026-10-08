@@ -84,8 +84,9 @@ shares that have one:
 | lend-lease | none: the line reads the text of `DISTRIBUTE`, and its button opens a window of its own. `confirmed` |
 | espionage, officers | none, and no line. `confirmed` |
 
-*Ours:* production, reinforcement, upgrades and supplies need nothing until there are
-units; diplomacy needs nothing until there is diplomacy.
+*Ours:* supplies, reinforcement and upgrades need what their units ask for
+(`upkeep.md`, section 8); production needs nothing until there is a build queue, and
+diplomacy nothing until there is diplomacy.
 
 `confirmed` **`limit`** is hidden unless the share gives a figure of nought or more to put
 it at, and only lend-lease does. *Ours:* it stays hidden.

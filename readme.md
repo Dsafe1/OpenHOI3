@@ -86,8 +86,8 @@ Agreed 2026-10-07. Each stage ends with something that runs.
 | Stage | What gets built | Done when |
 | --- | --- | --- |
 | 1. The world on screen | Provinces, adjacency, terrain, countries and start-date ownership read from an install; a political map with pan, zoom and province picking | The map of the start date is on screen. **Reached 2026-10-07** |
-| 2. The clock and the economy | The hourly tick with its daily and monthly passes in the original's order; every state change as a command; IC, resources, manpower, production, research. The interface runtime arrives here, with the top bar as its first screen | A 1936-1948 run completes headless with totals that are plausible against a real savegame. **The clock, the command queue, fixed-point numbers, buildings, laws, ministers, technology levels, each country's IC, its home production, what its stockpile starts with, its six shares of IC and what consumer goods and supplies do with theirs, its leadership with what its four shares make, research and manpower are in (2026-10-08) and checked against savegames, and so is the interface runtime with the top bar and the production and technology screens; everything that needs units is not** |
-| 3. Units and war | Orders of battle, units on the map, movement, land combat, supply; then air and naval | Two countries can fight a land war to a result |
+| 2. The clock and the economy | The hourly tick with its daily and monthly passes in the original's order; every state change as a command; IC, resources, manpower, production, research. The interface runtime arrives here, with the top bar as its first screen | A 1936-1948 run completes headless with totals that are plausible against a real savegame. **The clock, the command queue, fixed-point numbers, buildings, laws, ministers, technology levels, each country's IC, its home production, what its stockpile starts with, its six shares of IC and what consumer goods and supplies do with theirs, its leadership with what its four shares make, research and manpower are in (2026-10-08) and checked against savegames, and so is the interface runtime with the top bar and the production and technology screens; of what needs units, reinforcement and upgrades are in (stage 3) and the build queue is not** |
+| 3. Units and war | Orders of battle, units on the map, movement, land combat, supply; then air and naval | Two countries can fight a land war to a result. **The unit types and the orders of battle are in (2026-10-08): every brigade, ship and wing the base game starts with, holding what the original gives it on the first hour, checked one by one against a savegame. So is what a unit draws each day - supplies and fuel, the men who go home, reinforcement and upgrades - checked brigade by brigade two days on. Nothing moves or fights** |
 | 4. Politics and script | Events and decisions with their triggers and effects; diplomacy, factions, politics, espionage, occupation, revolt | The base game's events load with no unknown key and fire on schedule |
 | 5. AI | The planning and scoring layers, last because they consume everything else | A whole game runs with no human player |
 
@@ -110,17 +110,30 @@ Four choices sit under all of it:
 
 ### Next up
 
-As of 2026-10-08, inside stage 2. Kept current as work lands, so that picking this up cold
-needs nothing but this file and `docs/mechanics/`.
+As of 2026-10-08, at the start of stage 3, with the economy of stage 2 waiting on it. Kept
+current as work lands, so that picking this up cold needs nothing but this file and
+`docs/mechanics/`.
 
-1. **Units**, which is stage 3, and which the rest of the economy is waiting on: the build
-   queue, reinforcement and upgrades spend IC and manpower on them, and they are what
-   draws supplies and fuel. `docs/mechanics/production.md`, section 5. The production
-   screen is where they will be ordered, and it is there with its queue empty.
-2. **A look at the two new screens beside the original.** They were built from a reading
-   of the executable that nothing checked against a running game. The specs each end
-   with what a look would settle. The maintainer has had two (*Loose ends*) and what was
-   wrong is mended; what is left is comparing figures, which needs nothing built.
+The units exist (`docs/mechanics/units.md`) and are kept: they draw supplies, lose and
+regain men, and are re-equipped (`docs/mechanics/upkeep.md`). They do not move. In order:
+
+1. **The officer ratio and what holds organisation.** The ratio is the top bar's own
+   figure and is not worked out; with it the ceiling on a brigade's organisation can be
+   built, which is read (`units.md`, section 4), and then what raises and lowers
+   organisation, which is not.
+2. **The build queue.** Ordering a unit from the production screen, spending IC and
+   manpower on it, and the thirty units the orders of battle start under construction.
+   What a unit costs and how long it takes is built already, for upgrades
+   (`upkeep.md`, section 6); the queue itself is `docs/mechanics/production.md`,
+   section 5. The start save has a check waiting for it: what Germany's industry used on
+   its last day, 121.187 IC, is its consumer goods, its supplies, its upgrades - whose
+   share ran out, so all 31.191 of it - and its three ships under construction. That
+   leaves 13.781 for the ships, where the costs the save shows for them add up to 16.160.
+3. **Units on the map**, then movement, then combat and supply. The supply network
+   replaces the stand-in of `upkeep.md`, section 2.
+4. **A look at the two screens beside the original**, figure by figure. It needs nothing
+   built, only the game open, so it can happen whenever suits. The specs each end with
+   what a look would settle. The production screen has three more needs to look at now.
 
 The interface runtime is in, with three screens: the top bar, production and technology.
 Windows, icons, buttons, text boxes, scrollbars, list boxes and boxes of overlapping
@@ -150,7 +163,12 @@ which officers, diplomatic influence and spies are made each day
 adds, what finishing one does, and the monthly decay of what a country knows
 (`docs/mechanics/research.md`); manpower - what a day adds and what a new game starts
 a country with (`docs/mechanics/manpower.md`); the interface runtime with the top
-bar; and the production and technology screens.
+bar; and the production and technology screens. And the first two pieces of stage 3: the
+unit types, the historical models and the orders of battle, with what a brigade holds on
+the first hour and the officers a country's units bring it (`docs/mechanics/units.md`);
+and what a unit draws each day - what it uses in supplies and fuel and the stock of both
+a new game starts with, troop rotation, and the reinforcement and upgrade shares of IC
+with the needs their sliders show (`docs/mechanics/upkeep.md`).
 
 There are five savegames of one game to check against now, from 1 January to 20 April
 1936. The first is the start; the later four are a month or less apart, which is what
@@ -183,8 +201,55 @@ None of these blocks the list above.
   that much too fast for them. Five countries' leadership is also a little low for want of
   others, and France has half as much manpower again as it should. `docs/mechanics/research.md`, section 8,
   `docs/mechanics/leadership.md`, section 8, and `docs/mechanics/manpower.md`, section 6.
-- **Nothing spends manpower**, so the pool only grows. Building units and bringing them
-  back to strength are what take it, and wait for units.
+- **Only reinforcement spends manpower.** Building units is what takes most of it, and
+  the build queue is not built.
+- **Units are in the game's state and nowhere else.** No screen shows one and the map
+  draws none, so the only way to see them is `tools/OpenHOI3.SaveCheck` - and, indirectly,
+  the production screen's supplies, fuel and three needs.
+- **Units draw on their country's stockpile, wherever they stand.** The original moves
+  supplies out to the provinces through its supply network, loses some on the way, and a
+  unit the network has not reached goes short - 68 brigades in its start save. Here no
+  unit is short while its country has supplies. It is the original's own arcade rule,
+  standing in until the network is built. `docs/mechanics/upkeep.md`, section 2.
+- **Nothing burns fuel but a fleet away from its base**, because nothing moves.
+- **What a unit uses has no leader in it.** A commander's skill and traits and the
+  headquarters above a unit all change what it uses in the original; in 27 of 65 capitals
+  that is the whole of the difference from the save. `upkeep.md`, section 1.
+- **A faction's modifier is not applied.** `ideologies.txt` gives each faction one - the
+  Comintern's makes its members' units use a third less - and whether the original adds
+  it to a country's modifier is not read. The Soviet Union starts with a quarter less
+  fuel in the save than here, which is about what it would do. `upkeep.md`, the end.
+- **The fuel a new game starts with is exact for 18 countries of 76** and close for about
+  twenty more, but twenty-five hold 2% to 19% more in the save than the rule gives -
+  Germany 9%, France 19%, landlocked Czechoslovakia 14%. What they have in common was not
+  found, so something is missing from the sum. `docs/mechanics/upkeep.md`, the end.
+- **Ships and wings are reinforced as if their base had room**, and a brigade that gains
+  a level of equipment keeps its organisation, where the original holds it to the new
+  figures. `upkeep.md`, sections 4 and 5.
+- **A game's units are made under its history's laws**, where the original's are made
+  under a conscription law something has already changed: Germany's reserves start at a
+  quarter of their strength here and at half there. It is the same gap as the manpower
+  one below, and like it waits for the AI. The maintainer confirmed it in the running
+  game on 2026-10-08 - an untouched first screen as Germany already shows
+  `two_year_draft` - and calls it a bug, since the AI should not touch the player's
+  country. **Decided the same day: the player's country keeps its history's laws**, so
+  for the country being played this gap is meant and stays (`docs/compatibility.md`,
+  entry 6); for the countries an AI runs it is still to be built.
+  `docs/mechanics/units.md`, section 8.
+- **The original's AI makes 86 theatres as a game starts**, each a headquarters with one
+  brigade, and puts every unit the files leave at the top under one. Here the units stay
+  as the files nest them, so 34 are under a different commander.
+- **Leaders are not built.** The number an order of battle gives a unit is kept and
+  nothing more; the army headquarters' leader is one of the things a brigade's
+  organisation depends on, and the army group's one of the things its supplies do.
+- **Twenty-four air groups aboard carriers, and their wings, have no name**, where the
+  original names them `1st Air wing` and `1st CAG` by a rule that has not been read.
+- **The thirty units an order of battle starts under construction are left out**, though
+  each is given the five numbers the original gives it, so that everything after it is
+  numbered as the original numbers it. What a construction of more than one brigade
+  takes is a guess. `docs/mechanics/units.md`, section 3.
+- **Two blocks of a unit type are read and not kept**: `available_trigger`, which is
+  script, and `extra_amphibious_defence`.
 - **A country starts with the manpower its history's laws give**, where the original's AI
   has already chosen its own: Germany begins with 469 here and 882 there. The same goes
   for the decision the United States' AI takes at once, which costs it three quarters of
@@ -214,12 +279,15 @@ None of these blocks the list above.
   A mod that uses any other condition gets a warning and the condition left out.
   `docs/mechanics/research.md`, section 5.
 - **Leadership makes officers, influence and spies that nothing spends.** They accumulate
-  until units, diplomacy and espionage exist. Officers start at nothing where the original
-  gives a country what its units need.
+  until diplomacy and espionage exist and units want their officers. A country does start
+  with the officers its units bring (`docs/mechanics/units.md`, section 7).
 - **The original's AI script changes laws and ministers before the first hour**, for every
   country including the player's, so what a player sees on the first screen is not what
   the history files say. This project has no AI, so its countries start with the
   history's laws - Germany on basic mobilisation where the original shows a war economy.
+  For the player's country that is now the decision and not a gap
+  (`docs/compatibility.md`, entry 6); whether the AI may change the player's ministers
+  was not asked.
   `docs/mechanics/resources.md`, section 5. It goes on changing them after the last of
   those days is run, so a savegame's laws are not always the laws its figures were made
   under; `docs/mechanics/production.md`, section 7.
@@ -229,17 +297,20 @@ None of these blocks the list above.
 - **Puppets are not read**, and one consequence shows already: Manchukuo starts with 1890
   metal where the original holds a subject to 1000. Wars are read for who is in them and
   when they began.
-- **Supplies and fuel start at nothing.** The original gives each country as many days of
-  what its units use as it gives of resources, so this waits for units.
-  `docs/mechanics/stockpile.md`, section 2.
-- **Four of the six shares of IC spend nothing**: lend-lease, production, reinforcement
-  and upgrades. IC put in them is wasted until there are units, and wasted IC costs no
-  resources, so stockpiles still grow faster than they should.
-- **Consumer goods demand is missing its standing-army term**, which needs units and
-  neutrality. So no country here is unhappy about the size of its army.
+- **Two of the six shares of IC spend nothing**: lend-lease and production. IC put in
+  them is wasted, and wasted IC costs no resources, so stockpiles still grow faster than
+  they should. Reinforcement and upgrades spend what their units take.
+- **Consumer goods demand is missing its standing-army term**, which needs neutrality as
+  well as the units it now has. So no country here is unhappy about the size of its army.
   `docs/mechanics/production.md`, section 3.
 - **Only the player moves the shares.** There is no AI to move them, so every other
-  country keeps the shares it started with.
+  country keeps the shares it started with - a fifth of what consumer goods leave on
+  reinforcement and as much on upgrades, whatever its units need.
+- **The laws the original's first two days ran under are not all known.** Its AI changes
+  a country's training law and industrial policy more than once before the first screen,
+  and both set what an upgrade costs and how long it takes. Germany's two days fit its
+  history's training law and not the one its save shows; the savegame check tries both
+  for every country and says which fitted. `docs/mechanics/upkeep.md`, section 9.
 - **An icon or a button is the pixel size of its texture.** That is right for the
   original's art and is the one thing a sharper replacement must not change; what says
   the size a texture was designed at is still not decided (*The interface*, above).
@@ -276,9 +347,11 @@ None of these blocks the list above.
   its own tooltip keys: the original's handlers were not read.
   `docs/mechanics/technologyscreen.md` and `productionscreen.md`, what is not
   established.
-- **The production screen is mostly empty.** Its four lists have nothing to list, its
-  builder and building buttons nothing to build, and five of its six sliders need
-  nothing, until there are units, trade and convoys.
+- **The production screen is half empty.** Its four lists have nothing to list and its
+  builder and building buttons nothing to build, until there is a build queue, trade and
+  convoys. Four of its six sliders show a need now - consumer goods, supplies,
+  reinforcement and upgrades - and the stock of supplies and of fuel falls by what the
+  units draw.
 - **A technology's effects are listed as its file's keys and figures**, where the
   original writes them out in words, and what it does to a kind of unit is not listed
   at all. `docs/mechanics/technologyscreen.md`, section 7.
@@ -289,7 +362,8 @@ None of these blocks the list above.
   played is Germany unless the game is started with `--country=TAG`.
 - **Three of the top bar's figures are less than the original's.** A resource's colour
   comes from four of the thirteen ledgers, the rest being trade, convoys, debt and
-  tribute; the officer ratio shows `-` until there are units to want officers; and
+  tribute; the officer ratio still shows `-`, because the units are there now and how the
+  original works the ratio out and caps it is not read (*Next up*, 2); and
   national unity never moves, where the savegames show it moving by a thousandth or two
   a day from the first, which fits spies. `docs/mechanics/topbar.md`, sections 2, 6 and 9.
 - **Whether the top bar's picture changes with the country** was not read. The install
@@ -313,7 +387,8 @@ None of these blocks the list above.
   `reversing/findings/FINDINGS-manpowergain.md`, and are entered in the fact base's record.
   So was what a country's modifier is made of, the question five of the specs shared:
   `reversing/findings/FINDINGS-countrymodifier.md`. The two screens' were read before
-  they were built: `reversing/findings/FINDINGS-countryviews.md`.
+  they were built: `reversing/findings/FINDINGS-countryviews.md`. And what units draw
+  each day was read for its spec: `reversing/findings/FINDINGS-unitdaily.md`.
   The rest have not been filed in its work queue.
 
 Being in the spirit of the original means choosing what not to take. These are settled
@@ -347,15 +422,15 @@ first three screens, in four projects:
 
 | Area | What it does |
 | --- | --- |
-| `lib/OpenHOI3.Sim` | The game state - dates, countries, provinces, terrain - and what drives it: fixed-point numbers, the command queue, and the hourly tick with its daily, monthly and yearly passes, and the first systems in them: each province's modifier and each country's, from its laws, ministers, provinces and the strategic resources it has the use of; its IC, what it produces at home, the stockpile that goes into, the six shares its IC is divided between, with the money, supplies, dissent and resource bill that come of them, the conversions of energy into crude oil and crude oil into fuel, its manpower, its leadership with the officers, influence and spies its shares make, and its research with the monthly decay of its theories and practicals. References nothing, so the simulation runs headless |
-| `lib/OpenHOI3.Content` | Reads the Clausewitz script format, finds and layers a Hearts of Iron 3 install, and reads its localisation tables, its map with its continents, its defines, its buildings, laws, ministers, technologies and strategic resources, its province, country and war history, and its interface files. No engine in it either |
+| `lib/OpenHOI3.Sim` | The game state - dates, countries, provinces, terrain - and what drives it: fixed-point numbers, the command queue, and the hourly tick with its daily, monthly and yearly passes, and the first systems in them: each province's modifier and each country's, from its laws, ministers, provinces and the strategic resources it has the use of; its IC, what it produces at home, the stockpile that goes into, the six shares its IC is divided between, with the money, supplies, dissent and resource bill that come of them, the conversions of energy into crude oil and crude oil into fuel, its manpower, its leadership with the officers, influence and spies its shares make, and its research with the monthly decay of its theories and practicals. And the units: the kinds of brigade, ship and wing, each one's own technology levels and figures, the chain of command they sit in, what each holds as a game starts, and what a day does to one: the supplies and fuel it draws, the men who go home, and the reinforcement and upgrades its country's IC pays for. References nothing, so the simulation runs headless |
+| `lib/OpenHOI3.Content` | Reads the Clausewitz script format, finds and layers a Hearts of Iron 3 install, and reads its localisation tables, its map with its continents, its defines, its buildings, laws, ministers, technologies and strategic resources, its province, country and war history, its unit types, historical models and orders of battle, and its interface files. No engine in it either |
 | `lib/OpenHOI3.Interface` | What the screens show, still with no engine: the text of every figure of the top bar, the production screen and the technology screen in the original's format and colour, the colour escapes in text, how a set of sliders shares out what one of them gives up, and where an element goes on a canvas that scales |
 | `src/Map` | The map, political or by terrain: drawn by a shader from a province-id texture and a colour per province, with pan, zoom and picking |
 | `src/Gfx` | The Godot client's side: decodes the original's DDS/TGA textures and sprite declarations, and finds the typeface for each font the interface files name |
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, and the six sliders that divide IC. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology |
-| `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. The oracle for everything above |
-| `tests/` | 544 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, the interface files, font descriptors, the sliders and the three screens' figures, where silent misreadings are expensive |
+| `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again. The oracle for everything above |
+| `tests/` | 651 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the interface files, font descriptors, the sliders and the three screens' figures, where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those three, and nearly every
 system the tick is there to run. The game also does not stop at the end date.
@@ -412,17 +487,34 @@ src/                    the Godot client
 src/Gfx/                decoding the original's textures and fonts
 src/Gui/                the interface runtime: windows from the original's .gui files
 src/Screens/            one class for each screen: the top bar, production, technology
-lib/OpenHOI3.Sim/       our own data model and the simulation
-lib/OpenHOI3.Content/   the Clausewitz reader, locating and layering an install, localisation
-lib/OpenHOI3.Interface/ what the screens show, with no engine: figures, colours, placement
+lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, the tick,
+                        the clock and the two kinds of number are at its root
+    Commands/           every change to the game state
+    Provinces/          a province, its terrain, a building
+    Countries/          a country, its tag, its laws, its ministers, its wars
+    Modifiers/          what a modifier is, and the rebuilding of a province's and a country's
+    Economy/            goods, resources, IC, the stockpile, the six shares, manpower, leadership
+    Research/           technologies, their categories, the queue and the decay
+    Units/              units and brigades, their types, and what a day does to one
+lib/OpenHOI3.Content/   reading an install: finding and layering it, localisation, the loader
+    Clausewitz/         the script format
+    Map/                the province bitmap, shapes, adjacency, terrain
+    Definitions/        what common/, technologies/ and units/ declare
+    History/            what history/ gives on the start date, orders of battle among it
+    Gui/                the interface files' declarations, and font descriptors
+lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and placement at its root
+    Text/               colour escapes, number formats, templates
+    Screens/            the text of each screen's figures
 tools/OpenHOI3.SaveCheck/   checks the libraries against a savegame the original wrote
 docs/mechanics/         one spec per system: what the original computes, and how sure that is
 docs/compatibility.md   where a valid file of the original's is treated differently on purpose
-tests/                  parser, layering and data tests
+tests/OpenHOI3.Tests/   Sim/, Content/ and Interface/: the tests of each library
 ```
 
 Nothing under `lib/` references Godot, and `OpenHOI3.Sim` references nothing at all. The
 tests run against those three as a plain .NET project, with no engine behind them.
+
+A folder is a namespace: `lib/OpenHOI3.Sim/Units/CUnit.cs` is `OpenHOI3.Sim.Units.CUnit`.
 
 ## What the original taught us
 

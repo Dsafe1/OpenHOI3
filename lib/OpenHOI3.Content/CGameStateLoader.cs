@@ -2,7 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Content.Definitions;
+using OpenHOI3.Content.History;
+using OpenHOI3.Content.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Content;
 
@@ -38,8 +47,19 @@ public static class CGameStateLoader
 			};
 		}
 
+		var terrainNames = new List<string>();
+		foreach (CTerrain terrain in map.Terrains)
+		{
+			terrainNames.Add(terrain.Name);
+		}
+		var unitTypes = new Dictionary<string, CSubUnitType>(StringComparer.OrdinalIgnoreCase);
+		foreach (CSubUnitType type in CSubUnitTypeReader.Read(directories, terrainNames, warn))
+		{
+			unitTypes[type.Key] = type;
+		}
+
 		List<CTechnologyCategory> categories = CTechnologyReader.ReadCategories(directories, warn);
-		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn, categories);
+		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn, categories, unitTypes, terrainNames);
 		Dictionary<string, CGoodsPool> goodsGiven =
 			CCountryHistory.Apply(directories, countries, start, warn, technologies, categories);
 
@@ -54,13 +74,38 @@ public static class CGameStateLoader
 			defines, wars, strategicResources, categories)
 		{
 			TechnologyFolders = CTechnologyReader.ReadFolders(directories),
+			SubUnitTypes = unitTypes,
 		};
 		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);
 		CProduction.SetStartingShares(state);
 		CLeadership.SetAtStart(state);
 		CManpower.SetAtStart(state);
+
+		// The units come last, as they do in the original: a brigade is made by a country
+		// that already has its laws, its technology and its modifiers.
+		CHistoricalModelReader.Read(directories, countries, unitTypes, state.Technologies,
+			CHistoricalModels.DefaultCount(state), warn);
+		ReadUnits(directories, state, warn);
+		CUnits.SetAtStart(state);
+		CStockpile.AddUnitGoodsAtStart(state);
 		return state;
+	}
+
+	/// <summary>
+	/// Gives every country the units its order of battle declares, as the file gives
+	/// them and in place of any it had. What they then start with is
+	/// <see cref="CUnits.SetAtStart"/>, which depends on the country's laws - so a
+	/// caller that changes those can read the units again and set them up afresh.
+	/// </summary>
+	public static void ReadUnits(CDirectorySettings directories, CGameState state, Action<string>? warn = null)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			country.Units.Clear();
+		}
+		state.LastUnitId = COrderOfBattleReader.Read(directories, state.Countries, state.SubUnitTypes,
+			state.Technologies, state.Provinces.Count, warn);
 	}
 
 	/// <summary>

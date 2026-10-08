@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using OpenHOI3.Gui;
-using OpenHOI3.Interface;
+using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Commands;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
 
 namespace OpenHOI3.Screens;
 
@@ -122,15 +125,10 @@ public partial class CProductionView : CCountryView
 		_sliders?.Group.SetHeld((int)category, true);
 	}
 
-	/// <summary>
-	/// What a share wants, in IC. Consumer goods want what the country demands; the
-	/// rest want nothing until there are units to build, supply, reinforce and upgrade.
-	/// </summary>
+	/// <summary>What a share wants, in IC: see <see cref="CProduction.Needed"/>.</summary>
 	private CFixedPoint Need(EProductionCategory category)
 	{
-		return category == EProductionCategory.ConsumerGoods
-			? CProduction.ConsumerGoodsNeeded(Simulation.State, Player) * Player.TotalIc
-			: CFixedPoint.Zero;
+		return CProduction.Needed(Simulation.State, Player, category);
 	}
 
 	/// <summary>One small icon for each strategic resource the country has the use of.</summary>

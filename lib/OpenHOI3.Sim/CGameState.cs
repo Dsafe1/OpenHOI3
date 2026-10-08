@@ -1,5 +1,11 @@
 using System;
 using System.Collections.Generic;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim;
 
@@ -96,6 +102,16 @@ public sealed class CGameState
 
 	/// <summary>The folders technologies are sorted into for the player, in the order the file lists them.</summary>
 	public IReadOnlyList<string> TechnologyFolders { get; init; } = Array.Empty<string>();
+
+	/// <summary>The kinds of brigade, ship and wing there are, by key.</summary>
+	public IReadOnlyDictionary<string, CSubUnitType> SubUnitTypes { get; init; } =
+		new Dictionary<string, CSubUnitType>(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// The last number given to a unit or a sub unit. The next one made takes the one
+	/// after it.
+	/// </summary>
+	public int LastUnitId { get; set; }
 
 	/// <summary>The numbers out of <c>common/defines.lua</c>.</summary>
 	public CDefines Defines { get; }

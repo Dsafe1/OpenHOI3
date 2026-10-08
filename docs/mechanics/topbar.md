@@ -78,8 +78,10 @@ exile.
 So the first number is red whenever anything is going to waste, and the second whenever a
 shortage has cost IC. The original's: `§R10/§G21/21`.
 
-*Ours:* four of the six shares spend nothing until there are units (`production.md`), so
-most of a country's IC shows as wasted, in red. That is true, and it is the bar saying so.
+*Ours:* two of the six shares spend nothing until there is a build queue and lend-lease,
+and reinforcement and upgrades spend only what their units take (`production.md`,
+`upkeep.md`), so much of a country's IC shows as wasted, in red. That is true, and it is
+the bar saying so.
 How the original rounds each share's spare IC before adding them is not read; here the
 five are added in thousandths and cut once.
 
@@ -147,9 +149,12 @@ of the officers its units want that the country has**, as a whole percentage:
 
 The original's: `§G108%`.
 
-*Ours:* there are no units to want officers, so there is no ratio, and the box shows `-`
-as the original does for a figure that does not apply. The format and the colours are
-built and tested for when there is one.
+*Ours:* the ratio is not worked out, so the box shows `-` as the original does for a
+figure that does not apply. The units and the officers they bring a country exist since
+2026-10-08 (`units.md`, section 7); what is missing is how the original turns the two into
+the ratio, and where it caps it - a savegame has Germany behaving as though at 140% on a
+history that gives it half as many officers again as it needs. The format and the colours
+are built and tested for when there is one.
 
 ## 10. Spies
 

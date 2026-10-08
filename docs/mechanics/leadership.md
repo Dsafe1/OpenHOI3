@@ -102,9 +102,8 @@ below it, and turned into thousandths at the end:
     c = b * (1 + OFFICER_RECRUITMENT)
     officers += c, as thousandths, rounded down
 
-**What a country's officers start as is not established.** It is a whole number in every
-country that has units, and the country history files carry an `officers_ratio`; it
-follows the units.
+**What a country's officers start as** is what its units call for, times its history's
+`officers_ratio`: `units.md`, section 7. (measured, 95 countries of 100)
 
 ## 4. Diplomatic influence
 
@@ -156,7 +155,7 @@ fast it goes and what finishing it does is `research.md`.
 - **Officers, influence and spies in training accumulate; nothing spends them yet.**
   Officers are for units, influence for diplomacy and spies for espionage, none of which
   exists here. Spies are not sent anywhere, so the figure is a pool that only grows.
-- **Officers start at nothing.** The original's starting figure follows the units.
+- **Officers start with what the country's units bring** (`units.md`, section 7).
 - **There is no sharing of technology**, so nothing is taken off the total for it.
 - **The research share is spent on the country's queue** (`research.md`). The number of
   projects is worked out and shown, and nothing enforces it: the queue may be longer, and
@@ -188,7 +187,6 @@ to their African provinces (`modifiers.md`, section 3).
 
 ## What is not established, in one place
 
-- what a country's **officers** start as;
 - which **triggered modifier** each of the five above has: what a country's modifier is
   made of is read now (`modifiers.md`, sections 4 and 5), and their conditions are the
   script's;

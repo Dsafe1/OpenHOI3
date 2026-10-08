@@ -2,6 +2,7 @@ using System;
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Screens;
 

@@ -1,3 +1,8 @@
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Units;
+
 namespace OpenHOI3.Sim;
 
 /// <summary>
@@ -50,13 +55,15 @@ public static class CTick
 	private static void RunDailyPass(CGameState state)
 	{
 		// A country's day, in the original's order: its manpower grows, its leadership is
-		// worked out, what its provinces produced reaches the stockpile, its IC is worked
-		// out, and then its six shares of IC are run and its four of leadership after them.
+		// worked out, its units lose the men who go home and draw their supplies, what its
+		// provinces produced reaches the stockpile, its IC is worked out, and then its six
+		// shares of IC are run and its four of leadership after them.
 		CProvinceModifiers.Rebuild(state);
 		CStrategicResources.Update(state);                  // the first thing the original's day does
 		CCountryModifiers.Rebuild(state);
 		CManpower.RunDaily(state);
 		CLeadership.Update(state);
+		CUnitUpkeep.RunDaily(state);
 		CResources.UpdateHomeProduction(state);
 		CStockpile.AddHomeProduction(state);
 		CIndustrialCapacity.Update(state);

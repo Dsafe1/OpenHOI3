@@ -22,10 +22,12 @@ install layerer, texture decoding, the map with the start-date ownership and
 terrain of its provinces, a map view, fixed-point numbers, the command queue, an hourly tick
 whose daily pass works out who has which strategic resource, rebuilds each province's and each country's modifier, adds to its manpower,
 works out its leadership, its IC and its home production, adds that to its stockpile and runs
-its six shares of IC and its four of leadership, research among them, a tool that checks all
-of it against savegames, an interface runtime that builds windows from the original's `.gui`
-files and draws their text in outline fonts, three screens on it - the top bar, production
-and technology - 544 tests - and it is
+its six shares of IC and its four of leadership, research among them, the unit types and
+every country's order of battle with what each brigade holds on the first hour, what a
+unit draws each day - supplies and fuel, troop rotation, reinforcement and upgrades - a tool that
+checks all of it against savegames, an interface runtime that builds windows from the
+original's `.gui` files and draws their text in outline fonts, three screens on it - the
+top bar, production and technology - 651 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -79,6 +81,13 @@ Nothing should be designed around these coming back.
     runtime. See the next section.
 - **The base game first, mods second.** Their Finest Hour alone is the target until it works;
   BlackICE then becomes a third layer over it.
+- **The AI does not touch the player's country.** The maintainer's decision, 2026-10-08:
+  "Yes it should leave the players history laws." In the original something has moved
+  every country's laws by the first screen, the player's included - Germany shows
+  `two_year_draft` where its history says `volunteer_army` - and he takes that for a bug.
+  So the country being played starts on the laws its history gives it and its units are
+  made under them, and an AI, when one is built, chooses laws only for the countries it
+  runs. Ministers were not asked about. `docs/compatibility.md`, entry 6.
 - **Fixed-point numbers in the simulation.** Thousandths, as the original stores them, for
   determinism and for rounding the way the original does. No `float` or `double` in game state.
   The original has a second kind, with 15 binary places, for shares of IC and of leadership;
@@ -194,7 +203,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 93 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 95 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -230,7 +239,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 2589-address, 301-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 2602-address, 301-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -267,6 +276,16 @@ beside the repository.
   so a small enum or a one-line record that only one class uses still gets its own file. A
   type nested inside another stays where it is. A new file under `src/` needs the `.uid`
   file Godot writes beside it: run the editor's import once and add it.
+- **And every file in the folder for its subject, which is its namespace.** The
+  maintainer's word, 2026-10-08, when `lib/OpenHOI3.Sim` had reached 56 files side by
+  side: "A flat folder with all is pretty chaotic." So `lib/OpenHOI3.Sim/Units/CUnit.cs`
+  is `OpenHOI3.Sim.Units.CUnit`, as `Content/Gui` and `Content/Clausewitz` already were.
+  `readme.md`, *Repository layout*, lists the folders and what each is for. A new type
+  goes in the folder it belongs to, not at a project's root: the roots hold only what
+  everything else is built on - in `Sim`, the game state, the tick, the clock, the date,
+  the defines and the two kinds of number. When a subject has no folder, make one
+  rather than leave the file at the root, and add it to the readme's list. The tests
+  are in `Sim/`, `Content/` and `Interface/` by the library they test.
 - **After creating `.cs` files from outside the editor, `touch` the project file that owns
   them.** VS Code's C# language server did not notice 34 files a script created on
   2026-10-08 and reported `CS0246` for every type that had moved, while `dotnet build` was
@@ -297,7 +316,7 @@ beside the repository.
   on, so a comparison that matters should say which dates it was run against.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, the interface files, font descriptors, the sliders and the three screens' figures carry 544 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the interface files, font descriptors, the sliders and the three screens' figures carry 651 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

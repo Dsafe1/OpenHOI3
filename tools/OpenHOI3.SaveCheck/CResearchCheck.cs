@@ -12,7 +12,13 @@ using System.Globalization;
 using System.Linq;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Content.Definitions;
+using OpenHOI3.Content.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Research;
 
 internal static class CResearchCheck
 {

@@ -1,7 +1,9 @@
 using Godot;
 using OpenHOI3.Gui;
-using OpenHOI3.Interface;
+using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
 
 namespace OpenHOI3.Screens;
 

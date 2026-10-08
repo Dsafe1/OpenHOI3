@@ -12,7 +12,15 @@ using System.Globalization;
 using System.Linq;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Content.Definitions;
+using OpenHOI3.Content.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Units;
 
 // Research is checked against two later saves of one game: see CResearchCheck.
 if (args.Length > 0 && args[0] == "research")
@@ -120,6 +128,9 @@ foreach (ClausewitzNode node in save.Children)
 		savedCountries.Add((node, country));
 	}
 }
+
+// ---- units: what the orders of battle make, before anything below gives a country the save's laws
+List<string> unitLaws = CUnitCheck.Run(directories, savedCountries, state, lawBook, Compare);
 
 foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 {
@@ -426,7 +437,43 @@ foreach ((int capitalId, (string who, CGoodsPool change)) in conversions)
 	CFixedPoint ourOil = oil + oil - refined - refined;
 	Compare("crude oil made and refined in the save's two days", change[EGoods.CrudeOil] == ourOil,
 		() => $"{who}: the save is {change[EGoods.CrudeOil]} up, ours would be {ourOil}  (IC {holder.TotalIc})");
+
+	// The fuel a new game starts with is so many days of what the units use, and by the save
+	// the supply network has carried some of it out of the capital. So it is all the fuel in
+	// the provinces the country holds that is counted, less the two days' refining.
+	var refining = new CGoodsPool();
+	refining.CopyFrom(day);
+	CGoodsPool usedBefore = new();
+	usedBefore.CopyFrom(holder.ConversionUsed);
+	CGoodsPool madeBefore = new();
+	madeBefore.CopyFrom(holder.ConversionMade);
+	CConversions.CrudeOilIntoFuel(holder, refining);
+	CFixedPoint fuelMade = refining[EGoods.Fuel] - day[EGoods.Fuel];
+	holder.ConversionUsed.CopyFrom(usedBefore);
+	holder.ConversionMade.CopyFrom(madeBefore);
+
+	string holderTag = holder.Tag.Value;
+	CFixedPoint fuelHeld = CFixedPoint.Zero;
+	foreach (ClausewitzNode province in save.Children)
+	{
+		if (province.Key is not null && province.IsBlock && char.IsDigit(province.Key[0])
+			&& province.GetString("controller") == holderTag)
+		{
+			fuelHeld += Number(province.Get("pool")?.GetString("fuel"));
+		}
+	}
+	CFixedPoint fuelAtStart = fuelHeld - fuelMade - fuelMade;
+	bool alone = savedCountries.Count(saved => saved.Country.Capital == capitalId) == 1;
+	Compare(alone ? "fuel at the start: all a country's provinces hold, less two days' refining"
+			: "fuel at the start, where two countries share a capital",
+		fuelAtStart == capital.Pool[EGoods.Fuel],
+		() => $"{who}: the save implies {fuelAtStart}, ours {capital.Pool[EGoods.Fuel]}  (off by {fuelAtStart - capital.Pool[EGoods.Fuel]}; " +
+			$"{CStockpile.DaysAtStart(state, holder)} days of {CUnitSupply.DailyUse(holder).Fuel}, {fuelMade} refined a day)");
 }
+
+// ---- the units two days on, which is where the save is: now that each country has the laws,
+// the technology and the shares its last day was run with.
+List<string> upkeepLaws = CUpkeepCheck.Run(savedCountries, state, save, historyLaws, Compare);
 
 CProduction.RunDaily(state);
 foreach ((ClausewitzNode node, CCountry country) in savedCountries)
@@ -440,7 +487,7 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 	if (CResources.HoldsCapital(state, country))
 	{
 		CFixedPoint used = Number(usage?.GetString("metal"));
-		Compare("what the player's consumer goods and supplies cost is no more than the save says it used",
+		Compare("what the player's shares but the build queue cost is no more than the save says it used",
 			country.Usage[EGoods.Metal] <= used, () => $"{tag}: the save used {used}, ours {country.Usage[EGoods.Metal]}");
 		continue;
 	}
@@ -495,6 +542,10 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 	CFixedPoint officers = Number(node.GetString("officers")) - CLeadership.OfficersMade(state, country) * 2;
 	Compare("officers, less two days of them, are a whole number", officers.Raw % CFixedPoint.Scale == 0,
 		() => $"{tag}: save {node.GetString("officers")}, two days here {CLeadership.OfficersMade(state, country) * 2}  ({facts}, recruitment {country.Modifier["officer_recruitment"]})");
+	// What its units came with. The theatres the original makes as a game starts bring none.
+	Compare("officers at the start", officers == country.Officers,
+		() => $"{tag}: the save implies it started with {officers}, ours {country.Officers}  (off by {officers - country.Officers}; " +
+			$"ratio {country.OfficersRatio}, {country.AllUnits().Count()} units)");
 }
 
 // ---- manpower. A new game gives a country its most, and the save is two days of income on
@@ -549,6 +600,18 @@ if (putBack.Count > 0)
 	Console.WriteLine();
 	Console.WriteLine($"{putBack.Count} countries fit only with laws from their history put back, which the AI changed after the last day was run:");
 	Console.WriteLine("   " + string.Join("; ", putBack));
+}
+if (unitLaws.Count > 0)
+{
+	Console.WriteLine();
+	Console.WriteLine($"{unitLaws.Count} countries' units fit a law out of their history better than the save's, which the AI changed after they were made:");
+	Console.WriteLine("   " + string.Join("; ", unitLaws));
+}
+if (upkeepLaws.Count > 0)
+{
+	Console.WriteLine();
+	Console.WriteLine($"{upkeepLaws.Count} countries' upgrades over the two days fit a law out of their history better than the save's, which the AI changed after the last day was run:");
+	Console.WriteLine("   " + string.Join("; ", upkeepLaws));
 }
 Console.WriteLine();
 Console.WriteLine($"{warnings.Count} warnings while loading");

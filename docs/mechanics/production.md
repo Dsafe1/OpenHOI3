@@ -10,8 +10,8 @@ Sources: `reversing/findings/FINDINGS-distribute.md`,
 `reversing/findings/FINDINGS-production.md`, `reversing/findings/FINDINGS-manpower.md`,
 `reversing/CLASSES.md` (*Industrial capacity, and the six sliders*).
 
-This is the first half. The build queue, reinforcement and upgrades spend IC on units, and
-wait for units.
+Reinforcement and upgrades spend IC on units and have a spec of their own, `upkeep.md`.
+The build queue is not built.
 
 ## 1. The six shares
 
@@ -134,11 +134,15 @@ see section 7 for why it is not the one the save shows.)
 - **Lend-lease**: not read.
 - **Production** hands each item in the queue, in queue order, up to one day of its cost,
   from the free part first and then against the resource check. `confirmed`
-- **Reinforcement** and **upgrades** walk the country's units. `confirmed` for
-  reinforcement.
+- **Reinforcement** and **upgrades** walk the country's units, and are built:
+  `upkeep.md`, sections 4 and 5. Each charges for the IC it spends as section 2 says -
+  reinforcement brigade by brigade, upgrades once for the day.
 
-All three wait for units. `reversing/findings/FINDINGS-production.md` and
-`reversing/findings/FINDINGS-manpower.md` have what is known.
+Production waits for the build queue. `reversing/findings/FINDINGS-production.md` has
+what is known.
+
+**What each slider shows as its need** is `upkeep.md`, section 8, for supplies,
+reinforcement and upgrades, and section 3 here for consumer goods.
 
 ## 6. Ours
 
@@ -146,9 +150,10 @@ All three wait for units. `reversing/findings/FINDINGS-production.md` and
 - **Every country but the rebels runs its shares**, as in the original, so a country that
   does not exist earns money, makes supplies and uses resources in whoever holds its
   capital. This replaces the earlier choice not to (`stockpile.md`, section 5).
-- **Lend-lease, production, reinforcement and upgrades spend nothing yet.** Their shares
-  are there and can be set; the IC in them is wasted and costs nothing.
-- **The standing-army term is zero**: there are no units and no neutrality yet.
+- **Lend-lease and production spend nothing yet.** Their shares are there and can be
+  set; the IC in them is wasted and costs nothing. Reinforcement and upgrades spend what
+  their units take (`upkeep.md`), and the rest of what they are given is wasted too.
+- **The standing-army term is zero**: the units are there now, and neutrality is not.
 - **All the supplies go to the stockpile.** Provinces other than the capital do not hold
   goods until there is a supply network to move them.
 - **A charge takes what there is and no more.** The original cuts total IC to what the

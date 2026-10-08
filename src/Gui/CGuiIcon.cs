@@ -2,7 +2,7 @@ using Godot;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gfx;
-using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Gui;
 

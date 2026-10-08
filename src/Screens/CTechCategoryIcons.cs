@@ -1,5 +1,6 @@
+
 using OpenHOI3.Gui;
-using OpenHOI3.Sim;
+using OpenHOI3.Sim.Research;
 
 namespace OpenHOI3.Screens;
 

@@ -1,8 +1,9 @@
 using System;
 using Godot;
-using OpenHOI3.Content;
+using OpenHOI3.Content.Map;
 using OpenHOI3.Gfx;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Provinces;
 
 namespace OpenHOI3.Map;
 

@@ -103,6 +103,34 @@ now** is the maintainer's word: this one is expected to be looked at again.
 
 `docs/mechanics/interface.md`, section 6.
 
+## 6. The player's country starts on its history's laws
+
+**Decided** 2026-10-08 by the maintainer, having checked the original himself: a fresh
+1936 game as Germany shows `two_year_draft` on the first screen with nothing touched,
+where Germany's history says `volunteer_army`. "So this looks like a bug, because the game
+AI should not have touched it." Asked whether this project should leave the player's
+country alone: "Yes it should leave the players history laws."
+
+| | |
+| --- | --- |
+| the original | by the first screen something has moved the laws of every country, the player's included: Germany is two laws up in conscription and two in the economy, which is the shape of the AI script's own rule, "the next law up, if it is allowed". Its units are then made under the changed conscription law |
+| here | the country the player plays starts on the laws its history files give it, and its units are made under those. An AI, once there is one, chooses laws only for the countries it runs |
+| the difference today | as Germany: `volunteer_army` and `basic_mobilisation` where the original shows `two_year_draft` and `war_economy`; reserves at a quarter of their strength, not half; reserves nobody gave an experience at 3.75, not 7.5; 469 manpower, not 882 |
+| a mod loses | nothing of its files: a history file's laws now mean what they say for the player. A mod balanced around the player getting the AI's opening choices for nothing - which is what the original gives - will find the player's start weaker than it was tuned for |
+| why | the files say what the country starts with, and nothing a player did changed it. The maintainer takes it for a bug in the original rather than a rule |
+| to undo | let the AI's opening pass run for the player's country as well, before the units are made |
+
+Two things this does not settle. **Ministers**: the original's AI script changes those
+before the first hour too, and the question was asked about laws. And **the countries the
+AI does run**: whether their units are made before or after its opening choices is for
+when the AI is built - in the original it is after, for conscription.
+
+Nothing has to be built for this today: there is no AI, so every country starts on its
+history's laws. The entry is here so that the AI, when it comes, is not given the
+player's country on the first day.
+
+`docs/mechanics/units.md`, section 8; `reversing/findings/FINDINGS-unitstart.md`, section 9.
+
 ---
 
 ## Stricter, with the same meaning
@@ -112,8 +140,12 @@ are listed.
 
 - **A key nothing recognises is reported.** The original drops it without a word; this
   reads the rest of the file the same way and says which key it did not know. So far in
-  the interface files (`docs/mechanics/interface.md`, section 2) and wherever a loader
-  knows the whole of what a block may hold.
+  the interface files (`docs/mechanics/interface.md`, section 2), in unit types, historical
+  models and orders of battle (`docs/mechanics/units.md`), and wherever a loader knows the
+  whole of what a block may hold.
+- **A brigade of a type nobody declares is left out**, and said to be. The original keeps
+  it with no type, which nothing can then use. It is still given its number, so the units
+  after it are numbered as the original numbers them.
 - **A texture named with the wrong extension is found**, as it is in the original, and a
   path with a backslash that should have been doubled still names the file it names
   there. Neither is reported.
