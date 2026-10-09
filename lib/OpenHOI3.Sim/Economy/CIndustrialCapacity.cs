@@ -20,8 +20,8 @@ namespace OpenHOI3.Sim.Economy;
 /// </summary>
 public static class CIndustrialCapacity
 {
-	private const string ProvinceIc = "ic";
-	private const string ProvinceLocalIc = "local_ic";
+	public const string ProvinceIc = "ic";
+	public const string ProvinceLocalIc = "local_ic";
 	private const string CountryGlobalIc = "global_ic";
 	private const string TechnologyIc = "ic_modifier";
 
@@ -32,7 +32,9 @@ public static class CIndustrialCapacity
 	public static void Update(CGameState state)
 	{
 		var sums = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+		var coreHome = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 		long seed = state.StaticModifier(BaseValues, BaseValuesIc).Raw;
+		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
 
 		foreach (CProvince province in state.Provinces)
 		{
@@ -50,6 +52,17 @@ public static class CIndustrialCapacity
 			}
 			long localIc = province.Modifier[ProvinceLocalIc].Raw;
 			long contribution = ic * (CFixedPoint.Scale + localIc) / CFixedPoint.Scale;
+
+			// Its own ground at home is added up beside the sum: a province it owns and
+			// has a core on, in the area its capital is in.
+			if (province.Owner == controller && province.Cores.Contains(controller)
+				&& state.Country(controller) is { Capital: > 0 } holder
+				&& network.AreaOf(province.Id) is { } area && area == network.AreaOf(holder.Capital))
+			{
+				coreHome.TryGetValue(controller.Value, out long home);
+				coreHome[controller.Value] = home + contribution;
+			}
+
 			if (contribution <= 0)
 			{
 				continue;                                    // only a positive one is added
@@ -80,6 +93,8 @@ public static class CIndustrialCapacity
 				total = 1;                                   // every country has at least one
 			}
 
+			coreHome.TryGetValue(country.Tag.Value, out long home);
+			country.CoreHomeIc = home;
 			country.BaseIc = (int)baseIc;
 			country.TotalIc = (int)total;
 			country.MaxIc = (int)total;

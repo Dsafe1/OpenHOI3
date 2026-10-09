@@ -93,7 +93,8 @@ landing on one hour. `confirmed` A second per-country gate fires at the hour equ
 ### The daily pass, in order
 
 1. The supply network is rebuilt if needed, **the order supply is handed out in is sorted,
-   and the supply pass runs** - once a day, not once an hour.
+   and the supply pass runs** - once a day, not once an hour. Built: `supply.md`, sections
+   11 and 12.
 2. Per country: neighbours are recomputed.
 3. Per country, one after another: the country's daily work, which includes **recomputing
    its IC**, every unit's daily update, and the daily politics - effective neutrality,

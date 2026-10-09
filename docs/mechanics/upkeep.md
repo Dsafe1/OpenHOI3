@@ -12,8 +12,8 @@ Sources: `reversing/findings/FINDINGS-unitdaily.md` (all of it, read for this sp
 `reversing/findings/FINDINGS-manpower.md` (troop rotation),
 `reversing/findings/FINDINGS-production.md` (the shape every share of IC has),
 `reversing/findings/FINDINGS-leadership.md`, section 10 (the starting stockpile),
-`reversing/findings/FINDINGS-supply.md` (the supply network: built as far as who draws
-from where, `supply.md`, and not yet drawn on).
+`reversing/findings/FINDINGS-supplypass.md` (the province a unit draws on and what it is
+given there: `supply.md`, section 13).
 
 The units themselves are in `units.md`; the six shares of IC, and what a point of IC costs
 in resources, are in `production.md`.
@@ -68,30 +68,23 @@ country make its supplies and run its shares. A unit that is built and not yet p
 too, after the others, and loses no men first. `confirmed`, and built
 (`buildqueue.md`, section 6).
 
-**How much.** A unit asks for what section 1 gives and is given what there is:
+**From where, and how much.** A unit asks for what section 1 gives **of the province it
+draws on** - the one an army stands in, the one a wing or a fleet is based in - which a
+network of provinces keeps filled from the capital, losing a little at every step and limited
+by what each province can pass. It is given its share of what lies there, and remembers how
+much of what it asked for that was. All of it is `supply.md`, section 13. `confirmed`, and
+built.
 
-    taken             = min(asked, what the pool holds)
-    supplies received = taken / asked            kept by the unit until it next draws
-
-- **Fuel is asked for only by a unit that is moving, and by a fleet that is not in its own
-  port.** An army or an air unit standing still burns none. `confirmed`
+- **Fuel is burnt only by a unit that is moving, and by a fleet that is not in its own
+  port.** An army or an air unit standing still is told what it would have had and the
+  province keeps it. `confirmed`
 - A unit starts at 1 for both, so one that has never drawn counts as supplied. `confirmed`
-- What a country's units asked for in a day is added up: it is the supply share's need
-  (section 6).
+- What the units on a country's ground asked for in a day is added up: it is the supply
+  share's need (section 8).
 
-**From where.** In the original a unit draws on the pool of the province it is supplied
-from, which a network of provinces keeps filled from the capital, losing a little at every
-step and limited by what each province can pass. That is its normal mode. It has a second,
-which it calls arcade, where every unit draws straight on its country's stockpile and the
-network does not run. `confirmed`
-
-*Ours:* **the arcade rule, until the network is drawn on.** The network itself is built -
-which depot every province draws on and how far from it, `supply.md` - and the daily pass
-that fills each province's pool from it is the next piece. Until that, every unit draws on
-its country's stockpile. So no unit here is ever short of supplies while its country has any,
-wherever it stands; in the original's save, two days in, 68 brigades are in units the
-network had not fully supplied. Nothing moves yet, so the only fuel drawn is by a
-fleet whose order of battle puts it somewhere other than its base.
+The original has a second mode, which it calls arcade, where every unit draws straight on its
+country's stockpile and the network does not run. `confirmed` *Ours:* not built. It is what
+this project did until the daily pass was.
 
 ## 3. Troop rotation
 
@@ -326,8 +319,10 @@ not explained: see the end.
 | reinforcement | section 4 |
 | upgrades | section 5 |
 
-`confirmed`. The original puts supplies traded away and tribute on the supply share's
-scales as well; there is neither here.
+`confirmed`. "The units" are the ones drawing on the country's ground, whoever they belong
+to (`supply.md`, section 13). The original adds the supplies traded away and takes off those
+traded for and tribute; here the only trade is what a country pays a friend for its units on
+the friend's depots, and that is added and taken off the same way. There is no tribute.
 
 *Ours:* before the first midnight the three are worked out without moving anything, so
 that the first screen has them. The original has run two days by then
@@ -364,14 +359,15 @@ their history for one group or both.
 
 The 59 brigades whose strength disagrees are all in units the save shows as having
 received less than all their supplies - Bhutan's, Iraq's, Mongolia's, Nepal's, Tannu
-Tuva's and Yemen's, and eleven of Italy's - where rotation ran faster for it. That is the
-supply network, which is not here.
+Tuva's and Yemen's, and eleven of Italy's - where rotation ran faster for it. This check's
+two days are run with every unit supplied; the supply network has a check of its own
+(`supply.md`, section 17).
 
 ## What is not built
 
-- **The supply network.** Every unit draws on its country's stockpile (section 2).
 - **Leaders.** The three terms they add to what a unit uses (section 1).
-- **Anything that moves**, so no army or air unit burns fuel.
+- **An air unit in the air.** A land unit on the march burns fuel, and so does a fleet away
+  from its port; nothing flies yet.
 - **An AI to move the shares.** Only the player's reinforcement and upgrade shares are
   anything but what they started as.
 

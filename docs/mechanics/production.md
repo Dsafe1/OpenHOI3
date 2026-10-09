@@ -153,8 +153,9 @@ reinforcement and upgrades, and section 3 here for consumer goods.
   reinforcement and upgrades what their units take (`upkeep.md`); the rest of what the
   three are given is wasted too.
 - **The standing-army term is zero**: the units are there now, and neutrality is not.
-- **All the supplies go to the stockpile.** Provinces other than the capital do not hold
-  goods until there is a supply network to move them.
+- ~~**All the supplies go to the stockpile.**~~ Since the supply pass was built they are made
+  where the factories are, as section 4 says and as fuel is, and travel to the stockpile a
+  province a day (`supply.md`, section 15).
 - **A charge takes what there is and no more.** The original cuts total IC to what the
   stockpile can pay for before the shares run, and so does this; the stockpile is checked
   again at each charge only so that a rounding cannot leave it below zero.

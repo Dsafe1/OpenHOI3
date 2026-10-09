@@ -1,13 +1,14 @@
 using System;
 using OpenHOI3.Sim.Countries;
-using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Supply;
 
 namespace OpenHOI3.Sim.Units;
 
 /// <summary>
 /// What a day does to every unit before its country's economy is run: its men are
 /// rotated out, and it draws its supplies and fuel. See <c>docs/mechanics/upkeep.md</c>,
-/// sections 2 and 3.
+/// sections 2 and 3. What the units asked for is counted from nothing each day by
+/// <see cref="CSupplyPass.RunDaily"/>, which comes first.
 /// </summary>
 public static class CUnitUpkeep
 {
@@ -27,26 +28,18 @@ public static class CUnitUpkeep
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			country.UnitDemand.Clear();
-			country.UnitDrawn.Clear();
-			CGoodsPool? stockpile = state.Stockpile(country);
 			foreach (CUnit unit in country.UnitsInOrder())
 			{
 				// The men go first, by how well the unit was supplied yesterday.
 				Rotate(state, country, unit);
-				if (stockpile is not null)
-				{
-					CUnitSupply.Draw(country, unit, stockpile);
-				}
+				CSupplyDraw.Draw(state, country, unit);
 			}
 
-			// A unit finished and not yet placed eats too, though no men leave it.
-			if (stockpile is not null)
+			// A unit finished and not yet placed eats too, out of the capital, though
+			// no men leave it.
+			foreach (CUnit unit in country.Deployments)
 			{
-				foreach (CUnit unit in country.Deployments)
-				{
-					CUnitSupply.Draw(country, unit, stockpile);
-				}
+				CSupplyDraw.Draw(state, country, unit);
 			}
 		}
 	}

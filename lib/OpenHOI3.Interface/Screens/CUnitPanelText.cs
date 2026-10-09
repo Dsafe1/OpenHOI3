@@ -6,8 +6,10 @@ using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Interface.Screens;
@@ -312,11 +314,20 @@ public static class CUnitPanelText
 	}
 
 	/// <summary>
-	/// The supply and the fuel bars, in hundredths. In the original they measure what
-	/// lies in the unit's province against what the units there need for some days; a
-	/// province's need is not kept here, and with no need the original's bar is full.
+	/// The supply bar or the fuel bar, in hundredths: what lies in the province the unit
+	/// draws on against what the units drawing there ask for in the days a province
+	/// holds supplies for. Full where they ask for nothing, as in a capital.
 	/// </summary>
-	public static int SupplyBar => 100;
+	public static int SupplyBar(CGameState state, CCountry owner, CUnit unit, EGoods goods)
+	{
+		CProvince province = state.Province(CSupplyDraw.ProvinceOf(owner, unit));
+		long wanted = CSupplyDay.DaysHeld(state) * province.SupplyNeed[goods].Raw;
+		if (wanted <= 0)
+		{
+			return 100;
+		}
+		return (int)Math.Clamp(province.Pool[goods].Raw * 100 / wanted, 0, 100);
+	}
 
 	// ---- the order
 

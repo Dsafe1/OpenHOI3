@@ -69,6 +69,46 @@ public sealed class CSupplyNetwork
 		return province >= 0 && province < _hops.Length ? _hops[province] : 0;
 	}
 
+	private int[]? _depots;
+
+	/// <summary>Every province that is a depot, in the order of their numbers.</summary>
+	public IReadOnlyList<int> Depots
+	{
+		get
+		{
+			if (_depots is null)
+			{
+				var depots = new List<int>();
+				for (int province = 1; province < _depot.Length; province++)
+				{
+					if (_depot[province] == province)
+					{
+						depots.Add(province);
+					}
+				}
+				_depots = depots.ToArray();
+			}
+			return _depots;
+		}
+	}
+
+	/// <summary>How far the province furthest from its depot is.</summary>
+	public int MostDistance
+	{
+		get
+		{
+			int most = 0;
+			foreach (int distance in _distance)
+			{
+				if (distance > most)
+				{
+					most = distance;
+				}
+			}
+			return most;
+		}
+	}
+
 	internal void SetArea(int province, CSupplyArea area)
 	{
 		_areaOf[province] = area;

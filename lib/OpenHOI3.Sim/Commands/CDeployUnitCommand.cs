@@ -1,5 +1,7 @@
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Movement;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Commands;
@@ -43,6 +45,14 @@ public sealed class CDeployUnitCommand : CCommand
 	{
 		CCountry country = state.Country(_country)!;
 		CUnit unit = Find(country)!;
+
+		// A land unit comes with its days of supplies, out of the stockpile.
+		int province = _target != 0 ? FindTarget(country)!.Location : _province;
+		if (CMovementRules.IsLandUnit(unit) && !state.Province(province).IsSea)
+		{
+			CSupplyCarry.Bring(state, country, unit, from: 0, province);
+		}
+
 		if (_target != 0)
 		{
 			CDeployment.Join(country, unit, FindTarget(country)!);

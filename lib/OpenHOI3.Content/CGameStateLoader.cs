@@ -12,6 +12,7 @@ using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Content;
@@ -107,6 +108,8 @@ public static class CGameStateLoader
 		CUnits.SetAtStart(state);
 		CBuildQueue.SetUpAtStart(state);
 		CStockpile.AddUnitGoodsAtStart(state);
+		// And the provinces are filled along the supply network, so that no army starts hungry.
+		CSupplyStart.Fill(state);
 		return state;
 	}
 

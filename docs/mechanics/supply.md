@@ -7,25 +7,30 @@ checked on 2026-10-09 against three savegames of one unmodded game played as Ger
 January, 8 January and 20 April 1936. Where this project chooses its own behaviour the
 paragraph is marked **Ours**.
 
-Sources: `reversing/findings/FINDINGS-supplynetwork.md` (all of it, read for this spec) and
-`reversing/findings/FINDINGS-supply.md` (the daily pass, and how the distance is spread).
+Sources: `reversing/findings/FINDINGS-supplynetwork.md` (the network, read for the first piece),
+`reversing/findings/FINDINGS-supplypass.md` (the pass, the unit's draw, what a unit carries and
+what a new game does, read for the second), `reversing/findings/FINDINGS-supply.md` (how the
+distance is spread) and `reversing/findings/FINDINGS-distribute.md` (where supplies are made).
 
-**Supply is cut in three, and this is the first piece.**
+**Supply is cut in three, and two pieces are built.**
 
 | | | |
 | --- | --- | --- |
 | 1 | **the network**: which depot every province draws on, how far it is from it, and what a province can pass and what it takes | **built**, sections 2 to 8 |
-| 2 | **the daily pass**: supplies and fuel going out from the depot province by province, and a unit drawing on the province it stands in | not built |
+| 2 | **the daily pass**: supplies and fuel going out from the depot province by province, and a unit drawing on the province it stands in | **built**, sections 11 to 17 |
 | 3 | **the sea and the screen**: convoys to a depot across the sea, and the supply map mode | not built |
 
-Until the second piece, **a unit still draws straight on its country's stockpile** wherever it
-stands (`upkeep.md`, section 2). Nothing here changes what any unit gets. What the network
-already does change is section 10.
+**A unit draws on the province it stands in**, and no longer on its country's stockpile. Until
+the third piece the sea is stood in for: a depot that is no capital is fed from its holder's
+stockpile as if a convoy with no limit ran to it (section 15).
 
 Code: `lib/OpenHOI3.Sim/Supply` - `CSupplyNetworks` makes a `CSupplyNetwork` of `CSupplyArea`
 and `CSupplyGroup`, `CSupplyRelations` says who is on whose side, `CSupplyFigures` has what a
-province passes and takes. `CDiplomacyReader` in `lib/OpenHOI3.Content/History` reads who is
-whose puppet.
+province passes and takes. `CSupplyDay` measures a day, `CSupplyOrder` orders its provinces,
+`CSupplyNeed` counts what units ask for and `CSupplyPass` carries; `CSupplyDraw` is a unit's
+draw and `CSupplyCarry` what it brings; `CSupplyMaking` puts a day's supplies where the
+factories are, `CSupplyBySea` stands in for convoys and `CSupplyStart` fills a new game's
+provinces. `CDiplomacyReader` in `lib/OpenHOI3.Content/History` reads who is whose puppet.
 
 ---
 
@@ -242,8 +247,8 @@ entered, whichever way it is entered from**.
   the three saves.
 - How many provinces the cheapest way goes through is kept beside the distance.
 
-The daily pass goes through the provinces farthest first and lets supplies go only from a
-province to one strictly further out; that is the second piece.
+The daily pass goes through the provinces furthest first and lets supplies go only from a
+province to one strictly further out: sections 11 and 12.
 
 ## 7. What a province can pass
 
@@ -269,7 +274,12 @@ ground pass 100.
 
 ## 8. What a load loses
 
-`confirmed`. Crossing a province, a load loses
+`confirmed`, and **measured**: the save has fuel asked for along a line of provinces out of
+Moscow as 5.250, 5.200, 5.150, 5.100, 5.050, 5.000.
+
+**It is an amount and not a share**: so many units of supplies, and as many of fuel, whatever
+the size of the load. A province asks for it on top of what it wants and it is taken off what
+arrives (section 12). On arriving in a province, a load loses
 
     tax  = SUPPLY_TAX                                               0.1
     tax  = tax / 2                                                  where its owner holds it
@@ -362,17 +372,256 @@ answered with a guess. **They now ask section 2**, through one routine:
 - **Placing a unit** (`buildqueue.md`, section 7): a finished unit goes in the capital's
   area, which is land the country *holds* - the guess had been land it owns and holds.
 
+## 11. A day's pass: when, and in what order
+
+`confirmed`. **Once a day, before any country's own day.** So a day runs: supplies are carried;
+then, country by country, each unit loses its rotated men and draws (`upkeep.md`, sections 2
+and 3) and the country makes its supplies and fuel; and what was made is carried tomorrow.
+
+Before the pass every country's counts of the day start from nothing: what its ground's units
+asked for, what left its stockpile for units, what it made away from its capital, what came
+back, and what it paid and was paid for friends' units.
+
+**Measured once, before the pass**, for every province of land somebody holds:
+
+- what it can pass (section 7) and what a load loses on arriving (section 8);
+- **what its units ask for**: the supplies and the fuel of `upkeep.md`, section 1, added up over
+  the land units standing in it whose owner holds it or is not at war with its holder - neither
+  being the rebels - over the wings based there, and over the fleets whose port it is,
+  **wherever they are**. Fuel is counted whether or not anything moves. An air group aboard a
+  carrier is counted nowhere.
+
+**The provinces are taken furthest from their depots first.** Provinces equally far come in
+no chosen order: in the order the original's sort happens to leave them in, which decides who
+takes first from a province with too little. So the sort is done here as the original's is
+done, step for step, on the provinces by number, the sea and number 0 with them. It is the
+sort of the original's C runtime: a run of eight or fewer has its last picked out again and
+again; a longer one is split about the middle one of its first, middle and last.
+
+## 12. The pass
+
+`confirmed`, and **measured** (section 17). A province holds supplies for `SUPPLYPOOL_DAYS` of
+what its units ask for: 15 in Their Finest Hour. "Nearer" below is always a province across one
+of this one's edges that **draws on the same depot and is strictly nearer it**. Supplies and
+fuel are worked side by side, the same way but for one thing, and never mixed.
+
+**First**, every province's figures of today become yesterday's and today's start from nothing:
+what was asked of it, and what passed through it.
+
+**Then, the furthest first**, each province. A capital only notes what it holds: a stockpile is
+where supplies come from. Any other:
+
+    need   = what its units ask for                             section 11
+             taken for 1 where it is under that and the province holds under 5
+    want   = 15 x need - what it holds                          never under nothing,
+                                                                never over 2 x need
+    asked  = want + everything the provinces behind it asked of it
+    nothing asked: the province is done
+
+    asked  = asked + the loss                                   section 8
+
+1. **It takes goods** from each nearer province in the order of its edges, until it has what
+   it asked for:
+
+       offered = what that province held WHEN THE PASS LAST CAME TO IT
+                 never more than it can pass in a day, never more than it holds now
+       where yesterday that province passed less than was asked of it:
+           offered = offered x (asked / what was asked of it yesterday)     at most all
+
+   What is taken counts as asked of that province and as passed by it, and arrives **less the
+   loss**.
+2. **What it still wants is asked** of the nearer provinces in equal shares, each as far as it
+   has room to pass more today.
+3. **What is left after that** is asked of them one after another, each up to all it can pass
+   in a day.
+
+Steps 2 and 3 move a demand and no goods. Then it notes what it holds.
+
+Four things in that are worth saying twice:
+
+- **Goods move one province a day.** A province is visited before the one it takes from, so
+  what it is offered is what that one held yesterday. Nothing but a capital hands on the same
+  day what it was given.
+- **Demand moves the whole way in a day.** By the time the pass reaches a depot's neighbours
+  every want in the network has been passed in to them.
+- **A province asks for two days' worth at most**, so one that is empty is fifteen days in
+  filling, and a province nothing was asked of today is not noted, and offers tomorrow what it
+  held when it last was.
+- **The original's oddities are kept**, because who goes short on a full road is decided by
+  nothing else: for fuel the test "was more asked of it than it passed" looks at today where
+  for supplies it looks at yesterday; a share cut by one province's room stays cut for the
+  provinces after it; and a province already asked for more than it can pass throws the
+  difference back on the asker, who then asks it of the next.
+
+**Last, the nearest first**, each province that is no depot's capital. One empty of both, and
+one holding less of both than was asked of it, keeps what it has. Otherwise
+
+    spare = what it holds - (what was asked of it today + 15 x what its units ask for)
+
+and **all of it goes to the first nearer province in the order of its edges**, with no limit.
+The nearer were visited first, so **what is spare moves one province a day** too. At a depot
+that is no capital it goes home over the sea (section 15).
+
+**A capital that draws on another's depot is drained by this**: its stockpile is "spare" beyond
+its own garrison's fifteen days, and goes inward a province a day. **Measured:** Manchukuo's
+capital, which draws on Japan's Hamhung, holds 7.8 supplies two days in, where a stockpile
+starts with ninety days of what all its units use.
+
+## 13. What a unit draws
+
+`confirmed`. Once a day, after its men are rotated (`upkeep.md`, section 3).
+
+**Where.** An army on the province it stands in. A wing and a fleet on the province they are
+based in, wherever they are; an air group aboard a carrier on its fleet's port. A unit that is
+nowhere yet - finished and not placed - on its country's capital.
+
+**Whose depot.** Where the depot that province draws on is held by a country that is **no
+friend** of the unit's (section 5), the unit is given nothing. Where it is held by a friend,
+the unit's country **pays the friend** for what the unit asks: out of its stockpile into the
+friend's,
+
+    price = 1 + 0.25 x (1 - what the province holds / (15 x what its units ask for))
+
+of supplies and of fuel apart - so a quarter over on an empty province and a little under on a
+full one. What is paid is the friend's to supply: it counts as asked for by the friend's units.
+
+**How much.** The province holds what it holds:
+
+    where it holds less than its units ask for:
+        the unit's share = what it holds x (what the unit asks / what all its units ask)
+    given     = the least of that and what the unit asks
+    received  = given / asked                                    kept by the unit until it next draws
+
+A capital counts no need of its own, so a unit in one is given what it asks while there is any.
+
+- What a unit asks is counted for **the country that holds the ground**, friend's payment
+  aside: it is that country's supply share that has to make it (`upkeep.md`, section 8).
+- **Fuel is given the same way but burnt only by a unit that is moving, and by a fleet that is
+  not in its own port.** A unit standing still is told how much it would have had and the
+  province keeps it. So a province holds fifteen days of fuel for the tanks standing in it.
+- A fleet ordered to another port is seen to out of its country's capital on the way.
+
+*Ours:* a unit on loan to another country, which the original bills to the lender, is not
+built. The original's arcade mode, where every unit draws on its country's stockpile and none
+of this runs, is not built either.
+
+## 14. What a unit brings
+
+`confirmed`. **A land unit entering a land province takes fifteen days of what it uses with
+it**, supplies and fuel, out of the province it is leaving - as much of that as the province
+has. Coming off the sea, or out of nowhere - a unit just placed - it takes them out of its
+country's stockpile; but a unit from nowhere on ground it owns and another holds takes from
+that ground's depot, and on anybody else's it comes with nothing.
+
+That, and not the network, is what feeds an army that has walked beyond its supply lines: it
+eats what it carried, for a fortnight, and then it starves.
+
+*Ours:* units are not carried by ships or aircraft yet, so nothing is put ashore or dropped.
+A dropped unit brings `PARASUPPLYPOOL_DAYS` in the original.
+
+## 15. Where supplies are made, and the sea
+
+**They are made where the factories are.** `confirmed`, and **measured**. A day's supplies
+(`production.md`, section 4) and a day's fuel (`ic.md`, section 4) are shared out among the
+provinces the country owns, holds and has a core on in its capital's area (section 2):
+
+    share = the province's IC x (1 + its LOCAL_IC) / the IC of all of them     cut to a thousandth
+    part  = share x what was made
+
+into each province's own pool. The capital's part, and what the cutting leaves over, is in the
+stockpile at once; **the rest reaches it by the last step of the pass, a province a day**. What
+was made away from the capital counts as made and as gone.
+
+**It is the land joined to the capital that shares, and land cut off from it gets nothing.**
+A province in another area than the capital's is not on the list: its industry still counts
+towards its country's IC, and the supplies that IC pays for are made in the provinces that are
+left. This is the other way about from resources, which reach the stockpile on their own from
+the capital's area and lie where they are dug in land cut off from it (`resources.md`).
+
+**Measured:** Canada made 29.923 supplies and 9.000 fuel on the day of the save, and every
+province with industry holds 1.137 and 0.342 for each level - and 3.441 and 1.035 where it has
+three, which is 0.115 of each and not three twenty-sixths. Germany made 283.840 and 110.000:
+Rostock, two levels of industry and no unit, holds 4.257 and 1.650, which is 0.015 of each -
+two of **133**, where Germany holds 139 levels. The six left out are Königsberg's, beyond the
+Polish corridor; and Königsberg's pool has 12.100 energy lying in it, which no province joined
+to Berlin has. A week on, 582 provinces with no industry hold supplies nothing was asked of:
+parcels on their way in.
+
+**The sea.** *Ours, until the third piece:* a depot that is no capital - Königsberg, Hamhung,
+every colony's port - is sent what was asked of it that day out of its holder's stockpile,
+after the pass, and what it holds spare goes back to that stockpile, both with no ships and no
+limit. In the original convoys carry it: into ports and not to the depot, several to a
+network, as much as the ports, the ships and the room in the area allow
+(`reversing/findings/FINDINGS-convoys.md`). So a country here cannot be cut off from its land
+across the sea, and a small port feeds as large an army as a large one.
+
+## 16. A new game
+
+`confirmed`, and **measured**. The original does three things before a game's first hour:
+
+1. **a day**, on provinces that hold nothing: every unit outside a capital goes hungry, and
+   the day's supplies and fuel are made at the factories;
+2. **the filling**: the pass of section 12 run as many times as the furthest province is far
+   from its depot - never counted as more than 500 - **and twice more**, every unit drawing
+   after each, and **each time every stockpile that is its own depot is put back as it was**.
+   So the provinces are filled for nothing. A unit all of that has left with nothing is then
+   given its fifteen days out of its stockpile (section 14);
+3. **another day**.
+
+Two things follow from the order, and both show in a save:
+
+- **What the first day made away from the capitals is lost.** It is on its way in while the
+  stockpiles are being put back. **Measured:** Canada's provinces hold 689.310 fuel two days
+  in - the 581.580 it began with, 96.930 the filling put in Halifax, two days' refining at
+  9.000, less 7.200, which is one day's refining outside Ottawa.
+- **A stockpile that draws on another's depot is not put back**, and is drained during the
+  filling as on any day (section 12).
+
+*Ours:* **the filling is done, when a new game is made, and the two days are not** - a game
+here starts on its first hour with nothing spent, as it has since `stockpile.md`, section 3.
+It takes about a second and a half: 251 passes on the first day of 1936, where the furthest
+province is 249 from its depot.
+
+## 17. The pass, checked against a savegame
+
+`OpenHOI3.SaveCheck supplypass <install> <start-date savegame>` makes the units as the save
+has them, gives each country the save's laws, ministers and technology, the save's mud, and a
+share of IC that makes the supplies the save says it made; then does what section 16 says the
+original does - a day, the filling, a day - and sets every province's supplies and fuel beside
+the save's: what lies there, what was asked of it today and yesterday, what passed through it
+today and yesterday.
+
+| | |
+| --- | --- |
+| networks where every province agrees in every figure | **124 of 234** - Sweden's 210 provinces, Turkey's 195, Norway's 108, the Philippines' 85, Persia's 84, Saudi Arabia's 79, Siam's 61, South Africa's 42 |
+| Canada's | everything but what its guessed share of IC makes: a line of twenty provinces from Ottawa to Halifax, each asked 0.050 more than the one behind it and each holding one day's load in passing |
+| provinces where the supplies lying there are something, here or in the save | 627 of 3666 the same to the thousandth, 1129 within a fiftieth |
+| the same for fuel | 530 of 694 |
+| Germany's stockpile, followed on | 8496 on the fifth day and 8743 on the eighth; the later saves have 8493 and 8758 |
+
+**What differs is what goes in and not the pass**: where a whole country's units, laws and
+production are the save's, its whole network agrees. Three things are not the save's here.
+
+- **Leaders.** The original has given most units one, and a leader changes what a unit uses
+  (`upkeep.md`, section 1). There are none here, so Germany's provinces are a few hundredths
+  out everywhere.
+- **Units on the move.** The original's AI has some: fuel is asked for in 145 provinces where
+  nothing here burns any.
+- **The share of IC the supplies were made with.** The AI moves it after the day is run, so
+  it is guessed from what the save says was made, and for 25 of 101 countries no share makes
+  exactly that.
+
+Run it after touching `lib/OpenHOI3.Sim/Supply`. `network=<depot's number>` after the save
+prints one network province by province, `country=<tag>` one country's day, and `days=<n>`
+with it follows the country on.
+
 ## Not built
 
-- **The daily pass and the convoys**: the second and third pieces.
-- **What a province's units ask for.** Read, for the second piece: the supplies and the fuel
-  of `upkeep.md`, section 1, added up over the land units standing in the province whose owner
-  is its holder or is not at war with it, over the wings based there, and over the fleets in
-  port there. `confirmed`
-- **The network is not made by the tick.** It is made when asked for and again when a
-  province has changed hands. Nothing but the readout of a selected province and the save
-  check asks yet.
+- **Convoys and the supply map mode**: the third piece. The sea is stood in for (section 15).
 - **The days out of supply**, and the message a province's first day out of supply raises.
+- **A unit on loan**, **arcade mode**, and **units carried by ships and aircraft** (sections 13
+  and 14).
+- **Leaders**, which change what a unit uses.
 - **Suppression** and **the faction leader's capital** (sections 8 and 4).
 - **A puppet made or freed during a game**, and an alliance likewise.
 
@@ -389,6 +638,11 @@ answered with a guess. **They now ask section 2**, through one routine:
 - **What else makes the original group the areas again** besides a province changing hands:
   fifteen places call for it and one was read.
 - **How a depot across the sea is filled.** A save's convoys end at ports, several to one
-  network, and not at the depot.
+  network, and not at the depot. The last step of the pass would then carry what a port holds
+  spare inward to the depot; the convoys themselves were not read for this.
+- **Whether the fuel's different test in the pass is meant** (section 12). It is what the
+  original does.
+- **A second pool of the original's** that the pass and the unit's draw both add to, and
+  nothing read explained.
 - **A second flag on a port** that one of the original's port tests skips a province for; it
   is behind `blockaded` (`modifiers.md`) and not behind anything here.

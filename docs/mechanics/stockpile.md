@@ -121,8 +121,13 @@ yesterday's supply throughput is already filled in. So the original runs its dai
 twice before the player sees anything. That is also when its AI changes the laws
 (`resources.md`, section 5).
 
-*Ours:* not done. A game here starts from section 2, and the first daily pass is the first
-midnight.
+**How it runs them was read on 2026-10-10** (`reversing/findings/FINDINGS-supplypass.md`,
+section 7): a day, then the filling of the provinces along the supply network, then another
+day - all as a game is entered. `supply.md`, section 16, has it and what follows from the
+order.
+
+*Ours:* the two days are not done. A game here starts from section 2 with its provinces
+filled, and the first daily pass is the first midnight.
 
 ## 4. What a day does to it
 
@@ -177,9 +182,10 @@ Three things about it that matter now:
 - A country that exists also turns energy into crude oil and crude oil into fuel each
   day (`ic.md`, section 4).
 - **Units draw their supplies from it every day**, and their fuel when they burn any, and
-  reinforcement and upgrades spend IC that is charged to it (`upkeep.md`). The original
-  moves supplies out to the provinces through its supply network and units draw there;
-  here they draw on the stockpile, which is the original's own arcade rule.
+  reinforcement and upgrades spend IC that is charged to it (`upkeep.md`). Supplies and fuel
+  leave it for the provinces through the supply network, and a unit draws on the province it
+  stands in; what is made away from the capital comes into it a province a day
+  (`supply.md`, sections 12 to 15).
 - **The build queue takes nothing yet**, nor do trade and convoys.
 - **A country that does not exist has an economy all the same**, as in the original: East
   Germany, which does not exist in 1936, earns money, makes supplies and uses IC every
@@ -214,8 +220,8 @@ country's usage every day and its home production never, so that is what the sav
 - what decides the day **a war began** for this purpose, where its file has more than one
   dated entry;
 - what takes the starting **war exhaustion** off again;
-- how the original runs **two days before the first screen**, and what else those two days
-  do;
+- ~~how the original runs **two days before the first screen**~~ (section 3); what else those
+  two days do besides what the checks here have shown;
 - what moves the goods given to a country that does not exist **out of a capital somebody
   else holds**;
 - everything in section 4's table beyond home production, usage and money.

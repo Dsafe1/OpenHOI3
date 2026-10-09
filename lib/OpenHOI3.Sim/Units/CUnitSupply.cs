@@ -7,13 +7,10 @@ using OpenHOI3.Sim.Research;
 namespace OpenHOI3.Sim.Units;
 
 /// <summary>
-/// What a unit uses in a day, in supplies and in fuel, and the taking of it. See
-/// <c>docs/mechanics/upkeep.md</c>, sections 1 and 2.
-///
-/// The original takes it from the pool of the province the unit is supplied from, which
-/// its supply network keeps filled. There is no network here yet, so every unit draws
-/// on its country's stockpile - which is what the original itself does in its arcade
-/// mode.
+/// What a unit uses in a day, in supplies and in fuel. See
+/// <c>docs/mechanics/upkeep.md</c>, section 1. The taking of it is
+/// <see cref="Supply.CSupplyDraw"/>: a unit draws on the province it stands in, which
+/// the supply network keeps filled.
 /// </summary>
 public static class CUnitSupply
 {
@@ -83,41 +80,11 @@ public static class CUnitSupply
 
 	/// <summary>
 	/// Whether a unit burns fuel today: one that is moving, and a fleet that is not in
-	/// its own port. An army or an air unit standing still burns none. Nothing moves
-	/// yet, so it is the fleets at sea.
+	/// its own port. An army or an air unit standing still burns none.
 	/// </summary>
 	public static bool BurnsFuel(CUnit unit)
 	{
-		return unit.Kind == EUnitKind.Navy && unit.Location != unit.Base;
-	}
-
-	/// <summary>
-	/// One unit's day: it asks for what it uses and is given what the stockpile has, and
-	/// remembers how much of what it asked for that was.
-	/// </summary>
-	public static void Draw(CCountry owner, CUnit unit, CGoodsPool stockpile)
-	{
-		long supplies = SupplyConsumption(owner, unit).Raw;
-		if (supplies > 0)
-		{
-			unit.SuppliesReceived = new CFixedPoint(Take(owner, stockpile, EGoods.Supplies, supplies));
-		}
-
-		long fuel = FuelConsumption(owner, unit).Raw;
-		if (fuel > 0 && BurnsFuel(unit))
-		{
-			unit.FuelReceived = new CFixedPoint(Take(owner, stockpile, EGoods.Fuel, fuel));
-		}
-	}
-
-	/// <summary>Takes up to what is wanted and answers how much of it that was, in thousandths.</summary>
-	private static long Take(CCountry owner, CGoodsPool stockpile, EGoods goods, long wanted)
-	{
-		long taken = Math.Min(wanted, stockpile[goods].Raw);
-		stockpile[goods] -= new CFixedPoint(taken);
-		owner.UnitDemand[goods] += new CFixedPoint(wanted);
-		owner.UnitDrawn[goods] += new CFixedPoint(taken);
-		return taken * CFixedPoint.Scale / wanted;
+		return unit.IsMoving || (unit.Kind == EUnitKind.Navy && unit.Location != unit.Base);
 	}
 
 	/// <summary>What all of a country's units use in a day, whether or not they burn fuel today.</summary>

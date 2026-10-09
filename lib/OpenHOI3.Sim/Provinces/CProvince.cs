@@ -55,6 +55,39 @@ public sealed class CProvince
 	/// </summary>
 	public CGoodsPool Pool { get; } = new();
 
+	/// <summary>
+	/// The pool as the day's supply pass left it when it came to this province. A
+	/// province further out is offered no more than this, so what reaches a province
+	/// today can go one province further tomorrow. See <c>docs/mechanics/supply.md</c>,
+	/// section 12.
+	/// </summary>
+	public CGoodsPool LastPool { get; } = new();
+
+	/// <summary>The supplies and the fuel the units drawing here ask for in a day, as the day's supply pass counted them.</summary>
+	public CGoodsPool SupplyNeed { get; } = new();
+
+	/// <summary>What was asked of the province today: its own shortfall, and everything passed inward from further out.</summary>
+	public CGoodsPool SupplyDrawn { get; private set; } = new();
+
+	/// <summary>What was asked of it yesterday.</summary>
+	public CGoodsPool LastSupplyDrawn { get; private set; } = new();
+
+	/// <summary>What was taken out of the province today for provinces further out.</summary>
+	public CGoodsPool SupplyThroughput { get; private set; } = new();
+
+	/// <summary>What was taken out of it yesterday.</summary>
+	public CGoodsPool LastSupplyThroughput { get; private set; } = new();
+
+	/// <summary>A day begins: today's figures become yesterday's and today's start from nothing.</summary>
+	public void BeginSupplyDay()
+	{
+		(SupplyDrawn, LastSupplyDrawn) = (LastSupplyDrawn, SupplyDrawn);
+		(SupplyThroughput, LastSupplyThroughput) = (LastSupplyThroughput, SupplyThroughput);
+		SupplyDrawn.Clear();
+		SupplyThroughput.Clear();
+		SupplyNeed.Clear();
+	}
+
 	public CFixedPoint Manpower { get; set; }
 
 	public CFixedPoint Leadership { get; set; }

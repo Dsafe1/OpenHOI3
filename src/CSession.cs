@@ -564,6 +564,12 @@ public partial class CSession : Node
 				: depot == provinceId ? "a depot"
 				: $"draws on {State.Province(depot).Name}, {supply.DistanceOf(provinceId)} away")
 				+ $"; passes {CSupplyFigures.Capacity(State, province)} a day, a load loses {CSupplyFigures.Loss(State, province)}";
+			// And what lies there for the units, what they ask for in a day, and what the
+			// day asked of the province and took through it.
+			text += $"\nSupplies {province.Pool[EGoods.Supplies]}, fuel {province.Pool[EGoods.Fuel]}"
+				+ $" (its units ask {province.SupplyNeed[EGoods.Supplies]} and {province.SupplyNeed[EGoods.Fuel]} a day)"
+				+ $"; asked of it today {province.SupplyDrawn[EGoods.Supplies]} and {province.SupplyDrawn[EGoods.Fuel]}"
+				+ $", passed on {province.SupplyThroughput[EGoods.Supplies]} and {province.SupplyThroughput[EGoods.Fuel]}";
 			text += "\nOwner: " + CountryName(province.Owner);
 			if (State.Country(province.Owner) is { } owner)
 			{

@@ -169,7 +169,10 @@ public static class CProduction
 	/// <summary>The IC that would make the supplies the country's units asked for today.</summary>
 	public static CFixedPoint SuppliesNeeded(CGameState state, CCountry country)
 	{
-		CFixed15 asked = CFixed15.FromThousandths(country.UnitDemand[EGoods.Supplies]);
+		// What it pays a friend for its units on the friend's depots it has to make too,
+		// and what it is paid it need not.
+		CFixed15 asked = CFixed15.FromThousandths(country.UnitDemand[EGoods.Supplies]
+			+ country.TradedAway[EGoods.Supplies] - country.TradedFor[EGoods.Supplies]);
 		if (asked <= CFixed15.Zero)
 		{
 			return CFixedPoint.Zero;
@@ -259,7 +262,7 @@ public static class CProduction
 
 			if (exists)
 			{
-				CConversions.CrudeOilIntoFuel(country, stockpile);
+				CConversions.CrudeOilIntoFuel(state, country, stockpile);
 			}
 
 			country.Usage.Clear();
@@ -362,10 +365,11 @@ public static class CProduction
 
 	private static void RunSupplies(CGameState state, CCountry country, CGoodsPool stockpile)
 	{
-		// They are made whatever the stockpile holds, and charged for afterwards.
+		// They are made whatever the stockpile holds, and charged for afterwards - and
+		// made where the factories are, so only part of them is in the stockpile at once.
 		CFixedPoint made = SuppliesMade(state, country);
 		country.HomeProduced[EGoods.Supplies] = made;
-		stockpile[EGoods.Supplies] += made;
+		Supply.CSupplyMaking.ShareOut(state, country, stockpile, EGoods.Supplies, made);
 
 		Charge(country, stockpile, Spent(country, EProductionCategory.Supplies));
 	}

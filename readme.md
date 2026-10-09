@@ -114,7 +114,7 @@ Four choices sit under all of it:
 
 ### Next up
 
-As of 2026-10-09, in stage 3, with the economy of stage 2 waiting on it. Kept
+As of 2026-10-10, in stage 3, with the economy of stage 2 waiting on it. Kept
 current as work lands, so that picking this up cold needs nothing but this file and
 `docs/mechanics/`.
 
@@ -129,12 +129,13 @@ map: a counter each, and a menu that puts a finished one there
 a selected unit has its panel (`docs/mechanics/unitpanel.md`), and fleets and air units
 are given their orders (`docs/mechanics/fleetsandair.md`). And land units fight
 (`docs/mechanics/landcombat.md`), with the battle on screen
-(`docs/mechanics/combatview.md`). And the supply network is there
-(`docs/mechanics/supply.md`): which depot every province draws on, and how far from it.
+(`docs/mechanics/combatview.md`). And they are supplied along a network
+(`docs/mechanics/supply.md`): every province draws on a depot, supplies and fuel go out to
+it province by province, and a unit draws on the province it stands in.
 In order:
 
-1. **Supply**, which replaces the stand-in of `upkeep.md`, section 2. Cut in three with the
-   maintainer on 2026-10-09, and **the first piece is in**.
+1. **Supply.** Cut in three with the maintainer on 2026-10-09, and **two pieces are in**
+   (2026-10-10). What is left is the sea and the screen.
 
    **The network, built**: the land cut into areas - what one country controls, touching,
    each province with more than one level of infrastructure - areas on one side grouped, a
@@ -148,20 +149,37 @@ In order:
    puppet draws on its own capital for some days first; here it is in its master's group at
    once, and stays so on purpose (`docs/compatibility.md`, entry 9). The maintainer said beforehand that
    a puppet is in its master's network unless the two do not touch, and that allies keep
-   their own; both were read so. **Nothing draws on it yet**: a unit still takes from its
-   country's stockpile wherever it stands, and all there is to see is a line in the readout
-   of a selected province.
+   their own; both were read so.
 
-   **Next, the daily pass**: supplies and fuel going out from each depot province by
-   province - what a province's units ask for, what each province can pass, what is lost on
-   the way - and a unit drawing on the pool of the province it stands in.
-   `reversing/findings/FINDINGS-supply.md` has the pass in three phases, and the saves hold
-   every province's pool, what it drew and what went through it, on days either side of a
-   midnight (`_01_07_22` and `_01_08_02`), so it can be set against them. **A depot across
-   the sea is filled by convoy, which is the third piece**: until then a network with no way
-   overland to its country's capital has to keep the stand-in or starve, and the one war of
-   the start date is Italy's in East Africa. **Then the sea and the screen**: convoys, and
-   the supply map mode.
+   **The daily pass, built** (`supply.md`, sections 11 to 17): once a day, before any
+   country's own day, the provinces are gone through furthest from their depots first; each
+   works out what it is short of fifteen days of what its units ask for, takes what the
+   provinces nearer the depot held the day before, and passes the rest of its want inward;
+   then what any province holds spare goes one province inward. **A unit draws on the
+   province it stands in** - its share of what lies there - and on a friend's depot its
+   country pays the friend. **A marching unit takes its fifteen days with it.** **A day's
+   supplies and fuel are made where the factories are** and come to the stockpile a province a
+   day. And **a new game fills its provinces first**: the pass run 251 times over, with the
+   stockpiles put back each time, in about a second and a half. The readout of a selected
+   province says what lies there, what its units ask for and what the day asked of it, and
+   the unit panel's supply and fuel bars are real.
+
+   **It reproduces the original's own figures**: with the units, laws and production of the
+   maintainer's start-date save, a day, the filling and a day give **124 of 234 networks the
+   same in every province and every figure the save keeps** - Sweden's 210 provinces,
+   Turkey's 195, Norway's 108 (`OpenHOI3.SaveCheck supplypass`, `supply.md`, section 17).
+   The others differ by what goes in: the original has given most units a leader, which
+   changes what a unit eats, and its AI has units on the move. **Reading it found four
+   things nobody had written down**: what a load loses is an amount and not a share; a
+   marching unit carries its supplies; a puppet's stockpile drains into its master's
+   network; and the original runs a day *before* it fills the provinces, so what that day
+   made away from the capitals is lost.
+
+   **Next, the sea and the screen**: convoys, and the supply map mode. **Until then the sea
+   is stood in for** (`supply.md`, section 15): a depot that is no capital - Königsberg,
+   every colony's port - is sent what was asked of it out of its holder's stockpile, with no
+   ships and no limit. So nothing here can be cut off by sea, and a small port feeds as
+   large an army as a large one.
 
    **The areas were wanted by three older rules**, each of which had guessed at them: home
    production, the `overseas` modifier and where a finished unit may be placed. All three
@@ -446,10 +464,9 @@ None of these blocks the list above.
 - **A unit's name cannot be changed**: the edit box it is in is shown and not typed in.
   Where an edit box puts its text and how a rotated icon is placed are measured and not read, both from the
   unit panel alone (`docs/mechanics/interface.md`, section 7).
-- **The unit panel's supply and fuel bars are always full.** The original's measure what
-  lies in the unit's province against what the units there need; a province's need waits
-  for the supply network. Its attrition figure is always nought for the same kind of
-  reason. `unitpanel.md`, section 4.
+- **The unit panel's attrition figure is always nought**: nothing wears a unit down for
+  where it stands yet. Its supply and fuel bars are real since the supply pass was built.
+  `unitpanel.md`, section 4.
 - **One unit at a time.** Nothing selects several, so the original's list of selected
   units and the window over it are not built.
 - **The hierarchy of a selected unit is on the map, less what an AI and radio range would
@@ -537,14 +554,17 @@ None of these blocks the list above.
 - **A unit shows as a counter and nowhere else.** No screen lists the units or says what
   one holds; for that there is `tools/OpenHOI3.SaveCheck` - and, indirectly, the
   production screen's supplies, fuel and four needs, and its queue.
-- **Units draw on their country's stockpile, wherever they stand.** The original moves
-  supplies out to the provinces through its supply network, loses some on the way, and a
-  unit the network has not reached goes short - 68 brigades in its start save. Here no
-  unit is short while its country has supplies. It is the original's own arcade rule,
-  standing in until the network is built. `docs/mechanics/upkeep.md`, section 2. It also
-  means no unit here loses organisation for want of supply, which is what going wholly
-  without does (`docs/mechanics/organisation.md`, section 3).
-- **Nothing burns fuel but a fleet away from its base**, because nothing moves.
+- **The sea is stood in for.** A depot that is no capital is sent what was asked of it
+  straight out of its holder's stockpile, and sends back what it holds spare, with no ships
+  and no limit; in the original convoys carry it, into ports, as far as the ports and the
+  ships allow. So nothing here can be cut off by sea. Convoys are the third piece of supply.
+  `docs/mechanics/supply.md`, section 15.
+- **A new game does not run the original's two days.** It fills its provinces along the
+  supply network as the original does, and starts on its first hour with nothing spent; the
+  original runs a day before the filling and a day after. `supply.md`, section 16.
+- **A province's days out of supply are not counted**, and nothing is raised on its first.
+  The original's arcade mode, where units draw on the stockpile and the network does not
+  run, is not built, nor is a unit on loan to another country.
 - **What a unit uses has no leader in it.** A commander's skill and traits and the
   headquarters above a unit all change what it uses in the original; in 27 of 65 capitals
   that is the whole of the difference from the save. `upkeep.md`, section 1.
@@ -793,8 +813,8 @@ sea and by air - in four projects:
 | `src/Gfx` | The Godot client's side: decodes the original's DDS/TGA textures and sprite declarations, and finds the typeface for each font the interface files name |
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it. The panel of the unit selected on the map: a list of the units above it, its header, its status, its order, its buttons, its brigades, the units under it and the battles it is in, each a class of its own. The window of orders for a fleet or an air unit. And the window of a battle, with its two sides and a line for each unit on them |
-| `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial |
-| `tests/` | 1029 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network and who is whose puppet, where silent misreadings are expensive |
+| `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital, and the carrying of supplies against what a start-date save holds in every province. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial |
+| `tests/` | 1044 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, and who is whose puppet, where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.
@@ -910,8 +930,9 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         falling back, the attack delay, and a province changing hands
     Weather/            the weather over a province, what it does to a march and to a
                         battle, and whether it is night there
-    Supply/             the supply network: areas, groups, depots and distances, and what
-                        a province passes and takes
+    Supply/             the supply network - areas, groups, depots and distances, and what
+                        a province passes and takes - the day's pass along it, what a unit
+                        draws and brings, where supplies are made, and a new game's filling
     Construction/       the build queue: a line, its brigades, the rules, and placing what
                         comes out
 lib/OpenHOI3.Content/   reading an install: finding and layering it, localisation, the loader

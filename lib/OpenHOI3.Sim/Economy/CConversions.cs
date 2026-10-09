@@ -108,12 +108,32 @@ public static class CConversions
 		return amount > CFixedPoint.Zero ? amount : CFixedPoint.Zero;
 	}
 
+	/// <summary>Refines the day's crude oil, and the fuel is all in the pool given.</summary>
 	public static void CrudeOilIntoFuel(CCountry country, CGoodsPool stockpile)
+	{
+		stockpile[EGoods.Fuel] += Refine(country, stockpile);
+	}
+
+	/// <summary>
+	/// Refines the day's crude oil out of the stockpile, and the fuel is made where the
+	/// factories are, as supplies are: see <see cref="Supply.CSupplyMaking"/>.
+	/// </summary>
+	public static void CrudeOilIntoFuel(CGameState state, CCountry country, CGoodsPool stockpile)
+	{
+		CFixedPoint fuel = Refine(country, stockpile);
+		if (fuel > CFixedPoint.Zero)
+		{
+			Supply.CSupplyMaking.ShareOut(state, country, stockpile, EGoods.Fuel, fuel);
+		}
+	}
+
+	/// <summary>Takes the day's crude oil out of the stockpile and answers the fuel it makes.</summary>
+	private static CFixedPoint Refine(CCountry country, CGoodsPool stockpile)
 	{
 		CFixedPoint crudeOil = CrudeOilToRefine(country, stockpile);
 		if (crudeOil <= CFixedPoint.Zero)
 		{
-			return;
+			return CFixedPoint.Zero;
 		}
 
 		// The technology and the modifier multiply each other here; each step drops what
@@ -122,8 +142,8 @@ public static class CConversions
 		fuel *= CFixedPoint.One + country.Modifier[FuelConversion];
 
 		stockpile[EGoods.CrudeOil] -= crudeOil;
-		stockpile[EGoods.Fuel] += fuel;
 		country.ConversionUsed[EGoods.CrudeOil] += crudeOil;
 		country.ConversionMade[EGoods.Fuel] += fuel;
+		return fuel;
 	}
 }

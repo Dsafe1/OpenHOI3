@@ -52,6 +52,12 @@ if (args.Length > 0 && args[0] == "supply")
 	return CSupplyCheck.Run(args);
 }
 
+// The carrying of supplies is checked against a save of the start date.
+if (args.Length > 0 && args[0] == "supplypass")
+{
+	return CSupplyPassCheck.Run(args);
+}
+
 // A battle is fought with the install's own units and described. A trial, not a check.
 if (args.Length > 0 && args[0] == "battle")
 {

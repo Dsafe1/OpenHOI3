@@ -95,6 +95,14 @@ public sealed class CCountry
 	public int MaxIc { get; set; }
 
 	/// <summary>
+	/// The IC of its own ground at home, in thousandths: the provinces it owns, holds
+	/// and has a core on that are in its capital's area. A day's supplies and fuel are
+	/// made in those provinces by their share of this. Written by
+	/// <see cref="CIndustrialCapacity"/>.
+	/// </summary>
+	public long CoreHomeIc { get; set; }
+
+	/// <summary>
 	/// The fraction of its IC that goes to each of the six things IC is spent on, by
 	/// <see cref="EProductionCategory"/>. Changed only by a command.
 	/// </summary>
@@ -256,11 +264,37 @@ public sealed class CCountry
 	/// <summary>The IC its production share spent today.</summary>
 	public CFixedPoint ProductionSpent { get; set; }
 
-	/// <summary>What its units asked for today: supplies and fuel. Cleared and counted again each day.</summary>
+	/// <summary>
+	/// What the units drawing on its ground asked for today, supplies and fuel, whoever
+	/// they belong to: a unit is counted by the country that holds the province it draws
+	/// in. Cleared and counted again each day.
+	/// </summary>
 	public CGoodsPool UnitDemand { get; } = new();
 
-	/// <summary>What its units were given today. The same as they asked for unless the stockpile ran out.</summary>
+	/// <summary>
+	/// The supplies and fuel that left its stockpile for units today: what the units
+	/// standing in its capital were given, what the provinces beside the capital took
+	/// out of it, and what went to a depot across the sea.
+	/// </summary>
 	public CGoodsPool UnitDrawn { get; } = new();
+
+	/// <summary>
+	/// The supplies and fuel it made today in provinces other than its capital. They are
+	/// part of what it produced and are not in its stockpile until they have travelled there.
+	/// </summary>
+	public CGoodsPool SentTo { get; } = new();
+
+	/// <summary>What came back into its stockpile today from provinces that held more than they needed.</summary>
+	public CGoodsPool SentBack { get; } = new();
+
+	/// <summary>
+	/// What it paid today for its units drawing on a friend's depot: it comes out of its
+	/// stockpile and goes into the friend's. See <c>docs/mechanics/supply.md</c>, section 13.
+	/// </summary>
+	public CGoodsPool TradedAway { get; } = new();
+
+	/// <summary>What it was paid today for a friend's units drawing on its depots.</summary>
+	public CGoodsPool TradedFor { get; } = new();
 
 	/// <summary>
 	/// The IC a day of bringing its units back to strength costs: the reinforcement

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Movement;
@@ -360,6 +361,11 @@ public static class CMovement
 			return false;
 		}
 		unit.Previous = unit.Location;
+		// An army takes its days of supplies along, out of the province it leaves.
+		if (isLand && !next.IsSea)
+		{
+			CSupplyCarry.Bring(state, country, unit, unit.Previous, next.Id);
+		}
 		Enter(state, unit, next.Id);
 		if (isLand)
 		{

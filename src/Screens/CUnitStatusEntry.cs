@@ -3,6 +3,7 @@ using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
 
@@ -92,8 +93,8 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 		{
 			_width?.SetFrame(CUnitPanelText.WidthFrame(CUnitPanelText.Width(_unit)));
 		}
-		_supply?.SetProgress(CUnitPanelText.SupplyBar);
-		_fuel?.SetProgress(CUnitPanelText.SupplyBar);
+		_supply?.SetProgress(CUnitPanelText.SupplyBar(_state, _owner, _unit, EGoods.Supplies));
+		_fuel?.SetProgress(CUnitPanelText.SupplyBar(_state, _owner, _unit, EGoods.Fuel));
 
 		Show(_moving, _unit.IsMoving);
 		Show(_combinedArms, CUnitPanelText.HasCombinedArms(_state, _unit));

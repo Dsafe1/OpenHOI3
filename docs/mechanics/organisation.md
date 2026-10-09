@@ -254,9 +254,9 @@ stops, and ships and wings take the country's ratio like the rest.
 - **Anything that changes a law**, so section 5 is never called in a game.
 - **Units lent to another country**, which count for and take the ratio of the country
   that lent them.
-- **The supply network**: the share of its supplies a unit was given is always all of
-  them while its country has any (`upkeep.md`, section 2), so no unit here loses
-  organisation for want of supply unless the whole stockpile is empty.
+- ~~**The supply network.**~~ Built: a unit is given its share of what lies in the province
+  it draws on (`supply.md`, section 13), so one beyond its supply lines loses organisation
+  for want of supply as in the original.
 
 ## What is not established, in one place
 

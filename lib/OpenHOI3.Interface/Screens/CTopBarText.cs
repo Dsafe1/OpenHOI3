@@ -34,10 +34,13 @@ public static class CTopBarText
 	/// </summary>
 	public static string Goods(CGameState state, CCountry country, EGoods goods)
 	{
-		// What went out today, the units' draw with it, and what came in. The original adds trade, convoys, debt
-		// and tribute to each side; none of those move anything yet.
-		CFixedPoint goingOut = country.Usage[goods] + country.ConversionUsed[goods] + country.UnitDrawn[goods];
-		CFixedPoint comingIn = country.HomeProduced[goods] + country.ConversionMade[goods];
+		// What went out today, with what left the stockpile for the units, and what came in, with what the
+		// provinces sent back. The original adds trade, convoys, debt and tribute to each side; none of those
+		// move anything yet.
+		// What was made away from the capital counts as made and as gone, until it has travelled in.
+		CFixedPoint goingOut = country.Usage[goods] + country.ConversionUsed[goods] + country.UnitDrawn[goods]
+			+ country.SentTo[goods];
+		CFixedPoint comingIn = country.HomeProduced[goods] + country.ConversionMade[goods] + country.SentBack[goods];
 		CFixedPoint tradedFor = CFixedPoint.Zero;
 
 		// Red is a loss even with what is bought, yellow a loss that buying covers.

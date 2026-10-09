@@ -153,9 +153,9 @@ The window `sup_unit_status`. `confirmed` for what each element is given:
       days = SUPPLYPOOL_DAYS, whole, at least 1
       bar  = what lies in the province / (days x what the units in it need a day)
 
-  and full where they need nothing. Here a province does not keep what its units need -
-  the supply network is not built (`upkeep.md`, section 2) - so both bars are full.
-  *Ours*, until then.
+  and full where they need nothing - as in a capital, which counts no need of its own. The
+  province is the one the unit draws on, and what its units need is what the day's supply
+  pass counted (`supply.md`, sections 11 and 13). Built since the pass is.
 
 ## 5. The order
 

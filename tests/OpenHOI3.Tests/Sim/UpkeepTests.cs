@@ -5,6 +5,7 @@ using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Tests.Sim;
@@ -190,7 +191,7 @@ public class UpkeepTests
 		CGoodsPool stockpile = state.Stockpile(country)!;
 		stockpile[EGoods.Supplies] = CFixedPoint.FromInt(10);
 
-		CUnitSupply.Draw(country, unit, stockpile);
+		CSupplyDraw.Draw(state, country, unit);
 
 		Assert.Equal(CFixedPoint.Parse("9.33"), stockpile[EGoods.Supplies]);
 		Assert.Equal(CFixedPoint.One, unit.SuppliesReceived);
@@ -207,7 +208,7 @@ public class UpkeepTests
 		CGoodsPool stockpile = state.Stockpile(country)!;
 		stockpile[EGoods.Supplies] = CFixedPoint.Parse("0.335");
 
-		CUnitSupply.Draw(country, unit, stockpile);
+		CSupplyDraw.Draw(state, country, unit);
 
 		Assert.Equal(CFixedPoint.Zero, stockpile[EGoods.Supplies]);
 		Assert.Equal(CFixedPoint.Parse("0.5"), unit.SuppliesReceived);
@@ -229,10 +230,10 @@ public class UpkeepTests
 		stockpile[EGoods.Supplies] = CFixedPoint.FromInt(10);
 		stockpile[EGoods.Fuel] = CFixedPoint.FromInt(10);
 
-		CUnitSupply.Draw(country, army, stockpile);
+		CSupplyDraw.Draw(state, country, army);
 		Assert.Equal(CFixedPoint.FromInt(10), stockpile[EGoods.Fuel]);
 
-		CUnitSupply.Draw(country, fleet, stockpile);
+		CSupplyDraw.Draw(state, country, fleet);
 		Assert.Equal(CFixedPoint.Parse("9.72"), stockpile[EGoods.Fuel]);
 	}
 
