@@ -130,7 +130,7 @@ The window `sup_unit_status`. `confirmed` for what each element is given:
 | `unitlocation` | the name of the province it is in | built |
 | `unit_location_button` | takes the map there | built |
 | `unitattrition` | what the province wears it down by, whole percent; `?%` with no brigades | `0%`: attrition is not built |
-| `unitbase` | `SUPPLIED_FROM`, a space, and the capital its province is supplied from; ` ???` where no friend holds that. A fleet or an air unit: its base and its range | its country's capital |
+| `unitbase` | `SUPPLIED_FROM`, a space, and the capital its province is supplied from; ` ???` where no friend holds that. A fleet or an air unit: its base, then `(`, its range and `km)` - or ` ???` with no base | a land unit: its country's capital. A fleet and an air unit: built; the range is written whole, *ours* |
 | `speed` | below | built |
 | `unit_cw_strip` | a land unit's width: frame 1 under 2, then 2, 3, 4 for under 4, 6, 8, and 5 beyond | built |
 | `unit_weight` | a land unit's weight aboard ship, whole | built |
@@ -177,6 +177,15 @@ a battle, which are `inferred`
   away reads "Move to" the first of them, and then the second.
 - Built: `MOVE_ORDER_D`, and for everything else `NO_ORDERS`, "No Order". *Ours:* what the
   original calls a unit with nothing to do was not read; that key is in its files.
+- **An order's own text names the province the order is for**, its end and not its next
+  step (`fleetsandair.md`, section 5): `confirmed`
+
+      a move                       MOVE_ORDER_D with WHERE          "Move to Königsberg."
+      a fleet's change of base     the order's name, " :", the province    "Rebase :Königsberg"
+      an air unit's                ORDER_AIR_REBASE_SHORT_DESC with PROV   "Rebase(Königsberg)"
+
+  *Ours:* a fleet sent straight somewhere has no order, and reads as a land unit on the
+  march does - what the original's empty order says of it was not read.
 - **Where the way ends and when the unit will be there is a tooltip** in the original, over
   the header's activity strip: "Will arrive in $PROV$ on $DATE$" - again the next province.
   Tooltips are not built, so the readout beside the panel says both for now, for the whole
@@ -191,8 +200,12 @@ original also uses it to take back an order of another kind.
 The window `sup_subunits`: a heading, and a list of one row for each brigade in the unit's
 own order. `confirmed`
 
-- `header`: for a land unit `LAND_COUNT`, "$NUM$ Brigades". A fleet's counts its capital
-  ships, screens and others and an air unit's its fighters and bombers; not built.
+- `header`: for a land unit `LAND_COUNT`, "$NUM$ Brigades". A fleet's is `NAVAL_COUNT` with
+  its capital ships, screens and others, and an air unit's `AIR_COUNT` with its fighters and
+  bombers. Built - but which ship counts as which was not read. *Ours:* a capital ship is
+  one its type calls `capital`; the others are submarines (`is_sub`) and anything that
+  carries (`transport_capability`); the rest are screens; a bomber is a wing its type calls
+  `is_bomber`.
 - `positioning`: empty but for a fleet.
 - **The window is as high as its rows**: its label's height and its rows', up to the
   height the file gives the window - five rows in the base game - and the list scrolls

@@ -157,8 +157,12 @@ public partial class CGuiWindow : CGuiObject
 	}
 
 	/// <summary>
-	/// The child a window names as its background fills the window and is not put at a
-	/// position of its own. A cornered tile repeats; anything else is stretched.
+	/// The child a window names as its background. It is put at the window's corner
+	/// whatever position it declares. A cornered tile fills the window, repeating. A
+	/// plain picture is not a tile and is not stretched: it keeps its own size - the
+	/// windows that have one are of another size than their art, every one of them.
+	/// It takes the clicks that fall on it and does nothing with them. Measured on
+	/// the orders windows: see <c>docs/mechanics/interface.md</c>, section 3.
 	/// </summary>
 	private static Control? Background(CGuiButtonType type, CGuiContext context)
 	{
@@ -176,7 +180,15 @@ public partial class CGuiWindow : CGuiObject
 			StretchMode = sprite.IsTiled ? TextureRect.StretchModeEnum.Tile : TextureRect.StretchModeEnum.Scale,
 			MouseFilter = MouseFilterEnum.Stop,
 		};
-		rect.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+		if (sprite.IsTiled)
+		{
+			rect.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+		}
+		else
+		{
+			rect.Position = Vector2.Zero;
+			rect.Size = texture.GetSize();
+		}
 		return rect;
 	}
 

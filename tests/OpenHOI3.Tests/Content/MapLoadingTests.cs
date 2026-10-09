@@ -180,6 +180,20 @@ public class MapLoadingTests : IDisposable
 	}
 
 	[Fact]
+	public void TheBuildingsAProvinceIsGivenPlacesForAreKeptAsTheFileHasThem()
+	{
+		CMap map = Load();
+
+		Assert.Equal(new[] { new CBuildingPosition("naval_base", 3.0f, 2.0f) }, map.BuildingPositions[3]);
+		Assert.Empty(map.BuildingPositions[1]);
+		// That naval base lies on a pixel of Epsilon's, which is land, and the one sea zone
+		// touches no other: no port, and nothing in the table of distances by sea.
+		Assert.Equal(0, map.PortSea[3]);
+		Assert.Equal(-1, map.SeaIndex[4]);
+		Assert.Equal(0, map.SeaIndexCount);
+	}
+
+	[Fact]
 	public void APositionForNoProvinceIsReportedAndAMissingFileLeavesTheCentres()
 	{
 		Write("map/positions.txt", "9 = { unit = { x=1 y=1 } }\n2 = { unit = { x=2 y=2 } }\n");
@@ -448,7 +462,8 @@ public class MapLoadingTests : IDisposable
 		text[province] = new CMapPosition(textX, 0);
 		CBitmapFile bitmap = CBitmapFile.Parse(TestBitmap.Indexed8(painted.Length, new[] { painted }));
 		return CTerrainReader.FindTerrain(bitmap, raster, new CTerrainReader.Definition(categories, categoryOfIndex),
-			new CMapPositions(unit, text, unit), id => false);
+			new CMapPositions(unit, text, unit, new CBuildingPosition[province + 1][], Array.Empty<CPortPlacement>()),
+			id => false);
 	}
 
 	[Fact]
@@ -846,6 +861,17 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal("local_ic", factory.ModifierKey);
 		Assert.Contains(_warnings, warning => warning.Contains("has two modifiers"));
 		Assert.Contains(_warnings, warning => warning.Contains("declared twice"));
+	}
+
+	[Fact]
+	public void ABuildingSaysWhetherItShowsOnTheMap()
+	{
+		WriteStartFiles();
+		Write("common/buildings.txt",
+			"air_base = { air_capacity = 1 onmap = yes }\nindustry = { ic = 1 onmap = no }\ninfra = { infrastructure = 0.1 }");
+		CGameState state = LoadStart();
+
+		Assert.Equal(new[] { true, false, false }, state.Buildings.Select(building => building.IsOnMap));
 	}
 
 	[Fact]

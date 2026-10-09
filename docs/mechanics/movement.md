@@ -12,9 +12,10 @@ towards the first. Every hour its speed is added to the progress; when the progr
 the distance of the edge from the province it is in to the next, it is in the next, and
 what is left over counts towards the one after.
 
-**Only land units move so far.** A fleet and an air group go by rules of their own, and so
-does everything that has to do with an enemy: none of that is built, and the last sections
-say what.
+**This is the march itself, and a land unit's orders.** A fleet and an air unit march by
+the same rules and are told to by others - a window of orders, a range, ports:
+`fleetsandair.md`. Everything that has to do with an enemy is not built, and the last
+sections say what.
 
 ---
 
@@ -31,6 +32,8 @@ say what.
   and mark the province as refused. `confirmed`; *ours:* nothing is played or marked yet.
 - Nothing happens for a unit with no brigades. `confirmed`. The original also refuses a
   retreating unit and one under an AI's command.
+- **That is a land unit's click.** A fleet's and an air unit's bring up a window of orders,
+  and only a fleet with shift held is sent straight there: `fleetsandair.md`, section 4.
 
 The click posts a **command**, and the way is worked out when the command runs, so that
 every machine works out the same one: `CMoveUnitCommand(country, unit, province, append)`,
@@ -282,10 +285,17 @@ the move:
 
 ## 6. The hour
 
-Each hour, after its organisation, every unit with a path does this once with its speed
-added, and then again without adding for as long as the last pass ended with the unit in a
-new province and its progress already covering the next distance. So one hour can carry a
-fast unit through several short provinces. `confirmed`
+Each hour every unit with a path does this once with its speed added, and then again
+without adding for as long as the last pass ended with the unit in a new province and its
+progress already covering the next distance. So one hour can carry a fast unit through
+several short provinces - a savegame shows an air unit through six (`fleetsandair.md`,
+section 6). `confirmed`
+
+**It comes before the unit's organisation, not after.** The original runs one routine for
+every unit of every country in turn - the look at its order, its battles, and this march -
+and only when all of them are done runs each unit's own hour, where organisation returns.
+This document said the opposite until 2026-10-09: the reading it was written from named the
+wrong caller, which the reading for fleets found.
 
 1. A unit with no brigades does nothing.
 2. A path whose first province is the one the unit stands in loses that province, and the
@@ -299,9 +309,11 @@ fast unit through several short provinces. `confirmed`
    may no longer stand there it is halted where it was. Otherwise the province it was in is
    remembered and it is in the next.
 
-The order among units is that of their numbers, country by country. *Ours:* the original
-spreads its units' hours over worker threads (`tick.md`), so it has no order of its own
-to keep, and none matters until two units' marches can affect each other.
+**The units move one after another, country by country**, on the one thread that runs the
+hour: the countries in their order, each country's units in the order of its own list.
+`confirmed`. *Ours:* a country's units go in the order of their numbers; the order of the
+original's list was not read, and none matters until two units' marches can affect each
+other.
 
 **How long a march takes** is not kept; it is worked out when asked: for each leg, what is
 left of its distance over the speed the unit would have on it, rounded up to whole hours,
@@ -350,7 +362,6 @@ with what is left over carried into the next leg as the march itself carries it.
 
 ## What is not built
 
-- **Fleets and air groups**: their orders, the sea's distances, bases and range.
 - **Anything to do with an enemy.** In the original a unit does not set off while an
   attack delay runs; a unit in a battle has its progress held at the distance and enters
   only when the battle is over; entering a province looks for a battle to start; a unit

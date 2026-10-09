@@ -131,6 +131,14 @@ public sealed class CGameState
 	/// </summary>
 	public int MapWidth { get; init; }
 
+	private CNavalDistances? _navalDistances;
+
+	/// <summary>
+	/// How far it is by sea between any two ports or sea provinces. Worked out from the
+	/// map the first time it is asked, a row at a time, and never saved.
+	/// </summary>
+	public CNavalDistances NavalDistances => _navalDistances ??= new CNavalDistances(Provinces, MapWidth);
+
 	/// <summary>The numbers out of <c>common/defines.lua</c>.</summary>
 	public CDefines Defines { get; }
 

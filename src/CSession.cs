@@ -40,6 +40,7 @@ public partial class CSession : Node
 	private CDeployMenu? _deployMenu;
 	private CAlerts? _alerts;
 	private CUnitPanel? _unitPanel;
+	private COrdersWindow? _orders;
 	private Label _provinceLabel = null!;
 	private int _shownProvince;
 	private bool _unitsMoved;
@@ -94,6 +95,7 @@ public partial class CSession : Node
 
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(Map, State);
+		_mapView.Player = Player?.Tag;
 		_mapView.SetupCounters(gui, CCounterTypes.Load(_directories), CBillboardTypes.Load(_directories),
 			CArrowTypes.Load(_directories));
 		AddChild(_mapView);
@@ -150,6 +152,13 @@ public partial class CSession : Node
 			_unitPanel.Ordered += () => _ordered = true;
 			_deployMenu.Toggled += ShowSelectedUnit;
 
+			// The window of orders a right click with a fleet or an air unit brings up.
+			_orders = new COrdersWindow();
+			_orders.Setup(gui, _simulation, Player);
+			layer.AddChild(_orders);
+			_orders.Ordered += () => _ordered = true;
+			_orders.Toggled += () => ShowProvince(_shownProvince);
+
 			_topBar = new CTopBar();
 			_topBar.Setup(gui, _simulation, Player);
 			layer.AddChild(_topBar);
@@ -160,6 +169,7 @@ public partial class CSession : Node
 		_simulation.HourPassed += () => _hourPassed = true;
 		_mapView.UnitSelected += _ =>
 		{
+			_orders?.Close();                                   // it was for the unit selected before
 			ShowSelectedUnit();
 			ShowProvince(_shownProvince);
 		};
@@ -308,9 +318,42 @@ public partial class CSession : Node
 		{
 			return;
 		}
-		CCommand command = province == unit.Location && (!append || !unit.IsMoving)
-			? new CCancelMovementCommand(Player.Tag, unitId)
-			: new CMoveUnitCommand(Player.Tag, unitId, province, append);
+		CCommand command;
+		if (unit.Kind == EUnitKind.Air)
+		{
+			// An air unit is always asked what it is to do there.
+			_orders?.Open(unit, province);
+			return;
+		}
+		if (unit.Kind == EUnitKind.Navy)
+		{
+			// A fleet where it is, while under way, halts. Otherwise a plain click asks
+			// what it is to do there, and one with shift sends it straight there.
+			if (unit.IsMoving && province == unit.Location)
+			{
+				command = new CCancelMovementCommand(Player.Tag, unitId);
+			}
+			else if (!append)
+			{
+				if (CMovementRules.SeaEnd(State, State.Province(province)) is null)
+				{
+					GD.Print($"{unit.Name} cannot reach {State.Province(province).Name} by sea.");
+					return;
+				}
+				_orders?.Open(unit, province);
+				return;
+			}
+			else
+			{
+				command = new CMoveUnitCommand(Player.Tag, unitId, province, append);
+			}
+		}
+		else
+		{
+			command = province == unit.Location && (!append || !unit.IsMoving)
+				? new CCancelMovementCommand(Player.Tag, unitId)
+				: new CMoveUnitCommand(Player.Tag, unitId, province, append);
+		}
 		if (!command.MayExecute(State))
 		{
 			GD.Print($"{unit.Name} may not go to {State.Province(province).Name}.");
@@ -366,8 +409,9 @@ public partial class CSession : Node
 	private void ShowProvince(int provinceId)
 	{
 		_shownProvince = provinceId;
-		// The readout stands where the deploy menu does, and gives way to it.
-		if (provinceId == 0 || _deployMenu is { IsOpen: true })
+		// The readout stands where the deploy menu does, and gives way to it - and to
+		// the window of orders, which comes up over it.
+		if (provinceId == 0 || _deployMenu is { IsOpen: true } || _orders is { IsOpen: true })
 		{
 			_provinceLabel.Text = "";
 			return;

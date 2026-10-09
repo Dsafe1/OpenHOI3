@@ -34,7 +34,9 @@ top bar, production and technology - the four windows the production screen orde
 unit from, the units on the map as counters with the alert and the menu a finished one is
 placed from, the ways between provinces as the original measures them and the order, the
 route and the hourly march of a land unit, the panel of a selected unit and the lines of
-its hierarchy on the map, 855 tests - and it is
+its hierarchy on the map, the orders that send a fleet or an air unit with the window they
+are given from, the distances by sea, and the buildings on the map with the port and the
+airfield, 890 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -123,11 +125,13 @@ because mods ship their own - BlackICE changes all 33 it shares with Their Fines
 adds 20.
 
 **Built 2026-10-08, as far as three screens and four windows need**, and on 2026-10-09
-the deploy menu and its alert, and the panel of a selected unit.
+the deploy menu and its alert, the panel of a selected unit, and the window of orders a
+fleet or an air unit is sent from.
 `docs/mechanics/interface.md` is the spec, and `topbar.md`, `countryviews.md`,
 `sliders.md`, `productionscreen.md`, `technologyscreen.md`, `builders.md`,
 `mapunits.md` and `unitpanel.md` the
-screens', with `movement.md` for the right click that orders a unit;
+screens', with `movement.md` for the right click that orders a land unit and
+`fleetsandair.md` for the one that asks a fleet or an air unit what it is to do;
 `lib/OpenHOI3.Content/Gui` reads the files, `src/Gui` builds windows, icons,
 buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements
 from them, and `src/Screens` holds the screens. **The unit counters are not interface
@@ -144,7 +148,14 @@ beside the original on 2026-10-09 and its bars were wrong twice**, under two gue
 how a rotated icon turns - the second one "confirmed" by a fit to the art that was a
 coincidence. His screenshot gave the rule, and two more: the panel's entries touch, and
 where an edit box puts its text (`interface.md`, sections 2 and 7). All three are measured
-on that screenshot and none is read. **The four windows a unit is ordered
+on that screenshot and none is read. **Fleets and air units - `fleetsandair.md` - and the
+buildings on the map were built from a reading and checked with `--click`, and he has
+not looked at them.** Their sailing, their routes and the whole table of distances by sea
+agree with his saves and the original's cache; the size of a building's picture and the
+orders window rest on the reading and on the art. **The art corrected one rule on the
+way**: a window's background that is a plain picture keeps its own size at the window's
+corner and is not stretched - no window built before had one (`interface.md`, section 3).
+**The four windows a unit is ordered
 from - `builders.md` - have been tried by hand once and never measured against the
 original.** That try found seven buttons that could not be pressed in windows every
 scripted check had passed, because the checks opened and filled them by name and pressed
@@ -233,7 +244,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 105 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 106 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -269,7 +280,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 2835-address, 310-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 2898-address, 310-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -352,10 +363,15 @@ beside the repository.
   `OpenHOI3.SaveCheck march <install> <earlier save> <later save>` does it for what an
   hour adds to a marching division, and wants saves **hours** apart, since the weather
   turns: `Germany1936_01_07_22.hoi3` and `Germany1936_01_08_02.hoi3` give 301 of 301, with
-  `_01_07_14` and `_01_04_12` of the same game before them.
+  `_01_07_14` and `_01_04_12` of the same game before them. The same command moves every
+  fleet and air unit of the earlier save forward and sets it against the later:
+  `_01_08_03`, `_01_08_06` and `_01_08_07` have a submarine flotilla and an air fleet of
+  the maintainer's under way, and give 17 of 17 and 1 of 1.
+  `OpenHOI3.SaveCheck navaldist <install>` checks the distances by sea against the
+  original's `map/cache/navaldist.bin`: all 17,621,016 agree, and it takes twenty seconds.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines carry 855 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders carry 890 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

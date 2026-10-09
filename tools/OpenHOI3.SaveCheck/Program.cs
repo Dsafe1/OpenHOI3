@@ -34,6 +34,12 @@ if (args.Length > 0 && args[0] == "adjacency")
 	return CAdjacencyCheck.Run(args);
 }
 
+// The distances by sea are checked against the original's own cache of them.
+if (args.Length > 0 && args[0] == "navaldist")
+{
+	return CNavalDistanceCheck.Run(args);
+}
+
 // The march of land units is checked against two saves of one game, hours apart.
 if (args.Length > 0 && args[0] == "march")
 {

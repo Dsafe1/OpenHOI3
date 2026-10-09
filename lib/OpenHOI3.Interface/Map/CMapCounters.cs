@@ -58,6 +58,26 @@ public static class CMapCounters
 		};
 	}
 
+	/// <summary>
+	/// Whether a unit is still one of its country's and in some province: what a unit
+	/// has to be to stay selected, counter or none.
+	/// </summary>
+	public static bool IsSomewhere(CGameState state, CUnit unit)
+	{
+		if (unit.Location <= 0 || state.Country(unit.Owner) is not { } country)
+		{
+			return false;
+		}
+		foreach (CUnit other in country.AllUnits())
+		{
+			if (ReferenceEquals(other, unit))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/// <summary>Which of its province's stacks a unit that has a counter is in.</summary>
 	public static EMapStack StackOf(CUnit unit)
 	{

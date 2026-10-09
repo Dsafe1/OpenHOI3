@@ -43,8 +43,14 @@ public sealed class CMap
 		Positions = positions.Unit;
 		TextPositions = positions.Text;
 		NavalBasePositions = positions.NavalBase;
+		BuildingPositions = positions.Buildings;
 		Edges = edges;
 		SourceFiles = sourceFiles;
+
+		CMapPorts.Result ports = CMapPorts.Build(isSea.Length, IsSea, ProvinceAt, edges, positions.Ports, continents);
+		PortSea = ports.PortSea;
+		SeaIndex = ports.SeaIndex;
+		SeaIndexCount = ports.Count;
 	}
 
 	public int Width { get; }
@@ -101,6 +107,27 @@ public sealed class CMap
 	/// bounding box. The land end of a distance between land and sea.
 	/// </summary>
 	public IReadOnlyList<CMapPosition> NavalBasePositions { get; }
+
+	/// <summary>
+	/// Per province id, where <c>positions.txt</c> puts each kind of building, in the
+	/// file's order. A building the file does not place is not in the list.
+	/// </summary>
+	public IReadOnlyList<CBuildingPosition[]> BuildingPositions { get; }
+
+	/// <summary>
+	/// Per province id, the sea province its port opens onto, or 0 for a province with
+	/// no port: see <see cref="CMapPorts"/>.
+	/// </summary>
+	public IReadOnlyList<int> PortSea { get; }
+
+	/// <summary>
+	/// Per province id, its number in the table of distances by sea, or -1: every port
+	/// has one and every sea province that is not a lake.
+	/// </summary>
+	public IReadOnlyList<int> SeaIndex { get; }
+
+	/// <summary>How many provinces have a number in the table of distances by sea.</summary>
+	public int SeaIndexCount { get; }
 
 	/// <summary>Every file this was built from, for whatever needs to know when one changes.</summary>
 	public IReadOnlyList<string> SourceFiles { get; }

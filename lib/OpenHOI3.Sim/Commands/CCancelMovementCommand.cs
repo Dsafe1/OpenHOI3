@@ -26,7 +26,9 @@ public sealed class CCancelMovementCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		CMovement.Cancel(Find(state.Country(_country)!)!);
+		CUnit unit = Find(state.Country(_country)!)!;
+		CMovement.Cancel(unit);
+		CUnitOrders.Clear(unit);
 	}
 
 	private CUnit? Find(CCountry country)

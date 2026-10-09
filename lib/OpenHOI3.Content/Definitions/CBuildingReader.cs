@@ -72,7 +72,10 @@ public static class CBuildingReader
 			}
 
 			buildings.Add(new CBuilding(buildings.Count, block.Key, block.GetInt("max_level"),
-				modifierKey, modifierValue));
+				modifierKey, modifierValue)
+			{
+				IsOnMap = block.GetBool("onmap"),
+			});
 		}
 		return buildings.ToArray();
 	}

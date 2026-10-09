@@ -48,6 +48,8 @@ public static class CGameStateLoader
 				Edges = map.Edges[id],
 				CentreX = map.Shapes[id].IsEmpty ? 0 : map.Shapes[id].CentreX,
 				CentreY = map.Shapes[id].IsEmpty ? 0 : map.Shapes[id].CentreY,
+				PortSea = map.PortSea[id],
+				SeaIndex = map.SeaIndex[id],
 			};
 		}
 

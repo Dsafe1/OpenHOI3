@@ -46,6 +46,15 @@ public sealed class CUnit
 	public bool IsMoving => Path.Count > 0;
 
 	/// <summary>
+	/// What it has been told to do, and where. An order is looked at every hour and
+	/// dropped when it is done: see <c>docs/mechanics/fleetsandair.md</c>, section 5.
+	/// </summary>
+	public EUnitOrder Order { get; set; }
+
+	/// <summary>The id of the province its order is for, or 0.</summary>
+	public int OrderProvince { get; set; }
+
+	/// <summary>
 	/// What its own line says. Its one use is to make reserves of the brigades read
 	/// after it; the brigades are what carry the fact.
 	/// </summary>

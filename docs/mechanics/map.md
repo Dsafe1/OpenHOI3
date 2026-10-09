@@ -102,12 +102,18 @@ A province has **two more points**, each also starting at the centre:
 - **where its name is written**: `text_position`, truncated, on any province - land too. A
   land province's terrain is taken around it (section 9);
 - **where its port is drawn**: `naval_base = { x y }` inside `building_position`. It is the
-  land end of the distance between a land province and the sea beside it.
+  land end of the distance between a land province and the sea beside it - and **the pixel
+  it falls on decides whether the province has a port at all**, and onto which sea
+  (`fleetsandair.md`, section 2).
+
+And **a place for each of its buildings**: every other entry of `building_position`, kept
+as the file writes it, which is where that building's picture stands on the map
+(`mapunits.md`, section 9).
 
 *Ours:* the file is read since 2026-10-09, when units came to be drawn at the first of these
 (`mapunits.md`). It is six megabytes of which these keys are a small part, so it has a
-reader of its own that keeps nothing else; the rest of it - where the other buildings and
-a city are drawn, and how a name is turned and sized - is not read. The original's default
+reader of its own that keeps nothing else; the rest of it - where a city is drawn, and how
+a name is turned and sized - is not read. The original's default
 for a port the file does not place was not read; the base game places every one that
 matters.
 

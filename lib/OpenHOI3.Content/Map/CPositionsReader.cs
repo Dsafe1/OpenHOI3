@@ -18,6 +18,8 @@ namespace OpenHOI3.Content.Map;
 /// Two more points are kept beside that one: where the province's name is written,
 /// which is <c>text_position</c> on any province, and where its port is drawn, which
 /// is <c>naval_base</c> inside <c>building_position</c>. Both start at the centre too.
+/// And every building <c>building_position</c> places, as the file gives it, with the
+/// ports once more in the order the file names them.
 ///
 /// The file is six megabytes of which those keys are a small part, so it is walked
 /// once by a reader of its own that keeps nothing else: the general parser would build
@@ -40,12 +42,15 @@ public static class CPositionsReader
 		}
 		var text = (CMapPosition[])unit.Clone();
 		var navalBase = (CMapPosition[])unit.Clone();
-		var positions = new CMapPositions(unit, text, navalBase);
+		var buildings = new CBuildingPosition[shapes.Count][];
+		Array.Fill(buildings, Array.Empty<CBuildingPosition>());
 		if (!File.Exists(path))
 		{
 			warn($"no positions: '{path}' is missing, and every province is at the centre of its bounding box");
-			return positions;
+			return new CMapPositions(unit, text, navalBase, buildings, Array.Empty<CPortPlacement>());
 		}
+		var placed = new List<CBuildingPosition>?[shapes.Count];
+		var ports = new List<CPortPlacement>();
 
 		byte[] bytes = File.ReadAllBytes(path);
 		int at = 0;
@@ -91,9 +96,14 @@ public static class CPositionsReader
 							unit[province] = point;
 						}
 					}
-					else if (depth == 3 && key == BuildingPosition && building == NavalBase)
+					else if (depth == 3 && key == BuildingPosition)
 					{
-						navalBase[province] = point;
+						(placed[province] ??= new List<CBuildingPosition>()).Add(new CBuildingPosition(building, x, y));
+						if (building == NavalBase)
+						{
+							navalBase[province] = point;
+							ports.Add(new CPortPlacement(province, x, y));
+						}
 					}
 				}
 				hasX = hasY = false;
@@ -136,7 +146,7 @@ public static class CPositionsReader
 				}
 			}
 			else if ((depth == 2 && (key == Unit || key == TextPosition))
-				|| (depth == 3 && key == BuildingPosition && building == NavalBase))
+				|| (depth == 3 && key == BuildingPosition))
 			{
 				if (!afterEquals)
 				{
@@ -163,7 +173,14 @@ public static class CPositionsReader
 		{
 			warn($"'{path}': {unknown} blocks are not for a province of the map");
 		}
-		return positions;
+		for (int id = 0; id < placed.Length; id++)
+		{
+			if (placed[id] is { } list)
+			{
+				buildings[id] = list.ToArray();
+			}
+		}
+		return new CMapPositions(unit, text, navalBase, buildings, ports.ToArray());
 	}
 
 	/// <summary>

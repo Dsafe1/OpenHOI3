@@ -4,7 +4,9 @@ using Godot;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Gfx;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -56,7 +58,6 @@ public partial class CMapView : Node2D
 	private const string ShaderPath = "res://src/Map/PoliticalMap.gdshader";
 	private const int PaletteWidth = 256;
 
-	private const float MaxZoom = 16f;
 	private const float ZoomStep = 1.25f;
 	/// <summary>Map pixels a second at zoom 1, for the keyboard.</summary>
 	private const float KeyScrollSpeed = 900f;
@@ -111,6 +112,9 @@ public partial class CMapView : Node2D
 	public CUnitCounters? Counters => _counters;
 
 	public int SelectedProvince => _selected;
+
+	/// <summary>The country being played, whose units a click on a port or an airfield picks.</summary>
+	public CCountryTag? Player { get; set; }
 
 	/// <summary>
 	/// Marks the provinces a unit being placed may go in, or with null marks none.
@@ -230,9 +234,19 @@ public partial class CMapView : Node2D
 		return GetViewportRect().Size.Y / _map.Height;
 	}
 
+	/// <summary>
+	/// The closest the map is seen from: as close as the original's camera goes. Ours for
+	/// the other end: the original's camera stops at twice the height of its far view,
+	/// and here the whole map can be seen at once.
+	/// </summary>
+	private float MaxZoom()
+	{
+		return CMapCamera.ZoomAt(CMapCamera.LowestHeight, GetViewportRect().Size.Y);
+	}
+
 	private void SetZoom(float zoom)
 	{
-		zoom = Mathf.Clamp(zoom, MinZoom(), MaxZoom);
+		zoom = Mathf.Clamp(zoom, MinZoom(), MaxZoom());
 		_camera.Zoom = new Vector2(zoom, zoom);
 		_material.SetShaderParameter("province_border", Mathf.SmoothStep(1.2f, 2.5f, zoom));
 		ClampCamera();
@@ -357,7 +371,15 @@ public partial class CMapView : Node2D
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click:
 				// A counter is over the province it stands in, so it is asked first - but
 				// not while a unit is being placed, when the click is for the province.
-				CUnit? unit = _places is null ? _counters?.Click(ScreenToMap(click.Position)) : null;
+				Vector2 clicked = ScreenToMap(click.Position);
+				CUnit? unit = _places is null ? _counters?.Click(clicked) : null;
+				// Then a port or an airfield, which is how a fleet in port and an air unit
+				// at its base are picked: each click the next of the player's units there.
+				if (unit is null && _places is null && Player is { } player && _counters is not null
+					&& _counters.Buildings.At(clicked) is { Kind: not EMapBuilding.Other } building)
+				{
+					unit = CMapBuildings.Next(_state, player, building.Province, building.Kind, _counters.Selected);
+				}
 				SelectUnit(unit);
 				if (unit is null)
 				{

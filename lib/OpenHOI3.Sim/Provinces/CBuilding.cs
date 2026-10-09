@@ -32,6 +32,9 @@ public sealed class CBuilding
 	/// <summary>How much of that modifier one level is worth.</summary>
 	public CFixedPoint ModifierValue { get; }
 
+	/// <summary><c>onmap</c>: whether a province that has any of it shows its picture on the map.</summary>
+	public bool IsOnMap { get; init; }
+
 	public override string ToString()
 	{
 		return Key;

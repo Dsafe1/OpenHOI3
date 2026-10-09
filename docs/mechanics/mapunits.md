@@ -6,8 +6,9 @@ it is, in the fact base's vocabulary - `confirmed`, `likely`, `inferred` - or **
 meaning counted here against the files of a Their Finest Hour install on 2026-10-09.
 
 Sources: `reversing/findings/FINDINGS-counters.md`,
-`reversing/findings/FINDINGS-deploymenu.md`, and for the command a finished unit is placed
-by `reversing/findings/FINDINGS-buildqueue.md`. The maintainer looked at it on 2026-10-09
+`reversing/findings/FINDINGS-deploymenu.md`, for the command a finished unit is placed
+by `reversing/findings/FINDINGS-buildqueue.md`, and for the buildings on the map
+`reversing/findings/FINDINGS-seaair.md`. The maintainer looked at it on 2026-10-09
 and gave a screenshot of one of the original's counters, which section 2 is measured
 against; the last section says what a further look would settle.
 
@@ -176,8 +177,8 @@ counter's can be hidden by it.
 ## 3. Which units have a counter, and how they stack
 
 **A fleet in port and an air unit at its own base have no counter.** The original shows
-those by the province's port and airfield, which are not drawn here yet. Nor has a unit
-that is aboard something. Every other unit that is somewhere has one. `confirmed`
+those by the province's port and airfield: section 9. Nor has a unit that is aboard
+something. Every other unit that is somewhere has one. `confirmed`
 
 A province sorts its counters into **five stacks**, by what the unit is doing: `confirmed`
 for the order of the tests.
@@ -303,10 +304,30 @@ asked.
   `OpenHOI3.Sim.Construction.CDeployment` who may join whom.
 - **`src/Map/CUnitCounters`** draws them, over the map and in its coordinates; a click on
   the top counter of a stack selects a unit (section 3), which then wears the ring.
-- **Near and far go by the zoom**: the near counter from a zoom of 8, the far one under
-  it, and none at all once one would be under six pixels high. The original goes by the
-  camera's distance against a setting, `counter_distance`, of 100; what it compares was
-  not found.
+- **What is on the map goes by how high the original's camera would be.** Read on
+  2026-10-09 (`reversing/findings/FINDINGS-camera.md`), after the maintainer's word that
+  the original has "2 modes, the close and far", and that "in the far only the map shows,
+  no counters or buildings":
+
+  | the camera's height | |
+  | --- | --- |
+  | under `counter_distance`, 100 in a new game | the near view: figures, or with `always_counters` the near counter |
+  | from there to 500 | the far counter |
+  | **from 500 up** | **the far view: the map and nothing on it** - no counter, no building, no line of a hierarchy |
+
+  The camera goes from 40 to 1000 and starts at 330. It hangs straight over the map - with
+  counters only it looks straight down - and sees 0.785 radians from the top of the screen
+  to the bottom, so from a height `h` it sees `0.828 h` map units, and **a map unit is
+  `screen height / (0.828 h)` pixels**: on a screen 1080 high, 2.6 at a height of 500, 13 at
+  100, and 32.6 at 40. `confirmed` for the camera and for 500 and `counter_distance` as
+  what stops a click on a counter or a building and what draws the hierarchy; that the
+  far view *draws* none of them is the maintainer's word, the compare that hides them not
+  having been found. His screenshot of a near counter (section 2) is 14.6 pixels to a map
+  unit, a height of 89.
+
+  *Ours:* the map here is drawn at a zoom, so each rule is asked of the height that zoom
+  would be. The zoom goes as close as the original's lowest height; the other way it goes
+  on past the original's highest, until the whole map is on screen.
 - **The near view is always counters.** The original's is counters or 3D figures by a
   setting. There are no figures here.
 - **The counters are worked out again** once a day, whenever a unit of the player's is
@@ -377,11 +398,57 @@ lines and highlight" and that "they can be toggled with h":
 Not built: the dark red broken line, since nothing works out radio range; and the green
 ring, since there is no AI.
 
+## 9. Buildings on the map, the port and the airfield
+
+Read out of the original on 2026-10-09 for the port and the airfield, which are how a fleet
+in port and an air unit at its base are seen and picked:
+`reversing/findings/FINDINGS-seaair.md`, section 6. `confirmed` unless marked.
+
+- **A province shows a picture for every building it has any of that `buildings.txt`
+  declares `onmap`**: its air base, its naval base, its forts, its anti-aircraft guns, its
+  radar and the rest. The picture is the `billboardType` named `building_` and the
+  building's name, of `interface/mapitems.gfx`.
+- **It stands where `positions.txt` puts that building** in the province -
+  `building_position = { air_base = { x y } }` - and is a square of twice the type's `scale`
+  a side, 5 map units for all of them in the base game.
+- **A naval base's and an air base's pictures have two frames.** The second shows for a port
+  **with a fleet lying in it**, and for an airfield **with an air unit at home** - one whose
+  base it is and which is there. The first is the dim badge of an empty base.
+- **A click on a port's or an airfield's picture picks the next of the player's units in
+  it**, one each click, round and round: of a port the fleets lying in it, of an airfield
+  the air units based there, wherever they are. The original keeps a list for each, turns it
+  by one at each click - the first unit goes to the end, and every unit that is not the
+  player's after it - and selects the one that is then first; so the first click picks the
+  second of several. A click on any other building's picture is for the building, which is
+  the province view's and not built.
+- The original has a second picture for three of them - `large_air_base`,
+  `large_naval_base`, `large_anti_air` - which a province keeps beside the first and asks
+  about a click at any height.
+
+*Ours:*
+
+- **there is no fog of war**, so every country's bases show whether they are in use; the
+  original shows the second frame only for a province the player knows well enough, and a
+  building at all only where he knows the province or the building is declared `visibility`;
+- a building `positions.txt` gives no place stands at the province's own point; what the
+  original does there was not read;
+- the units of a port or an airfield are gone through in the order of their numbers, where
+  the original goes by the order they came in. The maintainer, 2026-10-09: "Its fine the
+  way it is";
+- every building's picture is drawn all through the close view and none in the far view
+  (section 7); the three larger pictures are not used, being the same art at the same
+  scale, and when the original shows them was not read;
+- a click has to fall on the round badge, two thirds of the square across - measured on the
+  two bases' art;
+- a selected fleet in port, or air unit at its base, has no counter and so no ring.
+
+Not read: what makes a coastal fort's picture turn (`orientation`), a flag the original
+sets on a port building's picture that stands well east of the naval base, and the order
+two pictures that overlap are asked in - `buildings.txt` says in a comment that it is the
+order of that file, "so leave bases on top".
+
 ## What is not built
 
-- **The port and the airfield on the map**, which is how a fleet in port and a wing at its
-  base are seen in the original. Until then such a unit shows only in the province
-  readout.
 - **The other fifteen alerts**, and the tooltips of this one.
 - **A leader's name on a counter**, and the coloured corner that marks something about a
   unit's state.
@@ -396,8 +463,9 @@ For the reverse engineering:
 - how a province's **five stack points** are made from its one `unit` point;
 - what a counter's **place in its stack** is taken from;
 - what a **text's size** is divided by;
-- who tells a unit's picture it is **seen from far away**, and the test against
-  `counter_distance`;
+- who tells a unit's picture it is **seen from far away**, and what hides a counter and a
+  building's picture in the far view - the heights are read (section 7), the routines
+  that act on them for the drawing are not;
 - the **three marks** that colour a counter's corner, and what `delayAfterAttackColor` is
   for;
 - how the map shows **where a unit may be placed**, and the click that places it;

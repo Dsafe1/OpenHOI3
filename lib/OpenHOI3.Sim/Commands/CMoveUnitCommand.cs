@@ -12,8 +12,9 @@ namespace OpenHOI3.Sim.Commands;
 /// unit with no way there keeps what it had. See <c>docs/mechanics/movement.md</c>,
 /// section 1.
 ///
-/// Only a land unit takes the order so far: a fleet and an air group move by rules of
-/// their own.
+/// A land unit and a fleet take it; a fleet only within its range. It leaves the unit
+/// with no order. An air unit is sent by an order of its own: see
+/// <c>CSetUnitOrderCommand</c>.
 /// </summary>
 public sealed class CMoveUnitCommand : CCommand
 {
@@ -36,8 +37,12 @@ public sealed class CMoveUnitCommand : CCommand
 		{
 			return false;
 		}
-		if (!CMovementSpeed.IsLand(unit) || unit.Location <= 0 || unit.SubUnits.Count == 0
+		if (unit.Kind == EUnitKind.Air || unit.Location <= 0 || unit.SubUnits.Count == 0
 			|| _province <= 0 || _province >= state.Provinces.Count)
+		{
+			return false;
+		}
+		if (unit.Kind == EUnitKind.Navy && !CUnitOrders.IsInRange(state, unit, unit.Order, state.Province(_province)))
 		{
 			return false;
 		}
@@ -54,6 +59,7 @@ public sealed class CMoveUnitCommand : CCommand
 		if (route is not null)
 		{
 			CMovement.SetPath(unit, route, clear: !append);
+			CUnitOrders.Clear(unit);
 		}
 	}
 

@@ -24,7 +24,11 @@ public static class CUnitPanelText
 	public const string SpeedUnitKey = "KPH";
 	public const string MoveOrderKey = "MOVE_ORDER_D";
 	public const string NoOrderKey = "NO_ORDERS";
+	public const string RebaseKey = "ORDER_REBASE";
+	public const string AirRebaseKey = "ORDER_AIR_REBASE_SHORT_DESC";
 	public const string LandCountKey = "LAND_COUNT";
+	public const string NavalCountKey = "NAVAL_COUNT";
+	public const string AirCountKey = "AIR_COUNT";
 
 	/// <summary>The header's activity strip: nothing, and what it shows for a unit on the march and for one that cannot act.</summary>
 	public const int ActivityNone = 1;
@@ -186,7 +190,17 @@ public static class CUnitPanelText
 	public static string SuppliedFrom(Func<string, string> localise, CGameState state, CCountry owner, CUnit unit)
 	{
 		string where = " ???";
-		if (CMovementSpeed.IsLand(unit) && owner.Capital > 0 && owner.Capital < state.Provinces.Count)
+		if (!CMovementSpeed.IsLand(unit))
+		{
+			// A fleet and an air unit: the base, and how far from it the unit reaches.
+			if (unit.Base > 0 && unit.Base < state.Provinces.Count)
+			{
+				where = " " + state.Province(unit.Base).Name + "("
+					+ (CUnitOrders.RangeOf(unit).Raw / Scale).ToString(CultureInfo.InvariantCulture) + "km)";
+			}
+			return localise(SuppliedFromKey) + where;
+		}
+		if (owner.Capital > 0 && owner.Capital < state.Provinces.Count)
 		{
 			CProvince capital = state.Province(owner.Capital);
 			if (CMovementRules.IsFriendly(state, owner, capital.Controller))
@@ -251,7 +265,22 @@ public static class CUnitPanelText
 	/// </summary>
 	public static string Order(Func<string, string> localise, CGameState state, CUnit unit)
 	{
-		if (CMovementSpeed.IsLand(unit) && unit.IsMoving)
+		// An order says for itself what it is, and names the province it is for.
+		if (unit.Order != EUnitOrder.None && unit.OrderProvince > 0 && unit.OrderProvince < state.Provinces.Count)
+		{
+			string where = state.Province(unit.OrderProvince).Name;
+			switch (unit.Order)
+			{
+				case EUnitOrder.Move:
+					return CTextTemplate.Fill(localise(MoveOrderKey), ("WHERE", where));
+				case EUnitOrder.Rebase:
+					return localise(RebaseKey) + " :" + where;
+				case EUnitOrder.RebaseAir:
+					return CTextTemplate.Fill(localise(AirRebaseKey), ("PROV", where));
+			}
+		}
+		// Ours for a fleet sent straight somewhere, which has no order: as a land unit.
+		if (unit.IsMoving)
 		{
 			return CTextTemplate.Fill(localise(MoveOrderKey), ("WHERE", state.Province(unit.Path[0]).Name));
 		}
@@ -260,12 +289,49 @@ public static class CUnitPanelText
 
 	// ---- the brigades
 
-	/// <summary>The heading over a land unit's brigades. A fleet's and an air unit's were read and wait for those.</summary>
+	/// <summary>
+	/// The heading over a unit's brigades: how many a land unit has; a fleet's capital
+	/// ships, screens and others; an air unit's fighters and bombers. Which ship counts
+	/// as which was not read - ours: a capital ship is one its type calls <c>capital</c>,
+	/// the others are submarines and transports, and the rest are screens; a bomber is
+	/// a wing its type calls <c>is_bomber</c>.
+	/// </summary>
 	public static string BrigadesHeader(Func<string, string> localise, CUnit unit)
 	{
-		return CMovementSpeed.IsLand(unit)
-			? CTextTemplate.Fill(localise(LandCountKey), ("NUM", unit.SubUnits.Count.ToString(CultureInfo.InvariantCulture)))
-			: "";
+		string Count(Func<CSubUnit, bool> which)
+		{
+			int count = 0;
+			foreach (CSubUnit subUnit in unit.SubUnits)
+			{
+				count += which(subUnit) ? 1 : 0;
+			}
+			return count.ToString(CultureInfo.InvariantCulture);
+		}
+
+		switch (unit.Kind)
+		{
+			case EUnitKind.Navy:
+				return CTextTemplate.Fill(localise(NavalCountKey),
+					("CAPITAL", Count(IsCapital)),
+					("ESCORTS", Count(ship => !IsCapital(ship) && !IsOtherShip(ship))),
+					("OTHER", Count(ship => !IsCapital(ship) && IsOtherShip(ship))));
+			case EUnitKind.Air:
+				return CTextTemplate.Fill(localise(AirCountKey),
+					("FIGHTER", Count(wing => !wing.Type.Flag("is_bomber"))),
+					("BOMBER", Count(wing => wing.Type.Flag("is_bomber"))));
+			default:
+				return CTextTemplate.Fill(localise(LandCountKey), ("NUM", unit.SubUnits.Count.ToString(CultureInfo.InvariantCulture)));
+		}
+	}
+
+	private static bool IsCapital(CSubUnit ship)
+	{
+		return ship.Type.Flag("capital");
+	}
+
+	private static bool IsOtherShip(CSubUnit ship)
+	{
+		return ship.Type.Flag("is_sub") || ship.Stats["transport_capability"] > CFixedPoint.Zero;
 	}
 
 	/// <summary>The sprite of a brigade's picture, or an empty string.</summary>

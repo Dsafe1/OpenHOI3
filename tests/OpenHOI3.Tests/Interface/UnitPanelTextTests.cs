@@ -32,6 +32,10 @@ public class UnitPanelTextTests
 		["MOVE_ORDER_D"] = "Move to $WHERE$.",
 		["NO_ORDERS"] = "No Order",
 		["LAND_COUNT"] = "§Y$NUM$§W Brigades",
+		["NAVAL_COUNT"] = "$CAPITAL$ Capital Ships, $ESCORTS$ Screens & $OTHER$ others.",
+		["AIR_COUNT"] = "$FIGHTER$ Fighters & $BOMBER$ Bombers.",
+		["ORDER_REBASE"] = "Rebase",
+		["ORDER_AIR_REBASE_SHORT_DESC"] = "Rebase($PROV$)",
 		["NUM_GROUPS"] = "Army group(s)",
 		["NUM_ARMIES"] = "Army(s)",
 		["NUM_CORPS"] = "Corps",
@@ -322,5 +326,68 @@ public class UnitPanelTextTests
 		Assert.Equal("edit_theatre", CUnitPanelText.LevelButton(Unit(country, EUnitKind.Theatre, Berlin, Infantry())));
 		Assert.Equal("", CUnitPanelText.LevelButton(Unit(country, EUnitKind.Navy, Berlin, Type("destroyer", EUnitBranch.Naval))));
 		Assert.Equal(5, CUnitPanelText.LevelButtons.Count);
+	}
+
+	// --- a fleet and an air unit ---
+
+	private static CSubUnitType Ship(string key, bool capital = false, bool submarine = false, string range = "800")
+	{
+		CSubUnitType type = Type(key, EUnitBranch.Naval, speed: "20");
+		type.Stats.Values.Set(CUnitOrders.Range, CFixedPoint.Parse(range));
+		type.Flags["capital"] = capital;
+		type.Flags["is_sub"] = submarine;
+		return type;
+	}
+
+	private static CSubUnitType Wing(string key, bool bomber, string range = "400")
+	{
+		CSubUnitType type = Type(key, EUnitBranch.Air, speed: "200");
+		type.Stats.Values.Set(CUnitOrders.Range, CFixedPoint.Parse(range));
+		type.Flags["is_bomber"] = bomber;
+		return type;
+	}
+
+	[Fact]
+	public void AnOrderSaysForItselfWhereItIsFor()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit fleet = Unit(country, EUnitKind.Navy, Berlin, Ship("destroyer"));
+		fleet.Path.AddRange(new[] { Potsdam, Dessau });
+
+		// With no order a fleet on its way reads as a land unit does: the next province.
+		Assert.Equal("Move to Potsdam.", CUnitPanelText.Order(Localise, state, fleet));
+
+		fleet.OrderProvince = Dessau;
+		fleet.Order = EUnitOrder.Move;
+		Assert.Equal("Move to Dessau.", CUnitPanelText.Order(Localise, state, fleet));
+		fleet.Order = EUnitOrder.Rebase;
+		Assert.Equal("Rebase :Dessau", CUnitPanelText.Order(Localise, state, fleet));
+		fleet.Order = EUnitOrder.RebaseAir;
+		Assert.Equal("Rebase(Dessau)", CUnitPanelText.Order(Localise, state, fleet));
+	}
+
+	[Fact]
+	public void AFleetAndAnAirUnitNameTheirBaseAndHowFarTheyReachFromIt()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit fleet = Unit(country, EUnitKind.Navy, Berlin, Ship("destroyer", range: "1500"), Ship("submarine", range: "800.5"));
+		fleet.Base = Potsdam;
+
+		Assert.Equal("Supplied from: Potsdam(800km)", CUnitPanelText.SuppliedFrom(Localise, state, country, fleet));
+		fleet.Base = 0;
+		Assert.Equal("Supplied from: ???", CUnitPanelText.SuppliedFrom(Localise, state, country, fleet));
+	}
+
+	[Fact]
+	public void TheHeadingCountsAFleetsShipsByKindAndAnAirUnitsWings()
+	{
+		State(out CCountry country);
+		CUnit fleet = Unit(country, EUnitKind.Navy, Berlin, Ship("battleship", capital: true), Ship("destroyer"),
+			Ship("light_cruiser"), Ship("submarine", submarine: true));
+		CUnit air = Unit(country, EUnitKind.Air, Berlin, Wing("interceptor", bomber: false), Wing("tactical_bomber", bomber: true),
+			Wing("cas", bomber: true));
+
+		Assert.Equal("1 Capital Ships, 2 Screens & 1 others.", CUnitPanelText.BrigadesHeader(Localise, fleet));
+		Assert.Equal("1 Fighters & 2 Bombers.", CUnitPanelText.BrigadesHeader(Localise, air));
 	}
 }

@@ -86,6 +86,19 @@ public sealed class CProvince
 	public int CentreY { get; init; }
 
 	/// <summary>
+	/// The sea province its port opens onto, or 0 for a province with no port. A fleet
+	/// goes between the land and the sea here and nowhere else: see
+	/// <c>docs/mechanics/fleetsandair.md</c>, section 2.
+	/// </summary>
+	public int PortSea { get; init; }
+
+	/// <summary>
+	/// Its number in the table of distances by sea, or -1: every port has one, and every
+	/// sea province that is not a lake.
+	/// </summary>
+	public int SeaIndex { get; init; } = -1;
+
+	/// <summary>
 	/// The sum of everything that currently applies to the province. Rebuilt, never
 	/// adjusted: see <see cref="CProvinceModifiers"/>.
 	/// </summary>

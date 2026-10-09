@@ -241,6 +241,8 @@ internal static class CMarchCheck
 				() => detail + $"; under the later weather ({lastWeather}) and fuel ({lastFuel}) {new CFixedPoint(last)} an hour");
 		}
 
+		string atSeaAndInTheAir = CSailingCheck.Run(state, earlier, later, hours, brigades, Compare);
+
 		// ---- report
 		int faults = 0;
 		foreach ((string what, int count) in compared.OrderBy(entry => entry.Key))
@@ -262,6 +264,7 @@ internal static class CMarchCheck
 		Console.WriteLine($"not compared: {elsewhere} in another province or on another path by the later save, " +
 			$"{redeploying} under a strategic redeployment, {delayed} with an attack delay or in a battle, " +
 			$"{unknownBrigades} with a brigade a new game does not start with");
+		Console.WriteLine(atSeaAndInTheAir);
 		Console.WriteLine($"{warnings.Count} warnings while loading");
 		return faults == 0 ? 0 : 1;
 	}

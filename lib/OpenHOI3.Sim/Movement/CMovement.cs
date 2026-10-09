@@ -133,27 +133,34 @@ public static class CMovement
 		return System.Math.Clamp(unit.MovementProgress.Raw * CFixedPoint.Scale / whole, 0, CFixedPoint.Scale);
 	}
 
-	/// <summary>Every moving unit's hour, country by country in the order of the units' numbers.</summary>
+	/// <summary>
+	/// Every unit's hour as far as going somewhere is concerned, country by country in
+	/// the order of the units' numbers: first the look at its order, then its march.
+	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			List<CUnit>? moving = null;
+			List<CUnit>? busy = null;
 			foreach (CUnit unit in country.AllUnits())
 			{
-				if (unit.IsMoving)
+				if (unit.IsMoving || unit.Order != EUnitOrder.None)
 				{
-					(moving ??= new List<CUnit>()).Add(unit);
+					(busy ??= new List<CUnit>()).Add(unit);
 				}
 			}
-			if (moving is null)
+			if (busy is null)
 			{
 				continue;
 			}
-			moving.Sort((a, b) => a.Id.CompareTo(b.Id));
-			foreach (CUnit unit in moving)
+			busy.Sort((a, b) => a.Id.CompareTo(b.Id));
+			foreach (CUnit unit in busy)
 			{
-				RunHour(state, country, unit);
+				CUnitOrders.RunHour(state, country, unit);
+				if (unit.IsMoving)
+				{
+					RunHour(state, country, unit);
+				}
 			}
 		}
 	}

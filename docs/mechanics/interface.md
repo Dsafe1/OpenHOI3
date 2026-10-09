@@ -181,10 +181,21 @@ does neither.
 - **A text box is `maxWidth` by `maxHeight`.** `inferred`
 - **Children are drawn in the order the file declares them.** `confirmed` The original
   keeps one list of a window's children in declaration order across all kinds.
-- **The child a window names as its `background` fills the window.** `inferred` from the
-  files and from running the original's main menu in an earlier iteration of this project:
-  it is always a button, usually one named `Background`, and a cornered-tile sprite repeats
-  where anything else stretches.
+- **The child a window names as its `background` stands at the window's corner, whatever
+  position it declares.** It is always a button, usually one named `Background`. **A
+  cornered-tile sprite fills the window, repeating; a plain picture keeps its own size and
+  is not stretched.** `measured` on the files and on the orders windows, 2026-10-09:
+  - of the 41 windows of the base game that name a background, 26 have a cornered tile and
+    15 a plain picture, and **not one of the 15 pictures is the size of its window** - the
+    brigade view's is 400 by 632 in a window declared 1024 by 768;
+  - `naval_unit_order` is declared 400 by 400 with a picture 302 by 502 placed at -8, -12.
+    Drawn at the window's corner in its own size, every element of the window lands on the
+    art: the rows of the list on its ruled lines, the two figures in their dark slots, and
+    the two buttons with the same margin either side. Stretched to the window, or put at
+    -8, -12, they do not.
+  Until then this said the background fills the window and anything but a tile is
+  stretched, which was `inferred` from running the original's main menu in an earlier
+  iteration of this project, where every background is a tile.
 
 *Ours - the scalable canvas.* A unit in a `.gui` file is one unit on a canvas 1920 by 1080,
 which is scaled to the screen; an orientation becomes an anchor, so an element stays with

@@ -21,12 +21,6 @@ namespace OpenHOI3.Map;
 /// </summary>
 public partial class CUnitCounters : Node2D
 {
-	/// <summary>
-	/// The zoom from which the near counter is drawn and under which the far one is.
-	/// Ours: the original goes by the camera's distance, and what it compares was not read.
-	/// </summary>
-	private const float NearZoom = 8f;
-
 	/// <summary>Under this many pixels of the screen a counter is not drawn, nor a text written.</summary>
 	private const float LeastCounterOnScreen = 6f;
 	private const float LeastTextOnScreen = 5f;
@@ -56,6 +50,7 @@ public partial class CUnitCounters : Node2D
 	private Texture2D? _pointerTexture;
 	private Texture2D? _arrowTexture;
 	private CHierarchyLayer _hierarchy = null!;
+	private CBuildingIcons _buildings = null!;
 	private readonly Vector2[] _quad = new Vector2[4];
 	private readonly Vector2[] _quadPicture = new Vector2[4];
 
@@ -87,10 +82,18 @@ public partial class CUnitCounters : Node2D
 		_near = CCounterKind.Create(gui, types.Find(CCounterTypes.Near), CCounterText.NearSprite, carriesName: true);
 		TextureFilter = TextureFilterEnum.LinearWithMipmaps;
 
+		// Under the counters: first the buildings, then the lines of a selected unit's hierarchy.
+		_buildings = new CBuildingIcons { Name = "Buildings" };
+		_buildings.Setup(map, state, gui, billboards);
+		AddChild(_buildings);
+
 		_hierarchy = new CHierarchyLayer { Name = "Hierarchy" };
 		_hierarchy.Setup(map, gui);
 		AddChild(_hierarchy);
 	}
+
+	/// <summary>The buildings on the map, the ports and the airfields among them.</summary>
+	public CBuildingIcons Buildings => _buildings;
 
 	public override void _Ready()
 	{
@@ -125,11 +128,14 @@ public partial class CUnitCounters : Node2D
 		// Standing stacks first, so that one on the move, which overlaps what stands in
 		// its province, is drawn over it and is the one a click there finds.
 		_stacks = CMapCounters.Build(_state).OrderBy(stack => stack.Kind).ToList();
-		if (_selected is not null && !CMapCounters.HasCounter(_state, _selected))
+		// A fleet in port and an air unit at its base have no counter and stay selected
+		// all the same; a unit that is no longer anywhere does not.
+		if (_selected is not null && !CMapCounters.IsSomewhere(_state, _selected))
 		{
 			_selected = null;
 			_hierarchy.Unit = null;
 		}
+		_buildings.Refresh();
 		QueueRedraw();
 	}
 
@@ -138,6 +144,11 @@ public partial class CUnitCounters : Node2D
 	{
 		_zoom = zoom;
 		_view = view;
+		// In the far view the map is bare: no counter, no building, no line of a hierarchy.
+		bool close = !CMapCamera.IsFarView(CameraHeight());
+		_buildings.Visible = close;
+		_hierarchy.Visible = close;
+		_buildings.ViewChanged(view);
 		QueueRedraw();
 	}
 
@@ -150,10 +161,24 @@ public partial class CUnitCounters : Node2D
 		}
 	}
 
-	/// <summary>The counter type for the present zoom, or null when counters are too small to draw.</summary>
+	/// <summary>How high the original's camera would be to show the map as it is shown now.</summary>
+	private float CameraHeight()
+	{
+		return CMapCamera.HeightAt(_zoom, GetViewportRect().Size.Y);
+	}
+
+	/// <summary>
+	/// The counter type for the present view: the near one from close by, the far one
+	/// from further off, and none at all in the far view, where the map is bare.
+	/// </summary>
 	private CCounterKind? Kind()
 	{
-		CCounterKind? kind = _zoom >= NearZoom ? _near ?? _far : _far ?? _near;
+		float height = CameraHeight();
+		if (CMapCamera.IsFarView(height))
+		{
+			return null;
+		}
+		CCounterKind? kind = CMapCamera.IsNear(height) ? _near ?? _far : _far ?? _near;
 		return kind is null || 2f * kind.Type.Scale * _zoom < LeastCounterOnScreen ? null : kind;
 	}
 
@@ -214,12 +239,15 @@ public partial class CUnitCounters : Node2D
 		{
 			return;
 		}
-		// From where its counter is, which for a unit on the move is beside the province's point.
-		Vector2 from = PlaceOf(new CMapStack(unit.Location, CMapCounters.StackOf(unit)), kind);
+		// From where its counter is, which for a unit on the move is beside the province's
+		// point - or, for a fleet still in port, from the port.
+		Vector2 from = CMapCounters.HasCounter(_state, unit)
+			? PlaceOf(new CMapStack(unit.Location, CMapCounters.StackOf(unit)), kind)
+			: WayPointOf(unit, unit.Location);
 		var points = new List<System.Numerics.Vector2> { new(from.X, from.Y) };
 		foreach (int province in unit.Path)
 		{
-			Vector2 next = PointOf(province);
+			Vector2 next = WayPointOf(unit, province);
 			// The short way round: the east edge of the map is beside the west.
 			next.X += Mathf.Round((points[^1].X - next.X) / _map.Width) * _map.Width;
 			points.Add(new System.Numerics.Vector2(next.X, next.Y));
@@ -253,6 +281,20 @@ public partial class CUnitCounters : Node2D
 	{
 		CMapPosition position = _map.Positions[province];
 		return new Vector2(position.X + 0.5f, _map.DisplayRow(position.Y) + 0.5f);
+	}
+
+	/// <summary>
+	/// The point of a province a unit's way is drawn through: the province's own, but
+	/// for a fleet in a land province the port.
+	/// </summary>
+	private Vector2 WayPointOf(CUnit unit, int province)
+	{
+		if (unit.Kind != EUnitKind.Navy || _map.IsSea(province))
+		{
+			return PointOf(province);
+		}
+		CMapPosition port = _map.NavalBasePositions[province];
+		return new Vector2(port.X + 0.5f, _map.DisplayRow(port.Y) + 0.5f);
 	}
 
 	/// <summary>

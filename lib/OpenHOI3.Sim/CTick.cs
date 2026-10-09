@@ -46,11 +46,12 @@ public static class CTick
 	/// </summary>
 	private static void RunHourlyPass(CGameState state)
 	{
-		// The units go first, so an hour's organisation is worked out with the officer
-		// ratio the hour before left.
-		COrganisation.RunHourly(state);
-		// A unit's march is near the end of its own hour, after its organisation.
+		// Each country's units look at their orders and move, one after another; only
+		// then is every unit's own hour run, which is where its organisation comes back.
 		CMovement.RunHourly(state);
+		// The units go before their countries, so an hour's organisation is worked out
+		// with the officer ratio the hour before left.
+		COrganisation.RunHourly(state);
 		COfficers.Update(state);
 	}
 
