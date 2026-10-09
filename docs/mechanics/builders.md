@@ -360,6 +360,13 @@ seldom seen with thirteen types to build - BlackICE's own file gives the list 34
 is fourteen lines and then a scrollbar - or something else holds it in that was not
 found. The air builder's list and the brigade picker's are 620 high as well.
 
+**The picker's scrollbar lies on its lines** when it has one. Its box is 533 wide and its
+lines 572, and a list's scrollbar stands at the box's right edge here, so with more land
+brigades than the 26 rows the box has - which `--all-units` gives - the bar is drawn over
+the columns. The maintainer, 2026-10-09: expected, and the original avoids it by never
+having that many brigades to list. Where the original stands a list's scrollbar was not
+read (`interface.md`, the last section, item 11), so the bar's place is ours either way.
+
 ## What is not built
 
 - **Tooltips**, of which each window has forty or so, the designer's terrain summary among

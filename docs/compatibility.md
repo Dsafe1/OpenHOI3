@@ -131,6 +131,23 @@ player's country on the first day.
 
 `docs/mechanics/units.md`, section 8; `reversing/findings/FINDINGS-unitstart.md`, section 9.
 
+## 7. A counter always carries its unit's name
+
+**Decided** 2026-10-09 by the maintainer, told that the original writes the unit's name
+on a counter only with a setting on: "It can stay that way until we implement the
+settings." **Until then** is his word: this one ends when the settings are built.
+
+| | |
+| --- | --- |
+| the original | reads `show_unit_names` from the player's `settings.txt`. On, a near counter carries its unit's name, cut to eight letters; off - which is what it is until the file says otherwise - the name of the unit's leader, and nothing for a unit with none |
+| here | the unit's name, always. `settings.txt` is not read and there are no leaders |
+| the difference today | a player who had the setting off sees unit names where the original showed leaders' |
+| a mod loses | nothing: it is the player's setting and not a mod's file |
+| why | the maintainer plays with it on, and without leaders the other way would leave every counter bare |
+| to undo | read the setting, and with it off write the leader's name once there are leaders. The rule is `reversing/findings/FINDINGS-counters.md`, section 4 |
+
+`docs/mechanics/mapunits.md`, section 2.
+
 ---
 
 ## Stricter, with the same meaning

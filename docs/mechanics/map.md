@@ -91,6 +91,11 @@ night, measuring a bearing.
 `confirmed`, exhaustively: applying those four in file order reproduces every province of a
 running game. Four provinces in five take the default.
 
+*Ours:* the file is read since 2026-10-09, when units came to be drawn at this point
+(`mapunits.md`). It is six megabytes of which `unit` and `text_position` are a small part,
+so it has a reader of its own that keeps nothing else; the rest of it - where a building,
+a city and a province's name are drawn - is not read.
+
 **The default can land outside the province.** A concave shape has a bounding-box centre
 that belongs to a neighbour; 57 provinces in the build that was measured sample a
 neighbour's pixel or an unmatched one. The original warns only when the position was given

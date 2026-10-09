@@ -289,11 +289,31 @@ capital, over land, through land it owns and holds. `inferred`: how the original
 area was not read. A fleet or an air unit placed takes the province as its base. A unit
 placed answers to nothing above it.
 
+**Or it joins a unit already in the field**, by the same command given that unit as its
+target. `confirmed`, from `reversing/findings/FINDINGS-deploymenu.md`:
+
+    the unit is placed in the province the other stands in
+    if it has exactly one brigade, ship or wing, and is of the other's service:
+        that one is taken out of it and added to the other, and the emptied unit is gone
+    else:
+        it is put under the other
+
+So a ship ordered alone joins a fleet, a wing an air unit and a brigade a division by the
+one rule, and a division is put under a headquarters. Who may join whom is the deploy
+menu's to decide, and is in `mapunits.md`, section 6.
+
+*Ours:* where the unit could not be placed in the province its target stands in, the
+original places it in the nearest province of the capital's area where it could, and
+then joins them. Here the command is refused: the menu lists only units standing where
+the new one may be placed, so it takes a change between the listing and the order. And
+the command asks what the menu asks, where the original's asks nothing (`builders.md`,
+section 9, is the same choice).
+
 ## 8. Ours
 
 - **The queue is `OpenHOI3.Sim.Construction`**: `CBuildQueue` has the rules, a line is a
   `CConstruction` of `CBrigadeOrder`s, and four commands change it - order, cancel, move,
-  place.
+  place. `CDeployment` has where a finished unit may go and whom it may join.
 - **Only the player's queue moves by anything but the day.** There is no AI, so no other
   country orders, cancels or places anything; a unit one of them finishes waits for ever.
 - **Nothing calls the pricing on a change of law**, there being nothing that changes a law
@@ -341,7 +361,8 @@ convoy prices every line again too, and there are none here.
 ## What is not built
 
 - ~~**The windows a unit is ordered from.**~~ Built 2026-10-08: `builders.md`.
-- **Anywhere to place a unit from.** The command is built and nothing on screen posts it.
+- ~~**Anywhere to place a unit from.**~~ Built 2026-10-09: the deploy menu, `mapunits.md`,
+  sections 5 and 6.
 - **An AI**, to order, to place, and to change the laws that price a queue.
 - **Buildings and convoys**, the queue's other two kinds of line.
 - **Turning a brigade in the field into another type**, and building a brigade for a

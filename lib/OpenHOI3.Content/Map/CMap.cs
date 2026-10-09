@@ -27,7 +27,8 @@ public sealed class CMap
 
 	private CMap(int width, int height, ushort[] raster, bool[] isSea,
 		CProvinceShape[] shapes, int[][] neighbours, CExplicitAdjacency[] explicitAdjacencies,
-		CTerrain[] terrains, CTerrain?[] majorityTerrain, string[] continents, string[] sourceFiles)
+		CTerrain[] terrains, CTerrain?[] majorityTerrain, string[] continents, CMapPosition[] positions,
+		string[] sourceFiles)
 	{
 		Width = width;
 		Height = height;
@@ -39,6 +40,7 @@ public sealed class CMap
 		Terrains = terrains;
 		MajorityTerrain = majorityTerrain;
 		Continents = continents;
+		Positions = positions;
 		SourceFiles = sourceFiles;
 	}
 
@@ -71,6 +73,12 @@ public sealed class CMap
 	/// province no continent lists - every sea province, for one.
 	/// </summary>
 	public IReadOnlyList<string> Continents { get; }
+
+	/// <summary>
+	/// Per province id, the one point that stands for it: where a unit there is drawn.
+	/// The centre of its bounding box unless <c>positions.txt</c> says otherwise.
+	/// </summary>
+	public IReadOnlyList<CMapPosition> Positions { get; }
 
 	/// <summary>Every file this was built from, for whatever needs to know when one changes.</summary>
 	public IReadOnlyList<string> SourceFiles { get; }
@@ -216,9 +224,16 @@ public sealed class CMap
 		string continentTxt = directories.Resolve("map/" + definition.GetString("continent", "continent.txt"));
 		string[] continents = ReadContinents(continentTxt, provinceCount, warn);
 
+		string positionsTxt = directories.Resolve("map/" + definition.GetString("positions", "positions.txt"));
+		CMapPosition[] positions = CPositionsReader.Read(positionsTxt, shapes, id => isSea[id], warn);
+
 		return new CMap(bitmap.Width, bitmap.Height, raster, isSea, shapes, neighbours,
-			explicitAdjacencies, terrains, majorityTerrain, continents,
-			new[] { definitionPath, provincesCsv, provincesBmp, adjacenciesCsv, terrainTxt, terrainBmp, continentTxt });
+			explicitAdjacencies, terrains, majorityTerrain, continents, positions,
+			new[]
+			{
+				definitionPath, provincesCsv, provincesBmp, adjacenciesCsv, terrainTxt, terrainBmp, continentTxt,
+				positionsTxt,
+			});
 	}
 
 	/// <summary>

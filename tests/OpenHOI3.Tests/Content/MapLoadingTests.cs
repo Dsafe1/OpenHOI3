@@ -70,6 +70,15 @@ public class MapLoadingTests : IDisposable
 		Write("map/adjacencies.csv",
 			"From;To;Type;Through;Comment\n3;2;sea;4;a strait\n-1;-1;;-1;-1\n");
 
+		// Alpha is placed by hand and its text's place is not a place for it; Gamma is
+		// placed twice; the sea zone has only a place for its text.
+		Write("map/positions.txt",
+			"1 = {\n\tunit = { x=1.900000 y=2.700000 }\n\ttext_position = { x=0.000000 y=1.000000 }\n}\n" +
+			"# a comment, and a block with points that are not the province's\n" +
+			"3 = { unit = { x=0.4 y=0.2 } building_position = { naval_base = { x=3.0 y=2.0 } } }\n" +
+			"4 = { text_position = { x=3.6 y=0.4 } text_rotation = 0.5 }\n" +
+			"3 = { unit = { x=1.7 y=0.9 } }\n");
+
 		// The file stores the northernmost row first.
 		WriteBytes("map/provinces.bmp", TestBitmap.Rgb24(4, new[]
 		{
@@ -134,6 +143,33 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal(4, map.ProvinceAt(3, 0));
 		Assert.Equal(0, map.DisplayRow(2));                  // the north row is drawn first
 		Assert.Equal(2, map.DisplayRow(0));
+	}
+
+	[Fact]
+	public void AProvinceIsAtItsCentreUnlessThePositionsFilePlacesIt()
+	{
+		CMap map = Load();
+
+		Assert.Equal(new CMapPosition(1, 2), map.Positions[1]);   // unit, cut to whole pixels; text_position is not for land
+		Assert.Equal(new CMapPosition(2, 1), map.Positions[2]);   // nothing said: the centre of its bounding box
+		Assert.Equal(new CMapPosition(1, 0), map.Positions[3]);   // the last one in the file
+		Assert.Equal(new CMapPosition(3, 0), map.Positions[4]);   // a sea zone takes its text's place
+		Assert.Equal(new CMapPosition(3, 2), map.Positions[5]);
+	}
+
+	[Fact]
+	public void APositionForNoProvinceIsReportedAndAMissingFileLeavesTheCentres()
+	{
+		Write("map/positions.txt", "9 = { unit = { x=1 y=1 } }\n2 = { unit = { x=2 y=2 } }\n");
+		CMap map = Load();
+		Assert.Equal(new CMapPosition(2, 2), map.Positions[2]);
+		Assert.Contains(_warnings, warning => warning.Contains("1 blocks are not for a province"));
+
+		File.Delete(Path.Combine(_root, "map", "positions.txt"));
+		_warnings.Clear();
+		map = Load();
+		Assert.Equal(new CMapPosition(2, 1), map.Positions[2]);
+		Assert.Contains(_warnings, warning => warning.Contains("no positions"));
 	}
 
 	[Fact]

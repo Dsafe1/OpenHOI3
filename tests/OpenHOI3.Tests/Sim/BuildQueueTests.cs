@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Construction;
@@ -651,6 +652,125 @@ public class BuildQueueTests
 		Assert.Same(fleet, Assert.Single(country.Units));
 		Assert.Equal(Kiel, fleet.Location);
 		Assert.Equal(Kiel, fleet.Base);
+	}
+
+	private static CUnit InTheField(CGameState state, CCountry country, EUnitKind kind, int province, params CSubUnitType[] types)
+	{
+		var unit = new CUnit(kind, country.Tag) { Id = ++state.LastUnitId, Location = province, Name = kind.ToString() };
+		foreach (CSubUnitType type in types)
+		{
+			unit.SubUnits.Add(new CSubUnit(type) { Id = ++state.LastUnitId, Unit = unit });
+		}
+		country.Units.Add(unit);
+		return unit;
+	}
+
+	private static CUnit Finished(CGameState state, CCountry country, params CSubUnitType[] types)
+	{
+		var construction = new CConstruction(country.Tag) { UnitId = ++state.LastUnitId };
+		foreach (CSubUnitType type in types)
+		{
+			construction.Brigades.Add(new CBrigadeOrder(type));
+		}
+		CBuildQueue.Deliver(state, country, construction);
+		return country.Deployments[^1];
+	}
+
+	[Fact]
+	public void AFinishedUnitMayJoinOneInTheFieldThatStandsWhereItCouldBePlaced()
+	{
+		CCountry country = Germany();
+		CSubUnitType infantry = Infantry();
+		CSubUnitType artillery = Artillery();
+		CSubUnitType cruiser = HeavyCruiser();
+		CSubUnitType fighter = Fighter();
+		CGameState state = State(country, cruiser, infantry, artillery, fighter);
+		state.Defines.Set(CManpower.MilitarySection, CUnitAvailability.BrigadesInDivision, CFixedPoint.FromInt(4));
+
+		CUnit cutOff = InTheField(state, country, EUnitKind.Division, Lodz, infantry, infantry);
+		CUnit division = InTheField(state, country, EUnitKind.Division, Berlin, infantry, infantry);
+		CUnit fleet = InTheField(state, country, EUnitKind.Navy, Kiel, cruiser);
+		CUnit airUnit = InTheField(state, country, EUnitKind.Air, Berlin, fighter);
+		CUnit corps = InTheField(state, country, EUnitKind.Corps, Berlin, infantry);
+
+		CUnit brigade = Finished(state, country, artillery);
+		CUnit newDivision = Finished(state, country, infantry, artillery);
+		CUnit ship = Finished(state, country, cruiser);
+		CUnit wing = Finished(state, country, fighter);
+
+		// By rank, the higher first: the corps was made last and is listed first. The
+		// division in Lodz is cut off from the capital, so nothing could be placed there.
+		Assert.Equal(new[] { corps, division }, CDeployment.Targets(state, country, brigade));
+		Assert.Equal(new[] { corps }, CDeployment.Targets(state, country, newDivision));
+		Assert.Equal(new[] { fleet }, CDeployment.Targets(state, country, ship));
+		Assert.Equal(new[] { airUnit }, CDeployment.Targets(state, country, wing));
+		Assert.False(CDeployment.MayJoin(state, country, brigade, cutOff));
+
+		var simulation = new CSimulation(state);
+		simulation.Post(new CDeployUnitCommand(Ger, ship.Id, 0, division.Id));        // refused: a ship in a division
+		simulation.Post(new CDeployUnitCommand(Ger, brigade.Id, 0, division.Id));
+		simulation.Post(new CDeployUnitCommand(Ger, newDivision.Id, 0, corps.Id));
+		simulation.Post(new CDeployUnitCommand(Ger, ship.Id, 0, fleet.Id));
+		simulation.Post(new CDeployUnitCommand(Ger, wing.Id, 0, airUnit.Id));
+		simulation.Pump();
+
+		// A lone brigade, ship or wing is handed over and its own unit is gone.
+		Assert.Empty(country.Deployments);
+		Assert.Equal(3, division.SubUnits.Count);
+		Assert.Same(division, division.SubUnits[2].Unit);
+		Assert.Same(artillery, division.SubUnits[2].Type);
+		Assert.Equal(2, fleet.SubUnits.Count);
+		Assert.Equal(2, airUnit.SubUnits.Count);
+		Assert.DoesNotContain(brigade, country.AllUnits());
+		Assert.DoesNotContain(ship, country.AllUnits());
+
+		// Anything larger is put under the one it joins, where that one stands.
+		Assert.Same(corps, newDivision.Parent);
+		Assert.Contains(newDivision, corps.Children);
+		Assert.DoesNotContain(newDivision, country.Units);
+		Assert.Contains(newDivision, country.AllUnits());
+		Assert.Equal(Berlin, newDivision.Location);
+	}
+
+	[Fact]
+	public void ADivisionTakesNoMoreBrigadesThanItMayHaveAndACorpsNoMoreThanFiveUnits()
+	{
+		CCountry country = Germany();
+		CSubUnitType infantry = Infantry();
+		CGameState state = State(country, infantry);
+		state.Defines.Set(CManpower.MilitarySection, CUnitAvailability.BrigadesInDivision, CFixedPoint.FromInt(4));
+
+		CUnit full = InTheField(state, country, EUnitKind.Division, Berlin, infantry, infantry, infantry, infantry);
+		CUnit corps = InTheField(state, country, EUnitKind.Corps, Berlin, infantry);
+		CUnit theatre = InTheField(state, country, EUnitKind.Theatre, Berlin, infantry);
+		CUnit brigade = Finished(state, country, infantry);
+		CUnit division = Finished(state, country, infantry, infantry);
+
+		Assert.False(CDeployment.MayJoin(state, country, brigade, full));
+		Assert.True(CDeployment.MayJoin(state, country, brigade, corps));          // a headquarters is a land unit with room
+
+		for (int count = 0; count < CDeployment.MostLandSubordinates; count++)
+		{
+			Assert.True(CDeployment.MayTakeSubordinate(corps, division));
+			corps.Children.Add(new CUnit(EUnitKind.Division, Ger) { Parent = corps });
+			theatre.Children.Add(new CUnit(EUnitKind.Corps, Ger) { Parent = theatre });
+		}
+		Assert.False(CDeployment.MayTakeSubordinate(corps, division));
+		Assert.True(CDeployment.MayTakeSubordinate(theatre, division));            // a theatre takes any number
+		Assert.False(CDeployment.MayTakeSubordinate(full, division));              // not of a higher rank
+		Assert.False(CDeployment.MayTakeSubordinate(division, corps));
+	}
+
+	[Fact]
+	public void TheProvincesAUnitMayBePlacedInAreTheHomeAreaAndForAFleetItsPorts()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country, HeavyCruiser(), Infantry());
+		CUnit fleet = Finished(state, country, HeavyCruiser());
+		CUnit division = Finished(state, country, Infantry(), Infantry());
+
+		Assert.Equal(new[] { Kiel }, CDeployment.Places(state, country, fleet));
+		Assert.Equal(new[] { Berlin, Kiel }, CDeployment.Places(state, country, division).OrderBy(id => id));
 	}
 
 	[Fact]

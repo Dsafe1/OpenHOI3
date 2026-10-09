@@ -6,14 +6,17 @@ using OpenHOI3.Content;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Map;
 using OpenHOI3.Map;
 using OpenHOI3.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3;
 
@@ -34,8 +37,12 @@ public partial class CSession : Node
 	private CTopBar? _topBar;
 	private CProductionView? _production;
 	private CTechnologyView? _technology;
+	private CDeployMenu? _deployMenu;
+	private CAlerts? _alerts;
 	private Label _provinceLabel = null!;
 	private int _shownProvince;
+	private bool _unitsMoved;
+	private int _waiting;
 
 	/// <summary>The country played when nothing says which. There is no screen to choose one on yet.</summary>
 	private const string DefaultPlayer = "GER";
@@ -72,11 +79,17 @@ public partial class CSession : Node
 		Player = State.Country(new CCountryTag(PlayerArgument() ?? DefaultPlayer))
 			?? State.Country(new CCountryTag(DefaultPlayer));
 
+		clock.Restart();
+		CGuiContext gui = CGuiContext.Load(_directories, localisation);
+		GD.Print($"Loaded {gui.Types.Count} interface elements and {gui.Sprites.Count} sprites " +
+			$"in {clock.ElapsedMilliseconds} ms.");
+
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(Map, State);
+		_mapView.SetupCounters(gui, CCounterTypes.Load(_directories));
 		AddChild(_mapView);
 
-		BuildHud(localisation);
+		BuildHud(gui);
 		_mapView.ProvinceHovered += ShowProvince;
 
 		RunDeveloperArguments();
@@ -87,15 +100,11 @@ public partial class CSession : Node
 	/// bar. Under it a province readout in a plain engine label, which is scaffolding
 	/// and goes when the province view comes.
 	/// </summary>
-	private void BuildHud(CLocalisation localisation)
+	private void BuildHud(CGuiContext gui)
 	{
 		var layer = new CanvasLayer { Name = "Hud" };
 		AddChild(layer);
 
-		var clock = Stopwatch.StartNew();
-		CGuiContext gui = CGuiContext.Load(_directories, localisation);
-		GD.Print($"Loaded {gui.Types.Count} interface elements and {gui.Sprites.Count} sprites " +
-			$"in {clock.ElapsedMilliseconds} ms.");
 		if (Player is not null)
 		{
 			// The screens go under the top bar, which is drawn over whatever is open.
@@ -106,12 +115,29 @@ public partial class CSession : Node
 			_technology.Setup(gui, _simulation, Player);
 			layer.AddChild(_technology);
 
+			// The deploy menu and the alert that opens it. A unit chosen there is placed
+			// by a click on the map, which is shown where it may go.
+			_deployMenu = new CDeployMenu();
+			_deployMenu.Setup(gui, _simulation, Player);
+			layer.AddChild(_deployMenu);
+			_deployMenu.PlacingChanged += unit => _mapView.ShowPlaces(
+				unit is null ? null : CDeployment.Places(State, Player, unit));
+			_deployMenu.Toggled += () => ShowProvince(_shownProvince);
+			_mapView.ProvinceSelected += province => _deployMenu.PlaceIn(province);
+
+			_alerts = new CAlerts();
+			_alerts.Setup(gui, Player);
+			layer.AddChild(_alerts);
+			_alerts.DeployablePressed += ToggleDeployMenu;
+
 			_topBar = new CTopBar();
 			_topBar.Setup(gui, _simulation, Player);
 			layer.AddChild(_topBar);
 			_topBar.ProductionPressed += () => Toggle(_production);
 			_topBar.TechnologyPressed += () => Toggle(_technology);
 		}
+		_simulation.DayPassed += () => _unitsMoved = true;
+		_mapView.UnitSelected += _ => ShowProvince(_shownProvince);
 
 		_provinceLabel = new Label
 		{
@@ -151,6 +177,26 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
+	/// The alert for units waiting brings the deploy menu up, or takes it down if it is
+	/// up. The original closes whichever side menu is open first; this is the only one.
+	/// </summary>
+	private void ToggleDeployMenu()
+	{
+		if (_deployMenu is null)
+		{
+			return;
+		}
+		if (_deployMenu.IsOpen)
+		{
+			_deployMenu.Close();
+		}
+		else
+		{
+			_deployMenu.Open();
+		}
+	}
+
+	/// <summary>
 	/// Feeds the frame's length to the game. Whether any hours come of it is the
 	/// clock's decision - none while paused, as a new game is.
 	/// </summary>
@@ -161,6 +207,17 @@ public partial class CSession : Node
 		if (_simulation.Advance(delta) > 0)
 		{
 			ShowProvince(_shownProvince);                       // its figures move with the days
+		}
+
+		// The counters are worked out again when a day has gone by or a unit of the
+		// player's has been placed, and once a frame at most.
+		int waiting = Player?.Deployments.Count ?? 0;
+		if (_unitsMoved || waiting != _waiting)
+		{
+			_unitsMoved = false;
+			_waiting = waiting;
+			_mapView.Counters?.Refresh();
+			ShowProvince(_shownProvince);
 		}
 	}
 
@@ -203,7 +260,8 @@ public partial class CSession : Node
 	private void ShowProvince(int provinceId)
 	{
 		_shownProvince = provinceId;
-		if (provinceId == 0)
+		// The readout stands where the deploy menu does, and gives way to it.
+		if (provinceId == 0 || _deployMenu is { IsOpen: true })
 		{
 			_provinceLabel.Text = "";
 			return;
@@ -211,6 +269,25 @@ public partial class CSession : Node
 
 		CProvince province = State.Province(provinceId);
 		string text = $"{province.Name}  ({province.Id})";
+		if (_mapView.Counters?.Selected is { } selected)
+		{
+			text = $"Selected: {selected.Name}  ({CCounterText.Figures(selected)})\n" + text;
+		}
+		var here = new System.Collections.Generic.List<string>();
+		foreach (CCountry country in State.Countries)
+		{
+			foreach (CUnit unit in country.AllUnits())
+			{
+				if (unit.Location == provinceId)
+				{
+					here.Add(unit.Name);
+				}
+			}
+		}
+		if (here.Count > 0)
+		{
+			text += "\nUnits: " + string.Join(", ", here.Take(6)) + (here.Count > 6 ? $" and {here.Count - 6} more" : "");
+		}
 		if (province.IsSea)
 		{
 			text += "\nSea";
@@ -296,7 +373,9 @@ public partial class CSession : Node
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
 	/// <c>--country=ENG</c> plays that country and not Germany,
 	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map,
-	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen,
+	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen and
+	/// <c>--screen=deploy</c> the menu a finished unit is placed from,
+	/// <c>--days=7</c> runs that many days before anything after it is done,
 	/// <c>--research=key,key</c> puts technologies on the research queue,
 	/// <c>--all-units</c> lets the country played order every unit type that can be built,
 	/// <c>--order=type,type</c> orders one unit made of those brigades, ships or wings,
@@ -346,6 +425,17 @@ public partial class CSession : Node
 			else if (argument == "--screen=technology")
 			{
 				Toggle(_technology);
+			}
+			else if (argument == "--screen=deploy")
+			{
+				_deployMenu?.Open();
+			}
+			else if (argument.StartsWith("--days=")
+				&& int.TryParse(argument["--days=".Length..], NumberStyles.Integer, CultureInfo.InvariantCulture, out int days))
+			{
+				// Runs that many days at once, whatever the clock says: a unit ordered or
+				// under construction can then be found finished.
+				_simulation.RunHours(days * 24);
 			}
 			else if (argument.StartsWith("--lock=")
 				&& System.Enum.TryParse(argument["--lock=".Length..], ignoreCase: true, out EProductionCategory locked))

@@ -87,7 +87,7 @@ Agreed 2026-10-07. Each stage ends with something that runs.
 | --- | --- | --- |
 | 1. The world on screen | Provinces, adjacency, terrain, countries and start-date ownership read from an install; a political map with pan, zoom and province picking | The map of the start date is on screen. **Reached 2026-10-07** |
 | 2. The clock and the economy | The hourly tick with its daily and monthly passes in the original's order; every state change as a command; IC, resources, manpower, production, research. The interface runtime arrives here, with the top bar as its first screen | A 1936-1948 run completes headless with totals that are plausible against a real savegame. **The clock, the command queue, fixed-point numbers, buildings, laws, ministers, technology levels, each country's IC, its home production, what its stockpile starts with, its six shares of IC and what consumer goods and supplies do with theirs, its leadership with what its four shares make, research and manpower are in (2026-10-08) and checked against savegames, and so is the interface runtime with the top bar and the production and technology screens; of what needs units, reinforcement, upgrades and the build queue are in (stage 3), with the four windows a unit is ordered from** |
-| 3. Units and war | Orders of battle, units on the map, movement, land combat, supply; then air and naval | Two countries can fight a land war to a result. **The unit types and the orders of battle are in (2026-10-08): every brigade, ship and wing the base game starts with, holding what the original gives it on the first hour, checked one by one against a savegame. So is what a unit draws each day - supplies and fuel, the men who go home, reinforcement and upgrades - checked brigade by brigade two days on; and the officer ratio with what it does to organisation, hour by hour, checked the same way. And the build queue: what a unit costs and takes, the day's work on it, and the unit that comes out, checked against five saves of one game over four months - with the division designer and the ship, air and brigade builders that order one, read out of the original and not yet looked at beside it. Nothing moves or fights** |
+| 3. Units and war | Orders of battle, units on the map, movement, land combat, supply; then air and naval | Two countries can fight a land war to a result. **The unit types and the orders of battle are in (2026-10-08): every brigade, ship and wing the base game starts with, holding what the original gives it on the first hour, checked one by one against a savegame. So is what a unit draws each day - supplies and fuel, the men who go home, reinforcement and upgrades - checked brigade by brigade two days on; and the officer ratio with what it does to organisation, hour by hour, checked the same way. And the build queue: what a unit costs and takes, the day's work on it, and the unit that comes out, checked against five saves of one game over four months - with the division designer and the ship, air and brigade builders that order one, read out of the original and not yet looked at beside it. And the units are on the map (2026-10-09): a counter for every unit that is not in port or at its base, stacked by province, and the menu a finished unit is placed from. Nothing moves or fights** |
 | 4. Politics and script | Events and decisions with their triggers and effects; diplomacy, factions, politics, espionage, occupation, revolt | The base game's events load with no unknown key and fire on schedule |
 | 5. AI | The planning and scoring layers, last because they consume everything else | A whole game runs with no human player |
 
@@ -110,7 +110,7 @@ Four choices sit under all of it:
 
 ### Next up
 
-As of 2026-10-08, at the start of stage 3, with the economy of stage 2 waiting on it. Kept
+As of 2026-10-09, in stage 3, with the economy of stage 2 waiting on it. Kept
 current as work lands, so that picking this up cold needs nothing but this file and
 `docs/mechanics/`.
 
@@ -119,13 +119,17 @@ regain men, and are re-equipped (`docs/mechanics/upkeep.md`), and their organisa
 held and returned by how many officers their country has
 (`docs/mechanics/organisation.md`). More are built: the queue is in, with the thirty units
 the orders of battle start under construction (`docs/mechanics/buildqueue.md`), and the
-four windows a unit is ordered from (`docs/mechanics/builders.md`). They do not move. In
-order:
+four windows a unit is ordered from (`docs/mechanics/builders.md`). And they are on the
+map: a counter each, and a menu that puts a finished one there
+(`docs/mechanics/mapunits.md`). They do not move. In order:
 
-1. **Units on the map**, then movement, then combat and supply. **Placing a finished unit
-   belongs here**: the command and its rule are built (`buildqueue.md`, section 7) and
-   nothing on screen posts it, the original placing from the map. The supply network
-   replaces the stand-in of `upkeep.md`, section 2.
+1. **Movement**, then combat and supply. A unit can be selected and nothing can be done
+   with it: movement needs the order - a right click on the map - the path, the speed
+   and the hours a province takes, and it is what the unit's own panel
+   (`unitpanel.gui`) is first wanted for. It is also when the other four of a
+   province's five stacks come into use and their places have to be found
+   (`mapunits.md`, section 1), and when a fleet leaves port and has a counter. The
+   supply network replaces the stand-in of `upkeep.md`, section 2.
 2. **A look at the screens beside the original**, figure by figure. It needs nothing
    built, only the game open, so it can happen whenever suits. The specs each end with
    what a look would settle. The production screen has four needs to look at and the
@@ -134,7 +138,11 @@ order:
    found them right (`builders.md`, section 10). Nothing in them has been measured
    against a screenshot, and `builders.md` ends with what that would settle: where each
    figure sits, the checkbox's and the combined arms strip's frames, the spare template
-   buttons, the panel with nothing picked.
+   buttons, the panel with nothing picked. **The near counter is measured against a
+   screenshot of the original's** (2026-10-09), which put its figures on their line and
+   its name down its right edge; `mapunits.md` ends with what a further look would
+   settle - a counter's size at a given zoom, the far counter's texts, which way a stack
+   fans.
 3. **What the builder windows leave unread**, none of it in the way of ordering a unit:
    the name and the picture of the historical model a type is shown by, the name of each
    level of a ship's technology and the text of what it does, the description of a wing
@@ -142,7 +150,8 @@ order:
    (`reversing/findings/FINDINGS-builders.md`, the end).
 
 The interface runtime is in, with three screens - the top bar, production and technology -
-and the four windows the production screen orders a unit from. Windows, icons, buttons,
+the four windows the production screen orders a unit from, and the deploy menu with the
+alert that opens it. Windows, icons, buttons,
 checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements are built
 from the original's `.gui` files on a canvas that scales, found by the names the
 original's code used, and filled with the figures in the original's own formats and
@@ -184,7 +193,10 @@ it may be put, and what a new game makes of the units its files start under cons
 (`docs/mechanics/buildqueue.md`). And the fifth: the windows a unit is ordered from - the
 division designer with its brigade picker, and the ship, air and brigade builders - with
 what a country may build and how many, the combined arms a design shows, the country's
-division templates, and what a new unit is called (`docs/mechanics/builders.md`).
+division templates, and what a new unit is called (`docs/mechanics/builders.md`). And the
+sixth: the units on the map - where a province's units stand, what a counter is made of
+and which units have one, the two figures it shows, and the alert and the menu a finished
+unit is placed from, alone or with a unit in the field (`docs/mechanics/mapunits.md`).
 
 There are five savegames of one game to check against now, from 1 January to 20 April
 1936. The first is the start; the later four are a month or less apart, which is what
@@ -198,8 +210,33 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 None of these blocks the list above.
 
-- **`positions.txt` is not read**, so a province's position is the centre of its bounding
-  box. It matters once units are drawn. `docs/mechanics/map.md`, section 4.
+- **Of `positions.txt` only where a province's units stand is read.** Where its
+  buildings, its city and its name are drawn is not, there being none of them on the map.
+  `docs/mechanics/map.md`, section 4.
+- **A fleet in port and a wing at its base are not on the map.** The original shows them
+  by the province's port and airfield, and neither is drawn; such a unit is seen only in
+  the province readout. So a ship that has just been placed seems to vanish.
+  `docs/mechanics/mapunits.md`, section 3.
+- **When the far counter takes over is ours, and so is where four of a province's five
+  stacks stand.** The original changes from the near counter to the far one by the
+  camera's distance, which is a zoom of 8 here. It stands a standing unit at the
+  province's `unit` point, as here, and makes four more points from that for units
+  moving, fighting and flying - how was not found, and nothing moves yet. That the higher
+  rank is on top of a stack is the maintainer's word, the original's sorting not having
+  been read. `mapunits.md`, sections 1, 3 and 7.
+- **A counter's name is its unit's**, as the original writes it with `show_unit_names`
+  on; with it off the original writes the leader's, and there are no leaders and no
+  settings. The maintainer decided on 2026-10-09 that it stays so until the settings are
+  built. `docs/compatibility.md`, entry 7.
+- **A unit can be selected and nothing more.** A click on the counter on top of a stack
+  puts a ring on its unit, and further clicks go through the stack - the maintainer's
+  account of the original, 2026-10-09; the order they go in is ours. There is no panel
+  for a unit and no order to give one.
+- **The provinces a unit may be placed in are tinted green**, which the maintainer has
+  seen and passed. That the original marks them is remembered; how, and the click on the
+  map that places a unit, were not read. `mapunits.md`, section 6.
+- **One alert of sixteen is built**, and it is up whenever a unit waits: when the
+  original puts it up was not read. `mapunits.md`, section 5.
 - **Loading runs on the main thread** and holds the window for under a second at startup.
 - **The game does not stop at the end date** in `common/defines.lua`.
 - **Things the savegame shows that are not explained**: 476 technology levels higher
@@ -241,10 +278,10 @@ None of these blocks the list above.
 - **A unit type's `available_trigger` is not asked.** It is script; a type that has one is
   taken to pass. The base game gives it to seven elite brigades, each also kept to its
   own country by `usable_by`.
-- **A finished unit waits for ever.** It joins the units waiting to be placed, where it
-  eats and calls for officers; the command that places one is built and nothing on screen
-  posts it. And no country but the player's orders, cancels or places anything, there
-  being no AI: what the others' files start them building is finished and then waits.
+- **Every country's finished units but the player's wait for ever.** A finished unit
+  joins those waiting to be placed, where it eats and calls for officers, and the player
+  places his from the deploy menu. No other country orders, cancels or places anything,
+  there being no AI: what their files start them building is finished and then waits.
 - **The queue builds units and nothing else.** The original's also holds buildings and
   convoys, and a finished one of either prices every line of the queue again.
 - **Six countries' queues start somewhere else than the original's**: Britain's, the United
@@ -252,9 +289,9 @@ None of these blocks the list above.
   starts under laws or ministers the original's AI had already changed, and which they
   were is not known. Every line's cost and days agree once the save's laws are given.
   `buildqueue.md`, section 9.
-- **Units are in the game's state and nowhere else.** No screen shows one and the map
-  draws none, so the only way to see them is `tools/OpenHOI3.SaveCheck` - and, indirectly,
-  the production screen's supplies, fuel and four needs, and its queue.
+- **A unit shows as a counter and nowhere else.** No screen lists the units or says what
+  one holds; for that there is `tools/OpenHOI3.SaveCheck` - and, indirectly, the
+  production screen's supplies, fuel and four needs, and its queue.
 - **Units draw on their country's stockpile, wherever they stand.** The original moves
   supplies out to the provinces through its supply network, loses some on the way, and a
   unit the network has not reached goes short - 68 brigades in its start save. Here no
@@ -466,7 +503,9 @@ None of these blocks the list above.
   each day was read for its spec: `reversing/findings/FINDINGS-unitdaily.md`; and the
   officer ratio and the return of organisation for theirs:
   `reversing/findings/FINDINGS-organisation.md`; and the build queue for its:
-  `reversing/findings/FINDINGS-buildqueue.md`.
+  `reversing/findings/FINDINGS-buildqueue.md`; and the counters and the deploy menu for
+  theirs: `reversing/findings/FINDINGS-counters.md` and
+  `reversing/findings/FINDINGS-deploymenu.md`.
   The rest have not been filed in its work queue.
 
 Being in the spirit of the original means choosing what not to take. These are settled
@@ -496,25 +535,30 @@ and no lobby is needed to choose between them.
 ## Where things stand
 
 Early. What exists is the reading of an install, the beginnings of a data model, the
-first three screens and the four windows a unit is ordered from, in four projects:
+first three screens, the four windows a unit is ordered from, and the units on the map
+with the menu that puts one there, in four projects:
 
 | Area | What it does |
 | --- | --- |
-| `lib/OpenHOI3.Sim` | The game state - dates, countries, provinces, terrain - and what drives it: fixed-point numbers, the command queue, and the hourly tick with its daily, monthly and yearly passes, and the first systems in them: each province's modifier and each country's, from its laws, ministers, provinces and the strategic resources it has the use of; its IC, what it produces at home, the stockpile that goes into, the six shares its IC is divided between, with the money, supplies, dissent and resource bill that come of them, the conversions of energy into crude oil and crude oil into fuel, its manpower, its leadership with the officers, influence and spies its shares make, and its research with the monthly decay of its theories and practicals. And the units: the kinds of brigade, ship and wing, each one's own technology levels and figures, the chain of command they sit in, what each holds as a game starts, and what a day does to one: the supplies and fuel it draws, the men who go home, and the reinforcement and upgrades its country's IC pays for. And what an hour does: the officer ratio is worked out, and each brigade's organisation is held under it and comes back towards it. And the build queue: ordering a unit, what it costs and takes, the day's work the production share pays for, the unit that comes out, and where it may be put. References nothing, so the simulation runs headless |
-| `lib/OpenHOI3.Content` | Reads the Clausewitz script format, finds and layers a Hearts of Iron 3 install, and reads its localisation tables, its map with its continents, its defines, its buildings, laws, ministers, technologies and strategic resources, its province, country and war history, its unit types, historical models and orders of battle, and its interface files. No engine in it either |
-| `lib/OpenHOI3.Interface` | What the screens show, still with no engine: the text of every figure of the top bar, the production screen with the lines of its build queue, the technology screen, and the four windows a unit is ordered from - their columns, a design's totals, the order panel - in the original's format and colour, the colour escapes in text, how a set of sliders shares out what one of them gives up, and where an element goes on a canvas that scales |
-| `src/Map` | The map, political or by terrain: drawn by a shader from a province-id texture and a colour per province, with pan, zoom and picking |
+| `lib/OpenHOI3.Sim` | The game state - dates, countries, provinces, terrain - and what drives it: fixed-point numbers, the command queue, and the hourly tick with its daily, monthly and yearly passes, and the first systems in them: each province's modifier and each country's, from its laws, ministers, provinces and the strategic resources it has the use of; its IC, what it produces at home, the stockpile that goes into, the six shares its IC is divided between, with the money, supplies, dissent and resource bill that come of them, the conversions of energy into crude oil and crude oil into fuel, its manpower, its leadership with the officers, influence and spies its shares make, and its research with the monthly decay of its theories and practicals. And the units: the kinds of brigade, ship and wing, each one's own technology levels and figures, the chain of command they sit in, what each holds as a game starts, and what a day does to one: the supplies and fuel it draws, the men who go home, and the reinforcement and upgrades its country's IC pays for. And what an hour does: the officer ratio is worked out, and each brigade's organisation is held under it and comes back towards it. And the build queue: ordering a unit, what it costs and takes, the day's work the production share pays for, the unit that comes out, where it may be put and which unit in the field it may join. References nothing, so the simulation runs headless |
+| `lib/OpenHOI3.Content` | Reads the Clausewitz script format, finds and layers a Hearts of Iron 3 install, and reads its localisation tables, its map with its continents and where each province's units stand, the two kinds of unit counter, its defines, its buildings, laws, ministers, technologies and strategic resources, its province, country and war history, its unit types, historical models and orders of battle, and its interface files. No engine in it either |
+| `lib/OpenHOI3.Interface` | What the screens show, still with no engine: the text of every figure of the top bar, the production screen with the lines of its build queue, the technology screen, and the four windows a unit is ordered from - their columns, a design's totals, the order panel - in the original's format and colour, the colour escapes in text, how a set of sliders shares out what one of them gives up, and where an element goes on a canvas that scales. And of the map: which units have a counter and how they stack, what a counter says and where its parts go, and the painting of one out of its plate, its mask, its unit's picture and its size mark |
+| `src/Map` | The map, political or by terrain: drawn by a shader from a province-id texture and a colour per province, with pan, zoom and picking. And the units on it, as counters: a stack to a province, the near counter or the far one by the zoom, a click to select one |
 | `src/Gfx` | The Godot client's side: decodes the original's DDS/TGA textures and sprite declarations, and finds the typeface for each font the interface files name |
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
-| `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology |
+| `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it |
 | `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. The oracle for everything above |
-| `tests/` | 755 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', where silent misreadings are expensive |
+| `tests/` | 775 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.
 
 In the game: the mouse wheel zooms, a middle or right drag pans, the arrow keys scroll, a
-click selects a province and Tab switches between the political and terrain maps. Space or
+click selects a province - or, on the top counter of a stack, its unit, and clicked again
+the next unit under it - and Tab switches between the political and terrain maps. When a unit is finished an icon comes up under the top
+bar; a click on it opens the list of units waiting, a click on one of those chooses it,
+and then either a click on a green province places it there or a click on a line of the
+list puts it with that unit. Space or
 Pause stops and starts time, and plus and minus change its speed; so do the top bar's own
 buttons, and clicking its date. The top bar's Production and Technology buttons open
 those screens, and Escape or the cross closes one. On either, a slider is dragged, a
@@ -530,7 +574,9 @@ shift. A game starts paused, as Germany - `--country=ENG` after `--` on the comm
 plays another, `--order=infantry_brigade,artillery_brigade` orders a unit of those
 outright, `--all-units` gives the country played every unit type to order whatever
 technology or country its file keeps it to (*Play OpenHOI3 (all units)* under `F5` starts
-that way), `--builder=ship:destroyer` opens a window with that picked, and
+that way), `--builder=ship:destroyer` opens a window with that picked, `--days=8` runs
+that many days at once - long enough for the ship Germany starts with six days from done -
+`--screen=deploy` opens the deploy menu, and
 `--click=563,349;700,573` clicks the mouse at those points of the canvas in turn. **A
 screen is checked with `--click`, not only with a switch that reaches past its buttons**:
 the four builder windows passed every check that opened and filled them by name while
@@ -561,8 +607,8 @@ dotnet test tests/OpenHOI3.Tests   # tests
 dotnet run --project tools/OpenHOI3.SaveCheck -- "<install folder>" "<savegame>.hoi3"
 ```
 
-From VS Code, press `F5`. Three launch configurations are available: *Play OpenHOI3*,
-*Play OpenHOI3 (headless)*, and *Open Godot Editor*. The Godot executable path is read
+From VS Code, press `F5`. Four launch configurations are available: *Play OpenHOI3*,
+*Play OpenHOI3 (all units)*, *Play OpenHOI3 (headless)*, and *Open Godot Editor*. The Godot executable path is read
 from the `godotTools.editorPath.godot4` setting rather than hardcoded, so set it in
 `.vscode/settings.json` (git-ignored) or your VS Code user settings.
 
@@ -575,9 +621,11 @@ in the parent of this repository.
 scenes/Main.tscn        main scene (run/main_scene)
 fonts/                  the open typefaces all text is drawn in, with their licences
 src/                    the Godot client
+src/Map/                the map view, and the unit counters on it
 src/Gfx/                decoding the original's textures and fonts
 src/Gui/                the interface runtime: windows from the original's .gui files
-src/Screens/            one class for each screen: the top bar, production, technology
+src/Screens/            one class for each screen: the top bar, production, technology,
+                        the builder windows, the deploy menu, the alerts
 lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, the tick,
                         the clock and the two kinds of number are at its root
     Commands/           every change to the game state
@@ -592,13 +640,16 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         comes out
 lib/OpenHOI3.Content/   reading an install: finding and layering it, localisation, the loader
     Clausewitz/         the script format
-    Map/                the province bitmap, shapes, adjacency, terrain
+    Map/                the province bitmap, shapes, adjacency, terrain, where a province's
+                        units stand, and the declarations of the unit counters
     Definitions/        what common/, technologies/ and units/ declare
     History/            what history/ gives on the start date, orders of battle among it
     Gui/                the interface files' declarations, and font descriptors
 lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and placement at its root
     Text/               colour escapes, number formats, templates
     Screens/            the text of each screen's figures
+    Map/                the unit counters: which units have one, how they stack, what one
+                        says, where its parts go, and the painting of one
 tools/OpenHOI3.SaveCheck/   checks the libraries against a savegame the original wrote
 docs/mechanics/         one spec per system: what the original computes, and how sure that is
 docs/compatibility.md   where a valid file of the original's is treated differently on purpose

@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Gfx;
+using OpenHOI3.Gui;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Map;
 
@@ -32,6 +35,10 @@ public partial class CMapView : Node2D
 	[Signal]
 	public delegate void ProvinceSelectedEventHandler(int provinceId);
 
+	/// <summary>A unit's counter was clicked, or with 0 the unit that was selected no longer is.</summary>
+	[Signal]
+	public delegate void UnitSelectedEventHandler(int unitId);
+
 	private const string ShaderPath = "res://src/Map/PoliticalMap.gdshader";
 	private const int PaletteWidth = 256;
 
@@ -49,6 +56,10 @@ public partial class CMapView : Node2D
 	/// </summary>
 	private static readonly Color NothingColour = SeaColour;
 
+	/// <summary>What a province a unit may be placed in is tinted with, and how strongly.</summary>
+	private static readonly Color PlaceColour = new(0.2f, 0.9f, 0.25f);
+	private const float PlaceStrength = 0.55f;
+
 	private CMap _map = null!;
 	private CGameState _state = null!;
 
@@ -61,6 +72,8 @@ public partial class CMapView : Node2D
 	private int _hovered;
 	private int _selected;
 	private MapMode _mode = MapMode.Political;
+	private CUnitCounters? _counters;
+	private HashSet<int>? _places;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CMap map, CGameState state)
@@ -69,7 +82,30 @@ public partial class CMapView : Node2D
 		_state = state;
 	}
 
+	/// <summary>
+	/// Gives the map its units, drawn as counters. Before the node enters the tree, and
+	/// after <see cref="Setup"/>.
+	/// </summary>
+	public void SetupCounters(CGuiContext gui, CCounterTypes types)
+	{
+		_counters = new CUnitCounters { Name = "Counters" };
+		_counters.Setup(_map, _state, gui, types);
+	}
+
+	/// <summary>The units on the map, or null when it was given none to draw.</summary>
+	public CUnitCounters? Counters => _counters;
+
 	public int SelectedProvince => _selected;
+
+	/// <summary>
+	/// Marks the provinces a unit being placed may go in, or with null marks none.
+	/// How the original shows them was not read; here they are tinted green.
+	/// </summary>
+	public void ShowPlaces(IReadOnlyCollection<int>? places)
+	{
+		_places = places is null || places.Count == 0 ? null : new HashSet<int>(places);
+		RefreshColours();
+	}
 
 	public MapMode Mode
 	{
@@ -97,6 +133,10 @@ public partial class CMapView : Node2D
 		_camera = new Camera2D { Position = new Vector2(_map.Width / 2f, _map.Height / 2f) };
 		AddChild(_camera);
 		_camera.MakeCurrent();
+		if (_counters is not null)
+		{
+			AddChild(_counters);
+		}
 		SetZoom(MinZoom());
 	}
 
@@ -158,6 +198,10 @@ public partial class CMapView : Node2D
 			{
 				colour = _state.Country(province.Owner)?.Color.ToGodot() ?? UnownedColour;
 			}
+			if (_places is not null && _places.Contains(id))
+			{
+				colour = colour.Lerp(PlaceColour, PlaceStrength);
+			}
 			_paletteImage.SetPixel(id % PaletteWidth, id / PaletteWidth, colour);
 		}
 		_paletteTexture.Update(_paletteImage);
@@ -193,6 +237,9 @@ public partial class CMapView : Node2D
 			? _map.Height / 2f
 			: Mathf.Clamp(position.Y, halfHeight, _map.Height - halfHeight);
 		_camera.Position = position;
+
+		Vector2 seen = GetViewportRect().Size / _camera.Zoom;
+		_counters?.ViewChanged(_camera.Zoom.X, new Rect2(position - seen / 2f, seen));
 	}
 
 	/// <summary>Where a point on the screen is on the map, in this node's coordinates.</summary>
@@ -227,6 +274,17 @@ public partial class CMapView : Node2D
 		_selected = provinceId;
 		_material.SetShaderParameter("selected_province", provinceId);
 		EmitSignal(SignalName.ProvinceSelected, provinceId);
+	}
+
+	/// <summary>Selects a unit on the map - its counter wears a ring - or with null selects none.</summary>
+	public void SelectUnit(CUnit? unit)
+	{
+		if (_counters is null || ReferenceEquals(_counters.Selected, unit))
+		{
+			return;
+		}
+		_counters.Selected = unit;
+		EmitSignal(SignalName.UnitSelected, unit?.Id ?? 0);
 	}
 
 	// --- input ---
@@ -268,7 +326,14 @@ public partial class CMapView : Node2D
 				_dragging = button.Pressed;
 				break;
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click:
-				Select(ProvinceAtScreen(click.Position));
+				// A counter is over the province it stands in, so it is asked first - but
+				// not while a unit is being placed, when the click is for the province.
+				CUnit? unit = _places is null ? _counters?.Click(ScreenToMap(click.Position)) : null;
+				SelectUnit(unit);
+				if (unit is null)
+				{
+					Select(ProvinceAtScreen(click.Position));
+				}
 				break;
 			case InputEventMouseMotion motion when _dragging:
 				_camera.Position -= motion.Relative / _camera.Zoom;

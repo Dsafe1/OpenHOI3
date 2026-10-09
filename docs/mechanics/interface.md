@@ -264,6 +264,10 @@ files, with nothing in it placed by hand.
   clicked. *Ours* for how: the icon hands the press, the release and the mouse's being
   over it to the uppermost button of its own window drawn under it. The last section,
   item 13.
+- **An icon can itself be what is clicked.** An alert is an `iconType` and nothing else,
+  and the original hooks its handler to the icon as it would to a button
+  (`reversing/findings/FINDINGS-deploymenu.md`, section 1). `likely`. *Ours:* an icon with
+  no button under it says so when the mouse goes down and comes up on it.
 
 ## 6. Text
 

@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Gui;
@@ -21,6 +22,10 @@ public partial class CGuiIcon : CGuiObject
 	private int _progress;
 	private CGuiButton? _over;
 	private CGuiButton? _pressed;
+	private bool _pressedItself;
+
+	/// <summary>Raised when the icon itself is clicked: the mouse went down and came up on it, over no button.</summary>
+	public event Action? Clicked;
 
 	public void Initialise(CGuiIconType type, CGuiContext context)
 	{
@@ -64,7 +69,20 @@ public partial class CGuiIcon : CGuiObject
 		{
 			HoverOver(button);
 			_pressed = button;
+			_pressedItself = button is null;
 			button?.Click(mouse);
+			return;
+		}
+
+		// With no button under it the click is the icon's own: an alert is an icon
+		// that is clicked.
+		if (_pressedItself)
+		{
+			_pressedItself = false;
+			if (button is null && new Rect2(Vector2.Zero, Size).HasPoint(mouse.Position))
+			{
+				Clicked?.Invoke();
+			}
 			return;
 		}
 
