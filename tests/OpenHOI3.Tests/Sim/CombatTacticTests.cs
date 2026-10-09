@@ -1,0 +1,344 @@
+using System.Collections.Generic;
+using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Units;
+
+namespace OpenHOI3.Tests.Sim;
+
+/// <summary>
+/// How the two sides of a land battle come by their tactics, against
+/// <c>docs/mechanics/landcombat.md</c>, section 11. Germany attacks Posen out of Berlin.
+/// The three defines are the base game's.
+/// </summary>
+public class CombatTacticTests
+{
+	private static readonly CCountryTag Ger = new("GER");
+	private static readonly CCountryTag Pol = new("POL");
+
+	private const int Berlin = 1;
+	private const int Posen = 2;
+
+	private static CTacticCondition Side(bool attacker)
+	{
+		var all = new CTacticCondition(ETacticCondition.All);
+		all.Children.Add(new CTacticCondition(ETacticCondition.IsAttacker, attacker));
+		return all;
+	}
+
+	private static CCombatTactic Tactic(int number, string name, bool attacker, string basis = "1",
+		string counteredBy = "", string aggressiveness = "0", string attack = "0", string defence = "0",
+		string width = "0", string speed = "0", CTacticCondition? also = null)
+	{
+		CTacticCondition condition = Side(attacker);
+		if (also is not null)
+		{
+			condition.Children.Add(also);
+		}
+		return new CCombatTactic(name, number)
+		{
+			Base = CFixedPoint.Parse(basis),
+			CounteredBy = counteredBy,
+			Aggressiveness = CFixedPoint.Parse(aggressiveness),
+			Attacker = CFixedPoint.Parse(attack),
+			Defender = CFixedPoint.Parse(defence),
+			Width = CFixedPoint.Parse(width),
+			Speed = CFixedPoint.Parse(speed),
+			Condition = condition,
+		};
+	}
+
+	private static CGameState State(out CCountry germany, out CCountry poland, params CCombatTactic[] tactics)
+	{
+		germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "", Capital = Berlin };
+		poland = new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "", Capital = Posen };
+		var defines = new CDefines();
+		void Define(string name, string value) => defines.Set(CManpower.MilitarySection, name, CFixedPoint.Parse(value));
+		Define(CFrontLine.BaseWidth, "10");
+		Define(CFrontLine.AdditionalWidth, "5");
+		Define(CCombatTactics.SwapFrequency, "24");
+		Define(CCombatTactics.CounterAdvantage, "0.35");
+		Define(CCombatTactics.AggressivenessImpact, "0.5");
+		CCombatTactics.Link(tactics);
+		return new CGameState(new CDate(1936, 1, 1),
+			new[]
+			{
+				new CProvince(0, "", isSea: false),
+				new CProvince(Berlin, "Berlin", isSea: false) { Owner = Ger, Controller = Ger },
+				new CProvince(Posen, "Posen", isSea: false) { Owner = Pol, Controller = Pol },
+			},
+			new[] { germany, poland }, defines: defines)
+		{
+			Tactics = tactics,
+		};
+	}
+
+	private static CUnit Division(CGameState state, CCountry country, int province, string type = "infantry_brigade",
+		bool armour = false, string width = "1")
+	{
+		var unit = new CUnit(EUnitKind.Division, country.Tag) { Id = ++state.LastUnitId, Location = province, Name = "Division" };
+		var kind = new CSubUnitType(type, EUnitBranch.Land);
+		kind.Stats.Values.Set(CSubUnitType.CombatWidth, CFixedPoint.Parse(width));
+		kind.Flags[CTacticCondition.ArmourFlag] = armour;
+		var subUnit = new CSubUnit(kind) { Id = ++state.LastUnitId, Unit = unit };
+		subUnit.Stats.CopyFrom(kind.Stats);
+		unit.SubUnits.Add(subUnit);
+		country.Units.Add(unit);
+		return unit;
+	}
+
+	private static CCombat Battle(CGameState state, CCountry germany, CCountry poland)
+	{
+		var combat = new CCombat(Posen);
+		state.Combats.Add(combat);
+		combat.Attacker.Add(Division(state, germany, Berlin));
+		combat.Defender.Add(Division(state, poland, Posen));
+		CCombats.Begin(state, combat);
+		return combat;
+	}
+
+	[Fact]
+	public void Each_side_picks_from_the_tactics_whose_conditions_it_meets()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland,
+			Tactic(1, "tactic_attack", attacker: true), Tactic(2, "tactic_defend", attacker: false));
+		CCombat combat = Battle(state, germany, poland);
+
+		CCombatTactics.Pick(state, combat);
+
+		Assert.Equal("tactic_attack", combat.Attacker.Tactic?.Name);
+		Assert.Equal("tactic_defend", combat.Defender.Tactic?.Name);
+	}
+
+	[Fact]
+	public void A_pick_of_both_sides_makes_four_rolls()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland,
+			Tactic(1, "tactic_attack", attacker: true), Tactic(2, "tactic_defend", attacker: false));
+		CCombat combat = Battle(state, germany, poland);
+		long before = state.Random.Draws;
+
+		CCombatTactics.Pick(state, combat);
+
+		Assert.Equal(before + 4, state.Random.Draws);
+	}
+
+	[Fact]
+	public void Nothing_is_picked_and_nothing_rolled_with_no_tactics_to_pick_from()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CCombat combat = Battle(state, germany, poland);
+
+		// An hour with tactics to pick from makes the pick's four rolls more than one without.
+		CGameState other = State(out CCountry otherGermany, out CCountry otherPoland,
+			Tactic(1, "tactic_attack", attacker: true), Tactic(2, "tactic_defend", attacker: false));
+		CCombat otherCombat = Battle(other, otherGermany, otherPoland);
+
+		Assert.False(CCombatTactics.IsDue(state, combat));
+		CCombats.RunHour(state, combat);
+		CCombats.RunHour(other, otherCombat);
+
+		Assert.Null(combat.Attacker.Tactic);
+		Assert.NotNull(otherCombat.Attacker.Tactic);
+		Assert.Equal(state.Random.Draws + 4, other.Random.Draws);
+	}
+
+	[Fact]
+	public void A_tactic_with_no_weight_is_never_picked()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland,
+			Tactic(1, "tactic_never", attacker: true, basis: "0"),
+			Tactic(2, "tactic_attack", attacker: true),
+			Tactic(3, "tactic_defend", attacker: false));
+		CCombat combat = Battle(state, germany, poland);
+
+		for (uint seed = 1; seed <= 20; seed++)
+		{
+			state.Random.Seed(seed);
+			CCombatTactics.Pick(state, combat);
+			Assert.Equal("tactic_attack", combat.Attacker.Tactic?.Name);
+		}
+	}
+
+	[Fact]
+	public void A_side_with_nothing_to_pick_has_no_tactic()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, Tactic(1, "tactic_attack", attacker: true));
+		CCombat combat = Battle(state, germany, poland);
+
+		CCombatTactics.Pick(state, combat);
+
+		Assert.NotNull(combat.Attacker.Tactic);
+		Assert.Null(combat.Defender.Tactic);
+	}
+
+	[Fact]
+	public void A_tactic_weighs_its_base_and_what_the_country_s_technologies_add()
+	{
+		CCombatTactic assault = Tactic(1, "tactic_assault", attacker: true, basis: "1");
+		CGameState state = State(out CCountry germany, out CCountry poland, assault);
+		CCombat combat = Battle(state, germany, poland);
+		germany.Technology.Set("tactic_assault", CFixedPoint.Parse("6"));   // two levels of three
+
+		Assert.Equal(7000, CCombatTactics.Weight(state, combat, combat.Attacker, assault, 0, 0, 0));
+		Assert.Equal(0, CCombatTactics.Weight(state, combat, combat.Defender, assault, 0, 0, 0));
+	}
+
+	[Fact]
+	public void The_tactic_favoured_weighs_more_by_the_lead_in_skill()
+	{
+		CCombatTactic counter = Tactic(1, "tactic_counterattack", attacker: false, basis: "1");
+		CGameState state = State(out CCountry germany, out CCountry poland, counter);
+		CCombat combat = Battle(state, germany, poland);
+
+		// 1 * (1 + 0.35 * 2)
+		Assert.Equal(1700, CCombatTactics.Weight(state, combat, combat.Defender, counter, 0, favoured: 1, skillDifference: 2));
+		Assert.Equal(1000, CCombatTactics.Weight(state, combat, combat.Defender, counter, 0, favoured: 2, skillDifference: 2));
+	}
+
+	[Fact]
+	public void A_tactic_weighs_less_the_further_its_aggressiveness_is_from_the_leader_s()
+	{
+		CCombatTactic reckless = Tactic(1, "tactic_reckless_assault", attacker: true, basis: "2", aggressiveness: "1");
+		CGameState state = State(out CCountry germany, out CCountry poland, reckless);
+		CCombat combat = Battle(state, germany, poland);
+
+		Assert.Equal(1000, CCombatTactics.Weight(state, combat, combat.Attacker, reckless, 0, 0, 0));        // 2 * (1 - 1 * 0.5)
+		Assert.Equal(2000, CCombatTactics.Weight(state, combat, combat.Attacker, reckless, 1000, 0, 0));
+		Assert.Equal(1000, CCombatTactics.Weight(state, combat, combat.Attacker, reckless, -1000, 0, 0));    // the distance is held to 1
+	}
+
+	[Fact]
+	public void A_tactic_the_other_side_s_counters_does_nothing()
+	{
+		CCombatTactic assault = Tactic(1, "tactic_assault", attacker: true, counteredBy: "tactic_counterattack", attack: "0.25", width: "5");
+		CCombatTactic counter = Tactic(2, "tactic_counterattack", attacker: false, defence: "0.25", speed: "-0.1");
+		CGameState state = State(out CCountry germany, out CCountry poland, assault, counter);
+		CCombat combat = Battle(state, germany, poland);
+
+		CCombatTactics.Pick(state, combat);
+
+		Assert.True(CCombatTactics.Counters(counter, assault));
+		Assert.False(CCombatTactics.Counters(assault, counter));
+		Assert.Equal(CFixedPoint.Zero, combat.TacticAttacker);
+		Assert.Equal(CFixedPoint.Zero, combat.TacticWidth);
+		Assert.Equal(CFixedPoint.Parse("0.25"), combat.TacticDefender);
+		Assert.Equal(CFixedPoint.Parse("-0.1"), combat.TacticSpeed);
+	}
+
+	[Fact]
+	public void Two_tactics_that_do_not_counter_each_other_both_count()
+	{
+		CCombatTactic shock = Tactic(1, "tactic_shock", attacker: true, defence: "-0.25");
+		CCombatTactic delay = Tactic(2, "tactic_delay", attacker: false, attack: "-0.25", defence: "-0.15", speed: "-0.25");
+		CGameState state = State(out CCountry germany, out CCountry poland, shock, delay);
+		CCombat combat = Battle(state, germany, poland);
+
+		CCombatTactics.Pick(state, combat);
+
+		Assert.Equal(CFixedPoint.Parse("-0.25"), combat.TacticAttacker);
+		Assert.Equal(CFixedPoint.Parse("-0.4"), combat.TacticDefender);
+		Assert.Equal(CFixedPoint.Parse("-0.25"), combat.TacticSpeed);
+	}
+
+	[Fact]
+	public void Tactics_are_picked_in_a_battle_s_first_hour_and_again_every_swap_period()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland,
+			Tactic(1, "tactic_attack", attacker: true), Tactic(2, "tactic_defend", attacker: false));
+		CCombat combat = Battle(state, germany, poland);
+
+		Assert.True(CCombatTactics.IsDue(state, combat));
+		CCombatTactics.Pick(state, combat);
+		combat.Duration = 1;
+		Assert.False(CCombatTactics.IsDue(state, combat));
+		combat.Duration = 23;
+		Assert.False(CCombatTactics.IsDue(state, combat));
+		combat.Duration = 24;
+		Assert.True(CCombatTactics.IsDue(state, combat));
+		combat.Duration = 48;
+		Assert.True(CCombatTactics.IsDue(state, combat));
+	}
+
+	[Fact]
+	public void A_full_front_and_reserves_are_what_their_conditions_ask_for()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CCombat combat = Battle(state, germany, poland);
+		var full = new CTacticCondition(ETacticCondition.FrontageFull);
+		var reserves = new CTacticCondition(ETacticCondition.Reserves);
+
+		Assert.False(full.Holds(state, combat, combat.Attacker));
+		Assert.False(reserves.Holds(state, combat, combat.Attacker));
+
+		// A front is full only once it takes more than the width: ten is not over ten.
+		combat.Attacker.Front.Add(Division(state, germany, Berlin, width: "9"));
+		Assert.False(full.Holds(state, combat, combat.Attacker));
+		combat.Attacker.Front.Add(Division(state, germany, Berlin, width: "1"));
+		Assert.True(full.Holds(state, combat, combat.Attacker));
+
+		combat.Attacker.Reserves.Add(Division(state, germany, Berlin));
+		Assert.True(reserves.Holds(state, combat, combat.Attacker));
+		Assert.False(new CTacticCondition(ETacticCondition.Reserves, wanted: false).Holds(state, combat, combat.Attacker));
+	}
+
+	[Fact]
+	public void Armour_counts_only_on_the_front()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CCombat combat = Battle(state, germany, poland);
+		var armour = new CTacticCondition(ETacticCondition.HasArmourUnit);
+		CUnit tanks = Division(state, germany, Berlin, "armor_brigade", armour: true);
+
+		combat.Attacker.Reserves.Add(tanks);
+		Assert.False(armour.Holds(state, combat, combat.Attacker));
+
+		combat.Attacker.Reserves.Remove(tanks);
+		combat.Attacker.Front.Add(tanks);
+		Assert.True(armour.Holds(state, combat, combat.Attacker));
+		Assert.False(new CTacticCondition(ETacticCondition.HasArmourUnit, wanted: false).Holds(state, combat, combat.Attacker));
+	}
+
+	[Fact]
+	public void With_no_leaders_a_test_of_skill_holds_only_where_it_asks_for_none()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CCombat combat = Battle(state, germany, poland);
+
+		Assert.True(new CTacticCondition(ETacticCondition.Skill, amount: 0).Holds(state, combat, combat.Attacker));
+		Assert.False(new CTacticCondition(ETacticCondition.Skill, amount: 3).Holds(state, combat, combat.Attacker));
+		Assert.False(new CTacticCondition(ETacticCondition.SkillAdvantage, amount: 1).Holds(state, combat, combat.Attacker));
+		Assert.False(new CTacticCondition(ETacticCondition.Trait, name: "panzer_leader").Holds(state, combat, combat.Attacker));
+		Assert.False(new CTacticCondition(ETacticCondition.Never).Holds(state, combat, combat.Attacker));
+	}
+
+	[Fact]
+	public void A_group_of_conditions_is_all_any_or_none_of_them()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CCombat combat = Battle(state, germany, poland);
+		var any = new CTacticCondition(ETacticCondition.Any);
+		any.Children.Add(new CTacticCondition(ETacticCondition.Skill, amount: 3));
+		any.Children.Add(new CTacticCondition(ETacticCondition.IsAttacker));
+		var none = new CTacticCondition(ETacticCondition.None);
+		none.Children.Add(new CTacticCondition(ETacticCondition.Reserves));
+
+		Assert.True(any.Holds(state, combat, combat.Attacker));
+		Assert.False(any.Holds(state, combat, combat.Defender));
+		Assert.True(none.Holds(state, combat, combat.Attacker));
+	}
+
+	[Fact]
+	public void A_name_that_is_no_tactic_counters_nothing_and_is_reported()
+	{
+		var warnings = new List<string>();
+		CCombatTactic assault = Tactic(1, "tactic_assault", attacker: true, counteredBy: "tactic_nonsense");
+
+		CCombatTactics.Link(new[] { assault }, warnings.Add);
+
+		Assert.Equal(0, assault.CounteredByNumber);
+		Assert.Contains(warnings, warning => warning.Contains("tactic_nonsense"));
+	}
+}

@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Units;
@@ -31,9 +32,13 @@ public partial class CUnitPanel : Control
 	private readonly List<CUnit> _parents = new();
 	private CUnit? _unit;
 	private bool _hasChildren;
+	private readonly List<CCombat> _combats = new();
 
 	/// <summary>Raised when a row of the panel asks for another unit to be the one selected, or for none.</summary>
 	public event Action<CUnit?>? UnitChosen;
+
+	/// <summary>Raised when the row of a battle the unit is in is clicked.</summary>
+	public event Action<CCombat>? CombatChosen;
 
 	/// <summary>Raised when the panel asks for the map to show a province.</summary>
 	public event Action<int>? ProvinceWanted;
@@ -100,9 +105,11 @@ public partial class CUnitPanel : Control
 		{
 			return;
 		}
-		// The run of entries depends on what is above the unit and on whether anything
-		// is under it; when either changes the list is made again.
-		if (!Above(unit).SequenceEqual(_parents) || unit.Children.Count > 0 != _hasChildren)
+		// The run of entries depends on what is above the unit, on whether anything is
+		// under it and on the battles it is in; when any of them changes the list is made
+		// again.
+		if (!Above(unit).SequenceEqual(_parents) || unit.Children.Count > 0 != _hasChildren
+			|| !unit.Combats.SequenceEqual(_combats))
 		{
 			Rebuild();
 			return;
@@ -132,8 +139,8 @@ public partial class CUnitPanel : Control
 
 	/// <summary>
 	/// Empties the list and fills it in the original's order. It has more entries than
-	/// these for a headquarters an AI commands, for what a fleet or an air unit
-	/// carries, and for each battle the unit is in; none of those is built.
+	/// these for a headquarters an AI commands and for what a fleet or an air unit
+	/// carries; neither is built.
 	/// </summary>
 	private void Rebuild()
 	{
@@ -144,6 +151,7 @@ public partial class CUnitPanel : Control
 		_list.Clear();
 		_entries.Clear();
 		_parents.Clear();
+		_combats.Clear();
 		if (_unit is not { } unit || _simulation.State.Country(unit.Owner) is not { } owner)
 		{
 			return;
@@ -196,6 +204,16 @@ public partial class CUnitPanel : Control
 		{
 			children.Selected += child => UnitChosen?.Invoke(child);
 			Add(children);
+		}
+		// Last, a row for each battle the unit is in.
+		_combats.AddRange(unit.Combats);
+		foreach (CCombat combat in _combats)
+		{
+			if (CUnitCombatEntry.Create(_context, state, unit, combat) is { } battle)
+			{
+				battle.Selected += () => CombatChosen?.Invoke(combat);
+				Add(battle);
+			}
 		}
 		_list.Relayout();
 	}

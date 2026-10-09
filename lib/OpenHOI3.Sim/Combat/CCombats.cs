@@ -224,12 +224,16 @@ public static class CCombats
 
 	/// <summary>
 	/// One hour of a battle, in the original's order, attacker first throughout: the
-	/// two dice, what the hour's circumstances make of every unit, the two sides'
-	/// shooting, the settling of what it did, and from the fourth hour whether a side
-	/// has lost. Answers whether the battle is over.
+	/// tactics where they are due, the two dice, what the hour's circumstances make of
+	/// every unit, the two sides' shooting, the settling of what it did, and from the
+	/// fourth hour whether a side has lost. Answers whether the battle is over.
 	/// </summary>
 	public static bool RunHour(CGameState state, CCombat combat)
 	{
+		if (CCombatTactics.IsDue(state, combat))
+		{
+			CCombatTactics.Pick(state, combat);
+		}
 		combat.Duration++;
 		if (combat.Hour == CCombat.NotStarted)
 		{

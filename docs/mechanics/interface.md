@@ -255,6 +255,13 @@ files, with nothing in it placed by hand.
   declarations: it has a `size` and two textures. *Ours:* the first texture is drawn
   over the part that is filled and the second over the rest, each cut at the same place,
   and an icon whose sprite is one takes the bar's size and is set in hundredths.
+  **Both pictures are drawn upside down.** *Measured*, 2026-10-09, on the maintainer's
+  screenshots of a battle: the plate under a unit of the battle window
+  (`GFX_combat_unit_bg`) has its light band over its dark one, where the picture has the
+  dark over the light; and the unit panel's two standing bars are bright on the left,
+  which a quarter turn of their pictures as they are would put on the right. Until then
+  one of the panel's two bars was drawn the wrong way round and nobody had seen it. Not
+  read.
 - **A sprite can be chosen by a name the code makes up** - `icon_` and a category,
   `GFX_` and a strategic resource. `confirmed` Where there is no sprite of that name
   the icon keeps the one its file gave it, and nothing is said.
@@ -269,9 +276,16 @@ files, with nothing in it placed by hand.
   whether or not its sprite names that effect file; what a sprite with no effect file
   does under the mouse was not looked for.
 - **A `maskedShieldType` draws a country's flag** between two textures: one over it, and a
-  mask. `inferred` from the declarations. *Ours:* the flag is scaled to the overlay's size
-  and the overlay blended on top; the mask is not applied. Both masks the base game ships
-  are solid white, so nothing is lost; a mod's that cut a shape would be ignored.
+  mask. **The flag is as see-through at each point as the mask is there** - `confirmed`,
+  from `gfx/FX/maskedflag.fx`, which is plain text in the install: the flag's colour with
+  the mask's alpha. *Ours:* the flag is squeezed to the mask's size, cut by it, put in the
+  middle of the overlay and the overlay blended on top, once for each country and sprite.
+  The thin shield's mask and the top bar flag's are solid and their overlay's size, so
+  there it comes to the flag under its frame. **The small round shield's is a disc**, 40 by
+  26 under an overlay of 32 by 32: this said until 2026-10-09 that every mask shipped was
+  blank and applied none, and the battle row of the unit panel showed a square flag behind
+  a round frame. That the flag takes the mask's size and sits in the overlay's middle is
+  *measured* on the maintainer's screenshot of that row, not read.
 - **`allwaystransparent = yes` lets clicks through.** `inferred` from the name. *Ours:* any
   other icon takes the click, so the map under the bar does not; the original tests the
   pixel (`transparencecheck`), and this does not.
@@ -436,6 +450,17 @@ scalable canvas of section 3 could not survive. So:
   original shares between them and the mark of a reserve. Not read, and known for a
   quarter turn only. No screen built before the unit panel gives a rotation other than
   nought.
+- **A flag turns about its own middle instead**, a pixel and a half to the right of it. The
+  battle window's two shields are 66 by 51 and turned a negative quarter, and stand 51 wide
+  and 66 high: one at `(x, y)` covers `x + 9` to `x + 60` across and `y - 8` to `y + 58`
+  down, with what was its left edge at the top. *Measured*, 2026-10-09, on the
+  maintainer's screenshot of that window; the bar's rule would have stood them 55 further
+  left, over the picture between them. Not read, and known for those two only.
+- **A line too wide for a text box that says `fixedsize = yes` is cut, and ends in three
+  dots.** *Measured* on the same screenshot, where a division's name ends "CCN ..." in the
+  middle of a word. *Ours:* as many letters are kept as leave the dots room in the box's
+  `maxWidth`; the original's name ends ten pixels short of that, so it measures the room
+  some other way, which was not read. A line with a colour in it is left alone.
 - **A window can be made many times over.** A line of a list, an entry of the technology
   tree and a slider are each a top-level window type the code makes one of for each
   thing it has to show, and puts where it wants it.
@@ -458,20 +483,23 @@ scalable canvas of section 3 could not survive. So:
 
 1. **The table of colours a font with no `colorcodes` falls back to**: who fills it, and
    with what.
-2. **How a text box lays its text out**, beyond section 6: where a line breaks, what
-   `fixedsize` changes, what the two kinds of text box differ in, the five orientations
+2. **How a text box lays its text out**, beyond section 6: where a line breaks, how a
+   `fixedsize` box measures a line it cuts (section 7), what the two kinds of text box
+   differ in, the five orientations
    other than the upper left and right, and why the pictures sit half a pixel the other
    way from the text.
 3. **Where the position is measured to** - that it is the upper left corner is a fit on
    the files - and how `rotation` and `scale` turn and size an icon. A quarter turn is applied
-   as section 7 says, and **where an edit box puts its text** likewise: both measured on a
-   screenshot of the original's unit panel, neither read.
+   as section 7 says - one way for a bar and another for a flag - and **where an edit box
+   puts its text** likewise: all measured on screenshots of the original, none read. Nor is
+   why a bar's picture is drawn upside down (section 5).
 4. **The keys each kind takes, other than a window's.**
 5. **Which of two buttons or icons of one name is found.**
 6. **What frame 0 draws**, and whether an icon's frames are counted from nought.
 7. **Which buttons `buttonstate.fx` is for.** The shader is read (section 5); whether a
    sprite that names no effect file changes under the mouse was not looked for.
-8. **What a mask in a `maskedShieldType` is for**, given that both shipped are blank.
+8. **Where a `maskedShieldType` puts its flag** when the mask is not the overlay's size:
+   in the overlay's middle here, which fits the one case there is (section 5).
 9. **What `transparencecheck` tests**, and against which texture.
 10. **Tooltips.** `pdx_tooltip` and the three tooltip keys of a button are read past.
 11. **How a scrollbar and a box of overlapping elements lay themselves out.** Both are

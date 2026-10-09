@@ -84,6 +84,7 @@ public static class CGameStateLoader
 			TechnologyFolders = CTechnologyReader.ReadFolders(directories),
 			SubUnitTypes = unitTypes,
 			CombinedArmsGroups = CCombinedArmsReader.Read(directories, warn),
+			Tactics = CCombatTacticReader.Read(directories, warn),
 			NameTexts = ReadNameTexts(localisation, unitTypes.Values),
 			MapWidth = map.Width,
 			MapHeight = map.Height,

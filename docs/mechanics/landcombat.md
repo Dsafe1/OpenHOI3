@@ -5,7 +5,9 @@ what ends it, and what it leaves behind. It was built in pieces: first **a battl
 units meet, wear each other down, one side gives way, and the ground changes hands - and
 then **what an hour's circumstances make of a unit's attack and defence**: the ground, a
 river, a fort, the night, the weather, experience, being dug in, crowding (section 4). The
-battle's marker on the map and its window are the third piece, and are not here.
+third piece put the battle **on screen** - its marker on the map and its window, which are in
+`combatview.md` - and with it came **the two sides' tactics** (section 11), which the window
+shows and which nothing picked before.
 
 Everything is from `reversing/findings/FINDINGS-landbattle.md`, which joins three earlier
 readings: `reversing/findings/FINDINGS-combat.md` for a shot and its damage,
@@ -106,7 +108,7 @@ a front.
 
 **How wide the battle is.** One figure for both sides:
 
-    width = what the two tactics add                        (nothing: section 10)
+    width = what the two tactics add                        (section 11)
           + BASE_COMBAT_WIDTH for the first province the attackers come from
           + ADDITIONAL_COMBAT_WIDTH for each further one
 
@@ -165,6 +167,17 @@ was in before, for a unit **outside** the battle's own province. As read; it loo
 *Not built:* a division whose corps headquarters is in its province or the next adds the
 corps leader's skill to its chance.
 
+**The maintainer's account of it agrees**, 2026-10-09, from playing the original: "As far as
+I know all units which attack at the same time get into the combat, unless the width is
+exhausted, then they go into reserve. If a unit joins later then it is put into reserve, and
+it has a chance to join each tick (or day). I think that chance is called the 'combat
+reinforcement chance'. The order in which they join from the reserve is therefore based on
+that chance." Each of those is a rule above: the front is filled once, in the first hour; a
+unit that joins a battle already begun waits in reserve; and it comes up by a roll against
+its chance - every hour, as read, not every day. What he does not speak to is the order the
+first hour puts units on the front in, and the score that picks between two reserves whose
+rolls both let them; those rest on the reading alone.
+
 ## 4. The hour
 
 `confirmed` (`FINDINGS-landbattle.md`, section 3). The battles are fought **last in the
@@ -172,6 +185,7 @@ hour**, after every unit has moved and every unit's organisation has been seen t
 in the order they began. A battle seen for the first time has its fronts set up, and then, in
 this order, attacker before defender at every step:
 
+0. **the tactics are picked** where they are due (section 11): four rolls;
 1. the count of rounds goes up;
 2. the first round only: one roll of ten for each side;
 3. **one roll of ten for each side**, every round. They are rolled and kept; what the
@@ -187,9 +201,8 @@ this order, attacker before defender at every step:
 **The attacker is asked first**, so where both fronts give way in the same hour the attack
 has failed. A battle is never decided before its fourth round, whatever the sides.
 
-*Not built:* tactics are picked before step 1 and again every `TACTIC_SWAP_FREQUENCEY`
-hours; each country on a side gains `LAND_DOCTRINE_INCREASE` of a practical each round; the
-war's date of last action is set.
+*Not built:* each country on a side gains `LAND_DOCTRINE_INCREASE` of a practical each
+round; the war's date of last action is set.
 
 ### What the hour makes of a unit
 
@@ -491,38 +504,41 @@ leader's trait make the tactics' speed count for more.
 nothing else - it is not a declaration: nothing is asked and nobody is called in. The client
 takes it as `--war=GER:POL`. On the start date Italy and Ethiopia are at war, and nobody else.
 
-**A trial.** `OpenHOI3.SaveCheck battle <install> [attacker] [defender] [seed]` finds the
+**A trial.** `OpenHOI3.SaveCheck battle <install> [attacker] [defender] [seed] [name]` finds the
 first division of the one country that stands next to a division of the other, sends it, and
 says how the battle went, with what the hour makes of the two by day and by night. It is not a
 check - there is nothing to set it against. On the start date, with a seed of 1:
 
     Italy at Ethiopia, Belet Uen at Gurbo:   across a river, one division against three: it
                                              attacks at 0.345 by day and 0.172 by night, and
-                                             fails after 189 hours, 322 men lost against 35
+                                             fails after 182 hours, 318 men lost against 32
     Japan at China, Tangshan at Tianjin:     into a town, at 0.69 by day against a defence of
-                                             1.265: the defence breaks after 364 hours, the
-                                             beaten division falls back to Tongxian, and
-                                             Tianjin is held by Japan the next hour
+                                             1.265: the defence breaks after 347 hours, the
+                                             beaten division falls back, and Tianjin is held
+                                             by Japan the next hour
     Germany at France, Karlsruhe at          across the Rhine into ten levels of fort, at 0.04
-    Wissembourg:                             by day: it fails after 209 hours, 456 men lost
-                                             against 13
+    Wissembourg:                             by day: it fails after 201 hours, 443 men lost
+                                             against 12
+
+It prints the two tactics whenever a pick changes either: mostly the plain attack against the
+plain defence, with an assault or a shock for a day now and then. A sixth argument is a part
+of the attacking unit's name, for a trial with a division other than the first found.
 
 Two infantry divisions alike in everything, with nothing for or against either, fight for
 about a week and lose a twentieth of their strength each. The maintainer, 2026-10-09: "yep,
 that seems right".
 
 **On the map.** Ground one country owns and another holds is **striped**, as the original's
-is (`map.md`, section 10). *Ours:* the readout of a province with a battle in it says who is
-attacking whom, for how long, and how many stand on each front; the original's marker and its
-window are the third piece.
+is (`map.md`, section 10). The battle's marker, its window and its row in a unit's panel are
+`combatview.md`. *Ours:* the readout of a selected province with a battle in it says who is attacking
+whom, for how long, and how many stand on each front; it is scaffolding.
 
 ### Not built
 
-- **Of what the hour makes of a unit**, the eight things section 4 lists under its table.
+- **Of what the hour makes of a unit**, the seven things section 4 lists under its table.
 - **The weather itself**: its part in a battle is built and there is none to play it.
-- **Tactics**, which need the script's conditions to be picked; with them the width, the
-  damage and the delay each gain a term that is nothing now.
-- **Leaders**, wherever one is named above.
+- **Leaders**, wherever one is named above - and with them most of what makes one tactic
+  picked over another (section 11).
 - **Experience** from a battle, and the practical knowledge a round gives.
 - **Fleets and air units**: only land units fight. A battle at sea, in the air, and bombing
   are their own pieces.
@@ -533,6 +549,94 @@ window are the third piece.
 ### Not established
 
 - **Nothing here was watched.** The order of a front and who comes up from reserve decide who
-  is shot at, and so the course of a battle; the first battle fought in the original with a
-  look at who stands on the front would confirm or correct them.
+  is shot at, and so the course of a battle. The maintainer's account of how the original
+  plays (section 3) agrees with how the front is filled and that reserves come up by chance;
+  the order of the first hour's front and the score between two reserves are still the
+  reading's alone.
 - What the two rolls of ten a side makes every hour are for.
+
+## 11. Tactics
+
+Each side of a land battle fights by a tactic, which the battle's window names
+(`combatview.md`, section 4). From `reversing/findings/FINDINGS-combatview.md`, section 11,
+and `reversing/findings/FINDINGS-landbattle.md`, section 5. `confirmed` unless marked.
+
+**What a tactic is.** A block of `common/combat_tactics.txt`, read in `CCombatTacticReader`:
+
+| key | |
+| --- | --- |
+| the block's name | `tactic_assault`: the key of its name in the player's language, and what a technology adds to its weight under |
+| `base` | its weight before anything is added |
+| `aggressiveness` | how aggressive a leader it suits, from -1 to 1 |
+| `countered_by` | the name of the tactic that counters it; it may be declared later in the file |
+| `picture` | the file under `gfx/pictures/tactics` it is shown with |
+| `trigger` | what must hold of a side for it to pick this |
+| `combat_width` | what it adds to the battle's width (section 3) |
+| `attacker`, `defender` | what it adds to the damage of that side's hits (section 5) - of either side's tactic: an attacker's assault may add to the defender's too |
+| `movement_speed` | what it adds to the attackers' pace and to how fast their delay runs down (section 9) |
+
+The tactics are numbered from 1 in the order of the file. A key that is none of these is
+reported, as the original logs it. *Ours:* a tactic declared twice keeps its first
+declaration; what the original does with the second was not read.
+
+**When.** At the top of a battle's hour, before the round is counted: where either side has
+no tactic, and again whenever the rounds fought so far are a whole number of
+`TACTIC_SWAP_FREQUENCEY` hours - 24 in the base game. So both sides pick in the first hour
+and afresh every day of the battle. Only where both sides still have a country.
+
+**Who picks first.** Each side's highest ranked leader has a skill. The side with the
+**lower** skill picks first, favouring nothing; the other then picks **favouring the tactic
+that counters the first's**, by the difference in skill. With equal skill the attacker picks
+first and the defender second, favouring nothing.
+
+**A pick**, for each tactic whose `trigger` holds of the side:
+
+    weight = base + what the technologies of the side's first country add to this tactic
+    the one favoured:   weight x (1 + INITIATIVE_PICK_COUNTER_ADVANTAGE_FACTOR x skill difference)
+    every one:          weight x (1 - AGGRESSIVNESS_SELECTION_IMPACT x d)
+                        d = how far the tactic's aggressiveness is from the leader's, at most 1
+
+and then one roll picks among the tactics that weigh anything, each as likely as its weight:
+with the weights in the file's order, the first whose running total is above the roll's
+remainder by the whole. A side for which nothing weighs anything has no tactic.
+
+- **A pick makes two rolls**, so both sides' make four: one before the weights, which the
+  original takes for judging the conditions, and the pick itself.
+- **What a technology adds**: a technology names a tactic at its own top level,
+  `tactic_assault = 3`, among its other effects, and a country's tactics weigh that much more
+  for each level it has. `inferred` for "each level": it is what every other figure of a
+  technology does, and how these reach the country was not read.
+- **The leader's aggressiveness** comes from the stance of the headquarters above him, or from
+  his own unit's setting. *Not built:* leaders; every side's skill and aggressiveness are 0.
+  So the attacker always picks first, nobody is favoured, and a tactic with an aggressiveness
+  of its own - a reckless assault - weighs half.
+
+**The conditions** a `trigger` is made of, each judged on the side that is picking, with
+`AND`, `OR` and `NOT` around them:
+
+| key | holds when |
+| --- | --- |
+| `is_attacker = yes` | the side attacks |
+| `frontage_full = yes` | the side's front takes **more** than the battle's width - a front that fills it exactly is not full |
+| `reserves = yes` | the side has a unit in reserve |
+| `has_armour_unit = yes` | a unit **on the side's front** has a brigade whose type says `is_armor`; one in reserve does not count |
+| `skill_advantage = 2` | the side's leader has that much more skill than the other's, or more |
+| `skill = 3` | the side's leader has that much skill, or more |
+| `trait = panzer_leader` | not read; the side's leader has the trait, by its name |
+
+Each of the first four may be written with `no`, and is then the other way about. *Ours:* a
+condition that is none of these is reported and **never holds**, so that a tactic is not
+handed out on the strength of a test nothing made. With no leaders, `skill` and
+`skill_advantage` hold only where they ask for nothing and `trait` never.
+
+**What two tactics do.** One tactic **counters** another when it is the one the other names
+in `countered_by`. Whenever tactics are picked, four figures of the battle are made again
+from nothing: each side's tactic adds its `combat_width`, `attacker`, `defender` and
+`movement_speed` - **unless the other side's tactic counters it**, in which case it adds
+nothing at all. Two tactics may counter each other, and then neither does anything.
+
+In the base game, on the start date, that comes to this: an attacker fights by the plain
+attack (a weight of 15, and a twentieth more damage) with the odd day of an assault or a
+shock (1 each, more with the doctrines), and a defender by the plain defence; the tactics
+that turn a battle - a breakthrough, an ambush, a counterattack - all ask for a leader.
+

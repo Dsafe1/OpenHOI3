@@ -42,7 +42,8 @@ and a fleet's and an air unit's own lines wait for those to move.
   | 6 | the buttons | `sup_buttons_window` | always |
   | 7 | the brigades | `sup_subunits` | always |
   | 8 | the units under it | `sup_children` | when there are any |
-  | 9 | what it carries, and each battle it is in | `sup_loaded`, `combat_entry` | **not built** |
+  | 9 | what it carries | `sup_loaded` | a fleet's or an air unit's - **not built** |
+  | 10 | each battle it is in | `combat_entry` | one for each: `combatview.md`, section 7 |
 
 - An entry finds its elements by their names once, when it is made, and writes them every
   frame the panel is up. `confirmed`. Here the list is made again when the units above the
@@ -193,7 +194,8 @@ a battle, which are `inferred`
 - **Where the way ends and when the unit will be there is a tooltip** in the original, over
   the header's activity strip: "Will arrive in $PROV$ on $DATE$" - again the next province.
   Tooltips are not built, so the readout beside the panel says both for now, for the whole
-  way.
+  way. The readout is of a selected province, so it is there only when one was selected
+  before the unit was.
 
 **The button**: a land unit on the march that is not retreating is halted, by the same
 command a click on its own province gives (`movement.md`, section 1). `confirmed`. The
@@ -315,7 +317,7 @@ slider stands in the middle, and the switch is off.
   (`multi_unitpanel`).
 - **A headquarters' rows for an AI in command**: its objectives, the three stances, the
   power ratio, the assets it wants; and everything the row of section 9 would do.
-- **What a unit carries**, and **the battles it is in**.
+- **What a unit carries.**
 - **Leaders**: the picture, the choosing, the red name.
 - **The windows that come up from it**: the leader list, reorganising, attaching, what a
   brigade is upgraded to, the order of battle browser.

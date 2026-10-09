@@ -6,6 +6,7 @@ using OpenHOI3.Gfx;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -112,6 +113,7 @@ public partial class CMapView : Node2D
 	{
 		_counters = new CUnitCounters { Name = "Counters" };
 		_counters.Setup(_map, _state, gui, types, billboards, arrows);
+		_counters.Markers.Player = _player;
 		_textures = gui.Textures;
 	}
 
@@ -121,7 +123,23 @@ public partial class CMapView : Node2D
 	public int SelectedProvince => _selected;
 
 	/// <summary>The country being played, whose units a click on a port or an airfield picks.</summary>
-	public CCountryTag? Player { get; set; }
+	public CCountryTag? Player
+	{
+		get => _player;
+		set
+		{
+			_player = value;
+			if (_counters is not null)
+			{
+				_counters.Markers.Player = value;
+			}
+		}
+	}
+
+	private CCountryTag? _player;
+
+	/// <summary>Raised when the marker of a battle is clicked.</summary>
+	public event Action<CCombat>? CombatSelected;
 
 	/// <summary>
 	/// Marks the provinces a unit being placed may go in, or with null marks none.
@@ -430,6 +448,12 @@ public partial class CMapView : Node2D
 				// A counter is over the province it stands in, so it is asked first - but
 				// not while a unit is being placed, when the click is for the province.
 				Vector2 clicked = ScreenToMap(click.Position);
+				// A battle's marker is drawn over the counters, so it is asked before them.
+				if (_places is null && _counters?.Markers.At(clicked) is { } battle)
+				{
+					CombatSelected?.Invoke(battle);
+					break;
+				}
 				CUnit? unit = _places is null ? _counters?.Click(clicked) : null;
 				// Then a port or an airfield, which is how a fleet in port and an air unit
 				// at its base are picked: each click the next of the player's units there.
@@ -441,7 +465,11 @@ public partial class CMapView : Node2D
 				SelectUnit(unit);
 				if (unit is null)
 				{
-					Select(ProvinceAtScreen(click.Position));
+					// A second click on the selected province lets it go - ours, so that the
+					// readout can be put away - but not while a unit is being placed, when
+					// each click on one province places the next.
+					int province = ProvinceAtScreen(click.Position);
+					Select(_places is null && province == _selected ? 0 : province);
 				}
 				break;
 			case InputEventMouseMotion motion when _dragging:

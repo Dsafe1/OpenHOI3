@@ -14,6 +14,10 @@ public sealed class CBillboardTypes
 	/// <summary>The pointer beside the counter of a unit on the move.</summary>
 	public const string CounterArrow = "counter_arrow";
 
+	/// <summary>The marker of a battle, as it is from further off and from close by.</summary>
+	public const string CombatStatus = "combat_status";
+	public const string CombatStatusClose = "combat_status_close";
+
 	private static readonly HashSet<string> Keys = new(StringComparer.OrdinalIgnoreCase)
 	{
 		"name", "effectFile", "textureFile", "scale", "offset", "offset2", "noOfFrames", "font", "font_size",
@@ -81,6 +85,7 @@ public sealed class CBillboardTypes
 			Scale = node.GetFloat("scale", 1f),
 			Offset = node.GetFloat("offset"),
 			Frames = Math.Max(1, node.GetInt("noOfFrames", 1)),
+			Font = node.GetString("font"),
 		};
 	}
 }

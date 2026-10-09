@@ -48,9 +48,10 @@ public partial class CUnitCounters : Node2D
 	private CCounterKind? _near;
 	private CBillboardType? _pointer;
 	private Texture2D? _pointerTexture;
-	private Texture2D? _arrowTexture;
+	private readonly Dictionary<string, Texture2D?> _arrowTextures = new(StringComparer.OrdinalIgnoreCase);
 	private CHierarchyLayer _hierarchy = null!;
 	private CBuildingIcons _buildings = null!;
+	private CBattleMarkers _markers = null!;
 	private readonly Vector2[] _quad = new Vector2[4];
 	private readonly Vector2[] _quadPicture = new Vector2[4];
 
@@ -66,9 +67,11 @@ public partial class CUnitCounters : Node2D
 	public void Setup(CMap map, CGameState state, CGuiContext gui, CCounterTypes types, CBillboardTypes billboards,
 		CArrowTypes arrows)
 	{
-		if (arrows.Find(CArrowTypes.Move) is { TextureFile.Length: > 0 } arrow && gui.Textures.Exists(arrow.TextureFile))
+		foreach (string name in new[] { CArrowTypes.Move, CArrowTypes.Attack, CArrowTypes.Retreat })
 		{
-			_arrowTexture = gui.Textures.LoadFromGamePath(arrow.TextureFile);
+			_arrowTextures[name] = arrows.Find(name) is { TextureFile.Length: > 0 } arrow && gui.Textures.Exists(arrow.TextureFile)
+				? gui.Textures.LoadFromGamePath(arrow.TextureFile)
+				: null;
 		}
 		_pointer = billboards.Find(CBillboardTypes.CounterArrow);
 		if (_pointer is not null && _pointer.TextureFile.Length != 0 && gui.Textures.Exists(_pointer.TextureFile))
@@ -90,10 +93,34 @@ public partial class CUnitCounters : Node2D
 		_hierarchy = new CHierarchyLayer { Name = "Hierarchy" };
 		_hierarchy.Setup(map, gui);
 		AddChild(_hierarchy);
+
+		// Over the counters: the markers of the battles the player has a part in.
+		_markers = new CBattleMarkers { Name = "Battles" };
+		_markers.Setup(map, state, gui, billboards, PlaceOfUnit);
+		AddChild(_markers);
 	}
 
 	/// <summary>The buildings on the map, the ports and the airfields among them.</summary>
 	public CBuildingIcons Buildings => _buildings;
+
+	/// <summary>The markers of the battles being fought.</summary>
+	public CBattleMarkers Markers => _markers;
+
+	/// <summary>
+	/// Where a unit's counter stands on the middle copy of the map: its stack's place,
+	/// or its province's own point for a unit that has no counter.
+	/// </summary>
+	private Vector2 PlaceOfUnit(CUnit unit)
+	{
+		if (unit.Location <= 0 || unit.Location >= _map.ProvinceCount)
+		{
+			return Vector2.Zero;
+		}
+		CCounterKind? kind = _near ?? _far;
+		return kind is not null && CMapCounters.HasCounter(_state, unit)
+			? PlaceOf(new CMapStack(unit.Location, CMapCounters.StackOf(unit)), kind)
+			: PointOf(unit.Location);
+	}
 
 	public override void _Ready()
 	{
@@ -136,6 +163,7 @@ public partial class CUnitCounters : Node2D
 			_hierarchy.Unit = null;
 		}
 		_buildings.Refresh();
+		_markers.Refresh();
 		QueueRedraw();
 	}
 
@@ -148,7 +176,9 @@ public partial class CUnitCounters : Node2D
 		bool close = !CMapCamera.IsFarView(CameraHeight());
 		_buildings.Visible = close;
 		_hierarchy.Visible = close;
+		_markers.Visible = close;
 		_buildings.ViewChanged(view);
+		_markers.ViewChanged(zoom, view);
 		QueueRedraw();
 	}
 
@@ -231,11 +261,18 @@ public partial class CUnitCounters : Node2D
 	/// arrow's own picture laid along a curve from the unit's counter through the point
 	/// of each province ahead of it. The part already walked is taken from the filled
 	/// half of the picture and the rest from the outlined half. Only a selected unit has
-	/// one. See <c>docs/mechanics/movement.md</c>, section 7.
+	/// one. An attack and a retreat have pictures of their own. See
+	/// <c>docs/mechanics/movement.md</c>, section 7.
 	/// </summary>
 	private void DrawPath(CCounterKind kind)
 	{
-		if (_arrowTexture is null || _selected is not { IsMoving: true } unit || unit.Location <= 0)
+		if (_selected is not { IsMoving: true } unit || unit.Location <= 0)
+		{
+			return;
+		}
+		Texture2D? arrowTexture = _arrowTextures.GetValueOrDefault(CMapArrows.TypeOf(_state, unit))
+			?? _arrowTextures.GetValueOrDefault(CArrowTypes.Move);
+		if (arrowTexture is null)
 		{
 			return;
 		}
@@ -272,7 +309,7 @@ public partial class CUnitCounters : Node2D
 				_quadPicture[1] = new Vector2(b.Along, top);
 				_quadPicture[2] = new Vector2(b.Along, top + 0.5f);
 				_quadPicture[3] = new Vector2(a.Along, top + 0.5f);
-				DrawPrimitive(_quad, QuadColours, _quadPicture, _arrowTexture);
+				DrawPrimitive(_quad, QuadColours, _quadPicture, arrowTexture);
 			}
 		}
 	}

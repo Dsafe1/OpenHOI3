@@ -31,7 +31,7 @@ public static class CBattleTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck battle <install folder> [attacker tag] [defender tag] [seed]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck battle <install folder> [attacker tag] [defender tag] [seed] [part of the attacking unit's name]");
 			return 2;
 		}
 		var warnings = new List<string>();
@@ -60,7 +60,8 @@ public static class CBattleTrial
 			Console.WriteLine($"{attackers.Name} and {defenders.Name} were at peace and are now at war.");
 		}
 
-		if (FindPair(state, attackers, defenderTag) is not var (unit, target, enemy))
+		string named = args.Length > 5 ? args[5] : "";
+		if (FindPair(state, attackers, defenderTag, named) is not var (unit, target, enemy))
 		{
 			Console.WriteLine($"No division of {attackers.Name} stands next to one of {defenders.Name}.");
 			return 1;
@@ -80,10 +81,23 @@ public static class CBattleTrial
 
 		CCombat? combat = null;
 		bool reported = false;
+		string tactics = "";
 		for (int hour = 1; hour <= MostHours; hour++)
 		{
 			simulation.RunHours(1);
 			CCombat? now = CCombats.In(state, target);
+			// The two tactics, whenever a pick has changed either.
+			if (now is not null)
+			{
+				string picked = $"{now.Attacker.Tactic?.Name ?? "no tactic"} against {now.Defender.Tactic?.Name ?? "no tactic"}";
+				if (picked != tactics)
+				{
+					tactics = picked;
+					string countered = CCombatTactics.Counters(now.Attacker.Tactic, now.Defender.Tactic) ? ", the defender's countered"
+						: CCombatTactics.Counters(now.Defender.Tactic, now.Attacker.Tactic) ? ", the attacker's countered" : "";
+					Console.WriteLine($"{state.Date} {state.Hour}:00  tactics: {picked}{countered}");
+				}
+			}
 			if (combat is null && now is not null)
 			{
 				combat = now;
@@ -130,11 +144,13 @@ public static class CBattleTrial
 	}
 
 	/// <summary>The first division of a country with a division of its enemy's in a province next to it.</summary>
-	private static (CUnit Unit, int Target, CUnit Enemy)? FindPair(CGameState state, CCountry attackers, CCountryTag defender)
+	private static (CUnit Unit, int Target, CUnit Enemy)? FindPair(CGameState state, CCountry attackers, CCountryTag defender,
+		string named)
 	{
 		foreach (CUnit unit in attackers.UnitsInOrder())
 		{
-			if (unit.Kind != EUnitKind.Division || unit.SubUnits.Count == 0 || !CUnitTotals.CanFight(unit))
+			if (unit.Kind != EUnitKind.Division || unit.SubUnits.Count == 0 || !CUnitTotals.CanFight(unit)
+				|| !unit.Name.Contains(named, StringComparison.OrdinalIgnoreCase))
 			{
 				continue;
 			}

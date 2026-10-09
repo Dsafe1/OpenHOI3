@@ -24,4 +24,7 @@ public sealed class CBillboardType
 
 	/// <summary><c>noOfFrames</c>.</summary>
 	public int Frames { get; init; } = 1;
+
+	/// <summary><c>font</c>: what a billboard that carries a number writes it in, or an empty string.</summary>
+	public string Font { get; init; } = "";
 }

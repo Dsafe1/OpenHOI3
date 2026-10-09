@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -42,6 +43,7 @@ public partial class CSession : Node
 	private CAlerts? _alerts;
 	private CUnitPanel? _unitPanel;
 	private COrdersWindow? _orders;
+	private CCombatWindow? _combat;
 	private Label _provinceLabel = null!;
 	private int _shownProvince;
 	private bool _unitsMoved;
@@ -108,7 +110,9 @@ public partial class CSession : Node
 		AddChild(_mapView);
 
 		BuildHud(gui);
-		_mapView.ProvinceHovered += ShowProvince;
+		// The readout is of the province selected, not of the one under the mouse: it is
+		// long, and following the mouse it jumped about.
+		_mapView.ProvinceSelected += ShowProvince;
 
 		RunDeveloperArguments();
 	}
@@ -166,6 +170,17 @@ public partial class CSession : Node
 			_orders.Ordered += () => _ordered = true;
 			_orders.Toggled += () => ShowProvince(_shownProvince);
 
+			// The window of a battle, which a click on the battle's marker or on its row
+			// in a unit's panel brings up. It stands where the unit panel does, and a
+			// battle is selected in a unit's place: so the unit is let go.
+			_combat = new CCombatWindow();
+			_combat.Setup(gui, _simulation, Player);
+			layer.AddChild(_combat);
+			_combat.Toggled += () => ShowProvince(_shownProvince);
+			_combat.RetreatPressed += Retreat;
+			_unitPanel.CombatChosen += ShowCombat;
+			_mapView.CombatSelected += ShowCombat;
+
 			_topBar = new CTopBar();
 			_topBar.Setup(gui, _simulation, Player);
 			layer.AddChild(_topBar);
@@ -174,9 +189,13 @@ public partial class CSession : Node
 		}
 		_simulation.DayPassed += () => _unitsMoved = true;
 		_simulation.HourPassed += () => _hourPassed = true;
-		_mapView.UnitSelected += _ =>
+		_mapView.UnitSelected += unit =>
 		{
 			_orders?.Close();                                   // it was for the unit selected before
+			if (unit != 0)
+			{
+				_combat?.Close();                               // a unit is selected in the battle's place
+			}
 			ShowSelectedUnit();
 			ShowProvince(_shownProvince);
 		};
@@ -226,6 +245,50 @@ public partial class CSession : Node
 	private void ShowSelectedUnit()
 	{
 		_unitPanel?.ShowUnit(_deployMenu is { IsOpen: true } ? null : _mapView.Counters?.Selected);
+	}
+
+	/// <summary>
+	/// A battle was chosen, by its marker or by its row in a unit's panel: the unit
+	/// selected is let go and the battle's window comes up. The map stays where it is -
+	/// the maintainer's word, 2026-10-09 - where the original's row in a unit's panel
+	/// takes it to the province fought over.
+	/// </summary>
+	private void ShowCombat(CCombat combat)
+	{
+		if (_combat is null)
+		{
+			return;
+		}
+		_mapView.SelectUnit(null);
+		_combat.Open(combat);
+	}
+
+	/// <summary>
+	/// The battle window's retreat button: every unit of the player's in the battle is
+	/// told to stop. One that is attacking breaks its attack off; one that is not on the
+	/// march has nothing to stop.
+	/// </summary>
+	private void Retreat(CCombat combat)
+	{
+		if (Player is null)
+		{
+			return;
+		}
+		var units = new List<CUnit>(combat.Attacker.Units);
+		units.AddRange(combat.Defender.Units);
+		foreach (CUnit unit in units)
+		{
+			if (unit.Owner != Player.Tag || !unit.IsMoving)
+			{
+				continue;
+			}
+			var command = new CCancelMovementCommand(Player.Tag, unit.Id);
+			if (command.MayExecute(State))
+			{
+				_simulation.Post(command);
+				_ordered = true;
+			}
+		}
 	}
 
 	/// <summary>A row of the unit panel chose a unit, or none: it is selected, and the map shows where it is.</summary>
@@ -438,7 +501,8 @@ public partial class CSession : Node
 		}
 
 		// With the unit panel up the readout stands beside it.
-		_provinceLabel.Position = new Vector2(_unitPanel is { IsOpen: true } ? ReadoutBesidePanel : ReadoutAtEdge, 96);
+		bool panelUp = _unitPanel is { IsOpen: true } || _combat is { IsOpen: true };
+		_provinceLabel.Position = new Vector2(panelUp ? ReadoutBesidePanel : ReadoutAtEdge, 96);
 
 		CProvince province = State.Province(provinceId);
 		string text = $"{province.Name}  ({province.Id})";

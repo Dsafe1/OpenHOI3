@@ -43,7 +43,8 @@ route and the hourly march of a land unit, the panel of a selected unit and the 
 its hierarchy on the map, the orders that send a fleet or an air unit with the window they
 are given from, the distances by sea, the buildings on the map with the port and the
 airfield, and a land battle from the unit that starts it to the province that changes
-hands with what the ground, the night and the rest make of each unit in it, 951 tests - and it is
+hands with what the ground, the night and the rest make of each unit in it, the tactic each
+side picks, and its marker and its window, 997 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -132,11 +133,11 @@ because mods ship their own - BlackICE changes all 33 it shares with Their Fines
 adds 20.
 
 **Built 2026-10-08, as far as three screens and four windows need**, and on 2026-10-09
-the deploy menu and its alert, the panel of a selected unit, and the window of orders a
-fleet or an air unit is sent from.
+the deploy menu and its alert, the panel of a selected unit, the window of orders a
+fleet or an air unit is sent from, and the window of a battle.
 `docs/mechanics/interface.md` is the spec, and `topbar.md`, `countryviews.md`,
 `sliders.md`, `productionscreen.md`, `technologyscreen.md`, `builders.md`,
-`mapunits.md` and `unitpanel.md` the
+`mapunits.md`, `unitpanel.md` and `combatview.md` the
 screens', with `movement.md` for the right click that orders a land unit and
 `fleetsandair.md` for the one that asks a fleet or an air unit what it is to do;
 `lib/OpenHOI3.Content/Gui` reads the files, `src/Gui` builds windows, icons,
@@ -165,17 +166,33 @@ corner and is not stretched - no window built before had one (`interface.md`, se
 **A land battle - `landcombat.md` - is the least checked thing here: read out of the
 original, tried with `--click` and with `OpenHOI3.SaveCheck battle`, and set against
 nothing.** No save has a battle in it and the original's rolls cannot be made again, so its
-figures rest on the reading alone. The maintainer's word on 2026-10-09 covers three things:
+figures rest on the reading alone. The maintainer's word on 2026-10-09 covers five things:
 a week for two like divisions "seems right", an attack delay stops all movement but the walk
-into the province attacked, and occupied ground is striped (`map.md`, section 10). Who
-stands on a front and who comes up from reserve still want a look at the original. Only
+into the province attacked, occupied ground is striped (`map.md`, section 10), units that
+attack together fill the front until the width is used, and one that joins later waits in
+reserve and comes up by its chance. The order the first hour puts units on a front in, and
+the score between two reserves, are still the reading's alone. Only
 land units fight. Fifteen things bear on a unit each round - the ground, a river, forts, the
 night, experience, being dug in, crowding and the rest (`landcombat.md`, section 4) - and
-`CCombatModifiers` is where the eight that wait will go: leaders, tactics, encirclement and
-the others listed there. **Reading them again for this corrected the fact base**: the weather
-and the night are against a unit's attack and leave its defence alone. There is no weather
+`CCombatModifiers` is where the seven that wait will go: leaders, encirclement and
+the others listed there. **Each side picks a tactic** out of `common/combat_tactics.txt`
+(`landcombat.md`, section 11), and with no leaders it is nearly always the plainest.
+**Reading for this corrected the fact base twice**: the weather
+and the night are against a unit's attack and leave its defence alone, and of a tactic's two
+numbers the one written down as what counters it was its own. There is no weather
 yet, no diplomacy and no AI, so a war is given with `--war=GER:POL` and the enemy stands
 still.
+**A battle on screen - `combatview.md` - was built from a reading, checked with `--click`,
+and then set against three screenshots of a battle of his, which he has not seen ours
+beside**: the marker, the row in a unit's panel, the window. Its upper half lies on his to
+within a pixel, after the screenshots corrected four things about how the interface draws,
+all measured and none read (`interface.md`, sections 5 and 7): **a progress bar's picture
+is drawn upside down** - one of the unit panel's two bars had been the wrong way round
+since it was built - **a turned flag turns about its own middle** where a turned bar turns
+about its corner, **a round shield cuts its flag to a disc**, and **a name too long for a
+`fixedsize` box ends in three dots**. The number on the marker, the bar and the marker's
+colour are one figure, the attacker's share (`combatview.md`, section 6), and it read 6 on
+his screenshot and on ours for the same kind of fight.
 **The four windows a unit is ordered
 from - `builders.md` - have been tried by hand once and never measured against the
 original.** That try found seven buttons that could not be pressed in windows every
@@ -265,7 +282,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 107 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 108 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -301,7 +318,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 2944-address, 311-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 2980-address, 315-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -398,7 +415,7 @@ beside the repository.
   no tags given, who are at war on the start date. Run it after touching `lib/OpenHOI3.Sim/Combat`.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night and the game's generator of chance carry 951 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows and which arrow a unit has carry 997 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

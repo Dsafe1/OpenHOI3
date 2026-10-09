@@ -383,14 +383,20 @@ with what is left over carried into the next leg as the march itself carries it.
   3.4 long, which is the picture's shaft and head on a band 4 wide. *Ours:* one more cut is
   made at the very end, so that the tip is always whole; the original's last cut is a
   twentieth of a leg short and its tip is whole on the screenshot all the same.
-  The original has other arrows for an attack, a retreat, a strategic redeployment and a
-  landing, which wait for those.
+- **An attack and a retreat have arrows of their own**, drawn the same way with another
+  picture: `retreatArrow` for a unit falling back, which is asked first, and `attackArrow`
+  **where an enemy of the unit's country holds the next province of its way** - whether or
+  not anybody stands there, so a walk into undefended enemy ground is drawn as an attack.
+  `confirmed` (`reversing/findings/FINDINGS-combatview.md`, section 9); the attack's was set
+  beside the maintainer's screenshot of one on 2026-10-09 (`combatview.md`, section 9). The
+  original has two more, for a strategic redeployment and a landing, which wait for those.
 - **The unit panel** (`unitpanel.md`) says what a selected unit is doing - "Move to" the
   next province of its way - shows its speed, marks it as on the march, and has the
   button that halts it.
 - The readout beside the panel names where the selected unit's way ends and when it will
   be there. The original says that in a tooltip; the readout is scaffolding and goes when
-  there are tooltips.
+  there are tooltips. It is the readout of a selected province, and is not there without
+  one: select the province, then the unit.
 
 ## What is not built
 

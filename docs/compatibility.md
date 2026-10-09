@@ -148,6 +148,23 @@ settings." **Until then** is his word: this one ends when the settings are built
 
 `docs/mechanics/mapunits.md`, section 2.
 
+## 8. Opening a battle's window does not move the map
+
+**Decided** 2026-10-09 by the maintainer, on trying the window: "Please dont center on the
+province when opening the battle screen." He was not told at the time that the original's
+row does; that was put to him afterwards.
+
+| | |
+| --- | --- |
+| the original | a click on a battle's row in a unit's panel selects the battle and puts the province fought over in the middle of the map. What a click on the battle's marker does was not read |
+| here | the row and the marker both bring the window up, and the map stays where it is |
+| the difference today | a player who used the row to find a battle far away has to go there himself |
+| a mod loses | nothing: no file says it |
+| why | the maintainer found the jump unwanted; a battle opened by its marker is on screen already |
+| to undo | one line, where the session opens the window - and it could be the row alone |
+
+`docs/mechanics/combatview.md`, section 1; `reversing/findings/FINDINGS-combatview.md`.
+
 ---
 
 ## Stricter, with the same meaning

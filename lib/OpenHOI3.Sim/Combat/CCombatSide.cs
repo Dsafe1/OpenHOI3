@@ -36,6 +36,9 @@ public sealed class CCombatSide
 	/// </summary>
 	public bool IsFrontSetUp { get; set; }
 
+	/// <summary>The tactic this side fights by, or null where it has none. See <see cref="CCombatTactics"/>.</summary>
+	public CCombatTactic? Tactic { get; set; }
+
 	/// <summary>This hour's roll, from 0 to 9. Rolled every hour; nothing built reads it.</summary>
 	public int Dice { get; set; }
 

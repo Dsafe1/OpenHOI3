@@ -53,11 +53,38 @@ public partial class CGuiTextBox : CGuiObject
 			{
 				foreach (string line in Wrap(paragraph))
 				{
-					_lines.Add(CColouredText.Parse(line));
+					_lines.Add(CColouredText.Parse(Cut(line)));
 				}
 			}
 			QueueRedraw();
 		}
+	}
+
+	/// <summary>What a line too long for a box of fixed size ends in.</summary>
+	private const string CutMark = "...";
+
+	/// <summary>
+	/// A line too wide for a box that says <c>fixedsize = yes</c> is cut, and ends in
+	/// three dots: as many of its letters as leave the dots room. Seen on a screenshot
+	/// of the original's battle window, where a division's name ends that way in the
+	/// middle of a word; the routine was not read, so how the original measures the room
+	/// is not known. A line with a colour escape in it is left alone.
+	/// </summary>
+	private string Cut(string line)
+	{
+		var type = (CGuiTextBoxType)GuiType;
+		float inside = type.MaxWidth - 2f * type.BorderSize.X;
+		if (!type.FixedSize || _font is null || inside <= 0f || line.Contains(CColouredText.Escape)
+			|| _font.Width(line) <= inside)
+		{
+			return line;
+		}
+		int kept = line.Length;
+		while (kept > 0 && _font.Width(line[..kept] + CutMark) > inside)
+		{
+			kept--;
+		}
+		return line[..kept] + CutMark;
 	}
 
 	/// <summary>

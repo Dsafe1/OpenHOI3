@@ -11,8 +11,14 @@ namespace OpenHOI3.Content.Map;
 /// </summary>
 public sealed class CArrowTypes
 {
-	/// <summary>The arrow of a unit marching. The original has others for an attack, a retreat and a redeployment.</summary>
+	/// <summary>The arrow of a unit marching.</summary>
 	public const string Move = "moveArrow";
+
+	/// <summary>The arrow of a unit whose next province an enemy holds.</summary>
+	public const string Attack = "attackArrow";
+
+	/// <summary>The arrow of a unit falling back. The original has two more, for a redeployment and a landing.</summary>
+	public const string Retreat = "retreatArrow";
 
 	private static readonly HashSet<string> Keys = new(StringComparer.OrdinalIgnoreCase)
 	{

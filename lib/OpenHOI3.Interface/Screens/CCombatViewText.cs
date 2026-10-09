@@ -1,0 +1,299 @@
+using System;
+using System.Collections.Generic;
+using OpenHOI3.Interface.Map;
+using OpenHOI3.Interface.Text;
+using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Units;
+
+namespace OpenHOI3.Interface.Screens;
+
+/// <summary>
+/// What the original shows of a land battle: its name, the share of the two sides'
+/// strength that is the attacker's - which is the bar, the number on the map's marker
+/// and the marker's colour - the width, whose tactic counters whose, the modifiers in
+/// play, and each side's labels. See <c>docs/mechanics/combatview.md</c>.
+/// </summary>
+public static class CCombatViewText
+{
+	public const string BattleOfKey = "BATTLE_OF";
+	public const string CommittedKey = "COMMITED_LABEL";
+	public const string ReservesKey = "RESERVES_LABEL";
+	public const string NoCommanderKey = "NO_COMMANDER";
+
+	/// <summary>What a modifier's icon is called: this and the modifier's key.</summary>
+	public const string ModifierSprite = "CMOD_";
+
+	/// <summary>What a terrain's picture is called: this and the terrain's name.</summary>
+	public const string TerrainSprite = "GFX_terrainimg_";
+
+	/// <summary>The sprite whose shape a province's own picture is drawn in.</summary>
+	public const string ProvincePictureShape = "GFX_terrainimg_plains";
+
+	/// <summary>The sprite whose shape a tactic's picture is drawn in.</summary>
+	public const string TacticPictureShape = "GFX_empty_tactics";
+
+	/// <summary>The frames of the arrow between the two tactics.</summary>
+	public const int NobodyCountered = 1;
+	public const int DefenderCountered = 2;
+	public const int AttackerCountered = 3;
+
+	/// <summary>The frames of the marker on the map: how the battle goes for whoever looks.</summary>
+	public const int MarkerGood = 0;
+	public const int MarkerEven = 1;
+	public const int MarkerBad = 2;
+
+	/// <summary>The shares, in thousandths, above which the marker changes colour.</summary>
+	public const long HighShare = 660;
+	public const long LowShare = 330;
+
+	private const long Scale = CFixedPoint.Scale;
+
+	/// <summary>
+	/// The modifiers in the order their icons stand in, each with the key the original
+	/// knows it by. The ones nothing here works out yet are left out.
+	/// </summary>
+	private static readonly (ECombatModifier Kind, string Key)[] ModifierKeys =
+	{
+		(ECombatModifier.Dissent, "BM_DISSENT"),
+		(ECombatModifier.Envelopment, "BM_ENVELOPMENT_PENALTY"),
+		(ECombatModifier.Stacking, "BM_DIVISION_PENALTY"),
+		(ECombatModifier.Experience, "BM_EXPERIENCE"),
+		(ECombatModifier.TerritorialPride, "BM_TERRITORIAL_PRIDE"),
+		(ECombatModifier.DugIn, "BM_DUGIN_MODIFIER"),
+		(ECombatModifier.Amphibious, "BM_AMPH_PENALTY"),
+		(ECombatModifier.Fort, "BM_FORT_MODIFIER"),
+		(ECombatModifier.River, "BM_RIVER_PENALTY"),
+		(ECombatModifier.LackOfSupplies, "BM_LACK_OF_SUPPLIES"),
+		(ECombatModifier.MultipleCombats, "BM_MULTIPLE"),
+		(ECombatModifier.CombinedArms, "BM_COMBINED_ARMS"),
+		(ECombatModifier.Terrain, "BM_TERRAIN"),
+		(ECombatModifier.Weather, "BM_WEATHER"),
+		(ECombatModifier.Night, "BM_NIGHT_MODIFIER"),
+	};
+
+	// ---- the battle
+
+	/// <summary>A battle's name: "Battle of", a space, and the name of its province.</summary>
+	public static string Name(Func<string, string> localise, CGameState state, CCombat combat)
+	{
+		return localise(BattleOfKey) + " " + state.Province(combat.Province).Name;
+	}
+
+	/// <summary>
+	/// What a side is worth to the eye: for each brigade of every unit on it, front or
+	/// reserve, its organisation by its strength, by both of what the hour's
+	/// circumstances make of its unit, and by a tenth of its two attacks and its
+	/// toughness - its defensiveness for a defender - where that is more than one.
+	/// </summary>
+	public static long Worth(CCombatSide side)
+	{
+		long sum = 0;
+		foreach (CUnit unit in side.Units)
+		{
+			long circumstances = unit.CombatAttack.Raw * unit.CombatDefence.Raw / Scale;
+			foreach (CSubUnit subUnit in unit.SubUnits)
+			{
+				long body = subUnit.Organisation.Raw * subUnit.Strength.Raw / Scale;
+				long arms = (subUnit.Stats[CUnitTotals.SoftAttack].Raw + subUnit.Stats[CUnitTotals.HardAttack].Raw
+					+ subUnit.Stats[side.IsAttacker ? CSubUnitStats.Toughness : CUnitTotals.Defensiveness].Raw)
+					* Scale / (10 * Scale);
+				long factor = arms > Scale ? circumstances * arms / Scale : circumstances;
+				sum += body * factor / Scale;
+			}
+		}
+		return sum;
+	}
+
+	/// <summary>The attacker's share of the two sides' worth, in thousandths. Neither side counts for less than one.</summary>
+	public static long Share(CCombat combat)
+	{
+		long attacker = Math.Max(Worth(combat.Attacker), 1);
+		long defender = Math.Max(Worth(combat.Defender), 1);
+		return attacker * Scale / (attacker + defender);
+	}
+
+	/// <summary>How full the bar is, in whole hundredths: the attacker's share.</summary>
+	public static int Progress(long share)
+	{
+		return (int)(share * 100 / Scale);
+	}
+
+	/// <summary>The number on the map's marker: the attacker's share as a percentage with nothing after the point.</summary>
+	public static string MarkerText(long share)
+	{
+		return CNumberText.Format(new CFixedPoint(share * 100), 0);
+	}
+
+	/// <summary>
+	/// The marker's frame: good, even or bad for the one looking. A big share for the
+	/// attacker is good for him and bad for a defender.
+	/// </summary>
+	public static int MarkerFrame(long share, bool viewerDefends)
+	{
+		if (share > HighShare)
+		{
+			return viewerDefends ? MarkerBad : MarkerGood;
+		}
+		if (share > LowShare)
+		{
+			return MarkerEven;
+		}
+		return viewerDefends ? MarkerGood : MarkerBad;
+	}
+
+	/// <summary>Whether a country fights on the defender's side of a battle.</summary>
+	public static bool Defends(CCombat combat, CCountryTag country)
+	{
+		return combat.Defender.Countries.Contains(country);
+	}
+
+	/// <summary>Whether a country has a part in a battle at all. The marker is only there for one that has.</summary>
+	public static bool TakesPart(CCombat combat, CCountryTag country)
+	{
+		return combat.Attacker.Countries.Contains(country) || combat.Defender.Countries.Contains(country);
+	}
+
+	/// <summary>The battle's width as a whole number.</summary>
+	public static string Width(CGameState state, CCombat combat)
+	{
+		return (CFrontLine.Width(state, combat).Raw / Scale).ToString(System.Globalization.CultureInfo.InvariantCulture);
+	}
+
+	/// <summary>The frame of the arrow between the two tactics. Where each counters the other the attacker's is the one shown.</summary>
+	public static int IndicatorFrame(CCombat combat)
+	{
+		if (CCombatTactics.Counters(combat.Attacker.Tactic, combat.Defender.Tactic))
+		{
+			return DefenderCountered;
+		}
+		return CCombatTactics.Counters(combat.Defender.Tactic, combat.Attacker.Tactic) ? AttackerCountered : NobodyCountered;
+	}
+
+	/// <summary>
+	/// The sprites of the modifiers in play on either side this hour, each once, in the
+	/// order their icons stand in.
+	/// </summary>
+	public static List<string> Modifiers(CCombat combat)
+	{
+		var inPlay = new HashSet<ECombatModifier>();
+		foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
+		{
+			foreach (CUnit unit in side.Units)
+			{
+				foreach (CCombatModifier modifier in unit.CombatModifiers)
+				{
+					inPlay.Add(modifier.Kind);
+				}
+			}
+		}
+		var sprites = new List<string>();
+		foreach ((ECombatModifier kind, string key) in ModifierKeys)
+		{
+			if (inPlay.Contains(kind))
+			{
+				sprites.Add(ModifierSprite + key);
+			}
+		}
+		return sprites;
+	}
+
+	/// <summary>The file of a province's own picture, which few provinces have.</summary>
+	public static string ProvincePicture(CCombat combat)
+	{
+		return "gfx/interface/prov_pictures/provimg_" + combat.Province.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".dds";
+	}
+
+	/// <summary>The sprite of the battle's terrain, or an empty string where the province has none.</summary>
+	public static string TerrainPicture(CGameState state, CCombat combat)
+	{
+		CProvince province = state.Province(combat.Province);
+		return province.Terrain is { } terrain ? TerrainSprite + terrain.Name : "";
+	}
+
+	// ---- a side
+
+	/// <summary>The line over a side's front: how many units stand on it and how much of the width they take.</summary>
+	public static string CommittedLabel(Func<string, string> localise, CGameState state, CCombatSide side)
+	{
+		long width = 0;
+		foreach (CUnit unit in side.Front)
+		{
+			width += CFrontLine.UnitWidth(state, unit).Raw;
+		}
+		return CTextTemplate.Fill(localise(CommittedKey),
+			("COUNT", side.Front.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+			("WIDTH", (width / Scale).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+	}
+
+	/// <summary>The line over a side's reserves.</summary>
+	public static string ReservesLabel(Func<string, string> localise, CCombatSide side)
+	{
+		return CTextTemplate.Fill(localise(ReservesKey),
+			("COUNT", side.Reserves.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+	}
+
+	/// <summary>
+	/// The name under a side's portrait. Leaders are not built, so it is the original's
+	/// words for a side with none - and nothing for a side with no country left.
+	/// </summary>
+	public static string LeaderName(Func<string, string> localise, CCombatSide side)
+	{
+		return side.Countries.Count > 0 ? localise(NoCommanderKey) : "";
+	}
+
+	/// <summary>
+	/// Whose flag a side flies: its first country's, or with none the country that
+	/// holds the province fought over.
+	/// </summary>
+	public static CCountryTag? Flag(CGameState state, CCombatSide side)
+	{
+		return side.Countries.Count > 0 ? side.Countries[0] : state.Province(side.Combat.Province).Controller;
+	}
+
+	/// <summary>A side's tactic by its name in the player's language, or an empty string for none.</summary>
+	public static string TacticName(Func<string, string> localise, CCombatSide side)
+	{
+		return side.Tactic is { } tactic ? localise(tactic.Name) : "";
+	}
+
+	/// <summary>The file of a side's tactic's picture, or an empty string for none.</summary>
+	public static string TacticPicture(CCombatSide side)
+	{
+		return side.Tactic is { Picture.Length: > 0 } tactic ? "gfx/pictures/tactics/" + tactic.Picture + ".dds" : "";
+	}
+
+	// ---- a unit in a list
+
+	/// <summary>The sprite of a unit's picture in a list of the window, or an empty string.</summary>
+	public static string UnitSprite(CUnit unit)
+	{
+		return CCounterText.Sprite(CCounterText.ListSprite, unit);
+	}
+
+	/// <summary>The frame of a unit's width strip, by its brigades' widths added up.</summary>
+	public static int UnitWidthFrame(CUnit unit)
+	{
+		return CUnitPanelText.WidthFrame(CUnitPanelText.Width(unit));
+	}
+
+	/// <summary>A unit's strength bar, in whole hundredths.</summary>
+	public static int StrengthBar(CUnit unit)
+	{
+		return CUnitPanelText.StrengthBar(unit);
+	}
+
+	/// <summary>A unit's organisation bar, in whole hundredths.</summary>
+	public static int OrganisationBar(CGameState state, CUnit unit)
+	{
+		return state.Country(unit.Owner) is { } owner ? CUnitPanelText.OrganisationBar(owner, unit) : 0;
+	}
+
+	/// <summary>Where a unit is: the name of its province.</summary>
+	public static string Location(CGameState state, CUnit unit)
+	{
+		return CUnitPanelText.Location(state, unit);
+	}
+}

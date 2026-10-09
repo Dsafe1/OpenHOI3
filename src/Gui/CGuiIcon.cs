@@ -24,6 +24,9 @@ public partial class CGuiIcon : CGuiObject
 	private CGuiButton? _pressed;
 	private bool _pressedItself;
 
+	/// <summary>How far right of its own middle a turned flag's turning point is. Measured.</summary>
+	private const float ShieldPivotShift = 1.5f;
+
 	/// <summary>Raised when the icon itself is clicked: the mouse went down and came up on it, over no button.</summary>
 	public event Action? Clicked;
 
@@ -44,17 +47,35 @@ public partial class CGuiIcon : CGuiObject
 
 		Place(type, Vector2.Zero);
 		Use(context.Sprites.Find(type.Sprite), type.Sprite);
-		// A rotation turns the icon about the middle of its lower left pixel, and a
-		// positive quarter stands a bar on its end, running upwards: one w long and h high
-		// at (x, y) then covers x - h + 1 to x + 1 across and y + h - w to y + h down.
-		// Measured, not read: against a screenshot of the original's unit panel beside
-		// this one's, in the header and in a brigade's row.
-		if (type.Rotation != 0f)
-		{
-			PivotOffset = new Vector2(0.5f, OffsetBottom - OffsetTop - 0.5f);
-			Rotation = -type.Rotation;
-		}
+		Turn();
 		MouseExited += () => HoverOver(null);
+	}
+
+	/// <summary>
+	/// Turns the icon by its type's rotation, about a point that depends on what it
+	/// draws. Both rules are measured on screenshots of the original and neither is read.
+	///
+	/// A bar turns about the middle of its lower left pixel, and a positive quarter
+	/// stands it on its end, running upwards: one w long and h high at (x, y) then covers
+	/// x - h + 1 to x + 1 across and y + h - w to y + h down - the unit panel's bars, in
+	/// the header and in a brigade's row.
+	///
+	/// A flag turns about its own middle, a pixel and a half to the right of it: the
+	/// battle window's two, a negative quarter, 66 by 51 at (x, y), cover x + 9 to
+	/// x + 60 across and y - 8 to y + 58 down.
+	/// </summary>
+	private void Turn()
+	{
+		var type = (CGuiIconType)GuiType;
+		if (type.Rotation == 0f)
+		{
+			return;
+		}
+		var size = new Vector2(OffsetRight - OffsetLeft, OffsetBottom - OffsetTop);
+		PivotOffset = _sprite is { IsMaskedShield: true }
+			? size / 2f + new Vector2(ShieldPivotShift, 0f)
+			: new Vector2(0.5f, size.Y - 0.5f);
+		Rotation = -type.Rotation;
 	}
 
 	/// <summary>
@@ -258,6 +279,7 @@ public partial class CGuiIcon : CGuiObject
 		{
 			var type = (CGuiIconType)GuiType;
 			Place(type, FrameSize(_texture, 1) * type.Scale);
+			Turn();                                          // about the middle of the size it has now
 		}
 		ShowTexture(_texture);
 	}
@@ -278,6 +300,10 @@ public partial class CGuiIcon : CGuiObject
 		{
 			return;
 		}
+		// A bar's two pictures are drawn upside down. Measured, not read: the plate under
+		// a unit of the battle window has its light band at the top where its picture
+		// has it at the bottom, and a standing bar of the unit panel is bright on its left.
+		DrawSetTransform(new Vector2(0f, Size.Y), 0f, new Vector2(1f, -1f));
 		float filled = Mathf.Round(Size.X * _progress / 100f);
 		if (_texture is not null && filled > 0f)
 		{
@@ -290,5 +316,6 @@ public partial class CGuiIcon : CGuiObject
 			DrawTextureRectRegion(_rest, new Rect2(filled, 0f, Size.X - filled, Size.Y),
 				new Rect2(from, 0f, _rest.GetWidth() - from, _rest.GetHeight()));
 		}
+		DrawSetTransform(Vector2.Zero, 0f, Vector2.One);
 	}
 }

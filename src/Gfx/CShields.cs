@@ -10,12 +10,12 @@ namespace OpenHOI3.Gfx;
 /// Builds a country's flag as a <c>maskedShieldType</c> sprite shows it.
 ///
 /// The game declares these with two textures and a shader that composites a country's
-/// flag between them. Both masks the base game ships - the thin shield's and the top
-/// bar flag's - are solid white in every channel, so they change nothing, and the other
-/// texture carries the frame or the shading in its alpha. That reduces the whole thing
-/// to scaling the flag and blending that texture over it, which is done once per
-/// country and sprite on the CPU and cached rather than needing a shader. A mask that
-/// did cut something would be ignored: <c>docs/mechanics/interface.md</c>, section 5.
+/// flag between them: the flag takes the mask's size and its alpha, and the other
+/// texture, which carries the frame or the shading in its own alpha, goes over it. The
+/// thin shield's mask and the top bar flag's are solid, so there it comes to scaling
+/// the flag and blending the frame over it; the small round shield's mask is a disc.
+/// It is done once per country and sprite on the CPU and cached rather than needing a
+/// shader: <c>docs/mechanics/interface.md</c>, section 5.
 /// </summary>
 public sealed class CShields
 {
@@ -58,16 +58,47 @@ public sealed class CShields
 			return ImageTexture.CreateFromImage(flag);
 		}
 
-		// The overlay sets the size. Flags are 93x64; the thin shield is 66x51, so the
-		// flag is squeezed to fit and the frame's border hides where that shows.
-		if (flag.GetSize() != overlay.GetSize())
+		// The mask sets the flag's size and cuts it: the flag is squeezed to the mask's
+		// size and is as see-through as the mask is at each point, as the original's own
+		// shader has it. The thin shield's mask is its overlay's size and cuts nothing;
+		// the small round one's is 40 by 26 with a disc in it, under an overlay of 32 by
+		// 32. The flag goes in the middle of the overlay, which sets the picture's size.
+		Image? mask = sprite.MaskFile.Length == 0 ? null : Mask(sprite);
+		Vector2I flagSize = mask?.GetSize() ?? overlay.GetSize();
+		if (flag.GetSize() != flagSize)
 		{
-			flag.Resize(overlay.GetWidth(), overlay.GetHeight(), Image.Interpolation.Bilinear);
+			flag.Resize(flagSize.X, flagSize.Y, Image.Interpolation.Bilinear);
+		}
+		if (mask is not null)
+		{
+			for (int y = 0; y < flagSize.Y; y++)
+			{
+				for (int x = 0; x < flagSize.X; x++)
+				{
+					Color colour = flag.GetPixel(x, y);
+					colour.A = mask.GetPixel(x, y).A;
+					flag.SetPixel(x, y, colour);
+				}
+			}
 		}
 		Image composed = Image.CreateEmpty(overlay.GetWidth(), overlay.GetHeight(), false, Image.Format.Rgba8);
-		composed.BlitRect(flag, new Rect2I(Vector2I.Zero, flag.GetSize()), Vector2I.Zero);
+		Vector2I at = (overlay.GetSize() - flagSize) / 2;
+		composed.BlitRect(flag, new Rect2I(Vector2I.Zero, flagSize), at);
 		composed.BlendRect(overlay, new Rect2I(Vector2I.Zero, overlay.GetSize()), Vector2I.Zero);
 		return ImageTexture.CreateFromImage(composed);
+	}
+
+	private Image? Mask(CSpriteType sprite)
+	{
+		string key = sprite.Name + "/mask";
+		if (_overlays.TryGetValue(key, out Image? cached))
+		{
+			return cached;
+		}
+		Image? mask = _textures.LoadImage(sprite.MaskFile);
+		mask?.Convert(Image.Format.Rgba8);
+		_overlays[key] = mask;
+		return mask;
 	}
 
 	private Image? Overlay(CSpriteType sprite)

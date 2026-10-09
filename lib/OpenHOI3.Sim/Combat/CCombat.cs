@@ -45,8 +45,8 @@ public sealed class CCombat
 
 	/// <summary>
 	/// What the two sides' tactics add to the battle's width, to the damage of each
-	/// side's hits, and to how fast an attacker's delay runs down. Nothing picks a
-	/// tactic yet, so all four are nothing.
+	/// side's hits, and to how fast an attacker's delay runs down. Written by
+	/// <see cref="CCombatTactics.SumEffects"/> whenever tactics are picked.
 	/// </summary>
 	public CFixedPoint TacticWidth { get; set; }
 
