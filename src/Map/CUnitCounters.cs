@@ -55,6 +55,7 @@ public partial class CUnitCounters : Node2D
 	private CBillboardType? _pointer;
 	private Texture2D? _pointerTexture;
 	private Texture2D? _arrowTexture;
+	private CHierarchyLayer _hierarchy = null!;
 	private readonly Vector2[] _quad = new Vector2[4];
 	private readonly Vector2[] _quadPicture = new Vector2[4];
 
@@ -85,6 +86,10 @@ public partial class CUnitCounters : Node2D
 		_far = CCounterKind.Create(gui, types.Find(CCounterTypes.Far), CCounterText.FarSprite, carriesName: false);
 		_near = CCounterKind.Create(gui, types.Find(CCounterTypes.Near), CCounterText.NearSprite, carriesName: true);
 		TextureFilter = TextureFilterEnum.LinearWithMipmaps;
+
+		_hierarchy = new CHierarchyLayer { Name = "Hierarchy" };
+		_hierarchy.Setup(map, gui);
+		AddChild(_hierarchy);
 	}
 
 	public override void _Ready()
@@ -99,8 +104,19 @@ public partial class CUnitCounters : Node2D
 		set
 		{
 			_selected = value;
+			_hierarchy.Unit = value;
 			QueueRedraw();
 		}
+	}
+
+	/// <summary>
+	/// Whether the selected unit's hierarchy is drawn on the map: the original's
+	/// <c>render_hierarchy</c> setting. Nothing keeps it between games yet.
+	/// </summary>
+	public bool HierarchyShown
+	{
+		get => _hierarchy.Shown;
+		set => _hierarchy.Shown = value;
 	}
 
 	/// <summary>Works out again which units are where. Call it when one has been placed, made or moved.</summary>
@@ -112,6 +128,7 @@ public partial class CUnitCounters : Node2D
 		if (_selected is not null && !CMapCounters.HasCounter(_state, _selected))
 		{
 			_selected = null;
+			_hierarchy.Unit = null;
 		}
 		QueueRedraw();
 	}
@@ -313,6 +330,15 @@ public partial class CUnitCounters : Node2D
 			{
 				DrawTextureRect(texture, rect, false);
 			}
+			// The ring: white on the selected unit's counter, and the counter type's second
+			// colour on that of every unit under it, each pulsing.
+			ECounterRing worn = CMapCounters.RingOf(counter.Unit, _selected);
+			if (worn != ECounterRing.None && kind.Ring is { } ring)
+			{
+				float strength = 0.5f + 0.5f * Mathf.Abs(Mathf.Sin((float)_time * PulseSpeed));
+				Color colour = worn == ECounterRing.Under ? kind.Type.Color2.ToGodot() : Colors.White;
+				DrawTextureRect(ring, rect, false, new Color(colour.R * strength, colour.G * strength, colour.B * strength));
+			}
 			if (stack.Kind == EMapStack.Moving)
 			{
 				DrawPointer(kind, counter, rect);
@@ -341,11 +367,6 @@ public partial class CUnitCounters : Node2D
 				float name = CCounterLayout.NameHeight(kind.Type, counter.Size);
 				start = CCounterLayout.NamePlace(kind.Type, counter.Size);
 				DrawText(kind, counter.Name, new Vector2(middle.X + start.X, middle.Y - start.Y), name, Mathf.Pi / 2f);
-			}
-			if (ReferenceEquals(counter.Unit, _selected) && kind.Ring is { } ring)
-			{
-				float strength = 0.5f + 0.5f * Mathf.Abs(Mathf.Sin((float)_time * PulseSpeed));
-				DrawTextureRect(ring, rect, false, new Color(strength, strength, strength));
 			}
 		}
 	}

@@ -15,6 +15,32 @@ public static class CMapCounters
 	public const int MostFanned = 6;
 
 	/// <summary>
+	/// The ring a unit's counter wears while another unit is selected, or none is: the
+	/// selected unit's own, and one of another colour for every unit under it, however
+	/// far down. The original gives the rings out when a unit is selected and takes
+	/// them back when it no longer is; here they follow the order of battle as it is.
+	/// </summary>
+	public static ECounterRing RingOf(CUnit unit, CUnit? selected)
+	{
+		if (selected is null)
+		{
+			return ECounterRing.None;
+		}
+		if (ReferenceEquals(unit, selected))
+		{
+			return ECounterRing.Selected;
+		}
+		for (CUnit? above = unit.Parent; above is not null; above = above.Parent)
+		{
+			if (ReferenceEquals(above, selected))
+			{
+				return ECounterRing.Under;
+			}
+		}
+		return ECounterRing.None;
+	}
+
+	/// <summary>
 	/// Whether a unit is shown by a counter of its own. A fleet in port and an air unit
 	/// at its base are not: the original shows those by the port and the airfield.
 	/// </summary>

@@ -1,0 +1,89 @@
+using System;
+using OpenHOI3.Gui;
+using OpenHOI3.Interface.Screens;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Units;
+
+namespace OpenHOI3.Screens;
+
+/// <summary>
+/// The header of a selected unit's panel: the <c>unitpanel</c> window, with the unit's
+/// name, the picture of its kind and the mark of its size, what it is doing, its men,
+/// its leader, and its organisation and its strength as two bars. The original makes a
+/// row of the list of several selected units of the same window. See
+/// <c>docs/mechanics/unitpanel.md</c>, section 3.
+/// </summary>
+public sealed class CUnitHeaderEntry : CUnitPanelEntry
+{
+	private readonly CGuiContext _context;
+	private readonly CCountry _owner;
+	private readonly CUnit _unit;
+
+	private readonly CGuiTextBox? _name;
+	private readonly CGuiTextBox? _strength;
+	private readonly CGuiTextBox? _leader;
+	private readonly CGuiIcon? _activity;
+	private readonly CGuiIcon? _size;
+	private readonly CGuiIcon? _organisationBar;
+	private readonly CGuiIcon? _strengthBar;
+
+	/// <summary>Raised when the button that takes the unit out of the selection is pressed.</summary>
+	public event Action? Deselected;
+
+	private CUnitHeaderEntry(CGuiWindow window, CGuiContext context, CCountry owner, CUnit unit) : base(window)
+	{
+		_context = context;
+		_owner = owner;
+		_unit = unit;
+
+		_name = window.FindTextBox("unitname");
+		_strength = window.FindTextBox("unitstrength");
+		_leader = window.FindTextBox("unitleader");
+		_activity = window.FindIcon("unit_activity");
+		_size = window.FindIcon("counter_size");
+		_organisationBar = window.FindIcon("org_bar");
+		_strengthBar = window.FindIcon("str_bar");
+
+		// What does not change while the unit is the one shown.
+		string sprite = CDeployMenuText.CounterSprite(unit);
+		if (sprite.Length != 0)
+		{
+			window.FindIcon("counter_type")?.SetSprite(sprite);
+		}
+		Show(window.FindIcon("exp_force"), false);               // no unit is an expeditionary force yet
+
+		if (window.FindButton("remove_unit_from_selection_button") is { } remove)
+		{
+			remove.Pressed += () => Deselected?.Invoke();
+		}
+		// With one unit selected the original disables and hides this one.
+		if (window.FindButton("only_unit_from_selection_button") is { } only)
+		{
+			only.Disabled = true;
+			only.Visible = false;
+		}
+		// Leaders are not built: nothing to choose from.
+		if (window.FindButton("leader_button") is { } leaderButton)
+		{
+			leaderButton.Disabled = true;
+		}
+		Update();
+	}
+
+	public static CUnitHeaderEntry? Create(CGuiContext context, CCountry owner, CUnit unit)
+	{
+		CGuiWindow? window = CGuiWindow.CreateEntry(context, "unitpanel");
+		return window is null ? null : new CUnitHeaderEntry(window, context, owner, unit);
+	}
+
+	public override void Update()
+	{
+		Set(_name, _unit.Name);
+		_size?.SetFrame(CDeployMenuText.SizeFrame(_unit));
+		_activity?.SetFrame(CUnitPanelText.ActivityFrame(_unit));
+		Set(_strength, CUnitPanelText.Strength(_unit));
+		Set(_leader, CUnitPanelText.Leader(_context.Localisation.Localise));
+		_organisationBar?.SetProgress(CUnitPanelText.OrganisationBar(_owner, _unit));
+		_strengthBar?.SetProgress(CUnitPanelText.StrengthBar(_unit));
+	}
+}

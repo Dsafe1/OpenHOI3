@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Weather;
 
 namespace OpenHOI3.Sim.Provinces;
 
@@ -89,6 +90,9 @@ public sealed class CProvince
 	/// adjusted: see <see cref="CProvinceModifiers"/>.
 	/// </summary>
 	public CModifier Modifier { get; } = new();
+
+	/// <summary>The weather over it. Nothing changes it yet.</summary>
+	public CWeather Weather { get; } = new();
 
 	/// <summary>
 	/// How much of a building there is here. There is one level per building for now:

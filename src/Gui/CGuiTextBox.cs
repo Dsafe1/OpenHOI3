@@ -110,6 +110,13 @@ public partial class CGuiTextBox : CGuiObject
 		}
 		var type = (CGuiTextBoxType)GuiType;
 		float y = type.BorderSize.Y + _font.Ascent;
+		// An edit box's text starts further in than a text box's: nearly a second border
+		// across, and a little more than one down. Measured against a screenshot of the
+		// original's unit panel, whose name box has a border of 8 by 4 and its text 15
+		// across and 9 down from its corner; the routine that draws an edit box was not
+		// read, so the one case is all the rule there is.
+		Vector2 inset = type.IsEdit ? new Vector2(type.BorderSize.X - 1, type.BorderSize.Y + 1) : Vector2.Zero;
+		y += inset.Y;
 
 		foreach (List<CTextRun> line in _lines)
 		{
@@ -118,7 +125,7 @@ public partial class CGuiTextBox : CGuiObject
 			{
 				width += _font.Width(run.Text);
 			}
-			float x = CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, width);
+			float x = inset.X + CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, width);
 
 			foreach (CTextRun run in line)
 			{

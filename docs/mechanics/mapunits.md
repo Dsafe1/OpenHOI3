@@ -313,13 +313,75 @@ asked.
   placed or ordered, and each hour that a unit is on the march or has just come off it -
   the hour it arrives is the one its counter has to change province in - not every frame.
 
+## 8. The hierarchy of a selected unit
+
+Read out of the original on 2026-10-09, after the maintainer's word that it "has hierarchy
+lines and highlight" and that "they can be toggled with h":
+`reversing/findings/FINDINGS-hierarchy.md`. `confirmed` unless marked.
+
+- **While a land unit is selected, lines join it to its command**: one from the unit to the
+  unit that commands it, and one from every unit under it, at any depth, to its own
+  commander. A line runs between the two provinces' unit points, the short way round the
+  map.
+- **No line** for a unit in its commander's own province, for a fleet or an air unit, or
+  for a unit aboard a ship or aeroplanes.
+- **The colour says how far under the selected unit a line's unit is:**
+
+  | the line of | colour |
+  | --- | --- |
+  | the selected unit itself, up to its commander | green, 0 120 0 |
+  | a unit directly under it | blue, 20 50 200 |
+  | a unit under one of those | a paler blue, 100 100 210 |
+  | anything further down | grey, 200 200 200 |
+  | a unit out of its commander's radio range, wherever it stands | dark red, 128 0 0 |
+
+- **The width is the unit's rank**: half of it is 0.2 of a map pixel for each step of the
+  size mark its counter carries (section 2) - 0.8 wide for a division of several brigades,
+  1.2 for a corps, 1.6 for an army, 2.0 for an army group.
+- **The picture** is `gfx/mapitems/hierarchy_line.tga`, 64 by 64: arrowheads in a band in
+  its left half, a broken line in its right. A line in reach is the left half, tinted, a
+  fifth of the picture to each stretch as long as the line is wide, **and it runs**: the
+  arrowheads go from the commander's end to the unit's. A line out of reach is the right
+  half, still. What the shader does is in `gfx/FX/hierarchy.fx`, which ships as text.
+- **How fast it runs**: the original moves the picture 0.006 of its length a frame,
+  whatever the frame rate. *Ours:* 0.36 of its length a second, which is that at sixty
+  frames.
+- **The H key switches the lines off and on.** It flips the setting `render_hierarchy`,
+  which the original keeps in the player's settings file and also offers in its settings
+  menu as "Show hierarchy on map". *Ours:* on when a game starts and kept nowhere - there
+  are no settings yet.
+- The original draws the lines only where counters are drawn - with the camera further
+  than `counter_distance`, or with `alwaysCounters` on - and never from higher than 500.
+  *Ours:* whenever a unit is selected; the near view here is always counters (section 7).
+- **The lines are made again** when a unit of the hierarchy is in another province, or the
+  selection or the order of battle changes. *Ours:* each frame, from the units as they are.
+
+**The rings.** Apart from the lines, and whether or not they are switched on: `confirmed`
+
+| counter | ring |
+| --- | --- |
+| the selected unit | white |
+| the selected unit, where an AI commands it or a unit above it | the counter type's `color1`: green |
+| **every unit under the selected one, at any depth** | the counter type's `color2`: a pale blue-green, `0.28 0.8 0.82` |
+
+- Every counter of a stack that is one of those wears it, not only the top one, and each
+  pulses as the selected one's does (section 2).
+- A unit under the selected one that is selected itself keeps its own ring.
+- The first reading missed the ring of the units under it; the maintainer's word and a
+  screenshot of 2026-10-09 put it right. On that screenshot the selected headquarters wears
+  green - an AI commands it there - and the three counters under it the blue-green.
+- The original gives the rings out when a unit is selected and takes them back when it no
+  longer is, so a unit attached under it in between has none until then. *Ours:* they
+  follow the order of battle as it is.
+
+Not built: the dark red broken line, since nothing works out radio range; and the green
+ring, since there is no AI.
+
 ## What is not built
 
 - **The port and the airfield on the map**, which is how a fleet in port and a wing at its
   base are seen in the original. Until then such a unit shows only in the province
   readout.
-- **A unit's own panel.** A selected land unit can be sent somewhere with a right click
-  (`movement.md`) and nothing else can be done with it.
 - **The other fifteen alerts**, and the tooltips of this one.
 - **A leader's name on a counter**, and the coloured corner that marks something about a
   unit's state.

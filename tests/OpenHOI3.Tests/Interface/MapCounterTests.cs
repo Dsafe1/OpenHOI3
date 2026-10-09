@@ -102,6 +102,30 @@ public class MapCounterTests
 	}
 
 	[Fact]
+	public void TheSelectedUnitWearsOneRingAndEveryUnitUnderItAnother()
+	{
+		State(out CCountry country);
+		CUnit army = Unit(country, 1, EUnitKind.Army, Berlin, Headquarters);
+		CUnit corps = Unit(country, 2, EUnitKind.Corps, Berlin, Headquarters);
+		CUnit division = Unit(country, 3, EUnitKind.Division, Kiel, Infantry);
+		CUnit other = Unit(country, 4, EUnitKind.Division, Kiel, Infantry);
+		corps.Parent = army;
+		division.Parent = corps;
+
+		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(army, null));
+
+		Assert.Equal(ECounterRing.Selected, CMapCounters.RingOf(army, army));
+		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(corps, army));
+		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(division, army));     // however far down
+		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(other, army));
+
+		// Nothing above the selected unit is marked.
+		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(army, corps));
+		Assert.Equal(ECounterRing.Selected, CMapCounters.RingOf(corps, corps));
+		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(division, corps));
+	}
+
+	[Fact]
 	public void AFleetInPortAndAWingAtItsBaseHaveNoCounter()
 	{
 		CGameState state = State(out CCountry country);

@@ -44,6 +44,16 @@ public partial class CGuiIcon : CGuiObject
 
 		Place(type, Vector2.Zero);
 		Use(context.Sprites.Find(type.Sprite), type.Sprite);
+		// A rotation turns the icon about the middle of its lower left pixel, and a
+		// positive quarter stands a bar on its end, running upwards: one w long and h high
+		// at (x, y) then covers x - h + 1 to x + 1 across and y + h - w to y + h down.
+		// Measured, not read: against a screenshot of the original's unit panel beside
+		// this one's, in the header and in a brigade's row.
+		if (type.Rotation != 0f)
+		{
+			PivotOffset = new Vector2(0.5f, OffsetBottom - OffsetTop - 0.5f);
+			Rotation = -type.Rotation;
+		}
 		MouseExited += () => HoverOver(null);
 	}
 

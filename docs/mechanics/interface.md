@@ -57,7 +57,7 @@ What a particular screen puts in its elements is that screen's own spec: `topbar
 | `scrollbarType` | 34 | four buttons and a range | yes |
 | `shieldtype` | 22 | a country's flag in a frame, in a dialog | no |
 | `OverlappingElementsBoxType` | 21 | a row of things that may overlap | yes |
-| `editBoxType` | 21 | text the player types | no |
+| `editBoxType` | 21 | text the player types | shown, not typed in |
 | `eu3dialogtype` | 15 | a window that may also hold shields | yes |
 
 Three more child keywords are read by the original and used by no file of its own or of
@@ -137,7 +137,13 @@ does neither.
     `likely`; every list drawn here gives nought.
 
   Two lists in the whole game go by their lines' own heights instead, with `spacing`
-  between them, and neither is drawn here; one is made as the game is entered.
+  between them: one made as the game is entered, which is not drawn here, and **the list
+  a selected unit's panel is made of** (`unitpanel.md`), which is. In that mode each line
+  goes straight under the one before it, **touching it**, and all are shown. *Measured*
+  on the maintainer's screenshot of the original's unit panel, 2026-10-09, whose every
+  entry begins on the row after the one before ends - though its list declares a
+  `spacing` of 2, and the routine was read, as `likely`, as putting the spacing between
+  them. The original scrolls such a list when its lines do not all fit; not built.
 
   *Ours:* the scrollbar stands along the box's right edge, as long as the box is high,
   and a notch of the wheel is a line.
@@ -397,9 +403,28 @@ scalable canvas of section 3 could not survive. So:
   can be dropped in: a file with twice the pixels would draw twice the size. Frames are
   already fractions of the texture; what is missing is something that says the size a
   texture was drawn for, and that is not decided (`readme.md`, *The interface*).
-- **Kinds that are not drawn are still read** - edit boxes and a dialog's shields - so a
-  window's children are all there in their order and their names are known. A window
-  counts how many it could not draw.
+- **Kinds that are not drawn are still read** - a dialog's shields - so a window's
+  children are all there in their order and their names are known. A window counts how
+  many it could not draw.
+- **An edit box is shown as the box of text it holds**, found by its name like any text
+  box, with the `size` it declares for room; typing into it is not built. Its text starts
+  **further in than a text box's**: one less than a second border across, and one more
+  than a second border down. *Measured* on the same screenshot, from the one edit box
+  drawn so far - the unit's name, whose box has a border of 8 by 4 and its text 15 across
+  and 9 down from its corner. The routine that draws an edit box was not read, so that
+  one case is all the rule there is.
+- **An icon's `rotation` turns it about the middle of its lower left pixel, and a positive
+  quarter stands it on its end, running upwards.** So an icon `w` long and `h` high at
+  `(x, y)`, turned a quarter, covers `x - h + 1` to `x + 1` across and `y + h - w` to
+  `y + h` down. *Measured*, 2026-10-09, on a screenshot the maintainer gave of the
+  original's unit panel beside this one's: the bars of 24 by 8 fall on the original's to
+  the pixel in the header and in a brigade's row. Two guesses came first and he saw both
+  wrong - about the upper left corner, which stood the bars 8 too high, and about the
+  middle of the near end, which stood them 7 too far right; the second was "confirmed" by
+  the bars then standing in the exact middle of a place in the row's picture, which the
+  original shares between them and the mark of a reserve. Not read, and known for a
+  quarter turn only. No screen built before the unit panel gives a rotation other than
+  nought.
 - **A window can be made many times over.** A line of a list, an entry of the technology
   tree and a slider are each a top-level window type the code makes one of for each
   thing it has to show, and puts where it wants it.
@@ -427,7 +452,9 @@ scalable canvas of section 3 could not survive. So:
    other than the upper left and right, and why the pictures sit half a pixel the other
    way from the text.
 3. **Where the position is measured to** - that it is the upper left corner is a fit on
-   the files - and how `rotation` and `scale` turn and size an icon.
+   the files - and how `rotation` and `scale` turn and size an icon. A quarter turn is applied
+   as section 7 says, and **where an edit box puts its text** likewise: both measured on a
+   screenshot of the original's unit panel, neither read.
 4. **The keys each kind takes, other than a window's.**
 5. **Which of two buttons or icons of one name is found.**
 6. **What frame 0 draws**, and whether an icon's frames are counted from nought.
@@ -439,7 +466,7 @@ scalable canvas of section 3 could not survive. So:
 11. **How a scrollbar and a box of overlapping elements lay themselves out.** Both are
     drawn by the plain reading of their declarations (section 2). The list box was too,
     until it was read. Of the list box there is left: where its scrollbar stands, how far
-    a notch of the wheel moves it, and the two lists that go by their lines' heights.
+    a notch of the wheel moves it, and how a list that goes by its lines' heights scrolls.
 12. **Which frame a ticked checkbox shows.** The second here (section 7), unread.
 13. **Which element takes a click.** Nothing of how the original hands the mouse to an
     element was read; two things are known from the maintainer's eye. A list box does

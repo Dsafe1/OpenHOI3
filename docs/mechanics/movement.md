@@ -4,7 +4,8 @@ How a unit is told to go somewhere, how its way is found, and what an hour of th
 does. Read out of the original on 2026-10-09:
 `reversing/findings/FINDINGS-movement.md`, with the route finder's earlier account in
 `reversing/findings/FINDINGS-redeploy.md`. `confirmed` means read; *ours* means decided
-here. Section 2 is also **checked against the original's own cache, edge for edge**.
+here. Section 2 is also **checked against the original's own cache, edge for edge**, and
+section 5 **against savegames a few hours apart, division by division**.
 
 **In one line.** A unit holds the provinces still ahead of it and one number, its progress
 towards the first. Every hour its speed is added to the progress; when the progress reaches
@@ -23,7 +24,7 @@ say what.
   held the order is added to the path the unit already has; without, it replaces it.
   `confirmed`: the original's routine for the click takes the province and one flag, and
   passes the flag's opposite to the command as `clear`. That the flag is the shift key is
-  the maintainer's to confirm.
+  the maintainer's word, 2026-10-09: "Yes it is shift."
 - A click on **the province the unit stands in** halts it - unless the order is being
   added to a path, when it is one more leg. `confirmed`
 - A click on a province the unit **may not go to** does nothing but play the error sound
@@ -203,7 +204,7 @@ What an hour adds to the progress, in the same thousandths as a distance: `confi
 | 3 | **the next province's terrain**: 1000 + the unit's adjuster for it | built |
 | 4 | a leader's trait for that terrain | not built |
 | 5 | **a river or a crossing** on the way to the next province: 1000 + the unit's adjuster for `river` | built |
-| 6 | on land, **the province it is in**: 1000 + the weather there + its `local_unit_speed` | built, less the weather |
+| 6 | on land, **the province it is in**: 1000 + the weather there + its `local_unit_speed` | built |
 | 7 | on land: 1000 + the country's `amm_movement_speed` x the share of its brigades that are `is_mobile` | built |
 | 8 | retreating: 1100 | not built |
 
@@ -219,6 +220,65 @@ What an hour adds to the progress, in the same thousandths as a distance: `confi
   standing in.
 - **Infrastructure is no part of it.** In the original it sets the speed of a strategic
   redeployment and nothing of an ordinary march.
+
+**The weather** in term 6 is a figure in thousandths, never above nothing
+(`reversing/findings/FINDINGS-weather.md`, section 3): `confirmed`
+
+    mud    = muddyness x MUDDYNESSMOVEMENTMODIFIER        only where frozen is exactly 0
+    cold   = COLDMOVEMENTMODIFIER x (1000 - the country's winter_effects) / 1000
+                                                           only where temperature < LANDLOWTEMPERATURETHRESHOLD
+    weather = max(mud + cold, -989)
+
+- **Frozen ground pays nothing for mud**, however little of it is frozen: it is a switch.
+- **It is added to the province's `local_unit_speed`, not multiplied with it**: the two
+  share one term.
+- The floor of -989 is the original's own and not a define: the weather alone leaves a
+  unit a ninetieth of its speed at worst.
+- In the base game mud and cold each take three quarters, the cold from one degree of
+  frost, and the strategic resource `fur` gives a country 0.15 of `winter_effects`.
+- **The weather itself is not built.** A province holds the eight figures a savegame
+  writes for it - humidity, pressure, wind, temperature, precipitation, mud, frost and
+  cloud - and nothing changes them, so in a game here every one is nothing and the term
+  is 1000 plus the local speed. The rule is in so that a march is right the day the
+  weather is.
+
+### Checked
+
+`OpenHOI3.SaveCheck march <install> <earlier save> <later save>` takes two saves of one
+game. Every division that has the same province and the same path in both, is under no
+strategic redeployment and in no battle, is given the brigades, the fuel and the weather
+the earlier save shows; what an hour adds here, times the hours between, is set against
+what the saves say it gained. Where its weather or its fuel is not the same in both saves
+the gain has only to lie between the two speeds. *Measured* against four saves of one
+game the maintainer made on 2026-10-09, in which an AI has some 480 of 950 divisions on
+the move:
+
+| saves | weather and fuel the same | changed in between |
+| --- | --- | --- |
+| 7 January 22:00 to 8 January 02:00, 4 hours | **301 of 301** to the thousandth | 73 of 73 between the two speeds |
+| 7 January 14:00 to 22:00, 8 hours | 289 of 290 | 65 of 68 |
+| 4 January 12:00 to 7 January 14:00, 74 hours | 151 of 167 | 32 of 40 |
+
+- The longer the span the more often the weather was something else in between than at
+  either end, which is all the misses are: the one of the eight hours' first column
+  gained more than a muddy hour gives eight times over, having had some hours of dry
+  ground between two muddy saves.
+- It covers terms 2, 3, 5, 6 and 7 and the two cuts: infantry, cavalry, motorised and
+  armoured divisions, garrisons and mountain troops, over plain edges and rivers, in mud,
+  in frost and in neither, with fuel and without. The maintainer's own division, the
+  SS-Verfügungstruppe out of Berlin, gains 0.405 an hour in the saves and here: its
+  brigades' 8 with the 0.1 Germany's technology adds, on dry plains, times 0.05.
+- **A unit that got no fuel on one day and some the next** showed the day's fuel arriving
+  between 22:00 and 02:00: its four hours came to two at each speed.
+- In every one of the 1,482 cases the next province of a moving division is one its own
+  has an edge to, and **its progress is short of that edge's distance** - which is what
+  section 6's arrival says it must be.
+- **Not checked by it**: the hour a unit arrives and what it keeps; a strategic
+  redeployment (74 divisions in the last pair of saves); and the route. The check does set
+  the way found here beside each division's path, for information: 436 of 475 are the
+  same. The rest are the AI's own orders, which may ask for one of the original's two
+  careful finders or be given in stages, and a few are through a puppet's ground, which
+  nothing here allows yet.
 
 ## 6. The hour
 
@@ -281,8 +341,12 @@ with what is left over carried into the next leg as the march itself carries it.
   twentieth of a leg short and its tip is whole on the screenshot all the same.
   The original has other arrows for an attack, a retreat, a strategic redeployment and a
   landing, which wait for those.
-- The readout under the top bar names where the selected unit is going and when it will be
-  there. It is scaffolding and goes when the unit panel comes.
+- **The unit panel** (`unitpanel.md`) says what a selected unit is doing - "Move to" the
+  next province of its way - shows its speed, marks it as on the march, and has the
+  button that halts it.
+- The readout beside the panel names where the selected unit's way ends and when it will
+  be there. The original says that in a tooltip; the readout is scaffolding and goes when
+  there are tooltips.
 
 ## What is not built
 
@@ -296,13 +360,15 @@ with what is left over carried into the next leg as the march itself carries it.
   not move and one before which it does not arrive, waiting at full progress.
 - **Strategic redeployment**, which is an order of its own with a speed of its own.
 - **Landing from the sea** and being carried.
-- **The weather's** and **a leader's** part in the speed.
+- **A leader's** part in the speed, and **the weather itself**: what it does to a march is
+  in (section 5), what makes it is not.
+- **Walking on a puppet's, an overlord's or an ally's ground, or with military access.**
+  A friend here is the country itself or one of its own faction.
 - **The message** that a unit has arrived, and the sounds and the marks of the click.
-- **The unit panel**, which is where a march's speed and arrival belong.
+- **The tooltip** that says when a unit will arrive.
 
 ## What is not established, in one place
 
-- whether the flag the click's routine takes is the **shift key**;
 - how the original's arrow comes to a whole tip, its last cut being short of the end;
 - where the **moving stack** stands (`mapunits.md`);
 - where a **port** is when `positions.txt` does not place it;

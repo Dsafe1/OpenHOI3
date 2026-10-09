@@ -14,6 +14,7 @@ public sealed class CSubUnitType
 	public const string DefaultOrganisation = "default_organisation";
 	public const string Officers = "officers";
 	public const string CombatWidth = "combat_width";
+	public const string TransportWeight = "transport_weight";
 
 	public CSubUnitType(string key, EUnitBranch branch)
 	{

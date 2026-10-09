@@ -1,7 +1,9 @@
 namespace OpenHOI3.Content.Gui;
 
 /// <summary>
-/// A <c>textBoxType</c> or an <c>instantTextBoxType</c>: a box of text in one font.
+/// A <c>textBoxType</c> or an <c>instantTextBoxType</c>: a box of text in one font. An
+/// <c>editBoxType</c> is read as one too - a box of text the player may type into - with
+/// the <c>size</c> it declares as the most its text may take.
 /// </summary>
 public sealed class CGuiTextBoxType : CGuiType
 {
@@ -23,4 +25,7 @@ public sealed class CGuiTextBoxType : CGuiType
 
 	/// <summary>Declared with <c>instantTextBoxType</c>.</summary>
 	public bool IsInstant { get; init; }
+
+	/// <summary>Declared with <c>editBoxType</c>: text the player may change. Typing is not built.</summary>
+	public bool IsEdit { get; init; }
 }

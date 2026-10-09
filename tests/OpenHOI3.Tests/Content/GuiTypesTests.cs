@@ -114,22 +114,28 @@ public class GuiTypesTests
 	}
 
 	[Fact]
-	public void KeepsAKindItDoesNotDrawYetSoTheOrderIsWhole()
+	public void AnEditBoxIsABoxOfTextWithItsSizeForRoom()
 	{
 		CGuiWindowType screen = Read("""
 			guiTypes = {
 				windowType = {
 					name = "screen"
 					iconType = { name = "before" spriteType = "GFX_a" }
-					editBoxType = { name = "typing" position = { x = 4 y = 8 } size = { x = 100 y = 20 } font = "Arial12" }
+					editBoxType = { name = "typing" position = { x = 4 y = 8 } size = { x = 100 y = 20 } font = "Arial12" borderSize = { x = 8 y = 4 } }
 					iconType = { name = "after" spriteType = "GFX_b" }
 				}
 			}
 			""").FindWindow("screen")!;
 
-		CGuiOtherType box = screen.Find<CGuiOtherType>("typing")!;
+		CGuiTextBoxType box = screen.Find<CGuiTextBoxType>("typing")!;
 		Assert.Equal("editBoxType", box.Keyword);
-		Assert.Equal(new CGuiPoint(100, 20), box.Size);
+		Assert.True(box.IsEdit);
+		Assert.False(box.IsInstant);
+		Assert.Equal(100, box.MaxWidth);
+		Assert.Equal(20, box.MaxHeight);
+		Assert.Equal(new CGuiPoint(8, 4), box.BorderSize);
+		Assert.Equal(EGuiTextFormat.Left, box.Format);
+		Assert.Equal("Arial12", box.Font);
 		Assert.Equal(new[] { "before", "typing", "after" }, screen.Children.Select(child => child.Name));
 	}
 

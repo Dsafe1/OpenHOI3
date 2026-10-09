@@ -27,6 +27,7 @@ public partial class CGuiListBox : CGuiObject
 	private CGuiListBoxType _type = null!;
 	private int _rows;
 	private int _first;
+	private bool _byHeights;
 
 	public void Initialise(CGuiListBoxType type, CGuiContext context)
 	{
@@ -105,14 +106,47 @@ public partial class CGuiListBox : CGuiObject
 		Settle();
 	}
 
+	/// <summary>
+	/// Switches the list from rows to its entries' own heights: each entry goes straight
+	/// under the one before it, touching it, and all of them are shown. The original has
+	/// this for two lists, the panel of a selected unit one of them. It scrolls when they
+	/// do not all fit; that part is not built.
+	///
+	/// That the entries touch is measured on a screenshot of the original's unit panel,
+	/// whose list declares a <c>spacing</c> of 2 and shows none: the routine was read as
+	/// putting the spacing between them, and only as "likely".
+	/// </summary>
+	public void UseEntryHeights()
+	{
+		_byHeights = true;
+		Settle();
+	}
+
+	/// <summary>Lays the entries out again, after one of them has changed its height.</summary>
+	public void Relayout()
+	{
+		Settle();
+	}
+
 	/// <summary>How many of the entries have no row.</summary>
-	private int Unseen => Math.Max(_entries.Count - _rows, 0);
+	private int Unseen => _byHeights ? 0 : Math.Max(_entries.Count - _rows, 0);
 
 	private void Settle()
 	{
 		if (_scrollbar is not null)
 		{
 			_scrollbar.Visible = Unseen > 0;
+		}
+		if (_byHeights)
+		{
+			float down = _type.BorderSize.X;
+			foreach (Control entry in _entries)
+			{
+				entry.Visible = true;
+				entry.Position = new Vector2(_type.BorderSize.X, down);
+				down += entry.Size.Y;
+			}
+			return;
 		}
 		ShowFrom(_first);
 	}

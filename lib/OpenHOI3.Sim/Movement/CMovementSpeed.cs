@@ -2,6 +2,7 @@ using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Sim.Weather;
 
 namespace OpenHOI3.Sim.Movement;
 
@@ -53,7 +54,7 @@ public static class CMovementSpeed
 	/// </summary>
 	public static CFixedPoint Speed(CGameState state, CCountry country, CUnit unit, CProvince here, CProvince? next)
 	{
-		long speed = SlowestBrigade(unit).Raw * Modifier(country, unit, here, next) / Scale;
+		long speed = SlowestBrigade(unit).Raw * Modifier(state, country, unit, here, next) / Scale;
 		string define = unit.Kind switch
 		{
 			EUnitKind.Navy => NavalSpeedModifier,
@@ -91,21 +92,22 @@ public static class CMovementSpeed
 	///     with none and all of it with its whole ration;
 	///     the next province's terrain, by the unit's own adjuster for it;
 	///     a river or a crossing on the way there, by its adjuster for rivers;
-	///     on land, the province it is in: its local_unit_speed;
+	///     on land, the province it is in: its local_unit_speed and what its weather
+	///     does, the two added and not multiplied;
 	///     on land, the country's amm_movement_speed times the share of its brigades
 	///     that are mobile.
 	///
-	/// The original has four more that wait for what they read: a battle, a leader's
-	/// trait for the terrain, the weather, and a retreat.
+	/// The original has three more that wait for what they read: a battle, a leader's
+	/// trait for the terrain, and a retreat.
 	/// </summary>
 	public static long Modifier(CGameState state, CCountry country, CUnit unit)
 	{
-		return Modifier(country, unit, state.Province(unit.Location),
+		return Modifier(state, country, unit, state.Province(unit.Location),
 			unit.IsMoving ? state.Province(unit.Path[0]) : null);
 	}
 
 	/// <summary>The same for a unit in one province and bound for another, or for none.</summary>
-	public static long Modifier(CCountry country, CUnit unit, CProvince here, CProvince? next)
+	public static long Modifier(CGameState state, CCountry country, CUnit unit, CProvince here, CProvince? next)
 	{
 		long modifier = Scale;
 		bool isLand = IsLand(unit);
@@ -129,7 +131,8 @@ public static class CMovementSpeed
 
 		if (isLand)
 		{
-			modifier = modifier * (Scale + here.Modifier[LocalUnitSpeed].Raw) / Scale;
+			long weather = CWeatherEffects.Movement(state, here.Weather, country);
+			modifier = modifier * (Scale + weather + here.Modifier[LocalUnitSpeed].Raw) / Scale;
 
 			long share = MobileShare(unit);
 			if (share > 0)

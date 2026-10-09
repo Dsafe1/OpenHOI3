@@ -34,6 +34,12 @@ if (args.Length > 0 && args[0] == "adjacency")
 	return CAdjacencyCheck.Run(args);
 }
 
+// The march of land units is checked against two saves of one game, hours apart.
+if (args.Length > 0 && args[0] == "march")
+{
+	return CMarchCheck.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

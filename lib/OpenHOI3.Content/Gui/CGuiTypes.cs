@@ -60,6 +60,11 @@ public sealed class CGuiTypes
 		"fixedsize", "allwaystransparent",
 	};
 
+	private static readonly string[] EditBoxKeys =
+	{
+		"position", "font", "size", "text", "orientation", "bordersize", "texturefile", "cursor",
+	};
+
 	private static readonly string[] PositionKeys = { "position" };
 
 	private static readonly string[] ListBoxKeys =
@@ -81,10 +86,6 @@ public sealed class CGuiTypes
 	/// <summary>The kinds that are read and not yet drawn, with the keys the original's own files give them.</summary>
 	private static readonly Dictionary<string, string[]> OtherKeys = new(StringComparer.OrdinalIgnoreCase)
 	{
-		["editboxtype"] = new[]
-		{
-			"position", "font", "size", "text", "orientation", "bordersize", "texturefile", "cursor",
-		},
 		["shieldtype"] = new[] { "spritetype", "position", "rotation" },
 		["3dbuttontype"] = Array.Empty<string>(),
 		["multispritebuttontype"] = Array.Empty<string>(),
@@ -259,6 +260,25 @@ public sealed class CGuiTypes
 					Format = Format(node),
 					FixedSize = node.GetBool("fixedsize"),
 					IsInstant = keyword == "instanttextboxtype",
+				};
+
+			case "editboxtype":
+				// Shown as the text box it is until typing is built: its size is the room
+				// its text has, and its text starts at the left.
+				Check(node, EditBoxKeys);
+				return new CGuiTextBoxType
+				{
+					Name = node.GetString("name"),
+					Keyword = kind,
+					Position = Point(node, "position"),
+					Orientation = Orientation(node),
+					Font = node.GetString("font"),
+					Text = node.GetString("text"),
+					MaxWidth = Point(node, "size").X,
+					MaxHeight = Point(node, "size").Y,
+					BorderSize = Point(node, "borderSize"),
+					Format = EGuiTextFormat.Left,
+					IsEdit = true,
 				};
 
 			case "positiontype":

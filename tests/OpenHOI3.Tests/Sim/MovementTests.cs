@@ -7,6 +7,7 @@ using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Sim.Weather;
 
 namespace OpenHOI3.Tests.Sim;
 
@@ -193,6 +194,85 @@ public class MovementTests
 		Assert.Equal(1000, CMovementSpeed.Modifier(state, country, none));
 		Assert.Equal(333, CMovementSpeed.MobileShare(third));
 		Assert.Equal(1049, CMovementSpeed.Modifier(state, country, third));       // 0.15 x 0.333, cut
+	}
+
+	// --- the weather ---
+
+	/// <summary>The base game's three figures: mud and cold each take three quarters, below one degree of frost.</summary>
+	private static void SetWeatherDefines(CGameState state)
+	{
+		state.Defines.Set(CWeatherEffects.WeatherSection, CWeatherEffects.MuddynessMovementModifier, CFixedPoint.Parse("-0.75"));
+		state.Defines.Set(CWeatherEffects.WeatherSection, CWeatherEffects.ColdMovementModifier, CFixedPoint.Parse("-0.75"));
+		state.Defines.Set(CWeatherEffects.WeatherSection, CWeatherEffects.LandLowTemperatureThreshold, CFixedPoint.FromInt(-1));
+	}
+
+	[Fact]
+	public void MudSlowsByHowMuddyTheGroundIsAndNotAtAllOnceAnyOfItIsFrozen()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		SetWeatherDefines(state);
+		CWeather weather = state.Province(Berlin).Weather;
+
+		Assert.Equal(0, CWeatherEffects.Movement(state, weather, country));
+		weather.Muddyness = CFixedPoint.Parse("0.06");
+		Assert.Equal(-45, CWeatherEffects.Movement(state, weather, country));
+		weather.Muddyness = CFixedPoint.One;
+		Assert.Equal(-750, CWeatherEffects.Movement(state, weather, country));
+		weather.Frozen = CFixedPoint.Parse("0.001");
+		Assert.Equal(0, CWeatherEffects.Movement(state, weather, country));
+	}
+
+	[Fact]
+	public void ColdSlowsBelowTheThresholdAndACountrysWinterEffectsTakeTheirShareOffIt()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		SetWeatherDefines(state);
+		CWeather weather = state.Province(Berlin).Weather;
+
+		weather.Temperature = CFixedPoint.FromInt(-1);                 // not below it
+		Assert.Equal(0, CWeatherEffects.Movement(state, weather, country));
+		weather.Temperature = CFixedPoint.Parse("-1.001");
+		Assert.Equal(-750, CWeatherEffects.Movement(state, weather, country));
+
+		// The base game's strategic resource for it gives 0.15.
+		country.Modifier.Set(CWeatherEffects.WinterEffects, CFixedPoint.Parse("0.15"));
+		Assert.Equal(-637, CWeatherEffects.Movement(state, weather, country));   // -750 x 0.85, cut
+	}
+
+	[Fact]
+	public void MudAndColdTogetherStopShortOfTakingAllOfAUnitsSpeed()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		SetWeatherDefines(state);
+		CWeather weather = state.Province(Berlin).Weather;
+		weather.Muddyness = CFixedPoint.One;
+		weather.Temperature = CFixedPoint.FromInt(-10);
+
+		Assert.Equal(CWeatherEffects.MovementFloor, CWeatherEffects.Movement(state, weather, country));
+	}
+
+	[Fact]
+	public void TheWeatherAndTheProvincesOwnFigureAreAddedIntoOneTermOfTheSpeed()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		SetWeatherDefines(state);
+		CUnit unit = Division(state, country, Berlin, Infantry());
+		unit.Path.Add(Potsdam);
+
+		state.Province(Potsdam).Weather.Muddyness = CFixedPoint.One;   // where it is going: nothing
+		Assert.Equal(1000, CMovementSpeed.Modifier(state, country, unit));
+
+		state.Province(Berlin).Weather.Muddyness = CFixedPoint.One;
+		Assert.Equal(250, CMovementSpeed.Modifier(state, country, unit));
+		Assert.Equal(CFixedPoint.Parse("0.05"), CMovementSpeed.Speed(state, country, unit));   // 4 x 0.25 x 0.05
+
+		// Added, 1000 - 750 - 200, where multiplied would have given 200.
+		state.Province(Berlin).Modifier.Set(CMovementSpeed.LocalUnitSpeed, CFixedPoint.Parse("-0.2"));
+		Assert.Equal(50, CMovementSpeed.Modifier(state, country, unit));
 	}
 
 	// --- the march ---

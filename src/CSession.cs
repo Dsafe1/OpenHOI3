@@ -6,7 +6,6 @@ using OpenHOI3.Content;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Gui;
-using OpenHOI3.Interface.Map;
 using OpenHOI3.Map;
 using OpenHOI3.Screens;
 using OpenHOI3.Sim;
@@ -40,6 +39,7 @@ public partial class CSession : Node
 	private CTechnologyView? _technology;
 	private CDeployMenu? _deployMenu;
 	private CAlerts? _alerts;
+	private CUnitPanel? _unitPanel;
 	private Label _provinceLabel = null!;
 	private int _shownProvince;
 	private bool _unitsMoved;
@@ -50,6 +50,10 @@ public partial class CSession : Node
 
 	/// <summary>The country played when nothing says which. There is no screen to choose one on yet.</summary>
 	private const string DefaultPlayer = "GER";
+
+	/// <summary>Where the province readout stands: at the screen's edge, and clear of the unit panel when that is up.</summary>
+	private const float ReadoutAtEdge = 16f;
+	private const float ReadoutBesidePanel = 420f;
 
 	public CGameState State { get; private set; } = null!;
 
@@ -135,6 +139,17 @@ public partial class CSession : Node
 			layer.AddChild(_alerts);
 			_alerts.DeployablePressed += ToggleDeployMenu;
 
+			// The panel of the unit selected on the map. Its rows may choose another unit -
+			// one above it, one under it - and the map then goes to where that one is, as
+			// the original's does.
+			_unitPanel = new CUnitPanel();
+			_unitPanel.Setup(gui, _simulation, Player);
+			layer.AddChild(_unitPanel);
+			_unitPanel.UnitChosen += ChooseUnit;
+			_unitPanel.ProvinceWanted += province => _mapView.CentreOn(province);
+			_unitPanel.Ordered += () => _ordered = true;
+			_deployMenu.Toggled += ShowSelectedUnit;
+
 			_topBar = new CTopBar();
 			_topBar.Setup(gui, _simulation, Player);
 			layer.AddChild(_topBar);
@@ -143,7 +158,11 @@ public partial class CSession : Node
 		}
 		_simulation.DayPassed += () => _unitsMoved = true;
 		_simulation.HourPassed += () => _hourPassed = true;
-		_mapView.UnitSelected += _ => ShowProvince(_shownProvince);
+		_mapView.UnitSelected += _ =>
+		{
+			ShowSelectedUnit();
+			ShowProvince(_shownProvince);
+		};
 		_mapView.UnitOrdered += OrderUnit;
 
 		_provinceLabel = new Label
@@ -181,6 +200,25 @@ public partial class CSession : Node
 			}
 		}
 		view.Open();
+	}
+
+	/// <summary>
+	/// The unit panel is up for the unit selected on the map, and gives way to the
+	/// deploy menu, which stands in the same place.
+	/// </summary>
+	private void ShowSelectedUnit()
+	{
+		_unitPanel?.ShowUnit(_deployMenu is { IsOpen: true } ? null : _mapView.Counters?.Selected);
+	}
+
+	/// <summary>A row of the unit panel chose a unit, or none: it is selected, and the map shows where it is.</summary>
+	private void ChooseUnit(CUnit? unit)
+	{
+		_mapView.SelectUnit(unit);
+		if (unit is { Location: > 0 })
+		{
+			_mapView.CentreOn(unit.Location);
+		}
 	}
 
 	/// <summary>
@@ -300,6 +338,13 @@ public partial class CSession : Node
 			case Key.KpSubtract or Key.Minus:
 				_simulation.Clock.Speed--;
 				break;
+			case Key.H:
+				// The original's key for its render_hierarchy setting.
+				if (_mapView.Counters is { } counters)
+				{
+					counters.HierarchyShown = !counters.HierarchyShown;
+				}
+				break;
 			default:
 				return;
 		}
@@ -328,18 +373,18 @@ public partial class CSession : Node
 			return;
 		}
 
+		// With the unit panel up the readout stands beside it.
+		_provinceLabel.Position = new Vector2(_unitPanel is { IsOpen: true } ? ReadoutBesidePanel : ReadoutAtEdge, 96);
+
 		CProvince province = State.Province(provinceId);
 		string text = $"{province.Name}  ({province.Id})";
-		if (_mapView.Counters?.Selected is { } selected)
+		// What the panel does not say yet, the original keeping it for a tooltip: where
+		// the selected unit's way ends, and when it will be there.
+		if (_mapView.Counters?.Selected is { IsMoving: true } selected && State.Country(selected.Owner) is { } mover)
 		{
-			string line = $"Selected: {selected.Name}  ({CCounterText.Figures(selected)})";
-			if (selected.IsMoving && State.Country(selected.Owner) is { } owner)
-			{
-				long hours = CMovement.HoursToArrive(State, owner, selected);
-				line += $"  to {State.Province(selected.Path[^1]).Name}"
-					+ (hours < 0 ? "" : $", there in {hours / 24} days {hours % 24} hours");
-			}
-			text = line + "\n" + text;
+			long hours = CMovement.HoursToArrive(State, mover, selected);
+			text = $"{selected.Name} to {State.Province(selected.Path[^1]).Name}"
+				+ (hours < 0 ? "" : $", there in {hours / 24} days {hours % 24} hours") + "\n" + text;
 		}
 		var here = new System.Collections.Generic.List<string>();
 		foreach (CCountry country in State.Countries)
@@ -627,6 +672,17 @@ public partial class CSession : Node
 					await Frames(1);
 					_simulation.RunHours(1);
 				}
+				await Frames(2);
+				continue;
+			}
+			// kH is not a click either: it presses and lets go of the key of that letter.
+			if (entry.Length == 2 && entry[0] == 'k' && char.IsLetter(entry[1]))
+			{
+				Key key = (Key)char.ToUpperInvariant(entry[1]);
+				await Frames(2);
+				GetViewport().PushInput(new InputEventKey { Keycode = key, PhysicalKeycode = key, Pressed = true }, true);
+				await Frames(1);
+				GetViewport().PushInput(new InputEventKey { Keycode = key, PhysicalKeycode = key, Pressed = false }, true);
 				await Frames(2);
 				continue;
 			}
