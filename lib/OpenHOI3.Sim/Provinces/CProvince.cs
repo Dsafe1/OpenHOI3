@@ -86,6 +86,15 @@ public sealed class CProvince
 	public int CentreY { get; init; }
 
 	/// <summary>
+	/// The one point that stands for the province, in pixels with y counting north:
+	/// where it is on the clock and which half of the world it is in. See
+	/// <c>docs/mechanics/map.md</c>, section 4.
+	/// </summary>
+	public int PositionX { get; init; }
+
+	public int PositionY { get; init; }
+
+	/// <summary>
 	/// The sea province its port opens onto, or 0 for a province with no port. A fleet
 	/// goes between the land and the sea here and nowhere else: see
 	/// <c>docs/mechanics/fleetsandair.md</c>, section 2.

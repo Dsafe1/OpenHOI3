@@ -1,8 +1,8 @@
 # The map: provinces, the raster, adjacency, and the start state
 
 What the original computes when it builds its map, written as rules this project can
-implement. No addresses and no offsets: those describe one build of an executable this is
-not a reimplementation of. Each rule says where it comes from and how sure it is, in the
+implement. No addresses and no offsets: those describe one build of the original's
+executable and mean nothing to an engine of our own. Each rule says where it comes from and how sure it is, in the
 fact base's own vocabulary - `confirmed`, `likely`, `inferred` - or **measured**, meaning
 counted here against the files of a Their Finest Hour install on 2026-10-07.
 
@@ -281,6 +281,33 @@ provinces are a land category, being painted so at their point. (measured, 2026-
 
 Each category's `movement_cost` is read too. It has nothing to do with the province's own
 terrain: it is what a pixel of that terrain adds to a distance (`movement.md`, section 2).
+
+## 10. Whose colour a province is
+
+On the political map a province is **the colour of whoever holds it, and striped with its
+owner's where that is another country.** The maintainer, 2026-10-09, asked how the
+original shows occupied ground: "It uses striping", with a screenshot.
+
+- **The stripes are the original's own picture**, `map/terrain/stripes.dds`: 128 pixels
+  square, two diagonal bands to a tile, the bands a little over a quarter of it. (measured)
+- **How it is laid on the map** is in the original's terrain shader, which is a text file of
+  the install (`gfx/FX/terrain_2_0.fx`): a province has two colours, the picture's alpha says
+  how much of the second a point takes, and the picture repeats **every 8 map pixels** both
+  ways, measured from the map's south-west corner. (measured) So the stripes are fixed to the
+  ground and grow with the zoom.
+- **Which colour is the stripes'** was not read. The maintainer's word, 2026-10-09: "The
+  owner is the thin stripe, the controller the wide one." It was built the other way round
+  first, from a guess at the same screenshot that took its heavy border for the edge of
+  what a country owns.
+- **A border between countries is drawn where the holder changes**, and stripes make none.
+  In the screenshot the heavy border and the war's dashed line run along the side of the
+  striped province that faces the country of the narrow bands, and a thin line along the
+  side facing the country of the wide ones; with his word on which is which, that puts the
+  heavy line at the edge of what is held. `inferred`
+
+*Ours:* the original lays its colours over the grey of the terrain's own picture and
+lightens them; here a province is a flat colour. And with the picture missing nothing is
+striped.
 
 ## What is not established, in one place
 

@@ -1,3 +1,4 @@
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
@@ -33,6 +34,15 @@ public static class CMovementSpeed
 	/// <summary>The share of its speed a unit that got no fuel keeps, and the share fuel gives back.</summary>
 	private const long SpeedWithoutFuel = 100;
 	private const long SpeedFromFuel = 900;
+
+	/// <summary>The share of its speed an attacker walks on at while it fights.</summary>
+	public const string CombatMovementSpeed = "COMBAT_MOVEMENT_SPEED";
+
+	/// <summary>The least share of its speed a unit in a battle keeps, in thousandths.</summary>
+	private const long SlowestInBattle = 10;
+
+	/// <summary>A unit falling back walks this much faster, in thousandths.</summary>
+	private const long RetreatHaste = 100;
 
 	private const long Scale = CFixedPoint.Scale;
 
@@ -97,8 +107,11 @@ public static class CMovementSpeed
 	///     on land, the country's amm_movement_speed times the share of its brigades
 	///     that are mobile.
 	///
-	/// The original has three more that wait for what they read: a battle, a leader's
-	/// trait for the terrain, and a retreat.
+	/// Before all of those, a unit in a battle walks at a fraction of its speed - the
+	/// combat movement speed for an attacker, a hundredth for anyone else - and after
+	/// them a unit falling back is a tenth faster, and is not slowed for want of fuel.
+	/// The original has one more that waits for what it reads: a leader's trait for
+	/// the terrain.
 	/// </summary>
 	public static long Modifier(CGameState state, CCountry country, CUnit unit)
 	{
@@ -112,7 +125,25 @@ public static class CMovementSpeed
 		long modifier = Scale;
 		bool isLand = IsLand(unit);
 
-		if (unit.Kind != EUnitKind.Air && BurnsFuel(unit))
+		// In a battle a unit walks on at a fraction of its speed where it is attacking,
+		// and all but stands where it is being attacked.
+		if (unit.IsFighting && unit.IsMoving)
+		{
+			long inBattle = SlowestInBattle;
+			foreach (CCombat combat in unit.Combats)
+			{
+				if (combat.Attacker.Units.Contains(unit))
+				{
+					long quicker = Scale + country.Modifier[CAttackDelay.CombatMovementSpeed].Raw;
+					long pace = state.Defines[CManpower.MilitarySection, CombatMovementSpeed].Raw + combat.TacticSpeed.Raw;
+					inBattle = System.Math.Min(Scale, System.Math.Max(SlowestInBattle, quicker * pace / Scale));
+					break;
+				}
+			}
+			modifier = modifier * inBattle / Scale;
+		}
+
+		if (unit.Kind != EUnitKind.Air && !unit.IsRetreating && BurnsFuel(unit))
 		{
 			modifier = modifier * (unit.FuelReceived.Raw * SpeedFromFuel / Scale + SpeedWithoutFuel) / Scale;
 		}
@@ -140,6 +171,10 @@ public static class CMovementSpeed
 				long bonus = country.Modifier[MobileSpeed].Raw * share / Scale;
 				modifier = modifier * (Scale + bonus) / Scale;
 			}
+		}
+		if (unit.IsRetreating)
+		{
+			modifier = modifier * (Scale + RetreatHaste) / Scale;
 		}
 		return modifier;
 	}

@@ -35,13 +35,17 @@ public static class CReinforcement
 
 	/// <summary>
 	/// Whether a brigade is in a state to be brought back to strength at all: short of
-	/// what it may have, and its unit not being carried anywhere. The original also
-	/// holds back an army that is fighting or retreating and a ship that is not in port.
+	/// what it may have, its unit not being carried anywhere, not falling back, and on
+	/// land not in a battle. A ship is brought back to strength in port only.
 	/// </summary>
 	public static bool CanBeReinforced(CGameState state, CCountry owner, CUnit unit, CSubUnit subUnit)
 	{
 		long most = CUnits.MaxStrength(state, owner, subUnit).Raw;
 		if (subUnit.Strength.Raw >= most || most <= 0)
+		{
+			return false;
+		}
+		if (unit.IsRetreating || (unit.IsFighting && unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air))
 		{
 			return false;
 		}

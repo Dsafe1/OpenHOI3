@@ -71,9 +71,14 @@ A change of month always comes with a change of day, and a change of year with b
 
 The supply network is also rebuilt inside the hour when something changed it.
 
-*Ours:* steps 1 to 3 are built as far as there is anything for them to do. **Step 1 is
-where a unit moves**: the look at its order (`fleetsandair.md`, section 5) and then its
-march (`movement.md`, section 6), every unit of every country in turn. Step 2, a unit's own
+*Ours:* steps 1 to 3 and step 6 are built as far as there is anything for them to do.
+**Before step 1 the hour's rolls are seeded** - the original from a figure the hour's tick
+carries, here from the game's seed and the hour (`landcombat.md`, section 8). **Step 1 is
+where a unit moves and where a battle starts**: the look at its order (`fleetsandair.md`,
+section 5), the look for an enemy ahead, its attack delay, its march (`movement.md`,
+section 6), and the look at the province it stands in, every unit of every country in turn.
+**Step 6 is every battle's round**, in the order the battles began (`landcombat.md`,
+section 4) - after every unit's organisation has been seen to. Step 2, a unit's own
 hour, is the return of its organisation; step 3, a country's, is the count of the officers
 its units call for and the ratio that comes of it (`organisation.md`, sections 1 and 3).
 The order matters: a unit's hour uses the ratio the hour before left, and a unit has moved

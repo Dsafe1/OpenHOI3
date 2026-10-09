@@ -91,7 +91,8 @@ green arrow, a red cross - and the first of these that holds decides: `confirmed
     nothing to act with          the red cross     (no brigades; or a land unit aboard aeroplanes)
     otherwise                    nothing
 
-Built: the green arrow, the cross for a unit with no brigades, and nothing.
+Built, all of it but the land unit aboard aeroplanes (2026-10-09, with the battle:
+`landcombat.md`).
 
 **The strength is men**: `confirmed`
 
@@ -137,7 +138,8 @@ The window `sup_unit_status`. `confirmed` for what each element is given:
 | `supply_status`, `fuel_status` | two bars, below | full |
 | `unitstatus_moving` | shown on the march | built |
 | `unitstatus_distance` | a land unit's reach of its headquarters: frame 1 in reach, 2 out of it | always frame 1 |
-| `unitstatus_combinedarms`, `_dugin`, `_delay`, `_nuke` | shown for a combined arms bonus, a unit dug in, an attack delay, a nuclear order | hidden |
+| `unitstatus_combinedarms`, `_dugin`, `_delay` | shown for a mix of brigades that counts as combined arms before any technology, a unit dug in, an attack delay running | built (`landcombat.md`) |
+| `unitstatus_nuke` | shown for a nuclear order | hidden |
 
 - A unit's width and its weight are its brigades' `combat_width` and `transport_weight`
   added up.
@@ -175,8 +177,10 @@ a battle, which are `inferred`
 
 - **`WHERE` is the next province of the path, not its end.** A unit sent five provinces
   away reads "Move to" the first of them, and then the second.
-- Built: `MOVE_ORDER_D`, and for everything else `NO_ORDERS`, "No Order". *Ours:* what the
-  original calls a unit with nothing to do was not read; that key is in its files.
+- Built: the three about a battle, `MOVE_ORDER_D`, and for everything else `NO_ORDERS`,
+  "No Order". *Ours:* what the original calls a unit with nothing to do was not read; that
+  key is in its files. And for an attacker with no path left, `WHERE` is the battle's own
+  province.
 - **An order's own text names the province the order is for**, its end and not its next
   step (`fleetsandair.md`, section 5): `confirmed`
 

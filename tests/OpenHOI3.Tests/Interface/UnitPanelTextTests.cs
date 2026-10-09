@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Movement;
@@ -30,6 +31,9 @@ public class UnitPanelTextTests
 		["SUPPLIED_FROM"] = "Supplied from:",
 		["KPH"] = "KPH",
 		["MOVE_ORDER_D"] = "Move to $WHERE$.",
+		["ATTACKING_TO_OI"] = "Attacking $WHERE$.",
+		["DEFENDING_OI"] = "Defending.",
+		["RETREAT_TO_OI"] = "Retreating to $WHERE$.",
 		["NO_ORDERS"] = "No Order",
 		["LAND_COUNT"] = "§Y$NUM$§W Brigades",
 		["NAVAL_COUNT"] = "$CAPITAL$ Capital Ships, $ESCORTS$ Screens & $OTHER$ others.",
@@ -100,6 +104,54 @@ public class UnitPanelTextTests
 		division.Path.Add(Potsdam);
 		Assert.Equal(5, CUnitPanelText.ActivityFrame(division));
 		Assert.Equal(6, CUnitPanelText.ActivityFrame(empty));            // the cross: nothing in it to act
+	}
+
+	[Fact]
+	public void ABattleARetreatAndAnAttackDelayEachHaveTheirMarkAndTheirLine()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit attacker = Unit(country, EUnitKind.Division, Berlin, Infantry());
+		CUnit defender = Unit(country, EUnitKind.Division, Potsdam, Infantry());
+		var combat = new CCombat(Potsdam);
+		combat.Attacker.Add(attacker);
+		combat.Defender.Add(defender);
+		attacker.Path.Add(Potsdam);
+
+		Assert.Equal(4, CUnitPanelText.ActivityFrame(attacker));       // the red arrow
+		Assert.Equal("Attacking Potsdam.", CUnitPanelText.Order(Localise, state, attacker));
+		Assert.Equal(3, CUnitPanelText.ActivityFrame(defender));       // the star
+		Assert.Equal("Defending.", CUnitPanelText.Order(Localise, state, defender));
+
+		// An attacker with its way taken from it is still attacking the battle's province.
+		attacker.Path.Clear();
+		Assert.Equal("Attacking Potsdam.", CUnitPanelText.Order(Localise, state, attacker));
+
+		defender.Combats.Clear();
+		defender.IsRetreating = true;
+		defender.Path.Add(Dessau);
+		Assert.Equal(2, CUnitPanelText.ActivityFrame(defender));       // the white arrow
+		Assert.Equal("Retreating to Dessau.", CUnitPanelText.Order(Localise, state, defender));
+
+		attacker.Combats.Clear();
+		attacker.AttackDelay = CFixedPoint.FromInt(100);
+		attacker.Path.Add(Potsdam);
+		Assert.Equal(6, CUnitPanelText.ActivityFrame(attacker));       // the cross, though it has somewhere to go
+		Assert.Equal("Move to Potsdam.", CUnitPanelText.Order(Localise, state, attacker));
+	}
+
+	[Fact]
+	public void TheStatusLineMarksAUnitDugInAndOneWithAnAttackDelayRunning()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit unit = Unit(country, EUnitKind.Division, Berlin, Infantry());
+		Assert.False(CUnitPanelText.IsDugIn(unit));
+		Assert.False(CUnitPanelText.IsDelayed(unit));
+		Assert.False(CUnitPanelText.HasCombinedArms(state, unit));     // no groups are declared here
+
+		unit.DigIn = CFixedPoint.One;
+		unit.AttackDelay = CFixedPoint.Parse("0.5");
+		Assert.True(CUnitPanelText.IsDugIn(unit));
+		Assert.True(CUnitPanelText.IsDelayed(unit));
 	}
 
 	[Fact]

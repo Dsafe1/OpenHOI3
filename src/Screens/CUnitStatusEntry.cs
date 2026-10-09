@@ -31,6 +31,9 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 	private readonly CGuiIcon? _fuel;
 	private readonly CGuiIcon? _moving;
 	private readonly CGuiIcon? _distance;
+	private readonly CGuiIcon? _combinedArms;
+	private readonly CGuiIcon? _dugIn;
+	private readonly CGuiIcon? _delay;
 
 	/// <summary>Raised when the button that shows where the unit is, is pressed.</summary>
 	public event Action? LocationPressed;
@@ -54,12 +57,12 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 		_moving = window.FindIcon("unitstatus_moving");
 		_distance = window.FindIcon("unitstatus_distance");
 
-		// Marks for what is not built: no combined arms bonus, no nuclear order, no
-		// digging in, no attack delay.
-		foreach (string mark in new[] { "unitstatus_combinedarms", "unitstatus_nuke", "unitstatus_dugin", "unitstatus_delay" })
-		{
-			Show(window.FindIcon(mark), false);
-		}
+		_combinedArms = window.FindIcon("unitstatus_combinedarms");
+		_dugIn = window.FindIcon("unitstatus_dugin");
+		_delay = window.FindIcon("unitstatus_delay");
+
+		// A mark for what is not built: no nuclear order.
+		Show(window.FindIcon("unitstatus_nuke"), false);
 		if (window.FindButton("unit_location_button") is { } button)
 		{
 			button.Pressed += () => LocationPressed?.Invoke();
@@ -93,6 +96,9 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 		_fuel?.SetProgress(CUnitPanelText.SupplyBar);
 
 		Show(_moving, _unit.IsMoving);
+		Show(_combinedArms, CUnitPanelText.HasCombinedArms(_state, _unit));
+		Show(_dugIn, CUnitPanelText.IsDugIn(_unit));
+		Show(_delay, CUnitPanelText.IsDelayed(_unit));
 		// The original's second frame is for a unit out of its headquarters' reach,
 		// which is not worked out.
 		Show(_distance, isLand);

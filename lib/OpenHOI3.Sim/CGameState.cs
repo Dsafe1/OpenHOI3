@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
@@ -131,7 +132,12 @@ public sealed class CGameState
 	/// </summary>
 	public int MapWidth { get; init; }
 
+	/// <summary>How many pixels the map is from south to north. Its middle is the equator.</summary>
+	public int MapHeight { get; init; }
+
 	private CNavalDistances? _navalDistances;
+
+	private CUnitPositions? _positions;
 
 	/// <summary>
 	/// How far it is by sea between any two ports or sea provinces. Worked out from the
@@ -144,6 +150,51 @@ public sealed class CGameState
 
 	/// <summary>The wars being fought now.</summary>
 	public List<CWar> Wars { get; }
+
+	/// <summary>The battles being fought now, in the order they began.</summary>
+	public List<CCombat> Combats { get; } = new();
+
+	/// <summary>
+	/// How many times a province has changed hands in this game. Whatever shows who
+	/// holds what watches it to know when to look again.
+	/// </summary>
+	public int ControlChanges { get; set; }
+
+	/// <summary>
+	/// What every roll of this game starts from. An hour's rolls depend on it, on the
+	/// hour, and on the order they are made in - and on nothing else.
+	/// </summary>
+	public uint Seed { get; set; } = 1;
+
+	/// <summary>The game's one source of chance, seeded afresh every hour.</summary>
+	public CRandom Random { get; } = new();
+
+	/// <summary>
+	/// Who stands where. Made when first asked for and thrown away at the start of each
+	/// hour and whenever a unit is put somewhere outside the march.
+	/// </summary>
+	public CUnitPositions Positions => _positions ??= new CUnitPositions(this);
+
+	/// <summary>The units in a province, in the order they came.</summary>
+	public IReadOnlyList<CUnit> UnitsIn(int province)
+	{
+		return Positions.Of(province);
+	}
+
+	/// <summary>To be called when a unit has been put, made or removed other than by its march.</summary>
+	public void ForgetPositions()
+	{
+		_positions = null;
+	}
+
+	/// <summary>Seeds the hour's rolls: the game's seed and the hour it is.</summary>
+	public void SeedHour()
+	{
+		unchecked
+		{
+			Random.Seed(Seed * 2654435761u + (uint)_hours * 40503u + (uint)(_hours >> 32));
+		}
+	}
 
 	public bool IsAtWar(CCountryTag tag)
 	{

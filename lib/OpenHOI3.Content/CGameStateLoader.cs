@@ -48,6 +48,8 @@ public static class CGameStateLoader
 				Edges = map.Edges[id],
 				CentreX = map.Shapes[id].IsEmpty ? 0 : map.Shapes[id].CentreX,
 				CentreY = map.Shapes[id].IsEmpty ? 0 : map.Shapes[id].CentreY,
+				PositionX = map.Positions[id].X,
+				PositionY = map.Positions[id].Y,
 				PortSea = map.PortSea[id],
 				SeaIndex = map.SeaIndex[id],
 			};
@@ -84,6 +86,7 @@ public static class CGameStateLoader
 			CombinedArmsGroups = CCombinedArmsReader.Read(directories, warn),
 			NameTexts = ReadNameTexts(localisation, unitTypes.Values),
 			MapWidth = map.Width,
+			MapHeight = map.Height,
 		};
 		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);

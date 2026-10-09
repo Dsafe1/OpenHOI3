@@ -37,6 +37,24 @@ public static class CCombinedArms
 	}
 
 	/// <summary>
+	/// What the mix is worth before any technology: the values of the groups that count.
+	/// A unit has combined arms at all only where this is above nothing.
+	/// </summary>
+	public static CFixedPoint BaseBonus(CGameState state, IEnumerable<CSubUnitType> brigades)
+	{
+		bool[] counted = Counted(state, brigades);
+		long bonus = 0;
+		for (int index = 0; index < counted.Length; index++)
+		{
+			if (counted[index])
+			{
+				bonus += state.CombinedArmsGroups[index].Value.Raw;
+			}
+		}
+		return new CFixedPoint(bonus);
+	}
+
+	/// <summary>
 	/// The bonus: for each group that counts, its own value and what the country's
 	/// technology adds to it.
 	/// </summary>

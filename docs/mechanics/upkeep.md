@@ -125,9 +125,9 @@ unit, on when it is made - in the order the units were made, which is the order 
 numbers; but a unit marked as a priority goes to the front of the list, the last such
 first.
 
-**Which brigades.** One that is below what it may have and not being carried anywhere. The
-original also leaves out an army that is fighting, any unit that is retreating, and a ship
-that is not in port.
+**Which brigades.** One that is below what it may have and not being carried anywhere; not
+a land unit's while it is in a battle, nor any unit's while it is falling back
+(`landcombat.md`); and a ship's only in port.
 
 **What a day does to one brigade:**
 

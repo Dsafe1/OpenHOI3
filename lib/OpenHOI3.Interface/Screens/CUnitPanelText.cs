@@ -4,6 +4,7 @@ using System.Globalization;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
@@ -32,8 +33,16 @@ public static class CUnitPanelText
 
 	/// <summary>The header's activity strip: nothing, and what it shows for a unit on the march and for one that cannot act.</summary>
 	public const int ActivityNone = 1;
+	public const int ActivityRetreating = 2;
+	public const int ActivityDefending = 3;
+	public const int ActivityAttacking = 4;
 	public const int ActivityMoving = 5;
 	public const int ActivityUnfit = 6;
+
+	/// <summary>What the order line says of a unit in a battle or falling back from one.</summary>
+	public const string AttackingKey = "ATTACKING_TO_OI";
+	public const string DefendingKey = "DEFENDING_OI";
+	public const string RetreatingKey = "RETREAT_TO_OI";
 
 	/// <summary>What a subordinate's level is called in the count over the list of them, by the kind of unit.</summary>
 	private static readonly (EUnitKind Kind, string Key)[] LevelKeys =
@@ -47,17 +56,71 @@ public static class CUnitPanelText
 	// ---- the header
 
 	/// <summary>
-	/// The frame of the activity strip. The original also has a white arrow for a
-	/// retreat, a star and a red arrow for the two sides of a battle, and gives the
-	/// cross to a unit held by an attack delay; none of those is built.
+	/// The frame of the activity strip, the first of these that holds: in a battle, the
+	/// red arrow for an attacker and the star for a defender; falling back, the white
+	/// arrow; held by an attack delay, the cross; on the march, the green arrow; with
+	/// nothing to act with, the cross; and otherwise nothing.
 	/// </summary>
 	public static int ActivityFrame(CUnit unit)
 	{
+		if (unit.IsFighting)
+		{
+			return IsAttacking(unit) ? ActivityAttacking : ActivityDefending;
+		}
+		if (unit.IsRetreating)
+		{
+			return ActivityRetreating;
+		}
+		if (unit.AttackDelay > CFixedPoint.Zero)
+		{
+			return ActivityUnfit;
+		}
 		if (unit.IsMoving)
 		{
 			return ActivityMoving;
 		}
 		return unit.SubUnits.Count == 0 ? ActivityUnfit : ActivityNone;
+	}
+
+	/// <summary>
+	/// The three marks of the status line that a battle is behind: a mix of brigades
+	/// that counts as combined arms, being dug in, and an attack delay still running.
+	/// </summary>
+	public static bool HasCombinedArms(CGameState state, CUnit unit)
+	{
+		var types = new List<CSubUnitType>();
+		foreach (CSubUnit subUnit in unit.SubUnits)
+		{
+			if (CUnits.CountsTowardsItsUnit(unit, subUnit))
+			{
+				types.Add(subUnit.Type);
+			}
+		}
+		// The mark goes by the mix alone, whatever the country's technology adds to it.
+		return CCombinedArms.BaseBonus(state, types) > CFixedPoint.Zero;
+	}
+
+	public static bool IsDugIn(CUnit unit)
+	{
+		return unit.DigIn > CFixedPoint.Zero;
+	}
+
+	public static bool IsDelayed(CUnit unit)
+	{
+		return unit.AttackDelay > CFixedPoint.Zero;
+	}
+
+	/// <summary>Whether a unit is on the attacking side of one of its battles.</summary>
+	public static bool IsAttacking(CUnit unit)
+	{
+		foreach (CCombat combat in unit.Combats)
+		{
+			if (combat.Attacker.Units.Contains(unit))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/// <summary>A land unit's men: a hundred to each point of each brigade's strength, each brigade cut to a whole man.</summary>
@@ -258,10 +321,10 @@ public static class CUnitPanelText
 	// ---- the order
 
 	/// <summary>
-	/// What the unit is doing: on the march, the province it will be in next - not the
-	/// one at the end of its way. The original has more to say of a unit in a battle,
-	/// in retreat, short of men, fuel or supplies; none of that is built, and what it
-	/// calls a unit with nothing to do was not read.
+	/// What the unit is doing: falling back to a province, attacking one, defending, or
+	/// on the march to the province it will be in next - not the one at the end of its
+	/// way. The original has more to say of a unit short of men, fuel or supplies; none
+	/// of that is built, and what it calls a unit with nothing to do was not read.
 	/// </summary>
 	public static string Order(Func<string, string> localise, CGameState state, CUnit unit)
 	{
@@ -277,6 +340,30 @@ public static class CUnitPanelText
 					return localise(RebaseKey) + " :" + where;
 				case EUnitOrder.RebaseAir:
 					return CTextTemplate.Fill(localise(AirRebaseKey), ("PROV", where));
+			}
+		}
+		if (unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air)
+		{
+			if (unit.IsRetreating && unit.IsMoving)
+			{
+				return CTextTemplate.Fill(localise(RetreatingKey), ("WHERE", state.Province(unit.Path[0]).Name));
+			}
+			if (unit.IsFighting)
+			{
+				// With a path it is the province ahead that is being attacked; without, ours:
+				// the battle's own.
+				if (unit.IsMoving)
+				{
+					return CTextTemplate.Fill(localise(AttackingKey), ("WHERE", state.Province(unit.Path[0]).Name));
+				}
+				foreach (CCombat combat in unit.Combats)
+				{
+					if (combat.Attacker.Units.Contains(unit))
+					{
+						return CTextTemplate.Fill(localise(AttackingKey), ("WHERE", state.Province(combat.Province).Name));
+					}
+				}
+				return localise(DefendingKey);
 			}
 		}
 		// Ours for a fleet sent straight somewhere, which has no order: as a land unit.

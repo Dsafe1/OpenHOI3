@@ -49,6 +49,15 @@ public sealed class CSubUnit
 
 	public CFixedPoint Organisation { get; set; } = Everything;
 
+	/// <summary>
+	/// What this round of a battle has done to it and has not yet taken off: the shots
+	/// of an hour add up here and are settled together at its end. Thousandths, and a
+	/// hundred times what a brigade or a wing then loses.
+	/// </summary>
+	public long PendingStrengthDamage { get; set; }
+
+	public long PendingOrganisationDamage { get; set; }
+
 	/// <summary>From 0 to 100.</summary>
 	public CFixedPoint Experience { get; set; } = NotGiven;
 

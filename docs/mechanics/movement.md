@@ -14,8 +14,9 @@ what is left over counts towards the one after.
 
 **This is the march itself, and a land unit's orders.** A fleet and an air unit march by
 the same rules and are told to by others - a window of orders, a range, ports:
-`fleetsandair.md`. Everything that has to do with an enemy is not built, and the last
-sections say what.
+`fleetsandair.md`. What a march does when it meets an enemy - the battle it starts, the
+delay an attack leaves, falling back - is `landcombat.md`; the parts of it that are the
+march's own are here.
 
 ---
 
@@ -183,6 +184,16 @@ Giving a unit a path: `confirmed`
 A unit keeps, besides its path and its progress, **the province it was in before** the one
 it is in.
 
+**A unit in a battle that is given somewhere to go leaves every battle it is in**, and where
+it was holding ground it is falling back from then on. **Halting a unit in the middle of an
+attack breaks the attack off.** (`landcombat.md`, section 7.)
+
+**A unit with an attack delay running does not take its first step** - of any march, not only
+towards an enemy - and one that arrives with a delay running starts its next leg from
+nothing. A unit already walking keeps walking. `confirmed`, and the maintainer's word for it
+on 2026-10-09: a delay stops all movement but the walk into the province that was attacked,
+where the unit may arrive with it still running (`landcombat.md`, section 9).
+
 ## 5. Speed
 
 What an hour adds to the progress, in the same thousandths as a distance: `confirmed`
@@ -202,17 +213,20 @@ What an hour adds to the progress, in the same thousandths as a distance: `confi
 
 | | term | |
 | --- | --- | --- |
-| 1 | in a battle: a figure of the battle and of `combat_movement_speed`, between 10 and 1000 | not built |
+| 1 | **in a battle, with a path**: attacking in one, `(1000 + the country's combat_movement_speed) x (COMBAT_MOVEMENT_SPEED + the tactics' speed) / 1000`, held between 10 and 1000; in one any other way, 10 | built, less a technology figure and a leader's trait |
 | 2 | **fuel**, for a land unit or a fleet whose brigades burn any: `fuel received x 900 / 1000 + 100` | built |
 | 3 | **the next province's terrain**: 1000 + the unit's adjuster for it | built |
 | 4 | a leader's trait for that terrain | not built |
 | 5 | **a river or a crossing** on the way to the next province: 1000 + the unit's adjuster for `river` | built |
 | 6 | on land, **the province it is in**: 1000 + the weather there + its `local_unit_speed` | built |
 | 7 | on land: 1000 + the country's `amm_movement_speed` x the share of its brigades that are `is_mobile` | built |
-| 8 | retreating: 1100 | not built |
+| 8 | **falling back**: 1100 | built |
 
+- **In a battle** an attacker walks on at a third of its speed in the base game
+  (`COMBAT_MOVEMENT_SPEED` is 0.33), which is what fills its arrow while it fights; a unit
+  that is being attacked and has somewhere to go all but stands.
 - **Fuel**: a unit that received none keeps a tenth of its speed, and one that received all
-  of its ration keeps all of it.
+  of its ration keeps all of it. A unit falling back is not slowed for want of fuel.
 - **A unit's adjuster** for a terrain or for rivers is its brigades' `movement` figures for
   it added up and divided by how many brigades it has - one that says nothing counts as
   zero.
@@ -298,16 +312,34 @@ This document said the opposite until 2026-10-09: the reading it was written fro
 wrong caller, which the reading for fleets found.
 
 1. A unit with no brigades does nothing.
-2. A path whose first province is the one the unit stands in loses that province, and the
+2. **A unit that has not taken a step and has an attack delay running does nothing.**
+3. A path whose first province is the one the unit stands in loses that province, and the
    progress with it. Nothing more this hour.
-3. `progress += speed`, when this is the pass that adds.
-4. **The way has to be there still, every hour**: if the province the unit is in has no
+4. **A land unit that was given no supplies at all does not walk onto ground an enemy
+   holds**, unless it already has a battle for it: it is halted - and if it was falling
+   back it is removed from the game.
+5. `progress += speed`, when this is the pass that adds.
+6. **In a battle the progress is held at the distance and the hour ends there**: a unit does
+   not enter while it fights.
+7. **The way has to be there still, every hour**: if the province the unit is in has no
    edge to the next, or the crossing has been closed, the unit is halted.
-5. `progress < distance`: nothing more this hour. The **distance** is that of the edge from
+8. `progress < distance`: nothing more this hour. The **distance** is that of the edge from
    the province the unit is in to the next of its path - 1 where there is no such edge.
-6. **It arrives**: the province comes off the path, `progress -= distance`, and if the unit
-   may no longer stand there it is halted where it was. Otherwise the province it was in is
-   remembered and it is in the next.
+9. **It arrives**: the province comes off the path, `progress -= distance` - and the progress
+   is nothing at all where an attack delay is running - and it is falling back no longer. If
+   the unit may no longer stand there it is halted where it was. Otherwise the province it
+   was in is remembered, it is in the next, and **a land unit looks at the province it has
+   entered** (`landcombat.md`, section 1): that is where it meets an enemy, or takes the
+   ground.
+
+A halt by the march itself - the way gone, the ground no longer its to stand on - also takes
+the unit out of the battles it was attacking in.
+
+**A unit's whole hour**, of which the march is the fourth step: the look at its order; for a
+land unit with a path, the look at the province ahead; the battles it is no longer beside are
+left and its attack delay is seen to; the march; and, with no path and no battle, the look at
+the province it stands in. A unit of a country at peace that is going nowhere has nothing to
+do in it.
 
 **The units move one after another, country by country**, on the one thread that runs the
 hour: the countries in their order, each country's units in the order of its own list.
@@ -362,11 +394,9 @@ with what is left over carried into the next leg as the march itself carries it.
 
 ## What is not built
 
-- **Anything to do with an enemy.** In the original a unit does not set off while an
-  attack delay runs; a unit in a battle has its progress held at the distance and enters
-  only when the battle is over; entering a province looks for a battle to start; a unit
-  with no supplies will not march onto enemy ground, nor one too weak to; a unit leaving a
-  battle it was losing is retreating, a tenth faster.
+- **A unit too weak, or with no supplies or no fuel, is not routed onto an enemy's ground**
+  in the original; here it is only stopped at the border for want of supplies (section 6).
+  Nor is a country kept from attacking out of a neutral that merely lets it through.
 - **Coordinated arrival**: the original keeps two hours on a unit, one before which it does
   not move and one before which it does not arrive, waiting at full progress.
 - **Strategic redeployment**, which is an order of its own with a speed of its own.

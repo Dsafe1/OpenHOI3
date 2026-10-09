@@ -1,3 +1,4 @@
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Movement;
@@ -46,13 +47,18 @@ public static class CTick
 	/// </summary>
 	private static void RunHourlyPass(CGameState state)
 	{
-		// Each country's units look at their orders and move, one after another; only
-		// then is every unit's own hour run, which is where its organisation comes back.
+		// Every roll of the hour starts from the game's seed and the hour it is.
+		state.SeedHour();
+		// Each country's units look at their orders, look for an enemy and move, one
+		// after another; only then is every unit's own hour run, which is where its
+		// organisation comes back.
 		CMovement.RunHourly(state);
 		// The units go before their countries, so an hour's organisation is worked out
 		// with the officer ratio the hour before left.
 		COrganisation.RunHourly(state);
 		COfficers.Update(state);
+		// The battles are fought last, each in turn.
+		CCombats.RunHourly(state);
 	}
 
 	/// <summary>
@@ -71,6 +77,7 @@ public static class CTick
 		CCountryModifiers.Rebuild(state);
 		CManpower.RunDaily(state);
 		CLeadership.Update(state);
+		CDigIn.RunDaily(state);                             // a unit's day begins with it
 		CUnitUpkeep.RunDaily(state);
 		CResources.UpdateHomeProduction(state);
 		CStockpile.AddHomeProduction(state);

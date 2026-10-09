@@ -37,6 +37,25 @@
 			"stopAtEntry": false
 		},
 		{
+			// Asks which country to play, by its tag, and whether it may order every
+			// unit type or only its own.
+			"name": "Play OpenHOI3 (choose country)",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build",
+			"program": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}",
+				"--",
+				"--country=${input:country}",
+				"${input:units}"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		},
+		{
 			"name": "Play OpenHOI3 (headless)",
 			"type": "coreclr",
 			"request": "launch",
@@ -65,6 +84,30 @@
 			"cwd": "${workspaceFolder}",
 			"console": "internalConsole",
 			"stopAtEntry": false
+		}
+	],
+	"inputs": [
+		{
+			"id": "country",
+			"type": "promptString",
+			"description": "The tag of the country to play: GER, ENG, FRA, ITA, SOV, USA, JAP, or any other. One the game does not have plays Germany.",
+			"default": "GER"
+		},
+		{
+			"id": "units",
+			"type": "pickString",
+			"description": "Which unit types the country may order",
+			"options": [
+				{
+					"label": "Its own: what its technology and its files allow",
+					"value": "--own-units"
+				},
+				{
+					"label": "Every unit type, from the start",
+					"value": "--all-units"
+				}
+			],
+			"default": "--own-units"
 		}
 	]
 }

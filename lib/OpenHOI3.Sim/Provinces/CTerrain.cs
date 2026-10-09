@@ -4,8 +4,9 @@ namespace OpenHOI3.Sim.Provinces;
 /// A kind of terrain: one of the categories <c>map/terrain.txt</c> declares, such as
 /// plains, forest or ocean.
 ///
-/// Only what the map and movement need so far. The other numbers a category carries -
-/// attack, attrition - belong with the systems that use them and arrive with those.
+/// Only what the map, movement and a battle need so far. The other numbers a category
+/// carries - attrition, what it does to the weather - belong with the systems that use
+/// them and arrive with those.
 /// </summary>
 public sealed class CTerrain
 {
@@ -30,6 +31,18 @@ public sealed class CTerrain
 	/// <c>docs/mechanics/movement.md</c>, section 2.
 	/// </summary>
 	public CFixedPoint MovementCost { get; init; }
+
+	/// <summary>
+	/// What fighting on it does to an attacker and to a defender, before a unit's own
+	/// way with the ground is added: the file's <c>attack</c> and <c>defence</c>. See
+	/// <c>docs/mechanics/landcombat.md</c>, section 4.
+	/// </summary>
+	public CFixedPoint Attack { get; init; }
+
+	public CFixedPoint Defence { get; init; }
+
+	/// <summary>The file's <c>humidity</c>. Ground with any counts as jungle when it is hot.</summary>
+	public CFixedPoint Humidity { get; init; }
 
 	public override string ToString()
 	{

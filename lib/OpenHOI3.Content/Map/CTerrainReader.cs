@@ -53,10 +53,16 @@ public static class CTerrainReader
 				}
 				indexByName[category.Key] = categories.Count;
 				CFixedPoint.TryParse(category.GetString("movement_cost"), out CFixedPoint movementCost);
+				CFixedPoint.TryParse(category.GetString("attack"), out CFixedPoint attack);
+				CFixedPoint.TryParse(category.GetString("defence"), out CFixedPoint defence);
+				CFixedPoint.TryParse(category.GetString("humidity"), out CFixedPoint humidity);
 				categories.Add(new CTerrain(category.Key, category.GetBool("is_water"),
 					category.GetRgb("color", CColor.Gray))
 				{
 					MovementCost = movementCost,
+					Attack = attack,
+					Defence = defence,
+					Humidity = humidity,
 				});
 			}
 		}

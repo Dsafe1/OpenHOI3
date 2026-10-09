@@ -3,19 +3,25 @@
 *These rules are for `OpenHOI3/`. Opened from the `workspaces/hoi3` root, all four of these
 files arrive at once - apply each to its own folder.*
 
-**OpenHOI3**: a grand strategy game in the spirit of Hearts of Iron 3: Their Finest Hour, on
-its own technology, able to run the original's content and its mods as they are written. Godot
-**4.7.1 .NET/mono** and C#.
+**OpenHOI3**: a drop-in engine replacement for Hearts of Iron 3: Their Finest Hour - pointed
+at an install, it plays that game, its content and its mods as they are written, by the
+original's own rules, on new technology. Godot **4.7.1 .NET/mono** and C#.
 
-**This is not a reimplementation of `hoi3_tfh.exe`.** The engine, the simulation and the
-rendering are our own and nothing is derived from the original's binary. What is kept is the
-**language its content is written in** - script, data files, interface files - because that is
-where the modding knowledge is. `readme.md` is where that goal is set out and is the document
-to read first; it also holds the staged plan.
+**It reimplements what `hoi3_tfh.exe` does, not how it is built.** The maintainer's word,
+2026-10-09: a reimplementation "is what we are working towards right now, and what I
+currently want", and a drop-in engine replacement is the fitting description. So the rules
+of the simulation follow the original as closely as they can be read and checked; the
+engine, the rendering and every line of code are our own, and no address, offset or byte of
+the original's binary comes here - the section *What this repository may not do* stands as
+it was. What is read from an install is the **language its content is written in** - script,
+data files, interface files - because that is where the modding knowledge is. `readme.md` is
+where that goal is set out and is the document to read first; it also holds the staged plan.
 
-**This reversed on 2026-10-07.** Until then the rule was our own formats throughout, fed by a
-one-way converter, with "our format stays clean" as the test. A session reading this
-repository's history will find that stance everywhere; it is no longer the one to apply.
+**This has turned twice.** Until 2026-10-07 the rule was our own formats throughout, fed by a
+one-way converter, with "our format stays clean" as the test; and until 2026-10-09 this file
+and the readme said "in the spirit of the original" and "not a reimplementation". A session
+reading this repository's history will find both stances everywhere; neither is the one to
+apply.
 
 **The tree is early and provisional.** What exists is one iteration - a Clausewitz reader, an
 install layerer, texture decoding, the map with the start-date ownership and
@@ -35,8 +41,9 @@ unit from, the units on the map as counters with the alert and the menu a finish
 placed from, the ways between provinces as the original measures them and the order, the
 route and the hourly march of a land unit, the panel of a selected unit and the lines of
 its hierarchy on the map, the orders that send a fleet or an air unit with the window they
-are given from, the distances by sea, and the buildings on the map with the port and the
-airfield, 890 tests - and it is
+are given from, the distances by sea, the buildings on the map with the port and the
+airfield, and a land battle from the unit that starts it to the province that changes
+hands with what the ground, the night and the rest make of each unit in it, 951 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -155,6 +162,20 @@ agree with his saves and the original's cache; the size of a building's picture 
 orders window rest on the reading and on the art. **The art corrected one rule on the
 way**: a window's background that is a plain picture keeps its own size at the window's
 corner and is not stretched - no window built before had one (`interface.md`, section 3).
+**A land battle - `landcombat.md` - is the least checked thing here: read out of the
+original, tried with `--click` and with `OpenHOI3.SaveCheck battle`, and set against
+nothing.** No save has a battle in it and the original's rolls cannot be made again, so its
+figures rest on the reading alone. The maintainer's word on 2026-10-09 covers three things:
+a week for two like divisions "seems right", an attack delay stops all movement but the walk
+into the province attacked, and occupied ground is striped (`map.md`, section 10). Who
+stands on a front and who comes up from reserve still want a look at the original. Only
+land units fight. Fifteen things bear on a unit each round - the ground, a river, forts, the
+night, experience, being dug in, crowding and the rest (`landcombat.md`, section 4) - and
+`CCombatModifiers` is where the eight that wait will go: leaders, tactics, encirclement and
+the others listed there. **Reading them again for this corrected the fact base**: the weather
+and the night are against a unit's attack and leave its defence alone. There is no weather
+yet, no diplomacy and no AI, so a war is given with `--war=GER:POL` and the enemy stands
+still.
 **The four windows a unit is ordered
 from - `builders.md` - have been tried by hand once and never measured against the
 original.** That try found seven buttons that could not be pressed in windows every
@@ -244,7 +265,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 106 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 107 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -280,7 +301,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 2898-address, 310-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 2944-address, 311-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -299,8 +320,9 @@ fine, because the framework version and the SDK version are independent.
     dotnet test tests/OpenHOI3.Tests
 
 From VS Code, `F5` offers *Play OpenHOI3*, *Play OpenHOI3 (all units)* - every unit type
-there to order from the start, for trying the builder windows - *Play OpenHOI3 (headless)*
-and *Open Godot Editor*.
+there to order from the start, for trying the builder windows - *Play OpenHOI3 (choose
+country)*, which asks for a tag and whether to have every unit type, *Play OpenHOI3
+(headless)* and *Open Godot Editor*.
 The Godot executable path comes from the `godotTools.editorPath.godot4` setting rather than
 being hardcoded, so set it in `.vscode/settings.json` (git-ignored) or in user settings.
 
@@ -369,9 +391,14 @@ beside the repository.
   the maintainer's under way, and give 17 of 17 and 1 of 1.
   `OpenHOI3.SaveCheck navaldist <install>` checks the distances by sea against the
   original's `map/cache/navaldist.bin`: all 17,621,016 agree, and it takes twenty seconds.
+  **A battle has no save to be checked against**: none of the maintainer's has one, and the
+  original's rolls cannot be made again (`docs/mechanics/landcombat.md`, section 8).
+  `OpenHOI3.SaveCheck battle <install> [attacker] [defender] [seed]` is a trial instead: it
+  fights one with the install's own units and says how it went - Italy against Ethiopia with
+  no tags given, who are at war on the start date. Run it after touching `lib/OpenHOI3.Sim/Combat`.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders carry 890 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night and the game's generator of chance carry 951 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

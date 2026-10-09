@@ -134,10 +134,12 @@ Then each brigade:
 - **`org_regain`** is a country modifier: the minister type `school_of_psychology` gives
   0.1.
 
-The original skips a unit that is fighting, one that is marching into a province an enemy
-holds, and an army aboard a fleet at sea; it multiplies organisation by
-`PARATROOP_DROP_ORG_MULT` once after a drop; and it takes `STRAT_REDEP_ORG_LOSS` off the
-hour's gain of a brigade being strategically redeployed. None of those can happen yet.
+**A unit that is fighting gets nothing back, nor one marching into a province an enemy
+holds** - with a path, no attack delay running, and the next province held by a country its
+own is at war with. Built with the battle (`landcombat.md`). The original also skips an army
+aboard a fleet at sea; it multiplies organisation by `PARATROOP_DROP_ORG_MULT` once after a
+drop; and it takes `STRAT_REDEP_ORG_LOSS` off the hour's gain of a brigade being strategically
+redeployed. None of those three can happen yet.
 
 *Ours:* a new game here starts at hour nought with no hour run, so the first hour is the
 first thing to hold a brigade to section 2. Reserves fall to their ceiling in that hour
@@ -194,8 +196,8 @@ A country trains officers with a share of its leadership (`leadership.md`, secti
 starts with those its units bring (`units.md`, section 7). They do two things, both
 through the ratio: they set how much organisation every brigade can hold (section 2) and
 how fast it comes back (section 3). Building units raises what is called for and so
-lowers the ratio; the original also loses officers in battle (`OFFICER_COMBAT_LOSS`),
-which is combat's and not built.
+lowers the ratio; and officers are lost in battle (`OFFICER_COMBAT_LOSS`: `landcombat.md`,
+section 6).
 
 ## 7. Against the savegames
 
@@ -247,12 +249,11 @@ stops, and ships and wings take the country's ratio like the rest.
 ## What is not built
 
 - **Leaders**, and so the commander's part of the ceiling (section 2).
-- **Fighting, marching and being carried**, which stop the hourly return (section 3), and
-  the paratroop and redeployment rules beside them.
+- **Being carried**, which stops the hourly return (section 3), and the paratroop and
+  redeployment rules beside it.
 - **Anything that changes a law**, so section 5 is never called in a game.
 - **Units lent to another country**, which count for and take the ratio of the country
   that lent them.
-- **Officers lost in battle.**
 - **The supply network**: the share of its supplies a unit was given is always all of
   them while its country has any (`upkeep.md`, section 2), so no unit here loses
   organisation for want of supply unless the whole stockpile is empty.

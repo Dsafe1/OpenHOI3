@@ -166,9 +166,19 @@ public static class COrganisation
 	}
 
 	/// <summary>
-	/// The hourly update of every unit, as far as organisation goes. The original skips
-	/// a unit that is fighting or marching onto enemy ground, and an army aboard a fleet
-	/// at sea; none of the three can happen yet.
+	/// Whether a unit is on its way into a province an enemy holds, with no attack delay
+	/// running. Such a unit gets no organisation back, any more than one that is fighting.
+	/// </summary>
+	public static bool IsMovingOntoEnemyGround(CGameState state, CUnit unit)
+	{
+		return unit.IsMoving && unit.AttackDelay == CFixedPoint.Zero
+			&& Movement.CMovementRules.IsEnemy(state, state.Province(unit.Path[0]).Controller, unit.Owner);
+	}
+
+	/// <summary>
+	/// The hourly update of every unit, as far as organisation goes. A unit that is
+	/// fighting gets none back, nor one marching onto enemy ground. The original also
+	/// skips an army aboard a fleet at sea, which cannot happen yet.
 	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
@@ -178,6 +188,10 @@ public static class COrganisation
 		{
 			foreach (CUnit unit in country.AllUnits())
 			{
+				if (unit.IsFighting || IsMovingOntoEnemyGround(state, unit))
+				{
+					continue;
+				}
 				long factor = RegainFactor(state, country, unit, crowding);
 				foreach (CSubUnit subUnit in unit.SubUnits)
 				{

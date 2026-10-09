@@ -46,6 +46,12 @@ if (args.Length > 0 && args[0] == "march")
 	return CMarchCheck.Run(args);
 }
 
+// A battle is fought with the install's own units and described. A trial, not a check.
+if (args.Length > 0 && args[0] == "battle")
+{
+	return CBattleTrial.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

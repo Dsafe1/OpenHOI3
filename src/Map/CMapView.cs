@@ -58,6 +58,9 @@ public partial class CMapView : Node2D
 	private const string ShaderPath = "res://src/Map/PoliticalMap.gdshader";
 	private const int PaletteWidth = 256;
 
+	/// <summary>The original's picture of the stripes that mark ground held by another than its owner.</summary>
+	private const string StripesPath = "map/terrain/stripes.dds";
+
 	private const float ZoomStep = 1.25f;
 	/// <summary>Map pixels a second at zoom 1, for the keyboard.</summary>
 	private const float KeyScrollSpeed = 900f;
@@ -81,6 +84,9 @@ public partial class CMapView : Node2D
 	private ShaderMaterial _material = null!;
 	private Image _paletteImage = null!;
 	private ImageTexture _paletteTexture = null!;
+	private Image _stripeImage = null!;
+	private ImageTexture _stripeTexture = null!;
+	private CTextureManager? _textures;
 	private Camera2D _camera = null!;
 
 	private bool _dragging;
@@ -106,6 +112,7 @@ public partial class CMapView : Node2D
 	{
 		_counters = new CUnitCounters { Name = "Counters" };
 		_counters.Setup(_map, _state, gui, types, billboards, arrows);
+		_textures = gui.Textures;
 	}
 
 	/// <summary>The units on the map, or null when it was given none to draw.</summary>
@@ -147,6 +154,16 @@ public partial class CMapView : Node2D
 		_paletteImage = Image.CreateEmpty(PaletteWidth, rows, false, Image.Format.Rgba8);
 		_paletteTexture = ImageTexture.CreateFromImage(_paletteImage);
 		_material.SetShaderParameter("palette", _paletteTexture);
+		_stripeImage = Image.CreateEmpty(PaletteWidth, rows, false, Image.Format.Rgba8);
+		_stripeTexture = ImageTexture.CreateFromImage(_stripeImage);
+		_material.SetShaderParameter("stripe_palette", _stripeTexture);
+
+		// The stripes are the original's own picture, and without it nothing is striped.
+		if (_textures?.LoadImage(StripesPath) is { } stripes)
+		{
+			_material.SetShaderParameter("stripes", ImageTexture.CreateFromImage(StripeMask(stripes)));
+			_material.SetShaderParameter("has_stripes", true);
+		}
 		RefreshColours();
 
 		_camera = new Camera2D { Position = new Vector2(_map.Width / 2f, _map.Height / 2f) };
@@ -162,6 +179,35 @@ public partial class CMapView : Node2D
 	public override void _Draw()
 	{
 		DrawRect(new Rect2(-_map.Width, 0, _map.Width * 3, _map.Height), Colors.White);
+	}
+
+	/// <summary>
+	/// The stripes as a picture whose alpha is how much of the second colour a point
+	/// takes, with smaller copies of itself for the map seen from far off. The original's
+	/// file keeps its stripes in a format whose see-through points are black: where a
+	/// decoder hands that back with no alpha at all, the brightest channel stands for it.
+	/// </summary>
+	private static Image StripeMask(Image source)
+	{
+		var picture = (Image)source.Duplicate();
+		if (picture.IsCompressed())
+		{
+			picture.Decompress();
+		}
+		picture.Convert(Image.Format.Rgba8);
+		bool hasAlpha = picture.DetectAlpha() != Image.AlphaMode.None;
+		var mask = Image.CreateEmpty(picture.GetWidth(), picture.GetHeight(), false, Image.Format.Rgba8);
+		for (int y = 0; y < picture.GetHeight(); y++)
+		{
+			for (int x = 0; x < picture.GetWidth(); x++)
+			{
+				Color pixel = picture.GetPixel(x, y);
+				float amount = hasAlpha ? pixel.A : Mathf.Max(pixel.R, Mathf.Max(pixel.G, pixel.B));
+				mask.SetPixel(x, y, new Color(1f, 1f, 1f, amount));
+			}
+		}
+		mask.GenerateMipmaps();
+		return mask;
 	}
 
 	/// <summary>
@@ -191,9 +237,10 @@ public partial class CMapView : Node2D
 	}
 
 	/// <summary>
-	/// Recolours every province from the game state, by the current mode: the owner's
-	/// colour or the terrain's on land, one colour for all the sea. Call it again
-	/// whenever what the mode shows changes.
+	/// Recolours every province from the game state, by the current mode: its holder's
+	/// colour, striped with its owner's where that is another country, or its terrain's,
+	/// on land, and one colour for all the sea. Call it again whenever what the mode
+	/// shows changes.
 	/// </summary>
 	public void RefreshColours()
 	{
@@ -201,6 +248,7 @@ public partial class CMapView : Node2D
 		{
 			CProvince province = _state.Provinces[id];
 			Color colour;
+			Color? stripe = null;
 			if (id == 0)
 			{
 				colour = NothingColour;
@@ -215,15 +263,25 @@ public partial class CMapView : Node2D
 			}
 			else
 			{
-				colour = _state.Country(province.Owner)?.Color.ToGodot() ?? UnownedColour;
+				// A province is the colour of whoever holds it, and the thin stripes
+				// are its owner's where that is somebody else.
+				CCountry? holder = _state.Country(province.Controller) ?? _state.Country(province.Owner);
+				colour = holder?.Color.ToGodot() ?? UnownedColour;
+				if (_state.Country(province.Owner) is { } owner && owner != holder)
+				{
+					stripe = owner.Color.ToGodot();
+				}
 			}
 			if (_places is not null && _places.Contains(id))
 			{
 				colour = colour.Lerp(PlaceColour, PlaceStrength);
+				stripe = stripe?.Lerp(PlaceColour, PlaceStrength);
 			}
 			_paletteImage.SetPixel(id % PaletteWidth, id / PaletteWidth, colour);
+			_stripeImage.SetPixel(id % PaletteWidth, id / PaletteWidth, stripe ?? colour);
 		}
 		_paletteTexture.Update(_paletteImage);
+		_stripeTexture.Update(_stripeImage);
 	}
 
 	// --- the camera ---

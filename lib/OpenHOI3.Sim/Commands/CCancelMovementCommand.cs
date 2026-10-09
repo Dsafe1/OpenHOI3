@@ -1,3 +1,4 @@
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
@@ -27,6 +28,8 @@ public sealed class CCancelMovementCommand : CCommand
 	public override void Execute(CGameState state)
 	{
 		CUnit unit = Find(state.Country(_country)!)!;
+		// A unit halted in the middle of an attack breaks it off.
+		CCombats.LeaveAttacks(state, unit);
 		CMovement.Cancel(unit);
 		CUnitOrders.Clear(unit);
 	}

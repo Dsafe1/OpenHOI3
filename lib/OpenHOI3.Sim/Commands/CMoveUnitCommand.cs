@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
@@ -58,6 +59,8 @@ public sealed class CMoveUnitCommand : CCommand
 		List<int>? route = CRouteFinder.Find(state, country, unit, from, _province);
 		if (route is not null)
 		{
+			// A unit ordered away from a battle leaves it, and falls back if it was holding ground.
+			CCombats.LeaveForMarch(state, unit);
 			CMovement.SetPath(unit, route, clear: !append);
 			CUnitOrders.Clear(unit);
 		}

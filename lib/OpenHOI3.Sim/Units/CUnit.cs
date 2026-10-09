@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Sim.Units;
@@ -44,6 +45,55 @@ public sealed class CUnit
 	public int Previous { get; set; }
 
 	public bool IsMoving => Path.Count > 0;
+
+	/// <summary>
+	/// The battles it is in. A unit attacking out of one province can be defending the
+	/// one it stands in at the same time. See <c>docs/mechanics/landcombat.md</c>.
+	/// </summary>
+	public List<CCombat> Combats { get; } = new();
+
+	public bool IsFighting => Combats.Count > 0;
+
+	/// <summary>
+	/// Falling back from a lost battle. A retreating unit is nobody's enemy: it starts
+	/// no battle, holds no ground, and stops retreating where it arrives.
+	/// </summary>
+	public bool IsRetreating { get; set; }
+
+	/// <summary>
+	/// The hours before it may set off or attack again. An attack starts it, fighting
+	/// wears it down slowly, and after the battle it runs down an hour an hour.
+	/// </summary>
+	public CFixedPoint AttackDelay { get; set; }
+
+	/// <summary>The hours it has been attacking for, which a short attack's delay is cut by.</summary>
+	public int HoursAttacking { get; set; }
+
+	/// <summary>
+	/// What this hour's circumstances make of its attack and of its defence, where 1 is
+	/// unchanged. Worked out afresh for every round of a battle.
+	/// </summary>
+	public CFixedPoint CombatAttack { get; set; } = CFixedPoint.One;
+
+	public CFixedPoint CombatDefence { get; set; } = CFixedPoint.One;
+
+	/// <summary>
+	/// What this hour of its battle holds for and against it, in the order it was worked
+	/// out. The two figures above are these multiplied together.
+	/// </summary>
+	public List<CCombatModifier> CombatModifiers { get; } = new();
+
+	/// <summary>
+	/// How dug in it is, in levels. A unit of a country at war that stays where it is
+	/// gains one a day up to a cap, and loses them all when it sets off.
+	/// </summary>
+	public CFixedPoint DigIn { get; set; }
+
+	/// <summary>How many of this round's shots it has already met with a defence.</summary>
+	public int DefencesUsed { get; set; }
+
+	/// <summary>Gone from the game. Whatever still holds it leaves it alone.</summary>
+	public bool IsRemoved { get; set; }
 
 	/// <summary>
 	/// What it has been told to do, and where. An order is looked at every hour and

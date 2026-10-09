@@ -9,6 +9,7 @@ using OpenHOI3.Gui;
 using OpenHOI3.Map;
 using OpenHOI3.Screens;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
@@ -48,6 +49,7 @@ public partial class CSession : Node
 	private bool _ordered;
 	private bool _wasMoving;
 	private int _waiting;
+	private int _controlChanges;
 
 	/// <summary>The country played when nothing says which. There is no screen to choose one on yet.</summary>
 	private const string DefaultPlayer = "GER";
@@ -85,8 +87,13 @@ public partial class CSession : Node
 			$"for {State.Date} in {clock.ElapsedMilliseconds} ms.");
 
 		_simulation = new CSimulation(State);
-		Player = State.Country(new CCountryTag(PlayerArgument() ?? DefaultPlayer))
-			?? State.Country(new CCountryTag(DefaultPlayer));
+		string asked = PlayerArgument() ?? DefaultPlayer;
+		Player = State.Country(new CCountryTag(asked));
+		if (Player is null)
+		{
+			GD.Print($"--country: there is no country '{asked}', so {DefaultPlayer} is played.");
+			Player = State.Country(new CCountryTag(DefaultPlayer));
+		}
 
 		clock.Restart();
 		CGuiContext gui = CGuiContext.Load(_directories, localisation);
@@ -273,7 +280,9 @@ public partial class CSession : Node
 			// The hour a unit arrives it is on the march no longer, and that hour is the
 			// one its counter has to change province in: so whether one was moving before
 			// counts as much as whether one is now.
-			bool moving = AnyUnitMoving();
+			// A battle wears its units down hour by hour, and its last hour sends them
+			// away: so a battle counts as movement does.
+			bool moving = AnyUnitMoving() || State.Combats.Count > 0;
 			if (_ordered || moving || _wasMoving)
 			{
 				_unitsMoved = true;
@@ -282,6 +291,13 @@ public partial class CSession : Node
 		}
 		_ordered = false;
 		_hourPassed = false;
+		// The map is coloured by who holds what, so it is coloured again when that changes.
+		if (State.ControlChanges != _controlChanges)
+		{
+			_controlChanges = State.ControlChanges;
+			_mapView.RefreshColours();
+			_unitsMoved = true;
+		}
 		if (_unitsMoved || waiting != _waiting)
 		{
 			_unitsMoved = false;
@@ -393,12 +409,16 @@ public partial class CSession : Node
 		}
 	}
 
-	/// <summary>The tag given with <c>--country=</c> on the command line, or null.</summary>
+	/// <summary>
+	/// The tag given with <c>--country=</c> on the command line, or null. A tag is upper
+	/// case in every file, so one typed in lower case is taken for the same country.
+	/// </summary>
 	private static string? PlayerArgument()
 	{
 		foreach (string argument in OS.GetCmdlineUserArgs())
 		{
-			if (argument.StartsWith("--country=") && CCountryTag.TryParse(argument["--country=".Length..], out CCountryTag tag))
+			if (argument.StartsWith("--country=")
+				&& CCountryTag.TryParse(argument["--country=".Length..].ToUpperInvariant(), out CCountryTag tag))
 			{
 				return tag.Value;
 			}
@@ -444,6 +464,23 @@ public partial class CSession : Node
 		if (here.Count > 0)
 		{
 			text += "\nUnits: " + string.Join(", ", here.Take(6)) + (here.Count > 6 ? $" and {here.Count - 6} more" : "");
+		}
+		// Ours, until the original's battle marker and its window are built: who is
+		// fighting whom here, how long for, and how many stand on each front.
+		if (CCombats.In(State, provinceId) is { } combat)
+		{
+			text += $"\nBattle, hour {combat.Duration}: "
+				+ $"{string.Join(", ", combat.Attacker.Countries.Select(tag => CountryName(tag)))} attacking with "
+				+ $"{combat.Attacker.Front.Count} of {combat.Attacker.Units.Count}, "
+				+ $"{string.Join(", ", combat.Defender.Countries.Select(tag => CountryName(tag)))} defending with "
+				+ $"{combat.Defender.Front.Count} of {combat.Defender.Units.Count}";
+		}
+		if (_mapView.Counters?.Selected is { } chosen && (chosen.IsFighting || chosen.IsRetreating
+			|| chosen.AttackDelay > CFixedPoint.Zero))
+		{
+			text += $"\n{chosen.Name}: "
+				+ (chosen.IsFighting ? "fighting" : chosen.IsRetreating ? "falling back" : "resting")
+				+ (chosen.AttackDelay > CFixedPoint.Zero ? $", {chosen.AttackDelay.ToInt()} hours before it may attack again" : "");
 		}
 		if (province.IsSea)
 		{
@@ -534,7 +571,10 @@ public partial class CSession : Node
 	/// <c>--screen=deploy</c> the menu a finished unit is placed from,
 	/// <c>--days=7</c> runs that many days before anything after it is done,
 	/// <c>--research=key,key</c> puts technologies on the research queue,
-	/// <c>--all-units</c> lets the country played order every unit type that can be built,
+	/// <c>--all-units</c> lets the country played order every unit type that can be built
+	/// (and <c>--own-units</c> says the opposite, which is how it is anyway: a launch
+	/// that asks has to pass something for either answer),
+	/// <c>--war=GER:POL</c> puts those two countries at war,
 	/// <c>--order=type,type</c> orders one unit made of those brigades, ships or wings,
 	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
 	/// type) opens the window that orders one, with that in it,
@@ -623,6 +663,23 @@ public partial class CSession : Node
 					}
 				}
 				_simulation.Post(new CSetResearchQueueCommand(Player.Tag, queue));
+			}
+			else if (argument.StartsWith("--war="))
+			{
+				// Puts two countries at war at once, there being no diplomacy to declare
+				// one with: --war=GER:POL. Carried out before anything after it.
+				string[] tags = argument["--war=".Length..].Split(':');
+				if (tags.Length == 2 && CCountryTag.TryParse(tags[0], out CCountryTag first)
+					&& CCountryTag.TryParse(tags[1], out CCountryTag second)
+					&& new CStartWarCommand(first, second) is var war && war.MayExecute(State))
+				{
+					_simulation.Post(war);
+					_simulation.Pump();
+				}
+				else
+				{
+					GD.Print($"--war: '{argument["--war=".Length..]}' is not two countries at peace with each other.");
+				}
 			}
 			else if (argument == "--all-units" && Player is not null)
 			{
