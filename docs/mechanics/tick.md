@@ -72,9 +72,11 @@ A change of month always comes with a change of day, and a change of year with b
 The supply network is also rebuilt inside the hour when something changed it.
 
 *Ours:* steps 2 and 3 are built as far as there is anything for them to do. A unit's hour
-is the return of its organisation, and a country's is the count of the officers its units
-call for and the ratio that comes of it (`organisation.md`, sections 1 and 3). The order
-matters: a unit's hour uses the ratio the hour before left.
+is the return of its organisation and then, near its end as in the original, its march
+(`movement.md`, section 6); a country's is the count of the officers its units call for
+and the ratio that comes of it (`organisation.md`, sections 1 and 3). The order matters: a
+unit's hour uses the ratio the hour before left. Here every unit's organisation is done
+before any unit's march, which comes to the same while neither reads the other.
 
 **The AI is on the hourly schedule but each country's ministers act once a day**, at the
 hour `(country index + 13) mod 24`, so the AI's work is spread around the clock instead of

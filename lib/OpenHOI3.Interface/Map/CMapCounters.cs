@@ -35,8 +35,12 @@ public static class CMapCounters
 	/// <summary>Which of its province's stacks a unit that has a counter is in.</summary>
 	public static EMapStack StackOf(CUnit unit)
 	{
-		// Nothing moves or fights yet, so of the five only two are ever used.
-		return unit.Kind == EUnitKind.Air ? EMapStack.Air : EMapStack.Standing;
+		// Nothing fights yet, so of the five only three are ever used.
+		if (unit.Kind == EUnitKind.Air)
+		{
+			return EMapStack.Air;
+		}
+		return unit.IsMoving ? EMapStack.Moving : EMapStack.Standing;
 	}
 
 	/// <summary>

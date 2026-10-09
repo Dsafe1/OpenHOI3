@@ -289,6 +289,100 @@ public class MapCounterTests
 	}
 
 	[Fact]
+	public void AMovingUnitsPointerIsItsOffsetAwayInTheDirectionTheUnitIsGoing()
+	{
+		// The base game's: a square two map units across, four and a half from the counter.
+		var pointer = new CBillboardType { Name = CBillboardTypes.CounterArrow, Scale = 1f, Offset = 4.5f, Frames = 2 };
+		var near = new CCounterType { Name = CCounterTypes.Near, Scale = 2.5f };
+		var far = new CCounterType { Name = CCounterTypes.Far, Scale = 3f, LevelScale = 0.2f };
+
+		Vector2 east = CCounterLayout.PointerPlace(near, pointer, 1, 0f);
+		Assert.Equal(4.5f, east.X, 4);
+		Assert.Equal(0f, east.Y, 4);
+		Vector2 north = CCounterLayout.PointerPlace(near, pointer, 1, MathF.PI / 2f);
+		Assert.Equal(0f, north.X, 4);
+		Assert.Equal(4.5f, north.Y, 4);
+		Assert.Equal(1f, CCounterLayout.PointerHalfSize(near, pointer, 1), 4);
+
+		// A counter that is larger for its rank has its pointer further off and larger too.
+		Assert.Equal(8.1f, CCounterLayout.PointerPlace(far, pointer, 5, 0f).X, 4);
+		Assert.Equal(1.8f, CCounterLayout.PointerHalfSize(far, pointer, 5), 4);
+	}
+
+	[Fact]
+	public void TheDirectionAUnitIsGoingIsMeasuredTheShortWayRoundTheMap()
+	{
+		Assert.Equal(0f, CCounterLayout.Heading(10, 10, 20, 10, 100), 4);                  // east
+		Assert.Equal(MathF.PI / 2f, CCounterLayout.Heading(10, 10, 10, 20, 100), 4);       // north
+		Assert.Equal(MathF.PI / 4f, CCounterLayout.Heading(10, 10, 20, 20, 100), 4);
+		Assert.Equal(MathF.PI, MathF.Abs(CCounterLayout.Heading(5, 10, 95, 10, 100)), 4);  // west, over the edge
+		Assert.Equal(0f, CCounterLayout.Heading(95, 10, 5, 10, 100), 4);                   // east, over it
+	}
+
+	// --- the arrow of a selected unit ---
+
+	[Fact]
+	public void AnArrowIsCutTwentyTimesALegAndOnceMoreAtItsEnd()
+	{
+		var straight = CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(20, 0) });
+		Assert.Equal(21, straight.Count);
+		Assert.Equal(41, CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(20, 0), new Vector2(40, 10) }).Count);
+
+		// Along a straight line the cuts run from one end to the other, the middle one in
+		// the middle - they bunch a little towards the ends - and the band is four wide.
+		Assert.Equal(0f, Middle(straight[0]).X, 3);
+		Assert.Equal(10f, Middle(straight[10]).X, 3);
+		Assert.Equal(20f, Middle(straight[^1]).X, 3);
+		Assert.All(straight, cut => Assert.Equal(2f * CArrowBand.HalfWidth, Vector2.Distance(cut.Left, cut.Right), 3));
+		Assert.All(straight, cut => Assert.Equal(0f, Middle(cut).Y, 3));
+
+		Assert.Equal(0f, straight[0].Progress);
+		Assert.Equal(0.5f, straight[10].Progress, 4);
+		Assert.Equal(1f, straight[^1].Progress);
+	}
+
+	private static Vector2 Middle(CArrowSample cut) => (cut.Left + cut.Right) * 0.5f;
+
+	[Fact]
+	public void TheHeadOfTheArrowsPictureLiesOverItsLastFourUnits()
+	{
+		var band = CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(20, 0) });
+
+		Assert.Equal(0.5f, band[0].Along);            // the shaft's column
+		Assert.Equal(1f, band[^1].Along);             // the tip
+		foreach (CArrowSample cut in band)
+		{
+			// Four from the end the head begins, and it is half way through two from it.
+			float left = 20f - Middle(cut).X;
+			float expected = left >= 4f ? 0.5f : 0.5f + 0.5f * (1f - left / 4f);
+			Assert.Equal(expected, cut.Along, 4);
+		}
+		Assert.Contains(band, cut => cut.Along > 0.5f && cut.Along < 1f);
+	}
+
+	[Fact]
+	public void TheArrowIsACurveThroughEveryPointOfThePath()
+	{
+		var points = new[] { new Vector2(0, 0), new Vector2(20, 0), new Vector2(20, 20) };
+		var band = CArrowBand.Build(points);
+
+		// It goes through the corner and does not cut it: the first cut of each leg is at its point.
+		Assert.Equal(0f, Vector2.Distance(points[0], Middle(band[0])), 3);
+		Assert.Equal(0f, Vector2.Distance(points[1], Middle(band[20])), 3);
+		Assert.Equal(0f, Vector2.Distance(points[2], Middle(band[^1])), 3);
+		// And it bends on the way there, swinging outside the straight line.
+		Assert.True(Middle(band[15]).Y < 0f);
+	}
+
+	[Fact]
+	public void APathOfOnePointOrOfThePointTwiceHasNoArrow()
+	{
+		Assert.Empty(CArrowBand.Build(new[] { new Vector2(3, 3) }));
+		Assert.Empty(CArrowBand.Build(new[] { new Vector2(3, 3), new Vector2(3.05f, 3) }));
+		Assert.Equal(21, CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(0, 0), new Vector2(9, 0) }).Count);
+	}
+
+	[Fact]
 	public void APictureIsAtLeastOnePixelAndFourBytesToEach()
 	{
 		Assert.Throws<ArgumentException>(() => new CPixels(0, 4));

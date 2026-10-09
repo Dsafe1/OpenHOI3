@@ -125,6 +125,12 @@ public sealed class CGameState
 	/// </summary>
 	public int LastUnitId { get; set; }
 
+	/// <summary>
+	/// How many pixels the map is across. Its east edge is beside its west, so the
+	/// straight line between two provinces may run either way round. 0 where no map is given.
+	/// </summary>
+	public int MapWidth { get; init; }
+
 	/// <summary>The numbers out of <c>common/defines.lua</c>.</summary>
 	public CDefines Defines { get; }
 

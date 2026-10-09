@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Gfx;
@@ -7,6 +8,7 @@ using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Map;
@@ -29,8 +31,18 @@ public partial class CUnitCounters : Node2D
 	private const float LeastCounterOnScreen = 6f;
 	private const float LeastTextOnScreen = 5f;
 
-	/// <summary>How far east and north of the standing stack the one for aircraft is put, in counter widths. Ours.</summary>
+	/// <summary>
+	/// How far east and north of the standing stack the one for aircraft is put, in
+	/// counter widths. Ours: the original keeps a point for each stack of a province, and
+	/// what sets them was not found. The stack of units on the move is placed by
+	/// <see cref="CCounterLayout.MovingStack"/>, which is measured.
+	/// </summary>
 	private const float AirStackShift = 1.1f;
+
+	/// <summary>The frame of the pointer's picture for a unit that is marching: the green one.</summary>
+	private const int MarchingFrame = 0;
+
+	private static readonly Color[] QuadColours = { Colors.White, Colors.White, Colors.White, Colors.White };
 
 	/// <summary>How fast a selected counter's ring pulses.</summary>
 	private const float PulseSpeed = 3f;
@@ -40,6 +52,11 @@ public partial class CUnitCounters : Node2D
 	private CGuiContext _gui = null!;
 	private CCounterKind? _far;
 	private CCounterKind? _near;
+	private CBillboardType? _pointer;
+	private Texture2D? _pointerTexture;
+	private Texture2D? _arrowTexture;
+	private readonly Vector2[] _quad = new Vector2[4];
+	private readonly Vector2[] _quadPicture = new Vector2[4];
 
 	private List<CMapStack> _stacks = new();
 	private readonly Dictionary<string, Texture2D?> _flags = new(StringComparer.OrdinalIgnoreCase);
@@ -50,8 +67,18 @@ public partial class CUnitCounters : Node2D
 	private double _time;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
-	public void Setup(CMap map, CGameState state, CGuiContext gui, CCounterTypes types)
+	public void Setup(CMap map, CGameState state, CGuiContext gui, CCounterTypes types, CBillboardTypes billboards,
+		CArrowTypes arrows)
 	{
+		if (arrows.Find(CArrowTypes.Move) is { TextureFile.Length: > 0 } arrow && gui.Textures.Exists(arrow.TextureFile))
+		{
+			_arrowTexture = gui.Textures.LoadFromGamePath(arrow.TextureFile);
+		}
+		_pointer = billboards.Find(CBillboardTypes.CounterArrow);
+		if (_pointer is not null && _pointer.TextureFile.Length != 0 && gui.Textures.Exists(_pointer.TextureFile))
+		{
+			_pointerTexture = gui.Textures.LoadFromGamePath(_pointer.TextureFile);
+		}
 		_map = map;
 		_state = state;
 		_gui = gui;
@@ -79,7 +106,9 @@ public partial class CUnitCounters : Node2D
 	/// <summary>Works out again which units are where. Call it when one has been placed, made or moved.</summary>
 	public void Refresh()
 	{
-		_stacks = CMapCounters.Build(_state);
+		// Standing stacks first, so that one on the move, which overlaps what stands in
+		// its province, is drawn over it and is the one a click there finds.
+		_stacks = CMapCounters.Build(_state).OrderBy(stack => stack.Kind).ToList();
 		if (_selected is not null && !CMapCounters.HasCounter(_state, _selected))
 		{
 			_selected = null;
@@ -116,12 +145,97 @@ public partial class CUnitCounters : Node2D
 	{
 		CMapPosition position = _map.Positions[stack.Province];
 		var place = new Vector2(position.X + 0.5f, _map.DisplayRow(position.Y) + 0.5f);
+		float width = 2f * kind.Type.Scale * kind.Aspect;
 		if (stack.Kind == EMapStack.Air)
 		{
-			float width = 2f * kind.Type.Scale * kind.Aspect * AirStackShift;
-			place += new Vector2(width, -width);
+			place += new Vector2(width, -width) * AirStackShift;
+		}
+		else if (stack.Kind == EMapStack.Moving)
+		{
+			place += new Vector2(CCounterLayout.MovingStack.X, -CCounterLayout.MovingStack.Y);
 		}
 		return place;
+	}
+
+	/// <summary>
+	/// The pointer beside the counter of a unit on the move: the original's own picture,
+	/// its <c>offset</c> away from the counter's middle in the direction the unit is
+	/// going, and turned to point that way. Every moving unit has one, selected or not.
+	/// </summary>
+	private void DrawPointer(CCounterKind kind, CMapCounter counter, Rect2 rect)
+	{
+		CUnit unit = counter.Unit;
+		if (_pointer is null || _pointerTexture is null || !unit.IsMoving || unit.Location <= 0)
+		{
+			return;
+		}
+		CMapPosition here = _map.Positions[unit.Location];
+		CMapPosition next = _map.Positions[unit.Path[0]];
+		float heading = CCounterLayout.Heading(here.X, here.Y, next.X, next.Y, _map.Width);
+		System.Numerics.Vector2 at = CCounterLayout.PointerPlace(kind.Type, _pointer, counter.Size, heading);
+		float half = CCounterLayout.PointerHalfSize(kind.Type, _pointer, counter.Size);
+
+		// North is up on the map and down on the screen, so the angle turns the other way.
+		Vector2 middle = rect.GetCenter() + new Vector2(at.X, -at.Y);
+		float frame = _pointerTexture.GetWidth() / (float)_pointer.Frames;
+		DrawSetTransform(middle, -heading, Vector2.One);
+		DrawTextureRectRegion(_pointerTexture, new Rect2(-half, -half, 2f * half, 2f * half),
+			new Rect2(MarchingFrame * frame, 0f, frame, _pointerTexture.GetHeight()));
+		DrawSetTransform(Vector2.Zero, 0f, Vector2.One);
+	}
+
+	/// <summary>
+	/// The selected unit's way, drawn under the counters as the original draws it: the
+	/// arrow's own picture laid along a curve from the unit's counter through the point
+	/// of each province ahead of it. The part already walked is taken from the filled
+	/// half of the picture and the rest from the outlined half. Only a selected unit has
+	/// one. See <c>docs/mechanics/movement.md</c>, section 7.
+	/// </summary>
+	private void DrawPath(CCounterKind kind)
+	{
+		if (_arrowTexture is null || _selected is not { IsMoving: true } unit || unit.Location <= 0)
+		{
+			return;
+		}
+		// From where its counter is, which for a unit on the move is beside the province's point.
+		Vector2 from = PlaceOf(new CMapStack(unit.Location, CMapCounters.StackOf(unit)), kind);
+		var points = new List<System.Numerics.Vector2> { new(from.X, from.Y) };
+		foreach (int province in unit.Path)
+		{
+			Vector2 next = PointOf(province);
+			// The short way round: the east edge of the map is beside the west.
+			next.X += Mathf.Round((points[^1].X - next.X) / _map.Width) * _map.Width;
+			points.Add(new System.Numerics.Vector2(next.X, next.Y));
+		}
+
+		List<CArrowSample> band = CArrowBand.Build(points);
+		float walked = CMovement.WalkedShare(_state, unit) / (float)CFixedPoint.Scale;
+		for (int copy = -1; copy <= 1; copy++)
+		{
+			var shift = new Vector2(copy * _map.Width, 0f);
+			for (int index = 1; index < band.Count; index++)
+			{
+				CArrowSample a = band[index - 1];
+				CArrowSample b = band[index];
+				// The picture is the outline over the filled arrow: half its height each.
+				float top = a.Progress < walked ? 0.5f : 0f;
+				_quad[0] = new Vector2(a.Left.X, a.Left.Y) + shift;
+				_quad[1] = new Vector2(b.Left.X, b.Left.Y) + shift;
+				_quad[2] = new Vector2(b.Right.X, b.Right.Y) + shift;
+				_quad[3] = new Vector2(a.Right.X, a.Right.Y) + shift;
+				_quadPicture[0] = new Vector2(a.Along, top);
+				_quadPicture[1] = new Vector2(b.Along, top);
+				_quadPicture[2] = new Vector2(b.Along, top + 0.5f);
+				_quadPicture[3] = new Vector2(a.Along, top + 0.5f);
+				DrawPrimitive(_quad, QuadColours, _quadPicture, _arrowTexture);
+			}
+		}
+	}
+
+	private Vector2 PointOf(int province)
+	{
+		CMapPosition position = _map.Positions[province];
+		return new Vector2(position.X + 0.5f, _map.DisplayRow(position.Y) + 0.5f);
 	}
 
 	/// <summary>
@@ -173,6 +287,7 @@ public partial class CUnitCounters : Node2D
 		}
 		float reach = kind.Type.Scale * 4f;                     // further than any counter of a stack is from its place
 		Rect2 view = _view.Grow(reach);
+		DrawPath(kind);
 		foreach (CMapStack stack in _stacks)
 		{
 			Vector2 place = PlaceOf(stack, kind);
@@ -197,6 +312,10 @@ public partial class CUnitCounters : Node2D
 			if (kind.Texture(_gui, counter) is { } texture)
 			{
 				DrawTextureRect(texture, rect, false);
+			}
+			if (stack.Kind == EMapStack.Moving)
+			{
+				DrawPointer(kind, counter, rect);
 			}
 			if (index != drawn.Count - 1)
 			{

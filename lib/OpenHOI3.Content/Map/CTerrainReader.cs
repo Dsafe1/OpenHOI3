@@ -10,12 +10,21 @@ namespace OpenHOI3.Content.Map;
 /// <summary>
 /// Reads the terrain categories and works out which one each province is.
 ///
-/// A province's terrain is the category covering most of its pixels in the terrain
-/// bitmap. That rule is the maintainer's, from experience of modding the original; it
-/// has not been read out of the executable. See <c>docs/mechanics/map.md</c>, section 9.
+/// A province's terrain is the one painted most often on its own pixels in a small
+/// square around where its name is written. That is the original's rule, read out of
+/// it: see <c>docs/mechanics/map.md</c>, section 9.
 /// </summary>
 public static class CTerrainReader
 {
+	/// <summary>The side of the square a land province's terrain is counted in, in pixels.</summary>
+	public const int Window = 20;
+
+	/// <summary>
+	/// The one province the original names by number: its terrain is whatever is painted
+	/// at its text position, with nothing counted.
+	/// </summary>
+	public const int ProvinceTakenAtItsText = 1737;
+
 	/// <summary>What the terrain definition file declares.</summary>
 	/// <param name="Categories">In file order.</param>
 	/// <param name="CategoryOfIndex">
@@ -43,8 +52,12 @@ public static class CTerrainReader
 					continue;
 				}
 				indexByName[category.Key] = categories.Count;
+				CFixedPoint.TryParse(category.GetString("movement_cost"), out CFixedPoint movementCost);
 				categories.Add(new CTerrain(category.Key, category.GetBool("is_water"),
-					category.GetRgb("color", CColor.Gray)));
+					category.GetRgb("color", CColor.Gray))
+				{
+					MovementCost = movementCost,
+				});
 			}
 		}
 
@@ -91,54 +104,110 @@ public static class CTerrainReader
 		return new Definition(categories.ToArray(), categoryOfIndex);
 	}
 
+	/// <summary>How many pixels of the bitmap are painted with an index the definition gives no terrain.</summary>
+	public static int CountUnknown(CBitmapFile terrain, Definition definition)
+	{
+		int unknown = 0;
+		for (int stored = 0; stored < terrain.Height; stored++)
+		{
+			foreach (byte index in terrain.StoredRow(stored))
+			{
+				if (definition.CategoryOfIndex[index] < 0)
+				{
+					unknown++;
+				}
+			}
+		}
+		return unknown;
+	}
+
 	/// <summary>
-	/// The category covering the most pixels of each province, or null for a province
-	/// with no counted pixel. A tie goes to the category declared first.
+	/// The category painted at a point of the map, or -1. A point off the east or the
+	/// north edge reads as palette index 0, as the original has it.
+	/// </summary>
+	public static int CategoryAt(CBitmapFile terrain, Definition definition, int x, int y)
+	{
+		int index = x >= 0 && y >= 0 && x < terrain.Width && y < terrain.Height
+			? terrain.StoredRow(terrain.Height - 1 - y)[x]
+			: 0;
+		return definition.CategoryOfIndex[index];
+	}
+
+	/// <summary>
+	/// The terrain of each province, or null where nothing is painted that the
+	/// definition knows:
+	///
+	///     it starts as what is painted at the province's unit point;
+	///     on land, the 20 x 20 pixels from ten west and ten south of its text position
+	///     are gone through, and of those that are the province's own the category
+	///     painted most often replaces it - the one declared first, of equals;
+	///     land that came out as water takes the first category that is not water.
 	/// </summary>
 	/// <param name="provinceRaster"><c>[y * width + x]</c> with y counting north.</param>
-	/// <param name="uncounted">Pixels whose palette index paints no category.</param>
-	public static CTerrain?[] FindMajority(CBitmapFile terrain, ReadOnlySpan<ushort> provinceRaster,
-		int provinceCount, Definition definition, out int uncounted)
+	public static CTerrain?[] FindTerrain(CBitmapFile terrain, ReadOnlySpan<ushort> provinceRaster,
+		Definition definition, CMapPositions positions, Func<int, bool> isSea)
 	{
 		int width = terrain.Width;
 		int height = terrain.Height;
+		int provinceCount = positions.Unit.Length;
 		int categoryCount = definition.Categories.Length;
-		var counts = new int[provinceCount * Math.Max(categoryCount, 1)];
-		uncounted = 0;
+		var counts = new int[Math.Max(categoryCount, 1)];
+		var result = new CTerrain?[provinceCount];
 
-		for (int stored = 0; stored < height; stored++)
+		int firstLand = -1;
+		for (int category = 0; category < categoryCount; category++)
 		{
-			// The same way up as the province bitmap: the file's first row is the north.
-			ReadOnlySpan<byte> row = terrain.StoredRow(stored);
-			ReadOnlySpan<ushort> provinces = provinceRaster.Slice((height - 1 - stored) * width, width);
-			for (int x = 0; x < width; x++)
+			if (!definition.Categories[category].IsWater)
 			{
-				int category = definition.CategoryOfIndex[row[x]];
-				if (category < 0)
-				{
-					uncounted++;
-					continue;
-				}
-				counts[provinces[x] * categoryCount + category]++;
+				firstLand = category;
+				break;
 			}
 		}
 
-		var majority = new CTerrain?[provinceCount];
-		for (int id = 0; id < provinceCount; id++)
+		for (int id = 1; id < provinceCount; id++)
 		{
-			int best = -1;
-			int bestCount = 0;
-			for (int category = 0; category < categoryCount; category++)
+			int chosen = CategoryAt(terrain, definition, positions.Unit[id].X, positions.Unit[id].Y);
+			CMapPosition text = positions.Text[id];
+
+			if (id == ProvinceTakenAtItsText)
 			{
-				int count = counts[id * categoryCount + category];
-				if (count > bestCount)                       // strictly more, so the first declared wins a tie
+				chosen = CategoryAt(terrain, definition, text.X, text.Y);
+			}
+			else if (!isSea(id))
+			{
+				Array.Clear(counts);
+				for (int x = text.X - Window / 2; x < text.X + Window / 2; x++)
 				{
-					best = category;
-					bestCount = count;
+					for (int y = text.Y - Window / 2; y < text.Y + Window / 2; y++)
+					{
+						if (x < 0 || y < 0 || x >= width || y >= height || provinceRaster[y * width + x] != id)
+						{
+							continue;
+						}
+						int category = definition.CategoryOfIndex[terrain.StoredRow(height - 1 - y)[x]];
+						if (category >= 0)
+						{
+							counts[category]++;
+						}
+					}
+				}
+				int most = 0;
+				for (int category = 0; category < categoryCount; category++)
+				{
+					if (counts[category] > most)             // strictly more, so the first declared wins a tie
+					{
+						most = counts[category];
+						chosen = category;
+					}
 				}
 			}
-			majority[id] = best < 0 ? null : definition.Categories[best];
+
+			if (!isSea(id) && chosen >= 0 && definition.Categories[chosen].IsWater && firstLand >= 0)
+			{
+				chosen = firstLand;
+			}
+			result[id] = chosen < 0 ? null : definition.Categories[chosen];
 		}
-		return majority;
+		return result;
 	}
 }

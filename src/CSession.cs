@@ -14,6 +14,7 @@ using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Units;
@@ -42,6 +43,9 @@ public partial class CSession : Node
 	private Label _provinceLabel = null!;
 	private int _shownProvince;
 	private bool _unitsMoved;
+	private bool _hourPassed;
+	private bool _ordered;
+	private bool _wasMoving;
 	private int _waiting;
 
 	/// <summary>The country played when nothing says which. There is no screen to choose one on yet.</summary>
@@ -86,7 +90,8 @@ public partial class CSession : Node
 
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(Map, State);
-		_mapView.SetupCounters(gui, CCounterTypes.Load(_directories));
+		_mapView.SetupCounters(gui, CCounterTypes.Load(_directories), CBillboardTypes.Load(_directories),
+			CArrowTypes.Load(_directories));
 		AddChild(_mapView);
 
 		BuildHud(gui);
@@ -137,7 +142,9 @@ public partial class CSession : Node
 			_topBar.TechnologyPressed += () => Toggle(_technology);
 		}
 		_simulation.DayPassed += () => _unitsMoved = true;
+		_simulation.HourPassed += () => _hourPassed = true;
 		_mapView.UnitSelected += _ => ShowProvince(_shownProvince);
+		_mapView.UnitOrdered += OrderUnit;
 
 		_provinceLabel = new Label
 		{
@@ -209,9 +216,24 @@ public partial class CSession : Node
 			ShowProvince(_shownProvince);                       // its figures move with the days
 		}
 
-		// The counters are worked out again when a day has gone by or a unit of the
-		// player's has been placed, and once a frame at most.
+		// The counters are worked out again when a day has gone by, a unit of the
+		// player's has been placed or ordered, or an hour has gone by with a unit on the
+		// march - and once a frame at most.
 		int waiting = Player?.Deployments.Count ?? 0;
+		if (_ordered || _hourPassed)
+		{
+			// The hour a unit arrives it is on the march no longer, and that hour is the
+			// one its counter has to change province in: so whether one was moving before
+			// counts as much as whether one is now.
+			bool moving = AnyUnitMoving();
+			if (_ordered || moving || _wasMoving)
+			{
+				_unitsMoved = true;
+			}
+			_wasMoving = moving;
+		}
+		_ordered = false;
+		_hourPassed = false;
 		if (_unitsMoved || waiting != _waiting)
 		{
 			_unitsMoved = false;
@@ -219,6 +241,45 @@ public partial class CSession : Node
 			_mapView.Counters?.Refresh();
 			ShowProvince(_shownProvince);
 		}
+	}
+
+	private bool AnyUnitMoving()
+	{
+		foreach (CCountry country in State.Countries)
+		{
+			foreach (CUnit unit in country.AllUnits())
+			{
+				if (unit.IsMoving)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// A right click on the map with a unit selected. Only the player's own units take
+	/// it. Sent to where it already stands a unit is halted - unless the order is to be
+	/// added to a path it has, when it is one more leg of that.
+	/// </summary>
+	private void OrderUnit(int unitId, int province, bool append)
+	{
+		if (Player is null || _mapView.Counters?.Selected is not { } unit || unit.Id != unitId
+			|| unit.Owner != Player.Tag)
+		{
+			return;
+		}
+		CCommand command = province == unit.Location && (!append || !unit.IsMoving)
+			? new CCancelMovementCommand(Player.Tag, unitId)
+			: new CMoveUnitCommand(Player.Tag, unitId, province, append);
+		if (!command.MayExecute(State))
+		{
+			GD.Print($"{unit.Name} may not go to {State.Province(province).Name}.");
+			return;
+		}
+		_simulation.Post(command);
+		_ordered = true;
 	}
 
 	/// <summary>Space or Pause stops and starts time; plus and minus change its speed.</summary>
@@ -271,7 +332,14 @@ public partial class CSession : Node
 		string text = $"{province.Name}  ({province.Id})";
 		if (_mapView.Counters?.Selected is { } selected)
 		{
-			text = $"Selected: {selected.Name}  ({CCounterText.Figures(selected)})\n" + text;
+			string line = $"Selected: {selected.Name}  ({CCounterText.Figures(selected)})";
+			if (selected.IsMoving && State.Country(selected.Owner) is { } owner)
+			{
+				long hours = CMovement.HoursToArrive(State, owner, selected);
+				line += $"  to {State.Province(selected.Path[^1]).Name}"
+					+ (hours < 0 ? "" : $", there in {hours / 24} days {hours % 24} hours");
+			}
+			text = line + "\n" + text;
 		}
 		var here = new System.Collections.Generic.List<string>();
 		foreach (CCountry country in State.Countries)
@@ -383,7 +451,8 @@ public partial class CSession : Node
 	/// type) opens the window that orders one, with that in it,
 	/// <c>--technology=key</c> chooses one on the technology screen,
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
-	/// <c>--click=700,310;1240,886</c> clicks at those points of the canvas, in turn, once
+	/// <c>--click=700,310;r1240,886;h48</c> clicks at those points of the canvas, in turn -
+	/// with r the right button, with s shift held, and h48 lets 48 hours go by - once
 	/// everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.
@@ -545,8 +614,27 @@ public partial class CSession : Node
 	/// </summary>
 	private async System.Threading.Tasks.Task Click(string points)
 	{
-		foreach (string point in points.Split(';', System.StringSplitOptions.RemoveEmptyEntries))
+		foreach (string entry in points.Split(';', System.StringSplitOptions.RemoveEmptyEntries))
 		{
+			// h48 is not a click: it lets that many hours go by, so that what a click set
+			// going can be seen further on.
+			if (entry.StartsWith('h') && int.TryParse(entry[1..], NumberStyles.Integer, CultureInfo.InvariantCulture, out int hours))
+			{
+				// An hour to a frame, as the game runs them, and nothing told to redraw: what
+				// the screen shows afterwards is what a player would see.
+				for (int hour = 0; hour < hours; hour++)
+				{
+					await Frames(1);
+					_simulation.RunHours(1);
+				}
+				await Frames(2);
+				continue;
+			}
+			// r before a point clicks the right button there, and s holds shift down.
+			string point = entry.TrimStart('r', 's');
+			string keys = entry[..(entry.Length - point.Length)];
+			MouseButton which = keys.Contains('r') ? MouseButton.Right : MouseButton.Left;
+			bool shift = keys.Contains('s');
 			string[] parts = point.Split(',');
 			if (parts.Length != 2
 				|| !float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float x)
@@ -561,13 +649,13 @@ public partial class CSession : Node
 			await Frames(1);
 			GetViewport().PushInput(new InputEventMouseButton
 			{
-				Position = at, GlobalPosition = at, ButtonIndex = MouseButton.Left, Pressed = true,
-				ButtonMask = MouseButtonMask.Left,
+				Position = at, GlobalPosition = at, ButtonIndex = which, Pressed = true, ShiftPressed = shift,
+				ButtonMask = which == MouseButton.Right ? MouseButtonMask.Right : MouseButtonMask.Left,
 			}, true);
 			await Frames(2);
 			GetViewport().PushInput(new InputEventMouseButton
 			{
-				Position = at, GlobalPosition = at, ButtonIndex = MouseButton.Left, Pressed = false,
+				Position = at, GlobalPosition = at, ButtonIndex = which, Pressed = false, ShiftPressed = shift,
 			}, true);
 			await Frames(2);
 		}

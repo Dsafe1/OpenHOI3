@@ -4,7 +4,7 @@ namespace OpenHOI3.Sim.Provinces;
 /// A kind of terrain: one of the categories <c>map/terrain.txt</c> declares, such as
 /// plains, forest or ocean.
 ///
-/// Only what the map needs so far. The numbers a category carries - movement cost,
+/// Only what the map and movement need so far. The other numbers a category carries -
 /// attack, attrition - belong with the systems that use them and arrive with those.
 /// </summary>
 public sealed class CTerrain
@@ -23,6 +23,13 @@ public sealed class CTerrain
 
 	/// <summary>The colour the file gives the category, for drawing a terrain map.</summary>
 	public CColor Color { get; }
+
+	/// <summary>
+	/// What one pixel of it adds to the distance between two provinces: the file's
+	/// <c>movement_cost</c>. It is spent when the map is measured and nowhere else - see
+	/// <c>docs/mechanics/movement.md</c>, section 2.
+	/// </summary>
+	public CFixedPoint MovementCost { get; init; }
 
 	public override string ToString()
 	{

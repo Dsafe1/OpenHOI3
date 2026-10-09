@@ -1,5 +1,6 @@
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Units;
 
@@ -48,6 +49,8 @@ public static class CTick
 		// The units go first, so an hour's organisation is worked out with the officer
 		// ratio the hour before left.
 		COrganisation.RunHourly(state);
+		// A unit's march is near the end of its own hour, after its organisation.
+		CMovement.RunHourly(state);
 		COfficers.Update(state);
 	}
 

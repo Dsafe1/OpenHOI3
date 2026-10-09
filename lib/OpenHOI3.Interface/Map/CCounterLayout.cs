@@ -87,6 +87,46 @@ public static class CCounterLayout
 		return NameSize * type.Scale * Tenth * Scale(type, size) * LineOfSize;
 	}
 
+	/// <summary>
+	/// Where the stack of units on the move stands from the province's own point, east
+	/// and north. Measured on a screenshot of the original, 2026-10-09, in which a
+	/// division setting off lies half a counter east and a third of one north of the
+	/// stack it leaves; the original keeps a point for it, and what sets that was not
+	/// found.
+	/// </summary>
+	public static readonly Vector2 MovingStack = new(2.6f, 1.5f);
+
+	/// <summary>
+	/// Where the middle of a moving unit's pointer goes, from the middle of its counter:
+	/// the pointer's own <c>offset</c> away, in the direction the unit is going.
+	/// </summary>
+	/// <param name="heading">The direction of travel as an angle from east, turning towards north.</param>
+	public static Vector2 PointerPlace(CCounterType type, CBillboardType pointer, int size, float heading)
+	{
+		float distance = pointer.Offset * Scale(type, size);
+		return new Vector2(MathF.Cos(heading) * distance, MathF.Sin(heading) * distance);
+	}
+
+	/// <summary>Half the side of the square the pointer is drawn in.</summary>
+	public static float PointerHalfSize(CCounterType type, CBillboardType pointer, int size)
+	{
+		return pointer.Scale * Scale(type, size);
+	}
+
+	/// <summary>
+	/// Which way a unit in one place is going to another: the angle from east, turning
+	/// towards north, of the line between them, the short way round a map so wide.
+	/// </summary>
+	public static float Heading(float fromX, float fromY, float toX, float toY, float mapWidth)
+	{
+		float across = toX - fromX;
+		if (mapWidth > 0f)
+		{
+			across -= MathF.Round(across / mapWidth) * mapWidth;
+		}
+		return MathF.Atan2(toY - fromY, across);
+	}
+
 	/// <summary>How wide the dark frame round the flag is.</summary>
 	public static float FlagFrame(CCounterType type)
 	{

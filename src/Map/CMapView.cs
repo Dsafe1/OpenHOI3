@@ -39,6 +39,20 @@ public partial class CMapView : Node2D
 	[Signal]
 	public delegate void UnitSelectedEventHandler(int unitId);
 
+	/// <summary>
+	/// The right button was clicked on a province while a unit was selected: the unit
+	/// is sent there, and with <c>append</c> - the shift key - after whatever it was
+	/// already told.
+	/// </summary>
+	[Signal]
+	public delegate void UnitOrderedEventHandler(int unitId, int provinceId, bool append);
+
+	/// <summary>
+	/// How far the pointer may travel with the right button down and its release still
+	/// be a click and not the end of a drag, in pixels of the screen.
+	/// </summary>
+	private const float ClickSlack = 6f;
+
 	private const string ShaderPath = "res://src/Map/PoliticalMap.gdshader";
 	private const int PaletteWidth = 256;
 
@@ -69,6 +83,7 @@ public partial class CMapView : Node2D
 	private Camera2D _camera = null!;
 
 	private bool _dragging;
+	private float _dragged;
 	private int _hovered;
 	private int _selected;
 	private MapMode _mode = MapMode.Political;
@@ -86,10 +101,10 @@ public partial class CMapView : Node2D
 	/// Gives the map its units, drawn as counters. Before the node enters the tree, and
 	/// after <see cref="Setup"/>.
 	/// </summary>
-	public void SetupCounters(CGuiContext gui, CCounterTypes types)
+	public void SetupCounters(CGuiContext gui, CCounterTypes types, CBillboardTypes billboards, CArrowTypes arrows)
 	{
 		_counters = new CUnitCounters { Name = "Counters" };
-		_counters.Setup(_map, _state, gui, types);
+		_counters.Setup(_map, _state, gui, types, billboards, arrows);
 	}
 
 	/// <summary>The units on the map, or null when it was given none to draw.</summary>
@@ -322,8 +337,22 @@ public partial class CMapView : Node2D
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelDown } wheel:
 				ZoomAt(wheel.Position, 1f / ZoomStep);
 				break;
-			case InputEventMouseButton { ButtonIndex: MouseButton.Middle or MouseButton.Right } button:
+			case InputEventMouseButton { ButtonIndex: MouseButton.Middle } button:
 				_dragging = button.Pressed;
+				break;
+			case InputEventMouseButton { ButtonIndex: MouseButton.Right } button:
+				// The right button drags the map, and orders the selected unit when it is
+				// let go where it went down.
+				_dragging = button.Pressed;
+				if (button.Pressed)
+				{
+					_dragged = 0f;
+				}
+				else if (_dragged <= ClickSlack && _counters?.Selected is { } ordered && _places is null
+					&& ProvinceAtScreen(button.Position) is int target && target > 0)
+				{
+					EmitSignal(SignalName.UnitOrdered, ordered.Id, target, button.ShiftPressed);
+				}
 				break;
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click:
 				// A counter is over the province it stands in, so it is asked first - but
@@ -336,6 +365,7 @@ public partial class CMapView : Node2D
 				}
 				break;
 			case InputEventMouseMotion motion when _dragging:
+				_dragged += motion.Relative.Length();
 				_camera.Position -= motion.Relative / _camera.Zoom;
 				ClampCamera();
 				break;

@@ -15,23 +15,32 @@ namespace OpenHOI3.Content.Map;
 ///     text_position = { x y } overwrites it, cut, on a sea zone only;
 ///     the last one in file order wins.
 ///
-/// The file is six megabytes of which those two keys are a small part, so it is
-/// walked once by a reader of its own that keeps nothing else: the general parser
-/// would build a million nodes to throw away.
+/// Two more points are kept beside that one: where the province's name is written,
+/// which is <c>text_position</c> on any province, and where its port is drawn, which
+/// is <c>naval_base</c> inside <c>building_position</c>. Both start at the centre too.
+///
+/// The file is six megabytes of which those keys are a small part, so it is walked
+/// once by a reader of its own that keeps nothing else: the general parser would build
+/// a million nodes to throw away.
 /// </summary>
 public static class CPositionsReader
 {
 	private const string Unit = "unit";
 	private const string TextPosition = "text_position";
+	private const string BuildingPosition = "building_position";
+	private const string NavalBase = "naval_base";
 
-	public static CMapPosition[] Read(string path, IReadOnlyList<CProvinceShape> shapes,
+	public static CMapPositions Read(string path, IReadOnlyList<CProvinceShape> shapes,
 		Func<int, bool> isSea, Action<string> warn)
 	{
-		var positions = new CMapPosition[shapes.Count];
+		var unit = new CMapPosition[shapes.Count];
 		for (int id = 0; id < shapes.Count; id++)
 		{
-			positions[id] = shapes[id].IsEmpty ? default : new CMapPosition(shapes[id].CentreX, shapes[id].CentreY);
+			unit[id] = shapes[id].IsEmpty ? default : new CMapPosition(shapes[id].CentreX, shapes[id].CentreY);
 		}
+		var text = (CMapPosition[])unit.Clone();
+		var navalBase = (CMapPosition[])unit.Clone();
+		var positions = new CMapPositions(unit, text, navalBase);
 		if (!File.Exists(path))
 		{
 			warn($"no positions: '{path}' is missing, and every province is at the centre of its bounding box");
@@ -43,6 +52,7 @@ public static class CPositionsReader
 		int depth = 0;
 		int province = 0;
 		string key = "";
+		string building = "";
 		string name = "";
 		bool afterEquals = false;
 		float x = 0f;
@@ -58,7 +68,7 @@ public static class CPositionsReader
 			{
 				depth++;
 				afterEquals = false;
-				if (depth == 2)
+				if (depth == 2 || depth == 3)
 				{
 					hasX = hasY = false;
 				}
@@ -66,14 +76,27 @@ public static class CPositionsReader
 			}
 			if (length == 1 && first == (byte)'}')
 			{
-				if (depth == 2 && hasX && hasY && province > 0)
+				if (hasX && hasY && province > 0)
 				{
-					bool applies = key == Unit || (key == TextPosition && isSea(province));
-					if (applies)
+					var point = new CMapPosition((int)x, (int)y);
+					if (depth == 2 && key == Unit)
 					{
-						positions[province] = new CMapPosition((int)x, (int)y);
+						unit[province] = point;
+					}
+					else if (depth == 2 && key == TextPosition)
+					{
+						text[province] = point;
+						if (isSea(province))
+						{
+							unit[province] = point;
+						}
+					}
+					else if (depth == 3 && key == BuildingPosition && building == NavalBase)
+					{
+						navalBase[province] = point;
 					}
 				}
+				hasX = hasY = false;
 				depth = Math.Max(0, depth - 1);
 				afterEquals = false;
 				continue;
@@ -84,13 +107,13 @@ public static class CPositionsReader
 				continue;
 			}
 
-			string text = System.Text.Encoding.Latin1.GetString(bytes, start, length);
+			string word = System.Text.Encoding.Latin1.GetString(bytes, start, length);
 			if (depth == 0)
 			{
 				if (!afterEquals)
 				{
-					bool known = int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out province)
-						&& province > 0 && province < positions.Length;
+					bool known = int.TryParse(word, NumberStyles.Integer, CultureInfo.InvariantCulture, out province)
+						&& province > 0 && province < unit.Length;
 					if (!known)
 					{
 						province = 0;
@@ -102,16 +125,24 @@ public static class CPositionsReader
 			{
 				if (!afterEquals)
 				{
-					key = text;
+					key = word;
 				}
 			}
-			else if (depth == 2 && (key == Unit || key == TextPosition))
+			else if (depth == 2 && key == BuildingPosition)
 			{
 				if (!afterEquals)
 				{
-					name = text;
+					building = word;
 				}
-				else if (float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out float value))
+			}
+			else if ((depth == 2 && (key == Unit || key == TextPosition))
+				|| (depth == 3 && key == BuildingPosition && building == NavalBase))
+			{
+				if (!afterEquals)
+				{
+					name = word;
+				}
+				else if (float.TryParse(word, NumberStyles.Float, CultureInfo.InvariantCulture, out float value))
 				{
 					if (name == "x")
 					{

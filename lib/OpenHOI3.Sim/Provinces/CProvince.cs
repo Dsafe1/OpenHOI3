@@ -77,6 +77,14 @@ public sealed class CProvince
 	public string Continent { get; init; } = "";
 
 	/// <summary>
+	/// The centre of its bounding box on the map, in pixels. A route is searched
+	/// towards it: see <c>docs/mechanics/movement.md</c>, section 3.
+	/// </summary>
+	public int CentreX { get; init; }
+
+	public int CentreY { get; init; }
+
+	/// <summary>
 	/// The sum of everything that currently applies to the province. Rebuilt, never
 	/// adjusted: see <see cref="CProvinceModifiers"/>.
 	/// </summary>
@@ -102,6 +110,25 @@ public sealed class CProvince
 
 	/// <summary>Ids of the provinces this one touches, ascending. Filled from the map.</summary>
 	public IReadOnlyList<int> Neighbours { get; set; } = System.Array.Empty<int>();
+
+	/// <summary>
+	/// The ways out of the province, in the order the original holds them, which is the
+	/// order a route is searched in. Filled from the map.
+	/// </summary>
+	public IReadOnlyList<CProvinceEdge> Edges { get; set; } = System.Array.Empty<CProvinceEdge>();
+
+	/// <summary>The way to a neighbour, or null when the two are not joined.</summary>
+	public CProvinceEdge? EdgeTo(int neighbour)
+	{
+		foreach (CProvinceEdge edge in Edges)
+		{
+			if (edge.To == neighbour)
+			{
+				return edge;
+			}
+		}
+		return null;
+	}
 
 	public override string ToString()
 	{

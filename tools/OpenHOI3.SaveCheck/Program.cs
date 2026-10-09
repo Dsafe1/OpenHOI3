@@ -28,6 +28,12 @@ if (args.Length > 0 && args[0] == "research")
 	return CResearchCheck.Run(args);
 }
 
+// The ways between provinces are checked against the original's own cache of them.
+if (args.Length > 0 && args[0] == "adjacency")
+{
+	return CAdjacencyCheck.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

@@ -27,10 +27,24 @@ other for units (measured: 2754 `unit` blocks, and beside them only the text's a
 `city`).
 
 The original keeps **five points to a province**, one for each stack of section 3, and
-stands a counter at its stack's. With one point in the file the other four must be
-worked out from it, and **how was not found.** *Ours:* the stack of aircraft is a
-counter's width to the east and north of the standing one. Nothing moves or fights yet,
-so the other three are never used.
+stands a counter at its stack's: the first for a land unit or a fleet with no path, the
+second for one with a path, the last for an air unit, and the two between for the sides of
+a battle. `confirmed` (`reversing/findings/FINDINGS-movement.md`, section 9). With one
+point in the file the other four must be worked out from it, and **how was not found.**
+**The stack of units on the move stands 2.6 map units east and 1.5 north of the standing
+one** - half a counter and a third of one - and is drawn over it. (measured) On a
+screenshot of the original the maintainer gave on 2026-10-09, a division setting off lies
+3.7 map units east and 0.5 north of the top counter of the stack it leaves; that counter
+is itself 0.3 west and north for each of the four under it. The count of the stack is
+read off its edges, so the figure is good to a few tenths. Before the screenshot it was a
+guess, first of a whole counter's width - the maintainer: "Its way too big now" - and then
+of three tenths of one. *Ours:* the stack of aircraft is a counter's width to the east and
+north. Nothing fights
+yet, so the other two are never used.
+
+**The default point was a pixel out until 2026-10-09** for a province whose bounding box
+is an even number of pixels across or high: the centre is rounded up (`map.md`, section
+4).
 
 **One map unit is one pixel of the province bitmap.** `inferred`: nothing read says so,
 but the offsets between the counters of a stack and a counter's own height only come out
@@ -136,6 +150,28 @@ leaders to name and no settings to choose by. The maintainer, 2026-10-09: "It ca
 that way until we implement the settings" (`docs/compatibility.md`, entry 7). A unit type
 with no counter sprite of its
 own is shown by the `unknown` one of the same family.
+
+### The pointer of a unit on the move
+
+The maintainer, 2026-10-09, with a screenshot: "In the original a moving unit also has a
+small green pointer at all times." It is the `counter_arrow` `billboardType` of
+`interface/mapitems.gfx`, which every counter has one of:
+`reversing/findings/FINDINGS-counters.md`, section 9.
+
+- **Every unit with a path shows it**, selected or not. `confirmed`
+- Its picture is a strip of `noOfFrames` frames; the first, green, is the one a marching
+  unit shows. `confirmed`. The second is red and its use was not read.
+- It is drawn in a square `2 * scale` across - 2 map units in the base game - times the
+  counter's own scale. `confirmed`
+- **It stands `offset` from the middle of the counter, in the direction the unit is
+  going, and points that way** - 4.5 map units in the base game, times the counter's own
+  scale. The direction is from the unit point of the province the unit is in to that of
+  the next province of its path, the short way round the map. `confirmed`, and the
+  screenshot agrees to the degree: the pointer lies on the line it points along. It is
+  about a seventh further from the counter there than 4.5, which is not explained.
+
+*Ours:* the pointers of a stack are drawn with their counters, so one under the top
+counter's can be hidden by it.
 
 ## 3. Which units have a counter, and how they stack
 
@@ -273,18 +309,22 @@ asked.
   not found.
 - **The near view is always counters.** The original's is counters or 3D figures by a
   setting. There are no figures here.
-- **The counters are worked out again** once a day and whenever a unit of the player's is
-  placed, not every frame.
+- **The counters are worked out again** once a day, whenever a unit of the player's is
+  placed or ordered, and each hour that a unit is on the march or has just come off it -
+  the hour it arrives is the one its counter has to change province in - not every frame.
 
 ## What is not built
 
 - **The port and the airfield on the map**, which is how a fleet in port and a wing at its
   base are seen in the original. Until then such a unit shows only in the province
   readout.
-- **A unit's own panel.** A click selects a unit and nothing can be done with it.
+- **A unit's own panel.** A selected land unit can be sent somewhere with a right click
+  (`movement.md`) and nothing else can be done with it.
 - **The other fifteen alerts**, and the tooltips of this one.
-- **A leader's name on a counter**, the arrow beside a moving one, and the coloured corner
-  that marks something about a unit's state.
+- **A leader's name on a counter**, and the coloured corner that marks something about a
+  unit's state.
+- **The red frame of a moving unit's pointer.** Its picture has a green one and a red
+  one; when the original shows the red was not read.
 - **Dragging a unit's line onto the map.**
 
 ## What is not established, in one place

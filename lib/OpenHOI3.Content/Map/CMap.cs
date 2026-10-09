@@ -27,8 +27,8 @@ public sealed class CMap
 
 	private CMap(int width, int height, ushort[] raster, bool[] isSea,
 		CProvinceShape[] shapes, int[][] neighbours, CExplicitAdjacency[] explicitAdjacencies,
-		CTerrain[] terrains, CTerrain?[] majorityTerrain, string[] continents, CMapPosition[] positions,
-		string[] sourceFiles)
+		CTerrain[] terrains, CTerrain?[] terrain, string[] continents, CMapPositions positions,
+		CProvinceEdge[][] edges, string[] sourceFiles)
 	{
 		Width = width;
 		Height = height;
@@ -38,9 +38,12 @@ public sealed class CMap
 		Neighbours = neighbours;
 		ExplicitAdjacencies = explicitAdjacencies;
 		Terrains = terrains;
-		MajorityTerrain = majorityTerrain;
+		Terrain = terrain;
 		Continents = continents;
-		Positions = positions;
+		Positions = positions.Unit;
+		TextPositions = positions.Text;
+		NavalBasePositions = positions.NavalBase;
+		Edges = edges;
 		SourceFiles = sourceFiles;
 	}
 
@@ -63,10 +66,17 @@ public sealed class CMap
 	public IReadOnlyList<CTerrain> Terrains { get; }
 
 	/// <summary>
-	/// Per province id, the category covering most of its pixels in the terrain bitmap,
-	/// or null where none was counted. A province's history file may say otherwise.
+	/// Per province id, the terrain the map gives it - the one painted most around
+	/// where its name is written - or null where nothing known is painted. A province's
+	/// history file may say otherwise.
 	/// </summary>
-	public IReadOnlyList<CTerrain?> MajorityTerrain { get; }
+	public IReadOnlyList<CTerrain?> Terrain { get; }
+
+	/// <summary>
+	/// Per province id, the ways out of it: to which neighbour, of what kind, and how
+	/// far. In the original's order, which is the order a route is searched in.
+	/// </summary>
+	public IReadOnlyList<CProvinceEdge[]> Edges { get; }
 
 	/// <summary>
 	/// Per province id, the name of the continent it is on, or an empty string for a
@@ -79,6 +89,18 @@ public sealed class CMap
 	/// The centre of its bounding box unless <c>positions.txt</c> says otherwise.
 	/// </summary>
 	public IReadOnlyList<CMapPosition> Positions { get; }
+
+	/// <summary>
+	/// Per province id, where its name is written: <c>text_position</c>, or the centre
+	/// of its bounding box. Its terrain is taken around this point.
+	/// </summary>
+	public IReadOnlyList<CMapPosition> TextPositions { get; }
+
+	/// <summary>
+	/// Per province id, where its port is drawn: <c>naval_base</c>, or the centre of its
+	/// bounding box. The land end of a distance between land and sea.
+	/// </summary>
+	public IReadOnlyList<CMapPosition> NavalBasePositions { get; }
 
 	/// <summary>Every file this was built from, for whatever needs to know when one changes.</summary>
 	public IReadOnlyList<string> SourceFiles { get; }
@@ -190,28 +212,36 @@ public sealed class CMap
 			neighbours[id] = list;
 		}
 
+		string positionsTxt = directories.Resolve("map/" + definition.GetString("positions", "positions.txt"));
+		CMapPositions positions = CPositionsReader.Read(positionsTxt, shapes, id => isSea[id], warn);
+
 		string terrainTxt = directories.Resolve("map/" + definition.GetString("terrain_definition", "terrain.txt"));
 		string terrainBmp = directories.Resolve("map/" + definition.GetString("terrain", "terrain.bmp"));
+		string riversBmp = directories.Resolve("map/" + definition.GetString("rivers", "rivers.bmp"));
 		CTerrain[] terrains = Array.Empty<CTerrain>();
-		var majorityTerrain = new CTerrain?[provinceCount];
+		var terrain = new CTerrain?[provinceCount];
+		CBitmapFile? terrainBitmap = null;
+		CTerrainReader.Definition terrainDefinition = default;
 		if (File.Exists(terrainTxt) && File.Exists(terrainBmp))
 		{
-			CTerrainReader.Definition terrainDefinition = CTerrainReader.ReadDefinition(terrainTxt, warn);
+			terrainDefinition = CTerrainReader.ReadDefinition(terrainTxt, warn);
 			terrains = terrainDefinition.Categories;
-			CBitmapFile terrainBitmap = CBitmapFile.Read(terrainBmp);
+			terrainBitmap = CBitmapFile.Read(terrainBmp);
 			if (terrainBitmap.BitsPerPixel != 8
 				|| terrainBitmap.Width != bitmap.Width || terrainBitmap.Height != bitmap.Height)
 			{
 				warn($"'{terrainBmp}' must be 8 bits per pixel and {bitmap.Width} x {bitmap.Height} like the province " +
-					"bitmap; no province was given a terrain");
+					"bitmap; no province was given a terrain and no distance was measured");
+				terrainBitmap = null;
 			}
 			else
 			{
-				majorityTerrain = CTerrainReader.FindMajority(terrainBitmap, raster, provinceCount,
-					terrainDefinition, out int uncounted);
-				if (uncounted > 0)
+				terrain = CTerrainReader.FindTerrain(terrainBitmap, raster, terrainDefinition, positions,
+					id => isSea[id]);
+				int unknown = CTerrainReader.CountUnknown(terrainBitmap, terrainDefinition);
+				if (unknown > 0)
 				{
-					warn($"'{terrainBmp}': {uncounted} pixels use a palette index that '{Path.GetFileName(terrainTxt)}' " +
+					warn($"'{terrainBmp}': {unknown} pixels use a palette index that '{Path.GetFileName(terrainTxt)}' " +
 						"gives no terrain");
 				}
 			}
@@ -221,18 +251,34 @@ public sealed class CMap
 			warn($"no terrain: '{terrainTxt}' or '{terrainBmp}' is missing");
 		}
 
+		CBitmapFile? riverBitmap = null;
+		if (File.Exists(riversBmp))
+		{
+			riverBitmap = CBitmapFile.Read(riversBmp);
+			if (riverBitmap.BitsPerPixel != 8 || riverBitmap.Width != bitmap.Width || riverBitmap.Height != bitmap.Height)
+			{
+				warn($"'{riversBmp}' must be 8 bits per pixel and {bitmap.Width} x {bitmap.Height} like the province " +
+					"bitmap; no river was read from it");
+				riverBitmap = null;
+			}
+		}
+		else
+		{
+			warn($"no rivers: '{riversBmp}' is missing");
+		}
+
+		CProvinceEdge[][] edges = CMapGraph.Build(raster, bitmap.Width, bitmap.Height, provinceCount,
+			explicitAdjacencies, id => isSea[id], positions, terrainBitmap, terrainDefinition, riverBitmap);
+
 		string continentTxt = directories.Resolve("map/" + definition.GetString("continent", "continent.txt"));
 		string[] continents = ReadContinents(continentTxt, provinceCount, warn);
 
-		string positionsTxt = directories.Resolve("map/" + definition.GetString("positions", "positions.txt"));
-		CMapPosition[] positions = CPositionsReader.Read(positionsTxt, shapes, id => isSea[id], warn);
-
 		return new CMap(bitmap.Width, bitmap.Height, raster, isSea, shapes, neighbours,
-			explicitAdjacencies, terrains, majorityTerrain, continents, positions,
+			explicitAdjacencies, terrains, terrain, continents, positions, edges,
 			new[]
 			{
-				definitionPath, provincesCsv, provincesBmp, adjacenciesCsv, terrainTxt, terrainBmp, continentTxt,
-				positionsTxt,
+				definitionPath, provincesCsv, provincesBmp, adjacenciesCsv, terrainTxt, terrainBmp, riversBmp,
+				continentTxt, positionsTxt,
 			});
 	}
 

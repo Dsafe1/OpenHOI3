@@ -6,7 +6,7 @@ public readonly record struct CProvinceShape(int MinX, int MinY, int MaxX, int M
 	public bool IsEmpty => PixelCount == 0;
 
 	/// <summary>The centre of the bounding box, which is the original's default position.</summary>
-	public int CentreX => (MinX + MaxX) / 2;
+	public int CentreX => MinX + (MaxX - MinX + 1) / 2;
 
-	public int CentreY => (MinY + MaxY) / 2;
+	public int CentreY => MinY + (MaxY - MinY + 1) / 2;
 }

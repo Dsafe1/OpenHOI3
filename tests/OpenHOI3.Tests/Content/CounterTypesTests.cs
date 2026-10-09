@@ -108,4 +108,69 @@ public class CounterTypesTests : IDisposable
 		Assert.Contains(_warnings, warning => warning.Contains("'unit_counter' has a key nothing reads: sparkle"));
 		Assert.Contains(_warnings, warning => warning.Contains("has no name"));
 	}
+
+	[Fact]
+	public void AnArrowTypeIsReadFromTheSameBlocks()
+	{
+		Write("arrows.gfx", @"
+			objectTypes = {
+				arrowType = {
+					name = ""moveArrow""
+					size = 5.0
+					textureFile = ""gfx\\mapitems\\movearrow.tga""
+					bodytexture = ""gfx\\mapitems\\movearrow.tga""
+					color = { 0.0 1.0 0.0 }
+					colortwo = { 1.0 0.0 0.0 }
+					endAt = 1.0f
+					height = 8.0
+					type = 0
+					heading = 1.0f
+					effect = ""gfx\\fx\\arrow.fx""
+				}
+				arrowType = { name = ""odd"" wobble = yes }
+				arrowType = { size = 2 }
+			}");
+
+		CArrowTypes types = CArrowTypes.Load(CDirectorySettings.At(_root), _warnings.Add);
+
+		Assert.Equal(2, types.Count);
+		CArrowType move = types.Find(CArrowTypes.Move)!;
+		Assert.Equal(@"gfx\mapitems\movearrow.tga", move.TextureFile);
+		Assert.Equal(@"gfx\mapitems\movearrow.tga", move.BodyTextureFile);
+		Assert.Equal(5f, move.Size);
+		Assert.Contains(_warnings, warning => warning.Contains("'odd' has a key nothing reads: wobble"));
+		Assert.Contains(_warnings, warning => warning.Contains("an arrowType has no name"));
+	}
+
+	[Fact]
+	public void ABillboardTypeIsReadFromTheSameBlocks()
+	{
+		Write("mapitems.gfx", @"
+			objectTypes = {
+				CounterType = { name = ""unit_counter"" scale = 3 }
+				billboardType = {
+					name = ""counter_arrow""
+					textureFile = ""gfx\\mapitems\\counter_arrows.dds""
+					scale = 1.0
+					offset = 4.5
+					noOfFrames = 2
+				}
+				billboardType = { name = ""combat_status"" scale = 2.6 noOfFrames = 3 font_size = 7 offset2 = { 0.0 0.0 -2.5 } }
+				billboardType = { name = ""odd"" glow = yes }
+				billboardType = { scale = 2 }
+			}");
+
+		CBillboardTypes types = CBillboardTypes.Load(CDirectorySettings.At(_root), _warnings.Add);
+
+		Assert.Equal(3, types.Count);
+		CBillboardType arrow = types.Find(CBillboardTypes.CounterArrow)!;
+		Assert.Equal(@"gfx\mapitems\counter_arrows.dds", arrow.TextureFile);
+		Assert.Equal(1f, arrow.Scale);
+		Assert.Equal(4.5f, arrow.Offset);
+		Assert.Equal(2, arrow.Frames);
+		Assert.Equal(0f, types.Find("combat_status")!.Offset);
+		Assert.Null(types.Find("unit_counter"));                       // a counter is not a billboard
+		Assert.Contains(_warnings, warning => warning.Contains("'odd' has a key nothing reads: glow"));
+		Assert.Contains(_warnings, warning => warning.Contains("a billboardType has no name"));
+	}
 }

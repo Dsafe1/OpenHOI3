@@ -32,6 +32,20 @@ public sealed class CUnit
 	public int Base { get; set; }
 
 	/// <summary>
+	/// The provinces still ahead of it, the next one first; empty when it is going
+	/// nowhere. See <c>docs/mechanics/movement.md</c>, section 4.
+	/// </summary>
+	public List<int> Path { get; } = new();
+
+	/// <summary>How far it has got towards the first province of its path.</summary>
+	public CFixedPoint MovementProgress { get; set; }
+
+	/// <summary>The id of the province it was in before the one it is in, or 0.</summary>
+	public int Previous { get; set; }
+
+	public bool IsMoving => Path.Count > 0;
+
+	/// <summary>
 	/// What its own line says. Its one use is to make reserves of the brigades read
 	/// after it; the brigades are what carry the fact.
 	/// </summary>

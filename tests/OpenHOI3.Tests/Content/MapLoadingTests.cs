@@ -104,7 +104,18 @@ public class MapLoadingTests : IDisposable
 			new[] { Forest, Forest, Plains, Ocean },
 			new[] { Plains, Forest, Ocean, Ocean },
 		});
+
+		// One pixel of river, in the middle of A's east column.
+		WriteBytes("map/rivers.bmp", TestBitmap.Indexed8(4, new[]
+		{
+			new byte[] { NoRiver, NoRiver, NoRiver, NoRiver },
+			new byte[] { NoRiver, River, NoRiver, NoRiver },
+			new byte[] { NoRiver, NoRiver, NoRiver, NoRiver },
+		}));
 	}
+
+	private const byte NoRiver = 255;
+	private const byte River = 3;
 
 	private void WriteTerrain(byte[][] storedRows)
 	{
@@ -151,10 +162,21 @@ public class MapLoadingTests : IDisposable
 		CMap map = Load();
 
 		Assert.Equal(new CMapPosition(1, 2), map.Positions[1]);   // unit, cut to whole pixels; text_position is not for land
-		Assert.Equal(new CMapPosition(2, 1), map.Positions[2]);   // nothing said: the centre of its bounding box
+		Assert.Equal(new CMapPosition(2, 2), map.Positions[2]);   // nothing said: the centre of its bounding box, rounded up
 		Assert.Equal(new CMapPosition(1, 0), map.Positions[3]);   // the last one in the file
 		Assert.Equal(new CMapPosition(3, 0), map.Positions[4]);   // a sea zone takes its text's place
 		Assert.Equal(new CMapPosition(3, 2), map.Positions[5]);
+	}
+
+	[Fact]
+	public void AProvinceAlsoHasAPlaceForItsTextAndOneForItsPort()
+	{
+		CMap map = Load();
+
+		Assert.Equal(new CMapPosition(0, 1), map.TextPositions[1]);        // text_position, on land too
+		Assert.Equal(new CMapPosition(2, 2), map.TextPositions[2]);        // nothing said: the centre
+		Assert.Equal(new CMapPosition(3, 2), map.NavalBasePositions[3]);   // naval_base inside building_position
+		Assert.Equal(new CMapPosition(1, 2), map.NavalBasePositions[1]);   // nothing said: the centre
 	}
 
 	[Fact]
@@ -168,8 +190,107 @@ public class MapLoadingTests : IDisposable
 		File.Delete(Path.Combine(_root, "map", "positions.txt"));
 		_warnings.Clear();
 		map = Load();
-		Assert.Equal(new CMapPosition(2, 1), map.Positions[2]);
+		Assert.Equal(new CMapPosition(2, 2), map.Positions[2]);
 		Assert.Contains(_warnings, warning => warning.Contains("no positions"));
+	}
+
+	// --- the ways between provinces ---
+
+	private static int[] To(CProvinceEdge[] edges) => edges.Select(edge => edge.To).ToArray();
+
+	[Fact]
+	public void AProvincesEdgesGoToLowerNumbersFirstAndThenAsItsOwnPixelsMeetTheRest()
+	{
+		CMap map = Load();
+
+		// The map is gone through from the south, row by row, and each pixel looks east,
+		// west, north and south. A meets C under its south-west pixel before B beside its
+		// south-east one, and E only in its north row, round the edge of the map.
+		Assert.Equal(new[] { 3, 2, 5 }, To(map.Edges[1]));
+		Assert.Equal(new[] { 1, 4, 5, 3 }, To(map.Edges[2]));   // the adjacency file's row comes last
+		Assert.Equal(new[] { 1, 4, 2 }, To(map.Edges[3]));
+		Assert.Equal(new[] { 2, 3 }, To(map.Edges[4]));
+		Assert.Equal(new[] { 1, 2 }, To(map.Edges[5]));
+		Assert.Empty(map.Edges[0]);
+	}
+
+	[Fact]
+	public void TheAdjacencyFileNamesAnEdgesKindAndWhatItGoesThrough()
+	{
+		CMap map = Load();
+
+		CProvinceEdge strait = map.Edges[3].Single(edge => edge.To == 2);
+		Assert.Equal(EProvinceEdgeKind.Crossing, strait.Kind);
+		Assert.Equal(4, strait.Through);
+		Assert.Equal(EProvinceEdgeKind.Crossing, map.Edges[2].Single(edge => edge.To == 3).Kind);
+
+		Assert.Equal(EProvinceEdgeKind.River, CMapGraph.KindOf("river"));
+		Assert.Equal(EProvinceEdgeKind.Impassable, CMapGraph.KindOf("impassable"));
+		Assert.Equal(EProvinceEdgeKind.Plain, CMapGraph.KindOf("canal"));
+	}
+
+	[Fact]
+	public void ARowForTwoProvincesThatTouchWritesOverTheEdgeTheyHave()
+	{
+		Write("map/adjacencies.csv", "From;To;Type;Through;Comment\n1;2;impassable;0;a wall\n-1;-1;;-1;-1\n");
+		CMap map = Load();
+
+		Assert.Equal(new[] { 3, 2, 5 }, To(map.Edges[1]));                     // nothing added
+		Assert.Equal(EProvinceEdgeKind.Impassable, map.Edges[1].Single(edge => edge.To == 2).Kind);
+		Assert.Equal(EProvinceEdgeKind.Impassable, map.Edges[2].Single(edge => edge.To == 1).Kind);
+	}
+
+	private static CFixedPoint Distance(CMap map, int from, int to)
+	{
+		return map.Edges[from].Single(edge => edge.To == to).Distance;
+	}
+
+	[Fact]
+	public void ADistanceIsTheCostOfTheTerrainOnAWalkFromOnePointToTheOther()
+	{
+		CMap map = Load();
+
+		// A is at (1,2), a forest pixel, and B beside it: one pixel walked, the one left.
+		Assert.Equal(CFixedPoint.Parse("1.5"), Distance(map, 1, 2));
+		// A to C is two pixels south, both forest.
+		Assert.Equal(CFixedPoint.FromInt(3), Distance(map, 1, 3));
+		// A walk steps east or west and north or south at once: C at (1,0) to B at (2,2)
+		// goes by (2,1), which is plains.
+		Assert.Equal(CFixedPoint.Parse("2.5"), Distance(map, 3, 2));
+	}
+
+	[Fact]
+	public void TheWayBackIsNotTheSameDistance()
+	{
+		CMap map = Load();
+
+		// The pixel a walk starts on is counted and the one it ends on is not: A to E
+		// crosses two forest pixels, E to A one plains and one forest.
+		Assert.Equal(CFixedPoint.FromInt(3), Distance(map, 1, 5));
+		Assert.Equal(CFixedPoint.Parse("2.5"), Distance(map, 5, 1));
+	}
+
+	[Fact]
+	public void BetweenLandAndSeaTheLandEndIsThePort()
+	{
+		CMap map = Load();
+
+		// C's unit point is (1,0) and its port is placed at (3,2): the way to the sea zone
+		// at (3,0) is measured from the port, a plains pixel and an ocean one.
+		Assert.Equal(CFixedPoint.One, Distance(map, 3, 4));
+		// And from the sea it is measured to B's port, at (2,2): the ocean it starts on
+		// costs nothing here, and (2,1) is plains.
+		Assert.Equal(CFixedPoint.One, Distance(map, 4, 2));
+	}
+
+	[Fact]
+	public void AnEdgeWhoseWalkTouchesTheRiverBitmapIsARiver()
+	{
+		CMap map = Load();
+
+		Assert.Equal(EProvinceEdgeKind.River, map.Edges[1].Single(edge => edge.To == 3).Kind);   // by (1,1)
+		Assert.Equal(EProvinceEdgeKind.River, map.Edges[3].Single(edge => edge.To == 1).Kind);
+		Assert.Equal(EProvinceEdgeKind.Plain, map.Edges[1].Single(edge => edge.To == 2).Kind);
 	}
 
 	[Fact]
@@ -284,13 +405,15 @@ public class MapLoadingTests : IDisposable
 	}
 
 	[Fact]
-	public void AProvinceIsTheTerrainCoveringMostOfIt()
+	public void AProvinceIsTheTerrainPaintedMostOnItAroundItsText()
 	{
+		// The whole of this map is inside the square that is counted, so it is every pixel
+		// of a province that counts here.
 		CMap map = Load();
 
-		Assert.Equal("forest", map.MajorityTerrain[1]?.Name);   // A: three forest, one plains
-		Assert.Equal("ocean", map.MajorityTerrain[4]?.Name);    // D: all ocean
-		Assert.Equal("plains", map.MajorityTerrain[5]?.Name);   // E: its one pixel
+		Assert.Equal("forest", map.Terrain[1]?.Name);   // A: three forest, one plains
+		Assert.Equal("ocean", map.Terrain[4]?.Name);    // D, the sea: what is painted at its point
+		Assert.Equal("plains", map.Terrain[5]?.Name);   // E: its one pixel
 	}
 
 	[Fact]
@@ -299,8 +422,68 @@ public class MapLoadingTests : IDisposable
 		CMap map = Load();
 
 		// B and C are each one plains and one forest; plains is declared before forest.
-		Assert.Equal("plains", map.MajorityTerrain[2]?.Name);
-		Assert.Equal("plains", map.MajorityTerrain[3]?.Name);
+		Assert.Equal("plains", map.Terrain[2]?.Name);
+		Assert.Equal("plains", map.Terrain[3]?.Name);
+	}
+
+	/// <summary>A strip thirty pixels long and one high, all of it one land province.</summary>
+	private static CTerrain?[] TerrainOfAStrip(int province, int textX, byte[] painted)
+	{
+		var categories = new[]
+		{
+			new CTerrain("ocean", isWater: true, default),
+			new CTerrain("plains", isWater: false, default),
+			new CTerrain("forest", isWater: false, default),
+		};
+		var categoryOfIndex = new int[256];
+		Array.Fill(categoryOfIndex, -1);
+		categoryOfIndex[Ocean] = 0;
+		categoryOfIndex[Plains] = 1;
+		categoryOfIndex[Forest] = 2;
+
+		var raster = new ushort[painted.Length];
+		Array.Fill(raster, (ushort)province);
+		var unit = new CMapPosition[province + 1];
+		var text = new CMapPosition[province + 1];
+		text[province] = new CMapPosition(textX, 0);
+		CBitmapFile bitmap = CBitmapFile.Parse(TestBitmap.Indexed8(painted.Length, new[] { painted }));
+		return CTerrainReader.FindTerrain(bitmap, raster, new CTerrainReader.Definition(categories, categoryOfIndex),
+			new CMapPositions(unit, text, unit), id => false);
+	}
+
+	[Fact]
+	public void OnlyTheTwentyPixelsAroundAProvincesTextAreCounted()
+	{
+		// Twenty plains and then ten forest. Most of the province is plains; of the pixels
+		// from ten west of its text at 25, five are plains and ten forest.
+		var painted = new byte[30];
+		Array.Fill(painted, Plains, 0, 20);
+		Array.Fill(painted, Forest, 20, 10);
+
+		Assert.Equal("forest", TerrainOfAStrip(1, 25, painted)[1]?.Name);
+		Assert.Equal("plains", TerrainOfAStrip(1, 12, painted)[1]?.Name);   // 2 to 21: eighteen plains, two forest
+	}
+
+	[Fact]
+	public void LandPaintedAsWaterTakesTheFirstTerrainThatIsNotWater()
+	{
+		var painted = new byte[30];
+		Array.Fill(painted, Ocean);
+
+		Assert.Equal("plains", TerrainOfAStrip(1, 15, painted)[1]?.Name);
+	}
+
+	[Fact]
+	public void OneProvinceIsNamedByNumberAndTakesWhatIsPaintedAtItsText()
+	{
+		// All plains but the one pixel its text stands on. Any other province would count
+		// fourteen plains against one forest.
+		var painted = new byte[30];
+		Array.Fill(painted, Plains);
+		painted[25] = Forest;
+
+		Assert.Equal("forest", TerrainOfAStrip(CTerrainReader.ProvinceTakenAtItsText, 25, painted)[CTerrainReader.ProvinceTakenAtItsText]?.Name);
+		Assert.Equal("plains", TerrainOfAStrip(1, 25, painted)[1]?.Name);
 	}
 
 	[Fact]
@@ -315,7 +498,7 @@ public class MapLoadingTests : IDisposable
 		});
 		CMap map = Load();
 
-		Assert.Equal("plains", map.MajorityTerrain[1]?.Name);
+		Assert.Equal("plains", map.Terrain[1]?.Name);
 		Assert.Contains(_warnings, warning => warning.Contains("3 pixels use a palette index"));
 	}
 
@@ -325,7 +508,7 @@ public class MapLoadingTests : IDisposable
 		WriteBytes("map/terrain.bmp", TestBitmap.Indexed8(2, new[] { new byte[] { Plains, Plains } }));
 		CMap map = Load();
 
-		Assert.All(map.MajorityTerrain, terrain => Assert.Null(terrain));
+		Assert.All(map.Terrain, terrain => Assert.Null(terrain));
 		Assert.Contains(_warnings, warning => warning.Contains("no province was given a terrain"));
 	}
 

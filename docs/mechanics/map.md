@@ -81,7 +81,8 @@ Each province has a pixel bounding box and one position, and the position is wha
 original uses whenever it needs a single point - sampling the climate, deciding day or
 night, measuring a bearing.
 
-1. the default is the **centre of the bounding box**;
+1. the default is the **centre of the bounding box**: `min + (max - min + 1) / 2` each
+   way, so it is rounded **up** where the box is an even number of pixels across;
 2. `positions.txt`'s `unit = { x y }` overwrites it, truncated to whole pixels, on any
    province;
 3. `positions.txt`'s `text_position = { x y }` overwrites it, truncated, on a **sea zone
@@ -91,10 +92,24 @@ night, measuring a bearing.
 `confirmed`, exhaustively: applying those four in file order reproduces every province of a
 running game. Four provinces in five take the default.
 
-*Ours:* the file is read since 2026-10-09, when units came to be drawn at this point
-(`mapunits.md`). It is six megabytes of which `unit` and `text_position` are a small part,
-so it has a reader of its own that keeps nothing else; the rest of it - where a building,
-a city and a province's name are drawn - is not read.
+**The rounding was wrong here until 2026-10-09**, when the distances between provinces came
+to be worked out from this point: with `(min + max) / 2` a third of them agreed with the
+original's own cache and the rest were a pixel out, and with the rounding above every one
+agrees (`movement.md`, section 2). (measured)
+
+A province has **two more points**, each also starting at the centre:
+
+- **where its name is written**: `text_position`, truncated, on any province - land too. A
+  land province's terrain is taken around it (section 9);
+- **where its port is drawn**: `naval_base = { x y }` inside `building_position`. It is the
+  land end of the distance between a land province and the sea beside it.
+
+*Ours:* the file is read since 2026-10-09, when units came to be drawn at the first of these
+(`mapunits.md`). It is six megabytes of which these keys are a small part, so it has a
+reader of its own that keeps nothing else; the rest of it - where the other buildings and
+a city are drawn, and how a name is turned and sized - is not read. The original's default
+for a port the file does not place was not read; the base game places every one that
+matters.
 
 **The default can land outside the province.** A concave shape has a bounding-box centre
 that belongs to a neighbour; 57 provinces in the build that was measured sample a
@@ -114,13 +129,13 @@ Two provinces are adjacent when:
   (measured)
 
 An edge is directed and each side holds its own, so a pair appears twice. An edge also
-carries a distance and a bearing. The bearing's formula is known for same-kind pairs and is
-in the findings; the distance is **not established** and is not geometric - every value is
-a multiple of 50 and the ratio to pixel distance is not constant. Nothing in stage 1 needs
-either.
+carries a kind, a distance and a bearing. The kind, the distance and the order a province
+holds its edges in are in `movement.md`, section 2, which is what uses them; the bearing's
+formula is in the findings and nothing here needs it.
 
-**Not established:** whether a raster edge exists across the x seam, between the first and
-last column. *Ours:* it does, because the map is a cylinder everywhere else.
+**A raster edge does exist across the x seam**, between the first and last column: the
+original looks east and west of every pixel with x wrapped. `confirmed`, and with the
+order: built that way, every province has the neighbours the original's cache gives it.
 
 ## 6. The cache, and the bug not to copy
 
@@ -147,6 +162,11 @@ about **120 ms**. The whole start - localisation, countries, map and ten thousan
 history files - is under a second and a half cold and about 650 ms warm, and most of that
 is opening the history files. The original's expensive step is the path and naval-distance
 calculation, which is where a cache will first earn its place here too.
+
+**Nor are the distances**, which are what the original's `adjacencies.bin` exists to keep.
+Since 2026-10-09 every edge is measured on every start - a walk of some tens of pixels for
+each of 83,596 edges, reading the terrain and the river bitmaps - and the whole start is
+still about 1.3 seconds. (measured)
 
 ## 7. History, and the one start
 
@@ -210,9 +230,11 @@ depends on.
 
 ## 9. Terrain
 
-**This section's rule is the maintainer's, from experience of modding the original, given on
-2026-10-07. It has not been read out of the executable**, and it is recorded as that rather
-than as `confirmed`.
+**The rule was read out of the executable on 2026-10-09**
+(`reversing/findings/FINDINGS-movement.md`, section 8). Until then this section held the
+maintainer's rule from experience of modding the original - *the category that covers the
+most of a province's pixels* - marked as not read. The original's is close to that and
+narrower: it counts **only a small square around where the province's name is written**.
 
 - `terrain.txt` declares the **categories** - ocean, mountain, forest, woods, marsh, plains,
   urban, hills, jungle, desert, arctic - each with its modifiers, an `is_water` flag and a
@@ -221,30 +243,45 @@ than as `confirmed`.
   category and a `color` holding a **palette index**. `terrain.bmp` is 8 bits per pixel, the
   same size and the same way up as the province bitmap, and each pixel is one of those
   indices. (measured)
-- **A province's terrain is the category that covers the most of its pixels.** (maintainer)
+- **A province's terrain, from the map** - `confirmed` as read, and not checked against a
+  running game, there being nothing in a savegame to check it by:
+
+      it starts as the category painted at the province's unit point (section 4);
+      on land, the 20 x 20 pixels from ten west and ten south of its text position are
+          gone through, and of those that are the province's own the category painted
+          most often replaces it;
+      of two counted equally often, the one terrain.txt declares first;
+      with no pixel counted it stays what the unit point gave;
+      land that comes out as a water category takes the first category declared that
+          is not water.
+
+  The count is per category, not per palette index. A sea province's terrain is whatever is
+  painted at its unit point.
+- **Province 1737 is in the executable by number**: its terrain is what is painted at its
+  text position, with nothing counted. Kept, so that the base game comes out the same.
 - **A `terrain = <category>` line in the province's history file overrides that.**
   (maintainer)
+- A point off the east or the north edge of the bitmap reads as palette index 0. A palette
+  index no entry of `terrain.txt` covers would crash the original at a unit point and is
+  skipped in the count; *ours:* such a pixel paints nothing, a province with nothing else has
+  no terrain, and the number of such pixels is reported.
 
-What the install shows when the rule is applied, which is corroboration and not proof:
-every one of the 3547 sea provinces comes out as ocean and no land province does; every
-pixel's index has a terrain; Berlin, Paris and Moscow are urban. And the override does real
-work - 201 land provinces end up different from what the bitmap alone gives them. The
-clearest case is arctic: the bitmap makes 5 provinces arctic and the history files make it
-142, so the bitmap barely paints arctic and the files are how the north gets it. (measured)
+What the change of rule does to the base game, before any history file is applied: **384 of
+its 10,621 land provinces come out differently** - most of them between neighbours such as
+mountain and hills (76), plains and forest (72), plains and hills (57) - and two sea
+provinces are a land category, being painted so at their point. (measured, 2026-10-09)
 
-**Not established**, and decided here until it is:
+**Not established:** what `priority` on an index entry means. Nothing here reads it.
 
-- *whether the count is per category or per palette index.* Several indices share a
-  category. *Ours:* per category.
-- *what breaks a tie.* *Ours:* the category declared first in `terrain.txt`.
-- *what `priority` on an index entry means.* Nothing here reads it.
+Each category's `movement_cost` is read too. It has nothing to do with the province's own
+terrain: it is what a pixel of that terrain adds to a distance (`movement.md`, section 2).
 
 ## What is not established, in one place
 
-- for **terrain**: whether the majority is counted per category or per palette index, and
-  what breaks a tie. The rule itself is the maintainer's and has not been read out of the
-  executable;
-- the **distance** on an edge;
+- for **terrain**: what `priority` on an index entry means, and where the original puts a
+  port that `positions.txt` does not place;
 - the **bearing** between a land province and a sea province;
-- whether a raster edge crosses the **x seam**;
 - the order and merging of **two history files for one province**.
+
+Settled on 2026-10-09 and no longer here: the terrain rule, the distance on an edge, and
+whether a raster edge crosses the x seam.
