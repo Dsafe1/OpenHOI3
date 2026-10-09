@@ -129,21 +129,7 @@ public static class CResources
 			return joined;
 		}
 
-		var seen = new HashSet<int> { capital.Id };
-		var frontier = new Queue<int>();
-		frontier.Enqueue(capital.Id);
-		while (frontier.Count > 0)
-		{
-			int id = frontier.Dequeue();
-			joined.Add(id);
-			foreach (int neighbour in state.Provinces[id].Neighbours)
-			{
-				if (seen.Add(neighbour) && Holds(country, state.Provinces[neighbour]))
-				{
-					frontier.Enqueue(neighbour);
-				}
-			}
-		}
+		joined = Supply.CSupplyNetworks.AreaAround(state, capital.Id);
 		joined.Sort();                                       // so the order of the sum does not depend on the walk
 		return joined;
 	}

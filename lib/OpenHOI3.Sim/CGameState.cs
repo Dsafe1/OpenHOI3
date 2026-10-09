@@ -6,6 +6,7 @@ using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim;
@@ -156,6 +157,15 @@ public sealed class CGameState
 
 	/// <summary>The wars being fought now.</summary>
 	public List<CWar> Wars { get; }
+
+	/// <summary>The alliances standing now, two countries each.</summary>
+	public List<CAlliance> Alliances { get; } = new();
+
+	/// <summary>
+	/// Which depot every province draws on and how far from it, as last worked out.
+	/// <see cref="CSupplyNetworks.Refresh"/> keeps it; null until it has been asked for.
+	/// </summary>
+	public CSupplyNetwork? SupplyNetwork { get; set; }
 
 	/// <summary>The battles being fought now, in the order they began.</summary>
 	public List<CCombat> Combats { get; } = new();

@@ -93,9 +93,10 @@ public class BuildQueueTests
 		{
 			byKey[type.Key] = type;
 		}
+		TestRoads.Pave(new[] { berlin, kiel, baltic, posen, lodz });
 		return new CGameState(new CDate(1936, 1, 1),
 			new[] { new CProvince(0, "", isSea: false), berlin, kiel, baltic, posen, lodz },
-			new[] { country }, buildings: new[] { NavalBase, AirBase }, defines: defines)
+			new[] { country }, buildings: new[] { NavalBase, AirBase, TestRoads.Infra }, defines: defines)
 		{
 			SubUnitTypes = byKey,
 		};

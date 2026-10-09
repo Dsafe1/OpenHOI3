@@ -54,8 +54,9 @@ public class ResourcesTests
 			baseValues.Set("ic", CFixedPoint.Parse(baseIc));
 			statics.Add(baseValues);
 		}
+		TestRoads.Pave(all);
 		return new CGameState(new CDate(1936, 1, 1), all, new[] { Country("GER", 1), Country("FRA", 9) },
-			new[] { Industry }, technologies, statics);
+			new[] { Industry, TestRoads.Infra }, technologies, statics);
 	}
 
 	private static CModifier Modifier(string name, string kind, string value)

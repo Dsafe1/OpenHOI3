@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Construction;
@@ -13,32 +14,18 @@ namespace OpenHOI3.Sim.Construction;
 public static class CDeployment
 {
 	/// <summary>
-	/// The land a country may place units in: what it owns and holds that is joined to
-	/// its capital, over land, through land it owns and holds.
+	/// The land a country may place units in: the area its capital is in, which is the
+	/// capital and every province the country holds that is joined to it through land
+	/// it holds, each with more than one level of infrastructure. Nothing for a country
+	/// that does not hold its capital. See <c>docs/mechanics/supply.md</c>, section 2.
 	/// </summary>
 	public static HashSet<int> HomeArea(CGameState state, CCountry country)
 	{
-		var area = new HashSet<int>();
-		if (!IsItsOwn(state.Province(country.Capital), country))
+		if (country.Capital <= 0 || state.Province(country.Capital).Controller != country.Tag)
 		{
-			return area;
+			return new HashSet<int>();
 		}
-
-		var toVisit = new Queue<int>();
-		area.Add(country.Capital);
-		toVisit.Enqueue(country.Capital);
-		while (toVisit.Count > 0)
-		{
-			foreach (int neighbour in state.Province(toVisit.Dequeue()).Neighbours)
-			{
-				if (!area.Contains(neighbour) && IsItsOwn(state.Province(neighbour), country))
-				{
-					area.Add(neighbour);
-					toVisit.Enqueue(neighbour);
-				}
-			}
-		}
-		return area;
+		return new HashSet<int>(CSupplyNetworks.AreaAround(state, country.Capital));
 	}
 
 	/// <summary>
@@ -227,13 +214,6 @@ public static class CDeployment
 	private static bool IsCag(CSubUnit subUnit)
 	{
 		return subUnit.Type.Flag(IsCarrierAirGroup);
-	}
-
-	private static bool IsItsOwn(CProvince province, CCountry country)
-	{
-		return province.Id != 0 && !province.IsSea
-			&& province.Owner is { } owner && owner.Equals(country.Tag)
-			&& province.Controller is { } controller && controller.Equals(country.Tag);
 	}
 
 	private static bool HasBase(CGameState state, CProvince province, string key)

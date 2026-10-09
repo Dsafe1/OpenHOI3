@@ -129,11 +129,46 @@ map: a counter each, and a menu that puts a finished one there
 a selected unit has its panel (`docs/mechanics/unitpanel.md`), and fleets and air units
 are given their orders (`docs/mechanics/fleetsandair.md`). And land units fight
 (`docs/mechanics/landcombat.md`), with the battle on screen
-(`docs/mechanics/combatview.md`).
+(`docs/mechanics/combatview.md`). And the supply network is there
+(`docs/mechanics/supply.md`): which depot every province draws on, and how far from it.
 In order:
 
-1. **Supply**, which replaces the stand-in of `upkeep.md`, section 2. Land combat came
-   before it, in three pieces, and all three are in (2026-10-09).
+1. **Supply**, which replaces the stand-in of `upkeep.md`, section 2. Cut in three with the
+   maintainer on 2026-10-09, and **the first piece is in**.
+
+   **The network, built**: the land cut into areas - what one country controls, touching,
+   each province with more than one level of infrastructure - areas on one side grouped, a
+   depot picked for each group, a depot found for land its group gives none, and every
+   province's distance from its own; with what a province can pass in a day and what a load
+   loses crossing it. **It agrees with three savegames province for province**: the same
+   4,400 provinces out of supply and the same 402 that pass without limit
+   (`OpenHOI3.SaveCheck supply`, `supply.md`, section 9). **And he watched the original pick
+   a depot**: Manchukuo on Hamhung as the game starts, on Pusan with North Korea released,
+   on P'yongyang with both - and the score gives all three. In the original a released
+   puppet draws on its own capital for some days first; here it is in its master's group at
+   once, and stays so on purpose (`docs/compatibility.md`, entry 9). The maintainer said beforehand that
+   a puppet is in its master's network unless the two do not touch, and that allies keep
+   their own; both were read so. **Nothing draws on it yet**: a unit still takes from its
+   country's stockpile wherever it stands, and all there is to see is a line in the readout
+   of a selected province.
+
+   **Next, the daily pass**: supplies and fuel going out from each depot province by
+   province - what a province's units ask for, what each province can pass, what is lost on
+   the way - and a unit drawing on the pool of the province it stands in.
+   `reversing/findings/FINDINGS-supply.md` has the pass in three phases, and the saves hold
+   every province's pool, what it drew and what went through it, on days either side of a
+   midnight (`_01_07_22` and `_01_08_02`), so it can be set against them. **A depot across
+   the sea is filled by convoy, which is the third piece**: until then a network with no way
+   overland to its country's capital has to keep the stand-in or starve, and the one war of
+   the start date is Italy's in East Africa. **Then the sea and the screen**: convoys, and
+   the supply map mode.
+
+   **The areas were wanted by three older rules**, each of which had guessed at them: home
+   production, the `overseas` modifier and where a finished unit may be placed. All three
+   now use the area as read, and the save's home production of metal is right for 78
+   countries of 78 where it was 76 (`supply.md`, section 10).
+
+   Land combat came before it, in three pieces, and all three are in (2026-10-09).
    **A battle exists**: a land unit walking at a province an enemy stands in
    starts a battle for it and fights from where it stands; each side's units go on the front
    until the battle's width is used and the rest wait in reserve; each hour both sides
@@ -179,8 +214,10 @@ In order:
    about how the interface draws, none of them about battles: a bar's picture is drawn
    upside down, a turned flag turns about its middle, a round shield cuts its flag to a
    disc, and a name too long for its box ends in three dots (`interface.md`, sections 5 and
-   7). With those the window's upper half lies on his to within a pixel. He has not looked
-   at ours.
+   7). With those the window's upper half lies on his to within a pixel. **He looked at
+   ours on 2026-10-09** - "Looks very good" - and asked that opening the window should not
+   move the map, which the original's row in a unit's panel does (`docs/compatibility.md`,
+   entry 8).
 
    **There is no diplomacy, so a war has to be given**: `--war=GER:POL` on the command line,
    which is `CStartWarCommand` and nothing like a declaration. On the start date only Italy
@@ -756,8 +793,8 @@ sea and by air - in four projects:
 | `src/Gfx` | The Godot client's side: decodes the original's DDS/TGA textures and sprite declarations, and finds the typeface for each font the interface files name |
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it. The panel of the unit selected on the map: a list of the units above it, its header, its status, its order, its buttons, its brigades, the units under it and the battles it is in, each a class of its own. The window of orders for a fleet or an air unit. And the window of a battle, with its two sides and a line for each unit on them |
-| `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial |
-| `tests/` | 997 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, and what a battle shows, where silent misreadings are expensive |
+| `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial |
+| `tests/` | 1029 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network and who is whose puppet, where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.
@@ -862,7 +899,7 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         are at its root
     Commands/           every change to the game state
     Provinces/          a province, its terrain, a building
-    Countries/          a country, its tag, its laws, its ministers, its wars
+    Countries/          a country, its tag, its laws, its ministers, its wars and alliances
     Modifiers/          what a modifier is, and the rebuilding of a province's and a country's
     Economy/            goods, resources, IC, the stockpile, the six shares, manpower, leadership
     Research/           technologies, their categories, the queue and the decay
@@ -873,6 +910,8 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         falling back, the attack delay, and a province changing hands
     Weather/            the weather over a province, what it does to a march and to a
                         battle, and whether it is night there
+    Supply/             the supply network: areas, groups, depots and distances, and what
+                        a province passes and takes
     Construction/       the build queue: a line, its brigades, the rules, and placing what
                         comes out
 lib/OpenHOI3.Content/   reading an install: finding and layering it, localisation, the loader

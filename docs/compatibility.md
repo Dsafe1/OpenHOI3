@@ -165,6 +165,23 @@ row does; that was put to him afterwards.
 
 `docs/mechanics/combatview.md`, section 1; `reversing/findings/FINDINGS-combatview.md`.
 
+## 9. A released puppet is in its master's supply network at once
+
+**Decided** 2026-10-09 by the maintainer, who had watched the original's delay himself that
+day and was told it looks like an accident of ordering and not a rule: "I agree".
+
+| | |
+| --- | --- |
+| the original | groups its areas for supply when land changes hands, which on a release is before the new country is anybody's puppet; so for some days each released country draws on its own capital, and only when something else has the groups made again does it join its master's network |
+| here | the network is made whole whenever it is asked for, so a puppet is in its master's group, on the group's depot, from the hour it is one |
+| the difference today | none that can be reached: nothing releases a country or makes a puppet during a game yet. When something does, the depot moves at once where the original's moves some days later - Manchukuo and a released North Korea go to Pusan the same day |
+| a mod loses | nothing of its files. An event chain timed around those days of a puppet standing on its own supplies would find them missing |
+| why | the delay is what is left over from the order two things happen in, it is not written anywhere a mod could read or set, and keeping it would mean keeping the network up to date piece by piece as the original does only to be late in the same places |
+| to undo | make the groups again only when a province changes hands and on whatever else the original does it on - which was not read (`docs/mechanics/supply.md`, *Not established*) |
+
+`docs/mechanics/supply.md`, section 9; `reversing/findings/FINDINGS-supplynetwork.md`,
+section 10.
+
 ---
 
 ## Stricter, with the same meaning

@@ -85,11 +85,14 @@ Piece by piece:
   amount. (measured: the countries that do not exist yet in 1936 all read zero.)
 - **Money is home production too**, and has its own formula: `stockpile.md`, section 4.
 
-*Ours:* "joined to the capital" is a walk from the capital through adjacent land provinces
-the country controls. The original decides it by its supply network, which this is standing
-in for. They agree for all but three of the countries that produce anything at the start; where
-they will differ is when a
-network is cut by something other than who controls the ground.
+**"Joined to the capital" is "in the capital's area"**, and an area was read on 2026-10-09:
+the capital and every province the country controls that touches it through such provinces,
+**each with more than one level of infrastructure** (`supply.md`, section 2). `confirmed`,
+and (measured): until then this was a walk through any land the country controls, which
+agreed for all but three of the countries that produce anything at the start. With the
+infrastructure in it two of the three agree - Australia's and Canada's metal, 1.1 and 5.5 a
+day over the save's, from mines behind land with one level or none - and the home figure of
+metal is right for 78 countries of 78. Honduras's energy is still half a unit over.
 
 ## 4. Technology levels
 
@@ -149,7 +152,9 @@ no country uses more than this project gives it.
 
 ## What is not established, in one place
 
-- how the original decides a province is **joined to the capital**;
+- ~~how the original decides a province is **joined to the capital**~~ - read, 2026-10-09:
+  `supply.md`, section 2;
+- why **Honduras's energy** is half a unit a day over the save's;
 - where the **476 extra technology levels** come from;
 - **when and how often the AI runs** before the first hour, and why it runs for the
   player's country;

@@ -67,7 +67,8 @@ public class ProductionTests
 			new CTechnology("supply_production", 12, Modifier("supply_production", ("ic_to_supplies", "0.05"))),
 			new CTechnology("industral_production", 12, Modifier("industral_production", ("ic_modifier", "0.025"))),
 		};
-		return new CGameState(new CDate(1936, 1, 1), all, countries, new[] { Industry }, technologies,
+		TestRoads.Pave(all);
+		return new CGameState(new CDate(1936, 1, 1), all, countries, new[] { Industry, TestRoads.Infra }, technologies,
 			new[] { baseValues }, defines, wars);
 	}
 

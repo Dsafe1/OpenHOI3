@@ -12,7 +12,8 @@ Sources: `reversing/findings/FINDINGS-unitdaily.md` (all of it, read for this sp
 `reversing/findings/FINDINGS-manpower.md` (troop rotation),
 `reversing/findings/FINDINGS-production.md` (the shape every share of IC has),
 `reversing/findings/FINDINGS-leadership.md`, section 10 (the starting stockpile),
-`reversing/findings/FINDINGS-supply.md` (the supply network, which is not built).
+`reversing/findings/FINDINGS-supply.md` (the supply network: built as far as who draws
+from where, `supply.md`, and not yet drawn on).
 
 The units themselves are in `units.md`; the six shares of IC, and what a point of IC costs
 in resources, are in `production.md`.
@@ -84,8 +85,10 @@ step and limited by what each province can pass. That is its normal mode. It has
 which it calls arcade, where every unit draws straight on its country's stockpile and the
 network does not run. `confirmed`
 
-*Ours:* **the arcade rule, until there is a supply network.** Every unit draws on its
-country's stockpile. So no unit here is ever short of supplies while its country has any,
+*Ours:* **the arcade rule, until the network is drawn on.** The network itself is built -
+which depot every province draws on and how far from it, `supply.md` - and the daily pass
+that fills each province's pool from it is the next piece. Until that, every unit draws on
+its country's stockpile. So no unit here is ever short of supplies while its country has any,
 wherever it stands; in the original's save, two days in, 68 brigades are in units the
 network had not fully supplied. Nothing moves yet, so the only fuel drawn is by a
 fleet whose order of battle puts it somewhere other than its base.

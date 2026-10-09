@@ -89,7 +89,10 @@ Rebuilt from nothing, adding in this order. `confirmed` throughout unless marked
    area from its controller's capital **and** on a different continent. An area is a block
    of land in one country's hands, so a province that can be reached from the capital
    overland is never overseas however far away, and an island off the capital's own
-   continent is not either. In Their Finest Hour it takes 75% off the province's manpower
+   continent is not either. **What an area is exactly is `supply.md`, section 2**: land one
+   country controls, touching, each province with more than one level of infrastructure -
+   so a province with one level or none is in no area, and on another continent than the
+   capital it is overseas even when it can be walked to. In Their Finest Hour it takes 75% off the province's manpower
    and 90% off its leadership.
    - `blockaded` is tested only for a province that is overseas, and exempts one with a
      port and a naval base. In Their Finest Hour it is an empty block.

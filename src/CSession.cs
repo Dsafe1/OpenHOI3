@@ -18,6 +18,7 @@ using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3;
@@ -556,6 +557,13 @@ public partial class CSession : Node
 			{
 				text += "\nTerrain: " + _localisation.Localise(province.Terrain.Name);
 			}
+			// Ours, until there is a supply map mode: where the province draws from.
+			CSupplyNetwork supply = CSupplyNetworks.Refresh(State);
+			int depot = supply.DepotOf(provinceId);
+			text += "\nSupply: " + (depot == 0 ? "draws on no depot"
+				: depot == provinceId ? "a depot"
+				: $"draws on {State.Province(depot).Name}, {supply.DistanceOf(provinceId)} away")
+				+ $"; passes {CSupplyFigures.Capacity(State, province)} a day, a load loses {CSupplyFigures.Loss(State, province)}";
 			text += "\nOwner: " + CountryName(province.Owner);
 			if (State.Country(province.Owner) is { } owner)
 			{

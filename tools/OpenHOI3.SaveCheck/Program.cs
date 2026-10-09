@@ -46,6 +46,12 @@ if (args.Length > 0 && args[0] == "march")
 	return CMarchCheck.Run(args);
 }
 
+// The supply network is checked against what a save says of it.
+if (args.Length > 0 && args[0] == "supply")
+{
+	return CSupplyCheck.Run(args);
+}
+
 // A battle is fought with the install's own units and described. A trial, not a check.
 if (args.Length > 0 && args[0] == "battle")
 {

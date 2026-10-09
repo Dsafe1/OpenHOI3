@@ -284,9 +284,12 @@ line already at the end it is sent towards stays. `confirmed`
 - that the province is in the same *area* as the country's capital - an area being a
   block of land under one owner.
 
-*Ours:* an area is taken to be the land a country owns and holds that is joined to its
-capital, over land, through land it owns and holds. `inferred`: how the original bounds an
-area was not read. A fleet or an air unit placed takes the province as its base. A unit
+**An area was read on 2026-10-09** (`supply.md`, section 2): the capital and every province
+the country *controls* that touches it through such provinces, each with more than one level
+of infrastructure. `confirmed`. Until then this took it for land the country owns and holds;
+so land taken from an enemy and joined to the capital may now be placed in, and land behind
+a belt of bad roads may not. *Ours:* a country that does not hold its own capital may place
+nowhere. A fleet or an air unit placed takes the province as its base. A unit
 placed answers to nothing above it.
 
 **Or it joins a unit already in the field**, by the same command given that unit as its
@@ -374,7 +377,7 @@ convoy prices every line again too, and there are none here.
 
 - ~~**What refuses an order** in the original.~~ The windows do: `builders.md`.
 - ~~**How a builder window makes a brigade's model.**~~ `builders.md`, section 7.
-- **What bounds an area**, for placing.
+- ~~**What bounds an area**, for placing.~~ Read, 2026-10-09: `supply.md`, section 2.
 - **The second rule for placing** that one kind of session uses in place of the area.
 - **Why six countries' lines start where they do**: which laws and ministers the
   original's AI had given them when the game started.

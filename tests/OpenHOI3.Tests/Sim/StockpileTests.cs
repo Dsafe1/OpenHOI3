@@ -41,7 +41,8 @@ public class StockpileTests
 		baseValues.Set("ic", CFixedPoint.FromInt(5));
 		var defines = new CDefines();
 		defines.Set("economy", "IC_TO_MONEY", CFixedPoint.Parse("0.05"));
-		return new CGameState(new CDate(1936, 1, 1), all, countries, new[] { Industry }, null,
+		TestRoads.Pave(all);
+		return new CGameState(new CDate(1936, 1, 1), all, countries, new[] { Industry, TestRoads.Infra }, null,
 			new[] { baseValues }, defines, wars);
 	}
 
@@ -294,7 +295,8 @@ public class StockpileTests
 	{
 		var all = new List<CProvince> { new(0, "", isSea: false), Land(1, "GER", industry: 5) };
 		CCountry germany = Country("GER", 1);
-		var state = new CGameState(new CDate(1936, 1, 1), all, new[] { germany }, new[] { Industry });
+		TestRoads.Pave(all);
+		var state = new CGameState(new CDate(1936, 1, 1), all, new[] { germany }, new[] { Industry, TestRoads.Infra });
 
 		CTick.RunEntryPass(state);
 

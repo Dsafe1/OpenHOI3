@@ -86,6 +86,13 @@ public sealed class CProvince
 	public int CentreY { get; init; }
 
 	/// <summary>
+	/// The width of its bounding box on the map and the height, added together, in
+	/// pixels. It is how big the province counts as when supplies cross it: see
+	/// <c>docs/mechanics/supply.md</c>, section 6.
+	/// </summary>
+	public int Span { get; init; }
+
+	/// <summary>
 	/// The one point that stands for the province, in pixels with y counting north:
 	/// where it is on the clock and which half of the world it is in. See
 	/// <c>docs/mechanics/map.md</c>, section 4.

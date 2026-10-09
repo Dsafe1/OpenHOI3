@@ -35,6 +35,13 @@ public sealed class CCountry
 	public string Faction { get; set; } = "";
 
 	/// <summary>
+	/// The country it is a puppet of, or null for a country that is nobody's. A puppet
+	/// and its master are on one side for supply: see <c>docs/mechanics/supply.md</c>,
+	/// section 3.
+	/// </summary>
+	public CCountryTag? Overlord { get; set; }
+
+	/// <summary>
 	/// How much of each strategic resource it has the use of, by the resource's name:
 	/// 1 for a whole one. Within a game it only ever rises. Written by
 	/// <see cref="CStrategicResources"/>.

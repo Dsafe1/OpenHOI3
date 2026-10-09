@@ -82,7 +82,8 @@ public class LeadershipTests
 		defines.Set("economy", "LEADERSHIP_TO_SPIES", CFixedPoint.Parse("0.15"));
 		var technologies = new[] { new CTechnology("education", 12, Modifier("education", ("leadership_gain", "0.05"))) };
 		var resources = new[] { Modifier("gold", ("global_money", "0.33")) };
-		return new CGameState(new CDate(1936, 1, 1), all, countries, new[] { Industry }, technologies,
+		TestRoads.Pave(all);
+		return new CGameState(new CDate(1936, 1, 1), all, countries, new[] { Industry, TestRoads.Infra }, technologies,
 			statics, defines, strategicResources: resources);
 	}
 

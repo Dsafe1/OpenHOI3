@@ -48,6 +48,8 @@ public static class CGameStateLoader
 				Edges = map.Edges[id],
 				CentreX = map.Shapes[id].IsEmpty ? 0 : map.Shapes[id].CentreX,
 				CentreY = map.Shapes[id].IsEmpty ? 0 : map.Shapes[id].CentreY,
+				Span = map.Shapes[id].IsEmpty ? 0
+					: map.Shapes[id].MaxX - map.Shapes[id].MinX + 1 + map.Shapes[id].MaxY - map.Shapes[id].MinY + 1,
 				PositionX = map.Positions[id].X,
 				PositionY = map.Positions[id].Y,
 				PortSea = map.PortSea[id],
@@ -77,6 +79,7 @@ public static class CGameStateLoader
 		List<CModifier> strategicResources = CModifierReader.ReadStrategicResources(directories, warn);
 		CDefines defines = CDefinesReader.Read(directories, warn);
 		List<CWar> wars = CWarReader.Read(directories, countries, start, warn);
+		List<CAlliance> alliances = CDiplomacyReader.Apply(directories, countries, start, warn);
 
 		var state = new CGameState(start, provinces, countries.Declared, buildings, technologies, staticModifiers,
 			defines, wars, strategicResources, categories)
@@ -89,6 +92,7 @@ public static class CGameStateLoader
 			MapWidth = map.Width,
 			MapHeight = map.Height,
 		};
+		state.Alliances.AddRange(alliances);
 		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);
 		CProduction.SetStartingShares(state);

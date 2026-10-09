@@ -44,7 +44,8 @@ its hierarchy on the map, the orders that send a fleet or an air unit with the w
 are given from, the distances by sea, the buildings on the map with the port and the
 airfield, and a land battle from the unit that starts it to the province that changes
 hands with what the ground, the night and the rest make of each unit in it, the tactic each
-side picks, and its marker and its window, 997 tests - and it is
+side picks, and its marker and its window, and the supply network - which depot every
+province draws on and how far from it, with nothing drawing on it yet - 1029 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -183,8 +184,9 @@ numbers the one written down as what counters it was its own. There is no weathe
 yet, no diplomacy and no AI, so a war is given with `--war=GER:POL` and the enemy stands
 still.
 **A battle on screen - `combatview.md` - was built from a reading, checked with `--click`,
-and then set against three screenshots of a battle of his, which he has not seen ours
-beside**: the marker, the row in a unit's panel, the window. Its upper half lies on his to
+and then set against three screenshots of a battle of his; he looked at ours on 2026-10-09
+and found it good, and asked for one thing: opening a battle's window does not move the map**
+(`docs/compatibility.md`, entry 8). It shows the marker, the row in a unit's panel, the window. Its upper half lies on his to
 within a pixel, after the screenshots corrected four things about how the interface draws,
 all measured and none read (`interface.md`, sections 5 and 7): **a progress bar's picture
 is drawn upside down** - one of the unit panel's two bars had been the wrong way round
@@ -193,6 +195,21 @@ about its corner, **a round shield cuts its flag to a disc**, and **a name too l
 `fixedsize` box ends in three dots**. The number on the marker, the bar and the marker's
 colour are one figure, the attacker's share (`combatview.md`, section 6), and it read 6 on
 his screenshot and on ours for the same kind of fight.
+**The supply network - `supply.md` - is the best checked thing read out of the original
+here**: which depot every province draws on, worked out from areas, groups of areas on one
+side and a score, agrees with three savegames province for province - and the maintainer
+then watched the original move the depot of Manchukuo and Korea as he released one Korea
+and the other, and the score gives each state he saw (`supply.md`, section 9). **The
+original takes some days to group a released puppet with its master and this does it at
+once**, because the network here is made whole each time it is asked for - kept so by his
+decision (`docs/compatibility.md`, entry 9). It is the first of
+supply's three pieces, cut with the maintainer on 2026-10-09; **nothing draws on it yet**,
+so a unit still takes from its country's stockpile wherever it stands. His account before
+the reading - a puppet is in its master's network unless the two do not touch, allies keep
+their own - was read exactly so. The areas it makes are also what home production, the
+`overseas` modifier and the placing of a unit ask, each of which had guessed at them.
+**The province readout under the top bar is scaffolding and shows only for a selected
+province** - his word, 2026-10-09, when it followed the mouse: "Very distracting."
 **The four windows a unit is ordered
 from - `builders.md` - have been tried by hand once and never measured against the
 original.** That try found seven buttons that could not be pressed in windows every
@@ -282,7 +299,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 108 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 109 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -318,7 +335,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 2980-address, 315-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3006-address, 317-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -413,9 +430,22 @@ beside the repository.
   `OpenHOI3.SaveCheck battle <install> [attacker] [defender] [seed]` is a trial instead: it
   fights one with the install's own units and says how it went - Italy against Ethiopia with
   no tags given, who are at war on the start date. Run it after touching `lib/OpenHOI3.Sim/Combat`.
+  `OpenHOI3.SaveCheck supply <install> <savegame>` checks the supply network against what a
+  save says of it, with the save's own owners, controllers and capitals, so a save of any
+  day will do: the provinces marked `out_of_supply_days` are ours that draw on no depot -
+  the same 4,400 in the saves of 1 and 8 January and 20 April 1936 - and the provinces
+  marked `capital` are ours that are a capital or beside one, 402 and 400. It also says
+  where the supplies lie in each network, which is all a save has on which province a
+  depot is (`docs/mechanics/supply.md`, section 9). With `release=PRK:JAP` after the save it
+  is a trial instead: the country is given its cores out of its master's land as a puppet
+  and the check says who then draws on what - the three states the maintainer watched in
+  the original are `release=PRK:JAP`, the same with `release=KOR:JAP` after it, and neither.
+  Run it after touching
+  `lib/OpenHOI3.Sim/Supply` - and the start-date check too, since home production, the
+  `overseas` modifier and where a unit may be placed all ask the same areas.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows and which arrow a unit has carry 997 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network and who is whose puppet carry 1029 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here
