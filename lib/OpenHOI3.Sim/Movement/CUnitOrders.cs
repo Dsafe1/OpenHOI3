@@ -141,6 +141,16 @@ public static class CUnitOrders
 		unit.Order = order;
 		unit.OrderProvince = province;
 		List<int>? route = CRouteFinder.Find(state, country, unit, unit.Location, province);
+		// A unit in a battle is given a path only where the battle lets it go - one at
+		// sea not in its first hours - and then leaves it.
+		if (unit.IsFighting && (route is not null || order == EUnitOrder.Rebase))
+		{
+			if (!Combat.CNavalDisengage.MayLeave(unit))
+			{
+				return;
+			}
+			Combat.CCombats.LeaveForMarch(state, unit);
+		}
 		if (route is not null)
 		{
 			CMovement.SetPath(unit, route, clear: true);

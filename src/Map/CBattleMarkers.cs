@@ -83,7 +83,8 @@ public partial class CBattleMarkers : Node2D
 		{
 			foreach (CCombat combat in _state.Combats)
 			{
-				if (!CCombatViewText.TakesPart(combat, player) || combat.Attacker.Units.Count == 0
+				if (combat.Kind != ECombatKind.Land
+					|| !CCombatViewText.TakesPart(combat, player) || combat.Attacker.Units.Count == 0
 					|| combat.Defender.Units.Count == 0)
 				{
 					continue;

@@ -3,23 +3,28 @@ using OpenHOI3.Sim.Units;
 namespace OpenHOI3.Sim.Combat;
 
 /// <summary>
-/// One battle on land: a province being fought over, the side that came to take it and
-/// the side that was there. See <c>docs/mechanics/landcombat.md</c>.
+/// One battle: a province it is fought in, the side that started it and the side that
+/// was found there. On land the province is what is fought over; at sea it is only
+/// where the fleets met. See <c>docs/mechanics/landcombat.md</c> and
+/// <c>docs/mechanics/navalcombat.md</c>.
 /// </summary>
 public sealed class CCombat
 {
 	/// <summary>What <see cref="Hour"/> is before the first round.</summary>
 	public const int NotStarted = -1;
 
-	public CCombat(int province)
+	public CCombat(int province, ECombatKind kind = ECombatKind.Land)
 	{
 		Province = province;
+		Kind = kind;
 		Attacker = new CCombatSide(this, isAttacker: true);
 		Defender = new CCombatSide(this, isAttacker: false);
 	}
 
 	/// <summary>The id of the province fought over. The defenders stand in it.</summary>
 	public int Province { get; }
+
+	public ECombatKind Kind { get; }
 
 	public CCombatSide Attacker { get; }
 

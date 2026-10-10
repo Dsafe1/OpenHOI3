@@ -46,6 +46,25 @@ public sealed class CCombatSide
 	public CFixedPoint Losses { get; set; }
 
 	/// <summary>
+	/// At sea: how well the side's ships are placed, which is what gets a ship a target
+	/// and keeps it. Rolled when the battle begins and crept up after. See
+	/// <c>docs/mechanics/navalcombat.md</c>, section 2.
+	/// </summary>
+	public CFixedPoint Positioning { get; set; }
+
+	/// <summary>The roll that went into <see cref="Positioning"/>, kept for when a fleet joins.</summary>
+	public CFixedPoint PositioningRoll { get; set; }
+
+	/// <summary>Whether the side's submarines had their surprise in the round before this one.</summary>
+	public bool HadSurprise { get; set; }
+
+	/// <summary>The ships this side has had sunk in the battle, in the order they went down.</summary>
+	public List<CSubUnit> Sunk { get; } = new();
+
+	/// <summary>The enemy ships the ship now choosing a target can reach. Filled for each choice.</summary>
+	public List<CSubUnit> Targets { get; } = new();
+
+	/// <summary>
 	/// The countries this side fought as, in the order they joined, and kept when its
 	/// units are gone.
 	/// </summary>

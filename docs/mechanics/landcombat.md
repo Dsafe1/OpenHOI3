@@ -540,8 +540,9 @@ whom, for how long, and how many stand on each front; it is scaffolding.
 - **Leaders**, wherever one is named above - and with them most of what makes one tactic
   picked over another (section 11).
 - **Experience** from a battle, and the practical knowledge a round gives.
-- **Fleets and air units**: only land units fight. A battle at sea, in the air, and bombing
-  are their own pieces.
+- **Air units**: a battle in the air and bombing are their own pieces. Fleets fight one
+  another at sea since 2026-10-10 (`navalcombat.md`), and have no part in a land battle
+  yet: shore bombardment is not built.
 - **Supply**: a unit fights and walks by the supplies `upkeep.md` hands it, which do not
   depend on where it is.
 - **The AI**: nothing moves unless the player moves it.

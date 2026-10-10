@@ -180,6 +180,13 @@ public sealed class CGameState
 	public List<CCombat> Combats { get; } = new();
 
 	/// <summary>
+	/// The countries a person plays. The simulation asks it in one place so far: an
+	/// idle fleet of a country nobody plays starts no battle
+	/// (<c>docs/mechanics/navalcombat.md</c>, section 1).
+	/// </summary>
+	public HashSet<CCountryTag> Played { get; } = new();
+
+	/// <summary>
 	/// How many times a province has changed hands in this game. Whatever shows who
 	/// holds what watches it to know when to look again.
 	/// </summary>

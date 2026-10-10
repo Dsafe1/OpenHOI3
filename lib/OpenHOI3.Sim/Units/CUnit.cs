@@ -96,6 +96,19 @@ public sealed class CUnit
 	public bool IsRemoved { get; set; }
 
 	/// <summary>
+	/// A fleet in a battle: how long it has been breaking away. Nothing until an order
+	/// to leave or the battle's own roll starts it, then an hour more each hour; at 5 it
+	/// goes. See <c>docs/mechanics/navalcombat.md</c>, section 6.
+	/// </summary>
+	public int Disengage { get; set; }
+
+	/// <summary>The id of the province a fleet breaking away was told to go to, or 0.</summary>
+	public int DisengageTo { get; set; }
+
+	/// <summary>The hours before a fleet let out of a battle will start another.</summary>
+	public int EngageWait { get; set; }
+
+	/// <summary>
 	/// What it has been told to do, and where. An order is looked at every hour and
 	/// dropped when it is done: see <c>docs/mechanics/fleetsandair.md</c>, section 5.
 	/// </summary>

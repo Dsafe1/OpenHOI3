@@ -19,24 +19,6 @@
 			"stopAtEntry": false
 		},
 		{
-			// Every unit type is there to order from the start: a carrier and its air
-			// groups, and the brigades a file keeps to one country.
-			"name": "Play OpenHOI3 (all units)",
-			"type": "coreclr",
-			"request": "launch",
-			"preLaunchTask": "build",
-			"program": "${config:godotTools.editorPath.godot4}",
-			"args": [
-				"--path",
-				"${workspaceFolder}",
-				"--",
-				"--all-units"
-			],
-			"cwd": "${workspaceFolder}",
-			"console": "internalConsole",
-			"stopAtEntry": false
-		},
-		{
 			// Asks which country to play, by its tag, and whether it may order every
 			// unit type or only its own.
 			"name": "Play OpenHOI3 (choose country)",
@@ -50,6 +32,26 @@
 				"--",
 				"--country=${input:country}",
 				"${input:units}"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		},
+		{
+			// Asks for the switches themselves, all in one box with spaces between:
+			//     --country=GER --war=GER:ENG --sail=ENG:10531 --run
+			// The box is handed over as one argument and the game cuts it at each " --".
+			// Every switch is listed above RunDeveloperArguments in src/CSession.cs.
+			"name": "Play OpenHOI3 (ask for arguments)",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build",
+			"program": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}",
+				"--",
+				"${input:arguments}"
 			],
 			"cwd": "${workspaceFolder}",
 			"console": "internalConsole",
@@ -87,6 +89,12 @@
 		}
 	],
 	"inputs": [
+		{
+			"id": "arguments",
+			"type": "promptString",
+			"description": "Switches, with spaces between: --country=ENG  --all-units  --war=GER:ENG  --sail=ENG:10531  --days=7  --mode=supply  --screen=production  --centre=10531  --zoom=6  --run",
+			"default": "--country=GER --war=GER:ENG --sail=ENG:10531"
+		},
 		{
 			"id": "country",
 			"type": "promptString",

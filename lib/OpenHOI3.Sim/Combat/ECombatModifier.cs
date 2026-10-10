@@ -23,4 +23,10 @@ public enum ECombatModifier
 	Night,
 	Envelopment,
 	TerritorialPride,
+
+	/// <summary>At sea: a capital ship with too few screens about it.</summary>
+	PoorScreens,
+
+	/// <summary>At sea: an attacking submarine that was not seen coming.</summary>
+	Surprise,
 }

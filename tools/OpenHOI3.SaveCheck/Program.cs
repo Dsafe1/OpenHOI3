@@ -64,6 +64,12 @@ if (args.Length > 0 && args[0] == "battle")
 	return CBattleTrial.Run(args);
 }
 
+// The same at sea, between the strongest fleets of two countries.
+if (args.Length > 0 && args[0] == "seabattle")
+{
+	return CSeaBattleTrial.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

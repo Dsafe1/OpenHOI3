@@ -151,7 +151,8 @@ public static class CMovement
 			{
 				if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.IsRetreating
 					|| unit.AttackDelay > CFixedPoint.Zero || unit.HoursAttacking > 0
-					|| (atWar && CMovementRules.IsLandUnit(unit)))
+					|| unit.EngageWait > 0
+					|| (atWar && (CMovementRules.IsLandUnit(unit) || unit.Kind == EUnitKind.Navy)))
 				{
 					(busy ??= new List<CUnit>()).Add(unit);
 				}
@@ -179,6 +180,12 @@ public static class CMovement
 	/// </summary>
 	public static void RunUnitHour(CGameState state, CCountry country, CUnit unit)
 	{
+		// A fleet's wait after a battle runs down first of all.
+		bool isFleet = unit.Kind == EUnitKind.Navy;
+		if (isFleet && unit.EngageWait > 0)
+		{
+			unit.EngageWait--;
+		}
 		CUnitOrders.RunHour(state, country, unit);
 		bool isLand = CMovementRules.IsLandUnit(unit);
 		if (isLand && unit.IsMoving)
@@ -199,7 +206,7 @@ public static class CMovement
 		{
 			RunHour(state, country, unit);
 		}
-		if (isLand && !unit.IsRemoved && !unit.IsMoving && !unit.IsRetreating && !unit.IsFighting)
+		if ((isLand || isFleet) && !unit.IsRemoved && !unit.IsMoving && !unit.IsRetreating && !unit.IsFighting)
 		{
 			CCombats.CheckForCombat(state, unit, unit.Location);
 		}
@@ -367,6 +374,12 @@ public static class CMovement
 			CSupplyCarry.Bring(state, country, unit, unit.Previous, next.Id);
 		}
 		Enter(state, unit, next.Id);
+		if (unit.Kind == EUnitKind.Navy)
+		{
+			// New water ends a fleet's wait after its last battle.
+			unit.EngageWait = 0;
+			CCombats.CheckForCombat(state, unit, next.Id);
+		}
 		if (isLand)
 		{
 			CCombats.CheckForCombat(state, unit, next.Id);

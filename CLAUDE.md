@@ -47,7 +47,8 @@ hands with what the ground, the night and the rest make of each unit in it, the 
 side picks, and its marker and its window, and supply - which depot every
 province draws on and how far from it, the day's carrying of supplies and fuel out to the
 provinces, a unit drawing on the province it stands in, the convoys that carry it across the
-sea and bring cut-off land's resources home, and a map mode that shows it - 1071 tests - and it is
+sea and bring cut-off land's resources home, and a map mode that shows it, and a battle
+between fleets at sea - 1092 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -238,8 +239,27 @@ holding every good in a land province between nothing and 99999. Nothing attacks
 none is built, and trade and lend-lease have none. **The supply map mode - `supplymap.md` - was read branch by branch and
 looked at once with `--mode=supply`**; `Tab` goes round political, terrain and supply, and
 the readout of a selected province then carries the original tooltip's lines. There is no
-intelligence, so it shows the player's own land. The maintainer has not looked at any of
-supply yet.
+intelligence, so it shows the player's own land. The maintainer looked at supply in the
+game on 2026-10-10 and raised nothing against it.
+**A battle at sea - `navalcombat.md` - is the first of five pieces air and naval combat was
+cut into on 2026-10-10, and like the land battle it was read out of the original and set
+against nothing**: no save has one. **The cut is this project's and the maintainer has not
+spoken to it** - he said to go on, not how: fleet against fleet; a fleet's missions with the
+raid on convoys; the battle in the air; bombing; and all of it on screen. A fleet at war looks
+each hour at the first enemy fleet in its sea province and rolls to see it; each ship then
+stands at **a distance of its own**, picks a target by its side's positioning, shoots, and
+closes or opens the distance; a side whose ships average under one organisation has lost and
+runs for its port; and a battle nobody loses ends when an hourly roll has set the fleets
+counting and passes again. **It is written to roll in the original's order, its oddities
+with it** - a ship that has lost the enemy shoots at its own side seven times in a hundred,
+and the walk that picks which friend ends on the side's last ship; a transport, having no
+target, runs in at full speed; a crowded fleet's own penalty leaves it hardly ever finding a
+target at all - do not tidy them. **An idle fleet of a country nobody plays starts no battle**,
+which is the original's and is why `CGameState.Played` exists; with no AI the enemy's fleets
+never leave port, so `--sail=ENG:10531` sends one to sea for a trial by hand. There is no
+intelligence beyond "a fleet knows the water it is in", no leader, no mission, no aircraft,
+and a battle at sea has no marker and no window yet. Reading for it corrected the fact
+base's record twice.
 **The province readout under the top bar is scaffolding and shows only for a selected
 province** - his word, 2026-10-09, when it followed the mouse: "Very distracting."
 **The four windows a unit is ordered
@@ -331,7 +351,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 111 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 112 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -367,7 +387,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 3046-address, 317-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3058-address, 317-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -387,8 +407,11 @@ fine, because the framework version and the SDK version are independent.
 
 From VS Code, `F5` offers *Play OpenHOI3*, *Play OpenHOI3 (all units)* - every unit type
 there to order from the start, for trying the builder windows - *Play OpenHOI3 (choose
-country)*, which asks for a tag and whether to have every unit type, *Play OpenHOI3
-(headless)* and *Open Godot Editor*.
+country)*, which asks for a tag and whether to have every unit type, *Play OpenHOI3 (ask
+for arguments)*, which asks for the developer switches themselves in one box - the game
+cuts an argument wherever a space is followed by `--`, so the box may hold several -
+*Play OpenHOI3 (headless)* and *Open Godot Editor*. The switches are listed above
+`RunDeveloperArguments` in `src/CSession.cs`.
 The Godot executable path comes from the `godotTools.editorPath.godot4` setting rather than
 being hardcoded, so set it in `.vscode/settings.json` (git-ignored) or in user settings.
 
@@ -462,6 +485,10 @@ beside the repository.
   `OpenHOI3.SaveCheck battle <install> [attacker] [defender] [seed]` is a trial instead: it
   fights one with the install's own units and says how it went - Italy against Ethiopia with
   no tags given, who are at war on the start date. Run it after touching `lib/OpenHOI3.Sim/Combat`.
+  `OpenHOI3.SaveCheck seabattle <install> [attacker] [defender] [seed]` is the same at sea:
+  the strongest fleet of each of two countries is put in one sea province, the first country
+  played by a person, and the fight is told hour by hour - Germany against the United Kingdom
+  with no tags given. Run it after touching the `CNaval` classes there.
   `OpenHOI3.SaveCheck supply <install> <savegame>` checks the supply network against what a
   save says of it, with the save's own owners, controllers and capitals, so a save of any
   day will do: the provinces marked `out_of_supply_days` are ours that draw on no depot -
@@ -493,7 +520,7 @@ beside the repository.
   after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours and who is whose puppet carry 1071 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet and a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - carry 1092 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

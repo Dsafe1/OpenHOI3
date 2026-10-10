@@ -100,6 +100,12 @@ public partial class CSession : Node
 			GD.Print($"--country: there is no country '{asked}', so {DefaultPlayer} is played.");
 			Player = State.Country(new CCountryTag(DefaultPlayer));
 		}
+		// The simulation asks who is played by a person in one place: an idle fleet of
+		// anybody else's starts no battle.
+		if (Player is not null)
+		{
+			State.Played.Add(Player.Tag);
+		}
 
 		clock.Restart();
 		CGuiContext gui = CGuiContext.Load(_directories, localisation);
@@ -426,7 +432,7 @@ public partial class CSession : Node
 			{
 				command = new CCancelMovementCommand(Player.Tag, unitId);
 			}
-			else if (!append)
+			else if (!append && !unit.IsFighting)
 			{
 				if (CMovementRules.SeaEnd(State, State.Province(province)) is null)
 				{
@@ -438,6 +444,8 @@ public partial class CSession : Node
 			}
 			else
 			{
+				// With shift, or out of a battle, it is simply sent - and a fleet in a
+				// battle then counts four hours before it goes.
 				command = new CMoveUnitCommand(Player.Tag, unitId, province, append);
 			}
 		}
@@ -487,12 +495,32 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
+	/// The switches given after <c>--</c> on the command line, one each. A launch that
+	/// asks for them in one box hands all of them over as a single argument, so an
+	/// argument is cut wherever a space is followed by <c>--</c> - and nowhere else,
+	/// which leaves a path with a space in it whole.
+	/// </summary>
+	private static IEnumerable<string> UserArguments()
+	{
+		foreach (string argument in OS.GetCmdlineUserArgs())
+		{
+			foreach (string one in System.Text.RegularExpressions.Regex.Split(argument.Trim(), @"\s+(?=--)"))
+			{
+				if (one.Length > 0)
+				{
+					yield return one;
+				}
+			}
+		}
+	}
+
+	/// <summary>
 	/// The tag given with <c>--country=</c> on the command line, or null. A tag is upper
 	/// case in every file, so one typed in lower case is taken for the same country.
 	/// </summary>
 	private static string? PlayerArgument()
 	{
-		foreach (string argument in OS.GetCmdlineUserArgs())
+		foreach (string argument in UserArguments())
 		{
 			if (argument.StartsWith("--country=")
 				&& CCountryTag.TryParse(argument["--country=".Length..].ToUpperInvariant(), out CCountryTag tag))
@@ -545,6 +573,14 @@ public partial class CSession : Node
 		}
 		// Ours, until the original's battle marker and its window are built: who is
 		// fighting whom here, how long for, and how many stand on each front.
+		if (CCombats.In(State, provinceId, ECombatKind.Naval) is { } atSea)
+		{
+			text += $"\nBattle at sea, hour {atSea.Duration}: "
+				+ $"{string.Join(", ", atSea.Attacker.Countries.Select(tag => CountryName(tag)))} with "
+				+ $"{atSea.Attacker.Units.Sum(fleet => fleet.SubUnits.Count)} ships ({atSea.Attacker.Sunk.Count} sunk) against "
+				+ $"{string.Join(", ", atSea.Defender.Countries.Select(tag => CountryName(tag)))} with "
+				+ $"{atSea.Defender.Units.Sum(fleet => fleet.SubUnits.Count)} ({atSea.Defender.Sunk.Count} sunk)";
+		}
 		if (CCombats.In(State, provinceId) is { } combat)
 		{
 			text += $"\nBattle, hour {combat.Duration}: "
@@ -675,6 +711,8 @@ public partial class CSession : Node
 	/// (and <c>--own-units</c> says the opposite, which is how it is anyway: a launch
 	/// that asks has to pass something for either answer),
 	/// <c>--war=GER:POL</c> puts those two countries at war,
+	/// <c>--sail=ENG:10531</c> sends the strongest fleet of that country that can reach it
+	/// to that sea province,
 	/// <c>--order=type,type</c> orders one unit made of those brigades, ships or wings,
 	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
 	/// type) opens the window that orders one, with that in it,
@@ -692,7 +730,7 @@ public partial class CSession : Node
 		string? clicks = null;
 		int centre = 0;
 		float? zoom = null;
-		foreach (string argument in OS.GetCmdlineUserArgs())
+		foreach (string argument in UserArguments())
 		{
 			if (argument.StartsWith("--screenshot="))
 			{
@@ -783,6 +821,30 @@ public partial class CSession : Node
 				else
 				{
 					GD.Print($"--war: '{argument["--war=".Length..]}' is not two countries at peace with each other.");
+				}
+			}
+			else if (argument.StartsWith("--sail="))
+			{
+				// Sends a country's strongest fleet to a sea province, there being no AI to
+				// send one: --sail=ENG:10531. It is what gives the player's own fleet an
+				// enemy to find at sea. Carried out before anything after it.
+				string[] parts = argument["--sail=".Length..].Split(':');
+				if (parts.Length == 2 && CCountryTag.TryParse(parts[0], out CCountryTag owner)
+					&& int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int sea)
+					&& State.Country(owner) is { } sailor
+					&& sailor.AllUnits().Where(unit => unit.Kind == EUnitKind.Navy && unit.Location > 0)
+						.OrderByDescending(unit => unit.SubUnits.Sum(ship => ship.Stats[CNavalFire.SeaAttack].Raw))
+						.FirstOrDefault(unit => new CSetUnitOrderCommand(owner, unit.Id, EUnitOrder.Move, sea).MayExecute(State))
+						is { } fleet)
+				{
+					// The strongest of its fleets that has the province within its reach.
+					_simulation.Post(new CSetUnitOrderCommand(owner, fleet.Id, EUnitOrder.Move, sea));
+					_simulation.Pump();
+					GD.Print($"--sail: {fleet.Name} of {sailor.Name} sails for {State.Province(sea).Name}.");
+				}
+				else
+				{
+					GD.Print($"--sail: '{argument["--sail=".Length..]}' is not a country with a fleet and a sea province it can reach.");
 				}
 			}
 			else if (argument == "--all-units" && Player is not null)

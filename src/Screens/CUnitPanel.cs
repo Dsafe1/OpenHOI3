@@ -205,11 +205,13 @@ public partial class CUnitPanel : Control
 			children.Selected += child => UnitChosen?.Invoke(child);
 			Add(children);
 		}
-		// Last, a row for each battle the unit is in.
+		// Last, a row for each battle the unit is in. A battle at sea has none yet: its
+		// row and its window are their own piece.
 		_combats.AddRange(unit.Combats);
 		foreach (CCombat combat in _combats)
 		{
-			if (CUnitCombatEntry.Create(_context, state, unit, combat) is { } battle)
+			if (combat.Kind == ECombatKind.Land
+				&& CUnitCombatEntry.Create(_context, state, unit, combat) is { } battle)
 			{
 				battle.Selected += () => CombatChosen?.Invoke(combat);
 				Add(battle);

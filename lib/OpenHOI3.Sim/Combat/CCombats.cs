@@ -19,12 +19,12 @@ public static class CCombats
 	/// <summary>A side with less strength than this in all has lost, whatever its front.</summary>
 	private static readonly CFixedPoint LeastStrength = new(10);
 
-	/// <summary>The battle fought over a province, or null.</summary>
-	public static CCombat? In(CGameState state, int province)
+	/// <summary>The battle of a kind fought in a province, or null. A province has at most one of each.</summary>
+	public static CCombat? In(CGameState state, int province, ECombatKind kind = ECombatKind.Land)
 	{
 		foreach (CCombat combat in state.Combats)
 		{
-			if (combat.Province == province)
+			if (combat.Province == province && combat.Kind == kind)
 			{
 				return combat;
 			}
@@ -50,6 +50,11 @@ public static class CCombats
 	/// </summary>
 	public static bool MayEngage(CGameState state, CUnit unit, CUnit other)
 	{
+		// A unit fights its own arm: a fleet a fleet, at sea.
+		if (unit.Kind == EUnitKind.Navy || other.Kind == EUnitKind.Navy)
+		{
+			return CNavalBattle.MayEngage(state, unit, other);
+		}
 		return unit != other && unit.Owner != other.Owner
 			&& !unit.IsRemoved && !other.IsRemoved
 			&& !unit.IsRetreating && !other.IsRetreating
@@ -83,6 +88,11 @@ public static class CCombats
 	public static void CheckForCombat(CGameState state, CUnit unit, int provinceId)
 	{
 		CProvince province = state.Province(provinceId);
+		if (unit.Kind == EUnitKind.Navy)
+		{
+			CNavalBattle.Look(state, unit, province);
+			return;
+		}
 		if (province.Id == 0 || unit.IsRemoved || !CMovementRules.IsLandUnit(unit) || unit.SubUnits.Count == 0)
 		{
 			return;
@@ -150,23 +160,27 @@ public static class CCombats
 	/// </summary>
 	public static bool Offer(CGameState state, CCombat combat, CUnit unit)
 	{
-		if (!CMovementRules.IsLandUnit(unit) || unit.IsRemoved)
+		bool isNaval = combat.Kind == ECombatKind.Naval;
+		if (unit.IsRemoved || (isNaval ? unit.Kind != EUnitKind.Navy : !CMovementRules.IsLandUnit(unit)))
 		{
 			return false;
 		}
 		bool attackers = IsHostileTo(state, combat.Attacker, unit);
 		bool defenders = IsHostileTo(state, combat.Defender, unit);
-		if (defenders && !attackers)
+		if (attackers == defenders)
 		{
-			combat.Attacker.Add(unit);
-			return true;
+			return false;
 		}
-		if (attackers && !defenders)
+		CCombatSide side = defenders ? combat.Attacker : combat.Defender;
+		if (isNaval)
 		{
-			combat.Defender.Add(unit);
-			return true;
+			CNavalBattle.Join(state, combat, side, unit);
 		}
-		return false;
+		else
+		{
+			side.Add(unit);
+		}
+		return true;
 	}
 
 	/// <summary>Whether every unit of a side would fight this one. A side with nobody on it would not.</summary>
@@ -198,11 +212,19 @@ public static class CCombats
 			{
 				continue;
 			}
+			bool isNaval = combat.Kind == ECombatKind.Naval;
 			if (!combat.HasBegun)
 			{
-				Begin(state, combat);
+				if (isNaval)
+				{
+					CNavalBattle.Begin(state, combat);
+				}
+				else
+				{
+					Begin(state, combat);
+				}
 			}
-			if (RunHour(state, combat))
+			if (isNaval ? CNavalBattle.RunHour(state, combat) : RunHour(state, combat))
 			{
 				Finish(state, combat);
 			}
@@ -335,6 +357,17 @@ public static class CCombats
 	/// </summary>
 	public static void Finish(CGameState state, CCombat combat)
 	{
+		// A fleet let out of a battle will start no other for some hours.
+		if (combat.Kind == ECombatKind.Naval)
+		{
+			foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
+			{
+				foreach (CUnit unit in side.Units)
+				{
+					CNavalDisengage.StartWait(state, unit);
+				}
+			}
+		}
 		Detach(combat.Attacker);
 		Detach(combat.Defender);
 		state.Combats.Remove(combat);
@@ -372,6 +405,10 @@ public static class CCombats
 				Conclude(combat, side.IsAttacker);
 			}
 			side.Remove(unit);
+			if (combat.Kind == ECombatKind.Naval)
+			{
+				CNavalDisengage.StartWait(state, unit);
+			}
 		}
 		unit.Combats.Remove(combat);
 	}

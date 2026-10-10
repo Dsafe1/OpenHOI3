@@ -263,7 +263,12 @@ Königsberg, the AI having some fifteen more fleets under way:
   and so the stance, the priority, and the air window's other controls.
 - **Carrying**: troops aboard a fleet, an air group aboard a carrier, a paradrop. A fleet
   with troops aboard is offered a land province to put them ashore in; not here.
-- **An enemy**: a fleet meeting another, a crossing closed by an enemy fleet, a base lost to
+- **A fleet meeting another** is built since 2026-10-10 and is `navalcombat.md`. One thing
+  of it belongs here: **a fleet in a battle that is sent somewhere is not given its way** -
+  the province is kept, and it sets off four hours on (section 6 there); and a right click
+  with such a fleet selected sends it without asking, as shift does, which is the
+  original's.
+- **An enemy otherwise**: a crossing closed by an enemy fleet, a base lost to
   an enemy - the original gives a fleet whose base an enemy takes the nearest of its
   country's by sea, then of its faction's, and removes it where its country has no port
   left; and gives an air unit with no base the nearest of its country's.

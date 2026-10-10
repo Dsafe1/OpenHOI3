@@ -54,6 +54,12 @@ public sealed class CMoveUnitCommand : CCommand
 	{
 		CCountry country = state.Country(_country)!;
 		CUnit unit = Find(country)!;
+		// A fleet in a battle is not given its way at once: the province is kept and it
+		// starts counting the hours until it may break away.
+		if (CNavalDisengage.Defer(unit, _province))
+		{
+			return;
+		}
 		bool append = _append && unit.IsMoving;
 		int from = append ? unit.Path[^1] : unit.Location;
 		List<int>? route = CRouteFinder.Find(state, country, unit, from, _province);

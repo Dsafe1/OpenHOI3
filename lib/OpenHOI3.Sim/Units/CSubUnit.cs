@@ -91,6 +91,31 @@ public sealed class CSubUnit
 	/// <summary>The air units a carrier has aboard.</summary>
 	public List<CUnit> Carried { get; } = new();
 
+	/// <summary>
+	/// A ship in a battle: how far it stands from the enemy, in the units of its file's
+	/// <c>distance</c> times a hundred. Two ships reach one another when their two
+	/// distances together are within the shooter's reach. See
+	/// <c>docs/mechanics/navalcombat.md</c>, section 2.
+	/// </summary>
+	public CFixedPoint Distance { get; set; }
+
+	/// <summary>The number of the ship this one shot at last and still has in its sights, or 0.</summary>
+	public int TargetId { get; set; }
+
+	/// <summary>The number of the ship that sank this one, or 0.</summary>
+	public int SunkById { get; set; }
+
+	/// <summary>
+	/// What this hour of its battle makes of a ship's attack and of its defence, where 1
+	/// is unchanged. At sea these are the ship's and not its fleet's.
+	/// </summary>
+	public CFixedPoint CombatAttack { get; set; } = CFixedPoint.One;
+
+	public CFixedPoint CombatDefence { get; set; } = CFixedPoint.One;
+
+	/// <summary>What the two figures above were multiplied together from, in order.</summary>
+	public List<Combat.CCombatModifier> CombatModifiers { get; } = new();
+
 	public override string ToString()
 	{
 		return Name.Length == 0 ? Type.Key : $"{Name} ({Type.Key})";
