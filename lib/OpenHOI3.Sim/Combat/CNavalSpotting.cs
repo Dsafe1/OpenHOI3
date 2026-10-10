@@ -1,3 +1,5 @@
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 using OpenHOI3.Sim.Weather;
@@ -7,7 +9,9 @@ namespace OpenHOI3.Sim.Combat;
 /// <summary>
 /// Whether one fleet sees another well enough to start a battle with it: the tests that
 /// say no outright, the ones that say yes, and otherwise a roll for each pair of ships.
-/// See <c>docs/mechanics/navalcombat.md</c>, section 1.
+/// A fleet on a mission asks the same question of fleets it is only looking for. See
+/// <c>docs/mechanics/navalcombat.md</c>, section 1, and
+/// <c>docs/mechanics/navalmissions.md</c>, section 9.
 /// </summary>
 public static class CNavalSpotting
 {
@@ -16,30 +20,43 @@ public static class CNavalSpotting
 	public const string Visibility = "visibility";
 	public const string SpottingRainModifier = "SPOTTINGRAINMODIFIER";
 	public const string SpottingCloudModifier = "SPOTTINGCLOUDMODIFIER";
-
-	/// <summary>How well a country knows a sea province it has a unit in.</summary>
-	public const int LevelWithAUnitThere = 2;
-
-	/// <summary>The level at which a fleet is seen with no roll.</summary>
-	public const int LevelOfOwnGround = 9;
+	public const string AfterAttackFactor = "NAVAL_INTERCEPTION_AFTER_ATTACK_FACTOR";
 
 	/// <summary>What a fleet's roll is out of.</summary>
 	private const int FleetRoll = 10000;
 
 	/// <summary>
-	/// How well a country knows a sea province. The original keeps a level for every
-	/// country in every province, raised by units, patrols and radar; what is built is
-	/// the least of it, that a fleet knows the water it is in.
+	/// Whether a fleet found in a province may be made the defender of a battle, by its
+	/// order: one on patrol always when it is aggressive, never when passive, and
+	/// otherwise only by a fleet weaker than itself; a raider never; anything else, yes.
 	/// </summary>
-	public static int IntelligenceLevel(CGameState state, CProvince province, CUnit fleet)
+	public static bool DefenderAccepts(CUnit found, CUnit asker)
 	{
-		return fleet.Location == province.Id ? LevelWithAUnitThere : 0;
+		switch (found.Order)
+		{
+			case EUnitOrder.Patrol:
+				return found.Mission.Stance switch
+				{
+					CMission.Aggressive => true,
+					CMission.Passive => false,
+					_ => CEnemyFleets.Power(asker) < CEnemyFleets.Power(found),
+				};
+			case EUnitOrder.ConvoyRaid:
+				return false;
+			default:
+				return true;
+		}
 	}
 
 	/// <summary>Whether <paramref name="ours"/> starts a battle with <paramref name="theirs"/> this hour.</summary>
 	public static bool ShouldStart(CGameState state, CUnit ours, CUnit theirs)
 	{
 		if (theirs.SubUnits.Count < 1 || ours.EngageWait > 0)
+		{
+			return false;
+		}
+		// A raider is after convoys and starts no battle between fleets.
+		if (ours.Order == EUnitOrder.ConvoyRaid)
 		{
 			return false;
 		}
@@ -54,12 +71,36 @@ public static class CNavalSpotting
 		{
 			return false;
 		}
+		// A patrol that is not aggressive leaves alone a fleet with much more in heavy ships.
+		if (ours.Order == EUnitOrder.Patrol && ours.Mission.Stance != CMission.Aggressive
+			&& 5 * (mine.Carriers + mine.Capitals) < 3 * (other.Carriers + other.Capitals))
+		{
+			return false;
+		}
 
 		CProvince province = state.Province(ours.Location);
-		int level = IntelligenceLevel(state, province, ours);
-		if (level >= LevelOfOwnGround || theirs.IsFighting)
+		int level = CNavalIntelligence.Level(state, province, ours);
+		if (level >= CNavalIntelligence.LevelOfOwnGround || theirs.IsFighting)
 		{
 			return true;
+		}
+
+		// An escort or a patrol looking for a raider: the one's skill at its mission against the other's.
+		long efficiency = CFixedPoint.Scale;
+		if ((ours.Order == EUnitOrder.ConvoyEscort || ours.Order == EUnitOrder.Patrol)
+			&& theirs.Order == EUnitOrder.ConvoyRaid)
+		{
+			efficiency += CMissionEfficiency.Of(state, state.Country(ours.Owner), ours.Order)
+				- CMissionEfficiency.Of(state, state.Country(theirs.Owner), theirs.Order);
+		}
+		// Water a convoy was attacked in today or yesterday is watched the harder.
+		long afterAttack = CFixedPoint.Scale;
+		long attacked = state.Province(theirs.Location).LastConvoyAttackHour;
+		if (attacked != CProvince.NoConvoyAttack
+			&& state.TotalHours / CGameState.HoursPerDay - attacked / CGameState.HoursPerDay <= 1
+			&& state.Defines.Has(CManpower.MilitarySection, AfterAttackFactor))
+		{
+			afterAttack = state.Defines[CManpower.MilitarySection, AfterAttackFactor].Raw;
 		}
 
 		long underWay = theirs.IsMoving ? 3000 : 2000;
@@ -74,7 +115,13 @@ public static class CNavalSpotting
 			{
 				long seen = isSubmarine ? our.Stats[SubDetection].Raw / 2 : our.Stats[SurfaceDetection].Raw;
 				long figure = seen * visibility / CFixedPoint.Scale;
+				figure = figure * efficiency / CFixedPoint.Scale;
+				figure = figure * afterAttack / CFixedPoint.Scale;
 				figure = figure * CFixedPoint.Scale / underWay;
+				if (theirs.IsShadowed)
+				{
+					figure *= 2;
+				}
 				if (level >= 2)
 				{
 					figure = figure * 1250 / CFixedPoint.Scale;

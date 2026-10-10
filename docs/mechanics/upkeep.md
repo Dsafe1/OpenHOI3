@@ -324,9 +324,9 @@ to (`supply.md`, section 13). The original adds the supplies traded away and tak
 traded for and tribute; here the only trade is what a country pays a friend for its units on
 the friend's depots, and that is added and taken off the same way. There is no tribute.
 
-*Ours:* before the first midnight the three are worked out without moving anything, so
-that the first screen has them. The original has run two days by then
-(`stockpile.md`, section 3).
+*Ours:* a new game has run its two days by the first screen, as the original has
+(`tick.md`, section 6), and the three are then worked out once more without moving
+anything, so that the first screen has them for the day to come.
 
 ## 9. Against the savegames
 

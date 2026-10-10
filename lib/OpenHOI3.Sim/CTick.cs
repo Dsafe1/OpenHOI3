@@ -1,6 +1,7 @@
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Research;
@@ -83,7 +84,8 @@ public static class CTick
 		CManpower.RunDaily(state);
 		CLeadership.Update(state);
 		CConvoyDay.Sail(state);                             // before a country's units draw
-		CDigIn.RunDaily(state);                             // a unit's day begins with it
+		CMissions.RunDaily(state);                          // a unit's day begins with its order's
+		CDigIn.RunDaily(state);                             // and then with this
 		CUnitUpkeep.RunDaily(state);
 		CResources.UpdateHomeProduction(state);
 		CStockpile.AddHomeProduction(state);
@@ -93,6 +95,31 @@ public static class CTick
 		CLeadership.RunDaily(state);
 		CConvoyDay.Maintain(state);                         // late in a country's day
 		CStockpile.HoldWithinBounds(state);                 // each province's own day, after every country's
+		CNavalIntelligence.Refresh(state);                  // the last thing the original's day does
+	}
+
+	/// <summary>
+	/// What a new game runs before its first hour, in the original's order and with the
+	/// clock standing still: a day; the filling of the provinces along the supply
+	/// network; another day; a month's pass; and an hour's pass. It is why nothing on the
+	/// first screen is what the history files say: two days of production, research and
+	/// building are already behind it. All of it is run with the game "being made",
+	/// which is when a convoy is manned for nothing and a brigade's organisation is held
+	/// to its type's figure alone. See <c>docs/mechanics/tick.md</c>, section 6.
+	/// </summary>
+	public static void RunFirstDays(CGameState state)
+	{
+		bool was = state.IsBeingMade;
+		state.IsBeingMade = true;
+		RunEntryPass(state);
+		RunDailyPass(state);
+		CSupplyStart.Fill(state);
+		RunDailyPass(state);
+		RunMonthlyPass(state);
+		RunHourlyPass(state);
+		state.IsBeingMade = was;
+		// What the first screen shows is worked out for the game as it now runs.
+		RunEntryPass(state);
 	}
 
 	/// <summary>
@@ -111,6 +138,7 @@ public static class CTick
 		CResources.UpdateHomeProduction(state);
 		CProduction.Estimate(state);
 		COfficers.Update(state);
+		CNavalIntelligence.Refresh(state);
 	}
 
 	/// <summary>
@@ -120,7 +148,12 @@ public static class CTick
 	/// </summary>
 	private static void RunMonthlyPass(CGameState state)
 	{
-		CResearch.DecayMonthly(state);
+		// The month's pass a new game runs before its first hour decays nothing: the
+		// original takes nothing off an ability until a game is under way.
+		if (!state.IsBeingMade)
+		{
+			CResearch.DecayMonthly(state);
+		}
 		CManpower.UpdateMost(state);
 	}
 

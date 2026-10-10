@@ -104,7 +104,9 @@ landing on one hour. `confirmed` A second per-country gate fires at the hour equ
 4. Per province: the province's daily work.
 5. **Events**: every country's candidate events are tried against their mean time to
    happen. See the note below - this is not where the candidates come from.
-6. **Intelligence is refreshed.**
+6. **Intelligence is refreshed.** Built as far as a fleet's sighting asks: `navalmissions.md`,
+   section 9. The original also does it at the end of an hour once a change of who plays a
+   country has asked for it; whether an ordinary game is in that state was not established.
 
 Several further steps of the daily pass are called in a known order and are **not yet
 identified**.
@@ -180,8 +182,103 @@ Reproducing the original's exact sequence is not a goal - the same sequence only
 same game if every draw is made in the same order, which would mean reproducing the whole
 executable. Nothing draws yet, so there is no generator yet.
 
+## 6. Before a game's first hour
+
+`confirmed`, and **measured**: `reversing/findings/FINDINGS-supplypass.md`, section 7, for
+the order, and `reversing/findings/FINDINGS-organisation.md` and
+`reversing/findings/FINDINGS-techdecay.md` for what is different while no game is running.
+A game that is not loaded from a save does not start at its history files. As it is
+entered, with the clock standing still, the original runs:
+
+1. **a daily pass**;
+2. **the filling** of the provinces along the supply network (`supply.md`, section 16), at
+   the end of which a unit that still has nothing is given its fifteen days;
+3. **a daily pass**;
+4. **a monthly pass**;
+5. **an hourly pass**.
+
+So two days of production, research, building, upgrades, rotation, manpower and leadership
+are behind the first screen, and one hour of a unit's own. **The date does not move**: the
+first screen says hour 0 of the first day, and the first hour played is hour 1.
+
+**All of it is run before the original counts a game as running**, and three things are
+different while it does not:
+
+- **a brigade's most organisation is its own figure and nothing else** - no reserve's share,
+  no officers, no modifier (`organisation.md`, section 2). So the hour at the end brings
+  nobody down and can raise only a brigade below its figure, which is one whose figure a
+  doctrine or an upgrade raised in those two days;
+- **the monthly pass decays nothing**: an ability is what the history gave it
+  (`research.md`). The start save has all 1316 that way;
+- **a convoy is manned for nothing** (`convoys.md`, section 3).
+
+**The original's AI then changes laws**, for every country, the player's among them, and a
+change of law holds every brigade of that country to the running game's ceilings
+(`organisation.md`, section 5). That is why the original's first screen shows Germany's
+reserves at 28.000. It also changes some laws *before* the days and some after, so a save's
+laws are not always the ones its two days ran under (`upkeep.md`, section 9).
+
+*Ours:* **built on 2026-10-10**: `CTick.RunFirstDays`, which a new game runs as it is made,
+in that order and with the game "being made" throughout. Three things about it:
+
+- **Nothing changes a law here**, there being no AI, and the player's country keeps its
+  history's by decision (`docs/compatibility.md`, entry 6). So nobody is held: a reserve
+  stands at its own figure on the first screen and the first hour played brings it to its
+  ceiling, which is what the original does for the one country whose laws its AI left alone.
+  **One thing comes of it that the original all but never shows**: the hourly return skips
+  a unit that is fighting or marching onto enemy ground (`organisation.md`, section 3), so
+  a reserve division sent to attack before the first hour is run keeps its own figure for
+  that battle - 35 for a German reserve, where its ceiling is 14. Holding every brigade
+  once the days are run would close it and is one line; it is not done because it is not
+  what the original does, and it is the maintainer's to say.
+- **The figures of the first screen are worked out afterwards for a running game**, by the
+  pass that is run on entering one, so the top bar shows what the first day played will
+  make.
+- **It costs nothing to speak of**: two days at about a tenth of a second each. What a new
+  game takes to make - six seconds or so - is the first convoys' routes, about four, and the
+  filling, about two, and both were there before.
+
+### Checked against the start save
+
+`OpenHOI3.SaveCheck firstdays <install> <start-date save>` makes a new game as a player
+gets it and sets every country beside the save: stockpile, manpower, officers, influence,
+abilities, technology, the build queue, every brigade's strength and organisation. **It is
+meant to differ**, and says where: the original's AI has changed laws and shares by then,
+and has made headquarters. For Germany, which the save's player has: the abilities and the
+build queue agree, and the rest is what `two_year_draft` and `war_economy` make of it.
+
+The like-for-like is `OpenHOI3.SaveCheck supplypass <install> <start-date save> countries`,
+which gives every country the save's laws, ministers, technology and shares, makes its
+units, its manpower and its queue under them, runs these same first days - the game's own,
+not a model of them - and then holds a country's brigades as a change of law would wherever
+the save shows one held. `history=<tag>:<group>+<group>` after it keeps a country on its
+history's law for a group, for the laws the AI changed only after the days were run.
+**Measured** on the save of 1 January 1936, with `history=GER:training_laws+industrial_policy_laws`
+and the same for the industrial policy of the two German states that do not exist and share
+its land:
+
+| | agree |
+| --- | --- |
+| Germany: strength and organisation of every brigade, ship and wing | 172 of 172 each |
+| Germany: manpower, officers, influence, abilities, technology, the build queue | all |
+| Germany: the stockpile | six goods of seven to the thousandth; supplies 3.301 under in 8410, which is its leaders (`upkeep.md`, section 1) |
+| the others: organisation, not under an army with a commander | 2770 of 2770 |
+| the others: organisation under a commander, no leaders built | 142 of 764 |
+| the others: strength | 3532 of 3534 |
+| the others: manpower | 74 of 77 |
+| the others: money, fuel, crude oil | 76, 74 and 67 of 77 |
+| the others: energy, metal, rare materials | none of 77 - their AI moved the shares of IC after the days were run, and a country that does not exist shares many a capital |
+
+**The organisation rows are the ones `organisation.md`, section 7, had from a model** - an
+hour before each day, `inferred` from three brigades. The original's order is one hour
+after both days, and it gives the same 2942 and the same 142. The supply network's own
+figures (`supply.md`, section 17) and the convoys (`convoys.md`, section 12) come out of the
+same run.
+
 ## What is not established, in one place
 
+- **what the AI does around those days**, law by law, and in which order - only that some
+  of its changes come before them and some after (section 6);
 - the **five speed thresholds**;
 - the **month lengths**, value by value;
 - the **yearly pass**;

@@ -32,6 +32,10 @@ public static class CConvoyRoute
 
 	private const long PerLevel = 2000;
 
+	/// <summary>How many times dearer a step is out of water a convoy was attacked in, and for how many days.</summary>
+	private const long AfterAnAttack = 5;
+	private const int DaysAnAttackIsRemembered = 5;
+
 	/// <summary>
 	/// The provinces of the way, the start first and the end last, or null where there is
 	/// none.
@@ -71,6 +75,9 @@ public static class CConvoyRoute
 
 			CProvince here = state.Province(current);
 			long dearer = Dearer(state, here, owner);
+			bool attackedLately = here.LastConvoyAttackHour != CProvince.NoConvoyAttack
+				&& state.TotalHours / CGameState.HoursPerDay - here.LastConvoyAttackHour / CGameState.HoursPerDay
+					< DaysAnAttackIsRemembered;
 			foreach (CProvinceEdge edge in here.Edges)
 			{
 				if (edge.Kind == EProvinceEdgeKind.Impassable || edge.To <= 0 || edge.To >= count)
@@ -93,6 +100,11 @@ public static class CConvoyRoute
 				settled[there.Id] = true;
 
 				long step = edge.Distance.Raw;
+				// Water a convoy was attacked in is kept out of for five days.
+				if (attackedLately)
+				{
+					step *= AfterAnAttack;
+				}
 				if (dearer != CFixedPoint.Scale)
 				{
 					step = dearer * step / CFixedPoint.Scale;

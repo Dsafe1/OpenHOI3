@@ -53,9 +53,8 @@ building has one level.
 ships to spare carries more of what it loads. `confirmed`
 
 **Escorts.** None while its owner is at peace. At war: half its transports and one, three more
-while it has fewer transports than it wants, four more with above ten, and up to five more for
-a convoy attacked in the last fortnight. `confirmed`. *Ours:* nothing attacks a convoy yet, so
-the last never applies.
+while it has fewer transports than it wants, four more with above ten, and for a convoy a raid
+sank a ship of five more for three days, three for a week and one for a fortnight. `confirmed`
 
 **What a harbour can land in a day**: `NAVAL_BASE_EFFICIENCY` (military; 6) for each level of
 its naval base, times one and its holder's `naval_base_efficiency`, from modifier and
@@ -88,8 +87,8 @@ A best-first search from the harbour it loads in to the harbour it unloads in. `
   replace the first. So the way is not always the shortest.
 - A step costs the edge's distance. It costs **eight times** that out of a province with land
   beside it that an enemy of the owner holds - thirteen and twice its level where the province
-  has a naval base, and five and twice the level more for an air base. The original also makes
-  it five times dearer out of water where a convoy was attacked in the last five days.
+  has a naval base, and five and twice the level more for an air base. And **five times** dearer
+  again out of water where a raid fought a convoy in the last five days.
 - What is looked at next is whatever has the least of `cost so far + 1.25 x the straight line
   still to go`, in whole pixels between the centres, the short way round the map.
 - **Those are kept in a binary heap**, and of two with one weight the heap's own order decides
@@ -101,7 +100,7 @@ A best-first search from the harbour it loads in to the harbour it unloads in. `
 **Measured**: the ways of all 261 convoys of the save, province for province - Holland's to the
 East Indies through 79 provinces among them.
 
-*Ours:* the dearer step after an attack waits for attacks.
+What attacks a convoy, and marks the water, is `navalmissions.md`, section 8.
 
 ## 5. Whether it can sail
 
@@ -136,6 +135,11 @@ Once a day, for a convoy that can sail. With `S` where it loads and `E` where it
 
 The load is counted as convoyed out by the loader where the two ends are in different blocks,
 as convoyed in by whoever holds `E`, and as passed through `E` that day.
+
+**The day after a raid sank a ship of it** a convoy looks for its way afresh (section 4), which
+the dearer water then turns away from where it was attacked. `confirmed`. *Ours:* the look is
+taken whether or not the convoy sailed that day; the original has it at the end of the sailing,
+and which of the ways out of that reach it was not read.
 
 **So a depot across the sea is not filled directly.** The convoys land in the harbours; what a
 harbour holds over its own days goes one province inward a day by the pass's third phase
@@ -252,8 +256,9 @@ goes short.
 
 **Escorts.** Each convoy is due the escorts it wants times `owned / wanted` over the whole
 country, at most all of them. One with more gives the rest back. **One with fewer is given
-more only if it was attacked within the last 99 days**, and a convoy with no transports gives
-its escorts back. So at peace every escort is free, and a convoy never attacked gets none.
+more only if a raid sank a ship of it within the last hundred days** - and such a convoy gives
+none back - and a convoy with no transports gives its escorts back. So at peace every escort is
+free, and a convoy never attacked gets none.
 
 **Measured**: the transports and the escorts on each of the save's 261 convoys, and the free
 ones of all 20 countries that have convoys.
@@ -288,12 +293,11 @@ again, hands out the free transports and shares the ships out. During the fillin
 convoy sails on every pass and any other on the first only, and since the stockpiles are put
 back each pass, the harbours across the sea are filled for nothing too. `confirmed`
 
-*Ours:* a new game here does not run those two days (`supply.md`, section 16). Of what they do
-it does the part that bears on the sea: before the filling, what lies in cut-off land goes to
-its harbours and the convoys are made; in the filling they sail once, and what they bring is
-put back with the stockpiles as the original's is; after it a day's yield waits in the
-harbours again. So a game starts with the capitals of countries that do not exist emptied, as
-the original's does. The check below runs the two days whole.
+*Ours:* a new game runs those two days whole, since 2026-10-10 (`tick.md`, section 6): the
+convoys are made at the end of the first, manned for nothing, sail in the filling, and are
+looked at again on its second pass. So a game starts with the capitals of countries that do
+not exist emptied, as the original's does, and with the convoys the check below finds - which
+runs the same first days the game does.
 
 ## 12. Checked against a savegame
 
@@ -320,8 +324,10 @@ strength in play, escorts under attack, a puppet's resources.
 
 ## Not built
 
-- **Attacks on convoys**: raiding, the escorts' defence, ships lost, the dearer water after an
-  attack. `reversing/findings/FINDINGS-convoys.md` has them read.
+- **Attacks on convoys** are built since 2026-10-10 and are `navalmissions.md`, section 8: the
+  raid, the escorts' defence, ships lost, and what follows here - the dearer water, the way
+  looked for afresh, the escorts an attacked convoy wants and is given. Of them only a raid
+  from the air is not built.
 - **Trade and lend-lease convoys.** No trade is made, so no convoy serves one.
 - **Building transports and escorts**: the production screen's two buttons, and the queue's
   third kind of line (`buildqueue.md`).

@@ -70,6 +70,18 @@ if (args.Length > 0 && args[0] == "seabattle")
 	return CSeaBattleTrial.Run(args);
 }
 
+// A new game with its two days run is set beside a save of the start date, nothing given to it.
+if (args.Length > 0 && args[0] == "firstdays")
+{
+	return CFirstDaysCheck.Run(args);
+}
+
+// A country's raiders are sent at another's convoys for some days.
+if (args.Length > 0 && args[0] == "raid")
+{
+	return CRaidTrial.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");
@@ -82,7 +94,10 @@ CDirectorySettings directories = CDirectorySettings.At(args[0]);
 CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 CMap map = CMap.Load(directories, warnings.Add);
-CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add);
+// What the history files give a game, filled: the two days a game then runs before its first
+// hour are reasoned about below one system at a time. `firstdays` sets a game that has run
+// them beside the save.
+CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false);
 
 ClausewitzNode save = ClausewitzParser.ParseFile(args[1]);
 Console.WriteLine($"savegame: date {save.GetString("date")}, player {save.GetString("player")}");

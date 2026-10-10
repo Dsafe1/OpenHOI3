@@ -7,6 +7,7 @@ using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
@@ -69,10 +70,15 @@ internal static class CSupplyPassCheck
 		// and on what a province passes.
 		foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 		{
-			// The laws the save has.
+			// The laws the save has - but for a group named with `history=<tag>:<group>+<group>`,
+			// which keeps its history's: the original's AI goes on changing laws after the last
+			// day is run, so the law a save shows is not always the one its days were run under.
+			string keep = args.Skip(3).FirstOrDefault(argument =>
+				argument.StartsWith("history=" + country.Tag.Value + ":", StringComparison.OrdinalIgnoreCase)) ?? "";
+			string[] kept = keep.Length == 0 ? Array.Empty<string>() : keep[(keep.IndexOf(':') + 1)..].Split('+');
 			foreach ((string group, Dictionary<string, CLaw> laws) in lawBook)
 			{
-				if (laws.TryGetValue(node.GetString(group), out CLaw? law))
+				if (!kept.Contains(group, StringComparer.OrdinalIgnoreCase) && laws.TryGetValue(node.GetString(group), out CLaw? law))
 				{
 					country.Laws[group] = law;
 				}
@@ -103,6 +109,14 @@ internal static class CSupplyPassCheck
 					: CFixed15.Zero;
 			}
 		}
+		// And what a new game makes of a country under those laws: the manpower it starts
+		// with, worked out before any strategic resource counts, and its build queue.
+		foreach (CCountry country in state.Countries)
+		{
+			country.StrategicResources.Clear();
+		}
+		CManpower.SetAtStart(state);
+		CBuildQueue.SetUpAtStart(state);
 		CTick.RunEntryPass(state);
 		CStrategicResources.Update(state);
 		CTick.RunEntryPass(state);
@@ -121,6 +135,12 @@ internal static class CSupplyPassCheck
 				made = new CFixedPoint(made.Raw / 2);
 			}
 			int supplies = (int)EProductionCategory.Supplies;
+			// The share the save shows is the one, where nothing has moved it since.
+			if (CProduction.SuppliesMade(state, country) == made)
+			{
+				fitted++;
+				continue;
+			}
 			country.ProductionShares[supplies] = CFixed15.One;
 			long whole = CProduction.SuppliesMade(state, country).Raw;
 			if (whole <= 0)
@@ -180,14 +200,12 @@ internal static class CSupplyPassCheck
 		// the first day makes away from a capital is on its way there while the filling
 		// puts the stockpiles back, and is lost.
 		// All of it with a game "being made", which is when a convoy is manned for nothing.
-		state.IsBeingMade = true;
-		CTick.RunDailyPass(state);
+		// It is the game's own doing that is run here - what a new game does before its
+		// first hour - so that what is checked is what is played.
 		clock.Restart();
-		CSupplyStart.Fill(state);
+		CTick.RunFirstDays(state);
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
-		Console.WriteLine($"the provinces filled in {clock.ElapsedMilliseconds} ms: the furthest is {network.MostDistance} from its depot");
-		CTick.RunDailyPass(state);
-		state.IsBeingMade = false;
+		Console.WriteLine($"the two days run in {clock.ElapsedMilliseconds} ms: the furthest province is {network.MostDistance} from its depot");
 		Console.WriteLine();
 
 		string? convoysOf = args.Skip(3).FirstOrDefault(argument => argument.StartsWith("convoys=", StringComparison.Ordinal));
@@ -195,6 +213,15 @@ internal static class CSupplyPassCheck
 		CConvoyCheck.ComparePools(state, savedProvinces, examples);
 
 		Moving(state, network, savedProvinces);
+
+		// With `countries` after the save: each country as these two days left it beside the
+		// save - the like-for-like of what `firstdays` sets side by side with nothing given.
+		if (args.Skip(3).Contains("countries"))
+		{
+			Console.WriteLine("the countries, the save's laws, ministers, technology and shares given:");
+			CFirstDaysCheck.Compare(state, save, examples, heldByLaw: true);
+			Console.WriteLine();
+		}
 
 		// ---- the comparison, network by network
 		(string Name, Func<CProvince, CGoodsPool> Ours, string Key, bool AtCapitals)[] figures =

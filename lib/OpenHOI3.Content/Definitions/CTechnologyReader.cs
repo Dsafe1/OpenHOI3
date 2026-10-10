@@ -32,6 +32,10 @@ public static class CTechnologyReader
 		"folder", "change", "can_upgrade", "is_nuclear", "on_completion",
 	};
 
+	/// <summary>The names a block is read under as a mission's figures.</summary>
+	private static readonly HashSet<string> Missions =
+		new(OpenHOI3.Sim.Missions.CMissionEfficiency.Names, StringComparer.OrdinalIgnoreCase);
+
 	/// <summary>
 	/// The theories and practicals, in the order the file lists them: every theory, then
 	/// every practical.
@@ -97,6 +101,7 @@ public static class CTechnologyReader
 		var adjusters = new HashSet<string>(CSubUnitTypeReader.Circumstances, StringComparer.OrdinalIgnoreCase);
 		adjusters.UnionWith(terrains ?? Array.Empty<string>());
 		var unknownUnitKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		var unknownMissionKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var notNumbers = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var technologies = new List<CTechnology>();
 		int duplicates = 0;
@@ -184,6 +189,35 @@ public static class CTechnologyReader
 			};
 			technologies.Add(technology);
 
+			// A block named after a mission is what a level adds to how well it is carried out.
+			foreach (ClausewitzNode entry in block.Children)
+			{
+				if (entry.Key is null || !entry.IsBlock || !Missions.Contains(entry.Key)
+					|| (unitTypes is not null && unitTypes.ContainsKey(entry.Key)))
+				{
+					continue;
+				}
+				foreach (ClausewitzNode figure in entry.Children)
+				{
+					if (figure.Key is null || !CFixedPoint.TryParse(figure.Value, out CFixedPoint amount))
+					{
+						unknownMissionKeys.Add(entry.Key + " { " + (figure.Key ?? figure.Value ?? "?") + " }");
+					}
+					else if (figure.Key.Equals("efficiency", StringComparison.OrdinalIgnoreCase))
+					{
+						technology.MissionEfficiency[entry.Key] = amount;
+					}
+					else if (figure.Key.Equals("reduction_modifier", StringComparison.OrdinalIgnoreCase))
+					{
+						technology.MissionReduction[entry.Key] = amount;
+					}
+					else
+					{
+						unknownMissionKeys.Add(entry.Key + " { " + figure.Key + " }");
+					}
+				}
+			}
+
 			// A block named after a unit type is what a level adds to that type.
 			foreach (ClausewitzNode entry in block.Children)
 			{
@@ -202,6 +236,11 @@ public static class CTechnologyReader
 			}
 		}
 
+		if (unknownMissionKeys.Count > 0)
+		{
+			warn($"technologies give missions {unknownMissionKeys.Count} keys that are not understood: " +
+				string.Join(", ", unknownMissionKeys));
+		}
 		if (unknownUnitKeys.Count > 0)
 		{
 			warn($"technologies give unit types {unknownUnitKeys.Count} keys that are not understood: " +

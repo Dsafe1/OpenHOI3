@@ -180,4 +180,36 @@ public class GameDataLoadingTests : IDisposable
 		Assert.Equal(OpenHOI3.Sim.CFixedPoint.One, firepower.EffectPerLevel["division_size"]);
 	}
 
+	[Fact]
+	public void ATechnologysBlockNamedAfterAMissionIsThatMissionsFigures()
+	{
+		Write("technologies/naval.txt", """
+			trade_interdiction = {
+				convoy_raid = {
+					efficiency = 0.06
+				}
+				max_level = 12
+			}
+			unrestricted_warfare = {
+				convoy_raid = {
+					reduction_modifier = -0.50
+				}
+				sortie = {
+					efficency = 0.1
+				}
+			}
+			""");
+
+		List<OpenHOI3.Sim.Research.CTechnology> technologies = CTechnologyReader.Read(Directories, _warnings.Add);
+
+		OpenHOI3.Sim.Research.CTechnology interdiction = technologies.Single(technology => technology.Name == "trade_interdiction");
+		Assert.Equal(OpenHOI3.Sim.CFixedPoint.Parse("0.06"), interdiction.MissionEfficiency["convoy_raid"]);
+		Assert.Empty(interdiction.MissionReduction);
+		OpenHOI3.Sim.Research.CTechnology warfare = technologies.Single(technology => technology.Name == "unrestricted_warfare");
+		Assert.Equal(OpenHOI3.Sim.CFixedPoint.Parse("-0.5"), warfare.MissionReduction["convoy_raid"]);
+		Assert.Empty(warfare.MissionEfficiency);
+		// A key the block does not have is said, where the original would drop it.
+		Assert.Contains(_warnings, warning => warning.Contains("sortie { efficency }"));
+	}
+
 }

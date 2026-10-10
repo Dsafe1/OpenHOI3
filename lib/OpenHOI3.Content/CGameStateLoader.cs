@@ -36,8 +36,15 @@ public static class CGameStateLoader
 	/// as a game needs before its first hour. A check that runs the original's own
 	/// sequence over a new game asks for one that has not been.
 	/// </param>
+	/// <param name="firstDays">
+	/// Whether the two days the original runs before a game's first hour are run, the
+	/// filling between them: what a game that is to be played starts from. Without, a
+	/// game that is filled starts from what the history files say - which is what a check
+	/// that reasons about those two days one system at a time wants.
+	/// </param>
 	public static CGameState LoadStart(CDirectorySettings directories, CMap map,
-		CLocalisation localisation, CCountries countries, Action<string>? warn = null, bool fill = true)
+		CLocalisation localisation, CCountries countries, Action<string>? warn = null, bool fill = true,
+		bool firstDays = true)
 	{
 		warn ??= CDiagnostics.Warn;
 
@@ -113,8 +120,14 @@ public static class CGameStateLoader
 		CUnits.SetAtStart(state);
 		CBuildQueue.SetUpAtStart(state);
 		CStockpile.AddUnitGoodsAtStart(state);
-		// And the provinces are filled along the supply network, so that no army starts hungry.
-		if (fill)
+		// And the two days the original has behind it on the first screen are run, with
+		// the provinces filled along the supply network between them, so that no army
+		// starts hungry.
+		if (fill && firstDays)
+		{
+			CTick.RunFirstDays(state);
+		}
+		else if (fill)
 		{
 			CSupplyStart.FillNewGame(state);
 		}

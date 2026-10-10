@@ -126,8 +126,11 @@ section 7): a day, then the filling of the provinces along the supply network, t
 day - all as a game is entered. `supply.md`, section 16, has it and what follows from the
 order.
 
-*Ours:* the two days are not done. A game here starts from section 2 with its provinces
-filled, and the first daily pass is the first midnight.
+*Ours:* **done since 2026-10-10.** A new game starts from section 2 and runs the two days
+as it is made, the filling between them, so the stockpile of the first screen is two days
+of home production less usage on from the start - and the first daily pass played is the
+first midnight, the third. `tick.md`, section 6, has the order, what is different while
+those days run, and the check.
 
 ## 4. What a day does to it
 

@@ -421,6 +421,20 @@ public class ResearchTests
 	}
 
 	[Fact]
+	public void TheMonthRunBeforeAGamesFirstHourDecaysNothing()
+	{
+		CCountry country = Country();
+		CGameState state = State(country);
+		country.Abilities["infantry_theory"] = CFixedPoint.FromInt(10);
+
+		CTick.RunFirstDays(state);
+
+		// The original's start save has every ability its history gives, 1316 of 1316.
+		Assert.Equal(CFixedPoint.FromInt(10), country.Ability("infantry_theory"));
+		Assert.False(state.IsBeingMade);
+	}
+
+	[Fact]
 	public void IcSetAsideForReinforcementAndUpgradesSlowsTheDecay()
 	{
 		CCountry country = Country();

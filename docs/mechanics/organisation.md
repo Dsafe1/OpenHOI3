@@ -141,9 +141,12 @@ aboard a fleet at sea; it multiplies organisation by `PARATROOP_DROP_ORG_MULT` o
 drop; and it takes `STRAT_REDEP_ORG_LOSS` off the hour's gain of a brigade being strategically
 redeployed. None of those three can happen yet.
 
-*Ours:* a new game here starts at hour nought with no hour run, so the first hour is the
-first thing to hold a brigade to section 2. Reserves fall to their ceiling in that hour
-and regulars begin to climb.
+*Ours:* a new game has had one hour of this before it starts, at the end of the two days
+run as it is made and under the ceiling of a game not yet running (`tick.md`, section 6).
+So the first hour played is the first thing to hold a brigade to section 2: reserves fall
+to their ceiling in that hour and regulars begin to climb. The original's first screen
+already shows the reserves down, because its AI has changed a law by then (section 5) and
+nothing changes one here.
 
 ## 4. A crowded base
 
@@ -213,6 +216,13 @@ screen (`upkeep.md`, section 9) and sets each brigade's organisation beside the 
   before the second gave them `0.55 x (1.4 x 0.7) x 0.2 = 0.107`. The save has them at
   55.107. Were the officer ratio in the ceiling, they would be under three quarters of it
   and have gained 0.154.
+
+  **The order has since been read, and it is one hour, after both days** (`tick.md`,
+  section 6). The three brigades cannot tell the two apart - raised on the first day, they
+  gain their 0.107 in the one hour either way - and nor can the rest of the save: the game's
+  own first days, run in the read order, give every figure of the table below
+  (`OpenHOI3.SaveCheck supplypass ... countries`). The tool's main check still runs the
+  inferred order, as a model of the units alone.
 - **Then a change of law holds a country's brigades to the running game's ceiling**
   (section 5). The original's AI changes laws as a game opens, after its last day is run
   (`upkeep.md`, section 9); a save does not say for whom, so the tool takes a country to
@@ -260,8 +270,9 @@ stops, and ships and wings take the country's ratio like the rest.
 
 ## What is not established, in one place
 
-- **How the original runs its two days**, and so whether "an hour before each day" is how
-  it is written or only what it comes to. Three brigades are all there is to go on.
+- ~~**How the original runs its two days**, and so whether "an hour before each day" is how
+  it is written or only what it comes to.~~ Read: a day, the filling, a day, a month's pass
+  and one hour (`tick.md`, section 6).
 - **Whether `naval_base_efficiency` is the technology key** behind a port's room.
 - **Whose units share a base.** All that are based in the province, by this reading.
 - **What a commander's reach is**, for the dozen brigades whose bonus is not whole.

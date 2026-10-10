@@ -15,7 +15,7 @@ namespace OpenHOI3.Screens;
 /// lists - the units on the front and the ones in reserve. See
 /// <c>docs/mechanics/combatview.md</c>, section 4.
 /// </summary>
-public sealed class CCombatSideView
+public sealed class CCombatSideView : ICombatSideView
 {
 	private readonly CGuiContext _context;
 	private readonly CGameState _state;

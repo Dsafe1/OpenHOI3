@@ -51,6 +51,12 @@ public sealed class CConvoy
 	/// <summary>The escorts it would have, as the sharing out last worked it out.</summary>
 	public int EscortsWanted { get; set; }
 
+	/// <summary>What <see cref="LastAttackHour"/> is for a convoy nothing has attacked.</summary>
+	public const long NeverAttacked = long.MinValue;
+
+	/// <summary>The hour a raid last sank a ship of it.</summary>
+	public long LastAttackHour { get; set; } = NeverAttacked;
+
 	/// <summary>What it carried when it last sailed.</summary>
 	public CGoodsPool Daily { get; } = new();
 

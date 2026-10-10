@@ -29,4 +29,7 @@ public enum ECombatModifier
 
 	/// <summary>At sea: an attacking submarine that was not seen coming.</summary>
 	Surprise,
+
+	/// <summary>How good the unit's country is at the mission it is on.</summary>
+	MissionEfficiency,
 }

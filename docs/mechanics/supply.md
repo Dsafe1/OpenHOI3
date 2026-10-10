@@ -586,19 +586,19 @@ convoys are looked at again, it is given its free transports, and the ships are 
 (`convoys.md`, sections 3 and 11). So the harbours across the sea are filled for nothing as
 well.
 
-*Ours:* **the filling is done, when a new game is made, and the two days are not** - a game
-here starts on its first hour with nothing spent, as it has since `stockpile.md`, section 3.
-Of the two days only what bears on the sea is done (`convoys.md`, section 11): before the
-filling, what lies in cut-off land goes to its harbours and the convoys are made, and after it
-a day's yield waits in the harbours. It takes about a second and a half: 251 passes on the
-first day of 1936, where the furthest province is 249 from its depot.
+*Ours:* **all three are done when a new game is made**, since 2026-10-10, and in that order:
+`CTick.RunFirstDays`, with a month's pass and an hour's after them as the original has
+(`tick.md`, section 6). Until then only the filling was, with the part of the two days that
+bears on the sea done by hand around it. The filling takes about two seconds: 251 passes on
+the first day of 1936, where the furthest province is 249 from its depot.
 
 ## 17. The pass, checked against a savegame
 
 `OpenHOI3.SaveCheck supplypass <install> <start-date savegame>` makes the units as the save
-has them, gives each country the save's laws, ministers and technology, the save's mud, and a
-share of IC that makes the supplies the save says it made; then does what section 16 says the
-original does - a day, the filling, a day - and sets every province's supplies and fuel beside
+has them, gives each country the save's laws, ministers and technology, the manpower and the
+build queue a new game makes of those, the save's mud, and a share of IC that makes the
+supplies the save says it made; then runs the game's own first days (`tick.md`, section 6) -
+a day, the filling, a day and what follows them - and sets every province's supplies and fuel beside
 the save's: what lies there, what was asked of it today and yesterday, what passed through it
 today and yesterday.
 
@@ -606,10 +606,11 @@ today and yesterday.
 | --- | --- |
 | networks where every province agrees in every figure | **171 of 234** - Sweden's 210 provinces, Turkey's 195, Norway's 108, the Philippines' 85, Persia's 84, Saudi Arabia's 79, Siam's 61, South Africa's 42. It was 124 before the convoys: 45 networks across the sea came right with them |
 | Canada's | everything but what its guessed share of IC makes: a line of twenty provinces from Ottawa to Halifax, each asked 0.050 more than the one behind it and each holding one day's load in passing |
-| provinces where the supplies lying there are something, here or in the save | 690 of 3597 the same to the thousandth, 1194 within a fiftieth |
+| provinces where the supplies lying there are something, here or in the save | 712 of 3597 the same to the thousandth, 1227 within a fiftieth |
 | the same for fuel | 557 of 694 |
 | the convoys | all 261 of the save's, way for way and ship for ship (`convoys.md`, section 12) |
-| Germany's stockpile, followed on | 8496 on the fifth day and 8743 on the eighth; the later saves have 8493 and 8758 |
+| Germany's stockpile, followed on | 8494 on the fifth day and 8774 on the eighth; the later saves have 8493 and 8758 |
+| every country, as the days left it | `countries` after the save: `tick.md`, section 6 |
 
 **What differs is what goes in and not the pass**: where a whole country's units, laws and
 production are the save's, its whole network agrees. Three things are not the save's here.

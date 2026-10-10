@@ -511,14 +511,17 @@ check - there is nothing to set it against. On the start date, with a seed of 1:
 
     Italy at Ethiopia, Belet Uen at Gurbo:   across a river, one division against three: it
                                              attacks at 0.345 by day and 0.172 by night, and
-                                             fails after 182 hours, 318 men lost against 32
+                                             fails after 181 hours, 322 men lost against 32
     Japan at China, Tangshan at Tianjin:     into a town, at 0.69 by day against a defence of
                                              1.265: the defence breaks after 347 hours, the
                                              beaten division falls back, and Tianjin is held
                                              by Japan the next hour
     Germany at France, Karlsruhe at          across the Rhine into ten levels of fort, at 0.04
-    Wissembourg:                             by day: it fails after 201 hours, 443 men lost
+    Wissembourg:                             by day: it fails after 202 hours, 443 men lost
                                              against 12
+
+(The figures are of a game that has run its two days, `tick.md`, section 6; before it did,
+the first and the third were an hour and a few men different.)
 
 It prints the two tactics whenever a pick changes either: mostly the plain attack against the
 plain defence, with an assault or a shock for a day now and then. A sixth argument is a part

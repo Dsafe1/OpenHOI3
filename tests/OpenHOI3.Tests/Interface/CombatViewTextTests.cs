@@ -271,4 +271,107 @@ public class CombatViewTextTests
 		Assert.Equal(50, CCombatViewText.OrganisationBar(state, unit));
 		Assert.Equal("Dolo", CCombatViewText.Location(state, unit));
 	}
+
+	// --- a battle at sea ---
+
+	private static CUnit Fleet(CGameState state, CCountry country, params string[] types)
+	{
+		var fleet = new CUnit(EUnitKind.Navy, country.Tag) { Id = ++state.LastUnitId, Location = Dolo, Name = "Fleet" };
+		foreach (string key in types)
+		{
+			var type = new CSubUnitType(key, EUnitBranch.Naval);
+			type.Stats.Values.Set(CSubUnitType.MaxStrength, CFixedPoint.Parse("100"));
+			type.Stats.Values.Set(CSubUnitType.DefaultOrganisation, CFixedPoint.Parse("40"));
+			var ship = new CSubUnit(type)
+			{
+				Id = ++state.LastUnitId, Unit = fleet, Name = key,
+				Organisation = CFixedPoint.Parse("30"), Strength = CFixedPoint.Parse("75"),
+			};
+			ship.Stats.CopyFrom(type.Stats);
+			fleet.SubUnits.Add(ship);
+		}
+		country.Units.Add(fleet);
+		return fleet;
+	}
+
+	[Fact]
+	public void A_side_at_sea_says_how_many_ships_it_has_and_how_well_it_is_placed()
+	{
+		CGameState state = State(out CCountry italy, out CCountry ethiopia);
+		var combat = new CCombat(Dolo, ECombatKind.Naval);
+		combat.Attacker.Add(Fleet(state, italy, "battleship", "destroyer"));
+		combat.Attacker.Add(Fleet(state, italy, "destroyer"));
+		combat.Defender.Add(Fleet(state, ethiopia, "submarine"));
+		combat.Attacker.Positioning = CFixedPoint.Parse("0.436");
+		string Words(string key) => key == CCombatViewText.ShipsKey ? "ships" : key;
+
+		Assert.Equal("§Y3§W ships", CCombatViewText.ShipsLabel(Words, combat.Attacker));
+		Assert.Equal("§Y1§W ships", CCombatViewText.ShipsLabel(Words, combat.Defender));
+		Assert.Equal("43.6%", CCombatViewText.Positioning(combat.Attacker));
+		Assert.Equal("0.0%", CCombatViewText.Positioning(combat.Defender));
+	}
+
+	[Fact]
+	public void A_ships_worth_is_its_own_and_the_share_is_three_ships_against_one()
+	{
+		CGameState state = State(out CCountry italy, out CCountry ethiopia);
+		var combat = new CCombat(Dolo, ECombatKind.Naval);
+		CUnit ours = Fleet(state, italy, "battleship", "destroyer", "destroyer");
+		CUnit theirs = Fleet(state, ethiopia, "destroyer");
+		combat.Attacker.Add(ours);
+		combat.Defender.Add(theirs);
+
+		// 30 organisation by 75 strength a ship, whatever its guns.
+		Assert.Equal(3 * 2250000, CCombatViewText.Worth(combat.Attacker));
+		Assert.Equal(750, CCombatViewText.Share(combat));
+		// What the hour makes of a ship counts, attack and defence both.
+		theirs.SubUnits[0].CombatAttack = CFixedPoint.Parse("1.5");
+		theirs.SubUnits[0].CombatDefence = CFixedPoint.Parse("2");
+		Assert.Equal(500, CCombatViewText.Share(combat));
+
+		theirs.SubUnits[0].CombatModifiers.Add(new CCombatModifier(ECombatModifier.Surprise, CFixedPoint.One, CFixedPoint.Zero));
+		ours.SubUnits[0].CombatModifiers.Add(new CCombatModifier(ECombatModifier.PoorScreens, CFixedPoint.Zero, CFixedPoint.One));
+		ours.SubUnits[1].CombatModifiers.Add(new CCombatModifier(ECombatModifier.MissionEfficiency, CFixedPoint.One, CFixedPoint.One));
+		Assert.Equal(new[] { "CMOD_BM_MISSION_EFFICIENCY", "CMOD_BM_POOR_SCREEN_PENALTY", "CMOD_BM_SURPRISE_BONUS" },
+			CCombatViewText.Modifiers(combat));
+	}
+
+	[Fact]
+	public void A_ship_in_a_list_stands_along_its_row_by_its_distance()
+	{
+		CGameState state = State(out CCountry italy, out CCountry ethiopia);
+		var combat = new CCombat(Dolo, ECombatKind.Naval);
+		CUnit ours = Fleet(state, italy, "battleship");
+		CUnit theirs = Fleet(state, ethiopia, "destroyer");
+		combat.Attacker.Add(ours);
+		combat.Defender.Add(theirs);
+		CSubUnit battleship = ours.SubUnits[0];
+		CSubUnit destroyer = theirs.SubUnits[0];
+
+		Assert.Equal("GFX_navalcombat_l_battleship", CCombatViewText.ShipPicture(battleship, isAttacker: true));
+		Assert.Equal("GFX_navalcombat_r_destroyer", CCombatViewText.ShipPicture(destroyer, isAttacker: false));
+		Assert.Equal(75, CCombatViewText.ShipStrengthBar(state, battleship));
+		Assert.Equal(75, CCombatViewText.ShipOrganisationBar(battleship));
+
+		// A row of 170 and a picture of 60 leave 110 to travel, which forty of distance covers.
+		battleship.Distance = CFixedPoint.Zero;
+		Assert.Equal(129, CCombatViewText.ShipPlace(battleship, true, 170, 60));
+		Assert.Equal(-19, CCombatViewText.ShipPlace(battleship, false, 170, 60));
+		battleship.Distance = CFixedPoint.FromInt(20);
+		Assert.Equal(74, CCombatViewText.ShipPlace(battleship, true, 170, 60));
+		Assert.Equal(36, CCombatViewText.ShipPlace(battleship, false, 170, 60));
+		battleship.Distance = CFixedPoint.FromInt(132);
+		Assert.Equal(19, CCombatViewText.ShipPlace(battleship, true, 170, 60));
+		Assert.Equal(91, CCombatViewText.ShipPlace(battleship, false, 170, 60));
+
+		// The two sides' pictures have their frames the other way round.
+		Assert.Equal(1, CCombatViewText.ShipFrame(combat, battleship, isAttacker: true));
+		Assert.Equal(2, CCombatViewText.ShipFrame(combat, destroyer, isAttacker: false));
+		battleship.TargetId = destroyer.Id;
+		destroyer.TargetId = 999999;                               // a ship that is gone
+		Assert.Equal(2, CCombatViewText.ShipFrame(combat, battleship, isAttacker: true));
+		Assert.Equal(2, CCombatViewText.ShipFrame(combat, destroyer, isAttacker: false));
+		destroyer.TargetId = battleship.Id;
+		Assert.Equal(1, CCombatViewText.ShipFrame(combat, destroyer, isAttacker: false));
+	}
 }

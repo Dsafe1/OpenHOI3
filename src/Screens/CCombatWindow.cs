@@ -11,10 +11,10 @@ using OpenHOI3.Sim.Countries;
 namespace OpenHOI3.Screens;
 
 /// <summary>
-/// The window of a land battle: the original's <c>combat</c>, with a side window on
-/// each half. It is written again every frame it is up, as the original writes it, and
-/// takes itself down when the battle is over or a side of it is empty. See
-/// <c>docs/mechanics/combatview.md</c>.
+/// The window of a battle, on land or at sea: the original's <c>combat</c>, with a side
+/// window on each half - the kind of battle decides which. It is written again every
+/// frame it is up, as the original writes it, and takes itself down when the battle is
+/// over or a side of it is empty. See <c>docs/mechanics/combatview.md</c>.
 /// </summary>
 public partial class CCombatWindow : Control
 {
@@ -26,11 +26,12 @@ public partial class CCombatWindow : Control
 
 	private CGuiWindow? _window;
 	private CCombat? _combat;
-	private CCombatSideView? _attacker;
-	private CCombatSideView? _defender;
+	private ICombatSideView? _attacker;
+	private ICombatSideView? _defender;
 	private CGuiIcon? _progress;
 	private CGuiTextBox? _width;
 	private CGuiIcon? _indicator;
+	private CGuiButton? _retreat;
 	private CGuiOverlappingBox? _modifiers;
 	private CGuiIcon? _leftPlace;
 	private CGuiIcon? _rightPlace;
@@ -79,8 +80,17 @@ public partial class CCombatWindow : Control
 		_combat = combat;
 		AddChild(window);
 
-		// The picture: the province's own where it has one, or else its terrain's.
-		if (window.FindIcon("combat_terrain") is { } terrain)
+		bool isNaval = combat.Kind == ECombatKind.Naval;
+		// The picture: the province's own where it has one, or else its terrain's. A
+		// battle at sea has none.
+		if (isNaval)
+		{
+			if (window.FindIcon("combat_terrain") is { } hidden)
+			{
+				hidden.Visible = false;
+			}
+		}
+		else if (window.FindIcon("combat_terrain") is { } terrain)
 		{
 			string own = CCombatViewText.ProvincePicture(combat);
 			if (_context.Textures.Exists(own) && _context.Textures.LoadFromGamePath(own) is { } picture)
@@ -94,11 +104,12 @@ public partial class CCombatWindow : Control
 			}
 		}
 		// The window serves every kind of battle and has a background for each.
-		foreach (string other in new[] { "combat_naval_bg", "combat_air_bg" })
+		string shown = isNaval ? "combat_naval_bg" : "combat_bg";
+		foreach (string each in new[] { "combat_bg", "combat_naval_bg", "combat_air_bg" })
 		{
-			if (window.FindIcon(other) is { } background)
+			if (window.FindIcon(each) is { } background)
 			{
-				background.Visible = false;
+				background.Visible = each == shown;
 			}
 		}
 		if (window.FindTextBox("label_battlename") is { } name)
@@ -109,9 +120,10 @@ public partial class CCombatWindow : Control
 		{
 			close.Pressed += Close;
 		}
-		if (window.FindButton("retreat_button") is { } retreat)
+		_retreat = window.FindButton("retreat_button");
+		if (_retreat is not null)
 		{
-			retreat.Pressed += () =>
+			_retreat.Pressed += () =>
 			{
 				if (_combat is { } battle)
 				{
@@ -129,8 +141,12 @@ public partial class CCombatWindow : Control
 
 		// The two halves are windows of their own, hung on this one where two icons
 		// that are there for nothing else say.
-		_attacker = CCombatSideView.Create(_context, state, combat.Attacker);
-		_defender = CCombatSideView.Create(_context, state, combat.Defender);
+		_attacker = isNaval
+			? CNavalSideView.Create(_context, state, combat.Attacker)
+			: CCombatSideView.Create(_context, state, combat.Attacker);
+		_defender = isNaval
+			? CNavalSideView.Create(_context, state, combat.Defender)
+			: CCombatSideView.Create(_context, state, combat.Defender);
 		if (_attacker is not null)
 		{
 			window.AddChild(_attacker.Window);
@@ -188,7 +204,17 @@ public partial class CCombatWindow : Control
 		{
 			_width.Text = width;
 		}
-		_indicator?.SetFrame(CCombatViewText.IndicatorFrame(combat));
+		// Which tactic counters which is a land battle's alone; and nobody is let out of a
+		// battle at sea in its first hours.
+		if (_indicator is not null)
+		{
+			_indicator.Visible = combat.Kind == ECombatKind.Land;
+			_indicator.SetFrame(CCombatViewText.IndicatorFrame(combat));
+		}
+		if (_retreat is not null)
+		{
+			_retreat.Disabled = combat.Kind == ECombatKind.Naval && combat.Duration <= CNavalDisengage.RoundsBeforeLeaving;
+		}
 
 		List<string> modifiers = CCombatViewText.Modifiers(combat);
 		if (_modifiers is not null && !modifiers.SequenceEqual(_shown))

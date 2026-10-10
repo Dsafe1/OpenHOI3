@@ -187,6 +187,13 @@ public sealed class CGameState
 	public HashSet<CCountryTag> Played { get; } = new();
 
 	/// <summary>
+	/// How well each country knows each sea province, where it knows it at all: by the
+	/// province's id and the country. Written by <see cref="CNavalIntelligence.Refresh"/>
+	/// once a day.
+	/// </summary>
+	public Dictionary<(int Province, CCountryTag Country), int> SeaIntelligence { get; } = new();
+
+	/// <summary>
 	/// How many times a province has changed hands in this game. Whatever shows who
 	/// holds what watches it to know when to look again.
 	/// </summary>

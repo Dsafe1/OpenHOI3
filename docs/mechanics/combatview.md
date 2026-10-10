@@ -14,11 +14,14 @@ ends in three dots (`interface.md`, sections 5 and 7). After that the window's u
 original's to within a pixel.
 
 In the code: what it says is `lib/OpenHOI3.Interface/Screens/CCombatViewText.cs`; the window
-is `src/Screens/CCombatWindow.cs` with `CCombatSideView` and `CCombatUnitEntry`, the panel's
-row `src/Screens/CUnitCombatEntry.cs`, the marker `src/Map/CBattleMarkers.cs`.
+is `src/Screens/CCombatWindow.cs` with `CCombatSideView` and `CCombatUnitEntry` - for a battle
+at sea `CNavalSideView` and `CCombatShipEntry` - the panel's row
+`src/Screens/CUnitCombatEntry.cs`, the marker `src/Map/CBattleMarkers.cs`.
 
-**Only land battles.** The window serves a battle at sea and in the air too, with other side
-windows; neither is built, since neither is fought.
+**A battle at sea has the same window, marker and row, with other halves**: section 10, built on
+2026-10-10 from a reading, tried with real clicks, and **set against no screenshot of the
+original's** - the maintainer has not looked at it. A battle in the air is not built, since none
+is fought.
 
 ---
 
@@ -203,6 +206,74 @@ country holds the next province of its way**, whether or not anybody stands ther
 the march's is, hollow ahead of the unit and filled behind it, so an attack that has hardly
 begun is two red lines with an outlined head.
 
+## 10. A battle at sea
+
+`confirmed` (`reversing/findings/FINDINGS-combatview.md`, section 12) unless marked. What a
+battle at sea *does* is `navalcombat.md`. Nothing here was set against a picture of the
+original's.
+
+**The marker, the row in a fleet's panel and the window are the land battle's** - one marker
+type, one row, one window - with the same share behind the bar, the number and the colour
+(section 6), worked out for ships:
+
+    a side is worth, for each ship of each of its fleets:
+        organisation x strength x what the hour makes of the ship's attack x of its defence
+
+a ship's guns and its type do not come into it.
+
+**The window** differs from a land battle's in this:
+
+- its background is `combat_naval_bg`, and it has no picture of the ground;
+- the arrow between the two tactics is hidden: nobody at sea has one;
+- **the retreat button cannot be pressed in the battle's first four rounds**, when no fleet can
+  leave (`navalcombat.md`, section 6). Pressed, it sets every fleet of the player's in the
+  battle breaking away, with nowhere named to go: its ships open the distance, and it is out
+  when the battle's own roll to break off next passes with its count run;
+- the icons of what the hour holds for the ships are the same ones, of every ship on either
+  side: mission efficiency, poor screens and the submarines' surprise have theirs;
+- its two halves are `naval_l_combat_side` for the attacker and `naval_r_combat_side` for the
+  defender, and it goes away when either side has no fleet left.
+
+**A half** has the flag and the leader as on land (section 4), and:
+
+- **`positioning`**: the side's positioning as a percentage with one figure after the point;
+- **`ships_label`**: the number of the side's ships, in yellow, and the text `SHIPS_LABEL`;
+- **`ships`**: one list of every ship of every fleet on the side, **fleet by fleet in the order
+  they joined and ship by ship in each fleet's order**. While it holds as many rows as the side
+  has ships and each row's ship is still there, each row is only written again; otherwise the
+  list is made anew.
+
+**A ship's row** is the window `ship_l_option` on the attacker's side and `ship_r_option` on the
+defender's:
+
+| element | what it is given |
+| --- | --- |
+| `name` | the ship's name |
+| `str_bar` | its strength over its full strength, in whole hundredths |
+| `org_bar` | its organisation over the most its type has, the same |
+| `ship_icon` | the sprite `GFX_navalcombat_l_` or `GFX_navalcombat_r_` + the ship's type, where there is one; else the one the file gives the row |
+
+- **The picture stands along the row by the ship's distance** (`navalcombat.md`, section 2):
+
+      t = distance / 40, and 1 at most
+      o = t x (the row's width - the picture's), cut to a whole number
+      the defender's, on the right:  o - 19 from the row's left edge
+      the attacker's, on the left:   the row's width - o - the picture's width + 19
+
+  So the end of each row nearer the middle of the window is "at the enemy", the far end is forty
+  and more away, and the two fleets are seen closing on one another across the gap between the
+  two lists - nineteen past the near end at their closest.
+- **Its frame** is by whether the ship has a target still in the battle: an attacker's the
+  second with one and the first with none, **a defender's the first with one and the second
+  with none**. The two sides' pictures are different files. What the frames show was not read.
+
+*Ours:* a ship with no name of its own - the throwaway ships of a raid never get here - shows
+its type's key. *Not built:* a row's tooltip, the leader, and the sound.
+
+**On the map** the marker stands between the two sides' first fleets, which in one sea province
+is where their counters are: it lies on them. *Ours:* a click there takes the marker before the
+counter under it, as on land.
+
 ---
 
 ## What is not built
@@ -212,7 +283,8 @@ begun is two red lines with an outlined head.
   each modifier is worth to it, a tactic with what it does and what counters it, the arrow
   between the tactics - and none is drawn anywhere yet.
 - **The sounds** a window plays while it is up.
-- **A battle at sea, in the air, and a bombing**, which have side windows of their own.
+- **A battle in the air, and a bombing**, which have a side window of their own. A battle at
+  sea is section 10.
 - **The enemy's counters**: the original writes question marks on a counter whose unit it
   does not know enough about, name and figures both - the defender's on the screenshot. Here
   every counter says what its unit is.

@@ -61,6 +61,7 @@ public static class CCombatViewText
 		(ECombatModifier.Envelopment, "BM_ENVELOPMENT_PENALTY"),
 		(ECombatModifier.Stacking, "BM_DIVISION_PENALTY"),
 		(ECombatModifier.Experience, "BM_EXPERIENCE"),
+		(ECombatModifier.MissionEfficiency, "BM_MISSION_EFFICIENCY"),
 		(ECombatModifier.TerritorialPride, "BM_TERRITORIAL_PRIDE"),
 		(ECombatModifier.DugIn, "BM_DUGIN_MODIFIER"),
 		(ECombatModifier.Amphibious, "BM_AMPH_PENALTY"),
@@ -69,9 +70,11 @@ public static class CCombatViewText
 		(ECombatModifier.LackOfSupplies, "BM_LACK_OF_SUPPLIES"),
 		(ECombatModifier.MultipleCombats, "BM_MULTIPLE"),
 		(ECombatModifier.CombinedArms, "BM_COMBINED_ARMS"),
+		(ECombatModifier.PoorScreens, "BM_POOR_SCREEN_PENALTY"),
 		(ECombatModifier.Terrain, "BM_TERRAIN"),
 		(ECombatModifier.Weather, "BM_WEATHER"),
 		(ECombatModifier.Night, "BM_NIGHT_MODIFIER"),
+		(ECombatModifier.Surprise, "BM_SURPRISE_BONUS"),
 	};
 
 	// ---- the battle
@@ -91,6 +94,19 @@ public static class CCombatViewText
 	public static long Worth(CCombatSide side)
 	{
 		long sum = 0;
+		if (side.Combat.Kind == ECombatKind.Naval)
+		{
+			// At sea a ship counts by its own circumstances and by nothing of its type.
+			foreach (CUnit fleet in side.Units)
+			{
+				foreach (CSubUnit ship in fleet.SubUnits)
+				{
+					long body = ship.Organisation.Raw * ship.Strength.Raw / Scale;
+					sum += body * (ship.CombatDefence.Raw * ship.CombatAttack.Raw / Scale) / Scale;
+				}
+			}
+			return sum;
+		}
 		foreach (CUnit unit in side.Units)
 		{
 			long circumstances = unit.CombatAttack.Raw * unit.CombatDefence.Raw / Scale;
@@ -186,6 +202,17 @@ public static class CCombatViewText
 				foreach (CCombatModifier modifier in unit.CombatModifiers)
 				{
 					inPlay.Add(modifier.Kind);
+				}
+				// At sea the hour's circumstances are noted on each ship.
+				if (combat.Kind == ECombatKind.Naval)
+				{
+					foreach (CSubUnit ship in unit.SubUnits)
+					{
+						foreach (CCombatModifier modifier in ship.CombatModifiers)
+						{
+							inPlay.Add(modifier.Kind);
+						}
+					}
 				}
 			}
 		}
@@ -295,5 +322,110 @@ public static class CCombatViewText
 	public static string Location(CGameState state, CUnit unit)
 	{
 		return CUnitPanelText.Location(state, unit);
+	}
+
+	// ---- a battle at sea
+
+	public const string ShipsKey = "SHIPS_LABEL";
+
+	/// <summary>What a ship's picture in a list is called: this, <c>l_</c> or <c>r_</c> for its side, and its type.</summary>
+	public const string ShipSprite = "GFX_navalcombat_";
+
+	/// <summary>The distance at which a ship's picture stands at the far end of its row, and further out no further.</summary>
+	private const float FarthestShown = 40f;
+
+	/// <summary>How far past the near end of its row a ship's picture is put, towards the middle of the window.</summary>
+	private const int TowardsTheMiddle = 19;
+
+	/// <summary>The line over a side's ships: how many there are, in yellow, and the word for them.</summary>
+	public static string ShipsLabel(Func<string, string> localise, CCombatSide side)
+	{
+		int ships = 0;
+		foreach (CUnit fleet in side.Units)
+		{
+			ships += fleet.SubUnits.Count;
+		}
+		return "§Y" + ships.ToString(System.Globalization.CultureInfo.InvariantCulture) + "§W "
+			+ localise(ShipsKey);
+	}
+
+	/// <summary>A side's positioning as a percentage with one figure after the point.</summary>
+	public static string Positioning(CCombatSide side)
+	{
+		return CNumberText.Format(new CFixedPoint(side.Positioning.Raw * 100), 1) + "%";
+	}
+
+	/// <summary>The name of the sprite of a ship's picture in a side's list.</summary>
+	public static string ShipPicture(CSubUnit ship, bool isAttacker)
+	{
+		return ShipSprite + (isAttacker ? "l_" : "r_") + ship.Type.Key;
+	}
+
+	/// <summary>A ship's strength bar, in whole hundredths of its full strength.</summary>
+	public static int ShipStrengthBar(CGameState state, CSubUnit ship)
+	{
+		long full = state.Country(ship.Unit?.Owner) is { } owner
+			? CUnits.MaxStrength(state, owner, ship, false, false).Raw
+			: ship.Stats[CSubUnitType.MaxStrength].Raw;
+		long share = full == 0 ? -1 : ship.Strength.Raw * Scale / full;
+		return (int)(share * 100000 / Scale / Scale);
+	}
+
+	/// <summary>A ship's organisation bar, in whole hundredths of the most its type has.</summary>
+	public static int ShipOrganisationBar(CSubUnit ship)
+	{
+		long most = ship.Stats[CSubUnitType.DefaultOrganisation].Raw;
+		long share = most == 0 ? -1 : ship.Organisation.Raw * Scale / most;
+		return (int)(share * 100000 / Scale / Scale);
+	}
+
+	/// <summary>
+	/// Which of its picture's two frames a ship shows, counted from one: an attacker's
+	/// the first while it has no target and the second while it has one, a defender's
+	/// the other way about - the two sides' pictures being drawn in the other order.
+	/// </summary>
+	public static int ShipFrame(CCombat combat, CSubUnit ship, bool isAttacker)
+	{
+		return HasTarget(combat, ship) == isAttacker ? 2 : 1;
+	}
+
+	/// <summary>Whether a ship has a target still in the battle: an enemy, or a friend it mistook for one.</summary>
+	public static bool HasTarget(CCombat combat, CSubUnit ship)
+	{
+		if (ship.TargetId == 0)
+		{
+			return false;
+		}
+		foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
+		{
+			foreach (CUnit fleet in side.Units)
+			{
+				foreach (CSubUnit other in fleet.SubUnits)
+				{
+					if (other.Id == ship.TargetId)
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// Where a ship's picture stands in its row, from the row's left edge. The row is a
+	/// scale of the ship's distance: nothing at the end nearer the middle of the window,
+	/// forty and more at the far end - so the attacker's ships, on the left, stand further
+	/// left the further out they are, and the defender's further right. Both are put
+	/// nineteen further towards the middle than that.
+	/// </summary>
+	public static int ShipPlace(CSubUnit ship, bool isAttacker, int rowWidth, int pictureWidth)
+	{
+		float travel = rowWidth - pictureWidth;
+		float share = Math.Min(ship.Distance.Raw / (float)Scale / FarthestShown, 1f);
+		int offset = (int)(share * travel);
+		return isAttacker
+			? rowWidth - offset - pictureWidth + TowardsTheMiddle
+			: offset - TowardsTheMiddle;
 	}
 }

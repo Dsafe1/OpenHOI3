@@ -156,6 +156,16 @@ public sealed class CProvince
 	/// <summary>The weather over it. Nothing changes it yet.</summary>
 	public CWeather Weather { get; } = new();
 
+	/// <summary>What <see cref="LastConvoyAttackHour"/> is for water no convoy was attacked in.</summary>
+	public const long NoConvoyAttack = long.MinValue;
+
+	/// <summary>
+	/// A sea province: the hour a raid last fought a convoy here. For a day after, a
+	/// fleet here is the easier to sight. See <c>docs/mechanics/navalmissions.md</c>,
+	/// section 9.
+	/// </summary>
+	public long LastConvoyAttackHour { get; set; } = NoConvoyAttack;
+
 	/// <summary>
 	/// How much of a building there is here. There is one level per building for now:
 	/// the original keeps a maximum and a current level, which differ only under damage.

@@ -29,6 +29,9 @@ public static class CNavalFire
 	/// <summary>No shot is avoided more surely than this.</summary>
 	private const long MostAvoidChance = 99000;
 
+	/// <summary>What the strength a convoy's ship takes off a raider is divided by, in thousandths: eighty.</summary>
+	private const long ConvoyStrengthDivisor = 80000;
+
 	public static void Attack(CGameState state, CCombat combat, CCombatSide side)
 	{
 		CCombatSide other = combat.Other(side);
@@ -50,7 +53,7 @@ public static class CNavalFire
 					target = CNavalTargets.Pick(state, combat, side, other, ship);
 					if (target is not null)
 					{
-						Fire(state, ship, target, theirPenalty);
+						Fire(state, combat, side, ship, target, theirPenalty);
 					}
 				}
 				Move(state, fleet, ship, target is not null, ourSpeed, other);
@@ -93,10 +96,16 @@ public static class CNavalFire
 	}
 
 	/// <summary>One ship's shots of the hour at the target it picked.</summary>
-	private static void Fire(CGameState state, CSubUnit ship, CSubUnit target, long theirPenalty)
+	private static void Fire(CGameState state, CCombat combat, CCombatSide side, CSubUnit ship, CSubUnit target,
+		long theirPenalty)
 	{
 		CDefines defines = state.Defines;
 		long attack = ship.Stats[SeaAttack].Raw;
+		// A raider shoots at a convoy with what it has for convoys.
+		if (combat.IsConvoyBattle && side.IsAttacker)
+		{
+			attack = ship.Stats[CConvoyRaid.ConvoyAttack].Raw;
+		}
 		if (CShipCensus.IsSubmarine(target))
 		{
 			attack = ship.Stats[CNavalTargets.SubAttack].Raw;
@@ -139,6 +148,12 @@ public static class CNavalFire
 			}
 			strength = defines[CManpower.MilitarySection, StrengthDamage].Raw * strength / CFixedPoint.Scale;
 			organisation = defines[CManpower.MilitarySection, OrganisationDamage].Raw * organisation / CFixedPoint.Scale;
+			// A convoy's ships hardly hurt a raider and rattle it twice as much.
+			if (combat.IsConvoyBattle && !side.IsAttacker)
+			{
+				strength = strength * CFixedPoint.Scale / ConvoyStrengthDivisor;
+				organisation *= 2;
+			}
 
 			target.PendingOrganisationDamage += organisation;
 			target.PendingStrengthDamage += strength;

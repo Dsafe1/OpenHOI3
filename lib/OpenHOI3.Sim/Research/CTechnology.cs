@@ -85,6 +85,19 @@ public sealed class CTechnology
 	/// <summary>What a level of it adds to each unit type, by the type's key.</summary>
 	public Dictionary<string, CSubUnitStats> UnitEffects { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+	/// <summary>
+	/// What a level of it adds to a mission's efficiency, by the mission's name: the
+	/// <c>efficiency</c> of a block named after the mission. See
+	/// <c>docs/mechanics/navalmissions.md</c>, section 10.
+	/// </summary>
+	public Dictionary<string, CFixedPoint> MissionEfficiency { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// The <c>reduction_modifier</c> of the same blocks. The original reads it in one
+	/// place and throws the figure away, so it is kept here and does nothing.
+	/// </summary>
+	public Dictionary<string, CFixedPoint> MissionReduction { get; } = new(StringComparer.OrdinalIgnoreCase);
+
 	public bool IsSingleLevel => AdditionalOffset == 0;
 
 	/// <summary>The highest level there is to research: what the file says, or one when it does not.</summary>

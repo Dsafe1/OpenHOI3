@@ -42,6 +42,14 @@ public sealed class CCombat
 	/// <summary>Whether its sides have had their fronts set up, which the first hour does.</summary>
 	public bool HasBegun { get; set; }
 
+	/// <summary>
+	/// The battle a convoy raid fights against the fleet made of the convoy. In it the
+	/// attacker shoots with <c>convoy_attack</c>, a defender's hit does an eightieth of
+	/// its strength damage and twice its organisation damage, and neither side is asked
+	/// whether it has lost. See <c>docs/mechanics/navalmissions.md</c>, section 8.
+	/// </summary>
+	public bool IsConvoyBattle { get; init; }
+
 	/// <summary>Whether it has been decided. A battle is decided once.</summary>
 	public bool IsConcluded { get; set; }
 

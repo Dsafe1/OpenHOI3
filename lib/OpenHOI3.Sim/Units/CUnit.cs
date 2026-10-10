@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Missions;
 
 namespace OpenHOI3.Sim.Units;
 
@@ -116,6 +117,17 @@ public sealed class CUnit
 
 	/// <summary>The id of the province its order is for, or 0.</summary>
 	public int OrderProvince { get; set; }
+
+	/// <summary>
+	/// What its order keeps from hour to hour: its stance, and a mission's place in what
+	/// it is doing. Made anew with every order. See <c>docs/mechanics/navalmissions.md</c>.
+	/// </summary>
+	public CMission Mission { get; set; } = new();
+
+	/// <summary>
+	/// A fleet a patrol is shadowing. It is twice as easily sighted while it is.
+	/// </summary>
+	public bool IsShadowed { get; set; }
 
 	/// <summary>
 	/// What its own line says. Its one use is to make reserves of the brigades read

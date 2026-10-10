@@ -2,8 +2,8 @@
 
 What brings two fleets to battle, where their ships stand in it, what an hour of it does, and
 how it ends. This is the first piece of what stage 3 has left: **fleet against fleet**. A
-fleet's missions - patrol, the hunt for convoys, the landing - the battle in the air and
-bombing are their own pieces (the readme's *Next up*).
+fleet's missions - patrol, intercept, the hunt for convoys - are `navalmissions.md`; the
+landing, the battle in the air and bombing are pieces of their own (the readme's *Next up*).
 
 Everything is from `reversing/findings/FINDINGS-seabattle.md`, which joins
 `reversing/findings/FINDINGS-navaldetection.md` (the sighting, positioning, breaking off) and
@@ -73,16 +73,19 @@ that one**: a failed sighting of it ends the look, whoever else is there. Then, 
   so a carrier that is a capital ship counts as one - or else a screen.
 - **A fleet under way is harder to see**, and each pair's figure is cut to a whole number
   before the roll: with nothing in its favour a pair has one chance in ten thousand.
-- **How well a country knows a sea province**: 2 where it has a unit there. *Not built:* a fleet
-  on patrol knows its province at 9, which is a sighting without a roll, and radar gives up to
-  8; the rest of what the original's intelligence does is not built at all. So every sighting
-  here is rolled at level 2.
+- **How well a country knows a sea province** is worked out once a day: 2 where it had a unit
+  there at the day's turn, 9 where that unit was a patrol shadowing somebody - a sighting with
+  no roll - and nothing for water a fleet has only just sailed into. `navalmissions.md`,
+  section 9, has it, and what radar would add.
+- **A fleet's mission bears on all of this**: a raider starts no battle, a patrol that is not
+  aggressive leaves alone a fleet with many more heavy ships, an escort and a patrol find a
+  raider by their efficiency against its own, a shadowed fleet is twice as easily seen, and
+  water a convoy was attacked in is watched the harder. And **the first enemy fleet** above is
+  the first whose order lets it be made the defender: a raider never is, and a patrol by its
+  stance. All of it is `navalmissions.md`, sections 3, 4 and 9.
 
-*Not built:* what a leader's `spotting_chance` adds; what a mission's efficiency adds between
-an escort or a patrol and a raider; the factor for a province a convoy was attacked in within a
-day; a fleet carrying units that are fighting or under way, which is seen at once; and the
-tests of the other fleet's order - a defensive patrol only fights a weaker fleet, a raider and a
-transport are never made the defender.
+*Not built:* what a leader's `spotting_chance` adds; and a fleet carrying units that are
+fighting or under way, which is seen at once.
 
 ## 2. Where the ships stand
 
@@ -145,6 +148,7 @@ nothing. In the original's order:
 | **poor screens** | the capital ships of a fleet with fewer screens than capital ships | - | -(1 - screens / capital ships) / 3 |
 | **surprise** | an attacking fleet's submarines | `NAVAL_COMBAT_SUB_SURPRISE_BONUS` | - |
 | **experience** | every ship | a hundredth for each point of its own experience, a pride's counting for `PRIDE_BONUS_EXP` more | the same |
+| **mission efficiency** | the ships of a fleet whose order is more than a plain move | its country's efficiency at that mission (`navalmissions.md`, section 10) | the same |
 | **dissent** | every ship | -`COMBAT_DISSENT_IMPACT` x its country's dissent / 100 | the same |
 | **lack of supplies** | the ships of a fleet given less than all its supplies | -`COMBAT_SUPPLY_LACK_IMPACT` x the share it went without | the same |
 | **the weather** | every ship | -(wind speed x `NAVALWINDSPEEDMODIFIER` + rain x `NAVALRAINMODIFIER`) | - |
@@ -158,8 +162,8 @@ nothing. In the original's order:
   at three chances in ten, for three hours.
 - **There is no weather yet**, so its row comes to nothing.
 
-*Not built:* the difficulty setting, mission efficiency, and the leader - his skill, and his
-traits on experience, the night and supplies.
+*Not built:* the difficulty setting, and the leader - his skill, and his traits on experience,
+the night and supplies.
 
 ## 4. Who a ship shoots at
 
@@ -326,10 +330,10 @@ with a seed of 1 unless one is given:
     Germany at the United Kingdom,     two heavy and six light cruisers and a destroyer against
     Helgoland Bight:                   the 26 ships of the Mediterranean Fleet, six battleships
                                        and two carriers among them: sighted in the first hour;
-                                       positioning 0.40 against 0.02, the British paying 0.8 for
-                                       their crowd; the Germans are out of organisation after 28
-                                       hours and fall back to Wilhelmshaven with half their
-                                       strength; two British destroyers sunk, and none German
+                                       positioning 0.56 against 0.02, the British paying 0.8 for
+                                       their crowd; the Germans are out of organisation after 17
+                                       hours and fall back to Wilhelmshaven with little over half
+                                       their strength; one British destroyer sunk, and none German
     the United Kingdom at Germany,     the same two with the sides changed: the Germans give way
     seed 2:                            after 24 hours; a British destroyer and a heavy cruiser sunk
     Japan at the USA:                  five ships against six, sighted after three hours, both
@@ -345,18 +349,20 @@ often its own last ship (section 4).
 the strongest fleet of a country that can reach that sea province there, and with
 `--war=GER:ENG` the player's own fleet has something to find.
 
-**On the map** a battle at sea has no marker and no window yet: those are the last piece
-(`combatview.md` is the land battle's). *Ours:* the readout of a selected sea province with a
-battle in it says who fights whom, with how many ships, and how many each has had sunk.
+**On the map** a battle at sea has the land battle's marker, its row in a fleet's panel, and
+the same window with halves of its own - a list of each side's ships, each ship's picture
+standing along its row by its distance: `combatview.md`, section 10. *Ours:* the readout of a
+selected sea province with a battle in it says who fights whom, with how many ships, and how
+many each has had sunk.
 
 ### Not built
 
-- **Missions.** A fleet goes where it is sent and fights what it finds. Patrol, intercept,
-  sortie, the raid on convoys and their escort, transport and invasion are the next piece - and
-  with them the battle the original marks with a flag of its own, in which the attacker shoots
-  with `convoy_attack` and nobody is asked whether they have lost.
+- **Missions** are built since 2026-10-10 and are `navalmissions.md`: reserve, patrol,
+  intercept, sortie, the raid on convoys and their escort - and with them the battle a raid
+  fights, in which the attacker shoots with `convoy_attack` and nobody is asked whether they
+  have lost. **Transport and invasion** are not: they wait for carrying.
 - **Aircraft**, a carrier's own among them, and every kind of bombing.
-- **Intelligence** beyond "a fleet knows the water it is in" (section 1).
+- **Intelligence** beyond a unit's own part in it (section 1).
 - **Leaders**, wherever one is named above.
 - **The weather itself.**
 - **The AI**: no fleet of a country nobody plays moves or looks for a fight.
@@ -365,7 +371,7 @@ battle in it says who fights whom, with how many ships, and how many each has ha
 
 - **Nothing here was watched.** The order ships are drawn up in and who is shot at decide the
   course of a battle, and both rest on the reading alone.
-- What the byte the original keeps on a battle and reads in five places is set by; a convoy
-  raid fits every one of the five (`FINDINGS-seabattle.md`, section 6).
+- ~~What the byte the original keeps on a battle and reads in five places is set by.~~ By the
+  raid on a convoy, and by nothing else: `navalmissions.md`, section 8.
 - What keeps a unit out of a battle for the count the original runs down an hour at a time
   beside the fleet's own wait.

@@ -150,9 +150,18 @@ public static class CConvoyShips
 		foreach (CConvoy convoy in country.Convoys)
 		{
 			int due = (int)((convoy.EscortsWanted * Scale * ratio / Scale - convoy.Escorts * Scale) / Scale);
-			// More escorts go only to a convoy that was attacked in the last hundred days,
-			// and nothing attacks one here yet.
-			if (due < 0)
+			// More escorts go only to a convoy a raid sank a ship of in the last hundred
+			// days - and such a convoy gives none back.
+			if (WasAttackedLately(state, convoy))
+			{
+				int taken = Math.Min(due, country.Escorts);
+				if (taken > 0)
+				{
+					country.Escorts -= taken;
+					convoy.Escorts += taken;
+				}
+			}
+			else if (due < 0)
 			{
 				country.Escorts -= due;
 				convoy.Escorts += due;
@@ -163,6 +172,16 @@ public static class CConvoyShips
 				convoy.Escorts = 0;
 			}
 		}
+	}
+
+	/// <summary>The days within which an attack still brings a convoy escorts.</summary>
+	private const int DaysEscortsFollowAnAttack = 100;
+
+	private static bool WasAttackedLately(CGameState state, CConvoy convoy)
+	{
+		return convoy.LastAttackHour != CConvoy.NeverAttacked
+			&& state.TotalHours / CGameState.HoursPerDay - convoy.LastAttackHour / CGameState.HoursPerDay
+				< DaysEscortsFollowAnAttack;
 	}
 
 	private static void Fill(CCountry country, LinkedList<CConvoy> convoys)

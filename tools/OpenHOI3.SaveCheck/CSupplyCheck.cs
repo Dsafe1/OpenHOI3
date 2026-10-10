@@ -39,7 +39,7 @@ public static class CSupplyCheck
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add);
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false);
 		ClausewitzNode save = ClausewitzParser.ParseFile(args[2]);
 		Console.WriteLine($"savegame: date {save.GetString("date")}, player {save.GetString("player")}");
 

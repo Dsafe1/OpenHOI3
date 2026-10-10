@@ -160,10 +160,12 @@ Under the list are the **stance** - Aggressive, Defensive, Passive, the first to
 and the **priority**, 0 to 4, each with a button either side that steps it and goes round at
 the ends. They belong to the orders that fight.
 
-*Ours:* **only the move and the two changes of base are built.** Every other row is listed
-as the original lists it and cannot be ticked. An air unit's rows for a paradrop, a carrier
-and a bomb are left out, wanting what is not built to know when they show; the convoy rows
-likewise. The stance and the priority are shown and stepped and mean nothing yet. The air
+*Ours:* **a fleet's move, its change of base and its six missions are built** - the missions
+are `navalmissions.md` - **and an air unit's change of base.** Every other row is listed as the
+original lists it and cannot be ticked: a fleet's transport and invasion, and every air mission.
+An air unit's rows for a paradrop, a carrier and a bomb are left out, wanting what is not built
+to know when they show. The stance and the priority go with a fleet's order and mean something
+to its missions; to an air unit's they mean nothing yet. The air
 window's other controls - the shape of the target, three sliders, day and night, two dates -
 are drawn as the file has them and do nothing. In the original a row and `accept` say in a
 tooltip why they cannot be used.
@@ -258,9 +260,9 @@ Königsberg, the AI having some fifteen more fleets under way:
 
 ## What is not built
 
-- **Every order that is not a move or a change of base**: reserve, patrol, intercept, sortie,
-  convoy raiding and escort, transport, invasion; air superiority and every other mission;
-  and so the stance, the priority, and the air window's other controls.
+- **A fleet's transport and invasion, and every air mission** - air superiority and the rest -
+  and so the air window's other controls. A fleet's reserve, patrol, intercept, sortie, convoy
+  raiding and escort are built since 2026-10-10 and are `navalmissions.md`.
 - **Carrying**: troops aboard a fleet, an air group aboard a carrier, a paradrop. A fleet
   with troops aboard is offered a land province to put them ashore in; not here.
 - **A fleet meeting another** is built since 2026-10-10 and is `navalcombat.md`. One thing

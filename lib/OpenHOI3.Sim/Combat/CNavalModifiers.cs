@@ -74,6 +74,11 @@ public static class CNavalModifiers
 				surprise = defines[CManpower.MilitarySection, SurpriseBonus].Raw;
 			}
 
+			// How good the fleet's country is at what the fleet was sent to do; a plain move is no mission.
+			long missionEfficiency = fleet.Order == EUnitOrder.Move
+				? 0
+				: Missions.CMissionEfficiency.Of(state, owner, fleet.Order);
+
 			foreach (CSubUnit ship in fleet.SubUnits)
 			{
 				ship.CombatModifiers.Clear();
@@ -99,6 +104,11 @@ public static class CNavalModifiers
 				if (experience != 0)
 				{
 					Add(ship, ECombatModifier.Experience, experience, experience);
+				}
+
+				if (missionEfficiency != 0)
+				{
+					Add(ship, ECombatModifier.MissionEfficiency, missionEfficiency, missionEfficiency);
 				}
 
 				if (owner is not null && owner.Dissent != CFixedPoint.Zero)

@@ -161,7 +161,7 @@ internal static class COrganisationCheck
 	}
 
 	/// <summary>The officers a country's saved brigades call for, the ones the original's AI added among them.</summary>
-	private static CFixedPoint Needed(ClausewitzNode node, CGameState state)
+	public static CFixedPoint Needed(ClausewitzNode node, CGameState state)
 	{
 		CFixedPoint needed = CFixedPoint.Zero;
 		foreach (ClausewitzNode child in node.Children)

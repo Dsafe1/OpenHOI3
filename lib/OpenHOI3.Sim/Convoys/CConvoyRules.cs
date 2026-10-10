@@ -90,9 +90,9 @@ public static class CConvoyRules
 
 	/// <summary>
 	/// The escorts a convoy would have. None while its owner is at peace; at war half
-	/// its transports and one, more where it is short of transports or large. The
-	/// original adds more for a convoy attacked in the last fortnight; nothing attacks
-	/// one here yet.
+	/// its transports and one, more where it is short of transports or large, and five,
+	/// three or one more for a convoy a raid sank a ship of in the last three days, the
+	/// last week or the last fortnight.
 	/// </summary>
 	public static int DesiredEscorts(CGameState state, CConvoy convoy)
 	{
@@ -109,7 +109,26 @@ public static class CConvoyRules
 		{
 			wanted += EscortsWhenLarge;
 		}
+		if (convoy.LastAttackHour != CConvoy.NeverAttacked)
+		{
+			long days = state.TotalHours / CGameState.HoursPerDay - convoy.LastAttackHour / CGameState.HoursPerDay;
+			wanted += days < 3 ? 5 : days < 7 ? 3 : days < 15 ? 1 : 0;
+		}
 		return wanted;
+	}
+
+	/// <summary>What a single escort is worth against a raider.</summary>
+	private const long DefenceOfAnEscort = 5000;
+
+	/// <summary>
+	/// What a raider's attack is set against, in thousandths: five for each escort, over
+	/// the provinces of the convoy's way - the longer the route, the thinner its escorts
+	/// are spread. The original scales it by a technology figure that is not built.
+	/// </summary>
+	public static long Defence(CConvoy convoy)
+	{
+		long defence = convoy.Escorts * DefenceOfAnEscort;
+		return convoy.Path.Count == 0 ? defence : defence / convoy.Path.Count;
 	}
 
 	/// <summary>

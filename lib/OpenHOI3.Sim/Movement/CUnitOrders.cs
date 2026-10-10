@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -75,7 +76,11 @@ public static class CUnitOrders
 	{
 		return unit.Kind switch
 		{
-			EUnitKind.Navy => new[] { EUnitOrder.Move, EUnitOrder.Rebase },
+			EUnitKind.Navy => new[]
+			{
+				EUnitOrder.Move, EUnitOrder.Rebase, EUnitOrder.Reserve, EUnitOrder.Patrol, EUnitOrder.Intercept,
+				EUnitOrder.Sortie, EUnitOrder.ConvoyRaid,
+			},
 			EUnitKind.Air => new[] { EUnitOrder.RebaseAir },
 			_ => System.Array.Empty<EUnitOrder>(),
 		};
@@ -85,11 +90,17 @@ public static class CUnitOrders
 	/// Whether an order may be given to a unit for a province: the order's own test, and
 	/// the province within reach.
 	/// </summary>
-	public static bool MayGive(CGameState state, CCountry country, CUnit unit, EUnitOrder order, CProvince province)
+	/// <param name="convoy">The number of the convoy an escort is to sail with.</param>
+	public static bool MayGive(CGameState state, CCountry country, CUnit unit, EUnitOrder order, CProvince province,
+		int convoy = 0)
 	{
 		if (unit.SubUnits.Count == 0 || unit.Location <= 0 || province.Id == 0)
 		{
 			return false;
+		}
+		if (CMissions.IsMission(order))
+		{
+			return CMissions.MayGive(state, country, unit, order, province, convoy);
 		}
 		switch (order)
 		{
@@ -136,10 +147,25 @@ public static class CUnitOrders
 	/// plain move with no way there leaves the unit where it is with whatever path it
 	/// had; a change of base empties the path where there is no way.
 	/// </summary>
-	public static void Give(CGameState state, CCountry country, CUnit unit, EUnitOrder order, int province)
+	/// <param name="stance">How bold the order is: 0 aggressive, 1 defensive, 2 passive.</param>
+	/// <param name="priority">From 0 to 4.</param>
+	/// <param name="convoy">The number of the convoy an escort is to sail with.</param>
+	public static void Give(CGameState state, CCountry country, CUnit unit, EUnitOrder order, int province,
+		int stance = CMission.Defensive, int priority = 0, int convoy = 0)
 	{
+		Clear(unit);
 		unit.Order = order;
 		unit.OrderProvince = province;
+		unit.Mission = new CMission { Stance = stance, Priority = priority, Convoy = convoy };
+		if (CMissions.IsMission(order))
+		{
+			if (order == EUnitOrder.Sortie)
+			{
+				unit.Mission.Waypoints.Add(province);
+			}
+			CMissions.Start(state, country, unit);
+			return;
+		}
 		List<int>? route = CRouteFinder.Find(state, country, unit, unit.Location, province);
 		// A unit in a battle is given a path only where the battle lets it go - one at
 		// sea not in its first hours - and then leaves it.
@@ -161,11 +187,19 @@ public static class CUnitOrders
 		}
 	}
 
-	/// <summary>Takes a unit's order away. Its path is not touched.</summary>
+	/// <summary>
+	/// Takes a unit's order away. Its path is not touched. A fleet a patrol was
+	/// shadowing is let go.
+	/// </summary>
 	public static void Clear(CUnit unit)
 	{
+		if (unit.Order == EUnitOrder.Patrol && unit.Mission.LiveTarget is { } shadowed)
+		{
+			shadowed.IsShadowed = false;
+		}
 		unit.Order = EUnitOrder.None;
 		unit.OrderProvince = 0;
+		unit.Mission = new CMission();
 	}
 
 	/// <summary>
@@ -178,6 +212,14 @@ public static class CUnitOrders
 	{
 		if (unit.Order == EUnitOrder.None)
 		{
+			return;
+		}
+		if (CMissions.IsMission(unit.Order))
+		{
+			if (!CMissions.RunHour(state, country, unit))
+			{
+				Clear(unit);
+			}
 			return;
 		}
 		int target = unit.OrderProvince;

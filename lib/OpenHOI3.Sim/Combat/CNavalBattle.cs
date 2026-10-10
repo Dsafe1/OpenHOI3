@@ -92,7 +92,8 @@ public static class CNavalBattle
 		CUnit? found = null;
 		foreach (CUnit other in state.UnitsIn(province.Id))
 		{
-			if (MayEngage(state, fleet, other))
+			// The first that may be fought and whose order lets it be made the defender.
+			if (MayEngage(state, fleet, other) && CNavalSpotting.DefenderAccepts(other, fleet))
 			{
 				found = other;
 				break;
@@ -262,7 +263,8 @@ public static class CNavalBattle
 		CNavalLosses.RemoveSunk(state, combat.Attacker);
 		CNavalLosses.RemoveSunk(state, combat.Defender);
 
-		if (combat.Duration >= CCombats.LeastHours)
+		// Nobody is asked whether they have lost a raid on a convoy.
+		if (combat.Duration >= CCombats.LeastHours && !combat.IsConvoyBattle)
 		{
 			if (HasLost(combat.Attacker))
 			{

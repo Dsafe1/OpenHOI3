@@ -436,6 +436,60 @@ public class OrganisationTests
 	}
 
 	[Fact]
+	public void BeforeAGameIsUnderWayABrigadeMayHaveItsOwnFigureAndNothingElse()
+	{
+		CCountry country = Germany();
+		CUnit unit = Unit(country);
+		CSubUnit regular = Brigade(Infantry(), unit);
+		CSubUnit reserve = Brigade(Infantry(), unit, reserve: true);
+		CGameState state = State(new[] { country });
+
+		state.IsBeingMade = true;
+
+		// No officers and no reserve's share: 40, where a running game gives 56 and 28.
+		Assert.Equal(CFixedPoint.FromInt(40), COrganisation.Ceiling(state, country, regular));
+		Assert.Equal(CFixedPoint.FromInt(40), COrganisation.Ceiling(state, country, reserve));
+		Assert.Equal(CFixedPoint.FromInt(40), COrganisation.Ceiling(state, country, reserve, penaltyAlways: true));
+	}
+
+	[Fact]
+	public void TheDaysBeforeAGamesFirstHourHoldNobodyDownAndTheFirstHourDoes()
+	{
+		CCountry country = Germany();
+		CUnit unit = Unit(country);
+		CSubUnit regular = Brigade(Infantry(), unit);
+		CSubUnit reserve = Brigade(Infantry(), unit, reserve: true);
+		CSubUnit worn = Brigade(Infantry(), unit, organisation: "39");
+		// A day works a country's modifier out afresh, so the draft has to be a law it has.
+		var draft = new CModifier("two_year_draft");
+		draft.Set(CUnits.ReservesPenaltySize, CFixedPoint.Parse("-0.5"));
+		country.Laws["conscription_law"] = new CLaw("conscription_law", draft);
+		country.Officers = CFixedPoint.FromInt(450);                 // of the 300 its three brigades call for
+		CGameState state = State(new[] { country });
+		state.Province(Berlin).Pool[EGoods.Supplies] = CFixedPoint.FromInt(1000);
+		var date = state.Date;
+		int hour = state.Hour;
+
+		CTick.RunFirstDays(state);
+
+		// The clock has not moved, and the game is no longer being made.
+		Assert.Equal(date, state.Date);
+		Assert.Equal(hour, state.Hour);
+		Assert.False(state.IsBeingMade);
+		// Two days and one hour: the reserve is not brought down to 28 and the regular not
+		// up towards 56 - the original's start save has Germany's regulars at 40.000 - and
+		// one below its figure has had the one hour's return, less for being nearly full.
+		Assert.Equal(CFixedPoint.FromInt(40), regular.Organisation);
+		Assert.Equal(CFixedPoint.FromInt(40), reserve.Organisation);
+		Assert.Equal(CFixedPoint.Parse("39.058"), worn.Organisation);   // 0.3 x 1.4 x 0.7 x 0.2
+
+		CTick.RunHour(state);
+
+		Assert.Equal(CFixedPoint.FromInt(28), reserve.Organisation);
+		Assert.Equal(CFixedPoint.Parse("40.084"), regular.Organisation);
+	}
+
+	[Fact]
 	public void AnHoursOrganisationIsWorkedOutWithTheRatioTheHourBeforeLeft()
 	{
 		CCountry country = Germany();

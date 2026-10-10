@@ -37,7 +37,7 @@ internal static class CResearchCheck
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add);
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false);
 
 		ClausewitzNode earlier = ClausewitzParser.ParseFile(args[2]);
 		ClausewitzNode later = ClausewitzParser.ParseFile(args[3]);

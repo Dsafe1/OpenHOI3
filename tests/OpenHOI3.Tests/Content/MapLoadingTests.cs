@@ -617,7 +617,9 @@ public class MapLoadingTests : IDisposable
 		CDirectorySettings directories = CDirectorySettings.At(_root);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: _warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, _warnings.Add);
-		return CGameStateLoader.LoadStart(directories, Load(), localisation, countries, _warnings.Add);
+		// What the files give a game: the two days a game then runs before its first hour
+		// are not what these tests are about.
+		return CGameStateLoader.LoadStart(directories, Load(), localisation, countries, _warnings.Add, firstDays: false);
 	}
 
 	[Fact]

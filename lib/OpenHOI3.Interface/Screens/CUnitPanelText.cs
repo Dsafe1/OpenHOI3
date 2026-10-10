@@ -351,6 +351,24 @@ public static class CUnitPanelText
 					return localise(RebaseKey) + " :" + where;
 				case EUnitOrder.RebaseAir:
 					return CTextTemplate.Fill(localise(AirRebaseKey), ("PROV", where));
+				case EUnitOrder.Patrol:
+					return CTextTemplate.Fill(localise("ORDER_PATROL_S"),
+						("ACTION", localise(unit.Mission.LiveTarget is null ? "PATROL_SEARCH" : "PATROL_SHADOW")));
+				case EUnitOrder.Intercept:
+					return CTextTemplate.Fill(localise("ORDER_INTERCEPT_S"),
+						("STATE", localise(unit.Mission.LiveTarget is not null ? "INTERCEPT_ATTACK"
+							: unit.Mission.ReturnToBase ? "INTERCEPT_RETURN" : "INTERCEPT_WAITING")));
+				case EUnitOrder.ConvoyEscort:
+					if (Sim.Missions.CConvoyEscort.Find(state, unit.Mission.Convoy) is { } convoy)
+					{
+						return CTextTemplate.Fill(localise("ORDER_CONVOY_ESCORT_S"),
+							("START", state.Province(convoy.Start).Name), ("END", state.Province(convoy.End).Name));
+					}
+					return localise(COrdersText.NameKey(unit.Order)) + " :" + where;
+				case EUnitOrder.Reserve:
+				case EUnitOrder.Sortie:
+				case EUnitOrder.ConvoyRaid:
+					return localise(COrdersText.NameKey(unit.Order)) + " :" + where;
 			}
 		}
 		if (unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air)

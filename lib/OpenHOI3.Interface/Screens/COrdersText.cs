@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
@@ -24,6 +25,35 @@ public static class COrdersText
 	public const int Passive = 2;
 	public const int HighestPriority = 4;
 
+	/// <summary>What an escort's row is called: a text with the two ends of its convoy's run in it.</summary>
+	public const string EscortRowKey = "ORDER_CONVOY_ESCORT_NTYPE";
+
+	/// <summary>The localisation key of an order's name, as its row and a unit's panel have it.</summary>
+	public static string NameKey(EUnitOrder order)
+	{
+		return order switch
+		{
+			EUnitOrder.Move => "MOVE_ORDER",
+			EUnitOrder.Rebase => "ORDER_REBASE",
+			EUnitOrder.RebaseAir => "ORDER_AIR_REBASE",
+			EUnitOrder.Reserve => "ORDER_RESERVE",
+			EUnitOrder.Patrol => "ORDER_PATROL",
+			EUnitOrder.Intercept => "ORDER_INTERCEPT",
+			EUnitOrder.Sortie => "ORDER_SORTIE",
+			EUnitOrder.ConvoyEscort => "ORDER_CONVOY_ESCORT",
+			EUnitOrder.ConvoyRaid => "ORDER_CONVOY_RAID",
+			_ => "",
+		};
+	}
+
+	/// <summary>What a row says: its order's name, and for an escort the run it is for.</summary>
+	public static string RowText(System.Func<string, string> localise, COrderRow row)
+	{
+		return row.Convoy == 0
+			? localise(row.NameKey)
+			: Text.CTextTemplate.Fill(localise(row.NameKey), ("START", row.Start), ("END", row.End));
+	}
+
 	/// <summary>The window for a unit's orders, or an empty string for a unit that has none.</summary>
 	public static string WindowFor(CUnit unit)
 	{
@@ -39,8 +69,8 @@ public static class COrdersText
 	/// The rows of the list, in the original's order. A fleet is shown every naval order
 	/// there is, the ones that cannot be given with their boxes greyed. An air unit is
 	/// shown only the orders it could ever fly: by what its wings can attack, and by
-	/// whether the province is land or sea. Of them all only a move and a change of
-	/// base are built; the rest are listed and cannot be ticked.
+	/// whether the province is land or sea. A fleet's transport and invasion and every
+	/// air mission are listed and cannot be ticked: they are not built.
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, CUnit unit, CProvince province)
 	{
@@ -53,15 +83,25 @@ public static class COrdersText
 
 		if (unit.Kind == EUnitKind.Navy)
 		{
-			Add("MOVE_ORDER", EUnitOrder.Move);
-			Add("ORDER_REBASE", EUnitOrder.Rebase);
-			Add("ORDER_RESERVE");
-			Add("ORDER_PATROL");
-			Add("ORDER_INTERCEPT");
-			Add("ORDER_SORTIE");
-			Add("ORDER_CONVOY_RAID");
+			Add(NameKey(EUnitOrder.Move), EUnitOrder.Move);
+			Add(NameKey(EUnitOrder.Rebase), EUnitOrder.Rebase);
+			Add(NameKey(EUnitOrder.Reserve), EUnitOrder.Reserve);
+			Add(NameKey(EUnitOrder.Patrol), EUnitOrder.Patrol);
+			Add(NameKey(EUnitOrder.Intercept), EUnitOrder.Intercept);
+			Add(NameKey(EUnitOrder.Sortie), EUnitOrder.Sortie);
+			Add(NameKey(EUnitOrder.ConvoyRaid), EUnitOrder.ConvoyRaid);
 			Add("ORDER_TRANSPORT");
 			Add("ORDER_INVADE");
+			// And an escort for each of the country's own convoys through the province.
+			foreach (CConvoy convoy in country.Convoys)
+			{
+				if (convoy.Path.Contains(province.Id))
+				{
+					rows.Add(new COrderRow(EscortRowKey, EUnitOrder.ConvoyEscort,
+						CUnitOrders.MayGive(state, country, unit, EUnitOrder.ConvoyEscort, province, convoy.Id),
+						convoy.Id, state.Province(convoy.Start).Name, state.Province(convoy.End).Name));
+				}
+			}
 			return rows;
 		}
 		if (unit.Kind != EUnitKind.Air)

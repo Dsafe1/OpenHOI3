@@ -99,7 +99,7 @@ public partial class COrdersWindow : Control
 			}
 			if (entry.FindTextBox("name") is { } text)
 			{
-				text.Text = _context.Localisation.Localise(_rows[index].NameKey);
+				text.Text = COrdersText.RowText(_context.Localisation.Localise, _rows[index]);
 			}
 			if (entry.FindButton("checkbox") is { } box)
 			{
@@ -194,7 +194,8 @@ public partial class COrdersWindow : Control
 		{
 			return;
 		}
-		var command = new CSetUnitOrderCommand(_player.Tag, unit.Id, _rows[_ticked].Order, _province);
+		var command = new CSetUnitOrderCommand(_player.Tag, unit.Id, _rows[_ticked].Order, _province, _stance,
+			_priority, _rows[_ticked].Convoy);
 		if (command.MayExecute(_simulation.State))
 		{
 			_simulation.Post(command);

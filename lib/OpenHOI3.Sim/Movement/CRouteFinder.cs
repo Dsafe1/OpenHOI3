@@ -24,7 +24,11 @@ public static class CRouteFinder
 	/// The provinces to go through, the first step first and the goal last, or null
 	/// when there is no way. Empty when the unit is to go where it starts.
 	/// </summary>
-	public static List<int>? Find(CGameState state, CCountry country, CUnit unit, int from, int to)
+	/// <param name="safe">
+	/// A fleet on a mission keeps off an enemy's shores: a step into water beside an
+	/// enemy's naval base or airfield costs three times as much, and nine beside both.
+	/// </param>
+	public static List<int>? Find(CGameState state, CCountry country, CUnit unit, int from, int to, bool safe = false)
 	{
 		int count = state.Provinces.Count;
 		if (from <= 0 || to <= 0 || from >= count || to >= count)
@@ -71,6 +75,10 @@ public static class CRouteFinder
 				settled[edge.To] = true;
 
 				long step = StepCost(state, country, there, edge);
+				if (safe)
+				{
+					step = SafeStepCost(state, country, there, step);
+				}
 				cost[edge.To] = cost[current] + step;
 				estimate[edge.To] = cost[edge.To] + StraightLine(state, there, goal) * StraightLineWeight;
 				cameFrom[edge.To] = current;
@@ -105,6 +113,55 @@ public static class CRouteFinder
 	{
 		long distance = edge.Distance.Raw;
 		return CMovementRules.IsEnemy(state, country.Tag, to.Controller) ? distance * 1100 / 1000 : distance;
+	}
+
+	/// <summary>What a step beside an enemy's base costs a fleet that keeps to safe water, in thousandths.</summary>
+	private const long BesideAnEnemyBase = 3000;
+
+	/// <summary>
+	/// What a step into a sea province costs a fleet that keeps off an enemy's shores:
+	/// the plain cost, three times over where a province beside it has a naval base and
+	/// once more where one has an airfield. As the original has it, the neighbours are
+	/// gone through in order and **once one is found to be held by a country at war with
+	/// the fleet's, every neighbour after it counts as well**, whoever holds it.
+	/// </summary>
+	public static long SafeStepCost(CGameState state, CCountry country, CProvince to, long cost)
+	{
+		if (!to.IsSea)
+		{
+			return cost;
+		}
+		bool hostile = false;
+		bool navalBase = false;
+		bool airBase = false;
+		foreach (CProvinceEdge edge in to.Edges)
+		{
+			if (hostile && airBase && navalBase)
+			{
+				break;
+			}
+			if (edge.To <= 0 || edge.To >= state.Provinces.Count)
+			{
+				continue;
+			}
+			CProvince beside = state.Province(edge.To);
+			hostile = hostile || CMovementRules.IsEnemy(state, country.Tag, beside.Controller);
+			if (!hostile)
+			{
+				continue;
+			}
+			if (!navalBase && CMovementRules.BuildingLevel(state, beside, CMovementRules.NavalBase) > CFixedPoint.Zero)
+			{
+				cost = cost * BesideAnEnemyBase / CFixedPoint.Scale;
+				navalBase = true;
+			}
+			if (!airBase && CMovementRules.BuildingLevel(state, beside, CMovementRules.AirBase) > CFixedPoint.Zero)
+			{
+				cost = cost * BesideAnEnemyBase / CFixedPoint.Scale;
+				airBase = true;
+			}
+		}
+		return cost;
 	}
 
 	/// <summary>

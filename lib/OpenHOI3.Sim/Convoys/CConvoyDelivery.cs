@@ -26,6 +26,18 @@ public static class CConvoyDelivery
 	/// </summary>
 	public static void Run(CGameState state, CSupplyNetwork network, CConvoy convoy)
 	{
+		Sail(state, network, convoy);
+		// The day after a raid sank a ship of it, a convoy looks for its way afresh - and
+		// the water it was attacked in is dear now.
+		if (convoy.LastAttackHour != CConvoy.NeverAttacked
+			&& state.TotalHours / CGameState.HoursPerDay - convoy.LastAttackHour / CGameState.HoursPerDay == 1)
+		{
+			CConvoyMaker.FindPath(state, convoy);
+		}
+	}
+
+	private static void Sail(CGameState state, CSupplyNetwork network, CConvoy convoy)
+	{
 		convoy.Daily.Clear();
 		if (convoy.Path.Count < 2 || convoy.Transports == 0 || convoy.IsLendLease
 			|| !CConvoyRules.IsRouteUsable(state, network, convoy))

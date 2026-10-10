@@ -48,7 +48,8 @@ side picks, and its marker and its window, and supply - which depot every
 province draws on and how far from it, the day's carrying of supplies and fuel out to the
 provinces, a unit drawing on the province it stands in, the convoys that carry it across the
 sea and bring cut-off land's resources home, and a map mode that shows it, and a battle
-between fleets at sea - 1092 tests - and it is
+between fleets at sea with its marker and its window, and a fleet's missions with the raid on
+convoys, and the two days a new game runs before its first hour - 1128 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -219,8 +220,20 @@ where supplies are tested by yesterday - because who goes short on a full road i
 nothing else; do not tidy them. A unit draws on the province it stands in, a marching unit
 takes fifteen days of supplies with it, and a day's supplies and fuel are made where the
 factories are and travel to the stockpile a province a day. **A new game fills its provinces
-when it is made**, which takes about a second and a half; the original runs a day before
-that and a day after, and this runs neither.
+when it is made**, which takes about two seconds, between the two days it runs before its
+first hour.
+**Those two days - `tick.md`, section 6 - were built on 2026-10-10 and are checked like for
+like**: a new game runs what the original runs as a game is entered - a day, the filling, a
+day, a month's pass, one hour, with the clock standing still - as `CTick.RunFirstDays`, and
+all of it with `IsBeingMade` set, which is the original's "no game is running yet": a
+brigade may then have its own figure of organisation and nothing else, the month decays
+nothing and a convoy is manned for nothing. Given the laws Germany's days were run under,
+it is the start save's Germany brigade for brigade and good for good, supplies apart, which
+its leaders move. **A plain new game is not the original's first screen and is not meant to
+be**: there the AI has changed laws by then, and here the player keeps his history's
+(`docs/compatibility.md`, entry 6) - so nothing holds a reserve down before the first hour
+played does. **The savegame tool's older checks load a game with `firstDays: false`** and
+reason from day nought; leave them so, they are how each rule was pinned down.
 **Convoys - `convoys.md` - are the third piece, built on 2026-10-10, and the best checked
 thing here after the network**: a new game's convoys are the start-date save's, all 261 -
 the same runs, the same way province for province, the same transports and escorts on each,
@@ -257,9 +270,37 @@ target, runs in at full speed; a crowded fleet's own penalty leaves it hardly ev
 target at all - do not tidy them. **An idle fleet of a country nobody plays starts no battle**,
 which is the original's and is why `CGameState.Played` exists; with no AI the enemy's fleets
 never leave port, so `--sail=ENG:10531` sends one to sea for a trial by hand. There is no
-intelligence beyond "a fleet knows the water it is in", no leader, no mission, no aircraft,
-and a battle at sea has no marker and no window yet. Reading for it corrected the fact
-base's record twice.
+leader and no aircraft. Reading for it corrected the fact base's record twice.
+**The sea battle on screen - `combatview.md`, section 10 - was built on 2026-10-10 from a
+reading and checked with `--click`, and the maintainer has not looked at it**: the land
+battle's marker, row and window, the window with halves of its own (`CNavalSideView`,
+`CCombatShipEntry`) - each side's positioning and a list of its ships, **each ship's picture
+standing along its row by the ship's distance**, forty and more at the far end. No picture of
+the original's was at hand to set it against, and the land window had four things wrong until
+one was.
+**A fleet's missions - `navalmissions.md` - are the second piece, built on 2026-10-10 and,
+like the battle, read and set against nothing**: reserve, patrol, intercept, sortie, the raid
+on convoys and their escort; **transport and invasion are not built** and wait for carrying.
+The maintainer's word that day set what followed: "Fleet missions first, then the combat
+sceen, and then we tackle the games 2 days" - so the sea battle's marker and window came
+next, ahead of the air, and the new game's two days after them; all three are built. A mission is an order asked
+every hour whether it is still going, and that asking is where it does everything; all of
+them send a **player's** fleet too worn for its stance to the nearest harbour, and nobody
+else's. **A raid on a convoy is a battle**: the convoy's two counts become a throwaway fleet
+of `destroyer`s and `transport_ship`s and five rounds of the sea battle are fought on the
+spot, the raider shooting with `convoy_attack`. **Six things in it are the original's and
+look wrong, and are built so - do not tidy them; `navalmissions.md`, section 12, lists them
+for somebody who can watch the original**: an order that has told its fleet to return to
+base never takes that back, so **an interceptor goes out once** and then lies in port under
+its order; **a patrol sinks convoys** every twelve hours like a raider; a sortie ordered
+from anywhere but its base is left with a path that does not begin where it is. **How well a
+country knows a sea province is worked out once a day**, not asked for on the spot: 2 where
+one of its units was at the day's turn, 9 where that unit was a patrol shadowing somebody,
+and land a unit stands in at 9 at once - which is how a fleet in port sees without rolling.
+Whether an ordinary game of the original's does that daily or hourly was not established.
+There is no AI, so `--mission=ENG:patrol:10531` gives a country's fleet a mission for a
+trial by hand. Reading for it corrected the fact base's record five times - the plainest
+that the raid's caller the record had under the raid order is the patrol's.
 **The province readout under the top bar is scaffolding and shows only for a selected
 province** - his word, 2026-10-09, when it followed the mouse: "Very distracting."
 **The four windows a unit is ordered
@@ -351,7 +392,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 112 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 113 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -387,7 +428,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 3058-address, 317-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3096-address, 317-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -405,8 +446,7 @@ fine, because the framework version and the SDK version are independent.
     dotnet build OpenHOI3.sln
     dotnet test tests/OpenHOI3.Tests
 
-From VS Code, `F5` offers *Play OpenHOI3*, *Play OpenHOI3 (all units)* - every unit type
-there to order from the start, for trying the builder windows - *Play OpenHOI3 (choose
+From VS Code, `F5` offers *Play OpenHOI3*, *Play OpenHOI3 (choose
 country)*, which asks for a tag and whether to have every unit type, *Play OpenHOI3 (ask
 for arguments)*, which asks for the developer switches themselves in one box - the game
 cuts an argument wherever a space is followed by `--`, so the box may hold several -
@@ -489,6 +529,21 @@ beside the repository.
   the strongest fleet of each of two countries is put in one sea province, the first country
   played by a person, and the fight is told hour by hour - Germany against the United Kingdom
   with no tags given. Run it after touching the `CNaval` classes there.
+  `OpenHOI3.SaveCheck raid <install> [raider] [victim] [days] [seed]` is the trial of a
+  fleet's missions: two countries are put at war, the first one's fleet with the most
+  `convoy_attack` is sent to raid the water the most of the other's convoys go through, and
+  each sinking is told - Germany against the United Kingdom for thirty days with no tags
+  given, which sinks 45 transports and 5 escorts. Run it after touching
+  `lib/OpenHOI3.Sim/Missions`, `CConvoyRaid` or what a convoy does about an attack.
+  `OpenHOI3.SaveCheck firstdays <install> <start-date savegame>` sets a new game as a player
+  gets it, its two days run, beside the save country by country. **It is meant to differ** -
+  the original's AI has changed laws and shares by then - and is there to show by how much.
+  The like-for-like is `supplypass <install> <start-date savegame> countries`, below: with
+  `history=GER:training_laws+industrial_policy_laws history=DDR:industrial_policy_laws
+  history=DFR:industrial_policy_laws` after it - the laws the AI changed only after the days
+  were run - Germany agrees in everything but supplies, and the others' organisation is 2770
+  of 2770 where no commander is over them. Run it after touching `CTick.RunFirstDays`, the
+  daily pass's order, or anything that asks `IsBeingMade`.
   `OpenHOI3.SaveCheck supply <install> <savegame>` checks the supply network against what a
   save says of it, with the save's own owners, controllers and capitals, so a save of any
   day will do: the provinces marked `out_of_supply_days` are ours that draw on no depot -
@@ -520,7 +575,7 @@ beside the repository.
   after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet and a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - carry 1092 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - and a fleet's missions with the raid on a convoy carry 1125 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

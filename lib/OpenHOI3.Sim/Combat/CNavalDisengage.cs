@@ -93,7 +93,11 @@ public static class CNavalDisengage
 			}
 			CCombats.LeaveForMarch(state, fleet);
 			CMovement.SetPath(fleet, route, clear: true);
-			CUnitOrders.Clear(fleet);
+			// A raider that breaks away from a convoy keeps its order.
+			if (!combat.IsConvoyBattle)
+			{
+				CUnitOrders.Clear(fleet);
+			}
 		}
 	}
 

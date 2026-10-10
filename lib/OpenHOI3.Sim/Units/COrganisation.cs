@@ -58,6 +58,11 @@ public static class COrganisation
 	/// A brigade that is in no unit - one just built, at the moment it is made - is not
 	/// held back as a reserve and not measured against the officers: it has its own
 	/// figure and the branch's modifier, and that is all.
+	///
+	/// Before a game is under way - the two days a new game runs before its first hour -
+	/// the most a brigade may have is its own figure and nothing else: no reserve's
+	/// share, no officers, no modifier. So an upgrade finished in those days holds a
+	/// brigade to its figure, and the hour run at their end brings nobody down.
 	/// </summary>
 	/// <param name="penaltyAtWar">What to do for a reserve of a country at war that has not mobilised.</param>
 	/// <param name="penaltyAlways">Keep a reserve short whatever its country is doing.</param>
@@ -65,6 +70,10 @@ public static class COrganisation
 		bool penaltyAtWar = false, bool penaltyAlways = false)
 	{
 		long most = subUnit.Stats[CSubUnitType.DefaultOrganisation].Raw;
+		if (state.IsBeingMade)
+		{
+			return new CFixedPoint(most);
+		}
 		if (subUnit.Unit is not null)
 		{
 			if (subUnit.IsReserve && CUnits.ReservePenaltyApplies(state, owner, penaltyAtWar, penaltyAlways))

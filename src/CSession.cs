@@ -17,6 +17,7 @@ using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
@@ -288,7 +289,22 @@ public partial class CSession : Node
 		units.AddRange(combat.Defender.Units);
 		foreach (CUnit unit in units)
 		{
-			if (unit.Owner != Player.Tag || !unit.IsMoving)
+			if (unit.Owner != Player.Tag)
+			{
+				continue;
+			}
+			// A fleet is not halted out of a battle: it is set breaking away.
+			if (combat.Kind == ECombatKind.Naval)
+			{
+				var breakAway = new CBreakAwayCommand(Player.Tag, unit.Id);
+				if (breakAway.MayExecute(State))
+				{
+					_simulation.Post(breakAway);
+					_ordered = true;
+				}
+				continue;
+			}
+			if (!unit.IsMoving)
 			{
 				continue;
 			}
@@ -713,6 +729,9 @@ public partial class CSession : Node
 	/// <c>--war=GER:POL</c> puts those two countries at war,
 	/// <c>--sail=ENG:10531</c> sends the strongest fleet of that country that can reach it
 	/// to that sea province,
+	/// <c>--mission=ENG:patrol:10531</c> gives such a fleet a mission there - reserve,
+	/// patrol, intercept, sortie or convoyraid, with <c>:passive</c> or <c>:defensive</c>
+	/// after the province where it is not to be aggressive,
 	/// <c>--order=type,type</c> orders one unit made of those brigades, ships or wings,
 	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
 	/// type) opens the window that orders one, with that in it,
@@ -845,6 +864,36 @@ public partial class CSession : Node
 				else
 				{
 					GD.Print($"--sail: '{argument["--sail=".Length..]}' is not a country with a fleet and a sea province it can reach.");
+				}
+			}
+			else if (argument.StartsWith("--mission="))
+			{
+				// Gives a country's strongest fleet that may have it a mission for a province,
+				// there being no AI to give one: --mission=ENG:patrol:10531, or with a stance
+				// after it, --mission=GER:convoyraid:10538:passive. The missions are reserve,
+				// patrol, intercept, sortie and convoyraid. Carried out before anything after it.
+				string[] parts = argument["--mission=".Length..].Split(':');
+				int stance = parts.Length > 3 && parts[3].Equals("passive", System.StringComparison.OrdinalIgnoreCase) ? CMission.Passive
+					: parts.Length > 3 && parts[3].Equals("defensive", System.StringComparison.OrdinalIgnoreCase) ? CMission.Defensive
+					: CMission.Aggressive;
+				if (parts.Length >= 3 && CCountryTag.TryParse(parts[0], out CCountryTag owner)
+					&& System.Enum.TryParse(parts[1], ignoreCase: true, out EUnitOrder mission) && CMissions.IsMission(mission)
+					&& int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int where)
+					&& State.Country(owner) is { } sender
+					&& sender.AllUnits().Where(unit => unit.Kind == EUnitKind.Navy && unit.Location > 0)
+						.OrderByDescending(unit => unit.SubUnits.Sum(ship =>
+							ship.Stats[mission == EUnitOrder.ConvoyRaid ? CConvoyRaid.ConvoyAttack : CNavalFire.SeaAttack].Raw))
+						.FirstOrDefault(unit => new CSetUnitOrderCommand(owner, unit.Id, mission, where, stance).MayExecute(State))
+						is { } fleet)
+				{
+					_simulation.Post(new CSetUnitOrderCommand(owner, fleet.Id, mission, where, stance));
+					_simulation.Pump();
+					GD.Print($"--mission: {fleet.Name} of {sender.Name}, in {State.Province(fleet.Location).Name}, "
+						+ $"is given {mission} for {State.Province(where).Name}.");
+				}
+				else
+				{
+					GD.Print($"--mission: '{argument["--mission=".Length..]}' is not a country with a fleet, a mission it may be given and a province for it.");
 				}
 			}
 			else if (argument == "--all-units" && Player is not null)

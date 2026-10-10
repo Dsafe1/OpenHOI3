@@ -83,7 +83,8 @@ public class OrdersTextTests
 			"MOVE_ORDER", "ORDER_REBASE", "ORDER_RESERVE", "ORDER_PATROL", "ORDER_INTERCEPT", "ORDER_SORTIE",
 			"ORDER_CONVOY_RAID", "ORDER_TRANSPORT", "ORDER_INVADE",
 		}, toSea.Select(row => row.NameKey));
-		Assert.Equal(new[] { true, false, false, false, false, false, false, false, false }, toSea.Select(row => row.MayGive));
+		// Out at sea: the move and the four missions that are for water; no base, no port, nothing to carry.
+		Assert.Equal(new[] { true, false, false, true, true, true, true, false, false }, toSea.Select(row => row.MayGive));
 		Assert.Equal(0, COrdersText.Suggested(toSea, state, country, fleet, state.Province(Bay)));
 
 		// To a port with a naval base both can be given, and the change of base is the one ticked.
