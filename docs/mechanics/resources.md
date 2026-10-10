@@ -145,6 +145,29 @@ production, manpower, leadership and victory points; every country's capital.
 - *Technology levels* - 28511 of 28987. In the other 476 the save is higher than the
   history files say, usually by one: militia and cavalry equipment, agriculture, supply
   production. Something grants them and it is not the history.
+
+  **Looked at on 2026-10-10** (`OpenHOI3.SaveCheck techgap`), and half answered.
+  **Measured:** in 453 of the 476 the save's level is exactly **the highest level of that
+  technology that was due before 1936** - `start_year` for level 1, `first_offset` and
+  `additional_offset` for those above it (`research.md`, section 2) - and in the other 23
+  it is part of the way there, all in small countries. So a country is brought *up to
+  date* in some technologies as a game is entered: agriculture to 3 from nothing for the
+  Soviet Union, the two artillery technologies to 3 for Britain, destroyers to 2.
+  **Which technologies is not found.** Some 12,000 other levels are as far behind and are
+  left alone - Germany gets 22 and is left behind in 36. They come in whole sets by kind
+  of unit - Germany's are light tanks, armoured cars, anti-tank, anti-air, destroyers,
+  submarines, militia, and the three that allow mountain troops, engineers and carrier
+  air groups - and they are not the kinds the country has: Germany gets armoured cars and
+  has none, and Britain's submarines are left alone where Germany's are not. Tried and not
+  it: the levels a country's own units or orders hold (29 of 476), the unit types it has
+  (192, with over 500 raised that the save leaves), every level its history file gives at
+  any later date (66), and its own model files (47). **It is not research either**: no
+  technology of any country has progress or leadership on it in the save, and all 1316
+  abilities are the history's, where a level researched would have raised one. And it is
+  done for the country the player has as for the rest. That much looks like the hand
+  that changes the laws before the first screen (section 5); how it is done wants a
+  reading, and whether the player's country should get it wants the maintainer's word,
+  as the laws did (`docs/compatibility.md`, entry 6).
 - *Home production* for three countries: Canada's and Australia's metal, where the save
   has less than ours, and Honduras's energy.
 - *A country with no provinces has a full government in the save*, where the history files
@@ -160,7 +183,8 @@ no country uses more than this project gives it.
 - ~~how the original decides a province is **joined to the capital**~~ - read, 2026-10-09:
   `supply.md`, section 2;
 - why **Honduras's energy** is half a unit a day over the save's;
-- where the **476 extra technology levels** come from;
+- where the **476 extra technology levels** come from: they bring a country up to what was
+  due before the start year, in technologies chosen by a rule not found (above);
 - **when and how often the AI runs** before the first hour, and why it runs for the
   player's country;
 - what makes current production **step back up**, and how fast.

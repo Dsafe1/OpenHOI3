@@ -32,8 +32,8 @@ public static class CNavalIntelligence
 	}
 
 	/// <summary>
-	/// The day's refresh: every level is forgotten, and each unit at sea gives its
-	/// country its province.
+	/// The day's refresh: every level is forgotten, and each unit gives its country the
+	/// province it is in - at sea, and on land that somebody else holds.
 	/// </summary>
 	public static void Refresh(CGameState state)
 	{
@@ -43,12 +43,16 @@ public static class CNavalIntelligence
 		{
 			foreach (CUnit unit in country.AllUnits())
 			{
-				if (unit.IsRemoved || unit.Location <= 0 || unit.Location >= state.Provinces.Count
-					|| !state.Province(unit.Location).IsSea)
+				if (unit.IsRemoved || unit.Location <= 0 || unit.Location >= state.Provinces.Count)
 				{
 					continue;
 				}
-				int level = unit.Order == EUnitOrder.Patrol && unit.Mission.LiveTarget is not null
+				CProvince province = state.Province(unit.Location);
+				if (!province.IsSea && province.Controller == unit.Owner)
+				{
+					continue;                                    // its own ground it knows anyway
+				}
+				int level = !province.IsSea || (unit.Order == EUnitOrder.Patrol && unit.Mission.LiveTarget is not null)
 					? LevelOfOwnGround
 					: LevelWithAUnitThere;
 				var key = (unit.Location, unit.Owner);

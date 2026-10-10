@@ -49,7 +49,8 @@ province draws on and how far from it, the day's carrying of supplies and fuel o
 provinces, a unit drawing on the province it stands in, the convoys that carry it across the
 sea and bring cut-off land's resources home, and a map mode that shows it, and a battle
 between fleets at sea with its marker and its window, and a fleet's missions with the raid on
-convoys, and the two days a new game runs before its first hour - 1128 tests - and it is
+convoys, and the two days a new game runs before its first hour, and an air unit's two
+fighting missions with the battle in the air - 1149 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -232,7 +233,9 @@ it is the start save's Germany brigade for brigade and good for good, supplies a
 its leaders move. **A plain new game is not the original's first screen and is not meant to
 be**: there the AI has changed laws by then, and here the player keeps his history's
 (`docs/compatibility.md`, entry 6) - so nothing holds a reserve down before the first hour
-played does. **The savegame tool's older checks load a game with `firstDays: false`** and
+played does, and one sent to attack before that hour fights above its ceiling. His word on
+that, 2026-10-10: "The two days for the brigades is ok for now. Maybe it comes up again
+later" - leave it. **The savegame tool's older checks load a game with `firstDays: false`** and
 reason from day nought; leave them so, they are how each rule was pinned down.
 **Convoys - `convoys.md` - are the third piece, built on 2026-10-10, and the best checked
 thing here after the network**: a new game's convoys are the start-date save's, all 261 -
@@ -272,12 +275,12 @@ which is the original's and is why `CGameState.Played` exists; with no AI the en
 never leave port, so `--sail=ENG:10531` sends one to sea for a trial by hand. There is no
 leader and no aircraft. Reading for it corrected the fact base's record twice.
 **The sea battle on screen - `combatview.md`, section 10 - was built on 2026-10-10 from a
-reading and checked with `--click`, and the maintainer has not looked at it**: the land
+reading and checked with `--click`; the maintainer looked at it that day - "The sea battle
+window looked perfect"**: the land
 battle's marker, row and window, the window with halves of its own (`CNavalSideView`,
 `CCombatShipEntry`) - each side's positioning and a list of its ships, **each ship's picture
 standing along its row by the ship's distance**, forty and more at the far end. No picture of
-the original's was at hand to set it against, and the land window had four things wrong until
-one was.
+the original's was measured against it, so it has his eye and no measurement.
 **A fleet's missions - `navalmissions.md` - are the second piece, built on 2026-10-10 and,
 like the battle, read and set against nothing**: reserve, patrol, intercept, sortie, the raid
 on convoys and their escort; **transport and invasion are not built** and wait for carrying.
@@ -289,18 +292,47 @@ them send a **player's** fleet too worn for its stance to the nearest harbour, a
 else's. **A raid on a convoy is a battle**: the convoy's two counts become a throwaway fleet
 of `destroyer`s and `transport_ship`s and five rounds of the sea battle are fought on the
 spot, the raider shooting with `convoy_attack`. **Six things in it are the original's and
-look wrong, and are built so - do not tidy them; `navalmissions.md`, section 12, lists them
-for somebody who can watch the original**: an order that has told its fleet to return to
+look wrong, and are built so - do not tidy them; `navalmissions.md`, section 12, lists them,
+and the maintainer's word on them, 2026-10-10, is "All those things are correct, and they may
+be bugs, but thats ok"**: an order that has told its fleet to return to
 base never takes that back, so **an interceptor goes out once** and then lies in port under
 its order; **a patrol sinks convoys** every twelve hours like a raider; a sortie ordered
 from anywhere but its base is left with a path that does not begin where it is. **How well a
 country knows a sea province is worked out once a day**, not asked for on the spot: 2 where
 one of its units was at the day's turn, 9 where that unit was a patrol shadowing somebody,
 and land a unit stands in at 9 at once - which is how a fleet in port sees without rolling.
-Whether an ordinary game of the original's does that daily or hourly was not established.
+Whether an ordinary game of the original's does that daily or hourly was not read; the
+maintainer's word, 2026-10-10: "I think its daily", which is what is built.
 There is no AI, so `--mission=ENG:patrol:10531` gives a country's fleet a mission for a
 trial by hand. Reading for it corrected the fact base's record five times - the plainest
 that the raid's caller the record had under the raid order is the patrol's.
+**The battle in the air - `aircombat.md` - is the fourth piece, built on 2026-10-10, read
+out of the original and set against nothing, and the maintainer has not looked at it**:
+air superiority and the intercept as missions (`CAirMissions`, `CAirSuperiority`,
+`CAirIntercept` in `Sim/Missions`), and the air battle (`CAirBattle`, `CAirFire`,
+`CAirModifiers`, `CAirRetreat` in `Sim/Combat`). An air mission is an order asked every hour
+whether it is still going, and outlives its sorties: home under "return to base" the unit
+flies again until the order's end hour. Air superiority goes round the mission's provinces
+and flies one province ahead of the strongest enemy air unit it knows of; the intercept waits
+at its base, watches two steps around its provinces and turns for home once it has caught
+its target. **Anything in the air may be fought; a unit sitting at its base only by a unit
+under one of the two orders, and only while it is itself fit to fly** - which corrected the
+fact base, whose record had both orders needed everywhere. A battle is four hours of each
+wing firing its `air_attack` in shots at one wing it keeps to, and a unit out of one cannot
+be fought for an hour. **Eight things in it are the original's and look odd, and are built
+so - do not tidy them; `aircombat.md`, section 9**: a beaten unit beside the sea flies out to
+sea and not home, a worn unit at its base cannot be attacked and yet takes off every third
+hour, a wing's defence and its `air_defence` do nothing, a critical hit multiplies the
+strength alone. The maintainer's word on 2026-10-10: that the defence does nothing is "a bug
+in the original", and of the others he was shown, "Just note them" - none is to be mended
+unless he says so. **What a country knows of a province was read whole for it** (`CIntelligence`,
+`aircombat.md`, section 6): 9 for whoever holds it and their friends and for a country with a
+unit on its ground, 2 with a unit in its water; radar is not built, and nothing draws a fog
+of war. **A mission's area is a list of provinces that comes with the order**; the orders
+window gives the one province clicked, its shapes, sliders, day and night boxes and dates
+being drawn and doing nothing, and of the original's shapes only the circle was read
+(`CAirMissionArea`). An air battle has no marker and no window yet. With no AI,
+`--mission=GER:airsuperiority:1928` gives a country's air unit a mission for a trial by hand.
 **The province readout under the top bar is scaffolding and shows only for a selected
 province** - his word, 2026-10-09, when it followed the mouse: "Very distracting."
 **The four windows a unit is ordered
@@ -392,7 +424,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 113 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 114 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -428,7 +460,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 3096-address, 317-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3123-address, 317-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -544,6 +576,17 @@ beside the repository.
   were run - Germany agrees in everything but supplies, and the others' organisation is 2770
   of 2770 where no commander is over them. Run it after touching `CTick.RunFirstDays`, the
   daily pass's order, or anything that asks `IsBeingMade`.
+  `OpenHOI3.SaveCheck airbattle <install> [attacker] [defender] [seed]` is the trial of the
+  battle in the air: the two countries' nearest pair of air units with an air attack, the
+  second given an intercept over its own base and the first air superiority over it, and a
+  week told - Germany against Poland with no tags given, thirteen battles over Warszawa in
+  two and a half days. Run it after touching the `CAir` classes of `Sim/Missions` or
+  `Sim/Combat`, or `CIntelligence`.
+  `OpenHOI3.SaveCheck techgap <install> <start-date savegame> [examples] [tag]` is a look and
+  not a check: the 476 technology levels the start save has above the history's. 453 of them
+  are the highest level of that technology due before 1936; which technologies are chosen is
+  not found (`docs/mechanics/resources.md`, section 5). **A new game does not give them**,
+  and that waits for a reading and then for the maintainer's word.
   `OpenHOI3.SaveCheck supply <install> <savegame>` checks the supply network against what a
   save says of it, with the save's own owners, controllers and capitals, so a save of any
   day will do: the provinces marked `out_of_supply_days` are ours that draw on no depot -
@@ -575,7 +618,7 @@ beside the repository.
   after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - and a fleet's missions with the raid on a convoy carry 1125 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, and an air unit's two missions with what a country knows and the battle in the air carry 1149 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

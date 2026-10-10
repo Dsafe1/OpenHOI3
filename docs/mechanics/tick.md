@@ -104,9 +104,10 @@ landing on one hour. `confirmed` A second per-country gate fires at the hour equ
 4. Per province: the province's daily work.
 5. **Events**: every country's candidate events are tried against their mean time to
    happen. See the note below - this is not where the candidates come from.
-6. **Intelligence is refreshed.** Built as far as a fleet's sighting asks: `navalmissions.md`,
-   section 9. The original also does it at the end of an hour once a change of who plays a
+6. **Intelligence is refreshed.** Built but for radar: `aircombat.md`, section 6, and
+   `navalmissions.md`, section 9. The original also does it at the end of an hour once a change of who plays a
    country has asked for it; whether an ordinary game is in that state was not established.
+   The maintainer, 2026-10-10: "I think its daily" - which is what is built.
 
 Several further steps of the daily pass are called in a known order and are **not yet
 identified**.
@@ -230,7 +231,8 @@ in that order and with the game "being made" throughout. Three things about it:
   a reserve division sent to attack before the first hour is run keeps its own figure for
   that battle - 35 for a German reserve, where its ceiling is 14. Holding every brigade
   once the days are run would close it and is one line; it is not done because it is not
-  what the original does, and it is the maintainer's to say.
+  what the original does. The maintainer, asked on 2026-10-10: "The two days for the
+  brigades is ok for now. Maybe it comes up again later." So it stays as it is.
 - **The figures of the first screen are worked out afterwards for a running game**, by the
   pass that is run on entering one, so the top bar shows what the first day played will
   make.

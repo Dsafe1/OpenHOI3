@@ -597,6 +597,14 @@ public partial class CSession : Node
 				+ $"{string.Join(", ", atSea.Defender.Countries.Select(tag => CountryName(tag)))} with "
 				+ $"{atSea.Defender.Units.Sum(fleet => fleet.SubUnits.Count)} ({atSea.Defender.Sunk.Count} sunk)";
 		}
+		if (CCombats.In(State, provinceId, ECombatKind.Air) is { } inTheAir)
+		{
+			text += $"\nBattle in the air, hour {inTheAir.Duration}: "
+				+ $"{string.Join(", ", inTheAir.Attacker.Countries.Select(tag => CountryName(tag)))} with "
+				+ $"{inTheAir.Attacker.Units.Sum(unit => unit.SubUnits.Count)} wings against "
+				+ $"{string.Join(", ", inTheAir.Defender.Countries.Select(tag => CountryName(tag)))} with "
+				+ $"{inTheAir.Defender.Units.Sum(unit => unit.SubUnits.Count)}";
+		}
 		if (CCombats.In(State, provinceId) is { } combat)
 		{
 			text += $"\nBattle, hour {combat.Duration}: "
@@ -731,7 +739,10 @@ public partial class CSession : Node
 	/// to that sea province,
 	/// <c>--mission=ENG:patrol:10531</c> gives such a fleet a mission there - reserve,
 	/// patrol, intercept, sortie or convoyraid, with <c>:passive</c> or <c>:defensive</c>
-	/// after the province where it is not to be aggressive,
+	/// after the province where it is not to be aggressive - and
+	/// <c>--mission=GER:airsuperiority:2313</c> or <c>airintercept</c> gives the country's
+	/// best fighters that mission over the province, with <c>:300</c> after it for every
+	/// province within that distance as well,
 	/// <c>--order=type,type</c> orders one unit made of those brigades, ships or wings,
 	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
 	/// type) opens the window that orders one, with that in it,
@@ -876,7 +887,37 @@ public partial class CSession : Node
 				int stance = parts.Length > 3 && parts[3].Equals("passive", System.StringComparison.OrdinalIgnoreCase) ? CMission.Passive
 					: parts.Length > 3 && parts[3].Equals("defensive", System.StringComparison.OrdinalIgnoreCase) ? CMission.Defensive
 					: CMission.Aggressive;
-				if (parts.Length >= 3 && CCountryTag.TryParse(parts[0], out CCountryTag owner)
+				// An air mission instead, for the country's air unit with the most air attack:
+				// --mission=GER:airsuperiority:2313 or --mission=GER:airintercept:1861, with a
+				// radius after the province where it is to cover more than the one.
+				if (parts.Length >= 3 && CCountryTag.TryParse(parts[0], out CCountryTag flier)
+					&& System.Enum.TryParse(parts[1], ignoreCase: true, out EUnitOrder airMission)
+					&& CAirMissions.IsAirMission(airMission)
+					&& int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int over))
+				{
+					CUnit? wing = State.Country(flier)?.AllUnits()
+						.Where(unit => unit.Kind == EUnitKind.Air && unit.Location > 0)
+						.OrderByDescending(unit => unit.SubUnits.Sum(sub => sub.Stats[CAirMissions.AirAttack].Raw))
+						.FirstOrDefault(unit => over > 0 && over < State.Provinces.Count
+							&& CUnitOrders.IsInRange(State, unit, airMission, State.Province(over))
+							&& new CSetUnitOrderCommand(flier, unit.Id, airMission, over).MayExecute(State));
+					if (wing is not null && State.Country(flier) is { } air)
+					{
+						List<int> area = parts.Length > 3 && int.TryParse(parts[3], NumberStyles.Integer,
+								CultureInfo.InvariantCulture, out int radius)
+							? CAirMissionArea.Circle(State, air, wing, airMission, over, CFixedPoint.FromInt(radius))
+							: new List<int> { over };
+						_simulation.Post(new CSetUnitOrderCommand(flier, wing.Id, airMission, over, provinces: area));
+						_simulation.Pump();
+						GD.Print($"--mission: {wing.Name} of {air.Name}, based in {State.Province(wing.Base).Name}, "
+							+ $"is given {airMission} over {State.Province(over).Name} and {area.Count - 1} provinces more.");
+					}
+					else
+					{
+						GD.Print($"--mission: '{argument["--mission=".Length..]}' is not a country with an air unit that may be given that.");
+					}
+				}
+				else if (parts.Length >= 3 && CCountryTag.TryParse(parts[0], out CCountryTag owner)
 					&& System.Enum.TryParse(parts[1], ignoreCase: true, out EUnitOrder mission) && CMissions.IsMission(mission)
 					&& int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int where)
 					&& State.Country(owner) is { } sender

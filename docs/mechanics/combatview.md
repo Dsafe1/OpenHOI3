@@ -19,8 +19,9 @@ at sea `CNavalSideView` and `CCombatShipEntry` - the panel's row
 `src/Screens/CUnitCombatEntry.cs`, the marker `src/Map/CBattleMarkers.cs`.
 
 **A battle at sea has the same window, marker and row, with other halves**: section 10, built on
-2026-10-10 from a reading, tried with real clicks, and **set against no screenshot of the
-original's** - the maintainer has not looked at it. A battle in the air is not built, since none
+2026-10-10 from a reading and tried with real clicks. **The maintainer looked at it that day:
+"The sea battle window looked perfect."** No screenshot of the original's was laid beside it
+and measured, as three were for the land window. A battle in the air is not built, since none
 is fought.
 
 ---
@@ -209,8 +210,8 @@ begun is two red lines with an outlined head.
 ## 10. A battle at sea
 
 `confirmed` (`reversing/findings/FINDINGS-combatview.md`, section 12) unless marked. What a
-battle at sea *does* is `navalcombat.md`. Nothing here was set against a picture of the
-original's.
+battle at sea *does* is `navalcombat.md`. Nothing here was measured against a picture of the
+original's; the maintainer looked at the window on 2026-10-10 and it "looked perfect".
 
 **The marker, the row in a fleet's panel and the window are the land battle's** - one marker
 type, one row, one window - with the same share behind the bar, the number and the colour

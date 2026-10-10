@@ -81,7 +81,7 @@ public static class CUnitOrders
 				EUnitOrder.Move, EUnitOrder.Rebase, EUnitOrder.Reserve, EUnitOrder.Patrol, EUnitOrder.Intercept,
 				EUnitOrder.Sortie, EUnitOrder.ConvoyRaid,
 			},
-			EUnitKind.Air => new[] { EUnitOrder.RebaseAir },
+			EUnitKind.Air => new[] { EUnitOrder.AirSuperiority, EUnitOrder.AirIntercept, EUnitOrder.RebaseAir },
 			_ => System.Array.Empty<EUnitOrder>(),
 		};
 	}
@@ -101,6 +101,10 @@ public static class CUnitOrders
 		if (CMissions.IsMission(order))
 		{
 			return CMissions.MayGive(state, country, unit, order, province, convoy);
+		}
+		if (CAirMissions.IsAirMission(order))
+		{
+			return CAirMissions.MayGive(state, country, unit, order, province);
 		}
 		switch (order)
 		{
@@ -150,13 +154,27 @@ public static class CUnitOrders
 	/// <param name="stance">How bold the order is: 0 aggressive, 1 defensive, 2 passive.</param>
 	/// <param name="priority">From 0 to 4.</param>
 	/// <param name="convoy">The number of the convoy an escort is to sail with.</param>
+	/// <param name="provinces">An air mission: the provinces it covers. With none said, the order's own.</param>
+	/// <param name="time">An air mission: by day, by night, or both.</param>
+	/// <param name="endHour">An air mission: the hour of the game after which it is over.</param>
 	public static void Give(CGameState state, CCountry country, CUnit unit, EUnitOrder order, int province,
-		int stance = CMission.Defensive, int priority = 0, int convoy = 0)
+		int stance = CMission.Defensive, int priority = 0, int convoy = 0,
+		IReadOnlyList<int>? provinces = null, int time = CMission.DayAndNight, long endHour = CMission.NoEnd)
 	{
 		Clear(unit);
 		unit.Order = order;
 		unit.OrderProvince = province;
-		unit.Mission = new CMission { Stance = stance, Priority = priority, Convoy = convoy };
+		unit.Mission = new CMission
+		{
+			Stance = stance, Priority = priority, Convoy = convoy, Time = time, EndHour = endHour,
+			StartHour = state.TotalHours,
+		};
+		if (CAirMissions.IsAirMission(order))
+		{
+			CAirMissions.SetProvinces(state, unit, provinces ?? new[] { province });
+			CAirMissions.Start(state, country, unit);
+			return;
+		}
 		if (CMissions.IsMission(order))
 		{
 			if (order == EUnitOrder.Sortie)
@@ -217,6 +235,14 @@ public static class CUnitOrders
 		if (CMissions.IsMission(unit.Order))
 		{
 			if (!CMissions.RunHour(state, country, unit))
+			{
+				Clear(unit);
+			}
+			return;
+		}
+		if (CAirMissions.IsAirMission(unit.Order))
+		{
+			if (!CAirMissions.RunHour(state, country, unit))
 			{
 				Clear(unit);
 			}

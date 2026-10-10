@@ -92,6 +92,8 @@ public class FleetsAndAirTests
 			kind == EUnitKind.Navy ? EUnitBranch.Naval : EUnitBranch.Air);
 		type.Stats.Values.Set(CMovementSpeed.MaximumSpeed, CFixedPoint.Parse(speed));
 		type.Stats.Values.Set(CUnitOrders.Range, CFixedPoint.Parse(range));
+		// The most organisation it may have: an air unit away from its base with none is sent home.
+		type.Stats.Values.Set(CSubUnitType.DefaultOrganisation, CFixedPoint.FromInt(100));
 		var unit = new CUnit(kind, country.Tag) { Id = ++state.LastUnitId, Location = province, Base = province, Name = "Unit" };
 		var subUnit = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = unit };
 		subUnit.Stats.CopyFrom(type.Stats);

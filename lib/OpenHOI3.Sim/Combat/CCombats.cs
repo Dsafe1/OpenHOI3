@@ -50,10 +50,14 @@ public static class CCombats
 	/// </summary>
 	public static bool MayEngage(CGameState state, CUnit unit, CUnit other)
 	{
-		// A unit fights its own arm: a fleet a fleet, at sea.
+		// A unit fights its own arm: a fleet a fleet, at sea, and an air unit an air unit.
 		if (unit.Kind == EUnitKind.Navy || other.Kind == EUnitKind.Navy)
 		{
 			return CNavalBattle.MayEngage(state, unit, other);
+		}
+		if (unit.Kind == EUnitKind.Air || other.Kind == EUnitKind.Air)
+		{
+			return CAirBattle.MayEngage(state, unit, other);
 		}
 		return unit != other && unit.Owner != other.Owner
 			&& !unit.IsRemoved && !other.IsRemoved
@@ -91,6 +95,11 @@ public static class CCombats
 		if (unit.Kind == EUnitKind.Navy)
 		{
 			CNavalBattle.Look(state, unit, province);
+			return;
+		}
+		if (unit.Kind == EUnitKind.Air)
+		{
+			CAirBattle.Look(state, unit, province);
 			return;
 		}
 		if (province.Id == 0 || unit.IsRemoved || !CMovementRules.IsLandUnit(unit) || unit.SubUnits.Count == 0)
@@ -161,7 +170,11 @@ public static class CCombats
 	public static bool Offer(CGameState state, CCombat combat, CUnit unit)
 	{
 		bool isNaval = combat.Kind == ECombatKind.Naval;
-		if (unit.IsRemoved || (isNaval ? unit.Kind != EUnitKind.Navy : !CMovementRules.IsLandUnit(unit)))
+		bool isAir = combat.Kind == ECombatKind.Air;
+		bool isOfTheArm = isNaval ? unit.Kind == EUnitKind.Navy
+			: isAir ? unit.Kind == EUnitKind.Air
+			: CMovementRules.IsLandUnit(unit);
+		if (unit.IsRemoved || !isOfTheArm)
 		{
 			return false;
 		}
@@ -175,6 +188,10 @@ public static class CCombats
 		if (isNaval)
 		{
 			CNavalBattle.Join(state, combat, side, unit);
+		}
+		else if (isAir)
+		{
+			CAirBattle.Join(side, unit);
 		}
 		else
 		{
@@ -213,6 +230,14 @@ public static class CCombats
 				continue;
 			}
 			bool isNaval = combat.Kind == ECombatKind.Naval;
+			if (combat.Kind == ECombatKind.Air)
+			{
+				if (CAirBattle.RunHour(state, combat))
+				{
+					Finish(state, combat);
+				}
+				continue;
+			}
 			if (!combat.HasBegun)
 			{
 				if (isNaval)

@@ -61,4 +61,42 @@ public sealed class CMission
 
 	/// <summary>An escort: which end it is bound for - the first when set.</summary>
 	public bool Turned { get; set; }
+
+	// ---- an air mission's: docs/mechanics/aircombat.md
+
+	/// <summary>An air mission flies by day only.</summary>
+	public const int ByDay = 0;
+
+	/// <summary>An air mission flies by night only.</summary>
+	public const int ByNight = 1;
+
+	/// <summary>An air mission flies day and night.</summary>
+	public const int DayAndNight = 2;
+
+	/// <summary>What <see cref="EndHour"/> is for a mission that never ends.</summary>
+	public const long NoEnd = long.MaxValue;
+
+	/// <summary>An air mission: the provinces it covers, in the order they were given.</summary>
+	public List<int> Provinces { get; } = new();
+
+	/// <summary>An air mission: when it flies - by day, by night, or both.</summary>
+	public int Time { get; set; } = DayAndNight;
+
+	/// <summary>An air mission: the hour of the game from which it may fly.</summary>
+	public long StartHour { get; set; }
+
+	/// <summary>An air mission: the hour of the game after which it is over once the unit is home.</summary>
+	public long EndHour { get; set; } = NoEnd;
+
+	/// <summary>An air mission: the province it is flying to, or 0.</summary>
+	public int Destination { get; set; }
+
+	/// <summary>An intercept: the province where it means to meet a target that is on its way in, or 0.</summary>
+	public int Meeting { get; set; }
+
+	/// <summary>An intercept: the provinces it watches - its mission's and two steps around them - in the order they were added.</summary>
+	public List<int> Watched { get; } = new();
+
+	/// <summary>The same provinces, for asking whether one is among them.</summary>
+	public HashSet<int> WatchedSet { get; } = new();
 }

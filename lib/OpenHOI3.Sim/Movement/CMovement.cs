@@ -151,7 +151,7 @@ public static class CMovement
 			{
 				if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.IsRetreating
 					|| unit.AttackDelay > CFixedPoint.Zero || unit.HoursAttacking > 0
-					|| unit.EngageWait > 0
+					|| unit.EngageWait > 0 || unit.NoBattleHours > 0
 					|| (atWar && (CMovementRules.IsLandUnit(unit) || unit.Kind == EUnitKind.Navy)))
 				{
 					(busy ??= new List<CUnit>()).Add(unit);
@@ -186,7 +186,21 @@ public static class CMovement
 		{
 			unit.EngageWait--;
 		}
+		// An air unit found in a battle cannot be taken into another for two of its hours.
+		bool isAir = unit.Kind == EUnitKind.Air;
+		if (isAir && unit.IsFighting)
+		{
+			unit.NoBattleHours = CAirBattle.Grace;
+		}
 		CUnitOrders.RunHour(state, country, unit);
+		if (isAir)
+		{
+			Missions.CAirMissions.SendHomeEmpty(state, country, unit);
+			if (unit.IsRemoved)
+			{
+				return;
+			}
+		}
 		bool isLand = CMovementRules.IsLandUnit(unit);
 		if (isLand && unit.IsMoving)
 		{
@@ -206,9 +220,13 @@ public static class CMovement
 		{
 			RunHour(state, country, unit);
 		}
-		if ((isLand || isFleet) && !unit.IsRemoved && !unit.IsMoving && !unit.IsRetreating && !unit.IsFighting)
+		if ((isLand || isFleet || isAir) && !unit.IsRemoved && !unit.IsMoving && !unit.IsRetreating && !unit.IsFighting)
 		{
 			CCombats.CheckForCombat(state, unit, unit.Location);
+		}
+		if (isAir && unit.NoBattleHours > 0)
+		{
+			unit.NoBattleHours--;
 		}
 	}
 
@@ -380,7 +398,7 @@ public static class CMovement
 			unit.EngageWait = 0;
 			CCombats.CheckForCombat(state, unit, next.Id);
 		}
-		if (isLand)
+		if (isLand || unit.Kind == EUnitKind.Air)
 		{
 			CCombats.CheckForCombat(state, unit, next.Id);
 		}

@@ -187,9 +187,11 @@ public sealed class CGameState
 	public HashSet<CCountryTag> Played { get; } = new();
 
 	/// <summary>
-	/// How well each country knows each sea province, where it knows it at all: by the
-	/// province's id and the country. Written by <see cref="CNavalIntelligence.Refresh"/>
-	/// once a day.
+	/// How well each country knows each province it has a unit in and does not hold, where
+	/// it knows it at all: by the province's id and the country. The name is from when
+	/// only fleets asked; land is in it since air missions do. Written by
+	/// <see cref="CNavalIntelligence.Refresh"/> once a day, and read through
+	/// <see cref="CIntelligence.Level"/>.
 	/// </summary>
 	public Dictionary<(int Province, CCountryTag Country), int> SeaIntelligence { get; } = new();
 

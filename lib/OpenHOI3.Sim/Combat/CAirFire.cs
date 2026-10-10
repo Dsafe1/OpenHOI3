@@ -1,0 +1,194 @@
+using System;
+using System.Collections.Generic;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Missions;
+using OpenHOI3.Sim.Units;
+
+namespace OpenHOI3.Sim.Combat;
+
+/// <summary>
+/// A side's shooting in a battle in the air: every wing with an air attack keeps the
+/// target it had or picks a new one, and fires its attack's worth of shots at it. A
+/// shot that is not avoided does a die of organisation and a die of strength, and one
+/// strength hit in ten is ten times as hard. Nothing of the target comes into it but
+/// whether it is a carrier's air group. Written to roll in the original's order, the
+/// roll nothing uses with it. See <c>docs/mechanics/aircombat.md</c>, section 8.
+/// </summary>
+public static class CAirFire
+{
+	public const string AvoidChance = "CHANCE_TO_AVOID_HIT_AT_NO_DEF";
+	public const string OrganisationDie = "AIR_COMBAT_ORG_DICE_SIZE";
+	public const string StrengthDie = "AIR_COMBAT_STR_DICE_SIZE";
+	public const string CriticalMultiplier = "AIR_COMBAT_CRITICAL_HIT_DAMAGE_MUL";
+	public const string CriticalChance = "AIR_COMBAT_CRITICAL_HIT_DAMAGE_CHANCE";
+	public const string OrganisationDamage = "AIR_COMBAT_ORG_DAMAGE_MODIFIER";
+	public const string StrengthDamage = "AIR_COMBAT_STR_DAMAGE_MODIFIER";
+	public const string CagOrganisationDamage = "AIR_COMBAT_CAG_ORG_DAMAGE_MOD";
+	public const string CagStrengthDamage = "AIR_COMBAT_CAG_STR_DAMAGE_MOD";
+
+	public const string BomberTargeting = "bomber_targeting";
+	public const string FighterTargeting = "fighter_targeting";
+	public const string Priority = "priority";
+	public const string IsCag = "is_cag";
+
+	/// <summary>The most a shot is ever avoided by, in thousandths of a hundred.</summary>
+	private const long MostAvoided = 99000;
+
+	/// <summary>How many of the other side's wings a wing chooses among at most.</summary>
+	private const int MostTargets = 1024;
+
+	/// <summary>What every target is worth before the strength it has lost.</summary>
+	private const long BaseWorth = 250;
+
+	/// <summary>A wing takes a hundredth of what is rolled against it, when it is settled.</summary>
+	private const long WingShare = 10;
+
+	public static void Attack(CGameState state, CCombat combat, CCombatSide side)
+	{
+		CCombatSide other = combat.Other(side);
+		CDefines defines = state.Defines;
+		string military = CManpower.MilitarySection;
+		long avoid = Math.Min(defines[military, AvoidChance].Raw, MostAvoided) / CFixedPoint.Scale;
+		int organisationDie = (int)(defines[military, OrganisationDie].Raw / CFixedPoint.Scale);
+		int strengthDie = (int)(defines[military, StrengthDie].Raw / CFixedPoint.Scale);
+
+		foreach (CUnit unit in new List<CUnit>(side.Units))
+		{
+			CCountry? owner = state.Country(unit.Owner);
+			foreach (CSubUnit wing in new List<CSubUnit>(unit.SubUnits))
+			{
+				long attack = wing.Stats[CAirMissions.AirAttack].Raw;
+				if (attack == 0 || PickTarget(state, side, other, wing, owner) is not { } target)
+				{
+					continue;
+				}
+				long worth = attack * wing.CombatAttack.Raw / CFixedPoint.Scale;
+				long shots = worth / CFixedPoint.Scale;
+				if (state.Random.Next(100) < worth % CFixedPoint.Scale * 100 / CFixedPoint.Scale)
+				{
+					shots++;
+				}
+				for (; shots > 0; shots--)
+				{
+					if (StrengthLeft(target) < 0)
+					{
+						break;
+					}
+					state.Random.Next();                           // a roll nothing uses
+					if (state.Random.Next(100) < avoid)
+					{
+						continue;
+					}
+					long organisation = (state.Random.Next(Math.Max(1, organisationDie)) + 1) * (long)CFixedPoint.Scale;
+					long strength = (state.Random.Next(Math.Max(1, strengthDie)) + 1) * (long)CFixedPoint.Scale;
+					if (state.Random.Next(100) < defines[military, CriticalChance].Raw / CFixedPoint.Scale)
+					{
+						strength = defines[military, CriticalMultiplier].Raw * strength / CFixedPoint.Scale;
+					}
+					strength = defines[military, StrengthDamage].Raw * strength / CFixedPoint.Scale;
+					organisation = defines[military, OrganisationDamage].Raw * organisation / CFixedPoint.Scale;
+					if (target.Type.Flag(IsCag))
+					{
+						strength = defines[military, CagStrengthDamage].Raw * strength / CFixedPoint.Scale;
+						organisation = defines[military, CagOrganisationDamage].Raw * organisation / CFixedPoint.Scale;
+					}
+					target.PendingOrganisationDamage += organisation;
+					target.PendingStrengthDamage += strength;
+				}
+			}
+		}
+	}
+
+	/// <summary>A wing's strength less what this hour has rolled against it so far, as it will be settled.</summary>
+	public static long StrengthLeft(CSubUnit wing)
+	{
+		return wing.Strength.Raw - wing.PendingStrengthDamage * WingShare / CFixedPoint.Scale;
+	}
+
+	/// <summary>
+	/// The wing a wing fires at: the one it had while that is still on the other side;
+	/// otherwise, by one roll against a tenth of its targeting skill, the best of the
+	/// other side's wings or a random one. None where the other side has none left.
+	/// </summary>
+	public static CSubUnit? PickTarget(CGameState state, CCombatSide side, CCombatSide other, CSubUnit wing,
+		CCountry? owner)
+	{
+		if (wing.TargetId != 0 && Find(other, wing.TargetId) is { } kept)
+		{
+			return kept;
+		}
+
+		List<CSubUnit> targets = side.Targets;
+		targets.Clear();
+		foreach (CUnit unit in other.Units)
+		{
+			foreach (CSubUnit candidate in unit.SubUnits)
+			{
+				if (StrengthLeft(candidate) >= 0 && targets.Count < MostTargets)
+				{
+					targets.Add(candidate);
+				}
+			}
+		}
+
+		long skill = TargetingSkill(owner);
+		int roll = state.Random.Next(100);
+		CSubUnit? target = null;
+		if (targets.Count > 0)
+		{
+			target = skill / 10 < roll ? targets[state.Random.Next(targets.Count)] : Best(targets, owner);
+		}
+		wing.TargetId = target?.Id ?? 0;
+		return target;
+	}
+
+	/// <summary>
+	/// A wing's skill at picking its target, in thousandths: its country's two targeting
+	/// figures added together. The original adds ten for each point of its leader's skill.
+	/// </summary>
+	public static long TargetingSkill(CCountry? owner)
+	{
+		return owner is null ? 0 : owner.Technology[BomberTargeting].Raw + owner.Technology[FighterTargeting].Raw;
+	}
+
+	/// <summary>
+	/// The target worth most: its type's priority, times a quarter and a hundredth of
+	/// the strength it has lost, times one and the firing country's targeting against
+	/// its kind. The first among equals; one worth nothing is never the best.
+	/// </summary>
+	public static CSubUnit? Best(IReadOnlyList<CSubUnit> targets, CCountry? owner)
+	{
+		CSubUnit? best = null;
+		long most = 0;
+		foreach (CSubUnit target in targets)
+		{
+			long lost = (target.Stats[CSubUnitType.MaxStrength].Raw - target.Strength.Raw) * WingShare / CFixedPoint.Scale;
+			long worth = target.Stats[Priority].Raw * (lost + BaseWorth) / CFixedPoint.Scale;
+			long targeting = owner is null ? 0
+				: owner.Technology[target.Type.Flag(CAirModifiers.IsBomber) ? BomberTargeting : FighterTargeting].Raw;
+			worth = (targeting + CFixedPoint.Scale) * worth / CFixedPoint.Scale;
+			if (worth > most)
+			{
+				most = worth;
+				best = target;
+			}
+		}
+		return best;
+	}
+
+	private static CSubUnit? Find(CCombatSide side, int id)
+	{
+		foreach (CUnit unit in side.Units)
+		{
+			foreach (CSubUnit wing in unit.SubUnits)
+			{
+				if (wing.Id == id)
+				{
+					return wing;
+				}
+			}
+		}
+		return null;
+	}
+}

@@ -42,6 +42,8 @@ public static class COrdersText
 			EUnitOrder.Sortie => "ORDER_SORTIE",
 			EUnitOrder.ConvoyEscort => "ORDER_CONVOY_ESCORT",
 			EUnitOrder.ConvoyRaid => "ORDER_CONVOY_RAID",
+			EUnitOrder.AirSuperiority => "AIRSUP",
+			EUnitOrder.AirIntercept => "INTERCEPT",
 			_ => "",
 		};
 	}
@@ -70,7 +72,8 @@ public static class COrdersText
 	/// there is, the ones that cannot be given with their boxes greyed. An air unit is
 	/// shown only the orders it could ever fly: by what its wings can attack, and by
 	/// whether the province is land or sea. A fleet's transport and invasion and every
-	/// air mission are listed and cannot be ticked: they are not built.
+	/// air mission but air superiority and the intercept are listed and cannot be
+	/// ticked: they are not built.
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, CUnit unit, CProvince province)
 	{
@@ -112,8 +115,8 @@ public static class COrdersText
 		bool land = !province.IsSea;
 		if (Has(unit, "air_attack"))
 		{
-			Add("AIRSUP");
-			Add("INTERCEPT");
+			Add(NameKey(EUnitOrder.AirSuperiority), EUnitOrder.AirSuperiority);
+			Add(NameKey(EUnitOrder.AirIntercept), EUnitOrder.AirIntercept);
 		}
 		if (land && Has(unit, "transport_capability"))
 		{

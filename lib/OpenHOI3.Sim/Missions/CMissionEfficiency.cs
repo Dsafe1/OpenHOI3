@@ -45,6 +45,8 @@ public static class CMissionEfficiency
 			EUnitOrder.Sortie => "sortie",
 			EUnitOrder.ConvoyEscort => "convoy_escort",
 			EUnitOrder.ConvoyRaid => "convoy_raid",
+			EUnitOrder.AirSuperiority => "air_superiority",
+			EUnitOrder.AirIntercept => "air_intercept",
 			_ => "",
 		};
 	}

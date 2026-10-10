@@ -37,4 +37,10 @@ public enum EUnitOrder
 
 	/// <summary>A fleet: go round a sea province and the ones about it, sinking convoys.</summary>
 	ConvoyRaid,
+
+	/// <summary>An air unit: go round the provinces of its mission, flying at enemy air units in them.</summary>
+	AirSuperiority,
+
+	/// <summary>An air unit: wait at its base for an enemy air unit in or near the provinces of its mission, and fly to meet it.</summary>
+	AirIntercept,
 }

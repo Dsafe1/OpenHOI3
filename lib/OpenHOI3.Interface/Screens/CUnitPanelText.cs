@@ -369,6 +369,14 @@ public static class CUnitPanelText
 				case EUnitOrder.Sortie:
 				case EUnitOrder.ConvoyRaid:
 					return localise(COrdersText.NameKey(unit.Order)) + " :" + where;
+				// The intercept's is the original's; what air superiority puts in the brackets
+				// was not read, and it is given the intercept's three.
+				case EUnitOrder.AirSuperiority:
+				case EUnitOrder.AirIntercept:
+					return CTextTemplate.Fill(
+						localise(unit.Order == EUnitOrder.AirIntercept ? "INTERCEPT_SHORT_DESC" : "AIRSUP_SHORT_DESC"),
+						("TYPE", localise(unit.Mission.ReturnToBase ? "STRAT_BOMB_RETURNING"
+							: unit.Mission.LiveTarget is not null ? "INTERCEPT_ATTACK" : "INTERCEPT_WAITING")));
 			}
 		}
 		if (unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air)

@@ -260,9 +260,10 @@ Königsberg, the AI having some fifteen more fleets under way:
 
 ## What is not built
 
-- **A fleet's transport and invasion, and every air mission** - air superiority and the rest -
-  and so the air window's other controls. A fleet's reserve, patrol, intercept, sortie, convoy
-  raiding and escort are built since 2026-10-10 and are `navalmissions.md`.
+- **A fleet's transport and invasion, and every air mission but two** - and the air window's
+  other controls. A fleet's reserve, patrol, intercept, sortie, convoy raiding and escort are
+  built since 2026-10-10 and are `navalmissions.md`; an air unit's air superiority and
+  intercept since the same day, and are `aircombat.md`.
 - **Carrying**: troops aboard a fleet, an air group aboard a carrier, a paradrop. A fleet
   with troops aboard is offered a land province to put them ashore in; not here.
 - **A fleet meeting another** is built since 2026-10-10 and is `navalcombat.md`. One thing

@@ -110,6 +110,14 @@ public sealed class CUnit
 	public int EngageWait { get; set; }
 
 	/// <summary>
+	/// An air unit: the hours it cannot be taken into a battle. Set to 2 at the start of
+	/// each of its hours that finds it in one and run down by one at the end of every
+	/// hour, so the hour after a battle it may fly on and cannot be fought. See
+	/// <c>docs/mechanics/aircombat.md</c>, section 7.
+	/// </summary>
+	public int NoBattleHours { get; set; }
+
+	/// <summary>
 	/// What it has been told to do, and where. An order is looked at every hour and
 	/// dropped when it is done: see <c>docs/mechanics/fleetsandair.md</c>, section 5.
 	/// </summary>

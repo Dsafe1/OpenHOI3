@@ -83,8 +83,9 @@ public partial class CBattleMarkers : Node2D
 		{
 			foreach (CCombat combat in _state.Combats)
 			{
+				// A battle in the air has no marker yet: its side of the window is not built.
 				if (!CCombatViewText.TakesPart(combat, player) || combat.Attacker.Units.Count == 0
-					|| combat.Defender.Units.Count == 0)
+					|| combat.Defender.Units.Count == 0 || combat.Kind == ECombatKind.Air)
 				{
 					continue;
 				}

@@ -11,9 +11,9 @@ Everything is from `reversing/findings/FINDINGS-navalmissions.md`, with the sigh
 **It was read out of the original and nothing of it was watched.** Each rule says how sure it
 is; what this project does of its own is marked *Ours*.
 
-**It is written to do what the original does, its oddities with it**, and some of them are odd
-enough to want a look in the original by somebody who can watch it. They are gathered in
-section 12 and not tidied.
+**It is written to do what the original does, its oddities with it.** The oddest are gathered
+in section 12; the maintainer has said they are the original's, bugs or not, and they are not
+tidied.
 
 In the code: `lib/OpenHOI3.Sim/Missions`, with the raid's battle in
 `lib/OpenHOI3.Sim/Combat/CConvoyRaid.cs`.
@@ -358,11 +358,15 @@ the day. What is built of it:
     a sea province one of its units was in at the day's turn    2
     the same, where that unit was a patrol shadowing somebody   9
 
-A fleet that has just sailed into a province knows nothing of it until midnight. *Not built:*
-radar, which gives up to 8, and everything else the original's intelligence does. *Not
+A fleet that has just sailed into a province knows nothing of it until midnight. **The whole
+of the rule was read for the air missions and is `aircombat.md`, section 6**: whoever holds a
+province and their friends know it at 9, and so does a country with a unit on its ground.
+*Not built:* radar, which gives up to 8. *Not
 established:* the original also runs the refresh every hour once a change of who plays a
 country has asked for it, and nothing found ever stops that; whether an ordinary game is in
-that state was not read. Here it is daily.
+that state was not read. Here it is daily - and the maintainer, asked on 2026-10-10: "I
+think its daily." That is his recollection of the game and not a reading, so the line
+stays under what is not established, with his word against it.
 
 ## 10. Mission efficiency
 
@@ -396,8 +400,13 @@ such a block that is neither of the two is reported.
 
 ## 12. Worth a look in the original
 
-Nothing here was watched, and these are the places where the reading says something a player
-might not expect. Each is built as read.
+These are the places where the reading says something a player might not expect. Each is
+built as read. **The maintainer, 2026-10-10, shown the six in a line each: "All those things
+are correct, and they may be bugs, but thats ok."** So they are the original's by his word as
+well as by the reading, and they stay; do not tidy them. (That he meant these six is how his
+answer was taken - it came after a list that also asked three other things, section 13 and
+`tick.md`, section 6. The second half of item 3 and the priority in item 4 were not in the
+line he was shown.)
 
 1. **An interceptor goes out once.** After its first return to base it lies in port under its
    order and does nothing (section 5).
@@ -447,6 +456,7 @@ missions something to meet, there being no AI to send anything.
 ### Not established
 
 - Whether the intelligence levels are in practice worked out daily or hourly (section 9).
+  The maintainer thinks daily, which is what is built.
 - What the original's list of a country's naval bases holds, and in what order (section 1).
 - What an order's two dates are set to by anything but the orders window; an order from the
   window never ends by date, and none is built.

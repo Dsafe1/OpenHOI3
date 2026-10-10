@@ -21,12 +21,20 @@ public sealed class CSetUnitOrderCommand : CCommand
 	private readonly int _stance;
 	private readonly int _priority;
 	private readonly int _convoy;
+	private readonly int[] _provinces;
+	private readonly int _time;
+	private readonly long _endHour;
 
 	/// <param name="stance">0 aggressive, which is what the orders window starts at; 1 defensive; 2 passive.</param>
 	/// <param name="priority">From 0 to 4.</param>
 	/// <param name="convoy">The number of the convoy an escort is to sail with.</param>
+	/// <param name="provinces">An air mission: the provinces it covers. With none said, the order's own province.</param>
+	/// <param name="time">An air mission: 0 by day, 1 by night, 2 both.</param>
+	/// <param name="endHour">An air mission: the hour of the game after which it is over.</param>
 	public CSetUnitOrderCommand(CCountryTag country, int unit, EUnitOrder order, int province,
-		int stance = CMission.Aggressive, int priority = 0, int convoy = 0)
+		int stance = CMission.Aggressive, int priority = 0, int convoy = 0,
+		System.Collections.Generic.IReadOnlyList<int>? provinces = null, int time = CMission.DayAndNight,
+		long endHour = CMission.NoEnd)
 	{
 		_country = country;
 		_unit = unit;
@@ -35,6 +43,9 @@ public sealed class CSetUnitOrderCommand : CCommand
 		_stance = stance;
 		_priority = priority;
 		_convoy = convoy;
+		_provinces = provinces is null ? new[] { province } : System.Linq.Enumerable.ToArray(provinces);
+		_time = time;
+		_endHour = endHour;
 	}
 
 	public override bool MayExecute(CGameState state)
@@ -51,7 +62,8 @@ public sealed class CSetUnitOrderCommand : CCommand
 	public override void Execute(CGameState state)
 	{
 		CCountry country = state.Country(_country)!;
-		CUnitOrders.Give(state, country, Find(country)!, _order, _province, _stance, _priority, _convoy);
+		CUnitOrders.Give(state, country, Find(country)!, _order, _province, _stance, _priority, _convoy,
+			_provinces, _time, _endHour);
 	}
 
 	private CUnit? Find(CCountry country)

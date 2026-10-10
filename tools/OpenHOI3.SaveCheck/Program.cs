@@ -76,6 +76,18 @@ if (args.Length > 0 && args[0] == "firstdays")
 	return CFirstDaysCheck.Run(args);
 }
 
+// One air mission is flown and the battle it comes to is told.
+if (args.Length > 0 && args[0] == "airbattle")
+{
+	return CAirBattleTrial.Run(args);
+}
+
+// The technology levels a start-date save has above the history's, and which units hold them.
+if (args.Length > 0 && args[0] == "techgap")
+{
+	return CTechGapCheck.Run(args);
+}
+
 // A country's raiders are sent at another's convoys for some days.
 if (args.Length > 0 && args[0] == "raid")
 {

@@ -117,13 +117,15 @@ public class OrdersTextTests
 	}
 
 	[Fact]
-	public void TheChangeOfBaseIsTheOnlyOrderOfAnAirUnitThatCanBeGivenAndIsTicked()
+	public void AFightersTwoMissionsAndItsChangeOfBaseCanBeGivenAndTheChangeOfBaseIsTicked()
 	{
 		CGameState state = State(out CCountry country);
 		CUnit fighters = Unit(state, country, EUnitKind.Air, Kiel, ("air_attack", "5"));
 
+		// Air superiority and the intercept, the reserve that is not built, the change of base.
 		List<COrderRow> rows = COrdersText.Rows(state, country, fighters, state.Province(Hamburg));
-		Assert.Equal(new[] { false, false, false, true }, rows.Select(row => row.MayGive));
+		Assert.Equal(new[] { true, true, false, true }, rows.Select(row => row.MayGive));
+		Assert.Equal(new[] { EUnitOrder.AirSuperiority, EUnitOrder.AirIntercept }, rows.Take(2).Select(row => row.Order));
 		Assert.Equal(3, COrdersText.Suggested(rows, state, country, fighters, state.Province(Hamburg)));
 		Assert.Equal(EUnitOrder.RebaseAir, rows[3].Order);
 

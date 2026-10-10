@@ -32,4 +32,10 @@ public enum ECombatModifier
 
 	/// <summary>How good the unit's country is at the mission it is on.</summary>
 	MissionEfficiency,
+
+	/// <summary>In the air: fighting in or beside the province of the unit's base.</summary>
+	BaseProximity,
+
+	/// <summary>In the air: a wing on an intercept, or on air superiority.</summary>
+	Intercept,
 }
