@@ -7,6 +7,7 @@ using OpenHOI3.Content;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Map;
@@ -58,6 +59,7 @@ public partial class CSession : Node
 	private int _waiting;
 	private int _controlChanges;
 	private long _dayColoured;
+	private long _airMissions;
 
 	/// <summary>The country played when nothing says which. There is no screen to choose one on yet.</summary>
 	private const string DefaultPlayer = "GER";
@@ -181,6 +183,7 @@ public partial class CSession : Node
 			layer.AddChild(_orders);
 			_orders.Ordered += () => _ordered = true;
 			_orders.Toggled += () => ShowProvince(_shownProvince);
+			_orders.AreaShown += colours => _mapView.ShowAirArea(colours);
 
 			// The window of a battle, which a click on the battle's marker or on its row
 			// in a unit's panel brings up. It stands where the unit panel does, and a
@@ -412,6 +415,18 @@ public partial class CSession : Node
 			{
 				_mapView.RefreshColours();
 			}
+			// The air map mode's rings, pictures and icons are made again each day.
+			_mapView.RefreshAirMap();
+		}
+		// Its colours, when one of the player's fighter missions has started or gone.
+		if (_mapView.Mode == CMapView.MapMode.Air)
+		{
+			long missions = CAirMapColours.Figure(State, Player?.Tag);
+			if (missions != _airMissions)
+			{
+				_airMissions = missions;
+				_mapView.RefreshColours();
+			}
 		}
 		if (_unitsMoved || waiting != _waiting)
 		{
@@ -461,6 +476,13 @@ public partial class CSession : Node
 		if (Player is null || _mapView.Counters?.Selected is not { } unit || unit.Id != unitId
 			|| unit.Owner != Player.Tag)
 		{
+			return;
+		}
+		// While a window of orders is up the click is the window's: the air one aims or
+		// moves its area with it, the naval one does nothing.
+		if (_orders is { IsOpen: true })
+		{
+			_orders.MapRightClick(province, append);
 			return;
 		}
 		CCommand command;
@@ -669,6 +691,14 @@ public partial class CSession : Node
 				text += "\n" + CColouredText.Strip(line);
 			}
 		}
+		// And in the air map mode, the past week's bombings and air battles.
+		if (_mapView.Mode == CMapView.MapMode.Air)
+		{
+			foreach (string line in CAirMapText.Lines(_localisation.Localise, State, province, Player?.Tag))
+			{
+				text += "\n" + CColouredText.Strip(line);
+			}
+		}
 		if (province.IsSea)
 		{
 			text += "\nSea";
@@ -766,7 +796,8 @@ public partial class CSession : Node
 	/// driving it by hand:
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
 	/// <c>--country=ENG</c> plays that country and not Germany,
-	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map,
+	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map
+	/// (<c>supply</c> and <c>air</c> on those),
 	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen and
 	/// <c>--screen=deploy</c> the menu a finished unit is placed from,
 	/// <c>--days=7</c> runs that many days before anything after it is done,
@@ -791,6 +822,7 @@ public partial class CSession : Node
 	/// type) opens the window that orders one, with that in it,
 	/// <c>--technology=key</c> chooses one on the technology screen,
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
+	/// <c>--select=Luftflotte II</c> selects the player's unit of that name,
 	/// <c>--click=700,310;r1240,886;h48</c> clicks at those points of the canvas, in turn -
 	/// with r the right button, with s shift held, and h48 lets 48 hours go by - once
 	/// everything else is done,
@@ -801,6 +833,7 @@ public partial class CSession : Node
 	{
 		string? screenshot = null;
 		string? clicks = null;
+		string? select = null;
 		int centre = 0;
 		float? zoom = null;
 		foreach (string argument in UserArguments())
@@ -830,6 +863,10 @@ public partial class CSession : Node
 			else if (argument == "--mode=supply")
 			{
 				_mapView.Mode = CMapView.MapMode.Supply;
+			}
+			else if (argument == "--mode=air")
+			{
+				_mapView.Mode = CMapView.MapMode.Air;
 			}
 			else if (argument == "--screen=production")
 			{
@@ -1031,6 +1068,10 @@ public partial class CSession : Node
 			{
 				zoom = parsed;
 			}
+			else if (argument.StartsWith("--select="))
+			{
+				select = argument["--select=".Length..];
+			}
 		}
 
 		if (centre > 0)
@@ -1038,6 +1079,20 @@ public partial class CSession : Node
 			_mapView.CentreOn(centre, zoom);
 			_mapView.Select(centre);
 			ShowProvince(centre);
+		}
+
+		// A unit of the player's by its name, for one that no click can reach - an air
+		// unit at its base, whose stack lies under the land units' there.
+		if (select is not null && Player is not null)
+		{
+			foreach (CUnit unit in Player.AllUnits())
+			{
+				if (unit.Name == select)
+				{
+					_mapView.SelectUnit(unit);
+					break;
+				}
+			}
 		}
 
 		if (clicks is not null)

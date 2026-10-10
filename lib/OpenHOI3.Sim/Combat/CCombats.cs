@@ -226,6 +226,8 @@ public static class CCombats
 	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
+		// The list of finished battles is kept to a week before any battle is fought.
+		state.CombatHistory.Prune(state.TotalHours);
 		foreach (CCombat combat in new List<CCombat>(state.Combats))
 		{
 			if (!state.Combats.Contains(combat))
@@ -407,6 +409,7 @@ public static class CCombats
 		Detach(combat.Attacker);
 		Detach(combat.Defender);
 		state.Combats.Remove(combat);
+		state.CombatHistory.Record(combat, state.TotalHours);
 		foreach (CUnit unit in new List<CUnit>(state.UnitsIn(combat.Province)))
 		{
 			if (unit.Location == combat.Province)

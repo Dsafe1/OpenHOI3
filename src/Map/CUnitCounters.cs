@@ -43,6 +43,7 @@ public partial class CUnitCounters : Node2D
 	private readonly Dictionary<string, Texture2D?> _arrowTextures = new(StringComparer.OrdinalIgnoreCase);
 	private CHierarchyLayer _hierarchy = null!;
 	private CBuildingIcons _buildings = null!;
+	private CAirMapLayer _airMap = null!;
 	private CBattleMarkers _markers = null!;
 	private readonly Vector2[] _quad = new Vector2[4];
 	private readonly Vector2[] _quadPicture = new Vector2[4];
@@ -82,6 +83,11 @@ public partial class CUnitCounters : Node2D
 		_buildings.Setup(map, state, gui, billboards);
 		AddChild(_buildings);
 
+		// Over the buildings, in the air map mode: its rings, large pictures and icons.
+		_airMap = new CAirMapLayer { Name = "AirMap", ShowBehindParent = true };
+		_airMap.Setup(map, state, gui, billboards);
+		AddChild(_airMap);
+
 		_hierarchy = new CHierarchyLayer { Name = "Hierarchy" };
 		_hierarchy.Setup(map, gui);
 		AddChild(_hierarchy);
@@ -97,6 +103,23 @@ public partial class CUnitCounters : Node2D
 
 	/// <summary>The markers of the battles being fought.</summary>
 	public CBattleMarkers Markers => _markers;
+
+	/// <summary>What the air map mode draws over the map.</summary>
+	public CAirMapLayer AirMap => _airMap;
+
+	/// <summary>Whether the air map mode is on, which shows its layer and works it out.</summary>
+	public bool AirMode
+	{
+		get => _airMap.Visible;
+		set
+		{
+			_airMap.Visible = value;
+			if (value)
+			{
+				_airMap.Refresh(_selected);
+			}
+		}
+	}
 
 	/// <summary>
 	/// Where a unit's counter stands on the middle copy of the map: its stack's place,
@@ -127,6 +150,11 @@ public partial class CUnitCounters : Node2D
 		{
 			_selected = value;
 			_hierarchy.Unit = value;
+			// The air map mode's rings are dimmed by what is selected.
+			if (_airMap.Visible)
+			{
+				_airMap.RefreshCircles(value);
+			}
 			QueueRedraw();
 		}
 	}
@@ -170,6 +198,7 @@ public partial class CUnitCounters : Node2D
 		_hierarchy.Visible = close;
 		_markers.Visible = close;
 		_buildings.ViewChanged(view);
+		_airMap.ViewChanged(view);
 		_markers.ViewChanged(zoom, view);
 		QueueRedraw();
 	}

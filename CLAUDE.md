@@ -52,7 +52,8 @@ between fleets at sea with its window, and a fleet's missions with the raid on
 convoys, and the two days a new game runs before its first hour, and an air unit's two
 fighting missions with the battle in the air, and its eight bombing missions with the
 bombing and the day's repair of what was bombed, and the window of an air battle and of a
-bombing - 1192 tests - and it is
+bombing, and the whole of the air orders window with a mission's area, and the air map mode
+with a list of finished battles - 1235 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -336,11 +337,20 @@ in the original", and of the others he was shown, "Just note them" - none is to 
 unless he says so. **What a country knows of a province was read whole for it** (`CIntelligence`,
 `aircombat.md`, section 6): 9 for whoever holds it and their friends and for a country with a
 unit on its ground, 2 with a unit in its water; radar is not built, and nothing draws a fog
-of war. **A mission's area is a list of provinces that comes with the order**; the orders
-window gives the one province clicked, its shapes, sliders, day and night boxes and dates
-being drawn and doing nothing, and of the original's shapes only the circle was read
-(`CAirMissionArea`). With no AI,
-`--mission=GER:airsuperiority:1928` gives a country's air unit a mission for a trial by hand.
+of war. **A mission's area is a list of provinces that comes with the order**, and the air
+orders window makes it - **built whole on 2026-10-11, read out of the original, tried with
+`--click`, and the maintainer has not looked at it** (`fleetsandair.md`, section 4;
+`aircombat.md`, section 2): four shapes (`CAirArea` - point, region, circle, cone, the cone's
+arc in single precision as the original works it), three sliders, a right click on the map
+that aims a circle or a cone and moves a point or a region, shift that adds, the boxes of the
+hours, two dates held to the defines' and "continuous", the ladder that ticks the first row,
+what the window keeps for the next, and the map coloured by the unit's reach while it is up.
+**Nine things in it are the original's and look odd, and are built so - do not tidy them**,
+the plainest that **the air window's priority is never sent**; the readme's *Next up* lists
+them. Regions are read from `map/region.txt` for it (`CRegion`, `CRegionReader`). With no AI,
+`--mission=GER:airsuperiority:1928` gives a country's air unit a mission for a trial by hand,
+and `--select=Luftflotte II` selects an air unit no click can reach at its base outside the
+air map mode.
 **The air battle and the bombing on screen - `combatview.md`, section 11 - were built on
 2026-10-10 from a reading and checked with `--click`, and the maintainer has not looked at
 them**: the land battle's row in a unit's panel and its window, with a third kind of half
@@ -351,7 +361,25 @@ each with a bar of what is left. A bombing's window stays up with nobody on the 
 and its retreat button sends an air unit where a beaten one goes and leaves it no order
 (`CFallBackCommand`). **Neither has a marker on the map, and that is the original's**: it
 shows them only once they are over, as icons in its air map mode, counted from a list of
-finished battles - neither of which is built.
+finished battles - both built since.
+**The air map mode - `airmap.md` - was built on 2026-10-11, read whole out of the original,
+tried with `--click`, and the maintainer has not looked at it**: grey, green where the
+player's intercepts reach and red where its air superiority does, the sea too; a ring of range
+round each of its air bases for each range of aircraft there, drawn with the original's
+`map/Sector.dds` and coloured red to green by strength as its `circle.fx` does; the air bases
+and anti-aircraft guns as large pictures by their level, **the large air base asked before any
+counter on a click** - how an air unit at its base is picked there; and the three icons of the
+week's air battles and bombings (`CAirMapColours`, `CAirMapIcons`, `CAirBaseCircles`,
+`CAirMapText`, `src/Map/CAirMapLayer`). Under it, **`CCombatHistory`, the list of finished
+battles, which keeps a week**: every battle of every kind goes on it as it ends, each side
+named by the first of `CCombatSide.Standing` - the countries still in the fight, made again
+from the units left whenever one is taken off, so a beaten side is named by nobody; do not fold
+it into `Countries`, which keeps every country a side fought as. **Four things in it are the
+original's and look odd, and are built so - do not tidy them; `airmap.md` lists them**: its
+colours are made when the player's fighter orders start or go and not each day, a count of
+battles is a signed byte, a beaten side is named by nobody, and an air base the player knows
+little of is drawn at the size of a level 1. Its colours' alpha, which the original's shaders
+use in a way not read, is laid over the ground turned grey - ours.
 **Bombing - `bombing.md` - is the fifth piece, built on 2026-10-10, read out of the original
 and set against nothing, and the maintainer has not looked at it**: the eight bombing
 missions (`CBombingOrders`, `CBombingMissions`, `CBombingProvinces` in `Sim/Missions`), the
@@ -469,7 +497,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 115 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 117 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -505,7 +533,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 3189-address, 318-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3249-address, 320-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -672,7 +700,7 @@ beside the repository.
   after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, and what the window shows of a battle in the air and of a bombing carry 1192 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, and the list of finished battles with the air map mode's colours, icons, rings and lines carry 1235 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

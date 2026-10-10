@@ -154,11 +154,94 @@ whether the province is land:
 **The row ticked when the window comes up**: the change of base, where the unit may be in
 the province, whoever holds it is not at war with the unit's country, it has the base for it
 and the order can be given; for a fleet otherwise the move, where that can be given; and
-otherwise none.
+otherwise none. An air unit has more - below.
 
 Under the list are the **stance** - Aggressive, Defensive, Passive, the first to start with -
 and the **priority**, 0 to 4, each with a button either side that steps it and goes round at
 the ends. They belong to the orders that fight.
+
+**While the window is up, a right click on the map is the window's**: the naval one does
+nothing with it, the air one aims or moves its area (below). `confirmed`
+
+### The air window
+
+`reversing/findings/FINDINGS-airorders.md`, read on 2026-10-11. `confirmed` throughout but
+where a line says otherwise.
+
+**What it opens with.** The **first** air window of a session: priority 0, the aggressive
+stance, the **point** shape. **Every later one: the last one's priority, stance and shape.**
+"Both" is ticked and day and night clear, "continuous" is ticked, the start date is the hour
+now and the end a month on (the day of the month kept, so 31 January runs on to 3 March), and
+the three sliders stand at 0 for the range, 0.016 of a turn for the angle and 0.25 for the width
+- the `.gui` file's own starting values are not used.
+
+**The row ticked** is, in order: the change of base as above; otherwise the order **kept** -
+the last window's, or for a session's first window the unit's own - where its row can be
+given; otherwise a ladder, by what the unit's wings are - a wing that is no bomber is a
+fighter, a bomber whose strategic attack is above half its soft and hard attack together a
+strategic bomber, any other bomber a tactical one:
+
+    fighters outnumber each kind of bomber: air superiority over an enemy's province,
+        otherwise the intercept
+    then, whatever that ticked, a wing with sea attack: the port strike at an owned
+        province with a port and a naval base, otherwise the naval strike at sea
+    then, where nothing is ticked, more strategic bombers than tactical, over a province
+        at war with the unit's country: runway cratering where it has an air base, the
+        installation strike where it has a radar station, a reactor or a rocket site,
+        otherwise strategic bombing where it makes IC
+    then, where nothing is ticked, a soft or hard attack: ground attack, otherwise interdiction
+
+each only where its row can be given. **The second rung asks nothing of what the first
+ticked and replaces it.**
+
+**The area.** The ticked order has a list of provinces, made by one of four shapes - point,
+region, circle, cone - with the three sliders and the right click: `aircombat.md`, section 2,
+has how. A shape's button is drawn pressed; **the range slider works for the circle and the
+cone, the angle and width sliders for the cone alone**, and the others are locked.
+
+**A slider is taken only when it has moved by more than a twentieth of where it now is** from
+the value taken last. The range is the slider's share of how far the unit can fly, the angle
+and width its share of a turn. The three figures beside them are the values taken -
+`ORDER_RANGE_VAL` to the whole, `ORDER_ANGLE_VAL` and `ORDER_WIDTH_VAL` in degrees to two
+places - **and not what a right click gave the area**.
+
+**Day, night and both act as one choice**: ticking one clears the other two and sets the hours
+the mission flies - but **clearing the ticked box leaves none ticked and the hours as they
+were**. Under them, `ORDER_DAY_TIME` with the province ("Locally in Poznan:") and whether it is
+night there at the start date's hour and month, as a picture and a word.
+
+**The dates**: two `datewidget`s, at the `positionType`s `mission_timewidget_start` and
+`_stop`, each with an arrow up and down for the year (8,760 hours), the month, the day and
+the hour, **held between the defines' `start_date` and `end_date`**. While "continuous" is
+ticked their arrows are switched off and the mission ends on the defines' `end_date`;
+otherwise it flies from the first date to the second. Before its start an air mission is not
+fit to fly (`aircombat.md`, section 1).
+
+**`second_target`** reads `ORDER_NO_SECOND_TARGET` - "Right-click on the map to select a
+second target province." - whenever accept cannot be pressed, and is left alone when it can:
+**so it is empty until the first time accept is greyed, and the hint from then on.** The
+original never shows `ORDER_SECOND_TARGET`: what it would name is never set.
+
+**Accept** can be pressed with a row ticked and a province on the area's list. It gives the
+order with the list, the stance, the hours, the start and the end - **and not the priority,
+which the air window shows, steps and remembers and never sends** - unless the unit's own
+order is a change of base still under way, which is left to finish. The window then closes.
+
+**The map while it is up** is the window's, whatever the mode, and comes back as the mode
+draws it when the window closes:
+
+    out of the unit's range of its base        nothing
+    sea, or land the unit's country holds      (0.6, 0.9, 0.6)
+    land of a country at war with it           (0.9, 0.6, 0.6)
+    other land                                 (0.6, 0.6, 0.6)
+    on the area's list, and in range           (0.5, 0.8, 0.8)
+
+*Ours:* **"nothing" is drawn as the terrain mode draws the province** - how the original's map
+draws a colour with no alpha was not read. **The window's title is not written again** when a
+right click moves it to another province, which is the original's. There is no tooltip
+anywhere, the paradrop's earliest start is not kept (there is no paradrop), and a click at
+the base province of an air unit cannot pick it out from under the land units there:
+`--select=` does it for a trial.
 
 *Ours:* **a fleet's move, its change of base and its six missions are built** - the missions
 are `navalmissions.md` - **and an air unit's change of base, its two fighting missions
@@ -167,10 +250,7 @@ the original lists it and cannot be ticked: a fleet's transport and invasion, an
 unit's reserve, supply flight and raid on convoys.
 An air unit's rows for a paradrop, a carrier and a bomb are left out, wanting what is not built
 to know when they show. The stance and the priority go with a fleet's order and mean something
-to its missions; to an air unit's they mean nothing yet. The air
-window's other controls - the shape of the target, three sliders, day and night, two dates -
-are drawn as the file has them and do nothing. In the original a row and `accept` say in a
-tooltip why they cannot be used.
+to its missions. In the original a row and `accept` say in a tooltip why they cannot be used.
 
 ## 5. The orders
 
@@ -263,7 +343,7 @@ Königsberg, the AI having some fifteen more fleets under way:
 ## What is not built
 
 - **A fleet's transport and invasion, and an air unit's reserve, supply flight and raid on
-  convoys** - and the air window's other controls. A fleet's reserve, patrol, intercept,
+  convoys.** The air window's other controls are built since 2026-10-11. A fleet's reserve, patrol, intercept,
   sortie, convoy raiding and escort are built since 2026-10-10 and are `navalmissions.md`;
   an air unit's air superiority and intercept since the same day, and are `aircombat.md`;
   and its eight bombing missions since the same day, and are `bombing.md`.

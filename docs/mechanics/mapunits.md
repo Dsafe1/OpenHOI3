@@ -453,8 +453,9 @@ in port and an air unit at its base are seen and picked:
   the original goes by the order they came in. The maintainer, 2026-10-09: "Its fine the
   way it is";
 - every building's picture is drawn all through the close view and none in the far view
-  (section 7); the three larger pictures are not used, being the same art at the same
-  scale, and when the original shows them was not read;
+  (section 7). Of the three larger pictures, `large_air_base` and `large_anti_air` are the
+  air map mode's, sized there by the level built (`airmap.md`, section 5, read since);
+  `large_naval_base` is the naval mode's, which is not built;
 - a click has to fall on the round badge, two thirds of the square across - measured on the
   two bases' art;
 - a selected fleet in port, or air unit at its base, has no counter and so no ring.

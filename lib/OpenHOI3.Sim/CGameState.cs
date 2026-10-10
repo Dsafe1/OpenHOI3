@@ -122,6 +122,21 @@ public sealed class CGameState
 	public CUnitNameTexts NameTexts { get; init; } = new();
 
 	/// <summary>
+	/// The map's regions, in the order <c>region.txt</c> gives them. Each province holds
+	/// the numbers of its own in <see cref="CProvince.Regions"/>.
+	/// </summary>
+	public IReadOnlyList<CRegion> Regions { get; init; } = Array.Empty<CRegion>();
+
+	/// <summary>
+	/// The defines' <c>start_date</c> and <c>end_date</c>: the first and last days a date
+	/// may be set to - an air mission's, for one. See <c>docs/mechanics/aircombat.md</c>,
+	/// section 1.
+	/// </summary>
+	public CDate StartDate { get; init; }
+
+	public CDate EndDate { get; init; }
+
+	/// <summary>
 	/// Every name a unit, a brigade, a ship or a wing has been given, in any country:
 	/// a new one is never called what something already is.
 	/// </summary>
@@ -178,6 +193,9 @@ public sealed class CGameState
 
 	/// <summary>The battles being fought now, in the order they began.</summary>
 	public List<CCombat> Combats { get; } = new();
+
+	/// <summary>The battles that ended in the past week. See <c>docs/mechanics/airmap.md</c>, section 2.</summary>
+	public CCombatHistory CombatHistory { get; } = new();
 
 	/// <summary>
 	/// The countries a person plays. The simulation asks it in one place so far: an

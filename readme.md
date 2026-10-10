@@ -169,14 +169,38 @@ In order:
      a marker on the map: the original gives none**, to them or to a battle at sea. **Read
      out of the original, tried with real clicks, and the maintainer has not looked at
      it**;
-   - **what is left of the air side on screen**, either of which may come next:
-     - **the air map mode**, which is where the original shows the air battles and
-       bombings that have been fought - three icons to a province, out of a list of
-       finished battles that is not kept here yet. Its icons were read
-       (`reversing/findings/FINDINGS-combatview.md`, section 14); its colours, its tooltip
-       and how long a battle stays on the list were not;
-     - **the rest of the air orders window** - its shapes and sliders, which make a
-       mission's area, its day and night boxes and its dates.
+   - **the rest of the air orders window - built** (2026-10-11, `fleetsandair.md`, section 4,
+     and `aircombat.md`, section 2): the four shapes of a mission's area - point, region,
+     circle, cone - with the three sliders, the right click that aims a circle or a cone and
+     the shift that adds to one, the boxes of the hours, the two dates and "continuous", the
+     readout of the day, the ladder that ticks the first row, what it remembers for the
+     next, and the map's colours while it is up. **Read whole out of the original, tried with
+     real clicks, and the maintainer has not looked at it.** Nine things in it are the
+     original's and look odd, and are built so (`fleetsandair.md`, section 4, and below),
+     none put to him: the priority is shown and never sent; a slider must move a twentieth
+     before it counts; the figures show the sliders and not what a right click aimed; a cone
+     loses its part west of north when it starts below north; clearing the ticked box of the
+     hours leaves none ticked; the hint under the sliders is empty until accept is first
+     greyed; the second rung of the ladder replaces the first; a month on keeps the day and
+     runs past a short month; and the title stays when a right click moves the window;
+   - **the air map mode - built** (2026-10-11, `airmap.md`), the last of the air side on
+     screen: grey, green where the player's intercepts reach and red where its air
+     superiority does; a ring round each of its air bases for each range of aircraft there,
+     red to green by their strength; the air bases and anti-aircraft guns as large pictures
+     by their level, the large air base clicked before any counter - which is how an air unit
+     at its base is picked in this mode; the three icons of the week's air battles and
+     bombings; and the province's two lines. Under it, **a list of finished battles that
+     keeps a week**, every battle of every kind going on it as it ends (`CCombatHistory`).
+     **Read whole out of the original, tried with real clicks, and the maintainer has not
+     looked at it.** Four things in it are the original's and look odd, and are built so
+     (`airmap.md`), none put to him: its colours are not made again each day, only when the
+     player's fighter orders start or go; a count of battles is a signed byte, so 128 in a
+     week hide the icon; a beaten side is named by nobody; and an air base the player knows
+     little of is drawn at the size of a level 1. Reading for it corrected the fact base
+     twice. `Tab` reaches it after supply, and `--mode=air` starts in it.
+
+   With that, **stage 3 has what it set out to have on the air side**; transport and
+   invasion, and a carrier's aircraft, wait for carrying, which is its own work.
 
    **Bombing** (`bombing.md`): a unit on a bombing mission flies out to a province of its
    list, bombs it for four hours and is told to return the hour after; home, it flies again.
@@ -572,6 +596,30 @@ None of these blocks the list above.
   the attackers and one for the defenders; and what a click on the original's marker does
   was not read - here it opens the window. `docs/mechanics/combatview.md` ends with the
   list.
+- **An air unit at its base cannot be clicked** where land units stand in the same
+  province, **outside the air map mode**: since 2026-10-10 an air stack stands on the
+  province's own point as the land stack does (`mapunits.md`, section 1), and a click takes
+  the stack drawn on top, which is the land one. In the air map mode the large air base is
+  asked first, as in the original (`airmap.md`, section 5). How the original keeps such a
+  unit's counter off the map in the other modes was read (`reversing/findings/FINDINGS-seaair.md`,
+  section 6) and is not built. `--select=<name>` picks one for a trial.
+- **The air map mode greys the wrong terrain.** The original lays its colours over its
+  terrain map mode turned grey - the textured one, tiles out of `map/terrain/texturesheet`
+  picked by `terrain.bmp` and tinted by `colormap.dds` - and here they lie over the flat
+  colour of each province's terrain, which is nearer the original's simplified terrain, since
+  the textured mode is not built. The maintainer, 2026-10-11, offered building it now: leave
+  it as is, for later in the plan.
+- **The air map mode is drawn by rules of ours where the original's were not read**
+  (`airmap.md`): its colours' alpha is laid at a half over that grey and the sea at the
+  water's 0.8, where what the original's shaders do was not followed through; its icons stand about
+  the province's own point, not its label's; the small building pictures are still drawn
+  under the large ones; the large pictures and their frames are worked out once a day; a
+  ring's range is the shortest of the unit's wings'; and the rings and icons show from any
+  height.
+- **The air orders window is less than the original's in four ways**: no tooltips, no
+  paradrop's earliest start, a province out of the unit's reach drawn as the terrain mode
+  draws it - how the original draws "nothing" was not read - and the line under the sliders
+  is not wrapped into its box. `fleetsandair.md`, section 4.
 - **Four rules of how the interface draws are measured on screenshots and not read**: a
   bar's picture upside down, where a turned flag stands, where a round shield puts its
   flag, and where a name too long for its box is cut - the last of which ends ten pixels
@@ -1122,7 +1170,7 @@ sea and by air - in four projects:
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it. The panel of the unit selected on the map: a list of the units above it, its header, its status, its order, its buttons, its brigades, the units under it and the battles it is in, each a class of its own. The window of orders for a fleet or an air unit. And the window of a battle, with its two sides and a line for each unit on them |
 | `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital, and the carrying of supplies against what a start-date save holds in every province, with the convoys a new game makes against the save's, way for way and ship for ship. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial, `seabattle` does the same with two countries' fleets, and `raid` sends one country's raiders at another's convoys for a month. And `firstdays` sets a new game as a player gets it, its two days run, beside the start save country by country - meant to differ, since the original's AI has changed laws by then - where `supplypass ... countries` does it like for like, with the save's laws given. `techgap` looks at the technology levels the start save has above the history's, and `airbattle` flies an air mission with the install's own units and tells the battles it comes to; `bombing` flies a bombing mission for some days and tells what it did to the province |
-| `tests/` | 1192 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, and what the window shows of a battle in the air and of a bombing, where silent misreadings are expensive |
+| `tests/` | 1235 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, and the list of finished battles with the air map mode's colours, icons, rings and lines, where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.

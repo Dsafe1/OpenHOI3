@@ -112,6 +112,12 @@ public sealed class CProvince
 	public string Continent { get; init; } = "";
 
 	/// <summary>
+	/// The regions that list it, as numbers into <see cref="CGameState.Regions"/>, in
+	/// the order the map gives them: the first is its region where only one is asked for.
+	/// </summary>
+	public List<int> Regions { get; } = new();
+
+	/// <summary>
 	/// The centre of its bounding box on the map, in pixels. A route is searched
 	/// towards it: see <c>docs/mechanics/movement.md</c>, section 3.
 	/// </summary>

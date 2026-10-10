@@ -22,7 +22,7 @@ public partial class CBuildingIcons : Node2D
 	/// How much of a picture's square its round badge fills, from the middle: what a
 	/// click has to be inside. Measured on the two bases' pictures.
 	/// </summary>
-	private const float BadgeShare = 0.66f;
+	public const float BadgeShare = 0.66f;
 
 	private sealed record Picture(CBillboardType Type, Texture2D Texture);
 

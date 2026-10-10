@@ -59,10 +59,13 @@ public class MapLoadingTests : IDisposable
 			definitions = ""definition.csv""
 			provinces = ""provinces.bmp""
 			adjacencies = ""adjacencies.csv""
-			continent = ""continent.txt""");
+			continent = ""continent.txt""
+			region = ""region.txt""");
 
 		// Alpha, Beta and Gamma on one continent and Epsilon on another.
 		Write("map/continent.txt", "west = {\n\t1 2 3\n}\neast = { 5 }\n");
+		// Beta in two regions, the coast's first.
+		Write("map/region.txt", "coast_region = { 2 4 }\nland_region = { peace 1 2 3 }\n");
 		Write("map/definition.csv",
 			"province;red;green;blue;x;x\n" +
 			"1;10;0;0;Alpha;x\n2;20;0;0;Beta;x\n3;30;0;0;Gamma;x\n4;40;0;0;Delta;x\n5;50;0;0;Epsilon;x\n" +
@@ -317,6 +320,16 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal(1, map.ProvinceAt(8, 2));
 		Assert.Equal(0, map.ProvinceAt(0, 3));
 		Assert.Equal(0, map.ProvinceAt(0, -1));
+	}
+
+	[Fact]
+	public void TheMapsRegionsAreReadInTheirFilesOrder()
+	{
+		CMap map = Load();
+
+		Assert.Equal(new[] { "coast_region", "land_region" }, map.Regions.Select(region => region.Name));
+		Assert.Equal(new[] { 1, 2, 3 }, map.Regions[1].Provinces);
+		Assert.True(map.Regions[1].UseForPeace);
 	}
 
 	[Fact]

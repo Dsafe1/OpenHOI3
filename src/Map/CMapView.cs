@@ -32,6 +32,8 @@ public partial class CMapView : Node2D
 		Terrain,
 		/// <summary>How the player's supplies stand in it: <c>docs/mechanics/supplymap.md</c>.</summary>
 		Supply,
+		/// <summary>Where the player's fighters fly, with its air bases and the week's air battles: <c>docs/mechanics/airmap.md</c>.</summary>
+		Air,
 	}
 
 	[Signal]
@@ -116,6 +118,7 @@ public partial class CMapView : Node2D
 		_counters = new CUnitCounters { Name = "Counters" };
 		_counters.Setup(_map, _state, gui, types, billboards, arrows);
 		_counters.Markers.Player = _player;
+		_counters.AirMap.Player = _player;
 		_textures = gui.Textures;
 	}
 
@@ -134,6 +137,7 @@ public partial class CMapView : Node2D
 			if (_counters is not null)
 			{
 				_counters.Markers.Player = value;
+				_counters.AirMap.Player = value;
 			}
 		}
 	}
@@ -153,13 +157,40 @@ public partial class CMapView : Node2D
 		RefreshColours();
 	}
 
+	/// <summary>
+	/// Colours the map for the air orders window while it is up, whatever the mode, or with
+	/// null gives the mode back. A province given no colour - one the unit cannot reach -
+	/// is drawn as the terrain mode draws it, which is ours: the original gives it nothing
+	/// at all, and how its map draws that was not read.
+	/// </summary>
+	public void ShowAirArea(Func<CProvince, CColor?>? colours)
+	{
+		_airArea = colours;
+		RefreshColours();
+	}
+
+	private Func<CProvince, CColor?>? _airArea;
+
 	public MapMode Mode
 	{
 		get => _mode;
 		set
 		{
 			_mode = value;
+			if (_counters is not null)
+			{
+				_counters.AirMode = value == MapMode.Air;
+			}
 			RefreshColours();
+		}
+	}
+
+	/// <summary>Works out again what the air map mode draws over the map, when it is on: once a day.</summary>
+	public void RefreshAirMap()
+	{
+		if (_mode == MapMode.Air && _counters is not null)
+		{
+			_counters.AirMap.Refresh(_counters.Selected);
 		}
 	}
 
@@ -264,6 +295,9 @@ public partial class CMapView : Node2D
 	/// </summary>
 	public void RefreshColours()
 	{
+		Dictionary<int, (CColor Ground, CColor Stripes)>? air = _mode == MapMode.Air && _airArea is null
+			? CAirMapColours.Build(_state, Player)
+			: null;
 		for (int id = 0; id < _map.ProvinceCount; id++)
 		{
 			CProvince province = _state.Provinces[id];
@@ -272,6 +306,23 @@ public partial class CMapView : Node2D
 			if (id == 0)
 			{
 				colour = NothingColour;
+			}
+			else if (_airArea is not null)
+			{
+				colour = _airArea(province) is { } shown ? shown.ToGodot()
+					: province.IsSea ? SeaColour
+					: province.Terrain?.Color.ToGodot() ?? UnownedColour;
+			}
+			else if (air is not null)
+			{
+				// The air map mode colours the sea as well. Ours, after the original's shaders
+				// as far as they were looked at: on land each colour is laid at its alpha over
+				// the ground's colour turned grey, and on the sea at the water's 0.8.
+				(CColor ground, CColor stripes) = air.TryGetValue(id, out var both)
+					? both
+					: (CAirMapColours.Grey, CAirMapColours.Grey);
+				colour = AirOver(province, ground);
+				stripe = AirOver(province, stripes);
 			}
 			else if (province.IsSea)
 			{
@@ -308,6 +359,22 @@ public partial class CMapView : Node2D
 		}
 		_paletteTexture.Update(_paletteImage);
 		_stripeTexture.Update(_stripeImage);
+	}
+
+	/// <summary>How much of a province's colour the original's water shader lays over the sea.</summary>
+	private const float WaterTakes = 0.8f;
+
+	/// <summary>An air map mode colour as it is painted: over the sea, or over the ground turned grey.</summary>
+	private static Color AirOver(CProvince province, CColor air)
+	{
+		var colour = new Color(air.R, air.G, air.B);
+		if (province.IsSea)
+		{
+			return SeaColour.Lerp(colour, WaterTakes);
+		}
+		Color terrain = province.Terrain?.Color.ToGodot() ?? UnownedColour;
+		float grey = terrain.Luminance;
+		return new Color(grey, grey, grey).Lerp(colour, air.A);
 	}
 
 	// --- the camera ---
@@ -462,7 +529,15 @@ public partial class CMapView : Node2D
 					CombatSelected?.Invoke(battle);
 					break;
 				}
-				CUnit? unit = _places is null ? _counters?.Click(clicked) : null;
+				// In the air map mode a large air base is asked before any counter, which is
+				// how an air unit at its base is picked whatever stands over it.
+				CUnit? unit = null;
+				if (_places is null && Player is { } flier && _counters is not null
+					&& _counters.AirMap.AirBaseAt(clicked) is int airfield and > 0)
+				{
+					unit = CMapBuildings.Next(_state, flier, airfield, EMapBuilding.Airfield, _counters.Selected);
+				}
+				unit ??= _places is null ? _counters?.Click(clicked) : null;
 				// Then a port or an airfield, which is how a fleet in port and an air unit
 				// at its base are picked: each click the next of the player's units there.
 				if (unit is null && _places is null && Player is { } player && _counters is not null
@@ -493,6 +568,7 @@ public partial class CMapView : Node2D
 				{
 					MapMode.Political => MapMode.Terrain,
 					MapMode.Terrain => MapMode.Supply,
+					MapMode.Supply => MapMode.Air,
 					_ => MapMode.Political,
 				};
 				break;

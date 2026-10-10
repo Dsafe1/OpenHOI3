@@ -82,6 +82,27 @@ public sealed class CCombatSide
 	/// </summary>
 	public List<CCountryTag> Countries { get; } = new();
 
+	/// <summary>
+	/// The countries still in the fight on this side: a unit's owner is put on it as the
+	/// unit joins, and it is made again from the units left whenever one is taken off. So a
+	/// beaten side's is empty by the battle's end, and its first country is what the list of
+	/// finished battles names the side by. See <c>docs/mechanics/airmap.md</c>, section 2.
+	/// </summary>
+	public List<CCountryTag> Standing { get; } = new();
+
+	/// <summary>Puts a country on both lists of this side's countries, where it is not there yet.</summary>
+	public void AddCountry(CCountryTag country)
+	{
+		if (!Countries.Contains(country))
+		{
+			Countries.Add(country);
+		}
+		if (!Standing.Contains(country))
+		{
+			Standing.Add(country);
+		}
+	}
+
 	/// <summary>Takes a unit onto this side. One that joins a front already set up waits in reserve.</summary>
 	public void Add(CUnit unit)
 	{
@@ -89,10 +110,7 @@ public sealed class CCombatSide
 		{
 			Units.Add(unit);
 		}
-		if (!Countries.Contains(unit.Owner))
-		{
-			Countries.Add(unit.Owner);
-		}
+		AddCountry(unit.Owner);
 		if (!unit.Combats.Contains(Combat))
 		{
 			unit.Combats.Add(Combat);
@@ -103,11 +121,22 @@ public sealed class CCombatSide
 		}
 	}
 
-	/// <summary>Takes a unit off this side, wherever on it it was.</summary>
+	/// <summary>
+	/// Takes a unit off this side, wherever on it it was, and makes the countries still in
+	/// the fight again from the units left.
+	/// </summary>
 	public void Remove(CUnit unit)
 	{
 		Units.Remove(unit);
 		Front.Remove(unit);
 		Reserves.Remove(unit);
+		Standing.Clear();
+		foreach (CUnit left in Units)
+		{
+			if (!Standing.Contains(left.Owner))
+			{
+				Standing.Add(left.Owner);
+			}
+		}
 	}
 }

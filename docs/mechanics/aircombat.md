@@ -8,8 +8,10 @@ where this project chooses its own behaviour the paragraph is marked **Ours**.
 Sources: `reversing/findings/FINDINGS-airbattle.md`, with `reversing/findings/FINDINGS-airnaval.md`
 (what starts an air battle, the fitness test, the four hours),
 `reversing/findings/FINDINGS-combatmods.md` (what the hour makes of a wing),
-`reversing/findings/FINDINGS-airdefence.md` (what the shot reads) and
-`reversing/findings/FINDINGS-seaair.md` (the unit's hour, the range).
+`reversing/findings/FINDINGS-airdefence.md` (what the shot reads),
+`reversing/findings/FINDINGS-seaair.md` (the unit's hour, the range) and
+`reversing/findings/FINDINGS-airorders.md` (a mission's area, its hours and dates, as the
+orders window makes them).
 
 **Nothing here was watched in the original, and nothing can be checked against a save**: none
 of the maintainer's has an air battle, and the rolls cannot be made again. It is the second of
@@ -83,24 +85,73 @@ battle and no bombing, and has a base is given the way home each hour, where the
 hour. So a mission ended or taken back over enemy ground ends in the flight home, and a beaten
 unit that fell back out to sea goes on home from there.
 
-*Ours:* an order made with nothing said flies day and night, starts at once and **never ends**.
-The original's command carries both hours; what its window puts in them was not read, and the
-window's dates are not built.
+**The two hours come from the orders window** (`fleetsandair.md`, section 4): the start
+widget's date, and the end widget's - or with "continuous" ticked, which it is when the window
+opens, **the defines' `end_date`**. `confirmed`
+
+*Ours:* an order made with nothing said - the developer switch, the trials - flies day and
+night, starts at once and **never ends**.
 
 ## 2. A mission's area
 
 `confirmed` The mission's provinces come with the order - the original's command carries the
 list - and each is kept only where it is **within the unit's range of its base**.
 
-The original's window makes the list from a shape and three sliders. Of that, one shape was
-read, the circle: from the mission's province outwards, through neighbours the unit may fly
-to, every province within the unit's range of its base and **within the area's range of the
-mission's province** is in it, and the walk goes on only from provinces that are. Distances
-are the range's own: straight lines between provinces (`fleetsandair.md`, section 3).
+**The window makes the list** (`fleetsandair.md`, section 4, has the window) from **a shape**,
+**a range**, **an angle** and **a width**, which the sliders and a right click on the map set.
+"In range" below is always the unit's range of its base. `confirmed` throughout.
 
-*Ours:* `CAirMissionArea.Circle` is that walk. The window's shapes and sliders are not built:
-an order given through the orders window covers **its one province**, and the developer switch
-takes a radius.
+| shape | the list |
+| --- | --- |
+| **point** | the window's province, where it is in range |
+| **region** | every province of the window's province's **first region** that is in range, in the region's own order; with no region, the province as for a point |
+| **circle** | the walk below |
+| **cone** | the walk, with an arc |
+
+**The walk**: from the window's province outwards, through neighbours the unit may fly to,
+every province in range and **within the area's range of the window's province** is added as
+it is reached, and the walk goes on only from provinces that are. Distances are the range's
+own: straight lines between provinces (`fleetsandair.md`, section 3). **For a cone** a
+neighbour must also lie in its arc before it is added or walked from.
+
+**The arc**: the neighbour's **bearing** from the window's province - between their points,
+`atan2(y2 - y1, x1 - x2)` plus three quarters of a turn, which is the compass bearing, north 0
+and east a quarter turn, with x not wrapped round the map - must lie between the angle less
+half the width and the angle plus half, each taken modulo a turn **keeping its sign**:
+
+    high = (angle + width / 2) mod a turn
+    low  = (angle - width / 2) mod a turn
+    b    =  bearing mod a turn
+    high above low:   low <= b <= high
+    otherwise:        b >= low  or  b <= high
+
+So **an arc whose low end falls below north loses its part west of north** - a cone pointed
+just east of north and wider than twice its angle reaches round to north and stops. All of it
+in single precision, as the original works it.
+
+**A right click on the map**, the window up:
+
+| | without shift | with shift |
+| --- | --- | --- |
+| circle, cone | **aims it**: the range becomes the distance to the province, no further than the unit can fly; a cone's angle the bearing to it; the list made again | the province **taken off the list, or put on its end** - and one out of range only ever taken off |
+| point | the window **moves** to the province: its list, its ticked row and its area made again for it | the province **added**, where the order may list it and it is not listed |
+| region | the window moves, as for a point | every province of the province's first region added so, or the province where it has none |
+
+The window's own province does nothing to a circle or a cone. "May list" is the order's own
+test - for the eight bombing missions theirs (`bombing.md`, section 1), **which asks no range**,
+and for anything else the range - while a region's own list asks the range alone.
+
+**A slider** sets its value and makes the list again for a shape that uses it - the range for
+the circle and the cone, the angle and the width for the cone alone. **A shape button** makes
+the list again for its shape **keeping the range and the angle a right click gave**; a slider
+moved by enough replaces them.
+
+**A province's regions** are the regions of `map/region.txt` that list it, in the file's order;
+6,136 of Their Finest Hour's 11,632 provinces are in more than one. That the original keeps them
+in the file's order is `inferred` from which two regions it names first.
+
+*Ours:* `CAirArea` is the window's area; `CAirMissionArea.Circle` is its circle for the
+developer switch and the trials, which take a radius.
 
 ## 3. Air superiority
 
@@ -378,8 +429,9 @@ that flies on from a battle may fight again where it arrives.)
 In the client `--mission=GER:airsuperiority:<province>` and `--mission=GER:airintercept:<province>`
 give that mission to the country's air unit with the most air attack that has the province in
 its range, there being no AI to; a number after the province makes the mission's area a circle
-of that range about it. **The orders window gives both too**, for the one province clicked:
-its shapes and sliders, its day and night boxes and its two dates are drawn and do nothing.
+of that range about it. **The orders window gives both too**, with its shapes, sliders, hours
+and dates (`fleetsandair.md`, section 4); `--select=Luftflotte II` selects an air unit that no
+click can reach at its base, and `--click=` with `r` and `s` drives the window.
 A selected unit's panel names the mission with one word after it - `Waiting`, `Attacking` or
 `Returning`; the intercept's are the original's and air superiority's were not read and are
 given the same. **A battle in the air has a window and a row in a unit's panel, and no marker
@@ -391,9 +443,7 @@ selected province says there is a battle.
 - A **carrier's aircraft**, with the order that keeps them over their fleet. Bombing and
   anti-aircraft fire are `bombing.md`'s.
 - **Every other air order** - the reserve, the transport of supplies, the paradrop.
-- **The rest of the air side on screen**: the orders window's shapes, sliders, day and night
-  boxes and dates are not there, and nor is the air map mode, which is where the original
-  shows the air battles that have been fought (`combatview.md`, section 11).
+- The orders window is whole since 2026-10-11, and the air map mode is built: `airmap.md`.
 - **Leaders and difficulty** in what the hour makes of a wing; **radar** in what a country
   knows. The weather's part is built and there is no weather yet.
 - **The practical** an air battle earns, and experience.
@@ -401,7 +451,6 @@ selected province says there is a battle.
 
 ### Not established
 
-- What the original's window starts a mission with: its shape, its range, its dates.
 - Whether flying costs a wing organisation: nothing read takes any.
 - What fills the list of who sees a unit, by which a country sees into ground beside its
   own units (section 6): nothing here does, and interdiction needs it (`bombing.md`).

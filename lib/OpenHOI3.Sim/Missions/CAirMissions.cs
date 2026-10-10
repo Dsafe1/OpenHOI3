@@ -64,21 +64,28 @@ public static class CAirMissions
 	{
 		List<int> kept = unit.Mission.Provinces;
 		kept.Clear();
-		bool isBombing = CBombingOrders.IsBombingMission(unit.Order);
 		foreach (int id in provinces)
 		{
 			if (id <= 0 || id >= state.Provinces.Count || kept.Contains(id))
 			{
 				continue;
 			}
-			CProvince province = state.Province(id);
-			if (isBombing
-				? CBombingOrders.MayList(state, unit, unit.Order, province)
-				: CUnitOrders.IsInRange(state, unit, unit.Order, province))
+			if (MayList(state, unit, unit.Order, state.Province(id)))
 			{
 				kept.Add(id);
 			}
 		}
+	}
+
+	/// <summary>
+	/// Whether an air order may list a province - the original's slot 37: a bombing
+	/// mission by its own test, which asks no range, and anything else by the range.
+	/// </summary>
+	public static bool MayList(CGameState state, CUnit unit, EUnitOrder order, CProvince province)
+	{
+		return CBombingOrders.IsBombingMission(order)
+			? CBombingOrders.MayList(state, unit, order, province)
+			: CUnitOrders.IsInRange(state, unit, order, province);
 	}
 
 	/// <summary>Sets a unit off on the mission it has just been given.</summary>

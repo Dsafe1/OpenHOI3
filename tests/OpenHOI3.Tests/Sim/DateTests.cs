@@ -67,4 +67,14 @@ public class DateTests
 	{
 		Assert.Equal("", new CDate(1936, 13, 1).MonthKey);
 	}
+
+	[Fact]
+	public void AMonthOnKeepsTheDayOfTheMonthAndRunsPastAShortMonthsEnd()
+	{
+		Assert.Equal(new CDate(1936, 2, 15), new CDate(1936, 1, 15).AddMonths(1));
+		// The original keeps the day and does not cut it to February's 28.
+		Assert.Equal(new CDate(1936, 3, 3), new CDate(1936, 1, 31).AddMonths(1));
+		Assert.Equal(new CDate(1937, 1, 10), new CDate(1936, 12, 10).AddMonths(1));
+		Assert.Equal(new CDate(1935, 12, 10), new CDate(1936, 1, 10).AddMonths(-1));
+	}
 }

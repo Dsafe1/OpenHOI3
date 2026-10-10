@@ -475,6 +475,20 @@ public class BombingTests
 		Assert.False(new CDropOrderCommand(Ger, home.Id).MayExecute(state));
 	}
 
+	[Fact]
+	public void TheHourlyPassSendsAnAirUnitWithNoOrderHomeFromWhereverItIs()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit bombers = Air(state, germany, Warsaw, Tactical);
+		bombers.Order = EUnitOrder.GroundAttack;
+		new CDropOrderCommand(Ger, bombers.Id).Execute(state);
+
+		CMovement.RunHourly(state);
+
+		Assert.True(bombers.IsMoving);
+		Assert.Equal(Berlin, bombers.Path[^1]);
+	}
+
 	// --- which province ---
 
 	[Fact]

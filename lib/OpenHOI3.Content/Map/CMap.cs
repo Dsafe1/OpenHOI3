@@ -28,8 +28,9 @@ public sealed class CMap
 	private CMap(int width, int height, ushort[] raster, bool[] isSea,
 		CProvinceShape[] shapes, int[][] neighbours, CExplicitAdjacency[] explicitAdjacencies,
 		CTerrain[] terrains, CTerrain?[] terrain, string[] continents, CMapPositions positions,
-		CProvinceEdge[][] edges, string[] sourceFiles)
+		CProvinceEdge[][] edges, List<CRegion> regions, string[] sourceFiles)
 	{
+		Regions = regions;
 		Width = width;
 		Height = height;
 		_raster = raster;
@@ -89,6 +90,9 @@ public sealed class CMap
 	/// province no continent lists - every sea province, for one.
 	/// </summary>
 	public IReadOnlyList<string> Continents { get; }
+
+	/// <summary>The regions of <c>region.txt</c>, in the file's order.</summary>
+	public IReadOnlyList<CRegion> Regions { get; }
 
 	/// <summary>
 	/// Per province id, the one point that stands for it: where a unit there is drawn.
@@ -300,12 +304,15 @@ public sealed class CMap
 		string continentTxt = directories.Resolve("map/" + definition.GetString("continent", "continent.txt"));
 		string[] continents = ReadContinents(continentTxt, provinceCount, warn);
 
+		string regionTxt = directories.Resolve("map/" + definition.GetString("region", "region.txt"));
+		List<CRegion> regions = CRegionReader.Read(regionTxt, provinceCount, warn);
+
 		return new CMap(bitmap.Width, bitmap.Height, raster, isSea, shapes, neighbours,
-			explicitAdjacencies, terrains, terrain, continents, positions, edges,
+			explicitAdjacencies, terrains, terrain, continents, positions, edges, regions,
 			new[]
 			{
 				definitionPath, provincesCsv, provincesBmp, adjacenciesCsv, terrainTxt, terrainBmp, riversBmp,
-				continentTxt, positionsTxt,
+				continentTxt, positionsTxt, regionTxt,
 			});
 	}
 

@@ -377,8 +377,8 @@ sound.
 **On the map** the original shows a battle in the air and a bombing only once they are over,
 and only in its air map mode: three small icons to a province - an air battle, "bombed us",
 "bombed them" - counted each day out of the list of finished battles
-(`reversing/findings/FINDINGS-combatview.md`, section 14). **Not built**: there is no air map
-mode here and no list of finished battles.
+(`reversing/findings/FINDINGS-combatview.md`, section 14). Built since 2026-10-11, with the
+list of finished battles: `airmap.md`, section 4.
 
 ---
 
@@ -389,8 +389,8 @@ mode here and no list of finished battles.
   each modifier is worth to it, a tactic with what it does and what counters it, the arrow
   between the tactics - and none is drawn anywhere yet.
 - **The sounds** a window plays while it is up.
-- **The air map mode's icons** of finished air battles and bombings, and the naval mode's of
-  convoys sunk and raiders fought: section 11's last paragraph.
+- **The naval mode's icons** of convoys sunk and raiders fought. The air map mode's of finished
+  air battles and bombings are built: `airmap.md`.
 - **The marker's first three hours.** The original makes a land battle's marker when it is
   first refreshed and then leaves it standing between refreshes; here it is worked out again
   whenever the map is, which shows the same from the fourth hour on.

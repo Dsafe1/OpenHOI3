@@ -182,10 +182,7 @@ public static class CBombing
 		{
 			side.Units.Add(unit);
 		}
-		if (!side.Countries.Contains(unit.Owner))
-		{
-			side.Countries.Add(unit.Owner);
-		}
+		side.AddCountry(unit.Owner);
 		unit.Bombing = side.Combat;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
@@ -193,15 +190,17 @@ public static class CBombing
 		}
 	}
 
-	/// <summary>Takes a unit out of the bombing it is in.</summary>
+	/// <summary>
+	/// Takes a unit out of the bombing it is in. Its side's countries still in the fight are
+	/// made again from the units left, which drops a ground bombing's holder.
+	/// </summary>
 	public static void Leave(CUnit unit)
 	{
 		if (unit.Bombing is not { } bombing)
 		{
 			return;
 		}
-		bombing.Attacker.Units.Remove(unit);
-		bombing.Defender.Units.Remove(unit);
+		bombing.SideOf(unit)?.Remove(unit);
 		unit.Bombing = null;
 	}
 
@@ -249,7 +248,7 @@ public static class CBombing
 		state.Combats.Add(bombing);
 		if (kind == ECombatKind.GroundBombing && province.Controller is { } holder)
 		{
-			bombing.Defender.Countries.Add(holder);
+			bombing.Defender.AddCountry(holder);
 		}
 		Join(bombing.Attacker, unit);
 		if (target is not null)

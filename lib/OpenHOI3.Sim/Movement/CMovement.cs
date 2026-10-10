@@ -138,7 +138,8 @@ public static class CMovement
 	/// <summary>
 	/// Every unit's hour as far as going somewhere and meeting an enemy is concerned,
 	/// country by country in the order of the units' numbers. A unit of a country at
-	/// peace that is going nowhere has nothing to do in it.
+	/// peace that is going nowhere has nothing to do in it - but an air unit away from its
+	/// base always has, since with no order its hour is what sends it home.
 	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
@@ -152,7 +153,10 @@ public static class CMovement
 				if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.IsRetreating
 					|| unit.AttackDelay > CFixedPoint.Zero || unit.HoursAttacking > 0
 					|| unit.EngageWait > 0 || unit.NoBattleHours > 0 || unit.NoBombingHours > 0
-					|| (atWar && (CMovementRules.IsLandUnit(unit) || unit.Kind == EUnitKind.Navy)))
+					|| (atWar && (CMovementRules.IsLandUnit(unit) || unit.Kind == EUnitKind.Navy))
+					// An air unit away from its base has its hour whatever it is doing:
+					// with no order, that hour is what sends it home.
+					|| (unit.Kind == EUnitKind.Air && unit.Base != 0 && !Missions.CAirMissions.IsAtOwnBase(unit)))
 				{
 					(busy ??= new List<CUnit>()).Add(unit);
 				}

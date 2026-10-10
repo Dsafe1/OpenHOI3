@@ -83,6 +83,20 @@ public readonly record struct CDate(int Year, int Month, int Day) : IComparable<
 		return FromDayNumber(DayNumber + days);
 	}
 
+	/// <summary>
+	/// The same day so many months on or back, as the original counts it: the day of the
+	/// month is kept and not cut to the new month's length, so a day past its end runs on
+	/// into the next - 31 January and a month is 3 March. See
+	/// <c>docs/mechanics/aircombat.md</c>, section 1.
+	/// </summary>
+	public CDate AddMonths(int months)
+	{
+		int index = Month - 1 + months;
+		int year = Year + (index >= 0 ? index / 12 : (index - 11) / 12);
+		int month = ((index % 12) + 12) % 12 + 1;
+		return FromDayNumber(new CDate(year, month, Day).DayNumber);
+	}
+
 	public int CompareTo(CDate other)
 	{
 		int byYear = Year.CompareTo(other.Year);

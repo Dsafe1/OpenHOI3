@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
@@ -15,7 +16,10 @@ namespace OpenHOI3.Screens;
 /// The window a right click with a fleet or an air unit brings up: the original's
 /// <c>naval_unit_order</c> and <c>air_unit_order</c>. It is headed with the province's
 /// name and lists the orders for it, one of which is ticked and given with
-/// <c>accept</c>. See <c>docs/mechanics/fleetsandair.md</c>, section 4.
+/// <c>accept</c>; the air one also makes the mission's area and its hours and dates
+/// (<see cref="CAirOrdersControls"/>), colours the map while it is up, and remembers its
+/// priority, stance, shape and order for the next. See
+/// <c>docs/mechanics/fleetsandair.md</c>, section 4.
 /// </summary>
 public partial class COrdersWindow : Control
 {
@@ -27,8 +31,10 @@ public partial class COrdersWindow : Control
 	private CGuiButton? _accept;
 	private CGuiTextBox? _stanceValue;
 	private CGuiTextBox? _priorityValue;
+	private CGuiListBox? _list;
 	private readonly List<CGuiButton> _boxes = new();
 	private List<COrderRow> _rows = new();
+	private CAirOrdersControls? _air;
 	private CUnit? _unit;
 	private int _province;
 	private int _ticked = -1;
@@ -40,6 +46,16 @@ public partial class COrdersWindow : Control
 
 	/// <summary>Raised when the window comes up or goes away.</summary>
 	public event Action? Toggled;
+
+	/// <summary>
+	/// Raised when the map is to show an air mission's area, with each province's colour -
+	/// null for a province the unit cannot reach - and with null when it is to show its
+	/// own mode again.
+	/// </summary>
+	public event Action<Func<CProvince, CColor?>?>? AreaShown;
+
+	/// <summary>What the last air window kept for the next: the session's.</summary>
+	public CAirOrdersMemory AirMemory { get; private set; } = CAirOrdersMemory.First;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, CSimulation simulation, CCountry player)
@@ -78,19 +94,103 @@ public partial class COrdersWindow : Control
 		_window = window;
 		_unit = unit;
 		_province = province;
-		_stance = COrdersText.Aggressive;
-		_priority = 0;
+		bool isAir = unit.Kind == EUnitKind.Air;
+		_stance = isAir ? AirMemory.Stance : COrdersText.Aggressive;
+		_priority = isAir ? AirMemory.Priority : 0;
 		AddChild(window);
 
-		CProvince target = state.Province(province);
+		// The title is written once: a window moved to another province keeps it.
 		if (window.FindTextBox("title") is { } title)
 		{
-			title.Text = target.Name;
+			title.Text = state.Province(province).Name;
 		}
 
-		_rows = COrdersText.Rows(state, _player, unit, target);
+		_list = window.FindListBox("orders_list");
+		_accept = window.FindButton("accept");
+		if (_accept is not null)
+		{
+			_accept.Pressed += Accept;
+		}
+		if (window.FindButton("cancel") is { } cancel)
+		{
+			cancel.Pressed += Close;
+		}
+		_stanceValue = window.FindTextBox("stance_value");
+		_priorityValue = window.FindTextBox("priority_value");
+		Wire(window, "decrease_stance_button", () => _stance = COrdersText.StepStance(_stance, -1));
+		Wire(window, "increase_stance_button", () => _stance = COrdersText.StepStance(_stance, 1));
+		Wire(window, "decrease_priority_button", () => _priority = COrdersText.StepPriority(_priority, -1));
+		Wire(window, "increase_priority_button", () => _priority = COrdersText.StepPriority(_priority, 1));
+
+		if (isAir)
+		{
+			_air = new CAirOrdersControls(_context, state, _player, unit, window, province, AirMemory.Shape);
+			_air.Changed += AirChanged;
+			// The order kept is the last window's, or with none the unit's own.
+			BuildRows(AirMemory.Order != EUnitOrder.None ? AirMemory.Order : unit.Order);
+		}
+		else
+		{
+			BuildRows(EUnitOrder.None);
+		}
+		ShowFigures();
+		Toggled?.Invoke();
+		return true;
+	}
+
+	public void Close()
+	{
+		if (_window is null)
+		{
+			return;
+		}
+		if (_air is not null)
+		{
+			AirMemory = new CAirOrdersMemory(_priority, _stance, _air.Shape, TickedOrder);
+			_air = null;
+			AreaShown?.Invoke(null);
+		}
+		_window.QueueFree();
+		_window = null;
+		_accept = null;
+		_stanceValue = null;
+		_priorityValue = null;
+		_list = null;
 		_boxes.Clear();
-		CGuiListBox? list = window.FindListBox("orders_list");
+		_unit = null;
+		_ticked = -1;
+		Toggled?.Invoke();
+	}
+
+	/// <summary>
+	/// A right click on the map while the window is up, with whether shift is held. The
+	/// air window takes it for its area, or is moved to the province; the naval one does
+	/// nothing with it.
+	/// </summary>
+	public void MapRightClick(int province, bool shift)
+	{
+		if (_air is null || _unit is null || province <= 0 || province >= _simulation.State.Provinces.Count)
+		{
+			return;
+		}
+		if (_air.RightClick(province, shift))
+		{
+			_province = province;
+			_air.SetProvince(province);
+			BuildRows(TickedOrder);
+		}
+	}
+
+	private EUnitOrder TickedOrder => _ticked >= 0 && _ticked < _rows.Count ? _rows[_ticked].Order : EUnitOrder.None;
+
+	/// <summary>Makes the list for the window's province, ticking the row the original would.</summary>
+	private void BuildRows(EUnitOrder keep)
+	{
+		CGameState state = _simulation.State;
+		CProvince target = state.Province(_province);
+		_list?.Clear();
+		_boxes.Clear();
+		_rows = COrdersText.Rows(state, _player, _unit!, target);
 		for (int index = 0; index < _rows.Count; index++)
 		{
 			if (CGuiWindow.CreateEntry(_context, COrdersText.EntryWindow) is not { } entry)
@@ -108,46 +208,11 @@ public partial class COrdersWindow : Control
 				box.Pressed += () => Tick(row);
 				_boxes.Add(box);
 			}
-			list?.Add(entry);
+			_list?.Add(entry);
 		}
-
-		_accept = window.FindButton("accept");
-		if (_accept is not null)
-		{
-			_accept.Pressed += Accept;
-		}
-		if (window.FindButton("cancel") is { } cancel)
-		{
-			cancel.Pressed += Close;
-		}
-		_stanceValue = window.FindTextBox("stance_value");
-		_priorityValue = window.FindTextBox("priority_value");
-		Wire(window, "decrease_stance_button", () => _stance = COrdersText.StepStance(_stance, -1));
-		Wire(window, "increase_stance_button", () => _stance = COrdersText.StepStance(_stance, 1));
-		Wire(window, "decrease_priority_button", () => _priority = COrdersText.StepPriority(_priority, -1));
-		Wire(window, "increase_priority_button", () => _priority = COrdersText.StepPriority(_priority, 1));
-
-		Tick(COrdersText.Suggested(_rows, state, _player, unit, target));
-		ShowFigures();
-		Toggled?.Invoke();
-		return true;
-	}
-
-	public void Close()
-	{
-		if (_window is null)
-		{
-			return;
-		}
-		_window.QueueFree();
-		_window = null;
-		_accept = null;
-		_stanceValue = null;
-		_priorityValue = null;
-		_boxes.Clear();
-		_unit = null;
-		_ticked = -1;
-		Toggled?.Invoke();
+		Tick(_air is null
+			? COrdersText.Suggested(_rows, state, _player, _unit!, target)
+			: CAirOrdersText.Suggested(_rows, state, _player, _unit!, target, keep));
 	}
 
 	private void Wire(CGuiWindow window, string button, Action change)
@@ -170,10 +235,34 @@ public partial class COrdersWindow : Control
 		{
 			_boxes[index].Checked = index == _ticked;
 		}
+		if (_air is not null)
+		{
+			_air.MakeArea(TickedOrder);         // which redoes accept and the map
+			return;
+		}
+		ShowAccept();
+	}
+
+	private void AirChanged()
+	{
+		ShowAccept();
+		if (_air?.Area is { } area && _unit is { } unit)
+		{
+			var listed = new HashSet<int>(area.Provinces);
+			CGameState state = _simulation.State;
+			AreaShown?.Invoke(province => CAirAreaColours.Of(state, unit, area.Order, listed, province));
+		}
+	}
+
+	/// <summary>Accept can be pressed with a row ticked - and for an air mission, with a province on its list.</summary>
+	private void ShowAccept()
+	{
+		bool may = _ticked >= 0 && (_air is null || _air.HasProvinces);
 		if (_accept is not null)
 		{
-			_accept.Disabled = _ticked < 0;
+			_accept.Disabled = !may;
 		}
+		_air?.ShowAccept(may);
 	}
 
 	private void ShowFigures()
@@ -194,8 +283,24 @@ public partial class COrdersWindow : Control
 		{
 			return;
 		}
-		var command = new CSetUnitOrderCommand(_player.Tag, unit.Id, _rows[_ticked].Order, _province, _stance,
-			_priority, _rows[_ticked].Convoy);
+		CCommand command;
+		if (_air is { Area: { } area })
+		{
+			// A change of base under way is left to finish. The priority is not sent: the
+			// original's air window shows it and never gives it.
+			if (!CDropOrderCommand.MayDrop(unit.Order))
+			{
+				Close();
+				return;
+			}
+			command = new CSetUnitOrderCommand(_player.Tag, unit.Id, _rows[_ticked].Order, _province, _stance,
+				0, 0, area.Provinces, _air.Time, _air.EndHour, _air.StartHour);
+		}
+		else
+		{
+			command = new CSetUnitOrderCommand(_player.Tag, unit.Id, _rows[_ticked].Order, _province, _stance,
+				_priority, _rows[_ticked].Convoy);
+		}
 		if (command.MayExecute(_simulation.State))
 		{
 			_simulation.Post(command);

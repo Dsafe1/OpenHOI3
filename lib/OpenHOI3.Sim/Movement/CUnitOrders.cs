@@ -167,9 +167,11 @@ public static class CUnitOrders
 	/// <param name="provinces">An air mission: the provinces it covers. With none said, the order's own.</param>
 	/// <param name="time">An air mission: by day, by night, or both.</param>
 	/// <param name="endHour">An air mission: the hour of the game after which it is over.</param>
+	/// <param name="startHour">An air mission: the hour before which it is not fit to fly; with none, now.</param>
 	public static void Give(CGameState state, CCountry country, CUnit unit, EUnitOrder order, int province,
 		int stance = CMission.Defensive, int priority = 0, int convoy = 0,
-		IReadOnlyList<int>? provinces = null, int time = CMission.DayAndNight, long endHour = CMission.NoEnd)
+		IReadOnlyList<int>? provinces = null, int time = CMission.DayAndNight, long endHour = CMission.NoEnd,
+		long? startHour = null)
 	{
 		Clear(unit);
 		unit.Order = order;
@@ -177,7 +179,7 @@ public static class CUnitOrders
 		unit.Mission = new CMission
 		{
 			Stance = stance, Priority = priority, Convoy = convoy, Time = time, EndHour = endHour,
-			StartHour = state.TotalHours,
+			StartHour = startHour ?? state.TotalHours,
 		};
 		if (CAirMissions.IsAirMission(order))
 		{

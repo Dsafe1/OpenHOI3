@@ -104,7 +104,11 @@ public static class CGameStateLoader
 			NameTexts = ReadNameTexts(localisation, unitTypes.Values),
 			MapWidth = map.Width,
 			MapHeight = map.Height,
+			Regions = map.Regions,
+			StartDate = start,
+			EndDate = ReadEndDate(directories, warn),
 		};
+		AssignRegions(state);
 		state.Alliances.AddRange(alliances);
 		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);
@@ -241,6 +245,37 @@ public static class CGameStateLoader
 			throw new InvalidDataException($"'{path}' has no readable start_date");
 		}
 		return date;
+	}
+
+	/// <summary>
+	/// The end date, which the original keeps beside the start. With none to read, the
+	/// start date: nothing then runs past the day a game begins.
+	/// </summary>
+	public static CDate ReadEndDate(CDirectorySettings directories, Action<string> warn)
+	{
+		string path = directories.Resolve(DefinesFile);
+		if (CDefinesReader.ReadText(path).TryGetValue(("", "end_date"), out string? text)
+			&& CDate.TryParse(text, out CDate date))
+		{
+			return date;
+		}
+		warn($"'{path}' has no readable end_date");
+		return ReadStartDate(directories);
+	}
+
+	/// <summary>
+	/// Gives each province the regions that list it, in the map's order of regions - as
+	/// the original's map does once it has read them.
+	/// </summary>
+	private static void AssignRegions(CGameState state)
+	{
+		for (int index = 0; index < state.Regions.Count; index++)
+		{
+			foreach (int id in state.Regions[index].Provinces)
+			{
+				state.Provinces[id].Regions.Add(index);
+			}
+		}
 	}
 
 	/// <summary>
