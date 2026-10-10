@@ -77,6 +77,12 @@ and 0.20, 0.50 and 0.30, 0.75 and 0.50 in the base game. There is no fuel in it 
 loses its order and is given a plain way home; one with under a thousandth of strength in all
 is removed. `confirmed`, from the unit's hour.
 
+**With no order at all**, an air unit away from its base that has no way to go, is in no
+battle and no bombing, and has a base is given the way home each hour, where there is one.
+`confirmed` (`reversing/findings/FINDINGS-seaair.md`, section 3): it is the empty order's own
+hour. So a mission ended or taken back over enemy ground ends in the flight home, and a beaten
+unit that fell back out to sea goes on home from there.
+
 *Ours:* an order made with nothing said flies day and night, starts at once and **never ends**.
 The original's command carries both hours; what its window puts in them was not read, and the
 window's dates are not built.
@@ -228,9 +234,13 @@ and otherwise starts one with **the first** air unit of the province it may figh
 a unit **under a fighting order** starts one. One air battle to a province. Everyone else
 there is offered a side.
 
-**The hour's grace.** A unit that is in an air battle as its hour begins cannot be taken into
-another for two of its hours, that one counted. A battle ends after every unit's hour, so
-**the hour after a battle a unit may fly on and cannot be fought**; the hour after that it can.
+**The hour's grace.** A unit that is in an air battle as its hour begins starts and joins no
+other for two of its hours, that one counted. A battle ends after every unit's hour, so the
+hour after a battle a unit that stays where it is starts none. **The wait ends with its first
+move**: every pass of the march of a unit in no battle wipes it, so a unit that flies on may
+fight again in the very next province it enters. And the wait is the unit's own - it keeps
+*it* from starting or joining, and a unit that finds it is not asked for its. *Corrected
+2026-10-10 by the reading for `bombing.md`: this had the hour hold wherever the unit went.*
 
 ## 8. The battle
 
@@ -248,13 +258,16 @@ hour the end.
 | mission | `INTERCEPT_ATTACK_BONUS` for a wing that is no bomber on an intercept; `AIR_SUP_DEFEND_BONUS` on air superiority |
 | mission efficiency | the country's, for the unit's order (`navalmissions.md`, section 10) |
 | supplies | less `COMBAT_SUPPLY_LACK_IMPACT` by what the unit was not given |
+| the radio | the country's `combat_efficiency`, which the `radio` technology gives |
 | dissent | less `COMBAT_DISSENT_IMPACT` by it |
 | crowding | `AIR_STACKING_PENALTY` for each wing of the side after the first, `AIR_STACKING_PENALTY_MAX` at most |
+| radar | the highest radar level a friend of the side holds in the province or beside it, times `RADAR_COMBAT_IMPACT` and one plus the country's `radar_impact` |
 | the weather | less the wind by `AIRWINDSPEEDMODIFIER`, the cold or the heat past their thresholds by their impacts, the cloud by `AIRCLOUDMODIFIER` and the rain by `AIRRAINMODIFIER` - on the attack alone |
 | night | `BASE_NIGHT_PENALTY` and the wing's own night figure, attack for the attacker's side and defence for the defender's, less a hundredth of its `air_detection`; only when it comes out against it, and on the attack alone |
 
 The two mission bonuses are on the attack alone as well, the one the defines call a
-defender's among them. Not built: difficulty, the radio technology, radar and the leader.
+defender's among them. Not built: difficulty and the leader. The radio and the radar were
+added on 2026-10-10 with `bombing.md`, when the reading for it named their technology keys.
 **A wing's defence is worked out and nothing uses it**: only its attack decides anything.
 
 **The shot.** Every wing of the side with an `air_attack`, in the order of the side's units
@@ -339,7 +352,8 @@ can watch the original.
    next hour finds it unfit in the air and turns it back, and so on: an hour out and an hour
    home for as long as it is worn (section 3). In the air it can be fought.
 8. **Battles follow one another with an hour between** for as long as two units stay in one
-   province and fit: four hours, the hour of grace, four more (section 7).
+   province and fit: four hours, the hour of grace, four more (section 7). A unit that moves
+   on loses its hour and may fight at once where it arrives.
 
 ## 10. Trying it, and what is not here
 
@@ -353,10 +367,13 @@ start date:
 
     three wings of German tactical bombers from Breslau over Warszawa, 231 away of their range
     of 400, against Poland's three there: over Warszawa in two hours and into a battle; at
-    night each wing's attack at 0.55 and 0.59 of itself, by day 1.10 and 1.16; four hours,
-    nobody lost, an hour's pause and the next. After thirteen battles in two and a half days
-    the Germans are down to 196 of 300 strength and 4.6 organisation of 40 and turn for home;
-    the Poles, at 250 and 12.8 of 30, catch them once more on the way
+    night each wing's attack at 0.61 and 0.59 of itself; four hours, nobody lost, an hour's
+    pause and the next. After thirteen battles in two and a half days the Germans are down to
+    200 of 300 strength and 6.5 organisation of 40 and turn for home; the Poles, at 244 and
+    10.4 of 30, catch them once more on the way, over Tomaszów
+
+(The figures are of 2026-10-10 after the bombing was built: the radio is in them, and a unit
+that flies on from a battle may fight again where it arrives.)
 
 In the client `--mission=GER:airsuperiority:<province>` and `--mission=GER:airintercept:<province>`
 give that mission to the country's air unit with the most air attack that has the province in
@@ -365,18 +382,20 @@ of that range about it. **The orders window gives both too**, for the one provin
 its shapes and sliders, its day and night boxes and its two dates are drawn and do nothing.
 A selected unit's panel names the mission with one word after it - `Waiting`, `Attacking` or
 `Returning`; the intercept's are the original's and air superiority's were not read and are
-given the same. **A battle in the air has no marker and no window**: the readout of a selected
-province says there is one.
+given the same. **A battle in the air has a window and a row in a unit's panel, and no marker
+on the map** - the original gives it none: `combatview.md`, section 11. The readout of a
+selected province says there is a battle.
 
 ### Not built
 
-- **Bombing** in all its kinds, **anti-aircraft fire**, and a **carrier's aircraft**, with the
-  order that keeps them over their fleet.
+- A **carrier's aircraft**, with the order that keeps them over their fleet. Bombing and
+  anti-aircraft fire are `bombing.md`'s.
 - **Every other air order** - the reserve, the transport of supplies, the paradrop.
-- **The air side on screen**: an air battle has no marker and no window, and the orders
-  window's shapes, sliders, day and night boxes and dates are not there.
-- **Radar, leaders, difficulty and the radio technology** in what the hour makes of a wing;
-  **radar** in what a country knows. The weather's part is built and there is no weather yet.
+- **The rest of the air side on screen**: the orders window's shapes, sliders, day and night
+  boxes and dates are not there, and nor is the air map mode, which is where the original
+  shows the air battles that have been fought (`combatview.md`, section 11).
+- **Leaders and difficulty** in what the hour makes of a wing; **radar** in what a country
+  knows. The weather's part is built and there is no weather yet.
 - **The practical** an air battle earns, and experience.
 - The AI's own giving of missions, and its 120-hour end.
 
@@ -384,4 +403,5 @@ province says there is one.
 
 - What the original's window starts a mission with: its shape, its range, its dates.
 - Whether flying costs a wing organisation: nothing read takes any.
-- The path in the original's march that clears a unit's hour of grace early.
+- What fills the list of who sees a unit, by which a country sees into ground beside its
+  own units (section 6): nothing here does, and interdiction needs it (`bombing.md`).

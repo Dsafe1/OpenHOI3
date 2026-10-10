@@ -66,7 +66,7 @@ public static class CSupplyNetworks
 		bool Counts(CProvince province)
 		{
 			return province.Controller is not null && roads is not null
-				&& province.BuildingLevel(roads).Raw * roads.ModifierValue.Raw / CFixedPoint.Scale > LeastInfrastructure;
+				&& province.BuildingMaxLevel(roads).Raw * roads.ModifierValue.Raw / CFixedPoint.Scale > LeastInfrastructure;
 		}
 
 		if (start <= 0 || start >= state.Provinces.Count || !Counts(state.Province(start)))
@@ -146,7 +146,7 @@ public static class CSupplyNetworks
 
 		private long PortLevel(CProvince province)
 		{
-			return _navalBase is null ? 0 : province.BuildingLevel(_navalBase).Raw;
+			return _navalBase is null ? 0 : province.BuildingMaxLevel(_navalBase).Raw;
 		}
 
 		private bool HasWorkingPort(CProvince province)
@@ -265,7 +265,7 @@ public static class CSupplyNetworks
 			{
 				foreach (int id in area.Provinces)
 				{
-					if (_state.Province(id).BuildingLevel(_industry) > CFixedPoint.Zero)
+					if (_state.Province(id).BuildingMaxLevel(_industry) > CFixedPoint.Zero)
 					{
 						area.MayHoldDepot = true;
 						break;

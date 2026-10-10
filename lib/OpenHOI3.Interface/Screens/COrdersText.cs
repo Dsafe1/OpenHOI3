@@ -44,6 +44,14 @@ public static class COrdersText
 			EUnitOrder.ConvoyRaid => "ORDER_CONVOY_RAID",
 			EUnitOrder.AirSuperiority => "AIRSUP",
 			EUnitOrder.AirIntercept => "INTERCEPT",
+			EUnitOrder.StrategicBombing => "STRAT_BOMB",
+			EUnitOrder.LogisticalStrike => "LOG_BOMB",
+			EUnitOrder.RunwayCratering => "AIRFIELD_BOMB",
+			EUnitOrder.InstallationStrike => "INSTALLATION_BOMB",
+			EUnitOrder.GroundAttack => "GROUNDATTACK_BOMB",
+			EUnitOrder.Interdiction => "INTERDICT_BOMB",
+			EUnitOrder.PortStrike => "PORTSTRIKE_BOMB",
+			EUnitOrder.NavalStrike => "NAVALSTRIKE_BOMB",
 			_ => "",
 		};
 	}
@@ -71,9 +79,9 @@ public static class COrdersText
 	/// The rows of the list, in the original's order. A fleet is shown every naval order
 	/// there is, the ones that cannot be given with their boxes greyed. An air unit is
 	/// shown only the orders it could ever fly: by what its wings can attack, and by
-	/// whether the province is land or sea. A fleet's transport and invasion and every
-	/// air mission but air superiority and the intercept are listed and cannot be
-	/// ticked: they are not built.
+	/// whether the province is land or sea. A fleet's transport and invasion, and of
+	/// the air's the supply flight, the raid on convoys and the reserve, are listed and
+	/// cannot be ticked: they are not built.
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, CUnit unit, CProvince province)
 	{
@@ -124,25 +132,25 @@ public static class COrdersText
 		}
 		if (land && Has(unit, "strategic_attack"))
 		{
-			Add("STRAT_BOMB");
-			Add("LOG_BOMB");
-			Add("AIRFIELD_BOMB");
-			Add("INSTALLATION_BOMB");
+			Add(NameKey(EUnitOrder.StrategicBombing), EUnitOrder.StrategicBombing);
+			Add(NameKey(EUnitOrder.LogisticalStrike), EUnitOrder.LogisticalStrike);
+			Add(NameKey(EUnitOrder.RunwayCratering), EUnitOrder.RunwayCratering);
+			Add(NameKey(EUnitOrder.InstallationStrike), EUnitOrder.InstallationStrike);
 		}
 		if (land && (Has(unit, "soft_attack") || Has(unit, "hard_attack")))
 		{
-			Add("GROUNDATTACK_BOMB");
-			Add("INTERDICT_BOMB");
+			Add(NameKey(EUnitOrder.GroundAttack), EUnitOrder.GroundAttack);
+			Add(NameKey(EUnitOrder.Interdiction), EUnitOrder.Interdiction);
 		}
 		if (Has(unit, "sea_attack"))
 		{
 			if (land)
 			{
-				Add("PORTSTRIKE_BOMB");
+				Add(NameKey(EUnitOrder.PortStrike), EUnitOrder.PortStrike);
 			}
 			else
 			{
-				Add("NAVALSTRIKE_BOMB");
+				Add(NameKey(EUnitOrder.NavalStrike), EUnitOrder.NavalStrike);
 				Add("ORDER_AIR_CONVOY_RAID");
 			}
 		}

@@ -7,6 +7,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -109,7 +110,7 @@ public partial class CUnitPanel : Control
 		// under it and on the battles it is in; when any of them changes the list is made
 		// again.
 		if (!Above(unit).SequenceEqual(_parents) || unit.Children.Count > 0 != _hasChildren
-			|| !unit.Combats.SequenceEqual(_combats))
+			|| !Battles(unit).SequenceEqual(_combats))
 		{
 			Rebuild();
 			return;
@@ -124,6 +125,17 @@ public partial class CUnitPanel : Control
 		{
 			_list.Relayout();
 		}
+	}
+
+	/// <summary>What a unit has a row for at the end of its panel: its battles, and then the bombing it is in.</summary>
+	private static List<CCombat> Battles(CUnit unit)
+	{
+		var battles = new List<CCombat>(unit.Combats);
+		if (unit.Bombing is { } bombing)
+		{
+			battles.Add(bombing);
+		}
+		return battles;
 	}
 
 	/// <summary>The units above one, the highest first.</summary>
@@ -205,12 +217,11 @@ public partial class CUnitPanel : Control
 			children.Selected += child => UnitChosen?.Invoke(child);
 			Add(children);
 		}
-		// Last, a row for each battle the unit is in, on land or at sea. One in the air has
-		// none yet: its side of the battle's window is not built.
-		_combats.AddRange(unit.Combats);
+		// Last, a row for each battle the unit is in, and after them one for its bombing.
+		_combats.AddRange(Battles(unit));
 		foreach (CCombat combat in _combats)
 		{
-			if (combat.Kind != ECombatKind.Air && CUnitCombatEntry.Create(_context, state, unit, combat) is { } battle)
+			if (CUnitCombatEntry.Create(_context, state, unit, combat) is { } battle)
 			{
 				battle.Selected += () => CombatChosen?.Invoke(combat);
 				Add(battle);
@@ -225,14 +236,21 @@ public partial class CUnitPanel : Control
 		_list!.Add(entry.Window);
 	}
 
-	/// <summary>The button beside the order: a land unit on the march is halted. Only the player's own.</summary>
+	/// <summary>
+	/// The button beside the order: a land unit on the march is halted, and any other has
+	/// its order taken back. Only the player's own.
+	/// </summary>
 	private void CancelOrder(CUnit unit)
 	{
-		if (_player is null || unit.Owner != _player.Tag || !unit.IsMoving)
+		if (_player is null || unit.Owner != _player.Tag)
 		{
 			return;
 		}
-		var command = new CCancelMovementCommand(_player.Tag, unit.Id);
+		// A land unit on the march is halted; any other has its order taken back, and
+		// keeps the way it was on.
+		CCommand command = CMovementRules.IsLandUnit(unit) && unit.IsMoving && !unit.IsRetreating
+			? new CCancelMovementCommand(_player.Tag, unit.Id)
+			: new CDropOrderCommand(_player.Tag, unit.Id);
 		if (command.MayExecute(_simulation.State))
 		{
 			_simulation.Post(command);

@@ -43,4 +43,30 @@ public enum EUnitOrder
 
 	/// <summary>An air unit: wait at its base for an enemy air unit in or near the provinces of its mission, and fly to meet it.</summary>
 	AirIntercept,
+
+	// ---- the bombing missions: docs/mechanics/bombing.md
+
+	/// <summary>An air unit: bomb the enemy's land units, those that are fighting before the others.</summary>
+	GroundAttack,
+
+	/// <summary>An air unit: bomb the enemy's land units, those on the move before the others.</summary>
+	Interdiction,
+
+	/// <summary>An air unit: bomb enemy fleets at sea.</summary>
+	NavalStrike,
+
+	/// <summary>An air unit: bomb the industry of a province and what its mines and wells yield.</summary>
+	StrategicBombing,
+
+	/// <summary>An air unit: bomb the roads of a province and the supplies and fuel lying in it.</summary>
+	LogisticalStrike,
+
+	/// <summary>An air unit: bomb an air base and the aircraft at it.</summary>
+	RunwayCratering,
+
+	/// <summary>An air unit: bomb the radar stations of a province.</summary>
+	InstallationStrike,
+
+	/// <summary>An air unit: bomb a naval base and the ships lying in it.</summary>
+	PortStrike,
 }

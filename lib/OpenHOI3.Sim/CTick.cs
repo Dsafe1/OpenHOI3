@@ -4,6 +4,7 @@ using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Movement;
+using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
@@ -94,7 +95,8 @@ public static class CTick
 		CProduction.RunDaily(state);
 		CLeadership.RunDaily(state);
 		CConvoyDay.Maintain(state);                         // late in a country's day
-		CStockpile.HoldWithinBounds(state);                 // each province's own day, after every country's
+		CProvinceRepair.RunDaily(state);                    // each province's own day, after every country's:
+		CStockpile.HoldWithinBounds(state);                 // what was bombed comes back, and the pool is held
 		CNavalIntelligence.Refresh(state);                  // the last thing the original's day does
 	}
 

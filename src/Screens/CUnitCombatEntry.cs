@@ -63,11 +63,13 @@ public sealed class CUnitCombatEntry : CUnitPanelEntry
 
 	/// <summary>
 	/// Whether the row still stands for anything: the battle is one of the unit's and
-	/// both of its sides have a country and a unit.
+	/// both of its sides have a country and a unit - or it is the bombing the unit is
+	/// in, which is asked nothing more.
 	/// </summary>
-	private bool IsLive => _unit.Combats.Contains(Combat)
-		&& Combat.Attacker.Units.Count > 0 && Combat.Defender.Units.Count > 0
-		&& Combat.Attacker.Countries.Count > 0 && Combat.Defender.Countries.Count > 0;
+	private bool IsLive => ReferenceEquals(_unit.Bombing, Combat)
+		|| (_unit.Combats.Contains(Combat)
+			&& Combat.Attacker.Units.Count > 0 && Combat.Defender.Units.Count > 0
+			&& Combat.Attacker.Countries.Count > 0 && Combat.Defender.Countries.Count > 0);
 
 	public override void Update()
 	{

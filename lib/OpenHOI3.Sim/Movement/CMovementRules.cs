@@ -104,14 +104,18 @@ public static class CMovementRules
 		return IsFriendly(state, country, province.Owner) && !IsEnemy(state, province.Owner, province.Controller);
 	}
 
-	/// <summary>How much of a building a province has, by the building's name.</summary>
+	/// <summary>
+	/// How much of a building has been built in a province, by the building's name:
+	/// damage does not take a port or an airfield away. What works of it now is
+	/// <see cref="CProvince.BuildingLevel"/>.
+	/// </summary>
 	public static CFixedPoint BuildingLevel(CGameState state, CProvince province, string key)
 	{
 		foreach (CBuilding building in state.Buildings)
 		{
 			if (building.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
 			{
-				return province.BuildingLevel(building);
+				return province.BuildingMaxLevel(building);
 			}
 		}
 		return CFixedPoint.Zero;

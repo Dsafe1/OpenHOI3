@@ -31,17 +31,34 @@ The original keeps **five points to a province**, one for each stack of section 
 stands a counter at its stack's: the first for a land unit or a fleet with no path, the
 second for one with a path, the last for an air unit, and the two between for the sides of
 a battle. `confirmed` (`reversing/findings/FINDINGS-movement.md`, section 9). With one
-point in the file the other four must be worked out from it, and **how was not found.**
-**The stack of units on the move stands 2.6 map units east and 1.5 north of the standing
-one** - half a counter and a third of one - and is drawn over it. (measured) On a
+point in the file the other four are worked out from it - read on 2026-10-10, after the
+maintainer showed the original's bombers lying over the stack they bomb: `confirmed`
+
+| stack | where it stands, from the province's point |
+| --- | --- |
+| standing | on it |
+| on the move | 2.5 east and 1.0 along the map's y |
+| the two sides of a battle | on it; **at sea only**, 2.4 west and 2.4 south of it, and 2.4 east and 2.4 north |
+| **air units** | **on it**, as the standing stack - and drawn after it, so over it |
+
+On the original's screenshot the bombers' counter lies a quarter of a counter south and east
+of the defenders' top counter: that top counter is the stack's point moved 0.3 west and north
+for each of the four counters under it, and the bombers' is on the point itself.
+**Here until 2026-10-10 the stack of aircraft stood a counter's width east and north of the
+standing one** - a guess, and the maintainer saw it was wrong. The battle points are not
+built: a unit in a battle stands in the standing or the moving stack, which on land is where
+the original puts a battle's units anyway, except that an attacker with a path is in the
+moving stack here.
+**The stack of units on the move is drawn 2.6 map units east and 1.5 north of the standing
+one** - half a counter and a third of one - and over it. (measured) The reading above gives
+2.5 and 1.0; the measure is kept until the maintainer has looked at the two side by side,
+since the original's view is tilted and his eye approved this one. On a
 screenshot of the original the maintainer gave on 2026-10-09, a division setting off lies
 3.7 map units east and 0.5 north of the top counter of the stack it leaves; that counter
 is itself 0.3 west and north for each of the four under it. The count of the stack is
 read off its edges, so the figure is good to a few tenths. Before the screenshot it was a
 guess, first of a whole counter's width - the maintainer: "Its way too big now" - and then
-of three tenths of one. *Ours:* the stack of aircraft is a counter's width to the east and
-north. Nothing fights
-yet, so the other two are never used.
+of three tenths of one.
 
 **The default point was a pixel out until 2026-10-09** for a province whose bounding box
 is an even number of pixels across or high: the centre is rounded up (`map.md`, section

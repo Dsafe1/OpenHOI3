@@ -91,8 +91,8 @@ public static class CCounterLayout
 	/// Where the stack of units on the move stands from the province's own point, east
 	/// and north. Measured on a screenshot of the original, 2026-10-09, in which a
 	/// division setting off lies half a counter east and a third of one north of the
-	/// stack it leaves; the original keeps a point for it, and what sets that was not
-	/// found.
+	/// stack it leaves. The original's own figure, read since, is 2.5 and 1.0; the
+	/// measure stays until the maintainer has compared the two.
 	/// </summary>
 	public static readonly Vector2 MovingStack = new(2.6f, 1.5f);
 

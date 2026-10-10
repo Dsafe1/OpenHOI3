@@ -48,9 +48,11 @@ side picks, and its marker and its window, and supply - which depot every
 province draws on and how far from it, the day's carrying of supplies and fuel out to the
 provinces, a unit drawing on the province it stands in, the convoys that carry it across the
 sea and bring cut-off land's resources home, and a map mode that shows it, and a battle
-between fleets at sea with its marker and its window, and a fleet's missions with the raid on
+between fleets at sea with its window, and a fleet's missions with the raid on
 convoys, and the two days a new game runs before its first hour, and an air unit's two
-fighting missions with the battle in the air - 1149 tests - and it is
+fighting missions with the battle in the air, and its eight bombing missions with the
+bombing and the day's repair of what was bombed, and the window of an air battle and of a
+bombing - 1192 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -191,7 +193,8 @@ still.
 **A battle on screen - `combatview.md` - was built from a reading, checked with `--click`,
 and then set against three screenshots of a battle of his; he looked at ours on 2026-10-09
 and found it good, and asked for one thing: opening a battle's window does not move the map**
-(`docs/compatibility.md`, entry 8). It shows the marker, the row in a unit's panel, the window. Its upper half lies on his to
+(`docs/compatibility.md`, entry 8). It shows the marker - a land battle's alone, and from its
+fourth hour - the row in a unit's panel, the window. Its upper half lies on his to
 within a pixel, after the screenshots corrected four things about how the interface draws,
 all measured and none read (`interface.md`, sections 5 and 7): **a progress bar's picture
 is drawn upside down** - one of the unit panel's two bars had been the wrong way round
@@ -277,10 +280,14 @@ leader and no aircraft. Reading for it corrected the fact base's record twice.
 **The sea battle on screen - `combatview.md`, section 10 - was built on 2026-10-10 from a
 reading and checked with `--click`; the maintainer looked at it that day - "The sea battle
 window looked perfect"**: the land
-battle's marker, row and window, the window with halves of its own (`CNavalSideView`,
+battle's row and window, the window with halves of its own (`CNavalSideView`,
 `CCombatShipEntry`) - each side's positioning and a list of its ships, **each ship's picture
 standing along its row by the ship's distance**, forty and more at the far end. No picture of
-the original's was measured against it, so it has his eye and no measurement.
+the original's was measured against it, so it has his eye and no measurement. **It had the
+land battle's marker on the map when he looked, and has none now**: the marker is a land
+battle's alone in the original, and from its fourth hour (`combatview.md`, section 8) -
+found later that day, reading for the air side, which corrected a sentence of the fact base.
+**That has not been put to him**; `CCombatViewText.HasMarker` is the one place that says so.
 **A fleet's missions - `navalmissions.md` - are the second piece, built on 2026-10-10 and,
 like the battle, read and set against nothing**: reserve, patrol, intercept, sortie, the raid
 on convoys and their escort; **transport and invasion are not built** and wait for carrying.
@@ -318,8 +325,9 @@ at its base, watches two steps around its provinces and turns for home once it h
 its target. **Anything in the air may be fought; a unit sitting at its base only by a unit
 under one of the two orders, and only while it is itself fit to fly** - which corrected the
 fact base, whose record had both orders needed everywhere. A battle is four hours of each
-wing firing its `air_attack` in shots at one wing it keeps to, and a unit out of one cannot
-be fought for an hour. **Eight things in it are the original's and look odd, and are built
+wing firing its `air_attack` in shots at one wing it keeps to, and a unit out of one starts
+and joins no other for an hour **while it stays where it is - its first move ends the wait**,
+which the reading for bombing corrected on 2026-10-10. **Eight things in it are the original's and look odd, and are built
 so - do not tidy them; `aircombat.md`, section 9**: a beaten unit beside the sea flies out to
 sea and not home, a worn unit at its base cannot be attacked and yet takes off every third
 hour, a wing's defence and its `air_defence` do nothing, a critical hit multiplies the
@@ -331,8 +339,45 @@ unit on its ground, 2 with a unit in its water; radar is not built, and nothing 
 of war. **A mission's area is a list of provinces that comes with the order**; the orders
 window gives the one province clicked, its shapes, sliders, day and night boxes and dates
 being drawn and doing nothing, and of the original's shapes only the circle was read
-(`CAirMissionArea`). An air battle has no marker and no window yet. With no AI,
+(`CAirMissionArea`). With no AI,
 `--mission=GER:airsuperiority:1928` gives a country's air unit a mission for a trial by hand.
+**The air battle and the bombing on screen - `combatview.md`, section 11 - were built on
+2026-10-10 from a reading and checked with `--click`, and the maintainer has not looked at
+them**: the land battle's row in a unit's panel and its window, with a third kind of half
+(`CAirSideView`, `CCombatWingEntry`, and `CAirCombatText` for what they say). A side's list
+is its wings; **the bombed side of a bombing lists first what of the province the first
+bomber's mission bombs** - each building, what lies there of a good, what is made of one -
+each with a bar of what is left. A bombing's window stays up with nobody on the bombed side,
+and its retreat button sends an air unit where a beaten one goes and leaves it no order
+(`CFallBackCommand`). **Neither has a marker on the map, and that is the original's**: it
+shows them only once they are over, as icons in its air map mode, counted from a list of
+finished battles - neither of which is built.
+**Bombing - `bombing.md` - is the fifth piece, built on 2026-10-10, read out of the original
+and set against nothing, and the maintainer has not looked at it**: the eight bombing
+missions (`CBombingOrders`, `CBombingMissions`, `CBombingProvinces` in `Sim/Missions`), the
+bombing itself (`CBombing`, `CBomberFire`, `CProvinceBombing`, `CAntiAircraft`,
+`CBomberModifiers`, `CBombTargetModifiers`, `CRadarCover` in `Sim/Combat`) and the day's
+repair (`CProvinceRepair` in `Sim/Provinces`). A unit flies out, bombs a province for four
+hours and is told to return the hour after. **A bombing is a battle of its own kind, one to
+a province and kept apart from a unit's battles** (`CUnit.Bombing`, not `Combats`): a
+division under bombs is not "fighting" and marches as before, and an air unit in one stays
+over it. Each wing fires at a target its mission goes for and then **bombs the province** -
+whole runs of its strategic attack, never fewer than one. **A building has two levels since
+then**: `BuildingMaxLevel` is what was built and `BuildingLevel` what works of it; a
+province's modifier is made from the second, "is there a port" is asked of the first
+(`CMovementRules.BuildingLevel`, by name, answers the first), and which the remaining rules
+mean was not read - the readme's *Loose ends* says what each was given. **Nine things in it
+are the original's and look odd, and are built so - do not tidy them; `bombing.md`, section
+12 - and none has been put to the maintainer**: a bomber with no leader has a ship on its
+list of targets one time in a hundred, and here every unit is leaderless, so strikes at
+ships wear the port and hardly touch the fleet; a fleet in port fires its air attack three
+times over through its province; a second unit cannot join a bombing of the ground alone;
+ground attack goes round its list and weighs nothing, and interdiction flies only at ground
+its country sees into - **which here is none of an enemy's, because the part of the
+original's intelligence that sees ground beside one's units is unread**. **A carrier's
+aircraft are not built**: a carrier is not a base here yet. With no AI,
+`--mission=GER:strategicbombing:1928` gives a mission for a trial by hand, and the orders
+window gives all eight - checked with `--click`.
 **The province readout under the top bar is scaffolding and shows only for a selected
 province** - his word, 2026-10-09, when it followed the mouse: "Very distracting."
 **The four windows a unit is ordered
@@ -424,7 +469,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 114 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 115 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -460,7 +505,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 3123-address, 317-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3189-address, 318-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -582,6 +627,15 @@ beside the repository.
   week told - Germany against Poland with no tags given, thirteen battles over Warszawa in
   two and a half days. Run it after touching the `CAir` classes of `Sim/Missions` or
   `Sim/Combat`, or `CIntelligence`.
+  `OpenHOI3.SaveCheck bombing <install> [mission] [attacker] [defender] [days] [seed]` is
+  the trial of bombing: the first country's air unit with the most of what the mission
+  fires, sent at the province of the second's worth most to it, each sortie told and at the
+  end what the province has lost - Germany's strategic bombing of Poland for three days
+  with nothing said, which leaves a tenth of Poznan's factory. The missions are
+  `strategicbombing`, `logisticalstrike`, `runwaycratering`, `installationstrike`,
+  `groundattack`, `interdiction`, `portstrike` and `navalstrike`. Run it after touching the
+  `CBomb` classes of `Sim/Missions` or `Sim/Combat`, `CAntiAircraft`, `CProvinceBombing` or
+  `CProvinceRepair`.
   `OpenHOI3.SaveCheck techgap <install> <start-date savegame> [examples] [tag]` is a look and
   not a check: the 476 technology levels the start save has above the history's. 453 of them
   are the highest level of that technology due before 1936; which technologies are chosen is
@@ -618,7 +672,7 @@ beside the repository.
   after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, and an air unit's two missions with what a country knows and the battle in the air carry 1149 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, and what the window shows of a battle in the air and of a bombing carry 1192 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

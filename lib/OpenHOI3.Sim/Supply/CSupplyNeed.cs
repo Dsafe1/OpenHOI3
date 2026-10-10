@@ -43,6 +43,24 @@ public static class CSupplyNeed
 		}
 	}
 
+	/// <summary>The supplies and the fuel asked for in one province, in thousandths.</summary>
+	public static void Of(CGameState state, int province, bool beforeGame, out long supplies, out long fuel)
+	{
+		supplies = 0;
+		fuel = 0;
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (CUnit unit in country.AllUnits())
+			{
+				if (!unit.IsRemoved && DrawnOn(state, country, unit, beforeGame) == province)
+				{
+					supplies += CUnitSupply.SupplyConsumption(country, unit).Raw;
+					fuel += CUnitSupply.FuelConsumption(country, unit).Raw;
+				}
+			}
+		}
+	}
+
 	/// <summary>The province whose need a unit is counted in, or 0 for a unit that is counted nowhere.</summary>
 	private static int DrawnOn(CGameState state, CCountry owner, CUnit unit, bool beforeGame)
 	{

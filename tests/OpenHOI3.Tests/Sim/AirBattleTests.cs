@@ -525,6 +525,7 @@ public class AirBattleTests
 		CGameState state = State(out CCountry germany, out CCountry poland);
 		CUnit fighters = Air(state, germany, Berlin, Fighter);
 		CUnit raid = Air(state, poland, Berlin, Bomber);
+		raid.Base = 0;                                               // or, with no order, it would fly home between battles
 		Give(state, germany, fighters, EUnitOrder.AirSuperiority, Berlin);
 
 		CTick.RunHour(state);                                        // it looks at its province, and fights the hour's round

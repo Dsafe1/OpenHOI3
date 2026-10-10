@@ -75,6 +75,9 @@ public static class CBuildingReader
 				modifierKey, modifierValue)
 			{
 				IsOnMap = block.GetBool("onmap"),
+				DamageFactor = block.Get("damage_factor") is { Value: { } factor }
+					&& CFixedPoint.TryParse(factor, out CFixedPoint parsed) ? parsed : CFixedPoint.One,
+				IsRepaired = block.GetBool("repair", fallback: true),
 			});
 		}
 		return buildings.ToArray();

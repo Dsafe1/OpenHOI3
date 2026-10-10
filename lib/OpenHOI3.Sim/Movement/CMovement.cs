@@ -151,7 +151,7 @@ public static class CMovement
 			{
 				if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.IsRetreating
 					|| unit.AttackDelay > CFixedPoint.Zero || unit.HoursAttacking > 0
-					|| unit.EngageWait > 0 || unit.NoBattleHours > 0
+					|| unit.EngageWait > 0 || unit.NoBattleHours > 0 || unit.NoBombingHours > 0
 					|| (atWar && (CMovementRules.IsLandUnit(unit) || unit.Kind == EUnitKind.Navy)))
 				{
 					(busy ??= new List<CUnit>()).Add(unit);
@@ -192,6 +192,11 @@ public static class CMovement
 		{
 			unit.NoBattleHours = CAirBattle.Grace;
 		}
+		// And one found in a bombing starts no other for as long.
+		if (isAir && unit.Bombing is not null)
+		{
+			unit.NoBombingHours = CBombing.Grace;
+		}
 		CUnitOrders.RunHour(state, country, unit);
 		if (isAir)
 		{
@@ -227,6 +232,10 @@ public static class CMovement
 		if (isAir && unit.NoBattleHours > 0)
 		{
 			unit.NoBattleHours--;
+		}
+		if (isAir && unit.NoBombingHours > 0)
+		{
+			unit.NoBombingHours--;
 		}
 	}
 
@@ -321,6 +330,12 @@ public static class CMovement
 			return false;
 		}
 
+		// An air unit in a bombing stays over it, unless it is falling back.
+		if (unit.Kind == EUnitKind.Air && unit.Bombing is not null && !unit.IsRetreating)
+		{
+			return false;
+		}
+
 		CProvince here = state.Province(unit.Location);
 		CProvince next = state.Province(unit.Path[0]);
 		bool isLand = CMovementRules.IsLandUnit(unit);
@@ -360,6 +375,10 @@ public static class CMovement
 			}
 			return false;
 		}
+		// A unit on its way and in no battle is done with waiting: the hours in which an
+		// air unit starts no battle and no bombing end with its first move.
+		unit.NoBombingHours = 0;
+		unit.NoBattleHours = 0;
 
 		// The way has to be there still, and open, every hour and not only on arrival.
 		if (here.EdgeTo(next.Id) is not CProvinceEdge edge
@@ -379,6 +398,8 @@ public static class CMovement
 		{
 			unit.MovementProgress = CFixedPoint.Zero;
 		}
+		// Whoever leaves a province leaves the bombing of it.
+		CBombing.Leave(unit);
 		unit.IsRetreating = false;
 		if (!CMovementRules.MayStandIn(state, country, unit, next))
 		{

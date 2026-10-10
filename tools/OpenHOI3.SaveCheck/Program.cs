@@ -82,6 +82,12 @@ if (args.Length > 0 && args[0] == "airbattle")
 	return CAirBattleTrial.Run(args);
 }
 
+// One bombing mission is flown for some days and what it did is told.
+if (args.Length > 0 && args[0] == "bombing")
+{
+	return CBombingTrial.Run(args);
+}
+
 // The technology levels a start-date save has above the history's, and which units hold them.
 if (args.Length > 0 && args[0] == "techgap")
 {

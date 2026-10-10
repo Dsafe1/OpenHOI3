@@ -81,7 +81,13 @@ public static class CUnitOrders
 				EUnitOrder.Move, EUnitOrder.Rebase, EUnitOrder.Reserve, EUnitOrder.Patrol, EUnitOrder.Intercept,
 				EUnitOrder.Sortie, EUnitOrder.ConvoyRaid,
 			},
-			EUnitKind.Air => new[] { EUnitOrder.AirSuperiority, EUnitOrder.AirIntercept, EUnitOrder.RebaseAir },
+			EUnitKind.Air => new[]
+			{
+				EUnitOrder.AirSuperiority, EUnitOrder.AirIntercept, EUnitOrder.StrategicBombing,
+				EUnitOrder.LogisticalStrike, EUnitOrder.RunwayCratering, EUnitOrder.InstallationStrike,
+				EUnitOrder.GroundAttack, EUnitOrder.Interdiction, EUnitOrder.PortStrike, EUnitOrder.NavalStrike,
+				EUnitOrder.RebaseAir,
+			},
 			_ => System.Array.Empty<EUnitOrder>(),
 		};
 	}
@@ -105,6 +111,10 @@ public static class CUnitOrders
 		if (CAirMissions.IsAirMission(order))
 		{
 			return CAirMissions.MayGive(state, country, unit, order, province);
+		}
+		if (CBombingOrders.IsBombingMission(order))
+		{
+			return CBombingOrders.MayGive(state, country, unit, order, province);
 		}
 		switch (order)
 		{
@@ -175,6 +185,12 @@ public static class CUnitOrders
 			CAirMissions.Start(state, country, unit);
 			return;
 		}
+		if (CBombingOrders.IsBombingMission(order))
+		{
+			CAirMissions.SetProvinces(state, unit, provinces ?? new[] { province });
+			CBombingMissions.Start(state, country, unit);
+			return;
+		}
 		if (CMissions.IsMission(order))
 		{
 			if (order == EUnitOrder.Sortie)
@@ -221,6 +237,25 @@ public static class CUnitOrders
 	}
 
 	/// <summary>
+	/// What having no order does each hour: an air unit that is away from its base, has
+	/// no way to go, is in no battle and no bombing, and has a base is given the way home
+	/// - where there is one. So a mission taken back over enemy ground flies home as soon
+	/// as its bombing or its battle is over. Nothing else is moved.
+	/// </summary>
+	private static void HeadHome(CGameState state, CCountry country, CUnit unit)
+	{
+		if (unit.Kind != EUnitKind.Air || unit.IsMoving || unit.Base == 0 || CAirMissions.IsAtOwnBase(unit)
+			|| unit.IsFighting || unit.Bombing is not null)
+		{
+			return;
+		}
+		if (CRouteFinder.Find(state, country, unit, unit.Location, unit.Base) is { } route)
+		{
+			CMovement.SetPath(unit, route, clear: true);
+		}
+	}
+
+	/// <summary>
 	/// The hourly look at a unit's order, before the unit moves: a change of base makes
 	/// the province the unit's base the first time it is looked at; an order is done
 	/// when the unit is in its province, or has no way left to it; and a wing lands at
@@ -230,6 +265,7 @@ public static class CUnitOrders
 	{
 		if (unit.Order == EUnitOrder.None)
 		{
+			HeadHome(state, country, unit);
 			return;
 		}
 		if (CMissions.IsMission(unit.Order))
@@ -243,6 +279,14 @@ public static class CUnitOrders
 		if (CAirMissions.IsAirMission(unit.Order))
 		{
 			if (!CAirMissions.RunHour(state, country, unit))
+			{
+				Clear(unit);
+			}
+			return;
+		}
+		if (CBombingOrders.IsBombingMission(unit.Order))
+		{
+			if (!CBombingMissions.RunHour(state, country, unit))
 			{
 				Clear(unit);
 			}

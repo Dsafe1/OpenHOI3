@@ -56,7 +56,8 @@ public static class CSupplyFigures
 		{
 			if (building.ModifierKey.Equals(Infrastructure, StringComparison.OrdinalIgnoreCase))
 			{
-				return province.BuildingLevel(building).Raw * building.ModifierValue.Raw / CFixedPoint.Scale;
+				// What was built, damaged or not: the original keeps this figure by the maximum.
+				return province.BuildingMaxLevel(building).Raw * building.ModifierValue.Raw / CFixedPoint.Scale;
 			}
 		}
 		return 0;

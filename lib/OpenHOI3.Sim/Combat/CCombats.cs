@@ -8,7 +8,8 @@ namespace OpenHOI3.Sim.Combat;
 
 /// <summary>
 /// The battles of a game: what starts one, who joins it on which side, its hour, and
-/// what its ending leaves. Only land units fight so far. See
+/// what its ending leaves. The battles of fleets, of air units and the bombings have
+/// classes of their own and are sent to from here. See
 /// <c>docs/mechanics/landcombat.md</c>, sections 1, 4 and 7.
 /// </summary>
 public static class CCombats
@@ -100,6 +101,8 @@ public static class CCombats
 		if (unit.Kind == EUnitKind.Air)
 		{
 			CAirBattle.Look(state, unit, province);
+			// And where its mission bombs here, the bombing: the one there, or a new one.
+			CBombing.Look(state, unit, province);
 			return;
 		}
 		if (province.Id == 0 || unit.IsRemoved || !CMovementRules.IsLandUnit(unit) || unit.SubUnits.Count == 0)
@@ -230,6 +233,14 @@ public static class CCombats
 				continue;
 			}
 			bool isNaval = combat.Kind == ECombatKind.Naval;
+			if (CBombing.IsBombing(combat.Kind))
+			{
+				if (CBombing.RunHour(state, combat))
+				{
+					Finish(state, combat);
+				}
+				continue;
+			}
 			if (combat.Kind == ECombatKind.Air)
 			{
 				if (CAirBattle.RunHour(state, combat))
@@ -410,6 +421,10 @@ public static class CCombats
 		foreach (CUnit unit in side.Units)
 		{
 			unit.Combats.Remove(side.Combat);
+			if (unit.Bombing == side.Combat)
+			{
+				unit.Bombing = null;
+			}
 		}
 		side.Units.Clear();
 		side.Front.Clear();
@@ -438,9 +453,10 @@ public static class CCombats
 		unit.Combats.Remove(combat);
 	}
 
-	/// <summary>Takes a unit out of every battle it is in.</summary>
+	/// <summary>Takes a unit out of every battle it is in, and out of the bombing it is in.</summary>
 	public static void LeaveAll(CGameState state, CUnit unit)
 	{
+		CBombing.Leave(unit);
 		foreach (CCombat combat in new List<CCombat>(unit.Combats))
 		{
 			Leave(state, combat, unit);

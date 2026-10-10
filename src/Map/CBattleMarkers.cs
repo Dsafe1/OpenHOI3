@@ -14,7 +14,7 @@ using OpenHOI3.Sim.Units;
 namespace OpenHOI3.Map;
 
 /// <summary>
-/// The markers of the battles the player has a part in: a round badge half way between
+/// The markers of the land battles the player has a part in: a round badge half way between
 /// the two sides' first units, green, yellow or red by how the battle goes for him,
 /// pointing the way of the attack and carrying the attacker's share of the two sides'
 /// strength. A click on one brings the battle's window up. A child of the counters, so
@@ -83,9 +83,9 @@ public partial class CBattleMarkers : Node2D
 		{
 			foreach (CCombat combat in _state.Combats)
 			{
-				// A battle in the air has no marker yet: its side of the window is not built.
-				if (!CCombatViewText.TakesPart(combat, player) || combat.Attacker.Units.Count == 0
-					|| combat.Defender.Units.Count == 0 || combat.Kind == ECombatKind.Air)
+				// Only a battle on land has a marker, and not before its fourth hour.
+				if (!CCombatViewText.HasMarker(combat) || !CCombatViewText.TakesPart(combat, player)
+					|| combat.Attacker.Units.Count == 0 || combat.Defender.Units.Count == 0)
 				{
 					continue;
 				}

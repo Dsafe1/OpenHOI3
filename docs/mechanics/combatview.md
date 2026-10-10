@@ -15,14 +15,25 @@ original's to within a pixel.
 
 In the code: what it says is `lib/OpenHOI3.Interface/Screens/CCombatViewText.cs`; the window
 is `src/Screens/CCombatWindow.cs` with `CCombatSideView` and `CCombatUnitEntry` - for a battle
-at sea `CNavalSideView` and `CCombatShipEntry` - the panel's row
-`src/Screens/CUnitCombatEntry.cs`, the marker `src/Map/CBattleMarkers.cs`.
+at sea `CNavalSideView` and `CCombatShipEntry`, for one in the air and for a bombing
+`CAirSideView` and `CCombatWingEntry`, whose text is `CAirCombatText.cs` beside the other -
+the panel's row `src/Screens/CUnitCombatEntry.cs`, the marker `src/Map/CBattleMarkers.cs`.
 
-**A battle at sea has the same window, marker and row, with other halves**: section 10, built on
+**A battle at sea has the same window and row, with other halves**: section 10, built on
 2026-10-10 from a reading and tried with real clicks. **The maintainer looked at it that day:
 "The sea battle window looked perfect."** No screenshot of the original's was laid beside it
-and measured, as three were for the land window. A battle in the air is not built, since none
-is fought.
+and measured, as three were for the land window.
+
+**A battle in the air and a bombing have the window and the row too, with a third kind of
+half**: section 11, built on 2026-10-10 from a reading (`reversing/findings/FINDINGS-combatview.md`,
+sections 13 and 14) and tried with real clicks. **The maintainer has not looked at it**, and
+nothing of the original's was laid beside it.
+
+**Only a battle on land has a marker on the map.** The reading for the air side found the one
+place the marker is refreshed, and it leaves out a battle at sea, a battle in the air and every
+bombing: section 8. A battle at sea was built with the land battle's marker on 2026-10-10, from
+a sentence of the fact base that was wrong, and has none since that evening - **which the
+maintainer has not been asked about**, and he saw the marker on the sea when he looked.
 
 ---
 
@@ -177,6 +188,12 @@ both of its sides have a country and a unit.
 `confirmed` unless marked.
 
 - **Only for a battle the player has a part in.** Nobody else's battle has a marker.
+- **Only for a battle on land, and not before its fourth hour.** The original refreshes the
+  marker in one place, at the end of a battle's hour, beside the two questions of who has lost -
+  which are not asked in the first three hours - and only where the battle is no bombing and is
+  neither at sea nor in the air. It is made the first time it is refreshed. So a battle at sea,
+  a battle in the air and a bombing never have one, and a land battle has none for three hours.
+  A battle against a convoy has none either.
 - **It is a billboard** - a flat picture that faces the viewer - declared in
   `interface/mapitems.gfx` twice, as the counters are: `combat_status` from further off and
   `combat_status_close` from close by, each a strip of three frames, with a `scale` that is
@@ -213,9 +230,9 @@ begun is two red lines with an outlined head.
 battle at sea *does* is `navalcombat.md`. Nothing here was measured against a picture of the
 original's; the maintainer looked at the window on 2026-10-10 and it "looked perfect".
 
-**The marker, the row in a fleet's panel and the window are the land battle's** - one marker
-type, one row, one window - with the same share behind the bar, the number and the colour
-(section 6), worked out for ships:
+**The row in a fleet's panel and the window are the land battle's** - one row, one window -
+with the same share behind the bar (section 6), worked out for ships. **It has no marker**
+(section 8); this section said it had the land battle's until the reading for the air side:
 
     a side is worth, for each ship of each of its fleets:
         organisation x strength x what the hour makes of the ship's attack x of its defence
@@ -271,9 +288,97 @@ defender's:
 *Ours:* a ship with no name of its own - the throwaway ships of a raid never get here - shows
 its type's key. *Not built:* a row's tooltip, the leader, and the sound.
 
-**On the map** the marker stands between the two sides' first fleets, which in one sea province
-is where their counters are: it lies on them. *Ours:* a click there takes the marker before the
-counter under it, as on land.
+**On the map** there is nothing: the window is reached by the row in a fleet's panel.
+
+## 11. A battle in the air, and a bombing
+
+`confirmed` (`reversing/findings/FINDINGS-combatview.md`, section 13) unless marked. What they
+*do* is `aircombat.md` and `bombing.md`. Nothing here was measured against a picture of the
+original's, and the maintainer has not looked at it.
+
+**The row in a unit's panel and the window are the land battle's**, and neither has a marker
+(section 8). A bombing's row comes **after** the rows of the unit's battles, and is written for
+as long as the bombing is the unit's - it is not asked whether both sides have a country and a
+unit, as a battle's row is. A division under bombs has the row too.
+
+**The name** of a bombing is the text `BOMBING_OF`, a space and the province's name; a battle
+in the air is "Battle of", as on land.
+
+**The window** differs from a land battle's in this:
+
+- its background is `combat_air_bg`, it has no picture of the ground and no arrow between
+  tactics;
+- **the retreat button can always be pressed.** Pressed, the original gives every unit of the
+  player's in the battle one order, whatever the battle: go where a beaten unit goes
+  (`reversing/findings/FINDINGS-movement.md`, section 2). For an air unit that is
+  the sea beside it with the most ports around, or with no sea its base (`aircombat.md`,
+  section 8); with nowhere to go, or no way there, nothing happens. With a way, the unit leaves
+  every battle and the bombing it is in, is marked as falling back where the other side still
+  had somebody, and **is left with no order** - its mission is over. *Ours:* that the leaving
+  covers a unit that is in a bombing and no battle; the original's test was read for battles;
+- the icons of what the hour holds are the same ones, of every wing - and under bombs of every
+  regiment and ship: the radio, the nearness of a base, a radar, the intercept and a battle of
+  its own each have theirs, between the others in the original's order;
+- its two halves are both made from the one window `air_combat_side`;
+- **it goes away** when either side of a battle in the air has nothing in its list, and when
+  the **bombers** of a bombing have nothing in theirs. The bombed side's list is not asked: a
+  bombing of a province with nobody in it has a window.
+
+**A half** has the flag and the leader as on land (section 4), and:
+
+- **`planes_label`**: the number of the side's sub units, in yellow, and the text
+  `PLANES_LABEL`. **The bombed side of a bombing has an empty one.**
+- **`planes`**: one list. Every side has a row for each sub unit of each of its units, unit by
+  unit in the order they joined - wings, and under bombs regiments and ships. **The bombed side
+  of a bombing has rows before those**, by what the mission of the **first** bomber unit bombs
+  (`bombing.md`, section 7):
+
+      for each building, in the buildings' own order:
+          one the mission bombs, of which the province has built any        ->  a row
+      for each good, in the goods' own order:
+          a good whose stockpile the mission bombs                          ->  a row of what lies there
+          a good whose production the mission bombs,
+          of which the province can make any                                ->  a row of what is made
+
+  So a strategic bombing shows the guns, the factories and each resource the province digs; a
+  logistical strike the guns, the roads, the supplies and the fuel - the last two whether any
+  lies there or not. A second bomber unit under another mission adds nothing.
+- While the list holds the same rows each is only written again; otherwise it is made anew.
+  *Ours:* the original counts its rows and asks each whether it still stands for something,
+  which comes to the same.
+
+**A row** is the window `wing_option`:
+
+| the row stands for | `name` | its picture | `str_bar`, in whole hundredths |
+| --- | --- | --- | --- |
+| a sub unit | its name | `counter_type` takes the sprite `GFX_counter_` + its type, where there is one | its strength over its full strength; and `org_bar` its organisation over the most its type has |
+| a building | the building's name | `counter_type` takes `icon_build_` + the building's key, where there is one | what works of it over what was built (`bombing.md`, section 7, for a building's two levels) |
+| what lies there of a good | the good's name | `pool` shows the good's frame | what lies in the province over **200** - full at two hundred |
+| what is made of a good | the good's name | `produce` shows the good's frame | what the province makes today over the most it can make |
+
+- Only a sub unit's row has the second bar; `produce` and `pool` are hidden on every row but
+  their own. A good's row leaves `counter_type` as the file gives it, under the good's picture.
+- A good's name is the text `SUPPLIES_IRO`, `FUEL_IRO`, `MONEY_IRO`, `CRUDE_OIL_IRO`,
+  `METAL_IRO`, `ENERGY_IRO` or `RAREMAT_IRO`, and its frame its place in that order, from one.
+- A figure over nothing is no bar at all.
+
+**The share** behind the window's bar and the row's is section 6's, **taken sub unit by sub
+unit**: a regiment counts as in a land battle, by its unit's hour and a tenth of its arms; a
+ship and a wing by their organisation, their strength and what the hour makes of *them*, and by
+nothing of their type. So bombers over a province with nobody in it show a bar that is all
+theirs, and a division under bombs is worth what it is in a battle.
+
+*Ours:* a building is asked nothing but whether the mission bombs it and the province has any;
+the original asks the building one thing more, which was not identified. *Ours:* a unit's panel
+says a bombing mission is "attacking" the province while the unit is in a bombing there, and
+"resting" otherwise (`bombing.md`, section 13). *Not built:* a row's tooltip, the leader, the
+sound.
+
+**On the map** the original shows a battle in the air and a bombing only once they are over,
+and only in its air map mode: three small icons to a province - an air battle, "bombed us",
+"bombed them" - counted each day out of the list of finished battles
+(`reversing/findings/FINDINGS-combatview.md`, section 14). **Not built**: there is no air map
+mode here and no list of finished battles.
 
 ---
 
@@ -284,8 +389,11 @@ counter under it, as on land.
   each modifier is worth to it, a tactic with what it does and what counters it, the arrow
   between the tactics - and none is drawn anywhere yet.
 - **The sounds** a window plays while it is up.
-- **A battle in the air, and a bombing**, which have a side window of their own. A battle at
-  sea is section 10.
+- **The air map mode's icons** of finished air battles and bombings, and the naval mode's of
+  convoys sunk and raiders fought: section 11's last paragraph.
+- **The marker's first three hours.** The original makes a land battle's marker when it is
+  first refreshed and then leaves it standing between refreshes; here it is worked out again
+  whenever the map is, which shows the same from the fourth hour on.
 - **The enemy's counters**: the original writes question marks on a counter whose unit it
   does not know enough about, name and figures both - the defender's on the screenshot. Here
   every counter says what its unit is.

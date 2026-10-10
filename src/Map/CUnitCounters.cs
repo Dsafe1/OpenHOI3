@@ -25,14 +25,6 @@ public partial class CUnitCounters : Node2D
 	private const float LeastCounterOnScreen = 6f;
 	private const float LeastTextOnScreen = 5f;
 
-	/// <summary>
-	/// How far east and north of the standing stack the one for aircraft is put, in
-	/// counter widths. Ours: the original keeps a point for each stack of a province, and
-	/// what sets them was not found. The stack of units on the move is placed by
-	/// <see cref="CCounterLayout.MovingStack"/>, which is measured.
-	/// </summary>
-	private const float AirStackShift = 1.1f;
-
 	/// <summary>The frame of the pointer's picture for a unit that is marching: the green one.</summary>
 	private const int MarchingFrame = 0;
 
@@ -217,12 +209,10 @@ public partial class CUnitCounters : Node2D
 	{
 		CMapPosition position = _map.Positions[stack.Province];
 		var place = new Vector2(position.X + 0.5f, _map.DisplayRow(position.Y) + 0.5f);
-		float width = 2f * kind.Type.Scale * kind.Aspect;
-		if (stack.Kind == EMapStack.Air)
-		{
-			place += new Vector2(width, -width) * AirStackShift;
-		}
-		else if (stack.Kind == EMapStack.Moving)
+		// The stack of aircraft stands on the province's own point, as the standing stack
+		// does, and is drawn after it - so over it. Only the stack on the move has a point
+		// of its own on land.
+		if (stack.Kind == EMapStack.Moving)
 		{
 			place += new Vector2(CCounterLayout.MovingStack.X, -CCounterLayout.MovingStack.Y);
 		}

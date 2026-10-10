@@ -58,6 +58,18 @@ public sealed class CCombatSide
 	/// <summary>Whether the side's submarines had their surprise in the round before this one.</summary>
 	public bool HadSurprise { get; set; }
 
+	/// <summary>Bombers of ships: whether they had their surprise in the round before this one.</summary>
+	public bool HadAirSurprise { get; set; }
+
+	/// <summary>Bombers: the levels of buildings they have destroyed, all kinds added together.</summary>
+	public CFixedPoint BuildingsDestroyed { get; set; }
+
+	/// <summary>Bombers: what they have destroyed of the province's stockpile.</summary>
+	public Economy.CGoodsPool StockpileDestroyed { get; } = new();
+
+	/// <summary>Bombers: what they have taken off the province's daily production.</summary>
+	public Economy.CGoodsPool ProductionDestroyed { get; } = new();
+
 	/// <summary>The ships this side has had sunk in the battle, in the order they went down.</summary>
 	public List<CSubUnit> Sunk { get; } = new();
 

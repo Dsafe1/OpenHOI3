@@ -81,7 +81,8 @@ public static class CMapCounters
 	/// <summary>Which of its province's stacks a unit that has a counter is in.</summary>
 	public static EMapStack StackOf(CUnit unit)
 	{
-		// Nothing fights yet, so of the five only three are ever used.
+		// The two stacks of a battle are not built: on land the original stands them on the
+		// standing point, and at sea 2.4 to either side of it.
 		if (unit.Kind == EUnitKind.Air)
 		{
 			return EMapStack.Air;

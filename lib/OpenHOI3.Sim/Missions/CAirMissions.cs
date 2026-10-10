@@ -35,10 +35,10 @@ public static class CAirMissions
 		return order is EUnitOrder.AirSuperiority or EUnitOrder.AirIntercept;
 	}
 
-	/// <summary>Whether an order is one an air unit flies under at all, a change of base among them.</summary>
+	/// <summary>Whether an order is one an air unit flies under at all, a change of base and the bombing missions among them.</summary>
 	public static bool IsAirOrder(EUnitOrder order)
 	{
-		return IsAirMission(order) || order == EUnitOrder.RebaseAir;
+		return IsAirMission(order) || order == EUnitOrder.RebaseAir || CBombingOrders.IsBombingMission(order);
 	}
 
 	/// <summary>A mission may be given for any province the unit may stand in.</summary>
@@ -55,17 +55,26 @@ public static class CAirMissions
 	}
 
 	/// <summary>
-	/// Keeps of a list the provinces within the unit's range of its base, each once and
-	/// in the order given: a mission's provinces as its order takes them.
+	/// Keeps of a list the provinces a mission takes, each once and in the order given:
+	/// for a fighting mission the ones within the unit's range of its base, and for a
+	/// bombing mission the ones its own test lets on - which does not ask how far they
+	/// are.
 	/// </summary>
 	public static void SetProvinces(CGameState state, CUnit unit, IEnumerable<int> provinces)
 	{
 		List<int> kept = unit.Mission.Provinces;
 		kept.Clear();
+		bool isBombing = CBombingOrders.IsBombingMission(unit.Order);
 		foreach (int id in provinces)
 		{
-			if (id > 0 && id < state.Provinces.Count && !kept.Contains(id)
-				&& CUnitOrders.IsInRange(state, unit, unit.Order, state.Province(id)))
+			if (id <= 0 || id >= state.Provinces.Count || kept.Contains(id))
+			{
+				continue;
+			}
+			CProvince province = state.Province(id);
+			if (isBombing
+				? CBombingOrders.MayList(state, unit, unit.Order, province)
+				: CUnitOrders.IsInRange(state, unit, unit.Order, province))
 			{
 				kept.Add(id);
 			}
@@ -136,7 +145,7 @@ public static class CAirMissions
 		if (!mission.ReturnToBase)
 		{
 			DayNightGate(state, country, unit);
-			if (!mission.ReturnToBase && !unit.IsFighting
+			if (!mission.ReturnToBase && !unit.IsFighting && unit.Bombing is null
 				&& !CUnitOrders.IsInRange(state, unit, unit.Order, state.Province(unit.Location)))
 			{
 				ReturnToBase(state, country, unit);

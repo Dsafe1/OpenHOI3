@@ -38,4 +38,13 @@ public enum ECombatModifier
 
 	/// <summary>In the air: a wing on an intercept, or on air superiority.</summary>
 	Intercept,
+
+	/// <summary>A bomber: what being in an air battle of its own costs its bombing.</summary>
+	AirCombat,
+
+	/// <summary>What its country's radio technology gives a unit.</summary>
+	Radio,
+
+	/// <summary>In the air: a friend's radar station in the province or beside it.</summary>
+	Radar,
 }

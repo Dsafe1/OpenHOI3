@@ -349,9 +349,11 @@ often its own last ship (section 4).
 the strongest fleet of a country that can reach that sea province there, and with
 `--war=GER:ENG` the player's own fleet has something to find.
 
-**On the map** a battle at sea has the land battle's marker, its row in a fleet's panel, and
-the same window with halves of its own - a list of each side's ships, each ship's picture
-standing along its row by its distance: `combatview.md`, section 10. *Ours:* the readout of a
+**On screen** a battle at sea has the land battle's row in a fleet's panel and the same window
+with halves of its own - a list of each side's ships, each ship's picture standing along its
+row by its distance: `combatview.md`, section 10. **It has no marker on the map**: the
+original's is a land battle's alone, and the one this had until 2026-10-10 came from a
+sentence of the fact base that was wrong (`combatview.md`, section 8). *Ours:* the readout of a
 selected sea province with a battle in it says who fights whom, with how many ships, and how
 many each has had sunk.
 

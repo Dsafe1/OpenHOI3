@@ -198,8 +198,15 @@ a battle, which are `inferred`
   before the unit was.
 
 **The button**: a land unit on the march that is not retreating is halted, by the same
-command a click on its own province gives (`movement.md`, section 1). `confirmed`. The
-original also uses it to take back an order of another kind.
+command a click on its own province gives (`movement.md`, section 1). **Any other unit has
+its order taken back** - every order but an air unit's change of base - and is left with
+no order and with the way it was on: a fleet sent somewhere keeps sailing. `confirmed`
+(`reversing/findings/FINDINGS-unitpanel.md`, section 6). **An air unit with no order flies
+home by itself** once it has no way to go and is in no battle and no bombing
+(`aircombat.md`, section 1): so a mission taken back over enemy ground stays over its bombing
+or its battle until that ends, and then goes home. Until 2026-10-10 the button here halted a
+marching unit of any kind and did nothing for anything else - the maintainer found it did
+nothing for a mission.
 
 ## 6. The brigades
 

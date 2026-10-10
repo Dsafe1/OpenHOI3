@@ -35,6 +35,16 @@ public sealed class CBuilding
 	/// <summary><c>onmap</c>: whether a province that has any of it shows its picture on the map.</summary>
 	public bool IsOnMap { get; init; }
 
+	/// <summary>
+	/// <c>damage_factor</c>: how much of a bomb's worth it loses, where 1 is all of it and
+	/// what a building has unless its file says otherwise. See
+	/// <c>docs/mechanics/bombing.md</c>, section 7.
+	/// </summary>
+	public CFixedPoint DamageFactor { get; init; } = CFixedPoint.One;
+
+	/// <summary><c>repair</c>: whether what it has lost comes back by the day. It does unless its file says no.</summary>
+	public bool IsRepaired { get; init; } = true;
+
 	public override string ToString()
 	{
 		return Key;

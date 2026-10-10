@@ -118,6 +118,18 @@ public sealed class CUnit
 	public int NoBattleHours { get; set; }
 
 	/// <summary>
+	/// The bombing it is in, as a bomber or as a target, or null. A unit is in one at
+	/// most, and it is kept apart from its battles. See <c>docs/mechanics/bombing.md</c>.
+	/// </summary>
+	public CCombat? Bombing { get; set; }
+
+	/// <summary>
+	/// An air unit: the hours after a bombing in which it starts no other, set and run
+	/// down as <see cref="NoBattleHours"/> is. It is what turns a bomber for home.
+	/// </summary>
+	public int NoBombingHours { get; set; }
+
+	/// <summary>
 	/// What it has been told to do, and where. An order is looked at every hour and
 	/// dropped when it is done: see <c>docs/mechanics/fleetsandair.md</c>, section 5.
 	/// </summary>

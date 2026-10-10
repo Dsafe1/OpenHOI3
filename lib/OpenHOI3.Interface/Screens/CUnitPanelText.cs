@@ -377,6 +377,26 @@ public static class CUnitPanelText
 						localise(unit.Order == EUnitOrder.AirIntercept ? "INTERCEPT_SHORT_DESC" : "AIRSUP_SHORT_DESC"),
 						("TYPE", localise(unit.Mission.ReturnToBase ? "STRAT_BOMB_RETURNING"
 							: unit.Mission.LiveTarget is not null ? "INTERCEPT_ATTACK" : "INTERCEPT_WAITING")));
+				// What a bombing mission puts in the brackets was not read either: these
+				// are the three texts the original has for it, by what the unit is doing.
+				case EUnitOrder.StrategicBombing:
+				case EUnitOrder.LogisticalStrike:
+				case EUnitOrder.RunwayCratering:
+				case EUnitOrder.InstallationStrike:
+				case EUnitOrder.GroundAttack:
+				case EUnitOrder.Interdiction:
+				case EUnitOrder.PortStrike:
+				case EUnitOrder.NavalStrike:
+				{
+					// Over a province it is bombing, a unit is attacking that province: some of
+					// these missions forget where they were going once the bombing has it.
+					int strike = unit.Bombing?.Province ?? unit.Mission.Destination;
+					string doing = unit.Mission.ReturnToBase ? localise("STRAT_BOMB_RETURNING")
+						: strike > 0 && strike < state.Provinces.Count
+							? CTextTemplate.Fill(localise("STRAT_BOMB_ATTACKING"), ("PROV", state.Province(strike).Name))
+							: localise("STRAT_BOMB_WAITING");
+					return CTextTemplate.Fill(localise(COrdersText.NameKey(unit.Order) + "_SHORT_DESC"), ("TYPE", doing));
+				}
 			}
 		}
 		if (unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air)

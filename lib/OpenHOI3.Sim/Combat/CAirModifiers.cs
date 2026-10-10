@@ -12,7 +12,7 @@ namespace OpenHOI3.Sim.Combat;
 /// What an hour of a battle in the air makes of every wing: each thing that bears on it
 /// noted on the wing and multiplied into its attack and its defence. Only the attack
 /// decides anything - nothing in an air battle reads a wing's defence. The original also
-/// counts difficulty, a radio technology, radar and the leader, which are not built.
+/// counts difficulty and the leader, which are not built.
 /// See <c>docs/mechanics/aircombat.md</c>, section 8.
 /// </summary>
 public static class CAirModifiers
@@ -42,6 +42,7 @@ public static class CAirModifiers
 		CDefines defines = state.Defines;
 		bool isNight = CDaylight.IsNight(state, province);
 		long weather = Weather(state, province);
+		long radar = CRadarCover.Level(state, province, side);
 
 		int wings = 0;
 		foreach (CUnit unit in side.Units)
@@ -104,6 +105,12 @@ public static class CAirModifiers
 					Add(wing, ECombatModifier.LackOfSupplies, -impact, -impact);
 				}
 
+				long radio = owner is null ? 0 : owner.Technology[CBomberModifiers.CombatEfficiency].Raw;
+				if (radio != 0)
+				{
+					Add(wing, ECombatModifier.Radio, radio, radio);
+				}
+
 				if (owner is not null && owner.Dissent != CFixedPoint.Zero)
 				{
 					long dissent = owner.Dissent.Raw * 10 / CFixedPoint.Scale;
@@ -114,6 +121,12 @@ public static class CAirModifiers
 				if (crowding < 0)
 				{
 					Add(wing, ECombatModifier.Stacking, crowding, crowding);
+				}
+
+				if (radar != 0)
+				{
+					long bonus = CRadarCover.Bonus(state, owner, radar);
+					Add(wing, ECombatModifier.Radar, bonus, bonus);
 				}
 
 				if (weather != 0)

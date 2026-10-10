@@ -716,11 +716,16 @@ public class LandCombatTests
 		Division(state, poland, Posen);
 		CCombat combat = Fight(state, attacker, Posen);
 
+		Assert.True(attacker.IsMoving);
 		new CCancelMovementCommand(Ger, attacker.Id).Execute(state);
 
 		Assert.False(attacker.IsFighting);
 		Assert.Empty(combat.Attacker.Units);
 		Assert.True(combat.AttackerLost);
+		// Its way and its order go with the attack.
+		Assert.False(attacker.IsMoving);
+		Assert.Equal(CFixedPoint.Zero, attacker.MovementProgress);
+		Assert.Equal(EUnitOrder.None, attacker.Order);
 	}
 
 	// --- taking a province ---

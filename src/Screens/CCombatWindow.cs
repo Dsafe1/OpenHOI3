@@ -11,10 +11,11 @@ using OpenHOI3.Sim.Countries;
 namespace OpenHOI3.Screens;
 
 /// <summary>
-/// The window of a battle, on land or at sea: the original's <c>combat</c>, with a side
-/// window on each half - the kind of battle decides which. It is written again every
-/// frame it is up, as the original writes it, and takes itself down when the battle is
-/// over or a side of it is empty. See <c>docs/mechanics/combatview.md</c>.
+/// The window of a battle - on land, at sea or in the air - and of a bombing: the
+/// original's <c>combat</c>, with a side window on each half, which the kind of battle
+/// decides. It is written again every frame it is up, as the original writes it, and
+/// takes itself down when the battle is over or a side of it is empty. See
+/// <c>docs/mechanics/combatview.md</c>.
 /// </summary>
 public partial class CCombatWindow : Control
 {
@@ -81,9 +82,10 @@ public partial class CCombatWindow : Control
 		AddChild(window);
 
 		bool isNaval = combat.Kind == ECombatKind.Naval;
-		// The picture: the province's own where it has one, or else its terrain's. A
-		// battle at sea has none.
-		if (isNaval)
+		bool isAir = CAirCombatText.HasAirSide(combat);
+		// The picture: the province's own where it has one, or else its terrain's. Only
+		// a battle on land has one.
+		if (isNaval || isAir)
 		{
 			if (window.FindIcon("combat_terrain") is { } hidden)
 			{
@@ -104,7 +106,7 @@ public partial class CCombatWindow : Control
 			}
 		}
 		// The window serves every kind of battle and has a background for each.
-		string shown = isNaval ? "combat_naval_bg" : "combat_bg";
+		string shown = isNaval ? "combat_naval_bg" : isAir ? "combat_air_bg" : "combat_bg";
 		foreach (string each in new[] { "combat_bg", "combat_naval_bg", "combat_air_bg" })
 		{
 			if (window.FindIcon(each) is { } background)
@@ -140,12 +142,13 @@ public partial class CCombatWindow : Control
 		_rightPlace = window.FindIcon("right_pos");
 
 		// The two halves are windows of their own, hung on this one where two icons
-		// that are there for nothing else say.
-		_attacker = isNaval
-			? CNavalSideView.Create(_context, state, combat.Attacker)
+		// that are there for nothing else say. A battle in the air and a bombing make
+		// both of theirs from one window.
+		_attacker = isNaval ? CNavalSideView.Create(_context, state, combat.Attacker)
+			: isAir ? CAirSideView.Create(_context, state, combat.Attacker)
 			: CCombatSideView.Create(_context, state, combat.Attacker);
-		_defender = isNaval
-			? CNavalSideView.Create(_context, state, combat.Defender)
+		_defender = isNaval ? CNavalSideView.Create(_context, state, combat.Defender)
+			: isAir ? CAirSideView.Create(_context, state, combat.Defender)
 			: CCombatSideView.Create(_context, state, combat.Defender);
 		if (_attacker is not null)
 		{
@@ -190,8 +193,9 @@ public partial class CCombatWindow : Control
 			return;
 		}
 		// A battle that is over, or one with a side that has nobody left, has no window.
+		// The bombed side of a bombing may have nobody on it from the start.
 		if (!_simulation.State.Combats.Contains(combat) || combat.Attacker.Units.Count == 0
-			|| combat.Defender.Units.Count == 0)
+			|| (combat.Defender.Units.Count == 0 && !CBombing.IsBombing(combat.Kind)))
 		{
 			Close();
 			return;

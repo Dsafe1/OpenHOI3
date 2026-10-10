@@ -19,6 +19,7 @@ namespace OpenHOI3.Interface.Screens;
 public static class CCombatViewText
 {
 	public const string BattleOfKey = "BATTLE_OF";
+	public const string BombingOfKey = "BOMBING_OF";
 	public const string CommittedKey = "COMMITED_LABEL";
 	public const string ReservesKey = "RESERVES_LABEL";
 	public const string NoCommanderKey = "NO_COMMANDER";
@@ -63,6 +64,7 @@ public static class CCombatViewText
 		(ECombatModifier.Experience, "BM_EXPERIENCE"),
 		(ECombatModifier.MissionEfficiency, "BM_MISSION_EFFICIENCY"),
 		(ECombatModifier.TerritorialPride, "BM_TERRITORIAL_PRIDE"),
+		(ECombatModifier.Radio, "BM_RADIO"),
 		(ECombatModifier.DugIn, "BM_DUGIN_MODIFIER"),
 		(ECombatModifier.Amphibious, "BM_AMPH_PENALTY"),
 		(ECombatModifier.Fort, "BM_FORT_MODIFIER"),
@@ -70,7 +72,11 @@ public static class CCombatViewText
 		(ECombatModifier.LackOfSupplies, "BM_LACK_OF_SUPPLIES"),
 		(ECombatModifier.MultipleCombats, "BM_MULTIPLE"),
 		(ECombatModifier.CombinedArms, "BM_COMBINED_ARMS"),
+		(ECombatModifier.BaseProximity, "BM_BASE_PROXIMITY"),
 		(ECombatModifier.PoorScreens, "BM_POOR_SCREEN_PENALTY"),
+		(ECombatModifier.Radar, "BM_RADAR_STATION"),
+		(ECombatModifier.Intercept, "BM_INTERCEPT"),
+		(ECombatModifier.AirCombat, "BM_AIRCOMBAT"),
 		(ECombatModifier.Terrain, "BM_TERRAIN"),
 		(ECombatModifier.Weather, "BM_WEATHER"),
 		(ECombatModifier.Night, "BM_NIGHT_MODIFIER"),
@@ -79,40 +85,47 @@ public static class CCombatViewText
 
 	// ---- the battle
 
-	/// <summary>A battle's name: "Battle of", a space, and the name of its province.</summary>
+	/// <summary>
+	/// A battle's name: "Battle of", a space, and the name of its province - "Bombing
+	/// of" for a bombing.
+	/// </summary>
 	public static string Name(Func<string, string> localise, CGameState state, CCombat combat)
 	{
-		return localise(BattleOfKey) + " " + state.Province(combat.Province).Name;
+		return localise(CBombing.IsBombing(combat.Kind) ? BombingOfKey : BattleOfKey) + " "
+			+ state.Province(combat.Province).Name;
 	}
 
 	/// <summary>
-	/// What a side is worth to the eye: for each brigade of every unit on it, front or
-	/// reserve, its organisation by its strength, by both of what the hour's
-	/// circumstances make of its unit, and by a tenth of its two attacks and its
-	/// toughness - its defensiveness for a defender - where that is more than one.
+	/// Whether a battle has a marker on the map: one on land, from its fourth hour. A
+	/// battle at sea, one in the air and a bombing have none.
+	/// </summary>
+	public static bool HasMarker(CCombat combat)
+	{
+		return combat.Kind == ECombatKind.Land && !combat.IsConvoyBattle && combat.Duration >= CCombats.LeastHours;
+	}
+
+	/// <summary>
+	/// What a side is worth to the eye, sub unit by sub unit of every unit on it, front
+	/// or reserve. A brigade counts by its organisation by its strength, by both of what
+	/// the hour's circumstances make of its unit, and by a tenth of its two attacks and
+	/// its toughness - its defensiveness for a defender - where that is more than one. A
+	/// ship and a wing count by their organisation by their strength and by their own
+	/// circumstances, and by nothing of their type.
 	/// </summary>
 	public static long Worth(CCombatSide side)
 	{
 		long sum = 0;
-		if (side.Combat.Kind == ECombatKind.Naval)
-		{
-			// At sea a ship counts by its own circumstances and by nothing of its type.
-			foreach (CUnit fleet in side.Units)
-			{
-				foreach (CSubUnit ship in fleet.SubUnits)
-				{
-					long body = ship.Organisation.Raw * ship.Strength.Raw / Scale;
-					sum += body * (ship.CombatDefence.Raw * ship.CombatAttack.Raw / Scale) / Scale;
-				}
-			}
-			return sum;
-		}
 		foreach (CUnit unit in side.Units)
 		{
 			long circumstances = unit.CombatAttack.Raw * unit.CombatDefence.Raw / Scale;
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
 				long body = subUnit.Organisation.Raw * subUnit.Strength.Raw / Scale;
+				if (subUnit.Type.Branch != EUnitBranch.Land)
+				{
+					sum += body * (subUnit.CombatDefence.Raw * subUnit.CombatAttack.Raw / Scale) / Scale;
+					continue;
+				}
 				long arms = (subUnit.Stats[CUnitTotals.SoftAttack].Raw + subUnit.Stats[CUnitTotals.HardAttack].Raw
 					+ subUnit.Stats[side.IsAttacker ? CSubUnitStats.Toughness : CUnitTotals.Defensiveness].Raw)
 					* Scale / (10 * Scale);
@@ -203,8 +216,9 @@ public static class CCombatViewText
 				{
 					inPlay.Add(modifier.Kind);
 				}
-				// At sea the hour's circumstances are noted on each ship.
-				if (combat.Kind == ECombatKind.Naval)
+				// At sea, in the air and under bombs the hour's circumstances are noted on
+				// each ship, wing and regiment.
+				if (combat.Kind != ECombatKind.Land)
 				{
 					foreach (CSubUnit ship in unit.SubUnits)
 					{

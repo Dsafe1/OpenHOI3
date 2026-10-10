@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
@@ -134,6 +135,49 @@ public class OrdersTextTests
 		Assert.False(rows[3].MayGive);
 		Assert.Equal(-1, COrdersText.Suggested(rows, state, country, fighters, state.Province(Rostock)));
 		Assert.Equal(COrdersText.AirWindow, COrdersText.WindowFor(fighters));
+	}
+
+	[Fact]
+	public void ABombingMissionHasItsOwnNameAndSaysWhatItIsDoing()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit bombers = Unit(state, country, EUnitKind.Air, Kiel, ("strategic_attack", "5"));
+		Assert.Equal("STRAT_BOMB", COrdersText.NameKey(EUnitOrder.StrategicBombing));
+		Assert.Equal("LOG_BOMB", COrdersText.NameKey(EUnitOrder.LogisticalStrike));
+		Assert.Equal("AIRFIELD_BOMB", COrdersText.NameKey(EUnitOrder.RunwayCratering));
+		Assert.Equal("INSTALLATION_BOMB", COrdersText.NameKey(EUnitOrder.InstallationStrike));
+		Assert.Equal("GROUNDATTACK_BOMB", COrdersText.NameKey(EUnitOrder.GroundAttack));
+		Assert.Equal("INTERDICT_BOMB", COrdersText.NameKey(EUnitOrder.Interdiction));
+		Assert.Equal("PORTSTRIKE_BOMB", COrdersText.NameKey(EUnitOrder.PortStrike));
+		Assert.Equal("NAVALSTRIKE_BOMB", COrdersText.NameKey(EUnitOrder.NavalStrike));
+
+		// Over its own country's ground the four strategic rows are there and cannot be ticked.
+		List<COrderRow> rows = COrdersText.Rows(state, country, bombers, state.Province(Hamburg));
+		Assert.Equal(new[] { "STRAT_BOMB", "LOG_BOMB", "AIRFIELD_BOMB", "INSTALLATION_BOMB" }, rows.Take(4).Select(row => row.NameKey));
+		Assert.All(rows.Take(4), row => Assert.False(row.MayGive));
+		Assert.Equal(EUnitOrder.StrategicBombing, rows[0].Order);
+
+		static string Localise(string key) => key switch
+		{
+			"STRAT_BOMB_SHORT_DESC" => "Strategic Bombing($TYPE$)",
+			"STRAT_BOMB_WAITING" => "Resting",
+			"STRAT_BOMB_ATTACKING" => "Attacking $PROV$",
+			"STRAT_BOMB_RETURNING" => "Returning",
+			_ => key,
+		};
+		bombers.Order = EUnitOrder.StrategicBombing;
+		bombers.OrderProvince = Hamburg;
+		Assert.Equal("Strategic Bombing(Resting)", CUnitPanelText.Order(Localise, state, bombers));
+		bombers.Mission.Destination = Hamburg;
+		Assert.Equal("Strategic Bombing(Attacking Hamburg)", CUnitPanelText.Order(Localise, state, bombers));
+		// Over the province, the mission has forgotten where it was going and the bombing says.
+		bombers.Mission.Destination = 0;
+		bombers.Bombing = new CCombat(Hamburg, ECombatKind.GroundBombing);
+		Assert.Equal("Strategic Bombing(Attacking Hamburg)", CUnitPanelText.Order(Localise, state, bombers));
+		bombers.Bombing = null;
+		Assert.Equal("Strategic Bombing(Resting)", CUnitPanelText.Order(Localise, state, bombers));
+		bombers.Mission.ReturnToBase = true;
+		Assert.Equal("Strategic Bombing(Returning)", CUnitPanelText.Order(Localise, state, bombers));
 	}
 
 	[Fact]

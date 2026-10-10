@@ -179,7 +179,12 @@ Giving a unit a path: `confirmed`
   new path begins with the province the old one began with**. Otherwise its progress goes
   back to nothing.
 - **Adding** to it: the new provinces go on the end and nothing else changes.
-- **Halting**: the path is emptied and the progress lost.
+- **Halting** - a click on its own province, or the cross beside its order in its panel:
+  its order goes, it leaves **every battle it is attacking in** (not one it defends), the
+  path is emptied and the progress lost; and where it then stands on ground an enemy
+  controls, not falling back and in no battle, it looks for a battle there at once.
+  `confirmed` (`CUnit::CancelMovement`, `reversing/findings/FINDINGS-movement.md`, section 4).
+  What the attack delay has left to run is kept.
 
 A unit keeps, besides its path and its progress, **the province it was in before** the one
 it is in.

@@ -54,6 +54,7 @@ public partial class CSession : Node
 	private bool _hourPassed;
 	private bool _ordered;
 	private bool _wasMoving;
+	private long _whereabouts;
 	private int _waiting;
 	private int _controlChanges;
 	private long _dayColoured;
@@ -304,6 +305,17 @@ public partial class CSession : Node
 				}
 				continue;
 			}
+			// An air unit is sent where a beaten one goes, out of a battle or a bombing.
+			if (unit.Kind == EUnitKind.Air)
+			{
+				var fallBack = new CFallBackCommand(Player.Tag, unit.Id);
+				if (fallBack.MayExecute(State))
+				{
+					_simulation.Post(fallBack);
+					_ordered = true;
+				}
+				continue;
+			}
 			if (!unit.IsMoving)
 			{
 				continue;
@@ -371,12 +383,16 @@ public partial class CSession : Node
 			// counts as much as whether one is now.
 			// A battle wears its units down hour by hour, and its last hour sends them
 			// away: so a battle counts as movement does.
+			// And a unit that is given a way and gets to its end inside one hour is on the
+			// march neither before nor after it: so where every unit is counts too.
 			bool moving = AnyUnitMoving() || State.Combats.Count > 0;
-			if (_ordered || moving || _wasMoving)
+			long whereabouts = Whereabouts();
+			if (_ordered || moving || _wasMoving || whereabouts != _whereabouts)
 			{
 				_unitsMoved = true;
 			}
 			_wasMoving = moving;
+			_whereabouts = whereabouts;
 		}
 		_ordered = false;
 		_hourPassed = false;
@@ -404,6 +420,20 @@ public partial class CSession : Node
 			_mapView.Counters?.Refresh();
 			ShowProvince(_shownProvince);
 		}
+	}
+
+	/// <summary>A figure that changes when any unit is in another province than it was.</summary>
+	private long Whereabouts()
+	{
+		long figure = 17;
+		foreach (CCountry country in State.Countries)
+		{
+			foreach (CUnit unit in country.AllUnits())
+			{
+				figure = unchecked(figure * 31 + unit.Id * 7919L + unit.Location);
+			}
+		}
+		return figure;
 	}
 
 	private bool AnyUnitMoving()
@@ -597,6 +627,16 @@ public partial class CSession : Node
 				+ $"{string.Join(", ", atSea.Defender.Countries.Select(tag => CountryName(tag)))} with "
 				+ $"{atSea.Defender.Units.Sum(fleet => fleet.SubUnits.Count)} ({atSea.Defender.Sunk.Count} sunk)";
 		}
+		if (CBombing.In(State, provinceId) is { } bombing)
+		{
+			string what = bombing.Kind == ECombatKind.GroundBombing ? "of the ground"
+				: bombing.Kind == ECombatKind.NavalBombing ? "of ships" : "of land units";
+			text += $"\nBombing {what}, hour {bombing.Duration}: "
+				+ $"{string.Join(", ", bombing.Attacker.Countries.Select(tag => CountryName(tag)))} with "
+				+ $"{bombing.Attacker.Units.Sum(unit => unit.SubUnits.Count)} wings against "
+				+ $"{string.Join(", ", bombing.Defender.Countries.Select(tag => CountryName(tag)))} with "
+				+ $"{bombing.Defender.Units.Count} units";
+		}
 		if (CCombats.In(State, provinceId, ECombatKind.Air) is { } inTheAir)
 		{
 			text += $"\nBattle in the air, hour {inTheAir.Duration}: "
@@ -742,7 +782,10 @@ public partial class CSession : Node
 	/// after the province where it is not to be aggressive - and
 	/// <c>--mission=GER:airsuperiority:2313</c> or <c>airintercept</c> gives the country's
 	/// best fighters that mission over the province, with <c>:300</c> after it for every
-	/// province within that distance as well,
+	/// province within that distance as well - and likewise a bombing mission, for the
+	/// air unit with the most of what it fires: <c>groundattack</c>, <c>interdiction</c>,
+	/// <c>navalstrike</c>, <c>strategicbombing</c>, <c>logisticalstrike</c>,
+	/// <c>runwaycratering</c>, <c>installationstrike</c> or <c>portstrike</c>,
 	/// <c>--order=type,type</c> orders one unit made of those brigades, ships or wings,
 	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
 	/// type) opens the window that orders one, with that in it,
@@ -892,12 +935,20 @@ public partial class CSession : Node
 				// radius after the province where it is to cover more than the one.
 				if (parts.Length >= 3 && CCountryTag.TryParse(parts[0], out CCountryTag flier)
 					&& System.Enum.TryParse(parts[1], ignoreCase: true, out EUnitOrder airMission)
-					&& CAirMissions.IsAirMission(airMission)
+					&& (CAirMissions.IsAirMission(airMission) || CBombingOrders.IsBombingMission(airMission))
 					&& int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int over))
 				{
+					// A bombing mission likewise - groundattack, interdiction, navalstrike,
+					// strategicbombing, logisticalstrike, runwaycratering, installationstrike or
+					// portstrike - for the air unit with the most of the attack it fires.
+					string[] fired = CBombingOrders.GoesForLandUnits(airMission)
+						? new[] { CUnitTotals.SoftAttack, CUnitTotals.HardAttack }
+						: CBombingOrders.GoesForShips(airMission) ? new[] { CNavalFire.SeaAttack }
+						: CBombingOrders.IsBombingMission(airMission) ? new[] { CBombingOrders.StrategicAttack }
+						: new[] { CAirMissions.AirAttack };
 					CUnit? wing = State.Country(flier)?.AllUnits()
-						.Where(unit => unit.Kind == EUnitKind.Air && unit.Location > 0)
-						.OrderByDescending(unit => unit.SubUnits.Sum(sub => sub.Stats[CAirMissions.AirAttack].Raw))
+						.Where(unit => unit.Kind == EUnitKind.Air && unit.Location > 0 && unit.CarriedBy is null)
+						.OrderByDescending(unit => unit.SubUnits.Sum(sub => fired.Sum(statistic => sub.Stats[statistic].Raw)))
 						.FirstOrDefault(unit => over > 0 && over < State.Provinces.Count
 							&& CUnitOrders.IsInRange(State, unit, airMission, State.Province(over))
 							&& new CSetUnitOrderCommand(flier, unit.Id, airMission, over).MayExecute(State));

@@ -161,8 +161,10 @@ and the **priority**, 0 to 4, each with a button either side that steps it and g
 the ends. They belong to the orders that fight.
 
 *Ours:* **a fleet's move, its change of base and its six missions are built** - the missions
-are `navalmissions.md` - **and an air unit's change of base.** Every other row is listed as the
-original lists it and cannot be ticked: a fleet's transport and invasion, and every air mission.
+are `navalmissions.md` - **and an air unit's change of base, its two fighting missions
+(`aircombat.md`) and its eight bombing missions (`bombing.md`).** Every other row is listed as
+the original lists it and cannot be ticked: a fleet's transport and invasion, and an air
+unit's reserve, supply flight and raid on convoys.
 An air unit's rows for a paradrop, a carrier and a bomb are left out, wanting what is not built
 to know when they show. The stance and the priority go with a fleet's order and mean something
 to its missions; to an air unit's they mean nothing yet. The air
@@ -260,10 +262,11 @@ Königsberg, the AI having some fifteen more fleets under way:
 
 ## What is not built
 
-- **A fleet's transport and invasion, and every air mission but two** - and the air window's
-  other controls. A fleet's reserve, patrol, intercept, sortie, convoy raiding and escort are
-  built since 2026-10-10 and are `navalmissions.md`; an air unit's air superiority and
-  intercept since the same day, and are `aircombat.md`.
+- **A fleet's transport and invasion, and an air unit's reserve, supply flight and raid on
+  convoys** - and the air window's other controls. A fleet's reserve, patrol, intercept,
+  sortie, convoy raiding and escort are built since 2026-10-10 and are `navalmissions.md`;
+  an air unit's air superiority and intercept since the same day, and are `aircombat.md`;
+  and its eight bombing missions since the same day, and are `bombing.md`.
 - **Carrying**: troops aboard a fleet, an air group aboard a carrier, a paradrop. A fleet
   with troops aboard is offered a land province to put them ashore in; not here.
 - **A fleet meeting another** is built since 2026-10-10 and is `navalcombat.md`. One thing

@@ -16,6 +16,7 @@ namespace OpenHOI3.Sim.Provinces;
 public sealed class CProvince
 {
 	private CFixedPoint[] _buildingLevels = System.Array.Empty<CFixedPoint>();
+	private CFixedPoint[] _buildingMaxLevels = System.Array.Empty<CFixedPoint>();
 
 	public CProvince(int id, string name, bool isSea)
 	{
@@ -167,21 +168,48 @@ public sealed class CProvince
 	public long LastConvoyAttackHour { get; set; } = NoConvoyAttack;
 
 	/// <summary>
-	/// How much of a building there is here. There is one level per building for now:
-	/// the original keeps a maximum and a current level, which differ only under damage.
+	/// How much of a building there is here that is in working order: its current level,
+	/// which is under its maximum only while it is damaged. It is what the province's
+	/// modifier is made from. See <c>docs/mechanics/bombing.md</c>, sections 7 and 11.
 	/// </summary>
 	public CFixedPoint BuildingLevel(CBuilding building)
 	{
 		return building.Index < _buildingLevels.Length ? _buildingLevels[building.Index] : CFixedPoint.Zero;
 	}
 
+	/// <summary>How much of a building has been built here, damaged or not: what repair brings it back to.</summary>
+	public CFixedPoint BuildingMaxLevel(CBuilding building)
+	{
+		return building.Index < _buildingMaxLevels.Length ? _buildingMaxLevels[building.Index] : CFixedPoint.Zero;
+	}
+
+	/// <summary>Sets how much of a building has been built here, all of it in working order.</summary>
 	public void SetBuildingLevel(CBuilding building, CFixedPoint level)
 	{
 		if (building.Index >= _buildingLevels.Length)
 		{
 			System.Array.Resize(ref _buildingLevels, building.Index + 1);
 		}
+		if (building.Index >= _buildingMaxLevels.Length)
+		{
+			System.Array.Resize(ref _buildingMaxLevels, building.Index + 1);
+		}
 		_buildingLevels[building.Index] = level;
+		_buildingMaxLevels[building.Index] = level;
+	}
+
+	/// <summary>
+	/// Sets how much of a building is in working order, between nothing and what has
+	/// been built. Damage and repair go through here.
+	/// </summary>
+	public void SetBuildingCurrentLevel(CBuilding building, CFixedPoint level)
+	{
+		CFixedPoint most = BuildingMaxLevel(building);
+		if (building.Index >= _buildingLevels.Length)
+		{
+			System.Array.Resize(ref _buildingLevels, building.Index + 1);
+		}
+		_buildingLevels[building.Index] = level < CFixedPoint.Zero ? CFixedPoint.Zero : level > most ? most : level;
 	}
 
 	/// <summary>Ids of the provinces this one touches, ascending. Filled from the map.</summary>
