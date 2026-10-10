@@ -45,7 +45,8 @@ internal static class CSupplyPassCheck
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
 		var clock = System.Diagnostics.Stopwatch.StartNew();
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add);
+		// Not filled: the original's own sequence is run over it below.
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, fill: false);
 		Console.WriteLine($"a new game made in {clock.ElapsedMilliseconds} ms");
 		ClausewitzNode save = ClausewitzParser.ParseFile(args[2]);
 		Console.WriteLine($"savegame: date {save.GetString("date")}, player {save.GetString("player")}");
@@ -113,6 +114,12 @@ internal static class CSupplyPassCheck
 		foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 		{
 			CFixedPoint made = Number(node.Get("home")?.GetString("supplies"));
+			// A country that does not exist never has what it made counted afresh, so two
+			// days in the save holds two days' worth (`stockpile.md`, section 6).
+			if (!CResources.HoldsCapital(state, country))
+			{
+				made = new CFixedPoint(made.Raw / 2);
+			}
 			int supplies = (int)EProductionCategory.Supplies;
 			country.ProductionShares[supplies] = CFixed15.One;
 			long whole = CProduction.SuppliesMade(state, country).Raw;
@@ -172,13 +179,20 @@ internal static class CSupplyPassCheck
 		// The original runs a day, then fills the provinces, then runs another day. What
 		// the first day makes away from a capital is on its way there while the filling
 		// puts the stockpiles back, and is lost.
+		// All of it with a game "being made", which is when a convoy is manned for nothing.
+		state.IsBeingMade = true;
 		CTick.RunDailyPass(state);
 		clock.Restart();
 		CSupplyStart.Fill(state);
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		Console.WriteLine($"the provinces filled in {clock.ElapsedMilliseconds} ms: the furthest is {network.MostDistance} from its depot");
 		CTick.RunDailyPass(state);
+		state.IsBeingMade = false;
 		Console.WriteLine();
+
+		string? convoysOf = args.Skip(3).FirstOrDefault(argument => argument.StartsWith("convoys=", StringComparison.Ordinal));
+		CConvoyCheck.Compare(state, savedCountries, examples, convoysOf?["convoys=".Length..]);
+		CConvoyCheck.ComparePools(state, savedProvinces, examples);
 
 		Moving(state, network, savedProvinces);
 

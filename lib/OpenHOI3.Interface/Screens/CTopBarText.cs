@@ -32,15 +32,26 @@ public static class CTopBarText
 	/// A resource: what the country holds, in whole units, coloured by whether the day
 	/// took more of it than it brought.
 	/// </summary>
+	/// <summary>
+	/// What convoys brought a country today that counts as coming in: everything but
+	/// supplies and fuel, which a convoy lands in a harbour across the sea and not in
+	/// the stockpile.
+	/// </summary>
+	public static CFixedPoint ConvoyedIn(CCountry country, EGoods goods)
+	{
+		return goods is EGoods.Supplies or EGoods.Fuel ? CFixedPoint.Zero : country.ConvoyedIn[goods];
+	}
+
 	public static string Goods(CGameState state, CCountry country, EGoods goods)
 	{
-		// What went out today, with what left the stockpile for the units, and what came in, with what the
-		// provinces sent back. The original adds trade, convoys, debt and tribute to each side; none of those
-		// move anything yet.
+		// What went out today, with what left the stockpile for the units and what its convoys carried
+		// away, and what came in, with what the provinces sent back and what convoys landed. The original
+		// adds trade, debt and tribute to each side; none of those move anything yet.
 		// What was made away from the capital counts as made and as gone, until it has travelled in.
 		CFixedPoint goingOut = country.Usage[goods] + country.ConversionUsed[goods] + country.UnitDrawn[goods]
-			+ country.SentTo[goods];
-		CFixedPoint comingIn = country.HomeProduced[goods] + country.ConversionMade[goods] + country.SentBack[goods];
+			+ country.SentTo[goods] + country.ConvoyedOut[goods];
+		CFixedPoint comingIn = country.HomeProduced[goods] + country.ConversionMade[goods] + country.SentBack[goods]
+			+ ConvoyedIn(country, goods);
 		CFixedPoint tradedFor = CFixedPoint.Zero;
 
 		// Red is a loss even with what is bought, yellow a loss that buying covers.

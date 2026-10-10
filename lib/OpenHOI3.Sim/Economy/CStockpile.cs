@@ -144,4 +144,32 @@ public static class CStockpile
 			state.Stockpile(country)?.Add(country.HomeProduced);
 		}
 	}
+
+	/// <summary>The most of any good a land province holds at the end of a day, in thousandths.</summary>
+	public const long MostHeld = 99999 * CFixedPoint.Scale;
+
+	/// <summary>
+	/// The last thing a day does to a land province: what lies in it of each good is
+	/// held between nothing and 99999. So a stockpile that consumer goods or supplies
+	/// were charged to beyond what it held is empty and not in debt, and no stockpile
+	/// grows past that figure. See <c>docs/mechanics/stockpile.md</c>, section 4.
+	/// </summary>
+	public static void HoldWithinBounds(CGameState state)
+	{
+		foreach (Provinces.CProvince province in state.Provinces)
+		{
+			if (province.Id == 0 || province.IsSea)
+			{
+				continue;
+			}
+			for (int goods = 0; goods < CGoodsPool.Count; goods++)
+			{
+				long held = province.Pool[(EGoods)goods].Raw;
+				if (held < 0 || held > MostHeld)
+				{
+					province.Pool[(EGoods)goods] = new CFixedPoint(Math.Clamp(held, 0, MostHeld));
+				}
+			}
+		}
+	}
 }

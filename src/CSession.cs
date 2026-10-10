@@ -7,6 +7,8 @@ using OpenHOI3.Content;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Text;
 using OpenHOI3.Map;
 using OpenHOI3.Screens;
 using OpenHOI3.Sim;
@@ -53,6 +55,7 @@ public partial class CSession : Node
 	private bool _wasMoving;
 	private int _waiting;
 	private int _controlChanges;
+	private long _dayColoured;
 
 	/// <summary>The country played when nothing says which. There is no screen to choose one on yet.</summary>
 	private const string DefaultPlayer = "GER";
@@ -362,6 +365,16 @@ public partial class CSession : Node
 			_mapView.RefreshColours();
 			_unitsMoved = true;
 		}
+		// The supply map mode is coloured by the day's carrying, so again each day.
+		long day = State.TotalHours / CGameState.HoursPerDay;
+		if (day != _dayColoured)
+		{
+			_dayColoured = day;
+			if (_mapView.Mode == CMapView.MapMode.Supply)
+			{
+				_mapView.RefreshColours();
+			}
+		}
 		if (_unitsMoved || waiting != _waiting)
 		{
 			_unitsMoved = false;
@@ -547,6 +560,15 @@ public partial class CSession : Node
 				+ (chosen.IsFighting ? "fighting" : chosen.IsRetreating ? "falling back" : "resting")
 				+ (chosen.AttackDelay > CFixedPoint.Zero ? $", {chosen.AttackDelay.ToInt()} hours before it may attack again" : "");
 		}
+		// In the supply map mode the readout says what the original's tooltip says there.
+		if (_mapView.Mode == CMapView.MapMode.Supply)
+		{
+			foreach (string line in CSupplyMapText.Lines(_localisation.Localise, State, CSupplyNetworks.Refresh(State),
+				province, Player?.Tag))
+			{
+				text += "\n" + CColouredText.Strip(line);
+			}
+		}
 		if (province.IsSea)
 		{
 			text += "\nSea";
@@ -693,6 +715,10 @@ public partial class CSession : Node
 			else if (argument == "--mode=terrain")
 			{
 				_mapView.Mode = CMapView.MapMode.Terrain;
+			}
+			else if (argument == "--mode=supply")
+			{
+				_mapView.Mode = CMapView.MapMode.Supply;
 			}
 			else if (argument == "--screen=production")
 			{

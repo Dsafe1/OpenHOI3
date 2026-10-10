@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Construction;
+using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Units;
@@ -295,6 +296,38 @@ public sealed class CCountry
 
 	/// <summary>What it was paid today for a friend's units drawing on its depots.</summary>
 	public CGoodsPool TradedFor { get; } = new();
+
+	/// <summary>
+	/// Its convoys, in the order they were made - which is the order its transports are
+	/// shared out in. See <c>docs/mechanics/convoys.md</c>.
+	/// </summary>
+	public List<CConvoy> Convoys { get; } = new();
+
+	/// <summary>The transports it has that are on no convoy.</summary>
+	public int Transports { get; set; }
+
+	/// <summary>The escorts it has that are with no convoy.</summary>
+	public int Escorts { get; set; }
+
+	/// <summary>The transports its running convoys would have between them, as last shared out.</summary>
+	public int TransportsNeeded { get; set; }
+
+	/// <summary>
+	/// Whether its transports and escorts are shared out among its convoys for it each
+	/// day, whether its supply convoys are made and unmade for it, and whether its
+	/// resource convoys are. A new game has all three on for every country.
+	/// </summary>
+	public bool AutoMaintainConvoys { get; set; } = true;
+
+	public bool AutoSupplyConvoys { get; set; } = true;
+
+	public bool AutoResourceConvoys { get; set; } = true;
+
+	/// <summary>What its convoys carried out of its stockpile today to land across the sea.</summary>
+	public CGoodsPool ConvoyedOut { get; } = new();
+
+	/// <summary>What convoys landed today in harbours it holds and in its stockpile.</summary>
+	public CGoodsPool ConvoyedIn { get; } = new();
 
 	/// <summary>
 	/// The IC a day of bringing its units back to strength costs: the reinforcement

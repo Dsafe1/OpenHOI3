@@ -1,4 +1,5 @@
 using OpenHOI3.Sim.Combat;
+using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Movement;
@@ -81,13 +82,17 @@ public static class CTick
 		CCountryModifiers.Rebuild(state);
 		CManpower.RunDaily(state);
 		CLeadership.Update(state);
+		CConvoyDay.Sail(state);                             // before a country's units draw
 		CDigIn.RunDaily(state);                             // a unit's day begins with it
 		CUnitUpkeep.RunDaily(state);
 		CResources.UpdateHomeProduction(state);
 		CStockpile.AddHomeProduction(state);
+		CResources.GatherCutOff(state);                     // what the sea cuts off waits in a harbour
 		CIndustrialCapacity.Update(state);
 		CProduction.RunDaily(state);
 		CLeadership.RunDaily(state);
+		CConvoyDay.Maintain(state);                         // late in a country's day
+		CStockpile.HoldWithinBounds(state);                 // each province's own day, after every country's
 	}
 
 	/// <summary>

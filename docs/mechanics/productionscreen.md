@@ -69,8 +69,10 @@ the top bar's three.
 `confirmed` **`transports_value`** and **`escorts_value`** are how many the country has,
 followed by ` (+N)` when `N` are being built and by nothing when none are.
 
-*Ours:* nothing makes a bomb, a convoy or an escort yet, so the three read `0.00`, `0`
-and `0`.
+*Ours:* nothing makes a bomb yet, so the first reads `0.00`. The other two are the
+transports and escorts the country has on no convoy (`convoys.md`, section 3); none is ever
+being built, so the bracket never shows. That "how many the country has" means the free ones
+and not those on convoys as well is `inferred` from the two counts the original keeps.
 
 ## 4. The strategic resources
 

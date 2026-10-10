@@ -30,6 +30,8 @@ public partial class CMapView : Node2D
 		Political,
 		/// <summary>What the ground is.</summary>
 		Terrain,
+		/// <summary>How the player's supplies stand in it: <c>docs/mechanics/supplymap.md</c>.</summary>
+		Supply,
 	}
 
 	[Signal]
@@ -279,6 +281,12 @@ public partial class CMapView : Node2D
 			{
 				colour = province.Terrain?.Color.ToGodot() ?? UnownedColour;
 			}
+			else if (_mode == MapMode.Supply)
+			{
+				(CColor ground, CColor stripes) = CSupplyMapColours.Of(_state, province, Player);
+				colour = ground.ToGodot();
+				stripe = stripes.ToGodot();
+			}
 			else
 			{
 				// A province is the colour of whoever holds it, and the thin stripes
@@ -481,7 +489,12 @@ public partial class CMapView : Node2D
 				UpdateHover(motion.Position);
 				break;
 			case InputEventKey { Pressed: true, Echo: false, Keycode: Key.Tab }:
-				Mode = _mode == MapMode.Political ? MapMode.Terrain : MapMode.Political;
+				Mode = _mode switch
+				{
+					MapMode.Political => MapMode.Terrain,
+					MapMode.Terrain => MapMode.Supply,
+					_ => MapMode.Political,
+				};
 				break;
 		}
 	}

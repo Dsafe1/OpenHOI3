@@ -1,0 +1,71 @@
+using System.Collections.Generic;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+
+namespace OpenHOI3.Sim.Convoys;
+
+/// <summary>
+/// A standing run between two harbours. It is not a unit and has no ships of its own to
+/// see: two counts, of transports and of escorts, a route, and a list of the goods it
+/// carries. See <c>docs/mechanics/convoys.md</c>, section 1.
+/// </summary>
+public sealed class CConvoy
+{
+	public required int Id { get; init; }
+
+	public required CCountryTag Owner { get; init; }
+
+	/// <summary>The province it loads in.</summary>
+	public required int Start { get; init; }
+
+	/// <summary>The province it unloads in.</summary>
+	public required int End { get; init; }
+
+	/// <summary>The hour it was made.</summary>
+	public long StartHour { get; init; }
+
+	/// <summary>
+	/// The provinces it goes through, the start first and the end last. Empty where no
+	/// way was found.
+	/// </summary>
+	public List<int> Path { get; } = new();
+
+	/// <summary>Which goods it carries.</summary>
+	public bool[] Carries { get; } = new bool[CGoodsPool.Count];
+
+	/// <summary>It serves a trade between two countries. None is made yet.</summary>
+	public bool IsTrade { get; init; }
+
+	/// <summary>It carries lend-lease. None is made yet.</summary>
+	public bool IsLendLease { get; init; }
+
+	/// <summary>The transports on it.</summary>
+	public int Transports { get; set; }
+
+	/// <summary>The escorts with it.</summary>
+	public int Escorts { get; set; }
+
+	/// <summary>The transports it would have, as the sharing out last worked it out.</summary>
+	public int TransportsWanted { get; set; }
+
+	/// <summary>The escorts it would have, as the sharing out last worked it out.</summary>
+	public int EscortsWanted { get; set; }
+
+	/// <summary>What it carried when it last sailed.</summary>
+	public CGoodsPool Daily { get; } = new();
+
+	/// <summary>What the land it loads in yields in a day.</summary>
+	public CGoodsPool LoadingProduction { get; } = new();
+
+	/// <summary>It carries supplies or fuel for the country's own units.</summary>
+	public bool IsSupply => !IsLendLease && !IsTrade
+		&& (Carries[(int)EGoods.Supplies] || Carries[(int)EGoods.Fuel]);
+
+	/// <summary>It brings home what land across the sea yields.</summary>
+	public bool IsResource => !IsSupply;
+
+	public override string ToString()
+	{
+		return $"{Owner} {Start}->{End} {(IsSupply ? "supplies" : "resources")} {Transports}/{TransportsWanted}";
+	}
+}

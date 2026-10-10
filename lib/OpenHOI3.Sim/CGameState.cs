@@ -133,6 +133,15 @@ public sealed class CGameState
 	/// </summary>
 	public int LastUnitId { get; set; }
 
+	/// <summary>The last number given to a convoy.</summary>
+	public int LastConvoyId { get; set; }
+
+	/// <summary>
+	/// A new game is being made and its first hour has not come. A convoy made now is
+	/// manned for nothing: see <c>docs/mechanics/convoys.md</c>, section 3.
+	/// </summary>
+	public bool IsBeingMade { get; set; }
+
 	/// <summary>
 	/// How many pixels the map is across. Its east edge is beside its west, so the
 	/// straight line between two provinces may run either way round. 0 where no map is given.

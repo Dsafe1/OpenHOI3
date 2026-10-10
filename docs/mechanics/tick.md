@@ -98,7 +98,9 @@ landing on one hour. `confirmed` A second per-country gate fires at the hour equ
 2. Per country: neighbours are recomputed.
 3. Per country, one after another: the country's daily work, which includes **recomputing
    its IC**, every unit's daily update, and the daily politics - effective neutrality,
-   alignment, and the rebels' dissent being held at zero.
+   alignment, and the rebels' dissent being held at zero. **Its convoys sail early in it,
+   before its units draw, and are made, unmade and given their ships late in it**, after the
+   day's production. Built: `convoys.md`, section 10.
 4. Per province: the province's daily work.
 5. **Events**: every country's candidate events are tried against their mean time to
    happen. See the note below - this is not where the candidates come from.

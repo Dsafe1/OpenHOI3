@@ -379,25 +379,7 @@ public class SupplyPassTests
 		Assert.Equal(CFixedPoint.Parse("0.996"), germany.SentTo[EGoods.Supplies]);
 	}
 
-	// --- the sea, until there are convoys ---
-
-	[Fact]
-	public void A_depot_across_the_sea_is_sent_what_was_asked_of_it_out_of_the_stockpile()
-	{
-		int berlin = Land(Ger, industry: 5);
-		int tsingtao = Land(Ger, port: 4);
-		CCountry germany = Country(Ger, berlin);
-		Division(germany, tsingtao);
-		CGameState state = State();
-		state.Province(berlin).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
-
-		CSupplyPass.RunDaily(state);
-
-		// It asks for two days' worth, the most a province asks for in a day.
-		Assert.Equal(CFixedPoint.FromInt(2), Supplies(state, tsingtao));
-		Assert.Equal(CFixedPoint.FromInt(98), Supplies(state, berlin));
-		Assert.Equal(CFixedPoint.FromInt(2), germany.UnitDrawn[EGoods.Supplies]);
-	}
+	// The sea between a stockpile and a depot that is no capital is in ConvoyTests.
 
 	// --- a new game ---
 

@@ -12,25 +12,25 @@ Sources: `reversing/findings/FINDINGS-supplynetwork.md` (the network, read for t
 what a new game does, read for the second), `reversing/findings/FINDINGS-supply.md` (how the
 distance is spread) and `reversing/findings/FINDINGS-distribute.md` (where supplies are made).
 
-**Supply is cut in three, and two pieces are built.**
+**Supply was cut in three, and all three pieces are built.**
 
 | | | |
 | --- | --- | --- |
 | 1 | **the network**: which depot every province draws on, how far it is from it, and what a province can pass and what it takes | **built**, sections 2 to 8 |
 | 2 | **the daily pass**: supplies and fuel going out from the depot province by province, and a unit drawing on the province it stands in | **built**, sections 11 to 17 |
-| 3 | **the sea and the screen**: convoys to a depot across the sea, and the supply map mode | not built |
+| 3 | **the sea and the screen**: convoys to a depot across the sea, and the supply map mode | **built**: `convoys.md` and `supplymap.md` |
 
-**A unit draws on the province it stands in**, and no longer on its country's stockpile. Until
-the third piece the sea is stood in for: a depot that is no capital is fed from its holder's
-stockpile as if a convoy with no limit ran to it (section 15).
+**A unit draws on the province it stands in**, and no longer on its country's stockpile. **A
+depot across the sea is reached by convoy**: into its block's harbours, as much as the harbours
+and the ships allow (`convoys.md`).
 
 Code: `lib/OpenHOI3.Sim/Supply` - `CSupplyNetworks` makes a `CSupplyNetwork` of `CSupplyArea`
 and `CSupplyGroup`, `CSupplyRelations` says who is on whose side, `CSupplyFigures` has what a
 province passes and takes. `CSupplyDay` measures a day, `CSupplyOrder` orders its provinces,
 `CSupplyNeed` counts what units ask for and `CSupplyPass` carries; `CSupplyDraw` is a unit's
 draw and `CSupplyCarry` what it brings; `CSupplyMaking` puts a day's supplies where the
-factories are, `CSupplyBySea` stands in for convoys and `CSupplyStart` fills a new game's
-provinces. `CDiplomacyReader` in `lib/OpenHOI3.Content/History` reads who is whose puppet.
+factories are and `CSupplyStart` fills a new game's provinces. `lib/OpenHOI3.Sim/Convoys` is
+the sea. `CDiplomacyReader` in `lib/OpenHOI3.Content/History` reads who is whose puppet.
 
 ---
 
@@ -55,6 +55,10 @@ level is not enough.
 - The sea is in none, and neither is land nobody holds.
 - **It is who controls a province that counts, not who owns it.** Land taken from an enemy is in
   its taker's area from the hour it is taken.
+- **An area's harbours are kept in the order of their naval bases, the largest first**, and of
+  two alike in the order the area's provinces were found. So an area's "first harbour", which
+  section 4 and `convoys.md` ask for, is its largest. `confirmed`; found on 2026-10-10, when
+  the harbours in the order they were found put 49 of a save's 261 convoys in the wrong one.
 - **Measured:** of the 4,400 provinces a save marks as out of supply, 4,383 are these - the
   sea, unowned land and land with one level or none - with none left over the other way.
 
@@ -547,13 +551,12 @@ Polish corridor; and Königsberg's pool has 12.100 energy lying in it, which no 
 to Berlin has. A week on, 582 provinces with no industry hold supplies nothing was asked of:
 parcels on their way in.
 
-**The sea.** *Ours, until the third piece:* a depot that is no capital - Königsberg, Hamhung,
-every colony's port - is sent what was asked of it that day out of its holder's stockpile,
-after the pass, and what it holds spare goes back to that stockpile, both with no ships and no
-limit. In the original convoys carry it: into ports and not to the depot, several to a
-network, as much as the ports, the ships and the room in the area allow
-(`reversing/findings/FINDINGS-convoys.md`). So a country here cannot be cut off from its land
-across the sea, and a small port feeds as large an army as a large one.
+**The sea.** A depot that is no capital - Königsberg, Hamhung, every colony's port - is reached
+by convoy: into the harbours of its block and not to the depot itself, several to a block, as
+much as the harbours, the ships and the room there allow. What a harbour holds over its days
+goes inland by the pass's third phase, and what such a depot holds spare goes home only as far
+as the convoys that end at it carry (section 12). All of it is in `convoys.md`. Until
+2026-10-10 the sea was stood in for, with no ships and no limit.
 
 ## 16. A new game
 
@@ -577,10 +580,18 @@ Two things follow from the order, and both show in a save:
 - **A stockpile that draws on another's depot is not put back**, and is drained during the
   filling as on any day (section 12).
 
+**The convoys are part of it.** The first are made at the end of the first day, and during the
+filling a supply convoy sails on every pass; on the filling's second pass each country's
+convoys are looked at again, it is given its free transports, and the ships are shared out
+(`convoys.md`, sections 3 and 11). So the harbours across the sea are filled for nothing as
+well.
+
 *Ours:* **the filling is done, when a new game is made, and the two days are not** - a game
 here starts on its first hour with nothing spent, as it has since `stockpile.md`, section 3.
-It takes about a second and a half: 251 passes on the first day of 1936, where the furthest
-province is 249 from its depot.
+Of the two days only what bears on the sea is done (`convoys.md`, section 11): before the
+filling, what lies in cut-off land goes to its harbours and the convoys are made, and after it
+a day's yield waits in the harbours. It takes about a second and a half: 251 passes on the
+first day of 1936, where the furthest province is 249 from its depot.
 
 ## 17. The pass, checked against a savegame
 
@@ -593,10 +604,11 @@ today and yesterday.
 
 | | |
 | --- | --- |
-| networks where every province agrees in every figure | **124 of 234** - Sweden's 210 provinces, Turkey's 195, Norway's 108, the Philippines' 85, Persia's 84, Saudi Arabia's 79, Siam's 61, South Africa's 42 |
+| networks where every province agrees in every figure | **171 of 234** - Sweden's 210 provinces, Turkey's 195, Norway's 108, the Philippines' 85, Persia's 84, Saudi Arabia's 79, Siam's 61, South Africa's 42. It was 124 before the convoys: 45 networks across the sea came right with them |
 | Canada's | everything but what its guessed share of IC makes: a line of twenty provinces from Ottawa to Halifax, each asked 0.050 more than the one behind it and each holding one day's load in passing |
-| provinces where the supplies lying there are something, here or in the save | 627 of 3666 the same to the thousandth, 1129 within a fiftieth |
-| the same for fuel | 530 of 694 |
+| provinces where the supplies lying there are something, here or in the save | 690 of 3597 the same to the thousandth, 1194 within a fiftieth |
+| the same for fuel | 557 of 694 |
+| the convoys | all 261 of the save's, way for way and ship for ship (`convoys.md`, section 12) |
 | Germany's stockpile, followed on | 8496 on the fifth day and 8743 on the eighth; the later saves have 8493 and 8758 |
 
 **What differs is what goes in and not the pass**: where a whole country's units, laws and
@@ -605,19 +617,19 @@ production are the save's, its whole network agrees. Three things are not the sa
 - **Leaders.** The original has given most units one, and a leader changes what a unit uses
   (`upkeep.md`, section 1). There are none here, so Germany's provinces are a few hundredths
   out everywhere.
-- **Units on the move.** The original's AI has some: fuel is asked for in 145 provinces where
+- **Units on the move.** The original's AI has some: fuel is asked for in 144 provinces where
   nothing here burns any.
 - **The share of IC the supplies were made with.** The AI moves it after the day is run, so
   it is guessed from what the save says was made, and for 25 of 101 countries no share makes
   exactly that.
 
-Run it after touching `lib/OpenHOI3.Sim/Supply`. `network=<depot's number>` after the save
-prints one network province by province, `country=<tag>` one country's day, and `days=<n>`
-with it follows the country on.
+Run it after touching `lib/OpenHOI3.Sim/Supply` or `lib/OpenHOI3.Sim/Convoys`.
+`network=<depot's number>` after the save prints one network province by province,
+`country=<tag>` one country's day, `days=<n>` with it follows the country on, and
+`convoys=<tag>` lists every convoy of one country that is not the save's.
 
 ## Not built
 
-- **Convoys and the supply map mode**: the third piece. The sea is stood in for (section 15).
 - **The days out of supply**, and the message a province's first day out of supply raises.
 - **A unit on loan**, **arcade mode**, and **units carried by ships and aircraft** (sections 13
   and 14).
@@ -637,9 +649,9 @@ with it follows the country on.
   settle a tie in the score differently from making the areas afresh.
 - **What else makes the original group the areas again** besides a province changing hands:
   fifteen places call for it and one was read.
-- **How a depot across the sea is filled.** A save's convoys end at ports, several to one
-  network, and not at the depot. The last step of the pass would then carry what a port holds
-  spare inward to the depot; the convoys themselves were not read for this.
+- ~~**How a depot across the sea is filled.**~~ Read on 2026-10-10: at peace every harbour of
+  the block gets a convoy, and the last step of the pass carries what a harbour holds spare
+  inward to the depot (`convoys.md`, sections 6 and 7).
 - **Whether the fuel's different test in the pass is meant** (section 12). It is what the
   original does.
 - **A second pool of the original's** that the pass and the unit's draw both add to, and

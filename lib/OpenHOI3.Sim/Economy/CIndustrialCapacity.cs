@@ -33,6 +33,7 @@ public static class CIndustrialCapacity
 	{
 		var sums = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 		var coreHome = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+		var holders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		long seed = state.StaticModifier(BaseValues, BaseValuesIc).Raw;
 		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
 
@@ -44,6 +45,7 @@ public static class CIndustrialCapacity
 			{
 				continue;
 			}
+			holders.Add(controller.Value);
 
 			long ic = province.Modifier[ProvinceIc].Raw;
 			if (ic == 0)
@@ -87,6 +89,13 @@ public static class CIndustrialCapacity
 			// rather than in it.
 			long multiplier = CFixedPoint.Scale + country.Modifier[CountryGlobalIc].Raw
 				+ country.Technology[TechnologyIc].Raw;
+			// A country that holds nothing has no day of its own in which its IC is
+			// worked out again: it keeps the figure it was given when the game was made,
+			// and its ministers had no part in that one. They count in everything else.
+			if (!holders.Contains(country.Tag.Value))
+			{
+				multiplier -= Modifiers.CCountryModifiers.MinisterShare(country, CountryGlobalIc);
+			}
 			long total = baseIc * CFixedPoint.Scale * multiplier / CFixedPoint.Scale / CFixedPoint.Scale;
 			if (total < 1)
 			{

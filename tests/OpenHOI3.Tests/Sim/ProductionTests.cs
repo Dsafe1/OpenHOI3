@@ -330,9 +330,11 @@ public class ProductionTests
 	}
 
 	[Fact]
-	public void ACountryWithNothingInStockSpendsNothingAndEarnsNothing()
+	public void ACountryThatDoesNotExistKeepsItsIcAndIsChargedThoughItsCapitalHoldsNothing()
 	{
-		// It holds nothing, so nothing is produced at home either, and the pool stays empty.
+		// It holds no province, so nothing cuts its IC to what its stockpile can pay for:
+		// consumer goods and supplies spend their shares and are charged whatever is
+		// there, and the day's end leaves the capital's pool at nothing and not in debt.
 		CCountry croatia = Country("CRO", 1);
 		CGameState state = State(new[] { croatia }, new[] { Land(1, "YUG") });
 		CProduction.SetStartingShares(state);
@@ -340,10 +342,40 @@ public class ProductionTests
 		RunADay(state);
 
 		Assert.Equal(5, croatia.BaseIc);
-		Assert.Equal(0, croatia.TotalIc);
-		Assert.Equal("", croatia.Usage.ToString());
-		Assert.Equal("", state.Province(1).Pool.ToString());
-		Assert.Equal(CFixedPoint.Zero, croatia.HomeProduced[EGoods.Money]);
+		Assert.Equal(5, croatia.TotalIc);
+		// A quarter of five on consumer goods and 0.15 of it on supplies: two IC spent,
+		// less the thousandth a share of 0.15 loses in fifteen binary places.
+		Assert.Equal(CFixedPoint.Parse("1.999"), croatia.Usage[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.Parse("3.998"), croatia.Usage[EGoods.Energy]);
+		Assert.Equal(CFixedPoint.Parse("0.999"), croatia.Usage[EGoods.RareMaterials]);
+		CGoodsPool pool = state.Province(1).Pool;
+		Assert.Equal(CFixedPoint.Zero, pool[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.Zero, pool[EGoods.Energy]);
+		Assert.Equal(CFixedPoint.Zero, pool[EGoods.RareMaterials]);
+		// And it earns its money and makes its supplies all the same, in a capital that is not its own.
+		Assert.Equal(CFixedPoint.Parse("0.25"), croatia.HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Parse("0.25"), pool[EGoods.Money]);
+		Assert.True(pool[EGoods.Supplies] > CFixedPoint.Zero);
+	}
+
+	[Fact]
+	public void TheIcOfACountryThatHoldsNothingIsWorkedOutWithoutItsMinisters()
+	{
+		// Both have a law that halves their IC and an armament minister who adds a tenth.
+		var genius = new CMinister(1, "A Genius");
+		genius.SetType("armament_minister", new CMinisterType(Modifier("administrative_genius", ("global_ic", "0.1"))));
+		CCountry guyana = Country("GUY", 1, ("global_ic", "-0.5"));
+		CCountry britain = Country("ENG", 1, ("global_ic", "-0.5"));
+		guyana.Government["armament_minister"] = genius;
+		britain.Government["armament_minister"] = genius;
+		CGameState state = State(new[] { guyana, britain }, new[] { Land(1, "ENG") });
+
+		CTick.RunEntryPass(state);
+
+		// Five at 0.6 is three for the one that holds its ground. The other keeps the
+		// figure it was given before its ministers counted: five at a half, cut to two.
+		Assert.Equal(3, britain.TotalIc);
+		Assert.Equal(2, guyana.TotalIc);
 	}
 
 	// --- dissent ---

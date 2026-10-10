@@ -151,6 +151,14 @@ Three things about it that matter now:
 - **Industry is charged for the IC it spends, not for the IC it has**, at the moment each
   thing is paid for. `confirmed` IC left unspent costs nothing. So what a country uses
   cannot be worked out before there is production to spend IC on.
+- **Consumer goods and supplies are charged whatever the stockpile holds**; the other shares
+  ask first what it can pay for. `confirmed` So a stockpile can stand below nothing in the
+  middle of a day.
+- **The last thing a day does to a land province is to hold each good in it between nothing
+  and 99999.** `confirmed` So the debt is gone by the day's end, and no stockpile passes that
+  figure. (measured: Israel, which does not exist in 1936 and whose capital's goods Britain
+  has shipped away - `convoys.md`, section 8 - records a day's use of 2.395 metal with no
+  metal in Jerusalem, and eleven more such countries likewise.)
 - **Money** comes in once a day:
 
       money = base IC * IC_TO_MONEY * (1 + GLOBAL_MONEY)
@@ -186,7 +194,9 @@ Three things about it that matter now:
   leave it for the provinces through the supply network, and a unit draws on the province it
   stands in; what is made away from the capital comes into it a province a day
   (`supply.md`, sections 12 to 15).
-- **The build queue takes nothing yet**, nor do trade and convoys.
+- **The build queue takes nothing yet**, nor does trade. **Convoys do**, since 2026-10-10:
+  supplies and fuel leave the stockpile for harbours across the sea, and the resources of
+  cut-off land come into it (`convoys.md`, section 6).
 - **A country that does not exist has an economy all the same**, as in the original: East
   Germany, which does not exist in 1936, earns money, makes supplies and uses IC every
   day, all of it in Berlin's pool. (measured, and `confirmed` since: the daily loop over
@@ -212,7 +222,10 @@ country's usage every day and its home production never, so that is what the sav
 - *The United Kingdom* has 454 more metal and 225 more rare materials than its own 161 IC
   gives it, which is one five-IC country's worth and a little over. What a country that
   does not exist was given, in a capital Britain holds overseas, has reached London by
-  the second day; which one, and how, was not followed.
+  the second day. **How was read on 2026-10-10**: everything lying in cut-off land is moved
+  to its harbour each day and a convoy brings it home (`convoys.md`, section 8). A game made
+  here and run as the original runs its start has London's crude oil to the thousandth, the
+  450 with it. This check does not run those two days, so the line stays.
 
 ## What is not established, in one place
 
@@ -222,6 +235,7 @@ country's usage every day and its home production never, so that is what the sav
 - what takes the starting **war exhaustion** off again;
 - ~~how the original runs **two days before the first screen**~~ (section 3); what else those
   two days do besides what the checks here have shown;
-- what moves the goods given to a country that does not exist **out of a capital somebody
-  else holds**;
+- ~~what moves the goods given to a country that does not exist **out of a capital somebody
+  else holds**~~ - read 2026-10-10: the daily move of everything in cut-off land to its
+  harbour, and the convoy from there (`convoys.md`, section 8);
 - everything in section 4's table beyond home production, usage and money.

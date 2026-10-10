@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Units;
@@ -20,6 +21,32 @@ public static class CSupplyStart
 
 	/// <summary>How many times the pass is run over what the furthest province is far by.</summary>
 	private const int PassesOver = 2;
+
+	/// <summary>The pass, counted from nothing, after which every country's convoys are set up.</summary>
+	private const int ConvoysOnPass = 1;
+
+	/// <summary>
+	/// What a new game does when nothing else has been run for it. The original runs a
+	/// whole day before the filling and one after; of those two days this does what
+	/// bears on the sea and nothing else, with convoys manned for nothing throughout:
+	///
+	///     the first day's: what cut-off land yields - and whatever else lies in it of
+	///     money and resources - goes to its harbours, and the convoys are made;
+	///     the filling, in which those convoys sail once and what they bring is put back
+	///     with the stockpiles;
+	///     the second day's: a day's yield waits in the harbours again.
+	/// </summary>
+	public static void FillNewGame(CGameState state)
+	{
+		bool was = state.IsBeingMade;
+		state.IsBeingMade = true;
+		CTick.RunEntryPass(state);
+		CResources.GatherCutOff(state);
+		CConvoyDay.Maintain(state);
+		Fill(state);
+		CResources.GatherCutOff(state);
+		state.IsBeingMade = was;
+	}
 
 	public static void Fill(CGameState state)
 	{
@@ -56,11 +83,18 @@ public static class CSupplyStart
 			}
 
 			CSupplyPass.Run(state, day);
-			CSupplyBySea.Deliver(state, day.Network);
 
 			for (int i = 0; i < units.Count; i++)
 			{
 				CCountry country = units[i].Owner;
+				// A convoy of supplies or fuel sails on every pass, any other on the first only.
+				foreach (CConvoy convoy in country.Convoys)
+				{
+					if ((convoy.IsSupply || pass == 0) && !convoy.IsTrade)
+					{
+						CConvoyDelivery.Run(state, day.Network, convoy);
+					}
+				}
 				foreach ((CUnit unit, long supplies, long fuel) in units[i].Units)
 				{
 					CSupplyDraw.Draw(state, country, unit, supplies, fuel);
@@ -71,6 +105,18 @@ public static class CSupplyStart
 					&& state.Stockpile(country) is { } stockpile)
 				{
 					stockpile.CopyFrom(kept[i]);
+				}
+				// The second time round the country gets its convoys, and the transports
+				// to go on with: one for every two of its base IC, where it has none.
+				if (pass == ConvoysOnPass)
+				{
+					CSupplyConvoys.Maintain(state, day.Network, country);
+					CResourceConvoys.Maintain(state, day.Network, country);
+					if (country.Transports == 0)
+					{
+						country.Transports = country.BaseIc / 2;
+					}
+					CConvoyShips.Distribute(state, day.Network, country);
 				}
 			}
 		}

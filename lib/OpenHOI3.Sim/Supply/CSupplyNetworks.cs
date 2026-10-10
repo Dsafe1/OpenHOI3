@@ -245,10 +245,19 @@ public static class CSupplyNetworks
 			foreach (int id in area.Provinces)
 			{
 				CProvince province = _state.Province(id);
-				if (HasWorkingPort(province))
+				if (!HasWorkingPort(province))
 				{
-					area.Ports.Add(id);
+					continue;
 				}
+				// The largest naval base first, and of two alike the one found first: a new
+				// one goes behind the last that is no smaller.
+				long level = PortLevel(province);
+				int at = area.Ports.Count;
+				while (at > 0 && PortLevel(_state.Province(area.Ports[at - 1])) < level)
+				{
+					at--;
+				}
+				area.Ports.Insert(at, id);
 			}
 			area.IsLandlocked = area.Ports.Count == 0;
 			area.MayHoldDepot = area.Ports.Count > 0;

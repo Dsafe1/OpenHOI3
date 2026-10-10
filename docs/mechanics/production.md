@@ -71,7 +71,11 @@ and splits the rest equally between the other five.
 - **Once a day the total IC is cut to that**, before the shares are worked through.
   `confirmed` So a country short of energy loses IC that day, across all six shares alike.
   This is in the daily calculation and not in the one made on entering a game (`ic.md`,
-  section 4).
+  section 4). **It is done only for a country that holds something**: one that does not
+  exist keeps its IC whatever its capital's pool holds. `confirmed`
+- **Consumer goods and supplies are charged without asking what the stockpile can pay**, and
+  the others ask first. `confirmed` What that leaves below nothing is made nothing again at
+  the day's end (`stockpile.md`, section 4).
 - **IC received as lend-lease costs no resources.** Each share gets the same fraction of it
   that it has of the total, and only what a share spends beyond that is charged.
   `confirmed`
@@ -171,17 +175,21 @@ which the player had not touched. The AI has moved every other country's since t
 day was run.
 
 - **What a country that does not exist uses in a day** agrees to the thousandth, in metal,
-  energy and rare materials, for 20 of 22. The other two have a different IC here than
-  the save implies.
-- **The supplies made in a day** agree for 14 of 23, Germany among them.
-- **The laws in the save are not always the laws the last day was run under.** For eight
-  of those fourteen, Germany included, the figures fit only with the industrial policy
+  energy and rare materials, for 22 of 22. Until 2026-10-10 it was 20: Guyana and the Italian
+  Social Republic had an IC here that counted their ministers (`ic.md`, section 3).
+- **The supplies made in a day** agree for 16 of 23, Germany among them; 14 before Guyana
+  and the Social Republic had the right IC.
+- **The laws in the save are not always the laws the last day was run under.** For nine
+  of those sixteen, Germany included, the figures fit only with the industrial policy
   from the country's history file put back in place of the one the save shows. So the
   AI's last change of law comes *after* the last daily pass, with the date not moving.
   The tool tries this by itself and says which countries needed it.
-- **The nine that do not agree are each out by exactly 10%** of what their share makes. It
+- **The seven that do not agree are each out by 10% or close to it** of what their share makes. It
   is not their industrial policy, which their history and the save agree on. A minister
-  the AI has since replaced would do it; **not established.**
+  the AI has since replaced would do it; **not established.** The maintainer's pointer,
+  2026-10-10, for when it is taken up: there is a minister effect on supplies (the types
+  with `global_supplies`), and some triggered modifiers give supplies too - and those are
+  not applied here at all yet (`modifiers.md`, section 5).
 
 One rounding rule came out of this and is not in the fact base: the consumer goods bill is
 the share turned into thousandths *first* and then multiplied by the IC, where the supply

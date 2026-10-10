@@ -1,4 +1,5 @@
 using System;
+using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
@@ -28,15 +29,14 @@ public static class CSupplyPass
 
 	/// <summary>
 	/// The supply part of a day, which comes before any country's own day: the day's
-	/// counts start from nothing, the provinces pass supplies on, and what a depot
-	/// across the sea asked for reaches it.
+	/// counts start from nothing and the provinces pass supplies on. What a depot across
+	/// the sea is short of comes to its harbours by convoy, later in the day.
 	/// </summary>
 	public static void RunDaily(CGameState state)
 	{
 		ClearCounts(state);
 		CSupplyDay day = CSupplyDay.Measure(state);
 		Run(state, day);
-		CSupplyBySea.Deliver(state, day.Network);
 	}
 
 	/// <summary>What every country counts afresh each day.</summary>
@@ -270,7 +270,7 @@ public static class CSupplyPass
 	/// <summary>
 	/// The nearest first: a province holding more than its days' worth and what was
 	/// asked of it today sends all of the rest one province in, with no limit - and a
-	/// depot that is no capital sends it home over the sea.
+	/// depot that is no capital sends it home over the sea, as far as its convoys carry.
 	/// </summary>
 	private static void SendBack(CGameState state, CSupplyDay day)
 	{
@@ -309,9 +309,14 @@ public static class CSupplyPass
 
 			if (distance == 0)
 			{
-				if (network.IsDepot(id))
+				// A depot that is no capital sends it home over the sea, as far as the
+				// convoys that end at it can carry.
+				if (network.IsDepot(id) && holder.Capital != 0 && state.Stockpile(holder) is not null)
 				{
-					CSupplyBySea.SendHome(state, holder, province, spareSupplies, spareFuel);
+					long carried = CConvoyRules.HomewardCapacity(state, network, holder, province);
+					CProvince capital = state.Provinces[holder.Capital];
+					Move(province, capital, holder, Math.Min(spareSupplies, carried), EGoods.Supplies);
+					Move(province, capital, holder, Math.Min(spareFuel, carried), EGoods.Fuel);
 				}
 				continue;
 			}

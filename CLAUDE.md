@@ -44,9 +44,10 @@ its hierarchy on the map, the orders that send a fleet or an air unit with the w
 are given from, the distances by sea, the buildings on the map with the port and the
 airfield, and a land battle from the unit that starts it to the province that changes
 hands with what the ground, the night and the rest make of each unit in it, the tactic each
-side picks, and its marker and its window, and supply as far as the sea - which depot every
+side picks, and its marker and its window, and supply - which depot every
 province draws on and how far from it, the day's carrying of supplies and fuel out to the
-provinces, and a unit drawing on the province it stands in - 1044 tests - and it is
+provinces, a unit drawing on the province it stands in, the convoys that carry it across the
+sea and bring cut-off land's resources home, and a map mode that shows it - 1071 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -209,18 +210,36 @@ their own - was read exactly so. The areas it makes are also what home productio
 `overseas` modifier and the placing of a unit ask, each of which had guessed at them.
 **The daily pass - `supply.md`, sections 11 to 17 - is the second of supply's three pieces,
 built on 2026-10-10, and it reproduces the original's own figures**: with a save's units,
-laws and production, a day, the filling of the provinces and a day give 124 of 234 networks
+laws and production, a day, the filling of the provinces and a day give 171 of 234 networks
 the same in every province and every figure the save keeps, Sweden's 210 provinces among
-them. **It is written to do what the original does step for step, its oddities with it** -
+them (124 before the convoys). **It is written to do what the original does step for step, its oddities with it** -
 the order its sort leaves equal provinces in, a share that stays cut, fuel tested by today
 where supplies are tested by yesterday - because who goes short on a full road is decided by
 nothing else; do not tidy them. A unit draws on the province it stands in, a marching unit
 takes fifteen days of supplies with it, and a day's supplies and fuel are made where the
 factories are and travel to the stockpile a province a day. **A new game fills its provinces
 when it is made**, which takes about a second and a half; the original runs a day before
-that and a day after, and this runs neither. **The sea is stood in for until convoys are
-built** (`supply.md`, section 15): a depot that is no capital is fed straight from its
-holder's stockpile. The maintainer has not looked at any of it yet.
+that and a day after, and this runs neither.
+**Convoys - `convoys.md` - are the third piece, built on 2026-10-10, and the best checked
+thing here after the network**: a new game's convoys are the start-date save's, all 261 -
+the same runs, the same way province for province, the same transports and escorts on each,
+the same free ones for every country. So the route search and **its heap, down to which of
+two equal entries comes out first**, are the original's, and so is the order of an area's
+harbours - **largest naval base first**, which is what "an area's first harbour" means
+everywhere; do not tidy either. A convoy lands in harbours and the daily pass carries it to
+the depot; what cut-off land yields waits in its block's largest harbour. **Everything lying
+in cut-off land is moved there each day, and a province's pool is also the stockpile of any
+country whose capital it is - so the goods of a country that does not exist are shipped to
+whoever holds its capital.** That is the original's, shown by the save, and the maintainer's
+word on 2026-10-10 was to follow it; it was first built with the yield in a pool of its own
+and the harbours' money came out wrong. With it go two more things the save bore out:
+consumer goods and supplies are charged whatever the stockpile holds, and a day ends by
+holding every good in a land province between nothing and 99999. Nothing attacks a convoy,
+none is built, and trade and lend-lease have none. **The supply map mode - `supplymap.md` - was read branch by branch and
+looked at once with `--mode=supply`**; `Tab` goes round political, terrain and supply, and
+the readout of a selected province then carries the original tooltip's lines. There is no
+intelligence, so it shows the player's own land. The maintainer has not looked at any of
+supply yet.
 **The province readout under the top bar is scaffolding and shows only for a selected
 province** - his word, 2026-10-09, when it followed the mouse: "Very distracting."
 **The four windows a unit is ordered
@@ -312,7 +331,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 110 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 111 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -348,7 +367,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 3013-address, 317-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3046-address, 317-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -461,14 +480,20 @@ beside the repository.
   technology and mud, runs what the original runs before a game's first hour - a day, the
   filling of the provinces, a day - and sets every province's supplies and fuel beside the
   save's: what lies there, what was asked of it and what passed through it, today and
-  yesterday. 124 of 234 networks agree in every province and every figure; the rest differ
+  yesterday. 171 of 234 networks agree in every province and every figure; the rest differ
   where the original has a leader on a unit or its AI has one on the move
-  (`docs/mechanics/supply.md`, section 17). `network=<depot's number>` after the save prints
-  one network province by province and `country=<tag>` one country's day. Run it after
-  touching the pass, the draw, where supplies are made or the filling.
+  (`docs/mechanics/supply.md`, section 17). **The same run sets the convoys it made beside
+  the save's** and should say 261 of 261 on every line and 20 of 20 countries, **and the
+  money and resources lying in every province**: 88 of 88 harbours to the thousandth, and
+  49 of 49 capitals that somebody else holds within a fiftieth
+  (`docs/mechanics/convoys.md`, section 12). `network=<depot's number>` after the save prints
+  one network province by province, `country=<tag>` one country's day and `convoys=<tag>`
+  one country's convoys that are not the save's. Run it after touching the pass, the draw,
+  where supplies are made, the filling or anything under `lib/OpenHOI3.Sim/Convoys` - and
+  after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings and who is whose puppet carry 1044 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours and who is whose puppet carry 1071 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

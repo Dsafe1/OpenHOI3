@@ -31,8 +31,13 @@ public static class CGameStateLoader
 	private const string DefinesFile = "common/defines.lua";
 	private const string ProvinceHistoryDirectory = "history/provinces";
 
+	/// <param name="fill">
+	/// Whether the provinces are filled along the supply network and the convoys made,
+	/// as a game needs before its first hour. A check that runs the original's own
+	/// sequence over a new game asks for one that has not been.
+	/// </param>
 	public static CGameState LoadStart(CDirectorySettings directories, CMap map,
-		CLocalisation localisation, CCountries countries, Action<string>? warn = null)
+		CLocalisation localisation, CCountries countries, Action<string>? warn = null, bool fill = true)
 	{
 		warn ??= CDiagnostics.Warn;
 
@@ -109,7 +114,10 @@ public static class CGameStateLoader
 		CBuildQueue.SetUpAtStart(state);
 		CStockpile.AddUnitGoodsAtStart(state);
 		// And the provinces are filled along the supply network, so that no army starts hungry.
-		CSupplyStart.Fill(state);
+		if (fill)
+		{
+			CSupplyStart.FillNewGame(state);
+		}
 		return state;
 	}
 

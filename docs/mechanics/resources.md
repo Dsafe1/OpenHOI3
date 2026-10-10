@@ -57,7 +57,12 @@ Piece by piece:
   Prussia's energy is not in Germany's figure; nearly all of Britain's metal is not in
   Britain's. What is cut off waits in a port and is carried by convoy, which is a
   different pool. `confirmed` that cut-off production travels by convoy; (measured) that
-  it is absent from the home figure.
+  it is absent from the home figure. **Built 2026-10-10** (`convoys.md`, section 8): the
+  yield of cut-off land is put in its block's largest harbour each day and a resource convoy
+  brings it to the stockpile, where it counts as convoyed in.
+- **And a province that draws on a depot in the capital's block counts as joined to it**,
+  wherever it is. `confirmed`, read with the convoys: it is how land with too little
+  infrastructure to be in any block still sends its yield home.
 - **Straits join.** A crossing listed in `adjacencies.csv` connects two provinces for this
   purpose: Japan's islands, Denmark's and Sicily all count as joined, and their figures
   match only if they do. (measured)

@@ -58,8 +58,9 @@ without it.** `tribute sent` is held as a negative, which is why it is taken awa
 
 The original's: `§G3804`, `§G1906`, `§G951`, `§R1870`, `§G462`, `§G391`, `§G591`.
 
-*Ours:* of the thirteen ledgers only four exist yet - produced at home, used, and the two
-sides of converting - so the colour is those four. With no trade there is no `traded for`,
+*Ours:* of the thirteen ledgers eight exist yet - produced at home, used, the two sides of
+converting, sent to units and sent back by them (`supply.md`), and convoyed out and in
+(`convoys.md`) - so the colour is those. With no trade there is no `traded for`,
 and a country that takes exactly what it makes is yellow. There are no governments in
 exile.
 

@@ -253,9 +253,11 @@ public static class CProduction
 				CConversions.EnergyIntoCrudeOil(country, stockpile);
 			}
 
-			// A shortage costs IC across the board, before any of it is shared out.
+			// A shortage costs IC across the board, before any of it is shared out - for
+			// a country that exists. One that does not has no day of its own in which its
+			// IC is worked out again, and keeps what it has.
 			int supported = (int)Math.Min(int.MaxValue, SupportedIc(stockpile).ToInt());
-			if (country.TotalIc > supported)
+			if (exists && country.TotalIc > supported)
 			{
 				country.TotalIc = supported;
 			}
@@ -316,7 +318,7 @@ public static class CProduction
 			stockpile[EGoods.Money] += money;
 		}
 
-		Charge(country, stockpile, Spent(country, EProductionCategory.ConsumerGoods));
+		Charge(country, stockpile, Spent(country, EProductionCategory.ConsumerGoods), whateverItHolds: true);
 
 		CFixedPoint dissent = country.Dissent + DissentChange(state, country).ToThousandths();
 		country.Dissent = dissent < CFixedPoint.Zero ? CFixedPoint.Zero : dissent;
@@ -371,18 +373,22 @@ public static class CProduction
 		country.HomeProduced[EGoods.Supplies] = made;
 		Supply.CSupplyMaking.ShareOut(state, country, stockpile, EGoods.Supplies, made);
 
-		Charge(country, stockpile, Spent(country, EProductionCategory.Supplies));
+		Charge(country, stockpile, Spent(country, EProductionCategory.Supplies), whateverItHolds: true);
 	}
 
 	/// <summary>
 	/// Takes the resources that spending this much IC costs - 1 metal, 2 energy and half
-	/// a rare material each - and books them as the day's usage. No more is taken than
-	/// the stockpile can pay for.
+	/// a rare material each - and books them as the day's usage.
+	///
+	/// The shares that ask first what the stockpile can pay for take no more than
+	/// that. Consumer goods and supplies do not ask: they are charged whatever the
+	/// stockpile holds, which may leave it below nothing until the day's end
+	/// (<see cref="CStockpile.HoldWithinBounds"/>).
 	/// </summary>
-	private static void Charge(CCountry country, CGoodsPool stockpile, CFixedPoint ic)
+	private static void Charge(CCountry country, CGoodsPool stockpile, CFixedPoint ic, bool whateverItHolds = false)
 	{
 		CFixedPoint supported = SupportedIc(stockpile);
-		if (ic > supported)
+		if (!whateverItHolds && ic > supported)
 		{
 			ic = supported;
 		}

@@ -93,6 +93,17 @@ So IC is a whole number, and every country has at least one - including a countr
 provinces at all. The country's `GLOBAL_IC` comes from its laws, ministers and so on; the
 technology bonus is kept apart from it and added beside it.
 
+**A country that holds no province keeps the IC it was given when the game was made, and its
+ministers have no part in that figure.** The daily calculation is run only for a country that
+holds something or is in exile (`production.md`, section 2) - `confirmed` - so such a
+country's IC is never worked out again; that the figure it keeps is its laws' without its
+ministers' is **measured** and the reason `inferred`: Guyana, with the law that halves IC and
+an armament minister who adds a tenth, uses resources as for an IC of 2 and not 3, and the
+Italian Social Republic, with a minister who takes a twentieth off, as for 5 and not 4. With
+it, what every one of the 22 countries that do not exist uses in a day agrees with the save.
+**It is the IC alone**: leaving such a country's ministers out of everything was tried, and
+its money, officers, influence and spies stopped agreeing.
+
 **Nothing else computes IC.** Everything that spends or shows it reads what this wrote.
 
 ## 4. What follows the total, each day

@@ -20,12 +20,13 @@ public static class CProductionScreenText
 	/// </summary>
 	public static string Goods(CGameState state, CCountry country, EGoods goods)
 	{
-		// The same ledgers as the top bar's colour, with what left the stockpile for the units and what came
-		// back from the provinces; trade, convoys, debt and tribute would be on each side and none of them
-		// moves anything yet.
+		// The same ledgers as the top bar's colour, with what left the stockpile for the units and by
+		// convoy and what came back from the provinces and by convoy; trade, debt and tribute would be on
+		// each side and none of them moves anything yet.
 		CFixedPoint goingOut = country.Usage[goods] + country.ConversionUsed[goods] + country.UnitDrawn[goods]
-			+ country.SentTo[goods];
-		CFixedPoint comingIn = country.HomeProduced[goods] + country.ConversionMade[goods] + country.SentBack[goods];
+			+ country.SentTo[goods] + country.ConvoyedOut[goods];
+		CFixedPoint comingIn = country.HomeProduced[goods] + country.ConversionMade[goods] + country.SentBack[goods]
+			+ CTopBarText.ConvoyedIn(country, goods);
 		long change = (goingOut - comingIn).Raw;
 
 		string colour = CColouredText.In(CColouredText.Yellow);

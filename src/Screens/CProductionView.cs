@@ -254,10 +254,11 @@ public partial class CProductionView : CCountryView
 		}
 		Set(_ic, CProductionScreenText.Ic(country));
 
-		// Nothing makes a bomb, a convoy or an escort yet.
+		// Nothing makes a bomb yet, nor builds a transport or an escort: the two counts
+		// are of those the country has free of its convoys.
 		Set(_nukes, CProductionScreenText.Nukes(CFixedPoint.Zero));
-		Set(_transports, CProductionScreenText.Convoys(0, 0));
-		Set(_escorts, CProductionScreenText.Convoys(0, 0));
+		Set(_transports, CProductionScreenText.Convoys(country.Transports, 0));
+		Set(_escorts, CProductionScreenText.Convoys(country.Escorts, 0));
 
 		ShowStrategicResources(country);
 		ShowQueue(state, country);

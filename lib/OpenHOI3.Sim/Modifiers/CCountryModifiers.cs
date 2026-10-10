@@ -145,6 +145,23 @@ public static class CCountryModifiers
 	}
 
 	/// <summary>
+	/// What the ministers in a country's government add to one kind of modifier, in
+	/// thousandths: each counts as the type he has for the seat he holds.
+	/// </summary>
+	public static long MinisterShare(CCountry country, string kind)
+	{
+		long total = 0;
+		foreach ((string position, CMinister minister) in country.Government)
+		{
+			if (minister.TypeIn(position) is { } type)
+			{
+				total += type.Modifier[kind].Raw;
+			}
+		}
+		return total;
+	}
+
+	/// <summary>
 	/// What the ministers in a country's government add to a technology category's decay,
 	/// in thousandths: each counts as the type he has for the seat he holds.
 	/// </summary>
