@@ -210,9 +210,9 @@ public class LeaderTests
 		var one = new CLeader(2) { Rank = 1 };
 
 		Assert.False(CLeaders.HasRankFor(state, group));               // nobody
-		CLeaders.SetLeader(state, group, three, false);
-		CLeaders.SetLeader(state, army, one, false);
-		CLeaders.SetLeader(state, division, new CLeader(3) { Rank = 4 }, false);
+		CLeaders.SetLeader(state, group, three, false, false);
+		CLeaders.SetLeader(state, army, one, false, false);
+		CLeaders.SetLeader(state, division, new CLeader(3) { Rank = 4 }, false, false);
 
 		Assert.True(CLeaders.HasRankFor(state, group));                // 3 of the 4 choosing asks
 		Assert.False(CLeaders.HasRankFor(state, army));                // an army wants 2
@@ -225,8 +225,8 @@ public class LeaderTests
 		CGameState state = State(out CCountry germany, out _);
 		CUnit six = Unit(state, germany, EUnitKind.Navy, Destroyer, Destroyer, Destroyer, Destroyer, Destroyer, Destroyer);
 		CUnit seven = Unit(state, germany, EUnitKind.Navy, Destroyer, Destroyer, Destroyer, Destroyer, Destroyer, Destroyer, Destroyer);
-		CLeaders.SetLeader(state, six, new CLeader(1) { Rank = 1, Type = ELeaderType.Sea }, false);
-		CLeaders.SetLeader(state, seven, new CLeader(2) { Rank = 1, Type = ELeaderType.Sea }, false);
+		CLeaders.SetLeader(state, six, new CLeader(1) { Rank = 1, Type = ELeaderType.Sea }, false, false);
+		CLeaders.SetLeader(state, seven, new CLeader(2) { Rank = 1, Type = ELeaderType.Sea }, false, false);
 
 		Assert.True(CLeaders.HasRankFor(state, six));
 		Assert.False(CLeaders.HasRankFor(state, seven));
@@ -416,9 +416,9 @@ public class LeaderTests
 		CUnit first = Unit(state, germany, EUnitKind.Division, Infantry, Infantry);
 		CUnit second = Unit(state, germany, EUnitKind.Division, Infantry, Infantry);
 		CLeader leader = Leader(state, germany, 1, 1, 1);
-		CLeaders.SetLeader(state, first, leader, false);
+		CLeaders.SetLeader(state, first, leader, false, false);
 
-		CLeaders.SetLeader(state, second, leader, true);
+		CLeaders.SetLeader(state, second, leader, false, true);
 
 		Assert.Null(first.Leader);
 		Assert.Same(leader, second.Leader);

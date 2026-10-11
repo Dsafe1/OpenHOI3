@@ -34,16 +34,29 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 	private readonly CGuiIcon? _organisationBar;
 	private readonly CGuiIcon? _strengthBar;
 
+	private readonly CCountryTag? _player;
+	private readonly CGuiButton? _leaderButton;
+	private readonly CGuiIcon? _leaderTypes;
+
 	/// <summary>Raised when the button that takes the unit out of the selection is pressed.</summary>
 	public event Action? Deselected;
 
-	private CUnitHeaderEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit)
+	/// <summary>
+	/// Raised by the button that opens the window a leader is chosen in, and by a click on
+	/// the portrait - which the original registers with the same handler and never
+	/// disables, so it opens the window where the button cannot be pressed.
+	/// </summary>
+	public event Action? LeaderPressed;
+
+	private CUnitHeaderEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit,
+		CCountryTag? player)
 		: base(window)
 	{
 		_context = context;
 		_state = state;
 		_owner = owner;
 		_unit = unit;
+		_player = player;
 
 		_name = window.FindTextBox("unitname");
 		_strength = window.FindTextBox("unitstrength");
@@ -72,18 +85,23 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 			only.Disabled = true;
 			only.Visible = false;
 		}
-		// The window a leader is chosen in is not built yet.
-		if (window.FindButton("leader_button") is { } leaderButton)
+		_leaderButton = window.FindButton("leader_button");
+		if (_leaderButton is not null)
 		{
-			leaderButton.Disabled = true;
+			_leaderButton.Pressed += () => LeaderPressed?.Invoke();
 		}
+		if (_photo is not null)
+		{
+			_photo.Clicked += () => LeaderPressed?.Invoke();
+		}
+		_leaderTypes = window.FindIcon("leader_types");
 		Update();
 	}
 
-	public static CUnitHeaderEntry? Create(CGuiContext context, CGameState state, CCountry owner, CUnit unit)
+	public static CUnitHeaderEntry? Create(CGuiContext context, CGameState state, CCountry owner, CUnit unit, CCountryTag? player)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "unitpanel");
-		return window is null ? null : new CUnitHeaderEntry(window, context, state, owner, unit);
+		return window is null ? null : new CUnitHeaderEntry(window, context, state, owner, unit, player);
 	}
 
 	public override void Update()
@@ -96,6 +114,11 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		_organisationBar?.SetProgress(CUnitPanelText.OrganisationBar(_owner, _unit));
 		_strengthBar?.SetProgress(CUnitPanelText.StrengthBar(_unit));
 		ShowPortrait();
+		if (_leaderButton is not null)
+		{
+			_leaderButton.Disabled = !CUnitPanelText.MayChangeLeader(_state, _unit, _player);
+		}
+		_leaderTypes?.SetFrame(CUnitPanelText.LeaderTypeFrame(_unit));
 	}
 
 	/// <summary>

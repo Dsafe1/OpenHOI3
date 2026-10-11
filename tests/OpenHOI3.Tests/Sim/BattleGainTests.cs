@@ -306,16 +306,30 @@ public class BattleGainTests
 	}
 
 	[Fact]
-	public void AUnitGivenALeaderThrowsAwayTheHoursHeHadBanked()
+	public void ALeaderAPlayerPutsOnAUnitThrowsAwayTheHoursHeHadBanked()
 	{
 		CGameState state = State(out CCountry germany, out _);
 		CLeader leader = Leader(1, 3);
 		leader.TraitProgress.Duration = 40;
 		leader.TraitProgress.CurrentHour = 5;
 
-		CLeaders.SetLeader(state, Unit(state, germany, Berlin), leader, organisationHit: false);
+		CLeaders.SetLeader(state, Unit(state, germany, Berlin), leader, resetTraitHours: true, organisationHit: false);
 
 		Assert.Equal(0, leader.TraitProgress.Duration);
 		Assert.Equal(-1, leader.TraitProgress.CurrentHour);
+	}
+
+	[Fact]
+	public void ALeaderTheChoosingPutsOnAUnitKeepsTheHoursHeHadBanked()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CLeader leader = Leader(1, 3);
+		leader.TraitProgress.Duration = 40;
+		leader.TraitProgress.CurrentHour = 5;
+
+		CLeaders.SetLeader(state, Unit(state, germany, Berlin), leader, resetTraitHours: false, organisationHit: false);
+
+		Assert.Equal(40, leader.TraitProgress.Duration);
+		Assert.Equal(5, leader.TraitProgress.CurrentHour);
 	}
 }

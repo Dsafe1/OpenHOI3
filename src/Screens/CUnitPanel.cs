@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
 
@@ -34,6 +36,15 @@ public partial class CUnitPanel : Control
 	private CUnit? _unit;
 	private bool _hasChildren;
 	private readonly List<CCombat> _combats = new();
+
+	private CLeaderSelectionPanel? _leaders;
+	private CConfirmDialog? _confirm;
+
+	/// <summary>
+	/// The leader window's filter of traits, kept from one window to the next for each kind
+	/// of leader for as long as the game is up, as the original keeps it in its game state.
+	/// </summary>
+	private readonly Dictionary<ELeaderType, List<CTrait?>> _keptTraitFilters = new();
 
 	/// <summary>Raised when a row of the panel asks for another unit to be the one selected, or for none.</summary>
 	public event Action<CUnit?>? UnitChosen;
@@ -125,6 +136,69 @@ public partial class CUnitPanel : Control
 		{
 			_list.Relayout();
 		}
+		// The original's header writes the leader window each frame, and ends it once hidden.
+		if (_leaders is not null)
+		{
+			if (_leaders.IsShown)
+			{
+				_leaders.Update();
+			}
+			else
+			{
+				CloseLeaders();
+			}
+		}
+	}
+
+	/// <summary>
+	/// The header's leader button: whatever window was up for it goes, and a new one is
+	/// made - so a second click opens it afresh, it does not close it.
+	/// </summary>
+	private void OpenLeaders(CUnit unit)
+	{
+		CloseLeaders();
+		_leaders = CLeaderSelectionPanel.Open(this, _context, _simulation, _player, unit, _keptTraitFilters);
+		if (_leaders is not null)
+		{
+			_leaders.RemoveAllPressed += ConfirmRemoveAll;
+		}
+	}
+
+	private void CloseLeaders()
+	{
+		_leaders?.Destroy();
+		_leaders = null;
+	}
+
+	/// <summary>
+	/// "Remove all" asks first, with the original's dialog. Agreed, every unit of the
+	/// player's country is left with no leader.
+	/// </summary>
+	private void ConfirmRemoveAll()
+	{
+		_confirm?.Close();
+		// It stands over the interface, not in the unit's panel: it outlives the leader window.
+		if (GetParent() is not { } layer)
+		{
+			return;
+		}
+		Func<string, string> localise = _context.Localisation.Localise;
+		_confirm = CConfirmDialog.Open(layer, _context, CLeaderWindowText.ConfirmWindowName,
+			localise(CLeaderWindowText.ConfirmTitleKey), localise(CLeaderWindowText.ConfirmTextKey));
+		if (_confirm is not null)
+		{
+			_confirm.Agreed += () =>
+			{
+				if (_player is not null)
+				{
+					var command = new CRemoveAllLeadersCommand(_player.Tag);
+					if (command.MayExecute(_simulation.State))
+					{
+						_simulation.Post(command);
+					}
+				}
+			};
+		}
 	}
 
 	/// <summary>What a unit has a row for at the end of its panel: its battles, and then the bombing it is in.</summary>
@@ -156,6 +230,8 @@ public partial class CUnitPanel : Control
 	/// </summary>
 	private void Rebuild()
 	{
+		// The window a leader is chosen in belongs to the header, which goes now.
+		CloseLeaders();
 		if (_list is null)
 		{
 			return;
@@ -181,9 +257,10 @@ public partial class CUnitPanel : Control
 			}
 		}
 
-		if (CUnitHeaderEntry.Create(_context, state, owner, unit) is { } header)
+		if (CUnitHeaderEntry.Create(_context, state, owner, unit, _player?.Tag) is { } header)
 		{
 			header.Deselected += () => UnitChosen?.Invoke(null);
+			header.LeaderPressed += () => OpenLeaders(unit);
 			Add(header);
 		}
 		if (CUnitStatusEntry.Create(_context, state, owner, unit) is { } status)

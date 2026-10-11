@@ -188,7 +188,45 @@ public static class CUnitPanelText
 	/// <summary>The game path of the unit's leader's portrait, or null with no leader.</summary>
 	public static string? LeaderPortrait(CUnit unit)
 	{
-		return unit.Leader is { } leader ? PortraitFolder + leader.Picture + ".tga" : null;
+		return unit.Leader is { } leader ? Portrait(leader) : null;
+	}
+
+	/// <summary>The game path of a leader's portrait.</summary>
+	public static string Portrait(CLeader leader)
+	{
+		return PortraitFolder + leader.Picture + ".tga";
+	}
+
+	/// <summary>
+	/// <c>leader_types</c>' frame, counted from one: his kind and one more - a general's
+	/// 1, an admiral's 2, an air marshal's 3. A unit with none shows a general's, the
+	/// original's empty leader being of the first kind.
+	/// </summary>
+	public static int LeaderTypeFrame(CUnit unit)
+	{
+		return (int)(unit.Leader?.Type ?? ELeaderType.Land) + 1;
+	}
+
+	/// <summary>
+	/// Whether the button that opens the window a leader is chosen in may be pressed. Not
+	/// for a unit falling back, one in a battle, a fleet at sea, or one standing where an
+	/// enemy of the player holds the province; the original also refuses a land unit
+	/// aboard a ship or an aircraft, which nothing carries here. **Nothing asks whose unit
+	/// it is**, and the original's refusal of an expeditionary force is undone by its own
+	/// last test. See <c>docs/mechanics/unitpanel.md</c>, section 3.
+	/// </summary>
+	public static bool MayChangeLeader(CGameState state, CUnit unit, CCountryTag? player)
+	{
+		if (unit.IsRetreating || unit.Combats.Count >= 1)
+		{
+			return false;
+		}
+		CProvince province = state.Province(unit.Location);
+		if (unit.Kind == EUnitKind.Navy && province.IsSea)
+		{
+			return false;
+		}
+		return !CMovementRules.IsEnemy(state, province.Controller, player);
 	}
 
 	/// <summary>

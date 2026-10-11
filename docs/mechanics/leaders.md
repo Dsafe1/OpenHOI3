@@ -8,8 +8,8 @@ own behaviour the paragraph is marked **Ours**.
 
 Sources: `reversing/findings/FINDINGS-leaderassign.md`,
 `reversing/findings/FINDINGS-commandreach.md`, `reversing/findings/FINDINGS-battleleaders.md`,
-`reversing/findings/FINDINGS-seaairleaders.md` and `reversing/findings/FINDINGS-battlegains.md`,
-read for this, whole;
+`reversing/findings/FINDINGS-seaairleaders.md`, `reversing/findings/FINDINGS-battlegains.md` and
+`reversing/findings/FINDINGS-leaderwindow.md`, read for this, whole;
 `reversing/findings/FINDINGS-leaders.md` (experience, skill, traits, promotion);
 `reversing/findings/FINDINGS-history.md` (the leader's history and its five keys).
 
@@ -17,15 +17,21 @@ Code: `CLeader`, `CTrait`, `CLeaders` and `CCommandReach` in `lib/OpenHOI3.Sim/L
 `CCombatLeaders` in `lib/OpenHOI3.Sim/Combat`, beside the battles that ask it;
 `CLeaderReader` in `lib/OpenHOI3.Content/History` and `CTraitReader` in
 `lib/OpenHOI3.Content/Definitions`; the panel's lines in `CUnitPanelText`;
-`OpenHOI3.SaveCheck`'s `CLeaderCheck`.
+`OpenHOI3.SaveCheck`'s `CLeaderCheck`. The window a leader is chosen in: the four commands
+`CAssignLeaderCommand`, `CPromoteLeaderCommand`, `CRemoveAllLeadersCommand` and
+`CToggleAutoAssignLeadersCommand` in `lib/OpenHOI3.Sim/Commands`; the runtime's sort, `CStdSort`,
+at the root of `lib/OpenHOI3.Sim`; `CLeaderWindowText`, `CLeaderTraitFilter` and `ELeaderSort` in
+`lib/OpenHOI3.Interface/Screens`; `CLeaderSelectionPanel`, `CLeaderEntry`, `CTraitIconEntry`,
+`CTraitFilterRow` and `CConfirmDialog` in `src/Screens`.
 
 Leaders were cut in four on 2026-10-11 - **the cut is this project's**: who they are and who
 commands what (sections 1 to 7, built); how far a commander's command reaches, and what it does
 to organisation and to what a unit uses (section 8, built the same day); what a leader does in a
 battle, with the experience and the traits he gains there; and the window a leader is chosen
-in. The third was cut again, the same day and also this project's: a land battle (section 9,
-built); a battle at sea and in the air (section 10, built the same day); and the experience and
-traits a battle gives (section 11, built the same day).
+in (section 12, built the same day, with his place in a battle's window). The third was cut
+again, the same day and also this project's: a land battle (section 9, built); a battle at sea
+and in the air (section 10, built the same day); and the experience and traits a battle gives
+(section 11, built the same day). **All four are built.**
 
 ---
 
@@ -185,7 +191,8 @@ off it. Two things may come with it: the hours of battle he had banked towards a
 thrown away, and every brigade of the unit keeps only `NEW_LEADER_ORG_HIT` of its
 organisation (0.5) - unless a custom game's setting forbids it. **Neither comes with the
 choosing above, nor with an order of battle's leader**; both come when a player changes a
-leader, which is not built. `confirmed`
+leader (section 12), and only where he puts one on - taking a leader off costs nothing.
+`confirmed`
 
 ### Each day
 
@@ -465,6 +472,83 @@ whether it has lost. A side that has lost has always been decided so here.
 *Ours:* `has_combat_modifier` asks the lists of what the hour put on the side's units, where the
 original keeps a flag for each on the side; they are made in the same places.
 
+## 12. The window a leader is chosen in
+
+The original's `leader_selection_panel`, from `unitpanel.gui`
+(`reversing/findings/FINDINGS-leaderwindow.md`). `confirmed` except where it says.
+
+**Opening it.** The unit panel's `leader_button` (`unitpanel.md`, section 3) and its portrait
+both open it: whatever window was up for the unit goes and **a new one is always made** - a
+second click opens it afresh rather than closing it. The panel writes it each frame and ends it
+the frame after it is hidden; a panel made again ends it too.
+
+**Its head** is the leader the unit had as the window opened, **kept for the window's life**: his
+portrait, name, skill as a number, rank on the strip and an icon for each trait (`trait_entry`,
+its `trait_icon` the sprite `icon_` and the trait's key). With none it is the original's empty
+leader - the name `NO_LEADER`, skill 0, rank 0 - and the two promotion buttons are greyed. The
+original also sets the strip to the rank the unit asks for, and its first frame's update writes
+the empty leader's 0 over it before it is ever drawn. *Ours:* rank 0 draws no strip; what the
+original draws for frame 0 was not read.
+
+**Its list**, a row for each leader (`leader_entry_land`, `_naval` or `_air` by his kind):
+
+1. **the unit's owner's leaders in service**, in the order they were put in service;
+2. of the unit's kind, with a rank, and commanding nothing or this unit;
+3. that the trait filter passes, below;
+4. **sorted** by one of four keys - **the name ascending**, by its bytes and the shorter first;
+   **skill, the number of traits or rank descending** - with the original runtime's own sort,
+   which is not stable: **leaders of equal skill come out in the order its partition leaves
+   them**, so that is reproduced step for step (`CStdSort`, checked against the original's code
+   run under an emulator on 1,360 lists);
+5. turned round whole where the key was clicked twice: the key already chosen turns the order
+   round, another starts it the right way. **The key outlives the window and the game**: every
+   run starts by name, ascending.
+
+A row shows his portrait, name, skill, rank and traits, and **its button may be pressed only
+where the unit may take him** (section 4, the first test) - a general of a corps' rank is listed
+for a division and cannot be chosen. Its promotion buttons are always live.
+
+**The trait filter** is a flag for each trait and one for "no trait": a leader with no traits is
+listed by that flag, one with traits where any of his is on, and a trait never asked about counts
+as off. Its window (`leader_trait_filters`) has a row for "no trait" (`NO_TRAIT_FILTER`) and then
+each trait meant for the kind of leader, in the file's order. A click ticks or clears a row; the
+other mouse button shows that trait alone - or, where it is already the only one on, everything
+again; the filter button opens and closes the window, and its other mouse button turns everything
+on. The game keeps the traits that are on, for each kind of leader, from one window to the next;
+**where it kept none - the first time, or every trait was off - everything is on**. Which mouse
+events the original's "other" ones are was not read: they were taken for the right button from
+where they sit among the events, and **the maintainer's word, 2026-10-11, is that this is
+correct** - a right click on the filter button turns every trait on, and on a row shows that
+trait alone.
+
+**What the buttons do**, each a command, so that a game shared between players does the same:
+
+| button | posts | then |
+| --- | --- | --- |
+| a row's | `CAssignLeaderCommand(unit, leader)` | hides |
+| `noleader_button` | the same with nobody | hides |
+| `removeall_button` | the dialog `DefaultConfirm`, `CONFIRM_REMOVEAll_TITLE` and `CONFIRM_REMOVEALL_DESC`; agreed, `CRemoveAllLeadersCommand` for the **player's** country | hides at once, whatever is answered |
+| the head's `promote`, `demote` | `CPromoteLeaderCommand` for the head's leader, a rank up or down | stays up |
+| a row's `promote`, `demote` | the same for the row's leader | stays up |
+| `auto_assign` | `CToggleAutoAssignLeadersCommand` for the **player's** country, whose setting it shows | |
+| `back_button` | nothing | hides |
+
+**The commands:**
+
+- **giving a leader** is refused where the unit is gone, or where he is named and may not take
+  it, commanding nothing else; nobody is always allowed. He is taken off whatever he commanded,
+  and then put on with his banked hours thrown away and the unit's brigades left
+  `NEW_LEADER_ORG_HIT` of their organisation - section 5. Nothing asks whose unit it is;
+- **promotion** moves the rank one way and keeps it between 1 and 4. It costs nothing - there
+  is no loss of skill (`reversing/findings/FINDINGS-leaders.md`) - and **a general who commands a
+  unit is taken off it**, whichever way; an admiral or an air marshal keeps his;
+- **removing all** leaves every unit of the country with nobody, at no cost of organisation; the
+  original passes over a unit lent to another country, and none is lent here;
+- **the checkbox** turns the country's `auto_assign_leaders` the other way (section 5).
+
+In a battle's window each side shows its highest ranked leader's portrait and name, and the
+side whose leader has more skill has the arrow of initiative (`combatview.md`, section 4).
+
 ## Kept as read, though they look odd
 
 1. **An order of battle's leader goes on whoever he is**: another country's, a rank that does
@@ -508,14 +592,28 @@ original keeps a flag for each on the side; they are made in the same places.
 18. **`is_winner` holds for both sides of a battle broken off**: nobody lost it.
 19. **A ship gains no experience in an hour it has no target**, and a bombing of a province
     with no units in it gives the bombers none - there is no enemy to measure.
+20. **The portrait opens the window where the leader button cannot be pressed** (section 12):
+    the original registers both with one handler and disables only the button - so a unit in
+    a battle or falling back can have its leader changed by a click on his picture.
+    `inferred` that the picture takes the click as a button does.
+21. **Nothing asks whose unit it is** (section 12): a neutral's unit, or a friend's, can have
+    its leader changed from its panel, out of its own country's leaders; only one standing where
+    an enemy of the player holds the ground is refused.
+22. **The original refuses the button to an expeditionary force and undoes it in the same pass.**
+23. **Promoting or demoting a general takes him off his unit** (section 12), and the window's
+    head keeps him - so its buttons go on acting on a leader the unit no longer has.
+24. **A filter with every trait off is forgotten** (section 12): the next window has everything
+    on.
+25. **"Remove all" closes the window before the question is answered**, whatever the answer.
 
 ## Not built
 
 - `winter_attrition` waits for attrition. The practical knowledge a battle gives.
 - **The aggressiveness a side's leader picks a tactic with**: it comes from plans and a unit's
   own setting, neither of which exists here, so it is 0.
-- **The window a leader is chosen in**, promotion and dismissal, and the setting
-  `auto_assign_leaders` on screen - the fourth. Nothing turns the setting off yet.
+- **The window's tooltips** - a leader's, a trait's, and the progress towards each trait battles
+  earn behind the `gaintrait_info` icon: the tooltips are a piece of their own, next.
+- **A unit aboard a ship or an aircraft**, which the leader button refuses: nothing carries yet.
 - **The AI's own reshuffle of its leaders**, and the headquarters it makes; leaders made,
   killed or changed by events.
 

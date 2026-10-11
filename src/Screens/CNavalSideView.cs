@@ -22,7 +22,7 @@ public sealed class CNavalSideView : ICombatSideView
 	private readonly CGuiTextBox? _shipsLabel;
 	private readonly CGuiListBox? _ships;
 	private readonly CGuiIcon? _shield;
-	private readonly CGuiTextBox? _leaderName;
+	private readonly CCombatLeaderView _leader;
 	private readonly CGuiTextBox? _positioning;
 	private readonly List<CCombatShipEntry> _entries = new();
 	private CCountryTag? _flag;
@@ -36,7 +36,7 @@ public sealed class CNavalSideView : ICombatSideView
 		_shipsLabel = window.FindTextBox("ships_label");
 		_ships = window.FindListBox("ships");
 		_shield = window.FindIcon("shield");
-		_leaderName = window.FindTextBox("leader_name");
+		_leader = new CCombatLeaderView(window, context);
 		_positioning = window.FindTextBox("positioning");
 		Update();
 	}
@@ -59,8 +59,7 @@ public sealed class CNavalSideView : ICombatSideView
 		Set(_shipsLabel, CCombatViewText.ShipsLabel(_context.Localisation.Localise, _side));
 		Fill();
 
-		// A battle's leader is not built yet: a side has none, and its portrait stays the empty one.
-		Set(_leaderName, CCombatViewText.LeaderName(_context.Localisation.Localise, _side));
+		_leader.Update(_side);
 		CCountryTag? flag = CCombatViewText.Flag(_state, _side);
 		if (flag != _flag && flag is { } tag && _state.Country(tag) is { } country)
 		{

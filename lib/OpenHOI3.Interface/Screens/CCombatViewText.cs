@@ -252,21 +252,48 @@ public static class CCombatViewText
 	}
 
 	/// <summary>
-	/// The name under a side's portrait. A battle's leader is not built yet, so it is the
-	/// original's words for a side with none - and nothing for a side with no country left.
+	/// The name under a side's portrait: its leader's - the highest ranked of its units'
+	/// (<see cref="CCombatLeaders.HighestRanked"/>) - or with none the original's words for
+	/// a side with no commander. With neither a leader nor a country still fighting it is
+	/// null, and the window leaves the name as it was.
 	/// </summary>
-	public static string LeaderName(Func<string, string> localise, CCombatSide side)
+	public static string? LeaderName(Func<string, string> localise, CCombatSide side)
 	{
-		return side.Countries.Count > 0 ? localise(NoCommanderKey) : "";
+		if (CCombatLeaders.HighestRanked(side) is { } leader)
+		{
+			return leader.Name;
+		}
+		return side.Standing.Count > 0 ? localise(NoCommanderKey) : null;
+	}
+
+	/// <summary>The game path of the side's leader's portrait, or null with none, when the picture stays as it was.</summary>
+	public static string? LeaderPortrait(CCombatSide side)
+	{
+		return CCombatLeaders.HighestRanked(side) is { } leader ? CUnitPanelText.Portrait(leader) : null;
 	}
 
 	/// <summary>
-	/// Whose flag a side flies: its first country's, or with none the country that
-	/// holds the province fought over.
+	/// Whether a side's arrow of initiative is up: where its leader has more skill than
+	/// the other side's, a side with none counting nothing.
+	/// </summary>
+	public static bool HasInitiative(CCombatSide side)
+	{
+		CCombatSide other = side.IsAttacker ? side.Combat.Defender : side.Combat.Attacker;
+		return CCombatLeaders.Skill(side) > CCombatLeaders.Skill(other);
+	}
+
+	/// <summary>
+	/// Whose flag a side flies: its leader's unit's owner's; with no leader the first
+	/// country still fighting on it; with none the country that holds the province
+	/// fought over.
 	/// </summary>
 	public static CCountryTag? Flag(CGameState state, CCombatSide side)
 	{
-		return side.Countries.Count > 0 ? side.Countries[0] : state.Province(side.Combat.Province).Controller;
+		if (CCombatLeaders.HighestRanked(side)?.Unit is { } unit)
+		{
+			return unit.Owner;
+		}
+		return side.Standing.Count > 0 ? side.Standing[0] : state.Province(side.Combat.Province).Controller;
 	}
 
 	/// <summary>A side's tactic by its name in the player's language, or an empty string for none.</summary>

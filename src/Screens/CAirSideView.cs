@@ -21,7 +21,7 @@ public sealed class CAirSideView : ICombatSideView
 	private readonly CGuiTextBox? _planesLabel;
 	private readonly CGuiListBox? _planes;
 	private readonly CGuiIcon? _shield;
-	private readonly CGuiTextBox? _leaderName;
+	private readonly CCombatLeaderView _leader;
 	private readonly List<CCombatWingEntry> _entries = new();
 	private CCountryTag? _flag;
 
@@ -34,7 +34,7 @@ public sealed class CAirSideView : ICombatSideView
 		_planesLabel = window.FindTextBox("planes_label");
 		_planes = window.FindListBox("planes");
 		_shield = window.FindIcon("shield");
-		_leaderName = window.FindTextBox("leader_name");
+		_leader = new CCombatLeaderView(window, context);
 		Update();
 	}
 
@@ -58,8 +58,7 @@ public sealed class CAirSideView : ICombatSideView
 		Set(_planesLabel, CAirCombatText.PlanesLabel(_context.Localisation.Localise, _side));
 		Fill();
 
-		// A battle's leader is not built yet: a side has none, and its portrait stays the empty one.
-		Set(_leaderName, CCombatViewText.LeaderName(_context.Localisation.Localise, _side));
+		_leader.Update(_side);
 		CCountryTag? flag = CCombatViewText.Flag(_state, _side);
 		if (flag != _flag && flag is { } tag && _state.Country(tag) is { } country)
 		{

@@ -140,7 +140,7 @@ public static class CLeaders
 			{
 				if (unit.LeaderId != 0 && state.Leaders.TryGetValue(unit.LeaderId, out CLeader? named))
 				{
-					SetLeader(state, unit, named, false);
+					SetLeader(state, unit, named, false, false);
 				}
 			}
 		}
@@ -379,17 +379,20 @@ public static class CLeaders
 		}
 		if (best is not null)
 		{
-			SetLeader(state, unit, best, false);
+			SetLeader(state, unit, best, false, false);
 		}
 	}
 
 	/// <summary>
 	/// Puts a leader on a unit, or takes its leader off with null. Whatever either
-	/// commanded before is left with nobody. <paramref name="organisationHit"/> leaves
-	/// every brigade of the unit the share of its organisation <c>NEW_LEADER_ORG_HIT</c>
-	/// gives. The new leader's hours of battle banked towards a trait are thrown away.
+	/// commanded before is left with nobody. Two things come only with a leader and only
+	/// when asked for, as the original's two flags give them: <paramref name="resetTraitHours"/>
+	/// throws away his hours of battle banked towards a trait, and <paramref name="organisationHit"/>
+	/// leaves every brigade of the unit the share of its organisation
+	/// <c>NEW_LEADER_ORG_HIT</c> gives. The choosing passes neither; a player's change of
+	/// leader passes both (<c>docs/mechanics/leaders.md</c>, section 5).
 	/// </summary>
-	public static void SetLeader(CGameState state, CUnit unit, CLeader? leader, bool organisationHit)
+	public static void SetLeader(CGameState state, CUnit unit, CLeader? leader, bool resetTraitHours, bool organisationHit)
 	{
 		if (leader == unit.Leader)
 		{
@@ -410,8 +413,11 @@ public static class CLeaders
 				previous.Leader = null;
 			}
 			leader.Unit = unit;
-			leader.TraitProgress.Duration = 0;
-			leader.TraitProgress.CurrentHour = -1;
+			if (resetTraitHours)
+			{
+				leader.TraitProgress.Duration = 0;
+				leader.TraitProgress.CurrentHour = -1;
+			}
 			if (organisationHit)
 			{
 				long hit = state.Defines[CManpower.MilitarySection, NewLeaderOrgHit].Raw;

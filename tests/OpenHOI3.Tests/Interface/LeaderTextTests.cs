@@ -38,7 +38,7 @@ public class LeaderTextTests
 	{
 		CGameState state = State(out CUnit army);
 		var leader = new CLeader(798) { Name = "von Rundstedt", Rank = 1, Picture = "L798" };
-		CLeaders.SetLeader(state, army, leader, false);
+		CLeaders.SetLeader(state, army, leader, false, false);
 
 		Assert.Equal("§Rvon Rundstedt", CUnitPanelText.Leader(state, army, Localise));
 		leader.Rank = 2;

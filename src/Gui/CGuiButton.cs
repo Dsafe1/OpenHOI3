@@ -37,6 +37,15 @@ public partial class CGuiButton : CGuiObject
 	/// <summary>Raised when the button is clicked twice in quick succession, after <see cref="Pressed"/> for the first.</summary>
 	public event Action? DoublePressed;
 
+	/// <summary>
+	/// Raised when the right button goes down and comes up on it. The button takes the
+	/// right button only while something listens for this, so that elsewhere a right
+	/// click goes on to what lies under it as before.
+	/// </summary>
+	public event Action? RightPressed;
+
+	private bool _rightHeld;
+
 	/// <summary>Declared with <c>checkboxType</c>: a click ticks it or clears it.</summary>
 	public bool IsCheckbox { get; private set; }
 
@@ -170,6 +179,7 @@ public partial class CGuiButton : CGuiObject
 		if (!hovered)
 		{
 			_held = false;
+			_rightHeld = false;
 		}
 		Tint();
 	}
@@ -191,6 +201,23 @@ public partial class CGuiButton : CGuiObject
 		{
 			AcceptEvent();
 			Click(mouse);
+		}
+		else if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Right } right && RightPressed is not null)
+		{
+			AcceptEvent();
+			if (_disabled)
+			{
+				return;
+			}
+			if (right.Pressed)
+			{
+				_rightHeld = true;
+			}
+			else if (_rightHeld)
+			{
+				_rightHeld = false;
+				RightPressed.Invoke();
+			}
 		}
 	}
 

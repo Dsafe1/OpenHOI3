@@ -188,7 +188,7 @@ public static class CDeployment
 			{
 				CLeaders.AssignBest(state, country, target);
 			}
-			CLeaders.SetLeader(state, unit, null, false);
+			CLeaders.SetLeader(state, unit, null, false, false);
 			return;
 		}
 		unit.Parent = target;

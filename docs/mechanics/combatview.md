@@ -111,8 +111,8 @@ same thing once an hour has been fought - and a battle on screen always has had 
 | `committed_label` | the text `COMMITED_LABEL` with `$COUNT$` the units on the front and `$WIDTH$` their widths added up, whole (`landcombat.md`, section 3, for a unit's width) |
 | `reserves_label` | `RESERVES_LABEL` with `$COUNT$` the units in reserve |
 | `committed`, `reserves` | two lists, each with an entry (section 5) for every unit of that part of the side, **in the side's own order** |
-| `shield` | the flag of the side's leader's country; with no leader the first country the side fights as; with no country left, of whoever holds the province |
-| `leader_photo`, `leader_name` | the portrait and the name of the side's highest ranked leader, or for a side with none the text `NO_COMMANDER` under the picture the file gives |
+| `shield` | the flag of the owner of the side's leader's unit; with no leader the first country still fighting on the side; with none left, of whoever holds the province |
+| `leader_photo`, `leader_name` | the portrait and the name of the side's highest ranked leader, written again only when he changes; for a side with none the text `NO_COMMANDER`, the picture left as it was; with no country left either, both left as they were |
 | `initiative_indicator` | shown on the side whose leader has more skill than the other's; hidden where they are equal |
 | `tactic_name` | the side's tactic by its name in the player's language - the tactic's own key is the text's |
 | `tactic_picture` | the file `gfx/pictures/tactics/` + the tactic's `picture` + `.dds`, where that file exists, in the shape of the sprite `GFX_empty_tactics` |
@@ -120,8 +120,14 @@ same thing once an hour has been fought - and a battle on screen always has had 
 - **A list is kept, not made again**: while it holds the same units each entry is only written
   again; when a unit comes or goes the list is emptied and filled.
 - **A side with no tactic** keeps whatever name and picture it showed.
-- *Ours:* units have leaders (`leaders.md`) but a battle's leader is not built yet, so every
-  side says `NO_COMMANDER`, keeps the file's empty portrait, and nobody has the initiative.
+- **The leader is built** (2026-10-11, with the window a leader is chosen in: `leaders.md`,
+  section 12), for the three kinds of side alike, and tried with real clicks on Italy's attack at
+  Gurbo: Giorgis for Italy, Imru - a corps commander in reserve, of higher rank than the
+  division's general on the front - for Ethiopia, with the arrow of initiative his.
+- "The countries still fighting" is the side's list the original makes again whenever a unit
+  leaves it (`CCombatSide.Standing`); until 2026-10-11 the flag and `NO_COMMANDER` were asked of
+  the list of every country the side ever fought as, which differs only once a country's units
+  have all gone.
 
 ## 5. A unit in a list
 
@@ -384,7 +390,6 @@ list of finished battles: `airmap.md`, section 4.
 
 ## What is not built
 
-- **Leaders**: the portrait, the name, the initiative mark.
 - **Tooltips.** Everything in the window has one - the terrain, the width, a unit with what
   each modifier is worth to it, a tactic with what it does and what counters it, the arrow
   between the tactics - and none is drawn anywhere yet.

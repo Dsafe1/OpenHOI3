@@ -77,7 +77,8 @@ of the list of several selected units. `confirmed`
 | `unitstrength` | its men, below | built |
 | `unitleader` | its leader's name, in red where he has not the rank (`leaders.md`, section 4); `NO_LEADER` with none | built |
 | `leader_photo` | `gfx/pictures/portraits/`, the leader's `picture`, `.tga`; made again only when the leader changes | built; the file's picture with no leader, or with a portrait the install has not got |
-| `leader_types`, `leader_button` | his kind, and the button that changes him | as the file has them; the button cannot be pressed |
+| `leader_types` | his kind and one more: a general 1, an admiral 2, an air marshal 3 - a general's with none | built |
+| `leader_button` | opens the window a leader is chosen in (`leaders.md`, section 12); the portrait opens it too, below | built |
 | `org_bar`, `str_bar` | two bars, below | built |
 | `exp_force` | the flag of whose expeditionary force it is | hidden |
 | `remove_unit_from_selection_button` | takes the unit out of the selection | built |
@@ -95,6 +96,14 @@ green arrow, a red cross - and the first of these that holds decides: `confirmed
 
 Built, all of it but the land unit aboard aeroplanes (2026-10-09, with the battle:
 `landcombat.md`).
+
+**The leader button** may be pressed but for a unit falling back, one in a battle, a fleet in a
+sea province, one standing where an enemy of the player holds the province, and a land unit
+aboard a ship or an aircraft (`reversing/findings/FINDINGS-leaderwindow.md`, section 9):
+`confirmed`. Built, but for what is aboard something, which nothing is yet. **Nothing asks
+whose unit it is**, and the original's refusal of an expeditionary force is undone by its own
+last test. **The portrait is registered with the same handler and never disabled**, so a click on
+it opens the window where the button cannot be pressed (`inferred`; `leaders.md`, oddity 20).
 
 **The strength is men**: `confirmed`
 
@@ -326,10 +335,9 @@ slider stands in the middle, and the switch is off.
 - **A headquarters' rows for an AI in command**: its objectives, the three stances, the
   power ratio, the assets it wants; and everything the row of section 9 would do.
 - **What a unit carries.**
-- **Leaders**: the choosing (the leader list) and `leader_types`. The name, the red and the
-  portrait are built (2026-10-11).
-- **The windows that come up from it**: the leader list, reorganising, attaching, what a
-  brigade is upgraded to, the order of battle browser.
+- **The windows that come up from it**: reorganising, attaching, what a brigade is upgraded
+  to, the order of battle browser. The leader window is built (2026-10-11, `leaders.md`,
+  section 12).
 - **Scrolling the panel** when it is longer than the screen.
 
 ## What is not established

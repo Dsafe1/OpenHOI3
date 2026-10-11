@@ -26,7 +26,7 @@ public sealed class CCombatSideView : ICombatSideView
 	private readonly CGuiListBox? _reserves;
 	private readonly CGuiIcon? _shield;
 	private readonly CGuiIcon? _initiative;
-	private readonly CGuiTextBox? _leaderName;
+	private readonly CCombatLeaderView _leader;
 	private readonly CGuiTextBox? _tacticName;
 	private readonly CGuiIcon? _tacticPicture;
 	private readonly List<CCombatUnitEntry> _front = new();
@@ -46,7 +46,7 @@ public sealed class CCombatSideView : ICombatSideView
 		_reserves = window.FindListBox("reserves");
 		_shield = window.FindIcon("shield");
 		_initiative = window.FindIcon("initiative_indicator");
-		_leaderName = window.FindTextBox("leader_name");
+		_leader = new CCombatLeaderView(window, context);
 		_tacticName = window.FindTextBox("tactic_name");
 		_tacticPicture = window.FindIcon("tactic_picture");
 		Update();
@@ -70,12 +70,11 @@ public sealed class CCombatSideView : ICombatSideView
 		Fill(_committed, _front, _side.Front);
 		Fill(_reserves, _waiting, _side.Reserves);
 
-		// A battle's leader is not built yet: a side has none, the portrait stays the empty
-		// one, and with no skill on either side nobody has the initiative.
-		Set(_leaderName, CCombatViewText.LeaderName(_context.Localisation.Localise, _side));
-		if (_initiative is { Visible: true })
+		_leader.Update(_side);
+		bool initiative = CCombatViewText.HasInitiative(_side);
+		if (_initiative is not null && _initiative.Visible != initiative)
 		{
-			_initiative.Visible = false;
+			_initiative.Visible = initiative;
 		}
 
 		CCountryTag? flag = CCombatViewText.Flag(_state, _side);

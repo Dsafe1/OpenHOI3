@@ -184,7 +184,12 @@ does neither.
 - **The child a window names as its `background` stands at the window's corner, whatever
   position it declares.** It is always a button, usually one named `Background`. **A
   cornered-tile sprite fills the window, repeating; a plain picture keeps its own size and
-  is not stretched.** `measured` on the files and on the orders windows, 2026-10-09:
+  is not stretched.** A cornered tile that declares a `borderSize` keeps its corners and repeats
+  its edges and its middle between them - the dialogs' 282-pixel art is three cells of 94, and
+  repeated whole it leaves a seam of its transparent edge. Thirteen windows have one, the
+  dialogs among them, and none was built before the leader window's confirmation on
+  2026-10-11; `measured` on that screenshot alone. `measured` on the files and on the orders
+  windows, 2026-10-09:
   - of the 41 windows of the base game that name a background, 26 have a cornered tile and
     15 a plain picture, and **not one of the 15 pictures is the size of its window** - the
     brigade view's is 400 by 632 in a window declared 1024 by 768;
@@ -478,6 +483,12 @@ scalable canvas of section 3 could not survive. So:
 - **A button says whether the mouse is held down on it**, which is what lets a screen
   repeat a step while it is (`builders.md`, section 6), and can be given another sprite
   by name.
+- **A button may answer the right mouse button too**, going down and coming up on it - and
+  takes it only where a screen asks, so a right click elsewhere still goes on to what lies
+  under it. The original's observer of a button has nine events and of a checkbox six; which
+  is which was not read, and the leader window's two that are taken for the right button
+  were inferred from where they sit - the maintainer confirmed both on 2026-10-11
+  (`leaders.md`, section 12).
 
 ## What is not established, in one place
 

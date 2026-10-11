@@ -158,9 +158,11 @@ public partial class CGuiWindow : CGuiObject
 
 	/// <summary>
 	/// The child a window names as its background. It is put at the window's corner
-	/// whatever position it declares. A cornered tile fills the window, repeating. A
-	/// plain picture is not a tile and is not stretched: it keeps its own size - the
-	/// windows that have one are of another size than their art, every one of them.
+	/// whatever position it declares. A cornered tile fills the window, repeating - and
+	/// one that declares a border keeps its corners and repeats its edges and its middle
+	/// between them, as a scrollbar's track does; the dialogs are the first such windows
+	/// built. A plain picture is not a tile and is not stretched: it keeps its own size -
+	/// the windows that have one are of another size than their art, every one of them.
 	/// It takes the clicks that fall on it and does nothing with them. Measured on
 	/// the orders windows: see <c>docs/mechanics/interface.md</c>, section 3.
 	/// </summary>
@@ -171,6 +173,23 @@ public partial class CGuiWindow : CGuiObject
 		if (sprite is null || texture is null)
 		{
 			return null;
+		}
+		if (sprite.IsTiled && sprite.Border != Vector2.Zero)
+		{
+			var patch = new NinePatchRect
+			{
+				Name = type.Name.Length == 0 ? "Background" : type.Name,
+				Texture = texture,
+				PatchMarginLeft = (int)sprite.Border.X,
+				PatchMarginRight = (int)sprite.Border.X,
+				PatchMarginTop = (int)sprite.Border.Y,
+				PatchMarginBottom = (int)sprite.Border.Y,
+				AxisStretchHorizontal = NinePatchRect.AxisStretchMode.Tile,
+				AxisStretchVertical = NinePatchRect.AxisStretchMode.Tile,
+				MouseFilter = MouseFilterEnum.Stop,
+			};
+			patch.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+			return patch;
 		}
 		var rect = new TextureRect
 		{

@@ -4,6 +4,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -193,10 +194,36 @@ public class CombatViewTextTests
 		Assert.Equal("(No Commander)", CCombatViewText.LeaderName(Localise, combat.Attacker));
 		Assert.Equal(Ita, CCombatViewText.Flag(state, combat.Attacker));
 
-		// With no country left the province's holder's flag stands in, and there is no name.
-		combat.Defender.Countries.Clear();
+		// With no country still fighting the province's holder's flag stands in, and the
+		// name is left as it was.
+		combat.Defender.Standing.Clear();
 		Assert.Equal(Eth, CCombatViewText.Flag(state, combat.Defender));
-		Assert.Equal("", CCombatViewText.LeaderName(Localise, combat.Defender));
+		Assert.Null(CCombatViewText.LeaderName(Localise, combat.Defender));
+		Assert.Null(CCombatViewText.LeaderPortrait(combat.Defender));
+	}
+
+	[Fact]
+	public void A_side_shows_its_highest_ranked_leader_and_the_more_skilled_has_the_initiative()
+	{
+		CGameState state = State(out CCountry italy, out CCountry ethiopia);
+		CUnit first = Division(state, italy, Dolo);
+		CUnit second = Division(state, italy, Dolo);
+		CUnit defender = Division(state, ethiopia, Imi);
+		first.Leader = new CLeader(1) { Name = "Graziani", Rank = 1, Skill = 3, Picture = "graziani" };
+		second.Leader = new CLeader(2) { Name = "Badoglio", Rank = 2, Skill = 1, Picture = "badoglio" };
+		second.Leader.Unit = second;
+		CCombat combat = Battle(state, first, defender);
+		combat.Attacker.Add(second);
+
+		Assert.Equal("Badoglio", CCombatViewText.LeaderName(Localise, combat.Attacker));
+		Assert.Equal("gfx/pictures/portraits/badoglio.tga", CCombatViewText.LeaderPortrait(combat.Attacker));
+		Assert.Equal(Ita, CCombatViewText.Flag(state, combat.Attacker));
+		Assert.True(CCombatViewText.HasInitiative(combat.Attacker));     // 1 against nobody's 0
+		Assert.False(CCombatViewText.HasInitiative(combat.Defender));
+
+		defender.Leader = new CLeader(3) { Name = "Ras Kassa", Rank = 1, Skill = 1 };
+		Assert.False(CCombatViewText.HasInitiative(combat.Attacker));    // equal: neither
+		Assert.False(CCombatViewText.HasInitiative(combat.Defender));
 	}
 
 	[Fact]
