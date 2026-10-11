@@ -132,6 +132,13 @@ of all of them, which was not read; here it is the country's file in `gfx/flags`
 size, and a tag nobody has draws nothing where the original draws the flag of the country numbered
 1.
 
+`£` and the letters and underscores after it **draw a unit's counter**: the sprite `GFX_counter_` +
+that name, of which only the middle - 0.26 to 0.75 across, 0.23 to 0.55 down, the unit's symbol
+without its frame - is drawn, 30 by 16 from the top of the line, and the pen moves on 30. A name
+with no sprite draws nothing and still moves the pen. `confirmed`
+(`reversing/findings/FINDINGS-productiontooltip.md`, section 7). A build queue line's tooltip uses
+it (`productionscreen.md`, section 8).
+
 *Ours:* the original's tooltip says more in its other modes - diplomatic, intelligence, victory
 points, theatres, weather, resources, naval - which are not built here, and of the player's and its
 allies' objectives on the province, which do not exist here. A tooltip for every province is built,
@@ -172,8 +179,9 @@ that is read.
 
 - **The console's `tooltips`**, which turns every tooltip off and on, and its tooltip debug,
   which adds a province's tag and number: there is no console.
-- **What each screen's tooltips say.** The map's is built (section 7), and the top bar's
-  (`topbar.md`, section 14).
+- **What each screen's tooltips say.** The map's is built (section 7), the top bar's
+  (`topbar.md`, section 14), the production screen's (`productionscreen.md`, section 8), the
+  technology screen's (`technologyscreen.md`, section 9) and the sliders' (`sliders.md`, section 6).
 
 ## Not established
 

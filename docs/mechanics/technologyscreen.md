@@ -222,6 +222,79 @@ and what a technology does to a kind of unit is not listed at all.
   work it out** (`CResearch.ShareOut`), so the backgrounds and dates are right the moment
   the queue is changed, before a day has run.
 
+## 9. Tooltips
+
+Source: `reversing/findings/FINDINGS-techtooltip.md`, read 2026-10-11. Tried with `--click`; the
+maintainer has not looked at them. How a tooltip is shown is `tooltips.md`; the sliders' own are
+`sliders.md`, section 6. `confirmed` unless said.
+
+**`leader_ship_label`** says where the leadership comes from:
+
+    base = the sum over the provinces the country controls of
+           (its leadership + local_leadership) * (1 + local_leadership_modifier), none below nothing
+
+`BASE`, ` §Y`, the base to two places, cut, `§W` and a line; the sources of `global_leadership` and
+then of `global_leadership_modifier`, straight on; and where technology adds leadership, a line,
+`FROM_TECHNOLOGY`, `: §G+`, it times a hundred to two places, `%§W` and a line. The original adds a
+line for each technology the country shares with another, `SHARE_TECH_TOOLTIP`; nothing shares here.
+
+**An entry of the tree** says the same over any of its elements:
+
+- the name, ` (`, the level - the one the country would research next, or **1 for a technology of
+  one level, had or not** - and `)` and two lines;
+- where it may not be researched: `TTE_ALREADY` where it is on the queue, else why not - for a
+  technology of one level had already `ALREADY_RESEARCHED` - and a line;
+- what a level does - **not built**, below;
+- the third part, under its own line once the mouse is still: `TECH_DC_TO_STOP` for one on the queue,
+  else `TECH_DC_TO_START`.
+
+**A theory or practical** says its name. Where another country shares it, the second half is
+`TW_SKILL_SHARE` with the sharer and both levels; nothing shares here.
+
+**A line of the queue** answers by its element: `tech_prio_maxup` `PEN_MAX_PRIO`, `tech_prio_up`
+`PEN_PRIO`, `tech_prio_down` `PEN_NON_PRIO`, `tech_prio_maxdown` `PEN_MAX_NON_PRIO`, `cancel`
+`TECH_SUSPEND`, anything else `TECH_TREE_INFO` with the level being researched for a technology of
+many levels and nothing for one of one. **Then, whichever it was**, research efficiency: where its
+sources come to two characters or more, or technology adds above nothing, a line,
+`MODIFIER_RESEARCH_EFFICIENCY` and `:` and a line; what technology adds as on the leadership label,
+where above nothing; and the sources, where two characters or more.
+
+**The panel for one technology:**
+
+- **a category icon** of `input_box`: `TECH_ICON_SPEED_MOD` with the category, the country's skill
+  in it to one place, its weight for this technology times a hundred to no places, and what the skill
+  does to the speed - `§R` below nothing or `§G+` above, then it times a hundred with only the places
+  it needs (`research.md`, section 3: the skill's term of the bonus);
+- **`start`**: `TTE_ALREADY` for one on the queue; why not for one that may not be researched;
+  otherwise `START_RESEARCH` with the days, below;
+- **`icon_finish_type`**: `ICON_FINISH` with the category a level adds to;
+- **`difficulty`**: `DIFFICULTY_TECH`.
+
+**The start button's days** are those at one leadership a day, from nothing done, ignoring what the
+country gives research:
+
+    level = the country's level + 1
+    work  = what a level costs / research efficiency
+    days  = work * this year's penalty for that level           if that is no more than the year has left
+    else    the year's days left, and of the work what they do at this year's penalty taken off;
+            then year by year, what is left at that year's penalty, a whole year at a time
+    $DAYS$ = days, cut
+
+The penalty is the year's of `research.md`, section 3; a year has 365 days and today counts as left.
+
+**Kept as read**, though they look odd: an entry of one level says `(1)` whatever the country has;
+the start button's days are at one leadership a day.
+
+*Ours:*
+
+- **What a level does is left out of an entry's tooltip.** The original writes it there - the units
+  and building it allows, each unit type's figures and the country-wide ones - from a routine not
+  read, which is also what the panel's `effects` list is made of (section 7).
+- **Why a technology may not be researched** is said only for one of one level had already. The
+  original otherwise has its `allow` block describe itself, which was not read, and nothing is said.
+- **A text box lets the mouse through** to what is under it; over an entry's name it is the entry's
+  background that answers, which says the same.
+
 ## What is not established, in one place
 
 1. **Little was compared figure for figure.** The maintainer used the screen on
@@ -234,5 +307,6 @@ and what a technology does to a kind of unit is not listed at all.
 5. **The separator in a level's name key.**
 6. **Sharing.** A category another country shares shows green, and an entry's input icons
    may show the sharer's figure; nothing shares yet.
-7. **Tooltips**, which on this screen carry most of the detail: what a level costs, why a
-   technology may not be researched, what a priority button does to a project's speed.
+7. **Two parts of the tooltips** (section 9): what a level does, which an entry's tooltip carries
+   and the panel's `effects` are made of, and the account a technology's `allow` block gives of
+   why it may not be researched.

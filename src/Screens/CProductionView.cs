@@ -1,12 +1,15 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Provinces;
 
 namespace OpenHOI3.Screens;
 
@@ -32,7 +35,10 @@ public partial class CProductionView : CCountryView
 		("money_value", EGoods.Money),
 	};
 
+	private const string Underground = "underground";
+
 	private readonly List<(CGuiTextBox Box, EGoods Goods)> _resources = new();
+	private CGuiButton? _escort;
 	private CGuiTextBox? _ic;
 	private CGuiTextBox? _nukes;
 	private CGuiTextBox? _transports;
@@ -102,6 +108,42 @@ public partial class CProductionView : CCountryView
 			_sliders.Move(share, Need((EProductionCategory)share));
 			_sliders.Group.SetHeld(share, true);
 		};
+
+		SetTooltips(window);
+	}
+
+	/// <summary>What the screen's own elements say in a tooltip. See <c>docs/mechanics/productionscreen.md</c>, section 8.</summary>
+	private void SetTooltips(CGuiWindow window)
+	{
+		Func<string, string> localise = Context.Localisation.Localise;
+		_sliders?.SetTooltips(
+			(share, amount) => CShareTooltips.Production(localise, Simulation.State, Player, (EProductionCategory)share,
+				CShareTooltips.ProductionShareAt(amount, Player.TotalIc)),
+			locked => CShareTooltips.LockLine(localise, locked));
+
+		foreach (string name in CProductionTooltips.Elements())
+		{
+			if (window.TryFindElement(name) is { } element)
+			{
+				element.Tooltip = () => CProductionTooltips.For(localise, Player, name);
+			}
+		}
+
+		_escort = window.TryFindButton("escort");
+		if (_escort is not null)
+		{
+			_escort.Tooltip = () => new CTooltip { Text = CProductionTooltips.Escort(localise, Simulation.State, Player) };
+		}
+
+		// The underground's button says something only when it is disabled, which nothing does here.
+		foreach (CBuilding building in Simulation.State.Buildings)
+		{
+			if (building.IsCapital && !building.Key.Equals(Underground, StringComparison.OrdinalIgnoreCase)
+				&& window.TryFindButton(building.Key) is { } button)
+			{
+				button.Tooltip = () => new CTooltip { Text = CProductionTooltips.Building(localise, building) };
+			}
+		}
 	}
 
 	private void AddBuilder(CGuiWindow window, string button, CBuilderWindow builder)
@@ -259,6 +301,10 @@ public partial class CProductionView : CCountryView
 		Set(_nukes, CProductionScreenText.Nukes(CFixedPoint.Zero));
 		Set(_transports, CProductionScreenText.Convoys(country.Transports, 0));
 		Set(_escorts, CProductionScreenText.Convoys(country.Escorts, 0));
+		if (_escort is not null)
+		{
+			_escort.Disabled = !CProductionTooltips.MayBuildEscorts(country);
+		}
 
 		ShowStrategicResources(country);
 		ShowQueue(state, country);
@@ -353,7 +399,15 @@ public partial class CProductionView : CCountryView
 				return;
 			}
 			// The icon keeps the sprite its file gives it when there is none of this name.
-			entry.FindIcon("strat_icon_in_prod")?.SetSprite("GFX_" + key + "_small");
+			if (entry.FindIcon("strat_icon_in_prod") is { } icon)
+			{
+				icon.SetSprite("GFX_" + key + "_small");
+				string resource = key;
+				icon.Tooltip = () => new CTooltip
+				{
+					Text = CProductionTooltips.StrategicResource(Context.Localisation.Localise, Simulation.State, Player, resource),
+				};
+			}
 			_strategicResources.Add(entry);
 		}
 	}

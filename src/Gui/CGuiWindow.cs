@@ -4,6 +4,7 @@ using Godot;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gfx;
+using OpenHOI3.Interface.Tooltips;
 
 namespace OpenHOI3.Gui;
 
@@ -271,6 +272,41 @@ public partial class CGuiWindow : CGuiObject
 	public CGuiIcon? TryFindIcon(string name)
 	{
 		return _icons.GetValueOrDefault(name);
+	}
+
+	/// <summary>
+	/// Gives every element of the window, at any depth, a tooltip asked of the element's name -
+	/// for an entry whose screen answers for all of it by which of its elements is under the
+	/// mouse, as the original's do. An element that lets the mouse through is left so, and
+	/// what is under it answers: made to take the mouse, a text box over a button would take
+	/// that button's clicks too.
+	/// </summary>
+	public void SetTooltips(Func<string, CTooltip> tooltip)
+	{
+		foreach (CGuiObject element in Descendants(this))
+		{
+			if (element.MouseFilter == MouseFilterEnum.Ignore)
+			{
+				continue;
+			}
+			string name = element.Name;
+			element.Tooltip = () => tooltip(name);
+		}
+	}
+
+	private static IEnumerable<CGuiObject> Descendants(Node node)
+	{
+		foreach (Node child in node.GetChildren())
+		{
+			if (child is CGuiObject element)
+			{
+				yield return element;
+			}
+			foreach (CGuiObject below in Descendants(child))
+			{
+				yield return below;
+			}
+		}
 	}
 
 	/// <summary>

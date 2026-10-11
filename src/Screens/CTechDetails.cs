@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Research;
@@ -31,6 +32,8 @@ public sealed class CTechDetails
 	private readonly CGuiButton? _start;
 	private readonly CGuiListBox? _effects;
 	private CTechnology? _shown;
+	private CGameState? _state;
+	private CCountry? _country;
 
 	/// <summary>Raised when the button that starts or stops the research is pressed.</summary>
 	public event Action? StartPressed;
@@ -60,6 +63,22 @@ public sealed class CTechDetails
 		{
 			close.Pressed += () => ClosePressed?.Invoke();
 		}
+
+		// What the panel's elements say: technologyscreen.md, section 9.
+		Func<string, string> localise = context.Localisation.Localise;
+		if (_start is not null)
+		{
+			_start.Tooltip = () => _shown is null || _state is null || _country is null ? CTooltip.Empty
+				: new CTooltip { Text = CTechnologyTooltips.Start(localise, _state, _country, _shown) };
+		}
+		if (window.FindIcon("icon_finish_type") is { } finish)
+		{
+			finish.Tooltip = () => _shown is null ? CTooltip.Empty : new CTooltip { Text = CTechnologyTooltips.IconFinish(localise, _shown) };
+		}
+		if (_difficulty is not null)
+		{
+			_difficulty.Tooltip = () => new CTooltip { Text = localise("DIFFICULTY_TECH") };
+		}
 	}
 
 	public bool Visible
@@ -75,6 +94,8 @@ public sealed class CTechDetails
 		int level = country.TechnologyLevels.GetValueOrDefault(technology.Name);
 		bool queued = country.ResearchQueue.Contains(technology.Name);
 		bool done = technology.IsSingleLevel && level >= 1;
+		_state = state;
+		_country = country;
 
 		if (!ReferenceEquals(technology, _shown))
 		{
@@ -137,7 +158,9 @@ public sealed class CTechDetails
 			_description.Text = _context.Localisation.Localise(technology.Name + "_desc");
 		}
 		CTechCategoryIcons.ShowFinishType(_window, technology, small: false);
-		CTechCategoryIcons.Fill(_context, _window.FindBox("input_box"), technology, small: false);
+		CTechCategoryIcons.Fill(_context, _window.FindBox("input_box"), technology, small: false,
+			(category, weight) => _country is null ? CTooltip.Empty
+				: new CTooltip { Text = CTechnologyTooltips.CategoryIcon(_context.Localisation.Localise, _country, category, weight) });
 
 		// What a level is worth, one line an effect. The original writes these out in
 		// words of its own, unit by unit; that has not been read, so these are the plain

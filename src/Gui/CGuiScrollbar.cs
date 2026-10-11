@@ -36,6 +36,7 @@ public partial class CGuiScrollbar : CGuiObject
 	private long _value;
 	private bool _dragging;
 	private bool _hovered;
+	private Vector2 _pointer;
 	private float _grab;
 	private bool _locked;
 
@@ -151,6 +152,13 @@ public partial class CGuiScrollbar : CGuiObject
 			}
 		}
 	}
+
+	/// <summary>
+	/// Whether the mouse is on the slider itself - the original's <c>ds_SliderButton</c> - and
+	/// not elsewhere on the bar. Where the mouse is comes of the bar's own mouse events, so that
+	/// a pointer moved by the developer switches counts as one moved by hand.
+	/// </summary>
+	public bool MouseOnSlider => _hovered && _slider is { Visible: true } && _slider.GetRect().HasPoint(_pointer);
 
 	private float Length => _horizontal ? Size.X : Size.Y;
 
@@ -272,6 +280,10 @@ public partial class CGuiScrollbar : CGuiObject
 			return;
 		}
 
+		if (@event is InputEventMouseMotion moved)
+		{
+			_pointer = moved.Position;
+		}
 		if (@event is InputEventMouseMotion motion && _dragging)
 		{
 			AcceptEvent();

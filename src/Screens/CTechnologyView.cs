@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
@@ -96,6 +97,16 @@ public partial class CTechnologyView : CCountryView
 			_sliders.Move(share, Need((ELeadershipCategory)share));
 			_sliders.Group.SetHeld(share, true);
 		};
+
+		Func<string, string> localise = Context.Localisation.Localise;
+		_sliders.SetTooltips(
+			(share, amount) => CShareTooltips.Leadership(localise, Simulation.State, Player, (ELeadershipCategory)share,
+				CShareTooltips.LeadershipShareAt(amount, Player.TotalLeadership)),
+			locked => CShareTooltips.LockLine(localise, locked));
+		if (_leadership is not null)
+		{
+			_leadership.Tooltip = () => new CTooltip { Text = CTechnologyTooltips.LeadershipLabel(localise, Simulation.State, Player) };
+		}
 	}
 
 	/// <summary>One entry for each theory and practical, where the files give its name a position.</summary>
@@ -113,6 +124,7 @@ public partial class CTechnologyView : CCountryView
 			}
 			Place(entry.Window, category.Name);
 			_skillsWindow.AddChild(entry.Window);
+			entry.Window.SetTooltips(_ => new CTooltip { Text = CTechnologyTooltips.Skill(Context.Localisation.Localise, category) });
 			_skills.Add(entry);
 		}
 	}
@@ -152,6 +164,8 @@ public partial class CTechnologyView : CCountryView
 			_treeWindow.AddChild(entry.Window);
 			entry.Pressed += () => Select(technology);
 			entry.DoublePressed += () => ToggleResearch(technology);
+			// The whole entry answers alike, whichever of its elements is under the mouse.
+			entry.Window.SetTooltips(_ => CTechnologyTooltips.TreeEntry(Context.Localisation.Localise, Simulation.State, Player, technology));
 			_tree.Add(entry);
 		}
 	}
@@ -266,6 +280,7 @@ public partial class CTechnologyView : CCountryView
 				line.Pressed += () => Select(technology);
 				line.Cancelled += () => ToggleResearch(technology);
 				line.Reordered += by => Reorder(technology, by);
+				line.Window.SetTooltips(element => new CTooltip { Text = CTechnologyTooltips.QueueLine(localise, Player, technology, element) });
 				_queueList.Add(line.Window);
 				_queue.Add(line);
 			}

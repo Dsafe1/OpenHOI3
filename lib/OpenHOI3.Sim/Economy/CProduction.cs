@@ -103,13 +103,19 @@ public static class CProduction
 	/// <summary>The supplies a country's supply share makes in a day.</summary>
 	public static CFixedPoint SuppliesMade(CGameState state, CCountry country)
 	{
-		CFixed15 made = country.ProductionShares[(int)EProductionCategory.Supplies] * CFixed15.FromInt(country.TotalIc);
+		return SuppliesMade(state, country, country.ProductionShares[(int)EProductionCategory.Supplies]).ToThousandths();
+	}
+
+	/// <summary>The supplies a share of the country's IC would make in a day, before it is turned into thousandths.</summary>
+	public static CFixed15 SuppliesMade(CGameState state, CCountry country, CFixed15 share)
+	{
+		CFixed15 made = share * CFixed15.FromInt(country.TotalIc);
 		made *= CFixed15.FromThousandths(state.Defines[CResources.EconomySection, IcToSupplies]);
 
 		// The law's bonus and the technology's are added to each other, not multiplied.
 		CFixedPoint bonus = country.Modifier[GlobalSupplies] + country.Technology[TechnologySupplies];
 		made *= CFixed15.FromThousandths(bonus) + CFixed15.One;
-		return made.ToThousandths();
+		return made;
 	}
 
 	/// <summary>
@@ -330,8 +336,13 @@ public static class CProduction
 	/// </summary>
 	public static CFixed15 DissentChange(CGameState state, CCountry country)
 	{
-		return CFixed15.FromThousandths(ConsumerGoodsDemand(state, country))
-			- country.ProductionShares[(int)EProductionCategory.ConsumerGoods]
+		return DissentChange(state, country, country.ProductionShares[(int)EProductionCategory.ConsumerGoods]);
+	}
+
+	/// <summary>What a day would do to the country's dissent with its consumer goods share at that.</summary>
+	public static CFixed15 DissentChange(CGameState state, CCountry country, CFixed15 share)
+	{
+		return CFixed15.FromThousandths(ConsumerGoodsDemand(state, country)) - share
 			+ CFixed15.FromThousandths(country.Modifier[DissentModifier]);
 	}
 

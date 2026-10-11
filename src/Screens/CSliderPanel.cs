@@ -3,6 +3,7 @@ using Godot;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 
 namespace OpenHOI3.Screens;
@@ -58,6 +59,30 @@ public sealed class CSliderPanel
 
 	/// <summary>Raised when the button under a slider's title is pressed, with which share it is.</summary>
 	public event Action<int>? NeedPressed;
+
+	/// <summary>
+	/// Gives each slider's bar a tooltip: what its share would do at the amount the slider
+	/// holds, and on the slider itself, delayed, whether a right click locks or unlocks it.
+	/// See <c>docs/mechanics/sliders.md</c>, section 6.
+	/// </summary>
+	/// <param name="text">What a share would do at an amount.</param>
+	/// <param name="lockLine">The line for a slider locked or not.</param>
+	public void SetTooltips(Func<int, CFixedPoint, string> text, Func<bool, string> lockLine)
+	{
+		for (int share = 0; share < _sliders.Length; share++)
+		{
+			if (_sliders[share]?.Scrollbar is not { } bar)
+			{
+				continue;
+			}
+			int which = share;
+			bar.Tooltip = () => new CTooltip
+			{
+				Text = text(which, _group[which]),
+				Delayed = bar.MouseOnSlider ? lockLine(_group.IsHeld(which)) : "",
+			};
+		}
+	}
 
 	public CSliderGroup Group => _group;
 

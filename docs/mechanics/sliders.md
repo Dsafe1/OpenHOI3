@@ -140,6 +140,52 @@ shares change for any other reason the sliders follow them.
 - **The scrollbar's layout is ours** - a button at each end, the track between, the slider
   on the track: `interface.md`, section 2.
 
+## 6. Tooltips
+
+Source: `reversing/findings/FINDINGS-productiontooltip.md`, section 4, read 2026-10-11, and
+`reversing/findings/FINDINGS-techtooltip.md`, section 1. Tried with `--click`; the maintainer has
+not looked at them. `confirmed` unless said.
+
+**A slider's tooltip is what its share would do at the slider's position**, before the position is
+sent to the game. Over the slider itself, the second half says `SLIDER_LOCKED_TOOLTIP` when it is
+locked and `SLIDER_UNLOCKED_TOOLTIP` when not.
+
+**The position becomes a share** in two ways, one a screen:
+
+- production: the amount over the country's IC, worked out in floats and then **rounded** to the
+  nearest 32768th; with no IC the amount itself;
+- technology: the amount **rounded** to a 32768th first, and then divided by the country's
+  leadership in that kind, **cut**; with no leadership the amount itself.
+
+*Ours:* the amounts are thousandths, so the production screen's division is exact before it is
+rounded where the original's floats are not.
+
+In what follows `s` is the share, `IC` the country's IC and `L` its leadership, each product cut to a
+32768th as the original makes it, and every figure **rounded** to its places. All of it is the first
+half.
+
+| share | what it says |
+| --- | --- |
+| lend-lease | nothing |
+| consumer goods | a line, `DCG_TOTAL_NEED` with what the country needs on consumer goods (its demand and its `dissent` modifier, never below nothing) times a hundred, a line; `DCG_TROOPS_GOODS` with the standing army's term of the demand times a hundred and the land brigades in service, a line; the sources of `war_consumer_goods_demand` at war or `peace_consumer_goods_demand` at peace; and where a day would move dissent **at this share**, a line, `DCG_DISSENT` with `§G` and the change below nothing or `§R+` and it above, then a space |
+| production | `DCG_PRODUCTION`: `IC * s` over the build queue's need, times a hundred - **not divided at all when nothing is needed**; what it spent; the need |
+| supplies | `DCG_SUPPLIES`: what `s` makes, `§R` at nothing or less and `§G+` above; `s` times a hundred; then **straight after**, with no line between, the sources of `global_supplies`; then where technology adds to supplies, a line, `FROM_TECHNOLOGY`, `: §G+`, it times a hundred, `%§W` and a line |
+| reinforcement | `DCG_REINFORCE`: `IC * s` over what reinforcing needs, times a hundred, **undivided when nothing is needed**; and where `reinforcement_bonus` is above nothing, a space and `DCG_REINFORCE_BONUS` with one and the bonus **to one place, cut**: `1.2` |
+| upgrades | `DCG_UPGRADE` with the brigades upgrading and what upgrading needs; then **with nothing between**, `DCG_UPGRADE_OK` where `s` in thousandths, cut, times `IC` is at least the need, else `DCG_UPGRADE_BAD` with `IC * s` over the need times a hundred |
+| officers | `DCG_OFFICERS`: `L * s * LEADERSHIP_TO_OFFICERS * (1 + officer_recruitment)` to one place; then where the sources of `officer_recruitment` are more than two characters, a line and them |
+| diplomacy | `DCG_DIPLOMACY`: `L * s * LEADERSHIP_TO_DIPLOMACY`, and the influence's upkeep |
+| espionage | `DCG_ESPIONAGE`: `L * s * LEADERSHIP_TO_SPIES` |
+| research | `DCG_RESEARCH`: `L * s`, the projects, and their cover - `L * s` over the projects, or one with none - in `§R` under one and `§G` from one, times a hundred, `%§W` |
+
+**Kept as read**, though they look odd: production and reinforcement with nothing needed give a
+hundred times the IC; the supply share's sentence runs into its first source; the upgrade share's
+two sentences touch; the reinforcement bonus is cut where everything else is rounded.
+
+*Ours:* the standing army's term of the consumer goods demand is not built, so it reads `0.00`; a
+land brigade is in service when its unit is not a reserve or the country has mobilised. Production
+says what it spent as the day's spending of its queue. Nothing influences anybody, so the upkeep is
+nothing.
+
 ## What is not established, in one place
 
 1. **Little was seen running.** The maintainer tried the sliders on 2026-10-08: dragging

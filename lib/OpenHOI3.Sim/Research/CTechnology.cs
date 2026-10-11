@@ -12,6 +12,9 @@ namespace OpenHOI3.Sim.Research;
 /// </summary>
 public sealed class CTechnology
 {
+	/// <summary>The effect that lets a country build convoy escorts, kept as one per level.</summary>
+	public const string AllowEscorts = "allow_escorts";
+
 	public CTechnology(string name, int maxLevel, CModifier effectPerLevel)
 	{
 		Name = name;

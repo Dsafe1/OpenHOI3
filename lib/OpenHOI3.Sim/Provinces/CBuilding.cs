@@ -45,6 +45,9 @@ public sealed class CBuilding
 	/// <summary><c>repair</c>: whether what it has lost comes back by the day. It does unless its file says no.</summary>
 	public bool IsRepaired { get; init; } = true;
 
+	/// <summary><c>capital</c>: whether the production screen looks for a button of its name.</summary>
+	public bool IsCapital { get; init; }
+
 	public override string ToString()
 	{
 		return Key;

@@ -1,5 +1,7 @@
-
+using System;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Tooltips;
+using OpenHOI3.Sim;
 using OpenHOI3.Sim.Research;
 
 namespace OpenHOI3.Screens;
@@ -28,21 +30,33 @@ public static class CTechCategoryIcons
 		}
 	}
 
-	/// <summary>Fills a box with one <c>tech_category_entry</c> for each category that makes the technology cheaper.</summary>
-	public static void Fill(CGuiContext context, CGuiOverlappingBox? box, CTechnology technology, bool small)
+	/// <summary>
+	/// Fills a box with one <c>tech_category_entry</c> for each category that makes the
+	/// technology cheaper, and where a tooltip is given, its icon says that, asked of the
+	/// category and its weight.
+	/// </summary>
+	public static void Fill(CGuiContext context, CGuiOverlappingBox? box, CTechnology technology, bool small,
+		Func<string, CFixedPoint, CTooltip>? tooltip = null)
 	{
 		if (box is null)
 		{
 			return;
 		}
 		box.Clear();
-		foreach ((string category, _) in technology.ResearchBonusFrom)
+		foreach ((string category, CFixedPoint weight) in technology.ResearchBonusFrom)
 		{
 			if (CGuiWindow.CreateEntry(context, "tech_category_entry") is not { } entry)
 			{
 				return;
 			}
-			entry.FindIcon("tech_icon")?.SetSprite(Prefix + category + (small ? Small : ""));
+			if (entry.FindIcon("tech_icon") is { } icon)
+			{
+				icon.SetSprite(Prefix + category + (small ? Small : ""));
+				if (tooltip is not null)
+				{
+					icon.Tooltip = () => tooltip(category, weight);
+				}
+			}
 			box.Add(entry);
 		}
 	}

@@ -108,26 +108,36 @@ public static class CResearch
 			return CFixed15.Zero;
 		}
 
-		// Researching a level before the year it is due costs more for every year early.
+		long penalty = YearPenalty(state, technology, level, state.Date.Year);
+		long gain = ResearchEfficiency(country) * leadership.Raw / CFixedPoint.Scale;
+		gain = penalty == 0 ? -1 : gain * CFixedPoint.Scale / penalty;
+		return new CFixed15((CFixed15.FromThousandths(new CFixedPoint(gain)).Raw << CFixed15.Places) / cost.Raw);
+	}
+
+	/// <summary>
+	/// What researching a level in a year costs over its plain cost, in thousandths: a
+	/// thousand, and more for every year it is early. Level 1 is due in the start year,
+	/// level 2 at the first offset, and each after that so many years later again.
+	/// </summary>
+	public static long YearPenalty(CGameState state, CTechnology technology, int level, int year)
+	{
 		int due = level <= 1
 			? technology.StartYear
 			: technology.FirstOffset + Math.Max(level - 2, 0) * technology.AdditionalOffset;
-		long early = due - state.Date.Year;
+		long early = due - year;
 		long penalty = CFixedPoint.Scale;
 		if (early > 0)
 		{
 			penalty += early * CFixedPoint.Scale * state.Defines[CountrySection, YearImpact].Raw / CFixedPoint.Scale;
 		}
+		return penalty;
+	}
 
+	/// <summary>How efficiently the country researches, in thousandths, never below a tenth.</summary>
+	public static long ResearchEfficiency(CCountry country)
+	{
 		long efficiency = CFixedPoint.Scale + country.Modifier[Efficiency].Raw + country.Technology[Efficiency].Raw;
-		if (efficiency < LeastEfficiency)
-		{
-			efficiency = LeastEfficiency;
-		}
-
-		long gain = efficiency * leadership.Raw / CFixedPoint.Scale;
-		gain = penalty == 0 ? -1 : gain * CFixedPoint.Scale / penalty;
-		return new CFixed15((CFixed15.FromThousandths(new CFixedPoint(gain)).Raw << CFixed15.Places) / cost.Raw);
+		return efficiency < LeastEfficiency ? LeastEfficiency : efficiency;
 	}
 
 	/// <summary>Whether the country may research that level of a technology.</summary>

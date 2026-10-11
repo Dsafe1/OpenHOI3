@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Construction;
 
@@ -90,7 +91,13 @@ public sealed class CBuildQueueEntry
 	public static CBuildQueueEntry? Create(CGuiContext context, CConstruction construction)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "queue_entry");
-		return window is null ? null : new CBuildQueueEntry(window, construction);
+		if (window is null)
+		{
+			return null;
+		}
+		// The line answers by which of its elements is under the mouse.
+		window.SetTooltips(element => CProductionTooltips.QueueLine(context.Localisation.Localise, construction, element));
+		return new CBuildQueueEntry(window, construction);
 	}
 
 	public void Update(CGameState state, Func<string, string> localise)

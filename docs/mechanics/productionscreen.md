@@ -93,7 +93,7 @@ building and disabled when it does not. A mod's building gets a button by being 
 of its name.
 
 `confirmed` `theatres_calc_button` is hidden whenever the screen is drawn. `escort` is
-disabled until a technology allows escorts.
+disabled until a technology allows escorts - one whose file says `allow_escorts = yes`.
 
 `confirmed` **Four buttons order units, each by bringing up a window of its own**:
 `build_division_button` the division designer, `build_ship_button` the ship builder,
@@ -102,8 +102,9 @@ everything in the screen's own window but its frame - the country's picture, the
 the top piece, the close button, the headline and the automation line with its arrows -
 and the window comes up over that. `builders.md` has the four. Built 2026-10-08.
 
-*Not read:* what the other buttons do. *Ours:* `theatres_calc_button` is hidden; the rest
-are drawn as their files have them and do nothing. There are no buildings to place.
+*Not read:* what the other buttons do. *Ours:* `theatres_calc_button` is hidden and `escort`
+disabled as above; the rest are drawn as their files have them and do nothing, the building
+buttons never disabled. There are no buildings to place.
 
 ## 6. The four lists
 
@@ -170,6 +171,63 @@ no trade and no convoy.
 - **`slider_automation_setting`** and the two arrows beside it are drawn as their file has
   them; what the original writes there was not read.
 
+## 8. Tooltips
+
+Source: `reversing/findings/FINDINGS-productiontooltip.md`, read 2026-10-11. Tried with `--click`;
+the maintainer has not looked at them. How a tooltip is shown is `tooltips.md`; the sliders' own
+are `sliders.md`, section 6. `confirmed` unless said. By the element's name, all in the first half:
+
+| element | what it says |
+| --- | --- |
+| `energy_icon`, `_label`, `_value`, and the same for `metal`, `rm`, `oil`, `supplies`, `money`, `fuel` | that good's day, as the top bar's number of it says (`topbar.md`, section 14) |
+| `strat_icon_in_prod` | the resource, below |
+| `nuke_icon`, `nukes_label`, `nukes_value` | `NO_NUKE_PRODUCTION` where the country's technology makes no bombs, else `NUKE_PRODUCTION` with what it makes, two places |
+| `theatres_calc_button`, `theatres_assign_button` | `THEATRE_RECALC_DESC`, `THEATRE_ASSIGN_TROOPS_DESC` |
+| `escort` | `LEDGER_ESCORTS`; while the button is disabled, a line more: `NEED`, ` §Y` and the name of the first technology that allows escorts |
+| `convoy` | `CONVOYS` |
+| `underground` | only while the button is disabled: why it may not be used |
+| a building's button | the building's name and a line break; while the button is disabled, `NEED`, ` §Y` and the technology that unlocks it |
+| a line of the build queue | below |
+
+Nothing else on the screen says anything - not the IC figure, the counts of transports and
+escorts, nor a slider's title, value or need.
+
+**A strategic resource** is `STRAT_DET_RES_TT` - in English its name, a line, what the country has
+of the resource's modifier a line a value, a line, and **one line for each province whose resource
+reaches the country**:
+
+    "@" + its controller's tag + "  " + its name + " - " + colour + share * 100 to two places + "%§W"
+
+    standing = infrastructure * (1 + local + global infrastructure), held between 0.01 and 1
+    share    = standing / what it was built to, or -1 where it was built to nothing
+    colour   = §R under 0.330, §Y under 0.990, §G from there
+
+The provinces are those of the resource whose controller gives the country its resources
+(`modifiers.md`, section 6), for a country that holds land. **Kept as read**: a province's line
+leaves out the flat term its yield has, and one with nothing built reads `-0.10%` in red.
+`inferred`: the provinces come in the order the map numbers them.
+
+**A line of the build queue** answers by which of its elements is under the mouse:
+
+| element | first half | second half |
+| --- | --- | --- |
+| `cancel` | `PEN_CANCEL_PRODU` | `PEN_CANCEL_PRODU_DRO`, a blank line, `CANCEL_MULTI_CONSTRUCTIONS_DESC` |
+| `max_prio`, `prio`, `non_prio`, `max_non_prio` | `PEN_MAX_PRIO`, `PEN_PRIO`, `PEN_NON_PRIO`, `PEN_MAX_NON_PRIO` | |
+| `counter_type`, `production_queue_division`, `production_queue_air`, `production_queue_naval`, `series_info`, `unit_target` | one line per brigade, `£` + its type's key + ` ` + its name, and `BRIGADE_MIL_CON_CUMULATED_EXP` with the experience gathered, two places | |
+| anything else | `PEN_FULL_SPEED` for a line paid a full day, `PEN_PARTIAL_PROGRESS` with the part as a whole percentage, cut, or `PEN_NO_PROGRESS` | |
+
+`£` and a name draw a unit's counter (`tooltips.md`, section 7). A line that upgrades a brigade
+says `BRIGADE_UPGRADE_MIL_CON_INFO` instead; nothing upgrades through the queue here.
+
+*Ours:*
+
+- **Nothing disables a building's button or the underground's**, so a building says its name only and
+  the underground nothing. The escort button is disabled until a technology allows escorts, as
+  section 5 says it is - `allow_escorts = yes`, which the technology files are now read for.
+- **A text box lets the mouse through** to what is under it, as before: over `series_info` it is the
+  line's background that answers, which is the speed and not the brigades.
+- **The trade list's and the convoy list's lines, and the AI's needs**, are not read and are empty.
+
 ## What is not established, in one place
 
 1. **Little was seen running.** The maintainer confirmed one thing on 2026-10-08: a
@@ -181,5 +239,5 @@ no trade and no convoy.
    but how its date is written; **none of it has been looked at beside the running game**.
 4. **`slider_automation_setting`** and its arrows.
 5. **The trade list and the convoy list**, whose builders were found and not read.
-6. **Tooltips.** The screen's builder was found long ago
-   (`reversing/findings/FINDINGS-uinumbers.md`) and none is shown here.
+6. **The tooltips of the trade and convoy lists' lines**, and of the builder windows, which the
+   screen asks first (section 8).

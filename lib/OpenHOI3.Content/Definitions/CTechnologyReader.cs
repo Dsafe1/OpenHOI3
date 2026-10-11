@@ -155,6 +155,12 @@ public static class CTechnologyReader
 				{
 					effect.Set(entry.Key, value);
 				}
+				else if (entry.Key is not null && entry.Key.Equals(CTechnology.AllowEscorts, StringComparison.OrdinalIgnoreCase)
+					&& "yes".Equals(entry.Value, StringComparison.OrdinalIgnoreCase))
+				{
+					// A flag and not a figure: a level of it is worth one.
+					effect.Set(CTechnology.AllowEscorts, CFixedPoint.One);
+				}
 			}
 
 			string onCompletion = block.GetString("on_completion");

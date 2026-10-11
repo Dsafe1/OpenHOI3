@@ -27,6 +27,7 @@ public partial class CTooltipBox : Control
 	private string _text = "";
 	private readonly List<List<CTextRun>> _lines = new();
 	private readonly Dictionary<string, Texture2D?> _flags = new();
+	private readonly Dictionary<string, Texture2D?> _counters = new();
 
 	/// <summary>The box the install declares, or null - said once - where it declares none.</summary>
 	public static CTooltipBox? Create(CGuiContext context)
@@ -110,10 +111,10 @@ public partial class CTooltipBox : Control
 		QueueRedraw();
 	}
 
-	/// <summary>How wide a text is in the box's font, a flag counting 24.</summary>
+	/// <summary>How wide a text is in the box's font, a flag counting 24 and a counter 30.</summary>
 	private float Measure(string text)
 	{
-		return _font is null ? 0f : CFlagIcons.Measure(text, _font.Width);
+		return _font is null ? 0f : CTextIcons.Measure(text, _font.Width);
 	}
 
 	private float Width(List<CTextRun> runs)
@@ -139,8 +140,21 @@ public partial class CTooltipBox : Control
 			foreach (CTextRun run in line)
 			{
 				Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : _font.Color;
-				foreach (CTextPiece piece in CFlagIcons.Split(run.Text))
+				foreach (CTextPiece piece in CTextIcons.Split(run.Text))
 				{
+					if (piece.Counter is not null)
+					{
+						if (Counter(piece.Counter) is { } counter)
+						{
+							Vector2 size = counter.GetSize();
+							DrawTextureRectRegion(counter,
+								new Rect2(Mathf.Round(x), Mathf.Round(top), CCounterIcons.Width, CCounterIcons.Height),
+								new Rect2(size.X * CCounterIcons.Left, size.Y * CCounterIcons.Top,
+									size.X * (CCounterIcons.Right - CCounterIcons.Left), size.Y * (CCounterIcons.Bottom - CCounterIcons.Top)));
+						}
+						x += CCounterIcons.Advance;
+						continue;
+					}
 					if (piece.Tag is null)
 					{
 						_font.Draw(this, new Vector2(Mathf.Round(x), Mathf.Round(top + _font.Ascent)), piece.Text, colour);
@@ -174,5 +188,16 @@ public partial class CTooltipBox : Control
 			_flags[tag] = flag;
 		}
 		return flag;
+	}
+
+	/// <summary>The picture of the sprite <c>GFX_counter_</c> + name, or null where there is none - which draws nothing.</summary>
+	private Texture2D? Counter(string name)
+	{
+		if (!_counters.TryGetValue(name, out Texture2D? counter))
+		{
+			counter = _context.Sprites.Find(CCounterIcons.SpritePrefix + name) is { } sprite ? _context.Textures.Load(sprite) : null;
+			_counters[name] = counter;
+		}
+		return counter;
 	}
 }

@@ -78,6 +78,7 @@ public static class CBuildingReader
 				DamageFactor = block.Get("damage_factor") is { Value: { } factor }
 					&& CFixedPoint.TryParse(factor, out CFixedPoint parsed) ? parsed : CFixedPoint.One,
 				IsRepaired = block.GetBool("repair", fallback: true),
+				IsCapital = block.GetBool("capital"),
 			});
 		}
 		return buildings.ToArray();
