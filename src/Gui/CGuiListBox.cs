@@ -136,6 +136,11 @@ public partial class CGuiListBox : CGuiObject
 		if (_scrollbar is not null)
 		{
 			_scrollbar.Visible = Unseen > 0;
+			// An end button moves a line, as the original's does: its bar counts in lines.
+			if (Unseen > 0)
+			{
+				_scrollbar.PressStep = new CFixedPoint(CFixedPoint.Scale / Unseen);
+			}
 		}
 		if (_byHeights)
 		{

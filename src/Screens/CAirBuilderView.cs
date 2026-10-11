@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -18,4 +20,6 @@ public partial class CAirBuilderView : CTypeBuilderView
 	protected override string PanelName => "selected_air_window";
 
 	protected override string LabelName => "selected_plane_label";
+
+	protected override IReadOnlyDictionary<string, (string Text, string Delayed)> HeaderTooltips => CBuilderTooltips.Air;
 }

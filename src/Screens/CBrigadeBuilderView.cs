@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -21,6 +23,8 @@ public partial class CBrigadeBuilderView : CTypeBuilderView
 	protected override string PanelName => "selected_brigade_window";
 
 	protected override string LabelName => "selected_brigade_label";
+
+	protected override IReadOnlyDictionary<string, (string Text, string Delayed)> HeaderTooltips => CBuilderTooltips.Brigade;
 
 	protected override string? GroupSprite => "GFX_brigade_listbutton";
 

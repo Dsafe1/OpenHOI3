@@ -6,7 +6,8 @@ addresses and no offsets. Each rule says how sure it is - `confirmed`, `likely`,
 in the fact base's vocabulary. Where this project chooses its own behaviour the paragraph is
 marked **Ours**.
 
-Source: `reversing/findings/FINDINGS-builders.md`, read for this spec. What happens to an
+Source: `reversing/findings/FINDINGS-builders.md`, read for this spec, and
+`reversing/findings/FINDINGS-buildertooltips.md` for the tooltips (section 11). What happens to an
 order once it is given is `buildqueue.md`; how an interface file becomes something on screen
 is `interface.md`; the screen they come up over is `productionscreen.md`.
 
@@ -197,7 +198,9 @@ All four windows have it, by the same element names in each one's own file.
 - **`serial_value`** is how many units a line builds one after another; **`paralell_value`**
   how many lines the order makes. Both start at 1. `serial_plus`, `serial_minus`,
   `parallell_plus` and `parallel_minus` - the spellings are the files' - change them by
-  one, or by ten with a key held (`likely` shift). **A button held down acts at once, again
+  one, or by ten with Ctrl held: `likely`, on the word of the buttons' own tooltip
+  (section 11) - the key the code asks was not traced, and this said shift until that was
+  read. **A button held down acts at once, again
   after 0.3 s, and then every 0.1 s.** A minus button is disabled under 2 and a plus button
   at 99; a step of ten down stops at 1. `confirmed`
 - **`ic_cost_value`** is one unit's IC a day times `parallel`; **`mp_cost_value`** one
@@ -367,10 +370,68 @@ the columns. The maintainer, 2026-10-09: expected, and the original avoids it by
 having that many brigades to list. Where the original stands a list's scrollbar was not
 read (`interface.md`, the last section, item 11), so the bar's place is ours either way.
 
+## 11. Tooltips
+
+Source: `reversing/findings/FINDINGS-buildertooltips.md`, read 2026-10-11. Tried with `--click`;
+the maintainer has not looked at them. `confirmed` unless said.
+
+**While a builder window is up it answers for every element** the production screen is asked
+about, the screen's frame among them, which it leaves silent (`tooltips.md`, section 5). By the
+element's name:
+
+- **a column's header** - `sort_` and the column, and in the designer its totals, `total_` and
+  the column - says the column's name, `BUILD_` and the column and `_IRO`, and after a moment
+  what it means, the same with `_DRO`: "Strength", then "How many men each brigade is made up
+  of." Each window has its own list and its own few spellings: speed is `BUILD_SPEED_DD` in the
+  designer and the brigade builder and `BUILD_SSPEED` in the other two, the designer's fuel total
+  is `total_oc` as its file names it, and the air builder's surface defence takes the plain
+  `SURFACE_DEFENCE` for its name;
+- **the four step buttons** say `BUILD_ADD_REM_BUNDLE` with `$NUM$` 10: "Ctrl + LMB to add or
+  remove 10";
+- in the designer, **`terrainbonus`** says the terrain summary (below), **`combined_arms_bonus_value`**
+  `BUILD_CA_BONUS_VALUE`, and **`combined_arms_indicator_` and a number** the group of that number,
+  counted from one in `common/combined_arms.txt`, by its name, and after a moment its key and
+  `_desc`;
+- **anything else says nothing**: a list's lines, the panel's figures, the costs, the light,
+  `accept`, the templates.
+
+**The practical** - `on_complete_icon` and `on_complete_impact`, wherever they are - is answered by
+the game screen before any window: the practical's name, `TC_BUILD_COST_AND_TIME`, and how much
+cheaper and quicker the country builds what it covers (`upkeep.md`, section 6), in yellow, a
+percentage to one place, cut: "Infantry Practical reduces building cost and time by §Y12.3%§W".
+The windows tell it which practical by keeping the key on the icon and the figure as they fill
+them; one with none - the ship builder with nothing picked - says nothing.
+
+**The terrain summary** is worked out over the design's brigades, each as the country would build
+it today. For each terrain of `map/terrain.txt`, in its order, and then a river, the night, forts
+and a landing:
+
+    for each brigade:   add its own adjuster for it
+                        a terrain: add the terrain's own attack and defence
+                        the other four: add RIVER_CROSSING_PENALTY, BASE_NIGHT_PENALTY,
+                                        BASE_FORT_PENALTY or AMPHIBIOUS_LANDING_PENALTY to the attack
+    then each figure over the number of brigades, cut toward nothing
+
+so the terrain's figures and the define come in once, as an average does. Each with anything to
+say is a line: the terrain's name, or `RIVER_ADJUSTER`, `NIGHT_ADJUSTER`, `FORT_ADJUSTER`,
+`AMPH_ADJUSTER`, then `: ` and its figures separated by `, ` - `UA_ATTACK`, `UA_DEFENCE`,
+`UA_MOVEMENT` and `UA_ATTRITION`, each left out at nothing, written as a space, `§R` below nothing
+or `§G` otherwise, `+` above nothing, the figure to one place, cut, and `%§W`. **Attack, defence
+and movement are times a hundred and attrition is not, and attrition's colour goes the other way.**
+Three infantry brigades and an armoured one in the mountains: "Mountain: Attack §R-47.5%§W,
+Defence §R-17.5%§W, Movement §R-10.0%§W", by the base game's files and no technology.
+
+**Kept as read**, though they look odd: attrition written without its hundred, so `0.5` reads
+`+0.5%`; attrition above nothing red and with a `+`; a terrain's own attrition left out of its
+line where its attack and defence are in; and nothing but the headers, the steps and the
+designer's few saying anything.
+
+*Ours:* the summary is worked out when it is asked for, where the original keeps it from the last
+change to the design; it differs only if the country's technology moves while the window is up. A
+group icon numbered past the groups says nothing, where the original reads past its list.
+
 ## What is not built
 
-- **Tooltips**, of which each window has forty or so, the designer's terrain summary among
-  them.
 - **Custom game mode**, in which the four price by points.
 - **`selected_photo`** and the three `selected_*_photo` pictures.
 
@@ -379,7 +440,8 @@ read (`interface.md`, the last section, item 11), so the bar's place is ours eit
 1. **Anything a closer look at the running game would show**: where each figure sits
    against its icon, the frames of the checkbox and of the combined arms strip, whether
    the spare template buttons really stay, what the panel shows with nothing picked.
-2. **Which key makes a step ten.**
+2. **Which key makes a step ten**, in the code: the buttons' tooltip says Ctrl, and Ctrl is what
+   is built.
 3. **The label and the picture**: how a historical model is chosen for them.
 4. **The name of a level of a technology**, and the text of its effects.
 5. **The description** the air and brigade builders show.

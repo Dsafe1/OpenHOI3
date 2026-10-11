@@ -181,7 +181,8 @@ that is read.
   which adds a province's tag and number: there is no console.
 - **What each screen's tooltips say.** The map's is built (section 7), the top bar's
   (`topbar.md`, section 14), the production screen's (`productionscreen.md`, section 8), the
-  technology screen's (`technologyscreen.md`, section 9) and the sliders' (`sliders.md`, section 6).
+  technology screen's (`technologyscreen.md`, section 9), the sliders' (`sliders.md`, section 6)
+  and the four builder windows' with the practical icon's (`builders.md`, section 11).
 
 ## Not established
 

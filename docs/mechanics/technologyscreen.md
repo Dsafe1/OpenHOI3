@@ -225,7 +225,7 @@ and what a technology does to a kind of unit is not listed at all.
 ## 9. Tooltips
 
 Source: `reversing/findings/FINDINGS-techtooltip.md`, read 2026-10-11. Tried with `--click`; the
-maintainer has not looked at them. How a tooltip is shown is `tooltips.md`; the sliders' own are
+maintainer looked at them on 2026-10-11: "Looks good". How a tooltip is shown is `tooltips.md`; the sliders' own are
 `sliders.md`, section 6. `confirmed` unless said.
 
 **`leader_ship_label`** says where the leadership comes from:

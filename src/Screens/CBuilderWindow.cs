@@ -206,8 +206,8 @@ public abstract partial class CBuilderWindow : Control
 	}
 
 	/// <summary>
-	/// A held button acts at once, again after a wait, and then quickly. With shift
-	/// down it steps by ten.
+	/// A held button acts at once, again after a wait, and then quickly. With Ctrl down
+	/// it steps by ten, which is what the buttons' own tooltip says.
 	/// </summary>
 	private void Repeat(double delta)
 	{
@@ -243,7 +243,7 @@ public abstract partial class CBuilderWindow : Control
 
 	private void Step(CGuiButton button)
 	{
-		bool longStep = Input.IsKeyPressed(Key.Shift);
+		bool longStep = Input.IsKeyPressed(Key.Ctrl);
 		if (ReferenceEquals(button, _serialPlus) && CBuilderText.MayStepUp(Serial))
 		{
 			Serial = CBuilderText.Stepped(Serial, 1, longStep);

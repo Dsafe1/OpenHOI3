@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Construction;
@@ -113,6 +114,32 @@ public partial class CDivisionDesignerView : CBuilderWindow
 				}
 			};
 		}
+
+		SetTooltips(window);
+	}
+
+	/// <summary>
+	/// Both windows answer by the element's name, the picker's headers among them. The bonus is
+	/// a text box, which lets the mouse through until it is given a tooltip of its own.
+	/// </summary>
+	private void SetTooltips(CGuiWindow window)
+	{
+		Func<string, string> localise = Context.Localisation.Localise;
+		CTooltip For(string element) => CBuilderTooltips.ForDesigner(localise, Simulation.State.CombinedArmsGroups,
+			TerrainSummary, element);
+		window.SetTooltips(For);
+		_picker?.SetTooltips(For);
+		if (_combinedArms is not null)
+		{
+			_combinedArms.Tooltip = () => For(CBuilderTooltips.CombinedArmsBonus);
+		}
+	}
+
+	private string TerrainSummary()
+	{
+		CGameState state = Simulation.State;
+		var brigades = _design.Select(type => CBuilderLists.AsBuiltToday(Player, type, out long _).Stats).ToList();
+		return CBuilderTooltips.TerrainSummary(Context.Localisation.Localise, state.Defines, state.Terrains, brigades);
 	}
 
 	protected override void Opened()
@@ -283,10 +310,17 @@ public partial class CDivisionDesignerView : CBuilderWindow
 			}
 			if (_completion is not null && CGuiWindow.CreateEntry(Context, CompletionEntry) is { } gain)
 			{
-				gain.FindIcon("on_complete_icon")?.SetSprite("icon_" + type.OnCompletion);
-				if (gain.FindTextBox("on_complete_impact") is { } impact)
+				Func<CTooltip> practical = () => CBuilderTooltips.Practical(Context.Localisation.Localise,
+					Simulation.State, Player, type.OnCompletion);
+				if (gain.FindIcon(CBuilderTooltips.PracticalIcon) is { } icon)
+				{
+					icon.SetSprite("icon_" + type.OnCompletion);
+					icon.Tooltip = practical;
+				}
+				if (gain.FindTextBox(CBuilderTooltips.PracticalFigure) is { } impact)
 				{
 					impact.Text = CBuilderText.OnCompletion(type);
+					impact.Tooltip = practical;
 				}
 				_completion.Add(gain);
 			}

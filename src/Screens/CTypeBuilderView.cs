@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Construction;
@@ -45,6 +46,9 @@ public abstract partial class CTypeBuilderView : CBuilderWindow
 
 	protected CBuilderColumn[] Columns => CBuilderLists.For(Branch);
 
+	/// <summary>What each of the window's headers says in a tooltip; each window has its own.</summary>
+	protected abstract IReadOnlyDictionary<string, (string Text, string Delayed)> HeaderTooltips { get; }
+
 	/// <summary>
 	/// The sprite a line's button takes with its type's combined arms group after it,
 	/// or null where lines are all one colour.
@@ -77,6 +81,23 @@ public abstract partial class CTypeBuilderView : CBuilderWindow
 			{
 				sort.Pressed += () => SortBy(button);
 			}
+		}
+
+		// The window answers by the element's name. The practical's icon and figure are the
+		// in-game screen's, which asks the category the picked type teaches; its figure is a
+		// text box, which lets the mouse through until it is given a tooltip of its own.
+		Func<string, string> localise = Context.Localisation.Localise;
+		window.SetTooltips(element => CBuilderTooltips.For(localise, HeaderTooltips, element));
+		Func<CTooltip> practical = () => Picked is null
+			? CTooltip.Empty
+			: CBuilderTooltips.Practical(localise, Simulation.State, Player, Picked.OnCompletion);
+		if (_completionIcon is not null)
+		{
+			_completionIcon.Tooltip = practical;
+		}
+		if (_completionText is not null)
+		{
+			_completionText.Tooltip = practical;
 		}
 	}
 

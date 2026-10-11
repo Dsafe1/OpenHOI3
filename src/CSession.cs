@@ -832,7 +832,8 @@ public partial class CSession : Node
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
 	/// <c>--select=Luftflotte II</c> selects the player's unit of that name,
 	/// <c>--click=700,310;r1240,886;h48</c> clicks at those points of the canvas, in turn -
-	/// with r the right button, with s shift held, and h48 lets 48 hours go by, m460,40 moves
+	/// with r the right button, with s shift held, with c Ctrl held, with t1.5: before the point
+	/// the button held down 1.5 seconds of real time, and h48 lets 48 hours go by, m460,40 moves
 	/// the pointer there without clicking and w2 waits two seconds of real time, which is
 	/// what a tooltip's second half waits on - once everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused, and
@@ -1183,11 +1184,20 @@ public partial class CSession : Node
 				}
 				continue;
 			}
-			// r before a point clicks the right button there, and s holds shift down.
-			string point = entry.TrimStart('r', 's');
+			// r before a point clicks the right button there, s holds shift down and c Ctrl,
+			// and t1.5: before the point holds the button down that many seconds.
+			string point = entry.TrimStart('r', 's', 'c');
 			string keys = entry[..(entry.Length - point.Length)];
 			MouseButton which = keys.Contains('r') ? MouseButton.Right : MouseButton.Left;
 			bool shift = keys.Contains('s');
+			bool ctrl = keys.Contains('c');
+			double holdFor = 0;
+			int colon = point.IndexOf(':');
+			if (point.StartsWith('t') && colon > 0)
+			{
+				double.TryParse(point[1..colon], NumberStyles.Float, CultureInfo.InvariantCulture, out holdFor);
+				point = point[(colon + 1)..];
+			}
 			string[] parts = point.Split(',');
 			if (parts.Length != 2
 				|| !float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float x)
@@ -1198,18 +1208,43 @@ public partial class CSession : Node
 			}
 			var at = new Vector2(x, y);
 			await Frames(3);
+			// A key held is told to the input singleton, which is what is asked whether it is down.
+			if (ctrl)
+			{
+				Input.ParseInputEvent(new InputEventKey { Keycode = Key.Ctrl, PhysicalKeycode = Key.Ctrl, Pressed = true });
+			}
+			if (shift)
+			{
+				Input.ParseInputEvent(new InputEventKey { Keycode = Key.Shift, PhysicalKeycode = Key.Shift, Pressed = true });
+			}
 			GetViewport().PushInput(new InputEventMouseMotion { Position = at, GlobalPosition = at }, true);
 			await Frames(1);
 			GetViewport().PushInput(new InputEventMouseButton
 			{
 				Position = at, GlobalPosition = at, ButtonIndex = which, Pressed = true, ShiftPressed = shift,
-				ButtonMask = which == MouseButton.Right ? MouseButtonMask.Right : MouseButtonMask.Left,
+				CtrlPressed = ctrl, ButtonMask = which == MouseButton.Right ? MouseButtonMask.Right : MouseButtonMask.Left,
 			}, true);
-			await Frames(2);
+			if (holdFor > 0)
+			{
+				await ToSignal(GetTree().CreateTimer(holdFor), SceneTreeTimer.SignalName.Timeout);
+			}
+			else
+			{
+				await Frames(2);
+			}
 			GetViewport().PushInput(new InputEventMouseButton
 			{
 				Position = at, GlobalPosition = at, ButtonIndex = which, Pressed = false, ShiftPressed = shift,
+				CtrlPressed = ctrl,
 			}, true);
+			if (ctrl)
+			{
+				Input.ParseInputEvent(new InputEventKey { Keycode = Key.Ctrl, PhysicalKeycode = Key.Ctrl, Pressed = false });
+			}
+			if (shift)
+			{
+				Input.ParseInputEvent(new InputEventKey { Keycode = Key.Shift, PhysicalKeycode = Key.Shift, Pressed = false });
+			}
 			await Frames(2);
 		}
 	}

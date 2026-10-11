@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Units;
@@ -34,6 +35,8 @@ public partial class CShipBuilderView : CTypeBuilderView
 	protected override string PanelName => "selected_ship_window";
 
 	protected override string LabelName => "selected_ship_label";
+
+	protected override IReadOnlyDictionary<string, (string Text, string Delayed)> HeaderTooltips => CBuilderTooltips.Ship;
 
 	protected override IReadOnlyList<int>? Model => Picked is null ? null : _levels;
 

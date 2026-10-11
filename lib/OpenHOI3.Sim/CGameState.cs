@@ -113,6 +113,9 @@ public sealed class CGameState
 	/// <summary>The combined arms groups, in the order their file lists them.</summary>
 	public IReadOnlyList<CCombinedArmsGroup> CombinedArmsGroups { get; init; } = Array.Empty<CCombinedArmsGroup>();
 
+	/// <summary>The kinds of terrain, in the order <c>map/terrain.txt</c> lists them, those no province has among them.</summary>
+	public IReadOnlyList<CTerrain> Terrains { get; init; } = Array.Empty<CTerrain>();
+
 	/// <summary>
 	/// The tactics a side of a land battle can fight by, in the order their file lists
 	/// them: the first is number 1.

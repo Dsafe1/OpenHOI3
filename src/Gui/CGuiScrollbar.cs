@@ -1,7 +1,9 @@
 using System;
+using System.Diagnostics;
 using Godot;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gfx;
+using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 
 namespace OpenHOI3.Gui;
@@ -19,9 +21,6 @@ namespace OpenHOI3.Gui;
 /// </summary>
 public partial class CGuiScrollbar : CGuiObject
 {
-	/// <summary>An end button moves the value by this many of the smallest step a press.</summary>
-	private const long StepsPerPress = 10;
-
 	private Texture2D? _track;
 	private Texture2D? _less;
 	private Texture2D? _more;
@@ -33,7 +32,12 @@ public partial class CGuiScrollbar : CGuiObject
 	private long _minimum;
 	private long _maximum;
 	private long _step = 1;
+	private long _pressStep = 1;
 	private long _value;
+
+	/// <summary>The end button held down: -1 the least value's, 1 the greatest's, 0 none.</summary>
+	private int _heldEnd;
+	private readonly Stopwatch _heldFor = new();
 	private bool _dragging;
 	private bool _hovered;
 	private Vector2 _pointer;
@@ -56,6 +60,7 @@ public partial class CGuiScrollbar : CGuiObject
 		_minimum = type.MinValue.Raw;
 		_maximum = Math.Max(type.MaxValue.Raw, _minimum);
 		_step = Math.Max(type.StepSize.Raw, 1);
+		_pressStep = CScrollbarSteps.PressStep(_step);
 		_value = Math.Clamp(type.StartValue.Raw, _minimum, _maximum);
 
 		Texture2D? slider = Load(type, type.Slider, context, out _);
@@ -124,6 +129,17 @@ public partial class CGuiScrollbar : CGuiObject
 	}
 
 	public CFixedPoint Maximum => new(_maximum);
+
+	/// <summary>
+	/// What a press of an end button moves the value by, before Ctrl. A list box sets it to a
+	/// line: the original's counts its bar in lines, a line a step, where this one's runs from
+	/// nought to one.
+	/// </summary>
+	public CFixedPoint PressStep
+	{
+		get => new(_pressStep);
+		set => _pressStep = Math.Max(value.Raw, 1);
+	}
 
 	/// <summary>Gives the slider a new range, keeping its value where that is still inside it.</summary>
 	public void SetRange(CFixedPoint minimum, CFixedPoint maximum)
@@ -250,6 +266,8 @@ public partial class CGuiScrollbar : CGuiObject
 			if (!button.Pressed)
 			{
 				_dragging = false;
+				_heldEnd = 0;
+				_heldFor.Reset();
 				ShowLook();
 				return;
 			}
@@ -262,11 +280,11 @@ public partial class CGuiScrollbar : CGuiObject
 			float start = SliderStart();
 			if (at < SizeAlong(_less))
 			{
-				MoveTo(_value - _step * StepsPerPress);
+				Press(-1);
 			}
 			else if (at >= Length - SizeAlong(_more))
 			{
-				MoveTo(_value + _step * StepsPerPress);
+				Press(1);
 			}
 			else
 			{
@@ -288,6 +306,42 @@ public partial class CGuiScrollbar : CGuiObject
 		{
 			AcceptEvent();
 			MoveTo(ValueAt(Along(motion.Position) - _grab));
+		}
+	}
+
+	/// <summary>An end button pressed: a step now, and more while it is held (<see cref="_Process"/>).</summary>
+	private void Press(int direction)
+	{
+		_heldEnd = direction;
+		_heldFor.Reset();
+		Step(direction);
+	}
+
+	private void Step(int direction)
+	{
+		MoveTo(_value + direction * CScrollbarSteps.Step(_pressStep, Input.IsKeyPressed(Key.Ctrl),
+			Input.IsKeyPressed(Key.Shift)));
+	}
+
+	/// <summary>
+	/// An end button held: the first frame starts a clock, and each frame after makes as many
+	/// presses as the time held holds repeats - so the longer it is held, the faster it goes.
+	/// </summary>
+	public override void _Process(double delta)
+	{
+		if (_heldEnd == 0 || _locked)
+		{
+			return;
+		}
+		if (!_heldFor.IsRunning)
+		{
+			_heldFor.Start();
+			return;
+		}
+		int repeats = CScrollbarSteps.Repeats(_heldFor.Elapsed.TotalSeconds);
+		for (int repeat = 0; repeat < repeats; repeat++)
+		{
+			Step(_heldEnd);
 		}
 	}
 

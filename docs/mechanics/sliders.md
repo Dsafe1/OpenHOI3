@@ -143,8 +143,8 @@ shares change for any other reason the sliders follow them.
 ## 6. Tooltips
 
 Source: `reversing/findings/FINDINGS-productiontooltip.md`, section 4, read 2026-10-11, and
-`reversing/findings/FINDINGS-techtooltip.md`, section 1. Tried with `--click`; the maintainer has
-not looked at them. `confirmed` unless said.
+`reversing/findings/FINDINGS-techtooltip.md`, section 1. Tried with `--click`; the maintainer looked
+at them on 2026-10-11: "Looks good". `confirmed` unless said.
 
 **A slider's tooltip is what its share would do at the slider's position**, before the position is
 sent to the game. Over the slider itself, the second half says `SLIDER_LOCKED_TOOLTIP` when it is

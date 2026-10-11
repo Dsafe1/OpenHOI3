@@ -103,9 +103,27 @@ does neither.
   `stepSize` - a direction (`horizontal`) and four buttons declared inside it, which its
   `slider`, `track`, `leftbutton` and `rightbutton` keys name. *Ours:* a button at each
   end, the track stretched between them - a cornered tile keeps its edges - and the
-  slider on the track where the value puts it. The slider is dragged, a click on the
-  track brings it to the mouse, and an end button moves it ten steps. `likely` the
-  original holds the four numbers in thousandths, so a step is never less than one.
+  slider on the track where the value puts it. The slider is dragged and a click on the
+  track brings it to the mouse. `likely` the original holds the four numbers in
+  thousandths, so a step is never less than one.
+  **An end button** was read on 2026-10-12, after the maintainer's account - "You can hold
+  the mouse button for them to continue changing the value. Holding CTRL speed that up
+  considerably" (`reversing/findings/FINDINGS-scrollbar.md`). `confirmed` unless said:
+  - **a press** moves the value by the declared step, except that **a step of exactly a
+    thousandth counts as ten** - the sliders' `0.001` moves 0.01 a press - **with Shift down
+    ten times that**, 0.10, **with Ctrl a hundred times**, 1.00, and with both a thousand
+    times, 10.00. The original asks the two keys by number: that the one is Ctrl is `likely`,
+    the builder windows' tooltip naming the same number Ctrl, and that the other is Shift is
+    the maintainer's word, 2026-10-12: "Its shift.";
+  - **holding it** repeats the press. The first frame starts a clock; on each frame after,
+    **the whole time held is counted out in 0.15 s, a press for each** - nothing for 0.15 s,
+    then a press a frame, then two, and so on. So it goes faster the longer it is held,
+    **and faster at a higher frame rate**: both the original's, kept. Letting go stops it;
+  - *Ours:* a list box's bar moves a line a press, as the original's does, whose bar counts in
+    lines where this one's runs from nought to one; the original's own step rule then applies
+    to the line. **Which end of a bar that runs up and down adds is not settled**: a flag the
+    original's scrollbar is given reverses its two buttons, and what sets it was not read -
+    the sliders, across, take away on the left as here.
   **A bar that runs up and down has its `leftbutton`, and its least value, at the
   bottom.** `measured`: the list boxes' scrollbar gives its `leftbutton` the picture
   of an arrow pointing down and its `rightbutton` one pointing up, and in the original
