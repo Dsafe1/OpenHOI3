@@ -331,8 +331,9 @@ follow an attack, each `confirmed` (`FINDINGS-supplyconvoys.md`) and built with 
   convoy never attacked is given none - and gives none back.
 
 *Not built:* an air unit raids with `sea_attack` and five times the attack; the raider's country
-gains threat for each ship sunk; a lend-lease convoy loses efficiency; the experience a raid
-gives; the messages; and the strategic warfare figures.
+gains threat for each ship sunk; a lend-lease convoy loses efficiency; the messages; and the
+strategic warfare figures. The experience a raid gives is built since 2026-10-11 (`leaders.md`,
+section 11): before each of its first three rounds, at `EXP_GAIN_CONVOY_MODIFIER`.
 
 ## 9. What missions add to the sighting
 
@@ -429,13 +430,13 @@ tells each sinking for so many days. It is not a check: there is nothing to set 
 With no tags it is Germany against the United Kingdom for thirty days. On the start date:
 
     Germany's battle fleet, nine ships attacking at 11.7, sent to the Channel Approach, which 77
-    of Britain's 78 convoys go through: there in two days; 29 raids that sank something in the
-    month, 47 transports and 4 escorts in all, of 670 transports; the convoys attacked are given
-    escorts, 53 by the month's end, where none had any; the raiders end with 886 of their 900
-    strength
+    of Britain's 78 convoys go through: there in two days; 24 raids that sank something in the
+    month, 37 transports and no escort, of 670 transports; the convoys attacked are given
+    escorts, 56 by the month's end, where none had any; the raiders end with 885 of their 900
+    strength, and their admiral Raeder has gone from skill 4 to 5 on the raids alone
 
 (Run again on 2026-10-10 once a new game ran its two days, which moved each figure by one or
-so, and on 2026-10-11 once the leaders were built.) Britain's convoys fall from 78 to 27 in the first week whatever the raider does: a country at
+so, and on 2026-10-11 once the leaders and the experience of battle were built.) Britain's convoys fall from 78 to 27 in the first week whatever the raider does: a country at
 war unmakes the supply convoys it does not need (`convoys.md`, section 7).
 
 **In the client** `--mission=ENG:patrol:10531` gives the strongest fleet of a country that may

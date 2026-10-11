@@ -194,13 +194,13 @@ public static class CBombing
 	/// Takes a unit out of the bombing it is in. Its side's countries still in the fight are
 	/// made again from the units left, which drops a ground bombing's holder.
 	/// </summary>
-	public static void Leave(CUnit unit)
+	public static void Leave(CGameState state, CUnit unit)
 	{
 		if (unit.Bombing is not { } bombing)
 		{
 			return;
 		}
-		bombing.SideOf(unit)?.Remove(unit);
+		bombing.SideOf(unit)?.Remove(state, unit);
 		unit.Bombing = null;
 	}
 

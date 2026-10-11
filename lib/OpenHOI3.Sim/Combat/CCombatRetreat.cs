@@ -35,7 +35,7 @@ public static class CCombatRetreat
 		int to = combat.Province != unit.Location ? unit.Location : FindRetreatProvince(state, unit);
 
 		unit.Combats.Remove(combat);
-		side.Remove(unit);
+		side.Remove(state, unit);
 		if (state.Country(unit.Owner) is not { } country || to == 0)
 		{
 			RemoveFromGame(state, unit);

@@ -29,7 +29,7 @@ public static class CNavalRetreat
 	{
 		int to = side.Combat.Province != fleet.Location ? fleet.Location : FindRetreatProvince(state, fleet);
 		fleet.Combats.Remove(side.Combat);
-		side.Remove(fleet);
+		side.Remove(state, fleet);
 		if (state.Country(fleet.Owner) is not { } country || to == 0)
 		{
 			CCombatRetreat.RemoveFromGame(state, fleet);

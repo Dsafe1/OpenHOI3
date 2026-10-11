@@ -334,6 +334,20 @@ public static class CCombatModifiers
 	/// </summary>
 	private static long CombinedArms(CGameState state, CCountry owner, CUnit unit)
 	{
+		List<CSubUnitType> types = CountedTypes(unit);
+		return CCombinedArms.BaseBonus(state, types) > CFixedPoint.Zero
+			? CCombinedArms.Bonus(state, owner, types).Raw + Trait(state, unit, ETraitEffect.CombinedArmsBonus)
+			: 0;
+	}
+
+	/// <summary>Whether a unit's brigades make combined arms at all: its base bonus is above nothing.</summary>
+	public static bool HasCombinedArms(CGameState state, CUnit unit)
+	{
+		return CCombinedArms.BaseBonus(state, CountedTypes(unit)) > CFixedPoint.Zero;
+	}
+
+	private static List<CSubUnitType> CountedTypes(CUnit unit)
+	{
 		var types = new List<CSubUnitType>();
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
@@ -342,9 +356,7 @@ public static class CCombatModifiers
 				types.Add(subUnit.Type);
 			}
 		}
-		return CCombinedArms.BaseBonus(state, types) > CFixedPoint.Zero
-			? CCombinedArms.Bonus(state, owner, types).Raw + Trait(state, unit, ETraitEffect.CombinedArmsBonus)
-			: 0;
+		return types;
 	}
 
 	/// <summary>Land with no land beside it. A defender there cannot be enveloped.</summary>

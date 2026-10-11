@@ -29,7 +29,7 @@ public static class CAirRetreat
 	{
 		int to = side.Combat.Province != unit.Location ? unit.Location : FindRetreatProvince(state, unit);
 		unit.Combats.Remove(side.Combat);
-		side.Remove(unit);
+		side.Remove(state, unit);
 		if (state.Country(unit.Owner) is not { } country || to == 0)
 		{
 			CCombatRetreat.RemoveFromGame(state, unit);

@@ -361,7 +361,7 @@ public class BombingTests
 		Assert.Equal(CFixedPoint.Zero, heavies.MovementProgress);
 
 		// Out of it, with hours still to wait: its first move ends the wait.
-		CBombing.Leave(heavies);
+		CBombing.Leave(state, heavies);
 		heavies.NoBombingHours = 1;
 		heavies.NoBattleHours = 1;
 		CMovement.Advance(state, germany, heavies, addSpeed: true);

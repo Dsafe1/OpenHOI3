@@ -36,6 +36,7 @@ public static class CNavalFire
 	public static void Attack(CGameState state, CCombat combat, CCombatSide side)
 	{
 		CCombatSide other = combat.Other(side);
+		CTraitGain.BankHour(state, side);
 		Creep(state, side);
 		long theirPenalty = CNavalBattle.StackingPenalty(state, other);
 		long ourSpeed = AverageSpeed(side);

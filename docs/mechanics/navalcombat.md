@@ -358,23 +358,25 @@ with a seed of 1 unless one is given:
     Germany at the United Kingdom,     two heavy and six light cruisers and a destroyer against
     Helgoland Bight:                   the 26 ships of the Mediterranean Fleet, six battleships
                                        and two carriers among them: sighted in the first hour;
-                                       positioning 0.96 against 0.18, the German admiral's skill
-                                       of 5 adding half and the British paying 0.8 for their
-                                       crowd; the Germans are out of organisation after 21 hours
-                                       and fall back to Wilhelmshaven with a third of their
-                                       strength; two German light cruisers sunk, and two British
-                                       heavy cruisers and a light one
-    the United Kingdom at Germany,     the same two with the sides changed: the Germans give way
-    seed 2:                            after 21 hours with five ships of nine; two British
-                                       destroyers sunk
+                                       positioning 0.85 against 0.18, the German admiral's skill
+                                       of 4 adding 0.4 and the British paying 0.8 for their
+                                       crowd; the Germans are out of organisation after 14 hours
+                                       and fall back to Wilhelmshaven with two fifths of their
+                                       strength; a German light cruiser and a British heavy
+                                       cruiser sunk
+    the United Kingdom at Germany,     the same two with the sides changed: both break off after
+    seed 2:                            24 hours; a British destroyer and a German heavy cruiser
+                                       sunk
     Japan at the USA:                  five ships against six, sighted after three hours: the
-                                       Japanese give way after 19 hours; a Japanese heavy cruiser
-                                       and two American destroyers sunk
-    Italy at France, seed 3:           eighteen ships against nine: both break off after 20 hours,
-                                       the French with five ships left of nine, a battleship among
-                                       the four sunk
+                                       Japanese give way after 18 hours; a Japanese heavy cruiser
+                                       and an American destroyer sunk
+    Italy at France, seed 3:           eighteen ships against nine: the French give way after 15
+                                       hours with four ships left of nine, two battleships among
+                                       the five sunk
 
-(Run again on 2026-10-11 once the leaders were built; every figure moved.) The crowded fleet is
+(Run again on 2026-10-11 once the leaders and the experience of an hour in battle were built;
+every figure moved. The trial ends with each side's leaders' experience: the German admiral of
+the first goes from 8000 to 11993 in those fourteen hours, a hair short of skill 5.) The crowded fleet is
 worth a second look when somebody can watch the original: a side at a low positioning finds few
 targets, and what it does shoot at is often its own last ship (section 4).
 
@@ -398,8 +400,8 @@ many each has had sunk.
   have lost. **Transport and invasion** are not: they wait for carrying.
 - **Aircraft**, a carrier's own among them, and every kind of bombing.
 - **Intelligence** beyond a unit's own part in it (section 1).
-- **What a battle gives a leader** - experience, and new traits - which is the third part of
-  leaders in a battle (`leaders.md`).
+- ~~**What a battle gives a leader** - experience, and new traits.~~ Built on 2026-10-11, with
+  the experience of every ship (`leaders.md`, section 11).
 - **The weather itself.**
 - **The AI**: no fleet of a country nobody plays moves or looks for a fight.
 

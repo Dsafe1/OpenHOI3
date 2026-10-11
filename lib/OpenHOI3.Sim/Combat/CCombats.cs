@@ -406,7 +406,11 @@ public static class CCombats
 				}
 			}
 		}
+		// Over: each side's leaders have their banked hours counted, the attacker's first.
+		combat.HasEnded = true;
+		CTraitGain.Count(state, combat, combat.Attacker);
 		Detach(combat.Attacker);
+		CTraitGain.Count(state, combat, combat.Defender);
 		Detach(combat.Defender);
 		state.Combats.Remove(combat);
 		state.CombatHistory.Record(combat, state.TotalHours);
@@ -447,7 +451,7 @@ public static class CCombats
 			{
 				Conclude(combat, side.IsAttacker);
 			}
-			side.Remove(unit);
+			side.Remove(state, unit);
 			if (combat.Kind == ECombatKind.Naval)
 			{
 				CNavalDisengage.StartWait(state, unit);
@@ -459,7 +463,7 @@ public static class CCombats
 	/// <summary>Takes a unit out of every battle it is in, and out of the bombing it is in.</summary>
 	public static void LeaveAll(CGameState state, CUnit unit)
 	{
-		CBombing.Leave(unit);
+		CBombing.Leave(state, unit);
 		foreach (CCombat combat in new List<CCombat>(unit.Combats))
 		{
 			Leave(state, combat, unit);

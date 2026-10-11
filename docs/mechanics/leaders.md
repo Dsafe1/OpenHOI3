@@ -7,8 +7,9 @@ this project can implement. No addresses and no offsets. Each rule says how sure
 own behaviour the paragraph is marked **Ours**.
 
 Sources: `reversing/findings/FINDINGS-leaderassign.md`,
-`reversing/findings/FINDINGS-commandreach.md`, `reversing/findings/FINDINGS-battleleaders.md`
-and `reversing/findings/FINDINGS-seaairleaders.md`, read for this, whole;
+`reversing/findings/FINDINGS-commandreach.md`, `reversing/findings/FINDINGS-battleleaders.md`,
+`reversing/findings/FINDINGS-seaairleaders.md` and `reversing/findings/FINDINGS-battlegains.md`,
+read for this, whole;
 `reversing/findings/FINDINGS-leaders.md` (experience, skill, traits, promotion);
 `reversing/findings/FINDINGS-history.md` (the leader's history and its five keys).
 
@@ -24,7 +25,7 @@ to organisation and to what a unit uses (section 8, built the same day); what a 
 battle, with the experience and the traits he gains there; and the window a leader is chosen
 in. The third was cut again, the same day and also this project's: a land battle (section 9,
 built); a battle at sea and in the air (section 10, built the same day); and the experience and
-traits a battle gives.
+traits a battle gives (section 11, built the same day).
 
 ---
 
@@ -384,6 +385,86 @@ it has.
 `targeting_chance` scales a ship's positioning when it looks for a target, and
 `targeting_choice` is added to its targeting (`navalcombat.md`, section 4).
 
+## 11. What a battle gives
+
+`reversing/findings/FINDINGS-leaders.md`, sections 1 and 2, which had most of it, and
+`reversing/findings/FINDINGS-battlegains.md`, which reads the rest and checks it. Built
+2026-10-11: `CCombatExperience`, `CTraitGain` and `CCombatCondition` in `Sim/Combat`,
+`CLeaders.AddExperience`, `CGainableTraits` and `CTraitProgress` in `Sim/Leaders`,
+`CGainableTraitReader` in `Content/Definitions`.
+
+### Experience
+
+`confirmed`. **A battle is the only thing that gives a leader experience.** Every hour, in its
+own hour (`movement.md`, section 1) after its order and before it marches, a unit that is in a
+battle - or, for a fleet or an air unit, in a bombing - gains:
+
+    enemy  = for each of its battles, and its bombing: the other side's units' average
+             organisation, each unit's weighted by its brigades, ships or wings, times how many
+             of them there are; nothing where the unit's country is on neither side
+    size   = enemy x 0.01, / 4, held between nothing and 6;   nothing -> no gain, and no roll
+    figure = size / 3 + a die of 1 to 6
+             x EXP_GAIN_LAND, EXP_GAIN_NAVAL or EXP_GAIN_AIR, by its kind
+             x (1 + the leaders' xp_gain, down the chain)
+             x EXP_GAIN_CONVOY_MODIFIER, in a raid on a convoy
+             x 0.01
+    each brigade, ship or wing:  figure x EXP_GAIN_DIV, to a hundred at most - but a ship only
+                                 while it has a target
+    its leader:                  figure x EXP_GAIN_LEADER
+    each headquarters above it, while it is of the same kind - land, or not: the share before,
+             divided by its number of units, held between 2 and 5, to its leader if it has one
+
+All of it in the original's 15 binary places, and the 0.01 is 328 of them - a hair over.
+
+- **The die does most of it**: the enemy's size comes to 2 at most against a die of 1 to 6. In
+  the base game a leader of a division gains about one point of experience an hour before his
+  factor below; one five below his best learns six times as fast.
+- **A raid on a convoy** gives its raider experience before each of its first three rounds.
+- **Nothing else does**: no exercise, no day's pass, no spending.
+
+**Into skill**, for each gain:
+
+    if skill is 12 or more: nothing
+    factor = 1 + (most skill - skill)^2 / 5;   a third of it where skill is at the most or past it
+    experience += factor x gain
+    above the floor of the next skill (section 2): one skill more - one, however far past
+
+So **the most skill is no cap**: a leader goes on learning past it, at a third of the pace.
+
+### Traits
+
+`confirmed`, but for the end of a raid. `common/gainable_traits.txt` gives each trait a battle
+earns: its kind of battle, the hours it wants and a condition. **Each kind of leader may earn
+only what the trait's `allowed_leader` allows** - which a history's or a script's trait does
+not ask (section 3).
+
+- **Every hour each side banks the hour for each of its units' leaders**, at the head of its
+  fire - once in an hour of the day, however many battles ask.
+- **The hours are counted** when a unit leaves the side - for every leader on it - and at the
+  battle's end, the attacker's first: for each trait of that kind of battle, in the order of
+  the file, that the leader has not and has not finished, where its condition holds for his
+  side and him then, `100 x hours / hours_required` per cent more, a trait wanting no hours
+  whole. One made whole is his. The hours are spent whether anything was earned or not.
+- **A new leader on a unit throws away the hours he had banked.**
+
+**The conditions** are the tactics' (`landcombat.md`, section 11) and six more, all of the
+battle and the side being counted:
+
+| | holds |
+| --- | --- |
+| `terrain` | the battle's province is of that terrain |
+| `province_temperature` | its temperature is under that many degrees |
+| `has_combined_arms` | in a land battle, a unit of the side led by this leader is made for combined arms. **What follows the key is not read**: `= no` holds the same |
+| `has_combat_modifier` | the side had that modifier in its last hour - written exactly, `BM_FORT_MODIFIER` |
+| `is_convoy` | the battle is a raid on a convoy, or is not |
+| `is_winner` | the battle is over and the side has not lost it - a battle broken off is won by both |
+
+*Ours:* `is_winner` asks the side what the battle was decided as; the original asks it again
+whether it has lost. A side that has lost has always been decided so here.
+
+*Ours:* `has_combat_modifier` asks the lists of what the hour put on the side's units, where the
+original keeps a flag for each on the side; they are made in the same places.
+
 ## Kept as read, though they look odd
 
 1. **An order of battle's leader goes on whoever he is**: another country's, a rank that does
@@ -417,11 +498,20 @@ it has.
     for its bombers** (section 10): only the bonus asks his rank.
 15. **`dissent_impact` does nothing at sea or in the air** (section 10), where on land it makes
     dissent more or less.
+16. **A raid on a convoy never counts the hours its raider's leader banked in it** (section
+    11): the original takes the raid's battle off by hand and never ends it, so the hours wait
+    for his next battle and are counted against that. So **`seawolf`, which wants a convoy
+    battle, cannot be earned by raiding** - `inferred`, since the battle's own end was not
+    read to the last call.
+17. **`has_combined_arms` reads nothing after it**: `has_combined_arms = no` holds where a
+    unit has combined arms, as `= yes` does.
+18. **`is_winner` holds for both sides of a battle broken off**: nobody lost it.
+19. **A ship gains no experience in an hour it has no target**, and a bombing of a province
+    with no units in it gives the bombers none - there is no enemy to measure.
 
 ## Not built
 
-- **The experience and traits a leader gains in any battle** - the rest of the third piece.
-  `winter_attrition` waits for attrition.
+- `winter_attrition` waits for attrition. The practical knowledge a battle gives.
 - **The aggressiveness a side's leader picks a tactic with**: it comes from plans and a unit's
   own setting, neither of which exists here, so it is 0.
 - **The window a leader is chosen in**, promotion and dismissal, and the setting

@@ -150,7 +150,8 @@ public static class CMovement
 			List<CUnit>? busy = null;
 			foreach (CUnit unit in country.AllUnits())
 			{
-				if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.IsRetreating
+				if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.Bombing is not null
+					|| unit.IsRetreating
 					|| unit.AttackDelay > CFixedPoint.Zero || unit.HoursAttacking > 0
 					|| unit.EngageWait > 0 || unit.NoBattleHours > 0 || unit.NoBombingHours > 0
 					|| (atWar && (CMovementRules.IsLandUnit(unit) || unit.Kind == EUnitKind.Navy))
@@ -209,6 +210,11 @@ public static class CMovement
 			{
 				return;
 			}
+		}
+		// A unit in a battle, or in a bombing, gains its hour's experience.
+		if (unit.Combats.Count > 0 || unit.Bombing is not null)
+		{
+			CCombatExperience.Grant(state, unit, convoyRaid: false);
 		}
 		bool isLand = CMovementRules.IsLandUnit(unit);
 		if (isLand && unit.IsMoving)
@@ -403,7 +409,7 @@ public static class CMovement
 			unit.MovementProgress = CFixedPoint.Zero;
 		}
 		// Whoever leaves a province leaves the bombing of it.
-		CBombing.Leave(unit);
+		CBombing.Leave(state, unit);
 		unit.IsRetreating = false;
 		if (!CMovementRules.MayStandIn(state, country, unit, next))
 		{

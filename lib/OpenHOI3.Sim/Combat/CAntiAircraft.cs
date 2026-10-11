@@ -33,6 +33,7 @@ public static class CAntiAircraft
 	public static void Attack(CGameState state, CCombat bombing)
 	{
 		CCombatSide side = bombing.Defender;
+		CTraitGain.BankHour(state, side);
 		List<CSubUnit> wings = side.Targets;
 		wings.Clear();
 		foreach (CUnit unit in bombing.Attacker.Units)

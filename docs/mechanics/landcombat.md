@@ -544,17 +544,20 @@ check - there is nothing to set it against. On the start date, with a seed of 1:
 
     Italy at Ethiopia, Belet Uen at Gurbo:   across a river, one division against three: it
                                              attacks at 0.345 by day and 0.172 by night, and
-                                             fails after 181 hours, 322 men lost against 32
-    Japan at China, Tangshan at Tianjin:     into a town, at 0.69 by day against a defence of
-                                             1.265: the defence breaks after 347 hours, the
+                                             fails after 159 hours, 329 men lost against 22
+    Japan at China, Tangshan at Tianjin:     into a town, at 0.78 by day against a defence of
+                                             1.39: the defence breaks after 288 hours, the
                                              beaten division falls back, and Tianjin is held
                                              by Japan the next hour
-    Germany at France, Karlsruhe at          across the Rhine into ten levels of fort, at 0.04
-    Wissembourg:                             by day: it fails after 202 hours, 443 men lost
-                                             against 12
+    Germany at France, Karlsruhe at          across the Rhine into ten levels of fort, at 0.05
+    Wissembourg:                             by day: it fails after 196 hours, 480 men lost
+                                             against 7
 
-(The figures are of a game that has run its two days, `tick.md`, section 6; before it did,
-the first and the third were an hour and a few men different.)
+(The figures are of 2026-10-11, once the leaders and the experience of an hour in battle were
+built: each unit's hour in a battle rolls a die for its experience, so every battle's rolls
+moved. The trial ends by giving each side's leaders' experience and how far they are towards a
+trait - over Gurbo, which is desert, both divisions' leaders are 22.3% of the way to
+`desert_fox`.)
 
 It prints the two tactics whenever a pick changes either: mostly the plain attack against the
 plain defence, with an assault or a shock for a day now and then. A sixth argument is a part
@@ -575,8 +578,9 @@ whom, for how long, and how many stand on each front; it is scaffolding.
 - **The weather itself**: its part in a battle is built and there is none to play it.
 - ~~**Leaders**, wherever one is named above.~~ Built on 2026-10-11, but for the
   aggressiveness a side's leader picks a tactic with (section 11).
-- **Experience** from a battle, a leader's included, the traits he earns there, and the
-  practical knowledge a round gives.
+- ~~**Experience** from a battle, a leader's included, and the traits he earns there.~~
+  Built on 2026-10-11 (`leaders.md`, section 11). **The practical knowledge** a round gives is
+  not.
 - **Air units**: a battle in the air and bombing are their own pieces. Fleets fight one
   another at sea since 2026-10-10 (`navalcombat.md`), and have no part in a land battle
   yet: shore bombardment is not built.

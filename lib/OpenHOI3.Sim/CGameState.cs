@@ -125,6 +125,9 @@ public sealed class CGameState
 	/// <summary>The traits a leader may have, in the order their file declares them.</summary>
 	public IReadOnlyList<CTrait> Traits { get; init; } = Array.Empty<CTrait>();
 
+	/// <summary>The traits battles earn a leader, from <c>common/gainable_traits.txt</c>.</summary>
+	public CGainableTraits GainableTraits { get; init; } = CGainableTraits.Empty;
+
 	/// <summary>
 	/// Every leader of every country, by the number his file gives him - which is what an
 	/// order of battle and a savegame name him by. See <c>docs/mechanics/leaders.md</c>.

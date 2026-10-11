@@ -19,6 +19,10 @@ public class CombatHistoryTests
 
 	private static CUnit Unit(CCountryTag owner, int id) => new(EUnitKind.Air, owner) { Id = id, Location = 1 };
 
+	/// <summary>A game with nothing in it, for taking units with no leader off a side.</summary>
+	private static readonly CGameState Bare = new(new CDate(1936, 1, 1), new[] { new CProvince(0, "", isSea: false) },
+		System.Array.Empty<CCountry>());
+
 	[Fact]
 	public void TakingAUnitOffMakesTheCountriesStillInTheFightAgainFromTheUnitsLeft()
 	{
@@ -27,7 +31,7 @@ public class CombatHistoryTests
 		combat.Attacker.Add(german);
 		combat.Attacker.Add(Unit(Ita, 2));
 
-		combat.Attacker.Remove(german);
+		combat.Attacker.Remove(Bare, german);
 
 		Assert.Equal(new[] { Ita }, combat.Attacker.Standing);
 		Assert.Equal(new[] { Ger, Ita }, combat.Attacker.Countries);
@@ -41,7 +45,7 @@ public class CombatHistoryTests
 		combat.Attacker.Add(Unit(Ita, 2));
 		CUnit polish = Unit(Pol, 3);
 		combat.Defender.Add(polish);
-		combat.Defender.Remove(polish);
+		combat.Defender.Remove(Bare, polish);
 		var history = new CCombatHistory();
 
 		history.Record(combat, 1000);
@@ -61,7 +65,7 @@ public class CombatHistoryTests
 
 		CUnit english = Unit(Eng, 2);
 		bombing.Defender.Add(english);
-		bombing.Defender.Remove(english);
+		bombing.Defender.Remove(Bare, english);
 		history.Record(bombing, 11);
 
 		Assert.Null(history.Entries[1].Defender);

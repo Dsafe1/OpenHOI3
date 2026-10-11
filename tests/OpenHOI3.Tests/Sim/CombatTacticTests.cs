@@ -21,18 +21,18 @@ public class CombatTacticTests
 	private const int Berlin = 1;
 	private const int Posen = 2;
 
-	private static CTacticCondition Side(bool attacker)
+	private static CCombatCondition Side(bool attacker)
 	{
-		var all = new CTacticCondition(ETacticCondition.All);
-		all.Children.Add(new CTacticCondition(ETacticCondition.IsAttacker, attacker));
+		var all = new CCombatCondition(ECombatCondition.All);
+		all.Children.Add(new CCombatCondition(ECombatCondition.IsAttacker, attacker));
 		return all;
 	}
 
 	private static CCombatTactic Tactic(int number, string name, bool attacker, string basis = "1",
 		string counteredBy = "", string aggressiveness = "0", string attack = "0", string defence = "0",
-		string width = "0", string speed = "0", CTacticCondition? also = null)
+		string width = "0", string speed = "0", CCombatCondition? also = null)
 	{
-		CTacticCondition condition = Side(attacker);
+		CCombatCondition condition = Side(attacker);
 		if (also is not null)
 		{
 			condition.Children.Add(also);
@@ -81,7 +81,7 @@ public class CombatTacticTests
 		var unit = new CUnit(EUnitKind.Division, country.Tag) { Id = ++state.LastUnitId, Location = province, Name = "Division" };
 		var kind = new CSubUnitType(type, EUnitBranch.Land);
 		kind.Stats.Values.Set(CSubUnitType.CombatWidth, CFixedPoint.Parse(width));
-		kind.Flags[CTacticCondition.ArmourFlag] = armour;
+		kind.Flags[CCombatCondition.ArmourFlag] = armour;
 		var subUnit = new CSubUnit(kind) { Id = ++state.LastUnitId, Unit = unit };
 		subUnit.Stats.CopyFrom(kind.Stats);
 		unit.SubUnits.Add(subUnit);
@@ -267,8 +267,8 @@ public class CombatTacticTests
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
 		CCombat combat = Battle(state, germany, poland);
-		var full = new CTacticCondition(ETacticCondition.FrontageFull);
-		var reserves = new CTacticCondition(ETacticCondition.Reserves);
+		var full = new CCombatCondition(ECombatCondition.FrontageFull);
+		var reserves = new CCombatCondition(ECombatCondition.Reserves);
 
 		Assert.False(full.Holds(state, combat, combat.Attacker));
 		Assert.False(reserves.Holds(state, combat, combat.Attacker));
@@ -281,7 +281,7 @@ public class CombatTacticTests
 
 		combat.Attacker.Reserves.Add(Division(state, germany, Berlin));
 		Assert.True(reserves.Holds(state, combat, combat.Attacker));
-		Assert.False(new CTacticCondition(ETacticCondition.Reserves, wanted: false).Holds(state, combat, combat.Attacker));
+		Assert.False(new CCombatCondition(ECombatCondition.Reserves, wanted: false).Holds(state, combat, combat.Attacker));
 	}
 
 	[Fact]
@@ -289,7 +289,7 @@ public class CombatTacticTests
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
 		CCombat combat = Battle(state, germany, poland);
-		var armour = new CTacticCondition(ETacticCondition.HasArmourUnit);
+		var armour = new CCombatCondition(ECombatCondition.HasArmourUnit);
 		CUnit tanks = Division(state, germany, Berlin, "armor_brigade", armour: true);
 
 		combat.Attacker.Reserves.Add(tanks);
@@ -298,7 +298,7 @@ public class CombatTacticTests
 		combat.Attacker.Reserves.Remove(tanks);
 		combat.Attacker.Front.Add(tanks);
 		Assert.True(armour.Holds(state, combat, combat.Attacker));
-		Assert.False(new CTacticCondition(ETacticCondition.HasArmourUnit, wanted: false).Holds(state, combat, combat.Attacker));
+		Assert.False(new CCombatCondition(ECombatCondition.HasArmourUnit, wanted: false).Holds(state, combat, combat.Attacker));
 	}
 
 	[Fact]
@@ -307,11 +307,11 @@ public class CombatTacticTests
 		CGameState state = State(out CCountry germany, out CCountry poland);
 		CCombat combat = Battle(state, germany, poland);
 
-		Assert.True(new CTacticCondition(ETacticCondition.Skill, amount: 0).Holds(state, combat, combat.Attacker));
-		Assert.False(new CTacticCondition(ETacticCondition.Skill, amount: 3).Holds(state, combat, combat.Attacker));
-		Assert.False(new CTacticCondition(ETacticCondition.SkillAdvantage, amount: 1).Holds(state, combat, combat.Attacker));
-		Assert.False(new CTacticCondition(ETacticCondition.Trait, name: "panzer_leader").Holds(state, combat, combat.Attacker));
-		Assert.False(new CTacticCondition(ETacticCondition.Never).Holds(state, combat, combat.Attacker));
+		Assert.True(new CCombatCondition(ECombatCondition.Skill, amount: 0).Holds(state, combat, combat.Attacker));
+		Assert.False(new CCombatCondition(ECombatCondition.Skill, amount: 3).Holds(state, combat, combat.Attacker));
+		Assert.False(new CCombatCondition(ECombatCondition.SkillAdvantage, amount: 1).Holds(state, combat, combat.Attacker));
+		Assert.False(new CCombatCondition(ECombatCondition.Trait, name: "panzer_leader").Holds(state, combat, combat.Attacker));
+		Assert.False(new CCombatCondition(ECombatCondition.Never).Holds(state, combat, combat.Attacker));
 	}
 
 	[Fact]
@@ -319,11 +319,11 @@ public class CombatTacticTests
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
 		CCombat combat = Battle(state, germany, poland);
-		var any = new CTacticCondition(ETacticCondition.Any);
-		any.Children.Add(new CTacticCondition(ETacticCondition.Skill, amount: 3));
-		any.Children.Add(new CTacticCondition(ETacticCondition.IsAttacker));
-		var none = new CTacticCondition(ETacticCondition.None);
-		none.Children.Add(new CTacticCondition(ETacticCondition.Reserves));
+		var any = new CCombatCondition(ECombatCondition.Any);
+		any.Children.Add(new CCombatCondition(ECombatCondition.Skill, amount: 3));
+		any.Children.Add(new CCombatCondition(ECombatCondition.IsAttacker));
+		var none = new CCombatCondition(ECombatCondition.None);
+		none.Children.Add(new CCombatCondition(ECombatCondition.Reserves));
 
 		Assert.True(any.Holds(state, combat, combat.Attacker));
 		Assert.False(any.Holds(state, combat, combat.Defender));

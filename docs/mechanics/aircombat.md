@@ -423,13 +423,14 @@ start date:
     of 400, against Poland's three there: over Warszawa in two hours and into a battle; at
     night each wing's attack at 0.73 and 0.62 of itself, the German air marshal's skill of 4
     adding 0.2 and the Pole's 0.05; four hours, nobody lost, an hour's pause and the next.
-    After nine battles in two days the Germans are down to 215 of 300 strength and 7.0
-    organisation of 40 and turn for home; the Poles, at 254 and 15.2 of 30, catch them over
-    Tomaszów on the way and fight them there ten times more in the week, until the Germans
-    have 125 of their 300 and the Poles 220
+    After ten battles in two days the Germans are down to 219 of 300 strength and 7.7
+    organisation of 40 and turn for home; the Poles catch them over Tomaszów on the way and
+    fight them there eight times more, until on the fifth day the Germans are back in
+    Breslau with 150 of their 300 and the Poles have 240. Both air marshals are a tenth of
+    the way, or near it, to superior_air_tactician
 
-(The figures are of 2026-10-11 after the leaders were built: the radio is in them, and a unit
-that flies on from a battle may fight again where it arrives.)
+(The figures are of 2026-10-11 after the leaders and the experience of battle were built: the
+radio is in them, and a unit that flies on from a battle may fight again where it arrives.)
 
 In the client `--mission=GER:airsuperiority:<province>` and `--mission=GER:airintercept:<province>`
 give that mission to the country's air unit with the most air attack that has the province in
@@ -451,7 +452,8 @@ selected province says there is a battle.
 - The orders window is whole since 2026-10-11, and the air map mode is built: `airmap.md`.
 - **Difficulty** in what the hour makes of a wing; **radar** in what a country knows. The
   leaders are built since 2026-10-11 (`leaders.md`, section 10). The weather's part is built and there is no weather yet.
-- **The practical** an air battle earns, and experience.
+- **The practical** an air battle earns. Its experience, the leader's and the wings', is built
+  since 2026-10-11 (`leaders.md`, section 11).
 - The AI's own giving of missions, and its 120-hour end.
 
 ### Not established

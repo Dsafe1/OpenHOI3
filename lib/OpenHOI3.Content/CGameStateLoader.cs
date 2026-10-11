@@ -95,6 +95,7 @@ public static class CGameStateLoader
 		List<CWar> wars = CWarReader.Read(directories, countries, start, warn);
 		List<CAlliance> alliances = CDiplomacyReader.Apply(directories, countries, start, warn);
 
+		List<CTrait> traits = CTraitReader.Read(directories, warn);
 		var state = new CGameState(start, provinces, countries.Declared, buildings, technologies, staticModifiers,
 			defines, wars, strategicResources, categories)
 		{
@@ -102,7 +103,8 @@ public static class CGameStateLoader
 			SubUnitTypes = unitTypes,
 			CombinedArmsGroups = CCombinedArmsReader.Read(directories, warn),
 			Tactics = CCombatTacticReader.Read(directories, warn),
-			Traits = CTraitReader.Read(directories, warn),
+			Traits = traits,
+			GainableTraits = CGainableTraitReader.Read(directories, traits, warn),
 			NameTexts = ReadNameTexts(localisation, unitTypes.Values),
 			MapWidth = map.Width,
 			MapHeight = map.Height,

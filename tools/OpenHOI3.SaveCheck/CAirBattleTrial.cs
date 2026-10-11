@@ -172,6 +172,11 @@ public static class CAirBattleTrial
 			}
 		}
 		Console.WriteLine($"{state.Date} {state.Hour}:00  at the end: {After(state, ours)}; {After(state, theirs)}");
+		Console.WriteLine("Their leaders now:");
+		foreach (string line in CLeaderGainText.Lines(ours).Concat(CLeaderGainText.Lines(theirs)))
+		{
+			Console.WriteLine(line);
+		}
 		if (!fought)
 		{
 			Console.WriteLine($"No battle was fought in {MostHours} hours.");

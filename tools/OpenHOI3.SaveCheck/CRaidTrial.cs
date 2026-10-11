@@ -141,6 +141,11 @@ public static class CRaidTrial
 		Console.WriteLine($"    {victims.Name} now has {victims.Convoys.Count} convoys with "
 			+ $"{victims.Convoys.Sum(convoy => convoy.Transports)} transports and {victims.Convoys.Sum(convoy => convoy.Escorts)} escorts, "
 			+ $"and {victims.Transports} transports with no convoy.");
+		Console.WriteLine("The raider's leaders now:");
+		foreach (string line in CLeaderGainText.Lines(fleet))
+		{
+			Console.WriteLine(line);
+		}
 		return 0;
 	}
 

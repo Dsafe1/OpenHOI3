@@ -37,6 +37,7 @@ public static class CLandFire
 	/// </summary>
 	public static void Attack(CGameState state, CCombat combat, CCombatSide side)
 	{
+		CTraitGain.BankHour(state, side);
 		CFrontLine.Update(state, combat, side);
 		var rolls = new CCombatStream(state.Random.Next());
 		CCombatSide enemy = combat.Other(side);

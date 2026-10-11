@@ -70,23 +70,23 @@ public class CombatTacticReaderTests
 			}
 		");
 
-		CTacticCondition trigger = tactics[0].Condition!;
-		Assert.Equal(ETacticCondition.All, trigger.Kind);
+		CCombatCondition trigger = tactics[0].Condition!;
+		Assert.Equal(ECombatCondition.All, trigger.Kind);
 		Assert.Equal(5, trigger.Children.Count);
-		Assert.Equal(ETacticCondition.IsAttacker, trigger.Children[0].Kind);
+		Assert.Equal(ECombatCondition.IsAttacker, trigger.Children[0].Kind);
 		Assert.True(trigger.Children[0].Wanted);
-		Assert.Equal(ETacticCondition.HasArmourUnit, trigger.Children[1].Kind);
-		CTacticCondition any = trigger.Children[2];
-		Assert.Equal(ETacticCondition.Any, any.Kind);
-		Assert.Equal(ETacticCondition.Skill, any.Children[0].Kind);
+		Assert.Equal(ECombatCondition.HasArmourUnit, trigger.Children[1].Kind);
+		CCombatCondition any = trigger.Children[2];
+		Assert.Equal(ECombatCondition.Any, any.Kind);
+		Assert.Equal(ECombatCondition.Skill, any.Children[0].Kind);
 		Assert.Equal(3, any.Children[0].Amount);
-		Assert.Equal(ETacticCondition.Trait, any.Children[1].Kind);
+		Assert.Equal(ECombatCondition.Trait, any.Children[1].Kind);
 		Assert.Equal("panzer_leader", any.Children[1].Name);
-		Assert.Equal(ETacticCondition.SkillAdvantage, any.Children[2].Kind);
+		Assert.Equal(ECombatCondition.SkillAdvantage, any.Children[2].Kind);
 		Assert.Equal(2, any.Children[2].Amount);
-		Assert.Equal(ETacticCondition.None, trigger.Children[3].Kind);
+		Assert.Equal(ECombatCondition.None, trigger.Children[3].Kind);
 		Assert.False(trigger.Children[3].Children[0].Wanted);
-		Assert.Equal(ETacticCondition.FrontageFull, trigger.Children[4].Kind);
+		Assert.Equal(ECombatCondition.FrontageFull, trigger.Children[4].Kind);
 		Assert.False(trigger.Children[4].Wanted);
 		Assert.Empty(_warnings);
 	}
@@ -103,7 +103,7 @@ public class CombatTacticReaderTests
 
 		Assert.Contains(_warnings, warning => warning.Contains("wobble"));
 		Assert.Contains(_warnings, warning => warning.Contains("has_cavalry"));
-		Assert.Equal(ETacticCondition.Never, tactics[0].Condition!.Children[1].Kind);
+		Assert.Equal(ECombatCondition.Never, tactics[0].Condition!.Children[1].Kind);
 	}
 
 	[Fact]

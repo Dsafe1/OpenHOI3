@@ -76,6 +76,33 @@ public static class CLeaders
 	}
 
 	/// <summary>
+	/// A leader gains experience from a battle: the amount times one and a fifth of the
+	/// square of how far his skill is below his most - a third of that once he is at it
+	/// or past it - added to his experience; and where that is now above his next floor,
+	/// a level of skill. One level at a time, and none at all from 12.
+	/// <c>docs/mechanics/leaders.md</c>, section 11.
+	/// </summary>
+	public static void AddExperience(CLeader leader, CFixed15 amount)
+	{
+		if (leader.Skill >= MostSkill)
+		{
+			return;
+		}
+		long below = leader.MaxSkill - leader.Skill;
+		long factor = (below * below << CFixed15.Places) / 5 + CFixed15.Scale;
+		if (leader.Skill >= leader.MaxSkill)
+		{
+			factor = (factor << CFixed15.Places) / (3 * CFixed15.Scale);
+		}
+		// Every rank's factor is one.
+		leader.Experience = new CFixed15(leader.Experience.Raw + ((factor * amount.Raw) >> CFixed15.Places));
+		if (leader.Experience > Floor(leader.Skill + 1))
+		{
+			leader.Skill++;
+		}
+	}
+
+	/// <summary>
 	/// What a game being made does with leaders once the units are read, before anything
 	/// is chosen: puts in service every leader of every country who has a rank, in the
 	/// order the country keeps them, and puts on each unit the leader its file named, of
@@ -360,8 +387,7 @@ public static class CLeaders
 	/// Puts a leader on a unit, or takes its leader off with null. Whatever either
 	/// commanded before is left with nobody. <paramref name="organisationHit"/> leaves
 	/// every brigade of the unit the share of its organisation <c>NEW_LEADER_ORG_HIT</c>
-	/// gives. The original can also throw away the hours of battle the new leader had
-	/// banked towards a trait; nothing banks them yet.
+	/// gives. The new leader's hours of battle banked towards a trait are thrown away.
 	/// </summary>
 	public static void SetLeader(CGameState state, CUnit unit, CLeader? leader, bool organisationHit)
 	{
@@ -384,6 +410,8 @@ public static class CLeaders
 				previous.Leader = null;
 			}
 			leader.Unit = unit;
+			leader.TraitProgress.Duration = 0;
+			leader.TraitProgress.CurrentHour = -1;
 			if (organisationHit)
 			{
 				long hit = state.Defines[CManpower.MilitarySection, NewLeaderOrgHit].Raw;

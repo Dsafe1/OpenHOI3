@@ -31,6 +31,9 @@ public static class CConvoyRaid
 	/// <summary>The rounds a raid is fought for.</summary>
 	public const int Rounds = 5;
 
+	/// <summary>Before how many of them the raider gains experience.</summary>
+	public const int ExperienceRounds = 3;
+
 	/// <summary>How far apart the ships of a raid stand: as near as ships get.</summary>
 	private static readonly CFixedPoint RaidDistance = CFixedPoint.One;
 
@@ -205,8 +208,15 @@ public static class CConvoyRaid
 		}
 		for (int round = 0; round < Rounds; round++)
 		{
+			// The raider's experience, before each of the first three rounds.
+			if (round < ExperienceRounds)
+			{
+				CCombatExperience.Grant(state, raider, convoyRaid: true);
+			}
 			CNavalBattle.RunHour(state, combat);
 		}
+		// Nothing here counts the hours the raider's leader banked: the original takes the
+		// battle off by hand and never ends it, so they wait for his next battle.
 		foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
 		{
 			foreach (CUnit fleet in side.Units)

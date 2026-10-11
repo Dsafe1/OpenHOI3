@@ -57,6 +57,12 @@ public sealed class CCombat
 	public bool AttackerLost { get; set; }
 
 	/// <summary>
+	/// Whether it is over and its units are being let go: what a gainable trait's
+	/// <c>is_winner</c> asks first.
+	/// </summary>
+	public bool HasEnded { get; set; }
+
+	/// <summary>
 	/// What the two sides' tactics add to the battle's width, to the damage of each
 	/// side's hits, and to how fast an attacker's delay runs down. Written by
 	/// <see cref="CCombatTactics.SumEffects"/> whenever tactics are picked.

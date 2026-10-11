@@ -53,6 +53,7 @@ public static class CBomberFire
 	{
 		CCombatSide side = bombing.Attacker;
 		CCombatSide other = bombing.Defender;
+		CTraitGain.BankHour(state, side);
 		var need = new CProvinceBombing.CNeed(state, bombing.Province);
 		foreach (CUnit unit in new List<CUnit>(side.Units))
 		{

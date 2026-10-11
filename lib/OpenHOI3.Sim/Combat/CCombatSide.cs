@@ -123,10 +123,12 @@ public sealed class CCombatSide
 
 	/// <summary>
 	/// Takes a unit off this side, wherever on it it was, and makes the countries still in
-	/// the fight again from the units left.
+	/// the fight again from the units left. First every leader of the side has his banked
+	/// hours counted towards the traits this battle earns.
 	/// </summary>
-	public void Remove(CUnit unit)
+	public void Remove(CGameState state, CUnit unit)
 	{
+		CTraitGain.Count(state, Combat, this);
 		Units.Remove(unit);
 		Front.Remove(unit);
 		Reserves.Remove(unit);

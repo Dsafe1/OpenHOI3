@@ -185,6 +185,11 @@ public static class CBombingTrial
 		}
 		Console.WriteLine($"    a day's repair there is {new CFixedPoint(CProvinceRepair.Rate(state, target))} of each good's yield and "
 			+ $"{new CFixedPoint(CProvinceRepair.Rate(state, target) * state.Defines[CProvinceRepair.EconomySection, CProvinceRepair.RepairSpeed].Raw / CFixedPoint.Scale)} of a level of each building.");
+		Console.WriteLine("The bombers' leaders now:");
+		foreach (string line in CLeaderGainText.Lines(bomber))
+		{
+			Console.WriteLine(line);
+		}
 		return 0;
 	}
 

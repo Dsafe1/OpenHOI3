@@ -424,10 +424,11 @@ strategic bombing of Poland for three days. On the start date:
         a day, and the bombers have lost 5.5 of 400 strength
     ground attack: the same wings on five Polish units in Poznan, by night at 0.44 of their
         attack, their air marshal's skill of 3 adding 0.15: a division loses about a
-        hundredth of a point of strength an hour, and the bombers 17 of their 400 in three
-        days to the province's fire
+        hundredth of a point of strength an hour, and the bombers 16 of their 400 in three
+        days to the province's fire. Their air marshal gains 341 experience; the strategic
+        bombing, against no units, gives him none, and a twentieth of the way to carpet_bomber
     port strike: British strategic bombers on Wilhelmshaven take the naval base from 10 to
-        0.9 in two days, and the German battle fleet in it fires 200 shots an hour: the
+        1.0 in two days, and the German battle fleet in it fires 200 shots an hour: the
         bombers are down from 40 organisation to 4. No ship is hit
     naval strike: the same bombers find the battle fleet off its port twice in two days, and
         hit nothing

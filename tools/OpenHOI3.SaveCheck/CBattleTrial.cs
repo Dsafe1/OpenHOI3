@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
@@ -140,6 +141,11 @@ public static class CBattleTrial
 		}
 		Console.WriteLine($"{state.Date} {state.Hour}:00  {unit.Name} is in {state.Province(unit.Location).Name}; "
 			+ $"{to.Name} is held by {to.Controller} and owned by {to.Owner}.");
+		Console.WriteLine("Their leaders now:");
+		foreach (string line in CLeaderGainText.Lines(unit).Concat(CLeaderGainText.Lines(enemy)))
+		{
+			Console.WriteLine(line);
+		}
 		return 0;
 	}
 

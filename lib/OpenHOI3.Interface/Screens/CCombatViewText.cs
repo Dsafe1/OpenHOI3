@@ -56,33 +56,7 @@ public static class CCombatViewText
 	/// The modifiers in the order their icons stand in, each with the key the original
 	/// knows it by. The ones nothing here works out yet are left out.
 	/// </summary>
-	private static readonly (ECombatModifier Kind, string Key)[] ModifierKeys =
-	{
-		(ECombatModifier.Dissent, "BM_DISSENT"),
-		(ECombatModifier.Leader, "BM_LEADER_BONUS"),
-		(ECombatModifier.Envelopment, "BM_ENVELOPMENT_PENALTY"),
-		(ECombatModifier.Stacking, "BM_DIVISION_PENALTY"),
-		(ECombatModifier.Experience, "BM_EXPERIENCE"),
-		(ECombatModifier.MissionEfficiency, "BM_MISSION_EFFICIENCY"),
-		(ECombatModifier.TerritorialPride, "BM_TERRITORIAL_PRIDE"),
-		(ECombatModifier.Radio, "BM_RADIO"),
-		(ECombatModifier.DugIn, "BM_DUGIN_MODIFIER"),
-		(ECombatModifier.Amphibious, "BM_AMPH_PENALTY"),
-		(ECombatModifier.Fort, "BM_FORT_MODIFIER"),
-		(ECombatModifier.River, "BM_RIVER_PENALTY"),
-		(ECombatModifier.LackOfSupplies, "BM_LACK_OF_SUPPLIES"),
-		(ECombatModifier.MultipleCombats, "BM_MULTIPLE"),
-		(ECombatModifier.CombinedArms, "BM_COMBINED_ARMS"),
-		(ECombatModifier.BaseProximity, "BM_BASE_PROXIMITY"),
-		(ECombatModifier.PoorScreens, "BM_POOR_SCREEN_PENALTY"),
-		(ECombatModifier.Radar, "BM_RADAR_STATION"),
-		(ECombatModifier.Intercept, "BM_INTERCEPT"),
-		(ECombatModifier.AirCombat, "BM_AIRCOMBAT"),
-		(ECombatModifier.Terrain, "BM_TERRAIN"),
-		(ECombatModifier.Weather, "BM_WEATHER"),
-		(ECombatModifier.Night, "BM_NIGHT_MODIFIER"),
-		(ECombatModifier.Surprise, "BM_SURPRISE_BONUS"),
-	};
+	private static readonly (ECombatModifier Kind, string Key)[] ModifierKeys = CCombatModifierKeys.All;
 
 	// ---- the battle
 

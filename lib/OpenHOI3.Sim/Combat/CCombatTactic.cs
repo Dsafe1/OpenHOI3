@@ -47,7 +47,7 @@ public sealed class CCombatTactic
 	public CFixedPoint Speed { get; init; }
 
 	/// <summary>What must hold of a side for it to pick this, or null for nothing.</summary>
-	public CTacticCondition? Condition { get; init; }
+	public CCombatCondition? Condition { get; init; }
 
 	public override string ToString()
 	{

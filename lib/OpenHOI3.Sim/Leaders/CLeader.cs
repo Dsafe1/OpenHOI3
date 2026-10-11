@@ -59,6 +59,9 @@ public sealed class CLeader
 	/// <summary>His traits, in the order he gained them. One may be there twice.</summary>
 	public List<CTrait> Traits { get; } = new();
 
+	/// <summary>How far he is towards the traits battles earn, and the hours he has banked.</summary>
+	public CTraitProgress TraitProgress { get; } = new();
+
 	/// <summary>
 	/// The day his history first gives him a rank, on which a day's pass puts him in
 	/// service if he is not already; null where it never does, and then he never is.

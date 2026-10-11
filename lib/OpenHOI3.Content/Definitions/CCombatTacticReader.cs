@@ -64,7 +64,7 @@ public static class CCombatTacticReader
 				continue;
 			}
 
-			CTacticCondition? condition = null;
+			CCombatCondition? condition = null;
 			string picture = "";
 			string counteredBy = "";
 			var figures = new Dictionary<string, CFixedPoint>(StringComparer.OrdinalIgnoreCase);
@@ -78,7 +78,7 @@ public static class CCombatTacticReader
 				switch (key)
 				{
 					case "trigger" when entry.IsBlock:
-						condition = ReadGroup(entry, ETacticCondition.All, unknownConditions);
+						condition = CCombatConditionReader.ReadGroup(entry, ECombatCondition.All, unknownConditions);
 						break;
 					case "picture":
 						picture = entry.Value ?? "";
@@ -132,72 +132,5 @@ public static class CCombatTacticReader
 				$"and never hold: {string.Join(", ", unknownConditions)}");
 		}
 		return tactics;
-	}
-
-	private static CTacticCondition ReadGroup(ClausewitzNode block, ETacticCondition kind, SortedSet<string> unknown)
-	{
-		var group = new CTacticCondition(kind);
-		foreach (ClausewitzNode entry in block.Children)
-		{
-			if (entry.Key is null)
-			{
-				continue;
-			}
-			string key = entry.Key.ToLowerInvariant();
-			if (entry.IsBlock)
-			{
-				switch (key)
-				{
-					case "or":
-						group.Children.Add(ReadGroup(entry, ETacticCondition.Any, unknown));
-						break;
-					case "and":
-						group.Children.Add(ReadGroup(entry, ETacticCondition.All, unknown));
-						break;
-					case "not":
-						group.Children.Add(ReadGroup(entry, ETacticCondition.None, unknown));
-						break;
-					default:
-						unknown.Add(entry.Key);
-						group.Children.Add(new CTacticCondition(ETacticCondition.Never));
-						break;
-				}
-				continue;
-			}
-
-			string value = entry.Value ?? "";
-			bool wanted = value.Equals("yes", StringComparison.OrdinalIgnoreCase);
-			bool isYesNo = wanted || value.Equals("no", StringComparison.OrdinalIgnoreCase);
-			bool isNumber = CFixedPoint.TryParse(value, out CFixedPoint amount);
-			switch (key)
-			{
-				case "is_attacker" when isYesNo:
-					group.Children.Add(new CTacticCondition(ETacticCondition.IsAttacker, wanted));
-					break;
-				case "frontage_full" when isYesNo:
-					group.Children.Add(new CTacticCondition(ETacticCondition.FrontageFull, wanted));
-					break;
-				case "reserves" when isYesNo:
-					group.Children.Add(new CTacticCondition(ETacticCondition.Reserves, wanted));
-					break;
-				case "has_armour_unit" when isYesNo:
-					group.Children.Add(new CTacticCondition(ETacticCondition.HasArmourUnit, wanted));
-					break;
-				case "skill_advantage" when isNumber:
-					group.Children.Add(new CTacticCondition(ETacticCondition.SkillAdvantage, amount: (int)amount.ToInt()));
-					break;
-				case "skill" when isNumber:
-					group.Children.Add(new CTacticCondition(ETacticCondition.Skill, amount: (int)amount.ToInt()));
-					break;
-				case "trait" when value.Length > 0:
-					group.Children.Add(new CTacticCondition(ETacticCondition.Trait, name: value));
-					break;
-				default:
-					unknown.Add(value.Length > 0 ? $"{entry.Key} = {value}" : entry.Key);
-					group.Children.Add(new CTacticCondition(ETacticCondition.Never));
-					break;
-			}
-		}
-		return group;
 	}
 }

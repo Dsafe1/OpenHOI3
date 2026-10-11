@@ -46,6 +46,7 @@ public static class CAirFire
 
 	public static void Attack(CGameState state, CCombat combat, CCombatSide side)
 	{
+		CTraitGain.BankHour(state, side);
 		CCombatSide other = combat.Other(side);
 		CDefines defines = state.Defines;
 		string military = CManpower.MilitarySection;
