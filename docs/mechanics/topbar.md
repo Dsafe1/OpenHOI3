@@ -5,7 +5,8 @@ this project can implement. No addresses and no offsets. Each rule says how sure
 `confirmed`, `likely`, `inferred` in the fact base's vocabulary - or **measured**. Where
 this project chooses its own behaviour the paragraph is marked **Ours**.
 
-Source: `reversing/findings/FINDINGS-topbar.md`, read for this. The strings quoted as the
+Source: `reversing/findings/FINDINGS-topbar.md`, read for this, and for the tooltips
+`reversing/findings/FINDINGS-topbartooltip.md`. The strings quoted as the
 original's own are from `reversing/findings/FINDINGS-guilive.md`, section 6: what its top
 bar held in a running game, playing Ireland on 1 January 1936. Every format below
 reproduces the one of those it is for, and the tests hold them.
@@ -198,7 +199,118 @@ screens up and take them down (`countryviews.md`, section 4). The other screens 
 exist, so their buttons can be pressed and do nothing. There are no tutorials and no
 scenarios.
 
-## 14. Ours
+## 14. Tooltips
+
+Read 2026-10-11 (`reversing/findings/FINDINGS-topbartooltip.md`). The bar answers by the
+element's name; how the box is shown is `tooltips.md`. `confirmed` throughout unless marked.
+`VAL`-style figures are written as the original writes them: a colour, the number, `§W`;
+`§G+` is green with a plus. "The sources of a kind" is `modifiers.md`, section 8.
+
+| element | text | delayed |
+| --- | --- | --- |
+| each resource's picture: `icon_energy_small`, `icon_metal_small`, `icon_raremat_small`, `icon_oil_small`, `icon_fuel_small`, `icon_supplies_small`, `icon_money_small`, and `icon_ic_small` | `ENERGY_IRO`, `METAL_IRO`, `RAREMAT_IRO`, `CRUDE_OIL_IRO`, `FUEL_IRO`, `SUPPLIES_IRO`, `MONEY_IRO`, `IC_IRO` | the same with `_DRO` |
+| `icon_dissent`, `icon_diplomacy`, `icon_national_unity`, `icon_espionage`, `icon_leadership`, `icon_manpower` | `DISSENT_IRO`, `DIPLOINF_IRO`, `NATIONAL_UNITY_IRO`, `ESPIONAGE_IRO`, `OFFICERS_IRO`, `MANPOWER_IRO` | the same with `_DRO` |
+| each resource's number | its ledger, below; **nothing for fuel and supplies of a government in exile** | |
+| `ic_number`, `dissent_number`, `diplomacy_number`, `national_unity_number`, `leadership_number` | below | |
+| `manpower_number` | below | below |
+| `espionage_number` | `FREE_SPIES` alone | |
+| the seven `topbarbutton_*` | `DISABLED_IN_SCENARIO`, when disabled in a scenario | |
+
+Everything else on the bar - the date, the name, the flag, the speed buttons, `pause_bg`, the
+menu, outliner and strategic warfare buttons - has no tooltip but its shortcut line. While the
+strategic warfare window is open and over it, that window answers instead.
+
+**A resource's ledger.** First
+
+    change = what came in - what went out      (section 2's two sums, with traded for)
+    RES_CHANGE with VAL = (change < 0 ? §R : §G+) + change to two places + §W
+
+then one line for each of these that is not nothing, in this order, each its key with `VAL`:
+`RES_PROD` (made at home, `§G+`), `RES_CONVOYED_IN` (not supplies or fuel, `§G+`),
+`RES_TRADED_FOR`, `RES_INC_DEBT`, `RES_FROM_PUPPETS` (each `§G+`), `RES_CONVERTED` twice - first
+what converting used, negated, `§R`; then what it made, `§G+` - `RES_TRADED_AWAY`,
+`RES_REPAID_AWAY`, `RES_CONVOYED_OUT` (each `§R` and negated), `RES_SENT_TO_MASTER` (**`§G+` and
+negated, green though it is a loss**), `RES_INTO_NET` and `RES_USED` (`§R`, negated),
+`RES_SHIPPED_BACK` (`§G+`). Each key ends in its own newline. Last, a newline and the sources
+of the good's global kind - `global_energy`, `global_metal`, `global_rare_materials`,
+`global_crude_oil`, `global_fuel`, `global_supplies`, `global_money`.
+
+*Ours:* of the ledgers, those section 2 lists exist; `RES_INTO_NET` is what left the stockpile
+for units and what was made away from the capital, the two pools this project keeps of what the
+original keeps as one.
+
+**IC.** `IC_NUMBER_IRO` with `WASTED`, `BASE` and `AVAILABLE` - section 3's three figures, whole;
+where technology adds to IC, `FROM_TECHNOLOGY` + `": §G+"` + it x 100 to two places + `"%§W\n"`;
+the sources of `global_ic`; and where the country is lent IC, a line of what it gets and one per
+lender. *Ours:* there is no lend-lease.
+
+**Dissent.** `DISSENTV_IRO` with `CHANGE` - `§R` rising, `§Y` still, `§G` falling, and the day's
+change **rounded** to two places, where every other figure here is cut; then, where they say
+anything, `"\n"` + `DISSENTV_IRO2` + the sources of `dissent`; and where the country has any
+dissent, `"\n"` + `DISSENTV_IRO3` + every value of the static `dissent` times its dissent, each
+under the kind's own name (`modifiers.md`, section 8).
+
+**Diplomacy.** `DIPDETAILS_IRO` with
+
+    PRODUCED = the diplomacy share in thousandths, cut, x leadership / 1000
+               x LEADERSHIP_TO_DIPLOMACY / 1000                      to two places
+    UPKEEP   = what influencing others costs a day                    to two places
+    DAILY    = (PRODUCED - UPKEEP < 0 ? §R : = 0 ? §Y : §G+) + it     to two places
+
+*Ours:* there is no diplomacy, so the upkeep is nothing.
+
+**National unity.** `§Y` + unity to three places + `"%§W\n"`; then a list - for each of the
+three strategic warfare impacts, convoys, allies and bombing, that is not nothing, `STW_CONV`,
+`STW_ALLIES` or `STW_BOMB` + (`§G+` above nothing, else `§R`) + it to three places + `"§W\n"`,
+then the sources of `national_unity` - and where the list is under three characters
+`NO_CURR_EFFECTS_ON_NU`, else `STRMONTHLY_CHANGE` + `"\n"` + the list; last, where they say
+more than two characters, `"\n"` + `EFFECT_SIZE_MOD_NU` + `"\n"` + the sources of
+`national_unity_effect`. *Ours:* none of the three impacts exists.
+
+**Officers**, `leadership_number`. `OFFICER_NUMBER2_IRO` with `OFFICERS`, `DIVISIONS` (brigades,
+ships and wings) and `NEED`, whole, and
+
+    DAILY = the officer share in thousandths, cut, x leadership / 1000 x LEADERSHIP_TO_OFFICERS
+            / 1000 x (1000 + officer_recruitment) / 1000                   to one place
+
+then, where they say more than two characters, `"\n"` + the sources of `officer_recruitment`.
+**The day's officers here are worked in thousandths, cut at each step, where the day's pass
+works them in the other kind of number** (`numbers.md`); the two can differ by a thousandth.
+
+**Manpower.** Text: `MANPOWER_DETAILS_IRO` with `NEED`, what bringing every brigade back to
+strength would take, and `USED`, what reinforcing took today - to two places where the need is
+under 10, to one at or above. Delayed: `MANPOWER_DETAILS_DRO` with `MONTHLY`, a month's gain to
+one place, and
+
+    BASE = (most manpower / 2) / (global_manpower_modifier + 1 + technology's manpower gain)
+
+worked in single-precision floating point and written to three places, rounded; then the
+sources of `global_manpower`; then, where technology adds to manpower, a newline where anything
+came before and `FROM_TECHNOLOGY` + `": §G+"` + it x 100 to two places + `"%§W\n"`; then the
+sources of `global_manpower_modifier`, with no newline between them and what came before.
+
+**Spies.** `FREE_SPIES`, which says "Free Spies", and nothing else.
+
+**What is shown of a figure that is not built** is what the original shows of a zero: a line
+skipped, or `§Y0.00`.
+
+*Ours:* a table's `\n` is a line break wherever localisation is read, which `RES_CHANGE` and its
+fellows need; where the original turns it into one was not read.
+
+Built 2026-10-11 (`CTopBarTooltips`, `CModifierText`) and tried with `--click`: the energy ledger,
+IC with a minister's and a law's lines, and manpower's delayed half.
+
+**Kept as read, though they look odd:**
+
+1. **Tribute sent to a master shows green, with a plus**, though it is a loss. Nothing pays
+   tribute here yet.
+2. **Dissent's change is rounded** where every other figure is cut.
+3. **Manpower's delayed half has a blank line before the technology line** wherever a source
+   after the last flat-manpower one has nothing of it - the line break that source leaves, and
+   the one the technology line asks for - and **none at all between the two lists** when there
+   is no technology line.
+
+## 15. Ours
 
 - **The country played is Germany** unless the game is started with `--country=TAG`.
   There is no screen to choose one on.
@@ -221,8 +333,9 @@ scenarios.
    the original looks `GFX_topbar_bg` up by name from its code. Whether it swaps the bar's
    picture by country was not read. The country screens do swap theirs, from the same
    folder (`countryviews.md`, section 2), which makes it likely.
-6. **Tooltips.** The top bar's is a 41-key builder that was found and not read
-   (`reversing/findings/FINDINGS-uinumbers.md`, section 7); none is shown here.
+6. **`pause_bg`'s own tooltip.** The bar gives the button `PAUSE_RESUME` or `FE_PAUSED_TEXT`
+   (section 12), and nothing read asks a button for it, so whether it is ever shown is not
+   known. Here it is not.
 7. **Where the flag is drawn.** The file puts `player_flag` at -2, -1, over the left end
    of the bar's art, and that is where it is. Whether the original clips or shades it
    differently is a matter of looking at the two side by side.

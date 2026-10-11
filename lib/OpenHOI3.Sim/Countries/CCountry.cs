@@ -79,6 +79,12 @@ public sealed class CCountry
 	public CModifier Modifier { get; } = new();
 
 	/// <summary>
+	/// What <see cref="Modifier"/> was summed from, in the order each was added: what the
+	/// original's tooltips list as where a figure comes from. Rebuilt with it.
+	/// </summary>
+	public List<CModifierSource> ModifierSources { get; } = new();
+
+	/// <summary>
 	/// The IC of its provinces, in whole IC, before any of the country's own bonuses.
 	/// Written by <see cref="CIndustrialCapacity"/>.
 	/// </summary>

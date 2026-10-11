@@ -31,69 +31,83 @@ public static class CCountryModifiers
 		CModifier? war = state.FindStaticModifier(War);
 		CModifier? peace = state.FindStaticModifier(Peace);
 		CModifier? dissent = state.FindStaticModifier(Dissent);
-		Dictionary<string, CModifier> fromProvinces = ProvinceModifiersHeld(state);
+		Dictionary<string, List<CProvince>> fromProvinces = ProvincesHeld(state);
 
 		foreach (CCountry country in state.Countries)
 		{
 			Rebuild(country, baseValues);
-			CModifier total = country.Modifier;
 
 			// A resource is worth its modifier times how much of it the country has.
 			foreach ((string name, CFixedPoint level) in country.StrategicResources)
 			{
 				if (level > CFixedPoint.Zero && state.FindStrategicResource(name) is { } resource)
 				{
-					AddScaled(total, resource, level);
+					AddSource(country, Scaled(resource, level));
 				}
 			}
 
 			// Everything the provinces it controls have, the local kinds along with the rest.
-			if (fromProvinces.TryGetValue(country.Tag.Value, out CModifier? provinces))
+			if (fromProvinces.TryGetValue(country.Tag.Value, out List<CProvince>? provinces))
 			{
-				total.Add(provinces);
+				foreach (CProvince province in provinces)
+				{
+					AddSource(country, province.Modifier, province.Name);
+				}
 			}
 
 			if ((state.IsAtWar(country.Tag) ? war : peace) is { } standing)
 			{
-				total.Add(standing);
+				AddSource(country, standing);
 			}
 
 			// What the file gives for dissent is for one point of it.
 			if (dissent is not null)
 			{
-				AddScaled(total, dissent, country.Dissent);
+				AddSource(country, Scaled(dissent, country.Dissent));
 			}
 
 			RebuildTechnology(state, country);
 		}
 	}
 
-	/// <summary>The modifiers of the provinces each country controls, summed, by tag.</summary>
-	private static Dictionary<string, CModifier> ProvinceModifiersHeld(CGameState state)
+	/// <summary>The provinces each country controls that have a modifier at all, by tag, in their order.</summary>
+	private static Dictionary<string, List<CProvince>> ProvincesHeld(CGameState state)
 	{
-		var held = new Dictionary<string, CModifier>(StringComparer.OrdinalIgnoreCase);
+		var held = new Dictionary<string, List<CProvince>>(StringComparer.OrdinalIgnoreCase);
 		foreach (CProvince province in state.Provinces)
 		{
 			if (province.Controller is not { } controller || province.Modifier.Values.Count == 0)
 			{
 				continue;
 			}
-			if (!held.TryGetValue(controller.Value, out CModifier? sum))
+			if (!held.TryGetValue(controller.Value, out List<CProvince>? list))
 			{
-				held[controller.Value] = sum = new CModifier();
+				held[controller.Value] = list = new List<CProvince>();
 			}
-			sum.Add(province.Modifier);
+			list.Add(province);
 		}
 		return held;
 	}
 
-	/// <summary>Adds a modifier with every value multiplied by a factor, each product dropping what does not fit.</summary>
-	private static void AddScaled(CModifier total, CModifier modifier, CFixedPoint factor)
+	/// <summary>
+	/// A copy of a modifier with every value multiplied by a factor, each product dropping
+	/// what does not fit: what the original adds for a strategic resource and for dissent.
+	/// </summary>
+	public static CModifier Scaled(CModifier modifier, CFixedPoint factor)
 	{
+		var copy = new CModifier(modifier.Name);
 		foreach ((string kind, CFixedPoint value) in modifier.Values)
 		{
-			total.Add(kind, new CFixedPoint(value.Raw * factor.Raw / CFixedPoint.Scale));
+			copy.Set(kind, new CFixedPoint(value.Raw * factor.Raw / CFixedPoint.Scale));
 		}
+		return copy;
+	}
+
+	/// <summary>Adds a source to the country's modifier and keeps it as one.</summary>
+	private static void AddSource(CCountry country, CModifier source, string? heading = null)
+	{
+		country.Modifier.Add(source);
+		country.ModifierSources.Add(new CModifierSource(source, heading));
 	}
 
 	/// <summary>Each technology's effect, times the level the country has of it.</summary>
@@ -124,23 +138,23 @@ public static class CCountryModifiers
 	/// </param>
 	public static void Rebuild(CCountry country, CModifier? baseValues = null)
 	{
-		CModifier total = country.Modifier;
-		total.Clear();
+		country.Modifier.Clear();
+		country.ModifierSources.Clear();
 		if (baseValues is not null)
 		{
-			total.Add(baseValues);
+			AddSource(country, baseValues);
 		}
 
 		foreach ((string position, CMinister minister) in country.Government)
 		{
 			if (minister.TypeIn(position) is { } type)
 			{
-				total.Add(type.Modifier);
+				AddSource(country, type.Modifier);
 			}
 		}
 		foreach (CLaw law in country.Laws.Values)
 		{
-			total.Add(law.Modifier);
+			AddSource(country, law.Modifier);
 		}
 	}
 

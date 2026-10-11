@@ -74,6 +74,11 @@ public sealed class CLocalisation
 			{
 				continue;
 			}
+			// A table writes a line break as a backslash and an n, and the original's text
+			// breaks there: RES_CHANGE ends in one, and its lines stack. Where the original
+			// turns it into one was not read.
+			value = value.Replace("\\n", "\n");
+
 			// Later files patch earlier ones, matching the game's load order.
 			_entries[key] = value;
 		}

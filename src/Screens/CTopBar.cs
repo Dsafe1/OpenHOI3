@@ -1,6 +1,7 @@
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
@@ -97,6 +98,15 @@ public partial class CTopBar : Control
 
 		Bind(_window.FindButton("topbarbutton_prod"), () => ProductionPressed?.Invoke());
 		Bind(_window.FindButton("topbarbutton_tech"), () => TechnologyPressed?.Invoke());
+
+		// The bar answers for its elements by name, as the original's does.
+		foreach (string name in CTopBarTooltips.Elements())
+		{
+			if (_window.TryFindElement(name) is { } element)
+			{
+				element.Tooltip = () => CTopBarTooltips.For(_context.Localisation.Localise, _simulation.State, Player, name);
+			}
+		}
 
 		Refresh();
 	}

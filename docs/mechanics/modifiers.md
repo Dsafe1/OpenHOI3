@@ -276,9 +276,59 @@ the first day is run, which is why a new game's starting manpower leaves black s
   capital**, the same test home production uses (`resources.md`, section 3). What marks
   the edge of an area in the original has not been read.
 
+## 8. A modifier's sources, written out
+
+Read 2026-10-11 (`reversing/findings/FINDINGS-topbartooltip.md`, section 10). `confirmed`
+unless marked.
+
+**Every source a country's rebuild adds is kept, in the order it was added** - the scaled ones
+as the scaled copy that was added - and the original's tooltips list them. The sources of one
+kind:
+
+    for each source, in order:
+        line = its line for the kind (below); nothing where its value of the kind is 0
+        before it, a newline, where the text has grown since the last source's turn
+        the line, trimmed
+
+So a source with nothing of the kind writes nothing and no newline.
+
+**A source's line** for a kind:
+
+    its name + ": " + colour + ("+" where positive) + figure + "§W"
+    colour:  more is better ? (positive §G, negative §R, 0 §Y) : (positive §R, negative §G, 0 §Y)
+    figure:  a percentage ? value x 100 to one place + "%" : value to two places
+
+**Its name**: a law's, a minister type's, a static modifier's and a strategic resource's is
+its key, localised - "Base Value" for `base_values`, "Dissent" for `dissent`. A province's
+source is headed by a name of its own, in the original by what is `inferred` to be the
+province's.
+
+**Every value of a modifier**, which dissent's tooltip uses, is one line for each kind it
+holds: the kind's own name - its display key, localised - then `": "` and the colour, sign and
+figure as above, `§W`; newline between lines.
+
+**Each kind has a display key and two flags**: whether it is written as a percentage, and
+whether more of it is better. The original builds the 108 it knows at startup; the table is
+`CModifierKinds` in `lib/OpenHOI3.Interface/Modifiers`, kind by kind. Nearly all are both.
+A plain number, more is worse: the three revolt risks, `attrition`, `war_exhaustion`,
+`max_war_exhaustion`, `local_partisan_support`, `neutrality_change`, `partisan_efficiency`. A
+plain number, more is better: `local_manpower`, `global_manpower`, `fort_level`,
+`coastal_fort_level`, `infrastructure`, `ic`, the two flat leaderships, `national_unity`,
+`naval_capacity`, `air_capacity`, `align_towards`, `radar_level`, `unit_start_experience`,
+`local_anti_air`, `land_intel_boost`, `naval_intel_boost`, `local_underground`. A percentage,
+more is worse: `incorporate_cost`, the two consumer goods demands, `dissent`,
+`supply_consumption`, `peacetime_manpower_rotation`, `unit_recruitment_time`, `threat_impact`,
+`national_unity_effect`, `reserves_penalty_size`, `neutrality`, the five build speeds,
+`jungle_effects`, `sw_national_unity_effect`. The 32 mission efficiencies (`*_eff`) are both.
+
+*Ours:* a province's line is its name, `": "`, and its value as above - the original heads the
+province's own sources with the name, and what those are was not read. A kind the table does
+not have is written as a percentage, more being better, as most are.
+
 ## What is not established, in one place
 
-- the **list of the 143 modifier kinds**, in a form this project may read;
+- the **list of the 143 modifier kinds**, in a form this project may read - 140 of them are now
+  in `CModifierKinds`, read from the original's definitions;
 - what a **faction's own modifier** is loaded from;
 - what a **region** is in the link that lets two countries on different continents share
   a strategic resource, and which script key sets the value added to a province's

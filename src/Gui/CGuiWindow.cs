@@ -247,6 +247,18 @@ public partial class CGuiWindow : CGuiObject
 	}
 
 	/// <summary>
+	/// An element of any kind the window may or may not have - an icon, a text box or a
+	/// button, first found first - with no word in the log when it has not: for a list of
+	/// names the original's code answers for, some of which a mod may drop.
+	/// </summary>
+	public CGuiObject? TryFindElement(string name)
+	{
+		return _icons.GetValueOrDefault(name) as CGuiObject
+			?? _textBoxes.GetValueOrDefault(name) as CGuiObject
+			?? _buttons.GetValueOrDefault(name);
+	}
+
+	/// <summary>
 	/// A button the window may or may not have, with no word in the log when it has
 	/// not: for names a screen makes up from the game's data, such as a building's key.
 	/// </summary>

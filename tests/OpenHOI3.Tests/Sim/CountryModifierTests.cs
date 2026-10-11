@@ -277,6 +277,29 @@ public class CountryModifierTests
 		Assert.Equal(23, germany.TotalIc);                                   // 25 x 0.925, with the rest dropped
 	}
 
+	// --- what the modifier was summed from (section 8) ---
+
+	[Fact]
+	public void EverySourceIsKeptInTheOrderItWasAddedTheScaledOnesAsTheirCopies()
+	{
+		CCountry germany = Country("GER", 1);
+		germany.Laws["economic_law"] = new CLaw("economic_law", Modifier("war_economy", ("global_ic", "0.1")));
+		CGameState state = State(new[] { germany }, new[] { Land(1, "GER", industry: 10), Land(2, "GER", industry: 10) });
+		germany.Dissent = CFixedPoint.Parse("7.5");
+		CTick.RunEntryPass(state);
+
+		var names = new List<string>();
+		foreach (CModifierSource source in germany.ModifierSources)
+		{
+			names.Add(source.Heading ?? source.Modifier.Name);
+		}
+		Assert.Equal(new[] { "base_values", "war_economy", "P1", "P2", "peace", "dissent" }, names);
+
+		CModifierSource dissent = germany.ModifierSources[^1];
+		Assert.Equal(CFixedPoint.Parse("-0.075"), dissent.Modifier["global_ic"]);    // its file's -0.01, 7.5 times
+		Assert.Equal(CFixedPoint.Parse("0.025"), germany.Modifier["global_ic"]);   // the law's and dissent's together
+	}
+
 	// --- ministers and what a country forgets ---
 
 	[Fact]

@@ -172,7 +172,8 @@ that is read.
 
 - **The console's `tooltips`**, which turns every tooltip off and on, and its tooltip debug,
   which adds a province's tag and number: there is no console.
-- **What each screen's tooltips say.** The map's is built (section 7).
+- **What each screen's tooltips say.** The map's is built (section 7), and the top bar's
+  (`topbar.md`, section 14).
 
 ## Not established
 
