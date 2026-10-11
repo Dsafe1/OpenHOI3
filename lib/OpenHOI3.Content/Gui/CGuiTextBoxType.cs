@@ -19,6 +19,9 @@ public sealed class CGuiTextBoxType : CGuiType
 	/// <summary>The gap kept between the box's edge and its text.</summary>
 	public CGuiPoint BorderSize { get; init; }
 
+	/// <summary>The picture behind the text, as the file names it, or empty.</summary>
+	public string TextureFile { get; init; } = "";
+
 	public EGuiTextFormat Format { get; init; }
 
 	public bool FixedSize { get; init; }

@@ -512,7 +512,9 @@ scalable canvas of section 3 could not survive. So:
 8. **Where a `maskedShieldType` puts its flag** when the mask is not the overlay's size:
    in the overlay's middle here, which fits the one case there is (section 5).
 9. **What `transparencecheck` tests**, and against which texture.
-10. **Tooltips.** `pdx_tooltip` and the three tooltip keys of a button are read past.
+10. **Tooltips** are read and built (2026-10-11): `tooltips.md` is the spec, and says what of
+    them is open. `pdx_tooltip` and the three tooltip keys of a button are still read past -
+    no file of the original's or of BlackICE's gives any of them a value.
 11. **How a scrollbar and a box of overlapping elements lay themselves out.** Both are
     drawn by the plain reading of their declarations (section 2). The list box was too,
     until it was read. Of the list box there is left: where its scrollbar stands, how far

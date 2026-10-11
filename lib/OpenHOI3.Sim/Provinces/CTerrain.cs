@@ -41,6 +41,9 @@ public sealed class CTerrain
 
 	public CFixedPoint Defence { get; init; }
 
+	/// <summary>The file's <c>attrition</c>. Only the terrain map mode's tooltip says it yet.</summary>
+	public CFixedPoint Attrition { get; init; }
+
 	/// <summary>The file's <c>humidity</c>. Ground with any counts as jungle when it is hot.</summary>
 	public CFixedPoint Humidity { get; init; }
 

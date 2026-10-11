@@ -56,6 +56,7 @@ public static class CTerrainReader
 				CFixedPoint.TryParse(category.GetString("attack"), out CFixedPoint attack);
 				CFixedPoint.TryParse(category.GetString("defence"), out CFixedPoint defence);
 				CFixedPoint.TryParse(category.GetString("humidity"), out CFixedPoint humidity);
+				CFixedPoint.TryParse(category.GetString("attrition"), out CFixedPoint attrition);
 				categories.Add(new CTerrain(category.Key, category.GetBool("is_water"),
 					category.GetRgb("color", CColor.Gray))
 				{
@@ -63,6 +64,7 @@ public static class CTerrainReader
 					Attack = attack,
 					Defence = defence,
 					Humidity = humidity,
+					Attrition = attrition,
 				});
 			}
 		}

@@ -1,6 +1,8 @@
+using System;
 using Godot;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Interface;
+using OpenHOI3.Interface.Tooltips;
 
 namespace OpenHOI3.Gui;
 
@@ -11,6 +13,27 @@ namespace OpenHOI3.Gui;
 public partial class CGuiObject : Control
 {
 	public CGuiType GuiType { get; private set; } = null!;
+
+	private Func<CTooltip>? _tooltip;
+
+	/// <summary>
+	/// What the element says in a tooltip, asked each frame while the mouse is over it. Null
+	/// where nothing answers for it, which is an empty tooltip - as in the original, where an
+	/// element's screen answers for it or nothing does. Setting one makes an element that let
+	/// the mouse through take it, so that it can be under the mouse.
+	/// </summary>
+	public Func<CTooltip>? Tooltip
+	{
+		get => _tooltip;
+		set
+		{
+			_tooltip = value;
+			if (value is not null && MouseFilter == MouseFilterEnum.Ignore)
+			{
+				MouseFilter = MouseFilterEnum.Pass;
+			}
+		}
+	}
 
 	/// <summary>
 	/// Puts the control where its type says: its upper left corner at the type's

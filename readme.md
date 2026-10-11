@@ -384,8 +384,8 @@ In order:
    block counts as produced at home. **The supply map mode** colours the player's land green
    where it holds what was asked of it, yellow where it is behind, red where it is cut off,
    with red stripes on a road that is full - `Tab` goes round the political map, the terrain
-   and supply - and the readout of a selected province then says what the original's tooltip
-   does. Nobody attacks a convoy yet, none is built, traded for or lent, and there is no
+   and supply - and the tooltip of the province under the mouse says what the original's
+   does, line for line and in its colours. Nobody attacks a convoy yet, none is built, traded for or lent, and there is no
    list of them on the production screen.
 
    **The areas were wanted by three older rules**, each of which had guessed at them: home
@@ -574,10 +574,28 @@ In order:
 
 3. **Tooltips, for everything built so far** - the maintainer's word on 2026-10-11, after
    leaders and not before: "Lets finish the leaders as we planned, then after that lets
-   implement tooltips for all the things we have already." None is shown today: the `.gui`
-   reader passes `pdx_tooltip` by, and *Loose ends* names the screens that go without. The
-   mechanism comes first - how the original shows one, its delay and its window, and the
-   format of its text - and then each screen's, each a reading of the original's own handler.
+   implement tooltips for all the things we have already." **The mechanism is built**
+   (2026-10-11, `docs/mechanics/tooltips.md`): read out of the original, tried with `--click`,
+   and the maintainer has not looked at it - the one box from `core.gui`, a tooltip's delayed
+   half under a line of dashes once the mouse has been still, an element's tooltip hanging 64
+   below its corner, the box kept inside the right and bottom of the screen, and a button's
+   shortcut, which is all that shows yet. **No `.gui` file sets a tooltip of its own**, so
+   every tooltip is a screen's code; what each says is read and built a screen at a time, in
+   this order, the cut this project's:
+   1. **the map's - built** (2026-10-11, `tooltips.md` section 7): the province under the
+      mouse, `ProvinceTooltip_Build` read whole - a selected army's warning, the name and
+      owner, the flags (`@TAG` in text draws a flag), the terrain, political, supply and air
+      modes' parts, and the distance from what is selected. Tried with `--click`; the
+      maintainer set it beside the original - "the style looks good" - and on his screenshot
+      the tooltip stands over the minimap, which waits for the minimap. The readout no longer
+      carries the supply and air lines;
+   2. the top bar's (`CTopBar::BuildTooltip`, 41 keys);
+   3. the production and technology screens';
+   4. the four builder windows', forty or so each;
+   5. a unit's - its panel, the deploy menu and the orders windows;
+   6. a battle's window, on land, at sea and in the air;
+   7. the leader window's.
+
    From then on a new screen comes with its tooltips.
 
 4. **A look at the screens beside the original**, figure by figure. It needs nothing
@@ -1002,8 +1020,8 @@ None of these blocks the list above.
   `reversing/findings/FINDINGS-supplyconvoys.md`, section 8.
 - **The supply map mode shows the player's own land only.** There is no intelligence, so
   every other country's land is the grey the original gives land one knows nothing of; the
-  mode is turned on by `Tab` and not by the minimap's button; and what the original's
-  tooltip says stands in the readout of the selected province. `docs/mechanics/supplymap.md`.
+  mode is turned on by `Tab` and not by the minimap's button; and its tooltip says of
+  anybody else's province only its name and owner. `docs/mechanics/supplymap.md`.
 - **A new game's two days are run, and what the original's AI does around them is not.**
   There it changes laws for every country, some before the days and some after, and makes
   its theatres; a change of law holds every brigade to the running game's ceilings,
@@ -1154,7 +1172,7 @@ None of these blocks the list above.
   is the original's own too, read out of its font. `docs/mechanics/interface.md`,
   sections 5 and 6.
 - **Two kinds of element are read and not drawn**: edit boxes and the shields of a
-  dialog. Nor are tooltips shown, or an icon's `rotation` applied, and a checkbox is a
+  dialog. Nor is a screen's own tooltip shown yet (*Next up*, item 3), or an icon's `rotation` applied, and a checkbox is a
   button that does not stay down. `docs/mechanics/interface.md`, section 2.
 - **How scrollbars and boxes of overlapping elements lay themselves out is ours.**
   Neither was read out of the original; each is the plain reading of what the files
@@ -1271,7 +1289,7 @@ sea and by air - in four projects:
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it. The panel of the unit selected on the map: a list of the units above it, its header, its status, its order, its buttons, its brigades, the units under it and the battles it is in, each a class of its own. The window of orders for a fleet or an air unit. And the window of a battle, with its two sides and a line for each unit on them |
 | `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital, and the carrying of supplies against what a start-date save holds in every province, with the convoys a new game makes against the save's, way for way and ship for ship. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial, `seabattle` does the same with two countries' fleets, and `raid` sends one country's raiders at another's convoys for a month. And `firstdays` sets a new game as a player gets it, its two days run, beside the start save country by country - meant to differ, since the original's AI has changed laws by then - where `supplypass ... countries` does it like for like, with the save's laws given. `techgap` looks at the technology levels the start save has above the history's, and `airbattle` flies an air mission with the install's own units and tells the battles it comes to; `bombing` flies a bombing mission for some days and tells what it did to the province |
-| `tests/` | 1330 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort - where silent misreadings are expensive |
+| `tests/` | 1371 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort, and how a tooltip is shown with what a province's says - where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.
@@ -1432,8 +1450,10 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     History/            what history/ gives on the start date, orders of battle among it
     Gui/                the interface files' declarations, and font descriptors
 lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and placement at its root
-    Text/               colour escapes, number formats, templates
+    Text/               colour escapes, number formats, templates, breaking lines
     Screens/            the text of each screen's figures
+    Tooltips/           a tooltip, what the box shows of it, where it goes and when its
+                        second half comes
     Map/                the unit counters: which units have one, how they stack, what one
                         says, where its parts go, the painting of one, and the shape of
                         the arrow along a selected unit's way

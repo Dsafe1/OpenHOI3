@@ -190,8 +190,8 @@ otherwise than the icons' tests and comes to the same: a battle the tooltip coun
 icons count, as ours or as theirs. `confirmed`, by setting the two side by side. *Ours:* the
 original's own test is what is built, all the same.
 
-*Ours:* there are no tooltips yet, so the lines stand in the readout of the selected province
-while the mode is on, without their colours.
+Each is a line of the tooltip of the province under the mouse, after its name (`tooltips.md`,
+section 7), built since 2026-10-11.
 
 ## 8. Turning it on
 
@@ -213,7 +213,7 @@ drawn at every height of the camera, where the buildings are not drawn from far 
 
 - **Intelligence** past what `CIntelligence` has (`aircombat.md`, section 6), and so what the
   player knows of anybody else's ground beside his units.
-- **The map mode buttons** and the tooltip itself.
+- **The map mode buttons.**
 - **The naval mode**, whose icons are of its own and were not read.
 
 ## Not established

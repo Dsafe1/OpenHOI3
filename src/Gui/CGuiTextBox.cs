@@ -90,43 +90,17 @@ public partial class CGuiTextBox : CGuiObject
 	/// <summary>
 	/// Breaks a line that is too wide for the box at its spaces - but only in a box tall
 	/// enough for a second line, so that a figure a little wider than its box is not
-	/// pushed out of sight. A colour that is on when a line breaks is on for the next.
-	/// How the original breaks lines was not read.
+	/// pushed out of sight.
 	/// </summary>
 	private IEnumerable<string> Wrap(string paragraph)
 	{
 		var type = (CGuiTextBoxType)GuiType;
 		float inside = type.MaxWidth - 2f * type.BorderSize.X;
-		if (_font is null || inside <= 0f || type.MaxHeight < 2f * _font.LineHeight
-			|| _font.Width(CColouredText.Strip(paragraph)) <= inside)
+		if (_font is null || inside <= 0f || type.MaxHeight < 2f * _font.LineHeight)
 		{
-			yield return paragraph;
-			yield break;
+			return new[] { paragraph };
 		}
-
-		string line = "";
-		string colour = "";
-		foreach (string word in paragraph.Split(' '))
-		{
-			string longer = line.Length == 0 ? word : line + " " + word;
-			if (line.Length > 0 && _font.Width(CColouredText.Strip(longer)) > inside)
-			{
-				yield return line;
-				longer = colour + word;
-			}
-			line = longer;
-
-			// The last escape in the word is the colour the next line starts in.
-			int escape = word.LastIndexOf(CColouredText.Escape);
-			if (escape >= 0 && escape + 1 < word.Length)
-			{
-				colour = word.Substring(escape, 2);
-			}
-		}
-		if (line.Length > 0)
-		{
-			yield return line;
-		}
+		return CWordWrap.Wrap(paragraph, inside, _font.Width);
 	}
 
 	public override void _Draw()

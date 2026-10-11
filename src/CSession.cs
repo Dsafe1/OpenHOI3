@@ -10,6 +10,7 @@ using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Map;
 using OpenHOI3.Screens;
 using OpenHOI3.Sim;
@@ -225,6 +226,30 @@ public partial class CSession : Node
 		_provinceLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
 		_provinceLabel.AddThemeConstantOverride("outline_size", 6);
 		layer.AddChild(_provinceLabel);
+
+		// Every tooltip, over everything else.
+		var tooltips = new CTooltips();
+		tooltips.Setup(gui);
+		tooltips.MapTooltip = _ => ProvinceTooltip(_mapView.HoveredProvince);
+		AddChild(tooltips);
+	}
+
+	/// <summary>The tooltip of a province under the mouse, in the map mode shown: <c>docs/mechanics/tooltips.md</c>, section 7.</summary>
+	private CTooltip? ProvinceTooltip(int provinceId)
+	{
+		if (provinceId <= 0 || provinceId >= State.Provinces.Count)
+		{
+			return null;
+		}
+		EMapTooltipMode mode = _mapView.Mode switch
+		{
+			CMapView.MapMode.Terrain => EMapTooltipMode.Terrain,
+			CMapView.MapMode.Supply => EMapTooltipMode.Supply,
+			CMapView.MapMode.Air => EMapTooltipMode.Air,
+			_ => EMapTooltipMode.Political,
+		};
+		return CProvinceTooltip.Build(_localisation.Localise, State, State.Province(provinceId), mode, Player?.Tag,
+			_mapView.Counters?.Selected, _mapView.SelectedProvince, () => CSupplyNetworks.Refresh(State));
 	}
 
 	/// <summary>
@@ -682,23 +707,6 @@ public partial class CSession : Node
 				+ (chosen.IsFighting ? "fighting" : chosen.IsRetreating ? "falling back" : "resting")
 				+ (chosen.AttackDelay > CFixedPoint.Zero ? $", {chosen.AttackDelay.ToInt()} hours before it may attack again" : "");
 		}
-		// In the supply map mode the readout says what the original's tooltip says there.
-		if (_mapView.Mode == CMapView.MapMode.Supply)
-		{
-			foreach (string line in CSupplyMapText.Lines(_localisation.Localise, State, CSupplyNetworks.Refresh(State),
-				province, Player?.Tag))
-			{
-				text += "\n" + CColouredText.Strip(line);
-			}
-		}
-		// And in the air map mode, the past week's bombings and air battles.
-		if (_mapView.Mode == CMapView.MapMode.Air)
-		{
-			foreach (string line in CAirMapText.Lines(_localisation.Localise, State, province, Player?.Tag))
-			{
-				text += "\n" + CColouredText.Strip(line);
-			}
-		}
 		if (province.IsSea)
 		{
 			text += "\nSea";
@@ -824,8 +832,9 @@ public partial class CSession : Node
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
 	/// <c>--select=Luftflotte II</c> selects the player's unit of that name,
 	/// <c>--click=700,310;r1240,886;h48</c> clicks at those points of the canvas, in turn -
-	/// with r the right button, with s shift held, and h48 lets 48 hours go by - once
-	/// everything else is done,
+	/// with r the right button, with s shift held, and h48 lets 48 hours go by, m460,40 moves
+	/// the pointer there without clicking and w2 waits two seconds of real time, which is
+	/// what a tooltip's second half waits on - once everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.
 	/// </summary>
@@ -1147,6 +1156,31 @@ public partial class CSession : Node
 				await Frames(1);
 				GetViewport().PushInput(new InputEventKey { Keycode = key, PhysicalKeycode = key, Pressed = false }, true);
 				await Frames(2);
+				continue;
+			}
+			// w2 waits two seconds of real time, which a tooltip's second half waits on.
+			if (entry.StartsWith('w') && double.TryParse(entry[1..], NumberStyles.Float, CultureInfo.InvariantCulture, out double wait))
+			{
+				await ToSignal(GetTree().CreateTimer(wait), SceneTreeTimer.SignalName.Timeout);
+				await Frames(2);
+				continue;
+			}
+			// m before a point only moves the pointer there, which is how a tooltip is asked for.
+			if (entry.StartsWith('m'))
+			{
+				string[] to = entry[1..].Split(',');
+				if (to.Length == 2
+					&& float.TryParse(to[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float mx)
+					&& float.TryParse(to[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float my))
+				{
+					await Frames(3);
+					GetViewport().PushInput(new InputEventMouseMotion { Position = new Vector2(mx, my), GlobalPosition = new Vector2(mx, my) }, true);
+					await Frames(2);
+				}
+				else
+				{
+					GD.Print($"--click: '{entry}' is not a point to move to.");
+				}
 				continue;
 			}
 			// r before a point clicks the right button there, and s holds shift down.

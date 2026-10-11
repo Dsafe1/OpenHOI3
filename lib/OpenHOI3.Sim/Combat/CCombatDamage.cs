@@ -115,14 +115,7 @@ public static class CCombatDamage
 
 		if (men > 0)
 		{
-			// Against the most each brigade has ever had, not against what its type may have.
-			long ceiling = 0;
-			foreach (CSubUnit subUnit in unit.SubUnits)
-			{
-				ceiling += subUnit.Highest.Raw;
-			}
-			long share = ceiling == 0 ? -1 : CUnitTotals.Strength(unit).Raw * CFixedPoint.Scale / ceiling;
-			if (share < ShatterThreshold(state, owner, unit))
+			if (StrengthShare(unit) < ShatterThreshold(state, owner, unit))
 			{
 				CCombatRetreat.Shatter(state, owner, unit);
 			}
@@ -136,6 +129,21 @@ public static class CCombatDamage
 	/// less half its officer ratio, where that is lower - and less again by a hundredth
 	/// for each point of its own leader's skill, whatever his rank, and for experience.
 	/// </summary>
+	/// <summary>
+	/// A unit's strength in thousandths of the most its brigades have ever had together -
+	/// not of what their types may have - or -1 where that is nothing. What is set against
+	/// <see cref="ShatterThreshold"/>.
+	/// </summary>
+	public static long StrengthShare(CUnit unit)
+	{
+		long ceiling = 0;
+		foreach (CSubUnit subUnit in unit.SubUnits)
+		{
+			ceiling += subUnit.Highest.Raw;
+		}
+		return ceiling == 0 ? -1 : CUnitTotals.Strength(unit).Raw * CFixedPoint.Scale / ceiling;
+	}
+
 	public static long ShatterThreshold(CGameState state, CCountry owner, CUnit unit)
 	{
 		long threshold = CFixedPoint.Scale - MostShatterThreshold * owner.OfficerRatio.Raw / CFixedPoint.Scale;

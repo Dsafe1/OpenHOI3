@@ -203,8 +203,8 @@ a battle, which are `inferred`
   march does - what the original's empty order says of it was not read.
 - **Where the way ends and when the unit will be there is a tooltip** in the original, over
   the header's activity strip: "Will arrive in $PROV$ on $DATE$" - again the next province.
-  Tooltips are not built, so the readout beside the panel says both for now, for the whole
-  way. The readout is of a selected province, so it is there only when one was selected
+  The panel's tooltips are not built yet (`tooltips.md`), so the readout beside the panel
+  says both for now, for the whole way. The readout is of a selected province, so it is there only when one was selected
   before the unit was.
 
 **The button**: a land unit on the march that is not retreating is halted, by the same

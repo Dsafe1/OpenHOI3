@@ -31,7 +31,7 @@ public static class CAirCombatText
 	private const long Scale = CFixedPoint.Scale;
 
 	/// <summary>The keys of the goods' names, in the goods' own order.</summary>
-	private static readonly string[] GoodsKeys =
+	public static readonly string[] GoodsKeys =
 	{
 		"SUPPLIES_IRO", "FUEL_IRO", "MONEY_IRO", "CRUDE_OIL_IRO", "METAL_IRO", "ENERGY_IRO", "RAREMAT_IRO",
 	};

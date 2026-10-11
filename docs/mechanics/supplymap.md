@@ -57,31 +57,38 @@ original shows of land one has no intelligence on. The sea is drawn as in every 
 
 ## 3. What it says of a province
 
-In the original this is the tooltip of the province under the mouse. `confirmed` for which lines
-and which figures; the string building was not read line for line.
+The supply mode's part of the tooltip of the province under the mouse (`tooltips.md`, section 7),
+read line for line on 2026-10-11 (`reversing/findings/FINDINGS-provincetooltip.md`, section 6) and
+built so, `CSupplyMapText`. Every figure to two places; each line starts with a newline.
 
-**On land:**
+**On land under two levels of infrastructure:** `TOOLOWINFRA`, and nothing else.
 
-- under two levels of infrastructure: `TOOLOWINFRA` and nothing else;
-- `LOGTT_1` and the name of the depot it draws on, and ` (` its distance from it ` ` `LOGTT_2` `)`;
-- and, of a province the player knows fully:
-  - `LOGTT_3` what lies there of supplies, `LOGTT_4` of fuel - each in red where it is less than
-    its units ask for in a day;
-  - `LOGTT_5` what was asked of it today of supplies, `LOGTT_6` of fuel;
-  - `LOGTT_7` what passed through it today of supplies, `LOGTT_6` of fuel;
-  - with a naval base, `PORT_SHIPS` with what the harbour can land in a day (`convoys.md`,
-    section 2).
+**Otherwise, of a province the player knows more than a little of** (more than 5):
 
-Every figure to two places. The original has a line on what the province can pass as well, with
-its most, which was not read closely.
+- **what its roads pass**: `SUPPLY_INFRA_EFFECT_INFO` with `INFRA` its level of infrastructure,
+  0.10 to 10, in red where it is below the most it can have and green where it is not, `MAX` that
+  most and `THRU` what it can pass in a day; or, beside a capital, `SUPPLY_INFRA_CAPITAL_EFFECT_INFO`
+  with `VALUE_MAX`. A blank line follows it;
+- `LOGTT_1`, the name of the depot it draws on in yellow, and ` (` its distance from it ` `
+  `LOGTT_2` `)`. Nothing asks whether there is a depot.
 
-**On the sea:** for each convoy of the player's whose way goes through the province, `LOGTT_8`,
-the name of where it loads, `LOGTT_9`, the name of where it unloads, `LOGTT_10`; and under it a
-line for each good it carried.
+**And of one it knows well** (more than 8):
 
-*Ours:* there are no tooltips yet, so the lines stand in the readout of the **selected**
-province while the mode is on, without their colours. The goods a convoy carried and the line
-on what a province can pass are left out.
+- `LOGTT_3` what lies there of supplies, `LOGTT_4` of fuel - each red where it is less than its
+  units ask for in a day, green where not;
+- `LOGTT_5` what was asked of it today of supplies, `LOGTT_6` of fuel - each red where it is less
+  than what passed through, yellow where not;
+- `LOGTT_7` what passed through it today, `LOGTT_6` of fuel - each yellow below what the province can
+  pass and red at it;
+- with a naval base, `PORT_SHIPS` with what the harbour can land in a day (`convoys.md`, section 2).
+
+**On the sea:** for each convoy of the player's whose way goes through the province, `LOGTT_8`, the
+name of where it loads, `LOGTT_9`, the name of where it unloads, `LOGTT_10`; and under it, indented
+three spaces, `CONV_SHIP_IRO` for each good it shipped when it last sailed.
+
+*Ours:* what the player knows of a province is 9 where it holds it and nothing elsewhere - there is
+no intelligence - so of any other province only the name and the owner are told. The readout of the
+selected province no longer repeats any of it.
 
 ## 4. Turning it on
 
@@ -92,7 +99,7 @@ this one, which waits for the minimap.
 ## Not built
 
 - **Intelligence**, and so what the map shows of anybody else's land.
-- **The map mode buttons**, and the tooltip itself.
+- **The map mode buttons.**
 
 ## Not established
 

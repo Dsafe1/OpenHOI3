@@ -194,8 +194,17 @@ public class SupplyMapTests
 
 	// --- the lines ---
 
+	/// <summary>Each key in brackets, and the templates with their places kept.</summary>
+	private static string Localise(string key) => key switch
+	{
+		"SUPPLY_INFRA_EFFECT_INFO" => "[INFRA $INFRA$/$MAX$ $THRU$]",
+		"SUPPLY_INFRA_CAPITAL_EFFECT_INFO" => "[CAPITAL $THRU$]",
+		"CONV_SHIP_IRO" => "[SHIP $VALUE$ $NAME$]",
+		_ => $"[{key}]",
+	};
+
 	[Fact]
-	public void The_lines_of_a_province_say_where_it_is_supplied_from_and_what_the_day_made_of_it()
+	public void A_provinces_text_says_what_its_roads_pass_where_it_is_supplied_from_and_what_the_day_made_of_it()
 	{
 		var world = World();
 		CProvince far = world.State.Province(world.Far);
@@ -203,49 +212,71 @@ public class SupplyMapTests
 		far.Pool[EGoods.Fuel] = CFixedPoint.Parse("7");
 		CSupplyNetwork network = CSupplyNetworks.Refresh(world.State);
 
-		List<string> lines = CSupplyMapText.Lines(key => $"[{key}]", world.State, network, far, Ger);
+		string text = CSupplyMapText.Text(Localise, world.State, network, far, Ger);
 
-		Assert.Equal(new[]
-		{
-			"[LOGTT_1]Berlin (2 [LOGTT_2])",
-			"[LOGTT_3]§R2.50§W[LOGTT_4]7.00",
-			"[LOGTT_5]5.00[LOGTT_6]0.00",
-			"[LOGTT_7]1.25[LOGTT_6]0.00",
-		}, lines);
+		Assert.Equal(
+			"\n[INFRA §G10.00§!/10.00 800]\n"
+			+ "\n[LOGTT_1]§YBerlin§W (2 [LOGTT_2])"
+			+ "\n[LOGTT_3]§R2.50§W[LOGTT_4]§G7.00§W"
+			+ "\n[LOGTT_5]§Y5.00§W[LOGTT_6]§Y0.00§W"
+			+ "\n[LOGTT_7]§Y1.25§W[LOGTT_6]§Y0.00§W", text);
 	}
 
 	[Fact]
-	public void Of_anothers_province_only_the_depot_is_told_and_of_a_roadless_one_only_that()
+	public void Asked_for_less_than_passed_is_red_and_passed_at_the_most_it_can_is_red()
+	{
+		var world = World();
+		CProvince far = world.State.Province(world.Far);
+		Set(far, lying: "1", asked: "1", passed: "800");
+
+		string text = CSupplyMapText.Text(Localise, world.State, CSupplyNetworks.Refresh(world.State), far, Ger);
+
+		Assert.Contains("\n[LOGTT_5]§R1.00§W", text);
+		Assert.Contains("\n[LOGTT_7]§R800.00§W", text);
+	}
+
+	[Fact]
+	public void Infrastructure_below_its_most_is_red_and_beside_the_capital_it_passes_without_limit()
+	{
+		var world = World();
+		CProvince far = world.State.Province(world.Far);
+		far.Modifier.Set(CSupplyFigures.Infrastructure, CFixedPoint.Parse("0.5"));
+		CSupplyNetwork network = CSupplyNetworks.Refresh(world.State);
+
+		Assert.StartsWith("\n[INFRA §R5.00§!/10.00 ", CSupplyMapText.Text(Localise, world.State, network, far, Ger));
+		Assert.StartsWith("\n[CAPITAL [VALUE_MAX]]\n",
+			CSupplyMapText.Text(Localise, world.State, network, world.State.Province(world.Near), Ger));
+	}
+
+	[Fact]
+	public void Of_a_province_the_player_knows_nothing_of_nothing_is_told_and_of_a_roadless_one_only_that()
 	{
 		var world = World();
 		CSupplyNetwork network = CSupplyNetworks.Refresh(world.State);
-		List<string> lines = CSupplyMapText.Lines(key => $"[{key}]", world.State, network,
-			world.State.Province(world.Berlin), Pol);
-		Assert.Equal(new[] { "[LOGTT_1]Berlin (0 [LOGTT_2])" }, lines);
+		Assert.Equal("", CSupplyMapText.Text(Localise, world.State, network, world.State.Province(world.Berlin), Pol));
 
 		_provinces.Clear();
 		_provinces.Add(new CProvince(0, "", isSea: false));
 		_edges.Clear();
 		var roadless = World(farInfrastructure: 1);
-		lines = CSupplyMapText.Lines(key => $"[{key}]", roadless.State, CSupplyNetworks.Refresh(roadless.State),
-			roadless.State.Province(roadless.Far), Ger);
-		Assert.Equal(new[] { "[TOOLOWINFRA]" }, lines);
+		Assert.Equal("\n[TOOLOWINFRA]", CSupplyMapText.Text(Localise, roadless.State,
+			CSupplyNetworks.Refresh(roadless.State), roadless.State.Province(roadless.Far), Ger));
 	}
 
 	[Fact]
-	public void On_the_sea_the_players_convoys_that_go_by_are_named()
+	public void On_the_sea_the_players_convoys_that_go_by_are_named_with_what_each_ships()
 	{
 		var world = World();
 		var sea = new CProvince(99, "Baltic", isSea: true);
 		CCountry germany = world.State.Country(Ger)!;
 		var convoy = new CConvoy { Id = 1, Owner = Ger, Start = world.Berlin, End = world.Far };
 		convoy.Path.AddRange(new[] { world.Berlin, 99, world.Far });
+		convoy.Daily[EGoods.Fuel] = CFixedPoint.Parse("12.5");
 		germany.Convoys.Add(convoy);
 
-		List<string> lines = CSupplyMapText.Lines(key => $"[{key}]", world.State, CSupplyNetworks.Refresh(world.State),
-			sea, Ger);
+		string text = CSupplyMapText.Text(Localise, world.State, CSupplyNetworks.Refresh(world.State), sea, Ger);
 
-		Assert.Equal(new[] { "[LOGTT_8]Berlin[LOGTT_9]Far[LOGTT_10]" }, lines);
-		Assert.Empty(CSupplyMapText.Lines(key => $"[{key}]", world.State, CSupplyNetworks.Refresh(world.State), sea, Pol));
+		Assert.Equal("\n[LOGTT_8]Berlin[LOGTT_9]Far[LOGTT_10]\n   [SHIP 12.5 [FUEL_IRO]]", text);
+		Assert.Equal("", CSupplyMapText.Text(Localise, world.State, CSupplyNetworks.Refresh(world.State), sea, Pol));
 	}
 }

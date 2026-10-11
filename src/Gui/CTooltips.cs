@@ -1,0 +1,120 @@
+using System;
+using Godot;
+using OpenHOI3.Content.Gui;
+using OpenHOI3.Interface.Tooltips;
+
+namespace OpenHOI3.Gui;
+
+/// <summary>
+/// Each frame, the tooltip of what is under the mouse into the tooltip box: an element's own,
+/// with a button's shortcut, or over the map the province's; its second half once the mouse
+/// has been still; the box placed and kept inside the screen. See
+/// <c>docs/mechanics/tooltips.md</c>.
+///
+/// A layer of its own above every other, so that the box is drawn over whatever it is about.
+/// </summary>
+public partial class CTooltips : CanvasLayer
+{
+	/// <summary>Above every other layer of the interface.</summary>
+	private const int TopLayer = 100;
+
+	private CTooltipBox? _box;
+	private readonly CTooltipStill _still = new();
+	private string _shortcutLabel = "";
+	private ulong _entered;
+	private Vector2 _mouse;
+
+	/// <summary>
+	/// The tooltip of the province under a point of the map, or null for none. Not given
+	/// yet: what a province's tooltip says is a reading of its own.
+	/// </summary>
+	public Func<Vector2, CTooltip?>? MapTooltip { get; set; }
+
+	public void Setup(CGuiContext context)
+	{
+		Name = "Tooltips";
+		Layer = TopLayer;
+		_box = CTooltipBox.Create(context);
+		if (_box is not null)
+		{
+			AddChild(_box);
+		}
+		// Rendered once and kept, as the original keeps it.
+		_shortcutLabel = context.Localisation.Localise("SHORTCUT");
+		// The clock counts from the game being entered.
+		_entered = Time.GetTicksUsec();
+	}
+
+	/// <summary>
+	/// The mouse is followed by its own events, so that a pointer moved by the developer
+	/// switches counts as one moved by hand.
+	/// </summary>
+	public override void _Input(InputEvent @event)
+	{
+		if (@event is InputEventMouse mouse)
+		{
+			_mouse = mouse.Position;
+		}
+	}
+
+	public override void _Process(double delta)
+	{
+		if (_box is null)
+		{
+			return;
+		}
+		double seconds = (Time.GetTicksUsec() - _entered) / 1_000_000.0;
+		bool still = _still.Update(_mouse.X, _mouse.Y, seconds);
+		Vector2 screen = GetViewport().GetVisibleRect().Size;
+
+		CTooltip tooltip = Ask((int)screen.Y);
+		string text = CTooltipText.Compose(tooltip, still);
+		_box.Show(text);
+		if (text.Length == 0)
+		{
+			return;
+		}
+		(int x, int y) = CTooltipPlacement.Place(tooltip, (int)_box.Size.X, (int)_box.Size.Y, (int)screen.X, (int)screen.Y);
+		_box.Position = new Vector2(x, y);
+	}
+
+	/// <summary>
+	/// The tooltip of what is under the mouse, with its point: an element's, from its
+	/// corner; else the map's, from the mouse.
+	/// </summary>
+	private CTooltip Ask(int screenHeight)
+	{
+		if (GetViewport().GuiGetHoveredControl() is { } hovered)
+		{
+			if (Element(hovered) is not { } element)
+			{
+				return CTooltip.Empty;
+			}
+			CTooltip tooltip = element.Tooltip?.Invoke() ?? CTooltip.Empty;
+			if (element.GuiType is CGuiButtonType button)
+			{
+				tooltip = CTooltipText.WithShortcut(tooltip, button.Shortcut, _shortcutLabel);
+			}
+			Vector2 corner = element.GetGlobalRect().Position;
+			return CTooltipPlacement.AtElement(tooltip, (int)corner.X, (int)corner.Y, screenHeight);
+		}
+		CTooltip province = MapTooltip?.Invoke(_mouse) ?? CTooltip.Empty;
+		return CTooltipPlacement.AtMouse(province, (int)_mouse.X, (int)_mouse.Y);
+	}
+
+	/// <summary>
+	/// The element a control under the mouse belongs to: itself, or the nearest it is part
+	/// of - a window's background is its window's.
+	/// </summary>
+	private static CGuiObject? Element(Control control)
+	{
+		for (Node? node = control; node is not null; node = node.GetParent())
+		{
+			if (node is CGuiObject element)
+			{
+				return element;
+			}
+		}
+		return null;
+	}
+}

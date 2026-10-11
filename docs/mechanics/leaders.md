@@ -475,7 +475,9 @@ original keeps a flag for each on the side; they are made in the same places.
 ## 12. The window a leader is chosen in
 
 The original's `leader_selection_panel`, from `unitpanel.gui`
-(`reversing/findings/FINDINGS-leaderwindow.md`). `confirmed` except where it says.
+(`reversing/findings/FINDINGS-leaderwindow.md`). `confirmed` except where it says. The
+maintainer looked at the window as built on 2026-10-11: "Everything looked good with the
+leaders."
 
 **Opening it.** The unit panel's `leader_button` (`unitpanel.md`, section 3) and its portrait
 both open it: whatever window was up for the unit goes and **a new one is always made** - a

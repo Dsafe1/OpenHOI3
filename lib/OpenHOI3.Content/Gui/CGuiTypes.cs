@@ -257,6 +257,7 @@ public sealed class CGuiTypes
 					MaxWidth = node.GetInt("maxWidth"),
 					MaxHeight = node.GetInt("maxHeight"),
 					BorderSize = Point(node, "borderSize"),
+					TextureFile = node.GetString("textureFile"),
 					Format = Format(node),
 					FixedSize = node.GetBool("fixedsize"),
 					IsInstant = keyword == "instanttextboxtype",
@@ -277,6 +278,7 @@ public sealed class CGuiTypes
 					MaxWidth = Point(node, "size").X,
 					MaxHeight = Point(node, "size").Y,
 					BorderSize = Point(node, "borderSize"),
+					TextureFile = node.GetString("textureFile"),
 					Format = EGuiTextFormat.Left,
 					IsEdit = true,
 				};

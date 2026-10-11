@@ -127,6 +127,9 @@ public partial class CMapView : Node2D
 
 	public int SelectedProvince => _selected;
 
+	/// <summary>The province under the mouse, or 0.</summary>
+	public int HoveredProvince => _hovered;
+
 	/// <summary>The country being played, whose units a click on a port or an airfield picks.</summary>
 	public CCountryTag? Player
 	{

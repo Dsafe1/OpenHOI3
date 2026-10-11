@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Text;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
@@ -12,77 +12,129 @@ using OpenHOI3.Sim.Supply;
 namespace OpenHOI3.Interface.Screens;
 
 /// <summary>
-/// What the supply map mode says of a province, in the original's own words: where it
-/// is supplied from and how far that is, what lies there, what was asked of it and what
-/// passed through it, and what its harbour can land - and on the sea, which of the
-/// player's convoys go by. See <c>docs/mechanics/supplymap.md</c>, section 3.
+/// What a province's tooltip says in the supply map mode, put together as the original puts
+/// it: where it is supplied from and how far that is, what its infrastructure lets through,
+/// what lies there, what was asked of it and what passed through it, what its harbour can
+/// land - and on the sea, which of the player's convoys go by and what each ships. See
+/// <c>docs/mechanics/supplymap.md</c>, section 3.
 /// </summary>
 public static class CSupplyMapText
 {
 	private const int Places = 2;
 
-	/// <summary>Below this much of what the player knows of a province its figures are not told.</summary>
-	private const int KnownWell = 9;
+	/// <summary>Above this much of what the player knows of a province, where it is supplied from is told.</summary>
+	private const int KnownSome = 5;
+
+	/// <summary>Above this much, its figures are told.</summary>
+	private const int KnownWell = 8;
 
 	private const long LeastInfrastructure = 200;
 
-	public static List<string> Lines(Func<string, string> localise, CGameState state, CSupplyNetwork network,
+	/// <summary>An infrastructure figure is a level from 0 to 10: ten times the share.</summary>
+	private const long LevelsPerWhole = 10;
+
+	private static readonly string Green = CColouredText.In(CColouredText.Green);
+	private static readonly string Yellow = CColouredText.In(CColouredText.Yellow);
+	private static readonly string Red = CColouredText.In(CColouredText.Red);
+	private static readonly string White = CColouredText.In('W');
+	private static readonly string Plain = CColouredText.In('!');
+
+	/// <summary>
+	/// The supply mode's part of a province's tooltip, each line starting with a newline as
+	/// the original appends it; empty where it says nothing.
+	/// </summary>
+	public static string Text(Func<string, string> localise, CGameState state, CSupplyNetwork network,
 		CProvince province, CCountryTag? player)
 	{
-		var lines = new List<string>();
+		var text = new StringBuilder();
 		if (province.IsSea)
 		{
 			if (state.Country(player) is { } owner)
 			{
 				foreach (CConvoy convoy in owner.Convoys)
 				{
-					if (convoy.Path.Contains(province.Id))
+					if (!convoy.Path.Contains(province.Id))
 					{
-						lines.Add(localise("LOGTT_8") + state.Province(convoy.Start).Name + localise("LOGTT_9")
-							+ state.Province(convoy.End).Name + localise("LOGTT_10"));
+						continue;
+					}
+					text.Append('\n').Append(localise("LOGTT_8")).Append(state.Province(convoy.Start).Name)
+						.Append(localise("LOGTT_9")).Append(state.Province(convoy.End).Name).Append(localise("LOGTT_10"));
+					foreach (EGoods goods in Enum.GetValues<EGoods>())
+					{
+						if (convoy.Daily[goods] > CFixedPoint.Zero)
+						{
+							text.Append("\n   ").Append(CTextTemplate.Fill(localise("CONV_SHIP_IRO"),
+								("NAME", localise(CAirCombatText.GoodsKeys[(int)goods])),
+								("VALUE", CNumberText.Format(convoy.Daily[goods], 1))));
+						}
 					}
 				}
 			}
-			return lines;
+			return text.ToString();
 		}
 
 		if (CSupplyFigures.MostInfrastructure(state, province) < LeastInfrastructure)
 		{
-			lines.Add(localise("TOOLOWINFRA"));
-			return lines;
+			return "\n" + localise("TOOLOWINFRA");
 		}
 
-		int depot = network.DepotOf(province.Id);
-		if (depot != 0)
+		int known = CSupplyMapColours.Intelligence(province, player);
+		CFixedPoint capacity = CSupplyFigures.Capacity(state, province);
+		if (known > KnownSome)
 		{
-			lines.Add(localise("LOGTT_1") + state.Province(depot).Name
-				+ " (" + network.DistanceOf(province.Id) + " " + localise("LOGTT_2") + ")");
+			text.Append('\n').Append(InfrastructureLine(localise, state, province, capacity)).Append('\n');
+			int depot = network.DepotOf(province.Id);
+			text.Append('\n').Append(localise("LOGTT_1")).Append(Yellow).Append(state.Province(depot).Name).Append(White);
+			text.Append(" (").Append(network.DistanceOf(province.Id)).Append(' ').Append(localise("LOGTT_2")).Append(')');
 		}
-		if (CSupplyMapColours.Intelligence(province, player) < KnownWell)
+		if (known > KnownWell)
 		{
-			return lines;
+			CGoodsPool drawn = province.SupplyDrawn;
+			CGoodsPool through = province.SupplyThroughput;
+			text.Append('\n')
+				.Append(localise("LOGTT_3")).Append(Colour(province.Pool[EGoods.Supplies] < province.SupplyNeed[EGoods.Supplies], Red, Green))
+				.Append(Figure(province.Pool[EGoods.Supplies])).Append(White)
+				.Append(localise("LOGTT_4")).Append(Colour(province.Pool[EGoods.Fuel] < province.SupplyNeed[EGoods.Fuel], Red, Green))
+				.Append(Figure(province.Pool[EGoods.Fuel])).Append(White);
+			text.Append('\n')
+				.Append(localise("LOGTT_5")).Append(Colour(drawn[EGoods.Supplies] < through[EGoods.Supplies], Red, Yellow))
+				.Append(Figure(drawn[EGoods.Supplies])).Append(White)
+				.Append(localise("LOGTT_6")).Append(Colour(drawn[EGoods.Fuel] < through[EGoods.Fuel], Red, Yellow))
+				.Append(Figure(drawn[EGoods.Fuel])).Append(White);
+			text.Append('\n')
+				.Append(localise("LOGTT_7")).Append(Colour(through[EGoods.Supplies] < capacity, Yellow, Red))
+				.Append(Figure(through[EGoods.Supplies])).Append(White)
+				.Append(localise("LOGTT_6")).Append(Colour(through[EGoods.Fuel] < capacity, Yellow, Red))
+				.Append(Figure(through[EGoods.Fuel])).Append(White);
+			if (CConvoyRules.IsHarbour(state, province))
+			{
+				string landed = Figure(new CFixedPoint(CConvoyRules.PortCapacity(state, province)));
+				text.Append('\n').Append(CTextTemplate.Fill(localise("PORT_SHIPS"), ("SIZE", landed)));
+			}
 		}
-
-		lines.Add(localise("LOGTT_3") + Short(province.Pool, province.SupplyNeed, EGoods.Supplies)
-			+ localise("LOGTT_4") + Short(province.Pool, province.SupplyNeed, EGoods.Fuel));
-		lines.Add(localise("LOGTT_5") + CNumberText.Format(province.SupplyDrawn[EGoods.Supplies], Places)
-			+ localise("LOGTT_6") + CNumberText.Format(province.SupplyDrawn[EGoods.Fuel], Places));
-		lines.Add(localise("LOGTT_7") + CNumberText.Format(province.SupplyThroughput[EGoods.Supplies], Places)
-			+ localise("LOGTT_6") + CNumberText.Format(province.SupplyThroughput[EGoods.Fuel], Places));
-		if (CConvoyRules.IsHarbour(state, province))
-		{
-			string landed = CNumberText.Format(new CFixedPoint(CConvoyRules.PortCapacity(state, province)), Places);
-			lines.Add(localise("PORT_SHIPS").Replace("$SIZE$", landed, StringComparison.Ordinal));
-		}
-		return lines;
+		return text.ToString();
 	}
 
-	/// <summary>What lies there of a good, in red where it is less than the units ask for in a day.</summary>
-	private static string Short(CGoodsPool pool, CGoodsPool need, EGoods goods)
+	/// <summary>
+	/// What the province's infrastructure lets through: its level against the most it can
+	/// have, in red where it is below that and green where it is not, and what passes in a
+	/// day - or, beside a capital, that it passes without limit.
+	/// </summary>
+	private static string InfrastructureLine(Func<string, string> localise, CGameState state, CProvince province,
+		CFixedPoint capacity)
 	{
-		string figure = CNumberText.Format(pool[goods], Places);
-		return pool[goods] < need[goods]
-			? CColouredText.In(CColouredText.Red) + figure + CColouredText.In('W')
-			: figure;
+		if (CSupplyFigures.IsBesideCapital(state, province))
+		{
+			return CTextTemplate.Fill(localise("SUPPLY_INFRA_CAPITAL_EFFECT_INFO"), ("THRU", localise("VALUE_MAX")));
+		}
+		var level = new CFixedPoint(CSupplyFigures.EffectiveInfrastructure(province) * LevelsPerWhole);
+		var most = new CFixedPoint(CSupplyFigures.MostInfrastructure(state, province) * LevelsPerWhole);
+		string infra = Colour(level < most, Red, Green) + Figure(level) + Plain;
+		return CTextTemplate.Fill(localise("SUPPLY_INFRA_EFFECT_INFO"),
+			("INFRA", infra), ("MAX", Figure(most)), ("THRU", CNumberText.Trimmed(capacity)));
 	}
+
+	private static string Colour(bool first, string ifTrue, string ifFalse) => first ? ifTrue : ifFalse;
+
+	private static string Figure(CFixedPoint value) => CNumberText.Format(value, Places);
 }
