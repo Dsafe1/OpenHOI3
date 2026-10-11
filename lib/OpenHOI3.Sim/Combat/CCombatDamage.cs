@@ -132,7 +132,7 @@ public static class CCombatDamage
 	/// a half, or less for a country short of officers the other way about - one whole
 	/// less half its officer ratio, where that is lower - and less again for
 	/// experience. The original takes a point off for each point of its leader's skill;
-	/// leaders are not built.
+	/// what a leader does in a battle is not built yet.
 	/// </summary>
 	public static long ShatterThreshold(CGameState state, CCountry owner, CUnit unit)
 	{

@@ -60,8 +60,8 @@ public static class CSupplyStart
 			var asking = new List<(CUnit, long, long)>();
 			foreach (CUnit unit in country.UnitsInOrder())
 			{
-				asking.Add((unit, CUnitSupply.SupplyConsumption(country, unit).Raw,
-					CUnitSupply.FuelConsumption(country, unit).Raw));
+				asking.Add((unit, CUnitSupply.SupplyConsumption(state, country, unit).Raw,
+					CUnitSupply.FuelConsumption(state, country, unit).Raw));
 			}
 			units.Add((country, asking));
 		}

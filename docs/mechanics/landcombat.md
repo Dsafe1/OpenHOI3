@@ -630,8 +630,8 @@ remainder by the whole. A side for which nothing weighs anything has no tactic.
 
 Each of the first four may be written with `no`, and is then the other way about. *Ours:* a
 condition that is none of these is reported and **never holds**, so that a tactic is not
-handed out on the strength of a test nothing made. With no leaders, `skill` and
-`skill_advantage` hold only where they ask for nothing and `trait` never.
+handed out on the strength of a test nothing made. With a battle's leader not built yet,
+`skill` and `skill_advantage` hold only where they ask for nothing and `trait` never.
 
 **What two tactics do.** One tactic **counters** another when it is the one the other names
 in `countered_by`. Whenever tactics are picked, four figures of the battle are made again

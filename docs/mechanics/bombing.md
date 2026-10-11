@@ -254,8 +254,9 @@ Then each wing of the unit:
 - A land unit under bombs is settled as in a battle: officers, the men who come back, and
   whether it shatters (`landcombat.md`, section 6).
 
-**Ours**: there are no leaders, so a unit's leader has no skill - which is what the original's
-unit with no leader has, and gives a ship one chance in a hundred.
+**Ours**: what a leader does in a battle is not built yet (`leaders.md`), so every unit counts
+as having no leader and no skill - which is what the original's unit with none has, and gives a
+ship one chance in a hundred.
 
 ## 7. What the bombs do to the province
 
@@ -379,7 +380,7 @@ to the maintainer.
 
 1. **A bomber with no leader has a ship on its list one time in a hundred**, each hour, each
    ship. Naval strikes and port strikes then wear the port and hardly touch the ships. Here
-   every unit is leaderless.
+   a unit's leader is not yet asked, so every unit counts as leaderless.
 2. **A fleet in its port fires its air attack at bombers three times over** through the
    province - twice in the sum, times one and a half - and the port's own guns beside. A port
    strike on a battle fleet's base is very costly: 200 shots an hour over Wilhelmshaven.

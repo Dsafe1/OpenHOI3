@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Units;
 
@@ -220,6 +221,25 @@ public sealed class CCountry
 
 	/// <summary>Where it has got to in each of those lists: the place of the name it last took.</summary>
 	public Dictionary<string, int> UnitNameCursors { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// Its leaders, in service or not, in the order they were read. See
+	/// <c>docs/mechanics/leaders.md</c>, section 1.
+	/// </summary>
+	public List<CLeader> Leaders { get; } = new();
+
+	/// <summary>
+	/// The leaders it has put in service, in the order it did so: those its history gives
+	/// a rank by the start, then each as his day comes. A leader is chosen for a unit out
+	/// of these, the first of equals winning.
+	/// </summary>
+	public List<CLeader> ActiveLeaders { get; } = new();
+
+	/// <summary>
+	/// Whether a unit it places, joins or makes a headquarters of is given a leader of
+	/// its own choosing. The original starts every country with it on.
+	/// </summary>
+	public bool AutoAssignLeaders { get; set; } = true;
 
 	/// <summary>Every unit it has, at every level, each before the units under it.</summary>
 	public IEnumerable<CUnit> AllUnits()

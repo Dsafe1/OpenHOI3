@@ -75,8 +75,9 @@ of the list of several selected units. `confirmed`
 | `counter_size` | the mark of its rank, as on a line of the deploy menu (`mapunits.md`, section 6) | built |
 | `unit_activity` | what it is doing, below | built in part |
 | `unitstrength` | its men, below | built |
-| `unitleader` | its leader's name, in red where he has not the rank; `NO_LEADER` with none | always `NO_LEADER` |
-| `leader_photo`, `leader_types`, `leader_button` | the leader's picture, his kind, and the button that changes him | as the file has them; the button cannot be pressed |
+| `unitleader` | its leader's name, in red where he has not the rank (`leaders.md`, section 4); `NO_LEADER` with none | built |
+| `leader_photo` | `gfx/pictures/portraits/`, the leader's `picture`, `.tga`; made again only when the leader changes | built; the file's picture with no leader, or with a portrait the install has not got |
+| `leader_types`, `leader_button` | his kind, and the button that changes him | as the file has them; the button cannot be pressed |
 | `org_bar`, `str_bar` | two bars, below | built |
 | `exp_force` | the flag of whose expeditionary force it is | hidden |
 | `remove_unit_from_selection_button` | takes the unit out of the selection | built |
@@ -138,7 +139,7 @@ The window `sup_unit_status`. `confirmed` for what each element is given:
 | `unit_weight` | a land unit's weight aboard ship, whole | built |
 | `supply_status`, `fuel_status` | two bars, below | full |
 | `unitstatus_moving` | shown on the march | built |
-| `unitstatus_distance` | a land unit's reach of its headquarters: frame 1 in reach, 2 out of it | always frame 1 |
+| `unitstatus_distance` | a land unit's reach of its headquarters: frame 1 in reach, 2 out of it (`leaders.md`, section 8) | built |
 | `unitstatus_combinedarms`, `_dugin`, `_delay` | shown for a mix of brigades that counts as combined arms before any technology, a unit dug in, an attack delay running | built (`landcombat.md`) |
 | `unitstatus_nuke` | shown for a nuclear order | hidden |
 
@@ -284,8 +285,8 @@ a list of one row each. `confirmed`
 - `select_all_childunits` selects them all. Not built: shown, and cannot be pressed.
 - The window is as high as its rows, as the brigades' is.
 
-A row is the window `childunit_entry`: `name`, the unit's name - and its leader's in
-brackets, which no unit has yet; `str`, its own brigades' men; `order`, the line of section
+A row is the window `childunit_entry`: `name`, the unit's name - and ` (`, its leader's,
+`)` where it has one; `str`, its own brigades' men; `order`, the line of section
 5; `objective`, an AI's, empty; `counter_type`, `counter_size`, `org_bar` and `str_bar` as
 the header's. **A click selects that unit and takes the map to it.**
 
@@ -325,7 +326,8 @@ slider stands in the middle, and the switch is off.
 - **A headquarters' rows for an AI in command**: its objectives, the three stances, the
   power ratio, the assets it wants; and everything the row of section 9 would do.
 - **What a unit carries.**
-- **Leaders**: the picture, the choosing, the red name.
+- **Leaders**: the choosing (the leader list) and `leader_types`. The name, the red and the
+  portrait are built (2026-10-11).
 - **The windows that come up from it**: the leader list, reorganising, attaching, what a
   brigade is upgraded to, the order of battle browser.
 - **Scrolling the panel** when it is longer than the screen.

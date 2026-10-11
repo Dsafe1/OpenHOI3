@@ -170,7 +170,10 @@ public static class CBomberFire
 		}
 	}
 
-	/// <summary>The skill of a unit's leader. Leaders are not built, and the original's unit with none has one of no skill.</summary>
+	/// <summary>
+	/// The skill of a unit's leader. What a leader does in a battle is not built yet, so
+	/// every unit counts as the original's unit with none: one of no skill.
+	/// </summary>
 	public static long LeaderSkill(CUnit unit)
 	{
 		return 0;

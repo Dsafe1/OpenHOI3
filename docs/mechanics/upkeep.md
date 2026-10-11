@@ -26,7 +26,10 @@ fraction is dropped at a particular step, and both show in a savegame.
 
 A unit uses what its own brigades use; the units under it are counted for themselves.
 
-    potency  = 1 + the country's supply_consumption modifier        never below nothing
+    potency  = 1 + the country's supply_consumption modifier
+               - 0.05 x the army group commander's skill x his reach   only for a unit somewhere
+               + what the leaders' supply_consumption traits come to    leaders.md, section 8
+               never below nothing
     supplies = sum over its brigades of
                    supply_consumption * (potency + 0.01 * the levels the brigade holds)
                    * strength / max_strength                         not for a ship
@@ -45,20 +48,25 @@ A unit uses what its own brigades use; the units under it are counted for themse
   or a minister's.
 - Each product is truncated brigade by brigade, in the order written.
 
-**The original has three more terms in the potency**, all from leaders: it takes off the
-army group commander's skill times 0.05, scaled by how far his command reaches the unit;
-and it adds what the unit's own leader's traits and the headquarters above it bring. And a
-land unit on a strategic redeployment uses `STRAT_REDEP_SUPPLY_MOD` times its supplies and
-no fuel. `confirmed`
+**The leaders' two terms.** The army group is the unit itself or the first above it that is
+one; its commander takes a twentieth off for each point of his skill, times how much of the
+army group's command reaches the unit (`leaders.md`, section 8) - 0.15 for a skill of 3 in
+full reach - and nothing for a unit that is nowhere. Then what the leaders'
+`supply_consumption` traits come to for the unit is added: its own leader's, half its
+commander's, a quarter his. The floor at nothing is tested once, after both. `confirmed`, and
+built (`CUnitSupply.Potency`, 2026-10-11).
 
-*Ours:* there are no leaders and no orders, so the potency is the modifier's alone.
+The original also has a land unit on a strategic redeployment use `STRAT_REDEP_SUPPLY_MOD`
+times its supplies and no fuel. `confirmed` *Ours:* there are no strategic redeployments.
 
 (measured) A save keeps one figure of this: a country's `usage` of supplies is what its
 units **standing in its capital** were given, plus what the supply network carried out of
 the capital. With the second taken off, the formula gives the first to the thousandth for
-38 of the 65 capitals whose garrison the save shows fully supplied - France 7.590, Denmark
-2.159. The other 27 have a leader the original has assigned, or a headquarters its AI has
-made.
+62 of the 65 capitals whose garrison the save shows fully supplied - France 7.590, Denmark
+2.159 - where it gave 38 before the leaders' terms. Of the three it does not, two have a
+headquarters the original's AI made, and Moscow is 4.101 against the save's 2.626, which the
+Comintern's `supply_consumption = -0.33` would come close to if a faction's modifier reached
+a country's (*What is not established*, below).
 
 ## 2. The draw
 
@@ -301,9 +309,11 @@ Supplies and fuel for as many days as it is given of resources (`stockpile.md`, 
     fuel     = days * the fuel all its units use in a day
 
 where a day's use is section 1 over every unit, the fuel counted whether or not anything
-is moving. `confirmed`
+is moving. `confirmed` **It is reckoned before the country's units are given their leaders**,
+so with none but those their order of battle names (`leaders.md`, section 5). `confirmed`
 
-*Ours:* built, and done once the units have been made, with the potency of section 1.
+Built, and done once the units have been made and before the leaders are chosen, with the
+potency of section 1.
 
 (measured, and only partly) All the fuel in the provinces a country holds two days in,
 less two days of its refining, is this figure to the thousandth for 18 of the 76 countries
@@ -343,8 +353,8 @@ charged, and sets every brigade beside the save's.
 | how far each upgrade has got, the player's country | 1,469 of 1,469 |
 | how far each upgrade has got, the others | 22,993 of 25,179 |
 | supplies a capital's garrison uses, the same units and no leader | 2 of 2 |
-| the same, where the save has given a unit there a leader | 17 of 28 |
-| the same, where the save has a unit the files do not give | 19 of 35 |
+| the same, where the save has given a unit there a leader | 27 of 28 |
+| the same, where the save has a unit the files do not give | 33 of 35 |
 | the same, where the save shows a unit given nothing | 0 of 6 |
 | fuel at the start, a country with a capital to itself | 18 of 76 |
 | fuel at the start, two countries sharing a capital | 0 of 2 |
@@ -365,7 +375,8 @@ two days are run with every unit supplied; the supply network has a check of its
 
 ## What is not built
 
-- **Leaders.** The three terms they add to what a unit uses (section 1).
+- ~~**Leaders.** The three terms they add to what a unit uses (section 1).~~ Built on
+  2026-10-11: `leaders.md`, section 8.
 - **An air unit in the air.** A land unit on the march burns fuel, and so does a fleet away
   from its port; nothing flies yet.
 - **An AI to move the shares.** Only the player's reinforcement and upgrade shares are

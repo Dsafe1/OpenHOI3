@@ -344,14 +344,14 @@ internal static class CUpkeepCheck
 		{
 			if (unit.Location == country.Capital && unit.CarriedBy is null)
 			{
-				used += CUnitSupply.SupplyConsumption(country, unit);
+				used += CUnitSupply.SupplyConsumption(state, country, unit);
 				ours.Add(unit.Id);
 			}
 		}
 
-		// What the save has there that changes the figure and is not built here: a leader, who
-		// makes his unit and those under him use less; a unit the files do not give; and a unit
-		// that asked and was given nothing.
+		// What the save has there that changes the figure: a leader, who makes his unit and
+		// those under him use less; a unit the files do not give, which is the AI's and not
+		// built here; and a unit that asked and was given nothing.
 		int leaders = 0;
 		int others = 0;
 		int unsupplied = 0;
@@ -374,7 +374,7 @@ internal static class CUpkeepCheck
 		}
 		string where = unsupplied > 0 ? "where the save shows one short of supplies (no supply network here)"
 			: others > 0 ? "where the save has a unit the files do not give"
-			: leaders > 0 ? "where the save gives one a leader (leaders are not built)"
+			: leaders > 0 ? "where the save gives one a leader"
 			: "where the save has the same units and none has a leader";
 		compare($"two days in: the supplies the units in a capital use in a day, {where}", savedUse == used,
 			() => $"{tag}: save {savedUse}, ours {used}  (off by {savedUse - used}; " +

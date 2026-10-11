@@ -604,20 +604,23 @@ today and yesterday.
 
 | | |
 | --- | --- |
-| networks where every province agrees in every figure | **171 of 234** - Sweden's 210 provinces, Turkey's 195, Norway's 108, the Philippines' 85, Persia's 84, Saudi Arabia's 79, Siam's 61, South Africa's 42. It was 124 before the convoys: 45 networks across the sea came right with them |
+| networks where every province agrees in every figure | **184 of 234** - Germany's 245 provinces, Nanjing's 285, Sweden's 210, Turkey's 195, Helsinki's 153, Italy's 144, Norway's 108, the Philippines' 85, Persia's 84. It was 124 before the convoys - 45 networks across the sea came right with them - and 171 before what leaders do to a unit's use (`leaders.md`, section 8) |
 | Canada's | everything but what its guessed share of IC makes: a line of twenty provinces from Ottawa to Halifax, each asked 0.050 more than the one behind it and each holding one day's load in passing |
-| provinces where the supplies lying there are something, here or in the save | 712 of 3597 the same to the thousandth, 1227 within a fiftieth |
-| the same for fuel | 557 of 694 |
+| provinces where the supplies lying there are something, here or in the save | 1303 of 3557 the same to the thousandth, 1780 within a fiftieth (712 and 1227 before the leaders) |
+| the same for fuel | 568 of 694 |
 | the convoys | all 261 of the save's, way for way and ship for ship (`convoys.md`, section 12) |
 | Germany's stockpile, followed on | 8494 on the fifth day and 8774 on the eighth; the later saves have 8493 and 8758 |
 | every country, as the days left it | `countries` after the save: `tick.md`, section 6 |
 
 **What differs is what goes in and not the pass**: where a whole country's units, laws and
-production are the save's, its whole network agrees. Three things are not the save's here.
+production are the save's, its whole network agrees. Two things are not the save's here, and a
+third was until 2026-10-11.
 
-- **Leaders.** The original has given most units one, and a leader changes what a unit uses
-  (`upkeep.md`, section 1). There are none here, so Germany's provinces are a few hundredths
-  out everywhere.
+- ~~**Leaders.** The original has given most units one, and a leader changes what a unit uses
+  (`upkeep.md`, section 1).~~ Built: units have the same leaders here and the same use of
+  them (`leaders.md`, section 8), and Germany's network, a few hundredths out everywhere
+  before, agrees province for province. Moscow's does not: what its units use fits the
+  Comintern's modifier, which is not known to reach a country (`upkeep.md`, section 1).
 - **Units on the move.** The original's AI has some: fuel is asked for in 144 provinces where
   nothing here burns any.
 - **The share of IC the supplies were made with.** The AI moves it after the day is run, so

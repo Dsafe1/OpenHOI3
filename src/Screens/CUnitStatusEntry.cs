@@ -100,12 +100,11 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 		Show(_combinedArms, CUnitPanelText.HasCombinedArms(_state, _unit));
 		Show(_dugIn, CUnitPanelText.IsDugIn(_unit));
 		Show(_delay, CUnitPanelText.IsDelayed(_unit));
-		// The original's second frame is for a unit out of its headquarters' reach,
-		// which is not worked out.
+		// The second frame is for a unit out of its headquarters' radio range.
 		Show(_distance, isLand);
 		if (isLand)
 		{
-			_distance?.SetFrame(1);
+			_distance?.SetFrame(CUnitPanelText.DistanceFrame(_state, _unit));
 		}
 	}
 }

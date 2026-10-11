@@ -37,8 +37,8 @@ public static class CSupplyNeed
 				{
 					continue;
 				}
-				supplies[province] += CUnitSupply.SupplyConsumption(country, unit).Raw;
-				fuel[province] += CUnitSupply.FuelConsumption(country, unit).Raw;
+				supplies[province] += CUnitSupply.SupplyConsumption(state, country, unit).Raw;
+				fuel[province] += CUnitSupply.FuelConsumption(state, country, unit).Raw;
 			}
 		}
 	}
@@ -54,8 +54,8 @@ public static class CSupplyNeed
 			{
 				if (!unit.IsRemoved && DrawnOn(state, country, unit, beforeGame) == province)
 				{
-					supplies += CUnitSupply.SupplyConsumption(country, unit).Raw;
-					fuel += CUnitSupply.FuelConsumption(country, unit).Raw;
+					supplies += CUnitSupply.SupplyConsumption(state, country, unit).Raw;
+					fuel += CUnitSupply.FuelConsumption(state, country, unit).Raw;
 				}
 			}
 		}

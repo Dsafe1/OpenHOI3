@@ -70,8 +70,8 @@ public sealed class CCombatSideView : ICombatSideView
 		Fill(_committed, _front, _side.Front);
 		Fill(_reserves, _waiting, _side.Reserves);
 
-		// Leaders are not built: a side has none, the portrait stays the empty one, and
-		// with no skill on either side nobody has the initiative.
+		// A battle's leader is not built yet: a side has none, the portrait stays the empty
+		// one, and with no skill on either side nobody has the initiative.
 		Set(_leaderName, CCombatViewText.LeaderName(_context.Localisation.Localise, _side));
 		if (_initiative is { Visible: true })
 		{

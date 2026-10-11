@@ -18,8 +18,8 @@ public static class CCombatTactics
 	public const string AggressivenessImpact = "AGGRESSIVNESS_SELECTION_IMPACT";
 
 	/// <summary>
-	/// The skill of a side's leader. Leaders are not built, so every side's is 0: the
-	/// attacker always picks first and nobody has the initiative.
+	/// The skill of a side's leader. What a leader does in a battle is not built yet, so
+	/// every side's is 0: the attacker always picks first and nobody has the initiative.
 	/// </summary>
 	public static int LeaderSkill(CCombatSide side)
 	{

@@ -136,7 +136,7 @@ public class UpkeepTests
 		brigade.TechnologyLevels["infantry_warfare"] = 3;
 
 		// 0.67 and four levels: 0.67 * 1.04, with what is left under a thousandth dropped.
-		Assert.Equal(CFixedPoint.Parse("0.696"), CUnitSupply.SupplyConsumption(country, unit));
+		Assert.Equal(CFixedPoint.Parse("0.696"), CUnitSupply.SupplyConsumption(State(country), country, unit));
 	}
 
 	[Fact]
@@ -146,7 +146,7 @@ public class UpkeepTests
 		CUnit unit = Unit(country);
 		Brigade(Infantry(), unit, strength: "15");
 
-		Assert.Equal(CFixedPoint.Parse("0.335"), CUnitSupply.SupplyConsumption(country, unit));
+		Assert.Equal(CFixedPoint.Parse("0.335"), CUnitSupply.SupplyConsumption(State(country), country, unit));
 	}
 
 	[Fact]
@@ -156,7 +156,7 @@ public class UpkeepTests
 		CUnit fleet = Unit(country, EUnitKind.Navy);
 		Brigade(Destroyer(), fleet, strength: "40");
 
-		Assert.Equal(CFixedPoint.Parse("0.25"), CUnitSupply.SupplyConsumption(country, fleet));
+		Assert.Equal(CFixedPoint.Parse("0.25"), CUnitSupply.SupplyConsumption(State(country), country, fleet));
 	}
 
 	[Fact]
@@ -166,7 +166,7 @@ public class UpkeepTests
 		CUnit unit = Unit(country);
 		Brigade(LightArmour(), unit, strength: "15");
 
-		Assert.Equal(CFixedPoint.Parse("1.2"), CUnitSupply.FuelConsumption(country, unit));
+		Assert.Equal(CFixedPoint.Parse("1.2"), CUnitSupply.FuelConsumption(State(country), country, unit));
 	}
 
 	[Fact]
@@ -177,8 +177,9 @@ public class UpkeepTests
 		CUnit unit = Unit(country);
 		Brigade(LightArmour(), unit);
 
-		Assert.Equal(CFixedPoint.Parse("0.9"), CUnitSupply.SupplyConsumption(country, unit));
-		Assert.Equal(CFixedPoint.Parse("1.08"), CUnitSupply.FuelConsumption(country, unit));
+		CGameState state = State(country);
+		Assert.Equal(CFixedPoint.Parse("0.9"), CUnitSupply.SupplyConsumption(state, country, unit));
+		Assert.Equal(CFixedPoint.Parse("1.08"), CUnitSupply.FuelConsumption(state, country, unit));
 	}
 
 	[Fact]

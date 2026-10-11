@@ -24,8 +24,8 @@ public static class CSupplyDraw
 	/// <summary>The unit asks for what its brigades use today.</summary>
 	public static void Draw(CGameState state, CCountry owner, CUnit unit)
 	{
-		Draw(state, owner, unit, CUnitSupply.SupplyConsumption(owner, unit).Raw,
-			CUnitSupply.FuelConsumption(owner, unit).Raw);
+		Draw(state, owner, unit, CUnitSupply.SupplyConsumption(state, owner, unit).Raw,
+			CUnitSupply.FuelConsumption(state, owner, unit).Raw);
 	}
 
 	/// <summary>

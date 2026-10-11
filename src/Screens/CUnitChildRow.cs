@@ -73,7 +73,7 @@ public sealed class CUnitChildRow : CUnitPanelEntry
 	public override void Update()
 	{
 		// The original adds the leader's name in brackets; no unit has a leader yet.
-		Set(_name, Unit.Name);
+		Set(_name, CUnitPanelText.ChildName(Unit));
 		Set(_men, CUnitPanelText.ChildMen(Unit));
 		Set(_order, CUnitPanelText.Order(_context.Localisation.Localise, _state, Unit));
 		_size?.SetFrame(CDeployMenuText.SizeFrame(Unit));

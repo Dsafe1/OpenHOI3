@@ -59,7 +59,7 @@ public sealed class CNavalSideView : ICombatSideView
 		Set(_shipsLabel, CCombatViewText.ShipsLabel(_context.Localisation.Localise, _side));
 		Fill();
 
-		// Leaders are not built: a side has none, and its portrait stays the empty one.
+		// A battle's leader is not built yet: a side has none, and its portrait stays the empty one.
 		Set(_leaderName, CCombatViewText.LeaderName(_context.Localisation.Localise, _side));
 		CCountryTag? flag = CCombatViewText.Flag(_state, _side);
 		if (flag != _flag && flag is { } tag && _state.Country(tag) is { } country)

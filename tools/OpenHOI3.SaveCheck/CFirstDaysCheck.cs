@@ -182,7 +182,7 @@ internal static class CFirstDaysCheck
 			}
 			foreach (CUnit unit in country.AllUnits())
 			{
-				// A commander adds to what his army's brigades may have, and there are no leaders.
+				// A commander adds to what his army's brigades may have, by his reach.
 				bool commanded = COrganisation.ArmyAbove(unit) is { } army && HasLeader(node, army.Id);
 				foreach (CSubUnit subUnit in unit.SubUnits)
 				{
@@ -197,7 +197,7 @@ internal static class CFirstDaysCheck
 						: subUnit.Organisation;
 					Compare("brigades: strength", isPlayers, strength == subUnit.Strength,
 						() => $"{who} {subUnit.Id} '{subUnit.Name}' {subUnit.Type.Key}: save {strength}, ours {subUnit.Strength}");
-					Compare("brigades: organisation" + (held && commanded ? ", under an army with a commander (leaders are not built)" : ""),
+					Compare("brigades: organisation" + (held && commanded ? ", under an army with a commander" : ""),
 						isPlayers, organisation == ours,
 						() => $"{who} {subUnit.Id} '{subUnit.Name}' {subUnit.Type.Key}: save {organisation}, ours {ours}" +
 							(held ? $"  (as the two days left it {subUnit.Organisation})" : ""));

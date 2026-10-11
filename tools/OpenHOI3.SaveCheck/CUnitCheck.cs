@@ -4,6 +4,7 @@ using System.Linq;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Research;
@@ -225,7 +226,7 @@ internal static class CUnitCheck
 		}
 	}
 
-	/// <summary>Makes every country's units afresh under the laws it has now.</summary>
+	/// <summary>Makes every country's units afresh under the laws it has now, and gives them their leaders.</summary>
 	private static void SetUp(CDirectorySettings directories, CGameState state)
 	{
 		CCountryModifiers.Rebuild(state);
@@ -235,6 +236,7 @@ internal static class CUnitCheck
 			country.Officers = CFixedPoint.Zero;
 		}
 		CUnits.SetAtStart(state);
+		CLeaders.AssignAtStart(state);
 	}
 
 	private static void Check(CGameState state, CCountry country, CUnit unit, CSubUnit subUnit,

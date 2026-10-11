@@ -5,6 +5,8 @@ using OpenHOI3.Content.Map;
 using OpenHOI3.Gfx;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
+using OpenHOI3.Sim;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Map;
@@ -22,6 +24,7 @@ public partial class CHierarchyLayer : Node2D
 	private const string TextureFile = "gfx/mapitems/hierarchy_line.tga";
 
 	private CMap _map = null!;
+	private CGameState _state = null!;
 	private Texture2D? _texture;
 	private CUnit? _unit;
 	private bool _shown = true;
@@ -30,9 +33,10 @@ public partial class CHierarchyLayer : Node2D
 	private readonly Vector2[] _picture = new Vector2[4];
 	private readonly Color[] _colours = new Color[4];
 
-	public void Setup(CMap map, CGuiContext gui)
+	public void Setup(CMap map, CGameState state, CGuiContext gui)
 	{
 		_map = map;
+		_state = state;
 		if (gui.Textures.Exists(TextureFile))
 		{
 			_texture = gui.Textures.LoadFromGamePath(TextureFile);
@@ -85,7 +89,8 @@ public partial class CHierarchyLayer : Node2D
 		{
 			return;
 		}
-		List<CHierarchyLine> lines = CHierarchyLines.Build(_unit, PointOf, _map.Width);
+		List<CHierarchyLine> lines = CHierarchyLines.Build(_unit, PointOf, _map.Width,
+			unit => CCommandReach.IsOutOfRange(_state, unit));
 		Span<System.Numerics.Vector2> corners = stackalloc System.Numerics.Vector2[4];
 		float slide = (float)_phase * CHierarchyLines.SlideAPhase;
 		foreach (CHierarchyLine line in lines)

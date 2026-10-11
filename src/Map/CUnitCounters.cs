@@ -89,7 +89,7 @@ public partial class CUnitCounters : Node2D
 		AddChild(_airMap);
 
 		_hierarchy = new CHierarchyLayer { Name = "Hierarchy" };
-		_hierarchy.Setup(map, gui);
+		_hierarchy.Setup(map, state, gui);
 		AddChild(_hierarchy);
 
 		// Over the counters: the markers of the battles the player has a part in.

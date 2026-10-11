@@ -412,8 +412,11 @@ lines and highlight" and that "they can be toggled with h":
   longer is, so a unit attached under it in between has none until then. *Ours:* they
   follow the order of battle as it is.
 
-Not built: the dark red broken line, since nothing works out radio range; and the green
-ring, since there is no AI.
+A unit out of radio range is any link up its chain of command letting less than all of its
+command through (`leaders.md`, section 8); its line is dark red and drawn from the broken half
+of the picture, standing still. Built on 2026-10-11 and checked with `--click`: the Soviet 42nd
+Corps and its two divisions, out in Karelia, have such lines. Not built: the green ring, since
+there is no AI.
 
 ## 9. Buildings on the map, the port and the airfield
 

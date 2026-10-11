@@ -55,11 +55,11 @@ public sealed class CDeployUnitCommand : CCommand
 
 		if (_target != 0)
 		{
-			CDeployment.Join(country, unit, FindTarget(country)!);
+			CDeployment.Join(state, country, unit, FindTarget(country)!);
 		}
 		else
 		{
-			CDeployment.Place(country, unit, _province);
+			CDeployment.Place(state, country, unit, _province);
 		}
 	}
 

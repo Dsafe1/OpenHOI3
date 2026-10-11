@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
@@ -120,6 +121,15 @@ public sealed class CGameState
 
 	/// <summary>The words a new unit's name is made of once its country's lists run out.</summary>
 	public CUnitNameTexts NameTexts { get; init; } = new();
+
+	/// <summary>The traits a leader may have, in the order their file declares them.</summary>
+	public IReadOnlyList<CTrait> Traits { get; init; } = Array.Empty<CTrait>();
+
+	/// <summary>
+	/// Every leader of every country, by the number his file gives him - which is what an
+	/// order of battle and a savegame name him by. See <c>docs/mechanics/leaders.md</c>.
+	/// </summary>
+	public Dictionary<int, CLeader> Leaders { get; } = new();
 
 	/// <summary>
 	/// The map's regions, in the order <c>region.txt</c> gives them. Each province holds

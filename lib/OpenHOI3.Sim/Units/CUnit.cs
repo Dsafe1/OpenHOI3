@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 
 namespace OpenHOI3.Sim.Units;
@@ -155,8 +156,14 @@ public sealed class CUnit
 	/// </summary>
 	public bool IsReserve { get; set; }
 
-	/// <summary>The number of the leader its file gives it, or 0. Leaders are not built.</summary>
+	/// <summary>
+	/// The number of the leader its order of battle names, or 0. It is put on the unit as
+	/// a game is made; see <see cref="Leader"/>.
+	/// </summary>
 	public int LeaderId { get; set; }
+
+	/// <summary>Who commands it, or null. See <c>docs/mechanics/leaders.md</c>, sections 4 and 5.</summary>
+	public CLeader? Leader { get; set; }
 
 	/// <summary>
 	/// How much of the supplies it asked for it was given the last time it drew, where 1

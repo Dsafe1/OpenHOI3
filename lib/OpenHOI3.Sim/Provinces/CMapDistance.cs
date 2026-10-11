@@ -12,13 +12,22 @@ public static class CMapDistance
 	/// <summary>Four times the pixels between the two centres, rounded down.</summary>
 	public static long Between(CProvince a, CProvince b, int mapWidth)
 	{
+		return WholeRoot(Squared(a, b, mapWidth));
+	}
+
+	/// <summary>
+	/// The square of four times the pixels between the two centres, which is what the
+	/// original sets a radius's square against before it takes any root.
+	/// </summary>
+	public static long Squared(CProvince a, CProvince b, int mapWidth)
+	{
 		long across = System.Math.Abs((long)a.CentreX - b.CentreX);
 		long up = (long)a.CentreY - b.CentreY;
 		if (mapWidth > 0 && across > mapWidth / 2)
 		{
 			across = mapWidth - across;
 		}
-		return WholeRoot((across * across + up * up) * 16);
+		return (across * across + up * up) * 16;
 	}
 
 	/// <summary>The square root of a whole number, rounded down, with no fractions on the way.</summary>

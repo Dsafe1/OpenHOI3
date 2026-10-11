@@ -207,6 +207,7 @@ public static class CCombatRetreat
 		}
 		unit.IsRemoved = true;
 		CCombats.LeaveAll(state, unit);
+		Leaders.CLeaders.SetLeader(state, unit, null, false);   // its leader is free again
 		unit.Path.Clear();
 		state.Positions.Remove(unit, unit.Location);
 

@@ -6,6 +6,7 @@ using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.History;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
@@ -101,6 +102,7 @@ public static class CGameStateLoader
 			SubUnitTypes = unitTypes,
 			CombinedArmsGroups = CCombinedArmsReader.Read(directories, warn),
 			Tactics = CCombatTacticReader.Read(directories, warn),
+			Traits = CTraitReader.Read(directories, warn),
 			NameTexts = ReadNameTexts(localisation, unitTypes.Values),
 			MapWidth = map.Width,
 			MapHeight = map.Height,
@@ -115,15 +117,19 @@ public static class CGameStateLoader
 		CProduction.SetStartingShares(state);
 		CLeadership.SetAtStart(state);
 		CManpower.SetAtStart(state);
+		CLeaderReader.Read(directories, state, start, warn);
 
 		// The units come last, as they do in the original: a brigade is made by a country
-		// that already has its laws, its technology and its modifiers.
+		// that already has its laws, its technology and its modifiers. The leaders the files
+		// name go on with them; the rest are chosen after the stockpile is set, as the
+		// original does, so what the units use in it is reckoned without them.
 		CHistoricalModelReader.Read(directories, countries, unitTypes, state.Technologies,
 			CHistoricalModels.DefaultCount(state), warn);
 		ReadUnits(directories, state, warn);
 		CUnits.SetAtStart(state);
 		CBuildQueue.SetUpAtStart(state);
 		CStockpile.AddUnitGoodsAtStart(state);
+		CLeaders.AssignAtStart(state);
 		// And the two days the original has behind it on the first screen are run, with
 		// the provinces filled along the supply network between them, so that no army
 		// starts hungry.

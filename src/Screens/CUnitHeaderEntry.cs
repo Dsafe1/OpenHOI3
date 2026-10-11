@@ -1,7 +1,9 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -16,12 +18,17 @@ namespace OpenHOI3.Screens;
 public sealed class CUnitHeaderEntry : CUnitPanelEntry
 {
 	private readonly CGuiContext _context;
+	private readonly CGameState _state;
 	private readonly CCountry _owner;
 	private readonly CUnit _unit;
 
 	private readonly CGuiTextBox? _name;
 	private readonly CGuiTextBox? _strength;
 	private readonly CGuiTextBox? _leader;
+	private readonly CGuiIcon? _photo;
+
+	/// <summary>The leader whose portrait is up, so that it is loaded again only when he changes.</summary>
+	private CLeader? _shownLeader;
 	private readonly CGuiIcon? _activity;
 	private readonly CGuiIcon? _size;
 	private readonly CGuiIcon? _organisationBar;
@@ -30,15 +37,18 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 	/// <summary>Raised when the button that takes the unit out of the selection is pressed.</summary>
 	public event Action? Deselected;
 
-	private CUnitHeaderEntry(CGuiWindow window, CGuiContext context, CCountry owner, CUnit unit) : base(window)
+	private CUnitHeaderEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit)
+		: base(window)
 	{
 		_context = context;
+		_state = state;
 		_owner = owner;
 		_unit = unit;
 
 		_name = window.FindTextBox("unitname");
 		_strength = window.FindTextBox("unitstrength");
 		_leader = window.FindTextBox("unitleader");
+		_photo = window.FindIcon("leader_photo");
 		_activity = window.FindIcon("unit_activity");
 		_size = window.FindIcon("counter_size");
 		_organisationBar = window.FindIcon("org_bar");
@@ -62,7 +72,7 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 			only.Disabled = true;
 			only.Visible = false;
 		}
-		// Leaders are not built: nothing to choose from.
+		// The window a leader is chosen in is not built yet.
 		if (window.FindButton("leader_button") is { } leaderButton)
 		{
 			leaderButton.Disabled = true;
@@ -70,10 +80,10 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		Update();
 	}
 
-	public static CUnitHeaderEntry? Create(CGuiContext context, CCountry owner, CUnit unit)
+	public static CUnitHeaderEntry? Create(CGuiContext context, CGameState state, CCountry owner, CUnit unit)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "unitpanel");
-		return window is null ? null : new CUnitHeaderEntry(window, context, owner, unit);
+		return window is null ? null : new CUnitHeaderEntry(window, context, state, owner, unit);
 	}
 
 	public override void Update()
@@ -82,8 +92,31 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		_size?.SetFrame(CDeployMenuText.SizeFrame(_unit));
 		_activity?.SetFrame(CUnitPanelText.ActivityFrame(_unit));
 		Set(_strength, CUnitPanelText.Strength(_unit));
-		Set(_leader, CUnitPanelText.Leader(_context.Localisation.Localise));
+		Set(_leader, CUnitPanelText.Leader(_state, _unit, _context.Localisation.Localise));
 		_organisationBar?.SetProgress(CUnitPanelText.OrganisationBar(_owner, _unit));
 		_strengthBar?.SetProgress(CUnitPanelText.StrengthBar(_unit));
+		ShowPortrait();
+	}
+
+	/// <summary>
+	/// The leader's portrait, made again only when the leader changes, as the original
+	/// does; with none, or with a portrait the install has not got, the file's own picture.
+	/// </summary>
+	private void ShowPortrait()
+	{
+		if (_photo is null || _unit.Leader == _shownLeader)
+		{
+			return;
+		}
+		_shownLeader = _unit.Leader;
+		string? path = CUnitPanelText.LeaderPortrait(_unit);
+		if (path is not null && _context.Textures.Exists(path) && _context.Textures.LoadFromGamePath(path) is { } picture)
+		{
+			_photo.SetTexture(picture);
+		}
+		else
+		{
+			_photo.ShowSprite();
+		}
 	}
 }

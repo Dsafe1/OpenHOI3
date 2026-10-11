@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Research;
 
 namespace OpenHOI3.Sim.Units;
@@ -23,14 +24,32 @@ public static class CUnitSupply
 	/// <summary>Every level of anything a brigade holds makes it use a hundredth more.</summary>
 	private const long PerLevel = 10;
 
+	/// <summary>What each point of an army group commander's skill takes off, from a float of 50.5.</summary>
+	private const long CommanderDiscount = 50;
+
 	/// <summary>
-	/// What everything a country's units use is multiplied by, in thousandths. The
-	/// original takes off for the skill of the army group's commander and adds what the
-	/// chain of command and the unit's own leader bring; there are no leaders here.
+	/// What everything a unit uses is multiplied by, in thousandths: one and the
+	/// country's modifier, less a twentieth for each point of the skill of the army
+	/// group's commander, by how much of his command reaches the unit, and with what the
+	/// leaders' <c>supply_consumption</c> traits come to for it. Never below nothing.
 	/// </summary>
-	public static long Potency(CCountry owner)
+	public static long Potency(CGameState state, CCountry owner, CUnit unit)
 	{
-		return Math.Max(0, CFixedPoint.Scale + owner.Modifier[Consumption].Raw);
+		long potency = CFixedPoint.Scale + owner.Modifier[Consumption].Raw;
+
+		CUnit? group = unit;
+		while (group is not null && CCommandReach.Level(group) != 1)
+		{
+			group = group.Parent;
+		}
+		if (group is not null && unit.Location != 0 && group.Leader is { Skill: > 0 } leader)
+		{
+			long discount = leader.Skill * CFixedPoint.Scale * CommanderDiscount / CFixedPoint.Scale;
+			potency -= CCommandReach.Through(state, unit, 1) * discount / CFixedPoint.Scale;
+		}
+
+		potency += CCommandReach.Effect(state, unit, ETraitEffect.SupplyConsumption);
+		return Math.Max(0, potency);
 	}
 
 	/// <summary>The levels a brigade holds, of all its technologies added together.</summary>
@@ -48,9 +67,9 @@ public static class CUnitSupply
 	/// The supplies a unit's own brigades use in a day. A brigade under strength uses
 	/// that much less; a ship uses the same whatever state it is in.
 	/// </summary>
-	public static CFixedPoint SupplyConsumption(CCountry owner, CUnit unit)
+	public static CFixedPoint SupplyConsumption(CGameState state, CCountry owner, CUnit unit)
 	{
-		long potency = Potency(owner);
+		long potency = Potency(state, owner, unit);
 		long total = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
@@ -67,9 +86,9 @@ public static class CUnitSupply
 	}
 
 	/// <summary>The fuel a unit's own brigades use in a day when they use any. Strength does not come into it.</summary>
-	public static CFixedPoint FuelConsumption(CCountry owner, CUnit unit)
+	public static CFixedPoint FuelConsumption(CGameState state, CCountry owner, CUnit unit)
 	{
-		long potency = Potency(owner);
+		long potency = Potency(state, owner, unit);
 		long total = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
@@ -88,14 +107,14 @@ public static class CUnitSupply
 	}
 
 	/// <summary>What all of a country's units use in a day, whether or not they burn fuel today.</summary>
-	public static (CFixedPoint Supplies, CFixedPoint Fuel) DailyUse(CCountry country)
+	public static (CFixedPoint Supplies, CFixedPoint Fuel) DailyUse(CGameState state, CCountry country)
 	{
 		CFixedPoint supplies = CFixedPoint.Zero;
 		CFixedPoint fuel = CFixedPoint.Zero;
 		foreach (CUnit unit in country.AllUnits())
 		{
-			supplies += SupplyConsumption(country, unit);
-			fuel += FuelConsumption(country, unit);
+			supplies += SupplyConsumption(state, country, unit);
+			fuel += FuelConsumption(state, country, unit);
 		}
 		return (supplies, fuel);
 	}

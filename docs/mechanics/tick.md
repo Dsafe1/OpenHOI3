@@ -263,17 +263,18 @@ its land:
 | --- | --- |
 | Germany: strength and organisation of every brigade, ship and wing | 172 of 172 each |
 | Germany: manpower, officers, influence, abilities, technology, the build queue | all |
-| Germany: the stockpile | six goods of seven to the thousandth; supplies 3.301 under in 8410, which is its leaders (`upkeep.md`, section 1) |
+| Germany: the stockpile | six goods of seven to the thousandth; supplies 0.030 over in 8410 - 3.301 under before what leaders do to a unit's use was built (`leaders.md`, section 8) |
 | the others: organisation, not under an army with a commander | 2770 of 2770 |
-| the others: organisation under a commander, no leaders built | 142 of 764 |
-| the others: strength | 3532 of 3534 |
+| the others: organisation under a commander | 764 of 764 (142 before his part was built) |
+| the others: strength | 3534 of 3534 |
 | the others: manpower | 74 of 77 |
 | the others: money, fuel, crude oil | 76, 74 and 67 of 77 |
 | the others: energy, metal, rare materials | none of 77 - their AI moved the shares of IC after the days were run, and a country that does not exist shares many a capital |
 
 **The organisation rows are the ones `organisation.md`, section 7, had from a model** - an
 hour before each day, `inferred` from three brigades. The original's order is one hour
-after both days, and it gives the same 2942 and the same 142. The supply network's own
+after both days, and it gives the same 2942 and the same 142 - 764 with the commander's part.
+The supply network's own
 figures (`supply.md`, section 17) and the convoys (`convoys.md`, section 12) come out of the
 same run.
 

@@ -131,7 +131,7 @@ public static class CStockpile
 				continue;
 			}
 			int days = DaysAtStart(state, country);
-			(CFixedPoint supplies, CFixedPoint fuel) = CUnitSupply.DailyUse(country);
+			(CFixedPoint supplies, CFixedPoint fuel) = CUnitSupply.DailyUse(state, country);
 			stockpile[EGoods.Supplies] += supplies * days;
 			stockpile[EGoods.Fuel] += fuel * days;
 		}

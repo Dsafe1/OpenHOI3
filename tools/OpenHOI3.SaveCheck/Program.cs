@@ -17,7 +17,9 @@ using OpenHOI3.Content.Map;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Units;
@@ -206,6 +208,9 @@ foreach (ClausewitzNode node in save.Children)
 
 // ---- units: what the orders of battle make, before anything below gives a country the save's laws
 List<string> unitLaws = CUnitCheck.Run(directories, savedCountries, state, lawBook, Compare);
+
+// ---- leaders: who is in service, and who commands each of those units
+int aiHeadquartersLed = CLeaderCheck.Run(savedCountries, state, save.GetString("player"), Compare);
 
 foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 {
@@ -543,7 +548,7 @@ foreach ((int capitalId, (string who, CGoodsPool change)) in conversions)
 			: "fuel at the start, where two countries share a capital",
 		fuelAtStart == capital.Pool[EGoods.Fuel],
 		() => $"{who}: the save implies {fuelAtStart}, ours {capital.Pool[EGoods.Fuel]}  (off by {fuelAtStart - capital.Pool[EGoods.Fuel]}; " +
-			$"{CStockpile.DaysAtStart(state, holder)} days of {CUnitSupply.DailyUse(holder).Fuel}, {fuelMade} refined a day)");
+			$"{CStockpile.DaysAtStart(state, holder)} days of {CUnitSupply.DailyUse(state, holder).Fuel}, {fuelMade} refined a day)");
 }
 
 // ---- the units two days on, which is where the save is: now that each country has the laws,
@@ -688,6 +693,22 @@ if (putBack.Count > 0)
 	Console.WriteLine();
 	Console.WriteLine($"{putBack.Count} countries fit only with laws from their history put back, which the AI changed after the last day was run:");
 	Console.WriteLine("   " + string.Join("; ", putBack));
+}
+if (aiHeadquartersLed > 0)
+{
+	Console.WriteLine();
+	Console.WriteLine($"{aiHeadquartersLed} of the headquarters the original's AI made in its two days hold a leader, " +
+		"one nobody else was given: the AI is not built.");
+}
+{
+	// A look and not a check: a save keeps nothing of radio range.
+	List<CUnit> outOfRange = state.Countries.SelectMany(country => country.AllUnits())
+		.Where(unit => CMovementSpeed.IsLand(unit) && CCommandReach.IsOutOfRange(state, unit)).ToList();
+	List<CUnit> players = outOfRange.Where(unit => unit.Owner.Value == save.GetString("player")).ToList();
+	Console.WriteLine();
+	Console.WriteLine($"{outOfRange.Count} land units start out of their chain of command's radio range, {players.Count} of them the player's; " +
+		"for example " + string.Join(", ", (players.Count > 0 ? players : outOfRange).Take(6)
+			.Select(unit => $"{unit.Owner} '{unit.Name}' in {unit.Location} under '{unit.Parent?.Name}' in {unit.Parent?.Location}")));
 }
 if (unitLaws.Count > 0)
 {

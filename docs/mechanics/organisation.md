@@ -8,6 +8,7 @@ save of 1 January 1936, two days in, and the one of 1 February. Where this proje
 its own behaviour the paragraph is marked **Ours**.
 
 Sources: `reversing/findings/FINDINGS-organisation.md` (all of it, read for this spec),
+`reversing/findings/FINDINGS-commandreach.md` (the commander's part),
 `reversing/findings/FINDINGS-unitstart.md`, section 8 (the ceiling),
 `reversing/findings/FINDINGS-opsarea.md`, section 5 (what a country's units call for),
 `reversing/findings/FINDINGS-unitdaily.md`, section 4 (the crowding of a base, which
@@ -52,7 +53,7 @@ This is the figure the top bar shows (`topbar.md`, section 9).
 Once a game is running: `confirmed`
 
     most = the brigade's own default_organisation               its type's, with its technologies
-         + the skill of the army's commander, times his reach    not built: see below
+         + the skill of the army's commander, times his reach    see below
     if it is a reserve and its country is neither mobilised nor at war:
         most = most x (1 + reserves_penalty_size)
     most = most x the country's officer ratio
@@ -73,9 +74,10 @@ Once a game is running: `confirmed`
   organisation, and Germany's can hold 140%.
 - **The army's commander.** The army is the unit itself when it is one, or the army a
   corps or a division answers to, with at most a corps between; a division straight under
-  a theatre has none. Its commander adds his skill times how much of his command reaches
-  the unit, which falls with distance. *Ours:* leaders are not built, so nothing is added.
-  `COrganisation.ArmyAbove` finds the army for when they are.
+  a theatre has none. Its commander adds his skill, whole, times how much of the army's
+  command reaches the brigade's unit (`leaders.md`, section 8): 2 for a skill of 2 in full
+  reach, 1.334 at two thirds. A headquarters with nobody in command adds nothing.
+  `confirmed`, and built: `COrganisation.CommanderBonus`. The hour works it out once a unit.
 
 **Before a game is running the ceiling is `default_organisation` and nothing else.**
 `confirmed` That is why a brigade read from an order of battle starts at its type's figure
@@ -235,15 +237,15 @@ With that, on the save of 1 January 1936 (**measured**):
 | countries with a brigade below what the two days left it | 74 of the 75 that could tell |
 | organisation in those, every brigade not under an army with a commander | 2676 of 2676 |
 | organisation where holding changes nothing, or was not done (Turkey) | 266 of 266 |
-| organisation under an army with a commander, no leaders built | 142 of 764 |
+| organisation under an army with a commander | 764 of 764 |
 
 - **2676 of 2676 is to the thousandth**: Germany's reserves at 28.000 (40 x 0.5 x 1.4),
   a Hungarian headquarters at 29.310 (30 x 0.977), Soviet reserves at 8.627.
-- **The 622 under a commander are what a commander's skill would make them.** 136 are
-  above the ceiling without him and exactly where the two days left them. The other 486
-  are at the figure a bonus of a whole number gives - 1 for 339 of them, 2 for 105, 3 for
-  30 - and a dozen at 0.82 to 1.30, where his reach is not the whole of it. So the
-  ceiling's first line is confirmed by what it leaves over, and waits for leaders.
+- **The 764 under a commander are what his skill and his reach make them** (built on
+  2026-10-11; 142 agreed before). 136 of them are above the ceiling without him and exactly
+  where the two days left them; 486 are at the figure a bonus of a whole number gives - 1
+  for 339 of them, 2 for 105, 3 for 30 - and a dozen at 0.82 to 1.30, which the reach of an
+  army or a corps standing far enough off gives to the thousandth.
 - **It is the files' chain of command that fits, not the save's.** A Soviet division the
   save has straight under one of the AI's theatres is held as the army its file puts it
   under holds it. So the laws were changed before the AI made its theatres.
@@ -258,7 +260,8 @@ stops, and ships and wings take the country's ratio like the rest.
 
 ## What is not built
 
-- **Leaders**, and so the commander's part of the ceiling (section 2).
+- ~~**A commander's reach**, and so his part of the ceiling (section 2).~~ Built:
+  `leaders.md`, section 8.
 - **Being carried**, which stops the hourly return (section 3), and the paratroop and
   redeployment rules beside it.
 - **Anything that changes a law**, so section 5 is never called in a game.
@@ -275,6 +278,7 @@ stops, and ships and wings take the country's ratio like the rest.
   and one hour (`tick.md`, section 6).
 - **Whether `naval_base_efficiency` is the technology key** behind a port's room.
 - **Whose units share a base.** All that are based in the province, by this reading.
-- **What a commander's reach is**, for the dozen brigades whose bonus is not whole.
+- ~~**What a commander's reach is**, for the dozen brigades whose bonus is not whole.~~
+  Read: `leaders.md`, section 8.
 - **Which countries had a law changed as the game opened.** The tool infers it from the
   brigades.

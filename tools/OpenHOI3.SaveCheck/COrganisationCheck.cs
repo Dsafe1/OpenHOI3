@@ -127,7 +127,7 @@ internal static class COrganisationCheck
 			string what = "two days in: the organisation of each brigade";
 			if (isHeld && commanded)
 			{
-				what += ", held to its ceiling under an army with a commander (leaders are not built)";
+				what += ", held to its ceiling under an army with a commander";
 			}
 			else if (isHeld)
 			{

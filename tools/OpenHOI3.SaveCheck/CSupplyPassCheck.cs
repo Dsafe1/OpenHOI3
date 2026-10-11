@@ -7,6 +7,7 @@ using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
@@ -194,7 +195,11 @@ internal static class CSupplyPassCheck
 				unit.FuelReceived = CFixedPoint.One;
 			}
 		}
+		// As a new game does it: the stockpile reckoned with only the leaders the files
+		// name, and the rest chosen after.
+		CLeaders.SetAtStart(state);
 		CStockpile.AddUnitGoodsAtStart(state);
+		CLeaders.AssignAtStart(state);
 
 		// The original runs a day, then fills the provinces, then runs another day. What
 		// the first day makes away from a capital is on its way there while the filling
@@ -298,7 +303,7 @@ internal static class CSupplyPassCheck
 				+ $" (save {string.Join(' ', (node?.Get("distribution")?.Children ?? new List<ClausewitzNode>()).Select(child => child.Value))})");
 			CSubUnit? reserve = country.AllUnits().SelectMany(unit => unit.SubUnits).FirstOrDefault(subUnit => subUnit.IsReserve);
 			Console.WriteLine($"   laws {string.Join(' ', country.Laws.Select(law => law.Value.Name))}; a reserve brigade is at "
-				+ $"{reserve?.Strength} of {reserve?.Highest}; what its units use in a day {CUnitSupply.DailyUse(country)}");
+				+ $"{reserve?.Strength} of {reserve?.Highest}; what its units use in a day {CUnitSupply.DailyUse(state, country)}");
 			foreach ((string name, CGoodsPool ours, string key) in new[]
 			{
 				("made", country.HomeProduced, "home"), ("made away from the capital", country.SentTo, "to"),

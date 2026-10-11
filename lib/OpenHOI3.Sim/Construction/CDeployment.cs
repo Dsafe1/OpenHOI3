@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
@@ -53,8 +54,12 @@ public static class CDeployment
 		return places;
 	}
 
-	/// <summary>Takes a unit off the waiting list and puts it in a province, as a unit nothing commands.</summary>
-	public static void Place(CCountry country, CUnit unit, int provinceId)
+	/// <summary>
+	/// Takes a unit off the waiting list and puts it in a province, as a unit nothing
+	/// commands; a country that chooses its own leaders gives it the best it has free
+	/// (<c>docs/mechanics/leaders.md</c>, section 5).
+	/// </summary>
+	public static void Place(CGameState state, CCountry country, CUnit unit, int provinceId)
 	{
 		country.Deployments.Remove(unit);
 		unit.Location = provinceId;
@@ -63,6 +68,10 @@ public static class CDeployment
 			unit.Base = provinceId;
 		}
 		country.Units.Add(unit);
+		if (country.AutoAssignLeaders)
+		{
+			CLeaders.AssignBest(state, country, unit);
+		}
 	}
 
 	/// <summary>The most land units an army group, an army or a corps may have under it.</summary>
@@ -158,13 +167,16 @@ public static class CDeployment
 	}
 
 	/// <summary>
-	/// Puts a waiting unit with one in the field. It is placed where that one stands;
-	/// then a unit of a single brigade, ship or wing of the same service gives it to the
-	/// other and is gone, and any other unit is put under it.
+	/// Puts a waiting unit with one in the field. It is placed where that one stands,
+	/// which may give it a leader; then a unit of a single brigade, ship or wing of the
+	/// same service gives it to the other and is gone, and any other unit is put under
+	/// it. The one that took a brigade is given a leader if it has none and its country
+	/// chooses its own - while the one that gave it still holds whoever it was given, so
+	/// he is not to be had.
 	/// </summary>
-	public static void Join(CCountry country, CUnit unit, CUnit target)
+	public static void Join(CGameState state, CCountry country, CUnit unit, CUnit target)
 	{
-		Place(country, unit, target.Location);
+		Place(state, country, unit, target.Location);
 		country.Units.Remove(unit);
 		if (unit.SubUnits.Count == 1 && Service(unit) == Service(target))
 		{
@@ -172,6 +184,11 @@ public static class CDeployment
 			unit.SubUnits.Clear();
 			subUnit.Unit = target;
 			target.SubUnits.Add(subUnit);
+			if (target.Leader is null && country.AutoAssignLeaders)
+			{
+				CLeaders.AssignBest(state, country, target);
+			}
+			CLeaders.SetLeader(state, unit, null, false);
 			return;
 		}
 		unit.Parent = target;

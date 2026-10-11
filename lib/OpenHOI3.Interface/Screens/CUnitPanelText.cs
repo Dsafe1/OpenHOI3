@@ -7,6 +7,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Supply;
@@ -112,6 +113,12 @@ public static class CUnitPanelText
 		return unit.AttackDelay > CFixedPoint.Zero;
 	}
 
+	/// <summary>The frame of the radio icon: 2 for a unit out of its chain of command's radio range, else 1.</summary>
+	public static int DistanceFrame(CGameState state, CUnit unit)
+	{
+		return CCommandReach.IsOutOfRange(state, unit) ? 2 : 1;
+	}
+
 	/// <summary>Whether a unit is on the attacking side of one of its battles.</summary>
 	public static bool IsAttacking(CUnit unit)
 	{
@@ -156,10 +163,32 @@ public static class CUnitPanelText
 			+ (men % 1000).ToString(CultureInfo.InvariantCulture).PadLeft(3, '0');
 	}
 
-	/// <summary>The leader's line. Leaders are not built, so every unit has none.</summary>
-	public static string Leader(Func<string, string> localise)
+	/// <summary>
+	/// The leader's line: his name, in red where he has not the rank for the unit
+	/// (<see cref="CLeaders.HasRankFor"/>), and <c>NO_LEADER</c> with none.
+	/// </summary>
+	public static string Leader(CGameState state, CUnit unit, Func<string, string> localise)
 	{
-		return localise(NoLeaderKey);
+		if (unit.Leader is not { } leader)
+		{
+			return localise(NoLeaderKey);
+		}
+		return CLeaders.HasRankFor(state, unit) ? leader.Name : "§R" + leader.Name;
+	}
+
+	/// <summary>A row of the units under one: its name, and its leader's in brackets where it has one.</summary>
+	public static string ChildName(CUnit unit)
+	{
+		return unit.Leader is { } leader ? $"{unit.Name} ({leader.Name})" : unit.Name;
+	}
+
+	/// <summary>Where a leader's portrait is, under the install: a file named for his picture.</summary>
+	public const string PortraitFolder = "gfx/pictures/portraits/";
+
+	/// <summary>The game path of the unit's leader's portrait, or null with no leader.</summary>
+	public static string? LeaderPortrait(CUnit unit)
+	{
+		return unit.Leader is { } leader ? PortraitFolder + leader.Picture + ".tga" : null;
 	}
 
 	/// <summary>

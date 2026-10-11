@@ -1,6 +1,7 @@
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Movement;
@@ -83,6 +84,7 @@ public static class CTick
 		CSupplyPass.RunDaily(state);
 		CCountryModifiers.Rebuild(state);
 		CManpower.RunDaily(state);
+		CLeaders.ActivateDaily(state);                      // just after its manpower grows
 		CLeadership.Update(state);
 		CConvoyDay.Sail(state);                             // before a country's units draw
 		CMissions.RunDaily(state);                          // a unit's day begins with its order's

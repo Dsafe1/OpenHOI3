@@ -346,7 +346,7 @@ Three things the comparison had to allow for, each of which says something:
 - **Most of what a unit does**: it does not move and is not on the map. What it draws
   each day - supplies and fuel, rotation, reinforcement and upgrades - is built, and is
   `upkeep.md`.
-- **Leaders.** The number a file gives a unit is kept and nothing more.
+- ~~**Leaders.**~~ Built 2026-10-11: `leaders.md`. What a leader does to a unit is not.
 - ~~**Units under construction.**~~ Built 2026-10-08: `buildqueue.md`.
 - **The AI's theatres**, and its choice of laws before the units are made - for the
   countries it runs. For the player's country the history's laws are the decision

@@ -181,7 +181,7 @@ public partial class CUnitPanel : Control
 			}
 		}
 
-		if (CUnitHeaderEntry.Create(_context, owner, unit) is { } header)
+		if (CUnitHeaderEntry.Create(_context, state, owner, unit) is { } header)
 		{
 			header.Deselected += () => UnitChosen?.Invoke(null);
 			Add(header);

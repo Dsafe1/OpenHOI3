@@ -99,6 +99,20 @@ public class HierarchyLinesTests
 	}
 
 	[Fact]
+	public void AUnitOutOfRadioRangeHasABrokenDarkRedLineWhereverItStands()
+	{
+		(CUnit army, CUnit corps, CUnit far, _, _) = Hierarchy();
+
+		List<CHierarchyLine> lines = CHierarchyLines.Build(army, PointOf, mapWidth: 1000, unit => unit == far);
+
+		Assert.Equal(CHierarchyLines.Under, lines[0].Colour);
+		Assert.False(lines[0].IsBroken);
+		Assert.Equal(CHierarchyLines.OutOfReach, lines[1].Colour);
+		Assert.True(lines[1].IsBroken);
+		Assert.Same(corps, far.Parent);
+	}
+
+	[Fact]
 	public void ALineGoesTheShortWayRoundTheMap()
 	{
 		CUnit army = Unit(EUnitKind.Army, 1, null);

@@ -140,11 +140,11 @@ settings." **Until then** is his word: this one ends when the settings are built
 | | |
 | --- | --- |
 | the original | reads `show_unit_names` from the player's `settings.txt`. On, a near counter carries its unit's name, cut to eight letters; off - which is what it is until the file says otherwise - the name of the unit's leader, and nothing for a unit with none |
-| here | the unit's name, always. `settings.txt` is not read and there are no leaders |
+| here | the unit's name, always. `settings.txt` is not read. Units have had leaders since 2026-10-11 (`docs/mechanics/leaders.md`); the counter still carries the unit's name, as decided |
 | the difference today | a player who had the setting off sees unit names where the original showed leaders' |
 | a mod loses | nothing: it is the player's setting and not a mod's file |
-| why | the maintainer plays with it on, and without leaders the other way would leave every counter bare |
-| to undo | read the setting, and with it off write the leader's name once there are leaders. The rule is `reversing/findings/FINDINGS-counters.md`, section 4 |
+| why | the maintainer plays with it on, and without leaders, when this was decided, the other way would have left every counter bare |
+| to undo | read the setting, and with it off write the leader's name. The rule is `reversing/findings/FINDINGS-counters.md`, section 4 |
 
 `docs/mechanics/mapunits.md`, section 2.
 

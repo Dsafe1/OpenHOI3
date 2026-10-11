@@ -277,8 +277,8 @@ public static class CCombatViewText
 	}
 
 	/// <summary>
-	/// The name under a side's portrait. Leaders are not built, so it is the original's
-	/// words for a side with none - and nothing for a side with no country left.
+	/// The name under a side's portrait. A battle's leader is not built yet, so it is the
+	/// original's words for a side with none - and nothing for a side with no country left.
 	/// </summary>
 	public static string LeaderName(Func<string, string> localise, CCombatSide side)
 	{

@@ -214,7 +214,7 @@ public static class CProduction
 
 				// What the units would ask for and what seeing to them would cost, so
 				// that three of the sliders have a need to show.
-				(CFixedPoint supplies, CFixedPoint _) = CUnitSupply.DailyUse(country);
+				(CFixedPoint supplies, CFixedPoint _) = CUnitSupply.DailyUse(state, country);
 				country.UnitDemand.Clear();
 				country.UnitDemand[EGoods.Supplies] = supplies;
 				country.UnitDrawn.Clear();

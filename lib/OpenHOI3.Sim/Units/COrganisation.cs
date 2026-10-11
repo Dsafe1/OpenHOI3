@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Provinces;
 
 namespace OpenHOI3.Sim.Units;
@@ -48,25 +49,34 @@ public static class COrganisation
 	private const long Unsupplied = -1000;
 
 	/// <summary>
-	/// The most organisation a brigade may have once a game is running: its own figure,
-	/// less the share a reserve is kept short of, times its country's officer ratio,
-	/// and more or less by the country's modifier for its branch.
-	///
-	/// The original adds the skill of the army's commander to the figure first. Leaders
-	/// are not built, so nothing is added here.
+	/// The most organisation a brigade may have once a game is running: its own figure
+	/// and what its army's commander adds, less the share a reserve is kept short of,
+	/// times its country's officer ratio, and more or less by the country's modifier for
+	/// its branch.
 	///
 	/// A brigade that is in no unit - one just built, at the moment it is made - is not
-	/// held back as a reserve and not measured against the officers: it has its own
-	/// figure and the branch's modifier, and that is all.
+	/// held back as a reserve, not measured against the officers and given nothing by a
+	/// commander: it has its own figure and the branch's modifier, and that is all.
 	///
 	/// Before a game is under way - the two days a new game runs before its first hour -
-	/// the most a brigade may have is its own figure and nothing else: no reserve's
-	/// share, no officers, no modifier. So an upgrade finished in those days holds a
-	/// brigade to its figure, and the hour run at their end brings nobody down.
+	/// the most a brigade may have is its own figure and nothing else: no commander, no
+	/// reserve's share, no officers, no modifier. So an upgrade finished in those days
+	/// holds a brigade to its figure, and the hour run at their end brings nobody down.
 	/// </summary>
 	/// <param name="penaltyAtWar">What to do for a reserve of a country at war that has not mobilised.</param>
 	/// <param name="penaltyAlways">Keep a reserve short whatever its country is doing.</param>
 	public static CFixedPoint Ceiling(CGameState state, CCountry owner, CSubUnit subUnit,
+		bool penaltyAtWar = false, bool penaltyAlways = false)
+	{
+		long bonus = !state.IsBeingMade && subUnit.Unit is { } unit ? CommanderBonus(state, unit) : 0;
+		return CeilingWithBonus(state, owner, subUnit, bonus, penaltyAtWar, penaltyAlways);
+	}
+
+	/// <summary>
+	/// The same, with what the army's commander adds already worked out for the
+	/// brigade's unit: the hour works it out once a unit and not once a brigade.
+	/// </summary>
+	public static CFixedPoint CeilingWithBonus(CGameState state, CCountry owner, CSubUnit subUnit, long bonus,
 		bool penaltyAtWar = false, bool penaltyAlways = false)
 	{
 		long most = subUnit.Stats[CSubUnitType.DefaultOrganisation].Raw;
@@ -76,6 +86,7 @@ public static class COrganisation
 		}
 		if (subUnit.Unit is not null)
 		{
+			most += bonus;
 			if (subUnit.IsReserve && CUnits.ReservePenaltyApplies(state, owner, penaltyAtWar, penaltyAlways))
 			{
 				most = (CFixedPoint.Scale + owner.Modifier[CUnits.ReservesPenaltySize].Raw) * most / CFixedPoint.Scale;
@@ -91,6 +102,21 @@ public static class COrganisation
 		};
 		most = most * (CFixedPoint.Scale + owner.Modifier[branch].Raw) / CFixedPoint.Scale;
 		return new CFixedPoint(most);
+	}
+
+	/// <summary>
+	/// What the army's commander adds to the most organisation each brigade of a unit
+	/// may have: his skill, whole, times how much of the army's command reaches the unit.
+	/// Nothing where there is no army above it, or no commander of it.
+	/// </summary>
+	public static long CommanderBonus(CGameState state, CUnit unit)
+	{
+		if (ArmyAbove(unit) is not { } army || army.Leader is not { } leader || leader.Skill == 0)
+		{
+			return 0;
+		}
+		long skill = leader.Skill * CFixedPoint.Scale;
+		return CCommandReach.Through(state, unit, CCommandReach.Level(army)) * skill / CFixedPoint.Scale;
 	}
 
 	/// <summary>
@@ -202,9 +228,10 @@ public static class COrganisation
 					continue;
 				}
 				long factor = RegainFactor(state, country, unit, crowding);
+				long bonus = CommanderBonus(state, unit);
 				foreach (CSubUnit subUnit in unit.SubUnits)
 				{
-					Regain(subUnit, factor, Ceiling(state, country, subUnit).Raw, lowBonus);
+					Regain(subUnit, factor, CeilingWithBonus(state, country, subUnit, bonus).Raw, lowBonus);
 				}
 			}
 		}

@@ -87,7 +87,7 @@ public static class CFrontLine
 	/// What a side's units are ordered by for the front, the largest first. For an
 	/// attacker: its soft attack, hard attack and toughness and one more, by its average
 	/// organisation and by its strength. A defender's has its defensiveness for the
-	/// toughness; the original adds its leader's skill, and leaders are not built.
+	/// toughness; the original adds its leader's skill, which is not built yet.
 	/// </summary>
 	public static long FrontOrder(CUnit unit, bool isAttacker)
 	{
@@ -232,7 +232,7 @@ public static class CFrontLine
 	/// A reserve's chance of coming up this hour, in thousandths of a hundred per cent:
 	/// the base, its country's technology and its modifier for the side, by its average
 	/// organisation over a hundred. The original adds for a division whose corps
-	/// headquarters is near, by that leader's skill; leaders are not built.
+	/// headquarters is near, by that leader's skill, which is not built yet.
 	/// </summary>
 	public static CFixedPoint ReinforceChance(CGameState state, CUnit unit, bool isAttacker)
 	{

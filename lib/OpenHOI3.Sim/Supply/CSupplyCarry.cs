@@ -56,8 +56,8 @@ public static class CSupplyCarry
 		}
 
 		long days = CSupplyDay.DaysHeld(state) * Scale;
-		Move(source, province.Pool, EGoods.Supplies, CUnitSupply.SupplyConsumption(owner, unit).Raw * days / Scale);
-		Move(source, province.Pool, EGoods.Fuel, CUnitSupply.FuelConsumption(owner, unit).Raw * days / Scale);
+		Move(source, province.Pool, EGoods.Supplies, CUnitSupply.SupplyConsumption(state, owner, unit).Raw * days / Scale);
+		Move(source, province.Pool, EGoods.Fuel, CUnitSupply.FuelConsumption(state, owner, unit).Raw * days / Scale);
 	}
 
 	private static void Move(CGoodsPool source, CGoodsPool into, EGoods goods, long wanted)

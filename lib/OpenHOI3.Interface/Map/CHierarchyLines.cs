@@ -28,7 +28,7 @@ public static class CHierarchyLines
 	/// <summary>Every line further down.</summary>
 	public static readonly CColor Further = Bytes(200, 200, 200);
 
-	/// <summary>A unit out of its commander's radio range, whatever its place. Nothing works that out yet.</summary>
+	/// <summary>A unit out of its commander's radio range, whatever its place.</summary>
 	public static readonly CColor OutOfReach = Bytes(128, 0, 0);
 
 	/// <summary>Half a line's width for each step of the size mark its unit's counter carries.</summary>
@@ -52,14 +52,17 @@ public static class CHierarchyLines
 	/// </summary>
 	/// <param name="pointOf">The unit point of a province, in map pixels.</param>
 	/// <param name="mapWidth">The map's width, for the short way round; 0 for a map with no seam.</param>
-	public static List<CHierarchyLine> Build(CUnit selected, Func<int, Vector2> pointOf, float mapWidth)
+	/// <param name="isOutOfReach">Whether a unit is out of radio range of the chain above it; nobody is where it is not given.</param>
+	public static List<CHierarchyLine> Build(CUnit selected, Func<int, Vector2> pointOf, float mapWidth,
+		Func<CUnit, bool>? isOutOfReach = null)
 	{
 		var lines = new List<CHierarchyLine>();
-		Add(selected, selected, pointOf, mapWidth, lines);
+		Add(selected, selected, pointOf, mapWidth, isOutOfReach ?? (_ => false), lines);
 		return lines;
 	}
 
-	private static void Add(CUnit unit, CUnit selected, Func<int, Vector2> pointOf, float mapWidth, List<CHierarchyLine> lines)
+	private static void Add(CUnit unit, CUnit selected, Func<int, Vector2> pointOf, float mapWidth,
+		Func<CUnit, bool> isOutOfReach, List<CHierarchyLine> lines)
 	{
 		if (CMovementSpeed.IsLand(unit) && unit.Parent is { } commander && unit.Location > 0 && commander.Location > 0
 			&& unit.Location != commander.Location)
@@ -78,17 +81,23 @@ public static class CHierarchyLines
 					to.X += mapWidth;
 				}
 			}
-			lines.Add(new CHierarchyLine(from, to, CCounterText.SizeFrame(unit) * HalfWidthAStep, ColourOf(unit, selected), false));
+			bool outOfReach = isOutOfReach(unit);
+			lines.Add(new CHierarchyLine(from, to, CCounterText.SizeFrame(unit) * HalfWidthAStep,
+				ColourOf(unit, selected, outOfReach), outOfReach));
 		}
 		foreach (CUnit child in unit.Children)
 		{
-			Add(child, selected, pointOf, mapWidth, lines);
+			Add(child, selected, pointOf, mapWidth, isOutOfReach, lines);
 		}
 	}
 
-	/// <summary>A line's colour, by where its unit stands under the selected one.</summary>
-	public static CColor ColourOf(CUnit unit, CUnit selected)
+	/// <summary>A line's colour, by where its unit stands under the selected one: dark red out of reach, wherever that is.</summary>
+	public static CColor ColourOf(CUnit unit, CUnit selected, bool outOfReach = false)
 	{
+		if (outOfReach)
+		{
+			return OutOfReach;
+		}
 		if (ReferenceEquals(unit, selected))
 		{
 			return Own;

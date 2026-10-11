@@ -53,7 +53,8 @@ convoys, and the two days a new game runs before its first hour, and an air unit
 fighting missions with the battle in the air, and its eight bombing missions with the
 bombing and the day's repair of what was bombed, and the window of an air battle and of a
 bombing, and the whole of the air orders window with a mission's area, and the air map mode
-with a list of finished battles - 1235 tests - and it is
+with a list of finished battles, and leaders - who is in service, who commands which
+unit and how far a command reaches - 1279 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -185,7 +186,8 @@ land units fight. Fifteen things bear on a unit each round - the ground, a river
 night, experience, being dug in, crowding and the rest (`landcombat.md`, section 4) - and
 `CCombatModifiers` is where the seven that wait will go: leaders, encirclement and
 the others listed there. **Each side picks a tactic** out of `common/combat_tactics.txt`
-(`landcombat.md`, section 11), and with no leaders it is nearly always the plainest.
+(`landcombat.md`, section 11), and with a battle's leader not built it is nearly always the
+plainest.
 **Reading for this corrected the fact base twice**: the weather
 and the night are against a unit's attack and leave its defence alone, and of a tactic's two
 numbers the one written down as what counters it was its own. There is no weather
@@ -217,9 +219,9 @@ their own - was read exactly so. The areas it makes are also what home productio
 `overseas` modifier and the placing of a unit ask, each of which had guessed at them.
 **The daily pass - `supply.md`, sections 11 to 17 - is the second of supply's three pieces,
 built on 2026-10-10, and it reproduces the original's own figures**: with a save's units,
-laws and production, a day, the filling of the provinces and a day give 171 of 234 networks
-the same in every province and every figure the save keeps, Sweden's 210 provinces among
-them (124 before the convoys). **It is written to do what the original does step for step, its oddities with it** -
+laws and production, a day, the filling of the provinces and a day give 184 of 234 networks
+the same in every province and every figure the save keeps, Germany's 245 provinces and
+Sweden's 210 among them (124 before the convoys, 171 before what leaders do to a unit's use). **It is written to do what the original does step for step, its oddities with it** -
 the order its sort leaves equal provinces in, a share that stays cut, fuel tested by today
 where supplies are tested by yesterday - because who goes short on a full road is decided by
 nothing else; do not tidy them. A unit draws on the province it stands in, a marching unit
@@ -233,8 +235,8 @@ day, a month's pass, one hour, with the clock standing still - as `CTick.RunFirs
 all of it with `IsBeingMade` set, which is the original's "no game is running yet": a
 brigade may then have its own figure of organisation and nothing else, the month decays
 nothing and a convoy is manned for nothing. Given the laws Germany's days were run under,
-it is the start save's Germany brigade for brigade and good for good, supplies apart, which
-its leaders move. **A plain new game is not the original's first screen and is not meant to
+it is the start save's Germany brigade for brigade and good for good, supplies 0.030 apart.
+**A plain new game is not the original's first screen and is not meant to
 be**: there the AI has changed laws by then, and here the player keeps his history's
 (`docs/compatibility.md`, entry 6) - so nothing holds a reserve down before the first hour
 played does, and one sent to attack before that hour fights above its ceiling. His word on
@@ -380,6 +382,45 @@ colours are made when the player's fighter orders start or go and not each day, 
 battles is a signed byte, a beaten side is named by nobody, and an air base the player knows
 little of is drawn at the size of a level 1. Its colours' alpha, which the original's shaders
 use in a way not read, is laid over the ground turned grey - ours.
+**Leaders - `leaders.md` - were taken up on 2026-10-11 and cut in four, the cut this
+project's: who they are and who commands what; how far a command reaches; what a leader does
+in a battle; and the window he is chosen in. The first is built, read whole out of the
+original, and it is the original's unit for unit**: the start save's 1555 unit leaders and 101
+countries' lists of leaders in service all agree (`CLeaderCheck` in the savegame tool's
+start-date run). `history/leaders` and `common/traits.txt` are read (`CLeaderReader`,
+`CTraitReader`); a leader's history is folded to the start and his experience raised to his
+skill's floor; every leader with a rank is put in service as a game is made, and others on
+the day their history first gives them one, at rank 1 (`CLeaders`, `Sim/Leaders`). **Every
+unit with no leader is given the best free one of its country**, in the order the units were
+made: skill and one in thousands, a set amount for each trait effect that suits the unit, the
+first of equals winning, and a land unit taking only the exact rank of its level. A unit put on
+the map or joined gets one the same way while the country's `AutoAssignLeaders` is on. The
+panel shows a unit's leader, in red without the rank, and his portrait; the counter keeps the
+unit's name (`docs/compatibility.md`, entry 7). **The second piece, how far a command
+reaches, is built too, read whole and checked against the same save** (`leaders.md`, section
+8; `CCommandReach`): a headquarters reaches in full within its first brigade's radio times the
+`RADIO_*_LEADER_DISTANCE` define of its level, the radius over the distance out to twice
+that, and nothing beyond, the links multiplied up the chain; a trait comes down the chain
+halved at every step. The army's commander adds his skill by his reach to every brigade's
+organisation ceiling - all 764 brigades under one agree with the save, 142 did - and the
+army group's takes a twentieth a point off what a unit uses, with the leaders'
+`supply_consumption` traits. **A new game's stockpile is reckoned before its leaders are
+chosen**, as the original does it, so `CLeaders.SetAtStart` puts on only the files' leaders and
+`CLeaders.AssignAtStart`, called after `CStockpile.AddUnitGoodsAtStart`, chooses the rest; keep
+that order. The panel's radio icon and a broken dark red line on the map show a unit out of
+range, checked with `--click`. **Distances here are the game's kilometres, which are
+quarters of a map pixel** - the same measure as an aircraft's range: a corps reaches 200 km in
+full, an army 400, an army group 600, a theatre 2000. **Each rank's skill does one thing of its
+own**, as the maintainer set out on 2026-10-11 (`leaders.md`, section 8): a division's combat
+efficiency, a corps' chance of bringing up a reserve, an army's organisation, an army group's
+supply use, a theatre's stacking penalty - the division's, the corps' and the theatre's in
+battle, for the third piece.
+**Ten things in the two pieces are the original's and look odd, and are built so - do not
+tidy them; `leaders.md` lists them**: the plainest that an order of battle's leader goes on
+whoever he is, that nothing later in a leader's history than his first rank is ever applied,
+and that a command's reach drops from half to nothing at twice the radius, the one of them
+put to the maintainer. **No battle asks a unit's leader yet** - every battle waits for the
+third piece.
 **Bombing - `bombing.md` - is the fifth piece, built on 2026-10-10, read out of the original
 and set against nothing, and the maintainer has not looked at it**: the eight bombing
 missions (`CBombingOrders`, `CBombingMissions`, `CBombingProvinces` in `Sim/Missions`), the
@@ -397,7 +438,7 @@ province's modifier is made from the second, "is there a port" is asked of the f
 mean was not read - the readme's *Loose ends* says what each was given. **Nine things in it
 are the original's and look odd, and are built so - do not tidy them; `bombing.md`, section
 12 - and none has been put to the maintainer**: a bomber with no leader has a ship on its
-list of targets one time in a hundred, and here every unit is leaderless, so strikes at
+list of targets one time in a hundred, and here no battle asks a unit's leader yet, so strikes at
 ships wear the port and hardly touch the fleet; a fleet in port fires its air attack three
 times over through its province; a second unit cannot join a bombing of the ground alone;
 ground attack goes round its list and weighs nothing, and interdiction flies only at ground
@@ -497,7 +538,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 117 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 119 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -533,7 +574,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 3249-address, 320-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3261-address, 320-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -608,6 +649,12 @@ beside the repository.
   date. Run it after touching a loader or a formula; a rule that reproduces the save to the
   thousandth is worth more than one that reads well. The maintainer's save is normally at
   `Documents\Paradox Interactive\Hearts of Iron III\save games\Germany1936_01_01_00.hoi3`.
+  That run also sets every country's leaders in service and every unit's leader beside the
+  save's - 101 of 101 and 1555 of 1555 - and should after any change to `Sim/Leaders`, the
+  order of battle's reading or what a unit's figures are made of, which the choice weighs;
+  and the organisation of every brigade under an army with a commander, 764 of 764, which
+  his reach decides. It ends by saying how many land units start out of radio range - 95,
+  none of them Germany's - which is a look, since a save keeps nothing of it.
   **Anything that moves from day to day is checked against two saves of one game**:
   `OpenHOI3.SaveCheck adjacency <install>` checks the edges between provinces - which
   there are, their order, kinds and distances - against the cache the original keeps of
@@ -646,8 +693,9 @@ beside the repository.
   The like-for-like is `supplypass <install> <start-date savegame> countries`, below: with
   `history=GER:training_laws+industrial_policy_laws history=DDR:industrial_policy_laws
   history=DFR:industrial_policy_laws` after it - the laws the AI changed only after the days
-  were run - Germany agrees in everything but supplies, and the others' organisation is 2770
-  of 2770 where no commander is over them. Run it after touching `CTick.RunFirstDays`, the
+  were run - Germany agrees in everything but 0.030 of supplies, and the others'
+  organisation is 2770 of 2770 where no commander is over them and 764 of 764 where one is.
+  Run it after touching `CTick.RunFirstDays`, the
   daily pass's order, or anything that asks `IsBeingMade`.
   `OpenHOI3.SaveCheck airbattle <install> [attacker] [defender] [seed]` is the trial of the
   battle in the air: the two countries' nearest pair of air units with an air attack, the
@@ -687,9 +735,9 @@ beside the repository.
   technology and mud, runs what the original runs before a game's first hour - a day, the
   filling of the provinces, a day - and sets every province's supplies and fuel beside the
   save's: what lies there, what was asked of it and what passed through it, today and
-  yesterday. 171 of 234 networks agree in every province and every figure; the rest differ
-  where the original has a leader on a unit or its AI has one on the move
-  (`docs/mechanics/supply.md`, section 17). **The same run sets the convoys it made beside
+  yesterday. 184 of 234 networks agree in every province and every figure; the rest differ
+  where the original's AI has a unit on the move or has moved a share, and in Moscow's, whose
+  units' use fits a faction modifier nobody has read (`docs/mechanics/supply.md`, section 17). **The same run sets the convoys it made beside
   the save's** and should say 261 of 261 on every line and 20 of 20 countries, **and the
   money and resources lying in every province**: 88 of 88 harbours to the thousandth, and
   49 of 49 capitals that somebody else holds within a fiftieth
@@ -700,7 +748,7 @@ beside the repository.
   after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, and the list of finished battles with the air map mode's colours, icons, rings and lines carry 1235 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one and how far a command reaches - carry 1279 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Research;
 
 namespace OpenHOI3.Sim.Units;
@@ -57,6 +58,9 @@ public static class CUnits
 				}
 			}
 		}
+		// The leaders the files name go on as the units are read; the rest are chosen once
+		// the stockpile is set, with CLeaders.AssignAtStart.
+		CLeaders.SetAtStart(state);
 	}
 
 	/// <summary>

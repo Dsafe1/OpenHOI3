@@ -120,8 +120,8 @@ same thing once an hour has been fought - and a battle on screen always has had 
 - **A list is kept, not made again**: while it holds the same units each entry is only written
   again; when a unit comes or goes the list is emptied and filled.
 - **A side with no tactic** keeps whatever name and picture it showed.
-- *Ours:* leaders are not built, so every side says `NO_COMMANDER`, keeps the file's empty
-  portrait, and nobody has the initiative.
+- *Ours:* units have leaders (`leaders.md`) but a battle's leader is not built yet, so every
+  side says `NO_COMMANDER`, keeps the file's empty portrait, and nobody has the initiative.
 
 ## 5. A unit in a list
 
