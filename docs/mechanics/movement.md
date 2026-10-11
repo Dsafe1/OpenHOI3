@@ -218,10 +218,10 @@ What an hour adds to the progress, in the same thousandths as a distance: `confi
 
 | | term | |
 | --- | --- | --- |
-| 1 | **in a battle, with a path**: attacking in one, `(1000 + the country's combat_movement_speed) x (COMBAT_MOVEMENT_SPEED + the tactics' speed) / 1000`, held between 10 and 1000; in one any other way, 10 | built, less a technology figure and a leader's trait |
+| 1 | **in a battle, with a path**: attacking in one, `(1000 + the country's combat_movement_speed + the leaders' combat_move_speed) x (COMBAT_MOVEMENT_SPEED + the tactics' speed) / 1000`, held between 10 and 1000; in one any other way, 10 | built, less a technology figure |
 | 2 | **fuel**, for a land unit or a fleet whose brigades burn any: `fuel received x 900 / 1000 + 100` | built |
 | 3 | **the next province's terrain**: 1000 + the unit's adjuster for it | built |
-| 4 | a leader's trait for that terrain | not built |
+| 4 | 1000 + the leaders' `terrain_speed` for that terrain, by its name, down the chain of command (`leaders.md`, section 8) | built 2026-10-11 |
 | 5 | **a river or a crossing** on the way to the next province: 1000 + the unit's adjuster for `river` | built |
 | 6 | on land, **the province it is in**: 1000 + the weather there + its `local_unit_speed` | built |
 | 7 | on land: 1000 + the country's `amm_movement_speed` x the share of its brigades that are `is_mobile` | built |
@@ -412,8 +412,9 @@ with what is left over carried into the next leg as the march itself carries it.
   not move and one before which it does not arrive, waiting at full progress.
 - **Strategic redeployment**, which is an order of its own with a speed of its own.
 - **Landing from the sea** and being carried.
-- **A leader's** part in the speed, and **the weather itself**: what it does to a march is
-  in (section 5), what makes it is not.
+- **The weather itself**: what it does to a march is in (section 5), what makes it is not.
+  A leader's part in the speed is built (2026-10-11), and the march check against the saves
+  hours apart still gives 301 of 301.
 - **Walking on a puppet's, an overlord's or an ally's ground, or with military access.**
   A friend here is the country itself or one of its own faction.
 - **The message** that a unit has arrived, and the sounds and the marks of the click.

@@ -17,13 +17,10 @@ public static class CCombatTactics
 	public const string CounterAdvantage = "INITIATIVE_PICK_COUNTER_ADVANTAGE_FACTOR";
 	public const string AggressivenessImpact = "AGGRESSIVNESS_SELECTION_IMPACT";
 
-	/// <summary>
-	/// The skill of a side's leader. What a leader does in a battle is not built yet, so
-	/// every side's is 0: the attacker always picks first and nobody has the initiative.
-	/// </summary>
+	/// <summary>The skill of a side's highest ranked leader, or nothing: <see cref="CCombatLeaders"/>.</summary>
 	public static int LeaderSkill(CCombatSide side)
 	{
-		return 0;
+		return CCombatLeaders.Skill(side);
 	}
 
 	/// <summary>Whether one tactic counters another: it is the one the other names as its bane.</summary>

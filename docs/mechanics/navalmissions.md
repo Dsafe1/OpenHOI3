@@ -429,13 +429,13 @@ tells each sinking for so many days. It is not a check: there is nothing to set 
 With no tags it is Germany against the United Kingdom for thirty days. On the start date:
 
     Germany's battle fleet, nine ships attacking at 11.7, sent to the Channel Approach, which 77
-    of Britain's 78 convoys go through: there in two days; 32 raids that sank something in the
-    month, 45 transports and 5 escorts in all, of 670 transports; the convoys attacked are given
-    escorts, 62 by the month's end, where none had any; the raiders end with 844 of their 900
+    of Britain's 78 convoys go through: there in two days; 29 raids that sank something in the
+    month, 47 transports and 4 escorts in all, of 670 transports; the convoys attacked are given
+    escorts, 53 by the month's end, where none had any; the raiders end with 886 of their 900
     strength
 
 (Run again on 2026-10-10 once a new game ran its two days, which moved each figure by one or
-so.) Britain's convoys fall from 78 to 27 in the first week whatever the raider does: a country at
+so, and on 2026-10-11 once the leaders were built.) Britain's convoys fall from 78 to 27 in the first week whatever the raider does: a country at
 war unmakes the supply convoys it does not need (`convoys.md`, section 7).
 
 **In the client** `--mission=ENG:patrol:10531` gives the strongest fleet of a country that may
@@ -447,8 +447,9 @@ missions something to meet, there being no AI to send anything.
 
 - **Transport and invasion**, and everything about carrying land units by sea.
 - **Aircraft**: the air convoy raid, a carrier's aircraft in a battle, every air mission.
-- **Leaders**, **weather** and the **AI** - no fleet of a country nobody plays is ever given a
-  mission but by `--mission`.
+- **Weather** and the **AI** - no fleet of a country nobody plays is ever given a mission but
+  by `--mission`. The leaders a raid's battle asks are built since 2026-10-11
+  (`leaders.md`, section 10).
 - **Intelligence** beyond a unit's own part (section 9).
 - **Several waypoints for a sortie.**
 - The **messages**: a patrol's new shadow, a convoy too strong, ships lost.

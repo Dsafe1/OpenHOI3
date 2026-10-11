@@ -29,7 +29,7 @@ public sealed class CBreakAwayCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		CNavalDisengage.Defer(Find(state.Country(_country)!)!, 0);
+		CNavalDisengage.Defer(state, Find(state.Country(_country)!)!, 0);
 	}
 
 	private CUnit? Find(CCountry country)

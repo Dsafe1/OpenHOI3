@@ -304,20 +304,22 @@ hour the end.
 
 | | |
 | --- | --- |
-| experience | a hundredth of the wing's own, with `PRIDE_BONUS_EXP` |
+| experience | a hundredth of the wing's own, with `PRIDE_BONUS_EXP`, x (1 + the unit's leaders' `experience_bonus`) |
 | base | `BASE_PROXIMITY_BONUS` where the battle is in or beside the province of the unit's base |
 | mission | `INTERCEPT_ATTACK_BONUS` for a wing that is no bomber on an intercept; `AIR_SUP_DEFEND_BONUS` on air superiority |
 | mission efficiency | the country's, for the unit's order (`navalmissions.md`, section 10) |
-| supplies | less `COMBAT_SUPPLY_LACK_IMPACT` by what the unit was not given |
+| supplies | less `COMBAT_SUPPLY_LACK_IMPACT` by what the unit was not given, x (1 + the leaders' `out_of_supply_modifier`) |
 | the radio | the country's `combat_efficiency`, which the `radio` technology gives |
 | dissent | less `COMBAT_DISSENT_IMPACT` by it |
 | crowding | `AIR_STACKING_PENALTY` for each wing of the side after the first, `AIR_STACKING_PENALTY_MAX` at most |
 | radar | the highest radar level a friend of the side holds in the province or beside it, times `RADAR_COMBAT_IMPACT` and one plus the country's `radar_impact` |
 | the weather | less the wind by `AIRWINDSPEEDMODIFIER`, the cold or the heat past their thresholds by their impacts, the cloud by `AIRCLOUDMODIFIER` and the rain by `AIRRAINMODIFIER` - on the attack alone |
-| night | `BASE_NIGHT_PENALTY` and the wing's own night figure, attack for the attacker's side and defence for the defender's, less a hundredth of its `air_detection`; only when it comes out against it, and on the attack alone |
+| night | `BASE_NIGHT_PENALTY` and the wing's own night figure, attack for the attacker's side and defence for the defender's, and the leaders' `night_attack`, less a hundredth of its `air_detection`; only when it comes out against it, and on the attack alone |
+| the leader | last: `COMBAT_LEADER_IMPACT` for each point of the unit's own leader's skill, where his rank's `AIR_RANK_*` commands as many wings as it has and he has some skill; no trait (`leaders.md`, section 10) |
 
 The two mission bonuses are on the attack alone as well, the one the defines call a
-defender's among them. Not built: difficulty and the leader. The radio and the radar were
+defender's among them. The leaders' traits come down the unit's chain of command; dissent has
+no trait here. Not built: difficulty. The radio and the radar were
 added on 2026-10-10 with `bombing.md`, when the reading for it named their technology keys.
 **A wing's defence is worked out and nothing uses it**: only its attack decides anything.
 
@@ -350,7 +352,8 @@ the critical one - the last three only for a hit.
 wings - each whose strength less what is already against it is not under nothing. Then one
 roll in a hundred against a tenth of the wing's **targeting skill** - its country's
 `bomber_targeting` and `fighter_targeting` added together, as thousandths, and ten for each
-point of its leader's skill: above it, **a random one**; else **the best**, the highest of
+point of its unit's leader's skill, whatever his rank: above it, **a random one**; else **the
+best**, the highest of
 
     priority x (250 + a hundredth of the strength it has lost) x (1 + targeting)
 
@@ -418,12 +421,14 @@ start date:
 
     three wings of German tactical bombers from Breslau over Warszawa, 231 away of their range
     of 400, against Poland's three there: over Warszawa in two hours and into a battle; at
-    night each wing's attack at 0.61 and 0.59 of itself; four hours, nobody lost, an hour's
-    pause and the next. After thirteen battles in two and a half days the Germans are down to
-    200 of 300 strength and 6.5 organisation of 40 and turn for home; the Poles, at 244 and
-    10.4 of 30, catch them once more on the way, over Tomaszów
+    night each wing's attack at 0.73 and 0.62 of itself, the German air marshal's skill of 4
+    adding 0.2 and the Pole's 0.05; four hours, nobody lost, an hour's pause and the next.
+    After nine battles in two days the Germans are down to 215 of 300 strength and 7.0
+    organisation of 40 and turn for home; the Poles, at 254 and 15.2 of 30, catch them over
+    Tomaszów on the way and fight them there ten times more in the week, until the Germans
+    have 125 of their 300 and the Poles 220
 
-(The figures are of 2026-10-10 after the bombing was built: the radio is in them, and a unit
+(The figures are of 2026-10-11 after the leaders were built: the radio is in them, and a unit
 that flies on from a battle may fight again where it arrives.)
 
 In the client `--mission=GER:airsuperiority:<province>` and `--mission=GER:airintercept:<province>`
@@ -444,8 +449,8 @@ selected province says there is a battle.
   anti-aircraft fire are `bombing.md`'s.
 - **Every other air order** - the reserve, the transport of supplies, the paradrop.
 - The orders window is whole since 2026-10-11, and the air map mode is built: `airmap.md`.
-- **Leaders and difficulty** in what the hour makes of a wing; **radar** in what a country
-  knows. The weather's part is built and there is no weather yet.
+- **Difficulty** in what the hour makes of a wing; **radar** in what a country knows. The
+  leaders are built since 2026-10-11 (`leaders.md`, section 10). The weather's part is built and there is no weather yet.
 - **The practical** an air battle earns, and experience.
 - The AI's own giving of missions, and its 120-hour end.
 

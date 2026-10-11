@@ -5,6 +5,7 @@ using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
@@ -594,7 +595,7 @@ public class AirBattleTests
 		targets[0].Strength = CFixedPoint.FromInt(100);
 		germany.Technology.Set(CAirFire.BomberTargeting, CFixedPoint.Parse("0.7"));
 		Assert.Same(targets[0], CAirFire.Best(targets, germany));
-		Assert.Equal(700, CAirFire.TargetingSkill(germany));
+		Assert.Equal(700, CAirFire.TargetingSkill(targets[0], germany));
 	}
 
 	[Fact]
@@ -620,6 +621,30 @@ public class AirBattleTests
 		Assert.Equal(CFixedPoint.Parse("0.99"), wing.CombatDefence);
 		// A bomber far from home with nobody beside it: nothing.
 		Assert.Equal(CFixedPoint.One, raid.SubUnits[0].CombatAttack);
+	}
+
+	[Fact]
+	public void AnAirMarshalWithTheRankForHisWingsAddsHisSkillAndTenAPointToTheirTargeting()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		state.Defines.Set(CManpower.MilitarySection, "AIR_RANK_1", CFixedPoint.FromInt(1));
+		state.Defines.Set(CManpower.MilitarySection, CCombatModifiers.LeaderImpact, CFixedPoint.Parse("0.05"));
+		CUnit fighters = Air(state, germany, Field, Fighter);
+		fighters.Leader = new CLeader(1) { Skill = 3, Rank = 1, Name = "marshal" };
+		CUnit raid = Air(state, poland, Field, Bomber, Bomber);
+		raid.Leader = new CLeader(2) { Skill = 4, Rank = 1, Name = "marshal" };
+		var combat = new CCombat(Field, ECombatKind.Air);
+		CAirBattle.Join(combat.Attacker, fighters);
+		CAirBattle.Join(combat.Defender, raid);
+
+		CAirModifiers.Apply(state, combat, combat.Attacker);
+		CAirModifiers.Apply(state, combat, combat.Defender);
+
+		Assert.Contains(fighters.SubUnits[0].CombatModifiers,
+			m => m.Kind == ECombatModifier.Leader && m.Attack.Raw == 150 && m.Defence.Raw == 150);
+		// His rank commands one wing and the raid has two: no bonus there - but his skill still picks targets.
+		Assert.DoesNotContain(raid.SubUnits[0].CombatModifiers, m => m.Kind == ECombatModifier.Leader);
+		Assert.Equal(40, CAirFire.TargetingSkill(raid.SubUnits[0], poland));
 	}
 
 	[Fact]

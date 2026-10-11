@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -28,11 +29,18 @@ public static class CNavalBattle
 	public const long PositioningStep = 20;
 	public const long LeastPositioningCap = 100;
 
-	/// <summary>How far out of its place a ship may be drawn up, as a share of half its reach.</summary>
+	/// <summary>
+	/// How far out of its place a ship may be drawn up, as a share of half its reach, less
+	/// the <c>spread_out</c> its admiral brings; and the least that share comes to.
+	/// </summary>
 	private const long Spread = 300;
+	private const long LeastSpreadShare = 100;
 
-	/// <summary>What that is multiplied by for a fleet with no admiral: five, less his skill.</summary>
-	private const long SpreadWithoutLeader = 5000;
+	/// <summary>What that is multiplied by: five, less the skill of the fleet's own admiral.</summary>
+	private const long SpreadWithoutLeader = 5;
+
+	/// <summary>What a side's positioning gains for each point of its highest ranked leader's skill.</summary>
+	public const long PositioningPerSkill = 100;
 
 	/// <summary>The least the spread comes to, and the nearest a ship ever is.</summary>
 	private const long LeastSpread = 2000;
@@ -166,11 +174,13 @@ public static class CNavalBattle
 			}
 		}
 
+		long skill = Math.Max(0, (SpreadWithoutLeader - CCombatLeaders.UnitSkill(fleet)) * CFixedPoint.Scale);
+		long share = Math.Max(Spread - CCommandReach.Effect(state, fleet, ETraitEffect.SpreadOut), LeastSpreadShare);
 		foreach (CSubUnit ship in fleet.SubUnits)
 		{
 			long half = Reach(ship) * CFixedPoint.Scale / 2000;
-			long spread = Spread * half / CFixedPoint.Scale;
-			spread = spread * SpreadWithoutLeader / CFixedPoint.Scale;
+			long spread = share * half / CFixedPoint.Scale;
+			spread = spread * skill / CFixedPoint.Scale;
 			spread = (CFixedPoint.Scale - ship.Stats[Positioning].Raw) * spread / CFixedPoint.Scale;
 			if (spread < LeastSpread)
 			{
@@ -212,11 +222,17 @@ public static class CNavalBattle
 		UpdatePositioning(state, combat.Defender);
 	}
 
-	/// <summary>A side's positioning from its roll and its penalty. The admiral's skill is not built.</summary>
+	/// <summary>A side's positioning from its roll, its highest ranked leader's skill and its penalty.</summary>
 	public static void UpdatePositioning(CGameState state, CCombatSide side)
 	{
-		long positioning = side.PositioningRoll.Raw + BasePositioning - StackingPenalty(state, side);
+		long positioning = side.PositioningRoll.Raw + Base(side) - StackingPenalty(state, side);
 		side.Positioning = new CFixedPoint(Math.Max(0, positioning));
+	}
+
+	/// <summary>A side's positioning before its roll and its penalty: a tenth more for each point of its leader's skill.</summary>
+	public static long Base(CCombatSide side)
+	{
+		return BasePositioning + CCombatLeaders.Skill(side) * PositioningPerSkill;
 	}
 
 	/// <summary>

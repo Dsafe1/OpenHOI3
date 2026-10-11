@@ -56,7 +56,7 @@ public sealed class CMoveUnitCommand : CCommand
 		CUnit unit = Find(country)!;
 		// A fleet in a battle is not given its way at once: the province is kept and it
 		// starts counting the hours until it may break away.
-		if (CNavalDisengage.Defer(unit, _province))
+		if (CNavalDisengage.Defer(state, unit, _province))
 		{
 			return;
 		}

@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -12,8 +13,8 @@ namespace OpenHOI3.Sim.Combat;
 /// What an hour of a battle in the air makes of every wing: each thing that bears on it
 /// noted on the wing and multiplied into its attack and its defence. Only the attack
 /// decides anything - nothing in an air battle reads a wing's defence. The original also
-/// counts difficulty and the leader, which are not built.
-/// See <c>docs/mechanics/aircombat.md</c>, section 8.
+/// counts difficulty, which is not built. See <c>docs/mechanics/aircombat.md</c>, section 8,
+/// and <c>docs/mechanics/leaders.md</c>, section 10, for what the leaders bring.
 /// </summary>
 public static class CAirModifiers
 {
@@ -59,6 +60,10 @@ public static class CAirModifiers
 			bool nearBase = unit.Base != 0
 				&& (unit.Base == province.Id || state.Province(unit.Base).EdgeTo(province.Id) is not null);
 			long missionEfficiency = CMissionEfficiency.Of(state, owner, unit.Order);
+			long experienceTrait = CCommandReach.Effect(state, unit, ETraitEffect.ExperienceBonus);
+			long supplyTrait = CCommandReach.Effect(state, unit, ETraitEffect.OutOfSupplyModifier);
+			long nightTrait = CCommandReach.Effect(state, unit, ETraitEffect.NightAttack);
+			long? leader = CCombatLeaders.Bonus(state, unit);
 
 			foreach (CSubUnit wing in unit.SubUnits)
 			{
@@ -74,6 +79,7 @@ public static class CAirModifiers
 				experience = experience * 10 / CFixedPoint.Scale;
 				if (experience != 0)
 				{
+					experience = CCombatModifiers.Scaled(experience, experienceTrait);
 					Add(wing, ECombatModifier.Experience, experience, experience);
 				}
 
@@ -102,6 +108,7 @@ public static class CAirModifiers
 				{
 					long missing = CFixedPoint.Scale - unit.SuppliesReceived.Raw;
 					long impact = defines[CManpower.MilitarySection, CCombatModifiers.SupplyLackImpact].Raw * missing / CFixedPoint.Scale;
+					impact = CCombatModifiers.Scaled(impact, supplyTrait);
 					Add(wing, ECombatModifier.LackOfSupplies, -impact, -impact);
 				}
 
@@ -138,11 +145,16 @@ public static class CAirModifiers
 				{
 					string kind = side.IsAttacker ? CCombatModifiers.AttackOf : CCombatModifiers.DefenceOf;
 					long night = defines[CManpower.MilitarySection, CCombatModifiers.NightPenalty].Raw
-						+ Adjuster(wing, kind) + wing.Stats[AirDetection].Raw * 10 / CFixedPoint.Scale;
+						+ Adjuster(wing, kind) + nightTrait + wing.Stats[AirDetection].Raw * 10 / CFixedPoint.Scale;
 					if (night < 0)
 					{
 						Add(wing, ECombatModifier.Night, night, 0);
 					}
+				}
+
+				if (leader is { } led)
+				{
+					Add(wing, ECombatModifier.Leader, led, led);
 				}
 			}
 		}

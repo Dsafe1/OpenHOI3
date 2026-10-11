@@ -84,8 +84,10 @@ that one**: a failed sighting of it ends the look, whoever else is there. Then, 
   the first whose order lets it be made the defender: a raider never is, and a patrol by its
   stance. All of it is `navalmissions.md`, sections 3, 4 and 9.
 
-*Not built:* what a leader's `spotting_chance` adds; and a fleet carrying units that are
-fighting or under way, which is seen at once.
+**The looking fleet's leaders' `spotting_chance`** multiplies each pair's figure, as one and
+the trait, down the fleet's chain of command (`leaders.md`, section 10).
+
+*Not built:* a fleet carrying units that are fighting or under way, which is seen at once.
 
 ## 2. Where the ships stand
 
@@ -98,8 +100,11 @@ two distances together are no more than the shooter's reach (section 4).
 When a fleet joins a side, each of its ships, in order:
 
     half = half its reach
-    x    = 0.3 x half x 5 x (1 - the ship's positioning), and 2 at least
+    x    = s x half x (5 - k) x (1 - the ship's positioning), and 2 at least
     d    = half + roll(whole part of x)
+
+    s    = 0.3 less the `spread_out` the fleet's leaders bring, and 0.1 at least
+    k    = the skill of the fleet's own admiral, whatever his rank; 5 - k not under nothing
     a capital ship:   the first of the fleet's sets the fleet's line at its d
     any other:        d, or -d at even odds, added to the line
     its distance is d, and never under 1
@@ -107,21 +112,24 @@ When a fleet joins a side, each of its ships, in order:
 A fleet that joins a battle already begun starts **a hundred further out**, its line taken from
 the first capital ship of its side that has a distance.
 
-*Not built:* the leader's skill comes off the 5 - an admiral of skill 5 draws his ships up at
-exactly half their reach - and his `spread_out` trait off the 0.3.
+**An admiral of skill 5 or more draws his ships up at half their reach or one further** - the
+floor of 2 is all that is left of the spread. The fact base had "exactly half", which misses the
+floor (`FINDINGS-seaairleaders.md`, section 2).
 
 **Positioning** is one figure for each side, rolled when the battle begins and then crept up:
 
-    at the start:  roll(20) / 100 + 0.4 - the side's stacking penalty, not under nothing
-    each hour:     where it is under the greater of 0.4 - the penalty and 0.1, 0.02 more
+    base         = 0.4 + a tenth for each point of the skill of the side's highest ranked leader
+    at the start:  roll(20) / 100 + base - the side's stacking penalty, not under nothing
+    each hour:     where it is under the greater of base - the penalty and 0.1, 0.02 more
 
     stacking penalty = (the hulls of all the side's ships added up - NAVAL_STACK_POS_HULL_LIMIT)
                        x NAVAL_STACK_POS_PENALTY_HULL_MULT
                        between nothing and NAVAL_STACK_POS_PENALTY_MAX
 
 In the base game sixteen hull are free and each one more costs 0.04, to 0.8 at most: a fleet of
-eleven battleships fights without a penalty and one of thirty with 0.8. *Not built:* a tenth
-for each point of the admiral's skill.
+eleven battleships fights without a penalty and one of thirty with 0.8. The side's leader is
+the one of highest rank among its fleets' admirals, the first of equals, and one of rank 0 never
+is (`landcombat.md`, section 11): an admiral of skill 4 puts his side at 0.8 before the roll.
 
 ## 3. The hour
 
@@ -162,16 +170,26 @@ nothing. In the original's order:
   at three chances in ten, for three hours.
 - **There is no weather yet**, so its row comes to nothing.
 
-*Not built:* the difficulty setting, and the leader - his skill, and his traits on experience,
-the night and supplies.
+**The leaders** (`leaders.md`, section 10), in the original's places in that order:
+
+- **experience** is made more or less by the fleet's leaders' `experience_bonus`, as one and the
+  trait, and **lack of supplies** by their `out_of_supply_modifier`; their `night_attack` is
+  added to the night's figure before it is asked whether it is below nothing. All three come
+  down the fleet's chain of command. **Dissent has no trait at sea**, where on land it has one.
+- **the leader's bonus** comes last, on attack and defence alike: `COMBAT_LEADER_IMPACT` for each
+  point of the fleet's own admiral's skill, where he has the rank for the fleet - the number of
+  ships his rank's `NAVAL_RANK_*` define commands is at least the fleet's - and some skill. **No
+  trait comes into it**, nor the country's `leader_defence`, which a land battle's has.
+
+*Not built:* the difficulty setting.
 
 ## 4. Who a ship shoots at
 
 `confirmed` (`FINDINGS-seabattle.md`, section 4). A ship with a `sea_attack` and any
 organisation picks a target each hour:
 
-    p = (the ship's positioning + its side's) x 100, a whole number;  half that at night for
-        the roll marked *
+    p = (the ship's positioning + its side's) x 100 x (1 + its country's targeting_chance),
+        a whole number;  half that at night for the roll marked *
 
     it has a target from the hour before that is still there:
         roll(50) > p + 10                 -> it loses it
@@ -182,12 +200,16 @@ organisation picks a target each hour:
 
     with none:
         roll(80) > p *:                   the ship has lost the enemy
-            roll(100) < 7:                it takes one of its own side for the enemy (below)
+            roll(100) < 7 - the skill of its side's highest ranked leader:
+                                          it takes one of its own side for the enemy (below)
             otherwise                     -> no target
         otherwise, of the enemy ships it can reach:
             none                          -> no target
-            roll(100) <= its targeting    -> the best of them
+            roll(100) <= t / 10           -> the best of them
             otherwise                     -> any one, by a roll
+
+    t = 10 for each point of the skill of the fleet's own admiral, whatever his rank,
+        + its country's targeting_choice in thousandths
 
 - **Which it can reach**: an enemy ship whose distance and its own together are no more than
   its reach (its `distance`, x `1 + rain x FIRINGRANGEMODIFIER`), that this hour's notes have
@@ -198,22 +220,24 @@ organisation picks a target each hour:
   damaged; the first of equals.
 - **A ship keeps its target from hour to hour**, and with a positioning of 0.4 or more never
   loses it by day.
+- **The two technology figures** are `targeting_chance` and `targeting_choice`, 0.05 a level of
+  the naval doctrines `fire_control_system_training` and `commander_decision_making` in Their
+  Finest Hour (`FINDINGS-seaairleaders.md`, section 4). With
+  an admiral of skill 3 and a level of `targeting_choice` at 0.05, a ship takes the best target
+  on a roll of 8 or less - one in a hundred with neither.
 - **Friendly fire is the original's.** A ship whose side's positioning fails it has seven
-  chances in a hundred of shooting at its own side. The original's walk to pick which ship does
+  chances in a hundred, one fewer for each point of its side's leader's skill, of shooting at
+  its own side. The original's walk to pick which ship does
   not stop where its roll points: it ends on **the last ship of the side's last fleet** (the
   shooter left out), unless the roll pointed past every ship, and then there is no target. It
   is built so. Such a target is kept a quarter of the time each hour.
-
-*Not built:* the admiral's skill comes off the 7 and is the ship's targeting, with a tenth of a
-technology figure, so the best target is taken on a roll of 0 alone; a technology figure scales
-`p`.
 
 ## 5. The shot, the damage, and the distance
 
 `confirmed` (`FINDINGS-seabattle.md`, section 3). **Every roll here is the game's own
 generator**; a side has no stream of its own at sea.
 
-    attack = sea_attack;  against a submarine, sub_attack
+    attack = sea_attack;  against a submarine, sub_attack x (1 + the fleet's leaders' submarine_attack)
     shots  = attack x what the hour makes of the ship's attack
              whole shots, and the rest a chance of one more
     for each shot, while this hour's notes have not sunk the target:
@@ -268,9 +292,8 @@ does with the empty fleet was not followed.
 *Not built:* a pride of the fleet that is sunk gives the ship that sank it 5 experience and
 fires `on_enemy_pride_sunk` and `on_our_pride_sunk`; a round gives each country
 `NAVAL_DOCTRINE_INCREASE` of a practical; a transport's damage is shared out over the land
-units it carries, and what a fleet can no longer carry goes overboard; the leader's
-`submarine_attack` trait; and a carrier's aircraft, which the original sends into the battle
-from here.
+units it carries, and what a fleet can no longer carry goes overboard; and a carrier's
+aircraft, which the original sends into the battle from here.
 
 ## 6. The end
 
@@ -315,7 +338,12 @@ fleet leaves a battle at sea in its first four rounds**: until then nothing give
 `8 + roll(8)` hours. Entering another sea province ends the wait; being found does not need
 it. A fleet that fell back out of a lost battle has none: it is falling back instead.
 
-*Not built:* the leader's `disengage_timer` trait scales the 5; and the battle's "decided"
+**The 5 is the fleet's leaders' `disengage_timer` too**: a fleet has counted long enough at 5 x (1
++ the trait), cut to a whole number - so a trait of -0.2 lets it go at 4, and one of -0.1 still
+at 4, since 4.5 is cut. The same count is what ends the battle above and what lets a fleet leave
+by order.
+
+*Not built:* the battle's "decided"
 message, its history entry and the on-actions (`landcombat.md`, section 7).
 
 ## 7. Trying it, and what is not here
@@ -330,20 +358,25 @@ with a seed of 1 unless one is given:
     Germany at the United Kingdom,     two heavy and six light cruisers and a destroyer against
     Helgoland Bight:                   the 26 ships of the Mediterranean Fleet, six battleships
                                        and two carriers among them: sighted in the first hour;
-                                       positioning 0.56 against 0.02, the British paying 0.8 for
-                                       their crowd; the Germans are out of organisation after 17
-                                       hours and fall back to Wilhelmshaven with little over half
-                                       their strength; one British destroyer sunk, and none German
+                                       positioning 0.96 against 0.18, the German admiral's skill
+                                       of 5 adding half and the British paying 0.8 for their
+                                       crowd; the Germans are out of organisation after 21 hours
+                                       and fall back to Wilhelmshaven with a third of their
+                                       strength; two German light cruisers sunk, and two British
+                                       heavy cruisers and a light one
     the United Kingdom at Germany,     the same two with the sides changed: the Germans give way
-    seed 2:                            after 24 hours; a British destroyer and a heavy cruiser sunk
-    Japan at the USA:                  five ships against six, sighted after three hours, both
-                                       break off after ten; two Japanese heavy cruisers sunk
-    Italy at France, seed 3:           eighteen ships against nine: the French give way after 18
-                                       hours with three ships left of nine
+    seed 2:                            after 21 hours with five ships of nine; two British
+                                       destroyers sunk
+    Japan at the USA:                  five ships against six, sighted after three hours: the
+                                       Japanese give way after 19 hours; a Japanese heavy cruiser
+                                       and two American destroyers sunk
+    Italy at France, seed 3:           eighteen ships against nine: both break off after 20 hours,
+                                       the French with five ships left of nine, a battleship among
+                                       the four sunk
 
-The crowded fleet's sunk destroyers are worth a second look when somebody can watch the
-original: a side at a positioning of 0.02 finds almost no targets, and what it does shoot at is
-often its own last ship (section 4).
+(Run again on 2026-10-11 once the leaders were built; every figure moved.) The crowded fleet is
+worth a second look when somebody can watch the original: a side at a low positioning finds few
+targets, and what it does shoot at is often its own last ship (section 4).
 
 **In the client** there is no AI, so no enemy fleet is ever at sea: `--sail=ENG:10531` sends
 the strongest fleet of a country that can reach that sea province there, and with
@@ -365,7 +398,8 @@ many each has had sunk.
   have lost. **Transport and invasion** are not: they wait for carrying.
 - **Aircraft**, a carrier's own among them, and every kind of bombing.
 - **Intelligence** beyond a unit's own part in it (section 1).
-- **Leaders**, wherever one is named above.
+- **What a battle gives a leader** - experience, and new traits - which is the third part of
+  leaders in a battle (`leaders.md`).
 - **The weather itself.**
 - **The AI**: no fleet of a country nobody plays moves or looks for a fight.
 

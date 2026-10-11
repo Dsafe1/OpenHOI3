@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -15,7 +16,7 @@ namespace OpenHOI3.Sim.Combat;
 /// </summary>
 public static class CNavalDisengage
 {
-	/// <summary>The count at which a fleet has had enough. The original scales it by a leader's trait.</summary>
+	/// <summary>The count at which a fleet has had enough, before its leaders' <c>disengage_timer</c>.</summary>
 	public const int CountToLeave = 5;
 
 	/// <summary>A battle at sea lets nobody out before it has been fought for more than this many rounds.</summary>
@@ -33,9 +34,15 @@ public static class CNavalDisengage
 	private const int LeastWait = 8;
 	private const int WaitRoll = 8;
 
-	public static bool Wants(CUnit fleet)
+	/// <summary>
+	/// Whether a fleet has counted long enough: five times one and its leaders'
+	/// <c>disengage_timer</c>, cut to a whole number.
+	/// </summary>
+	public static bool Wants(CGameState state, CUnit fleet)
 	{
-		return fleet.Disengage >= CountToLeave;
+		long count = (CFixedPoint.Scale + CCommandReach.Effect(state, fleet, ETraitEffect.DisengageTimer))
+			* CountToLeave / CFixedPoint.Scale;
+		return fleet.Disengage >= count;
 	}
 
 	/// <summary>Whether a fleet in a battle at sea may be given a path at all yet.</summary>
@@ -55,9 +62,9 @@ public static class CNavalDisengage
 	/// A fleet in a battle is told to go somewhere. Until it has counted long enough the
 	/// order is only kept and the count started; answers whether that is what happened.
 	/// </summary>
-	public static bool Defer(CUnit fleet, int province)
+	public static bool Defer(CGameState state, CUnit fleet, int province)
 	{
-		if (fleet.Kind != EUnitKind.Navy || !fleet.IsFighting || Wants(fleet))
+		if (fleet.Kind != EUnitKind.Navy || !fleet.IsFighting || Wants(state, fleet))
 		{
 			return false;
 		}
@@ -82,7 +89,7 @@ public static class CNavalDisengage
 			{
 				fleet.Disengage++;
 			}
-			if (!Wants(fleet) || fleet.DisengageTo == 0 || state.Country(fleet.Owner) is not { } country)
+			if (!Wants(state, fleet) || fleet.DisengageTo == 0 || state.Country(fleet.Owner) is not { } country)
 			{
 				continue;
 			}
@@ -126,7 +133,7 @@ public static class CNavalDisengage
 			foreach (CUnit fleet in side.Units)
 			{
 				fleet.Disengage = fleet.Disengage == 0 ? 1 : fleet.Disengage + 1;
-				if (Wants(fleet))
+				if (Wants(state, fleet))
 				{
 					return true;
 				}

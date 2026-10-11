@@ -29,6 +29,9 @@ public static class CCombatDamage
 	/// <summary>How many thousandths each whole point of average experience takes off that, over a thousand.</summary>
 	private const long ShatterExperienceWeight = 3;
 
+	/// <summary>How many thousandths each point of the unit's leader's skill takes off it, from a float of 10.5.</summary>
+	private const long ShatterSkillWeight = 10;
+
 	/// <summary>
 	/// One hit on a unit, spread over its brigades: the strength by each brigade's
 	/// share of the unit's full strength, the organisation evenly. Nothing is taken off
@@ -130,9 +133,8 @@ public static class CCombatDamage
 	/// <summary>
 	/// How much of its full strength a unit has to be under to shatter, in thousandths:
 	/// a half, or less for a country short of officers the other way about - one whole
-	/// less half its officer ratio, where that is lower - and less again for
-	/// experience. The original takes a point off for each point of its leader's skill;
-	/// what a leader does in a battle is not built yet.
+	/// less half its officer ratio, where that is lower - and less again by a hundredth
+	/// for each point of its own leader's skill, whatever his rank, and for experience.
 	/// </summary>
 	public static long ShatterThreshold(CGameState state, CCountry owner, CUnit unit)
 	{
@@ -142,6 +144,7 @@ public static class CCombatDamage
 			threshold = MostShatterThreshold;
 		}
 		return threshold
+			- (unit.Leader?.Skill ?? 0) * ShatterSkillWeight
 			- CUnitTotals.AverageExperienceWithPride(state, unit).Raw * ShatterExperienceWeight / CFixedPoint.Scale;
 	}
 

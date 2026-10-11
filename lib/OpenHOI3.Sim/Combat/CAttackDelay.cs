@@ -81,8 +81,9 @@ public static class CAttackDelay
 					break;
 				}
 			}
-			// The original adds a technology figure and the leader's trait; neither is known here.
-			long quicker = CFixedPoint.Scale + country.Modifier[CombatMovementSpeed].Raw;
+			// The original adds a technology figure too, whose key is not known here.
+			long quicker = CFixedPoint.Scale + country.Modifier[CombatMovementSpeed].Raw
+				+ Leaders.CCommandReach.Effect(state, unit, Leaders.ETraitEffect.CombatMoveSpeed);
 			long off = PerHourFought + quicker * speed / CFixedPoint.Scale;
 			unit.AttackDelay = CFixedPoint.Max(new CFixedPoint(unit.AttackDelay.Raw - off), CFixedPoint.One);
 		}

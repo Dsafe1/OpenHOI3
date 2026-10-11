@@ -18,10 +18,14 @@ public static class CNavalTargets
 	public const string SubAttack = "sub_attack";
 	public const string FiringRangeModifier = "FIRINGRANGEMODIFIER";
 
+	/// <summary>The technology figures that scale a ship's positioning when it looks for a target, and that help it pick the best.</summary>
+	public const string TargetingChance = "targeting_chance";
+	public const string TargetingChoice = "targeting_choice";
+
 	/// <summary>What is added to a hundredth of a ship's damage before its priority weighs it.</summary>
 	private const long BestTargetBase = 250;
 
-	/// <summary>The chances in a hundred that a ship which has lost the enemy shoots at a friend.</summary>
+	/// <summary>The chances in a hundred that a ship which has lost the enemy shoots at a friend, less its side's leader's skill.</summary>
 	private const int FriendlyFire = 7;
 
 	/// <summary>
@@ -29,7 +33,9 @@ public static class CNavalTargets
 	/// </summary>
 	public static CSubUnit? Pick(CGameState state, CCombat combat, CCombatSide side, CCombatSide other, CSubUnit ship)
 	{
+		CCountry? owner = ship.Unit is { } fleet0 ? state.Country(fleet0.Owner) : null;
 		long placed = (ship.Stats[CNavalBattle.Positioning].Raw + side.Positioning.Raw) * 100000 / CFixedPoint.Scale;
+		placed = placed * (CFixedPoint.Scale + (owner?.Technology[TargetingChance].Raw ?? 0)) / CFixedPoint.Scale;
 		int p = (int)(placed / CFixedPoint.Scale);
 		bool isNight = CDaylight.IsNight(state, state.Province(combat.Province));
 		int pNight = isNight ? p / 2 : p;
@@ -100,8 +106,8 @@ public static class CNavalTargets
 	{
 		if (state.Random.Next(80) > pNight)
 		{
-			// It has lost the enemy.
-			if (state.Random.Next(100) >= FriendlyFire)
+			// It has lost the enemy; a side's leader makes it less likely to take a friend for him.
+			if (state.Random.Next(100) >= FriendlyFire - CCombatLeaders.Skill(side))
 			{
 				return null;
 			}
@@ -137,9 +143,22 @@ public static class CNavalTargets
 		{
 			return null;
 		}
-		// The admiral's skill and a technology figure make up a ship's targeting; neither is built.
-		const int Targeting = 0;
-		return roll > Targeting ? side.Targets[state.Random.Next(side.Targets.Count)] : Best(state, side);
+		return roll > TargetingSkill(state, ship) / 10 ? side.Targets[state.Random.Next(side.Targets.Count)] : Best(state, side);
+	}
+
+	/// <summary>
+	/// A ship's skill at picking its target: ten for each point of its fleet's own admiral's
+	/// skill, whatever his rank, and its country's <c>targeting_choice</c> in thousandths.
+	/// A tenth of it is the chance in a hundred of the best target.
+	/// </summary>
+	public static long TargetingSkill(CGameState state, CSubUnit ship)
+	{
+		if (ship.Unit is not { } fleet)
+		{
+			return 0;
+		}
+		long skill = CCombatLeaders.UnitSkill(fleet) * CAirFire.SkillTargeting;
+		return state.Country(fleet.Owner) is { } owner ? skill + owner.Technology[TargetingChoice].Raw : skill;
 	}
 
 	/// <summary>

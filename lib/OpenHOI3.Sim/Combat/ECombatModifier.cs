@@ -21,6 +21,10 @@ public enum ECombatModifier
 	Terrain,
 	Weather,
 	Night,
+
+	/// <summary>The unit's leader: his skill, and the traits for attacking or defending and for the ground.</summary>
+	Leader,
+
 	Envelopment,
 	TerritorialPride,
 

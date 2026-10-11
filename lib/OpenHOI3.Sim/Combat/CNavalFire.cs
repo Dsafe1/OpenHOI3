@@ -1,5 +1,6 @@
 using System;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Combat;
@@ -53,7 +54,7 @@ public static class CNavalFire
 					target = CNavalTargets.Pick(state, combat, side, other, ship);
 					if (target is not null)
 					{
-						Fire(state, combat, side, ship, target, theirPenalty);
+						Fire(state, combat, side, fleet, ship, target, theirPenalty);
 					}
 				}
 				Move(state, fleet, ship, target is not null, ourSpeed, other);
@@ -62,10 +63,13 @@ public static class CNavalFire
 		CNavalDisengage.CountHour(state, combat, side);
 	}
 
-	/// <summary>A side's positioning comes up a step an hour while it is under what the side can hold.</summary>
+	/// <summary>
+	/// A side's positioning comes up a step an hour while it is under what the side can
+	/// hold, which its leader's skill raises as it raises the positioning itself.
+	/// </summary>
 	private static void Creep(CGameState state, CCombatSide side)
 	{
-		long cap = Math.Max(CNavalBattle.BasePositioning - CNavalBattle.StackingPenalty(state, side),
+		long cap = Math.Max(CNavalBattle.Base(side) - CNavalBattle.StackingPenalty(state, side),
 			CNavalBattle.LeastPositioningCap);
 		if (side.Positioning.Raw < cap)
 		{
@@ -96,8 +100,8 @@ public static class CNavalFire
 	}
 
 	/// <summary>One ship's shots of the hour at the target it picked.</summary>
-	private static void Fire(CGameState state, CCombat combat, CCombatSide side, CSubUnit ship, CSubUnit target,
-		long theirPenalty)
+	private static void Fire(CGameState state, CCombat combat, CCombatSide side, CUnit fleet, CSubUnit ship,
+		CSubUnit target, long theirPenalty)
 	{
 		CDefines defines = state.Defines;
 		long attack = ship.Stats[SeaAttack].Raw;
@@ -108,7 +112,8 @@ public static class CNavalFire
 		}
 		if (CShipCensus.IsSubmarine(target))
 		{
-			attack = ship.Stats[CNavalTargets.SubAttack].Raw;
+			attack = ship.Stats[CNavalTargets.SubAttack].Raw
+				* (CFixedPoint.Scale + CCommandReach.Effect(state, fleet, ETraitEffect.SubmarineAttack)) / CFixedPoint.Scale;
 		}
 		long figure = ship.CombatAttack.Raw * attack / CFixedPoint.Scale;
 		long shots = figure / CFixedPoint.Scale;

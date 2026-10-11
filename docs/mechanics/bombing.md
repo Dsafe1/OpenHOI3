@@ -223,13 +223,15 @@ afresh**:
 - **Otherwise the list is everything the mission goes for**: aircraft at their base, land
   units, or ships - every brigade and wing with strength left, 1024 at most. **But a ship goes
   on the list only by a roll of its own**: out of a hundred, no more than ten for each point
-  of the unit's leader's skill, bettered by the country's `naval_air_target_chance`.
+  of the unit's own leader's skill, whatever his rank, bettered by the country's
+  `naval_air_target_chance`.
 
 Then each wing of the unit:
 
     no target on the list                                              -> it fires nothing
     target = one of the list, drawn once for all its shots
-    attack = by the mission (section 1); soft and hard by the target's softness, as on land
+    attack = by the mission (section 1); soft and hard by the target's softness, as on land,
+             with the unit's leaders' traits (below)
     n      = attack x what the hour makes of the wing's attack
     shots  = the whole of n, and one more by a roll against its fraction
     each shot:
@@ -254,15 +256,17 @@ Then each wing of the unit:
 - A land unit under bombs is settled as in a battle: officers, the men who come back, and
   whether it shatters (`landcombat.md`, section 6).
 
-**Ours**: what a leader does in a battle is not built yet (`leaders.md`), so every unit counts
-as having no leader and no skill - which is what the original's unit with none has, and gives a
-ship one chance in a hundred.
+**The leaders' traits in the attack**, each down the unit's chain of command (`leaders.md`,
+section 10): against land units the target's softness is x (1 + `defender_softness`) before it
+is held to 1, and the attack it makes is x (1 + `tactical_attack`); against ships `sea_attack`
+is x (1 + `naval_attack`); against aircraft at their base nothing. `confirmed`
 
 ## 7. What the bombs do to the province
 
 For every wing of the bombers, after its fire, in a bombing of any kind. `confirmed`.
 
-    n    = strategic_attack x what the hour makes of the wing's attack
+    n    = strategic_attack x (1 + the unit's leaders' strategic_attack)
+           x what the hour makes of the wing's attack
     runs = the whole of n, and never fewer than one
     each run rolls a die of 1 to 3 and takes that many times:
         off each good the mission bombs lying in the province:
@@ -331,16 +335,21 @@ taken for a wing at least; supplies; experience; mission efficiency; the radio
 (`combat_efficiency`); dissent; **crowding** - `AIR_STACKING_PENALTY` for every wing of the
 bombers, `AIR_STACKING_PENALTY_MAX` at most; radar - the highest radar level a friend holds in
 the province or beside it, times `RADAR_COMBAT_IMPACT` and one plus the country's
-`radar_impact`; the weather and the night on the attack alone. `confirmed`.
+`radar_impact`; the weather and the night on the attack alone; and last the leader's bonus.
+`confirmed`.
 
 - **Every wing crowds the others**, where an air battle counts all but one.
 - No nearness of the base and no fighter's bonus, which an air battle has.
-- Not built: difficulty and the leader.
+- **The leaders**, on both sides of a bombing, as in an air battle (`leaders.md`, section 10):
+  experience x (1 + `experience_bonus`), supplies x (1 + `out_of_supply_modifier`), the night
+  and `night_attack`, and `COMBAT_LEADER_IMPACT` a point of the unit's own leader's skill where
+  he has the rank for it - a land unit's by the land battle's ladder.
+- Not built: difficulty.
 
 **The bombed side**, each brigade, ship and wing: the capital ships' missing screens and the
 fort, on the defence alone; experience; mission efficiency; supplies; the radio; dissent;
 crowding - a hundredth for each brigade, ship and wing on the side, less the country's
-`unit_cooperation`; the night on the attack alone. **Of all of it only a ship's attack is
+`unit_cooperation`; the night on the attack alone; the leader. **Of all of it only a ship's attack is
 ever asked for.** A land unit fires by its unit's figure, which the hour has just put back to
 plain; and nothing in a bombing reads a defence - so a fort and a fleet's screens are noted
 and decide nothing. `confirmed`.
@@ -379,8 +388,8 @@ Built as read, and odd enough that somebody who knows the game should say. None 
 to the maintainer.
 
 1. **A bomber with no leader has a ship on its list one time in a hundred**, each hour, each
-   ship. Naval strikes and port strikes then wear the port and hardly touch the ships. Here
-   a unit's leader is not yet asked, so every unit counts as leaderless.
+   ship. Naval strikes and port strikes then wear the port and hardly touch the ships. Its
+   leader's skill counts since 2026-10-11, whatever his rank: ten in a hundred a point.
 2. **A fleet in its port fires its air attack at bombers three times over** through the
    province - twice in the sum, times one and a half - and the port's own guns beside. A port
    strike on a battle fleet's base is very costly: 200 shots an hour over Wilhelmshaven.
@@ -413,11 +422,12 @@ strategic bombing of Poland for three days. On the start date:
         first leaves 0.19 of the factory and 1.64 of the guns. After eleven sorties in three
         days the factory is at 0.11 and the guns at 0.44, with a tenth of a level coming back
         a day, and the bombers have lost 5.5 of 400 strength
-    ground attack: the same wings on five Polish units in Poznan, by night at 0.38 of their
-        attack: a division loses about a hundredth of a point of strength an hour, and the
-        bombers ten of their 400 in two days to the province's fire
+    ground attack: the same wings on five Polish units in Poznan, by night at 0.44 of their
+        attack, their air marshal's skill of 3 adding 0.15: a division loses about a
+        hundredth of a point of strength an hour, and the bombers 17 of their 400 in three
+        days to the province's fire
     port strike: British strategic bombers on Wilhelmshaven take the naval base from 10 to
-        1.2 in two days, and the German battle fleet in it fires 200 shots an hour: the
+        0.9 in two days, and the German battle fleet in it fires 200 shots an hour: the
         bombers are down from 40 organisation to 4. No ship is hit
     naval strike: the same bombers find the battle fleet off its port twice in two days, and
         hit nothing
@@ -443,8 +453,8 @@ of a selected province says there is a bombing.
   atom bomb.
 - **What a strategic bombing does beyond the province**: the threat it adds to its country,
   and what it takes off the bombed country's unity.
-- **Leaders and difficulty** in what the hour makes of a wing; **the practical** a bombing
-  earns.
+- **Difficulty** in what the hour makes of a wing; **the practical** a bombing earns. The
+  leaders are built since 2026-10-11 (`leaders.md`, section 10).
 - **The part of intelligence that lets a country see into ground beside its units**
   (`aircombat.md`, section 6): without it interdiction has nowhere to fly, and ground attack
   bombs only where it was sent.

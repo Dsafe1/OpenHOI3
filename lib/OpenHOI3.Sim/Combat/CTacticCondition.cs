@@ -52,6 +52,7 @@ public sealed class CTacticCondition
 			case ETacticCondition.HasArmourUnit:
 				return HasArmourOnFront(side) == Wanted;
 			case ETacticCondition.Trait:
+				return CCombatLeaders.HasTrait(side, Name);
 			case ETacticCondition.Never:
 				return false;
 			case ETacticCondition.Any:

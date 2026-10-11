@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -14,8 +15,8 @@ namespace OpenHOI3.Sim.Combat;
 /// battle's list with three differences - every wing crowds the others, a bomber that is
 /// also in an air battle fires the less for it, and bombers of ships may have a surprise -
 /// and without the nearness of the base and the fighter's bonus. The original also counts
-/// difficulty and the leader, which are not built. See
-/// <c>docs/mechanics/bombing.md</c>, section 9.
+/// difficulty, which is not built. See <c>docs/mechanics/bombing.md</c>, section 9, and
+/// <c>docs/mechanics/leaders.md</c>, section 10, for what the leaders bring.
 /// </summary>
 public static class CBomberModifiers
 {
@@ -86,6 +87,10 @@ public static class CBomberModifiers
 			CCountry? owner = state.Country(unit.Owner);
 			long airCombat = AirCombat(state, unit);
 			long missionEfficiency = unit.Order == EUnitOrder.Move ? 0 : CMissionEfficiency.Of(state, owner, unit.Order);
+			long experienceTrait = CCommandReach.Effect(state, unit, ETraitEffect.ExperienceBonus);
+			long supplyTrait = CCommandReach.Effect(state, unit, ETraitEffect.OutOfSupplyModifier);
+			long nightTrait = CCommandReach.Effect(state, unit, ETraitEffect.NightAttack);
+			long? leader = CCombatLeaders.Bonus(state, unit);
 
 			foreach (CSubUnit wing in unit.SubUnits)
 			{
@@ -106,6 +111,7 @@ public static class CBomberModifiers
 				{
 					long missing = CFixedPoint.Scale - unit.SuppliesReceived.Raw;
 					long impact = defines[military, CCombatModifiers.SupplyLackImpact].Raw * missing / CFixedPoint.Scale;
+					impact = CCombatModifiers.Scaled(impact, supplyTrait);
 					Add(wing, ECombatModifier.LackOfSupplies, -impact, -impact);
 				}
 
@@ -117,6 +123,7 @@ public static class CBomberModifiers
 				experience = experience * 10 / CFixedPoint.Scale;
 				if (experience != 0)
 				{
+					experience = CCombatModifiers.Scaled(experience, experienceTrait);
 					Add(wing, ECombatModifier.Experience, experience, experience);
 				}
 
@@ -151,11 +158,15 @@ public static class CBomberModifiers
 				if (isNight)
 				{
 					string kind = side.IsAttacker ? CCombatModifiers.AttackOf : CCombatModifiers.DefenceOf;
-					long night = defines[military, CCombatModifiers.NightPenalty].Raw + Adjuster(wing, kind);
+					long night = defines[military, CCombatModifiers.NightPenalty].Raw + Adjuster(wing, kind) + nightTrait;
 					if (night < 0)
 					{
 						Add(wing, ECombatModifier.Night, night, 0);
 					}
+				}
+				if (leader is { } led)
+				{
+					Add(wing, ECombatModifier.Leader, led, led);
 				}
 			}
 		}

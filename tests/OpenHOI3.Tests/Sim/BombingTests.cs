@@ -5,6 +5,7 @@ using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Movement;
@@ -613,18 +614,62 @@ public class BombingTests
 	public void TheAttackFiredIsTheMissionsOwn()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
-		CSubUnit wing = Air(state, germany, Berlin, Tactical).SubUnits[0];
+		CUnit bombers = Air(state, germany, Berlin, Tactical);
+		CSubUnit wing = bombers.SubUnits[0];
 		CSubUnit soft = Unit(state, poland, EUnitKind.Division, Warsaw, Infantry).SubUnits[0];
 		CSubUnit hard = Unit(state, poland, EUnitKind.Division, Warsaw, Armour).SubUnits[0];
+		long AttackOf(EUnitOrder order, CSubUnit target)
+		{
+			bombers.Order = order;
+			return CBomberFire.AttackOf(state, bombers, wing, target);
+		}
 
 		// Soft six and hard two: all soft against infantry, a quarter soft against armour.
-		Assert.Equal(6000, CBomberFire.AttackOf(EUnitOrder.GroundAttack, wing, soft));
-		Assert.Equal(3000, CBomberFire.AttackOf(EUnitOrder.Interdiction, wing, hard));
-		Assert.Equal(3000, CBomberFire.AttackOf(EUnitOrder.NavalStrike, wing, soft));
-		Assert.Equal(3000, CBomberFire.AttackOf(EUnitOrder.PortStrike, wing, soft));
-		Assert.Equal(2000, CBomberFire.AttackOf(EUnitOrder.RunwayCratering, wing, soft));
-		Assert.Equal(0, CBomberFire.AttackOf(EUnitOrder.StrategicBombing, wing, soft));
-		Assert.Equal(0, CBomberFire.AttackOf(EUnitOrder.LogisticalStrike, wing, soft));
+		Assert.Equal(6000, AttackOf(EUnitOrder.GroundAttack, soft));
+		Assert.Equal(3000, AttackOf(EUnitOrder.Interdiction, hard));
+		Assert.Equal(3000, AttackOf(EUnitOrder.NavalStrike, soft));
+		Assert.Equal(3000, AttackOf(EUnitOrder.PortStrike, soft));
+		Assert.Equal(2000, AttackOf(EUnitOrder.RunwayCratering, soft));
+		Assert.Equal(0, AttackOf(EUnitOrder.StrategicBombing, soft));
+		Assert.Equal(0, AttackOf(EUnitOrder.LogisticalStrike, soft));
+	}
+
+	[Fact]
+	public void TheBombersLeadersSofteningTheirTacticalAndTheirNavalAttackComeIntoWhatIsFired()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit bombers = Air(state, germany, Berlin, Tactical);
+		var trait = new CTrait("a_trait");
+		trait.Effects.Add(new CTraitEffect(ETraitEffect.DefenderSoftness, CFixedPoint.One, ""));
+		trait.Effects.Add(new CTraitEffect(ETraitEffect.TacticalAttack, CFixedPoint.Parse("0.5"), ""));
+		trait.Effects.Add(new CTraitEffect(ETraitEffect.NavalAttack, CFixedPoint.Parse("0.2"), ""));
+		bombers.Leader = new CLeader(1) { Skill = 1, Rank = 1, Name = "marshal" };
+		bombers.Leader.Traits.Add(trait);
+		CSubUnit hard = Unit(state, poland, EUnitKind.Division, Warsaw, Armour).SubUnits[0];
+
+		// Armour's quarter of softness doubled to a half: 6 x 0.5 + 2 x 0.5, and a half more.
+		bombers.Order = EUnitOrder.GroundAttack;
+		Assert.Equal(6000, CBomberFire.AttackOf(state, bombers, bombers.SubUnits[0], hard));
+		bombers.Order = EUnitOrder.NavalStrike;
+		Assert.Equal(3600, CBomberFire.AttackOf(state, bombers, bombers.SubUnits[0], hard));
+	}
+
+	[Fact]
+	public void ABomberLedByASkillOfTenHasEveryShipOnItsList()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit fleet = Unit(state, poland, EUnitKind.Navy, Bay, Cruiser, Cruiser, Cruiser);
+		CUnit torpedoes = Air(state, germany, Bay, Torpedo);
+		torpedoes.Order = EUnitOrder.NavalStrike;
+		torpedoes.Leader = new CLeader(1) { Skill = 10, Rank = 0, Name = "marshal" };
+		var bombing = new CCombat(Bay, ECombatKind.NavalBombing);
+		CBombing.Join(bombing.Attacker, torpedoes);
+		CBombing.Join(bombing.Defender, fleet);
+		state.SeedHour();
+
+		// A hundred in a hundred, whatever his rank.
+		CBomberFire.CollectTargets(state, bombing.Defender, bombing.Attacker, torpedoes, germany);
+		Assert.Equal(fleet.SubUnits, bombing.Attacker.Targets);
 	}
 
 	[Fact]
@@ -644,7 +689,7 @@ public class BombingTests
 		CBomberFire.CollectTargets(state, bombing.Defender, bombing.Attacker, torpedoes, germany);
 
 		Assert.InRange(bombing.Attacker.Targets.Count, 0, 16);
-		Assert.Equal(0, CBomberFire.LeaderSkill(torpedoes));
+		Assert.Equal(0, CCombatLeaders.UnitSkill(torpedoes));
 	}
 
 	[Fact]

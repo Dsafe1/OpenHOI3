@@ -21,7 +21,7 @@ public enum ETacticCondition
 	/// <summary>A unit on the side's front has an armoured brigade, or none has.</summary>
 	HasArmourUnit,
 
-	/// <summary>The side's leader has the trait. No leader has one until leaders are built.</summary>
+	/// <summary>The side's leader has the trait himself, by its name.</summary>
 	Trait,
 
 	/// <summary>A condition nothing here understands. It never holds.</summary>

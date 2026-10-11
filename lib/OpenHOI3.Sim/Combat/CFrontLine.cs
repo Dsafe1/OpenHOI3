@@ -87,13 +87,14 @@ public static class CFrontLine
 	/// What a side's units are ordered by for the front, the largest first. For an
 	/// attacker: its soft attack, hard attack and toughness and one more, by its average
 	/// organisation and by its strength. A defender's has its defensiveness for the
-	/// toughness; the original adds its leader's skill, which is not built yet.
+	/// toughness and its leader's skill, whole, added - whatever his rank.
 	/// </summary>
 	public static long FrontOrder(CUnit unit, bool isAttacker)
 	{
 		long figure = CUnitTotals.Sum(unit, CUnitTotals.SoftAttack).Raw
 			+ CUnitTotals.Sum(unit, CUnitTotals.HardAttack).Raw
 			+ CUnitTotals.Sum(unit, isAttacker ? CSubUnitStats.Toughness : CUnitTotals.Defensiveness).Raw
+			+ (isAttacker ? 0 : (unit.Leader?.Skill ?? 0) * (long)CFixedPoint.Scale)
 			+ CFixedPoint.Scale;
 		figure = figure * CUnitTotals.AverageOrganisation(unit).Raw / CFixedPoint.Scale;
 		return CUnitTotals.Strength(unit).Raw * figure / CFixedPoint.Scale;
@@ -231,8 +232,9 @@ public static class CFrontLine
 	/// <summary>
 	/// A reserve's chance of coming up this hour, in thousandths of a hundred per cent:
 	/// the base, its country's technology and its modifier for the side, by its average
-	/// organisation over a hundred. The original adds for a division whose corps
-	/// headquarters is near, by that leader's skill, which is not built yet.
+	/// organisation over a hundred. A corps, or a division under one, whose corps stands
+	/// in its province or the next adds the corps commander's skill, ten a point, by how
+	/// much of the corps' command reaches it.
 	/// </summary>
 	public static CFixedPoint ReinforceChance(CGameState state, CUnit unit, bool isAttacker)
 	{
@@ -243,6 +245,19 @@ public static class CFrontLine
 		long chance = BaseReinforceChance
 			+ owner.Technology[TechnologyReinforceChance].Raw
 			+ owner.Modifier[isAttacker ? AttackReinforceChance : DefendReinforceChance].Raw;
+
+		CUnit? corps = unit.Kind switch
+		{
+			EUnitKind.Division => unit.Parent is { Kind: EUnitKind.Corps } parent ? parent : null,
+			EUnitKind.Corps => unit,
+			_ => null,
+		};
+		if (corps is not null
+			&& (corps.Location == unit.Location || state.Province(corps.Location).EdgeTo(unit.Location) is not null))
+		{
+			long skill = (corps.Leader?.Skill ?? 0) * CFixedPoint.Scale * BaseReinforceChance / CFixedPoint.Scale;
+			chance += Leaders.CCommandReach.Through(state, unit, Leaders.CCommandReach.Level(corps)) * skill / CFixedPoint.Scale;
+		}
 		long share = CUnitTotals.AverageOrganisation(unit).Raw * CFixedPoint.Scale / (100 * CFixedPoint.Scale);
 		return new CFixedPoint(share * chance / CFixedPoint.Scale);
 	}

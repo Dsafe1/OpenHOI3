@@ -7,7 +7,11 @@ then **what an hour's circumstances make of a unit's attack and defence**: the g
 river, a fort, the night, the weather, experience, being dug in, crowding (section 4). The
 third piece put the battle **on screen** - its marker on the map and its window, which are in
 `combatview.md` - and with it came **the two sides' tactics** (section 11), which the window
-shows and which nothing picked before.
+shows and which nothing picked before. **Leaders came into it on 2026-10-11**: a unit's leader's
+bonus and every trait in the hour's figures, the theatre commander in crowding, a defender's
+leader in the order of its front, a corps commander in the reserves, a leader in shattering
+and a side's leader in its tactic (`reversing/findings/FINDINGS-battleleaders.md`; who commands
+what, and how far, is `leaders.md`).
 
 Everything is from `reversing/findings/FINDINGS-landbattle.md`, which joins three earlier
 readings: `reversing/findings/FINDINGS-combat.md` for a shot and its damage,
@@ -131,11 +135,12 @@ width of 10, three divisions of four brigades all stand.
 The order is by
 
     attacker:  (soft_attack + hard_attack + toughness     + 1) x average organisation x strength
-    defender:  (soft_attack + hard_attack + defensiveness + 1) x average organisation x strength
+    defender:  (soft_attack + hard_attack + defensiveness + its leader's skill + 1) x average organisation x strength
 
-and of two units with the same figure the one that joined first is first. `likely` for the
-defender's: its terms were read off the decompiler alone. *Not built:* the defender's adds its
-leader's skill.
+and of two units with the same figure the one that joined first is first. The defender's
+leader's skill counts whole, whatever his rank. `confirmed`: the defender's was read off the
+decompiler alone until 2026-10-11, and off the instructions then
+(`reversing/findings/FINDINGS-battleleaders.md`, section 7).
 
 **Every hour**, as the first thing a side does before it shoots - so the attacker's front is
 seen to before anyone has shot, and the defender's after the attacker has:
@@ -164,8 +169,10 @@ technology (0.05 a level in the base game) and a minister (0.1) are what make re
 arrive. The province a unit "is from" is taken differently here from the width: the one it
 was in before, for a unit **outside** the battle's own province. As read; it looks odd.
 
-*Not built:* a division whose corps headquarters is in its province or the next adds the
-corps leader's skill to its chance.
+**A corps commander near by** adds to the base: where the unit is a corps, or a division under
+one, and the corps stands in the unit's province or one it has an edge to, its commander's
+skill x 10, times how much of the corps' command reaches the unit (`leaders.md`, section 8).
+So a skill of 3 makes an infantry division's chance four in a hundred. `confirmed`
 
 **The maintainer's account of it agrees**, 2026-10-09, from playing the original: "As far as
 I know all units which attack at the same time get into the combat, unless the width is
@@ -220,20 +227,21 @@ which is what the last thousandth depends on:
 
 | | who | how much |
 | --- | --- | --- |
-| **a river** | an attacker whose way into the province crosses one | `RIVER_CROSSING_PENALTY` + the unit's `river` attack figure, where that is below nothing |
-| **a landing** | an attacker whose way is a strait | `AMPHIBIOUS_LANDING_PENALTY` + the unit's `amphibious` attack figure, where below nothing, and no worse than -0.99 |
-| **forts** | an attacker | the province's `fort_level` - its `coastal_fort_level` for a landing - in **whole levels** x `BASE_FORT_PENALTY`, + the unit's `fort` attack figure; never in the attacker's favour |
+| **a river** | an attacker whose way into the province crosses one | `RIVER_CROSSING_PENALTY` + the unit's `river` attack figure + `river_attack`, where that is below nothing |
+| **a landing** | an attacker whose way is a strait | `AMPHIBIOUS_LANDING_PENALTY` + the unit's `amphibious` attack figure + `amph_attack`, where below nothing, and no worse than -0.99 |
+| **forts** | an attacker | the province's `fort_level` - its `coastal_fort_level` for a landing - in **whole levels** x `BASE_FORT_PENALTY`, + `fort_attack` + the unit's `fort` attack figure; never in the attacker's favour |
 | **several battles** | a defender in more than one | -`MULTIPLE_COMBATS_PENALTY`, once however many |
-| **experience** | every unit | a hundredth for each point of its brigades' average experience (a pride of the fleet counting for `PRIDE_BONUS_EXP` more) |
-| **combined arms** | a unit whose mix of brigades counts | what the mix is worth (`builders.md`, section 6) |
-| **dissent** | every unit | -`COMBAT_DISSENT_IMPACT` x its country's dissent / 100 |
-| **lack of supplies** | a unit given less than all its supplies | -`COMBAT_SUPPLY_LACK_IMPACT` x the share it went without |
-| **dug in** | a defender | its levels x `DIG_IN_FACTOR` |
+| **experience** | every unit | a hundredth for each point of its brigades' average experience (a pride of the fleet counting for `PRIDE_BONUS_EXP` more), x (1 + `experience_bonus`) |
+| **combined arms** | a unit whose mix of brigades counts | what the mix is worth (`builders.md`, section 6) + `combined_arms_bonus` |
+| **dissent** | every unit | -`COMBAT_DISSENT_IMPACT` x its country's dissent / 100, x (1 + `dissent_impact`) |
+| **lack of supplies** | a unit given less than all its supplies | -`COMBAT_SUPPLY_LACK_IMPACT` x the share it went without, x (1 + `out_of_supply_modifier`) |
+| **dug in** | a defender | its levels x `DIG_IN_FACTOR`, x (1 + `digin_bonus`) |
 | **crowding** | every unit of a crowded side | below |
 | **the ground** | every unit | the terrain's `attack` for an attacker and its `defence` for a defender, + the unit's own figure for that terrain |
 | **the weather** | every unit's **attack** | below |
-| **the night** | every unit's **attack** | `BASE_NIGHT_PENALTY` + the unit's `night` attack figure, where below nothing |
-| **envelopment** | a defender attacked from more than two provinces, on anything but land with no land beside it | -`ENVELOPMENT_PENALTY` for each direction past the second |
+| **the night** | every unit's **attack** | `BASE_NIGHT_PENALTY` + the unit's `night` attack figure + `night_attack`, where below nothing |
+| **its leader** | a unit whose leader has the rank for it and some skill | below |
+| **envelopment** | a defender attacked from more than two provinces, on anything but land with no land beside it | -`ENVELOPMENT_PENALTY` for each direction past the second, x (1 + `envelopment_bonus`), never in its favour |
 | **its own ground** | a unit fighting in a province that is its country's core | the country's `territorial_pride` |
 
 - **A unit's own figure** for a terrain, a river, a fort, a landing or the night is the
@@ -249,7 +257,22 @@ which is what the last thousandth depends on:
       the penalty  = 1 - what is left
 
   So three units are free for each direction of the attack - to the defender as well - and in
-  the base game each one more takes a tenth of what was left.
+  the base game each one more takes a tenth of what was left. **The commander of the theatre a
+  unit is under takes a hundredth off it for each point of his skill**, wherever he is - no
+  reach, no rank - and what is left, where above nothing, is the unit's penalty.
+- **A trait**, named in the table by its key, is what that kind of effect comes to for the
+  unit: its own leader's, half its commander's, a quarter of his, and so on, each step by how
+  much of the command reaches (`leaders.md`, section 8).
+- **Its leader.** Where the unit's own leader has the rank for it (`leaders.md`, section 4) and
+  a skill above nothing:
+
+      attacker:  skill x COMBAT_LEADER_IMPACT + offence_modifier + terrain_attack for the ground fought on
+      defender: (skill x COMBAT_LEADER_IMPACT + defence_modifier + terrain_defence for the ground)
+                 x (1 + its country's leader_defence)
+
+  on attack and defence alike - 0.05 a point of skill in the base game. A trait for the
+  ground is one written for that terrain by name. **Without such a leader there is none of
+  it** - not even the offence and defence traits that come down from its commanders.
 - **The weather** (`reversing/findings/FINDINGS-weather.md`), of the province fought over:
 
       rain = precipitation x (wind speed + 5) x LANDRAINIMPACTMODIFIER, at most LANDRAINIMPACTCAP
@@ -279,9 +302,14 @@ which is what the last thousandth depends on:
   a day while it has fewer than `UNIT_DIGIN_CAP`; each hour a unit with a path, or of a country
   at peace, has none.
 
+**Two traits do nothing in a land battle**, as the original is written, and are built so:
+`fort_defence`, whose arm of the fort's figure is reached only for an attacker, and
+`surprise_chance`, which the original reads and throws away
+(`reversing/findings/FINDINGS-battleleaders.md`, sections 4 and 6).
+
 *Not built:* shore bombardment (fleets do not fight); the difficulty setting, which is the
-player's alone; mission efficiency; the leader, and every leader's trait that adds to a figure
-above; encirclement, which wants the areas a country's ground falls into; paratroops; the
+player's alone; mission efficiency; encirclement, which wants the areas a country's ground
+falls into, and with it `encirclement_bonus`; paratroops and `paradrop_mission`; the
 landing craft that ease a landing at a port; and three technology figures - one off the
 crowding, one on the chance to avoid a hit, one on the dig-in cap.
 
@@ -371,8 +399,10 @@ Then, for each unit, with `men` the strength it lost times a hundred:
 its theatre. *Ours* in part: the original picks the capital, or a supply depot where the
 unit stands - there are no depots yet - and a country with no capital loses the unit here.
 
-*Not built:* the leader's skill takes a point a level off the threshold, and a technology
-figure adds to the trickleback.
+**The unit's own leader takes a hundredth off the threshold for each point of his skill**,
+whatever his rank. `confirmed`
+
+*Not built:* a technology figure adds to the trickleback.
 
 ## 7. The end
 
@@ -495,8 +525,11 @@ arrive with the cooldown still active." That is what the rule above comes to: th
 has walked while it fought, so it is under way when the battle ends, arrives, and stands
 there until the delay has run out.
 
-*Not built:* a paratrooper's delay is `PARATROOP_MISSION_DELAY`; a technology figure and the
-leader's trait make the tactics' speed count for more.
+**The leaders' `combat_move_speed`**, down the chain, is added beside the country's
+`combat_movement_speed` (`reversing/findings/FINDINGS-battleleaders.md`, section 8). `confirmed`
+
+*Not built:* a paratrooper's delay is `PARATROOP_MISSION_DELAY`; a technology figure makes the
+tactics' speed count for more.
 
 ## 10. Trying it, and what is not here
 
@@ -540,9 +573,10 @@ whom, for how long, and how many stand on each front; it is scaffolding.
 
 - **Of what the hour makes of a unit**, the seven things section 4 lists under its table.
 - **The weather itself**: its part in a battle is built and there is none to play it.
-- **Leaders**, wherever one is named above - and with them most of what makes one tactic
-  picked over another (section 11).
-- **Experience** from a battle, and the practical knowledge a round gives.
+- ~~**Leaders**, wherever one is named above.~~ Built on 2026-10-11, but for the
+  aggressiveness a side's leader picks a tactic with (section 11).
+- **Experience** from a battle, a leader's included, the traits he earns there, and the
+  practical knowledge a round gives.
 - **Air units**: a battle in the air and bombing are their own pieces. Fleets fight one
   another at sea since 2026-10-10 (`navalcombat.md`), and have no part in a land battle
   yet: shore bombardment is not built.
@@ -610,9 +644,11 @@ remainder by the whole. A side for which nothing weighs anything has no tactic.
   `tactic_assault = 3`, among its other effects, and a country's tactics weigh that much more
   for each level it has. `inferred` for "each level": it is what every other figure of a
   technology does, and how these reach the country was not read.
-- **The leader's aggressiveness** comes from the stance of the headquarters above him, or from
-  his own unit's setting. *Not built:* leaders; every side's skill and aggressiveness are 0.
-  So the attacker always picks first, nobody is favoured, and a tactic with an aggressiveness
+- **A side's leader** is the one of highest rank among its units' leaders - the first of
+  equals, and none of rank 0; with none, its skill is nothing. `confirmed`
+- **The leader's aggressiveness** comes from the stance of an active plan on a headquarters
+  above his unit, or from an aggression his unit is given. *Not built:* there are no plans and
+  nothing sets a unit's aggression, so every side's is 0, and a tactic with an aggressiveness
   of its own - a reckless assault - weighs half.
 
 **The conditions** a `trigger` is made of, each judged on the side that is picking, with
@@ -626,12 +662,11 @@ remainder by the whole. A side for which nothing weighs anything has no tactic.
 | `has_armour_unit = yes` | a unit **on the side's front** has a brigade whose type says `is_armor`; one in reserve does not count |
 | `skill_advantage = 2` | the side's leader has that much more skill than the other's, or more |
 | `skill = 3` | the side's leader has that much skill, or more |
-| `trait = panzer_leader` | not read; the side's leader has the trait, by its name |
+| `trait = panzer_leader` | the side's leader has the trait himself, by its name - not one his commanders bring |
 
 Each of the first four may be written with `no`, and is then the other way about. *Ours:* a
 condition that is none of these is reported and **never holds**, so that a tactic is not
-handed out on the strength of a test nothing made. With a battle's leader not built yet,
-`skill` and `skill_advantage` hold only where they ask for nothing and `trait` never.
+handed out on the strength of a test nothing made.
 
 **What two tactics do.** One tactic **counters** another when it is the one the other names
 in `countered_by`. Whenever tactics are picked, four figures of the battle are made again

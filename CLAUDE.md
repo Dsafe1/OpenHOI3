@@ -54,7 +54,7 @@ fighting missions with the battle in the air, and its eight bombing missions wit
 bombing and the day's repair of what was bombed, and the window of an air battle and of a
 bombing, and the whole of the air orders window with a mission's area, and the air map mode
 with a list of finished battles, and leaders - who is in service, who commands which
-unit and how far a command reaches - 1279 tests - and it is
+unit, how far a command reaches and what a leader does in a battle - 1296 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -278,8 +278,9 @@ and the walk that picks which friend ends on the side's last ship; a transport, 
 target, runs in at full speed; a crowded fleet's own penalty leaves it hardly ever finding a
 target at all - do not tidy them. **An idle fleet of a country nobody plays starts no battle**,
 which is the original's and is why `CGameState.Played` exists; with no AI the enemy's fleets
-never leave port, so `--sail=ENG:10531` sends one to sea for a trial by hand. There is no
-leader and no aircraft. Reading for it corrected the fact base's record twice.
+never leave port, so `--sail=ENG:10531` sends one to sea for a trial by hand. There were no
+leaders in it until 2026-10-11 (`leaders.md`, section 10). Reading for it corrected the fact
+base's record twice.
 **The sea battle on screen - `combatview.md`, section 10 - was built on 2026-10-10 from a
 reading and checked with `--click`; the maintainer looked at it that day - "The sea battle
 window looked perfect"**: the land
@@ -414,13 +415,27 @@ full, an army 400, an army group 600, a theatre 2000. **Each rank's skill does o
 own**, as the maintainer set out on 2026-10-11 (`leaders.md`, section 8): a division's combat
 efficiency, a corps' chance of bringing up a reserve, an army's organisation, an army group's
 supply use, a theatre's stacking penalty - the division's, the corps' and the theatre's in
-battle, for the third piece.
-**Ten things in the two pieces are the original's and look odd, and are built so - do not
+battle. **The third piece was cut again, this project's cut: a land battle - built
+2026-10-11, `leaders.md` section 9, `CCombatLeaders` and the leader terms through
+`CCombatModifiers`, `CFrontLine`, `CCombatDamage`, `CAttackDelay` and `CMovementSpeed`, read
+out of the original and set against nothing as the land battle is - then sea and air, built
+the same day (`leaders.md` section 10, through the `CNaval`, `CAir` and `CBomb` classes of
+`Sim/Combat`), then the experience and traits a battle gives.** A unit's leader's bonus is
+gated whole on his rank and skill, so an unled unit gets none of its commanders' offence or
+defence traits; a side's leader is its highest ranked, first of equals. At sea and in the air
+the bonus has no trait in it, and **a unit's own leader also draws a fleet up, picks targets
+and finds ships for bombers whatever his rank** - `CCombatLeaders.UnitSkill` and not
+`Bonus`; eleven traits come in there (`leaders.md`, section 10). Two technology figures went
+in with the admiral because they sit in the same lines: `targeting_chance` and
+`targeting_choice`. The aggressiveness a tactic is picked with is 0: it comes from the AI's
+plans.
+**Fifteen things in the pieces are the original's and look odd, and are built so - do not
 tidy them; `leaders.md` lists them**: the plainest that an order of battle's leader goes on
 whoever he is, that nothing later in a leader's history than his first rank is ever applied,
-and that a command's reach drops from half to nothing at twice the radius, the one of them
-put to the maintainer. **No battle asks a unit's leader yet** - every battle waits for the
-third piece.
+that a command's reach drops from half to nothing at twice the radius - the one of them put
+to the maintainer - that `fort_defence` and `surprise_chance` do nothing in a land battle,
+and `dissent_impact` nothing at sea or in the air. **No battle gives a leader experience
+yet.**
 **Bombing - `bombing.md` - is the fifth piece, built on 2026-10-10, read out of the original
 and set against nothing, and the maintainer has not looked at it**: the eight bombing
 missions (`CBombingOrders`, `CBombingMissions`, `CBombingProvinces` in `Sim/Missions`), the
@@ -438,7 +453,7 @@ province's modifier is made from the second, "is there a port" is asked of the f
 mean was not read - the readme's *Loose ends* says what each was given. **Nine things in it
 are the original's and look odd, and are built so - do not tidy them; `bombing.md`, section
 12 - and none has been put to the maintainer**: a bomber with no leader has a ship on its
-list of targets one time in a hundred, and here no battle asks a unit's leader yet, so strikes at
+list of targets one time in a hundred, ten more for each point of his skill, so strikes at
 ships wear the port and hardly touch the fleet; a fleet in port fires its air attack three
 times over through its province; a second unit cannot join a bombing of the ground alone;
 ground attack goes round its list and weighs nothing, and interdiction flies only at ground
@@ -538,7 +553,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 119 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 121 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -574,7 +589,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 3261-address, 320-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3262-address, 320-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -685,7 +700,7 @@ beside the repository.
   fleet's missions: two countries are put at war, the first one's fleet with the most
   `convoy_attack` is sent to raid the water the most of the other's convoys go through, and
   each sinking is told - Germany against the United Kingdom for thirty days with no tags
-  given, which sinks 45 transports and 5 escorts. Run it after touching
+  given, which sinks 47 transports and 4 escorts. Run it after touching
   `lib/OpenHOI3.Sim/Missions`, `CConvoyRaid` or what a convoy does about an attack.
   `OpenHOI3.SaveCheck firstdays <install> <start-date savegame>` sets a new game as a player
   gets it, its two days run, beside the save country by country. **It is meant to differ** -
@@ -700,8 +715,8 @@ beside the repository.
   `OpenHOI3.SaveCheck airbattle <install> [attacker] [defender] [seed]` is the trial of the
   battle in the air: the two countries' nearest pair of air units with an air attack, the
   second given an intercept over its own base and the first air superiority over it, and a
-  week told - Germany against Poland with no tags given, thirteen battles over Warszawa in
-  two and a half days. Run it after touching the `CAir` classes of `Sim/Missions` or
+  week told - Germany against Poland with no tags given, nine battles over Warszawa in
+  two days and ten more over Tomaszów. Run it after touching the `CAir` classes of `Sim/Missions` or
   `Sim/Combat`, or `CIntelligence`.
   `OpenHOI3.SaveCheck bombing <install> [mission] [attacker] [defender] [days] [seed]` is
   the trial of bombing: the first country's air unit with the most of what the mission
@@ -748,7 +763,7 @@ beside the repository.
   after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one and how far a command reaches - carry 1279 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches and a leader in a battle on land, at sea and in the air - carry 1296 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

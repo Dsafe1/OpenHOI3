@@ -154,10 +154,25 @@ public static class CCommandReach
 	/// </summary>
 	public static long Effect(CGameState state, CUnit unit, ETraitEffect kind)
 	{
+		return Effect(state, unit, kind, null);
+	}
+
+	/// <summary>
+	/// The same for an effect of a terrain - <c>terrain_attack</c>, <c>terrain_defence</c>,
+	/// <c>terrain_speed</c> - counting only the effects written for that terrain, by its
+	/// name exactly.
+	/// </summary>
+	public static long TerrainEffect(CGameState state, CUnit unit, ETraitEffect kind, string terrain)
+	{
+		return Effect(state, unit, kind, terrain);
+	}
+
+	private static long Effect(CGameState state, CUnit unit, ETraitEffect kind, string? terrain)
+	{
 		long total = 0;
 		if (unit.Parent is { } headquarters)
 		{
-			long above = Effect(state, headquarters, kind);
+			long above = Effect(state, headquarters, kind, terrain);
 			if (above != 0)
 			{
 				long reach = Math.Max(0, From(state, unit, headquarters));
@@ -171,7 +186,7 @@ public static class CCommandReach
 			{
 				foreach (CTraitEffect effect in trait.Effects)
 				{
-					if (effect.Kind == kind)
+					if (effect.Kind == kind && (terrain is null || string.Equals(effect.Terrain, terrain, StringComparison.Ordinal)))
 					{
 						total += effect.Value.Raw;
 					}

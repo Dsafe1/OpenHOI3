@@ -59,6 +59,7 @@ public static class CCombatViewText
 	private static readonly (ECombatModifier Kind, string Key)[] ModifierKeys =
 	{
 		(ECombatModifier.Dissent, "BM_DISSENT"),
+		(ECombatModifier.Leader, "BM_LEADER_BONUS"),
 		(ECombatModifier.Envelopment, "BM_ENVELOPMENT_PENALTY"),
 		(ECombatModifier.Stacking, "BM_DIVISION_PENALTY"),
 		(ECombatModifier.Experience, "BM_EXPERIENCE"),

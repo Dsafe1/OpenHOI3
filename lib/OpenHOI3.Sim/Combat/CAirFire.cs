@@ -132,7 +132,7 @@ public static class CAirFire
 			}
 		}
 
-		long skill = TargetingSkill(owner);
+		long skill = TargetingSkill(wing, owner);
 		int roll = state.Random.Next(100);
 		CSubUnit? target = null;
 		if (targets.Count > 0)
@@ -144,13 +144,17 @@ public static class CAirFire
 	}
 
 	/// <summary>
-	/// A wing's skill at picking its target, in thousandths: its country's two targeting
-	/// figures added together. The original adds ten for each point of its leader's skill.
+	/// A wing's skill at picking its target: ten for each point of its unit's leader's skill,
+	/// whatever his rank, and its country's two targeting figures in thousandths added together.
 	/// </summary>
-	public static long TargetingSkill(CCountry? owner)
+	public static long TargetingSkill(CSubUnit wing, CCountry? owner)
 	{
-		return owner is null ? 0 : owner.Technology[BomberTargeting].Raw + owner.Technology[FighterTargeting].Raw;
+		long skill = wing.Unit is { } unit ? CCombatLeaders.UnitSkill(unit) * SkillTargeting : 0;
+		return owner is null ? skill : skill + owner.Technology[BomberTargeting].Raw + owner.Technology[FighterTargeting].Raw;
 	}
+
+	/// <summary>What each point of a leader's skill adds to a ship's or a wing's targeting, from a float of 10.5.</summary>
+	public const long SkillTargeting = 10;
 
 	/// <summary>
 	/// The target worth most: its type's priority, times a quarter and a hundredth of

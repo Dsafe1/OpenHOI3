@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 using OpenHOI3.Sim.Weather;
@@ -10,7 +11,8 @@ namespace OpenHOI3.Sim.Combat;
 /// <summary>
 /// What an hour's circumstances make of each ship of a side. At sea every thing is put
 /// on the ship and not on its fleet, and only the attack it comes to is ever read. See
-/// <c>docs/mechanics/navalcombat.md</c>, section 3.
+/// <c>docs/mechanics/navalcombat.md</c>, section 3, and <c>docs/mechanics/leaders.md</c>,
+/// section 10, for what the leaders bring.
 /// </summary>
 public static class CNavalModifiers
 {
@@ -79,6 +81,12 @@ public static class CNavalModifiers
 				? 0
 				: Missions.CMissionEfficiency.Of(state, owner, fleet.Order);
 
+			// What the fleet's leaders bring: three traits down its chain, and its own admiral's skill.
+			long experienceTrait = CCommandReach.Effect(state, fleet, ETraitEffect.ExperienceBonus);
+			long supplyTrait = CCommandReach.Effect(state, fleet, ETraitEffect.OutOfSupplyModifier);
+			long nightTrait = CCommandReach.Effect(state, fleet, ETraitEffect.NightAttack);
+			long? leader = CCombatLeaders.Bonus(state, fleet);
+
 			foreach (CSubUnit ship in fleet.SubUnits)
 			{
 				ship.CombatModifiers.Clear();
@@ -103,6 +111,7 @@ public static class CNavalModifiers
 				experience = experience * 10 / CFixedPoint.Scale;
 				if (experience != 0)
 				{
+					experience = CCombatModifiers.Scaled(experience, experienceTrait);
 					Add(ship, ECombatModifier.Experience, experience, experience);
 				}
 
@@ -122,6 +131,7 @@ public static class CNavalModifiers
 				{
 					long missing = CFixedPoint.Scale - fleet.SuppliesReceived.Raw;
 					long impact = defines[CManpower.MilitarySection, CCombatModifiers.SupplyLackImpact].Raw * missing / CFixedPoint.Scale;
+					impact = CCombatModifiers.Scaled(impact, supplyTrait);
 					Add(ship, ECombatModifier.LackOfSupplies, -impact, -impact);
 				}
 
@@ -133,11 +143,17 @@ public static class CNavalModifiers
 				if (isNight)
 				{
 					string kind = side.IsAttacker ? CCombatModifiers.AttackOf : CCombatModifiers.DefenceOf;
-					long night = defines[CManpower.MilitarySection, CCombatModifiers.NightPenalty].Raw + Adjuster(ship, kind);
+					long night = defines[CManpower.MilitarySection, CCombatModifiers.NightPenalty].Raw + Adjuster(ship, kind)
+						+ nightTrait;
 					if (night < 0)
 					{
 						Add(ship, ECombatModifier.Night, night, 0);
 					}
+				}
+
+				if (leader is { } bonus)
+				{
+					Add(ship, ECombatModifier.Leader, bonus, bonus);
 				}
 			}
 		}

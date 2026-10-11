@@ -1,5 +1,6 @@
 using System;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Supply;
@@ -85,7 +86,9 @@ public static class CProvinceBombing
 		string military = CManpower.MilitarySection;
 		EUnitOrder order = unit.Order;
 
-		long worth = wing.Stats[CBombingOrders.StrategicAttack].Raw * wing.CombatAttack.Raw / CFixedPoint.Scale;
+		long worth = wing.Stats[CBombingOrders.StrategicAttack].Raw
+			* (CFixedPoint.Scale + CCommandReach.Effect(state, unit, ETraitEffect.StrategicAttack)) / CFixedPoint.Scale;
+		worth = worth * wing.CombatAttack.Raw / CFixedPoint.Scale;
 		long runs = Math.Max(worth, CFixedPoint.Scale) / CFixedPoint.Scale;
 
 		long roads = 0;

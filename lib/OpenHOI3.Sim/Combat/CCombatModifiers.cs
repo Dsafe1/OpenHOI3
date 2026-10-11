@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -28,6 +29,13 @@ public static class CCombatModifiers
 	public const string StackingPenalty = "BASE_STACKING_PENALTY";
 	public const string NightPenalty = "BASE_NIGHT_PENALTY";
 	public const string EnvelopmentPenalty = "ENVELOPMENT_PENALTY";
+	public const string LeaderImpact = "COMBAT_LEADER_IMPACT";
+
+	/// <summary>The country modifier a defending unit's leader bonus is made more or less by.</summary>
+	public const string LeaderDefence = "leader_defence";
+
+	/// <summary>What each point of the theatre commander's skill takes off the stacking penalty, from a float of 10.5.</summary>
+	private const long StackingPerSkill = 10;
 
 	/// <summary>The adjusters of a unit type, and the two figures of one that a battle reads.</summary>
 	public const string RiverAdjuster = "river";
@@ -91,7 +99,7 @@ public static class CCombatModifiers
 			long experience = CUnitTotals.AverageExperienceWithPride(state, unit).Raw * 10 / CFixedPoint.Scale;
 			if (experience != 0)
 			{
-				Add(unit, ECombatModifier.Experience, experience);
+				Add(unit, ECombatModifier.Experience, Scaled(experience, Trait(state, unit, ETraitEffect.ExperienceBonus)));
 			}
 
 			long combinedArms = CombinedArms(state, owner, unit);
@@ -103,26 +111,29 @@ public static class CCombatModifiers
 			if (owner.Dissent != CFixedPoint.Zero)
 			{
 				long dissent = owner.Dissent.Raw * 10 / CFixedPoint.Scale;
-				Add(unit, ECombatModifier.Dissent,
-					-(defines[CManpower.MilitarySection, DissentImpact].Raw * dissent / CFixedPoint.Scale));
+				dissent = defines[CManpower.MilitarySection, DissentImpact].Raw * dissent / CFixedPoint.Scale;
+				Add(unit, ECombatModifier.Dissent, -Scaled(dissent, Trait(state, unit, ETraitEffect.DissentImpact)));
 			}
 
 			if (unit.SuppliesReceived != CFixedPoint.One)
 			{
 				long missing = CFixedPoint.Scale - unit.SuppliesReceived.Raw;
-				Add(unit, ECombatModifier.LackOfSupplies,
-					-(defines[CManpower.MilitarySection, SupplyLackImpact].Raw * missing / CFixedPoint.Scale));
+				long lack = defines[CManpower.MilitarySection, SupplyLackImpact].Raw * missing / CFixedPoint.Scale;
+				Add(unit, ECombatModifier.LackOfSupplies, -Scaled(lack, Trait(state, unit, ETraitEffect.OutOfSupplyModifier)));
 			}
 
 			if (!side.IsAttacker && unit.DigIn > CFixedPoint.Zero)
 			{
-				Add(unit, ECombatModifier.DugIn,
-					unit.DigIn.Raw * defines[CManpower.MilitarySection, DigInFactor].Raw / CFixedPoint.Scale);
+				long dug = unit.DigIn.Raw * defines[CManpower.MilitarySection, DigInFactor].Raw / CFixedPoint.Scale;
+				Add(unit, ECombatModifier.DugIn, Scaled(dug, Trait(state, unit, ETraitEffect.DiginBonus)));
 			}
 
-			if (stacking > 0)
+			// The theatre's commander takes a hundredth off for each point of his skill,
+			// however far off he is.
+			long crowded = stacking - TheatreSkill(unit) * StackingPerSkill;
+			if (crowded > 0)
 			{
-				Add(unit, ECombatModifier.Stacking, -stacking);
+				Add(unit, ECombatModifier.Stacking, -crowded);
 			}
 
 			if (province.Terrain is { } terrain)
@@ -146,17 +157,21 @@ public static class CCombatModifiers
 			if (isNight)
 			{
 				long night = defines[CManpower.MilitarySection, NightPenalty].Raw
-					+ CUnitTotals.Adjuster(unit, NightAdjuster, AttackOf);
+					+ CUnitTotals.Adjuster(unit, NightAdjuster, AttackOf)
+					+ Trait(state, unit, ETraitEffect.NightAttack);
 				if (night < 0)
 				{
 					Add(unit, ECombatModifier.Night, night, 0);
 				}
 			}
 
+			LeaderBonus(state, province, side, owner, unit);
+
 			if (!side.IsAttacker && directions > DirectionsBeforeEnvelopment && !isCutOff)
 			{
 				long envelopment = (directions - DirectionsBeforeEnvelopment) * (long)CFixedPoint.Scale
 					* defines[CManpower.MilitarySection, EnvelopmentPenalty].Raw / CFixedPoint.Scale;
+				envelopment = Scaled(envelopment, Trait(state, unit, ETraitEffect.EnvelopmentBonus));
 				Add(unit, ECombatModifier.Envelopment, -Math.Max(envelopment, 0));
 			}
 
@@ -179,7 +194,8 @@ public static class CCombatModifiers
 		if (edge is { Kind: EProvinceEdgeKind.River })
 		{
 			long river = defines[CManpower.MilitarySection, RiverPenalty].Raw
-				+ CUnitTotals.Adjuster(unit, RiverAdjuster, AttackOf);
+				+ CUnitTotals.Adjuster(unit, RiverAdjuster, AttackOf)
+				+ Trait(state, unit, ETraitEffect.RiverAttack);
 			if (river < 0)
 			{
 				Add(unit, ECombatModifier.River, river);
@@ -193,7 +209,8 @@ public static class CCombatModifiers
 		if (isLanding)
 		{
 			long landing = defines[CManpower.MilitarySection, LandingPenalty].Raw
-				+ CUnitTotals.Adjuster(unit, AmphibiousAdjuster, AttackOf);
+				+ CUnitTotals.Adjuster(unit, AmphibiousAdjuster, AttackOf)
+				+ Trait(state, unit, ETraitEffect.AmphAttack);
 			landing = Math.Max(landing, WorstLanding);
 			if (landing < 0)
 			{
@@ -206,6 +223,7 @@ public static class CCombatModifiers
 		if (level > 0)
 		{
 			long fort = level * defines[CManpower.MilitarySection, FortPenalty].Raw / CFixedPoint.Scale
+				+ Trait(state, unit, ETraitEffect.FortAttack)
 				+ CUnitTotals.Adjuster(unit, FortAdjuster, AttackOf);
 			fort = Math.Min(fort, 0);
 			if (fort != 0)
@@ -213,6 +231,62 @@ public static class CCombatModifiers
 				Add(unit, ECombatModifier.Fort, fort);
 			}
 		}
+	}
+
+	/// <summary>
+	/// What the unit's leader adds, to its attack and its defence alike: his skill times
+	/// <c>COMBAT_LEADER_IMPACT</c>, and the traits that come down to the unit for the side
+	/// it fights on - the offensive one and the one for the province's ground when it
+	/// attacks; the defensive one and the ground's, more or less by its country's
+	/// <c>leader_defence</c>, when it defends. Only a leader with the rank for the unit and
+	/// some skill counts; without him, his commanders' traits count for nothing here either.
+	/// </summary>
+	private static void LeaderBonus(CGameState state, CProvince province, CCombatSide side, CCountry owner, CUnit unit)
+	{
+		if (!CLeaders.HasRankFor(state, unit) || unit.Leader is not { Skill: > 0 } leader)
+		{
+			return;
+		}
+		long skill = leader.Skill * CFixedPoint.Scale * state.Defines[CManpower.MilitarySection, LeaderImpact].Raw / CFixedPoint.Scale;
+		string ground = province.Terrain?.Name ?? "";
+		long bonus;
+		if (side.IsAttacker)
+		{
+			bonus = CCommandReach.TerrainEffect(state, unit, ETraitEffect.TerrainAttack, ground)
+				+ Trait(state, unit, ETraitEffect.OffenceModifier) + skill;
+		}
+		else
+		{
+			bonus = Trait(state, unit, ETraitEffect.DefenceModifier)
+				+ CCommandReach.TerrainEffect(state, unit, ETraitEffect.TerrainDefence, ground) + skill;
+			bonus = bonus * (CFixedPoint.Scale + owner.Modifier[LeaderDefence].Raw) / CFixedPoint.Scale;
+		}
+		Add(unit, ECombatModifier.Leader, bonus);
+	}
+
+	/// <summary>The skill of the leader of the theatre a unit is under, or is: nothing where there is none.</summary>
+	private static long TheatreSkill(CUnit unit)
+	{
+		for (CUnit? above = unit; above is not null; above = above.Parent)
+		{
+			if (above.Kind == EUnitKind.Theatre)
+			{
+				return above.Leader?.Skill ?? 0;
+			}
+		}
+		return 0;
+	}
+
+	/// <summary>What one kind of trait effect comes to for a unit, down its chain of command.</summary>
+	private static long Trait(CGameState state, CUnit unit, ETraitEffect kind)
+	{
+		return CCommandReach.Effect(state, unit, kind);
+	}
+
+	/// <summary>A figure made more or less by a trait: figure x (1 + trait).</summary>
+	public static long Scaled(long figure, long trait)
+	{
+		return figure * (CFixedPoint.Scale + trait) / CFixedPoint.Scale;
 	}
 
 	/// <summary>How many provinces the attackers stand in: the directions the battle is fought from.</summary>
@@ -254,8 +328,9 @@ public static class CCombatModifiers
 	}
 
 	/// <summary>
-	/// What a unit's mix of arms is worth, in thousandths, or nothing for a unit with no
-	/// brigade of a kind that makes the mix count.
+	/// What a unit's mix of arms is worth, in thousandths, with what the leaders'
+	/// <c>combined_arms_bonus</c> comes to for it, or nothing for a unit with no brigade of
+	/// a kind that makes the mix count.
 	/// </summary>
 	private static long CombinedArms(CGameState state, CCountry owner, CUnit unit)
 	{
@@ -268,7 +343,7 @@ public static class CCombatModifiers
 			}
 		}
 		return CCombinedArms.BaseBonus(state, types) > CFixedPoint.Zero
-			? CCombinedArms.Bonus(state, owner, types).Raw
+			? CCombinedArms.Bonus(state, owner, types).Raw + Trait(state, unit, ETraitEffect.CombinedArmsBonus)
 			: 0;
 	}
 

@@ -1,4 +1,5 @@
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -103,6 +104,7 @@ public static class CNavalSpotting
 			afterAttack = state.Defines[CManpower.MilitarySection, AfterAttackFactor].Raw;
 		}
 
+		long spotting = CFixedPoint.Scale + CCommandReach.Effect(state, ours, ETraitEffect.SpottingChance);
 		long underWay = theirs.IsMoving ? 3000 : 2000;
 		long weather = CFixedPoint.Scale
 			- province.Weather.Precipitation.Raw * state.Defines[CWeatherEffects.WeatherSection, SpottingRainModifier].Raw / CFixedPoint.Scale
@@ -115,6 +117,7 @@ public static class CNavalSpotting
 			{
 				long seen = isSubmarine ? our.Stats[SubDetection].Raw / 2 : our.Stats[SurfaceDetection].Raw;
 				long figure = seen * visibility / CFixedPoint.Scale;
+				figure = figure * spotting / CFixedPoint.Scale;
 				figure = figure * efficiency / CFixedPoint.Scale;
 				figure = figure * afterAttack / CFixedPoint.Scale;
 				figure = figure * CFixedPoint.Scale / underWay;

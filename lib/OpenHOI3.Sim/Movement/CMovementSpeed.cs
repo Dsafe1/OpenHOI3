@@ -1,6 +1,7 @@
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 using OpenHOI3.Sim.Weather;
@@ -110,8 +111,8 @@ public static class CMovementSpeed
 	/// Before all of those, a unit in a battle walks at a fraction of its speed - the
 	/// combat movement speed for an attacker, a hundredth for anyone else - and after
 	/// them a unit falling back is a tenth faster, and is not slowed for want of fuel.
-	/// The original has one more that waits for what it reads: a leader's trait for
-	/// the terrain.
+	/// The leaders' traits come into two of them: combat_move_speed into an attacker's
+	/// pace in a battle, and terrain_speed for the next province's ground.
 	/// </summary>
 	public static long Modifier(CGameState state, CCountry country, CUnit unit)
 	{
@@ -134,7 +135,8 @@ public static class CMovementSpeed
 			{
 				if (combat.Attacker.Units.Contains(unit))
 				{
-					long quicker = Scale + country.Modifier[CAttackDelay.CombatMovementSpeed].Raw;
+					long quicker = Scale + country.Modifier[CAttackDelay.CombatMovementSpeed].Raw
+						+ CCommandReach.Effect(state, unit, ETraitEffect.CombatMoveSpeed);
 					long pace = state.Defines[CManpower.MilitarySection, CombatMovementSpeed].Raw + combat.TacticSpeed.Raw;
 					inBattle = System.Math.Min(Scale, System.Math.Max(SlowestInBattle, quicker * pace / Scale));
 					break;
@@ -153,6 +155,8 @@ public static class CMovementSpeed
 			if (next.Terrain is { } terrain)
 			{
 				modifier = modifier * (Scale + Adjuster(unit, terrain.Name)) / Scale;
+				// The leaders' terrain_speed for that ground, down the chain of command.
+				modifier = modifier * (Scale + CCommandReach.TerrainEffect(state, unit, ETraitEffect.TerrainSpeed, terrain.Name)) / Scale;
 			}
 			if (here.EdgeTo(next.Id) is { Kind: EProvinceEdgeKind.Crossing or EProvinceEdgeKind.River })
 			{

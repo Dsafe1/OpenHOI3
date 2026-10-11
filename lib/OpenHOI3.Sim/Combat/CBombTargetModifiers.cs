@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -13,8 +14,9 @@ namespace OpenHOI3.Sim.Combat;
 /// all of it only a ship's attack is ever asked for, by its own fire at the bombers: a
 /// land unit fires by its unit's figures, which these do not touch, and nothing in a
 /// bombing reads a defence - so the fort and the screens are noted here and decide
-/// nothing. The original also counts difficulty and the leader, which are not built.
-/// See <c>docs/mechanics/bombing.md</c>, section 9.
+/// nothing. The original also counts difficulty, which is not built. See
+/// <c>docs/mechanics/bombing.md</c>, section 9, and <c>docs/mechanics/leaders.md</c>,
+/// section 10, for what the leaders bring.
 /// </summary>
 public static class CBombTargetModifiers
 {
@@ -50,6 +52,10 @@ public static class CBombTargetModifiers
 			long poorScreens = unit.Kind == EUnitKind.Navy ? PoorScreens(unit) : 0;
 			long missionEfficiency = CMissionEfficiency.Of(state, owner, unit.Order);
 			long crowding = crowd - (owner is null ? 0 : owner.Technology[FreeStacking].Raw);
+			long experienceTrait = CCommandReach.Effect(state, unit, ETraitEffect.ExperienceBonus);
+			long supplyTrait = CCommandReach.Effect(state, unit, ETraitEffect.OutOfSupplyModifier);
+			long nightTrait = CCommandReach.Effect(state, unit, ETraitEffect.NightAttack);
+			long? leader = CCombatLeaders.Bonus(state, unit);
 
 			// A unit of this side is no longer what its last battle made of it: the hour
 			// begins by wiping that, as every kind of battle's does.
@@ -81,6 +87,7 @@ public static class CBombTargetModifiers
 				experience = experience * 10 / CFixedPoint.Scale;
 				if (experience != 0)
 				{
+					experience = CCombatModifiers.Scaled(experience, experienceTrait);
 					CBomberModifiers.Add(subUnit, ECombatModifier.Experience, experience, experience);
 				}
 
@@ -92,6 +99,7 @@ public static class CBombTargetModifiers
 				{
 					long missing = CFixedPoint.Scale - unit.SuppliesReceived.Raw;
 					long impact = defines[military, CCombatModifiers.SupplyLackImpact].Raw * missing / CFixedPoint.Scale;
+					impact = CCombatModifiers.Scaled(impact, supplyTrait);
 					CBomberModifiers.Add(subUnit, ECombatModifier.LackOfSupplies, -impact, -impact);
 				}
 				long radio = owner is null ? 0 : owner.Technology[CBomberModifiers.CombatEfficiency].Raw;
@@ -112,11 +120,16 @@ public static class CBombTargetModifiers
 				if (isNight)
 				{
 					string kind = side.IsAttacker ? CCombatModifiers.AttackOf : CCombatModifiers.DefenceOf;
-					long night = defines[military, CCombatModifiers.NightPenalty].Raw + CBomberModifiers.Adjuster(subUnit, kind);
+					long night = defines[military, CCombatModifiers.NightPenalty].Raw + CBomberModifiers.Adjuster(subUnit, kind)
+						+ nightTrait;
 					if (night < 0)
 					{
 						CBomberModifiers.Add(subUnit, ECombatModifier.Night, night, 0);
 					}
+				}
+				if (leader is { } bonus)
+				{
+					CBomberModifiers.Add(subUnit, ECombatModifier.Leader, bonus, bonus);
 				}
 			}
 		}

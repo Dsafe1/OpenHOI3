@@ -218,7 +218,7 @@ In order:
    three days. **Nine things in it are the original's and look odd, and are built so**
    (`bombing.md`, section 12), and **none has been put to the maintainer**: a bomber with no
    leader finds a ship one time in a hundred, so strikes at ships wear the port and hardly
-   touch the fleet - and here no battle asks a unit's leader yet; a fleet in its port fires its air
+   touch the fleet - ten in a hundred more for each point of its leader's skill; a fleet in its port fires its air
    attack three times over; two units cannot bomb one city's ground together; interdiction
    flies only at ground its country sees into, which here is none of an enemy's. In the
    client `--mission=GER:strategicbombing:1928` gives a country's air unit a mission, and
@@ -241,7 +241,8 @@ In order:
    cannot be fought again. A mission outlives its sorties: home under "return to base" a
    unit goes out again until its end hour. `OpenHOI3.SaveCheck airbattle` flies one with the
    install's own units: three wings of German bombers over Warszawa fight Poland's fighters
-   thirteen times in two and a half days and come home at two thirds of their strength.
+   nine times in two days and turn for home at two thirds of their strength, and the Poles
+   catch them ten times more on the way.
    **Eight things in it are the original's and look odd, and are built so** (`aircombat.md`,
    section 9) - a beaten unit beside the sea flies out to sea, one too worn to fly cannot be
    attacked at its base and yet takes off every third hour, a wing's defence and its
@@ -315,7 +316,7 @@ In order:
    convoy - which then wants escorts, is given them, and keeps out of that water.
    **Read out of the original and set against nothing.** `OpenHOI3.SaveCheck raid` sends
    the install's raiders at the install's convoys: Germany's battle fleet in the Channel
-   Approach sinks 45 British transports and 5 escorts in a month. **Six things in it are
+   Approach sinks 47 British transports and 4 escorts in a month. **Six things in it are
    the original's and look wrong, and are built so** (`navalmissions.md`, section 12) -
    the plainest that **an interceptor goes out once** and then lies in port under its
    order, and that **a patrol sinks convoys**. The maintainer on 2026-10-10: "All those
@@ -513,8 +514,34 @@ In order:
      it are the original's and look odd, and are built so**: the reach drops from half to
      nothing at twice the radius, and a new game's stockpile is reckoned before its leaders
      are chosen. The first was put to the maintainer that day; the other nine have not been;
-   - **what a leader does in a battle**, on land, at sea and in the air, and the experience
-     and traits he gains there;
+   - **what a leader does in a battle**, cut again the same day, the cut this project's:
+     - **in a land battle - built** (2026-10-11, `leaders.md`, section 9; `landcombat.md`):
+       a unit's leader's bonus - 5% a point of skill, with his offence or defence trait and
+       his trait for the ground - every other trait in the figure it names, the theatre
+       commander off crowding, the corps commander bringing reserves up, a defender's leader
+       in the order of its front, a leader in shattering, a side's highest ranked leader in
+       its tactic and the `trait` condition read for it, and the chain's speed traits in a
+       march. **Read out of the original and set against nothing**, as the land battle is;
+       reading it confirmed the defender's front order off the instructions and found a
+       corps in reserve counting its own commander. **Three more things look odd and are
+       built so**: a unit whose own leader lacks the rank or the skill gets none of the
+       leader's bonus, its commanders' offence and defence traits with it; `fort_defence`
+       and `surprise_chance` do nothing; the `trait` condition asks the leader's own traits
+       only. The aggressiveness a tactic is picked with stays 0: plans are the AI's;
+     - **at sea and in the air - built** (2026-10-11, `leaders.md`, section 10;
+       `navalcombat.md`, `aircombat.md`, `bombing.md`): a unit's leader's bonus on every ship
+       and wing - his skill alone, no trait - where he has the rank; his skill, whatever his
+       rank, in drawing a fleet up, in a ship's or a wing's choice of target and in a bomber
+       finding ships; a side's leader in its positioning at sea and against friendly fire;
+       and eleven traits where they name, spotting to strategic attack. Two technology
+       figures went in beside the admiral, `targeting_chance` and `targeting_choice`.
+       **Read out of the original and set against nothing**; most of it had been read
+       before, and the reading named those two figures' keys in the record, and found the
+       fact base's "an admiral of skill 5 draws his ships up at exactly half their reach"
+       missing the floor that leaves one further. **Two more things look odd and are built
+       so**: an admiral too junior for his fleet still draws it up and picks its targets,
+       and `dissent_impact` does nothing at sea or in the air;
+     - **the experience and the traits a battle gives**;
    - **the window a leader is chosen in**, promotion, and his place in a battle's window.
 
 3. **A look at the screens beside the original**, figure by figure. It needs nothing
@@ -615,10 +642,9 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 None of these blocks the list above.
 
-- **A land battle has no leader in it**, and so the plainest tactics: with no skill and no
-  traits to ask for, an attacker has the plain attack and now and then an assault or a
-  shock, and a defender the plain defence (`landcombat.md`, section 11). Of the things that
-  bear on a unit in a round, seven wait for what they read - a leader and his traits,
+- **A land battle has its leaders since 2026-10-11, less their aggressiveness**, which comes
+  from the AI's plans and is 0 here, so a reckless tactic weighs half (`landcombat.md`,
+  section 11). Of the things that bear on a unit in a round, six wait for what they read -
   encirclement, shore bombardment, the difficulty setting, mission efficiency, paratroops,
   landing craft -
   and three technology figures are left out for want of their keys; `landcombat.md`,
@@ -993,10 +1019,10 @@ None of these blocks the list above.
 - **The original's AI makes 86 theatres as a game starts**, each a headquarters with one
   brigade, and puts every unit the files leave at the top under one. Here the units stay
   as the files nest them, so 34 are under a different commander.
-- **No battle asks a unit's leader yet** (`docs/mechanics/leaders.md`). Organisation and
-  what a unit uses do, since 2026-10-11 (section 8 there); every battle waits for the third
-  piece of leaders, and with it every trait effect the chain of command brings down but
-  `supply_consumption`. Until then a unit fights as though it had no leader.
+- **No battle gives a leader experience or a trait yet** (`docs/mechanics/leaders.md`); a
+  land battle asks him since 2026-10-11, and a battle at sea and in the air the same day
+  (sections 9 and 10 there). That is the rest of the third piece of leaders.
+  `winter_attrition` waits for attrition, which is not built.
 - **An order of battle that names a leader no file declares** has him ignored; what the
   original does was not read.
 - **Nothing turns a country's `auto_assign_leaders` off**: it is on, as the original starts
@@ -1208,7 +1234,7 @@ sea and by air - in four projects:
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it. The panel of the unit selected on the map: a list of the units above it, its header, its status, its order, its buttons, its brigades, the units under it and the battles it is in, each a class of its own. The window of orders for a fleet or an air unit. And the window of a battle, with its two sides and a line for each unit on them |
 | `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital, and the carrying of supplies against what a start-date save holds in every province, with the convoys a new game makes against the save's, way for way and ship for ship. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial, `seabattle` does the same with two countries' fleets, and `raid` sends one country's raiders at another's convoys for a month. And `firstdays` sets a new game as a player gets it, its two days run, beside the start save country by country - meant to differ, since the original's AI has changed laws by then - where `supplypass ... countries` does it like for like, with the save's laws given. `techgap` looks at the technology levels the start save has above the history's, and `airbattle` flies an air mission with the install's own units and tells the battles it comes to; `bombing` flies a bombing mission for some days and tells what it did to the province |
-| `tests/` | 1279 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one and how far a command reaches - where silent misreadings are expensive |
+| `tests/` | 1296 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches and what a leader does in a battle on land, at sea and in the air - where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.

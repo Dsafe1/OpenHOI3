@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
@@ -157,7 +158,7 @@ public static class CBomberFire
 				Add(targets, unit);
 				continue;
 			}
-			long chance = LeaderSkill(bomber) * CFixedPoint.Scale * 10000 / CFixedPoint.Scale;
+			long chance = CCombatLeaders.UnitSkill(bomber) * (long)CFixedPoint.Scale * 10000 / CFixedPoint.Scale;
 			chance = chance * ((owner is null ? 0 : owner.Technology[NavalTargetChance].Raw) + CFixedPoint.Scale) / CFixedPoint.Scale;
 			foreach (CSubUnit ship in unit.SubUnits)
 			{
@@ -168,15 +169,6 @@ public static class CBomberFire
 				}
 			}
 		}
-	}
-
-	/// <summary>
-	/// The skill of a unit's leader. What a leader does in a battle is not built yet, so
-	/// every unit counts as the original's unit with none: one of no skill.
-	/// </summary>
-	public static long LeaderSkill(CUnit unit)
-	{
-		return 0;
 	}
 
 	private static void Add(List<CSubUnit> targets, CUnit unit)
@@ -190,18 +182,26 @@ public static class CBomberFire
 		}
 	}
 
-	/// <summary>The attack a wing fires at a target with, by its unit's mission.</summary>
-	public static long AttackOf(EUnitOrder order, CSubUnit wing, CSubUnit target)
+	/// <summary>
+	/// The attack a wing fires at a target with, by its unit's mission, with what its
+	/// leaders' <c>defender_softness</c>, <c>tactical_attack</c> and <c>naval_attack</c> make of it.
+	/// </summary>
+	public static long AttackOf(CGameState state, CUnit unit, CSubUnit wing, CSubUnit target)
 	{
+		EUnitOrder order = unit.Order;
 		if (CBombingOrders.GoesForLandUnits(order))
 		{
-			long softness = Math.Min(target.Stats[CUnitTotals.Softness].Raw, CFixedPoint.Scale);
+			long softness = target.Stats[CUnitTotals.Softness].Raw
+				* (CFixedPoint.Scale + CCommandReach.Effect(state, unit, ETraitEffect.DefenderSoftness)) / CFixedPoint.Scale;
+			softness = Math.Min(softness, CFixedPoint.Scale);
 			long hard = wing.Stats[CUnitTotals.HardAttack].Raw * (CFixedPoint.Scale - softness) / CFixedPoint.Scale;
-			return wing.Stats[CUnitTotals.SoftAttack].Raw * softness / CFixedPoint.Scale + hard;
+			long attack = wing.Stats[CUnitTotals.SoftAttack].Raw * softness / CFixedPoint.Scale + hard;
+			return attack * (CFixedPoint.Scale + CCommandReach.Effect(state, unit, ETraitEffect.TacticalAttack)) / CFixedPoint.Scale;
 		}
 		if (CBombingOrders.GoesForShips(order))
 		{
-			return wing.Stats[CNavalFire.SeaAttack].Raw;
+			return wing.Stats[CNavalFire.SeaAttack].Raw
+				* (CFixedPoint.Scale + CCommandReach.Effect(state, unit, ETraitEffect.NavalAttack)) / CFixedPoint.Scale;
 		}
 		return CBombingOrders.GoesForBasedAircraft(order) ? wing.Stats[CUnitTotals.HardAttack].Raw : 0;
 	}
@@ -216,7 +216,7 @@ public static class CBomberFire
 		CDefines defines = state.Defines;
 		string military = CManpower.MilitarySection;
 		CSubUnit target = targets[state.Random.Next(targets.Count)];
-		long attack = AttackOf(unit.Order, wing, target);
+		long attack = AttackOf(state, unit, wing, target);
 
 		long brigades = 0;
 		foreach (CUnit defender in bombing.Defender.Units)

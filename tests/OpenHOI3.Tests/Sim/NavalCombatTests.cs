@@ -5,6 +5,7 @@ using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -612,5 +613,105 @@ public class NavalCombatTests
 			Assert.True(fleet.IsRemoved || fleet.IsRetreating || fleet.IsMoving || fleet.EngageWait > 0 || fleet.Location != Bight,
 				$"{fleet.Name} was let out of the battle with no wait");
 		}
+	}
+
+	// --- leaders ---
+
+	private static CLeader Admiral(int skill, int rank = 1, params (ETraitEffect Kind, string Value)[] effects)
+	{
+		var leader = new CLeader(100 + skill * 10 + rank) { Skill = skill, Rank = rank, Name = "admiral" };
+		var trait = new CTrait("a_trait");
+		foreach ((ETraitEffect kind, string value) in effects)
+		{
+			trait.Effects.Add(new CTraitEffect(kind, CFixedPoint.Parse(value), ""));
+		}
+		leader.Traits.Add(trait);
+		return leader;
+	}
+
+	[Fact]
+	public void AnAdmiralOfSkillFiveDrawsHisShipsUpAtHalfTheirReachOrOneFurther()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit ours = Fleet(state, germany, Bight, Battleship, Battleship);
+		ours.Leader = Admiral(5);
+		Battle(state, ours, Fleet(state, poland, Bight, Destroyer));
+
+		// Nothing is left of the spread but its floor of two: a roll of nought or one.
+		foreach (CSubUnit battleship in ours.SubUnits)
+		{
+			Assert.Contains(battleship.Distance.Raw, new long[] { 16000, 17000 });
+		}
+	}
+
+	[Fact]
+	public void ASidesLeaderAddsATenthAPointToItsPositioningAndToWhatItCreepsUpTo()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit ours = Fleet(state, germany, Bight, Battleship, Destroyer);
+		ours.Leader = Admiral(3, 2);
+		CUnit theirs = Fleet(state, poland, Bight, Destroyer);
+		theirs.Leader = Admiral(6, 0);
+		CCombat combat = Battle(state, ours, theirs);
+		CNavalBattle.Begin(state, combat);
+
+		Assert.Equal(combat.Attacker.PositioningRoll.Raw + 700, combat.Attacker.Positioning.Raw);
+		Assert.Equal(700, CNavalBattle.Base(combat.Attacker));
+		// A leader of no rank is never a side's leader.
+		Assert.Equal(400, CNavalBattle.Base(combat.Defender));
+	}
+
+	[Fact]
+	public void AnAdmiralWithTheRankForHisFleetAddsHisSkillAndHisTraitsComeIntoTheHour()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		state.Defines.Set(CManpower.MilitarySection, "NAVAL_RANK_1", CFixedPoint.FromInt(2));
+		state.Defines.Set(CManpower.MilitarySection, CCombatModifiers.LeaderImpact, CFixedPoint.Parse("0.05"));
+		CUnit small = Fleet(state, germany, Bight, Destroyer, Destroyer);
+		small.Leader = Admiral(2, 1, (ETraitEffect.ExperienceBonus, "1"));
+		CUnit large = Fleet(state, germany, Bight, Destroyer, Destroyer, Destroyer);
+		large.Leader = Admiral(4, 1);
+		CCombat combat = Battle(state, small, Fleet(state, poland, Bight, Destroyer));
+		CNavalBattle.Join(state, combat, combat.Attacker, large);
+		small.SubUnits[0].Experience = CFixedPoint.FromInt(20);
+		combat.Hour = 5;
+		CNavalModifiers.Apply(state, combat, combat.Attacker);
+
+		// Two ships are within his rank's command: 2 x 0.05 on both halves of every ship.
+		Assert.All(small.SubUnits, ship => Assert.Contains(ship.CombatModifiers,
+			m => m.Kind == ECombatModifier.Leader && m.Attack.Raw == 100 && m.Defence.Raw == 100));
+		// Three are not, and the admiral of the larger fleet adds nothing.
+		Assert.All(large.SubUnits, ship => Assert.DoesNotContain(ship.CombatModifiers, m => m.Kind == ECombatModifier.Leader));
+		// Twenty experience is a fifth, and the trait doubles it.
+		Assert.Contains(small.SubUnits[0].CombatModifiers, m => m.Kind == ECombatModifier.Experience && m.Attack.Raw == 400);
+	}
+
+	[Fact]
+	public void ADisengageTimerTraitShortensTheCountAFleetLeavesAt()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit quick = Fleet(state, germany, Bight, Destroyer);
+		quick.Leader = Admiral(1, 1, (ETraitEffect.DisengageTimer, "-0.2"));
+		CUnit plain = Fleet(state, germany, Bight, Destroyer);
+		quick.Disengage = 4;
+		plain.Disengage = 4;
+
+		// Five times 0.8 is four.
+		Assert.True(CNavalDisengage.Wants(state, quick));
+		Assert.False(CNavalDisengage.Wants(state, plain));
+	}
+
+	[Fact]
+	public void AShipsTargetingIsTenAPointOfItsAdmiralsSkillAndItsCountrysTargetingChoice()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		germany.Technology.Set(CNavalTargets.TargetingChoice, CFixedPoint.Parse("0.05"));
+		CUnit ours = Fleet(state, germany, Bight, Destroyer);
+		ours.Leader = Admiral(3, 0);
+		CUnit theirs = Fleet(state, poland, Bight, Destroyer);
+
+		// His rank does not matter here: 30 and 50, a chance of eight in a hundred.
+		Assert.Equal(80, CNavalTargets.TargetingSkill(state, ours.SubUnits[0]));
+		Assert.Equal(0, CNavalTargets.TargetingSkill(state, theirs.SubUnits[0]));
 	}
 }

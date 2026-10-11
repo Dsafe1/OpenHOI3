@@ -6,12 +6,14 @@ this project can implement. No addresses and no offsets. Each rule says how sure
 `confirmed`, `likely`, `inferred` in the fact base's vocabulary. Where this project chooses its
 own behaviour the paragraph is marked **Ours**.
 
-Sources: `reversing/findings/FINDINGS-leaderassign.md` and
-`reversing/findings/FINDINGS-commandreach.md`, read for this, whole;
+Sources: `reversing/findings/FINDINGS-leaderassign.md`,
+`reversing/findings/FINDINGS-commandreach.md`, `reversing/findings/FINDINGS-battleleaders.md`
+and `reversing/findings/FINDINGS-seaairleaders.md`, read for this, whole;
 `reversing/findings/FINDINGS-leaders.md` (experience, skill, traits, promotion);
 `reversing/findings/FINDINGS-history.md` (the leader's history and its five keys).
 
 Code: `CLeader`, `CTrait`, `CLeaders` and `CCommandReach` in `lib/OpenHOI3.Sim/Leaders`;
+`CCombatLeaders` in `lib/OpenHOI3.Sim/Combat`, beside the battles that ask it;
 `CLeaderReader` in `lib/OpenHOI3.Content/History` and `CTraitReader` in
 `lib/OpenHOI3.Content/Definitions`; the panel's lines in `CUnitPanelText`;
 `OpenHOI3.SaveCheck`'s `CLeaderCheck`.
@@ -20,7 +22,9 @@ Leaders were cut in four on 2026-10-11 - **the cut is this project's**: who they
 commands what (sections 1 to 7, built); how far a commander's command reaches, and what it does
 to organisation and to what a unit uses (section 8, built the same day); what a leader does in a
 battle, with the experience and the traits he gains there; and the window a leader is chosen
-in.
+in. The third was cut again, the same day and also this project's: a land battle (section 9,
+built); a battle at sea and in the air (section 10, built the same day); and the experience and
+traits a battle gives.
 
 ---
 
@@ -313,8 +317,72 @@ level above it; a division straight under an army has half the army's, not a qua
 **Nothing asks it at a theatre's level**, so the theatre commander's skill, whatever it does,
 is not cut by distance; nor is a division's own leader's.
 
-Every other trait effect the chain brings, and a commander's part in a battle, are the third
-piece.
+## 9. In a land battle
+
+`landcombat.md` has each rule where it acts; `reversing/findings/FINDINGS-battleleaders.md`
+gathers them. In short: `confirmed`
+
+- **A unit's own leader**, where he has the rank for it and some skill, adds his skill x
+  `COMBAT_LEADER_IMPACT` (0.05) and his offence or defence trait and his trait for the ground
+  to its attack and defence (`landcombat.md`, section 4) - the division's "5% a point". He also
+  takes a hundredth a point off where it shatters (section 6) and, defending, puts his skill
+  into the order of its front (section 3), whatever his rank.
+- **Every other trait** goes into the figure it names - river, landing, fort, experience,
+  combined arms, dissent, supplies, dug in, night, envelopment - down the chain of command.
+- **The corps commander** brings his divisions up from reserve sooner, ten a point by his
+  reach, where the corps stands in their province or the next (section 3).
+- **The theatre commander** takes a hundredth a point off every unit's crowding under him,
+  wherever he is (section 4).
+- **A side's leader** - its highest ranked - picks its tactic: the one of less skill first,
+  and `skill`, `skill_advantage` and `trait` in a tactic's conditions ask about him (section
+  11).
+- **A unit's march** is quicker or slower by the chain's `combat_move_speed` while it attacks,
+  and by its `terrain_speed` for the next province's ground (`movement.md`, section 5).
+
+## 10. At sea and in the air
+
+`reversing/findings/FINDINGS-seaairleaders.md`, which gathers what the fact base had read
+before and checks it off the instructions; `navalcombat.md`, `aircombat.md` and `bombing.md`
+have each rule where it acts. `confirmed`
+
+**Three leaders are asked, and not the same one each time:**
+
+| who | what he does | rank asked |
+| --- | --- | --- |
+| a fleet's, an air unit's or a bombed unit's own leader | his skill x `COMBAT_LEADER_IMPACT` on every ship's or wing's attack and defence, last of the hour's modifiers | yes, and some skill |
+| the same | draws a fleet's ships up closer, five less his skill times the spread (`navalcombat.md`, section 2) | no |
+| the same | ten a point to a ship's or a wing's targeting - a point a hundred of taking the best target | no |
+| the same | ten in a hundred a point that a bomber has a ship on its list (`bombing.md`, section 6) | no |
+| a side's highest ranked, first of equals | a tenth a point on its positioning at sea, and on what it creeps up to | rank above 0 |
+| the same | a point a hundred off the chance a ship that has lost the enemy shoots at a friend | rank above 0 |
+
+The rank asked for the bonus is the land battle's ladder, which for a fleet or an air unit is
+whether his rank's `NAVAL_RANK_*` or `AIR_RANK_*` commands as many ships or wings as it has
+(section 4).
+
+**No trait comes into the bonus at sea or in the air** - no offence, defence or ground, and no
+`leader_defence`. **The traits that do come in**, each down the chain of command as on land:
+
+| trait | where |
+| --- | --- |
+| `experience_bonus` | experience, x (1 + it), at sea, in the air and on both sides of a bombing |
+| `out_of_supply_modifier` | lack of supplies, x (1 + it), the same |
+| `night_attack` | added to the night's figure, the same |
+| `spotting_chance` | x (1 + it) on each pair's figure when a fleet looks for another |
+| `spread_out` | taken off the 0.3 of a ship's spread, to 0.1 at least |
+| `submarine_attack` | x (1 + it) on `sub_attack` at a submarine |
+| `disengage_timer` | the count a fleet leaves a battle at, 5 x (1 + it), cut to a whole number |
+| `defender_softness` | x (1 + it) on the softness a bomber fires at, before it is held to 1 |
+| `tactical_attack` | x (1 + it) on a bomber's attack at land units |
+| `naval_attack` | x (1 + it) on a bomber's `sea_attack` at ships |
+| `strategic_attack` | x (1 + it) on a wing's `strategic_attack` when it bombs a province |
+
+**`dissent_impact` does nothing at sea or in the air**: dissent there has no trait, where on land
+it has.
+
+**Two technology figures went in beside the admiral**, because they sit in the same lines:
+`targeting_chance` scales a ship's positioning when it looks for a target, and
+`targeting_choice` is added to its targeting (`navalcombat.md`, section 4).
 
 ## Kept as read, though they look odd
 
@@ -338,11 +406,24 @@ piece.
    unit a step past it is reached by none of it.
 10. **A new game's stockpile is reckoned before leaders are chosen** (section 5), so the days of
     supplies and fuel it is given are of what its units would use with none but the files'.
+11. **A unit whose own leader has not the rank, or no skill, gets none of the leader's bonus**
+    (section 9) - and so none of the offence, defence and ground traits its commanders' chain
+    would bring it either; the other traits reach it all the same.
+12. **`fort_defence` and `surprise_chance` do nothing in a land battle**: the first is reached
+    only for an attacker, the second is read and thrown away.
+13. **A tactic's `trait` condition asks only the side's leader's own traits**, where every other
+    use of a trait takes the chain's.
+14. **An admiral too junior for his fleet still draws it up, picks its targets and finds ships
+    for its bombers** (section 10): only the bonus asks his rank.
+15. **`dissent_impact` does nothing at sea or in the air** (section 10), where on land it makes
+    dissent more or less.
 
 ## Not built
 
-- **What a leader does in a battle**, and the experience and traits he gains there - the third
-  piece; with it every trait effect but `supply_consumption` that comes down the chain.
+- **The experience and traits a leader gains in any battle** - the rest of the third piece.
+  `winter_attrition` waits for attrition.
+- **The aggressiveness a side's leader picks a tactic with**: it comes from plans and a unit's
+  own setting, neither of which exists here, so it is 0.
 - **The window a leader is chosen in**, promotion and dismissal, and the setting
   `auto_assign_leaders` on screen - the fourth. Nothing turns the setting off yet.
 - **The AI's own reshuffle of its leaders**, and the headquarters it makes; leaders made,
