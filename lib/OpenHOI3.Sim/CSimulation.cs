@@ -80,6 +80,13 @@ public sealed class CSimulation
 			command.Execute(State);
 			executed++;
 
+			// What the game posted while the command ran waits for the next turn.
+			foreach (CCommand posted in State.Outbox)
+			{
+				Post(posted);
+			}
+			State.Outbox.Clear();
+
 			if (State.TotalHours != hoursBefore)
 			{
 				RaiseTimeEvents(before, State.Date);

@@ -484,6 +484,15 @@ scalable canvas of section 3 could not survive. So:
   middle of a word. *Ours:* as many letters are kept as leave the dots room in the box's
   `maxWidth`; the original's name ends ten pixels short of that, so it measures the room
   some other way, which was not read. A line with a colour in it is left alone.
+- **A window whose file says `moveable = 1` is dragged with the left button held anywhere
+  on it but on a button, a scrollbar or a list** - a picture or a text lying over a button
+  counts as the button - and a window that is the screen is never dragged. The maintainer's
+  account of the original's event window, 2026-10-12, and **no part of the window may leave
+  the screen** - his too, the same day. That the rest of the original's moveable windows drag
+  the same way was not read. *Ours*: the key is what decides, so the orders windows and the
+  dialogs drag too; the window's extent is the `size` its file declares, so a background
+  picture larger than that may still reach past the edge; and a window larger than the
+  screen keeps its upper left corner on it.
 - **A window can be made many times over.** A line of a list, an entry of the technology
   tree and a slider are each a top-level window type the code makes one of for each
   thing it has to show, and puts where it wants it.

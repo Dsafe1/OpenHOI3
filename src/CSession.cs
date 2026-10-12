@@ -45,6 +45,8 @@ public partial class CSession : Node
 	private CTopBar? _topBar;
 	private CProductionView? _production;
 	private CTechnologyView? _technology;
+	private CDiplomacyView? _diplomacy;
+	private CEventWindows? _events;
 	private CDeployMenu? _deployMenu;
 	private CAlerts? _alerts;
 	private CUnitPanel? _unitPanel;
@@ -151,6 +153,9 @@ public partial class CSession : Node
 			_technology = new CTechnologyView();
 			_technology.Setup(gui, _simulation, Player);
 			layer.AddChild(_technology);
+			_diplomacy = new CDiplomacyView();
+			_diplomacy.Setup(gui, _simulation, Player);
+			layer.AddChild(_diplomacy);
 
 			// The deploy menu and the alert that opens it. A unit chosen there is placed
 			// by a click on the map, which is shown where it may go.
@@ -202,6 +207,12 @@ public partial class CSession : Node
 			layer.AddChild(_topBar);
 			_topBar.ProductionPressed += () => Toggle(_production);
 			_topBar.TechnologyPressed += () => Toggle(_technology);
+			_topBar.DiplomacyPressed += () => Toggle(_diplomacy);
+
+			// An event's windows come up over everything, the top bar included.
+			_events = new CEventWindows();
+			_events.Setup(gui, _simulation, Player);
+			layer.AddChild(_events);
 		}
 		_simulation.DayPassed += () => _unitsMoved = true;
 		_simulation.HourPassed += () => _hourPassed = true;
@@ -268,7 +279,7 @@ public partial class CSession : Node
 			view.Close();
 			return;
 		}
-		foreach (CCountryView? other in new CCountryView?[] { _production, _technology })
+		foreach (CCountryView? other in new CCountryView?[] { _production, _technology, _diplomacy })
 		{
 			if (!ReferenceEquals(other, view))
 			{
@@ -829,12 +840,15 @@ public partial class CSession : Node
 	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
 	/// type) opens the window that orders one, with that in it,
 	/// <c>--technology=key</c> chooses one on the technology screen,
+	/// <c>--screen=diplomacy</c> opens the diplomacy screen with its decisions, <c>--event=2602</c>
+	/// fires that event for the player, its trigger not asked, and <c>--event=2602:1861</c> for a province of his,
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
 	/// <c>--select=Luftflotte II</c> selects the player's unit of that name,
 	/// <c>--click=700,310;r1240,886;h48</c> clicks at those points of the canvas, in turn -
 	/// with r the right button, with s shift held, with c Ctrl held, with t1.5: before the point
 	/// the button held down 1.5 seconds of real time, and h48 lets 48 hours go by, m460,40 moves
-	/// the pointer there without clicking and w2 waits two seconds of real time, which is
+	/// the pointer there without clicking, d700,310>900,500 drags from the one point to the
+	/// other, and w2 waits two seconds of real time, which is
 	/// what a tooltip's second half waits on - once everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.
@@ -889,6 +903,23 @@ public partial class CSession : Node
 			else if (argument == "--screen=deploy")
 			{
 				_deployMenu?.Open();
+			}
+			else if (argument == "--screen=diplomacy")
+			{
+				Toggle(_diplomacy);
+			}
+			else if (argument.StartsWith("--event=") && Player is not null)
+			{
+				// Fires an event for the player, its trigger not asked: --event=2602, or with a
+				// province of his for a province's window, --event=2602:1861.
+				string[] parts = argument["--event=".Length..].Split(':');
+				int province = 0;
+				if (int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
+					&& (parts.Length < 2 || int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out province)))
+				{
+					_simulation.Post(new CFireEventCommand(id, Player.Tag, province));
+					_simulation.Pump();
+				}
 			}
 			else if (argument.StartsWith("--days=")
 				&& int.TryParse(argument["--days=".Length..], NumberStyles.Integer, CultureInfo.InvariantCulture, out int days))
@@ -1164,6 +1195,47 @@ public partial class CSession : Node
 			{
 				await ToSignal(GetTree().CreateTimer(wait), SceneTreeTimer.SignalName.Timeout);
 				await Frames(2);
+				continue;
+			}
+			// d700,310>900,500 holds the left button down at the first point, moves to the second
+			// in ten steps and lets go there: a drag.
+			if (entry.StartsWith('d'))
+			{
+				string[] ends = entry[1..].Split('>');
+				string[] a = ends[0].Split(',');
+				string[] b = ends.Length == 2 ? ends[1].Split(',') : System.Array.Empty<string>();
+				if (a.Length == 2 && b.Length == 2
+					&& float.TryParse(a[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float ax)
+					&& float.TryParse(a[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float ay)
+					&& float.TryParse(b[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float bx)
+					&& float.TryParse(b[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float by))
+				{
+					var from = new Vector2(ax, ay);
+					var to = new Vector2(bx, by);
+					await Frames(3);
+					GetViewport().PushInput(new InputEventMouseMotion { Position = from, GlobalPosition = from }, true);
+					await Frames(1);
+					GetViewport().PushInput(new InputEventMouseButton
+					{
+						Position = from, GlobalPosition = from, ButtonIndex = MouseButton.Left, Pressed = true, ButtonMask = MouseButtonMask.Left,
+					}, true);
+					for (int step = 1; step <= 10; step++)
+					{
+						await Frames(1);
+						Vector2 there = from.Lerp(to, step / 10f);
+						GetViewport().PushInput(new InputEventMouseMotion { Position = there, GlobalPosition = there, ButtonMask = MouseButtonMask.Left }, true);
+					}
+					await Frames(1);
+					GetViewport().PushInput(new InputEventMouseButton
+					{
+						Position = to, GlobalPosition = to, ButtonIndex = MouseButton.Left, Pressed = false,
+					}, true);
+					await Frames(2);
+				}
+				else
+				{
+					GD.Print($"--click: '{entry}' is not a drag.");
+				}
 				continue;
 			}
 			// m before a point only moves the pointer there, which is how a tooltip is asked for.

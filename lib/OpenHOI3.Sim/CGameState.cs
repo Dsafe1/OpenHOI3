@@ -234,6 +234,35 @@ public sealed class CGameState
 	public Script.CFlags Flags { get; } = new();
 
 	/// <summary>
+	/// The <c>fire_only_once</c> events that have fired, which fire no more:
+	/// <c>docs/mechanics/events.md</c>, section 6.
+	/// </summary>
+	public HashSet<Script.CEvent> FiredOnce { get; } = new();
+
+	/// <summary>
+	/// The events waiting for a person's answer, in the order they were opened:
+	/// <c>docs/mechanics/events.md</c>, section 7.
+	/// </summary>
+	public List<Events.COpenEvent> OpenEvents { get; } = new();
+
+	/// <summary>
+	/// What the game itself posts while a command runs - an AI's answer to an event, an event that
+	/// answers itself - which the queue takes after that command and runs at its next turn.
+	/// </summary>
+	public List<Commands.CCommand> Outbox { get; } = new();
+
+	/// <summary>
+	/// Raised as an event fires, past its <c>fire_only_once</c> test, for whatever reports it - a
+	/// message, a tool. Never for anything that changes the game.
+	/// </summary>
+	public event Action<Script.CEvent, Script.CEventScope>? EventFired;
+
+	internal void RaiseEventFired(Script.CEvent fired, Script.CEventScope scope)
+	{
+		EventFired?.Invoke(fired, scope);
+	}
+
+	/// <summary>
 	/// How well each country knows each province it has a unit in and does not hold, where
 	/// it knows it at all: by the province's id and the country. The name is from when
 	/// only fleets asked; land is in it since air missions do. Written by

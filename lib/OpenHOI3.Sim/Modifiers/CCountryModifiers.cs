@@ -27,54 +27,64 @@ public static class CCountryModifiers
 
 	public static void Rebuild(CGameState state)
 	{
+		Dictionary<string, List<CProvince>> fromProvinces = ProvincesHeld(state);
+		foreach (CCountry country in state.Countries)
+		{
+			RebuildOne(state, country, fromProvinces);
+		}
+	}
+
+	/// <summary>One country's modifier made again, as a decision taken does.</summary>
+	public static void RebuildOne(CGameState state, CCountry country)
+	{
+		RebuildOne(state, country, ProvincesHeld(state));
+	}
+
+	private static void RebuildOne(CGameState state, CCountry country, Dictionary<string, List<CProvince>> fromProvinces)
+	{
 		CModifier? baseValues = state.FindStaticModifier(CIndustrialCapacity.BaseValues);
 		CModifier? war = state.FindStaticModifier(War);
 		CModifier? peace = state.FindStaticModifier(Peace);
 		CModifier? dissent = state.FindStaticModifier(Dissent);
-		Dictionary<string, List<CProvince>> fromProvinces = ProvincesHeld(state);
+		Rebuild(country, baseValues);
 
-		foreach (CCountry country in state.Countries)
+		// A resource is worth its modifier times how much of it the country has.
+		foreach ((string name, CFixedPoint level) in country.StrategicResources)
 		{
-			Rebuild(country, baseValues);
-
-			// A resource is worth its modifier times how much of it the country has.
-			foreach ((string name, CFixedPoint level) in country.StrategicResources)
+			if (level > CFixedPoint.Zero && state.FindStrategicResource(name) is { } resource)
 			{
-				if (level > CFixedPoint.Zero && state.FindStrategicResource(name) is { } resource)
-				{
-					AddSource(country, Scaled(resource, level));
-				}
+				AddSource(country, Scaled(resource, level));
 			}
-
-			// Everything the provinces it controls have, the local kinds along with the rest.
-			if (fromProvinces.TryGetValue(country.Tag.Value, out List<CProvince>? provinces))
-			{
-				foreach (CProvince province in provinces)
-				{
-					AddSource(country, province.Modifier, province.Name);
-				}
-			}
-
-			if ((state.IsAtWar(country.Tag) ? war : peace) is { } standing)
-			{
-				AddSource(country, standing);
-			}
-
-			// What the file gives for dissent is for one point of it.
-			if (dissent is not null)
-			{
-				AddSource(country, Scaled(dissent, country.Dissent));
-			}
-
-			// What events gave it, each until its time has passed (step 13).
-			country.EventModifiers.RemoveAll(given => given.HasEnded(state));
-			foreach (CTimedModifier given in country.EventModifiers)
-			{
-				AddSource(country, given.Modifier);
-			}
-
-			RebuildTechnology(state, country);
 		}
+
+		// Everything the provinces it controls have, the local kinds along with the rest.
+		if (fromProvinces.TryGetValue(country.Tag.Value, out List<CProvince>? provinces))
+		{
+			foreach (CProvince province in provinces)
+			{
+				AddSource(country, province.Modifier, province.Name);
+			}
+		}
+
+		if ((state.IsAtWar(country.Tag) ? war : peace) is { } standing)
+		{
+			AddSource(country, standing);
+		}
+
+		// What the file gives for dissent is for one point of it.
+		if (dissent is not null)
+		{
+			AddSource(country, Scaled(dissent, country.Dissent));
+		}
+
+		// What events gave it, each until its time has passed (step 13).
+		country.EventModifiers.RemoveAll(given => given.HasEnded(state));
+		foreach (CTimedModifier given in country.EventModifiers)
+		{
+			AddSource(country, given.Modifier);
+		}
+
+		RebuildTechnology(state, country);
 	}
 
 	/// <summary>The provinces each country controls that have a modifier at all, by tag, in their order.</summary>

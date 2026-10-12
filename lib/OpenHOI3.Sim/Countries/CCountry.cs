@@ -90,6 +90,12 @@ public sealed class CCountry
 	/// </summary>
 	public List<CTimedModifier> EventModifiers { get; } = new();
 
+	/// <summary>
+	/// The events its day's pass asks, made again each month and when a game is entered:
+	/// <c>docs/mechanics/events.md</c>, section 1.
+	/// </summary>
+	public List<Script.CEvent> EventCandidates { get; } = new();
+
 	/// <summary>The flags script has set on it: <c>docs/mechanics/effects.md</c>, section 3.</summary>
 	public Script.CFlags Flags { get; } = new();
 

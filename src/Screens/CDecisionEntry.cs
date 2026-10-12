@@ -1,0 +1,85 @@
+using OpenHOI3.Gui;
+using OpenHOI3.Interface.Events;
+using OpenHOI3.Interface.Tooltips;
+using OpenHOI3.Sim;
+using OpenHOI3.Sim.Commands;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Events;
+using OpenHOI3.Sim.Script;
+
+namespace OpenHOI3.Screens;
+
+/// <summary>
+/// One row of the decision list, a <c>diplomatic_decision_entry</c>: the decision's title, the button
+/// that takes it - disabled where it may not be taken, and never enabled again while the screen is up
+/// - and the icon. See <c>docs/mechanics/events.md</c>, section 12.
+/// </summary>
+public sealed class CDecisionEntry
+{
+	public const string WindowName = "diplomatic_decision_entry";
+
+	private readonly CSimulation _simulation;
+	private readonly CDecision _decision;
+	private readonly CCountryTag _country;
+	private readonly CGuiButton? _select;
+
+	private CDecisionEntry(CGuiWindow window, CGuiContext context, CSimulation simulation, CDecision decision,
+		CCountryTag country, bool mayTake)
+	{
+		Window = window;
+		_simulation = simulation;
+		_decision = decision;
+		_country = country;
+
+		CGameState state = simulation.State;
+		CEventScope scope = CDecisions.ScopeOf(country);
+		if (window.FindTextBox("name") is { } name)
+		{
+			name.Text = CEventText.Localise(context.Localisation.Localise, state, decision.Name + "_title", scope).Trim();
+			name.Tooltip = () => new CTooltip
+			{
+				Text = CEventText.Localise(context.Localisation.Localise, state, decision.Name + "_desc", CDecisions.ScopeOf(_country)).Trim(),
+			};
+		}
+		_select = window.FindButton("select_button");
+		if (_select is not null)
+		{
+			_select.Disabled = !mayTake;
+			_select.Pressed += Take;
+		}
+	}
+
+	public CGuiWindow Window { get; }
+
+	/// <summary>Makes the row, or answers null where no file declares its window.</summary>
+	public static CDecisionEntry? Create(CGuiContext context, CSimulation simulation, CDecision decision, CCountryTag country,
+		bool mayTake)
+	{
+		CGuiWindow? window = CGuiWindow.CreateEntry(context, WindowName);
+		return window is null ? null : new CDecisionEntry(window, context, simulation, decision, country, mayTake);
+	}
+
+	/// <summary>
+	/// While the screen is up: <c>allow</c>, then <c>potential</c>, asked again, the button disabled
+	/// where either fails - and nothing done where both hold.
+	/// </summary>
+	public void Refresh()
+	{
+		if (_select is null || _select.Disabled)
+		{
+			return;
+		}
+		CGameState state = _simulation.State;
+		CEventScope scope = CDecisions.ScopeOf(_country);
+		if (!CConditions.Holds(state, _decision.Allow, scope) || !CConditions.Holds(state, _decision.Potential, scope))
+		{
+			_select.Disabled = true;
+		}
+	}
+
+	/// <summary>The button does not ask <c>allow</c>; the command does when it runs.</summary>
+	private void Take()
+	{
+		_simulation.Post(new CExecuteDecisionCommand(_decision.Name, CDecisions.ScopeOf(_country)));
+	}
+}

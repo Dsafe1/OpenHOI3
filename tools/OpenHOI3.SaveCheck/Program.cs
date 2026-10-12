@@ -108,6 +108,12 @@ if (args.Length > 0 && args[0] == "conditions")
 	return CConditionsTrial.Run(args);
 }
 
+// A new game is played for some days, and the events that fired listed.
+if (args.Length > 0 && args[0] == "events")
+{
+	return CEventsTrial.Run(args);
+}
+
 // Every event's and decision's effects are run once, and what is unbuilt listed.
 if (args.Length > 0 && args[0] == "effects")
 {

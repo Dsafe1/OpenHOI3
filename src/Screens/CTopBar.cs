@@ -48,6 +48,9 @@ public partial class CTopBar : Control
 	public event System.Action? ProductionPressed;
 	public event System.Action? TechnologyPressed;
 
+	/// <summary>Raised when the button that opens the diplomacy screen is pressed.</summary>
+	public event System.Action? DiplomacyPressed;
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, CSimulation simulation, CCountry player)
 	{
@@ -98,6 +101,7 @@ public partial class CTopBar : Control
 
 		Bind(_window.FindButton("topbarbutton_prod"), () => ProductionPressed?.Invoke());
 		Bind(_window.FindButton("topbarbutton_tech"), () => TechnologyPressed?.Invoke());
+		Bind(_window.FindButton("topbarbutton_diplo"), () => DiplomacyPressed?.Invoke());
 
 		// The bar answers for its elements by name, as the original's does.
 		foreach (string name in CTopBarTooltips.Elements())

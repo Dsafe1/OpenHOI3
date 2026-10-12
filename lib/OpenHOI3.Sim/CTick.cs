@@ -1,6 +1,7 @@
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Events;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Modifiers;
@@ -64,6 +65,9 @@ public static class CTick
 		COfficers.Update(state);
 		// The battles are fought last, each in turn.
 		CCombats.RunHourly(state);
+		// An event left unanswered past its time answers itself (ours: the original's window counts
+		// each frame, docs/mechanics/events.md section 7).
+		CEventPass.RunHourly(state);
 	}
 
 	/// <summary>
@@ -99,6 +103,12 @@ public static class CTick
 		CConvoyDay.Maintain(state);                         // late in a country's day
 		CProvinceRepair.RunDaily(state);                    // each province's own day, after every country's:
 		CStockpile.HoldWithinBounds(state);                 // what was bombed comes back, and the pool is held
+		// Events, after the provinces' day; none while a game is still being made (ours: whether the
+		// original asks them in a new game's first days was not read).
+		if (!state.IsBeingMade)
+		{
+			CEventPass.RunDaily(state);
+		}
 		CNavalIntelligence.Refresh(state);                  // the last thing the original's day does
 	}
 
@@ -143,6 +153,8 @@ public static class CTick
 		CProduction.Estimate(state);
 		COfficers.Update(state);
 		CNavalIntelligence.Refresh(state);
+		// Entering a game makes every country's candidate events, as the month does.
+		CEventPass.RebuildCandidates(state);
 	}
 
 	/// <summary>
@@ -159,6 +171,7 @@ public static class CTick
 			CResearch.DecayMonthly(state);
 		}
 		CManpower.UpdateMost(state);
+		CEventPass.RebuildCandidates(state);
 	}
 
 	/// <summary>Not established for the original.</summary>

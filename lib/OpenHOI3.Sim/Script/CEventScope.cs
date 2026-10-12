@@ -25,8 +25,35 @@ public sealed class CEventScope
 		return new CEventScope(country, province, fromCountry, fromProvince, null)
 		{
 			RandomState = randomState,
+			Seed = randomState,
 			LookAheadDays = lookAheadDays,
 		};
+	}
+
+	/// <summary>
+	/// The state of chance the scope was made with. An event's answer and a decision set the
+	/// state back to it before they run (<c>docs/mechanics/events.md</c>, sections 7 and 9).
+	/// </summary>
+	public uint Seed { get; private init; }
+
+	/// <summary>
+	/// A copy standing on its own, its own root: what a command keeps of the scope an event fired in
+	/// or a decision is taken in, as the original copies one into its command.
+	/// </summary>
+	public CEventScope Detached()
+	{
+		return new CEventScope(Country, Province, FromCountry, FromProvince, null)
+		{
+			RandomState = RandomState,
+			Seed = Seed,
+			LookAheadDays = LookAheadDays,
+		};
+	}
+
+	/// <summary>Sets the state of chance back to the seed.</summary>
+	public void ResetToSeed()
+	{
+		RandomState = Seed;
 	}
 
 	/// <summary>The country, or null for none - the original's <c>---</c>.</summary>
@@ -59,6 +86,7 @@ public sealed class CEventScope
 		return new CEventScope(country, province, FromCountry, FromProvince, Root)
 		{
 			RandomState = RandomState,
+			Seed = Seed,
 			LookAheadDays = LookAheadDays,
 		};
 	}

@@ -27,6 +27,9 @@ public partial class CGuiWindow : CGuiObject
 	/// <summary>How many of its children are of kinds nothing draws yet.</summary>
 	public int Unbuilt { get; private set; }
 
+	private bool _dragging;
+	private Vector2 _grip;
+
 	/// <summary>Makes the top-level window of that name, or answers null when no file declares one.</summary>
 	public static CGuiWindow? Create(CGuiContext context, string name)
 	{
@@ -210,6 +213,109 @@ public partial class CGuiWindow : CGuiObject
 			rect.Size = texture.GetSize();
 		}
 		return rect;
+	}
+
+	public override void _Ready()
+	{
+		SetProcessInput(IsMoveable);
+	}
+
+	/// <summary>
+	/// Whether the window may be dragged: its file says <c>moveable</c>, and it is not the screen.
+	/// </summary>
+	private bool IsMoveable => GuiType is CGuiWindowType { Moveable: true, FullScreen: false };
+
+	/// <summary>
+	/// A moveable window is dragged by the left button held anywhere on it but a button, a
+	/// scrollbar or a list - an icon or a text over a button is the button. The innermost
+	/// moveable window under the mouse is the one dragged. By the maintainer's account of the
+	/// original's event window; see <c>docs/mechanics/interface.md</c>, section 7.
+	/// </summary>
+	public override void _Input(InputEvent @event)
+	{
+		// The event's own point, and not the system pointer's, so that the developer switches drag too.
+		if (@event is InputEventMouseMotion motion && _dragging)
+		{
+			// The point held keeps its place on the window, wherever the edge stopped it.
+			GlobalPosition = OnScreen(motion.Position - _grip);
+			return;
+		}
+		if (@event is not InputEventMouseButton { ButtonIndex: MouseButton.Left } button)
+		{
+			return;
+		}
+		if (!button.Pressed)
+		{
+			if (_dragging)
+			{
+				_dragging = false;
+				GetViewport().SetInputAsHandled();
+			}
+			return;
+		}
+		if (!IsVisibleInTree() || !Grips(button.Position))
+		{
+			return;
+		}
+		_dragging = true;
+		_grip = button.Position - GlobalPosition;
+		GetViewport().SetInputAsHandled();
+	}
+
+	/// <summary>
+	/// Where a corner may go so that no part of the window leaves the screen - the maintainer's
+	/// account of the original. A window larger than the screen keeps its upper left on it.
+	/// </summary>
+	private Vector2 OnScreen(Vector2 corner)
+	{
+		Rect2 screen = GetViewport().GetVisibleRect();
+		Vector2 size = GetGlobalRect().Size;
+		Vector2 far = screen.End - size;
+		return new Vector2(
+			Mathf.Max(Mathf.Min(corner.X, far.X), screen.Position.X),
+			Mathf.Max(Mathf.Min(corner.Y, far.Y), screen.Position.Y));
+	}
+
+	private bool Grips(Vector2 point)
+	{
+		if (!GetGlobalRect().HasPoint(point)
+			|| GetViewport().GuiGetHoveredControl() is not { } hovered
+			|| !(hovered == this || IsAncestorOf(hovered)))
+		{
+			return false;
+		}
+		for (Node? node = hovered; node is not null && node != this; node = node.GetParent())
+		{
+			if (node is CGuiWindow { IsMoveable: true })
+			{
+				return false;
+			}
+		}
+		foreach (Control taker in Takers(this))
+		{
+			if (taker.IsVisibleInTree() && taker.GetGlobalRect().HasPoint(point))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/// <summary>What in a window does something with a click: its buttons, scrollbars and lists.</summary>
+	private static IEnumerable<Control> Takers(Node node)
+	{
+		foreach (Node child in node.GetChildren())
+		{
+			if (child is CGuiButton or CGuiScrollbar or CGuiListBox)
+			{
+				yield return (Control)child;
+				continue;
+			}
+			foreach (Control below in Takers(child))
+			{
+				yield return below;
+			}
+		}
 	}
 
 	public CGuiButton? FindButton(string name)

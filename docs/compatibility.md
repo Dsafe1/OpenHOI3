@@ -200,6 +200,22 @@ tooltips. Please use the fixed logic."
 `docs/mechanics/technologyscreen.md`, section 9; `reversing/findings/FINDINGS-techtext.md`,
 sections 2 and 4.
 
+## 11. The AI's choice of an event's option is drawn on the game's own generator
+
+**Decided** 2026-10-12 by the maintainer, asked how the AI should draw it: the game's own
+generator, over the original's wall clock and over the event scope's state of chance.
+
+| | |
+| --- | --- |
+| the original | weighs each option by its `ai_chance`, cuts each share of a hundred to a whole number, and takes the first option a roll of 0 to 99 does not pass - the roll from a **fresh generator seeded with the time of day**, so the choice is reproducible from neither a save nor a seed |
+| here | the same weights, the same shares, the same test and the same fall to the first option - the roll from **the game's own generator**, which an hour seeds from the game's seed |
+| the difference today | which option an AI country takes, run against run: here a game played the same way chooses the same; in the original it differs every time |
+| a mod loses | nothing; no file can tell the two apart |
+| why | a game here is replayable from its seed and its commands, and the tests depend on it; a choice by the clock would make every AI event a different game |
+| to undo | seed a fresh MT19937 from the clock for each choice, as `reversing/findings/FINDINGS-eventfire.md` section 1.2 has it |
+
+`docs/mechanics/events.md`; `reversing/findings/FINDINGS-eventfire.md`, section 1.2.
+
 ---
 
 ## Stricter, with the same meaning
