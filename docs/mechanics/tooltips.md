@@ -76,7 +76,10 @@ an empty tooltip** - there is no fallback to anything the interface files say (s
 button. Here a text box lets the mouse through, so that a button under it keeps its clicks; a
 screen that wants a text box to answer names it (`CGuiObject.PassiveTooltip`), and that text box
 is asked first wherever the mouse is over it while the button keeps the clicks - the unit panel's
-do (`unitpanel.md`, section 10). *Ours*: how the original hands a click and a tooltip to two
+do (`unitpanel.md`, section 10). **A progress bar lets the mouse through too**, so a screen names
+its bars the same way - a unit's `org_bar` and `str_bar` in the panel and in a battle's window -
+and the test of whether the mouse is on one is made in the element's own turned box, the panel's
+two bars being drawn turned on their side. *Ours*: how the original hands a click and a tooltip to two
 elements that overlap was not read.
 
 **Its point** is the element's corner on the screen, moved by the tooltip's own offset (nearly

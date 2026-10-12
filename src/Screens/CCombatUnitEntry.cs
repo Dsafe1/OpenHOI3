@@ -62,7 +62,7 @@ public sealed class CCombatUnitEntry
 		window.SetTooltips(element => chance
 				? CBattleUnitTooltips.Reserve(localise, state, unit)
 				: CBattleUnitTooltips.Unit(localise, state, combat, unit, element),
-			"name", "location");
+			"name", "location", "org_bar", "str_bar");
 		return new CCombatUnitEntry(window, state, unit);
 	}
 

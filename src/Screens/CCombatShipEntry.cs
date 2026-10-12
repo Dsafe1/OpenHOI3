@@ -60,7 +60,8 @@ public sealed class CCombatShipEntry
 		{
 			return null;
 		}
-		window.SetTooltips(element => CBattleUnitTooltips.Ship(context.Localisation.Localise, state, combat, ship, element), "name");
+		window.SetTooltips(element => CBattleUnitTooltips.Ship(context.Localisation.Localise, state, combat, ship, element),
+			"name", "org_bar", "str_bar");
 		return new CCombatShipEntry(window, context, state, combat, ship, isAttacker);
 	}
 

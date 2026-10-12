@@ -142,12 +142,22 @@ public partial class CTooltips : CanvasLayer
 			{
 				return inside;
 			}
-			if (child is CGuiObject { PassiveTooltip: not null } element && element.GetGlobalRect().HasPoint(_mouse))
+			if (child is CGuiObject { PassiveTooltip: not null } element && Contains(element, _mouse))
 			{
 				return element;
 			}
 		}
 		return null;
+	}
+
+	/// <summary>
+	/// Whether a point of the screen is on an element, turned as it is drawn: a turned bar's
+	/// rectangle on the screen is not the box it was laid out in.
+	/// </summary>
+	private static bool Contains(Control element, Vector2 point)
+	{
+		Vector2 local = element.GetGlobalTransform().AffineInverse() * point;
+		return new Rect2(Vector2.Zero, element.Size).HasPoint(local);
 	}
 
 	/// <summary>

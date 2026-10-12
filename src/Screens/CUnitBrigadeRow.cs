@@ -59,7 +59,7 @@ public sealed class CUnitBrigadeRow : CUnitPanelEntry
 		// Choosing what a brigade is upgraded to is not built.
 		Show(window.FindButton("upgrade_button"), false);
 		AnswerFor(name => CBrigadeTooltips.Row(context.Localisation.Localise, context.Localisation.Find, state, owner, subUnit, name),
-			"subunit_name", "subunit_type", "subunit_level", "subunit_amount");
+			"subunit_name", "subunit_type", "subunit_level", "subunit_amount", "org_bar", "str_bar");
 		Update();
 	}
 

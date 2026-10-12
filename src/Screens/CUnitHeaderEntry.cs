@@ -97,7 +97,7 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		}
 		_leaderTypes = window.FindIcon("leader_types");
 		AnswerFor(name => CUnitHeaderTooltips.Header(context.Localisation.Localise, state, owner, unit, name),
-			"unitname", "unitstrength", "unitleader");
+			"unitname", "unitstrength", "unitleader", "org_bar", "str_bar");
 		Update();
 	}
 
