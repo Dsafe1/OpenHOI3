@@ -60,6 +60,14 @@ public static class CProvinceModifiers
 			{
 				total.Add(nonCore);
 			}
+
+			// What events gave it, each until its time has passed (step 5; ours where it is
+			// dropped, docs/mechanics/effects.md section 6).
+			province.EventModifiers.RemoveAll(given => given.HasEnded(state));
+			foreach (CTimedModifier given in province.EventModifiers)
+			{
+				total.Add(given.Modifier);
+			}
 		}
 	}
 

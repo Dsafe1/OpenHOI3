@@ -102,6 +102,18 @@ if (args.Length > 0 && args[0] == "script")
 	return CScriptCheck.Run(args);
 }
 
+// Every event's and decision's conditions are asked of every country on the start date.
+if (args.Length > 0 && args[0] == "conditions")
+{
+	return CConditionsTrial.Run(args);
+}
+
+// Every event's and decision's effects are run once, and what is unbuilt listed.
+if (args.Length > 0 && args[0] == "effects")
+{
+	return CEffectsTrial.Run(args);
+}
+
 // A country's raiders are sent at another's convoys for some days.
 if (args.Length > 0 && args[0] == "raid")
 {

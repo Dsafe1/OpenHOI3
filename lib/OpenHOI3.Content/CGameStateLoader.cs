@@ -90,7 +90,9 @@ public static class CGameStateLoader
 
 		CBuilding[] buildings = CBuildingReader.Read(directories, warn);
 		ApplyProvinceHistory(directories, provinces, start, countries, map.Terrains, buildings, warn);
+		// One table by name, as the original looks both files' names up in one; the first of a name wins.
 		List<CModifier> staticModifiers = CModifierReader.ReadStaticModifiers(directories, warn);
+		staticModifiers.AddRange(CModifierReader.ReadEventModifiers(directories, warn));
 		List<CModifier> strategicResources = CModifierReader.ReadStrategicResources(directories, warn);
 		CDefines defines = CDefinesReader.Read(directories, warn);
 		List<CWar> wars = CWarReader.Read(directories, countries, start, warn);

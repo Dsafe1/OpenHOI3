@@ -708,10 +708,38 @@ In order:
       problems, all the base game's own: a `controls` with no `=`, `units_in_province = GER`,
       and two events sent that no file has (`script.md`, section 10).
       `OpenHOI3.SaveCheck script <install>` lists them. Nothing fires yet;
-   2. **what a trigger answers** - next. `reversing/findings/FINDINGS-triggereval.md`,
-      `FINDINGS-numtriggers.md` and `FINDINGS-scopetriggers.md` have most of it; the leaves the
-      grammar reading left unread are in `FINDINGS-triggergrammar.md`, *Not established*;
-   3. **what an effect does** - `FINDINGS-effects.md` has the slot map and several;
+   2. **what a trigger answers - built** (2026-10-12, `docs/mechanics/triggers.md`;
+      `Sim/Script`, with `CConditions` the way in): the scope and its eleven forms, the four
+      blocks and the five sets, and every leaf the simulation can answer, as the original
+      answers it - `month` from nought, `war_with = REB` true for everyone, `neighbour` asked
+      of the other country's list, a province's number throwing the country away. The 78
+      leaves nothing had read were read for it by a wave of three
+      (`reversing/findings/FINDINGS-triggerleaves.md`). **A condition about something the
+      simulation does not hold yet answers false and is reported as unbuilt** - diplomacy,
+      the government, parties, flags, revolts, espionage, the AI's missions, a war's record
+      (`triggers.md`, section 8) - by the maintainer's choice on 2026-10-12: feeding them from
+      the history files "would just be adding a system that is wrong and would be removed
+      later on anyways", since that state will be the country's own when its system is built.
+      Laws, the government's posts, the faction, the overlord, technologies, IC, manpower,
+      dissent, national unity, units, convoys, wars and alliances answer.
+      `OpenHOI3.SaveCheck conditions <install>` asks every event and decision of every
+      country on the start date: 16 events hold for somebody, and **5 of them only because
+      an unbuilt condition inside a `not` makes the `not` true** - and they are to fire all the
+      same, by the maintainer's word ("Just fire them");
+   3. **what an effect does - built** (2026-10-12, `docs/mechanics/effects.md`; `Sim/Script`,
+      with `CEffects` the way in): the scope blocks, `limit` in a scope doing nothing, the
+      eleven blocks that pick members with the state of chance each moves, `random` and
+      `random_list`, and the effects on what the simulation holds - flags, variables and the
+      modifiers an event gives (new state, step 13 of a country's modifier and step 5 of a
+      province's, `common/event_modifiers.txt` read for them), a country's figures, goods,
+      capital, abilities, ministers, leaders, an alliance and a war, a province's figures,
+      buildings, resource, name, cores, owner and controller. The 68 effects nothing had read
+      were read for it by a wave of three (`reversing/findings/FINDINGS-effectrun.md`).
+      **What the simulation does not hold does nothing and is reported** (`effects.md`,
+      section 8): diplomacy, factions, the government and parties, revolts, espionage, the AI,
+      units an event gives, and `country_event` and `province_event`, which wait for the next
+      piece. `OpenHOI3.SaveCheck effects <install>` runs every effect of the base game once:
+      2,882 in 615 blocks, under a second, and nothing trips;
    4. **an event firing and a decision taken**, with the windows - `FINDINGS-events.md` has
       how events fire.
 
@@ -794,14 +822,31 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 None of these blocks the list above.
 
-- **Event and decision script is read and does nothing yet** (2026-10-12, `script.md`): no
-  trigger answers, no effect is done, no event fires and no decision is taken - the next
-  three pieces of item 6. Four other things wait:
+- **Event and decision script is read, its conditions answer and its effects run, and no
+  event fires yet** (2026-10-12, `script.md`, `triggers.md`, `effects.md`): no event fires and
+  no decision is taken - the last piece of item 6. Other things wait:
+  - **a condition the simulation cannot answer is false**, and the unbuilt list is long
+    (`triggers.md`, section 8). Inside a `not` that makes the `not` true, so `not = {
+    government = x }` holds everywhere, and **such an event fires** - the maintainer's word on
+    2026-10-12, "Just fire them" - so some of the base game's events will fire for every
+    country until governments and parties are built;
+  - **an effect on what the simulation does not hold does nothing** (`effects.md`, section 8):
+    `relation` (271 of the base game's effects), `neutrality`, `war`, the government's and the
+    parties', a unit type's name and the rest - each a system of its own still to build;
+  - **a change of controller by script does what a battle's does here**, the province changing
+    hands and nothing else - the damage to buildings, the plunder of a capital and the rebasing
+    of aircraft and ships wait for both (`effects.md`, section 5);
+  - **`create_alliance`** runs a part of the alliance action nobody has read, and does nothing;
+  - **`num_of_ports`, `total_num_of_ports`, `has_hostile_spy_mission` and `sea_zone`** are
+    unread in the original, not unbuilt here, and answer false until they are read;
+  - **the lists the original keeps a day** - neighbours, allies, the nations a country could
+    release - are worked out when asked (`triggers.md`, section 6);
   - **the other places the original writes triggers and effects** are not read with it -
     a rebel type's `spawn_chance`, `on_actions.txt`, `triggered_modifiers.txt`, the casus
     belli, the AI's files - and a technology's `allow` and a tactic's or a trait's `trigger`
     still go through the small readers they were built with (`CResearchCondition`,
-    `CCombatCondition`), which should become this one's when triggers answer;
+    `CCombatCondition`), which should become this one's - the battle's conditions answer
+    false here for want of a battle in the scope, so that is where they go next;
   - **BlackICE's events have not been read**: a mod is not a layer here yet, and its 178
     event and 98 decision files are the harder test;
   - **missions, spy missions, ministers' and leaders' ids** are taken as written, nothing
@@ -1432,7 +1477,7 @@ sea and by air - in four projects:
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it. The panel of the unit selected on the map: a list of the units above it, its header, its status, its order, its buttons, its brigades, the units under it and the battles it is in, each a class of its own. The window of orders for a fleet or an air unit. And the window of a battle, with its two sides and a line for each unit on them |
 | `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital, and the carrying of supplies against what a start-date save holds in every province, with the convoys a new game makes against the save's, way for way and ship for ship. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial, `seabattle` does the same with two countries' fleets, and `raid` sends one country's raiders at another's convoys for a month. And `firstdays` sets a new game as a player gets it, its two days run, beside the start save country by country - meant to differ, since the original's AI has changed laws by then - where `supplypass ... countries` does it like for like, with the save's laws given. `techgap` looks at the technology levels the start save has above the history's, and `airbattle` flies an air mission with the install's own units and tells the battles it comes to; `bombing` flies a bombing mission for some days and tells what it did to the province. `script` reads an install's events and decisions and lists every problem in them, with no save needed |
-| `tests/` | 1558 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort, and how a tooltip is shown with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say - the designer's terrain summary, the practical's discount, a brigade's summary, a leader's own and what a trait does among them - a modifier's sources written out and the counter in text - and the reading of event and decision script, its words, its triggers and effects by the original's grammar, an event, a decision and the problems found - where silent misreadings are expensive |
+| `tests/` | 1599 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort, and how a tooltip is shown with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say - the designer's terrain summary, the practical's discount, a brigade's summary, a leader's own and what a trait does among them - a modifier's sources written out and the counter in text - and the reading of event and decision script, its words, its triggers and effects by the original's grammar, an event, a decision and the problems found, and what a condition answers - the scope and its forms, the blocks and the sets, the leaves and what is reported unbuilt - and what an effect does, with flags, variables and the modifiers an event gives - where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.
@@ -1585,7 +1630,11 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
     Construction/       the build queue: a line, its brigades, the rules, and placing what
                         comes out
     Script/             events and decisions as read: an event, an option, a decision, a
-                        mean time to happen, a trigger and an effect, and a value
+                        mean time to happen, a trigger and an effect, and a value; and
+                        what a condition answers - the scope, its forms, the sets, the
+                        leaves, and what is reported unbuilt; and what an effect does -
+                        the blocks, the draws, flags, variables, the modifiers an event
+                        gives, and the effects on countries and provinces
 lib/OpenHOI3.Content/   reading an install: finding and layering it, localisation, the loader
     Clausewitz/         the script format
     Map/                the province bitmap, shapes, the edges between provinces with their

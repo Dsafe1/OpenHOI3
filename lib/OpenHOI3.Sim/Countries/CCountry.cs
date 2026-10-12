@@ -85,6 +85,21 @@ public sealed class CCountry
 	public List<CModifierSource> ModifierSources { get; } = new();
 
 	/// <summary>
+	/// The modifiers events and decisions have given it, each to its hour, in the order given:
+	/// step 13 of its modifier. See <c>docs/mechanics/effects.md</c>, section 6.
+	/// </summary>
+	public List<CTimedModifier> EventModifiers { get; } = new();
+
+	/// <summary>The flags script has set on it: <c>docs/mechanics/effects.md</c>, section 3.</summary>
+	public Script.CFlags Flags { get; } = new();
+
+	/// <summary>
+	/// The numbers script keeps on it by name, in thousandths, names matched without case:
+	/// <c>docs/mechanics/effects.md</c>, section 3.
+	/// </summary>
+	public Dictionary<string, CFixedPoint> Variables { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
 	/// The IC of its provinces, in whole IC, before any of the country's own bonuses.
 	/// Written by <see cref="CIndustrialCapacity"/>.
 	/// </summary>

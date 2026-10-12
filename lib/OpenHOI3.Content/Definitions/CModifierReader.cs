@@ -146,9 +146,22 @@ public static class CModifierReader
 	/// </summary>
 	public static List<CModifier> ReadStaticModifiers(CDirectorySettings directories, Action<string> warn)
 	{
+		return ReadNamed(directories, "common/static_modifiers.txt", "static modifiers", warn);
+	}
+
+	/// <summary>
+	/// <c>common/event_modifiers.txt</c>: the modifiers an event or a decision gives a country or a
+	/// province by name, in the same shape (<c>docs/mechanics/effects.md</c>, section 6).
+	/// </summary>
+	public static List<CModifier> ReadEventModifiers(CDirectorySettings directories, Action<string> warn)
+	{
+		return ReadNamed(directories, "common/event_modifiers.txt", "event modifiers", warn);
+	}
+
+	private static List<CModifier> ReadNamed(CDirectorySettings directories, string file, string what, Action<string> warn)
+	{
 		var modifiers = new List<CModifier>();
-		ClausewitzNode? root = ParseIfPresent(directories, "common/static_modifiers.txt", "static modifiers",
-			warn, out string path);
+		ClausewitzNode? root = ParseIfPresent(directories, file, what, warn, out string path);
 		if (root is null)
 		{
 			return modifiers;
@@ -166,7 +179,7 @@ public static class CModifierReader
 		}
 		if (unreadable > 0)
 		{
-			warn($"'{path}': {unreadable} entries inside static modifiers are not numbers");
+			warn($"'{path}': {unreadable} entries inside {what} are not numbers");
 		}
 		return modifiers;
 	}

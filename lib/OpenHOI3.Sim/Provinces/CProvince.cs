@@ -27,8 +27,11 @@ public sealed class CProvince
 
 	public int Id { get; }
 
-	/// <summary>Localised name; falls back to the localisation key when it is missing.</summary>
-	public string Name { get; }
+	/// <summary>
+	/// Localised name; falls back to the localisation key when it is missing. Script may give it
+	/// another (<c>docs/mechanics/effects.md</c>, section 5).
+	/// </summary>
+	public string Name { get; set; }
 
 	public bool IsSea { get; }
 
@@ -159,6 +162,15 @@ public sealed class CProvince
 	/// adjusted: see <see cref="CProvinceModifiers"/>.
 	/// </summary>
 	public CModifier Modifier { get; } = new();
+
+	/// <summary>
+	/// The modifiers events and decisions have given it, each to its hour: step 5 of its
+	/// modifier. See <c>docs/mechanics/effects.md</c>, section 6.
+	/// </summary>
+	public List<CTimedModifier> EventModifiers { get; } = new();
+
+	/// <summary>The flags script has set on it: <c>docs/mechanics/effects.md</c>, section 3.</summary>
+	public Script.CFlags Flags { get; } = new();
 
 	/// <summary>The weather over it. Nothing changes it yet.</summary>
 	public CWeather Weather { get; } = new();

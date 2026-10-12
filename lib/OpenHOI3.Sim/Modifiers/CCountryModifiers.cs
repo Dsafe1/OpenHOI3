@@ -66,6 +66,13 @@ public static class CCountryModifiers
 				AddSource(country, Scaled(dissent, country.Dissent));
 			}
 
+			// What events gave it, each until its time has passed (step 13).
+			country.EventModifiers.RemoveAll(given => given.HasEnded(state));
+			foreach (CTimedModifier given in country.EventModifiers)
+			{
+				AddSource(country, given.Modifier);
+			}
+
 			RebuildTechnology(state, country);
 		}
 	}

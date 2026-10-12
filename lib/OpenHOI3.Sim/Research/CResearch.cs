@@ -263,7 +263,7 @@ public static class CResearch
 	}
 
 	/// <summary>Gives a technology its day's leadership, and answers whether that finished a level.</summary>
-	private static bool Advance(CGameState state, CCountry country, CTechnology technology, CFixedPoint leadership)
+	public static bool Advance(CGameState state, CCountry country, CTechnology technology, CFixedPoint leadership)
 	{
 		string name = technology.Name;
 		int level = country.TechnologyLevels.GetValueOrDefault(name);

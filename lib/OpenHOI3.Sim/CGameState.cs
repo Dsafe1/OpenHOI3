@@ -230,6 +230,9 @@ public sealed class CGameState
 	/// </summary>
 	public HashSet<CCountryTag> Played { get; } = new();
 
+	/// <summary>The game's own flags, which script sets: <c>docs/mechanics/effects.md</c>, section 3.</summary>
+	public Script.CFlags Flags { get; } = new();
+
 	/// <summary>
 	/// How well each country knows each province it has a unit in and does not hold, where
 	/// it knows it at all: by the province's id and the country. The name is from when
