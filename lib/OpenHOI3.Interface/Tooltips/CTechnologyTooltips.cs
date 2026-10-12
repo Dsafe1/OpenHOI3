@@ -76,19 +76,19 @@ public static class CTechnologyTooltips
 
 	/// <summary>
 	/// A tree entry: the name and the level, why it may not be researched where it may not,
-	/// and, to come, a double click starting or stopping it. The original then writes what a
-	/// level does, which was not read and is left out.
+	/// what as many levels as that do, and a double click starting or stopping it.
 	/// </summary>
 	public static CTooltip TreeEntry(Func<string, string> localise, CGameState state, CCountry country, CTechnology technology)
 	{
 		var text = new StringBuilder();
-		text.Append(localise(technology.Name)).Append(" (")
-			.Append(EntryLevel(country, technology).ToString(CultureInfo.InvariantCulture)).Append(")\n\n");
+		int level = EntryLevel(country, technology);
+		text.Append(localise(technology.Name)).Append(" (").Append(level.ToString(CultureInfo.InvariantCulture)).Append(")\n\n");
 		bool queued = country.ResearchQueue.Contains(technology.Name, StringComparer.OrdinalIgnoreCase);
 		if (!CResearch.MayResearchNext(state, country, technology))
 		{
-			text.Append(queued ? localise("TTE_ALREADY") : WhyNot(localise, country, technology)).Append('\n');
+			text.Append(queued ? localise("TTE_ALREADY") : WhyNot(localise, state, country, technology)).Append('\n');
 		}
+		text.Append(CTechnologyEffectsText.For(localise, state, country, technology, level));
 		return new CTooltip
 		{
 			Text = text.ToString(),
@@ -97,13 +97,17 @@ public static class CTechnologyTooltips
 	}
 
 	/// <summary>
-	/// Why a technology may not be researched: had already, for one of one level. Otherwise the
-	/// original asks its <c>allow</c> block to say, which was not read, and nothing is said.
+	/// Why a technology may not be researched: had already, for one of one level; otherwise its
+	/// <c>allow</c> block's account of itself - every condition, met or not.
 	/// </summary>
-	public static string WhyNot(Func<string, string> localise, CCountry country, CTechnology technology)
+	public static string WhyNot(Func<string, string> localise, CGameState state, CCountry country, CTechnology technology)
 	{
 		int next = country.TechnologyLevels.GetValueOrDefault(technology.Name) + 1;
-		return technology.AdditionalOffset == 0 && (next > 1 || next < 0) ? localise("ALREADY_RESEARCHED") : "";
+		if (technology.AdditionalOffset == 0 && (next > 1 || next < 0))
+		{
+			return localise("ALREADY_RESEARCHED");
+		}
+		return technology.Allow is { } allow ? CRequirementText.For(localise, state, country, allow) : "";
 	}
 
 	/// <summary>A theory or practical: its name. Nothing shares one here, so there is no second half.</summary>
@@ -191,7 +195,7 @@ public static class CTechnologyTooltips
 		}
 		if (!CResearch.MayResearchNext(state, country, technology))
 		{
-			return WhyNot(localise, country, technology);
+			return WhyNot(localise, state, country, technology);
 		}
 		return CTextTemplate.Fill(localise("START_RESEARCH"),
 			("DAYS", CNumberText.Format(new CFixedPoint(EstimatedDays(state, country, technology)), 0)));

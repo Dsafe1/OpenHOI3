@@ -243,8 +243,9 @@ line for each technology the country shares with another, `SHARE_TECH_TOOLTIP`; 
 - the name, ` (`, the level - the one the country would research next, or **1 for a technology of
   one level, had or not** - and `)` and two lines;
 - where it may not be researched: `TTE_ALREADY` where it is on the queue, else why not - for a
-  technology of one level had already `ALREADY_RESEARCHED` - and a line;
-- what a level does - **not built**, below;
+  technology of one level had already `ALREADY_RESEARCHED`, otherwise its `allow` block's account
+  of itself, below - and a line;
+- what that many levels do, below;
 - the third part, under its own line once the mouse is still: `TECH_DC_TO_STOP` for one on the queue,
   else `TECH_DC_TO_START`.
 
@@ -282,16 +283,54 @@ country gives research:
 
 The penalty is the year's of `research.md`, section 3; a year has 365 days and today counts as left.
 
+**Why not: the `allow` block's account of itself** (`reversing/findings/FINDINGS-techtext.md`,
+read 2026-10-12; `CRequirementText`; tried with `--click`). Every condition is written, met or not,
+each with an asterisk, `(§G*§W)` where it holds and `(§R*§W)` where not. A level of indent is three
+spaces. **The indentation is the one the mod's DLL corrects the original's to, by the
+maintainer's word** (`docs/compatibility.md`, entry 10); the words and the order are the
+original's:
+
+- at the top the block is a plain list: each condition at no indent with its asterisk;
+- "one of" (`OR`) is `OR_TRIGGER_STARTS` and `:`, with its own asterisk only at the top; "all of"
+  (`AND`) below the top is `AND_TRIGGER_STARTS` and `:`; each of their conditions follows a level
+  deeper than the group, its asterisk, and its own line or block;
+- "none of" (`NOT`) writes its conditions **in the opposite words**, an asterisk green where the
+  condition does not hold, and stands on its parent's line;
+- `any_owned_province` is `ANY_PROVINCE_STARTS (country):` and its condition a level deeper with no
+  asterisk;
+- the lines: a technology `§Y` name ` (` folder `)§W` `TECHNOLOGY_HIGHER_THAN` - or
+  `TECHNOLOGY_LOWER_THAN` inside a "none of" - `§Y` the level `§W`; `num_of_ports`
+  `HAVE_MORE_PORTS_THAN` (`HAVE_LESS_PORTS_THAN`) `§Y` n `§W`; `has_building` `HAVE_A_X_INY`
+  (`DONT_HAVE_A_X_INY`) with the building and **the province of the scope, which for a country is
+  the province numbered nothing**.
+
+**What levels do** (`CTechnologyEffectsText`; the same reading). Every figure is the technology's
+per level **times the level the entry speaks of** - so an entry at its third level says three
+levels' worth:
+
+- **for a first level only**: `ENABLE_UNIT_TECH §Y` and each unit type it activates that the country
+  may use, and `ENABLE_BUILDING_TECH §Y` and the building it activates;
+- for each unit type it changes that the country may use, in the file's order: the type's `_short`
+  name, `: `, and its figures on one line - each a label, ` §G` where it helps or ` §R`, `+` above
+  nothing, the figure to its places, `§W `, its unit, the lines joined with commas - then the night,
+  fort, river and amphibious adjusters and each terrain's, as the designer writes them
+  (`builders.md`, section 11);
+- for the whole country, 46 figures in the original's order, each `label: ` and green with a plus
+  where it helps, red where not, two places of a percentage for most - some whole, some in hours,
+  two with less better - then the two yes-or-no lines, the tactics (**green with a plus whatever
+  the sign**), the combined-arms groups, each mission's efficiency and organisation penalty, and
+  last, after a line break, decay. The table is the findings file's, section 7.
+
 **Kept as read**, though they look odd: an entry of one level says `(1)` whatever the country has;
-the start button's days are at one leadership a day.
+the start button's days are at one leadership a day; a tactic's penalty is written `+-100%`; radar
+efficiency has no `%` and radio strength one; a building under `any_owned_province` is said to be
+"in" the province numbered nothing; what a level allows is said only of the first.
 
 *Ours:*
 
-- **What a level does is left out of an entry's tooltip.** The original writes it there - the units
-  and building it allows, each unit type's figures and the country-wide ones - from a routine not
-  read, which is also what the panel's `effects` list is made of (section 7).
-- **Why a technology may not be researched** is said only for one of one level had already. The
-  original otherwise has its `allow` block describe itself, which was not read, and nothing is said.
+- **A condition the reading has no words for is left out**: a category's name as a condition, and
+  every trigger the base game's technologies do not use - BlackICE's `war`, `faction`,
+  `has_country_flag` and the rest (*Not established*).
 - **A text box lets the mouse through** to what is under it; over an entry's name it is the entry's
   background that answers, which says the same.
 
@@ -302,11 +341,13 @@ the start button's days are at one leadership a day.
    `start` and the queue's dates reading year first all right.
 2. **What the buttons do**: the folders, an entry's click and double click, `cancel`, the
    four priority buttons, `start`, the panel's `close`.
-3. **The effects' wording**, and what a technology does to units.
+3. **The panel's `effects` list.** The original makes it from the text section 9 gives an
+   entry's tooltip, cut into rows and for a level of its own, and neither was read; its rows are
+   ours (section 7).
 4. **Whether an icon's frames count from nought.**
 5. **The separator in a level's name key.**
 6. **Sharing.** A category another country shares shows green, and an entry's input icons
    may show the sharer's figure; nothing shares yet.
-7. **Two parts of the tooltips** (section 9): what a level does, which an entry's tooltip carries
-   and the panel's `effects` are made of, and the account a technology's `allow` block gives of
-   why it may not be researched.
+7. **The words of every other condition** a mod's `allow` block may hold, and which condition a
+   category's name makes; and **the name of the province numbered nothing**, which the original
+   gives a building under `any_owned_province` and is empty here.

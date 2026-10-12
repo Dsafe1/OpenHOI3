@@ -266,6 +266,12 @@ public static class CBuilderTooltips
 		return sum.Select(figure => figure * CFixedPoint.Scale / divisor).ToArray();
 	}
 
+	/// <summary>One adjuster's line, its figures as it holds them.</summary>
+	public static string Describe(Func<string, string> localise, CModifier adjuster)
+	{
+		return Describe(localise, Figures.Select(figure => adjuster[figure.Kind].Raw).ToArray());
+	}
+
 	/// <summary>
 	/// An adjuster's four figures in one line: attack, defence and movement times a hundred,
 	/// and attrition as it is, each left out at nothing.

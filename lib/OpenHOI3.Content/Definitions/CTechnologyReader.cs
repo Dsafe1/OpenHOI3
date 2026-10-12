@@ -155,11 +155,12 @@ public static class CTechnologyReader
 				{
 					effect.Set(entry.Key, value);
 				}
-				else if (entry.Key is not null && entry.Key.Equals(CTechnology.AllowEscorts, StringComparison.OrdinalIgnoreCase)
+				else if (entry.Key is not null && (entry.Key.Equals(CTechnology.AllowEscorts, StringComparison.OrdinalIgnoreCase)
+						|| entry.Key.Equals(CTechnology.ListeningStation, StringComparison.OrdinalIgnoreCase))
 					&& "yes".Equals(entry.Value, StringComparison.OrdinalIgnoreCase))
 				{
 					// A flag and not a figure: a level of it is worth one.
-					effect.Set(CTechnology.AllowEscorts, CFixedPoint.One);
+					effect.Set(entry.Key.ToLowerInvariant(), CFixedPoint.One);
 				}
 			}
 
@@ -190,6 +191,7 @@ public static class CTechnologyReader
 					.Where(entry => entry.Value is { Length: > 0 })
 					.Select(entry => entry.Value!)
 					.ToList(),
+				ActivatesBuilding = block.All("activate_building").LastOrDefault(entry => entry.Value is { Length: > 0 })?.Value ?? "",
 				Change = !block.GetString("change").Equals("no", StringComparison.OrdinalIgnoreCase),
 				CanUpgrade = !block.GetString("can_upgrade").Equals("no", StringComparison.OrdinalIgnoreCase),
 			};

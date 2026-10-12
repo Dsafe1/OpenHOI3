@@ -55,7 +55,7 @@ bombing and the day's repair of what was bombed, and the window of an air battle
 bombing, and the whole of the air orders window with a mission's area, and the air map mode
 with a list of finished battles, and leaders - who is in service, who commands which
 unit, how far a command reaches, what a leader does in a battle, what a battle gives him and
-the window he is chosen in - and how a tooltip is shown, with a province's, the top bar's, the production and technology screens', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's - 1515 tests - and it is
+the window he is chosen in - and how a tooltip is shown, with a province's, the top bar's, the production and technology screens', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's, and a technology's requirements and effects - 1523 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
@@ -478,9 +478,15 @@ would do at the slider's position**, before it is sent - the two screens turn a 
 share in different orders, rounding before or after dividing, and each is kept. An entry window
 answers for all its elements through `CGuiWindow.SetTooltips`, **which leaves a text box letting
 the mouse through** so that a background button keeps its clicks. **`£` and a name in a text draw
-that unit's counter**, the middle of `GFX_counter_` + name (`CCounterIcons`, `CTextIcons`). Two
-parts wait for readings of their own: what a level of a technology does, and why one may not be
-researched. **The four builder windows' are built too** (2026-10-11, `builders.md` section 11,
+that unit's counter**, the middle of `GFX_counter_` + name (`CCounterIcons`, `CTextIcons`). **Its
+last two parts were built on 2026-10-12** (`technologyscreen.md` section 9; `CRequirementText`,
+`CTechnologyEffectsText`), read whole and tried with `--click`, and the maintainer has not looked
+at them: why a technology may not be researched is its `allow` block's account of itself, every
+condition with an asterisk and its words turned round inside a "none of", **indented as the mod's
+DLL corrects the original, by the maintainer's word - "Please use the fixed logic"**
+(`docs/compatibility.md`, entry 10); what levels do is what a first level allows, each unit
+type's figures on one line and the country's, all times the level the entry speaks of. Only the
+base game's conditions have words yet. **The four builder windows' are built too** (2026-10-11, `builders.md` section 11,
 `CBuilderTooltips`), read whole, tried with `--click`, and the maintainer has not looked at
 them: **only the column headers, the step buttons and the designer's combined arms and terrain
 speak** - everything else in them is silent in the original too - with the designer's **terrain
@@ -656,7 +662,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 134 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 135 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -692,7 +698,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 3480-address, 322-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 3485-address, 322-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -866,7 +872,7 @@ beside the repository.
   after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, a leader in a battle on land, at sea and in the air, and the experience and traits a battle gives, the window a leader is chosen in and the original runtime's sort, and the tooltip - what the box shows of one, where it goes, when its second half comes and how a line is broken - with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say, a brigade's summary, a leader's tooltip and what a trait does, the flag and the counter in text and a modifier's sources written out, and a scrollbar's end buttons - the step, Shift, Ctrl and holding - carry 1515 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, a leader in a battle on land, at sea and in the air, and the experience and traits a battle gives, the window a leader is chosen in and the original runtime's sort, and the tooltip - what the box shows of one, where it goes, when its second half comes and how a line is broken - with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say, a brigade's summary, a leader's tooltip and what a trait does, a technology's requirements with the corrected indentation and what its levels do, the flag and the counter in text and a modifier's sources written out, and a scrollbar's end buttons - the step, Shift, Ctrl and holding - carry 1523 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

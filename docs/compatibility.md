@@ -182,6 +182,24 @@ day and was told it looks like an accident of ordering and not a rule: "I agree"
 `docs/mechanics/supply.md`, section 9; `reversing/findings/FINDINGS-supplynetwork.md`,
 section 10.
 
+## 10. A requirement tooltip is indented as BiceLib corrects it
+
+**Decided** 2026-10-12 by the maintainer, when the technology screen's tooltips were taken up:
+"In the Bicelib.dll we already have a hook which fixes the indentation for those types of
+tooltips. Please use the fixed logic."
+
+| | |
+| --- | --- |
+| the original | writes an `allow` block's conditions with three spaces a level, but gets the depth wrong inside an "all of" and a "one of": a block's header indents a line its parent placed, its conditions sit level with the header, a block inside a block starts again at one level, a block inside a scope has no asterisk, a country scope's conditions none either, and a "none of" indents its condition into the middle of its parent's line |
+| here | the same lines, words and order, with the corrected arithmetic the mod's DLL patches in: no header indents itself, each condition of a block one level deeper than the block, a block in a block at its real depth, a block's asterisk drawn, and a "none of" on its parent's line |
+| the difference today | only the spaces before a line and an asterisk on a block inside a scope. No base game technology nests deeper than three levels, and nothing here has a country scope yet |
+| a mod loses | nothing of its files; a mod that worked round the original's indentation in its texts would see its own spaces added to correct ones |
+| why | the original's is a bug that makes a nested block unreadable, and the mod already plays with it mended |
+| to undo | the three sums in `CRequirementText` back to the original's - `reversing/findings/FINDINGS-techtext.md`, section 2 has them |
+
+`docs/mechanics/technologyscreen.md`, section 9; `reversing/findings/FINDINGS-techtext.md`,
+sections 2 and 4.
+
 ---
 
 ## Stricter, with the same meaning

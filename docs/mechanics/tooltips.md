@@ -195,8 +195,8 @@ that is read.
   the four builder windows' with the practical icon's (`builders.md`, section 11), the unit
   panel's (`unitpanel.md`, section 10), the deploy menu's (`mapunits.md`, section 10), the orders
   windows' (`fleetsandair.md`, section 8), a battle's (`combatview.md`, section 12) and the leader
-  window's (`leaders.md`, section 13). What waits is the technology screen's two that need
-  readings of their own: what a level of a technology does, and why one may not be researched.
+  window's (`leaders.md`, section 13). Every screen built has its tooltips; a new one comes with
+  its own.
 
 ## Not established
 

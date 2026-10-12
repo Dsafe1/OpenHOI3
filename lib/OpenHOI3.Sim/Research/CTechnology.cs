@@ -15,6 +15,9 @@ public sealed class CTechnology
 	/// <summary>The effect that lets a country build convoy escorts, kept as one per level.</summary>
 	public const string AllowEscorts = "allow_escorts";
 
+	/// <summary>The effect that gives a country listening stations, kept the same way. Nothing here uses it yet.</summary>
+	public const string ListeningStation = "listening_station";
+
 	public CTechnology(string name, int maxLevel, CModifier effectPerLevel)
 	{
 		Name = name;
@@ -84,6 +87,12 @@ public sealed class CTechnology
 	/// <c>activate_unit</c> of its block.
 	/// </summary>
 	public IReadOnlyList<string> ActivatesUnits { get; init; } = Array.Empty<string>();
+
+	/// <summary>
+	/// The building a level of it allows, by key - its <c>activate_building</c> - or empty. The
+	/// original keeps one; where a block names more, the last is kept.
+	/// </summary>
+	public string ActivatesBuilding { get; init; } = "";
 
 	/// <summary>What a level of it adds to each unit type, by the type's key.</summary>
 	public Dictionary<string, CSubUnitStats> UnitEffects { get; } = new(StringComparer.OrdinalIgnoreCase);
