@@ -6,7 +6,6 @@ using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Leaders;
-using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Interface.Tooltips;
 
@@ -71,16 +70,7 @@ public static class CBattleTooltips
 		{
 			return CTooltip.Empty;
 		}
-		CUnit? unit = leader.Unit;
-		foreach (CUnit each in side.Units)
-		{
-			if (each.Leader == leader)
-			{
-				unit = each;
-				break;
-			}
-		}
-		string text = unit is null ? "" : CLeaderTooltip.For(localise, state, unit, leader);
+		string text = CLeaderTooltip.For(localise, state, leader);
 		bool initiative = leader.Skill > CCombatLeaders.Skill(combat.Other(side));
 		return new CTooltip { Text = text, Delayed = initiative ? localise("LEADER_INITIATIVE") : "" };
 	}

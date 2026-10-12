@@ -551,6 +551,53 @@ trait alone.
 In a battle's window each side shows its highest ranked leader's portrait and name, and the
 side whose leader has more skill has the arrow of initiative (`combatview.md`, section 4).
 
+## 13. The window's tooltips
+
+Read whole on 2026-10-12 (`reversing/findings/FINDINGS-leadertooltips.md`); built in
+`CLeaderWindowTooltips`, tried with `--click`, and the maintainer has not looked at them.
+`confirmed` except where it says. How a tooltip is shown is `tooltips.md`.
+
+**The order it is asked in.** The trait filter, where it is up and the element is in it - and its
+answer stands, empty or not; then the row the element is in, whose answer stands where it says
+anything; then the window, by the element's name; **and what the window leaves unsaid falls to the
+header of the unit's panel** (`unitpanel.md`, section 10), by name. So:
+
+| element | what it says |
+| --- | --- |
+| the head's `selected_photo`, a row's `photo` | that leader's own tooltip (`unitpanel.md`, section 10.5); the head's empty leader's is `INACTIVE`, `NO_LEADER`, skill 0 at its most and no experience |
+| `gaintrait_info`, at the head and in a row | where the leader is part of the way to a trait, `TO_GAIN_TRAITS_DESC`, a line break and the lines of progress; otherwise `NO_TRAIT_TO_GAIN_DESC` |
+| `trait_icon`, at the head and in a row | the trait's name, and after a moment what it does, below |
+| a filter row's checkbox `background` | what its trait does - nothing for the row of no trait - and after a moment `TRAIT_FILTER_ENTRY_DESC` |
+| `filter_traits` | `TRAIT_FILTER_DESC` |
+| a row's `leader_button` | **the header's leader button's**: `UW_LEADER_BUTTON_IRO`, after a moment `UW_LEADER_BUTTON_DRO` - "Assign new leader." |
+
+Everything else says nothing. A row's name and skill lie over its button, and the original's
+topmost element answers - with nothing, so the button speaks only where the mouse is off them; a
+filter row's name is `allwaystransparent` in the file, and its checkbox speaks under it.
+
+**What a trait does** is a line for each of its effects, in its file's order, with a line break
+between and none after:
+
+    the label, by the kind:  TRAIT_ + the effect's key in capitals - TRAIT_XP_GAIN,
+                             TRAIT_SUPPLY_CONSUMPTION and so on - but TRAIT_TERRAIN_SPEED and
+                             TRAIT_TERRAIN_ATTACK with TYPE the terrain's text, and none at all
+                             for paradrop_mission and terrain_defence
+    " §G" where the value helps, else " §R" - more is worse for supply_consumption,
+          winter_attrition, encirclement_bonus and envelopment_bonus
+    "+" where the value is above nothing
+    the disengage timer as its figure, 0 places; the rest the figure times 100, 0 places,
+          cut and not rounded, + "%§W"
+
+**How many a leader may command** is said only where he commands a unit and it is a fleet or an air
+unit, measured against that unit, and ships or planes by it - so a leader commanding nothing, as
+most rows' do, does not say it. That corrected the unit panel's reading, which had it by the
+leader's kind.
+
+**The original shows them.** The routine is asked only by the unit panel, for an element inside
+the panel's window, and the bytes read do not show how the leader window comes to be inside it -
+but the maintainer's screenshot of the running game, 2026-10-12, has a trait's name, `Engineer`,
+in the box over a row's trait icon.
+
 ## Kept as read, though they look odd
 
 1. **An order of battle's leader goes on whoever he is**: another country's, a rank that does
@@ -607,14 +654,18 @@ side whose leader has more skill has the arrow of initiative (`combatview.md`, s
 24. **A filter with every trait off is forgotten** (section 12): the next window has everything
     on.
 25. **"Remove all" closes the window before the question is answered**, whatever the answer.
+26. **Paradrop mission and terrain defence have no label in a trait's tooltip** (section 13):
+    their lines are the colour and the figure alone.
+27. **An effect of nothing is red**, and more encirclement and envelopment bonus is red, as more
+    supply consumption and winter attrition are.
+28. **A row's button says what the header's leader button says** - "Assign new leader." -
+    having nothing of its own.
 
 ## Not built
 
 - `winter_attrition` waits for attrition. The practical knowledge a battle gives.
 - **The aggressiveness a side's leader picks a tactic with**: it comes from plans and a unit's
   own setting, neither of which exists here, so it is 0.
-- **The window's tooltips** - a leader's, a trait's, and the progress towards each trait battles
-  earn behind the `gaintrait_info` icon: the tooltips are a piece of their own, next.
 - **A unit aboard a ship or an aircraft**, which the leader button refuses: nothing carries yet.
 - **The AI's own reshuffle of its leaders**, and the headquarters it makes; leaders made,
   killed or changed by events.

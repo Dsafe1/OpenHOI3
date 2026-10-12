@@ -370,8 +370,8 @@ not the top bar's form. **On the march** the date is when it reaches the next pr
 the province is that one.
 
 *Not built*: the organisation bar's second line - the organisation a brigade regains an hour,
-whose unit-wide term is not read - and the leader window's own part, which the header asks
-first while that window is up. *Ours*: a unit is unable to act when it has no brigades; what
+whose unit-wide term is not read. The leader window's own part, which the header asks first
+while that window is up, is the window's (`leaders.md`, section 13). *Ours*: a unit is unable to act when it has no brigades; what
 the original asks was not read.
 
 ### 10.2 The status
@@ -460,9 +460,11 @@ anything else `PLAYER_CONTROLLED` - with `AUTOMATED_DESC` after a moment; `reorg
 
     his rank's name - LAND_RANK1..4, SEA_RANK1..4 or AIR_RANK1..4, INACTIVE at none -
           + " §Y" + his name + "§W\n"
-    an admiral or an air marshal: LEADER_COMMAND_SIZE, " §G" where his rank is enough for
-          the unit and " §R" where not, " ", how many ships or wings his rank commands,
-          " ", SHIPS_LABEL or PLANES_LABEL, "§W\n"
+    where the unit he commands is a fleet or an air unit: LEADER_COMMAND_SIZE, " §G" where
+          his rank is enough for that unit and " §R" where not, " ", how many ships or wings
+          his rank commands, " ", SHIPS_LABEL or PLANES_LABEL by that unit, "§W\n" - nothing
+          where he commands nothing (corrected 2026-10-12 with the leader window's tooltips,
+          `leaders.md` section 13: this said an admiral or an air marshal)
     an admiral: LEADER_POSITIONING + " §Y" + a tenth of his skill as a whole percentage + "%§W\n"
     LEADER_SKILL + " §Y" + his skill, " (" + LEADER_SKILL_AT_MAX + ")" at his most, "§W\n"
     LEADER_XP + " §Y" + how far he is to his next skill, a percentage to two places + "%§W\n"

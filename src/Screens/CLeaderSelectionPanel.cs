@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
@@ -31,6 +32,7 @@ public sealed class CLeaderSelectionPanel
 	private readonly CSimulation _simulation;
 	private readonly CCountry? _player;
 	private readonly CUnit _unit;
+	private readonly CCountry? _owner;
 	private readonly CLeader? _leader;
 	private readonly ELeaderType _type;
 	private readonly Dictionary<ELeaderType, List<CTrait?>> _kept;
@@ -57,7 +59,14 @@ public sealed class CLeaderSelectionPanel
 		_type = CLeaders.TypeFor(unit);
 		_kept = kept;
 		_filter = CLeaderTraitFilter.Load(kept.GetValueOrDefault(_type), simulation.State.Traits);
+		_owner = simulation.State.Country(unit.Owner);
 		parent.AddChild(window);
+		// Before the rows and the trait icons are put in, which answer for themselves.
+		if (_owner is { } owner)
+		{
+			window.SetTooltips(name => CLeaderWindowTooltips.Panel(context.Localisation.Localise, simulation.State, owner,
+				unit, _leader, name));
+		}
 
 		Button("back_button", Close);
 		Button("noleader_button", () =>
@@ -241,7 +250,7 @@ public sealed class CLeaderSelectionPanel
 		_rows.Clear();
 		foreach (CLeader leader in leaders)
 		{
-			if (CLeaderEntry.Create(_context, leader, _unit) is { } row)
+			if (CLeaderEntry.Create(_context, leader, _unit, RowTooltip(leader)) is { } row)
 			{
 				row.Chosen += chosen =>
 				{
@@ -254,6 +263,17 @@ public sealed class CLeaderSelectionPanel
 			}
 		}
 		_list.Relayout();
+	}
+
+	/// <summary>A row's tooltips: its own, and where it says nothing the window's.</summary>
+	private Func<string, CTooltip> RowTooltip(CLeader leader)
+	{
+		if (_owner is not { } owner)
+		{
+			return _ => CTooltip.Empty;
+		}
+		return name => CLeaderWindowTooltips.Row(_context.Localisation.Localise, _simulation.State, owner, _unit, _leader,
+			leader, name);
 	}
 
 	private void MakeFilterRows()

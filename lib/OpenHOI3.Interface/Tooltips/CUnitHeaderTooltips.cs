@@ -50,7 +50,7 @@ public static class CUnitHeaderTooltips
 				return new CTooltip { Text = Strength(localise, unit) };
 			case "unitleader":
 			case "leader_photo":
-				return unit.Leader is { } leader ? new CTooltip { Text = CLeaderTooltip.For(localise, state, unit, leader) } : CTooltip.Empty;
+				return unit.Leader is { } leader ? new CTooltip { Text = CLeaderTooltip.For(localise, state, leader) } : CTooltip.Empty;
 			default:
 				return Shared(localise, owner, unit, element);
 		}

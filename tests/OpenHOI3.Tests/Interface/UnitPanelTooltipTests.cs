@@ -155,7 +155,7 @@ public class UnitPanelTooltipTests
 			+ "Experience §Y50.00%§W\n"
 			+ "\nActual traits:\n- §YPanzer Leader§!"
 			+ "\nTraits to gain:\n- §G2.50%§! progress toward trait §YWinter Specialist§!",
-			CLeaderTooltip.For(Localise, state, army, leader));
+			CLeaderTooltip.For(Localise, state, leader));
 	}
 
 	[Fact]
@@ -176,7 +176,7 @@ public class UnitPanelTooltipTests
 			+ "Positioning Bonus §Y20%§W\n"
 			+ "Skill §Y2§W\n"
 			+ "Experience §Y0.00%§W\n",
-			CLeaderTooltip.For(Localise, state, fleet, admiral));
+			CLeaderTooltip.For(Localise, state, admiral));
 	}
 
 	[Theory]

@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Units;
 
@@ -56,10 +57,17 @@ public sealed class CLeaderEntry
 
 	public CLeader Leader { get; }
 
-	public static CLeaderEntry? Create(CGuiContext context, CLeader leader, CUnit unit)
+	/// <param name="tooltip">What each element says, by its name. The name and the skill answer too where the mouse is over them, as the original's topmost element does - with nothing.</param>
+	public static CLeaderEntry? Create(CGuiContext context, CLeader leader, CUnit unit, Func<string, CTooltip> tooltip)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, CLeaderWindowText.EntryName(leader));
-		return window is null ? null : new CLeaderEntry(window, context, leader, unit);
+		if (window is null)
+		{
+			return null;
+		}
+		// Before the trait icons are put in, which answer for themselves.
+		window.SetTooltips(tooltip, "leader_name", "leader_skill");
+		return new CLeaderEntry(window, context, leader, unit);
 	}
 
 	/// <summary>

@@ -29,17 +29,21 @@ public static class CLeaderTooltip
 	/// </summary>
 	private const long AfterTheTable = 1;
 
-	/// <summary>The whole tooltip of a unit's leader; the unit is what his command is measured against.</summary>
-	public static string For(Func<string, string> localise, CGameState state, CUnit unit, CLeader leader)
+	/// <summary>
+	/// A leader's whole tooltip. How many he may command is said only where he commands a
+	/// fleet or an air unit, and is measured against it - so a leader commanding nothing, in
+	/// the window he is chosen in, does not say it.
+	/// </summary>
+	public static string For(Func<string, string> localise, CGameState state, CLeader leader)
 	{
 		var text = new StringBuilder();
 		text.Append(RankName(localise, leader)).Append(Yellow).Append(leader.Name).Append(Line);
-		if (leader.Type != ELeaderType.Land)
+		if (leader.Unit is { Kind: EUnitKind.Navy or EUnitKind.Air } unit)
 		{
 			text.Append(localise("LEADER_COMMAND_SIZE"))
 				.Append(CLeaders.HasRankFor(state, unit) ? " §G" : " §R")
 				.Append(' ').Append(CLeaders.CommandSize(state, leader, unit).ToString(CultureInfo.InvariantCulture))
-				.Append(' ').Append(localise(leader.Type == ELeaderType.Sea ? "SHIPS_LABEL" : "PLANES_LABEL"))
+				.Append(' ').Append(localise(unit.Kind == EUnitKind.Navy ? "SHIPS_LABEL" : "PLANES_LABEL"))
 				.Append(Line);
 		}
 		if (leader.Type == ELeaderType.Sea)

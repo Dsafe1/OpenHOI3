@@ -1,5 +1,6 @@
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim.Leaders;
 
 namespace OpenHOI3.Screens;
@@ -15,7 +16,14 @@ public static class CTraitIconEntry
 	public static CGuiWindow? Create(CGuiContext context, CTrait trait)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, CLeaderWindowText.TraitEntryName);
-		window?.FindIcon("trait_icon")?.SetSprite(CLeaderWindowText.TraitSprite(trait));
+		if (window is null)
+		{
+			return null;
+		}
+		window.FindIcon("trait_icon")?.SetSprite(CLeaderWindowText.TraitSprite(trait));
+		window.SetTooltips(name => name == "trait_icon"
+			? CLeaderWindowTooltips.TraitIcon(context.Localisation.Localise, trait)
+			: CTooltip.Empty);
 		return window;
 	}
 

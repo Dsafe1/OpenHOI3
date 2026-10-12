@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim.Leaders;
 
 namespace OpenHOI3.Screens;
@@ -45,7 +46,13 @@ public sealed class CTraitFilterRow
 	public static CTraitFilterRow? Create(CGuiContext context, CTrait? trait, bool on)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, CLeaderWindowText.FilterEntryName);
-		return window is null ? null : new CTraitFilterRow(window, context, trait, on);
+		if (window is null)
+		{
+			return null;
+		}
+		// The name lets the mouse through to the checkbox, as the file's allwaystransparent says.
+		window.SetTooltips(name => CLeaderWindowTooltips.FilterRow(context.Localisation.Localise, trait, name));
+		return new CTraitFilterRow(window, context, trait, on);
 	}
 
 	public void Show(bool on)
