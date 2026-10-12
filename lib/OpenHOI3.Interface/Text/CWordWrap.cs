@@ -22,17 +22,25 @@ public static class CWordWrap
 			yield break;
 		}
 
-		string line = "";
-		string colour = "";
-		foreach (string word in paragraph.Split(' '))
+		// A line's indent stays at the front of its first piece.
+		int indent = 0;
+		while (indent < paragraph.Length && paragraph[indent] == ' ')
 		{
-			string longer = line.Length == 0 ? word : line + " " + word;
-			if (line.Length > 0 && measure(CColouredText.Strip(longer)) > width)
+			indent++;
+		}
+		string line = paragraph[..indent];
+		bool started = false;
+		string colour = "";
+		foreach (string word in paragraph[indent..].Split(' '))
+		{
+			string longer = started ? line + " " + word : line + word;
+			if (started && measure(CColouredText.Strip(longer)) > width)
 			{
 				yield return line;
 				longer = colour + word;
 			}
 			line = longer;
+			started = true;
 
 			// The last escape in the word is the colour the next line starts in.
 			int escape = word.LastIndexOf(CColouredText.Escape);

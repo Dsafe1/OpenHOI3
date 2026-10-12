@@ -313,13 +313,13 @@ public static class CCombats
 		{
 			if (HasLost(combat.Attacker))
 			{
-				Conclude(combat, attackerLost: true);
+				Conclude(state, combat, attackerLost: true);
 				RetreatAll(state, combat.Attacker);
 				return true;
 			}
 			if (HasLost(combat.Defender))
 			{
-				Conclude(combat, attackerLost: false);
+				Conclude(state, combat, attackerLost: false);
 				RetreatAll(state, combat.Defender);
 				return true;
 			}
@@ -369,8 +369,12 @@ public static class CCombats
 			<= CUnitTotals.LeastOrganisationToFight.Raw;
 	}
 
-	/// <summary>A battle is decided, once. The original's message and its events go here.</summary>
-	public static void Conclude(CCombat combat, bool attackerLost)
+	/// <summary>
+	/// A battle is decided, once, and its on_actions fire: each side's countries' battles counted
+	/// and their events picked, the winners' first (<c>docs/mechanics/events.md</c>, section 8). The
+	/// original's message goes here too, and its losses figures, neither built.
+	/// </summary>
+	public static void Conclude(CGameState state, CCombat combat, bool attackerLost)
 	{
 		if (combat.IsConcluded)
 		{
@@ -378,6 +382,7 @@ public static class CCombats
 		}
 		combat.IsConcluded = true;
 		combat.AttackerLost = attackerLost;
+		Events.COnActions.Battle(state, combat, attackerLost);
 	}
 
 	private static void RetreatAll(CGameState state, CCombatSide side)
@@ -449,7 +454,7 @@ public static class CCombats
 		{
 			if (side.Units.Count == 1)
 			{
-				Conclude(combat, side.IsAttacker);
+				Conclude(state, combat, side.IsAttacker);
 			}
 			side.Remove(state, unit);
 			if (combat.Kind == ECombatKind.Naval)

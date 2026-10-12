@@ -39,4 +39,10 @@ public class WordWrapTests
 	{
 		Assert.Equal(new[] { "§Rred red", "§Rred" }, CWordWrap.Wrap("§Rred red red", 7, Measure).ToArray());
 	}
+
+	[Fact]
+	public void AnIndentStaysAtTheFrontOfTheFirstLine()
+	{
+		Assert.Equal(new[] { "   one two", "three" }, CWordWrap.Wrap("   one two three", 11, Measure).ToArray());
+	}
 }

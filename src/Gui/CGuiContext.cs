@@ -1,5 +1,6 @@
 using OpenHOI3.Content;
 using OpenHOI3.Content.Gui;
+using OpenHOI3.Content.Messages;
 using OpenHOI3.Gfx;
 
 namespace OpenHOI3.Gui;
@@ -18,6 +19,9 @@ public sealed class CGuiContext
 	public required CGuiFonts Fonts { get; init; }
 	public required CShields Shields { get; init; }
 
+	/// <summary>The message types of <c>interface/messagetypes.txt</c>: <c>docs/mechanics/messages.md</c>.</summary>
+	public required CMessageTypes MessageTypes { get; init; }
+
 	/// <summary>What draws a button under the mouse, held down and switched off.</summary>
 	public CButtonShader ButtonShader { get; } = new();
 
@@ -32,6 +36,7 @@ public sealed class CGuiContext
 			Textures = textures,
 			Fonts = CGuiFonts.Load(directories),
 			Shields = new CShields(textures),
+			MessageTypes = CMessageTypes.Load(directories),
 		};
 	}
 }

@@ -1,0 +1,143 @@
+using System.Collections.Generic;
+using Godot;
+using OpenHOI3.Content.Gui;
+using OpenHOI3.Content.Messages;
+using OpenHOI3.Gfx;
+using OpenHOI3.Gui;
+using OpenHOI3.Interface.Messages;
+
+namespace OpenHOI3.Screens;
+
+/// <summary>
+/// The message log on the bottom bar: <c>messagelog_window</c> of the <c>menubar</c> window, its list
+/// of rows - a <c>logtext</c> each, the newest at the bottom - its six category boxes, a ticked one
+/// hiding its category, and the buttons that close it and open it again. The rest of the bar - the
+/// minimap, the map modes' buttons, the chat of a game of several players - is not built and not
+/// shown. See <c>docs/mechanics/messages.md</c>, section 5.
+/// </summary>
+public sealed partial class CMessageLogView : Control
+{
+	public const string BarName = "menubar";
+	public const string RowName = "logtext";
+
+	private static readonly (string Box, EMessageCategory Category)[] Boxes =
+	{
+		("messagecat_combat", EMessageCategory.Combat),
+		("messagecat_diplomacy", EMessageCategory.Diplomacy),
+		("messagecat_units", EMessageCategory.Units),
+		("messagecat_provinces", EMessageCategory.Province),
+		("messagecat_events", EMessageCategory.Events),
+		("messagecat_others", EMessageCategory.Other),
+	};
+
+	private CGuiContext _context = null!;
+	private CGuiWindow? _log;
+	private CGuiListBox? _list;
+	private CGuiButton? _open;
+
+	public CMessageLog Log { get; private set; } = null!;
+
+	/// <summary>Has to be called before the node enters the tree.</summary>
+	public void Setup(CGuiContext context)
+	{
+		_context = context;
+		// A row's text is as wide as its button less 10, in the button's font.
+		float width = 420f;
+		CGuiFont? font = context.Fonts.Find("Arial12_alpha");
+		if (context.Types.FindWindow(RowName)?.Children is { } row)
+		{
+			foreach (CGuiType child in row)
+			{
+				if (child is CGuiButtonType button && child.Name == "messagelogbutton")
+				{
+					width = button.Size.X - 10f;
+					font = context.Fonts.Find(button.Font) ?? font;
+				}
+			}
+		}
+		Log = new CMessageLog(context.Localisation.Localise, width, text => font?.Width(text) ?? text.Length);
+	}
+
+	public override void _Ready()
+	{
+		Name = "MessageLog";
+		MouseFilter = MouseFilterEnum.Ignore;
+		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+		if (CGuiWindow.Create(_context, BarName) is not { } bar)
+		{
+			return;
+		}
+		AddChild(bar);
+		// The bar holds the minimap, the map modes' buttons and the chat as well; of it only the log
+		// is built, so the rest is not shown.
+		foreach (Node child in bar.GetChildren())
+		{
+			if (child is Control shown && child.Name != "messagelog_window" && child.Name != "OPENbutton")
+			{
+				shown.Visible = false;
+			}
+		}
+		_log = bar.FindWindow("messagelog_window");
+		_list = _log?.FindListBox("messagelog");
+		foreach ((string box, EMessageCategory category) in Boxes)
+		{
+			if (_log?.TryFindButton(box) is { } shown)
+			{
+				shown.Pressed += () =>
+				{
+					Log.SetHidden(category, shown.Checked);
+					Refill();
+				};
+			}
+		}
+		if (_log?.TryFindButton("closebutton") is { } close)
+		{
+			close.Pressed += () => SetOpen(false);
+		}
+		_open = bar.TryFindButton("OPENbutton");
+		if (_open is not null)
+		{
+			_open.Pressed += () => SetOpen(true);
+		}
+		SetOpen(true);
+	}
+
+	/// <summary>A message of a type that is logged.</summary>
+	public void Add(CMessage message)
+	{
+		Log.Add(message);
+		Refill();
+	}
+
+	/// <summary>Ours: the open button shows only while the log is shut, which was not read.</summary>
+	private void SetOpen(bool open)
+	{
+		if (_log is not null)
+		{
+			_log.Visible = open;
+		}
+		if (_open is not null)
+		{
+			_open.Visible = !open;
+		}
+	}
+
+	private void Refill()
+	{
+		if (_list is null)
+		{
+			return;
+		}
+		_list.Clear();
+		foreach ((CMessage _, string text) in Log.Rows)
+		{
+			if (CGuiWindow.CreateEntry(_context, RowName) is not { } row)
+			{
+				return;
+			}
+			row.TryFindButton("messagelogbutton")?.SetText(text);
+			_list.Add(row);
+		}
+		_list.ShowLast();
+	}
+}

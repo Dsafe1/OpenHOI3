@@ -8,6 +8,7 @@ using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
+using OpenHOI3.Interface.Messages;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Interface.Tooltips;
@@ -213,6 +214,36 @@ public partial class CSession : Node
 			_events = new CEventWindows();
 			_events.Setup(gui, _simulation, Player);
 			layer.AddChild(_events);
+
+			// Messages: the log on the bottom bar, and popups over everything.
+			var messageLog = new CMessageLogView();
+			messageLog.Setup(gui);
+			layer.AddChild(messageLog);
+			layer.MoveChild(messageLog, 0);
+			var popups = new CMessagePopups();
+			popups.Setup(gui, _simulation);
+			layer.AddChild(popups);
+			CCountryTag player = Player.Tag;
+			void Tell(CMessage message)
+			{
+				if (message.Type.Log)
+				{
+					messageLog.Add(message);
+				}
+				if (message.Type.PopsUp)
+				{
+					popups.Open(message);
+				}
+				// The original stops the clock of a game of one player; this is one.
+				if (message.Type.PausePopup)
+				{
+					_simulation.Clock.Paused = true;
+				}
+			}
+			_simulation.State.EventAnswered += (answered, scope, option) => Tell(CMessages.EventAnswered(
+				gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, answered, scope, option));
+			_simulation.State.DecisionTaken += (taken, scope) => Tell(CMessages.DecisionTaken(
+				gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, taken, scope));
 		}
 		_simulation.DayPassed += () => _unitsMoved = true;
 		_simulation.HourPassed += () => _hourPassed = true;
@@ -841,7 +872,8 @@ public partial class CSession : Node
 	/// type) opens the window that orders one, with that in it,
 	/// <c>--technology=key</c> chooses one on the technology screen,
 	/// <c>--screen=diplomacy</c> opens the diplomacy screen with its decisions, <c>--event=2602</c>
-	/// fires that event for the player, its trigger not asked, and <c>--event=2602:1861</c> for a province of his,
+	/// fires that event for the player, its trigger not asked, <c>--event=2602:1861</c> for a province of his and
+	/// <c>--event=2001:SPR</c> for another country, which answers it as the AI does,
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
 	/// <c>--select=Luftflotte II</c> selects the player's unit of that name,
 	/// <c>--click=700,310;r1240,886;h48</c> clicks at those points of the canvas, in turn -
@@ -911,13 +943,17 @@ public partial class CSession : Node
 			else if (argument.StartsWith("--event=") && Player is not null)
 			{
 				// Fires an event for the player, its trigger not asked: --event=2602, or with a
-				// province of his for a province's window, --event=2602:1861.
+				// province of his for a province's window, --event=2602:1861, or for another
+				// country, which answers it as the AI does, --event=2001:SPR.
 				string[] parts = argument["--event=".Length..].Split(':');
 				int province = 0;
+				CCountryTag whose = Player.Tag;
 				if (int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
-					&& (parts.Length < 2 || int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out province)))
+					&& (parts.Length < 2
+						|| int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out province)
+						|| CCountryTag.TryParse(parts[1].ToUpperInvariant(), out whose)))
 				{
-					_simulation.Post(new CFireEventCommand(id, Player.Tag, province));
+					_simulation.Post(new CFireEventCommand(id, whose, province));
 					_simulation.Pump();
 				}
 			}

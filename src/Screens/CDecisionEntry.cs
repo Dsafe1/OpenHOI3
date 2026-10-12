@@ -1,5 +1,6 @@
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Events;
+using OpenHOI3.Interface.Script;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
@@ -41,11 +42,19 @@ public sealed class CDecisionEntry
 				Text = CEventText.Localise(context.Localisation.Localise, state, decision.Name + "_desc", CDecisions.ScopeOf(_country)).Trim(),
 			};
 		}
+		var words = new CScriptWords(context.Localisation.Localise, state, country);
 		_select = window.FindButton("select_button");
 		if (_select is not null)
 		{
 			_select.Disabled = !mayTake;
 			_select.Pressed += Take;
+			// What taking it does, in a scope set back to its seed first.
+			_select.Tooltip = () => new CTooltip { Text = CEffectText.For(words, _decision.Effects, CDecisions.ScopeOf(_country)) };
+		}
+		// What it needs: its allow block's account of itself.
+		if (window.FindIcon("info_icon") is { } info)
+		{
+			info.Tooltip = () => new CTooltip { Text = CConditionText.For(words, _decision.Allow, CDecisions.ScopeOf(_country)) };
 		}
 	}
 

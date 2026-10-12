@@ -122,6 +122,12 @@ public partial class CGuiListBox : CGuiObject
 		Settle();
 	}
 
+	/// <summary>Shows the last entries - a log's newest, at its bottom.</summary>
+	public void ShowLast()
+	{
+		ShowFrom(Unseen);
+	}
+
 	/// <summary>Lays the entries out again, after one of them has changed its height.</summary>
 	public void Relayout()
 	{

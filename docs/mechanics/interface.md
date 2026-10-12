@@ -55,7 +55,7 @@ What a particular screen puts in its elements is that screen's own spec: `topbar
 | `listboxType` | 128 | a scrolling list the code fills | yes |
 | `checkboxType` | 99 | a button that stays down | yes |
 | `scrollbarType` | 34 | four buttons and a range | yes |
-| `shieldtype` | 22 | a country's flag in a frame, in a dialog | no |
+| `shieldtype` | 22 | a country's flag in a frame, in a dialog - an icon on a masked shield sprite (2026-10-12) | yes |
 | `OverlappingElementsBoxType` | 21 | a row of things that may overlap | yes |
 | `editBoxType` | 21 | text the player types | shown, not typed in |
 | `eu3dialogtype` | 15 | a window that may also hold shields | yes |
@@ -451,7 +451,7 @@ scalable canvas of section 3 could not survive. So:
   can be dropped in: a file with twice the pixels would draw twice the size. Frames are
   already fractions of the texture; what is missing is something that says the size a
   texture was drawn for, and that is not decided (`readme.md`, *The interface*).
-- **Kinds that are not drawn are still read** - a dialog's shields - so a window's
+- **Kinds that are not drawn are still read** - a 3D button's - so a window's
   children are all there in their order and their names are known. A window counts how
   many it could not draw.
 - **An edit box is shown as the box of text it holds**, found by its name like any text

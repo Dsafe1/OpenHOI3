@@ -284,13 +284,13 @@ public static class CNavalBattle
 		{
 			if (HasLost(combat.Attacker))
 			{
-				CCombats.Conclude(combat, attackerLost: true);
+				CCombats.Conclude(state, combat, attackerLost: true);
 				RetreatAll(state, combat.Attacker);
 				return true;
 			}
 			if (HasLost(combat.Defender))
 			{
-				CCombats.Conclude(combat, attackerLost: false);
+				CCombats.Conclude(state, combat, attackerLost: false);
 				RetreatAll(state, combat.Defender);
 				return true;
 			}

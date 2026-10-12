@@ -32,6 +32,8 @@ public sealed class CExecuteDecisionCommand : CCommand
 		{
 			return;
 		}
+		// Its message goes out before its effects run.
+		state.RaiseDecisionTaken(decision, Scope);
 		Scope.ResetToSeed();
 		CEffects.Run(state, decision.Effects, Scope);
 		if (Scope.Province != 0)

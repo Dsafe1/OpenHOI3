@@ -61,19 +61,8 @@ public static class CEffectSets
 				OneOf(state, effect, scope, OwnedNeighbours(state, scope.Province), report);
 				return true;
 			case "random_empty_neighbor_province":
-			{
-				var empty = new List<int>();
-				foreach (CProvinceEdge edge in state.Province(scope.Province).Edges)
-				{
-					CProvince beside = state.Province(edge.To);
-					if (!beside.IsSea && beside.Owner is null)
-					{
-						empty.Add(edge.To);
-					}
-				}
-				OneOf(state, effect, scope, empty, report);
+				OneOf(state, effect, scope, Provinces(state, effect, scope), report);
 				return true;
-			}
 			case "random":
 			{
 				// The state moves whether the effects run or not.
@@ -89,6 +78,42 @@ public static class CEffectSets
 				return true;
 			default:
 				return false;
+		}
+	}
+
+	/// <summary>
+	/// The provinces an <c>any_*</c> or <c>random_*</c> block of provinces goes over, before its
+	/// <c>limit</c>: what a tooltip of the block lists, the same as the block does.
+	/// </summary>
+	public static List<int> Provinces(CGameState state, CEffect effect, CEventScope scope)
+	{
+		switch (effect.Keyword)
+		{
+			case "any_owned":
+			case "random_owned":
+				return Owned(state, scope.Country);
+			case "any_controlled":
+				return Controlled(state, scope.Country);
+			case "any_neighbor_province":
+			case "random_neighbor_province":
+				return OwnedNeighbours(state, scope.Province);
+			case "any_nearby_province":
+				return Nearby(state, effect, scope.Province);
+			case "random_empty_neighbor_province":
+			{
+				var empty = new List<int>();
+				foreach (CProvinceEdge edge in state.Province(scope.Province).Edges)
+				{
+					CProvince beside = state.Province(edge.To);
+					if (!beside.IsSea && beside.Owner is null)
+					{
+						empty.Add(edge.To);
+					}
+				}
+				return empty;
+			}
+			default:
+				return new List<int>();
 		}
 	}
 

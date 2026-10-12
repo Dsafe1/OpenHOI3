@@ -283,7 +283,7 @@ public class BattleGainTests
 		var winner = new CCombatCondition(ECombatCondition.IsWinner);
 
 		Assert.False(winner.Holds(state, combat, combat.Attacker));
-		CCombats.Conclude(combat, attackerLost: true);
+		CCombats.Conclude(state, combat, attackerLost: true);
 		combat.HasEnded = true;
 		Assert.False(winner.Holds(state, combat, combat.Attacker));
 		Assert.True(winner.Holds(state, combat, combat.Defender));

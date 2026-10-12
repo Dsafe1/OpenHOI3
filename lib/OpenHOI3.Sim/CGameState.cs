@@ -154,6 +154,17 @@ public sealed class CGameState
 	public IReadOnlyList<CDecision> Decisions { get; set; } = Array.Empty<CDecision>();
 
 	/// <summary>
+	/// Each on_action's events' ids, in its file's order: <c>docs/mechanics/events.md</c>, section 8.
+	/// </summary>
+	public IReadOnlyDictionary<string, IReadOnlyList<int>> OnActions { get; set; } =
+		new Dictionary<string, IReadOnlyList<int>>();
+
+	/// <summary>The last pride of the fleet sunk, anyone's, and the ship that sank it - for an event's text.</summary>
+	public Units.CSubUnit? LastPrideSunk { get; set; }
+
+	public Units.CSubUnit? LastPrideSinker { get; set; }
+
+	/// <summary>
 	/// The defines' <c>start_date</c> and <c>end_date</c>: the first and last days a date
 	/// may be set to - an air mission's, for one. See <c>docs/mechanics/aircombat.md</c>,
 	/// section 1.
@@ -260,6 +271,26 @@ public sealed class CGameState
 	internal void RaiseEventFired(Script.CEvent fired, Script.CEventScope scope)
 	{
 		EventFired?.Invoke(fired, scope);
+	}
+
+	/// <summary>
+	/// Raised as an event's option runs, before its effects, with the option's index - for the message
+	/// the original raises then (<c>docs/mechanics/messages.md</c>, section 2). Never for anything that
+	/// changes the game; which message it is hangs on who is playing on this machine.
+	/// </summary>
+	public event Action<Script.CEvent, Script.CEventScope, int>? EventAnswered;
+
+	internal void RaiseEventAnswered(Script.CEvent answered, Script.CEventScope scope, int option)
+	{
+		EventAnswered?.Invoke(answered, scope, option);
+	}
+
+	/// <summary>Raised as a decision is taken, before its effects, for its message.</summary>
+	public event Action<Script.CDecision, Script.CEventScope>? DecisionTaken;
+
+	internal void RaiseDecisionTaken(Script.CDecision taken, Script.CEventScope scope)
+	{
+		DecisionTaken?.Invoke(taken, scope);
 	}
 
 	/// <summary>

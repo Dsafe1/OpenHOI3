@@ -280,6 +280,12 @@ and 74 diplomatic decisions, **no unknown key**, and four problems, each the bas
 - `tfh/events/surrender2.txt` lines 143 and 144, `country_event = 517` and `= 530` - no file has
   either event.
 
+And since the on_actions are read (2026-10-12, `events.md`, section 8), **seven more, one for each
+on_action whose ids are no event**: every id of `on_battle_won`, `_lost`, the naval and air pairs and
+`on_encirclement` - 545 in all - because Their Finest Hour replaces the base game's `BattleWon.txt`
+and the rest with empty files, so those on_actions find nothing in it, as in the original. Eleven in
+all.
+
 What the reading made of them, as a control on the zero: of the conditions, 21 ideologies, 16
 regions, 6 government positions, 2 buildings, 2 law groups and 1 technology, each the count a
 survey of the files' keys gives; 242 scopes; and of the effects, 508 scopes, 228 regions, 106

@@ -3,6 +3,8 @@ using Godot;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Events;
+using OpenHOI3.Interface.Script;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Events;
@@ -67,7 +69,12 @@ public sealed partial class CEventWindowView : Control
 		}
 		if (window.FindTextBox("Description") is { } description)
 		{
-			description.Text = Text(shown.Description);
+			// The immediate block's effects under it, where they say more than a character, in the
+			// event's own scope set back to its seed.
+			CEventScope own = scope.Detached();
+			own.ResetToSeed();
+			string immediate = CEffectText.For(Words(), shown.Immediate.Effects, own);
+			description.Text = Text(shown.Description) + (immediate.Length > 1 ? "\n\n§W" + immediate : "");
 		}
 		if (window.FindIcon("event_images") is { } picture)
 		{
@@ -110,11 +117,28 @@ public sealed partial class CEventWindowView : Control
 			button.OffsetBottom = at.Y + size.Y;
 			button.Name = "event_option" + i;
 			button.SetText(text(options[i].Name));
+			CEventOption shownOption = options[i];
+			button.Tooltip = () => new CTooltip { Text = CEffectText.For(Words(), shownOption.Effects, TooltipScope()) };
 			button.Disabled = true;
 			int chosen = i;
 			button.Pressed += () => Choose(chosen);
 			_options.Add(button);
 		}
+	}
+
+	private CScriptWords Words()
+	{
+		return new CScriptWords(_context.Localisation.Localise, _simulation.State, Open.Country);
+	}
+
+	/// <summary>
+	/// The scope an option's tooltip is asked in: the event's seed, its FROM country and its province,
+	/// and the player's country - not the event's own. See <c>docs/mechanics/scripttext.md</c>, section 1.
+	/// </summary>
+	private CEventScope TooltipScope()
+	{
+		CEventScope scope = Open.Scope;
+		return CEventScope.Start(Open.Country, scope.Province, fromCountry: scope.FromCountry, randomState: scope.Seed);
 	}
 
 	public override void _Process(double delta)

@@ -47,6 +47,15 @@ public static class CEventText
 			values["CAPITAL"] = state.Province(country.Capital).Name;
 		}
 		values["YEAR"] = state.Date.Year.ToString(System.Globalization.CultureInfo.InvariantCulture);
+		// The last pride sunk anywhere and the ship that sank it, read when the text is made.
+		if (state.LastPrideSunk is { } pride)
+		{
+			values["PRIDE_SUNK"] = pride.Name;
+		}
+		if (state.LastPrideSinker is { } sinker)
+		{
+			values["PRIDE_SINKER"] = sinker.Name;
+		}
 		if (scope.Province != 0)
 		{
 			values["PROVINCENAME"] = here.Name;

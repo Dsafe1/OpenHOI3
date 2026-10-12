@@ -88,15 +88,21 @@ public partial class CGuiTextBox : CGuiObject
 	}
 
 	/// <summary>
+	/// How tall the box's text is drawn: its lines and its border above and below. A box of no
+	/// height in its file - a popup's lines - is as tall as this, and the next placed under it.
+	/// </summary>
+	public float DrawnHeight => _font is null ? 0f : _lines.Count * _font.LineHeight + 2f * ((CGuiTextBoxType)GuiType).BorderSize.Y;
+
+	/// <summary>
 	/// Breaks a line that is too wide for the box at its spaces - but only in a box tall
 	/// enough for a second line, so that a figure a little wider than its box is not
-	/// pushed out of sight.
+	/// pushed out of sight, or in one of no height, which grows with its text.
 	/// </summary>
 	private IEnumerable<string> Wrap(string paragraph)
 	{
 		var type = (CGuiTextBoxType)GuiType;
 		float inside = type.MaxWidth - 2f * type.BorderSize.X;
-		if (_font is null || inside <= 0f || type.MaxHeight < 2f * _font.LineHeight)
+		if (_font is null || inside <= 0f || (type.MaxHeight != 0 && type.MaxHeight < 2f * _font.LineHeight))
 		{
 			return new[] { paragraph };
 		}

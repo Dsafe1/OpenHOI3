@@ -188,6 +188,18 @@ section 10.
 "In the Bicelib.dll we already have a hook which fixes the indentation for those types of
 tooltips. Please use the fixed logic."
 
+**Extended** the same day to every block of conditions written as words - a decision's `allow` on
+its info icon (`docs/mechanics/scripttext.md`, section 3) - since the DLL corrects the one renderer
+all of them go through. Not put to the maintainer separately; `CConditionText` is where it is done,
+and where a country scope's conditions now have their asterisks. Effects have no correction and keep
+the original's indent.
+
+**And one step past the DLL's**, the same day: a block inside a `not`, below the top, is given no
+asterisk of its own, the `not`'s standing for it. The corrected sums give it one beside the `not`'s,
+and the maintainer, seeing "(*)(*)Germany do NOT control Paris" in a decision's tooltip: "Something
+is wrong with the asterisk for the negation. It is rendered twice." Whether the DLL draws two as
+well was not looked at.
+
 | | |
 | --- | --- |
 | the original | writes an `allow` block's conditions with three spaces a level, but gets the depth wrong inside an "all of" and a "one of": a block's header indents a line its parent placed, its conditions sit level with the header, a block inside a block starts again at one level, a block inside a scope has no asterisk, a country scope's conditions none either, and a "none of" indents its condition into the middle of its parent's line |

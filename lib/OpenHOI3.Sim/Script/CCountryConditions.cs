@@ -83,6 +83,15 @@ public static class CCountryConditions
 			case "total_amount_of_ships":
 				answer = SubUnitsOf(country, EUnitKind.Navy) >= whole;
 				return true;
+			case "land_battles_fought":
+				answer = (country?.LandBattlesFought ?? 0) >= whole;
+				return true;
+			case "air_battles_fought":
+				answer = (country?.AirBattlesFought ?? 0) >= whole;
+				return true;
+			case "naval_battles_fought":
+				answer = (country?.NavalBattlesFought ?? 0) >= whole;
+				return true;
 			case "total_amount_of_planes":
 				answer = SubUnitsOf(country, EUnitKind.Air) >= whole;
 				return true;
@@ -129,7 +138,7 @@ public static class CCountryConditions
 	}
 
 	/// <summary>Land units of more than one brigade.</summary>
-	private static int Divisions(CCountry? country)
+	public static int Divisions(CCountry? country)
 	{
 		int count = 0;
 		foreach (CUnit unit in country?.AllUnits() ?? Array.Empty<CUnit>())
@@ -143,7 +152,7 @@ public static class CCountryConditions
 	}
 
 	/// <summary>The brigades of land units but their headquarters brigades.</summary>
-	private static int Brigades(CCountry? country)
+	public static int Brigades(CCountry? country)
 	{
 		int count = 0;
 		foreach (CUnit unit in country?.AllUnits() ?? Array.Empty<CUnit>())
@@ -164,7 +173,7 @@ public static class CCountryConditions
 	}
 
 	/// <summary>The ships of the fleets, or the wings of the air units.</summary>
-	private static int SubUnitsOf(CCountry? country, EUnitKind kind)
+	public static int SubUnitsOf(CCountry? country, EUnitKind kind)
 	{
 		int count = 0;
 		foreach (CUnit unit in country?.AllUnits() ?? Array.Empty<CUnit>())

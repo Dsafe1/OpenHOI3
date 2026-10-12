@@ -108,6 +108,12 @@ if (args.Length > 0 && args[0] == "conditions")
 	return CConditionsTrial.Run(args);
 }
 
+// Every event option's, immediate block's and decision's text is written, and what came out counted.
+if (args.Length > 0 && args[0] == "scripttext")
+{
+	return CScriptTextTrial.Run(args);
+}
+
 // A new game is played for some days, and the events that fired listed.
 if (args.Length > 0 && args[0] == "events")
 {

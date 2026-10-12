@@ -25,4 +25,13 @@ public sealed class CGuiButtonType : CGuiType
 
 	/// <summary>Declared with <c>checkboxType</c>.</summary>
 	public bool IsCheckbox { get; init; }
+
+	/// <summary>
+	/// Its size where it has no sprite to take one from - the message log's rows are such buttons.
+	/// That the original sizes a button by it was not read; the log's rows would be nothing without.
+	/// </summary>
+	public CGuiPoint Size { get; init; }
+
+	/// <summary>Where its caption stands: in the middle unless the file says otherwise.</summary>
+	public EGuiTextFormat Format { get; init; } = EGuiTextFormat.Centre;
 }

@@ -348,7 +348,7 @@ public static class CBombing
 
 		if (bombing.Duration >= Hours && CNavalBattle.HasLost(bombing.Attacker))
 		{
-			CCombats.Conclude(bombing, attackerLost: true);
+			CCombats.Conclude(state, bombing, attackerLost: true);
 			foreach (CUnit unit in new List<CUnit>(bombing.Attacker.Units))
 			{
 				unit.Bombing = null;

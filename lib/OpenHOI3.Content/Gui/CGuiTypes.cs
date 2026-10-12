@@ -227,6 +227,8 @@ public sealed class CGuiTypes
 					ClickSound = node.GetString("clicksound"),
 					Rotation = node.GetFloat("rotation"),
 					IsCheckbox = keyword == "checkboxtype",
+					Size = Point(node, "size"),
+					Format = node.Get("format") is null ? EGuiTextFormat.Centre : Format(node),
 				};
 
 			case "icontype":
@@ -240,6 +242,21 @@ public sealed class CGuiTypes
 					Sprite = node.GetString("spriteType"),
 					Frame = node.GetInt("frame"),
 					Scale = node.GetFloat("scale", 1f),
+					Rotation = node.GetFloat("rotation"),
+				};
+
+			case "shieldtype":
+				// A dialog's frame for a country's flag: an icon on a masked shield sprite, which shows
+				// the flag of whatever country it is given.
+				Check(node, OtherKeys["shieldtype"]);
+				return new CGuiIconType
+				{
+					Name = node.GetString("name"),
+					Keyword = kind,
+					Position = Point(node, "position"),
+					Orientation = Orientation(node),
+					Sprite = node.GetString("spriteType"),
+					Scale = 1f,
 					Rotation = node.GetFloat("rotation"),
 				};
 

@@ -93,7 +93,7 @@ public partial class CGuiButton : CGuiObject
 		}
 		_texture = _sprite is null ? null : context.Textures.Load(_sprite);
 
-		Vector2 size = _texture is null ? Vector2.Zero : FrameSize(_texture, _sprite!.FrameCount);
+		Vector2 size = _texture is not null ? FrameSize(_texture, _sprite!.FrameCount) : new Vector2(type.Size.X, type.Size.Y);
 		Place(type, size);
 		MouseFilter = MouseFilterEnum.Stop;
 		_shortcut = ParseShortcut(type.Shortcut);
@@ -130,7 +130,7 @@ public partial class CGuiButton : CGuiObject
 		if (_caption is null)
 		{
 			_caption = new CGuiCaption();
-			_caption.Initialise(text, _font);
+			_caption.Initialise(text, _font, ((CGuiButtonType)GuiType).Format);
 			AddChild(_caption);
 		}
 		else

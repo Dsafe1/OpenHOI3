@@ -166,6 +166,10 @@ public static class CNavalFire
 			if (target.Strength.Raw - target.PendingStrengthDamage < 0)
 			{
 				target.SunkById = ship.Id;
+				if (target.IsPride)
+				{
+					Events.COnActions.PrideSunk(state, target, ship);
+				}
 			}
 		}
 	}

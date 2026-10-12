@@ -39,6 +39,8 @@ public sealed class CSelectEventOptionCommand : CCommand
 	public override void Execute(CGameState state)
 	{
 		state.OpenEvents.RemoveAll(open => open.Event == Event && open.Scope.Country == Scope.Country);
+		// Its message is raised before the option runs, so its text tells of the game before it.
+		state.RaiseEventAnswered(Event, Scope, Option);
 		Scope.ResetToSeed();
 		if (Option >= 0 && Option < Event.Options.Count)
 		{

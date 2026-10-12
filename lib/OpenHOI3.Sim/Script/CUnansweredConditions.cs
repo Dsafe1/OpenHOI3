@@ -43,8 +43,8 @@ public static class CUnansweredConditions
 		Add(EScriptGap.Unbuilt, "active_mission", "last_mission", "is_mission_country", "is_mission_province");
 		// A country's war record and the last battles.
 		Add(EScriptGap.Unbuilt, "war_exhaustion", "surrender_progress", "lost_ic", "lost_national", "faction_progress",
-			"strat_allies_impact", "strat_bomb_impact", "strat_convoy_impact", "land_battles_fought",
-			"air_battles_fought", "naval_battles_fought", "total_sea_battles", "total_offensives", "total_defensives",
+			"strat_allies_impact", "strat_bomb_impact", "strat_convoy_impact",
+			"total_sea_battles", "total_offensives", "total_defensives",
 			"total_we_bomb", "total_sunk_by_us", "total_of_ours_sunk");
 		Add(EScriptGap.Unbuilt, "last_battle_winner_losses", "last_battle_loser_losses", "last_air_battle_winner_losses",
 			"last_air_battle_loser_losses", "last_naval_battle_winner_losses", "last_naval_battle_loser_losses");

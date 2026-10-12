@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="../../lib/OpenHOI3.Sim/OpenHOI3.Sim.csproj" />
     <ProjectReference Include="../../lib/OpenHOI3.Content/OpenHOI3.Content.csproj" />
+    <ProjectReference Include="../../lib/OpenHOI3.Interface/OpenHOI3.Interface.csproj" />
   </ItemGroup>
 
 </Project>

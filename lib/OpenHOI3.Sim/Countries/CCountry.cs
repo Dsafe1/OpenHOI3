@@ -96,6 +96,16 @@ public sealed class CCountry
 	/// </summary>
 	public List<Script.CEvent> EventCandidates { get; } = new();
 
+	/// <summary>
+	/// How many land, air and sea battles the country has fought to a decision, counted as each is
+	/// decided: <c>docs/mechanics/events.md</c>, section 8.
+	/// </summary>
+	public int LandBattlesFought { get; set; }
+
+	public int AirBattlesFought { get; set; }
+
+	public int NavalBattlesFought { get; set; }
+
 	/// <summary>The flags script has set on it: <c>docs/mechanics/effects.md</c>, section 3.</summary>
 	public Script.CFlags Flags { get; } = new();
 

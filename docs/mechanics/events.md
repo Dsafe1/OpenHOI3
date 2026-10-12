@@ -117,17 +117,55 @@ It does not ask the trigger again, nor whether the event was open. Taking the ev
 list of open events is the answer's too.
 
 *Ours*: the original's window counts the four months each frame, and only while it is shown; here the
-game counts them each hour, so an event a person never looks at answers itself all the same. The
-message the original raises when an answer runs - `EVENTHAPPENUS` and the rest - waits for messages,
-which are not built.
+game counts them each hour, so an event a person never looks at answers itself all the same.
 
-## 8. Events nothing asks
+**An answer raises a message before its option runs** - `EVENTHAPPENUS` for the player's own,
+`EVENTHAPPENOTHER` and the rest for another's - `messages.md`, section 2.
+
+## 8. The on_actions
+
+Source: `reversing/findings/FINDINGS-onactions.md`, read 2026-10-12.
 
 **A province event is never a candidate**, so one with a mean time to happen **never fires on its
-own** - in the original either. Only an on_action fires one, and the on_actions - a battle won or
-lost, an encirclement, a surrender, a coup, a pride of the fleet sunk, a nuclear bomb - are not built:
-`common/on_actions.txt` is not read. When they are, an on_action takes **the first** of its events, in
-file order, whose trigger holds; the weights its file writes are never read.
+own** - in the original either. Only an on_action fires one. `common/on_actions.txt` names thirteen,
+each a list of `weight = event` in file order. **An on_action takes the first of its events whose
+trigger holds** in the scope its place in the game makes, and fires it (section 4); **the weights are
+never read**, an id that is no event is passed over, and nothing found is nothing done.
+
+**The pick does not ask whether an event has fired**: a `fire_only_once` event that has is still the
+first whose trigger holds, and the firing then drops it - **so it stands in front of every entry after
+it whose trigger is no stricter, for good**. In the base game 620 never fires behind 619, nor 720, 870
+or 970 behind theirs; and of a side of several countries, only the first gets a fire-once battle event.
+
+| on_action | when | THIS | province | FROM | seed |
+| --- | --- | --- | --- | --- | --- |
+| `on_battle_won`, `on_battle_lost` | a land battle decided - for **each country** that fought on the winning side, in order, and then for each on the losing side: **every win before every loss** | that country | the battle's | the first country of the other side | a draw of the game's generator, each |
+| `on_air_battle_won`, `_lost` | an air battle decided, the same | | | | |
+| `on_naval_battle_won`, `_lost` | a battle at sea decided, the same - **and even where one side has no country**, FROM then being none | | | | |
+| `on_enemy_pride_sunk`, then `on_our_pride_sunk` | a ship that is its country's pride of the fleet sunk in a battle at sea, by the shot that takes it under | the shooter's country; then the pride's | none | the pride's country; then the shooter's | nought |
+| `on_encirclement` | a province's first day without a depot, in a block of one controller with no working port; the province's **owner** answers | none | the province | none | a draw |
+| `on_surrender` | a country at war whose surrender progress is full, every 30 days, before it capitulates | the country | none | the enemy that scores best | a draw |
+| `on_coup_success`, `on_coup_fail` | a person's coup | the target | none | the instigator | nought |
+| `on_nuke_dropped` | a nuclear bomb dropped | the bomber's country | the target | its controller | nought |
+
+**A battle decided** is one with a side that has lost (`landcombat.md`, section 7): an air battle
+nobody has lost at its fourth hour, a battle at sea broken off, a raid on a convoy and a bombing fire
+none, and a land or an air battle where a side has no country fires none. **Each country's count of
+battles of that kind fought goes up by one before its event is picked**, which `land_battles_fought`,
+`air_battles_fought` and `naval_battles_fought` ask. **No scope carries the battle**, so every
+condition about one - `is_winner`, a tactic's - is false in these events. The winner of a pride's
+sinking gains 5 experience, to at most 100, and the game remembers the ship sunk and the ship that
+sank it for `$PRIDE_SUNK$` and `$PRIDE_SINKER$` (section 11) - the last ones, whoever's.
+
+**In Their Finest Hour the battles' and encirclement's on_actions find nothing**: it replaces the base
+game's `BattleWon.txt`, `BattleLost.txt`, the naval and air pairs and `Encirclement.txt` with empty
+files, so none of the 545 ids its `on_actions.txt` names for them is an event (`script.md`, section
+10). Only the pride of the fleet's events are there. A mod that ships them gets them.
+
+**Built** (2026-10-12): the reading of the file, the pick, the battles and the pride of the fleet.
+**Not built**: `on_encirclement` waits for a province's days without supply, which are not counted;
+`on_surrender` for surrender, `on_coup_*` for espionage, `on_nuke_dropped` for the bomb. A battle's
+`last_*_losses` are not kept either.
 
 ## 9. Decisions
 
@@ -148,7 +186,7 @@ When it runs:
 **Nothing records that a decision was taken**: it may be taken again whenever `potential` and `allow`
 hold - taking one once is the script's affair, a flag set in its effects and asked in its
 `potential` by custom. *Ours*: the original files an entry in the country's history that it never
-applies; there is no history here to file it in. The message it raises waits for messages.
+applies; there is no history here to file it in. Its message (`messages.md`, section 2) goes out before its effects run.
 
 **The AI takes decisions in its Lua scripts** - the original's own C++ reads `ai_will_do` nowhere -
 and **there is no AI**, so no AI country takes one. That a country nobody plays takes no decision is
@@ -181,8 +219,9 @@ Pressing one answers with its option and closes the window. **There is no close 
 answered or it times out. Both windows' files say `moveable`, so **the window is dragged by the left
 button held anywhere on it but on an option** (`interface.md`, section 7).
 
-*Not built*: an option's tooltip and the description of the `immediate` block are what its effects
-say of themselves, and nothing yet writes effects as text; both are left out.
+**An option's tooltip is what its effects say of themselves**, asked in the player's country, and
+the `immediate` block's effects go under the description where they come to more than a character
+(`scripttext.md`, sections 1 and 4).
 
 ## 11. An event's text
 
@@ -203,7 +242,8 @@ controller of its province where it has none.
 | `REGIONNAME` | its first region's name, localised; empty for none | a province |
 | `CONTINENTNAME` | its continent's name **as the map writes it, not localised** | a province |
 | `OWNERNAME` | its owner's name | a province |
-| the last battles' losses, `PRIDE_SUNK`, `PRIDE_SINKER` | not built: left as written | |
+| `PRIDE_SUNK`, `PRIDE_SINKER` | the name of the last pride of the fleet sunk, and of the ship that sank it (section 8) | one has been |
+| the last battles' losses | not built: left as written | |
 
 *Ours*: a country's adjective is the localisation of its tag with `_ADJ`, for both. The original
 reads them out of a table nobody has read the filling of, and passes `FROMCOUNTRY_ADJ`'s through the
@@ -218,8 +258,8 @@ file order, then those that may not, in file order**. Each row is a `diplomatic_
 | element | shows | tooltip |
 | --- | --- | --- |
 | `name` | the decision's `<name>_title`, localised (section 11) | `<name>_desc`, localised |
-| `select_button` | the file's `SELECT`; **disabled where the decision may not be taken** | its effects' description - *not built* |
-| `info_icon` | the file's icon | its `allow` block's description - *not built* |
+| `select_button` | the file's `SELECT`; **disabled where the decision may not be taken** | its effects' description (`scripttext.md`, section 4) |
+| `info_icon` | the file's icon | its `allow` block's description, asterisks and all (`scripttext.md`, section 3) |
 
 **While the screen is up**, each row asks again `allow` and then `potential`, and disables its button
 where either fails - **and never enables it again** until the screen is opened again; a row whose
