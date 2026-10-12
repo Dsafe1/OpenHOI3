@@ -118,16 +118,9 @@ public static class CTopBarTooltips
 	/// </summary>
 	public static string Ledger(Func<string, string> localise, CCountry country, EGoods goods)
 	{
-		bool suppliesOrFuel = goods is EGoods.Supplies or EGoods.Fuel;
-		CFixedPoint convoyedIn = suppliesOrFuel ? CFixedPoint.Zero : country.ConvoyedIn[goods];
-
-		// Our two pools of what went to the units are the original's one.
-		CFixedPoint intoNetwork = country.SentTo[goods] + country.UnitDrawn[goods];
-		CFixedPoint goingOut = intoNetwork + country.Usage[goods] + country.ConversionUsed[goods]
-			+ country.ConvoyedOut[goods] + country.TradedAway[goods];
-		CFixedPoint comingIn = country.HomeProduced[goods] + convoyedIn + country.TradedFor[goods]
-			+ country.ConversionMade[goods] + country.SentBack[goods];
-		CFixedPoint change = comingIn - goingOut;
+		CFixedPoint convoyedIn = ConvoyedIn(country, goods);
+		CFixedPoint intoNetwork = IntoNetwork(country, goods);
+		CFixedPoint change = DayChange(country, goods);
 
 		var text = new StringBuilder();
 		text.Append(Line(localise, "RES_CHANGE", (change.Raw < 0 ? Red : GreenPlus) + CNumberText.Format(change, 2)));
@@ -145,6 +138,25 @@ public static class CTopBarTooltips
 		text.Append('\n').Append(CModifierText.Sources(localise, country.ModifierSources, GlobalKind(goods)));
 		return text.ToString();
 	}
+
+	/// <summary>
+	/// What a good changed by in the day: what came in less what went out, supplies and fuel taken
+	/// without what convoys brought in. The diplomacy screen's rows are tinted by it too.
+	/// </summary>
+	public static CFixedPoint DayChange(CCountry country, EGoods goods)
+	{
+		CFixedPoint goingOut = IntoNetwork(country, goods) + country.Usage[goods] + country.ConversionUsed[goods]
+			+ country.ConvoyedOut[goods] + country.TradedAway[goods];
+		CFixedPoint comingIn = country.HomeProduced[goods] + ConvoyedIn(country, goods) + country.TradedFor[goods]
+			+ country.ConversionMade[goods] + country.SentBack[goods];
+		return comingIn - goingOut;
+	}
+
+	private static CFixedPoint ConvoyedIn(CCountry country, EGoods goods) =>
+		goods is EGoods.Supplies or EGoods.Fuel ? CFixedPoint.Zero : country.ConvoyedIn[goods];
+
+	/// <summary>Our two pools of what went to the units are the original's one.</summary>
+	private static CFixedPoint IntoNetwork(CCountry country, EGoods goods) => country.SentTo[goods] + country.UnitDrawn[goods];
 
 	private static string Red => CColouredText.In(CColouredText.Red);
 

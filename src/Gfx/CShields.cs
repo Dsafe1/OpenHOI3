@@ -49,7 +49,7 @@ public sealed class CShields
 		{
 			return null;
 		}
-		flag.Convert(Image.Format.Rgba8);
+		ToRgba(flag);
 
 		Image? overlay = Overlay(sprite);
 		if (overlay is null)
@@ -96,9 +96,25 @@ public sealed class CShields
 			return cached;
 		}
 		Image? mask = _textures.LoadImage(sprite.MaskFile);
-		mask?.Convert(Image.Format.Rgba8);
+		if (mask is not null)
+		{
+			ToRgba(mask);
+		}
 		_overlays[key] = mask;
 		return mask;
+	}
+
+	/// <summary>
+	/// An image made plain RGBA to be drawn into: a <c>.dds</c> comes compressed - the diplomacy screen's
+	/// small shields do - and is unpacked first, which converting cannot do.
+	/// </summary>
+	private static void ToRgba(Image image)
+	{
+		if (image.IsCompressed())
+		{
+			image.Decompress();
+		}
+		image.Convert(Image.Format.Rgba8);
 	}
 
 	private Image? Overlay(CSpriteType sprite)
@@ -114,7 +130,7 @@ public sealed class CShields
 		}
 		else
 		{
-			overlay.Convert(Image.Format.Rgba8);
+			ToRgba(overlay);
 		}
 		_overlays[sprite.Name] = overlay;
 		return overlay;

@@ -1,3 +1,4 @@
+using System;
 using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Sim.Diplomacy;
@@ -31,6 +32,36 @@ public static class CNeutrality
 	{
 		country.Neutrality = CFixedPoint.Max(country.Neutrality + change, CFixedPoint.Zero);
 		UpdateEffective(state, country);
+	}
+
+	/// <summary>
+	/// The most effective neutrality a country may have and still declare war on the other: the larger
+	/// threat between them, less <c>NEUT_INCREASE_DIFF_CONTINENT</c> where their capitals are on
+	/// different continents and the other is no neighbour, and its faction's neutrality, floored at 0
+	/// (section 6). <c>NEUT_REDUCTION_AT_CLAIMS</c> is added where the country may use the casus belli for
+	/// its cores, which is war and peace's: it holds for nobody yet.
+	/// </summary>
+	public static CFixedPoint WarCeiling(CGameState state, CCountry country, CCountry other)
+	{
+		CFixedPoint ceiling = CFixedPoint.Max(CFixedPoint.Max(CGameState.Status(country, other).Threat,
+			CGameState.Status(other, country).Threat), CFixedPoint.Zero);
+		if (OnOtherContinents(state, country, other) && !CCountryLists.Neighbours(state, country).Contains(other))
+		{
+			ceiling -= state.Defines[Section, DifferentContinent];
+		}
+		ceiling += CAlignment.FactionGroup(state, country)?.FactionNeutrality ?? CFixedPoint.Zero;
+		return CFixedPoint.Max(ceiling, CFixedPoint.Zero);
+	}
+
+	public const string Section = "diplomacy";
+	public const string DifferentContinent = "NEUT_INCREASE_DIFF_CONTINENT";
+	public const string AtClaims = "NEUT_REDUCTION_AT_CLAIMS";
+
+	/// <summary>Whether the two capitals are on different continents.</summary>
+	public static bool OnOtherContinents(CGameState state, CCountry country, CCountry other)
+	{
+		return !string.Equals(state.Province(country.Capital).Continent, state.Province(other.Capital).Continent,
+			StringComparison.Ordinal);
 	}
 
 	/// <summary>Neutrality less the threat felt from the most-threatening country, held between 0 and 100.</summary>

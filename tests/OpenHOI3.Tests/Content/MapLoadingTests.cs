@@ -1247,6 +1247,7 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal("east", map.Continents[5]);
 		Assert.Equal("", map.Continents[4]);                 // the sea is on none
 		Assert.Equal("", map.Continents[0]);
+		Assert.Equal(new[] { "west", "east" }, map.ContinentNames);       // in the file's order
 	}
 
 	[Fact]

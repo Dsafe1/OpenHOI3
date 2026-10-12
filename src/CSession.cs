@@ -160,6 +160,8 @@ public partial class CSession : Node
 			layer.AddChild(_technology);
 			_diplomacy = new CDiplomacyView();
 			_diplomacy.Setup(gui, _simulation, Player);
+			CMapView mapView = _mapView;
+			_diplomacy.SelectedProvince = () => mapView.SelectedProvince;
 			layer.AddChild(_diplomacy);
 
 			// The deploy menu and the alert that opens it. A unit chosen there is placed

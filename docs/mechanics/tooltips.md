@@ -140,7 +140,9 @@ and is built (`CProvinceTooltip`), all of it in `text`, in this order:
 the line, and the pen moves on 24. `confirmed`. *Ours:* the original draws the flag out of an atlas
 of all of them, which was not read; here it is the country's file in `gfx/flags` shrunk to that
 size, and a tag nobody has draws nothing where the original draws the flag of the country numbered
-1.
+1. **A text box draws them too**, and a unit's counter below: the original's diplomacy screen writes
+`"@" + tag + name` into its relation list's text boxes (`diplomacyscreen.md`, section 5.3). Its text
+renderer is one for both, inferred from that use.
 
 `£` and the letters and underscores after it **draw a unit's counter**: the sprite `GFX_counter_` +
 that name, of which only the middle - 0.26 to 0.75 across, 0.23 to 0.55 down, the unit's symbol

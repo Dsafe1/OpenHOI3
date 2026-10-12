@@ -25,6 +25,11 @@ public sealed class CGuiContext
 	/// <summary>What draws a button under the mouse, held down and switched off.</summary>
 	public CButtonShader ButtonShader { get; } = new();
 
+	private CTextIconTextures? _textIcons;
+
+	/// <summary>The flags and counters a text draws in its line.</summary>
+	public CTextIconTextures TextIcons => _textIcons ??= new CTextIconTextures(Textures, Sprites);
+
 	public static CGuiContext Load(CDirectorySettings directories, CLocalisation localisation)
 	{
 		var textures = new CTextureManager(directories);

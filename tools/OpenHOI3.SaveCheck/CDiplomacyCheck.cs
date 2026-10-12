@@ -5,6 +5,8 @@ using OpenHOI3.Content;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
+using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Lua;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
@@ -43,6 +45,10 @@ internal static class CDiplomacyCheck
 		if (args.Length > 3 && args[3].StartsWith("explain=", StringComparison.Ordinal))
 		{
 			return Explain(directories, map, localisation, countries, scripts, new CCountryTag(args[3]["explain=".Length..]));
+		}
+		if (args.Length > 3 && args[3].StartsWith("screen=", StringComparison.Ordinal))
+		{
+			return Screen(directories, map, localisation, countries, scripts, args[3]["screen=".Length..]);
 		}
 		Console.WriteLine($"the install's Lua loaded in {clock.ElapsedMilliseconds} ms, {scripts.Failures} errors");
 		clock.Restart();
@@ -209,6 +215,51 @@ internal static class CDiplomacyCheck
 		}
 		(long x, long y) = CAlignment.Drift(state, country);
 		Console.WriteLine($"  drift ({x}, {y}), clamped {CAlignment.ClampMove(state, country.AlignmentX, country.AlignmentY, x, y)}");
+		return 0;
+	}
+
+	/// <summary>
+	/// A look and not a check: what the diplomacy screen says of a country on a new game as the player
+	/// gets it, the player Germany unless <c>TAG:PLAYER</c> says another - the panel, the status lines,
+	/// the relation list's first rows with their tooltips, the marker's drift tooltip, and each faction's
+	/// tooltip (<c>docs/mechanics/diplomacyscreen.md</c>).
+	/// </summary>
+	private static int Screen(CDirectorySettings directories, CMap map, CLocalisation localisation, CCountries countries,
+		CAiScripts scripts, string tags)
+	{
+		string[] parts = tags.Split(':');
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, _ => { }, aiScripts: scripts);
+		if (state.Country(new CCountryTag(parts[0])) is not { } chosen
+			|| state.Country(new CCountryTag(parts.Length > 1 ? parts[1] : "GER")) is not { } player)
+		{
+			Console.WriteLine($"no country {tags}");
+			return 2;
+		}
+		Func<string, string> localise = localisation.Localise;
+		static string Plain(string text) => text.Replace("\n", " | ");
+		Console.WriteLine($"{chosen.Name} as {player.Name} sees it");
+		Console.WriteLine($"  ruler {CDiplomacyScreenText.Ruler(localise, chosen)}, relation {CDiplomacyScreenText.Relation(chosen, player)}, " +
+			$"threat us {CDiplomacyScreenText.ThreatUs(chosen, player)}, them {CDiplomacyScreenText.ThreatThem(chosen, player)}, " +
+			$"neutrality {CDiplomacyScreenText.Neutrality(chosen)}, ours {CDiplomacyScreenText.OurNeutrality(state, chosen, player)}, " +
+			$"highest threat {CDiplomacyScreenText.HighestThreat(state, chosen)} from {state.Country(chosen.MostThreatening)?.Tag}");
+		Console.WriteLine($"  ceiling: {Plain(CDiplomacyTooltips.CeilingLines(localise, state, player, chosen))}");
+		foreach (string line in CDiplomacyScreenText.StatusLines(localise, state, chosen))
+		{
+			Console.WriteLine($"  status: {line}");
+		}
+		foreach ((CCountry other, long value) in CDiplomacyScreenText.RelationRows(state, chosen, byName: false, flag: true).Take(12))
+		{
+			CTooltip tip = CDiplomacyTooltips.Relation(localise, state, chosen, other);
+			Console.WriteLine($"  relation {other.Tag} {value}: {Plain(tip.Text)} / {Plain(tip.Delayed)}");
+		}
+		CTooltip drift = CDriftTooltip.For(localise, state, chosen);
+		Console.WriteLine($"  drift: {Plain(drift.Text)}");
+		Console.WriteLine($"  drift, delayed: {Plain(drift.Delayed)}");
+		foreach (CIdeologyGroup group in state.IdeologyGroups.Where(group => group.Faction.Length > 0))
+		{
+			CTooltip faction = CDiplomacyTooltips.Faction(localise, group);
+			Console.WriteLine($"  faction {faction.Text}: {Plain(faction.Delayed)}");
+		}
 		return 0;
 	}
 

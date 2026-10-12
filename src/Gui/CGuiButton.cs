@@ -3,6 +3,7 @@ using Godot;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gfx;
+using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Gui;
 
@@ -91,7 +92,8 @@ public partial class CGuiButton : CGuiObject
 		{
 			CDiagnostics.Warn($"interface: '{type.Name}' names the sprite '{type.Sprite}', which no .gfx file declares");
 		}
-		_texture = _sprite is null ? null : context.Textures.Load(_sprite);
+		// A masked shield has no picture until it is given a country.
+		_texture = _sprite is null || _sprite.IsMaskedShield ? null : context.Textures.Load(_sprite);
 
 		Vector2 size = _texture is not null ? FrameSize(_texture, _sprite!.FrameCount) : new Vector2(type.Size.X, type.Size.Y);
 		Place(type, size);
@@ -137,6 +139,22 @@ public partial class CGuiButton : CGuiObject
 		{
 			_caption.Text = text;
 		}
+	}
+
+	/// <summary>
+	/// Shows a country's flag, where the sprite is one that draws flags - the diplomacy screen's rows,
+	/// markers and faction members are such buttons. It takes the shield's size, as an icon does, and
+	/// stands where its type puts it.
+	/// </summary>
+	public void SetCountry(CCountry country)
+	{
+		if (_context is null || _sprite is not { IsMaskedShield: true } || _context.Shields.Build(country, _sprite) is not { } shield)
+		{
+			return;
+		}
+		_texture = shield;
+		Place(GuiType, FrameSize(shield, 1));
+		ShowFrame();
 	}
 
 	/// <summary>A button that is not enabled draws in grey and cannot be pressed.</summary>

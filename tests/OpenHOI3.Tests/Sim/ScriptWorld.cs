@@ -18,7 +18,8 @@ namespace OpenHOI3.Tests.Sim;
 /// Germany owns 1 to 3 and Poland 4; Italy owns Rome, alone; the wilds are nobody's. Posen is a
 /// core of Germany and of Slovakia, which owns nothing and has its capital there. Germany and Italy
 /// are the axis, and 1 and 2 are the region of sudetenland. Berlin has a port on the sea. One event
-/// modifier, <c>us_new_deal</c>, gives 10% IC.
+/// modifier, <c>us_new_deal</c>, gives 10% IC. Rome is in Africa and the rest in Europe; the map has
+/// a lake too.
 /// </summary>
 internal static class ScriptWorld
 {
@@ -50,11 +51,14 @@ internal static class ScriptWorld
 
 		CProvince Land(int id, CCountryTag? owner, params int[] beside)
 		{
-			var province = new CProvince(id, $"p{id}", isSea: false) { Owner = owner, Controller = owner };
+			var province = new CProvince(id, $"p{id}", isSea: false)
+			{
+				Owner = owner, Controller = owner, Continent = id == 7 ? "africa" : "europe",
+			};
 			province.Edges = System.Array.ConvertAll(beside, to => new CProvinceEdge(to, EProvinceEdgeKind.Plain, 0, CFixedPoint.Zero));
 			return province;
 		}
-		var berlin = new CProvince(1, "p1", isSea: false) { Owner = Ger, Controller = Ger, PortSea = 5 };
+		var berlin = new CProvince(1, "p1", isSea: false) { Owner = Ger, Controller = Ger, PortSea = 5, Continent = "europe" };
 		berlin.Edges = new[] { new CProvinceEdge(5, EProvinceEdgeKind.Plain, 0, CFixedPoint.Zero), new CProvinceEdge(2, EProvinceEdgeKind.Plain, 0, CFixedPoint.Zero) };
 		berlin.Cores.Add(Ger);
 		berlin.Regions.Add(0);
@@ -86,6 +90,7 @@ internal static class ScriptWorld
 			buildings: new[] { Industry, NavalBase }, staticModifiers: new[] { newDeal }, wars: wars)
 		{
 			Regions = new[] { new CRegion("sudetenland", new[] { 1, 2 }, useForPeace: false) },
+			Continents = new[] { "europe", "africa", "lake" },
 			IdeologyGroups = groups ?? System.Array.Empty<CIdeologyGroup>(),
 		};
 	}

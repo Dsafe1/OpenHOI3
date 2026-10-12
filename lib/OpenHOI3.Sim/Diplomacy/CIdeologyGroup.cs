@@ -35,4 +35,13 @@ public sealed class CIdeologyGroup
 
 	/// <summary>The static modifier the faction's influence puts on a country - <c>align_towards_axis</c>.</summary>
 	public string Influence { get; init; } = "";
+
+	/// <summary>The faction's <c>icon</c>: its frame of the faction pictures, counted from 1.</summary>
+	public int FactionIcon { get; init; }
+
+	/// <summary>The rules the faction's <c>rule</c> block sets to yes, by key (<see cref="CFactionRules"/>).</summary>
+	public HashSet<string> FactionRules { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>The faction's <c>modifier</c> block. What it does to a member is the factions' piece; the screen shows it.</summary>
+	public Modifiers.CModifier FactionModifier { get; init; } = new();
 }

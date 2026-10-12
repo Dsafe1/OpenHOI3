@@ -22,8 +22,29 @@ public partial class CGuiTextBox : CGuiObject
 	private string _text = "";
 	private readonly List<List<CTextRun>> _lines = new();
 
+	/// <summary>
+	/// The colour its text is drawn in where no colour escape says otherwise, in place of the font's:
+	/// what the original sets on a box, as the diplomacy screen's relation figures.
+	/// </summary>
+	public Color? Colour
+	{
+		get => _colour;
+		set
+		{
+			if (_colour != value)
+			{
+				_colour = value;
+				QueueRedraw();
+			}
+		}
+	}
+
+	private Color? _colour;
+	private CGuiContext? _context;
+
 	public void Initialise(CGuiTextBoxType type, CGuiContext context)
 	{
+		_context = context;
 		Place(type, new Vector2(type.MaxWidth, type.MaxHeight));
 		MouseFilter = MouseFilterEnum.Ignore;
 
@@ -109,6 +130,22 @@ public partial class CGuiTextBox : CGuiObject
 		return CWordWrap.Wrap(paragraph, inside, _font.Width);
 	}
 
+	/// <summary>
+	/// A paragraph broken at its spaces to the box's width in its font, however tall the box: for a list
+	/// that makes a row of each piece, as the diplomacy screen's status list does.
+	/// </summary>
+	public IEnumerable<string> Pieces(string paragraph)
+	{
+		var type = (CGuiTextBoxType)GuiType;
+		float inside = type.MaxWidth - 2f * type.BorderSize.X;
+		if (_font is null || inside <= 0f)
+		{
+			return new[] { paragraph };
+		}
+		CGuiFont font = _font;
+		return CWordWrap.Wrap(paragraph, inside, text => CTextIcons.Measure(CColouredText.Strip(text), font.Width));
+	}
+
 	public override void _Draw()
 	{
 		if (_font is null)
@@ -130,15 +167,14 @@ public partial class CGuiTextBox : CGuiObject
 			float width = 0f;
 			foreach (CTextRun run in line)
 			{
-				width += _font.Width(run.Text);
+				width += CTextIcons.Measure(run.Text, _font.Width);
 			}
 			float x = inset.X + CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, width);
 
 			foreach (CTextRun run in line)
 			{
-				Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : _font.Color;
-				_font.Draw(this, new Vector2(Mathf.Round(x), Mathf.Round(y)), run.Text, colour);
-				x += _font.Width(run.Text);
+				Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : Colour ?? _font.Color;
+				x = _context is null ? x : _context.TextIcons.Draw(this, _font, run.Text, x, y - _font.Ascent, colour);
 			}
 			y += _font.LineHeight;
 		}

@@ -265,7 +265,7 @@ file order, then those that may not, in file order**. Each row is a `diplomatic_
 where either fails - **and never enables it again** until the screen is opened again; a row whose
 `potential` fails stays listed until then. Pressing the button takes the decision (section 9) - the
 button does not ask `allow` itself; the command does when it runs. The rest of the diplomacy screen is
-not built.
+`diplomacyscreen.md`.
 
 ## Not established
 

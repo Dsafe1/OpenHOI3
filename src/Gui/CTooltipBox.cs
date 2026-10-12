@@ -26,8 +26,6 @@ public partial class CTooltipBox : Control
 	private CGuiContext _context = null!;
 	private string _text = "";
 	private readonly List<List<CTextRun>> _lines = new();
-	private readonly Dictionary<string, Texture2D?> _flags = new();
-	private readonly Dictionary<string, Texture2D?> _counters = new();
 
 	/// <summary>The box the install declares, or null - said once - where it declares none.</summary>
 	public static CTooltipBox? Create(CGuiContext context)
@@ -140,64 +138,9 @@ public partial class CTooltipBox : Control
 			foreach (CTextRun run in line)
 			{
 				Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : _font.Color;
-				foreach (CTextPiece piece in CTextIcons.Split(run.Text))
-				{
-					if (piece.Counter is not null)
-					{
-						if (Counter(piece.Counter) is { } counter)
-						{
-							Vector2 size = counter.GetSize();
-							DrawTextureRectRegion(counter,
-								new Rect2(Mathf.Round(x), Mathf.Round(top), CCounterIcons.Width, CCounterIcons.Height),
-								new Rect2(size.X * CCounterIcons.Left, size.Y * CCounterIcons.Top,
-									size.X * (CCounterIcons.Right - CCounterIcons.Left), size.Y * (CCounterIcons.Bottom - CCounterIcons.Top)));
-						}
-						x += CCounterIcons.Advance;
-						continue;
-					}
-					if (piece.Tag is null)
-					{
-						_font.Draw(this, new Vector2(Mathf.Round(x), Mathf.Round(top + _font.Ascent)), piece.Text, colour);
-						x += _font.Width(piece.Text);
-						continue;
-					}
-					if (Flag(piece.Tag) is { } flag)
-					{
-						DrawTextureRect(flag, new Rect2(Mathf.Round(x), Mathf.Round(top + CFlagIcons.BelowLineTop),
-							CFlagIcons.Width, CFlagIcons.Height), false);
-					}
-					x += CFlagIcons.Advance;
-				}
+				x = _context.TextIcons.Draw(this, _font, run.Text, x, top, colour);
 			}
 			top += _font.LineHeight;
 		}
-	}
-
-	/// <summary>
-	/// A country's flag, from <c>gfx/flags</c>. The original draws it out of an atlas of all
-	/// of them, which was not read; a tag nobody has draws nothing here, where the original
-	/// draws the flag of the country numbered 1.
-	/// </summary>
-	private Texture2D? Flag(string tag)
-	{
-		if (!_flags.TryGetValue(tag, out Texture2D? flag))
-		{
-			string path = "gfx/flags/" + tag + ".tga";
-			flag = tag.Length == CFlagIcons.TagLength && _context.Textures.Exists(path)
-				? _context.Textures.LoadFromGamePath(path) : null;
-			_flags[tag] = flag;
-		}
-		return flag;
-	}
-
-	/// <summary>The picture of the sprite <c>GFX_counter_</c> + name, or null where there is none - which draws nothing.</summary>
-	private Texture2D? Counter(string name)
-	{
-		if (!_counters.TryGetValue(name, out Texture2D? counter))
-		{
-			counter = _context.Sprites.Find(CCounterIcons.SpritePrefix + name) is { } sprite ? _context.Textures.Load(sprite) : null;
-			_counters[name] = counter;
-		}
-		return counter;
 	}
 }

@@ -251,6 +251,9 @@ public sealed class CGameState
 	/// <summary>The guarantees standing now.</summary>
 	public List<CGuarantee> Guarantees { get; } = new();
 
+	/// <summary>The map's continents, by name, in the order their file declares them.</summary>
+	public IReadOnlyList<string> Continents { get; init; } = Array.Empty<string>();
+
 	/// <summary>The corners of the alignment triangle, in the order their file declares them.</summary>
 	public IReadOnlyList<CIdeologyGroup> IdeologyGroups { get; init; } = Array.Empty<CIdeologyGroup>();
 

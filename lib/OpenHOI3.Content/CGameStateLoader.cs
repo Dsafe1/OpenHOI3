@@ -119,7 +119,8 @@ public static class CGameStateLoader
 			MapWidth = map.Width,
 			MapHeight = map.Height,
 			Regions = map.Regions,
-			IdeologyGroups = CIdeologyReader.Read(directories, warn),
+			Continents = map.ContinentNames,
+			IdeologyGroups =CIdeologyReader.Read(directories, warn),
 			StartDate = start,
 			EndDate = ReadEndDate(directories, warn),
 		};

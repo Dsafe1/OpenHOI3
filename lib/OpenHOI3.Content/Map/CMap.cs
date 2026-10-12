@@ -27,9 +27,10 @@ public sealed class CMap
 
 	private CMap(int width, int height, ushort[] raster, bool[] isSea,
 		CProvinceShape[] shapes, int[][] neighbours, CExplicitAdjacency[] explicitAdjacencies,
-		CTerrain[] terrains, CTerrain?[] terrain, string[] continents, CMapPositions positions,
-		CProvinceEdge[][] edges, List<CRegion> regions, string[] sourceFiles)
+		CTerrain[] terrains, CTerrain?[] terrain, string[] continents, List<string> continentNames,
+		CMapPositions positions, CProvinceEdge[][] edges, List<CRegion> regions, string[] sourceFiles)
 	{
+		ContinentNames = continentNames;
 		Regions = regions;
 		Width = width;
 		Height = height;
@@ -90,6 +91,9 @@ public sealed class CMap
 	/// province no continent lists - every sea province, for one.
 	/// </summary>
 	public IReadOnlyList<string> Continents { get; }
+
+	/// <summary>The continents' names, in the file's order.</summary>
+	public IReadOnlyList<string> ContinentNames { get; }
 
 	/// <summary>The regions of <c>region.txt</c>, in the file's order.</summary>
 	public IReadOnlyList<CRegion> Regions { get; }
@@ -302,13 +306,14 @@ public sealed class CMap
 			explicitAdjacencies, id => isSea[id], positions, terrainBitmap, terrainDefinition, riverBitmap);
 
 		string continentTxt = directories.Resolve("map/" + definition.GetString("continent", "continent.txt"));
-		string[] continents = ReadContinents(continentTxt, provinceCount, warn);
+		var continentNames = new List<string>();
+		string[] continents = ReadContinents(continentTxt, provinceCount, continentNames, warn);
 
 		string regionTxt = directories.Resolve("map/" + definition.GetString("region", "region.txt"));
 		List<CRegion> regions = CRegionReader.Read(regionTxt, provinceCount, warn);
 
 		return new CMap(bitmap.Width, bitmap.Height, raster, isSea, shapes, neighbours,
-			explicitAdjacencies, terrains, terrain, continents, positions, edges, regions,
+			explicitAdjacencies, terrains, terrain, continents, continentNames, positions, edges, regions,
 			new[]
 			{
 				definitionPath, provincesCsv, provincesBmp, adjacenciesCsv, terrainTxt, terrainBmp, riversBmp,
@@ -320,7 +325,7 @@ public sealed class CMap
 	/// Reads the continents: one block each, named, listing the provinces on it. A
 	/// province listed twice keeps the first continent that named it.
 	/// </summary>
-	private static string[] ReadContinents(string path, int provinceCount, Action<string> warn)
+	private static string[] ReadContinents(string path, int provinceCount, List<string> names, Action<string> warn)
 	{
 		var continents = new string[provinceCount];
 		Array.Fill(continents, "");
@@ -338,6 +343,7 @@ public sealed class CMap
 			{
 				continue;
 			}
+			names.Add(block.Key);
 			foreach (ClausewitzNode entry in block.Children)
 			{
 				if (!int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
