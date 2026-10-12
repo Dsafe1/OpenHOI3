@@ -96,6 +96,12 @@ if (args.Length > 0 && args[0] == "techgap")
 	return CTechGapCheck.Run(args);
 }
 
+// The install's events and decisions are read and every problem in them listed.
+if (args.Length > 0 && args[0] == "script")
+{
+	return CScriptCheck.Run(args);
+}
+
 // A country's raiders are sent at another's convoys for some days.
 if (args.Length > 0 && args[0] == "raid")
 {

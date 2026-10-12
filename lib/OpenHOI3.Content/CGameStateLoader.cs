@@ -5,6 +5,7 @@ using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.History;
 using OpenHOI3.Content.Map;
+using OpenHOI3.Content.Script;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Construction;
@@ -121,6 +122,13 @@ public static class CGameStateLoader
 		CLeadership.SetAtStart(state);
 		CManpower.SetAtStart(state);
 		CLeaderReader.Read(directories, state, start, warn);
+
+		// Events and decisions name nearly everything above, so they are read once it is there.
+		CScriptProblems scriptProblems = CScriptLoader.Load(directories, state, warn);
+		if (scriptProblems.Count > 0)
+		{
+			warn($"events and decisions: {scriptProblems.Count} problems, which `OpenHOI3.SaveCheck script` lists");
+		}
 
 		// The units come last, as they do in the original: a brigade is made by a country
 		// that already has its laws, its technology and its modifiers. The leaders the files

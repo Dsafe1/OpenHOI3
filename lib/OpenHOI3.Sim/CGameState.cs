@@ -7,6 +7,7 @@ using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Script;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
@@ -142,6 +143,15 @@ public sealed class CGameState
 	/// the numbers of its own in <see cref="CProvince.Regions"/>.
 	/// </summary>
 	public IReadOnlyList<CRegion> Regions { get; init; } = Array.Empty<CRegion>();
+
+	/// <summary>
+	/// Every event, country and province events alike, in the order their files are read; set
+	/// once everything they name is loaded. See <c>docs/mechanics/script.md</c>.
+	/// </summary>
+	public IReadOnlyList<CEvent> Events { get; set; } = Array.Empty<CEvent>();
+
+	/// <summary>Every decision, both groups, in the order their files are read.</summary>
+	public IReadOnlyList<CDecision> Decisions { get; set; } = Array.Empty<CDecision>();
 
 	/// <summary>
 	/// The defines' <c>start_date</c> and <c>end_date</c>: the first and last days a date
