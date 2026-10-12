@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Leaders;
@@ -95,6 +96,8 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 			_photo.Clicked += () => LeaderPressed?.Invoke();
 		}
 		_leaderTypes = window.FindIcon("leader_types");
+		AnswerFor(name => CUnitHeaderTooltips.Header(context.Localisation.Localise, state, owner, unit, name),
+			"unitname", "unitstrength", "unitleader");
 		Update();
 	}
 

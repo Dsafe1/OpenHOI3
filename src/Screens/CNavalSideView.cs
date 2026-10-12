@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
@@ -38,6 +39,8 @@ public sealed class CNavalSideView : ICombatSideView
 		_shield = window.FindIcon("shield");
 		_leader = new CCombatLeaderView(window, context);
 		_positioning = window.FindTextBox("positioning");
+		window.SetTooltips(element => CBattleTooltips.Side(context.Localisation.Localise, state, side.Combat, side, element),
+			"positioning", "leader_name");
 		Update();
 	}
 

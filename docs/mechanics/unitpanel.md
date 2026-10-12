@@ -326,9 +326,162 @@ original's on 2026-10-09 and the row was missing. It has two faces: `confirmed`
 hand a headquarters to, and nothing an aggression would change. The box is clear, the
 slider stands in the middle, and the switch is off.
 
+## 10. Tooltips
+
+Read 2026-10-12, `reversing/findings/FINDINGS-unitpaneltooltips.md`; built in
+`lib/OpenHOI3.Interface/Tooltips` - `CUnitHeaderTooltips`, `CUnitStatusTooltips`,
+`CUnitOrderTooltips`, `CBrigadeTooltips` and `CLeaderTooltip` - and tried with `--click`.
+`tooltips.md` has how a tooltip is asked for and shown. **Each entry answers for its
+elements by name**, and an element no entry owns says nothing. `confirmed` unless marked.
+
+**A text box over a button.** In the original the topmost element under the mouse answers,
+whatever it is. Here a text box lets the mouse through so that the button under it keeps its
+clicks; the text boxes these tables name answer first where the mouse is over them, and the
+button keeps the clicks (*ours*, `CGuiObject.PassiveTooltip`).
+
+### 10.1 A unit above, the header and a unit under it
+
+A unit above: `SELECT_PARENT_UNIT`, anywhere on its row.
+
+The header, by element - a pair is the text and what comes after a moment:
+
+| element | what it says |
+| --- | --- |
+| `unit_activity` | the first that holds: in a battle `UV_ATTACKING` or `UV_UNDER_ATTACK`; falling back `UV_RETREAT`; held by an attack delay `UW_ATTACK_DELAY`; on the march `ESTIMATE_ARIVAL`; its weakest brigade's strength under 0.1 `UV_NO_STRENGHT`; its weakest organisation under 1 `UV_NO_MORALE`; unable to act `UV_NOT_MOBILE`; otherwise nothing |
+| `remove_unit_from_selection_button`, `only_unit_from_selection_button` | `DESELECT_UNIT`, `OSELECT_UNIT`, each with its `_DRO` |
+| `leader_button` | `UW_LEADER_BUTTON_IRO`, `UW_LEADER_BUTTON_DRO` |
+| `leader_types` | **the key `xxx`**, both halves - the original's |
+| `unitname` | `UW_UNITNAMES_IRO`, `UW_UNITNAMES_DRO` |
+| `exp_force` | `UW_XP_FORCE_IRO` and `_DRO`: not built, nothing is an expeditionary force |
+| `counter_type` | a line for each brigade: `£` and its type's key - which draws its counter - a space and its name |
+| `counter_size` | a unit whose counter is a brigade's (a lone brigade, an air unit) `UNIT_BRIGADE_NAME` and `UNIT_BRIGADE_DESC`; any other its level's `_NAME` and `_DESC` of `UNIT_THEATHRE`, `UNIT_ARMYGROUP`, `UNIT_ARMY`, `UNIT_CORP`, `UNIT_DIVISION`, `UNIT_NAVY`, `UNIT_AIR` |
+| `unitstrength` | a land unit: `UW_TOTAL_STR_IRO` with the men of its most, then each brigade's line, `- `, its men in red under half its most, yellow under its most and white at it, `/` and its most; a fleet or an air unit: a line for each ship or wing short of its most, green from 90%, yellow from 66%, red below, after `UW_FOLLOWING_HURT` - or `UW_ALL_FIT` where none is |
+| `unitleader`, `leader_photo` | the leader's tooltip, 10.5 |
+| `org_bar` | `CURR_COMB_ORG` and the average organisation to one place |
+| `str_bar` | `CURR_COMB_STR` and the strength over the most, as a percentage to one place |
+
+A unit under it says the same of its counters, its level and its two bars, and of `order`
+its order's description, 10.3.
+
+**The hours of an attack delay** are the delay whole, times the hours the unit has attacked
+over `UNIT_ATTACK_DELAY_PERIOD` where those are fewer, and never under one; the date is that
+many hours on. **A date** is written ` 13:00, 1 January, 1936` - with a space in front, and
+not the top bar's form. **On the march** the date is when it reaches the next province, and
+the province is that one.
+
+*Not built*: the organisation bar's second line - the organisation a brigade regains an hour,
+whose unit-wide term is not read - and the leader window's own part, which the header asks
+first while that window is up. *Ours*: a unit is unable to act when it has no brigades; what
+the original asks was not read.
+
+### 10.2 The status
+
+| element | what it says |
+| --- | --- |
+| `unitlocation` | `UW_LOC_IRO`, and `SHORTCUT` and the key of the button that finds the unit after a moment |
+| `unitbase` | a land unit `UW_SUPPLIES_FROM` and, after a moment, what the element itself shows; a fleet or an air unit `UW_BASED_FROM` |
+| `unit_weight` | `TRANSPORT_WEIGHT` |
+| `unit_cw_strip` | `UNIT_COMBAT_WIDTH`, `: ` and the width to one place in yellow |
+| `unitstatus_delay` | `UW_ATTACK_DELAY` as the header's |
+| `unitstatus_nuke` | `UW_CARRYING_NUKE` |
+| `unitstatus_dugin` | `UW_DUGIN` with the days dug in and `UNIT_DIGIN_CAP` |
+| `unitstatus_combinedarms` | `CA_BONUS_DETAILS_TOTAL`, then on lines of their own the mix's own `CA_BONUS_DETAILS_BASE`, what technology adds `CA_BONUS_DETAILS_TECH` and what the leaders' traits add `CA_BONUS_DETAILS_TRAIT`, the last two only above nothing; each a percentage to two places |
+| `unitstatus_moving` | on the march and in no battle, `ESTIMATE_ARIVAL` |
+| `speed` | `UW_SPEED` and a line break; where something scales its speed, ` / ` and the speed it has with `KPH`; a line for each brigade, its counter, its name, ` - `, its type's speed, a space and `KPH`; a line break; and where something scales it, `SPEED_MODIFIER` with the whole multiplier as a percentage to two places, green above one and red below |
+| `unitstatus_distance` | `UW_DIS_OUT_OF_RANGE` where a unit above is out of radio range; for a headquarters, `UW_EFFECTIVE_RADIO_STRENGTH` with its level's name and how far it reaches in full; then for each headquarters up the chain, `UW_DIST_TO` with its province, its level's name, its name, **the name of the unit below it in the chain** and the distance between them, green where all its command gets through and yellow otherwise - each line ending in a line break |
+
+**A headquarters out of reach is yellow, never red**: the original's red is for a reach under
+nothing, and a reach is never under nothing. Kept as read.
+
+*Not built*: the attrition breakdown, which has no attrition to break down; supply and fuel,
+which ask how many days a depot's stock lasts its units; a fleet's or an air unit's base and
+how well it supplies; the terms of the speed's multiplier one by one; and what the country's
+technology adds to the digging-in cap, whose figure is not known.
+
+### 10.3 The order and what an order calls itself
+
+`cancel_order_button` says `CANCEL_CURRENT_ORDER` - every order built may be called off, and
+`non_cancellable_order_desc` waits for one that may not. Anywhere else, the order's
+description: `MOVE_ORDER_DESC`, `ORDER_REBASE_DESC`, `ORDER_AIR_REBASE_DESC`,
+`ORDER_RESERVE_DESC`, `ORDER_PATROL_DESC`, `ORDER_INTERCEPT_DESC`, `ORDER_SORTIE_DESC`,
+`ORDER_CONVOY_ESCORT_DESC`, `ORDER_CONVOY_RAID_DESC`, `AIRSUP_DESC`, `INTERCEPT_DESC`,
+`GROUNDATTACK_BOMB_DESC`, `INTERDICT_BOMB_DESC`, `NAVALSTRIKE_BOMB_DESC`, `STRAT_BOMB_DESC`,
+`LOG_BOMB_DESC`, `AIRFIELD_BOMB_DESC`, `INSTALLATION_BOMB_DESC`, `PORTSTRIKE_BOMB_DESC` -
+the original's table, which has fourteen more for orders not built. **A unit with no order
+says nothing**: the original's idle order describes itself as empty. A unit sent straight
+somewhere is on a move here (*ours*, as section 5).
+
+### 10.4 The brigades, the buttons and a headquarters' row
+
+The window over the brigades: a fleet's `positioning` says `POS_STACK_PENALTY` - the hull
+limit, what each hull over it costs as a percentage, and the cost in all, held between nothing
+and `NAVAL_STACK_POS_PENALTY_MAX`. A brigade's row: `unit_cw_strip` its type's width, as the
+status's; `unitstatus_reserve` `UW_RESERVE_INFO` with what the country's
+`reserves_penalty_size` takes away; anything else **its summary**:
+
+    (§Y + the model's name + §W)
+    PRIDE_OF_FLEET, for the pride of a fleet
+    SUBTT_STRENGTH: §Y + its strength + §W/ + its most - men for a brigade, else whole and %
+    SUBTT_ORG: §Y + its organisation + §W/ + the most it may have, each with the places it needs
+    SUBTT_EXP: §Y + its experience, the pride's bonus with it, to three places + §W%
+    for a ship or a wing: MAXIMUM_SPEED §Y + its type's speed to two places + §W KPH, and
+          RANGE §Y + its range whole + §W KM, each only where it is not nothing
+    a line for each technology it carries: its name, " : §Y", the level's name - or YES or NO
+          for a technology of one level - and, where it is on its way to the next level,
+          §W(+ the way it has come as a percentage to two places %)
+
+**A model's name** is the country's text `GER_infantry_brigade_1`, else the game's
+`infantry_brigade_1`, else the type's name and the model's number plus one in Roman numerals.
+**A level's name** is nothing at level 0; else the country's text `GER_infantry_activation_3`,
+else the game's, else `MODEL_TAG` and **a year**: the technology's `start_year` at level 1 and
+`first_offset` plus `additional_offset` for each level past 2 - so Their Finest Hour's infantry
+technologies run 1918, 1934, 1936 and on by two. That the figure after a level is the way to
+the next one is `likely`. *Not built*: the faction leader's name for a model, the mark `+*` on a
+model the country no longer builds, a brigade's upgrade button and what it would upgrade to,
+and the line of a row that stands for an upgrade being made. *Inferred*: that the speed and the
+range are yellow.
+
+The strip of buttons: each checkbox says what a click would do - `UW_TURN_ON_PRIO` or
+`UW_TURN_OFF_PRIO`, `_REINF`, `_UPGRADE` - by the unit's own setting; `create_corps` and its
+three fellows `UW_CREATE_CORPS` and the others with `UW_CREATE_ABOVE_DRO`; `edit_theatre`,
+`disbandbutton`, `newunitbutton` (with `SPLIT_UNITS_DESC` and the brigades) and `oob_button`
+their keys. A button that cannot be pressed says why as the original does: `attach_button`
+`UW_NOT_POSSIBLE_TO_ATTACH`, and since nothing carries a unit here, `UW_LOAD_NO_FLEET_FOUND`,
+`UW_UNLOAD_NOT_VALID`, `UW_LOAD_PLANE_FAIL` and `UW_UNLOAD_PLANE_BASE_ONLY`.
+
+A headquarters' row: `aggression_checkbox` `AGGRESSION_OFF`; the slider's four pieces
+`AGGRESSION_LEVEL` with `AGGRESSION_NEUTRAL` - the original's from -0.3 to 0.3, where it stands;
+`automate_checkbox` why the unit is not handed to an AI - a division `CANT_AUTO_DIVISIONS`, a
+theatre `CANT_AUTO_NO_AREA` (none has an area here), a fleet or an air unit `ONLY_AUTO_ARMIES`,
+anything else `PLAYER_CONTROLLED` - with `AUTOMATED_DESC` after a moment; `reorg_hq_checkbox`
+`ALLOW_HQ_REORG`.
+
+### 10.5 A leader
+
+    his rank's name - LAND_RANK1..4, SEA_RANK1..4 or AIR_RANK1..4, INACTIVE at none -
+          + " §Y" + his name + "§W\n"
+    an admiral or an air marshal: LEADER_COMMAND_SIZE, " §G" where his rank is enough for
+          the unit and " §R" where not, " ", how many ships or wings his rank commands,
+          " ", SHIPS_LABEL or PLANES_LABEL, "§W\n"
+    an admiral: LEADER_POSITIONING + " §Y" + a tenth of his skill as a whole percentage + "%§W\n"
+    LEADER_SKILL + " §Y" + his skill, " (" + LEADER_SKILL_AT_MAX + ")" at his most, "§W\n"
+    LEADER_XP + " §Y" + how far he is to his next skill, a percentage to two places + "%§W\n"
+    where he has traits: "\n" + ACTUAL_TRAITS_DESC, and "\n- §Y" + each trait's name + "§!"
+    where he is part of the way to a trait: "\n" + TO_GAIN_TRAITS_DESC + "\n", then a line
+          "- " + TRAIT_GAIN_PROGRESS for each, between line breaks
+
+**How far he is to his next skill** is worked in fifteen binary places: his experience less his
+skill's threshold, shifted up fifteen, over the next threshold less his own, both shifted up
+fifteen; that times a thousand shifted up fifteen, and shifted down thirty - thousandths. The
+thresholds are those of `leaders.md`. Nothing from skill 12; at skill 11 the next "threshold" is
+the word after the original's table, a 1, so the share is nothing or less - kept as read. A
+trait's progress shows above nothing and short of the whole. **The original lists them in the
+order the traits lie in its memory; here in the order of the traits file** (*ours*).
+
 ## What is not built
 
-- **Tooltips**, every one. The original's unit panel says most of what it knows in them.
+- **Tooltips** the original has and section 10 lists as not built; the battle row's, which are
+  a battle's.
 - **Typing a name** into `unitname`.
 - **Several units selected**: the list of their rows and the window over it
   (`multi_unitpanel`).

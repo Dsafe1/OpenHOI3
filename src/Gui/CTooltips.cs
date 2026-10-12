@@ -90,7 +90,16 @@ public partial class CTooltips : CanvasLayer
 			{
 				return CTooltip.Empty;
 			}
-			CTooltip tooltip = element.Tooltip?.Invoke() ?? CTooltip.Empty;
+			CTooltip tooltip;
+			if (Above(element) is { } passive)
+			{
+				element = passive;
+				tooltip = passive.PassiveTooltip!.Invoke();
+			}
+			else
+			{
+				tooltip = element.Tooltip?.Invoke() ?? CTooltip.Empty;
+			}
 			if (element.GuiType is CGuiButtonType button)
 			{
 				tooltip = CTooltipText.WithShortcut(tooltip, button.Shortcut, _shortcutLabel);
@@ -100,6 +109,45 @@ public partial class CTooltips : CanvasLayer
 		}
 		CTooltip province = MapTooltip?.Invoke(_mouse) ?? CTooltip.Empty;
 		return CTooltipPlacement.AtMouse(province, (int)_mouse.X, (int)_mouse.Y);
+	}
+
+	/// <summary>
+	/// The topmost element beside the hovered one, drawn over it, that lets the mouse through
+	/// and still has something to say where the mouse is - a text box over a button.
+	/// </summary>
+	private CGuiObject? Above(CGuiObject hovered)
+	{
+		// Its own elements are drawn over it, and then those beside it that come after it.
+		if (Topmost(hovered, 0) is { } inside)
+		{
+			return inside;
+		}
+		return hovered.GetParent() is { } parent ? Topmost(parent, hovered.GetIndex() + 1) : null;
+	}
+
+	/// <summary>
+	/// Among a node's children from one on, at any depth - a list's rows are windows in a
+	/// window - the topmost that answers passively where the mouse is: a later child before an
+	/// earlier, and what is in a child before the child.
+	/// </summary>
+	private CGuiObject? Topmost(Node parent, int from)
+	{
+		for (int index = parent.GetChildCount() - 1; index >= from; index--)
+		{
+			if (parent.GetChild(index) is not Control { Visible: true } child)
+			{
+				continue;
+			}
+			if (Topmost(child, 0) is { } inside)
+			{
+				return inside;
+			}
+			if (child is CGuiObject { PassiveTooltip: not null } element && element.GetGlobalRect().HasPoint(_mouse))
+			{
+				return element;
+			}
+		}
+		return null;
 	}
 
 	/// <summary>

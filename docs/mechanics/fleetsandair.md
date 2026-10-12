@@ -340,6 +340,41 @@ Königsberg, the AI having some fifteen more fleets under way:
 - **The unit panel** names the order and the province it is for, the unit's base with its
   range, and counts a fleet's ships and an air unit's wings: `unitpanel.md`.
 
+## 8. The window's tooltips
+
+Read 2026-10-12, `reversing/findings/FINDINGS-orderstooltips.md`; built in
+`COrdersTooltips` (`lib/OpenHOI3.Interface/Tooltips`) and tried with `--click`. The window
+answers for its elements by name and each row of its list for itself; `tooltips.md` has how a
+tooltip is asked for. `confirmed` unless marked.
+
+The fleet's window:
+
+| element | what it says |
+| --- | --- |
+| `accept`, **only while it cannot be pressed** | `OV_NO_VALID_ORDER` with no order ticked; else `OV_OUT_OF_RANGE` where the ticked order is out of reach - a key with no text in either table, and never reached, `accept` being pressable whenever a row is ticked |
+| `stance_label`, `stance_value`, the two stance buttons | `OV_STANCE` |
+| `priority_label`, `priority_value` | `OV_PRIO` |
+| a row of the list | what its order calls itself (`unitpanel.md`, section 10.3); and after a moment, where the province is out of the fleet's reach (section 3), `OUT_OF_RANGE` with `MYRANGE` its range to one place and `RANGE` the distance by sea from its base, with only the places it needs |
+
+The air window:
+
+| element | what it says |
+| --- | --- |
+| `daytime_title`, `daytime_icon`, `daytime_icondesc` | `ORDER_DAY_TIME_DESC` with `PROV` the window's province and `TIME` `ORDER_NIGHT` or `ORDER_DAY` - whether it is night there at the mission's first hour, as the window's own readout says (section 4) |
+| `accept`, only while it cannot be pressed | `OV_NO_VALID_ORDER` with no order ticked; `OV_NO_VALID_PROVINCES` where the mission's area is empty |
+| the stance's four, `priority_label`, `priority_value` | `OV_STANCE`, `OV_PRIO` |
+| `continous_checkbox` | `OV_CONT` |
+| `point_target_button`, `region_target_button`, `circle_target_button`, `cone_target_button` | `AirOrdersBtn_Point`, `_Region`, `_Circle`, `_Conic` |
+| a row of the list | what its order calls itself; no range line |
+
+**The two windows' priority buttons say nothing**: the original asks twice for a name that is
+not in the file, `priority_stance_button`, where the buttons are `decrease_priority_button` and
+`increase_priority_button`. Kept as read. A row of an order that is listed and not built -
+transport, invasion, the supply flight, the air's raid on convoys, the air reserve - says the
+original's description of it; **whether it is out of reach is not asked** (*ours*: there is no
+order to ask), where the original makes the order and asks it. `pdx` keys of the `.gui` files
+play no part (`tooltips.md`, section 9).
+
 ## What is not built
 
 - **A fleet's transport and invasion, and an air unit's reserve, supply flight and raid on
@@ -360,7 +395,8 @@ Königsberg, the AI having some fifteen more fleets under way:
   left; and gives an air unit with no base the nearest of its country's.
 - **An air unit sent home**: away from its base and worn down, the original orders it back.
 - **Several units selected** given one order together.
-- **The window's tooltips**, the sounds of the click, and the mark it leaves on the province.
+- **The sounds of the click**, and the mark it leaves on the province. The window's tooltips
+  are built since 2026-10-12 (section 8).
 - **The land window**, `land_unit_order`, which a land unit's click brings up under a key
   that was not identified.
 

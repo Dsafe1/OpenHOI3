@@ -294,6 +294,23 @@ public partial class CGuiWindow : CGuiObject
 		}
 	}
 
+	/// <summary>
+	/// As <see cref="SetTooltips(Func{string, CTooltip})"/>, and the elements named that let the
+	/// mouse through answer too: first wherever the mouse is over them, leaving what lies under
+	/// them its clicks (<see cref="CGuiObject.PassiveTooltip"/>) - a text box over a button.
+	/// </summary>
+	public void SetTooltips(Func<string, CTooltip> tooltip, params string[] passive)
+	{
+		SetTooltips(tooltip);
+		foreach (string name in passive)
+		{
+			if (TryFindElement(name) is { } element)
+			{
+				element.PassiveTooltip = () => tooltip(name);
+			}
+		}
+	}
+
 	private static IEnumerable<CGuiObject> Descendants(Node node)
 	{
 		foreach (Node child in node.GetChildren())

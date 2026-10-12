@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Units;
 
@@ -31,6 +32,7 @@ public sealed class CUnitOrdersEntry : CUnitPanelEntry
 		{
 			cancel.Pressed += () => CancelPressed?.Invoke();
 		}
+		AnswerFor(name => CUnitOrderTooltips.Orders(context.Localisation.Localise, unit, name), "orders");
 		Update();
 	}
 

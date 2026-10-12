@@ -292,7 +292,8 @@ defender's:
   with none**. The two sides' pictures are different files. What the frames show was not read.
 
 *Ours:* a ship with no name of its own - the throwaway ships of a raid never get here - shows
-its type's key. *Not built:* a row's tooltip, the leader, and the sound.
+its type's key. *Not built:* the leader and the sound. A row's tooltip is built since
+2026-10-12 (section 12).
 
 **On the map** there is nothing: the window is reached by the row in a fleet's panel.
 
@@ -377,8 +378,8 @@ theirs, and a division under bombs is worth what it is in a battle.
 *Ours:* a building is asked nothing but whether the mission bombs it and the province has any;
 the original asks the building one thing more, which was not identified. *Ours:* a unit's panel
 says a bombing mission is "attacking" the province while the unit is in a bombing there, and
-"resting" otherwise (`bombing.md`, section 13). *Not built:* a row's tooltip, the leader, the
-sound.
+"resting" otherwise (`bombing.md`, section 13). *Not built:* a bombed row's tooltip, the leader,
+the sound. A wing's row's tooltip is built since 2026-10-12 (section 12).
 
 **On the map** the original shows a battle in the air and a bombing only once they are over,
 and only in its air map mode: three small icons to a province - an air battle, "bombed us",
@@ -386,13 +387,98 @@ and only in its air map mode: three small icons to a province - an air battle, "
 (`reversing/findings/FINDINGS-combatview.md`, section 14). Built since 2026-10-11, with the
 list of finished battles: `airmap.md`, section 4.
 
+## 12. Tooltips
+
+Read 2026-10-12, `reversing/findings/FINDINGS-battletooltips.md`; built in
+`lib/OpenHOI3.Interface/Tooltips` - `CBattleTooltips`, `CBattleUnitTooltips` and
+`CBattleRowTooltip` - and tried with `--click`. `confirmed` unless marked.
+
+**Who answers.** The in-game screen gives every element of the window to the window's own
+routine by its group - the window's and its entries' - except **`closebutton`, which says
+`CLOSE`** before any window is asked, and **the icons of the modifiers in play**, which carry the
+modifier's id and say **the modifier's name, and after a moment its `_desc` text**. Each half and
+each entry answers for its own elements here, the window for the rest.
+
+**The window, by the element's name**, the first that holds:
+
+| element | what it says |
+| --- | --- |
+| `combat_terrain` | the battle's terrain's name |
+| `combat_width` | `COMBAT_WIDTH` |
+| `positioning` | `FLEET_POSITIONING` |
+| `retreat_button` | `COMBAT_RETREAT` |
+| an entry | its own, below - on land the attacker's front, **the attacker's reserves their chance**, the defender's front and **the defender's reserves a unit's whole** |
+| `tactic_name`, `tactic_picture`, on land | that side's tactic's own text |
+| `combat_attack_indicator`, on land | `DEFENDER_COUNTERED`, `ATTACKER_COUNTERED` or `NONE_COUNTERED`, by section 9 |
+| `leader_name`, `leader_photo` | the side's highest ranked leader's tooltip (`unitpanel.md`, section 10.5), and after a moment `LEADER_INITIATIVE` where his skill is above the other side's leader's |
+
+**A land unit** - `str_bar` `CURR_COMB_STR` and its strength as a percentage to one place,
+`org_bar` `CURR_COMB_ORG` and its organisation, `unit_cw_strip` `UNIT_COMBAT_WIDTH` and its width;
+anything else, the whole:
+
+    LEADER_COMMAND_INFO with his NAME and SKILL; with no leader NO_LEADER_FOR_THIS_2 for a lone
+          brigade, NO_LEADER_FOR_THIS_1 for more, and a line break
+    BATTLE_ATTACKMOD + ": §Y" + its attack as a percentage, 2 places + "§!%" and a line break
+    BATTLE_DEFENDMOD the same with its defence
+    each of its combat modifiers: its name + ": " + its figure + "§W%\n"; where it does not do
+          the same to attack and defence, the attack's, "§W%/", the defence's - a figure "§R" at
+          nothing or less, "§G+" above, times 100 to 2 places
+    its side's tactic's figures as the side feels them (below)
+    AP_ATTACK + ": §Y" + its best piercing attack, trimmed + "§!\n"
+    ARMOR_VALUE the same with its best armour
+
+The original writes a second figure after the attack and the defence, coloured the other way,
+where a landing's scale makes them differ; nothing lands here, so the line is one yellow figure.
+*Not built*: a landing's lines.
+
+**An attacker's reserve** says `BATTLE_REINFORCE_CHANCE` + `: §Y` + its chance of coming up
+(`landcombat.md`) as a percentage to two places + `§W%`, whatever is under the mouse.
+
+**A ship** - its bars as a unit's; anything else:
+
+    "==>" + its target, green where an enemy and red where a friend it mistook, + "§W";
+          with none "<> " - so "==><>  (", two spaces, kept as read
+    " (" + its distance whole + "km)" and a line break
+    in a battle: EFF_POS + " : §Y" + its positioning and its side's, times 100, scaled by its
+          country's targeting_chance (inferred: the original's figure is named
+          naval_positioning_bonus), 1 place + "%§W\n"
+    BATTLE_FIRINGRANGE + its distance shortened by the weather, 1 place + "km", and where the
+          weather does that, "(" + red or green + by how much as a whole percentage + "%§W)";
+          a line break
+    BATTLE_ATTACKMOD and BATTLE_DEFENDMOD + ": §Y" + the figure, 2 places + "§W%\n"
+    its combat modifiers, as a unit's
+
+**A wing** - its bars, and anything else its attack, defence and modifiers as a ship's. *Not
+built*: the bombed side's rows, which say a figure each in the original.
+
+**A tactic's own text**: its figures, a line break; `TACTIC_COUNTERED_BY` with the tactic that
+counters it; and `TACTIC_COUNTERS`, then a line break where it counters more than one, and each
+on a line of its own after `§Y` and two spaces, in the tactics file's order. **Its figures**, each
+where it is not nothing - the key, `: `, `§G+` or `§R`, the figure and its suffix: the width whole
+and `§W\n`, the attacker's and defender's damage and the speed as whole percentages and `%§W\n`.
+**A side feels** the width always, the attacker's damage and the speed where it attacks, the
+defender's damage where it defends.
+
+**The row in a unit's panel** says, the attacker's side first:
+
+    each unit: "@" and its country's tag, " £" and its first brigade's type - none for an army or
+          above (inferred: the original asks a figure of the unit's taken to be its level) -
+          " " and its name; joined by ", " and " " + AND + " " before the last
+    a fleet's or an air unit's ships or wings each so, with the FLEET's name, the joins counted
+          by units - so one fleet's ships run together, kept as read
+    a line break, and what the side comes to by its first unit: UNIT_ATTACK_INFO_ARMY with its
+          land units' brigades, units and men; _NAVY with capital ships, screens, transports and
+          submarines; _AIR with fighters, bombers and rockets
+    "\n" + COMB_TT_VS + "\n", and the defender's side the same
+
+*Not built*: what of the province a bombing's row adds.
+
 ---
 
 ## What is not built
 
-- **Tooltips.** Everything in the window has one - the terrain, the width, a unit with what
-  each modifier is worth to it, a tactic with what it does and what counters it, the arrow
-  between the tactics - and none is drawn anywhere yet.
+- **Tooltips** the original has and section 12 lists as not built: a landing's lines, the bombed
+  side's rows, and what of the province a bombing's row adds.
 - **The sounds** a window plays while it is up.
 - **The naval mode's icons** of convoys sunk and raiders fought. The air map mode's of finished
   air battles and bombings are built: `airmap.md`.

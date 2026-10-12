@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Units;
 
@@ -44,6 +45,11 @@ public sealed class CDeploymentTargetEntry
 	public static CDeploymentTargetEntry? Create(CGuiContext context, CGameState state, CUnit target)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "deployment_target_entry");
-		return window is null ? null : new CDeploymentTargetEntry(window, state, target);
+		if (window is null)
+		{
+			return null;
+		}
+		window.SetTooltips(_ => CDeployMenuTooltips.Target(context.Localisation.Localise, target), "name", "location");
+		return new CDeploymentTargetEntry(window, state, target);
 	}
 }

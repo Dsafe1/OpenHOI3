@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -39,7 +40,13 @@ public sealed class CDeploymentEntry
 	public static CDeploymentEntry? Create(CGuiContext context, CUnit unit)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "deployment_entry");
-		return window is null ? null : new CDeploymentEntry(window, unit);
+		if (window is null)
+		{
+			return null;
+		}
+		// The line answers for all of itself, its name over its button too.
+		window.SetTooltips(_ => CDeployMenuTooltips.Entry(context.Localisation.Localise, unit), "name");
+		return new CDeploymentEntry(window, unit);
 	}
 
 	/// <summary>

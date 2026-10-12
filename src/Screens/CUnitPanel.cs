@@ -275,7 +275,7 @@ public partial class CUnitPanel : Control
 		}
 		// A headquarters has a row for the AI that may command it; a division has none.
 		if (unit.Kind is EUnitKind.Theatre or EUnitKind.ArmyGroup or EUnitKind.Army or EUnitKind.Corps
-			&& CUnitObjectivesEntry.Create(_context) is { } objectives)
+			&& CUnitObjectivesEntry.Create(_context, unit) is { } objectives)
 		{
 			Add(objectives);
 		}

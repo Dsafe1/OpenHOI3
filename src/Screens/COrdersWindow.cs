@@ -4,6 +4,7 @@ using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
@@ -98,6 +99,9 @@ public partial class COrdersWindow : Control
 		_stance = isAir ? AirMemory.Stance : COrdersText.Aggressive;
 		_priority = isAir ? AirMemory.Priority : 0;
 		AddChild(window);
+		// The window answers for its elements by name; each row of the list for itself.
+		window.SetTooltips(Tooltip, "stance_label", "stance_value", "priority_label", "priority_value",
+			"daytime_title", "daytime_icondesc");
 
 		// The title is written once: a window moved to another province keeps it.
 		if (window.FindTextBox("title") is { } title)
@@ -181,6 +185,21 @@ public partial class COrdersWindow : Control
 		}
 	}
 
+	private CTooltip Tooltip(string element)
+	{
+		if (_unit is not { } unit)
+		{
+			return CTooltip.Empty;
+		}
+		CGameState state = _simulation.State;
+		CProvince province = state.Province(_province);
+		bool acceptDisabled = _accept?.Disabled ?? true;
+		return _air is null
+			? COrdersTooltips.Naval(_context.Localisation.Localise, state, unit, province, acceptDisabled, TickedOrder, element)
+			: COrdersTooltips.Air(_context.Localisation.Localise, state, province, acceptDisabled, _ticked >= 0,
+				_air.HasProvinces, _air.StartHour, element);
+	}
+
 	private EUnitOrder TickedOrder => _ticked >= 0 && _ticked < _rows.Count ? _rows[_ticked].Order : EUnitOrder.None;
 
 	/// <summary>Makes the list for the window's province, ticking the row the original would.</summary>
@@ -201,6 +220,9 @@ public partial class COrdersWindow : Control
 			{
 				text.Text = COrdersText.RowText(_context.Localisation.Localise, _rows[index]);
 			}
+			COrderRow order = _rows[index];
+			CUnit unit = _unit!;
+			entry.SetTooltips(_ => COrdersTooltips.Row(_context.Localisation.Localise, state, unit, target, order), "name");
 			if (entry.FindButton("checkbox") is { } box)
 			{
 				int row = index;

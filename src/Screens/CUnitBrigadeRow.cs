@@ -1,5 +1,6 @@
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Units;
@@ -57,6 +58,8 @@ public sealed class CUnitBrigadeRow : CUnitPanelEntry
 		}
 		// Choosing what a brigade is upgraded to is not built.
 		Show(window.FindButton("upgrade_button"), false);
+		AnswerFor(name => CBrigadeTooltips.Row(context.Localisation.Localise, context.Localisation.Find, state, owner, subUnit, name),
+			"subunit_name", "subunit_type", "subunit_level", "subunit_amount");
 		Update();
 	}
 

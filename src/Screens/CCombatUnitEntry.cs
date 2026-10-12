@@ -1,6 +1,9 @@
+using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -47,10 +50,20 @@ public sealed class CCombatUnitEntry
 
 	public CUnit Unit { get; }
 
-	public static CCombatUnitEntry? Create(CGuiContext context, CGameState state, CUnit unit)
+	/// <param name="chance">Whether the entry says its chance of coming up - an attacker's reserve - rather than the unit's whole.</param>
+	public static CCombatUnitEntry? Create(CGuiContext context, CGameState state, CCombat combat, CUnit unit, bool chance)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "division_option");
-		return window is null ? null : new CCombatUnitEntry(window, state, unit);
+		if (window is null)
+		{
+			return null;
+		}
+		Func<string, string> localise = context.Localisation.Localise;
+		window.SetTooltips(element => chance
+				? CBattleUnitTooltips.Reserve(localise, state, unit)
+				: CBattleUnitTooltips.Unit(localise, state, combat, unit, element),
+			"name", "location");
+		return new CCombatUnitEntry(window, state, unit);
 	}
 
 	/// <summary>Writes what an hour may have changed: the two bars and where the unit is.</summary>

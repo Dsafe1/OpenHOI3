@@ -1,5 +1,6 @@
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 
@@ -55,7 +56,16 @@ public sealed class CCombatWingEntry
 	public static CCombatWingEntry? Create(CGuiContext context, CGameState state, CCombat combat, CCombatRow row)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "wing_option");
-		return window is null ? null : new CCombatWingEntry(window, context, state, combat, row);
+		if (window is null)
+		{
+			return null;
+		}
+		// A row of what is bombed says a figure in the original, which is not built.
+		if (row is { Kind: ECombatRowKind.SubUnit, SubUnit: { } wing })
+		{
+			window.SetTooltips(element => CBattleUnitTooltips.Wing(context.Localisation.Localise, wing, element), "name");
+		}
+		return new CCombatWingEntry(window, context, state, combat, row);
 	}
 
 	/// <summary>Writes what an hour may have changed: the bars.</summary>

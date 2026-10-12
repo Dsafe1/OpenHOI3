@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Units;
@@ -59,6 +60,7 @@ public sealed class CUnitChildRow : CUnitPanelEntry
 		{
 			select.Pressed += () => Selected?.Invoke();
 		}
+		AnswerFor(name => CUnitHeaderTooltips.ChildRow(context.Localisation.Localise, owner, unit, name), "order", "objective");
 		Update();
 	}
 

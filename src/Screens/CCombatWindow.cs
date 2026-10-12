@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
@@ -80,6 +81,9 @@ public partial class CCombatWindow : Control
 		_window = window;
 		_combat = combat;
 		AddChild(window);
+		// The window answers for its own elements by name; each half and each entry for its own.
+		window.SetTooltips(element => CBattleTooltips.Window(_context.Localisation.Localise, _simulation.State, combat, element),
+			"combat_width");
 
 		bool isNaval = combat.Kind == ECombatKind.Naval;
 		bool isAir = CAirCombatText.HasAirSide(combat);
@@ -231,7 +235,12 @@ public partial class CCombatWindow : Control
 				{
 					continue;
 				}
-				entry.FindIcon("combat_mod_icon")?.SetSprite(sprite);
+				if (entry.FindIcon("combat_mod_icon") is { } icon)
+				{
+					icon.SetSprite(sprite);
+					string key = sprite[CCombatViewText.ModifierSprite.Length..];
+					icon.Tooltip = () => CBattleTooltips.ModifierIcon(_context.Localisation.Localise, key);
+				}
 				_modifiers.Add(entry);
 			}
 		}

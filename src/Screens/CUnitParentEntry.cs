@@ -1,5 +1,6 @@
 using System;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -14,8 +15,9 @@ public sealed class CUnitParentEntry : CUnitPanelEntry
 	/// <summary>Raised when the button is pressed.</summary>
 	public event Action? Selected;
 
-	private CUnitParentEntry(CGuiWindow window, CUnit unit) : base(window)
+	private CUnitParentEntry(CGuiWindow window, CGuiContext context, CUnit unit) : base(window)
 	{
+		AnswerFor(_ => CUnitOrderTooltips.Parent(context.Localisation.Localise));
 		if (window.FindButton("unit") is { } button)
 		{
 			// Set once: the original's has no update either.
@@ -27,6 +29,6 @@ public sealed class CUnitParentEntry : CUnitPanelEntry
 	public static CUnitParentEntry? Create(CGuiContext context, CUnit unit)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "sup_parent_unit_entry");
-		return window is null ? null : new CUnitParentEntry(window, unit);
+		return window is null ? null : new CUnitParentEntry(window, context, unit);
 	}
 }

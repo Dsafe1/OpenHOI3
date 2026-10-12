@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Units;
@@ -41,6 +42,8 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 		_fileHeight = (int)window.Size.Y;
 		// Only a fleet says anything here: how its ships get in each other's way.
 		Set(window.FindTextBox("positioning"), "");
+		// Before the rows are made: each row answers for its own elements.
+		AnswerFor(name => CBrigadeTooltips.Window(context.Localisation.Localise, state, unit, name), "positioning");
 		Fill();
 	}
 

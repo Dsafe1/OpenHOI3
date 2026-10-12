@@ -72,6 +72,13 @@ whole game, which asks the open windows in turn whether the element is theirs, t
 element's name; each screen's answer is that screen's reading. **An element nothing answers for has
 an empty tooltip** - there is no fallback to anything the interface files say (section 9).
 
+**Which element is under the mouse** is the topmost one in the original, a text box as much as a
+button. Here a text box lets the mouse through, so that a button under it keeps its clicks; a
+screen that wants a text box to answer names it (`CGuiObject.PassiveTooltip`), and that text box
+is asked first wherever the mouse is over it while the button keeps the clicks - the unit panel's
+do (`unitpanel.md`, section 10). *Ours*: how the original hands a click and a tooltip to two
+elements that overlap was not read.
+
 **Its point** is the element's corner on the screen, moved by the tooltip's own offset (nearly
 always none). Then:
 

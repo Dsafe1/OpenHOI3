@@ -36,6 +36,14 @@ public partial class CGuiObject : Control
 	}
 
 	/// <summary>
+	/// What an element that lets the mouse through says in a tooltip: it keeps letting the
+	/// mouse through, so what lies under it keeps its clicks, and the tooltip layer asks it
+	/// before the element under it wherever the mouse is over it. In the original the topmost
+	/// element under the mouse answers whatever it is; a text box over a button is the case.
+	/// </summary>
+	public Func<CTooltip>? PassiveTooltip { get; set; }
+
+	/// <summary>
 	/// Puts the control where its type says: its upper left corner at the type's
 	/// position, measured from the point of the parent its orientation names. The point
 	/// is an anchor and not a fixed place, so the element stays with that corner or

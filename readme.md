@@ -617,9 +617,42 @@ In order:
       maintainer has not looked at them. The step of ten is Ctrl now, on the tooltip's word,
       where it was shift. Reading for it corrected the fact base: the routine it had as the
       builders' headers is the ledger's;
-   5. a unit's - its panel, the deploy menu and the orders windows;
-   6. a battle's window, on land, at sea and in the air;
-   7. the leader window's.
+   5. **a unit's panel - built** (2026-10-12, `unitpanel.md` section 10): every entry's own
+      routine read whole - the header, the status, the order with what each kind of order
+      calls itself, the brigades with **a brigade's summary** (its model by name, its
+      strength, organisation and experience, a ship's speed and range, and the level of each
+      technology it carries, a level named by its text or by **a model year**), the buttons, a
+      headquarters' row, and **a leader's own tooltip** - his rank, command, skill, how far to
+      the next and his traits. A text box over a button now answers first where the mouse is
+      over it and leaves the button its clicks (`CGuiObject.PassiveTooltip`). Tried with
+      `--click`; the maintainer has not looked at it. Attrition, supply and fuel, a base's
+      supply, the speed's terms and the hourly regain wait for what they describe (*Loose
+      ends*). Reading for it corrected the fact base: the order of the radio lines' text and
+      line break, and that a headquarters out of reach is yellow;
+   6. **a unit's other windows - built** (2026-10-12, `mapunits.md` section 10,
+      `fleetsandair.md` section 8): read whole - **the deploy menu's lines** list their unit's
+      brigades by their counters, a finished fleet's or air unit's line nothing; **the orders
+      windows** say why `accept` cannot be pressed, the stance and the priority, the air
+      window's shapes, continuous box and day readout, and each row its order's description,
+      the fleet's with how far out of reach it is. **Both windows' priority buttons say
+      nothing**, the original asking twice for a name its file does not have. A list's rows are
+      now searched for a text box that answers (`CTooltips`). Tried with `--click`; the
+      maintainer has not looked at them;
+   7. **a battle's window - built** (2026-10-12, `combatview.md` section 12): the window's
+      routine and every entry's read whole - the terrain, the width, the retreat, the arrow
+      between the tactics, **a tactic's own text** with what counters it and what it counters,
+      each side's leader with his initiative; **a land unit's whole** - its leader, attack and
+      defence, what each combat modifier is worth to it, its side's tactic as the side feels it,
+      piercing and armour; **an attacker's reserve its chance of coming up**, where the
+      defender's say a unit's whole; a ship's target, positioning and reach; a wing's attack
+      and defence; the icons of the modifiers in play; the close button `CLOSE`; and **the row
+      in a unit's panel**, each side's units by name and what they come to, with `VERSUS`
+      between - where **one fleet's ships run together**, the original's. Tried with
+      `--click` on a battle at Chrzanow; the maintainer has not looked at them. A landing's
+      lines, the bombed side's rows and a bombing's addition to the row wait (*Loose ends*);
+   8. the leader window's;
+   9. then the technology screen's two that wait: what a level of a technology does, and why
+      one may not be researched.
 
    From then on a new screen comes with its tooltips.
 
@@ -728,6 +761,19 @@ None of these blocks the list above.
   (`production.md`, section 3); and the lines of the trade and convoy lists, which are empty.
   Nothing disables a building's button or the underground's, so their tooltips' second
   lines never show (`productionscreen.md`, section 8).
+- **The battle window's tooltips leave three things out** (2026-10-12, `combatview.md`
+  section 12): a landing's lines, which wait for landings; the bombed side's rows, which say a
+  figure each in the original whose joins were not read; and what of the province a bombing's
+  row in a unit's panel adds. A ship's positioning is scaled by `targeting_chance`, taken to be
+  the figure the original names `naval_positioning_bonus`.
+- **The unit panel's tooltips leave out what is not built under them** (2026-10-12,
+  `unitpanel.md` section 10): the attrition breakdown, the supply and fuel lines, a fleet's
+  or an air unit's base and what it supplies, the terms of the speed's multiplier one by one,
+  the organisation a brigade regains an hour, what technology adds to the digging-in cap, the
+  `+*` on a model the country no longer builds, a faction leader's name for a model, and the
+  upgrade button's list. The leader window's part of the header waits for that window's
+  tooltips. A leader's traits on the way are in the traits file's order, where the
+  original's are in the order they lie in its memory.
 - **The step of ten in the builder windows is Ctrl on the word of a tooltip** (2026-10-11):
   the original's own buttons say "Ctrl + LMB to add or remove 10", and the key its code asks
   was not traced (`builders.md`, section 6). It was shift here until then.
@@ -1327,7 +1373,7 @@ sea and by air - in four projects:
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it. The panel of the unit selected on the map: a list of the units above it, its header, its status, its order, its buttons, its brigades, the units under it and the battles it is in, each a class of its own. The window of orders for a fleet or an air unit. And the window of a battle, with its two sides and a line for each unit on them |
 | `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital, and the carrying of supplies against what a start-date save holds in every province, with the convoys a new game makes against the save's, way for way and ship for ship. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial, `seabattle` does the same with two countries' fleets, and `raid` sends one country's raiders at another's convoys for a month. And `firstdays` sets a new game as a player gets it, its two days run, beside the start save country by country - meant to differ, since the original's AI has changed laws by then - where `supplypass ... countries` does it like for like, with the save's laws given. `techgap` looks at the technology levels the start save has above the history's, and `airbattle` flies an air mission with the install's own units and tells the battles it comes to; `bombing` flies a bombing mission for some days and tells what it did to the province |
-| `tests/` | 1463 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort, and how a tooltip is shown with what a province's, the top bar's, the production and technology screens', the sliders' and the builder windows' say - the designer's terrain summary and the practical's discount among them - a modifier's sources written out and the counter in text - where silent misreadings are expensive |
+| `tests/` | 1501 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort, and how a tooltip is shown with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows' and a battle's say - the designer's terrain summary, the practical's discount, a brigade's summary and a leader's own among them - a modifier's sources written out and the counter in text - where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.
@@ -1374,7 +1420,7 @@ Attachment buttons each open the window that orders one: pick from the list, set
 many, and Start Production. In the division designer a click on a brigade adds it and the
 cross on its line takes it out; in the ship builder the button beside a technology
 chooses the level to build with; a held plus or minus repeats, and steps by ten with
-shift. A game starts paused, as Germany - `--country=ENG` after `--` on the command line
+Ctrl. A game starts paused, as Germany - `--country=ENG` after `--` on the command line
 plays another, `--order=infantry_brigade,artillery_brigade` orders a unit of those
 outright, `--all-units` gives the country played every unit type to order whatever
 technology or country its file keeps it to (*Play OpenHOI3 (all units)* under `F5` starts
@@ -1492,7 +1538,9 @@ lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and place
     Screens/            the text of each screen's figures
     Tooltips/           a tooltip, what the box shows of it, where it goes and when its
                         second half comes; the map's, the top bar's, the production and
-                        technology screens', the sliders' and the builder windows'
+                        technology screens', the sliders', the builder windows', the
+                        unit panel's, a leader's, the deploy menu's, the orders
+                        windows' and a battle's
     Modifiers/          how each kind of modifier is written, and a modifier's sources
                         written out
     Map/                the unit counters: which units have one, how they stack, what one

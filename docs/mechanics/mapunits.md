@@ -468,6 +468,21 @@ sets on a port building's picture that stands well east of the naval base, and t
 two pictures that overlap are asked in - `buildings.txt` says in a comment that it is the
 order of that file, "so leave bases on top".
 
+## 10. The deploy menu's tooltips
+
+Read 2026-10-12, `reversing/findings/FINDINGS-orderstooltips.md`; built in
+`CDeployMenuTooltips` (`lib/OpenHOI3.Interface/Tooltips`) and tried with `--click`. **Only the
+menu's lines speak**, each anywhere on it, its name over its button too: a line for each of the
+unit's brigades, `£` and its type's key - which draws its counter - a space, its name and a line
+break, as the unit panel's counters say (`unitpanel.md`, section 10.1).
+
+- **A finished unit's line** says so only for a land unit. **A fleet's or an air unit's says
+  nothing** - the original asks whether the unit is a land unit first. Kept as read.
+- **A line of a unit the new one may join** says it whatever the unit is: a fleet lists its ships.
+
+Nothing else in the menu says anything; its own close button would say `CLOSE`, as every
+`closebutton` nothing else claims does, and the menu has none.
+
 ## What is not built
 
 - **The other fifteen alerts**, and the tooltips of this one.

@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -24,7 +25,7 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 	/// <summary>Raised when one of the three checkboxes is clicked, with what it now says.</summary>
 	public event Action<EUnitSupport, bool>? SupportChanged;
 
-	private CUnitButtonsEntry(CGuiWindow window, CUnit unit, bool mayOrder) : base(window)
+	private CUnitButtonsEntry(CGuiWindow window, CGuiContext context, CUnit unit, bool mayOrder) : base(window)
 	{
 		_unit = unit;
 		_priority = Checkbox(window, "prio_checkbox", EUnitSupport.Priority, mayOrder);
@@ -62,13 +63,14 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		{
 			_detach.Disabled = true;
 		}
+		AnswerFor(name => CUnitOrderTooltips.Buttons(context.Localisation.Localise, unit, _attach is { Disabled: false }, name));
 		Update();
 	}
 
 	public static CUnitButtonsEntry? Create(CGuiContext context, CUnit unit, bool mayOrder)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "sup_buttons_window");
-		return window is null ? null : new CUnitButtonsEntry(window, unit, mayOrder);
+		return window is null ? null : new CUnitButtonsEntry(window, context, unit, mayOrder);
 	}
 
 	public override void Update()

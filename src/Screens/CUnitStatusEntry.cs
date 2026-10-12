@@ -1,6 +1,8 @@
 using System;
+using OpenHOI3.Content.Gui;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
@@ -64,10 +66,14 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 
 		// A mark for what is not built: no nuclear order.
 		Show(window.FindIcon("unitstatus_nuke"), false);
+		string shortcut = "";
 		if (window.FindButton("unit_location_button") is { } button)
 		{
 			button.Pressed += () => LocationPressed?.Invoke();
+			shortcut = (button.GuiType as CGuiButtonType)?.Shortcut ?? "";
 		}
+		AnswerFor(name => CUnitStatusTooltips.For(context.Localisation.Localise, state, owner, unit, name, shortcut, _base?.Text ?? ""),
+			"unitlocation", "unitattrition", "unitbase", "speed", "unit_weight");
 		Update();
 	}
 

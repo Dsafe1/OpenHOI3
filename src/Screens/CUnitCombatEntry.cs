@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
@@ -40,6 +41,7 @@ public sealed class CUnitCombatEntry : CUnitPanelEntry
 		_progress = window.FindIcon("progress");
 		_attackerFlag = window.FindIcon("attacker_flag");
 		_defenderFlag = window.FindIcon("defender_flag");
+		AnswerFor(_ => CBattleRowTooltip.For(context.Localisation.Localise, combat), "desc");
 		if (window.FindButton("select") is { } select)
 		{
 			select.Pressed += () =>

@@ -1,6 +1,8 @@
 using Godot;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
 
@@ -43,9 +45,15 @@ public sealed class CUnitObjectivesEntry : CUnitPanelEntry
 		}
 	}
 
-	public static CUnitObjectivesEntry? Create(CGuiContext context)
+	public static CUnitObjectivesEntry? Create(CGuiContext context, CUnit unit)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "sup_objectives");
-		return window is null ? null : new CUnitObjectivesEntry(window);
+		if (window is null)
+		{
+			return null;
+		}
+		var entry = new CUnitObjectivesEntry(window);
+		entry.AnswerFor(name => CUnitOrderTooltips.Objectives(context.Localisation.Localise, unit, name));
+		return entry;
 	}
 }

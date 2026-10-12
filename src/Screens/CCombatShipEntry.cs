@@ -1,6 +1,7 @@
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Units;
@@ -55,7 +56,12 @@ public sealed class CCombatShipEntry
 		bool isAttacker)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, isAttacker ? "ship_l_option" : "ship_r_option");
-		return window is null ? null : new CCombatShipEntry(window, context, state, combat, ship, isAttacker);
+		if (window is null)
+		{
+			return null;
+		}
+		window.SetTooltips(element => CBattleUnitTooltips.Ship(context.Localisation.Localise, state, combat, ship, element), "name");
+		return new CCombatShipEntry(window, context, state, combat, ship, isAttacker);
 	}
 
 	/// <summary>Writes what an hour may have changed: the two bars, and where the picture stands and which it is.</summary>

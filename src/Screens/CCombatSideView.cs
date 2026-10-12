@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
@@ -49,6 +50,8 @@ public sealed class CCombatSideView : ICombatSideView
 		_leader = new CCombatLeaderView(window, context);
 		_tacticName = window.FindTextBox("tactic_name");
 		_tacticPicture = window.FindIcon("tactic_picture");
+		window.SetTooltips(element => CBattleTooltips.Side(context.Localisation.Localise, state, side.Combat, side, element),
+			"tactic_name", "leader_name");
 		Update();
 	}
 
@@ -67,8 +70,9 @@ public sealed class CCombatSideView : ICombatSideView
 	{
 		Set(_committedLabel, CCombatViewText.CommittedLabel(_context.Localisation.Localise, _state, _side));
 		Set(_reservesLabel, CCombatViewText.ReservesLabel(_context.Localisation.Localise, _side));
-		Fill(_committed, _front, _side.Front);
-		Fill(_reserves, _waiting, _side.Reserves);
+		Fill(_committed, _front, _side.Front, false);
+		// Only the attacker's reserves say their chance of coming up; the defender's say a unit's whole.
+		Fill(_reserves, _waiting, _side.Reserves, _side.IsAttacker);
 
 		_leader.Update(_side);
 		bool initiative = CCombatViewText.HasInitiative(_side);
@@ -103,7 +107,7 @@ public sealed class CCombatSideView : ICombatSideView
 	/// same units each entry is only written again; otherwise the list is emptied and
 	/// filled in the side's order.
 	/// </summary>
-	private void Fill(CGuiListBox? list, List<CCombatUnitEntry> entries, List<CUnit> units)
+	private void Fill(CGuiListBox? list, List<CCombatUnitEntry> entries, List<CUnit> units, bool chance)
 	{
 		if (list is null)
 		{
@@ -126,7 +130,7 @@ public sealed class CCombatSideView : ICombatSideView
 		entries.Clear();
 		foreach (CUnit unit in units)
 		{
-			if (CCombatUnitEntry.Create(_context, _state, unit) is { } entry)
+			if (CCombatUnitEntry.Create(_context, _state, _side.Combat, unit, chance) is { } entry)
 			{
 				entries.Add(entry);
 				list.Add(entry.Window);
