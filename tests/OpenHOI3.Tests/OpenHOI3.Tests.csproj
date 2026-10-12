@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Tests run as a plain .NET project rather than inside Godot, against the three
-    libraries under lib/. Neither references the engine, so nothing here does either -
+    Tests run as a plain .NET project rather than inside Godot, against the four
+    libraries under lib/ - OpenHOI3.Lua's native lua51.dll is copied beside them. Neither references the engine, so nothing here does either -
     which is the point of the split: before it, sources were compiled in one by one
     and GodotSharp came along for its value types.
 
@@ -22,6 +22,7 @@
     <ProjectReference Include="../../lib/OpenHOI3.Sim/OpenHOI3.Sim.csproj" />
     <ProjectReference Include="../../lib/OpenHOI3.Content/OpenHOI3.Content.csproj" />
     <ProjectReference Include="../../lib/OpenHOI3.Interface/OpenHOI3.Interface.csproj" />
+    <ProjectReference Include="../../lib/OpenHOI3.Lua/OpenHOI3.Lua.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,13 +8,14 @@ using OpenHOI3.Sim.Countries;
 namespace OpenHOI3.Tests.Content;
 
 /// <summary>
-/// The reading of <c>history/diplomacy</c>, against <c>docs/mechanics/supply.md</c>,
-/// section 3. The text is written here in the files' own shape and is not a copy of them.
+/// The reading of <c>history/diplomacy</c>, against <c>docs/mechanics/supply.md</c>, section 3, and
+/// <c>docs/mechanics/diplomacy.md</c>, section 2. The text is written here in the files' own shape and
+/// is not a copy of them.
 /// </summary>
 public class DiplomacyReaderTests
 {
 	private readonly Dictionary<string, CCountry> _countries = new(StringComparer.OrdinalIgnoreCase);
-	private readonly List<CAlliance> _alliances = new();
+	private readonly CDiplomacyHistory _history = new();
 	private readonly SortedSet<string> _unknownKeys = new();
 	private readonly SortedSet<string> _unknownTags = new();
 
@@ -29,7 +30,7 @@ public class DiplomacyReaderTests
 	private void Read(string text, CDate date)
 	{
 		CDiplomacyReader.Read(ClausewitzParser.Parse(text), tag => tag is not null && _countries.TryGetValue(tag, out CCountry? found)
-			? found : null, date, _alliances, _unknownKeys, _unknownTags);
+			? found : null, date, _history, _unknownKeys, _unknownTags);
 	}
 
 	[Fact]
@@ -58,24 +59,49 @@ public class DiplomacyReaderTests
 	{
 		Read("alliance = { first = ENG second = FRA start_date = 1936.1.1 end_date = 1948.1.1 }", new CDate(1936, 1, 1));
 
-		Assert.Single(_alliances);
-		Assert.True(_alliances[0].Joins(new CCountryTag("FRA"), new CCountryTag("ENG")));
-		Assert.False(_alliances[0].Joins(new CCountryTag("FRA"), new CCountryTag("JAP")));
+		Assert.Single(_history.Alliances);
+		Assert.True(_history.Alliances[0].Joins(new CCountryTag("FRA"), new CCountryTag("ENG")));
+		Assert.False(_history.Alliances[0].Joins(new CCountryTag("FRA"), new CCountryTag("JAP")));
 	}
 
 	[Fact]
 	public void What_nothing_uses_is_read_past_and_what_is_not_known_is_reported()
 	{
 		Read(@"
-			guarantee = { first = ENG second = FRA start_date = 1936.1.1 end_date = 1948.1.1 }
 			nap = { first = ENG second = JAP start_date = 1936.1.1 end_date = 1948.1.1 }
-			relation = { first = ENG second = JAP value = 50 }
 			treaty = { first = ENG second = JAP }
 			vassal = { first = ENG second = XXX start_date = 1936.1.1 end_date = 1948.1.1 }
 		", new CDate(1936, 1, 1));
 
-		Assert.Empty(_alliances);
+		Assert.Empty(_history.Alliances);
 		Assert.Equal(new[] { "treaty" }, _unknownKeys);
 		Assert.Equal(new[] { "XXX" }, _unknownTags);
+	}
+
+	[Fact]
+	public void A_guarantee_standing_on_the_day_is_kept_with_its_guarantor_first()
+	{
+		Read(@"
+			guarantee = { first = ENG second = FRA start_date = 1936.1.1 end_date = 1948.1.1 }
+			guarantee = { first = ENG second = JAP start_date = 1939.1.1 end_date = 1948.1.1 }
+		", new CDate(1936, 1, 1));
+
+		Assert.Equal(new[] { new CGuarantee(new CCountryTag("ENG"), new CCountryTag("FRA")) }, _history.Guarantees);
+	}
+
+	[Fact]
+	public void Every_relation_entry_is_kept_with_its_dates_whatever_the_day()
+	{
+		Read(@"
+			relation = { first = ENG second = JAP value = 50 start_date = 1936.1.1 end_date = 1944.1.1 }
+			relation = { first = FRA second = JAP value = -20 start_date = 1950.1.1 }
+			relation = { first = MAN second = JAP value = 10 }
+		", new CDate(1936, 1, 1));
+
+		Assert.Equal(3, _history.Relations.Count);
+		Assert.Equal(CFixedPoint.FromInt(50), _history.Relations[0].Value);
+		Assert.Equal(new CDate(1944, 1, 1), _history.Relations[0].End);
+		Assert.Null(_history.Relations[1].End);
+		Assert.Equal(new CDate(1, 1, 1), _history.Relations[2].Start);
 	}
 }

@@ -32,12 +32,12 @@ public static class CUndoneEffects
 		// The event pass.
 		Add(EScriptGap.Unbuilt, "country_event", "province_event");
 		// Diplomacy.
-		Add(EScriptGap.Unbuilt, "relation", "threat", "casus_belli", "add_casus_belli", "guarantee", "end_guarantee",
+		Add(EScriptGap.Unbuilt, "casus_belli", "add_casus_belli", "guarantee", "end_guarantee",
 			"military_access", "end_military_access", "non_aggression_pact", "end_non_aggression_pact", "war",
 			"undeclared_war", "add_wargoal", "create_vassal", "release", "release_vassal", "inherit", "surrender_inherit",
 			"form_government_in_exile", "split_troops");
 		Add(EScriptGap.Unbuilt, "join_faction", "leave_faction");
-		Add(EScriptGap.Unbuilt, "neutrality", "war_exhaustion");
+		Add(EScriptGap.Unbuilt, "war_exhaustion");
 		// The government and the parties.
 		Add(EScriptGap.Unbuilt, "government", "coup_by", "do_election", "remove_minister", "organisation", "popularity");
 		// Revolts, espionage, the AI.

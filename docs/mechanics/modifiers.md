@@ -251,11 +251,12 @@ the first day is run, which is why a new game's starting manpower leaves black s
   one of a block's own is taken as a modifier. So a misspelt modifier is *not* reported
   yet, which is the opposite of what this project wants, and it stays a loose end until the
   list exists.
-- **A country's modifier is steps 1, 3, 4, 6, 7, 8 and 11 of section 4**: `base_values`,
+- **A country's modifier is steps 1, 3, 4, 6, 7, 8, 11, 12 and 13 of section 4**: `base_values`,
   its ministers, its laws, its strategic resources, its provinces' modifiers, `war` or
-  `peace`, and `dissent`. The rest wait for what they need: factions' modifiers,
-  governments', espionage, war exhaustion, neutrality, events and decisions, the script's
-  conditions, subjects, a difficulty setting and governments in exile.
+  `peace`, `dissent`, `neutrality` by its effective neutrality (since 2026-10-12, with
+  `diplomacy.md`), and its event modifiers. The rest wait for what they need: factions'
+  modifiers, governments', espionage, war exhaustion, the script's conditions, subjects, a
+  difficulty setting and governments in exile.
 - **Strategic resources are shared within a faction as the original shares them**, to a
   major or a country with more than 100 base IC whose capital is on the holder's
   continent. The other two roads are not built: the faction leader at war needs alignment,

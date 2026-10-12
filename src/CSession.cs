@@ -12,6 +12,7 @@ using OpenHOI3.Interface.Messages;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Interface.Tooltips;
+using OpenHOI3.Lua;
 using OpenHOI3.Map;
 using OpenHOI3.Screens;
 using OpenHOI3.Sim;
@@ -40,6 +41,7 @@ namespace OpenHOI3;
 public partial class CSession : Node
 {
 	private CDirectorySettings _directories = null!;
+	private CAiScripts? _aiScripts;
 	private CMapView _mapView = null!;
 	private CLocalisation _localisation = null!;
 	private CSimulation _simulation = null!;
@@ -96,7 +98,9 @@ public partial class CSession : Node
 		_localisation = localisation;
 		CCountries countries = CCountries.Load(_directories, localisation);
 		Map = CMap.Load(_directories);
-		State = CGameStateLoader.LoadStart(_directories, Map, localisation, countries);
+		// The install's Lua lives as long as the session: a new game asks it for its relations.
+		_aiScripts = new CAiScripts(_directories);
+		State = CGameStateLoader.LoadStart(_directories, Map, localisation, countries, aiScripts: _aiScripts);
 		GD.Print($"Loaded {Map.ProvinceCount - 1} provinces and {countries.Count} countries " +
 			$"for {State.Date} in {clock.ElapsedMilliseconds} ms.");
 
@@ -427,6 +431,13 @@ public partial class CSession : Node
 		{
 			_deployMenu.Open();
 		}
+	}
+
+	/// <summary>The session's Lua goes with it.</summary>
+	public override void _ExitTree()
+	{
+		_aiScripts?.Dispose();
+		_aiScripts = null;
 	}
 
 	/// <summary>

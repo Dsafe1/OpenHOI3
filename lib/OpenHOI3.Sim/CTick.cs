@@ -1,5 +1,6 @@
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Convoys;
+using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Events;
 using OpenHOI3.Sim.Leaders;
@@ -87,6 +88,9 @@ public static class CTick
 		// draws on what reached its province this morning.
 		CSupplyPass.RunDaily(state);
 		CCountryModifiers.Rebuild(state);
+		CThreat.UpdateMostThreatening(state);               // before any country's day, as its neighbours are
+		CNeutrality.RunDaily(state);                        // at the head of a country's day
+		CAlignment.RunDaily(state);                         // later in it: a step every interval and a day
 		CManpower.RunDaily(state);
 		CLeaders.ActivateDaily(state);                      // just after its manpower grows
 		CLeadership.Update(state);
@@ -170,6 +174,9 @@ public static class CTick
 		{
 			CResearch.DecayMonthly(state);
 		}
+		// The relations' drift is not held back: the month before the first hour is what makes
+		// a new game's relations the same both ways (docs/mechanics/diplomacy.md, section 2).
+		CRelations.RunMonth(state);
 		CManpower.UpdateMost(state);
 		CEventPass.RebuildCandidates(state);
 	}

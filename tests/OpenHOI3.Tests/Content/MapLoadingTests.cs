@@ -1132,7 +1132,7 @@ public class MapLoadingTests : IDisposable
 		Write("history/countries/GER - Germany.txt", "capital = 1\nmoney = plenty");
 		LoadStart();
 
-		Assert.Contains(_warnings, warning => warning.Contains("1 amounts of goods in country history"));
+		Assert.Contains(_warnings, warning => warning.Contains("1 amounts in country history"));
 	}
 
 	// --- research ---

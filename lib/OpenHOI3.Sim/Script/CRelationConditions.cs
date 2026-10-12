@@ -1,5 +1,6 @@
 using System;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Diplomacy;
 
 namespace OpenHOI3.Sim.Script;
 
@@ -57,6 +58,23 @@ public static class CRelationConditions
 			case "faction":
 				answer = InFaction(state, trigger, scope, country);
 				return true;
+			case "relation":
+				answer = Felt(state, country, RelationTarget(state, trigger, scope), threat: false)
+					>= CFixedPoint.FromInt(CConditions.WholeOf(CConditions.Field(trigger, "value")?.Amount ?? CFixedPoint.Zero));
+				return true;
+			case "threat":
+				answer = Felt(state, country, ThreatTarget(state, trigger, scope), threat: true)
+					>= CFixedPoint.FromInt(CConditions.WholeOf(CConditions.Field(trigger, "value")?.Amount ?? CFixedPoint.Zero));
+				return true;
+			case "is_threatend":
+				answer = country is not null && IsThreatened(state, country, value.Amount);
+				return true;
+			case "neutrality":
+				answer = (country?.EffectiveNeutrality ?? CFixedPoint.Zero) >= value.Amount;
+				return true;
+			case "base_neutrality":
+				answer = (country?.Neutrality ?? CFixedPoint.Zero) >= value.Amount;
+				return true;
 			case "neighbour":
 				answer = state.Country(CConditions.TagDirect(trigger, scope)) is { } named && country is not null
 					&& CCountryLists.Neighbours(state, named).Contains(country);
@@ -90,6 +108,62 @@ public static class CRelationConditions
 			return true;
 		}
 		return us is { } one && them is { } other && CCountryLists.AtWar(state, one, other);
+	}
+
+	/// <summary>
+	/// The scope's relation with, or the threat it feels from, another country: a scope with no
+	/// country, or another that is no country, holds nothing (<c>docs/mechanics/diplomacy.md</c>,
+	/// section 7).
+	/// </summary>
+	private static CFixedPoint Felt(CGameState state, CCountry? us, CCountryTag? them, bool threat)
+	{
+		if (us is null || state.Country(them) is not { } other)
+		{
+			return CFixedPoint.Zero;
+		}
+		CDiplomacyStatus status = CGameState.Status(us, other);
+		return threat ? status.Threat : status.Relation;
+	}
+
+	/// <summary><c>relation</c>'s <c>who</c>: THIS and FROM fall back to a province's controller.</summary>
+	private static CCountryTag? RelationTarget(CGameState state, CTrigger trigger, CEventScope scope)
+	{
+		if (CConditions.Field(trigger, "who") is not { } who)
+		{
+			return null;
+		}
+		if (who.IsThis)
+		{
+			return scope.Root.Country ?? state.Province(scope.Root.Province).Controller;
+		}
+		if (who.IsFrom)
+		{
+			return scope.FromCountry ?? state.Province(scope.Root.FromProvince).Controller;
+		}
+		return CEventScope.Known(who.Tag);
+	}
+
+	/// <summary><c>threat</c>'s <c>which</c>: THIS by owner, FROM the scope's own.</summary>
+	private static CCountryTag? ThreatTarget(CGameState state, CTrigger trigger, CEventScope scope)
+	{
+		if (CConditions.Field(trigger, "which") is not { } which)
+		{
+			return null;
+		}
+		return which.IsThis ? CConditions.ThisByOwner(state, scope) : which.IsFrom ? scope.FromCountry : CEventScope.Known(which.Tag);
+	}
+
+	/// <summary>Whether a country on the scope's neighbour list poses it a threat of at least <paramref name="least"/>.</summary>
+	private static bool IsThreatened(CGameState state, CCountry country, CFixedPoint least)
+	{
+		foreach (CCountry neighbour in CCountryLists.Neighbours(state, country))
+		{
+			if (CGameState.Status(country, neighbour).Threat >= least)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/// <summary>A count's bar: the number, or nought where <c>this</c> or <c>from</c> was written.</summary>

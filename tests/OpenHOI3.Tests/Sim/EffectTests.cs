@@ -298,9 +298,9 @@ public class EffectTests
 		CGameState state = State();
 		var report = new CScriptReport();
 
-		Run(state, "relation = { who = POL value = 10 } neutrality = 5 country_event = 1001", CEventScope.Start(Ger), report);
+		Run(state, "guarantee = POL war_exhaustion = 5 country_event = 1001", CEventScope.Start(Ger), report);
 
-		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["relation"].Why);
+		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["guarantee"].Why);
 		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["country_event"].Why);
 		Assert.Equal(3, report.Gaps.Count);
 	}

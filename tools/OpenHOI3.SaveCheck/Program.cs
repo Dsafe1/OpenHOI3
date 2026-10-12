@@ -132,6 +132,12 @@ if (args.Length > 0 && args[0] == "raid")
 	return CRaidTrial.Run(args);
 }
 
+// A new game's relations, threat and neutrality, beside the start-date save's.
+if (args.Length > 0 && args[0] == "diplomacy")
+{
+	return CDiplomacyCheck.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

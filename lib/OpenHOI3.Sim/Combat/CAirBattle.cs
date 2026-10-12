@@ -97,6 +97,7 @@ public static class CAirBattle
 
 		var combat = new CCombat(province.Id, ECombatKind.Air);
 		state.Combats.Add(combat);
+		Diplomacy.CThreat.BattleStarted(state, province, unit, Diplomacy.CThreat.AirCombat);
 		Join(combat.Attacker, unit);
 		Join(combat.Defender, found);
 		foreach (CUnit other in new List<CUnit>(state.UnitsIn(province.Id)))

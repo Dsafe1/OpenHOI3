@@ -153,6 +153,7 @@ public static class CCombats
 
 		var combat = new CCombat(province.Id);
 		state.Combats.Add(combat);
+		Diplomacy.CThreat.BattleStarted(state, province, unit, Diplomacy.CThreat.LandCombat);
 		combat.Attacker.Add(unit);
 		combat.Defender.Add(defender);
 		foreach (CUnit other in new List<CUnit>(state.UnitsIn(province.Id)))
@@ -382,6 +383,7 @@ public static class CCombats
 		}
 		combat.IsConcluded = true;
 		combat.AttackerLost = attackerLost;
+		Diplomacy.CRelations.LandBattleWon(state, combat, attackerLost);
 		Events.COnActions.Battle(state, combat, attackerLost);
 	}
 

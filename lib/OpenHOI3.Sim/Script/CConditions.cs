@@ -123,6 +123,19 @@ public static class CConditions
 		return value.IsThis ? scope.Root.Country : value.IsFrom ? scope.FromCountry : CEventScope.Known(value.Tag);
 	}
 
+	/// <summary>One of a block condition's own keys - <c>relation</c>'s <c>who</c> - or null where it was not written.</summary>
+	public static CScriptArgument? Field(CTrigger trigger, string key)
+	{
+		foreach (CScriptField field in trigger.Fields)
+		{
+			if (field.Key == key)
+			{
+				return field.Argument;
+			}
+		}
+		return null;
+	}
+
 	/// <summary>What a yes-or-no leaf answers: whether what it found is what was written.</summary>
 	public static bool Is(CTrigger trigger, bool found)
 	{

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using OpenHOI3.Sim.Ai;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
@@ -76,6 +78,30 @@ public sealed class CGameState
 				_countriesInOrder.Add(country);
 			}
 		}
+		// Every country holds a record towards every country, itself included.
+		for (int index = 0; index < _countriesInOrder.Count; index++)
+		{
+			CCountry country = _countriesInOrder[index];
+			country.Index = index;
+			country.Diplomacy = new CDiplomacyStatus[_countriesInOrder.Count];
+			for (int other = 0; other < _countriesInOrder.Count; other++)
+			{
+				country.Diplomacy[other] = new CDiplomacyStatus(country.Tag, _countriesInOrder[other].Tag);
+			}
+		}
+	}
+
+	/// <summary>
+	/// The install's Lua the game asks - the relations a new game is given, and later the AI's
+	/// opinions - or null where none is loaded, which is reported where it is asked. See
+	/// <c>docs/mechanics/lua.md</c>.
+	/// </summary>
+	public IAiScripts? AiScripts { get; set; }
+
+	/// <summary>What <paramref name="holder"/> holds towards <paramref name="other"/>.</summary>
+	public static CDiplomacyStatus Status(CCountry holder, CCountry other)
+	{
+		return holder.Diplomacy[other.Index];
 	}
 
 	public long TotalHours => _hours;
@@ -221,6 +247,12 @@ public sealed class CGameState
 
 	/// <summary>The alliances standing now, two countries each.</summary>
 	public List<CAlliance> Alliances { get; } = new();
+
+	/// <summary>The guarantees standing now.</summary>
+	public List<CGuarantee> Guarantees { get; } = new();
+
+	/// <summary>The corners of the alignment triangle, in the order their file declares them.</summary>
+	public IReadOnlyList<CIdeologyGroup> IdeologyGroups { get; init; } = Array.Empty<CIdeologyGroup>();
 
 	/// <summary>
 	/// Which depot every province draws on and how far from it, as last worked out.

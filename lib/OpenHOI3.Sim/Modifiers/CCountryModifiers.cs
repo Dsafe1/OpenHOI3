@@ -24,6 +24,7 @@ public static class CCountryModifiers
 	public const string War = "war";
 	public const string Peace = "peace";
 	public const string Dissent = "dissent";
+	public const string Neutrality = "neutrality";
 
 	public static void Rebuild(CGameState state)
 	{
@@ -75,6 +76,17 @@ public static class CCountryModifiers
 		if (dissent is not null)
 		{
 			AddSource(country, Scaled(dissent, country.Dissent));
+		}
+
+		// Neutrality's, by its neutrality less the threat from the country it fears most, over a
+		// hundred (step 12; docs/mechanics/diplomacy.md, section 6).
+		if (state.FindStaticModifier(Neutrality) is { } neutrality)
+		{
+			CFixedPoint threat = state.Country(country.MostThreatening) is { } feared
+				? CGameState.Status(country, feared).Threat
+				: CFixedPoint.Zero;
+			long effective = Math.Max(country.Neutrality.Raw - threat.Raw, 0);
+			AddSource(country, Scaled(neutrality, new CFixedPoint(effective * 1000 / 100000)));
 		}
 
 		// What events gave it, each until its time has passed (step 13).

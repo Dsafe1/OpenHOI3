@@ -72,6 +72,8 @@ public static class CDeployment
 		{
 			CLeaders.AssignBest(state, country, unit);
 		}
+		// Every unit put on the map, joining one or not, spreads its owner's threat (diplomacy.md, 5.3).
+		Diplomacy.CThreat.UnitDeployed(state, country, unit);
 	}
 
 	/// <summary>The most land units an army group, an army or a corps may have under it.</summary>

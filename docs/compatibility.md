@@ -129,6 +129,13 @@ Nothing has to be built for this today: there is no AI, so every country starts 
 history's laws. The entry is here so that the AI, when it comes, is not given the
 player's country on the first day.
 
+**What moves them was read on 2026-10-12** (`reversing/findings/FINDINGS-luahost.md`, section 3):
+entering a new game, the original calls the install's Lua `Laws(country)` for every country -
+not guarded by who plays it - just after asking `AI_GenerateNonHistoricalRelation`, and
+`ai_politics_minister.lua`'s `Laws` posts a change of law for each group it wants moved. So the
+"something" is a script call, and this entry is that one call not made for the player's country.
+`docs/mechanics/lua.md`, section 5, has it; for the countries the AI runs it waits for the AI.
+
 `docs/mechanics/units.md`, section 8; `reversing/findings/FINDINGS-unitstart.md`, section 9.
 
 ## 7. A counter always carries its unit's name

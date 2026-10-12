@@ -246,6 +246,12 @@ public static class CBombing
 
 		var bombing = new CCombat(province.Id, kind);
 		state.Combats.Add(bombing);
+		// A strategic bombing spreads its bomber's owner's threat (diplomacy.md, 5.3).
+		if (order == EUnitOrder.StrategicBombing && state.Country(unit.Owner) is { } bomberOwner)
+		{
+			Diplomacy.CThreat.SpreadToAll(state, state.Defines[Diplomacy.CThreat.MilitarySection, Diplomacy.CThreat.Bombing].Raw,
+				Diplomacy.CThreat.Adds, bomberOwner);
+		}
 		if (kind == ECombatKind.GroundBombing && province.Controller is { } holder)
 		{
 			bombing.Defender.AddCountry(holder);

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using OpenHOI3.Content.Script;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Script;
@@ -29,7 +30,7 @@ internal static class ScriptWorld
 	public static readonly CBuilding Industry = new(0, "industry", 10, "", CFixedPoint.Zero);
 	public static readonly CBuilding NavalBase = new(1, "naval_base", 10, "", CFixedPoint.Zero);
 
-	public static CGameState State(bool atWar = false)
+	public static CGameState State(bool atWar = false, IReadOnlyList<CIdeologyGroup>? groups = null)
 	{
 		CCountry Country(CCountryTag tag, int capital) => new() { Tag = tag, Name = tag.Value, DefinitionFile = "", Capital = capital };
 		CCountry germany = Country(Ger, 1);
@@ -85,6 +86,7 @@ internal static class ScriptWorld
 			buildings: new[] { Industry, NavalBase }, staticModifiers: new[] { newDeal }, wars: wars)
 		{
 			Regions = new[] { new CRegion("sudetenland", new[] { 1, 2 }, useForPeace: false) },
+			IdeologyGroups = groups ?? System.Array.Empty<CIdeologyGroup>(),
 		};
 	}
 

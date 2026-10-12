@@ -7,9 +7,11 @@ using OpenHOI3.Content.History;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Content.Script;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Ai;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
@@ -44,9 +46,13 @@ public static class CGameStateLoader
 	/// game that is filled starts from what the history files say - which is what a check
 	/// that reasons about those two days one system at a time wants.
 	/// </param>
+	/// <param name="aiScripts">
+	/// The install's Lua, which a new game asks for its relations (<c>docs/mechanics/lua.md</c>); without
+	/// it they are left at 0 and reported.
+	/// </param>
 	public static CGameState LoadStart(CDirectorySettings directories, CMap map,
 		CLocalisation localisation, CCountries countries, Action<string>? warn = null, bool fill = true,
-		bool firstDays = true)
+		bool firstDays = true, IAiScripts? aiScripts = null)
 	{
 		warn ??= CDiagnostics.Warn;
 
@@ -96,7 +102,7 @@ public static class CGameStateLoader
 		List<CModifier> strategicResources = CModifierReader.ReadStrategicResources(directories, warn);
 		CDefines defines = CDefinesReader.Read(directories, warn);
 		List<CWar> wars = CWarReader.Read(directories, countries, start, warn);
-		List<CAlliance> alliances = CDiplomacyReader.Apply(directories, countries, start, warn);
+		CDiplomacyHistory diplomacy = CDiplomacyReader.Apply(directories, countries, start, warn);
 
 		List<CTrait> traits = CTraitReader.Read(directories, warn);
 		var state = new CGameState(start, provinces, countries.Declared, buildings, technologies, staticModifiers,
@@ -113,11 +119,15 @@ public static class CGameStateLoader
 			MapWidth = map.Width,
 			MapHeight = map.Height,
 			Regions = map.Regions,
+			IdeologyGroups = CIdeologyReader.Read(directories, warn),
 			StartDate = start,
 			EndDate = ReadEndDate(directories, warn),
 		};
 		AssignRegions(state);
-		state.Alliances.AddRange(alliances);
+		state.Alliances.AddRange(diplomacy.Alliances);
+		state.Guarantees.AddRange(diplomacy.Guarantees);
+		state.AiScripts = aiScripts;
+		CRelations.SetFromHistory(state, diplomacy.Relations, start);
 		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);
 		CProduction.SetStartingShares(state);
@@ -143,6 +153,8 @@ public static class CGameStateLoader
 		CBuildQueue.SetUpAtStart(state);
 		CStockpile.AddUnitGoodsAtStart(state);
 		CLeaders.AssignAtStart(state);
+		// Entering the game gives the relations nobody gave, asking the install's Lua for them.
+		CDiplomacy.SetUpNewGame(state, warn);
 		// And the two days the original has behind it on the first screen are run, with
 		// the provinces filled along the supply network between them, so that no army
 		// starts hungry.

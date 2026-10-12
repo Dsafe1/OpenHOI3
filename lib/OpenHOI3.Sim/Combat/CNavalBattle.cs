@@ -115,6 +115,7 @@ public static class CNavalBattle
 
 		var combat = new CCombat(province.Id, ECombatKind.Naval);
 		state.Combats.Add(combat);
+		Diplomacy.CThreat.BattleStarted(state, province, fleet, Diplomacy.CThreat.NavalCombat);
 		Join(state, combat, combat.Attacker, fleet);
 		Join(state, combat, combat.Defender, found);
 		foreach (CUnit other in new List<CUnit>(state.UnitsIn(province.Id)))

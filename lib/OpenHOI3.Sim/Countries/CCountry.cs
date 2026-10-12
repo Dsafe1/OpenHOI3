@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Convoys;
+using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
@@ -42,6 +43,50 @@ public sealed class CCountry
 	/// section 3.
 	/// </summary>
 	public CCountryTag? Overlord { get; set; }
+
+	/// <summary>Its place among the game state's countries, in the order they were declared.</summary>
+	public int Index { get; internal set; }
+
+	/// <summary>
+	/// What it holds towards each country, by that country's <see cref="Index"/> - itself included.
+	/// See <c>docs/mechanics/diplomacy.md</c>, section 1.
+	/// </summary>
+	public CDiplomacyStatus[] Diplomacy { get; internal set; } = Array.Empty<CDiplomacyStatus>();
+
+	/// <summary>The form of government its history gives it - <c>national_socialism</c> - or nothing.</summary>
+	public string GovernmentType { get; set; } = "";
+
+	/// <summary>
+	/// Its neutrality, held between 0 and 100 each day: 50 until its history sets one. See
+	/// <c>docs/mechanics/diplomacy.md</c>, section 6.
+	/// </summary>
+	public CFixedPoint Neutrality { get; set; } = CFixedPoint.FromInt(50);
+
+	/// <summary>Neutrality less the threat it feels from <see cref="MostThreatening"/>, between 0 and 100.</summary>
+	public CFixedPoint EffectiveNeutrality { get; set; }
+
+	/// <summary>The country it feels the most threat from, or null for nobody (section 5.4).</summary>
+	public CCountryTag? MostThreatening { get; set; }
+
+	/// <summary>The threat its history gives it, spread from its own capital as a new game is made.</summary>
+	public CFixedPoint HistoryThreat { get; set; }
+
+	/// <summary>
+	/// Where it stands on the alignment triangle, thousandths: its history's point, then where its
+	/// drift takes it. See <c>docs/mechanics/alignment.md</c>.
+	/// </summary>
+	public long AlignmentX { get; set; }
+
+	public long AlignmentY { get; set; }
+
+	/// <summary>
+	/// The hour after which its next drift step comes: none yet, so a new game's first day steps.
+	/// Not saved in the original, so a load steps at once.
+	/// </summary>
+	public long NextAlignmentStep { get; set; } = long.MinValue;
+
+	/// <summary>The ideology of its ruling party, by name - its history's <c>ideology</c> - or nothing.</summary>
+	public string RulingIdeology { get; set; } = "";
 
 	/// <summary>
 	/// How much of each strategic resource it has the use of, by the resource's name:

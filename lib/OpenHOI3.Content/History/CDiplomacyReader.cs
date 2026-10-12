@@ -5,13 +5,14 @@ using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Diplomacy;
 
 namespace OpenHOI3.Content.History;
 
 /// <summary>
-/// Reads <c>history/diplomacy</c>: who is whose puppet and who is allied to whom, each
-/// between two dates. Guarantees, pacts and relations are in the same files and are
-/// read past: nothing asks about them yet.
+/// Reads <c>history/diplomacy</c>: who is whose puppet, who is allied to whom and who guarantees
+/// whom, each between two dates, and the relations it sets. Pacts are in the same files and are read
+/// past: none stands in 1936, and they are the agreements' piece.
 /// </summary>
 public static class CDiplomacyReader
 {
@@ -20,19 +21,19 @@ public static class CDiplomacyReader
 	/// <summary>The kinds of entry these files hold that nothing here uses.</summary>
 	private static readonly HashSet<string> ReadPast = new(StringComparer.OrdinalIgnoreCase)
 	{
-		"guarantee", "nap", "relation",
+		"nap",
 	};
 
 	/// <summary>
-	/// Makes every country that is a puppet on <paramref name="date"/> its master's, and
-	/// gives the alliances standing on it. An entry counts from its first day up to,
-	/// and not on, its last.
+	/// Makes every country that is a puppet on <paramref name="date"/> its master's, and gives the
+	/// alliances and guarantees standing on it and every relation entry. An entry counts from its
+	/// first day up to, and not on, its last.
 	/// </summary>
-	public static List<CAlliance> Apply(CDirectorySettings directories, CCountries countries, CDate date,
+	public static CDiplomacyHistory Apply(CDirectorySettings directories, CCountries countries, CDate date,
 		Action<string>? warn = null)
 	{
 		warn ??= CDiagnostics.Warn;
-		var alliances = new List<CAlliance>();
+		var history = new CDiplomacyHistory();
 		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var unknownTags = new SortedSet<string>(StringComparer.Ordinal);
 
@@ -49,7 +50,7 @@ public static class CDiplomacyReader
 				continue;
 			}
 
-			Read(root, countries.Find, date, alliances, unknownKeys, unknownTags);
+			Read(root, countries.Find, date, history, unknownKeys, unknownTags);
 		}
 
 		if (unknownKeys.Count > 0)
@@ -60,11 +61,11 @@ public static class CDiplomacyReader
 		{
 			warn($"diplomatic history names {unknownTags.Count} countries that are not defined: {string.Join(", ", unknownTags)}");
 		}
-		return alliances;
+		return history;
 	}
 
-	/// <summary>One file's entries: the puppets are made their masters', the alliances added to the list.</summary>
-	public static void Read(ClausewitzNode root, Func<string?, CCountry?> find, CDate date, List<CAlliance> alliances,
+	/// <summary>One file's entries.</summary>
+	public static void Read(ClausewitzNode root, Func<string?, CCountry?> find, CDate date, CDiplomacyHistory history,
 		ISet<string> unknownKeys, ISet<string> unknownTags)
 	{
 		foreach (ClausewitzNode entry in root.Children)
@@ -73,14 +74,10 @@ public static class CDiplomacyReader
 			{
 				continue;
 			}
-			bool vassal = entry.Key.Equals("vassal", StringComparison.OrdinalIgnoreCase);
-			if (!vassal && !entry.Key.Equals("alliance", StringComparison.OrdinalIgnoreCase))
+			string kind = entry.Key.ToLowerInvariant();
+			if (kind is not ("vassal" or "alliance" or "guarantee" or "relation"))
 			{
 				unknownKeys.Add(entry.Key);
-				continue;
-			}
-			if (!Stands(entry, date))
-			{
 				continue;
 			}
 
@@ -91,13 +88,34 @@ public static class CDiplomacyReader
 				unknownTags.Add(first is null ? entry.GetString("first") : entry.GetString("second"));
 				continue;
 			}
-			if (vassal)
+
+			if (kind == "relation")
 			{
-				second.Overlord = first.Tag;
+				// Every entry: the simulation applies their dates, one side each. One with no start
+				// stands from the beginning.
+				if (CFixedPoint.TryParse(entry.GetString("value"), out CFixedPoint value))
+				{
+					CDate start = CDate.TryParse(entry.GetString("start_date"), out CDate starts) ? starts : new CDate(1, 1, 1);
+					CDate? end = CDate.TryParse(entry.GetString("end_date"), out CDate ends) ? ends : null;
+					history.Relations.Add(new CHistoryRelation(first.Tag, second.Tag, value, start, end));
+				}
+				continue;
 			}
-			else
+			if (!Stands(entry, date))
 			{
-				alliances.Add(new CAlliance(first.Tag, second.Tag));
+				continue;
+			}
+			switch (kind)
+			{
+				case "vassal":
+					second.Overlord = first.Tag;
+					break;
+				case "alliance":
+					history.Alliances.Add(new CAlliance(first.Tag, second.Tag));
+					break;
+				default:
+					history.Guarantees.Add(new CGuarantee(first.Tag, second.Tag));
+					break;
 			}
 		}
 	}

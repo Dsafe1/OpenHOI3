@@ -64,6 +64,19 @@ public static class CCountryLists
 		return allies;
 	}
 
+	/// <summary>Whether either guarantees the other.</summary>
+	public static bool HasGuarantee(CGameState state, CCountryTag one, CCountryTag other)
+	{
+		foreach (CGuarantee guarantee in state.Guarantees)
+		{
+			if (guarantee.Joins(one, other))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static bool HasAlliance(CGameState state, CCountryTag one, CCountryTag other)
 	{
 		foreach (CAlliance alliance in state.Alliances)

@@ -56,21 +56,31 @@ bombing, and the whole of the air orders window with a mission's area, and the a
 with a list of finished battles, and leaders - who is in service, who commands which
 unit, how far a command reaches, what a leader does in a battle, what a battle gives him and
 the window he is chosen in - and how a tooltip is shown, with a province's, the top bar's, the production and technology screens', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's, and a technology's requirements and effects, and the reading of every
-event and decision with their triggers and effects by the original's grammar, what their conditions answer and what their effects do, and their firing and taking with the event window and the decision list, and what each condition and effect says of itself, and the on_actions of a battle and of a pride sunk, and the messages an answered event and a taken decision raise, popped up and logged - 1644 tests - and it is
+event and decision with their triggers and effects by the original's grammar, what their conditions answer and what their effects do, and their firing and taking with the event window and the decision list, and what each condition and effect says of itself, and the on_actions of a battle and of a pride sunk, and the messages an answered event and a taken decision raise, popped up and logged, and what two countries hold of each other - relation, threat and neutrality, and the alignment triangle threat is weighed on, a new game's relations given by the install's own Lua on the original's interpreter built from its source - 1694 tests - and it is
 being reconsidered rather than extended. Do not treat the current contents of `lib/` and `src/`
 as settled, and do not preserve a structure merely because it is there.
 
-## Four projects, and which way they may reference
+## Five projects, and which way they may reference
 
 Split on 2026-10-07, so that the simulation can run headless and under test; the fourth
-was added on 2026-10-08 with the interface, for the same reason:
+was added on 2026-10-08 with the interface, for the same reason, and the fifth on
+2026-10-12 with Lua:
 
 | project | what it is | may reference |
 | --- | --- | --- |
 | `lib/OpenHOI3.Sim` | the model and the simulation | **nothing** - not Godot, not `Content` |
 | `lib/OpenHOI3.Content` | reading an install: the Clausewitz format, layering, localisation, the loaders, the `.gui` declarations | `Sim` |
 | `lib/OpenHOI3.Interface` | what the screens show, with no engine: the text of each figure as the original writes it, colour escapes, where an element goes | `Sim`, `Content` |
-| `OpenHOI3.csproj`, with `src/` | the Godot client: scenes, drawing, input, texture decoding, typefaces, the live interface | all three |
+| `lib/OpenHOI3.Lua` | the install's Lua scripts on the original's interpreter, Lua 5.1.4 built from `native/lua`, and the classes they are handed | `Sim`, `Content` |
+| `OpenHOI3.csproj`, with `src/` | the Godot client: scenes, drawing, input, texture decoding, typefaces, the live interface | all four |
+
+**The simulation asks the Lua through an interface of its own**, `Sim/Ai/IAiScripts`, which
+`OpenHOI3.Lua` answers and the caller hands to `CGameStateLoader.LoadStart` - so `Sim` still
+references nothing. **Lua code runs only inside a protected call, and a C# function never
+raises a Lua error itself** (the trampoline in `native/lua/ohoi` does): a Lua error is a
+`longjmp`, and one through a .NET frame is undefined. `native/lua/build.ps1` builds
+`openhoi3_lua.dll` with the Visual Studio C++ tools on `dotnet build`; it is built output and
+never committed (`docs/mechanics/lua.md`, `native/lua/readme.md`).
 
 **A screen is two halves.** What it says is a class in `OpenHOI3.Interface` - `CTopBarText` -
 tested against the original's own strings; the class in `src/Screens/` finds the elements by
@@ -686,7 +696,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 
 ## Where knowledge about the original comes from
 
-`GitHub/hoi3-reversing`, normally checked out beside this repository: 144 `findings/FINDINGS-*.md`
+`GitHub/hoi3-reversing`, normally checked out beside this repository: 148 `findings/FINDINGS-*.md`
 write-ups, `CLASSES.md` for the class-by-class account, and `TRAPS.md`. Cite a findings file
 with the `reversing/` prefix on the front - the fact base's logical name, which resolves
 wherever it is checked out. Its `checkrefs.py` verifies those references from the other
@@ -722,7 +732,7 @@ Two things the reverse engineering established that are worth knowing regardless
   two `Hide()` calls because it was never finished. Expect the loaders to absorb this.
 
 **There is no Ghidra tooling here any more.** `tools/ghidra/` was removed on 2026-10-07: there
-is one Ghidra toolchain and it lives in the fact base - a 4131-address, 444-struct record with
+is one Ghidra toolchain and it lives in the fact base - a 4315-address, 452-struct record with
 an idempotent apply. The two scripts the fact base was still relying on, and the class export
 they generate, moved there; the other two were deleted and are in this repository's history.
 Do not start a second toolchain here.
@@ -875,7 +885,8 @@ beside the repository.
   `OpenHOI3.SaveCheck effects <install> [tag]` is a look too: it runs every event's and
   decision's effects once, one after another on one new game in the country's scope (Germany
   by default), and lists what did nothing for want of what is not built. On 2026-10-12 the base
-  game ran 2,882 effects in 615 blocks in under a second, `relation` the most often unbuilt.
+  game ran 2,882 effects in 615 blocks in about a second, `country_event` the most often unbuilt
+  (`relation` was, until diplomacy's first piece on the same day).
   **Nothing in the files should trip it**; run it after touching `Sim/Script` or anything an
   effect changes.
   `OpenHOI3.SaveCheck events <install> [tag] [days]` plays a new game with only that country
@@ -895,6 +906,19 @@ beside the repository.
   are the highest level of that technology due before 1936; which technologies are chosen is
   not found (`docs/mechanics/resources.md`, section 5). **A new game does not give them**,
   and that waits for a reading and then for the maintainer's word.
+  `OpenHOI3.SaveCheck diplomacy <install> <start-date savegame> [examples]` makes a new game
+  with the install's Lua and sets what its countries hold of each other beside the save: every
+  pair block's relation and threat, each country's neutrality and effective neutrality, its
+  most-threatening country and where it stands on the alignment triangle. On 2026-10-12 it gave
+  **7,878 of 7,878 pairs** for relation and threat, 101 of 101 for both neutralities and for the
+  most-threatening country, and **50 of 101 for alignment** - all 11 of the factions' - with one
+  Lua error, the base game's `autoexec.lua` stopping at `SpyMission`, which is not built
+  (`docs/mechanics/lua.md`). The alignment misses are the AI's opening laws and the cabinets the
+  original fills as a game is entered: `laws=save` after the save gives every country the save's
+  laws before the two days and makes it 67 (`docs/mechanics/alignment.md`, *Ours*), and
+  `explain=<tag>` prints a country's drift term by term as its first step weighs it. Run it after
+  touching `Sim/Diplomacy`, `lib/OpenHOI3.Lua`, the history's diplomacy or anything an alignment
+  term reads.
   `OpenHOI3.SaveCheck supply <install> <savegame>` checks the supply network against what a
   save says of it, with the save's own owners, controllers and capitals, so a save of any
   day will do: the provinces marked `out_of_supply_days` are ours that draw on no depot -
@@ -926,7 +950,7 @@ beside the repository.
   after touching the order of an area's provinces or harbours, which the convoys hang on.
   Never copy a savegame, or anything from one, into the repository; a formula measured from
   it goes in the spec marked *measured*, with the figure it reproduced.
-- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, a leader in a battle on land, at sea and in the air, and the experience and traits a battle gives, the window a leader is chosen in and the original runtime's sort, and the tooltip - what the box shows of one, where it goes, when its second half comes and how a line is broken - with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say, a brigade's summary, a leader's tooltip and what a trait does, a technology's requirements with the corrected indentation and what its levels do, the flag and the counter in text and a modifier's sources written out, and a scrollbar's end buttons - the step, Shift, Ctrl and holding - and event and decision script - its words, the 153 trigger and 91 effect keywords and the names a key may be in the original's order, the tag's three letters and its bucket, `limit` in a scope, an event, a decision, a mean time to happen and the problems found - and what a condition answers - the blocks, the scope's forms and the sets, the leaves as the original answers them and what is reported unbuilt - and what an effect does - its blocks and draws, flags, variables, the modifiers an event gives, a country's and a province's effects - and an event firing and a decision taken - the candidates, the chance of a day, the firing, the AI's option, an answer, the four months, fire-once, the decisions offered and taken, an event's text and where its options stand - and a condition and an effect as words - each block's header and asterisk, a scope on one line, the doubled indent of effects, a run of cores on one line, a random list's chances, a missing key shown as itself, and a wrapped line keeping its indent - and the on_actions: the first event whose trigger holds, a fired fire-once event in front of the rest, a battle's winners and then its losers each counting it, a sea battle with an empty side, and a pride sunk - and messages: a type's keys and the null type, which message a player is told, the header's government and the lines' dark white, and the log's 200 messages, its rows cut one at a time and its rebuild of 101 - and a block inside a `not` with no asterisk of its own - carry 1644 of them
+- Tests are where a silent misreading gets caught. The parser, the layering, the map, the numbers, the tick, modifiers, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the unit counters and who a finished unit may join, the edges between provinces and a unit's march, the unit panel's figures and the hierarchy's lines, ports and the distances by sea, a fleet's and an air unit's orders, the buildings on the map and the window of orders, a land battle, what the hour makes of a unit in one, day and night, the game's generator of chance, the tactics, what a battle shows, which arrow a unit has, the supply network, the carrying of supplies, what a unit draws and brings, convoys with their heap and their harbours, the supply map mode's colours, who is whose puppet, a battle at sea - the sighting, where the ships stand, who a ship shoots at, sinking, breaking away and falling back - a fleet's missions with the raid on a convoy, the two days a new game runs first, an air unit's two missions with what a country knows and the battle in the air, and the bombing missions with the bombing, a building's two levels and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, a leader in a battle on land, at sea and in the air, and the experience and traits a battle gives, the window a leader is chosen in and the original runtime's sort, and the tooltip - what the box shows of one, where it goes, when its second half comes and how a line is broken - with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say, a brigade's summary, a leader's tooltip and what a trait does, a technology's requirements with the corrected indentation and what its levels do, the flag and the counter in text and a modifier's sources written out, and a scrollbar's end buttons - the step, Shift, Ctrl and holding - and event and decision script - its words, the 153 trigger and 91 effect keywords and the names a key may be in the original's order, the tag's three letters and its bucket, `limit` in a scope, an event, a decision, a mean time to happen and the problems found - and what a condition answers - the blocks, the scope's forms and the sets, the leaves as the original answers them and what is reported unbuilt - and what an effect does - its blocks and draws, flags, variables, the modifiers an event gives, a country's and a province's effects - and an event firing and a decision taken - the candidates, the chance of a day, the firing, the AI's option, an answer, the four months, fire-once, the decisions offered and taken, an event's text and where its options stand - and a condition and an effect as words - each block's header and asterisk, a scope on one line, the doubled indent of effects, a run of cores on one line, a random list's chances, a missing key shown as itself, and a wrapped line keeping its indent - and the on_actions: the first event whose trigger holds, a fired fire-once event in front of the rest, a battle's winners and then its losers each counting it, a sea battle with an empty side, and a pride sunk - and messages: a type's keys and the null type, which message a player is told, the header's government and the lines' dark white, and the log's 200 messages, its rows cut one at a time and its rebuild of 101 - and a block inside a `not` with no asterisk of its own - and what countries hold of each other - a record towards every country, the history's one side, a new game's fill only where nought, the month's drift by neighbours, war, guarantees and puppets, a battle's +5, neutrality's day and its effect and conditions, threat spread to everyone and over the map with its floor, its resistance and its fall a step, the most-threatening country, the threat effect, and the triangle's clamp with its sign slip, a member put on its leader, a step every interval and a day and the drift worked out - and Lua: the interpreter's rounding, numbers and library, errors both ways, one object one value, the install's scripts through its layers and a relation that fails giving 25 - carry 1694 of them
   because a wrong parse produces plausible-looking data rather than an error, and the original's
   own engine swallows its parse errors - so "it loaded" means nothing.
 - Scripts go in the scratchpad, written with the `Write` tool, not a bash heredoc: heredocs here

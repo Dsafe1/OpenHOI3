@@ -135,7 +135,7 @@ public static class CConvoyRaid
 		if (stand is not null)
 		{
 			Fight(state, raider, stand);
-			Count(state, convoy, stand);
+			Count(state, convoy, stand, raider);
 			state.Province(raider.Location).LastConvoyAttackHour = state.TotalHours;
 			stand.IsRemoved = true;
 		}
@@ -234,7 +234,7 @@ public static class CConvoyRaid
 	/// its transport ships lost, each counted at two ships to the hundred points; and
 	/// with a whole ship of either, the convoy loses that many of each, rounded.
 	/// </summary>
-	public static void Count(CGameState state, CConvoy convoy, CUnit stand)
+	public static void Count(CGameState state, CConvoy convoy, CUnit stand, CUnit? raider = null)
 	{
 		CCountry? owner = state.Country(convoy.Owner);
 		long lostEscorts = 0;
@@ -262,7 +262,8 @@ public static class CConvoyRaid
 		}
 		if (escorts >= CFixedPoint.Scale || transports >= CFixedPoint.Scale)
 		{
-			CConvoyLosses.Lose(state, convoy, (int)RoundToNearest(transports), (int)RoundToNearest(escorts));
+			CConvoyLosses.Lose(state, convoy, (int)RoundToNearest(transports), (int)RoundToNearest(escorts),
+				state.Country(raider?.Owner));
 		}
 	}
 

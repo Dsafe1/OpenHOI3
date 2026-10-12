@@ -91,8 +91,29 @@ public static class CCountryHistory
 
 			foreach (ClausewitzNode entry in CHistory.Fold(root, start))
 			{
+				// Where it stands on the alignment triangle, set as written: the original clamps
+				// nothing here (alignment.md, section 2).
+				if (entry.IsBlock && entry.Key is { } blockKey && blockKey.Equals("alignment", StringComparison.OrdinalIgnoreCase))
+				{
+					if (CFixedPoint.TryParse(entry.GetString("x"), out CFixedPoint x)
+						&& CFixedPoint.TryParse(entry.GetString("y"), out CFixedPoint y))
+					{
+						country.AlignmentX = x.Raw;
+						country.AlignmentY = y.Raw;
+					}
+					else
+					{
+						badAmounts++;
+					}
+					continue;
+				}
 				if (entry.Key is null || entry.Value is null)
 				{
+					continue;
+				}
+				if (entry.Key.Equals("ideology", StringComparison.OrdinalIgnoreCase))
+				{
+					country.RulingIdeology = entry.Value;
 					continue;
 				}
 
@@ -120,6 +141,33 @@ public static class CCountryHistory
 					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint unity))
 					{
 						country.NationalUnity = CFixedPoint.Clamp(unity, CFixedPoint.One, CFixedPoint.FromInt(100));
+					}
+				}
+				else if (entry.Key.Equals("government", StringComparison.OrdinalIgnoreCase))
+				{
+					country.GovernmentType = entry.Value;
+				}
+				else if (entry.Key.Equals("neutrality", StringComparison.OrdinalIgnoreCase))
+				{
+					// Floored at nothing and not capped, as the original sets it (diplomacy.md, section 6).
+					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint neutrality))
+					{
+						country.Neutrality = CFixedPoint.Max(neutrality, CFixedPoint.Zero);
+					}
+					else
+					{
+						badAmounts++;
+					}
+				}
+				else if (entry.Key.Equals("threat", StringComparison.OrdinalIgnoreCase))
+				{
+					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint threat))
+					{
+						country.HistoryThreat = threat;
+					}
+					else
+					{
+						badAmounts++;
 					}
 				}
 				else if (entry.Key.Equals("join_faction", StringComparison.OrdinalIgnoreCase))
@@ -219,7 +267,7 @@ public static class CCountryHistory
 		}
 		if (badAmounts > 0)
 		{
-			warn($"{badAmounts} amounts of goods in country history are not numbers and were ignored");
+			warn($"{badAmounts} amounts in country history are not numbers and were ignored");
 		}
 		return goodsGiven;
 	}
