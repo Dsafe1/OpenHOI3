@@ -42,7 +42,7 @@ public sealed partial class CDiplomacyRequestDialog : Control
 		Name = WindowName;
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		// Where the file puts it: the original moves it to diplo_request_pos, whose meaning was not read.
+		// The diplomacy screen moves it to diplo_request_pos once it is made.
 		Window = CGuiWindow.Create(_context, WindowName);
 		if (Window is null)
 		{

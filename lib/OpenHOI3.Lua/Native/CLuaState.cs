@@ -28,6 +28,18 @@ public sealed unsafe class CLuaState : IDisposable
 	private readonly List<object?> _objects = new();
 	private readonly Stack<int> _free = new();
 	private readonly Dictionary<string, CLuaClass> _classes = new(StringComparer.Ordinal);
+
+	/// <summary>
+	/// Where set, every call of a class's method is counted and timed under its name - stopwatch ticks,
+	/// a nested call counted in its caller too. For finding what is slow; off by default.
+	/// </summary>
+	public Dictionary<string, (long Ticks, int Calls)>? Profile { get; set; }
+
+	/// <summary>Each class by its metatable's address.</summary>
+	private readonly Dictionary<IntPtr, CLuaClass> _byMetatable = new();
+
+	/// <summary>Each class's metatable, by its key in the registry.</summary>
+	private readonly Dictionary<CLuaClass, int> _metatables = new();
 	private readonly CLuaFunction _collect;
 	private IntPtr _state;
 
@@ -158,7 +170,7 @@ public sealed unsafe class CLuaState : IDisposable
 		foreach ((string method, CLuaFunction function) in luaClass.Methods)
 		{
 			PushString(_state, method);
-			PushFunction(_state, function);
+			PushFunction(_state, function, luaClass.Name + ":" + method);
 			CLuaNative.lua_rawset(_state, -3);
 		}
 		CLuaNative.lua_rawset(_state, CLuaNative.LUA_REGISTRYINDEX);
@@ -199,6 +211,12 @@ public sealed unsafe class CLuaState : IDisposable
 		PushString(_state, "__name");
 		PushString(_state, luaClass.Name);
 		CLuaNative.lua_rawset(_state, -3);
+
+		// Kept twice more, to find the class from an object's metatable and to give an object its
+		// metatable, neither by name: an object crosses over thousands of times an hour.
+		_byMetatable[CLuaNative.lua_topointer(_state, -1)] = luaClass;
+		CLuaNative.lua_pushvalue(_state, -1);
+		_metatables[luaClass] = CLuaNative.luaL_ref(_state, CLuaNative.LUA_REGISTRYINDEX);
 
 		CLuaNative.lua_rawset(_state, CLuaNative.LUA_REGISTRYINDEX);
 
@@ -372,11 +390,9 @@ public sealed unsafe class CLuaState : IDisposable
 		{
 			return null;
 		}
-		PushString(L, "__name");
-		CLuaNative.lua_rawget(L, -2);
-		string? className = (ELuaType)CLuaNative.lua_type(L, -1) == ELuaType.String ? ToString(L, -1) : null;
-		CLuaNative.lua_settop(L, -3);
-		if (className is null || !_classes.TryGetValue(className, out luaClass))
+		IntPtr metatable = CLuaNative.lua_topointer(L, -1);
+		CLuaNative.lua_settop(L, -2);
+		if (!_byMetatable.TryGetValue(metatable, out luaClass))
 		{
 			return null;
 		}
@@ -400,9 +416,9 @@ public sealed unsafe class CLuaState : IDisposable
 		}
 	}
 
-	internal void PushFunction(IntPtr L, CLuaFunction function)
+	internal void PushFunction(IntPtr L, CLuaFunction function, string? name = null)
 	{
-		GCHandle handle = GCHandle.Alloc(new CLuaBinding(this, function));
+		GCHandle handle = GCHandle.Alloc(new CLuaBinding(this, function, name));
 		_handles.Add(handle);
 		CLuaNative.ohoi_pushfunction(L, &Enter, GCHandle.ToIntPtr(handle));
 	}
@@ -413,7 +429,9 @@ public sealed unsafe class CLuaState : IDisposable
 	/// </summary>
 	private void PushObject(IntPtr L, CLuaObject luaObject)
 	{
-		if (!_classes.ContainsKey(luaObject.Class.Name))
+		// A class is found as it was defined, or else by its name.
+		if (!_metatables.TryGetValue(luaObject.Class, out int metatable)
+			&& !(_classes.TryGetValue(luaObject.Class.Name, out CLuaClass? defined) && _metatables.TryGetValue(defined, out metatable)))
 		{
 			throw new ArgumentException($"the class '{luaObject.Class.Name}' is not defined");
 		}
@@ -428,8 +446,7 @@ public sealed unsafe class CLuaState : IDisposable
 		}
 
 		*(int*)CLuaNative.lua_newuserdata(L, sizeof(int)) = id;
-		PushString(L, ClassKeyPrefix + luaObject.Class.Name);
-		CLuaNative.lua_rawget(L, CLuaNative.LUA_REGISTRYINDEX);
+		CLuaNative.lua_rawgeti(L, CLuaNative.LUA_REGISTRYINDEX, metatable);
 		CLuaNative.lua_setmetatable(L, -2);
 	}
 
@@ -469,6 +486,19 @@ public sealed unsafe class CLuaState : IDisposable
 		var binding = (CLuaBinding)GCHandle.FromIntPtr(context).Target!;
 		try
 		{
+			if (binding.State.Profile is { } profile && binding.Name is { } name)
+			{
+				long started = System.Diagnostics.Stopwatch.GetTimestamp();
+				try
+				{
+					return binding.Function(new CLuaCall(binding.State, L));
+				}
+				finally
+				{
+					(long ticks, int calls) = profile.GetValueOrDefault(name);
+					profile[name] = (ticks + System.Diagnostics.Stopwatch.GetTimestamp() - started, calls + 1);
+				}
+			}
 			return binding.Function(new CLuaCall(binding.State, L));
 		}
 		catch (CLuaError e)

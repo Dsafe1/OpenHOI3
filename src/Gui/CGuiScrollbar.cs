@@ -101,9 +101,33 @@ public partial class CGuiScrollbar : CGuiObject
 			};
 			AddChild(_slider);
 		}
+		AddCaption(type, type.LeftButton, context, _less, atLeast: true);
+		AddCaption(type, type.RightButton, context, _more, atLeast: false);
 		MouseEntered += () => SetHovered(true);
 		MouseExited += () => SetHovered(false);
 		PlaceSlider();
+	}
+
+	/// <summary>
+	/// The words an end button declares, in its font, on the button: the trade window's "Sell" and
+	/// "Buy". A button with none has none.
+	/// </summary>
+	private void AddCaption(CGuiScrollbarType type, string name, CGuiContext context, Texture2D? texture, bool atLeast)
+	{
+		if (texture is null || type.FindButton(name) is not { } button || button.Text.Trim().Length == 0)
+		{
+			return;
+		}
+		Vector2 size = new(texture.GetWidth(), texture.GetHeight());
+		// The least value's button is at the left of a bar across and at the bottom of one up and down.
+		Vector2 at = _horizontal
+			? new Vector2(atLeast ? 0f : Size.X - size.X, 0f)
+			: new Vector2(0f, atLeast ? Size.Y - size.Y : 0f);
+		var holder = new Control { Name = name, Position = at, Size = size, MouseFilter = MouseFilterEnum.Ignore };
+		var caption = new CGuiCaption();
+		caption.Initialise(context.Localisation.Localise(button.Text), context.Fonts.Find(button.Font), button.Format);
+		holder.AddChild(caption);
+		AddChild(holder);
 	}
 
 	private static Texture2D? Load(CGuiScrollbarType type, string name, CGuiContext context, out CSpriteType? sprite)

@@ -6,6 +6,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
+using OpenHOI3.Sim.Trade;
 
 namespace OpenHOI3.Interface.Screens;
 
@@ -77,6 +78,12 @@ public static class CDiplomacyActions
 					rows.Add(influence);
 				}
 			}
+			// Offer Trade Agreement, listed only where it would do something (trade.md, section 7).
+			COffer trade = Row(EOfferKind.Trade, true) with { Deal = new CTradeDeal(player.Tag, chosen.Tag, CTradeTerms.None) };
+			if (COfferRules.IsValid(state, trade))
+			{
+				rows.Add(trade);
+			}
 		}
 		return rows;
 	}
@@ -104,6 +111,7 @@ public static class CDiplomacyActions
 			EOfferKind.OfferMilitaryAccess => offer.Value ? "OFFERMILACC" : "REVOKEMILACC",
 			EOfferKind.Embargo => offer.Value ? "EMBARGO" : "CANCELEMBARGO",
 			EOfferKind.Influence => offer.Value ? "INFL" : "STOPINFL",
+			EOfferKind.Trade => offer.Value ? "TRADE" : "CANCELTRADE",
 			_ => offer.Value ? "ALIGN" : "STOPALIGN",
 		};
 	}
@@ -127,9 +135,32 @@ public static class CDiplomacyActions
 			EOfferKind.OfferMilitaryAccess => OfferAccess(localise, state, offer, actor, recipient),
 			EOfferKind.Embargo => Embargo(localise, state, offer, actor, recipient),
 			EOfferKind.Influence => Influence(localise, state, offer, actor, recipient),
+			EOfferKind.Trade => TradeTooltip(localise, state, offer, actor, recipient),
 			_ => Align(localise, state, offer, actor, recipient),
 		};
 		return said ?? "";
+	}
+
+	private static string? TradeTooltip(Func<string, string> localise, CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if ((Common(localise, state, actor, recipient) ?? NoInfluence(localise, state, offer, actor, 0)) is { } said)
+		{
+			return said;
+		}
+		if (!offer.Value)
+		{
+			return localise("CANCELTRADEDESC");
+		}
+		if (COfferRules.Embargo(state, actor.Tag, recipient.Tag) is not null)
+		{
+			return CTextTemplate.Fill(localise("CDIP_EMBARGO"), ("LIST", recipient.Name));
+		}
+		if (CTradeRules.NeedsConvoy(state, Sim.Supply.CSupplyNetworks.Refresh(state), actor, recipient)
+			&& (!CTradeRules.HasPort(state, actor) || !CTradeRules.HasPort(state, recipient)))
+		{
+			return localise("TRADENO_PORTS");
+		}
+		return localise("TRADEDESC");
 	}
 
 	/// <summary>The request dialog's description: what the action is, and what it costs where it does.</summary>
@@ -480,7 +511,8 @@ public static class CDiplomacyActions
 		state.Influences.Exists(i => i.Influencer == influencer && i.Influenced == influenced);
 
 	/// <summary>An hour as the original writes it: " 13:00, 1 January, 1936", a space first.</summary>
-	private static string HourDate(Func<string, string> localise, long hour)
+	/// <summary>An hour of the game as the diplomacy texts write it: " 0:00, 8 June, 1936".</summary>
+	internal static string HourDate(Func<string, string> localise, long hour)
 	{
 		long day = Math.Max(hour, 0) / CGameState.HoursPerDay;
 		return CMessageText.Date(localise, CDate.FromDayNumber((int)day), (int)(Math.Max(hour, 0) % CGameState.HoursPerDay));

@@ -98,6 +98,58 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		return ScoreOnFailure;
 	}
 
+	public int OfferTradeScore(CGameState state, Sim.Agreements.COffer offer)
+	{
+		if (state.Country(offer.Actor) is not { } actor || state.Country(offer.Recipient) is not { } recipient
+			|| offer.Deal is not { } deal)
+		{
+			return ScoreOnFailure;
+		}
+		CGameState? asked = _state;
+		_state = state;
+		try
+		{
+			var action = new CLuaTradeAction(offer.Actor, offer.Recipient, offer.Date)
+			{
+				Value = offer.Value,
+				Route = new Sim.Trade.CTradeRoute(deal.From, deal.To, deal.Terms, offer.Date),
+			};
+			object? value = _lua.Call("DiploScore_OfferTrade", 1, new CLuaObject(_api.Ai, new CLuaAi(recipient)),
+				_api.Tag(actor.Tag), _api.Tag(recipient.Tag), _api.Tag(recipient.Tag),
+				new CLuaObject(_api.TradeAction, action),
+				new CLuaObject(_api.GoodsValues, new CLuaGoodsValues(deal.Terms.From)),
+				new CLuaObject(_api.GoodsValues, new CLuaGoodsValues(deal.Terms.To)))[0];
+			if (value is double number)
+			{
+				return ToInteger(number);
+			}
+			Fail($"DiploScore_OfferTrade({actor.Tag}, {recipient.Tag}) answered {value ?? "nil"}, not a number");
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+		finally
+		{
+			_state = asked ?? state;
+		}
+		return ScoreOnFailure;
+	}
+
+	public void RunTrade(CGameState state, CCountry country, bool propose)
+	{
+		_state = state;
+		string function = propose ? "ProposeTrades" : "EvalutateExistingTrades";
+		try
+		{
+			_lua.Call(function, 0, new CLuaObject(_api.Ai, new CLuaAi(country)), _api.Tag(country.Tag));
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+	}
+
 	/// <summary>
 	/// What a Lua expression answers with this game being asked - for a check or a test. A Lua error is
 	/// a <see cref="CLuaException"/>.

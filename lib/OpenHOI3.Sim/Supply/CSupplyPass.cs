@@ -50,6 +50,8 @@ public static class CSupplyPass
 			country.SentBack.Clear();
 			country.TradedAway.Clear();
 			country.TradedFor.Clear();
+			country.TradedAwaySansAlliedSupply.Clear();
+			country.TradedForSansAlliedSupply.Clear();
 		}
 	}
 

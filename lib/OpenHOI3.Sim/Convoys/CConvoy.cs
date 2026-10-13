@@ -33,8 +33,11 @@ public sealed class CConvoy
 	/// <summary>Which goods it carries.</summary>
 	public bool[] Carries { get; } = new bool[CGoodsPool.Count];
 
-	/// <summary>It serves a trade between two countries. None is made yet.</summary>
-	public bool IsTrade { get; init; }
+	/// <summary>
+	/// It serves a trade between two countries (<c>docs/mechanics/trade.md</c>, section 5); a route
+	/// cancelled takes it away, and the day's look at the convoys then removes the convoy.
+	/// </summary>
+	public bool IsTrade { get; set; }
 
 	/// <summary>It carries lend-lease. None is made yet.</summary>
 	public bool IsLendLease { get; init; }

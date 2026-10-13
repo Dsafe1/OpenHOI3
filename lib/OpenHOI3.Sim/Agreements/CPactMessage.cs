@@ -14,4 +14,10 @@ public sealed record CPactMessage(string We, string They, string Other, CCountry
 
 	/// <summary>The key of what has ended, for <c>DIPLOEXPIRE</c>'s <c>$ACTION$</c>; empty for the rest.</summary>
 	public string Action { get; init; } = "";
+
+	/// <summary>
+	/// A trade's route, for the goods its messages name (<c>trade.md</c>, section 10): set by a trade's
+	/// acceptance and its cancellation, none for the rest.
+	/// </summary>
+	public Trade.CTradeDeal? Deal { get; init; }
 }

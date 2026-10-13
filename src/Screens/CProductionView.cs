@@ -46,6 +46,9 @@ public partial class CProductionView : CCountryView
 	private CGuiOverlappingBox? _strategicResources;
 	private CGuiListBox? _queueList;
 	private readonly List<CBuildQueueEntry> _queue = new();
+	private CGuiListBox? _tradeList;
+	private readonly List<CTradeListEntry> _trades = new();
+	private CCountryTag? _tradesOf;
 	private CSliderPanel? _sliders;
 	private string _shownResources = "\0";
 	private readonly CDivisionDesignerView _designer = new();
@@ -80,6 +83,7 @@ public partial class CProductionView : CCountryView
 		_escorts = window.FindTextBox("escorts_value");
 		_strategicResources = window.FindBox("strat_resources");
 		_queueList = window.FindListBox("build_queue");
+		_tradeList = window.FindListBox("trade_list");
 
 		// The original hides this one whenever the screen is drawn.
 		if (window.TryFindButton("theatres_calc_button") is { } calculate)
@@ -308,7 +312,51 @@ public partial class CProductionView : CCountryView
 
 		ShowStrategicResources(country);
 		ShowQueue(state, country);
+		ShowTrades(state, country);
 		ShowSliders(country);
+	}
+
+	/// <summary>
+	/// The list of trades: made again when the country shown changes or the number of its routes does -
+	/// only then, as the original's is - and otherwise each line's inactive marker set. See
+	/// <c>docs/mechanics/trade.md</c>, section 13.
+	/// </summary>
+	private void ShowTrades(CGameState state, CCountry country)
+	{
+		if (_tradeList is null)
+		{
+			return;
+		}
+		List<Sim.Trade.CTradeRoute> routes = CTradeListText.Routes(state, country.Tag);
+		if (_tradesOf != country.Tag || routes.Count != _trades.Count)
+		{
+			_tradesOf = country.Tag;
+			_tradeList.Clear();
+			_trades.Clear();
+			foreach (Sim.Trade.CTradeRoute route in routes)
+			{
+				if (CTradeListEntry.Create(Context, state, route, country.Tag) is not { } line)
+				{
+					break;
+				}
+				CCountryTag player = country.Tag;
+				line.CancelPressed += () => OpenCancel(route, player);
+				_tradeList.Add(line.Window);
+				_trades.Add(line);
+			}
+		}
+		foreach (CTradeListEntry line in _trades)
+		{
+			line.Update(country.Tag);
+		}
+	}
+
+	/// <summary>A line's cancel button: another confirmation each press, as in the original.</summary>
+	private void OpenCancel(Sim.Trade.CTradeRoute route, CCountryTag player)
+	{
+		var dialog = new CTradeCancelDialog();
+		dialog.Setup(Context, Simulation, route, player);
+		AddChild(dialog);
 	}
 
 	/// <summary>

@@ -15,7 +15,6 @@ public static class CDiplomacyStatusClass
 	private const string Name = "CDiplomacyStatus";
 
 	private const string TruceUnbuilt = "truces: no war has ended";
-	private const string DebtUnbuilt = "debts: nobody may run one";
 
 	public static CLuaClass Define(CGameApi api)
 	{
@@ -43,7 +42,7 @@ public static class CDiplomacyStatusClass
 			.Method("HasFriendlyAgreement", call => call.Return(HasFriendlyAgreement(api, Of(call))))
 			.Method("HasMilitaryAccess", call => call.Return(Of(call).HasMilitaryAccess))
 			.Method("HasTruce", call => Unbuilt(api, call, TruceUnbuilt))
-			.Method("AllowDebts", call => Unbuilt(api, call, DebtUnbuilt));
+			.Method("AllowDebts", call => call.Return(Of(call).AllowDebts));
 	}
 
 	private static CDiplomacyStatus Of(CLuaCall call) => call.Object<CDiplomacyStatus>(1, Name);

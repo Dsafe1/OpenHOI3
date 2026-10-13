@@ -71,6 +71,9 @@ public static class CTick
 		CEventPass.RunHourly(state);
 		// Each AI country answers the offers made to it (docs/mechanics/agreements.md, section 2).
 		Agreements.CPactPasses.AnswerOffers(state);
+		// Then each AI country's trading, by the install's Lua (docs/mechanics/trade.md, section 9; ours:
+		// which of the two runs first in the original's hour was not read).
+		Trade.CTradeAi.RunHourly(state);
 	}
 
 	/// <summary>
@@ -104,6 +107,7 @@ public static class CTick
 		CResources.UpdateHomeProduction(state);
 		CStockpile.AddHomeProduction(state);
 		CResources.GatherCutOff(state);                     // what the sea cuts off waits in a harbour
+		Trade.CTradeRoutes.RunDaily(state);                 // then each country's trade, before its IC
 		CIndustrialCapacity.Update(state);
 		CProduction.RunDaily(state);
 		CLeadership.RunDaily(state);

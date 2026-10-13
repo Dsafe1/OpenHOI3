@@ -216,6 +216,12 @@ public partial class CSession : Node
 			_topBar.TechnologyPressed += () => Toggle(_technology);
 			_topBar.DiplomacyPressed += () => Toggle(_diplomacy);
 
+			// The offers other countries make the player, as icons hanging from the top bar - over it,
+			// since the icons reach up into its window.
+			var offers = new CDiploOffers();
+			offers.Setup(gui, _simulation, Player.Tag);
+			layer.AddChild(offers);
+
 			// An event's windows come up over everything, the top bar included.
 			_events = new CEventWindows();
 			_events.Setup(gui, _simulation, Player);

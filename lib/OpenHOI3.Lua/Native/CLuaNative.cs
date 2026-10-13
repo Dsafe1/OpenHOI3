@@ -103,6 +103,14 @@ internal static unsafe class CLuaNative
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
 	public static extern void lua_rawgeti(IntPtr L, int index, int n);
 
+	/// <summary>What a table is, as an address; the same table always answers the same.</summary>
+	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	public static extern IntPtr lua_topointer(IntPtr L, int index);
+
+	/// <summary>Keeps the value on top in the table at <paramref name="t"/>, popping it, and answers its key.</summary>
+	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	public static extern int luaL_ref(IntPtr L, int t);
+
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
 	public static extern void lua_rawset(IntPtr L, int index);
 

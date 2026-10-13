@@ -11,4 +11,5 @@ public enum EOfferKind
 	Embargo,
 	Influence,
 	Align,
+	Trade,
 }

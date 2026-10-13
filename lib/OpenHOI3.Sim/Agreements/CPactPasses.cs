@@ -24,8 +24,12 @@ public static class CPactPasses
 	/// <summary>
 	/// Every country nobody plays answers its offers, in the order they came: a kind the AI answers is
 	/// scored by the install's Lua and accepted where the score is over 30 and a draw of 0 to 99 is
-	/// below it, else declined; each answer is posted as a command; and the list is emptied. A played
-	/// country's list is emptied too - the offers made to a player are not built.
+	/// below it, else declined; each answer is posted as a command; and the list is emptied. **One trade
+	/// is accepted an hour**: a further trade the draw would accept stays on the list, still a proposal,
+	/// for the next hour (<c>trade.md</c>, section 2). **A played country's offers are put to its player
+	/// instead**, each once: under automate-trade a trade is kept for the hour's roll
+	/// (<see cref="Trade.CAutomatedTrades"/>), and every other proposal of a kind with a dialog is asked
+	/// (<see cref="CGameState.OfferAsked"/>); the rest are dropped (<c>agreements.md</c>, section 10).
 	/// </summary>
 	public static void AnswerOffers(CGameState state)
 	{
@@ -35,8 +39,25 @@ public static class CPactPasses
 			{
 				continue;
 			}
-			if (!state.Played.Contains(country.Tag) && CCountryLists.OwnedCount(state, country.Tag) > 0)
+			var kept = new List<COffer>();
+			if (state.Played.Contains(country.Tag))
 			{
+				bool automated = state.AutomateTrade.Contains(country.Tag);
+				foreach (COffer offer in country.PendingOffers)
+				{
+					if (offer.Kind == EOfferKind.Trade && automated)
+					{
+						kept.Add(offer);
+					}
+					else if (COfferRules.AsksPlayer(offer))
+					{
+						state.RaiseOfferAsked(offer);
+					}
+				}
+			}
+			else if (CCountryLists.OwnedCount(state, country.Tag) > 0)
+			{
+				bool tradeAccepted = false;
 				foreach (COffer offer in country.PendingOffers)
 				{
 					if (offer.Stage != EOfferStage.Proposed || !COfferRules.AiAnswers(offer))
@@ -44,10 +65,20 @@ public static class CPactPasses
 						continue;
 					}
 					EOfferStage answer = Answer(state, offer);
+					if (offer.Kind == EOfferKind.Trade && answer == EOfferStage.Accepted)
+					{
+						if (tradeAccepted)
+						{
+							kept.Add(offer);
+							continue;
+						}
+						tradeAccepted = true;
+					}
 					state.Outbox.Add(new COfferCommand(offer with { Stage = answer }));
 				}
 			}
 			country.PendingOffers.Clear();
+			country.PendingOffers.AddRange(kept);
 		}
 	}
 
@@ -68,12 +99,36 @@ public static class CPactPasses
 	/// </summary>
 	public static int Score(CGameState state, COffer offer)
 	{
-		if (COfferRules.ScoreFunction(offer.Kind) is not { } function || state.AiScripts is not { } scripts
-			|| state.Country(offer.Actor) is not { } actor || state.Country(offer.Recipient) is not { } recipient)
+		if (COfferRules.ScoreFunction(offer.Kind) is not { } function || state.Country(offer.Actor) is not { } actor
+			|| state.Country(offer.Recipient) is not { } recipient)
 		{
 			return 0;
 		}
-		return scripts.DiploScore(state, function, actor, recipient, recipient);
+		if (offer.Kind == EOfferKind.Trade)
+		{
+			return TradeScore(state, offer, actor, recipient);
+		}
+		return state.AiScripts is { } scripts ? scripts.DiploScore(state, function, actor, recipient, recipient) : 0;
+	}
+
+	/// <summary>
+	/// An offer to trade's score: 100 between a country and itself; 0 where it is not valid, its convoy
+	/// cannot be made, or the recipient already trades a good of it on a route that is not running;
+	/// otherwise <c>DiploScore_OfferTrade</c>'s.
+	/// </summary>
+	private static int TradeScore(CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (actor == recipient)
+		{
+			return 100;
+		}
+		if (!COfferRules.IsValid(state, offer) || offer.Deal is not { } deal
+			|| !Trade.CTradeRules.IsConvoyPossible(state, Supply.CSupplyNetworks.Refresh(state), deal)
+			|| Trade.CTradeRules.AlreadyTradingDisabledResource(state, deal))
+		{
+			return 0;
+		}
+		return state.AiScripts is { } scripts ? scripts.OfferTradeScore(state, offer) : 0;
 	}
 
 	/// <summary>

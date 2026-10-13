@@ -50,7 +50,22 @@ public sealed class CGameApi
 		GameState = CGameStateClass.DefineGameState(this);
 		CountryDataBase = CGameStateClass.DefineCountryDataBase(this);
 		Intel = new CLuaClass("CAIIntel").Constructs(_ => throw new CLuaError("CAIIntel is not built: espionage is not"));
+		TradeAction = CTradeActionClass.DefineAction(this);
+		TradeRoute = CTradeActionClass.DefineRoute(this);
+		GoodsValues = CGoodsValuesClass.Define();
+		Modifier = CCountryModifiersClass.DefineModifier(this);
+		TechnologyStatus = CCountryModifiersClass.DefineTechnology(this);
 	}
+
+	public CLuaClass TradeAction { get; }
+
+	public CLuaClass TradeRoute { get; }
+
+	public CLuaClass GoodsValues { get; }
+
+	public CLuaClass Modifier { get; }
+
+	public CLuaClass TechnologyStatus { get; }
 
 	public CLuaClass Country { get; }
 
@@ -94,6 +109,7 @@ public sealed class CGameApi
 	{
 		Country, CountryTag, DiplomacyStatus, Government, Faction, Ideology, IdeologyGroup, Province, Continent,
 		GoodsPool, Strategy, Ai, ResourceValues, GameState, CountryDataBase, Intel, FixedPoint, Text, Date,
+		TradeAction, TradeRoute, GoodsValues, Modifier, TechnologyStatus,
 	}.Concat(CEnumClasses.Define());
 
 	/// <summary>What has been reported as not built, in the order it was first met.</summary>

@@ -79,6 +79,7 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | class | built | answers |
 | --- | --- | --- |
 | `CCountry` | `GetCountryTag()` | its tag |
+| | `AIGetTradeRoutes()`, `GetTradedAwaySansAlliedSupply()`, `GetTradedForSansAlliedSupply()`, `HasDiplomatEnroute(tag)`, `NeedConvoyToTradeWith(tag)`, `GetTransports()`, `GetGlobalModifier()`, `GetTechnologyStatus()` | `trade.md`, section 9: an iterator over its routes, running or not, the other countries in their order; the day's trade pools; a diplomat on his way there; whether trade needs a convoy; its free transports; its modifier and its technology for the two classes below |
 | | `GetRelation(tag)` | its `CDiplomacyStatus` towards that country |
 | | `IsAtWar()`, `Exists()` | at war with anyone; owns a province |
 | | `GetGovernment()`, `GetFaction()`, `HasFaction()` | its government; its faction - **the null faction** for none; a faction that is not the null one |
@@ -100,12 +101,14 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | | `IsMajor()` | `major = yes` in its file, or `GetMaxIC()` over 100 |
 | | `IsNonExileNeighbour(tag)` | a country touching the land this one **controls**, owned by somebody and neither owned nor controlled by this one, and not in exile |
 | `CCountryTag` | `GetCountry()`, `IsValid()` | the country; not the null tag |
+| | `IsReal()` | a tag of the game's countries and not the null one (`trade.md`, section 9) |
 | | `==`, `tostring` | the same tag; its three letters |
 | `CDiplomacyStatus` | `GetValue()`, `GetThreat()`, `GetTarget()` | relation, threat; the other country's tag |
 | | `HasAlliance()`, `HasWar()`, `IsGuaranteed()`, `IsGuaranting()`, `IsFightingWarTogether()` | an alliance between the pair; the pair at war; **the other guarantees the holder**; the holder guarantees the other; both on one side of a war |
 | | `HasFriendlyAgreement()` | an alliance, military access, either the other's overlord, or a guarantee either way |
 | | `HasMilitaryAccess()` | the holder may pass through the other's land (`agreements.md`, section 5) |
-| | `HasTruce()`, `AllowDebts()` | **false - not built**, reported |
+| | `AllowDebts()` | whether the holder may run a debt with the other (`aid.md`); nothing sets it yet |
+| | `HasTruce()` | **false - not built**, reported |
 | `CFaction` | `==`, `IsValid()` | the same faction; not the null faction |
 | | `GetTag()`, `GetFactionLeader()`, `GetNumberOfMembers()` | its name as a `CString` - `axis`; its first member's tag, the null tag for none; how many it has |
 | `CGovernment` | `==` | the same government |
@@ -119,11 +122,17 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | | `GetCountry()`, `GetCountryTag()` | whose it is |
 | `CAI` | `GetCountry()`, `GetRelation(a, b)`, `GetNumberOfOwnedProvinces(tag)`, `GetCurrentDate()` | the country it is the AI of; `a`'s status towards `b`; that country's count; the date |
 | | `GetCountryAlignmentDistance(a, b)` | section 4.3 |
-| | `CanTradeFreeResources(a, b)` | **false**, as in the original, where nothing ever sets what it reads |
+| | `CanTradeFreeResources(a, b)` | both have the faction rule `free_resource_gifts` (`trade.md`, section 8) |
+| | `AlreadyTradingDisabledResource(route)`, `HasTradeGoneStale(route)`, `GetSpamPenalty(tag)`, `PostAction(action)` | `trade.md`, sections 2 and 9: a good of the route traded on a pair's route not running; failing for a fortnight; ten a day to 24 days past the last diplomat's arrival, for a played country only; the offer posted as the screen posts one, dated when it was made |
+| `CTradeAction` | `CTradeAction(actor, recipient)`, `SetTrading(fp, g)`, `GetTrading(g, tag)`, `GetRoute()`, `SetRoute(route)`, `SetValue(b)`, `IsValid()`, `IsSelectable()`, `GetAIAcceptance()` | `trade.md`, section 9; asking the score re-enters the Lua for `DiploScore_OfferTrade` |
+| `CTradeRoute` | `GetFrom()`, `GetTo()`, `GetTradedFromOf(g)`, `GetTradedToOf(g)`, `IsInactive()` | its two ends; what each hands over a day; whether it ran today |
+| `CGoodsValues` | `vMoney`, `vFuel`, `vCrudeOil`, `vMetal`, `vEnergy`, `vRareMaterials`, `vSupplies` | a block of a route's terms, single precision, read with `.` |
+| `CModifier`, `CTechnologyStatus` | `GetValue(_MODIFIER_GLOBAL_IC_)`; `GetIcModifier()` | the country's global IC, other kinds 0 reported; its technology's IC |
 | `CEU3Date` | `GetYear()`, `GetMonthOfYear()` | the year; the month from 0 |
 | `CResourceValues` | `CResourceValues()`, `GetResourceValues(country, g)` | six fields, read with `.`: section 4.2 |
 | `CCurrentGameState` | `GetFaction(name)`, `GetFactions()` | the faction of that name, case and all, the null faction for none; an iterator over the factions in `common/ideologies.txt`'s order |
 | | `GetProvince(id)`, `GetCurrentDate()`, `IsPlayer(tag)` | the province; the date; whether a person plays it |
+| | `GetCountries()` | an iterator over every country, in their order |
 | `CCountryDataBase` | `GetTag(name)` | the tag of those letters, the null tag where there is no such country |
 | constants | `CGoodsPool` | `_SUPPLIES_` 0, `_FUEL_` 1, `_MONEY_` 2, `_CRUDE_OIL_` 3, `_METAL_` 4, `_ENERGY_` 5, `_RARE_MATERIALS_` 6, `_GC_NUMOF_` 7 |
 | | `SpyMission` | `SPYMISSION_COUNTER_ESPIONAGE` 0 to `SPYMISSION_COVERT_OPS` 8, `SPYMISSION_MAX` 9 |
@@ -214,8 +223,17 @@ reported; in the original it escapes as an uncaught C++ exception. The original 
 asking when the player offers under the `yesmen` cheat; there is no console here.
 
 **An AI answering an offer asks it** for alliance, NAP and both kinds of transit rights, each hour
-(`agreements.md`, sections 2 and 3), and the request dialog asks it for the word it shows; nothing
-else does yet. `OpenHOI3.SaveCheck aiscore` asks the
+(`agreements.md`, sections 2 and 3), and the request dialog asks it for the word it shows.
+
+**A trade is answered by `DiploScore_OfferTrade(ai, actor, recipient, observer, action, tradedFrom,
+tradedTo)`** (`trade.md`, section 9): the observer is the recipient, the action a `CTradeAction`
+holding the terms, and the two `CGoodsValues` each block's goods. **A country's own trading is the
+globals `ProposeTrades(ai, tag)` and `EvalutateExistingTrades(ai, tag)`** - the original's spelling -
+asked each hour of a country nobody plays, one in six and then one in ten (`IAiScripts.RunTrade`);
+what they decide comes back as offers posted through `CAI:PostAction`, dated as the action was made.
+A failure in either is reported and leaves that country's trading for the hour.
+
+`OpenHOI3.SaveCheck aiscore` asks the
 eleven functions that take nothing but tags, for every pair of countries. On 2026-10-13 a new game of
 the base game had 78 countries owning land, and every one of the eleven answered all 6,006 pairs
 without an error **but `DiploScore_PeaceAction`, which fails at `CAIIntel` every time** - so a peace

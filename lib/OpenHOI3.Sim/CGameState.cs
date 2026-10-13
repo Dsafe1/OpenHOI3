@@ -257,6 +257,9 @@ public sealed class CGameState
 	/// <summary>The embargoes standing now.</summary>
 	public List<Agreements.CEmbargo> Embargoes { get; } = new();
 
+	/// <summary>The trade routes running now, in the order they were made: <c>docs/mechanics/trade.md</c>.</summary>
+	public List<Trade.CTradeRoute> TradeRoutes { get; } = new();
+
 	/// <summary>The influences running now, one country's faction on another country.</summary>
 	public List<Agreements.CInfluence> Influences { get; } = new();
 
@@ -287,6 +290,13 @@ public sealed class CGameState
 	/// (<c>docs/mechanics/navalcombat.md</c>, section 1).
 	/// </summary>
 	public HashSet<CCountryTag> Played { get; } = new();
+
+	/// <summary>
+	/// The played countries whose player has ticked "Automate Trade": the trades offered to them are
+	/// answered by a roll each hour and not shown, and the install's Lua trades for them as for a country
+	/// nobody plays. See <c>docs/mechanics/trade.md</c>, section 12.
+	/// </summary>
+	public HashSet<CCountryTag> AutomateTrade { get; } = new();
 
 	/// <summary>The game's own flags, which script sets: <c>docs/mechanics/effects.md</c>, section 3.</summary>
 	public Script.CFlags Flags { get; } = new();
@@ -343,6 +353,18 @@ public sealed class CGameState
 		PactMessaged?.Invoke(message);
 	}
 
+	/// <summary>
+	/// Raised as an offer made to a played country is put to its player, once, for the icon and the
+	/// dialog he answers it in (<c>docs/mechanics/agreements.md</c>, section 10). The answer comes back
+	/// as a command. Never for anything that changes the game.
+	/// </summary>
+	public event Action<Agreements.COffer>? OfferAsked;
+
+	internal void RaiseOfferAsked(Agreements.COffer offer)
+	{
+		OfferAsked?.Invoke(offer);
+	}
+
 	/// <summary>Raised as a decision is taken, before its effects, for its message.</summary>
 	public event Action<Script.CDecision, Script.CEventScope>? DecisionTaken;
 
@@ -365,6 +387,9 @@ public sealed class CGameState
 	/// holds what watches it to know when to look again.
 	/// </summary>
 	public int ControlChanges { get; set; }
+
+	/// <summary>What the map says of each country this hour, kept by <see cref="Countries.CCountryFacts"/>.</summary>
+	public Countries.CCountryFacts? CountryFacts { get; set; }
 
 	/// <summary>
 	/// What every roll of this game starts from. An hour's rolls depend on it, on the

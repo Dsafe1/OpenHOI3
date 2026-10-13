@@ -400,6 +400,15 @@ public sealed class CCountry
 	public CGoodsPool TradedFor { get; } = new();
 
 	/// <summary>
+	/// What its trade routes handed over today, without what a friend's units paid: trade credits it
+	/// beside <see cref="TradedAway"/>. See <c>docs/mechanics/trade.md</c>, section 6.
+	/// </summary>
+	public CGoodsPool TradedAwaySansAlliedSupply { get; } = new();
+
+	/// <summary>What its trade routes brought it today: <see cref="TradedFor"/> without allied supply.</summary>
+	public CGoodsPool TradedForSansAlliedSupply { get; } = new();
+
+	/// <summary>
 	/// Its convoys, in the order they were made - which is the order its transports are
 	/// shared out in. See <c>docs/mechanics/convoys.md</c>.
 	/// </summary>

@@ -18,6 +18,8 @@ public static class CCountryTagClass
 			.Method("GetCountry", call => call.Return(api.OfTag(Of(call))))
 			.Method("IsValid", call => call.Return(IsValid(Of(call))))
 			.Method("GetTag", call => call.Return(Of(call).Value))
+			// False only for the rebels: the null tag is "real".
+			.Method("IsReal", call => call.Return(!string.Equals(Of(call).Value, "REB", StringComparison.Ordinal)))
 			.Operator("__eq", CLuaEquality.By<CCountryTag>(Name, (a, b) => a == b))
 			.Operator("__tostring", call => call.Return(Of(call).Value));
 	}

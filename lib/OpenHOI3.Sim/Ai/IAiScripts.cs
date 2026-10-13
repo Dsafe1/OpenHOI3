@@ -23,4 +23,20 @@ public interface IAiScripts
 	/// <c>docs/mechanics/lua.md</c>, section 6.
 	/// </summary>
 	int DiploScore(CGameState state, string function, CCountry actor, CCountry recipient, CCountry observer);
+
+	/// <summary>
+	/// <c>DiploScore_OfferTrade(ai, actor, recipient, observer, action, tradedFrom, tradedTo)</c>: what
+	/// the recipient's AI makes of an offer to trade, handed the offer itself and its two blocks. 0
+	/// where the call fails. See <c>docs/mechanics/trade.md</c>, section 9.
+	/// </summary>
+	int OfferTradeScore(CGameState state, Agreements.COffer offer) => 0;
+
+	/// <summary>
+	/// <c>ProposeTrades(ai, tag)</c> where <paramref name="propose"/>, else
+	/// <c>EvalutateExistingTrades(ai, tag)</c>: a country's AI trading for the hour, whose offers go
+	/// to the state's outbox. See <c>docs/mechanics/trade.md</c>, section 9.
+	/// </summary>
+	void RunTrade(CGameState state, CCountry country, bool propose)
+	{
+	}
 }

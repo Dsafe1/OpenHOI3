@@ -46,6 +46,48 @@ public static class CPacts
 			case EOfferKind.Align:
 				Align(state, offer, actor, recipient);
 				break;
+			case EOfferKind.Trade:
+				TradeOffer(state, offer, actor, recipient);
+				break;
+		}
+	}
+
+	/// <summary>An offer to trade, or a cancellation: <c>trade.md</c>, section 3.</summary>
+	private static void TradeOffer(CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (!offer.Value)
+		{
+			// Never charged, though the texts show TRADE_CANCEL_INFLUENCE_COST.
+			if (offer.Deal is { } ended && Trade.CTradeRules.Matching(state, ended) is { } route)
+			{
+				Trade.CTradeRoutes.End(state, route);
+			}
+			CRelations.Change(actor, recipient, -COfferRules.Define(state, "TRADE_CANCEL_RELATION_COST"));
+			state.RaisePactMessage(new CPactMessage("WEBRKTRADE", "BRKTRADEUS", "BRKTRADEOTH", actor.Tag, recipient.Tag)
+			{
+				Deal = offer.Deal,
+			});
+			return;
+		}
+		switch (offer.Stage)
+		{
+			case EOfferStage.Proposed:
+				Charge(state, actor, "TRADE_INFLUENCE_COST");
+				break;
+			case EOfferStage.Accepted:
+				if (offer.Deal is not { } deal || Trade.CTradeRoutes.Make(state, deal, offer.Date) is null)
+				{
+					return;
+				}
+				Relation(state, actor, recipient, "TRADE_RELATION_CHANGES");
+				state.RaisePactMessage(new CPactMessage("ACTRAWITHUS", "WETRADEAG", "OTHERTRADEAG", actor.Tag, recipient.Tag)
+				{
+					Deal = deal,
+				});
+				break;
+			default:
+				Message(state, "DETRAWITHUS", "WEDETRA", "DETRAWITHOTHER", actor, recipient);
+				break;
 		}
 	}
 
@@ -185,6 +227,7 @@ public static class CPacts
 		if (offer.Value)
 		{
 			state.Embargoes.Add(new CEmbargo(actor.Tag, recipient.Tag));
+			Trade.CTradeRoutes.EndPair(state, actor.Tag, recipient.Tag);
 			Relation(state, actor, recipient, "EMBARGO_RELATION_CHANGE");
 			Charge(state, actor, "EMBARGO_INFLUENCE_COST");
 			CThreat.SpreadOverMap(state, recipient, threat, 1000, state.Province(recipient.Capital));
@@ -283,11 +326,12 @@ public static class CPacts
 	}
 
 	/// <summary>
-	/// A war between two begins: it ends their influence on each other (and their trade routes, none
-	/// yet) - section 6.
+	/// A war between two begins: it ends their influence on each other and their trade routes - section 6,
+	/// and <c>trade.md</c>, section 4.
 	/// </summary>
 	public static void WarBegun(CGameState state, CCountryTag one, CCountryTag other)
 	{
+		Trade.CTradeRoutes.EndPair(state, one, other);
 		foreach (CInfluence influence in state.Influences.ToArray())
 		{
 			if ((influence.Influencer == one && influence.Influenced == other)

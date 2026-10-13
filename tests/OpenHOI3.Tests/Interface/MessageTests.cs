@@ -177,4 +177,45 @@ public class MessageTests
 		Assert.Equal("Align towards the §YAxis§W",
 			CMessageText.Text(Words, CMessages.Pact(Words, types, state, ScriptWorld.Ger, expired)!, "_4"));
 	}
+
+	[Fact]
+	public void A_trades_messages_name_its_goods_from_the_side_told_and_an_automated_player_is_not_told()
+	{
+		CGameState state = ScriptWorld.State();
+		var table = new Dictionary<string, string>(Table)
+		{
+			["ACTRAWITHUS_6"] = "We will supply them with $ACT_TRADE$ per day in exchange for $REC_TRADE$ per day.",
+			["WETRADEAG_4"] = "We will supply them with $ACT_TRADE$ per day in exchange for $REC_TRADE$ per day.",
+			["BRKTRADEUS_6"] = "We will no longer receive $REC_TRADE$ for $ACT_TRADE$",
+			["WEDETRA_5"] = "$ACTORS$",
+			["METAL_IRO"] = "Metal",
+			["MONEY_IRO"] = "Money",
+		};
+		string Words(string key) => table.GetValueOrDefault(key, key);
+		CMessageTypes types = CMessageTypes.Read(ClausewitzParser.Parse(
+			"ACTRAWITHUS = { } WETRADEAG = { } OTHERTRADEAG = { } WEDETRA = { } BRKTRADEUS = { }"), _ => { });
+		// Germany buys 10 metal a day from Poland for 0.75 money.
+		var terms = OpenHOI3.Sim.Trade.CTradeTerms.None
+			.With(fromBlock: true, OpenHOI3.Sim.Economy.EGoods.Money, 750)
+			.With(fromBlock: false, OpenHOI3.Sim.Economy.EGoods.Metal, 10000);
+		var deal = new OpenHOI3.Sim.Trade.CTradeDeal(ScriptWorld.Ger, ScriptWorld.Pol, terms);
+		var accepted = new CPactMessage("ACTRAWITHUS", "WETRADEAG", "OTHERTRADEAG", ScriptWorld.Ger, ScriptWorld.Pol) { Deal = deal };
+
+		Assert.Equal("We will supply them with §Y0.75 Money§W  per day in exchange for §Y10.00 Metal§W  per day.",
+			CMessageText.Text(Words, CMessages.Pact(Words, types, state, ScriptWorld.Ger, accepted)!, "_6"));
+		Assert.Equal("We will supply them with §Y10.00 Metal§W  per day in exchange for §Y0.75 Money§W  per day.",
+			CMessageText.Text(Words, CMessages.Pact(Words, types, state, ScriptWorld.Pol, accepted)!, "_4"));
+
+		// Poland breaks it: Poland told it is the actor, Germany the one who no longer receives the metal.
+		var broken = new CPactMessage("WEBRKTRADE", "BRKTRADEUS", "BRKTRADEOTH", ScriptWorld.Pol, ScriptWorld.Ger) { Deal = deal };
+		Assert.Equal("We will no longer receive §Y10.00 Metal§W  for §Y0.75 Money§W ",
+			CMessageText.Text(Words, CMessages.Pact(Words, types, state, ScriptWorld.Ger, broken)!, "_6"));
+
+		var declined = new CPactMessage("DETRAWITHUS", "WEDETRA", "DETRAWITHOTHER", ScriptWorld.Ger, ScriptWorld.Pol);
+		Assert.Equal("GER", CMessageText.Text(Words, CMessages.Pact(Words, types, state, ScriptWorld.Pol, declined)!, "_5"));
+
+		state.AutomateTrade.Add(ScriptWorld.Pol);
+		Assert.Null(CMessages.Pact(Words, types, state, ScriptWorld.Pol, accepted));
+		Assert.Null(CMessages.Pact(Words, types, state, ScriptWorld.Pol, declined));
+	}
 }

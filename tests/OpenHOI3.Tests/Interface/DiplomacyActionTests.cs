@@ -70,13 +70,13 @@ public class DiplomacyActionTests
 		Assert.Equal(new[]
 		{
 			EOfferKind.Alliance, EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.AskMilitaryAccess,
-			EOfferKind.OfferMilitaryAccess, EOfferKind.Embargo, EOfferKind.Influence,
+			EOfferKind.OfferMilitaryAccess, EOfferKind.Embargo, EOfferKind.Influence, EOfferKind.Trade,
 		}, toPoland.Select(row => row.Kind));
 		Assert.All(toPoland, row => Assert.True(row.Value));
 
 		// One faction: no alliance, no transit rights, no influence; and Germany, in one, aligns with nobody.
 		List<COffer> toItaly = CDiplomacyActions.Rows(state, C(state, ScriptWorld.Ger), C(state, ScriptWorld.Ita));
-		Assert.Equal(new[] { EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.Embargo },
+		Assert.Equal(new[] { EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.Embargo, EOfferKind.Trade },
 			toItaly.Select(row => row.Kind));
 
 		// Poland, in no faction, may align with the Axis's leader.

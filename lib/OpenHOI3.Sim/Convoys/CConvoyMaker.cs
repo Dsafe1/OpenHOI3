@@ -54,6 +54,27 @@ public static class CConvoyMaker
 		return convoy;
 	}
 
+	/// <summary>
+	/// Makes a trade convoy of the buyer's between two harbours, carrying every good its route's terms
+	/// move, money among them. It starts with no transports. See <c>docs/mechanics/trade.md</c>, section 5.
+	/// </summary>
+	public static CConvoy CreateTrade(CGameState state, CCountry buyer, int from, int to, bool[] carries)
+	{
+		var convoy = new CConvoy
+		{
+			Id = ++state.LastConvoyId,
+			Owner = buyer.Tag,
+			Start = from,
+			End = to,
+			StartHour = state.TotalHours,
+			IsTrade = true,
+		};
+		carries.CopyTo(convoy.Carries, 0);
+		FindPath(state, convoy);
+		buyer.Convoys.Add(convoy);
+		return convoy;
+	}
+
 	/// <summary>Throws a convoy's way away and looks for it again.</summary>
 	public static void FindPath(CGameState state, CConvoy convoy)
 	{

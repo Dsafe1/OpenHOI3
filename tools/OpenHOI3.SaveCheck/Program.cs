@@ -144,6 +144,12 @@ if (args.Length > 0 && args[0] == "aiscore")
 	return CAiScoreTrial.Run(args);
 }
 
+// A new game run hour by hour with the AI trading by the install's Lua.
+if (args.Length > 0 && args[0] == "trade")
+{
+	return CTradeTrial.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

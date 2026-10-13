@@ -261,7 +261,9 @@ score:
 | else | `DIPCHANCE_VLIKELY` |
 
 **Accept** dates the offer now and posts it; **Decline** closes the dialog. The list is made again.
-The dialog closes by itself when the screen is hidden or the offer stops being valid.
+The dialog closes by itself when the screen is hidden or the offer stops being valid. **It stands with
+its upper left corner at the screen's middle plus `diplo_request_pos`**, (10, -100), whatever its own
+file says (`confirmed`, `FINDINGS-tradeui.md` B.3).
 
 ## 8. Messages
 
@@ -288,14 +290,51 @@ how this runtime does it (`messages.md`, section 3); the original's order of fil
 
 ## 9. Not built
 
-- **An offer to the player.** The original shows a proposal as an icon in the message bar, blinking
-  from 120 hours and declining itself after 168 unopened, that opens a dialog of the kind's own
-  (`ALLIANCEREQDESC` ...) lapsing two months after the offer (an alliance seven days). No AI proposes
-  yet - that is the foreign minister's Lua, the AI's - so nothing reaches the player.
+- **An AI's offers other than trade**: no AI proposes an alliance, a NAP or transit rights yet - that is
+  the foreign minister's Lua, the AI's - so only trades reach the player (section 10).
 - **The player handing his diplomacy to the AI** ("Ai control"), under which his own offers are answered
   like an AI's and the 96-hour drop applies to him.
 - **The NAP's border balance** (section 6), the NAP alert, and a pact's save block - there is no save.
-- **The kinds of trade and aid, war and peace, factions**: their rows, offers and pacts.
+- **The kinds of aid, war and peace, factions**: their rows, offers and pacts; trade is `trade.md`.
+- The sound `diplomaticoffer` a new offer plays.
+
+## 10. An offer to the player
+
+(`confirmed`, `FINDINGS-agreements.md` A4 and `FINDINGS-tradeui.md` section B.) **Each hour every
+offer on a played country's list is put to its player once, and the list emptied**: a proposal that
+makes something, of a kind with a dialog - alliance, NAP, asked and offered transit rights, trade -
+becomes an icon; under automate-trade a trade is kept back instead (`trade.md`, section 12); everything
+else is dropped. A guarantee, an embargo, an influence and an alignment took effect when proposed and
+ask nothing.
+
+**The bar**, `diplomessageicons_window` at the position `diplomessageicon_start`, (340, 80) from the
+screen's corner: an icon for each offer, `diplomessageicon_entry_window`, **the oldest on the left and
+each 40 to the right of the one before** - the icon's width and `diplomessageicon_offset`'s x - as many
+as start within the bar's width, ten; one more waits unseen and closes up when one goes. An icon is
+`diplomessageicon_button`, `GFX_diplo_message_icons` at the frame of the kind - 1 peace, 2 alliance, 3
+trade, 4 asked transit rights, 5 offered, 6 a call to arms, 7 NAP, 8 a faction, 9 an expeditionary
+force, 10 a licence, 11 debt, 12 and 13 lend-lease asked and offered - and `flag`, "@" and the
+proposer's tag, his flag.
+
+- **Its tooltip** on the button or the flag: `DIPLOICON_TIP` "$TYPE$ from $NATION$. \n If we do not
+  respond before $DATE$ we will autodecline." - TYPE the kind's words (`ICON_ALLIANCE`, `ICON_TRADE`,
+  `ICON_ASKMIL`, `ICON_OFFACC`, `ICON_NAP`..., **`ICON_PEACE` and `ICON_NAP` in no table, so shown as
+  themselves**), NATION the proposer, DATE the hour 168 after the icon came, " 0:00, 8 June, 1936". A
+  trade's has a delayed half (`trade.md`, section 14).
+- **It blinks from its 120th hour**: a tenth of its alpha for a tenth of each half second, whole
+  otherwise. **At its 168th it declines its offer**, shown or not; the game's hours count, so a paused
+  game declines nothing.
+- **A left click opens its dialog and takes the icon away; a right click declines the offer at once.**
+
+**The dialog** is `eu3dialog.gui`'s `DefaultDialog`, centred where its file puts it, for every kind:
+the proposer's flag on the left, the player's on the right, the title the kind's row title - the
+proposer's words, "Offer Alliance" - and the text the kind's key with the proposer's name:
+`ALLIANCEREQDESC`, `NAPREQDESC`, `MILACCREQDESC`, `MILACCOFFDESC`, a trade's `trade.md`, section 14;
+every `§W` in it the dialog's black. **Accept** ("Accept", its Enter taken away) and **Decline**
+("Decline", Escape) post the answer, nothing tested. **Any number may be open, one over another.** Each
+frame a dialog declines and closes once its time is up: two months from the offer and while it is
+valid; an alliance a week, and neither allied nor at war; a NAP neither allied nor at war; asked transit
+rights the months alone; a trade not at war.
 
 ## Kept as read, though they look odd
 
@@ -310,6 +349,9 @@ how this runtime does it (`messages.md`, section 3); the original's order of fil
 8. The influence and align dialogs show no cost; the align dialog's days are the influence define's.
 9. A guarantee ends after twenty years whatever its history's end date.
 10. An alliance outgrown by both joining one faction ends with the "left the alliance" messages.
+11. A right click on an offer's icon declines it with no question; an icon past the tenth is never seen
+    and still declines itself after a week; Accept's Enter is taken away and Decline keeps Escape.
+12. An offer's dialog is titled with the proposer's words; any number stand one on another.
 
 ## Ours
 
@@ -325,9 +367,9 @@ how this runtime does it (`messages.md`, section 3); the original's order of fil
   `$FACTION$` is filled by it as it is here (section 8).
 - Who asks a government's ruler title as a woman's or a puppet's (`FINDINGS-agreements.md`, section D):
   a message never does.
-- **Where the request dialog stands.** The original moves it to the position `diplo_request_pos`,
-  (10, -100), through the window's GUI slots 42 and 11, which nobody has read; here it stands where its
-  own file puts it.
+- **What variables an alliance's, a NAP's and transit rights' dialogs fill**: only the trade's were
+  read (`FINDINGS-tradeui.md` B.1); here ACTOR and COUNTRY are both the proposer's name, which is what
+  the texts ask for.
 - The `VAL` and `TIME` an influence's and an alignment's messages carry: no text of the base game's uses
   them, so they are not given.
 - How the guarantee's tooltip writes its neutrality (`DIP_TO_NEUTR`'s `$NOW$`): two places here, as the

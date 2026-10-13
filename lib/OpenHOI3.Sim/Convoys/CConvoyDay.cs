@@ -33,7 +33,8 @@ public static class CConvoyDay
 		{
 			if (convoy.Path.Count != 0)
 			{
-				if (!convoy.IsTrade && convoy.Path.Count > 1 && convoy.Transports != 0
+				// A cancelled trade's convoy, carrying money, delivers nothing on its way out (ours).
+				if (!convoy.IsTrade && !convoy.Carries[(int)Economy.EGoods.Money] && convoy.Path.Count > 1 && convoy.Transports != 0
 					&& CConvoyRules.IsRouteUsable(state, network, convoy))
 				{
 					CConvoyDelivery.Run(state, network, convoy);
@@ -43,7 +44,8 @@ public static class CConvoyDay
 					CConvoyMaker.FindPath(state, convoy);
 				}
 			}
-			if (!convoy.IsLendLease && !convoy.IsTrade && HasLostAnEnd(state, country, convoy))
+			if (convoy.IsTrade ? HasNoTrade(state, country, convoy)
+				: !convoy.IsLendLease && (convoy.Carries[(int)Economy.EGoods.Money] || HasLostAnEnd(state, country, convoy)))
 			{
 				CConvoyMaker.Remove(country, convoy);
 			}
@@ -69,6 +71,21 @@ public static class CConvoyDay
 				CConvoyShips.Distribute(state, network, country);
 			}
 		}
+	}
+
+	/// <summary>
+	/// Whether a trade convoy has no business any more: no route of the two serves it, or either end is in
+	/// the hands of somebody at war with its owner or of rebels. A convoy carrying money that is no trade
+	/// convoy - one whose route was cancelled - goes too. See <c>docs/mechanics/trade.md</c>, section 5.
+	/// </summary>
+	private static bool HasNoTrade(CGameState state, CCountry country, CConvoy convoy)
+	{
+		if (!state.TradeRoutes.Exists(route => route.Convoy == convoy))
+		{
+			return true;
+		}
+		return CConvoyRules.IsHostileGround(state, state.Province(convoy.End), country.Tag)
+			|| CConvoyRules.IsHostileGround(state, state.Province(convoy.Start), country.Tag);
 	}
 
 	/// <summary>

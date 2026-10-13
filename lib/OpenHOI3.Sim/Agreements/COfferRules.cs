@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Trade;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Agreements;
@@ -63,6 +64,16 @@ public static class COfferRules
 			case EOfferKind.Align:
 				return !(atWar && offer.Value) && !RealFaction(actor) && !IsPuppet(actor) && !IsPuppet(recipient)
 					&& Owns(state, actor) && Owns(state, recipient);
+			case EOfferKind.Trade:
+				if (!Owns(state, actor) || !Owns(state, recipient))
+				{
+					return false;
+				}
+				// A puppet trades with its own master or nobody.
+				return offer.Value
+					? !atWar && (actor.Overlord is null || actor.Overlord == recipient.Tag)
+						&& (recipient.Overlord is null || recipient.Overlord == actor.Tag)
+					: offer.Deal is { } deal && CTradeRules.Matching(state, deal) is not null;
 			default:
 				return false;
 		}
@@ -146,6 +157,15 @@ public static class COfferRules
 				return !has && RealFaction(recipient) && Leader(state, recipient.Faction) == recipient.Tag && running is null
 					&& (!state.IsAtWar(actor.Tag) || !AtWarWithFaction(state, actor, recipient.Faction));
 			}
+			case EOfferKind.Trade:
+				if (!offer.Value)
+				{
+					return true;
+				}
+				return !atWar && !IsPuppet(actor) && RecipientFree(actor, recipient) && Afford(state, actor, offer)
+					&& (!CTradeRules.NeedsConvoy(state, Supply.CSupplyNetworks.Refresh(state), actor, recipient)
+						|| (CTradeRules.HasPort(state, actor) && CTradeRules.HasPort(state, recipient)))
+					&& Embargo(state, actor.Tag, recipient.Tag) is null;
 			default:
 				return false;
 		}
@@ -163,6 +183,8 @@ public static class COfferRules
 			EOfferKind.Embargo => offer.Value ? "EMBARGO_INFLUENCE_COST" : null,
 			EOfferKind.Influence => offer.Value ? "INFLUENCE_INFLUENCE_COST" : null,
 			EOfferKind.Align => "ALIGN_INFLUENCE_COST",
+			// What a cancellation is said to cost; it is never charged (trade.md, section 3).
+			EOfferKind.Trade => offer.Value ? "TRADE_INFLUENCE_COST" : "TRADE_CANCEL_INFLUENCE_COST",
 			_ => null,
 		};
 		return define is null ? CFixedPoint.Zero : Define(state, define);
@@ -173,10 +195,22 @@ public static class COfferRules
 	{
 		return offer.Kind switch
 		{
-			EOfferKind.Alliance or EOfferKind.NonAggressionPact => offer.Value,
+			EOfferKind.Alliance or EOfferKind.NonAggressionPact or EOfferKind.Trade => offer.Value,
 			EOfferKind.AskMilitaryAccess or EOfferKind.OfferMilitaryAccess => offer.Stage == EOfferStage.Proposed && offer.Value,
 			_ => false,
 		};
+	}
+
+	/// <summary>
+	/// Whether an offer on a played country's list is put to its player: a proposal that makes something,
+	/// of a kind with a dialog of its own. A guarantee, an embargo, an influence and an alignment took
+	/// effect when proposed and ask nothing; an answer asks nothing. See <c>agreements.md</c>, section 10.
+	/// </summary>
+	public static bool AsksPlayer(COffer offer)
+	{
+		return offer.Stage == EOfferStage.Proposed && offer.Value && offer.Kind is EOfferKind.Alliance
+			or EOfferKind.NonAggressionPact or EOfferKind.AskMilitaryAccess or EOfferKind.OfferMilitaryAccess
+			or EOfferKind.Trade;
 	}
 
 	/// <summary>The install's Lua function the AI's answer is scored by; none where the AI does not answer.</summary>
@@ -188,6 +222,7 @@ public static class COfferRules
 			EOfferKind.NonAggressionPact => "DiploScore_NonAgression",
 			EOfferKind.AskMilitaryAccess => "DiploScore_DemandMilitaryAccess",
 			EOfferKind.OfferMilitaryAccess => "DiploScore_OfferMilitaryAccess",
+			EOfferKind.Trade => "DiploScore_OfferTrade",
 			_ => null,
 		};
 	}
@@ -236,7 +271,7 @@ public static class COfferRules
 
 	public static bool IsMajor(CCountry country) => country.IsMajor || country.BaseIc > MajorIc;
 
-	private static bool Owns(CGameState state, CCountry country) => CCountryLists.OwnedCount(state, country.Tag) > 0;
+	private static bool Owns(CGameState state, CCountry country) => CCountryFacts.Of(state).OwnedCount(country.Tag) > 0;
 
 	public static bool HasAccess(CCountry holder, CCountry other) => CGameState.Status(holder, other).HasMilitaryAccess;
 

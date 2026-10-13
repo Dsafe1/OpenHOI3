@@ -42,7 +42,16 @@ public static class CGameStateClass
 			})
 			.Static("GetProvince", call => call.Return(new CLuaObject(api.Province, api.State.Province(call.Integer(1)))))
 			.Static("GetCurrentDate", call => call.Return(new CLuaObject(api.Date, api.State.Date)))
-			.Static("IsPlayer", call => call.Return(api.State.Played.Contains(call.Object<CCountryTag>(1, "CCountryTag"))));
+			.Static("IsPlayer", call => call.Return(api.State.Played.Contains(call.Object<CCountryTag>(1, "CCountryTag"))))
+			.Static("GetCountries", call =>
+			{
+				var countries = new List<object?>();
+				foreach (CCountry country in api.State.Countries)
+				{
+					countries.Add(api.Of(country));
+				}
+				return call.ReturnIterator(countries);
+			});
 	}
 
 	public static CLuaClass DefineCountryDataBase(CGameApi api)

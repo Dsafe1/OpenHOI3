@@ -11,4 +11,7 @@ namespace OpenHOI3.Sim.Agreements;
 public sealed record COffer(EOfferKind Kind, CCountryTag Actor, CCountryTag Recipient, EOfferStage Stage, bool Value, long Date)
 {
 	public long Queued { get; init; }
+
+	/// <summary>An offer to trade's route (<c>docs/mechanics/trade.md</c>); none for any other kind.</summary>
+	public Trade.CTradeDeal? Deal { get; init; }
 }

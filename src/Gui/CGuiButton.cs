@@ -47,6 +47,14 @@ public partial class CGuiButton : CGuiObject
 
 	private bool _rightHeld;
 
+	/// <summary>
+	/// Takes away the key its file gives it, as the original's offer dialogs do with Accept's Enter.
+	/// </summary>
+	public void ClearShortcut()
+	{
+		_shortcut = Key.None;
+	}
+
 	/// <summary>Declared with <c>checkboxType</c>: a click ticks it or clears it.</summary>
 	public bool IsCheckbox { get; private set; }
 

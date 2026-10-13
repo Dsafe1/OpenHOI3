@@ -9,6 +9,7 @@ using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Events;
@@ -25,6 +26,8 @@ namespace OpenHOI3.Screens;
 public sealed partial class CDiplomacyView : CCountryView
 {
 	private const string DecisionListName = "decisions_listbox";
+	private const string RequestPosition = "diplo_request_pos";
+	private CGuiButton? _automateTrade;
 
 	/// <summary>The sort buttons, each with what it sorts by.</summary>
 	private static readonly (string Name, EDiplomacySort Sort)[] SortButtons =
@@ -46,7 +49,8 @@ public sealed partial class CDiplomacyView : CCountryView
 	// The actions towards the chosen country, and the request dialog one of them opened.
 	private readonly List<CDiplomacyActionEntry> _actions = new();
 	private CGuiListBox? _actionList;
-	private CDiplomacyRequestDialog? _request;
+	/// <summary>Closes the request window one of the rows opened, where one is open.</summary>
+	private Action? _request;
 
 	// The country list: who it holds, and its rows in the order last made.
 	private readonly List<CCountry> _countries = new();
@@ -95,6 +99,14 @@ public sealed partial class CDiplomacyView : CCountryView
 		_actionList = window.FindListBox("diploaction_list");
 		_countryList = window.FindListBox("country_listbox");
 		_driftList = window.FindListBox("drift_list");
+
+		// Automate Trade: a command here, where the original writes its local player's own flag (trade.md, section 12).
+		_automateTrade = window.TryFindButton("trade_automate_checkbox");
+		if (_automateTrade is not null)
+		{
+			_automateTrade.Pressed += () => Simulation.Post(new CSetAutomateTradeCommand(Player.Tag,
+				!State.AutomateTrade.Contains(Player.Tag)));
+		}
 
 		_alignment = window.FindWindow("alignment");
 		if (_alignment is not null)
@@ -301,6 +313,10 @@ public sealed partial class CDiplomacyView : CCountryView
 
 	protected override void Refresh()
 	{
+		if (_automateTrade is not null)
+		{
+			_automateTrade.Checked = State.AutomateTrade.Contains(Player.Tag);
+		}
 		foreach (CFactionBox box in _factionBoxes)
 		{
 			box.Refresh();
@@ -341,7 +357,7 @@ public sealed partial class CDiplomacyView : CCountryView
 	protected override void Closing()
 	{
 		base.Closing();
-		_request?.Close();
+		_request?.Invoke();
 	}
 
 	/// <summary>The country list filled anew: its rows in its order, and the markers.</summary>
@@ -474,19 +490,41 @@ public sealed partial class CDiplomacyView : CCountryView
 	/// <summary>A row pressed: its request dialog, in place of any other; closing it makes the list again.</summary>
 	private void OpenRequest(Sim.Agreements.COffer offer)
 	{
-		_request?.Close();
-		var dialog = new CDiplomacyRequestDialog();
-		dialog.Setup(Context, Simulation, offer);
-		dialog.Closed += () =>
+		_request?.Invoke();
+		Control window;
+		Action close;
+		Func<CGuiWindow?> made;
+		if (offer.Kind == Sim.Agreements.EOfferKind.Trade)
 		{
-			if (_request == dialog)
+			// Trade has a window of its own, with a slider for each good.
+			var trade = new CTradeRequestDialog();
+			trade.Setup(Context, Simulation, offer);
+			trade.Closed += () => Closed(trade.Close);
+			(window, close, made) = (trade, trade.Close, () => trade.Window);
+		}
+		else
+		{
+			var dialog = new CDiplomacyRequestDialog();
+			dialog.Setup(Context, Simulation, offer);
+			dialog.Closed += () => Closed(dialog.Close);
+			(window, close, made) = (dialog, dialog.Close, () => dialog.Window);
+		}
+		_request = close;
+		AddChild(window);
+		// It stands at the screen's middle and diplo_request_pos from it, not where its own file puts it.
+		if (made() is { } placed)
+		{
+			placed.Position = GetViewportRect().Size / 2f + Named(RequestPosition);
+		}
+
+		void Closed(Action closing)
+		{
+			if (_request == closing)
 			{
 				_request = null;
 			}
 			MakeActions();
-		};
-		_request = dialog;
-		AddChild(dialog);
+		}
 	}
 
 	/// <summary>The Info view: the relation and goal windows hidden, the status list shown.</summary>

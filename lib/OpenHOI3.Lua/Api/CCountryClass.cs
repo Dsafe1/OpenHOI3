@@ -33,7 +33,7 @@ public static class CCountryClass
 					: null);
 			})
 			.Method("IsAtWar", call => call.Return(api.State.IsAtWar(Of(call).Tag)))
-			.Method("Exists", call => call.Return(CCountryLists.OwnedCount(api.State, Of(call).Tag) > 0))
+			.Method("Exists", call => call.Return(CCountryFacts.Of(api.State).OwnedCount(Of(call).Tag) > 0))
 			.Method("GetGovernment", call => call.Return(api.GovernmentNamed(Of(call).GovernmentType)))
 			.Method("GetFaction", call => call.Return(api.FactionNamed(Of(call).Faction)))
 			.Method("HasFaction", call => call.Return(Of(call).Faction.Length > 0))
@@ -63,11 +63,30 @@ public static class CCountryClass
 			.Method("GetSurrenderLevel", call => call.Return(api.Fixed(SurrenderLevel(api, Of(call)))))
 			.Method("GetMaxIC", call => call.Return(Of(call).BaseIc))
 			.Method("GetTotalIC", call => call.Return(Of(call).TotalIc))
-			.Method("GetNumberOfOwnedProvinces", call => call.Return(CCountryLists.OwnedCount(api.State, Of(call).Tag)))
+			.Method("GetNumberOfOwnedProvinces", call => call.Return(CCountryFacts.Of(api.State).OwnedCount(Of(call).Tag)))
 			.Method("GetNumberOfControlledProvinces", call => call.Return(ControlledCount(api, Of(call))))
 			.Method("GetOverlord", call => call.Return(api.Tag(Of(call).Overlord)))
 			.Method("IsPuppet", call => call.Return(Of(call).Overlord is not null))
 			.Method("GetStrategy", call => call.Return(new CLuaObject(api.Strategy, Of(call))))
+			// Trade (docs/mechanics/trade.md, section 9).
+			.Method("AIGetTradeRoutes", call => call.ReturnIterator(TradeRoutes(api, Of(call))))
+			.Method("GetTradedAwaySansAlliedSupply", call => call.Return(new CLuaObject(api.GoodsPool, Of(call).TradedAwaySansAlliedSupply)))
+			.Method("GetTradedForSansAlliedSupply", call => call.Return(new CLuaObject(api.GoodsPool, Of(call).TradedForSansAlliedSupply)))
+			.Method("HasDiplomatEnroute", call =>
+			{
+				CCountry country = Of(call);
+				return call.Return(api.CountryOf(call, 2) is { } other
+					&& Sim.Agreements.COfferRules.DiplomatEnRoute(api.State, country, other));
+			})
+			.Method("NeedConvoyToTradeWith", call =>
+			{
+				CCountry country = Of(call);
+				return call.Return(api.CountryOf(call, 2) is { } other
+					&& Sim.Trade.CTradeRules.NeedsConvoy(api.State, Sim.Supply.CSupplyNetworks.Refresh(api.State), country, other));
+			})
+			.Method("GetTransports", call => call.Return(Of(call).Transports))
+			.Method("GetGlobalModifier", call => call.Return(new CLuaObject(api.Modifier, Of(call))))
+			.Method("GetTechnologyStatus", call => call.Return(new CLuaObject(api.TechnologyStatus, Of(call))))
 			.Method("GetCurrentAtWarWith", call => call.ReturnIterator(Tags(api, CCountryLists.Enemies(api.State, Of(call)))))
 			.Method("GetNeighbours", call => call.ReturnIterator(Tags(api, CCountryLists.Neighbours(api.State, Of(call)))))
 			.Method("GetDiplomacy", call =>
@@ -109,20 +128,37 @@ public static class CCountryClass
 			{
 				CCountry country = Of(call);
 				CCountryTag tag = call.Object<CCountryTag>(2, "CCountryTag");
-				foreach (CCountry neighbour in CCountryLists.ControllerNeighbours(api.State, country))
+				if (api.State.Country(tag) is not null && CCountryFacts.Of(api.State).AreControllerNeighbours(country.Tag, tag))
 				{
-					if (neighbour.Tag == tag)
-					{
-						// Nobody is in exile here, which the original asks next.
-						api.ReportUnbuilt(ExileUnbuilt);
-						return call.Return(true);
-					}
+					// Nobody is in exile here, which the original asks next.
+					api.ReportUnbuilt(ExileUnbuilt);
+					return call.Return(true);
 				}
 				return call.Return(false);
 			});
 	}
 
 	private static CCountry Of(CLuaCall call) => call.Object<CCountry>(1, Name);
+
+	/// <summary>
+	/// A country's trade routes, running or not: the other countries in their order, and each pair's
+	/// routes in the order they were made.
+	/// </summary>
+	private static List<object?> TradeRoutes(CGameApi api, CCountry country)
+	{
+		var routes = new List<object?>();
+		foreach (CCountry other in api.State.Countries)
+		{
+			foreach (Sim.Trade.CTradeRoute route in api.State.TradeRoutes)
+			{
+				if (other != country && route.Joins(country.Tag, other.Tag))
+				{
+					routes.Add(new CLuaObject(api.TradeRoute, route));
+				}
+			}
+		}
+		return routes;
+	}
 
 	/// <summary>The country's capital, which is its acting capital where nobody is in exile.</summary>
 	private static CProvince Capital(CGameApi api, CCountry country) => api.State.Province(country.Capital);

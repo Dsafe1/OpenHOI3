@@ -28,7 +28,9 @@ public static class CFixedPointClass
 			.Operator("__eq", call => call.Return(Raw(call, 1) == Raw(call, 2)))
 			.Operator("__lt", call => call.Return(Raw(call, 1) < Raw(call, 2)))
 			.Operator("__le", call => call.Return(Raw(call, 1) <= Raw(call, 2)));
-		return luaClass;
+		// CFixedPoint(x): the number made a float, then to the nearest thousandth by single precision.
+		return luaClass.Constructs(call =>
+			call.Return(new CLuaObject(luaClass, new CFixedPoint(CLuaFloats.ToThousandths((float)call.Number(2))))));
 	}
 
 	private static int Multiply(int a, int b) => (int)((long)a * b / 1000);

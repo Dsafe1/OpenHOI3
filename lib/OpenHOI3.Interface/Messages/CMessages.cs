@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Content.Messages;
 using OpenHOI3.Interface.Events;
+using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
@@ -78,6 +79,11 @@ public static class CMessages
 		{
 			return null;
 		}
+		// A trade made or refused is not told to a player who has automated his trade (trade.md, section 12).
+		if (player is { } own && state.AutomateTrade.Contains(own) && name is "ACTRAWITHUS" or "WETRADEAG" or "DETRAWITHUS" or "WEDETRA")
+		{
+			return null;
+		}
 		var message = new CMessage(types.Find(name), CMessageText.Date(localise, state.Date, state.Hour))
 		{
 			FirstCountry = pact.Actor,
@@ -91,9 +97,17 @@ public static class CMessages
 			Government(localise, state, player, message);
 			message.Variables.Add(("MONARCHTITLE", RulerTitle(country)));
 		}
-		message.Variables.Add(("ACTOR", state.Country(pact.Actor)?.Name ?? pact.Actor.Value));
+		string actorName = state.Country(pact.Actor)?.Name ?? pact.Actor.Value;
+		message.Variables.Add(("ACTOR", actorName));
+		// The same name again, which WEDETRA's text asks for.
+		message.Variables.Add(("ACTORS", actorName));
 		message.Variables.Add(("RECIPIENT", state.Country(pact.Recipient)?.Name ?? pact.Recipient.Value));
 		message.Variables.Add(("MESSENGER", "MESSAGE_HEAD_CHAN"));
+		if (pact.Deal is { } deal && TradeSides(name, deal, player) is ({ } gives, { } gets))
+		{
+			message.Variables.Add(("ACT_TRADE", CTradeWindowText.Goods(localise, gives)));
+			message.Variables.Add(("REC_TRADE", CTradeWindowText.Goods(localise, gets)));
+		}
 		if (pact.Action.Length > 0)
 		{
 			message.Variables.Add(("ACTION", pact.Action));
@@ -103,6 +117,24 @@ public static class CMessages
 			message.Variables.Add(("FACTION", pact.Faction));
 		}
 		return message;
+	}
+
+	/// <summary>
+	/// A trade message's two blocks, <c>ACT_TRADE</c> and <c>REC_TRADE</c>: for the accepting messages the
+	/// route's own from and to - turned round for the recipient, <c>WETRADEAG</c> - and for the one told of
+	/// a cancellation, <c>BRKTRADEUS</c>, what the player gives and gets on the route. None for the rest.
+	/// See <c>trade.md</c>, section 10.
+	/// </summary>
+	private static (Func<Sim.Economy.EGoods, long>?, Func<Sim.Economy.EGoods, long>?) TradeSides(string name,
+		Sim.Trade.CTradeDeal deal, CCountryTag? player)
+	{
+		return name switch
+		{
+			"ACTRAWITHUS" or "OTHERTRADEAG" => (deal.Terms.From, deal.Terms.To),
+			"WETRADEAG" => (deal.Terms.To, deal.Terms.From),
+			"BRKTRADEUS" => player == deal.From ? (deal.Terms.From, deal.Terms.To) : (deal.Terms.To, deal.Terms.From),
+			_ => (null, null),
+		};
 	}
 
 	/// <summary>
