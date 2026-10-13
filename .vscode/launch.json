@@ -58,6 +58,25 @@
 			"stopAtEntry": false
 		},
 		{
+			// Optimised code and no debugger (Directory.Build.targets): about twice the speed of the
+			// others at full speed. Breakpoints do nothing here.
+			"name": "Play OpenHOI3 (fast)",
+			"type": "coreclr",
+			"request": "launch",
+			"noDebug": true,
+			"preLaunchTask": "build (fast)",
+			"program": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}",
+				"--",
+				"--country=${input:country}"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		},
+		{
 			"name": "Play OpenHOI3 (headless)",
 			"type": "coreclr",
 			"request": "launch",

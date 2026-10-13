@@ -19,6 +19,9 @@ public sealed class CGameApi
 	/// <summary>The null tag, the original's country number 0, which nothing is.</summary>
 	public static readonly CCountryTag NullTag = new("---");
 
+	/// <summary>What a report of something not built begins with.</summary>
+	public const string UnbuiltPrefix = "LUA unbuilt: ";
+
 	private readonly Func<CGameState> _state;
 	private readonly Action<string> _report;
 	private readonly HashSet<string> _unbuilt = new(StringComparer.Ordinal);
@@ -127,12 +130,33 @@ public sealed class CGameApi
 	/// <summary>The game being asked.</summary>
 	public CGameState State => _state();
 
+	/// <summary>The Lua these classes are handed to, which an offer's score is asked of from inside a script.</summary>
+	public Sim.Ai.IAiScripts? Scripts { get; set; }
+
+	/// <summary>Where a script's commands go while it runs on a worker, to reach the outbox afterwards; else null.</summary>
+	public List<Sim.Commands.CCommand>? Posted { get; set; }
+
+	/// <summary>
+	/// What a script's draws are made on while it runs on a worker - its own, so that its draws are the same
+	/// whichever runs first - else the game's.
+	/// </summary>
+	public CRandom? WorkerRandom { get; set; }
+
+	/// <summary>The generator a script draws on.</summary>
+	public CRandom Random => WorkerRandom ?? State.Random;
+
+	/// <summary>A command a script gives, which reaches the game's outbox.</summary>
+	public void Post(Sim.Commands.CCommand command)
+	{
+		(Posted ?? State.Outbox).Add(command);
+	}
+
 	/// <summary>Says once a session that a script read something the simulation does not hold.</summary>
 	public void ReportUnbuilt(string what)
 	{
 		if (_unbuilt.Add(what))
 		{
-			_report("LUA unbuilt: " + what);
+			_report(UnbuiltPrefix + what);
 		}
 	}
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using OpenHOI3.Content;
@@ -28,19 +29,34 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	/// <summary>What an offer's score is where the call fails: the original's bridge answers 0, a refusal.</summary>
 	private const int ScoreOnFailure = 0;
 
+	/// <summary>What a failed call's report begins with.</summary>
+	private const string ErrorPrefix = "LUA Error: ";
+
+	private const string UnbuiltPrefix = CGameApi.UnbuiltPrefix;
+
 	private readonly CDirectorySettings _directories;
 	private readonly Action<string> _report;
 	private readonly CLuaState _lua = new();
 	private readonly CGameApi _api;
 	private CGameState? _state;
 	private int _failures;
+	private CTradeWorkers? _workers;
 
 	public CAiScripts(CDirectorySettings directories, Action<string>? report = null)
+		: this(directories, report, worker: false)
+	{
+	}
+
+	private CAiScripts(CDirectorySettings directories, Action<string>? report, bool worker)
 	{
 		_directories = directories;
 		_report = report ?? CDiagnostics.Warn;
-		_api = new CGameApi(() => _state ?? throw new CLuaError("no game is being asked"), _report);
+		_api = new CGameApi(() => _state ?? throw new CLuaError("no game is being asked"), _report) { Scripts = this };
 		_lua.OpenLibraries("base", "package", "table", "io", "os", "string", "math", "debug");
+		if (worker)
+		{
+			new CLuaRandom().Install(_lua);
+		}
 		foreach (CLuaClass luaClass in _api.Classes)
 		{
 			_lua.DefineClass(luaClass);
@@ -48,6 +64,10 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		InstallSearcher();
 		RunFile(Autoexec);
 	}
+
+	/// <summary>A state of the hour's trading's own, with a <c>math.random</c> of its own (<see cref="CTradeWorkers"/>).</summary>
+	internal static CAiScripts Worker(CDirectorySettings directories, Action<string> report) =>
+		new(directories, report, worker: true);
 
 	/// <summary>The state, for a check or a test that asks it something directly.</summary>
 	public CLuaState Lua => _lua;
@@ -185,6 +205,35 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	}
 
 	/// <summary>
+	/// The hour's trading, side by side on states of its own, made the first time (<see cref="CTradeWorkers"/>).
+	/// What the runs post reaches the state's outbox, and what they report is reported, in the order of the
+	/// runs - an unbuilt thing once, whichever state met it.
+	/// </summary>
+	public void RunTrades(CGameState state, IReadOnlyList<(CCountry Country, bool Propose)> runs)
+	{
+		_workers ??= new CTradeWorkers(_directories);
+		foreach ((List<Sim.Commands.CCommand> posted, List<string> reports) in _workers.Run(state, runs))
+		{
+			state.Outbox.AddRange(posted);
+			foreach (string line in reports)
+			{
+				if (line.StartsWith(UnbuiltPrefix, StringComparison.Ordinal))
+				{
+					_api.ReportUnbuilt(line[UnbuiltPrefix.Length..]);
+				}
+				else
+				{
+					if (line.StartsWith(ErrorPrefix, StringComparison.Ordinal))
+					{
+						_failures++;
+					}
+					_report(line);
+				}
+			}
+		}
+	}
+
+	/// <summary>
 	/// What a Lua expression answers with this game being asked - for a check or a test. A Lua error is
 	/// a <see cref="CLuaException"/>.
 	/// </summary>
@@ -197,6 +246,8 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 
 	public void Dispose()
 	{
+		_workers?.Dispose();
+		_workers = null;
 		_lua.Dispose();
 	}
 
@@ -213,7 +264,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	private void Fail(string message)
 	{
 		_failures++;
-		_report("LUA Error: " + message);
+		_report(ErrorPrefix + message);
 	}
 
 	/// <summary>Runs a file of the install's, reporting it where it fails, as the original logs it.</summary>

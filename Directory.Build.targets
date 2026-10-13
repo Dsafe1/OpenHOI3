@@ -1,0 +1,13 @@
+<Project>
+	<!--
+		dotnet build -p:OpenHOI3Fast=true builds optimised code in whatever configuration is asked for.
+		The Godot editor's binary loads the game from the Debug configuration's folder whatever was built,
+		so this is how the game is played at the speed of a release build: about 1.6 times the simulation
+		of a plain Debug build, and more again without the debugger (VS Code's "Play OpenHOI3 (fast)").
+		The constant is there only so that switching between the two is seen as a change and compiles again.
+	-->
+	<PropertyGroup Condition="'$(OpenHOI3Fast)' == 'true'">
+		<Optimize>true</Optimize>
+		<DefineConstants>$(DefineConstants);OPENHOI3_FAST</DefineConstants>
+	</PropertyGroup>
+</Project>

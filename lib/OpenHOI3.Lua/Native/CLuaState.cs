@@ -60,7 +60,24 @@ public sealed unsafe class CLuaState : IDisposable
 			PushFunction(_state, call => Dispatch(call, name));
 			CLuaNative.lua_rawset(_state, CLuaNative.LUA_REGISTRYINDEX);
 		}
-	}
+
+		Load(Encoding.Latin1.GetBytes(IndexMaker), "=ohoi.index");
+		_indexMaker = CLuaNative.luaL_ref(_state, CLuaNative.LUA_REGISTRYINDEX);	}
+
+	/// <summary>
+	/// Makes the <c>__index</c> of a class with fields from its table of methods and its C# function
+	/// of fields: a method of that name, else the field's value.
+	/// </summary>
+	private const string IndexMaker =
+		"local methods, fields = ...\n" +
+		"return function(object, key)\n" +
+		"  local method = methods[key]\n" +
+		"  if method ~= nil then return method end\n" +
+		"  return fields(object, key)\n" +
+		"end\n";
+
+	/// <summary><see cref="IndexMaker"/>, loaded, by its key in the registry.</summary>
+	private readonly int _indexMaker;
 
 	/// <summary>The classes defined so far, by name.</summary>
 	public IReadOnlyDictionary<string, CLuaClass> Classes => _classes;
@@ -186,7 +203,13 @@ public sealed unsafe class CLuaState : IDisposable
 		}
 		else
 		{
-			PushFunction(_state, call => Index(call, luaClass));
+			// A method is found in Lua, and only a field crosses into C#: a method is looked up on
+			// every call of it.
+			CLuaNative.lua_rawgeti(_state, CLuaNative.LUA_REGISTRYINDEX, _indexMaker);
+			PushString(_state, MethodsKeyPrefix + luaClass.Name);
+			CLuaNative.lua_rawget(_state, CLuaNative.LUA_REGISTRYINDEX);
+			PushFunction(_state, call => Field(call, luaClass));
+			Protected(2, 1);
 		}
 		CLuaNative.lua_rawset(_state, -3);
 
@@ -268,24 +291,17 @@ public sealed unsafe class CLuaState : IDisposable
 		throw new CLuaError("No such operator defined");
 	}
 
-	/// <summary>The <c>__index</c> of a class with fields: a method of that name, else the field's value.</summary>
-	private int Index(CLuaCall call, CLuaClass luaClass)
+	/// <summary>
+	/// The second half of the <c>__index</c> of a class with fields, asked where no method has the name
+	/// (<see cref="IndexMaker"/>): the field's value, else nil.
+	/// </summary>
+	private static int Field(CLuaCall call, CLuaClass luaClass)
 	{
-		IntPtr L = call.Pointer;
-		PushString(L, MethodsKeyPrefix + luaClass.Name);
-		CLuaNative.lua_rawget(L, CLuaNative.LUA_REGISTRYINDEX);
-		CLuaNative.lua_pushvalue(L, 2);
-		CLuaNative.lua_rawget(L, -2);
-		if ((ELuaType)CLuaNative.lua_type(L, -1) != ELuaType.Nil)
-		{
-			return 1;
-		}
-		CLuaNative.lua_settop(L, 2);
 		if (call.TypeOf(2) == ELuaType.String && luaClass.Fields.TryGetValue(call.String(2), out CLuaFunction? field))
 		{
 			return field(call);
 		}
-		CLuaNative.lua_pushnil(L);
+		CLuaNative.lua_pushnil(call.Pointer);
 		return 1;
 	}
 
@@ -409,7 +425,9 @@ public sealed unsafe class CLuaState : IDisposable
 
 	internal static void PushString(IntPtr L, string text)
 	{
-		byte[] bytes = Encoding.Latin1.GetBytes(text);
+		// One character a byte, so a short string is made on the stack and not on the heap.
+		Span<byte> bytes = text.Length <= 256 ? stackalloc byte[text.Length] : new byte[text.Length];
+		Encoding.Latin1.GetBytes(text, bytes);
 		fixed (byte* pointer = bytes)
 		{
 			CLuaNative.lua_pushlstring(L, pointer, (nuint)bytes.Length);

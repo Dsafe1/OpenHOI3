@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Sim.Ai;
@@ -44,5 +45,19 @@ public interface IAiScripts
 	/// </summary>
 	void RunTrade(CGameState state, CCountry country, bool propose)
 	{
+	}
+
+	/// <summary>
+	/// The hour's trading of several countries at once, as the original runs it on its worker threads:
+	/// each <see cref="RunTrade"/> in turn unless the scripts can run them side by side. Whichever way,
+	/// what they post reaches the outbox in the order of <paramref name="runs"/>, and they change nothing
+	/// else of the state. See <c>docs/mechanics/trade.md</c>, section 9.
+	/// </summary>
+	void RunTrades(CGameState state, IReadOnlyList<(CCountry Country, bool Propose)> runs)
+	{
+		foreach ((CCountry country, bool propose) in runs)
+		{
+			RunTrade(state, country, propose);
+		}
 	}
 }

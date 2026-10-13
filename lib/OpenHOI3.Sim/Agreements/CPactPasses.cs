@@ -107,10 +107,13 @@ public static class CPactPasses
 
 	/// <summary>
 	/// What the recipient's AI makes of the offer, by the kind's Lua function: 0 where the kind has none
-	/// or there is no Lua.
+	/// or there is no Lua. <paramref name="scripts"/> is the Lua asked, the game's own where none is given: a
+	/// script asking from one of the trading's workers is answered on that worker, as the original re-enters
+	/// the asking thread's state (<c>docs/mechanics/trade.md</c>, section 9).
 	/// </summary>
-	public static int Score(CGameState state, COffer offer)
+	public static int Score(CGameState state, COffer offer, Ai.IAiScripts? scripts = null)
 	{
+		scripts ??= state.AiScripts;
 		if (COfferRules.ScoreFunction(offer.Kind) is not { } function || state.Country(offer.Actor) is not { } actor
 			|| state.Country(offer.Recipient) is not { } recipient)
 		{
@@ -118,19 +121,19 @@ public static class CPactPasses
 		}
 		if (offer.Kind == EOfferKind.Trade)
 		{
-			return TradeScore(state, offer, actor, recipient);
+			return TradeScore(state, offer, actor, recipient, scripts);
 		}
 		if (offer.Kind == EOfferKind.Licence)
 		{
-			return state.AiScripts is { } licensing ? licensing.LicenceScore(state, offer) : 0;
+			return scripts?.LicenceScore(state, offer) ?? 0;
 		}
 		// A join is put to the script the other way round: the faction's owner first, the joiner second (factions.md,
 		// section 3). The recipient's AI answers either way.
 		if (offer.Kind == EOfferKind.Faction && offer.Value)
 		{
-			return state.AiScripts is { } joining ? joining.DiploScore(state, function, recipient, actor, recipient) : 0;
+			return scripts?.DiploScore(state, function, recipient, actor, recipient) ?? 0;
 		}
-		return state.AiScripts is { } scripts ? scripts.DiploScore(state, function, actor, recipient, recipient) : 0;
+		return scripts?.DiploScore(state, function, actor, recipient, recipient) ?? 0;
 	}
 
 	/// <summary>
@@ -138,7 +141,7 @@ public static class CPactPasses
 	/// cannot be made, or the recipient already trades a good of it on a route that is not running;
 	/// otherwise <c>DiploScore_OfferTrade</c>'s.
 	/// </summary>
-	private static int TradeScore(CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	private static int TradeScore(CGameState state, COffer offer, CCountry actor, CCountry recipient, Ai.IAiScripts? scripts)
 	{
 		if (actor == recipient)
 		{
@@ -150,7 +153,7 @@ public static class CPactPasses
 		{
 			return 0;
 		}
-		return state.AiScripts is { } scripts ? scripts.OfferTradeScore(state, offer) : 0;
+		return scripts?.OfferTradeScore(state, offer) ?? 0;
 	}
 
 	/// <summary>

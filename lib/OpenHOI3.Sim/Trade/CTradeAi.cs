@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using OpenHOI3.Sim.Countries;
+
 namespace OpenHOI3.Sim.Trade;
 
 /// <summary>
@@ -6,6 +9,12 @@ namespace OpenHOI3.Sim.Trade;
 /// plays and for a played one under automate-trade: each draws on the game's generator - one in six it
 /// proposes trades, and failing that one in ten it looks again at those it has. Nothing while a game is
 /// being made. See <c>docs/mechanics/trade.md</c>, sections 9 and 12.
+///
+/// The draws are made in the countries' order and the scripts are then run together, as the original
+/// runs them on its worker threads (<see cref="Ai.IAiScripts.RunTrades"/>). That changes nothing: a
+/// script only reads the state and posts to the outbox, which is filled in the countries' order. The
+/// one thing that changes the state on the way, a player's automate-trade, is run in its place between
+/// the countries before it and those after.
 /// </summary>
 public static class CTradeAi
 {
@@ -15,7 +24,8 @@ public static class CTradeAi
 		{
 			return;
 		}
-		foreach (Countries.CCountry country in state.Countries)
+		var runs = new List<(CCountry Country, bool Propose)>();
+		foreach (CCountry country in state.Countries)
 		{
 			if (state.Played.Contains(country.Tag))
 			{
@@ -23,20 +33,48 @@ public static class CTradeAi
 				{
 					continue;
 				}
+				RunScripts(state, runs);
 				CAutomatedTrades.Answer(state, country);
 			}
-			if (state.AiScripts is not { } scripts)
+			if (state.AiScripts is null)
 			{
 				continue;
 			}
 			if (state.Random.Next(6) == 0)
 			{
-				scripts.RunTrade(state, country, propose: true);
+				runs.Add((country, true));
 			}
 			else if (state.Random.Next(10) == 0)
 			{
-				scripts.RunTrade(state, country, propose: false);
+				runs.Add((country, false));
 			}
 		}
+		RunScripts(state, runs);
+	}
+
+	/// <summary>Runs the scripts of the countries gathered so far, and forgets them.</summary>
+	private static void RunScripts(CGameState state, List<(CCountry Country, bool Propose)> runs)
+	{
+		if (runs.Count == 0 || state.AiScripts is not { } scripts)
+		{
+			runs.Clear();
+			return;
+		}
+		// What the scripts read that is otherwise made on first use is made now, before they read it side by
+		// side: each is made again only where the state has moved on, which a script cannot do.
+		long started = System.Diagnostics.Stopwatch.GetTimestamp();
+		COwnedCounts.Of(state);
+		CCountryFacts.Of(state);
+		Supply.CSupplyNetworks.Refresh(state);
+		_ = state.NavalDistances;
+		_ = state.Positions;
+		long made = System.Diagnostics.Stopwatch.GetTimestamp();
+		scripts.RunTrades(state, runs);
+		if (state.Profile is { } profile)
+		{
+			profile.Add("  of which the caches made first", made - started);
+			profile.Add("  of which the scripts", System.Diagnostics.Stopwatch.GetTimestamp() - made);
+		}
+		runs.Clear();
 	}
 }

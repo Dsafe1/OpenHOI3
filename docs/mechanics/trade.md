@@ -340,9 +340,23 @@ months from the offer while the two are not at war**, and declines when it close
 
 ## Ours
 
-- **The countries trade in their order**, where the original's hourly trade runs on parallel workers;
-  and **after the hour's answers to offers** - which of the two the original's hour runs first was not
-  read.
+- **The countries trade side by side, as the original's do, but always the same way.** The original runs
+  the hour's trading on its worker threads, each with a Lua state of its own (`FINDINGS-tick.md`, the TBB
+  section; `FINDINGS-luahost.md`), taking countries as threads come free - so which state runs a country,
+  and in what order offers are posted, varies from run to run. Here (2026-10-13, `CTradeWorkers`): the
+  hour's draws are made first, in the countries' order; the scripts then run on **eight states of their own**
+  whatever the machine, a country always on the same one - its number modulo eight - and in the countries'
+  order there; what they post reaches the outbox, and what they report the log, **in the countries' order**.
+  A script only reads the state and posts, so this is the countries' order exactly: on a new game, ten days
+  of it make the same offers, answers and routes as one state running the countries in turn. **Each state
+  has a `math.random` of its own**, the C runtime's `rand()` seeded 1, as a new thread's is in the original;
+  the base game's trading draws on none, BlackICE's does. **A script's draws on the game's generator** -
+  `CAIIntel`'s, which the base game's trading does not reach - are made on a generator of the run's own,
+  seeded from the game's seed, the hour and the country, where the original's threads share the game's.
+  **A player's automate-trade is answered in its place**: the scripts of the countries before it run, then
+  it, then the rest, since answering changes the player's list of offers. And the trading comes **after the
+  hour's answers to offers** - which of the two the original's hour runs first was not read. On the
+  maintainer's machine it took an hour from 30 ms to 9 (`OpenHOI3.SaveCheck profile`).
 - **A cancelled route's convoy delivers nothing** on the day the convoys' look removes it; whether the
   original's convoy, carrying money and no longer a trade convoy, delivers once first was not read.
 - **A good is named in a trade's text by the key the diplomacy screen names it by** - `METAL_IRO` and

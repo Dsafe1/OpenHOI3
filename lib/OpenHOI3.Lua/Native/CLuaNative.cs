@@ -9,6 +9,11 @@ namespace OpenHOI3.Lua.Native;
 /// a Lua error is a <c>longjmp</c>, and one through a .NET frame is undefined - so nothing here that
 /// could raise is called outside a protected call, and a function written in C# reports its error to
 /// the trampoline instead (<see cref="ohoi_pushfunction"/>). See <c>docs/mechanics/lua.md</c>, section 2.
+///
+/// <b>A call marked <c>[SuppressGCTransition]</c> must allocate nothing in Lua</b>: an allocation may run
+/// the collector, the collector an object's <c>__gc</c>, and that is C# - which a call without the
+/// transition must never re-enter. Reading a value, a type or a raw slot and pushing a number, a boolean
+/// or nil allocate nothing; anything that makes a string, a table or a userdata, or sets a slot, may.
 /// </summary>
 internal static unsafe class CLuaNative
 {
@@ -41,12 +46,15 @@ internal static unsafe class CLuaNative
 	public static extern int lua_pcall(IntPtr L, int nargs, int nresults, int errfunc);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern int lua_gettop(IntPtr L);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern void lua_settop(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern void lua_pushvalue(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
@@ -56,39 +64,49 @@ internal static unsafe class CLuaNative
 	public static extern void lua_insert(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern int lua_type(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern int lua_rawequal(IntPtr L, int index1, int index2);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern double lua_tonumber(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern int lua_tointeger(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern int lua_toboolean(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
 	public static extern byte* lua_tolstring(IntPtr L, int index, nuint* length);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern IntPtr lua_touserdata(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern void lua_pushnil(IntPtr L);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern void lua_pushnumber(IntPtr L, double n);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern void lua_pushinteger(IntPtr L, int n);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
 	public static extern void lua_pushlstring(IntPtr L, byte* s, nuint length);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern void lua_pushboolean(IntPtr L, int b);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
@@ -98,13 +116,16 @@ internal static unsafe class CLuaNative
 	public static extern void lua_pushcclosure(IntPtr L, IntPtr fn, int n);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern void lua_rawget(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern void lua_rawgeti(IntPtr L, int index, int n);
 
 	/// <summary>What a table is, as an address; the same table always answers the same.</summary>
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern IntPtr lua_topointer(IntPtr L, int index);
 
 	/// <summary>Keeps the value on top in the table at <paramref name="t"/>, popping it, and answers its key.</summary>
@@ -124,6 +145,7 @@ internal static unsafe class CLuaNative
 	public static extern IntPtr lua_newuserdata(IntPtr L, nuint size);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	[SuppressGCTransition]
 	public static extern int lua_getmetatable(IntPtr L, int index);
 
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]

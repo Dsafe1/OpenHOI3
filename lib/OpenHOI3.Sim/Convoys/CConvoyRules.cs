@@ -145,7 +145,10 @@ public static class CConvoyRules
 
 	/// <summary>
 	/// Whether there is water all the way between two provinces for a country: each a
-	/// harbour or sea, and a way by sea from one to the other.
+	/// harbour or sea, and a way by sea from one to the other. A distance is the same both
+	/// ways, as the original keeps one triangle of them, so the answer is too; the distances
+	/// are measured from <paramref name="a"/>'s end, so a caller asking of one place many
+	/// times puts it first.
 	/// </summary>
 	public static bool IsSeaBetween(CGameState state, CProvince a, CProvince b)
 	{
@@ -174,7 +177,7 @@ public static class CConvoyRules
 		foreach (int port in area.Ports)
 		{
 			CProvince water = state.Province(state.Province(port).PortSea);
-			if (!IsSeaBetween(state, water, targetWater))
+			if (!IsSeaBetween(state, targetWater, water))
 			{
 				continue;
 			}
@@ -245,7 +248,7 @@ public static class CConvoyRules
 			{
 				continue;
 			}
-			if (!CMovementRules.MayEnter(state, owner, province) || !IsSeaBetween(state, province, start))
+			if (!CMovementRules.MayEnter(state, owner, province) || !IsSeaBetween(state, start, province))
 			{
 				return true;
 			}

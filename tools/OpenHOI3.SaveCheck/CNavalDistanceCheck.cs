@@ -109,10 +109,26 @@ public static class CNavalDistanceCheck
 		{
 			Console.WriteLine("  " + example);
 		}
+
+		// The original keeps one triangle, so a distance is the same both ways there; ours are measured
+		// from each end, and a convoy's way is checked from its harbour's end alone (CConvoyRules).
+		long backwards = 0;
+		for (int from = 0; from < count; from++)
+		{
+			ushort[] row = distances.Row(from);
+			for (int to = from + 1; to < count; to++)
+			{
+				if (distances.Row(to)[from] != row[to])
+				{
+					backwards++;
+				}
+			}
+		}
+		Console.WriteLine($"both ways: {backwards} distances differ from the way back");
 		foreach (string warning in warnings)
 		{
 			Console.WriteLine("warning: " + warning);
 		}
-		return same == compared ? 0 : 1;
+		return same == compared && backwards == 0 ? 0 : 1;
 	}
 }

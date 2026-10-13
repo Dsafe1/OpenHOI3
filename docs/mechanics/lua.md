@@ -48,7 +48,10 @@ As the original makes it (`FINDINGS-luahost.md`, section 1):
    naming the chunk by its bare path;
 4. **`script/autoexec.lua` run**, from the highest layer that has it.
 
-`math.randomseed` is never called. Every failure - a file that does not load, a Lua error, a call that
+`math.randomseed` is never called. **The hour's trading has eight states more**, made the same way the
+first time it runs, which the countries' trading runs on side by side as the original's runs on its
+threads (`trade.md`, section 9 and *Ours*); each has a `math.random` of its own, the C runtime's `rand()`
+seeded 1 as a new thread's is, where the game's own state keeps the library's. Every failure - a file that does not load, a Lua error, a call that
 fails - is reported as `LUA Error: <message>` and nothing else happens, as the original only logs it.
 A failure in `autoexec.lua` ends it there: what it had already required stays, what came after is not
 loaded.
@@ -298,6 +301,13 @@ whatever the odds", from a signed draw, was corrected by this reading.
   everywhere, where the original keeps them and rebuilds them once a day. It costs about a third of
   a millisecond a call.
 - **Built for 64-bit Windows only**, with the Visual Studio C++ tools.
+- **The trading's states always number eight and take a country by its number**, where the original's are
+  one a thread and take countries as they come; so a game runs the same on every machine
+  (`trade.md`, *Ours*). A script that keeps something in a global between calls keeps it in its
+  country's state.
+- **A class with fields finds a method in Lua** and asks C# only for a field, and a call that reads a value
+  or a type crosses into native code without the runtime's full transition - both for speed, and neither
+  seen by a script.
 
 ## Not established
 

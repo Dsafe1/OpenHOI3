@@ -162,6 +162,12 @@ if (args.Length > 0 && args[0] == "faction")
 	return CFactionTrial.Run(args);
 }
 
+// Where the time of an hour goes.
+if (args.Length > 0 && args[0] == "profile")
+{
+	return CProfileTrial.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

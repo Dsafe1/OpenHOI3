@@ -54,7 +54,7 @@ public static class CLicenceActionClass
 			})
 			.Method("IsValid", call => call.Return(COfferRules.IsValid(api.State, Of(call).Offer)))
 			.Method("IsSelectable", call => call.Return(COfferRules.IsSelectable(api.State, Of(call).Offer)))
-			.Method("GetAIAcceptance", call => call.Return(CPactPasses.Score(api.State, Of(call).Offer)))
+			.Method("GetAIAcceptance", call => call.Return(CPactPasses.Score(api.State, Of(call).Offer, api.Scripts)))
 			.Method("GetActor", call => call.Return(api.Tag(Of(call).Actor)))
 			.Method("GetRecipient", call => call.Return(api.Tag(Of(call).Recipient)))
 			.Method("GetValue", call => call.Return(Of(call).Value));

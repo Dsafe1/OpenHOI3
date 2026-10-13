@@ -105,6 +105,9 @@ public sealed class CGameState
 	/// </summary>
 	public IAiScripts? AiScripts { get; set; }
 
+	/// <summary>Where the tick writes how long each of its steps took, or null, as it is but for tools.</summary>
+	public CTickProfile? Profile { get; set; }
+
 	/// <summary>What <paramref name="holder"/> holds towards <paramref name="other"/>.</summary>
 	public static CDiplomacyStatus Status(CCountry holder, CCountry other)
 	{
@@ -429,6 +432,9 @@ public sealed class CGameState
 
 	/// <summary>What the map says of each country this hour, kept by <see cref="Countries.CCountryFacts"/>.</summary>
 	public Countries.CCountryFacts? CountryFacts { get; set; }
+
+	/// <summary>How many provinces each country owns, kept by <see cref="Countries.COwnedCounts"/>.</summary>
+	public Countries.COwnedCounts? OwnedCounts { get; set; }
 
 	/// <summary>
 	/// What every roll of this game starts from. An hour's rolls depend on it, on the

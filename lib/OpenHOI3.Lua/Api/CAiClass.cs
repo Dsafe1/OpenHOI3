@@ -79,7 +79,7 @@ public static class CAiClass
 			{
 				call.Object<CLuaAi>(1, AiName);
 				CLuaTradeAction action = call.Object<CLuaTradeAction>(2, "CTradeAction");
-				api.State.Outbox.Add(new Sim.Commands.COfferCommand(action.Offer));
+				api.Post(new Sim.Commands.COfferCommand(action.Offer));
 				return 0;
 			})
 			.Constant("_DIPLOMACY_", 0)

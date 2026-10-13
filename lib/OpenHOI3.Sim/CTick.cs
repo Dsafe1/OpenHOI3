@@ -1,3 +1,6 @@
+using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Diplomacy;
@@ -59,26 +62,26 @@ public static class CTick
 		// Each country's units look at their orders, look for an enemy and move, one
 		// after another; only then is every unit's own hour run, which is where its
 		// organisation comes back.
-		CMovement.RunHourly(state);
+		Step(state, CMovement.RunHourly);
 		// The units go before their countries, so an hour's organisation is worked out
 		// with the officer ratio the hour before left.
-		COrganisation.RunHourly(state);
+		Step(state, COrganisation.RunHourly);
 		// Every country's own hour: its lend-lease looked at (docs/mechanics/aid.md, section 3).
-		Aid.CLendLease.RunHourly(state);
-		Countries.CActingCapital.RunHourly(state);                 // ours: where in a country's hour beside lend-lease was not compared
-		COfficers.Update(state);
+		Step(state, Aid.CLendLease.RunHourly);
+		Step(state, Countries.CActingCapital.RunHourly);                 // ours: where in a country's hour beside lend-lease was not compared
+		Step(state, COfficers.Update);
 		// Each province's hour: a faction's progress is the points its members hold (docs/mechanics/factions.md, section 7).
-		Wars.CFactionProgress.RunHourly(state);
+		Step(state, Wars.CFactionProgress.RunHourly);
 		// The battles are fought last, each in turn.
-		CCombats.RunHourly(state);
+		Step(state, CCombats.RunHourly);
 		// An event left unanswered past its time answers itself (ours: the original's window counts
 		// each frame, docs/mechanics/events.md section 7).
-		CEventPass.RunHourly(state);
+		Step(state, CEventPass.RunHourly);
 		// Each AI country answers the offers made to it (docs/mechanics/agreements.md, section 2).
-		Agreements.CPactPasses.AnswerOffers(state);
+		Step(state, Agreements.CPactPasses.AnswerOffers);
 		// Then each AI country's trading, by the install's Lua (docs/mechanics/trade.md, section 9; ours:
 		// which of the two runs first in the original's hour was not read).
-		Trade.CTradeAi.RunHourly(state);
+		Step(state, Trade.CTradeAi.RunHourly);
 	}
 
 	/// <summary>
@@ -92,50 +95,50 @@ public static class CTick
 		// worked out, its units lose the men who go home and draw their supplies, what its
 		// provinces produced reaches the stockpile, its IC is worked out, and then its six
 		// shares of IC are run and its four of leadership after them.
-		CProvinceModifiers.Rebuild(state);
-		CStrategicResources.Update(state);                  // the first thing the original's day does
+		Step(state, CProvinceModifiers.Rebuild);
+		Step(state, CStrategicResources.Update);                  // the first thing the original's day does
 		// Supplies go out along the network before any country's own day, so a unit
 		// draws on what reached its province this morning.
-		CSupplyPass.RunDaily(state);
-		CCountryModifiers.Rebuild(state);
-		CThreat.UpdateMostThreatening(state);               // before any country's day, as its neighbours are
-		Wars.CSurrender.CountVictoryPoints(state);          // and with them its cores' victory points
-		Countries.CActingCapital.EnsureCapitals(state);     // at the head of a country's day: a capital it owns,
-		CNeutrality.RunDaily(state);                        // then neutrality
-		Wars.CExile.SwapDaily(state);                       // early in it, an exile made a puppet where it is held
-		Agreements.CPactPasses.RunDaily(state);            // its pacts that have run their course, and influence's upkeep
-		Aid.CTechnologySharing.CheckDaily(state);           // ours: where in the country's day was not placed exactly
-		CAlignment.RunDaily(state);                         // later in it: a step every interval and a day
-		CManpower.RunDaily(state);
-		CLeaders.ActivateDaily(state);                      // just after its manpower grows
-		CLeadership.Update(state);
-		CConvoyDay.Sail(state);                             // before a country's units draw
-		CMissions.RunDaily(state);                          // a unit's day begins with its order's
-		CDigIn.RunDaily(state);                             // and then with this
-		CUnitUpkeep.RunDaily(state);
-		CResources.UpdateHomeProduction(state);
-		CStockpile.AddHomeProduction(state);
-		CResources.GatherCutOff(state);                     // what the sea cuts off waits in a harbour
-		Aid.CDebts.RepayDaily(state);                       // the end of a country's production
-		Trade.CTradeRoutes.RunDaily(state);                 // then each country's trade, before its IC
-		CIndustrialCapacity.Update(state);
-		Wars.CExile.HandOverDaily(state);                   // an exile's supplies to its host, before the shares
-		CProduction.RunDaily(state);
-		CLeadership.RunDaily(state);
-		Wars.CSurrender.RunDaily(state);                    // late in a country's day: the surrender,
-		Wars.CExile.ReturnDaily(state);                     // and an exile leading its faction coming home
-		CConvoyDay.Maintain(state);                         // late in a country's day
-		CProvinceRepair.RunDaily(state);                    // each province's own day, after every country's:
-		Wars.COccupiedLand.ReturnDaily(state);              // what was bombed comes back, land at peace goes back
-		CStockpile.HoldWithinBounds(state);                 // to its owner, and the pool is held
+		Step(state, CSupplyPass.RunDaily);
+		Step(state, CCountryModifiers.Rebuild);
+		Step(state, CThreat.UpdateMostThreatening);               // before any country's day, as its neighbours are
+		Step(state, Wars.CSurrender.CountVictoryPoints);          // and with them its cores' victory points
+		Step(state, Countries.CActingCapital.EnsureCapitals);     // at the head of a country's day: a capital it owns,
+		Step(state, CNeutrality.RunDaily);                        // then neutrality
+		Step(state, Wars.CExile.SwapDaily);                       // early in it, an exile made a puppet where it is held
+		Step(state, Agreements.CPactPasses.RunDaily);            // its pacts that have run their course, and influence's upkeep
+		Step(state, Aid.CTechnologySharing.CheckDaily);           // ours: where in the country's day was not placed exactly
+		Step(state, CAlignment.RunDaily);                         // later in it: a step every interval and a day
+		Step(state, CManpower.RunDaily);
+		Step(state, CLeaders.ActivateDaily);                      // just after its manpower grows
+		Step(state, CLeadership.Update);
+		Step(state, CConvoyDay.Sail);                             // before a country's units draw
+		Step(state, CMissions.RunDaily);                          // a unit's day begins with its order's
+		Step(state, CDigIn.RunDaily);                             // and then with this
+		Step(state, CUnitUpkeep.RunDaily);
+		Step(state, CResources.UpdateHomeProduction);
+		Step(state, CStockpile.AddHomeProduction);
+		Step(state, CResources.GatherCutOff);                     // what the sea cuts off waits in a harbour
+		Step(state, Aid.CDebts.RepayDaily);                       // the end of a country's production
+		Step(state, Trade.CTradeRoutes.RunDaily);                 // then each country's trade, before its IC
+		Step(state, CIndustrialCapacity.Update);
+		Step(state, Wars.CExile.HandOverDaily);                   // an exile's supplies to its host, before the shares
+		Step(state, CProduction.RunDaily);
+		Step(state, CLeadership.RunDaily);
+		Step(state, Wars.CSurrender.RunDaily);                    // late in a country's day: the surrender,
+		Step(state, Wars.CExile.ReturnDaily);                     // and an exile leading its faction coming home
+		Step(state, CConvoyDay.Maintain);                         // late in a country's day
+		Step(state, CProvinceRepair.RunDaily);                    // each province's own day, after every country's:
+		Step(state, Wars.COccupiedLand.ReturnDaily);              // what was bombed comes back, land at peace goes back
+		Step(state, CStockpile.HoldWithinBounds);                 // to its owner, and the pool is held
 		// Events, after the provinces' day; none while a game is still being made (ours: whether the
 		// original asks them in a new game's first days was not read).
 		if (!state.IsBeingMade)
 		{
-			CEventPass.RunDaily(state);
+			Step(state, s => CEventPass.RunDaily(s), "CEventPass.RunDaily");
 		}
-		CNavalIntelligence.Refresh(state);                  // late in the original's day
-		Wars.CVictoryConditions.RunDaily(state);            // and last, the victory conditions (factions.md, section 8)
+		Step(state, CNavalIntelligence.Refresh);                  // late in the original's day
+		Step(state, Wars.CVictoryConditions.RunDaily);            // and last, the victory conditions (factions.md, section 8)
 	}
 
 	/// <summary>
@@ -194,17 +197,31 @@ public static class CTick
 		// original takes nothing off an ability until a game is under way.
 		if (!state.IsBeingMade)
 		{
-			CResearch.DecayMonthly(state);
+			Step(state, CResearch.DecayMonthly);
 		}
 		// The relations' drift is not held back: the month before the first hour is what makes
 		// a new game's relations the same both ways (docs/mechanics/diplomacy.md, section 2).
-		CRelations.RunMonth(state);
-		CManpower.UpdateMost(state);
-		CEventPass.RebuildCandidates(state);
+		Step(state, CRelations.RunMonth);
+		Step(state, CManpower.UpdateMost);
+		Step(state, CEventPass.RebuildCandidates);
 	}
 
 	/// <summary>Not established for the original.</summary>
 	private static void RunYearlyPass(CGameState state)
 	{
+	}
+
+	/// <summary>Runs one step of a pass, timed where a tool has asked for a profile.</summary>
+	private static void Step(CGameState state, Action<CGameState> step,
+		[CallerArgumentExpression(nameof(step))] string name = "")
+	{
+		if (state.Profile is null)
+		{
+			step(state);
+			return;
+		}
+		long start = Stopwatch.GetTimestamp();
+		step(state);
+		state.Profile.Add(name, Stopwatch.GetTimestamp() - start);
 	}
 }

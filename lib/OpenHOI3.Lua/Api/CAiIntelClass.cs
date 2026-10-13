@@ -103,7 +103,7 @@ public static class CAiIntelClass
 		long hidden = 0;
 		foreach (CUnit unit in them.UnitsInOrder())
 		{
-			int draw = state.Random.Next();
+			int draw = api.Random.Next();
 			CProvince province = state.Province(unit.Location);
 			long strength = Strength(unit);
 			long under = (province.IsSea ? sea : land) + chance;
@@ -118,7 +118,7 @@ public static class CAiIntelClass
 		}
 		int mult = Thousandths((float)((double)intel.Uncertainty + 1.0));
 		long scale = mult * hidden / 1000;
-		long guessed = Math.Max(Perturb(state, hidden, scale, intel.Uncertainty), 0);
+		long guessed = Math.Max(Perturb(api.Random, hidden, scale, intel.Uncertainty), 0);
 		return (float)((seen + guessed) / 1000.0);
 	}
 
@@ -126,9 +126,9 @@ public static class CAiIntelClass
 	/// The original's <c>RandomPerturbAtLeast</c> without its floor: the base moved by a draw between half below and
 	/// half above, times the spread, times the scale.
 	/// </summary>
-	private static long Perturb(CGameState state, long value, long scale, float spread)
+	private static long Perturb(CRandom random, long value, long scale, float spread)
 	{
-		float u = (float)((state.Random.Next() & 0x7FFFFFFF) * Math.Pow(2, -31));
+		float u = (float)((random.Next() & 0x7FFFFFFF) * Math.Pow(2, -31));
 		float centred = (float)(u - 0.5);
 		float spreaded = (float)(centred * spread);
 		int k = Thousandths(spreaded);

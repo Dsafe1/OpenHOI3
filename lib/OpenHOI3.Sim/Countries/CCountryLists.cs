@@ -244,18 +244,6 @@ public static class CCountryLists
 	/// <summary>How many provinces the country owns.</summary>
 	public static int OwnedCount(CGameState state, CCountryTag? country)
 	{
-		if (country is null)
-		{
-			return 0;
-		}
-		int count = 0;
-		foreach (CProvince province in state.Provinces)
-		{
-			if (province.Owner == country)
-			{
-				count++;
-			}
-		}
-		return count;
+		return country is { } tag ? COwnedCounts.Of(state).Count(tag) : 0;
 	}
 }
