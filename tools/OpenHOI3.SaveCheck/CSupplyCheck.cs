@@ -81,6 +81,7 @@ public static class CSupplyCheck
 				&& node.GetInt("capital") > 0)
 			{
 				country.Capital = node.GetInt("capital");
+				country.ActingCapital = node.GetInt("acting_capital") is > 0 and var acting ? acting : country.Capital;
 			}
 		}
 

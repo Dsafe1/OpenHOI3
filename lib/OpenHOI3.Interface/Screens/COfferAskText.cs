@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Trade;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Interface.Screens;
 
@@ -32,6 +34,7 @@ public static class COfferAskText
 		EOfferKind.Trade => 3,
 		EOfferKind.AskMilitaryAccess => 4,
 		EOfferKind.OfferMilitaryAccess => 5,
+		EOfferKind.CallAlly => 6,
 		EOfferKind.NonAggressionPact => 7,
 		EOfferKind.Licence => 10,
 		EOfferKind.Debt => 11,
@@ -116,6 +119,10 @@ public static class COfferAskText
 				text += " " + localise("IS_BOUGHT_WITH_DEBT");
 			}
 		}
+		else if (offer.Kind == EOfferKind.CallAlly)
+		{
+			text = CallToArms(localise, state, offer);
+		}
 		else if (offer.Licence is { } licence)
 		{
 			// Ours: the variables CAskBuyLicence fills were not read; these are what the text asks for.
@@ -157,8 +164,73 @@ public static class COfferAskText
 			EOfferKind.NonAggressionPact => inMonths && !allied && !war,
 			EOfferKind.AskMilitaryAccess => inMonths,
 			EOfferKind.Trade => inMonths && !war,
+			EOfferKind.CallAlly => CCallsToArms.StaysOpen(state, offer),
 			_ => inMonths && COfferRules.IsValid(state, offer),
 		};
+	}
+
+	/// <summary>
+	/// A call to arms' description, the original's <c>CAskJoinWar</c> (<c>war.md</c>, section 6): <c>CALLREQDESC</c>
+	/// with the side the caller fights; one line by what ties the player to the caller; then the enemy's allies,
+	/// and, where the caller attacks, its guarantors and an overlord it is not allied to. Nothing between them.
+	/// </summary>
+	private static string CallToArms(Func<string, string> localise, CGameState state, COffer offer)
+	{
+		CWar? war = offer.Versus is { } versus ? CWarSides.Between(state, offer.Actor, versus) : null;
+		bool defends = war is not null && war.Defenders.Contains(offer.Actor);
+		bool attacks = !defends;
+		string text = localise("CALLREQDESC");
+		var values = new List<(string, string)> { ("COUNTRY", Name(state, offer.Actor)) };
+		if (war is not null && (war.Attackers.Contains(offer.Actor) || defends))
+		{
+			List<CCountryTag> fought = defends ? war.Attackers : war.Defenders;
+			values.Add(("LIST", string.Join(", ", fought.ConvertAll(t => Name(state, t)))));
+		}
+		text = CTextTemplate.Fill(text, values.ToArray());
+		if (attacks)
+		{
+			text += localise("WCRD_ATT");
+		}
+		else if (CCountryLists.HasAlliance(state, offer.Actor, offer.Recipient))
+		{
+			text += localise("WCRD_DEF");
+		}
+		else if (state.Country(offer.Actor)?.Overlord == offer.Recipient)
+		{
+			text += localise("WCRD_VAS");
+		}
+		else if (state.Guarantees.Exists(g => g.Guarantor == offer.Recipient && g.Guaranteed == offer.Actor))
+		{
+			text += localise("WCRD_GUA");
+		}
+		else
+		{
+			text += CTextTemplate.Fill(localise("WCRD_WARNING"), ("WHO", offer.Versus is { } who ? Name(state, who) : ""));
+		}
+		if (state.Country(offer.Versus) is not { } enemy)
+		{
+			return text;
+		}
+		List<CCountry> allies = CCountryLists.Allies(state, enemy);
+		if (allies.Count > 0)
+		{
+			text += CTextTemplate.Fill(localise("CW_WARNALLIES2"), ("ENEMY", enemy.Name),
+				("COUNTRY", string.Join(", ", allies.ConvertAll(a => a.Name))));
+		}
+		if (attacks)
+		{
+			var guarantors = state.Guarantees.FindAll(g => g.Guaranteed == enemy.Tag).ConvertAll(g => Name(state, g.Guarantor));
+			if (guarantors.Count > 0)
+			{
+				text += CTextTemplate.Fill(localise("CW_WARNGUARANTEED2"), ("ENEMY", enemy.Name), ("COUNTRY", string.Join(", ", guarantors)));
+			}
+			if (enemy.Overlord is { } overlord && !CCountryLists.HasAlliance(state, enemy.Tag, overlord))
+			{
+				text += CTextTemplate.Fill(localise("CW_WARNOVERLORD2"), ("ENEMY", enemy.Name),
+					("COUNTRY", Name(state, overlord) + " (@" + overlord.Value + ")"));
+			}
+		}
+		return text;
 	}
 
 	private static string Name(CGameState state, CCountryTag tag) => state.Country(tag)?.Name ?? tag.Value;

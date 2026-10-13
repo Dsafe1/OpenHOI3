@@ -30,9 +30,9 @@ public static class CUnansweredConditions
 		}
 
 		// Diplomacy.
-		Add(EScriptGap.Unbuilt, "truce_with", "undeclared_war_with", "casus_belli", "has_cb", "has_wargoal");
+		Add(EScriptGap.Unbuilt, "undeclared_war_with");
 		// The government and the parties.
-		Add(EScriptGap.Unbuilt, "government", "government_in_exile", "has_removable_minister", "minister_alive");
+		Add(EScriptGap.Unbuilt, "government", "has_removable_minister", "minister_alive");
 		Add(EScriptGap.Unbuilt, "ideology", "ideology_group", "organisation", "popularity");
 		// Revolts and espionage.
 		Add(EScriptGap.Unbuilt, "num_of_revolts", "revolt_percentage", "revolt_risk", "pure_revolt_risk", "nationalism");
@@ -40,7 +40,7 @@ public static class CUnansweredConditions
 		// The AI's missions.
 		Add(EScriptGap.Unbuilt, "active_mission", "last_mission", "is_mission_country", "is_mission_province");
 		// A country's war record and the last battles.
-		Add(EScriptGap.Unbuilt, "war_exhaustion", "surrender_progress", "lost_ic", "lost_national", "faction_progress",
+		Add(EScriptGap.Unbuilt, "war_exhaustion", "lost_ic", "lost_national", "faction_progress",
 			"strat_allies_impact", "strat_bomb_impact", "strat_convoy_impact",
 			"total_sea_battles", "total_offensives", "total_defensives",
 			"total_we_bomb", "total_sunk_by_us", "total_of_ours_sunk");

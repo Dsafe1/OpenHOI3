@@ -49,6 +49,18 @@ public static class CPactPasses
 					{
 						kept.Add(offer);
 					}
+					else if (offer.Kind == EOfferKind.CallAlly && offer.Stage == EOfferStage.Proposed)
+					{
+						// The screen's call is accepted for him unasked; one that asks, only while still valid (war.md, section 6).
+						if (!offer.Value)
+						{
+							state.Outbox.Add(new COfferCommand(offer with { Stage = EOfferStage.Accepted }));
+						}
+						else if (Wars.CCallsToArms.MayAsk(state, offer))
+						{
+							state.RaiseOfferAsked(offer);
+						}
+					}
 					else if (COfferRules.AsksPlayer(offer))
 					{
 						state.RaiseOfferAsked(offer);

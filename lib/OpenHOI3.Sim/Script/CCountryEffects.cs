@@ -4,6 +4,7 @@ using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Sim.Script;
 
@@ -54,7 +55,9 @@ public static class CCountryEffects
 				{
 					// Both capitals at once, and no test of whose the province is.
 					int id = (int)CConditions.WholeOf(value);
+					// Both capitals, as the original's effect sets them.
 					country.Capital = id >= state.Provinces.Count ? 0 : id;
+					country.ActingCapital = country.Capital;
 				}
 				return true;
 			case "money":
@@ -160,7 +163,7 @@ public static class CCountryEffects
 			pool[goods] += value;
 			return;
 		}
-		CGoodsPool stockpile = state.Province(country?.Capital ?? 0).Pool;
+		CGoodsPool stockpile = country is null ? state.Province(0).Pool : state.Stockpile(country) ?? state.Province(0).Pool;
 		stockpile[goods] += value;
 	}
 
@@ -188,15 +191,12 @@ public static class CCountryEffects
 		{
 			return;
 		}
-		if (!war.Attackers.Remove(leaving))
-		{
-			war.Defenders.Remove(leaving);
-		}
+		CWarSides.Leave(state, war, leaving);
 		foreach (CCountry vassal in state.Countries)
 		{
-			if (vassal.Overlord == leaving && !war.Attackers.Remove(vassal.Tag))
+			if (vassal.Overlord == leaving)
 			{
-				war.Defenders.Remove(vassal.Tag);
+				CWarSides.Leave(state, war, vassal.Tag);
 			}
 		}
 	}

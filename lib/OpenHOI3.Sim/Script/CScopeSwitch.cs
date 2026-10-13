@@ -53,7 +53,7 @@ public static class CScopeSwitch
 				return owners.Count == 0 ? null : scope.With(owners[scope.Draw(owners.Count)], scope.Province);
 			}
 			case "capital_scope":
-				return scope.With(null, state.Country(scope.Country)?.Capital ?? 0);
+				return scope.With(null, state.Country(scope.Country)?.ActingCapital ?? 0);
 			case "overlord":
 				return scope.With(state.Country(scope.Country)?.Overlord, 0);
 			case "sea_zone":

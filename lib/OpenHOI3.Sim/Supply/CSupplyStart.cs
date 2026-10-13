@@ -101,7 +101,7 @@ public static class CSupplyStart
 				}
 				// A stockpile that is its own depot is put back; one that draws on
 				// another's depot is left as the pass and the units made it.
-				if (country.Capital != 0 && day.Network.DepotOf(country.Capital) == country.Capital
+				if (country.ActingCapital != 0 && day.Network.DepotOf(country.ActingCapital) == country.ActingCapital
 					&& state.Stockpile(country) is { } stockpile)
 				{
 					stockpile.CopyFrom(kept[i]);

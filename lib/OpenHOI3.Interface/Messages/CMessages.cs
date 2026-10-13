@@ -74,7 +74,8 @@ public static class CMessages
 	public static CMessage? Pact(Func<string, string> localise, CMessageTypes types, CGameState state, CCountryTag? player,
 		CPactMessage pact)
 	{
-		string name = player == pact.Actor ? pact.We : player == pact.Recipient ? pact.They : pact.Other;
+		string name = pact.Told is { } told ? (player == told ? pact.We : "")
+			: player == pact.Actor ? pact.We : player == pact.Recipient ? pact.They : pact.Other;
 		if (name.Length == 0)
 		{
 			return null;
@@ -107,7 +108,7 @@ public static class CMessages
 		// The same name again, which WEDETRA's text asks for.
 		message.Variables.Add(("ACTORS", actorName));
 		message.Variables.Add(("RECIPIENT", recipientName));
-		message.Variables.Add(("MESSENGER", "MESSAGE_HEAD_CHAN"));
+		message.Variables.Add(("MESSENGER", pact.Messenger));
 		if (pact.Deal is { } deal && TradeSides(name, deal, player) is ({ } gives, { } gets))
 		{
 			message.Variables.Add(("ACT_TRADE", CTradeWindowText.Goods(localise, gives)));
@@ -130,7 +131,8 @@ public static class CMessages
 				message.Variables.Add((key, CLicenceText.ModelName(localise, state, seller, type) ?? localise(type.Key)));
 				continue;
 			}
-			message.Variables.Add((key, value));
+			// A war goal's type and a government are written as their keys (war.md, sections 13 and 14).
+			message.Variables.Add((key, key is "WARGOAL" or "GOVERNMENT" ? localise(value) : value));
 		}
 		return message;
 	}

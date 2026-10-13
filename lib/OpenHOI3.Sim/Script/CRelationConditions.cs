@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
@@ -30,6 +31,24 @@ public static class CRelationConditions
 				return true;
 			case "war_with":
 				answer = IsEnemy(state, scope.Country, CConditions.TagByOwner(state, trigger, scope));
+				return true;
+			case "truce_with":
+				answer = country is not null && state.Country(CConditions.TagByOwner(state, trigger, scope)) is { } trucer
+					&& Wars.CTruces.Has(state, country, trucer);
+				return true;
+			case "casus_belli":
+				// Some type it may use on the other, THIS read straight off the root (war.md, section 2).
+				answer = country is not null && state.Country(CConditions.TagDirect(trigger, scope)) is { } on
+					&& Wars.CCasusBellis.HasUsable(state, country, on);
+				return true;
+			case "has_wargoal":
+				// At war with the other and holding a goal against it in that war, whatever its type.
+				answer = country is not null && CConditions.TagDirect(trigger, scope) is { } against
+					&& Wars.CWarSides.Between(state, country.Tag, against) is { } fought
+					&& fought.GoalsOf(country.Tag).Any(g => g.Recipient == against);
+				return true;
+			case "has_cb":
+				answer = country is not null && HasCb(state, trigger, scope, country);
 				return true;
 			case "enemy_ic_ratio":
 				answer = EnemyIcRatio(state, scope) is { } ratio && ratio <= value.Amount.Raw;
@@ -107,6 +126,40 @@ public static class CRelationConditions
 				answer = false;
 				return false;
 		}
+	}
+
+	/// <summary>
+	/// <c>has_cb = { type = T actor = A }</c>: whether a country at war with the scope's holds a goal of type T
+	/// against it - the actor's war first, then every enemy owning a province, so the actor restricts nothing.
+	/// An unknown type is false (<c>war.md</c>, section 9).
+	/// </summary>
+	private static bool HasCb(CGameState state, CTrigger trigger, CEventScope scope, CCountry us)
+	{
+		Wars.CCasusBelliType type = Wars.CCasusBellis.Find(state, CConditions.Field(trigger, "type")?.Text);
+		if (!type.IsReal)
+		{
+			return false;
+		}
+		bool Holds(CCountryTag? holder)
+		{
+			return holder is { } enemy && Wars.CWarSides.Between(state, us.Tag, enemy) is { } war
+				&& war.GoalsOf(enemy).Any(g => g.Recipient == us.Tag && g.Type == type);
+		}
+		CScriptArgument? actor = CConditions.Field(trigger, "actor");
+		CCountryTag? named = actor is null ? null
+			: actor.IsThis ? scope.Root.Country : actor.IsFrom ? scope.FromCountry : CEventScope.Known(actor.Tag);
+		if (Holds(named))
+		{
+			return true;
+		}
+		foreach (CCountry enemy in CCountryLists.Enemies(state, us))
+		{
+			if (CCountryFacts.Of(state).OwnedCount(enemy.Tag) > 0 && Holds(enemy.Tag))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/// <summary>

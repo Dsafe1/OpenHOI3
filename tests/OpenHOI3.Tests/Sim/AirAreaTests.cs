@@ -8,6 +8,7 @@ using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Tests.Sim;
 

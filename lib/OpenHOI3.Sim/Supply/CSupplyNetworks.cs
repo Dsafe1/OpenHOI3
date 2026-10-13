@@ -156,7 +156,7 @@ public static class CSupplyNetworks
 
 		private CSupplyArea? CapitalArea(CCountryTag? tag)
 		{
-			return _state.Country(tag) is { Capital: > 0 } country ? _network.AreaOf(country.Capital) : null;
+			return _state.Country(tag) is { ActingCapital: > 0 } country ? _network.AreaOf(country.ActingCapital) : null;
 		}
 
 		public void MakeAreas()
@@ -423,7 +423,7 @@ public static class CSupplyNetworks
 					}
 					worth /= ring.Count + 1;
 
-					if (_state.Country(province.Controller) is { } holder && holder.Capital == id)
+					if (_state.Country(province.Controller) is { } holder && holder.ActingCapital == id)
 					{
 						worth += CapitalWorth;
 						if (holder.Overlord is null)
@@ -504,9 +504,9 @@ public static class CSupplyNetworks
 						}
 					}
 				}
-				if (origin.Capital > 0 && ReferenceEquals(area, _network.AreaOf(origin.Capital)))
+				if (origin.ActingCapital > 0 && ReferenceEquals(area, _network.AreaOf(origin.ActingCapital)))
 				{
-					return origin.Capital;
+					return origin.ActingCapital;
 				}
 
 				if (ReferenceEquals(origin, self) && area.Ports.Count > 0 && BestBuilt(area) is > 0 and int built)

@@ -14,6 +14,8 @@ public static class CScriptLoader
 	public static CScriptProblems Load(CDirectorySettings directories, CGameState state, Action<string> warn)
 	{
 		var context = new CScriptContext(CScriptNamesReader.Read(directories, state, warn));
+		state.CasusBelliTypes = CCasusBelliTypeReader.Read(directories, context);
+		History.CWarReader.ReadGoals(directories, state);
 		state.Events = CEventReader.ReadAll(directories, context);
 		state.Decisions = CDecisionReader.ReadAll(directories, context);
 		state.OnActions = COnActionReader.Read(directories, context, state.Events);

@@ -38,7 +38,7 @@ public static class CSupplyConvoys
 		{
 			return;
 		}
-		if (network.AreaOf(country.Capital) is not { } home)
+		if (network.AreaOf(country.ActingCapital) is not { } home)
 		{
 			return;
 		}

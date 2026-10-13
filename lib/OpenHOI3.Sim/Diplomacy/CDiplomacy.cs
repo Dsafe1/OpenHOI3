@@ -22,7 +22,7 @@ public static class CDiplomacy
 		{
 			if (country.HistoryThreat != CFixedPoint.Zero)
 			{
-				CThreat.SpreadOverMap(state, country, country.HistoryThreat.Raw, CThreat.Adds, state.Province(country.Capital));
+				CThreat.SpreadOverMap(state, country, country.HistoryThreat.Raw, CThreat.Adds, state.Province(country.ActingCapital));
 			}
 		}
 	}

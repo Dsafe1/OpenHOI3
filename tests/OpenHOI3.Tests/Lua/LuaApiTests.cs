@@ -214,12 +214,42 @@ public sealed class LuaApiTests : IDisposable
 		Assert.Equal(0.0, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():GetFriendliness({Pol})"));
 		Assert.Equal(0.0, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():GetAntagonism({Pol})"));
 		Assert.Equal(false, scripts.Ask(state, $"{Ger}:GetCountry():IsGovernmentInExile()"));
+		Assert.Single(_reports);
+		Assert.All(_reports, report => Assert.StartsWith("LUA unbuilt: ", report));
+		// Nobody has spies, so the factor is their counter-intelligence turned round - none - and is reported.
+		Assert.Equal(0.0, scripts.Ask(state, $"CAIIntel({Ger}, {Pol}):GetFactor()"));
+		Assert.Equal(2, _reports.Count);
+	}
+
+	[Fact]
+	public void The_surrender_level_is_the_occupied_share_of_owned_cores_over_national_unity()
+	{
+		CGameState state = World();
+		using CAiScripts scripts = Load();
+		// No day has counted Germany's victory points: none owned, none lost.
 		Assert.Equal(0.0, scripts.Ask(state, $"{Ger}:GetCountry():GetSurrenderLevel():Get()"));
 		// Slovakia holds nothing, so it is on the brink whatever the victory points.
 		Assert.Equal(1.0, scripts.Ask(state, $"{Slo}:GetCountry():GetSurrenderLevel():Get()"));
-		Assert.Equal(3, _reports.Count);
-		Assert.All(_reports, report => Assert.StartsWith("LUA unbuilt: ", report));
-		Assert.Throws<CLuaException>(() => scripts.Ask(state, $"CAIIntel({Ger}, {Pol})"));
+		CCountry germany = state.Country(ScriptWorld.Ger)!;
+		germany.NationalUnity = CFixedPoint.FromInt(50);
+		germany.OwnedCoreVictoryPoints = 10000;
+		germany.HeldCoreVictoryPoints = 8000;
+		// A fifth occupied against a half's unity: 200 / 500.
+		Assert.Equal(0.4, (double)scripts.Ask(state, $"{Ger}:GetCountry():GetSurrenderLevel():Get()")!, 5);
+	}
+
+	[Fact]
+	public void The_AIs_intel_counts_its_own_strength_and_rolls_once_a_unit_for_theirs()
+	{
+		CGameState state = World();
+		using CAiScripts scripts = Load();
+		CCountry poland = state.Country(ScriptWorld.Pol)!;
+		poland.Modifier.Set("counter_intelligence", new CFixedPoint(-250));
+		Assert.Equal(0.25, (double)scripts.Ask(state, $"CAIIntel({Ger}, {Pol}):GetFactor()")!, 5);
+		long before = state.Random.Draws;
+		scripts.Ask(state, $"CAIIntel({Ger}, {Pol}):CalculateTheirPercievedMilitaryStrengh()");
+		// One draw for each of Poland's units, and one for the guess at what is hidden.
+		Assert.Equal(poland.UnitsInOrder().Count + 1, state.Random.Draws - before);
 	}
 
 	[Fact]

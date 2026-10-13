@@ -281,10 +281,10 @@ public static class CAlignment
 	private static long ProximityTerm(CGameState state, CCountry country, CIdeologyGroup group, List<CCountry> members)
 	{
 		long best = 0;
-		CProvince home = state.Province(country.Capital);
+		CProvince home = state.Province(country.ActingCapital);
 		foreach (CCountry member in members)
 		{
-			long distance = CMapDistance.Between(state.Province(member.Capital), home, state.MapWidth);
+			long distance = CMapDistance.Between(state.Province(member.ActingCapital), home, state.MapWidth);
 			long near = Math.Max((5000000 - 1000 * distance) * 1000 / 500000, ProximityFloor);
 			long ratio = country.BaseIc != 0 ? member.BaseIc / country.BaseIc : member.BaseIc;
 			best = Math.Max(best, ratio * 1000 * near / 1000);

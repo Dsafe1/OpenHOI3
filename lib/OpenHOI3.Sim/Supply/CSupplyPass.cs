@@ -87,7 +87,7 @@ public static class CSupplyPass
 			}
 
 			// A stockpile is where supplies come from, not somewhere they are sent.
-			if (holder.Capital == id)
+			if (holder.ActingCapital == id)
 			{
 				province.LastPool.CopyFrom(province.Pool);
 				continue;
@@ -145,7 +145,7 @@ public static class CSupplyPass
 					break;
 				}
 				CProvince from = state.Provinces[edge.To];
-				CCountry? stockpileOf = day.Holders[edge.To] is { } fromHolder && fromHolder.Capital == edge.To
+				CCountry? stockpileOf = day.Holders[edge.To] is { } fromHolder && fromHolder.ActingCapital == edge.To
 					? fromHolder
 					: null;
 				long capacity = day.Capacity[edge.To];
@@ -289,7 +289,7 @@ public static class CSupplyPass
 				continue;
 			}
 			int distance = network.DistanceOf(id);
-			if (distance == 0 && holder.Capital == id)
+			if (distance == 0 && holder.ActingCapital == id)
 			{
 				continue;
 			}
@@ -316,10 +316,10 @@ public static class CSupplyPass
 			{
 				// A depot that is no capital sends it home over the sea, as far as the
 				// convoys that end at it can carry.
-				if (network.IsDepot(id) && holder.Capital != 0 && state.Stockpile(holder) is not null)
+				if (network.IsDepot(id) && holder.ActingCapital != 0 && state.Stockpile(holder) is not null)
 				{
 					long carried = CConvoyRules.HomewardCapacity(state, network, holder, province);
-					CProvince capital = state.Provinces[holder.Capital];
+					CProvince capital = state.Provinces[holder.ActingCapital];
 					Move(province, capital, holder, Math.Min(spareSupplies, carried), EGoods.Supplies);
 					Move(province, capital, holder, Math.Min(spareFuel, carried), EGoods.Fuel);
 				}
@@ -334,7 +334,7 @@ public static class CSupplyPass
 					continue;
 				}
 				CProvince inward = state.Provinces[edge.To];
-				CCountry? home = day.Holders[edge.To] is { } inwardHolder && inwardHolder.Capital == edge.To
+				CCountry? home = day.Holders[edge.To] is { } inwardHolder && inwardHolder.ActingCapital == edge.To
 					? inwardHolder
 					: null;
 				Move(province, inward, home, spareSupplies, EGoods.Supplies);

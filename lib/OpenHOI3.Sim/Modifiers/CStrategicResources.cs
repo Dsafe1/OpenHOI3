@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Sim.Modifiers;
 
@@ -71,8 +72,8 @@ public static class CStrategicResources
 			return false;
 		}
 
-		string here = state.Province(receiver.Capital).Continent;
-		string there = state.Province(holder.Capital).Continent;
+		string here = state.Province(receiver.ActingCapital).Continent;
+		string there = state.Province(holder.ActingCapital).Continent;
 		return here.Length > 0 && here.Equals(there, StringComparison.OrdinalIgnoreCase);
 	}
 

@@ -48,7 +48,7 @@ public static class CProvinceEffects
 			case "change_controller":
 				if (CEffects.Target(state, effect, scope) is { } controller)
 				{
-					SetController(state, here, controller);
+					CProvinceHands.SetController(state, here, controller, consequences: true);
 				}
 				return true;
 			case "secede_province":
@@ -107,49 +107,11 @@ public static class CProvinceEffects
 		CCountryTag? giver = scope.Country ?? CConditions.ThisByOwner(state, scope);
 		if (here.Controller == giver && here.Owner == receiver)
 		{
-			ChangeOwner(state, here, receiver);
+			CProvinceHands.ChangeOwner(state, here, receiver);
 		}
 		if (here.Owner == giver)
 		{
-			ChangeOwner(state, here, receiver);
-		}
-	}
-
-	/// <summary>
-	/// A province's controller set as the original's setter does what is built of it: nothing where
-	/// it already is, nor for land nobody owns.
-	/// </summary>
-	public static void SetController(CGameState state, CProvince province, CCountryTag controller)
-	{
-		if (province.Controller == controller || province.Owner is null)
-		{
-			return;
-		}
-		province.Controller = controller;
-		state.ControlChanges++;
-	}
-
-	/// <summary>
-	/// A province changes owner: the new owner holds it too, the modifiers events gave it go, and
-	/// the old owner, owning nothing now, leaves its faction.
-	/// </summary>
-	public static void ChangeOwner(CGameState state, CProvince province, CCountryTag owner)
-	{
-		CCountryTag? old = province.Owner;
-		if (province.Controller != owner)
-		{
-			province.Controller = owner;
-			state.ControlChanges++;
-		}
-		province.Owner = owner;
-		if (province.EventModifiers.Count > 0)
-		{
-			province.EventModifiers.Clear();
-			CProvinceModifiers.Rebuild(state);
-		}
-		if (state.Country(old) is { } former && CCountryLists.OwnedCount(state, former.Tag) == 0)
-		{
-			former.Faction = "";
+			CProvinceHands.ChangeOwner(state, here, receiver);
 		}
 	}
 

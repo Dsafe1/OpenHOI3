@@ -1,6 +1,6 @@
 namespace OpenHOI3.Sim.Agreements;
 
-/// <summary>What an offer is about. See <c>docs/mechanics/agreements.md</c>, section 1, and <c>aid.md</c>.</summary>
+/// <summary>What an offer is about. See <c>docs/mechanics/agreements.md</c>, section 1, <c>aid.md</c> and <c>war.md</c>.</summary>
 public enum EOfferKind
 {
 	Alliance,
@@ -17,4 +17,12 @@ public enum EOfferKind
 	RequestLendLease,
 	OfferLendLease,
 	Licence,
+	/// <summary>A declaration of war: value set a war, unset a limited war. Never answered.</summary>
+	DeclareWar,
+	/// <summary>A call to arms against the offer's <c>Versus</c>.</summary>
+	CallAlly,
+	/// <summary>A war goal added to a war the two are fighting. Never answered.</summary>
+	AddWarGoal,
+	/// <summary>Peace, with no terms: the war between the two ends.</summary>
+	Peace,
 }

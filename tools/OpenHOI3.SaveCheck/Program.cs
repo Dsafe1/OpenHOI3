@@ -150,6 +150,12 @@ if (args.Length > 0 && args[0] == "trade")
 	return CTradeTrial.Run(args);
 }
 
+// A war declared on a new game, and who joins it.
+if (args.Length > 0 && args[0] == "declare")
+{
+	return CDeclareTrial.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

@@ -47,7 +47,7 @@ public static class CThreat
 		long floor = whole * 50 / 1000;
 		var neighbours = new HashSet<CCountry>(CCountryLists.Neighbours(state, feared));
 		int[] owned = Owned(state);
-		CProvince fearedCapital = state.Province(feared.Capital);
+		CProvince fearedCapital = state.Province(feared.ActingCapital);
 		foreach (CCountry country in state.Countries)
 		{
 			if (country == feared)
@@ -55,7 +55,7 @@ public static class CThreat
 				continue;
 			}
 			long reach = Math.Min(28L * owned[country.Index], 4000);
-			long distance = CMapDistance.Between(state.Province(country.Capital), fearedCapital, state.MapWidth);
+			long distance = CMapDistance.Between(state.Province(country.ActingCapital), fearedCapital, state.MapWidth);
 			long near = reach > 0 ? Math.Max(1000 - distance * 1000 / reach, 0) : 1001;
 			if (neighbours.Contains(country))
 			{

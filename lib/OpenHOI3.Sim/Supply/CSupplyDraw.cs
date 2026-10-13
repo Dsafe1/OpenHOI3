@@ -43,7 +43,7 @@ public static class CSupplyDraw
 		{
 			return unit.Base;
 		}
-		return unit.Location != 0 ? unit.Location : owner.Capital;
+		return unit.Location != 0 ? unit.Location : owner.ActingCapital;
 	}
 
 	/// <summary>The same, with what it asks for worked out beforehand, in thousandths.</summary>
@@ -73,9 +73,9 @@ public static class CSupplyDraw
 		// A fleet on its way to another port is seen to out of the capital. It is
 		// decided after the paying is, and by the need of the port it was based in:
 		// the original's order, kept.
-		if (unit.Kind == EUnitKind.Navy && unit.Order == EUnitOrder.Rebase && owner.Capital != 0)
+		if (unit.Kind == EUnitKind.Navy && unit.Order == EUnitOrder.Rebase && owner.ActingCapital != 0)
 		{
-			here = state.Province(owner.Capital);
+			here = state.Province(owner.ActingCapital);
 			depot = here;
 			depotHolder = state.Country(depot.Controller);
 		}
@@ -89,7 +89,7 @@ public static class CSupplyDraw
 		}
 
 		CCountry? holder = state.Country(here.Controller);
-		bool inCapital = holder is not null && holder.Capital != 0 && holder.Capital == unit.Location;
+		bool inCapital = holder is not null && holder.ActingCapital != 0 && holder.ActingCapital == unit.Location;
 
 		if (supplies < 1)
 		{

@@ -18,8 +18,6 @@ public static class CCountryClass
 	/// <summary>Over this much base IC a country is a major whatever its file says.</summary>
 	private const int MajorIc = 100;
 
-	private const string ExileUnbuilt = "governments in exile: none is one";
-	private const string VictoryPointsUnbuilt = "victory points: the share of claimed ones lost is 0";
 
 	public static CLuaClass Define(CGameApi api)
 	{
@@ -43,7 +41,7 @@ public static class CCountryClass
 				return call.Return(ideology.Length > 0 ? api.IdeologyNamed(ideology) : null);
 			})
 			.Method("GetActingCapitalLocation", call => call.Return(new CLuaObject(api.Province, Capital(api, Of(call)))))
-			.Method("GetPool", call => call.Return(new CLuaObject(api.GoodsPool, Capital(api, Of(call)).Pool)))
+			.Method("GetPool", call => call.Return(new CLuaObject(api.GoodsPool, api.State.Stockpile(Of(call)) ?? api.State.Province(0).Pool)))
 			.Method("GetDailyBalance", call =>
 				call.Return(api.Fixed(new CFixedPoint(CCountryGoods.Balance(api, Of(call), CGoodsPoolClass.Goods(call, 2))))))
 			.Method("GetDailyExpense", call =>
@@ -100,12 +98,7 @@ public static class CCountryClass
 			})
 			.Method("IsEnemy", call => call.Return(IsEnemy(api, Of(call), call.Object<CCountryTag>(2, "CCountryTag"))))
 			.Method("IsFriend", call => call.Return(IsFriend(api, Of(call), call.Object<CCountryTag>(2, "CCountryTag"), call.Boolean(3))))
-			.Method("IsGovernmentInExile", call =>
-			{
-				Of(call);
-				api.ReportUnbuilt(ExileUnbuilt);
-				return call.Return(false);
-			})
+			.Method("IsGovernmentInExile", call => call.Return(Of(call).InExile))
 			.Method("IsLandSafeToJoin", call =>
 			{
 				Of(call);
@@ -128,13 +121,9 @@ public static class CCountryClass
 			{
 				CCountry country = Of(call);
 				CCountryTag tag = call.Object<CCountryTag>(2, "CCountryTag");
-				if (api.State.Country(tag) is not null && CCountryFacts.Of(api.State).AreControllerNeighbours(country.Tag, tag))
-				{
-					// Nobody is in exile here, which the original asks next.
-					api.ReportUnbuilt(ExileUnbuilt);
-					return call.Return(true);
-				}
-				return call.Return(false);
+				// A neighbour by what each holds, and not in exile.
+				return call.Return(api.State.Country(tag) is { } other && CCountryFacts.Of(api.State).AreControllerNeighbours(country.Tag, tag)
+					&& !other.InExile);
 			});
 	}
 
@@ -161,7 +150,8 @@ public static class CCountryClass
 	}
 
 	/// <summary>The country's capital, which is its acting capital where nobody is in exile.</summary>
-	private static CProvince Capital(CGameApi api, CCountry country) => api.State.Province(country.Capital);
+	/// <summary>Where its government sits, the acting capital (FINDINGS-capitalreaders.md).</summary>
+	private static CProvince Capital(CGameApi api, CCountry country) => api.State.Province(country.ActingCapital);
 
 	private static int ControlledCount(CGameApi api, CCountry country)
 	{
@@ -186,24 +176,10 @@ public static class CCountryClass
 		return tags;
 	}
 
-	/// <summary>
-	/// 1000 for a country holding no province; else the share of its claimed victory points it has
-	/// lost over its national unity, between 0 and 1000 - and that share is not built.
-	/// </summary>
+	/// <summary>The surrender progress, 0 to 1000 thousandths, as the simulation has it (<c>war.md</c>, section 12).</summary>
 	private static CFixedPoint SurrenderLevel(CGameApi api, CCountry country)
 	{
-		if (ControlledCount(api, country) == 0)
-		{
-			return CFixedPoint.One;
-		}
-		long unity = country.NationalUnity.Raw * 1000 / 100000;
-		if (unity == 0)
-		{
-			return CFixedPoint.One;
-		}
-		api.ReportUnbuilt(VictoryPointsUnbuilt);
-		const long lost = 0;
-		return new CFixedPoint(System.Math.Clamp(lost * 1000 / unity, 0, 1000));
+		return new CFixedPoint(Sim.Wars.CSurrender.Progress(api.State, country));
 	}
 
 	/// <summary>Not itself, and at war with it or either is the rebels.</summary>

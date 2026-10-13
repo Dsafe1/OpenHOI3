@@ -64,6 +64,22 @@ public static class CPacts
 			case EOfferKind.Licence:
 				Licence(state, offer, actor, recipient);
 				break;
+			// Whatever its stage: a declaration takes effect when it runs (war.md, section 5).
+			case EOfferKind.DeclareWar:
+				Wars.CDeclarations.Apply(state, actor, recipient, offer.Value, offer.WarGoal);
+				break;
+			case EOfferKind.CallAlly:
+				Wars.CCallsToArms.Apply(state, offer, actor, recipient);
+				break;
+			case EOfferKind.AddWarGoal:
+				if (Wars.CWarSides.Between(state, actor.Tag, recipient.Tag) is { } war && offer.WarGoal is { } goal)
+				{
+					Wars.CWarGoals.AddAndSpend(state, goal, war);
+				}
+				break;
+			case EOfferKind.Peace:
+				Wars.CPeace.Apply(state, offer, actor, recipient);
+				break;
 		}
 	}
 
@@ -408,11 +424,11 @@ public static class CPacts
 			Trade.CTradeRoutes.EndPair(state, actor.Tag, recipient.Tag);
 			Relation(state, actor, recipient, "EMBARGO_RELATION_CHANGE");
 			Charge(state, actor, "EMBARGO_INFLUENCE_COST");
-			CThreat.SpreadOverMap(state, recipient, threat, 1000, state.Province(recipient.Capital));
+			CThreat.SpreadOverMap(state, recipient, threat, 1000, state.Province(recipient.ActingCapital));
 			Message(state, "WEEMBARGO", "THEYEMBARGO", "OTHEREMBARGO", actor, recipient);
 			return;
 		}
-		CThreat.SpreadOverMap(state, recipient, threat, -1000, state.Province(recipient.Capital));
+		CThreat.SpreadOverMap(state, recipient, threat, -1000, state.Province(recipient.ActingCapital));
 		state.Embargoes.RemoveAll(e => e.Joins(actor.Tag, recipient.Tag));
 		Message(state, "WECANCELEMBARGO", "THEYCANCELEMBARGO", "OTHERCANCELEMBARGO", actor, recipient);
 	}
@@ -504,18 +520,13 @@ public static class CPacts
 	}
 
 	/// <summary>
-	/// A war between two begins: it ends their influence on each other and their trade routes, and either's
-	/// leave to run a debt with the other - section 6, <c>trade.md</c>, section 4, and <c>aid.md</c>,
-	/// section 1.
+	/// Two countries' war set or cleared, the original's <c>SetPairWar</c>: either way it ends their influence on
+	/// each other and their trade routes - section 6 and <c>trade.md</c>, section 4. Their leave to run a debt
+	/// is cleared by a declaration, for its two alone (<c>war.md</c>, section 5).
 	/// </summary>
-	public static void WarBegun(CGameState state, CCountryTag one, CCountryTag other)
+	public static void PairWarSet(CGameState state, CCountryTag one, CCountryTag other)
 	{
 		Trade.CTradeRoutes.EndPair(state, one, other);
-		if (state.Country(one) is { } first && state.Country(other) is { } second)
-		{
-			CGameState.Status(first, second).AllowDebts = false;
-			CGameState.Status(second, first).AllowDebts = false;
-		}
 		foreach (CInfluence influence in state.Influences.ToArray())
 		{
 			if ((influence.Influencer == one && influence.Influenced == other)

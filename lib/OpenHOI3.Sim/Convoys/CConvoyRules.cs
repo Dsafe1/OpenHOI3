@@ -56,7 +56,7 @@ public static class CConvoyRules
 	public static long HomewardCapacity(CGameState state, CSupplyNetwork network, CCountry holder, CProvince depot)
 	{
 		long landed = PortCapacity(state, depot);
-		CSupplyArea? home = network.AreaOf(holder.Capital);
+		CSupplyArea? home = network.AreaOf(holder.ActingCapital);
 		long carried = 0;
 		foreach (CCountry owner in state.Countries)
 		{

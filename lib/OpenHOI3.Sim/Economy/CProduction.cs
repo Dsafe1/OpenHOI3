@@ -252,8 +252,9 @@ public static class CProduction
 			}
 
 			// The conversions are part of a country's own day, which only a country that
-			// exists has. The first still has yesterday's usage to go by.
-			bool exists = CResources.HoldsCapital(state, country);
+			// exists has - one owning a province, or a government in exile. The first still
+			// has yesterday's usage to go by.
+			bool exists = Countries.CCountryLists.OwnedCount(state, country.Tag) > 0 || country.InExile;
 			if (exists)
 			{
 				CConversions.EnergyIntoCrudeOil(country, stockpile);

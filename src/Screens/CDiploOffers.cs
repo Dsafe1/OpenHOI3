@@ -103,6 +103,24 @@ public sealed partial class CDiploOffers : Control
 			flag.Text = "@" + offer.Actor.Value;
 			// The flag answers by itself, as the button does: it hangs below the button, over nothing.
 			flag.Tooltip = Tooltip;
+			// Taking the mouse for that, it hands the button the clicks that fall on the button.
+			flag.GuiInput += input =>
+			{
+				if (input is InputEventMouseButton { Pressed: true } press && icon.Button is { } under
+					&& under.GetGlobalRect().HasPoint(flag.GetGlobalTransform() * press.Position))
+				{
+					if (press.ButtonIndex == MouseButton.Left)
+					{
+						Open(icon);
+						flag.AcceptEvent();
+					}
+					else if (press.ButtonIndex == MouseButton.Right)
+					{
+						Decline(icon);
+						flag.AcceptEvent();
+					}
+				}
+			};
 		}
 		// The ring drawn over the flag says nothing and takes no mouse: the flag under it answers.
 		if (window.TryFindIcon("messageicon_bg_overlay") is { } overlay)

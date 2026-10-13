@@ -6,6 +6,7 @@ using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Script;
+using OpenHOI3.Sim.Wars;
 using OpenHOI3.Tests.Content;
 
 namespace OpenHOI3.Tests.Sim;

@@ -27,6 +27,15 @@ public sealed record CPactMessage(string We, string They, string Other, CCountry
 	/// </summary>
 	public bool TurnedRound { get; init; }
 
+	/// <summary>
+	/// The one country told, with the key <see cref="We"/>, where it is not the actor or the recipient - a
+	/// faction's member brought into a war (<c>war.md</c>, section 6); none for the rest.
+	/// </summary>
+	public CCountryTag? Told { get; init; }
+
+	/// <summary>Who reports it, <c>$MESSENGER$</c>: the foreign office, or the general staff for a war.</summary>
+	public string Messenger { get; init; } = "MESSAGE_HEAD_CHAN";
+
 	/// <summary>Values of its own kind, after the rest: a licence's NUM and NAME, and its ACCEPTED or DECLINED.</summary>
 	public System.Collections.Generic.IReadOnlyList<(string Name, string Value)> Values { get; init; } =
 		System.Array.Empty<(string, string)>();

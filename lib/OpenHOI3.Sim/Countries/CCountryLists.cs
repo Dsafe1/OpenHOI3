@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Sim.Countries;
 
@@ -103,6 +104,11 @@ public static class CCountryLists
 			{
 				members.Add(other);
 			}
+		}
+		// By seat, and of one seat in the countries' order: a stable sort.
+		if (members.Exists(member => member.FactionSeat != 0))
+		{
+			members = new List<CCountry>(System.Linq.Enumerable.OrderBy(members, member => member.FactionSeat));
 		}
 		return members;
 	}

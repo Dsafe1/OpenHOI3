@@ -1,5 +1,6 @@
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Sim.Supply;
 

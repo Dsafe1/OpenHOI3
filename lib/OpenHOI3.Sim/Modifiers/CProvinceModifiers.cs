@@ -78,7 +78,7 @@ public static class CProvinceModifiers
 		{
 			return false;
 		}
-		CProvince capital = state.Province(controller.Capital);
+		CProvince capital = state.Province(controller.ActingCapital);
 		return capital.Id != 0 && !capital.Continent.Equals(province.Continent, StringComparison.OrdinalIgnoreCase);
 	}
 

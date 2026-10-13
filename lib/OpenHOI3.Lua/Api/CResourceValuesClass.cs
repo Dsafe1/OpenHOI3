@@ -23,7 +23,7 @@ public static class CResourceValuesClass
 				values.DailyExpense = CCountryGoods.AiExpense(api, country, goods);
 				values.DailyHome = CLuaFloats.SingleThousandths((int)country.HomeProduced[goods].Raw);
 				values.ConvoyedIn = CLuaFloats.SingleThousandths((int)country.ConvoyedIn[goods].Raw);
-				values.Pool = CLuaFloats.SingleThousandths((int)api.State.Province(country.Capital).Pool[goods].Raw);
+				values.Pool = CLuaFloats.SingleThousandths((int)(api.State.Stockpile(country) ?? api.State.Province(0).Pool)[goods].Raw);
 				values.DailyIncome = CLuaFloats.SingleThousandths((int)CCountryGoods.Income(api, country, goods));
 				values.DailyBalance = CLuaFloats.SingleThousandths((int)CCountryGoods.Balance(api, country, goods));
 				return 0;

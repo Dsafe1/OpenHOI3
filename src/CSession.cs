@@ -881,7 +881,9 @@ public partial class CSession : Node
 	/// <c>--all-units</c> lets the country played order every unit type that can be built
 	/// (and <c>--own-units</c> says the opposite, which is how it is anyway: a launch
 	/// that asks has to pass something for either answer),
-	/// <c>--war=GER:POL</c> puts those two countries at war,
+	/// <c>--war=GER:POL</c> puts those two countries at war, and nobody else,
+	/// <c>--neutrality=GER:0</c> sets that country's neutrality, so that it may declare a war,
+	/// <c>--declare=TUR:IRQ</c> has the first declare war on the second with the first goal it has,
 	/// <c>--sail=ENG:10531</c> sends the strongest fleet of that country that can reach it
 	/// to that sea province,
 	/// <c>--mission=ENG:patrol:10531</c> gives such a fleet a mission there - reserve,
@@ -1021,8 +1023,8 @@ public partial class CSession : Node
 			}
 			else if (argument.StartsWith("--war="))
 			{
-				// Puts two countries at war at once, there being no diplomacy to declare
-				// one with: --war=GER:POL. Carried out before anything after it.
+				// Puts two countries at war at once and nobody else, for trials: --war=GER:POL.
+				// A declaration is the diplomacy screen's (war.md). Carried out before anything after it.
 				string[] tags = argument["--war=".Length..].Split(':');
 				if (tags.Length == 2 && CCountryTag.TryParse(tags[0], out CCountryTag first)
 					&& CCountryTag.TryParse(tags[1], out CCountryTag second)
@@ -1034,6 +1036,41 @@ public partial class CSession : Node
 				else
 				{
 					GD.Print($"--war: '{argument["--war=".Length..]}' is not two countries at peace with each other.");
+				}
+			}
+			else if (argument.StartsWith("--declare="))
+			{
+				// One country declares war on another as the declare-war dialog would, with the first goal it
+				// offers, whatever its neutrality: --declare=TUR:IRQ. So that an AI's war, and its calls to arms,
+				// may be tried; the AI declares nothing yet.
+				string[] tags = argument["--declare=".Length..].Split(':');
+				if (tags.Length == 2 && State.Country(CCountryTag.TryParse(tags[0], out CCountryTag one) ? one : null) is { } actor
+					&& State.Country(CCountryTag.TryParse(tags[1], out CCountryTag other) ? other : null) is { } recipient
+					&& Sim.Wars.CWarGoals.FirstOffered(State, actor, recipient) is { } goal)
+				{
+					_simulation.Post(new Sim.Commands.COfferCommand(new Sim.Agreements.COffer(Sim.Agreements.EOfferKind.DeclareWar,
+						actor.Tag, recipient.Tag, Sim.Agreements.EOfferStage.Accepted, true, State.TotalHours) { WarGoal = goal }));
+					_simulation.Pump();
+				}
+				else
+				{
+					GD.Print($"--declare: '{argument["--declare=".Length..]}' is not two countries one has a goal against.");
+				}
+			}
+			else if (argument.StartsWith("--neutrality="))
+			{
+				// Sets a country's neutrality, so that it may declare a war on a new game: --neutrality=GER:0.
+				string[] parts = argument["--neutrality=".Length..].Split(':');
+				if (parts.Length == 2 && CCountryTag.TryParse(parts[0], out CCountryTag neutral)
+					&& CFixedPoint.TryParse(parts[1], out CFixedPoint neutrality)
+					&& new CSetNeutralityCommand(neutral, neutrality) is var set && set.MayExecute(State))
+				{
+					_simulation.Post(set);
+					_simulation.Pump();
+				}
+				else
+				{
+					GD.Print($"--neutrality: '{argument["--neutrality=".Length..]}' is not a country and a figure.");
 				}
 			}
 			else if (argument.StartsWith("--sail="))

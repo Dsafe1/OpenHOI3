@@ -28,7 +28,7 @@ public static class CLendLease
 	/// <summary>The first reason lend-lease may not go from the giver to the receiver, or none.</summary>
 	public static ERefusal Refusal(CGameState state, CCountry giver, CCountry receiver)
 	{
-		if (Agreements.COfferRules.InExile())
+		if (giver.InExile || receiver.InExile)
 		{
 			return ERefusal.InExile;
 		}
@@ -144,8 +144,8 @@ public static class CLendLease
 	/// </summary>
 	public static (int Start, int End)? ConvoyEnds(CGameState state, CSupplyNetwork network, CCountry giver, CCountry receiver)
 	{
-		if (network.AreaOf(receiver.Capital) is not { } home || home.Ports.Count == 0
-			|| network.AreaOf(giver.Capital) is not { } theirs)
+		if (network.AreaOf(receiver.ActingCapital) is not { } home || home.Ports.Count == 0
+			|| network.AreaOf(giver.ActingCapital) is not { } theirs)
 		{
 			return null;
 		}

@@ -21,7 +21,7 @@ public static class CSupplyMaking
 	{
 		long left = made.Raw;
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
-		if (country.CoreHomeIc > 0 && network.AreaOf(country.Capital) is { } home)
+		if (country.CoreHomeIc > 0 && network.AreaOf(country.ActingCapital) is { } home)
 		{
 			foreach (int id in home.Provinces)
 			{
@@ -40,7 +40,7 @@ public static class CSupplyMaking
 					* Scale / country.CoreHomeIc;
 				long part = Math.Min(share, Scale) * made.Raw / Scale;
 				CSupplyPass.Add(province.Pool, goods, part);
-				if (id != country.Capital)
+				if (id != country.ActingCapital)
 				{
 					CSupplyPass.Add(country.SentTo, goods, part);
 				}

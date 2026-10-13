@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Sim.Economy;
 

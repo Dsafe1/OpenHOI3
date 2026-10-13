@@ -31,6 +31,13 @@ public static class CDiplomacyActions
 			new(kind, player.Tag, chosen.Tag, EOfferStage.Proposed, value, state.TotalHours);
 		bool atWar = CCountryLists.AtWar(state, player.Tag, chosen.Tag);
 
+		// At peace, the declarations; at war, the call to arms (war.md, section 10).
+		rows.AddRange(CWarActions.DeclarationRows(state, player, chosen));
+		if (CWarActions.CallRow(state, player, chosen) is { } call)
+		{
+			rows.Add(call);
+		}
+
 		// Technology, where allied or in one real faction: stop where sharing, else share where a theory puts
 		// them below the player (aid.md, section 2).
 		if (CCountryLists.HasAlliance(state, player.Tag, chosen.Tag) || COfferRules.OneRealFaction(player, chosen))
@@ -44,13 +51,22 @@ public static class CDiplomacyActions
 				rows.Add(Row(EOfferKind.ShareTechnology, true));
 			}
 		}
+		// At war with them: Peace and Add war goal.
+		if (CWarActions.PeaceRow(state, player, chosen) is { } peace)
+		{
+			rows.Add(peace);
+		}
+		if (CWarActions.GoalRow(state, player, chosen) is { } goal)
+		{
+			rows.Add(goal);
+		}
 
 		if (CCountryLists.HasAlliance(state, player.Tag, chosen.Tag))
 		{
 			rows.Add(Row(EOfferKind.Alliance, false));
 		}
 		else if (!(COfferRules.RealFaction(player) && COfferRules.RealFaction(chosen)) && !COfferRules.IsPuppet(player)
-			&& !COfferRules.InExile() && COfferRules.RecipientFree(player, chosen))
+			&& !player.InExile && COfferRules.RecipientFree(player, chosen))
 		{
 			rows.Add(Row(EOfferKind.Alliance, true));
 		}
@@ -85,7 +101,7 @@ public static class CDiplomacyActions
 			// Buy Production Licence, always (aid.md, section 4).
 			rows.Add(Row(EOfferKind.Licence, true));
 			// Allow or revoke debt: revoking where they may run a debt with the player (aid.md, section 1).
-			if (!COfferRules.InExile() && !COfferRules.IsPuppet(player))
+			if (!player.InExile && !chosen.InExile && !COfferRules.IsPuppet(player))
 			{
 				rows.Add(Row(EOfferKind.Debt, !CGameState.Status(chosen, player).AllowDebts));
 			}
@@ -169,6 +185,7 @@ public static class CDiplomacyActions
 			EOfferKind.RequestLendLease => offer.Value ? "REQLEND" : "CANCELLEND",
 			EOfferKind.OfferLendLease => offer.Value ? "OFFERLL" : "STOPLL",
 			EOfferKind.Licence => offer.Value ? "BUYLICENCE" : "SELLLICENCE",
+			EOfferKind.DeclareWar or EOfferKind.CallAlly or EOfferKind.AddWarGoal or EOfferKind.Peace => CWarActions.Prefix(offer),
 			_ => offer.Value ? "ALIGN" : "STOPALIGN",
 		};
 	}
@@ -198,6 +215,8 @@ public static class CDiplomacyActions
 			EOfferKind.RequestLendLease => RequestLendLeaseTooltip(localise, state, offer, actor, recipient),
 			EOfferKind.OfferLendLease => OfferLendLeaseTooltip(localise, state, offer, actor, recipient),
 			EOfferKind.Licence => LicenceTooltip(localise, state, offer, actor, recipient),
+			EOfferKind.DeclareWar or EOfferKind.CallAlly or EOfferKind.AddWarGoal or EOfferKind.Peace =>
+				CWarActions.Tooltip(localise, state, offer, actor, recipient, (a, r) => EnRoute(localise, state, a, r)),
 			_ => Align(localise, state, offer, actor, recipient),
 		};
 		return said ?? "";
@@ -407,6 +426,10 @@ public static class CDiplomacyActions
 				return localise(offer.Value ? "LEND_LEASE_DESCRIPTION" : "LEND_LEASE_BREAK_DESCRIPTION");
 			case EOfferKind.OfferLendLease:
 				return localise(offer.Value ? "OFFERLL_DESCRIPTION" : "STOPLL_DESCRIPTION");
+			case EOfferKind.CallAlly:
+				return CWarActions.CallDescription(localise, state, offer, recipient);
+			case EOfferKind.Peace:
+				return CPeaceText.Description(localise, state, actor, recipient);
 			case EOfferKind.ShareTechnology:
 			{
 				// Stopping only; sharing has a dialog of its own.
@@ -430,7 +453,11 @@ public static class CDiplomacyActions
 		{
 			return "";
 		}
+		// The AI's answer to a peace rolls the game's generator; the original's dialog rolls it too, this one puts
+		// it back, so that what a screen shows never moves a game's rolls (war.md, section 11).
+		var saved = state.Random.Snapshot();
 		int score = CPactPasses.Score(state, offer);
+		state.Random.Restore(saved);
 		string key = score switch
 		{
 			< 1 => "DIPCHANCE_IMPOSSIBLE",

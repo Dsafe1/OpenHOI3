@@ -25,7 +25,7 @@ public static class CResourceConvoys
 		{
 			return;
 		}
-		if (network.AreaOf(country.Capital) is not { } home)
+		if (network.AreaOf(country.ActingCapital) is not { } home)
 		{
 			return;
 		}
@@ -54,7 +54,7 @@ public static class CResourceConvoys
 		// land touches the land its capital stands on.
 		foreach (CCountry puppet in state.Countries)
 		{
-			if (puppet.Overlord != country.Tag || network.AreaOf(puppet.Capital) is not { } theirs
+			if (puppet.Overlord != country.Tag || network.AreaOf(puppet.ActingCapital) is not { } theirs
 				|| HasAnyConvoyFrom(state, network, theirs) || TouchesLandOf(theirs, country))
 			{
 				continue;

@@ -218,5 +218,6 @@ public static class CRelations
 		return owns;
 	}
 
-	private static CFixedPoint Clamp(CFixedPoint relation) => CFixedPoint.Clamp(relation, Lowest, Highest);
+	/// <summary>A relation held between -200 and 200.</summary>
+	public static CFixedPoint Clamp(CFixedPoint relation) => CFixedPoint.Clamp(relation, Lowest, Highest);
 }

@@ -17,10 +17,13 @@ public static class CProvinceControl
 	/// to the province's owner where the owner is no enemy either, and to the country
 	/// itself where it is.
 	///
-	/// The original has three more cases, each waiting for what it reads: a puppet's
-	/// conquest goes to its master, a government in exile's to the head of its faction,
-	/// and a province none of whose neighbours the country holds to a friend who holds
-	/// one. Answers whether the province changed hands.
+	/// A government in exile's conquest goes to the head of its faction, where that faction
+	/// has two or more members and it is not the head; and ground freed whose owner is an
+	/// exile stays with whoever freed it (<c>war.md</c>, section 14).
+	///
+	/// The original has two more cases, each waiting for what it reads: a puppet's
+	/// conquest goes to its master, and a province none of whose neighbours the country
+	/// holds to a friend who holds one. Answers whether the province changed hands.
 	/// </summary>
 	public static bool Take(CGameState state, CProvince province, CCountryTag by)
 	{
@@ -28,13 +31,21 @@ public static class CProvinceControl
 		{
 			return false;
 		}
-		CCountryTag to = CMovementRules.IsEnemy(state, province.Owner, by) ? by : province.Owner.Value;
+		if (state.Country(by) is { InExile: true } exile)
+		{
+			var members = CCountryLists.FactionMembers(state, exile.Faction);
+			if (members.Count >= 2 && members[0] != exile)
+			{
+				by = members[0].Tag;
+			}
+		}
+		bool freedForExile = state.Country(province.Owner) is { InExile: true };
+		CCountryTag to = CMovementRules.IsEnemy(state, province.Owner, by) || freedForExile ? by : province.Owner.Value;
 		if (province.Controller == to)
 		{
 			return false;
 		}
 		province.Controller = to;
-		state.ControlChanges++;
 		return true;
 	}
 }

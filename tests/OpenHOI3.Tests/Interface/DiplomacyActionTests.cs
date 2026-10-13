@@ -67,8 +67,10 @@ public class DiplomacyActionTests
 		CGameState state = World();
 
 		List<COffer> toPoland = CDiplomacyActions.Rows(state, C(state, ScriptWorld.Ger), C(state, ScriptWorld.Pol));
+		// Declare War first, at peace (war.md, section 10); no Declare Limited War, the Axis here having no rules.
 		Assert.Equal(new[]
 		{
+			EOfferKind.DeclareWar,
 			EOfferKind.Alliance, EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.AskMilitaryAccess,
 			EOfferKind.OfferMilitaryAccess, EOfferKind.Embargo, EOfferKind.Licence, EOfferKind.Debt, EOfferKind.Influence,
 			EOfferKind.Trade,
@@ -100,7 +102,7 @@ public class DiplomacyActionTests
 		List<COffer> rows = CDiplomacyActions.Rows(state, C(state, ScriptWorld.Ger), C(state, ScriptWorld.Pol));
 		Assert.False(rows.Single(row => row.Kind == EOfferKind.NonAggressionPact).Value);
 		Assert.DoesNotContain(rows, row => row.Kind == EOfferKind.Guarantee);
-		Assert.Equal("CANCELNAPTITLE", CDiplomacyActions.Title(Localise, rows[1]));
+		Assert.Equal("CANCELNAPTITLE", CDiplomacyActions.Title(Localise, rows[2]));
 		// Poland, guaranteed by Germany, is offered the guarantee and told why not.
 		COffer back = CDiplomacyActions.Rows(state, C(state, ScriptWorld.Pol), C(state, ScriptWorld.Ger))
 			.Single(row => row.Kind == EOfferKind.Guarantee);

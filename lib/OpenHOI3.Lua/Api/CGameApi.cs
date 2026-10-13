@@ -49,7 +49,7 @@ public sealed class CGameApi
 		ResourceValues = CResourceValuesClass.Define(this);
 		GameState = CGameStateClass.DefineGameState(this);
 		CountryDataBase = CGameStateClass.DefineCountryDataBase(this);
-		Intel = new CLuaClass("CAIIntel").Constructs(_ => throw new CLuaError("CAIIntel is not built: espionage is not"));
+		Intel = CAiIntelClass.Define(this);
 		TradeAction = CTradeActionClass.DefineAction(this);
 		TradeRoute = CTradeActionClass.DefineRoute(this);
 		GoodsValues = CGoodsValuesClass.Define();

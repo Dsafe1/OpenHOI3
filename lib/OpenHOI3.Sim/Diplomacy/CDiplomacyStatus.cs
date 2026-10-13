@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Sim.Diplomacy;
 
@@ -46,4 +48,17 @@ public sealed class CDiplomacyStatus
 	/// buttons towards the other are greyed (<c>agreements.md</c>, section 1).
 	/// </summary>
 	public long DiplomatUntil { get; set; } = long.MinValue;
+
+	/// <summary>
+	/// The hour the two were last brought up to date while at war, the original's <c>last_war</c> - stamped
+	/// when a war's membership changes and as a game is loaded, never hourly. None where never at war. A
+	/// truce counts from it (<c>war.md</c>, section 4).
+	/// </summary>
+	public long? LastWar { get; set; }
+
+	/// <summary>The hour before which the holder may add no war goal against the other (<c>war.md</c>, section 3).</summary>
+	public long NextWarGoal { get; set; } = long.MinValue;
+
+	/// <summary>The casus belli the holder holds on the other, in the order given (<c>war.md</c>, section 2).</summary>
+	public List<CCasusBelli> CasusBelli { get; } = new();
 }

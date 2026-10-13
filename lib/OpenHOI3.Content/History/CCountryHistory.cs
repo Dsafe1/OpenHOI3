@@ -133,6 +133,12 @@ public static class CCountryHistory
 					if (int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int capital))
 					{
 						country.Capital = capital;
+						country.ActingCapital = capital;
+						if (country.OriginalCapital == 0)
+						{
+							// The history's first capital is where a government goes back to (war.md, section 14).
+							country.OriginalCapital = capital;
+						}
 					}
 				}
 				else if (entry.Key.Equals("national_unity", StringComparison.OrdinalIgnoreCase))

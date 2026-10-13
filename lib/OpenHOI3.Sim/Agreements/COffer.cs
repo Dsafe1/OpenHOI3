@@ -20,4 +20,10 @@ public sealed record COffer(EOfferKind Kind, CCountryTag Actor, CCountryTag Reci
 
 	/// <summary>What a licence is for (<c>aid.md</c>, section 4); none for the rest, or a licence with nothing chosen.</summary>
 	public Aid.CLicenceTerms? Licence { get; init; }
+
+	/// <summary>The war goal a declaration or an added goal carries (<c>war.md</c>, sections 3 and 5); none for the rest.</summary>
+	public Wars.CWarGoal? WarGoal { get; init; }
+
+	/// <summary>The enemy a call to arms is against (<c>war.md</c>, section 6); none for the rest.</summary>
+	public CCountryTag? Versus { get; init; }
 }

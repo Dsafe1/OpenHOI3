@@ -100,7 +100,7 @@ public sealed partial class CShareTechnologyDialog : Control
 			decline.SetText(localise("DECLINE"));
 			decline.Pressed += Close;
 		}
-		Show();
+		ShowChoice();
 	}
 
 	private static void Set(CGuiWindow row, string name, string text)
@@ -130,10 +130,11 @@ public sealed partial class CShareTechnologyDialog : Control
 				box.Checked = _rows[row].Category == _chosen;
 			}
 		}
-		Show();
+		ShowChoice();
 	}
 
-	private void Show()
+	/// <summary>The description of the chosen theory, and Agree pressable only with one chosen.</summary>
+	private void ShowChoice()
 	{
 		CGameState state = _simulation.State;
 		if (_description is not null && state.Country(_offer.Recipient) is { } recipient)

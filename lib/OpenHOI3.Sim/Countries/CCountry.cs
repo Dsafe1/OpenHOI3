@@ -21,6 +21,12 @@ public sealed class CCountry
 	/// <summary>Localised name; falls back to the tag when the string is missing.</summary>
 	public required string Name { get; init; }
 
+	/// <summary>
+	/// Localised adjective, <c>&lt;TAG&gt;_ADJ</c>, read as the game is made; the tag where the string is
+	/// missing. A war's name is made from it (<c>war.md</c>, section 7).
+	/// </summary>
+	public string Adjective { get; init; } = "";
+
 	/// <summary>Game-relative path from <c>common/countries.txt</c>.</summary>
 	public required string DefinitionFile { get; init; }
 
@@ -28,14 +34,40 @@ public sealed class CCountry
 
 	public string GraphicalCulture { get; init; } = "";
 
-	/// <summary>The id of the capital province, or 0 for a country that has none.</summary>
+	/// <summary>
+	/// The id of its declared capital province, or 0 for a country that has none. It moves only when the country
+	/// stops owning it. See <c>docs/mechanics/war.md</c>, section 14.
+	/// </summary>
 	public int Capital { get; set; }
+
+	/// <summary>
+	/// Where its government sits, and so whose pool is its stockpile: its capital, until somebody else holds that,
+	/// when the government moves at once. The declared capital until something sets it. See
+	/// <see cref="CActingCapital"/>.
+	/// </summary>
+	public int ActingCapital
+	{
+		get => _actingCapital ?? Capital;
+		set => _actingCapital = value;
+	}
+
+	private int? _actingCapital;
+
+	/// <summary>The history's first capital, where a government whose capital fell goes back to once it holds it again.</summary>
+	public int OriginalCapital { get; set; }
 
 	/// <summary>Whether its own file calls it a major power.</summary>
 	public bool IsMajor { get; init; }
 
 	/// <summary>The faction it is in, by the faction's name, or nothing for a country in none.</summary>
 	public string Faction { get; set; } = "";
+
+	/// <summary>
+	/// Where it stands among its faction's members, which are listed by this and then in the countries'
+	/// order: nought for the history's members, more for each country to join since, less for one put at the
+	/// front. The first member leads. See <see cref="CFactionMembership"/>.
+	/// </summary>
+	public long FactionSeat { get; set; }
 
 	/// <summary>
 	/// The country it is a puppet of, or null for a country that is nobody's. A puppet
@@ -209,6 +241,30 @@ public sealed class CCountry
 	/// and 1 for a country whose history gives none; nothing moves it yet.
 	/// </summary>
 	public CFixedPoint NationalUnity { get; set; } = CFixedPoint.One;
+
+	/// <summary>
+	/// The victory points of its cores it owns, a thousand to a point, as the day's count left them. See
+	/// <c>docs/mechanics/war.md</c>, section 12.
+	/// </summary>
+	public long OwnedCoreVictoryPoints { get; set; }
+
+	/// <summary>Of those, the ones it also holds.</summary>
+	public long HeldCoreVictoryPoints { get; set; }
+
+	/// <summary>The hour it last surrendered; long before any game, the save's "1.1.1.0", where it never has.</summary>
+	public long LastSurrender { get; set; } = long.MinValue / 2;
+
+	/// <summary>
+	/// Whether it is a government in exile: its stockpile its own, its government in its faction leader's capital,
+	/// never surrendering. See <c>docs/mechanics/war.md</c>, section 14.
+	/// </summary>
+	public bool InExile { get; set; }
+
+	/// <summary>An exile's own stockpile, which every use of its stockpile reads and fills while it is one.</summary>
+	public Economy.CGoodsPool PoolInExile { get; } = new();
+
+	/// <summary>The supplies and fuel governments in exile sitting in its land have handed it today. See <c>war.md</c>, section 14.</summary>
+	public Economy.CGoodsPool ReceivedFromExiles { get; } = new();
 
 	/// <summary>The men it has to put in uniform. Never below nothing.</summary>
 	public CFixedPoint Manpower { get; set; }
@@ -496,6 +552,12 @@ public sealed class CCountry
 	/// came (<c>docs/mechanics/agreements.md</c>, section 1).
 	/// </summary>
 	public List<Agreements.COffer> PendingOffers { get; } = new();
+
+	/// <summary>
+	/// Mobilised for a war: given <c>initial_mobilization</c> when it was last brought up to date at war,
+	/// and only made so again after a peace (<c>war.md</c>, section 4).
+	/// </summary>
+	public bool Mobilised { get; set; }
 
 	/// <summary>Spies trained and not yet sent anywhere. A whole spy is 1.</summary>
 	public CFixedPoint SpiesInTraining { get; set; }

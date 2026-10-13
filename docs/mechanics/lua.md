@@ -170,9 +170,9 @@ m` - `tech` the technology's `ic_modifier` and `gic` the `global_ic` modifier, e
 float, `m` the base IC - times 2 for energy and 0.5 for rare materials, every step rounded to a float;
 nought for the other goods; and **never less than the day's spending** as `GetDailyExpense` counts it.
 
-`GetSurrenderLevel()` is 1000 for a country controlling no province, else the share of its claimed
-victory points it does not hold over its national unity, between 0 and 1000 - and **victory points
-are not built**, so the share is nought, reported, and the answer 0 (`FINDINGS-negatives.md`).
+`GetSurrenderLevel()` is the surrender progress (`war.md`, section 12), 0 to 1000 thousandths: 1000 for
+a country controlling no province, else the occupied share of its owned cores' victory points over its
+national unity.
 
 ### 4.3 The distance on the triangle
 
@@ -240,9 +240,41 @@ A failure in either is reported and leaves that country's trading for the hour.
 `OpenHOI3.SaveCheck aiscore` asks the
 eleven functions that take nothing but tags, for every pair of countries. On 2026-10-13 a new game of
 the base game had 78 countries owning land, and every one of the eleven answered all 6,006 pairs
-without an error **but `DiploScore_PeaceAction`, which fails at `CAIIntel` every time** - so a peace
-offer is refused until espionage is built. What the scripts met that is not built: truces, the AI's
-strategy, governments in exile, victory points and tribute.
+without an error **but `DiploScore_PeaceAction`, which failed at `CAIIntel` every time**; with `CAIIntel`
+built the same day (section 7) all eleven answer every pair. What the scripts meet that is not built: the
+AI's strategy, governments in exile, espionage and tribute.
+
+## 7. `CAIIntel`
+
+`CAIIntel(us, them)` (`reversing/findings/FINDINGS-war.md` C.6) is what one country knows of another's
+strength; only `DiploScore_PeaceAction` makes one. **Espionage is not built, so nobody has spies anywhere**:
+what spies would add is nought, reported. As it is made:
+
+- **the factor** is our spies in them over the most, ten - `level * 1000 / 10000` - less their
+  `counter_intelligence` modifier, in thousandths, over 1000 as a float; so with no spies it is their
+  counter-intelligence turned round, and **a country whose laws give it -0.25 is known at 0.25**;
+- **the uncertainty** is `(float)(1 - factor + 0.2)`, held to 0.2 and 1.
+
+`GetFactor()` answers the factor; `HasNoIntel()` whether we have fewer than one spy - always;
+`GetTheirFactor()` their own spies' level over the most - nought. **`CalculateOurMilitaryStrength()`** is
+every brigade's strength of every unit we have, over 1000, a float. **`CalculateTheirPercievedMilitaryStrengh()`**
+(the original's spelling), in thousandths unless said:
+
+    bonus  = SPY_INTEL_MISSION_BONUS (0.5) x our military mission's share in them / 1000   - nought
+    f      = floor((float)((float)((float)(bonus / 1000) + factor) + 0.0005) x 1000)
+    K      = floor(100000.5f)                                        = 100000
+    chance = f x (K x SPY_UNIT_DETECTION_CHANCE (0.5) / 1000) / 1000 / 1000     per cent
+    land   = K x our offmap_land_intel / 1000 / 1000;  sea likewise with offmap_naval_intel
+
+then **for each of their units, in the order they were made, a draw of the game's generator first**; the unit
+is seen where we know its province at 2 or more, or where the draw's remainder by 100 is under `land` or
+`sea` - by whether its province is land - plus `chance`; its brigades' strength goes to seen or hidden.
+The answer is `(seen + max(hidden + k x scale / 1000, 0)) / 1000` as a float, where `scale =
+floor((float)((float)(uncertainty + 1) + 0.0005) x 1000) x hidden / 1000` and `k = floor((float)((float)((float)(u
+- 0.5) x uncertainty) + 0.0005) x 1000)`, u one more draw over 2^31. **Every answer takes one draw for each
+of their units and one more**, so the AI's answer to a peace moves the game's generator. The draw is never
+negative, so the remainder is the plain 0 to 99 - the fact base's "about half of all units are seen
+whatever the odds", from a signed draw, was corrected by this reading.
 
 ## Ours
 

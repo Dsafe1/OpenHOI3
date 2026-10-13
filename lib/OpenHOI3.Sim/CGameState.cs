@@ -12,6 +12,7 @@ using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Script;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Sim;
 
@@ -28,6 +29,8 @@ public sealed class CGameState
 		new(StringComparer.OrdinalIgnoreCase);
 
 	private readonly List<CCountry> _countriesInOrder = new();
+
+	private readonly CHandChanges _handChanges = new();
 
 	/// <param name="provinces">Indexed by id, so entry 0 is the "no province" entry.</param>
 	private readonly Dictionary<string, CModifier> _staticModifiers =
@@ -70,6 +73,10 @@ public sealed class CGameState
 		}
 		_hours = (long)date.DayNumber * HoursPerDay;
 		Provinces = provinces;
+		foreach (CProvince province in provinces)
+		{
+			province.CountChangesIn(_handChanges);
+		}
 		Buildings = buildings ?? Array.Empty<CBuilding>();
 		foreach (CCountry country in countries)
 		{
@@ -242,14 +249,29 @@ public sealed class CGameState
 	/// <summary>The numbers out of <c>common/defines.lua</c>.</summary>
 	public CDefines Defines { get; }
 
-	/// <summary>The wars being fought now.</summary>
+	/// <summary>The wars being fought now - and every war made since, which stays here when a side empties (<c>war.md</c>, section 1).</summary>
 	public List<CWar> Wars { get; }
+
+	/// <summary>Wars finished before the game, the original's <c>previous_war</c>: none is read yet, and a war's name is not reused against them.</summary>
+	public List<CWar> FinishedWars { get; } = new();
+
+	/// <summary>
+	/// The casus belli types of <c>common/cb_types.txt</c>, by their number: the null type first, then the
+	/// file's in its order (<c>war.md</c>, section 2).
+	/// </summary>
+	public IReadOnlyList<CCasusBelliType> CasusBelliTypes { get; set; } = new[] { CCasusBelliType.Null };
 
 	/// <summary>The alliances standing now, two countries each.</summary>
 	public List<CAlliance> Alliances { get; } = new();
 
 	/// <summary>The guarantees standing now.</summary>
 	public List<CGuarantee> Guarantees { get; } = new();
+
+	/// <summary>The seat the last country to join a faction was given, counting up from the history's nought.</summary>
+	public long LastFactionSeat { get; set; }
+
+	/// <summary>The seat the last country put at the front of a faction was given, counting down from nought.</summary>
+	public long FirstFactionSeat { get; set; }
 
 	/// <summary>The non-aggression pacts standing now: <c>docs/mechanics/agreements.md</c>.</summary>
 	public List<Agreements.CNap> Naps { get; } = new();
@@ -383,10 +405,11 @@ public sealed class CGameState
 	public Dictionary<(int Province, CCountryTag Country), int> SeaIntelligence { get; } = new();
 
 	/// <summary>
-	/// How many times a province has changed hands in this game. Whatever shows who
-	/// holds what watches it to know when to look again.
+	/// How many times a province has changed owner or controller in this game. Whatever shows who
+	/// holds what watches it to know when to look again. The provinces count it themselves
+	/// (<see cref="CHandChanges"/>), so no writer of an owner or a controller can forget to.
 	/// </summary>
-	public int ControlChanges { get; set; }
+	public int ControlChanges => _handChanges.Count;
 
 	/// <summary>What the map says of each country this hour, kept by <see cref="Countries.CCountryFacts"/>.</summary>
 	public Countries.CCountryFacts? CountryFacts { get; set; }
@@ -440,14 +463,19 @@ public sealed class CGameState
 	}
 
 	/// <summary>
-	/// A country's stockpile, which is the pool of its capital province and not something
-	/// the country holds: two countries with one capital share it. Null for a country
-	/// with no capital. See <c>docs/mechanics/stockpile.md</c>, section 1.
+	/// A country's stockpile, the original's <c>GetPool</c>: the pool of the province its government sits in - its
+	/// acting capital - and not something the country holds, so two countries with one seat share it; a government
+	/// in exile's own pool. Null for a country with no seat. See <c>docs/mechanics/stockpile.md</c>, section 1, and
+	/// <c>war.md</c>, section 14.
 	/// </summary>
 	public CGoodsPool? Stockpile(CCountry country)
 	{
-		CProvince capital = Province(country.Capital);
-		return capital.Id == 0 ? null : capital.Pool;
+		if (country.InExile)
+		{
+			return country.PoolInExile;
+		}
+		CProvince seat = Province(country.ActingCapital);
+		return seat.Id == 0 ? null : seat.Pool;
 	}
 
 	/// <summary>

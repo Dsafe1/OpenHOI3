@@ -25,7 +25,8 @@ and their order are in `resources.md`, section 1.
   `confirmed`
 - It follows the **acting** capital, the province the government sits in now, which is not
   the same as the capital once a government has moved. A government in exile is the
-  exception and keeps a pool of its own. `confirmed`
+  exception and keeps a pool of its own. `confirmed` Both are built since 2026-10-13
+  (`war.md`, section 14).
 - **Two countries can share one stockpile.** East Germany's capital is Berlin and
   Nationalist Spain's is Madrid, so on the start date what those two are given lands in
   Germany's stockpile and Republican Spain's. (measured)

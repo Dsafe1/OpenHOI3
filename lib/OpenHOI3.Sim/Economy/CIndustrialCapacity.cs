@@ -58,8 +58,8 @@ public static class CIndustrialCapacity
 			// Its own ground at home is added up beside the sum: a province it owns and
 			// has a core on, in the area its capital is in.
 			if (province.Owner == controller && province.Cores.Contains(controller)
-				&& state.Country(controller) is { Capital: > 0 } holder
-				&& network.AreaOf(province.Id) is { } area && area == network.AreaOf(holder.Capital))
+				&& state.Country(controller) is { ActingCapital: > 0 } holder
+				&& network.AreaOf(province.Id) is { } area && area == network.AreaOf(holder.ActingCapital))
 			{
 				coreHome.TryGetValue(controller.Value, out long home);
 				coreHome[controller.Value] = home + contribution;

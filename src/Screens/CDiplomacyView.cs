@@ -64,6 +64,12 @@ public sealed partial class CDiplomacyView : CCountryView
 	private Vector2 _origin;
 	private readonly List<(CCountry Country, CGuiButton Marker)> _markers = new();
 	private long _nextMarkers = long.MinValue;
+
+	/// <summary>The hour the action list was last made for.</summary>
+	private long _actionsHour = long.MinValue;
+
+	/// <summary>Frames left in which the action list is made again, after a request is closed.</summary>
+	private int _remakeFrames;
 	private readonly List<CFactionBox> _factionBoxes = new();
 
 	// The panel.
@@ -344,6 +350,14 @@ public sealed partial class CDiplomacyView : CCountryView
 		}
 
 		FillPanel();
+		// The original's view is refreshed by every diplomatic change; here the list is made again each hour, and
+		// for a few frames after a request closes, while the command it posted is run.
+		if (now != _actionsHour || _remakeFrames > 0)
+		{
+			_actionsHour = now;
+			_remakeFrames = System.Math.Max(_remakeFrames - 1, 0);
+			MakeActions();
+		}
 		foreach (CDiplomacyActionEntry row in _actions)
 		{
 			row.Refresh();
@@ -509,6 +523,14 @@ public sealed partial class CDiplomacyView : CCountryView
 			licence.Closed += () => Closed(licence.Close);
 			(window, close, made) = (licence, licence.Close, () => licence.Window);
 		}
+		else if (offer.Kind is Sim.Agreements.EOfferKind.DeclareWar or Sim.Agreements.EOfferKind.AddWarGoal)
+		{
+			// Both declarations and an added goal choose their goal in the declare-war dialog (war.md, section 10).
+			var war = new CWarGoalDialog();
+			war.Setup(Context, Simulation, offer);
+			war.Closed += () => Closed(war.Close);
+			(window, close, made) = (war, war.Close, () => war.Window);
+		}
 		else if (offer.Kind == Sim.Agreements.EOfferKind.ShareTechnology && offer.Value)
 		{
 			// Sharing chooses its theory in a window of its own; stopping is the plain dialog.
@@ -539,6 +561,7 @@ public sealed partial class CDiplomacyView : CCountryView
 				_request = null;
 			}
 			MakeActions();
+			_remakeFrames = 3;
 		}
 	}
 

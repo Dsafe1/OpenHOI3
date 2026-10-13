@@ -36,7 +36,7 @@ public static class COfferRules
 		{
 			case EOfferKind.Alliance:
 				return offer.Value
-					? !allied && !atWar && !IsPuppet(actor) && !InExile() && RecipientFree(actor, recipient)
+					? !allied && !atWar && !IsPuppet(actor) && !actor.InExile && RecipientFree(actor, recipient)
 						&& !OneRealFaction(actor, recipient)
 					: allied && !atWar && !state.IsAtWar(actor.Tag) && !state.IsAtWar(recipient.Tag) && !IsPuppet(actor)
 						&& RecipientFree(actor, recipient);
@@ -65,7 +65,9 @@ public static class COfferRules
 				return !(atWar && offer.Value) && !RealFaction(actor) && !IsPuppet(actor) && !IsPuppet(recipient)
 					&& Owns(state, actor) && Owns(state, recipient);
 			case EOfferKind.Trade:
-				if (!Owns(state, actor) || !Owns(state, recipient))
+				// An exile trades only while it owns its seat.
+				if (!Owns(state, actor) || !Owns(state, recipient) || (actor.InExile && state.Province(actor.ActingCapital).Owner != actor.Tag)
+					|| (recipient.InExile && state.Province(recipient.ActingCapital).Owner != recipient.Tag))
 				{
 					return false;
 				}
@@ -75,8 +77,8 @@ public static class COfferRules
 						&& (recipient.Overlord is null || recipient.Overlord == actor.Tag)
 					: offer.Deal is { } deal && CTradeRules.Matching(state, deal) is not null;
 			case EOfferKind.Debt:
-				// Neither in exile, which nobody is.
-				return !InExile();
+				// Neither in exile.
+				return !actor.InExile && !recipient.InExile;
 			case EOfferKind.ShareTechnology:
 				// Sharing a theory the actor is above the recipient in, as it reads it, and the recipient owns land.
 				return !offer.Value || (IsTheory(state, offer.Category) && Owns(state, recipient)
@@ -86,6 +88,15 @@ public static class COfferRules
 				return actor != recipient && Owns(state, recipient);
 			case EOfferKind.Licence:
 				return !atWar;
+			case EOfferKind.DeclareWar:
+				return Wars.CDeclarations.IsValid(state, actor, recipient, offer.WarGoal);
+			case EOfferKind.CallAlly:
+				return Wars.CCallsToArms.IsValid(state, offer, actor, recipient);
+			case EOfferKind.AddWarGoal:
+				return Wars.CWarSides.Between(state, actor.Tag, recipient.Tag) is { } war && Wars.CWarGoals.CooledDown(state, actor, recipient)
+					&& offer.WarGoal is { } goal && Wars.CWarGoals.IsValidForWar(state, goal, war);
+			case EOfferKind.Peace:
+				return Wars.CPeace.IsValid(state, actor, recipient);
 			default:
 				return false;
 		}
@@ -123,7 +134,7 @@ public static class COfferRules
 					return false;
 				}
 				return offer.Value
-					? !allied && !atWar && !IsPuppet(actor) && RecipientFree(actor, recipient) && !InExile()
+					? !allied && !atWar && !IsPuppet(actor) && RecipientFree(actor, recipient) && !recipient.InExile
 						&& actor.EffectiveNeutrality <= Define(state, "ALLIANCE_NEUTRALITY_LIMIT")
 						&& recipient.EffectiveNeutrality <= Define(state, "ALLIANCE_NEUTRALITY_LIMIT")
 						&& Afford(state, actor, offer)
@@ -194,7 +205,8 @@ public static class COfferRules
 			case EOfferKind.Debt:
 				// Allowing asks whether the actor may not yet run a debt with them; revoking whether they may
 				// with the actor. Both costs are asked of the actor's influence whichever it is.
-				return (offer.Value ? !CGameState.Status(actor, recipient).AllowDebts : CGameState.Status(recipient, actor).AllowDebts)
+				return !actor.InExile && !recipient.InExile
+					&& (offer.Value ? !CGameState.Status(actor, recipient).AllowDebts : CGameState.Status(recipient, actor).AllowDebts)
 					&& actor.DiplomaticInfluence >= Define(state, "ALLOW_DEBT_INFLUENCE_COST")
 					&& actor.DiplomaticInfluence >= Define(state, "REVOKE_DEBT_INFLUENCE_COST")
 					&& !atWar;
@@ -212,6 +224,14 @@ public static class COfferRules
 					: Aid.CLendLease.Gives(actor, recipient);
 			case EOfferKind.Licence:
 				return !enRoute && !atWar && (!offer.Value || Afford(state, actor, offer));
+			case EOfferKind.DeclareWar:
+				return Wars.CDeclarations.IsSelectable(state, actor, recipient);
+			case EOfferKind.CallAlly:
+				return Wars.CCallsToArms.IsSelectable(state, offer, actor, recipient);
+			case EOfferKind.AddWarGoal:
+				return atWar && Wars.CWarGoals.CooledDown(state, actor, recipient);
+			case EOfferKind.Peace:
+				return Wars.CPeace.IsSelectable(state, actor, recipient);
 			default:
 				return false;
 		}
@@ -236,6 +256,8 @@ public static class COfferRules
 			// Asking for lend-lease is charged the debt's define; offering it costs nothing (aid.md, section 5).
 			EOfferKind.RequestLendLease => offer.Value ? "ALLOW_DEBT_INFLUENCE_COST" : null,
 			EOfferKind.Licence => offer.Value ? "LICENCE_INFLUENCE_COST" : null,
+			EOfferKind.DeclareWar => Wars.CDeclarations.InfluenceCost,
+			EOfferKind.CallAlly => Wars.CCallsToArms.InfluenceCost,
 			_ => null,
 		};
 		return define is null ? CFixedPoint.Zero : Define(state, define);
@@ -251,6 +273,10 @@ public static class COfferRules
 			// A licence is always answered.
 			EOfferKind.Licence => true,
 			EOfferKind.AskMilitaryAccess or EOfferKind.OfferMilitaryAccess => offer.Stage == EOfferStage.Proposed && offer.Value,
+			// Both kinds of call are answered (war.md, section 6).
+			EOfferKind.CallAlly => offer.Stage == EOfferStage.Proposed,
+			// Peace is answered as it is proposed (war.md, section 11).
+			EOfferKind.Peace => offer.Stage == EOfferStage.Proposed && offer.Value,
 			_ => false,
 		};
 	}
@@ -262,10 +288,11 @@ public static class COfferRules
 	/// </summary>
 	public static bool AsksPlayer(COffer offer)
 	{
-		// A licence is put whatever its value.
+		// A licence is put whatever its value; a call to arms only where it asks (war.md, section 6).
 		return offer.Stage == EOfferStage.Proposed && (offer.Kind == EOfferKind.Licence || (offer.Value && offer.Kind is EOfferKind.Alliance
 			or EOfferKind.NonAggressionPact or EOfferKind.AskMilitaryAccess or EOfferKind.OfferMilitaryAccess
-			or EOfferKind.Trade or EOfferKind.Debt or EOfferKind.RequestLendLease or EOfferKind.OfferLendLease));
+			or EOfferKind.Trade or EOfferKind.Debt or EOfferKind.RequestLendLease or EOfferKind.OfferLendLease
+			or EOfferKind.CallAlly));
 	}
 
 	/// <summary>The install's Lua function the AI's answer is scored by; none where the AI does not answer.</summary>
@@ -282,6 +309,8 @@ public static class COfferRules
 			EOfferKind.RequestLendLease => "DiploScore_RequestLendLease",
 			EOfferKind.OfferLendLease => "DiploScore_OfferLendLease",
 			EOfferKind.Licence => "DiploScore_LicenceTechnology",
+			EOfferKind.CallAlly => "DiploScore_CallAlly",
+			EOfferKind.Peace => "DiploScore_PeaceAction",
 			_ => null,
 		};
 	}
@@ -321,8 +350,6 @@ public static class COfferRules
 	/// <summary>The recipient is no puppet, or the actor's own.</summary>
 	public static bool RecipientFree(CCountry actor, CCountry recipient) => recipient.Overlord is null || recipient.Overlord == actor.Tag;
 
-	/// <summary>A government in exile, which the simulation has none of.</summary>
-	public static bool InExile() => false;
 
 	public static bool RealFaction(CCountry country) => country.Faction.Length > 0;
 

@@ -8,6 +8,7 @@ using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Interface.Screens;
 

@@ -17,6 +17,9 @@ public sealed class CProvince
 {
 	private CFixedPoint[] _buildingLevels = System.Array.Empty<CFixedPoint>();
 	private CFixedPoint[] _buildingMaxLevels = System.Array.Empty<CFixedPoint>();
+	private CCountryTag? _owner;
+	private CCountryTag? _controller;
+	private CHandChanges? _handChanges;
 
 	public CProvince(int id, string name, bool isSea)
 	{
@@ -35,11 +38,45 @@ public sealed class CProvince
 
 	public bool IsSea { get; }
 
-	/// <summary>The country it belongs to, or null: every sea province, and unclaimed land.</summary>
-	public CCountryTag? Owner { get; set; }
+	/// <summary>
+	/// The country it belongs to, or null: every sea province, and unclaimed land. A change counts in
+	/// the game's <see cref="CHandChanges"/>.
+	/// </summary>
+	public CCountryTag? Owner
+	{
+		get => _owner;
+		set
+		{
+			if (_owner != value)
+			{
+				_owner = value;
+				_handChanges?.Add();
+			}
+		}
+	}
 
-	/// <summary>The country whose forces hold it, which differs from the owner under occupation.</summary>
-	public CCountryTag? Controller { get; set; }
+	/// <summary>
+	/// The country whose forces hold it, which differs from the owner under occupation. A change
+	/// counts in the game's <see cref="CHandChanges"/>.
+	/// </summary>
+	public CCountryTag? Controller
+	{
+		get => _controller;
+		set
+		{
+			if (_controller != value)
+			{
+				_controller = value;
+				_handChanges?.Add();
+			}
+		}
+	}
+
+	/// <summary>Where a change of owner or controller is counted from now on: the game's, as it is made.</summary>
+	internal void CountChangesIn(CHandChanges changes)
+	{
+		_handChanges = changes;
+	}
 
 	/// <summary>The countries that claim it as rightfully theirs, in the order the claims were made.</summary>
 	public List<CCountryTag> Cores { get; } = new();

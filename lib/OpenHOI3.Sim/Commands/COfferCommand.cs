@@ -24,7 +24,8 @@ public sealed class COfferCommand : CCommand
 		{
 			return;
 		}
-		if (Offer.Stage == EOfferStage.Proposed)
+		// Every proposal but a call to arms sends a diplomat (agreements.md, section 1; war.md, section 6).
+		if (Offer.Stage == EOfferStage.Proposed && Offer.Kind != EOfferKind.CallAlly)
 		{
 			CGameState.Status(actor, recipient).DiplomatUntil = Offer.Date + COfferRules.DiplomatHours;
 		}

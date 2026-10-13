@@ -75,7 +75,7 @@ public static class CResources
 		if (joined.Count > 0)
 		{
 			Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
-			Supply.CSupplyArea? homeArea = network.AreaOf(country.Capital);
+			Supply.CSupplyArea? homeArea = network.AreaOf(country.ActingCapital);
 			foreach (CProvince province in state.Provinces)
 			{
 				if (Holds(country, province) && network.AreaOf(province.Id) != homeArea
@@ -104,7 +104,7 @@ public static class CResources
 	/// </summary>
 	public static bool IsHome(Supply.CSupplyNetwork network, CCountry country, CProvince province)
 	{
-		if (network.AreaOf(country.Capital) is not { } home)
+		if (network.AreaOf(country.ActingCapital) is not { } home)
 		{
 			return false;
 		}
@@ -197,22 +197,22 @@ public static class CResources
 		return new CFixedPoint(money);
 	}
 
-	/// <summary>Whether the country controls its own capital, which is what it is to exist here.</summary>
+	/// <summary>Whether the country holds the province its government sits in, its acting capital.</summary>
 	public static bool HoldsCapital(CGameState state, CCountry country)
 	{
-		CProvince capital = state.Province(country.Capital);
+		CProvince capital = state.Province(country.ActingCapital);
 		return capital.Id != 0 && Holds(country, capital);
 	}
 
 	/// <summary>
-	/// The provinces whose production reaches the capital on its own: the capital, and
-	/// every land province the country controls that can be walked to from it through
+	/// The provinces whose production reaches the capital on its own: the acting capital,
+	/// and every land province the country controls that can be walked to from it through
 	/// land it controls. Anything else has to be shipped, and is not home production.
 	/// </summary>
 	public static List<int> ProvincesJoinedToCapital(CGameState state, CCountry country)
 	{
 		var joined = new List<int>();
-		CProvince capital = state.Province(country.Capital);
+		CProvince capital = state.Province(country.ActingCapital);
 		if (!HoldsCapital(state, country))
 		{
 			return joined;

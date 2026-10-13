@@ -1,0 +1,189 @@
+using System.Collections.Generic;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Wars;
+
+namespace OpenHOI3.Sim.Script;
+
+/// <summary>
+/// The effects on wars and casus belli: <c>war</c>, <c>add_wargoal</c>, <c>casus_belli</c> and
+/// <c>add_casus_belli</c>. See <c>docs/mechanics/war.md</c>, section 9.
+/// </summary>
+public static class CWarEffects
+{
+	public static bool TryRun(CGameState state, CEffect effect, CEventScope scope)
+	{
+		switch (effect.Keyword)
+		{
+			case "war":
+				War(state, effect, scope);
+				return true;
+			case "add_wargoal":
+				if (state.Country(scope.Country) is { } actor && state.Country(WarTarget(state, effect, scope)) is { } target
+					&& CWarSides.Between(state, actor.Tag, target.Tag) is { } war && Goal(state, effect, "war_goal", actor, target) is { } goal)
+				{
+					CWarGoals.AddToWar(state, goal, war);
+				}
+				return true;
+			case "casus_belli":
+				// The scope is given one on TAG.
+				if (state.Country(scope.Country) is { } holder && state.Country(Inline(state, effect, scope)) is { } on)
+				{
+					CCasusBellis.Give(state, holder, on);
+				}
+				return true;
+			case "add_casus_belli":
+				// The other way round: TAG is given one on the scope.
+				if (state.Country(scope.Country) is { } against && state.Country(Inline(state, effect, scope)) is { } given)
+				{
+					CCasusBellis.Give(state, given, against);
+				}
+				return true;
+			case "inherit":
+				// The scope annexes TAG, unguarded: itself not refused (war.md, section 13).
+				if (state.Country(scope.Country) is { } annexer && state.Country(Inline(state, effect, scope)) is { } annexed)
+				{
+					CAnnexation.Annex(state, annexer, annexed);
+				}
+				return true;
+			case "form_government_in_exile":
+				// With a FROM, the scope's land on FROM's capital's continent or beside FROM's goes to FROM where FROM is
+				// at war with its owner, otherwise to its owner; then the exile begins or ends (war.md, section 14).
+				if (state.Country(scope.Country) is { } exile)
+				{
+					if (state.Country(scope.FromCountry) is { } host)
+					{
+						CExile.HandLand(state, exile, host);
+					}
+					if (effect.Argument.IsYes)
+					{
+						CExile.Enter(state, exile);
+					}
+					else
+					{
+						CExile.Leave(state, exile);
+					}
+				}
+				return true;
+			case "create_vassal":
+				// TAG becomes the scope's puppet, unless it is already or owns nothing.
+				if (state.Country(scope.Country) is { } overlord && state.Country(CEffects.Target(state, effect, scope)) is { } vassal
+					&& vassal.Overlord != overlord.Tag && CCountryLists.OwnedCount(state, vassal.Tag) > 0)
+				{
+					CPuppets.Make(state, overlord, vassal);
+				}
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	/// <summary>
+	/// <c>war</c>: nothing where the scope is at war with TAG already or either is <c>REB</c>; otherwise a
+	/// declaration carrying the first attacker goal, carried out without asking whether it may be, and then
+	/// the other attacker goals and the defender's added.
+	/// </summary>
+	private static void War(CGameState state, CEffect effect, CEventScope scope)
+	{
+		if (state.Country(scope.Country) is not { } actor || state.Country(WarTarget(state, effect, scope)) is not { } target
+			|| actor == target || CCountryLists.AtWar(state, actor.Tag, target.Tag) || actor.Tag.Value == "REB"
+			|| target.Tag.Value == "REB")
+		{
+			return;
+		}
+		var attackerGoals = new List<CWarGoal>();
+		var defenderGoals = new List<CWarGoal>();
+		foreach (CScriptField field in effect.Fields)
+		{
+			if (field.Key == "attacker_goal" && Goal(state, field, actor, target) is { } attacking)
+			{
+				attackerGoals.Add(attacking);
+			}
+			else if (field.Key == "defender_goal" && Goal(state, field, target, actor) is { } defending)
+			{
+				defenderGoals.Add(defending);
+			}
+		}
+		bool limited = CEffects.Field(effect, "limited")?.IsYes ?? false;
+		CWarGoal? first = attackerGoals.Count > 0 ? attackerGoals[0] : null;
+		CDeclarations.Apply(state, actor, target, !limited, first);
+		if (CWarSides.Between(state, actor.Tag, target.Tag) is not { } war)
+		{
+			return;
+		}
+		for (int i = 1; i < attackerGoals.Count; i++)
+		{
+			CWarGoals.AddToWar(state, attackerGoals[i], war);
+		}
+		foreach (CWarGoal goal in defenderGoals)
+		{
+			CWarGoals.AddToWar(state, goal, war);
+		}
+	}
+
+	/// <summary>
+	/// The country <c>war</c>, <c>add_wargoal</c> and <c>undeclared_war</c> mean - the original's slot 12:
+	/// the <c>target</c> written, THIS or FROM; where none is written, or one nobody has, the controller of
+	/// the scope's province.
+	/// </summary>
+	public static CCountryTag? WarTarget(CGameState state, CEffect effect, CEventScope scope)
+	{
+		CScriptArgument? written = CEffects.Field(effect, "target");
+		if (written is not null && state.Country(CEffects.Target(state, written, scope)) is { } named)
+		{
+			return named.Tag;
+		}
+		return state.Province(scope.Province).Controller;
+	}
+
+	/// <summary>
+	/// The country <c>casus_belli</c> and its kin mean, inline: THIS the root's country or its province's
+	/// owner, FROM the scope's own FROM country, otherwise the tag written.
+	/// </summary>
+	private static CCountryTag? Inline(CGameState state, CEffect effect, CEventScope scope)
+	{
+		CScriptArgument value = effect.Argument;
+		if (value.IsThis)
+		{
+			return scope.Root.Country ?? state.Province(scope.Root.Province).Owner;
+		}
+		return value.IsFrom ? scope.FromCountry : CEventScope.Known(value.Tag);
+	}
+
+	/// <summary>The goal a block of the effect gives, its actor and recipient stamped; none where the effect has no such block.</summary>
+	private static CWarGoal? Goal(CGameState state, CEffect effect, string key, CCountry actor, CCountry recipient)
+	{
+		foreach (CScriptField field in effect.Fields)
+		{
+			if (field.Key == key)
+			{
+				return Goal(state, field, actor, recipient);
+			}
+		}
+		return null;
+	}
+
+	private static CWarGoal Goal(CGameState state, CScriptField block, CCountry actor, CCountry recipient)
+	{
+		CCasusBelliType type = CCasusBelliType.Null;
+		CCountryTag? third = null;
+		Provinces.CRegion? region = null;
+		foreach (CScriptField field in block.Fields)
+		{
+			switch (field.Key)
+			{
+				case "casus_belli":
+					type = CCasusBellis.Find(state, field.Argument.Text);
+					break;
+				case "country":
+					third = CEventScope.Known(field.Argument.Tag);
+					break;
+				case "region":
+					region = state.Regions.Count > 0
+						? System.Linq.Enumerable.FirstOrDefault(state.Regions, r => r.Name == field.Argument.Text)
+						: null;
+					break;
+			}
+		}
+		return new CWarGoal(type, actor.Tag, recipient.Tag) { Country = third, Region = region };
+	}
+}

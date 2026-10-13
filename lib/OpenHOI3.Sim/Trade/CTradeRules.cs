@@ -161,12 +161,12 @@ public static class CTradeRules
 		{
 			return false;
 		}
-		if (network.AreaOf(a.Capital) is not { } first || network.AreaOf(b.Capital) is not { } second)
+		if (network.AreaOf(a.ActingCapital) is not { } first || network.AreaOf(b.ActingCapital) is not { } second)
 		{
 			return true;
 		}
-		string continent = state.Province(a.Capital).Continent;
-		if (continent.Length > 0 && string.Equals(continent, state.Province(b.Capital).Continent, StringComparison.Ordinal))
+		string continent = state.Province(a.ActingCapital).Continent;
+		if (continent.Length > 0 && string.Equals(continent, state.Province(b.ActingCapital).Continent, StringComparison.Ordinal))
 		{
 			return false;
 		}
@@ -174,18 +174,20 @@ public static class CTradeRules
 	}
 
 	/// <summary>
-	/// The two harbours a trade convoy of the buyer's would run between: from the harbour of the buyer's
-	/// capital area nearest the other's, to the harbour of the other's capital area nearest the buyer's
-	/// first harbour. None where either is no harbour with a naval base.
+	/// The two harbours a trade convoy of the buyer's would run between: to the harbour of the other's seat's
+	/// area nearest the first harbour of the buyer's declared capital's area, from the harbour of the buyer's
+	/// seat's area nearest that. None where either is no harbour with a naval base. (The declared capital for
+	/// the reference, the seats for the ends: <c>reversing/findings/FINDINGS-capitalreaders.md</c>.)
 	/// </summary>
 	public static (int Start, int End)? ConvoyEnds(CGameState state, CSupplyNetwork network, CCountry buyer, CCountry other)
 	{
-		if (network.AreaOf(buyer.Capital) is not { } home || home.Ports.Count == 0
-			|| network.AreaOf(other.Capital) is not { } theirs)
+		if (network.AreaOf(buyer.Capital) is not { } reference || reference.Ports.Count == 0
+			|| network.AreaOf(buyer.ActingCapital) is not { } home
+			|| network.AreaOf(other.ActingCapital) is not { } theirs)
 		{
 			return null;
 		}
-		int end = CConvoyRules.NearestPort(state, theirs, home.Ports[0]);
+		int end = CConvoyRules.NearestPort(state, theirs, reference.Ports[0]);
 		int start = CConvoyRules.NearestPort(state, home, end);
 		if (end == 0 || start == 0 || !CConvoyRules.IsHarbour(state, state.Province(end))
 			|| !CConvoyRules.IsHarbour(state, state.Province(start)))

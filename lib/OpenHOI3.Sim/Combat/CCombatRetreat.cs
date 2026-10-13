@@ -170,7 +170,7 @@ public static class CCombatRetreat
 	public static void Shatter(CGameState state, CCountry owner, CUnit unit)
 	{
 		CCombats.LeaveAll(state, unit);
-		if (owner.Capital == 0)
+		if (owner.ActingCapital == 0)
 		{
 			RemoveFromGame(state, unit);
 			return;
@@ -178,9 +178,9 @@ public static class CCombatRetreat
 		CMovement.Cancel(unit);
 		CUnitOrders.Clear(unit);
 		unit.IsRetreating = false;
-		state.Positions.Move(unit, unit.Location, owner.Capital);
+		state.Positions.Move(unit, unit.Location, owner.ActingCapital);
 		unit.Previous = 0;
-		unit.Location = owner.Capital;
+		unit.Location = owner.ActingCapital;
 
 		CUnit? top = unit.Parent;
 		while (top?.Parent is not null)

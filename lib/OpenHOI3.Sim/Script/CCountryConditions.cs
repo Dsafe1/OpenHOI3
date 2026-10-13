@@ -51,6 +51,14 @@ public static class CCountryConditions
 			case "national_unity":
 				answer = (country?.NationalUnity ?? CFixedPoint.Zero) >= value.Amount;
 				return true;
+			case "government_in_exile":
+				// A byte compared with the value, so "= no" is a test of its own.
+				answer = CConditions.Is(trigger, country?.InExile ?? false);
+				return true;
+			case "surrender_progress":
+				// The progress, 0 to 1000, a hundred times over against the value's thousandths: 0 to 100.
+				answer = (country is null ? 0 : Wars.CSurrender.Progress(state, country) * 100) >= value.Amount.Raw;
+				return true;
 			case "manpower":
 			case "max_manpower_greater_than":
 				// One body: both read the manpower, not its ceiling.
@@ -69,7 +77,7 @@ public static class CCountryConditions
 			case "crude_oil":
 			case "supplies":
 				CGoodsPool.TryParseKey(trigger.Keyword, out EGoods goods);
-				answer = state.Province(country?.Capital ?? 0).Pool[goods] >= value.Amount;
+				answer = (country is null ? state.Province(0).Pool : state.Stockpile(country) ?? state.Province(0).Pool)[goods] >= value.Amount;
 				return true;
 			case "num_of_convoys":
 				answer = (country?.Convoys.Count ?? 0) >= whole;

@@ -52,7 +52,7 @@ public static class CConvoyDelivery
 			return;
 		}
 		bool fromPuppet = loader.Overlord == convoy.Owner;
-		CSupplyArea? home = network.AreaOf(loader.Capital);
+		CSupplyArea? home = network.AreaOf(loader.ActingCapital);
 		bool fromHome = network.AreaOf(convoy.Start) == home;
 
 		// From the land its capital stands on a country loads out of its stockpile; from
@@ -169,7 +169,7 @@ public static class CConvoyDelivery
 			supplies = askedSupplies * days / Scale - lyingSupplies;
 			fuel = askedFuel * days / Scale - lyingFuel;
 		}
-		if (area is not null && end.Id != network.DepotOf(end.Id) && area == network.AreaOf(loader.Capital))
+		if (area is not null && end.Id != network.DepotOf(end.Id) && area == network.AreaOf(loader.ActingCapital))
 		{
 			supplies = fuel = CConvoyRules.PortCapacity(state, end);
 		}

@@ -22,11 +22,11 @@ public static class CDeployment
 	/// </summary>
 	public static HashSet<int> HomeArea(CGameState state, CCountry country)
 	{
-		if (country.Capital <= 0 || state.Province(country.Capital).Controller != country.Tag)
+		if (country.ActingCapital <= 0)
 		{
 			return new HashSet<int>();
 		}
-		return new HashSet<int>(CSupplyNetworks.AreaAround(state, country.Capital));
+		return new HashSet<int>(CSupplyNetworks.AreaAround(state, country.ActingCapital));
 	}
 
 	/// <summary>

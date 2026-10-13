@@ -14,8 +14,6 @@ public static class CDiplomacyStatusClass
 {
 	private const string Name = "CDiplomacyStatus";
 
-	private const string TruceUnbuilt = "truces: no war has ended";
-
 	public static CLuaClass Define(CGameApi api)
 	{
 		return new CLuaClass(Name)
@@ -41,18 +39,16 @@ public static class CDiplomacyStatusClass
 			})
 			.Method("HasFriendlyAgreement", call => call.Return(HasFriendlyAgreement(api, Of(call))))
 			.Method("HasMilitaryAccess", call => call.Return(Of(call).HasMilitaryAccess))
-			.Method("HasTruce", call => Unbuilt(api, call, TruceUnbuilt))
+			.Method("HasTruce", call =>
+			{
+				CDiplomacyStatus status = Of(call);
+				return call.Return(api.State.Country(status.Holder) is { } holder && api.State.Country(status.Other) is { } other
+					&& Sim.Wars.CTruces.Has(api.State, holder, other));
+			})
 			.Method("AllowDebts", call => call.Return(Of(call).AllowDebts));
 	}
 
 	private static CDiplomacyStatus Of(CLuaCall call) => call.Object<CDiplomacyStatus>(1, Name);
-
-	private static int Unbuilt(CGameApi api, CLuaCall call, string what)
-	{
-		Of(call);
-		api.ReportUnbuilt(what);
-		return call.Return(false);
-	}
 
 	private static bool Guarantees(CGameApi api, CCountryTag guarantor, CCountryTag guaranteed)
 	{

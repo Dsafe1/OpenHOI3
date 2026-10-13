@@ -4,6 +4,7 @@ using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Supply;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Tests.Sim;
 
@@ -562,7 +563,6 @@ public class SupplyNetworkTests
 		Assert.Equal(warsaw, first.DepotOf(posen));
 
 		state.Province(posen).Controller = Ger;
-		state.ControlChanges++;
 		CSupplyNetwork second = CSupplyNetworks.Refresh(state);
 
 		Assert.NotSame(first, second);

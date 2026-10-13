@@ -39,12 +39,18 @@ public static class CNeutrality
 	/// threat between them, less <c>NEUT_INCREASE_DIFF_CONTINENT</c> where their capitals are on
 	/// different continents and the other is no neighbour, and its faction's neutrality, floored at 0
 	/// (section 6). <c>NEUT_REDUCTION_AT_CLAIMS</c> is added where the country may use the casus belli for
-	/// its cores, which is war and peace's: it holds for nobody yet.
+	/// its cores, <c>aquire_all_cores</c>, on the other and its goal is to be had (<c>war.md</c>, section 5).
 	/// </summary>
 	public static CFixedPoint WarCeiling(CGameState state, CCountry country, CCountry other)
 	{
 		CFixedPoint ceiling = CFixedPoint.Max(CFixedPoint.Max(CGameState.Status(country, other).Threat,
 			CGameState.Status(other, country).Threat), CFixedPoint.Zero);
+		Wars.CCasusBelliType claims = Wars.CCasusBellis.Find(state, ClaimsType);
+		if (claims.IsReal && Wars.CCasusBellis.CanUse(state, country, other, claims)
+			&& Wars.CWarGoals.IsAvailable(state, new Wars.CWarGoal(claims, country.Tag, other.Tag), null))
+		{
+			ceiling += state.Defines[Section, AtClaims];
+		}
 		if (OnOtherContinents(state, country, other) && !CCountryLists.Neighbours(state, country).Contains(other))
 		{
 			ceiling -= state.Defines[Section, DifferentContinent];
@@ -56,6 +62,9 @@ public static class CNeutrality
 	public const string Section = "diplomacy";
 	public const string DifferentContinent = "NEUT_INCREASE_DIFF_CONTINENT";
 	public const string AtClaims = "NEUT_REDUCTION_AT_CLAIMS";
+
+	/// <summary>The casus belli type whose use raises the ceiling - so spelled in the original's code.</summary>
+	public const string ClaimsType = "aquire_all_cores";
 
 	/// <summary>Whether the two capitals are on different continents.</summary>
 	public static bool OnOtherContinents(CGameState state, CCountry country, CCountry other)

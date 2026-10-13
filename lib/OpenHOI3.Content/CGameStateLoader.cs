@@ -8,16 +8,17 @@ using OpenHOI3.Content.Map;
 using OpenHOI3.Content.Script;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Ai;
-using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Content;
 
@@ -163,6 +164,9 @@ public static class CGameStateLoader
 		if (fill && firstDays)
 		{
 			CTick.RunFirstDays(state);
+			// Then the game is entered, and every country is brought up to date with its wars: Italy and
+			// Ethiopia are mobilised for thirty days, as the start save has them (war.md, section 4).
+			Sim.Wars.CWarSides.BringAllUpToDate(state);
 		}
 		else if (fill)
 		{

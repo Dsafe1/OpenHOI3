@@ -106,6 +106,7 @@ public sealed class CCountries
 		{
 			Tag = tag,
 			Name = localisation.Localise(tag.Value),
+			Adjective = localisation.Localise(tag.Value + "_ADJ"),
 			DefinitionFile = definitionFile,
 			Color = color,
 			GraphicalCulture = culture,

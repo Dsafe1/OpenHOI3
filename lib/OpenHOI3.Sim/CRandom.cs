@@ -58,6 +58,23 @@ public sealed class CRandom
 		return y;
 	}
 
+	/// <summary>
+	/// Its state, to put back with <see cref="Restore"/>: for what only shows what a roll would give - a
+	/// dialog's chance - and must leave the game's rolls as they were.
+	/// </summary>
+	public (uint[] Words, int Index, long Draws) Snapshot()
+	{
+		return ((uint[])_words.Clone(), _index, Draws);
+	}
+
+	/// <summary>Puts back a state <see cref="Snapshot"/> took.</summary>
+	public void Restore((uint[] Words, int Index, long Draws) saved)
+	{
+		saved.Words.CopyTo(_words, 0);
+		_index = saved.Index;
+		Draws = saved.Draws;
+	}
+
 	/// <summary>A draw from 0 to one less than <paramref name="sides"/>.</summary>
 	public int Next(int sides)
 	{

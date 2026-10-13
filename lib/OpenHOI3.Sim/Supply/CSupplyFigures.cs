@@ -92,17 +92,17 @@ public static class CSupplyFigures
 	/// </summary>
 	public static bool IsBesideCapital(CGameState state, CProvince province)
 	{
-		if (state.Country(province.Controller) is not { Capital: > 0 } holder)
+		if (state.Country(province.Controller) is not { ActingCapital: > 0 } holder)
 		{
 			return false;
 		}
-		if (holder.Capital == province.Id)
+		if (holder.ActingCapital == province.Id)
 		{
 			return true;
 		}
 		foreach (CProvinceEdge edge in province.Edges)
 		{
-			if (edge.To == holder.Capital)
+			if (edge.To == holder.ActingCapital)
 			{
 				return true;
 			}

@@ -65,6 +65,7 @@ public static class CTick
 		COrganisation.RunHourly(state);
 		// Every country's own hour: its lend-lease looked at (docs/mechanics/aid.md, section 3).
 		Aid.CLendLease.RunHourly(state);
+		Countries.CActingCapital.RunHourly(state);                 // ours: where in a country's hour beside lend-lease was not compared
 		COfficers.Update(state);
 		// The battles are fought last, each in turn.
 		CCombats.RunHourly(state);
@@ -96,8 +97,11 @@ public static class CTick
 		CSupplyPass.RunDaily(state);
 		CCountryModifiers.Rebuild(state);
 		CThreat.UpdateMostThreatening(state);               // before any country's day, as its neighbours are
-		CNeutrality.RunDaily(state);                        // at the head of a country's day
-		Agreements.CPactPasses.RunDaily(state);             // its pacts that have run their course, and influence's upkeep
+		Wars.CSurrender.CountVictoryPoints(state);          // and with them its cores' victory points
+		Countries.CActingCapital.EnsureCapitals(state);     // at the head of a country's day: a capital it owns,
+		CNeutrality.RunDaily(state);                        // then neutrality
+		Wars.CExile.SwapDaily(state);                       // early in it, an exile made a puppet where it is held
+		Agreements.CPactPasses.RunDaily(state);            // its pacts that have run their course, and influence's upkeep
 		Aid.CTechnologySharing.CheckDaily(state);           // ours: where in the country's day was not placed exactly
 		CAlignment.RunDaily(state);                         // later in it: a step every interval and a day
 		CManpower.RunDaily(state);
@@ -113,11 +117,15 @@ public static class CTick
 		Aid.CDebts.RepayDaily(state);                       // the end of a country's production
 		Trade.CTradeRoutes.RunDaily(state);                 // then each country's trade, before its IC
 		CIndustrialCapacity.Update(state);
+		Wars.CExile.HandOverDaily(state);                   // an exile's supplies to its host, before the shares
 		CProduction.RunDaily(state);
 		CLeadership.RunDaily(state);
+		Wars.CSurrender.RunDaily(state);                    // late in a country's day: the surrender,
+		Wars.CExile.ReturnDaily(state);                     // and an exile leading its faction coming home
 		CConvoyDay.Maintain(state);                         // late in a country's day
 		CProvinceRepair.RunDaily(state);                    // each province's own day, after every country's:
-		CStockpile.HoldWithinBounds(state);                 // what was bombed comes back, and the pool is held
+		Wars.COccupiedLand.ReturnDaily(state);              // what was bombed comes back, land at peace goes back
+		CStockpile.HoldWithinBounds(state);                 // to its owner, and the pool is held
 		// Events, after the provinces' day; none while a game is still being made (ours: whether the
 		// original asks them in a new game's first days was not read).
 		if (!state.IsBeingMade)
