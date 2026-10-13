@@ -43,6 +43,11 @@ public sealed partial class CDiplomacyView : CCountryView
 	private readonly List<CDecisionEntry> _decisions = new();
 	private CGuiListBox? _decisionList;
 
+	// The actions towards the chosen country, and the request dialog one of them opened.
+	private readonly List<CDiplomacyActionEntry> _actions = new();
+	private CGuiListBox? _actionList;
+	private CDiplomacyRequestDialog? _request;
+
 	// The country list: who it holds, and its rows in the order last made.
 	private readonly List<CCountry> _countries = new();
 	private readonly List<CDiplomacyCountryEntry> _rows = new();
@@ -87,6 +92,7 @@ public sealed partial class CDiplomacyView : CCountryView
 	{
 		_chosen = Player;
 		_decisionList = window.FindListBox(DecisionListName);
+		_actionList = window.FindListBox("diploaction_list");
 		_countryList = window.FindListBox("country_listbox");
 		_driftList = window.FindListBox("drift_list");
 
@@ -322,10 +328,20 @@ public sealed partial class CDiplomacyView : CCountryView
 		}
 
 		FillPanel();
+		foreach (CDiplomacyActionEntry row in _actions)
+		{
+			row.Refresh();
+		}
 		foreach (CDecisionEntry row in _decisions)
 		{
 			row.Refresh();
 		}
+	}
+
+	protected override void Closing()
+	{
+		base.Closing();
+		_request?.Close();
 	}
 
 	/// <summary>The country list filled anew: its rows in its order, and the markers.</summary>
@@ -416,10 +432,61 @@ public sealed partial class CDiplomacyView : CCountryView
 
 	private void ShowChosen()
 	{
-		// No influence or aligning is built, so the drift list is empty.
+		// The drift list is not built yet, so it is empty.
 		_driftList?.Clear();
 		FillPanel();
 		ShowInfo();
+		MakeActions();
+	}
+
+	/// <summary>
+	/// The action list for the chosen country, made again only where its rows have changed - each row's
+	/// kind, countries and value - so that it keeps its scroll.
+	/// </summary>
+	private void MakeActions()
+	{
+		if (_actionList is null)
+		{
+			return;
+		}
+		List<Sim.Agreements.COffer> rows = CDiplomacyActions.Rows(State, Player, _chosen);
+		bool same = rows.Count == _actions.Count && rows.Select((row, i) => (row, shown: _actions[i].Offer))
+			.All(pair => pair.row.Kind == pair.shown.Kind && pair.row.Actor == pair.shown.Actor
+				&& pair.row.Recipient == pair.shown.Recipient && pair.row.Value == pair.shown.Value);
+		if (same)
+		{
+			return;
+		}
+		_actions.Clear();
+		_actionList.Clear();
+		foreach (Sim.Agreements.COffer offer in rows)
+		{
+			if (CDiplomacyActionEntry.Create(Context, () => State, offer) is { } row)
+			{
+				row.Chosen += OpenRequest;
+				_actions.Add(row);
+				_actionList.Add(row.Window);
+			}
+		}
+		_actionList.Relayout();
+	}
+
+	/// <summary>A row pressed: its request dialog, in place of any other; closing it makes the list again.</summary>
+	private void OpenRequest(Sim.Agreements.COffer offer)
+	{
+		_request?.Close();
+		var dialog = new CDiplomacyRequestDialog();
+		dialog.Setup(Context, Simulation, offer);
+		dialog.Closed += () =>
+		{
+			if (_request == dialog)
+			{
+				_request = null;
+			}
+			MakeActions();
+		};
+		_request = dialog;
+		AddChild(dialog);
 	}
 
 	/// <summary>The Info view: the relation and goal windows hidden, the status list shown.</summary>

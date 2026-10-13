@@ -160,7 +160,10 @@ public static class CRelations
 		{
 			drift += 80;
 		}
-		// Military access is the agreements' piece: there is none to add yet.
+		if (CGameState.Status(country, other).HasMilitaryAccess)
+		{
+			drift += 25;
+		}
 		if (Of(country, other) > CFixedPoint.FromInt(100) && drift > 0)
 		{
 			drift = 0;

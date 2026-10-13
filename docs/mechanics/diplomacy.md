@@ -81,13 +81,14 @@ result to the other.
 | --- | --- | --- | --- |
 | a land battle ends | each country on the winning side friendly to the province's owner, and not the owner, where the owner is an enemy of the losers' first country | +5 | yes |
 | the `relation` effect | `who` and the scope's country | the script's | yes |
-| a puppet made | master and puppet | +500, so 200 | with the agreements |
-| `release_vassal` | the one releasing and the released | +500 | with the agreements |
+| a puppet made | master and puppet | +500, so 200 | with war and peace |
+| `release_vassal` | the one releasing and the released | +500 | with war and peace |
 | a government in exile liberated, the two in different factions | liberator and liberated | +500 | with war and peace |
 | a war declared, new or widened | the two | -`WARDEC_WAR_DIPLOMACY_HIT` | with war and peace |
 | a call to arms accepted | the ally and the enemy | -`WARDEC_WAR_DIPLOMACY_HIT` | with war and peace |
 | a faction joined that brings its wars | the joiner and each new enemy | -`WARDEC_WAR_DIPLOMACY_HIT` | with factions |
-| an alliance, a pact, access, an embargo, a trade, a guarantee | the two | their defines; `reversing/findings/FINDINGS-diplostate.md` C.1 lists each | with the agreements |
+| an alliance, a pact, access, an embargo, a guarantee | the two | their defines; `agreements.md`, section 5 | yes |
+| a trade | the two | its defines | with the agreements' second half |
 
 **There is no action that improves relations** in the original; `RELATION_INFLUENCE_COST` is read by
 nothing. An influence or an alignment costs no relation: the two `DAYS_OF_*_RELATION_CHANGE` defines
@@ -158,8 +159,8 @@ original's, kept.
 | a spy's daily mission | 5.1 | `SPY_THREAT_INCREASE_ACTION` x level x the mission's share / 10 | the target | with espionage |
 | mobilising / demobilising | 5.2 from its own acting capital | `MOBILIZE_THREAT_IMPACT`, +1000 / -1000 | the country | with politics |
 | a war declared | 5.2 from the recipient's acting capital | `WARDEC_BELIGERENCY` | the declarer | with war and peace |
-| a pact broken | 5.2 from the recipient's capital | `LEAVE_NAP_THREAT_COST` | **the recipient** | with the agreements |
-| an embargo imposed / lifted | 5.2 from the recipient's acting capital | `EMBARGO_THREAT_COST`, +1000 / -1000 | **the recipient** | with the agreements |
+| a pact broken | 5.2 from the recipient's capital | `LEAVE_NAP_THREAT_COST` | **the recipient** | yes (`agreements.md`) |
+| an embargo imposed / lifted | 5.2 from the recipient's acting capital | `EMBARGO_THREAT_COST`, +1000 / -1000 | **the recipient** | yes (`agreements.md`) |
 | a war goal enforced at a surrender | 5.2 from the winner's acting capital | the casus belli's `threat` | the winner | with war and peace |
 | an annexation | between the annexed and every other, both ways, -9999.000, floored at 0 | | | with war and peace |
 
@@ -218,7 +219,7 @@ war on another while its effective neutrality is at most
   change. **REB fears nobody**: the start save has `---` for it where every other country has one,
   measured and not read.
 - **A war is still given by hand** (`--war=`), so a war starts with none of war's relation or threat;
-  the agreements, war and peace, factions, espionage and mobilising are later pieces and their
+  the agreements' trade and aid, war and peace, factions, espionage and mobilising are later pieces and their
   sources above are reported as unbuilt where a script asks.
 - **War exhaustion is not built**, so neutrality is never paid back.
 

@@ -43,5 +43,6 @@ public sealed class CStartWarCommand : CCommand
 		war.Attackers.Add(_attacker);
 		war.Defenders.Add(_defender);
 		state.Wars.Add(war);
+		Agreements.CPacts.WarBegun(state, _attacker, _defender);
 	}
 }

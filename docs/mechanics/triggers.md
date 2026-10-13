@@ -179,6 +179,9 @@ having one.
 | `war_with = X` | X is not us, and we are at war with X - **or either of us is `REB`**, so `war_with = REB` holds for every country but the rebels | by owner |
 | `enemy_ic_ratio` | **at most**, not at least: the IC we would have with resources enough, over the sum of our enemies', is at most the value, a share. False when we are not at war or **any enemy has none** | - |
 | `alliance_with = X` | we have an alliance with X - a faction is not asked | by owner |
+| `guarantee = X` | we guarantee X | by owner |
+| `non_aggression_pact = X` | there is a pact between us and X | by owner |
+| `military_access = X` | **we may pass through X's land** - the fact base's "gives X access" read the byte the other way round (`agreements.md`, section 5) | by owner |
 | `is_subject` | we have an overlord | - |
 | `vassal_of = X` | X is our overlord | by owner |
 | `num_of_vassals` | how many countries we are the overlord of, at least N | ignored |
@@ -259,8 +262,7 @@ five held everywhere on the start date for that reason when it was asked, flags 
 
 | waits for | conditions |
 | --- | --- |
-| diplomacy | `relation`, `threat`, `is_threatend`, `guarantee`, `military_access`, `non_aggression_pact`, `truce_with`, `undeclared_war_with`, `casus_belli`, `has_cb`, `has_wargoal` |
-| neutrality | `neutrality`, `base_neutrality` |
+| diplomacy | `truce_with`, `undeclared_war_with`, `casus_belli`, `has_cb`, `has_wargoal` |
 | the government | `government`, `government_in_exile`, `has_removable_minister`, `minister_alive` |
 | parties | `ideology`, `ideology_group`, `organisation`, `popularity`, an ideology's block |
 | revolts | `num_of_revolts`, `revolt_percentage`, `revolt_risk`, `pure_revolt_risk`, `nationalism` |

@@ -1,4 +1,5 @@
 using System;
+using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 
@@ -36,6 +37,20 @@ public static class CRelationConditions
 			case "alliance_with":
 				answer = scope.Country is { } one && CConditions.TagByOwner(state, trigger, scope) is { } other
 					&& CCountryLists.HasAlliance(state, one, other);
+				return true;
+			case "guarantee":
+				// The scope guarantees the other.
+				answer = scope.Country is { } guarantor && CConditions.TagByOwner(state, trigger, scope) is { } guaranteed
+					&& state.Guarantees.Exists(g => g.Guarantor == guarantor && g.Guaranteed == guaranteed);
+				return true;
+			case "non_aggression_pact":
+				answer = scope.Country is { } side && CConditions.TagByOwner(state, trigger, scope) is { } pact
+					&& COfferRules.Nap(state, side, pact) is not null;
+				return true;
+			case "military_access":
+				// The scope may pass through the other's land.
+				answer = country is not null && state.Country(CConditions.TagByOwner(state, trigger, scope)) is { } through
+					&& COfferRules.HasAccess(country, through);
 				return true;
 			case "is_subject":
 				answer = CConditions.Is(trigger, country?.Overlord is not null);

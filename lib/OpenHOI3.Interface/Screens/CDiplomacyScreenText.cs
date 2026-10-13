@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
@@ -150,16 +151,28 @@ public static class CDiplomacyScreenText
 			lines.Add(CTextTemplate.Fill(localise("FACTION_MEMBER_OF"),
 				("NAME", chosen.Name), ("FACTION", localise(faction.Faction))));
 		}
-		// Influence, aligning, non-aggression pacts: none are made yet.
+		Add(lines, localise, "INFLUENCEFROM", Named(state, owns, chosen,
+			other => state.Influences.Exists(i => i.Influencer == other.Tag && i.Influenced == chosen.Tag)));
+		// Each country aligned towards is written as its faction.
+		Add(lines, localise, "ALIGNINGTOWARDS", Named(state, owns, chosen,
+			other => COfferRules.Align(state, chosen.Tag, other.Tag) is not null, other => localise(other.Faction)));
+		Add(lines, localise, "NAPWITH", Named(state, owns, chosen,
+			other => COfferRules.Nap(state, chosen.Tag, other.Tag) is not null));
 		Add(lines, localise, "ALLIEDWITH", Named(state, owns, chosen,
 			other => CCountryLists.HasAlliance(state, chosen.Tag, other.Tag)));
 		Add(lines, localise, "LEADVASSAL", Named(state, owns, chosen, other => other.Overlord == chosen.Tag));
 		Add(lines, localise, "AMVASSAL", Named(state, owns, chosen, other => chosen.Overlord == other.Tag));
 		Add(lines, localise, "GUARANTEED", Named(state, owns, chosen,
-			other => state.Guarantees.Contains(new CGuarantee(other.Tag, chosen.Tag))));
+			other => state.Guarantees.Exists(g => g.Guarantor == other.Tag && g.Guaranteed == chosen.Tag)));
 		Add(lines, localise, "GUARANTING", Named(state, owns, chosen,
-			other => state.Guarantees.Contains(new CGuarantee(chosen.Tag, other.Tag))));
-		// Embargoes, access, debts, lend-lease and missions: none are made yet.
+			other => state.Guarantees.Exists(g => g.Guarantor == chosen.Tag && g.Guaranteed == other.Tag)));
+		Add(lines, localise, "CD_ISEMBARGOED", Named(state, owns, chosen,
+			other => COfferRules.Embargo(state, chosen.Tag, other.Tag) is { } embargo && embargo.First != chosen.Tag));
+		Add(lines, localise, "CD_ISEMBARGOING", Named(state, owns, chosen,
+			other => COfferRules.Embargo(state, chosen.Tag, other.Tag) is { } embargo && embargo.First == chosen.Tag));
+		Add(lines, localise, "CD_GIVESACCESS", Named(state, owns, chosen, other => COfferRules.HasAccess(other, chosen)));
+		Add(lines, localise, "CD_HASACCESS", Named(state, owns, chosen, other => COfferRules.HasAccess(chosen, other)));
+		// Debts, lend-lease and missions: none are made yet.
 
 		for (int i = 0; i < lines.Count; i++)
 		{
@@ -174,14 +187,15 @@ public static class CDiplomacyScreenText
 			|| (war.Defenders.Contains(one) && war.Attackers.Contains(other));
 	}
 
-	private static List<string> Named(CGameState state, bool[] owns, CCountry chosen, Func<CCountry, bool> holds)
+	private static List<string> Named(CGameState state, bool[] owns, CCountry chosen, Func<CCountry, bool> holds,
+		Func<CCountry, string>? name = null)
 	{
 		var names = new List<string>();
 		foreach (CCountry other in state.Countries)
 		{
 			if (other != chosen && owns[other.Index] && holds(other))
 			{
-				names.Add(other.Name);
+				names.Add(name is null ? other.Name : name(other));
 			}
 		}
 		return names;

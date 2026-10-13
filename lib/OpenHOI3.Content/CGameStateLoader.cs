@@ -127,6 +127,7 @@ public static class CGameStateLoader
 		AssignRegions(state);
 		state.Alliances.AddRange(diplomacy.Alliances);
 		state.Guarantees.AddRange(diplomacy.Guarantees);
+		state.Naps.AddRange(diplomacy.Naps);
 		state.AiScripts = aiScripts;
 		CRelations.SetFromHistory(state, diplomacy.Relations, start);
 		ReportUnknownStrategicResources(state, warn);

@@ -250,6 +250,13 @@ public partial class CSession : Node
 				gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, answered, scope, option));
 			_simulation.State.DecisionTaken += (taken, scope) => Tell(CMessages.DecisionTaken(
 				gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, taken, scope));
+			_simulation.State.PactMessaged += pact =>
+			{
+				if (CMessages.Pact(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, pact) is { } message)
+				{
+					Tell(message);
+				}
+			};
 		}
 		_simulation.DayPassed += () => _unitsMoved = true;
 		_simulation.HourPassed += () => _hourPassed = true;

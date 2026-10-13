@@ -25,4 +25,13 @@ public sealed class CDiplomacyStatus
 
 	/// <summary>How much threat the holder feels from the other. Never below 0, never capped.</summary>
 	public CFixedPoint Threat { get; set; }
+
+	/// <summary>Whether the holder's units may enter the other's land: one direction (<c>agreements.md</c>, section 5).</summary>
+	public bool HasMilitaryAccess { get; set; }
+
+	/// <summary>
+	/// The last hour the holder's diplomat is on his way to the other, after an offer: until then its
+	/// buttons towards the other are greyed (<c>agreements.md</c>, section 1).
+	/// </summary>
+	public long DiplomatUntil { get; set; } = long.MinValue;
 }

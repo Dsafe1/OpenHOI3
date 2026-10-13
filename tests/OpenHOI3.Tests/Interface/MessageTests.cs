@@ -3,6 +3,7 @@ using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Messages;
 using OpenHOI3.Interface.Messages;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Script;
 using OpenHOI3.Tests.Sim;
 
@@ -139,5 +140,41 @@ public class MessageTests
 
 		Assert.Equal(CMessageLog.MostRebuilt, log.Rows.Count);
 		Assert.StartsWith(" 0 ", log.Rows[0].Text);
+	}
+
+	[Fact]
+	public void A_pacts_message_is_the_players_by_his_part_in_it_with_his_rulers_title_and_none_where_the_type_is_empty()
+	{
+		CGameState state = ScriptWorld.State();
+		state.Country(ScriptWorld.Ger)!.GovernmentType = "national_socialism";
+		var table = new Dictionary<string, string>(Table)
+		{
+			["national_socialism_ruler"] = "Führer",
+			["WENAP_2"] = "$MONARCHTITLE$, we have decided to sign a",
+			["OTHERNAP_LOG"] = "$ACTOR$ signed a non-aggression pact with $RECIPIENT$.",
+			["DIPLOEXPIRE_4"] = "$ACTION$",
+			["DIPLOEXPIRE_ALIGN"] = "Align towards the §Y$FACTION$§W",
+			["axis"] = "Axis",
+		};
+		string Words(string key) => table.GetValueOrDefault(key, key);
+		CMessageTypes types = CMessageTypes.Read(ClausewitzParser.Parse(
+			"WENAP = { } THEYNAP = { } OTHERNAP = { } DIPLOEXPIRE = { }"), _ => { });
+		var nap = new CPactMessage("WENAP", "THEYNAP", "OTHERNAP", ScriptWorld.Ger, ScriptWorld.Pol);
+
+		CMessage ours = CMessages.Pact(Words, types, state, ScriptWorld.Ger, nap)!;
+		Assert.Equal("WENAP", ours.Type.Name);
+		Assert.Equal("Führer, we have decided to sign a", CMessageText.Text(Words, ours, "_2"));
+		Assert.Equal("THEYNAP", CMessages.Pact(Words, types, state, ScriptWorld.Pol, nap)!.Type.Name);
+		CMessage theirs = CMessages.Pact(Words, types, state, ScriptWorld.Ita, nap)!;
+		Assert.Equal("OTHERNAP", theirs.Type.Name);
+		Assert.Equal("GER signed a non-aggression pact with POL.", CMessageText.Text(Words, theirs, "_LOG"));
+
+		var expired = new CPactMessage("DIPLOEXPIRE", "", "", ScriptWorld.Ger, ScriptWorld.Ita)
+		{
+			Faction = "axis", Action = "DIPLOEXPIRE_ALIGN",
+		};
+		Assert.Null(CMessages.Pact(Words, types, state, ScriptWorld.Pol, expired));
+		Assert.Equal("Align towards the §YAxis§W",
+			CMessageText.Text(Words, CMessages.Pact(Words, types, state, ScriptWorld.Ger, expired)!, "_4"));
 	}
 }

@@ -3,6 +3,7 @@ using System.Globalization;
 using OpenHOI3.Interface.Events;
 using OpenHOI3.Interface.Modifiers;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
@@ -146,13 +147,31 @@ public static class CEffectLines
 				return scope.Country is { } leaver && target is { } left && CCountryLists.HasAlliance(state, leaver, left)
 					? words.T("LEAVE_ALLIANCE_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()))
 					: "";
-			// Guarantees, pacts and access are not built: none is had.
-			case "guarantee": return words.T("START_GUARANTEE_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()));
-			case "end_guarantee": return "";
-			case "end_non_aggression_pact": return "";
-			case "non_aggression_pact": return words.T("START_NON_AGGRESSION_PACT_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()));
-			case "military_access": return words.T("GRANT_MILITARY_ACCESS_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()));
-			case "end_military_access": return "";
+			// Each says nothing where it would change nothing; a guarantee given the other way does not stop one.
+			case "guarantee":
+				return Guaranteeing(state, scope.Country, target)
+					? ""
+					: words.T("START_GUARANTEE_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()));
+			case "end_guarantee":
+				return Guaranteeing(state, scope.Country, target)
+					? words.T("END_GUARANTEE_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()))
+					: "";
+			case "non_aggression_pact":
+				return HasNap(state, scope.Country, target)
+					? ""
+					: words.T("START_NON_AGGRESSION_PACT_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()));
+			case "end_non_aggression_pact":
+				return HasNap(state, scope.Country, target)
+					? words.T("END_NON_AGGRESSION_PACT_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()))
+					: "";
+			case "military_access":
+				return HasAccess(state, scope.Country, target)
+					? ""
+					: words.T("GRANT_MILITARY_ACCESS_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()));
+			case "end_military_access":
+				return HasAccess(state, scope.Country, target)
+					? words.T("REVOKE_MILITARY_ACCESS_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()))
+					: "";
 			case "end_war":
 				return scope.Country is { } side && target is { } enemy && CCountryLists.AtWar(state, side, enemy)
 					? words.T("END_WAR_EFFECT", ("COUNTRY", Us()), ("TARGET_COUNTRY", Them()))
@@ -485,6 +504,17 @@ public static class CEffectLines
 	{
 		return CEffects.Field(effect, key) is { } named ? AsItStands(state, named, scope) : null;
 	}
+
+	/// <summary>Whether the one country guarantees the other.</summary>
+	private static bool Guaranteeing(CGameState state, CCountryTag? guarantor, CCountryTag? guaranteed) =>
+		guarantor is { } a && guaranteed is { } b && state.Guarantees.Exists(g => g.Guarantor == a && g.Guaranteed == b);
+
+	private static bool HasNap(CGameState state, CCountryTag? one, CCountryTag? other) =>
+		one is { } a && other is { } b && COfferRules.Nap(state, a, b) is not null;
+
+	/// <summary>Whether the one country may pass through the other's land.</summary>
+	private static bool HasAccess(CGameState state, CCountryTag? holder, CCountryTag? other) =>
+		state.Country(holder) is { } a && state.Country(other) is { } b && COfferRules.HasAccess(a, b);
 
 	/// <summary>The province and the country of a core, as the effect takes them.</summary>
 	private static (int Province, CCountryTag? Country) Core(CScriptWords words, CEffect effect, CEventScope scope)

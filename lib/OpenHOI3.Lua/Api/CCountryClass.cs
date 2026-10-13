@@ -180,7 +180,7 @@ public static class CCountryClass
 		return CCountryLists.AtWar(api.State, country.Tag, other) || other.Value == "REB" || country.Tag.Value == "REB";
 	}
 
-	/// <summary>The original's <c>IsFriend</c>, in its order. Military access is not built.</summary>
+	/// <summary>The original's <c>IsFriend</c>, in its order: with <paramref name="withAccess"/>, access through the other counts.</summary>
 	public static bool IsFriend(CGameApi api, CCountry country, CCountryTag tag, bool withAccess)
 	{
 		if (tag == country.Tag)
@@ -208,10 +208,6 @@ public static class CCountryClass
 		{
 			return true;
 		}
-		if (withAccess)
-		{
-			api.ReportUnbuilt(CDiplomacyStatusClass.AccessUnbuilt);
-		}
-		return false;
+		return withAccess && other is not null && CGameState.Status(country, other).HasMilitaryAccess;
 	}
 }

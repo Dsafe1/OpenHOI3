@@ -69,6 +69,8 @@ public static class CTick
 		// An event left unanswered past its time answers itself (ours: the original's window counts
 		// each frame, docs/mechanics/events.md section 7).
 		CEventPass.RunHourly(state);
+		// Each AI country answers the offers made to it (docs/mechanics/agreements.md, section 2).
+		Agreements.CPactPasses.AnswerOffers(state);
 	}
 
 	/// <summary>
@@ -90,6 +92,7 @@ public static class CTick
 		CCountryModifiers.Rebuild(state);
 		CThreat.UpdateMostThreatening(state);               // before any country's day, as its neighbours are
 		CNeutrality.RunDaily(state);                        // at the head of a country's day
+		Agreements.CPactPasses.RunDaily(state);             // its pacts that have run their course, and influence's upkeep
 		CAlignment.RunDaily(state);                         // later in it: a step every interval and a day
 		CManpower.RunDaily(state);
 		CLeaders.ActivateDaily(state);                      // just after its manpower grows

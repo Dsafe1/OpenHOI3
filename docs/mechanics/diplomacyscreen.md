@@ -292,18 +292,19 @@ never is**, the drift line or `DIP_ALIGNED_DRIFT` being written first. Last, the
 
 ## Ours
 
-- **What does not exist yet answers nothing**: there are no truces, influences, alignings,
-  non-aggression pacts, embargoes, access, debts, lend-lease or spy missions, so their status lines,
-  the drift list and the breakdown's access line are never written; there are no war goals, so the goal
-  list is empty; the ceiling's claims hold for nobody, casus belli not being built.
+- **What does not exist yet answers nothing**: there are no truces, debts, lend-lease or spy missions,
+  so their status lines are never written; **the drift list is not built**, though influence and
+  alignment are (`agreements.md`); there are no war goals, so the goal list is empty; the ceiling's
+  claims hold for nobody, casus belli not being built. Influence, alignment, pacts, embargoes and
+  access have their status lines and the breakdown its access line since 2026-10-13.
 - **Surrender progress is 0 for every country**, so the bar is full green: it is the occupied share of a
   country's claimed victory points, and what a country claims is not built (war and peace). National
   unity, which the delayed half also shows, is built.
 - **A faction's progress is 0**, so its bar is empty and its tooltip says so; how the original works it
   out was not read. **No victory conditions are built**, so the box's tooltip has no "met / all" line.
 - **There is no AI**: `automation_setting` reads `OPT_NORMAL` and the arrows do nothing
-  (`countryviews.md`), `trade_automate_checkbox` does nothing, and the action list is empty - the
-  agreements are diplomacy's fourth piece.
+  (`countryviews.md`) and `trade_automate_checkbox` does nothing. The action list holds the
+  agreements' first half (`agreements.md`, section 7).
 - **The panel is filled every frame**, where the original fills it on every frame on which a figure it
   watches has moved, which is nearly every frame; the status list is made again only where its lines
   have changed, which keeps its scroll as the original's putting it back does.

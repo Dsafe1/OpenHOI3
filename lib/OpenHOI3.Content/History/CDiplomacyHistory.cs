@@ -15,5 +15,7 @@ public sealed class CDiplomacyHistory
 
 	public List<CGuarantee> Guarantees { get; } = new();
 
+	public List<OpenHOI3.Sim.Agreements.CNap> Naps { get; } = new();
+
 	public List<CHistoryRelation> Relations { get; } = new();
 }

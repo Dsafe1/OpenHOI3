@@ -30,8 +30,7 @@ public static class CUnansweredConditions
 		}
 
 		// Diplomacy.
-		Add(EScriptGap.Unbuilt, "guarantee", "military_access",
-			"non_aggression_pact", "truce_with", "undeclared_war_with", "casus_belli", "has_cb", "has_wargoal");
+		Add(EScriptGap.Unbuilt, "truce_with", "undeclared_war_with", "casus_belli", "has_cb", "has_wargoal");
 		// The government and the parties.
 		Add(EScriptGap.Unbuilt, "government", "government_in_exile", "has_removable_minister", "minister_alive");
 		Add(EScriptGap.Unbuilt, "ideology", "ideology_group", "organisation", "popularity");

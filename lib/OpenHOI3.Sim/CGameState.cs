@@ -251,6 +251,18 @@ public sealed class CGameState
 	/// <summary>The guarantees standing now.</summary>
 	public List<CGuarantee> Guarantees { get; } = new();
 
+	/// <summary>The non-aggression pacts standing now: <c>docs/mechanics/agreements.md</c>.</summary>
+	public List<Agreements.CNap> Naps { get; } = new();
+
+	/// <summary>The embargoes standing now.</summary>
+	public List<Agreements.CEmbargo> Embargoes { get; } = new();
+
+	/// <summary>The influences running now, one country's faction on another country.</summary>
+	public List<Agreements.CInfluence> Influences { get; } = new();
+
+	/// <summary>The alignments running now, one country's towards another's faction.</summary>
+	public List<Agreements.CAlign> Aligns { get; } = new();
+
 	/// <summary>The map's continents, by name, in the order their file declares them.</summary>
 	public IReadOnlyList<string> Continents { get; init; } = Array.Empty<string>();
 
@@ -318,6 +330,17 @@ public sealed class CGameState
 	internal void RaiseEventAnswered(Script.CEvent answered, Script.CEventScope scope, int option)
 	{
 		EventAnswered?.Invoke(answered, scope, option);
+	}
+
+	/// <summary>
+	/// Raised as a pact is made, refused or ended, for its message (<c>docs/mechanics/agreements.md</c>,
+	/// section 8). Never for anything that changes the game.
+	/// </summary>
+	public event Action<Agreements.CPactMessage>? PactMessaged;
+
+	internal void RaisePactMessage(Agreements.CPactMessage message)
+	{
+		PactMessaged?.Invoke(message);
 	}
 
 	/// <summary>Raised as a decision is taken, before its effects, for its message.</summary>

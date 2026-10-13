@@ -461,6 +461,12 @@ public sealed class CCountry
 	/// <summary>What it has to spend on diplomacy. Never below nothing.</summary>
 	public CFixedPoint DiplomaticInfluence { get; set; }
 
+	/// <summary>
+	/// The offers waiting on this country: proposals to it and answers to its own, in the order they
+	/// came (<c>docs/mechanics/agreements.md</c>, section 1).
+	/// </summary>
+	public List<Agreements.COffer> PendingOffers { get; } = new();
+
 	/// <summary>Spies trained and not yet sent anywhere. A whole spy is 1.</summary>
 	public CFixedPoint SpiesInTraining { get; set; }
 

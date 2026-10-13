@@ -109,6 +109,12 @@ is not there **makes it, at nought**, and answers whether nought is at least N.
 | `<position> = id` | puts the minister of that id in the post, where he was declared for it and the post's holder has another id | no test of whether the post may be changed or whether he holds another |
 | `kill_leader = id` | takes the leader of that id out of service where he is the country's, and off the unit he commands, if any | no cost in organisation; he stays among the country's leaders |
 | `leave_alliance = X` | ends the alliance between it and X | a faction is not touched |
+| `guarantee = X` | it guarantees X, from now; nothing where it already does, and one X gives it is ended - the original leaves it with nothing pointing at it | **none of these six costs influence, moves relation or threat, or raises a message** (`reversing/findings/FINDINGS-effectrun.md`, section 2.2; `agreements.md` for the offers that do) |
+| `end_guarantee = X` | ends its guarantee of X | only where it is the guarantor |
+| `non_aggression_pact = X` | a pact between it and X, from now, where there is none | |
+| `end_non_aggression_pact = X` | ends the pact between them | either side may |
+| `military_access = X` | **it may pass through X's land** - one way | the direction *inferred* in the fact base; it is the byte the access offer sets for the asker |
+| `end_military_access = X` | it may no longer | |
 | `end_war = X` | **X - not the country - and every country X is overlord of leave the war the two are in** | the country stays in; nothing is settled |
 
 **The stockpile** is the pool of the capital (`stockpile.md`, section 1). Every value is whole but
@@ -176,7 +182,7 @@ capital, `manpower = from` adds nothing.
 | waits for | effects |
 | --- | --- |
 | the event pass | `country_event`, `province_event` |
-| diplomacy | `relation`, `threat`, `casus_belli`, `add_casus_belli`, `guarantee`, `end_guarantee`, `military_access`, `end_military_access`, `non_aggression_pact`, `end_non_aggression_pact`, `war`, `undeclared_war`, `add_wargoal`, `create_vassal`, `release`, `release_vassal`, `inherit`, `surrender_inherit`, `form_government_in_exile`, `split_troops` |
+| diplomacy | `casus_belli`, `add_casus_belli`, `war`, `undeclared_war`, `add_wargoal`, `create_vassal`, `release`, `release_vassal`, `inherit`, `surrender_inherit`, `form_government_in_exile`, `split_troops` |
 | factions | `join_faction`, `leave_faction` |
 | neutrality and war exhaustion | `neutrality`, `war_exhaustion` |
 | the government and the parties | `government`, `coup_by`, `do_election`, `remove_minister`, `organisation`, `popularity`, an ideology's block |

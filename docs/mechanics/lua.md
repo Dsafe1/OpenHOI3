@@ -94,7 +94,7 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | | `GetStrategy()` | its `CAIStrategy` |
 | | `GetCurrentAtWarWith()`, `GetNeighbours()`, `GetDiplomacy()` | iterators: the countries at war with it, its neighbours, one status for every country (4.1) |
 | | `IsEnemy(tag)` | not itself, and at war with it or either is `REB` |
-| | `IsFriend(tag, b)` | itself; either is the other's overlord; one overlord over both; one faction; an alliance; fighting a war together and not enemies; with `b`, military access towards it |
+| | `IsFriend(tag, b)` | itself; either is the other's overlord; one overlord over both; one faction; an alliance; fighting a war together and not enemies; with `b`, military access towards it - this country may pass through its land |
 | | `IsGovernmentInExile()` | **false - not built**, reported |
 | | `IsLandSafeToJoin(faction)` | false for the null faction; true where the faction's leader is at peace; **otherwise false**, whatever the land - the original's |
 | | `IsMajor()` | `major = yes` in its file, or `GetMaxIC()` over 100 |
@@ -104,7 +104,8 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | `CDiplomacyStatus` | `GetValue()`, `GetThreat()`, `GetTarget()` | relation, threat; the other country's tag |
 | | `HasAlliance()`, `HasWar()`, `IsGuaranteed()`, `IsGuaranting()`, `IsFightingWarTogether()` | an alliance between the pair; the pair at war; **the other guarantees the holder**; the holder guarantees the other; both on one side of a war |
 | | `HasFriendlyAgreement()` | an alliance, military access, either the other's overlord, or a guarantee either way |
-| | `HasTruce()`, `AllowDebts()`, `HasMilitaryAccess()` | **false - not built**, reported |
+| | `HasMilitaryAccess()` | the holder may pass through the other's land (`agreements.md`, section 5) |
+| | `HasTruce()`, `AllowDebts()` | **false - not built**, reported |
 | `CFaction` | `==`, `IsValid()` | the same faction; not the null faction |
 | | `GetTag()`, `GetFactionLeader()`, `GetNumberOfMembers()` | its name as a `CString` - `axis`; its first member's tag, the null tag for none; how many it has |
 | `CGovernment` | `==` | the same government |
@@ -212,7 +213,9 @@ such function - it is 0**, reported: the offer is refused. A result that is not 
 reported; in the original it escapes as an uncaught C++ exception. The original answers 100 without
 asking when the player offers under the `yesmen` cheat; there is no console here.
 
-**Nothing asks it yet**: an offer is the agreements' piece. `OpenHOI3.SaveCheck aiscore` asks the
+**An AI answering an offer asks it** for alliance, NAP and both kinds of transit rights, each hour
+(`agreements.md`, sections 2 and 3), and the request dialog asks it for the word it shows; nothing
+else does yet. `OpenHOI3.SaveCheck aiscore` asks the
 eleven functions that take nothing but tags, for every pair of countries. On 2026-10-13 a new game of
 the base game had 78 countries owning land, and every one of the eleven answered all 6,006 pairs
 without an error **but `DiploScore_PeaceAction`, which fails at `CAIIntel` every time** - so a peace

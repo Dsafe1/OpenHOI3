@@ -167,7 +167,10 @@ public static class CDiplomacyTooltips
 		{
 			text.Append(BreakdownLine(localise, 80, "DIPRELCH_GUARANTEE"));
 		}
-		// Transit rights: there is no access yet.
+		if (CGameState.Status(chosen, other).HasMilitaryAccess)
+		{
+			text.Append(BreakdownLine(localise, 25, "DIPRELCH_HASACCESS"));
+		}
 		return text.ToString();
 	}
 

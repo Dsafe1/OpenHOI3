@@ -298,11 +298,35 @@ public class EffectTests
 		CGameState state = State();
 		var report = new CScriptReport();
 
-		Run(state, "guarantee = POL war_exhaustion = 5 country_event = 1001", CEventScope.Start(Ger), report);
+		Run(state, "casus_belli = POL war_exhaustion = 5 country_event = 1001", CEventScope.Start(Ger), report);
 
-		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["guarantee"].Why);
+		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["casus_belli"].Why);
 		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["country_event"].Why);
 		Assert.Equal(3, report.Gaps.Count);
+	}
+
+	[Fact]
+	public void The_pacts_an_effect_makes_cost_nothing_and_the_conditions_see_them()
+	{
+		CGameState state = State();
+		CFixedPoint relation = CGameState.Status(state.Country(Ger)!, state.Country(Pol)!).Relation;
+
+		Run(state, "guarantee = POL non_aggression_pact = POL military_access = POL", Ger);
+
+		Assert.True(Holds(state, "guarantee = POL non_aggression_pact = POL military_access = POL", Ger));
+		// Access is one way, a guarantee is the guarantor's, a pact is both's.
+		Assert.False(Holds(state, "military_access = GER", Pol));
+		Assert.False(Holds(state, "guarantee = GER", Pol));
+		Assert.True(Holds(state, "non_aggression_pact = GER", Pol));
+		Assert.Equal(relation, CGameState.Status(state.Country(Ger)!, state.Country(Pol)!).Relation);
+
+		// Only the guarantor ends a guarantee.
+		Run(state, "end_guarantee = GER", Pol);
+		Assert.Single(state.Guarantees);
+		Run(state, "end_guarantee = POL end_non_aggression_pact = POL end_military_access = POL", Ger);
+		Assert.Empty(state.Guarantees);
+		Assert.Empty(state.Naps);
+		Assert.False(Holds(state, "military_access = POL", Ger));
 	}
 
 	private static CGameState State(bool atWar = false) => ScriptWorld.State(atWar);

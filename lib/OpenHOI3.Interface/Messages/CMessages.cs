@@ -2,16 +2,18 @@ using System;
 using OpenHOI3.Content.Messages;
 using OpenHOI3.Interface.Events;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Script;
 
 namespace OpenHOI3.Interface.Messages;
 
 /// <summary>
-/// The message an answered event and a taken decision raise, as the player on this machine is told
-/// it: its type by whether it is the player's own, and its values - the player's government's posts,
-/// the country, the event's or the decision's words. See <c>docs/mechanics/messages.md</c>, sections 2
-/// and 3.
+/// The message an answered event, a taken decision and a pact raise, as the player on this machine is
+/// told it: its type by whether it is the player's own, and its values - the player's government's
+/// posts, the country, the event's or the decision's words, the pact's countries. See
+/// <c>docs/mechanics/messages.md</c>, sections 2 and 3, and <c>docs/mechanics/agreements.md</c>,
+/// section 8.
 /// </summary>
 public static class CMessages
 {
@@ -61,6 +63,54 @@ public static class CMessages
 		}
 		return message;
 	}
+
+	/// <summary>
+	/// A pact's message: the type for the player as actor, as recipient or as neither, and none where
+	/// that type is empty. Its values are the player's country's standard ones, the player's ruler
+	/// again, the two countries, and an alignment's action and faction - the action first, since its
+	/// text holds <c>$FACTION$</c>. See <c>docs/mechanics/agreements.md</c>, section 8.
+	/// </summary>
+	public static CMessage? Pact(Func<string, string> localise, CMessageTypes types, CGameState state, CCountryTag? player,
+		CPactMessage pact)
+	{
+		string name = player == pact.Actor ? pact.We : player == pact.Recipient ? pact.They : pact.Other;
+		if (name.Length == 0)
+		{
+			return null;
+		}
+		var message = new CMessage(types.Find(name), CMessageText.Date(localise, state.Date, state.Hour))
+		{
+			FirstCountry = pact.Actor,
+			SecondCountry = pact.Recipient,
+		};
+		if (state.Country(player) is { } country)
+		{
+			message.Variables.Add(("COUNTRY", country.Name));
+			message.Variables.Add(("MONARCHTITLE", RulerTitle(country)));
+			message.Variables.Add(("TITLE", RulerTitle(country)));
+			Government(localise, state, player, message);
+			message.Variables.Add(("MONARCHTITLE", RulerTitle(country)));
+		}
+		message.Variables.Add(("ACTOR", state.Country(pact.Actor)?.Name ?? pact.Actor.Value));
+		message.Variables.Add(("RECIPIENT", state.Country(pact.Recipient)?.Name ?? pact.Recipient.Value));
+		message.Variables.Add(("MESSENGER", "MESSAGE_HEAD_CHAN"));
+		if (pact.Action.Length > 0)
+		{
+			message.Variables.Add(("ACTION", pact.Action));
+		}
+		if (pact.Faction.Length > 0)
+		{
+			message.Variables.Add(("FACTION", pact.Faction));
+		}
+		return message;
+	}
+
+	/// <summary>
+	/// The key of a country's ruler's title, <c>&lt;government&gt;_ruler</c>, which is looked up when
+	/// shown; a country with none has the original's null government, <c>nogovernment</c>.
+	/// </summary>
+	private static string RulerTitle(CCountry country) =>
+		(country.GovernmentType.Length > 0 ? country.GovernmentType : "nogovernment") + "_ruler";
 
 	private static CMessage Made(Func<string, string> localise, CMessageTypes types, CGameState state, string name,
 		CEventScope scope)

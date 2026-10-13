@@ -1,4 +1,5 @@
 using System;
+using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Leaders;
@@ -83,6 +84,42 @@ public static class CCountryEffects
 				if (scope.Country is { } us && CEffects.Target(state, effect, scope) is { } ally)
 				{
 					state.Alliances.RemoveAll(alliance => alliance.Joins(us, ally));
+				}
+				return true;
+			// The pacts an effect makes cost nothing and move no relation or threat, and say nothing.
+			case "guarantee":
+				if (scope.Country is { } guarantor && CEffects.Target(state, effect, scope) is { } guaranteed
+					&& !state.Guarantees.Exists(g => g.Guarantor == guarantor && g.Guaranteed == guaranteed))
+				{
+					// One the other way is left with nothing pointing at it in the original: it is gone.
+					state.Guarantees.RemoveAll(g => g.Joins(guarantor, guaranteed));
+					state.Guarantees.Add(new CGuarantee(guarantor, guaranteed, state.TotalHours));
+				}
+				return true;
+			case "end_guarantee":
+				if (scope.Country is { } giver && CEffects.Target(state, effect, scope) is { } given)
+				{
+					state.Guarantees.RemoveAll(g => g.Guarantor == giver && g.Guaranteed == given);
+				}
+				return true;
+			case "non_aggression_pact":
+				if (scope.Country is { } first && CEffects.Target(state, effect, scope) is { } second
+					&& COfferRules.Nap(state, first, second) is null)
+				{
+					state.Naps.Add(new CNap(first, second, state.TotalHours));
+				}
+				return true;
+			case "end_non_aggression_pact":
+				if (scope.Country is { } one && CEffects.Target(state, effect, scope) is { } other)
+				{
+					state.Naps.RemoveAll(nap => nap.Joins(one, other));
+				}
+				return true;
+			case "military_access":
+			case "end_military_access":
+				if (country is not null && state.Country(CEffects.Target(state, effect, scope)) is { } through)
+				{
+					CGameState.Status(country, through).HasMilitaryAccess = effect.Keyword == "military_access";
 				}
 				return true;
 			case "end_war":

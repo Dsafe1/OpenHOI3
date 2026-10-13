@@ -6,23 +6,22 @@ using OpenHOI3.Content.Definitions;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
+using OpenHOI3.Sim.Agreements;
 
 namespace OpenHOI3.Content.History;
 
 /// <summary>
-/// Reads <c>history/diplomacy</c>: who is whose puppet, who is allied to whom and who guarantees
-/// whom, each between two dates, and the relations it sets. Pacts are in the same files and are read
-/// past: none stands in 1936, and they are the agreements' piece.
+/// Reads <c>history/diplomacy</c>: who is whose puppet, who is allied to whom, who guarantees whom and
+/// which pairs have a non-aggression pact, each between two dates, and the relations it sets. A
+/// guarantee and a pact carry the hour they began, which their ending counts from
+/// (<c>docs/mechanics/agreements.md</c>, section 6); none of the base game's pacts stands in 1936.
 /// </summary>
 public static class CDiplomacyReader
 {
 	private const string DiplomacyDirectory = "history/diplomacy";
 
-	/// <summary>The kinds of entry these files hold that nothing here uses.</summary>
-	private static readonly HashSet<string> ReadPast = new(StringComparer.OrdinalIgnoreCase)
-	{
-		"nap",
-	};
+	/// <summary>The kinds of entry these files hold that nothing here uses: none now.</summary>
+	private static readonly HashSet<string> ReadPast = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Makes every country that is a puppet on <paramref name="date"/> its master's, and gives the
@@ -75,7 +74,7 @@ public static class CDiplomacyReader
 				continue;
 			}
 			string kind = entry.Key.ToLowerInvariant();
-			if (kind is not ("vassal" or "alliance" or "guarantee" or "relation"))
+			if (kind is not ("vassal" or "alliance" or "guarantee" or "nap" or "relation"))
 			{
 				unknownKeys.Add(entry.Key);
 				continue;
@@ -113,11 +112,21 @@ public static class CDiplomacyReader
 				case "alliance":
 					history.Alliances.Add(new CAlliance(first.Tag, second.Tag));
 					break;
+				case "nap":
+					history.Naps.Add(new CNap(first.Tag, second.Tag, StartHour(entry, date)));
+					break;
 				default:
-					history.Guarantees.Add(new CGuarantee(first.Tag, second.Tag));
+					history.Guarantees.Add(new CGuarantee(first.Tag, second.Tag, StartHour(entry, date)));
 					break;
 			}
 		}
+	}
+
+	/// <summary>The hour an entry began: its <c>start_date</c>, or the game's date where it gives none.</summary>
+	private static long StartHour(ClausewitzNode entry, CDate date)
+	{
+		CDate start = CDate.TryParse(entry.GetString("start_date"), out CDate starts) ? starts : date;
+		return start.DayNumber * (long)CGameState.HoursPerDay;
 	}
 
 	private static bool Stands(ClausewitzNode entry, CDate date)

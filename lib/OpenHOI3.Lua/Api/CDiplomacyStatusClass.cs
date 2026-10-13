@@ -14,7 +14,6 @@ public static class CDiplomacyStatusClass
 {
 	private const string Name = "CDiplomacyStatus";
 
-	public const string AccessUnbuilt = "military access: nobody has it";
 	private const string TruceUnbuilt = "truces: no war has ended";
 	private const string DebtUnbuilt = "debts: nobody may run one";
 
@@ -42,7 +41,7 @@ public static class CDiplomacyStatusClass
 				return call.Return(CCountryLists.FightingTogether(api.State, status.Holder, status.Other));
 			})
 			.Method("HasFriendlyAgreement", call => call.Return(HasFriendlyAgreement(api, Of(call))))
-			.Method("HasMilitaryAccess", call => Unbuilt(api, call, AccessUnbuilt))
+			.Method("HasMilitaryAccess", call => call.Return(Of(call).HasMilitaryAccess))
 			.Method("HasTruce", call => Unbuilt(api, call, TruceUnbuilt))
 			.Method("AllowDebts", call => Unbuilt(api, call, DebtUnbuilt));
 	}
@@ -75,7 +74,10 @@ public static class CDiplomacyStatusClass
 		{
 			return true;
 		}
-		api.ReportUnbuilt(AccessUnbuilt);
+		if (status.HasMilitaryAccess)
+		{
+			return true;
+		}
 		CCountry? holder = api.State.Country(status.Holder);
 		CCountry? other = api.State.Country(status.Other);
 		if (holder?.Overlord == status.Other || other?.Overlord == status.Holder)

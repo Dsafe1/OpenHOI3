@@ -21,7 +21,7 @@ public class DiplomacyReaderTests
 
 	public DiplomacyReaderTests()
 	{
-		foreach (string tag in new[] { "JAP", "MAN", "MEN", "ENG", "FRA" })
+		foreach (string tag in new[] { "JAP", "MAN", "MEN", "ENG", "FRA", "GER", "SOV" })
 		{
 			_countries[tag] = new CCountry { Tag = new CCountryTag(tag), Name = tag, DefinitionFile = "" };
 		}
@@ -79,14 +79,20 @@ public class DiplomacyReaderTests
 	}
 
 	[Fact]
-	public void A_guarantee_standing_on_the_day_is_kept_with_its_guarantor_first()
+	public void A_guarantee_or_a_pact_standing_on_the_day_is_kept_with_its_first_and_the_hour_it_began()
 	{
 		Read(@"
-			guarantee = { first = ENG second = FRA start_date = 1936.1.1 end_date = 1948.1.1 }
+			guarantee = { first = ENG second = FRA start_date = 1935.6.1 end_date = 1948.1.1 }
 			guarantee = { first = ENG second = JAP start_date = 1939.1.1 end_date = 1948.1.1 }
+			nap = { first = GER second = SOV start_date = 1939.8.23 end_date = 1941.6.22 }
+			nap = { first = JAP second = SOV }
 		", new CDate(1936, 1, 1));
 
-		Assert.Equal(new[] { new CGuarantee(new CCountryTag("ENG"), new CCountryTag("FRA")) }, _history.Guarantees);
+		long began = new CDate(1935, 6, 1).DayNumber * 24L;
+		Assert.Equal(new[] { new CGuarantee(new CCountryTag("ENG"), new CCountryTag("FRA"), began) }, _history.Guarantees);
+		// A pact that gives no start began on the day it is read for.
+		Assert.Equal(new[] { new OpenHOI3.Sim.Agreements.CNap(new CCountryTag("JAP"), new CCountryTag("SOV"), new CDate(1936, 1, 1).DayNumber * 24L) },
+			_history.Naps);
 	}
 
 	[Fact]
