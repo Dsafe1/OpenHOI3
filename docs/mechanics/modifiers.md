@@ -124,8 +124,8 @@ order**; `confirmed` throughout.
 
 1. **`base_values`**, whole. That is how every country comes to have 3.5 leadership, 4
    manpower and its two demands for consumer goods before anything of its own is counted.
-2. **Its faction's own modifier**, when it is in one. What a faction's modifier is loaded
-   from has not been read.
+2. **Its faction's own modifier**, when it is in one: the `modifier` of its faction's block
+   in `common/ideologies.txt` (`factions.md`, section 1).
 3. **Each minister in its government, as the minister type he has for the seat he holds.**
    The same man is a different modifier in a different seat; one seated where he was
    declared no type for adds nothing.
@@ -225,7 +225,8 @@ are not at war with each other and one of these holds:
 - it is a **major** - its own file says `major = yes` - **or has more than 100 base IC**,
   and the two are in the same faction;
 - it is the **leader of a faction and at war**, the other is *not* in that faction, and the
-  other's alignment is within `FACTION_STRAT_BONUS_DIST` of it;
+  other's place on the triangle is within `FACTION_STRAT_BONUS_DIST` of the faction's corner,
+  not of the leader (`factions.md`, section 6);
 
 and then one of these:
 
@@ -251,21 +252,21 @@ the first day is run, which is why a new game's starting manpower leaves black s
   one of a block's own is taken as a modifier. So a misspelt modifier is *not* reported
   yet, which is the opposite of what this project wants, and it stays a loose end until the
   list exists.
-- **A country's modifier is steps 1, 3, 4, 6, 7, 8, 11, 12 and 13 of section 4**: `base_values`,
-  its ministers, its laws, its strategic resources, its provinces' modifiers, `war` or
-  `peace`, `dissent`, `neutrality` by its effective neutrality (since 2026-10-12, with
-  `diplomacy.md`), and its event modifiers. The rest wait for what they need: factions'
-  modifiers, governments', espionage, war exhaustion, the script's conditions, subjects, a
-  difficulty setting and governments in exile.
+- **A country's modifier is steps 1, 2, 3, 4, 6, 7, 8, 11, 12 and 13 of section 4**: `base_values`,
+  its faction's (since 2026-10-13, with `factions.md`), its ministers, its laws, its strategic
+  resources, its provinces' modifiers, `war` or `peace`, `dissent`, `neutrality` by its
+  effective neutrality (since 2026-10-12, with `diplomacy.md`), and its event modifiers. The
+  rest wait for what they need: governments', espionage, war exhaustion, the script's
+  conditions, subjects, a difficulty setting and governments in exile.
 - **Strategic resources are shared within a faction as the original shares them**, to a
   major or a country with more than 100 base IC whose capital is on the holder's
-  continent. The other two roads are not built: the faction leader at war needs alignment,
-  and the sea-region link needs to know what a region is.
+  continent, and to a faction's leader at war from a country outside it aligned within
+  `FACTION_STRAT_BONUS_DIST` of its corner (`factions.md`, section 6). The sea-region link is
+  not built: it needs to know what a region is.
 - **Nothing damages infrastructure yet**, so every province with any gives its resource
   whole, and the one unidentified modifier value is taken as nothing.
-- **A country's faction is what its history file says** with `join_faction` and
-  `leave_faction`. The original also puts a faction leader's subjects in its faction, and
-  subjects are not read.
+- **A country's faction is what its history file says**, and what play makes of it since
+  (`factions.md`).
 - **It is rebuilt once a day and on entering a game** - not at each change. Rebuilding is
   cheap, and doing it on a schedule cannot be forgotten at a call site. The cost is that a
   change takes effect at midnight rather than at once; when something needs it sooner,

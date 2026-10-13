@@ -130,7 +130,6 @@ public static class CDriftTooltip
 	/// <summary>Whether the country is within <c>FACTION_STRAT_BONUS_DIST</c> of the group: its square below the define's.</summary>
 	public static bool WithinBonusDistance(CGameState state, CCountry country, CIdeologyGroup group)
 	{
-		long distance = state.Defines[CAlignment.Section, StrategicBonusDistance].Raw;
-		return CAlignment.Squared(group.X - country.AlignmentX, group.Y - country.AlignmentY) < distance * distance / 1000;
+		return Sim.Wars.CFactions.Within(state, country, group, StrategicBonusDistance);
 	}
 }

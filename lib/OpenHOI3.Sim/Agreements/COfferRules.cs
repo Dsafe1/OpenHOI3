@@ -97,6 +97,8 @@ public static class COfferRules
 					&& offer.WarGoal is { } goal && Wars.CWarGoals.IsValidForWar(state, goal, war);
 			case EOfferKind.Peace:
 				return Wars.CPeace.IsValid(state, actor, recipient);
+			case EOfferKind.Faction:
+				return Wars.CFactionOffers.IsValid(state, offer, actor, recipient);
 			default:
 				return false;
 		}
@@ -232,6 +234,8 @@ public static class COfferRules
 				return atWar && Wars.CWarGoals.CooledDown(state, actor, recipient);
 			case EOfferKind.Peace:
 				return Wars.CPeace.IsSelectable(state, actor, recipient);
+			case EOfferKind.Faction:
+				return Wars.CFactionOffers.Refusal(state, offer, actor, recipient) == Wars.EFactionRefusal.None;
 			default:
 				return false;
 		}
@@ -258,6 +262,7 @@ public static class COfferRules
 			EOfferKind.Licence => offer.Value ? "LICENCE_INFLUENCE_COST" : null,
 			EOfferKind.DeclareWar => Wars.CDeclarations.InfluenceCost,
 			EOfferKind.CallAlly => Wars.CCallsToArms.InfluenceCost,
+			EOfferKind.Faction => Wars.CFactionOffers.CostDefine(offer.Value),
 			_ => null,
 		};
 		return define is null ? CFixedPoint.Zero : Define(state, define);
@@ -277,6 +282,8 @@ public static class COfferRules
 			EOfferKind.CallAlly => offer.Stage == EOfferStage.Proposed,
 			// Peace is answered as it is proposed (war.md, section 11).
 			EOfferKind.Peace => offer.Stage == EOfferStage.Proposed && offer.Value,
+			// Either direction is answered as it is proposed (factions.md, section 3).
+			EOfferKind.Faction => offer.Stage == EOfferStage.Proposed,
 			_ => false,
 		};
 	}
@@ -292,7 +299,7 @@ public static class COfferRules
 		return offer.Stage == EOfferStage.Proposed && (offer.Kind == EOfferKind.Licence || (offer.Value && offer.Kind is EOfferKind.Alliance
 			or EOfferKind.NonAggressionPact or EOfferKind.AskMilitaryAccess or EOfferKind.OfferMilitaryAccess
 			or EOfferKind.Trade or EOfferKind.Debt or EOfferKind.RequestLendLease or EOfferKind.OfferLendLease
-			or EOfferKind.CallAlly));
+			or EOfferKind.CallAlly)) || (offer.Stage == EOfferStage.Proposed && offer.Kind == EOfferKind.Faction);
 	}
 
 	/// <summary>The install's Lua function the AI's answer is scored by; none where the AI does not answer.</summary>
@@ -311,6 +318,7 @@ public static class COfferRules
 			EOfferKind.Licence => "DiploScore_LicenceTechnology",
 			EOfferKind.CallAlly => "DiploScore_CallAlly",
 			EOfferKind.Peace => "DiploScore_PeaceAction",
+			EOfferKind.Faction => "DiploScore_InviteToFaction",
 			_ => null,
 		};
 	}

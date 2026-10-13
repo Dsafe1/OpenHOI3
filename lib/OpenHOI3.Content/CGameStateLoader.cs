@@ -144,6 +144,12 @@ public static class CGameStateLoader
 		{
 			warn($"events and decisions: {scriptProblems.Count} problems, which `OpenHOI3.SaveCheck script` lists");
 		}
+		// A new game's victory conditions: each faction's primaries (factions.md, section 8).
+		foreach (string faction in Sim.Wars.CVictoryConditions.ChooseAtStart(state))
+		{
+			warn($"victory conditions: {faction} has fewer primaries than NUMBER_OF_VICTORY_CONDITIONS; the original fills the rest " +
+				"by draws of a generator of its own, which is not built");
+		}
 
 		// The units come last, as they do in the original: a brigade is made by a country
 		// that already has its laws, its technology and its modifiers. The leaders the files

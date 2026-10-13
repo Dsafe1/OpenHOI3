@@ -38,7 +38,7 @@ public sealed class CFactionBox
 		if (window.FindButton("faction_symbol_button") is { } symbol)
 		{
 			symbol.SetFrame(faction.FactionIcon);
-			symbol.Tooltip = () => CDiplomacyTooltips.Faction(localise, _faction);
+			symbol.Tooltip = () => CDiplomacyTooltips.Faction(localise, _faction, _state);
 		}
 		if (window.FindTextBox("name") is { } name)
 		{
@@ -47,7 +47,7 @@ public sealed class CFactionBox
 		_bar = window.FindIcon("victory_progress");
 		if (_bar is not null)
 		{
-			_bar.PassiveTooltip = () => CDiplomacyTooltips.VictoryProgress(localise, _faction);
+			_bar.PassiveTooltip = () => CDiplomacyTooltips.VictoryProgress(localise, _state, _faction);
 		}
 		_members = window.FindBox("faction_box");
 	}
@@ -64,12 +64,12 @@ public sealed class CFactionBox
 	}
 
 	/// <summary>
-	/// The bar - a faction's progress is not built, so it stays empty - and the members, made again
+	/// The bar - the faction's share in whole percent, cut - and the members, made again
 	/// where they are not the ones shown.
 	/// </summary>
 	public void Refresh()
 	{
-		_bar?.SetProgress(0);
+		_bar?.SetProgress((int)(OpenHOI3.Sim.Wars.CFactionProgress.Share(_state, _faction.Faction) / 1000));
 		List<CCountry> members = CCountryLists.FactionMembers(_state, _faction.Faction);
 		if (_members is null || members.SequenceEqual(_shown))
 		{

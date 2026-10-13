@@ -114,7 +114,7 @@ Four choices sit under all of it:
 
 ### Next up
 
-As of 2026-10-12, in stage 3 with stage 4 built as far as item 6 cut it, and the economy of stage 2 waiting on them. Kept
+As of 2026-10-13, in stage 3 with stage 4 built as far as items 6 and 7 cut it - events and decisions, and diplomacy through factions - and the economy of stage 2 waiting on them. Kept
 current as work lands, so that picking this up cold needs nothing but this file and
 `docs/mechanics/`.
 
@@ -930,8 +930,8 @@ In order:
       January 1936** - every country's neutrality is above its ceiling - so `--neutrality=GER:0`
       and `--declare=TUR:IRQ` are there for trials. **The maintainer has not looked at it.** Reading
       for it corrected the fact base four times: a truce counts from the last change of a war's
-      membership, not its end; `+0x1F4` is `months`, not `truce_months`; the surrender sums are over
-      cores, nested; and `CWar +0x70` is `limited`, as both earlier readings had it.
+      membership, not its end; the casus belli type's month count is `months`, not `truce_months`; the surrender sums are over
+      cores, nested; and the war's flag the record had named twice is `limited`, as both earlier readings had it.
       **The second piece, peace and the capitulation, is built** (2026-10-13, `war.md` sections 11 to
       14; `CPeace`, `COccupiedLand`, `CSurrender` in `Sim/Wars`, `CProvinceHands` in `Sim/Provinces`,
       `CPeaceText` in `Interface/Screens`, `CAiIntelClass` in `Lua/Api`), after a second wave read what the
@@ -958,7 +958,30 @@ In order:
       option (`CCapitulation`, `CWarGoalEnforcement`). `OpenHOI3.SaveCheck declare ... occupy` tries it on the
       install: Ethiopia, its units gone and its land held, surrenders to Italy at the day's end and is made Italy's
       puppet by the history's goal; Austria to Germany is annexed by `conquer`; France to Germany goes into exile
-      in London. **The maintainer has not looked at any of it.**
+      in London. **The maintainer has not looked at any of it.** **A battle's capture then went through the same
+      setter** (`landcombat.md`, section 7): a puppet's conquest goes to its master, ground taken alone among a
+      fighting friend's to the friend, an exile's to its faction's head only where the head is an enemy of the
+      owner - which this had left out - and a capital taken is looted and its government moves at once; and a
+      defending front unit falling back may damage the province's buildings. Read off the bytes for it, the
+      record's `CanOperateIn` was corrected: the byte it tests is the co-belligerent one, not military access.
+   7. **factions - built** (2026-10-13, `docs/mechanics/factions.md`; `CFactions`, `CFactionOffers`,
+      `CFactionProgress`, `CVictoryConditions` in `Sim/Wars`, `CFactionAimsReader` in `Content/Script`, `CFactionText` in
+      `Interface/Screens`), read in one wave (`reversing/findings/FINDINGS-factionplay.md`), and with it **diplomacy
+      is built as far as the maintainer cut it**: **joining** - `AddCountry` with its war sweep, every join through
+      it; **Join Faction and Invite to Faction**, one action, its rows, greying, tooltip and dialog, the AI's answer by
+      `DiploScore_InviteToFaction` with the tags turned round for a join, nothing on a proposal, the joiner's
+      puppets following and its alliances with the members ended, the messages; `join_faction` and `leave_faction`;
+      **the rules** - the Allies' guarantee given by every member and an answered call bringing the faction in;
+      **the faction's modifier on its members**, which made Moscow's garrison the start save's (28 of 28 capitals);
+      the faction leader at war taking an aligned outsider's resources; **a faction's progress**, the points its
+      members hold, hourly - the start save's 115, 263 and 173 of 1172 - with `faction_progress`, the box's bar and
+      tooltip; and **the victory conditions** of `faction_aims.txt`, each faction's fifteen primaries, tested daily.
+      **Nobody may leave a faction by choice**: the original's leave button is its custom game's. Tried with
+      `--click` - Germany's Invite to Faction row, the Axis's "0/15" - and with `OpenHOI3.SaveCheck faction`:
+      Hungary asks Germany and is taken in, Sweden refuses Britain. **The maintainer has not looked at it.** Reading
+      for it corrected the fact base three times: the faction rules are written - so the Allies' faction-wide
+      guarantee and call are live - `CFactionAction::Apply`'s "gate" is the direction, and a guarantor by the
+      faction is called like any other. **The game's end is not built**: the dialog that ends it was not read.
 
 The interface runtime is in, with three screens - the top bar, production and technology -
 the four windows the production screen orders a unit from, the deploy menu with the
@@ -1056,12 +1079,16 @@ None of these blocks the list above.
   expeditionary forces; the cabinet a new puppet's government would fill; an exile's free supply from friends,
   its brigades at its leader's technology, liberation, the underground and militia; **the puppet's tribute**;
   and a landless country's units, which the original destroys each hour. **A change of hands leaves out** unit
-  rebasing, radar, the occupation policy, the underground and nationalism, and **a battle's capture does none of
-  what a change with consequences does** - no damage, no loot, no seat moved at once (the hour moves it). **A
+  rebasing, radar, the occupation policy, the underground and nationalism. **A
   pact is one object for both countries**, so annexation ends both sides of one (`war.md`, *Ours*). War
   exhaustion is not built, so nothing pays back neutrality. **Units on ground they may no longer stand on are not marked** (`war.md`, *Not
-  built*), undeclared wars and the revolt war are not built, and a country put into a faction by a
-  declaration does nothing more. Mobilising and spies spread no threat until they are built.
+  built*), and undeclared wars and the revolt war are not built. Mobilising and spies spread no threat
+  until they are built.
+- **Factions leave out** (`factions.md`, *Not built*): the custom game's leave and join; the AI inviting, and
+  the Axis AI's limited wars; the victory conditions' random fill for a faction with fewer primaries than the
+  count, reported; **the end of a game** - the `VCConfirm` dialog was not read, so a game the conditions finish
+  is marked so and goes on, and the end date does nothing; the victory conditions' window and alert; and
+  `release_vassal` with the liberation and puppet commands.
 - **The agreements' first half leaves out** (`agreements.md`, section 9): **an AI's offer other than
   trade** - the AI's foreign minister is not built, so only trades reach the player's bar of offers;
   the player handing his diplomacy to the AI; **the NAP's border balance**, so a NAP may not be
@@ -1527,10 +1554,6 @@ None of these blocks the list above.
 - **A province's days out of supply are not counted**, and nothing is raised on its first.
   The original's arcade mode, where units draw on the stockpile and the network does not
   run, is not built, nor is a unit on loan to another country.
-- **A faction's modifier is not applied.** `ideologies.txt` gives each faction one - the
-  Comintern's makes its members' units use a third less - and whether the original adds
-  it to a country's modifier is not read. The Soviet Union starts with a quarter less
-  fuel in the save than here, which is about what it would do. `upkeep.md`, the end.
 - **The fuel a new game starts with is exact for 18 countries of 76** and close for about
   twenty more, but twenty-five hold 2% to 19% more in the save than the rule gives -
   Germany 9%, France 19%, landlocked Czechoslovakia 14%. What they have in common was not
@@ -1776,7 +1799,7 @@ sea and by air - in five projects:
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it. The panel of the unit selected on the map: a list of the units above it, its header, its status, its order, its buttons, its brigades, the units under it and the battles it is in, each a class of its own. The window of orders for a fleet or an air unit. And the window of a battle, with its two sides and a line for each unit on them |
 | `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital, and the carrying of supplies against what a start-date save holds in every province, with the convoys a new game makes against the save's, way for way and ship for ship. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial, `seabattle` does the same with two countries' fleets, and `raid` sends one country's raiders at another's convoys for a month. And `firstdays` sets a new game as a player gets it, its two days run, beside the start save country by country - meant to differ, since the original's AI has changed laws by then - where `supplypass ... countries` does it like for like, with the save's laws given. `techgap` looks at the technology levels the start save has above the history's, and `airbattle` flies an air mission with the install's own units and tells the battles it comes to; `bombing` flies a bombing mission for some days and tells what it did to the province. `script` reads an install's events and decisions and lists every problem in them, with no save needed |
-| `tests/` | 1830 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort, and how a tooltip is shown with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say - the designer's terrain summary, the practical's discount, a brigade's summary, a leader's own and what a trait does among them - a modifier's sources written out and the counter in text - and the reading of event and decision script, its words, its triggers and effects by the original's grammar, an event, a decision and the problems found, and what a condition answers - the scope and its forms, the blocks and the sets, the leaves and what is reported unbuilt - and what an effect does, with flags, variables and the modifiers an event gives, and an event firing and a decision taken, with their text, and what countries hold of each other - a new game's relations, the month's drift, a battle's gain, neutrality and its effect and conditions, threat's two spreaders, the most-threatening country and the alignment triangle's clamp, step and drift - and Lua: the interpreter's rounding and numbers, errors and objects crossing both ways, the install's scripts found through the layers and the relation they give, a class's global, its fields, one equality for every class, iterators, `CFixedPoint` and its backwards arithmetic, the API's answers and an offer put to the recipient's AI - and the diplomacy screen: its lists and sorts, its panel and status lines, the relation list, the ceiling for war, every tooltip and the drift tooltip - and the agreements: an offer, the AI's answer, each pact's arms and how it ends, the screen's rows, tooltips and request dialog, and a pact's message - and trade: a route's price, terms, convoy, day and ends, the AI's trading, the trade window and list, automate-trade and an offer put to the player - and aid: debt and its repayment, shared theories, lend-lease's rules and IC, licences and their Lua - where silent misreadings are expensive |
+| `tests/` | 1851 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort, and how a tooltip is shown with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say - the designer's terrain summary, the practical's discount, a brigade's summary, a leader's own and what a trait does among them - a modifier's sources written out and the counter in text - and the reading of event and decision script, its words, its triggers and effects by the original's grammar, an event, a decision and the problems found, and what a condition answers - the scope and its forms, the blocks and the sets, the leaves and what is reported unbuilt - and what an effect does, with flags, variables and the modifiers an event gives, and an event firing and a decision taken, with their text, and what countries hold of each other - a new game's relations, the month's drift, a battle's gain, neutrality and its effect and conditions, threat's two spreaders, the most-threatening country and the alignment triangle's clamp, step and drift - and Lua: the interpreter's rounding and numbers, errors and objects crossing both ways, the install's scripts found through the layers and the relation they give, a class's global, its fields, one equality for every class, iterators, `CFixedPoint` and its backwards arithmetic, the API's answers and an offer put to the recipient's AI - and the diplomacy screen: its lists and sorts, its panel and status lines, the relation list, the ceiling for war, every tooltip and the drift tooltip - and the agreements: an offer, the AI's answer, each pact's arms and how it ends, the screen's rows, tooltips and request dialog, and a pact's message - and trade: a route's price, terms, convoy, day and ends, the AI's trading, the trade window and list, automate-trade and an offer put to the player - and aid: debt and its repayment, shared theories, lend-lease's rules and IC, licences and their Lua - where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.
@@ -1898,7 +1921,8 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
     Wars/               a war and its sides, casus belli types and those held, war goals,
                         a declaration and who joins it, the call to arms, the truce,
                         peace, the surrender and the capitulation, annexation, puppets
-                        and the government in exile
+                        and the government in exile, factions - joining, inviting, leaving,
+                        their rules - their progress and the victory conditions
     Diplomacy/          what two countries hold of each other: relation, threat and
                         neutrality, a new game's, the month's drift and each change
     Agreements/         an offer and the AI's answer to it, the pacts - NAP, embargo,

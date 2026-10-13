@@ -64,9 +64,9 @@ units **standing in its capital** were given, plus what the supply network carri
 the capital. With the second taken off, the formula gives the first to the thousandth for
 62 of the 65 capitals whose garrison the save shows fully supplied - France 7.590, Denmark
 2.159 - where it gave 38 before the leaders' terms. Of the three it does not, two have a
-headquarters the original's AI made, and Moscow is 4.101 against the save's 2.626, which the
-Comintern's `supply_consumption = -0.33` would come close to if a faction's modifier reached
-a country's (*What is not established*, below).
+headquarters the original's AI made, and Moscow was 4.101 against the save's 2.626 - until a
+faction's modifier reached its members (2026-10-13, `factions.md`, section 1): with the
+Comintern's `supply_consumption = -0.33` it is the save's.
 
 ## 2. The draw
 
@@ -393,10 +393,6 @@ The build queue, which section 6 is for besides, is built: `buildqueue.md`.
   it is not the fleets, since landlocked countries are in the top band. What they have in
   common was not found. Another twenty or so are off by a few units, which is more likely
   the tool's estimate of two days' refining than the rule.
-- **Whether a faction's modifier reaches a country's.** `ideologies.txt` gives each faction
-  one - the Comintern's is `supply_consumption = -0.33` - and the Soviet Union starts with a
-  quarter less fuel than the rule gives, which is about what that would do. Nothing here
-  applies one, and it is not read.
 - **What the original's AI did to the training law before the first screen.** Two days of
   upgrades fit the history's law for Germany and the save shows another; that it changed
   after the last day is `inferred` from that.

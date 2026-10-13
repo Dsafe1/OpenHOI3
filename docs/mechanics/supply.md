@@ -171,9 +171,9 @@ A province's score, with infrastructure counted as 1000 for ten levels and a nav
   provinces near it. It is how the original's list is made, and it is kept.
 
 *Ours:* the original adds ten million more for the capital of **the first member of its
-faction**. It is not built: the Sim knows a country's faction by name and not who came first,
-and it cannot change which province wins while a group holds only one capital of a country
-that is nobody's puppet - which is all the joining rule of section 3 allows.
+faction**. It is not built: it cannot change which province wins while a group holds only
+one capital of a country that is nobody's puppet - which is all the joining rule of section 3
+allows.
 
 ## 5. A province's depot
 
@@ -619,8 +619,9 @@ third was until 2026-10-11.
 - ~~**Leaders.** The original has given most units one, and a leader changes what a unit uses
   (`upkeep.md`, section 1).~~ Built: units have the same leaders here and the same use of
   them (`leaders.md`, section 8), and Germany's network, a few hundredths out everywhere
-  before, agrees province for province. Moscow's does not: what its units use fits the
-  Comintern's modifier, which is not known to reach a country (`upkeep.md`, section 1).
+  before, agrees province for province. Moscow's does not. Its units' use was the Comintern's
+  modifier, which reaches its members since 2026-10-13 (`factions.md`, section 1) and makes the
+  capital's garrison the save's; the network still differs, for a reason not found.
 - **Units on the move.** The original's AI has some: fuel is asked for in 144 provinces where
   nothing here burns any.
 - **The share of IC the supplies were made with.** The AI moves it after the day is run, so

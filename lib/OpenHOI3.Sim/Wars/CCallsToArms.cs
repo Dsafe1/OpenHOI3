@@ -137,7 +137,23 @@ public static class CCallsToArms
 					CGameState.Status(recipient, enemy).CasusBelli.Clear();
 				}
 				CRelations.Change(enemy, recipient, -COfferRules.Define(state, CDeclarations.RelationHit));
-				string told = offer.Value ? "WEMILALLHONOUR" : attacking ? "FACTIONWAROFF" : "FACTIONWARDEF";
+				// Under the Allies' rule the one who answered calls every member of its faction not among the war's
+				// defenders, each call accepted on the spot (factions.md, section 5).
+				if (CFactions.HasRule(state, recipient, CFactions.GuaranteeRule))
+				{
+					foreach (CCountry member in CCountryLists.FactionMembers(state, recipient.Faction))
+					{
+						if (!war.Defenders.Contains(member.Tag))
+						{
+							var call = new COffer(EOfferKind.CallAlly, recipient.Tag, member.Tag, EOfferStage.Accepted, true, state.TotalHours)
+							{
+								Versus = enemy.Tag,
+							};
+							new Commands.COfferCommand(call).Execute(state);
+						}
+					}
+				}
+				string told =offer.Value ? "WEMILALLHONOUR" : attacking ? "FACTIONWAROFF" : "FACTIONWARDEF";
 				state.RaisePactMessage(new CPactMessage("MILALLHONOUR", told, "OTHERMILALLHONOUR", actor.Tag, recipient.Tag)
 				{
 					Faction = actor.Faction,

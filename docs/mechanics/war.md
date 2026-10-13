@@ -410,8 +410,12 @@ is built: where the controller is not the same and somebody owns the province, a
   to no less than nought; so **a province a peace gives back is damaged as if retaken**, the war standing;
 - the province's production of money and the four resources is nought, enemy or not, until the day's repair
   brings it back (`bombing.md`);
-- where it is the old holder's capital, **a quarter of the old holder's money and resources** - out of its
-  stockpile, the capital's pool - goes to the new holder's stockpile; supplies, fuel and the rest stay.
+- where it is the old holder's acting capital (section 14), **a quarter of the old holder's money and
+  resources** - out of its stockpile - goes to the new holder's stockpile; supplies, fuel and the rest stay;
+- and, with consequences, peaceful or not, the old holder's government is seated again at once.
+
+A battle's capture goes through it so (`landcombat.md`, section 7), as do a peace, the day's return and the
+effects that move land.
 
 **A change of owner** (`CMapProvince::ChangeOwner`, D.3) sets the controller first with the same flags,
 then the owner - never the rebels; the modifiers events gave the province go, whether or not the owner
@@ -654,8 +658,6 @@ beside FROM's ground, to FROM where FROM is at war with its owner, and otherwise
   works it out again hourly - no attack, no capture, full speed, may pass through. Nothing marks them
   here.
 - **Undeclared wars** and the revolt war.
-- **Factions joining a war a new member brings**: the faction's own change when a country is put into
-  it (step 1) is read only so far; the member is put in and nothing more.
 - **The AI declaring war, offering peace or calling its allies** of its own accord - the foreign minister
   is not built. A war starts by the player or by script. For trials: `--war=GER:POL` stays a bare war -
   the two put at war and nobody else, as the savegame tool's trials want them, though they join it as any
@@ -668,10 +670,8 @@ beside FROM's ground, to FROM where FROM is at war with its owner, and otherwise
   brings it, and there is one player.
 - **What else a change of hands does** (`FINDINGS-surrender.md` D.2, D.3): air and naval units based in the
   province sent to the old side's nearest base or deleted, radar, the occupation policy, the underground,
-  REB's factions, nationalism, trespassers, the province's history - and **the acting capital**, where a
-  government goes when its capital falls and so where its stockpile is: here the stockpile stays the
-  capital's pool, wherever the capital is held. **A battle's capture does none of it**: it sets the
-  controller alone (`landcombat.md`, section 7).
+  REB's factions, nationalism, trespassers and the province's history. A battle's capture goes through the
+  same setter with consequences (`landcombat.md`, section 7).
 - **`surrender_inherit`** - annexation's surrender mode, where a neighbouring co-belligerent takes control and a
   unit goes over on an even draw - and `release` and `release_vassal`.
 - **Expeditionary forces**, which annexation and exile send home: there are none.
@@ -685,6 +685,5 @@ beside FROM's ground, to FROM where FROM is at war with its owner, and otherwise
 ## Not established
 
 - Who refreshes `action` while a war is fought (`FINDINGS-war.md` A.12).
-- What the faction's change does when a country is put into it, beyond its membership.
 - The list format of the dialog's COUNTRY lists: the original's helper is unread; names joined by ", "
   here.

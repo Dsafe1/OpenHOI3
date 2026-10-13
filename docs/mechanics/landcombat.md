@@ -443,13 +443,27 @@ in, takes it.
 **Taking a province.** A country's land unit stands in a province with no enemy beside it:
 
     whoever holds the province is no enemy of that country   -> nothing changes
-    its owner is no enemy either                              -> it goes back to its owner
-    otherwise                                                 -> the country holds it
+    to = the country
+    while to is a puppet, and its master is not the holder
+          and is at war with the holder                      -> to = its master
+    to is a government in exile, its faction has two or more
+          members, it is not the first, and the first is an
+          enemy of the province's owner                      -> to = the first
+    the owner is no enemy of the country and not in exile    -> to = the owner
+    otherwise, where to is still the country and not the owner:
+          the country holds none of the province's neighbours,
+          and the last of them, in the order of the province's
+          ways out, whose holder is no puppet and on whose
+          ground the country may operate (`supply.md`) has a
+          holder who is an enemy of the province's holder      -> to = that holder
 
-*Not built:* a puppet's conquest goes to its master; a government in exile's to the head of
-its faction; and a province none of whose neighbours the country holds goes to a friend who
-holds one. And what a change of holder does besides - the original rebuilds both countries'
-neighbours on the spot; here the day's passes find it.
+**A puppet's conquest goes to its master, ground taken back goes to the friend who owns it, and
+ground taken alone in the middle of a friend's goes to the friend.** Every way out counts in that
+last walk, the sea's included, whose holder is nobody. Then, where `to` is not the holder already,
+the province changes hands **with consequences** (`war.md`, section 11): its buildings may be
+damaged, its day's money and resources are lost, and a capital taken is looted of a quarter and its
+government moves at once. *Not built:* the original then rebuilds both countries' neighbours on the
+spot; here the day's passes find it.
 
 **Leaving by order.** A unit in a battle that is given somewhere to go leaves every battle it
 is in, and where it was **holding ground** - in a battle whose other side still has somebody -
@@ -458,10 +472,15 @@ off. The last unit of a side to leave decides the battle against that side, and 
 own hour ends it - not before its fourth. And each hour a unit leaves any battle for a
 province that is neither where it stands nor next to it.
 
-*Not built:* each defending front unit that falls back may damage the province's buildings
-(`COMBAT_PUSHBACK_CHANCE_FOR_DAMAGE`, `COMBAT_PUSHBACK_DAMAGE`) - buildings have one level
-here and no damage; the winners' relations with the province's owner improve by 5; the
-on-actions `on_battle_won` and `on_battle_lost` fire; and the messages.
+**Each defending front unit that falls back for want of the strength to fight - at the front's
+hourly look (section 3) - may damage the province's buildings**, as a change of hands with
+consequences does: each building the province was built with any of, in turn, a draw each - under
+`COMBAT_PUSHBACK_CHANCE_FOR_DAMAGE` per cent (50 in Their Finest Hour) it loses
+`COMBAT_PUSHBACK_DAMAGE` (one level) of what works, to no less than nought, and the day's repair
+brings it back (`bombing.md`). An attacker falling back, a defender's reserve, and a side sent
+back whole when it has lost do nothing to them. A battle decided improves the winners' relations with the province's owner by 5
+(`diplomacy.md`) and fires `on_battle_won` and `on_battle_lost` (`events.md`, section 8). *Not
+built:* the messages.
 
 ## 8. Chance
 

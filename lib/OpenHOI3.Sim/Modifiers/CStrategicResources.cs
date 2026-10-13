@@ -26,6 +26,9 @@ public static class CStrategicResources
 	/// <summary>Infrastructure is never counted as less than this, nor as more than whole.</summary>
 	private static readonly CFixedPoint LeastInfrastructure = new(10);
 
+	/// <summary>The define, in the alignment block, of how near a faction's corner a country must stand to give its leader its resources.</summary>
+	public const string BonusDistance = "FACTION_STRAT_BONUS_DIST";
+
 	/// <summary>A country with more base IC than this is given its faction's resources as a major is.</summary>
 	private const int IcOfABigCountry = 100;
 
@@ -48,8 +51,9 @@ public static class CStrategicResources
 
 	/// <summary>
 	/// Whether a country is given the resources another holds. It always has its own.
-	/// Otherwise the two must not be at war with each other, must be in one faction, the
-	/// receiver must be a major or have a large industry, and their capitals must be on
+	/// Otherwise the two must not be at war with each other, and either they are in one faction and the
+	/// receiver is a major or has a large industry, or the receiver leads a faction at war and the holder
+	/// stands outside it within the bonus distance of its corner; and their capitals must be on
 	/// one continent.
 	/// </summary>
 	public static bool GetsFrom(CGameState state, CCountry receiver, CCountry holder)
@@ -62,12 +66,15 @@ public static class CStrategicResources
 		{
 			return false;
 		}
-		if (!receiver.IsMajor && receiver.BaseIc <= IcOfABigCountry)
-		{
-			return false;
-		}
-		if (receiver.Faction.Length == 0
-			|| !receiver.Faction.Equals(holder.Faction, StringComparison.OrdinalIgnoreCase))
+		bool sameFaction = receiver.Faction.Length > 0
+			&& receiver.Faction.Equals(holder.Faction, StringComparison.OrdinalIgnoreCase);
+		bool member = (receiver.IsMajor || receiver.BaseIc > IcOfABigCountry) && sameFaction;
+		// A faction's leader at war, from a country outside it aligned within the bonus distance of its corner
+		// (factions.md, section 6).
+		bool aligned = !sameFaction && Wars.CFactions.Group(state, receiver.Faction) is { } group
+			&& Agreements.COfferRules.Leader(state, receiver.Faction) == receiver.Tag && state.IsAtWar(receiver.Tag)
+			&& Wars.CFactions.Within(state, holder, group, BonusDistance);
+		if (!member && !aligned)
 		{
 			return false;
 		}

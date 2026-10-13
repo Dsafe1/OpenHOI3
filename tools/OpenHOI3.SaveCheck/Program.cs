@@ -156,6 +156,12 @@ if (args.Length > 0 && args[0] == "declare")
 	return CDeclareTrial.Run(args);
 }
 
+// Factions on a new game, and a join or an invitation answered.
+if (args.Length > 0 && args[0] == "faction")
+{
+	return CFactionTrial.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

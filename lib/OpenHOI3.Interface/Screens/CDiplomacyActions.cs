@@ -7,6 +7,7 @@ using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Trade;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Interface.Screens;
 
@@ -79,6 +80,15 @@ public static class CDiplomacyActions
 		{
 			rows.Add(Row(EOfferKind.AskMilitaryAccess, !COfferRules.HasAccess(player, chosen)));
 			rows.Add(Row(EOfferKind.OfferMilitaryAccess, !COfferRules.HasAccess(chosen, player)));
+		}
+		// Invite where the player leads a real faction and they are in none; join where the reverse (factions.md, section 3).
+		if (CFactionOffers.Leads(state, player) && !COfferRules.RealFaction(chosen))
+		{
+			rows.Add(Row(EOfferKind.Faction, false));
+		}
+		else if (!COfferRules.RealFaction(player) && CFactionOffers.Leads(state, chosen))
+		{
+			rows.Add(Row(EOfferKind.Faction, true));
 		}
 		if (COfferRules.Align(state, player.Tag, chosen.Tag) is not null)
 		{
@@ -186,6 +196,7 @@ public static class CDiplomacyActions
 			EOfferKind.OfferLendLease => offer.Value ? "OFFERLL" : "STOPLL",
 			EOfferKind.Licence => offer.Value ? "BUYLICENCE" : "SELLLICENCE",
 			EOfferKind.DeclareWar or EOfferKind.CallAlly or EOfferKind.AddWarGoal or EOfferKind.Peace => CWarActions.Prefix(offer),
+			EOfferKind.Faction => CFactionText.Prefix(offer),
 			_ => offer.Value ? "ALIGN" : "STOPALIGN",
 		};
 	}
@@ -215,6 +226,7 @@ public static class CDiplomacyActions
 			EOfferKind.RequestLendLease => RequestLendLeaseTooltip(localise, state, offer, actor, recipient),
 			EOfferKind.OfferLendLease => OfferLendLeaseTooltip(localise, state, offer, actor, recipient),
 			EOfferKind.Licence => LicenceTooltip(localise, state, offer, actor, recipient),
+			EOfferKind.Faction => CFactionText.Tooltip(localise, state, offer, actor, recipient, (a, r) => EnRoute(localise, state, a, r)),
 			EOfferKind.DeclareWar or EOfferKind.CallAlly or EOfferKind.AddWarGoal or EOfferKind.Peace =>
 				CWarActions.Tooltip(localise, state, offer, actor, recipient, (a, r) => EnRoute(localise, state, a, r)),
 			_ => Align(localise, state, offer, actor, recipient),
@@ -402,9 +414,10 @@ public static class CDiplomacyActions
 					("PROV", state.Province(recipient.Capital).Name));
 				return Country("BREAKNAPNEWDESC") + NewLine + threat + NewLine + Cost();
 			case EOfferKind.Guarantee:
-				// ALLIES_GUARANT follows where the actor's faction makes its members guarantee too, which
-				// nothing in the original ever sets.
-				return Country("GUARANTNEWDESC") + NewLine + Cost();
+				// ALLIES_GUARANT follows where the actor's faction makes its members guarantee too (factions.md, section 5).
+				return Country("GUARANTNEWDESC")
+					+ (CFactions.HasRule(state, actor, CFactions.GuaranteeRule) ? NewLine + localise("ALLIES_GUARANT") : "")
+					+ NewLine + Cost();
 			case EOfferKind.AskMilitaryAccess:
 				return Country(offer.Value ? "MILACCNEWDESC" : "CANCELMILACCNEWDESC");
 			case EOfferKind.OfferMilitaryAccess:
@@ -428,6 +441,8 @@ public static class CDiplomacyActions
 				return localise(offer.Value ? "OFFERLL_DESCRIPTION" : "STOPLL_DESCRIPTION");
 			case EOfferKind.CallAlly:
 				return CWarActions.CallDescription(localise, state, offer, recipient);
+			case EOfferKind.Faction:
+				return CFactionText.Description(localise, state, offer, actor, recipient);
 			case EOfferKind.Peace:
 				return CPeaceText.Description(localise, state, actor, recipient);
 			case EOfferKind.ShareTechnology:

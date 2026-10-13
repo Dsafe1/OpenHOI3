@@ -131,8 +131,10 @@ public static class CMessages
 				message.Variables.Add((key, CLicenceText.ModelName(localise, state, seller, type) ?? localise(type.Key)));
 				continue;
 			}
-			// A war goal's type and a government are written as their keys (war.md, sections 13 and 14).
-			message.Variables.Add((key, key is "WARGOAL" or "GOVERNMENT" ? localise(value) : value));
+			// A war goal's type, a government, a faction and a faction's comment are written as their keys (war.md,
+			// sections 13 and 14; factions.md, section 3).
+			message.Variables.Add((key, key is "WARGOAL" or "GOVERNMENT" or "FACTION" or "COMMENT" or "BAD_COMMENT" or "COMMENT_BAD"
+				? localise(value) : value));
 		}
 		return message;
 	}

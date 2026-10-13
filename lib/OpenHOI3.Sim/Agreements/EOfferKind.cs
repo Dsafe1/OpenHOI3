@@ -25,4 +25,6 @@ public enum EOfferKind
 	AddWarGoal,
 	/// <summary>Peace, with no terms: the war between the two ends.</summary>
 	Peace,
+	/// <summary>Join Faction where its value is set, Invite to Faction where not (<c>factions.md</c>, section 3).</summary>
+	Faction,
 }

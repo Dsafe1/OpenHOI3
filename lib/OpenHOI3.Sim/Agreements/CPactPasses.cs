@@ -124,6 +124,12 @@ public static class CPactPasses
 		{
 			return state.AiScripts is { } licensing ? licensing.LicenceScore(state, offer) : 0;
 		}
+		// A join is put to the script the other way round: the faction's owner first, the joiner second (factions.md,
+		// section 3). The recipient's AI answers either way.
+		if (offer.Kind == EOfferKind.Faction && offer.Value)
+		{
+			return state.AiScripts is { } joining ? joining.DiploScore(state, function, recipient, actor, recipient) : 0;
+		}
 		return state.AiScripts is { } scripts ? scripts.DiploScore(state, function, actor, recipient, recipient) : 0;
 	}
 

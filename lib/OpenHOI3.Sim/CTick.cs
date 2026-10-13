@@ -67,6 +67,8 @@ public static class CTick
 		Aid.CLendLease.RunHourly(state);
 		Countries.CActingCapital.RunHourly(state);                 // ours: where in a country's hour beside lend-lease was not compared
 		COfficers.Update(state);
+		// Each province's hour: a faction's progress is the points its members hold (docs/mechanics/factions.md, section 7).
+		Wars.CFactionProgress.RunHourly(state);
 		// The battles are fought last, each in turn.
 		CCombats.RunHourly(state);
 		// An event left unanswered past its time answers itself (ours: the original's window counts
@@ -132,7 +134,8 @@ public static class CTick
 		{
 			CEventPass.RunDaily(state);
 		}
-		CNavalIntelligence.Refresh(state);                  // the last thing the original's day does
+		CNavalIntelligence.Refresh(state);                  // late in the original's day
+		Wars.CVictoryConditions.RunDaily(state);            // and last, the victory conditions (factions.md, section 8)
 	}
 
 	/// <summary>

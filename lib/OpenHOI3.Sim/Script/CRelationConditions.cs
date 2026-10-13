@@ -89,6 +89,11 @@ public static class CRelationConditions
 			case "num_in_faction":
 				answer = CCountryLists.FactionMembers(state, country?.Faction ?? "").Count >= Written(value, whole);
 				return true;
+			// The faction's share of the world's victory points at least the value, both thousandths of a percent; a country
+			// in no faction - or no country, a province's scope - asks the null faction's (factions.md, section 7).
+			case "faction_progress":
+				answer = Wars.CFactionProgress.Share(state, country?.Faction ?? "") >= value.Amount.Raw;
+				return true;
 			case "faction":
 				answer = InFaction(state, trigger, scope, country);
 				return true;

@@ -47,7 +47,7 @@ public static class CCountryModifiers
 		CModifier? war = state.FindStaticModifier(War);
 		CModifier? peace = state.FindStaticModifier(Peace);
 		CModifier? dissent = state.FindStaticModifier(Dissent);
-		Rebuild(country, baseValues);
+		Rebuild(country, baseValues, Diplomacy.CAlignment.FactionGroup(state, country)?.FactionModifier);
 
 		// A resource is worth its modifier times how much of it the country has.
 		foreach ((string name, CFixedPoint level) in country.StrategicResources)
@@ -158,20 +158,25 @@ public static class CCountryModifiers
 	}
 
 	/// <summary>
-	/// The part of a country's modifier that is its own: the base values, its ministers
+	/// The part of a country's modifier that is its own: the base values, its faction's modifier, its ministers
 	/// and its laws.
 	/// </summary>
 	/// <param name="baseValues">
 	/// The static modifier every country starts from. It is where a country's demand for
 	/// consumer goods begins, before its laws take theirs off.
 	/// </param>
-	public static void Rebuild(CCountry country, CModifier? baseValues = null)
+	public static void Rebuild(CCountry country, CModifier? baseValues = null, CModifier? faction = null)
 	{
 		country.Modifier.Clear();
 		country.ModifierSources.Clear();
 		if (baseValues is not null)
 		{
 			AddSource(country, baseValues);
+		}
+		// Its faction's modifier, where it is in one (factions.md, section 1).
+		if (faction is not null)
+		{
+			AddSource(country, faction);
 		}
 
 		foreach ((string position, CMinister minister) in country.Government)

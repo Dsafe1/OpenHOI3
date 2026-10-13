@@ -80,6 +80,9 @@ public static class CPacts
 			case EOfferKind.Peace:
 				Wars.CPeace.Apply(state, offer, actor, recipient);
 				break;
+			case EOfferKind.Faction:
+				Wars.CFactionOffers.Apply(state, offer, actor, recipient);
+				break;
 		}
 	}
 
@@ -347,6 +350,19 @@ public static class CPacts
 		if (offer.Value)
 		{
 			state.Guarantees.Add(new CGuarantee(actor.Tag, recipient.Tag, offer.Date));
+			// Under the Allies' rule every other member guarantees it too, a guarantee of its own by the faction, which
+			// takes the place of any it already gives (factions.md, section 5).
+			if (Wars.CFactions.HasRule(state, actor, Wars.CFactions.GuaranteeRule))
+			{
+				foreach (CCountry member in CCountryLists.FactionMembers(state, actor.Faction))
+				{
+					if (member != actor)
+					{
+						state.Guarantees.RemoveAll(g => g.Joins(member.Tag, recipient.Tag));
+						state.Guarantees.Add(new CGuarantee(member.Tag, recipient.Tag, offer.Date, ViaFaction: true));
+					}
+				}
+			}
 			Charge(state, actor, "GUARANTEE_INFLUENCE_COST");
 			Message(state, "WEGUARAT", "GUARATOUS", "GUARATOOTHER", actor, recipient);
 			return;

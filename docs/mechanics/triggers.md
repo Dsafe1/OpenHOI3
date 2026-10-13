@@ -268,7 +268,7 @@ five held everywhere on the start date for that reason when it was asked, flags 
 | revolts | `num_of_revolts`, `revolt_percentage`, `revolt_risk`, `pure_revolt_risk`, `nationalism` |
 | espionage | `spies`, `spy_mission_count`, `remove_fow` |
 | the AI's missions | `active_mission`, `last_mission`, `is_mission_country`, `is_mission_province` |
-| a country's war record | `war_exhaustion`, `surrender_progress`, `lost_IC`, `lost_national`, `faction_progress`, `strat_allies_impact`, `strat_bomb_impact`, `strat_convoy_impact`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
+| a country's war record | `war_exhaustion`, `lost_IC`, `lost_national`, `strat_allies_impact`, `strat_bomb_impact`, `strat_convoy_impact`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
 | the last battles | `last_battle_winner_losses` and the five others |
 | blockades | `blockade`, `is_blockaded` |
 | days out of supply | `out_of_supply_days` |

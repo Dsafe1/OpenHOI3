@@ -228,8 +228,8 @@ And with section 8 built, what the leaders do (**measured**, the same save):
 | the same, where the save also has a unit the files do not give | 19 of 35 | 33 of 35 |
 | supply networks the same in every province and figure (`supplypass`) | 171 of 234 | 184 of 234 |
 
-The capital that differs is Moscow, whose figure fits the Comintern's faction modifier, which is
-not known to reach a country (`upkeep.md`, section 1). 95 land units start out of radio range,
+The capital that differed is Moscow, whose figure fits the Comintern's faction modifier: with factions'
+modifiers applied (`factions.md`, section 1) it is 28 of 28. 95 land units start out of radio range,
 none of them Germany's - a look, since a save keeps nothing of it.
 
 ## 7. On screen

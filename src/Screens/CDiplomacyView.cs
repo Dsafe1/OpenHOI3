@@ -14,6 +14,7 @@ using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Events;
 using OpenHOI3.Sim.Script;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Screens;
 
@@ -282,7 +283,7 @@ public sealed partial class CDiplomacyView : CCountryView
 		Tooltip("label_our_neutrality_value", () => CDiplomacyTooltips.OurNeutrality(Localise, State, _chosen, Player));
 		if (_info.TryFindIcon("surrender_progress") is { } surrender)
 		{
-			surrender.PassiveTooltip = () => CDiplomacyTooltips.Surrender(Localise, _chosen, Player);
+			surrender.PassiveTooltip = () => CDiplomacyTooltips.Surrender(Localise, State, _chosen, Player);
 		}
 	}
 
@@ -628,8 +629,8 @@ public sealed partial class CDiplomacyView : CCountryView
 				_threatFlag.SetCountry(feared);
 			}
 		}
-		// Nobody's surrender progress is built: 0, so the bar is all green.
-		_info.TryFindIcon("surrender_progress")?.SetProgress(CDiplomacyScreenText.SurrenderBar(0));
+		_info.TryFindIcon("surrender_progress")?.SetProgress(
+			CDiplomacyScreenText.SurrenderBar(CSurrender.Progress(State, _chosen)));
 
 		FillStatus();
 	}

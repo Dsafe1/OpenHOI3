@@ -34,7 +34,6 @@ public static class CUndoneEffects
 		// Diplomacy.
 		Add(EScriptGap.Unbuilt, "undeclared_war", "release", "release_vassal", "surrender_inherit",
 			"split_troops");
-		Add(EScriptGap.Unbuilt, "join_faction", "leave_faction");
 		Add(EScriptGap.Unbuilt, "war_exhaustion");
 		// The government and the parties.
 		Add(EScriptGap.Unbuilt, "government", "coup_by", "do_election", "remove_minister", "organisation", "popularity");

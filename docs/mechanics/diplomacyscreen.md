@@ -297,11 +297,6 @@ never is**, the drift line or `DIP_ALIGNED_DRIFT` being written first. Last, the
   alignment are (`agreements.md`); there are no war goals, so the goal list is empty; the ceiling's
   claims hold for nobody, casus belli not being built. Influence, alignment, pacts, embargoes and
   access have their status lines and the breakdown its access line since 2026-10-13.
-- **Surrender progress is 0 for every country**, so the bar is full green: it is the occupied share of a
-  country's claimed victory points, and what a country claims is not built (war and peace). National
-  unity, which the delayed half also shows, is built.
-- **A faction's progress is 0**, so its bar is empty and its tooltip says so; how the original works it
-  out was not read. **No victory conditions are built**, so the box's tooltip has no "met / all" line.
 - **There is no AI**: `automation_setting` reads `OPT_NORMAL` and the arrows do nothing
   (`countryviews.md`) and `trade_automate_checkbox` does nothing. The action list holds the
   agreements' first half (`agreements.md`, section 7).
@@ -310,8 +305,6 @@ never is**, the drift line or `DIP_ALIGNED_DRIFT` being written first. Last, the
   have changed, which keeps its scroll as the original's putting it back does.
 - **REB has no most-threatening country** (`diplomacy.md`, *Ours*), so for it the flag is blank and the
   tooltip names nobody.
-- **The members of a faction are in the countries' order**, the leader first; the original keeps the
-  order they joined, which at a new game is the history's.
 - **The order of equals under the nine sort buttons** is the countries' order; the original's was not
   read.
 - **Opening the screen chooses the selected province's owner only where one province is selected**,
@@ -324,5 +317,4 @@ never is**, the drift line or `DIP_ALIGNED_DRIFT` being written first. Last, the
   the chosen country's.
 - The order of the game state's faction list (the file's, inferred) and of a faction's members at a new
   game.
-- What a faction's progress and the victory conditions are.
 - The order of equals under the nine sort buttons.

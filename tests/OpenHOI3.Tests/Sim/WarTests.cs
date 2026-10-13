@@ -30,7 +30,7 @@ public class WarTests
 	private static readonly CCountryTag Slo = new("SLO");
 	private static readonly CCountryTag Lit = new("LIT");
 
-	internal static CGameState World()
+	internal static CGameState World(IReadOnlyList<OpenHOI3.Sim.Diplomacy.CIdeologyGroup>? groups = null)
 	{
 		CCountry Country(CCountryTag tag, int capital) =>
 			new() { Tag = tag, Name = tag.Value, Adjective = tag.Value + "ish", DefinitionFile = "", Capital = capital };
@@ -63,7 +63,10 @@ public class WarTests
 		mobilisation.Add("reinforcement_bonus", CFixedPoint.One);
 		var state = new CGameState(new CDate(1936, 6, 1), provinces,
 			new[] { germany, Country(Pol, 2), italy, Country(Fra, 4), Country(Eng, 5), slovakia, lithuania },
-			staticModifiers: new[] { mobilisation });
+			staticModifiers: new[] { mobilisation })
+		{
+			IdeologyGroups = groups ?? System.Array.Empty<OpenHOI3.Sim.Diplomacy.CIdeologyGroup>(),
+		};
 		void Set(string name, string value) => state.Defines.Set(COfferRules.Section, name, CFixedPoint.Parse(value));
 		Set(CDeclarations.Belligerency, "33");
 		Set(CDeclarations.RelationHit, "100");

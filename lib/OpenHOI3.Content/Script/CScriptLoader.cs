@@ -19,6 +19,7 @@ public static class CScriptLoader
 		state.Events = CEventReader.ReadAll(directories, context);
 		state.Decisions = CDecisionReader.ReadAll(directories, context);
 		state.OnActions = COnActionReader.Read(directories, context, state.Events);
+		state.VictoryConditions = CFactionAimsReader.Read(directories, state, context);
 		CheckAcrossFiles(state.Events, state.Decisions, context);
 		return context.Problems;
 	}

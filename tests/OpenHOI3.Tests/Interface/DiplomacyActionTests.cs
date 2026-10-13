@@ -72,11 +72,12 @@ public class DiplomacyActionTests
 		{
 			EOfferKind.DeclareWar,
 			EOfferKind.Alliance, EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.AskMilitaryAccess,
-			EOfferKind.OfferMilitaryAccess, EOfferKind.Embargo, EOfferKind.Licence, EOfferKind.Debt, EOfferKind.Influence,
+			EOfferKind.OfferMilitaryAccess, EOfferKind.Faction, EOfferKind.Embargo, EOfferKind.Licence, EOfferKind.Debt, EOfferKind.Influence,
 			EOfferKind.Trade,
 			EOfferKind.RequestLendLease, EOfferKind.OfferLendLease,
 		}, toPoland.Select(row => row.Kind));
-		Assert.All(toPoland, row => Assert.True(row.Value));
+		// Invite to Faction is the faction row's clear value (factions.md, section 3).
+		Assert.All(toPoland, row => Assert.Equal(row.Kind != EOfferKind.Faction, row.Value));
 
 		// One faction: no alliance, no transit rights, no influence; and Germany, in one, aligns with nobody.
 		List<COffer> toItaly = CDiplomacyActions.Rows(state, C(state, ScriptWorld.Ger), C(state, ScriptWorld.Ita));
@@ -87,9 +88,13 @@ public class DiplomacyActionTests
 			EOfferKind.RequestLendLease, EOfferKind.OfferLendLease,
 		}, toItaly.Select(row => row.Kind));
 
-		// Poland, in no faction, may align with the Axis's leader.
-		Assert.Contains(CDiplomacyActions.Rows(state, C(state, ScriptWorld.Pol), C(state, ScriptWorld.Ger)),
-			row => row.Kind == EOfferKind.Align && row.Value);
+		// Poland, in no faction, may align with the Axis's leader, and ask to join it.
+		List<COffer> toGermany = CDiplomacyActions.Rows(state, C(state, ScriptWorld.Pol), C(state, ScriptWorld.Ger));
+		Assert.Contains(toGermany, row => row.Kind == EOfferKind.Align && row.Value);
+		Assert.Contains(toGermany, row => row.Kind == EOfferKind.Faction && row.Value);
+		// Italy, a member that does not lead, is not asked to join and asks nobody.
+		Assert.DoesNotContain(CDiplomacyActions.Rows(state, C(state, ScriptWorld.Pol), C(state, ScriptWorld.Ita)),
+			row => row.Kind == EOfferKind.Faction);
 	}
 
 	[Fact]

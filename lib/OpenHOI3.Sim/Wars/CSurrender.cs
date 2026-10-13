@@ -42,7 +42,7 @@ public static class CSurrender
 	/// <summary>
 	/// The original's <c>GetSurrenderProgress</c>, 0 to 1000: 1000 for a country holding no province; else the
 	/// occupied share of its owned cores' victory points, in thousandths, over its national unity in tenths of a
-	/// per cent, held to 1000. A government in exile, which nobody is yet, answers 0.
+	/// per cent, held to 1000. A government in exile answers 0.
 	/// </summary>
 	public static long Progress(CGameState state, CCountry country)
 	{

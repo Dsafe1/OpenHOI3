@@ -36,6 +36,7 @@ public static class COfferAskText
 		EOfferKind.OfferMilitaryAccess => 5,
 		EOfferKind.CallAlly => 6,
 		EOfferKind.NonAggressionPact => 7,
+		EOfferKind.Faction => 8,
 		EOfferKind.Licence => 10,
 		EOfferKind.Debt => 11,
 		EOfferKind.RequestLendLease => 12,
@@ -118,6 +119,10 @@ public static class COfferAskText
 			{
 				text += " " + localise("IS_BOUGHT_WITH_DEBT");
 			}
+		}
+		else if (offer.Kind == EOfferKind.Faction)
+		{
+			text = CFactionText.AskDescription(localise, state, offer);
 		}
 		else if (offer.Kind == EOfferKind.CallAlly)
 		{

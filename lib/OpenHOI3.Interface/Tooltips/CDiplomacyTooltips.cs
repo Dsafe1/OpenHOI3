@@ -10,6 +10,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Interface.Tooltips;
 
@@ -107,13 +108,13 @@ public static class CDiplomacyTooltips
 	}
 
 	/// <summary>
-	/// The surrender bar: its progress to two places, rounded, and what it is made of. Progress and the
-	/// occupied share are 0 until what a country claims is built; national unity is the country's.
+	/// The surrender bar: its progress to two places, rounded, and what it is made of - the occupied share
+	/// of its owned cores' victory points and its national unity (<c>war.md</c>, section 12).
 	/// </summary>
-	public static CTooltip Surrender(Func<string, string> localise, CCountry chosen, CCountry player)
+	public static CTooltip Surrender(Func<string, string> localise, CGameState state, CCountry chosen, CCountry player)
 	{
-		const long progress = 0;
-		const long occupied = 0;
+		long progress = CSurrender.Progress(state, chosen);
+		long occupied = CSurrender.Occupied(chosen);
 		string details = chosen == player ? "SURRENDER_DETAILS" : "SURRENDER_DETAILS_THEY";
 		return new CTooltip
 		{
@@ -191,10 +192,18 @@ public static class CDiplomacyTooltips
 		};
 	}
 
-	/// <summary>A faction's button: its name, its rules and modifier delayed.</summary>
-	public static CTooltip Faction(Func<string, string> localise, CIdeologyGroup faction)
+	/// <summary>
+	/// A faction's button: its name, its rules and modifier delayed - and on a faction box's symbol, given the state,
+	/// "\n" and its victory conditions met / chosen where it has chosen any (section 6.1; <c>factions.md</c>, section 8).
+	/// </summary>
+	public static CTooltip Faction(Func<string, string> localise, CIdeologyGroup faction, CGameState? state = null)
 	{
-		return new CTooltip { Text = localise(faction.Faction), Delayed = RulesAndModifier(localise, faction) };
+		string delayed = RulesAndModifier(localise, faction);
+		if (state is not null && CVictoryConditions.Chosen(state, faction.Faction) is var chosen and > 0)
+		{
+			delayed += "\n" + CVictoryConditions.Met(state, faction.Faction) + "/" + chosen;
+		}
+		return new CTooltip { Text = localise(faction.Faction), Delayed = delayed };
 	}
 
 	/// <summary>
@@ -215,22 +224,18 @@ public static class CDiplomacyTooltips
 	}
 
 	/// <summary>
-	/// A faction's share of the world's victory points. A faction's progress is not built and no
-	/// province's victory points are read yet, so both are 0 (section *Ours*).
+	/// A faction's share of the world's victory points, cut as the share is (<c>factions.md</c>, section 7), to two
+	/// places; its progress and the world's points whole.
 	/// </summary>
-	public static CTooltip VictoryProgress(Func<string, string> localise, CIdeologyGroup faction)
+	public static CTooltip VictoryProgress(Func<string, string> localise, CGameState state, CIdeologyGroup faction)
 	{
-		// The share is progress x 1000 / the world's points, or the progress itself where there are none.
-		const long progress = 0;
-		const long total = 0;
-		const long share = progress;
 		return new CTooltip
 		{
 			Text = CTextTemplate.Fill(localise("FACTION_PROGRESS_DESC"),
 				("WHO", localise(faction.Faction)),
-				("PERCENT", CNumberText.Format(new CFixedPoint(share * 100000 / 1000), 2)),
-				("OUR", CNumberText.Format(new CFixedPoint(progress), 0)),
-				("TOTAL", CNumberText.Format(new CFixedPoint(total), 0))),
+				("PERCENT", CNumberText.Format(new CFixedPoint(CFactionProgress.Share(state, faction.Faction)), 2)),
+				("OUR", CNumberText.Format(new CFixedPoint(CFactionProgress.Progress(state, faction.Faction)), 0)),
+				("TOTAL", CNumberText.Format(new CFixedPoint(CFactionProgress.Total(state)), 0))),
 		};
 	}
 

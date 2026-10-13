@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Combat;
@@ -144,7 +145,8 @@ public static class CFrontLine
 
 	/// <summary>
 	/// A side's front, each hour, before it shoots. A front unit that can no longer
-	/// fight falls back out of the battle. Then, with the front over the width even
+	/// fight falls back out of the battle, and where it is a defender the province's
+	/// buildings may be damaged. Then, with the front over the width even
 	/// without its last unit, that unit goes back to the reserves - one an hour;
 	/// otherwise reserves come up while there is room.
 	/// </summary>
@@ -156,6 +158,10 @@ public static class CFrontLine
 			{
 				side.Front.Remove(unit);
 				CCombatRetreat.Retreat(state, unit, side);
+				if (side == combat.Defender)
+				{
+					CProvinceHands.DamageBuildings(state, state.Province(combat.Province));
+				}
 			}
 		}
 

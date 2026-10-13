@@ -7,7 +7,7 @@ namespace OpenHOI3.Sim.Provinces;
 
 /// <summary>
 /// A province changing hands, by the original's two setters - who holds it, and who owns it - as far as what
-/// they do is built. Every change of hands but a battle's goes through here: an effect, a peace, the day's return
+/// they do is built. Every change of hands goes through here: a battle, an effect, a peace, the day's return
 /// of occupied land. See <c>docs/mechanics/war.md</c>, section 11.
 /// </summary>
 public static class CProvinceHands
@@ -87,8 +87,13 @@ public static class CProvinceHands
 
 	private static bool RealFaction(CCountry country) => country.Faction.Length > 0;
 
-	/// <summary>Each building there is any of, in turn, a draw each: under the chance, it loses the damage, to no less than nought.</summary>
-	private static void DamageBuildings(CGameState state, CProvince province)
+	/// <summary>
+	/// The original's <c>CCombat::DamageProvinceBuildings</c>, which the setter does too: each building the province
+	/// was built with any of, in turn, a draw each - under <c>COMBAT_PUSHBACK_CHANCE_FOR_DAMAGE</c> per cent it loses
+	/// <c>COMBAT_PUSHBACK_DAMAGE</c> of what works, to no less than nought. A battle runs it each time a defending front
+	/// unit falls back (<c>docs/mechanics/landcombat.md</c>, section 7).
+	/// </summary>
+	public static void DamageBuildings(CGameState state, CProvince province)
 	{
 		long chance = state.Defines[Section, "COMBAT_PUSHBACK_CHANCE_FOR_DAMAGE"].Raw / 1000;
 		CFixedPoint damage = state.Defines[Section, "COMBAT_PUSHBACK_DAMAGE"];

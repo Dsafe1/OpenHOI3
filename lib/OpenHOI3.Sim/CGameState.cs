@@ -273,6 +273,22 @@ public sealed class CGameState
 	/// <summary>The seat the last country put at the front of a faction was given, counting down from nought.</summary>
 	public long FirstFactionSeat { get; set; }
 
+	/// <summary>
+	/// Each faction's progress, the victory points its members hold, in thousandths, by the faction's name - the null
+	/// faction's under "", which nothing sets back to nought (<c>factions.md</c>, section 7). A 32-bit figure, as the
+	/// original's, which wraps.
+	/// </summary>
+	public Dictionary<string, int> FactionProgress { get; } = new(StringComparer.Ordinal);
+
+	/// <summary>
+	/// The victory conditions of <c>common/faction_aims.txt</c>, each faction's in the file's order, the factions in the
+	/// file's order (<c>factions.md</c>, section 8).
+	/// </summary>
+	public List<(string Faction, List<Wars.CVictoryCondition> Conditions)> VictoryConditions { get; set; } = new();
+
+	/// <summary>Whether a faction has met its victory conditions or the end date has passed: the game is finished.</summary>
+	public bool GameFinished { get; set; }
+
 	/// <summary>The non-aggression pacts standing now: <c>docs/mechanics/agreements.md</c>.</summary>
 	public List<Agreements.CNap> Naps { get; } = new();
 

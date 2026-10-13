@@ -73,7 +73,8 @@ public class LandCombatTests
 		return war;
 	}
 
-	private static CGameState State(out CCountry germany, out CCountry poland, bool atWar = true)
+	private static CGameState State(out CCountry germany, out CCountry poland, bool atWar = true,
+		CBuilding[]? buildings = null)
 	{
 		germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "", Capital = Berlin };
 		poland = new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "", Capital = Warsaw };
@@ -110,7 +111,7 @@ public class LandCombatTests
 				Land(Lodz, "Lodz", Pol, Edge(Posen), Edge(Warsaw)),
 			},
 			new[] { germany, poland, soviets }, defines: defines,
-			wars: atWar ? new[] { War(Ger, Pol) } : null);
+			wars: atWar ? new[] { War(Ger, Pol) } : null, buildings: buildings);
 	}
 
 	private static CUnit Division(CGameState state, CCountry country, int province, int brigades = 3,
@@ -753,6 +754,95 @@ public class LandCombatTests
 		state.Wars.Add(War(Sov, Ger));
 		Assert.True(CProvinceControl.Take(state, posen, Sov));
 		Assert.Equal(Pol, posen.Controller);
+	}
+
+	[Fact]
+	public void APuppetsConquestGoesToItsMasterWhileTheMasterIsAtWarWithTheHolder()
+	{
+		CGameState state = State(out _, out _);
+		state.Country(Sov)!.Overlord = Ger;
+		state.Wars[0].Attackers.Add(Sov);
+
+		Assert.True(CProvinceControl.Take(state, state.Province(Warsaw), Sov));
+		Assert.Equal(Ger, state.Province(Warsaw).Controller);
+
+		// In a war of its own, its master at peace with Poland, it keeps what it takes.
+		state.Wars.Clear();
+		state.Wars.Add(War(Sov, Pol));
+		Assert.True(CProvinceControl.Take(state, state.Province(Lodz), Sov));
+		Assert.Equal(Sov, state.Province(Lodz).Controller);
+	}
+
+	[Fact]
+	public void GroundNoneOfWhoseNeighboursTheTakerHoldsGoesToAFightingFriendWhoHoldsOne()
+	{
+		CGameState state = State(out _, out _);
+		state.Wars[0].Attackers.Add(Sov);
+		state.Province(Posen).Controller = Ger;
+
+		// Lodz touches Posen, which Germany holds, and Warsaw, which Poland does.
+		Assert.True(CProvinceControl.Take(state, state.Province(Lodz), Sov));
+		Assert.Equal(Ger, state.Province(Lodz).Controller);
+
+		// Holding Warsaw beside it, the Soviets keep it.
+		state.Province(Lodz).Controller = Pol;
+		state.Province(Warsaw).Controller = Sov;
+		Assert.True(CProvinceControl.Take(state, state.Province(Lodz), Sov));
+		Assert.Equal(Sov, state.Province(Lodz).Controller);
+	}
+
+	[Fact]
+	public void AnExilesConquestGoesToTheHeadOfItsFactionOnlyWhereTheHeadIsAnEnemyOfTheOwner()
+	{
+		CGameState state = State(out _, out CCountry poland);
+		CCountry soviets = state.Country(Sov)!;
+		soviets.Faction = poland.Faction = "comintern";
+		soviets.FactionSeat = 1;
+		poland.FactionSeat = 2;
+		poland.InExile = true;
+		CProvince breslau = state.Province(Breslau);
+
+		Assert.True(CProvinceControl.Take(state, breslau, Pol));
+		Assert.Equal(Pol, breslau.Controller);
+
+		breslau.Controller = Ger;
+		state.Wars[0].Defenders.Add(Sov);
+		Assert.True(CProvinceControl.Take(state, breslau, Pol));
+		Assert.Equal(Sov, breslau.Controller);
+	}
+
+	[Fact]
+	public void ACapitalTakenInBattleIsLootedOfAQuarter()
+	{
+		CGameState state = State(out _, out _);
+		state.Province(Warsaw).Pool[EGoods.Money] = CFixedPoint.FromInt(40);
+
+		Assert.True(CProvinceControl.Take(state, state.Province(Warsaw), Ger));
+		Assert.Equal(CFixedPoint.FromInt(30), state.Province(Warsaw).Pool[EGoods.Money]);
+		Assert.Equal(CFixedPoint.FromInt(10), state.Province(Berlin).Pool[EGoods.Money]);
+	}
+
+	[Fact]
+	public void ADefendingFrontUnitThatFallsBackMayDamageTheProvincesBuildings()
+	{
+		var industry = new CBuilding(0, "industry", 10, "", default);
+		CGameState state = State(out CCountry germany, out CCountry poland, buildings: new[] { industry });
+		state.Defines.Set(CProvinceHands.Section, "COMBAT_PUSHBACK_CHANCE_FOR_DAMAGE", CFixedPoint.FromInt(100));
+		state.Defines.Set(CProvinceHands.Section, "COMBAT_PUSHBACK_DAMAGE", CFixedPoint.One);
+		state.Province(Posen).SetBuildingLevel(industry, CFixedPoint.FromInt(3));
+		CUnit attacker = Division(state, germany, Berlin);
+		CUnit defender = Division(state, poland, Posen);
+		CCombat combat = Fight(state, attacker, Posen);
+
+		// The attacker giving way leaves the buildings be.
+		attacker.SubUnits.ForEach(brigade => brigade.Organisation = CFixedPoint.Zero);
+		CFrontLine.Update(state, combat, combat.Attacker);
+		Assert.Equal(CFixedPoint.FromInt(3), state.Province(Posen).BuildingLevel(industry));
+
+		defender.SubUnits.ForEach(brigade => brigade.Organisation = CFixedPoint.Zero);
+		CFrontLine.Update(state, combat, combat.Defender);
+		Assert.Equal(CFixedPoint.FromInt(2), state.Province(Posen).BuildingLevel(industry));
+		Assert.Equal(CFixedPoint.FromInt(3), state.Province(Posen).BuildingMaxLevel(industry));
 	}
 
 	[Fact]

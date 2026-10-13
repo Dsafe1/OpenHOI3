@@ -125,6 +125,20 @@ public static class CCountryEffects
 					CGameState.Status(country, through).HasMilitaryAccess = effect.Keyword == "military_access";
 				}
 				return true;
+			// A country comes into a faction with its wars, where not in it already, and leaves one it is in, first
+			// leaving the wars its leader leads its side in (factions.md, sections 2 and 4).
+			case "join_faction":
+				if (country is not null && Wars.CFactions.Named(state, effect.Argument.Text) is { Length: > 0 } joined)
+				{
+					Wars.CFactions.AddCountry(state, country, joined, joinWars: true);
+				}
+				return true;
+			case "leave_faction":
+				if (country is not null)
+				{
+					Wars.CFactions.LeaveByEffect(state, country, Wars.CFactions.Named(state, effect.Argument.Text));
+				}
+				return true;
 			case "end_war":
 				if (scope.Country is { } side && CEffects.Target(state, effect, scope) is { } leaving)
 				{

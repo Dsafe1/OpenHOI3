@@ -57,7 +57,7 @@ public static class CPuppets
 		vassal.AlignmentY = overlord.AlignmentY;
 		if (COfferRules.RealFaction(overlord))
 		{
-			JoinFaction(state, vassal, overlord.Faction);
+			CFactions.AddCountry(state, vassal, overlord.Faction, joinWars: true);
 		}
 		vassal.Overlord = overlord.Tag;
 		CFixedPoint relation = CRelations.Clamp(CRelations.Of(overlord, vassal) + PuppetRelation);
@@ -79,37 +79,6 @@ public static class CPuppets
 		state.Alliances.RemoveAll(alliance => alliance.Joins(overlord.Tag, vassal.Tag));
 		vassal.Overlord = null;
 		ClearBetween(state, overlord, vassal);
-	}
-
-	/// <summary>
-	/// The original's <c>CFaction::AddCountry</c> joining the wars: the country goes to the back of the faction and
-	/// into every war its leader is in - beside it, as an attacker only where the war is not limited - its relation
-	/// with each enemy falling by <c>WARDEC_WAR_DIPLOMACY_HIT</c>.
-	/// </summary>
-	public static void JoinFaction(CGameState state, CCountry country, string faction)
-	{
-		CFactionMembership.Join(state, country, faction);
-		if (state.Country(COfferRules.Leader(state, faction)) is not { } leader || leader == country)
-		{
-			return;
-		}
-		CFixedPoint hit = COfferRules.Define(state, CDeclarations.RelationHit);
-		foreach (CWar war in state.Wars.ToArray())
-		{
-			bool attacking = war.Attackers.Contains(leader.Tag);
-			if ((!attacking || war.IsLimited) && !war.Defenders.Contains(leader.Tag))
-			{
-				continue;
-			}
-			CWarSides.Join(state, war, country.Tag, attacking);
-			foreach (CCountryTag enemy in (attacking ? war.Defenders : war.Attackers).ToArray())
-			{
-				if (state.Country(enemy) is { } other)
-				{
-					CRelations.Change(country, other, -hit);
-				}
-			}
-		}
 	}
 
 	/// <summary>
