@@ -155,6 +155,59 @@ public static class CCountryLists
 	}
 
 	/// <summary>
+	/// The controllers of the provinces beside the ones the country controls, where that province is
+	/// owned by somebody and neither owned nor controlled by the country - so occupation moves a
+	/// country from <see cref="Neighbours"/> to this list. See <c>docs/mechanics/lua.md</c>, section 4.
+	/// </summary>
+	public static List<CCountry> ControllerNeighbours(CGameState state, CCountry country)
+	{
+		var found = new HashSet<CCountryTag>();
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.Controller != country.Tag)
+			{
+				continue;
+			}
+			foreach (CProvinceEdge edge in province.Edges)
+			{
+				CProvince beside = state.Province(edge.To);
+				if (beside.Owner is { } owner && owner != country.Tag && beside.Controller is { } controller
+					&& controller != country.Tag)
+				{
+					found.Add(controller);
+				}
+			}
+		}
+		var neighbours = new List<CCountry>();
+		foreach (CCountry other in state.Countries)
+		{
+			if (found.Contains(other.Tag))
+			{
+				neighbours.Add(other);
+			}
+		}
+		return neighbours;
+	}
+
+	/// <summary>Whether the two, being two, are on one side of a war.</summary>
+	public static bool FightingTogether(CGameState state, CCountryTag one, CCountryTag other)
+	{
+		if (one == other)
+		{
+			return false;
+		}
+		foreach (CWar war in state.Wars)
+		{
+			if ((war.Attackers.Contains(one) && war.Attackers.Contains(other))
+				|| (war.Defenders.Contains(one) && war.Defenders.Contains(other)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/// <summary>
 	/// The nations the country could release: a country that owns no province, has a core on a
 	/// province the country owns and controls other than its capital, and has its capital owned by
 	/// the country.

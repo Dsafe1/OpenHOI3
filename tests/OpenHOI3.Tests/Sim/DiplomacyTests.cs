@@ -38,6 +38,11 @@ public class DiplomacyTests
 			Asked.Add((country.Tag, other.Tag));
 			return Answer;
 		}
+
+		public int DiploScore(CGameState state, string function, CCountry actor, CCountry recipient, CCountry observer)
+		{
+			return Answer;
+		}
 	}
 
 	private static CCountry C(CGameState state, CCountryTag tag) => state.Country(tag)!;

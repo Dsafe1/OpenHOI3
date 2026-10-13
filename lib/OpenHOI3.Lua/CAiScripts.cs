@@ -25,6 +25,9 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	/// <summary>What the relation is where the call fails: the original sets it before calling.</summary>
 	private const int RelationOnFailure = 25;
 
+	/// <summary>What an offer's score is where the call fails: the original's bridge answers 0, a refusal.</summary>
+	private const int ScoreOnFailure = 0;
+
 	private readonly CDirectorySettings _directories;
 	private readonly Action<string> _report;
 	private readonly CLuaState _lua = new();
@@ -36,7 +39,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	{
 		_directories = directories;
 		_report = report ?? CDiagnostics.Warn;
-		_api = new CGameApi(() => _state ?? throw new CLuaError("no game is being asked"));
+		_api = new CGameApi(() => _state ?? throw new CLuaError("no game is being asked"), _report);
 		_lua.OpenLibraries("base", "package", "table", "io", "os", "string", "math", "debug");
 		foreach (CLuaClass luaClass in _api.Classes)
 		{
@@ -51,6 +54,9 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 
 	/// <summary>How many calls failed and were reported.</summary>
 	public int Failures => _failures;
+
+	/// <summary>The classes the scripts are handed, and what of the game they reported as not built.</summary>
+	public CGameApi Api => _api;
 
 	public int? NonHistoricalRelation(CGameState state, CCountry country, CCountry other)
 	{
@@ -69,6 +75,38 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 			Fail(e.Message);
 		}
 		return RelationOnFailure;
+	}
+
+	public int DiploScore(CGameState state, string function, CCountry actor, CCountry recipient, CCountry observer)
+	{
+		_state = state;
+		try
+		{
+			// The AI handed over is the recipient's, which every country has.
+			object? value = _lua.Call(function, 1, new CLuaObject(_api.Ai, new CLuaAi(recipient)),
+				_api.Tag(actor.Tag), _api.Tag(recipient.Tag), _api.Tag(observer.Tag))[0];
+			if (value is double number)
+			{
+				return ToInteger(number);
+			}
+			Fail($"{function}({actor.Tag}, {recipient.Tag}, {observer.Tag}) answered {value ?? "nil"}, not a number");
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+		return ScoreOnFailure;
+	}
+
+	/// <summary>
+	/// What a Lua expression answers with this game being asked - for a check or a test. A Lua error is
+	/// a <see cref="CLuaException"/>.
+	/// </summary>
+	public object? Ask(CGameState state, string expression)
+	{
+		_state = state;
+		_lua.Run(Encoding.Latin1.GetBytes("function __ohoi_ask() return " + expression + " end"), "=ask");
+		return _lua.Call("__ohoi_ask", 1)[0];
 	}
 
 	public void Dispose()

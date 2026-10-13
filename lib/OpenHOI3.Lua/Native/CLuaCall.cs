@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace OpenHOI3.Lua.Native;
 
@@ -36,6 +37,9 @@ public readonly struct CLuaCall
 		throw new CLuaError($"bad argument #{argument} ({expected} expected, got {Describe(argument)})");
 	}
 
+	/// <summary>The argument, an object of ours of any class, and its class; null where it is something else.</summary>
+	public object? ObjectAt(int argument, out CLuaClass? luaClass) => Lua.ToObject(Pointer, argument, out luaClass);
+
 	public double Number(int argument)
 	{
 		if (TypeOf(argument) == ELuaType.Number)
@@ -44,6 +48,19 @@ public readonly struct CLuaCall
 		}
 		throw new CLuaError($"bad argument #{argument} (number expected, got {Describe(argument)})");
 	}
+
+	/// <summary>A number argument as luabind hands it to a parameter of type <c>int</c>: <c>lua_tointeger</c>.</summary>
+	public int Integer(int argument)
+	{
+		if (TypeOf(argument) == ELuaType.Number)
+		{
+			return CLuaNative.lua_tointeger(Pointer, argument);
+		}
+		throw new CLuaError($"bad argument #{argument} (number expected, got {Describe(argument)})");
+	}
+
+	/// <summary>An argument as Lua's truth: false only for nil, false and no value.</summary>
+	public bool Boolean(int argument) => CLuaNative.lua_toboolean(Pointer, argument) != 0;
 
 	public string String(int argument)
 	{
@@ -64,6 +81,16 @@ public readonly struct CLuaCall
 	public int Return(object? value)
 	{
 		Lua.Push(Pointer, value);
+		return 1;
+	}
+
+	/// <summary>
+	/// Answers a function a generic <c>for</c> walks over these values, in this order: the original's
+	/// iterator over a container. A null among them ends the walk there.
+	/// </summary>
+	public int ReturnIterator(IReadOnlyList<object?> values)
+	{
+		Lua.PushIterator(Pointer, values);
 		return 1;
 	}
 

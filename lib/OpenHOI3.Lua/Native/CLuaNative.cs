@@ -124,4 +124,7 @@ internal static unsafe class CLuaNative
 	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
 	public static extern void ohoi_pushfunction(IntPtr L,
 		delegate* unmanaged[Cdecl]<IntPtr, IntPtr, int> function, IntPtr context);
+
+	[DllImport(Library, CallingConvention = CallingConvention.Cdecl)]
+	public static extern void ohoi_pushiterator(IntPtr L);
 }

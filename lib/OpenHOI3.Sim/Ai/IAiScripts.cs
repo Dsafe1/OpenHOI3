@@ -15,4 +15,12 @@ public interface IAiScripts
 	/// points - or null where the script has no such function or failed, which it reports.
 	/// </summary>
 	int? NonHistoricalRelation(CGameState state, CCountry country, CCountry other);
+
+	/// <summary>
+	/// <c>DiploScore_&lt;kind&gt;(ai, actor, recipient, observer)</c>: what the recipient's AI
+	/// makes of an offer, the Lua function named by <paramref name="function"/>. 0 where the call
+	/// fails, which it reports - the offer refused, as in the original. See
+	/// <c>docs/mechanics/lua.md</c>, section 6.
+	/// </summary>
+	int DiploScore(CGameState state, string function, CCountry actor, CCountry recipient, CCountry observer);
 }

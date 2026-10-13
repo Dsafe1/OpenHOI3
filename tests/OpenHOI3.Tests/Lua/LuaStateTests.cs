@@ -126,20 +126,83 @@ public class LuaStateTests
 	}
 
 	[Fact]
-	public void One_object_pushed_twice_is_equal_to_itself_and_not_to_another()
+	public void One_object_pushed_twice_is_two_values_and_a_class_with_no_equality_cannot_compare_them()
 	{
+		// luabind makes a new userdata at each push and answers == through one operator for every
+		// class, which is an error for a class that registers none.
 		using CLuaState lua = Open();
 		var thingClass = new CLuaClass("CThing");
 		lua.DefineClass(thingClass);
 		var one = new Thing { Name = "one" };
-		var other = new Thing { Name = "other" };
 		lua.SetGlobal("a", new CLuaObject(thingClass, one));
 		lua.SetGlobal("b", new CLuaObject(thingClass, one));
-		lua.SetGlobal("c", new CLuaObject(thingClass, other));
+		Assert.Equal(true, Ask(lua, "a == a"));
+		Assert.Equal(false, Ask(lua, "rawequal(a, b)"));
+		Assert.Equal(false, Ask(lua, "a == nil"));
+		Assert.Equal(false, Ask(lua, "a == 1"));
+		Assert.Contains("No such operator defined", Assert.Throws<CLuaException>(() => Ask(lua, "a == b")).Message);
+		Assert.Same(one, lua.GetGlobal("a"));
+	}
+
+	[Fact]
+	public void A_class_equality_answers_for_two_of_its_objects_and_across_classes_through_the_left_one()
+	{
+		using CLuaState lua = Open();
+		var thingClass = new CLuaClass("CThing")
+			.Operator("__eq", call => call.Return(call.Object<Thing>(1, "CThing").Name == call.Object<Thing>(2, "CThing").Name));
+		var otherClass = new CLuaClass("COther");
+		lua.DefineClass(thingClass);
+		lua.DefineClass(otherClass);
+		lua.SetGlobal("a", new CLuaObject(thingClass, new Thing { Name = "x" }));
+		lua.SetGlobal("b", new CLuaObject(thingClass, new Thing { Name = "x" }));
+		lua.SetGlobal("c", new CLuaObject(thingClass, new Thing { Name = "y" }));
+		lua.SetGlobal("o", new CLuaObject(otherClass, new object()));
 		Assert.Equal(true, Ask(lua, "a == b"));
 		Assert.Equal(false, Ask(lua, "a == c"));
-		Assert.Equal(false, Ask(lua, "a == nil"));
-		Assert.Same(one, lua.GetGlobal("a"));
+		Assert.Equal(true, Ask(lua, "a ~= c"));
+		// The other class has no ==, so the thing's answers whichever side it is on - here with an error,
+		// the other object not being a thing.
+		Assert.Throws<CLuaException>(() => Ask(lua, "o == a"));
+	}
+
+	[Fact]
+	public void A_class_is_a_global_with_its_static_functions_constants_and_constructor()
+	{
+		using CLuaState lua = Open();
+		CLuaClass thingClass = new CLuaClass("CThing")
+			.Method("GetName", call => call.Return(call.Object<Thing>(1, "CThing").Name))
+			.Static("Twice", call => call.Return(call.Number(1) * 2))
+			.Constant("_ONE_", 1);
+		thingClass.Constructs(call => call.Return(new CLuaObject(thingClass, new Thing { Name = call.String(2) })));
+		lua.DefineClass(thingClass);
+		Assert.Equal(6.0, Ask(lua, "CThing.Twice(3)"));
+		Assert.Equal(1.0, Ask(lua, "CThing._ONE_"));
+		Assert.Equal("made", Ask(lua, "CThing('made'):GetName()"));
+	}
+
+	[Fact]
+	public void A_field_is_read_with_a_dot_beside_the_methods()
+	{
+		using CLuaState lua = Open();
+		var thingClass = new CLuaClass("CThing")
+			.Method("GetName", call => call.Return(call.Object<Thing>(1, "CThing").Name))
+			.Field("vName", call => call.Return(call.Object<Thing>(1, "CThing").Name + "!"));
+		lua.DefineClass(thingClass);
+		lua.SetGlobal("it", new CLuaObject(thingClass, new Thing { Name = "Italy" }));
+		Assert.Equal("Italy", Ask(lua, "it:GetName()"));
+		Assert.Equal("Italy!", Ask(lua, "it.vName"));
+		Assert.Null(Ask(lua, "it.vNothing"));
+	}
+
+	[Fact]
+	public void An_iterator_walks_its_values_in_order_and_stops_at_the_first_nil()
+	{
+		using CLuaState lua = Open();
+		var values = new object?[] { "a", "b", null, "d" };
+		lua.SetGlobal("walk", (CLuaFunction)(call => call.ReturnIterator(values)));
+		Assert.Equal("ab", Ask(lua, "(function() local s = '' for v in walk() do s = s .. v end return s end)()"));
+		lua.SetGlobal("none", (CLuaFunction)(call => call.ReturnIterator(System.Array.Empty<object?>())));
+		Assert.Equal(0.0, Ask(lua, "(function() local n = 0 for v in none() do n = n + 1 end return n end)()"));
 	}
 
 	[Fact]

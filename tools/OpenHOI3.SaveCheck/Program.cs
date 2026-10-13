@@ -138,6 +138,12 @@ if (args.Length > 0 && args[0] == "diplomacy")
 	return CDiplomacyCheck.Run(args);
 }
 
+// The AI's functions for offers asked of every pair of countries, and what they could not read.
+if (args.Length > 0 && args[0] == "aiscore")
+{
+	return CAiScoreTrial.Run(args);
+}
+
 if (args.Length < 2)
 {
 	Console.Error.WriteLine("usage: OpenHOI3.SaveCheck <install folder> <savegame> [examples to show per finding]");

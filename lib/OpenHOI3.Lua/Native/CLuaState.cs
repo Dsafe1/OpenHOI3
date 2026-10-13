@@ -13,13 +13,20 @@ namespace OpenHOI3.Lua.Native;
 /// </summary>
 public sealed unsafe class CLuaState : IDisposable
 {
-	private const string CacheKey = "ohoi.objects";
 	private const string ClassKeyPrefix = "ohoi.class.";
+	private const string MethodsKeyPrefix = "ohoi.methods.";
+	private const string OperatorKeyPrefix = "ohoi.operator.";
+
+	/// <summary>
+	/// The operators every class's objects answer through one function each, as luabind's instances
+	/// share one metatable: Lua 5.1 calls <c>__eq</c>, <c>__lt</c> and <c>__le</c> between two
+	/// userdata only where both carry the same function.
+	/// </summary>
+	private static readonly string[] SharedOperators = { "__eq", "__lt", "__le", "__add", "__sub", "__mul", "__div" };
 
 	private readonly List<GCHandle> _handles = new();
 	private readonly List<object?> _objects = new();
 	private readonly Stack<int> _free = new();
-	private readonly Dictionary<object, int> _ids = new(ReferenceEqualityComparer.Instance);
 	private readonly Dictionary<string, CLuaClass> _classes = new(StringComparer.Ordinal);
 	private readonly CLuaFunction _collect;
 	private IntPtr _state;
@@ -34,18 +41,13 @@ public sealed unsafe class CLuaState : IDisposable
 		}
 		_objects.Add(null); // id 0 is never used
 
-		// The cache of pushed objects, by id, its values weak: an object pushed twice is one userdata
-		// for as long as a script holds it.
-		PushString(_state, CacheKey);
-		CLuaNative.lua_createtable(_state, 0, 0);
-		CLuaNative.lua_createtable(_state, 0, 1);
-		PushString(_state, "__mode");
-		PushString(_state, "v");
-		CLuaNative.lua_rawset(_state, -3);
-		CLuaNative.lua_setmetatable(_state, -2);
-		CLuaNative.lua_rawset(_state, CLuaNative.LUA_REGISTRYINDEX);
-
 		_collect = Collect;
+		foreach (string name in SharedOperators)
+		{
+			PushString(_state, OperatorKeyPrefix + name);
+			PushFunction(_state, call => Dispatch(call, name));
+			CLuaNative.lua_rawset(_state, CLuaNative.LUA_REGISTRYINDEX);
+		}
 	}
 
 	/// <summary>The classes defined so far, by name.</summary>
@@ -141,16 +143,17 @@ public sealed unsafe class CLuaState : IDisposable
 	}
 
 	/// <summary>
-	/// Makes the metatable a class's objects carry: its methods under <c>__index</c>, and a
-	/// <c>__gc</c> that forgets the object once no script holds it.
+	/// Makes the metatable a class's objects carry - its methods under <c>__index</c>, with its fields
+	/// where it has any; the shared operators and its own <c>__tostring</c>; a <c>__gc</c> that forgets
+	/// the object once no script holds it - and the global of its name, with its static functions,
+	/// its constants and its constructor.
 	/// </summary>
 	public void DefineClass(CLuaClass luaClass)
 	{
 		_classes[luaClass.Name] = luaClass;
-		PushString(_state, ClassKeyPrefix + luaClass.Name);
-		CLuaNative.lua_createtable(_state, 0, 3);
 
-		PushString(_state, "__index");
+		// The methods, kept in the registry so that an __index function can find them too.
+		PushString(_state, MethodsKeyPrefix + luaClass.Name);
 		CLuaNative.lua_createtable(_state, 0, luaClass.Methods.Count);
 		foreach ((string method, CLuaFunction function) in luaClass.Methods)
 		{
@@ -158,7 +161,36 @@ public sealed unsafe class CLuaState : IDisposable
 			PushFunction(_state, function);
 			CLuaNative.lua_rawset(_state, -3);
 		}
+		CLuaNative.lua_rawset(_state, CLuaNative.LUA_REGISTRYINDEX);
+
+		PushString(_state, ClassKeyPrefix + luaClass.Name);
+		CLuaNative.lua_createtable(_state, 0, 4 + SharedOperators.Length);
+
+		PushString(_state, "__index");
+		if (luaClass.Fields.Count == 0)
+		{
+			PushString(_state, MethodsKeyPrefix + luaClass.Name);
+			CLuaNative.lua_rawget(_state, CLuaNative.LUA_REGISTRYINDEX);
+		}
+		else
+		{
+			PushFunction(_state, call => Index(call, luaClass));
+		}
 		CLuaNative.lua_rawset(_state, -3);
+
+		foreach (string name in SharedOperators)
+		{
+			PushString(_state, name);
+			PushString(_state, OperatorKeyPrefix + name);
+			CLuaNative.lua_rawget(_state, CLuaNative.LUA_REGISTRYINDEX);
+			CLuaNative.lua_rawset(_state, -3);
+		}
+		if (luaClass.Operators.TryGetValue("__tostring", out CLuaFunction? text))
+		{
+			PushString(_state, "__tostring");
+			PushFunction(_state, text);
+			CLuaNative.lua_rawset(_state, -3);
+		}
 
 		PushString(_state, "__gc");
 		PushFunction(_state, _collect);
@@ -169,6 +201,89 @@ public sealed unsafe class CLuaState : IDisposable
 		CLuaNative.lua_rawset(_state, -3);
 
 		CLuaNative.lua_rawset(_state, CLuaNative.LUA_REGISTRYINDEX);
+
+		DefineGlobal(luaClass);
+	}
+
+	/// <summary>The class's global: a table of its static functions and constants, called to make one.</summary>
+	private void DefineGlobal(CLuaClass luaClass)
+	{
+		PushString(_state, luaClass.Name);
+		CLuaNative.lua_createtable(_state, 0, luaClass.Statics.Count + luaClass.Constants.Count);
+		foreach ((string name, CLuaFunction function) in luaClass.Statics)
+		{
+			PushString(_state, name);
+			PushFunction(_state, function);
+			CLuaNative.lua_rawset(_state, -3);
+		}
+		foreach ((string name, int value) in luaClass.Constants)
+		{
+			PushString(_state, name);
+			CLuaNative.lua_pushinteger(_state, value);
+			CLuaNative.lua_rawset(_state, -3);
+		}
+		if (luaClass.Constructor is { } constructor)
+		{
+			CLuaNative.lua_createtable(_state, 0, 1);
+			PushString(_state, "__call");
+			PushFunction(_state, constructor);
+			CLuaNative.lua_rawset(_state, -3);
+			CLuaNative.lua_setmetatable(_state, -2);
+		}
+		CLuaNative.lua_rawset(_state, CLuaNative.LUA_GLOBALSINDEX);
+	}
+
+	/// <summary>
+	/// An operator between two values, at least one an object of ours: the first operand's class's
+	/// operator if it has one, else the second's, as luabind looks one up.
+	/// </summary>
+	private int Dispatch(CLuaCall call, string name)
+	{
+		for (int argument = 1; argument <= 2; argument++)
+		{
+			if (ToObject(call.Pointer, argument, out CLuaClass? luaClass) is not null && luaClass is not null
+				&& luaClass.Operators.TryGetValue(name, out CLuaFunction? function))
+			{
+				return function(call);
+			}
+		}
+		throw new CLuaError("No such operator defined");
+	}
+
+	/// <summary>The <c>__index</c> of a class with fields: a method of that name, else the field's value.</summary>
+	private int Index(CLuaCall call, CLuaClass luaClass)
+	{
+		IntPtr L = call.Pointer;
+		PushString(L, MethodsKeyPrefix + luaClass.Name);
+		CLuaNative.lua_rawget(L, CLuaNative.LUA_REGISTRYINDEX);
+		CLuaNative.lua_pushvalue(L, 2);
+		CLuaNative.lua_rawget(L, -2);
+		if ((ELuaType)CLuaNative.lua_type(L, -1) != ELuaType.Nil)
+		{
+			return 1;
+		}
+		CLuaNative.lua_settop(L, 2);
+		if (call.TypeOf(2) == ELuaType.String && luaClass.Fields.TryGetValue(call.String(2), out CLuaFunction? field))
+		{
+			return field(call);
+		}
+		CLuaNative.lua_pushnil(L);
+		return 1;
+	}
+
+	/// <summary>
+	/// Pushes a function a generic <c>for</c> walks: the values in turn, then nil. A nil among them
+	/// ends the walk there.
+	/// </summary>
+	internal void PushIterator(IntPtr L, IReadOnlyList<object?> values)
+	{
+		CLuaNative.lua_createtable(L, values.Count, 0);
+		for (int i = 0; i < values.Count; i++)
+		{
+			Push(L, values[i]);
+			CLuaNative.lua_rawseti(L, -2, i + 1);
+		}
+		CLuaNative.ohoi_pushiterator(L);
 	}
 
 	public void Dispose()
@@ -184,11 +299,11 @@ public sealed unsafe class CLuaState : IDisposable
 		}
 		_handles.Clear();
 		_objects.Clear();
-		_ids.Clear();
+		_free.Clear();
 	}
 
 	/// <summary>How many objects scripts hold at the moment - for tests.</summary>
-	public int HeldObjects => _ids.Count;
+	public int HeldObjects => _objects.Count - 1 - _free.Count;
 
 	internal IntPtr Handle => _state;
 
@@ -207,6 +322,9 @@ public sealed unsafe class CLuaState : IDisposable
 				break;
 			case double d:
 				CLuaNative.lua_pushnumber(L, d);
+				break;
+			case float f:
+				CLuaNative.lua_pushnumber(L, f);
 				break;
 			case string s:
 				PushString(L, s);
@@ -289,26 +407,16 @@ public sealed unsafe class CLuaState : IDisposable
 		CLuaNative.ohoi_pushfunction(L, &Enter, GCHandle.ToIntPtr(handle));
 	}
 
+	/// <summary>
+	/// A new userdata for the object every time, as luabind pushes one: the same object handed over
+	/// twice is two values.
+	/// </summary>
 	private void PushObject(IntPtr L, CLuaObject luaObject)
 	{
 		if (!_classes.ContainsKey(luaObject.Class.Name))
 		{
 			throw new ArgumentException($"the class '{luaObject.Class.Name}' is not defined");
 		}
-		bool shared = !luaObject.Target.GetType().IsValueType;
-		if (shared && _ids.TryGetValue(luaObject.Target, out int known))
-		{
-			PushString(L, CacheKey);
-			CLuaNative.lua_rawget(L, CLuaNative.LUA_REGISTRYINDEX);
-			CLuaNative.lua_rawgeti(L, -1, known);
-			if ((ELuaType)CLuaNative.lua_type(L, -1) == ELuaType.Userdata)
-			{
-				CLuaNative.lua_remove(L, -2);
-				return;
-			}
-			CLuaNative.lua_settop(L, -3);
-		}
-
 		int id = _free.Count > 0 ? _free.Pop() : _objects.Count;
 		if (id == _objects.Count)
 		{
@@ -318,35 +426,19 @@ public sealed unsafe class CLuaState : IDisposable
 		{
 			_objects[id] = luaObject.Target;
 		}
-		if (shared)
-		{
-			_ids[luaObject.Target] = id;
-		}
 
 		*(int*)CLuaNative.lua_newuserdata(L, sizeof(int)) = id;
 		PushString(L, ClassKeyPrefix + luaObject.Class.Name);
 		CLuaNative.lua_rawget(L, CLuaNative.LUA_REGISTRYINDEX);
 		CLuaNative.lua_setmetatable(L, -2);
-		if (shared)
-		{
-			PushString(L, CacheKey);
-			CLuaNative.lua_rawget(L, CLuaNative.LUA_REGISTRYINDEX);
-			CLuaNative.lua_pushvalue(L, -2);
-			CLuaNative.lua_rawseti(L, -2, id);
-			CLuaNative.lua_settop(L, -2);
-		}
 	}
 
 	/// <summary>The <c>__gc</c> of every class: the object's id is free again.</summary>
 	private int Collect(CLuaCall call)
 	{
 		int id = *(int*)CLuaNative.lua_touserdata(call.Pointer, 1);
-		if (id > 0 && id < _objects.Count && _objects[id] is { } target)
+		if (id > 0 && id < _objects.Count && _objects[id] is not null)
 		{
-			if (_ids.TryGetValue(target, out int known) && known == id)
-			{
-				_ids.Remove(target);
-			}
 			_objects[id] = null;
 			_free.Push(id);
 		}

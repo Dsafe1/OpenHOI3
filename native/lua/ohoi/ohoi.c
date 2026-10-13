@@ -40,3 +40,21 @@ OHOI_API void ohoi_pushfunction(lua_State *L, ohoi_Function f, void *context) {
   lua_pushlightuserdata(L, context);
   lua_pushcclosure(L, ohoi_trampoline, 2);
 }
+
+static int ohoi_iterator_next(lua_State *L) {
+  int i = (int)lua_tointeger(L, lua_upvalueindex(2)) + 1;
+  lua_pushinteger(L, i);
+  lua_replace(L, lua_upvalueindex(2));
+  lua_rawgeti(L, lua_upvalueindex(1), i);
+  return 1;
+}
+
+/*
+** Replaces the table on the top of the stack with a function that answers its elements 1, 2, ... in
+** turn and then nil: what a generic for walks. An element that is nil ends the walk there, as the
+** original's iterator over an array ends at a null element.
+*/
+OHOI_API void ohoi_pushiterator(lua_State *L) {
+  lua_pushinteger(L, 0);
+  lua_pushcclosure(L, ohoi_iterator_next, 2);
+}
