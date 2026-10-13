@@ -33,6 +33,10 @@ public static class COfferAskText
 		EOfferKind.AskMilitaryAccess => 4,
 		EOfferKind.OfferMilitaryAccess => 5,
 		EOfferKind.NonAggressionPact => 7,
+		EOfferKind.Licence => 10,
+		EOfferKind.Debt => 11,
+		EOfferKind.RequestLendLease => 12,
+		EOfferKind.OfferLendLease => 13,
 		_ => 0,
 	};
 
@@ -112,6 +116,13 @@ public static class COfferAskText
 				text += " " + localise("IS_BOUGHT_WITH_DEBT");
 			}
 		}
+		else if (offer.Licence is { } licence)
+		{
+			// Ours: the variables CAskBuyLicence fills were not read; these are what the text asks for.
+			text = CTextTemplate.Fill(localise("ASKBUYLICENCEREQDESC"), ("ACTOR", proposer),
+				("NUM", ((long)licence.Serial * licence.Parallel).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+				("TYPE", localise(licence.UnitType)), ("CASH", CNumberText.Format(new CFixedPoint(licence.Fee), 2)));
+		}
 		else
 		{
 			string key = offer.Kind switch
@@ -119,6 +130,9 @@ public static class COfferAskText
 				EOfferKind.Alliance => "ALLIANCEREQDESC",
 				EOfferKind.NonAggressionPact => "NAPREQDESC",
 				EOfferKind.AskMilitaryAccess => "MILACCREQDESC",
+				EOfferKind.Debt => "ASKDEBTREQDESC",
+				EOfferKind.RequestLendLease => "ASK_LEND_LEASE_DESC",
+				EOfferKind.OfferLendLease => "OFFER_LEND_LEASE_DESC",
 				_ => "MILACCOFFDESC",
 			};
 			text = CTextTemplate.Fill(localise(key), ("ACTOR", proposer), ("COUNTRY", proposer));

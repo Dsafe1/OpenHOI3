@@ -136,6 +136,40 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		return ScoreOnFailure;
 	}
 
+	/// <summary>
+	/// <c>DiploScore_LicenceTechnology(ai, buyer, seller, seller, action)</c>, the seller's AI answering and
+	/// the licence handed over itself; 0 on a failure. See <c>docs/mechanics/aid.md</c>, section 4.
+	/// </summary>
+	public int LicenceScore(CGameState state, Sim.Agreements.COffer offer)
+	{
+		if (state.Country(offer.Actor) is not { } actor || state.Country(offer.Recipient) is not { } recipient)
+		{
+			return ScoreOnFailure;
+		}
+		CGameState? asked = _state;
+		_state = state;
+		try
+		{
+			object? value = _lua.Call("DiploScore_LicenceTechnology", 1, new CLuaObject(_api.Ai, new CLuaAi(recipient)),
+				_api.Tag(actor.Tag), _api.Tag(recipient.Tag), _api.Tag(recipient.Tag),
+				new CLuaObject(_api.LicenceAction, CLuaLicenceAction.Of(offer)))[0];
+			if (value is double number)
+			{
+				return ToInteger(number);
+			}
+			Fail($"DiploScore_LicenceTechnology({actor.Tag}, {recipient.Tag}) answered {value ?? "nil"}, not a number");
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+		finally
+		{
+			_state = asked ?? state;
+		}
+		return ScoreOnFailure;
+	}
+
 	public void RunTrade(CGameState state, CCountry country, bool propose)
 	{
 		_state = state;

@@ -39,11 +39,11 @@ public sealed class CTechSkillEntry
 
 	public void Update(CCountry country)
 	{
-		// Nothing shares a category between countries yet, so the figure is always the country's own.
+		// Green where the figure is the sharer's, above the country's own (aid.md, section 2).
 		CFixedPoint level = country.Ability(Category.Name);
 		if (_skill is not null)
 		{
-			_skill.Text = CTechnologyScreenText.Skill(level, shared: false);
+			_skill.Text = CTechnologyScreenText.Skill(level, shared: level > country.OwnAbility(Category.Name));
 		}
 
 		// The bar's first frame is the empty one, so a level of n is frame n + 1 of the sheet.

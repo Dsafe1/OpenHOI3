@@ -52,6 +52,9 @@ public static class CSupplyPass
 			country.TradedFor.Clear();
 			country.TradedAwaySansAlliedSupply.Clear();
 			country.TradedForSansAlliedSupply.Clear();
+			// Ours: whether the original clears these with the rest was not established (aid.md).
+			country.RepaidAway = CFixedPoint.Zero;
+			country.IncomeFromDebt = CFixedPoint.Zero;
 		}
 	}
 

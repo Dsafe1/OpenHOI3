@@ -124,6 +124,9 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | | `GetCountryAlignmentDistance(a, b)` | section 4.3 |
 | | `CanTradeFreeResources(a, b)` | both have the faction rule `free_resource_gifts` (`trade.md`, section 8) |
 | | `AlreadyTradingDisabledResource(route)`, `HasTradeGoneStale(route)`, `GetSpamPenalty(tag)`, `PostAction(action)` | `trade.md`, sections 2 and 9: a good of the route traded on a pair's route not running; failing for a fortnight; ten a day to 24 days past the last diplomat's arrival, for a played country only; the offer posted as the screen posts one, dated when it was made |
+| `CLicenceTechnologyAction` | `CLicenceTechnologyAction(buyer, seller)`, `GetSubunit()`, `SetSubunit(type)`, `GetSerial()`, `SetSerial(n)`, `GetParalell()`, `SetParallel(n)`, `GetMoney()`, `SetMoney(fp)`, `SetValue(b)`, `IsValid()`, `IsSelectable()`, `GetAIAcceptance()` | `aid.md`, section 4; the getter `GetParalell` and setter `SetParallel` are the game's spellings. `DiploScore_LicenceTechnology(ai, buyer, seller, seller, action)` is handed the licence itself |
+| `CSubUnitDefinition` | `GetBuildCostIC()`, `GetBuildCostMP()`, `GetBuildTime()`, `IsCapitalShip()`, `GetKey()` | a unit type's own figures, without a country's technology |
+| `CSubUnitDataBase` | `GetSubUnit(name)` | the type by its key, or nil |
 | `CTradeAction` | `CTradeAction(actor, recipient)`, `SetTrading(fp, g)`, `GetTrading(g, tag)`, `GetRoute()`, `SetRoute(route)`, `SetValue(b)`, `IsValid()`, `IsSelectable()`, `GetAIAcceptance()` | `trade.md`, section 9; asking the score re-enters the Lua for `DiploScore_OfferTrade` |
 | `CTradeRoute` | `GetFrom()`, `GetTo()`, `GetTradedFromOf(g)`, `GetTradedToOf(g)`, `IsInactive()` | its two ends; what each hands over a day; whether it ran today |
 | `CGoodsValues` | `vMoney`, `vFuel`, `vCrudeOil`, `vMetal`, `vEnergy`, `vRareMaterials`, `vSupplies` | a block of a route's terms, single precision, read with `.` |
@@ -154,10 +157,11 @@ nothing here yet has a null element to show.
 ### 4.2 Goods, the day and surrender
 
 `GetDailyBalance(g)` is what came in less what went out: home production (and convoyed in, but not
-for supplies or fuel) + sent back + conversion made + traded for, less sent to + used + conversion
-used + convoyed out + traded away. `GetDailyExpense(g)` is traded away + convoyed out + conversion
-used + sent to + used. The original has five more columns in each - tribute and debt's - which are
-not built: nought, reported.
+for supplies or fuel) + sent back + repaid to it + conversion made + traded for, less sent to -
+repaid away + used + conversion used + convoyed out + traded away - **the day's debt repaid taken off
+the spending**, as the original writes it; the debts move money alone (`aid.md`, section 1).
+`GetDailyExpense(g)` is traded away - repaid away + convoyed out + conversion used + sent to + used.
+The original has tribute's columns in each too, which are not built: nought, reported.
 
 `GetResourceValues(country, g)` fills `vDailyExpense` (below), `vDailyHome`, `vConvoyedIn`, `vPool`,
 `vDailyIncome` (the income side of the balance) and `vDailyBalance`, each thousandths over 1000 as a
@@ -238,7 +242,7 @@ eleven functions that take nothing but tags, for every pair of countries. On 202
 the base game had 78 countries owning land, and every one of the eleven answered all 6,006 pairs
 without an error **but `DiploScore_PeaceAction`, which fails at `CAIIntel` every time** - so a peace
 offer is refused until espionage is built. What the scripts met that is not built: truces, the AI's
-strategy, governments in exile, victory points, tribute and debt.
+strategy, governments in exile, victory points and tribute.
 
 ## Ours
 

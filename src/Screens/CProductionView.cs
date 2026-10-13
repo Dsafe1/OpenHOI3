@@ -46,6 +46,7 @@ public partial class CProductionView : CCountryView
 	private CGuiOverlappingBox? _strategicResources;
 	private CGuiListBox? _queueList;
 	private readonly List<CBuildQueueEntry> _queue = new();
+	private readonly CLendLeaseWindow _lendLease = new();
 	private CGuiListBox? _tradeList;
 	private readonly List<CTradeListEntry> _trades = new();
 	private CCountryTag? _tradesOf;
@@ -101,8 +102,16 @@ public partial class CProductionView : CCountryView
 		_sliders = new CSliderPanel(Context, window, "domesticpanel_slider", "domestic_eco_slider_start",
 			"domestic_eco_slider_offset", SliderOrder,
 			share => Context.Localisation.Localise(CSliderText.TitleKey((EProductionCategory)share)));
+		_lendLease.Setup(Context, Simulation, Player);
+		AddChild(_lendLease);
 		_sliders.NeedPressed += share =>
 		{
+			// Lend-lease's button opens its window - every press - and never pins the slider (aid.md, section 6).
+			if (share == (int)EProductionCategory.LendLease)
+			{
+				_lendLease.Open();
+				return;
+			}
 			// The button puts the slider at its need and holds it there; pressed again it lets go.
 			if (_sliders.Group.IsHeld(share))
 			{
@@ -469,6 +478,7 @@ public partial class CProductionView : CCountryView
 	protected override void Closing()
 	{
 		Send(_sliders?.Flush());
+		_lendLease.Visible = false;
 		foreach (CBuilderWindow builder in _builders)
 		{
 			builder.Close();

@@ -26,6 +26,7 @@ public sealed class COrderUnitCommand : CCommand
 	private readonly string _name;
 	private readonly int _size;
 	private readonly bool _isReserve;
+	private readonly CCountryTag? _builder;
 
 	/// <param name="brigades">
 	/// Each brigade, ship or wing: its type's key and the name it is to have. One with
@@ -40,9 +41,14 @@ public sealed class COrderUnitCommand : CCommand
 	/// For each brigade, the level it is to be built with of each technology of its
 	/// type, in the type's order - or nothing, for the country's own levels.
 	/// </param>
+	/// <param name="builder">
+	/// The country whose levels the unit is built at, a licence's seller (<c>aid.md</c>, section 4) - or
+	/// nobody, for the ordering country's.
+	/// </param>
 	public COrderUnitCommand(CCountryTag country, IEnumerable<(string Type, string Name)> brigades, string name = "",
-		int size = 1, bool isReserve = false, IReadOnlyList<IReadOnlyList<int>?>? models = null)
+		int size = 1, bool isReserve = false, IReadOnlyList<IReadOnlyList<int>?>? models = null, CCountryTag? builder = null)
 	{
+		_builder = builder;
 		_country = country;
 		_brigades = System.Linq.Enumerable.ToArray(brigades);
 		_models = new IReadOnlyList<int>?[_brigades.Length];
@@ -61,11 +67,12 @@ public sealed class COrderUnitCommand : CCommand
 		{
 			return false;
 		}
+		CCountry levels = Builder(state, country);
 		var types = new List<CSubUnitType>();
 		for (int index = 0; index < _brigades.Length; index++)
 		{
 			if (!state.SubUnitTypes.TryGetValue(_brigades[index].Type, out CSubUnitType? type)
-				|| !MayBuild(country, type) || !ModelIsWithinReach(country, type, _models[index]))
+				|| !MayBuild(country, type) || !ModelIsWithinReach(levels, type, _models[index]))
 			{
 				return false;
 			}
@@ -161,9 +168,14 @@ public sealed class COrderUnitCommand : CCommand
 		return true;
 	}
 
+	/// <summary>The country whose levels the unit is built at: the builder where one is named, else the country.</summary>
+	private CCountry Builder(CGameState state, CCountry country) =>
+		_builder is { } builder && state.Country(builder) is { } seller ? seller : country;
+
 	/// <summary>The line as it would be queued, with no numbers given and nothing taken.</summary>
 	private CConstruction Make(CGameState state, CCountry country)
 	{
+		CCountry levels = Builder(state, country);
 		var construction = new CConstruction(country.Tag) { Name = _name, Size = _size, IsReserve = _isReserve };
 		if (_isReserve)
 		{
@@ -178,7 +190,7 @@ public sealed class COrderUnitCommand : CCommand
 			}
 			else
 			{
-				CBuildQueue.SetModelToCountrys(country, order);
+				CBuildQueue.SetModelToCountrys(levels, order);
 			}
 			construction.Brigades.Add(order);
 		}

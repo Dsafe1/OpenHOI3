@@ -6,12 +6,13 @@ namespace OpenHOI3.Lua.Api;
 
 /// <summary>
 /// A country's day of one good as the original's AI reads it: what came in less what went out, what
-/// went out, and what the AI reckons it needs. The original's tribute and debt columns are not built.
-/// See <c>docs/mechanics/lua.md</c>, section 4.2.
+/// went out, and what the AI reckons it needs. Money counts the day's debt repaid and repaid to it - the
+/// repaid **taken off** the spending, as the original writes it. The original's tribute columns are not
+/// built. See <c>docs/mechanics/lua.md</c>, section 4.2.
 /// </summary>
 public static class CCountryGoods
 {
-	private const string TributeUnbuilt = "tribute and debt: the day's goods count none";
+	private const string TributeUnbuilt = "tribute: the day's goods count none";
 	private const string TechnologyIc = "ic_modifier";
 	private const string GlobalIc = "global_ic";
 
@@ -21,14 +22,17 @@ public static class CCountryGoods
 		return Income(api, country, goods) - Spending(country, goods);
 	}
 
-	/// <summary><c>GetDailyExpense</c>, thousandths: traded away, convoyed out, conversion used, sent to and used.</summary>
+	/// <summary><c>GetDailyExpense</c>, thousandths: traded away, less repaid, convoyed out, conversion used, sent to and used.</summary>
 	public static long Expense(CGameApi api, CCountry country, EGoods goods)
 	{
 		api.ReportUnbuilt(TributeUnbuilt);
 		return Spending(country, goods);
 	}
 
-	/// <summary>The income side of the balance: home production - and convoyed in, but not for supplies or fuel - with what came back, was made and was traded for.</summary>
+	/// <summary>
+	/// The income side of the balance: home production - and convoyed in, but not for supplies or fuel - with
+	/// what came back, was repaid to it, was made and was traded for.
+	/// </summary>
 	public static long Income(CGameApi api, CCountry country, EGoods goods)
 	{
 		api.ReportUnbuilt(TributeUnbuilt);
@@ -37,14 +41,18 @@ public static class CCountryGoods
 		{
 			home += country.ConvoyedIn[goods].Raw;
 		}
-		return home + country.SentBack[goods].Raw + country.ConversionMade[goods].Raw + country.TradedFor[goods].Raw;
+		return home + country.SentBack[goods].Raw + Repaid(country.IncomeFromDebt, goods) + country.ConversionMade[goods].Raw
+			+ country.TradedFor[goods].Raw;
 	}
 
 	private static long Spending(CCountry country, EGoods goods)
 	{
-		return country.SentTo[goods].Raw + country.Usage[goods].Raw + country.ConversionUsed[goods].Raw
-			+ country.ConvoyedOut[goods].Raw + country.TradedAway[goods].Raw;
+		return country.SentTo[goods].Raw - Repaid(country.RepaidAway, goods) + country.Usage[goods].Raw
+			+ country.ConversionUsed[goods].Raw + country.ConvoyedOut[goods].Raw + country.TradedAway[goods].Raw;
 	}
+
+	/// <summary>A debt's money, which is the only good it moves.</summary>
+	private static long Repaid(CFixedPoint money, EGoods goods) => goods == EGoods.Money ? money.Raw : 0;
 
 	/// <summary>
 	/// <c>AICalculateExpense</c>: for metal, energy and rare materials, the base IC raised by the

@@ -20,4 +20,14 @@ public sealed record CPactMessage(string We, string They, string Other, CCountry
 	/// acceptance and its cancellation, none for the rest.
 	/// </summary>
 	public Trade.CTradeDeal? Deal { get; init; }
+
+	/// <summary>
+	/// Whether its ACTOR and RECIPIENT are written the other way round, so that what the recipient is told
+	/// reads from the actor's side - lend-lease's cancellations (<c>aid.md</c>, section 3).
+	/// </summary>
+	public bool TurnedRound { get; init; }
+
+	/// <summary>Values of its own kind, after the rest: a licence's NUM and NAME, and its ACCEPTED or DECLINED.</summary>
+	public System.Collections.Generic.IReadOnlyList<(string Name, string Value)> Values { get; init; } =
+		System.Array.Empty<(string, string)>();
 }

@@ -63,6 +63,8 @@ public static class CTick
 		// The units go before their countries, so an hour's organisation is worked out
 		// with the officer ratio the hour before left.
 		COrganisation.RunHourly(state);
+		// Every country's own hour: its lend-lease looked at (docs/mechanics/aid.md, section 3).
+		Aid.CLendLease.RunHourly(state);
 		COfficers.Update(state);
 		// The battles are fought last, each in turn.
 		CCombats.RunHourly(state);
@@ -96,6 +98,7 @@ public static class CTick
 		CThreat.UpdateMostThreatening(state);               // before any country's day, as its neighbours are
 		CNeutrality.RunDaily(state);                        // at the head of a country's day
 		Agreements.CPactPasses.RunDaily(state);             // its pacts that have run their course, and influence's upkeep
+		Aid.CTechnologySharing.CheckDaily(state);           // ours: where in the country's day was not placed exactly
 		CAlignment.RunDaily(state);                         // later in it: a step every interval and a day
 		CManpower.RunDaily(state);
 		CLeaders.ActivateDaily(state);                      // just after its manpower grows
@@ -107,6 +110,7 @@ public static class CTick
 		CResources.UpdateHomeProduction(state);
 		CStockpile.AddHomeProduction(state);
 		CResources.GatherCutOff(state);                     // what the sea cuts off waits in a harbour
+		Aid.CDebts.RepayDaily(state);                       // the end of a country's production
 		Trade.CTradeRoutes.RunDaily(state);                 // then each country's trade, before its IC
 		CIndustrialCapacity.Update(state);
 		CProduction.RunDaily(state);

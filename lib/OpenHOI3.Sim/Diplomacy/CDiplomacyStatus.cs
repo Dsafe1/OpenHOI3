@@ -29,11 +29,17 @@ public sealed class CDiplomacyStatus
 	/// <summary>Whether the holder's units may enter the other's land: one direction (<c>agreements.md</c>, section 5).</summary>
 	public bool HasMilitaryAccess { get; set; }
 
-	/// <summary>Whether the holder may run a debt with the other while at war (<c>aid.md</c>); nothing sets it yet.</summary>
+	/// <summary>Whether the holder may run a debt with the other while at war (<c>aid.md</c>, section 1).</summary>
 	public bool AllowDebts { get; set; }
 
-	/// <summary>What the holder owes the other, in thousandths of money (<c>aid.md</c>).</summary>
+	/// <summary>What the holder owes the other, in thousandths of money; never lowered (<c>aid.md</c>, section 1).</summary>
 	public long Debt { get; set; }
+
+	/// <summary>
+	/// What the holder repays the other each day, in thousandths of money: worked out from the debt where it
+	/// is nought or less, and set to nought on a day nothing is paid (<c>aid.md</c>, section 1).
+	/// </summary>
+	public long DailyRepay { get; set; }
 
 	/// <summary>
 	/// The last hour the holder's diplomat is on his way to the other, after an offer: until then its

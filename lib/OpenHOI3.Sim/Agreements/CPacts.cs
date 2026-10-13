@@ -49,6 +49,184 @@ public static class CPacts
 			case EOfferKind.Trade:
 				TradeOffer(state, offer, actor, recipient);
 				break;
+			case EOfferKind.Debt:
+				Debt(state, offer, actor, recipient);
+				break;
+			case EOfferKind.ShareTechnology:
+				ShareTechnology(state, offer, actor, recipient);
+				break;
+			case EOfferKind.RequestLendLease:
+				RequestLendLease(state, offer, actor, recipient);
+				break;
+			case EOfferKind.OfferLendLease:
+				OfferLendLease(state, offer, actor, recipient);
+				break;
+			case EOfferKind.Licence:
+				Licence(state, offer, actor, recipient);
+				break;
+		}
+	}
+
+	/// <summary>
+	/// Buying a licence - the actor buys, the recipient sells - and its answer. An acceptance the buyer can
+	/// pay neither in cash nor on debt becomes a decline; otherwise the buyer's runs are ordered at the
+	/// seller's levels, a land type's as reserves, and the fee goes on its debt or from its money to the
+	/// seller's. Only the buyer is told. See <c>aid.md</c>, section 4.
+	/// </summary>
+	private static void Licence(CGameState state, COffer offer, CCountry buyer, CCountry seller)
+	{
+		if (offer.Stage == EOfferStage.Proposed)
+		{
+			if (offer.Value)
+			{
+				Charge(state, buyer, "LICENCE_INFLUENCE_COST");
+			}
+			return;
+		}
+		Aid.CLicenceTerms? terms = offer.Licence;
+		bool onDebt = CGameState.Status(buyer, seller).AllowDebts && state.IsAtWar(buyer.Tag);
+		Economy.CGoodsPool? pool = state.Stockpile(buyer);
+		bool accepted = offer.Stage == EOfferStage.Accepted && terms is not null
+			&& (onDebt || (pool is not null && pool[Economy.EGoods.Money].Raw >= terms.Fee));
+		string name = terms?.UnitType ?? "";
+		string count = ((long)(terms?.Serial ?? 0) * (terms?.Parallel ?? 0)).ToString(System.Globalization.CultureInfo.InvariantCulture);
+		if (!accepted || terms is null)
+		{
+			state.RaisePactMessage(new CPactMessage("LICBUYDECLINE", "", "", buyer.Tag, seller.Tag)
+			{
+				Values = new[] { ("DECLINED", "DECLINED"), ("NAME", name), ("NUM", count) },
+			});
+			return;
+		}
+		if (state.SubUnitTypes.TryGetValue(terms.UnitType, out Units.CSubUnitType? type))
+		{
+			for (int run = 0; run < terms.Parallel; run++)
+			{
+				state.Outbox.Add(new Commands.COrderUnitCommand(buyer.Tag, new[] { (type.Key, "") }, size: terms.Serial,
+					isReserve: type.Branch == Units.EUnitBranch.Land, builder: seller.Tag));
+			}
+		}
+		var fee = new CFixedPoint(terms.Fee);
+		if (onDebt)
+		{
+			CGameState.Status(buyer, seller).Debt += terms.Fee;
+		}
+		else if (pool is not null)
+		{
+			pool[Economy.EGoods.Money] -= fee;
+			if (state.Stockpile(seller) is { } theirs)
+			{
+				theirs[Economy.EGoods.Money] += fee;
+			}
+		}
+		state.RaisePactMessage(new CPactMessage("LICBUYACCEPT", "", "", buyer.Tag, seller.Tag)
+		{
+			Values = new[] { ("ACCEPTED", "ACCEPTED"), ("NAME", name), ("NUM", count) },
+		});
+	}
+
+	/// <summary>
+	/// Asking for lend-lease - the recipient would give - its answer, or cancelling it; asking costs the debt's
+	/// define. See <c>aid.md</c>, section 3.
+	/// </summary>
+	private static void RequestLendLease(CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (!offer.Value)
+		{
+			if (offer.Stage == EOfferStage.Proposed)
+			{
+				Aid.CLendLease.Remove(recipient, actor);
+				ToldTurnedRound(state, actor, recipient, "LENDOFFERREFUSED");
+			}
+			return;
+		}
+		switch (offer.Stage)
+		{
+			case EOfferStage.Proposed:
+				Charge(state, actor, "ALLOW_DEBT_INFLUENCE_COST");
+				break;
+			case EOfferStage.Accepted:
+				Aid.CLendLease.Add(recipient, actor);
+				Message(state, "LENDACCEPT", "", "", actor, recipient);
+				break;
+			default:
+				Message(state, "LENDDECLINE", "", "", actor, recipient);
+				break;
+		}
+	}
+
+	/// <summary>Offering lend-lease - free - its answer, or stopping it. See <c>aid.md</c>, section 3.</summary>
+	private static void OfferLendLease(CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (!offer.Value)
+		{
+			if (offer.Stage == EOfferStage.Proposed)
+			{
+				Aid.CLendLease.Remove(actor, recipient);
+				ToldTurnedRound(state, actor, recipient, "LENDREVOKE");
+			}
+			return;
+		}
+		switch (offer.Stage)
+		{
+			case EOfferStage.Accepted:
+				Aid.CLendLease.Add(actor, recipient);
+				Message(state, "LENDOFFERACCEPT", "", "", actor, recipient);
+				break;
+			case EOfferStage.Declined:
+				Message(state, "LENDOFFERREFUSED", "", "", actor, recipient);
+				break;
+		}
+	}
+
+	/// <summary>
+	/// Sharing a theory, or stopping every share with the recipient - <c>aid.md</c>, section 2. It takes
+	/// effect when proposed, is never answered and tells nobody.
+	/// </summary>
+	private static void ShareTechnology(CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (offer.Stage != EOfferStage.Proposed)
+		{
+			return;
+		}
+		if (!offer.Value)
+		{
+			Aid.CTechnologySharing.Stop(actor, recipient);
+			return;
+		}
+		if (offer.Category.Length == 0)
+		{
+			return;
+		}
+		Charge(state, actor, "SHARE_TECH_INFLUENCE_COST");
+		Aid.CTechnologySharing.Start(actor, recipient, offer.Category);
+	}
+
+	/// <summary>
+	/// Asking to run a debt, its answer, or revoking another's - <c>aid.md</c>, section 1. Revoking charges
+	/// the recipient, the debtor; nothing touches the debt itself.
+	/// </summary>
+	private static void Debt(CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (!offer.Value)
+		{
+			CGameState.Status(recipient, actor).AllowDebts = false;
+			Charge(state, recipient, "REVOKE_DEBT_INFLUENCE_COST");
+			Message(state, "", "DEBTREVOKE", "", actor, recipient);
+			return;
+		}
+		switch (offer.Stage)
+		{
+			case EOfferStage.Proposed:
+				Charge(state, actor, "ALLOW_DEBT_INFLUENCE_COST");
+				break;
+			case EOfferStage.Accepted:
+				CGameState.Status(actor, recipient).AllowDebts = true;
+				Message(state, "DEBTALLOWACCEPT", "", "", actor, recipient);
+				break;
+			default:
+				Message(state, "DEBTALLOWDECLINE", "", "", actor, recipient);
+				break;
 		}
 	}
 
@@ -326,12 +504,18 @@ public static class CPacts
 	}
 
 	/// <summary>
-	/// A war between two begins: it ends their influence on each other and their trade routes - section 6,
-	/// and <c>trade.md</c>, section 4.
+	/// A war between two begins: it ends their influence on each other and their trade routes, and either's
+	/// leave to run a debt with the other - section 6, <c>trade.md</c>, section 4, and <c>aid.md</c>,
+	/// section 1.
 	/// </summary>
 	public static void WarBegun(CGameState state, CCountryTag one, CCountryTag other)
 	{
 		Trade.CTradeRoutes.EndPair(state, one, other);
+		if (state.Country(one) is { } first && state.Country(other) is { } second)
+		{
+			CGameState.Status(first, second).AllowDebts = false;
+			CGameState.Status(second, first).AllowDebts = false;
+		}
 		foreach (CInfluence influence in state.Influences.ToArray())
 		{
 			if ((influence.Influencer == one && influence.Influenced == other)
@@ -372,6 +556,12 @@ public static class CPacts
 	{
 		CFixedPoint left = country.DiplomaticInfluence - COfferRules.Define(state, define);
 		country.DiplomaticInfluence = left < CFixedPoint.Zero ? CFixedPoint.Zero : left;
+	}
+
+	/// <summary>Tells the recipient alone, with ACTOR and RECIPIENT written the other way round.</summary>
+	public static void ToldTurnedRound(CGameState state, CCountry actor, CCountry recipient, string key)
+	{
+		state.RaisePactMessage(new CPactMessage("", key, "", actor.Tag, recipient.Tag) { TurnedRound = true });
 	}
 
 	public static void Message(CGameState state, string we, string they, string other, CCountry actor, CCountry recipient,

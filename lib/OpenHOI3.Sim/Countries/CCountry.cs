@@ -409,6 +409,27 @@ public sealed class CCountry
 	public CGoodsPool TradedForSansAlliedSupply { get; } = new();
 
 	/// <summary>
+	/// The money it repaid on its debts today, cleared with the day's traded figures - ours: whether the
+	/// original clears it was not established (<c>docs/mechanics/aid.md</c>, section 1).
+	/// </summary>
+	public CFixedPoint RepaidAway { get; set; }
+
+	/// <summary>The money it has been repaid on debts owed to it, the other side of <see cref="RepaidAway"/>.</summary>
+	public CFixedPoint IncomeFromDebt { get; set; }
+
+	/// <summary>Who it gives lend-lease to, in the order it began (<c>docs/mechanics/aid.md</c>, section 3).</summary>
+	public List<Aid.CLendLeaseGift> LendLeaseGiving { get; } = new();
+
+	/// <summary>Who gives it lend-lease, in the order they began, with what each has sent and is not yet IC.</summary>
+	public List<Aid.CLendLeaseReceipt> LendLeaseReceived { get; } = new();
+
+	/// <summary>Lend-lease received and not yet made IC, in thousandths of IC.</summary>
+	public long LendLeaseIncome { get; set; }
+
+	/// <summary>The whole IC its lend-lease made today, part of <see cref="TotalIc"/>, needing no resources.</summary>
+	public int LendLeaseIc { get; set; }
+
+	/// <summary>
 	/// Its convoys, in the order they were made - which is the order its transports are
 	/// shared out in. See <c>docs/mechanics/convoys.md</c>.
 	/// </summary>
@@ -497,11 +518,32 @@ public sealed class CCountry
 	/// <summary>The leadership each technology was given today. Cleared and filled again each day.</summary>
 	public Dictionary<string, CFixedPoint> ResearchLeadership { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-	/// <summary>Its ability in a category, which is nothing for one it has never had any in.</summary>
+	/// <summary>
+	/// Its level in a category as everything reads it: its own, or where another shares the category with it
+	/// and that one's own is higher, that. See <c>docs/mechanics/aid.md</c>, section 2.
+	/// </summary>
 	public CFixedPoint Ability(string category)
+	{
+		CFixedPoint own = OwnAbility(category);
+		if (TechnologySharedFrom.TryGetValue(category, out CCountry? sharer))
+		{
+			CFixedPoint theirs = sharer.OwnAbility(category);
+			return theirs > own ? theirs : own;
+		}
+		return own;
+	}
+
+	/// <summary>Its own ability in a category, which is nothing for one it has never had any in.</summary>
+	public CFixedPoint OwnAbility(string category)
 	{
 		return Abilities.TryGetValue(category, out CFixedPoint level) ? level : CFixedPoint.Zero;
 	}
+
+	/// <summary>Who shares each category with it, by the category's name: one sharer a category.</summary>
+	public Dictionary<string, CCountry> TechnologySharedFrom { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>What it shares, in the order it began: the receiver and the category.</summary>
+	public List<(CCountry Receiver, string Category)> TechnologyShares { get; } = new();
 
 	/// <summary>Game-relative path to the flag, which is named after the tag.</summary>
 	public string FlagFile => $"gfx/flags/{Tag}.tga";

@@ -87,7 +87,12 @@ internal static class ScriptWorld
 				Land(7, Ita),
 			},
 			new[] { germany, Country(Pol, 4), italy, Country(Slo, 3), Country(Reb, 0) },
-			buildings: new[] { Industry, NavalBase }, staticModifiers: new[] { newDeal }, wars: wars)
+			buildings: new[] { Industry, NavalBase }, staticModifiers: new[] { newDeal }, wars: wars,
+			technologyCategories: new[]
+			{
+				new OpenHOI3.Sim.Research.CTechnologyCategory("infantry_theory", IsTheory: true),
+				new OpenHOI3.Sim.Research.CTechnologyCategory("infantry_practical", IsTheory: false),
+			})
 		{
 			Regions = new[] { new CRegion("sudetenland", new[] { 1, 2 }, useForPeace: false) },
 			Continents = new[] { "europe", "africa", "lake" },

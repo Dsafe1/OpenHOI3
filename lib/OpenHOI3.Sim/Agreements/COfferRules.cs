@@ -74,9 +74,34 @@ public static class COfferRules
 					? !atWar && (actor.Overlord is null || actor.Overlord == recipient.Tag)
 						&& (recipient.Overlord is null || recipient.Overlord == actor.Tag)
 					: offer.Deal is { } deal && CTradeRules.Matching(state, deal) is not null;
+			case EOfferKind.Debt:
+				// Neither in exile, which nobody is.
+				return !InExile();
+			case EOfferKind.ShareTechnology:
+				// Sharing a theory the actor is above the recipient in, as it reads it, and the recipient owns land.
+				return !offer.Value || (IsTheory(state, offer.Category) && Owns(state, recipient)
+					&& actor.OwnAbility(offer.Category) > recipient.Ability(offer.Category));
+			case EOfferKind.RequestLendLease:
+			case EOfferKind.OfferLendLease:
+				return actor != recipient && Owns(state, recipient);
+			case EOfferKind.Licence:
+				return !atWar;
 			default:
 				return false;
 		}
+	}
+
+	/// <summary>Whether a technology category is a theory - the only kind that may be shared.</summary>
+	public static bool IsTheory(CGameState state, string category)
+	{
+		foreach (Research.CTechnologyCategory each in state.TechnologyCategories)
+		{
+			if (each.Name.Equals(category, StringComparison.OrdinalIgnoreCase))
+			{
+				return each.IsTheory;
+			}
+		}
+		return false;
 	}
 
 	/// <summary>Whether its button may be pressed; a button that may not is greyed.</summary>
@@ -166,6 +191,27 @@ public static class COfferRules
 					&& (!CTradeRules.NeedsConvoy(state, Supply.CSupplyNetworks.Refresh(state), actor, recipient)
 						|| (CTradeRules.HasPort(state, actor) && CTradeRules.HasPort(state, recipient)))
 					&& Embargo(state, actor.Tag, recipient.Tag) is null;
+			case EOfferKind.Debt:
+				// Allowing asks whether the actor may not yet run a debt with them; revoking whether they may
+				// with the actor. Both costs are asked of the actor's influence whichever it is.
+				return (offer.Value ? !CGameState.Status(actor, recipient).AllowDebts : CGameState.Status(recipient, actor).AllowDebts)
+					&& actor.DiplomaticInfluence >= Define(state, "ALLOW_DEBT_INFLUENCE_COST")
+					&& actor.DiplomaticInfluence >= Define(state, "REVOKE_DEBT_INFLUENCE_COST")
+					&& !atWar;
+			case EOfferKind.ShareTechnology:
+				return !enRoute && !atWar && (!offer.Value || Afford(state, actor, offer));
+			case EOfferKind.RequestLendLease:
+				// Asking passes the rules, the actor receiving; cancelling needs the recipient to be giving.
+				return offer.Value
+					? !enRoute && Aid.CLendLease.Refusal(state, recipient, actor) == Aid.CLendLease.ERefusal.None
+					: Aid.CLendLease.Gives(recipient, actor);
+			case EOfferKind.OfferLendLease:
+				return offer.Value
+					? !enRoute && !Aid.CLendLease.Gives(actor, recipient)
+						&& Aid.CLendLease.Refusal(state, actor, recipient) == Aid.CLendLease.ERefusal.None
+					: Aid.CLendLease.Gives(actor, recipient);
+			case EOfferKind.Licence:
+				return !enRoute && !atWar && (!offer.Value || Afford(state, actor, offer));
 			default:
 				return false;
 		}
@@ -185,6 +231,11 @@ public static class COfferRules
 			EOfferKind.Align => "ALIGN_INFLUENCE_COST",
 			// What a cancellation is said to cost; it is never charged (trade.md, section 3).
 			EOfferKind.Trade => offer.Value ? "TRADE_INFLUENCE_COST" : "TRADE_CANCEL_INFLUENCE_COST",
+			EOfferKind.Debt => offer.Value ? "ALLOW_DEBT_INFLUENCE_COST" : "REVOKE_DEBT_INFLUENCE_COST",
+			EOfferKind.ShareTechnology => offer.Value ? "SHARE_TECH_INFLUENCE_COST" : null,
+			// Asking for lend-lease is charged the debt's define; offering it costs nothing (aid.md, section 5).
+			EOfferKind.RequestLendLease => offer.Value ? "ALLOW_DEBT_INFLUENCE_COST" : null,
+			EOfferKind.Licence => offer.Value ? "LICENCE_INFLUENCE_COST" : null,
 			_ => null,
 		};
 		return define is null ? CFixedPoint.Zero : Define(state, define);
@@ -195,7 +246,10 @@ public static class COfferRules
 	{
 		return offer.Kind switch
 		{
-			EOfferKind.Alliance or EOfferKind.NonAggressionPact or EOfferKind.Trade => offer.Value,
+			EOfferKind.Alliance or EOfferKind.NonAggressionPact or EOfferKind.Trade or EOfferKind.Debt
+				or EOfferKind.RequestLendLease or EOfferKind.OfferLendLease => offer.Value,
+			// A licence is always answered.
+			EOfferKind.Licence => true,
 			EOfferKind.AskMilitaryAccess or EOfferKind.OfferMilitaryAccess => offer.Stage == EOfferStage.Proposed && offer.Value,
 			_ => false,
 		};
@@ -208,9 +262,10 @@ public static class COfferRules
 	/// </summary>
 	public static bool AsksPlayer(COffer offer)
 	{
-		return offer.Stage == EOfferStage.Proposed && offer.Value && offer.Kind is EOfferKind.Alliance
+		// A licence is put whatever its value.
+		return offer.Stage == EOfferStage.Proposed && (offer.Kind == EOfferKind.Licence || (offer.Value && offer.Kind is EOfferKind.Alliance
 			or EOfferKind.NonAggressionPact or EOfferKind.AskMilitaryAccess or EOfferKind.OfferMilitaryAccess
-			or EOfferKind.Trade;
+			or EOfferKind.Trade or EOfferKind.Debt or EOfferKind.RequestLendLease or EOfferKind.OfferLendLease));
 	}
 
 	/// <summary>The install's Lua function the AI's answer is scored by; none where the AI does not answer.</summary>
@@ -223,6 +278,10 @@ public static class COfferRules
 			EOfferKind.AskMilitaryAccess => "DiploScore_DemandMilitaryAccess",
 			EOfferKind.OfferMilitaryAccess => "DiploScore_OfferMilitaryAccess",
 			EOfferKind.Trade => "DiploScore_OfferTrade",
+			EOfferKind.Debt => "DiploScore_Debt",
+			EOfferKind.RequestLendLease => "DiploScore_RequestLendLease",
+			EOfferKind.OfferLendLease => "DiploScore_OfferLendLease",
+			EOfferKind.Licence => "DiploScore_LicenceTechnology",
 			_ => null,
 		};
 	}

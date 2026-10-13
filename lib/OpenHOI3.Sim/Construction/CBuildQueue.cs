@@ -263,9 +263,12 @@ public static class CBuildQueue
 	/// the stockpile cannot pay for it. A line refused gets nothing that day and leaves
 	/// the share's IC for the lines after it, which may need less.
 	/// </param>
-	public static CFixedPoint RunDaily(CGameState state, CCountry country, CFixed15 allocation, Func<CFixedPoint, bool>? pay = null)
+	public static CFixedPoint RunDaily(CGameState state, CCountry country, CFixed15 allocation, Func<CFixedPoint, bool>? pay = null,
+		CFixed15 freePool = default)
 	{
 		long pool = allocation.Raw;
+		long free = freePool.Raw;
+		bool withFree = free > 0;
 		long spent = 0;
 		bool delivered = false;
 
@@ -281,6 +284,33 @@ public static class CBuildQueue
 			if (need <= 0)
 			{
 				AddProgress(country, construction, FullDay);
+			}
+			else if (withFree)
+			{
+				// Lend-lease's free IC first, unasked; then the rest of the day's cost, as the share allows and
+				// the stockpile pays (docs/mechanics/aid.md, section 3).
+				long first = Math.Min((Math.Max(free, 0) << CFixed15.Places) / need, CFixed15.Scale);
+				long freeSpent = (first * need) >> CFixed15.Places;
+				pool -= freeSpent;
+				free -= freeSpent;
+				long amount = new CFixed15(first).ToThousandths().Raw;
+				if (first < CFixed15.Scale && pool > 0)
+				{
+					long rest = Math.Min((pool << CFixed15.Places) / (need - freeSpent), CFixed15.Scale);
+					long extra = (rest * (CFixed15.Scale - first)) >> CFixed15.Places;
+					var wanted = new CFixed15((extra * need) >> CFixed15.Places).ToThousandths();
+					if (pay is null || pay(wanted))
+					{
+						spent += wanted.Raw;
+						pool -= need - freeSpent;
+						amount += new CFixed15(extra).ToThousandths().Raw;
+						if (amount >= FullDay - 1)
+						{
+							amount = FullDay;
+						}
+					}
+				}
+				AddProgress(country, construction, amount);
 			}
 			else
 			{

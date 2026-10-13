@@ -124,7 +124,11 @@ public partial class CTechnologyView : CCountryView
 			}
 			Place(entry.Window, category.Name);
 			_skillsWindow.AddChild(entry.Window);
-			entry.Window.SetTooltips(_ => new CTooltip { Text = CTechnologyTooltips.Skill(Context.Localisation.Localise, category) });
+			entry.Window.SetTooltips(_ => new CTooltip
+			{
+				Text = CTechnologyTooltips.Skill(Context.Localisation.Localise, category),
+				Delayed = CTechnologyTooltips.SkillShared(Context.Localisation.Localise, Player, category),
+			});
 			_skills.Add(entry);
 		}
 	}

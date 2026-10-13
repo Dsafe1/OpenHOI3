@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Research;
@@ -39,6 +40,63 @@ public static class CHistoricalModels
 			}
 		}
 		return count;
+	}
+
+	/// <summary>
+	/// The model of a type a country would build today: each model scored by the sum, over the technologies
+	/// it lists that change a unit, of how far the country's level is from the model's, a thousand a level;
+	/// the least wins, the first of equals. -1 for a type with no model. See <c>docs/mechanics/aid.md</c>,
+	/// section 6.
+	/// </summary>
+	public static int PickCurrent(CGameState state, CCountry country, CSubUnitType type)
+	{
+		long best = 999_999_000;
+		int chosen = -1;
+		for (int model = 0; model < Count(state, country, type); model++)
+		{
+			long score = 0;
+			foreach (CTechnology technology in type.Technologies)
+			{
+				if (!technology.Change || Level(state, country, type, model, technology) is not { } wanted)
+				{
+					continue;
+				}
+				score += Math.Abs(country.TechnologyLevels.GetValueOrDefault(technology.Name) - wanted) * 1000L;
+			}
+			if (score < best)
+			{
+				best = score;
+				chosen = model;
+			}
+		}
+		return chosen;
+	}
+
+	/// <summary>
+	/// The model whose every listed technology the country has at exactly the model's level, the first such;
+	/// -1 for none. Where it is not <see cref="PickCurrent"/>'s, a model's name carries "+*". The
+	/// exactness is inferred from the record's word, not read.
+	/// </summary>
+	public static int FindExact(CGameState state, CCountry country, CSubUnitType type)
+	{
+		for (int model = 0; model < Count(state, country, type); model++)
+		{
+			bool matches = true;
+			foreach (CTechnology technology in type.Technologies)
+			{
+				if (Level(state, country, type, model, technology) is { } wanted
+					&& country.TechnologyLevels.GetValueOrDefault(technology.Name) != wanted)
+				{
+					matches = false;
+					break;
+				}
+			}
+			if (matches)
+			{
+				return model;
+			}
+		}
+		return -1;
 	}
 
 	/// <summary>

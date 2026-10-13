@@ -70,14 +70,20 @@ public class DiplomacyActionTests
 		Assert.Equal(new[]
 		{
 			EOfferKind.Alliance, EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.AskMilitaryAccess,
-			EOfferKind.OfferMilitaryAccess, EOfferKind.Embargo, EOfferKind.Influence, EOfferKind.Trade,
+			EOfferKind.OfferMilitaryAccess, EOfferKind.Embargo, EOfferKind.Licence, EOfferKind.Debt, EOfferKind.Influence,
+			EOfferKind.Trade,
+			EOfferKind.RequestLendLease, EOfferKind.OfferLendLease,
 		}, toPoland.Select(row => row.Kind));
 		Assert.All(toPoland, row => Assert.True(row.Value));
 
 		// One faction: no alliance, no transit rights, no influence; and Germany, in one, aligns with nobody.
 		List<COffer> toItaly = CDiplomacyActions.Rows(state, C(state, ScriptWorld.Ger), C(state, ScriptWorld.Ita));
-		Assert.Equal(new[] { EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.Embargo, EOfferKind.Trade },
-			toItaly.Select(row => row.Kind));
+		Assert.Equal(new[]
+		{
+			EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.Embargo, EOfferKind.Licence, EOfferKind.Debt,
+			EOfferKind.Trade,
+			EOfferKind.RequestLendLease, EOfferKind.OfferLendLease,
+		}, toItaly.Select(row => row.Kind));
 
 		// Poland, in no faction, may align with the Axis's leader.
 		Assert.Contains(CDiplomacyActions.Rows(state, C(state, ScriptWorld.Pol), C(state, ScriptWorld.Ger)),

@@ -73,12 +73,15 @@ and splits the rest equally between the other five.
   This is in the daily calculation and not in the one made on entering a game (`ic.md`,
   section 4). **It is done only for a country that holds something**: one that does not
   exist keeps its IC whatever its capital's pool holds. `confirmed`
-- **Consumer goods and supplies are charged without asking what the stockpile can pay**, and
-  the others ask first. `confirmed` What that leaves below nothing is made nothing again at
-  the day's end (`stockpile.md`, section 4).
+- **Consumer goods, supplies, reinforcement and upgrades are charged without asking what the
+  stockpile can pay**; production and lend-lease ask first. `confirmed` - corrected
+  2026-10-13 by the reading of lend-lease's IC (`reversing/findings/FINDINGS-tradeui.md`, E.1,
+  which found the stockpile's question has four callers, none of them those two); this said
+  that only consumer goods and supplies did not ask. What that leaves below nothing is made
+  nothing again at the day's end (`stockpile.md`, section 4).
 - **IC received as lend-lease costs no resources.** Each share gets the same fraction of it
-  that it has of the total, and only what a share spends beyond that is charged.
-  `confirmed`
+  that it has of the total, and only what a share spends beyond that is charged - how each
+  of the five does it is `aid.md`, section 3. `confirmed`
 
 Whether a charge can take a stockpile below zero is **not established**. Consumer goods and
 supplies both charge without asking first.
@@ -135,7 +138,7 @@ see section 7 for why it is not the one the save shows.)
 
 ## 5. The rest
 
-- **Lend-lease**: not read.
+- **Lend-lease** is the first of the six and is built: `aid.md`, section 3.
 - **Production** hands each item in the queue, in queue order, up to one day of its cost,
   from the free part first and then against the resource check. `confirmed` It is built:
   `buildqueue.md`, section 4.
@@ -152,10 +155,10 @@ reinforcement and upgrades, and section 3 here for consumer goods.
 - **Every country but the rebels runs its shares**, as in the original, so a country that
   does not exist earns money, makes supplies and uses resources in whoever holds its
   capital. This replaces the earlier choice not to (`stockpile.md`, section 5).
-- **Lend-lease spends nothing yet.** Its share is there and can be set; the IC in it is
-  wasted and costs nothing. Production spends what its queue takes (`buildqueue.md`), and
-  reinforcement and upgrades what their units take (`upkeep.md`); the rest of what the
-  three are given is wasted too.
+- ~~**Lend-lease spends nothing yet.**~~ Built 2026-10-13 (`aid.md`, section 3): its share
+  sends IC to the country's receivers, and the rest of it is wasted where it has none.
+  Production spends what its queue takes (`buildqueue.md`), and reinforcement and upgrades
+  what their units take (`upkeep.md`); the rest of what the three are given is wasted.
 - **The standing-army term is zero**: the units are there now, and neutrality is not.
 - ~~**All the supplies go to the stockpile.**~~ Since the supply pass was built they are made
   where the factories are, as section 4 says and as fuel is, and travel to the stockpile a
@@ -213,7 +216,7 @@ standing-army term, which this project cannot compute yet.
 - whether a charge can take a **stockpile below zero**;
 - what makes **nine untouched countries' supplies** 10% more than their laws and
   technology give;
-- **lend-lease**, in full;
+- ~~**lend-lease**, in full~~ - read 2026-10-13, `aid.md`, section 3;
 - how the game decides a brigade is in service is read, but the **standing-army term has
   not been seen working**: Germany's untouched consumer goods share in the savegame is
   0.224, and the formula gives 0.252 from the laws and brigades the same save holds.

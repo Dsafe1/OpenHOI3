@@ -55,7 +55,16 @@ public sealed class CGameApi
 		GoodsValues = CGoodsValuesClass.Define();
 		Modifier = CCountryModifiersClass.DefineModifier(this);
 		TechnologyStatus = CCountryModifiersClass.DefineTechnology(this);
+		SubUnit = CLicenceActionClass.DefineSubUnit(this);
+		SubUnitDataBase = CLicenceActionClass.DefineSubUnitDataBase(this);
+		LicenceAction = CLicenceActionClass.DefineAction(this);
 	}
+
+	public CLuaClass SubUnit { get; }
+
+	public CLuaClass SubUnitDataBase { get; }
+
+	public CLuaClass LicenceAction { get; }
 
 	public CLuaClass TradeAction { get; }
 
@@ -109,7 +118,7 @@ public sealed class CGameApi
 	{
 		Country, CountryTag, DiplomacyStatus, Government, Faction, Ideology, IdeologyGroup, Province, Continent,
 		GoodsPool, Strategy, Ai, ResourceValues, GameState, CountryDataBase, Intel, FixedPoint, Text, Date,
-		TradeAction, TradeRoute, GoodsValues, Modifier, TechnologyStatus,
+		TradeAction, TradeRoute, GoodsValues, Modifier, TechnologyStatus, SubUnit, SubUnitDataBase, LicenceAction,
 	}.Concat(CEnumClasses.Define());
 
 	/// <summary>What has been reported as not built, in the order it was first met.</summary>

@@ -84,7 +84,12 @@ public static class CLeadership
 			long factor = CFixedPoint.Scale + country.Modifier[GlobalLeadershipModifier].Raw
 				+ country.Technology[TechnologyLeadership].Raw;
 			long total = sum * factor / CFixedPoint.Scale;
-			country.TotalLeadership = total < Least.Raw ? Least : new CFixedPoint(total);
+			if (total < Least.Raw)
+			{
+				total = Least.Raw;
+			}
+			// Then what sharing technology costs, which never leaves it under one (aid.md, section 2).
+			country.TotalLeadership = new CFixedPoint(Aid.CTechnologySharing.DrainLeadership(state, country, total));
 		}
 	}
 

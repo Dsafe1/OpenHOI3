@@ -98,10 +98,15 @@ public static class CMessages
 			message.Variables.Add(("MONARCHTITLE", RulerTitle(country)));
 		}
 		string actorName = state.Country(pact.Actor)?.Name ?? pact.Actor.Value;
+		string recipientName = state.Country(pact.Recipient)?.Name ?? pact.Recipient.Value;
+		if (pact.TurnedRound)
+		{
+			(actorName, recipientName) = (recipientName, actorName);
+		}
 		message.Variables.Add(("ACTOR", actorName));
 		// The same name again, which WEDETRA's text asks for.
 		message.Variables.Add(("ACTORS", actorName));
-		message.Variables.Add(("RECIPIENT", state.Country(pact.Recipient)?.Name ?? pact.Recipient.Value));
+		message.Variables.Add(("RECIPIENT", recipientName));
 		message.Variables.Add(("MESSENGER", "MESSAGE_HEAD_CHAN"));
 		if (pact.Deal is { } deal && TradeSides(name, deal, player) is ({ } gives, { } gets))
 		{
@@ -115,6 +120,17 @@ public static class CMessages
 		if (pact.Faction.Length > 0)
 		{
 			message.Variables.Add(("FACTION", pact.Faction));
+		}
+		foreach ((string key, string value) in pact.Values)
+		{
+			// A licence's NAME is the seller's current model of the type, as its dialog's row writes it (aid.md, section 4).
+			if (key == "NAME" && pact.We.StartsWith("LICBUY", StringComparison.Ordinal) && state.Country(pact.Recipient) is { } seller
+				&& state.SubUnitTypes.TryGetValue(value, out Sim.Units.CSubUnitType? type))
+			{
+				message.Variables.Add((key, CLicenceText.ModelName(localise, state, seller, type) ?? localise(type.Key)));
+				continue;
+			}
+			message.Variables.Add((key, value));
 		}
 		return message;
 	}

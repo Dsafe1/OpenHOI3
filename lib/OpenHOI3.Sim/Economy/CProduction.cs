@@ -267,6 +267,11 @@ public static class CProduction
 			{
 				country.TotalIc = supported;
 			}
+			// Then the whole IC of the lend-lease it holds, after the cap and needing no resources.
+			if (exists)
+			{
+				Aid.CLendLeaseIc.Receive(country);
+			}
 
 			if (exists)
 			{
@@ -274,6 +279,8 @@ public static class CProduction
 			}
 
 			country.Usage.Clear();
+			// Lend-lease is the first of the six.
+			Aid.CLendLeaseIc.Give(state, country, stockpile, ic => Charge(country, stockpile, ic, whateverItHolds: true));
 			RunConsumerGoods(state, country, stockpile);
 			RunBuildQueue(state, country, stockpile);
 			RunSupplies(state, country, stockpile);
@@ -288,7 +295,8 @@ public static class CProduction
 	/// </summary>
 	private static void RunBuildQueue(CGameState state, CCountry country, CGoodsPool stockpile)
 	{
-		CFixed15 allocation = country.ProductionShares[(int)EProductionCategory.Production] * CFixed15.FromInt(country.TotalIc);
+		CFixed15 share = country.ProductionShares[(int)EProductionCategory.Production];
+		CFixed15 allocation = share * CFixed15.FromInt(country.TotalIc);
 		country.ProductionSpent = CBuildQueue.RunDaily(state, country, allocation, ic =>
 		{
 			if (SupportedIc(stockpile) < ic)
@@ -297,21 +305,44 @@ public static class CProduction
 			}
 			Charge(country, stockpile, ic);
 			return true;
-		});
+		}, share * CFixed15.FromInt(country.LendLeaseIc));
 	}
 
-	/// <summary>The share that brings units back to strength pays as it goes, brigade by brigade.</summary>
+	/// <summary>
+	/// A share's part of the lend-lease IC the country received, in thousandths - what it may spend without
+	/// resources (<c>docs/mechanics/aid.md</c>, section 3).
+	/// </summary>
+	public static CFixedPoint FreePart(CCountry country, EProductionCategory category) =>
+		(country.ProductionShares[(int)category] * CFixed15.FromInt(country.LendLeaseIc)).ToThousandths();
+
+	/// <summary>
+	/// The share that brings units back to strength pays as it goes, brigade by brigade, its free part covering
+	/// the first brigades; whatever the stockpile holds.
+	/// </summary>
 	private static void RunReinforcement(CGameState state, CCountry country, CGoodsPool stockpile)
 	{
+		long free = FreePart(country, EProductionCategory.Reinforcement).Raw;
 		country.ReinforcementSpent = CReinforcement.Run(state, country,
-			Given(country, EProductionCategory.Reinforcement), apply: true, ic => Charge(country, stockpile, ic));
+			Given(country, EProductionCategory.Reinforcement), apply: true, ic =>
+			{
+				long charge = ic.Raw;
+				if (free > 0)
+				{
+					charge = ic.Raw - free;
+					free -= ic.Raw;
+				}
+				if (charge > 0)
+				{
+					Charge(country, stockpile, new CFixedPoint(charge), whateverItHolds: true);
+				}
+			});
 	}
 
-	/// <summary>The share that re-equips them pays for the whole day at the end of it.</summary>
+	/// <summary>The share that re-equips them pays for the whole day at the end of it, less its free part, whatever the stockpile holds.</summary>
 	private static void RunUpgrades(CGameState state, CCountry country, CGoodsPool stockpile)
 	{
 		country.UpgradeSpent = CUpgrades.Run(state, country, Given(country, EProductionCategory.Upgrades), apply: true);
-		Charge(country, stockpile, country.UpgradeSpent);
+		Charge(country, stockpile, country.UpgradeSpent - FreePart(country, EProductionCategory.Upgrades), whateverItHolds: true);
 	}
 
 	private static void RunConsumerGoods(CGameState state, CCountry country, CGoodsPool stockpile)
@@ -324,7 +355,8 @@ public static class CProduction
 			stockpile[EGoods.Money] += money;
 		}
 
-		Charge(country, stockpile, Spent(country, EProductionCategory.ConsumerGoods), whateverItHolds: true);
+		Charge(country, stockpile, Spent(country, EProductionCategory.ConsumerGoods) - FreePart(country, EProductionCategory.ConsumerGoods),
+			whateverItHolds: true);
 
 		CFixedPoint dissent = country.Dissent + DissentChange(state, country).ToThousandths();
 		country.Dissent = dissent < CFixedPoint.Zero ? CFixedPoint.Zero : dissent;
@@ -384,17 +416,19 @@ public static class CProduction
 		country.HomeProduced[EGoods.Supplies] = made;
 		Supply.CSupplyMaking.ShareOut(state, country, stockpile, EGoods.Supplies, made);
 
-		Charge(country, stockpile, Spent(country, EProductionCategory.Supplies), whateverItHolds: true);
+		Charge(country, stockpile, Spent(country, EProductionCategory.Supplies) - FreePart(country, EProductionCategory.Supplies),
+			whateverItHolds: true);
 	}
 
 	/// <summary>
 	/// Takes the resources that spending this much IC costs - 1 metal, 2 energy and half
 	/// a rare material each - and books them as the day's usage.
 	///
-	/// The shares that ask first what the stockpile can pay for take no more than
-	/// that. Consumer goods and supplies do not ask: they are charged whatever the
-	/// stockpile holds, which may leave it below nothing until the day's end
-	/// (<see cref="CStockpile.HoldWithinBounds"/>).
+	/// Production and lend-lease ask first what the stockpile can pay for. The other
+	/// four do not: they are charged whatever the stockpile holds, which may leave it
+	/// below nothing until the day's end (<see cref="CStockpile.HoldWithinBounds"/>) -
+	/// reinforcement and upgrades too, which the lend-lease reading corrected
+	/// (<c>reversing/findings/FINDINGS-tradeui.md</c>, E.1).
 	/// </summary>
 	private static void Charge(CCountry country, CGoodsPool stockpile, CFixedPoint ic, bool whateverItHolds = false)
 	{

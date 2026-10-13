@@ -108,6 +108,10 @@ public static class CPactPasses
 		{
 			return TradeScore(state, offer, actor, recipient);
 		}
+		if (offer.Kind == EOfferKind.Licence)
+		{
+			return state.AiScripts is { } licensing ? licensing.LicenceScore(state, offer) : 0;
+		}
 		return state.AiScripts is { } scripts ? scripts.DiploScore(state, function, actor, recipient, recipient) : 0;
 	}
 

@@ -14,4 +14,10 @@ public sealed record COffer(EOfferKind Kind, CCountryTag Actor, CCountryTag Reci
 
 	/// <summary>An offer to trade's route (<c>docs/mechanics/trade.md</c>); none for any other kind.</summary>
 	public Trade.CTradeDeal? Deal { get; init; }
+
+	/// <summary>The theory an offer to share technology shares (<c>aid.md</c>, section 2); empty for the rest.</summary>
+	public string Category { get; init; } = "";
+
+	/// <summary>What a licence is for (<c>aid.md</c>, section 4); none for the rest, or a licence with nothing chosen.</summary>
+	public Aid.CLicenceTerms? Licence { get; init; }
 }

@@ -31,6 +31,20 @@ public static class CDiplomacyActions
 			new(kind, player.Tag, chosen.Tag, EOfferStage.Proposed, value, state.TotalHours);
 		bool atWar = CCountryLists.AtWar(state, player.Tag, chosen.Tag);
 
+		// Technology, where allied or in one real faction: stop where sharing, else share where a theory puts
+		// them below the player (aid.md, section 2).
+		if (CCountryLists.HasAlliance(state, player.Tag, chosen.Tag) || COfferRules.OneRealFaction(player, chosen))
+		{
+			if (Sim.Aid.CTechnologySharing.IsSharing(player, chosen))
+			{
+				rows.Add(Row(EOfferKind.ShareTechnology, false));
+			}
+			else if (ShareableTheories(state, player, chosen).Count > 0)
+			{
+				rows.Add(Row(EOfferKind.ShareTechnology, true));
+			}
+		}
+
 		if (CCountryLists.HasAlliance(state, player.Tag, chosen.Tag))
 		{
 			rows.Add(Row(EOfferKind.Alliance, false));
@@ -68,6 +82,13 @@ public static class CDiplomacyActions
 		}
 		if (!atWar)
 		{
+			// Buy Production Licence, always (aid.md, section 4).
+			rows.Add(Row(EOfferKind.Licence, true));
+			// Allow or revoke debt: revoking where they may run a debt with the player (aid.md, section 1).
+			if (!COfferRules.InExile() && !COfferRules.IsPuppet(player))
+			{
+				rows.Add(Row(EOfferKind.Debt, !CGameState.Status(chosen, player).AllowDebts));
+			}
 			bool running = Influencing(state, player.Tag, chosen.Tag);
 			if (!COfferRules.RealFaction(chosen) && !COfferRules.IsPuppet(chosen) && (running || COfferRules.IsMajor(player)))
 			{
@@ -84,8 +105,34 @@ public static class CDiplomacyActions
 			{
 				rows.Add(trade);
 			}
+			// Lend-lease, asked for and offered, listed only where valid (aid.md, section 3).
+			foreach (COffer lendLease in new[]
+			{
+				Row(EOfferKind.RequestLendLease, !Sim.Aid.CLendLease.Gives(chosen, player)),
+				Row(EOfferKind.OfferLendLease, !Sim.Aid.CLendLease.Gives(player, chosen)),
+			})
+			{
+				if (COfferRules.IsValid(state, lendLease))
+				{
+					rows.Add(lendLease);
+				}
+			}
 		}
 		return rows;
+	}
+
+	/// <summary>The theories in which the actor's own level is above the recipient's as it reads it, in the categories' order.</summary>
+	public static List<Sim.Research.CTechnologyCategory> ShareableTheories(CGameState state, CCountry actor, CCountry recipient)
+	{
+		var theories = new List<Sim.Research.CTechnologyCategory>();
+		foreach (Sim.Research.CTechnologyCategory category in state.TechnologyCategories)
+		{
+			if (category.IsTheory && actor.OwnAbility(category.Name) > recipient.Ability(category.Name))
+			{
+				theories.Add(category);
+			}
+		}
+		return theories;
 	}
 
 	/// <summary>Whether a row's button is greyed: it may not be pressed, or a diplomat is on his way.</summary>
@@ -94,6 +141,11 @@ public static class CDiplomacyActions
 		if (!COfferRules.IsSelectable(state, offer))
 		{
 			return true;
+		}
+		// Cancelling a trade, or stopping lend-lease being given, never waits for a diplomat.
+		if (!offer.Value && offer.Kind is EOfferKind.Trade or EOfferKind.OfferLendLease)
+		{
+			return false;
 		}
 		return state.Country(offer.Actor) is { } actor && state.Country(offer.Recipient) is { } recipient
 			&& COfferRules.DiplomatEnRoute(state, actor, recipient);
@@ -112,6 +164,11 @@ public static class CDiplomacyActions
 			EOfferKind.Embargo => offer.Value ? "EMBARGO" : "CANCELEMBARGO",
 			EOfferKind.Influence => offer.Value ? "INFL" : "STOPINFL",
 			EOfferKind.Trade => offer.Value ? "TRADE" : "CANCELTRADE",
+			EOfferKind.Debt => offer.Value ? "ALLOWDEBT" : "REVOKEDEBT",
+			EOfferKind.ShareTechnology => offer.Value ? "SHARE_TECH" : "CANCEL_SHARE_TECH",
+			EOfferKind.RequestLendLease => offer.Value ? "REQLEND" : "CANCELLEND",
+			EOfferKind.OfferLendLease => offer.Value ? "OFFERLL" : "STOPLL",
+			EOfferKind.Licence => offer.Value ? "BUYLICENCE" : "SELLLICENCE",
 			_ => offer.Value ? "ALIGN" : "STOPALIGN",
 		};
 	}
@@ -136,9 +193,147 @@ public static class CDiplomacyActions
 			EOfferKind.Embargo => Embargo(localise, state, offer, actor, recipient),
 			EOfferKind.Influence => Influence(localise, state, offer, actor, recipient),
 			EOfferKind.Trade => TradeTooltip(localise, state, offer, actor, recipient),
+			EOfferKind.Debt => DebtTooltip(localise, state, offer, actor, recipient),
+			EOfferKind.ShareTechnology => ShareTooltip(localise, state, offer, actor, recipient),
+			EOfferKind.RequestLendLease => RequestLendLeaseTooltip(localise, state, offer, actor, recipient),
+			EOfferKind.OfferLendLease => OfferLendLeaseTooltip(localise, state, offer, actor, recipient),
+			EOfferKind.Licence => LicenceTooltip(localise, state, offer, actor, recipient),
 			_ => Align(localise, state, offer, actor, recipient),
 		};
 		return said ?? "";
+	}
+
+	/// <summary>
+	/// A licence's row: itself, a diplomat, too little influence to buy - whole - then what it does. There is
+	/// no arm for war, though war greys it (aid.md, section 5).
+	/// </summary>
+	private static string LicenceTooltip(Func<string, string> localise, CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (actor == recipient)
+		{
+			return localise("ACT_NO_SELF");
+		}
+		if (EnRoute(localise, state, actor, recipient) is { } enRoute)
+		{
+			return enRoute;
+		}
+		if (!offer.Value)
+		{
+			return localise("SELLLICENCEDESC");
+		}
+		return NoInfluence(localise, state, offer, actor, 0) ?? localise("BUYLICENCEDESC");
+	}
+
+	/// <summary>
+	/// Asking for lend-lease: a diplomat, or why it may not be - alone - or <c>LEND_LEASE_DESC</c> and the
+	/// way it would come; cancelling it, <c>LEND_LEASE_CANCEL_DESC</c> where they give, else nothing. See
+	/// <c>aid.md</c>, section 6.
+	/// </summary>
+	private static string RequestLendLeaseTooltip(Func<string, string> localise, CGameState state, COffer offer, CCountry actor,
+		CCountry recipient)
+	{
+		if (!offer.Value)
+		{
+			return Sim.Aid.CLendLease.Gives(recipient, actor) ? localise("LEND_LEASE_CANCEL_DESC") : "";
+		}
+		if (EnRoute(localise, state, actor, recipient) is { } enRoute)
+		{
+			return enRoute;
+		}
+		return LendLeaseWay(localise, state, giver: recipient, receiver: actor, giverIsActor: false, out bool may) is var way && may
+			? localise("LEND_LEASE_DESC") + NewLine + way
+			: way;
+	}
+
+	/// <summary>
+	/// Offering lend-lease: a diplomat; nothing where already giving; else <c>OFFERLL_DESCRIPTION</c> and the
+	/// way it would go, or why it may not - prefixed either way. Stopping, <c>STOPLL_DESCRIPTION</c>.
+	/// </summary>
+	private static string OfferLendLeaseTooltip(Func<string, string> localise, CGameState state, COffer offer, CCountry actor,
+		CCountry recipient)
+	{
+		if (!offer.Value)
+		{
+			return localise("STOPLL_DESCRIPTION");
+		}
+		if (EnRoute(localise, state, actor, recipient) is { } enRoute)
+		{
+			return enRoute;
+		}
+		if (Sim.Aid.CLendLease.Gives(actor, recipient))
+		{
+			return "";
+		}
+		return localise("OFFERLL_DESCRIPTION") + NewLine
+			+ LendLeaseWay(localise, state, giver: actor, receiver: recipient, giverIsActor: true, out _);
+	}
+
+	/// <summary>
+	/// The way lend-lease would go, or why it may not, in the words of the side that asks: our neutrality or
+	/// theirs, we or they at war.
+	/// </summary>
+	private static string LendLeaseWay(Func<string, string> localise, CGameState state, CCountry giver, CCountry receiver,
+		bool giverIsActor, out bool may)
+	{
+		may = false;
+		switch (Sim.Aid.CLendLease.Refusal(state, giver, receiver))
+		{
+			case Sim.Aid.CLendLease.ERefusal.InExile:
+				return CTextTemplate.Fill(localise("ACT_LENDLEASE_ANY_GOI"), ("ACTOR", giver.Name), ("RECIPIENT", receiver.Name));
+			case Sim.Aid.CLendLease.ERefusal.GiverNeutrality:
+				return CTextTemplate.Fill(localise(giverIsActor ? "ACT_LENDLEASE_OUR_NEUTRALITY" : "ACT_LENDLEASE_NEUTRALITY"),
+					("LIMIT", CNumberText.Trimmed(COfferRules.Define(state, Sim.Aid.CLendLease.NeutralityLimitDefine))),
+					("VAL", CNumberText.Format(giver.EffectiveNeutrality, 2)));
+			case Sim.Aid.CLendLease.ERefusal.ReceiverAtPeace:
+				return localise(giverIsActor ? "ACT_LENDLEASE_THEM_ONLY_AT_WAR" : "ACT_LENDLEASE_ONLY_AT_WAR");
+			case Sim.Aid.CLendLease.ERefusal.AtWarWithEachOther:
+				return localise("WEWAR");
+			case Sim.Aid.CLendLease.ERefusal.NoWay:
+				return localise("LEND_LEASE_NOT_ALLOWED");
+		}
+		may = true;
+		return Sim.Aid.CLendLease.Way(state, giver, receiver) switch
+		{
+			Sim.Aid.ELendLeaseRoute.Neighbour => localise("LEND_LEASE_ALLOWED_NEIGHBOUR"),
+			Sim.Aid.ELendLeaseRoute.Teleport => localise("LEND_LEASE_ALLOWED_TELEPORT"),
+			_ => CTextTemplate.Fill(localise("LEND_LEASE_ALLOWED_CONVOY"), ("COUNTRY", receiver.Name)),
+		};
+	}
+
+	/// <summary>
+	/// Sharing technology's row: itself, a diplomat, then for sharing too little influence - its cost whole -
+	/// or what it does; for stopping what it does. See <c>aid.md</c>, section 2.
+	/// </summary>
+	private static string ShareTooltip(Func<string, string> localise, CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (actor == recipient)
+		{
+			return localise("ACT_NO_SELF");
+		}
+		if (EnRoute(localise, state, actor, recipient) is { } enRoute)
+		{
+			return enRoute;
+		}
+		if (!offer.Value)
+		{
+			return localise("CANCEL_SHARE_TECH_DESC");
+		}
+		return NoInfluence(localise, state, offer, actor, 0) ?? localise("SHARE_TECH_DESC");
+	}
+
+	/// <summary>Debt's row: itself, war, a diplomat, too little influence (whole), then what it does - aid.md, section 1.</summary>
+	private static string DebtTooltip(Func<string, string> localise, CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (actor == recipient)
+		{
+			return localise("ACT_NO_SELF");
+		}
+		if (CCountryLists.AtWar(state, actor.Tag, recipient.Tag))
+		{
+			return localise("WEWAR");
+		}
+		return EnRoute(localise, state, actor, recipient) ?? NoInfluence(localise, state, offer, actor, 0)
+			?? localise(offer.Value ? "ALLOWDEBTDESC" : "REVOKEDEBTDESC");
 	}
 
 	private static string? TradeTooltip(Func<string, string> localise, CGameState state, COffer offer, CCountry actor, CCountry recipient)
@@ -199,6 +394,27 @@ public static class CDiplomacyActions
 				return offer.Value ? Recipient("EMBARGONEWDESC") + NewLine + Cost() : Recipient("CANCELEMBARGONEWDESC");
 			case EOfferKind.Influence:
 				return offer.Value ? Drift(localise, state, "INFLNEWDESC", recipient, actor.Faction) : Recipient("STOPINFLNEWDESC");
+			case EOfferKind.Debt:
+			{
+				// Allowing names the recipient's faction, not the recipient (aid.md, section 5).
+				string cost = CNumberText.Format(COfferRules.Cost(state, offer), 0);
+				return offer.Value
+					? CTextTemplate.Fill(localise("ALLOWDEBTNEWDESC"), ("NAME", localise(recipient.Faction)),
+						("YEAR", CNumberText.Format(COfferRules.Define(state, Sim.Aid.CDebts.YearsDefine), 0)), ("COST", cost))
+					: CTextTemplate.Fill(localise("REVOKEDEBTNEWDESC"), ("NAME", recipient.Name), ("COST", cost));
+			}
+			case EOfferKind.RequestLendLease:
+				return localise(offer.Value ? "LEND_LEASE_DESCRIPTION" : "LEND_LEASE_BREAK_DESCRIPTION");
+			case EOfferKind.OfferLendLease:
+				return localise(offer.Value ? "OFFERLL_DESCRIPTION" : "STOPLL_DESCRIPTION");
+			case EOfferKind.ShareTechnology:
+			{
+				// Stopping only; sharing has a dialog of its own.
+				string first = Sim.Aid.CTechnologySharing.FirstShared(actor, recipient);
+				return first.Length > 0
+					? CTextTemplate.Fill(localise("CANCEL_SHARE_TECH_INFO"), ("TECH", localise(first)), ("COUNTRY", recipient.Name))
+					: Country("CANCEL_SHARE_TECH_INFO_NO");
+			}
 			default:
 				return offer.Value ? Drift(localise, state, "ALIGNNEWDESC", recipient, recipient.Faction) : Recipient("STOPALIGNNEWDESC");
 		}
@@ -511,7 +727,6 @@ public static class CDiplomacyActions
 		state.Influences.Exists(i => i.Influencer == influencer && i.Influenced == influenced);
 
 	/// <summary>An hour as the original writes it: " 13:00, 1 January, 1936", a space first.</summary>
-	/// <summary>An hour of the game as the diplomacy texts write it: " 0:00, 8 June, 1936".</summary>
 	internal static string HourDate(Func<string, string> localise, long hour)
 	{
 		long day = Math.Max(hour, 0) / CGameState.HoursPerDay;

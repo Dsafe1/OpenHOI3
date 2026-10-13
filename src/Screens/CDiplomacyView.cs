@@ -502,6 +502,21 @@ public sealed partial class CDiplomacyView : CCountryView
 			trade.Closed += () => Closed(trade.Close);
 			(window, close, made) = (trade, trade.Close, () => trade.Window);
 		}
+		else if (offer.Kind == Sim.Agreements.EOfferKind.Licence)
+		{
+			var licence = new CLicenceDialog();
+			licence.Setup(Context, Simulation, offer);
+			licence.Closed += () => Closed(licence.Close);
+			(window, close, made) = (licence, licence.Close, () => licence.Window);
+		}
+		else if (offer.Kind == Sim.Agreements.EOfferKind.ShareTechnology && offer.Value)
+		{
+			// Sharing chooses its theory in a window of its own; stopping is the plain dialog.
+			var share = new CShareTechnologyDialog();
+			share.Setup(Context, Simulation, offer);
+			share.Closed += () => Closed(share.Close);
+			(window, close, made) = (share, share.Close, () => share.Window);
+		}
 		else
 		{
 			var dialog = new CDiplomacyRequestDialog();

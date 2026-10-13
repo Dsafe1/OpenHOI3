@@ -39,8 +39,14 @@ public sealed class CConvoy
 	/// </summary>
 	public bool IsTrade { get; set; }
 
-	/// <summary>It carries lend-lease. None is made yet.</summary>
+	/// <summary>
+	/// It serves a receiver's lend-lease from <see cref="LendLeaseFrom"/>: it carries nothing, and its
+	/// efficiency is the share of what is sent that arrives (<c>docs/mechanics/aid.md</c>, section 3).
+	/// </summary>
 	public bool IsLendLease { get; init; }
+
+	/// <summary>The giver a lend-lease convoy serves.</summary>
+	public CCountryTag? LendLeaseFrom { get; init; }
 
 	/// <summary>The transports on it.</summary>
 	public int Transports { get; set; }

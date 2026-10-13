@@ -6,6 +6,8 @@ using System.Text;
 using OpenHOI3.Interface.Modifiers;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Agreements;
+using OpenHOI3.Sim.Aid;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
@@ -33,8 +35,8 @@ public static class CTechnologyTooltips
 
 	/// <summary>
 	/// Where the country's leadership comes from: the provinces it controls, the sources of
-	/// the two global kinds, and what technology adds. Nothing shares a technology here, so
-	/// there are no lines for sharing.
+	/// the two global kinds, what technology adds, and a line for each theory it shares,
+	/// <c>SHARE_TECH_TOOLTIP</c> with what it costs to one place (<c>aid.md</c>, section 2).
 	/// </summary>
 	public static string LeadershipLabel(Func<string, string> localise, CGameState state, CCountry country)
 	{
@@ -58,6 +60,12 @@ public static class CTechnologyTooltips
 		if (technology.Raw != 0)
 		{
 			text.Append('\n').Append(FromTechnology(localise, technology));
+		}
+		CFixedPoint cost = state.Defines[COfferRules.Section, CTechnologySharing.LeadershipCostDefine];
+		foreach ((CCountry receiver, string category) in country.TechnologyShares)
+		{
+			text.Append(CTextTemplate.Fill(localise("SHARE_TECH_TOOLTIP"), ("TECH", localise(category)),
+				("COUNTRY", receiver.Name), ("COST", CNumberText.Format(cost, 1)))).Append('\n');
 		}
 		return text.ToString();
 	}
@@ -110,10 +118,25 @@ public static class CTechnologyTooltips
 		return technology.Allow is { } allow ? CRequirementText.For(localise, state, country, allow) : "";
 	}
 
-	/// <summary>A theory or practical: its name. Nothing shares one here, so there is no second half.</summary>
+	/// <summary>A theory or practical: its name.</summary>
 	public static string Skill(Func<string, string> localise, CTechnologyCategory category)
 	{
 		return localise(category.Name);
+	}
+
+	/// <summary>
+	/// A theory's delayed half where another country shares it: <c>TW_SKILL_SHARE</c>, the sharer, the higher
+	/// of the two levels and the country's own, each to one place; nothing where none does.
+	/// </summary>
+	public static string SkillShared(Func<string, string> localise, CCountry country, CTechnologyCategory category)
+	{
+		if (!country.TechnologySharedFrom.TryGetValue(category.Name, out CCountry? sharer))
+		{
+			return "";
+		}
+		return CTextTemplate.Fill(localise("TW_SKILL_SHARE"), ("COUNTRY", sharer.Name),
+			("THEIR", CNumberText.Format(country.Ability(category.Name), 1)),
+			("OUR", CNumberText.Format(country.OwnAbility(category.Name), 1)));
 	}
 
 	/// <summary>

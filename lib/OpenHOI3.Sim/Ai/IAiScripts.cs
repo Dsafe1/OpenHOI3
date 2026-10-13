@@ -32,6 +32,12 @@ public interface IAiScripts
 	int OfferTradeScore(CGameState state, Agreements.COffer offer) => 0;
 
 	/// <summary>
+	/// What the seller's AI makes of an offer to buy a licence, by <c>DiploScore_LicenceTechnology</c>, handed
+	/// the licence itself; 0 on a failure (<c>docs/mechanics/aid.md</c>, section 4).
+	/// </summary>
+	int LicenceScore(CGameState state, Agreements.COffer offer) => 0;
+
+	/// <summary>
 	/// <c>ProposeTrades(ai, tag)</c> where <paramref name="propose"/>, else
 	/// <c>EvalutateExistingTrades(ai, tag)</c>: a country's AI trading for the hour, whose offers go
 	/// to the state's outbox. See <c>docs/mechanics/trade.md</c>, section 9.

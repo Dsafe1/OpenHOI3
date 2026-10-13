@@ -107,6 +107,8 @@ public static class CIndustrialCapacity
 			country.BaseIc = (int)baseIc;
 			country.TotalIc = (int)total;
 			country.MaxIc = (int)total;
+			// What lend-lease adds comes later in the day, after the resource cap (docs/mechanics/aid.md, section 3).
+			country.LendLeaseIc = 0;
 		}
 	}
 

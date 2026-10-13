@@ -75,6 +75,27 @@ public static class CConvoyMaker
 		return convoy;
 	}
 
+	/// <summary>
+	/// Makes a receiver's lend-lease convoy from a giver's harbour to its own; it carries nothing and starts
+	/// with no transports. See <c>docs/mechanics/aid.md</c>, section 3.
+	/// </summary>
+	public static CConvoy CreateLendLease(CGameState state, CCountry receiver, CCountryTag giver, int from, int to)
+	{
+		var convoy = new CConvoy
+		{
+			Id = ++state.LastConvoyId,
+			Owner = receiver.Tag,
+			Start = from,
+			End = to,
+			StartHour = state.TotalHours,
+			IsLendLease = true,
+			LendLeaseFrom = giver,
+		};
+		FindPath(state, convoy);
+		receiver.Convoys.Add(convoy);
+		return convoy;
+	}
+
 	/// <summary>Throws a convoy's way away and looks for it again.</summary>
 	public static void FindPath(CGameState state, CConvoy convoy)
 	{

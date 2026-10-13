@@ -1,6 +1,6 @@
 namespace OpenHOI3.Sim.Agreements;
 
-/// <summary>What an offer is about. See <c>docs/mechanics/agreements.md</c>, section 1.</summary>
+/// <summary>What an offer is about. See <c>docs/mechanics/agreements.md</c>, section 1, and <c>aid.md</c>.</summary>
 public enum EOfferKind
 {
 	Alliance,
@@ -12,4 +12,9 @@ public enum EOfferKind
 	Influence,
 	Align,
 	Trade,
+	Debt,
+	ShareTechnology,
+	RequestLendLease,
+	OfferLendLease,
+	Licence,
 }
