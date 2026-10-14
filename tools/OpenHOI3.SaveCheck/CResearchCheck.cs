@@ -151,24 +151,18 @@ internal static class CResearchCheck
 		CCountryModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
 		CStrategicResources.Update(state);
-		CCountryModifiers.Rebuild(state);
-
-		// Triggered modifiers are not applied by this project yet, and one of them touches
-		// nearly every country's research: `neutrality`, for a country in none of the factions.
-		// It is given here by hand, from the file's own figure and the save's own factions, so
-		// that what is compared is the research and not that omission.
-		CFixedPoint unaligned = Number(ClausewitzParser.ParseFile(directories.Resolve("common/triggered_modifiers.txt"))
-			.Get("neutrality")?.GetString("research_efficiency"));
-		int givenByHand = 0;
+		// With the triggered modifiers tested as the day does, `neutrality` among them - 5% off the research of a
+		// country in none of the factions (docs/mechanics/modifiers.md, section 5).
+		CCountryModifiers.RebuildDaily(state);
+		int unaligned = 0;
 		foreach ((CCountry country, ClausewitzNode _, ClausewitzNode _) in pairs)
 		{
-			if (!aligned.Contains(country.Tag.Value))
+			if (country.TriggeredModifiers.Exists(entry => entry.Name == CCountryModifiers.Neutrality))
 			{
-				country.Modifier.Add("research_efficiency", unaligned);
-				givenByHand++;
+				unaligned++;
 			}
 		}
-		Console.WriteLine($"{givenByHand} countries in no faction were given the `neutrality` triggered modifier's {unaligned} research efficiency by hand");
+		Console.WriteLine($"{unaligned} countries have the `neutrality` triggered modifier");
 		Console.WriteLine();
 
 		// ---- one day's gain for everything being researched, from the earlier save's own state

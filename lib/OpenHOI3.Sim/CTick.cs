@@ -107,7 +107,7 @@ public static class CTick
 		// Supplies go out along the network before any country's own day, so a unit
 		// draws on what reached its province this morning.
 		Step(state, CSupplyPass.RunDaily);
-		Step(state, CCountryModifiers.Rebuild);
+		Step(state, CCountryModifiers.RebuildDaily);           // each country's triggered modifiers tested first
 		Step(state, Politics.CNationalUnity.RunDaily);           // right after a country's modifier (politics.md, section 6)
 		Step(state, Politics.CMinisterPosts.JoinDaily);          // a minister whose start date is today joins the pool
 		Step(state, CThreat.UpdateMostThreatening);               // before any country's day, as its neighbours are
@@ -186,7 +186,7 @@ public static class CTick
 	public static void RunEntryPass(CGameState state)
 	{
 		CProvinceModifiers.Rebuild(state);
-		CCountryModifiers.Rebuild(state);
+		CCountryModifiers.RebuildDaily(state);
 		CLeadership.Update(state);
 		CManpower.UpdateMost(state);
 		CManpower.Update(state);

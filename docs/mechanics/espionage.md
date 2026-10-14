@@ -320,11 +320,16 @@ spy, and are catches: counter-espionage at home rolls on the two days, and the o
 presences than ours - Czechoslovakia's spy in Germany, given at the setup, is caught here and not there. The original
 caught more, 1783 spies abroad left to our 1798: **the triggered modifier `neutrality`** of Their Finest Hour, for a
 country in no faction, gives `counter_espionage` +0.1 and `espionage_bonus` +0.1, which with the base 0.1 is 1.8
-times the chance, and triggered modifiers are not built (`modifiers.md`, section 5) - our rate expects about 18
-catches in the two days and 1.8 times that is the save's 33. The free spies are 95 of 101: the six that differ are
-countries whose leadership is not the save's - Germany's because the player keeps the history's
-`medium_large_education_investment` where the original's AI had given it `big_education_investment`
-(`docs/compatibility.md`, entry 6), 1.2 over 1.1 of the leadership, and so 1.024 spies a day to 1.113.
+times the chance at home for the ninety countries in no faction - our rate expected about 18 catches in the two days
+and the save has 33. The free spies were 95 of 101, the six that differed countries whose leadership was not the
+save's.
+
+**With triggered modifiers built**, the same day: free spies **100 of 101** - Germany's alone, because the player keeps
+the history's `medium_large_education_investment` where the original's AI had given it `big_education_investment`
+(`docs/compatibility.md`, entry 6), 1.2 over 1.1 of the leadership, and so 1.024 spies a day to 1.113 - and the levels
+abroad 10045 of 10100, **1794 spies abroad to the save's 1783**: 22 catches to its 33, where the reading's formula
+gives the neutral countries 1.8 times the chance. So `neutrality` explains a part of the gap and not all of it, which
+fits the maintainer's account that `counter_espionage` does not work as read (*Not established*, below).
 
 Played on as Germany to the saves of 4 January 12:00 and 8 January 07:00 of the maintainer's other game: **the home
 at 7 and every priority and mission weight agree**, and the pool is short by that 0.089 a day and nothing else. The

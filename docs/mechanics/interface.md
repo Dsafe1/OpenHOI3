@@ -281,8 +281,9 @@ files, with nothing in it placed by hand.
   0 does is not known; *ours* draws the nearest frame that exists.
 - **An icon's may be counted from nought.** `likely` The bar that shows a theory or a
   practical has 21 frames, the first empty, and is set from 0 to 20
-  (`technologyscreen.md`, section 5). *Ours:* that one icon is drawn so; nothing else
-  sets an icon's frame from code yet.
+  (`technologyscreen.md`, section 5); the Strategic Effects window's strip has 17 and is
+  set from a modifier's `icon`, which the files give from 1 to 16 (`strategiceffects.md`,
+  section 3). *Ours:* those two are drawn so; other icons' frames count from one.
 - **A `progressbartype` is a bar that fills from the left.** `inferred` from the
   declarations: it has a `size` and two textures. *Ours:* the first texture is drawn
   over the part that is filled and the second over the rest, each cut at the same place,
@@ -306,7 +307,11 @@ files, with nothing in it placed by hand.
   scrollbar's slider is drawn with it too - which is why a locked slider is grey, as
   the maintainer said it should be on 2026-10-08. *Ours:* every button is drawn so,
   whether or not its sprite names that effect file; what a sprite with no effect file
-  does under the mouse was not looked for.
+  does under the mouse was not looked for. **An icon can be given a look too**: the
+  Strategic Effects window draws a row's background and strip in `up` or `disable` by
+  whether the country has the modifier (`strategiceffects.md`, section 3). The routine
+  sets the states 1 and 4; that they are `up` and `disable`, counted from one in the
+  shader's order, is `inferred`.
 - **A `maskedShieldType` draws a country's flag** between two textures: one over it, and a
   mask. **The flag is as see-through at each point as the mask is there** - `confirmed`,
   from `gfx/FX/maskedflag.fx`, which is plain text in the install: the flag's colour with

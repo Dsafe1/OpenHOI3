@@ -12,8 +12,9 @@ namespace OpenHOI3.Sim.Modifiers;
 /// original's order: the base values every country shares, the ministers in its
 /// government, each of whom counts as the minister type he has for the seat he holds,
 /// its laws, the strategic resources it has the use of, the modifier of every province
-/// it controls, the modifier for being at war or at peace, and the one for its dissent.
-/// See <c>docs/mechanics/modifiers.md</c>, sections 4 and 7.
+/// it controls, the modifier for being at war or at peace, the one for its dissent, and the
+/// rest of section 4 that is built - its event modifiers and its triggered modifiers among them.
+/// See <c>docs/mechanics/modifiers.md</c>, sections 4, 5 and 7.
 ///
 /// The total is cleared and summed again every time. Nothing is ever added to it and
 /// taken away later, so there is nothing to forget.
@@ -31,6 +32,20 @@ public static class CCountryModifiers
 		Dictionary<string, List<CProvince>> fromProvinces = ProvincesHeld(state);
 		foreach (CCountry country in state.Countries)
 		{
+			RebuildOne(state, country, fromProvinces);
+		}
+	}
+
+	/// <summary>
+	/// The day's rebuild and the one on entering a game: each country's triggered modifiers tested straight before its
+	/// own modifier is made again (<c>modifiers.md</c>, section 5).
+	/// </summary>
+	public static void RebuildDaily(CGameState state)
+	{
+		Dictionary<string, List<CProvince>> fromProvinces = ProvincesHeld(state);
+		foreach (CCountry country in state.Countries)
+		{
+			CTriggeredModifiers.Update(state, country);
 			RebuildOne(state, country, fromProvinces);
 		}
 	}
@@ -105,6 +120,12 @@ public static class CCountryModifiers
 		foreach (CTimedModifier given in country.EventModifiers)
 		{
 			AddSource(country, given.Modifier);
+		}
+
+		// Its triggered modifiers, in the order they came on (step 14; modifiers.md, section 5).
+		foreach (CTriggeredModifier triggered in country.TriggeredModifiers)
+		{
+			AddSource(country, triggered.Modifier);
 		}
 
 		// A fractured government, where a party of another group than the ruling party's holds a seat (step 18;

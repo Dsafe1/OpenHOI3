@@ -135,6 +135,9 @@ public sealed class CGameState
 	/// <summary>The covert operations of <c>common/covert_ops.txt</c>, in its order (<c>espionage.md</c>, section 11).</summary>
 	public List<Espionage.CCovertOperation> CovertOperations { get; } = new();
 
+	/// <summary>The triggered modifiers of <c>common/triggered_modifiers.txt</c>, in its order (<c>modifiers.md</c>, section 5).</summary>
+	public List<CTriggeredModifier> TriggeredModifiers { get; } = new();
+
 	public long TotalHours => _hours;
 
 	public CDate Date => CDate.FromDayNumber((int)(_hours / HoursPerDay));

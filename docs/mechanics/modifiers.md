@@ -174,20 +174,34 @@ more monthly ability figures in the savegames agree once it is counted.
 ## 5. Triggered modifiers
 
 `common/triggered_modifiers.txt` declares modifiers with two conditions each, `potential`
-and `trigger`. `confirmed`:
+and `trigger`, and an `icon`. Every other key of a block is a modifier, as in section 2.
+`confirmed` (`reversing/findings/FINDINGS-countrymodifier.md`, section 3, read 2026-10-08 and
+2026-10-14):
 
 - **Once a day, for every country, straight before its modifier is rebuilt**, each entry
-  of the file is tested in file order. One whose `potential` and `trigger` both hold joins
-  the country's list; one on the list for which they no longer both hold leaves it.
-- The same test runs on entering a game.
-- The rebuild adds whatever is on the list. So a triggered modifier is on or off from the
-  day its conditions change.
+  of the file is tested in file order. One whose `potential` and `trigger` both hold - in
+  a scope of the country, with no FROM and no province - and that is not on the country's
+  list joins its end; then every entry on the list for which they no longer both hold
+  leaves it, where it stands.
+- **So the list keeps the order its entries came on**, not the file's, and the rebuild
+  adds them in that order (step 14) - which is the order a modifier's sources name them
+  in (section 8).
+- The same test runs on entering a game, each country's straight before its rebuild.
+- So a triggered modifier is on or off from the day its conditions change. Nothing else
+  rebuilds the list: a modifier rebuilt at another time - a decision taken - adds the list
+  as it stands.
+- **The player is told** (`docs/mechanics/messages.md`): a modifier joining raises
+  `TRIGMOD`, with `NAME` its name localised, `EFFECT` every value of its modifier written as
+  section 8 writes them and `EXPLANATION` the localised `desc_` and its key; one leaving
+  raises `TRIGMODLOST`, with `NAME` and `EFFECT` only. Both are reported by the head of
+  government, `MESSAGE_HEAD_GOV`. Nobody else is told.
 
-The conditions are the script's, which this project does not evaluate yet. (measured) Five
-countries' leadership fits only with one each (`leadership.md`, section 8), ninety
-countries' research only with `neutrality`, which takes 5% off research for a country in
-none of the factions (`research.md`, section 8), and France's manpower only with
-`population_crisis` (`manpower.md`, section 6).
+(measured, before it was built) Five countries' leadership fits only with one each
+(`leadership.md`, section 8), ninety countries' research only with `neutrality`, which takes
+5% off research for a country in none of the factions (`research.md`, section 8), and
+France's manpower only with `population_crisis` (`manpower.md`, section 6).
+
+What the player sees of them is the Strategic Effects window, `strategiceffects.md`.
 
 ## 6. Strategic resources
 
@@ -254,15 +268,17 @@ the first day is run, which is why a new game's starting manpower leaves black s
   one of a block's own is taken as a modifier. So a misspelt modifier is *not* reported
   yet, which is the opposite of what this project wants, and it stays a loose end until the
   list exists.
-- **A country's modifier is steps 1 to 9, 11, 12, 13 and 18 of section 4**: `base_values`,
+- **A country's modifier is steps 1 to 9, 11 to 14 and 18 of section 4**: `base_values`,
   its faction's (since 2026-10-13, with `factions.md`), its ministers, its laws, its government
   and `fractured_government` (since 2026-10-14, with `politics.md`), its strategic resources, its
   provinces' modifiers, `war` or `peace`, the spies' two unity modifiers (since 2026-10-14, with
   `espionage.md`), `dissent`, `neutrality` by its effective neutrality (since 2026-10-12, with
-  `diplomacy.md`), and its event modifiers. The rest wait for what they need: war exhaustion,
-  the script's conditions, subjects, a difficulty setting and governments in exile - the
-  triggered modifiers among them, whose `neutrality` gives a country in no faction
-  `counter_espionage` and `espionage_bonus` (`espionage.md`, section 14).
+  `diplomacy.md`), its event modifiers and its triggered modifiers (since 2026-10-14, section 5).
+  The rest wait for what they need: war exhaustion, subjects, a difficulty setting and
+  governments in exile.
+- **A triggered modifier's conditions answer as every condition does** (`triggers.md`): one
+  about what the simulation does not hold answers false. In Their Finest Hour's file that is
+  `lost_national` alone, so `desperate_defence` stays off until it is built.
 - **Strategic resources are shared within a faction as the original shares them**, to a
   major or a country with more than 100 base IC whose capital is on the holder's
   continent, and to a faction's leader at war from a country outside it aligned within

@@ -51,6 +51,7 @@ public partial class CSession : Node
 	private CDiplomacyView? _diplomacy;
 	private CPoliticsView? _politics;
 	private CEspionageView? _espionage;
+	private CStrategicEffectsView? _strategicEffects;
 	private CEventWindows? _events;
 	private CDeployMenu? _deployMenu;
 	private CAlerts? _alerts;
@@ -244,6 +245,12 @@ public partial class CSession : Node
 			messageLog.Setup(gui);
 			layer.AddChild(messageLog);
 			layer.MoveChild(messageLog, 0);
+			// The Strategic Effects window, which the bar's button by the minimap opens (docs/mechanics/strategiceffects.md).
+			_strategicEffects = new CStrategicEffectsView();
+			_strategicEffects.Setup(gui, _simulation, Player);
+			layer.AddChild(_strategicEffects);
+			layer.MoveChild(_strategicEffects, _production.GetIndex());
+			messageLog.ModifiersPressed += _strategicEffects.Toggle;
 			var popups = new CMessagePopups();
 			popups.Setup(gui, _simulation);
 			layer.AddChild(popups);
@@ -913,7 +920,7 @@ public partial class CSession : Node
 	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
 	/// type) opens the window that orders one, with that in it,
 	/// <c>--technology=key</c> chooses one on the technology screen,
-	/// <c>--screen=politics</c> the politics screen, <c>--screen=intelligence</c> the intelligence screen, <c>--screen=diplomacy</c> opens the diplomacy screen with its decisions, <c>--event=2602</c>
+	/// <c>--screen=politics</c> the politics screen, <c>--screen=intelligence</c> the intelligence screen, <c>--screen=diplomacy</c> opens the diplomacy screen with its decisions, <c>--screen=strategiceffects</c> the Strategic Effects window, <c>--event=2602</c>
 	/// fires that event for the player, its trigger not asked, <c>--event=2602:1861</c> for a province of his and
 	/// <c>--event=2001:SPR</c> for another country, which answers it as the AI does,
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
@@ -985,6 +992,10 @@ public partial class CSession : Node
 			else if (argument == "--screen=intelligence")
 			{
 				Toggle(_espionage);
+			}
+			else if (argument == "--screen=strategiceffects")
+			{
+				_strategicEffects?.SetOpen(true);
 			}
 			else if (argument == "--screen=diplomacy")
 			{

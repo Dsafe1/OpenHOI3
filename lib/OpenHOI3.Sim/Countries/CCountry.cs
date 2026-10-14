@@ -197,6 +197,12 @@ public sealed class CCountry
 	public List<CTimedModifier> EventModifiers { get; } = new();
 
 	/// <summary>
+	/// The triggered modifiers it has, in the order they came on: step 14 of its modifier. See
+	/// <c>docs/mechanics/modifiers.md</c>, section 5.
+	/// </summary>
+	public List<CTriggeredModifier> TriggeredModifiers { get; } = new();
+
+	/// <summary>
 	/// The events its day's pass asks, made again each month and when a game is entered:
 	/// <c>docs/mechanics/events.md</c>, section 1.
 	/// </summary>

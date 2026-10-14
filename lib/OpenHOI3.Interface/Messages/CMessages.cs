@@ -146,6 +146,13 @@ public static class CMessages
 				message.Variables.Add((key, Appointed(localise, state, pact, key, value)));
 				continue;
 			}
+			// A triggered modifier come or gone: its name, every value of its modifier and its description (modifiers.md,
+			// section 5).
+			if (pact.We is Sim.Modifiers.CTriggeredModifiers.Gained or Sim.Modifiers.CTriggeredModifiers.Lost)
+			{
+				message.Variables.Add((key, Triggered(localise, state, key, value)));
+				continue;
+			}
 			// Spies' messages name countries and a technology by tag and name (espionage.md, section 12).
 			if (pact.We.StartsWith("SPIESFOUND", StringComparison.Ordinal) || pact.We.Contains("TECH_STOLEN", StringComparison.Ordinal)
 				|| pact.We.StartsWith("WE_STEAL_TECH", StringComparison.Ordinal))
@@ -190,6 +197,27 @@ public static class CMessages
 				}
 				int at = effect.IndexOf("§W", StringComparison.Ordinal);
 				return at < 0 ? effect : effect[..at] + "§b" + effect[(at + 2)..];
+			default:
+				return value;
+		}
+	}
+
+	/// <summary>
+	/// One variable of <c>TRIGMOD</c> or <c>TRIGMODLOST</c>, each given the entry's key: NAME its name, EFFECT every value
+	/// of its modifier, EXPLANATION its <c>desc_</c> text.
+	/// </summary>
+	private static string Triggered(Func<string, string> localise, CGameState state, string key, string value)
+	{
+		switch (key)
+		{
+			case "NAME":
+				return localise(value);
+			case "EFFECT":
+				return state.TriggeredModifiers.Find(entry => entry.Name == value) is { } triggered
+					? Modifiers.CModifierText.AllValues(localise, triggered.Modifier)
+					: "";
+			case "EXPLANATION":
+				return localise("desc_" + value);
 			default:
 				return value;
 		}

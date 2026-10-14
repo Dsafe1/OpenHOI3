@@ -171,26 +171,22 @@ The total is not saved. What three of the four shares made in the save's two day
 levels the save has and compares:
 
 - **the shares**: a quarter each, 100 of 100;
-- **spies in training** against two days of section 5, less whole spies already sent: 95
+- **spies in training** against two days of section 5, less whole spies already sent: 100
   of 100;
 - **officers** and **influence**, less two days of sections 3 and 4, being whole numbers:
-  95 of 100 each;
+  100 of 100 each;
 - **the influence each country started with** against a fifth of its base IC: all 22 that
-  do not exist, and 73 of the 78 that do.
+  do not exist, and 78 of the 78 that do.
 
-**The same five fail all of them, and each has a triggered modifier.** Poland, the
-Netherlands and France have a tenth more `GLOBAL_LEADERSHIP_MODIFIER` than their laws give,
-the United States a flat 0.15 more leadership, and the United Kingdom both.
-`triggered_modifiers.txt` gives Poland +10% while it holds the Corridor and any country
-+0.15 for a hundred ships. Those need the script's conditions, which are stage 4; the
-whole part of their starting influence is right.
+**Each was 95 of 100, and 73 of 78, until triggered modifiers were built on 2026-10-14**
+(`modifiers.md`, section 5). The same five failed all of them: Poland, the Netherlands and
+France have a tenth more `GLOBAL_LEADERSHIP_MODIFIER` than their laws give, the United States
+a flat 0.15 more leadership, and the United Kingdom both - `triggered_modifiers.txt` gives
+Poland +10% while it holds the Corridor, and any country +0.15 for a hundred ships.
 
 Three more - Belgium, Portugal and Republican Spain - fit only once `overseas` is applied
 to their African provinces (`modifiers.md`, section 3).
 
 ## What is not established, in one place
 
-- which **triggered modifier** each of the five above has: what a country's modifier is
-  made of is read now (`modifiers.md`, sections 4 and 5), and their conditions are the
-  script's;
 - who records what a country **shares technology** with.

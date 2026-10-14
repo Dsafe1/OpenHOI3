@@ -272,6 +272,28 @@ public partial class CGuiIcon : CGuiObject
 		ShowTexture(_texture);
 	}
 
+	/// <summary>
+	/// Draws the icon in one of the buttons' looks - the Strategic Effects window greys the rows a country does not have
+	/// (<c>docs/mechanics/strategiceffects.md</c>, section 3). Plain until asked.
+	/// </summary>
+	public void SetLook(EButtonLook look)
+	{
+		if (_rect is null)
+		{
+			return;
+		}
+		if (_rect.Material is not ShaderMaterial material)
+		{
+			if (look == EButtonLook.Up)
+			{
+				return;
+			}
+			material = _context.ButtonShader.Material();
+			_rect.Material = material;
+		}
+		CButtonShader.Set(material, look);
+	}
+
 	/// <summary>How much of a progress bar is filled, in hundredths. Nothing to any other icon.</summary>
 	public void SetProgress(int hundredths)
 	{

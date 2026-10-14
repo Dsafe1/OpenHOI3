@@ -11,9 +11,10 @@ namespace OpenHOI3.Screens;
 /// <summary>
 /// The message log on the bottom bar: <c>messagelog_window</c> of the <c>menubar</c> window, its list
 /// of rows - a <c>logtext</c> each, the newest at the bottom - its six category boxes, a ticked one
-/// hiding its category, and the buttons that close it and open it again. The rest of the bar - the
-/// minimap, the map modes' buttons, the chat of a game of several players - is not built and not
-/// shown. See <c>docs/mechanics/messages.md</c>, section 5.
+/// hiding its category, and the buttons that close it and open it again - and the button by the minimap
+/// that opens the Strategic Effects window, which it hands on. The rest of the bar - the minimap, the
+/// map modes' buttons, the chat of a game of several players - is not built and not shown. See
+/// <c>docs/mechanics/messages.md</c>, section 5, and <c>docs/mechanics/strategiceffects.md</c>.
 /// </summary>
 public sealed partial class CMessageLogView : Control
 {
@@ -36,6 +37,12 @@ public sealed partial class CMessageLogView : Control
 	private CGuiButton? _open;
 
 	public CMessageLog Log { get; private set; } = null!;
+
+	/// <summary>The button by the minimap that opens and shuts the Strategic Effects window (<c>strategiceffects.md</c>).</summary>
+	public const string ModifiersButtonName = "menubar_modifiers_button";
+
+	/// <summary>Raised when that button is pressed.</summary>
+	public event System.Action? ModifiersPressed;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context)
@@ -69,13 +76,22 @@ public sealed partial class CMessageLogView : Control
 		}
 		AddChild(bar);
 		// The bar holds the minimap, the map modes' buttons and the chat as well; of it only the log
-		// is built, so the rest is not shown.
+		// and the Strategic Effects button are built, so the rest is not shown.
 		foreach (Node child in bar.GetChildren())
 		{
-			if (child is Control shown && child.Name != "messagelog_window" && child.Name != "OPENbutton")
+			if (child is Control shown && child.Name != "messagelog_window" && child.Name != "OPENbutton"
+				&& child.Name != ModifiersButtonName)
 			{
 				shown.Visible = false;
 			}
+		}
+		if (bar.TryFindButton(ModifiersButtonName) is { } modifiers)
+		{
+			modifiers.Pressed += () => ModifiersPressed?.Invoke();
+			modifiers.Tooltip = () => new Interface.Tooltips.CTooltip
+			{
+				Text = _context.Localisation.Localise(Interface.Screens.CStrategicEffectsText.ButtonTooltip),
+			};
 		}
 		_log = bar.FindWindow("messagelog_window");
 		_list = _log?.FindListBox("messagelog");

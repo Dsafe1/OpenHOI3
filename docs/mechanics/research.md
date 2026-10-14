@@ -237,12 +237,16 @@ The few that do not are countries whose queue or shares the AI moved between the
 saves. Technologies that finished a level in between, or whose leadership or cost changed,
 are left out and counted.
 
-- **One thing is given by hand to get there.** `common/triggered_modifiers.txt` has a
+- **`neutrality` is needed to get there.** `common/triggered_modifiers.txt` has a
   modifier, `neutrality`, that takes 5% off the research efficiency of every country in
-  none of the three factions - ninety of them in early 1936. Triggered modifiers are not
-  applied by this project yet (`modifiers.md`, section 5), so the tool adds that one itself,
-  from the file's figure and the save's factions. Without it only the factions' members
-  fit, and everyone else is 5% fast.
+  none of the three factions - ninety of them in early 1936. Until triggered modifiers were
+  built (`modifiers.md`, section 5) the tool gave that one by hand, from the file's figure
+  and the save's factions; since 2026-10-14 the day's test gives it, to the same ninety, and
+  the three rows come out as the hand had them. Without it only the factions' members fit,
+  and everyone else is 5% fast.
+- **The autosaves have moved on since the table was made**: on 2026-10-14 the same three
+  pairs gave 231 of 231, 70 of 85 and 375 of 376, and the code before triggered modifiers
+  gave the same 70 of 85 - 160 technologies left out for leadership the AI moved.
 - **The rough square root is needed**: with a true one in its place, ten of the 375 stop
   agreeing.
 - **The decay** agrees to the thousandth for 1067 of 1123 abilities over February and 1042
@@ -256,8 +260,6 @@ are left out and counted.
 ## What is not established, in one place
 
 - the six `allow` conditions of section 5, none of which has been read;
-- **triggered modifiers**, which make every unaligned country's research 5% slower than
-  this project has it;
 - how abilities are **recomputed when a game starts**;
 - how the original **orders its technology categories**, which only matters to an
   interface.

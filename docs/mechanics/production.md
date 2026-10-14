@@ -191,8 +191,8 @@ day was run.
   is not their industrial policy, which their history and the save agree on. A minister
   the AI has since replaced would do it; **not established.** The maintainer's pointer,
   2026-10-10, for when it is taken up: there is a minister effect on supplies (the types
-  with `global_supplies`), and some triggered modifiers give supplies too - and those are
-  not applied here at all yet (`modifiers.md`, section 5).
+  with `global_supplies`), and some triggered modifiers give supplies too - applied since
+  2026-10-14 (`modifiers.md`, section 5); this check has not been run against them since.
 
 One rounding rule came out of this and is not in the fact base: the consumer goods bill is
 the share turned into thousandths *first* and then multiplied by the IC, where the supply

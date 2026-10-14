@@ -135,17 +135,17 @@ levels the start save has, works out what it started with and two days of income
 compares that with the save's manpower:
 
 - **all 23 countries that do not exist yet**, to the thousandth;
-- **75 of the 78 that do**. Every one of them has units, so units cost no manpower in a
-  game's first two days. The United Kingdom is among them only because it is given
-  France's black soil.
+- **76 of the 78 that do** (75 until 2026-10-14). Every one of them has units, so units
+  cost no manpower in a game's first two days. The United Kingdom is among them only
+  because it is given France's black soil.
 
-The three that do not fit, each for something this project does not have:
+The three that did not fit, each for something this project did not have:
 
 - **The United States** has 254.936 where 1050.564 is worked out. Its AI takes the New Deal
   decision before the country is set up, and the modifier that gives takes 40% off; with it
   the figure is exact. Decisions are stage 4.
-- **France** fits exactly with the triggered modifier `population_crisis`, 30% off, which
-  is also stage 4.
+- **France** fits exactly with the triggered modifier `population_crisis`, 30% off - and
+  does since triggered modifiers were built on 2026-10-14 (`modifiers.md`, section 5).
 - **Brazil** fits with one minister's 5% left out: its AI appointed him after the last day
   was run, as it does with laws (`production.md`, section 7).
 

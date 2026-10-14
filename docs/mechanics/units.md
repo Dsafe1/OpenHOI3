@@ -301,10 +301,11 @@ What does not agree, and why:
   also the one unit in a different province: the file puts it where its fleet is not.
 - **The 34 commanders** are units the file nests and the save has under a theatre of the
   original's own making, below.
-- **The five countries' officers** are Britain, the United States, France, the Netherlands
+- **The five countries' officers** were Britain, the United States, France, the Netherlands
   and Poland: right in the whole number and out by a fraction. They are the five whose
-  leadership a triggered modifier changes (`leadership.md`), so it is their two days of
-  training that is out, not what they started with.
+  leadership a triggered modifier changes (`leadership.md`), so it was their two days of
+  training that was out, not what they started with - and since triggered modifiers were
+  built on 2026-10-14 they agree.
 
 What the save has and the files do not:
 
