@@ -114,7 +114,7 @@ Four choices sit under all of it:
 
 ### Next up
 
-As of 2026-10-14, in stage 3 with stage 4 built as far as items 6 to 8 cut it - events and decisions, diplomacy through factions, and politics' four pieces - and the economy of stage 2 waiting on them. Kept
+As of 2026-10-14, in stage 3 with stage 4 built as far as items 6 to 8 cut it - events and decisions, diplomacy through factions, and politics' four pieces, with espionage next - and the economy of stage 2 waiting on them. Kept
 current as work lands, so that picking this up cold needs nothing but this file and
 `docs/mechanics/`.
 
@@ -1032,6 +1032,16 @@ In order:
       countries where the original's changed 194 in 63 (`OpenHOI3.SaveCheck politicsai`). The AI's war plans, its own
       declarations, liberation and releasing a puppet are not built and answer false. **The maintainer has not looked at
       it.** That ends the cut: politics is built but for espionage, occupation and revolt.
+9. **Stage 4: espionage**, taken up on 2026-10-14 on the maintainer's word after one reading wave
+   (`reversing/findings/FINDINGS-espionage.md`, sections A to E, on the earlier reading above them), and cut by this
+   project in four, as politics was: spies and their day - every country's presence in every other, the day's
+   placing of the free spies by priority, the two commands, the nine missions, catching spies, covert-ops points with
+   the coup and `common/covert_ops.txt`'s province operations, the messages and the four keywords, a new game's
+   presences, set against the saves' `spies` and `spy_allocation`; what a country knows - the spies' figure, and a
+   province's intelligence read whole to stand in for the part `CIntelligence` has; the intelligence screen; and the
+   AI's spying in the install's Lua, for the countries nobody plays. **Not started.** One thing is already settled:
+   **the screen's `self_button` ("Selected") does nothing, as in the original** - its code binds the other four tabs
+   and never asks for that name - by the maintainer's word on 2026-10-14, "put it down as not working on purpose".
 
 The interface runtime is in, with three screens - the top bar, production and technology -
 the four windows the production screen orders a unit from, the deploy menu with the
