@@ -311,7 +311,84 @@ public sealed class CGameState
 	public IReadOnlyList<string> Continents { get; init; } = Array.Empty<string>();
 
 	/// <summary>The corners of the alignment triangle, in the order their file declares them.</summary>
-	public IReadOnlyList<CIdeologyGroup> IdeologyGroups { get; init; } = Array.Empty<CIdeologyGroup>();
+	public IReadOnlyList<CIdeologyGroup> IdeologyGroups
+	{
+		get => _ideologyGroups;
+		init
+		{
+			_ideologyGroups = value;
+			_ideologies = null;
+		}
+	}
+
+	private IReadOnlyList<CIdeologyGroup> _ideologyGroups = Array.Empty<CIdeologyGroup>();
+	private List<Politics.CIdeology>? _ideologies;
+	private Dictionary<string, Politics.CIdeology>? _ideologyByName;
+
+	/// <summary>
+	/// The ideologies, number 0 the null ideology and the rest in their file's order across the groups
+	/// (<c>docs/mechanics/politics.md</c>, section 1). Made from <see cref="IdeologyGroups"/> when first asked.
+	/// </summary>
+	public IReadOnlyList<Politics.CIdeology> Ideologies
+	{
+		get
+		{
+			if (_ideologies is null)
+			{
+				var made = new List<Politics.CIdeology> { new("", 0, null, default) };
+				foreach (CIdeologyGroup group in _ideologyGroups)
+				{
+					foreach (string name in group.IdeologyOrder.Count > 0 ? group.IdeologyOrder : (IEnumerable<string>)group.Ideologies)
+					{
+						made.Add(new Politics.CIdeology(name, made.Count, group, group.IdeologyColours.GetValueOrDefault(name)));
+					}
+				}
+				_ideologyByName = new Dictionary<string, Politics.CIdeology>(StringComparer.OrdinalIgnoreCase);
+				foreach (Politics.CIdeology ideology in made)
+				{
+					_ideologyByName.TryAdd(ideology.Name, ideology);
+				}
+				_ideologies = made;
+			}
+			return _ideologies;
+		}
+	}
+
+	/// <summary>The ideology of that name, or null for an empty name or one no group has.</summary>
+	public Politics.CIdeology? Ideology(string? name)
+	{
+		_ = Ideologies;
+		return string.IsNullOrEmpty(name) ? null : _ideologyByName!.GetValueOrDefault(name);
+	}
+
+	/// <summary>The forms of government, by name (<c>common/governments.txt</c>).</summary>
+	public Dictionary<string, Politics.CGovernment> Governments { get; init; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>The cabinet posts in their file's order; each one's number is its place here plus 1.</summary>
+	public IReadOnlyList<Politics.CGovernmentPosition> GovernmentPositions { get; init; } =
+		Array.Empty<Politics.CGovernmentPosition>();
+
+	/// <summary>The law groups of <c>common/laws.txt</c> in its order, each with its laws (<c>politics.md</c>, section 9).</summary>
+	public IReadOnlyList<CLawGroup> LawGroups { get; init; } = Array.Empty<CLawGroup>();
+
+	/// <summary>The law group of that name, or null.</summary>
+	public CLawGroup? LawGroup(string name)
+	{
+		foreach (CLawGroup group in LawGroups)
+		{
+			if (group.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+			{
+				return group;
+			}
+		}
+		return null;
+	}
+
+	/// <summary>A country's government, or null where it has none the file declares.</summary>
+	public Politics.CGovernment? GovernmentOf(CCountry country)
+	{
+		return Governments.GetValueOrDefault(country.GovernmentType);
+	}
 
 	/// <summary>
 	/// Which depot every province draws on and how far from it, as last worked out.

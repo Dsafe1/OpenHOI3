@@ -159,7 +159,7 @@ public static class CShareTooltips
 	public static int LandBrigadesInService(CCountry country)
 	{
 		return country.AllUnits()
-			.Where(unit => unit.Kind is not (EUnitKind.Navy or EUnitKind.Air) && (!unit.IsReserve || country.IsMobilised))
+			.Where(unit => unit.Kind is not (EUnitKind.Navy or EUnitKind.Air) && (!unit.IsReserve || country.Mobilised))
 			.Sum(unit => unit.SubUnits.Count);
 	}
 

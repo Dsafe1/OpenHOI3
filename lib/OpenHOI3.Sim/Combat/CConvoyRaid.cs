@@ -128,6 +128,8 @@ public static class CConvoyRaid
 		}
 		if (CConvoyRules.Defence(convoy) > attack)
 		{
+			// Beaten off: a little national unity for the convoy's owner (politics.md, section 6).
+			Politics.CStrategicWarfareImpacts.RaidBeatenOff(state, state.Country(convoy.Owner));
 			return false;
 		}
 
@@ -262,8 +264,11 @@ public static class CConvoyRaid
 		}
 		if (escorts >= CFixedPoint.Scale || transports >= CFixedPoint.Scale)
 		{
+			bool hadEscort = convoy.Escorts > 0;
 			CConvoyLosses.Lose(state, convoy, (int)RoundToNearest(transports), (int)RoundToNearest(escorts),
 				state.Country(raider?.Owner));
+			// What the owner's national unity makes of it (politics.md, section 6).
+			Politics.CStrategicWarfareImpacts.RaidSank(state, owner, transports, escorts, hadEscort);
 		}
 	}
 

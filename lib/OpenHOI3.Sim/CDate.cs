@@ -108,6 +108,14 @@ public readonly record struct CDate(int Year, int Month, int Day) : IComparable<
 		return byMonth != 0 ? byMonth : Day.CompareTo(other.Day);
 	}
 
+	public static bool operator <(CDate left, CDate right) => left.CompareTo(right) < 0;
+
+	public static bool operator >(CDate left, CDate right) => left.CompareTo(right) > 0;
+
+	public static bool operator <=(CDate left, CDate right) => left.CompareTo(right) <= 0;
+
+	public static bool operator >=(CDate left, CDate right) => left.CompareTo(right) >= 0;
+
 	/// <summary>
 	/// Localisation key for the month. The game keys these on the English name rather
 	/// than a number, so "January" resolves to "Januar" in a German install.

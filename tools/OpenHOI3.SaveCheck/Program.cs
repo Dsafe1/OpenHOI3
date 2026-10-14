@@ -162,6 +162,18 @@ if (args.Length > 0 && args[0] == "faction")
 	return CFactionTrial.Run(args);
 }
 
+// Every country's politics minister at work on a new game.
+if (args.Length > 0 && args[0] == "politicsai")
+{
+	return CPoliticsAiTrial.Run(args);
+}
+
+// A new game's government beside the start save's.
+if (args.Length > 0 && args[0] == "politics")
+{
+	return CPoliticsCheck.Run(args);
+}
+
 // Where the time of an hour goes.
 if (args.Length > 0 && args[0] == "profile")
 {

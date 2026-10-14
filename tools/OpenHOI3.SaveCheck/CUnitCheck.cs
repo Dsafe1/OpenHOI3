@@ -278,7 +278,7 @@ internal static class CUnitCheck
 		CFixedPoint highest = Number(node.GetString("highest"));
 		compare("brigades: the strength each started with (the save's 'highest')", highest == subUnit.Highest,
 			() => $"{who}: save {highest}, ours {subUnit.Highest}  (most {subUnit.Stats[CSubUnitType.MaxStrength]}, " +
-				$"reserve {subUnit.IsReserve}, mobilised {country.IsMobilised}, penalty {country.Modifier[CUnits.ReservesPenaltySize]})");
+				$"reserve {subUnit.IsReserve}, mobilised {country.Mobilised}, penalty {country.Modifier[CUnits.ReservesPenaltySize]})");
 
 		CFixedPoint strength = Number(node.GetString("strength"));
 		compare("brigades: strength two days in is no more than each started with", strength <= subUnit.Strength,

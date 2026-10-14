@@ -27,6 +27,12 @@ public sealed class CIdeologyGroup
 	/// <summary>Its ideologies, by name.</summary>
 	public HashSet<string> Ideologies { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+	/// <summary>Its ideologies in their file's order, which numbers them (<c>docs/mechanics/politics.md</c>, section 1).</summary>
+	public List<string> IdeologyOrder { get; } = new();
+
+	/// <summary>Each ideology's <c>color</c>, by name.</summary>
+	public Dictionary<string, CColor> IdeologyColours { get; } = new(StringComparer.OrdinalIgnoreCase);
+
 	/// <summary>Its faction's tag - <c>axis</c> - or nothing for a group with none.</summary>
 	public string Faction { get; init; } = "";
 

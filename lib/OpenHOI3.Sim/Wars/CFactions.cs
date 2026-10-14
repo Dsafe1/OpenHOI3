@@ -81,6 +81,8 @@ public static class CFactions
 			return;
 		}
 		CFactionMembership.Join(state, country, faction);
+		// A change of diplomacy (politics.md, section 9).
+		Politics.CLaws.OnDiplomacyChanged(state, country);
 		if (!joinWars || state.Country(COfferRules.Leader(state, faction)) is not { } leader || leader == country)
 		{
 			return;
@@ -136,5 +138,6 @@ public static class CFactions
 			}
 		}
 		CFactionMembership.Leave(country);
+		Politics.CLaws.OnDiplomacyChanged(state, country);
 	}
 }

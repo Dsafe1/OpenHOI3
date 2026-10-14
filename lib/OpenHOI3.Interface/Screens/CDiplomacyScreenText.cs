@@ -85,9 +85,7 @@ public static class CDiplomacyScreenText
 	/// <summary>The chosen country's ruling ideology: its text for the country where it has one, else its own.</summary>
 	public static string Ruler(Func<string, string> localise, CCountry chosen)
 	{
-		string specific = chosen.RulingIdeology + "_" + chosen.Tag.Value;
-		string text = localise(specific);
-		return text != specific ? text : localise(chosen.RulingIdeology);
+		return CPartyText.Name(localise, chosen.RulingIdeology, chosen.Tag.Value);
 	}
 
 	/// <summary>

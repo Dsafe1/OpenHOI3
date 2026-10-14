@@ -31,11 +31,10 @@ public static class CCountryEffects
 				}
 				return true;
 			case "national_unity":
+				// Changed as the day changes it, scaled by national_unity_effect and held to 1..100 (politics.md, section 6).
 				if (country is not null && value != CFixedPoint.Zero)
 				{
-					long scale = country.Modifier[NationalUnityEffect].Raw + CFixedPoint.Scale;
-					long unity = country.NationalUnity.Raw + value.Raw * scale / CFixedPoint.Scale;
-					country.NationalUnity = new CFixedPoint(Math.Clamp(unity, CFixedPoint.Scale, 100 * CFixedPoint.Scale));
+					Politics.CNationalUnity.Change(country, value.Raw);
 				}
 				return true;
 			case "manpower":

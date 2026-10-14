@@ -27,7 +27,8 @@ public static class CCountryHistory
 	/// <returns>The goods each country's history file gives it by the start date, by tag.</returns>
 	public static Dictionary<string, CGoodsPool> Apply(CDirectorySettings directories, CCountries countries, CDate start,
 		Action<string>? warn = null, IReadOnlyCollection<CTechnology>? technologies = null,
-		IReadOnlyCollection<CTechnologyCategory>? categories = null)
+		IReadOnlyCollection<CTechnologyCategory>? categories = null,
+		Dictionary<string, Dictionary<string, CLaw>>? lawBook = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var goodsGiven = new Dictionary<string, CGoodsPool>(StringComparer.OrdinalIgnoreCase);
@@ -43,7 +44,8 @@ public static class CCountryHistory
 			technologyNames.Add(technology.Name);
 		}
 
-		Dictionary<string, Dictionary<string, CLaw>> laws = CModifierReader.ReadLaws(directories, warn);
+		// The game's own law objects where it gives them, so that a country holds the laws the game knows.
+		Dictionary<string, Dictionary<string, CLaw>> laws = lawBook ?? CModifierReader.ReadLaws(directories, warn);
 		Dictionary<string, CMinisterType> ministerTypes = CModifierReader.ReadMinisterTypes(directories, warn);
 		HashSet<string> positions = CModifierReader.ReadGovernmentPositions(directories, warn);
 
@@ -107,8 +109,43 @@ public static class CCountryHistory
 					}
 					continue;
 				}
+				// Each party's figure, raw, a later block changing only the parties it names; a figure below nought
+				// is ignored (politics.md, section 2).
+				if (entry.IsBlock && entry.Key is { } partiesKey
+					&& (partiesKey.Equals("popularity", StringComparison.OrdinalIgnoreCase)
+						|| partiesKey.Equals("organization", StringComparison.OrdinalIgnoreCase)))
+				{
+					Dictionary<string, CFixedPoint> figures = partiesKey.Equals("popularity", StringComparison.OrdinalIgnoreCase)
+						? country.HistoryPopularity
+						: country.HistoryOrganisation;
+					foreach (ClausewitzNode party in entry.Children)
+					{
+						if (party.Key is null || !CFixedPoint.TryParse(party.Value, out CFixedPoint figure))
+						{
+							badAmounts++;
+						}
+						else if (figure >= CFixedPoint.Zero)
+						{
+							figures[party.Key] = figure;
+						}
+					}
+					continue;
+				}
 				if (entry.Key is null || entry.Value is null)
 				{
+					continue;
+				}
+				if (entry.Key.Equals("dissent", StringComparison.OrdinalIgnoreCase))
+				{
+					// Set, and never below nought.
+					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint dissent))
+					{
+						country.Dissent = CFixedPoint.Max(dissent, CFixedPoint.Zero);
+					}
+					else
+					{
+						badAmounts++;
+					}
 					continue;
 				}
 				if (entry.Key.Equals("ideology", StringComparison.OrdinalIgnoreCase))
@@ -297,6 +334,17 @@ public static class CCountryHistory
 			return;                                          // already reported when the country was read
 		}
 
+		// When it last held an election and its own term, which the original reads from this file too
+		// (politics.md, section 2).
+		if (CDate.TryParse(definition.GetString("last_election"), out CDate lastElection))
+		{
+			country.LastElection = lastElection;
+		}
+		if (int.TryParse(definition.GetString("duration"), NumberStyles.Integer, CultureInfo.InvariantCulture, out int duration))
+		{
+			country.ElectionDuration = duration;
+		}
+
 		foreach (ClausewitzNode block in definition.All("ministers"))
 		{
 			foreach (ClausewitzNode entry in block.Children)
@@ -306,7 +354,14 @@ public static class CCountryHistory
 				{
 					continue;
 				}
-				var minister = new CMinister(id, entry.GetString("name"));
+				var minister = new CMinister(id, entry.GetString("name"))
+				{
+					Ideology = entry.GetString("ideology"),
+					Picture = entry.GetString("picture"),
+					Loyalty = CFixedPoint.TryParse(entry.GetString("loyalty"), out CFixedPoint loyalty) ? loyalty : CFixedPoint.Zero,
+					StartDate = CDate.TryParse(entry.GetString("start_date"), out CDate started) ? started : CDate.Zero,
+					DeathDate = CDate.TryParse(entry.GetString("death_date"), out CDate died) ? died : CDate.Zero,
+				};
 				foreach (ClausewitzNode line in entry.Children)
 				{
 					if (line.Key is null || line.Value is null || !positions.Contains(line.Key))

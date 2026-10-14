@@ -136,6 +136,13 @@ not guarded by who plays it - just after asking `AI_GenerateNonHistoricalRelatio
 "something" is a script call, and this entry is that one call not made for the player's country.
 `docs/mechanics/lua.md`, section 5, has it; for the countries the AI runs it waits for the AI.
 
+**The AI's politics was built on 2026-10-14** (`docs/mechanics/politics.md`, section 12), and keeps to this entry:
+a new game's `Laws(country)` and the politics minister after it are for the countries nobody plays, so the player's
+ministers are left alone too, which the maintainer was not asked. The question left open above is answered as the
+original does it: the countries the AI runs have their units made first and then the laws changed, the change cutting
+each brigade to its new ceiling. As Germany, the original's AI countries' brigades now start as the save has them for
+3435 of 3534, where the history's laws gave 3041.
+
 `docs/mechanics/units.md`, section 8; `reversing/findings/FINDINGS-unitstart.md`, section 9.
 
 ## 7. A counter always carries its unit's name

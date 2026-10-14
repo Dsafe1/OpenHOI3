@@ -733,8 +733,11 @@ public class MapLoadingTests : IDisposable
 		CGameState state = LoadStart();
 		_ = new CSimulation(state);
 
+		// The empty head of state's post is filled with him too, the first who may take it (politics.md, section 7):
+		// he counts once as the genius and once as the workhorse.
+		Assert.Same(Germany(state).Government["armament_minister"], Germany(state).Government["head_of_state"]);
 		Assert.Equal(CFixedPoint.Parse("0.1"), Germany(state).Modifier["global_ic"]);
-		Assert.Equal(CFixedPoint.Zero, Germany(state).Modifier["global_money"]);
+		Assert.Equal(CFixedPoint.Parse("0.05"), Germany(state).Modifier["global_money"]);
 	}
 
 	[Fact]
@@ -750,7 +753,8 @@ public class MapLoadingTests : IDisposable
 		CCountry germany = Germany(LoadStart());
 
 		Assert.Empty(germany.Laws);
-		Assert.False(germany.Government.ContainsKey("head_of_state"));
+		// The history's 99 is nobody, and the post is filled from the pool as an empty one (politics.md, section 7).
+		Assert.NotEqual(99, germany.Government["head_of_state"].Id);
 		Assert.Contains(_warnings, warning => warning.Contains("economic_law = planned_economy"));
 		Assert.Contains(_warnings, warning => warning.Contains("1 positions with ministers the country does not declare"));
 		Assert.Contains(_warnings, warning => warning.Contains("1 ministers hold a position"));   // The Clerk at armaments
@@ -1122,8 +1126,9 @@ public class MapLoadingTests : IDisposable
 		CGameState state = LoadStart();
 		_ = new CSimulation(state);
 
-		// Ten IC at 0.05, and the law's +15%.
-		Assert.Equal(CFixedPoint.Parse("0.575"), Germany(state).HomeProduced[EGoods.Money]);
+		// Ten IC at 0.05, the law's +15%, and the workhorse's +5%: the empty head of state's post is filled with him, the
+		// first minister who may take it (politics.md, section 7).
+		Assert.Equal(CFixedPoint.Parse("0.6"), Germany(state).HomeProduced[EGoods.Money]);
 	}
 
 	[Fact]
@@ -1278,10 +1283,11 @@ public class MapLoadingTests : IDisposable
 		Assert.Contains(_warnings, warning => warning.Contains("strategic resources that are not defined") && warning.Contains("unobtainium"));
 
 		// Nobody has the use of a resource until a day has been run. Then: five IC at
-		// 0.05, and a third more for the gold.
-		Assert.Equal(CFixedPoint.Parse("0.25"), Germany(state).HomeProduced[EGoods.Money]);
+		// 0.05, and a third more for the gold - each with the 5% of the workhorse the empty head of state's post is
+		// filled with (politics.md, section 7).
+		Assert.Equal(CFixedPoint.Parse("0.262"), Germany(state).HomeProduced[EGoods.Money]);
 		simulation.RunHours(24);
-		Assert.Equal(CFixedPoint.Parse("0.332"), Germany(state).HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Parse("0.345"), Germany(state).HomeProduced[EGoods.Money]);
 	}
 
 	[Fact]

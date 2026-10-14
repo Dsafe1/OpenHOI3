@@ -63,7 +63,10 @@ public static class CPuppets
 		CFixedPoint relation = CRelations.Clamp(CRelations.Of(overlord, vassal) + PuppetRelation);
 		CGameState.Status(overlord, vassal).Relation = relation;
 		CGameState.Status(vassal, overlord).Relation = relation;
+		// The overlord's government, and every post filled again for it (politics.md, section 7).
 		vassal.GovernmentType = overlord.GovernmentType;
+		Politics.CMinisterPosts.Fill(state, vassal, refillAll: true, electedOnly: false);
+		Politics.CLaws.OnDiplomacyChanged(state, vassal);
 	}
 
 	/// <summary>

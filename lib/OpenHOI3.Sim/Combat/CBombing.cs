@@ -252,6 +252,11 @@ public static class CBombing
 			Diplomacy.CThreat.SpreadToAll(state, state.Defines[Diplomacy.CThreat.MilitarySection, Diplomacy.CThreat.Bombing].Raw,
 				Diplomacy.CThreat.Adds, bomberOwner);
 		}
+		// And costs the bombed some national unity (politics.md, section 6).
+		if (order == EUnitOrder.StrategicBombing)
+		{
+			Politics.CStrategicWarfareImpacts.StrategicBombingStarted(state, province, target);
+		}
 		if (kind == ECombatKind.GroundBombing && province.Controller is { } holder)
 		{
 			bombing.Defender.AddCountry(holder);

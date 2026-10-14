@@ -22,6 +22,26 @@ public sealed class CMinister
 
 	public string Name { get; }
 
+	/// <summary>His party, by the ideology's name.</summary>
+	public string Ideology { get; set; } = "";
+
+	/// <summary>His portrait, a picture's name under <c>gfx/pictures/portraits</c>.</summary>
+	public string Picture { get; set; } = "";
+
+	public CFixedPoint Loyalty { get; set; }
+
+	/// <summary>When he may first be appointed; <see cref="CDate.Zero"/> where his block gives none.</summary>
+	public CDate StartDate { get; set; } = CDate.Zero;
+
+	/// <summary>His death date, which nothing acts on but <c>minister_alive</c>; <see cref="CDate.Zero"/> for none.</summary>
+	public CDate DeathDate { get; set; } = CDate.Zero;
+
+	/// <summary>Whether his block names the post: whether he may take it (<c>docs/mechanics/politics.md</c>, section 7).</summary>
+	public bool MayTake(string position)
+	{
+		return _typeByPosition.ContainsKey(position);
+	}
+
 	public void SetType(string position, CMinisterType type)
 	{
 		_typeByPosition[position] = type;

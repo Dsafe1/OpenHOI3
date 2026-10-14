@@ -56,7 +56,9 @@ public sealed class CSpriteTypes
 				continue;
 			}
 			CSpriteType sprite = CSpriteType.FromNode(child.Key, child);
-			if (sprite.Name.Length == 0 || (sprite.TextureFile.Length == 0 && sprite.OverlayFile.Length == 0))
+			// A pie chart and a progress bar may be drawn with no picture at all: the politics screen's are.
+			if (sprite.Name.Length == 0 || (sprite.TextureFile.Length == 0 && sprite.OverlayFile.Length == 0
+				&& !sprite.IsPieChart && !sprite.IsProgressBar))
 			{
 				continue;
 			}

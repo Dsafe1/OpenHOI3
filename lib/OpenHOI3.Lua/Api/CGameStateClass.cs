@@ -42,6 +42,9 @@ public static class CGameStateClass
 			})
 			.Static("GetProvince", call => call.Return(new CLuaObject(api.Province, api.State.Province(call.Integer(1)))))
 			.Static("GetCurrentDate", call => call.Return(new CLuaObject(api.Date, api.State.Date)))
+			// One draw on the game's generator, from 0 up (docs/mechanics/politics.md, section 12).
+			.Static("GetAIRand", call => call.Return(api.Random.Next()))
+			.Static("Post", call => CPoliticsCommandClass.Post(api, call, 1))
 			.Static("IsPlayer", call => call.Return(api.State.Played.Contains(call.Object<CCountryTag>(1, "CCountryTag"))))
 			.Static("GetCountries", call =>
 			{

@@ -357,7 +357,7 @@ public class UnitTests
 	{
 		CSubUnitType type = Infantry();
 		CCountry country = Country(conscription: "-0.75");
-		country.IsMobilised = true;
+		country.Mobilised = true;
 		CGameState state = State(country);
 		CSubUnit brigade = Brigade(type, new CUnit(EUnitKind.Division, Ger), reserve: true);
 
@@ -367,7 +367,7 @@ public class UnitTests
 	}
 
 	[Fact]
-	public void ACountryAtWarWhenTheGameStartsIsMobilised()
+	public void ACountryAtWarWhenTheGameStartsHasItsReservesWhole()
 	{
 		CSubUnitType type = Infantry();
 		CCountry country = Country(conscription: "-0.75");
@@ -380,7 +380,6 @@ public class UnitTests
 
 		CUnits.SetAtStart(state);
 
-		Assert.True(country.IsMobilised);
 		Assert.Equal(CFixedPoint.FromInt(30), brigade.Strength);
 	}
 
@@ -476,7 +475,7 @@ public class UnitTests
 	public void MobilisingDoesNotSpareAReservesExperience()
 	{
 		CCountry country = Country(conscription: "-0.5", training: "15");
-		country.IsMobilised = true;
+		country.Mobilised = true;
 
 		Assert.Equal(CFixedPoint.Parse("7.5"), CUnits.StartingExperience(country, isReserve: true));
 	}

@@ -217,6 +217,7 @@ public static class CNavalBattle
 	public static void Begin(CGameState state, CCombat combat)
 	{
 		combat.HasBegun = true;
+		Politics.CStrategicWarfareImpacts.SeaBattleBegun(state, combat);
 		combat.Attacker.PositioningRoll = new CFixedPoint(state.Random.Next(20) * 10L);
 		combat.Defender.PositioningRoll = new CFixedPoint(state.Random.Next(20) * 10L);
 		UpdatePositioning(state, combat.Attacker);

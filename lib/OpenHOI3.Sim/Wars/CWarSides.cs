@@ -94,7 +94,13 @@ public static class CWarSides
 			{
 				BringUpToDate(state, leaver);
 				BringUpToDate(state, enemy);
+				// A change of diplomacy: a country now at peace loses the laws only a war allowed (politics.md, section 9).
+				Politics.CLaws.OnDiplomacyChanged(state, enemy);
 			}
+		}
+		if (leaver is not null)
+		{
+			Politics.CLaws.OnDiplomacyChanged(state, leaver);
 		}
 	}
 

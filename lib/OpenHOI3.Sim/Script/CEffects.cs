@@ -45,6 +45,8 @@ public static class CEffects
 				CNamedEffects.Run(state, effect, scope);
 				return;
 			case EEffectKind.Ideology:
+				CPoliticsEffects.IdeologyBlock(state, effect, scope);
+				return;
 			case EEffectKind.RebelType:
 			case EEffectKind.UnitType:
 				report?.Add(effect.Key, EScriptGap.Unbuilt);
@@ -67,6 +69,7 @@ public static class CEffects
 		}
 		if (CMarkEffects.TryRun(state, effect, scope)
 			|| CCountryEffects.TryRun(state, effect, scope)
+			|| CPoliticsEffects.TryRun(state, effect, scope)
 			|| CDiplomacyEffects.TryRun(state, effect, scope)
 			|| CWarEffects.TryRun(state, effect, scope)
 			|| CProvinceEffects.TryRun(state, effect, scope))

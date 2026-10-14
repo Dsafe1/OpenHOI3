@@ -82,7 +82,10 @@ public static class CModifierReader
 				{
 					continue;
 				}
-				laws[law.Key] = new CLaw(group.Key, ReadBlock(law, LawKeys, out int bad));
+				laws[law.Key] = new CLaw(group.Key, ReadBlock(law, LawKeys, out int bad))
+				{
+					Cost = CFixedPoint.TryParse(law.GetString("cost"), out CFixedPoint cost) ? cost : CFixedPoint.Zero,
+				};
 				unreadable += bad;
 			}
 		}

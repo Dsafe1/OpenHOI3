@@ -14,6 +14,7 @@ using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Politics;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Supply;
@@ -51,9 +52,13 @@ public static class CGameStateLoader
 	/// The install's Lua, which a new game asks for its relations (<c>docs/mechanics/lua.md</c>); without
 	/// it they are left at 0 and reported.
 	/// </param>
+	/// <param name="played">
+	/// The countries people play, known before the game is made: the AI's first look at the laws leaves them alone
+	/// (<c>docs/compatibility.md</c>, entry 6). They are put in <see cref="CGameState.Played"/>.
+	/// </param>
 	public static CGameState LoadStart(CDirectorySettings directories, CMap map,
 		CLocalisation localisation, CCountries countries, Action<string>? warn = null, bool fill = true,
-		bool firstDays = true, IAiScripts? aiScripts = null)
+		bool firstDays = true, IAiScripts? aiScripts = null, IEnumerable<CCountryTag>? played = null)
 	{
 		warn ??= CDiagnostics.Warn;
 
@@ -92,8 +97,9 @@ public static class CGameStateLoader
 
 		List<CTechnologyCategory> categories = CTechnologyReader.ReadCategories(directories, warn);
 		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn, categories, unitTypes, terrainNames);
+		Dictionary<string, Dictionary<string, CLaw>> lawBook = CModifierReader.ReadLaws(directories, warn);
 		Dictionary<string, CGoodsPool> goodsGiven =
-			CCountryHistory.Apply(directories, countries, start, warn, technologies, categories);
+			CCountryHistory.Apply(directories, countries, start, warn, technologies, categories, lawBook);
 
 		CBuilding[] buildings = CBuildingReader.Read(directories, warn);
 		ApplyProvinceHistory(directories, provinces, start, countries, map.Terrains, buildings, warn);
@@ -106,6 +112,13 @@ public static class CGameStateLoader
 		CDiplomacyHistory diplomacy = CDiplomacyReader.Apply(directories, countries, start, warn);
 
 		List<CTrait> traits = CTraitReader.Read(directories, warn);
+		List<CIdeologyGroup> ideologyGroups = CIdeologyReader.Read(directories, warn);
+		List<CGovernmentPosition> positions = CGovernmentReader.ReadPositions(directories, warn);
+		var ideologyNames = new List<string>();
+		foreach (CIdeologyGroup group in ideologyGroups)
+		{
+			ideologyNames.AddRange(group.IdeologyOrder);
+		}
 		var state = new CGameState(start, provinces, countries.Declared, buildings, technologies, staticModifiers,
 			defines, wars, strategicResources, categories)
 		{
@@ -121,7 +134,10 @@ public static class CGameStateLoader
 			MapHeight = map.Height,
 			Regions = map.Regions,
 			Continents = map.ContinentNames,
-			IdeologyGroups =CIdeologyReader.Read(directories, warn),
+			IdeologyGroups = ideologyGroups,
+			GovernmentPositions = positions,
+			LawGroups = LawGroups(lawBook),
+			Governments = CGovernmentReader.Read(directories, ideologyNames, positions, warn),
 			StartDate = start,
 			EndDate = ReadEndDate(directories, warn),
 		};
@@ -162,8 +178,22 @@ public static class CGameStateLoader
 		CBuildQueue.SetUpAtStart(state);
 		CStockpile.AddUnitGoodsAtStart(state);
 		CLeaders.AssignAtStart(state);
+		// The parties from the history, the pool and the empty posts, the elections' dates and the seats, as the
+		// original sets a country up for a new game once its order of battle is read (politics.md, section 2).
+		CPolitics.SetUpAtStart(state, warn);
 		// Entering the game gives the relations nobody gave, asking the install's Lua for them.
 		CDiplomacy.SetUpNewGame(state, warn);
+		// And every country nobody plays has its laws looked at by the AI until they stop moving, and is given a
+		// politics minister (politics.md, section 12). Ours: after the step above, whose effective neutrality the laws'
+		// allow blocks read; where the original's look comes beside it was not read.
+		if (played is not null)
+		{
+			state.Played.UnionWith(played);
+		}
+		if (CPoliticsAi.SetUpAtStart(state) == CPoliticsAi.MostLawPasses)
+		{
+			warn($"politics: the AI's laws were still moving after {CPoliticsAi.MostLawPasses} passes");
+		}
 		// And the two days the original has behind it on the first screen are run, with
 		// the provinces filled along the supply network between them, so that no army
 		// starts hungry.
@@ -179,6 +209,27 @@ public static class CGameStateLoader
 			CSupplyStart.FillNewGame(state);
 		}
 		return state;
+	}
+
+	/// <summary>
+	/// The law groups in the file's order, each its laws in theirs, every law numbered from 1 across the groups as the
+	/// original's law database numbers them (politics.md, section 9).
+	/// </summary>
+	private static List<CLawGroup> LawGroups(Dictionary<string, Dictionary<string, CLaw>> lawBook)
+	{
+		var groups = new List<CLawGroup>();
+		int index = 1;
+		foreach ((string name, Dictionary<string, CLaw> laws) in lawBook)
+		{
+			var group = new CLawGroup(name, groups.Count + 1);
+			foreach (CLaw law in laws.Values)
+			{
+				law.Index = index++;
+				group.Laws.Add(law);
+			}
+			groups.Add(group);
+		}
+		return groups;
 	}
 
 	/// <summary>

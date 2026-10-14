@@ -20,6 +20,8 @@ public partial class CGuiIcon : CGuiObject
 	private TextureRect? _rect;
 	private int _frame = 1;
 	private int _progress;
+	private Color _barColour = Colors.White;
+	private System.Collections.Generic.IReadOnlyList<(int Percent, Color Colour)> _slices = System.Array.Empty<(int, Color)>();
 	private CGuiButton? _over;
 	private CGuiButton? _pressed;
 	private bool _pressedItself;
@@ -87,6 +89,7 @@ public partial class CGuiIcon : CGuiObject
 	{
 		if (@event is InputEventMouseMotion motion)
 		{
+			MouseAt = motion.Position;
 			HoverOver(ButtonUnder(motion.Position));
 			return;
 		}
@@ -222,10 +225,24 @@ public partial class CGuiIcon : CGuiObject
 		}
 		var type = (CGuiIconType)GuiType;
 
+		if (sprite is { IsPieChart: true })
+		{
+			// Twice its size across, its scale not applied, and its position the top of its middle. Measured on the
+			// shadow the politics screen's art has under it, 100 across with its middle 50 below the position; the
+			// original's drawing was not read.
+			Place(type, new Vector2(sprite.PieSize * 2f, sprite.PieSize * 2f));
+			OffsetLeft -= sprite.PieSize;
+			OffsetRight -= sprite.PieSize;
+			MouseFilter = MouseFilterEnum.Stop;
+			ShowTexture(null);
+			QueueRedraw();
+			return;
+		}
+
 		if (sprite is { IsProgressBar: true })
 		{
 			// The bar's two pictures: the part that is filled, and the rest of it.
-			_texture = _context.Textures.LoadFromGamePath(sprite.OverlayFile);
+			_texture = sprite.OverlayFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.OverlayFile);
 			_rest = sprite.MaskFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.MaskFile);
 			Place(type, sprite.TileSize * type.Scale);
 			MouseFilter = MouseFilterEnum.Ignore;
@@ -267,6 +284,49 @@ public partial class CGuiIcon : CGuiObject
 		QueueRedraw();
 	}
 
+	/// <summary>The colour a progress bar with no picture is filled with - the organisation bars' party colour.</summary>
+	public void SetBarColour(Color colour)
+	{
+		_barColour = colour;
+		QueueRedraw();
+	}
+
+	/// <summary>A pie chart's slices, each a whole percent in its colour, drawn from three o'clock against the clock, as the maintainer's screenshot of the original has them.</summary>
+	public void SetSlices(System.Collections.Generic.IReadOnlyList<(int Percent, Color Colour)> slices)
+	{
+		_slices = slices;
+		QueueRedraw();
+	}
+
+	/// <summary>
+	/// Where the mouse last moved over the icon, in its own terms - from its own events, so that a pointer the
+	/// developer switches move counts as one moved by hand.
+	/// </summary>
+	public Vector2 MouseAt { get; private set; }
+
+	/// <summary>Which slice of a pie chart a point of the icon is in, by its place in the list; -1 for none.</summary>
+	public int SliceAt(Vector2 point)
+	{
+		Vector2 centre = Size / 2f;
+		Vector2 offset = point - centre;
+		if (offset.Length() > Size.X / 2f)
+		{
+			return -1;
+		}
+		// From three o'clock, against the clock, in percent.
+		float turn = Mathf.PosMod(Mathf.Atan2(-offset.Y, offset.X) / Mathf.Tau, 1f) * 100f;
+		float start = 0f;
+		for (int i = 0; i < _slices.Count; i++)
+		{
+			start += _slices[i].Percent;
+			if (turn < start)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	/// <summary>Shows a country's flag, where the sprite is one that draws flags.</summary>
 	public void SetCountry(CCountry country)
 	{
@@ -296,8 +356,27 @@ public partial class CGuiIcon : CGuiObject
 
 	public override void _Draw()
 	{
+		if (_sprite is { IsPieChart: true })
+		{
+			DrawPie();
+			return;
+		}
 		if (_sprite is not { IsProgressBar: true })
 		{
+			return;
+		}
+		// A bar with no picture is its colour, filled from its foot where it stands upright.
+		if (_texture is null && _rest is null)
+		{
+			if (_sprite.Horizontal)
+			{
+				DrawRect(new Rect2(0f, 0f, Mathf.Round(Size.X * _progress / 100f), Size.Y), _barColour);
+			}
+			else
+			{
+				float height = Mathf.Round(Size.Y * _progress / 100f);
+				DrawRect(new Rect2(0f, Size.Y - height, Size.X, height), _barColour);
+			}
 			return;
 		}
 		// A bar's two pictures are drawn upside down. Measured, not read: the plate under
@@ -317,5 +396,31 @@ public partial class CGuiIcon : CGuiObject
 				new Rect2(from, 0f, _rest.GetWidth() - from, _rest.GetHeight()));
 		}
 		DrawSetTransform(Vector2.Zero, 0f, Vector2.One);
+	}
+
+	/// <summary>Each slice a fan from the middle, from three o'clock against the clock, a point every degree or so.</summary>
+	private void DrawPie()
+	{
+		Vector2 centre = Size / 2f;
+		float radius = Size.X / 2f;
+		float start = 0f;
+		foreach ((int percent, Color colour) in _slices)
+		{
+			if (percent <= 0)
+			{
+				continue;
+			}
+			float end = start + percent / 100f;
+			int steps = Math.Max(2, (int)(percent * 3.6f));
+			var points = new Vector2[steps + 2];
+			points[0] = centre;
+			for (int step = 0; step <= steps; step++)
+			{
+				float angle = Mathf.Lerp(start, end, step / (float)steps) * Mathf.Tau;
+				points[step + 1] = centre + new Vector2(Mathf.Cos(angle), -Mathf.Sin(angle)) * radius;
+			}
+			DrawColoredPolygon(points, colour);
+			start = end;
+		}
 	}
 }

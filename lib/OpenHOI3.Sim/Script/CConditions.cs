@@ -23,8 +23,7 @@ public static class CConditions
 			case ETriggerKind.Region:
 				return CScopeSets.Region(state, trigger, scope, report);
 			case ETriggerKind.Ideology:
-				report?.Add(trigger.Key, EScriptGap.Unbuilt);
-				return false;
+				return CPoliticsConditions.IdeologyBlock(state, trigger, scope);
 			case ETriggerKind.CombinedArms:
 				// A battle's side is asked, and nothing here has one.
 				return false;
@@ -92,6 +91,7 @@ public static class CConditions
 		if (CClockConditions.TryAnswer(state, trigger, scope, out bool answer)
 			|| CMarkConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CCountryConditions.TryAnswer(state, trigger, scope, out answer)
+			|| CPoliticsConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CRelationConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CProvinceConditions.TryAnswer(state, trigger, scope, out answer))
 		{

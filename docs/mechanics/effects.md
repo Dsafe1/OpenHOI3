@@ -177,6 +177,10 @@ capital, `manpower = from` adds nothing.
 
 ## 8. What does nothing and is reported
 
+The government, the parties and the ministers - `government`, `coup_by`, `do_election`, `remove_minister`,
+`organisation`, `popularity`, an ideology's block - run since 2026-10-14, and `national_unity` changes it as the day
+does: `politics.md`, section 8.
+
 **Unbuilt - what the simulation does not hold yet:**
 
 | waits for | effects |
@@ -184,7 +188,6 @@ capital, `manpower = from` adds nothing.
 | the event pass | `country_event`, `province_event` |
 | diplomacy | `casus_belli`, `add_casus_belli`, `war`, `undeclared_war`, `add_wargoal`, `create_vassal`, `release`, `release_vassal`, `inherit`, `surrender_inherit`, `form_government_in_exile`, `split_troops` |
 | neutrality and war exhaustion | `neutrality`, `war_exhaustion` |
-| the government and the parties | `government`, `coup_by`, `do_election`, `remove_minister`, `organisation`, `popularity`, an ideology's block |
 | revolts | `revolt_risk`, `create_revolt`, a rebel type's name |
 | espionage and intelligence | `remove_fow`, `local_intel_boost`, `modify_spies` |
 | the AI | `add_ai_strategy`, `fixed_ai_strategy` |

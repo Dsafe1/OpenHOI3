@@ -82,12 +82,32 @@ public static class CAiClass
 				api.Post(new Sim.Commands.COfferCommand(action.Offer));
 				return 0;
 			})
+			// A command posted from the AI's country (docs/mechanics/politics.md, section 12).
+			.Method("Post", call =>
+			{
+				call.Object<CLuaAi>(1, AiName);
+				return CPoliticsCommandClass.Post(api, call, 2);
+			})
+			.Method("CanDeclareWar", call =>
+			{
+				call.Object<CLuaAi>(1, AiName);
+				call.Object<CCountryTag>(2, "CCountryTag");
+				call.Object<CCountryTag>(3, "CCountryTag");
+				api.ReportUnbuilt(DeclareUnbuilt);
+				return call.Return(false);
+			})
 			.Constant("_DIPLOMACY_", 0)
 			.Constant("_PRODUCTION_", 1)
 			.Constant("_TECHNOLOGY_", 2)
 			.Constant("_POLITICS_", 3)
 			.Constant("_INTELLIGENCE_", 4);
 	}
+
+	/// <summary>Whether the AI may declare a war, which was not read.</summary>
+	private const string DeclareUnbuilt = "the AI's own war declarations (CAI:CanDeclareWar): false";
+
+	/// <summary>The AI's war plans, which are not built.</summary>
+	private const string WarPlansUnbuilt = "the AI's war plans (IsPreparingWar, IsPreparingWarWith): false";
 
 	/// <summary>How long a route may stay failing before an AI calls it stale: a fortnight.</summary>
 	private const long StaleHours = 336;
@@ -119,6 +139,26 @@ public static class CAiClass
 			.Method("GetFriendliness", call => Unbuilt(api, call))
 			.Method("GetAntagonism", call => Unbuilt(api, call))
 			.Method("GetThreat", call => Unbuilt(api, call))
+			.Method("IsPreparingWar", call =>
+			{
+				call.Object<CCountry>(1, StrategyName);
+				api.ReportUnbuilt(WarPlansUnbuilt);
+				return call.Return(false);
+			})
+			.Method("IsPreparingWarWith", call =>
+			{
+				call.Object<CCountry>(1, StrategyName);
+				call.Object<CCountryTag>(2, "CCountryTag");
+				api.ReportUnbuilt(WarPlansUnbuilt);
+				return call.Return(false);
+			})
+			// The personality of add_ai_strategy, which nothing reads: never a militarist.
+			.Method("IsMilitarist", call =>
+			{
+				call.Object<CCountry>(1, StrategyName);
+				api.ReportUnbuilt(StrategyUnbuilt);
+				return call.Return(false);
+			})
 			.Constant("_AI_UNDEFINED_", 0)
 			.Constant("_AI_MILITARIST_", 1)
 			.Constant("_AI_INDUSTRIALIST_", 2)

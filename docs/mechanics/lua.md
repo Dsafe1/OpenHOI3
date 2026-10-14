@@ -215,9 +215,14 @@ reported - the original sets 25 before the call and keeps it on a Lua error (a n
 uncaught C++ exception there; here it is the same 25, reported).
 
 **`Laws(country)`**, which the original calls next for every country, the player's included, is
-**not called**: for the player's country by the maintainer's decision (`docs/compatibility.md`,
-entry 6), and for the others because what it does - post a change of law - waits for the AI and
-politics.
+called for every country **nobody plays** - not the player's, by the maintainer's decision
+(`docs/compatibility.md`, entry 6) - handed the country itself, and again until it posts nothing
+(`politics.md`, section 12; since 2026-10-14). **`PoliticsMinister_Tick(minister)`**, handed a
+`CAIPoliticsMinister`, is each such country's politics minister's day, in its own hour. What both post
+comes back through `CCurrentGameState.Post` and `CAI:Post`; a failure is reported and ends that call.
+The classes they reach - `CLaw`, `CLawGroup`, `CLawDataBase`, `CMinister`, `CMinisterType`,
+`CGovernmentPosition`, `CGovernmentPositionDataBase` and the three commands - are in `politics.md`,
+section 12, with what of them is not built.
 
 **The AI's answer to an offer** (`IAiScripts.DiploScore`) is `DiploScore_<kind>(ai, actor,
 recipient, observer)`: `ai` a `CAI`, the AI of the **recipient**; the three tags fresh copies. Which

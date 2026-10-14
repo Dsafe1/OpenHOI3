@@ -198,7 +198,7 @@ public class OrganisationTests
 	public void AMobilisedCountrysReservesHaveARegularsCeiling()
 	{
 		CCountry country = Germany();
-		country.IsMobilised = true;
+		country.Mobilised = true;
 		CSubUnit brigade = Brigade(Infantry(), Unit(country), reserve: true);
 		CGameState state = State(new[] { country });
 
@@ -217,7 +217,7 @@ public class OrganisationTests
 
 		Assert.Equal(CFixedPoint.FromInt(56), COrganisation.Ceiling(state, country, brigade));
 		Assert.Equal(CFixedPoint.FromInt(28), COrganisation.Ceiling(state, country, brigade, penaltyAtWar: true));
-		country.IsMobilised = true;
+		country.Mobilised = true;
 		Assert.Equal(CFixedPoint.FromInt(28), COrganisation.Ceiling(state, country, brigade, penaltyAlways: true));
 	}
 

@@ -49,6 +49,7 @@ public partial class CSession : Node
 	private CProductionView? _production;
 	private CTechnologyView? _technology;
 	private CDiplomacyView? _diplomacy;
+	private CPoliticsView? _politics;
 	private CEventWindows? _events;
 	private CDeployMenu? _deployMenu;
 	private CAlerts? _alerts;
@@ -100,24 +101,22 @@ public partial class CSession : Node
 		Map = CMap.Load(_directories);
 		// The install's Lua lives as long as the session: a new game asks it for its relations.
 		_aiScripts = new CAiScripts(_directories);
-		State = CGameStateLoader.LoadStart(_directories, Map, localisation, countries, aiScripts: _aiScripts);
+		// Who plays is known before the game is made: the AI's first look at the laws leaves that country alone.
+		string asked = PlayerArgument() ?? DefaultPlayer;
+		if (countries.Find(asked) is null)
+		{
+			GD.Print($"--country: there is no country '{asked}', so {DefaultPlayer} is played.");
+			asked = DefaultPlayer;
+		}
+		State = CGameStateLoader.LoadStart(_directories, Map, localisation, countries, aiScripts: _aiScripts,
+			played: new[] { new CCountryTag(asked) });
 		GD.Print($"Loaded {Map.ProvinceCount - 1} provinces and {countries.Count} countries " +
 			$"for {State.Date} in {clock.ElapsedMilliseconds} ms.");
 
 		_simulation = new CSimulation(State);
-		string asked = PlayerArgument() ?? DefaultPlayer;
+		// The simulation asks who is played by a person in one place, the state's list: an idle fleet of anybody
+		// else's starts no battle.
 		Player = State.Country(new CCountryTag(asked));
-		if (Player is null)
-		{
-			GD.Print($"--country: there is no country '{asked}', so {DefaultPlayer} is played.");
-			Player = State.Country(new CCountryTag(DefaultPlayer));
-		}
-		// The simulation asks who is played by a person in one place: an idle fleet of
-		// anybody else's starts no battle.
-		if (Player is not null)
-		{
-			State.Played.Add(Player.Tag);
-		}
 
 		clock.Restart();
 		CGuiContext gui = CGuiContext.Load(_directories, localisation);
@@ -163,6 +162,9 @@ public partial class CSession : Node
 			CMapView mapView = _mapView;
 			_diplomacy.SelectedProvince = () => mapView.SelectedProvince;
 			layer.AddChild(_diplomacy);
+			_politics = new CPoliticsView();
+			_politics.Setup(gui, _simulation, Player);
+			layer.AddChild(_politics);
 
 			// The deploy menu and the alert that opens it. A unit chosen there is placed
 			// by a click on the map, which is shown where it may go.
@@ -215,6 +217,7 @@ public partial class CSession : Node
 			_topBar.ProductionPressed += () => Toggle(_production);
 			_topBar.TechnologyPressed += () => Toggle(_technology);
 			_topBar.DiplomacyPressed += () => Toggle(_diplomacy);
+			_topBar.PoliticsPressed += () => Toggle(_politics);
 
 			// The offers other countries make the player, as icons hanging from the top bar - over it,
 			// since the icons reach up into its window.
@@ -222,12 +225,15 @@ public partial class CSession : Node
 			offers.Setup(gui, _simulation, Player.Tag);
 			layer.AddChild(offers);
 
-			// An event's windows come up over everything, the top bar included.
+			// An event's windows and the message popups come up over the map and the panels, and under the four
+			// screens the top bar opens - the original's, by the maintainer's account on 2026-10-14
+			// (docs/mechanics/countryviews.md).
 			_events = new CEventWindows();
 			_events.Setup(gui, _simulation, Player);
 			layer.AddChild(_events);
+			layer.MoveChild(_events, _production.GetIndex());
 
-			// Messages: the log on the bottom bar, and popups over everything.
+			// Messages: the log on the bottom bar, and the popups beside the events.
 			var messageLog = new CMessageLogView();
 			messageLog.Setup(gui);
 			layer.AddChild(messageLog);
@@ -235,6 +241,7 @@ public partial class CSession : Node
 			var popups = new CMessagePopups();
 			popups.Setup(gui, _simulation);
 			layer.AddChild(popups);
+			layer.MoveChild(popups, _production.GetIndex());
 			CCountryTag player = Player.Tag;
 			void Tell(CMessage message)
 			{
@@ -329,7 +336,7 @@ public partial class CSession : Node
 			view.Close();
 			return;
 		}
-		foreach (CCountryView? other in new CCountryView?[] { _production, _technology, _diplomacy })
+		foreach (CCountryView? other in new CCountryView?[] { _production, _technology, _diplomacy, _politics })
 		{
 			if (!ReferenceEquals(other, view))
 			{
@@ -882,6 +889,7 @@ public partial class CSession : Node
 	/// (and <c>--own-units</c> says the opposite, which is how it is anyway: a launch
 	/// that asks has to pass something for either answer),
 	/// <c>--war=GER:POL</c> puts those two countries at war, and nobody else,
+	/// <c>--money=GER:500</c> sets that country's money, so that it may pay for a law,
 	/// <c>--neutrality=GER:0</c> sets that country's neutrality, so that it may declare a war,
 	/// <c>--declare=TUR:IRQ</c> has the first declare war on the second with the first goal it has,
 	/// <c>--sail=ENG:10531</c> sends the strongest fleet of that country that can reach it
@@ -899,7 +907,7 @@ public partial class CSession : Node
 	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
 	/// type) opens the window that orders one, with that in it,
 	/// <c>--technology=key</c> chooses one on the technology screen,
-	/// <c>--screen=diplomacy</c> opens the diplomacy screen with its decisions, <c>--event=2602</c>
+	/// <c>--screen=politics</c> the politics screen, <c>--screen=diplomacy</c> opens the diplomacy screen with its decisions, <c>--event=2602</c>
 	/// fires that event for the player, its trigger not asked, <c>--event=2602:1861</c> for a province of his and
 	/// <c>--event=2001:SPR</c> for another country, which answers it as the AI does,
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
@@ -963,6 +971,10 @@ public partial class CSession : Node
 			else if (argument == "--screen=deploy")
 			{
 				_deployMenu?.Open();
+			}
+			else if (argument == "--screen=politics")
+			{
+				Toggle(_politics);
 			}
 			else if (argument == "--screen=diplomacy")
 			{
@@ -1071,6 +1083,22 @@ public partial class CSession : Node
 				else
 				{
 					GD.Print($"--neutrality: '{argument["--neutrality=".Length..]}' is not a country and a figure.");
+				}
+			}
+			else if (argument.StartsWith("--money="))
+			{
+				// Sets a country's money, so that it may pay for a law on a new game: --money=GER:500.
+				string[] parts = argument["--money=".Length..].Split(':');
+				if (parts.Length == 2 && CCountryTag.TryParse(parts[0], out CCountryTag rich)
+					&& CFixedPoint.TryParse(parts[1], out CFixedPoint money)
+					&& new CSetMoneyCommand(rich, money) is var set && set.MayExecute(State))
+				{
+					_simulation.Post(set);
+					_simulation.Pump();
+				}
+				else
+				{
+					GD.Print($"--money: '{argument["--money=".Length..]}' is not a country and a figure.");
 				}
 			}
 			else if (argument.StartsWith("--sail="))

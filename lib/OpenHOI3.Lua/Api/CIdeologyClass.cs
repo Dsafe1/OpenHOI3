@@ -24,9 +24,19 @@ public static class CIdeologyClass
 						return call.Return(new CLuaObject(api.IdeologyGroup, group));
 					}
 				}
-				return call.Return(null);
+				// The null ideology's group is the null group: the rebels' politics minister reads it.
+				return call.Return(ideology == NullIdeology ? new CLuaObject(api.IdeologyGroup, NullGroup) : null);
 			});
 	}
+
+	/// <summary>
+	/// The null ideology, a country's with no ruling party - the rebels' - as the save writes it. Ours: what the
+	/// original's null ideology and its group answer was not read; here its group is one of no name.
+	/// </summary>
+	public const string NullIdeology = "noIdeology";
+
+	/// <summary>The null ideology's group.</summary>
+	public static readonly CIdeologyGroup NullGroup = new("", 0, 0);
 
 	public static CLuaClass DefineGroup(CGameApi api)
 	{

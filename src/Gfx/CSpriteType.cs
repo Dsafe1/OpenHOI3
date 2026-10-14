@@ -54,6 +54,15 @@ public sealed class CSpriteType
 	/// </summary>
 	public bool IsProgressBar => Kind.Equals("progressbartype", StringComparison.OrdinalIgnoreCase);
 
+	/// <summary>A pie chart: its <c>size</c> alone, the slices given by the screen that shows it.</summary>
+	public bool IsPieChart => Kind.Equals("PieChartType", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>A pie chart's <c>size</c>.</summary>
+	public int PieSize { get; init; }
+
+	/// <summary>A progress bar's <c>horizontal</c>: one that is not fills from its foot upwards.</summary>
+	public bool Horizontal { get; init; } = true;
+
 	public static CSpriteType FromNode(string kind, ClausewitzNode node)
 	{
 		return new CSpriteType
@@ -67,6 +76,8 @@ public sealed class CSpriteType
 			TileSize = node.GetVector2("size").ToGodot(),
 			Border = node.GetVector2("borderSize").ToGodot(),
 			AlwaysTransparent = node.GetBool("allwaystransparent"),
+			PieSize = kind.Equals("PieChartType", StringComparison.OrdinalIgnoreCase) ? node.GetInt("size") : 0,
+			Horizontal = !node.GetString("horizontal").Equals("no", StringComparison.OrdinalIgnoreCase),
 		};
 	}
 }

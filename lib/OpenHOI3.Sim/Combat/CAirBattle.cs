@@ -131,6 +131,7 @@ public static class CAirBattle
 		combat.Duration++;
 		if (combat.Hour == CCombat.NotStarted)
 		{
+			Politics.CStrategicWarfareImpacts.AirBattleBegun(state, combat);
 			RollDice(state, combat);
 			combat.Hour = 0;
 		}

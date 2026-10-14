@@ -48,6 +48,11 @@ public static class CCountryModifiers
 		CModifier? peace = state.FindStaticModifier(Peace);
 		CModifier? dissent = state.FindStaticModifier(Dissent);
 		Rebuild(country, baseValues, Diplomacy.CAlignment.FactionGroup(state, country)?.FactionModifier);
+		// Its government, after its laws (step 5).
+		if (state.GovernmentOf(country) is { } government)
+		{
+			AddSource(country, government.Modifier);
+		}
 
 		// A resource is worth its modifier times how much of it the country has.
 		foreach ((string name, CFixedPoint level) in country.StrategicResources)
@@ -94,6 +99,13 @@ public static class CCountryModifiers
 		foreach (CTimedModifier given in country.EventModifiers)
 		{
 			AddSource(country, given.Modifier);
+		}
+
+		// A fractured government, where a party of another group than the ruling party's holds a seat (step 18;
+		// politics.md, section 4).
+		if (Politics.CCabinet.IsFractured(state, country) && state.FindStaticModifier(Politics.CCabinet.Fractured) is { } fractured)
+		{
+			AddSource(country, fractured);
 		}
 
 		RebuildTechnology(state, country);

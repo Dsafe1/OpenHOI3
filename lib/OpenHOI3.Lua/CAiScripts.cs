@@ -205,6 +205,37 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	}
 
 	/// <summary>
+	/// <c>Laws(country)</c>, handed the country itself as a new game hands it - which TFH's script reads as it would a
+	/// minister. A failure is reported, as the original logs it.
+	/// </summary>
+	public void RunLaws(CGameState state, CCountry country)
+	{
+		_state = state;
+		try
+		{
+			_lua.Call("Laws", 0, _api.Of(country));
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+	}
+
+	/// <summary><c>PoliticsMinister_Tick(minister)</c>, the country's politics minister handed over. A failure is reported.</summary>
+	public void RunPolitics(CGameState state, CCountry country)
+	{
+		_state = state;
+		try
+		{
+			_lua.Call("PoliticsMinister_Tick", 0, new CLuaObject(_api.PoliticsMinister, new CLuaAi(country)));
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+	}
+
+	/// <summary>
 	/// The hour's trading, side by side on states of its own, made the first time (<see cref="CTradeWorkers"/>).
 	/// What the runs post reaches the state's outbox, and what they report is reported, in the order of the
 	/// runs - an unbuilt thing once, whichever state met it.

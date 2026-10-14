@@ -154,7 +154,8 @@ order**; `confirmed` throughout.
     `very_hard_player` for a country somebody plays, and the four `..._ai` blocks for one
     nobody does. Normal adds nothing either way.
 17. `government_in_exile`, for one.
-18. `fractured_government`, on a test that has not been read.
+18. `fractured_government`, where a party of another ideology group than the ruling party's holds a cabinet seat
+    (`politics.md`, section 4).
 
 **An ideology adds nothing.** **Technology is kept apart**: the IC calculation reads its
 technology bonus beside the modifier, and so do resource production, leadership and
@@ -335,6 +336,5 @@ not have is written as a percentage, more being better, as most are.
 - what a **region** is in the link that lets two countries on different continents share
   a strategic resource, and which script key sets the value added to a province's
   efficiency;
-- the test for **`fractured_government`**;
 - what marks the edge of an **area**: whether it is land a country owns or controls, and
   whether a strait joins two.

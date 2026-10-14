@@ -64,6 +64,10 @@ already shows does nothing.
 `topbarbutton_prod` and `topbarbutton_tech` each bring their screen up, or take it down if
 it is up already, and only one screen is up at a time - the one that was up comes down.
 
+**A screen stands over an event's window and a message's popup**, as the maintainer saw the original do on
+2026-10-14: they come up under it, over the map and the panels, and the top bar stands over all of them. Not read:
+where the original keeps them, so the order of the rest is ours.
+
 ## 5. Ours
 
 - **A screen is a class of its own in `src/Screens`, over a base, `CCountryView`**, as in

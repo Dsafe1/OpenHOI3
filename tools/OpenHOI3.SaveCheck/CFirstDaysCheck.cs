@@ -52,11 +52,14 @@ internal static class CFirstDaysCheck
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
+		// As a player gets it: the install's Lua looks at every other country's laws (politics.md, section 12).
+		ClausewitzNode save = ClausewitzParser.ParseFile(args[2]);
+		using var scripts = new OpenHOI3.Lua.CAiScripts(directories, warnings.Add);
 		var clock = System.Diagnostics.Stopwatch.StartNew();
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add);
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
+			played: new[] { new CCountryTag(save.GetString("player")) });
 		Console.WriteLine($"a new game, its two days run: made in {clock.ElapsedMilliseconds} ms");
 
-		ClausewitzNode save = ClausewitzParser.ParseFile(args[2]);
 		Console.WriteLine($"savegame: date {save.GetString("date")}, player {save.GetString("player")}");
 		Console.WriteLine($"ours:     date {state.Date}.{state.Hour}");
 		Console.WriteLine();

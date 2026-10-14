@@ -48,6 +48,23 @@ public interface IAiScripts
 	}
 
 	/// <summary>
+	/// <c>Laws(country)</c>: a country's laws looked at once by its AI, as a new game does for every country, whose
+	/// changes go to the state's outbox. See <c>docs/mechanics/politics.md</c>, section 12.
+	/// </summary>
+	void RunLaws(CGameState state, CCountry country)
+	{
+	}
+
+	/// <summary>
+	/// <c>PoliticsMinister_Tick(minister)</c>: a country's politics minister's day - mobilising, its laws, its
+	/// cabinet, its puppets and liberations, each by a draw - whose commands go to the state's outbox. See
+	/// <c>docs/mechanics/politics.md</c>, section 12.
+	/// </summary>
+	void RunPolitics(CGameState state, CCountry country)
+	{
+	}
+
+	/// <summary>
 	/// The hour's trading of several countries at once, as the original runs it on its worker threads:
 	/// each <see cref="RunTrade"/> in turn unless the scripts can run them side by side. Whichever way,
 	/// what they post reaches the outbox in the order of <paramref name="runs"/>, and they change nothing

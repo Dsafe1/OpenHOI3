@@ -150,6 +150,35 @@ public sealed class CCountry
 	public Dictionary<string, CMinister> Government { get; } = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
+	/// The ministers it may appoint, in the order they joined: those whose start date has come, in its file's
+	/// order. Nothing ever takes one out but script. See <c>docs/mechanics/politics.md</c>, section 7.
+	/// </summary>
+	public List<CMinister> PossibleMinisters { get; } = new();
+
+	/// <summary>Each party's popularity, by its ideology's number; made as a game is set up (politics.md, section 2).</summary>
+	public Politics.CPartyFigures Popularity { get; set; } = new(0);
+
+	/// <summary>Each party's organisation, the same way.</summary>
+	public Politics.CPartyFigures Organisation { get; set; } = new(0);
+
+	/// <summary>Each party's seats in the cabinet, by its ideology's number (politics.md, section 4).</summary>
+	public int[] Cabinet { get; set; } = Array.Empty<int>();
+
+	/// <summary>The history's party figures, by the ideology's name, until a game is set up with them.</summary>
+	public Dictionary<string, CFixedPoint> HistoryPopularity { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	public Dictionary<string, CFixedPoint> HistoryOrganisation { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>When it last held an election; <see cref="CDate.Zero"/> for never (politics.md, section 2).</summary>
+	public CDate LastElection { get; set; } = CDate.Zero;
+
+	/// <summary>Its own term in months, which overrides its government's where it is not 0.</summary>
+	public int ElectionDuration { get; set; }
+
+	/// <summary>What was done to it or for it at war that moves its national unity (politics.md, section 6).</summary>
+	public Politics.CStrategicWarfare StrategicWarfare { get; } = new();
+
+	/// <summary>
 	/// The sum of everything that currently applies to the country. Rebuilt, never
 	/// adjusted: see <see cref="CCountryModifiers"/>.
 	/// </summary>
@@ -237,8 +266,9 @@ public sealed class CCountry
 	public CFixedPoint Dissent { get; set; }
 
 	/// <summary>
-	/// How far its people will go before giving up, from 1 to 100. Read from its history,
-	/// and 1 for a country whose history gives none; nothing moves it yet.
+	/// How far its people will go before giving up, from 1 to 100. Read from its history, and moved each day
+	/// (politics.md, section 6). 1 where the history gives none: the original's is nought until its first day lifts
+	/// it to the floor, before anything reads it.
 	/// </summary>
 	public CFixedPoint NationalUnity { get; set; } = CFixedPoint.One;
 
@@ -319,10 +349,6 @@ public sealed class CCountry
 	/// </summary>
 	public string OrderOfBattleFile { get; set; } = "";
 
-	/// <summary>
-	/// Whether its reserves have been called up. A country at war as a game starts is.
-	/// </summary>
-	public bool IsMobilised { get; set; }
 
 	/// <summary>
 	/// The units nothing of its own commands, in the order its order of battle gives
@@ -554,10 +580,18 @@ public sealed class CCountry
 	public List<Agreements.COffer> PendingOffers { get; } = new();
 
 	/// <summary>
-	/// Mobilised for a war: given <c>initial_mobilization</c> when it was last brought up to date at war,
-	/// and only made so again after a peace (<c>war.md</c>, section 4).
+	/// Mobilised: its reserves called up, so that none of them is kept under strength or under organisation. Made so
+	/// by a war, with <c>initial_mobilization</c>, when the country is brought up to date at war, and only undone after
+	/// a peace (<c>war.md</c>, section 4); and by the politics screen's buttons and the AI
+	/// (<c>politics.md</c>, section 11). The original's one byte for all three.
 	/// </summary>
 	public bool Mobilised { get; set; }
+
+	/// <summary>
+	/// Hours until its politics minister first works, from 1 to 3, drawn when a new game makes one for every country nobody
+	/// plays; 0 for a country with none (<c>politics.md</c>, section 12).
+	/// </summary>
+	public int PoliticsCountdown { get; set; }
 
 	/// <summary>Spies trained and not yet sent anywhere. A whole spy is 1.</summary>
 	public CFixedPoint SpiesInTraining { get; set; }

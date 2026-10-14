@@ -258,17 +258,19 @@ five held everywhere on the start date for that reason when it was asked, flags 
 `has_country_flag`, `has_global_flag`, `has_province_flag`, `check_variable`,
 `has_country_modifier` and `has_province_modifier` are `effects.md`'s, sections 3 and 6.
 
+The government, the parties and the ministers - `government`, `ideology`, `ideology_group`, `organisation`,
+`popularity`, an ideology's block, `minister_alive`, `has_removable_minister` - and the three strategic-warfare
+impacts answer since 2026-10-14: `politics.md`, section 8.
+
 **Unbuilt - what the simulation does not hold yet:**
 
 | waits for | conditions |
 | --- | --- |
 | diplomacy | `truce_with`, `undeclared_war_with`, `casus_belli`, `has_cb`, `has_wargoal` |
-| the government | `government`, `government_in_exile`, `has_removable_minister`, `minister_alive` |
-| parties | `ideology`, `ideology_group`, `organisation`, `popularity`, an ideology's block |
 | revolts | `num_of_revolts`, `revolt_percentage`, `revolt_risk`, `pure_revolt_risk`, `nationalism` |
 | espionage | `spies`, `spy_mission_count`, `remove_fow` |
 | the AI's missions | `active_mission`, `last_mission`, `is_mission_country`, `is_mission_province` |
-| a country's war record | `war_exhaustion`, `lost_IC`, `lost_national`, `strat_allies_impact`, `strat_bomb_impact`, `strat_convoy_impact`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
+| a country's war record | `war_exhaustion`, `lost_IC`, `lost_national`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
 | the last battles | `last_battle_winner_losses` and the five others |
 | blockades | `blockade`, `is_blockaded` |
 | days out of supply | `out_of_supply_days` |

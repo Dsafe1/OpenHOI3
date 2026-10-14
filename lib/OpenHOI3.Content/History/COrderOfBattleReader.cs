@@ -64,10 +64,7 @@ public static class COrderOfBattleReader
 	};
 
 	/// <summary>Keys of the country's own that an order of battle may carry, and that are not applied from one.</summary>
-	private static readonly HashSet<string> CountryKeysNotApplied = new(StringComparer.OrdinalIgnoreCase)
-	{
-		"last_election",
-	};
+	private static readonly HashSet<string> CountryKeysNotApplied = new(StringComparer.OrdinalIgnoreCase);
 
 	private const string Construction = "military_construction";
 
@@ -136,6 +133,12 @@ public static class COrderOfBattleReader
 				else if (entry.IsBlock && entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
 				{
 					reading.ReadConstruction(entry, country);
+				}
+				else if (entry.Key.Equals("last_election", StringComparison.OrdinalIgnoreCase)
+					&& CDate.TryParse(entry.Value, out CDate lastElection))
+				{
+					// When the country last held an election, as its own file may say too (politics.md, section 2).
+					country.LastElection = lastElection;
 				}
 				else if (CountryKeysNotApplied.Contains(entry.Key))
 				{

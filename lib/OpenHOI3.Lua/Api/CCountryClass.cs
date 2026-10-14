@@ -37,8 +37,9 @@ public static class CCountryClass
 			.Method("HasFaction", call => call.Return(Of(call).Faction.Length > 0))
 			.Method("GetRulingIdeology", call =>
 			{
+				// A country with no ruling party has the null one, never nil (politics.md, section 12).
 				string ideology = Of(call).RulingIdeology;
-				return call.Return(ideology.Length > 0 ? api.IdeologyNamed(ideology) : null);
+				return call.Return(api.IdeologyNamed(ideology.Length > 0 ? ideology : CIdeologyClass.NullIdeology));
 			})
 			.Method("GetActingCapitalLocation", call => call.Return(new CLuaObject(api.Province, Capital(api, Of(call)))))
 			.Method("GetPool", call => call.Return(new CLuaObject(api.GoodsPool, api.State.Stockpile(Of(call)) ?? api.State.Province(0).Pool)))
@@ -124,8 +125,42 @@ public static class CCountryClass
 				// A neighbour by what each holds, and not in exile.
 				return call.Return(api.State.Country(tag) is { } other && CCountryFacts.Of(api.State).AreControllerNeighbours(country.Tag, tag)
 					&& !other.InExile);
+			})
+			// Politics (docs/mechanics/politics.md, section 12).
+			.Method("GetLaw", call => call.Return(new CLuaObject(api.Law,
+				CLawClass.LawOf(Of(call), call.Object<CLawGroup>(2, "CLawGroup")))))
+			.Method("GetMinister", call => call.Return(new CLuaObject(api.Minister,
+				CMinisterClass.HolderOf(Of(call), CMinisterClass.Position(call, 2)))))
+			.Method("GetPossibleMinisters", call =>
+			{
+				var ministers = new List<object?>();
+				foreach (CMinister minister in Of(call).PossibleMinisters)
+				{
+					ministers.Add(new CLuaObject(api.Minister, minister));
+				}
+				return call.ReturnIterator(ministers);
+			})
+			.Method("IsMobilized", call => call.Return(Of(call).Mobilised))
+			.Method("GetManpower", call => call.Return(api.Fixed(Of(call).Manpower)))
+			.Method("MayLiberateCountries", call =>
+			{
+				Of(call);
+				api.ReportUnbuilt(LiberationUnbuilt);
+				return call.Return(false);
+			})
+			.Method("CanCreatePuppet", call =>
+			{
+				Of(call);
+				api.ReportUnbuilt(PuppetUnbuilt);
+				return call.Return(false);
 			});
 	}
+
+	/// <summary>What liberating a country needs, which is not built.</summary>
+	private const string LiberationUnbuilt = "liberating a country (MayLiberateCountries): false";
+
+	/// <summary>What releasing a puppet by a command needs, which is not built.</summary>
+	private const string PuppetUnbuilt = "releasing a puppet (CanCreatePuppet): false";
 
 	private static CCountry Of(CLuaCall call) => call.Object<CCountry>(1, Name);
 

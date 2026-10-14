@@ -33,9 +33,6 @@ public static class CUnits
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			// It is being at war when the game starts that calls the reserves up.
-			country.IsMobilised = state.IsAtWar(country.Tag);
-
 			var units = new List<CUnit>(country.AllUnits());
 			foreach (CUnit unit in units)
 			{
@@ -95,8 +92,11 @@ public static class CUnits
 
 		if (model != CSubUnit.NoModel)
 		{
-			// No game is running yet, so its organisation is held to its type's and nothing else.
-			subUnit.Strength = CFixedPoint.Min(subUnit.Strength, MaxStrength(state, owner, subUnit, penaltyAtWar: true));
+			// No game is running yet, so its organisation is held to its type's and nothing else. It is being at war
+			// when the game starts that calls the reserves up: such a country is mobilised as the game is entered
+			// (CWarSides.BringAllUpToDate), so its reserves are not kept back here.
+			subUnit.Strength = CFixedPoint.Min(subUnit.Strength,
+				MaxStrength(state, owner, subUnit, penaltyAtWar: !state.IsAtWar(owner.Tag)));
 			subUnit.Organisation = CFixedPoint.Min(subUnit.Organisation, subUnit.Stats[CSubUnitType.DefaultOrganisation]);
 			subUnit.Highest = subUnit.Strength;
 		}
@@ -143,7 +143,7 @@ public static class CUnits
 		{
 			return true;
 		}
-		if (owner.IsMobilised)
+		if (owner.Mobilised)
 		{
 			return false;
 		}

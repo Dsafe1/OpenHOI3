@@ -38,7 +38,8 @@ internal static class CProfileTrial
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
 		using var scripts = new CAiScripts(directories);
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts);
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
+			played: new[] { new CCountryTag(tag) });
 		state.Played.Clear();
 		state.Played.Add(new CCountryTag(tag));
 		var simulation = new CSimulation(state);

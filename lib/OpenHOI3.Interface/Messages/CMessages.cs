@@ -131,12 +131,52 @@ public static class CMessages
 				message.Variables.Add((key, CLicenceText.ModelName(localise, state, seller, type) ?? localise(type.Key)));
 				continue;
 			}
+			// An election's two parties are named for the country (politics.md, section 5).
+			if (key is "PREVIOUS_PARTY" or "WINNING_PARTY")
+			{
+				message.Variables.Add((key, CPartyText.Name(localise, value, pact.Actor.Value)));
+				continue;
+			}
+			// A law enacted and a minister appointed (politics.md, section 9): the law named for the country, its
+			// description with every §b made §W, its modifier's lines, and the group or the post localised.
+			if (pact.We is Sim.Politics.CLaws.AppointedMessage or Sim.Commands.CChangeMinisterCommand.AppointedMessage)
+			{
+				message.Variables.Add((key, Appointed(localise, state, pact, key, value)));
+				continue;
+			}
 			// A war goal's type, a government, a faction and a faction's comment are written as their keys (war.md,
 			// sections 13 and 14; factions.md, section 3).
 			message.Variables.Add((key, key is "WARGOAL" or "GOVERNMENT" or "FACTION" or "COMMENT" or "BAD_COMMENT" or "COMMENT_BAD"
 				? localise(value) : value));
 		}
 		return message;
+	}
+
+	/// <summary>One variable of <c>LAW_APPOINTED</c> or <c>MINISTER_APPOINTED</c>, from what the command wrote into it.</summary>
+	private static string Appointed(Func<string, string> localise, CGameState state, CPactMessage pact, string key, string value)
+	{
+		switch (key)
+		{
+			case "LAWNAME":
+				return CPartyText.Name(localise, value, pact.Actor.Value);
+			case "DESC":
+				return localise(value + "_desc").Replace("§b", "§W", StringComparison.Ordinal);
+			case "EFFECT":
+				foreach (Sim.Countries.CLawGroup group in state.LawGroups)
+				{
+					if (group.Laws.Find(law => law.Name == value) is { } law)
+					{
+						return Modifiers.CModifierText.AllValues(localise, law.Modifier);
+					}
+				}
+				return "";
+			case "PERSONALITY_DESC":
+				// Ours: the minister type's name; how the original describes it was not read.
+			case "POSITION":
+				return localise(value);
+			default:
+				return value;
+		}
 	}
 
 	/// <summary>

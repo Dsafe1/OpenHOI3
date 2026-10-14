@@ -45,7 +45,12 @@ public static class CDiplomacyStatusClass
 				return call.Return(api.State.Country(status.Holder) is { } holder && api.State.Country(status.Other) is { } other
 					&& Sim.Wars.CTruces.Has(api.State, holder, other));
 			})
-			.Method("AllowDebts", call => call.Return(Of(call).AllowDebts));
+			.Method("AllowDebts", call => call.Return(Of(call).AllowDebts))
+			.Method("HasNap", call =>
+			{
+				CDiplomacyStatus status = Of(call);
+				return call.Return(api.State.Naps.Exists(nap => nap.Joins(status.Holder, status.Other)));
+			});
 	}
 
 	private static CDiplomacyStatus Of(CLuaCall call) => call.Object<CDiplomacyStatus>(1, Name);

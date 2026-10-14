@@ -82,6 +82,9 @@ public static class CTick
 		// Then each AI country's trading, by the install's Lua (docs/mechanics/trade.md, section 9; ours:
 		// which of the two runs first in the original's hour was not read).
 		Step(state, Trade.CTradeAi.RunHourly);
+		// Then each AI country's politics minister, in its own hour of the day (docs/mechanics/politics.md, section 12;
+		// ours: where in the hour beside trading was not read).
+		Step(state, Politics.CPoliticsAi.RunHourly);
 	}
 
 	/// <summary>
@@ -101,6 +104,8 @@ public static class CTick
 		// draws on what reached its province this morning.
 		Step(state, CSupplyPass.RunDaily);
 		Step(state, CCountryModifiers.Rebuild);
+		Step(state, Politics.CNationalUnity.RunDaily);           // right after a country's modifier (politics.md, section 6)
+		Step(state, Politics.CMinisterPosts.JoinDaily);          // a minister whose start date is today joins the pool
 		Step(state, CThreat.UpdateMostThreatening);               // before any country's day, as its neighbours are
 		Step(state, Wars.CSurrender.CountVictoryPoints);          // and with them its cores' victory points
 		Step(state, Countries.CActingCapital.EnsureCapitals);     // at the head of a country's day: a capital it owns,
@@ -125,6 +130,8 @@ public static class CTick
 		Step(state, Wars.CExile.HandOverDaily);                   // an exile's supplies to its host, before the shares
 		Step(state, CProduction.RunDaily);
 		Step(state, CLeadership.RunDaily);
+		Step(state, Politics.CElections.RunDaily);               // an election where one is due, then the seats
+		Step(state, Politics.CCabinet.RunDaily);                 // where the ruling party holds none (politics.md, 4-5)
 		Step(state, Wars.CSurrender.RunDaily);                    // late in a country's day: the surrender,
 		Step(state, Wars.CExile.ReturnDaily);                     // and an exile leading its faction coming home
 		Step(state, CConvoyDay.Maintain);                         // late in a country's day
@@ -199,6 +206,9 @@ public static class CTick
 		{
 			Step(state, CResearch.DecayMonthly);
 		}
+		// The parties drift every month, the one before a new game's first hour included: the start save holds exactly
+		// one drift (politics.md, section 3).
+		Step(state, Politics.CParties.RunMonthly);
 		// The relations' drift is not held back: the month before the first hour is what makes
 		// a new game's relations the same both ways (docs/mechanics/diplomacy.md, section 2).
 		Step(state, CRelations.RunMonth);

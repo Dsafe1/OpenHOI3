@@ -63,6 +63,8 @@ public static class CIdeologyReader
 				if (ideology.Key is not null && ideology.IsBlock && ideology != position && ideology != faction)
 				{
 					group.Ideologies.Add(ideology.Key);
+					group.IdeologyOrder.Add(ideology.Key);
+					group.IdeologyColours[ideology.Key] = ideology.GetRgb("color", CColor.Gray);
 				}
 			}
 			groups.Add(group);

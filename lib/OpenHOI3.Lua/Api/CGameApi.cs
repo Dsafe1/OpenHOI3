@@ -61,7 +61,44 @@ public sealed class CGameApi
 		SubUnit = CLicenceActionClass.DefineSubUnit(this);
 		SubUnitDataBase = CLicenceActionClass.DefineSubUnitDataBase(this);
 		LicenceAction = CLicenceActionClass.DefineAction(this);
+		LawGroup = CLawClass.DefineGroup(this);
+		Law = CLawClass.DefineLaw(this);
+		LawDataBase = CLawClass.DefineDataBase(this);
+		MinisterType = CMinisterClass.DefineType(this);
+		Minister = CMinisterClass.DefineMinister(this);
+		GovernmentPosition = CMinisterClass.DefinePosition(this);
+		PositionDataBase = CMinisterClass.DefinePositionDataBase(this);
+		PoliticsMinister = CPoliticsMinisterClass.Define(this);
+		ChangeLaw = CPoliticsCommandClass.DefineChangeLaw(this);
+		ChangeMinister = CPoliticsCommandClass.DefineChangeMinister(this);
+		ToggleMobilization = CPoliticsCommandClass.DefineToggleMobilization(this);
+		Liberate = CPoliticsCommandClass.DefineLiberate(this);
 	}
+
+	/// <summary>Politics (docs/mechanics/politics.md, section 12).</summary>
+	public CLuaClass Law { get; }
+
+	public CLuaClass LawGroup { get; }
+
+	public CLuaClass LawDataBase { get; }
+
+	public CLuaClass Minister { get; }
+
+	public CLuaClass MinisterType { get; }
+
+	public CLuaClass GovernmentPosition { get; }
+
+	public CLuaClass PositionDataBase { get; }
+
+	public CLuaClass PoliticsMinister { get; }
+
+	public CLuaClass ChangeLaw { get; }
+
+	public CLuaClass ChangeMinister { get; }
+
+	public CLuaClass ToggleMobilization { get; }
+
+	public CLuaClass Liberate { get; }
 
 	public CLuaClass SubUnit { get; }
 
@@ -122,6 +159,8 @@ public sealed class CGameApi
 		Country, CountryTag, DiplomacyStatus, Government, Faction, Ideology, IdeologyGroup, Province, Continent,
 		GoodsPool, Strategy, Ai, ResourceValues, GameState, CountryDataBase, Intel, FixedPoint, Text, Date,
 		TradeAction, TradeRoute, GoodsValues, Modifier, TechnologyStatus, SubUnit, SubUnitDataBase, LicenceAction,
+		Law, LawGroup, LawDataBase, Minister, MinisterType, GovernmentPosition, PositionDataBase, PoliticsMinister,
+		ChangeLaw, ChangeMinister, ToggleMobilization, Liberate,
 	}.Concat(CEnumClasses.Define());
 
 	/// <summary>What has been reported as not built, in the order it was first met.</summary>

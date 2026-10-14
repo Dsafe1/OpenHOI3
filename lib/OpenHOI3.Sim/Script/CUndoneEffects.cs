@@ -35,8 +35,6 @@ public static class CUndoneEffects
 		Add(EScriptGap.Unbuilt, "undeclared_war", "release", "release_vassal", "surrender_inherit",
 			"split_troops");
 		Add(EScriptGap.Unbuilt, "war_exhaustion");
-		// The government and the parties.
-		Add(EScriptGap.Unbuilt, "government", "coup_by", "do_election", "remove_minister", "organisation", "popularity");
 		// Revolts, espionage, the AI.
 		Add(EScriptGap.Unbuilt, "revolt_risk", "create_revolt");
 		Add(EScriptGap.Unbuilt, "remove_fow", "local_intel_boost", "modify_spies");
