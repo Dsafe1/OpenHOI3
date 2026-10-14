@@ -5,6 +5,7 @@ using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Intelligence;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Movement;
@@ -322,23 +323,25 @@ public class AirBattleTests
 	// --- what a country knows ---
 
 	[Fact]
-	public void ACountryKnowsWhatItOrAFriendHoldsAndWhereItsUnitsStoodAtTheDaysTurn()
+	public void ACountryKnowsWhatItOrAFriendHoldsWhereItsUnitsStandAndTheLandBesideThem()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
 		CUnit fighters = Air(state, germany, Field, Fighter);
 
+		// Nothing is known until the day's rebuild (intelligence.md, section 3).
+		Assert.Equal(0, CIntelligence.Level(state, state.Province(Berlin), Ger));
+		CProvinceIntel.Rebuild(state);
 		Assert.Equal(9, CIntelligence.Level(state, state.Province(Berlin), Ger));
-		Assert.Equal(0, CIntelligence.Level(state, state.Province(Field), Ger));
-		Assert.Equal(0, CIntelligence.Level(state, state.Province(Warsaw), Ger));
-
-		CNavalIntelligence.Refresh(state);
 		Assert.Equal(9, CIntelligence.Level(state, state.Province(Field), Ger));
-		Assert.Equal(0, CIntelligence.Level(state, state.Province(Warsaw), Ger));
+		// Beside its unit, its decryption equal to Poland's encryption: 2 + 1.
+		Assert.Equal(3, CIntelligence.Level(state, state.Province(Warsaw), Ger));
+		Assert.Equal(0, CIntelligence.Level(state, state.Province(East), Ger));
 
 		// A fellow member of its faction's ground is its own to it.
 		germany.Faction = "axis";
 		poland.Faction = "axis";
-		Assert.Equal(9, CIntelligence.Level(state, state.Province(Warsaw), Ger));
+		CProvinceIntel.Rebuild(state);
+		Assert.Equal(9, CIntelligence.Level(state, state.Province(East), Ger));
 		Assert.NotNull(fighters);
 	}
 
@@ -404,6 +407,7 @@ public class AirBattleTests
 		CMovement.SetPath(strong, new[] { Berlin }, clear: true);
 
 		// It is Germany's own ground, so it is known; both are in the air, away from their base.
+		CProvinceIntel.Rebuild(state);
 		Give(state, germany, fighters, EUnitOrder.AirSuperiority, Border, CMission.Aggressive, Border, Berlin);
 
 		Assert.Same(strong, fighters.Mission.Target);
@@ -411,10 +415,10 @@ public class AirBattleTests
 		// where they are going.
 		Assert.Equal(Berlin, fighters.Mission.Destination);
 
-		// One it does not know of is not there to be picked: Poland's ground with nobody of ours on it.
-		CUnit far = Air(state, poland, Field, Bomber);
+		// One it does not know of is not there to be picked: Poland's ground with nobody of ours on it or beside it.
+		CUnit far = Air(state, poland, East, Bomber);
 		CUnit second = Air(state, germany, Berlin, Fighter);
-		Give(state, germany, second, EUnitOrder.AirSuperiority, Field, CMission.Aggressive, Field);
+		Give(state, germany, second, EUnitOrder.AirSuperiority, East, CMission.Aggressive, East);
 		Assert.Null(second.Mission.Target);
 		Assert.NotNull(far);
 	}
@@ -426,6 +430,7 @@ public class AirBattleTests
 		CUnit fighters = Air(state, germany, Berlin, Fighter);
 		CUnit raid = Air(state, poland, Border, Bomber);
 		CMovement.SetPath(raid, new[] { Berlin }, clear: true);
+		CProvinceIntel.Rebuild(state);
 
 		Give(state, germany, fighters, EUnitOrder.AirIntercept, Berlin);
 
@@ -445,6 +450,7 @@ public class AirBattleTests
 		CUnit raid = Air(state, poland, Border, Transport);
 
 		// The raid sits over the Border, which is in the mission: no meeting province, straight at it.
+		CProvinceIntel.Rebuild(state);
 		Give(state, germany, fighters, EUnitOrder.AirIntercept, Berlin, CMission.Aggressive, Berlin, Border);
 		Assert.Same(raid, fighters.Mission.Target);
 		Assert.Equal(0, fighters.Mission.Meeting);

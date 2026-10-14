@@ -126,6 +126,24 @@ public static class CCountryClass
 				return call.Return(api.State.Country(tag) is { } other && CCountryFacts.Of(api.State).AreControllerNeighbours(country.Tag, tag)
 					&& !other.InExile);
 			})
+			// Espionage (docs/mechanics/espionage.md, section 15).
+			.Method("GetCapitalLocation", call => call.Return(new CLuaObject(api.Province, api.State.Province(Of(call).Capital))))
+			.Method("GetSpyPresence", call =>
+			{
+				CCountry country = Of(call);
+				return call.Return(api.CountryOf(call, 2) is { } other
+					? new CLuaObject(api.SpyPresence, CGameState.Presence(country, other))
+					: null);
+			})
+			.Method("GetSpyingOnUs", call => call.ReturnIterator(Tags(api, SpyingOn(api, Of(call)))))
+			.Method("CalculateIsAllied", call =>
+			{
+				CCountry country = Of(call);
+				return call.Return(api.State.Country(call.Object<CCountryTag>(2, "CCountryTag")) is { } other
+					&& IsAllied(api, country, other));
+			})
+			.Method("GetNationalUnity", call => call.Return(api.Fixed(Of(call).NationalUnity)))
+			.Method("AccessIdeologyPopularity", call => call.Return(new CLuaObject(api.IdeologyData, Of(call).Popularity)))
 			// Politics (docs/mechanics/politics.md, section 12).
 			.Method("GetLaw", call => call.Return(new CLuaObject(api.Law,
 				CLawClass.LawOf(Of(call), call.Object<CLawGroup>(2, "CLawGroup")))))
@@ -217,44 +235,36 @@ public static class CCountryClass
 		return new CFixedPoint(Sim.Wars.CSurrender.Progress(api.State, country));
 	}
 
-	/// <summary>Not itself, and at war with it or either is the rebels.</summary>
-	public static bool IsEnemy(CGameApi api, CCountry country, CCountryTag other)
+	/// <summary>
+	/// Every other country, not REB, owning a province, in order, whose spies in this one are above nought - a fraction
+	/// of a spy counting. Ours: worked out when asked, where the original rebuilds the list once a day.
+	/// </summary>
+	private static List<CCountry> SpyingOn(CGameApi api, CCountry country)
 	{
-		if (other == country.Tag)
+		var spying = new List<CCountry>();
+		CCountryFacts facts = CCountryFacts.Of(api.State);
+		foreach (CCountry other in api.State.Countries)
 		{
-			return false;
+			if (other != country && other.Tag.Value != "REB" && facts.OwnedCount(other.Tag) > 0
+				&& CGameState.Presence(other, country).Level > 0)
+			{
+				spying.Add(other);
+			}
 		}
-		return CCountryLists.AtWar(api.State, country.Tag, other) || other.Value == "REB" || country.Tag.Value == "REB";
+		return spying;
 	}
 
-	/// <summary>The original's <c>IsFriend</c>, in its order: with <paramref name="withAccess"/>, access through the other counts.</summary>
-	public static bool IsFriend(CGameApi api, CCountry country, CCountryTag tag, bool withAccess)
+	/// <summary>Allied: an alliance between the two, or both members of one real faction.</summary>
+	public static bool IsAllied(CGameApi api, CCountry country, CCountry other)
 	{
-		if (tag == country.Tag)
-		{
-			return true;
-		}
-		CCountry? other = api.State.Country(tag);
-		if (other?.Overlord == country.Tag || country.Overlord == tag)
-		{
-			return true;
-		}
-		if (country.Overlord is { } overlord && other?.Overlord == overlord)
-		{
-			return true;
-		}
-		if (country.Faction.Length > 0 && other?.Faction == country.Faction)
-		{
-			return true;
-		}
-		if (CCountryLists.HasAlliance(api.State, tag, country.Tag))
-		{
-			return true;
-		}
-		if (CCountryLists.FightingTogether(api.State, tag, country.Tag) && !IsEnemy(api, country, tag))
-		{
-			return true;
-		}
-		return withAccess && other is not null && CGameState.Status(country, other).HasMilitaryAccess;
+		return other != country && (CCountryLists.HasAlliance(api.State, country.Tag, other.Tag)
+			|| (country.Faction.Length > 0 && country.Faction == other.Faction));
 	}
+
+	/// <summary>The original's <c>IsEnemy</c>: <see cref="CCountryLists.IsEnemy"/>.</summary>
+	public static bool IsEnemy(CGameApi api, CCountry country, CCountryTag other) => CCountryLists.IsEnemy(api.State, country, other);
+
+	/// <summary>The original's <c>IsFriend</c>: <see cref="CCountryLists.IsFriend"/>.</summary>
+	public static bool IsFriend(CGameApi api, CCountry country, CCountryTag tag, bool withAccess) =>
+		CCountryLists.IsFriend(api.State, country, tag, withAccess);
 }

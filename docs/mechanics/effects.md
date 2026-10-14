@@ -179,7 +179,8 @@ capital, `manpower = from` adds nothing.
 
 The government, the parties and the ministers - `government`, `coup_by`, `do_election`, `remove_minister`,
 `organisation`, `popularity`, an ideology's block - run since 2026-10-14, and `national_unity` changes it as the day
-does: `politics.md`, section 8.
+does: `politics.md`, section 8. `modify_spies` runs since the same day and adds nothing: the original adds a count it
+never reads from the file (`espionage.md`, section 13).
 
 **Unbuilt - what the simulation does not hold yet:**
 
@@ -189,7 +190,7 @@ does: `politics.md`, section 8.
 | diplomacy | `casus_belli`, `add_casus_belli`, `war`, `undeclared_war`, `add_wargoal`, `create_vassal`, `release`, `release_vassal`, `inherit`, `surrender_inherit`, `form_government_in_exile`, `split_troops` |
 | neutrality and war exhaustion | `neutrality`, `war_exhaustion` |
 | revolts | `revolt_risk`, `create_revolt`, a rebel type's name |
-| espionage and intelligence | `remove_fow`, `local_intel_boost`, `modify_spies` |
+| the fog of war's switch | `remove_fow` |
 | the AI | `add_ai_strategy`, `fixed_ai_strategy` |
 | units an event gives or takes | `load_oob`, `add_division`, a unit type's name, `remove_brigade` |
 

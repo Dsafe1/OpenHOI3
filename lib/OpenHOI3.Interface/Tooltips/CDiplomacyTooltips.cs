@@ -23,7 +23,7 @@ public static class CDiplomacyTooltips
 	private const string White = "§W";
 
 	/// <summary>The text of each good's name, by the row's icon of it.</summary>
-	private static readonly Dictionary<EGoods, string> GoodsNames = new()
+	public static readonly Dictionary<EGoods, string> GoodsNames = new()
 	{
 		[EGoods.Energy] = "ENERGY_IRO",
 		[EGoods.Metal] = "METAL_IRO",

@@ -203,7 +203,8 @@ public static class CLeadership
 
 			country.Officers = AddNeverBelowNothing(country.Officers, OfficersMade(state, country));
 			country.DiplomaticInfluence = AddNeverBelowNothing(country.DiplomaticInfluence, InfluenceMade(state, country));
-			country.SpiesInTraining += SpiesMade(state, country);
+			// The spies trained, and whole ones placed out of the free ones (espionage.md, section 4).
+			Espionage.CSpyPlacing.Run(state, country, SpiesMade(state, country));
 			CResearch.RunDaily(state, country, Allocated(country, ELeadershipCategory.Research));
 		}
 	}

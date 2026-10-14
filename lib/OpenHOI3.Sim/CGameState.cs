@@ -91,10 +91,22 @@ public sealed class CGameState
 			CCountry country = _countriesInOrder[index];
 			country.Index = index;
 			country.Diplomacy = new CDiplomacyStatus[_countriesInOrder.Count];
+			country.Espionage = new Espionage.CSpyPresence[_countriesInOrder.Count];
 			for (int other = 0; other < _countriesInOrder.Count; other++)
 			{
 				country.Diplomacy[other] = new CDiplomacyStatus(country.Tag, _countriesInOrder[other].Tag);
+				country.Espionage[other] = new Espionage.CSpyPresence();
 			}
+			// And its own presence, where its counter-espionage is, starts at priority 1 with counter-espionage at 1
+			// (espionage.md, section 2).
+			Espionage.CSpyPresence home = country.Espionage[index];
+			home.Priority = 1;
+			home.SetMission((int)Espionage.ESpyMission.CounterEspionage, 1);
+		}
+		// What each country knows of each province (intelligence.md, section 2).
+		foreach (CProvince province in provinces)
+		{
+			province.Intel = new byte[_countriesInOrder.Count];
 		}
 	}
 
@@ -113,6 +125,15 @@ public sealed class CGameState
 	{
 		return holder.Diplomacy[other.Index];
 	}
+
+	/// <summary>What <paramref name="holder"/> has in <paramref name="other"/> of spies (<c>espionage.md</c>, section 1).</summary>
+	public static Espionage.CSpyPresence Presence(CCountry holder, CCountry other)
+	{
+		return holder.Espionage[other.Index];
+	}
+
+	/// <summary>The covert operations of <c>common/covert_ops.txt</c>, in its order (<c>espionage.md</c>, section 11).</summary>
+	public List<Espionage.CCovertOperation> CovertOperations { get; } = new();
 
 	public long TotalHours => _hours;
 
@@ -492,13 +513,16 @@ public sealed class CGameState
 	}
 
 	/// <summary>
-	/// How well each country knows each province it has a unit in and does not hold, where
-	/// it knows it at all: by the province's id and the country. The name is from when
-	/// only fleets asked; land is in it since air missions do. Written by
-	/// <see cref="CNavalIntelligence.Refresh"/> once a day, and read through
-	/// <see cref="CIntelligence.Level"/>.
+	/// The provinces asked for this hour, which <see cref="Intelligence.CProvinceIntel"/> raises at its end
+	/// (<c>docs/mechanics/intelligence.md</c>, section 5).
 	/// </summary>
-	public Dictionary<(int Province, CCountryTag Country), int> SeaIntelligence { get; } = new();
+	public List<int> IntelRequests { get; } = new();
+
+	/// <summary>
+	/// What the hour's end compares against the last hour's to see whether the whole of what countries know of
+	/// provinces must be made again: the changes of hands and the pacts (<c>intelligence.md</c>, section 5).
+	/// </summary>
+	public long IntelFingerprint { get; set; }
 
 	/// <summary>
 	/// How many times a province has changed owner or controller in this game. Whatever shows who

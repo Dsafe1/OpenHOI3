@@ -65,6 +65,15 @@ public interface IAiScripts
 	}
 
 	/// <summary>
+	/// <c>IntelligenceMinister_Tick(minister)</c>: a country's intelligence minister's day - one day in nine, its spies'
+	/// priorities and missions at home and abroad - whose commands go to the state's outbox. See
+	/// <c>docs/mechanics/espionage.md</c>, section 15.
+	/// </summary>
+	void RunIntelligence(CGameState state, CCountry country)
+	{
+	}
+
+	/// <summary>
 	/// The hour's trading of several countries at once, as the original runs it on its worker threads:
 	/// each <see cref="RunTrade"/> in turn unless the scripts can run them side by side. Whichever way,
 	/// what they post reaches the outbox in the order of <paramref name="runs"/>, and they change nothing

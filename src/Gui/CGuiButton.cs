@@ -128,9 +128,17 @@ public partial class CGuiButton : CGuiObject
 		MouseExited += () => SetHovered(false);
 	}
 
-	/// <summary>The words on the button, in the font its type names. Blank words take the caption away.</summary>
+	/// <summary>
+	/// The words on the button, in the font its type names. Blank words take the caption away, and a button drawn with a
+	/// plain picture has none: the original draws a button's words only on a text sprite - its research queue's stop
+	/// button shows no "--", the maintainer's screenshot of 2026-10-14.
+	/// </summary>
 	public void SetText(string text)
 	{
+		if (_sprite is { IsPlain: true })
+		{
+			text = "";
+		}
 		if (text.Trim().Length == 0)
 		{
 			_caption?.QueueFree();

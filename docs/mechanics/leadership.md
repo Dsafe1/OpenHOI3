@@ -127,8 +127,7 @@ and the define applied afterwards, where officers and influence apply theirs fir
 quarter of 4.2 is 1.049, and 1.049 x 0.15 is 0.157 with the rest dropped.
 
 Whole spies are then sent out, to the countries the player or the AI has given a priority,
-highest priority first; a fraction waits. That part belongs to espionage and is in
-`reversing/findings/FINDINGS-espionage.md`.
+highest priority first; a fraction waits. That part belongs to espionage: `espionage.md`, section 4.
 
 ## 6. Research
 
@@ -152,9 +151,10 @@ fast it goes and what finishing it does is `research.md`.
   IC, from its provinces' modifiers and its own.
 - **The four shares are changed only by a command**, which refuses four numbers that are
   not all at least nothing and no more than one between them.
-- **Officers, influence and spies in training accumulate; nothing spends them yet.**
-  Influence is for diplomacy and spies for espionage, neither of which exists here. Spies
-  are not sent anywhere, so the figure is a pool that only grows. **Officers are used
+- **Officers and influence accumulate, and spies are placed.** Influence is spent by
+  diplomacy (`agreements.md`), and whole spies are placed out of the free ones each day by
+  priority (`espionage.md`, section 4); a country whose presences are all full or at priority
+  0 keeps adding to the pool, which has no ceiling. **Officers are used
   though not spent**: how many a country has against what its units call for is the
   officer ratio, which sets how much organisation its brigades can hold and how fast it
   comes back (`organisation.md`). What takes officers away is battle, which is not built.

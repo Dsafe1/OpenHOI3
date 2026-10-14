@@ -73,7 +73,23 @@ public sealed class CGameApi
 		ChangeMinister = CPoliticsCommandClass.DefineChangeMinister(this);
 		ToggleMobilization = CPoliticsCommandClass.DefineToggleMobilization(this);
 		Liberate = CPoliticsCommandClass.DefineLiberate(this);
+		SpyPresence = CSpyPresenceClass.Define(this);
+		IdeologyData = CIdeologyDataClass.Define(this);
+		IntelligenceMinister = CIntelligenceMinisterClass.Define(this);
+		ChangeSpyPriority = CSpyCommandClass.DefinePriority(this);
+		ChangeSpyMission = CSpyCommandClass.DefineMission(this);
 	}
+
+	/// <summary>Espionage (docs/mechanics/espionage.md, section 15).</summary>
+	public CLuaClass SpyPresence { get; }
+
+	public CLuaClass IdeologyData { get; }
+
+	public CLuaClass IntelligenceMinister { get; }
+
+	public CLuaClass ChangeSpyPriority { get; }
+
+	public CLuaClass ChangeSpyMission { get; }
 
 	/// <summary>Politics (docs/mechanics/politics.md, section 12).</summary>
 	public CLuaClass Law { get; }
@@ -160,7 +176,8 @@ public sealed class CGameApi
 		GoodsPool, Strategy, Ai, ResourceValues, GameState, CountryDataBase, Intel, FixedPoint, Text, Date,
 		TradeAction, TradeRoute, GoodsValues, Modifier, TechnologyStatus, SubUnit, SubUnitDataBase, LicenceAction,
 		Law, LawGroup, LawDataBase, Minister, MinisterType, GovernmentPosition, PositionDataBase, PoliticsMinister,
-		ChangeLaw, ChangeMinister, ToggleMobilization, Liberate,
+		ChangeLaw, ChangeMinister, ToggleMobilization, Liberate, SpyPresence, IdeologyData, IntelligenceMinister,
+		ChangeSpyPriority, ChangeSpyMission,
 	}.Concat(CEnumClasses.Define());
 
 	/// <summary>What has been reported as not built, in the order it was first met.</summary>

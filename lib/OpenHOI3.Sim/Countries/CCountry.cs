@@ -443,6 +443,12 @@ public sealed class CCountry
 	/// </summary>
 	public List<CUnit> Deployments { get; } = new();
 
+	/// <summary>
+	/// The provinces its radar sees from, by id: each added as it comes to control one with radar, and none ever taken
+	/// off (<c>docs/mechanics/intelligence.md</c>, section 4).
+	/// </summary>
+	public List<int> RadarProvinces { get; } = new();
+
 	/// <summary>The IC a full day's work on everything in its queue takes: the production share's need.</summary>
 	public CFixedPoint ProductionCost { get; set; }
 
@@ -593,8 +599,29 @@ public sealed class CCountry
 	/// </summary>
 	public int PoliticsCountdown { get; set; }
 
-	/// <summary>Spies trained and not yet sent anywhere. A whole spy is 1.</summary>
-	public CFixedPoint SpiesInTraining { get; set; }
+	/// <summary>
+	/// Hours until its intelligence minister first works, from 1 to 10, drawn when a new game makes one for every country
+	/// nobody plays; 0 for a country with none (<c>espionage.md</c>, section 15).
+	/// </summary>
+	public int IntelligenceCountdown { get; set; }
+
+	/// <summary>Spies trained and not yet placed anywhere, with no ceiling (<c>spies</c>). A whole spy is 1.</summary>
+	public CFixedPoint FreeSpies { get; set; }
+
+	/// <summary>
+	/// What it has in each country, by that country's <see cref="Index"/> - itself included, where its counter-espionage
+	/// at home is. See <c>docs/mechanics/espionage.md</c>, section 1.
+	/// </summary>
+	public Espionage.CSpyPresence[] Espionage { get; internal set; } = Array.Empty<Espionage.CSpyPresence>();
+
+	/// <summary>The spies it has caught at home this month (<c>spiescaught</c>); nothing but the screen reads it.</summary>
+	public int SpiesCaught { get; set; }
+
+	/// <summary>
+	/// Where the day's placing of spies starts in each priority band, 1 to 3, by a country's <see cref="Index"/>; entry 0
+	/// is never used. Never saved (<c>espionage.md</c>, section 4).
+	/// </summary>
+	public int[] SpyCursors { get; } = new int[4];
 
 	/// <summary>
 	/// Its level in each technology category - its theories and practicals - by the

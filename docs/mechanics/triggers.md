@@ -260,7 +260,8 @@ five held everywhere on the start date for that reason when it was asked, flags 
 
 The government, the parties and the ministers - `government`, `ideology`, `ideology_group`, `organisation`,
 `popularity`, an ideology's block, `minister_alive`, `has_removable_minister` - and the three strategic-warfare
-impacts answer since 2026-10-14: `politics.md`, section 8.
+impacts answer since 2026-10-14: `politics.md`, section 8. `spies` and `spy_mission_count` answer since the same day:
+`espionage.md`, section 13.
 
 **Unbuilt - what the simulation does not hold yet:**
 
@@ -268,7 +269,7 @@ impacts answer since 2026-10-14: `politics.md`, section 8.
 | --- | --- |
 | diplomacy | `truce_with`, `undeclared_war_with`, `casus_belli`, `has_cb`, `has_wargoal` |
 | revolts | `num_of_revolts`, `revolt_percentage`, `revolt_risk`, `pure_revolt_risk`, `nationalism` |
-| espionage | `spies`, `spy_mission_count`, `remove_fow` |
+| the fog of war's switch | `remove_fow` |
 | the AI's missions | `active_mission`, `last_mission`, `is_mission_country`, `is_mission_province` |
 | a country's war record | `war_exhaustion`, `lost_IC`, `lost_national`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
 | the last battles | `last_battle_winner_losses` and the five others |

@@ -1,14 +1,13 @@
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Intelligence;
 using OpenHOI3.Sim.Provinces;
 
 namespace OpenHOI3.Sim.Combat;
 
 /// <summary>
-/// How well a country knows a province, from 0 to 9: 9 where it or a friend - an ally or
-/// a member of its own faction - holds it, and otherwise what its own units there gave
-/// it at the day's turn, 9 on land and 2 at sea. An air mission picks its targets only
-/// where this is 2 or better. The original adds up to 8 for radar, which is not built.
-/// See <c>docs/mechanics/aircombat.md</c>, section 6.
+/// How well a country knows a province, from 0 to 9, as the missions and battles ask it: the level
+/// <see cref="CProvinceIntel"/> keeps (<c>docs/mechanics/intelligence.md</c>). An air mission picks its targets only
+/// where this is 2 or better (<c>docs/mechanics/aircombat.md</c>, section 6).
 /// </summary>
 public static class CIntelligence
 {
@@ -17,11 +16,7 @@ public static class CIntelligence
 
 	public static int Level(CGameState state, CProvince province, CCountryTag country)
 	{
-		if (province.Controller is { } holder && (holder == country || IsFriend(state, holder, country)))
-		{
-			return CNavalIntelligence.LevelOfOwnGround;
-		}
-		return state.SeaIntelligence.TryGetValue((province.Id, country), out int level) ? level : 0;
+		return CProvinceIntel.Level(state, province, country);
 	}
 
 	/// <summary>Whether two countries are allies or members of one faction.</summary>

@@ -85,6 +85,10 @@ public static class CTick
 		// Then each AI country's politics minister, in its own hour of the day (docs/mechanics/politics.md, section 12;
 		// ours: where in the hour beside trading was not read).
 		Step(state, Politics.CPoliticsAi.RunHourly);
+		// And its intelligence minister, in its own hour (espionage.md, section 15; ours: where beside the politics).
+		Step(state, Espionage.CEspionageAi.RunHourly);
+		// Last, what countries know of the provinces units left and entered this hour (intelligence.md, section 5).
+		Step(state, Intelligence.CProvinceIntel.RaiseHourly);
 	}
 
 	/// <summary>
@@ -121,6 +125,7 @@ public static class CTick
 		Step(state, CMissions.RunDaily);                          // a unit's day begins with its order's
 		Step(state, CDigIn.RunDaily);                             // and then with this
 		Step(state, CUnitUpkeep.RunDaily);
+		Step(state, CIntelGrants.CountDown);                      // what others were given to know of a unit, a day less
 		Step(state, CResources.UpdateHomeProduction);
 		Step(state, CStockpile.AddHomeProduction);
 		Step(state, CResources.GatherCutOff);                     // what the sea cuts off waits in a harbour
@@ -129,7 +134,8 @@ public static class CTick
 		Step(state, CIndustrialCapacity.Update);
 		Step(state, Wars.CExile.HandOverDaily);                   // an exile's supplies to its host, before the shares
 		Step(state, CProduction.RunDaily);
-		Step(state, CLeadership.RunDaily);
+		Step(state, CLeadership.RunDaily);                        // spies placed with the espionage share,
+		Step(state, Espionage.CSpyMissions.RunDaily);             // and at work after the alignment's step (espionage.md, 5)
 		Step(state, Politics.CElections.RunDaily);               // an election where one is due, then the seats
 		Step(state, Politics.CCabinet.RunDaily);                 // where the ruling party holds none (politics.md, 4-5)
 		Step(state, Wars.CSurrender.RunDaily);                    // late in a country's day: the surrender,
@@ -144,7 +150,7 @@ public static class CTick
 		{
 			Step(state, s => CEventPass.RunDaily(s), "CEventPass.RunDaily");
 		}
-		Step(state, CNavalIntelligence.Refresh);                  // late in the original's day
+		Step(state, Intelligence.CProvinceIntel.Rebuild);         // late in the original's day: what countries know
 		Step(state, Wars.CVictoryConditions.RunDaily);            // and last, the victory conditions (factions.md, section 8)
 	}
 
@@ -188,7 +194,7 @@ public static class CTick
 		CResources.UpdateHomeProduction(state);
 		CProduction.Estimate(state);
 		COfficers.Update(state);
-		CNavalIntelligence.Refresh(state);
+		Intelligence.CProvinceIntel.Rebuild(state);
 		// Entering a game makes every country's candidate events, as the month does.
 		CEventPass.RebuildCandidates(state);
 	}
@@ -213,6 +219,7 @@ public static class CTick
 		// a new game's relations the same both ways (docs/mechanics/diplomacy.md, section 2).
 		Step(state, CRelations.RunMonth);
 		Step(state, CManpower.UpdateMost);
+		Step(state, Espionage.CSpyMissions.ResetCaught);          // the spies caught this month, back to nought
 		Step(state, CEventPass.RebuildCandidates);
 	}
 

@@ -194,6 +194,8 @@ public static class CGameStateLoader
 		{
 			warn($"politics: the AI's laws were still moving after {CPoliticsAi.MostLawPasses} passes");
 		}
+		// And an intelligence minister (espionage.md, section 15; ours: its draw after the politics minister's).
+		Sim.Espionage.CEspionageAi.SetUpAtStart(state);
 		// And the two days the original has behind it on the first screen are run, with
 		// the provinces filled along the supply network between them, so that no army
 		// starts hungry.

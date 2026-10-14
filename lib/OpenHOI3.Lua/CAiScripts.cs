@@ -235,6 +235,20 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		}
 	}
 
+	/// <summary><c>IntelligenceMinister_Tick(minister)</c>, the country's intelligence minister handed over. A failure is reported.</summary>
+	public void RunIntelligence(CGameState state, CCountry country)
+	{
+		_state = state;
+		try
+		{
+			_lua.Call("IntelligenceMinister_Tick", 0, new CLuaObject(_api.IntelligenceMinister, new CLuaAi(country)));
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+	}
+
 	/// <summary>
 	/// The hour's trading, side by side on states of its own, made the first time (<see cref="CTradeWorkers"/>).
 	/// What the runs post reaches the state's outbox, and what they report is reported, in the order of the

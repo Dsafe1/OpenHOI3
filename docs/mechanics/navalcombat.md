@@ -73,7 +73,8 @@ that one**: a failed sighting of it ends the look, whoever else is there. Then, 
   so a carrier that is a capital ship counts as one - or else a screen.
 - **A fleet under way is harder to see**, and each pair's figure is cut to a whole number
   before the roll: with nothing in its favour a pair has one chance in ten thousand.
-- **How well a country knows a sea province** is worked out once a day: 2 where it had a unit
+- **How well a country knows a sea province** is `intelligence.md`'s since 2026-10-14 - made again daily and raised
+  at the end of every hour where a unit came or went. It was first built once a day: 2 where it had a unit
   there at the day's turn, 9 where that unit was a patrol shadowing somebody - a sighting with
   no roll - and nothing for water a fleet has only just sailed into. `navalmissions.md`,
   section 9, has it, and what radar would add.

@@ -13,6 +13,50 @@ namespace OpenHOI3.Sim.Countries;
 /// </summary>
 public static class CCountryLists
 {
+	/// <summary>The original's <c>IsEnemy</c>: not itself, and at war with it or either is the rebels.</summary>
+	public static bool IsEnemy(CGameState state, CCountry country, CCountryTag other)
+	{
+		if (other == country.Tag)
+		{
+			return false;
+		}
+		return AtWar(state, country.Tag, other) || other.Value == "REB" || country.Tag.Value == "REB";
+	}
+
+	/// <summary>
+	/// The original's <c>IsFriend</c>, in its order: itself; either the other's overlord, or one overlord over both; one
+	/// real faction; an alliance in the other's record towards it; fighting on one side and not its enemy; and, with
+	/// <paramref name="withAccess"/>, its own record's military access through the other.
+	/// </summary>
+	public static bool IsFriend(CGameState state, CCountry country, CCountryTag tag, bool withAccess)
+	{
+		if (tag == country.Tag)
+		{
+			return true;
+		}
+		CCountry? other = state.Country(tag);
+		if (other?.Overlord == country.Tag || country.Overlord == tag)
+		{
+			return true;
+		}
+		if (country.Overlord is { } overlord && other?.Overlord == overlord)
+		{
+			return true;
+		}
+		if (country.Faction.Length > 0 && other?.Faction == country.Faction)
+		{
+			return true;
+		}
+		if (HasAlliance(state, tag, country.Tag))
+		{
+			return true;
+		}
+		if (FightingTogether(state, tag, country.Tag) && !IsEnemy(state, country, tag))
+		{
+			return true;
+		}
+		return withAccess && other is not null && CGameState.Status(country, other).HasMilitaryAccess;
+	}
 	/// <summary>Whether the two are on opposite sides of a war.</summary>
 	public static bool AtWar(CGameState state, CCountryTag one, CCountryTag other)
 	{

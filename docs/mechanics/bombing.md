@@ -397,7 +397,7 @@ to the maintainer.
    against and turns for home.
 4. **A wing with no strategic attack bombs as hard as one with a little**: one run an hour,
    interceptors flying with the bombers included.
-5. **Interdiction flies only at ground its country sees into**, and takes the last such
+5. **Interdiction flies only at ground its country sees into** (at 2 or more, `intelligence.md`), and takes the last such
    province of its list whether or not anybody is there; ground attack goes round its list
    and weighs nothing.
 6. **Ground attack and interdiction keep their province** from sortie to sortie, and the

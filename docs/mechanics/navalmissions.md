@@ -351,23 +351,19 @@ section 11): before each of its first three rounds, at `EXP_GAIN_CONVOY_MODIFIER
                                                        the other is in, today or yesterday
         x 2,                                           where the other is shadowed by a patrol
 
-**How well a country knows a province.** The original keeps a level from 0 to 9 for every
-country in every province and works them all out afresh **once a day**, as the last thing of
-the day. What is built of it:
+**How well a country knows a province** is `intelligence.md`'s, read whole since 2026-10-14: made
+again once a day, and **raised at the end of every hour** for the provinces units left or
+entered. For a fleet:
 
-    land a country's unit stands in                             9, at once
-    a sea province one of its units was in at the day's turn    2
-    the same, where that unit was a patrol shadowing somebody   9
+    a sea province one of its units is in                        2, by the hour's end
+    the same, where that unit is a patrol shadowing somebody     9
+    the same, where a battle between fleets is being fought      9
+    its country's own and its friends' ground, a port among it   9
 
-A fleet that has just sailed into a province knows nothing of it until midnight. **The whole
-of the rule was read for the air missions and is `aircombat.md`, section 6**: whoever holds a
-province and their friends know it at 9, and so does a country with a unit on its ground.
-*Not built:* radar, which gives up to 8. *Not
-established:* the original also runs the refresh every hour once a change of who plays a
-country has asked for it, and nothing found ever stops that; whether an ordinary game is in
-that state was not read. Here it is daily - and the maintainer, asked on 2026-10-10: "I
-think its daily." That is his recollection of the game and not a reading, so the line
-stays under what is not established, with his word against it.
+So a fleet that has just sailed into a province knows it at 2 by the end of that hour, where
+this was first built to know nothing of it until midnight. The maintainer's word on 2026-10-10,
+asked whether it was daily or hourly, was "I think its daily" - given before the hour's raise
+was read; put to him once it was, his word on 2026-10-14 was "Keep it as read."
 
 ## 10. Mission efficiency
 

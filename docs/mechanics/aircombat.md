@@ -248,24 +248,24 @@ be fought there (section 7).
 
 ## 6. What a country knows of a province
 
-`confirmed` A level from 0 to 9, worked out afresh once a day:
+`confirmed` A level from 0 to 9, **read whole since 2026-10-14 and `intelligence.md`'s**: made again
+once a day and raised at the end of every hour where units came or went. What it gives:
 
-    whoever holds the province, and each of its allies and fellow faction members    9
+    whoever holds the province, and each of its allies, its master, its puppets
+        and its fellow faction members                                                 9
     a country with a unit standing there: on land                                    9
                                           at sea                                     2
-                                          at sea, a patrol shadowing somebody        9
-    radar: up to 8, in two rings about each station                                  not built
+                                          at sea, in a battle or shadowing           9
+    the land beside a country's own or its friends'                                   3
+    the land beside a country's unit on foreign ground                    2 to 9, by decryption
+    a grant on a unit there, from military espionage or local_intel_boost            its level
+    radar                                                                             up to 8
 
-**Nothing else**: not ground a country owns and an enemy holds, and not its neighbours'. So an
-intercept over its own or a friend's ground always sees what flies in, and air superiority
-over an enemy's ground has a target to chase only where its country has a unit - which, the
-levels being a day old, includes a province it flew through yesterday. **A battle needs none
-of this**: it starts on entering the province.
-
-*Ours:* `CIntelligence`. The holder's and its friends' level is asked on the spot and the
-units' part is the daily snapshot `navalmissions.md`, section 9, already keeps. The original
-also takes a level off a list each unit carries, which nothing read fills, and has no fog at
-all with a setting off; neither is built.
+So an intercept over its own or a friend's ground always sees what flies in, and air superiority
+over an enemy's ground has a target to chase on the land along the border and where its units
+are. **A battle needs none of this**: it starts on entering the province. This section first
+said "nothing else - not its neighbours'", off the reading made for the air missions; the
+espionage wave read the rest and corrected it.
 
 ## 7. What may fight what
 

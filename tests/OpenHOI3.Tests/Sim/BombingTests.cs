@@ -538,8 +538,8 @@ public class BombingTests
 		bombers.Order = EUnitOrder.Interdiction;
 		bombers.Mission.Destination = 0;
 		Assert.Equal(0, CBombingProvinces.Pick(state, bombers));
-		state.SeaIntelligence[(Field, Ger)] = 9;
-		state.SeaIntelligence[(Warsaw, Ger)] = 9;
+		state.Province(Field).Intel[germany.Index] = 9;
+		state.Province(Warsaw).Intel[germany.Index] = 9;
 		Assert.Equal(Warsaw, CBombingProvinces.Pick(state, bombers));
 	}
 

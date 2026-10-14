@@ -50,6 +50,7 @@ public partial class CSession : Node
 	private CTechnologyView? _technology;
 	private CDiplomacyView? _diplomacy;
 	private CPoliticsView? _politics;
+	private CEspionageView? _espionage;
 	private CEventWindows? _events;
 	private CDeployMenu? _deployMenu;
 	private CAlerts? _alerts;
@@ -165,6 +166,10 @@ public partial class CSession : Node
 			_politics = new CPoliticsView();
 			_politics.Setup(gui, _simulation, Player);
 			layer.AddChild(_politics);
+			_espionage = new CEspionageView();
+			_espionage.Setup(gui, _simulation, Player);
+			_espionage.SelectedProvince = () => mapView.SelectedProvince;
+			layer.AddChild(_espionage);
 
 			// The deploy menu and the alert that opens it. A unit chosen there is placed
 			// by a click on the map, which is shown where it may go.
@@ -218,6 +223,7 @@ public partial class CSession : Node
 			_topBar.TechnologyPressed += () => Toggle(_technology);
 			_topBar.DiplomacyPressed += () => Toggle(_diplomacy);
 			_topBar.PoliticsPressed += () => Toggle(_politics);
+			_topBar.IntelligencePressed += () => Toggle(_espionage);
 
 			// The offers other countries make the player, as icons hanging from the top bar - over it,
 			// since the icons reach up into its window.
@@ -336,7 +342,7 @@ public partial class CSession : Node
 			view.Close();
 			return;
 		}
-		foreach (CCountryView? other in new CCountryView?[] { _production, _technology, _diplomacy, _politics })
+		foreach (CCountryView? other in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage })
 		{
 			if (!ReferenceEquals(other, view))
 			{
@@ -837,7 +843,7 @@ public partial class CSession : Node
 						.Select(held => $"{_localisation.Localise(held.Key)} {held.Value}"));
 				}
 				text += $"\nLeadership: {spender.TotalLeadership}   (research projects {CLeadership.ResearchSlots(spender)})";
-				text += $"\nOfficers {spender.Officers}   Influence {spender.DiplomaticInfluence}   Spies in training {spender.SpiesInTraining}";
+				text += $"\nOfficers {spender.Officers}   Influence {spender.DiplomaticInfluence}   Free spies {spender.FreeSpies}";
 				if (spender.ResearchQueue.Count > 0)
 				{
 					text += "\nResearching: " + string.Join(", ", spender.ResearchQueue.Take(4)
@@ -907,7 +913,7 @@ public partial class CSession : Node
 	/// <c>--builder=division:type,type</c> (or <c>ship:</c>, <c>air:</c>, <c>brigade:</c> and one
 	/// type) opens the window that orders one, with that in it,
 	/// <c>--technology=key</c> chooses one on the technology screen,
-	/// <c>--screen=politics</c> the politics screen, <c>--screen=diplomacy</c> opens the diplomacy screen with its decisions, <c>--event=2602</c>
+	/// <c>--screen=politics</c> the politics screen, <c>--screen=intelligence</c> the intelligence screen, <c>--screen=diplomacy</c> opens the diplomacy screen with its decisions, <c>--event=2602</c>
 	/// fires that event for the player, its trigger not asked, <c>--event=2602:1861</c> for a province of his and
 	/// <c>--event=2001:SPR</c> for another country, which answers it as the AI does,
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
@@ -975,6 +981,10 @@ public partial class CSession : Node
 			else if (argument == "--screen=politics")
 			{
 				Toggle(_politics);
+			}
+			else if (argument == "--screen=intelligence")
+			{
+				Toggle(_espionage);
 			}
 			else if (argument == "--screen=diplomacy")
 			{

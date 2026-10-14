@@ -249,7 +249,7 @@ laws, which `national_unity_effect` comes from, are the AI's. Three of the laws 
 conscription, economy and press no history gives, and the fourth is Israel's press law: free, as a democracy at peace
 is given, where the save keeps the history's state press. `laws=save` gives every country the save's laws instead,
 before the two days: 707 of 707 and national unity 99 of 101. Popularity and the cabinet carry the drift's draw on a
-generator whose seeding is ours, so popularity is set against the save to within five points (927 of 1010) and the
+generator whose seeding is ours, so popularity is set against the save to within five points (928 of 1010 on 2026-10-14 with espionage's draws before it; the figure moves with every draw added ahead of the drift) and the
 cabinet differs where a party drew across the cut (Germany 7 seats of 8 here). The post that differs is New Zealand's
 foreign minister, whom its AI changed before the save was written - and whom the minister here changes on its first
 day. Dissent differs by 0.018 where the AI moved its consumer goods. The start-date check (`OpenHOI3.SaveCheck

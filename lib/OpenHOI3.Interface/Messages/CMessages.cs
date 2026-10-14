@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using OpenHOI3.Content.Messages;
 using OpenHOI3.Interface.Events;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
@@ -144,12 +146,53 @@ public static class CMessages
 				message.Variables.Add((key, Appointed(localise, state, pact, key, value)));
 				continue;
 			}
+			// Spies' messages name countries and a technology by tag and name (espionage.md, section 12).
+			if (pact.We.StartsWith("SPIESFOUND", StringComparison.Ordinal) || pact.We.Contains("TECH_STOLEN", StringComparison.Ordinal)
+				|| pact.We.StartsWith("WE_STEAL_TECH", StringComparison.Ordinal))
+			{
+				message.Variables.Add((key, SpyValue(localise, state, pact, key, value)));
+				continue;
+			}
 			// A war goal's type, a government, a faction and a faction's comment are written as their keys (war.md,
 			// sections 13 and 14; factions.md, section 3).
 			message.Variables.Add((key, key is "WARGOAL" or "GOVERNMENT" or "FACTION" or "COMMENT" or "BAD_COMMENT" or "COMMENT_BAD"
 				? localise(value) : value));
 		}
 		return message;
+	}
+
+	/// <summary>
+	/// One variable of a spies' message: a country's name for WHERE and RESPONSIBLE, its adjective for TARGET_ADJ, the
+	/// technology's name for TYPE, and for EFFECT what the technology's levels do at the level stolen, its first §W made
+	/// §b, or "none".
+	/// </summary>
+	private static string SpyValue(Func<string, string> localise, CGameState state, CPactMessage pact, string key, string value)
+	{
+		switch (key)
+		{
+			case "WHERE":
+			case "RESPONSIBLE":
+				return state.Country(new CCountryTag(value))?.Name ?? value;
+			case "TARGET_ADJ":
+				return state.Country(new CCountryTag(value)) is { } target ? CEventText.Adjective(localise, target) : value;
+			case "TYPE":
+				return localise(value);
+			case "EFFECT":
+				if (!state.Technologies.TryGetValue(value, out Sim.Research.CTechnology? technology)
+					|| state.Country(pact.Actor) is not { } thief)
+				{
+					return localise("none");
+				}
+				string effect = CTechnologyEffectsText.For(localise, state, thief, technology, thief.TechnologyLevels.GetValueOrDefault(value));
+				if (effect.Length == 0)
+				{
+					return localise("none");
+				}
+				int at = effect.IndexOf("§W", StringComparison.Ordinal);
+				return at < 0 ? effect : effect[..at] + "§b" + effect[(at + 2)..];
+			default:
+				return value;
+		}
 	}
 
 	/// <summary>One variable of <c>LAW_APPOINTED</c> or <c>MINISTER_APPOINTED</c>, from what the command wrote into it.</summary>

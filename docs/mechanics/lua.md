@@ -224,6 +224,10 @@ The classes they reach - `CLaw`, `CLawGroup`, `CLawDataBase`, `CMinister`, `CMin
 `CGovernmentPosition`, `CGovernmentPositionDataBase` and the three commands - are in `politics.md`,
 section 12, with what of them is not built.
 
+**`IntelligenceMinister_Tick(minister)`**, handed a `CAIEspionageMinister`, is each such country's intelligence
+minister's day, in its own hour (since 2026-10-14). The classes it reaches - `CSpyPresence`, `CIdeologyData`, the two
+spy commands and six methods of `CCountry` - are in `espionage.md`, section 15.
+
 **The AI's answer to an offer** (`IAiScripts.DiploScore`) is `DiploScore_<kind>(ai, actor,
 recipient, observer)`: `ai` a `CAI`, the AI of the **recipient**; the three tags fresh copies. Which
 offer asks which function, and which tag is the observer, is each offer's own and comes with the
@@ -255,20 +259,21 @@ AI's strategy, governments in exile, espionage and tribute.
 ## 7. `CAIIntel`
 
 `CAIIntel(us, them)` (`reversing/findings/FINDINGS-war.md` C.6) is what one country knows of another's
-strength; only `DiploScore_PeaceAction` makes one. **Espionage is not built, so nobody has spies anywhere**:
-what spies would add is nought, reported. As it is made:
+strength; only `DiploScore_PeaceAction` makes one. **It reads the spies since 2026-10-14** (`intelligence.md`,
+section 1): with none placed by anybody's mission yet, our level in them is a new game's and the two days'. As it is
+made:
 
 - **the factor** is our spies in them over the most, ten - `level * 1000 / 10000` - less their
   `counter_intelligence` modifier, in thousandths, over 1000 as a float; so with no spies it is their
   counter-intelligence turned round, and **a country whose laws give it -0.25 is known at 0.25**;
 - **the uncertainty** is `(float)(1 - factor + 0.2)`, held to 0.2 and 1.
 
-`GetFactor()` answers the factor; `HasNoIntel()` whether we have fewer than one spy - always;
-`GetTheirFactor()` their own spies' level over the most - nought. **`CalculateOurMilitaryStrength()`** is
+`GetFactor()` answers the factor; `HasNoIntel()` whether we have fewer than one whole spy there;
+`GetTheirFactor()` their spies in us over the most. **`CalculateOurMilitaryStrength()`** is
 every brigade's strength of every unit we have, over 1000, a float. **`CalculateTheirPercievedMilitaryStrengh()`**
 (the original's spelling), in thousandths unless said:
 
-    bonus  = SPY_INTEL_MISSION_BONUS (0.5) x our military mission's share in them / 1000   - nought
+    bonus  = SPY_INTEL_MISSION_BONUS (0.5) x our military mission's share in them / 1000
     f      = floor((float)((float)((float)(bonus / 1000) + factor) + 0.0005) x 1000)
     K      = floor(100000.5f)                                        = 100000
     chance = f x (K x SPY_UNIT_DETECTION_CHANCE (0.5) / 1000) / 1000 / 1000     per cent

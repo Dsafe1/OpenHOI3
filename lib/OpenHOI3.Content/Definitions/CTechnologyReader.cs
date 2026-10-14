@@ -29,7 +29,7 @@ public static class CTechnologyReader
 	private static readonly HashSet<string> OwnKeys = new(StringComparer.OrdinalIgnoreCase)
 	{
 		"difficulty", "start_year", "first_offset", "additional_offset", "max_level",
-		"folder", "change", "can_upgrade", "is_nuclear", "on_completion",
+		"folder", "change", "can_upgrade", "is_nuclear", "on_completion", "stealable",
 	};
 
 	/// <summary>The names a block is read under as a mission's figures.</summary>
@@ -194,6 +194,7 @@ public static class CTechnologyReader
 				ActivatesBuilding = block.All("activate_building").LastOrDefault(entry => entry.Value is { Length: > 0 })?.Value ?? "",
 				Change = !block.GetString("change").Equals("no", StringComparison.OrdinalIgnoreCase),
 				CanUpgrade = !block.GetString("can_upgrade").Equals("no", StringComparison.OrdinalIgnoreCase),
+				Stealable = !block.GetString("stealable").Equals("no", StringComparison.OrdinalIgnoreCase),
 			};
 			technologies.Add(technology);
 

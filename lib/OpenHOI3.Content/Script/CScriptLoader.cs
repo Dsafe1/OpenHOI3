@@ -6,7 +6,8 @@ using OpenHOI3.Sim.Script;
 namespace OpenHOI3.Content.Script;
 
 /// <summary>
-/// Reads a game's events and decisions into it, after everything they name has been loaded, and
+/// Reads a game's events and decisions into it, and the rest of its script - casus belli, war goals, on_actions,
+/// victory conditions, the laws' allow blocks and covert operations - after everything they name has been loaded, and
 /// returns the problems found: <c>docs/mechanics/script.md</c>.
 /// </summary>
 public static class CScriptLoader
@@ -21,6 +22,7 @@ public static class CScriptLoader
 		state.OnActions = COnActionReader.Read(directories, context, state.Events);
 		state.VictoryConditions = CFactionAimsReader.Read(directories, state, context);
 		CLawAllowReader.Read(directories, state, context);
+		state.CovertOperations.AddRange(CCovertOpsReader.Read(directories, context));
 		CheckAcrossFiles(state.Events, state.Decisions, context);
 		return context.Problems;
 	}

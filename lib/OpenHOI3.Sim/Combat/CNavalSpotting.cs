@@ -80,8 +80,8 @@ public static class CNavalSpotting
 		}
 
 		CProvince province = state.Province(ours.Location);
-		int level = CNavalIntelligence.Level(state, province, ours);
-		if (level >= CNavalIntelligence.LevelOfOwnGround || theirs.IsFighting)
+		int level = CIntelligence.Level(state, province, ours.Owner);
+		if (level >= Intelligence.CProvinceIntel.Most || theirs.IsFighting)
 		{
 			return true;
 		}

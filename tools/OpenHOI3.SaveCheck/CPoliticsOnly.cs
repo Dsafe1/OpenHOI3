@@ -3,7 +3,7 @@ using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Ai;
 using OpenHOI3.Sim.Countries;
 
-/// <summary>The install's Lua with the hourly trading left out, for the politics trial: it takes most of an hour's time.</summary>
+/// <summary>The install's Lua with the hourly trading left out, for the politics and espionage trials: it takes most of an hour's time.</summary>
 internal sealed class CPoliticsOnly : IAiScripts
 {
 	private readonly IAiScripts _scripts;
@@ -26,4 +26,6 @@ internal sealed class CPoliticsOnly : IAiScripts
 	public void RunLaws(CGameState state, CCountry country) => _scripts.RunLaws(state, country);
 
 	public void RunPolitics(CGameState state, CCountry country) => _scripts.RunPolitics(state, country);
+
+	public void RunIntelligence(CGameState state, CCountry country) => _scripts.RunIntelligence(state, country);
 }

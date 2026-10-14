@@ -6,6 +6,7 @@ using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Intelligence;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
@@ -344,17 +345,20 @@ public class NavalMissionTests
 		Assert.Empty(state.Combats);
 
 		// The water a patrol shadows somebody in is known to its country at 9 from the day's turn.
-		Assert.Equal(0, CNavalIntelligence.Level(state, state.Province(Bight), patrol));
-		CNavalIntelligence.Refresh(state);
-		Assert.Equal(CNavalIntelligence.LevelOfOwnGround, CNavalIntelligence.Level(state, state.Province(Bight), patrol));
+		Assert.Equal(0, CIntelligence.Level(state, state.Province(Bight), Ger));
+		CProvinceIntel.Rebuild(state);
+		Assert.Equal(CProvinceIntel.Most, CIntelligence.Level(state, state.Province(Bight), Ger));
 
 		CUnitOrders.Clear(patrol);
 		Assert.False(stranger.IsShadowed);
-		CNavalIntelligence.Refresh(state);
-		Assert.Equal(CNavalIntelligence.LevelWithAUnitThere, CNavalIntelligence.Level(state, state.Province(Bight), patrol));
-		// Land a fleet lies in is known without waiting for anything.
-		patrol.Location = Kiel;
-		Assert.Equal(CNavalIntelligence.LevelOfOwnGround, CNavalIntelligence.Level(state, state.Province(Kiel), patrol));
+		CProvinceIntel.Rebuild(state);
+		Assert.Equal(CProvinceIntel.AtSea, CIntelligence.Level(state, state.Province(Bight), Ger));
+		// A fleet that sails on raises what it has entered at the hour's end (intelligence.md, section 5).
+		patrol.Location = Deep;
+		state.ForgetPositions();
+		Assert.Equal(0, CIntelligence.Level(state, state.Province(Deep), Ger));
+		CProvinceIntel.RaiseHourly(state);
+		Assert.Equal(CProvinceIntel.AtSea, CIntelligence.Level(state, state.Province(Deep), Ger));
 	}
 
 	[Fact]

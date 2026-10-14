@@ -133,7 +133,7 @@ public sealed class CMinisterEntry
 					legend.Modulate = ideology.Colour.ToGodot();
 				}
 			}
-			ShowPortrait(minister);
+			ShowPortrait(_context, Window, minister);
 		}
 		if (_own is null && _button is not null)
 		{
@@ -141,15 +141,16 @@ public sealed class CMinisterEntry
 		}
 	}
 
-	private void ShowPortrait(CMinister minister)
+	/// <summary>A minister's portrait in a row's <c>photo</c>, or the empty post's where he has none.</summary>
+	internal static void ShowPortrait(CGuiContext context, CGuiWindow window, CMinister minister)
 	{
-		if (Window.TryFindIcon("photo") is not { } photo)
+		if (window.TryFindIcon("photo") is not { } photo)
 		{
 			return;
 		}
 		string picture = minister.Picture.Length > 0 ? minister.Picture : EmptyPortrait;
 		string path = PortraitFolder + picture + ".tga";
-		if (_context.Textures.Exists(path) && _context.Textures.LoadFromGamePath(path) is { } texture)
+		if (context.Textures.Exists(path) && context.Textures.LoadFromGamePath(path) is { } texture)
 		{
 			photo.SetTexture(texture);
 		}

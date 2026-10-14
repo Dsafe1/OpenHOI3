@@ -90,7 +90,8 @@ public static class CRelations
 			foreach (CCountry other in state.Countries)
 			{
 				int? value = Unowned;
-				if (other.Tag.Value != CRelationConditions.Rebels && owns[other.Index])
+				bool exists = other.Tag.Value != CRelationConditions.Rebels && owns[other.Index];
+				if (exists)
 				{
 					value = state.AiScripts?.NonHistoricalRelation(state, country, other);
 				}
@@ -102,6 +103,12 @@ public static class CRelations
 				if (CGameState.Status(country, other).Relation == CFixedPoint.Zero)
 				{
 					SetOneSide(country, other, CFixedPoint.FromInt(whole));
+				}
+				// In the same loop, the spies it starts with there, from the value whether or not the history had set
+				// the relation (espionage.md, section 2).
+				if (exists)
+				{
+					Espionage.CSpyStart.Give(state, country, other, whole);
 				}
 			}
 		}

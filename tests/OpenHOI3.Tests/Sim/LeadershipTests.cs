@@ -298,7 +298,7 @@ public class LeadershipTests
 
 		Assert.Equal(CFixedPoint.Parse("4.198"), eastGermany.Officers);
 		Assert.Equal(CFixedPoint.Parse("2.048"), eastGermany.DiplomaticInfluence);
-		Assert.Equal(CFixedPoint.Parse("0.314"), eastGermany.SpiesInTraining);
+		Assert.Equal(CFixedPoint.Parse("0.314"), eastGermany.FreeSpies);
 	}
 
 	[Fact]
@@ -311,7 +311,7 @@ public class LeadershipTests
 
 		Assert.Equal(CFixedPoint.Zero, rebels.Officers);
 		Assert.Equal(CFixedPoint.One, rebels.DiplomaticInfluence);         // what it started with
-		Assert.Equal(CFixedPoint.Zero, rebels.SpiesInTraining);
+		Assert.Equal(CFixedPoint.Zero, rebels.FreeSpies);
 	}
 
 	[Fact]

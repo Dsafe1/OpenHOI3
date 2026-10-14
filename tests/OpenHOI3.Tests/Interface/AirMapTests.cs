@@ -219,6 +219,7 @@ public class AirMapTests
 	public void ALargePictureIsSizedByTheLevelBuiltWhereThePlayerKnowsTheProvince()
 	{
 		CGameState state = State(out _, out _);
+		OpenHOI3.Sim.Intelligence.CProvinceIntel.Rebuild(state);
 
 		Assert.Equal(10, CAirMapIcons.Level(state, state.Province(Berlin), CMovementRules.AirBase, Ger));
 		Assert.Equal(2, CAirMapIcons.Level(state, state.Province(Berlin), CAirMapIcons.AntiAir, Ger));

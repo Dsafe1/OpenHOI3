@@ -162,10 +162,10 @@ game's `BattleWon.txt`, `BattleLost.txt`, the naval and air pairs and `Encirclem
 files, so none of the 545 ids its `on_actions.txt` names for them is an event (`script.md`, section
 10). Only the pride of the fleet's events are there. A mod that ships them gets them.
 
-**Built** (2026-10-12): the reading of the file, the pick, the battles and the pride of the fleet.
+**Built** (2026-10-12): the reading of the file, the pick, the battles and the pride of the fleet; and the two
+coups (2026-10-14, `espionage.md`, section 11), though only the intelligence screen posts one.
 **Not built**: `on_encirclement` waits for a province's days without supply, which are not counted;
-`on_surrender` for surrender, `on_coup_*` for espionage, `on_nuke_dropped` for the bomb. A battle's
-`last_*_losses` are not kept either.
+`on_surrender` for surrender, `on_nuke_dropped` for the bomb. A battle's `last_*_losses` are not kept either.
 
 ## 9. Decisions
 

@@ -139,7 +139,8 @@ order**; `confirmed` throughout.
    kinds come along too; nothing reads them off a country.
 8. **`war` if it is at war with anybody, otherwise `peace`.**
 9. **Espionage**: another country's spies on the "lower national unity" and "raise national
-   unity" missions each contribute a static modifier scaled by their strength.
+   unity" missions each contribute a static modifier scaled by their level and then by the
+   mission's share, its own presence included (`espionage.md`, section 10).
 10. **`war_exhaustion`, multiplied by its war exhaustion.**
 11. **`dissent`, multiplied by its dissent.** What `static_modifiers.txt` gives is for one
     point: `global_ic = -0.01` there is 1% of IC for each point of dissent.
@@ -253,12 +254,15 @@ the first day is run, which is why a new game's starting manpower leaves black s
   one of a block's own is taken as a modifier. So a misspelt modifier is *not* reported
   yet, which is the opposite of what this project wants, and it stays a loose end until the
   list exists.
-- **A country's modifier is steps 1, 2, 3, 4, 6, 7, 8, 11, 12 and 13 of section 4**: `base_values`,
-  its faction's (since 2026-10-13, with `factions.md`), its ministers, its laws, its strategic
-  resources, its provinces' modifiers, `war` or `peace`, `dissent`, `neutrality` by its
-  effective neutrality (since 2026-10-12, with `diplomacy.md`), and its event modifiers. The
-  rest wait for what they need: governments', espionage, war exhaustion, the script's
-  conditions, subjects, a difficulty setting and governments in exile.
+- **A country's modifier is steps 1 to 9, 11, 12, 13 and 18 of section 4**: `base_values`,
+  its faction's (since 2026-10-13, with `factions.md`), its ministers, its laws, its government
+  and `fractured_government` (since 2026-10-14, with `politics.md`), its strategic resources, its
+  provinces' modifiers, `war` or `peace`, the spies' two unity modifiers (since 2026-10-14, with
+  `espionage.md`), `dissent`, `neutrality` by its effective neutrality (since 2026-10-12, with
+  `diplomacy.md`), and its event modifiers. The rest wait for what they need: war exhaustion,
+  the script's conditions, subjects, a difficulty setting and governments in exile - the
+  triggered modifiers among them, whose `neutrality` gives a country in no faction
+  `counter_espionage` and `espionage_bonus` (`espionage.md`, section 14).
 - **Strategic resources are shared within a faction as the original shares them**, to a
   major or a country with more than 100 base IC whose capital is on the holder's
   continent, and to a faction's leader at war from a country outside it aligned within

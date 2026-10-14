@@ -216,9 +216,10 @@ public sealed class LuaApiTests : IDisposable
 		Assert.Equal(false, scripts.Ask(state, $"{Ger}:GetCountry():IsGovernmentInExile()"));
 		Assert.Single(_reports);
 		Assert.All(_reports, report => Assert.StartsWith("LUA unbuilt: ", report));
-		// Nobody has spies, so the factor is their counter-intelligence turned round - none - and is reported.
+		// Germany has no spies in Poland here, so the factor is Poland's counter-intelligence turned round - none - and
+		// nothing about it is unbuilt.
 		Assert.Equal(0.0, scripts.Ask(state, $"CAIIntel({Ger}, {Pol}):GetFactor()"));
-		Assert.Equal(2, _reports.Count);
+		Assert.Single(_reports);
 	}
 
 	[Fact]

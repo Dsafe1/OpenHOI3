@@ -174,6 +174,18 @@ if (args.Length > 0 && args[0] == "politics")
 	return CPoliticsCheck.Run(args);
 }
 
+// Every AI country's intelligence minister at work on a new game, and its priorities beside a later save.
+if (args.Length > 0 && args[0] == "espionageai")
+{
+	return CEspionageAiTrial.Run(args);
+}
+
+// Every country's spies on a new game beside the start save, and the player's on to a later save.
+if (args.Length > 0 && args[0] == "espionage")
+{
+	return CEspionageCheck.Run(args);
+}
+
 // Where the time of an hour goes.
 if (args.Length > 0 && args[0] == "profile")
 {

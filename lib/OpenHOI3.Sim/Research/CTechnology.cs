@@ -82,6 +82,9 @@ public sealed class CTechnology
 	/// </summary>
 	public bool CanUpgrade { get; init; } = true;
 
+	/// <summary>Whether spies may steal it: unless its file says <c>stealable = no</c> (<c>espionage.md</c>, section 8).</summary>
+	public bool Stealable { get; init; } = true;
+
 	/// <summary>
 	/// The unit types a level of it gives the country the use of, by key: each
 	/// <c>activate_unit</c> of its block.

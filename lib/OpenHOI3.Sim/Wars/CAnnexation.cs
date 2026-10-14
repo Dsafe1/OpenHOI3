@@ -72,6 +72,8 @@ public static class CAnnexation
 		{
 			CWarSides.Leave(state, war, annexed.Tag);
 		}
+		// Its spies in the annexed are gone (espionage.md, section 4).
+		CGameState.Presence(other, annexed).Level = 0;
 		state.Alliances.RemoveAll(alliance => alliance.Joins(other.Tag, annexed.Tag));
 		if (annexed.Overlord == other.Tag)
 		{

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Lua.Native;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
@@ -46,6 +47,9 @@ public static class CGameStateClass
 			.Static("GetAIRand", call => call.Return(api.Random.Next()))
 			.Static("Post", call => CPoliticsCommandClass.Post(api, call, 1))
 			.Static("IsPlayer", call => call.Return(api.State.Played.Contains(call.Object<CCountryTag>(1, "CCountryTag"))))
+			// The local player's tag: here the first country played, in the countries' order; the null tag where nobody plays.
+			.Static("GetPlayer", call => call.Return(api.Tag(api.State.Countries.FirstOrDefault(country =>
+				api.State.Played.Contains(country.Tag))?.Tag)))
 			.Static("GetCountries", call =>
 			{
 				var countries = new List<object?>();

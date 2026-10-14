@@ -63,6 +63,15 @@ What a particular screen puts in its elements is that screen's own spec: `topbar
 Three more child keywords are read by the original and used by no file of its own or of
 BlackICE's: `3dButtonType`, `multiSpriteButtonType`, `threeDguiType`. `confirmed`
 
+**A button's words show only on a text sprite.** *Measured*: a `guiButtonType` whose sprite is declared as a plain
+`spriteType` draws no words of its own - not its file's `buttonText`, nor any the code gives it - where one on a
+`textSpriteType` does. The maintainer's screenshots of the original, 2026-10-14: the research queue's stop button
+(`cancel`, `buttonText = "--"`, a plain sprite) shows no "--", and the intelligence screen's `target_priority` (a plain
+sprite, `SEND_SPY_PRIORITY`) shows its words once - the label beside it, `target_priority_label`, saying them; Their
+Finest Hour's file has the button's text sprite commented out. Of Their Finest Hour's buttons with words, 205 are on text
+sprites and 26 on plain ones; of the screens built, the plain ones are those two and diplomacy's `select_button`. The
+routine was not read; the rule is the screenshots'.
+
 **What a window takes.** `confirmed` Fifteen keys of its own - `size`, `position`,
 `fullScreen`, `parent`, `priority`, `background`, `moveable`, `verticalScrollbar`,
 `horizontalScrollbar`, `horizontalBorder`, `verticalBorder`, `click_to_front`,

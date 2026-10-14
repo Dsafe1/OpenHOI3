@@ -92,6 +92,7 @@ public static class CConditions
 			|| CMarkConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CCountryConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CPoliticsConditions.TryAnswer(state, trigger, scope, out answer)
+			|| CEspionageConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CRelationConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CProvinceConditions.TryAnswer(state, trigger, scope, out answer))
 		{

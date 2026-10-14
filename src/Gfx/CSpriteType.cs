@@ -45,6 +45,12 @@ public sealed class CSpriteType
 
 	public bool IsTiled => Kind.Equals("corneredTileSpriteType", StringComparison.OrdinalIgnoreCase);
 
+	/// <summary>
+	/// A plain picture, a <c>spriteType</c>: a button drawn with one shows no words of its own, whatever its file or code
+	/// gives it (<c>docs/mechanics/interface.md</c>, section 2).
+	/// </summary>
+	public bool IsPlain => Kind.Equals("spriteType", StringComparison.OrdinalIgnoreCase);
+
 	/// <summary>Draws a country's flag, not a picture of its own.</summary>
 	public bool IsMaskedShield => Kind.Equals("maskedShieldType", StringComparison.OrdinalIgnoreCase);
 

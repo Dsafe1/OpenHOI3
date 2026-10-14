@@ -3,6 +3,8 @@ using OpenHOI3.Lua.Native;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Espionage;
+using OpenHOI3.Sim.Intelligence;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -10,17 +12,12 @@ namespace OpenHOI3.Lua.Api;
 
 /// <summary>
 /// <c>CAIIntel(us, them)</c>, what one country knows of another's strength, as the original works it out - in
-/// single precision where it does, and rolling the game's own generator. Espionage is not built, so nobody has
-/// spies anywhere: what they would add is nought and is reported. See <c>docs/mechanics/lua.md</c>, section 7.
+/// single precision where it does, and rolling the game's own generator: its figure is our spies in them
+/// (<c>docs/mechanics/intelligence.md</c>, section 1). See <c>docs/mechanics/lua.md</c>, section 7.
 /// </summary>
 public static class CAiIntelClass
 {
 	private const string Name = "CAIIntel";
-
-	private const string SpiesUnbuilt = "espionage: nobody has spies anywhere, nor a mission";
-
-	/// <summary>The most spies a country may have in another, in thousandths: ten.</summary>
-	private const long MaxSpyLevel = 10000;
 
 	/// <summary>The least a country has to know a province by to see the units in it without a roll.</summary>
 	private const int Sighted = 2;
@@ -35,16 +32,9 @@ public static class CAiIntelClass
 	{
 		var luaClass = new CLuaClass(Name)
 			.Method("GetFactor", call => call.Return(Of(call).Factor))
-			.Method("HasNoIntel", call =>
-			{
-				api.ReportUnbuilt(SpiesUnbuilt);
-				return call.Return(SpyLevel() < 1000);
-			})
+			.Method("HasNoIntel", call => call.Return(SpyLevel(api, Of(call).Us, Of(call).Them) < 1000))
 			.Method("GetTheirFactor", call =>
-			{
-				api.ReportUnbuilt(SpiesUnbuilt);
-				return call.Return((float)(SpyLevel() * 1000 / MaxSpyLevel / 1000.0));
-			})
+				call.Return((float)(SpyLevel(api, Of(call).Them, Of(call).Us) * 1000 / CSpyPresence.MostLevel / 1000.0)))
 			.Method("CalculateOurMilitaryStrength", call =>
 				call.Return(api.State.Country(Of(call).Us) is { } us ? (float)(Strength(us) / 1000.0) : 0f))
 			.Method("CalculateTheirPercievedMilitaryStrengh", call => call.Return(Perceived(api, Of(call))));
@@ -62,9 +52,8 @@ public static class CAiIntelClass
 	/// </summary>
 	public static CLuaIntel Make(CGameApi api, CCountryTag us, CCountryTag them)
 	{
-		api.ReportUnbuilt(SpiesUnbuilt);
-		long counter = api.State.Country(them)?.Modifier["counter_intelligence"].Raw ?? 0;
-		long intel = SpyLevel() * 1000 / MaxSpyLevel - counter;
+		long counter = api.State.Country(them)?.Modifier[CCountryIntel.CounterIntelligence].Raw ?? 0;
+		long intel = SpyLevel(api, us, them) * 1000 / CSpyPresence.MostLevel - counter;
 		float factor = (float)(intel / 1000.0);
 		float uncertainty = (float)(1.0 - factor + 0.2);
 		if (uncertainty < 0.2)
@@ -90,7 +79,7 @@ public static class CAiIntelClass
 		{
 			return 0f;
 		}
-		long missionShare = 0;
+		long missionShare = CGameState.Presence(us, them).Share(ESpyMission.Military);
 		long bonus = state.Defines["country", "SPY_INTEL_MISSION_BONUS"].Raw * missionShare / 1000;
 		float known = (float)((float)(bonus / 1000.0) + (double)intel.Factor);
 		int f = Thousandths(known);
@@ -164,8 +153,11 @@ public static class CAiIntelClass
 		return total;
 	}
 
-	/// <summary>Our spies in them: nobody has any.</summary>
-	private static long SpyLevel() => 0;
+	/// <summary>One country's spies in another, in thousandths; none where either is no country.</summary>
+	private static long SpyLevel(CGameApi api, CCountryTag holder, CCountryTag other)
+	{
+		return api.State.Country(holder) is { } a && api.State.Country(other) is { } b ? CGameState.Presence(a, b).Level : 0;
+	}
 
 	private static CLuaIntel Of(CLuaCall call) => call.Object<CLuaIntel>(1, Name);
 }

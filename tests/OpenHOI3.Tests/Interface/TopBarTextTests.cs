@@ -214,7 +214,7 @@ public class TopBarTextTests
 	[InlineData("100.000", "99+")]
 	public void SpiesAreCountedOutUpToNinetyNine(string spies, string expected)
 	{
-		_country.SpiesInTraining = CFixedPoint.Parse(spies);
+		_country.FreeSpies = CFixedPoint.Parse(spies);
 
 		Assert.Equal(expected, CTopBarText.Spies(_country));
 	}

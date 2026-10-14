@@ -143,7 +143,7 @@ public static class CTopBarText
 	/// <summary>The whole spies trained and not yet sent anywhere.</summary>
 	public static string Spies(CCountry country)
 	{
-		long whole = country.SpiesInTraining.ToInt();
+		long whole = country.FreeSpies.ToInt();
 		return whole > MostSpiesShown ? "99+" : whole.ToString(CultureInfo.InvariantCulture);
 	}
 

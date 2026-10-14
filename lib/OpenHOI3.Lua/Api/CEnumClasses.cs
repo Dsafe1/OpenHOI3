@@ -32,8 +32,5 @@ public static class CEnumClasses
 			.Constant("_RULE_LIMITED_WAR_", 1)
 			.Constant("_RULE_ALLIANCE_GUARANTEE_", 2)
 			.Constant("_RULE_FREE_RESOURCE_GIFTS_", 3);
-		yield return new CLuaClass("CSpyPresence")
-			.Constant("MAX_SPY_PRIORITY", 3)
-			.Constant("MAX_SPY_LEVEL", 10);
 	}
 }

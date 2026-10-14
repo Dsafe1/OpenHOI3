@@ -70,6 +70,7 @@ public static class CEffects
 		if (CMarkEffects.TryRun(state, effect, scope)
 			|| CCountryEffects.TryRun(state, effect, scope)
 			|| CPoliticsEffects.TryRun(state, effect, scope)
+			|| CEspionageEffects.TryRun(state, effect, scope)
 			|| CDiplomacyEffects.TryRun(state, effect, scope)
 			|| CWarEffects.TryRun(state, effect, scope)
 			|| CProvinceEffects.TryRun(state, effect, scope))

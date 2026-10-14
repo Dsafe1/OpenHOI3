@@ -77,6 +77,12 @@ public static class CCountryModifiers
 			AddSource(country, standing);
 		}
 
+		// Other countries' spies lowering or raising its national unity (step 9; espionage.md, section 10).
+		foreach (CModifier spies in Espionage.CSpyModifiers.On(state, country))
+		{
+			AddSource(country, spies);
+		}
+
 		// What the file gives for dissent is for one point of it.
 		if (dissent is not null)
 		{

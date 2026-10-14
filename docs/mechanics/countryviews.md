@@ -84,7 +84,7 @@ where the original keeps them, so the order of the rest is ours.
 1. **What the top bar's buttons do**, and whether opening one screen closes another.
 2. **How `topcolor_icon` is spread.**
 3. **What the mode arrows do**, there being no AI to hand a screen to.
-4. **Three of the four other screens.** Politics, intelligence and theatres share the base
-   and were not read; diplomacy was, on 2026-10-12, and is `diplomacyscreen.md`.
+4. **The theatres screen.** Theatres shares the base and was not read; diplomacy was, on 2026-10-12, and is
+   `diplomacyscreen.md`, politics on 2026-10-14 (`politics.md`, section 11), intelligence the same day (`espionagescreen.md`).
 5. **Whether a screen stops the game or the map.** Here the clock runs on and the map
    under the screen takes no clicks.

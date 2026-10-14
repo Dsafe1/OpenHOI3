@@ -104,10 +104,9 @@ landing on one hour. `confirmed` A second per-country gate fires at the hour equ
 4. Per province: the province's daily work.
 5. **Events**: every country's candidate events are tried against their mean time to
    happen. See the note below - this is not where the candidates come from.
-6. **Intelligence is refreshed.** Built but for radar: `aircombat.md`, section 6, and
-   `navalmissions.md`, section 9. The original also does it at the end of an hour once a change of who plays a
-   country has asked for it; whether an ordinary game is in that state was not established.
-   The maintainer, 2026-10-10: "I think its daily" - which is what is built.
+6. **Intelligence is made again**, whole: `intelligence.md`, section 3. And at the end of every hour the provinces
+   units left or entered are raised, or the whole made again where the hour changed who holds what or who is allied
+   to whom (section 5). The maintainer had said on 2026-10-10 "I think its daily", before the hour's raise was read; on 2026-10-14, shown it: "Keep it as read."
 
 Several further steps of the daily pass are called in a known order and are **not yet
 identified**.

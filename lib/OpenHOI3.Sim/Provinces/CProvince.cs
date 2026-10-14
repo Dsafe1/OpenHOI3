@@ -166,6 +166,12 @@ public sealed class CProvince
 	public int CentreY { get; init; }
 
 	/// <summary>
+	/// How well each country knows it, 0 to 9, by the country's index: rebuilt each day and raised each hour, and never
+	/// saved. See <c>docs/mechanics/intelligence.md</c>, section 2.
+	/// </summary>
+	public byte[] Intel { get; internal set; } = System.Array.Empty<byte>();
+
+	/// <summary>
 	/// The width of its bounding box on the map and the height, added together, in
 	/// pixels. It is how big the province counts as when supplies cross it: see
 	/// <c>docs/mechanics/supply.md</c>, section 6.

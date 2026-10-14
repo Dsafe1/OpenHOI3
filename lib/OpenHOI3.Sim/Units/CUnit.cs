@@ -35,6 +35,18 @@ public sealed class CUnit
 	public int Base { get; set; }
 
 	/// <summary>
+	/// The province it stood in at the last hour's end, by which the hour finds the provinces it left and entered and
+	/// asks for them (<c>docs/mechanics/intelligence.md</c>, section 5).
+	/// </summary>
+	public int IntelSeenAt { get; set; }
+
+	/// <summary>
+	/// What other countries have been given to know of it, one grant a country, each counted down a day
+	/// (<c>docs/mechanics/espionage.md</c>, section 7).
+	/// </summary>
+	public List<CIntelGrant> IntelGrants { get; } = new();
+
+	/// <summary>
 	/// The provinces still ahead of it, the next one first; empty when it is going
 	/// nowhere. See <c>docs/mechanics/movement.md</c>, section 4.
 	/// </summary>
