@@ -1112,11 +1112,25 @@ In order:
     spies caught rise from 18 to 22 to the save's 33 (`espionage.md`, section 14). **The maintainer has not looked
     at it.**
 
-**Next: occupation and revolt**, the last of stage 4. The fact base read it before the rewrite needed it
-(`reversing/findings/FINDINGS-occupation.md`, `reversing/findings/FINDINGS-revolt.md`, 2 and 8 October): revolt risk
-and suppression, occupation policies in a province's modifier, the revolt roll, rebel types, undergrounds and
-partisans. Those are to be checked for gaps first and a smaller reading wave run, then built in pieces as politics
-and espionage were. The queued reading of `counter_espionage` (the fact base's `CANDIDATES.md`) goes with it.
+**Next: occupation and revolt**, the last of stage 4. Read whole on 2026-10-14 in one wave of six readers
+(`reversing/findings/FINDINGS-occupation.md`, sections A to F, on top of its first sections and
+`reversing/findings/FINDINGS-revolt.md`), which also settled the `counter_espionage` question (`espionage.md`,
+section 6). The cut proposed, this project's, in four pieces as politics and espionage were:
+   1. **occupation and a province's whole modifier** - the policies, a pair's policy set on a first capture and by
+      the player, the history's policy lines; the rest of the province rebuild (the coastal family,
+      `no_adjacent_controlled`, the policy, `blockaded` again, land or sea, `manpower`, `nationalism` with its twenty
+      years and monthly decay, the dated province modifiers, radar); and the politics screen's occupied countries
+      and policy window with their tooltips;
+   2. **revolt risk** - suppression over two edges, the day's step and its freeze at peace, the effective figure and
+      the `revolt_risk` static scaled by it, the five conditions and the effect, what the province tooltip and a
+      revolt map mode show;
+   3. **rebels** - the rebel types, the yearly roll, factions and the army a rising makes, `REB` units at work each
+      day (moving, handing land back, disbanding) and each month (independence at 15%), the siege, the two effects,
+      the new game's revolt pass, and the messages - defection, demands and acceptance built as the original has
+      them, which is not at all;
+   4. **undergrounds** - the building placed through production with its strength from the nearest air base, the
+      daily pass, the three commands, Organized Revolt on the politics screen, and the AI's management of them.
+      The province view they are worked from is not built; what it shows waits for it.
 
 The interface runtime is in, with three screens - the top bar, production and technology -
 the four windows the production screen orders a unit from, the deploy menu with the
@@ -1878,10 +1892,6 @@ None of these blocks the list above.
   not built. `docs/mechanics/modifiers.md`, section 7.
 - **The goals window is not built**, which `menubar_goals_button` opens and which opening the Strategic Effects
   window shuts in the original. `docs/mechanics/strategiceffects.md`, *Ours*.
-- **`counter_espionage` may work the other way round from how it is built.** The maintainer found in play
-  (2026-10-14) that it acts as a "Domestic Counterespionage Difficulty" modifier, with no effect abroad and an
-  inverted tooltip in the original; it is built as read - added to the chance of catching spies at home - until the
-  fact base's queued reading settles it (`espionage.md`, *Not established*).
 - **A province's modifier is its buildings, `overseas` and `non_core`.** Terrain, the
   coast, occupation policies, nationalism and revolt risk do not feed it yet.
   `docs/mechanics/modifiers.md`, section 3.

@@ -173,6 +173,13 @@ for every country O in order but A that owns a province, with q = O's presence i
   friend's hostile spies at home are caught on the second draw alone.
 - **`espionage_bonus` is the target's, and it lowers the chance**: at home a country's own bonus makes it worse at
   catching.
+- **The two are read nowhere else**, and nothing swaps them: `counter_espionage` is the catcher's own and helps at
+  home only; `espionage_bonus` is the country the spies are in, and only hinders catching there. Both are written
+  green when positive, which for `espionage_bonus` reads as the opposite of what it does. Settled 2026-10-14
+  (`reversing/findings/FINDINGS-occupation.md`, section F) on the maintainer's account from play: it works "more as a
+  'Domestic Counterespionage Difficulty' modifier", with no effect abroad and an inverted tooltip - which is
+  `espionage_bonus`, BlackICE's name for it. A model of the start save's two days from the save's own spies expects
+  24.9 catches (sd 5.0) as read, where the save has 33 and this project's new game 22.
 - **The draws are the game's own generator**, as every roll here is (`landcombat.md`, section 8).
 - **O may be the target itself**: a country's spies at home are caught by a foreign counter-espionage like anyone's.
 
@@ -328,8 +335,8 @@ save's.
 the history's `medium_large_education_investment` where the original's AI had given it `big_education_investment`
 (`docs/compatibility.md`, entry 6), 1.2 over 1.1 of the leadership, and so 1.024 spies a day to 1.113 - and the levels
 abroad 10045 of 10100, **1794 spies abroad to the save's 1783**: 22 catches to its 33, where the reading's formula
-gives the neutral countries 1.8 times the chance. So `neutrality` explains a part of the gap and not all of it, which
-fits the maintainer's account that `counter_espionage` does not work as read (*Not established*, below).
+gives the neutral countries 1.8 times the chance. The rest is the rolls: a model of the two days from the save's own
+spies expects 24.9 catches, sd 5.0, as read, and the save's 33 is 1.6 sd above it (section 6).
 
 Played on as Germany to the saves of 4 January 12:00 and 8 January 07:00 of the maintainer's other game: **the home
 at 7 and every priority and mission weight agree**, and the pool is short by that 0.089 a day and nothing else. The
@@ -416,12 +423,6 @@ The original's, kept, and none put to the maintainer:
   hour plus one, so it runs the next hour (section E.1 of the reading, read off the saves).
 
 ## Not established
-
-- **What `counter_espionage` really does.** The maintainer's observation in play, 2026-10-14: it works "more as a
-  'Domestic Counterespionage Difficulty' modifier" - no effect on his missions abroad, and its tooltip reads inverted
-  in the original. Section 6 adds it to the chance at home and nowhere else, which agrees on abroad; whether it
-  helps or hinders at home, and how it and `espionage_bonus` are signed, is queued in the fact base
-  (`CANDIDATES.md`, "What the espionage wave left", item 7). Built as read until then.
 
 - Whether a unit's grants count down once a day: the original counts them in a unit's update the fact base takes to
   be daily.
