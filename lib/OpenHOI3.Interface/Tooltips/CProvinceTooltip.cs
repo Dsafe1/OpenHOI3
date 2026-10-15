@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
@@ -77,6 +78,10 @@ public static class CProvinceTooltip
 				{
 					text.Append('\n').Append(line);
 				}
+				break;
+			case EMapTooltipMode.Weather:
+				// Put in place of all of the above, the name and owner with it (weather.md, section 6).
+				text.Clear().Append(CWeatherMapText.Text(localise, province));
 				break;
 		}
 

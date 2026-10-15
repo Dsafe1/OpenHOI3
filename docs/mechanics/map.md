@@ -136,8 +136,8 @@ Two provinces are adjacent when:
 
 An edge is directed and each side holds its own, so a pair appears twice. An edge also
 carries a kind, a distance and a bearing. The kind, the distance and the order a province
-holds its edges in are in `movement.md`, section 2, which is what uses them; the bearing's
-formula is in the findings and nothing here needs it.
+holds its edges in are in `movement.md`, section 2, which is what uses them; the bearing,
+which only a weather front reads, is `weather.md`'s section 3 - every one of the base game's cache's.
 
 **A raster edge does exist across the x seam**, between the first and last column: the
 original looks east and west of every pixel with x wrapped. `confirmed`, and with the
@@ -311,10 +311,12 @@ striped.
 
 ## What is not established, in one place
 
-- for **terrain**: what `priority` on an index entry means, and where the original puts a
+- for **terrain**: what `priority` on an index entry means - about one land province in two hundred takes another
+  terrain in the original, and `OpenHOI3.SaveCheck weather` names each (`weather.md`, section 7) - and where the original puts a
   port that `positions.txt` does not place;
-- the **bearing** between a land province and a sea province;
+- ~~the **bearing** between a land province and a sea province~~: the naval base is the land end, its default the
+  bounding box's centre (`weather.md`, section 3);
 - the order and merging of **two history files for one province**.
 
-Settled on 2026-10-09 and no longer here: the terrain rule, the distance on an edge, and
+Settled on 2026-10-09 and no longer here: the terrain rule (for all but the provinces above), the distance on an edge, and
 whether a raster edge crosses the x seam.

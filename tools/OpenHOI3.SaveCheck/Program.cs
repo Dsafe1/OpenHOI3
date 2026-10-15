@@ -48,6 +48,12 @@ if (args.Length > 0 && args[0] == "march")
 	return CMarchCheck.Run(args);
 }
 
+// An hour of weather, against two saves an hour apart.
+if (args.Length > 0 && args[0] == "weather")
+{
+	return CWeatherCheck.Run(args);
+}
+
 // A day's step of revolt risk, against two saves with one midnight between them.
 if (args.Length > 0 && args[0] == "revolt")
 {

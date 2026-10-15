@@ -27,4 +27,13 @@ public sealed class CBillboardType
 
 	/// <summary><c>font</c>: what a billboard that carries a number writes it in, or an empty string.</summary>
 	public string Font { get; init; } = "";
+
+	/// <summary>
+	/// For a <c>weatherBillboardType</c>, every <c>textureFile</c> in the file's order: the cloud, then the rain or snow
+	/// under it - or the lightning, for a storm. See <c>docs/mechanics/weather.md</c>, section 6.
+	/// </summary>
+	public System.Collections.Generic.IReadOnlyList<string> TextureFiles { get; init; } = System.Array.Empty<string>();
+
+	/// <summary><c>effect</c>: for weather, <c>RainTech</c> or <c>SnowTech</c>, which says how its lower picture moves.</summary>
+	public string Effect { get; init; } = "";
 }

@@ -71,6 +71,10 @@ A change of month always comes with a change of day, and a change of year with b
 
 The supply network is also rebuilt inside the hour when something changed it.
 
+**Weather has two places** (`weather.md`, section 4): **the fronts and high pressure before step 1**, right after the
+hour's rolls are seeded, so their draws are the hour's first; **every province's weather between steps 4 and 5**, so a
+march sees last hour's rain and mud and a battle the hour whole. Each province's season is made again first in its day.
+
 *Ours:* steps 1 to 3 and step 6 are built as far as there is anything for them to do.
 **Before step 1 the hour's rolls are seeded** - the original from a figure the hour's tick
 carries, here from the game's seed and the hour (`landcombat.md`, section 8). **Step 1 is
@@ -190,6 +194,8 @@ the order, and `reversing/findings/FINDINGS-organisation.md` and
 A game that is not loaded from a save does not start at its history files. As it is
 entered, with the clock standing still, the original runs:
 
+0. **the weather**: every province's temperature set to its target, then `INITIAL_SIMULATION_HOURS_AHEAD` (96) hours
+   of fronts and every province's weather (`weather.md`, section 4);
 1. **a daily pass**;
 2. **the filling** of the provinces along the supply network (`supply.md`, section 16), at
    the end of which a unit that still has nothing is given its fifteen days;

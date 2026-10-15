@@ -228,8 +228,29 @@ public sealed class CProvince
 	/// <summary>The flags script has set on it: <c>docs/mechanics/effects.md</c>, section 3.</summary>
 	public Script.CFlags Flags { get; } = new();
 
-	/// <summary>The weather over it. Nothing changes it yet.</summary>
+	/// <summary>The weather over it, made again every hour: <c>docs/mechanics/weather.md</c>.</summary>
 	public CWeather Weather { get; } = new();
+
+	/// <summary>
+	/// The temperature its weather starts from: <c>climate.bmp</c>'s palette index under its unit point, less 100, by
+	/// 0.150 of a degree, and its map terrain's <c>temperature</c> (<c>weather.md</c>, section 1).
+	/// </summary>
+	public CFixedPoint BaseTemperature { get; set; }
+
+	/// <summary>Whether its unit point is in the northern half of the map, which decides its seasons and which way its fronts curve.</summary>
+	public bool IsNorthern { get; init; }
+
+	/// <summary>Its season, 1 to 5, made again each day; 3 all year south of about 19 degrees north (<c>weather.md</c>, section 1).</summary>
+	public int Climate { get; set; }
+
+	/// <summary>Whether it was night here when its weather was last made.</summary>
+	public bool IsNight { get; set; }
+
+	/// <summary>The weather front over it this hour, or none.</summary>
+	public CWeatherFront? WeatherFront { get; set; }
+
+	/// <summary>Which of the original's seven pictures its weather shows: <c>weather.md</c>, section 6.</summary>
+	public EWeatherPicture WeatherPicture { get; set; }
 
 	/// <summary>What <see cref="LastConvoyAttackHour"/> is for water no convoy was attacked in.</summary>
 	public const long NoConvoyAttack = long.MinValue;

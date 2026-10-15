@@ -253,8 +253,8 @@ and then of `local_resources` in the province; "\n"; the sources of the good's `
 
 ## Ours
 
-- **Weather is not built** (`readme.md`, *Next up*): every province's weather is nought, so the strip shows a clear sky,
-  dry ground, no wind and "§Y0.0C". It is the original's reading of nought, and stands until weather comes.
+- ~~**Weather is not built**: every province's weather is nought, so the strip shows a clear sky.~~ Built 2026-10-15
+  (`weather.md`): the strip shows the province's weather, and its picture is chosen as the map's is.
 - **A lowercase shortcut letter is the key of its capital** (*not established*: section 4's 'n', 'u', 'o', 'f').
 - **The custom game's parts are not built** - `cgm_underground_build`, the right click and Ctrl on a building - there
   being one start (`CLAUDE.md`, *Settled decisions*).

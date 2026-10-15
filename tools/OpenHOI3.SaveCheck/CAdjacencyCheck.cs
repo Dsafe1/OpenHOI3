@@ -34,21 +34,22 @@ public static class CAdjacencyCheck
 		byte[] bytes = File.ReadAllBytes(path);
 		Console.WriteLine($"cache: {path}, {bytes.Length} bytes");
 
-		var theirs = new List<(int Kind, int To, int Through, int Distance)>[map.ProvinceCount];
+		var theirs = new List<(int Kind, int To, int Through, int Distance, int Bearing)>[map.ProvinceCount];
 		int at = 0;
 		int total = 0;
 		for (int id = 0; id < map.ProvinceCount && at + 4 <= bytes.Length; id++)
 		{
 			int count = BinaryPrimitives.ReadInt32LittleEndian(bytes.AsSpan(at));
 			at += 4;
-			theirs[id] = new List<(int, int, int, int)>(count);
+			theirs[id] = new List<(int, int, int, int, int)>(count);
 			for (int i = 0; i < count; i++, at += RecordSize)
 			{
 				ReadOnlySpan<byte> record = bytes.AsSpan(at, RecordSize);
 				theirs[id].Add((BinaryPrimitives.ReadInt32LittleEndian(record),
 					BinaryPrimitives.ReadInt32LittleEndian(record[4..]),
 					BinaryPrimitives.ReadInt32LittleEndian(record[8..]),
-					BinaryPrimitives.ReadInt32LittleEndian(record[12..])));
+					BinaryPrimitives.ReadInt32LittleEndian(record[12..]),
+					BinaryPrimitives.ReadInt32LittleEndian(record[16..])));
 				total++;
 			}
 		}
@@ -82,7 +83,7 @@ public static class CAdjacencyCheck
 		for (int id = 1; id < map.ProvinceCount; id++)
 		{
 			CProvinceEdge[] mine = map.Edges[id];
-			List<(int Kind, int To, int Through, int Distance)> other = theirs[id] ?? new();
+			List<(int Kind, int To, int Through, int Distance, int Bearing)> other = theirs[id] ?? new();
 			ours += mine.Length;
 			if (mine.Length == 0 && other.Count == 0)
 			{
@@ -96,7 +97,7 @@ public static class CAdjacencyCheck
 				mineTo.Add(edge.To);
 			}
 			var otherTo = new HashSet<int>();
-			foreach ((int _, int to, int _, int _) in other)
+			foreach ((int _, int to, int _, int _, int _) in other)
 			{
 				otherTo.Add(to);
 			}
@@ -119,12 +120,12 @@ public static class CAdjacencyCheck
 				var a = new List<int>();
 				var b = new List<int>();
 				foreach (CProvinceEdge edge in mine) { a.Add(edge.To); }
-				foreach ((int _, int to, int _, int _) in other) { b.Add(to); }
+				foreach ((int _, int to, int _, int _, int _) in other) { b.Add(to); }
 				examples["the order of a province's edges"].Add(
 					$"{id}: ours {string.Join(" ", a)} | theirs {string.Join(" ", b)}");
 			}
 
-			foreach ((int kind, int to, int through, int distance) in other)
+			foreach ((int kind, int to, int through, int distance, int bearing) in other)
 			{
 				CProvinceEdge? match = null;
 				foreach (CProvinceEdge edge in mine)
@@ -147,6 +148,22 @@ public static class CAdjacencyCheck
 				Count($"distance, {ends}", found.Distance.Raw == distance,
 					() => $"{id} -> {to}: ours {found.Distance.Raw}, theirs {distance} " +
 						$"(from {map.Positions[id]} to {map.Positions[to]})");
+				Count($"bearing, {ends}", found.Bearing == bearing,
+					() => $"{id} -> {to}: ours {found.Bearing}, theirs {bearing}");
+			}
+		}
+
+		// The climate index each province samples, against the original's map/cache/climate.bin: a 32 bit number a
+		// province from id 0 (docs/mechanics/weather.md, section 1).
+		string climatePath = directories.Resolve("map/cache/climate.bin");
+		if (File.Exists(climatePath))
+		{
+			byte[] climate = File.ReadAllBytes(climatePath);
+			for (int id = 1; id < map.ProvinceCount && id * 4 + 4 <= climate.Length; id++)
+			{
+				int theirsIndex = BinaryPrimitives.ReadInt32LittleEndian(climate.AsSpan(id * 4));
+				Count("climate index", map.ClimateIndex[id] == theirsIndex,
+					() => $"{id}: ours {map.ClimateIndex[id]}, theirs {theirsIndex} at {map.Positions[id]}");
 			}
 		}
 

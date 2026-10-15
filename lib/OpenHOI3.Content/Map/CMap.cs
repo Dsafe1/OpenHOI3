@@ -312,13 +312,101 @@ public sealed class CMap
 		string regionTxt = directories.Resolve("map/" + definition.GetString("region", "region.txt"));
 		List<CRegion> regions = CRegionReader.Read(regionTxt, provinceCount, warn);
 
+		string climateBmp = directories.Resolve("map/" + definition.GetString("climate", "climate.bmp"));
+		byte[] climate = ReadClimate(climateBmp, bitmap.Width, bitmap.Height, positions, provinceCount, warn);
+
 		return new CMap(bitmap.Width, bitmap.Height, raster, isSea, shapes, neighbours,
 			explicitAdjacencies, terrains, terrain, continents, continentNames, positions, edges, regions,
 			new[]
 			{
 				definitionPath, provincesCsv, provincesBmp, adjacenciesCsv, terrainTxt, terrainBmp, riversBmp,
-				continentTxt, positionsTxt, regionTxt,
-			});
+				continentTxt, positionsTxt, regionTxt, climateBmp,
+			})
+		{
+			ClimateIndex = climate,
+			LowPressureZones = ReadLowPressureZones(definition, provinceCount, warn),
+			HighPressureZones = ReadHighPressureZones(definition, provinceCount, warn),
+		};
+	}
+
+	/// <summary>
+	/// Per province id, the palette index of <c>climate.bmp</c> under its unit point - one pixel, the index and not its
+	/// colour - which is the whole of where its temperature starts (<c>docs/mechanics/weather.md</c>, section 1). Nought
+	/// where the file is missing or the point is off the map.
+	/// </summary>
+	public IReadOnlyList<byte> ClimateIndex { get; private init; } = Array.Empty<byte>();
+
+	/// <summary>
+	/// <c>low_pressure_zones</c>, in the file's order: a province where weather fronts are born, and a mask of the
+	/// climates - one bit for each, by its number - in which it bears them.
+	/// </summary>
+	public IReadOnlyList<(int Province, int Mask)> LowPressureZones { get; private init; } = Array.Empty<(int, int)>();
+
+	/// <summary><c>high_pressure_zones</c>, in the file's order: provinces whose high pressure spreads out each hour.</summary>
+	public IReadOnlyList<int> HighPressureZones { get; private init; } = Array.Empty<int>();
+
+	private static byte[] ReadClimate(string path, int width, int height, CMapPositions positions, int provinceCount,
+		Action<string> warn)
+	{
+		var climate = new byte[provinceCount];
+		if (!File.Exists(path))
+		{
+			warn($"no climate: '{path}' is missing, and every province starts its temperature at the palette's nought");
+			return climate;
+		}
+		CBitmapFile bitmap = CBitmapFile.Read(path);
+		if (bitmap.BitsPerPixel != 8 || bitmap.Width != width || bitmap.Height != height)
+		{
+			warn($"'{path}' must be 8 bits per pixel and {width} x {height} like the province bitmap; no climate was read from it");
+			return climate;
+		}
+		for (int id = 1; id < provinceCount; id++)
+		{
+			CMapPosition point = positions.Unit[id];
+			if (point.X >= 0 && point.Y >= 0 && point.X < width && point.Y < height)
+			{
+				climate[id] = bitmap.StoredRow(height - 1 - point.Y)[point.X];
+			}
+		}
+		return climate;
+	}
+
+	private static List<(int Province, int Mask)> ReadLowPressureZones(ClausewitzNode definition, int provinceCount,
+		Action<string> warn)
+	{
+		var zones = new List<(int, int)>();
+		foreach (ClausewitzNode entry in definition.Get("low_pressure_zones")?.Children ?? new List<ClausewitzNode>())
+		{
+			if (int.TryParse(entry.Key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
+				&& int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int mask)
+				&& id > 0 && id < provinceCount)
+			{
+				zones.Add((id, mask));
+			}
+			else
+			{
+				warn($"low_pressure_zones: '{entry.Key} = {entry.Value}' is not a province and a mask");
+			}
+		}
+		return zones;
+	}
+
+	private static List<int> ReadHighPressureZones(ClausewitzNode definition, int provinceCount, Action<string> warn)
+	{
+		var zones = new List<int>();
+		foreach (ClausewitzNode entry in definition.Get("high_pressure_zones")?.Children ?? new List<ClausewitzNode>())
+		{
+			if (int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
+				&& id > 0 && id < provinceCount)
+			{
+				zones.Add(id);
+			}
+			else
+			{
+				warn($"high_pressure_zones: '{entry.Value}' is not a province");
+			}
+		}
+		return zones;
 	}
 
 	/// <summary>

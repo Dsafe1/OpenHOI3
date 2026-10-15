@@ -59,6 +59,9 @@ public static class CTick
 	{
 		// Every roll of the hour starts from the game's seed and the hour it is.
 		state.SeedHour();
+		// The weather's own hour comes first, and its draws are the hour's first: the high pressure spreads, fronts are
+		// born and step on (docs/mechanics/weather.md, section 4).
+		Step(state, Weather.CWeatherFronts.RunHourly);
 		// Each country's units look at their orders, look for an enemy and move, one
 		// after another; only then is every unit's own hour run, which is where its
 		// organisation comes back.
@@ -70,6 +73,9 @@ public static class CTick
 		Step(state, Aid.CLendLease.RunHourly);
 		Step(state, Countries.CActingCapital.RunHourly);                 // ours: where in a country's hour beside lend-lease was not compared
 		Step(state, COfficers.Update);
+		// Every province's weather, after the units and the countries have had their hour and before the battles, which
+		// alone see the hour's weather whole (weather.md, section 4).
+		Step(state, Weather.CWeatherPass.RunHourly);
 		// Each province's hour: a faction's progress is the points its members hold (docs/mechanics/factions.md, section 7).
 		Step(state, Wars.CFactionProgress.RunHourly);
 		// And, at the end of the same look, one a building of which has moved has its modifier made again (modifiers.md,
@@ -147,6 +153,7 @@ public static class CTick
 		Step(state, CConvoyDay.Maintain);                         // late in a country's day
 		// Each province's own day, after every country's: what was bombed comes back, the suppression, the revolt risk's
 		// step and land at peace back to its owner, a province at a time; and then the pool is held.
+		Step(state, Weather.CClimate.RunDaily);                   // a province's day begins with its season (weather.md, 1)
 		Step(state, CProvinceDay.RunDaily);
 		Step(state, Revolts.CRebelFactionDay.RunDaily);           // each rebel faction's day, right after the provinces' (rebels.md, 9)
 		Step(state, CStockpile.HoldWithinBounds);
@@ -169,7 +176,10 @@ public static class CTick
 	/// which is when a convoy is manned for nothing and a brigade's organisation is held
 	/// to its type's figure alone. See <c>docs/mechanics/tick.md</c>, section 6.
 	/// </summary>
-	public static void RunFirstDays(CGameState state)
+	/// <param name="weather">
+	/// Whether the new game's weather is made first; a check that has given the provinces a save's weather leaves it out.
+	/// </param>
+	public static void RunFirstDays(CGameState state, bool weather = true)
 	{
 		bool was = state.IsBeingMade;
 		state.IsBeingMade = true;
@@ -180,6 +190,12 @@ public static class CTick
 		Revolts.CRevoltRisk.SetAtNewGame(state);
 		CProvinceModifiers.Rebuild(state);
 		Revolts.CRisings.AtNewGame(state);
+		// Every province's temperature set to its target, and ninety-six hours of weather run with the clock standing
+		// still, before the first day (weather.md, section 4).
+		if (weather)
+		{
+			Weather.CWeatherPass.AtNewGame(state);
+		}
 		RunDailyPass(state);
 		CSupplyStart.Fill(state);
 		RunDailyPass(state);

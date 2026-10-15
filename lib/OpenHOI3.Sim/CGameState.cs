@@ -567,6 +567,9 @@ public sealed class CGameState
 	/// <summary>The game's one source of chance, seeded afresh every hour.</summary>
 	public CRandom Random { get; } = new();
 
+	/// <summary>The weather's own state: the pressure zones and the fronts (<c>docs/mechanics/weather.md</c>).</summary>
+	public Weather.CWeatherManager Weather { get; } = new();
+
 	/// <summary>
 	/// Who stands where. Made when first asked for and thrown away at the start of each
 	/// hour and whenever a unit is put somewhere outside the march.

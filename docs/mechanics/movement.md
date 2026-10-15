@@ -258,11 +258,8 @@ What an hour adds to the progress, in the same thousandths as a distance: `confi
   unit a ninetieth of its speed at worst.
 - In the base game mud and cold each take three quarters, the cold from one degree of
   frost, and the strategic resource `fur` gives a country 0.15 of `winter_effects`.
-- **The weather itself is not built.** A province holds the eight figures a savegame
-  writes for it - humidity, pressure, wind, temperature, precipitation, mud, frost and
-  cloud - and nothing changes them, so in a game here every one is nothing and the term
-  is 1000 plus the local speed. The rule is in so that a march is right the day the
-  weather is.
+- ~~**The weather itself is not built.**~~ Built 2026-10-15 (`weather.md`): a province's eight figures are made
+  every hour, and this term reads them.
 
 ### Checked
 

@@ -36,6 +36,8 @@ public partial class CMapView : Node2D
 		Air,
 		/// <summary>How great the revolt risk is: <c>docs/mechanics/revolt.md</c>, section 7.</summary>
 		Revolt,
+		/// <summary>The ground greyed where it is frozen, with the weather's pictures over it: <c>docs/mechanics/weather.md</c>, section 6.</summary>
+		Weather,
 	}
 
 	[Signal]
@@ -215,6 +217,7 @@ public partial class CMapView : Node2D
 			if (_counters is not null)
 			{
 				_counters.AirMode = value == MapMode.Air;
+				_counters.WeatherMode = value == MapMode.Weather;
 			}
 			RefreshColours();
 		}
@@ -384,6 +387,10 @@ public partial class CMapView : Node2D
 			else if (_mode == MapMode.Revolt)
 			{
 				colour = CRevoltMapColours.Of(_state, province, Player).ToGodot();
+			}
+			else if (_mode == MapMode.Weather)
+			{
+				colour = CWeatherMapColours.Of(_state, province, Player).ToGodot();
 			}
 			else
 			{
@@ -695,7 +702,8 @@ public partial class CMapView : Node2D
 				Mode = _mode switch
 				{
 					MapMode.Political => MapMode.Terrain,
-					MapMode.Terrain => MapMode.Supply,
+					MapMode.Terrain => MapMode.Weather,
+					MapMode.Weather => MapMode.Supply,
 					MapMode.Supply => MapMode.Air,
 					MapMode.Air => MapMode.Revolt,
 					_ => MapMode.Political,

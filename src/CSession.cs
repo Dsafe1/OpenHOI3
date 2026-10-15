@@ -86,6 +86,9 @@ public partial class CSession : Node
 
 	public CMap Map { get; private set; } = null!;
 
+	/// <summary>The player's settings, read as the session starts: <c>docs/mechanics/settings.md</c>.</summary>
+	public Content.Settings.CUserSettings Settings { get; private set; } = Content.Settings.CUserSettings.Default;
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CDirectorySettings directories)
 	{
@@ -99,6 +102,9 @@ public partial class CSession : Node
 		// acceptable while there is nothing else to show, and not once there is a
 		// loading screen to keep moving.
 		var clock = Stopwatch.StartNew();
+		// The player's settings, from the original's own settings.txt in the Documents folder (settings.md); what of them
+		// is not supported is reported as it is read.
+		Settings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath());
 		CLocalisation localisation = CLocalisation.Load(_directories);
 		_localisation = localisation;
 		CCountries countries = CCountries.Load(_directories, localisation);
@@ -350,6 +356,7 @@ public partial class CSession : Node
 			CMapView.MapMode.Supply => EMapTooltipMode.Supply,
 			CMapView.MapMode.Air => EMapTooltipMode.Air,
 			CMapView.MapMode.Revolt => EMapTooltipMode.Revolt,
+			CMapView.MapMode.Weather => EMapTooltipMode.Weather,
 			_ => EMapTooltipMode.Political,
 		};
 		return CProvinceTooltip.Build(_localisation.Localise, State, State.Province(provinceId), mode, Player?.Tag,
@@ -555,6 +562,11 @@ public partial class CSession : Node
 		// player's has been placed or ordered, or an hour has gone by with a unit on the
 		// march - and once a frame at most.
 		int waiting = Player?.Deployments.Count ?? 0;
+		// The weather's pictures follow the hour; its colours do not (weather.md, section 6).
+		if (_hourPassed)
+		{
+			_mapView.Counters?.RefreshWeather();
+		}
 		if (_ordered || _hourPassed)
 		{
 			// The hour a unit arrives it is on the march no longer, and that hour is the
@@ -961,7 +973,7 @@ public partial class CSession : Node
 	/// driving it by hand:
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
 	/// <c>--country=ENG</c> plays that country and not Germany,
-	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map
+	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map (<c>--mode=weather</c> on the weather map)
 	/// (<c>supply</c>, <c>air</c> and <c>revolt</c> on those),
 	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen and
 	/// <c>--screen=deploy</c> the menu a finished unit is placed from,
@@ -1039,6 +1051,10 @@ public partial class CSession : Node
 			else if (argument == "--mode=supply")
 			{
 				_mapView.Mode = CMapView.MapMode.Supply;
+			}
+			else if (argument == "--mode=weather")
+			{
+				_mapView.Mode = CMapView.MapMode.Weather;
 			}
 			else if (argument == "--mode=air")
 			{

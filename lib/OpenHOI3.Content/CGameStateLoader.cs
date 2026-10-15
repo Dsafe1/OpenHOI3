@@ -83,6 +83,11 @@ public static class CGameStateLoader
 				PositionY = map.Positions[id].Y,
 				PortSea = map.PortSea[id],
 				SeaIndex = map.SeaIndex[id],
+				// The weather's start: climate.bmp's index at the unit point, 0.150 of a degree a step from 100, and the
+				// map terrain's own temperature (weather.md, section 1).
+				BaseTemperature = new CFixedPoint((id < map.ClimateIndex.Count ? map.ClimateIndex[id] - 100 : -100) * 150L
+					+ (map.Terrain[id]?.Temperature.Raw ?? 0)),
+				IsNorthern = map.Positions[id].Y >= map.Height / 2,
 			};
 		}
 
@@ -147,6 +152,8 @@ public static class CGameStateLoader
 			EndDate = ReadEndDate(directories, warn),
 		};
 		AssignRegions(state);
+		state.Weather.LowPressureZones = map.LowPressureZones;
+		state.Weather.HighPressureZones = map.HighPressureZones;
 		state.Alliances.AddRange(diplomacy.Alliances);
 		state.Guarantees.AddRange(diplomacy.Guarantees);
 		state.Naps.AddRange(diplomacy.Naps);

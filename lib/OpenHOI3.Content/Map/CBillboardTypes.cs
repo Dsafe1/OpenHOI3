@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using OpenHOI3.Content.Clausewitz;
 
 namespace OpenHOI3.Content.Map;
@@ -21,6 +22,8 @@ public sealed class CBillboardTypes
 	private static readonly HashSet<string> Keys = new(StringComparer.OrdinalIgnoreCase)
 	{
 		"name", "effectFile", "textureFile", "scale", "offset", "offset2", "noOfFrames", "font", "font_size",
+		// A weatherBillboardType's own: the original stores the last two and nothing reads them.
+		"effect", "animation", "simple",
 	};
 
 	private readonly Dictionary<string, CBillboardType> _types = new(StringComparer.OrdinalIgnoreCase);
@@ -50,7 +53,9 @@ public sealed class CBillboardTypes
 			}
 			foreach (ClausewitzNode container in root.All("objectTypes"))
 			{
-				foreach (ClausewitzNode node in container.All("billboardType"))
+				foreach (ClausewitzNode node in container.Children.Where(child => child.IsBlock
+					&& (string.Equals(child.Key, "billboardType", StringComparison.OrdinalIgnoreCase)
+						|| string.Equals(child.Key, "weatherBillboardType", StringComparison.OrdinalIgnoreCase))))
 				{
 					if (Read(node, Path.GetFileName(file), warn) is { } type)
 					{
@@ -86,6 +91,8 @@ public sealed class CBillboardTypes
 			Offset = node.GetFloat("offset"),
 			Frames = Math.Max(1, node.GetInt("noOfFrames", 1)),
 			Font = node.GetString("font"),
+			TextureFiles = node.All("textureFile").Select(texture => texture.Value ?? "").Where(path => path.Length > 0).ToList(),
+			Effect = node.GetString("effect"),
 		};
 	}
 }

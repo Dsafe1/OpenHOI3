@@ -242,6 +242,38 @@ generator, over the original's wall clock and over the event scope's state of ch
 
 `docs/mechanics/events.md`; `reversing/findings/FINDINGS-eventfire.md`, section 1.2.
 
+## 12. The map always shows counters: `alwaysCounters=no` is not supported
+
+**Decided** 2026-10-15 by the maintainer, shown that the weather map's pictures follow the setting: "'no' means to use
+sprites, but no one uses them and they are also not easily moddable. So they are more or less a dead feature."
+
+| | |
+| --- | --- |
+| the original | `mapRenderingOptions`' `alwaysCounters` in the player's `settings.txt`: `yes` draws counters at every zoom and the weather map mode's plain `_simple` icons; `no` draws the units as figures close in and the weather as clouds with rain and snow falling under them |
+| here | always as `yes`: counters, and the `_simple` weather icons; a `settings.txt` saying `no` is reported and read as `yes` |
+| the difference today | the units' figures and the full weather art of `interface/mapitems.gfx` - `weather_rain`, `weather_snow` and the rest without `_simple` - are never drawn |
+| a mod loses | what it gives those types and its unit figures; its `_simple` types and its counters are drawn as before |
+| why | nobody plays with them, and the figures are not easily modded: a dead feature |
+| to undo | read `alwaysCounters` and draw the figures and the full weather pictures - the layer that drew the clouds, the falling rain and snow and the lightning was built on 2026-10-15 and taken out the same day (`docs/mechanics/weather.md`, section 6) |
+
+`docs/mechanics/weather.md`, section 6; `docs/mechanics/settings.md`.
+
+## 13. The player's settings are the original's `settings.txt`
+
+**Decided** 2026-10-15 by the maintainer: "For now we should read the existing settings.txt. The one located in the
+documents folder, not the one next to the exe."
+
+| | |
+| --- | --- |
+| the original | writes and reads `settings.txt` in `Documents\Paradox Interactive\Hearts of Iron III`, and ships one beside the executable |
+| here | reads the one in the Documents folder, and never writes it; the one beside the executable is not read |
+| the difference today | a setting changed here is not kept; nothing here changes one yet |
+| a mod loses | nothing; a mod has no `settings.txt` of its own |
+| why | the player's settings are where the original keeps them, and one file serves both |
+| to undo | settings of our own, in our own file |
+
+`docs/mechanics/settings.md`.
+
 ---
 
 ## Stricter, with the same meaning

@@ -194,6 +194,7 @@ public static class CMapGraph
 		CMapPosition start = !fromSea && toSea ? positions.NavalBase[from] : positions.Unit[from];
 		CMapPosition end = fromSea && !toSea ? positions.NavalBase[edge.To] : positions.Unit[edge.To];
 
+		int bearing = Bearing(start, end);
 		int x = start.X;
 		int y = start.Y;
 		int across = x - end.X;
@@ -255,6 +256,23 @@ public static class CMapGraph
 				y--;
 			}
 		}
-		return edge with { Kind = kind, Distance = new CFixedPoint(distance) };
+		return edge with { Kind = kind, Distance = new CFixedPoint(distance), Bearing = bearing };
+	}
+
+	/// <summary>
+	/// Which way one point lies from another, in thousandths of a turn, as the original works it out in single precision
+	/// from the two points the distance is walked between: the angle of the rise against the step east turned about, a
+	/// half turn added, and a thousandth's half, and floored - so due west is 1000. Nothing is wrapped round the map, so
+	/// an edge across the seam points the long way round (<c>docs/mechanics/weather.md</c>, section 3).
+	/// </summary>
+	public static int Bearing(CMapPosition from, CMapPosition to)
+	{
+		float y = from.Y - to.Y;
+		float x = to.X - from.X;
+		float angle = (float)Math.Atan2(y, x);
+		float turn = (float)(angle / 6.2831854820251465);
+		float half = (float)(turn + 0.5);
+		float thousandths = (float)((float)(half + 0.0005000000237487257) * 1000.0);
+		return (int)MathF.Floor(thousandths);
 	}
 }

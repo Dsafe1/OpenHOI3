@@ -57,6 +57,8 @@ public static class CTerrainReader
 				CFixedPoint.TryParse(category.GetString("defence"), out CFixedPoint defence);
 				CFixedPoint.TryParse(category.GetString("humidity"), out CFixedPoint humidity);
 				CFixedPoint.TryParse(category.GetString("attrition"), out CFixedPoint attrition);
+				CFixedPoint.TryParse(category.GetString("precipitation"), out CFixedPoint precipitation);
+				CFixedPoint.TryParse(category.GetString("temperature"), out CFixedPoint temperature);
 				categories.Add(new CTerrain(category.Key, category.GetBool("is_water"),
 					category.GetRgb("color", CColor.Gray))
 				{
@@ -65,6 +67,8 @@ public static class CTerrainReader
 					Defence = defence,
 					Humidity = humidity,
 					Attrition = attrition,
+					Precipitation = precipitation,
+					Temperature = temperature,
 				});
 			}
 		}

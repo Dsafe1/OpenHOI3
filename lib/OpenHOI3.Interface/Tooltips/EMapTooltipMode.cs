@@ -12,4 +12,6 @@ public enum EMapTooltipMode
 	Air,
 	/// <summary>The revolt map mode, which adds nothing of its own to the province's tooltip.</summary>
 	Revolt,
+	/// <summary>The weather map mode, the original's 11, whose part takes the place of the province's name.</summary>
+	Weather,
 }

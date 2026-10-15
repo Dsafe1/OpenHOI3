@@ -47,6 +47,12 @@ public sealed class CTerrain
 	/// <summary>The file's <c>humidity</c>. Ground with any counts as jungle when it is hot.</summary>
 	public CFixedPoint Humidity { get; init; }
 
+	/// <summary>The file's <c>precipitation</c>: it lowers the bar air must reach to gather cloud (weather.md, section 2).</summary>
+	public CFixedPoint Precipitation { get; init; }
+
+	/// <summary>The file's <c>temperature</c>, added to what <c>climate.bmp</c> gives a province (weather.md, section 1).</summary>
+	public CFixedPoint Temperature { get; init; }
+
 	public override string ToString()
 	{
 		return Name;

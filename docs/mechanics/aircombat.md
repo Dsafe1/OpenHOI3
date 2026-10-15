@@ -451,7 +451,7 @@ selected province says there is a battle.
 - **Every other air order** - the reserve, the transport of supplies, the paradrop.
 - The orders window is whole since 2026-10-11, and the air map mode is built: `airmap.md`.
 - **Difficulty** in what the hour makes of a wing; **radar** in what a country knows. The
-  leaders are built since 2026-10-11 (`leaders.md`, section 10). The weather's part is built and there is no weather yet.
+  leaders are built since 2026-10-11 (`leaders.md`, section 10). The weather's part is built, and since 2026-10-15 so is the weather (`weather.md`).
 - **The practical** an air battle earns. Its experience, the leader's and the wings', is built
   since 2026-10-11 (`leaders.md`, section 11).
 - The AI's own giving of missions, and its 120-hour end.

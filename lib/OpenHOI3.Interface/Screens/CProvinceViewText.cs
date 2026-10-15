@@ -22,11 +22,6 @@ public static class CProvinceViewText
 	/// <summary>The wind the bar is full at, in whole kilometres an hour: fixed.</summary>
 	public const int MostWind = 30;
 
-	/// <summary>The temperature under which precipitation is snow, in degrees: fixed.</summary>
-	public const int SnowBelow = -5;
-
-	private const string WeatherSection = "weather";
-
 	/// <summary>The four goods whose figures the view shows, with their figure's element and their icon's.</summary>
 	public static readonly (EGoods Goods, string Text, string Icon, string Name)[] Resources =
 	{
@@ -123,23 +118,7 @@ public static class CProvinceViewText
 	public static IReadOnlyList<CCountryTag> Claims(CProvince province) => province.Cores;
 
 	/// <summary><c>weather_icon</c>'s frame: 7 a snowstorm, 6 snow, 5 a storm, 4 rain, 3 overcast, 2 partly cloudy, 1 clear.</summary>
-	public static int WeatherFrame(CGameState state, CWeather weather)
-	{
-		CFixedPoint Limit(string name) => state.Defines[WeatherSection, name];
-		if (weather.Precipitation > Limit("GFX_SNOW_LIMIT") && weather.Temperature < CFixedPoint.FromInt(SnowBelow))
-		{
-			return weather.WindSpeed > Limit("GFX_SNOW_STORM_LIMIT") ? 7 : 6;
-		}
-		if (weather.Precipitation > Limit("GFX_RAIN_LIMIT"))
-		{
-			return weather.WindSpeed > Limit("GFX_STORM_LIMIT") ? 5 : 4;
-		}
-		if (weather.CloudCoverage > Limit("GFX_CLOUD_LIMIT"))
-		{
-			return 3;
-		}
-		return weather.CloudCoverage > Limit("GFX_PARTIAL_CLOUD_LIMIT") ? 2 : 1;
-	}
+	public static int WeatherFrame(CGameState state, CWeather weather) => (int)CProvinceWeather.Picture(state, weather);
 
 	/// <summary>The weather picture's key, by its frame, for <c>weather_icon</c>'s tooltip.</summary>
 	public static string WeatherKey(int frame) => frame switch

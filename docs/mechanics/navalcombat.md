@@ -169,7 +169,7 @@ nothing. In the original's order:
   then every submarine of that fleet and of the fleets after it has the bonus for the first
   `NAVAL_COMBAT_SUB_SURPRISE_ROUNDS` rounds - five times its attack on top, in the base game,
   at three chances in ten, for three hours.
-- **There is no weather yet**, so its row comes to nothing.
+- ~~**There is no weather yet**, so its row comes to nothing.~~ Weather is made since 2026-10-15 (`weather.md`).
 
 **The leaders** (`leaders.md`, section 10), in the original's places in that order:
 

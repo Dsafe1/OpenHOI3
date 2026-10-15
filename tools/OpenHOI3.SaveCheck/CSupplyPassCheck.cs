@@ -208,7 +208,7 @@ internal static class CSupplyPassCheck
 		// It is the game's own doing that is run here - what a new game does before its
 		// first hour - so that what is checked is what is played.
 		clock.Restart();
-		CTick.RunFirstDays(state);
+		CTick.RunFirstDays(state, weather: false);                 // the save's mud and frost stand (weather.md, section 4)
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		Console.WriteLine($"the two days run in {clock.ElapsedMilliseconds} ms: the furthest province is {network.MostDistance} from its depot");
 		Console.WriteLine();

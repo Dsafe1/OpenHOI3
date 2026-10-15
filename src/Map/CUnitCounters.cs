@@ -96,6 +96,33 @@ public partial class CUnitCounters : Node2D
 		_markers = new CBattleMarkers { Name = "Battles" };
 		_markers.Setup(map, state, gui, billboards, PlaceOfUnit);
 		AddChild(_markers);
+
+		// Over all of it, in the weather map mode: the clouds, the rain and the snow (weather.md, section 6).
+		_weather = new CWeatherLayer { Name = "Weather" };
+		_weather.Setup(map, state, gui, billboards);
+		AddChild(_weather);
+	}
+
+	private CWeatherLayer _weather = null!;
+
+	/// <summary>Whether the weather map mode is on, which shows its pictures.</summary>
+	public bool WeatherMode
+	{
+		get => _weather.Visible;
+		set
+		{
+			_weather.Visible = value;
+			_weather.Refresh();
+		}
+	}
+
+	/// <summary>Takes again the pictures of the weather, as an hour has left it.</summary>
+	public void RefreshWeather()
+	{
+		if (_weather.Visible)
+		{
+			_weather.Refresh();
+		}
 	}
 
 	/// <summary>The buildings on the map, the ports and the airfields among them.</summary>
@@ -200,6 +227,7 @@ public partial class CUnitCounters : Node2D
 		_buildings.ViewChanged(view);
 		_airMap.ViewChanged(view);
 		_markers.ViewChanged(zoom, view);
+		_weather.ViewChanged(view);
 		QueueRedraw();
 	}
 

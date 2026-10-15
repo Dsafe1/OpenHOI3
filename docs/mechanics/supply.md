@@ -297,7 +297,7 @@ arrives (section 12). On arriving in a province, a load loses
                                                                     at war with its owner
 
 *Ours:* suppression is not built and counts as none, so the partisans take their whole share.
-There is no weather yet, so the mud is nothing.
+~~There is no weather yet, so the mud is nothing.~~ The mud is the province's own since 2026-10-15 (`weather.md`).
 
 ## 9. Checked against savegames
 

@@ -61,7 +61,10 @@ public class MapLoadingTests : IDisposable
 			provinces = ""provinces.bmp""
 			adjacencies = ""adjacencies.csv""
 			continent = ""continent.txt""
-			region = ""region.txt""");
+			region = ""region.txt""
+			climate = ""climate.bmp""
+			high_pressure_zones = { 1 }
+			low_pressure_zones = { 4 = 31 5 = 16 }");
 
 		// Alpha, Beta and Gamma on one continent and Epsilon on another.
 		Write("map/continent.txt", "west = {\n\t1 2 3\n}\neast = { 5 }\n");
@@ -116,6 +119,26 @@ public class MapLoadingTests : IDisposable
 			new byte[] { NoRiver, River, NoRiver, NoRiver },
 			new byte[] { NoRiver, NoRiver, NoRiver, NoRiver },
 		}));
+
+		// A palette index for every pixel, northernmost row first, so that which pixel a province samples shows.
+		WriteBytes("map/climate.bmp", TestBitmap.Indexed8(4, new[]
+		{
+			new byte[] { 100, 110, 120, 130 },
+			new byte[] { 101, 111, 121, 131 },
+			new byte[] { 102, 112, 122, 132 },
+		}));
+	}
+
+	[Fact]
+	public void AProvincesClimateIsThePaletteIndexUnderItsUnitPointAndTheZonesAreReadInOrder()
+	{
+		CMap map = Load();
+
+		// Alpha placed at (1, 2); Beta at its box's centre (2, 2); Gamma by its last place, (1, 0); the sea zone by its
+		// text's place, (3, 0); Epsilon at (3, 2).
+		Assert.Equal(new byte[] { 0, 110, 120, 112, 132, 130 }, map.ClimateIndex.ToArray());
+		Assert.Equal(new[] { (4, 31), (5, 16) }, map.LowPressureZones);
+		Assert.Equal(new[] { 1 }, map.HighPressureZones);
 	}
 
 	private const byte NoRiver = 255;
