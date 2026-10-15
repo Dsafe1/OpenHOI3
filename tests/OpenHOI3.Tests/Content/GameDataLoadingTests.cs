@@ -212,4 +212,28 @@ public class GameDataLoadingTests : IDisposable
 		Assert.Contains(_warnings, warning => warning.Contains("sortie { efficency }"));
 	}
 
+	[Fact]
+	public void OccupationPoliciesComeAfterNoOccupationInTheFilesOrderAndAllowIsNotAFigure()
+	{
+		Write("common/occupation_policies.txt", """
+			collaboration_government = {
+				local_partisan_support = 1.5
+				local_ic = -0.95
+			}
+			civil_war = {
+				allow = { tag = SPA }
+			}
+			""");
+
+		List<OpenHOI3.Sim.Occupation.COccupationPolicy> policies = CModifierReader.ReadOccupationPolicies(Directories, _warnings.Add);
+
+		Assert.Equal(new[] { "no_occupation", "collaboration_government", "civil_war" }, policies.Select(policy => policy.Name));
+		Assert.Equal(new[] { 0, 1, 2 }, policies.Select(policy => policy.Index));
+		Assert.False(policies[0].IsReal);
+		Assert.Empty(policies[0].Modifier.Values);
+		Assert.Equal(OpenHOI3.Sim.CFixedPoint.Parse("1.5"), policies[1].Modifier["local_partisan_support"]);
+		Assert.Empty(policies[2].Modifier.Values);
+		Assert.Empty(_warnings);
+	}
+
 }

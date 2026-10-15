@@ -104,6 +104,12 @@ public sealed class CCountry
 	public CFixedPoint HistoryThreat { get; set; }
 
 	/// <summary>
+	/// The occupation policies its history sets, each by name towards a country, in the order written: put on its records
+	/// once they exist (<c>docs/mechanics/occupation.md</c>, section 2).
+	/// </summary>
+	public List<(string Policy, CCountryTag Occupied)> HistoryOccupationPolicies { get; } = new();
+
+	/// <summary>
 	/// Where it stands on the alignment triangle, thousandths: its history's point, then where its
 	/// drift takes it. See <c>docs/mechanics/alignment.md</c>.
 	/// </summary>

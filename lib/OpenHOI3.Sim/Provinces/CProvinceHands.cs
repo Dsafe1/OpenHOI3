@@ -20,7 +20,8 @@ public static class CProvinceHands
 
 	/// <summary>
 	/// The original's <c>Province_SetController</c>, as far as it is built: nothing where the controller is the
-	/// same, nor for land nobody owns. With <paramref name="consequences"/> and not <paramref name="peaceful"/>,
+	/// same, nor for land nobody owns. The new controller's occupation policy towards the old is set where it has none.
+	/// With <paramref name="consequences"/> and not <paramref name="peaceful"/>,
 	/// each building an enemy takes may lose <c>COMBAT_PUSHBACK_DAMAGE</c> on a draw under
 	/// <c>COMBAT_PUSHBACK_CHANCE_FOR_DAMAGE</c>, the province's production of money and the four resources is
 	/// nought, and where it is the old controller's capital a quarter of the old controller's money and resources
@@ -49,6 +50,8 @@ public static class CProvinceHands
 				Loot(state.Stockpile(fallen), state.Stockpile(taker));
 			}
 		}
+		// The new controller's policy towards the old, where it has none yet (occupation.md, section 2).
+		Occupation.COccupationPolicies.Capture(state, controller, old);
 		province.Controller = controller;
 		// The old holder's government moves at once where this was its seat.
 		if (consequences && state.Country(old) is { } former)
@@ -59,8 +62,9 @@ public static class CProvinceHands
 
 	/// <summary>
 	/// The original's <c>CMapProvince::ChangeOwner</c>: the new owner takes control with the same flags, then owns
-	/// it - the rebels never do; the modifiers events gave it go, whether or not the owner changed; and the old
-	/// owner, owning nothing now, leaves its faction. A new owner gets no core.
+	/// it - the rebels never do; its nationalism is set where the old owner was a country and the modifiers events
+	/// gave it go, both whether or not the owner changed; and the old owner, owning nothing now, leaves its faction. A
+	/// new owner gets no core.
 	/// </summary>
 	public static void ChangeOwner(CGameState state, CProvince province, CCountryTag owner, bool consequences = false,
 		bool peaceful = false)
@@ -71,6 +75,10 @@ public static class CProvinceHands
 		{
 			province.Owner = owner;
 			province.Controller ??= owner;
+		}
+		if (state.Country(old) is not null)
+		{
+			CNationalism.Set(state, province);
 		}
 		if (state.Country(old) is { } former && RealFaction(former) && CCountryLists.OwnedCount(state, former.Tag) == 0)
 		{

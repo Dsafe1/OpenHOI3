@@ -114,7 +114,7 @@ Four choices sit under all of it:
 
 ### Next up
 
-As of 2026-10-14, in stage 3 with stage 4 built as far as items 6 to 10 cut it - events and decisions, diplomacy through factions, politics and espionage, each in four pieces, and triggered modifiers, with occupation and revolt left of stage 4 - and the economy of stage 2 waiting on them. Kept
+As of 2026-10-14, in stage 3 with stage 4 built as far as items 6 to 10 cut it - events and decisions, diplomacy through factions, politics and espionage, each in four pieces, and triggered modifiers, with occupation and revolt left of stage 4, its first piece built - and the economy of stage 2 waiting on them. Kept
 current as work lands, so that picking this up cold needs nothing but this file and
 `docs/mechanics/`.
 
@@ -1116,11 +1116,63 @@ In order:
 (`reversing/findings/FINDINGS-occupation.md`, sections A to F, on top of its first sections and
 `reversing/findings/FINDINGS-revolt.md`), which also settled the `counter_espionage` question (`espionage.md`,
 section 6). The cut proposed, this project's, in four pieces as politics and espionage were:
-   1. **occupation and a province's whole modifier** - the policies, a pair's policy set on a first capture and by
-      the player, the history's policy lines; the rest of the province rebuild (the coastal family,
-      `no_adjacent_controlled`, the policy, `blockaded` again, land or sea, `manpower`, `nationalism` with its twenty
-      years and monthly decay, the dated province modifiers, radar); and the politics screen's occupied countries
-      and policy window with their tooltips;
+   1. **occupation and a province's whole modifier - built** (2026-10-14, on the maintainer's word: "Please continue
+      with the next step"; `docs/mechanics/occupation.md`, `modifiers.md` section 3; `COccupationPolicy`,
+      `COccupationPolicies` in `Sim/Occupation`, `CChangeOccupationPolicyCommand`, `CNationalism` in `Sim/Provinces`,
+      `COccupationPolicyAllowReader` in `Content/Script`, `COccupationText` in `Interface/Screens`, `CPolicyEntry` and
+      `CPossiblePolicyEntry` in `src/Screens`): the policies of `common/occupation_policies.txt` after the game's own
+      `no_occupation`; every country's towards every country, set by a first capture - `civil_war` where its `allow`
+      holds, else the file's first, keyed by the old holder - by the player's command, and by the history; and what a
+      province is given of it, with no war asked. The rest of the province rebuild, read whole: the coast,
+      `no_adjacent_controlled`, the policy, land or sea, `manpower`, `nationalism`, what events gave it, and its
+      sources kept for the tooltips - all but radar's list and revolt risk. Nationalism: twenty years on a change of
+      owner, the same owner included, and a second `owner` line in the history; 0.083 off a month; the condition.
+      The politics screen's occupied countries and the choice of a policy, with every tooltip, tried with `--click`
+      (`--occupy=GER:POL` hands one country another's land as a capture would). Against the saves: the start save's
+      nationalism 5 of 5 (`firstdays`), and the `declare ... occupy` trial gives Italy's capture of Ethiopia
+      `collaboration_government` and China's of Guangxi `civil_war`, as the February and April saves hold. **Reading
+      for it corrected the fact base**: the province rebuild has fifteen callers and no screen among them, the hourly
+      province pass makes a province's modifier again where a building was moved, and a plain change of controller
+      makes nothing again. **The maintainer has not looked at it.**
+
+      **Next, before piece 2: a province's modifier made again on the original's schedule - planned, not started.**
+      The maintainer's word, 2026-10-14: "plan it before piece 2, but dont start on it yet". Until now every province
+      is made again once a day, a choice of ours that was never decided for provinces (`modifiers.md`, section 7);
+      the original's schedule is read (`modifiers.md`, section 3; `reversing/findings/FINDINGS-occupation.md` A.7, its
+      15 callers). It comes before revolt risk because revolt risk's ceiling, `local_partisan_support`, is read from
+      the province's modifier. The plan:
+
+      - **Split the rebuild** into one province (`CProvinceModifiers.RebuildOne`) and all of them, the per-call
+        caches - which provinces are in their holder's capital area, which areas have an open port - worked out for
+        the one province's holder alone when one is made.
+      - **A building's "changed" mark** on the province, set wherever a building's working level moves - a bombing
+        (`CProvinceBombing`), a fallen-back defender's damage (`CProvinceHands.DamageBuildings`), the day's repair
+        (`CProvinceRepair`) - and cleared by the rebuild.
+      - **When it is made again**, each the original's:
+        - every province at the head of the month's pass, before nationalism comes down (`CTick.RunMonthlyPass`);
+        - in each province's hour, one with a changed building (beside `CFactionProgress.RunHourly`, which is the same
+          pass in the original);
+        - at once where the day's repair carries a building across a whole level (`CProvinceRepair`);
+        - at once, the one province: a battle's capture (`CProvinceControl`, the original's `TakeControl`), every
+          change of owner (`CProvinceHands.ChangeOwner`, which today does it only where event modifiers go), a building
+          built by an effect (`CNamedEffects.Build`, the original's `SetProvinceBuildingLevel`), `add_province_modifier`
+          (`CMarkEffects`), a decision taken (`CExecuteDecisionCommand` - which province the original makes was not
+          read), and the occupation command (the setter's provinces of the other's only);
+        - every province as a game is entered (`CTick.RunEntryPass`).
+      - **Taken away**: the daily pass's step (`CTick.RunDailyPass`). The three in a new game's making
+        (`CStockpile.FillAtStart`, `CManpower.SetAtStart`, `CLeadership.SetAtStart`) stay as ours, a game being made
+        before it is entered, unless the reading says otherwise; `CHoldLandCommand`, a trial's, keeps making all.
+      - **What changes, all the original's** - to go in `modifiers.md` and be shown to the maintainer: a plain change
+        of controller makes nothing again, so land handed back by the day's return or moved by an effect keeps its
+        old modifier until the hour or the month; `add_core` and `remove_core` wait for the month before `non_core`
+        moves; **a timed province modifier is dropped only at a rebuild, so it outlives its end until the next one**;
+        a month's nationalism is the figure before that month's decay; bombing and repair reach a province within the
+        hour, sooner than now.
+      - **To read first, in the fact base**: which provinces `CInGameIdler::Enter`'s four calls make, and which one
+        `CExecuteDecisionCommand::Execute` makes (`0xA09754`, the province at `[decision +0x80]`, *inferred*).
+      - **Checked by**: a test per trigger and one that a plain change of controller makes nothing; and `supplypass`
+        (183 of 234 on 2026-10-14), `research` over the March pair, `march`, `firstdays` (nationalism 5 of 5),
+        `espionage` (10045 of 10100 abroad) and the `bombing` trial, each set beside its figure before the change.
    2. **revolt risk** - suppression over two edges, the day's step and its freeze at peace, the effective figure and
       the `revolt_risk` static scaled by it, the five conditions and the effect, what the province tooltip and a
       revolt map mode show;
@@ -1247,7 +1299,7 @@ None of these blocks the list above.
   expeditionary forces; the cabinet a new puppet's government would fill; an exile's free supply from friends,
   its brigades at its leader's technology, liberation, the underground and militia; **the puppet's tribute**;
   and a landless country's units, which the original destroys each hour. **A change of hands leaves out** unit
-  rebasing, radar, the occupation policy, the underground and nationalism. **A
+  rebasing, radar and the underground. **A
   pact is one object for both countries**, so annexation ends both sides of one (`war.md`, *Ours*). War
   exhaustion is not built, so nothing pays back neutrality. **Units on ground they may no longer stand on are not marked** (`war.md`, *Not
   built*), and undeclared wars and the revolt war are not built. Mobilising and spies spread no threat
@@ -1715,9 +1767,8 @@ None of these blocks the list above.
   `IsPreparingWarWith`, `CanDeclareWar` and `IsMilitarist` answer false, so no AI mobilises ahead of a war it plans;
   and it neither liberates a country nor releases a puppet. What repeats a new game's look at the laws in the original
   was not found, and a minister's hour rests on a numbering of countries that is ours.
-- **The politics screen's revolt, puppet and liberation buttons cannot be pressed, and its occupied countries stay
-  empty** (2026-10-14, `politics.md`, section 11): rising up from exile, releasing a puppet from the screen, liberating
-  a country and occupation policies are not built.
+- **The politics screen's revolt, puppet and liberation buttons cannot be pressed** (2026-10-14, `politics.md`,
+  section 11): rising up from exile, releasing a puppet from the screen and liberating a country are not built.
 - **Three things stop the hourly return of organisation in the original, and none can
   happen here yet**: fighting, marching into a province an enemy holds, and being
   carried at sea. `organisation.md`, section 3.
@@ -1892,9 +1943,11 @@ None of these blocks the list above.
   not built. `docs/mechanics/modifiers.md`, section 7.
 - **The goals window is not built**, which `menubar_goals_button` opens and which opening the Strategic Effects
   window shuts in the original. `docs/mechanics/strategiceffects.md`, *Ours*.
-- **A province's modifier is its buildings, `overseas` and `non_core`.** Terrain, the
-  coast, occupation policies, nationalism and revolt risk do not feed it yet.
-  `docs/mechanics/modifiers.md`, section 3.
+- **A province's modifier is every step of the original's but radar's list and revolt risk** (2026-10-14,
+  `docs/mechanics/modifiers.md`, sections 3 and 7): revolt risk is occupation and revolt's second piece, and no
+  port is held blockaded, the flag `is_blockaded` reads not being built. **It is made again once a day for every
+  province**, where the original makes it monthly and at the changes that feed it: so land the day's return hands
+  back gets its modifier that night, and a month's nationalism reaches a province the day after.
 - **Each spec ends with what is not established.** Those are questions for the reverse
   engineering. Production's, the oil conversions', leadership's, the starting
   stockpile's, research's and manpower's were answered by reading the executable; those
@@ -1955,7 +2008,7 @@ sea and by air - in five projects:
 | `src/Gui` | The interface runtime: builds a window from the original's `.gui` declaration - its icons, buttons, checkboxes, text boxes, scrollbars, list boxes and boxes of overlapping elements, in the file's order and at the file's positions - and finds them again by name |
 | `src/Screens` | The screens, one class each. The top bar: the date, the country, its resources, IC, manpower and the rest, and the buttons that stop, slow and speed time. The production screen: the stockpiles with what the day did to each, the six sliders that divide IC, and the build queue with buttons that move a line and take it out. The four windows it opens to order a unit: the division designer with its brigade picker, and the ship, air and brigade builders. The technology screen: the four sliders that divide leadership, the tree a folder at a time, the theories and practicals, the research queue and a panel for one technology. The alert that says units are waiting, and the deploy menu it opens: the units waiting, the units one of them may join, and a click on the map to place it. The panel of the unit selected on the map: a list of the units above it, its header, its status, its order, its buttons, its brigades, the units under it and the battles it is in, each a class of its own. The window of orders for a fleet or an air unit. And the window of a battle, with its two sides and a line for each unit on them |
 | `tools/OpenHOI3.SaveCheck` | Compares what the libraries compute with a savegame the original wrote, field by field; and, given two saves of one game, what a day of research adds with how far each technology moved between them. It also sets every starting brigade beside the save's, by number, and runs the save's two days of rotation, reinforcement and upgrades to set each beside it again, its organisation and its build queue included; and the queue again between two saves, run forward from the earlier and set beside the later. And the edges between provinces against the original's own cache of them, and what an hour adds to a marching division against two saves hours apart, with where the hours between took every fleet and air unit. And the distances by sea against the original's own cache of those. And the supply network against the provinces a save marks as out of supply and as beside a capital, and the carrying of supplies against what a start-date save holds in every province, with the convoys a new game makes against the save's, way for way and ship for ship. The oracle for everything above - but for a battle, which no save has: `battle` fights one with the install's own units and says how it went, as a trial, `seabattle` does the same with two countries' fleets, and `raid` sends one country's raiders at another's convoys for a month. And `firstdays` sets a new game as a player gets it, its two days run, beside the start save country by country - meant to differ, since the original's AI has changed laws by then - where `supplypass ... countries` does it like for like, with the save's laws given. `techgap` looks at the technology levels the start save has above the history's, and `airbattle` flies an air mission with the install's own units and tells the battles it comes to; `bombing` flies a bombing mission for some days and tells what it did to the province. `script` reads an install's events and decisions and lists every problem in them, with no save needed |
-| `tests/` | 1946 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort, and how a tooltip is shown with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say - the designer's terrain summary, the practical's discount, a brigade's summary, a leader's own and what a trait does among them - a modifier's sources written out and the counter in text - and the reading of event and decision script, its words, its triggers and effects by the original's grammar, an event, a decision and the problems found, and what a condition answers - the scope and its forms, the blocks and the sets, the leaves and what is reported unbuilt - and what an effect does, with flags, variables and the modifiers an event gives, and an event firing and a decision taken, with their text, and what countries hold of each other - a new game's relations, the month's drift, a battle's gain, neutrality and its effect and conditions, threat's two spreaders, the most-threatening country and the alignment triangle's clamp, step and drift - and Lua: the interpreter's rounding and numbers, errors and objects crossing both ways, the install's scripts found through the layers and the relation they give, a class's global, its fields, one equality for every class, iterators, `CFixedPoint` and its backwards arithmetic, the API's answers and an offer put to the recipient's AI - and the diplomacy screen: its lists and sorts, its panel and status lines, the relation list, the ceiling for war, every tooltip and the drift tooltip - and the agreements: an offer, the AI's answer, each pact's arms and how it ends, the screen's rows, tooltips and request dialog, and a pact's message - and trade: a route's price, terms, convoy, day and ends, the AI's trading, the trade window and list, automate-trade and an offer put to the player - and aid: debt and its repayment, shared theories, lend-lease's rules and IC, licences and their Lua - and politics: the parties, the cabinet, elections, national unity, a law or a minister changed, the politics screen's text and tooltips, and the AI's politics - a new game's laws to their fixed point, the minister's hour, the refill of empty posts and what the politics script is handed - and spies, their placing, their missions, catching them, the coup and covert operations, and what a country knows of another and of every province, the intelligence screen and the AI's spying - and triggered modifiers, their file, the day's test, the list's order, their messages and the Strategic Effects window's rows and tally - where silent misreadings are expensive |
+| `tests/` | 1963 tests over the parsing, the layering, the map, the numbers, the tick, modifiers and strategic resources, IC, resources, the stockpile, production, the conversions, leadership, research, manpower, unit types, historical models, orders of battle and what a brigade starts with, what units draw each day, the officer ratio and organisation, the build queue, what a country may build and what a new unit is called, the interface files, font descriptors, the sliders, the three screens' figures and the builder windows', the counters and who may join whom, the edges between provinces and a unit's march, what the weather does to it, the unit panel's figures, ports, the distances by sea, a fleet's and an air unit's orders and range, the buildings on the map and the window of orders, a land battle from its first hour to the province taken, what the hour makes of a unit in one, day and night, the tactics and their file, what a battle shows, the supply network, the carrying of supplies and what a unit draws and brings, convoys - the heap, the way, the harbours, a sailing and the sharing out of ships - the supply map mode's colours and lines, who is whose puppet, a battle at sea from the sighting to the fleet that falls back, a fleet's missions with the raid on a convoy, an air unit's two missions with the battle in the air, the eight bombing missions with the bombing, what a bomb does to a province and the day's repair, what the window shows of a battle in the air and of a bombing, a mission's area with the air window's ladder, sliders, hours, dates and colours, the list of finished battles with the air map mode's colours, icons, rings and lines, and leaders - their files, their skill, who may command what, the choice of one, how far a command reaches, what a leader does in a battle on land, at sea and in the air, the experience and traits a battle gives, and the window a leader is chosen in with the four commands it posts and the original runtime's sort, and how a tooltip is shown with what a province's, the top bar's, the production and technology screens', the sliders', the builder windows', the unit panel's, the deploy menu's, the orders windows', a battle's and the leader window's say - the designer's terrain summary, the practical's discount, a brigade's summary, a leader's own and what a trait does among them - a modifier's sources written out and the counter in text - and the reading of event and decision script, its words, its triggers and effects by the original's grammar, an event, a decision and the problems found, and what a condition answers - the scope and its forms, the blocks and the sets, the leaves and what is reported unbuilt - and what an effect does, with flags, variables and the modifiers an event gives, and an event firing and a decision taken, with their text, and what countries hold of each other - a new game's relations, the month's drift, a battle's gain, neutrality and its effect and conditions, threat's two spreaders, the most-threatening country and the alignment triangle's clamp, step and drift - and Lua: the interpreter's rounding and numbers, errors and objects crossing both ways, the install's scripts found through the layers and the relation they give, a class's global, its fields, one equality for every class, iterators, `CFixedPoint` and its backwards arithmetic, the API's answers and an offer put to the recipient's AI - and the diplomacy screen: its lists and sorts, its panel and status lines, the relation list, the ceiling for war, every tooltip and the drift tooltip - and the agreements: an offer, the AI's answer, each pact's arms and how it ends, the screen's rows, tooltips and request dialog, and a pact's message - and trade: a route's price, terms, convoy, day and ends, the AI's trading, the trade window and list, automate-trade and an offer put to the player - and aid: debt and its repayment, shared theories, lend-lease's rules and IC, licences and their Lua - and politics: the parties, the cabinet, elections, national unity, a law or a minister changed, the politics screen's text and tooltips, and the AI's politics - a new game's laws to their fixed point, the minister's hour, the refill of empty posts and what the politics script is handed - and spies, their placing, their missions, catching them, the coup and covert operations, and what a country knows of another and of every province, the intelligence screen and the AI's spying - and triggered modifiers, their file, the day's test, the list's order, their messages and the Strategic Effects window's rows and tally - and occupation, the policies, what sets one, a province's whole modifier, nationalism and the occupied countries on the politics screen - where silent misreadings are expensive |
 
 Not built yet: the cached asset build, every screen but those, and nearly every
 system the tick is there to run. The game also does not stop at the end date.
@@ -2091,6 +2144,8 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         posts, a law changed, and the AI's politics
     Espionage/          a country's spies in each country, their placing by priority, the
                         nine missions, catching spies, the coup and covert operations
+    Occupation/         the occupation policies, the one each country holds towards each,
+                        and what sets it
     Intelligence/       what a country knows: of another country, by its spies; of every
                         province, made again daily, raised hourly, and what radar sees
     Aid/                debt and its repayment, shared technology, lend-lease - who may, its

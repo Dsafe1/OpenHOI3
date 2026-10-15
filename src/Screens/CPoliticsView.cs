@@ -11,6 +11,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
+using OpenHOI3.Sim.Occupation;
 using OpenHOI3.Sim.Politics;
 using OpenHOI3.Sim.Script;
 
@@ -18,8 +19,9 @@ namespace OpenHOI3.Screens;
 
 /// <summary>
 /// The politics screen, <c>country_politics</c>: the government's lines, the parties' pie, organisation bars and legend,
-/// the cabinet with the choice of a minister, the laws with the choice of a law and its confirmation, mobilisation and
-/// strategic warfare. The pie, the bars, the legend and the government's lines are set when the screen goes up and not
+/// the cabinet with the choice of a minister, the laws with the choice of a law and its confirmation, the occupied
+/// countries with the choice of a policy (<c>docs/mechanics/occupation.md</c>, section 4), mobilisation and strategic
+/// warfare. The pie, the bars, the legend and the government's lines are set when the screen goes up and not
 /// while it is up, as in the original. See <c>docs/mechanics/politics.md</c>, section 11.
 /// </summary>
 public sealed partial class CPoliticsView : CCountryView
@@ -46,6 +48,11 @@ public sealed partial class CPoliticsView : CCountryView
 	private CGuiListBox? _lawChoices;
 	private Control? _confirm;
 	private CLaw? _confirmLaw;
+
+	private readonly List<CPolicyEntry> _policies = new();
+	private CGuiListBox? _policyList;
+	private CGuiWindow? _policySelect;
+	private CGuiListBox? _policyChoices;
 
 	private CGuiIcon? _pie;
 	private List<(int Percent, CColor Colour)> _slices = new();
@@ -77,6 +84,13 @@ public sealed partial class CPoliticsView : CCountryView
 		if (_lawSelect?.FindButton("cancel") is { } cancelLaw)
 		{
 			cancelLaw.Pressed += () => _lawSelect.Visible = false;
+		}
+		_policyList = window.FindListBox(COccupationText.ListName);
+		_policySelect = window.FindWindow(COccupationText.WindowName);
+		_policyChoices = _policySelect?.FindListBox(COccupationText.ChoiceListName);
+		if (_policySelect?.FindButton("cancel") is { } cancelPolicy)
+		{
+			cancelPolicy.Pressed += () => _policySelect.Visible = false;
 		}
 
 		_mobilise = window.FindButton("mobilize");
@@ -180,6 +194,7 @@ public sealed partial class CPoliticsView : CCountryView
 		CloseMinisterSelection();
 		SetGovernmentLabels();
 		FillLaws();
+		FillPolicies();
 		if (Window?.TryFindIcon("faction_symbol_icon") is { } symbol)
 		{
 			int frame = CDiplomacyScreenText.FactionFrame(State, Player);
@@ -210,6 +225,10 @@ public sealed partial class CPoliticsView : CCountryView
 		if (_laws.Any(row => !Player.Laws.TryGetValue(row.Group.Name, out CLaw? law) || law != row.Law))
 		{
 			FillLaws();
+		}
+		foreach (CPolicyEntry row in _policies)
+		{
+			row.Refresh();
 		}
 		RefreshButtons();
 		if (_warfare is not null)
@@ -451,6 +470,57 @@ public sealed partial class CPoliticsView : CCountryView
 			}
 		}
 		_lawSelect.Visible = true;
+	}
+
+	/// <summary>The occupied countries, a row each, made as the screen goes up and not while it is up.</summary>
+	private void FillPolicies()
+	{
+		_policies.Clear();
+		if (_policyList is null)
+		{
+			return;
+		}
+		_policyList.Clear();
+		foreach (CCountry occupied in COccupationText.OccupiedCountries(State, Player))
+		{
+			if (CPolicyEntry.Create(Context, State, Player, occupied) is { } row)
+			{
+				row.SelectPressed += OpenPolicySelection;
+				_policies.Add(row);
+				_policyList.Add(row.Window);
+			}
+		}
+	}
+
+	/// <summary>Every policy of the file in its order, unfiltered, under the occupied country's name.</summary>
+	private void OpenPolicySelection(CCountry occupied)
+	{
+		if (_policySelect is null || _policyChoices is null)
+		{
+			return;
+		}
+		foreach (string name in new[] { "liberate_select", "puppet_select" })
+		{
+			if (Window?.FindWindow(name) is { } hidden)
+			{
+				hidden.Visible = false;
+			}
+		}
+		Set(_policySelect.FindTextBox("category"), occupied.Name);
+		_policyChoices.Clear();
+		foreach (COccupationPolicy policy in COccupationText.Choices(State))
+		{
+			if (CPossiblePolicyEntry.Create(Context, State, Player, occupied, policy) is { } row)
+			{
+				row.SelectPressed += chosen =>
+				{
+					Simulation.Post(new CChangeOccupationPolicyCommand(Player.Tag, occupied.Tag, chosen.Name));
+					_policySelect.Visible = false;
+				};
+				_policyChoices.Add(row.Window);
+			}
+		}
+		_policySelect.Visible = true;
 	}
 
 	/// <summary>

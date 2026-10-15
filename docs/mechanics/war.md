@@ -414,12 +414,16 @@ is built: where the controller is not the same and somebody owns the province, a
   resources** - out of its stockpile - goes to the new holder's stockpile; supplies, fuel and the rest stay;
 - and, with consequences, peaceful or not, the old holder's government is seated again at once.
 
+And with consequences or without, before the new holder is written, the new holder's occupation policy towards
+the old is set where it has none (`occupation.md`, section 2).
+
 A battle's capture goes through it so (`landcombat.md`, section 7), as do a peace, the day's return and the
 effects that move land.
 
 **A change of owner** (`CMapProvince::ChangeOwner`, D.3) sets the controller first with the same flags,
-then the owner - never the rebels; the modifiers events gave the province go, whether or not the owner
-changed; the old owner, owning nothing now, leaves its faction; **a new owner gets no core**.
+then the owner - never the rebels; where the old owner was a country, the province's nationalism is set to
+`YEARS_OF_NATIONALISM` (`occupation.md`, section 5); the modifiers events gave the province go - both whether
+or not the owner changed; the old owner, owning nothing now, leaves its faction; **a new owner gets no core**.
 
 **The day's return of occupied land** (`FINDINGS-war.md` C.10), in each province's day after its repair:
 a province held by a country its owner is not at war with goes back to its owner, with consequences and
@@ -669,9 +673,10 @@ beside FROM's ground, to FROM where FROM is at war with its owner, and otherwise
 - **A peace offer put to the player** (`CAskPeace`, `FINDINGS-war.md` C.7): only another player's offer
   brings it, and there is one player.
 - **What else a change of hands does** (`FINDINGS-surrender.md` D.2, D.3): air and naval units based in the
-  province sent to the old side's nearest base or deleted, radar, the occupation policy, the underground,
-  REB's factions, nationalism, trespassers and the province's history. A battle's capture goes through the
-  same setter with consequences (`landcombat.md`, section 7).
+  province sent to the old side's nearest base or deleted, radar, the underground, REB's factions,
+  trespassers and the province's history. A battle's capture goes through the same setter with consequences
+  (`landcombat.md`, section 7). The occupation policy a capture sets and the nationalism a change of owner
+  sets are built since 2026-10-14 (`occupation.md`, sections 2 and 5).
 - **`surrender_inherit`** - annexation's surrender mode, where a neighbouring co-belligerent takes control and a
   unit goes over on an even draw - and `release` and `release_vassal`.
 - **Expeditionary forces**, which annexation and exile send home: there are none.

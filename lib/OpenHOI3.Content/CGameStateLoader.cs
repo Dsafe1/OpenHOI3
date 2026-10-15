@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.History;
@@ -14,6 +15,7 @@ using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Occupation;
 using OpenHOI3.Sim.Politics;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
@@ -98,16 +100,18 @@ public static class CGameStateLoader
 		List<CTechnologyCategory> categories = CTechnologyReader.ReadCategories(directories, warn);
 		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn, categories, unitTypes, terrainNames);
 		Dictionary<string, Dictionary<string, CLaw>> lawBook = CModifierReader.ReadLaws(directories, warn);
-		Dictionary<string, CGoodsPool> goodsGiven =
-			CCountryHistory.Apply(directories, countries, start, warn, technologies, categories, lawBook);
+		List<COccupationPolicy> occupationPolicies = CModifierReader.ReadOccupationPolicies(directories, warn);
+		Dictionary<string, CGoodsPool> goodsGiven = CCountryHistory.Apply(directories, countries, start, warn, technologies,
+			categories, lawBook, occupationPolicies.Select(policy => policy.Name).ToHashSet());
 
+		CDefines defines = CDefinesReader.Read(directories, warn);
 		CBuilding[] buildings = CBuildingReader.Read(directories, warn);
-		ApplyProvinceHistory(directories, provinces, start, countries, map.Terrains, buildings, warn);
+		ApplyProvinceHistory(directories, provinces, start, countries, map.Terrains, buildings, warn,
+			defines.Has(CNationalism.Section, CNationalism.Years) ? defines[CNationalism.Section, CNationalism.Years] : CFixedPoint.Zero);
 		// One table by name, as the original looks both files' names up in one; the first of a name wins.
 		List<CModifier> staticModifiers = CModifierReader.ReadStaticModifiers(directories, warn);
 		staticModifiers.AddRange(CModifierReader.ReadEventModifiers(directories, warn));
 		List<CModifier> strategicResources = CModifierReader.ReadStrategicResources(directories, warn);
-		CDefines defines = CDefinesReader.Read(directories, warn);
 		List<CWar> wars = CWarReader.Read(directories, countries, start, warn);
 		CDiplomacyHistory diplomacy = CDiplomacyReader.Apply(directories, countries, start, warn);
 
@@ -137,6 +141,7 @@ public static class CGameStateLoader
 			IdeologyGroups = ideologyGroups,
 			GovernmentPositions = positions,
 			LawGroups = LawGroups(lawBook),
+			OccupationPolicies = occupationPolicies,
 			Governments = CGovernmentReader.Read(directories, ideologyNames, positions, warn),
 			StartDate = start,
 			EndDate = ReadEndDate(directories, warn),
@@ -147,6 +152,7 @@ public static class CGameStateLoader
 		state.Naps.AddRange(diplomacy.Naps);
 		state.AiScripts = aiScripts;
 		CRelations.SetFromHistory(state, diplomacy.Relations, start);
+		COccupationPolicies.SetFromHistory(state);
 		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);
 		CProduction.SetStartingShares(state);
@@ -379,9 +385,13 @@ public static class CGameStateLoader
 	/// is the number its name starts with; the folder and the rest of the name are for
 	/// people.
 	/// </summary>
+	/// <param name="nationalism">
+	/// <c>YEARS_OF_NATIONALISM</c>: what an owner line gives a province that already has an owner, as a change of owner
+	/// does (<c>docs/mechanics/occupation.md</c>, section 5).
+	/// </param>
 	public static void ApplyProvinceHistory(CDirectorySettings directories, CProvince[] provinces,
 		CDate start, CCountries countries, IReadOnlyList<CTerrain> terrains,
-		IReadOnlyList<CBuilding> buildings, Action<string> warn)
+		IReadOnlyList<CBuilding> buildings, Action<string> warn, CFixedPoint nationalism = default)
 	{
 		var buildingByKey = new Dictionary<string, CBuilding>(StringComparer.OrdinalIgnoreCase);
 		foreach (CBuilding building in buildings)
@@ -422,7 +432,7 @@ public static class CGameStateLoader
 
 			filesRead[id]++;
 			badLevels += Apply(provinces[id], CHistory.Fold(root, start), countries, unknownTags,
-				terrainByName, unknownTerrains, buildingByKey);
+				terrainByName, unknownTerrains, buildingByKey, nationalism);
 		}
 
 		if (unreadable > 0)
@@ -465,7 +475,7 @@ public static class CGameStateLoader
 	/// <summary>Applies one province's folded history and returns how many building levels were unreadable.</summary>
 	private static int Apply(CProvince province, List<ClausewitzNode> entries, CCountries countries,
 		SortedSet<string> unknownTags, Dictionary<string, CTerrain> terrainByName,
-		SortedSet<string> unknownTerrains, Dictionary<string, CBuilding> buildingByKey)
+		SortedSet<string> unknownTerrains, Dictionary<string, CBuilding> buildingByKey, CFixedPoint nationalism)
 	{
 		int badLevels = 0;
 		foreach (ClausewitzNode entry in entries)
@@ -574,6 +584,12 @@ public static class CGameStateLoader
 
 			if (isOwner)
 			{
+				// An owner where there was one already is a change of owner, the same one included: it sets the
+				// province's nationalism (occupation.md, section 5; inferred from the start save).
+				if (province.Owner is { } before && countries.Find(before) is not null)
+				{
+					province.Nationalism = nationalism;
+				}
 				province.Owner = tag;
 			}
 			else if (isController)

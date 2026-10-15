@@ -902,6 +902,7 @@ public partial class CSession : Node
 	/// (and <c>--own-units</c> says the opposite, which is how it is anyway: a launch
 	/// that asks has to pass something for either answer),
 	/// <c>--war=GER:POL</c> puts those two countries at war, and nobody else,
+	/// <c>--occupy=GER:POL</c> gives the first every province the second owns to hold, as a capture would,
 	/// <c>--money=GER:500</c> sets that country's money, so that it may pay for a law,
 	/// <c>--neutrality=GER:0</c> sets that country's neutrality, so that it may declare a war,
 	/// <c>--declare=TUR:IRQ</c> has the first declare war on the second with the first goal it has,
@@ -1069,6 +1070,23 @@ public partial class CSession : Node
 				else
 				{
 					GD.Print($"--war: '{argument["--war=".Length..]}' is not two countries at peace with each other.");
+				}
+			}
+			else if (argument.StartsWith("--occupy="))
+			{
+				// Gives the first country every province the second owns to hold, as a capture would and with
+				// nothing damaged: --occupy=GER:POL. So that the occupied countries and their policies may be tried.
+				string[] tags = argument["--occupy=".Length..].Split(':');
+				if (tags.Length == 2 && CCountryTag.TryParse(tags[0], out CCountryTag holder)
+					&& CCountryTag.TryParse(tags[1], out CCountryTag owner)
+					&& new Sim.Commands.CHoldLandCommand(holder, owner) is var hold && hold.MayExecute(State))
+				{
+					_simulation.Post(hold);
+					_simulation.Pump();
+				}
+				else
+				{
+					GD.Print($"--occupy: '{argument["--occupy=".Length..]}' is not two countries.");
 				}
 			}
 			else if (argument.StartsWith("--declare="))

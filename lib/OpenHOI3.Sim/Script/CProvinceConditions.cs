@@ -35,6 +35,10 @@ public static class CProvinceConditions
 				// Ours: a building nobody has is false, where the original faults.
 				answer = CNamedConditions.Built(state, here, value.Text) > 0;
 				return true;
+			case "nationalism":
+				// Strictly more whole years than the figure's whole part (occupation.md, section 5).
+				answer = here.Nationalism.Raw > CConditions.WholeOf(value.Amount) * CFixedPoint.Scale;
+				return true;
 			case "leadership":
 				answer = here.Leadership >= value.Amount;
 				return true;

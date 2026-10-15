@@ -28,7 +28,7 @@ public static class CCountryHistory
 	public static Dictionary<string, CGoodsPool> Apply(CDirectorySettings directories, CCountries countries, CDate start,
 		Action<string>? warn = null, IReadOnlyCollection<CTechnology>? technologies = null,
 		IReadOnlyCollection<CTechnologyCategory>? categories = null,
-		Dictionary<string, Dictionary<string, CLaw>>? lawBook = null)
+		Dictionary<string, Dictionary<string, CLaw>>? lawBook = null, IReadOnlySet<string>? occupationPolicies = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var goodsGiven = new Dictionary<string, CGoodsPool>(StringComparer.OrdinalIgnoreCase);
@@ -151,6 +151,15 @@ public static class CCountryHistory
 				if (entry.Key.Equals("ideology", StringComparison.OrdinalIgnoreCase))
 				{
 					country.RulingIdeology = entry.Value;
+					continue;
+				}
+
+				// A policy's name and a tag: the country's occupation policy towards that country, set once the
+				// countries' records exist (occupation.md, section 2).
+				if (occupationPolicies is not null && occupationPolicies.Contains(entry.Key)
+					&& CCountryTag.TryParse(entry.Value, out CCountryTag occupied))
+				{
+					country.HistoryOccupationPolicies.Add((entry.Key, occupied));
 					continue;
 				}
 

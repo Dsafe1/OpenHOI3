@@ -32,7 +32,8 @@ internal static class ScriptWorld
 	public static readonly CBuilding Industry = new(0, "industry", 10, "", CFixedPoint.Zero);
 	public static readonly CBuilding NavalBase = new(1, "naval_base", 10, "", CFixedPoint.Zero);
 
-	public static CGameState State(bool atWar = false, IReadOnlyList<CIdeologyGroup>? groups = null)
+	public static CGameState State(bool atWar = false, IReadOnlyList<CIdeologyGroup>? groups = null,
+		IEnumerable<CModifier>? statics = null)
 	{
 		CCountry Country(CCountryTag tag, int capital) => new() { Tag = tag, Name = tag.Value, DefinitionFile = "", Capital = capital };
 		CCountry germany = Country(Ger, 1);
@@ -88,7 +89,8 @@ internal static class ScriptWorld
 				Land(7, Ita),
 			},
 			new[] { germany, Country(Pol, 4), italy, Country(Slo, 3), Country(Reb, 0) },
-			buildings: new[] { Industry, NavalBase }, staticModifiers: new[] { newDeal }, wars: wars,
+			buildings: new[] { Industry, NavalBase }, staticModifiers: new List<CModifier>(statics ?? new List<CModifier>()) { newDeal },
+			wars: wars,
 			technologyCategories: new[]
 			{
 				new OpenHOI3.Sim.Research.CTechnologyCategory("infantry_theory", IsTheory: true),

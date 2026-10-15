@@ -61,4 +61,10 @@ public sealed class CDiplomacyStatus
 
 	/// <summary>The casus belli the holder holds on the other, in the order given (<c>war.md</c>, section 2).</summary>
 	public List<CCasusBelli> CasusBelli { get; } = new();
+
+	/// <summary>
+	/// The number of the occupation policy the holder puts on the other's land it holds: 0, <c>no_occupation</c>, until
+	/// something sets one (<c>occupation.md</c>, section 1).
+	/// </summary>
+	public int OccupationPolicy { get; set; }
 }

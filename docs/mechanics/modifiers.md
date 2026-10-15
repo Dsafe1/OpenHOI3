@@ -81,10 +81,13 @@ it out with `leave_faction`. (measured) **Majors.** A country's own file under
 
 ## 3. A province's modifier
 
-Rebuilt from nothing, adding in this order. `confirmed` throughout unless marked.
+Rebuilt from nothing, adding in this order - read whole on 2026-10-14
+(`reversing/findings/FINDINGS-occupation.md`, section A.7). `confirmed` throughout unless marked. Every static
+modifier named is `static_modifiers.txt`'s, added whole and kept as a source of the province's modifier (section 8),
+unless said; the scaled ones are kept as their scaled copies.
 
 1. **Every building in the province:** its one modifier times the building's *current*
-   level.
+   level, fractions included, truncated - `effect × level / 1000`. **A building is not kept as a source.**
 2. **`overseas`**, from `static_modifiers.txt`, when the province is **both** in a different
    area from its controller's capital **and** on a different continent. An area is a block
    of land in one country's hands, so a province that can be reached from the capital
@@ -94,27 +97,60 @@ Rebuilt from nothing, adding in this order. `confirmed` throughout unless marked
    so a province with one level or none is in no area, and on another continent than the
    capital it is overseas even when it can be walked to. In Their Finest Hour it takes 75% off the province's manpower
    and 90% off its leadership.
-   - `blockaded` is tested only for a province that is overseas, and exempts one with a
-     port and a naval base. In Their Finest Hour it is an empty block.
+   - **`blockaded`** is tested only for a province that is overseas: one with an owner, a
+     port and a naval base above level 0 is spared; any other is blockaded when its area has
+     no **open port** - a province with an owner, a port, a naval base above level 0 and no
+     enemy fleet blockading it as its controller was last set (`FINDINGS-supplynetwork.md`,
+     section 2). In Their Finest Hour it is an empty block.
 3. **`non_core`**, when the province's **owner** has no core on it and is also its
-   controller. An occupied province gets nothing here; step 6 is what applies to it. In
+   controller. An occupied province gets nothing here; step 7 is what applies to it. In
    Their Finest Hour it takes 75% off manpower, 80% off leadership and half off IC and
    resources.
-4. The terrain and coast family of static modifiers, each added flat.
-5. The timed and conditional province modifiers - those an event applied.
-6. **The occupation policy**, when owner and controller differ. The policy the controller
-   has set towards the owner is a modifier and is added whole. This is the *entire*
-   occupation penalty: there is no separate reduction to an occupied province's IC,
-   resources, manpower or leadership. A province held by rebels gets none.
-7. The `manpower` static modifier, scaled by the province's own manpower.
-8. The `nationalism` static modifier, on land its owner holds but has no core on; entries
-   age and are dropped after a year.
-9. **The `revolt_risk` static modifier, multiplied by the province's revolt risk in
-   percentage points.** A mod that puts `local_ic = -0.02` in that block has said "minus 2%
-   IC per point of revolt risk".
+4. *There is no fourth step: the third ends where the coast's begins.*
+5. **One of three by the map**: `coastal` for land beside the sea, else `non_coastal` for
+   other land, else `coastal_sea` for sea beside land; sea beside no land gets none.
+6. **`no_adjacent_controlled`**, for a province with an owner none of whose neighbours,
+   land or sea, has its controller - a province with no controller included.
+7. **The occupation policy**: the policy its controller holds towards its owner, added
+   whole, except where the owner controls it and where `REB` does - `occupation.md`, section
+   3. This is the *entire* occupation penalty: there is no separate reduction to an
+   occupied province's IC, resources, manpower or leadership. Where nobody has set one,
+   `no_occupation` is added, which holds nothing.
+8. **`blockaded` again**, where the province's own port is blockaded - whether or not step 2
+   added it.
+9. **`land_province`** for land, **`sea_zone`** for sea. Their Finest Hour's
+   `land_province` is `attrition = 1`.
+10. **`manpower` times the province's manpower**, where that is above nought: each value
+    times the manpower over 1000, truncated. Empty in Their Finest Hour.
+11. **`nationalism` times the province's nationalism** (`occupation.md`, section 5), where
+    that is not nought, its controller has no core on it and its owner is its controller:
+    each value times the years over 1000. Their Finest Hour's is `local_revolt_risk = 0.3`,
+    0.3 points a year.
+12. **What events gave it** (`add_province_modifier`, `effects.md` section 6), in the order
+    given: one whose time has passed, and whose year is above 1, is dropped; the rest are
+    added. Its year is the original's count of years from its epoch, so a negative
+    duration, which gives year 1, never passes - the country's rule.
+13. **Radar.** Where the province's `radar_level` has risen from below 1 or fallen below 1
+    since the last time, its controller's list of radar provinces is told.
+14. **`revolt_risk` times the province's effective revolt risk** in percentage points
+    (`FINDINGS-occupation.md`, section B). A mod that puts `local_ic = -0.02` in that block
+    has said "minus 2% IC per point of revolt risk". *The second piece.*
 
-It is rebuilt every month, on any day the province has been flagged as changed, and
-whenever something that feeds it changes - a building's level, for one.
+**When it is made again** in the original:
+
+- **every month**, every province, before the month takes nationalism down;
+- **every hour** for a province one of whose buildings was bombed, damaged or repaired -
+  each moves a building's "changed" mark, and the hour's look at a province makes its
+  modifier again where one is set;
+- at once **where a day's repair carries a building across a whole level**, a battle's
+  capture (`CMapProvince::TakeControl`), a change of owner, a building's level set, an
+  event's or a decision's modifier, the occupation command, the new game's revolt pass and
+  as a game is entered.
+
+**A plain change of controller makes nothing again**: land handed back by the day's return,
+or taken by an effect, keeps the modifier it had until one of the above. So the occupation
+policy reaches a province taken in battle at once, and one handed back the next hour or the
+next month.
 
 ## 4. A country's modifier
 
@@ -292,12 +328,26 @@ the first day is run, which is why a new game's starting manpower leaves black s
   cheap, and doing it on a schedule cannot be forgotten at a call site. The cost is that a
   change takes effect at midnight rather than at once; when something needs it sooner,
   that thing's command rebuilds it.
-- **A province's modifier is its buildings, `overseas` and `non_core`**: steps 1 to 3 of
-  the nine, without `blockaded`. It is rebuilt once a day, before the country's, and on
-  entering a game. Steps 4 to 9 arrive with the systems they belong to.
-- **A province's area is taken to be the land its controller can walk to from its
-  capital**, the same test home production uses (`resources.md`, section 3). What marks
-  the edge of an area in the original has not been read.
+- **A province's modifier is every step of section 3 but two** since 2026-10-14
+  (`occupation.md`): radar keeps no list here - what reads radar reads the provinces' own
+  `radar_level` (`bombing.md`, section 9; `intelligence.md`) - and revolt risk, step 14, is
+  the second piece of occupation and revolt. **No port is held blockaded**, as the flag
+  `is_blockaded` reads is not built: step 8 never adds `blockaded`, and in step 2 a port is
+  open where it has an owner and a naval base. A province in no area counts as having no open
+  port (*ours*: what the original does with no area was not read). `blockaded` is empty in
+  Their Finest Hour.
+- **A province's modifier is made again once a day, every province, before the country's,
+  and as a game is entered** - not on the original's schedule of section 3, for the reason a
+  country's is. Everything that would make it again in the original is caught within the
+  day. Two things differ: a province handed back by the day's return gets its new modifier
+  that night, where the original's waits for the hour or the month; and **the month's
+  nationalism reaches a province the day after**, where the original's month makes every
+  province before it takes nationalism down and keeps the higher figure for the month - 0.025
+  points of revolt risk a month in Their Finest Hour. **This was never decided for provinces**, and on
+  2026-10-14 the maintainer had the original's schedule planned in its place, before revolt risk (the
+  readme's *Next up*).
+- **A province's area is its supply area** (`supply.md`, section 2), the same as home
+  production's (`resources.md`, section 3).
 
 ## 8. A modifier's sources, written out
 

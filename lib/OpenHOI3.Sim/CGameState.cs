@@ -395,6 +395,12 @@ public sealed class CGameState
 	/// <summary>The law groups of <c>common/laws.txt</c> in its order, each with its laws (<c>politics.md</c>, section 9).</summary>
 	public IReadOnlyList<CLawGroup> LawGroups { get; init; } = Array.Empty<CLawGroup>();
 
+	/// <summary>
+	/// The occupation policies: <c>no_occupation</c> first, then those of <c>common/occupation_policies.txt</c> in its
+	/// order, each at its number (<c>occupation.md</c>, section 1).
+	/// </summary>
+	public IReadOnlyList<Occupation.COccupationPolicy> OccupationPolicies { get; set; } = Occupation.COccupationPolicies.WithNull();
+
 	/// <summary>The law group of that name, or null.</summary>
 	public CLawGroup? LawGroup(string name)
 	{

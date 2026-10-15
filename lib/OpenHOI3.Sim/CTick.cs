@@ -206,6 +206,9 @@ public static class CTick
 	/// </summary>
 	private static void RunMonthlyPass(CGameState state)
 	{
+		// First, every province's nationalism a twelfth of a year less - the month before a new game's first hour
+		// included, which the start save holds (occupation.md, section 5).
+		Step(state, Provinces.CNationalism.DecayMonthly);
 		// The month's pass a new game runs before its first hour decays nothing: the
 		// original takes nothing off an ability until a game is under way.
 		if (!state.IsBeingMade)

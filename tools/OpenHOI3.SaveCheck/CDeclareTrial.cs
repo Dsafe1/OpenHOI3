@@ -175,16 +175,11 @@ internal static class CDeclareTrial
 		{
 			OpenHOI3.Sim.Combat.CCombatRetreat.RemoveFromGame(state, unit);
 		}
-		int owned = 0;
-		foreach (var province in state.Provinces)
-		{
-			if (province.Owner == recipient.Tag)
-			{
-				province.Controller = actor.Tag;
-				owned++;
-			}
-		}
+		int owned = state.Provinces.Count(province => province.Owner == recipient.Tag);
+		// Through the setter with no consequences, so the capture's occupation policy is set (occupation.md, section 2).
+		new CHoldLandCommand(actor.Tag, recipient.Tag).Execute(state);
 		Console.WriteLine($"{actor.Tag} given all {owned} provinces {recipient.Tag} owns; {recipient.Tag}'s national unity {recipient.NationalUnity}, capital {recipient.Capital}, seat {recipient.ActingCapital}, original {recipient.OriginalCapital}");
+		Console.WriteLine($"   occupation policy {actor.Tag} -> {recipient.Tag}: {OpenHOI3.Sim.Occupation.COccupationPolicies.Of(state, actor, recipient).Name}");
 		int heard = told.Count;
 		CDate day = state.Date;
 		while (state.Date == day)

@@ -20,6 +20,8 @@ public static class CModifierReader
 {
 	private static readonly HashSet<string> LawKeys = new(StringComparer.OrdinalIgnoreCase) { "cost", "allow" };
 
+	private static readonly HashSet<string> PolicyKeys = new(StringComparer.OrdinalIgnoreCase) { "allow" };
+
 	private static readonly HashSet<string> MinisterTypeKeys = new(StringComparer.OrdinalIgnoreCase) { "decay" };
 
 	private static readonly HashSet<string> StaticModifierKeys = new(StringComparer.OrdinalIgnoreCase) { "icon" };
@@ -94,6 +96,39 @@ public static class CModifierReader
 			warn($"'{path}': {unreadable} entries inside laws are neither the law's own keys nor a number");
 		}
 		return groups;
+	}
+
+	/// <summary>
+	/// <c>common/occupation_policies.txt</c>: <c>no_occupation</c> first, then a policy for each block in the file's
+	/// order, numbered from 1, each a modifier; its <c>allow</c> is script's and is read with the rest of it
+	/// (<c>docs/mechanics/occupation.md</c>, section 1).
+	/// </summary>
+	public static List<Sim.Occupation.COccupationPolicy> ReadOccupationPolicies(CDirectorySettings directories,
+		Action<string> warn)
+	{
+		List<Sim.Occupation.COccupationPolicy> policies = Sim.Occupation.COccupationPolicies.WithNull();
+		ClausewitzNode? root = ParseIfPresent(directories, "common/occupation_policies.txt", "occupation policies", warn,
+			out string path);
+		if (root is null)
+		{
+			return policies;
+		}
+
+		int unreadable = 0;
+		foreach (ClausewitzNode block in root.Children)
+		{
+			if (block.Key is null || !block.IsBlock)
+			{
+				continue;
+			}
+			policies.Add(new Sim.Occupation.COccupationPolicy(ReadBlock(block, PolicyKeys, out int bad), policies.Count));
+			unreadable += bad;
+		}
+		if (unreadable > 0)
+		{
+			warn($"'{path}': {unreadable} entries inside occupation policies are neither the policy's own keys nor a number");
+		}
+		return policies;
 	}
 
 	/// <summary><c>common/minister_types.txt</c>: what a minister can be, each a modifier.</summary>

@@ -23,7 +23,7 @@ public static class CAnnexation
 	/// rebels do, with consequences; its building queue is deleted; every unit it has is taken out of the game; the
 	/// land it held of others goes back to their owners; and every other country leaves its wars with it, ends its
 	/// alliance, bond and guarantee with it and its trade routes, has its threat both ways fall by 9999, and forgets
-	/// it - NAP, embargo, influence, alignment, relation, access, debt, truce and casus belli. Nothing marks the
+	/// it - NAP, embargo, influence, alignment, relation, access, debt, truce, casus belli and occupation policy. Nothing marks the
 	/// country dead: it keeps its stockpile, manpower, technology, leaders and capital.
 	/// </summary>
 	public static void Annex(CGameState state, CCountry annexer, CCountry annexed)
@@ -116,6 +116,8 @@ public static class CAnnexation
 		status.AllowDebts = false;
 		status.LastWar = null;
 		status.CasusBelli.Clear();
+		// And its occupation policy towards it, back to no_occupation (occupation.md, section 1).
+		status.OccupationPolicy = 0;
 	}
 
 	private static void Lower(Diplomacy.CDiplomacyStatus status)

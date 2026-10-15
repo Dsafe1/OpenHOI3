@@ -321,8 +321,8 @@ is one flag, the original's one byte, which a war sets too; until 2026-10-14 the
 set only at the start, so the button changed nothing a unit felt, which the maintainer found. *Not built*: rising up
 from exile - `revolt` shows where it should
 and cannot be pressed; making a puppet and liberating a country - both buttons are greyed, `create_puppet` saying
-`POL_PUPPET_NO` and `liberate_country` `POL_LIB_C_NO_FACTION`, `POL_LIB_C_WE_EXILE` or `POL_LIB_C_NO_EXILES`; the list
-of occupied countries and the choice of an occupation policy, which stay empty.
+`POL_PUPPET_NO` and `liberate_country` `POL_LIB_C_NO_FACTION`, `POL_LIB_C_WE_EXILE` or `POL_LIB_C_NO_EXILES`. The list
+of occupied countries and the choice of an occupation policy are built since 2026-10-14: `occupation.md`, section 4.
 
 **Strategic warfare.** `convoys_val`, `allies_val` and `bombs_val` are the three impacts of section 6, two places:
 `§R` below nought, `§G+` above, `§Y` at nought.

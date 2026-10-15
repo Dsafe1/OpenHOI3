@@ -207,7 +207,20 @@ public sealed class CProvince
 	public CModifier Modifier { get; } = new();
 
 	/// <summary>
-	/// The modifiers events and decisions have given it, each to its hour: step 5 of its
+	/// What <see cref="Modifier"/> was summed from, in the order each was added - its buildings left out, the scaled
+	/// ones as their copies: what a tooltip lists as where a figure comes from. Rebuilt with it
+	/// (<c>docs/mechanics/modifiers.md</c>, section 3).
+	/// </summary>
+	public List<CModifierSource> ModifierSources { get; } = new();
+
+	/// <summary>
+	/// Its nationalism: the years, in thousandths, since it last changed owner counted down from
+	/// <c>YEARS_OF_NATIONALISM</c> (<c>docs/mechanics/occupation.md</c>, section 5).
+	/// </summary>
+	public CFixedPoint Nationalism { get; set; }
+
+	/// <summary>
+	/// The modifiers events and decisions have given it, each to its hour: step 12 of its
 	/// modifier. See <c>docs/mechanics/effects.md</c>, section 6.
 	/// </summary>
 	public List<CTimedModifier> EventModifiers { get; } = new();

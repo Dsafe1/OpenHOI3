@@ -7,7 +7,7 @@ namespace OpenHOI3.Content.Script;
 
 /// <summary>
 /// Reads a game's events and decisions into it, and the rest of its script - casus belli, war goals, on_actions,
-/// victory conditions, the laws' allow blocks, covert operations and triggered modifiers - after everything they name has been loaded, and
+/// victory conditions, the laws' and occupation policies' allow blocks, covert operations and triggered modifiers - after everything they name has been loaded, and
 /// returns the problems found: <c>docs/mechanics/script.md</c>.
 /// </summary>
 public static class CScriptLoader
@@ -22,6 +22,7 @@ public static class CScriptLoader
 		state.OnActions = COnActionReader.Read(directories, context, state.Events);
 		state.VictoryConditions = CFactionAimsReader.Read(directories, state, context);
 		CLawAllowReader.Read(directories, state, context);
+		COccupationPolicyAllowReader.Read(directories, state, context);
 		state.CovertOperations.AddRange(CCovertOpsReader.Read(directories, context));
 		state.TriggeredModifiers.AddRange(CTriggeredModifierReader.Read(directories, context));
 		CheckAcrossFiles(state.Events, state.Decisions, context);

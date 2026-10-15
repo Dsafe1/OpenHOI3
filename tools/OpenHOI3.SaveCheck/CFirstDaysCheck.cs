@@ -130,6 +130,24 @@ internal static class CFirstDaysCheck
 				}
 			}
 
+			// The occupation policy towards each country, where either side has one: the save writes none for no_occupation
+			// (occupation.md, section 6).
+			foreach (ClausewitzNode pair in node.Children)
+			{
+				if (!pair.IsBlock || pair.GetString("value").Length == 0 || pair.Key is null
+					|| !CCountryTag.TryParse(pair.Key, out CCountryTag otherTag) || state.Country(otherTag) is not { } other)
+				{
+					continue;
+				}
+				string saved = pair.GetString("occupation_policy");
+				OpenHOI3.Sim.Occupation.COccupationPolicy ours = OpenHOI3.Sim.Occupation.COccupationPolicies.Of(state, country, other);
+				if (saved.Length > 0 || ours.IsReal)
+				{
+					Compare("occupation policies", isPlayers, saved == (ours.IsReal ? ours.Name : ""),
+						() => $"{who}->{other.Tag}: save '{saved}', ours '{ours.Name}'");
+				}
+			}
+
 			Compare("manpower", isPlayers, Number(node.GetString("manpower")) == country.Manpower,
 				() => $"{who}: save {node.GetString("manpower")}, ours {country.Manpower}");
 			Compare("officers", isPlayers, Number(node.GetString("officers")) == country.Officers,
@@ -207,6 +225,21 @@ internal static class CFirstDaysCheck
 				}
 			}
 			country.OfficerRatio = ratio;
+		}
+
+		// Every province's nationalism, where either has any: the save writes none at nought (occupation.md, section 6).
+		foreach (OpenHOI3.Sim.Provinces.CProvince province in state.Provinces)
+		{
+			if (province.Id == 0)
+			{
+				continue;
+			}
+			CFixedPoint saved = Number(save.Get(province.Id.ToString(CultureInfo.InvariantCulture))?.GetString("nationalism"));
+			if (saved != CFixedPoint.Zero || province.Nationalism != CFixedPoint.Zero)
+			{
+				Compare("provinces: nationalism", false, saved == province.Nationalism,
+					() => $"{province.Id} {province.Name}: save {saved}, ours {province.Nationalism}");
+			}
 		}
 
 		foreach ((string what, (int agree, int all)) in agreed)
