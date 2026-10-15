@@ -132,9 +132,10 @@ unless said; the scaled ones are kept as their scaled copies.
     duration, which gives year 1, never passes - the country's rule.
 13. **Radar.** Where the province's `radar_level` has risen from below 1 or fallen below 1
     since the last time, its controller's list of radar provinces is told.
-14. **`revolt_risk` times the province's effective revolt risk** in percentage points
-    (`FINDINGS-occupation.md`, section B). A mod that puts `local_ic = -0.02` in that block
-    has said "minus 2% IC per point of revolt risk". *The second piece.*
+14. **`revolt_risk` times the province's revolt risk as shown**, in points, where that is
+    above nought - asked of the province's figures as the rebuild has them at this step
+    (`revolt.md`, section 4). A mod that puts `local_ic = -0.02` in that block has said
+    "minus 2% IC per point of revolt risk".
 
 **When it is made again** - the original's schedule, and this project's since 2026-10-15:
 
@@ -335,10 +336,10 @@ the first day is run, which is why a new game's starting manpower leaves black s
   cheap, and doing it on a schedule cannot be forgotten at a call site. The cost is that a
   change takes effect at midnight rather than at once; when something needs it sooner,
   that thing's command rebuilds it.
-- **A province's modifier is every step of section 3 but two** since 2026-10-14
-  (`occupation.md`): radar keeps no list here - what reads radar reads the provinces' own
-  `radar_level` (`bombing.md`, section 9; `intelligence.md`) - and revolt risk, step 14, is
-  the second piece of occupation and revolt. **No port is held blockaded**, as the flag
+- **A province's modifier is every step of section 3 but radar's** since 2026-10-14
+  (`occupation.md`), revolt risk's step 14 since 2026-10-15 (`revolt.md`, section 4): radar
+  keeps no list here - what reads radar reads the provinces' own `radar_level` (`bombing.md`,
+  section 9; `intelligence.md`). **No port is held blockaded**, as the flag
   `is_blockaded` reads is not built: step 8 never adds `blockaded`, and in step 2 a port is
   open where it has an owner and a naval base. A province in no area counts as having no open
   port (*ours*: what the original does with no area was not read). `blockaded` is empty in

@@ -357,27 +357,6 @@ public static class CSupplyNetworks
 				&& CSupplyRelations.CanOperateIn(_state, holder, first);
 		}
 
-		/// <summary>The provinces within two edges of one, itself among them, each once.</summary>
-		private List<int> Ring(CProvince province)
-		{
-			var ring = new List<int>();
-			foreach (CProvinceEdge edge in province.Edges)
-			{
-				if (!ring.Contains(edge.To))
-				{
-					ring.Add(edge.To);
-				}
-				foreach (CProvinceEdge further in _state.Province(edge.To).Edges)
-				{
-					if (!ring.Contains(further.To))
-					{
-						ring.Add(further.To);
-					}
-				}
-			}
-			return ring;
-		}
-
 		/// <summary>
 		/// Gives a group its depot: the province worth most, of all its areas'. Nothing
 		/// for a group of one area that may hold no depot on its own.
@@ -408,7 +387,7 @@ public static class CSupplyNetworks
 						worth += port;
 					}
 
-					List<int> ring = Ring(province);
+					IReadOnlyList<int> ring = CNearProvinces.Of(_state, province);
 					foreach (int near in ring)
 					{
 						if (_network.AreaOf(near) is not { } theirs || !ReferenceEquals(theirs.Group, group))

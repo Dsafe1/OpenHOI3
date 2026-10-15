@@ -48,6 +48,12 @@ if (args.Length > 0 && args[0] == "march")
 	return CMarchCheck.Run(args);
 }
 
+// A day's step of revolt risk, against two saves with one midnight between them.
+if (args.Length > 0 && args[0] == "revolt")
+{
+	return CRevoltCheck.Run(args);
+}
+
 // The supply network is checked against what a save says of it.
 if (args.Length > 0 && args[0] == "supply")
 {

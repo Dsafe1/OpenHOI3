@@ -143,9 +143,10 @@ public static class CTick
 		Step(state, Wars.CSurrender.RunDaily);                    // late in a country's day: the surrender,
 		Step(state, Wars.CExile.ReturnDaily);                     // and an exile leading its faction coming home
 		Step(state, CConvoyDay.Maintain);                         // late in a country's day
-		Step(state, CProvinceRepair.RunDaily);                    // each province's own day, after every country's:
-		Step(state, Wars.COccupiedLand.ReturnDaily);              // what was bombed comes back, land at peace goes back
-		Step(state, CStockpile.HoldWithinBounds);                 // to its owner, and the pool is held
+		// Each province's own day, after every country's: what was bombed comes back, the suppression, the revolt risk's
+		// step and land at peace back to its owner, a province at a time; and then the pool is held.
+		Step(state, CProvinceDay.RunDaily);
+		Step(state, CStockpile.HoldWithinBounds);
 		// Events, after the provinces' day; none while a game is still being made (ours: whether the
 		// original asks them in a new game's first days was not read).
 		if (!state.IsBeingMade)
@@ -170,6 +171,10 @@ public static class CTick
 		bool was = state.IsBeingMade;
 		state.IsBeingMade = true;
 		RunEntryPass(state);
+		// As the original enters a new game, before its first day: every province with no revolt risk given its
+		// partisan support, and made again (revolt.md, section 3).
+		Revolts.CRevoltRisk.SetAtNewGame(state);
+		CProvinceModifiers.Rebuild(state);
 		RunDailyPass(state);
 		CSupplyStart.Fill(state);
 		RunDailyPass(state);

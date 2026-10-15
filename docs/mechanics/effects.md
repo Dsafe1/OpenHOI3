@@ -188,7 +188,7 @@ never reads from the file (`espionage.md`, section 13).
 | the event pass | `country_event`, `province_event` |
 | diplomacy | `casus_belli`, `add_casus_belli`, `war`, `undeclared_war`, `add_wargoal`, `create_vassal`, `release`, `release_vassal`, `inherit`, `surrender_inherit`, `form_government_in_exile`, `split_troops` |
 | neutrality and war exhaustion | `neutrality`, `war_exhaustion` |
-| revolts | `revolt_risk`, `create_revolt`, a rebel type's name |
+| revolts | `create_revolt`, a rebel type's name - `revolt_risk` is built since 2026-10-15 (`revolt.md`, section 5) |
 | the fog of war's switch | `remove_fow` |
 | the AI | `add_ai_strategy`, `fixed_ai_strategy` |
 | units an event gives or takes | `load_oob`, `add_division`, a unit type's name, `remove_brigade` |

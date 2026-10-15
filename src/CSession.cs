@@ -327,6 +327,7 @@ public partial class CSession : Node
 			CMapView.MapMode.Terrain => EMapTooltipMode.Terrain,
 			CMapView.MapMode.Supply => EMapTooltipMode.Supply,
 			CMapView.MapMode.Air => EMapTooltipMode.Air,
+			CMapView.MapMode.Revolt => EMapTooltipMode.Revolt,
 			_ => EMapTooltipMode.Political,
 		};
 		return CProvinceTooltip.Build(_localisation.Localise, State, State.Province(provinceId), mode, Player?.Tag,
@@ -524,7 +525,8 @@ public partial class CSession : Node
 		if (day != _dayColoured)
 		{
 			_dayColoured = day;
-			if (_mapView.Mode == CMapView.MapMode.Supply)
+			// And the revolt map mode by the day's revolt risk (ours: when the original colours it again was not read).
+			if (_mapView.Mode is CMapView.MapMode.Supply or CMapView.MapMode.Revolt)
 			{
 				_mapView.RefreshColours();
 			}
@@ -893,7 +895,7 @@ public partial class CSession : Node
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
 	/// <c>--country=ENG</c> plays that country and not Germany,
 	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map
-	/// (<c>supply</c> and <c>air</c> on those),
+	/// (<c>supply</c>, <c>air</c> and <c>revolt</c> on those),
 	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen and
 	/// <c>--screen=deploy</c> the menu a finished unit is placed from,
 	/// <c>--days=7</c> runs that many days before anything after it is done,
@@ -973,6 +975,10 @@ public partial class CSession : Node
 			else if (argument == "--mode=air")
 			{
 				_mapView.Mode = CMapView.MapMode.Air;
+			}
+			else if (argument == "--mode=revolt")
+			{
+				_mapView.Mode = CMapView.MapMode.Revolt;
 			}
 			else if (argument == "--screen=production")
 			{

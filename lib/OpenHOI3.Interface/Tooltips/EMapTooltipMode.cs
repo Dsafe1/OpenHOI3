@@ -10,4 +10,6 @@ public enum EMapTooltipMode
 	Political,
 	Supply,
 	Air,
+	/// <summary>The revolt map mode, which adds nothing of its own to the province's tooltip.</summary>
+	Revolt,
 }

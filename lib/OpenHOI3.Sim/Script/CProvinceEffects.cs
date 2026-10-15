@@ -27,6 +27,10 @@ public static class CProvinceEffects
 			case "leadership":
 				here.Leadership = Floored(here.Leadership + value);
 				return true;
+			case "revolt_risk":
+				// Added to the accumulator, never below nought (revolt.md, section 5).
+				Revolts.CRevoltRisk.Add(here, value);
+				return true;
 			case "strategic_resource":
 				// Ours: a resource nobody has does nothing, where the original faults.
 				if (argument.IsWord("none"))

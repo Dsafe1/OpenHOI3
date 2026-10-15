@@ -64,12 +64,12 @@ public class ConditionTests
 		var report = new CScriptReport();
 
 		Assert.False(Holds(state, "war_exhaustion = 0", CEventScope.Start(Ger), report));
-		Assert.False(Holds(state, "num_of_revolts = 1", CEventScope.Start(Ger), report));
+		Assert.False(Holds(state, "blockade = 1", CEventScope.Start(Ger), report));
 		Assert.True(Holds(state, "not = { war_exhaustion = 0 }", CEventScope.Start(Ger), report));
 		Assert.False(Holds(state, "is_attacker = yes", CEventScope.Start(Ger), report));
 
 		Assert.Equal((EScriptGap.Unbuilt, 2), report.Gaps["war_exhaustion"]);
-		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["num_of_revolts"].Why);
+		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["blockade"].Why);
 		Assert.Equal(EScriptGap.BattleOnly, report.Gaps["is_attacker"].Why);
 	}
 

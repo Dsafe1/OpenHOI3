@@ -34,13 +34,19 @@ public static class COccupiedLand
 	{
 		foreach (CProvince province in state.Provinces)
 		{
-			if (province.Owner is not { } owner || province.Controller is not { } holder || holder == owner
-				|| CCountryLists.AtWar(state, owner, holder)
-				|| holder.Value == Rebels || owner.Value == Rebels || state.Country(owner)?.InExile == true)
-			{
-				continue;
-			}
-			CProvinceHands.SetController(state, province, owner, consequences: true);
+			Return(state, province);
 		}
+	}
+
+	/// <summary>One province's part of the day's return, in its own day.</summary>
+	public static void Return(CGameState state, CProvince province)
+	{
+		if (province.Owner is not { } owner || province.Controller is not { } holder || holder == owner
+			|| CCountryLists.AtWar(state, owner, holder)
+			|| holder.Value == Rebels || owner.Value == Rebels || state.Country(owner)?.InExile == true)
+		{
+			return;
+		}
+		CProvinceHands.SetController(state, province, owner, consequences: true);
 	}
 }

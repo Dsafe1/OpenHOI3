@@ -34,6 +34,8 @@ public partial class CMapView : Node2D
 		Supply,
 		/// <summary>Where the player's fighters fly, with its air bases and the week's air battles: <c>docs/mechanics/airmap.md</c>.</summary>
 		Air,
+		/// <summary>How great the revolt risk is: <c>docs/mechanics/revolt.md</c>, section 7.</summary>
+		Revolt,
 	}
 
 	[Signal]
@@ -341,6 +343,10 @@ public partial class CMapView : Node2D
 				colour = ground.ToGodot();
 				stripe = stripes.ToGodot();
 			}
+			else if (_mode == MapMode.Revolt)
+			{
+				colour = CRevoltMapColours.Of(_state, province, Player).ToGodot();
+			}
 			else
 			{
 				// A province is the colour of whoever holds it, and the thin stripes
@@ -572,6 +578,7 @@ public partial class CMapView : Node2D
 					MapMode.Political => MapMode.Terrain,
 					MapMode.Terrain => MapMode.Supply,
 					MapMode.Supply => MapMode.Air,
+					MapMode.Air => MapMode.Revolt,
 					_ => MapMode.Political,
 				};
 				break;

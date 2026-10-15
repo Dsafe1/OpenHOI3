@@ -36,7 +36,7 @@ public static class CUndoneEffects
 			"split_troops");
 		Add(EScriptGap.Unbuilt, "war_exhaustion");
 		// Revolts, espionage, the AI.
-		Add(EScriptGap.Unbuilt, "revolt_risk", "create_revolt");
+		Add(EScriptGap.Unbuilt, "create_revolt");
 		Add(EScriptGap.Unbuilt, "remove_fow");
 		Add(EScriptGap.Unbuilt, "add_ai_strategy", "fixed_ai_strategy");
 		// Units an event gives or takes.

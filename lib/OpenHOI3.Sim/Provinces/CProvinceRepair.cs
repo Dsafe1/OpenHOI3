@@ -26,46 +26,59 @@ public static class CProvinceRepair
 	/// <summary>What a day brings back whatever the roads, in thousandths.</summary>
 	private const long BaseRate = 100;
 
+	/// <summary>Every province's repair alone, each made again at once where a building crossed a whole level.</summary>
 	public static void RunDaily(CGameState state)
 	{
-		long speed = state.Defines.Has(EconomySection, RepairSpeed) ? state.Defines[EconomySection, RepairSpeed].Raw : 0;
+		long speed = Speed(state);
 		foreach (CProvince province in state.Provinces)
 		{
-			if (province.Id == 0 || province.IsSea)
-			{
-				continue;
-			}
-			long rate = Rate(state, province);
-			for (int index = 0; index < CGoodsPool.Count; index++)
-			{
-				var goods = (EGoods)index;
-				long made = province.CurrentProducing[goods].Raw;
-				long most = province.MaxProducing[goods].Raw;
-				if (made != most)
-				{
-					province.CurrentProducing[goods] = new CFixedPoint(Math.Min(most, made + rate));
-				}
-			}
-
-			long mend = speed * rate / CFixedPoint.Scale;
-			bool wholeLevel = false;
-			foreach (CBuilding building in state.Buildings)
-			{
-				CFixedPoint current = province.BuildingLevel(building);
-				CFixedPoint most = province.BuildingMaxLevel(building);
-				if (building.IsRepaired && current != most)
-				{
-					province.SetBuildingCurrentLevel(building, new CFixedPoint(current.Raw + mend));
-					wholeLevel |= province.BuildingLevel(building).Raw / CFixedPoint.Scale != current.Raw / CFixedPoint.Scale;
-				}
-			}
-			// A building carried across a whole level makes the province's modifier again at once; any other mend waits
-			// for the hour's look (modifiers.md, section 3).
-			if (wholeLevel)
+			if (Repair(state, province, speed))
 			{
 				Modifiers.CProvinceModifiers.RebuildOne(state, province);
 			}
 		}
+	}
+
+	public static long Speed(CGameState state)
+	{
+		return state.Defines.Has(EconomySection, RepairSpeed) ? state.Defines[EconomySection, RepairSpeed].Raw : 0;
+	}
+
+	/// <summary>
+	/// One land province's repair. Answers whether a building was carried across a whole level, which makes its modifier
+	/// again in its day; any other mend waits for the hour's look (<c>docs/mechanics/modifiers.md</c>, section 3).
+	/// </summary>
+	public static bool Repair(CGameState state, CProvince province, long speed)
+	{
+		if (province.Id == 0 || province.IsSea)
+		{
+			return false;
+		}
+		long rate = Rate(state, province);
+		for (int index = 0; index < CGoodsPool.Count; index++)
+		{
+			var goods = (EGoods)index;
+			long made = province.CurrentProducing[goods].Raw;
+			long most = province.MaxProducing[goods].Raw;
+			if (made != most)
+			{
+				province.CurrentProducing[goods] = new CFixedPoint(Math.Min(most, made + rate));
+			}
+		}
+
+		long mend = speed * rate / CFixedPoint.Scale;
+		bool wholeLevel = false;
+		foreach (CBuilding building in state.Buildings)
+		{
+			CFixedPoint current = province.BuildingLevel(building);
+			CFixedPoint most = province.BuildingMaxLevel(building);
+			if (building.IsRepaired && current != most)
+			{
+				province.SetBuildingCurrentLevel(building, new CFixedPoint(current.Raw + mend));
+				wholeLevel |= province.BuildingLevel(building).Raw / CFixedPoint.Scale != current.Raw / CFixedPoint.Scale;
+			}
+		}
+		return wholeLevel;
 	}
 
 	/// <summary>

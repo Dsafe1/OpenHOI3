@@ -33,6 +33,7 @@ public static class CProvinceModifiers
 	public const string SeaZone = "sea_zone";
 	public const string Manpower = "manpower";
 	public const string Nationalism = "nationalism";
+	public const string RevoltRisk = "revolt_risk";
 
 	/// <summary>Every province made again: the month's, and as a game is entered.</summary>
 	public static void Rebuild(CGameState state)
@@ -82,6 +83,7 @@ public static class CProvinceModifiers
 			Sea = state.FindStaticModifier(SeaZone);
 			Manpower = state.FindStaticModifier(CProvinceModifiers.Manpower);
 			Nationalism = state.FindStaticModifier(CProvinceModifiers.Nationalism);
+			RevoltRisk = state.FindStaticModifier(CProvinceModifiers.RevoltRisk);
 		}
 
 		public CGameState State { get; }
@@ -97,6 +99,7 @@ public static class CProvinceModifiers
 		public CModifier? Sea { get; }
 		public CModifier? Manpower { get; }
 		public CModifier? Nationalism { get; }
+		public CModifier? RevoltRisk { get; }
 
 		/// <summary>
 		/// Whether each area found has an open port, by its provinces: the area is walked alone and not taken from the
@@ -190,6 +193,13 @@ public static class CProvinceModifiers
 		foreach (CTimedModifier given in province.EventModifiers)
 		{
 			Add(province, given.Modifier);
+		}
+		// 13. Radar keeps no list here (modifiers.md, section 7).
+		// 14. The revolt risk shown, from what the province holds so far, times `revolt_risk`, where it is above nought.
+		long shown = Revolts.CRevoltRisk.Shown(state, province);
+		if (shown > 0 && context.RevoltRisk is { } revoltRisk)
+		{
+			Add(province, CCountryModifiers.Scaled(revoltRisk, new CFixedPoint(shown)));
 		}
 	}
 

@@ -299,6 +299,18 @@ public sealed class CProvince
 	/// </summary>
 	public bool BuildingMoved { get; set; }
 
+	/// <summary>Every province within two edges, as <see cref="CNearProvinces"/> worked it out; null until asked for.</summary>
+	internal List<int>? NearProvinces { get; set; }
+
+	/// <summary>
+	/// Its revolt risk, the accumulator, in thousandths of a point: moved by the day's step while its holder is at war
+	/// with its owner, never below nought (<c>docs/mechanics/revolt.md</c>, section 3).
+	/// </summary>
+	public CFixedPoint RevoltRisk { get; set; }
+
+	/// <summary>The suppression in and around it, worked out once a day (<c>docs/mechanics/revolt.md</c>, section 2).</summary>
+	public CFixedPoint Suppression { get; set; }
+
 	/// <summary>Ids of the provinces this one touches, ascending. Filled from the map.</summary>
 	public IReadOnlyList<int> Neighbours { get; set; } = System.Array.Empty<int>();
 

@@ -31,8 +31,7 @@ public static class CUnansweredConditions
 
 		// Diplomacy.
 		Add(EScriptGap.Unbuilt, "undeclared_war_with");
-		// Revolts and espionage.
-		Add(EScriptGap.Unbuilt, "num_of_revolts", "revolt_percentage", "revolt_risk", "pure_revolt_risk");
+		// The fog of war.
 		Add(EScriptGap.Unbuilt, "remove_fow");
 		// The AI's missions.
 		Add(EScriptGap.Unbuilt, "active_mission", "last_mission", "is_mission_country", "is_mission_province");

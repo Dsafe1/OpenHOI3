@@ -94,7 +94,8 @@ public static class CConditions
 			|| CPoliticsConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CEspionageConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CRelationConditions.TryAnswer(state, trigger, scope, out answer)
-			|| CProvinceConditions.TryAnswer(state, trigger, scope, out answer))
+			|| CProvinceConditions.TryAnswer(state, trigger, scope, out answer)
+			|| CRevoltConditions.TryAnswer(state, trigger, scope, out answer))
 		{
 			return answer;
 		}

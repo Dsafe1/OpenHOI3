@@ -55,7 +55,7 @@ ally, or a country at peace, that holds somebody's province puts its own policy 
 This is the whole of what occupation costs a province. There is no separate cut to an occupied province's IC,
 resources, manpower or leadership: the policy's `local_ic`, `local_resources`, `local_manpower_modifier` and
 `local_leadership_modifier` go into its modifier, which is where those figures read it. Its
-`local_partisan_support` is revolt risk's ceiling (the second piece).
+`local_partisan_support` is revolt risk's ceiling (`revolt.md`, section 3).
 
 Because a capture keys by the old controller while a province reads controller towards owner, the two disagree
 when a province is taken from a third country: Polish land held by Germany and retaken by France sets France's

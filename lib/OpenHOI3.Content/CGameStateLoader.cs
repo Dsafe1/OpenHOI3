@@ -524,6 +524,20 @@ public static class CGameStateLoader
 				province.StrategicResource = entry.Value;        // checked against the list once all are read
 				continue;
 			}
+			if (entry.Key.Equals("revolt_risk", StringComparison.OrdinalIgnoreCase))
+			{
+				// Sets the province's revolt risk, never below nought (revolt.md, section 5); no file of Their Finest
+				// Hour's has one.
+				if (CFixedPoint.TryParse(entry.Value, out CFixedPoint risk))
+				{
+					province.RevoltRisk = CFixedPoint.Max(risk, CFixedPoint.Zero);
+				}
+				else
+				{
+					badLevels++;
+				}
+				continue;
+			}
 			if (entry.Key.Equals("points", StringComparison.OrdinalIgnoreCase))
 			{
 				if (int.TryParse(entry.Value, out int points))
