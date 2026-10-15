@@ -93,11 +93,25 @@ public static class CBuildQueueText
 	}
 
 	/// <summary>
-	/// The sprite of the counter drawn on the line: the one named for its first brigade's type, or for a building
-	/// <c>icon_build_</c> and its key - which the underground has none of, and keeps the file's.
+	/// A convoy line's name, the original's slot 13: "Convoy" or "Escort", with no count (<c>convoylines.md</c>,
+	/// section 4).
+	/// </summary>
+	public static string ConvoyName(Func<string, string> localise, CConstruction construction)
+	{
+		return localise(construction.IsEscorts ? "CC_ESCORT" : "CC_CONVOY");
+	}
+
+	/// <summary>
+	/// The sprite of the counter drawn on the line: the one named for its first brigade's type, for a building
+	/// <c>icon_build_</c> and its key - which the underground has none of, and keeps the file's - and for a convoy line
+	/// <c>icon_build_convoy</c> or <c>icon_build_escort</c>.
 	/// </summary>
 	public static string CounterSprite(CConstruction construction)
 	{
+		if (construction.IsConvoy)
+		{
+			return construction.IsEscorts ? "icon_build_escort" : "icon_build_convoy";
+		}
 		if (construction.Building is { } building)
 		{
 			return "icon_build_" + building.Key;
@@ -105,10 +119,14 @@ public static class CBuildQueueText
 		return construction.Brigades.Count != 0 ? "GFX_counter_" + construction.Brigades[0].Type.Key : "";
 	}
 
-	/// <summary>Which of the line's pictures says what kind of thing it is building.</summary>
+	/// <summary>
+	/// Which of the line's pictures says what kind of thing it is building. The original chooses only for a unit's line and
+	/// leaves the four stacked as the file has them, the buildings' last and on top, which this shows alone
+	/// (<c>convoylines.md</c>, section 4).
+	/// </summary>
 	public static string KindElement(CConstruction construction)
 	{
-		if (construction.IsBuilding)
+		if (!construction.IsUnit)
 		{
 			return "production_queue_buildings";
 		}

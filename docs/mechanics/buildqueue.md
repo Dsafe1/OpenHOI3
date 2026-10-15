@@ -321,8 +321,9 @@ section 9, is the same choice).
   country orders, cancels or places anything; a unit one of them finishes waits for ever.
 - **Nothing calls the pricing on a change of law**, there being nothing that changes a law
   (`organisation.md`, section 5, is the same). It is built and tested.
-- **Convoys are not built.** The original's queue holds three kinds of line; this one holds units and, since
-  2026-10-15, buildings (`buildinglines.md`).
+- ~~**Convoys are not built.**~~ The original's queue holds three kinds of line, and since 2026-10-15 this one holds all
+  three: units, buildings (`buildinglines.md`) and convoys (`convoylines.md`). A convoy line is priced once, when it is
+  ordered, and passed over by every pricing of the queue after.
 
 ## 9. Against the savegames
 
@@ -359,7 +360,7 @@ started than their history's laws or the save's would put them: the original pri
 under laws or ministers its AI has since changed again. And the countries an AI runs have
 had their shares moved since the last day. The two lines whose price differs at a later
 save are in countries where something else was finished in between - a building or a
-convoy prices every line again too, and there are none here.
+convoy prices every line again too, and the check does not work those lines forward.
 
 ## What is not built
 
@@ -367,7 +368,8 @@ convoy prices every line again too, and there are none here.
 - ~~**Anywhere to place a unit from.**~~ Built 2026-10-09: the deploy menu, `mapunits.md`,
   sections 5 and 6.
 - **An AI**, to order, to place, and to change the laws that price a queue.
-- **Convoys**, the queue's third kind of line; buildings are `buildinglines.md`.
+- ~~**Convoys**, the queue's third kind of line.~~ Built 2026-10-15: `convoylines.md`; buildings are
+  `buildinglines.md`.
 - **Turning a brigade in the field into another type**, and building a brigade for a
   division that exists.
 - **Lend-lease**, and so the IC a queue may spend without resources.

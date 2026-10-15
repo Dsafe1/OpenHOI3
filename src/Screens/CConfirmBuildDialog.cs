@@ -11,9 +11,10 @@ using OpenHOI3.Sim.Provinces;
 namespace OpenHOI3.Screens;
 
 /// <summary>
-/// The original's <c>confirm_build</c>, which a building's button on the production screen opens: so many lines at once
-/// (parallel) of so many one after another (serial), their cost and time, the colour of what the share leaves, what it
-/// teaches, and <c>accept</c>, which orders them with no province. See <c>docs/mechanics/buildinglines.md</c>, section 2.
+/// The original's <c>confirm_build</c>, which a building's button on the production screen opens, and the <c>convoy</c>
+/// and <c>escort</c> buttons: so many lines at once (parallel) of so many one after another (serial), their cost and
+/// time, the colour of what the share leaves, what a building teaches, and <c>accept</c>, which orders them - a building
+/// with no province. See <c>docs/mechanics/buildinglines.md</c>, section 2, and <c>convoylines.md</c>, section 1.
 /// </summary>
 public sealed class CConfirmBuildDialog
 {
@@ -23,30 +24,37 @@ public sealed class CConfirmBuildDialog
 	private readonly CGuiWindow _window;
 	private readonly CSimulation _simulation;
 	private readonly CCountry _player;
-	private readonly CBuilding _building;
+	private readonly CBuilding? _building;
+	private readonly bool _escorts;
 	private readonly Func<string, string> _localise;
 	private int _serial = 1;
 	private int _parallel = 1;
 
+	/// <param name="building">The building ordered, or none for transports or escorts.</param>
 	private CConfirmBuildDialog(Node parent, CGuiWindow window, CGuiContext context, CSimulation simulation, CCountry player,
-		CBuilding building)
+		CBuilding? building, bool escorts)
 	{
 		_window = window;
 		_simulation = simulation;
 		_player = player;
 		_building = building;
+		_escorts = escorts;
 		_localise = context.Localisation.Localise;
 		parent.AddChild(window);
 
 		if (window.FindTextBox("label") is { } label)
 		{
-			label.Text = _localise(building.Key);
+			label.Text = _localise(building is null ? CConfirmBuildText.ConvoyLabel(escorts) : building.Key);
 		}
-		window.FindIcon("photo")?.SetSprite(CConfirmBuildText.Picture(building));
-		window.FindIcon("on_complete_icon")?.SetSprite(CConfirmBuildText.CategoryIcon(building));
-		if (window.FindTextBox("on_complete_impact") is { } impact)
+		window.FindIcon("photo")?.SetSprite(building is null ? CConfirmBuildText.ConvoyPicture(escorts) : CConfirmBuildText.Picture(building));
+		// What a building teaches; for transports and escorts the two are left as the file has them.
+		if (building is not null)
 		{
-			impact.Text = CConfirmBuildText.Impact(building);
+			window.FindIcon("on_complete_icon")?.SetSprite(CConfirmBuildText.CategoryIcon(building));
+			if (window.FindTextBox("on_complete_impact") is { } impact)
+			{
+				impact.Text = CConfirmBuildText.Impact(building);
+			}
 		}
 		Step(window, "serial_plus", +1, serial: true);
 		Step(window, "serial_minus", -1, serial: true);
@@ -67,10 +75,21 @@ public sealed class CConfirmBuildDialog
 		CBuilding building)
 	{
 		CGuiWindow? window = CGuiWindow.Create(context, WindowName);
-		return window is null ? null : new CConfirmBuildDialog(parent, window, context, simulation, player, building);
+		return window is null ? null : new CConfirmBuildDialog(parent, window, context, simulation, player, building, false);
+	}
+
+	/// <summary>The dialog for transports or for escorts.</summary>
+	public static CConfirmBuildDialog? OpenConvoys(Node parent, CGuiContext context, CSimulation simulation, CCountry player,
+		bool escorts)
+	{
+		CGuiWindow? window = CGuiWindow.Create(context, WindowName);
+		return window is null ? null : new CConfirmBuildDialog(parent, window, context, simulation, player, null, escorts);
 	}
 
 	public bool IsOpen => GodotObject.IsInstanceValid(_window) && !_window.IsQueuedForDeletion();
+
+	/// <summary>Whether an element is the dialog's own.</summary>
+	public bool Holds(Node element) => IsOpen && (element == _window || _window.IsAncestorOf(element));
 
 	public void Close()
 	{
@@ -109,11 +128,20 @@ public sealed class CConfirmBuildDialog
 	/// <summary>The counts, the cost and time they come to, the mark, and which buttons may be pressed.</summary>
 	private void Refresh()
 	{
-		(Sim.CFixedPoint cost, int days) = CConfirmBuildText.Price(_player, _building);
+		Sim.CFixedPoint cost;
+		if (_building is null)
+		{
+			(cost, Sim.CFixedPoint time) = CConfirmBuildText.ConvoyPrice(_simulation.State, _player, _escorts);
+			Set("build_time_value", CConfirmBuildText.ConvoyTime(_localise, _serial, time));
+		}
+		else
+		{
+			(cost, int days) = CConfirmBuildText.Price(_player, _building);
+			Set("build_time_value", CConfirmBuildText.Time(_localise, _serial, days));
+		}
 		Set("serial_value", _serial.ToString(System.Globalization.CultureInfo.InvariantCulture));
 		Set("paralell_value", _parallel.ToString(System.Globalization.CultureInfo.InvariantCulture));
 		Set("ic_cost_value", CConfirmBuildText.Cost(_parallel, cost));
-		Set("build_time_value", CConfirmBuildText.Time(_localise, _serial, days));
 		string mark = CConfirmBuildText.Mark(_player, _parallel, cost);
 		foreach (string each in Marks)
 		{
@@ -128,12 +156,14 @@ public sealed class CConfirmBuildDialog
 		Disable("parallell_plus", _parallel >= CConfirmBuildText.Most);
 	}
 
-	/// <summary>Parallel lines of serial buildings each, all with no province; never refused here.</summary>
+	/// <summary>Parallel lines of serial items each - buildings with no province - never refused here.</summary>
 	private void Accept()
 	{
 		for (int line = 0; line < _parallel; line++)
 		{
-			_simulation.Post(new CConstructBuildingCommand(_player.Tag, _building.Key, 0, _serial));
+			_simulation.Post(_building is null
+				? new CConstructConvoyCommand(_player.Tag, _escorts, _serial)
+				: new CConstructBuildingCommand(_player.Tag, _building.Key, 0, _serial));
 		}
 		Close();
 	}

@@ -151,7 +151,8 @@ public sealed partial class CProvinceView : Control
 		UpdateFrame();
 	}
 
-	public void Hide()
+	/// <summary>Puts the view's window away; the node itself stays.</summary>
+	public new void Hide()
 	{
 		if (_window is not null)
 		{

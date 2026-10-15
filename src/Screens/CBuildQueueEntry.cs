@@ -107,6 +107,10 @@ public sealed class CBuildQueueEntry
 		{
 			name.Text = CBuildQueueText.BuildingName(localise, state, Construction);
 		}
+		else if (Construction.IsConvoy && Window.FindTextBox("unit_name") is { } convoy)
+		{
+			convoy.Text = CBuildQueueText.ConvoyName(localise, Construction);       // convoylines.md, section 4
+		}
 		EQueueBackground shown = CBuildQueueText.Background(Construction);
 		for (int index = 0; index < Backgrounds.Length; index++)
 		{

@@ -19,7 +19,7 @@ namespace OpenHOI3.Screens;
 /// and <see cref="CSliderText"/>; this finds the elements and keeps them filled.
 /// See <c>docs/mechanics/productionscreen.md</c>.
 /// </summary>
-public partial class CProductionView : CCountryView
+public partial class CProductionView : CCountryView, ITooltipOwner
 {
 	/// <summary>The six sliders down the screen, from the top: the shares in the reverse of their own order.</summary>
 	private static readonly int[] SliderOrder =
@@ -146,6 +146,12 @@ public partial class CProductionView : CCountryView
 		if (_escort is not null)
 		{
 			_escort.Tooltip = () => new CTooltip { Text = CProductionTooltips.Escort(localise, Simulation.State, Player) };
+			_escort.Pressed += () => OpenConvoyDialog(escorts: true);
+		}
+		// Transports may always be ordered; the button says only what it is (convoylines.md, section 1).
+		if (window.TryFindButton("convoy") is { } convoy)
+		{
+			convoy.Pressed += () => OpenConvoyDialog(escorts: false);
 		}
 
 		// Each building with capital = yes has its button: it opens the confirm-build dialog; the underground's says
@@ -171,6 +177,25 @@ public partial class CProductionView : CCountryView
 
 	private readonly List<(CGuiButton Button, CBuilding Building, bool Underground)> _buildingButtons = new();
 	private CConfirmBuildDialog? _confirmBuild;
+
+	private void OpenConvoyDialog(bool escorts)
+	{
+		_confirmBuild?.Close();
+		_confirmBuild = CConfirmBuildDialog.OpenConvoys(this, Context, Simulation, Player, escorts);
+	}
+
+	/// <summary>
+	/// While the confirm-build dialog is open, nothing on the screen behind it says anything: the original hands every
+	/// tooltip of the screen to the dialog, which answers only for its own steppers (convoylines.md, section 4).
+	/// </summary>
+	public CTooltip? Answer(CGuiObject element)
+	{
+		if (_confirmBuild is not { IsOpen: true } dialog || dialog.Holds(element) || Window is null)
+		{
+			return null;
+		}
+		return element == Window || Window.IsAncestorOf(element) ? CTooltip.Empty : null;
+	}
 
 	private void AddBuilder(CGuiWindow window, string button, CBuilderWindow builder)
 	{
@@ -322,11 +347,11 @@ public partial class CProductionView : CCountryView
 		}
 		Set(_ic, CProductionScreenText.Ic(country));
 
-		// Nothing makes a bomb yet, nor builds a transport or an escort: the two counts
-		// are of those the country has free of its convoys.
+		// Nothing makes a bomb yet. The two counts are the transports and escorts free of the country's convoys, and
+		// the ships its queue still has to give (convoylines.md, section 4).
 		Set(_nukes, CProductionScreenText.Nukes(CFixedPoint.Zero));
-		Set(_transports, CProductionScreenText.Convoys(country.Transports, 0));
-		Set(_escorts, CProductionScreenText.Convoys(country.Escorts, 0));
+		Set(_transports, CProductionScreenText.Convoys(country.Transports, CConvoyLines.BeingBuilt(state, country, escorts: false)));
+		Set(_escorts, CProductionScreenText.Convoys(country.Escorts, CConvoyLines.BeingBuilt(state, country, escorts: true)));
 		if (_escort is not null)
 		{
 			_escort.Disabled = !CProductionTooltips.MayBuildEscorts(country);

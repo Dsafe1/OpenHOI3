@@ -90,6 +90,15 @@ public partial class CTooltips : CanvasLayer
 			{
 				return CTooltip.Empty;
 			}
+			// A node above it may answer for it first.
+			for (Node? node = element; node is not null; node = node.GetParent())
+			{
+				if (node is ITooltipOwner owner && owner.Answer(element) is { } answer)
+				{
+					Vector2 at = element.GetGlobalRect().Position;
+					return CTooltipPlacement.AtElement(answer, (int)at.X, (int)at.Y, screenHeight);
+				}
+			}
 			CTooltip tooltip;
 			if (Above(element) is { } passive)
 			{

@@ -236,8 +236,9 @@ public static class CProductionTooltips
 				return new CTooltip { Text = localise("PEN_MAX_NON_PRIO") };
 			case "counter_type" or "production_queue_division" or "production_queue_air" or "production_queue_naval"
 				or "series_info" or "unit_target":
-				// A building line has no brigades to tell of, and says nothing here (buildinglines.md, section 7).
-				return new CTooltip { Text = construction.IsBuilding ? "" : Brigades(localise, construction) };
+				// A building or convoy line has no brigades to tell of, and says nothing here (buildinglines.md, section 7;
+				// convoylines.md, section 4).
+				return new CTooltip { Text = construction.IsUnit ? Brigades(localise, construction) : "" };
 			default:
 				return new CTooltip { Text = Speed(localise, construction) };
 		}

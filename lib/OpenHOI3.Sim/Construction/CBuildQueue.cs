@@ -103,6 +103,11 @@ public static class CBuildQueue
 	/// </summary>
 	public static void Recalculate(CCountry country, CConstruction construction)
 	{
+		// A convoy line is priced once, when it is ordered, and passed over here (convoylines.md, section 2).
+		if (construction.IsConvoy)
+		{
+			return;
+		}
 		// A building line has a price of its own (buildinglines.md, section 3).
 		if (construction.IsBuilding)
 		{
@@ -370,8 +375,8 @@ public static class CBuildQueue
 		{
 			fraction = construction.Duration.Raw == 0 ? -1 : amount * CFixedPoint.Scale / construction.Duration.Raw;
 		}
-		// A building gathers no experience.
-		if (!construction.IsBuilding)
+		// A building or a convoy gathers no experience.
+		if (construction.IsUnit)
 		{
 			construction.AccumulatedExperience += new CFixedPoint(ExperienceRate(country, construction) * fraction / CFixedPoint.Scale);
 		}
@@ -408,6 +413,11 @@ public static class CBuildQueue
 	/// </summary>
 	public static bool Deliver(CGameState state, CCountry country, CConstruction construction)
 	{
+		// A convoy line's item asks nothing of its country (convoylines.md, section 3).
+		if (construction.IsConvoy)
+		{
+			return CConvoyLines.Finish(state, country, construction);
+		}
 		// A country that holds nothing gets nothing, and the line is dropped.
 		if (!country.Tag.Value.Equals(Rebels, StringComparison.OrdinalIgnoreCase) && !OwnsAProvince(state, country))
 		{

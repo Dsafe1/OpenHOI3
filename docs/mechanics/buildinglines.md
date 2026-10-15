@@ -6,7 +6,7 @@ ordered with no province, as a building waiting in the deploy menu to be put on 
 2026-10-15 (`reversing/findings/FINDINGS-buildingqueue.md`, sections A and B). `confirmed` unless marked.
 
 `buildqueue.md` is the queue and a unit's line; this is what differs for a building. The queue's third kind, the
-convoy, is not built.
+convoy, is `convoylines.md`.
 
 ## 1. The buildings
 
@@ -191,7 +191,7 @@ moved. That is the original pricing again only on a day a line finishes, which t
   the player's way to forts and infrastructure, are built (`provinceview.md`, section 4).
 - **BlackICE's history lines of buildings** (`history/units`, `building_construction`), which the order of battle's
   reader reports and passes over; Their Finest Hour has none.
-- Convoys, the queue's third kind of line.
+- ~~Convoys, the queue's third kind of line.~~ Built 2026-10-15: `convoylines.md`.
 
 ## Not established
 

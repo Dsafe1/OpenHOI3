@@ -10,9 +10,9 @@ using OpenHOI3.Sim.Units;
 namespace OpenHOI3.Interface.Screens;
 
 /// <summary>
-/// What the confirm-build dialog says of a building ordered from the production screen: its cost for so many at once,
-/// its time for so many one after another, the colour of what the share leaves, and what it teaches. See
-/// <c>docs/mechanics/buildinglines.md</c>, section 2.
+/// What the confirm-build dialog says of a building, transports or escorts ordered from the production screen: its cost
+/// for so many at once, its time for so many one after another, the colour of what the share leaves, and what a building
+/// teaches. See <c>docs/mechanics/buildinglines.md</c>, section 2, and <c>convoylines.md</c>, section 1.
 /// </summary>
 public static class CConfirmBuildText
 {
@@ -42,7 +42,32 @@ public static class CConfirmBuildText
 	/// <summary><c>build_time_value</c>: serial times the days, as days to a year and months of thirty beyond.</summary>
 	public static string Time(Func<string, string> localise, int serial, int days)
 	{
-		long total = (long)serial * days;
+		return Days(localise, (long)serial * days);
+	}
+
+	/// <summary>
+	/// <c>build_time_value</c> for transports or escorts: serial times an item's time, in thousandths of a day, over a
+	/// thousand and cut (<c>convoylines.md</c>, section 1).
+	/// </summary>
+	public static string ConvoyTime(Func<string, string> localise, int serial, CFixedPoint time)
+	{
+		return Days(localise, serial * time.Raw / CFixedPoint.Scale);
+	}
+
+	/// <summary>An item of transports' or escorts' cost a day and its time in thousandths of a day, as the dialog asks.</summary>
+	public static (CFixedPoint Cost, CFixedPoint Time) ConvoyPrice(CGameState state, CCountry country, bool escorts)
+	{
+		return (CConvoyLines.Cost(state, country, escorts), CConvoyLines.Time(state, country, escorts));
+	}
+
+	/// <summary><c>label</c>'s key for transports or escorts.</summary>
+	public static string ConvoyLabel(bool escorts) => escorts ? "ESCORTS" : "CONVOYS";
+
+	/// <summary><c>photo</c>'s sprite for transports or escorts.</summary>
+	public static string ConvoyPicture(bool escorts) => escorts ? "picture_escort" : "picture_convoy";
+
+	private static string Days(Func<string, string> localise, long total)
+	{
 		return total <= DaysShown
 			? total.ToString(CultureInfo.InvariantCulture) + " " + localise("DAYS")
 			: (total / 30).ToString(CultureInfo.InvariantCulture) + " " + localise("MONTHS");

@@ -83,9 +83,19 @@ public sealed class CConstruction
 
 	public bool IsBuilding => Building is not null;
 
+	/// <summary>A convoy line: ten transports or escorts an item, priced once (<c>docs/mechanics/convoylines.md</c>).</summary>
+	public bool IsConvoy { get; init; }
+
+	/// <summary>For a convoy line, whether it builds escorts rather than transports.</summary>
+	public bool IsEscorts { get; init; }
+
+	/// <summary>A line that builds a unit: neither a building nor a convoy.</summary>
+	public bool IsUnit => !IsBuilding && !IsConvoy;
+
 	public override string ToString()
 	{
 		string what = Name.Length != 0 ? Name : Building is { } building ? building.Key
+			: IsConvoy ? (IsEscorts ? "escorts" : "transports")
 			: Brigades.Count != 0 ? Brigades[0].ToString() : "nothing";
 		return $"{Country} {what}";
 	}

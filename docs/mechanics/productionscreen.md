@@ -70,9 +70,10 @@ the top bar's three.
 followed by ` (+N)` when `N` are being built and by nothing when none are.
 
 *Ours:* nothing makes a bomb yet, so the first reads `0.00`. The other two are the
-transports and escorts the country has on no convoy (`convoys.md`, section 3); none is ever
-being built, so the bracket never shows. That "how many the country has" means the free ones
-and not those on convoys as well is `inferred` from the two counts the original keeps.
+transports and escorts the country has on no convoy (`convoys.md`, section 3), and `N` the
+ships the queue's convoy lines still have to give, ten an item (`convoylines.md`, section 4).
+That "how many the country has" means the free ones and not those on convoys as well is
+`inferred` from the two counts the original keeps.
 
 ## 4. The strategic resources
 
@@ -102,9 +103,10 @@ everything in the screen's own window but its frame - the country's picture, the
 the top piece, the close button, the headline and the automation line with its arrows -
 and the window comes up over that. `builders.md` has the four. Built 2026-10-08.
 
-*Not read:* what the other buttons do. *Ours:* `theatres_calc_button` is hidden and `escort`
-disabled as above; the rest are drawn as their files have them and do nothing, the building
-buttons never disabled. There are no buildings to place.
+The building buttons open the confirm-build dialog (`buildinglines.md`, section 2), and so
+do `convoy` and `escort`, for transports and escorts (`convoylines.md`, section 1). *Not
+read:* what the theatre buttons and the checkbox do. *Ours:* `theatres_calc_button` is hidden
+and `escort` disabled as above; the rest are drawn as their files have them and do nothing.
 
 ## 6. The four lists
 
@@ -233,8 +235,9 @@ says `BRIGADE_UPGRADE_MIL_CON_INFO` instead; nothing upgrades through the queue 
 
 1. **Little was seen running.** The maintainer confirmed one thing on 2026-10-08: a
    falling resource is a red number with no minus sign. The rest is from the bytes.
-2. **What the buttons do**: the building buttons, the convoy and theatre buttons, the
-   checkbox - and the five on a line of the build queue. The four that order units are
+2. **What the buttons do**: the theatre buttons and the checkbox - and the five on a line
+   of the build queue. The building, convoy and escort buttons are read (`buildinglines.md`,
+   `convoylines.md`). The four that order units are
    read (`builders.md`).
 3. **The lines of three of the four lists.** The build queue's are read (section 6), all
    but how its date is written; **none of it has been looked at beside the running game**.
