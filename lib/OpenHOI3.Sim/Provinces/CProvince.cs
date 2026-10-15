@@ -325,6 +325,15 @@ public sealed class CProvince
 
 	public int RevoltSize { get; set; }
 
+	/// <summary>Whose its underground is, where it has one (<c>docs/mechanics/undergrounds.md</c>, section 1).</summary>
+	public CCountryTag? UndergroundOwner { get; set; }
+
+	/// <summary>
+	/// What its underground does: 0 raise partisans, 1 spread, 2 build up strength - 2 until set, and never reset, so a
+	/// new underground takes up the last action set here.
+	/// </summary>
+	public int UndergroundAction { get; set; } = Revolts.CUndergrounds.BuildUp;
+
 	/// <summary>Ids of the provinces this one touches, ascending. Filled from the map.</summary>
 	public IReadOnlyList<int> Neighbours { get; set; } = System.Array.Empty<int>();
 

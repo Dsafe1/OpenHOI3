@@ -19,7 +19,9 @@ namespace OpenHOI3.Tests.Sim;
 ///
 /// Germany owns 1 to 3 and Poland 4 to 6, at war, Germany holding Warsaw. Posen is a core of Germany and of Slovakia,
 /// which owns nothing and has its capital there. Three rebel types as Their Finest Hour has them: partisans where the
-/// owner does not hold the province, nationalists freeing somebody and the rabble where it does.
+/// owner does not hold the province, nationalists freeing somebody and the rabble where it does. The provinces stand
+/// fifty pixels apart in a row, and the underground building and an air base are in the game, with Their Finest Hour's
+/// underground defines.
 /// </summary>
 internal static class RebelWorld
 {
@@ -29,6 +31,8 @@ internal static class RebelWorld
 	public static readonly CCountryTag Reb = new("REB");
 	public static readonly CBuilding Roads = new(0, "infra", 10, CSupplyFigures.Infrastructure, CFixedPoint.Parse("0.1"));
 	public static readonly CBuilding Factory = new(1, "industry", 10, "ic", CFixedPoint.One);
+	public static readonly CBuilding Underground = new(2, "underground", 1, CUndergrounds.Modifier, CFixedPoint.One) { IsRepaired = false };
+	public static readonly CBuilding AirBase = new(3, CBaseCrowding.AirBase, 10, "air_capacity", CFixedPoint.One);
 	public static readonly CTechnology Smallarms = new("militia_smallarms", 10, new CModifier("militia_smallarms"));
 
 	public static CGameState State()
@@ -41,7 +45,7 @@ internal static class RebelWorld
 
 		CProvince Land(int id, CCountryTag owner, params int[] beside)
 		{
-			var province = new CProvince(id, $"p{id}", isSea: false) { Owner = owner, Controller = owner, Manpower = CFixedPoint.Parse("2.5") };
+			var province = new CProvince(id, $"p{id}", isSea: false) { Owner = owner, Controller = owner, Manpower = CFixedPoint.Parse("2.5"), CentreX = id * 50 };
 			province.Edges = System.Array.ConvertAll(beside, to => new CProvinceEdge(to, EProvinceEdgeKind.Plain, 0, CFixedPoint.One));
 			province.SetBuildingLevel(Roads, CFixedPoint.FromInt(10));
 			province.Cores.Add(owner);
@@ -71,12 +75,21 @@ internal static class RebelWorld
 				Land(6, Pol, 5),
 			},
 			new[] { germany, Country(Pol, 5, "Polish"), Country(Slo, 3, "Slovak"), Country(Reb, 0, "Partisans") },
-			buildings: new[] { Roads, Factory }, technologies: new[] { Smallarms }, wars: new[] { war })
+			buildings: new[] { Roads, Factory, Underground, AirBase }, technologies: new[] { Smallarms }, wars: new[] { war })
 		{
 			EndDate = new CDate(1948, 1, 1),
 			SubUnitTypes = new Dictionary<string, CSubUnitType> { [partisan.Key] = partisan, [infantry.Key] = infantry },
 			NameTexts = new CUnitNameTexts { Brigade = "$NUM$$ORDER$ $TYPE$ Brigade", Ordinals = new[] { "th", "st", "nd", "rd" } },
 		};
+		foreach ((string name, string value) in new[]
+		{
+			("SPAWN_PARTISAN_LIMIT", "0.5"), ("SPAWN_UNDERGROUND_LIMIT", "1"), ("MAX_UNDERGROUND_DISTANCE", "1000"),
+			("UNDERGOUND_INITIAL_STRENGTH", "0.4"), ("UNDERGROUND_STRENGTH_GAIN", "0.01"), ("UNDERGROUND_DETECT_CHANCE", "2"),
+			("UNDERGROUND_SPAWN_STRENGTH", "0.2"),
+		})
+		{
+			state.Defines.Set(CUndergrounds.Section, name, CFixedPoint.Parse(value));
+		}
 		state.RebelTypes = new[]
 		{
 			Type("partisans", 0, 10, "controlled_by = owner", independence: false, autoConvert: true, "$COUNTRY$ Partisans"),

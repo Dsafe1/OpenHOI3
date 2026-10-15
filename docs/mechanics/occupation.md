@@ -7,7 +7,8 @@ the change of hands `reversing/findings/FINDINGS-surrender.md`, section D). What
 step by step, is `modifiers.md`, section 3. `confirmed` unless marked.
 
 This is the first of four pieces occupation and revolt were cut into on 2026-10-14 - the cut is this project's:
-occupation and a province's whole modifier; revolt risk; rebels; undergrounds.
+occupation and a province's whole modifier; revolt risk (`revolt.md`); rebels (`rebels.md`); undergrounds
+(`undergrounds.md`). All four are built.
 
 ## 1. The policies
 

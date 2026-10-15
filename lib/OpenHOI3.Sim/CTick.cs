@@ -138,6 +138,7 @@ public static class CTick
 		Step(state, CProduction.RunDaily);
 		Step(state, CLeadership.RunDaily);                        // spies placed with the espionage share,
 		Step(state, Espionage.CSpyMissions.RunDaily);             // and at work after the alignment's step (espionage.md, 5)
+		Step(state, Revolts.CUndergrounds.RunDaily);              // its undergrounds (undergrounds.md, 3),
 		Step(state, Revolts.CRevoltRoll.RunDaily);                // then the roll for a rising, before the elections (rebels.md, 3)
 		Step(state, Politics.CElections.RunDaily);               // an election where one is due, then the seats
 		Step(state, Politics.CCabinet.RunDaily);                 // where the ruling party holds none (politics.md, 4-5)

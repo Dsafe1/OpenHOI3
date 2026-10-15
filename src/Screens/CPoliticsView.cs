@@ -106,10 +106,11 @@ public sealed partial class CPoliticsView : CCountryView
 			_demobilise.Pressed += () => Simulation.Post(new CToggleMobilisationCommand(Player.Tag, false));
 			_demobilise.Tooltip = () => CPoliticsTooltips.Demobilise(Localise, State, Player);
 		}
-		// Rising up from exile is not built: the button shows where it should and cannot be pressed.
+		// Organized Revolt: a government in exile's undergrounds in its own land raised at once (undergrounds.md, section 6).
 		if (_revolt is not null)
 		{
-			_revolt.Disabled = true;
+			_revolt.Pressed += () => Simulation.Post(new CSpawnFullRevoltCommand(Player.Tag));
+			_revolt.Tooltip = () => CPoliticsTooltips.Revolt(Localise, State, Player);
 		}
 		// Making a puppet and liberating a country are not built.
 		if (window.FindButton("create_puppet") is { } puppet)
@@ -255,6 +256,7 @@ public sealed partial class CPoliticsView : CCountryView
 		if (_revolt is not null)
 		{
 			_revolt.Visible = exile;
+			_revolt.Disabled = !OpenHOI3.Sim.Revolts.CUndergrounds.MayRevolt(State, Player);
 		}
 		if (_mobilise is not null)
 		{

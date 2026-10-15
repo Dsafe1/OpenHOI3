@@ -318,9 +318,10 @@ mobilising and taken off again on standing down. **Being mobilised is what calls
 brigade is then held neither to the share of its strength nor of its organisation `RESERVES_PENALTY_SIZE` keeps back,
 and the day's reinforcement fills it, doubled by `initial_mobilization`'s `reinforcement_bonus` while that lasts. It
 is one flag, the original's one byte, which a war sets too; until 2026-10-14 the reserves read a second flag of ours
-set only at the start, so the button changed nothing a unit felt, which the maintainer found. *Not built*: rising up
-from exile - `revolt` shows where it should
-and cannot be pressed; making a puppet and liberating a country - both buttons are greyed, `create_puppet` saying
+set only at the start, so the button changed nothing a unit felt, which the maintainer found. **`revolt`**, "Organized
+Revolt!", raises the exile's ready undergrounds in its own land at once, may be pressed where one is ready, and says how
+many are - built since 2026-10-15 (`undergrounds.md`, section 6). *Not built*: making a puppet and liberating a
+country - both buttons are greyed, `create_puppet` saying
 `POL_PUPPET_NO` and `liberate_country` `POL_LIB_C_NO_FACTION`, `POL_LIB_C_WE_EXILE` or `POL_LIB_C_NO_EXILES`. The list
 of occupied countries and the choice of an occupation policy are built since 2026-10-14: `occupation.md`, section 4.
 

@@ -55,6 +55,8 @@ public static class CProvinceHands
 		province.Controller = controller;
 		// A faction drops land the rebels lose, and takes land they win (rebels.md, section 10).
 		Revolts.CRebelSiege.ControllerChanged(state, province, old, controller, consequences);
+		// Its underground goes where the new holder owns it or is no enemy of its owner (undergrounds.md, section 7).
+		Revolts.CUndergrounds.ControllerChanged(state, province, controller);
 		// The old holder's government moves at once where this was its seat.
 		if (consequences && state.Country(old) is { } former)
 		{

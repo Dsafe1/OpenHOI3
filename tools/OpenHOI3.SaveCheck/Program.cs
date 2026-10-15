@@ -60,6 +60,12 @@ if (args.Length > 0 && args[0] == "rebels")
 	return CRebelsTrial.Run(args);
 }
 
+// Undergrounds on a new game: three finished by hand, and what their days make of them.
+if (args.Length > 0 && args[0] == "underground")
+{
+	return CUndergroundTrial.Run(args);
+}
+
 // The supply network is checked against what a save says of it.
 if (args.Length > 0 && args[0] == "supply")
 {

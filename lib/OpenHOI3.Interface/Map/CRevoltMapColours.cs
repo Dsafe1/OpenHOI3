@@ -15,7 +15,7 @@ namespace OpenHOI3.Interface.Map;
 ///     green    no revolt risk, at full brightness whatever is known
 ///     yellow   above nought
 ///     orange   from 2 points
-///     red      above 4 points, brighter the higher
+///     red      above 4 points, brighter the higher - and wherever there is an underground
 /// </summary>
 public static class CRevoltMapColours
 {
@@ -26,6 +26,11 @@ public static class CRevoltMapColours
 		if (province.Controller != player && known < 3)
 		{
 			return new CColor(0.9f * b, 0.9f * b, 0.9f * b);
+		}
+		// An underground paints it red over whatever its risk would (undergrounds.md, section 8).
+		if (CUndergrounds.Has(state, province))
+		{
+			return new CColor(b, 0.3f * b, 0.3f * b);
 		}
 		long shown = CRevoltRisk.Shown(state, province);
 		if (shown > 4000)

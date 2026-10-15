@@ -673,18 +673,20 @@ beside FROM's ground, to FROM where FROM is at war with its owner, and otherwise
 - **A peace offer put to the player** (`CAskPeace`, `FINDINGS-war.md` C.7): only another player's offer
   brings it, and there is one player.
 - **What else a change of hands does** (`FINDINGS-surrender.md` D.2, D.3): air and naval units based in the
-  province sent to the old side's nearest base or deleted, radar, the underground,
+  province sent to the old side's nearest base or deleted, radar,
   trespassers and the province's history. A battle's capture goes through the same setter with consequences
   (`landcombat.md`, section 7). The occupation policy a capture sets and the nationalism a change of owner
   sets are built since 2026-10-14 (`occupation.md`, sections 2 and 5), and what the rebels' factions make of land
-  they take and lose since 2026-10-15 (`rebels.md`, section 10) - of the history, the last day the rebels took it.
+  they take and lose since 2026-10-15 (`rebels.md`, section 10) - of the history, the last day the rebels took it -
+  and the underground's dissolution since the same day (`undergrounds.md`, section 7).
 - **`surrender_inherit`** - annexation's surrender mode, where a neighbouring co-belligerent takes control and a
   unit goes over on an even draw - and `release_vassal`. `release` is built since 2026-10-15 (`rebels.md`,
   section 12).
 - **Expeditionary forces**, which annexation and exile send home: there are none.
 - **The cabinet refilled** when a puppet takes its overlord's government; the government's type alone is taken.
 - **What else an exile is**: its units drawing on friends' depots for free, its brigades built at its leader's
-  technology, liberation, the underground's mobilisation, and its partisans turned to militia when it comes home.
+  technology, liberation, and its partisans turned to militia when it comes home. Organized Revolt, its undergrounds
+  raised at once, is built since 2026-10-15 (`undergrounds.md`, section 6).
 - **The puppet's tribute** (`FINDINGS-capitalreaders.md` 4), which stops while a puppet's government has fled.
 - **A country owning nothing**: the original destroys its units each hour unless it is in exile, and takes it out of
   its wars as a game is loaded.

@@ -148,6 +148,26 @@ public static class CPoliticsTooltips
 		};
 	}
 
+	/// <summary>
+	/// Organized Revolt's: not an exile, that it is not; otherwise how many of its undergrounds in its own land are ready
+	/// of how many there are (<c>undergrounds.md</c>, section 6).
+	/// </summary>
+	public static CTooltip Revolt(Func<string, string> localise, CGameState state, CCountry country)
+	{
+		if (!country.InExile)
+		{
+			return new CTooltip { Text = localise("WE_NOT_GOVERNMENT_IN_EXILE") };
+		}
+		(int total, int ready) = Sim.Revolts.CUndergrounds.Readiness(state, country);
+		string count = total.ToString(CultureInfo.InvariantCulture);
+		return new CTooltip
+		{
+			Text = ready == 0
+				? CTextTemplate.Fill(localise("UNDERGROUNDS_NOT_PREPARED"), ("TOTAL", count))
+				: CTextTemplate.Fill(localise("UNDERGROUNDS_READY_TO_RISE"), ("VAL", ready.ToString(CultureInfo.InvariantCulture)), ("TOTAL", count)),
+		};
+	}
+
 	public static CTooltip Demobilise(Func<string, string> localise, CGameState state, CCountry country)
 	{
 		return new CTooltip

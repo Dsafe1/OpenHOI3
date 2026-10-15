@@ -905,6 +905,7 @@ public partial class CSession : Node
 	/// that asks has to pass something for either answer),
 	/// <c>--war=GER:POL</c> puts those two countries at war, and nobody else,
 	/// <c>--occupy=GER:POL</c> gives the first every province the second owns to hold, as a capture would,
+	/// <c>--underground=POL:1440:0</c> finishes an underground of that country in that province, with an action,
 	/// <c>--money=GER:500</c> sets that country's money, so that it may pay for a law,
 	/// <c>--neutrality=GER:0</c> sets that country's neutrality, so that it may declare a war,
 	/// <c>--declare=TUR:IRQ</c> has the first declare war on the second with the first goal it has,
@@ -1093,6 +1094,27 @@ public partial class CSession : Node
 				else
 				{
 					GD.Print($"--occupy: '{argument["--occupy=".Length..]}' is not two countries.");
+				}
+			}
+			else if (argument.StartsWith("--underground="))
+			{
+				// An underground of the country finished in the province as a line of the queue would finish one, the
+				// queue not holding buildings yet: --underground=POL:1440, and its action after a third part, 0 to 2.
+				string[] parts = argument["--underground=".Length..].Split(':');
+				if (parts.Length >= 2 && CCountryTag.TryParse(parts[0], out CCountryTag builder)
+					&& int.TryParse(parts[1], out int province)
+					&& new Sim.Commands.CPlaceUndergroundCommand(builder, province) is var place && place.MayExecute(State))
+				{
+					_simulation.Post(place);
+					if (parts.Length >= 3 && int.TryParse(parts[2], out int action))
+					{
+						_simulation.Post(new Sim.Commands.CChangeUndergroundMissionCommand(province, action));
+					}
+					_simulation.Pump();
+				}
+				else
+				{
+					GD.Print($"--underground: '{argument["--underground=".Length..]}' is not a country and a province.");
 				}
 			}
 			else if (argument.StartsWith("--declare="))
