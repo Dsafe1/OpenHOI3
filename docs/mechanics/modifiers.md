@@ -136,21 +136,28 @@ unless said; the scaled ones are kept as their scaled copies.
     (`FINDINGS-occupation.md`, section B). A mod that puts `local_ic = -0.02` in that block
     has said "minus 2% IC per point of revolt risk". *The second piece.*
 
-**When it is made again** in the original:
+**When it is made again** - the original's schedule, and this project's since 2026-10-15:
 
-- **every month**, every province, before the month takes nationalism down;
-- **every hour** for a province one of whose buildings was bombed, damaged or repaired -
-  each moves a building's "changed" mark, and the hour's look at a province makes its
-  modifier again where one is set;
-- at once **where a day's repair carries a building across a whole level**, a battle's
-  capture (`CMapProvince::TakeControl`), a change of owner, a building's level set, an
-  event's or a decision's modifier, the occupation command, the new game's revolt pass and
-  as a game is entered.
+- **every month**, every province, at the head of the month's pass and before the month
+  takes nationalism down - the month a new game runs before its first hour included;
+- **every hour**, in the hour's look at each province, one whose building has moved since it
+  was last made: a bombing, a fallen-back defender's damage and the day's repair each mark a
+  building whose working level they move, and the rebuild clears every mark;
+- at once, **where a day's repair carries a building across a whole level**;
+- at once, the one province: **a battle's capture** (`CMapProvince::TakeControl`), only where
+  the controller changed; **a change of owner**, whether or not the owner changed; a
+  building's level set by an effect; `add_province_modifier`; a decision taken, its scope's
+  province where it has one and no other; and the occupation command, the setter's provinces
+  of the other's;
+- **every province as a game is entered**, at least twice in the original - two loops over
+  every province, the second also before a new game's revolt pass.
 
 **A plain change of controller makes nothing again**: land handed back by the day's return,
 or taken by an effect, keeps the modifier it had until one of the above. So the occupation
-policy reaches a province taken in battle at once, and one handed back the next hour or the
-next month.
+policy reaches a province taken in battle at once, and one handed back within the hour at best
+and at the month at worst. Likewise `add_core` and `remove_core` wait for the month before
+`non_core` moves, and **a modifier an event gave is dropped only when the province is made
+again**, so it outlives its end until then - and `has_province_modifier` still sees it.
 
 ## 4. A country's modifier
 
@@ -336,16 +343,16 @@ the first day is run, which is why a new game's starting manpower leaves black s
   open where it has an owner and a naval base. A province in no area counts as having no open
   port (*ours*: what the original does with no area was not read). `blockaded` is empty in
   Their Finest Hour.
-- **A province's modifier is made again once a day, every province, before the country's,
-  and as a game is entered** - not on the original's schedule of section 3, for the reason a
-  country's is. Everything that would make it again in the original is caught within the
-  day. Two things differ: a province handed back by the day's return gets its new modifier
-  that night, where the original's waits for the hour or the month; and **the month's
-  nationalism reaches a province the day after**, where the original's month makes every
-  province before it takes nationalism down and keeps the higher figure for the month - 0.025
-  points of revolt risk a month in Their Finest Hour. **This was never decided for provinces**, and on
-  2026-10-14 the maintainer had the original's schedule planned in its place, before revolt risk (the
-  readme's *Next up*).
+- **A province's modifier is made again on the original's schedule** (section 3) since
+  2026-10-15, on the maintainer's word; until then every province was made again once a day,
+  a country's reason carried over to provinces and never decided for them. What is ours in it:
+  a province holds one mark for all its buildings where the original holds one on each, which
+  comes to the same since the rebuild clears every one; entering a game makes every province
+  once, where the original makes each two or three times over with nothing between that the
+  rebuild reads; and a new game is also made again while it is being made, before it is
+  entered (`CStockpile.FillAtStart`, `CManpower.SetAtStart`, `CLeadership.SetAtStart`), for
+  figures that are read before the original's entry would make them. *Inferred*: a repair
+  crosses a whole level where the level's whole part is not what it was.
 - **A province's area is its supply area** (`supply.md`, section 2), the same as home
   production's (`resources.md`, section 3).
 

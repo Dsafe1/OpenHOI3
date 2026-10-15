@@ -48,6 +48,7 @@ public static class CProvinceRepair
 			}
 
 			long mend = speed * rate / CFixedPoint.Scale;
+			bool wholeLevel = false;
 			foreach (CBuilding building in state.Buildings)
 			{
 				CFixedPoint current = province.BuildingLevel(building);
@@ -55,7 +56,14 @@ public static class CProvinceRepair
 				if (building.IsRepaired && current != most)
 				{
 					province.SetBuildingCurrentLevel(building, new CFixedPoint(current.Raw + mend));
+					wholeLevel |= province.BuildingLevel(building).Raw / CFixedPoint.Scale != current.Raw / CFixedPoint.Scale;
 				}
+			}
+			// A building carried across a whole level makes the province's modifier again at once; any other mend waits
+			// for the hour's look (modifiers.md, section 3).
+			if (wholeLevel)
+			{
+				Modifiers.CProvinceModifiers.RebuildOne(state, province);
 			}
 		}
 	}

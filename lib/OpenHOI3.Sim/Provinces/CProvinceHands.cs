@@ -84,11 +84,9 @@ public static class CProvinceHands
 		{
 			CFactionMembership.Leave(former);
 		}
-		if (province.EventModifiers.Count > 0)
-		{
-			province.EventModifiers.Clear();
-			CProvinceModifiers.Rebuild(state);
-		}
+		// The modifiers events gave it go, and its modifier is made again (modifiers.md, section 3).
+		province.EventModifiers.Clear();
+		CProvinceModifiers.RebuildOne(state, province);
 	}
 
 	private const string Rebels = "REB";

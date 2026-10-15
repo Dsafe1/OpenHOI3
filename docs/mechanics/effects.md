@@ -158,13 +158,12 @@ neither does nothing.
 
 **A modifier lasts to now plus 24 x D hours. A negative D lasts for ever**: the original keeps the
 day of the year and makes it year 1, which the rebuild never takes away. A country's are added at
-step 13 of its modifier (`modifiers.md`, section 4), a province's at step 5, and **neither shows until
+step 13 of its modifier (`modifiers.md`, section 4), a province's at step 12, and **neither shows until
 that modifier is rebuilt**: the country's daily, a province's when it is given one. One whose time
-has passed is dropped at the rebuild. `has_country_modifier` and `has_province_modifier` answer
-whether it is held, its time not looked at.
-
-*Ours*: where the original drops a province's modifier whose time has passed was not found; here it
-is the province's rebuild, as the country's.
+has passed is dropped at the rebuild and nowhere else - read whole on 2026-10-14
+(`reversing/findings/FINDINGS-occupation.md` A.7, step 12) - so **a province's outlives its end until the
+province is next made again**, at the month at the latest (`modifiers.md`, section 3).
+`has_country_modifier` and `has_province_modifier` answer whether it is held, its time not looked at.
 
 ## 7. `this` and `from`
 

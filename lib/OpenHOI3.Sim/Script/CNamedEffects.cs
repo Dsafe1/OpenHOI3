@@ -90,6 +90,6 @@ public static class CNamedEffects
 			return;
 		}
 		province.SetBuildingLevel(building, built + CFixedPoint.FromInt((int)CConditions.WholeOf(levels)));
-		CProvinceModifiers.Rebuild(state);
+		CProvinceModifiers.RebuildOne(state, province);
 	}
 }

@@ -118,7 +118,8 @@ A province's **nationalism** is a count of years, in thousandths.
   wherever the old owner was a country - **whether or not the owner changed**: nothing tests that.
 - **The month takes 0.083 off every province**, held at nought - a twelfth of a year, short of the twelfth by a
   thousandth of a year in twelve months. That is done in every month's pass, the one a new game runs before its first
-  hour included.
+  hour included, straight after the pass has made every province's modifier again - so a province's modifier carries
+  the figure from before the decay until something next makes it again (`modifiers.md`, section 3).
 - **The history.** A province's `owner` line where the province already has an owner counts as a change of owner.
   *Inferred* from the start save: Their Finest Hour has five provinces with two history files that each set an owner
   (3948, 3949, 4592, 4647, 4905 - two files of one name in two folders, or two layers with two names), and those
@@ -159,8 +160,6 @@ against N's whole part times 1000, strictly greater. On a country it reads no pr
   country history does not know is.
 - **A mod with no `civil_war`** has the file's first policy set on every capture. The original looks `civil_war` up
   by name and tests nothing, and is taken to fault there (*inferred*).
-- **The month's decay comes first in the month's pass**, as the original's does; the original makes every
-  province's modifier again just before it, and here that is the day's (`modifiers.md`, section 7).
 
 ## Not established
 

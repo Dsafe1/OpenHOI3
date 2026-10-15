@@ -99,9 +99,13 @@ public static class COccupationPolicies
 	public static void Change(CGameState state, CCountry which, CCountry target, COccupationPolicy policy)
 	{
 		CGameState.Status(which, target).OccupationPolicy = policy.Index;
-		// Ours: every province is made again, where the original makes again those the setter holds of the other's; the
-		// rest come out as they were.
-		CProvinceModifiers.Rebuild(state);
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.Controller == which.Tag && province.Owner == target.Tag)
+			{
+				CProvinceModifiers.RebuildOne(state, province);
+			}
+		}
 		CCountryModifiers.RebuildOne(state, which);
 	}
 

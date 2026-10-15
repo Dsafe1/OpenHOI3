@@ -36,9 +36,10 @@ public sealed class CExecuteDecisionCommand : CCommand
 		state.RaiseDecisionTaken(decision, Scope);
 		Scope.ResetToSeed();
 		CEffects.Run(state, decision.Effects, Scope);
+		// The scope's province, where it has one, made again: no other (modifiers.md, section 3).
 		if (Scope.Province != 0)
 		{
-			CProvinceModifiers.Rebuild(state);
+			CProvinceModifiers.RebuildOne(state, state.Province(Scope.Province));
 		}
 		if (state.Country(Scope.Country) is { } country)
 		{

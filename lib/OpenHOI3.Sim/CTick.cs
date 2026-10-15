@@ -72,6 +72,9 @@ public static class CTick
 		Step(state, COfficers.Update);
 		// Each province's hour: a faction's progress is the points its members hold (docs/mechanics/factions.md, section 7).
 		Step(state, Wars.CFactionProgress.RunHourly);
+		// And, at the end of the same look, one a building of which has moved has its modifier made again (modifiers.md,
+		// section 3).
+		Step(state, CProvinceModifiers.RebuildMoved);
 		// The battles are fought last, each in turn.
 		Step(state, CCombats.RunHourly);
 		// An event left unanswered past its time answers itself (ours: the original's window counts
@@ -102,7 +105,6 @@ public static class CTick
 		// worked out, its units lose the men who go home and draw their supplies, what its
 		// provinces produced reaches the stockpile, its IC is worked out, and then its six
 		// shares of IC are run and its four of leadership after them.
-		Step(state, CProvinceModifiers.Rebuild);
 		Step(state, CStrategicResources.Update);                  // the first thing the original's day does
 		// Supplies go out along the network before any country's own day, so a unit
 		// draws on what reached its province this morning.
@@ -206,8 +208,10 @@ public static class CTick
 	/// </summary>
 	private static void RunMonthlyPass(CGameState state)
 	{
-		// First, every province's nationalism a twelfth of a year less - the month before a new game's first hour
-		// included, which the start save holds (occupation.md, section 5).
+		// First, every province's modifier made again, and then its nationalism a twelfth of a year less - the month
+		// before a new game's first hour included, which the start save holds (modifiers.md, section 3; occupation.md,
+		// section 5).
+		Step(state, CProvinceModifiers.Rebuild);
 		Step(state, Provinces.CNationalism.DecayMonthly);
 		// The month's pass a new game runs before its first hour decays nothing: the
 		// original takes nothing off an ability until a game is under way.

@@ -60,6 +60,9 @@ public static class CProvinceControl
 			return false;
 		}
 		CProvinceHands.SetController(state, province, to, consequences: true);
+		// A battle's capture makes the province's modifier again at once, where a plain change of hands does not
+		// (modifiers.md, section 3).
+		Modifiers.CProvinceModifiers.RebuildOne(state, province);
 		return true;
 	}
 

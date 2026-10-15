@@ -16,7 +16,8 @@ namespace OpenHOI3.Sim.Modifiers;
 /// <c>docs/mechanics/modifiers.md</c>, section 3.
 ///
 /// The total is cleared and summed again every time, like a country's, and every static modifier added is kept as
-/// one of its sources.
+/// one of its sources. When it is made again is the original's: every province each month and as a game is entered,
+/// and one province at the changes that feed it - a plain change of controller is not one.
 /// </summary>
 public static class CProvinceModifiers
 {
@@ -33,103 +34,162 @@ public static class CProvinceModifiers
 	public const string Manpower = "manpower";
 	public const string Nationalism = "nationalism";
 
+	/// <summary>Every province made again: the month's, and as a game is entered.</summary>
 	public static void Rebuild(CGameState state)
 	{
-		CModifier? overseas = state.FindStaticModifier(Overseas);
-		CModifier? nonCore = state.FindStaticModifier(NonCore);
-		CModifier? blockaded = state.FindStaticModifier(Blockaded);
-		CModifier? coastal = state.FindStaticModifier(Coastal);
-		CModifier? nonCoastal = state.FindStaticModifier(NonCoastal);
-		CModifier? coastalSea = state.FindStaticModifier(CoastalSea);
-		CModifier? noAdjacent = state.FindStaticModifier(NoAdjacentControlled);
-		CModifier? land = state.FindStaticModifier(LandProvince);
-		CModifier? sea = state.FindStaticModifier(SeaZone);
-		CModifier? manpower = state.FindStaticModifier(Manpower);
-		CModifier? nationalism = state.FindStaticModifier(Nationalism);
-
-		// A province is in its controller's home block when it is in the area of its controller's capital.
-		var joined = new bool[state.Provinces.Count];
-		foreach (CCountry country in state.Countries)
-		{
-			foreach (int id in CResources.ProvincesJoinedToCapital(state, country))
-			{
-				joined[id] = true;
-			}
-		}
-		// Whether each area found has an open port, by its provinces: the area is walked alone and not taken from the
-		// supply network, whose cache this must not fill while a game is being made.
-		var openPorts = new Dictionary<int, bool>();
-
+		var context = new Context(state);
 		foreach (CProvince province in state.Provinces)
 		{
-			CModifier total = province.Modifier;
-			total.Clear();
-			province.ModifierSources.Clear();
-			if (province.Id == 0)
-			{
-				continue;
-			}
+			Make(context, province);
+		}
+	}
 
-			// 1. The buildings, at what works of each; not kept as sources.
-			foreach (CBuilding building in state.Buildings)
-			{
-				CFixedPoint level = province.BuildingLevel(building);
-				if (level != CFixedPoint.Zero && building.ModifierKey.Length != 0)
-				{
-					total.Add(building.ModifierKey, level * building.ModifierValue);
-				}
-			}
+	/// <summary>One province made again, where something that feeds it has changed.</summary>
+	public static void RebuildOne(CGameState state, CProvince province)
+	{
+		Make(new Context(state), province);
+	}
 
-			// 2. Overseas, and blockaded inside it.
-			if (!province.IsSea && !joined[province.Id] && IsOnAnotherContinent(state, province))
+	/// <summary>The hour's look at every province: one a building of which has moved is made again.</summary>
+	public static void RebuildMoved(CGameState state)
+	{
+		Context? context = null;
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.BuildingMoved)
 			{
-				Add(province, overseas);
-				if (!HasOpenPort(state, province) && !AreaHasOpenPort(state, province, openPorts))
-				{
-					Add(province, blockaded);
-				}
+				Make(context ??= new Context(state), province);
 			}
-			// 3. Its owner's without a claim to it.
-			if (IsNotItsOwnersByRight(province))
-			{
-				Add(province, nonCore);
-			}
-			// 5. The coast.
-			Add(province, province.IsSea
-				? HasNeighbour(state, province, sea: false) ? coastalSea : null
-				: HasNeighbour(state, province, sea: true) ? coastal : nonCoastal);
-			// 6. Nothing beside it held by its holder.
-			if (province.Owner is not null && !HasNeighbourHeldAlike(state, province))
-			{
-				Add(province, noAdjacent);
-			}
-			// 7. The occupation policy its holder puts on its owner's land.
-			if (COccupationPolicies.Applied(state, province) is { } policy)
-			{
-				Add(province, policy.Modifier);
-			}
-			// 8. Its own port blockaded: no port is held blockaded here (modifiers.md, section 7).
-			// 9. Land or sea.
-			Add(province, province.IsSea ? sea : land);
-			// 10. Its manpower.
-			if (manpower is not null && province.Manpower > CFixedPoint.Zero)
-			{
-				Add(province, CCountryModifiers.Scaled(manpower, province.Manpower));
-			}
-			// 11. Its nationalism, where its owner holds it without a claim.
-			if (nationalism is not null && province.Nationalism != CFixedPoint.Zero && province.Owner is { } owner
-				&& province.Controller == owner && !province.Cores.Contains(owner))
-			{
-				Add(province, CCountryModifiers.Scaled(nationalism, province.Nationalism));
-			}
+		}
+	}
 
-			// 12. What events gave it, each until its time has passed (ours where it is dropped,
-			// docs/mechanics/effects.md section 6).
-			province.EventModifiers.RemoveAll(given => given.HasEnded(state));
-			foreach (CTimedModifier given in province.EventModifiers)
+	/// <summary>What one making of provinces works out once and asks again: the areas found, and the modifiers by name.</summary>
+	private sealed class Context
+	{
+		private readonly Dictionary<CCountryTag, HashSet<int>> _joined = new();
+
+		public Context(CGameState state)
+		{
+			State = state;
+			Overseas = state.FindStaticModifier(CProvinceModifiers.Overseas);
+			NonCore = state.FindStaticModifier(CProvinceModifiers.NonCore);
+			Blockaded = state.FindStaticModifier(CProvinceModifiers.Blockaded);
+			Coastal = state.FindStaticModifier(CProvinceModifiers.Coastal);
+			NonCoastal = state.FindStaticModifier(CProvinceModifiers.NonCoastal);
+			CoastalSea = state.FindStaticModifier(CProvinceModifiers.CoastalSea);
+			NoAdjacent = state.FindStaticModifier(NoAdjacentControlled);
+			Land = state.FindStaticModifier(LandProvince);
+			Sea = state.FindStaticModifier(SeaZone);
+			Manpower = state.FindStaticModifier(CProvinceModifiers.Manpower);
+			Nationalism = state.FindStaticModifier(CProvinceModifiers.Nationalism);
+		}
+
+		public CGameState State { get; }
+
+		public CModifier? Overseas { get; }
+		public CModifier? NonCore { get; }
+		public CModifier? Blockaded { get; }
+		public CModifier? Coastal { get; }
+		public CModifier? NonCoastal { get; }
+		public CModifier? CoastalSea { get; }
+		public CModifier? NoAdjacent { get; }
+		public CModifier? Land { get; }
+		public CModifier? Sea { get; }
+		public CModifier? Manpower { get; }
+		public CModifier? Nationalism { get; }
+
+		/// <summary>
+		/// Whether each area found has an open port, by its provinces: the area is walked alone and not taken from the
+		/// supply network, whose cache this must not fill while a game is being made.
+		/// </summary>
+		public Dictionary<int, bool> OpenPorts { get; } = new();
+
+		/// <summary>Whether the province is in the area of its controller's capital, the controller's area found once.</summary>
+		public bool IsJoined(CProvince province)
+		{
+			if (State.Country(province.Controller) is not { } controller)
 			{
-				Add(province, given.Modifier);
+				return false;
 			}
+			if (!_joined.TryGetValue(controller.Tag, out HashSet<int>? joined))
+			{
+				_joined[controller.Tag] = joined = new HashSet<int>(CResources.ProvincesJoinedToCapital(State, controller));
+			}
+			return joined.Contains(province.Id);
+		}
+	}
+
+	private static void Make(Context context, CProvince province)
+	{
+		CGameState state = context.State;
+		CModifier total = province.Modifier;
+		total.Clear();
+		province.ModifierSources.Clear();
+		province.BuildingMoved = false;
+		if (province.Id == 0)
+		{
+			return;
+		}
+
+		// 1. The buildings, at what works of each; not kept as sources.
+		foreach (CBuilding building in state.Buildings)
+		{
+			CFixedPoint level = province.BuildingLevel(building);
+			if (level != CFixedPoint.Zero && building.ModifierKey.Length != 0)
+			{
+				total.Add(building.ModifierKey, level * building.ModifierValue);
+			}
+		}
+
+		// 2. Overseas, and blockaded inside it.
+		if (!province.IsSea && !context.IsJoined(province) && IsOnAnotherContinent(state, province))
+		{
+			Add(province, context.Overseas);
+			if (!HasOpenPort(state, province) && !AreaHasOpenPort(state, province, context.OpenPorts))
+			{
+				Add(province, context.Blockaded);
+			}
+		}
+		// 3. Its owner's without a claim to it.
+		if (IsNotItsOwnersByRight(province))
+		{
+			Add(province, context.NonCore);
+		}
+		// 5. The coast.
+		Add(province, province.IsSea
+			? HasNeighbour(state, province, sea: false) ? context.CoastalSea : null
+			: HasNeighbour(state, province, sea: true) ? context.Coastal : context.NonCoastal);
+		// 6. Nothing beside it held by its holder.
+		if (province.Owner is not null && !HasNeighbourHeldAlike(state, province))
+		{
+			Add(province, context.NoAdjacent);
+		}
+		// 7. The occupation policy its holder puts on its owner's land.
+		if (COccupationPolicies.Applied(state, province) is { } policy)
+		{
+			Add(province, policy.Modifier);
+		}
+		// 8. Its own port blockaded: no port is held blockaded here (modifiers.md, section 7).
+		// 9. Land or sea.
+		Add(province, province.IsSea ? context.Sea : context.Land);
+		// 10. Its manpower.
+		if (context.Manpower is { } manpower && province.Manpower > CFixedPoint.Zero)
+		{
+			Add(province, CCountryModifiers.Scaled(manpower, province.Manpower));
+		}
+		// 11. Its nationalism, where its owner holds it without a claim.
+		if (context.Nationalism is { } nationalism && province.Nationalism != CFixedPoint.Zero && province.Owner is { } owner
+			&& province.Controller == owner && !province.Cores.Contains(owner))
+		{
+			Add(province, CCountryModifiers.Scaled(nationalism, province.Nationalism));
+		}
+
+		// 12. What events gave it: one whose time has passed is dropped here and nowhere else, so it outlives its end
+		// until the province is next made again (docs/mechanics/effects.md section 6).
+		province.EventModifiers.RemoveAll(given => given.HasEnded(state));
+		foreach (CTimedModifier given in province.EventModifiers)
+		{
+			Add(province, given.Modifier);
 		}
 	}
 

@@ -274,7 +274,8 @@ public sealed class CProvince
 
 	/// <summary>
 	/// Sets how much of a building is in working order, between nothing and what has
-	/// been built. Damage and repair go through here.
+	/// been built. Damage and repair go through here, and where the level moves the
+	/// province is marked for its modifier to be made again within the hour.
 	/// </summary>
 	public void SetBuildingCurrentLevel(CBuilding building, CFixedPoint level)
 	{
@@ -283,8 +284,20 @@ public sealed class CProvince
 		{
 			System.Array.Resize(ref _buildingLevels, building.Index + 1);
 		}
-		_buildingLevels[building.Index] = level < CFixedPoint.Zero ? CFixedPoint.Zero : level > most ? most : level;
+		CFixedPoint set = level < CFixedPoint.Zero ? CFixedPoint.Zero : level > most ? most : level;
+		if (set != _buildingLevels[building.Index])
+		{
+			BuildingMoved = true;
+		}
+		_buildingLevels[building.Index] = set;
 	}
+
+	/// <summary>
+	/// Whether a building's working level has moved since its modifier was last made: the original's "changed" byte on
+	/// each building, which the hour's look at the province asks and the rebuild clears
+	/// (<c>docs/mechanics/modifiers.md</c>, section 3).
+	/// </summary>
+	public bool BuildingMoved { get; set; }
 
 	/// <summary>Ids of the provinces this one touches, ascending. Filled from the map.</summary>
 	public IReadOnlyList<int> Neighbours { get; set; } = System.Array.Empty<int>();

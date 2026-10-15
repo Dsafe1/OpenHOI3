@@ -57,7 +57,7 @@ public static class CMarkEffects
 				{
 					here.EventModifiers.Add(CTimedModifier.Given(state, forProvince, Days(effect)));
 					// A province's modifier is rebuilt at once; a country's waits for its rebuild.
-					CProvinceModifiers.Rebuild(state);
+					CProvinceModifiers.RebuildOne(state, here);
 				}
 				return true;
 			case "remove_country_modifier":
