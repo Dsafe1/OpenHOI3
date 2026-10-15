@@ -102,6 +102,11 @@ public sealed class CBuildQueueEntry
 
 	public void Update(CGameState state, Func<string, string> localise)
 	{
+		// A building line is named by its building and its province, which wants the words (buildinglines.md, 7).
+		if (Construction.IsBuilding && Window.FindTextBox("unit_name") is { } name)
+		{
+			name.Text = CBuildQueueText.BuildingName(localise, state, Construction);
+		}
 		EQueueBackground shown = CBuildQueueText.Background(Construction);
 		for (int index = 0; index < Backgrounds.Length; index++)
 		{

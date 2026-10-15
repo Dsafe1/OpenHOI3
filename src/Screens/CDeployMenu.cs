@@ -16,7 +16,8 @@ namespace OpenHOI3.Screens;
 /// The menu a finished unit is put on the map from: the original's
 /// <c>sidebar_deploy</c>. Its list is the units waiting, until one is chosen; then it is
 /// the units in the field that one may join, and the map takes a click on a province
-/// it may be placed in. See <c>docs/mechanics/mapunits.md</c>, section 6.
+/// it may be placed in. See <c>docs/mechanics/mapunits.md</c>, section 6. The buildings waiting are listed after the
+/// units; one chosen colours the map, and a click where it may go places it (<c>buildinglines.md</c>, section 6).
 /// </summary>
 public partial class CDeployMenu : Control
 {
@@ -30,8 +31,10 @@ public partial class CDeployMenu : Control
 	private CGuiListBox? _list;
 	private CGuiTextBox? _title;
 	private readonly List<CUnit> _listed = new();
+	private readonly List<CBuildingDeployment> _listedBuildings = new();
 
 	private CUnit? _placing;
+	private CBuildingDeployment? _placingBuilding;
 	private bool _choosingTarget;
 	private bool _targetsStale;
 	private bool _listStale;
@@ -44,6 +47,12 @@ public partial class CDeployMenu : Control
 
 	/// <summary>Raised when the menu goes up or comes down.</summary>
 	public event Action? Toggled;
+
+	/// <summary>
+	/// Raised when the building being placed changes: with it when its line is chosen, with null when it has been placed
+	/// or the menu closes (<c>docs/mechanics/buildinglines.md</c>, section 6).
+	/// </summary>
+	public event Action<CBuildingDeployment?>? BuildingPlacingChanged;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, CSimulation simulation, CCountry player)
@@ -103,7 +112,25 @@ public partial class CDeployMenu : Control
 		Visible = false;
 		_targetsStale = false;
 		SetPlacing(null);
+		SetPlacingBuilding(null);
 		Toggled?.Invoke();
+	}
+
+	/// <summary>
+	/// The map's question while a building is being placed: where it may go, the click places it and answers yes;
+	/// elsewhere it answers no and the click goes on as an ordinary one, the line staying chosen.
+	/// </summary>
+	public bool PlaceBuilding(int province)
+	{
+		if (_placingBuilding is not { } deployment || province <= 0
+			|| !CBuildingLines.CanDeployIn(_simulation.State, _player, deployment.Building, _simulation.State.Province(province)))
+		{
+			return false;
+		}
+		_simulation.Post(new CDeployBuildingCommand(_player.Tag, deployment.Id, province));
+		SetPlacingBuilding(null);
+		_listStale = true;
+		return true;
 	}
 
 	/// <summary>
@@ -144,14 +171,18 @@ public partial class CDeployMenu : Control
 		{
 			Placed();                                        // it went somewhere, or is no longer waiting
 		}
+		if (_placingBuilding is not null && !_player.BuildingDeployments.Contains(_placingBuilding))
+		{
+			SetPlacingBuilding(null);
+		}
 
 		if (!_choosingTarget)
 		{
-			if (_listStale || !_listed.SequenceEqual(_player.Deployments))
+			if (_listStale || !_listed.SequenceEqual(_player.Deployments) || !_listedBuildings.SequenceEqual(_player.BuildingDeployments))
 			{
 				BuildList();
 			}
-			if (_player.Deployments.Count == 0)
+			if (_player.Deployments.Count == 0 && _player.BuildingDeployments.Count == 0)
 			{
 				Close();                                     // an empty list closes itself
 			}
@@ -185,6 +216,35 @@ public partial class CDeployMenu : Control
 				_list.Add(line.Window);
 			}
 		}
+		// The buildings after the units, each in the order it was finished (ours: the original keeps one list of both).
+		_listedBuildings.Clear();
+		foreach (CBuildingDeployment deployment in _player.BuildingDeployments)
+		{
+			_listedBuildings.Add(deployment);
+			if (CDeploymentEntry.Create(_context, deployment) is { } line)
+			{
+				line.Selected += () => ChooseBuilding(deployment);
+				_list.Add(line.Window);
+			}
+		}
+	}
+
+	/// <summary>A building's line chosen: the map shows where it may go, and the menu stays on its list.</summary>
+	private void ChooseBuilding(CBuildingDeployment deployment)
+	{
+		SetPlacing(null);
+		_choosingTarget = false;
+		SetPlacingBuilding(deployment);
+	}
+
+	private void SetPlacingBuilding(CBuildingDeployment? deployment)
+	{
+		if (ReferenceEquals(deployment, _placingBuilding))
+		{
+			return;
+		}
+		_placingBuilding = deployment;
+		BuildingPlacingChanged?.Invoke(deployment);
 	}
 
 	/// <summary>Lists the units the one being placed may join, and answers whether there is any.</summary>
@@ -211,6 +271,7 @@ public partial class CDeployMenu : Control
 
 	private void Choose(CUnit unit)
 	{
+		SetPlacingBuilding(null);
 		_choosingTarget = true;
 		_targetsStale = true;
 		SetPlacing(unit);

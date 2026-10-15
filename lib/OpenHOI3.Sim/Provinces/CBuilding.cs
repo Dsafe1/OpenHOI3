@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace OpenHOI3.Sim.Provinces;
 
 /// <summary>
@@ -45,8 +47,32 @@ public sealed class CBuilding
 	/// <summary><c>repair</c>: whether what it has lost comes back by the day. It does unless its file says no.</summary>
 	public bool IsRepaired { get; init; } = true;
 
-	/// <summary><c>capital</c>: whether the production screen looks for a button of its name.</summary>
+	/// <summary>
+	/// <c>capital</c>: whether the production screen looks for a button of its name, and whether a line of it ordered
+	/// with no province waits to be placed (<c>docs/mechanics/buildinglines.md</c>, section 1).
+	/// </summary>
 	public bool IsCapital { get; init; }
+
+	/// <summary><c>cost</c>: IC a day a line of it takes, before the discount.</summary>
+	public CFixedPoint Cost { get; init; }
+
+	/// <summary><c>time</c>: days a line of it takes, before the discount, in thousandths.</summary>
+	public CFixedPoint Time { get; init; }
+
+	/// <summary><c>on_completion</c>: the technology category whose discount prices it and that a finished one teaches.</summary>
+	public string OnCompletion { get; init; } = "";
+
+	/// <summary><c>completion_size</c>: the practical a finished one gives its category.</summary>
+	public CFixedPoint CompletionSize { get; init; }
+
+	/// <summary><c>port</c>: it may go only in a province with a port.</summary>
+	public bool IsPort { get; init; }
+
+	/// <summary><c>prerequisites</c>, resolved: buildings a province must have before it may take this one.</summary>
+	public List<CBuilding> Prerequisites { get; } = new();
+
+	/// <summary><c>not_if_x_exists</c>, resolved: buildings a province must not have.</summary>
+	public List<CBuilding> Excluding { get; } = new();
 
 	public override string ToString()
 	{

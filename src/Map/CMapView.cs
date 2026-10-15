@@ -176,6 +176,23 @@ public partial class CMapView : Node2D
 
 	private Func<CProvince, CColor?>? _airArea;
 
+	/// <summary>
+	/// Colours every province by the building being placed from the deploy menu - the original's map mode 14 - or with
+	/// null gives the mode back. Painted once, as the line is chosen (<c>docs/mechanics/buildinglines.md</c>, section 6).
+	/// </summary>
+	public void ShowDeployment(Func<CProvince, CColor>? colours)
+	{
+		_deployment = colours;
+		RefreshColours();
+	}
+
+	private Func<CProvince, CColor>? _deployment;
+
+	/// <summary>
+	/// Asked with the province under a left click while a building is being placed: answers whether the click placed it.
+	/// </summary>
+	public Func<int, bool>? PlaceBuilding { get; set; }
+
 	public MapMode Mode
 	{
 		get => _mode;
@@ -311,6 +328,10 @@ public partial class CMapView : Node2D
 			if (id == 0)
 			{
 				colour = NothingColour;
+			}
+			else if (_deployment is not null)
+			{
+				colour = _deployment(province).ToGodot();
 			}
 			else if (_airArea is not null)
 			{
@@ -529,6 +550,12 @@ public partial class CMapView : Node2D
 				}
 				break;
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click:
+				// A building being placed is asked first: where it may go the click places it, and elsewhere the click
+				// goes on as an ordinary click (buildinglines.md, section 6).
+				if (_deployment is not null && PlaceBuilding is { } place && place(ProvinceAtScreen(click.Position)))
+				{
+					break;
+				}
 				// A counter is over the province it stands in, so it is asked first - but
 				// not while a unit is being placed, when the click is for the province.
 				Vector2 clicked = ScreenToMap(click.Position);

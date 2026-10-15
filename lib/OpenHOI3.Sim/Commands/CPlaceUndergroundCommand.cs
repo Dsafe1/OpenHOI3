@@ -4,8 +4,8 @@ using OpenHOI3.Sim.Revolts;
 namespace OpenHOI3.Sim.Commands;
 
 /// <summary>
-/// Ours, for trials: an underground finished in a province for a country as a line of the build queue would finish one,
-/// the queue not holding buildings yet. Nothing is asked. See <c>docs/mechanics/undergrounds.md</c>, section 2.
+/// Ours, for trials: an underground finished in a province for a country at once, as a line of the build queue finishes one
+/// after its days. Nothing is asked. See <c>docs/mechanics/undergrounds.md</c>, section 2.
 /// </summary>
 public sealed class CPlaceUndergroundCommand : CCommand
 {

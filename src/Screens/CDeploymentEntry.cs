@@ -2,12 +2,13 @@ using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Tooltips;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
 
 /// <summary>
-/// A line of the deploy menu for a unit waiting to be placed: a
+/// A line of the deploy menu for a unit or a building waiting to be placed: a
 /// <c>deployment_entry</c> window with the unit's name, the picture of its kind, the
 /// mark of its size, and a button that chooses it. See
 /// <c>docs/mechanics/mapunits.md</c>, section 6.
@@ -33,9 +34,42 @@ public sealed class CDeploymentEntry
 		}
 	}
 
+	private CDeploymentEntry(CGuiWindow window, CBuildingDeployment deployment, string name)
+	{
+		Window = window;
+		Building = deployment;
+		if (window.FindTextBox("name") is { } text)
+		{
+			text.Text = name;
+		}
+		// A building's line shows neither picture (buildinglines.md, section 6).
+		if (window.FindIcon("counter_type") is { } type)
+		{
+			type.Visible = false;
+		}
+		if (window.FindIcon("counter_size") is { } size)
+		{
+			size.Visible = false;
+		}
+		if (window.FindButton("select") is { } select)
+		{
+			select.Pressed += () => Selected?.Invoke();
+		}
+	}
+
 	public CGuiWindow Window { get; }
 
-	public CUnit Unit { get; }
+	public CUnit? Unit { get; }
+
+	/// <summary>The building waiting, for a building's line.</summary>
+	public CBuildingDeployment? Building { get; }
+
+	/// <summary>A building's line: its name, no pictures and no tooltip.</summary>
+	public static CDeploymentEntry? Create(CGuiContext context, CBuildingDeployment deployment)
+	{
+		CGuiWindow? window = CGuiWindow.CreateEntry(context, "deployment_entry");
+		return window is null ? null : new CDeploymentEntry(window, deployment, context.Localisation.Localise(deployment.Building.Key));
+	}
 
 	public static CDeploymentEntry? Create(CGuiContext context, CUnit unit)
 	{

@@ -156,29 +156,30 @@ public static class CUndergrounds
 	}
 
 	/// <summary>
-	/// A finished underground, the original's building delivery for it: one more level of it built, its strength raised
-	/// by its initial strength, the builder its owner, and the player told where he holds the province.
+	/// A finished underground, as a building line in the province finishes one: one more level of it built, its strength
+	/// raised by its initial strength, the builder its owner, and the player told where he holds the province
+	/// (<c>buildinglines.md</c>, section 5).
 	/// </summary>
 	public static void Finish(CGameState state, CProvince province, CCountry builder)
+	{
+		if (Building(state) is { } underground)
+		{
+			Construction.CBuildingLines.Build(state, province, underground, builder, province.Owner, province.Owner);
+		}
+	}
+
+	/// <summary>
+	/// What is the underground's own when one more level of it is built: its strength raised by its initial strength, at
+	/// most what is built, and the builder its owner.
+	/// </summary>
+	public static void Begin(CGameState state, CProvince province, CCountry builder)
 	{
 		if (Building(state) is not { } underground)
 		{
 			return;
 		}
-		CFixedPoint before = province.BuildingLevel(underground);
-		CFixedPoint most = CFixedPoint.Min(province.BuildingMaxLevel(underground) + CFixedPoint.One, CFixedPoint.FromInt(underground.MaxLevel));
-		province.SetBuildingLevel(underground, most);
-		province.SetBuildingCurrentLevel(underground, before + InitialStrength(state, province, builder));
+		province.SetBuildingCurrentLevel(underground, province.BuildingLevel(underground) + InitialStrength(state, province, builder));
 		province.UndergroundOwner = builder.Tag;
-		if (province.Controller is { } holder)
-		{
-			state.RaisePactMessage(new CPactMessage("BUILDING_DONE", "", "", builder.Tag, holder)
-			{
-				Told = holder,
-				Values = new[] { ("NAME", underground.Key), ("PROV", province.Name) },
-			});
-		}
-		CProvinceModifiers.RebuildOne(state, province);
 	}
 
 	/// <summary>Whether an underground may raise partisans: the country's, and at least the define's strength.</summary>

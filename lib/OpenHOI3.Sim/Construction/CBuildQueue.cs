@@ -103,6 +103,12 @@ public static class CBuildQueue
 	/// </summary>
 	public static void Recalculate(CCountry country, CConstruction construction)
 	{
+		// A building line has a price of its own (buildinglines.md, section 3).
+		if (construction.IsBuilding)
+		{
+			CBuildingLines.Price(country, construction);
+			return;
+		}
 		long cost = 0;
 		long duration = 0;
 		bool several = construction.Brigades.Count > 1;
@@ -272,6 +278,10 @@ public static class CBuildQueue
 		long spent = 0;
 		bool delivered = false;
 
+		// First, each building line asked whether it may still be built, and taken out where not, silently
+		// (buildinglines.md, section 4).
+		country.Constructions.RemoveAll(line => line.IsBuilding && !CBuildingLines.MayStillBeBuilt(state, country, line));
+
 		foreach (CConstruction construction in new List<CConstruction>(country.Constructions))
 		{
 			long need = CFixed15.FromThousandths(construction.Cost).Raw;
@@ -337,7 +347,9 @@ public static class CBuildQueue
 
 		if (delivered)
 		{
-			// A unit finished has taught its practical, which makes the rest cheaper.
+			// A line finished has taught its practical, which makes the rest cheaper: the country's modifier is made
+			// again and every line priced again (buildinglines.md, section 5).
+			Modifiers.CCountryModifiers.RebuildOne(state, country);
 			foreach (CConstruction construction in country.Constructions)
 			{
 				Recalculate(country, construction);
@@ -358,7 +370,11 @@ public static class CBuildQueue
 		{
 			fraction = construction.Duration.Raw == 0 ? -1 : amount * CFixedPoint.Scale / construction.Duration.Raw;
 		}
-		construction.AccumulatedExperience += new CFixedPoint(ExperienceRate(country, construction) * fraction / CFixedPoint.Scale);
+		// A building gathers no experience.
+		if (!construction.IsBuilding)
+		{
+			construction.AccumulatedExperience += new CFixedPoint(ExperienceRate(country, construction) * fraction / CFixedPoint.Scale);
+		}
 		construction.AccumulatedProgress += new CFixedPoint(fraction);
 		construction.Progress += new CFixedPoint(amount);
 
@@ -396,6 +412,10 @@ public static class CBuildQueue
 		if (!country.Tag.Value.Equals(Rebels, StringComparison.OrdinalIgnoreCase) && !OwnsAProvince(state, country))
 		{
 			return true;
+		}
+		if (construction.IsBuilding)
+		{
+			return CBuildingLines.Finish(state, country, construction);
 		}
 		if (construction.Brigades.Count == 0)
 		{

@@ -70,9 +70,23 @@ public sealed class CConstruction
 	/// <summary>What the unit is made of.</summary>
 	public List<CBrigadeOrder> Brigades { get; } = new();
 
+	/// <summary>
+	/// The building it builds, for a building line, and none for a unit's (<c>docs/mechanics/buildinglines.md</c>).
+	/// </summary>
+	public Provinces.CBuilding? Building { get; init; }
+
+	/// <summary>A building line's province, or 0 for one placed from the deploy menu when it is done.</summary>
+	public int Location { get; set; }
+
+	/// <summary>How many buildings waiting to be placed the line has made, which numbers the next.</summary>
+	public int Placed { get; set; }
+
+	public bool IsBuilding => Building is not null;
+
 	public override string ToString()
 	{
-		string what = Name.Length != 0 ? Name : Brigades.Count != 0 ? Brigades[0].ToString() : "nothing";
+		string what = Name.Length != 0 ? Name : Building is { } building ? building.Key
+			: Brigades.Count != 0 ? Brigades[0].ToString() : "nothing";
 		return $"{Country} {what}";
 	}
 }

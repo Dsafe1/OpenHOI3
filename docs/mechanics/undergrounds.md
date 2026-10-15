@@ -6,11 +6,11 @@ to the province beside it. A government in exile can raise every ready one at on
 2026-09-30 and 2026-10-14 (`reversing/findings/FINDINGS-occupation.md`, sections 2 and E; the dissolution
 `reversing/findings/FINDINGS-surrender.md`, section D.2). `confirmed` unless marked.
 
-This is the fourth of the four pieces occupation and revolt were cut into (`occupation.md`). **It is built without
-the way an underground is ordered**, through production as any building is: the queue holds units only
-(`buildqueue.md`), and buildings in the queue are a piece of their own, by the maintainer's word on 2026-10-15
-("Undergrounds now, queue later"). What a finished underground starts with is built, and a developer switch places
-one.
+This is the fourth of the four pieces occupation and revolt were cut into (`occupation.md`). It was built first without
+the way an underground is ordered, by the maintainer's word on 2026-10-15 ("Undergrounds now, queue later"); **it is
+ordered through production as any building is since the building lines that day** (`buildinglines.md`): the
+production screen's `underground` button, enabled where the country may train one, and a line of it placed from the
+deploy menu where the map shows it may go, green by the strength it would start with.
 
 ## 1. The building
 
@@ -172,8 +172,8 @@ have spread: its two Polish neighbours have undergrounds.
 
 ## Ours
 
-- **Ordering an underground is not built** (above): `--underground=TAG:province` places one as a finished line would,
-  and the trial does the same.
+- **`--underground=TAG:province`** finishes one at once, as a finished line would, and the trial does the same - for
+  trying one out without the days a line takes.
 - **A country's undergrounds are walked in the order of their provinces' numbers**, which is the order the original
   rebuilds its list in each day; one a spread makes is first walked the next day.
 - **A country's air bases are its provinces with an air base, in their numbers' order**, and its allies' after them

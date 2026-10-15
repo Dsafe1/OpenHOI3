@@ -456,6 +456,12 @@ public sealed class CCountry
 	public List<CUnit> Deployments { get; } = new();
 
 	/// <summary>
+	/// The buildings it has finished and not yet put anywhere, in the order they were finished
+	/// (<c>docs/mechanics/buildinglines.md</c>, section 6).
+	/// </summary>
+	public List<Construction.CBuildingDeployment> BuildingDeployments { get; } = new();
+
+	/// <summary>
 	/// The provinces its radar sees from, by id: each added as it comes to control one with radar, and none ever taken
 	/// off (<c>docs/mechanics/intelligence.md</c>, section 4).
 	/// </summary>

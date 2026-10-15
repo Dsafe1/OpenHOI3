@@ -221,8 +221,9 @@ says `BRIGADE_UPGRADE_MIL_CON_INFO` instead; nothing upgrades through the queue 
 
 *Ours:*
 
-- **Nothing disables a building's button or the underground's**, so a building says its name only and
-  the underground nothing. The escort button is disabled until a technology allows escorts, as
+- **A building's button opens the confirm-build dialog** since 2026-10-15, enabled where a technology makes the
+  building available, the underground's where the country may train one (`buildinglines.md`, section 2). The escort
+  button is disabled until a technology allows escorts, as
   section 5 says it is - `allow_escorts = yes`, which the technology files are now read for.
 - **A text box lets the mouse through** to what is under it, as before: over `series_info` it is the
   line's background that answers, which is the speed and not the brigades.

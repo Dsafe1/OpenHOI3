@@ -148,16 +148,29 @@ public partial class CProductionView : CCountryView
 			_escort.Tooltip = () => new CTooltip { Text = CProductionTooltips.Escort(localise, Simulation.State, Player) };
 		}
 
-		// The underground's button says something only when it is disabled, which nothing does here.
+		// Each building with capital = yes has its button: it opens the confirm-build dialog; the underground's says
+		// something only while it is disabled (buildinglines.md, section 2).
 		foreach (CBuilding building in Simulation.State.Buildings)
 		{
-			if (building.IsCapital && !building.Key.Equals(Underground, StringComparison.OrdinalIgnoreCase)
-				&& window.TryFindButton(building.Key) is { } button)
+			if (!building.IsCapital || window.TryFindButton(building.Key) is not { } button)
 			{
-				button.Tooltip = () => new CTooltip { Text = CProductionTooltips.Building(localise, building) };
+				continue;
 			}
+			bool underground = building.Key.Equals(Underground, StringComparison.OrdinalIgnoreCase);
+			_buildingButtons.Add((button, building, underground));
+			button.Tooltip = underground
+				? () => new CTooltip { Text = button.Disabled ? CProductionTooltips.UndergroundUnavailable(localise, Simulation.State, Player) : "" }
+				: () => new CTooltip { Text = CProductionTooltips.Building(localise, Simulation.State, building, button.Disabled) };
+			button.Pressed += () =>
+			{
+				_confirmBuild?.Close();
+				_confirmBuild = CConfirmBuildDialog.Open(this, Context, Simulation, Player, building);
+			};
 		}
 	}
+
+	private readonly List<(CGuiButton Button, CBuilding Building, bool Underground)> _buildingButtons = new();
+	private CConfirmBuildDialog? _confirmBuild;
 
 	private void AddBuilder(CGuiWindow window, string button, CBuilderWindow builder)
 	{
@@ -317,6 +330,11 @@ public partial class CProductionView : CCountryView
 		if (_escort is not null)
 		{
 			_escort.Disabled = !CProductionTooltips.MayBuildEscorts(country);
+		}
+		foreach ((CGuiButton button, CBuilding building, bool underground) in _buildingButtons)
+		{
+			button.Disabled = underground ? !CBuildingLines.MayTrainUnderground(state, country)
+				: !CBuildingLines.IsAvailable(state, country, building);
 		}
 
 		ShowStrategicResources(country);

@@ -32,7 +32,12 @@ internal static class RebelWorld
 	public static readonly CBuilding Roads = new(0, "infra", 10, CSupplyFigures.Infrastructure, CFixedPoint.Parse("0.1"));
 	public static readonly CBuilding Factory = new(1, "industry", 10, "ic", CFixedPoint.One);
 	public static readonly CBuilding Underground = new(2, "underground", 1, CUndergrounds.Modifier, CFixedPoint.One) { IsRepaired = false };
-	public static readonly CBuilding AirBase = new(3, CBaseCrowding.AirBase, 10, "air_capacity", CFixedPoint.One);
+	public static readonly CBuilding AirBase = new(3, CBaseCrowding.AirBase, 10, "air_capacity", CFixedPoint.One)
+	{
+		IsCapital = true, Cost = CFixedPoint.FromInt(4), Time = CFixedPoint.FromInt(90), OnCompletion = "construction_practical",
+		CompletionSize = CFixedPoint.Parse("0.13"),
+	};
+	public static readonly CTechnology AirTech = new("air_tech", 1, new CModifier("air_tech")) { ActivatesBuilding = CBaseCrowding.AirBase };
 	public static readonly CTechnology Smallarms = new("militia_smallarms", 10, new CModifier("militia_smallarms"));
 
 	public static CGameState State()
@@ -75,7 +80,7 @@ internal static class RebelWorld
 				Land(6, Pol, 5),
 			},
 			new[] { germany, Country(Pol, 5, "Polish"), Country(Slo, 3, "Slovak"), Country(Reb, 0, "Partisans") },
-			buildings: new[] { Roads, Factory, Underground, AirBase }, technologies: new[] { Smallarms }, wars: new[] { war })
+			buildings: new[] { Roads, Factory, Underground, AirBase }, technologies: new[] { Smallarms, AirTech }, wars: new[] { war })
 		{
 			EndDate = new CDate(1948, 1, 1),
 			SubUnitTypes = new Dictionary<string, CSubUnitType> { [partisan.Key] = partisan, [infantry.Key] = infantry },

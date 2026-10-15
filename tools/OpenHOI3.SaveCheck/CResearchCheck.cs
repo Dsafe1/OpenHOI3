@@ -196,6 +196,9 @@ internal static class CResearchCheck
 			}
 		}
 
+		// ---- what each building line costs, under the earlier save's practicals
+		CBuildingLineCheck.Compare(state, pairs, Compare);
+
 		// ---- the build queue over the same days, before anything below moves an ability
 		int queuesLeftOut = CBuildQueueBetweenSaves.Compare(state, pairs, earlier.GetString("player"), days, Compare);
 

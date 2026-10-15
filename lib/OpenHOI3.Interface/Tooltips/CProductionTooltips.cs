@@ -114,6 +114,44 @@ public static class CProductionTooltips
 	}
 
 	/// <summary>
+	/// A building's button: its name, and while the button is disabled, <c>NEED</c> and the technology that makes the
+	/// building available (<c>buildinglines.md</c>, section 2).
+	/// </summary>
+	public static string Building(Func<string, string> localise, CGameState state, CBuilding building, bool disabled)
+	{
+		string text = Building(localise, building);
+		if (disabled)
+		{
+			foreach (Sim.Research.CTechnology technology in state.Technologies.Values)
+			{
+				if (technology.ActivatesBuilding.Equals(building.Key, StringComparison.OrdinalIgnoreCase))
+				{
+					text += localise("NEED") + " §Y" + localise(technology.Name);
+					break;
+				}
+			}
+		}
+		return text;
+	}
+
+	/// <summary>
+	/// The original's <c>GetUndergroundUnavailableText</c>, the disabled underground button's: <c>UNDERGROUND_NOT_AT_WAR</c>
+	/// for a country at peace, nothing for a government in exile, and otherwise the same where nowhere would take one.
+	/// </summary>
+	public static string UndergroundUnavailable(Func<string, string> localise, CGameState state, CCountry country)
+	{
+		if (!state.IsAtWar(country.Tag))
+		{
+			return localise("UNDERGROUND_NOT_AT_WAR");
+		}
+		if (country.InExile)
+		{
+			return "";
+		}
+		return Sim.Construction.CBuildingLines.MayTrainUnderground(state, country) ? "" : localise("UNDERGROUND_NOT_AT_WAR");
+	}
+
+	/// <summary>
 	/// A strategic resource's icon: its name, what the country has of its modifier, and a line
 	/// for each province that gives the resource to the country, with how much of that
 	/// province's infrastructure is standing.
@@ -198,7 +236,8 @@ public static class CProductionTooltips
 				return new CTooltip { Text = localise("PEN_MAX_NON_PRIO") };
 			case "counter_type" or "production_queue_division" or "production_queue_air" or "production_queue_naval"
 				or "series_info" or "unit_target":
-				return new CTooltip { Text = Brigades(localise, construction) };
+				// A building line has no brigades to tell of, and says nothing here (buildinglines.md, section 7).
+				return new CTooltip { Text = construction.IsBuilding ? "" : Brigades(localise, construction) };
 			default:
 				return new CTooltip { Text = Speed(localise, construction) };
 		}

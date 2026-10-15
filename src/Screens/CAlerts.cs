@@ -72,7 +72,7 @@ public partial class CAlerts : Control
 	{
 		if (_deployable is not null)
 		{
-			_deployable.Visible = _player.Deployments.Count > 0;
+			_deployable.Visible = _player.Deployments.Count > 0 || _player.BuildingDeployments.Count > 0;
 		}
 	}
 }

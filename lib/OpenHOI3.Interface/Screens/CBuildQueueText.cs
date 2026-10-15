@@ -82,15 +82,36 @@ public static class CBuildQueueText
 		return construction.Brigades.Count != 0 ? construction.Brigades[0].Name : "";
 	}
 
-	/// <summary>The sprite of the counter drawn on the line: the one named for its first brigade's type.</summary>
+	/// <summary>
+	/// A building line's name, the original's slot 13: the building's, and " (" + the province's + ")" where it has one
+	/// (<c>buildinglines.md</c>, section 7).
+	/// </summary>
+	public static string BuildingName(Func<string, string> localise, CGameState state, CConstruction construction)
+	{
+		string name = construction.Building is { } building ? localise(building.Key) : "";
+		return construction.Location != 0 ? name + " (" + state.Province(construction.Location).Name + ")" : name;
+	}
+
+	/// <summary>
+	/// The sprite of the counter drawn on the line: the one named for its first brigade's type, or for a building
+	/// <c>icon_build_</c> and its key - which the underground has none of, and keeps the file's.
+	/// </summary>
 	public static string CounterSprite(CConstruction construction)
 	{
+		if (construction.Building is { } building)
+		{
+			return "icon_build_" + building.Key;
+		}
 		return construction.Brigades.Count != 0 ? "GFX_counter_" + construction.Brigades[0].Type.Key : "";
 	}
 
 	/// <summary>Which of the line's pictures says what kind of thing it is building.</summary>
 	public static string KindElement(CConstruction construction)
 	{
+		if (construction.IsBuilding)
+		{
+			return "production_queue_buildings";
+		}
 		if (construction.Brigades.Count == 0)
 		{
 			return "";

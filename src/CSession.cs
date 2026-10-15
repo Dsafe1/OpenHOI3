@@ -181,6 +181,10 @@ public partial class CSession : Node
 				unit is null ? null : CDeployment.Places(State, Player, unit));
 			_deployMenu.Toggled += () => ShowProvince(_shownProvince);
 			_mapView.ProvinceSelected += province => _deployMenu.PlaceIn(province);
+			// A building waiting is placed by a click where the map shows green (buildinglines.md, section 6).
+			_deployMenu.BuildingPlacingChanged += deployment => _mapView.ShowDeployment(deployment is null ? null
+				: province => Interface.Map.CDeploymentColours.Of(State, Player, deployment.Building, province));
+			_mapView.PlaceBuilding = province => _deployMenu.PlaceBuilding(province);
 
 			_alerts = new CAlerts();
 			_alerts.Setup(gui, Player);

@@ -270,7 +270,8 @@ The window `sidebar_deploy` of `interface/sidebar.gui`: a title, the list
 `deployment_queue`, and `close`. `confirmed` throughout, but where marked.
 
 **Its list is the country's units waiting to be placed**, in the order they were finished,
-each a `deployment_entry`:
+each a `deployment_entry` - and since 2026-10-15 the buildings waiting after them, a line each with the building's name
+and no pictures, placed by a click where the map shows green (`buildinglines.md`, section 6):
 
 | element | |
 | --- | --- |

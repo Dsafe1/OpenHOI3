@@ -273,6 +273,17 @@ public sealed class CProvince
 	}
 
 	/// <summary>
+	/// Sets how much of a building has been built here and leaves what works of it, held to what is built now - as a
+	/// finished building line raises it (<c>docs/mechanics/buildinglines.md</c>, section 5).
+	/// </summary>
+	public void SetBuildingMaxLevel(CBuilding building, CFixedPoint level)
+	{
+		CFixedPoint working = BuildingLevel(building);
+		SetBuildingLevel(building, level);
+		_buildingLevels[building.Index] = working > level ? level : working;
+	}
+
+	/// <summary>
 	/// Sets how much of a building is in working order, between nothing and what has
 	/// been built. Damage and repair go through here, and where the level moves the
 	/// province is marked for its modifier to be made again within the hour.
