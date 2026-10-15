@@ -43,6 +43,18 @@ public static class CLeadership
 	}
 
 	/// <summary>
+	/// What a province gives: its leadership and its <c>local_leadership</c>, times one and its
+	/// <c>local_leadership_modifier</c>, never below nothing - no country's term. Also what the province view shows
+	/// (<c>provinceview.md</c>, section 2).
+	/// </summary>
+	public static CFixedPoint OfProvince(CProvince province)
+	{
+		long leadership = province.Leadership.Raw + province.Modifier[LocalLeadership].Raw;
+		long factor = Math.Max(0, CFixedPoint.Scale + province.Modifier[LocalLeadershipModifier].Raw);
+		return new CFixedPoint(Math.Max(0, leadership * factor / CFixedPoint.Scale));
+	}
+
+	/// <summary>
 	/// Works out every country's leadership, as the original does once a day and once on
 	/// entering a game: what the provinces it controls give, each scaled by its own
 	/// modifier, plus what every country is given, all scaled by the country's laws,
@@ -58,13 +70,7 @@ public static class CLeadership
 				continue;
 			}
 
-			long leadership = province.Leadership.Raw + province.Modifier[LocalLeadership].Raw;
-			long factor = CFixedPoint.Scale + province.Modifier[LocalLeadershipModifier].Raw;
-			if (factor < 0)
-			{
-				factor = 0;                                  // a province cannot be made worth less than nothing
-			}
-			long contribution = leadership * factor / CFixedPoint.Scale;
+			long contribution = OfProvince(province).Raw;
 			if (contribution <= 0)
 			{
 				continue;

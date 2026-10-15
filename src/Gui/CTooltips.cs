@@ -100,9 +100,9 @@ public partial class CTooltips : CanvasLayer
 			{
 				tooltip = element.Tooltip?.Invoke() ?? CTooltip.Empty;
 			}
-			if (element.GuiType is CGuiButtonType button)
+			if (element is CGuiButton button)
 			{
-				tooltip = CTooltipText.WithShortcut(tooltip, button.Shortcut, _shortcutLabel);
+				tooltip = CTooltipText.WithShortcut(tooltip, button.ShortcutText, _shortcutLabel);
 			}
 			Vector2 corner = element.GetGlobalRect().Position;
 			return CTooltipPlacement.AtElement(tooltip, (int)corner.X, (int)corner.Y, screenHeight);

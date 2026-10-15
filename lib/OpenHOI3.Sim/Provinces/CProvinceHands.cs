@@ -86,7 +86,7 @@ public static class CProvinceHands
 		}
 		if (state.Country(old) is { } former && RealFaction(former) && CCountryLists.OwnedCount(state, former.Tag) == 0)
 		{
-			CFactionMembership.Leave(former);
+			CFactionMembership.Leave(state, former);
 		}
 		// The modifiers events gave it go, and its modifier is made again (modifiers.md, section 3).
 		province.EventModifiers.Clear();

@@ -25,7 +25,8 @@ const float STRIPE_TILE = 8.0;
 // raises it with the zoom, because from far away they are noise.
 uniform float province_border = 0.0;
 uniform int hovered_province = 0;
-uniform int selected_province = 0;
+// A texel a province, lit where the province is selected.
+uniform sampler2D selection : filter_nearest, repeat_disable;
 
 // Line half-widths, in screen pixels.
 const float COUNTRY_LINE = 0.9;
@@ -82,7 +83,7 @@ void fragment() {
 		colour = mix(here_colour, here_stripe, texture(stripes, at).a);
 	}
 
-	if (here != 0 && here == selected_province) {
+	if (here != 0 && texelFetch(selection, ivec2(here % 256, here / 256), 0).r > 0.5) {
 		colour = mix(colour, vec3(1.0), 0.45);
 	} else if (here != 0 && here == hovered_province) {
 		colour = mix(colour, vec3(1.0), 0.2);

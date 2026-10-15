@@ -162,26 +162,44 @@ public static class CResources
 	/// </summary>
 	private static void AddYield(CGoodsPool into, CCountry country, CProvince province)
 	{
-		long lawFactor = CFixedPoint.Scale + country.Modifier[GlobalResources].Raw;
-		foreach ((EGoods goods, string technologyKey) in Produced)
+		foreach ((EGoods goods, string _) in Produced)
 		{
-			long yield = province.CurrentProducing[goods].Raw;
-			if (yield == 0)
+			if (province.CurrentProducing[goods].Raw != 0)
 			{
-				continue;
+				into[goods] += Yield(country, province, goods);
 			}
-			// Province by province, each multiplication truncated in turn: what the
-			// province's own modifier leaves of it first, then the country's.
-			long localFactor = Math.Max(0, CFixedPoint.Scale + province.Modifier[LocalResources].Raw);
-			long scaled = yield * localFactor / CFixedPoint.Scale;
-			scaled = scaled * lawFactor / CFixedPoint.Scale;
-			if (technologyKey.Length != 0)
-			{
-				long technologyFactor = CFixedPoint.Scale + country.Technology[technologyKey].Raw;
-				scaled = scaled * technologyFactor / CFixedPoint.Scale;
-			}
-			into[goods] += new CFixedPoint(scaled);
 		}
+	}
+
+	/// <summary>
+	/// What a province yields of a good in a day as its holder gets it: scaled by the province's own modifier, the
+	/// country's laws and its technology, each multiplication truncated in turn. Also the province view's figure
+	/// (<c>provinceview.md</c>, section 2).
+	/// </summary>
+	public static CFixedPoint Yield(CCountry country, CProvince province, EGoods goods)
+	{
+		long yield = province.CurrentProducing[goods].Raw;
+		long localFactor = Math.Max(0, CFixedPoint.Scale + province.Modifier[LocalResources].Raw);
+		long scaled = yield * localFactor / CFixedPoint.Scale;
+		scaled = scaled * (CFixedPoint.Scale + country.Modifier[GlobalResources].Raw) / CFixedPoint.Scale;
+		if (TechnologyKey(goods) is { Length: > 0 } technologyKey)
+		{
+			scaled = scaled * (CFixedPoint.Scale + country.Technology[technologyKey].Raw) / CFixedPoint.Scale;
+		}
+		return new CFixedPoint(scaled);
+	}
+
+	/// <summary>The technology effect that scales a good a province yields, or nothing.</summary>
+	public static string TechnologyKey(EGoods goods)
+	{
+		foreach ((EGoods produced, string key) in Produced)
+		{
+			if (produced == goods)
+			{
+				return key;
+			}
+		}
+		return "";
 	}
 
 	/// <summary>

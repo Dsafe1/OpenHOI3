@@ -25,7 +25,7 @@ convoy, is not built.
 
 **The buttons** of the production screen are the buildings with `capital = yes`, by their keys: in both installs
 `air_base`, `naval_base`, `industry`, `anti_air`, `radar_station`, `nuclear_reactor`, `rocket_test` and `underground`.
-Forts and infrastructure are built from the province view, which is not built here.
+Forts and infrastructure are built from the province view (`provinceview.md`, section 4).
 
 ## 2. Ordering
 
@@ -45,7 +45,7 @@ available, and for the underground, `CanTrainUnderground` - opens the **confirm-
 - **`accept`**, never disabled, orders `parallel` lines of `serial` buildings each, **with no province**; `cancel`
   orders nothing.
 
-**A province** (the province view, not built here; and the AI's production minister, which always names one): one level
+**A province** (the province view, `provinceview.md` section 4; and the AI's production minister, which always names one): one level
 a click, for each selected province the player holds where the building may go (section 6).
 
 **The order** - the original's `CConstructBuildingCommand`: the country, the building, the province or none, and how many:
@@ -187,8 +187,8 @@ moved. That is the original pricing again only on a day a line finishes, which t
 
 ## Not built
 
-- **The province view**, whose building buttons order one level a click in a selected province, and **the AI**, whose
-  production minister orders every building with a province; both are what forts and infrastructure are built by.
+- **The AI**, whose production minister orders every building with a province. The province view's building buttons,
+  the player's way to forts and infrastructure, are built (`provinceview.md`, section 4).
 - **BlackICE's history lines of buildings** (`history/units`, `building_construction`), which the order of battle's
   reader reports and passes over; Their Finest Hour has none.
 - Convoys, the queue's third kind of line.

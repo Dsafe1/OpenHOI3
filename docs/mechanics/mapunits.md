@@ -440,8 +440,8 @@ in port and an air unit at its base are seen and picked:
   the air units based there, wherever they are. The original keeps a list for each, turns it
   by one at each click - the first unit goes to the end, and every unit that is not the
   player's after it - and selects the one that is then first; so the first click picks the
-  second of several. A click on any other building's picture is for the building, which is
-  the province view's and not built.
+  second of several. A click on any other building's picture goes on to the province under
+  it, which opens the province view (`provinceview.md`).
 - The original has a second picture for three of them - `large_air_base`,
   `large_naval_base`, `large_anti_air` - which a province keeps beside the first and asks
   about a click at any height.

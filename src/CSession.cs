@@ -52,6 +52,7 @@ public partial class CSession : Node
 	private CPoliticsView? _politics;
 	private CEspionageView? _espionage;
 	private CStrategicEffectsView? _strategicEffects;
+	private CProvinceView? _provinceView;
 	private CEventWindows? _events;
 	private CDeployMenu? _deployMenu;
 	private CAlerts? _alerts;
@@ -59,6 +60,7 @@ public partial class CSession : Node
 	private COrdersWindow? _orders;
 	private CCombatWindow? _combat;
 	private Label _provinceLabel = null!;
+	private Debug.CDebugMenu? _debugMenu;
 	private int _shownProvince;
 	private bool _unitsMoved;
 	private bool _hourPassed;
@@ -186,6 +188,15 @@ public partial class CSession : Node
 				: province => Interface.Map.CDeploymentColours.Of(State, Player, deployment.Building, province));
 			_mapView.PlaceBuilding = province => _deployMenu.PlaceBuilding(province);
 
+			// The province view, up while provinces are selected and about the last chosen; a click that places
+			// something selects nothing for it (provinceview.md, section 1).
+			_provinceView = new CProvinceView();
+			_provinceView.Setup(gui, _simulation, Player);
+			layer.AddChild(_provinceView);
+			_mapView.ProvinceSelected += ShowProvinceView;
+			_provinceView.CloseRequested += () => _mapView.ClearSelection();
+			_provinceView.FlagPressed += FlagPressed;
+
 			_alerts = new CAlerts();
 			_alerts.Setup(gui, Player);
 			layer.AddChild(_alerts);
@@ -312,6 +323,13 @@ public partial class CSession : Node
 		_provinceLabel.AddThemeConstantOverride("outline_size", 6);
 		layer.AddChild(_provinceLabel);
 
+		// The developer switches, on Shift and 4. The readout of the selected province, scaffolding with the supply and
+		// the country's figures nothing else shows, is one of them and starts put away: the province view is up.
+		_provinceLabel.Visible = false;
+		_debugMenu = new Debug.CDebugMenu();
+		layer.AddChild(_debugMenu);
+		_debugMenu.AddSwitch("Province readout", false, on => _provinceLabel.Visible = on);
+
 		// Every tooltip, over everything else.
 		var tooltips = new CTooltips();
 		tooltips.Setup(gui);
@@ -343,6 +361,46 @@ public partial class CSession : Node
 	/// screen at a time: the one that was up comes down. That the original does the
 	/// same was not read; it is how the game is remembered.
 	/// </summary>
+	/// <summary>
+	/// The province view on the province the map shows, with every province selected; hidden with none, and left as it
+	/// was by a click that places something. A province nobody simulates opens nothing (provinceview.md, section 1).
+	/// </summary>
+	private void ShowProvinceView(int provinceId)
+	{
+		if (_provinceView is null || _mapView.IsPlacing)
+		{
+			return;
+		}
+		if (provinceId <= 0)
+		{
+			_provinceView.Hide();
+			return;
+		}
+		var selected = new List<CProvince>();
+		foreach (int id in _mapView.SelectedProvinces)
+		{
+			selected.Add(State.Province(id));
+		}
+		_provinceView.Show(State.Province(provinceId), selected);
+	}
+
+	/// <summary>
+	/// A flag in the province view: the owner's opens the diplomacy screen; the occupier's first selects its capital,
+	/// which moves the view there (provinceview.md, section 2).
+	/// </summary>
+	private void FlagPressed(CCountryTag country, bool occupier)
+	{
+		if (occupier && State.Country(country) is { Capital: > 0 } holder)
+		{
+			_mapView.SelectUnit(null);
+			_mapView.Select(holder.Capital);
+		}
+		if (_diplomacy is { IsOpen: false })
+		{
+			Toggle(_diplomacy);
+		}
+	}
+
 	private void Toggle(CCountryView? view)
 	{
 		if (view is null)
@@ -656,6 +714,11 @@ public partial class CSession : Node
 	{
 		if (@event is not InputEventKey { Pressed: true, Echo: false } key)
 		{
+			return;
+		}
+		if (Debug.CDebugMenu.IsMenuKey(key))
+		{
+			_debugMenu?.Toggle();
 			return;
 		}
 		switch (key.Keycode)
@@ -1377,14 +1440,16 @@ public partial class CSession : Node
 				await Frames(2);
 				continue;
 			}
-			// kH is not a click either: it presses and lets go of the key of that letter.
-			if (entry.Length == 2 && entry[0] == 'k' && char.IsLetter(entry[1]))
+			// kH is not a click either: it presses and lets go of the key of that letter or digit, and K4 the same with
+			// Shift held - K4 opens the debug menu.
+			if (entry.Length == 2 && entry[0] is 'k' or 'K' && char.IsLetterOrDigit(entry[1]))
 			{
 				Key key = (Key)char.ToUpperInvariant(entry[1]);
+				bool shifted = entry[0] == 'K';
 				await Frames(2);
-				GetViewport().PushInput(new InputEventKey { Keycode = key, PhysicalKeycode = key, Pressed = true }, true);
+				GetViewport().PushInput(new InputEventKey { Keycode = key, PhysicalKeycode = key, ShiftPressed = shifted, Pressed = true }, true);
 				await Frames(1);
-				GetViewport().PushInput(new InputEventKey { Keycode = key, PhysicalKeycode = key, Pressed = false }, true);
+				GetViewport().PushInput(new InputEventKey { Keycode = key, PhysicalKeycode = key, ShiftPressed = shifted, Pressed = false }, true);
 				await Frames(2);
 				continue;
 			}

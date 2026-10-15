@@ -41,6 +41,26 @@ public static class CManpower
 	private static readonly int[] DaysInMonth = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 	/// <summary>
+	/// What a province gives in a year: its manpower and its <c>local_manpower</c>, times one and its
+	/// <c>local_manpower_modifier</c> and its owner's <c>global_manpower_modifier</c> - the owner's law, whoever holds
+	/// it - never below nothing. Also what the province view shows (<c>provinceview.md</c>, section 2).
+	/// </summary>
+	public static CFixedPoint OfProvince(CGameState state, CProvince province)
+	{
+		long manpower = province.Manpower.Raw + province.Modifier[LocalManpower].Raw;
+		long factor = CFixedPoint.Scale + province.Modifier[LocalManpowerModifier].Raw;
+		if (state.Country(province.Owner) is { } owner)
+		{
+			factor += owner.Modifier[GlobalManpowerModifier].Raw;
+		}
+		if (factor < 0)
+		{
+			factor = 0;                                      // a province cannot be made worth less than nothing
+		}
+		return new CFixedPoint(Math.Max(0, manpower * factor / CFixedPoint.Scale));
+	}
+
+	/// <summary>
 	/// What a year brings each country, in thousandths, by tag: what the provinces it
 	/// controls give, each scaled by its own modifier and its owner's laws, plus what
 	/// every country is given, all scaled by the country's technology.
@@ -55,20 +75,7 @@ public static class CManpower
 				continue;
 			}
 
-			long manpower = province.Manpower.Raw + province.Modifier[LocalManpower].Raw;
-
-			// The law that counts is the owner's, whoever holds the province.
-			long factor = CFixedPoint.Scale + province.Modifier[LocalManpowerModifier].Raw;
-			if (state.Country(province.Owner) is { } owner)
-			{
-				factor += owner.Modifier[GlobalManpowerModifier].Raw;
-			}
-			if (factor < 0)
-			{
-				factor = 0;                                  // a province cannot be made worth less than nothing
-			}
-
-			long contribution = manpower * factor / CFixedPoint.Scale;
+			long contribution = OfProvince(state, province).Raw;
 			if (contribution <= 0)
 			{
 				continue;

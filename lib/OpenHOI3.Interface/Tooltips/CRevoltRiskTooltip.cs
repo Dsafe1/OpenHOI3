@@ -11,8 +11,8 @@ using OpenHOI3.Sim.Revolts;
 namespace OpenHOI3.Interface.Tooltips;
 
 /// <summary>
-/// What the province view says of revolt risk: the figure and its tooltip. The province view is not built, so nothing
-/// shows them yet. See <c>docs/mechanics/revolt.md</c>, section 7.
+/// What the province view says of revolt risk: the figure and its tooltip. See <c>docs/mechanics/revolt.md</c>, section
+/// 7, and <c>docs/mechanics/provinceview.md</c>, section 2.
 /// </summary>
 public static class CRevoltRiskTooltip
 {

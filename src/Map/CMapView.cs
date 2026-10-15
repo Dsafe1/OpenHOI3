@@ -93,6 +93,8 @@ public partial class CMapView : Node2D
 	private ImageTexture _paletteTexture = null!;
 	private Image _stripeImage = null!;
 	private ImageTexture _stripeTexture = null!;
+	private Image _selectionImage = null!;
+	private ImageTexture _selectionTexture = null!;
 	private CTextureManager? _textures;
 	private Camera2D _camera = null!;
 
@@ -128,6 +130,17 @@ public partial class CMapView : Node2D
 	public CUnitCounters? Counters => _counters;
 
 	public int SelectedProvince => _selected;
+
+	/// <summary>
+	/// Every province selected, in the order selected - one, or more added with Shift. The province view shows the last
+	/// added, or after one is taken out the first left (<c>docs/mechanics/provinceview.md</c>, section 1).
+	/// </summary>
+	public IReadOnlyList<int> SelectedProvinces => _selection;
+
+	/// <summary>Whether a click on the map is placing a unit or a building, which selects nothing for the province view.</summary>
+	public bool IsPlacing => _places is not null || _deployment is not null;
+
+	private readonly List<int> _selection = new();
 
 	/// <summary>The province under the mouse, or 0.</summary>
 	public int HoveredProvince => _hovered;
@@ -230,6 +243,10 @@ public partial class CMapView : Node2D
 		_stripeImage = Image.CreateEmpty(PaletteWidth, rows, false, Image.Format.Rgba8);
 		_stripeTexture = ImageTexture.CreateFromImage(_stripeImage);
 		_material.SetShaderParameter("stripe_palette", _stripeTexture);
+		// A texel a province, lit where it is selected: every selected province is outlined (provinceview.md, section 1).
+		_selectionImage = Image.CreateEmpty(PaletteWidth, rows, false, Image.Format.R8);
+		_selectionTexture = ImageTexture.CreateFromImage(_selectionImage);
+		_material.SetShaderParameter("selection", _selectionTexture);
 
 		// The stripes are the original's own picture, and without it nothing is striped.
 		if (_textures?.LoadImage(StripesPath) is { } stripes)
@@ -479,10 +496,52 @@ public partial class CMapView : Node2D
 		SetZoom(zoom ?? _camera.Zoom.X);
 	}
 
+	/// <summary>The province alone selected, or with 0 none.</summary>
 	public void Select(int provinceId)
 	{
+		_selection.Clear();
+		if (provinceId > 0)
+		{
+			_selection.Add(provinceId);
+		}
+		Show(provinceId);
+	}
+
+	/// <summary>
+	/// Shift and a click on a province: a selected one is taken out, the view going to the first left; another is added
+	/// and shown (<c>docs/mechanics/provinceview.md</c>, section 1).
+	/// </summary>
+	public void ToggleSelected(int provinceId)
+	{
+		if (_selection.Remove(provinceId))
+		{
+			Show(_selection.Count > 0 ? _selection[0] : 0);
+			return;
+		}
+		_selection.Add(provinceId);
+		Show(provinceId);
+	}
+
+	/// <summary>Lets go of everything selected, units and provinces - Escape, or the province view's close button.</summary>
+	public void ClearSelection()
+	{
+		SelectUnit(null);
+		Select(0);
+	}
+
+	/// <summary>
+	/// The province view goes to the province; every selected province is lit on the map, as the original lights each
+	/// of several (provinceview.md, section 1).
+	/// </summary>
+	private void Show(int provinceId)
+	{
 		_selected = provinceId;
-		_material.SetShaderParameter("selected_province", provinceId);
+		_selectionImage.Fill(Colors.Black);
+		foreach (int province in _selection)
+		{
+			_selectionImage.SetPixel(province % PaletteWidth, province / PaletteWidth, Colors.White);
+		}
+		_selectionTexture.Update(_selectionImage);
 		EmitSignal(SignalName.ProvinceSelected, provinceId);
 	}
 
@@ -581,15 +640,42 @@ public partial class CMapView : Node2D
 				{
 					unit = CMapBuildings.Next(_state, player, building.Province, building.Kind, _counters.Selected);
 				}
-				SelectUnit(unit);
-				if (unit is null)
+				if (unit is not null)
 				{
-					// A second click on the selected province lets it go - ours, so that the
-					// readout can be put away - but not while a unit is being placed, when
-					// each click on one province places the next.
-					int province = ProvinceAtScreen(click.Position);
-					Select(_places is null && province == _selected ? 0 : province);
+					// A unit selected lets the provinces go, and the province view with them.
+					SelectUnit(unit);
+					Select(0);
+					break;
 				}
+				int province = ProvinceAtScreen(click.Position);
+				if (_places is not null)
+				{
+					// While a unit is being placed each click on a province places the next.
+					SelectUnit(null);
+					Select(province);
+					break;
+				}
+				bool sea = province > 0 && province < _state.Provinces.Count && _state.Province(province).IsSea;
+				if (click.ShiftPressed)
+				{
+					// Only provinces join provinces: with a unit selected, nothing; a sea zone lets everything go
+					// (provinceview.md, section 1).
+					if (_counters?.Selected is not null)
+					{
+						break;
+					}
+					if (sea || province <= 0)
+					{
+						ClearSelection();
+					}
+					else
+					{
+						ToggleSelected(province);
+					}
+					break;
+				}
+				SelectUnit(null);
+				Select(sea ? 0 : province);
 				break;
 			case InputEventMouseMotion motion when _dragging:
 				_dragged += motion.Relative.Length();
@@ -598,6 +684,12 @@ public partial class CMapView : Node2D
 				break;
 			case InputEventMouseMotion motion:
 				UpdateHover(motion.Position);
+				break;
+			case InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape }
+				when _selection.Count > 0 || _counters?.Selected is not null:
+				// Escape with anything selected lets it all go (provinceview.md, section 1).
+				ClearSelection();
+				GetViewport().SetInputAsHandled();
 				break;
 			case InputEventKey { Pressed: true, Echo: false, Keycode: Key.Tab }:
 				Mode = _mode switch

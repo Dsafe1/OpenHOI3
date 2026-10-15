@@ -31,7 +31,7 @@ public static class CAnnexation
 		state.RaisePactMessage(new CPactMessage("ANNEX", "ANNEX", "ANNEX", annexer.Tag, annexed.Tag));
 		if (COfferRules.RealFaction(annexed))
 		{
-			CFactionMembership.Leave(annexed);
+			CFactionMembership.Leave(state, annexed);
 		}
 		foreach (CProvince province in state.Provinces)
 		{

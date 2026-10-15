@@ -53,6 +53,20 @@ public partial class CGuiButton : CGuiObject
 	public void ClearShortcut()
 	{
 		_shortcut = Key.None;
+		ShortcutText = "";
+	}
+
+	/// <summary>The shortcut as its tooltip writes it: the file's, or what a screen gave it.</summary>
+	public string ShortcutText { get; private set; } = "";
+
+	/// <summary>
+	/// Gives the button a shortcut its screen works out - a province view's building row takes a letter of its name
+	/// (<c>docs/mechanics/provinceview.md</c>, section 4).
+	/// </summary>
+	public void SetShortcut(string text)
+	{
+		_shortcut = ParseShortcut(text);
+		ShortcutText = text;
 	}
 
 	/// <summary>Declared with <c>checkboxType</c>: a click ticks it or clears it.</summary>
@@ -87,6 +101,9 @@ public partial class CGuiButton : CGuiObject
 		}
 		_sprite = sprite;
 		_texture = texture;
+		// A button is the size of its picture, as it is when made: the province view's building rows swap a large
+		// default for small icons (provinceview.md, section 4).
+		Place(GuiType, FrameSize(texture, sprite.FrameCount));
 		ShowFrame();
 		return true;
 	}
@@ -107,6 +124,7 @@ public partial class CGuiButton : CGuiObject
 		Place(type, size);
 		MouseFilter = MouseFilterEnum.Stop;
 		_shortcut = ParseShortcut(type.Shortcut);
+		ShortcutText = type.Shortcut;
 
 		_rect = new TextureRect
 		{

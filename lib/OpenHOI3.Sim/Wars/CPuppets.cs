@@ -44,7 +44,7 @@ public static class CPuppets
 		}
 		if (COfferRules.RealFaction(vassal))
 		{
-			CFactionMembership.Leave(vassal);
+			CFactionMembership.Leave(state, vassal);
 		}
 		foreach (CWar war in state.Wars.ToArray())
 		{

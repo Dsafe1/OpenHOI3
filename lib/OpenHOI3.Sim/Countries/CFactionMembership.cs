@@ -14,11 +14,15 @@ public static class CFactionMembership
 		country.FactionSeat = ++state.LastFactionSeat;
 	}
 
-	/// <summary>The country leaves its faction.</summary>
-	public static void Leave(CCountry country)
+	/// <summary>
+	/// The country leaves its faction, and every allied objective it asked or was asked goes with it
+	/// (<c>provinceview.md</c>, section 6).
+	/// </summary>
+	public static void Leave(CGameState state, CCountry country)
 	{
 		country.Faction = "";
 		country.FactionSeat = 0;
+		state.AlliedObjectives.Clear(country.Tag);
 	}
 
 	/// <summary>The member is put at the front of its faction, and so leads it.</summary>

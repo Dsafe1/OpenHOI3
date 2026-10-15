@@ -85,6 +85,7 @@ public static class CBuildingReader
 				OnCompletion = block.Get("on_completion")?.Value ?? "",
 				CompletionSize = Number(block, "completion_size"),
 				IsPort = block.GetBool("port"),
+				ShowForProvince = block.GetBool("show_for_province", fallback: true),
 			});
 			lists.Add((Names(block, "prerequisites"), Names(block, "not_if_x_exists")));
 		}

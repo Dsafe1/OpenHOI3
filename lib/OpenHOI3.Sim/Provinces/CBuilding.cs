@@ -68,6 +68,12 @@ public sealed class CBuilding
 	/// <summary><c>port</c>: it may go only in a province with a port.</summary>
 	public bool IsPort { get; init; }
 
+	/// <summary>
+	/// <c>show_for_province</c>: it has a row in the province view. Yes unless its file says no, as only the underground's
+	/// does (<c>docs/mechanics/provinceview.md</c>, section 4).
+	/// </summary>
+	public bool ShowForProvince { get; init; } = true;
+
 	/// <summary><c>prerequisites</c>, resolved: buildings a province must have before it may take this one.</summary>
 	public List<CBuilding> Prerequisites { get; } = new();
 

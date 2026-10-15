@@ -126,7 +126,7 @@ brigades' strength - and steps every province once.
 
 ## 7. What the player is shown
 
-**The province view** - not built here, so nothing shows these two yet; they are written for it:
+**The province view** (`provinceview.md`, section 2):
 
 - `text_partisans`, beside `partisans_icon` (`PV_RR` "Revolt Risk"): what is shown, to one place, cut, and a percent
   sign - `§Y1.5%`, yellow only above nought - **only where the player knows the province at 9**; below, "?".

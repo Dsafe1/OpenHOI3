@@ -74,7 +74,7 @@ public static class CFactions
 	{
 		if (country.Faction.Length > 0 && country.Faction != faction)
 		{
-			CFactionMembership.Leave(country);
+			CFactionMembership.Leave(state, country);
 		}
 		if (faction.Length == 0 || country.Faction == faction)
 		{
@@ -137,7 +137,7 @@ public static class CFactions
 				}
 			}
 		}
-		CFactionMembership.Leave(country);
+		CFactionMembership.Leave(state, country);
 		Politics.CLaws.OnDiplomacyChanged(state, country);
 	}
 }

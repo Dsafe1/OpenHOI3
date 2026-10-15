@@ -121,7 +121,7 @@ silently, and the 1.0 is lost.
 | spawn an underground | it may spread | it spreads, **at once** |
 | Organized Revolt | the country is in exile | partisans from each ready one of its own land |
 
-The province view gives the first three, and is not built.
+The province view gives the first three (`provinceview.md`, section 5).
 
 **Organized Revolt** - the politics screen's `revolt`, "Organized Revolt!", shown only for a government in exile - may
 be pressed where one of its undergrounds in a province it **owns** is **strictly above** `SPAWN_PARTISAN_LIMIT`.
@@ -186,4 +186,3 @@ have spread: its two Polish neighbours have undergrounds.
   for anyone else's).
 - `CCountry::GetRandomUnderGroundTarget`, which the AI's production minister builds them with.
 - The AI's management of its undergrounds, which asks a unit's power and an unread test of an area.
-- The province view's window, with its bar, its two buttons, its mission and their tooltips (section 6).

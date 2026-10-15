@@ -185,7 +185,7 @@ public static class CExile
 		{
 			if (country.InExile && COfferRules.RealFaction(country) && COfferRules.Leader(state, country.Faction) == country.Tag)
 			{
-				CFactionMembership.Leave(country);
+				CFactionMembership.Leave(state, country);
 				Leave(state, country);
 			}
 		}
