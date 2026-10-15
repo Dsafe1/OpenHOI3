@@ -311,6 +311,20 @@ public sealed class CProvince
 	/// <summary>The suppression in and around it, worked out once a day (<c>docs/mechanics/revolt.md</c>, section 2).</summary>
 	public CFixedPoint Suppression { get; set; }
 
+	/// <summary>
+	/// The last day the rebels took it with a capture's consequences, as its history keeps it - what a faction's
+	/// independence counts from - or none (<c>docs/mechanics/rebels.md</c>, section 12).
+	/// </summary>
+	public CDate? RebelsTook { get; set; }
+
+	/// <summary>
+	/// The rebel type and size its history's <c>revolt</c> gives it, carried out as a new game is entered; none
+	/// (<c>docs/mechanics/rebels.md</c>, section 8).
+	/// </summary>
+	public string? RevoltType { get; set; }
+
+	public int RevoltSize { get; set; }
+
 	/// <summary>Ids of the provinces this one touches, ascending. Filled from the map.</summary>
 	public IReadOnlyList<int> Neighbours { get; set; } = System.Array.Empty<int>();
 

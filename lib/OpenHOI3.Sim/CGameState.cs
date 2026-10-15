@@ -401,6 +401,15 @@ public sealed class CGameState
 	/// </summary>
 	public IReadOnlyList<Occupation.COccupationPolicy> OccupationPolicies { get; set; } = Occupation.COccupationPolicies.WithNull();
 
+	/// <summary>The rebel types of <c>common/rebel_types.txt</c>, in its order (<c>rebels.md</c>, section 2).</summary>
+	public IReadOnlyList<Revolts.CRebelType> RebelTypes { get; set; } = Array.Empty<Revolts.CRebelType>();
+
+	/// <summary>The rebel factions, in the order they were made (<c>rebels.md</c>, section 6).</summary>
+	public List<Revolts.CRebelFaction> RebelFactions { get; } = new();
+
+	/// <summary>The last number given to a rebel faction; the next takes the one after it.</summary>
+	public int LastRebelId { get; set; }
+
 	/// <summary>The law group of that name, or null.</summary>
 	public CLawGroup? LawGroup(string name)
 	{

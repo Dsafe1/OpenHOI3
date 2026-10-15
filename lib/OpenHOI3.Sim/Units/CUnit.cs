@@ -24,7 +24,8 @@ public sealed class CUnit
 
 	public EUnitKind Kind { get; }
 
-	public CCountryTag Owner { get; }
+	/// <summary>Whose it is. Only a rebel army that wins its independence changes hands (<c>rebels.md</c>, section 12).</summary>
+	public CCountryTag Owner { get; set; }
 
 	public string Name { get; set; } = "";
 

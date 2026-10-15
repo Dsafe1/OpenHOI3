@@ -37,7 +37,7 @@ public static class CRevoltRiskTooltip
 	/// - that it cannot be told; otherwise the partisan support where the holder is at war with the owner and the
 	/// accumulator is above nought, the holder's sources of <c>global_revolt_risk</c> (the owner's where the rebels hold
 	/// it), the province's of <c>local_revolt_risk</c>, the suppression where there is any, and the minimum, always.
-	/// The likely rebels come first in the original, and wait for the rebel types.
+	/// Before them all, the rebel type the province would choose, where it would choose one (<c>rebels.md</c>, section 13).
 	/// </summary>
 	public static string Text(Func<string, string> localise, CGameState state, CProvince province, CCountryTag player)
 	{
@@ -46,8 +46,13 @@ public static class CRevoltRiskTooltip
 			return localise("CANT_SEE_UNDER_FOW");
 		}
 		var text = new StringBuilder();
+		if (Sim.Revolts.CRebelChoice.TypeFor(state, province) is { } likely)
+		{
+			text.Append(localise("LIKELY_REBELS")).Append(": §Y").Append(localise(likely.Name + "_title")).Append("§W\n");
+		}
+		// The holder an enemy of the owner: at war, or either the rebels.
 		if (province.RevoltRisk.Raw > 0 && province.Owner is { } owner && province.Controller is { } holder
-			&& CCountryLists.AtWar(state, holder, owner))
+			&& Sim.Movement.CMovementRules.IsEnemy(state, holder, owner))
 		{
 			text.Append(localise("PARTISAN_SUPPORT")).Append(": §R+").Append(CNumberText.Format(province.RevoltRisk, 2)).Append("§W\n");
 		}

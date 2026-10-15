@@ -39,8 +39,8 @@ public static class CGovernmentReader
 	}
 
 	/// <summary>
-	/// The governments, by name: an ideology or a post said <c>yes</c> to is accepted or elected, <c>election</c>
-	/// and <c>duration</c> are its own, and every other key with a number is its modifier.
+	/// The governments, by name: an ideology or a post said <c>yes</c> to is accepted or elected, <c>election</c>,
+	/// <c>duration</c> and <c>valid_for_new_country</c> are its own, and every other key with a number is its modifier.
 	/// </summary>
 	public static Dictionary<string, CGovernment> Read(CDirectorySettings directories, IEnumerable<string> ideologies,
 		IEnumerable<CGovernmentPosition> positions, Action<string>? warn = null)
@@ -57,7 +57,7 @@ public static class CGovernmentReader
 		{
 			positionNames.Add(position.Name);
 		}
-		var ownKeys = new HashSet<string>(ideologyNames, StringComparer.OrdinalIgnoreCase) { "election", "duration" };
+		var ownKeys = new HashSet<string>(ideologyNames, StringComparer.OrdinalIgnoreCase) { "election", "duration", "valid_for_new_country" };
 		ownKeys.UnionWith(positionNames);
 
 		int unreadable = 0;
@@ -93,6 +93,10 @@ public static class CGovernmentReader
 				else if (entry.Key.Equals("election", StringComparison.OrdinalIgnoreCase))
 				{
 					government.HasElections = yes;
+				}
+				else if (entry.Key.Equals("valid_for_new_country", StringComparison.OrdinalIgnoreCase))
+				{
+					government.ValidForNewCountry = yes;
 				}
 				else if (entry.Key.Equals("duration", StringComparison.OrdinalIgnoreCase))
 				{

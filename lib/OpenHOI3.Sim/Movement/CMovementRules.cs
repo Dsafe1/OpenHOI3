@@ -43,12 +43,17 @@ public static class CMovementRules
 		return unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air;
 	}
 
-	/// <summary>Whether two countries are fighting each other in some war.</summary>
+	/// <summary>Whether two countries are fighting each other in some war, or one of them is the rebels.</summary>
 	public static bool IsEnemy(CGameState state, CCountryTag? a, CCountryTag? b)
 	{
 		if (a is not { } first || b is not { } second || first == second)
 		{
 			return false;
+		}
+		// The rebels are at war with everybody, and everybody with them, with no war between them (rebels.md, section 13).
+		if (first.Value == Revolts.CRebelFactions.Rebels || second.Value == Revolts.CRebelFactions.Rebels)
+		{
+			return true;
 		}
 		foreach (CWar war in state.Wars)
 		{

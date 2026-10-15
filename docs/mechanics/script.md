@@ -286,6 +286,10 @@ on_action whose ids are no event**: every id of `on_battle_won`, `_lost`, the na
 and the rest with empty files, so those on_actions find nothing in it, as in the original. Eleven in
 all.
 
+And since the rebel types are read (2026-10-15, `rebels.md`, section 2), **two unknown keys**:
+`common/rebel_types.txt` lines 124 and 201, `unit_transfer = yes` in `nationalist_rebels` and
+`patriot_rebels` - a key the original's loader does not name and drops. **Thirteen in all.**
+
 What the reading made of them, as a control on the zero: of the conditions, 21 ideologies, 16
 regions, 6 government positions, 2 buildings, 2 law groups and 1 technology, each the count a
 survey of the files' keys gives; 242 scopes; and of the effects, 508 scopes, 228 regions, 106

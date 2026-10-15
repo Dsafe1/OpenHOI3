@@ -74,10 +74,16 @@ public static class CCombats
 	/// </summary>
 	public static bool HasEnemyStanding(CGameState state, CUnit unit, int province)
 	{
+		return HasEnemyStanding(state, unit, province, unit.Owner);
+	}
+
+	/// <summary>The same, of the country a unit would take the province for (<c>rebels.md</c>, section 10).</summary>
+	public static bool HasEnemyStanding(CGameState state, CUnit unit, int province, CCountryTag taker)
+	{
 		foreach (CUnit other in state.UnitsIn(province))
 		{
-			if (other != unit && CMovementRules.IsLandUnit(other) && !other.IsRetreating && !other.IsRemoved
-				&& CMovementRules.IsEnemy(state, other.Owner, unit.Owner))
+			if (other != unit && other.Owner != unit.Owner && CMovementRules.IsLandUnit(other) && !other.IsRetreating
+				&& !other.IsRemoved && CMovementRules.IsEnemy(state, other.Owner, taker))
 			{
 				return true;
 			}
@@ -118,12 +124,70 @@ public static class CCombats
 			Start(state, province, unit);
 		}
 
-		if (unit.IsFighting || unit.IsRetreating || province.IsSea || province.Owner is null
-			|| unit.Location != provinceId || HasEnemyStanding(state, unit, provinceId))
+		if (unit.IsFighting || unit.IsRetreating || province.IsSea || province.Owner is null || unit.Location != provinceId)
 		{
 			return;
 		}
-		CProvinceControl.Take(state, province, unit.Owner);
+		CCountryTag taker = Taker(state, unit, province);
+		if (HasEnemyStanding(state, unit, provinceId, taker))
+		{
+			return;
+		}
+		CCountryTag? old = province.Controller;
+		if (CProvinceControl.Take(state, province, taker))
+		{
+			TellLost(state, province, old);
+		}
+	}
+
+	/// <summary>
+	/// Who a unit takes a province for: its owner - and for a rebel army with a faction, the country the faction would
+	/// free where its type frees nobody and that country owns land, then the province's holder where the faction counts
+	/// it a friend, then its owner where it does - last, so it wins. See <c>docs/mechanics/rebels.md</c>, section 10.
+	/// </summary>
+	public static CCountryTag Taker(CGameState state, CUnit unit, CProvince province)
+	{
+		CCountryTag taker = unit.Owner;
+		if (!Revolts.CRebelFactions.IsRebels(unit.Owner) || Revolts.CRebelFactions.OfArmy(state, unit) is not { } faction)
+		{
+			return taker;
+		}
+		if (!faction.Type.Independence && faction.Independence is { } freed && CCountryLists.OwnedCount(state, freed) > 0)
+		{
+			taker = freed;
+		}
+		if (province.Controller is { } holder && Revolts.CRebelFactions.IsFriendly(state, faction, holder))
+		{
+			taker = holder;
+		}
+		if (province.Owner is { } owner && Revolts.CRebelFactions.IsFriendly(state, faction, owner))
+		{
+			taker = owner;
+		}
+		return taker;
+	}
+
+	/// <summary>
+	/// <c>PROVINCELOST</c> to the country that held a province a capture has just taken from it: the province, and the
+	/// new holder's name - the faction's where the rebels hold it.
+	/// </summary>
+	private static void TellLost(CGameState state, CProvince province, CCountryTag? old)
+	{
+		if (old is not { } lost || province.Controller is not { } now || now == lost)
+		{
+			return;
+		}
+		string name = state.Country(now)?.Name ?? now.Value;
+		if (Revolts.CRebelFactions.IsRebels(now) && Revolts.CRebelFactions.Holding(state, province.Id) is { } faction)
+		{
+			name = faction.Name;
+		}
+		state.RaisePactMessage(new Agreements.CPactMessage("PROVINCELOST", "", "", now, lost)
+		{
+			Told = lost,
+			Messenger = "MESSAGE_HEAD_MARS",
+			Values = new[] { ("PROV", province.Name), ("COUNTRY", name) },
+		});
 	}
 
 	/// <summary>

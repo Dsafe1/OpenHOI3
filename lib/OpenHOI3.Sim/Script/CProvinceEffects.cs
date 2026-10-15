@@ -31,6 +31,13 @@ public static class CProvinceEffects
 				// Added to the accumulator, never below nought (revolt.md, section 5).
 				Revolts.CRevoltRisk.Add(here, value);
 				return true;
+			case "create_revolt":
+				// The province's manpower times N brigades of the type it chooses, in a real area (rebels.md, section 8).
+				if (Revolts.CRebelFactions.AreaOf(state, here.Id) is not null)
+				{
+					Revolts.CRisings.Rise(state, here, Revolts.CRebelChoice.TypeFor(state, here), Revolts.CRisings.Brigades(here, value));
+				}
+				return true;
 			case "strategic_resource":
 				// Ours: a resource nobody has does nothing, where the original faults.
 				if (argument.IsWord("none"))
@@ -72,10 +79,10 @@ public static class CProvinceEffects
 	{
 		CScriptArgument argument = effect.Argument;
 		int province = argument.Province != 0 ? argument.Province : argument.IsFrom ? scope.FromProvince : scope.Province;
-		// REB is the scope's rebel faction's country, and with rebel factions not built it is the
-		// rebels' tag itself, the original's last answer.
+		// REB is the scope's rebel faction's country, and with no faction in the scope the rebels' tag
+		// itself, the original's last answer (rebels.md, section 10).
 		CCountryTag? country = argument.IsThis ? CConditions.ThisByOwner(state, scope)
-			: !argument.Quoted && argument.Text == Rebels ? new CCountryTag(Rebels)
+			: !argument.Quoted && argument.Text == Rebels ? Revolts.CRebelFactions.Meant(scope)
 			: argument.Province == 0 && !argument.IsFrom ? CEventScope.Known(argument.Tag)
 			: scope.Country;
 		if (country is not { } core)
@@ -100,9 +107,10 @@ public static class CProvinceEffects
 	private static void Secede(CGameState state, CEffect effect, CEventScope scope, CProvince here)
 	{
 		CScriptArgument argument = effect.Argument;
-		// The rebels' country is the scope's rebel faction's, which is not built.
+		// The rebels' country is the scope's rebel faction's (rebels.md, section 10); with none in the scope, nobody.
 		CCountryTag? to = argument.IsThis ? CConditions.ThisByOwner(state, scope)
 			: argument.IsFrom ? scope.FromCountry
+			: !argument.Quoted && argument.Text == Rebels && scope.RebelFaction is not null ? Revolts.CRebelFactions.Meant(scope)
 			: CEventScope.Known(argument.Tag);
 		if (to is not { } receiver || receiver.Value == Rebels)
 		{

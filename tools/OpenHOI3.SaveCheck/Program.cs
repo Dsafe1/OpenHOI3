@@ -54,6 +54,12 @@ if (args.Length > 0 && args[0] == "revolt")
 	return CRevoltCheck.Run(args);
 }
 
+// Rebels on a new game: risings made by hand, their factions' days, and what the roll makes.
+if (args.Length > 0 && args[0] == "rebels")
+{
+	return CRebelsTrial.Run(args);
+}
+
 // The supply network is checked against what a save says of it.
 if (args.Length > 0 && args[0] == "supply")
 {

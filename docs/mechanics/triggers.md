@@ -210,7 +210,7 @@ having one.
 | `has_strategic_resource` | here has a strategic resource | the value is not read |
 | `owned_by = X` | here's owner is X. **`owned_by = owner` is a tag no country has** and holds only where there is no owner | **false** |
 | `controlled_by = X` | here's controller is X; **`controlled_by = owner`: here is not occupied** | **false** |
-| `is_core = X` | here is a core of X; **`is_core = N` asks whether province N is a core of us** | false; a province with no cores is false |
+| `is_core = X` | here is a core of X; **`is_core = N` asks whether province N is a core of us**; `REB` is the country the scope's rebel faction would free (`rebels.md`, section 10) | false; a province with no cores is false |
 | `units_in_province = N` | how many units stand here, anyone's | **honoured, and it changes the question**: with `this` (by owner) or `from` it asks whether that country has a unit here, and N is not read |
 | `country_units_in_province = X` | a unit of X stands here | by owner |
 | `has_empty_adjacent_province` | a neighbour of here has no owner - so any province beside the sea | the value is not read; false |

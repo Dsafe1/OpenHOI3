@@ -64,6 +64,22 @@ public static class CWarEffects
 					}
 				}
 				return true;
+			case "release":
+				// TAG is given every one of its cores the scope's country owns, and need not exist; none, nothing
+				// (rebels.md, section 8).
+				if (scope.Country is { } giver && Inline(state, effect, scope) is { } freed)
+				{
+					var cores = new System.Collections.Generic.List<Provinces.CProvince>();
+					foreach (Provinces.CProvince province in state.Provinces)
+					{
+						if (province.Owner == giver && province.Cores.Contains(freed))
+						{
+							cores.Add(province);
+						}
+					}
+					CRelease.Release(state, cores, freed);
+				}
+				return true;
 			case "create_vassal":
 				// TAG becomes the scope's puppet, unless it is already or owns nothing.
 				if (state.Country(scope.Country) is { } overlord && state.Country(CEffects.Target(state, effect, scope)) is { } vassal

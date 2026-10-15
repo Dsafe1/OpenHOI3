@@ -11,5 +11,8 @@ public sealed record CWarName(string Key, string First, string Second, int Order
 	/// <summary>A declaration's key, <c>$ORDER$War of $FIRST$ Aggression</c>.</summary>
 	public const string Aggression = "AGRESSION_WAR_NAME";
 
+	/// <summary>A revolution's key, <c>$ORDER$$FIRST$-$SECOND$ War</c> (<c>rebels.md</c>, section 12).</summary>
+	public const string Normal = "NORMAL_WAR_NAME";
+
 	public override string ToString() => $"{Key}({Order}, {First}, {Second})";
 }

@@ -136,6 +136,12 @@ what the original's removal does then was not read.
 | `remove_core = X` | the same, taken away | nothing where the core is not there |
 | `change_controller = X` | X controls the province | nothing where X already does, or **where the province has no owner** |
 | `secede_province = X` | X owns and controls the province | where the scope's country controls it and X owns it, it goes back to X; then, where the scope's country owns it, it goes to X. Anything else: nothing |
+| `revolt_risk = N` | the province's revolt risk | += N, never below nought (`revolt.md`, section 5) |
+| `<rebel type> = N`, `create_revolt = N` | a rising | of the province's manpower times N brigades; the second of the type it chooses, in a real area only (`rebels.md`, section 8) |
+
+`REB` in `add_core`, `remove_core` and `secede_province` - and in `is_core` - is the country the scope's rebel faction
+would free, none for a type that defects; only a rebels' siege has a faction in its scope, and elsewhere `REB` is the
+rebels' tag itself (`rebels.md`, section 10).
 
 None but the building asks whether there is a province: in a country's scope the others change
 province 0, the map's empty entry, as the original does - which has no owner, so a change of owner or
@@ -186,9 +192,8 @@ never reads from the file (`espionage.md`, section 13).
 | waits for | effects |
 | --- | --- |
 | the event pass | `country_event`, `province_event` |
-| diplomacy | `casus_belli`, `add_casus_belli`, `war`, `undeclared_war`, `add_wargoal`, `create_vassal`, `release`, `release_vassal`, `inherit`, `surrender_inherit`, `form_government_in_exile`, `split_troops` |
+| diplomacy | `casus_belli`, `add_casus_belli`, `war`, `undeclared_war`, `add_wargoal`, `create_vassal`, `release_vassal`, `inherit`, `surrender_inherit`, `form_government_in_exile`, `split_troops` - `release` is built since 2026-10-15 (`rebels.md`, section 8) |
 | neutrality and war exhaustion | `neutrality`, `war_exhaustion` |
-| revolts | `create_revolt`, a rebel type's name - `revolt_risk` is built since 2026-10-15 (`revolt.md`, section 5) |
 | the fog of war's switch | `remove_fow` |
 | the AI | `add_ai_strategy`, `fixed_ai_strategy` |
 | units an event gives or takes | `load_oob`, `add_division`, a unit type's name, `remove_brigade` |

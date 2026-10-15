@@ -138,6 +138,7 @@ public static class CTick
 		Step(state, CProduction.RunDaily);
 		Step(state, CLeadership.RunDaily);                        // spies placed with the espionage share,
 		Step(state, Espionage.CSpyMissions.RunDaily);             // and at work after the alignment's step (espionage.md, 5)
+		Step(state, Revolts.CRevoltRoll.RunDaily);                // then the roll for a rising, before the elections (rebels.md, 3)
 		Step(state, Politics.CElections.RunDaily);               // an election where one is due, then the seats
 		Step(state, Politics.CCabinet.RunDaily);                 // where the ruling party holds none (politics.md, 4-5)
 		Step(state, Wars.CSurrender.RunDaily);                    // late in a country's day: the surrender,
@@ -146,6 +147,7 @@ public static class CTick
 		// Each province's own day, after every country's: what was bombed comes back, the suppression, the revolt risk's
 		// step and land at peace back to its owner, a province at a time; and then the pool is held.
 		Step(state, CProvinceDay.RunDaily);
+		Step(state, Revolts.CRebelFactionDay.RunDaily);           // each rebel faction's day, right after the provinces' (rebels.md, 9)
 		Step(state, CStockpile.HoldWithinBounds);
 		// Events, after the provinces' day; none while a game is still being made (ours: whether the
 		// original asks them in a new game's first days was not read).
@@ -172,9 +174,11 @@ public static class CTick
 		state.IsBeingMade = true;
 		RunEntryPass(state);
 		// As the original enters a new game, before its first day: every province with no revolt risk given its
-		// partisan support, and made again (revolt.md, section 3).
+		// partisan support, and made again (revolt.md, section 3); then the revolts the province history gives (rebels.md,
+		// section 8).
 		Revolts.CRevoltRisk.SetAtNewGame(state);
 		CProvinceModifiers.Rebuild(state);
+		Revolts.CRisings.AtNewGame(state);
 		RunDailyPass(state);
 		CSupplyStart.Fill(state);
 		RunDailyPass(state);
@@ -233,6 +237,8 @@ public static class CTick
 		Step(state, CManpower.UpdateMost);
 		Step(state, Espionage.CSpyMissions.ResetCaught);          // the spies caught this month, back to nought
 		Step(state, CEventPass.RebuildCandidates);
+		// Last, each rebel faction's month: its independence (rebels.md, section 12).
+		Step(state, Revolts.CRebelFactionMonth.RunMonthly);
 	}
 
 	/// <summary>Not established for the original.</summary>

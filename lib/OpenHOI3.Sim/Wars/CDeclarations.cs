@@ -233,17 +233,32 @@ public static class CDeclarations
 		return war;
 	}
 
+	/// <summary>
+	/// The war a country rebels freed makes on a country that owned the land it was given (<c>rebels.md</c>, section
+	/// 12): made now, the freed country attacking and the former owner defending, a revolutionary war named by
+	/// <c>NORMAL_WAR_NAME</c>. Nobody is called and nothing else of a declaration is done.
+	/// </summary>
+	public static CWar Revolution(CGameState state, CCountry freed, CCountry former)
+	{
+		var war = new CWar("", state.Date) { IsRevolutionary = true, Action = state.TotalHours };
+		state.Wars.Add(war);
+		CWarSides.Join(state, war, freed.Tag, attacking: true);
+		CWarSides.Join(state, war, former.Tag, attacking: false);
+		Name(state, war, freed, former, CWarName.Normal);
+		return war;
+	}
+
 	/// <summary>The war's name made: the first order of its name no other war on either list has.</summary>
-	private static void Name(CGameState state, CWar war, CCountry actor, CCountry recipient)
+	private static void Name(CGameState state, CWar war, CCountry actor, CCountry recipient, string key = CWarName.Aggression)
 	{
 		string first = state.Country(war.Attackers.Count > 0 ? war.Attackers[0] : actor.Tag)?.Adjective ?? actor.Adjective;
 		string second = state.Country(war.Defenders.Count > 0 ? war.Defenders[0] : recipient.Tag)?.Adjective ?? recipient.Adjective;
 		int order = 1;
-		while (NameTaken(state, war, new CWarName(CWarName.Aggression, first, second, order)))
+		while (NameTaken(state, war, new CWarName(key, first, second, order)))
 		{
 			order++;
 		}
-		war.MadeName = new CWarName(CWarName.Aggression, first, second, order);
+		war.MadeName = new CWarName(key, first, second, order);
 	}
 
 	/// <summary>Whether a war other than this one has the name: its key and first adjective, and for the key that names both, its second.</summary>
@@ -251,19 +266,25 @@ public static class CDeclarations
 	{
 		foreach (CWar other in state.Wars)
 		{
-			if (other != war && other.MadeName is { } made && made.Key == name.Key && made.First == name.First && made.Order == name.Order)
+			if (other != war && other.MadeName is { } made && Same(made, name))
 			{
 				return true;
 			}
 		}
 		foreach (CWar other in state.FinishedWars)
 		{
-			if (other.MadeName is { } made && made.Key == name.Key && made.First == name.First && made.Order == name.Order)
+			if (other.MadeName is { } made && Same(made, name))
 			{
 				return true;
 			}
 		}
 		return false;
+	}
+
+	private static bool Same(CWarName made, CWarName name)
+	{
+		return made.Key == name.Key && made.First == name.First && made.Order == name.Order
+			&& (name.Key != CWarName.Normal || made.Second == name.Second);
 	}
 
 	/// <summary>

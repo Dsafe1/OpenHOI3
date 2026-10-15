@@ -32,6 +32,9 @@ public sealed class CWar
 	/// <summary>A limited war: its declarer's allies are not called and its faction does not join (section 5).</summary>
 	public bool IsLimited { get; set; }
 
+	/// <summary>A war a country freed by rebels makes on its former owner (<c>rebels.md</c>, section 12). Nothing reads it.</summary>
+	public bool IsRevolutionary { get; set; }
+
 	/// <summary>The hour it was last declared into, the original's <c>action</c>.</summary>
 	public long Action { get; set; }
 

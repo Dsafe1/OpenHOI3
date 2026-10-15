@@ -18,7 +18,8 @@ public static class CUnits
 	/// <summary>The modifier a training law sets: the experience of a unit nobody gave one.</summary>
 	public const string UnitStartExperience = "unit_start_experience";
 
-	private static readonly CFixedPoint MostExperience = CFixedPoint.FromInt(100);
+	/// <summary>The most experience a brigade may have.</summary>
+	public static readonly CFixedPoint MostExperience = CFixedPoint.FromInt(100);
 
 	/// <summary>Under this much strength, a brigade that holds no frontage adds nothing to its unit.</summary>
 	private static readonly CFixedPoint LeastStrengthToCount = new(100);

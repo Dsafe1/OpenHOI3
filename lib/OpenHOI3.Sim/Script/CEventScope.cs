@@ -47,6 +47,7 @@ public sealed class CEventScope
 			RandomState = RandomState,
 			Seed = Seed,
 			LookAheadDays = LookAheadDays,
+			RebelFaction = RebelFaction,
 		};
 	}
 
@@ -71,6 +72,23 @@ public sealed class CEventScope
 	/// <summary>The scope the question started in: THIS.</summary>
 	public CEventScope Root { get; }
 
+	/// <summary>
+	/// The rebel faction a rebels' siege is asked with, or none: what <c>REB</c> means to <c>is_core</c>, <c>add_core</c>,
+	/// <c>remove_core</c> and <c>secede_province</c> (<c>rebels.md</c>, section 10). Every copy keeps it.
+	/// </summary>
+	public Revolts.CRebelFaction? RebelFaction { get; private init; }
+
+	/// <summary>A scope a rebels' question starts in: a province, no country, the faction and a state of chance.</summary>
+	public static CEventScope ForRebels(Revolts.CRebelFaction? faction, int province, uint randomState)
+	{
+		return new CEventScope(null, province, null, 0, null)
+		{
+			RandomState = randomState,
+			Seed = randomState,
+			RebelFaction = faction,
+		};
+	}
+
 	/// <summary>How many days ahead <c>date</c> looks.</summary>
 	public int LookAheadDays { get; private init; }
 
@@ -88,6 +106,7 @@ public sealed class CEventScope
 			RandomState = RandomState,
 			Seed = Seed,
 			LookAheadDays = LookAheadDays,
+			RebelFaction = RebelFaction,
 		};
 	}
 

@@ -7,7 +7,7 @@ modifiers and that suppression. Read out of the original on 2026-09-30 and 2026-
 `confirmed` unless marked.
 
 This is the second of the four pieces occupation and revolt were cut into (`occupation.md`): what revolt risk *does* -
-the rising itself, the rebels - is the third, and the underground the fourth.
+the rising itself, the rebels - is the third (`rebels.md`), and the underground the fourth.
 
 ## 1. In one line
 
@@ -132,10 +132,10 @@ brigades' strength - and steps every province once.
   sign - `§Y1.5%`, yellow only above nought - **only where the player knows the province at 9**; below, "?".
 - **Its tooltip**: where the fog of war is on and the player knows the province below 2, `CANT_SEE_UNDER_FOW`
   "This is not possible to determine without further access to the area."; otherwise, a line each, trimmed:
-  1. `LIKELY_REBELS` "Likely Rebels" and the rebel type the province would choose - *with the rebels, the third
-     piece*;
+  1. `LIKELY_REBELS` "Likely Rebels" and the `<type>_title` of the rebel type the province would choose, where it
+     would choose one (`rebels.md`, section 4);
   2. `PARTISAN_SUPPORT` ": §R+" and **the accumulator** to two places, where it is above nought and the holder is at
-     war with the owner;
+     war with the owner - or either is the rebels;
   3. the holder's sources of `global_revolt_risk` - the owner's where the rebels hold it (`modifiers.md`, section 8);
   4. the province's sources of `local_revolt_risk`;
   5. `SUPPRESSION` ": §G-" and the suppression to two places, where there is any;

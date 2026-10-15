@@ -166,6 +166,13 @@ public static class CGameStateLoader
 		{
 			warn($"events and decisions: {scriptProblems.Count} problems, which `OpenHOI3.SaveCheck script` lists");
 		}
+		// The rebel types' words a faction and its armies are named in (rebels.md, sections 6 and 7).
+		foreach (Sim.Revolts.CRebelType type in state.RebelTypes)
+		{
+			type.NameText = localisation.Localise(type.Name + "_name");
+			type.ArmyText = localisation.Localise(type.Name + "_army");
+			type.DescText = localisation.Localise(type.Name + "_desc");
+		}
 		// A new game's victory conditions: each faction's primaries (factions.md, section 8).
 		foreach (string faction in Sim.Wars.CVictoryConditions.ChooseAtStart(state))
 		{
@@ -480,6 +487,27 @@ public static class CGameStateLoader
 		int badLevels = 0;
 		foreach (ClausewitzNode entry in entries)
 		{
+			// A revolt carried out as a new game is entered: its type and size; the name and the leader are read and
+			// thrown away (rebels.md, section 8). No file of Their Finest Hour or BlackICE has one.
+			if (entry.Key is not null && entry.IsBlock && entry.Key.Equals("revolt", StringComparison.OrdinalIgnoreCase))
+			{
+				foreach (ClausewitzNode part in entry.Children)
+				{
+					if (part.Key is null || part.Value is null)
+					{
+						continue;
+					}
+					if (part.Key.Equals("type", StringComparison.OrdinalIgnoreCase))
+					{
+						province.RevoltType = part.Value;
+					}
+					else if (part.Key.Equals("size", StringComparison.OrdinalIgnoreCase))
+					{
+						province.RevoltSize = int.TryParse(part.Value, out int size) ? size : 0;
+					}
+				}
+				continue;
+			}
 			if (entry.Key is null || entry.Value is null)
 			{
 				continue;

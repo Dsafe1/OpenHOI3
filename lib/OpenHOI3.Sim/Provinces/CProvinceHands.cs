@@ -53,6 +53,8 @@ public static class CProvinceHands
 		// The new controller's policy towards the old, where it has none yet (occupation.md, section 2).
 		Occupation.COccupationPolicies.Capture(state, controller, old);
 		province.Controller = controller;
+		// A faction drops land the rebels lose, and takes land they win (rebels.md, section 10).
+		Revolts.CRebelSiege.ControllerChanged(state, province, old, controller, consequences);
 		// The old holder's government moves at once where this was its seat.
 		if (consequences && state.Country(old) is { } former)
 		{

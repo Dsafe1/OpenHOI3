@@ -37,6 +37,24 @@ public static class CEventChance
 	}
 
 	/// <summary>
+	/// The original's <c>CMeanTimeToHappen::GetDays</c>: the days in thousandths, multiplied in whole numbers by each
+	/// modifier whose conditions hold, in order. What a rebel type scores in a province (<c>rebels.md</c>, sections 4
+	/// and 9).
+	/// </summary>
+	public static long Days(CGameState state, CMeanTimeToHappen mtth, CEventScope scope, CScriptReport? report = null)
+	{
+		long days = mtth.Days * 1000L;
+		foreach (CMeanTimeToHappenModifier modifier in mtth.Modifiers)
+		{
+			if (CConditions.Holds(state, modifier.Condition, scope, report))
+			{
+				days = days * modifier.Factor.Raw / 1000;
+			}
+		}
+		return days;
+	}
+
+	/// <summary>
 	/// An option's weight for the AI: its days in thousandths, multiplied in whole numbers by each
 	/// modifier whose conditions hold, back to days, times its own factor.
 	/// </summary>

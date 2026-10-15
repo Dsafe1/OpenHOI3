@@ -31,6 +31,12 @@ public sealed class CGovernment
 	/// <summary><c>duration</c>: the term in months; 0 where the block gives none.</summary>
 	public int Duration { get; set; }
 
+	/// <summary>
+	/// <c>valid_for_new_country</c>: a rebel faction may install it. Yes where the block does not say - no file of Their
+	/// Finest Hour or BlackICE does (<c>rebels.md</c>, section 6).
+	/// </summary>
+	public bool ValidForNewCountry { get; set; } = true;
+
 	/// <summary>What else its block gives, step 5 of a country's modifier (<c>modifiers.md</c>, section 4).</summary>
 	public CModifier Modifier { get; }
 

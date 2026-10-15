@@ -440,7 +440,8 @@ the province again (section 1). A winning attacker is not standing there: its wa
 at the far end, so **it arrives in its next hour**, and looking at the province it now stands
 in, takes it.
 
-**Taking a province.** A country's land unit stands in a province with no enemy beside it:
+**Taking a province.** A land unit stands in a province with no battle and no enemy of the country it takes it for
+beside it - its owner's, or for a rebel army the country its faction hands land to (`rebels.md`, section 10):
 
     whoever holds the province is no enemy of that country   -> nothing changes
     to = the country
@@ -463,7 +464,8 @@ last walk, the sea's included, whose holder is nobody. Then, where `to` is not t
 the province changes hands **with consequences** (`war.md`, section 11): its buildings may be
 damaged, its day's money and resources are lost, and a capital taken is looted of a quarter and its
 government moves at once. *Not built:* the original then rebuilds both countries' neighbours on the
-spot; here the day's passes find it.
+spot; here the day's passes find it. **Where the province was the player's**, he is told `PROVINCELOST`
+"Province Lost!" - "We lost $PROV$ to $COUNTRY$.", COUNTRY the new holder, or the rebel faction holding it.
 
 **Leaving by order.** A unit in a battle that is given somewhere to go leaves every battle it
 is in, and where it was **holding ground** - in a battle whose other side still has somebody -

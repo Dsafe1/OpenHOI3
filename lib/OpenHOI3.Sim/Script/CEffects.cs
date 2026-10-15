@@ -48,6 +48,8 @@ public static class CEffects
 				CPoliticsEffects.IdeologyBlock(state, effect, scope);
 				return;
 			case EEffectKind.RebelType:
+				Revolts.CRisings.FromEffect(state, effect, scope);
+				return;
 			case EEffectKind.UnitType:
 				report?.Add(effect.Key, EScriptGap.Unbuilt);
 				return;

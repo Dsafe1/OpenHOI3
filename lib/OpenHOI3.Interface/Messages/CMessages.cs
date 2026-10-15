@@ -126,6 +126,27 @@ public static class CMessages
 		}
 		foreach ((string key, string value) in pact.Values)
 		{
+			// A province lost names its new holder in place of the player's own COUNTRY (rebels.md, section 10).
+			if (pact.We == "PROVINCELOST" && key == "COUNTRY")
+			{
+				message.Variables.RemoveAll(variable => variable.Key == key);
+				message.Variables.Add((key, value));
+				continue;
+			}
+			// A siege won writes the effect's words, and is told only where they are more than a character.
+			if (pact.We == "REVOLTSIEGE" && key is "EFFECT" or "PROVINCEID")
+			{
+				if (key == "EFFECT")
+				{
+					string words = SiegeWords(localise, state, player, value, pact.Values);
+					if (words.Length <= 1)
+					{
+						return null;
+					}
+					message.Variables.Add((key, words));
+				}
+				continue;
+			}
 			// A licence's NAME is the seller's current model of the type, as its dialog's row writes it (aid.md, section 4).
 			if (key == "NAME" && pact.We.StartsWith("LICBUY", StringComparison.Ordinal) && state.Country(pact.Recipient) is { } seller
 				&& state.SubUnitTypes.TryGetValue(value, out Sim.Units.CSubUnitType? type))
@@ -206,6 +227,32 @@ public static class CMessages
 	/// One variable of <c>TRIGMOD</c> or <c>TRIGMODLOST</c>, each given the entry's key: NAME its name, EFFECT every value
 	/// of its modifier, EXPLANATION its <c>desc_</c> text.
 	/// </summary>
+	/// <summary>
+	/// The original's <c>RebelType_GetSiegeEffectText</c>: what a rebel type's <c>siege_won_effect</c> says of itself in
+	/// the province taken (<c>rebels.md</c>, section 10).
+	/// </summary>
+	private static string SiegeWords(Func<string, string> localise, CGameState state, CCountryTag? player, string typeName,
+		IReadOnlyList<(string Name, string Value)> values)
+	{
+		int province = 0;
+		foreach ((string name, string text) in values)
+		{
+			if (name == "PROVINCEID")
+			{
+				int.TryParse(text, out province);
+			}
+		}
+		foreach (Sim.Revolts.CRebelType type in state.RebelTypes)
+		{
+			if (type.Name == typeName)
+			{
+				return Script.CEffectText.For(new Script.CScriptWords(localise, state, player), type.SiegeWonEffect,
+					CEventScope.ForRebels(null, province, 0));
+			}
+		}
+		return "";
+	}
+
 	private static string Triggered(Func<string, string> localise, CGameState state, string key, string value)
 	{
 		switch (key)

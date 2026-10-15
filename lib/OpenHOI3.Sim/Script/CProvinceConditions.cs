@@ -143,8 +143,10 @@ public static class CProvinceConditions
 		{
 			return scope.Country is { } us && state.Province(value.Province).Cores.Contains(us);
 		}
-		return CConditions.TagByOwner(state, trigger, scope) is { } named
-			&& CConditions.Here(state, scope).Cores.Contains(named);
+		// REB is the scope's rebel faction's country (rebels.md, section 10).
+		CCountryTag? asked = !value.Quoted && value.Text == CProvinceEffects.Rebels
+			? Revolts.CRebelFactions.Meant(scope) : CConditions.TagByOwner(state, trigger, scope);
+		return asked is { } named && CConditions.Here(state, scope).Cores.Contains(named);
 	}
 
 	/// <summary>
