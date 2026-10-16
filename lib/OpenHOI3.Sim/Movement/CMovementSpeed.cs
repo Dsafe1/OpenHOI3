@@ -65,6 +65,12 @@ public static class CMovementSpeed
 	/// </summary>
 	public static CFixedPoint Speed(CGameState state, CCountry country, CUnit unit, CProvince here, CProvince? next)
 	{
+		// A land unit going ashore from the sea moves at the landing's speed and nothing
+		// else touches it (transport.md, section 8).
+		if (IsLand(unit) && here.IsSea && next is { IsSea: false })
+		{
+			return Transport.CLanding.Speed(state, unit);
+		}
 		long speed = SlowestBrigade(unit).Raw * Modifier(state, country, unit, here, next) / Scale;
 		string define = unit.Kind switch
 		{

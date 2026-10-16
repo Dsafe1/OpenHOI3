@@ -243,11 +243,13 @@ anywhere, the paradrop's earliest start is not kept (there is no paradrop), and 
 the base province of an air unit cannot pick it out from under the land units there:
 `--select=` does it for a trial.
 
-*Ours:* **a fleet's move, its change of base and its six missions are built** - the missions
-are `navalmissions.md` - **and an air unit's change of base, its two fighting missions
-(`aircombat.md`) and its eight bombing missions (`bombing.md`).** Every other row is listed as
-the original lists it and cannot be ticked: a fleet's transport and invasion, and an air
-unit's reserve, supply flight and raid on convoys.
+*Ours:* **a fleet's move, its change of base and its eight missions are built** - the missions
+are `navalmissions.md`, and the transport and the invasion `transport.md` - **and an air unit's
+change of base, its two fighting missions (`aircombat.md`) and its eight bombing missions
+(`bombing.md`).** Every other row is listed as the original lists it and cannot be ticked: an air
+unit's reserve, supply flight and raid on convoys. A fleet carrying anything opens the window on
+Transport where it would on Rebase, and a plain right click on a coast the sea does not reach opens
+it where its first passenger may land there (`transport.md`, section 12).
 An air unit's rows for a paradrop, a carrier and a bomb are left out, wanting what is not built
 to know when they show. The stance and the priority go with a fleet's order and mean something
 to its missions. In the original a row and `accept` say in a tooltip why they cannot be used.
@@ -377,13 +379,14 @@ play no part (`tooltips.md`, section 9).
 
 ## What is not built
 
-- **A fleet's transport and invasion, and an air unit's reserve, supply flight and raid on
-  convoys.** The air window's other controls are built since 2026-10-11. A fleet's reserve, patrol, intercept,
-  sortie, convoy raiding and escort are built since 2026-10-10 and are `navalmissions.md`;
-  an air unit's air superiority and intercept since the same day, and are `aircombat.md`;
-  and its eight bombing missions since the same day, and are `bombing.md`.
-- **Carrying**: troops aboard a fleet, an air group aboard a carrier, a paradrop. A fleet
-  with troops aboard is offered a land province to put them ashore in; not here.
+- **An air unit's reserve, supply flight and raid on convoys.** The air window's other controls
+  are built since 2026-10-11. A fleet's reserve, patrol, intercept, sortie, convoy raiding and
+  escort are built since 2026-10-10 and are `navalmissions.md`, its transport and invasion since
+  2026-10-15 and are `transport.md`; an air unit's air superiority and intercept since
+  2026-10-10, and are `aircombat.md`; and its eight bombing missions since the same day, and are
+  `bombing.md`.
+- **Carrying by air**: an air group based aboard a carrier, a land unit aboard aeroplanes, a
+  paradrop - `transport.md`, section 13. Troops aboard a fleet are built since 2026-10-15.
 - **A fleet meeting another** is built since 2026-10-10 and is `navalcombat.md`. One thing
   of it belongs here: **a fleet in a battle that is sent somewhere is not given its way** -
   the province is kept, and it sets off four hours on (section 6 there); and a right click

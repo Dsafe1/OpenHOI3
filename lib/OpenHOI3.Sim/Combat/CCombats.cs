@@ -63,6 +63,8 @@ public static class CCombats
 		return unit != other && unit.Owner != other.Owner
 			&& !unit.IsRemoved && !other.IsRemoved
 			&& !unit.IsRetreating && !other.IsRetreating
+			// A passenger going nowhere fights no one and is fought by no one (transport.md, section 5).
+			&& !Transport.CTransport.IsIdlePassenger(unit) && !Transport.CTransport.IsIdlePassenger(other)
 			&& CMovementRules.IsLandUnit(unit) && CMovementRules.IsLandUnit(other)
 			&& unit.SubUnits.Count > 0 && other.SubUnits.Count > 0
 			&& CMovementRules.IsEnemy(state, unit.Owner, other.Owner);
@@ -83,7 +85,8 @@ public static class CCombats
 		foreach (CUnit other in state.UnitsIn(province))
 		{
 			if (other != unit && other.Owner != unit.Owner && CMovementRules.IsLandUnit(other) && !other.IsRetreating
-				&& !other.IsRemoved && CMovementRules.IsEnemy(state, other.Owner, taker))
+				&& !other.IsRemoved && !Transport.CTransport.IsIdlePassenger(other)
+				&& CMovementRules.IsEnemy(state, other.Owner, taker))
 			{
 				return true;
 			}
@@ -112,6 +115,11 @@ public static class CCombats
 			return;
 		}
 		if (province.Id == 0 || unit.IsRemoved || !CMovementRules.IsLandUnit(unit) || unit.SubUnits.Count == 0)
+		{
+			return;
+		}
+		// A passenger starts nothing while its fleet sails, and going nowhere takes nothing (transport.md, section 5).
+		if (unit.Transport is { } fleet && (fleet.IsMoving || !unit.IsMoving))
 		{
 			return;
 		}

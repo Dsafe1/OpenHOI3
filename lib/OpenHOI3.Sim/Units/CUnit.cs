@@ -202,6 +202,23 @@ public sealed class CUnit
 	/// <summary>The ship carrying it, for an air group aboard a carrier.</summary>
 	public CSubUnit? CarriedBy { get; set; }
 
+	/// <summary>
+	/// The fleet a land unit is aboard, or null. It is tied to the fleet, never to a ship. See
+	/// <c>docs/mechanics/transport.md</c>, section 1.
+	/// </summary>
+	public CUnit? Transport { get; set; }
+
+	/// <summary>A fleet: the land units aboard it, in the order they came aboard.</summary>
+	public List<CUnit> Passengers { get; } = new();
+
+	/// <summary>
+	/// A land unit landing from the sea in a battle: what this hour's progress makes of its attack and of its defence,
+	/// where 1 is unchanged. Worked out afresh for every round (<c>docs/mechanics/transport.md</c>, section 9).
+	/// </summary>
+	public CFixedPoint LandingAttack { get; set; } = CFixedPoint.One;
+
+	public CFixedPoint LandingDefence { get; set; } = CFixedPoint.One;
+
 	/// <summary>The units it commands.</summary>
 	public List<CUnit> Children { get; } = new();
 

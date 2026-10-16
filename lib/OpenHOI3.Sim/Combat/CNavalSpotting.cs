@@ -29,12 +29,15 @@ public static class CNavalSpotting
 	/// <summary>
 	/// Whether a fleet found in a province may be made the defender of a battle, by its
 	/// order: one on patrol always when it is aggressive, never when passive, and
-	/// otherwise only by a fleet weaker than itself; a raider never; anything else, yes.
+	/// otherwise only by a fleet weaker than itself; a raider and a transport never
+	/// (<c>transport.md</c>, section 5); anything else, yes.
 	/// </summary>
 	public static bool DefenderAccepts(CUnit found, CUnit asker)
 	{
 		switch (found.Order)
 		{
+			case EUnitOrder.Transport:
+				return false;
 			case EUnitOrder.Patrol:
 				return found.Mission.Stance switch
 				{
@@ -49,6 +52,19 @@ public static class CNavalSpotting
 		}
 	}
 
+	/// <summary>Whether any land unit aboard a fleet is on the move or fighting.</summary>
+	private static bool HasBusyPassenger(CUnit fleet)
+	{
+		foreach (CUnit passenger in fleet.Passengers)
+		{
+			if (passenger.IsMoving || passenger.IsFighting)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/// <summary>Whether <paramref name="ours"/> starts a battle with <paramref name="theirs"/> this hour.</summary>
 	public static bool ShouldStart(CGameState state, CUnit ours, CUnit theirs)
 	{
@@ -61,8 +77,9 @@ public static class CNavalSpotting
 		{
 			return false;
 		}
-		// A fleet nobody plays that has been told nothing waits to be found.
-		if (!state.Played.Contains(ours.Owner) && (ours.Order == EUnitOrder.None || ours.Order == EUnitOrder.Rebase))
+		// A fleet nobody plays that has been told nothing, or is carrying troops, waits to be found.
+		if (!state.Played.Contains(ours.Owner)
+			&& (ours.Order == EUnitOrder.None || ours.Order == EUnitOrder.Rebase || ours.Order == EUnitOrder.Transport))
 		{
 			return false;
 		}
@@ -81,7 +98,8 @@ public static class CNavalSpotting
 
 		CProvince province = state.Province(ours.Location);
 		int level = CIntelligence.Level(state, province, ours.Owner);
-		if (level >= Intelligence.CProvinceIntel.Most || theirs.IsFighting)
+		// A fleet in a battle, or one whose passengers are landing or fighting, is found without a roll.
+		if (level >= Intelligence.CProvinceIntel.Most || theirs.IsFighting || HasBusyPassenger(theirs))
 		{
 			return true;
 		}

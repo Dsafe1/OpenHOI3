@@ -54,7 +54,20 @@ public static class CMovement
 		{
 			return CFixedPoint.Zero;
 		}
-		return state.Province(unit.Location).EdgeTo(unit.Path[0])?.Distance ?? DistanceWithoutEdge;
+		return LegDistance(state, unit, state.Province(unit.Location), state.Province(unit.Path[0]));
+	}
+
+	/// <summary>
+	/// How far one leg is: a land unit's from the sea to land is the landing's
+	/// (<c>transport.md</c>, section 8), whoever's coast it is; any other the edge's.
+	/// </summary>
+	public static CFixedPoint LegDistance(CGameState state, CUnit unit, CProvince here, CProvince next)
+	{
+		if (CMovementRules.IsLandUnit(unit) && here.IsSea && !next.IsSea)
+		{
+			return Transport.CLanding.Distance(state);
+		}
+		return here.EdgeTo(next.Id)?.Distance ?? DistanceWithoutEdge;
 	}
 
 	/// <summary>
@@ -92,7 +105,7 @@ public static class CMovement
 		{
 			CProvince next = state.Province(id);
 			long speed = CMovementSpeed.Speed(state, country, unit, here, next).Raw;
-			long distance = (here.EdgeTo(id)?.Distance ?? DistanceWithoutEdge).Raw;
+			long distance = LegDistance(state, unit, here, next).Raw;
 			if (progress < distance)
 			{
 				if (speed <= 0)
@@ -125,8 +138,9 @@ public static class CMovement
 		CProvince here = state.Province(unit.Location);
 		foreach (int id in unit.Path)
 		{
-			whole += (here.EdgeTo(id)?.Distance ?? DistanceWithoutEdge).Raw;
-			here = state.Province(id);
+			CProvince next = state.Province(id);
+			whole += LegDistance(state, unit, here, next).Raw;
+			here = next;
 		}
 		if (whole <= 0)
 		{
@@ -333,6 +347,17 @@ public static class CMovement
 		{
 			return false;
 		}
+		// A unit that cannot fight, about to land on ground an enemy holds, waits the hour
+		// where a land unit of its country that can is bound there; otherwise it is
+		// halted (transport.md, section 8).
+		if (Transport.CLanding.IsLandingOnEnemy(state, unit) && !CUnitTotals.CanFight(unit))
+		{
+			if (!Transport.CLanding.OtherFighterBoundFor(state, country, unit, unit.Path[0]))
+			{
+				Halt(state, unit);
+			}
+			return false;
+		}
 		if (unit.Path[0] == unit.Location)
 		{
 			unit.Path.RemoveAt(0);
@@ -416,6 +441,29 @@ public static class CMovement
 			Halt(state, unit);
 			return false;
 		}
+		// A land unit marching into the sea boards the first fleet there that may take it,
+		// and its way ends (transport.md, section 3).
+		if (isLand && next.IsSea)
+		{
+			if (Transport.CTransport.FleetToBoard(state, unit, next) is not { } fleet)
+			{
+				Halt(state, unit);
+				return false;
+			}
+			Transport.CTransport.Board(fleet, unit);
+			unit.Previous = unit.Location;
+			Enter(state, unit, next.Id);
+			Cancel(unit);
+			return false;
+		}
+		// A passenger stepping off - ashore from the sea, or out of its port - gets off first,
+		// its days of supplies going into the province it leaves: out of the stockpile, its
+		// previous province being cleared (transport.md, sections 4 and 8).
+		if (isLand && unit.Transport is not null)
+		{
+			unit.Previous = 0;
+			Transport.CTransport.GetOff(state, unit, bringSupplies: true, from: 0);
+		}
 		unit.Previous = unit.Location;
 		// An army takes its days of supplies along, out of the province it leaves.
 		if (isLand && !next.IsSea)
@@ -453,11 +501,12 @@ public static class CMovement
 		}
 	}
 
-	/// <summary>Puts a unit in a province, with whatever its ships carry.</summary>
+	/// <summary>Puts a unit in a province, with whatever its ships carry and the land units aboard it.</summary>
 	private static void Enter(CGameState state, CUnit unit, int province)
 	{
 		state.Positions.Move(unit, unit.Location, province);
 		unit.Location = province;
+		Transport.CTransport.Follow(state, unit, province);
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
 			foreach (CUnit carried in subUnit.Carried)

@@ -427,9 +427,11 @@ anything else, the whole:
     AP_ATTACK + ": §Y" + its best piercing attack, trimmed + "§!\n"
     ARMOR_VALUE the same with its best armour
 
-The original writes a second figure after the attack and the defence, coloured the other way,
-where a landing's scale makes them differ; nothing lands here, so the line is one yellow figure.
-*Not built*: a landing's lines.
+A landing's scale makes the first figure the figure times the scale, green above the figure and
+red below, and then " / " and the figure itself in the other colour; with no landing the line is
+one yellow figure. **A landing unit's lines** - in the transports, its progress, its two scales -
+come after the leader's, and are `transport.md`'s, section 12; built since 2026-10-15 and set
+beside the maintainer's three screenshots of a landing at Danzig, figure for figure.
 
 **An attacker's reserve** says `BATTLE_REINFORCE_CHANCE` + `: §Y` + its chance of coming up
 (`landcombat.md`) as a percentage to two places + `§W%`, whatever is under the mouse.
@@ -477,8 +479,8 @@ defender's damage where it defends.
 
 ## What is not built
 
-- **Tooltips** the original has and section 12 lists as not built: a landing's lines, the bombed
-  side's rows, and what of the province a bombing's row adds.
+- **Tooltips** the original has and section 12 lists as not built: the bombed side's rows, and
+  what of the province a bombing's row adds.
 - **The sounds** a window plays while it is up.
 - **The naval mode's icons** of convoys sunk and raiders fought. The air map mode's of finished
   air battles and bombings are built: `airmap.md`.

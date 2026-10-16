@@ -389,7 +389,8 @@ such a block that is neither of the two is reported.
 - **The window of orders** (`fleetsandair.md`, section 4) lists the missions for a fleet and
   ticks the ones that can be given; its stance and its priority go with the order. Under them
   comes a row for each of the country's own convoys through the province, "Escort *start* -
-  *end*". Transport and invasion are listed and cannot be ticked.
+  *end*". Transport and invasion are built since 2026-10-15, and are `transport.md`'s, sections
+  7 and 10.
 - **A unit's panel** says what the order is, as the original does: "Patrol(Searching)" or
   "Patrol(Shadowing)"; "Intercept(Waiting)", "(Attacking)" or "(Returning)"; "Escort *start* -
   *end* Convoy" (`inferred`: the escort's own text was not read); and for the rest the
@@ -442,7 +443,6 @@ missions something to meet, there being no AI to send anything.
 
 ### Not built
 
-- **Transport and invasion**, and everything about carrying land units by sea.
 - **Aircraft**: the air convoy raid, a carrier's aircraft in a battle, every air mission.
 - **Weather** and the **AI** - no fleet of a country nobody plays is ever given a mission but
   by `--mission`. The leaders a raid's battle asks are built since 2026-10-11

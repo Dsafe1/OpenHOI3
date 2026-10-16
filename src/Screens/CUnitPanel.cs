@@ -37,6 +37,9 @@ public partial class CUnitPanel : Control
 	private bool _hasChildren;
 	private readonly List<CCombat> _combats = new();
 
+	/// <summary>A unit the player put aboard a fleet, whose selection goes to the fleet once it is aboard.</summary>
+	private (CUnit Unit, CUnit Fleet)? _boarding;
+
 	private CLeaderSelectionPanel? _leaders;
 	private CConfirmDialog? _confirm;
 
@@ -116,6 +119,20 @@ public partial class CUnitPanel : Control
 		if (!Visible || _unit is not { } unit || _list is null)
 		{
 			return;
+		}
+		// The selection goes to the fleet once the command has run, so that its list is made with the unit in it.
+		if (_boarding is ({ } boarded, { } carrier) && boarded == unit)
+		{
+			if (boarded.Transport == carrier)
+			{
+				_boarding = null;
+				UnitChosen?.Invoke(carrier);
+				return;
+			}
+		}
+		else
+		{
+			_boarding = null;
 		}
 		// The run of entries depends on what is above the unit, on whether anything is
 		// under it and on the battles it is in; when any of them changes the list is made
@@ -225,8 +242,7 @@ public partial class CUnitPanel : Control
 
 	/// <summary>
 	/// Empties the list and fills it in the original's order. It has more entries than
-	/// these for a headquarters an AI commands and for what a fleet or an air unit
-	/// carries; neither is built.
+	/// these for a headquarters an AI commands, which is not built.
 	/// </summary>
 	private void Rebuild()
 	{
@@ -279,9 +295,19 @@ public partial class CUnitPanel : Control
 		{
 			Add(objectives);
 		}
-		if (CUnitButtonsEntry.Create(_context, unit, mayOrder) is { } buttons)
+		if (CUnitButtonsEntry.Create(_context, state, owner, unit, mayOrder) is { } buttons)
 		{
 			buttons.SupportChanged += (what, on) => SetSupport(unit, what, on);
+			buttons.LoadPressed += fleet =>
+			{
+				// A selected unit put aboard leaves the selection to its fleet (transport.md, section 3).
+				if (Post(new CLoadUnitCommand(owner.Tag, unit.Id, fleet), unit)
+					&& owner.AllUnits().FirstOrDefault(other => other.Id == fleet) is { } carrier)
+				{
+					_boarding = (unit, carrier);
+				}
+			};
+			buttons.UnloadPressed += () => Post(new CUnloadUnitCommand(owner.Tag, unit.Id), unit);
 			Add(buttons);
 		}
 		if (CUnitBrigadesEntry.Create(_context, state, owner, unit) is { } brigades)
@@ -293,6 +319,16 @@ public partial class CUnitPanel : Control
 		{
 			children.Selected += child => UnitChosen?.Invoke(child);
 			Add(children);
+		}
+		// What a fleet or an air unit carries, on every one's panel (transport.md, section 12).
+		if (unit.Kind is EUnitKind.Navy or EUnitKind.Air && CLoadedUnitsEntry.Create(_context, state, owner, unit) is { } loaded)
+		{
+			loaded.Selected += aboard =>
+			{
+				UnitChosen?.Invoke(aboard);
+				ProvinceWanted?.Invoke(aboard.Location);
+			};
+			Add(loaded);
 		}
 		// Last, a row for each battle the unit is in, and after them one for its bombing.
 		_combats.AddRange(Battles(unit));
@@ -333,6 +369,18 @@ public partial class CUnitPanel : Control
 			_simulation.Post(command);
 			Ordered?.Invoke();
 		}
+	}
+
+	/// <summary>A command of the player's own about one of its units, posted where it may run. Answers whether it was.</summary>
+	private bool Post(CCommand command, CUnit unit)
+	{
+		if (_player is null || unit.Owner != _player.Tag || !command.MayExecute(_simulation.State))
+		{
+			return false;
+		}
+		_simulation.Post(command);
+		Ordered?.Invoke();
+		return true;
 	}
 
 	private void SetSupport(CUnit unit, EUnitSupport what, bool on)

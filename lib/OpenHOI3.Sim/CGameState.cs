@@ -445,6 +445,12 @@ public sealed class CGameState
 	public CCombatHistory CombatHistory { get; } = new();
 
 	/// <summary>
+	/// The landings on each player's ground, by the country making them, waiting to be told
+	/// (<c>docs/mechanics/transport.md</c>, section 11).
+	/// </summary>
+	public List<Transport.CInvasionWarning> InvasionWarnings { get; } = new();
+
+	/// <summary>
 	/// The countries a person plays. The simulation asks it in one place so far: an
 	/// idle fleet of a country nobody plays starts no battle
 	/// (<c>docs/mechanics/navalcombat.md</c>, section 1).

@@ -42,6 +42,8 @@ public static class COrdersText
 			EUnitOrder.Sortie => "ORDER_SORTIE",
 			EUnitOrder.ConvoyEscort => "ORDER_CONVOY_ESCORT",
 			EUnitOrder.ConvoyRaid => "ORDER_CONVOY_RAID",
+			EUnitOrder.Transport => "ORDER_TRANSPORT",
+			EUnitOrder.Invasion => "ORDER_INVADE",
 			EUnitOrder.AirSuperiority => "AIRSUP",
 			EUnitOrder.AirIntercept => "INTERCEPT",
 			EUnitOrder.StrategicBombing => "STRAT_BOMB",
@@ -79,9 +81,8 @@ public static class COrdersText
 	/// The rows of the list, in the original's order. A fleet is shown every naval order
 	/// there is, the ones that cannot be given with their boxes greyed. An air unit is
 	/// shown only the orders it could ever fly: by what its wings can attack, and by
-	/// whether the province is land or sea. A fleet's transport and invasion, and of
-	/// the air's the supply flight, the raid on convoys and the reserve, are listed and
-	/// cannot be ticked: they are not built.
+	/// whether the province is land or sea. Of the air's, the supply flight, the raid on
+	/// convoys and the reserve are listed and cannot be ticked: they are not built.
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, CUnit unit, CProvince province)
 	{
@@ -101,8 +102,8 @@ public static class COrdersText
 			Add(NameKey(EUnitOrder.Intercept), EUnitOrder.Intercept);
 			Add(NameKey(EUnitOrder.Sortie), EUnitOrder.Sortie);
 			Add(NameKey(EUnitOrder.ConvoyRaid), EUnitOrder.ConvoyRaid);
-			Add("ORDER_TRANSPORT");
-			Add("ORDER_INVADE");
+			Add(NameKey(EUnitOrder.Transport), EUnitOrder.Transport);
+			Add(NameKey(EUnitOrder.Invasion), EUnitOrder.Invasion);
 			// And an escort for each of the country's own convoys through the province.
 			foreach (CConvoy convoy in country.Convoys)
 			{

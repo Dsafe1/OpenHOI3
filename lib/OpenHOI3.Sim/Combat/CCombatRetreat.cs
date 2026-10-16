@@ -206,6 +206,13 @@ public static class CCombatRetreat
 			return;
 		}
 		unit.IsRemoved = true;
+		// A fleet takes its passengers with it; a passenger leaves its fleet's list (transport.md, section 6).
+		Transport.CTransport.RemovePassengers(state, unit);
+		if (unit.Transport is { } fleet)
+		{
+			fleet.Passengers.Remove(unit);
+			unit.Transport = null;
+		}
 		CCombats.LeaveAll(state, unit);
 		Leaders.CLeaders.SetLeader(state, unit, null, false, false);   // its leader is free again
 		unit.Path.Clear();

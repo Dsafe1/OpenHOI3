@@ -17,8 +17,11 @@ public sealed class CArrowTypes
 	/// <summary>The arrow of a unit whose next province an enemy holds.</summary>
 	public const string Attack = "attackArrow";
 
-	/// <summary>The arrow of a unit falling back. The original has two more, for a redeployment and a landing.</summary>
+	/// <summary>The arrow of a unit falling back. The original has one more, for a redeployment.</summary>
 	public const string Retreat = "retreatArrow";
+
+	/// <summary>The arrow of a unit landing from the sea, on anybody's ground.</summary>
+	public const string Invasion = "unitInvasionArrow";
 
 	private static readonly HashSet<string> Keys = new(StringComparer.OrdinalIgnoreCase)
 	{

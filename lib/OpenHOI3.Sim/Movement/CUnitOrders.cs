@@ -79,7 +79,7 @@ public static class CUnitOrders
 			EUnitKind.Navy => new[]
 			{
 				EUnitOrder.Move, EUnitOrder.Rebase, EUnitOrder.Reserve, EUnitOrder.Patrol, EUnitOrder.Intercept,
-				EUnitOrder.Sortie, EUnitOrder.ConvoyRaid,
+				EUnitOrder.Sortie, EUnitOrder.ConvoyRaid, EUnitOrder.Transport, EUnitOrder.Invasion,
 			},
 			EUnitKind.Air => new[]
 			{
@@ -139,8 +139,10 @@ public static class CUnitOrders
 
 	/// <summary>
 	/// The order the original has picked when its window comes up: a change of base
-	/// where the province has the base for one and is at peace with the unit's country,
-	/// and for a fleet otherwise a plain move. None where nothing may be given.
+	/// where the province has the base for one and is at peace with the unit's country -
+	/// the transport mission instead for a fleet carrying anything, whether or not that
+	/// may be given (<c>transport.md</c>, section 12) - and for a fleet otherwise a plain
+	/// move. None where nothing may be given.
 	/// </summary>
 	public static EUnitOrder Suggested(CGameState state, CCountry country, CUnit unit, CProvince province)
 	{
@@ -151,7 +153,7 @@ public static class CUnitOrders
 			&& CMovementRules.BuildingLevel(state, province, building) > CFixedPoint.Zero
 			&& MayGive(state, country, unit, rebase, province))
 		{
-			return rebase;
+			return unit.Kind == EUnitKind.Navy && unit.Passengers.Count > 0 ? EUnitOrder.Transport : rebase;
 		}
 		return MayGive(state, country, unit, EUnitOrder.Move, province) ? EUnitOrder.Move : EUnitOrder.None;
 	}

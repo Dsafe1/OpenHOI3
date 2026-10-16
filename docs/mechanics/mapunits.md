@@ -194,8 +194,10 @@ counter's can be hidden by it.
 ## 3. Which units have a counter, and how they stack
 
 **A fleet in port and an air unit at its own base have no counter.** The original shows
-those by the province's port and airfield: section 9. Nor has a unit that is aboard
-something. Every other unit that is somewhere has one. `confirmed`
+those by the province's port and airfield: section 9. Nor has an air group aboard a carrier,
+nor a land unit aboard a fleet in port; **a land unit aboard a fleet at sea has its own**, among
+the moving counters while the fleet has a path (`transport.md`, section 12). Every other unit
+that is somewhere has one. `confirmed`
 
 A province sorts its counters into **five stacks**, by what the unit is doing: `confirmed`
 for the order of the tests.

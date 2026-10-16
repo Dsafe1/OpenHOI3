@@ -23,7 +23,11 @@ public static class CSupplyCarry
 	/// </summary>
 	/// <param name="from">The province it was in before, or 0 for a unit that was nowhere.</param>
 	/// <param name="beforeGame">Before a game is under way a unit from nowhere always takes from the stockpile.</param>
-	public static void Bring(CGameState state, CCountry owner, CUnit unit, int from, int into, bool beforeGame = false)
+	/// <param name="fromStockpile">
+	/// So does a unit from nowhere getting off a fleet, whatever the ground (<c>transport.md</c>, section 4).
+	/// </param>
+	public static void Bring(CGameState state, CCountry owner, CUnit unit, int from, int into, bool beforeGame = false,
+		bool fromStockpile = false)
 	{
 		if (into <= 0 || into >= state.Provinces.Count)
 		{
@@ -34,7 +38,7 @@ public static class CSupplyCarry
 		CProvince left = state.Province(from);
 		if (left.Id == 0)
 		{
-			if (!beforeGame && province.Controller != owner.Tag)
+			if (!beforeGame && !fromStockpile && province.Controller != owner.Tag)
 			{
 				// On ground it owns and another holds it takes from the depot; on
 				// anybody else's it comes with nothing.

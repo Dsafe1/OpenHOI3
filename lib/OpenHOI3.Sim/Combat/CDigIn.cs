@@ -28,7 +28,8 @@ public static class CDigIn
 				{
 					unit.DigIn = CFixedPoint.Zero;
 				}
-				else if (CMovementRules.IsLandUnit(unit) && !unit.IsMoving && !unit.IsFighting && unit.DigIn < cap)
+				else if (CMovementRules.IsLandUnit(unit) && !unit.IsMoving && !unit.IsFighting && unit.Transport is null
+					&& unit.DigIn < cap)
 				{
 					unit.DigIn += CFixedPoint.One;
 				}

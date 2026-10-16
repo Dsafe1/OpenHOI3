@@ -59,7 +59,10 @@ public static class CTick
 	{
 		// Every roll of the hour starts from the game's seed and the hour it is.
 		state.SeedHour();
-		// The weather's own hour comes first, and its draws are the hour's first: the high pressure spreads, fronts are
+		// The first thing the hour does: the landings on the player's ground are looked at, and a new one is told
+		// (docs/mechanics/transport.md, section 11).
+		Step(state, Transport.CInvasionWarnings.RunHourly);
+		// The weather's own hour comes next, and its draws are the hour's first: the high pressure spreads, fronts are
 		// born and step on (docs/mechanics/weather.md, section 4).
 		Step(state, Weather.CWeatherFronts.RunHourly);
 		// Each country's units look at their orders, look for an enemy and move, one
@@ -69,6 +72,8 @@ public static class CTick
 		// The units go before their countries, so an hour's organisation is worked out
 		// with the officer ratio the hour before left.
 		Step(state, COrganisation.RunHourly);
+		// In the same hour of every fleet, too much aboard (docs/mechanics/transport.md, section 6).
+		Step(state, Transport.CTransport.CheckEveryOverload);
 		// Every country's own hour: its lend-lease looked at (docs/mechanics/aid.md, section 3).
 		Step(state, Aid.CLendLease.RunHourly);
 		Step(state, Countries.CActingCapital.RunHourly);                 // ours: where in a country's hour beside lend-lease was not compared
@@ -133,7 +138,8 @@ public static class CTick
 		Step(state, CMissions.RunDaily);                          // a unit's day begins with its order's
 		Step(state, CDigIn.RunDaily);                             // and then with this
 		Step(state, CUnitUpkeep.RunDaily);
-		Step(state, CIntelGrants.CountDown);                      // what others were given to know of a unit, a day less
+		Step(state, Transport.CTransport.CheckEveryOverload);    // the last of a fleet's day (transport.md, section 6)
+		Step(state, CIntelGrants.CountDown);                     // what others were given to know of a unit, a day less
 		Step(state, CResources.UpdateHomeProduction);
 		Step(state, CStockpile.AddHomeProduction);
 		Step(state, CResources.GatherCutOff);                     // what the sea cuts off waits in a harbour

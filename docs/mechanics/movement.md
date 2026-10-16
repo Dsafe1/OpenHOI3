@@ -168,8 +168,12 @@ or a member of its faction, a co-belligerent, and a country it has military acce
 *Ours:* the country itself and the members of its faction; the rest are diplomacy, which
 is stage 4.
 
-A land unit may not stand in the sea. *Ours:* in the original it may where a fleet of its
-country waits there with room to carry it, which is how it is put aboard.
+A land unit stands in the sea only where a fleet of its country waits there with room to
+carry it, which is how it is put aboard; and a land unit going ashore from the sea - its
+own coast or an enemy's - walks a leg of its own, `AMPHIBIOUS_INVADE_MOVEMENT_COST` at the
+landing's speed and nothing else, and waits or is halted on an enemy's coast if it cannot
+fight. Both are `transport.md`'s, sections 3 and 8. *Ours:* a land unit already aboard may
+not be sent on to another sea.
 
 ## 4. Setting off
 
@@ -315,6 +319,9 @@ wrong caller, which the reading for fleets found.
 
 1. A unit with no brigades does nothing.
 2. **A unit that has not taken a step and has an attack delay running does nothing.**
+   - A land unit going ashore from the sea onto ground an enemy holds that cannot fight waits
+     the hour where a land unit of its country that can has a path ending there, and is
+     halted otherwise (`transport.md`, section 8).
 3. A path whose first province is the one the unit stands in loses that province, and the
    progress with it. Nothing more this hour.
 4. **A land unit that was given no supplies at all does not walk onto ground an enemy
@@ -390,8 +397,10 @@ with what is left over carried into the next leg as the march itself carries it.
   **where an enemy of the unit's country holds the next province of its way** - whether or
   not anybody stands there, so a walk into undefended enemy ground is drawn as an attack.
   `confirmed` (`reversing/findings/FINDINGS-combatview.md`, section 9); the attack's was set
-  beside the maintainer's screenshot of one on 2026-10-09 (`combatview.md`, section 9). The
-  original has two more, for a strategic redeployment and a landing, which wait for those.
+  beside the maintainer's screenshot of one on 2026-10-09 (`combatview.md`, section 9). A land
+  unit going ashore from the sea, on anybody's ground, has `unitInvasionArrow`, asked after the
+  retreat's (`transport.md`, section 12). The original has one more, for a strategic
+  redeployment, which waits for that.
 - **The unit panel** (`unitpanel.md`) says what a selected unit is doing - "Move to" the
   next province of its way - shows its speed, marks it as on the march, and has the
   button that halts it.
@@ -408,7 +417,6 @@ with what is left over carried into the next leg as the march itself carries it.
 - **Coordinated arrival**: the original keeps two hours on a unit, one before which it does
   not move and one before which it does not arrive, waiting at full progress.
 - **Strategic redeployment**, which is an order of its own with a speed of its own.
-- **Landing from the sea** and being carried.
 - **The weather itself**: what it does to a march is in (section 5), what makes it is not.
   A leader's part in the speed is built (2026-10-11), and the march check against the saves
   hours apart still gives 301 of 301.

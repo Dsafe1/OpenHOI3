@@ -35,8 +35,16 @@ internal static class CSailingCheck
 		int gone = 0;
 		int busy = 0;
 		int unknown = 0;
+		int carrying = 0;
 		foreach ((int id, Saved saved) in before.OrderBy(entry => entry.Key))
 		{
+			// A land unit aboard stands where its fleet does (transport.md, section 5).
+			foreach (ClausewitzNode aboard in Passengers(saved.Node))
+			{
+				carrying++;
+				compare("a land unit aboard a fleet stands where the fleet does", aboard.GetInt("location") == saved.Location,
+					() => $"{saved.Country.Tag} {id}: in {saved.Location}, {aboard.GetString("name")} in {aboard.GetInt("location")}");
+			}
 			if (saved.Path.Count == 0)
 			{
 				continue;
@@ -112,10 +120,33 @@ internal static class CSailingCheck
 				continue;
 			}
 
+			// Its passengers come aboard as the save has them, in its order.
+			var passengers = new List<(CUnit Unit, string Name)>();
+			foreach (ClausewitzNode aboard in Passengers(saved.Node))
+			{
+				var passenger = new CUnit(EUnitKind.Division, saved.Country.Tag)
+				{
+					Id = aboard.Get("id")?.GetInt("id") ?? 0,
+					Location = aboard.GetInt("location"),
+					Previous = aboard.GetInt("previous"),
+				};
+				OpenHOI3.Sim.Transport.CTransport.Board(unit, passenger);
+				passengers.Add((passenger, aboard.GetString("name") ?? ""));
+			}
+
 			long speed = CMovementSpeed.Speed(state, saved.Country, unit).Raw;
 			for (long hour = 0; hour < hours; hour++)
 			{
 				CMovement.RunHour(state, saved.Country, unit);
+			}
+			foreach ((CUnit passenger, string name) in passengers)
+			{
+				ClausewitzNode? still = Passengers(then.Node).FirstOrDefault(node => (node.Get("id")?.GetInt("id") ?? 0) == passenger.Id);
+				compare($"where {hours} hours took a land unit aboard a fleet",
+					still is not null && passenger.Transport == unit && passenger.Location == still.GetInt("location")
+						&& passenger.Previous == still.GetInt("previous"),
+					() => $"{who}: {name} - the save {(still is null ? "has it ashore" : $"has it in {still.GetInt("location")}, previous {still.GetInt("previous")}")}, " +
+						$"ours {(passenger.Transport is null ? "ashore" : "aboard")} in {passenger.Location}, previous {passenger.Previous}");
 			}
 			string types = string.Join('+', unit.SubUnits.Select(subUnit => subUnit.Type.Key).Distinct());
 			string detail = $"{who} [{types}] from {saved.Location} at {saved.Progress}, {new CFixedPoint(speed)} an hour " +
@@ -130,9 +161,16 @@ internal static class CSailingCheck
 					unit.MovementProgress == then.Progress, () => detail);
 			}
 		}
-		return $"{before.Count} fleets and air units in the earlier save, {moving} with a path; not compared: " +
+		return $"{before.Count} fleets and air units in the earlier save, {moving} with a path, {carrying} land units aboard; not compared: " +
 			$"{gone} gone or under another order by the later save, {busy} in a battle or with their fuel changed, " +
 			$"{unknown} with a ship or a wing a new game does not start with";
+	}
+
+	/// <summary>The land units a fleet's block holds, each a block of its own under its level's key.</summary>
+	private static IEnumerable<ClausewitzNode> Passengers(ClausewitzNode fleet)
+	{
+		return fleet.Children.Where(child => child.IsBlock
+			&& child.Key is "theatre" or "armygroup" or "army" or "corps" or "division");
 	}
 
 	private static bool IsBusy(ClausewitzNode unit)

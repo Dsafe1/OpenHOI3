@@ -228,7 +228,7 @@ which is what the last thousandth depends on:
 | | who | how much |
 | --- | --- | --- |
 | **a river** | an attacker whose way into the province crosses one | `RIVER_CROSSING_PENALTY` + the unit's `river` attack figure + `river_attack`, where that is below nothing |
-| **a landing** | an attacker whose way is a strait | `AMPHIBIOUS_LANDING_PENALTY` + the unit's `amphibious` attack figure + `amph_attack`, where below nothing, and no worse than -0.99 |
+| **a landing** | an attacker standing in the sea (not the rebels'), or whose way is a strait | `AMPHIBIOUS_LANDING_PENALTY` + the unit's `amphibious` attack figure + `amph_attack`, where below nothing - cut by its fleet's invasion defence where it is going ashore from aboard one, and a hundredth worse with none (`transport.md`, section 9) - and no worse than -0.99 |
 | **forts** | an attacker | the province's `fort_level` - its `coastal_fort_level` for a landing - in **whole levels** x `BASE_FORT_PENALTY`, + `fort_attack` + the unit's `fort` attack figure; never in the attacker's favour |
 | **several battles** | a defender in more than one | -`MULTIPLE_COMBATS_PENALTY`, once however many |
 | **experience** | every unit | a hundredth for each point of its brigades' average experience (a pride of the fleet counting for `PRIDE_BONUS_EXP` more), x (1 + `experience_bonus`) |

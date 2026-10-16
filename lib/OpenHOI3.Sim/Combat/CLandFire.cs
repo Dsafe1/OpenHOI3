@@ -66,7 +66,9 @@ public static class CLandFire
 		hard = (CFixedPoint.Scale - softness) * hard / CFixedPoint.Scale;
 		soft = softness * soft / CFixedPoint.Scale;
 
-		long attack = attacker.CombatAttack.Raw * (soft + hard) / CFixedPoint.Scale;
+		// A unit landing from the sea fires its figure times its landing's attack scale (transport.md, section 9).
+		long figure = attacker.CombatAttack.Raw * attacker.LandingAttack.Raw / CFixedPoint.Scale;
+		long attack = figure * (soft + hard) / CFixedPoint.Scale;
 		long shots = attack / CFixedPoint.Scale;
 		long part = attack % CFixedPoint.Scale * 100 / CFixedPoint.Scale;
 		if (rolls.Next(100) < part)
@@ -87,7 +89,7 @@ public static class CLandFire
 
 			// An attacker is met with toughness, a defender with defensiveness.
 			long stand = CUnitTotals.Sum(target, side.IsAttacker ? CUnitTotals.Defensiveness : CSubUnitStats.Toughness).Raw;
-			long defence = target.CombatDefence.Raw * stand / CFixedPoint.Scale;
+			long defence = target.CombatDefence.Raw * target.LandingDefence.Raw / CFixedPoint.Scale * stand / CFixedPoint.Scale;
 			if (!Hits(state, target, defence))
 			{
 				continue;

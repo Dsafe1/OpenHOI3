@@ -133,6 +133,12 @@ public static class CMessages
 				message.Variables.Add((key, value));
 				continue;
 			}
+			// A landing's provinces are written as a list, each once (transport.md, section 11).
+			if (pact.We == Sim.Transport.CInvasionWarnings.Message && key == "PROV")
+			{
+				message.Variables.Add((key, ProvinceList(localise, state, value)));
+				continue;
+			}
 			// A siege won writes the effect's words, and is told only where they are more than a character.
 			if (pact.We == "REVOLTSIEGE" && key is "EFFECT" or "PROVINCEID")
 			{
@@ -187,6 +193,37 @@ public static class CMessages
 				? localise(value) : value));
 		}
 		return message;
+	}
+
+	/// <summary>
+	/// Provinces by their numbers, comma-separated, written as the original writes a list of them: each name once, ", "
+	/// after it while more than one of the numbers given is still to come, and " and " before the last. The count runs
+	/// over the numbers given, repeats and all, so a repeat can leave a stray separator - the original's.
+	/// </summary>
+	public static string ProvinceList(Func<string, string> localise, CGameState state, string numbers)
+	{
+		string[] ids = numbers.Split(',', StringSplitOptions.RemoveEmptyEntries);
+		var written = new HashSet<int>();
+		var text = new System.Text.StringBuilder();
+		for (int i = 0; i < ids.Length; i++)
+		{
+			if (!int.TryParse(ids[i], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture,
+				out int id) || id <= 0 || id >= state.Provinces.Count || !written.Add(id))
+			{
+				continue;
+			}
+			text.Append(state.Province(id).Name);
+			int left = ids.Length - i - 1;
+			if (left > 1)
+			{
+				text.Append(", ");
+			}
+			else if (left == 1)
+			{
+				text.Append(' ').Append(localise("AND")).Append(' ');
+			}
+		}
+		return text.ToString();
 	}
 
 	/// <summary>

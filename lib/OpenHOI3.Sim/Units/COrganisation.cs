@@ -212,8 +212,8 @@ public static class COrganisation
 
 	/// <summary>
 	/// The hourly update of every unit, as far as organisation goes. A unit that is
-	/// fighting gets none back, nor one marching onto enemy ground. The original also
-	/// skips an army aboard a fleet at sea, which cannot happen yet.
+	/// fighting gets none back, nor one marching onto enemy ground, nor one aboard a fleet
+	/// at sea (<c>transport.md</c>, section 5).
 	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
@@ -223,7 +223,8 @@ public static class COrganisation
 		{
 			foreach (CUnit unit in country.AllUnits())
 			{
-				if (unit.IsFighting || IsMovingOntoEnemyGround(state, unit))
+				if (unit.IsFighting || IsMovingOntoEnemyGround(state, unit)
+					|| (unit.Transport is not null && state.Province(unit.Location).IsSea))
 				{
 					continue;
 				}

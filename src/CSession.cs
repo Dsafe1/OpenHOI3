@@ -691,7 +691,10 @@ public partial class CSession : Node
 			}
 			else if (!append && !unit.IsFighting)
 			{
-				if (CMovementRules.SeaEnd(State, State.Province(province)) is null)
+				// A coast the sea does not reach opens the window too where what the fleet
+				// carries may land there (transport.md, section 12).
+				if (CMovementRules.SeaEnd(State, State.Province(province)) is null
+					&& !CTransportText.OpensOrdersOnCoast(State, Player, unit, State.Province(province)))
 				{
 					GD.Print($"{unit.Name} cannot reach {State.Province(province).Name} by sea.");
 					return;

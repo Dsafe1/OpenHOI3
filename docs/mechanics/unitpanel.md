@@ -278,9 +278,13 @@ The window `sup_buttons_window`.
   `edit_theatre`. `confirmed`. Shown, and cannot be pressed.
 - **`attach_button` for a unit with none above it, `detach_button` for one with.**
   `confirmed`. Shown, and cannot be pressed.
-- `load_button` for a land unit that is aboard nothing, `unload_button` for one that is.
-  `confirmed`. The two aeroplane buttons are shown the same way, *ours*, and
-  `disbandbutton` and `newunitbutton` as the file has them. None can be pressed.
+- `load_button` for a land unit that is aboard nothing, `unload_button` for one aboard a
+  fleet; **both work** since 2026-10-15 (`transport.md`, section 12): load where a fleet is
+  found for it in its port, unload where the fleet is in port. The aeroplane buttons are shown
+  as the original shows them and cannot be pressed - nothing carries by air yet - and
+  `disbandbutton` and `newunitbutton` as the file has them, neither pressable.
+- **A fleet's and an air unit's panel ends in what it carries** (`sup_loaded`, after the units
+  under it): `transport.md`, section 12.
 
 ## 8. The units under it
 
@@ -446,8 +450,11 @@ The strip of buttons: each checkbox says what a click would do - `UW_TURN_ON_PRI
 three fellows `UW_CREATE_CORPS` and the others with `UW_CREATE_ABOVE_DRO`; `edit_theatre`,
 `disbandbutton`, `newunitbutton` (with `SPLIT_UNITS_DESC` and the brigades) and `oob_button`
 their keys. A button that cannot be pressed says why as the original does: `attach_button`
-`UW_NOT_POSSIBLE_TO_ATTACH`, and since nothing carries a unit here, `UW_LOAD_NO_FLEET_FOUND`,
-`UW_UNLOAD_NOT_VALID`, `UW_LOAD_PLANE_FAIL` and `UW_UNLOAD_PLANE_BASE_ONLY`.
+`UW_NOT_POSSIBLE_TO_ATTACH`; the load and unload buttons `UW_LOAD_IS_VALID` or
+`UW_LOAD_NO_FLEET_FOUND`, `UW_UNLOAD_VALID` or `UW_UNLOAD_NOT_VALID` (`transport.md`, section 12);
+and since nothing carries a unit by air here, `UW_LOAD_PLANE_FAIL` - or `UW_LOAD_PLANE_FAIL_LOW_ORG`
+where a brigade has under `PARATROOP_MISSION_ORG_REQ` of its organisation - and
+`UW_UNLOAD_PLANE_BASE_ONLY`.
 
 A headquarters' row: `aggression_checkbox` `AGGRESSION_OFF`; the slider's four pieces
 `AGGRESSION_LEVEL` with `AGGRESSION_NEUTRAL` - the original's from -0.3 to 0.3, where it stands;

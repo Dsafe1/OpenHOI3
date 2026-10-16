@@ -42,7 +42,9 @@ public static class CMapCounters
 
 	/// <summary>
 	/// Whether a unit is shown by a counter of its own. A fleet in port and an air unit
-	/// at its base are not: the original shows those by the port and the airfield.
+	/// at its base are not: the original shows those by the port and the airfield. Nor is
+	/// a land unit aboard a fleet in port, shown by nothing but the port; at sea it has its
+	/// own (<c>transport.md</c>, section 12).
 	/// </summary>
 	public static bool HasCounter(CGameState state, CUnit unit)
 	{
@@ -54,7 +56,7 @@ public static class CMapCounters
 		{
 			EUnitKind.Navy => state.Province(unit.Location).IsSea,
 			EUnitKind.Air => unit.Location != unit.Base,
-			_ => true,
+			_ => unit.Transport is null || state.Province(unit.Location).IsSea,
 		};
 	}
 
@@ -86,6 +88,12 @@ public static class CMapCounters
 		if (unit.Kind == EUnitKind.Air)
 		{
 			return EMapStack.Air;
+		}
+		// A land unit aboard a fleet stands with the moving counters while the fleet has a
+		// path, whatever its own (transport.md, section 12).
+		if (unit.Transport is { } fleet)
+		{
+			return fleet.IsMoving ? EMapStack.Moving : EMapStack.Standing;
 		}
 		return unit.IsMoving ? EMapStack.Moving : EMapStack.Standing;
 	}

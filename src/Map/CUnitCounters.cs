@@ -60,7 +60,7 @@ public partial class CUnitCounters : Node2D
 	public void Setup(CMap map, CGameState state, CGuiContext gui, CCounterTypes types, CBillboardTypes billboards,
 		CArrowTypes arrows)
 	{
-		foreach (string name in new[] { CArrowTypes.Move, CArrowTypes.Attack, CArrowTypes.Retreat })
+		foreach (string name in new[] { CArrowTypes.Move, CArrowTypes.Attack, CArrowTypes.Retreat, CArrowTypes.Invasion })
 		{
 			_arrowTextures[name] = arrows.Find(name) is { TextureFile.Length: > 0 } arrow && gui.Textures.Exists(arrow.TextureFile)
 				? gui.Textures.LoadFromGamePath(arrow.TextureFile)

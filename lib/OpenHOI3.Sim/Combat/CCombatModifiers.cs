@@ -80,6 +80,8 @@ public static class CCombatModifiers
 			unit.CombatAttack = CFixedPoint.One;
 			unit.CombatDefence = CFixedPoint.One;
 			unit.DefencesUsed = 0;
+			// A unit landing on an enemy's coast has its two scales by its progress, attacker or not.
+			Transport.CLanding.SetScales(state, unit);
 			if (state.Country(unit.Owner) is not { } owner)
 			{
 				continue;
@@ -183,14 +185,20 @@ public static class CCombatModifiers
 	}
 
 	/// <summary>
-	/// What only an attacker meets: a river on its way, or a strait, which counts as a
-	/// landing; and the province's forts - its coastal ones where it is landing.
+	/// What only an attacker meets: a river on its way, or a landing - from the sea, or over
+	/// a strait; and the province's forts - its coastal ones where it is landing. A landing
+	/// from aboard a fleet has its penalty cut by the fleet's invasion defence
+	/// (<c>transport.md</c>, section 9).
 	/// </summary>
 	private static void Assault(CGameState state, CProvince province, CUnit unit)
 	{
 		CDefines defines = state.Defines;
-		bool isLanding = false;
-		CProvinceEdge? edge = unit.Location == province.Id ? null : state.Province(unit.Location).EdgeTo(province.Id);
+		// Standing in the sea is a landing, unless it is the rebels'; otherwise the edge it attacks over says.
+		bool fromTheSea = state.Province(unit.Location).IsSea;
+		bool isLanding = fromTheSea && !Revolts.CRebelFactions.IsRebels(unit.Owner);
+		CProvinceEdge? edge = fromTheSea || unit.Location == province.Id
+			? null
+			: state.Province(unit.Location).EdgeTo(province.Id);
 		if (edge is { Kind: EProvinceEdgeKind.River })
 		{
 			long river = defines[CManpower.MilitarySection, RiverPenalty].Raw
@@ -211,6 +219,10 @@ public static class CCombatModifiers
 			long landing = defines[CManpower.MilitarySection, LandingPenalty].Raw
 				+ CUnitTotals.Adjuster(unit, AmphibiousAdjuster, AttackOf)
 				+ Trait(state, unit, ETraitEffect.AmphAttack);
+			if (landing < 0)
+			{
+				landing = Transport.CLanding.CutPenalty(state, unit, landing);
+			}
 			landing = Math.Max(landing, WorstLanding);
 			if (landing < 0)
 			{

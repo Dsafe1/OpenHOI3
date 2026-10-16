@@ -28,6 +28,8 @@ public static class CUnitOrderTooltips
 		[EUnitOrder.Sortie] = "ORDER_SORTIE_DESC",
 		[EUnitOrder.ConvoyEscort] = "ORDER_CONVOY_ESCORT_DESC",
 		[EUnitOrder.ConvoyRaid] = "ORDER_CONVOY_RAID_DESC",
+		[EUnitOrder.Transport] = "ORDER_TRANSPORT_DESC",
+		[EUnitOrder.Invasion] = "ORDER_INVADE_DESC",
 		[EUnitOrder.AirSuperiority] = "AIRSUP_DESC",
 		[EUnitOrder.AirIntercept] = "INTERCEPT_DESC",
 		[EUnitOrder.GroundAttack] = "GROUNDATTACK_BOMB_DESC",
@@ -96,10 +98,14 @@ public static class CUnitOrderTooltips
 
 	/// <summary>
 	/// The strip of buttons. A button switched off says what the original says when it may not
-	/// be pressed: nothing carries a unit here, so no fleet is found to board and nowhere to land.
+	/// be pressed. The load and unload buttons say whether a fleet is found and whether the
+	/// fleet is in port (<c>transport.md</c>, section 12); nothing carries a unit by air yet,
+	/// so the planes' load says none is found - or that the brigades are too worn.
 	/// </summary>
-	public static CTooltip Buttons(Func<string, string> localise, CUnit unit, bool attachEnabled, string element)
+	public static CTooltip Buttons(Func<string, string> localise, CUnit unit, bool attachEnabled, string element,
+		Screens.CCarryButtons? carry = null)
 	{
+		carry ??= Screens.CCarryButtons.None;
 		if (Checkboxes.TryGetValue(element, out (string On, string Off, Func<CUnit, bool> IsOn) box))
 		{
 			return new CTooltip { Text = localise(box.IsOn(unit) ? box.On : box.Off) };
@@ -121,10 +127,13 @@ public static class CUnitOrderTooltips
 					("NUM", unit.SubUnits.Count.ToString(CultureInfo.InvariantCulture))),
 			},
 			"edit_theatre" => new CTooltip { Text = localise("UW_EDIT_THEATRE"), Delayed = localise("UW_EDIT_THEATRE_DRO") },
-			"unload_button" => new CTooltip { Text = localise("UW_UNLOAD_NOT_VALID") },
-			"load_button" => new CTooltip { Text = localise("UW_LOAD_NO_FLEET_FOUND") },
+			"unload_button" => new CTooltip { Text = localise(carry.UnloadEnabled ? "UW_UNLOAD_VALID" : "UW_UNLOAD_NOT_VALID") },
+			"load_button" => new CTooltip { Text = localise(carry.LoadEnabled ? "UW_LOAD_IS_VALID" : "UW_LOAD_NO_FLEET_FOUND") },
 			"unload_plane_button" => new CTooltip { Text = localise("UW_UNLOAD_PLANE_BASE_ONLY") },
-			"load_plane_button" => new CTooltip { Text = localise("UW_LOAD_PLANE_FAIL") },
+			"load_plane_button" => new CTooltip
+			{
+				Text = localise(carry.LowOrganisation ? "UW_LOAD_PLANE_FAIL_LOW_ORG" : "UW_LOAD_PLANE_FAIL"),
+			},
 			_ => CTooltip.Empty,
 		};
 	}

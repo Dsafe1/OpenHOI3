@@ -29,7 +29,7 @@ public static class CMissions
 	public static bool IsMission(EUnitOrder order)
 	{
 		return order is EUnitOrder.Reserve or EUnitOrder.Patrol or EUnitOrder.Intercept or EUnitOrder.Sortie
-			or EUnitOrder.ConvoyEscort or EUnitOrder.ConvoyRaid;
+			or EUnitOrder.ConvoyEscort or EUnitOrder.ConvoyRaid or EUnitOrder.Transport or EUnitOrder.Invasion;
 	}
 
 	/// <summary>
@@ -58,6 +58,10 @@ public static class CMissions
 			case EUnitOrder.ConvoyEscort:
 				return province.IsSea && CConvoyEscort.Find(state, convoy) is { } run
 					&& CConvoyEscort.FindBeat(state, unit, run).First != 0;
+			case EUnitOrder.Transport:
+				return CTransportMission.MayGive(state, country, unit, province);
+			case EUnitOrder.Invasion:
+				return CInvasionMission.MayGive(state, country, unit, province);
 			default:
 				return false;
 		}
@@ -86,6 +90,9 @@ public static class CMissions
 			case EUnitOrder.ConvoyEscort:
 				CConvoyEscort.Start(state, country, unit);
 				break;
+			case EUnitOrder.Invasion:
+				CInvasionMission.Start(state, country, unit);
+				break;
 		}
 	}
 
@@ -103,6 +110,8 @@ public static class CMissions
 			EUnitOrder.Intercept => CIntercept.RunHour(state, country, unit),
 			EUnitOrder.Sortie => CSortie.RunHour(state, country, unit),
 			EUnitOrder.ConvoyEscort => CConvoyEscort.RunHour(state, country, unit),
+			EUnitOrder.Transport => CTransportMission.RunHour(state, country, unit),
+			EUnitOrder.Invasion => CInvasionMission.RunHour(state, country, unit),
 			_ => true,
 		};
 	}

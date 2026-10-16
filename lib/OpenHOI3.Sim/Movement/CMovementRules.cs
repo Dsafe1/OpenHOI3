@@ -165,10 +165,11 @@ public static class CMovementRules
 	}
 
 	/// <summary>
-	/// Whether a unit may stand in a province. A land unit may not stand in the sea -
-	/// being carried there is not built - and a fleet lies on land only in an open port,
-	/// and not in water closed to it. Past that every unit stands where whoever holds the
-	/// ground under it now holds the ground, or where its country may walk.
+	/// Whether a unit may stand in a province. A land unit stands in the sea only where a
+	/// fleet of its own there may take it aboard (<c>transport.md</c>, section 3) - and,
+	/// ours, not when it is aboard one already - and a fleet lies on land only in an open
+	/// port, and not in water closed to it. Past that every unit stands where whoever holds
+	/// the ground under it now holds the ground, or where its country may walk.
 	/// </summary>
 	public static bool MayStandIn(CGameState state, CCountry country, CUnit unit, CProvince province)
 	{
@@ -189,7 +190,7 @@ public static class CMovementRules
 		}
 		if (IsLandUnit(unit) && province.IsSea)
 		{
-			return false;
+			return unit.Transport is null && Transport.CTransport.FleetToBoard(state, unit, province) is not null;
 		}
 		CProvince here = state.Province(unit.Location);
 		return province.Controller == here.Controller || MayEnter(state, country, province);
@@ -236,14 +237,11 @@ public static class CMovementRules
 		{
 			return false;
 		}
-		foreach (CSubUnit ship in unit.SubUnits)
+		foreach (CUnit passenger in unit.Passengers)
 		{
-			foreach (CUnit carried in ship.Carried)
+			if (passenger.IsMoving)
 			{
-				if (carried.Kind != EUnitKind.Air && carried.IsMoving)
-				{
-					return false;
-				}
+				return false;
 			}
 		}
 		return true;

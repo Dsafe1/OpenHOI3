@@ -47,10 +47,11 @@ public static class CBattleUnitTooltips
 		{
 			text.Append(localise(unit.SubUnits.Count == 1 ? "NO_LEADER_FOR_THIS_2" : "NO_LEADER_FOR_THIS_1")).Append('\n');
 		}
-		// The second pair of multipliers is a landing's alone, and nothing lands here: the
-		// figure and its base are one, and the line is yellow.
-		text.Append(localise("BATTLE_ATTACKMOD")).Append(": §Y").Append(Hundredfold(unit.CombatAttack)).Append("§!%\n");
-		text.Append(localise("BATTLE_DEFENDMOD")).Append(": §Y").Append(Hundredfold(unit.CombatDefence)).Append("§!%\n");
+		text.Append(Landing(localise, state, unit));
+		// The second pair of multipliers is a landing's alone (transport.md, section 12): where it
+		// makes a figure differ from its base, both are written, each coloured against the other.
+		text.Append(Scaled(localise("BATTLE_ATTACKMOD"), unit.CombatAttack, unit.LandingAttack));
+		text.Append(Scaled(localise("BATTLE_DEFENDMOD"), unit.CombatDefence, unit.LandingDefence));
 		text.Append(CBattleTooltips.Modifiers(localise, unit.CombatModifiers));
 		if (combat.SideOf(unit) is { Tactic: { } tactic } side)
 		{
@@ -61,6 +62,55 @@ public static class CBattleUnitTooltips
 		text.Append(localise("ARMOR_VALUE")).Append(": §Y").Append(CNumberText.Trimmed(CUnitTotals.Best(unit, CUnitTotals.Armour)))
 			.Append("§!\n");
 		return Text(text.ToString());
+	}
+
+	/// <summary>
+	/// A unit landing from the sea: while it is short of the coast that it is in the transports, a blank line, its
+	/// progress - red, green from the whole - and each of its two scales that is not one, red below and green above, and a
+	/// blank line. Nothing for any other unit.
+	/// </summary>
+	public static string Landing(Func<string, string> localise, CGameState state, CUnit unit)
+	{
+		if (!Sim.Transport.CLanding.IsLanding(state, unit))
+		{
+			return "";
+		}
+		long progress = Sim.Transport.CLanding.Progress(state, unit);
+		var text = new StringBuilder();
+		if (progress < Scale)
+		{
+			text.Append(localise("AMPH_INVASION_COMBAT_PROGRESS_DESC")).Append("\n\n");
+		}
+		text.Append(CTextTemplate.Fill(localise("AMPH_INVASION_PROGRESS"),
+			("PERC", (progress >= Scale ? "§G" : "§R") + CNumberText.Format(new CFixedPoint(progress * 100), 2) + "§!")));
+		foreach ((string key, CFixedPoint scale) in new[]
+		{
+			("AMPH_INVASION_ATTACK_SCALE", unit.LandingAttack), ("AMPH_INVASION_DEFEND_SCALE", unit.LandingDefence),
+		})
+		{
+			if (scale != CFixedPoint.One)
+			{
+				text.Append('\n').Append(CTextTemplate.Fill(localise(key),
+					("PERC", (scale < CFixedPoint.One ? "§R" : "§G") + Hundredfold(scale) + "§!")));
+			}
+		}
+		return text.Append("\n\n").ToString();
+	}
+
+	/// <summary>
+	/// A modifier line: the figure times its landing scale, as a percentage - yellow, or green above its base and red
+	/// below - and where the two differ, " / " and the base in the other colour.
+	/// </summary>
+	private static string Scaled(string label, CFixedPoint figure, CFixedPoint scale)
+	{
+		var scaled = new CFixedPoint(figure.Raw * scale.Raw / Scale);
+		if (scaled == figure)
+		{
+			return label + ": §Y" + Hundredfold(scaled) + "§!%\n";
+		}
+		bool above = scaled > figure;
+		return label + ": " + (above ? "§G" : "§R") + Hundredfold(scaled) + "§!% / " + (above ? "§R" : "§G")
+			+ Hundredfold(figure) + "§!%\n";
 	}
 
 	/// <summary>A reserve of the attacker's: its chance of coming up this hour, whatever the element.</summary>

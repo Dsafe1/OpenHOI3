@@ -35,7 +35,7 @@ public static class CSupplyDraw
 	/// </summary>
 	public static int ProvinceOf(CCountry owner, CUnit unit)
 	{
-		if (unit.CarriedBy?.Unit is { } fleet)
+		if ((unit.CarriedBy?.Unit ?? unit.Transport) is { } fleet)
 		{
 			return fleet.Base != 0 ? fleet.Base : fleet.Location;
 		}

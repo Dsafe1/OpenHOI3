@@ -13,15 +13,20 @@ public static class CMapArrows
 {
 	/// <summary>
 	/// The name of the arrow type for a unit with somewhere to go: the retreat's for a
-	/// unit falling back, the attack's where an enemy of its country holds the next
-	/// province of its way - whether or not anybody stands there - and the march's
-	/// otherwise. The original has two more, for a landing and a redeployment.
+	/// unit falling back, the landing's for a land unit going ashore from the sea on
+	/// anybody's ground (<c>transport.md</c>, section 12), the attack's where an enemy of
+	/// its country holds the next province of its way - whether or not anybody stands
+	/// there - and the march's otherwise. The original has one more, for a redeployment.
 	/// </summary>
 	public static string TypeOf(CGameState state, CUnit unit)
 	{
 		if (unit.IsRetreating)
 		{
 			return CArrowTypes.Retreat;
+		}
+		if (Sim.Transport.CLanding.IsLanding(state, unit))
+		{
+			return CArrowTypes.Invasion;
 		}
 		if (unit.Path.Count > 0 && unit.Path[0] > 0 && unit.Path[0] < state.Provinces.Count
 			&& state.Province(unit.Path[0]).Controller is { } holder

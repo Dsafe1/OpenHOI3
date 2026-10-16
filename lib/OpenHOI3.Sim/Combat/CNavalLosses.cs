@@ -17,12 +17,22 @@ public static class CNavalLosses
 	/// <summary>
 	/// Takes every ship's notes off it and clears them: neither more strength nor more
 	/// organisation than it has. A ship's notes are not divided by a hundred as a
-	/// brigade's are.
+	/// brigade's are. What the fleet's transports took is laid on the land units aboard
+	/// (<c>transport.md</c>, section 6).
 	/// </summary>
 	public static void Settle(CGameState state, CCombatSide side)
 	{
 		foreach (CUnit fleet in side.Units)
 		{
+			long transportDamage = 0;
+			foreach (CSubUnit ship in fleet.SubUnits)
+			{
+				if (CShipCensus.IsTransport(ship))
+				{
+					transportDamage += ship.PendingStrengthDamage;
+				}
+			}
+			Transport.CTransport.LayDamage(fleet, transportDamage);
 			foreach (CSubUnit ship in fleet.SubUnits)
 			{
 				long strength = Math.Min(ship.PendingStrengthDamage, ship.Strength.Raw);
@@ -60,6 +70,11 @@ public static class CNavalLosses
 			if (fleet.SubUnits.Count == 0)
 			{
 				CCombatRetreat.RemoveFromGame(state, fleet);
+			}
+			else
+			{
+				// What the fleet can no longer carry is lost at sea (transport.md, section 6).
+				Transport.CTransport.CheckOverload(state, fleet);
 			}
 		}
 	}

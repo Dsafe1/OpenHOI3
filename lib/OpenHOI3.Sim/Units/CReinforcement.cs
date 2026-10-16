@@ -53,7 +53,7 @@ public static class CReinforcement
 		{
 			return unit.Location == unit.Base;
 		}
-		return unit.Kind == EUnitKind.Air || unit.CarriedBy is null;
+		return unit.Kind == EUnitKind.Air || (unit.CarriedBy is null && unit.Transport is null);
 	}
 
 	/// <summary>

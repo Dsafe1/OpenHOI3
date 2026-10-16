@@ -114,8 +114,8 @@ public static class CProvinceTooltip
 		{
 			return "UTM_MAY_SHATTER";
 		}
-		// Nothing carries a land unit here yet, so the original's test that none does always holds.
-		if (IsLand(unit) && enemy && unit.SuppliesReceived == CFixedPoint.Zero
+		// A unit aboard a fleet is not told it lacks supplies (transport.md, section 12).
+		if (IsLand(unit) && enemy && unit.Transport is null && unit.SuppliesReceived == CFixedPoint.Zero
 			&& CUnitSupply.SupplyConsumption(state, owner, unit) > CFixedPoint.Zero)
 		{
 			return "UTM_LACK_OF_SUPPLIES";

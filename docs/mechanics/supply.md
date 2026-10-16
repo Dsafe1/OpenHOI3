@@ -520,8 +520,9 @@ that ground's depot, and on anybody else's it comes with nothing.
 That, and not the network, is what feeds an army that has walked beyond its supply lines: it
 eats what it carried, for a fortnight, and then it starves.
 
-*Ours:* units are not carried by ships or aircraft yet, so nothing is put ashore or dropped.
-A dropped unit brings `PARASUPPLYPOOL_DAYS` in the original.
+**A unit put ashore off a fleet brings its days twice** - into the province it is leaving, which
+is the sea, and again into the land it enters - since 2026-10-15 (`transport.md`, section 4).
+Nothing is carried by air yet: a dropped unit brings `PARASUPPLYPOOL_DAYS` in the original.
 
 ## 15. Where supplies are made, and the sea
 
@@ -636,8 +637,8 @@ Run it after touching `lib/OpenHOI3.Sim/Supply` or `lib/OpenHOI3.Sim/Convoys`.
 ## Not built
 
 - **The days out of supply**, and the message a province's first day out of supply raises.
-- **A unit on loan**, **arcade mode**, and **units carried by ships and aircraft** (sections 13
-  and 14).
+- **A unit on loan**, **arcade mode**, and **units carried by aircraft** (sections 13 and 14).
+  Units carried by ships are built since 2026-10-15 (`transport.md`).
 - **Leaders**, which change what a unit uses.
 - **Suppression** and **the faction leader's capital** (sections 8 and 4).
 - **A puppet made or freed during a game**, and an alliance likewise.

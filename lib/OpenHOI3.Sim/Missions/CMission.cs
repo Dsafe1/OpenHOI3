@@ -62,6 +62,9 @@ public sealed class CMission
 	/// <summary>An escort: which end it is bound for - the first when set.</summary>
 	public bool Turned { get; set; }
 
+	/// <summary>An invasion: the sea province the landing is made from, or 0 where none was found.</summary>
+	public int LandingSea { get; set; }
+
 	// ---- an air mission's: docs/mechanics/aircombat.md
 
 	/// <summary>An air mission flies by day only.</summary>

@@ -38,6 +38,12 @@ public enum EUnitOrder
 	/// <summary>A fleet: go round a sea province and the ones about it, sinking convoys.</summary>
 	ConvoyRaid,
 
+	/// <summary>A fleet: carry its land units to a friendly port, put them off, and go home (<c>transport.md</c>, section 7).</summary>
+	Transport,
+
+	/// <summary>A fleet: land its land units on a province from the sea beside it (<c>transport.md</c>, section 10).</summary>
+	Invasion,
+
 	/// <summary>An air unit: go round the provinces of its mission, flying at enemy air units in them.</summary>
 	AirSuperiority,
 

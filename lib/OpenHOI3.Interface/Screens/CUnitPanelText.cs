@@ -435,6 +435,8 @@ public static class CUnitPanelText
 				case EUnitOrder.Reserve:
 				case EUnitOrder.Sortie:
 				case EUnitOrder.ConvoyRaid:
+				case EUnitOrder.Transport:
+				case EUnitOrder.Invasion:
 					return localise(COrdersText.NameKey(unit.Order)) + " :" + where;
 				// The intercept's is the original's; what air superiority puts in the brackets
 				// was not read, and it is given the intercept's three.
