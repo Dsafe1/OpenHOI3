@@ -177,7 +177,10 @@ public static class CSupplyDraw
 		long held = CSupplyPass.Held(here.Pool, goods);
 		if (held < need)
 		{
-			held = held * (asked * Scale / need) / Scale;
+			// A need of nought makes the share -1, the original's fixed-point division by nought: a pool below nought -
+			// a capital's, charged whatever it holds during the day - then gives nearly nothing (supply.md, section 13).
+			long ratio = need == 0 ? -1 : asked * Scale / need;
+			held = held * ratio / Scale;
 		}
 		if (held >= asked)
 		{

@@ -497,7 +497,11 @@ full one. What is paid is the friend's to supply: it counts as asked for by the 
     given     = the least of that and what the unit asks
     received  = given / asked                                    kept by the unit until it next draws
 
-A capital counts no need of its own, so a unit in one is given what it asks while there is any.
+A capital counts no need of its own, so a unit in one is given what it asks while there is any. **Where its pool has
+gone below nought** - a capital's pool is its country's stockpile, charged whatever it holds during the day - the need
+of nought makes the share's division the original's fixed-point division by nought, which answers -1: the unit's share
+is the pool's size over a thousand, truncated, so it gets nearly nothing, and nothing fails. Read 2026-10-16 after the
+headless run met it as a division by zero on 29 April 1938 (`FINDINGS-supplypass.md`, section 4).
 
 - What a unit asks is counted for **the country that holds the ground**, friend's payment
   aside: it is that country's supply share that has to make it (`upkeep.md`, section 8).

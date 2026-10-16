@@ -74,6 +74,22 @@ public class ConditionTests
 	}
 
 	[Fact]
+	public void Lost_national_is_the_share_of_its_owned_cores_a_country_does_not_hold()
+	{
+		CGameState state = State();
+		// Germany owns two of its cores, Berlin and Posen; Poland takes Posen.
+		OpenHOI3.Sim.Wars.CSurrender.CountVictoryPoints(state);
+		Assert.False(Holds(state, "lost_national = 0.001", Ger));
+		state.Province(3).Controller = Pol;
+		OpenHOI3.Sim.Wars.CSurrender.CountVictoryPoints(state);
+
+		Assert.True(Holds(state, "lost_national = 0.5", Ger));
+		Assert.False(Holds(state, "lost_national = 0.501", Ger));
+		// A country owning no core of its own has lost none.
+		Assert.False(Holds(state, "lost_national = 0.001", Pol));
+	}
+
+	[Fact]
 	public void A_provinces_number_throws_the_country_away_and_owner_brings_it_back()
 	{
 		CGameState state = State(atWar: true);

@@ -191,17 +191,75 @@ never reads from the file (`espionage.md`, section 13).
 
 | waits for | effects |
 | --- | --- |
-| the event pass | `country_event`, `province_event` |
-| diplomacy | `casus_belli`, `add_casus_belli`, `war`, `undeclared_war`, `add_wargoal`, `create_vassal`, `release_vassal`, `inherit`, `surrender_inherit`, `form_government_in_exile`, `split_troops` - `release` is built since 2026-10-15 (`rebels.md`, section 8) |
-| neutrality and war exhaustion | `neutrality`, `war_exhaustion` |
+| the event pass | `province_event` - `country_event` is built since 2026-10-16 (section 9) |
+| diplomacy | `undeclared_war`, `release_vassal`, `surrender_inherit` - the war and pact effects run (`war.md`, `agreements.md`), `release` since 2026-10-15 (`rebels.md`, section 8), `split_troops` since 2026-10-16 (section 9) |
+| war exhaustion | `war_exhaustion` - `neutrality` runs (`diplomacy.md`) |
 | the fog of war's switch | `remove_fow` |
 | the AI | `add_ai_strategy`, `fixed_ai_strategy` |
-| units an event gives or takes | `load_oob`, `add_division`, a unit type's name, `remove_brigade` |
+| units an event gives or takes | `load_oob`, `add_division`, `remove_brigade` - a unit type's name is built since 2026-10-16 (section 9) |
 
 **Unread**: `create_alliance`, which runs a part of the alliance action nobody has read.
 
 *Ours*: where the original faults - `strategic_resource` with a name no resource has, `organisation`
 on a country with no ruling party - nothing happens, and the first is reported when read.
+
+## 9. Another event, troops handed over, a brigade given
+
+Built 2026-10-16, after the headless run found the event chains they break (`headless.md`, section 4); read in
+`FINDINGS-effectrun.md`, sections 1.8, 1.12 and 3.6.
+
+**`country_event = N`** fires event N at once for the scope's country, **where N's own trigger holds** - one whose
+trigger is false, or an id no event has, does nothing. It is fired in a fresh scope: the scope's country, **FROM the
+root's country** (THIS) - or, where the root has none, the root's province as FROM's - and a state of chance seeded
+with two steps of the scope's own, their product's thirty low bits, which the scope keeps having taken. The firing is
+the daily pass's own (`events.md`, section 6): a country nobody plays has its answer posted for the next turn of the
+queue, a person's event is opened. Nothing delays it: there is no `days`.
+
+**`split_troops = F`** - THIS hands units and manpower to the scope's country:
+
+    the share      F, in thousandths; the roll's bound is F x 100, whole
+    the budget     F of THIS's brigades, counted over all its units, in thousandths of one
+    for each of THIS's units, in its list's order, every level:
+        skipped    aboard a fleet or a plane; a fleet with units under it; a fleet or an air unit carrying anything;
+                   in a battle; a theatre
+        the budget spent              -> no more go, whatever the roll
+        a roll of the scope's chance under F of a hundred -> it goes:
+            the units under it leave it; its brigades' officers go with it, each brigade's `officers` times THIS's
+            officer ratio; its leader stays behind; it leaves its place and joins the scope's country's list; the
+            budget loses its brigades
+            a land unit then steps into the first province beside it, in the map's order, that either side holds and
+            where no unit of another country stands - with none, it stays; the step takes nothing
+            where anyone is left in the province it stepped out of, it is sent straight back there: a march, posted
+    after:         F of THIS's manpower goes over, neither side below nought
+
+So a share is a share of chances, not of units: each unit goes on its roll until the brigades' budget runs out. The
+original keeps a second budget for land units alone, charged only by them; it never runs out first, so it is not kept
+here. The march back is posted where "this machine may post commands" - the original's session flag, set in single
+player and on a multiplayer host - which a game here always may. So a unit is seen in a neighbouring province only
+where nobody was left behind: the "random adjacent province, under unknown circumstances" the BlackICE docs record.
+*Ours*: THIS's officers are floored at nought, as a country's officers always are; how the original moves them
+(`0x3A680`) is not read.
+
+**A unit type's name** - `infantry_brigade = 1234`, `= this`, `= from` or `= current` - gives the scope's country a
+brigade of that type in that province (THIS's province, THIS's FROM province, or the scope's own - **given then to
+whoever holds it**):
+
+    a headquarters brigade                   -> a unit of its own
+    otherwise: the country's unit in the province of the type's arm with fewer than four brigades, whose first is no
+               headquarters - the emptiest, the first of equals; none -> a unit of its own
+    the brigade: named as a new one is, at half its strength and half its organisation, every technology at nought
+
+A unit of its own is a division, a fleet or an air unit by the arm, named as a new one is, based in the province where
+it is a fleet or an air unit. Then a battle is looked for where it stands. That the brigade has **no technology** is
+the maintainer's word on the original, 2026-10-16: "The original spawns it with 0 techs."
+
+**The Spanish Civil War, and why it waits for the AI.** Event 2001 declares the war before it splits the troops, so
+the giver's units standing in the land just given take it at the declaration (`war.md`, section 5, step 13). In the
+original that does not end the war, by the maintainer's account (2026-10-16): **its AI has moved the Republic's
+units to the border with Portugal by then, so the Nationalists' victory points stand empty**, and the Nationalists get
+units of their own in their capital. With no AI here the divisions stand where the history put them, the Nationalists
+hold none of their victory points, and they capitulate the next midnight (`headless.md`, section 4). Nothing to mend
+in the effects: it waits for the AI.
 
 ## Not established
 

@@ -141,6 +141,34 @@ public class EventTests
 	}
 
 	[Fact]
+	public void Country_event_fires_another_for_the_scopes_country_from_the_root_where_its_trigger_holds()
+	{
+		CGameState state = ScriptWorld.State();
+		CEvent second = Event(2, trigger: "tag = POL", options: "set_country_flag = second_ran");
+		state.Events = new[] { second };
+		CEffects.Run(state, ScriptWorld.Effects("POL = { country_event = 2 }"), CEventScope.Start(Ger, randomState: 12345));
+
+		// Poland's AI answers it, FROM the root's country.
+		var answer = Assert.IsType<CSelectEventOptionCommand>(Assert.Single(state.Outbox));
+		Assert.Equal(Pol, answer.Scope.Country);
+		Assert.Equal(Ger, answer.Scope.FromCountry);
+		answer.Execute(state);
+		Assert.True(Flag(state, Pol, "second_ran"));
+
+		// The scope it runs in has its state of chance stepped twice for the new one's seed.
+		state.Outbox.Clear();
+		var scope = CEventScope.Start(Pol, randomState: 12345);
+		CEffects.Run(state, ScriptWorld.Effects("country_event = 2"), scope);
+		uint once = unchecked(12345u * 214013u + 2531011u);
+		Assert.Equal(unchecked(once * 214013u + 2531011u), scope.RandomState);
+
+		// For Germany its trigger does not hold, and an id no event has does nothing: neither fires.
+		state.Outbox.Clear();
+		CEffects.Run(state, ScriptWorld.Effects("country_event = 2 country_event = 99"), CEventScope.Start(Ger));
+		Assert.Empty(state.Outbox);
+	}
+
+	[Fact]
 	public void A_persons_event_is_opened_once_and_its_immediate_block_runs_each_time()
 	{
 		CGameState state = ScriptWorld.State();

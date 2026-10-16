@@ -222,6 +222,12 @@ if (args.Length > 0 && args[0] == "espionage")
 	return CEspionageCheck.Run(args);
 }
 
+// Stage 2's run: 1936 to 1948, nobody playing.
+if (args.Length > 0 && args[0] == "headless")
+{
+	return CHeadlessTrial.Run(args);
+}
+
 // Where the time of an hour goes.
 if (args.Length > 0 && args[0] == "profile")
 {

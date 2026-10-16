@@ -6,6 +6,7 @@ using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Script;
+using OpenHOI3.Sim.Units;
 using OpenHOI3.Sim.Wars;
 using OpenHOI3.Tests.Content;
 
@@ -33,7 +34,7 @@ internal static class ScriptWorld
 	public static readonly CBuilding NavalBase = new(1, "naval_base", 10, "", CFixedPoint.Zero);
 
 	public static CGameState State(bool atWar = false, IReadOnlyList<CIdeologyGroup>? groups = null,
-		IEnumerable<CModifier>? statics = null)
+		IEnumerable<CModifier>? statics = null, IReadOnlyDictionary<string, CSubUnitType>? types = null)
 	{
 		CCountry Country(CCountryTag tag, int capital) => new() { Tag = tag, Name = tag.Value, DefinitionFile = "", Capital = capital };
 		CCountry germany = Country(Ger, 1);
@@ -100,6 +101,7 @@ internal static class ScriptWorld
 			Regions = new[] { new CRegion("sudetenland", new[] { 1, 2 }, useForPeace: false) },
 			Continents = new[] { "europe", "africa", "lake" },
 			IdeologyGroups = groups ?? System.Array.Empty<CIdeologyGroup>(),
+			SubUnitTypes = types ?? new Dictionary<string, CSubUnitType>(System.StringComparer.OrdinalIgnoreCase),
 		};
 	}
 
@@ -111,6 +113,8 @@ internal static class ScriptWorld
 			context.Names.AddCountry(new CCountryTag(tag));
 		}
 		context.Names.Add(EScriptName.Building, "naval_base");
+		context.Names.Add(EScriptName.UnitType, "infantry_brigade");
+		context.Names.Add(EScriptName.UnitType, "hq_brigade");
 		return context;
 	}
 

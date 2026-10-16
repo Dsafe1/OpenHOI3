@@ -153,6 +153,7 @@ A leaf that takes a country reads `this` and `from` in one of four ways:
 | `controls = N` | province N's controller is us | the province comes from the value, so a province scope around it does not matter |
 | `total_ic` | our IC, in whole IC | the value is cut to whole IC first: `= 99.9` is 99 |
 | `dissent`, `national_unity`, `manpower`, `max_manpower` | the figure, a number | |
+| `lost_national` | the share of the country's owned cores it does not hold, made at the head of its day - a core somebody else owns counts in neither, and with none owned it is nought (built 2026-10-16, `FINDINGS-effectrun.md` 1.12) | a share, `0.3` |
 | `max_manpower_greater_than` | **our manpower**, not our ceiling | one body with `manpower` |
 | `manpower_percentage` | manpower over the ceiling, **a share from 0 to 1**: `= 0.5` is half, `= 50` never | *ours*: false for a ceiling of nought, where the original divides by it |
 | `money`, `energy`, `metal`, `rare_materials`, `crude_oil`, `supplies` | what lies in the pool of **our capital**, a number | there is no `fuel` |
@@ -271,7 +272,7 @@ impacts answer since 2026-10-14: `politics.md`, section 8. `spies` and `spy_miss
 | diplomacy | `truce_with`, `undeclared_war_with`, `casus_belli`, `has_cb`, `has_wargoal` |
 | the fog of war's switch | `remove_fow` |
 | the AI's missions | `active_mission`, `last_mission`, `is_mission_country`, `is_mission_province` |
-| a country's war record | `war_exhaustion`, `lost_IC`, `lost_national`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
+| a country's war record | `war_exhaustion`, `lost_IC`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
 | the last battles | `last_battle_winner_losses` and the five others |
 | blockades | `blockade`, `is_blockaded` |
 | days out of supply | `out_of_supply_days` |

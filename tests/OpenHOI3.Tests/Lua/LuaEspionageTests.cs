@@ -1,4 +1,5 @@
 using System;
+using OpenHOI3.Sim.Units;
 using System.Collections.Generic;
 using System.IO;
 using OpenHOI3.Content;
@@ -97,6 +98,22 @@ public sealed class LuaEspionageTests : IDisposable
 		Assert.Equal(true, scripts.Ask(state, $"{Italy}:CalculateIsAllied({Germany})"));
 		Assert.Equal("GER", scripts.Ask(state, $"(function() for t in {Italy}:GetSpyingOnUs() do return tostring(t) end end)()"));
 		Assert.Equal(1.0, scripts.Ask(state, $"{Italy}:GetCapitalLocation():GetProvinceID()"));
+	}
+
+	[Fact]
+	public void A_province_counts_every_unit_standing_in_it_whoever_owns_it()
+	{
+		CGameState state = World();
+		state.Country(Ita)!.Units.Add(new CUnit(EUnitKind.Division, Ita) { Id = 1, Location = 1 });
+		state.Country(Ger)!.Units.Add(new CUnit(EUnitKind.Division, Ger) { Id = 2, Location = 1 });
+		state.Country(Ger)!.Units.Add(new CUnit(EUnitKind.Division, Ger) { Id = 3, Location = 2 });
+		state.ForgetPositions();
+		using CAiScripts scripts = Load();
+
+		// What FIN.lua and JAP.lua sum over their borders.
+		Assert.Equal(2.0, scripts.Ask(state, "CCurrentGameState.GetProvince(1):GetNumberOfUnits()"));
+		Assert.Equal(1.0, scripts.Ask(state, "CCurrentGameState.GetProvince(2):GetNumberOfUnits()"));
+		Assert.Equal(0.0, scripts.Ask(state, "CCurrentGameState.GetProvince(0):GetNumberOfUnits()"));
 	}
 
 	[Fact]

@@ -510,7 +510,7 @@ public static class CMovement
 	}
 
 	/// <summary>Puts a unit in a province, with whatever its ships carry and the land units aboard it.</summary>
-	private static void Enter(CGameState state, CUnit unit, int province)
+	internal static void Enter(CGameState state, CUnit unit, int province)
 	{
 		int left = unit.Location;
 		state.Positions.Move(unit, unit.Location, province);

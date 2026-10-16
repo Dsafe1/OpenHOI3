@@ -486,6 +486,12 @@ public sealed class CGameState
 	public List<Commands.CCommand> Outbox { get; } = new();
 
 	/// <summary>
+	/// Where every condition and effect tells what of its script it could not answer or do, for a tool that wants to count it -
+	/// the headless run. Null in a game, where nobody asks. Changes nothing the events do.
+	/// </summary>
+	public Script.CScriptReport? ScriptReport { get; set; }
+
+	/// <summary>
 	/// Raised as an event fires, past its <c>fire_only_once</c> test, for whatever reports it - a
 	/// message, a tool. Never for anything that changes the game.
 	/// </summary>

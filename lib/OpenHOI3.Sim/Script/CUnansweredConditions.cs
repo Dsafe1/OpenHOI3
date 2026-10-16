@@ -36,7 +36,7 @@ public static class CUnansweredConditions
 		// The AI's missions.
 		Add(EScriptGap.Unbuilt, "active_mission", "last_mission", "is_mission_country", "is_mission_province");
 		// A country's war record and the last battles.
-		Add(EScriptGap.Unbuilt, "war_exhaustion", "lost_ic", "lost_national",
+		Add(EScriptGap.Unbuilt, "war_exhaustion", "lost_ic",
 			"total_sea_battles", "total_offensives", "total_defensives",
 			"total_we_bomb", "total_sunk_by_us", "total_of_ours_sunk");
 		Add(EScriptGap.Unbuilt, "last_battle_winner_losses", "last_battle_loser_losses", "last_air_battle_winner_losses",

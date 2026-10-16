@@ -117,10 +117,18 @@ public sealed class CEventScope
 	/// </summary>
 	public int Draw(int count)
 	{
+		return NextProduct() % count;
+	}
+
+	/// <summary>
+	/// The original's <c>EventRandom_NextProduct</c>: two steps of the state, the product of their two fifteen-bit
+	/// outputs. What <see cref="Draw"/> takes the remainder of, and what <c>country_event</c> seeds its event's scope with.
+	/// </summary>
+	public int NextProduct()
+	{
 		uint first = Step();
 		uint second = Step();
-		int product = (int)(((first >> 16) & 0x7FFF) * ((second >> 16) & 0x7FFF));
-		return product % count;
+		return (int)(((first >> 16) & 0x7FFF) * ((second >> 16) & 0x7FFF));
 	}
 
 	/// <summary>A tag that names a country, or null for none.</summary>

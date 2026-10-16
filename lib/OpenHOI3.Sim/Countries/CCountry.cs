@@ -285,6 +285,12 @@ public sealed class CCountry
 	public CFixedPoint NationalUnity { get; set; } = CFixedPoint.One;
 
 	/// <summary>
+	/// The share of its owned cores it does not hold, in thousandths, as the day's count left it: what <c>lost_national</c>
+	/// asks. Nought with none owned. See <c>docs/mechanics/triggers.md</c>, section 5.
+	/// </summary>
+	public CFixedPoint LostNationalProvinces { get; set; }
+
+	/// <summary>
 	/// The victory points of its cores it owns, a thousand to a point, as the day's count left them. See
 	/// <c>docs/mechanics/war.md</c>, section 12.
 	/// </summary>

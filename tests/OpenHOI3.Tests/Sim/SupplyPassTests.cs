@@ -252,6 +252,23 @@ public class SupplyPassTests
 	}
 
 	[Fact]
+	public void A_unit_in_a_capital_whose_pool_went_below_nought_gets_nearly_nothing_and_nothing_fails()
+	{
+		int berlin = Land(Ger, industry: 5);
+		CCountry germany = Country(Ger, berlin);
+		CUnit division = Division(germany, berlin);
+		CGameState state = State();
+		CSupplyPass.RunDaily(state);                            // a capital counts no need of its own
+		state.Province(berlin).Pool[EGoods.Supplies] = CFixedPoint.Parse("-2");
+
+		CSupplyDraw.Draw(state, germany, division);
+
+		// The share by a need of nought is -1 thousandth, the original's division by nought: -2 becomes 0.002.
+		Assert.Equal(CFixedPoint.Parse("0.002"), division.SuppliesReceived);
+		Assert.Equal(CFixedPoint.Parse("-2.002"), Supplies(state, berlin));
+	}
+
+	[Fact]
 	public void Fuel_is_given_to_a_unit_standing_still_and_burnt_only_on_the_move()
 	{
 		int berlin = Land(Ger, industry: 5);

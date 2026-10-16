@@ -117,7 +117,7 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | `CGovernment` | `==` | the same government |
 | `CIdeology` | `GetGroup()`, `GetKey()` | its group (`CIdeologyGroup`); its name |
 | `CIdeologyGroup` | `==`, `GetKey()`, `GetFaction()` | the same group; its name; its faction, nil for none |
-| `CProvince` | `GetContinent()`, `GetController()`, `GetOwner()`, `GetProvinceID()` | its continent; the tags; its number |
+| `CProvince` | `GetContinent()`, `GetController()`, `GetOwner()`, `GetProvinceID()`, `GetNumberOfUnits()` | its continent; the tags; its number; how many units stand in it, whoever owns them - the count of its own list (2026-10-16, `FINDINGS-effectrun.md` 1.12; `FIN.lua` and `JAP.lua` sum it over borders) |
 | `CContinent` | `==`, `GetTag()` | the same name; its name |
 | `CString` | `tostring`, `==`, `GetString()` | its text |
 | `CGoodsPool` | `Get(g)`, `GetFloat(g)` | one good, as a `CFixedPoint`; as a float |

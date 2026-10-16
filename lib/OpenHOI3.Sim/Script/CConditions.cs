@@ -13,6 +13,8 @@ public static class CConditions
 {
 	public static bool Holds(CGameState state, CTrigger trigger, CEventScope scope, CScriptReport? report = null)
 	{
+		// With none given, the game's own - which only a tool sets (CGameState.ScriptReport).
+		report ??= state.ScriptReport;
 		switch (trigger.Kind)
 		{
 			case ETriggerKind.Keyword:

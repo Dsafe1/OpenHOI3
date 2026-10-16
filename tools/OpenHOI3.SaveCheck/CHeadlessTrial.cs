@@ -1,0 +1,433 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using OpenHOI3.Content;
+using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Content.Definitions;
+using OpenHOI3.Content.Map;
+using OpenHOI3.Lua;
+using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Script;
+using OpenHOI3.Sim.Units;
+
+/// <summary>
+/// Stage 2's run: a new game with the install's Lua and nobody playing, run hour by hour from the start to a year's
+/// first day, with nothing given to it by hand:
+///
+///   OpenHOI3.SaveCheck headless &lt;install folder&gt; [until year] [savegame ...]
+///
+/// 1948 with none given. Twice a year it writes each great power's figures and the world's; every day it looks for a
+/// stockpile or a manpower below nought; at the end it tells how long each year took, what fired, what the Lua failed
+/// and what of the script met something not built. Given savegames of the same start, it sets every country's
+/// stockpile, manpower, officers, influence and technology beside each save as the run reaches its hour. A run that
+/// throws stops there and says where. See <c>docs/mechanics/headless.md</c>.
+/// </summary>
+internal static class CHeadlessTrial
+{
+	private static readonly string[] Majors = { "GER", "ENG", "FRA", "ITA", "SOV", "USA", "JAP", "CHI" };
+
+	public static int Run(string[] args)
+	{
+		if (args.Length < 2)
+		{
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck headless <install folder> [until year] [savegame ...]");
+			return 2;
+		}
+		CDate end = args.Length > 2 && int.TryParse(args[2], out int year) ? new CDate(year, 1, 1)
+			: args.Length > 2 && CDate.TryParse(args[2], out CDate given) ? given : new CDate(1948, 1, 1);
+		string lastInspected = "";
+		string? inspect = args.FirstOrDefault(a => a.StartsWith("inspect=", StringComparison.Ordinal))?["inspect=".Length..];
+		var saves = new List<(long Hour, string Path)>();
+		foreach (string path in args.Skip(2).Where(a => a.EndsWith(".hoi3", StringComparison.OrdinalIgnoreCase)))
+		{
+			ClausewitzNode head = ClausewitzParser.ParseFile(path);
+			if (TryHour(head.GetString("date"), out long hour))
+			{
+				saves.Add((hour, path));
+			}
+		}
+		saves.Sort();
+
+		var loading = Stopwatch.StartNew();
+		var warnings = new List<string>();
+		CDirectorySettings directories = CDirectorySettings.At(args[1]);
+		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
+		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
+		CMap map = CMap.Load(directories, warnings.Add);
+		var luaReports = new List<string>();
+		using var scripts = new CAiScripts(directories, luaReports.Add);
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts);
+		state.Played.Clear();
+		state.ScriptReport = new CScriptReport();
+		var simulation = new CSimulation(state);
+		Console.WriteLine($"a new game, {state.Date}, nobody playing, loaded in {loading.ElapsedMilliseconds} ms; " +
+			$"the Lua with {scripts.Failures} errors, {warnings.Count} warnings while loading");
+
+		// What happens, counted by year.
+		var fired = new SortedDictionary<int, Dictionary<string, int>>();
+		var taken = new SortedDictionary<int, Dictionary<string, int>>();
+		var messages = new SortedDictionary<int, Dictionary<string, int>>();
+		state.EventFired += (fired_, scope) => Count(fired, state.Date.Year, fired_.Id.ToString(CultureInfo.InvariantCulture));
+		state.DecisionTaken += (decision, scope) => Count(taken, state.Date.Year, decision.Name);
+		state.PactMessaged += pact => Count(messages, state.Date.Year, pact.We);
+
+		var below = new SortedDictionary<string, (CDate First, int Days)>(StringComparer.Ordinal);
+		var yearTimes = new List<(int Year, long Ms)>();
+		var factions = state.Countries.ToDictionary(country => country.Tag.Value, country => country.Faction);
+		var wars = state.Wars.ToDictionary(war => war, war => $"{string.Join(" ", war.Attackers)} against {string.Join(" ", war.Defenders)}");
+		var living = new HashSet<string>(state.Countries.Where(c => CResources.HoldsCapital(state, c)).Select(c => c.Tag.Value));
+		var happenings = new List<string>();
+		// What ends a country or a war, as it is told: who and to whom.
+		state.PactMessaged += pact =>
+		{
+			if (pact.We is "ANNEX" or "THEYSURRENDERUS" or "WESURRENDER" or "WEDECLWAR" or "PEACE" or "PUPPET" or "EXILE")
+			{
+				happenings.Add($"{state.Date} {state.Hour}h: {pact.We} {pact.Actor} -> {pact.Recipient}");
+			}
+		};
+		int luaFailuresBefore = scripts.Failures;
+
+		Snapshot(state);
+		var clock = Stopwatch.StartNew();
+		var yearClock = Stopwatch.StartNew();
+
+		int saveIndex = 0;
+		try
+		{
+			while (state.Date < end)
+			{
+				CDate before = state.Date;
+				simulation.RunHours(1);
+				while (saveIndex < saves.Count && state.TotalHours >= saves[saveIndex].Hour)
+				{
+					CompareWithSave(state, saves[saveIndex].Path);
+					saveIndex++;
+				}
+				if (inspect is not null && state.Country(new CCountryTag(inspect)) is { } looked)
+				{
+					lastInspected = Inspect(state, looked, lastInspected);
+				}
+				if (state.Date == before)
+				{
+					continue;
+				}
+				Below(state, below);
+				Happenings(state, factions, wars, living, happenings);
+				if (state.Date.Day == 1 && state.Date.Month is 1 or 7)
+				{
+					Snapshot(state);
+				}
+				if (state.Date.Year != before.Year)
+				{
+					yearTimes.Add((before.Year, yearClock.ElapsedMilliseconds));
+					Console.WriteLine($"   {before.Year} run in {yearClock.ElapsedMilliseconds / 1000.0:0.0} s; the Lua's errors so far " +
+						$"{scripts.Failures - luaFailuresBefore}");
+					yearClock.Restart();
+				}
+			}
+		}
+		catch (Exception exception)
+		{
+			Console.WriteLine();
+			Console.WriteLine($"THE RUN THREW on {state.Date} hour {state.Hour}:");
+			Console.WriteLine(exception);
+			Report(state, scripts, luaReports, fired, taken, messages, below, yearTimes, happenings, clock);
+			return 1;
+		}
+		Report(state, scripts, luaReports, fired, taken, messages, below, yearTimes, happenings, clock);
+		return 0;
+	}
+
+	private static void Count(SortedDictionary<int, Dictionary<string, int>> byYear, int year, string key)
+	{
+		if (!byYear.TryGetValue(year, out Dictionary<string, int>? counts))
+		{
+			byYear[year] = counts = new Dictionary<string, int>(StringComparer.Ordinal);
+		}
+		counts[key] = counts.GetValueOrDefault(key) + 1;
+	}
+
+	/// <summary>Every country's goods and manpower below nought today, by what, with the first day and how many days.</summary>
+	private static void Below(CGameState state, SortedDictionary<string, (CDate First, int Days)> below)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			void Note(string what)
+			{
+				string key = country.Tag.Value + " " + what;
+				(CDate first, int days) = below.GetValueOrDefault(key, (state.Date, 0));
+				below[key] = (first, days + 1);
+			}
+			if (country.Manpower < CFixedPoint.Zero)
+			{
+				Note("manpower");
+			}
+			if (state.Stockpile(country) is { } stockpile)
+			{
+				foreach (EGoods goods in Enum.GetValues<EGoods>())
+				{
+					if (stockpile[goods] < CFixedPoint.Zero)
+					{
+						Note(goods.ToString());
+					}
+				}
+			}
+		}
+	}
+
+	/// <summary>Wars begun and ended and countries changing faction, as they happen.</summary>
+	private static void Happenings(CGameState state, Dictionary<string, string> factions, Dictionary<OpenHOI3.Sim.Wars.CWar, string> wars,
+		HashSet<string> living, List<string> happenings)
+	{
+		foreach (var war in state.Wars)
+		{
+			string sides = $"{string.Join(" ", war.Attackers)} against {string.Join(" ", war.Defenders)}";
+			if (!wars.TryGetValue(war, out string? was))
+			{
+				happenings.Add($"{state.Date}: war '{war.Name}' - {sides}");
+			}
+			else if (was != sides)
+			{
+				happenings.Add($"{state.Date}: war '{war.Name}' now {sides}");
+			}
+			wars[war] = sides;
+		}
+		foreach (var war in wars.Keys.Where(war => !state.Wars.Contains(war)).ToList())
+		{
+			happenings.Add($"{state.Date}: war '{war.Name}' over ({wars[war]})");
+			wars.Remove(war);
+		}
+		foreach (CCountry country in state.Countries)
+		{
+			string was = factions.GetValueOrDefault(country.Tag.Value, "");
+			if (was != country.Faction)
+			{
+				happenings.Add($"{state.Date}: {country.Tag} from '{was}' to '{country.Faction}'");
+				factions[country.Tag.Value] = country.Faction;
+			}
+			bool holds = CResources.HoldsCapital(state, country);
+			if (holds && living.Add(country.Tag.Value))
+			{
+				happenings.Add($"{state.Date}: {country.Tag} appears, capital {country.Capital}");
+			}
+			else if (!holds && living.Remove(country.Tag.Value))
+			{
+				happenings.Add($"{state.Date}: {country.Tag} no longer holds its capital");
+			}
+		}
+	}
+
+	/// <summary>A country's hold on its land each day, for <c>inspect=TAG</c>: what its surrender is reckoned from.</summary>
+	private static string Inspect(CGameState state, CCountry country, string last)
+	{
+		int owned = state.Provinces.Count(province => province.Owner == country.Tag);
+		int controlled = state.Provinces.Count(province => province.Controller == country.Tag);
+		int cores = state.Provinces.Count(province => province.Owner == country.Tag && province.Cores.Contains(country.Tag));
+		int units = country.AllUnits().Count();
+		string line = $"{country.Tag}: owns {owned}, controls {controlled}, owns {cores} cores, {units} units, " +
+			$"core points owned {country.OwnedCoreVictoryPoints} held {country.HeldCoreVictoryPoints}, " +
+			$"progress {OpenHOI3.Sim.Wars.CSurrender.Progress(state, country)}, capital {country.Capital} " +
+			$"({(country.Capital > 0 ? state.Province(country.Capital).Controller?.ToString() : "-")} holds it), at war {state.IsAtWar(country.Tag)}";
+		if (line != last)
+		{
+			Console.WriteLine($"  {state.Date} {state.Hour}h {line}");
+			// Its own land that another holds, and who stands there.
+			foreach (var province in state.Provinces.Where(p => p.Owner == country.Tag && p.Controller != country.Tag).Take(10))
+			{
+				Console.WriteLine($"      {province.Id} {province.Name} ({province.Points} points) held by {province.Controller}; " +
+					$"units {string.Join(", ", state.UnitsIn(province.Id).Select(unit => unit.Owner + " " + unit.Name))}");
+			}
+		}
+		return line;
+	}
+
+	/// <summary>The great powers' figures and the world's.</summary>
+	private static void Snapshot(CGameState state)
+	{
+		Console.WriteLine();
+		Console.WriteLine($"== {state.Date} ==");
+		Console.WriteLine("        IC  maxIC     manpower  leadership  officers    money  supplies     fuel    metal   energy     rare    crude" +
+			"  units brigades queue tech  unity dissent neutr  party        faction");
+		foreach (string tag in Majors)
+		{
+			if (state.Country(new CCountryTag(tag)) is not { } country)
+			{
+				continue;
+			}
+			CGoodsPool? pool = state.Stockpile(country);
+			string Goods(EGoods goods) => pool is null ? "-" : Whole(pool[goods]);
+			List<CUnit> units = country.AllUnits().ToList();
+			int technology = country.TechnologyLevels.Values.Sum();
+			Console.WriteLine($"  {tag} {country.TotalIc,5} {country.MaxIc,6} {Whole(country.Manpower),12} {Tenth(country.TotalLeadership),11} " +
+				$"{Whole(country.Officers),9} {Goods(EGoods.Money),8} {Goods(EGoods.Supplies),9} {Goods(EGoods.Fuel),8} " +
+				$"{Goods(EGoods.Metal),8} {Goods(EGoods.Energy),8} {Goods(EGoods.RareMaterials),8} {Goods(EGoods.CrudeOil),8} " +
+				$"{units.Count,6} {units.Sum(unit => unit.SubUnits.Count),8} {country.Constructions.Count,5} {technology,4} " +
+				$"{Tenth(country.NationalUnity),6} {Tenth(country.Dissent),7} {Tenth(country.Neutrality),6}  " +
+				$"{country.RulingIdeology,-12} {country.Faction}");
+		}
+		var living = state.Countries.Where(country => CResources.HoldsCapital(state, country)).ToList();
+		Console.WriteLine($"  the world: {living.Count} countries holding their capital, IC {living.Sum(c => c.TotalIc)}, " +
+			$"{living.Sum(c => c.AllUnits().Count())} units, {state.Wars.Count} wars, {state.TradeRoutes.Count} trade routes, " +
+			$"research queued in {living.Count(c => c.ResearchQueue.Count > 0)}, building in {living.Count(c => c.Constructions.Count > 0)}");
+	}
+
+	/// <summary>Every country's figures beside a save of the same game at the hour the run has reached.</summary>
+	private static void CompareWithSave(CGameState state, string path)
+	{
+		ClausewitzNode save = ClausewitzParser.ParseFile(path);
+		Console.WriteLine();
+		Console.WriteLine($"== beside {System.IO.Path.GetFileName(path)}, {save.GetString("date")}, player {save.GetString("player")} ==");
+		var ratios = new SortedDictionary<string, List<(double Ratio, string Who, CFixedPoint Saved, CFixedPoint Ours)>>(StringComparer.Ordinal);
+		void Add(string what, string who, CFixedPoint saved, CFixedPoint ours)
+		{
+			if (saved == CFixedPoint.Zero && ours == CFixedPoint.Zero)
+			{
+				return;
+			}
+			if (!ratios.TryGetValue(what, out var list))
+			{
+				ratios[what] = list = new();
+			}
+			double ratio = saved == CFixedPoint.Zero ? double.PositiveInfinity : (double)ours.Raw / saved.Raw;
+			list.Add((ratio, who, saved, ours));
+		}
+		foreach (ClausewitzNode node in save.Children)
+		{
+			if (node.Key is null || !node.IsBlock || !CCountryTag.TryParse(node.Key, out CCountryTag tag)
+				|| state.Country(tag) is not { } country || !CResources.HoldsCapital(state, country))
+			{
+				continue;
+			}
+			string who = tag.Value;
+			bool shared = state.Countries.Any(other => other != country && other.Capital == country.Capital
+				&& CResources.HoldsCapital(state, other));
+			ClausewitzNode? pool = save.Get(country.Capital.ToString(CultureInfo.InvariantCulture))?.Get("pool");
+			if (!shared && pool is not null && state.Stockpile(country) is { } stockpile)
+			{
+				foreach (EGoods goods in Enum.GetValues<EGoods>())
+				{
+					Add(CGoodsPool.KeyOf(goods), who, Number(pool.GetString(CGoodsPool.KeyOf(goods))), stockpile[goods]);
+				}
+			}
+			Add("manpower", who, Number(node.GetString("manpower")), country.Manpower);
+			Add("officers", who, Number(node.GetString("officers")), country.Officers);
+			Add("diplomatic influence", who, Number(node.GetString("diplo_influence")), country.DiplomaticInfluence);
+			long technology = 0;
+			foreach (ClausewitzNode entry in node.Get("technology")?.Children ?? new List<ClausewitzNode>())
+			{
+				if (entry.Key is not null && entry.IsBlock && entry.Children.Count > 0 && state.Technologies.ContainsKey(entry.Key))
+				{
+					technology += Number(entry.Children[0].Value).ToInt();
+				}
+			}
+			Add("technology levels, summed", who, CFixedPoint.FromInt(technology),
+				CFixedPoint.FromInt(country.TechnologyLevels.Values.Sum()));
+		}
+		Console.WriteLine("  ours over the save's, by country: median, the middle half, and the farthest");
+		foreach (var (what, list) in ratios)
+		{
+			var finite = list.Where(entry => !double.IsInfinity(entry.Ratio)).OrderBy(entry => entry.Ratio).ToList();
+			if (finite.Count == 0)
+			{
+				continue;
+			}
+			double Quantile(double q) => finite[(int)Math.Min(finite.Count - 1, Math.Floor(q * finite.Count))].Ratio;
+			var farthest = list.OrderByDescending(entry => double.IsInfinity(entry.Ratio) ? double.MaxValue
+				: Math.Abs(Math.Log(Math.Max(entry.Ratio, 1e-6)))).Take(3);
+			Console.WriteLine($"  {what,-26} {list.Count,4} countries  median {Quantile(0.5):0.000}  middle half " +
+				$"{Quantile(0.25):0.000}-{Quantile(0.75):0.000}  farthest: " +
+				string.Join(", ", farthest.Select(entry => $"{entry.Who} {entry.Saved} -> {entry.Ours}")));
+		}
+		foreach (string tag in Majors)
+		{
+			var line = ratios.Where(pair => pair.Value.Any(entry => entry.Who == tag))
+				.Select(pair => (pair.Key, pair.Value.First(entry => entry.Who == tag)))
+				.Select(pair => $"{pair.Key} {pair.Item2.Saved}/{pair.Item2.Ours}");
+			Console.WriteLine($"  {tag} save/ours: {string.Join("; ", line)}");
+		}
+	}
+
+	private static void Report(CGameState state, CAiScripts scripts, List<string> luaReports,
+		SortedDictionary<int, Dictionary<string, int>> fired, SortedDictionary<int, Dictionary<string, int>> taken,
+		SortedDictionary<int, Dictionary<string, int>> messages, SortedDictionary<string, (CDate First, int Days)> below,
+		List<(int Year, long Ms)> yearTimes, List<string> happenings, Stopwatch clock)
+	{
+		Console.WriteLine();
+		Console.WriteLine($"== the run: to {state.Date} in {clock.ElapsedMilliseconds / 1000.0:0.0} s ==");
+		if (yearTimes.Count > 0)
+		{
+			Console.WriteLine("  each year: " + string.Join(", ", yearTimes.Select(y => $"{y.Year} {y.Ms / 1000.0:0}s")));
+		}
+		Console.WriteLine($"  events fired by year: " + string.Join(", ", fired.Select(y => $"{y.Key} {y.Value.Values.Sum()} ({y.Value.Count} kinds)")));
+		Console.WriteLine($"  the most often fired: " + string.Join(", ", fired.Values.SelectMany(d => d)
+			.GroupBy(p => p.Key).Select(g => (g.Key, g.Sum(p => p.Value))).OrderByDescending(p => p.Item2).Take(12)
+			.Select(p => $"{p.Key} x{p.Item2}")));
+		Console.WriteLine($"  decisions taken by year: " + string.Join(", ", taken.Select(y => $"{y.Key} {y.Value.Values.Sum()}")));
+		Console.WriteLine($"  the decisions: " + string.Join(", ", taken.Values.SelectMany(d => d)
+			.GroupBy(p => p.Key).Select(g => (g.Key, g.Sum(p => p.Value))).OrderByDescending(p => p.Item2).Take(15)
+			.Select(p => $"{p.Key} x{p.Item2}")));
+		Console.WriteLine($"  pact messages by kind: " + string.Join(", ", messages.Values.SelectMany(d => d)
+			.GroupBy(p => p.Key).Select(g => (g.Key, g.Sum(p => p.Value))).OrderByDescending(p => p.Item2).Take(15)
+			.Select(p => $"{p.Key} x{p.Item2}")));
+		Console.WriteLine($"  wars and factions, {happenings.Count} changes:");
+		foreach (string line in happenings.Take(60))
+		{
+			Console.WriteLine("    " + line);
+		}
+		Console.WriteLine($"  below nought, {below.Count} country-goods:");
+		foreach (var (what, (first, days)) in below.OrderByDescending(pair => pair.Value.Days).Take(30))
+		{
+			Console.WriteLine($"    {what}: from {first}, {days} days");
+		}
+		Console.WriteLine($"  the Lua: {scripts.Failures} errors in all; the first of what it reported:");
+		foreach (string line in luaReports.GroupBy(line => line).OrderByDescending(group => group.Count()).Take(15).Select(group => group.Key))
+		{
+			Console.WriteLine($"    x{luaReports.Count(l => l == line)} {Shorten(line)}");
+		}
+		Console.WriteLine($"  the script's gaps met by events, {state.ScriptReport?.Gaps.Count ?? 0} keys:");
+		foreach (var (key, (why, times)) in (state.ScriptReport?.Gaps ?? new()).OrderByDescending(pair => pair.Value.Times).Take(25))
+		{
+			Console.WriteLine($"    {key} ({why}) x{times}");
+		}
+	}
+
+	private static string Shorten(string text)
+	{
+		string line = text.Replace('\n', ' ').Replace('\r', ' ');
+		return line.Length > 160 ? line[..160] + "..." : line;
+	}
+
+	private static string Whole(CFixedPoint value)
+	{
+		return value.ToInt().ToString(CultureInfo.InvariantCulture);
+	}
+
+	private static string Tenth(CFixedPoint value)
+	{
+		return (value.Raw / 100 / 10.0).ToString("0.0", CultureInfo.InvariantCulture);
+	}
+
+	private static CFixedPoint Number(string? text)
+	{
+		return CFixedPoint.TryParse(text, out CFixedPoint value) ? value : CFixedPoint.Zero;
+	}
+
+	private static bool TryHour(string text, out long hours)
+	{
+		hours = 0;
+		string[] parts = text.Split('.');
+		if (parts.Length < 3 || !int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int year)
+			|| !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int month)
+			|| !int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int day))
+		{
+			return false;
+		}
+		int hour = parts.Length > 3 && int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int h) ? h : 0;
+		hours = (long)new CDate(year, month, day).DayNumber * CGameState.HoursPerDay + hour;
+		return true;
+	}
+}

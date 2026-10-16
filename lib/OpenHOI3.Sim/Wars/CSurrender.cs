@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
 
@@ -19,6 +20,8 @@ public static class CSurrender
 	/// </summary>
 	public static void CountVictoryPoints(CGameState state)
 	{
+		var owned = new Dictionary<CCountry, long>();
+		var lost = new Dictionary<CCountry, long>();
 		foreach (CCountry country in state.Countries)
 		{
 			country.OwnedCoreVictoryPoints = 0;
@@ -32,10 +35,22 @@ public static class CSurrender
 			}
 			long points = province.Points * 1000L;
 			country.OwnedCoreVictoryPoints += points;
+			owned[country] = owned.GetValueOrDefault(country) + 1000;
 			if (province.Controller == owner)
 			{
 				country.HeldCoreVictoryPoints += points;
 			}
+			else
+			{
+				lost[country] = lost.GetValueOrDefault(country) + 1000;
+			}
+		}
+		// And what lost_national asks: the share of its owned cores a country does not hold, in thousandths; nought with
+		// none owned (triggers.md, section 5).
+		foreach (CCountry country in state.Countries)
+		{
+			long total = owned.GetValueOrDefault(country);
+			country.LostNationalProvinces = new CFixedPoint(total > 0 ? lost.GetValueOrDefault(country) * 1000 / total : 0);
 		}
 	}
 

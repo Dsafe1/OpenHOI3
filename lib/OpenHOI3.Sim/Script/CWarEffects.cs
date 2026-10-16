@@ -17,6 +17,10 @@ public static class CWarEffects
 			case "war":
 				War(state, effect, scope);
 				return true;
+			case "split_troops":
+				// THIS hands units and manpower to the scope's country (effects.md, section 9).
+				Units.CSplitTroops.Run(state, effect, scope);
+				return true;
 			case "add_wargoal":
 				if (state.Country(scope.Country) is { } actor && state.Country(WarTarget(state, effect, scope)) is { } target
 					&& CWarSides.Between(state, actor.Tag, target.Tag) is { } war && Goal(state, effect, "war_goal", actor, target) is { } goal)

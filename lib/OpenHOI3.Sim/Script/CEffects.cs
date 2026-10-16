@@ -21,6 +21,8 @@ public static class CEffects
 
 	public static void Run(CGameState state, CEffect effect, CEventScope scope, CScriptReport? report = null)
 	{
+		// With none given, the game's own - which only a tool sets (CGameState.ScriptReport).
+		report ??= state.ScriptReport;
 		switch (effect.Kind)
 		{
 			case EEffectKind.Keyword:
@@ -51,7 +53,7 @@ public static class CEffects
 				Revolts.CRisings.FromEffect(state, effect, scope);
 				return;
 			case EEffectKind.UnitType:
-				report?.Add(effect.Key, EScriptGap.Unbuilt);
+				Units.CScriptedBrigades.Run(state, effect, scope);
 				return;
 			default:
 				throw new InvalidOperationException($"'{effect.Key}' is no effect that runs on its own");
@@ -69,7 +71,8 @@ public static class CEffects
 			report?.Add(effect.Key, why);
 			return;
 		}
-		if (CMarkEffects.TryRun(state, effect, scope)
+		if (CEventEffects.TryRun(state, effect, scope)
+			|| CMarkEffects.TryRun(state, effect, scope)
 			|| CCountryEffects.TryRun(state, effect, scope)
 			|| CPoliticsEffects.TryRun(state, effect, scope)
 			|| CEspionageEffects.TryRun(state, effect, scope)

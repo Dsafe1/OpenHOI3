@@ -48,6 +48,10 @@ public static class CCountryConditions
 			case "dissent":
 				answer = (country?.Dissent ?? CFixedPoint.Zero) >= value.Amount;
 				return true;
+			case "lost_national":
+				// The share of its owned cores it does not hold, as the day counted it (triggers.md, section 5).
+				answer = (country?.LostNationalProvinces ?? CFixedPoint.Zero) >= value.Amount;
+				return true;
 			case "national_unity":
 				answer = (country?.NationalUnity ?? CFixedPoint.Zero) >= value.Amount;
 				return true;
