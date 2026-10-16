@@ -125,6 +125,31 @@ public static class CWarTargets
 		return date.Year * 12 + date.Month - 1;
 	}
 
+	/// <summary>
+	/// The prepared wars checked as a strategy is made: each kept where its target owns a province or is in exile, is not
+	/// the country's puppet and is not in its faction, and - with no decision - the country could declare war on it at all,
+	/// or - with one - the decision's <c>potential</c> holds for it (aistrategy.md, section 9.4).
+	/// </summary>
+	public static void Recheck(CGameState state, CCountry country)
+	{
+		country.WarTargets.RemoveAll(entry => !Stands(state, country, entry));
+	}
+
+	private static bool Stands(CGameState state, CCountry country, CWarTarget entry)
+	{
+		if (state.Country(entry.Target) is not { } target
+			|| (COwnedCounts.Of(state).Count(entry.Target) <= 0 && !target.InExile)
+			|| target.Overlord == country.Tag || InItsFaction(country, target))
+		{
+			return false;
+		}
+		if (entry.Decision is { } decision)
+		{
+			return Script.CConditions.Holds(state, decision.Potential, Script.CEventScope.Start(country.Tag));
+		}
+		return Wars.CDeclarations.IsSelectable(state, country, target);
+	}
+
 	private static bool InItsFaction(CCountry country, CCountry other) =>
 		country.Faction.Length > 0 && other.Faction == country.Faction;
 }

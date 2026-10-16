@@ -144,6 +144,14 @@ moved again, the Spanish Civil War fired on 20 June 1936, and still ended on its
 67 influences begun and ended, five alignments - with 1936 and 1937 in 254 seconds each. The Spanish Civil War fired on
 14 March 1936. What each minister offers is told by `OpenHOI3.SaveCheck foreignai` (`foreignminister.md`, section 9).
 
+### With the AI's strategy (2026-10-16)
+
+Stage 5's fourth piece (`aistrategy.md`): every country's strategy made as the game is entered, every ten days and at a
+change of war, and read by the scripts. `headless <install> 1937`: 1936 in 220 seconds, nothing thrown, nothing below
+nought, **no Lua error**; three decisions taken (`new_deal`, `popular_front`, `trains_run_on_time`), 37 influences begun
+and 35 ended, three alignments, 21 licences bought. The draws having moved, the Spanish Civil War did not fire in 1936
+this time.
+
 ## 5. Not established
 
 - ~~What keeps the original's Spanish Civil War going past its first day~~ - the AI, by the maintainer's account: it

@@ -187,6 +187,14 @@ public static class CPeace
 				CWarSides.Leave(state, war, defenders[0]);
 			}
 		}
+		// Each attacker's AI strategy made again, the defenders' not (aistrategy.md, section 1).
+		foreach (CCountryTag attacker in attackers)
+		{
+			if (state.Country(attacker) is { } country)
+			{
+				Ai.CAiStrategies.Remake(state, country);
+			}
+		}
 		foreach (CCountryTag played in state.Played)
 		{
 			if (played == actor.Tag || war.Attackers.Contains(played))

@@ -198,6 +198,12 @@ if (args.Length > 0 && args[0] == "faction")
 	return CFactionTrial.Run(args);
 }
 
+// A new game's AI strategies beside the start-date save's.
+if (args.Length > 0 && args[0] == "aistrategy")
+{
+	return CAiStrategyCheck.Run(args);
+}
+
 // What every foreign minister offers on a new game with nobody playing.
 if (args.Length > 0 && args[0] == "foreignai")
 {

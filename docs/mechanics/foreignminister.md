@@ -113,7 +113,7 @@ By the original's names (`lua.md`). New with the foreign minister:
 | `CFlags` | `IsFlagSet(name)` | whether the flag is there and set |
 | `CEU3Date` | `GetDayOfMonth` | the day of the month counted from 0, as the month is |
 | `CAIStrategy` | the prepared wars | section 5 |
-| | `GetProtectionism(tag)` | **not built**, the AI's strategy (`add_ai_strategy`): 0, reported, as friendliness |
+| | `GetProtectionism(tag)` | the AI's strategy's `protect` weight, as friendliness is `befriend`'s (`aistrategy.md`) |
 
 The actions are the original's twelve classes and the lend-lease offer: `CAllianceAction`, `CNapAction`,
 `CGuaranteeAction`, `CMilitaryAccessAction` (asked), `COfferMilitaryAccessAction`, `CEmbargoAction`, `CInfluenceNation`,
@@ -211,6 +211,11 @@ Axis from 6 January (ours 2 January), Sweden from 14 January (ours 17 January), 
 and no longer in March (ours, Germany influencing Belgium from 1 January, again and again), South Africa to the Allies
 by 8 March (ours, Britain influencing it from 2 January), Turkey to the Comintern by 25 March (ours 16 January). No NAP
 in any of the saves either, and the 22 guarantees are the history's. *Measured*.
+
+**With the AI's strategy built** (`aistrategy.md`, the same day), the same 180 days: fifteen influences, two of them
+cancelled, three alignments and eleven licences, no Lua error - and still no NAP, guarantee or alliance offered, as in
+the original's saves, which hold none made since the start. Every alignment and influence those saves hold is one ours
+makes, Britain's influence on South Africa on the very day (8 March).
 
 ## 10. Ours
 

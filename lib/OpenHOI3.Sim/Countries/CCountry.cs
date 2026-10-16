@@ -682,6 +682,12 @@ public sealed class CCountry
 	public List<Ai.CWarTarget> WarTargets { get; } = new();
 
 	/// <summary>
+	/// What its AI makes of every other country - its personality and its weighted lists - made again every ten days
+	/// and at a change of war (<c>aistrategy.md</c>; the original's merged strategy).
+	/// </summary>
+	public Ai.CAiStrategy Strategy { get; } = new();
+
+	/// <summary>
 	/// What its production minister last made of its desperation, 0 to 1100 thousandths, made again on the 1st, the 15th and
 	/// the 29th of a month; -1 before the first time (<c>ministers.md</c>, section 4.1).
 	/// </summary>

@@ -83,7 +83,18 @@ public static class CFactions
 		CFactionMembership.Join(state, country, faction);
 		// A change of diplomacy (politics.md, section 9).
 		Politics.CLaws.OnDiplomacyChanged(state, country);
-		if (!joinWars || state.Country(COfferRules.Leader(state, faction)) is not { } leader || leader == country)
+		if (joinWars)
+		{
+			JoinFactionWars(state, country, faction);
+		}
+		// And in a running game the joiner's AI strategy is made again, and its neighbours' (aistrategy.md, section 1).
+		Ai.CAiStrategies.AfterFactionJoined(state, country);
+	}
+
+	/// <summary>The war sweep of a join: every war the faction's leader fights, joined on its side, the relation hit taken.</summary>
+	private static void JoinFactionWars(CGameState state, CCountry country, string faction)
+	{
+		if (state.Country(COfferRules.Leader(state, faction)) is not { } leader || leader == country)
 		{
 			return;
 		}

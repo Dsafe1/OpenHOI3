@@ -207,12 +207,34 @@ public sealed class LuaApiTests : IDisposable
 	}
 
 	[Fact]
+	public void The_strategy_answers_its_lists_weights_and_its_personality_and_nought_for_a_country_not_listed()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(ScriptWorld.Ger)!;
+		germany.Strategy.Befriend.Add(ScriptWorld.Pol, 120, 7);
+		germany.Strategy.Antagonize.Add(ScriptWorld.Ita, 300, 7);
+		germany.Strategy.Threat.Add(ScriptWorld.Pol, 75, 0);
+		germany.Strategy.Protect.Add(ScriptWorld.Slo, 35, 6);
+		germany.Strategy.Personality = OpenHOI3.Sim.Ai.EAiPersonality.Military;
+		using CAiScripts scripts = Load();
+
+		Assert.Equal(120.0, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():GetFriendliness({Pol})"));
+		Assert.Equal(0.0, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():GetFriendliness({Ita})"));
+		Assert.Equal(300.0, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():GetAntagonism({Ita})"));
+		Assert.Equal(75.0, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():GetThreat({Pol})"));
+		Assert.Equal(35.0, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():GetProtectionism({Slo})"));
+		Assert.Equal(true, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():IsMilitarist()"));
+		Assert.Equal(false, scripts.Ask(state, $"{Pol}:GetCountry():GetStrategy():IsMilitarist()"));
+		Assert.Empty(_reports);
+	}
+
+	[Fact]
 	public void What_is_not_built_answers_nought_and_is_reported_once()
 	{
 		CGameState state = World();
 		using CAiScripts scripts = Load();
-		Assert.Equal(0.0, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():GetFriendliness({Pol})"));
-		Assert.Equal(0.0, scripts.Ask(state, $"{Ger}:GetCountry():GetStrategy():GetAntagonism({Pol})"));
+		Assert.Equal(false, scripts.Ask(state, $"{Ger}:GetCountry():CanCreatePuppet()"));
+		Assert.Equal(false, scripts.Ask(state, $"{Pol}:GetCountry():CanCreatePuppet()"));
 		Assert.Equal(false, scripts.Ask(state, $"{Ger}:GetCountry():IsGovernmentInExile()"));
 		Assert.Single(_reports);
 		Assert.All(_reports, report => Assert.StartsWith("LUA unbuilt: ", report));

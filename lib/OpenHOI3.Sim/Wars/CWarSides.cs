@@ -124,8 +124,9 @@ public static class CWarSides
 
 	/// <summary>
 	/// The original's <c>UpdateAtWarAndEnemies</c>: <c>last_war</c> is now towards every country the country
-	/// is at war with; at war and not mobilised, it is given <c>initial_mobilization</c> for
-	/// <c>MOBILIZATION_BONUS_DAYS</c>; at war with nobody and mobilised, it is taken off where nobody plays it.
+	/// is at war with; in a running game its AI strategy is made again (aistrategy.md, section 1); at war and not
+	/// mobilised, it is given <c>initial_mobilization</c> for <c>MOBILIZATION_BONUS_DAYS</c>; at war with nobody and
+	/// mobilised, it is taken off where nobody plays it.
 	/// </summary>
 	public static void BringUpToDate(CGameState state, CCountry country)
 	{
@@ -138,6 +139,7 @@ public static class CWarSides
 				CGameState.Status(country, other).LastWar = state.TotalHours;
 			}
 		}
+		Ai.CAiStrategies.Remake(state, country);
 		if (atWar && !country.Mobilised)
 		{
 			if (state.FindStaticModifier(Mobilisation) is { } modifier)

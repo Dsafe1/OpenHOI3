@@ -133,6 +133,7 @@ public static class CTick
 		Step(state, Politics.CMinisterPosts.JoinDaily);          // a minister whose start date is today joins the pool
 		Step(state, CThreat.UpdateMostThreatening);               // before any country's day, as its neighbours are
 		Step(state, Wars.CSurrender.CountVictoryPoints);          // and with them its cores' victory points
+		Step(state, Ai.CAiStrategies.RunDaily);                   // before a country's day: its strategy, ten days old (aistrategy.md, 1)
 		Step(state, Countries.CActingCapital.EnsureCapitals);     // at the head of a country's day: a capital it owns,
 		Step(state, CNeutrality.RunDaily);                        // then neutrality
 		Step(state, Wars.CExile.SwapDaily);                       // early in it, an exile made a puppet where it is held

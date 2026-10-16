@@ -258,6 +258,12 @@ public sealed class CGameState
 	public bool IsBeingMade { get; set; }
 
 	/// <summary>
+	/// A game has been made and entered, and is running: the original's <c>in_game</c>. What only a running game does - an
+	/// AI strategy made again every ten days and at a change of war (<c>aistrategy.md</c>, section 1) - waits for it.
+	/// </summary>
+	public bool IsRunning { get; set; }
+
+	/// <summary>
 	/// How many pixels the map is across. Its east edge is beside its west, so the
 	/// straight line between two provinces may run either way round. 0 where no map is given.
 	/// </summary>

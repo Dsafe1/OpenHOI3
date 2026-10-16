@@ -6,16 +6,13 @@ namespace OpenHOI3.Lua.Api;
 
 /// <summary>
 /// <c>CAI</c>, a country's AI, which the AI's functions are handed first; and <c>CAIStrategy</c>, what
-/// its strategy makes of each other country - not built, so nought. See <c>docs/mechanics/lua.md</c>,
+/// its strategy makes of each other country (<c>docs/mechanics/aistrategy.md</c>). See <c>docs/mechanics/lua.md</c>,
 /// sections 4 and 4.3.
 /// </summary>
 public static class CAiClass
 {
 	private const string AiName = "CAI";
 	private const string StrategyName = "CAIStrategy";
-
-	/// <summary>What a strategy's figures would come from, which no file of the base game declares.</summary>
-	private const string StrategyUnbuilt = "the AI's strategy (add_ai_strategy): friendliness, antagonism, threat and protectionism are 0";
 
 	public static CLuaClass DefineAi(CGameApi api)
 	{
@@ -151,10 +148,11 @@ public static class CAiClass
 		return new CLuaClass(StrategyName)
 			.Method("GetCountry", call => call.Return(api.Of(call.Object<CCountry>(1, StrategyName))))
 			.Method("GetCountryTag", call => call.Return(api.Tag(call.Object<CCountry>(1, StrategyName).Tag)))
-			.Method("GetFriendliness", call => Unbuilt(api, call))
-			.Method("GetAntagonism", call => Unbuilt(api, call))
-			.Method("GetThreat", call => Unbuilt(api, call))
-			.Method("GetProtectionism", call => Unbuilt(api, call))
+			// The weights the strategy's lists hold, nought where a country is not listed (aistrategy.md).
+			.Method("GetFriendliness", call => Weight(call, strategy => strategy.Befriend))
+			.Method("GetAntagonism", call => Weight(call, strategy => strategy.Antagonize))
+			.Method("GetThreat", call => Weight(call, strategy => strategy.Threat))
+			.Method("GetProtectionism", call => Weight(call, strategy => strategy.Protect))
 			// The prepared wars (docs/mechanics/foreignminister.md, section 4).
 			.Method("PrepareWarDecision", call =>
 			{
@@ -174,13 +172,7 @@ public static class CAiClass
 				Sim.Ai.CWarTargets.IsPreparingWar(api.State, call.Object<CCountry>(1, StrategyName))))
 			.Method("IsPreparingWarWith", call => call.Return(Sim.Ai.CWarTargets.IsPreparingWarWith(api.State,
 				call.Object<CCountry>(1, StrategyName), call.Object<CCountryTag>(2, "CCountryTag"))))
-			// The personality of add_ai_strategy, which nothing reads: never a militarist.
-			.Method("IsMilitarist", call =>
-			{
-				call.Object<CCountry>(1, StrategyName);
-				api.ReportUnbuilt(StrategyUnbuilt);
-				return call.Return(false);
-			})
+			.Method("IsMilitarist", call => call.Return(call.Object<CCountry>(1, StrategyName).Strategy.IsMilitarist))
 			.Constant("_AI_UNDEFINED_", 0)
 			.Constant("_AI_MILITARIST_", 1)
 			.Constant("_AI_INDUSTRIALIST_", 2)
@@ -201,11 +193,10 @@ public static class CAiClass
 		return 0;
 	}
 
-	private static int Unbuilt(CGameApi api, CLuaCall call)
+	private static int Weight(CLuaCall call, System.Func<Sim.Ai.CAiStrategy, Sim.Ai.CStrategyList<CCountryTag>> list)
 	{
-		call.Object<CCountry>(1, StrategyName);
-		call.Object<CCountryTag>(2, "CCountryTag");
-		api.ReportUnbuilt(StrategyUnbuilt);
-		return call.Return(0);
+		CCountry country = call.Object<CCountry>(1, StrategyName);
+		CCountryTag other = call.Object<CCountryTag>(2, "CCountryTag");
+		return call.Return(list(country.Strategy).WeightOf(other));
 	}
 }

@@ -220,6 +220,8 @@ public static class CGameStateLoader
 		// ours: their draws after the intelligence minister's, where the original makes them before the politics minister).
 		Sim.Ai.CForeignAi.SetUpAtStart(state);
 		Sim.Research.CResearchAi.SetUpAtStart(state);
+		// Entering the game makes every country's AI strategy, before its weather and its two days (aistrategy.md, section 1).
+		Sim.Ai.CAiStrategies.MakeAtStart(state);
 		// And the two days the original has behind it on the first screen are run, with
 		// the provinces filled along the supply network between them, so that no army
 		// starts hungry.
@@ -234,6 +236,8 @@ public static class CGameStateLoader
 		{
 			CSupplyStart.FillNewGame(state);
 		}
+		// And the game runs from here.
+		state.IsRunning = true;
 		return state;
 	}
 

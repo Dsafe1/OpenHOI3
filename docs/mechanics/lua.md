@@ -125,7 +125,7 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | `CContinent` | `==`, `GetTag()` | the same name; its name |
 | `CString` | `tostring`, `==`, `GetString()` | its text |
 | `CGoodsPool` | `Get(g)`, `GetFloat(g)` | one good, as a `CFixedPoint`; as a float |
-| `CAIStrategy` | `GetFriendliness(tag)`, `GetAntagonism(tag)`, `GetThreat(tag)` | **0 - not built** (the `add_ai_strategy` effect is unbuilt and the base game declares none), reported |
+| `CAIStrategy` | `GetFriendliness(tag)`, `GetAntagonism(tag)`, `GetThreat(tag)`, `GetProtectionism(tag)`, `IsMilitarist()` | the weight the strategy's `befriend`, `antagonize`, `threat` and `protect` lists hold for the country, nought where it is not listed, and whether its personality is `military` (`aistrategy.md`) |
 | | `GetCountry()`, `GetCountryTag()` | whose it is |
 | `CAI` | `GetCountry()`, `GetRelation(a, b)`, `GetNumberOfOwnedProvinces(tag)`, `GetCurrentDate()` | the country it is the AI of; `a`'s status towards `b`; that country's count; the date |
 | | `GetCountryAlignmentDistance(a, b)` | section 4.3 |
@@ -264,7 +264,7 @@ eleven functions that take nothing but tags, for every pair of countries. On 202
 the base game had 78 countries owning land, and every one of the eleven answered all 6,006 pairs
 without an error **but `DiploScore_PeaceAction`, which failed at `CAIIntel` every time**; with `CAIIntel`
 built the same day (section 7) all eleven answer every pair. What the scripts meet that is not built: the
-AI's strategy, governments in exile, espionage and tribute.
+AI's strategy, governments in exile, espionage and tribute - the strategy built since 2026-10-16 (`aistrategy.md`).
 
 ## 7. `CAIIntel`
 

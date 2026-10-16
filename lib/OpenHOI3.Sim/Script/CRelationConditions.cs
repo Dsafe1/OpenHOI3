@@ -199,7 +199,7 @@ public static class CRelationConditions
 	}
 
 	/// <summary><c>relation</c>'s <c>who</c>: THIS and FROM fall back to a province's controller.</summary>
-	private static CCountryTag? RelationTarget(CGameState state, CTrigger trigger, CEventScope scope)
+	internal static CCountryTag? RelationTarget(CGameState state, CTrigger trigger, CEventScope scope)
 	{
 		if (CConditions.Field(trigger, "who") is not { } who)
 		{
