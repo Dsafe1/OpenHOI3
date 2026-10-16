@@ -52,6 +52,63 @@ public static class CSurrender
 			long total = owned.GetValueOrDefault(country);
 			country.LostNationalProvinces = new CFixedPoint(total > 0 ? lost.GetValueOrDefault(country) * 1000 / total : 0);
 		}
+		CountCoreBuildingLevels(state);
+	}
+
+	/// <summary>
+	/// Made in the same pass in the original: each building's levels built in the provinces a country owns and holds a
+	/// core in, and a whole level for every line of it in the queue - a line with no province always, a placed one only
+	/// on a core - whatever the line's size (<c>ministers.md</c>, section 7).
+	/// </summary>
+	public static void CountCoreBuildingLevels(CGameState state)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			country.CoreBuildingLevels.Clear();
+			for (int index = 0; index < state.Buildings.Count; index++)
+			{
+				country.CoreBuildingLevels.Add(CFixedPoint.Zero);
+			}
+		}
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.Owner is not { } owner || !province.Cores.Contains(owner) || state.Country(owner) is not { } country)
+			{
+				continue;
+			}
+			for (int index = 0; index < state.Buildings.Count; index++)
+			{
+				country.CoreBuildingLevels[index] += province.BuildingMaxLevel(state.Buildings[index]);
+			}
+		}
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (Construction.CConstruction line in country.Constructions)
+			{
+				if (line.Building is not { } building
+					|| line.Location > 0 && !state.Province(line.Location).Cores.Contains(country.Tag))
+				{
+					continue;
+				}
+				int index = IndexOf(state, building);
+				if (index >= 0)
+				{
+					country.CoreBuildingLevels[index] += CFixedPoint.One;
+				}
+			}
+		}
+	}
+
+	private static int IndexOf(CGameState state, CBuilding building)
+	{
+		for (int index = 0; index < state.Buildings.Count; index++)
+		{
+			if (ReferenceEquals(state.Buildings[index], building))
+			{
+				return index;
+			}
+		}
+		return -1;
 	}
 
 	/// <summary>

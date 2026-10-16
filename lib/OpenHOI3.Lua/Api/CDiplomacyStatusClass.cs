@@ -30,6 +30,20 @@ public static class CDiplomacyStatusClass
 				CDiplomacyStatus status = Of(call);
 				return call.Return(CCountryLists.AtWar(api.State, status.Holder, status.Other));
 			})
+			// The war the two fight on opposite sides, or nil (ministers.md, section 7).
+			.Method("GetWar", call =>
+			{
+				CDiplomacyStatus status = Of(call);
+				foreach (Sim.Wars.CWar war in api.State.Wars)
+				{
+					if (war.Attackers.Contains(status.Holder) && war.Defenders.Contains(status.Other)
+						|| war.Defenders.Contains(status.Holder) && war.Attackers.Contains(status.Other))
+					{
+						return call.Return(new CLuaObject(api.War, war));
+					}
+				}
+				return call.Return(null);
+			})
 			.Method("IsGuaranteed", call => call.Return(Guarantees(api, Of(call).Other, Of(call).Holder)))
 			.Method("IsGuaranting", call => call.Return(Guarantees(api, Of(call).Holder, Of(call).Other)))
 			.Method("IsFightingWarTogether", call =>

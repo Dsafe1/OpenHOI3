@@ -27,6 +27,20 @@ public static class CEnumClasses
 			.Constant("PROPOSE", 0)
 			.Constant("DECLINE", 1)
 			.Constant("ACCEPT", 2);
+		// The shares of IC and of leadership (FINDINGS-ministers.md C.5).
+		yield return new CLuaClass("CDistributionSetting")
+			.Constant("_PRODUCTION_LENDLEASE_", 0)
+			.Constant("_PRODUCTION_CONSUMER_", 1)
+			.Constant("_PRODUCTION_PRODUCTION_", 2)
+			.Constant("_PRODUCTION_SUPPLY_", 3)
+			.Constant("_PRODUCTION_REINFORCEMENT_", 4)
+			.Constant("_PRODUCTION_UPGRADE_", 5)
+			.Constant("_PRODUCTION_numof_", 6)
+			.Constant("_LEADERSHIP_NCO_", 0)
+			.Constant("_LEADERSHIP_DIPLOMACY_", 1)
+			.Constant("_LEADERSHIP_ESPIONAGE_", 2)
+			.Constant("_LEADERSHIP_RESEARCH_", 3)
+			.Constant("_LEADERSHIP_numof_", 4);
 		yield return new CLuaClass("CRule")
 			.Constant("_RULE_NONE_", 0)
 			.Constant("_RULE_LIMITED_WAR_", 1)

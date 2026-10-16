@@ -79,6 +79,9 @@ public static class CPoliticsCommandClass
 			case CLuaLawCommand law:
 				api.Post(law.ToCommand());
 				break;
+			case CLuaLendLeaseDistribution distribution:
+				api.Post(distribution.ToCommand());
+				break;
 			case CCommand command:
 				api.Post(command);
 				break;

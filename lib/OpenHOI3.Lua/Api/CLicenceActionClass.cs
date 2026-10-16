@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenHOI3.Lua.Native;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agreements;
@@ -16,7 +17,7 @@ namespace OpenHOI3.Lua.Api;
 public static class CLicenceActionClass
 {
 	private const string ActionName = "CLicenceTechnologyAction";
-	private const string SubUnitName = "CSubUnitDefinition";
+	public const string SubUnitName = "CSubUnitDefinition";
 
 	public static CLuaClass DefineAction(CGameApi api)
 	{
@@ -75,7 +76,16 @@ public static class CLicenceActionClass
 			.Method("GetBuildCostMP", call => call.Return(api.Fixed(Type(call).Stats[CSubUnitStats.BuildCostManpower])))
 			.Method("GetBuildTime", call => call.Return(api.Fixed(Type(call).Stats[CSubUnitStats.BuildTime])))
 			.Method("IsCapitalShip", call => call.Return(Type(call).Flag("capital")))
-			.Method("GetKey", call => call.Return(api.String(Type(call).Key)));
+			.Method("GetKey", call => call.Return(api.String(Type(call).Key)))
+			// The production script's (ministers.md, section 7).
+			.Method("GetIndex", call => call.Return(IndexOf(api, Type(call))))
+			.Method("IsRegiment", call => call.Return(Type(call).Branch == EUnitBranch.Land))
+			.Method("IsCag", call => call.Return(Type(call).Flag("is_cag")))
+			.Method("IsValid", call =>
+			{
+				Type(call);
+				return call.Return(true);
+			});
 	}
 
 	public static CLuaClass DefineSubUnitDataBase(CGameApi api)
@@ -83,7 +93,43 @@ public static class CLicenceActionClass
 		return new CLuaClass("CSubUnitDataBase")
 			.Static("GetSubUnit", call => api.State.SubUnitTypes.TryGetValue(call.String(1), out CSubUnitType? type)
 				? call.Return(new CLuaObject(api.SubUnit, type))
-				: call.Return(null));
+				: call.Return(null))
+			// Every type, in the order their files were read.
+			.Static("GetSubUnitList", call =>
+			{
+				var types = new List<object?>();
+				foreach (CSubUnitType type in api.State.SubUnitTypes.Values)
+				{
+					types.Add(new CLuaObject(api.SubUnit, type));
+				}
+				return call.ReturnIterator(types);
+			});
+	}
+
+	/// <summary>A type's index: its place among the types in the order their files were read (ours: the original's loader order was not read).</summary>
+	public static int IndexOf(CGameApi api, CSubUnitType type)
+	{
+		int index = 0;
+		foreach (CSubUnitType each in api.State.SubUnitTypes.Values)
+		{
+			if (ReferenceEquals(each, type))
+			{
+				return index;
+			}
+			index++;
+		}
+		return -1;
+	}
+
+	/// <summary>Counts by type as the original's array of them: one entry a type, by its index.</summary>
+	public static CLuaArray ByTypeIndex(CGameApi api, Dictionary<CSubUnitType, int> counts)
+	{
+		var values = new List<object?>();
+		foreach (CSubUnitType type in api.State.SubUnitTypes.Values)
+		{
+			values.Add(counts.GetValueOrDefault(type));
+		}
+		return new CLuaArray(values);
 	}
 
 	private static CLuaLicenceAction Of(CLuaCall call) => call.Object<CLuaLicenceAction>(1, ActionName);

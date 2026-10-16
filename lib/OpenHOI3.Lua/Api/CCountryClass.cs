@@ -21,7 +21,7 @@ public static class CCountryClass
 
 	public static CLuaClass Define(CGameApi api)
 	{
-		return new CLuaClass(Name)
+		CLuaClass luaClass = new CLuaClass(Name)
 			.Method("GetCountryTag", call => call.Return(api.Tag(Of(call).Tag)))
 			.Method("GetRelation", call =>
 			{
@@ -172,6 +172,8 @@ public static class CCountryClass
 				api.ReportUnbuilt(PuppetUnbuilt);
 				return call.Return(false);
 			});
+		// What the tech and production scripts reach (docs/mechanics/ministers.md, section 7).
+		return CCountryEconomyMethods.Add(luaClass, api);
 	}
 
 	/// <summary>What liberating a country needs, which is not built.</summary>

@@ -74,12 +74,18 @@ public static class CAiClass
 			})
 			.Method("GetSpamPenalty", call => call.Return(SpamPenalty(api, call.Object<CLuaAi>(1, AiName).Country,
 				call.Object<CCountryTag>(2, "CCountryTag"))))
-			// Posted as an offer from the screen is, keeping the hour the action was made in.
+			// Posted as an offer from the screen is, keeping the hour the action was made in - a trade, or a licence the
+			// production script's licence check asks for (ministers.md, section 7).
 			.Method("PostAction", call =>
 			{
 				call.Object<CLuaAi>(1, AiName);
-				CLuaTradeAction action = call.Object<CLuaTradeAction>(2, "CTradeAction");
-				api.Post(new Sim.Commands.COfferCommand(action.Offer));
+				Sim.Agreements.COffer offer = call.ObjectAt(2, out _) switch
+				{
+					CLuaTradeAction trade => trade.Offer,
+					CLuaLicenceAction licence => licence.Offer,
+					_ => throw new CLuaError("bad argument #2 (CDiplomaticAction expected)"),
+				};
+				api.Post(new Sim.Commands.COfferCommand(offer));
 				return 0;
 			})
 			// A command posted from the AI's country (docs/mechanics/politics.md, section 12).
@@ -96,6 +102,12 @@ public static class CAiClass
 				api.ReportUnbuilt(DeclareUnbuilt);
 				return call.Return(false);
 			})
+			// The production script's (ministers.md, section 4): brigades of each type, by the type's index.
+			.Method("GetProductionSubUnitCounts", call => call.Return(new CLuaObject(api.ArrayInt,
+				CLicenceActionClass.ByTypeIndex(api, Sim.Economy.CProductionAi.InProduction(call.Object<CLuaAi>(1, AiName).Country)))))
+			.Method("GetDeployedSubUnitCounts", call => call.Return(new CLuaObject(api.ArrayInt,
+				CLicenceActionClass.ByTypeIndex(api, Sim.Economy.CProductionAi.Deployed(call.Object<CLuaAi>(1, AiName).Country)))))
+			.Static("FastNormalizeByPriority", CLuaShares.FastNormalizeByPriority)
 			.Constant("_DIPLOMACY_", 0)
 			.Constant("_PRODUCTION_", 1)
 			.Constant("_TECHNOLOGY_", 2)

@@ -74,6 +74,35 @@ public interface IAiScripts
 	}
 
 	/// <summary>
+	/// <c>TechMinister_Tick(minister, true, true)</c>: a country's tech minister's day - its leadership shares set and its
+	/// free research slots filled - whose commands go to the state's outbox. See <c>docs/mechanics/ministers.md</c>,
+	/// section 2.
+	/// </summary>
+	void RunTech(CGameState state, CCountry country)
+	{
+	}
+
+	/// <summary>
+	/// <c>ProductionMinister_Tick(minister)</c>: a country's production minister's day - convoys, units and buildings
+	/// ordered - whose commands go to the state's outbox. See <c>docs/mechanics/ministers.md</c>, section 4.
+	/// </summary>
+	void RunProduction(CGameState state, CCountry country)
+	{
+	}
+
+	/// <summary>
+	/// <c>BalanceProductionSliders(ai, country, 0, ...)</c> at the end of a country's day, handed each share's need over
+	/// its IC; false where the call failed, which leaves the rest of the country's day. See
+	/// <c>docs/mechanics/ministers.md</c>, section 5.
+	/// </summary>
+	bool BalanceProductionSliders(CGameState state, CCountry country) => true;
+
+	/// <summary><c>BalanceLendLeaseSliders(ai, country, tags, values)</c>, for a country that gives lend-lease to anyone.</summary>
+	void BalanceLendLeaseSliders(CGameState state, CCountry country)
+	{
+	}
+
+	/// <summary>
 	/// The hour's trading of several countries at once, as the original runs it on its worker threads:
 	/// each <see cref="RunTrade"/> in turn unless the scripts can run them side by side. Whichever way,
 	/// what they post reaches the outbox in the order of <paramref name="runs"/>, and they change nothing

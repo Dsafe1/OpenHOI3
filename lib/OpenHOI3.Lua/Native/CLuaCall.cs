@@ -84,6 +84,16 @@ public readonly struct CLuaCall
 		return 1;
 	}
 
+	/// <summary>Pushes several results in order and answers how many, for a function with more than one result.</summary>
+	public int ReturnMany(params object?[] values)
+	{
+		foreach (object? value in values)
+		{
+			Lua.Push(Pointer, value);
+		}
+		return values.Length;
+	}
+
 	/// <summary>
 	/// Answers a function a generic <c>for</c> walks over these values, in this order: the original's
 	/// iterator over a container. A null among them ends the walk there.

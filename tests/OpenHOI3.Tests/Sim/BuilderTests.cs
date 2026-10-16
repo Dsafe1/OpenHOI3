@@ -158,13 +158,25 @@ public class BuilderTests
 	[Fact]
 	public void AnEliteBrigadeIsRationedByItsNumberOrItsShareOfTheArmyWhicheverIsMore()
 	{
-		// The original's alpini: six of them, or four in a hundred of the army.
+		// The original's alpini: six of them, or four in a hundred of the infantry's group - every land brigade with a
+		// width and as soft as infantry (FINDINGS-ministers.md C.5).
 		CCountry country = Germany();
 		CSubUnitType infantry = Type("infantry_brigade");
 		CSubUnitType elite = Type("elite_brigade");
+		CSubUnitType armour = Type("armor_brigade");
+		foreach (CSubUnitType type in new[] { infantry, elite, armour })
+		{
+			type.Stats.Values.Set(CSubUnitType.CombatWidth, CFixedPoint.One);
+			type.Stats.Values.Set(CUnitTotals.Softness, CFixedPoint.One);
+		}
+		armour.Stats.Values.Set(CUnitTotals.Softness, CFixedPoint.Parse("0.2"));
 		elite.Stats.Values.Set(CUnitAvailability.MinimumOfType, CFixedPoint.FromInt(6));
 		elite.Stats.Values.Set(CUnitAvailability.MaxPercentageOfType, CFixedPoint.Parse("0.04"));
-		CGameState state = State(country, new[] { infantry, elite });
+		CGameState state = State(country, new[] { infantry, elite, armour });
+
+		// Armour is a group of its own, and counts for nothing in the elite's share.
+		Raise(country, armour, 500);
+		Assert.Equal(6, CUnitAvailability.StillBuildable(state, country, elite));
 
 		Assert.Equal(6, CUnitAvailability.StillBuildable(state, country, elite));
 

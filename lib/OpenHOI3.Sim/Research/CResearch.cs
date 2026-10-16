@@ -260,6 +260,11 @@ public static class CResearch
 				country.ResearchQueue.Add(technology.Name);
 			}
 		}
+		// And a tech minister, told of each, takes it off again (ministers.md, section 2).
+		if (finished is not null)
+		{
+			CResearchAi.LevelResearched(state, country, finished);
+		}
 	}
 
 	/// <summary>Gives a technology its day's leadership, and answers whether that finished a level.</summary>

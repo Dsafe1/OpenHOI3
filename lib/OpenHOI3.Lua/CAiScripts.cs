@@ -8,6 +8,7 @@ using OpenHOI3.Lua.Native;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Ai;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
 
 namespace OpenHOI3.Lua;
 
@@ -53,10 +54,9 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		_report = report ?? CDiagnostics.Warn;
 		_api = new CGameApi(() => _state ?? throw new CLuaError("no game is being asked"), _report) { Scripts = this };
 		_lua.OpenLibraries("base", "package", "table", "io", "os", "string", "math", "debug");
-		if (worker)
-		{
-			new CLuaRandom().Install(_lua);
-		}
+		// Every state draws math.random on a generator of its own, seeded 1 as a new thread's is - the tech and
+		// production scripts' picks among them (ministers.md, Ours).
+		new CLuaRandom().Install(_lua);
 		foreach (CLuaClass luaClass in _api.Classes)
 		{
 			_lua.DefineClass(luaClass);
@@ -248,6 +248,94 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 			Fail(e.Message);
 		}
 	}
+
+	/// <summary>
+	/// <c>TechMinister_Tick(minister, true, true)</c>, the country's tech minister handed over with both its arguments
+	/// true, as a country nobody plays has them. A failure is reported.
+	/// </summary>
+	public void RunTech(CGameState state, CCountry country)
+	{
+		_state = state;
+		try
+		{
+			_lua.Call("TechMinister_Tick", 0, new CLuaObject(_api.TechMinister, new CLuaAi(country)), true, true);
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+	}
+
+	/// <summary><c>ProductionMinister_Tick(minister)</c>, the country's production minister handed over. A failure is reported.</summary>
+	public void RunProduction(CGameState state, CCountry country)
+	{
+		_state = state;
+		try
+		{
+			_lua.Call("ProductionMinister_Tick", 0, new CLuaObject(_api.ProductionMinister, new CLuaAi(country)));
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+	}
+
+	/// <summary>
+	/// <c>BalanceProductionSliders(ai, country, 0, lendLease, consumer, production, supply, reinforce, upgrade,
+	/// hasReinforceBonus)</c>: the AI's level, and each share's need over the country's whole IC in single precision -
+	/// the lend-lease share's always nought, its need being nought. A failure is reported and answers false.
+	/// </summary>
+	public bool BalanceProductionSliders(CGameState state, CCountry country)
+	{
+		_state = state;
+		float ic = country.TotalIc;
+		object Need(EProductionCategory category)
+		{
+			float share = CProduction.Needed(state, country, category).Raw / 1000f / ic;
+			return (double)(share > 0 ? share : 0f);
+		}
+		try
+		{
+			_lua.Call("BalanceProductionSliders", 0, new CLuaObject(_api.Ai, new CLuaAi(country)), _api.Of(country), 0, 0.0,
+				Need(EProductionCategory.ConsumerGoods), Need(EProductionCategory.Production), Need(EProductionCategory.Supplies),
+				Need(EProductionCategory.Reinforcement), Need(EProductionCategory.Upgrades),
+				country.Modifier[ReinforcementBonus].Raw > 0);
+			return true;
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+			return false;
+		}
+	}
+
+	/// <summary>
+	/// <c>BalanceLendLeaseSliders(ai, country, tags, values)</c>: the countries it gives lend-lease to, in order, and their
+	/// weights, which the script sets and posts. A failure is reported.
+	/// </summary>
+	public void BalanceLendLeaseSliders(CGameState state, CCountry country)
+	{
+		_state = state;
+		var tags = new List<object?>();
+		var values = new List<object?>();
+		foreach (Sim.Aid.CLendLeaseGift gift in country.LendLeaseGiving)
+		{
+			tags.Add(_api.Tag(gift.Receiver));
+			values.Add(_api.Fixed(new CFixedPoint(gift.Weight)));
+		}
+		try
+		{
+			_lua.Call("BalanceLendLeaseSliders", 0, new CLuaObject(_api.Ai, new CLuaAi(country)), _api.Of(country),
+				new CLuaObject(_api.ArrayCountryTag, new CLuaArray(tags)), new CLuaObject(_api.ArrayFix, new CLuaArray(values)));
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+	}
+
+	/// <summary>The modifier a script reads as a reinforcement bonus.</summary>
+	private const string ReinforcementBonus = "reinforcement_bonus";
 
 	/// <summary>
 	/// The hour's trading, side by side on states of its own, made the first time (<see cref="CTradeWorkers"/>).

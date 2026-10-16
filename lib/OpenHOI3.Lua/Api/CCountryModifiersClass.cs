@@ -6,14 +6,12 @@ namespace OpenHOI3.Lua.Api;
 
 /// <summary>
 /// <c>CModifier</c>, a country's global modifier, read by its kind's number - of which the scripts ask
-/// only <c>_MODIFIER_GLOBAL_IC_</c>; and <c>CTechnologyStatus</c>, what its technology adds, of which they
-/// ask only the IC. Both are handed over as the country they belong to. See <c>docs/mechanics/trade.md</c>,
-/// section 9.
+/// only <c>_MODIFIER_GLOBAL_IC_</c> - handed over as the country it belongs to. See
+/// <c>docs/mechanics/trade.md</c>, section 9. <c>CTechnologyStatus</c> is <see cref="CTechnologyStatusClass"/>.
 /// </summary>
 public static class CCountryModifiersClass
 {
 	private const string ModifierName = "CModifier";
-	private const string TechnologyName = "CTechnologyStatus";
 
 	/// <summary>The original's number for the global IC modifier.</summary>
 	public const int GlobalIc = 17;
@@ -33,11 +31,5 @@ public static class CCountryModifiersClass
 				return call.Return(api.Fixed(country.Modifier["global_ic"]));
 			})
 			.Constant("_MODIFIER_GLOBAL_IC_", GlobalIc);
-	}
-
-	public static CLuaClass DefineTechnology(CGameApi api)
-	{
-		return new CLuaClass(TechnologyName)
-			.Method("GetIcModifier", call => call.Return(api.Fixed(call.Object<CCountry>(1, TechnologyName).Technology["ic_modifier"])));
 	}
 }

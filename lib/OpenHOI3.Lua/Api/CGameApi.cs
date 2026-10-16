@@ -57,7 +57,7 @@ public sealed class CGameApi
 		TradeRoute = CTradeActionClass.DefineRoute(this);
 		GoodsValues = CGoodsValuesClass.Define();
 		Modifier = CCountryModifiersClass.DefineModifier(this);
-		TechnologyStatus = CCountryModifiersClass.DefineTechnology(this);
+		TechnologyStatus = CTechnologyStatusClass.Define(this);
 		SubUnit = CLicenceActionClass.DefineSubUnit(this);
 		SubUnitDataBase = CLicenceActionClass.DefineSubUnitDataBase(this);
 		LicenceAction = CLicenceActionClass.DefineAction(this);
@@ -78,7 +78,69 @@ public sealed class CGameApi
 		IntelligenceMinister = CIntelligenceMinisterClass.Define(this);
 		ChangeSpyPriority = CSpyCommandClass.DefinePriority(this);
 		ChangeSpyMission = CSpyCommandClass.DefineMission(this);
+		Technology = CTechnologyClass.DefineTechnology(this);
+		TechnologyFolder = CTechnologyClass.DefineFolder(this);
+		TechnologyDataBase = CTechnologyClass.DefineDataBase(this);
+		Building = CBuildingClass.DefineBuilding(this);
+		BuildingDataBase = CBuildingClass.DefineDataBase(this);
+		ProvinceBuilding = CBuildingClass.DefineProvinceBuilding(this);
+		Construction = CConstructionClass.DefineConstruction(this);
+		MilitaryConstruction = CConstructionClass.DefineMilitary(this);
+		BrigadeConstruction = CConstructionClass.DefineBrigade(this);
+		ArrayInt = CArrayClass.Define("CArrayInt");
+		ArrayFix = CArrayClass.Define("CArrayFix");
+		ArrayCountryTag = CArrayClass.Define("CArrayCountryTag");
+		War = CWarClass.Define(this);
+		TechMinister = CTechMinisterClass.Define(this);
+		ProductionMinister = CProductionMinisterClass.Define(this);
+		ProductionCommands = new[]
+		{
+			CProductionCommandClass.DefineSubUnitList(this),
+			CProductionCommandClass.DefineId(this),
+			CProductionCommandClass.DefineNullTag(this),
+			CProductionCommandClass.DefineConstructUnit(this),
+			CProductionCommandClass.DefineConstructBuilding(this),
+			CProductionCommandClass.DefineConstructConvoy(this),
+			CProductionCommandClass.DefineChangeInvestment(this),
+			CProductionCommandClass.DefineChangeLeadership(this),
+			CProductionCommandClass.DefineStartResearch(this),
+			CProductionCommandClass.DefineLendLeaseDistribution(this),
+		};
 	}
+
+	/// <summary>The tech and production ministers (docs/mechanics/ministers.md).</summary>
+	public CLuaClass TechMinister { get; }
+
+	public CLuaClass ProductionMinister { get; }
+
+	public CLuaClass Technology { get; }
+
+	public CLuaClass TechnologyFolder { get; }
+
+	public CLuaClass TechnologyDataBase { get; }
+
+	public CLuaClass Building { get; }
+
+	public CLuaClass BuildingDataBase { get; }
+
+	public CLuaClass ProvinceBuilding { get; }
+
+	public CLuaClass Construction { get; }
+
+	public CLuaClass MilitaryConstruction { get; }
+
+	public CLuaClass BrigadeConstruction { get; }
+
+	public CLuaClass ArrayInt { get; }
+
+	public CLuaClass ArrayFix { get; }
+
+	public CLuaClass ArrayCountryTag { get; }
+
+	public CLuaClass War { get; }
+
+	/// <summary>The commands the two scripts make, and what they are made of.</summary>
+	public IReadOnlyList<CLuaClass> ProductionCommands { get; }
 
 	/// <summary>Espionage (docs/mechanics/espionage.md, section 15).</summary>
 	public CLuaClass SpyPresence { get; }
@@ -177,8 +239,10 @@ public sealed class CGameApi
 		TradeAction, TradeRoute, GoodsValues, Modifier, TechnologyStatus, SubUnit, SubUnitDataBase, LicenceAction,
 		Law, LawGroup, LawDataBase, Minister, MinisterType, GovernmentPosition, PositionDataBase, PoliticsMinister,
 		ChangeLaw, ChangeMinister, ToggleMobilization, Liberate, SpyPresence, IdeologyData, IntelligenceMinister,
-		ChangeSpyPriority, ChangeSpyMission,
-	}.Concat(CEnumClasses.Define());
+		ChangeSpyPriority, ChangeSpyMission, TechMinister, ProductionMinister, Technology, TechnologyFolder,
+		TechnologyDataBase, Building, BuildingDataBase, ProvinceBuilding, Construction, MilitaryConstruction,
+		BrigadeConstruction, ArrayInt, ArrayFix, ArrayCountryTag, War,
+	}.Concat(ProductionCommands).Concat(CEnumClasses.Define());
 
 	/// <summary>What has been reported as not built, in the order it was first met.</summary>
 	public IReadOnlyCollection<string> Unbuilt => _unbuilt;

@@ -101,6 +101,11 @@ public static class CTick
 		Step(state, Politics.CPoliticsAi.RunHourly);
 		// And its intelligence minister, in its own hour (espionage.md, section 15; ours: where beside the politics).
 		Step(state, Espionage.CEspionageAi.RunHourly);
+		// And its production and tech ministers, each in an hour of its own, and the placing of its finished units
+		// (ministers.md, sections 1 to 6; ours: where beside the others in the hour).
+		Step(state, Economy.CProductionAi.RunHourly);
+		Step(state, Research.CResearchAi.RunHourly);
+		Step(state, Construction.CAiDeployment.RunHourly);
 		// Last, what countries know of the provinces units left and entered this hour (intelligence.md, section 5).
 		Step(state, Intelligence.CProvinceIntel.RaiseHourly);
 	}
@@ -157,6 +162,8 @@ public static class CTick
 		Step(state, Wars.CSurrender.RunDaily);                    // late in a country's day: the surrender,
 		Step(state, Wars.CExile.ReturnDaily);                     // and an exile leading its faction coming home
 		Step(state, CConvoyDay.Maintain);                         // late in a country's day
+		Step(state, Economy.CSpareManpower.UpdateDaily);          // at the very end of it, what it has to spare,
+		Step(state, Economy.CProductionAi.BalanceDaily);          // and the AI's sliders (ministers.md, section 5)
 		// Each province's own day, after every country's: what was bombed comes back, the suppression, the revolt risk's
 		// step and land at peace back to its owner, a province at a time; and then the pool is held.
 		Step(state, Weather.CClimate.RunDaily);                   // a province's day begins with its season (weather.md, 1)

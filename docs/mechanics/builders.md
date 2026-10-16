@@ -53,16 +53,21 @@ more of**. How many more it may have:
 
 where `have` is the country's brigades of the type - in its units, in its queue (a line
 counting for every unit still to come) and waiting to be placed - and `all` is its brigades
-of the type's branch in its units. `confirmed` for the first four lines, `likely` for the
-counting.
+in its units, on the map only, **of the type's group**. `confirmed`, the counting since
+2026-10-16 (`reversing/findings/FINDINGS-ministers.md` C.5, the production script asking the
+same figure). A type's group, the original's own and hardcoded: a ship is the carrier's
+where it carries aircraft, the heavy cruiser its own, a capital ship the battleship's, a
+transport or a submarine its own, any other the destroyer's; a wing is its own; a land type
+with no width, or the headquarters, its own; one softer than a half the armour's; one that
+may drop, or the mountain or marine brigade, its own; and the infantry's otherwise. So the
+alpini are four in every hundred of the infantry's group, not of all land brigades.
 
 **So an elite brigade is rationed.** The base game's `alpini_brigade` has `minimum_of_type =
-6` and `max_percentage_of_type = 0.04`: Italy may have six, or four in every hundred land
-brigades, whichever is more.
+6` and `max_percentage_of_type = 0.04`: Italy may have six, or four in every hundred brigades
+of the infantry's group, whichever is more.
 
 *Ours:* an `available_trigger` is script and is not evaluated yet; a type that has one is
-taken to pass. What "of the type's branch" groups by was not read and is taken to be land,
-sea or air.
+taken to pass.
 
 ## 3. A list
 
@@ -447,6 +452,6 @@ group icon numbered past the groups says nothing, where the original reads past 
 5. **The description** the air and brigade builders show.
 6. **What saving a template does**, beyond the command it posts, and how a country with no
    `default_templates` comes by any.
-7. **What "of the type's branch" counts** for a ration.
+7. ~~**What "of the type's branch" counts** for a ration.~~ Read 2026-10-16: the type's group (section 2).
 8. **Whether a series is named unit by unit.** A line carries one name for its unit and one
    for each brigade; what its second unit is called was not read.

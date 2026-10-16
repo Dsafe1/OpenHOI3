@@ -577,6 +577,15 @@ public sealed class CCountry
 	public int TransportsNeeded { get; set; }
 
 	/// <summary>
+	/// Its transports on convoys, and all its transports, as the day's sharing found them before it moved any - what
+	/// the production script reads as <c>GetTotalNeededConvoyTransports</c> (with <see cref="TransportsNeeded"/>) and
+	/// <c>GetTotalConvoyTransports</c> (<c>ministers.md</c>, section 7).
+	/// </summary>
+	public int TransportsOnConvoysAtSharing { get; set; }
+
+	public int TransportsAtSharing { get; set; }
+
+	/// <summary>
 	/// Whether its transports and escorts are shared out among its convoys for it each
 	/// day, whether its supply convoys are made and unmade for it, and whether its
 	/// resource convoys are. A new game has all three on for every country.
@@ -648,6 +657,33 @@ public sealed class CCountry
 	/// nobody plays; 0 for a country with none (<c>espionage.md</c>, section 15).
 	/// </summary>
 	public int IntelligenceCountdown { get; set; }
+
+	/// <summary>
+	/// Hours until its production minister first works, and then its tech minister, from 1 to 3 each, drawn when a new game
+	/// makes them for every country nobody plays; 0 for a country with none (<c>ministers.md</c>, section 1).
+	/// </summary>
+	public int ProductionCountdown { get; set; }
+
+	public int TechCountdown { get; set; }
+
+	/// <summary>
+	/// What its production minister last made of its desperation, 0 to 1100 thousandths, made again on the 1st, the 15th and
+	/// the 29th of a month; -1 before the first time (<c>ministers.md</c>, section 4.1).
+	/// </summary>
+	public int MinisterDesperation { get; set; } = -1;
+
+	/// <summary>
+	/// The manpower it has to spare once every brigade is refilled, made at the end of its day and after every unit order
+	/// (<see cref="Economy.CSpareManpower"/>; the original's <c>+0x158</c>).
+	/// </summary>
+	public CFixedPoint SpareManpower { get; set; }
+
+	/// <summary>
+	/// Each building's levels built in the owned provinces it holds a core in, and a whole level for every line of it in
+	/// the queue, by the building's place in its file - made again each day and on a change of hands
+	/// (<c>ministers.md</c>, section 7; the original's <c>GetTotalCoreBuildingLevels</c>).
+	/// </summary>
+	public List<CFixedPoint> CoreBuildingLevels { get; } = new();
 
 	/// <summary>Spies trained and not yet placed anywhere, with no ceiling (<c>spies</c>). A whole spy is 1.</summary>
 	public CFixedPoint FreeSpies { get; set; }

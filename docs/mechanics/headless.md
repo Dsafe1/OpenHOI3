@@ -14,10 +14,11 @@ order, no mission.
 
 What acts on its own is what is built: the tick's hourly, daily, monthly and yearly passes; the events and decisions
 of the base game, the AI's choice of an option on the game's generator; the AI's answers to offers and the install's
-Lua for every country nobody plays - trading, its politics minister and its intelligence minister. **There is no AI
-for anything else**: no country orders a unit, a building or a convoy, queues research, moves a unit or declares a
-war but by script. So the run tests the economy, politics, diplomacy and script running unattended for twelve years,
-and **not** war.
+Lua for every country nobody plays - trading, its politics minister and its intelligence minister, and since the same
+day its tech and production ministers, which research, set the sliders and order units, buildings and convoys, and the
+engine's placing of what they build (`ministers.md`). **There is no AI for anything else**: no country moves a unit
+or declares a war but by script. So the run tests the economy, politics, diplomacy and script running unattended, and
+**not** war. (Sections 3 and 4 are the run before the ministers.)
 
 ## 2. What it tells
 
@@ -109,6 +110,25 @@ event, and the next midnight the Nationalists capitulate and are annexed. **It w
 by the maintainer's account, the AI has moved the Republic's units to the Portuguese border by then and the Nationalists
 get units in their capital (`effects.md`, section 9).
 
+### With the tech and production ministers (2026-10-16)
+
+Stage 5's first piece (`ministers.md`). Each snapshot now also writes every great power's research queue, its four
+leadership and six IC shares, its units waiting to be placed and its summed research progress. `headless <install>
+1937`: 1936 in 189 seconds, nothing thrown, nothing below nought, **no Lua error**; every country holding its capital
+researching and building - Germany's technology levels 197 to 243, the world's units 1,579 to 1,686, 21 buildings
+finished, none left waiting to be placed. **Set beside the Ireland game's save of 11 March 1936**, where every major
+is the original's AI, the summed research progress of the eight majors on that day:
+
+| | GER | ENG | FRA | ITA | SOV | USA | JAP | CHI |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ours | 12.10 | 8.51 | 5.71 | 4.73 | 6.10 | 9.20 | 7.90 | 2.01 |
+| the original's | 12.20 | 6.62 | 3.26 | 4.46 | 4.40 | 9.02 | 6.66 | 2.10 |
+
+The levels themselves are still the gap a new game has against the start save (`resources.md`, section 5) - the
+original's start gives technology this one does not - so the progress is the measure, and those ahead are countries the
+original starts further on. The Soviet Union's supply share ran low, 168 supplies on 1 January 1937, not looked into.
+The draws having moved, the Spanish Civil War fired on 30 January 1936 and still ended on its first day.
+
 ## 5. Not established
 
 - ~~What keeps the original's Spanish Civil War going past its first day~~ - the AI, by the maintainer's account: it
@@ -116,5 +136,6 @@ get units in their capital (`effects.md`, section 9).
   the AI here.
 
 - Whether the totals are "plausible against a real savegame" past April 1936: no save of the maintainer's lies later.
-  A save of a later year, with nobody playing or with as little played as he can, would be the measure.
+  A save of a later year, with nobody playing or with as little played as he can, would be the measure. The Ireland
+  game's saves of February and March 1936 (2026-10-16) are the closest to that so far.
 

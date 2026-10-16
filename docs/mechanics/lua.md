@@ -50,8 +50,12 @@ As the original makes it (`FINDINGS-luahost.md`, section 1):
 
 `math.randomseed` is never called. **The hour's trading has eight states more**, made the same way the
 first time it runs, which the countries' trading runs on side by side as the original's runs on its
-threads (`trade.md`, section 9 and *Ours*); each has a `math.random` of its own, the C runtime's `rand()`
-seeded 1 as a new thread's is, where the game's own state keeps the library's. Every failure - a file that does not load, a Lua error, a call that
+threads (`trade.md`, section 9 and *Ours*). **Every state has a `math.random` of its own**, the game's own
+state since 2026-10-16: the C runtime's `rand()` seeded 1 as a new thread's is. The original's is
+MSVCR80's `rand`, kept for each OS thread from seed 1 and never seeded again, and Lua 5.1.4's
+`math.random(m)` is `floor((rand() % 32767) / 32767 x m) + 1` (`FINDINGS-ministers.md` A.5) - so its
+draws hang on which worker thread its pool gives a country (*ours*, below). The tech and production
+scripts are what draw on it. Every failure - a file that does not load, a Lua error, a call that
 fails - is reported as `LUA Error: <message>` and nothing else happens, as the original only logs it.
 A failure in `autoexec.lua` ends it there: what it had already required stays, what came after is not
 loaded.
@@ -298,8 +302,11 @@ whatever the odds", from a signed draw, was corrected by this reading.
   were rounded to single precision at each step. A new game's relations are whole numbers and exact
   either way; what the AI's fractional arithmetic does is not established. The engine's own floats -
   `Get()`, the alignment distance, the resource values - are single precision here as there.
-- **Only the classes, methods and globals above are built.** The original makes every one of its
-  registered classes a global; here a class is a global once something of it is built.
+- **Only the classes, methods and globals above are built**, with the tech and production scripts'
+  (`ministers.md`, section 7). The original makes every one of its registered classes a global; here a
+  class is a global once something of it is built.
+- **`math.random` is a generator of each state's own, seeded 1**, where the original's is the thread's
+  that happens to run the call; so a game here draws the same each time from its seed and its commands.
 - **An iterator walks a copy of its container** taken when the loop starts; the original walks the
   container itself. Nothing in the scripts changes a container while walking it.
 - **The factions' order** is their file's; the original keeps them in a list of its own, not read.
@@ -323,5 +330,5 @@ whatever the odds", from a signed draw, was corrected by this reading.
 
 - What the original does after a non-number answer, which escapes as a C++ exception.
 - Whether the AI's worker threads ran their Lua at 24 bits too.
-- Which `rand` the original's `math.random` is, unseeded; nothing calls it yet.
+- ~~Which `rand` the original's `math.random` is~~ - read 2026-10-16: MSVCR80's, a thread's own from seed 1 (section 3).
 - The order of the original's lists of neighbours and of countries at war: here, declaration order.

@@ -129,6 +129,11 @@ internal static class CHeadlessTrial
 					yearClock.Restart();
 				}
 			}
+			// And where the run ends, unless that was a snapshot's day.
+			if (!(state.Date.Day == 1 && state.Date.Month is 1 or 7))
+			{
+				Snapshot(state);
+			}
 		}
 		catch (Exception exception)
 		{
@@ -268,6 +273,19 @@ internal static class CHeadlessTrial
 				$"{units.Count,6} {units.Sum(unit => unit.SubUnits.Count),8} {country.Constructions.Count,5} {technology,4} " +
 				$"{Tenth(country.NationalUnity),6} {Tenth(country.Dissent),7} {Tenth(country.Neutrality),6}  " +
 				$"{country.RulingIdeology,-12} {country.Faction}");
+		}
+		// What the ministers have set: the research queue and the shares of leadership and of IC (ministers.md).
+		foreach (string tag in Majors)
+		{
+			if (state.Country(new CCountryTag(tag)) is not { } country)
+			{
+				continue;
+			}
+			string Shares(CFixed15[] shares) => string.Join(" ", shares.Select(share => share.ToThousandths().ToString()));
+			Console.WriteLine($"  {tag} research {country.ResearchQueue.Count} queued; leadership {Shares(country.LeadershipShares)}; " +
+				$"IC {Shares(country.ProductionShares)}; waiting to be placed {country.Deployments.Count}");
+			long progress = country.ResearchProgress.Values.Sum(value => value.ToThousandths().Raw);
+			Console.WriteLine($"    research progress summed {progress / 1000.0:0.00}, levels summed {country.TechnologyLevels.Values.Sum()}");
 		}
 		var living = state.Countries.Where(country => CResources.HoldsCapital(state, country)).ToList();
 		Console.WriteLine($"  the world: {living.Count} countries holding their capital, IC {living.Sum(c => c.TotalIc)}, " +

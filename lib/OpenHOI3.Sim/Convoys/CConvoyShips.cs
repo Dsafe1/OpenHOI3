@@ -54,6 +54,13 @@ public static class CConvoyShips
 		int escortsWanted = 0;
 		int shortOf = 0;
 		country.TransportsNeeded = 0;
+		// What the production script reads of its transports, as the sharing finds them (ministers.md, section 7).
+		country.TransportsOnConvoysAtSharing = 0;
+		foreach (CConvoy convoy in country.Convoys)
+		{
+			country.TransportsOnConvoysAtSharing += convoy.Transports;
+		}
+		country.TransportsAtSharing = country.Transports + country.TransportsOnConvoysAtSharing;
 
 		foreach (CConvoy convoy in country.Convoys)
 		{

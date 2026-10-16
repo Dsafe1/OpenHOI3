@@ -92,8 +92,10 @@ public static class CUnitAvailability
 	/// <summary>
 	/// How many more of a type the country may have: none of one it has not unlocked or
 	/// may not use, no end of one with no ration, and otherwise what its ration leaves -
-	/// the greater of its fixed number and its share of every brigade of the branch,
-	/// less those the country has, is building and has waiting to be placed.
+	/// the greater of its fixed number and its share of every brigade on the map of the
+	/// type's group (<see cref="CUnitTypeGroup"/>), less those of the type the country has,
+	/// is building and has waiting to be placed - the original's
+	/// <c>CountMaxUnitsStillBuildable</c>, which the production script asks too.
 	/// </summary>
 	public static long StillBuildable(CGameState state, CCountry country, CSubUnitType type)
 	{
@@ -108,13 +110,15 @@ public static class CUnitAvailability
 			return Unlimited;
 		}
 
+		// Every brigade on the map of the type's group, and of the type itself (FINDINGS-ministers.md C.5).
+		CSubUnitType group = CUnitTypeGroup.Of(state, type);
 		long all = 0;
 		long have = 0;
 		foreach (CUnit unit in country.AllUnits())
 		{
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
-				if (subUnit.Type.Branch != type.Branch)
+				if (CUnitTypeGroup.Of(state, subUnit.Type) != group)
 				{
 					continue;
 				}

@@ -132,6 +132,8 @@ public sealed class COrderUnitCommand : CCommand
 		CBuildQueue.Recalculate(country, construction);
 		country.Constructions.Add(construction);
 		CBuildQueue.UpdateCost(country);
+		// Every unit order works out what the country has to spare again (ministers.md, section 7).
+		Economy.CSpareManpower.Update(state, country);
 	}
 
 	/// <summary>
