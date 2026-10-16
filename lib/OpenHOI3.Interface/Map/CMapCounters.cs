@@ -15,24 +15,26 @@ public static class CMapCounters
 	public const int MostFanned = 6;
 
 	/// <summary>
-	/// The ring a unit's counter wears while another unit is selected, or none is: the
-	/// selected unit's own, and one of another colour for every unit under it, however
+	/// The ring a unit's counter wears while units are selected, or none are: each selected unit's own, and one of
+	/// another colour for every unit under any of them that is not itself selected, however
 	/// far down. The original gives the rings out when a unit is selected and takes
 	/// them back when it no longer is; here they follow the order of battle as it is.
 	/// </summary>
-	public static ECounterRing RingOf(CUnit unit, CUnit? selected)
+	public static ECounterRing RingOf(CUnit unit, IReadOnlySet<CUnit> selected)
 	{
-		if (selected is null)
+		// With several selected: every selected unit white, every other under any of them the second colour
+		// (selection.md, section 4).
+		if (selected.Count == 0)
 		{
 			return ECounterRing.None;
 		}
-		if (ReferenceEquals(unit, selected))
+		if (selected.Contains(unit))
 		{
 			return ECounterRing.Selected;
 		}
 		for (CUnit? above = unit.Parent; above is not null; above = above.Parent)
 		{
-			if (ReferenceEquals(above, selected))
+			if (selected.Contains(above))
 			{
 				return ECounterRing.Under;
 			}

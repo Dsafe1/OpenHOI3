@@ -12,8 +12,8 @@ run of small windows - the units above it, a header, a status, an order, a strip
 buttons, its brigades, the units under it - and every one of them is written again each
 frame from the unit as it then is.
 
-**Only for one unit, and best for a land unit.** Selecting several at once is not built,
-and a fleet's and an air unit's own lines wait for those to move.
+**For one unit, and best for a land unit.** Several selected have the multi-unit panel and a row each instead
+(`selection.md`, section 5); a fleet's and an air unit's own lines wait for those to move.
 
 ---
 
@@ -295,7 +295,8 @@ a list of one row each. `confirmed`
   with `, ` between: the number, a space, and `NUM_GROUPS`, `NUM_ARMIES`, `NUM_CORPS` or
   `NUM_DIVISONS` - "1 Corps, 2 Division(s)".
 - `str`: the men of every land unit under it at any depth, without its own.
-- `select_all_childunits` selects them all. Not built: shown, and cannot be pressed.
+- `select_all_childunits`, the ribbon, adds every land unit under the unit to the selection, the unit staying selected;
+  pressable for a land unit only (`selection.md`, section 5.3). A Ctrl-click on a row brings that unit's whole command.
 - The window is as high as its rows, as the brigades' is.
 
 A row is the window `childunit_entry`: `name`, the unit's name - and ` (`, its leader's,

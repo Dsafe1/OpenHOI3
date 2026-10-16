@@ -6,6 +6,7 @@ using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Transport;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Tests.Interface;
@@ -70,6 +71,30 @@ public class OrdersTextTests
 		unit.SubUnits.Add(subUnit);
 		country.Units.Add(unit);
 		return unit;
+	}
+
+	[Fact]
+	public void WithSeveralFleetsARowIsGreyedWhereAnyOfThemMayNotTakeIt()
+	{
+		CGameState state = State(out CCountry country);
+		// The first carries a division, the second nothing: only the first may be given the transport.
+		CUnit fleet = Unit(state, country, EUnitKind.Navy, Kiel);
+		CUnit empty = Unit(state, country, EUnitKind.Navy, Kiel);
+		var division = new CUnit(EUnitKind.Division, Ger) { Id = ++state.LastUnitId, Location = Kiel, Name = "Division" };
+		country.Units.Add(division);
+		CTransport.Board(fleet, division);
+		CProvince sea = state.Province(Rostock);
+
+		List<COrderRow> first = COrdersText.Rows(state, country, fleet, sea);
+		List<COrderRow> second = COrdersText.Rows(state, country, empty, sea);
+		List<COrderRow> both = COrdersText.Rows(state, country, new[] { fleet, empty }, sea);
+
+		// The first fleet's rows, each open only where both may take it (selection.md, section 6).
+		Assert.Equal(first.Select(row => row.NameKey), both.Select(row => row.NameKey));
+		Assert.Equal(first.Zip(second, (a, b) => a.MayGive && b.MayGive), both.Select(row => row.MayGive));
+		Assert.NotEqual(first.Select(row => row.MayGive), both.Select(row => row.MayGive));
+		// One fleet alone: its own rows.
+		Assert.Equal(first, COrdersText.Rows(state, country, new[] { fleet }, sea));
 	}
 
 	[Fact]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
@@ -41,6 +42,7 @@ public partial class CUnitPanel : Control
 	private (CUnit Unit, CUnit Fleet)? _boarding;
 
 	private CLeaderSelectionPanel? _leaders;
+	private CMultiUnitPanel? _multi;
 	private CConfirmDialog? _confirm;
 
 	/// <summary>
@@ -71,6 +73,9 @@ public partial class CUnitPanel : Control
 
 	public bool IsOpen => Visible;
 
+	/// <summary>Raised by the multi-unit panel to change the units selected (selection.md, section 5).</summary>
+	public event Action<Action<CSelection>>? SelectionChanging;
+
 	public override void _Ready()
 	{
 		Name = WindowName;
@@ -78,12 +83,21 @@ public partial class CUnitPanel : Control
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 		Visible = false;
 
+		// The panel of several selected units stands in this one's place; the single panel is never up beside it.
+		_multi = new CMultiUnitPanel();
+		_multi.Setup(_context, _simulation, _player);
+		_multi.SelectionChanging += change => SelectionChanging?.Invoke(change);
+		_multi.LeaderWanted += OpenLeaders;
+		_multi.Ordered += () => Ordered?.Invoke();
+		AddChild(_multi);
+
 		_window = CGuiWindow.Create(_context, WindowName);
 		if (_window is null)
 		{
 			return;
 		}
 		AddChild(_window);
+		_window.Visible = _unit is not null;                 // up only for one unit; the multi-unit panel may be up without it
 		_list = _window.FindListBox("list");
 		_list?.UseEntryHeights();
 		// Two windows of its own that come up over it: what a brigade may be upgraded
@@ -102,7 +116,18 @@ public partial class CUnitPanel : Control
 		}
 	}
 
-	/// <summary>Shows the panel for a unit, or takes it down for none.</summary>
+	/// <summary>
+	/// Shows the panels for the units selected: for one the single panel, for two or more the multi-unit panel and its
+	/// rows, for none neither (selection.md, section 5).
+	/// </summary>
+	public void ShowSelection(IReadOnlyList<CUnit> units)
+	{
+		ShowUnit(units.Count == 1 ? units[0] : null);
+		_multi?.Show(units);
+		ShowPanels();
+	}
+
+	/// <summary>Shows the single panel for a unit, or takes it down for none.</summary>
 	public void ShowUnit(CUnit? unit)
 	{
 		if (ReferenceEquals(unit, _unit))
@@ -110,12 +135,33 @@ public partial class CUnitPanel : Control
 			return;
 		}
 		_unit = unit;
-		Visible = unit is not null && _list is not null;
+		if (_window is not null)
+		{
+			_window.Visible = unit is not null;
+		}
+		ShowPanels();
 		Rebuild();
+	}
+
+	private void ShowPanels()
+	{
+		Visible = (_unit is not null && _list is not null) || _multi is { Visible: true };
 	}
 
 	public override void _Process(double delta)
 	{
+		// The leader window a row of several opened is written as the header's is.
+		if (_unit is null && _leaders is not null)
+		{
+			if (_leaders.IsShown)
+			{
+				_leaders.Update();
+			}
+			else
+			{
+				CloseLeaders();
+			}
+		}
 		if (!Visible || _unit is not { } unit || _list is null)
 		{
 			return;
@@ -269,7 +315,7 @@ public partial class CUnitPanel : Control
 		{
 			if (CUnitParentEntry.Create(_context, parent) is { } row)
 			{
-				row.Selected += () => UnitChosen?.Invoke(parent);
+				row.Selected += () => ChooseRow(parent);
 				Add(row);
 			}
 		}
@@ -328,7 +374,9 @@ public partial class CUnitPanel : Control
 		_hasChildren = unit.Children.Count > 0;
 		if (_hasChildren && CUnitChildrenEntry.Create(_context, state, owner, unit) is { } children)
 		{
-			children.Selected += child => UnitChosen?.Invoke(child);
+			children.Selected += ChooseRow;
+			// The ribbon adds every land unit under this one to the selection, which keeps this one (selection.md, 5.3).
+			children.SelectAllPressed += () => SelectionChanging?.Invoke(selection => selection.AddCommand(unit));
 			Add(children);
 		}
 		// What a fleet or an air unit carries, on every one's panel (transport.md, section 12).
@@ -336,7 +384,7 @@ public partial class CUnitPanel : Control
 		{
 			loaded.Selected += aboard =>
 			{
-				UnitChosen?.Invoke(aboard);
+				ChooseRow(aboard);
 				ProvinceWanted?.Invoke(aboard.Location);
 			};
 			Add(loaded);
@@ -352,6 +400,26 @@ public partial class CUnitPanel : Control
 			}
 		}
 		_list.Relayout();
+	}
+
+	/// <summary>
+	/// A click on a parent's, a subordinate's or a passenger's row: that unit alone, and with Ctrl a land unit brings its
+	/// whole command (selection.md, section 5.3). The map goes to it either way.
+	/// </summary>
+	private void ChooseRow(CUnit unit)
+	{
+		if (Input.IsKeyPressed(Key.Ctrl) && CMovementRules.IsLandUnit(unit))
+		{
+			SelectionChanging?.Invoke(selection =>
+			{
+				selection.Clear();
+				selection.Force(unit);
+				selection.AddCommand(unit);
+			});
+			ProvinceWanted?.Invoke(unit.Location);
+			return;
+		}
+		UnitChosen?.Invoke(unit);
 	}
 
 	private void Add(CUnitPanelEntry entry)

@@ -217,11 +217,13 @@ public partial class CSession : Node
 			_unitPanel.UnitChosen += ChooseUnit;
 			_unitPanel.ProvinceWanted += province => _mapView.CentreOn(province);
 			_unitPanel.Ordered += () => _ordered = true;
+			_unitPanel.SelectionChanging += change => _mapView.ChangeUnits(change);
 			_deployMenu.Toggled += ShowSelectedUnit;
 
 			// The window of orders a right click with a fleet or an air unit brings up.
 			_orders = new COrdersWindow();
 			_orders.Setup(gui, _simulation, Player);
+			_orders.Selection = () => _mapView.Units.Units;
 			layer.AddChild(_orders);
 			_orders.Ordered += () => _ordered = true;
 			_orders.Toggled += () => ShowProvince(_shownProvince);
@@ -317,7 +319,15 @@ public partial class CSession : Node
 			ShowSelectedUnit();
 			ShowProvince(_shownProvince);
 		};
-		_mapView.UnitOrdered += OrderUnit;
+		_mapView.UnitsOrdered += OrderUnits;
+		_mapView.GroupStored += StoreGroup;
+		_mapView.BoxReleased += () =>
+		{
+			if (_deployMenu is { IsOpen: true })
+			{
+				_deployMenu.Close();                             // a box shuts the side menus and leaves them shut
+			}
+		};
 
 		_provinceLabel = new Label
 		{
@@ -360,7 +370,7 @@ public partial class CSession : Node
 			_ => EMapTooltipMode.Political,
 		};
 		return CProvinceTooltip.Build(_localisation.Localise, State, State.Province(provinceId), mode, Player?.Tag,
-			_mapView.Counters?.Selected, _mapView.SelectedProvince, () => CSupplyNetworks.Refresh(State));
+			_mapView.Units.First, _mapView.SelectedProvince, () => CSupplyNetworks.Refresh(State));
 	}
 
 	/// <summary>
@@ -435,7 +445,21 @@ public partial class CSession : Node
 	/// </summary>
 	private void ShowSelectedUnit()
 	{
-		_unitPanel?.ShowUnit(_deployMenu is { IsOpen: true } ? null : _mapView.Counters?.Selected);
+		_unitPanel?.ShowSelection(_deployMenu is { IsOpen: true } ? System.Array.Empty<CUnit>() : _mapView.Units.Units);
+	}
+
+	/// <summary>Ctrl and a digit: the selected units become the group, by a command (selection.md, section 7).</summary>
+	private void StoreGroup(int group, IReadOnlyList<CUnit> units)
+	{
+		if (Player is null)
+		{
+			return;
+		}
+		var command = new CSetSelectionGroupCommand(Player.Tag, group, units.Select(unit => unit.Id));
+		if (command.MayExecute(State))
+		{
+			_simulation.Post(command);
+		}
 	}
 
 	/// <summary>
@@ -656,14 +680,13 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
-	/// A right click on the map with a unit selected. Only the player's own units take
-	/// it. Sent to where it already stands a unit is halted - unless the order is to be
-	/// added to a path it has, when it is one more leg of that.
+	/// A right click on the map with units selected: each is given it in turn, in the order selected. A fleet or an
+	/// air unit that would bring the orders window up finds it up already for the first and does nothing, so without
+	/// Shift several of them move nobody (selection.md, section 3).
 	/// </summary>
-	private void OrderUnit(int unitId, int province, bool append)
+	private void OrderUnits(IReadOnlyList<CUnit> units, int province, bool append)
 	{
-		if (Player is null || _mapView.Counters?.Selected is not { } unit || unit.Id != unitId
-			|| unit.Owner != Player.Tag)
+		if (Player is null)
 		{
 			return;
 		}
@@ -674,6 +697,27 @@ public partial class CSession : Node
 			_orders.MapRightClick(province, append);
 			return;
 		}
+		foreach (CUnit unit in units)
+		{
+			if (_orders is { IsOpen: true })
+			{
+				continue;
+			}
+			OrderUnit(unit, province, append);
+		}
+	}
+
+	/// <summary>
+	/// The right click for one unit. Only the player's own units take it. Sent to where it already stands a unit is
+	/// halted - unless the order is to be added to a path it has, when it is one more leg of that.
+	/// </summary>
+	private void OrderUnit(CUnit unit, int province, bool append)
+	{
+		if (Player is null || unit.Owner != Player.Tag)
+		{
+			return;
+		}
+		int unitId = unit.Id;
 		CCommand command;
 		if (unit.Kind == EUnitKind.Air)
 		{
@@ -815,7 +859,7 @@ public partial class CSession : Node
 		string text = $"{province.Name}  ({province.Id})";
 		// What the panel does not say yet, the original keeping it for a tooltip: where
 		// the selected unit's way ends, and when it will be there.
-		if (_mapView.Counters?.Selected is { IsMoving: true } selected && State.Country(selected.Owner) is { } mover)
+		if (_mapView.Units.First is { IsMoving: true } selected && State.Country(selected.Owner) is { } mover)
 		{
 			long hours = CMovement.HoursToArrive(State, mover, selected);
 			text = $"{selected.Name} to {State.Province(selected.Path[^1]).Name}"
@@ -872,7 +916,7 @@ public partial class CSession : Node
 				+ $"{string.Join(", ", combat.Defender.Countries.Select(tag => CountryName(tag)))} defending with "
 				+ $"{combat.Defender.Front.Count} of {combat.Defender.Units.Count}";
 		}
-		if (_mapView.Counters?.Selected is { } chosen && (chosen.IsFighting || chosen.IsRetreating
+		if (_mapView.Units.First is { } chosen && (chosen.IsFighting || chosen.IsRetreating
 			|| chosen.AttackDelay > CFixedPoint.Zero))
 		{
 			text += $"\n{chosen.Name}: "
@@ -1015,7 +1059,8 @@ public partial class CSession : Node
 	/// with r the right button, with s shift held, with c Ctrl held, with t1.5: before the point
 	/// the button held down 1.5 seconds of real time, and h48 lets 48 hours go by, m460,40 moves
 	/// the pointer there without clicking, d700,310>900,500 drags from the one point to the
-	/// other, and w2 waits two seconds of real time, which is
+	/// other - sd with shift held as it lets go, D holding on at the end - ck1 presses Ctrl and 1,
+	/// and w2 waits two seconds of real time, which is
 	/// what a tooltip's second half waits on - once everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.
@@ -1461,14 +1506,23 @@ public partial class CSession : Node
 			}
 			// kH is not a click either: it presses and lets go of the key of that letter or digit, and K4 the same with
 			// Shift held - K4 opens the debug menu.
-			if (entry.Length == 2 && entry[0] is 'k' or 'K' && char.IsLetterOrDigit(entry[1]))
+			// ck1 the same with Ctrl held: Ctrl and a digit keeps a selection group.
+			bool withCtrl = entry.Length == 3 && entry[0] == 'c';
+			string keyEntry = withCtrl ? entry[1..] : entry;
+			if (keyEntry.Length == 2 && keyEntry[0] is 'k' or 'K' && char.IsLetterOrDigit(keyEntry[1]))
 			{
-				Key key = (Key)char.ToUpperInvariant(entry[1]);
-				bool shifted = entry[0] == 'K';
+				Key key = (Key)char.ToUpperInvariant(keyEntry[1]);
+				bool shifted = keyEntry[0] == 'K';
 				await Frames(2);
-				GetViewport().PushInput(new InputEventKey { Keycode = key, PhysicalKeycode = key, ShiftPressed = shifted, Pressed = true }, true);
+				GetViewport().PushInput(new InputEventKey
+				{
+					Keycode = key, PhysicalKeycode = key, ShiftPressed = shifted, CtrlPressed = withCtrl, Pressed = true,
+				}, true);
 				await Frames(1);
-				GetViewport().PushInput(new InputEventKey { Keycode = key, PhysicalKeycode = key, ShiftPressed = shifted, Pressed = false }, true);
+				GetViewport().PushInput(new InputEventKey
+				{
+					Keycode = key, PhysicalKeycode = key, ShiftPressed = shifted, CtrlPressed = withCtrl, Pressed = false,
+				}, true);
 				await Frames(2);
 				continue;
 			}
@@ -1480,10 +1534,14 @@ public partial class CSession : Node
 				continue;
 			}
 			// d700,310>900,500 holds the left button down at the first point, moves to the second
-			// in ten steps and lets go there: a drag.
-			if (entry.StartsWith('d'))
+			// in ten steps and lets go there: a drag. sd lets go with Shift held, and D does not let go,
+			// for a screenshot of the drag box.
+			bool shiftDrag = entry.StartsWith("sd");
+			string dragEntry = shiftDrag ? entry[1..] : entry;
+			if (dragEntry.StartsWith('d') || dragEntry.StartsWith('D'))
 			{
-				string[] ends = entry[1..].Split('>');
+				bool letGo = dragEntry[0] == 'd';
+				string[] ends = dragEntry[1..].Split('>');
 				string[] a = ends[0].Split(',');
 				string[] b = ends.Length == 2 ? ends[1].Split(',') : System.Array.Empty<string>();
 				if (a.Length == 2 && b.Length == 2
@@ -1508,10 +1566,13 @@ public partial class CSession : Node
 						GetViewport().PushInput(new InputEventMouseMotion { Position = there, GlobalPosition = there, ButtonMask = MouseButtonMask.Left }, true);
 					}
 					await Frames(1);
-					GetViewport().PushInput(new InputEventMouseButton
+					if (letGo)
 					{
-						Position = to, GlobalPosition = to, ButtonIndex = MouseButton.Left, Pressed = false,
-					}, true);
+						GetViewport().PushInput(new InputEventMouseButton
+						{
+							Position = to, GlobalPosition = to, ButtonIndex = MouseButton.Left, Pressed = false, ShiftPressed = shiftDrag,
+						}, true);
+					}
 					await Frames(2);
 				}
 				else

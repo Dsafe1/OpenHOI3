@@ -227,7 +227,10 @@ maintainer, 2026-10-09, of what follows from it: "You click the top unit only, i
 the lower ones the click goes through to the province. Then if you keep clicking the unit
 it cycles through the units in the province." So a click on the top counter selects its
 unit, and each further click the next unit of the stack. *Ours* for the order, which was
-not read: from the top down, and round to the top again.
+not read: from the top down, and round to the top again. **The stack is stepped through only
+from the one selected unit's own counter**; with several selected a click takes the top unit,
+only the player's own units are selected at all, and Shift adds the next one instead
+(`selection.md`, section 2.1, read 2026-10-16).
 
 ## 4. The two figures
 

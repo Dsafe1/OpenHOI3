@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
@@ -70,6 +71,31 @@ public partial class COrdersWindow : Control
 
 	/// <summary>The unit the window is up for, or null.</summary>
 	public CUnit? Unit => _unit;
+
+	/// <summary>The units selected on the map, whose Accept gives the order to every one of the window's kind.</summary>
+	public Func<IReadOnlyList<CUnit>>? Selection { get; set; }
+
+	/// <summary>
+	/// The units Accept gives the order to: every selected unit of the window's unit's kind, the window's unit first -
+	/// or that unit alone where it is not among them (selection.md, section 6).
+	/// </summary>
+	private List<CUnit> Units()
+	{
+		var units = new List<CUnit> { _unit! };
+		IReadOnlyList<CUnit> selected = Selection?.Invoke() ?? Array.Empty<CUnit>();
+		if (!selected.Contains(_unit!))
+		{
+			return units;
+		}
+		foreach (CUnit unit in selected)
+		{
+			if (unit != _unit && unit.Kind == _unit!.Kind && unit.Owner == _player.Tag)
+			{
+				units.Add(unit);
+			}
+		}
+		return units;
+	}
 
 	public override void _Ready()
 	{
@@ -209,7 +235,7 @@ public partial class COrdersWindow : Control
 		CProvince target = state.Province(_province);
 		_list?.Clear();
 		_boxes.Clear();
-		_rows = COrdersText.Rows(state, _player, _unit!, target);
+		_rows = COrdersText.Rows(state, _player, Units(), target);
 		for (int index = 0; index < _rows.Count; index++)
 		{
 			if (CGuiWindow.CreateEntry(_context, COrdersText.EntryWindow) is not { } entry)
@@ -306,29 +332,35 @@ public partial class COrdersWindow : Control
 		{
 			return;
 		}
-		CCommand command;
+		// The order goes to every selected unit of the window's kind, each its own command (selection.md, section 6).
 		if (_air is { Area: { } area })
 		{
-			// A change of base under way is left to finish. The priority is not sent: the
-			// original's air window shows it and never gives it.
-			if (!CDropOrderCommand.MayDrop(unit.Order))
-			{
-				Close();
-				return;
-			}
 			_air.HoldStart(_rows[_ticked].Order);
-			command = new CSetUnitOrderCommand(_player.Tag, unit.Id, _rows[_ticked].Order, _province, _stance,
-				0, 0, area.Provinces, _air.Time, _air.EndHour, _air.StartHour);
 		}
-		else
+		foreach (CUnit given in Units())
 		{
-			command = new CSetUnitOrderCommand(_player.Tag, unit.Id, _rows[_ticked].Order, _province, _stance,
-				_priority, _rows[_ticked].Convoy);
-		}
-		if (command.MayExecute(_simulation.State))
-		{
-			_simulation.Post(command);
-			Ordered?.Invoke();
+			CCommand command;
+			if (_air is { Area: { } provinces })
+			{
+				// A change of base under way is left to finish. The priority is not sent: the
+				// original's air window shows it and never gives it.
+				if (!CDropOrderCommand.MayDrop(given.Order))
+				{
+					continue;
+				}
+				command = new CSetUnitOrderCommand(_player.Tag, given.Id, _rows[_ticked].Order, _province, _stance,
+					0, 0, provinces.Provinces, _air.Time, _air.EndHour, _air.StartHour);
+			}
+			else
+			{
+				command = new CSetUnitOrderCommand(_player.Tag, given.Id, _rows[_ticked].Order, _province, _stance,
+					_priority, _rows[_ticked].Convoy);
+			}
+			if (command.MayExecute(_simulation.State))
+			{
+				_simulation.Post(command);
+				Ordered?.Invoke();
+			}
 		}
 		Close();
 	}

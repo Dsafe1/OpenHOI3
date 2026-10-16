@@ -49,8 +49,15 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 	/// </summary>
 	public event Action? LeaderPressed;
 
+	/// <summary>A row's "select this" button, and where its file puts it: a row marked with Shift has it 15 pixels right.</summary>
+	private readonly CGuiButton? _only;
+	private readonly Godot.Vector2 _onlyHome;
+
+	/// <summary>Raised by a row's "select this" button (selection.md, section 5.1).</summary>
+	public event Action? OnlyPressed;
+
 	private CUnitHeaderEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit,
-		CCountryTag? player)
+		CCountryTag? player, bool row)
 		: base(window)
 	{
 		_context = context;
@@ -80,11 +87,20 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		{
 			remove.Pressed += () => Deselected?.Invoke();
 		}
-		// With one unit selected the original disables and hides this one.
-		if (window.FindButton("only_unit_from_selection_button") is { } only)
+		// With one unit selected the original disables and hides this one; a row of several has it.
+		_only = window.FindButton("only_unit_from_selection_button");
+		if (_only is not null)
 		{
-			only.Disabled = true;
-			only.Visible = false;
+			_onlyHome = _only.Position;
+			if (row)
+			{
+				_only.Pressed += () => OnlyPressed?.Invoke();
+			}
+			else
+			{
+				_only.Disabled = true;
+				_only.Visible = false;
+			}
 		}
 		_leaderButton = window.FindButton("leader_button");
 		if (_leaderButton is not null)
@@ -101,10 +117,21 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		Update();
 	}
 
-	public static CUnitHeaderEntry? Create(CGuiContext context, CGameState state, CCountry owner, CUnit unit, CCountryTag? player)
+	/// <param name="row">A row of the list of several selected units, whose "select this" button is up.</param>
+	public static CUnitHeaderEntry? Create(CGuiContext context, CGameState state, CCountry owner, CUnit unit, CCountryTag? player,
+		bool row = false)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "unitpanel");
-		return window is null ? null : new CUnitHeaderEntry(window, context, state, owner, unit, player);
+		return window is null ? null : new CUnitHeaderEntry(window, context, state, owner, unit, player, row);
+	}
+
+	/// <summary>A row marked with Shift shows its "select this" button 15 pixels right of its place.</summary>
+	public void SetKept(bool kept)
+	{
+		if (_only is not null)
+		{
+			_only.Position = _onlyHome + (kept ? new Godot.Vector2(15f, 0f) : Godot.Vector2.Zero);
+		}
 	}
 
 	public override void Update()

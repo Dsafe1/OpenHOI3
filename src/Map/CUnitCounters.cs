@@ -53,8 +53,12 @@ public partial class CUnitCounters : Node2D
 	private readonly List<CMapCounter> _drawn = new();
 	private float _zoom = 1f;
 	private Rect2 _view;
-	private CUnit? _selected;
+	private CSelection _selection = new();
+	private readonly HashSet<CUnit> _selectedSet = new();
 	private double _time;
+
+	/// <summary>The first selected unit, or null: whose hierarchy is drawn and whose reach the air map dims by.</summary>
+	private CUnit? _selected => _selection.First;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CMap map, CGameState state, CGuiContext gui, CCounterTypes types, CBillboardTypes billboards,
@@ -169,21 +173,39 @@ public partial class CUnitCounters : Node2D
 		Refresh();
 	}
 
-	/// <summary>The unit whose counter wears the ring, or null.</summary>
-	public CUnit? Selected
+	/// <summary>The first unit selected, or null.</summary>
+	public CUnit? Selected => _selected;
+
+	/// <summary>Raised when a refresh took out of the selection units that are no longer anywhere.</summary>
+	public event Action? SelectionLost;
+
+	/// <summary>
+	/// The units whose counters wear the white ring, in the order selected: the map view's own selection, which the
+	/// counters are told of with <see cref="SelectionChanged"/>.
+	/// </summary>
+	public CSelection Selection
 	{
-		get => _selected;
+		get => _selection;
 		set
 		{
-			_selected = value;
-			_hierarchy.Unit = value;
-			// The air map mode's rings are dimmed by what is selected.
-			if (_airMap.Visible)
-			{
-				_airMap.RefreshCircles(value);
-			}
-			QueueRedraw();
+			_selection = value;
+			SelectionChanged();
 		}
+	}
+
+	/// <summary>Takes up what the selection now holds: the rings, the lines of the hierarchy and the air map's rings.</summary>
+	public void SelectionChanged()
+	{
+		_selectedSet.Clear();
+		_selectedSet.UnionWith(_selection.Units);
+		// The lines of the hierarchy are the first selected land unit's alone (selection.md, section 4).
+		_hierarchy.Unit = _selection.Units.FirstOrDefault(unit => CSelection.KindOf(unit) == ESelectionKind.Land);
+		// The air map mode's rings are dimmed by what is selected.
+		if (_airMap.Visible)
+		{
+			_airMap.RefreshCircles(_selected);
+		}
+		QueueRedraw();
 	}
 
 	/// <summary>
@@ -203,11 +225,11 @@ public partial class CUnitCounters : Node2D
 		// its province, is drawn over it and is the one a click there finds.
 		_stacks = CMapCounters.Build(_state).OrderBy(stack => stack.Kind).ToList();
 		// A fleet in port and an air unit at its base have no counter and stay selected
-		// all the same; a unit that is no longer anywhere does not.
-		if (_selected is not null && !CMapCounters.IsSomewhere(_state, _selected))
+		// all the same, and so does a land unit gone aboard; a unit that is no longer anywhere does not.
+		if (_selection.Count > 0 && _selection.RemoveWhere(unit => unit.IsRemoved || !CMapCounters.IsSomewhere(_state, unit)))
 		{
-			_selected = null;
-			_hierarchy.Unit = null;
+			SelectionChanged();
+			SelectionLost?.Invoke();
 		}
 		_buildings.Refresh();
 		_markers.Refresh();
@@ -313,10 +335,18 @@ public partial class CUnitCounters : Node2D
 	/// </summary>
 	private void DrawPath(CCounterKind kind)
 	{
-		if (_selected is not { IsMoving: true } unit || unit.Location <= 0)
+		// Every selected unit on the move shows its way (selection.md, section 4).
+		foreach (CUnit unit in _selection.Units)
 		{
-			return;
+			if (unit.IsMoving && unit.Location > 0)
+			{
+				DrawPath(kind, unit);
+			}
 		}
+	}
+
+	private void DrawPath(CCounterKind kind, CUnit unit)
+	{
 		Texture2D? arrowTexture = _arrowTextures.GetValueOrDefault(CMapArrows.TypeOf(_state, unit))
 			?? _arrowTextures.GetValueOrDefault(CArrowTypes.Move);
 		if (arrowTexture is null)
@@ -388,15 +418,20 @@ public partial class CUnitCounters : Node2D
 	private List<CMapCounter> Drawn(CMapStack stack)
 	{
 		_drawn.Clear();
+		// Ours with several selected: the first of them in the stack, in the order they were selected.
 		CMapCounter? chosen = null;
-		if (_selected is not null)
+		foreach (CUnit selected in _selection.Units)
 		{
 			foreach (CMapCounter counter in stack.Counters)
 			{
-				if (ReferenceEquals(counter.Unit, _selected))
+				if (ReferenceEquals(counter.Unit, selected))
 				{
 					chosen = counter;
 				}
+			}
+			if (chosen is not null)
+			{
+				break;
 			}
 		}
 		int room = CCounterLayout.Drawn(stack.Counters.Count) - (chosen is null ? 0 : 1);
@@ -458,7 +493,7 @@ public partial class CUnitCounters : Node2D
 			}
 			// The ring: white on the selected unit's counter, and the counter type's second
 			// colour on that of every unit under it, each pulsing.
-			ECounterRing worn = CMapCounters.RingOf(counter.Unit, _selected);
+			ECounterRing worn = CMapCounters.RingOf(counter.Unit, _selectedSet);
 			if (worn != ECounterRing.None && kind.Ring is { } ring)
 			{
 				float strength = 0.5f + 0.5f * Mathf.Abs(Mathf.Sin((float)_time * PulseSpeed));
@@ -536,7 +571,8 @@ public partial class CUnitCounters : Node2D
 	/// </summary>
 	public CUnit? Click(Vector2 point)
 	{
-		return StackAt(point)?.Next(_selected);
+		// The stack is stepped through only from the one selected unit's own counter (selection.md, section 2.1).
+		return StackAt(point)?.Next(_selection.Single);
 	}
 
 	/// <summary>The stack whose top counter is at a point of the map, or null.</summary>

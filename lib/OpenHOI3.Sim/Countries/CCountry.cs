@@ -417,6 +417,26 @@ public sealed class CCountry
 	/// </summary>
 	public bool AutoAssignLeaders { get; set; } = true;
 
+	/// <summary>How many selection groups a country has: one for each digit.</summary>
+	public const int SelectionGroupCount = 10;
+
+	/// <summary>
+	/// The selection groups of the digits, each the numbers of its units in the order they were selected. Kept in the
+	/// game state, as the original keeps them, and set only by a command. See <c>docs/mechanics/selection.md</c>,
+	/// section 7.
+	/// </summary>
+	public List<int>[] SelectionGroups { get; } = NewSelectionGroups();
+
+	private static List<int>[] NewSelectionGroups()
+	{
+		var groups = new List<int>[SelectionGroupCount];
+		for (int group = 0; group < groups.Length; group++)
+		{
+			groups[group] = new List<int>();
+		}
+		return groups;
+	}
+
 	/// <summary>Every unit it has, at every level, each before the units under it.</summary>
 	public IEnumerable<CUnit> AllUnits()
 	{

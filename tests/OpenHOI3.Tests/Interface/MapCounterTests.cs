@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using OpenHOI3.Content.Map;
@@ -101,6 +102,11 @@ public class MapCounterTests
 		Assert.Equal("Berlin", CDeployMenuText.Location(state, division));
 	}
 
+	private static HashSet<CUnit> Set(params CUnit[] units)
+	{
+		return new HashSet<CUnit>(units);
+	}
+
 	[Fact]
 	public void TheSelectedUnitWearsOneRingAndEveryUnitUnderItAnother()
 	{
@@ -112,17 +118,17 @@ public class MapCounterTests
 		corps.Parent = army;
 		division.Parent = corps;
 
-		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(army, null));
+		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(army, Set()));
 
-		Assert.Equal(ECounterRing.Selected, CMapCounters.RingOf(army, army));
-		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(corps, army));
-		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(division, army));     // however far down
-		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(other, army));
+		Assert.Equal(ECounterRing.Selected, CMapCounters.RingOf(army, Set(army)));
+		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(corps, Set(army)));
+		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(division, Set(army)));     // however far down
+		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(other, Set(army)));
 
 		// Nothing above the selected unit is marked.
-		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(army, corps));
-		Assert.Equal(ECounterRing.Selected, CMapCounters.RingOf(corps, corps));
-		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(division, corps));
+		Assert.Equal(ECounterRing.None, CMapCounters.RingOf(army, Set(corps)));
+		Assert.Equal(ECounterRing.Selected, CMapCounters.RingOf(corps, Set(corps)));
+		Assert.Equal(ECounterRing.Under, CMapCounters.RingOf(division, Set(corps)));
 	}
 
 	[Fact]

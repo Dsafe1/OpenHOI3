@@ -82,6 +82,33 @@ public static class COrdersText
 	}
 
 	/// <summary>
+	/// The rows for the first of several selected fleets, each greyed where any of the others may not take it - one
+	/// whose own list has no such row, or has it greyed (<c>selection.md</c>, section 6). For an air unit, or one
+	/// fleet, the first unit's rows as they are.
+	/// </summary>
+	public static List<COrderRow> Rows(CGameState state, CCountry country, IReadOnlyList<CUnit> units, CProvince province)
+	{
+		List<COrderRow> rows = Rows(state, country, units[0], province);
+		if (units[0].Kind != EUnitKind.Navy)
+		{
+			return rows;
+		}
+		for (int other = 1; other < units.Count; other++)
+		{
+			List<COrderRow> theirs = Rows(state, country, units[other], province);
+			for (int index = 0; index < rows.Count; index++)
+			{
+				COrderRow row = rows[index];
+				if (row.MayGive && !theirs.Exists(their => their.Order == row.Order && their.Convoy == row.Convoy && their.MayGive))
+				{
+					rows[index] = row with { MayGive = false };
+				}
+			}
+		}
+		return rows;
+	}
+
+	/// <summary>
 	/// The rows of the list, in the original's order. A fleet is shown every naval order
 	/// there is, the ones that cannot be given with their boxes greyed. An air unit is
 	/// shown only the orders it could ever fly: by what its wings can attack, what it

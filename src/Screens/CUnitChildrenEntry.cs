@@ -5,6 +5,7 @@ using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -32,6 +33,9 @@ public sealed class CUnitChildrenEntry : CUnitPanelEntry
 	/// <summary>Raised with the unit of a row that was clicked.</summary>
 	public event Action<CUnit>? Selected;
 
+	/// <summary>Raised by the ribbon, <c>select_all_childunits</c>.</summary>
+	public event Action? SelectAllPressed;
+
 	private CUnitChildrenEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit)
 		: base(window)
 	{
@@ -45,10 +49,12 @@ public sealed class CUnitChildrenEntry : CUnitPanelEntry
 		_list = window.FindListBox("list");
 		_label = (int)(window.FindIcon("children_label_bg")?.Size.Y ?? 0f);
 		_fileHeight = (int)window.Size.Y;
-		// Selecting several units at once is not built.
+		// The ribbon: every land unit under this one joins the selection, this one staying - a land unit's only
+		// (selection.md, section 5.3).
 		if (window.FindButton("select_all_childunits") is { } all)
 		{
-			all.Disabled = true;
+			all.Disabled = !CMovementRules.IsLandUnit(unit);
+			all.Pressed += () => SelectAllPressed?.Invoke();
 		}
 		Fill();
 	}

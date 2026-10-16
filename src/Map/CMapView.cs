@@ -46,17 +46,21 @@ public partial class CMapView : Node2D
 	[Signal]
 	public delegate void ProvinceSelectedEventHandler(int provinceId);
 
-	/// <summary>A unit's counter was clicked, or with 0 the unit that was selected no longer is.</summary>
+	/// <summary>The units selected changed: with the first one's number, or 0 where none is selected now.</summary>
 	[Signal]
 	public delegate void UnitSelectedEventHandler(int unitId);
 
 	/// <summary>
-	/// The right button was clicked on a province while a unit was selected: the unit
-	/// is sent there, and with <c>append</c> - the shift key - after whatever it was
-	/// already told.
+	/// The right button was clicked on a province with units selected: each is given the click in turn, in the order
+	/// selected, and with <c>append</c> - the shift key - after whatever it was already told (selection.md, section 3).
 	/// </summary>
-	[Signal]
-	public delegate void UnitOrderedEventHandler(int unitId, int provinceId, bool append);
+	public event Action<IReadOnlyList<CUnit>, int, bool>? UnitsOrdered;
+
+	/// <summary>Ctrl and a digit with units selected: the group is to become them (selection.md, section 7).</summary>
+	public event Action<int, IReadOnlyList<CUnit>>? GroupStored;
+
+	/// <summary>A drag box was let go, which shuts the side menus as it lets the selection go.</summary>
+	public event Action? BoxReleased;
 
 	/// <summary>
 	/// How far the pointer may travel with the right button down and its release still
@@ -107,6 +111,17 @@ public partial class CMapView : Node2D
 	private MapMode _mode = MapMode.Political;
 	private CUnitCounters? _counters;
 	private HashSet<int>? _places;
+
+	/// <summary>The units selected, in the order selected and of one kind (selection.md, section 1).</summary>
+	private readonly CSelection _units = new();
+
+	/// <summary>Where the left button went down on the map, while it is held; the release is what acts.</summary>
+	private Vector2? _press;
+
+	private CSelectionBox? _box;
+
+	/// <summary>The selection group last recalled, for a second press of its digit to go to it; -1 for none.</summary>
+	private int _lastGroup = -1;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CMap map, CGameState state)
@@ -228,7 +243,7 @@ public partial class CMapView : Node2D
 	{
 		if (_mode == MapMode.Air && _counters is not null)
 		{
-			_counters.AirMap.Refresh(_counters.Selected);
+			_counters.AirMap.Refresh(_units.First);
 		}
 	}
 
@@ -264,8 +279,13 @@ public partial class CMapView : Node2D
 		_camera.MakeCurrent();
 		if (_counters is not null)
 		{
+			_counters.Selection = _units;
+			_counters.SelectionLost += () => UnitsChanged(keepGroup: true);
 			AddChild(_counters);
 		}
+		// The drag box, over everything else on the map.
+		_box = new CSelectionBox { Name = "SelectionBox", Visible = false };
+		AddChild(_box);
 		SetZoom(MinZoom());
 	}
 
@@ -552,15 +572,47 @@ public partial class CMapView : Node2D
 		EmitSignal(SignalName.ProvinceSelected, provinceId);
 	}
 
-	/// <summary>Selects a unit on the map - its counter wears a ring - or with null selects none.</summary>
+	/// <summary>The units selected, in the order selected.</summary>
+	public CSelection Units => _units;
+
+	/// <summary>
+	/// Selects one unit alone - its counter wears a ring - or with null lets every unit go. Asked by the panels and the
+	/// developer's switches, so the unit need not be the player's.
+	/// </summary>
 	public void SelectUnit(CUnit? unit)
 	{
-		if (_counters is null || ReferenceEquals(_counters.Selected, unit))
+		if (_units.Count == (unit is null ? 0 : 1) && (unit is null || ReferenceEquals(_units.First, unit)))
 		{
 			return;
 		}
-		_counters.Selected = unit;
-		EmitSignal(SignalName.UnitSelected, unit?.Id ?? 0);
+		_units.Clear();
+		if (unit is not null)
+		{
+			_units.Force(unit);
+		}
+		UnitsChanged();
+	}
+
+	/// <summary>Changes the units selected as the panel's rows ask, and tells everyone.</summary>
+	public void ChangeUnits(Action<CSelection> change)
+	{
+		change(_units);
+		if (_units.Count > 0)
+		{
+			Select(0);
+		}
+		UnitsChanged();
+	}
+
+	/// <summary>The counters take up the selection and the session is told.</summary>
+	private void UnitsChanged(bool keepGroup = false)
+	{
+		if (!keepGroup)
+		{
+			_lastGroup = -1;
+		}
+		_counters?.SelectionChanged();
+		EmitSignal(SignalName.UnitSelected, _units.First?.Id ?? 0);
 	}
 
 	// --- input ---
@@ -609,80 +661,41 @@ public partial class CMapView : Node2D
 				{
 					_dragged = 0f;
 				}
-				else if (_dragged <= ClickSlack && _counters?.Selected is { } ordered && _places is null
+				else if (_dragged <= ClickSlack && _units.Count > 0 && _places is null
 					&& ProvinceAtScreen(button.Position) is int target && target > 0)
 				{
-					EmitSignal(SignalName.UnitOrdered, ordered.Id, target, button.ShiftPressed);
+					UnitsOrdered?.Invoke(new List<CUnit>(_units.Units), target, button.ShiftPressed);
 				}
 				break;
-			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } click:
-				// A building being placed is asked first: where it may go the click places it, and elsewhere the click
-				// goes on as an ordinary click (buildinglines.md, section 6).
-				if (_deployment is not null && PlaceBuilding is { } place && place(ProvinceAtScreen(click.Position)))
+			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } press:
+				// The press only marks where the gesture began; its release is the click or the end of a drag
+				// (selection.md, section 2).
+				_press = ScreenToMap(press.Position);
+				break;
+			case InputEventMouseButton { Pressed: false, ButtonIndex: MouseButton.Left } release when _press is { } from:
+				_press = null;
+				_box?.HideBox();
+				Vector2 to = ScreenToMap(release.Position);
+				if (_places is null && CBoxSelection.IsDrag(from.X, from.Y, to.X, to.Y))
 				{
-					break;
+					BoxSelect(from, to, release.ShiftPressed);
 				}
-				// A counter is over the province it stands in, so it is asked first - but
-				// not while a unit is being placed, when the click is for the province.
-				Vector2 clicked = ScreenToMap(click.Position);
-				// A battle's marker is drawn over the counters, so it is asked before them.
-				if (_places is null && _counters?.Markers.At(clicked) is { } battle)
+				else
 				{
-					CombatSelected?.Invoke(battle);
-					break;
+					Click(release);
 				}
-				// In the air map mode a large air base is asked before any counter, which is
-				// how an air unit at its base is picked whatever stands over it.
-				CUnit? unit = null;
-				if (_places is null && Player is { } flier && _counters is not null
-					&& _counters.AirMap.AirBaseAt(clicked) is int airfield and > 0)
+				break;
+			case InputEventMouseMotion motion when _press is { } start && !_dragging:
+				UpdateHover(motion.Position);
+				Vector2 here = ScreenToMap(motion.Position);
+				if (_places is null && CBoxSelection.IsDrag(start.X, start.Y, here.X, here.Y))
 				{
-					unit = CMapBuildings.Next(_state, flier, airfield, EMapBuilding.Airfield, _counters.Selected);
+					_box?.ShowBox(start, here, _camera.Zoom.X);
 				}
-				unit ??= _places is null ? _counters?.Click(clicked) : null;
-				// Then a port or an airfield, which is how a fleet in port and an air unit
-				// at its base are picked: each click the next of the player's units there.
-				if (unit is null && _places is null && Player is { } player && _counters is not null
-					&& _counters.Buildings.At(clicked) is { Kind: not EMapBuilding.Other } building)
+				else
 				{
-					unit = CMapBuildings.Next(_state, player, building.Province, building.Kind, _counters.Selected);
+					_box?.HideBox();
 				}
-				if (unit is not null)
-				{
-					// A unit selected lets the provinces go, and the province view with them.
-					SelectUnit(unit);
-					Select(0);
-					break;
-				}
-				int province = ProvinceAtScreen(click.Position);
-				if (_places is not null)
-				{
-					// While a unit is being placed each click on a province places the next.
-					SelectUnit(null);
-					Select(province);
-					break;
-				}
-				bool sea = province > 0 && province < _state.Provinces.Count && _state.Province(province).IsSea;
-				if (click.ShiftPressed)
-				{
-					// Only provinces join provinces: with a unit selected, nothing; a sea zone lets everything go
-					// (provinceview.md, section 1).
-					if (_counters?.Selected is not null)
-					{
-						break;
-					}
-					if (sea || province <= 0)
-					{
-						ClearSelection();
-					}
-					else
-					{
-						ToggleSelected(province);
-					}
-					break;
-				}
-				SelectUnit(null);
-				Select(sea ? 0 : province);
 				break;
 			case InputEventMouseMotion motion when _dragging:
 				_dragged += motion.Relative.Length();
@@ -692,8 +705,12 @@ public partial class CMapView : Node2D
 			case InputEventMouseMotion motion:
 				UpdateHover(motion.Position);
 				break;
+			case InputEventKey { Pressed: true, Echo: false } key when GroupOf(key) is int group:
+				GroupKey(group, key.CtrlPressed);
+				GetViewport().SetInputAsHandled();
+				break;
 			case InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape }
-				when _selection.Count > 0 || _counters?.Selected is not null:
+				when _selection.Count > 0 || _units.Count > 0:
 				// Escape with anything selected lets it all go (provinceview.md, section 1).
 				ClearSelection();
 				GetViewport().SetInputAsHandled();
@@ -710,6 +727,181 @@ public partial class CMapView : Node2D
 				};
 				break;
 		}
+	}
+
+	/// <summary>
+	/// The release of the left button where it was no drag: what is under the pointer is selected, or with Shift added
+	/// or taken out, or with Ctrl brings the land units under it (selection.md, section 2.1).
+	/// </summary>
+	private void Click(InputEventMouseButton click)
+	{
+		// A building being placed is asked first: where it may go the click places it, and elsewhere the click
+		// goes on as an ordinary click (buildinglines.md, section 6).
+		if (_deployment is not null && PlaceBuilding is { } place && place(ProvinceAtScreen(click.Position)))
+		{
+			return;
+		}
+		bool shift = click.ShiftPressed;
+		bool anything = _units.Count > 0 || _selection.Count > 0;
+		// A counter is over the province it stands in, so it is asked first - but
+		// not while a unit is being placed, when the click is for the province.
+		Vector2 clicked = ScreenToMap(click.Position);
+		// A battle's marker is drawn over the counters, so it is asked before them. It never joins a selection.
+		if (_places is null && _counters?.Markers.At(clicked) is { } battle)
+		{
+			if (!shift || !anything)
+			{
+				CombatSelected?.Invoke(battle);
+			}
+			return;
+		}
+		// In the air map mode a large air base is asked before any counter, which is
+		// how an air unit at its base is picked whatever stands over it.
+		CUnit? unit = null;
+		bool building = false;
+		CUnit? lone = _units.Single;
+		if (_places is null && Player is { } flier && _counters is not null
+			&& _counters.AirMap.AirBaseAt(clicked) is int airfield and > 0)
+		{
+			unit = CMapBuildings.Next(_state, flier, airfield, EMapBuilding.Airfield, lone);
+			building = true;
+		}
+		if (unit is null && _places is null && _counters?.Click(clicked) is { } counter)
+		{
+			unit = counter;
+			building = false;
+		}
+		// Then a port or an airfield, which is how a fleet in port and an air unit
+		// at its base are picked: each click the next of the player's units there.
+		if (unit is null && _places is null && Player is { } player && _counters is not null
+			&& _counters.Buildings.At(clicked) is { Kind: not EMapBuilding.Other } picture)
+		{
+			unit = CMapBuildings.Next(_state, player, picture.Province, picture.Kind, lone);
+			building = true;
+		}
+		if (unit is not null)
+		{
+			if (shift && anything)
+			{
+				// Shift: a counter's unit taken out or added where it is of the selection's kind; a port's or an
+				// airfield's never joins units, and nothing joins provinces.
+				if (building || _selection.Count > 0)
+				{
+					return;
+				}
+				if (!_units.Remove(unit) && !_units.Add(unit, Player))
+				{
+					return;
+				}
+				UnitsChanged();
+				return;
+			}
+			// A plain click lets everything go - the provinces and the province view with them - and selects the
+			// unit where it is the player's; with Ctrl a land unit brings its whole command.
+			_units.Clear();
+			Select(0);
+			if (_units.Add(unit, Player) && click.CtrlPressed && CSelection.KindOf(unit) == ESelectionKind.Land)
+			{
+				_units.AddCommand(unit);
+			}
+			UnitsChanged();
+			return;
+		}
+		int province = ProvinceAtScreen(click.Position);
+		if (_places is not null)
+		{
+			// While a unit is being placed each click on a province places the next.
+			SelectUnit(null);
+			Select(province);
+			return;
+		}
+		bool sea = province > 0 && province < _state.Provinces.Count && _state.Province(province).IsSea;
+		if (shift)
+		{
+			// Only provinces join provinces: with a unit selected, nothing; a sea zone lets everything go
+			// (provinceview.md, section 1).
+			if (_units.Count > 0)
+			{
+				return;
+			}
+			if (sea || province <= 0)
+			{
+				ClearSelection();
+			}
+			else
+			{
+				ToggleSelected(province);
+			}
+			return;
+		}
+		SelectUnit(null);
+		Select(sea ? 0 : province);
+	}
+
+	/// <summary>
+	/// The release of a drag box: the selection let go unless Shift is held with units selected, then the player's land
+	/// units in the box, else its fleets, else its air units (selection.md, section 2.2).
+	/// </summary>
+	private void BoxSelect(Vector2 from, Vector2 to, bool shift)
+	{
+		BoxReleased?.Invoke();
+		if (!shift || _units.Count == 0)
+		{
+			_units.Clear();
+			Select(0);
+		}
+		if (Player is { } tag && _state.Country(tag) is { } player)
+		{
+			// The corners in the positions file's frame, where a unit's point is: y counts north, and a point stands
+			// half a pixel off the corner of its pixel.
+			CBoxSelection.Take(_state, player, _map.Positions, _map.BuildingPositions,
+				from.X - 0.5f, _map.Height - 0.5f - from.Y, to.X - 0.5f, _map.Height - 0.5f - to.Y, _map.Width, _units);
+		}
+		UnitsChanged();
+	}
+
+	/// <summary>The selection group a key stands for: a digit, without Shift, which makes it another character.</summary>
+	private static int? GroupOf(InputEventKey key)
+	{
+		if (key.ShiftPressed || key.AltPressed)
+		{
+			return null;
+		}
+		return key.Keycode switch
+		{
+			>= Key.Key0 and <= Key.Key9 => (int)(key.Keycode - Key.Key0),
+			>= Key.Kp0 and <= Key.Kp9 => (int)(key.Keycode - Key.Kp0),
+			_ => null,
+		};
+	}
+
+	/// <summary>
+	/// A digit: with Ctrl the selected units become its group; pressed again, the map goes to the first selected
+	/// unit; otherwise its group is selected (selection.md, section 7).
+	/// </summary>
+	private void GroupKey(int group, bool ctrl)
+	{
+		if (ctrl)
+		{
+			if (_units.Count > 0)
+			{
+				GroupStored?.Invoke(group, new List<CUnit>(_units.Units));
+			}
+			return;
+		}
+		if (_lastGroup == group && _units.First is { } first)
+		{
+			CentreOn(first.Location);
+			return;
+		}
+		if (Player is not { } tag || _state.Country(tag) is not { } player)
+		{
+			return;
+		}
+		Select(0);
+		CSelectionGroups.Recall(player, group, _units);
+		UnitsChanged();
+		_lastGroup = group;
 	}
 
 	public override void _Process(double delta)
