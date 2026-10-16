@@ -223,17 +223,18 @@ public static class COrganisation
 		{
 			foreach (CUnit unit in country.AllUnits())
 			{
-				if (unit.IsFighting || IsMovingOntoEnemyGround(state, unit)
-					|| (unit.Transport is not null && state.Province(unit.Location).IsSea))
+				if (!unit.IsFighting && !IsMovingOntoEnemyGround(state, unit)
+					&& !(unit.Transport is not null && state.Province(unit.Location).IsSea))
 				{
-					continue;
+					long factor = RegainFactor(state, country, unit, crowding);
+					long bonus = CommanderBonus(state, unit);
+					foreach (CSubUnit subUnit in unit.SubUnits)
+					{
+						Regain(subUnit, factor, CeilingWithBonus(state, country, subUnit, bonus).Raw, lowBonus);
+					}
 				}
-				long factor = RegainFactor(state, country, unit, crowding);
-				long bonus = CommanderBonus(state, unit);
-				foreach (CSubUnit subUnit in unit.SubUnits)
-				{
-					Regain(subUnit, factor, CeilingWithBonus(state, country, subUnit, bonus).Raw, lowBonus);
-				}
+				// Then a dropped unit's first hour out of a battle (transport.md, section 13.4).
+				Transport.CAirTransport.Settle(state, unit);
 			}
 		}
 	}

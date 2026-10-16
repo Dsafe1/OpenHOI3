@@ -35,10 +35,24 @@ public static class CAirMissions
 		return order is EUnitOrder.AirSuperiority or EUnitOrder.AirIntercept;
 	}
 
-	/// <summary>Whether an order is one an air unit flies under at all, a change of base and the bombing missions among them.</summary>
+	/// <summary>
+	/// Whether an order is one an air unit flies under at all: a change of base, the bombing missions, and the
+	/// carrier's, the paradrop and the air supply among them.
+	/// </summary>
 	public static bool IsAirOrder(EUnitOrder order)
 	{
-		return IsAirMission(order) || order == EUnitOrder.RebaseAir || CBombingOrders.IsBombingMission(order);
+		return IsAirMission(order) || order == EUnitOrder.RebaseAir || CBombingOrders.IsBombingMission(order)
+			|| order is EUnitOrder.RebaseCarrier or EUnitOrder.CarrierProtection or EUnitOrder.Paradrop
+				or EUnitOrder.AirSupply;
+	}
+
+	/// <summary>
+	/// Whether a unit fights in the air - starts and joins battles there - under its order: under a fighting mission,
+	/// and under carrier protection while its carrier's province has a battle (<c>transport.md</c>, section 13.2).
+	/// </summary>
+	public static bool FightsInTheAir(CGameState state, CUnit unit)
+	{
+		return IsAirMission(unit.Order) || Transport.CCarriers.FightsInTheAir(state, unit);
 	}
 
 	/// <summary>A mission may be given for any province the unit may stand in.</summary>
@@ -48,10 +62,17 @@ public static class CAirMissions
 			&& CMovementRules.MayStandIn(state, country, unit, province);
 	}
 
-	/// <summary>Whether a unit is in the province of its base. A carrier's part of it is not built.</summary>
+	/// <summary>
+	/// Whether a unit is in the province of its base - for an air group aboard a carrier, where the carrier's fleet is,
+	/// and only while that fleet is in no battle and no bombing (<c>transport.md</c>, section 13.1).
+	/// </summary>
 	public static bool IsAtOwnBase(CUnit unit)
 	{
-		return unit.Base != 0 && unit.Location == unit.Base;
+		if (unit.Base == 0 || unit.Location != unit.Base)
+		{
+			return false;
+		}
+		return unit.CarriedBy?.Unit is not { } fleet || (!fleet.IsFighting && fleet.Bombing is null);
 	}
 
 	/// <summary>
@@ -83,6 +104,10 @@ public static class CAirMissions
 	/// </summary>
 	public static bool MayList(CGameState state, CUnit unit, EUnitOrder order, CProvince province)
 	{
+		if (order == EUnitOrder.AirSupply)
+		{
+			return CAirSupply.MayList(state, unit, province);
+		}
 		return CBombingOrders.IsBombingMission(order)
 			? CBombingOrders.MayList(state, unit, order, province)
 			: CUnitOrders.IsInRange(state, unit, order, province);
@@ -216,6 +241,49 @@ public static class CAirMissions
 		{
 			CMovement.SetPath(unit, CRouteFinder.Find(state, country, unit, unit.Location, unit.Base) ?? new List<int>(),
 				clear: true);
+		}
+	}
+
+	/// <summary>
+	/// Whether a unit given its way to a province would come into the next province in the wrong half of the day for
+	/// its order - by day at night, by night by day - judged over the province it is bound for. One flying day and
+	/// night never is.
+	/// </summary>
+	public static bool ArrivesInWrongLight(CGameState state, CCountry country, CUnit unit, CProvince goal)
+	{
+		int time = unit.Mission.Time;
+		if (time != CMission.ByDay && time != CMission.ByNight)
+		{
+			return false;
+		}
+		long arrival = state.TotalHours + System.Math.Max(0, CMovement.HoursToNext(state, country, unit));
+		bool isNight = CDaylight.IsNight(state, goal, (int)(arrival % CGameState.HoursPerDay),
+			CDate.FromDayNumber((int)(arrival / CGameState.HoursPerDay)).Month - 1);
+		return (time == CMission.ByDay && isNight) || (time == CMission.ByNight && !isNight);
+	}
+
+	/// <summary>
+	/// Gives a unit the way to a province and judges the light as a strike does: where it would arrive in the wrong
+	/// light, a unit standing in its base's province has its way cancelled and any other is told to return to base.
+	/// </summary>
+	/// <param name="judgeWithoutWay">Whether the light is judged where no way was found - a strike's is; a paradrop's not.</param>
+	public static void FlyTo(CGameState state, CCountry country, CUnit unit, CProvince goal, bool judgeWithoutWay = true)
+	{
+		if (!GoTo(state, country, unit, goal.Id) && !judgeWithoutWay)
+		{
+			return;
+		}
+		if (!ArrivesInWrongLight(state, country, unit, goal))
+		{
+			return;
+		}
+		if (unit.Location != unit.Base)
+		{
+			ReturnToBase(state, country, unit);
+		}
+		else if (unit.IsMoving)
+		{
+			CMovement.Cancel(unit);
 		}
 	}
 

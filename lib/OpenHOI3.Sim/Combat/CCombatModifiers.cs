@@ -21,6 +21,7 @@ public static class CCombatModifiers
 {
 	public const string RiverPenalty = "RIVER_CROSSING_PENALTY";
 	public const string LandingPenalty = "AMPHIBIOUS_LANDING_PENALTY";
+	public const string ParadropPenalty = "PARADROP_PENALTY";
 	public const string FortPenalty = "BASE_FORT_PENALTY";
 	public const string MultipleCombatsPenalty = "MULTIPLE_COMBATS_PENALTY";
 	public const string DissentImpact = "COMBAT_DISSENT_IMPACT";
@@ -117,7 +118,8 @@ public static class CCombatModifiers
 				Add(unit, ECombatModifier.Dissent, -Scaled(dissent, Trait(state, unit, ETraitEffect.DissentImpact)));
 			}
 
-			if (unit.SuppliesReceived != CFixedPoint.One)
+			// A dropped unit is spared the lack (transport.md, section 13.4).
+			if (unit.SuppliesReceived != CFixedPoint.One && !unit.WasParadropped)
 			{
 				long missing = CFixedPoint.Scale - unit.SuppliesReceived.Raw;
 				long lack = defines[CManpower.MilitarySection, SupplyLackImpact].Raw * missing / CFixedPoint.Scale;
@@ -212,6 +214,18 @@ public static class CCombatModifiers
 		else if (edge is { Kind: EProvinceEdgeKind.Crossing })
 		{
 			isLanding = true;
+		}
+
+		// A dropped unit has the paradrop's penalty and none for landing (transport.md, section 13.4).
+		if (unit.WasParadropped)
+		{
+			long paradrop = defines[CManpower.MilitarySection, ParadropPenalty].Raw
+				+ Trait(state, unit, ETraitEffect.ParadropMission);
+			if (paradrop < 0)
+			{
+				Add(unit, ECombatModifier.Paratroop, paradrop);
+			}
+			isLanding = false;
 		}
 
 		if (isLanding)

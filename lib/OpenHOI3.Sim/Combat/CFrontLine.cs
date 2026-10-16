@@ -48,15 +48,25 @@ public static class CFrontLine
 
 	/// <summary>
 	/// How wide the battle is: what the tactics add, the base width for the first
-	/// province the attackers come from, and the additional width for each further one.
-	/// It is one figure for both sides.
+	/// province the attackers come from, and the additional width for each further one -
+	/// the dropped attackers all counted by the first of them. It is one figure for both sides.
 	/// </summary>
 	public static CFixedPoint Width(CGameState state, CCombat combat)
 	{
 		long width = combat.TacticWidth.Raw;
 		var seen = new List<int>();
+		bool paratrooper = false;
 		foreach (CUnit unit in combat.Attacker.Units)
 		{
+			// Every dropped unit after the first counts for nothing (transport.md, section 13.4).
+			if (unit.WasParadropped)
+			{
+				if (paratrooper)
+				{
+					continue;
+				}
+				paratrooper = true;
+			}
 			int from = DirectionOf(combat, unit);
 			if (seen.Contains(from))
 			{

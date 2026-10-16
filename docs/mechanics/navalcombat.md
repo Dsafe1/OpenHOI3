@@ -399,7 +399,8 @@ many each has had sunk.
   intercept, sortie, the raid on convoys and their escort - and with them the battle a raid
   fights, in which the attacker shoots with `convoy_attack` and nobody is asked whether they
   have lost. **Transport and invasion** are not: they wait for carrying.
-- **Aircraft**, a carrier's own among them, and every kind of bombing.
+- **Aircraft**, and every kind of bombing: built since - `aircombat.md`, `bombing.md`, and a carrier's own,
+  sent into its fleet's battle, in `transport.md`, section 13.2 (2026-10-16).
 - **Intelligence** beyond a unit's own part in it (section 1).
 - ~~**What a battle gives a leader** - experience, and new traits.~~ Built on 2026-10-11, with
   the experience of every ship (`leaders.md`, section 11).

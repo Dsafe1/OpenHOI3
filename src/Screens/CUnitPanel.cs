@@ -120,10 +120,11 @@ public partial class CUnitPanel : Control
 		{
 			return;
 		}
-		// The selection goes to the fleet once the command has run, so that its list is made with the unit in it.
+		// The selection goes to the fleet or the air unit once the command has run, so that its list is made with the
+		// unit in it.
 		if (_boarding is ({ } boarded, { } carrier) && boarded == unit)
 		{
-			if (boarded.Transport == carrier)
+			if ((boarded.Transport ?? boarded.Plane) == carrier)
 			{
 				_boarding = null;
 				UnitChosen?.Invoke(carrier);
@@ -308,6 +309,16 @@ public partial class CUnitPanel : Control
 				}
 			};
 			buttons.UnloadPressed += () => Post(new CUnloadUnitCommand(owner.Tag, unit.Id), unit);
+			buttons.PlaneLoadPressed += plane =>
+			{
+				// And one put aboard an air unit leaves it to the air unit (transport.md, section 13.3).
+				if (Post(new CLoadOnPlaneCommand(owner.Tag, unit.Id, plane), unit)
+					&& owner.AllUnits().FirstOrDefault(other => other.Id == plane) is { } carrier)
+				{
+					_boarding = (unit, carrier);
+				}
+			};
+			buttons.PlaneUnloadPressed += () => Post(new CUnloadFromPlaneCommand(owner.Tag, unit.Id), unit);
 			Add(buttons);
 		}
 		if (CUnitBrigadesEntry.Create(_context, state, owner, unit) is { } brigades)

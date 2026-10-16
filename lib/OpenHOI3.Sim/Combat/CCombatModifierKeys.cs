@@ -24,6 +24,7 @@ public static class CCombatModifierKeys
 		(ECombatModifier.DugIn, "BM_DUGIN_MODIFIER"),
 		(ECombatModifier.Amphibious, "BM_AMPH_PENALTY"),
 		(ECombatModifier.Fort, "BM_FORT_MODIFIER"),
+		(ECombatModifier.Paratroop, "BM_PARATROOP_PENALTY"),
 		(ECombatModifier.River, "BM_RIVER_PENALTY"),
 		(ECombatModifier.LackOfSupplies, "BM_LACK_OF_SUPPLIES"),
 		(ECombatModifier.MultipleCombats, "BM_MULTIPLE"),
@@ -41,12 +42,12 @@ public static class CCombatModifierKeys
 
 	/// <summary>
 	/// The original's names of the modifiers nothing here puts on a unit yet: difficulty,
-	/// encirclement, a paradrop, shore bombardment, the surprise penalty and the armour
+	/// encirclement, shore bombardment, the surprise penalty and the armour
 	/// advantage. A condition may name them; it never holds.
 	/// </summary>
 	public static readonly string[] NotBuilt =
 	{
-		"BM_DIFFICULTY", "BM_ENCIRCLEMENT_PENALTY", "BM_PARATROOP_PENALTY", "BM_SHORE_BOMBARD",
+		"BM_DIFFICULTY", "BM_ENCIRCLEMENT_PENALTY", "BM_SHORE_BOMBARD",
 		"BM_SURPRISE_PENALTY", "BM_ARMOR_ADVANTAGE",
 	};
 

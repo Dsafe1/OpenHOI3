@@ -208,8 +208,21 @@ public sealed class CUnit
 	/// </summary>
 	public CUnit? Transport { get; set; }
 
-	/// <summary>A fleet: the land units aboard it, in the order they came aboard.</summary>
+	/// <summary>
+	/// The air unit a land unit is aboard, or null. It is tied to the air unit, as a fleet's passenger to its fleet. See
+	/// <c>docs/mechanics/transport.md</c>, section 13.3.
+	/// </summary>
+	public CUnit? Plane { get; set; }
+
+	/// <summary>A fleet or an air unit: the land units aboard it, in the order they came aboard.</summary>
 	public List<CUnit> Passengers { get; } = new();
+
+	/// <summary>
+	/// A land unit dropped from the air onto an enemy's ground: it attacks with the paradrop's penalty, wants no
+	/// supplies in a battle and counts once in the battle's width, until its first hour out of a battle
+	/// (<c>docs/mechanics/transport.md</c>, section 13.4).
+	/// </summary>
+	public bool WasParadropped { get; set; }
 
 	/// <summary>
 	/// A land unit landing from the sea in a battle: what this hour's progress makes of its attack and of its defence,

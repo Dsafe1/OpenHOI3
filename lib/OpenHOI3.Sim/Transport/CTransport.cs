@@ -217,14 +217,14 @@ public static class CTransport
 		}
 	}
 
-	/// <summary>A fleet leaving the game takes its passengers with it.</summary>
-	public static void RemovePassengers(CGameState state, CUnit fleet)
+	/// <summary>A fleet - or an air unit - leaving the game takes its passengers with it.</summary>
+	public static void RemovePassengers(CGameState state, CUnit carrier)
 	{
-		foreach (CUnit passenger in new List<CUnit>(fleet.Passengers))
+		foreach (CUnit passenger in new List<CUnit>(carrier.Passengers))
 		{
 			Remove(state, passenger);
 		}
-		fleet.Passengers.Clear();
+		carrier.Passengers.Clear();
 	}
 
 	private static void Remove(CGameState state, CUnit passenger)

@@ -117,7 +117,8 @@ a front.
           + ADDITIONAL_COMBAT_WIDTH for each further one
 
 10 and 5 in the base game. An attacker's province is the one it is in - or, for one already
-standing in the battle's own province, the one it was in before.
+standing in the battle's own province, the one it was in before. Every attacker dropped from the air after the first
+counts for nothing, so all of them are one direction (`transport.md`, section 13.4).
 
 **How much of it a unit takes.** Its brigades' `combat_width` added up, times one plus its
 country's `combat_width` modifier, and never less than 1.
@@ -228,13 +229,14 @@ which is what the last thousandth depends on:
 | | who | how much |
 | --- | --- | --- |
 | **a river** | an attacker whose way into the province crosses one | `RIVER_CROSSING_PENALTY` + the unit's `river` attack figure + `river_attack`, where that is below nothing |
+| **a paradrop** | an attacker dropped from the air (`transport.md`, section 13.4) | `PARADROP_PENALTY` + `paradrop_mission`, where below nothing; and then no landing |
 | **a landing** | an attacker standing in the sea (not the rebels'), or whose way is a strait | `AMPHIBIOUS_LANDING_PENALTY` + the unit's `amphibious` attack figure + `amph_attack`, where below nothing - cut by its fleet's invasion defence where it is going ashore from aboard one, and a hundredth worse with none (`transport.md`, section 9) - and no worse than -0.99 |
 | **forts** | an attacker | the province's `fort_level` - its `coastal_fort_level` for a landing - in **whole levels** x `BASE_FORT_PENALTY`, + `fort_attack` + the unit's `fort` attack figure; never in the attacker's favour |
 | **several battles** | a defender in more than one | -`MULTIPLE_COMBATS_PENALTY`, once however many |
 | **experience** | every unit | a hundredth for each point of its brigades' average experience (a pride of the fleet counting for `PRIDE_BONUS_EXP` more), x (1 + `experience_bonus`) |
 | **combined arms** | a unit whose mix of brigades counts | what the mix is worth (`builders.md`, section 6) + `combined_arms_bonus` |
 | **dissent** | every unit | -`COMBAT_DISSENT_IMPACT` x its country's dissent / 100, x (1 + `dissent_impact`) |
-| **lack of supplies** | a unit given less than all its supplies | -`COMBAT_SUPPLY_LACK_IMPACT` x the share it went without, x (1 + `out_of_supply_modifier`) |
+| **lack of supplies** | a unit given less than all its supplies, but not one dropped from the air | -`COMBAT_SUPPLY_LACK_IMPACT` x the share it went without, x (1 + `out_of_supply_modifier`) |
 | **dug in** | a defender | its levels x `DIG_IN_FACTOR`, x (1 + `digin_bonus`) |
 | **crowding** | every unit of a crowded side | below |
 | **the ground** | every unit | the terrain's `attack` for an attacker and its `defence` for a defender, + the unit's own figure for that terrain |
@@ -309,7 +311,7 @@ which is what the last thousandth depends on:
 
 *Not built:* shore bombardment (fleets do not fight); the difficulty setting, which is the
 player's alone; mission efficiency; encirclement, which wants the areas a country's ground
-falls into, and with it `encirclement_bonus`; paratroops and `paradrop_mission`; the
+falls into, and with it `encirclement_bonus`; the
 landing craft that ease a landing at a port; and three technology figures - one off the
 crowding, one on the chance to avoid a hit, one on the dig-in cap.
 
@@ -549,7 +551,9 @@ there until the delay has run out.
 **The leaders' `combat_move_speed`**, down the chain, is added beside the country's
 `combat_movement_speed` (`reversing/findings/FINDINGS-battleleaders.md`, section 8). `confirmed`
 
-*Not built:* a paratrooper's delay is `PARATROOP_MISSION_DELAY`; a technology figure makes the
+A unit dropped from the air starts its delay from `PARATROOP_MISSION_DELAY` (`transport.md`, section 13.4).
+
+*Not built:* a technology figure makes the
 tactics' speed count for more.
 
 ## 10. Trying it, and what is not here

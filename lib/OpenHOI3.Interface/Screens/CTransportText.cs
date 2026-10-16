@@ -46,8 +46,37 @@ public static class CTransportText
 	}
 
 	/// <summary>
-	/// The strip's four buttons for a unit: aboard a fleet, unload - pressable in port; aboard nothing, load - pressable
-	/// where a fleet is found - and the planes' load, which nothing carries yet; anything else, none.
+	/// The air unit the planes' load button puts a land unit aboard: for a unit in a land province with an air base
+	/// built and in no battle, the first air unit based there, at its base, that may take it aboard - the units based
+	/// there in the order the province lists them.
+	/// </summary>
+	public static CUnit? PlaneToBoard(CGameState state, CUnit unit)
+	{
+		if (!CMovementRules.IsLandUnit(unit) || unit.IsFighting || unit.Location <= 0)
+		{
+			return null;
+		}
+		CProvince province = state.Province(unit.Location);
+		if (province.IsSea || CMovementRules.BuildingLevel(state, province, CMovementRules.AirBase) <= CFixedPoint.Zero)
+		{
+			return null;
+		}
+		foreach (CUnit other in state.UnitsIn(province.Id))
+		{
+			if (other.Kind == EUnitKind.Air && other.Base == province.Id && Sim.Missions.CAirMissions.IsAtOwnBase(other)
+				&& CAirTransport.MayLoad(state, other, unit))
+			{
+				return other;
+			}
+		}
+		return null;
+	}
+
+	/// <summary>
+	/// The strip's four buttons for a unit. The ships' pair: aboard a fleet, unload - pressable in port; aboard nothing,
+	/// load - pressable where a fleet is found. The planes' pair: aboard an air unit, unload - pressable where it is at
+	/// its base; aboard nothing, load - pressable where an air unit is found. A unit aboard one kind shows neither of the
+	/// other's; anything else, none.
 	/// </summary>
 	public static CCarryButtons Buttons(CGameState state, CCountry owner, CUnit unit)
 	{
@@ -58,11 +87,19 @@ public static class CTransportText
 		if (unit.Transport is not null)
 		{
 			bool inPort = unit.Location > 0 && !state.Province(unit.Location).IsSea;
-			return new CCarryButtons(false, false, true, inPort, false, false, 0, false);
+			return CCarryButtons.None with { UnloadShown = true, UnloadEnabled = inPort };
+		}
+		if (unit.Plane is { } plane)
+		{
+			return CCarryButtons.None with
+			{
+				PlaneUnloadShown = true, PlaneUnloadEnabled = Sim.Missions.CAirMissions.IsAtOwnBase(plane),
+			};
 		}
 		CUnit? fleet = FleetToBoard(state, unit);
-		return new CCarryButtons(true, fleet is not null, false, false, true, false, fleet?.Id ?? 0,
-			IsTooWornForPlanes(state, owner, unit));
+		CUnit? air = PlaneToBoard(state, unit);
+		return new CCarryButtons(true, fleet is not null, false, false, true, air is not null, false, false,
+			fleet?.Id ?? 0, air?.Id ?? 0, IsTooWornForPlanes(state, owner, unit));
 	}
 
 	/// <summary>

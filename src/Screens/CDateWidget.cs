@@ -63,6 +63,17 @@ public sealed class CDateWidget
 	/// <summary>Raised when an arrow has moved the date.</summary>
 	public event Action? Changed;
 
+	/// <summary>Moves the date on to an hour where it is earlier, as the window does a paradrop's start.</summary>
+	public void HoldAtLeast(long hour)
+	{
+		if (Hour < hour)
+		{
+			Hour = hour;
+			Show();
+			Changed?.Invoke();
+		}
+	}
+
 	/// <summary>Whether its arrows can be pressed. The date shows either way.</summary>
 	public bool Enabled
 	{

@@ -399,6 +399,18 @@ public static class CUnitPanelText
 	// ---- the order
 
 	/// <summary>
+	/// What the paradrop and the rebase to carrier put in their brackets, in the original's order: returning, resting in
+	/// its base's province, flying in no battle and no bombing, and fighting.
+	/// </summary>
+	private static string AirDoing(CUnit unit)
+	{
+		return unit.Mission.ReturnToBase ? "STRAT_BOMB_RETURNING"
+			: unit.Location == unit.Base ? "STRAT_BOMB_WAITING"
+			: !unit.IsFighting && unit.Bombing is null ? "PARA_FLYING"
+			: "CAG_FIGHTING";
+	}
+
+	/// <summary>
 	/// What the unit is doing: falling back to a province, attacking one, defending, or
 	/// on the march to the province it will be in next - not the one at the end of its
 	/// way. The original has more to say of a unit short of men, fuel or supplies; none
@@ -446,6 +458,19 @@ public static class CUnitPanelText
 						localise(unit.Order == EUnitOrder.AirIntercept ? "INTERCEPT_SHORT_DESC" : "AIRSUP_SHORT_DESC"),
 						("TYPE", localise(unit.Mission.ReturnToBase ? "STRAT_BOMB_RETURNING"
 							: unit.Mission.LiveTarget is not null ? "INTERCEPT_ATTACK" : "INTERCEPT_WAITING")));
+				// Carrying by air and the carrier (transport.md, section 13.6); carrier protection's is ours.
+				case EUnitOrder.Paradrop:
+					return CTextTemplate.Fill(localise("PARADROP_MISSION_SHORT_DESC"),
+						("TYPE", localise(!Sim.Missions.CAirMissions.IsFitToFly(state, unit) ? "STRAT_BOMB_WAITING"
+							: AirDoing(unit))));
+				case EUnitOrder.RebaseCarrier:
+					return CTextTemplate.Fill(localise("REBASE_TO_CAG_MISSION_SHORT_DESC"), ("TYPE", localise(AirDoing(unit))));
+				case EUnitOrder.CarrierProtection:
+					return CTextTemplate.Fill(localise("CAG_DUTY_SHORT_DESC"), ("TYPE", localise(AirDoing(unit))));
+				case EUnitOrder.AirSupply:
+					return CTextTemplate.Fill(localise("TRANS_SUP_MISSION_SHORT_DESC"),
+						("TYPE", localise(unit.Mission.ReturnToBase ? "TS_RETURNING"
+							: Sim.Missions.CAirMissions.IsAtOwnBase(unit) && !unit.IsMoving ? "TS_WAITING" : "TS_SUPPLYING")));
 				// What a bombing mission puts in the brackets was not read either: these
 				// are the three texts the original has for it, by what the unit is doing.
 				case EUnitOrder.StrategicBombing:

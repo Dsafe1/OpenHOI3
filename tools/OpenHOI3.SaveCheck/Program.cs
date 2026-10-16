@@ -162,6 +162,12 @@ if (args.Length > 0 && args[0] == "landing")
 	return CLandingTrial.Run(args);
 }
 
+// A paradrop, a carrier air group rebased to its carrier, or an air supply.
+if (args.Length > 0 && args[0] == "airborne")
+{
+	return CAirborneTrial.Run(args);
+}
+
 // A new game's relations, threat and neutrality, beside the start-date save's.
 if (args.Length > 0 && args[0] == "diplomacy")
 {

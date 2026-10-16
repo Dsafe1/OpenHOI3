@@ -64,7 +64,7 @@ public static class CUnitOrders
 	/// </summary>
 	public static bool IsInRange(CGameState state, CUnit unit, EUnitOrder order, CProvince province)
 	{
-		if (order == EUnitOrder.Rebase || order == EUnitOrder.RebaseAir || unit.Base == 0)
+		if (order is EUnitOrder.Rebase or EUnitOrder.RebaseAir or EUnitOrder.RebaseCarrier || unit.Base == 0)
 		{
 			return true;
 		}
@@ -83,7 +83,8 @@ public static class CUnitOrders
 			},
 			EUnitKind.Air => new[]
 			{
-				EUnitOrder.AirSuperiority, EUnitOrder.AirIntercept, EUnitOrder.StrategicBombing,
+				EUnitOrder.CarrierProtection, EUnitOrder.AirSuperiority, EUnitOrder.AirIntercept, EUnitOrder.Paradrop,
+				EUnitOrder.RebaseCarrier, EUnitOrder.AirSupply, EUnitOrder.StrategicBombing,
 				EUnitOrder.LogisticalStrike, EUnitOrder.RunwayCratering, EUnitOrder.InstallationStrike,
 				EUnitOrder.GroundAttack, EUnitOrder.Interdiction, EUnitOrder.PortStrike, EUnitOrder.NavalStrike,
 				EUnitOrder.RebaseAir,
@@ -132,6 +133,15 @@ public static class CUnitOrders
 					&& !CMovementRules.IsEnemy(state, province.Controller, country.Tag)
 					&& CMovementRules.IsFriendly(state, country, province.Controller)
 					&& CMovementRules.BuildingLevel(state, province, CMovementRules.AirBase) > CFixedPoint.Zero;
+			// Carrying by air and the carrier (transport.md, section 13): none of the four asks the range.
+			case EUnitOrder.RebaseCarrier:
+				return Transport.CCarriers.MayRebase(state, unit, province);
+			case EUnitOrder.CarrierProtection:
+				return unit.Kind == EUnitKind.Air;                // the window offers it only aboard a carrier there
+			case EUnitOrder.Paradrop:
+				return CParadrop.MayGive(unit, province);
+			case EUnitOrder.AirSupply:
+				return CAirSupply.MayGive(unit, province);
 			default:
 				return false;
 		}
@@ -194,6 +204,22 @@ public static class CUnitOrders
 			CAirMissions.SetProvinces(state, unit, provinces ?? new[] { province });
 			CBombingMissions.Start(state, country, unit);
 			return;
+		}
+		switch (order)
+		{
+			case EUnitOrder.RebaseCarrier:
+				Transport.CCarriers.StartRebase(state, country, unit);
+				return;
+			case EUnitOrder.CarrierProtection:
+				return;
+			case EUnitOrder.Paradrop:
+				CParadrop.TakeOff(state, country, unit);
+				return;
+			case EUnitOrder.AirSupply:
+				// Its start is the bombing frame's hour.
+				CAirMissions.SetProvinces(state, unit, provinces ?? new[] { province });
+				CBombingMissions.RunBombing(state, country, unit);
+				return;
 		}
 		if (CMissions.IsMission(order))
 		{
@@ -270,6 +296,24 @@ public static class CUnitOrders
 		if (unit.Order == EUnitOrder.None)
 		{
 			HeadHome(state, country, unit);
+			// An air group aboard a carrier with nothing to do keeps over it (transport.md, section 13.1).
+			Transport.CCarriers.GiveDuty(unit);
+			return;
+		}
+		if (unit.Order is EUnitOrder.RebaseCarrier or EUnitOrder.CarrierProtection or EUnitOrder.Paradrop
+			or EUnitOrder.AirSupply)
+		{
+			bool going = unit.Order switch
+			{
+				EUnitOrder.RebaseCarrier => Transport.CCarriers.RunRebase(state, country, unit),
+				EUnitOrder.CarrierProtection => Transport.CCarriers.RunProtection(state, country, unit),
+				EUnitOrder.Paradrop => CParadrop.RunHour(state, country, unit),
+				_ => CAirSupply.RunHour(state, country, unit),
+			};
+			if (!going)
+			{
+				Clear(unit);
+			}
 			return;
 		}
 		if (CMissions.IsMission(unit.Order))
@@ -325,11 +369,11 @@ public static class CUnitOrders
 					Clear(unit);
 					break;
 				}
-				if (unit.Base != target)
+				// A carrier is a base of its own, so a group aboard one leaves it even for its port's airfield.
+				if (unit.Base != target || unit.CarriedBy is not null)
 				{
 					unit.Base = target;
-					unit.CarriedBy?.Carried.Remove(unit);
-					unit.CarriedBy = null;
+					Transport.CCarriers.LeaveCarrier(state, unit);
 				}
 				if (unit.Location == target)
 				{

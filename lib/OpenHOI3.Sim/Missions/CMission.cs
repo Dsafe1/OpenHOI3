@@ -65,6 +65,18 @@ public sealed class CMission
 	/// <summary>An invasion: the sea province the landing is made from, or 0 where none was found.</summary>
 	public int LandingSea { get; set; }
 
+	/// <summary>A rebase to carrier: the fleet whose carrier the unit is to be based on, or null where none was found.</summary>
+	public CUnit? Carrier { get; set; }
+
+	/// <summary>A paradrop: the player has been told of it.</summary>
+	public bool Told { get; set; }
+
+	/// <summary>An air supply: the supplies aboard.</summary>
+	public CFixedPoint Supplies { get; set; }
+
+	/// <summary>An air supply: the fuel aboard.</summary>
+	public CFixedPoint Fuel { get; set; }
+
 	// ---- an air mission's: docs/mechanics/aircombat.md
 
 	/// <summary>An air mission flies by day only.</summary>

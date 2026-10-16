@@ -1,0 +1,526 @@
+using System.Collections.Generic;
+using OpenHOI3.Sim;
+using OpenHOI3.Sim.Agreements;
+using OpenHOI3.Sim.Combat;
+using OpenHOI3.Sim.Commands;
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Missions;
+using OpenHOI3.Sim.Movement;
+using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Supply;
+using OpenHOI3.Sim.Transport;
+using OpenHOI3.Sim.Units;
+using OpenHOI3.Sim.Wars;
+
+namespace OpenHOI3.Tests.Sim;
+
+/// <summary>
+/// The carrier and carrying by air, against <c>docs/mechanics/transport.md</c>, section 13, on a strip of ground:
+///
+///     1 Kiel ==port== 2 Bight --- 3 Deep
+///       |
+///     4 Berlin --- 5 Border --- 6 Lodz --- 7 Warsaw
+///
+/// Germany holds Kiel, Berlin and Border, with air bases at Kiel and Berlin; Poland holds Lodz and Warsaw. A wing covers
+/// a province an hour, a ship one in two hours; a transport wing carries 15 and a paratroop brigade weighs 5.
+/// </summary>
+public class AirTransportTests
+{
+	private static readonly CCountryTag Ger = new("GER");
+	private static readonly CCountryTag Pol = new("POL");
+
+	private const int Kiel = 1;
+	private const int Bight = 2;
+	private const int Deep = 3;
+	private const int Berlin = 4;
+	private const int Border = 5;
+	private const int Lodz = 6;
+	private const int Warsaw = 7;
+
+	private static readonly CBuilding NavalBase = new(0, "naval_base", 10, CBombingOrders.NavalBaseLevel, CFixedPoint.One);
+	private static readonly CBuilding AirBase = new(1, "air_base", 10, CBombingOrders.AirBaseLevel, CFixedPoint.One);
+
+	private static CProvinceEdge Edge(int to) => new(to, EProvinceEdgeKind.Plain, 0, CFixedPoint.FromInt(10));
+
+	private static CProvince Land(int id, string name, CCountryTag owner, int x, int y, params CProvinceEdge[] edges) =>
+		Land(id, name, owner, x, y, 0, edges);
+
+	private static CProvince Land(int id, string name, CCountryTag owner, int x, int y, int portSea, params CProvinceEdge[] edges)
+	{
+		return new CProvince(id, name, isSea: false)
+		{
+			Owner = owner, Controller = owner, CentreX = x, CentreY = y, SeaIndex = -1, Edges = edges, PortSea = portSea,
+		};
+	}
+
+	private static CSubUnitType Type(string key, EUnitBranch branch, params (string Name, string Value)[] stats)
+	{
+		var type = new CSubUnitType(key, branch);
+		type.Stats.Values.Set(CMovementSpeed.MaximumSpeed, CFixedPoint.FromInt(branch == EUnitBranch.Land ? 4 : 20));
+		type.Stats.Values.Set(CUnitOrders.Range, CFixedPoint.FromInt(1000));
+		type.Stats.Values.Set(CSubUnitType.MaxStrength, CFixedPoint.FromInt(branch == EUnitBranch.Land ? 3 : 100));
+		type.Stats.Values.Set(CSubUnitType.DefaultOrganisation, CFixedPoint.FromInt(30));
+		foreach ((string name, string value) in stats)
+		{
+			type.Stats.Values.Set(name, CFixedPoint.Parse(value));
+		}
+		return type;
+	}
+
+	private static readonly CSubUnitType TransportPlane = Type("transport_plane", EUnitBranch.Air,
+		(CTransport.TransportCapability, "15"));
+	private static readonly CSubUnitType Cag = CagType();
+	private static readonly CSubUnitType Carrier = Type("carrier", EUnitBranch.Naval, (CShipCensus.CarrierSize, "2"));
+	private static readonly CSubUnitType EscortCarrier = Type("escort_carrier", EUnitBranch.Naval, (CShipCensus.CarrierSize, "1"));
+	private static readonly CSubUnitType Paratrooper = ParatrooperType();
+	private static readonly CSubUnitType Infantry = Type("infantry_brigade", EUnitBranch.Land,
+		(CSubUnitType.TransportWeight, "10"), (CSubUnitType.CombatWidth, "1"));
+
+	private static CSubUnitType CagType()
+	{
+		CSubUnitType type = Type("cag", EUnitBranch.Air, (CAirMissions.AirAttack, "2"), (CNavalFire.SeaAttack, "2"));
+		type.Flags[CAirFire.IsCag] = true;
+		return type;
+	}
+
+	private static CSubUnitType ParatrooperType()
+	{
+		CSubUnitType type = Type("paratrooper_brigade", EUnitBranch.Land,
+			(CSubUnitType.TransportWeight, "5"), (CSubUnitType.CombatWidth, "1"), ("supply_consumption", "1"));
+		type.Flags[CAirTransport.CanParadrop] = true;
+		return type;
+	}
+
+	private static CGameState State(out CCountry germany, out CCountry poland)
+	{
+		germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "" };
+		poland = new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "" };
+		var defines = new CDefines();
+		void Military(string name, string value) => defines.Set(CManpower.MilitarySection, name, CFixedPoint.Parse(value));
+		Military(CMovementSpeed.AirSpeedModifier, "0.5");
+		Military(CMovementSpeed.NavalSpeedModifier, "0.5");
+		Military(CMovementSpeed.LandSpeedModifier, "1");
+		Military("AGGRESSIVE_STRENGTH_LIMIT", "0.25");
+		Military("DEFENSIVE_STRENGTH_LIMIT", "0.5");
+		Military("PASSIVE_STRENGTH_LIMIT", "0.75");
+		Military("AGGRESSIVE_ORGANISATION_LIMIT", "0.2");
+		Military("DEFENSIVE_ORGANISATION_LIMIT", "0.3");
+		Military("PASSIVE_ORGANISATION_LIMIT", "0.5");
+		Military(CAirTransport.OrganisationRequired, "0.95");
+		Military(CAirTransport.DropDays, "7");
+		Military(CSupplyDay.PoolDays, "15");
+		Military(CAirTransport.PlaneOrganisationAfterDrop, "0.01");
+		Military(CAirTransport.OrganisationAfterDrop, "0.66");
+		Military(CParadrop.MinTime, "24");
+		Military(CAttackDelay.ParadropDelay, "100");
+		Military(CAttackDelay.Delay, "168");
+		Military(CAttackDelay.DelayModify, "1");
+		Military(CAirSupply.Factor, "0.5");
+		Military(CCarriers.DutyOrganisationLimit, "0.2");
+		Military(CCombatModifiers.ParadropPenalty, "-0.5");
+		Military(CFrontLine.BaseWidth, "10");
+		Military(CFrontLine.AdditionalWidth, "5");
+		var war = new CWar("war");
+		war.Attackers.Add(Ger);
+		war.Defenders.Add(Pol);
+		CProvince kiel = Land(Kiel, "Kiel", Ger, 10, 10, Bight, Edge(Bight), Edge(Berlin));
+		kiel.SetBuildingLevel(NavalBase, CFixedPoint.FromInt(2));
+		kiel.SetBuildingLevel(AirBase, CFixedPoint.FromInt(2));
+		CProvince berlin = Land(Berlin, "Berlin", Ger, 10, 30, Edge(Kiel), Edge(Border));
+		berlin.SetBuildingLevel(AirBase, CFixedPoint.FromInt(4));
+		berlin.Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+		berlin.Pool[EGoods.Fuel] = CFixedPoint.FromInt(100);
+		var state = new CGameState(new CDate(1936, 6, 1),
+			new[]
+			{
+				new CProvince(0, "", isSea: false),
+				kiel,
+				new CProvince(Bight, "Bight", isSea: true) { CentreX = 30, CentreY = 10, SeaIndex = 0, Edges = new[] { Edge(Kiel), Edge(Deep) } },
+				new CProvince(Deep, "Deep", isSea: true) { CentreX = 50, CentreY = 10, SeaIndex = 1, Edges = new[] { Edge(Bight) } },
+				berlin,
+				Land(Border, "Border", Ger, 30, 30, Edge(Berlin), Edge(Lodz)),
+				Land(Lodz, "Lodz", Pol, 50, 30, Edge(Border), Edge(Warsaw)),
+				Land(Warsaw, "Warsaw", Pol, 70, 30, Edge(Lodz)),
+			},
+			new[] { germany, poland }, buildings: new[] { NavalBase, AirBase }, defines: defines, wars: new List<CWar> { war })
+		{
+			MapWidth = 1000,
+			MapHeight = 1000,
+		};
+		return state;
+	}
+
+	private static CUnit Unit(CGameState state, CCountry country, EUnitKind kind, int province, int count, CSubUnitType type,
+		int based = 0)
+	{
+		var unit = new CUnit(kind, country.Tag) { Id = ++state.LastUnitId, Location = province, Base = based, Name = type.Key };
+		for (int i = 0; i < count; i++)
+		{
+			var sub = new CSubUnit(type)
+			{
+				Id = ++state.LastUnitId, Unit = unit, Strength = type.Stats.Values[CSubUnitType.MaxStrength],
+				Organisation = CFixedPoint.FromInt(30), Name = type.Key + " " + i,
+			};
+			sub.Stats.CopyFrom(type.Stats);
+			unit.SubUnits.Add(sub);
+		}
+		country.Units.Add(unit);
+		state.ForgetPositions();
+		return unit;
+	}
+
+	private static CUnit Planes(CGameState state, CCountry country, int wings = 1) =>
+		Unit(state, country, EUnitKind.Air, Berlin, wings, TransportPlane, based: Berlin);
+
+	private static CUnit Paratroops(CGameState state, CCountry country, int brigades = 3) =>
+		Unit(state, country, EUnitKind.Division, Berlin, brigades, Paratrooper);
+
+	private static void RunHours(CGameState state, CCountry country, CUnit unit, int hours)
+	{
+		for (int hour = 0; hour < hours && !unit.IsRemoved; hour++)
+		{
+			CMovement.RunUnitHour(state, country, unit);
+			state.AdvanceOneHour();
+		}
+	}
+
+	// --- a carrier as an air base ---
+
+	[Fact]
+	public void ACarrierHoldsItsCarrierSizeInWingsShipByShipAndOnlyItsOwnCountrysGroups()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit fleet = Unit(state, germany, EUnitKind.Navy, Kiel, 1, EscortCarrier, based: Kiel);
+		fleet.SubUnits.Add(new CSubUnit(Carrier) { Id = ++state.LastUnitId, Unit = fleet, Strength = CFixedPoint.FromInt(100) });
+		fleet.SubUnits[1].Stats.CopyFrom(Carrier.Stats);
+		CUnit two = Unit(state, germany, EUnitKind.Air, Berlin, 2, Cag, based: Berlin);
+		CUnit one = Unit(state, germany, EUnitKind.Air, Berlin, 1, Cag, based: Berlin);
+
+		Assert.True(CCarriers.IsCarrierAirGroup(two));
+		Assert.False(CCarriers.IsCarrierAirGroup(Planes(state, germany)));
+		// The escort carrier holds one wing, so the pair goes to the carrier behind it.
+		Assert.Same(fleet.SubUnits[1], CCarriers.ShipWithRoom(fleet, two));
+		Assert.Same(fleet.SubUnits[0], CCarriers.ShipWithRoom(fleet, one));
+		Assert.Same(fleet, CCarriers.FindCarrierWithRoom(state, two, state.Province(Kiel)));
+		Assert.Null(CCarriers.FindCarrierWithRoom(state, Unit(state, poland, EUnitKind.Air, Lodz, 1, Cag, based: Lodz),
+			state.Province(Kiel)));
+
+		// With the pair aboard the carrier is full; a single wing still finds the escort carrier.
+		CCarriers.BaseOn(state, two, fleet.SubUnits[1]);
+		Assert.False(CCarriers.HasRoom(fleet.SubUnits[1], one));
+		Assert.Same(fleet.SubUnits[0], CCarriers.ShipWithRoom(fleet, one));
+	}
+
+	[Fact]
+	public void RebaseToCarrierBasesTheUnitAtOnceFliesItThereAndEndsAtItsBase()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit fleet = Unit(state, germany, EUnitKind.Navy, Kiel, 1, Carrier, based: Kiel);
+		CUnit group = Unit(state, germany, EUnitKind.Air, Berlin, 2, Cag, based: Berlin);
+
+		Assert.True(CUnitOrders.MayGive(state, germany, group, EUnitOrder.RebaseCarrier, state.Province(Kiel)));
+		Assert.False(CUnitOrders.MayGive(state, germany, Planes(state, germany), EUnitOrder.RebaseCarrier,
+			state.Province(Kiel)));
+		CUnitOrders.Give(state, germany, group, EUnitOrder.RebaseCarrier, Kiel);
+
+		Assert.Same(fleet.SubUnits[0], group.CarriedBy);
+		Assert.Contains(group, fleet.SubUnits[0].Carried);
+		Assert.DoesNotContain(group, germany.Units);
+		Assert.Equal(Kiel, group.Base);
+		Assert.Equal(new[] { Kiel }, group.Path);
+
+		RunHours(state, germany, group, 4);
+		Assert.Equal(Kiel, group.Location);
+		Assert.Equal(EUnitOrder.CarrierProtection, group.Order);    // done, and given the carrier's duty
+	}
+
+	[Fact]
+	public void AGroupAboardIsAtItsBaseOnlyWhileTheFleetIsNotFightingAndFollowsItIdle()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit fleet = Unit(state, germany, EUnitKind.Navy, Kiel, 1, Carrier, based: Kiel);
+		CUnit idle = Unit(state, germany, EUnitKind.Air, Kiel, 1, Cag);
+		CUnit away = Unit(state, germany, EUnitKind.Air, Berlin, 1, Cag);
+		CCarriers.BaseOn(state, idle, fleet.SubUnits[0]);
+		CCarriers.BaseOn(state, away, fleet.SubUnits[0]);
+
+		Assert.True(CAirMissions.IsAtOwnBase(idle));
+		fleet.Combats.Add(new CCombat(Kiel, ECombatKind.Naval));
+		Assert.False(CAirMissions.IsAtOwnBase(idle));
+		fleet.Combats.Clear();
+
+		CMovement.SetPath(fleet, new[] { Bight }, clear: true);
+		RunHours(state, germany, fleet, 6);
+		Assert.Equal(Bight, fleet.Location);
+		Assert.Equal(Bight, idle.Location);
+		Assert.Equal(Bight, idle.Base);
+		// One out on a mission stays where it is, based where the carrier now is.
+		Assert.Equal(Berlin, away.Location);
+		Assert.Equal(Bight, away.Base);
+	}
+
+	[Fact]
+	public void ACarrierSunkLetsItsGroupsGoToTheNearestAirBaseOfTheirCountryWithNoOrder()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit fleet = Unit(state, germany, EUnitKind.Navy, Bight, 1, Carrier, based: Kiel);
+		CUnit group = Unit(state, germany, EUnitKind.Air, Bight, 1, Cag);
+		CCarriers.BaseOn(state, group, fleet.SubUnits[0]);
+		CCarriers.GiveDuty(group);
+
+		CCombatRetreat.RemoveFromGame(state, fleet);
+
+		Assert.Null(group.CarriedBy);
+		Assert.Equal(Kiel, group.Base);          // Kiel is nearer the Bight than Berlin
+		Assert.Equal(EUnitOrder.None, group.Order);
+		Assert.Contains(group, germany.Units);
+		Assert.False(group.IsRemoved);
+	}
+
+	[Fact]
+	public void CarrierProtectionKeepsToTheCarrierGoesHomeWornAndFightsInTheAirOnlyBesideABattle()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit fleet = Unit(state, germany, EUnitKind.Navy, Bight, 1, Carrier, based: Kiel);
+		CUnit group = Unit(state, germany, EUnitKind.Air, Bight, 1, Cag);
+		CCarriers.BaseOn(state, group, fleet.SubUnits[0]);
+
+		CUnitOrders.RunHour(state, germany, group);
+		Assert.Equal(EUnitOrder.CarrierProtection, group.Order);
+		Assert.Equal(Bight, group.OrderProvince);
+
+		Assert.False(CAirMissions.FightsInTheAir(state, group));
+		state.Combats.Add(new CCombat(Bight, ECombatKind.Naval));
+		Assert.True(CAirMissions.FightsInTheAir(state, group));
+		Assert.True(CBombingOrders.ShouldBomb(state, group, state.Province(Bight)));
+		Assert.False(CBombingOrders.ShouldBomb(state, group, state.Province(Deep)));
+
+		// Under the limit - a plain average of 0.1 - it is told home, and its order stays.
+		group.SubUnits[0].Organisation = CFixedPoint.Parse("0.1");
+		Assert.False(CAirMissions.FightsInTheAir(state, group));
+		Assert.True(CCarriers.RunProtection(state, germany, group));
+		Assert.True(group.Mission.ReturnToBase);
+	}
+
+	// --- carrying by air ---
+
+	[Fact]
+	public void ALandUnitMayBoardOnlyParatroopsOrganisedForItAtTheAirUnitsWorkingBaseWithRoom()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit plane = Planes(state, germany);
+		CUnit three = Paratroops(state, germany);
+		CUnit four = Paratroops(state, germany, brigades: 4);
+
+		Assert.True(CAirTransport.MayLoad(state, plane, three));
+		Assert.False(CAirTransport.MayLoad(state, plane, four));                    // 20 is more than 15
+		Assert.False(CAirTransport.MayLoad(state, plane, Unit(state, germany, EUnitKind.Division, Berlin, 1, Infantry)));
+
+		three.SubUnits[0].Organisation = CFixedPoint.Parse("28.4");                 // under 95% of 30
+		Assert.False(CAirTransport.MayLoad(state, plane, three));
+		three.SubUnits[0].Organisation = CFixedPoint.Parse("28.5");
+		Assert.True(CAirTransport.MayLoad(state, plane, three));
+
+		three.AttackDelay = CFixedPoint.One;
+		Assert.False(CAirTransport.MayLoad(state, plane, three));
+		three.AttackDelay = CFixedPoint.Zero;
+
+		// The base's air base must work at level 1: a bombed-out one does not do.
+		state.Province(Berlin).SetBuildingCurrentLevel(AirBase, CFixedPoint.Parse("0.5"));
+		Assert.False(CAirTransport.MayLoad(state, plane, three));
+	}
+
+	[Fact]
+	public void LoadingKeepsTheUnitWhereItIsAndAPassengerGoesWithThePlaneAndOffOnlyAtTheBase()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit plane = Planes(state, germany);
+		CUnit division = Paratroops(state, germany);
+		division.Order = EUnitOrder.Move;
+
+		var load = new CLoadOnPlaneCommand(Ger, division.Id, plane.Id);
+		Assert.True(load.MayExecute(state));
+		load.Execute(state);
+		Assert.Same(plane, division.Plane);
+		Assert.Equal(new[] { division }, plane.Passengers);
+		Assert.Equal(EUnitOrder.None, division.Order);
+		Assert.False(CMovementRules.MayMoveTo(state, germany, division, state.Province(Border)));
+
+		CMovement.SetPath(plane, new[] { Kiel }, clear: true);
+		RunHours(state, germany, plane, 1);
+		Assert.Equal(Kiel, division.Location);
+		Assert.False(new CUnloadFromPlaneCommand(Ger, division.Id).MayExecute(state));   // not at its base
+
+		// With no order, an air unit away from its base flies home.
+		RunHours(state, germany, plane, 3);
+		Assert.Equal(Berlin, plane.Location);
+		var unload = new CUnloadFromPlaneCommand(Ger, division.Id);
+		Assert.True(unload.MayExecute(state));
+		unload.Execute(state);
+		Assert.Null(division.Plane);
+		Assert.Empty(plane.Passengers);
+		Assert.Equal(Berlin, division.Location);
+	}
+
+	[Fact]
+	public void APassengerAboardIsFoughtByNobodyAndAPlaneRemovedTakesItsPassengersWithIt()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit plane = Planes(state, germany);
+		CUnit division = Paratroops(state, germany);
+		CAirTransport.Board(plane, division);
+		CUnit enemy = Unit(state, poland, EUnitKind.Division, Berlin, 1, Infantry);
+
+		Assert.False(CCombats.MayEngage(state, enemy, division));
+		Assert.Equal(plane.Base, CSupplyDraw.ProvinceOf(germany, division));
+
+		CCombatRetreat.RemoveFromGame(state, plane);
+		Assert.True(division.IsRemoved);
+	}
+
+	// --- the paradrop ---
+
+	[Fact]
+	public void AParadropWaitsForItsStartAndItsTroopsThenDropsThemTakingAnEmptyEnemyProvince()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		state.Played.Add(Pol);
+		var told = new List<CPactMessage>();
+		state.PactMessaged += told.Add;
+		CUnit plane = Planes(state, germany);
+		CUnit division = Paratroops(state, germany);
+		division.Previous = Border;
+		state.Province(Border).Pool[EGoods.Supplies] = CFixedPoint.FromInt(1000);
+		CAirTransport.Board(plane, division);
+		Assert.True(CUnitOrders.MayGive(state, germany, plane, EUnitOrder.Paradrop, state.Province(Lodz)));
+		Assert.False(CUnitOrders.MayGive(state, germany, plane, EUnitOrder.Paradrop, state.Province(Bight)));
+
+		long start = CParadrop.EarliestStart(state);
+		CUnitOrders.Give(state, germany, plane, EUnitOrder.Paradrop, Lodz, startHour: start);
+		Assert.Equal(state.TotalHours + 24, start);
+		RunHours(state, germany, plane, 24);
+		Assert.Equal(Berlin, plane.Location);                    // not a step before its start
+
+		division.SubUnits[0].Organisation = CFixedPoint.FromInt(20);
+		RunHours(state, germany, plane, 3);
+		Assert.Equal(Berlin, plane.Location);                    // waiting on a brigade short of organisation
+		division.SubUnits[0].Organisation = CFixedPoint.FromInt(30);
+
+		long supplies = CUnitSupply.SupplyConsumption(state, germany, division).Raw * 7;
+		for (int hour = 0; hour < 12 && division.Plane is not null; hour++)
+		{
+			RunHours(state, germany, plane, 1);
+		}
+
+		Assert.Null(division.Plane);
+		Assert.Equal(Lodz, division.Location);
+		Assert.True(division.WasParadropped);
+		Assert.Equal(CFixedPoint.FromInt(100), division.AttackDelay);   // the paradrop's own delay
+		Assert.Equal(Ger, state.Province(Lodz).Controller);              // nobody there, taken at once
+		Assert.Equal(supplies, state.Province(Lodz).Pool[EGoods.Supplies].Raw);
+		Assert.Equal(1000_000 - supplies, state.Province(Border).Pool[EGoods.Supplies].Raw);
+		Assert.Equal(CFixedPoint.Parse("0.3"), plane.SubUnits[0].Organisation);   // a hundredth of 30
+		Assert.True(plane.Mission.ReturnToBase);
+		// The player is asked after the drop: Lodz is Germany's by then, so Poland is not told - and never will be.
+		Assert.DoesNotContain(told, message => message.We == CParadrop.Message);
+		Assert.True(plane.Mission.Told);
+
+		// Home with nothing aboard, the order is done.
+		RunHours(state, germany, plane, 6);
+		Assert.Equal(EUnitOrder.None, plane.Order);
+	}
+
+	[Fact]
+	public void ADropOnADefendedProvinceStartsABattleAndTellsThePlayerHoldingItOnce()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		state.Played.Add(Pol);
+		var told = new List<CPactMessage>();
+		state.PactMessaged += told.Add;
+		CUnit plane = Planes(state, germany);
+		CUnit division = Paratroops(state, germany);
+		CAirTransport.Board(plane, division);
+		CUnit defender = Unit(state, poland, EUnitKind.Division, Lodz, 1, Infantry);
+		CUnitOrders.Give(state, germany, plane, EUnitOrder.Paradrop, Lodz, startHour: 0);
+
+		for (int hour = 0; hour < 12 && division.Plane is not null; hour++)
+		{
+			RunHours(state, germany, plane, 1);
+		}
+
+		Assert.Equal(Lodz, division.Location);
+		Assert.Contains(division, Assert.Single(defender.Combats).Attacker.Units);
+		Assert.Equal(Pol, state.Province(Lodz).Controller);
+		CPactMessage message = Assert.Single(told, each => each.We == CParadrop.Message);
+		Assert.Equal(Pol, message.Told);
+		Assert.Contains(("PROV", "Lodz"), message.Values);
+	}
+
+	[Fact]
+	public void ADroppedUnitAttacksWithTheParadropsPenaltyAndNoLackOfSuppliesAndCountsOnceInTheWidth()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit first = Paratroops(state, germany, brigades: 1);
+		CUnit second = Paratroops(state, germany, brigades: 1);
+		foreach (CUnit unit in new[] { first, second })
+		{
+			unit.Location = Lodz;
+			unit.Previous = Border;
+			unit.WasParadropped = true;
+			unit.SuppliesReceived = CFixedPoint.Zero;
+		}
+		state.ForgetPositions();
+		CUnit defender = Unit(state, poland, EUnitKind.Division, Lodz, 1, Infantry);
+		var combat = new CCombat(Lodz);
+		combat.Attacker.Add(first);
+		combat.Attacker.Add(second);
+		combat.Defender.Add(defender);
+		state.Combats.Add(combat);
+
+		Assert.Equal(CFixedPoint.FromInt(10), CFrontLine.Width(state, combat));
+		CCombatModifiers.Apply(state, combat, combat.Attacker);
+		Assert.Contains(first.CombatModifiers, modifier => modifier.Kind == ECombatModifier.Paratroop);
+		Assert.DoesNotContain(first.CombatModifiers, modifier => modifier.Kind == ECombatModifier.LackOfSupplies);
+
+		// Out of the battle, the first hour: the mark goes and organisation falls to 0.66.
+		first.Combats.Clear();
+		CAirTransport.Settle(state, first);
+		Assert.False(first.WasParadropped);
+		Assert.Equal(CFixedPoint.Parse("19.8"), first.SubUnits[0].Organisation);
+	}
+
+	// --- the air supply ---
+
+	[Fact]
+	public void TheAirSupplyPicksTheLastShortProvinceLoadsAtItsBaseUpToItsCapAndDelivers()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit plane = Planes(state, germany, wings: 2);
+		CProvince kiel = state.Province(Kiel);
+		CProvince border = state.Province(Border);
+		kiel.SupplyDrawn[EGoods.Supplies] = CFixedPoint.FromInt(5);
+		border.SupplyDrawn[EGoods.Supplies] = CFixedPoint.FromInt(40);
+		border.SupplyThroughput[EGoods.Supplies] = CFixedPoint.FromInt(10);
+
+		Assert.True(CUnitOrders.MayGive(state, germany, plane, EUnitOrder.AirSupply, border));
+		Assert.False(CAirSupply.MayList(state, plane, state.Province(Lodz)));    // an enemy's
+		plane.Order = EUnitOrder.AirSupply;
+		CAirMissions.SetProvinces(state, plane, new[] { Kiel, Lodz, Border });
+		Assert.Equal(Border, CAirSupply.Pick(state, plane));
+
+		CUnitOrders.Give(state, germany, plane, EUnitOrder.AirSupply, Border, provinces: new[] { Kiel, Border });
+		Assert.Equal(Border, plane.Mission.Destination);
+		CUnitOrders.RunHour(state, germany, plane);
+		// The cap is half of 30, 15; the border went 30 short.
+		Assert.Equal(CFixedPoint.FromInt(15), plane.Mission.Supplies);
+		Assert.Equal(CFixedPoint.FromInt(85), state.Province(Berlin).Pool[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.FromInt(15), state.Province(Berlin).SupplyDrawn[EGoods.Supplies]);
+
+		for (int hour = 0; hour < 6 && plane.Mission.Supplies > CFixedPoint.Zero; hour++)
+		{
+			RunHours(state, germany, plane, 1);
+		}
+		Assert.Equal(CFixedPoint.FromInt(15), border.Pool[EGoods.Supplies]);
+	}
+}

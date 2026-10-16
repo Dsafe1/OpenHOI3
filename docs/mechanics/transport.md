@@ -8,12 +8,17 @@ maintainer's three screenshots of a landing at Danzig (section B.9 there) and ag
 fleets. `confirmed` unless marked.
 
 **The carrier as an air base, carrying by air, the paradrop and the air supply** were read in the same wave (section D
-there) and are this piece's second half; section 13 below is their spec, and they are **not built yet**.
+there) and are this piece's second half, section 13; what carrier protection asks of its province and what becomes of a
+shot-down transport's paratroopers were read through on 2026-10-16.
 
 **Built 2026-10-15**, sections 1 to 12 (`Sim/Transport`, `CTransportMission` and `CInvasionMission` in `Sim/Missions`,
 `CLoadUnitCommand` and `CUnloadUnitCommand`; `CTransportText` and `CCarryButtons` in `Interface/Screens`; the panel's
 `CLoadedUnitsEntry` and `CLoadedUnitRow`), tried with `--click` and set against the saves (section 14). The maintainer has
 not looked at it.
+
+**Built 2026-10-16**, section 13 (`CCarriers` and `CAirTransport` in `Sim/Transport`, `CParadrop` and `CAirSupply` in
+`Sim/Missions`, `CLoadOnPlaneCommand` and `CUnloadFromPlaneCommand`; the strip's plane buttons, the air window's four
+rows and their order lines), tried with `OpenHOI3.SaveCheck airborne` (section 14). Nothing of it was looked at on screen.
 
 Figures marked *define* are `common/defines.lua`'s and mod-able; *units file* are a unit type's; everything else is
 the original's own and compiled in.
@@ -344,7 +349,7 @@ hours before anyone is ashore. A change of player empties the list.
 - `unmount_multiunit` is pressable where any selected unit is aboard anything, and posts an unload command for each -
   **asking nothing of where the fleet is**; the commands refuse the ones not in port. "Unmount $NUM$ units from air and
   naval transports." (`UNMOUNT_MULTILOAD`), or `UNMOUNT_MULTILOAD_NONE`.
-- `load_on_air_multiunit` waits for section 13.
+- `load_on_air_multiunit` is the same with air units at their base and the planes' test (section 13.3).
 
 **The map.**
 
@@ -375,38 +380,183 @@ the window opens on **Transport if the fleet carries anything**, else Rebase; ot
 and the "Attack Modifier" and "Defend Modifier" lines that follow carry the scale in their first figure: 33.10% times
 23.2% is 7.60%.
 
-## 13. The carrier and carrying by air - the second half, not built yet
+## 13. The carrier and carrying by air
 
-**A carrier is an air base.** Rebase to carrier may be given to an air unit whose every wing is a carrier air group
-(`is_cag`), where the province - or failing that its port - holds a fleet **of the unit's own country** with a ship whose
-`carrier_size` (*units file*: carrier 2, escort carrier 1) holds the wings aboard it and the unit's together. The first
-such fleet and its first such ship are taken. Given, the unit's base is that ship at once, it is put under the fleet in
-the order of battle, and it flies to where the fleet is now, as the strike missions judge the light of its arrival; it
-follows the fleet, and it is done when it is at its base. **No range is measured.** Aboard, its base province is where
-the fleet is, so its range moves with the ship; it is at its base only while the fleet is in no battle and no bombing;
-it moves with the ship when it has no path and no battle; it is never crowded. Its carrier sunk, it is given the nearest
-air base of its country in a straight line.
+Read with the rest (`reversing/findings/FINDINGS-transport.md`, section D), and carrier protection's two tests and what
+the removal of a transport plane does with its passengers read through on 2026-10-16 (sections D.1 and D.7 there).
 
-**Carrying by air.** A land unit boards an air unit at its base - same owner; the air unit in no battle, no path, not
-falling back, at its own base with an airfield there; the land unit's attack delay not running; **every brigade
-`can_paradrop`** at 95% of its organisation or more (`PARATROOP_MISSION_ORG_REQ`, *define*); and its weight fitting
-the air unit's `transport_capability` (*units file*: `transport_plane` 15; paratroopers 5). It moves with the plane, is
-never fought, not reinforced, and draws at the plane's base. It gets off only at an air base.
+### 13.1 A carrier as an air base
 
-**The paradrop** may be given over any land, at least `PARADROP_MIN_TIME` (24, *define*) hours ahead. The plane waits
-while a passenger's attack delay runs (where the target is an enemy's) or a brigade is under 95%. Over the target each
-passenger, in order, is marked dropped where the target's holder is at war with it, has an attack delay of
-`PARATROOP_MISSION_DELAY` (168, *define*) where hostile, gets off bringing `PARASUPPLYPOOL_DAYS` (7, *define*) days of
-supplies, and looks for a battle - taking an empty enemy province at once. The planes are left at
-`PARATROOP_DROP_ORG_MULT_PLANE` (0.01, *define*) of their organisation and go home. A dropped unit fights at
-`PARADROP_PENALTY` (-0.5, *define*), is spared the lack of supplies, counts once in the battle's width, and on its first
-hour out of a battle loses the mark and is multiplied by `PARATROOP_DROP_ORG_MULT` (0.66, *define*). `PARATROOPEDUS`
-tells the player holding the target, once.
+**An air group aboard** is on a ship's list, and knows the ship. Its base is that ship, and **its base province is the
+province the ship's fleet is in** - so its range is measured from wherever the carrier is. It is **at its base** only
+where it stands in that province **and the fleet is in no battle and no bombing**; every test of "at its base" fails
+while the carrier fights. A fleet entering another province takes with it each of its carriers' groups that has no path,
+is in no battle and no bombing, and stands in the province the fleet left; a group out on a mission stays where it is
+and comes home to wherever the carrier has gone. A group aboard is never crowded (`organisation.md`), and draws on the
+carrier's own base (`supply.md`).
 
-**The air supply** goes to the last province of its area short of supplies or fuel, with `AIR_SUPPLY_FACTOR` (0.5,
-*define*) times the planes' capability, loaded at its base.
+**Rebase to carrier** (`REBASE_TO_CAG_MISSION`) may be given for a province where:
 
-`reversing/findings/FINDINGS-transport.md`, section D, has the whole of it.
+- every wing of the unit is a carrier air group (`is_cag`, *units file*), and
+- a fleet **of the unit's own country** in the province has a ship whose room holds the unit:
+
+      the wings of the air units on the ship's list + the unit's wings  <=  carrier_size / 1000, cut   (units file:
+                                                                             carrier 2, escort_carrier 1)
+
+The province's fleets are asked in the order it lists its units - a port's fleets are among them - and in each fleet its
+ships in order; the first fit is taken. **Nothing asks about range, war, an ally's carrier or whether the carrier is at
+sea.**
+
+**Given**, the order keeps that fleet, and the unit's base becomes the first ship of it with room **at once**: the unit
+leaves the ship or the commander it was under and goes on the new ship's list. Then it flies:
+
+- **To the carrier**: it is given the way to the province the fleet is in now, and the light at its hour of arrival is
+  judged as a strike judges it (`bombing.md`, section 2) - by day it will not arrive at night, by night not by day; with
+  the wrong light, a unit standing in its base's province has its way cancelled and any other is told to return to base.
+- **Each hour**: the fleet gone, or the unit with no base, the order is done. In a battle, a bombing or with a path it
+  goes on. **At its base, it is done.** Otherwise it flies to the carrier again. No range is measured on the way, and
+  nothing halves its organisation on landing.
+
+A group based on a carrier **with no order is given carrier protection** for the province it is in, the hour after.
+**Rebased to an airfield** it leaves the carrier and lands with half its organisation, as any air unit
+(`fleetsandair.md`, section 5).
+
+**Its carrier sunk**, a group based on it is let go: off the ship, no base, no order, and **given the nearest air base
+of its country in a straight line**, where it stands. **Its fleet removed whole**, each carrier's groups the same.
+
+### 13.2 Carrier protection
+
+`CAG_DUTY` - "Protect the carrier on which it is based from air attack, and bomb any fleets the carrier is fighting."
+
+- **Its hour**: no base, it is done. The unit's **plain average organisation** - the wings' summed over their count, not
+  a share of a maximum - under `CAG_DUTY_MINIMUM_ORG_LIMIT` (0.2, *define*): told to return to base. In no battle, no
+  bombing and with no path: away from its base's province, told to return to base; and **the order's province becomes
+  its base's** - where the carrier is. It is never done by itself.
+- **It fights in the air** - is taken into an air battle, and starts or joins one - while the same average is at least
+  `CAG_DUTY_MINIMUM_ORG_LIMIT` and **a battle is going on in the order's province**, of any kind but a bombing. Fit to
+  fly as any air order is (`aircombat.md`, section 3).
+- **It bombs ships in the order's province alone** - its carrier's. Its bombing is a naval strike's (`bombing.md`):
+  the fleets it may bomb, sighted, with `CAG_SHIP_ATTACK_STR_BONUS` and `_ORG_BONUS` (*define*) on a fleet in a battle.
+- **Into a sea battle**: each hour **a fleet in a battle or a bombing** first sends each air unit aboard its carriers
+  that is under carrier protection, stands in the fleet's province, is in no battle and no bombing, has no path and can
+  fight (some wing with the strength and organisation not to count as spent) to look for a fight where it stands - an
+  air battle, then a bombing of the enemy's fleets.
+
+### 13.3 Carrying by air
+
+A land unit aboard an air unit is on its list of passengers, in the order they came aboard, and knows the air unit. **It
+is tied to the air unit**, as a fleet's passenger to its fleet.
+
+**May board** (`CLoadOnPlaneCommand`, the panel's `load_plane_button`), all of these:
+
+1. the two have one owner;
+2. the air unit is in no battle, has no path, is not falling back, and is **at its base**;
+3. the land unit's attack delay is not running;
+4. the base province has an air base **working** at level 1 or more;
+5. **every brigade** has `can_paradrop` (*units file*: paratroopers, rangers, Gurkhas) and organisation x 1000 / its most
+   - a most of nought counting as -1 - at least `PARATROOP_MISSION_ORG_REQ` (0.95, *define*);
+6. `weight(unit) + load(air unit) <= capacity(air unit)`, section 2's figures - `transport_capability` 15 on a transport
+   plane, `transport_weight` 5 on a paratrooper brigade (*units file*), so a transport wing carries three.
+
+**Where the land unit stands is not asked**: the panel offers only air units based in the province the unit is in.
+
+**Boarding** puts it on the list, leaves it where it is, and gives it no order. **Aboard**, it goes wherever the air unit
+goes; it is never fought and starts no battle; it is not reinforced; and it draws on the province of the air unit's
+base.
+
+**Getting off** (`CUnloadFromPlaneCommand`, `unload_plane_button`) only where it stands on land and its air unit is at
+its base - "You can only unload at an airbase." Off the list, no supplies moved, and **it looks for a battle where it
+stands**.
+
+**An air unit removed** - shot down, disbanded - **takes its passengers with it**; a land unit removed leaves its air
+unit's list.
+
+### 13.4 The paradrop
+
+`PARADROP_MISSION` - "Airborne Assault". **May be given for any land province** - nothing else is asked, not range, not
+war, not that anything is aboard; the window offers it only to an air unit carrying something, over land, and **moves
+its start to now and `PARADROP_MIN_TIME` (24, *define*) hours** where it is earlier.
+
+**Taking off**, as it is given and every hour it is not over its target:
+
+1. No fuel, or not fit to fly: told to return to base, and nothing more this hour. (Before its start hour a unit is never
+   fit to fly, so it is told so every hour it waits.)
+2. Before its start hour: nothing.
+3. With `hostile` meaning the target's holder is at war with the air unit's country: **it waits** while `hostile` and
+   any passenger's attack delay is running, or while any passenger brigade is under `PARATROOP_MISSION_ORG_REQ` of its
+   most.
+4. Otherwise it is given the way to the target, the light at its arrival judged as for a strike.
+
+**Each hour**: no base, done. In a battle, a bombing or with a path: going on. At its base with nothing aboard: done.
+Before its start hour: going on. Not over the target: take off again. **Over the target, the drop:**
+
+- `hostile` is now the air unit's country at war with **the holder of the province it is over**. For each passenger in
+  order: marked **dropped** where `hostile`; given an attack delay where `hostile`; off the list, **bringing
+  `PARASUPPLYPOOL_DAYS` (7, *define*) days** of what it uses into the province - out of the pool of the land province it
+  last walked out of, or the stockpile; and **it looks for a battle there** - joining or starting one, or **taking an
+  undefended enemy province at once**.
+- Every wing of the air unit has its organisation multiplied by `PARATROOP_DROP_ORG_MULT_PLANE` (0.01, *define*), cut.
+- It is told to return to base.
+- The first time only - marked first, told or not - where the target's holder **after the drop** is the player and the
+  air unit's country is at war with the player: `PARATROOPEDUS`, "$ENEMY$ is dropping paratroopers / in $PROV$."
+
+**A dropped unit**:
+
+- its attack delay is `PARATROOP_MISSION_DELAY` (168, *define*) where an ordinary one's is `UNIT_ATTACK_DELAY`, the roll
+  and the rest as before (`landcombat.md`);
+- attacking, it has **`BM_PARATROOP_PENALTY`**, `PARADROP_PENALTY` (-0.5, *define*) and its leader's
+  `paradrop_mission` trait, where below nought - and **no landing penalty** then;
+- it has **no `BM_LACK_OF_SUPPLIES`**;
+- **the battle's width counts every dropped attacker after the first not at all** - all of them one direction;
+- **the first hour it is in no battle** it loses the mark and every brigade's organisation is multiplied by
+  `PARATROOP_DROP_ORG_MULT` (0.66, *define*), cut - dropped onto an empty province, the same hour.
+
+A drop on ground nobody is at war with marks nothing, but brings the days and looks for a battle all the same.
+
+### 13.5 The air supply
+
+`TRANS_SUP_MISSION` - "Air Supply". **May be given** for land, to an air unit with a `transport_capability`. Its hour is
+the **bombing frame's** (`bombing.md`, section 3), with its own pick and its own cargo:
+
+- **Its list** keeps the provinces whose holder counts the unit's country a friend, military access counting.
+- **The pick**: over the list in order, the first allowed is taken whatever it lacks, and **every later one replaces it
+  where `(drawn - throughput)` of fuel and of supplies, today, added, is above nought** - so the last short province of
+  the list wins.
+- **Each hour**, before the frame: standing in its target, **the target's pool gains the cargo**, and cargo and target
+  are cleared. At its base with a target, an empty cargo is loaded:
+
+      cap      = AIR_SUPPLY_FACTOR x transport_capability / 1000                   (0.5, define)
+      supplies = min(max(target.drawn - target.throughput, 0), cap)     today
+      base.drawn += supplies
+      supplies = min(supplies, base.pool);  base.pool -= supplies
+      and fuel the same, after
+
+  At its base with a target and nothing aboard it waits where it is. Otherwise the frame runs, and the air orders' own
+  hourly test answers.
+
+### 13.6 On screen
+
+- **The unit panel**: `load_plane_button` and `unload_plane_button` share a place (section 12). A land unit aboard an air
+  unit: `unload_plane_button`, pressable where that air unit is at its base - "Unload from transport planes."
+  (`UW_UNLOAD_PLANE_BASE_OK`) or "You can only unload at an airbase." (`UW_UNLOAD_PLANE_BASE_ONLY`). A land unit aboard
+  nothing: `load_plane_button`, pressable where an air unit is found - "Load this unit onto transport planes."
+  (`UW_LOAD_PLANE`), or, found none, "Our paratroops have too low organization. They need to be at 95% of their maximum."
+  (`UW_LOAD_PLANE_FAIL_LOW_ORG`) where a brigade is under `PARATROOP_MISSION_ORG_REQ`, else "There are no transport planes
+  here that this unit can be loaded onto." (`UW_LOAD_PLANE_FAIL`). Anything else - a fleet's passenger among them -
+  neither. **The air unit found**: for a land unit in a land province with an air base built, in no battle, the first
+  air unit based in the province, at its base, that may take it aboard.
+- **An air unit's list of passengers** is section 12's, and is **made again when its count changes**.
+- **A passenger aboard an air unit** has its own counter among the air units'.
+- **The orders window** lists for an air unit, in the original's order: carrier protection first, where the unit is
+  based on a carrier in this province, then air superiority and the intercept, for a unit with an air attack; **the
+  paradrop**, for a unit carrying anything, over land; **rebase to carrier**, where a ship in the province carries
+  aircraft; the air supply, for a unit with a capability, over land; and the rest as before (`fleetsandair.md`).
+- **The unit panel's order line**: `PARADROP_MISSION_SHORT_DESC` "Airborne Assault ($TYPE$}" - TYPE "Resting" while unfit
+  or in its base's province, "Returning", "Flying" in no battle and no bombing, "Fighting"; `REBASE_TO_CAG_MISSION_SHORT_DESC`
+  "Rebase to Carrier ($TYPE$)" - "Returning", "Resting" in its base's province, "Flying", "Fighting";
+  `TRANS_SUP_MISSION_SHORT_DESC` "Air Supply ($TYPE$)" - "Returning", "Waiting" at its base with no path, "Flying".
+  Each row's tooltip is the original's table's description: `PARADROP_MISSION_DESC`, `REBASE_TO_CAG_MISSION_DESC`,
+  `TRANS_SUP_MISSION_DESC`, `CAG_DUTY_DESC`.
 
 ## 14. Saves and checks
 
@@ -426,6 +576,32 @@ Thailand in 15 hours, Siam is told the next hour, and the Division de Cochinchin
 after its order and takes it, the stockpile paying 31 supplies into the sea and 31 into Trat; by the mission the fleet
 lands from the Gulf of Thailand, the last sea in Trat's edges. Japan against China with `hand-defended`: a battle for
 Nantong at the first hour, the scales 0.216 and 1.490 at a progress of 20, the progress held at 1000 while it lasts.
+
+**A carrier's air groups in a save** are `air` blocks inside a `ship` block, with a `location` and **no `base`**; here
+each is given its fleet's province for its base as the fleet is read.
+
+**A second trial**, since no save has a drop, a group rebased or an air supply, and no 1936 order of battle a transport
+plane or a paratrooper: `OpenHOI3.SaveCheck airborne <install> [paradrop|carrier|supply][-defended] [country] [enemy]
+[days] [seed]`. On 2026-10-16, with the install's own unit types:
+
+- `paradrop`, Germany on Poland: a transport wing and three paratroop brigades made at Breslau, the target Ostrów
+  Wielkopolski 67 away. Loaded at once, the order starting the next midnight: the wing takes off in that hour and is over
+  the target by its end, and the next hour drops the division - 11 supplies brought into the province out of the
+  stockpile, the division having walked out of nowhere - and flies home within it. The empty province is Germany's at
+  once, so Poland is told nothing; the division settles the same hour, its organisation 41.58, two thirds of 63; the wing
+  is left at 0.477 organisation.
+- `paradrop-defended`: from Königsberg onto Danzig, four Polish units in it. The drop starts a battle, Poland is told
+  "Germany is dropping paratroopers in Danzig" the hour of the drop, the division keeps its mark and an attack delay of
+  122.
+- `carrier`, the United Kingdom: HMS Furious in Scapa Flow carries two unnamed groups of a wing each. The first is given
+  carrier protection for Scapa Flow its first hour; rebased to Glasgow it leaves the carrier, flies there in three hours
+  and lands with half its organisation; rebased back, it is aboard HMS Furious at once and done two hours later, with
+  carrier protection again the hour after. The Home Fleet sails to the Moray Firth and the group goes with it, its base
+  there; the fleet taken away, the group is given Scapa Flow's air base, the nearest, and no order.
+- `supply`, Germany: two transport wings at Berlin a day in, over the 244 provinces of Germany's in their range, 39 of
+  them short that day; it picks Garmisch Partenkirchen, the last short one of the list, loads at Berlin at 1:00,
+  delivers at 4:00 and loads again at 9:00, and over five days carries 13.6 supplies there, about 1.5 a load - what
+  Garmisch went short of, under the cap of 15.
 
 ## What looks wrong and is built so
 
@@ -447,6 +623,20 @@ Nantong at the first hour, the scales 0.216 and 1.490 at a progress of 20, the p
     unload asks nothing of where the fleets are.
 12. **Re-ordering a listed invader clears its country's pending warning**, and the warning lists every province still
     being landed on, not only the new ones.
+13. **Nothing asks where a land unit boards an air unit** either; the panel offers only the air units based where it
+    stands.
+14. **A paratrooper's seven days come out of the land province it last walked out of**, not out of the stockpile, and
+    the unload button brings none.
+15. **The transport planes are left at a hundredth of their organisation after every drop**, on an enemy or not.
+16. **`PARATROOPEDUS` goes only to the player holding the target once the drop is over, and once an order** - so a
+    player whose empty province the paratroopers took at once is never told.
+17. **Neither a paradrop nor a rebase to carrier measures range** once given, and before its start hour a paradrop is told
+    to return to base every hour it waits, being unfit to fly until then.
+18. **The air supply counts its load into the base province's drawn before it caps it by what lies there**, picks the
+    *last* short province of its area, not the neediest, and delivers whether or not the target is still a friend's.
+19. **Only one's own carriers are taken**, an ally's never.
+20. **Carrier protection is never done by itself**, and fights in the air wherever a battle is going on in the
+    carrier's province, of any kind.
 
 ## Ours
 
@@ -461,11 +651,26 @@ Nantong at the first hour, the scales 0.216 and 1.490 at a progress of 20, the p
   that the fleet's list is made with the unit in it.
 - **The two buttons that select every passenger or every aircraft aboard cannot be pressed**: selecting several units at
   once is not built.
+- **A land unit boarding an air unit has its path taken away**, and one aboard is not sent anywhere. The original's
+  command leaves a path alone, and whether a passenger aboard an air unit then walks was not read; the panel offers a
+  plane only where the unit stands, so a unit on the march is the one case.
+- **Carrier protection's line in the unit panel** is `CAG_DUTY_SHORT_DESC` with "Returning", "Resting" in its base's
+  province, "Fighting" in a battle or a bombing and "Flying" otherwise - the rebase to carrier's four. What the original
+  puts there was not read.
+- **A carrier air group's base province is kept in step with its fleet** each time the fleet enters a province, where the
+  original asks the ship for it; the two answer alike.
+- **"Its country's air bases"**, which a group whose carrier is gone is given the nearest of, are the land provinces its
+  country holds with an air base built; the first of equals in the map's order wins. The reading says no more.
+- **The air unit the planes' load button finds** is looked for among the units in the province, in the order it lists
+  them, that are based there; the original walks the province's own list of the units based on it.
+- **The air window moves a paradrop's start on** when its row is ticked and when it is accepted; the original also does
+  it every frame the window is up.
 
 ## Not built
 
-- Section 13: the carrier as an air base, carrying by air, the paradrop, the air supply.
 - **The panel for several units selected** - its load, load on aeroplanes and unmount - waits for selecting several.
+- A paratrooper's and a transport plane's technology efficiencies: no reader of `paradrop_mission` or
+  `transport_supplies_mission` was found.
 - The AI: nobody but the player boards, lands or orders a transport or an invasion, the original's AI posters of the two
   commands and its use of the progress among them (`reversing/findings/FINDINGS-invasion.md`).
 - A fleet merged, split or with ships moved out: there are no such orders yet.
@@ -473,9 +678,10 @@ Nantong at the first hour, the scales 0.216 and 1.490 at a progress of 20, the p
 
 ## Not established
 
-- **A transport plane shot down with paratroopers aboard**: whether they die, stay or are let go. The maintainer does not
-  know (2026-10-15), and the reading found no air branch where a fleet's passengers are dealt with.
+- ~~A transport plane shot down with paratroopers aboard~~: **read on 2026-10-16** - they are removed with it, as a
+  fleet's are (section 13.3). The maintainer did not know.
 - Whether anything draws on a sea province's pool of supplies.
-- What the removal of a fleet in the hourly drain, a country's reset and a government going into exile do with
-  passengers.
+- **A carrier removed lets its passengers go where they stand, or takes them with it**, by a flag its caller passes (read
+  on 2026-10-16): the hourly removal, a capitulation and an annexation take them; a government going into exile, for a unit
+  it destroys outright, lets them go; what a country's reset passes was not read. Here every removal takes them.
 - What the fleet's landing marker (a figure on an object of the fleet's) shows.

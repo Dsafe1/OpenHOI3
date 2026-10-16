@@ -47,6 +47,10 @@ public static class CMissionEfficiency
 			EUnitOrder.ConvoyRaid => "convoy_raid",
 			EUnitOrder.AirSuperiority => "air_superiority",
 			EUnitOrder.AirIntercept => "air_intercept",
+			EUnitOrder.CarrierProtection => "carrier_protection",
+			EUnitOrder.Paradrop => "paradrop_mission",
+			EUnitOrder.RebaseCarrier => "rebase_to_carrier",
+			EUnitOrder.AirSupply => "transport_supplies_mission",
 			_ => "",
 		};
 	}

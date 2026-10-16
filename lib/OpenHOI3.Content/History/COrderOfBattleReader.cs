@@ -367,6 +367,15 @@ public static class COrderOfBattleReader
 					UnknownKeys.Add($"{key} in a {block.Key}");
 				}
 			}
+			// An air group aboard a carrier is based where the carrier's fleet is (transport.md, section 13.1); a
+			// savegame writes it no base.
+			foreach (CSubUnit ship in unit.SubUnits)
+			{
+				foreach (CUnit aboard in ship.Carried)
+				{
+					aboard.Base = unit.Location;
+				}
+			}
 			unit.Id = ++LastId;
 			return unit;
 		}

@@ -259,6 +259,7 @@ public partial class COrdersWindow : Control
 		}
 		if (_air is not null)
 		{
+			_air.HoldStart(TickedOrder);        // a paradrop starts a day ahead at the earliest
 			_air.MakeArea(TickedOrder);         // which redoes accept and the map
 			return;
 		}
@@ -315,6 +316,7 @@ public partial class COrdersWindow : Control
 				Close();
 				return;
 			}
+			_air.HoldStart(_rows[_ticked].Order);
 			command = new CSetUnitOrderCommand(_player.Tag, unit.Id, _rows[_ticked].Order, _province, _stance,
 				0, 0, area.Provinces, _air.Time, _air.EndHour, _air.StartHour);
 		}

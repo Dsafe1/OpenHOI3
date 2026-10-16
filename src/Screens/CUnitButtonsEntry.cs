@@ -42,6 +42,12 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 	/// <summary>Raised when the unload button is pressed.</summary>
 	public event Action? UnloadPressed;
 
+	/// <summary>Raised when the planes' load button is pressed, with the number of the air unit it found.</summary>
+	public event Action<int>? PlaneLoadPressed;
+
+	/// <summary>Raised when the planes' unload button is pressed.</summary>
+	public event Action? PlaneUnloadPressed;
+
 	private CUnitButtonsEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit,
 		bool mayOrder) : base(window)
 	{
@@ -67,8 +73,8 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 			}
 		}
 
-		// The load and unload buttons are set from the unit every frame; the planes' are
-		// shown as the original shows them, and nothing carries by air yet.
+		// The load and unload buttons, the ships' and the planes', are set from the unit every frame
+		// (transport.md, sections 12 and 13.6).
 		_load = window.FindButton("load_button");
 		_unload = window.FindButton("unload_button");
 		_loadPlane = window.FindButton("load_plane_button");
@@ -80,6 +86,14 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		if (_unload is not null)
 		{
 			_unload.Pressed += () => UnloadPressed?.Invoke();
+		}
+		if (_loadPlane is not null)
+		{
+			_loadPlane.Pressed += () => PlaneLoadPressed?.Invoke(_carry.Plane);
+		}
+		if (_unloadPlane is not null)
+		{
+			_unloadPlane.Pressed += () => PlaneUnloadPressed?.Invoke();
 		}
 		Unbuilt(window, "disbandbutton", shown: true);
 		Unbuilt(window, "newunitbutton", shown: true);
@@ -108,12 +122,13 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		Tick(_reinforce, _unit.MayReinforce);
 		Tick(_upgrade, _unit.MayUpgrade);
 
-		// One of each pair shows: aboard, unload - in port; aboard nothing, load - where a fleet is found.
+		// One of each pair shows: aboard, unload - in port, or at the air unit's base; aboard nothing, load - where a
+		// fleet or an air unit is found.
 		_carry = CTransportText.Buttons(_state, _owner, _unit);
 		Carry(_load, _carry.LoadShown, _carry.LoadEnabled);
 		Carry(_unload, _carry.UnloadShown, _carry.UnloadEnabled);
-		Carry(_loadPlane, _carry.PlaneLoadShown, false);
-		Carry(_unloadPlane, _carry.PlaneUnloadShown, false);
+		Carry(_loadPlane, _carry.PlaneLoadShown, _carry.PlaneLoadEnabled);
+		Carry(_unloadPlane, _carry.PlaneUnloadShown, _carry.PlaneUnloadEnabled);
 
 		// A unit with none above it may be attached, and one with may be detached.
 		Show(_attach, _unit.Parent is null);

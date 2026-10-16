@@ -18,6 +18,9 @@ public static class CAttackDelay
 	public const string DelayPeriod = "UNIT_ATTACK_DELAY_PERIOD";
 	public const string DelayModify = "UNIT_ATTACK_DELAY_MODIFY";
 
+	/// <summary>What a dropped unit's delay starts from in place of <see cref="Delay"/> (<c>transport.md</c>, section 13.4).</summary>
+	public const string ParadropDelay = "PARATROOP_MISSION_DELAY";
+
 	/// <summary>What each level of a doctrine takes off the delay, in hours.</summary>
 	public const string TechnologyAttackDelay = "attack_delay";
 
@@ -90,13 +93,13 @@ public static class CAttackDelay
 	}
 
 	/// <summary>
-	/// The delay an attack starts: the base, a roll of some hours, more for a country
+	/// The delay an attack starts: the base - a dropped unit's own - a roll of some hours, more for a country
 	/// short of officers, less for its doctrine, and never under twelve hours. One draw
 	/// of the game's generator.
 	/// </summary>
 	public static void Start(CGameState state, CCountry country, CUnit unit)
 	{
-		long hours = state.Defines[CManpower.MilitarySection, Delay].Raw / CFixedPoint.Scale;
+		long hours = state.Defines[CManpower.MilitarySection, unit.WasParadropped ? ParadropDelay : Delay].Raw / CFixedPoint.Scale;
 		long modify = state.Defines[CManpower.MilitarySection, DelayModify].Raw / CFixedPoint.Scale;
 		hours += state.Random.Next((int)modify);
 

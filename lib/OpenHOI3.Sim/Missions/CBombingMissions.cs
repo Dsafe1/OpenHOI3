@@ -102,7 +102,7 @@ public static class CBombingMissions
 			// Nowhere to go, or the place has changed hands: another is picked at its base.
 			if (unit.Location == unit.Base && CAirMissions.IsFitToFly(state, unit))
 			{
-				mission.Destination = CBombingProvinces.Pick(state, unit);
+				mission.Destination = Pick(state, unit);
 			}
 			else if (unit.Location == unit.Base)
 			{
@@ -133,7 +133,7 @@ public static class CBombingMissions
 			CAirMissions.ReturnToBase(state, country, unit);
 			return;
 		}
-		mission.Destination = CBombingProvinces.Pick(state, unit);
+		mission.Destination = Pick(state, unit);
 		if (mission.Destination == 0)
 		{
 			CAirMissions.ReturnToBase(state, country, unit);
@@ -179,7 +179,7 @@ public static class CBombingMissions
 		{
 			if (unit.Location == unit.Base && CAirMissions.IsFitToFly(state, unit))
 			{
-				mission.Destination = CBombingProvinces.Pick(state, unit);
+				mission.Destination = Pick(state, unit);
 			}
 			else if (unit.Location == unit.Base)
 			{
@@ -207,24 +207,13 @@ public static class CBombingMissions
 	/// </summary>
 	private static void FlyOut(CGameState state, CCountry country, CUnit unit, CProvince strike)
 	{
-		CAirMissions.GoTo(state, country, unit, strike.Id);
-		int time = unit.Mission.Time;
-		long arrival = state.TotalHours + System.Math.Max(0, CMovement.HoursToNext(state, country, unit));
-		bool isNight = CDaylight.IsNight(state, strike, (int)(arrival % CGameState.HoursPerDay),
-			CDate.FromDayNumber((int)(arrival / CGameState.HoursPerDay)).Month - 1);
-		bool isWrongLight = (time == CMission.ByDay && isNight) || (time == CMission.ByNight && !isNight);
-		if (!isWrongLight)
-		{
-			return;
-		}
-		if (unit.Location != unit.Base)
-		{
-			CAirMissions.ReturnToBase(state, country, unit);
-		}
-		else if (unit.IsMoving)
-		{
-			CMovement.Cancel(unit);
-		}
+		CAirMissions.FlyTo(state, country, unit, strike);
+	}
+
+	/// <summary>The order's own pick of a province - the air supply's is its own (<c>transport.md</c>, section 13.5).</summary>
+	private static int Pick(CGameState state, CUnit unit)
+	{
+		return unit.Order == EUnitOrder.AirSupply ? CAirSupply.Pick(state, unit) : CBombingProvinces.Pick(state, unit);
 	}
 
 	private static bool HasListed(CGameState state, CUnit unit)

@@ -85,7 +85,8 @@ public static class CMapCounters
 	{
 		// The two stacks of a battle are not built: on land the original stands them on the
 		// standing point, and at sea 2.4 to either side of it.
-		if (unit.Kind == EUnitKind.Air)
+		// And a land unit aboard an air unit with the air units (transport.md, section 13.6).
+		if (unit.Kind == EUnitKind.Air || unit.Plane is not null)
 		{
 			return EMapStack.Air;
 		}

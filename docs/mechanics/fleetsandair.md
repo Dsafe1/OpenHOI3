@@ -238,20 +238,21 @@ draws it when the window closes:
 
 *Ours:* **"nothing" is drawn as the terrain mode draws the province** - how the original's map
 draws a colour with no alpha was not read. **The window's title is not written again** when a
-right click moves it to another province, which is the original's. There is no tooltip
-anywhere, the paradrop's earliest start is not kept (there is no paradrop), and a click at
+right click moves it to another province, which is the original's. Its tooltips are section 8's;
+a paradrop's earliest start is kept when its row is ticked and when it is accepted, not every frame (`transport.md`,
+section 13.4); and a click at
 the base province of an air unit cannot pick it out from under the land units there:
 `--select=` does it for a trial.
 
 *Ours:* **a fleet's move, its change of base and its eight missions are built** - the missions
 are `navalmissions.md`, and the transport and the invasion `transport.md` - **and an air unit's
 change of base, its two fighting missions (`aircombat.md`) and its eight bombing missions
-(`bombing.md`).** Every other row is listed as the original lists it and cannot be ticked: an air
-unit's reserve, supply flight and raid on convoys. A fleet carrying anything opens the window on
-Transport where it would on Rebase, and a plain right click on a coast the sea does not reach opens
-it where its first passenger may land there (`transport.md`, section 12).
-An air unit's rows for a paradrop, a carrier and a bomb are left out, wanting what is not built
-to know when they show. The stance and the priority go with a fleet's order and mean something
+(`bombing.md`), and since 2026-10-16 carrier protection, the paradrop, the rebase to carrier and the
+air supply (`transport.md`, section 13.6), each listed where the original lists it.** Every other row
+is listed as the original lists it and cannot be ticked: an air unit's reserve and raid on convoys. A
+fleet carrying anything opens the window on Transport where it would on Rebase, and a plain right
+click on a coast the sea does not reach opens it where its first passenger may land there
+(`transport.md`, section 12). The nuclear bomb's row is left out, there being no bomb. The stance and the priority go with a fleet's order and mean something
 to its missions. In the original a row and `accept` say in a tooltip why they cannot be used.
 
 ## 5. The orders
@@ -379,14 +380,15 @@ play no part (`tooltips.md`, section 9).
 
 ## What is not built
 
-- **An air unit's reserve, supply flight and raid on convoys.** The air window's other controls
+- **An air unit's reserve and raid on convoys.** The air window's other controls
   are built since 2026-10-11. A fleet's reserve, patrol, intercept, sortie, convoy raiding and
   escort are built since 2026-10-10 and are `navalmissions.md`, its transport and invasion since
   2026-10-15 and are `transport.md`; an air unit's air superiority and intercept since
   2026-10-10, and are `aircombat.md`; and its eight bombing missions since the same day, and are
   `bombing.md`.
-- **Carrying by air**: an air group based aboard a carrier, a land unit aboard aeroplanes, a
-  paradrop - `transport.md`, section 13. Troops aboard a fleet are built since 2026-10-15.
+- **Carrying by air** is built since 2026-10-16 - an air group based aboard a carrier, a land
+  unit aboard aeroplanes, the paradrop, the air supply: `transport.md`, section 13. Troops aboard a
+  fleet are built since 2026-10-15.
 - **A fleet meeting another** is built since 2026-10-10 and is `navalcombat.md`. One thing
   of it belongs here: **a fleet in a battle that is sent somewhere is not given its way** -
   the province is kept, and it sets off four hours on (section 6 there); and a right click

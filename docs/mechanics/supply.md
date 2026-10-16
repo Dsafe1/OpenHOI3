@@ -476,7 +476,8 @@ starts with ninety days of what all its units use.
 `confirmed`. Once a day, after its men are rotated (`upkeep.md`, section 3).
 
 **Where.** An army on the province it stands in. A wing and a fleet on the province they are
-based in, wherever they are; an air group aboard a carrier on its fleet's port. A unit that is
+based in, wherever they are; an air group aboard a carrier on its fleet's port; a land unit aboard a fleet or an air
+unit on its carrier's base (`transport.md`, sections 5 and 13.3). A unit that is
 nowhere yet - finished and not placed - on its country's capital.
 
 **Whose depot.** Where the depot that province draws on is held by a country that is **no

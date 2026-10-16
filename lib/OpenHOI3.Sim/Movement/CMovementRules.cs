@@ -229,6 +229,11 @@ public static class CMovementRules
 		{
 			return false;
 		}
+		// A land unit aboard an air unit goes only where the air unit takes it (transport.md, Ours).
+		if (unit.Plane is not null)
+		{
+			return false;
+		}
 		if (unit.Kind != EUnitKind.Navy)
 		{
 			return true;

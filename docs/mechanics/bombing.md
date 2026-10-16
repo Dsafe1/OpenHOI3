@@ -448,10 +448,12 @@ of a selected province says there is a bombing.
 
 ### Not built
 
-- **A carrier's aircraft**: the order that keeps them over their fleet, their bombing of the
-  enemy's ships beside a sea battle, and a carrier as a base at all.
-- **The raid on convoys from the air**, the reserve, the supply flight, the paradrop, the
-  atom bomb.
+- ~~**A carrier's aircraft**: the order that keeps them over their fleet, their bombing of the
+  enemy's ships beside a sea battle, and a carrier as a base at all.~~ Built on 2026-10-16
+  (`transport.md`, sections 13.1 and 13.2): carrier protection goes for ships in its carrier's
+  province alone, and a fleet in a battle sends it in.
+- **The raid on convoys from the air**, the reserve, the atom bomb. The supply flight and the
+  paradrop are built since 2026-10-16 (`transport.md`, section 13).
 - **What a strategic bombing does beyond the province**: the threat it adds to its country,
   and what it takes off the bombed country's unity.
 - **Difficulty** in what the hour makes of a wing; **the practical** a bombing earns. The

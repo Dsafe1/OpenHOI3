@@ -49,10 +49,10 @@ public static class CBombingOrders
 		return IsBombing(order) || order == EUnitOrder.NavalStrike;
 	}
 
-	/// <summary>Goes for ships, and fires its sea attack.</summary>
+	/// <summary>Goes for ships, and fires its sea attack - carrier protection too (<c>transport.md</c>, section 13.2).</summary>
 	public static bool GoesForShips(EUnitOrder order)
 	{
-		return order is EUnitOrder.NavalStrike or EUnitOrder.PortStrike;
+		return order is EUnitOrder.NavalStrike or EUnitOrder.PortStrike or EUnitOrder.CarrierProtection;
 	}
 
 	/// <summary>Goes for land units, and fires its soft and hard attack by how soft the target is.</summary>
@@ -133,6 +133,11 @@ public static class CBombingOrders
 	public static bool ShouldBomb(CGameState state, CUnit unit, CProvince province)
 	{
 		EUnitOrder order = unit.Order;
+		// Carrier protection bombs where its carrier is, and nowhere else.
+		if (order == EUnitOrder.CarrierProtection)
+		{
+			return province.Id == unit.OrderProvince;
+		}
 		if (!IsBombingMission(order))
 		{
 			return false;

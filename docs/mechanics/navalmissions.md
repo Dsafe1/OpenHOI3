@@ -443,7 +443,8 @@ missions something to meet, there being no AI to send anything.
 
 ### Not built
 
-- **Aircraft**: the air convoy raid, a carrier's aircraft in a battle, every air mission.
+- **Aircraft**: the air convoy raid. A carrier's aircraft in a battle are built since 2026-10-16
+  (`transport.md`, section 13.2), and the air missions are `aircombat.md`'s and `bombing.md`'s.
 - **Weather** and the **AI** - no fleet of a country nobody plays is ever given a mission but
   by `--mission`. The leaders a raid's battle asks are built since 2026-10-11
   (`leaders.md`, section 10).

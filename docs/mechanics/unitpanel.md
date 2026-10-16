@@ -303,7 +303,8 @@ A row is the window `childunit_entry`: `name`, the unit's name - and ` (`, its l
 5; `objective`, an AI's, empty; `counter_type`, `counter_size`, `org_bar` and `str_bar` as
 the header's. **A click selects that unit and takes the map to it.**
 
-The original leaves an air unit that is aboard a carrier out of the list. Not built.
+The original leaves an air unit that is aboard a carrier out of the list; here a group aboard is nobody's child,
+so it is not in it either (`transport.md`, section 13.1).
 
 ## 9. A headquarters' row
 

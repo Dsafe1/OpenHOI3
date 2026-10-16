@@ -418,6 +418,7 @@ public static class CBombing
 			if (ship.Strength < CNavalLosses.LeastStrengthAfloat)
 			{
 				fleet.SubUnits.RemoveAt(i);
+				Transport.CCarriers.LetGo(state, ship);   // its air groups are let go (transport.md, section 13.1)
 				ship.Unit = null;
 				side.Sunk.Add(ship);
 			}

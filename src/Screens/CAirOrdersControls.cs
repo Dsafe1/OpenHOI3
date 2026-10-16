@@ -165,6 +165,18 @@ public sealed class CAirOrdersControls
 		Changed?.Invoke();
 	}
 
+	/// <summary>
+	/// A paradrop's start is moved on to now and <c>PARADROP_MIN_TIME</c> hours where it is earlier
+	/// (<c>transport.md</c>, section 13.4).
+	/// </summary>
+	public void HoldStart(EUnitOrder order)
+	{
+		if (order == EUnitOrder.Paradrop)
+		{
+			_start?.HoldAtLeast(CParadrop.EarliestStart(_state));
+		}
+	}
+
 	/// <summary>The window has been moved to another province.</summary>
 	public void SetProvince(int province)
 	{

@@ -31,11 +31,12 @@ public static class CSupplyDraw
 	/// <summary>
 	/// The province a unit draws on: the one it stands in for an army, the one it is
 	/// based in for a wing or a fleet, its fleet's port for an air group aboard a
-	/// carrier, and its country's capital for a unit that is nowhere yet.
+	/// carrier, its carrier's base for a land unit aboard a fleet or an air unit, and its
+	/// country's capital for a unit that is nowhere yet.
 	/// </summary>
 	public static int ProvinceOf(CCountry owner, CUnit unit)
 	{
-		if ((unit.CarriedBy?.Unit ?? unit.Transport) is { } fleet)
+		if ((unit.CarriedBy?.Unit ?? unit.Transport ?? unit.Plane) is { } fleet)
 		{
 			return fleet.Base != 0 ? fleet.Base : fleet.Location;
 		}

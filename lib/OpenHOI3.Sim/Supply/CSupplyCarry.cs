@@ -26,8 +26,9 @@ public static class CSupplyCarry
 	/// <param name="fromStockpile">
 	/// So does a unit from nowhere getting off a fleet, whatever the ground (<c>transport.md</c>, section 4).
 	/// </param>
+	/// <param name="days">The days it brings; with none said, the days a province holds. A dropped unit brings its own.</param>
 	public static void Bring(CGameState state, CCountry owner, CUnit unit, int from, int into, bool beforeGame = false,
-		bool fromStockpile = false)
+		bool fromStockpile = false, long? days = null)
 	{
 		if (into <= 0 || into >= state.Provinces.Count)
 		{
@@ -59,9 +60,9 @@ public static class CSupplyCarry
 			return;
 		}
 
-		long days = CSupplyDay.DaysHeld(state) * Scale;
-		Move(source, province.Pool, EGoods.Supplies, CUnitSupply.SupplyConsumption(state, owner, unit).Raw * days / Scale);
-		Move(source, province.Pool, EGoods.Fuel, CUnitSupply.FuelConsumption(state, owner, unit).Raw * days / Scale);
+		long held = (days ?? CSupplyDay.DaysHeld(state)) * Scale;
+		Move(source, province.Pool, EGoods.Supplies, CUnitSupply.SupplyConsumption(state, owner, unit).Raw * held / Scale);
+		Move(source, province.Pool, EGoods.Fuel, CUnitSupply.FuelConsumption(state, owner, unit).Raw * held / Scale);
 	}
 
 	private static void Move(CGoodsPool source, CGoodsPool into, EGoods goods, long wanted)

@@ -9,6 +9,10 @@ namespace OpenHOI3.Sim.Combat;
 public enum ECombatModifier
 {
 	River,
+
+	/// <summary>A unit dropped from the air, attacking (<c>transport.md</c>, section 13.4).</summary>
+	Paratroop,
+
 	Amphibious,
 	Fort,
 	MultipleCombats,

@@ -54,6 +54,10 @@ public static class COrdersText
 			EUnitOrder.Interdiction => "INTERDICT_BOMB",
 			EUnitOrder.PortStrike => "PORTSTRIKE_BOMB",
 			EUnitOrder.NavalStrike => "NAVALSTRIKE_BOMB",
+			EUnitOrder.CarrierProtection => "CAG_DUTY",
+			EUnitOrder.Paradrop => "PARADROP_MISSION",
+			EUnitOrder.RebaseCarrier => "REBASE_TO_CAG_MISSION",
+			EUnitOrder.AirSupply => "TRANS_SUP_MISSION",
 			_ => "",
 		};
 	}
@@ -80,9 +84,10 @@ public static class COrdersText
 	/// <summary>
 	/// The rows of the list, in the original's order. A fleet is shown every naval order
 	/// there is, the ones that cannot be given with their boxes greyed. An air unit is
-	/// shown only the orders it could ever fly: by what its wings can attack, and by
-	/// whether the province is land or sea. Of the air's, the supply flight, the raid on
-	/// convoys and the reserve are listed and cannot be ticked: they are not built.
+	/// shown only the orders it could ever fly: by what its wings can attack, what it
+	/// carries, whether it is aboard a carrier here or a carrier lies here, and whether the
+	/// province is land or sea. Of the air's, the raid on convoys and the reserve are
+	/// listed and cannot be ticked: they are not built.
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, CUnit unit, CProvince province)
 	{
@@ -124,12 +129,25 @@ public static class COrdersText
 		bool land = !province.IsSea;
 		if (Has(unit, "air_attack"))
 		{
+			// Carrier protection first, for a unit based on a carrier here (transport.md, section 13.6).
+			if (unit.CarriedBy is not null && unit.Base == province.Id)
+			{
+				Add(NameKey(EUnitOrder.CarrierProtection), EUnitOrder.CarrierProtection);
+			}
 			Add(NameKey(EUnitOrder.AirSuperiority), EUnitOrder.AirSuperiority);
 			Add(NameKey(EUnitOrder.AirIntercept), EUnitOrder.AirIntercept);
 		}
+		if (land && unit.Passengers.Count > 0)
+		{
+			Add(NameKey(EUnitOrder.Paradrop), EUnitOrder.Paradrop);
+		}
+		if (HasCarrier(state, province))
+		{
+			Add(NameKey(EUnitOrder.RebaseCarrier), EUnitOrder.RebaseCarrier);
+		}
 		if (land && Has(unit, "transport_capability"))
 		{
-			Add("TRANS_SUP_MISSION");
+			Add(NameKey(EUnitOrder.AirSupply), EUnitOrder.AirSupply);
 		}
 		if (land && Has(unit, "strategic_attack"))
 		{
@@ -221,6 +239,26 @@ public static class COrdersText
 			if (subUnit.Stats[statistic] > CFixedPoint.Zero)
 			{
 				return true;
+			}
+		}
+		return false;
+	}
+
+	/// <summary>Whether a ship of a fleet in the province, anybody's, is a carrier.</summary>
+	private static bool HasCarrier(CGameState state, CProvince province)
+	{
+		foreach (CUnit fleet in state.UnitsIn(province.Id))
+		{
+			if (fleet.Kind != EUnitKind.Navy)
+			{
+				continue;
+			}
+			foreach (CSubUnit ship in fleet.SubUnits)
+			{
+				if (Sim.Combat.CShipCensus.IsCarrier(ship))
+				{
+					return true;
+				}
 			}
 		}
 		return false;

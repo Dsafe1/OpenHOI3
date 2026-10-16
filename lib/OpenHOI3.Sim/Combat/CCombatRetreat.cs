@@ -206,12 +206,28 @@ public static class CCombatRetreat
 			return;
 		}
 		unit.IsRemoved = true;
-		// A fleet takes its passengers with it; a passenger leaves its fleet's list (transport.md, section 6).
+		// A fleet or an air unit takes its passengers with it; a passenger leaves its fleet's or its air unit's list
+		// (transport.md, sections 6 and 13.3); and a fleet lets its carriers' air groups go (section 13.1).
 		Transport.CTransport.RemovePassengers(state, unit);
 		if (unit.Transport is { } fleet)
 		{
 			fleet.Passengers.Remove(unit);
 			unit.Transport = null;
+		}
+		if (unit.Plane is { } plane)
+		{
+			plane.Passengers.Remove(unit);
+			unit.Plane = null;
+		}
+		if (unit.Kind == EUnitKind.Navy)
+		{
+			Transport.CCarriers.LetGoAll(state, unit);
+		}
+		// An air group aboard a carrier leaves the ship's list.
+		if (unit.CarriedBy is { } ship)
+		{
+			ship.Carried.Remove(unit);
+			unit.CarriedBy = null;
 		}
 		CCombats.LeaveAll(state, unit);
 		Leaders.CLeaders.SetLeader(state, unit, null, false, false);   // its leader is free again

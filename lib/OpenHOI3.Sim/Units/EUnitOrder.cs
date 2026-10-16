@@ -75,4 +75,18 @@ public enum EUnitOrder
 
 	/// <summary>An air unit: bomb a naval base and the ships lying in it.</summary>
 	PortStrike,
+
+	// ---- carrying by air and the carrier: docs/mechanics/transport.md, section 13
+
+	/// <summary>An air unit of carrier air groups: make a ship of a fleet of its own country its base, and fly to it.</summary>
+	RebaseCarrier,
+
+	/// <summary>An air unit aboard a carrier: keep over the carrier, fight in the air there and bomb the fleets it fights.</summary>
+	CarrierProtection,
+
+	/// <summary>An air unit: fly the land units it carries to a land province and drop them there.</summary>
+	Paradrop,
+
+	/// <summary>An air unit: carry supplies and fuel from its base to a friend's province of its area that is short of them.</summary>
+	AirSupply,
 }

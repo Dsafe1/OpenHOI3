@@ -153,7 +153,8 @@ public static class CMovement
 	/// Every unit's hour as far as going somewhere and meeting an enemy is concerned,
 	/// country by country in the order of the units' numbers. A unit of a country at
 	/// peace that is going nowhere has nothing to do in it - but an air unit away from its
-	/// base always has, since with no order its hour is what sends it home.
+	/// base always has, since with no order its hour is what sends it home, and so has one
+	/// aboard a carrier, whose hour gives it the carrier's duty.
 	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
@@ -171,7 +172,9 @@ public static class CMovement
 					|| (atWar && (CMovementRules.IsLandUnit(unit) || unit.Kind == EUnitKind.Navy))
 					// An air unit away from its base has its hour whatever it is doing:
 					// with no order, that hour is what sends it home.
-					|| (unit.Kind == EUnitKind.Air && unit.Base != 0 && !Missions.CAirMissions.IsAtOwnBase(unit)))
+					|| (unit.Kind == EUnitKind.Air && unit.Base != 0 && !Missions.CAirMissions.IsAtOwnBase(unit))
+					// And one aboard a carrier with no order, whose hour gives it the carrier's duty.
+					|| (unit.Kind == EUnitKind.Air && unit.CarriedBy is not null))
 				{
 					(busy ??= new List<CUnit>()).Add(unit);
 				}
@@ -204,6 +207,11 @@ public static class CMovement
 		if (isFleet && unit.EngageWait > 0)
 		{
 			unit.EngageWait--;
+		}
+		// A fleet in a battle or a bombing sends its carriers' aircraft in (transport.md, section 13.2).
+		if (isFleet && (unit.IsFighting || unit.Bombing is not null))
+		{
+			Transport.CCarriers.SendAircraft(state, unit);
 		}
 		// An air unit found in a battle cannot be taken into another for two of its hours.
 		bool isAir = unit.Kind == EUnitKind.Air;
@@ -504,19 +512,15 @@ public static class CMovement
 	/// <summary>Puts a unit in a province, with whatever its ships carry and the land units aboard it.</summary>
 	private static void Enter(CGameState state, CUnit unit, int province)
 	{
+		int left = unit.Location;
 		state.Positions.Move(unit, unit.Location, province);
 		unit.Location = province;
-		Transport.CTransport.Follow(state, unit, province);
-		foreach (CSubUnit subUnit in unit.SubUnits)
+		if (unit.Kind == EUnitKind.Air)
 		{
-			foreach (CUnit carried in subUnit.Carried)
-			{
-				if (!carried.IsMoving)
-				{
-					state.Positions.Move(carried, carried.Location, province);
-					carried.Location = province;
-				}
-			}
+			Transport.CAirTransport.Follow(state, unit, province);
+			return;
 		}
+		Transport.CTransport.Follow(state, unit, province);
+		Transport.CCarriers.Follow(state, unit, left, province);
 	}
 }

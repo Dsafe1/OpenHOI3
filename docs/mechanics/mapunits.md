@@ -196,7 +196,8 @@ counter's can be hidden by it.
 **A fleet in port and an air unit at its own base have no counter.** The original shows
 those by the province's port and airfield: section 9. Nor has an air group aboard a carrier,
 nor a land unit aboard a fleet in port; **a land unit aboard a fleet at sea has its own**, among
-the moving counters while the fleet has a path (`transport.md`, section 12). Every other unit
+the moving counters while the fleet has a path (`transport.md`, section 12), and one aboard an air unit among the
+air units' (`transport.md`, section 13.6). Every other unit
 that is somewhere has one. `confirmed`
 
 A province sorts its counters into **five stacks**, by what the unit is doing: `confirmed`

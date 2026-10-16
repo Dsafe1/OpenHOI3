@@ -35,12 +35,12 @@ public static class CAirBattle
 			return false;
 		}
 		if (CAirMissions.IsAtOwnBase(unit)
-			&& (!CAirMissions.IsAirMission(unit.Order) || !CAirMissions.IsFitToFly(state, unit)))
+			&& (!CAirMissions.FightsInTheAir(state, unit) || !CAirMissions.IsFitToFly(state, unit)))
 		{
 			return false;
 		}
 		if (CAirMissions.IsAtOwnBase(other)
-			&& (!CAirMissions.IsAirMission(unit.Order) || !CAirMissions.IsFitToFly(state, other)))
+			&& (!CAirMissions.FightsInTheAir(state, unit) || !CAirMissions.IsFitToFly(state, other)))
 		{
 			return false;
 		}
@@ -55,7 +55,7 @@ public static class CAirBattle
 	public static void Look(CGameState state, CUnit unit, CProvince province)
 	{
 		if (province.Id == 0 || unit.IsRemoved || unit.SubUnits.Count == 0 || unit.Location != province.Id
-			|| unit.NoBattleHours > 0 || !CAirMissions.IsAirMission(unit.Order))
+			|| unit.NoBattleHours > 0 || !CAirMissions.FightsInTheAir(state, unit))
 		{
 			return;
 		}
@@ -77,7 +77,7 @@ public static class CAirBattle
 	public static CCombat? Start(CGameState state, CProvince province, CUnit unit)
 	{
 		if (CCombats.HasCombatIn(unit, province.Id) || unit.NoBattleHours > 0
-			|| !CAirMissions.IsAirMission(unit.Order))
+			|| !CAirMissions.FightsInTheAir(state, unit))
 		{
 			return null;
 		}
