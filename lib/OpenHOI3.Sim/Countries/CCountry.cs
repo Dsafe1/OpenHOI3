@@ -667,6 +667,21 @@ public sealed class CCountry
 	public int TechCountdown { get; set; }
 
 	/// <summary>
+	/// Hours until its foreign minister first works, from 1 to 3, drawn when a new game makes one for every country nobody
+	/// plays, before the production minister's; 0 for a country with none (<c>foreignminister.md</c>, section 1).
+	/// </summary>
+	public int ForeignCountdown { get; set; }
+
+	/// <summary>What its foreign minister keeps between its days (<c>foreignminister.md</c>, section 7).</summary>
+	public Ai.CForeignMinister ForeignMinister { get; } = new();
+
+	/// <summary>
+	/// The wars its AI has prepared, in the order they were first prepared - each a target and the decision tied to it, if
+	/// any (<c>foreignminister.md</c>, section 4; the original's strategy's <c>WarTargets</c>).
+	/// </summary>
+	public List<Ai.CWarTarget> WarTargets { get; } = new();
+
+	/// <summary>
 	/// What its production minister last made of its desperation, 0 to 1100 thousandths, made again on the 1st, the 15th and
 	/// the 29th of a month; -1 before the first time (<c>ministers.md</c>, section 4.1).
 	/// </summary>

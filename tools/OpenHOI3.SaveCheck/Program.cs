@@ -198,6 +198,12 @@ if (args.Length > 0 && args[0] == "faction")
 	return CFactionTrial.Run(args);
 }
 
+// What every foreign minister offers on a new game with nobody playing.
+if (args.Length > 0 && args[0] == "foreignai")
+{
+	return CForeignAiTrial.Run(args);
+}
+
 // Every country's politics minister at work on a new game.
 if (args.Length > 0 && args[0] == "politicsai")
 {

@@ -129,6 +129,21 @@ original's start gives technology this one does not - so the progress is the mea
 original starts further on. The Soviet Union's supply share ran low, 168 supplies on 1 January 1937, not looked into.
 The draws having moved, the Spanish Civil War fired on 30 January 1936 and still ended on its first day.
 
+### With decisions (2026-10-16)
+
+Stage 5's second piece (`foreignminister.md`). Each snapshot also writes every great power's prepared wars and whether
+each is ready, and as they happen the decisions taken, by whom. `headless <install> 1938`: 1936 and 1937 in 225 seconds
+each, nothing thrown, nothing below nought, **no Lua error**; seven decisions taken by the AI where none was before -
+`new_deal`, `trains_run_on_time`, `popular_front`, the three interventions in Spain and `great_officer_purge` - and
+Japan's war on Shanxi and China prepared on 1 July 1937, waiting on fronts not built (`foreignminister.md`, section 6).
+The first run found `CEU3Date:GetDayOfMonth` missing, which every country with its own decision script reads, and the
+second the ceiling for war, which the politics script asks once a war is prepared; both are built. The draws having
+moved again, the Spanish Civil War fired on 20 June 1936, and still ended on its first day.
+
+**With the whole foreign minister**, the same day: the same seven decisions, no Lua error, and the ministers' pacts -
+67 influences begun and ended, five alignments - with 1936 and 1937 in 254 seconds each. The Spanish Civil War fired on
+14 March 1936. What each minister offers is told by `OpenHOI3.SaveCheck foreignai` (`foreignminister.md`, section 9).
+
 ## 5. Not established
 
 - ~~What keeps the original's Spanish Civil War going past its first day~~ - the AI, by the maintainer's account: it

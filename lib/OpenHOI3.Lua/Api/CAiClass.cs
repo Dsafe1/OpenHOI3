@@ -15,7 +15,7 @@ public static class CAiClass
 	private const string StrategyName = "CAIStrategy";
 
 	/// <summary>What a strategy's figures would come from, which no file of the base game declares.</summary>
-	private const string StrategyUnbuilt = "the AI's strategy (add_ai_strategy): friendliness, antagonism and threat are 0";
+	private const string StrategyUnbuilt = "the AI's strategy (add_ai_strategy): friendliness, antagonism, threat and protectionism are 0";
 
 	public static CLuaClass DefineAi(CGameApi api)
 	{
@@ -79,13 +79,7 @@ public static class CAiClass
 			.Method("PostAction", call =>
 			{
 				call.Object<CLuaAi>(1, AiName);
-				Sim.Agreements.COffer offer = call.ObjectAt(2, out _) switch
-				{
-					CLuaTradeAction trade => trade.Offer,
-					CLuaLicenceAction licence => licence.Offer,
-					_ => throw new CLuaError("bad argument #2 (CDiplomaticAction expected)"),
-				};
-				api.Post(new Sim.Commands.COfferCommand(offer));
+				api.Post(new Sim.Commands.COfferCommand(OfferOf(call, 2)));
 				return 0;
 			})
 			// A command posted from the AI's country (docs/mechanics/politics.md, section 12).
@@ -115,11 +109,20 @@ public static class CAiClass
 			.Constant("_INTELLIGENCE_", 4);
 	}
 
+	/// <summary>The offer a diplomatic action handed to a method stands for - any kind a script makes.</summary>
+	public static Sim.Agreements.COffer OfferOf(CLuaCall call, int argument)
+	{
+		return call.ObjectAt(argument, out _) switch
+		{
+			CLuaTradeAction trade => trade.Offer,
+			CLuaLicenceAction licence => licence.Offer,
+			CLuaDiplomaticAction action => action.Offer,
+			_ => throw new CLuaError($"bad argument #{argument} (CDiplomaticAction expected)"),
+		};
+	}
+
 	/// <summary>Whether the AI may declare a war, which was not read.</summary>
 	private const string DeclareUnbuilt = "the AI's own war declarations (CAI:CanDeclareWar): false";
-
-	/// <summary>The AI's war plans, which are not built.</summary>
-	private const string WarPlansUnbuilt = "the AI's war plans (IsPreparingWar, IsPreparingWarWith): false";
 
 	/// <summary>How long a route may stay failing before an AI calls it stale: a fortnight.</summary>
 	private const long StaleHours = 336;
@@ -151,19 +154,26 @@ public static class CAiClass
 			.Method("GetFriendliness", call => Unbuilt(api, call))
 			.Method("GetAntagonism", call => Unbuilt(api, call))
 			.Method("GetThreat", call => Unbuilt(api, call))
-			.Method("IsPreparingWar", call =>
+			.Method("GetProtectionism", call => Unbuilt(api, call))
+			// The prepared wars (docs/mechanics/foreignminister.md, section 4).
+			.Method("PrepareWarDecision", call =>
 			{
-				call.Object<CCountry>(1, StrategyName);
-				api.ReportUnbuilt(WarPlansUnbuilt);
-				return call.Return(false);
+				Sim.Script.CDecision? decision = call.TypeOf(4) == ELuaType.Nil
+					? null
+					: call.Object<Sim.Script.CDecision>(4, CDecisionClass.DecisionName);
+				return PrepareWar(api, call, decision, call.Boolean(5));
 			})
-			.Method("IsPreparingWarWith", call =>
+			.Method("PrepareWar", call => PrepareWar(api, call, null, false))
+			.Method("PrepareLimitedWar", call => PrepareWar(api, call, null, true))
+			.Method("CancelPrepareWar", call =>
 			{
-				call.Object<CCountry>(1, StrategyName);
-				call.Object<CCountryTag>(2, "CCountryTag");
-				api.ReportUnbuilt(WarPlansUnbuilt);
-				return call.Return(false);
+				Sim.Ai.CWarTargets.Cancel(call.Object<CCountry>(1, StrategyName), call.Object<CCountryTag>(2, "CCountryTag"));
+				return 0;
 			})
+			.Method("IsPreparingWar", call => call.Return(
+				Sim.Ai.CWarTargets.IsPreparingWar(api.State, call.Object<CCountry>(1, StrategyName))))
+			.Method("IsPreparingWarWith", call => call.Return(Sim.Ai.CWarTargets.IsPreparingWarWith(api.State,
+				call.Object<CCountry>(1, StrategyName), call.Object<CCountryTag>(2, "CCountryTag"))))
 			// The personality of add_ai_strategy, which nothing reads: never a militarist.
 			.Method("IsMilitarist", call =>
 			{
@@ -176,6 +186,19 @@ public static class CAiClass
 			.Constant("_AI_INDUSTRIALIST_", 2)
 			.Constant("_AI_DIPLOMAT_", 3)
 			.Constant("_AI_BALANCED_", 4);
+	}
+
+	/// <summary>
+	/// A war prepared on the tag given second, the value third - a single-precision number, as the original takes it - with
+	/// a decision and a limit or none.
+	/// </summary>
+	private static int PrepareWar(CGameApi api, CLuaCall call, Sim.Script.CDecision? decision, bool limited)
+	{
+		CCountry country = call.Object<CCountry>(1, StrategyName);
+		CCountryTag target = call.Object<CCountryTag>(2, "CCountryTag");
+		int valueBits = System.BitConverter.SingleToInt32Bits((float)call.Number(3));
+		Sim.Ai.CWarTargets.Prepare(api.State, country, target, valueBits, decision, limited);
+		return 0;
 	}
 
 	private static int Unbuilt(CGameApi api, CLuaCall call)

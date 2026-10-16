@@ -53,6 +53,17 @@ public static class CDiplomacyStatusClass
 			})
 			.Method("HasFriendlyAgreement", call => call.Return(HasFriendlyAgreement(api, Of(call))))
 			.Method("HasMilitaryAccess", call => call.Return(Of(call).HasMilitaryAccess))
+			// An embargo between the two, either way; and whether the other influences the holder (foreignminister.md, I).
+			.Method("HasEmbargo", call =>
+			{
+				CDiplomacyStatus status = Of(call);
+				return call.Return(Sim.Agreements.COfferRules.Embargo(api.State, status.Holder, status.Other) is not null);
+			})
+			.Method("IsBeingInfluenced", call =>
+			{
+				CDiplomacyStatus status = Of(call);
+				return call.Return(api.State.Influences.Exists(i => i.Influencer == status.Other && i.Influenced == status.Holder));
+			})
 			.Method("HasTruce", call =>
 			{
 				CDiplomacyStatus status = Of(call);

@@ -189,8 +189,9 @@ hold - taking one once is the script's affair, a flag set in its effects and ask
 applies; there is no history here to file it in. Its message (`messages.md`, section 2) goes out before its effects run.
 
 **The AI takes decisions in its Lua scripts** - the original's own C++ reads `ai_will_do` nowhere -
-and **there is no AI**, so no AI country takes one. That a country nobody plays takes no decision is
-the one thing here that waits for the AI.
+through its foreign minister, once a day: `ForeignMinister_EvaluateDecision` for each diplomatic decision
+that may be taken, an answer above nought posting it, and a decision a script ties to a prepared war
+posted when the war is ready. Built since 2026-10-16: `foreignminister.md`.
 
 **A decision in a country's history** (`decision = X`) is run when a new game is made - **if** its date
 is by the start; every one in the base game's and Their Finest Hour's history is dated after

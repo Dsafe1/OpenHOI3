@@ -249,6 +249,71 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		}
 	}
 
+	/// <summary><c>ForeignMinister_Tick(minister)</c>, the country's foreign minister handed over. A failure is reported.</summary>
+	public void RunForeign(CGameState state, CCountry country)
+	{
+		_state = state;
+		try
+		{
+			_lua.Call("ForeignMinister_Tick", 0, new CLuaObject(_api.ForeignMinister, new CLuaAi(country)));
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+	}
+
+	/// <summary>
+	/// <c>ForeignMinister_EvaluateDecision(minister, decision, scope)</c>, the country's foreign minister, the decision and
+	/// the pass's scope handed over; the answer to the nearest. A failure, or an answer that is not a number, answers null
+	/// with why, for the tick that asked to fail with - it is reported there, once.
+	/// </summary>
+	public int? EvaluateDecision(CGameState state, CCountry country, Sim.Script.CDecision decision,
+		Sim.Script.CEventScope scope, out string? error)
+	{
+		_state = state;
+		error = null;
+		try
+		{
+			object? value = _lua.Call("ForeignMinister_EvaluateDecision", 1,
+				new CLuaObject(_api.ForeignMinister, new CLuaAi(country)), new CLuaObject(_api.Decision, decision),
+				new CLuaObject(_api.EventScope, scope))[0];
+			if (value is double number)
+			{
+				return ToInteger(number);
+			}
+			error = $"ForeignMinister_EvaluateDecision({country.Tag}, {decision.Name}) answered {value ?? "nil"}, not a number";
+		}
+		catch (CLuaException e)
+		{
+			error = e.Message;
+		}
+		return null;
+	}
+
+	/// <summary>
+	/// <c>ForeignMinister_OnWar(minister, joiner, enemy, war)</c>, a new pair at war told to the country's foreign
+	/// minister. A failure is reported.
+	/// </summary>
+	public void ForeignOnWar(CGameState state, CCountry country, CCountryTag joiner, CCountryTag enemy, Sim.Wars.CWar war)
+	{
+		CGameState? asked = _state;
+		_state = state;
+		try
+		{
+			_lua.Call("ForeignMinister_OnWar", 0, new CLuaObject(_api.ForeignMinister, new CLuaAi(country)),
+				_api.Tag(joiner), _api.Tag(enemy), new CLuaObject(_api.War, war));
+		}
+		catch (CLuaException e)
+		{
+			Fail(e.Message);
+		}
+		finally
+		{
+			_state = asked ?? state;
+		}
+	}
+
 	/// <summary>
 	/// <c>TechMinister_Tick(minister, true, true)</c>, the country's tech minister handed over with both its arguments
 	/// true, as a country nobody plays has them. A failure is reported.

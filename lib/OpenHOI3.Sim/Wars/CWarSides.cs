@@ -69,6 +69,8 @@ public static class CWarSides
 				BringUpToDate(state, joiner);
 				BringUpToDate(state, enemy);
 			}
+			// And every foreign minister is told of the pair (foreignminister.md, section 8).
+			Ai.CForeignAi.TellWar(state, tag, other, war);
 		}
 	}
 

@@ -17,10 +17,11 @@ Figures are thousandths unless said otherwise. A **share** is the 15-bit kind (`
 
 ## 1. The ministers and their hours
 
-As a new game is made, after the intelligence minister, every country nobody plays is given a **production minister**
-and a **tech minister**, each first working `draw % 3 + 1` hours away, a draw each on the game's generator - in that
-order, the original making its five in the order foreign, production, tech, politics, intelligence
-(`FINDINGS-ministers.md` A.1 and B.1; `FINDINGS-ai.md`; *ours*: after the other two, whose draws were built first). From then on each works every hour, and does anything only in
+As a new game is made, after the intelligence minister and the foreign minister (`foreignminister.md`, section 1),
+every country nobody plays is given a **production minister** and a **tech minister**, each first working `draw % 3 +
+1` hours away, a draw each on the game's generator - in that order, the original making its five in the order foreign,
+production, tech, politics, intelligence (`FINDINGS-ministers.md` A.1 and B.1; `FINDINGS-ai.md`; *ours*: after the
+politics and intelligence ministers', whose draws were built first). From then on each works every hour, and does anything only in
 **its hour of the day**: the tech minister at `(number + 3) mod 24`, the production minister at `(number + 5) mod 24`,
 where the number is the country's place among the countries plus one (*ours*, as the politics minister's:
 `politics.md`, section 12). A country that owns no land and is not in exile is passed over; nothing works while a game is

@@ -74,6 +74,36 @@ public interface IAiScripts
 	}
 
 	/// <summary>
+	/// <c>ForeignMinister_Tick(minister)</c>: a country's foreign minister's day - its decisions, calls to arms, transit
+	/// rights, wars, peace, influence and alignment - whose offers go to the state's outbox or its proposal. A failure is
+	/// reported. See <c>docs/mechanics/foreignminister.md</c>, section 1.
+	/// </summary>
+	void RunForeign(CGameState state, CCountry country)
+	{
+	}
+
+	/// <summary>
+	/// <c>ForeignMinister_EvaluateDecision(minister, decision, scope)</c>: what a country's foreign minister makes of a
+	/// decision open to it, a whole number to the nearest - above nought takes it - or null where the call failed or did
+	/// not answer a number, with why in <paramref name="error"/>: reported by the tick it ends, not here. See
+	/// <c>docs/mechanics/foreignminister.md</c>, section 2.
+	/// </summary>
+	int? EvaluateDecision(CGameState state, CCountry country, Script.CDecision decision, Script.CEventScope scope,
+		out string? error)
+	{
+		error = null;
+		return null;
+	}
+
+	/// <summary>
+	/// <c>ForeignMinister_OnWar(minister, joiner, enemy, war)</c>, told to a country's foreign minister of a new pair at
+	/// war. A failure is reported. See <c>docs/mechanics/foreignminister.md</c>, section 8.
+	/// </summary>
+	void ForeignOnWar(CGameState state, CCountry country, CCountryTag joiner, CCountryTag enemy, Wars.CWar war)
+	{
+	}
+
+	/// <summary>
 	/// <c>TechMinister_Tick(minister, true, true)</c>: a country's tech minister's day - its leadership shares set and its
 	/// free research slots filled - whose commands go to the state's outbox. See <c>docs/mechanics/ministers.md</c>,
 	/// section 2.

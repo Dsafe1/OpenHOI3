@@ -232,6 +232,12 @@ section 12, with what of them is not built.
 minister's day, in its own hour (since 2026-10-14). The classes it reaches - `CSpyPresence`, `CIdeologyData`, the two
 spy commands and six methods of `CCountry` - are in `espionage.md`, section 15.
 
+**`ForeignMinister_EvaluateDecision(minister, decision, scope)`**, handed a `CAIForeignMinister`, a `CDecision` and a
+`CEventScope`, is asked of each diplomatic decision a country nobody plays may take, in its foreign minister's hour
+(since 2026-10-16). **The answer must be a number**, turned into an integer as section 1 says; above nought takes the
+decision. A failure, or an answer that is no number, is reported and ends that day's decisions. The classes it reaches,
+`CFlags` and the prepared wars of `CAIStrategy` are in `foreignminister.md`, sections 3 and 4.
+
 **The AI's answer to an offer** (`IAiScripts.DiploScore`) is `DiploScore_<kind>(ai, actor,
 recipient, observer)`: `ai` a `CAI`, the AI of the **recipient**; the three tags fresh copies. Which
 offer asks which function, and which tag is the observer, is each offer's own and comes with the

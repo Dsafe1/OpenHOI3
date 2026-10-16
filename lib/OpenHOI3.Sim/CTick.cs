@@ -101,6 +101,9 @@ public static class CTick
 		Step(state, Politics.CPoliticsAi.RunHourly);
 		// And its intelligence minister, in its own hour (espionage.md, section 15; ours: where beside the politics).
 		Step(state, Espionage.CEspionageAi.RunHourly);
+		// And its foreign minister's decisions and prepared wars (foreignminister.md, section 1; ours: where beside the
+		// others in the hour).
+		Step(state, Ai.CForeignAi.RunHourly);
 		// And its production and tech ministers, each in an hour of its own, and the placing of its finished units
 		// (ministers.md, sections 1 to 6; ours: where beside the others in the hour).
 		Step(state, Economy.CProductionAi.RunHourly);

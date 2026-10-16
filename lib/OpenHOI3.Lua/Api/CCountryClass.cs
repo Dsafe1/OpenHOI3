@@ -67,6 +67,35 @@ public static class CCountryClass
 			.Method("GetOverlord", call => call.Return(api.Tag(Of(call).Overlord)))
 			.Method("IsPuppet", call => call.Return(Of(call).Overlord is not null))
 			.Method("GetStrategy", call => call.Return(new CLuaObject(api.Strategy, Of(call))))
+			.Method("GetFlags", call => call.Return(new CLuaObject(api.Flags, Of(call).Flags)))
+			// What the foreign minister's script asks (foreignminister.md, section 3).
+			.Method("GetAllies", call => call.ReturnIterator(Tags(api, CCountryLists.Allies(api.State, Of(call)))))
+			.Method("GetVassals", call => call.ReturnIterator(Tags(api, Vassals(api, Of(call)))))
+			.Method("GetControllerNeighbours", call => call.ReturnIterator(Tags(api, CCountryLists.ControllerNeighbours(api.State, Of(call)))))
+			.Method("IsNeighbour", call => call.Return(CCountryFacts.Of(api.State).AreNeighbours(Of(call).Tag,
+				call.Object<CCountryTag>(2, "CCountryTag"))))
+			.Method("HasNeighborInFaction", call =>
+			{
+				CCountry country = Of(call);
+				string faction = call.Object<CLuaNamed>(2, "CFaction").Name;
+				if (faction.Length == 0 || CCountryLists.FactionMembers(api.State, faction).Count == 0)
+				{
+					return call.Return(false);
+				}
+				return call.Return(CCountryLists.Neighbours(api.State, country).Exists(other => other.Faction == faction));
+			})
+			.Method("HasActiveLendLeaseFrom", call => call.Return(api.CountryOf(call, 2) is { } giver
+				&& Sim.Aid.CLendLease.Gives(giver, Of(call))))
+			.Method("IsGivingLendLeaseToTarget", call => call.Return(api.CountryOf(call, 2) is { } receiver
+				&& Sim.Aid.CLendLease.Gives(Of(call), receiver)))
+			// The ceiling for war (diplomacy.md), which the politics script asks of a war prepared (foreignminister.md, section 4).
+			.Method("GetMaxNeutralityForWarWith", call =>
+			{
+				CCountry country = Of(call);
+				return call.Return(api.Fixed(api.CountryOf(call, 2) is { } other
+					? Sim.Diplomacy.CNeutrality.WarCeiling(api.State, country, other)
+					: CFixedPoint.Zero));
+			})
 			// Trade (docs/mechanics/trade.md, section 9).
 			.Method("AIGetTradeRoutes", call => call.ReturnIterator(TradeRoutes(api, Of(call))))
 			.Method("GetTradedAwaySansAlliedSupply", call => call.Return(new CLuaObject(api.GoodsPool, Of(call).TradedAwaySansAlliedSupply)))
@@ -219,6 +248,20 @@ public static class CCountryClass
 			}
 		}
 		return count;
+	}
+
+	/// <summary>The countries this one is overlord of, in the countries' order.</summary>
+	private static List<CCountry> Vassals(CGameApi api, CCountry country)
+	{
+		var vassals = new List<CCountry>();
+		foreach (CCountry other in api.State.Countries)
+		{
+			if (other.Overlord == country.Tag)
+			{
+				vassals.Add(other);
+			}
+		}
+		return vassals;
 	}
 
 	private static List<object?> Tags(CGameApi api, List<CCountry> countries)

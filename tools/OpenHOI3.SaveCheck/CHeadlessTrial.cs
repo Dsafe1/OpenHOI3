@@ -89,6 +89,8 @@ internal static class CHeadlessTrial
 				happenings.Add($"{state.Date} {state.Hour}h: {pact.We} {pact.Actor} -> {pact.Recipient}");
 			}
 		};
+		// Who took which decision, and when - the AI's foreign minister takes them all, nobody playing.
+		state.DecisionTaken += (decision, scope) => happenings.Add($"{state.Date} {state.Hour}h: {scope.Country} takes {decision.Name}");
 		int luaFailuresBefore = scripts.Failures;
 
 		Snapshot(state);
@@ -286,6 +288,13 @@ internal static class CHeadlessTrial
 				$"IC {Shares(country.ProductionShares)}; waiting to be placed {country.Deployments.Count}");
 			long progress = country.ResearchProgress.Values.Sum(value => value.ToThousandths().Raw);
 			Console.WriteLine($"    research progress summed {progress / 1000.0:0.00}, levels summed {country.TechnologyLevels.Values.Sum()}");
+			// The wars its foreign minister has prepared, and whether each is ready as far as that is built (foreignminister.md).
+			if (country.WarTargets.Count > 0)
+			{
+				Console.WriteLine("    wars prepared: " + string.Join(", ", country.WarTargets.Select(t =>
+					$"{t.Target}{(t.Decision is { } d ? " for " + d.Name : "")} since {CDate.FromDayNumber((int)(t.Hour / CGameState.HoursPerDay))}" +
+					(OpenHOI3.Sim.Ai.CForeignAi.IsReady(state, country, t.Target) ? " ready" : " not ready"))));
+			}
 		}
 		var living = state.Countries.Where(country => CResources.HoldsCapital(state, country)).ToList();
 		Console.WriteLine($"  the world: {living.Count} countries holding their capital, IC {living.Sum(c => c.TotalIc)}, " +

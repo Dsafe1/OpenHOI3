@@ -16,6 +16,7 @@ public static class CWarClass
 	public static CLuaClass Define(CGameApi api)
 	{
 		return new CLuaClass(Name)
+			.Method("IsLimited", call => call.Return(call.Object<CWar>(1, Name).IsLimited))
 			.Method("GetCurrentRunningTimeInMonths", call =>
 			{
 				CWar war = call.Object<CWar>(1, Name);

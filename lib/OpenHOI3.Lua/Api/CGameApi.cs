@@ -91,6 +91,11 @@ public sealed class CGameApi
 		ArrayFix = CArrayClass.Define("CArrayFix");
 		ArrayCountryTag = CArrayClass.Define("CArrayCountryTag");
 		War = CWarClass.Define(this);
+		ForeignMinister = CForeignMinisterClass.Define(this);
+		Decision = CDecisionClass.DefineDecision(this);
+		EventScope = CDecisionClass.DefineScope();
+		Flags = CFlagsClass.Define();
+		DiplomaticActions = CDiplomaticActionClass.Kinds.Select(kind => CDiplomaticActionClass.Define(this, kind.Name, kind.Kind)).ToArray();
 		TechMinister = CTechMinisterClass.Define(this);
 		ProductionMinister = CProductionMinisterClass.Define(this);
 		ProductionCommands = new[]
@@ -138,6 +143,18 @@ public sealed class CGameApi
 	public CLuaClass ArrayCountryTag { get; }
 
 	public CLuaClass War { get; }
+
+	/// <summary>The foreign minister and what its decisions are asked with (docs/mechanics/foreignminister.md).</summary>
+	public CLuaClass ForeignMinister { get; }
+
+	public CLuaClass Decision { get; }
+
+	public CLuaClass EventScope { get; }
+
+	public CLuaClass Flags { get; }
+
+	/// <summary>The diplomatic actions the foreign minister's scripts make, one class a kind.</summary>
+	public CLuaClass[] DiplomaticActions { get; }
 
 	/// <summary>The commands the two scripts make, and what they are made of.</summary>
 	public IReadOnlyList<CLuaClass> ProductionCommands { get; }
@@ -241,8 +258,8 @@ public sealed class CGameApi
 		ChangeLaw, ChangeMinister, ToggleMobilization, Liberate, SpyPresence, IdeologyData, IntelligenceMinister,
 		ChangeSpyPriority, ChangeSpyMission, TechMinister, ProductionMinister, Technology, TechnologyFolder,
 		TechnologyDataBase, Building, BuildingDataBase, ProvinceBuilding, Construction, MilitaryConstruction,
-		BrigadeConstruction, ArrayInt, ArrayFix, ArrayCountryTag, War,
-	}.Concat(ProductionCommands).Concat(CEnumClasses.Define());
+		BrigadeConstruction, ArrayInt, ArrayFix, ArrayCountryTag, War, ForeignMinister, Decision, EventScope, Flags,
+	}.Concat(ProductionCommands).Concat(DiplomaticActions).Concat(CEnumClasses.Define());
 
 	/// <summary>What has been reported as not built, in the order it was first met.</summary>
 	public IReadOnlyCollection<string> Unbuilt => _unbuilt;

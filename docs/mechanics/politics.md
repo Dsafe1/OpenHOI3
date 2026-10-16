@@ -411,8 +411,9 @@ What the script is handed is the original's: a law database numbered from the nu
 never nil** - its pool, its ruling party - **the null ideology `noIdeology`, in a group of no name, for a country with
 none**, which is how the rebels are given their laws - whether it is mobilised and its manpower; a minister equal to
 another by his number, his ideology, his posts and his personality in each; the posts by number; a law's `ValidFor`,
-its `allow`; `CAI:Post` and `CCurrentGameState.Post`; the three commands. **Not built, and answering false, each
-reported once**: the AI's war plans (`IsPreparingWar`, `IsPreparingWarWith`), its own declarations of war
+its `allow`; `CAI:Post` and `CCurrentGameState.Post`; the three commands; and the AI's war plans (`IsPreparingWar`,
+`IsPreparingWarWith`), the wars its foreign minister has prepared since 2026-10-16 (`foreignminister.md`, section 4).
+**Not built, and answering false, each reported once**: its own declarations of war
 (`CanDeclareWar`), its personality (`IsMilitarist`), liberating a country (`MayLiberateCountries`,
 `IsCapitalSafeToLiberate`, and `CLiberateCountryCommand` posts nothing) and releasing a puppet (`CanCreatePuppet`).
 

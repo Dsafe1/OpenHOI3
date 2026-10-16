@@ -216,8 +216,9 @@ public static class CGameStateLoader
 		}
 		// And an intelligence minister (espionage.md, section 15; ours: its draw after the politics minister's).
 		Sim.Espionage.CEspionageAi.SetUpAtStart(state);
-		// And a production and a tech minister (ministers.md, section 1; ours: their draws after the intelligence
-		// minister's, where the original makes them before the politics minister).
+		// And a foreign, a production and a tech minister, in that order (foreignminister.md and ministers.md, section 1;
+		// ours: their draws after the intelligence minister's, where the original makes them before the politics minister).
+		Sim.Ai.CForeignAi.SetUpAtStart(state);
 		Sim.Research.CResearchAi.SetUpAtStart(state);
 		// And the two days the original has behind it on the first screen are run, with
 		// the provinces filled along the supply network between them, so that no army
