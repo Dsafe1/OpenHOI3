@@ -33,6 +33,8 @@ public static class CAiStrategies
 			if (state.IsRunning && today - country.Strategy.MadeHour / CGameState.HoursPerDay >= Days)
 			{
 				Make(state, country);
+				// and its theatres are made again in its next hour (theatres.md, section 1)
+				country.Strategy.TheatresDirty = true;
 			}
 			if (!country.Strategy.IsMade)
 			{
@@ -47,6 +49,7 @@ public static class CAiStrategies
 		if (state.IsRunning && !state.IsBeingMade)
 		{
 			Make(state, country);
+			Theatres.CTheatres.RebuildAtOnce(state, country);
 		}
 	}
 
@@ -58,9 +61,11 @@ public static class CAiStrategies
 			return;
 		}
 		Make(state, country);
+		Theatres.CTheatres.RebuildAtOnce(state, country);
 		foreach (CCountry neighbour in CCountryLists.Neighbours(state, country))
 		{
 			Make(state, neighbour);
+			Theatres.CTheatres.RebuildAtOnce(state, neighbour);
 		}
 	}
 

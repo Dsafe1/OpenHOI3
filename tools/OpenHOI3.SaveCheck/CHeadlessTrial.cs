@@ -293,7 +293,7 @@ internal static class CHeadlessTrial
 			{
 				Console.WriteLine("    wars prepared: " + string.Join(", ", country.WarTargets.Select(t =>
 					$"{t.Target}{(t.Decision is { } d ? " for " + d.Name : "")} since {CDate.FromDayNumber((int)(t.Hour / CGameState.HoursPerDay))}" +
-					(OpenHOI3.Sim.Ai.CForeignAi.IsReady(state, country, t.Target) ? " ready" : " not ready"))));
+					(OpenHOI3.Sim.Ai.CWarReadiness.IsReady(state, country, t) ? " ready" : " not ready"))));
 			}
 		}
 		var living = state.Countries.Where(country => CResources.HoldsCapital(state, country)).ToList();

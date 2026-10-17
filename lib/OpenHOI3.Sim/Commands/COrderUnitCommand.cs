@@ -114,7 +114,7 @@ public sealed class COrderUnitCommand : CCommand
 			{
 				construction.Name = CUnitNames.ForDivision(state, country, construction.Brigades[0].Type);
 			}
-			CUnitNames.Register(state, construction.Name);
+			CUnitNames.Register(country, construction.Name);
 		}
 		foreach (CBrigadeOrder order in construction.Brigades)
 		{
@@ -122,7 +122,7 @@ public sealed class COrderUnitCommand : CCommand
 			{
 				order.Name = CUnitNames.ForSubUnit(state, country, order.Type);
 			}
-			CUnitNames.Register(state, order.Name);
+			CUnitNames.Register(country, order.Name);
 		}
 
 		construction.Manpower = CBuildQueue.ManpowerFor(country, construction);

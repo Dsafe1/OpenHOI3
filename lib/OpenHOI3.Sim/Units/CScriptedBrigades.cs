@@ -87,7 +87,7 @@ public static class CScriptedBrigades
 
 		var brigade = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = into };
 		brigade.Name = CUnitNames.ForSubUnit(state, owner, type);
-		CUnitNames.Register(state, brigade.Name);
+		CUnitNames.Register(owner, brigade.Name);
 		// Every technology at nought - the maintainer's word on the original, 2026-10-16.
 		CUnits.RebuildStats(brigade);
 		brigade.Strength = CFixedPoint.Max(CFixedPoint.Zero, CUnits.MaxStrength(state, owner, brigade) / 2);
@@ -100,7 +100,7 @@ public static class CScriptedBrigades
 			into.Name = into.Kind == EUnitKind.Division ? CUnitNames.ForDivision(state, owner, type) : brigade.Name;
 			if (into.Kind == EUnitKind.Division)
 			{
-				CUnitNames.Register(state, into.Name);
+				CUnitNames.Register(owner, into.Name);
 			}
 			owner.Units.Add(into);
 		}

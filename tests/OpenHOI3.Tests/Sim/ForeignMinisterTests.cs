@@ -361,8 +361,8 @@ public class ForeignMinisterTests
 		CDecision refused = Decision("refused", allow: "tag = POL");
 		state.Decisions = new[] { albania, refused };
 
-		Assert.True(CForeignAi.IsReady(state, germany, Alb));
-		Assert.False(CForeignAi.IsReady(state, germany, Pol));
+		Assert.True(CWarReadiness.IsReady(state, germany, new CWarTarget(Alb, null, false, state.TotalHours)));
+		Assert.False(CWarReadiness.IsReady(state, germany, new CWarTarget(Pol, null, false, state.TotalHours)));
 
 		CWarTargets.Prepare(state, germany, Alb, 0, albania, false);
 		CWarTargets.Prepare(state, germany, Ita, 0, refused, false);

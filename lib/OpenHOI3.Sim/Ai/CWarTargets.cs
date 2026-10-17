@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Sim.Ai;
@@ -132,7 +133,21 @@ public static class CWarTargets
 	/// </summary>
 	public static void Recheck(CGameState state, CCountry country)
 	{
-		country.WarTargets.RemoveAll(entry => !Stands(state, country, entry));
+		List<CCountry>? neighbours = null;
+		country.WarTargets.RemoveAll(entry =>
+		{
+			if (Stands(state, country, entry))
+			{
+				return false;
+			}
+			// A target dropped beside the country has its theatres made again (theatres.md, section 1).
+			neighbours ??= CCountryLists.Neighbours(state, country);
+			if (neighbours.Exists(other => other.Tag == entry.Target))
+			{
+				country.Strategy.TheatresDirty = true;
+			}
+			return true;
+		});
 	}
 
 	private static bool Stands(CGameState state, CCountry country, CWarTarget entry)

@@ -58,9 +58,13 @@ public static class CGameStateLoader
 	/// The countries people play, known before the game is made: the AI's first look at the laws leaves them alone
 	/// (<c>docs/compatibility.md</c>, entry 6). They are put in <see cref="CGameState.Played"/>.
 	/// </param>
+	/// <param name="beforeFirstDays">
+	/// Told the game just before its two days are run, for a tool that wants to follow them - a trace set. Changes nothing.
+	/// </param>
 	public static CGameState LoadStart(CDirectorySettings directories, CMap map,
 		CLocalisation localisation, CCountries countries, Action<string>? warn = null, bool fill = true,
-		bool firstDays = true, IAiScripts? aiScripts = null, IEnumerable<CCountryTag>? played = null)
+		bool firstDays = true, IAiScripts? aiScripts = null, IEnumerable<CCountryTag>? played = null,
+		Action<CGameState>? beforeFirstDays = null)
 	{
 		warn ??= CDiagnostics.Warn;
 
@@ -227,6 +231,7 @@ public static class CGameStateLoader
 		// starts hungry.
 		if (fill && firstDays)
 		{
+			beforeFirstDays?.Invoke(state);
 			CTick.RunFirstDays(state);
 			// Then the game is entered, and every country is brought up to date with its wars: Italy and
 			// Ethiopia are mobilised for thirty days, as the start save has them (war.md, section 4).
@@ -288,23 +293,23 @@ public static class CGameStateLoader
 	/// </summary>
 	private static void RegisterUnitNames(CGameState state)
 	{
-		state.UnitNamesInUse.Clear();
 		foreach (CCountry country in state.Countries)
 		{
+			country.UnitNamesInUse.Clear();
 			foreach (CUnit unit in country.AllUnits())
 			{
-				CUnitNames.Register(state, unit.Name);
+				CUnitNames.Register(country, unit.Name);
 				foreach (CSubUnit subUnit in unit.SubUnits)
 				{
-					CUnitNames.Register(state, subUnit.Name);
+					CUnitNames.Register(country, subUnit.Name);
 				}
 			}
 			foreach (CConstruction construction in country.Constructions)
 			{
-				CUnitNames.Register(state, construction.Name);
+				CUnitNames.Register(country, construction.Name);
 				foreach (CBrigadeOrder order in construction.Brigades)
 				{
-					CUnitNames.Register(state, order.Name);
+					CUnitNames.Register(country, order.Name);
 				}
 			}
 		}
@@ -327,6 +332,13 @@ public static class CGameStateLoader
 			Division = localisation.Localise(CUnitNameTexts.DivisionKey),
 			Brigade = localisation.Localise(CUnitNameTexts.BrigadeKey),
 			SubUnit = localisation.Localise(CUnitNameTexts.SubUnitKey),
+			Theatre = localisation.Localise(CUnitNameTexts.TheatreKey),
+			NamedTheatre = localisation.Localise(CUnitNameTexts.NamedTheatreKey),
+			ArmyGroup = localisation.Localise(CUnitNameTexts.ArmyGroupKey),
+			Army = localisation.Localise(CUnitNameTexts.ArmyKey),
+			Corps = localisation.Localise(CUnitNameTexts.CorpsKey),
+			Navy = localisation.Localise(CUnitNameTexts.NavyKey),
+			Air = localisation.Localise(CUnitNameTexts.AirKey),
 			Ordinals = ordinals,
 		};
 		foreach (CSubUnitType type in types)

@@ -300,6 +300,14 @@ public static class CUnitOrders
 			Transport.CCarriers.GiveDuty(unit);
 			return;
 		}
+		if (Agents.CJoinOrders.IsJoin(unit.Order))
+		{
+			if (!Agents.CJoinOrders.RunHour(state, country, unit))
+			{
+				Clear(unit);
+			}
+			return;
+		}
 		if (unit.Order is EUnitOrder.RebaseCarrier or EUnitOrder.CarrierProtection or EUnitOrder.Paradrop
 			or EUnitOrder.AirSupply)
 		{

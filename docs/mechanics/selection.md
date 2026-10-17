@@ -211,7 +211,8 @@ same on every machine. `confirmed`
 ## 10. Not built
 
 - Upgrade-all, detach, higher command, reorganise, merge and disband: shown, never enabled - none of their systems is
-  built for one unit either.
+  built for one unit either. A disband command exists since 2026-10-17 (`CDisbandCommand`, `theatres.md`, section 9),
+  posted only by the AI for a theatre-level unit no theatre owns; the buttons are not wired to it.
 - Over a counter the original's map tooltip is the unit's own; here it is the province's.
 - **Ctrl and a click on the single panel's battle row**: the original selects the battle - which opens its window -
   and with it the panel unit's land units, but not the unit (`FINDINGS-selection.md` A.12). Here a selection holds no

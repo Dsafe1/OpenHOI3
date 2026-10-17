@@ -237,12 +237,6 @@ public sealed class CGameState
 	public CDate EndDate { get; init; }
 
 	/// <summary>
-	/// Every name a unit, a brigade, a ship or a wing has been given, in any country:
-	/// a new one is never called what something already is.
-	/// </summary>
-	public HashSet<string> UnitNamesInUse { get; } = new(StringComparer.Ordinal);
-
-	/// <summary>
 	/// The last number given to a unit or a sub unit. The next one made takes the one
 	/// after it.
 	/// </summary>
@@ -250,6 +244,18 @@ public sealed class CGameState
 
 	/// <summary>The last number given to a convoy.</summary>
 	public int LastConvoyId { get; set; }
+
+	/// <summary>The number the next theatre made takes: the original's <c>theatre</c>, from 1 in a new game.</summary>
+	public int NextTheatreId { get; set; } = 1;
+
+	/// <summary>Every country's theatres by their numbers (<c>docs/mechanics/theatres.md</c>).</summary>
+	public Dictionary<int, Theatres.CTheatre> Theatres { get; } = new();
+
+	/// <summary>
+	/// Where the theatre layer tells each step of one country's making - which country, and the line - for a tool that wants
+	/// to follow it. Null in a game. Changes nothing.
+	/// </summary>
+	public (CCountryTag Country, Action<string> Tell)? TheatreTrace { get; set; }
 
 	/// <summary>
 	/// A new game is being made and its first hour has not come. A convoy made now is

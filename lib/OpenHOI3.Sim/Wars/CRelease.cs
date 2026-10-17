@@ -110,12 +110,12 @@ public static class CRelease
 			{
 				var brigade = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = army };
 				brigade.Name = CUnitNames.ForSubUnit(state, country, type);
-				CUnitNames.Register(state, brigade.Name);
+				CUnitNames.Register(country, brigade.Name);
 				Revolts.CRebelArmies.SetFull(state, country, brigade);
 				army.SubUnits.Add(brigade);
 			}
 			army.Name = CUnitNames.ForDivision(state, country, type);
-			CUnitNames.Register(state, army.Name);
+			CUnitNames.Register(country, army.Name);
 			country.Units.Add(army);
 			state.ForgetPositions();
 			CCombats.CheckForCombat(state, army, province.Id);

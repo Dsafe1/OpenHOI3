@@ -405,6 +405,12 @@ public sealed class CCountry
 	public Dictionary<string, int> UnitNameCursors { get; } = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
+	/// Every name its units, brigades, ships and wings have been given: a new one of its own is never called what one of
+	/// them already is. Another country's may be (the original's <c>CCountry +0x84</c>; theatres.md, section 10).
+	/// </summary>
+	public HashSet<string> UnitNamesInUse { get; } = new(StringComparer.Ordinal);
+
+	/// <summary>
 	/// Its leaders, in service or not, in the order they were read. See
 	/// <c>docs/mechanics/leaders.md</c>, section 1.
 	/// </summary>
@@ -686,6 +692,9 @@ public sealed class CCountry
 	/// and at a change of war (<c>aistrategy.md</c>; the original's merged strategy).
 	/// </summary>
 	public Ai.CAiStrategy Strategy { get; } = new();
+
+	/// <summary>Its AI's unit agents and the flags of their pass (<c>docs/mechanics/agents.md</c>).</summary>
+	public Agents.CUnitAi UnitAi { get; } = new();
 
 	/// <summary>
 	/// What its production minister last made of its desperation, 0 to 1100 thousandths, made again on the 1st, the 15th and

@@ -26,6 +26,16 @@ public sealed class CSimulation
 	{
 		State = state;
 		CTick.RunEntryPass(state);
+		// What entering posted - the AI's sort of its units into its theatres - runs at once.
+		if (state.Outbox.Count > 0)
+		{
+			foreach (CCommand posted in state.Outbox)
+			{
+				Post(posted);
+			}
+			state.Outbox.Clear();
+			Pump();
+		}
 	}
 
 	public CGameState State { get; }

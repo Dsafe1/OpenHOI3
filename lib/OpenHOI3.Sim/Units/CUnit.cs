@@ -59,6 +59,24 @@ public sealed class CUnit
 	/// <summary>The id of the province it was in before the one it is in, or 0.</summary>
 	public int Previous { get; set; }
 
+	/// <summary>
+	/// Left with no commander by a theatre-level unit's removal: the country's next new theatre headquarters takes it
+	/// (<c>docs/mechanics/theatres.md</c>, section 10).
+	/// </summary>
+	public bool IsOrphaned { get; set; }
+
+	/// <summary>Its battle plan, which the AI keeps on a theatre's headquarters (<c>docs/mechanics/agents.md</c>, section 7).</summary>
+	public CUnitPlan Plan { get; } = new();
+
+	/// <summary>The AI's agent bound to it - a theatre's headquarters only - or null.</summary>
+	public Agents.CAgent? Agent { get; set; }
+
+	/// <summary>
+	/// The subordinates the AI has promised it in this reorganisation, beyond those it has: the original's +0x2C4
+	/// (<c>docs/mechanics/agents.md</c>, section 4.2).
+	/// </summary>
+	public int Promised { get; set; }
+
 	public bool IsMoving => Path.Count > 0;
 
 	/// <summary>

@@ -67,6 +67,8 @@ public static class CLaws
 	/// </summary>
 	public static void OnDiplomacyChanged(CGameState state, CCountry country)
 	{
+		// The original's change of diplomacy also marks the country's theatres (theatres.md, section 1).
+		country.Strategy.TheatresDirty = true;
 		if (state.IsAtWar(country.Tag))
 		{
 			return;

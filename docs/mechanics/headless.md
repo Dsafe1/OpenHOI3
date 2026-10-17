@@ -152,6 +152,21 @@ nought, **no Lua error**; three decisions taken (`new_deal`, `popular_front`, `t
 and 35 ended, three alignments, 21 licences bought. The draws having moved, the Spanish Civil War did not fire in 1936
 this time.
 
+### With fronts and theatres (2026-10-17)
+
+The military AI's first piece (`theatres.md`): every country's theatres made before its two days and looked after each
+hour, each given a headquarters. `headless <install> 1937`: 1936 in 199 seconds, nothing thrown, nothing below nought,
+no Lua error; the game starts with 1665 units, the files' 1579 and 86 new theatre headquarters. Readiness for a prepared
+war is now answered over the fronts (`foreignminister.md`, section 7), and no unit moves to fill one yet.
+
+### With the unit agents (2026-10-17)
+
+The military AI's second piece (`agents.md`): the order of battle sorted into the theatres, the ladder of commands, fleets
+and air groups regrouped, headquarters walked, and every theatre's plan. `headless <install> 1937`: 1936 in 281 seconds,
+nothing thrown, nothing below nought, no Lua error; 2120 units at the year's end against 2004 before, the new corps,
+armies, army groups, fleets and air units. The run is slower by about two fifths - more units for every daily step, and
+the pass itself about 3 ms an hour. A run to April 1936 with the pass entering the game ran clean too.
+
 ## 5. Not established
 
 - ~~What keeps the original's Spanish Civil War going past its first day~~ - the AI, by the maintainer's account: it

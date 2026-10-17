@@ -89,4 +89,11 @@ public enum EUnitOrder
 
 	/// <summary>An air unit: carry supplies and fuel from its base to a friend's province of its area that is short of them.</summary>
 	AirSupply,
+
+	// ---- the AI's regrouping: docs/mechanics/agents.md, section 5.4
+	/// <summary>A fleet: sail to another fleet and be merged into it.</summary>
+	JoinFleet,
+
+	/// <summary>An air unit: fly to another air unit and be merged into it.</summary>
+	JoinAir,
 }

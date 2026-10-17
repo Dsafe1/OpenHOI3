@@ -69,6 +69,9 @@ public static class CTick
 		// after another; only then is every unit's own hour run, which is where its
 		// organisation comes back.
 		Step(state, CMovement.RunHourly);
+		// After its units, each country's theatres: made where marked, looked after where not (theatres.md, section 1;
+		// ours: the original does each country's right after its own units).
+		Step(state, Theatres.CTheatres.RunHourly);
 		// The units go before their countries, so an hour's organisation is worked out
 		// with the officer ratio the hour before left.
 		Step(state, COrganisation.RunHourly);
@@ -109,6 +112,9 @@ public static class CTick
 		Step(state, Economy.CProductionAi.RunHourly);
 		Step(state, Research.CResearchAi.RunHourly);
 		Step(state, Construction.CAiDeployment.RunHourly);
+		// Then its unit agents: the order of battle under each theatre and each theatre's plan (agents.md, section 2; ours:
+		// after the ministers, every country in turn).
+		Step(state, Agents.CUnitAiPass.RunHourly);
 		// Last, what countries know of the provinces units left and entered this hour (intelligence.md, section 5).
 		Step(state, Intelligence.CProvinceIntel.RaiseHourly);
 	}
@@ -242,6 +248,9 @@ public static class CTick
 		Intelligence.CProvinceIntel.Rebuild(state);
 		// Entering a game makes every country's candidate events, as the month does.
 		CEventPass.RebuildCandidates(state);
+		// And the AI's first pass over its units runs on the first frame, before an hour is played: each country reaches its
+		// gate and sorts its units into its theatres (agents.md, section 2.1). What it posts is run before the first frame.
+		Agents.CUnitAiPass.RunHourly(state);
 	}
 
 	/// <summary>

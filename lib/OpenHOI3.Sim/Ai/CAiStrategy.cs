@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Sim.Ai;
@@ -34,6 +35,15 @@ public sealed class CAiStrategy
 	public CStrategyList<CCountryTag> Vassal { get; } = new();
 
 	public bool IsMilitarist => Personality == EAiPersonality.Military;
+
+	/// <summary>
+	/// The country's theatres, which its making leaves alone: they are made by <see cref="Theatres.CTheatres"/>
+	/// (<c>docs/mechanics/theatres.md</c>).
+	/// </summary>
+	public List<Theatres.CTheatre> Theatres { get; } = new();
+
+	/// <summary>Its theatres are to be made again in its next hour - as every country's are as a game is made.</summary>
+	public bool TheatresDirty { get; set; } = true;
 
 	/// <summary>Every list emptied, as each making starts.</summary>
 	public void Clear()

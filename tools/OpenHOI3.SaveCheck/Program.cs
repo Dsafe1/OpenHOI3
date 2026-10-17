@@ -204,6 +204,18 @@ if (args.Length > 0 && args[0] == "aistrategy")
 	return CAiStrategyCheck.Run(args);
 }
 
+// A new game's theatres beside the start-date save's.
+if (args.Length > 0 && args[0] == "theatres")
+{
+	return CTheatreCheck.Run(args);
+}
+
+// The order of battle the AI's agents build and every theatre's plan, run to a later save's hour and set beside it.
+if (args.Length > 0 && args[0] == "agents")
+{
+	return CAgentCheck.Run(args);
+}
+
 // What every foreign minister offers on a new game with nobody playing.
 if (args.Length > 0 && args[0] == "foreignai")
 {

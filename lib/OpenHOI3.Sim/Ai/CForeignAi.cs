@@ -259,7 +259,7 @@ public static class CForeignAi
 			}
 			if (facts.AreNeighbours(country.Tag, entry.Target))
 			{
-				if (IsReady(state, country, entry.Target))
+				if (CWarReadiness.IsReady(state, country, entry))
 				{
 					ready = true;
 					break;
@@ -273,7 +273,7 @@ public static class CForeignAi
 		}
 		foreach (CWarTarget entry in country.WarTargets.ToArray())
 		{
-			if (!IsReady(state, country, entry.Target))
+			if (!CWarReadiness.IsReady(state, country, entry))
 			{
 				continue;
 			}
@@ -328,28 +328,4 @@ public static class CForeignAi
 		("JAP", "USA") => "japan_USA_goal",
 		_ => null,
 	};
-
-	/// <summary>
-	/// Whether a prepared war is ready, as far as is built: where no area the country holds touches an area the target
-	/// holds, every count of the original's test is nought and it answers ready; otherwise it counts the fronts its
-	/// theatre layer draws, which are not built, and here it is not (foreignminister.md, section 6).
-	/// </summary>
-	public static bool IsReady(CGameState state, CCountry country, CCountryTag target)
-	{
-		foreach (CSupplyArea area in CSupplyNetworks.Refresh(state).Areas)
-		{
-			if (area.Controller != country.Tag)
-			{
-				continue;
-			}
-			foreach (CSupplyArea beside in area.Neighbours)
-			{
-				if (beside.Controller == target)
-				{
-					return false;
-				}
-			}
-		}
-		return true;
-	}
 }

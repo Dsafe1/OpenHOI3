@@ -7,7 +7,7 @@ namespace OpenHOI3.Sim.Units;
 
 /// <summary>
 /// What a newly ordered unit is called. A country's file lists names by unit type; one
-/// that is not in use anywhere in the game is taken from where the country last left
+/// that the country does not have in use is taken from where the country last left
 /// off, and when there is none a number is counted up until the name is free. See
 /// <c>docs/mechanics/builders.md</c>, section 8.
 /// </summary>
@@ -16,6 +16,7 @@ public static class CUnitNames
 	private const string Number = "$NUM$";
 	private const string Order = "$ORDER$";
 	private const string Type = "$TYPE$";
+	private const string Province = "$PROV$";
 
 	/// <summary>
 	/// A name for a division, from the list its country keeps for the type of its first
@@ -24,7 +25,7 @@ public static class CUnitNames
 	public static string ForDivision(CGameState state, CCountry country, CSubUnitType first)
 	{
 		return FromList(state, country, first)
-			?? Numbered(state, state.NameTexts.Division, first);
+			?? Numbered(state, country, state.NameTexts.Division, first);
 	}
 
 	/// <summary>
@@ -36,17 +37,88 @@ public static class CUnitNames
 	{
 		if (type.Branch == EUnitBranch.Land)
 		{
-			return Numbered(state, state.NameTexts.Brigade, type);
+			return Numbered(state, country, state.NameTexts.Brigade, type);
 		}
-		return FromList(state, country, type) ?? Numbered(state, state.NameTexts.SubUnit, type);
+		return FromList(state, country, type) ?? Numbered(state, country, state.NameTexts.SubUnit, type);
 	}
 
-	/// <summary>Marks a name as in use, for every country.</summary>
-	public static void Register(CGameState state, string name)
+	/// <summary>
+	/// A name for a theatre headquarters: first <c>NAMED_THEATHRE</c> after the province given, where one is; then, or
+	/// where that is taken, <c>THEATRE_NAME</c> numbered - from 2 where the named one was tried. The original's
+	/// <c>MakeUnitName</c> at level 0 (<c>docs/mechanics/theatres.md</c>, section 10).
+	/// </summary>
+	public static string ForTheatre(CGameState state, CCountry country, string? provinceName)
+	{
+		int number = 1;
+		if (provinceName is not null)
+		{
+			string named = state.NameTexts.NamedTheatre.Replace(Province, provinceName, StringComparison.Ordinal);
+			if (!country.UnitNamesInUse.Contains(named))
+			{
+				return named;
+			}
+			number = 2;
+		}
+		string pattern = state.NameTexts.Theatre;
+		if (!pattern.Contains(Number, StringComparison.Ordinal))
+		{
+			return pattern;
+		}
+		for (; ; number++)
+		{
+			string name = pattern
+				.Replace(Number, number.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+				.Replace(Order, Ordinal(state.NameTexts, number), StringComparison.Ordinal);
+			if (!country.UnitNamesInUse.Contains(name))
+			{
+				return name;
+			}
+		}
+	}
+
+	/// <summary>
+	/// A name for a command, a fleet or an air group the AI makes: its kind's pattern numbered, the first number free in
+	/// the country, <c>$TYPE$</c> the short name of its first brigade's type where it has one. The original's
+	/// <c>MakeUnitName</c> with no province (<c>docs/mechanics/agents.md</c>, sections 4.4 and 5.4).
+	/// </summary>
+	public static string ForKind(CGameState state, CCountry country, EUnitKind kind, CSubUnitType? first)
+	{
+		string pattern = kind switch
+		{
+			EUnitKind.ArmyGroup => state.NameTexts.ArmyGroup,
+			EUnitKind.Army => state.NameTexts.Army,
+			EUnitKind.Corps => state.NameTexts.Corps,
+			EUnitKind.Navy => state.NameTexts.Navy,
+			EUnitKind.Air => state.NameTexts.Air,
+			_ => state.NameTexts.Division,
+		};
+		if (!pattern.Contains(Number, StringComparison.Ordinal))
+		{
+			return pattern;
+		}
+		string shortName = first is null ? "" : state.NameTexts.ShortName(first);
+		for (int number = 1; ; number++)
+		{
+			string name = pattern
+				.Replace(Number, number.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+				.Replace(Order, Ordinal(state.NameTexts, number), StringComparison.Ordinal)
+				.Replace(Type, shortName, StringComparison.Ordinal);
+			if (!country.UnitNamesInUse.Contains(name))
+			{
+				return name;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Marks a name as in use by the country: the original keeps a set for each country (<c>CCountry +0x84</c>), so two
+	/// countries may call units the same.
+	/// </summary>
+	public static void Register(CCountry country, string name)
 	{
 		if (name.Length != 0)
 		{
-			state.UnitNamesInUse.Add(name);
+			country.UnitNamesInUse.Add(name);
 		}
 	}
 
@@ -86,7 +158,7 @@ public static class CUnitNames
 			string name = names[at];
 			country.UnitNameCursors[type.Key] = at;
 			at = at + 1 >= names.Count ? 0 : at + 1;
-			if (!state.UnitNamesInUse.Contains(name))
+			if (!country.UnitNamesInUse.Contains(name))
 			{
 				return name;
 			}
@@ -95,7 +167,7 @@ public static class CUnitNames
 	}
 
 	/// <summary>The pattern with 1, 2, 3 ... until the name is free.</summary>
-	private static string Numbered(CGameState state, string pattern, CSubUnitType type)
+	private static string Numbered(CGameState state, CCountry country, string pattern, CSubUnitType type)
 	{
 		// A pattern with no number in it would never come out any different.
 		if (!pattern.Contains(Number, StringComparison.Ordinal))
@@ -109,7 +181,7 @@ public static class CUnitNames
 				.Replace(Number, number.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
 				.Replace(Order, Ordinal(state.NameTexts, number), StringComparison.Ordinal)
 				.Replace(Type, shortName, StringComparison.Ordinal);
-			if (!state.UnitNamesInUse.Contains(name))
+			if (!country.UnitNamesInUse.Contains(name))
 			{
 				return name;
 			}

@@ -1,0 +1,104 @@
+using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Theatres;
+using OpenHOI3.Sim.Units;
+
+namespace OpenHOI3.Sim.Agents;
+
+/// <summary>
+/// What the agents ask of a unit's place in the order of battle: the agent it answers to, and a unit put under another.
+/// See <c>docs/mechanics/agents.md</c>, section 4.3.
+/// </summary>
+public static class CAgentUnits
+{
+	/// <summary>The agent of the unit or of the nearest unit above it that has one.</summary>
+	public static CAgent? NearestAgent(CUnit unit)
+	{
+		for (CUnit? at = unit; at is not null; at = at.Parent)
+		{
+			if (at.Agent is { } agent)
+			{
+				return agent;
+			}
+		}
+		return null;
+	}
+
+	/// <summary>
+	/// The unit put last under the other - the same owner, the other ranking above it - with no cap on how many it holds.
+	/// Its own agent, if it has one, is let go, and the agents above where it was and where it goes sort their
+	/// subordinates again.
+	/// </summary>
+	public static bool Attach(CGameState state, CUnit unit, CUnit parent)
+	{
+		if (unit.Owner != parent.Owner || parent.Kind >= unit.Kind || state.Country(unit.Owner) is not { } country
+			|| ReferenceEquals(unit.Parent, parent))
+		{
+			return false;
+		}
+		if (unit.Parent is { } old && NearestAgent(old) is { } oldAgent)
+		{
+			oldAgent.ReplanSubordinates = true;
+		}
+		if (unit.Agent is { } own)
+		{
+			CAgents.Unbind(state, own);
+		}
+		CTheatres.Attach(country, unit, parent);
+		if (NearestAgent(parent) is { } newAgent)
+		{
+			newAgent.ReplanSubordinates = true;
+		}
+		return true;
+	}
+
+	/// <summary>The unit's original level: a theatre 0, an army group 1, an army 2, a corps 3, a division 4, else 5 or 6.</summary>
+	public static int Level(CUnit unit)
+	{
+		return unit.Kind switch
+		{
+			EUnitKind.Theatre => 0,
+			EUnitKind.ArmyGroup => 1,
+			EUnitKind.Army => 2,
+			EUnitKind.Corps => 3,
+			EUnitKind.Division => 4,
+			EUnitKind.Navy => 5,
+			_ => 6,
+		};
+	}
+
+	/// <summary>A land unit whose first brigade is a garrison brigade.</summary>
+	public static bool IsGarrison(CUnit unit)
+	{
+		return unit.SubUnits.Count > 0 && unit.SubUnits[0].Type.Key == "garrison_brigade";
+	}
+
+	/// <summary>How many units are above it in the order of battle.</summary>
+	public static int Ancestors(CUnit unit)
+	{
+		int count = 0;
+		for (CUnit? at = unit.Parent; at is not null; at = at.Parent)
+		{
+			count++;
+		}
+		return count;
+	}
+
+	/// <summary>Where a unit is going, or else where it is: the original's destination-or-province.</summary>
+	public static int DestinationOrPlace(CUnit unit)
+	{
+		return unit.Path.Count > 0 ? unit.Path[^1] : unit.Location;
+	}
+
+	/// <summary>The country's agent working the theatre, or null.</summary>
+	public static CAgent? AgentFor(CCountry country, int theatre)
+	{
+		foreach (CAgent agent in country.UnitAi.Agents)
+		{
+			if (agent.Theatre == theatre)
+			{
+				return agent;
+			}
+		}
+		return null;
+	}
+}

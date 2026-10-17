@@ -225,6 +225,11 @@ public static class CMovement
 			unit.NoBombingHours = CBombing.Grace;
 		}
 		CUnitOrders.RunHour(state, country, unit);
+		// A unit merged into another by its join order is gone (agents.md, section 5.4).
+		if (unit.IsRemoved)
+		{
+			return;
+		}
 		if (isAir)
 		{
 			Missions.CAirMissions.SendHomeEmpty(state, country, unit);

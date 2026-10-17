@@ -285,8 +285,11 @@ number ending in 1, 2 or 3 and of `TH` for any other; and `$TYPE$`, the text of 
 key and `_short`. In English `DIVISION_NAME` is `$NUM$$ORDER$ $TYPE$ Division`: `1st Inf
 Division`. **Only 11, 12 and 13 are spared**: the original's 111th is `111st`.
 
-"In use" is one set for the whole game, not one a country. All `likely`: the three routines
-were read in decompiled C.
+"In use" is **one set a country** (`CCountry.UnitNamesInUse`): `RegisterUnitName` adds to the
+country's set, read on the listing on 2026-10-17 (`FINDINGS-theatres.md`, section K), where this
+said one set for the whole game until then. The start save bore it out: with one set for the game,
+Chile's theatre headquarters came out `2nd Theatre` where the save has `Santiago HQ`. The three routines are
+otherwise `likely`, read in decompiled C.
 
 ## 9. Ours
 

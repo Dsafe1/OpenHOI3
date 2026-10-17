@@ -53,6 +53,8 @@ public static class CProvinceHands
 		// The new controller's policy towards the old, where it has none yet (occupation.md, section 2).
 		Occupation.COccupationPolicies.Capture(state, controller, old);
 		province.Controller = controller;
+		// The holders' theatres, and every neighbour's owner's, are made again in their next hour (theatres.md, section 1).
+		Theatres.CTheatres.ControllerChanged(state, province, old, controller);
 		// A faction drops land the rebels lose, and takes land they win (rebels.md, section 10).
 		Revolts.CRebelSiege.ControllerChanged(state, province, old, controller, consequences);
 		// Its underground goes where the new holder owns it or is no enemy of its owner (undergrounds.md, section 7).

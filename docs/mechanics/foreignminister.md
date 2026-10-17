@@ -172,17 +172,20 @@ being taken twice, and a war in being makes the declaration's row unpressable.
 
 ## 7. Ready for war
 
-The original's test counts **the fronts** its theatre layer draws between the country's areas and the target's - its
-units at the front with 99% of their strength and organisation, the enemy's beside them, the share of the front with
-none of its units, the enemy's strength taken at 0.66 three months on, and Japan's exception on a short front
-(`FINDINGS-foreignminister.md` E). **The fronts are not built** - they are the military AI's - so the test is built only
-where it needs none:
+The original's test counts **the fronts** of an area (`theatres.md`, section 2) - built since 2026-10-17, so the test
+is whole (`CWarReadiness`; `FINDINGS-foreignminister.md` E). For each area the country holds with a neighbouring area
+whose first province the target holds, every province of the area's fronts with a passable edge into the target's land:
 
-- **No area of the country's** (`supply.md`, section 2) **touches an area the target holds**: every count is nought,
-  and the original answers **ready** - a target across the sea, as Albania is from Italy.
-- **Any does**: the fronts would be counted. **Not built: not ready.** Germany and Poland are so, and with them
-  `danzig_or_war`; and Japan, Shanxi and China, whose areas touch - so `marco_polo_bridge_incident` waits too. Both wait
-  for the military AI, and so does every war a script prepares on a country it borders.
+- the **enemy's** land strength in the target's provinces beside it, each province counted once;
+- a **front province**, and an **empty** one where none of the country's own land units stands there fit - out of a
+  battle's wait and at 99% or more of their strength and organisation on average - and **ours**, the strength of those
+  that are.
+
+Three months after the war was prepared the enemy's strength is taken at 0.66, and **Japan is then ready on fewer than
+four front provinces** whatever else. Otherwise **more than 30% of the front empty is not ready**, and then it is ready
+where the enemy's strength is no more than ours. **No front at all is ready** - a target across the sea, as Albania is
+from Italy. So a war prepared on a neighbour - `danzig_or_war`, `marco_polo_bridge_incident` - waits until the country's
+units stand on the front, which the unit agents, the military AI's next piece, are what put there.
 
 ## 8. Told of a war
 

@@ -39,6 +39,12 @@ public sealed class CSupplyArea
 	/// <summary>The group it is in. Every area is in one once the network is built.</summary>
 	public CSupplyGroup? Group { get; set; }
 
+	/// <summary>
+	/// Its fronts by land, each its provinces in order: made the first time they are asked for, which the area being made
+	/// again with the network keeps up to date (<c>docs/mechanics/theatres.md</c>, section 2).
+	/// </summary>
+	public List<List<int>>? Fronts { get; set; }
+
 	public override string ToString()
 	{
 		return $"{Controller}: {Provinces.Count} provinces from {(Provinces.Count > 0 ? Provinces[0] : 0)}";

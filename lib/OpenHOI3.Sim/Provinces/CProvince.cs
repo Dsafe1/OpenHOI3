@@ -366,6 +366,12 @@ public sealed class CProvince
 	/// </summary>
 	public int UndergroundAction { get; set; } = Revolts.CUndergrounds.BuildUp;
 
+	/// <summary>
+	/// The number of the theatre it was last put in, its holder's AI's; 0 for none. A theatre since dropped leaves it
+	/// naming nothing (<c>docs/mechanics/theatres.md</c>).
+	/// </summary>
+	public int TheatreId { get; set; }
+
 	/// <summary>Ids of the provinces this one touches, ascending. Filled from the map.</summary>
 	public IReadOnlyList<int> Neighbours { get; set; } = System.Array.Empty<int>();
 

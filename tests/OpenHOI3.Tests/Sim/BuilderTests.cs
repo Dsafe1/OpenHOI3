@@ -263,7 +263,7 @@ public class BuilderTests
 		CSubUnitType infantry = Type("infantry_brigade");
 		CGameState state = State(country, new[] { infantry }, texts: English());
 		country.UnitNames["infantry_brigade"] = new List<string> { "1. Infanterie-Division", "5. Infanterie-Division", "6. Infanterie-Division" };
-		CUnitNames.Register(state, "1. Infanterie-Division");
+		CUnitNames.Register(country, "1. Infanterie-Division");
 
 		string first = CUnitNames.ForDivision(state, country, infantry);
 		Assert.Equal("5. Infanterie-Division", first);
@@ -271,13 +271,13 @@ public class BuilderTests
 
 		// Until it is registered the name is still free, and is offered again.
 		Assert.Equal(first, CUnitNames.ForDivision(state, country, infantry));
-		CUnitNames.Register(state, first);
+		CUnitNames.Register(country, first);
 		Assert.Equal("6. Infanterie-Division", CUnitNames.ForDivision(state, country, infantry));
-		CUnitNames.Register(state, "6. Infanterie-Division");
+		CUnitNames.Register(country, "6. Infanterie-Division");
 
 		// The list has run out: a number is counted up.
 		Assert.Equal("1st Inf Division", CUnitNames.ForDivision(state, country, infantry));
-		CUnitNames.Register(state, "1st Inf Division");
+		CUnitNames.Register(country, "1st Inf Division");
 		Assert.Equal("2nd Inf Division", CUnitNames.ForDivision(state, country, infantry));
 	}
 
@@ -305,7 +305,7 @@ public class BuilderTests
 
 		Assert.Equal("1st Inf Brigade", CUnitNames.ForSubUnit(state, country, infantry));
 		Assert.Equal("1. Zerstörergeschwader", CUnitNames.ForSubUnit(state, country, destroyer));
-		CUnitNames.Register(state, "1. Zerstörergeschwader");
+		CUnitNames.Register(country, "1. Zerstörergeschwader");
 		Assert.Equal("1st DD", CUnitNames.ForSubUnit(state, country, destroyer));
 	}
 
@@ -318,7 +318,7 @@ public class BuilderTests
 		CGameState state = State(country, new[] { infantry });
 
 		Assert.Equal(CUnitNameTexts.DivisionKey, CUnitNames.ForDivision(state, country, infantry));
-		CUnitNames.Register(state, CUnitNameTexts.DivisionKey);
+		CUnitNames.Register(country, CUnitNameTexts.DivisionKey);
 		Assert.Equal(CUnitNameTexts.DivisionKey, CUnitNames.ForDivision(state, country, infantry));
 	}
 
@@ -344,8 +344,8 @@ public class BuilderTests
 		CConstruction flotilla = country.Constructions[1];
 		Assert.Equal("", flotilla.Name);
 		Assert.Equal("1st DD", flotilla.Brigades[0].Name);
-		Assert.Contains("44. Infanterie-Division", state.UnitNamesInUse);
-		Assert.Contains("1st DD", state.UnitNamesInUse);
+		Assert.Contains("44. Infanterie-Division", country.UnitNamesInUse);
+		Assert.Contains("1st DD", country.UnitNamesInUse);
 	}
 
 	[Fact]

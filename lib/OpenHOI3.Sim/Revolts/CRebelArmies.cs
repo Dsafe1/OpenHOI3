@@ -71,7 +71,7 @@ public static class CRebelArmies
 		{
 			var brigade = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = army };
 			brigade.Name = CUnitNames.ForSubUnit(state, namer, type);
-			CUnitNames.Register(state, brigade.Name);
+			CUnitNames.Register(namer, brigade.Name);
 			CFixedPoint efficiency = target?.Modifier[Efficiency] ?? CFixedPoint.Zero;
 			brigade.Experience = CFixedPoint.Min(FirstExperience + efficiency, CUnits.MostExperience);
 			foreach (Research.CTechnology technology in type.Technologies)
