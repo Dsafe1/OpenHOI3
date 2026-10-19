@@ -169,8 +169,8 @@ public sealed class CAirArea
 	}
 
 	/// <summary>
-	/// Adds a province not already on the list, where the order may list it - the original's
-	/// slot 36, which shift with a right click calls for a point.
+	/// Adds a province not already on the list, where the order may list it - what the original's
+	/// order does when shift with a right click calls for a point.
 	/// </summary>
 	public void Add(int province)
 	{
@@ -206,7 +206,7 @@ public sealed class CAirArea
 		return regions.Count == 0 ? null : _state.Regions[regions[0]];
 	}
 
-	/// <summary>Within the unit's range of its base: the original's slot 38.</summary>
+	/// <summary>Within the unit's range of its base, as the original's order asks it.</summary>
 	public bool IsInRange(int province)
 	{
 		return province > 0 && province < _state.Provinces.Count

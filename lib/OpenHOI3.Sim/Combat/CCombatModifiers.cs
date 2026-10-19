@@ -291,7 +291,7 @@ public static class CCombatModifiers
 	}
 
 	/// <summary>The skill of the leader of the theatre a unit is under, or is: nothing where there is none.</summary>
-	private static long TheatreSkill(CUnit unit)
+	public static long TheatreSkill(CUnit unit)
 	{
 		for (CUnit? above = unit; above is not null; above = above.Parent)
 		{
@@ -304,7 +304,7 @@ public static class CCombatModifiers
 	}
 
 	/// <summary>What one kind of trait effect comes to for a unit, down its chain of command.</summary>
-	private static long Trait(CGameState state, CUnit unit, ETraitEffect kind)
+	public static long Trait(CGameState state, CUnit unit, ETraitEffect kind)
 	{
 		return CCommandReach.Effect(state, unit, kind);
 	}
@@ -358,7 +358,7 @@ public static class CCombatModifiers
 	/// <c>combined_arms_bonus</c> comes to for it, or nothing for a unit with no brigade of
 	/// a kind that makes the mix count.
 	/// </summary>
-	private static long CombinedArms(CGameState state, CCountry owner, CUnit unit)
+	public static long CombinedArms(CGameState state, CCountry owner, CUnit unit)
 	{
 		List<CSubUnitType> types = CountedTypes(unit);
 		return CCombinedArms.BaseBonus(state, types) > CFixedPoint.Zero

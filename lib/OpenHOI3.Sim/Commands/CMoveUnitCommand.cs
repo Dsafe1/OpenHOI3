@@ -23,14 +23,21 @@ public sealed class CMoveUnitCommand : CCommand
 	private readonly int _unit;
 	private readonly int _province;
 	private readonly bool _append;
+	private readonly ERouteSafety _landSafety;
 
-	public CMoveUnitCommand(CCountryTag country, int unit, int province, bool append = false)
+	/// <param name="landSafety">How a land unit's way keeps clear of the enemy: the original command's two flags, which the
+	/// AI sets and a player's click does not.</param>
+	public CMoveUnitCommand(CCountryTag country, int unit, int province, bool append = false,
+		ERouteSafety landSafety = ERouteSafety.Plain)
 	{
 		_country = country;
 		_unit = unit;
 		_province = province;
 		_append = append;
+		_landSafety = landSafety;
 	}
+
+	public override string ToString() => $"move unit {_unit} to {_province}";
 
 	public override bool MayExecute(CGameState state)
 	{
@@ -62,7 +69,7 @@ public sealed class CMoveUnitCommand : CCommand
 		}
 		bool append = _append && unit.IsMoving;
 		int from = append ? unit.Path[^1] : unit.Location;
-		List<int>? route = CRouteFinder.Find(state, country, unit, from, _province);
+		List<int>? route = CRouteFinder.Find(state, country, unit, from, _province, landSafety: _landSafety);
 		if (route is not null)
 		{
 			// A unit ordered away from a battle leaves it, and falls back if it was holding ground.

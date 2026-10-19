@@ -1,3 +1,4 @@
+using OpenHOI3.Sim.Combat;
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Commands;
@@ -18,6 +19,11 @@ public static class CAircraftWants
 	private const string Tactical = "tactical_bomber";
 	private const string Cas = "cas";
 	private const string MultiRole = "multi_role";
+	private const string NavalBomber = "naval_bomber";
+	private const string HeavyCruiser = "heavy_cruiser";
+	private const long HeavyCruiserWeight = 70;
+	private const long CapitalWeight = 150;
+	private const long AnyShip = 20;
 
 	/// <summary>Brigades for each interceptor and tactical bomber wanted.</summary>
 	private const int PerAircraft = 40;
@@ -87,16 +93,54 @@ public static class CAircraftWants
 		{
 			min[IndexOf(state, Cas)] = want;
 		}
+		long naval = NavalScore(agent);
+		agent.EnemySightings.Clear();
+		foreach (CUnit fleet in agent.EnemyFleets)
+		{
+			agent.EnemySightings.Add(fleet.Location);
+		}
+		if (Available(state, country, NavalBomber))
+		{
+			min[IndexOf(state, NavalBomber)] = (int)System.Math.Round(naval / 1000m, System.MidpointRounding.ToEven);
+		}
 		if (Available(state, country, MultiRole))
 		{
-			// Half the tactical bombers, a half rounded to even.
-			int half = tactical / 2;
-			min[IndexOf(state, MultiRole)] = tactical % 2 == 1 && half % 2 == 1 ? half + 1 : half;
+			// Half the tactical bombers and half the naval score, rounded to even.
+			min[IndexOf(state, MultiRole)] = (int)System.Math.Round(tactical / 2m + naval / 2000m, System.MidpointRounding.ToEven);
 		}
 		if (!Same(unit.Plan.Min, min))
 		{
 			state.Outbox.Add(new CSetPlanForcesCommand(country.Tag, unit.Id, min));
 		}
+	}
+
+	/// <summary>
+	/// The enemy's fleets handed to the agent less its side's, in thousandths: a heavy cruiser 70, a capital ship 150 and any
+	/// ship but a submarine 20 of theirs; the same off for its own side's but for a transport.
+	/// </summary>
+	private static long NavalScore(CAgent agent)
+	{
+		long score = 0;
+		foreach (CUnit fleet in agent.EnemyFleets)
+		{
+			foreach (CSubUnit ship in fleet.SubUnits)
+			{
+				score += Weight(ship) + (CShipCensus.IsSubmarine(ship) ? 0 : AnyShip);
+			}
+		}
+		foreach (CUnit fleet in agent.FriendlyFleets)
+		{
+			foreach (CSubUnit ship in fleet.SubUnits)
+			{
+				score -= Weight(ship) + (CShipCensus.IsTransport(ship) ? 0 : AnyShip);
+			}
+		}
+		return score;
+	}
+
+	private static long Weight(CSubUnit ship)
+	{
+		return (ship.Type.Key == HeavyCruiser ? HeavyCruiserWeight : 0) + (CShipCensus.IsCapital(ship) ? CapitalWeight : 0);
 	}
 
 	private static bool Available(CGameState state, CCountry country, string key)

@@ -154,6 +154,10 @@ Asked of the destination before anything, and of every step: `confirmed` unless 
 - **not over a crossing that is closed**: one through a land province an enemy holds, or
   through a sea province an enemy fleet stands in. An air unit is never stopped. *Ours:*
   the first; the second waits for fleets that fight;
+- **not onto an enemy's ground without supplies or fuel**: a step into a province held by
+  a country at war with it is refused to a unit that was given no supplies on its last day
+  and uses some, or no fuel and burns some (`CPathFind::MayStep` in the fact base's record;
+  built 2026-10-19). A unit cut off is routed round the enemy's land or not at all;
 - **only into a province the unit may stand in**: one held by whoever holds the ground
   under it now, or one its country may walk on.
 
@@ -174,6 +178,20 @@ own coast or an enemy's - walks a leg of its own, `AMPHIBIOUS_INVADE_MOVEMENT_CO
 landing's speed and nothing else, and waits or is halted on an enemy's coast if it cannot
 fight. Both are `transport.md`'s, sections 3 and 8. *Ours:* a land unit already aboard may
 not be sent on to another sea.
+
+**The safe and very safe ways.** The original has two more finders that hold a land unit back further, short of its
+goal - the last step into the goal is always allowed (`reversing/findings/FINDINGS-moving.md`, section A.4c):
+
+- **safe** (`CSafePathFind`): not through a province where the strength of the units of countries at war with it - a
+  rebel's not counted on its own country's land - is more than its own;
+- **very safe** (`CVerySafePathFind`): not into a province held by a country at war with it or by the rebels, nor one
+  with a land battle in it.
+
+The AI asks for them (`moving.md`, section 10); a player's click takes the plain way. They weigh a fleet or an air unit
+otherwise, which is not built - neither holds one back here. **A strategic redeployment takes the very safe way**, the
+player's as well as the AI's: the order works its route out as it is given (`Start`, which `CSetOrderCommand` calls on the
+order it has just put in) and always with `CVerySafePathFind`, never the plain or the safe finder
+(`CStrategicRedeploymentOrder::RouteUnit` in the fact base's record; `reversing/findings/FINDINGS-redeploy.md`).
 
 ## 4. Setting off
 
@@ -411,9 +429,9 @@ with what is left over carried into the next leg as the march itself carries it.
 
 ## What is not built
 
-- **A unit too weak, or with no supplies or no fuel, is not routed onto an enemy's ground**
-  in the original; here it is only stopped at the border for want of supplies (section 6).
-  Nor is a country kept from attacking out of a neutral that merely lets it through.
+- **A unit too weak is not routed onto an enemy's ground** in the original (one with no
+  supplies or no fuel is not, here either: section 3). Nor is a country kept from
+  attacking out of a neutral that merely lets it through.
 - **Coordinated arrival**: the original keeps two hours on a unit, one before which it does
   not move and one before which it does not arrive, waiting at full progress.
 - **Strategic redeployment**, which is an order of its own with a speed of its own.

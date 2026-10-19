@@ -299,6 +299,9 @@ public sealed class CCountry
 	/// <summary>Of those, the ones it also holds.</summary>
 	public long HeldCoreVictoryPoints { get; set; }
 
+	/// <summary>The victory points of every province it owns, cores or not, a thousand to a point, as the day's count left them.</summary>
+	public long OwnedVictoryPoints { get; set; }
+
 	/// <summary>The hour it last surrendered; long before any game, the save's "1.1.1.0", where it never has.</summary>
 	public long LastSurrender { get; set; } = long.MinValue / 2;
 
@@ -406,7 +409,7 @@ public sealed class CCountry
 
 	/// <summary>
 	/// Every name its units, brigades, ships and wings have been given: a new one of its own is never called what one of
-	/// them already is. Another country's may be (the original's <c>CCountry +0x84</c>; theatres.md, section 10).
+	/// them already is. Another country's may be (the original keeps a set of them for each country; theatres.md, section 10).
 	/// </summary>
 	public HashSet<string> UnitNamesInUse { get; } = new(StringComparer.Ordinal);
 
@@ -704,7 +707,7 @@ public sealed class CCountry
 
 	/// <summary>
 	/// The manpower it has to spare once every brigade is refilled, made at the end of its day and after every unit order
-	/// (<see cref="Economy.CSpareManpower"/>; the original's <c>+0x158</c>).
+	/// (<see cref="Economy.CSpareManpower"/>).
 	/// </summary>
 	public CFixedPoint SpareManpower { get; set; }
 

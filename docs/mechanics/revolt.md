@@ -181,5 +181,5 @@ starts in it.
 
 - The original's slot for a unit's most strength (section 2).
 - Where the four lower Ethiopian figures of 20 April came from.
-- The AI's readers of revolt risk (`0x8B9D46`, `0x8E1AA6`).
+- The AI's two readers of revolt risk (`FINDINGS-revolt.md`).
 - Which tooltip slot the conditions' words sit in.

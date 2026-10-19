@@ -298,6 +298,7 @@ public static class CCommandLadder
 	/// </summary>
 	public static bool IsBlocked(CUnit unit)
 	{
-		return unit.IsMoving || (unit.Order != EUnitOrder.None && unit.Order != EUnitOrder.Move);
+		return unit.IsMoving || (unit.Order is not (EUnitOrder.None or EUnitOrder.Move or EUnitOrder.SupportAttack
+			or EUnitOrder.CarrierProtection));
 	}
 }

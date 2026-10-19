@@ -96,4 +96,12 @@ public enum EUnitOrder
 
 	/// <summary>An air unit: fly to another air unit and be merged into it.</summary>
 	JoinAir,
+
+	// ---- the AI's land orders: docs/mechanics/moving.md, section 10
+
+	/// <summary>A land unit: go to a province at the speed its roads give, an attack delay not holding it.</summary>
+	StrategicRedeployment,
+
+	/// <summary>A land unit: attack a province beside it and never enter it.</summary>
+	SupportAttack,
 }

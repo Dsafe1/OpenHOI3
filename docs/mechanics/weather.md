@@ -254,5 +254,5 @@ spread over the provinces beside the start save's - 20 fronts to its 21, and eve
   the maintainer's screenshots of 2026-10-15 (section 6): every zoom, the size read, and no name.
 - **Half brightness where the player knows little**: read and not seen - the maintainer's game ran with `debug fow`,
   which gives every province 9.
-- **The texture's green** the original's map gives a province (`CMapProvince +0xC`), nought here.
+- **The texture's green** the original's map gives a province, nought here.
 - **The seed of the generator during the 96 hours**: a new game's weather cannot be the original's roll for roll.

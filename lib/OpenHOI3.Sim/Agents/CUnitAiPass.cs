@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Sim.Agents;
@@ -17,8 +18,17 @@ public static class CUnitAiPass
 			return;
 		}
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
+		var revolting = new HashSet<CCountryTag>();
+		foreach (Provinces.CProvince province in state.Provinces)
+		{
+			if (province.Owner is { } owner && province.Controller?.Value == Revolts.CRebelFactions.Rebels)
+			{
+				revolting.Add(owner);
+			}
+		}
 		foreach (CCountry country in state.Countries)
 		{
+			country.UnitAi.InRevolt = revolting.Contains(country.Tag);
 			if (country.Tag.Value == Revolts.CRebelFactions.Rebels || country.Strategy.TheatresDirty
 				|| (Countries.COwnedCounts.Of(state).Count(country.Tag) == 0 && !country.InExile))
 			{
@@ -31,6 +41,11 @@ public static class CUnitAiPass
 	private static void Run(CGameState state, CCountry country, int hour)
 	{
 		CUnitAi ai = country.UnitAi;
+		if (ai.LastPassHour == state.TotalHours)
+		{
+			return;
+		}
+		ai.LastPassHour = state.TotalHours;
 		if (state.Played.Contains(country.Tag))
 		{
 			ai.RunsUnits = false;
@@ -55,9 +70,27 @@ public static class CUnitAiPass
 				return;
 			}
 		}
+		foreach (Units.CUnit unit in country.AllUnits())
+		{
+			unit.AiBound = -1;
+		}
+		int number = country.Index + 1;
+		if (hour == number % CGameState.HoursPerDay)
+		{
+			CAgentProfile.Time(state, "the sea targets", () => CSeaTargets.Assign(state, country));
+		}
 		foreach (CAgent agent in ai.Agents.ToArray())
 		{
 			CAgentTick.Run(state, country, agent);
+		}
+		foreach (CInvasion invasion in ai.Invasions.ToArray())
+		{
+			CAgentProfile.Time(state, "the invasions", () => CInvasionTick.Run(state, country, invasion));
+		}
+		CInvasionPlanner.Prune(state, country);
+		if (hour == 1 && state.Date.Day == 1)
+		{
+			ai.FailedAreas.Clear();
 		}
 		if (!ai.RunsUnits)
 		{
@@ -65,25 +98,39 @@ public static class CUnitAiPass
 		}
 		CAgents.CreateForTheatres(state, country);
 		CAgents.BindAndAttachOrphans(state, country);
-		int number = country.Index + 1;
 		if (hour == number % CGameState.HoursPerDay)
 		{
 			// The day's powers are worked out in the balancing, which waits for the pass to have run once.
 			if (ai.UnitPassDone)
 			{
-				CTheatreBalance.Run(state, country);
+				CAgentProfile.Time(state, "the balancing", () => CTheatreBalance.Run(state, country));
 			}
 			CPlanObjectives.RebuildPriorityProvinces(state, country);
 			foreach (CAgent agent in ai.Agents)
 			{
 				CPlanObjectives.Generate(state, country, agent);
 			}
+			CAgentProfile.Time(state, "the invasion plans", () =>
+			{
+				CInvasionPlanner.Rank(state, country);
+				CInvasionPlanner.Plan(state, country);
+			});
+		}
+		if (hour == (number + 8) % CGameState.HoursPerDay)
+		{
+			CAgentProfile.Time(state, "the transports", () => CFleetMovers.Gather(state, country));
+			CAgentProfile.Time(state, "the leaders", () => CLeaderPass.Run(state, country));
+		}
+		if (!ai.UnitPassDone || hour == (number + 16) % CGameState.HoursPerDay)
+		{
+			CAgentProfile.Time(state, "the recall", () => CStrandedRecall.Run(state, country));
 		}
 		if (hour == (number + 16) % CGameState.HoursPerDay)
 		{
+			CAgentProfile.Time(state, "the fleet movers", () => CFleetMovers.Distribute(state, country));
 			CAirDistribution.Run(state, country);
 		}
-		CPlanStances.Update(state, country, force: hour == (number + 16) % CGameState.HoursPerDay);
+		CAgentProfile.Time(state, "the stances", () => CPlanStances.Update(state, country, force: hour == (number + 16) % CGameState.HoursPerDay));
 		ai.UnitPassDone = true;
 	}
 }

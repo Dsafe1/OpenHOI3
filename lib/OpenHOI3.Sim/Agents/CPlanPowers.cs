@@ -8,14 +8,16 @@ using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Theatres;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Sim.Agents;
 
 /// <summary>
-/// A plan's two powers: the AI's divisions in the theatre, a fort counting where they stand still at peace, and the
-/// enemy's facing its area, weighted by how much of a front each province is; written only when either crosses a whole
-/// number. The original's <c>UpdatePlanPower</c>, <c>CAIUnit_SumOurPower</c>, <c>EstimateTheatreNeed</c> and
-/// <c>EstimateAreaNeed</c>. See <c>docs/mechanics/agents.md</c>, section 7.3.
+/// A plan's two powers and its theatre's division need: the AI's divisions in the theatre, a fort counting where they
+/// stand still at peace; the enemy's facing its areas, weighted by how much of a front each province is; and the
+/// divisions each area calls for. The powers are written only when either crosses a whole number. The original's
+/// <c>UpdatePlanPower</c>, <c>CAIUnit_SumOurPower</c>, <c>EstimateTheatreNeed</c> and <c>EstimateAreaNeed</c>. See
+/// <c>docs/mechanics/agents.md</c>, sections 7.3 and 7.5.
 /// </summary>
 public static class CPlanPowers
 {
@@ -34,10 +36,16 @@ public static class CPlanPowers
 
 	private const long Relaxed = 500;
 
-	private const long AtWarWithPact = 2000;
+	private const long AtWar = 2000;
 
-	/// <summary>The most provinces an area's need is spread over.</summary>
+	/// <summary>A front-worthy enemy surrendered past this share, not a war candidate, is weighed at half.</summary>
+	private const long Beaten = 100;
+
+	/// <summary>The most provinces an area's worth is spread over.</summary>
 	private const int MostProvinces = 40;
+
+	/// <summary>Italy's need about Addis Abeba is a third.</summary>
+	private const int AddisAbeba = 9943;
 
 	public static void Update(CGameState state, CCountry country, CAgent agent)
 	{
@@ -82,7 +90,7 @@ public static class CPlanPowers
 		return counted;
 	}
 
-	/// <summary>The enemy's power over the theatre's areas, and the divisions it calls for.</summary>
+	/// <summary>The divisions the theatre's areas call for, one list of areas visited for them all; and the enemy's power.</summary>
 	private static long Need(CGameState state, CCountry country, CAgent agent, out long power)
 	{
 		power = 0;
@@ -94,66 +102,47 @@ public static class CPlanPowers
 		var visited = new HashSet<CSupplyArea>();
 		foreach (CSupplyArea area in theatre.Areas)
 		{
-			need += AreaNeed(state, country, agent, area, visited, ref power);
+			need += AreaNeed(state, country, agent, area, visited, relaxed: true, ref power);
 		}
 		return need;
 	}
 
-	/// <summary>
-	/// One area: an area the enemy holds counts its units; otherwise each of the agent's front provinces beside the area
-	/// weighs its foreign units - 500 at peace, 1000 at war, 2000 at war under a pact - with a floor by its roads; and the
-	/// agent's focus areas in the same block of one side's land are counted with it, each once.
-	/// </summary>
+	/// <summary>The divisions one area calls for, as the donor's keep and the sealift ask it.</summary>
+	public static long NeedOf(CGameState state, CCountry country, CAgent agent, CSupplyArea area, bool relaxed = true)
+	{
+		long power = 0;
+		return AreaNeed(state, country, agent, area, new HashSet<CSupplyArea>(), relaxed, ref power);
+	}
+
+	/// <summary><c>EstimateAreaNeed</c> whole, in its order (<c>agents.md</c>, section 7.5).</summary>
 	private static long AreaNeed(CGameState state, CCountry country, CAgent agent, CSupplyArea area,
-		HashSet<CSupplyArea> visited, ref long power)
+		HashSet<CSupplyArea> visited, bool relaxed, ref long power)
 	{
 		if (area.Provinces.Count == 0)
 		{
 			return 0;
 		}
-		visited.Add(area);
-		long need = OneArea(state, country, agent, area, ref power);
-		foreach (CSupplyArea focus in agent.FocusAreas)
-		{
-			if (visited.Contains(focus) || focus.Group is null || !ReferenceEquals(focus.Group, area.Group)
-				|| GroupProvinces(focus.Group) <= 1)
-			{
-				continue;
-			}
-			need += AreaNeed(state, country, agent, focus, visited, ref power);
-		}
-		return need;
-	}
-
-	/// <summary>The divisions one area calls for, as the donor's keep asks it (<c>agents.md</c>, section 10.2).</summary>
-	public static long NeedOf(CGameState state, CCountry country, CAgent agent, CSupplyArea area)
-	{
-		long power = 0;
-		return area.Provinces.Count == 0 ? 0 : OneArea(state, country, agent, area, ref power);
-	}
-
-	private static int GroupProvinces(CSupplyGroup group)
-	{
-		int count = 0;
-		foreach (CSupplyArea area in group.Areas)
-		{
-			count += area.Provinces.Count;
-		}
-		return count;
-	}
-
-	private static long OneArea(CGameState state, CCountry country, CAgent agent, CSupplyArea area, ref long power)
-	{
-		if (CCountryLists.IsEnemy(state, country, area.Controller))
+		CProvince first = state.Province(area.Provinces[0]);
+		if (first.Controller is { } firstHolder && CCountryLists.IsEnemy(state, country, firstHolder))
 		{
 			return EnemyUnits(state, country, area);
 		}
+		if (country.Tag.Value == "ITA" && first.Controller?.Value == "ETH")
+		{
+			return 0;
+		}
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		CTheatre? theatre = CAgents.TheatreOf(state, country, agent);
+		long need = Objectives(state, agent, area, theatre);
 		long weightSum = 0;
+		bool anyFront = false;
+		var faced = new List<CSupplyArea>();
+		CSupplyArea? capitalArea = network.AreaOf(country.ActingCapital);
 		foreach (int id in agent.FrontProvinces)
 		{
 			CProvince province = state.Province(id);
-			if (network.AreaOf(id) is null || !FacesArea(state, network, province, area) || province.Controller is not { } holder)
+			if (network.AreaOf(id) is not { } beside || !FacesArea(state, network, province, area)
+				|| province.Controller is not { } holder)
 			{
 				continue;
 			}
@@ -162,20 +151,22 @@ public static class CPlanPowers
 			{
 				continue;
 			}
-			bool atWar = CFrontWorthy.IsWarCandidate(state, country, holder);
-			long weight = Whole;
-			if (nap is null)
+			if (!CFrontWorthy.Is(state, country, holder))
 			{
-				if (!atWar)
-				{
-					weight = Relaxed;
-				}
+				continue;
 			}
-			else if (atWar)
+			bool candidate = CFrontWorthy.IsWarCandidate(state, country, holder);
+			bool halved = !candidate && state.Country(holder) is { } enemy && CSurrender.Progress(state, enemy) > Beaten;
+			if (!halved)
 			{
-				weight = AtWarWithPact;
+				anyFront = true;
 			}
-			long floor = CSupplyFigures.EffectiveInfrastructure(province) <= PoorInfrastructure ? LowFloor : Whole;
+			long weight = relaxed && nap is null ? (candidate ? Whole : Relaxed) : (candidate ? AtWar : Whole);
+			if (halved)
+			{
+				weight /= 2;
+			}
+			long floor = halved || CSupplyFigures.EffectiveInfrastructure(province) <= PoorInfrastructure ? LowFloor : Whole;
 			long count = 0;
 			long strength = 0;
 			foreach (CUnit unit in state.Positions.Of(id))
@@ -187,25 +178,230 @@ public static class CPlanPowers
 				count++;
 				strength += CUnitPower.Of(unit);
 			}
-			power += strength * weight / Whole;
-			weightSum += Math.Max(floor, count * weight);
+			long score = Math.Max(floor, count * weight);
+			long theirs = strength * weight / Whole;
+			if (state.Country(holder) is { } holderCountry && IsFactionLeader(state, holderCountry)
+				&& ReferenceEquals(network.AreaOf(holderCountry.ActingCapital), beside))
+			{
+				score += weight;
+				theirs += theirs * weight / Whole;
+			}
+			if (score > Whole && capitalArea is not null && !ReferenceEquals(capitalArea, area)
+				&& capitalArea.Neighbours.Contains(beside))
+			{
+				theirs = theirs * Whole / score;
+				score = Whole;
+			}
+			power += theirs;
+			weightSum += score;
+			if (!faced.Contains(beside))
+			{
+				faced.Add(beside);
+			}
 		}
-		int provinces = area.Provinces.Count;
-		// The sum in wholes, rounded half to even as the original's fistp does, over the area's provinces (at most 40).
-		// Ours: how the original folds in the float sum of the areas it recurses into here is not settled.
-		long wholes = weightSum / Whole;
-		long rest = weightSum % Whole;
+		long brigades = 0;
+		long facedProvinces = 0;
+		foreach (CSupplyArea beside in faced)
+		{
+			facedProvinces += beside.Provinces.Count;
+			foreach (int id in beside.Provinces)
+			{
+				foreach (CUnit unit in state.Positions.Of(id))
+				{
+					if (CTheatres.IsLand(unit) && unit.Owner == beside.Controller)
+					{
+						brigades += unit.SubUnits.Count;
+					}
+				}
+			}
+		}
+		long fronts = HalfToEven(weightSum);
+		long worth = first.Controller == country.Tag
+			? Worth(state, country, agent, area, theatre, capitalArea, relaxed)
+			: 0;
+		need += anyFront && worth > fronts ? worth : fronts;
+		if (area.Group is { } group && GroupProvinces(group) > 1)
+		{
+			foreach (CSupplyArea focus in agent.FocusAreas)
+			{
+				if (visited.Contains(focus) || !ReferenceEquals(focus.Group, group))
+				{
+					continue;
+				}
+				visited.Add(focus);
+				need += AreaNeed(state, country, agent, focus, visited, relaxed, ref power);
+			}
+		}
+		if (first.Controller == country.Tag && !ReferenceEquals(area, capitalArea)
+			&& CAreaHostility.TouchesHostileArea(state, area) && facedProvinces > 3)
+		{
+			need += 4;
+		}
+		if (TheatreCount(state, country) > 1 && need > 2 * brigades)
+		{
+			need = Math.Max(Math.Max(need / 2, 2 * brigades), 1);
+		}
+		if (ReferenceEquals(area, capitalArea) && CWarTargetsMajor(country))
+		{
+			need = Math.Max(need, relaxed ? Math.Max(NavalLevels(state, area) / 4, area.Ports.Count / 2) : 3 * area.Ports.Count);
+		}
+		need = Math.Max(need, 1);
+		if (first.Controller is not { } owner || (owner != country.Tag && state.Country(owner)?.Overlord != country.Tag))
+		{
+			if (need > 1)
+			{
+				need = Math.Max(need / 2, 1);
+			}
+		}
+		if (country.Tag.Value == "ITA" && AboutAddisAbeba(state, network, country, area))
+		{
+			need /= 3;
+		}
+		return need;
+	}
+
+	/// <summary>The plan's objectives lying in the area and in the agent's theatre.</summary>
+	private static long Objectives(CGameState state, CAgent agent, CSupplyArea area, CTheatre? theatre)
+	{
+		if (agent.Unit is not { } unit)
+		{
+			return 0;
+		}
+		long count = 0;
+		foreach (CObjective objective in unit.Plan.Objectives)
+		{
+			if (!area.Provinces.Contains(objective.Province))
+			{
+				continue;
+			}
+			bool ours = theatre is null
+				? unit.Plan.Area.Contains(objective.Province)
+				: state.Province(objective.Province).TheatreId == theatre.Id;
+			if (ours)
+			{
+				count++;
+			}
+		}
+		return count;
+	}
+
+	/// <summary>
+	/// The second estimate, for an area of the country's: what its theatre's provinces in it are worth, over at most
+	/// forty of them, cut, and at most a quarter of its provinces; held down in a small area with no neighbour.
+	/// </summary>
+	private static long Worth(CGameState state, CCountry country, CAgent agent, CSupplyArea area, CTheatre? theatre,
+		CSupplyArea? capitalArea, bool relaxed)
+	{
+		long sum = 0;
+		IEnumerable<int> provinces = theatre is not null ? theatre.AllProvinces : (IEnumerable<int>?)agent.Unit?.Plan.Area ?? Array.Empty<int>();
+		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		var context = CProvinceHoldValue.Context(state, country);
+		foreach (int id in provinces)
+		{
+			if (ReferenceEquals(network.AreaOf(id), area))
+			{
+				sum += CProvinceHoldValue.Of(state, country, agent, state.Province(id), hold: false, context);
+			}
+		}
+		int count = area.Provinces.Count;
+		long worth = sum / Math.Min(count, MostProvinces) / Whole;
+		long cap = count / 4;
+		if (!relaxed)
+		{
+			cap = Math.Max(cap, 1);
+		}
+		worth = Math.Min(worth, cap);
+		if (area.Neighbours.Count == 0 && !ReferenceEquals(area, capitalArea))
+		{
+			if (worth > 1 && count < 3)
+			{
+				worth = 1;
+			}
+			else if (worth > 2 && count < 15)
+			{
+				worth = 2;
+			}
+		}
+		else if (worth == 0 && sum > 2 * Whole)
+		{
+			worth = 1;
+		}
+		return worth;
+	}
+
+	/// <summary>A sum in thousandths to wholes, half to even, as the original's <c>fistp</c> does.</summary>
+	private static long HalfToEven(long thousandths)
+	{
+		long wholes = thousandths / Whole;
+		long rest = thousandths % Whole;
 		if (rest > Whole / 2 || (rest == Whole / 2 && wholes % 2 == 1))
 		{
 			wholes++;
 		}
-		long need = wholes / Math.Min(provinces, MostProvinces);
-		need = Math.Min(need, provinces / 4);
-		if (need == 0 && weightSum > 2 * Whole)
+		return wholes;
+	}
+
+	/// <summary>The first member of a faction with members.</summary>
+	private static bool IsFactionLeader(CGameState state, CCountry country)
+	{
+		List<CCountry> members = CCountryLists.FactionMembers(state, country.Faction);
+		return members.Count > 0 && ReferenceEquals(members[0], country);
+	}
+
+	private static bool CWarTargetsMajor(CCountry country) => Ai.CWarTargets.Prunes(country);
+
+	/// <summary>The built levels of the area's naval bases, in whole levels, summed.</summary>
+	private static long NavalLevels(CGameState state, CSupplyArea area)
+	{
+		if (CTheatreFigures.NavalBase(state) is not { } naval)
 		{
-			need = 1;
+			return 0;
 		}
-		return need;
+		long sum = 0;
+		foreach (int id in area.Ports)
+		{
+			sum += state.Province(id).BuildingMaxLevel(naval).Raw;
+		}
+		return sum / Whole;
+	}
+
+	private static int TheatreCount(CGameState state, CCountry country)
+	{
+		int count = 0;
+		foreach (CTheatre theatre in state.Theatres.Values)
+		{
+			if (theatre.Country == country.Tag)
+			{
+				count++;
+			}
+		}
+		return count;
+	}
+
+	/// <summary>Addis Abeba in the area, or in an area beside it held by a subject of Italy's.</summary>
+	private static bool AboutAddisAbeba(CGameState state, CSupplyNetwork network, CCountry country, CSupplyArea area)
+	{
+		if (AddisAbeba >= state.Provinces.Count)
+		{
+			return false;
+		}
+		if (area.Provinces.Contains(AddisAbeba))
+		{
+			return true;
+		}
+		CProvince capital = state.Province(AddisAbeba);
+		return network.AreaOf(AddisAbeba) is { } its && area.Neighbours.Contains(its)
+			&& state.Country(capital.Controller)?.Overlord == country.Tag;
+	}
+
+	private static int GroupProvinces(CSupplyGroup group)
+	{
+		int count = 0;
+		foreach (CSupplyArea area in group.Areas)
+		{
+			count += area.Provinces.Count;
+		}
+		return count;
 	}
 
 	private static bool FacesArea(CGameState state, CSupplyNetwork network, CProvince province, CSupplyArea area)

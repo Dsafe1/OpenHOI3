@@ -348,4 +348,17 @@ public class StockpileTests
 		Assert.True(state.IsAtWar(new CCountryTag("ETH")));
 		Assert.False(state.IsAtWar(new CCountryTag("GER")));
 	}
+
+	[Fact]
+	public void AWarWhoseOtherSideHasEmptiedMakesNobodyAtWar()
+	{
+		CWar war = War("ITA", "ETH");
+		CGameState state = State(new[] { Country("ITA", 1), Country("ETH", 2) },
+			new[] { Land(1, "ITA"), Land(2, "ETH") }, war);
+
+		war.Defenders.Clear();
+
+		Assert.Single(state.Wars);
+		Assert.False(state.IsAtWar(new CCountryTag("ITA")));
+	}
 }

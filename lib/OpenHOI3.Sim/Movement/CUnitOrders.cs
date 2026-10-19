@@ -138,6 +138,9 @@ public static class CUnitOrders
 				return Transport.CCarriers.MayRebase(state, unit, province);
 			case EUnitOrder.CarrierProtection:
 				return unit.Kind == EUnitKind.Air;                // the window offers it only aboard a carrier there
+			case EUnitOrder.StrategicRedeployment:
+			case EUnitOrder.SupportAttack:
+				return CMovementRules.IsLandUnit(unit) && CMovementRules.MayMoveTo(state, country, unit, province);
 			case EUnitOrder.Paradrop:
 				return CParadrop.MayGive(unit, province);
 			case EUnitOrder.AirSupply:
@@ -230,7 +233,8 @@ public static class CUnitOrders
 			CMissions.Start(state, country, unit);
 			return;
 		}
-		List<int>? route = CRouteFinder.Find(state, country, unit, unit.Location, province);
+		List<int>? route = CRouteFinder.Find(state, country, unit, unit.Location, province,
+			landSafety: order == EUnitOrder.StrategicRedeployment ? ERouteSafety.VerySafe : ERouteSafety.Plain);
 		// A unit in a battle is given a path only where the battle lets it go - one at
 		// sea not in its first hours - and then leaves it.
 		if (unit.IsFighting && (route is not null || order == EUnitOrder.Rebase))
@@ -352,9 +356,23 @@ public static class CUnitOrders
 		switch (unit.Order)
 		{
 			case EUnitOrder.Move:
+			case EUnitOrder.StrategicRedeployment:
 				if (unit.Location == target || !unit.IsMoving)
 				{
 					Clear(unit);
+				}
+				break;
+
+			// Ours: done once the province is no longer held against the unit, or its way is gone (moving.md, section 18).
+			case EUnitOrder.SupportAttack:
+				if (!unit.IsMoving || !CMovementRules.IsEnemy(state, state.Province(target).Controller, unit.Owner)
+					|| (!unit.IsFighting && !Combat.CCombats.HasEnemyStanding(state, unit, target)))
+				{
+					Clear(unit);
+					if (unit.IsMoving && !unit.IsFighting)
+					{
+						CMovement.SetPath(unit, System.Array.Empty<int>(), clear: true);
+					}
 				}
 				break;
 

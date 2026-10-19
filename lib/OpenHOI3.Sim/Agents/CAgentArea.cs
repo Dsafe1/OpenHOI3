@@ -74,8 +74,12 @@ public static class CAgentArea
 		state.Outbox.Add(new CSetPlanAreaCommand(country.Tag, unit.Id, agent.Area));
 		RebuildFrontProvinces(state, country, agent);
 		Classify(state, country, agent);
+		CApproaches.Rebuild(state, country, agent);
+		CAreaScores.Score(state, country, agent, unit.Plan.Stance);
 		CCommandProvince.Choose(state, country, agent, force: false);
 		agent.FullPassPending = true;
+		agent.HoldProvincesMade = false;
+		agent.AirBasesMade = false;
 	}
 
 	/// <summary>The theatre's own fronts, then those of its subject's theatres in its focus areas.</summary>
@@ -110,7 +114,7 @@ public static class CAgentArea
 	}
 
 	/// <summary>The original's <c>AreaMayWidenFrontSearch</c> for an AI country: the area's controller is its subject, or it leads its faction.</summary>
-	private static bool MayWiden(CGameState state, CCountry country, CCountry other)
+	public static bool MayWiden(CGameState state, CCountry country, CCountry other)
 	{
 		if (other.Overlord == country.Tag)
 		{

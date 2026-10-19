@@ -36,7 +36,8 @@ public static class CAirRegroup
 
 	private const long OtherOrganisation = 850;
 
-	public static void Run(CGameState state, CCountry country, CAgent agent, bool force)
+	/// <param name="taken">The groups the air body's first two phases have already given something to do.</param>
+	public static void Run(CGameState state, CCountry country, CAgent agent, bool force, IEnumerable<CUnit>? taken = null)
 	{
 		if (agent.Unit is not { } headquarters || agent.Air.Count == 0)
 		{
@@ -51,7 +52,7 @@ public static class CAirRegroup
 			return;
 		}
 		agent.RegroupAirPending = false;
-		var handled = new HashSet<CUnit>();
+		var handled = new HashSet<CUnit>(taken ?? System.Array.Empty<CUnit>());
 		var fit = new List<CUnit>();
 		foreach (CUnit group in agent.Air)
 		{
@@ -69,12 +70,17 @@ public static class CAirRegroup
 			{
 				fit.Add(group);
 			}
+			else
+			{
+				Trace(state, country, $"air regroup: {group.Name}#{group.Id} unfit, blocked or fighting");
+			}
 		}
 		foreach (CUnit group in fit)
 		{
 			if (group.IsFighting || group.Base == 0 || group.Location != group.Base || CCommandLadder.IsBlocked(group)
 				|| handled.Contains(group) || group.SubUnits.Count == 0)
 			{
+				Trace(state, country, $"air regroup: {group.Name}#{group.Id} away, taken or empty");
 				continue;
 			}
 			Dictionary<string, int> counts = Count(group);
@@ -118,11 +124,24 @@ public static class CAirRegroup
 					continue;
 				}
 				state.Outbox.Add(new CJoinUnitCommand(country.Tag, group.Id, partner.Id));
+				Trace(state, country, $"air regroup: {group.Name}#{group.Id} joins {partner.Name}#{partner.Id}");
 				handled.Add(group);
 				handled.Add(partner);
 				agent.RegroupAirPending = true;
 				break;
 			}
+			if (!handled.Contains(group))
+			{
+				Trace(state, country, $"air regroup: {group.Name}#{group.Id} finds no partner");
+			}
+		}
+	}
+
+	private static void Trace(CGameState state, CCountry country, string line)
+	{
+		if (state.AiTrace is { } trace && trace.Country == country.Tag)
+		{
+			trace.Write($"    {state.Date} {line}");
 		}
 	}
 
@@ -130,7 +149,7 @@ public static class CAirRegroup
 	/// Every wing at the shares of strength and organisation the plan's air stance asks - halved for a group with a
 	/// carrier's wing or an interceptor. Ours: the original's two pairs of thresholds taken as one.
 	/// </summary>
-	private static bool IsFit(CGameState state, CUnit headquarters, CUnit group)
+	public static bool IsFit(CGameState state, CUnit headquarters, CUnit group)
 	{
 		bool offensive = headquarters.Plan.AirStance == CUnitPlan.Offensive;
 		long strength = offensive ? OffensiveStrength : OtherStrength;

@@ -296,9 +296,8 @@ Every hour while the country's stances are unsettled, then once a day at hour (n
 
 At binding and at hour A0: our = **the sum of every division's power** on the agent's land list, a division getting x (1000
 + 80 x its province's fort level) / 1000 unless it is moving or the stance is 3 or more; their = **the enemy's power the
-area faces** (`FINDINGS-power.md`, `EstimateAreaNeed`, over the theatre's areas: each province of the agent's front list
-with a neighbour of 200 infrastructure in the area, its foreign units' power weighted 1000, 2000 at war, 500 where relaxed
-and not at war). **They are written only when either changes in its whole number.** A unit's power is the sum over its
+area faces**, gathered as the division need is worked out (7.5): each counted front province's hostile units' power by
+the province's weight. **They are written only when either changes in its whole number.** A unit's power is the sum over its
 brigades of `(strength/100) x value / 1000 x (organisation/100) / 1000`, a land brigade's value `(soft + hard + piercing
 attack + (defensiveness + toughness)/10 + armour) x (2000 - softness) / 1000`, an air wing's `air_attack + air_defence +
 500`, a ship's `(500 + sea_attack + sea_defence) x hull / 1000`, all in thousandths.
@@ -310,6 +309,67 @@ and the countries it is at peace with, set for it. **Objectives**, for every age
 beyond its fronts (a front hot or facing a front-worthy enemy) whose first province's controller is front-worthy, once each
 in the order met; each of their provinces at priority `victory points x 20 + conquer_prov + 100 for a priority province`,
 kept at 1 or more, `hold` and `invasion` no. Posted where they differ; a theatre not hot clears them.
+
+### 7.5 The division need (`EstimateTheatreNeed`, `EstimateAreaNeed`)
+
+Read whole on 2026-10-19 (`FINDINGS-moving.md`, section C). A theatre's need is the sum over its areas, in order, of
+each area's need, **relaxed**, one list of visited areas shared by them all. One area's need, for the agent's country C,
+all division toward nought:
+
+0. **An area the enemy holds** (its first province's controller C's enemy): its enemy divisions, and nothing else.
+1. **Italy and Ethiopia**: C Italy and the area's first province held by Ethiopia - nought.
+2. **Objectives**: the plan's objectives lying in the area and in this theatre (the province's theatre stamp; with no
+   theatre, in the plan's area).
+3. **The fronts**: each of the agent's front provinces (8.2) beside the area by an edge not impassable, the province there
+   with 200 infrastructure or more - a pact with its controller younger than two thirds of `NAP_UNBREAKABLE_MONTHS`, in
+   whole months, undoes it - is **counted** where its controller is front-worthy to C; **halved** where it is also no war
+   candidate and its surrender progress is past a tenth, and a halved one is no **live front**. Its weight: relaxed and no
+   pact, 1000 for a war candidate, else 500; otherwise 2000 and 1000; halved, half. Its floor: 500 where halved or with
+   infrastructure 300 or less, else 1000. Its hostile land units (7.2's hostility, headquarters too): n of them and P their
+   power. **score = max(floor, n x weight)**, **power = P x weight / 1000**. In its controller's acting capital's area, its
+   controller the first member of a faction: score + weight, power + power x weight / 1000. A score over 1000, C's capital
+   area being another area that borders this province's area: power x 1000 / score, and score 1000. The power goes to
+   their power and the score to the sum; the province's area is one **faced**.
+4. **N1 = the sum / 1000, rounded half to even.**
+5. **N2**, only for an area whose first province is C's: the theatre's provinces in the area, each worth `CProvinceHoldValue`
+   (7.6), summed, / min(the area's provinces, 40), cut; at most a quarter of its provinces (at least 1 when not relaxed).
+   An area with no neighbour, not C's capital area: over 1 with under 3 provinces is 1, over 2 with under 15 is 2.
+   Otherwise nought with a sum over 2 is 1.
+6. **need = objectives + (a live front and N2 > N1 ? N2 : N1).**
+7. **Focus areas**: where the area's block of one side's land holds more than one province, each focus area of the same
+   block not visited is visited and its need added - before what follows, which then applies to the sum.
+8. The area C's, not its capital area, bordering an area held against it (`COwnerArea_TouchesHostileArea`: a neighbour
+   whose controller is at war with its own, or either the rebels) and the faced areas holding more than 3 provinces: **+4**.
+9. C with more than one theatre and need over twice the brigades the faced areas' controllers have standing in them:
+   **need = max(need / 2, twice those brigades)**, at least 1.
+10. **The capital floor**: the area C's capital area, C major or over 100 IC - need at least, relaxed, the greater of its
+    ports' naval base levels / 4 and its ports / 2; otherwise 3 x its ports.
+11. **At least 1.**
+12. An area neither C's nor its subject's: over 1, halved, at least 1.
+13. C Italy and Addis Abeba (province 9943) in the area, or in an area beside it held by Italy's subject: **a third**.
+
+The capital floor is what makes **every European Soviet theatre need 18**: the Soviet Union's land is one area of 2694
+provinces holding Moscow and 73 levels of naval base. The balancing between theatres (10.2) weighs the need, and the
+aircraft wanted (section 9).
+
+### 7.6 What a province is worth holding
+
+`CProvinceHoldValue` (the second term of the original's `EstimateAreaNeed`), in thousandths; asked for N2 and, with **hold**, for a hold position:
+
+- **Nought** below 200 infrastructure.
+- **Near**: a land neighbour by an edge not impassable whose controller is no friend of C's (with access) and either has a
+  threat towards C of 100 or more - with C's antagonism of it added where C is at peace, the AI runs its units and hold is
+  clear - or is front-worthy to C. **Full**: always, but for the United States at war while Britain owns land and is not in
+  exile, its owned core victory points less those it holds under 2.
+- 3 x the fort level where near; full: 5 x (the coastal fort level + 1) where there is one; the air base's built level and
+  the naval base's - for Germany and Italy on a curve, x = 10 x level + 30, above 100 (x - 100) / 5 + 90 - doubled outside
+  its holder's capital area in an area of under 15 provinces.
+- Victory points: owned by C, the greater of 2 x points + 5 and the points' share in per cent of all C owns; held but owned
+  by a country not in exile, 2 x points + 5.
+- 100 for C's acting capital; full, 60 for a strategic resource.
+- Half the province's IC - or, with hold: 100 for its own supply depot, half its IC x its revolt risk (the shown figure)
+  / 1000, and, full with a naval base and a port, 30 + 2 x the ships lying there.
+- A quarter of the plan's objective's priority on it.
 
 ## 8. The area of operations (section E)
 
@@ -356,7 +416,8 @@ covered / min(exposed, committed divisions); 1 with nothing exposed, 0 with no u
 On the full pass, the plan's min is zeroed and, each where its type is available and usable: **interceptor** and
 **tactical bomber** = (the agent's brigades + 3 x its division need) / 40, the need being `EstimateAreaNeed`'s count over the
 theatre's areas (CAS for the tactical bomber where that is not available); **multi-role** = round(tactical / 2 + naval / 2 +
-transport / 2). The transport plane, strategic and naval bomber wants are not built (section 12). Posted where it differs.
+transport / 2), each a half rounded to even; **naval bomber** = the naval score rounded to even (`moving.md`, section 12).
+The transport plane and strategic bomber wants are not built (section 13). Posted where it differs.
 
 ## 10. Between theatres (section F)
 
@@ -403,6 +464,23 @@ Every agent in order is offered every unit of the country not moved this pass an
 plane or a paratrooper brigade goes to the theatre of the capital**; and an air unit holding a tactical bomber, and no
 interceptor, multi-role or CAS, goes to an agent whose frontier faces a war candidate from one whose does not.
 
+### 10.4 Fleets and transports (`FINDINGS-agents.md` F.3, F.5)
+
+**Fleets**, at (number + 16) % 24, every fleet with no agent of its own, in order, its current agent the topmost up its
+chain: **one holding a submarine** goes to the agent with the most (submarine want - submarines it holds) - (the current
+agent's want - what it holds + the fleet's ships), only agents with a want counting and the current one's term -10000 with
+none, above nought; **a surface fleet**, where the agents with ports face enemy ships at all (their wants: the ships of the
+enemy fleets handed to them, `moving.md` section 12), goes to the agent with the most want / all the wants - (what it
+holds, with the fleet's ships where it is another's) / the country's ships, from -10000. **At peace nothing moves**: no
+enemy ship is handed to anyone.
+
+**Transports**, at (number + 8) % 24, for each agent with troops listed for the sea (`moving.md`, section 15) and a sealift
+port - its theatre's largest area's largest naval base: while their weight is above what its transport fleets can carry,
+the fleet with no agent of its own, no order, room for a whole unit, not its own and not the sealift's of another agent,
+with the most 10 - min(distance by sea to the port / 400, 10) + its room, is taken.
+
+Each moves by being put under the agent's headquarters, and both agents' subordinates are sorted again.
+
 ## 11. Kept as the original does them
 
 - **The played country's agents exist and are never bound**; its theatres carry no plan.
@@ -427,33 +505,32 @@ interceptor, multi-role or CAS, goes to an agent whose frontier faces a war cand
 - **An air group's fitness takes one pair of thresholds**, where the original's triage has two, a strength below one
   sending a wing to rest and below the other unfitting it.
 - **A blocking order** is a unit on the move or under any order but a march; the original asks each order kind.
-- **The enemy's power**: a province's score is its floor or its enemy units times the weight, all in thousandths, and an
-  area's need that over a thousand and its provinces - the reading's units for the score are not certain. The focus areas
-  of the same block are counted with the theatre's own, each once.
+- **What a province is worth (7.6)** is worked out in thousandths, where the original works it in single precision; the
+  share of victory points is cut, not rounded.
+- **A port's "naval station"** (7.6, with hold) is a province with a sea of its own and a naval base; the original asks a
+  pointer the reading did not name.
 - **The days of the year** are counted from 1 January in a year of 365 days, as the game's calendar has them.
 
 ## 13. Not built
 
-- **Moving and attacking** - the land block, `ManageLandUnits`, slot 86, the reserve and what is committed, slots 79
-  and 80 - the third piece; and with it the axis (the path to the objectives at stance 3 and 4), embark and debark, the
+- **Moving and attacking** - the land block, `ManageLandUnits`, `IsUnitReservedForTransport`, the reserve and what is committed,
+  `ManageExpeditions` and `RebuildHoldProvinces` - the third piece; and with it the axis (the path to the objectives at stance 3 and 4), embark and debark, the
   movers between theatres, invasions, the pride, the leaders promoted and the units sent abroad by a landless country.
-- **Their power's three unread gates** in `EstimateAreaNeed`: the country-database comparisons, the faction test at the
-  capital, the capital-adjacency cap - each taken as not applying.
-- **The transport plane, strategic bomber and naval bomber wants** (their inputs are not read), and `+0x370` in the
-  division demand, taken as nought.
+- **The transport plane and strategic bomber wants**, and a term of the
+  division demand whose source was not read, taken as nought.
 - **The front coverage's hold positions at stance 0**, a stance the AI never chooses.
 - **The friends' and enemies' combat value in the war stance** (`g`, the country's `army_combat_value`): taken as 10, so a
   war stance is never lowered for it.
 - **The prune of an area by the priority provinces** (`SetArea`, step 6), which needs a war and a friend's request, and
   the second list of countries whose requests count (`non_hostile_countries`).
-- **The air groups' rebasing** (`ManageAirUnits`' second phase) and the busy groups the first phase sends to rest.
-- **Of the movers between theatres** (section 10): the fleets' and the transport fleets' (their wants are sighted enemy
-  ships and sealift, the third piece's - at peace the fleets' moves nothing in the original either); the air units' move by
-  the plan's group difference; and in the donor's pick, a division's own supply depot keeping a garrison, the idle
-  divisions beside a war candidate's border, a mountain division standing in the mountains, and the target areas.
-- **How an area's need folds in the areas it recurses into** (`EstimateAreaNeed`'s tail): taken as the sum of the scores in
-  wholes, rounded half to even, over the area's provinces. The need is what the balancing of section 10.2 and the aircraft
-  of section 9 weigh, so neither is set against the saves until it is read.
+- ~~**The air groups' rebasing** (`ManageAirUnits`' second phase) and the busy groups the first phase sends to rest.~~
+  Built with the third piece, 2026-10-19 (`moving.md`, section 17).
+- **Of the movers between theatres** (section 10): the air units' move by the plan's group difference; a transport fleet
+  taken from an agent with troops of its own for the sea, which the original allows by weights not read; and in the
+  donor's pick, a division's own supply depot keeping a garrison, the idle divisions beside a war candidate's border, a
+  mountain division standing in the mountains, and the target areas.
+- **The objectives of other areas' borders** in the need (7.5, step 2): only the human's delegated AI has them.
+- **What holds the balancing back** (10.2): with the need as read, ours moves far more than the original - section 14.
 
 ## 14. Checked against the saves
 
@@ -474,3 +551,12 @@ divisions the original balances between theatres (section 10.2, its need not set
 (the order of the ready fleets), and the powers - our power 21 of 106 and their power 78 - where the units under a
 theatre or the enemy's on its front differ, the enemy's units not moving here yet. The aircraft wanted agree for 67, the
 naval bomber's want not being built.
+
+**With the division need read (7.5), 2026-10-19**, the same run: the aircraft wanted **90 of 106** - every one that
+differs now the naval bomber's want or a theatre whose divisions differ - divisions 91, corps 91, army groups 99, armies
+91, their power 80. The Soviet theatres come within one division of the save (Leningrad 18 against 17, Brjansk 14
+against 15), as the reading's own model predicts. **Britain and France move too much**: the original gave Home Command,
+whose need of about 31 against 18 divisions its aircraft want of 4 confirms, nothing by 4 January, nor Port Harcourt or
+St. John's, and moved one division each from the Army of India to the Far East and East Africa; ours sends India's
+divisions to all of them. With the old need nothing of Britain's moved. What holds the original back is not read
+(the fact base's queue, the moving wave's first item).

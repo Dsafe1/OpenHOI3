@@ -99,7 +99,7 @@ public static class CAirMissions
 	}
 
 	/// <summary>
-	/// Whether an air order may list a province - the original's slot 37: a bombing
+	/// Whether an air order may list a province, as the original's order answers it: a bombing
 	/// mission by its own test, which asks no range, and anything else by the range.
 	/// </summary>
 	public static bool MayList(CGameState state, CUnit unit, EUnitOrder order, CProvince province)

@@ -9,7 +9,7 @@ namespace OpenHOI3.Sim.Agents;
 /// <summary>
 /// The stances of a country's plans: air and naval offensive everywhere; the ground stance prepare at peace and, at war,
 /// defensive, attacking or blitzing by the AI's power against the enemy's and how much of the front its units hold. The
-/// original's <c>CEU3AI::UpdateUnitStances</c> and slot 77. See <c>docs/mechanics/agents.md</c>, section 7.2.
+/// original's <c>CEU3AI::UpdateUnitStances</c> and <c>CAIUnit::SetPlanStance</c>. See <c>docs/mechanics/agents.md</c>, section 7.2.
 /// </summary>
 public static class CPlanStances
 {
@@ -125,5 +125,7 @@ public static class CPlanStances
 		state.Outbox.Add(new CSetPlanCommand(country.Tag, unit.Id, stance, CSetPlanCommand.UnchangedAirOrNaval,
 			CSetPlanCommand.UnchangedAirOrNaval));
 		agent.ReplanSubordinates = true;
+		CAreaScores.Score(state, country, agent, stance);
+		CPlanAxis.Update(state, country, agent, stance);
 	}
 }

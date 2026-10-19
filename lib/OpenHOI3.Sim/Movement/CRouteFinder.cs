@@ -28,7 +28,9 @@ public static class CRouteFinder
 	/// A fleet on a mission keeps off an enemy's shores: a step into water beside an
 	/// enemy's naval base or airfield costs three times as much, and nine beside both.
 	/// </param>
-	public static List<int>? Find(CGameState state, CCountry country, CUnit unit, int from, int to, bool safe = false)
+	/// <param name="landSafety">How a land unit's way keeps clear of the enemy short of the goal.</param>
+	public static List<int>? Find(CGameState state, CCountry country, CUnit unit, int from, int to, bool safe = false,
+		ERouteSafety landSafety = ERouteSafety.Plain)
 	{
 		int count = state.Provinces.Count;
 		if (from <= 0 || to <= 0 || from >= count || to >= count)
@@ -68,7 +70,8 @@ public static class CRouteFinder
 					continue;
 				}
 				CProvince there = state.Province(edge.To);
-				if (!CMovementRules.MayStep(state, country, unit, here, there, edge))
+				if (!CMovementRules.MayStep(state, country, unit, here, there, edge)
+					|| (edge.To != to && !IsSafeStep(state, country, unit, there, landSafety)))
 				{
 					continue;
 				}
@@ -103,6 +106,54 @@ public static class CRouteFinder
 			}
 		}
 		return null;
+	}
+
+	/// <summary>
+	/// Whether a land unit's way may pass through a province short of its goal. Safe: not where the strength of the units
+	/// of countries at war with it - a rebel's not counted on the unit's own country's land - is more than its own. Very
+	/// safe: not into a province held by a country at war with it, nor one with a land battle in it. Fleets and air units
+	/// are not held back by either (<c>CSafePathFind</c> and <c>CVerySafePathFind</c> weigh them otherwise; not built).
+	/// </summary>
+	public static bool IsSafeStep(CGameState state, CCountry country, CUnit unit, CProvince there, ERouteSafety safety)
+	{
+		if (safety == ERouteSafety.Plain || unit.Kind is EUnitKind.Navy or EUnitKind.Air)
+		{
+			return true;
+		}
+		if (safety == ERouteSafety.VerySafe)
+		{
+			if (CMovementRules.IsEnemy(state, country.Tag, there.Controller))
+			{
+				return false;
+			}
+			foreach (Combat.CCombat combat in state.Combats)
+			{
+				if (combat.Province == there.Id && combat.Kind == Combat.ECombatKind.Land)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		long hostile = 0;
+		foreach (CUnit other in state.Positions.Of(there.Id))
+		{
+			if (!CMovementRules.IsEnemy(state, country.Tag, other.Owner)
+				|| (other.Owner.Value == Revolts.CRebelFactions.Rebels && there.Owner == country.Tag))
+			{
+				continue;
+			}
+			foreach (CSubUnit brigade in other.SubUnits)
+			{
+				hostile += brigade.Strength.Raw;
+			}
+		}
+		long own = 0;
+		foreach (CSubUnit brigade in unit.SubUnits)
+		{
+			own += brigade.Strength.Raw;
+		}
+		return hostile <= own;
 	}
 
 	/// <summary>

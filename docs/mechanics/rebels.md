@@ -353,5 +353,5 @@ first target does not begin.
 
 - The order of the history the month reads the last day the rebels took a province from.
 - `Province_Defect`, which nothing reaches, read off the decompiler only.
-- What the original does with a rebel army of under 0.1 strength in all, which its unit's hour hands to a routine not
-  read (`0x684C80`) - likely the army taken away.
+- What the original does with a rebel army of under 0.1 strength in all, which its unit's hour hands to the game state's
+  queue of units to remove - likely the army taken away, the queue's handling not read.

@@ -356,7 +356,8 @@ public static class CMovement
 			return false;
 		}
 		// A unit with an attack delay running does not take its first step.
-		if (unit.MovementProgress == CFixedPoint.Zero && unit.AttackDelay > CFixedPoint.Zero)
+		if (unit.MovementProgress == CFixedPoint.Zero && unit.AttackDelay > CFixedPoint.Zero
+			&& unit.Order != EUnitOrder.StrategicRedeployment)
 		{
 			return false;
 		}
@@ -404,7 +405,7 @@ public static class CMovement
 		}
 
 		CFixedPoint distance = Distance(state, unit);
-		if (addSpeed)
+		if (addSpeed && unit.Order != EUnitOrder.SupportAttack)
 		{
 			unit.MovementProgress += CMovementSpeed.Speed(state, country, unit);
 		}

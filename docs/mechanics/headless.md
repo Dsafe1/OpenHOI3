@@ -167,11 +167,63 @@ nothing thrown, nothing below nought, no Lua error; 2120 units at the year's end
 armies, army groups, fleets and air units. The run is slower by about two fifths - more units for every daily step, and
 the pass itself about 3 ms an hour. A run to April 1936 with the pass entering the game ran clean too.
 
+### With moving and attacking (2026-10-19)
+
+The military AI's third piece (`moving.md`): divisions placed on the line, in garrisons and in reserve, attacks by the
+AI's odds, the fleets' hour, the sealift and invasions, and the air. `headless <install> 1937`, twice:
+
+- **Before the air** (section 17 of `moving.md`): 1936 in 377 seconds, nothing thrown, nothing below nought, no Lua error;
+  2197 units at the year's end. **The Spanish Civil War fired on 12 November** - Germany, the Soviet Union and Italy took
+  their intervention decisions - **and was still being fought on 1 January 1937**, 47 provinces having changed hands in
+  the year. Before the third piece nothing kept it past its first day (section 5).
+- **With the air**: 1936 in 369 seconds - the air costs nothing that shows - nothing thrown, nothing below nought, no Lua
+  error; 2171 units. The draws having moved, the Spanish Civil War did not fire this time.
+
+In both, **Italy's war on Ethiopia is still on at the year's end**: its attack takes provinces - eight by July in a run of
+2026-10-19 - but not the country. ~~The original's Italy is slower still: in the maintainer's save of 20 April 1936,
+Ethiopia owns and holds all 21 of its provinces~~ - that save is the outlier, by the maintainer's word: in the Ireland
+game's save of 2 February 1936 the original's Italy holds 8 of them. Ours, after the corrections of the same evening, holds 9
+by that day (`moving.md`, section 21). A run of 1936 now takes about six minutes in Release, half as long again as with
+the unit agents alone.
+
+### To 1939, with the attack and the land block corrected (2026-10-19)
+
+`headless <install> 1939`, after the corrections of `moving.md`, section 21: three years in 1422 seconds - 504, 415 and
+503 a year, against 369 for 1936 before the reach tests (`moving.md`, section 10), which ask the route finder of every
+division a line or a pull considers. Nothing thrown, nothing below nought. What happened, in order:
+
+| date | | the original's history |
+| --- | --- | --- |
+| 19 March 1936 | Ethiopia surrenders to Italy | Addis Abeba fell on 5 May 1936 |
+| 22 July 1936 | the Spanish Civil War - Germany, Italy and the Soviet Union intervene | 17 July 1936 |
+| 5 February 1937 | **the Republicans annex the Nationalists** | the Nationalists won in April 1939 |
+| 9 March 1938 | the Anschluss | 12 March 1938 |
+| 5 July 1938 | **the Marco Polo Bridge incident**: Japan and Manchukuo at war with China and Shanxi | 7 July 1937 |
+| 14 July 1938 | Japan and Manchukuo join the Axis | the Anti-Comintern Pact, 1936 |
+| 27 August 1938 | Japan annexes Shanxi | |
+| 9 September 1938 | the Treaty of Munich | 30 September 1938 |
+| 18 December 1938 | **China surrenders to Japan**; Mengkukuo is made | China fought on to 1945 |
+
+Three things to look into, none of them yet looked into:
+
+1. **China falls in five months.** Its IC goes from 56 to 8 and its fuel and supplies to nought within half a year of
+   the war; the original's China holds out for years whatever the AI does. Whether it is China's defence (the land block
+   at war), its supply, the battles or Japan's numbers is not found.
+2. **The Marco Polo Bridge comes a year late.** Japan's prepared war was "not ready" from 1 July 1937 to 5 July 1938.
+   Readiness is answered over the fronts (`foreignminister.md`, section 7), so where Japan's divisions stand decides it.
+3. **The Spanish Civil War is over in six months**, the Republic winning. With nobody playing either side the AI may win
+   either way; how fast is worth a look beside the original.
+
+**The Lua**: 40 errors, every one `script/country/JAP.lua` line 699 - the script asks for the faction `"cominterm"`
+(sic), our `GetFaction` answers a faction with no leader, and the empty leader's `GetCountry()` answers nil. It runs only
+when Japan has no war with a great power, so it begins after China's surrender. What the original's API answers for a
+misspelt faction, and for an empty tag's country, is not read. And one event's `load_oob` is not built.
+
 ## 5. Not established
 
 - ~~What keeps the original's Spanish Civil War going past its first day~~ - the AI, by the maintainer's account: it
-  has moved the Republic's units away from the Nationalists' victory points by the time the event fires. It waits for
-  the AI here.
+  has moved the Republic's units away from the Nationalists' victory points by the time the event fires. Since the
+  military AI's third piece it goes on here too (section 4, *With moving and attacking*).
 
 - Whether the totals are "plausible against a real savegame" past April 1936: no save of the maintainer's lies later.
   A save of a later year, with nobody playing or with as little played as he can, would be the measure. The Ireland

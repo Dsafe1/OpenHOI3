@@ -14,11 +14,17 @@ public static class CTheatreFigures
 	/// <summary>The province's IC modifier, which a headquarters' name weighs.</summary>
 	public const string Ic = "ic";
 
-	public static CBuilding? NavalBase(CGameState state)
+	public const string AirBaseKey = "air_base";
+
+	public static CBuilding? NavalBase(CGameState state) => Building(state, NavalBaseKey);
+
+	public static CBuilding? AirBase(CGameState state) => Building(state, AirBaseKey);
+
+	private static CBuilding? Building(CGameState state, string key)
 	{
 		foreach (CBuilding building in state.Buildings)
 		{
-			if (building.Key.Equals(NavalBaseKey, StringComparison.OrdinalIgnoreCase))
+			if (building.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
 			{
 				return building;
 			}

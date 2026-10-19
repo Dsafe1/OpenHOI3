@@ -67,4 +67,20 @@ public static class CDaylight
 		long half = longer * CFixedPoint.Scale / (2 * CFixedPoint.Scale) / CFixedPoint.Scale;
 		return !(Sunrise - half <= local && local <= Sunset + half);
 	}
+
+	/// <summary>
+	/// The hour the AI takes for sunset over a province: twelve and q, where q is half of twelve hours and what the month
+	/// gives its latitude, in whole hours - 18 at the equator, 24 under the midnight sun. No longitude: the AI sets it
+	/// against the game's own hour (<c>docs/mechanics/moving.md</c>, section 17).
+	/// </summary>
+	public static int SunsetHour(CGameState state, CProvince province)
+	{
+		int month = state.Date.Month - 1;
+		if (province.PositionY < state.MapHeight / 2)
+		{
+			month = (month + 6) % 12;
+		}
+		long q = (LatitudeNorth(state, province) * LongerByMonth[month] / CFixedPoint.Scale + 12000) / 2000;
+		return Noon + (int)q;
+	}
 }

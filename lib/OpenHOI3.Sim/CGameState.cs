@@ -504,6 +504,12 @@ public sealed class CGameState
 	public Script.CScriptReport? ScriptReport { get; set; }
 
 	/// <summary>
+	/// The country whose unit AI tells what it decides, and where it tells it, for a tool tracing it. Null in a game.
+	/// Changes nothing the AI does.
+	/// </summary>
+	public (Countries.CCountryTag Country, Action<string> Write)? AiTrace { get; set; }
+
+	/// <summary>
 	/// Raised as an event fires, past its <c>fire_only_once</c> test, for whatever reports it - a
 	/// message, a tool. Never for anything that changes the game.
 	/// </summary>
@@ -621,11 +627,17 @@ public sealed class CGameState
 		}
 	}
 
+	/// <summary>
+	/// Whether the country is at war with some country, the original's <c>at_war</c> flag as <c>UpdateAtWarAndEnemies</c>
+	/// sets it. A war whose other side has emptied - a capitulation or a peace leaves it standing, and the original's saves
+	/// hold such wars - makes nobody at war (war.md, section 1).
+	/// </summary>
 	public bool IsAtWar(CCountryTag tag)
 	{
 		foreach (CWar war in Wars)
 		{
-			if (war.Involves(tag))
+			if ((war.Attackers.Contains(tag) && war.Defenders.Count > 0)
+				|| (war.Defenders.Contains(tag) && war.Attackers.Count > 0))
 			{
 				return true;
 			}

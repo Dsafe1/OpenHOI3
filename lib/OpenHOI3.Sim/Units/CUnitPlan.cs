@@ -57,6 +57,12 @@ public sealed class CUnitPlan
 
 	public List<CObjective> Objectives { get; } = new();
 
+	/// <summary>Its axis: the way its attack runs, from beside its area to an objective (<c>docs/mechanics/moving.md</c>, section 11.6).</summary>
+	public List<int> Path { get; } = new();
+
+	/// <summary>A second way, which the AI leaves empty.</summary>
+	public List<int> Path2 { get; } = new();
+
 	/// <summary>Off, with everything as a new plan has it.</summary>
 	public void Reset()
 	{
@@ -71,5 +77,7 @@ public sealed class CUnitPlan
 		Area.Clear();
 		Min.Clear();
 		Objectives.Clear();
+		Path.Clear();
+		Path2.Clear();
 	}
 }

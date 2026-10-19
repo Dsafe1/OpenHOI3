@@ -25,11 +25,11 @@ public static class CAgentTick
 
 		if (agent.AreaDirty || (hour == 1 && dayOfYear % 7 == 0))
 		{
-			CAgentArea.Set(state, country, agent);
+			CAgentProfile.Time(state, "the area", () => CAgentArea.Set(state, country, agent));
 		}
 		if ((hour == a0 || !agent.PlanPosted) && agent.Unit is not null && country.UnitAi.RunsUnits)
 		{
-			agent.PlanPosted = true;
+			CPlanAxis.Update(state, country, agent, agent.Unit.Plan.Stance);
 		}
 		CCommandProvince.Choose(state, country, agent, force: hour == a0 && dayOfYear % 9 == 0);
 		if (hour == a3)
@@ -44,25 +44,73 @@ public static class CAgentTick
 		{
 			CFocusAreas.Rebuild(state, country, agent, theatre);
 		}
-		CFrontCoverage.Update(state, country, agent);
+		CAgentProfile.Time(state, "the coverage", () => CFrontCoverage.Update(state, country, agent));
 		if (agent.ReplanSubordinates || hour == a9 || full)
 		{
-			CSubordinates.Sort(state, country, agent);
+			CAgentProfile.Time(state, "the subordinates", () => CSubordinates.Sort(state, country, agent));
+		}
+		CAgentProfile.Time(state, "the threatened", () => CThreatenedProvinces.Update(state, country, agent));
+		if (CHoldProvinces.IsDue(state, country, agent, full))
+		{
+			CAgentProfile.Time(state, "the hold list", () => CHoldProvinces.Rebuild(state, country, agent));
 		}
 		if (full)
 		{
 			if (unit.Kind == EUnitKind.Theatre)
 			{
-				CAircraftWants.Update(state, country, agent);
+				CAgentProfile.Time(state, "the aircraft", () => CAircraftWants.Update(state, country, agent));
 			}
+		}
+		bool landHour = full || (hour % 3 == 0 && (state.IsAtWar(country.Tag) || country.UnitAi.InRevolt));
+		if (landHour && country.UnitAi.RunsUnits)
+		{
+			CAgentProfile.Time(state, "the land block", () => CLandBlock.Run(state, country, agent));
+		}
+		if (full)
+		{
 			agent.FullPassPending = false;
 			CCommandProvince.PullIn(state, country, agent);
 		}
-		CAirRegroup.Run(state, country, agent, force: full);
-		if (full || agent.ReplanNaval || state.IsAtWar(country.Tag))
+		if (hour == a6 && country.UnitAi.RunsUnits)
 		{
-			CFleetRegroup.Run(state, country, agent);
+			CAgentProfile.Time(state, "the sealift", () => CSealift.Run(state, country, agent));
+		}
+		CAgentProfile.Time(state, "the air bases", () => CAirBaseLists.Build(state, country, agent, full));
+		CAgentProfile.Time(state, "the air", () => CAirBody.Run(state, country, agent, full));
+		bool regroup = full || agent.ReplanNaval || state.IsAtWar(country.Tag);
+		if (country.UnitAi.RunsUnits)
+		{
+			int before = state.Outbox.Count;
+			CAgentProfile.Time(state, "the fleets", () => CNavalBody.Run(state, country, agent, regroup));
+			if (state.AiTrace is { } trace && trace.Country == country.Tag)
+			{
+				for (int index = before; index < state.Outbox.Count; index++)
+				{
+					trace.Write($"    fleets ({agent.Unit?.Name}): {state.Outbox[index]}");
+				}
+			}
+		}
+		else if (regroup)
+		{
+			CAgentProfile.Time(state, "the fleets", () => CFleetRegroup.Run(state, country, agent));
 		}
 		CCommandProvince.March(state, country, agent);
+		if (landHour && country.UnitAi.RunsUnits)
+		{
+			CAgentProfile.Time(state, "the attack", () => CLandAttack.Run(state, country, agent));
+		}
+	}
+
+	/// <summary>A province the country owns held by the rebels: the original's <c>provinces_in_revolt</c> above nought.</summary>
+	public static bool InRevolt(CGameState state, CCountry country)
+	{
+		foreach (Provinces.CProvince province in state.Provinces)
+		{
+			if (province.Owner == country.Tag && province.Controller?.Value == Revolts.CRebelFactions.Rebels)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

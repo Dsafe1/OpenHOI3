@@ -373,6 +373,7 @@ public class UnitTests
 		CCountry country = Country(conscription: "-0.75");
 		var war = new CWar("a war", new CDate(1935, 10, 3));
 		war.Attackers.Add(Ger);
+		war.Defenders.Add(new CCountryTag("ETH"));
 		CGameState state = State(country, war: war);
 		var division = new CUnit(EUnitKind.Division, Ger);
 		country.Units.Add(division);

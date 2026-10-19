@@ -276,7 +276,7 @@ and then of `local_resources` in the province; "\n"; the sources of the good's `
 
 ## Not established
 
-- That the glue's slot 1 is a left press (the close button and the flags).
+- That the glue's first handler is a left press (the close button and the flags).
 - What a click picks where a counter and a province overlap (`mapunits.md` has ours).
 - How a disabled `building_icon` is drawn, its sprite having one frame.
 - That a pip hidden for an earlier province stays hidden below intelligence 6.

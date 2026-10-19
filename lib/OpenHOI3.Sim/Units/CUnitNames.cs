@@ -111,7 +111,7 @@ public static class CUnitNames
 	}
 
 	/// <summary>
-	/// Marks a name as in use by the country: the original keeps a set for each country (<c>CCountry +0x84</c>), so two
+	/// Marks a name as in use by the country: the original keeps a set for each country, so two
 	/// countries may call units the same.
 	/// </summary>
 	public static void Register(CCountry country, string name)

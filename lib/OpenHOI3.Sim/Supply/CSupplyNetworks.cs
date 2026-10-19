@@ -38,8 +38,13 @@ public static class CSupplyNetworks
 		if (force || state.SupplyNetwork is not { } network || network.ControlChanges != state.ControlChanges
 			|| network.ProvinceCount != state.Provinces.Count)
 		{
+			bool had = state.SupplyNetwork is not null;
 			network = Build(state);
 			state.SupplyNetwork = network;
+			if (had)
+			{
+				Theatres.CAreaRemap.Remap(state, network);
+			}
 		}
 		return network;
 	}

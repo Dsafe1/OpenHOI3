@@ -88,14 +88,26 @@ public static class CFleetRegroup
 		return most <= 0 ? CFixedPoint.Scale : ship.Organisation.Raw * CFixedPoint.Scale / most;
 	}
 
+	/// <summary>The regrouping alone, for an agent whose naval body does not run: the port phase, then the split and merge.</summary>
 	public static void Run(CGameState state, CCountry country, CAgent agent)
 	{
+		List<CUnit> ready = Ready(state, country, agent);
+		Merge(state, country, agent, ready, new HashSet<CUnit>());
+		agent.ReplanNaval = false;
+	}
+
+	/// <summary>
+	/// The port phase (the naval body's phase 3): a worn fleet away from its base sent to port, a damaged one at its base
+	/// split; every other fleet with ships, a base and no retreat is ready, in the agent's order.
+	/// </summary>
+	public static List<CUnit> Ready(CGameState state, CCountry country, CAgent agent)
+	{
+		var ready = new List<CUnit>();
 		if (agent.Unit is not { } headquarters)
 		{
-			return;
+			return ready;
 		}
 		bool mayReorganise = country.UnitAi.RunsUnits || headquarters.Plan.AllowHqReorg;
-		var ready = new List<CUnit>();
 		foreach (CUnit fleet in agent.Fleets)
 		{
 			if (fleet.IsRemoved || fleet.SubUnits.Count == 0 || fleet.Base == 0 || fleet.IsRetreating)
@@ -138,11 +150,20 @@ public static class CFleetRegroup
 			}
 			ready.Add(fleet);
 		}
-		if (mayReorganise)
+		return ready;
+	}
+
+	/// <summary>
+	/// The split and merge (the naval body's phase 5), where the country may reorganise: what it orders to join, and the
+	/// fleets they join, go on the handled list with those the existing orders put there.
+	/// </summary>
+	public static void Merge(CGameState state, CCountry country, CAgent agent, List<CUnit> ready, HashSet<CUnit> handled)
+	{
+		if (agent.Unit is not { } headquarters || !(country.UnitAi.RunsUnits || headquarters.Plan.AllowHqReorg))
 		{
-			SplitAndMerge(state, country, headquarters, ready);
+			return;
 		}
-		agent.ReplanNaval = false;
+		SplitAndMerge(state, country, headquarters, ready, handled);
 	}
 
 	/// <summary>The nearest of the country's ports, its base's distance counted at three quarters: rebased there or sent home.</summary>
@@ -196,9 +217,21 @@ public static class CFleetRegroup
 		return ++state.LastUnitId;
 	}
 
-	private static void SplitAndMerge(CGameState state, CCountry country, CUnit headquarters, List<CUnit> ready)
+	private static void SplitAndMerge(CGameState state, CCountry country, CUnit headquarters, List<CUnit> ready,
+		HashSet<CUnit> handled)
 	{
-		var handled = new HashSet<CUnit>();
+		// A fleet joining another, and the other, are handled before the merge (the naval body's phase 4).
+		foreach (CUnit fleet in ready)
+		{
+			if (fleet.Order == EUnitOrder.JoinFleet)
+			{
+				handled.Add(fleet);
+				if (fleet.Mission.LiveTarget is { } target)
+				{
+					handled.Add(target);
+				}
+			}
+		}
 		var counts = new Dictionary<CUnit, CShipCensus>();
 		foreach (CUnit fleet in ready)
 		{

@@ -141,7 +141,7 @@ public static class CWarEffects
 	}
 
 	/// <summary>
-	/// The country <c>war</c>, <c>add_wargoal</c> and <c>undeclared_war</c> mean - the original's slot 12:
+	/// The country <c>war</c>, <c>add_wargoal</c> and <c>undeclared_war</c> mean, as the original's effect finds it:
 	/// the <c>target</c> written, THIS or FROM; where none is written, or one nobody has, the controller of
 	/// the scope's province.
 	/// </summary>

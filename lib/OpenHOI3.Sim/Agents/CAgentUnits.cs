@@ -15,6 +15,10 @@ public static class CAgentUnits
 	{
 		for (CUnit? at = unit; at is not null; at = at.Parent)
 		{
+			if (at.Invasion is not null)
+			{
+				return null;
+			}
 			if (at.Agent is { } agent)
 			{
 				return agent;
@@ -86,7 +90,21 @@ public static class CAgentUnits
 	/// <summary>Where a unit is going, or else where it is: the original's destination-or-province.</summary>
 	public static int DestinationOrPlace(CUnit unit)
 	{
+		if (unit.AiBound >= 0)
+		{
+			return unit.AiBound > 0 ? unit.AiBound : unit.Location;
+		}
 		return unit.Path.Count > 0 ? unit.Path[^1] : unit.Location;
+	}
+
+	/// <summary>Where it is going, or 0: what the AI sent it to in this pass, else its way's end.</summary>
+	public static int Destination(CUnit unit)
+	{
+		if (unit.AiBound >= 0)
+		{
+			return unit.AiBound;
+		}
+		return unit.Path.Count > 0 ? unit.Path[^1] : 0;
 	}
 
 	/// <summary>The country's agent working the theatre, or null.</summary>

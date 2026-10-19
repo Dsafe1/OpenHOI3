@@ -200,7 +200,7 @@ same on every machine. `confirmed`
 - **The box is a rectangle on the screen**: the map here is drawn straight down, so the original's rectangle on the
   ground is one on the screen as well. Its width is two pixels of the screen at any zoom.
 - **The map wraps**: a box crossing the map's east-west seam takes what lies on either copy.
-- **Alt does nothing to a box.** The original cancels a box with its input slot 11, which reads two keys its keyboard
+- **Alt does nothing to a box.** The original cancels a box in an input handler that reads two keys its keyboard
   never sets (`FINDINGS-selection.md` A.1, *inferred*), so in play Alt changes nothing; we do the same.
 - **The rings follow the order of battle as it stands**, as they already did (`mapunits.md`): a unit taken out of a
   selection that keeps its superior wears the second colour here, where the original leaves it bare until the

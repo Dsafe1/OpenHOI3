@@ -21,6 +21,8 @@ public sealed class CJoinUnitCommand : CCommand
 		_target = target;
 	}
 
+	public override string ToString() => $"join unit {_unit} to unit {_target}";
+
 	public override bool MayExecute(CGameState state)
 	{
 		return CUnitFinder.Find(state, _owner, _unit) is { Kind: EUnitKind.Navy or EUnitKind.Air } unit

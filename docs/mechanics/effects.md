@@ -238,7 +238,7 @@ here. The march back is posted where "this machine may post commands" - the orig
 player and on a multiplayer host - which a game here always may. So a unit is seen in a neighbouring province only
 where nobody was left behind: the "random adjacent province, under unknown circumstances" the BlackICE docs record.
 *Ours*: THIS's officers are floored at nought, as a country's officers always are; how the original moves them
-(`0x3A680`) is not read.
+is not read.
 
 **A unit type's name** - `infantry_brigade = 1234`, `= this`, `= from` or `= current` - gives the scope's country a
 brigade of that type in that province (THIS's province, THIS's FROM province, or the scope's own - **given then to

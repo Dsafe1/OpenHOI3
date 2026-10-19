@@ -51,6 +51,8 @@ public sealed class CSetUnitOrderCommand : CCommand
 		_endHour = endHour;
 	}
 
+	public override string ToString() => $"order {_order} to unit {_unit} at {_province}";
+
 	public override bool MayExecute(CGameState state)
 	{
 		if (state.Country(_country) is not { } country || Find(country) is not { } unit

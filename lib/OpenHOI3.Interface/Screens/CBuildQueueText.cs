@@ -83,7 +83,7 @@ public static class CBuildQueueText
 	}
 
 	/// <summary>
-	/// A building line's name, the original's slot 13: the building's, and " (" + the province's + ")" where it has one
+	/// A building line's name, as the original's line names itself: the building's, and " (" + the province's + ")" where it has one
 	/// (<c>buildinglines.md</c>, section 7).
 	/// </summary>
 	public static string BuildingName(Func<string, string> localise, CGameState state, CConstruction construction)
@@ -93,7 +93,7 @@ public static class CBuildQueueText
 	}
 
 	/// <summary>
-	/// A convoy line's name, the original's slot 13: "Convoy" or "Escort", with no count (<c>convoylines.md</c>,
+	/// A convoy line's name, as the original's line names itself: "Convoy" or "Escort", with no count (<c>convoylines.md</c>,
 	/// section 4).
 	/// </summary>
 	public static string ConvoyName(Func<string, string> localise, CConstruction construction)

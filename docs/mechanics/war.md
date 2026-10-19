@@ -22,7 +22,10 @@ side**. Besides them it holds (`FINDINGS-war.md` A.8):
 
 Two countries are at war when one is an attacker and the other a defender of one war. **A war is never
 taken off the game's list**, not even when a side empties (`FINDINGS-war.md` C.13): leaving one (below)
-takes a country off its side and nothing more.
+takes a country off its side and nothing more. **So a country is at war only while it is at war with some
+country** - the original's own flag, which `UpdateAtWarAndEnemies` makes pair by pair (section 4) - and
+not merely while it stands on a side of a war: Italy, alone in its war once Ethiopia has capitulated, is at
+peace. Until 2026-10-20 ours asked the second, and Italy stayed at war for good (`moving.md`, section 21).
 
 **Joining a side** (`CWar::AddAttacker` / `AddDefender`): nothing where the country is there already;
 otherwise it goes **to the front** of the attackers where it leads a real faction, or where it is let

@@ -71,7 +71,9 @@ public static class CMovementSpeed
 		{
 			return Transport.CLanding.Speed(state, unit);
 		}
-		long speed = SlowestBrigade(unit).Raw * Modifier(state, country, unit, here, next) / Scale;
+		long speed = IsLand(unit) && unit.Order == EUnitOrder.StrategicRedeployment
+			? Redeployment(state, here)
+			: SlowestBrigade(unit).Raw * Modifier(state, country, unit, here, next) / Scale;
 		string define = unit.Kind switch
 		{
 			EUnitKind.Navy => NavalSpeedModifier,
@@ -80,6 +82,21 @@ public static class CMovementSpeed
 		};
 		return new CFixedPoint(state.Defines[CManpower.MilitarySection, define].Raw * speed / Scale);
 	}
+
+	/// <summary>
+	/// A strategic redeployment's speed: <c>STRAT_REDEP_BASE_SPEED</c> by the province's infrastructure, its
+	/// infrastructure modifier raised by the local and global ones, held between a hundredth and a whole
+	/// (<c>movement.md</c>, section 5.1).
+	/// </summary>
+	private static long Redeployment(CGameState state, CProvince here)
+	{
+		long infrastructure = here.Modifier["infrastructure"].Raw
+			* (Scale + here.Modifier["local_infrastructure"].Raw + here.Modifier["global_infrastructure"].Raw) / Scale;
+		infrastructure = System.Math.Clamp(infrastructure, 10, Scale);
+		return state.Defines[CManpower.MilitarySection, StratRedeployBaseSpeed].Raw * infrastructure / Scale;
+	}
+
+	public const string StratRedeployBaseSpeed = "STRAT_REDEP_BASE_SPEED";
 
 	/// <summary>
 	/// The unit's own top speed: the lowest <c>maximum_speed</c> among its brigades,

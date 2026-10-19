@@ -72,10 +72,34 @@ public sealed class CUnit
 	public Agents.CAgent? Agent { get; set; }
 
 	/// <summary>
-	/// The subordinates the AI has promised it in this reorganisation, beyond those it has: the original's +0x2C4
+	/// The subordinates the AI has promised it in this reorganisation, beyond those it has
 	/// (<c>docs/mechanics/agents.md</c>, section 4.2).
 	/// </summary>
 	public int Promised { get; set; }
+
+	/// <summary>A division the AI holds back from its line: the original's <c>ai_held_back</c> (<c>docs/mechanics/moving.md</c>, section 2).</summary>
+	public bool IsHeldBack { get; set; }
+
+	/// <summary>A division the AI keeps as a garrison: the original's <c>ai_garrison</c> (<c>moving.md</c>, section 7.2).</summary>
+	public bool IsGarrison { get; set; }
+
+	/// <summary>Where the AI's sealift is sending it, or 0: the saved <c>target</c> (<c>moving.md</c>, the sealift).</summary>
+	public int SealiftTarget { get; set; }
+
+	/// <summary>Where an airborne army waits to be flown from, or 0: the saved <c>staging_province</c>.</summary>
+	public int Staging { get; set; }
+
+	/// <summary>A division the sealift has found in its country's land outside its theatre, this pass: scratch.</summary>
+	public bool IsStranded { get; set; }
+
+	/// <summary>The AI's invasion it is taken for, or null: no theatre's agent then counts it (<c>docs/mechanics/moving.md</c>, section 16).</summary>
+	public Agents.CInvasion? Invasion { get; set; }
+
+	/// <summary>
+	/// Where the AI sent it in its country's pass this hour, 0 halted, -1 nowhere yet: the original writes the unit's
+	/// destination at once, before its command runs (<c>docs/mechanics/moving.md</c>, section 10).
+	/// </summary>
+	public int AiBound { get; set; } = -1;
 
 	public bool IsMoving => Path.Count > 0;
 

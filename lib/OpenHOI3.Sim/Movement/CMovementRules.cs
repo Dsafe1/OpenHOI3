@@ -269,6 +269,13 @@ public static class CMovementRules
 		{
 			return false;
 		}
+		// Nobody is routed onto an enemy's ground who was given no supplies, or no fuel, and uses some.
+		if (IsEnemy(state, country.Tag, to.Controller) && state.Country(unit.Owner) is { } owner
+			&& ((unit.SuppliesReceived == CFixedPoint.Zero && Units.CUnitSupply.SupplyConsumption(state, owner, unit) > CFixedPoint.Zero)
+				|| (unit.FuelReceived == CFixedPoint.Zero && Units.CUnitSupply.FuelConsumption(state, owner, unit) > CFixedPoint.Zero)))
+		{
+			return false;
+		}
 		if (unit.Kind == EUnitKind.Navy)
 		{
 			if (!from.IsSea && !to.IsSea)

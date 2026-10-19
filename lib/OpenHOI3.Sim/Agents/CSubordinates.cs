@@ -13,8 +13,8 @@ namespace OpenHOI3.Sim.Agents;
 /// </summary>
 public static class CSubordinates
 {
-	/// <summary>Carrying troops, in thousandths of the figure: a whole.</summary>
-	private const long CarriesTroops = 1000;
+	/// <summary>Carrying troops: a whole unit of carrying or more.</summary>
+	private const long CarriesTroops = 1;
 
 	public static void Sort(CGameState state, CCountry country, CAgent agent)
 	{
@@ -24,8 +24,14 @@ public static class CSubordinates
 		agent.TransportFleets.Clear();
 		agent.Air.Clear();
 		agent.AirTransports.Clear();
+		agent.InvasionTargets.Clear();
 		foreach (CUnit unit in country.UnitsInOrder())
 		{
+			if (!unit.IsRemoved && unit.Kind == EUnitKind.Navy && unit.Order == EUnitOrder.Invasion
+				&& unit.OrderProvince > 0)
+			{
+				agent.InvasionTargets.Add(unit.OrderProvince);
+			}
 			if (unit.IsRemoved || !Belongs(unit, agent))
 			{
 				continue;
@@ -57,6 +63,7 @@ public static class CSubordinates
 			}
 		}
 		agent.ReplanSubordinates = false;
+		CCommitment.Run(state, country, agent);
 	}
 
 	/// <summary>

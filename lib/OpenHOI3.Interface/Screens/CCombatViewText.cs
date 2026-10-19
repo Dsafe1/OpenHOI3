@@ -89,35 +89,11 @@ public static class CCombatViewText
 	/// </summary>
 	public static long Worth(CCombatSide side)
 	{
-		long sum = 0;
-		foreach (CUnit unit in side.Units)
-		{
-			long circumstances = unit.CombatAttack.Raw * unit.CombatDefence.Raw / Scale;
-			foreach (CSubUnit subUnit in unit.SubUnits)
-			{
-				long body = subUnit.Organisation.Raw * subUnit.Strength.Raw / Scale;
-				if (subUnit.Type.Branch != EUnitBranch.Land)
-				{
-					sum += body * (subUnit.CombatDefence.Raw * subUnit.CombatAttack.Raw / Scale) / Scale;
-					continue;
-				}
-				long arms = (subUnit.Stats[CUnitTotals.SoftAttack].Raw + subUnit.Stats[CUnitTotals.HardAttack].Raw
-					+ subUnit.Stats[side.IsAttacker ? CSubUnitStats.Toughness : CUnitTotals.Defensiveness].Raw)
-					* Scale / (10 * Scale);
-				long factor = arms > Scale ? circumstances * arms / Scale : circumstances;
-				sum += body * factor / Scale;
-			}
-		}
-		return sum;
+		return CCombatShares.Worth(side);
 	}
 
 	/// <summary>The attacker's share of the two sides' worth, in thousandths. Neither side counts for less than one.</summary>
-	public static long Share(CCombat combat)
-	{
-		long attacker = Math.Max(Worth(combat.Attacker), 1);
-		long defender = Math.Max(Worth(combat.Defender), 1);
-		return attacker * Scale / (attacker + defender);
-	}
+	public static long Share(CCombat combat) => CCombatShares.AttackerShare(combat);
 
 	/// <summary>How full the bar is, in whole hundredths: the attacker's share.</summary>
 	public static int Progress(long share)

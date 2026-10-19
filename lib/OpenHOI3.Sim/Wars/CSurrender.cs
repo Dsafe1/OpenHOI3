@@ -26,9 +26,14 @@ public static class CSurrender
 		{
 			country.OwnedCoreVictoryPoints = 0;
 			country.HeldCoreVictoryPoints = 0;
+			country.OwnedVictoryPoints = 0;
 		}
 		foreach (CProvince province in state.Provinces)
 		{
+			if (province.Owner is { } anyOwner && state.Country(anyOwner) is { } holder)
+			{
+				holder.OwnedVictoryPoints += province.Points * 1000L;
+			}
 			if (province.Owner is not { } owner || !province.Cores.Contains(owner) || state.Country(owner) is not { } country)
 			{
 				continue;
