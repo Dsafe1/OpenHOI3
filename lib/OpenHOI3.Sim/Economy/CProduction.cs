@@ -28,6 +28,9 @@ public static class CProduction
 	/// <summary>The define that turns IC into supplies. It is in the same section as the money one.</summary>
 	public const string IcToSupplies = "IC_TO_SUPPLIES";
 
+	/// <summary>The share of a brigade per IC the army adds to the demand at peace, in thousandths; built in, no file moves it.</summary>
+	private const long StandingArmyShare = 250;
+
 	/// <summary>The demand for consumer goods is never outside these, whatever the modifiers say.</summary>
 	private static readonly CFixedPoint LeastDemand = CFixedPoint.Parse("0.010");
 	private static readonly CFixedPoint MostDemand = CFixedPoint.Parse("0.990");
@@ -47,17 +50,38 @@ public static class CProduction
 	}
 
 	/// <summary>
-	/// The fraction of its IC the country wants on consumer goods. At peace the original
-	/// adds a term for its standing army, which is nothing here until there are units.
+	/// The fraction of its IC the country wants on consumer goods: its modifier for war or peace, and at peace a term for
+	/// its standing army, held between a hundredth and 0.99 (<c>production.md</c>, section 3).
 	/// </summary>
 	public static CFixedPoint ConsumerGoodsDemand(CGameState state, CCountry country)
 	{
-		CFixedPoint demand = country.Modifier[state.IsAtWar(country.Tag) ? WarDemand : PeaceDemand];
+		bool atWar = state.IsAtWar(country.Tag);
+		CFixedPoint demand = country.Modifier[atWar ? WarDemand : PeaceDemand];
+		if (!atWar)
+		{
+			demand += StandingArmy(country);
+		}
 		if (demand < LeastDemand)
 		{
 			return LeastDemand;
 		}
 		return demand > MostDemand ? MostDemand : demand;
+	}
+
+	/// <summary>
+	/// What its army adds to the demand at peace: a quarter of its land brigades in service over its IC, by its effective
+	/// neutrality over 100 - in thousandths, each step dropping its remainder, as the original works it. Nothing with no IC.
+	/// </summary>
+	public static CFixedPoint StandingArmy(CCountry country)
+	{
+		if (country.TotalIc <= 0)
+		{
+			return CFixedPoint.Zero;
+		}
+		long perIc = country.LandBrigadesInService * 1000L / country.TotalIc;
+		perIc = perIc * StandingArmyShare / 1000;
+		long neutrality = Math.Clamp(country.EffectiveNeutrality.Raw * 1000 / 100_000, 0, 1000);
+		return new CFixedPoint(perIc * neutrality / 1000);
 	}
 
 	/// <summary>

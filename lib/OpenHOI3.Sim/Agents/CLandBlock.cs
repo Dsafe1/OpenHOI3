@@ -75,6 +75,7 @@ public static class CLandBlock
 			moved = CLineFill.Fill(state, country, agent, line, budget);
 			trace?.Invoke($"  line moved {moved}: " + string.Join(" ", agent.Positions.FindAll(p => p.Want > 0 || p.Standing > 0
 				|| p.Have > 0).ConvertAll(p => $"{p.Province}:{p.Want}/{p.Have}/{p.Standing}/{p.Cap}")));
+			trace?.Invoke("  scores: " + string.Join(" ", agent.Positions.ConvertAll(p => $"{p.Province}={p.Score}")));
 		}
 		if (!moved && garrisons > 0)
 		{

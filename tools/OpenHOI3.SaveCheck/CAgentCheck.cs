@@ -39,6 +39,7 @@ internal static class CAgentCheck
 		public CSavedUnit? Parent;
 		public List<CSavedUnit> Children { get; } = new();
 		public ClausewitzNode? Plan;
+		public ClausewitzNode? Node;
 	}
 
 	private static readonly string[] UnitKeys = { "theatre", "armygroup", "army", "corps", "division", "navy", "air" };
@@ -66,8 +67,14 @@ internal static class CAgentCheck
 		}
 		string? player = args.Skip(4).FirstOrDefault(a => a.StartsWith("player=", StringComparison.Ordinal))?["player=".Length..];
 		string? trace = args.Skip(4).FirstOrDefault(a => a.StartsWith("trace=", StringComparison.Ordinal))?["trace=".Length..];
-		args = args.Where(a => !a.StartsWith("player=", StringComparison.Ordinal) && !a.StartsWith("trace=", StringComparison.Ordinal))
-			.ToArray();
+		string? ready = args.Skip(4).FirstOrDefault(a => a.StartsWith("ready=", StringComparison.Ordinal))?["ready=".Length..];
+		string? follow = args.Skip(4).FirstOrDefault(a => a.StartsWith("unit=", StringComparison.Ordinal))?["unit=".Length..];
+		// tracedays=N: the trace only over the run's last N days, for a run too long to trace whole.
+		int traceDays = args.Skip(4).Where(a => a.StartsWith("tracedays=", StringComparison.Ordinal))
+			.Select(a => int.Parse(a["tracedays=".Length..], CultureInfo.InvariantCulture)).FirstOrDefault(int.MaxValue);
+		args = args.Where(a => !a.StartsWith("player=", StringComparison.Ordinal) && !a.StartsWith("trace=", StringComparison.Ordinal)
+			&& !a.StartsWith("ready=", StringComparison.Ordinal) && !a.StartsWith("unit=", StringComparison.Ordinal)
+			&& !a.StartsWith("tracedays=", StringComparison.Ordinal)).ToArray();
 		string? only = args.Length > 4 && args[4].Length == 3 && !int.TryParse(args[4], out _) ? args[4] : null;
 		int examples = args.Skip(4).Select(a => int.TryParse(a, out int n) ? n : -1).FirstOrDefault(n => n >= 0, 5);
 		var warnings = new List<string>();
@@ -82,18 +89,68 @@ internal static class CAgentCheck
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
 			played: new[] { new CCountryTag(player ?? later.GetString("player")) });
 		state.IsRunning = true;
-		if (trace is not null)
+		if (trace is not null && traceDays == int.MaxValue)
 		{
 			state.AiTrace = (new CCountryTag(trace), Console.WriteLine);
 		}
 		var simulation = new CSimulation(state);
 		int hours = HoursTo(state, later.GetString("date"));
+
+		var saved = new Dictionary<string, List<CSavedUnit>>();
+		foreach (ClausewitzNode block in later.Children)
+		{
+			if (block.IsBlock && block.Key is { Length: 3 } key && state.Country(new CCountryTag(key)) is not null)
+			{
+				var tops = new List<CSavedUnit>();
+				Collect(block, null, tops);
+				saved[key] = tops;
+			}
+		}
+		// For ready=: the divisions to follow day by day over the run's last weeks - those the save has on the country's
+		// fronts facing the targets, as the save's theatres list them, and whatever of ours stands on our fronts that day.
+		CCountry? readyCountry = ready is not null ? state.Country(new CCountryTag(ready.Split(':')[0])) : null;
+		var watched = new HashSet<string>(StringComparer.Ordinal);
+		if (readyCountry is not null)
+		{
+			var saveFronts = later.Get(readyCountry.Tag.Value)?.Children.Where(c => c.Key == "area_theatre" && c.IsBlock)
+				.SelectMany(t => t.Children.Where(f => f.Key == "front" && f.IsBlock))
+				.Where(f => ready!.Split(':').ElementAtOrDefault(1)?.Split(',').Contains(f.GetString("local_enemy")) == true)
+				.SelectMany(f => Numbers(f.Get("provinces"))).ToHashSet() ?? new HashSet<int>();
+			foreach (CSavedUnit unit in saved.GetValueOrDefault(readyCountry.Tag.Value)?.SelectMany(All) ?? Enumerable.Empty<CSavedUnit>())
+			{
+				if (unit.Kind == "division" && saveFronts.Contains(unit.Location))
+				{
+					watched.Add(unit.Name);
+				}
+			}
+		}
+
 		// Each day: a land unit marked falling back with no way left, which nothing will ever clear.
 		var stuck = new List<string>();
 		string? lastEnemies = null;
 		for (int left = hours; left > 0; left -= CGameState.HoursPerDay)
 		{
-			simulation.RunHours(Math.Min(left, CGameState.HoursPerDay));
+			if (trace is not null && state.AiTrace is null && left <= (long)traceDays * CGameState.HoursPerDay)
+			{
+				state.AiTrace = (new CCountryTag(trace), Console.WriteLine);
+			}
+			if (follow is not null && left <= 8 * CGameState.HoursPerDay)
+			{
+				// unit=: the named land unit hour by hour over the run's last eight days.
+				for (int hour = 0; hour < Math.Min(left, CGameState.HoursPerDay); hour++)
+				{
+					simulation.RunHours(1);
+					FollowUnit(state, follow);
+				}
+			}
+			else
+			{
+				simulation.RunHours(Math.Min(left, CGameState.HoursPerDay));
+			}
+			if (readyCountry is not null && left <= 45 * CGameState.HoursPerDay)
+			{
+				WatchFront(state, readyCountry, ready!, watched);
+			}
 			if (trace is not null && state.Country(new CCountryTag(trace)) is { } traced)
 			{
 				// The traced country's wars as they change, and where each of its fleets is each day.
@@ -133,15 +190,9 @@ internal static class CAgentCheck
 		Console.WriteLine($"a new game made and run {hours} hours to {state.Date} in {clock.ElapsedMilliseconds} ms; " +
 			$"savegame {later.GetString("date")}, player {later.GetString("player")}");
 
-		var saved = new Dictionary<string, List<CSavedUnit>>();
-		foreach (ClausewitzNode block in later.Children)
+		if (ready is not null)
 		{
-			if (block.IsBlock && block.Key is { Length: 3 } key && state.Country(new CCountryTag(key)) is not null)
-			{
-				var tops = new List<CSavedUnit>();
-				Collect(block, null, tops);
-				saved[key] = tops;
-			}
+			Readiness(state, ready, saved);
 		}
 
 		var startPlaces = new Dictionary<string, Dictionary<int, int>>();
@@ -436,6 +487,174 @@ internal static class CAgentCheck
 		return string.Join(" ", min.Select((count, index) => (count, index)).Where(p => p.count != 0).Select(p => $"{p.index}:{p.count}"));
 	}
 
+	/// <summary>
+	/// For <c>unit=</c>: each land unit of that name, one line an hour - place, way, order, its first brigade's organisation
+	/// against its ceiling, the commander's bonus and how far the army's command reaches it, and the chain above it.
+	/// </summary>
+	private static void FollowUnit(CGameState state, string name)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (CUnit unit in country.AllUnits().Where(u => !u.IsRemoved && u.Name == name && u.SubUnits.Count > 0))
+			{
+				CSubUnit brigade = unit.SubUnits[0];
+				CUnit? army = COrganisation.ArmyAbove(unit);
+				long reach = army is null ? 0 : OpenHOI3.Sim.Leaders.CCommandReach.Through(state, unit, OpenHOI3.Sim.Leaders.CCommandReach.Level(army));
+				var chain = new List<string>();
+				for (CUnit? up = unit.Parent; up is not null; up = up.Parent)
+				{
+					chain.Add($"{up.Name}@{up.Location}");
+				}
+				Console.WriteLine($"{state.Date}.{state.Hour} {country.Tag} {unit.Name} at {unit.Location}" +
+					$"{(unit.Path.Count > 0 ? " > " + unit.Path[^1] : "")} {unit.Order}{(unit.IsHeldBack ? " held back" : "")}: " +
+					$"org {brigade.Organisation} of {COrganisation.Ceiling(state, country, brigade)}, bonus {COrganisation.CommanderBonus(state, unit)}, " +
+					$"reach {reach}, army {army?.Name ?? "none"} led by {army?.Leader?.Name ?? "nobody"}; under {string.Join(" < ", chain)}");
+			}
+		}
+	}
+
+	/// <summary>
+	/// For <c>ready=</c>, once a day over the run's last weeks: each target's front with how many provinces stand empty, and
+	/// each followed division - the save's on the front and ours on it that day - with where it is, where it is bound, its
+	/// order and the lowest share of its ceiling any of its brigades has.
+	/// </summary>
+	private static void WatchFront(CGameState state, CCountry country, string spec, HashSet<string> watched)
+	{
+		string[] targets = spec.Split(':').ElementAtOrDefault(1)?.Split(',') ?? Array.Empty<string>();
+		var onFront = new HashSet<int>();
+		var summary = new List<string>();
+		foreach (string target in targets)
+		{
+			OpenHOI3.Sim.Ai.CReadinessTally tally = OpenHOI3.Sim.Ai.CWarReadiness.Count(state, country, new CCountryTag(target));
+			summary.Add($"{target} {tally.Fronts.Count - tally.Empty}/{tally.Fronts.Count} held");
+			onFront.UnionWith(tally.Fronts.Select(front => front.Province));
+		}
+		Console.WriteLine($"{state.Date} {country.Tag} front: {string.Join(", ", summary)}");
+		foreach (CUnit unit in country.AllUnits().Where(u => !u.IsRemoved && u.Kind == EUnitKind.Division
+			&& (watched.Contains(u.Name) || onFront.Contains(u.Location))))
+		{
+			long share = unit.SubUnits.Count == 0 ? 0 : unit.SubUnits.Min(brigade =>
+			{
+				long ceiling = COrganisation.Ceiling(state, country, brigade).Raw;
+				return ceiling == 0 ? 0 : brigade.Organisation.Raw * 1000 / ceiling;
+			});
+			Console.WriteLine($"    {unit.Name,-22} at {unit.Location,5}{(onFront.Contains(unit.Location) ? "*" : " ")}" +
+				$"{(unit.Path.Count > 0 ? " > " + unit.Path[^1] : ""),8} {unit.Order,-18} org {share / 10.0,5:0.0}%" +
+				$"{(unit.IsMoving ? " moving" : "")}{(unit.NoBattleHours > 0 ? " waiting" : "")}");
+		}
+	}
+
+	/// <summary>
+	/// For <c>ready=TAG:TARGET,TARGET</c>: what the readiness test counts on the country's fronts facing each target at the
+	/// save's hour - each front province with our fit strength there, our land units in it and the save's divisions there -
+	/// and the country's prepared wars (<c>docs/mechanics/foreignminister.md</c>, section 7).
+	/// </summary>
+	private static void Readiness(CGameState state, string spec, Dictionary<string, List<CSavedUnit>> saved)
+	{
+		string[] parts = spec.Split(':');
+		if (state.Country(new CCountryTag(parts[0])) is not { } country)
+		{
+			return;
+		}
+		var theirs = saved.GetValueOrDefault(country.Tag.Value)?.SelectMany(All).Where(u => u.Kind == "division").ToList()
+			?? new List<CSavedUnit>();
+		Console.WriteLine($"{country.Tag}'s wars prepared: " + (country.WarTargets.Count == 0 ? "none" : string.Join(", ",
+			country.WarTargets.Select(t => $"{t.Target} since {CDate.FromDayNumber((int)(t.Hour / CGameState.HoursPerDay))}" +
+				(OpenHOI3.Sim.Ai.CWarReadiness.IsReady(state, country, t) ? " ready" : " not ready")))));
+		foreach (string target in parts.Length > 1 ? parts[1].Split(',') : Array.Empty<string>())
+		{
+			OpenHOI3.Sim.Ai.CReadinessTally tally = OpenHOI3.Sim.Ai.CWarReadiness.Count(state, country, new CCountryTag(target));
+			Console.WriteLine($"{country.Tag} facing {target}: {tally.Fronts.Count} front provinces, {tally.Empty} empty, " +
+				$"ours {tally.Ours}, enemy {tally.Enemy} in {tally.EnemyProvinces.Count} provinces: {Text(tally.EnemyProvinces)}");
+			foreach ((int province, long ours) in tally.Fronts)
+			{
+				string units = string.Join(", ", state.Positions.Of(province).Where(u => u.Owner == country.Tag && CTheatres.IsLand(u))
+					.Select(u => $"{u.Name} {u.SubUnits.Sum(s => s.Strength.Raw)}/{u.SubUnits.Sum(s => s.Organisation.Raw)}" +
+						(u.IsMoving ? " moving" : "") + (u.NoBattleHours > 0 ? " waiting" : "")));
+				string save = string.Join(", ", theirs.Where(u => u.Location == province).Select(u => u.Name));
+				Console.WriteLine($"  {province,5} {state.Province(province).Name,-24} counted {ours,7}  ours: {(units.Length == 0 ? "-" : units)}" +
+					$"  save: {(save.Length == 0 ? "-" : save)}");
+			}
+		}
+
+		// Why a unit on the front is or is not fit: each brigade's organisation against its ceiling and what the ceiling is
+		// made of, beside the save's division of the same name.
+		Console.WriteLine($"{country.Tag}: officer ratio {country.OfficerRatio}, land organisation modifier " +
+			$"{country.Modifier[COrganisation.LandOrganisation]}, laws {string.Join(" ", country.Laws.Values.Select(law => law.Name))}");
+		// The ladder: the manpower a new command's brigade needs, and every corps with the divisions under it, ours and the save's.
+		Console.WriteLine($"{country.Tag}: manpower {country.Manpower}");
+		foreach (CUnit corps in country.AllUnits().Where(u => !u.IsRemoved && u.Kind == EUnitKind.Corps))
+		{
+			Console.WriteLine($"  ours corps {corps.Name} at {corps.Location} under {corps.Parent?.Name ?? "-"}: " +
+				$"{corps.Children.Count(c => c.Kind == EUnitKind.Division)} divisions");
+		}
+		foreach (CSavedUnit corps in saved.GetValueOrDefault(country.Tag.Value)?.SelectMany(All).Where(u => u.Kind == "corps")
+			?? Enumerable.Empty<CSavedUnit>())
+		{
+			Console.WriteLine($"  save corps {corps.Name} at {corps.Location} under {corps.Parent?.Name ?? "-"}: " +
+				$"{corps.Children.Count(c => c.Kind == "division")} divisions");
+		}
+		foreach (CUnit theatre in country.AllUnits().Where(u => !u.IsRemoved && u.Kind == EUnitKind.Theatre))
+		{
+			var under = new List<CUnit>();
+			var stack = new Stack<CUnit>(theatre.Children);
+			while (stack.Count > 0)
+			{
+				CUnit unit = stack.Pop();
+				under.Add(unit);
+				foreach (CUnit child in unit.Children)
+				{
+					stack.Push(child);
+				}
+			}
+			int divisions = under.Count(u => u.Kind == EUnitKind.Division && !OpenHOI3.Sim.Agents.CAgentUnits.IsGarrison(u));
+			Console.WriteLine($"  ours theatre {theatre.Name}: {divisions} divisions not garrison-led, " +
+				$"{under.Count(u => u.Kind == EUnitKind.Corps)} corps, wanted {divisions / 4 + 1}");
+		}
+		// Every land brigade of the country by type: how many, and their average organisation, ours and the save's.
+		var ourTypes = country.AllUnits().Where(u => !u.IsRemoved && CTheatres.IsLand(u)).SelectMany(u => u.SubUnits)
+			.GroupBy(s => s.Type.Key).ToDictionary(g => g.Key, g => (Count: g.Count(), Average: g.Average(s => (double)s.Organisation.Raw) / 1000));
+		var saveTypes = theirs.SelectMany(u => u.Node!.Children.Where(c => c.Key == "regiment" && c.IsBlock))
+			.GroupBy(r => r.GetString("type")).ToDictionary(g => g.Key, g => (Count: g.Count(),
+				Average: g.Average(r => double.Parse(r.GetString("organisation"), CultureInfo.InvariantCulture))));
+		foreach (string type in ourTypes.Keys.Union(saveTypes.Keys).OrderBy(k => k, StringComparer.Ordinal))
+		{
+			(int oc, double oa) = ourTypes.GetValueOrDefault(type);
+			(int sc, double sa) = saveTypes.GetValueOrDefault(type);
+			Console.WriteLine($"  {type,-28} ours {oc,4} at {oa,7:0.000}   save {sc,4} at {sa,7:0.000}");
+		}
+		var fronts = parts.Length > 1
+			? parts[1].Split(',').SelectMany(target => OpenHOI3.Sim.Ai.CWarReadiness.Count(state, country, new CCountryTag(target)).Fronts)
+				.Select(front => front.Province).Distinct().ToList()
+			: new List<int>();
+		foreach (CUnit unit in fronts.SelectMany(province => state.Positions.Of(province))
+			.Where(u => u.Owner == country.Tag && CTheatres.IsLand(u)).Distinct())
+		{
+			CUnit? army = COrganisation.ArmyAbove(unit);
+			Console.WriteLine($"  ours {unit.Name} at {unit.Location} under {unit.Parent?.Name ?? "-"}; army {army?.Name ?? "none"}" +
+				$" led by {army?.Leader?.Name ?? "nobody"} (skill {army?.Leader?.Skill ?? 0}); commander bonus {COrganisation.CommanderBonus(state, unit)}");
+			foreach (CSubUnit brigade in unit.SubUnits)
+			{
+				Console.WriteLine($"      {brigade.Type.Key}: strength {brigade.Strength} of {CUnits.MaxStrength(state, country, brigade)}, " +
+					$"organisation {brigade.Organisation} of {COrganisation.Ceiling(state, country, brigade)} " +
+					$"(own figure {brigade.Stats[CSubUnitType.DefaultOrganisation]}{(brigade.IsReserve ? ", reserve" : "")}); levels " +
+					string.Join(" ", brigade.TechnologyLevels.Where(level => level.Value > 0).Select(level => $"{level.Key}={level.Value}")));
+			}
+			foreach (CSavedUnit twin in theirs.Where(u => u.Name == unit.Name && u.Node is not null))
+			{
+				Console.WriteLine($"  save {twin.Name} at {twin.Location} under {twin.Parent?.Name ?? "-"}");
+				foreach (ClausewitzNode regiment in twin.Node!.Children.Where(c => c.Key == "regiment" && c.IsBlock))
+				{
+					string levels = string.Join(" ", regiment.Children
+						.Where(c => c.IsBlock && c.Key is not ("id") && c.Children.FirstOrDefault()?.Value is { } first && first != "0")
+						.Select(c => $"{c.Key}={c.Children.First().Value}"));
+					Console.WriteLine($"      {regiment.GetString("type")}: strength {regiment.GetString("strength")}, " +
+						$"organisation {regiment.GetString("organisation")}; levels {levels}");
+				}
+			}
+		}
+	}
+
 	private static int HoursTo(CGameState state, string date)
 	{
 		string[] parts = date.Split('.');
@@ -475,6 +694,7 @@ internal static class CAgentCheck
 				Bound = Numbers(child.Get("path")) is { Count: > 0 } path ? path[^1] : 0,
 				Parent = parent,
 				Plan = child.Get("plan") is { IsBlock: true } plan ? plan : null,
+				Node = child,
 			};
 			if (child.Key == "air" && child.Children.FirstOrDefault(c => c.IsBlock && c.Key is { } k && AirMissions.ContainsValue(k))
 				is { } mission)

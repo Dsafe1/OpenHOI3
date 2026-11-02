@@ -446,6 +446,31 @@ public class BuildQueueTests
 	}
 
 	[Fact]
+	public void ASeriesOfDivisionsNamesEachAfreshAndKeepsItsBrigadesNames()
+	{
+		// The Ireland game's Japan: a series that gave "1 'Tokyo' Hoheishidan" went on as "7 'Asahigawa' Hoheishidan",
+		// its brigades "1st Inf Brigade" in both.
+		CCountry country = Germany();
+		CGameState state = State(country, Infantry());
+		country.UnitNames["infantry_brigade"] = new List<string> { "1. Division", "2. Division", "3. Division" };
+		CUnitNames.Register(country, "1. Division");
+		CUnitNames.Register(country, "2. Division");
+		var construction = new CConstruction(country.Tag) { Id = 10, UnitId = 11, Size = 2, Name = "1. Division" };
+		construction.Brigades.Add(new CBrigadeOrder(Infantry()) { Id = 12, Name = "1. Regiment" });
+		construction.Brigades.Add(new CBrigadeOrder(Infantry()) { Id = 13, Name = "2. Regiment" });
+		CBuildQueue.Recalculate(country, construction);
+		construction.Progress = CFixedPoint.Parse("99.5");
+		country.Constructions.Add(construction);
+
+		CBuildQueue.RunDaily(state, country, CFixed15.FromInt(31));
+
+		Assert.Equal("1. Division", Assert.Single(country.Deployments).Name);
+		Assert.Equal("3. Division", construction.Name);
+		Assert.Contains("3. Division", country.UnitNamesInUse);
+		Assert.Equal(new[] { "1. Regiment", "2. Regiment" }, construction.Brigades.Select(order => order.Name));
+	}
+
+	[Fact]
 	public void AReserveIsDeliveredAtTheStrengthItsLineWasQueuedWith()
 	{
 		CCountry country = Germany();

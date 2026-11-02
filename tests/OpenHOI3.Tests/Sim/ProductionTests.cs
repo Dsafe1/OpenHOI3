@@ -180,6 +180,37 @@ public class ProductionTests
 		Assert.Equal(CFixedPoint.Parse("0.99"), CProduction.ConsumerGoodsDemand(state, high));
 	}
 
+	[Fact]
+	public void AtPeaceTheStandingArmyAddsAQuarterOfItsBrigadesPerIcByItsNeutrality()
+	{
+		CCountry japan = Country("JAP", 1, ("peace_consumer_goods_demand", "-0.05"));
+		CGameState state = State(new[] { japan }, new[] { Land(1, "JAP") });
+		CTick.RunEntryPass(state);
+		japan.TotalIc = 126;
+		japan.LandBrigadesInService = 300;
+		japan.EffectiveNeutrality = CFixedPoint.FromInt(60);
+
+		// 300 000 / 126 = 2380 a thousandth an IC, a quarter of it 595, by 0.6 357 - each step dropping its remainder.
+		Assert.Equal(CFixedPoint.Parse("0.357"), CProduction.StandingArmy(japan));
+		Assert.Equal(CFixedPoint.Parse("0.557"), CProduction.ConsumerGoodsDemand(state, japan));
+	}
+
+	[Fact]
+	public void AtWarTheStandingArmyAddsNothing()
+	{
+		CCountry italy = Country("ITA", 1, ("war_consumer_goods_demand", "-0.11"));
+		var war = new CWar("a war");
+		war.Attackers.Add(italy.Tag);
+		war.Defenders.Add(new CCountryTag("ETH"));
+		CGameState state = State(new[] { italy }, new[] { Land(1, "ITA") }, war);
+		CTick.RunEntryPass(state);
+		italy.TotalIc = 50;
+		italy.LandBrigadesInService = 200;
+		italy.EffectiveNeutrality = CFixedPoint.FromInt(100);
+
+		Assert.Equal(CFixedPoint.Parse("0.04"), CProduction.ConsumerGoodsDemand(state, italy));
+	}
+
 	// --- supplies ---
 
 	[Fact]

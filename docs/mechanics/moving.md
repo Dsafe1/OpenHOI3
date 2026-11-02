@@ -85,7 +85,9 @@ Each province p of the area of operations, n of them, m committed divisions, in 
   unless it has at most one friendly neighbour and three front ones; +100 for its own supply depot.
 - **At war, stance 3 or more**: 10, or 15 for a depot; doubled for each province of the hostile routes (section 4) it
   borders.
-- Then: for a theatre agent, x3 where the province's front of its area is shorter than a fifth of the area of operations;
+- Then: for a theatre agent, x3 where the province's front of its area is shorter than a fifth of the area of operations
+  (the first of its area's fronts holding it; on none, 0 - so a province on no front is always tripled - and the fronts
+  always made, the original making them with the area: `theatres.md`, section 2);
   + the strategy's `defend_prov` for it, / 2 at peace, / 8 at war; +100 for each of its regions marked so; x the scale
   above; and **nought** at war where no neighbour was interesting.
 
@@ -843,3 +845,34 @@ original's rule. No event or decision of the base game annexes it afterwards.
 **A headless run** (`headless.md`): to 1 July 1936 in 214 s with nothing thrown and no Lua error; the unit AI's pass
 about 10 ms an hour, its hold lists and the day's balancing the dearest parts (`OpenHOI3.SaveCheck profile` lists them
 under the pass).
+
+**The Marco Polo Bridge a year late** (2026-11-02, the maintainer's Ireland game played on to August 1938, Japan and
+China both the original's AI). The original's Japan took `marco_polo_bridge_incident` between 1 July 01:00 and 2 July
+16:00 1937 - the autosave of 1 July has no flag and no war, the save of 5 July both - and ours in July 1938. The decision
+is posted when the prepared war is ready (`foreignminister.md`, section 7): at most 30% of the front facing China empty.
+On 1 July 1937 the original's Japan held 5 of its 6 China front provinces with the divisions it started with there; ours
+counted 2. `OpenHOI3.SaveCheck agents ... ready=JAP:CHI,CSX` set the two side by side, and three faults came out:
+
+1. **A province's front was read off a cache.** The scores (section 3) triple a province on a narrow front, and ours read
+   the front's length off the area, where the fronts are made only on the first asking - so an area nothing else had
+   asked about since the network was made again looked to have no front and was tripled. Which provinces were tripled
+   changed from day to day, the scores flipped between 10 and 30 and between 30 and 90, and each flip sent a division
+   off a position that now wanted none: Japan's 15th Division left Jixian on 9 July 1936, and the 17th and 6th Miyun and
+   Huailai after it. Read in full since, ours kept the China front manned to April 1937.
+2. **That rotation cut organisation.** A division sent to a far corps (`agents.md`, section 4.2) lost its army's commander
+   for a day, and its organisation fell to the bare ceiling (`organisation.md`, section 2) and took five days to climb back:
+   on any day most of the front stood under the 99% the readiness test asks. With the front settled, every division on
+   it is at its ceiling on 1 July 1937; whether a corps still rotates its divisions elsewhere was not looked at again.
+3. **Japan built eight divisions too many**, and each that came in moved the `m mod n` bonus (section 3) and with it
+   which positions wanted nobody: from April 1937 the front emptied again. The cause was the consumer goods demand, which
+   left out the standing army (`production.md`, section 3).
+
+With all three, on 1 July 1937 Japan holds **all six China front provinces**, five with the save's own divisions,
+**74 divisions and 12 corps to the save's 74 and 12**, and is ready; divisions where the save has them 41 of 65, from 33.
+To 4 January nothing changed - moved or not 774 of 908, bound 275 of 542, standing 740, fleets 221 to 222; to 2 February
+moved or not 810 of 930 as before, bound 245 of 601 (247), standing 491 (496).
+
+The check gained three switches for this: `ready=TAG:TARGET,...` - the readiness count, the front day by day for the
+last 45 days, the country's corps and its brigades' organisation against the save's; `unit=NAME` - that land unit hour
+by hour for the last eight days, with its ceiling, its commander's bonus and the chain above it; and `tracedays=N`, the
+trace for the last N days only. The land block's trace now writes each position's score.

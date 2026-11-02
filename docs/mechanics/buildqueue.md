@@ -241,13 +241,22 @@ ministers first (section 9).
 
     the unit joins those waiting to be placed
     progress -= duration ;  size -= 1
-    a line with more to come is priced again and, for reserves, takes its law's share afresh
+    a line with more to come is priced again and, for reserves, takes its law's share afresh;
+        a line for a unit of several takes a new name, as a new order is named (builders.md, section 8),
+        and its brigades keep theirs
 
 `confirmed`
 
 - **A new brigade has its own organisation and nothing else**, whatever its country's
   officers and whether or not it is a reserve: it is given it before it is put in its unit,
   and the ceiling of `organisation.md`, section 2, counts neither for a brigade in no unit.
+- **Each division of a series has a name of its own** (measured, 2026-11-02, not read): in the maintainer's Ireland
+  game Japan's series that gave "1 'Tokyo' Hoheishidan" went on as "7 'Asahigawa' Hoheishidan" and stands in the queue
+  of 1 July 1937 as "12 'Kurume' Hoheishidan, size 2" - the line carries the name of the unit still to come - and the
+  'Sendai' series gave 2 'Sendai', 6 'Kumamoto' and 11 'Zentsuji'. The names follow the country's list as new orders take
+  them, which is what naming afresh from where the country left off gives. The brigades of all of them are "1st Inf
+  Brigade", "2nd Inf Brigade" and the rest, unchanged. Until then every division of a series here took the line's one
+  name. Whether a ship or a wing of a series is named afresh is not known: no save shows a series of them finished.
 - **The practical is gained in full, once, when the unit is done.**
 - **A series keeps what was left over** of the day that finished a unit.
 - **A unit finished is not on the map.** It waits to be placed (section 7). While it waits

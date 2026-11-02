@@ -28,15 +28,36 @@ public static class CWarReadiness
 
 	public static bool IsReady(CGameState state, CCountry country, CWarTarget entry)
 	{
+		CReadinessTally tally = Count(state, country, entry.Target);
+		long enemy = tally.Enemy;
+		int fronts = tally.Fronts.Count;
+
+		CDate prepared = CDate.FromDayNumber((int)(entry.Hour / CGameState.HoursPerDay));
+		CDate today = CDate.FromDayNumber((int)(state.TotalHours / CGameState.HoursPerDay));
+		if (prepared.AddMonths(3) <= today)
+		{
+			enemy = enemy * Weakened / 1000;
+			if (country.Tag.Value == "JAP" && fronts < ShortFront)
+			{
+				return true;
+			}
+		}
+		if (fronts > 0 && tally.Empty * 1000L / fronts > MostEmpty)
+		{
+			return false;
+		}
+		return enemy <= tally.Ours;
+	}
+
+	/// <summary>What the test counts on the country's fronts facing the target, before the dates and the bars are applied.</summary>
+	public static CReadinessTally Count(CGameState state, CCountry country, CCountryTag target)
+	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		var tally = new CReadinessTally();
 		var enemyMet = new HashSet<int>();
-		long enemy = 0;
-		long ours = 0;
-		int fronts = 0;
-		int empty = 0;
 		foreach (CSupplyArea area in network.Areas)
 		{
-			if (area.Controller != country.Tag || !Faces(state, area, entry.Target))
+			if (area.Controller != country.Tag || !Faces(state, area, target))
 			{
 				continue;
 			}
@@ -51,7 +72,7 @@ public static class CWarReadiness
 					bool onFront = false;
 					foreach (CProvinceEdge edge in state.Province(id).Edges)
 					{
-						if (edge.Kind == EProvinceEdgeKind.Impassable || state.Province(edge.To).Controller != entry.Target
+						if (edge.Kind == EProvinceEdgeKind.Impassable || state.Province(edge.To).Controller != target
 							|| network.AreaOf(edge.To) is null)
 						{
 							continue;
@@ -59,39 +80,25 @@ public static class CWarReadiness
 						onFront = true;
 						if (enemyMet.Add(edge.To))
 						{
-							enemy += LandStrength(state, edge.To, owner: null);
+							tally.EnemyProvinces.Add(edge.To);
+							tally.Enemy += LandStrength(state, edge.To, owner: null);
 						}
 					}
 					if (!onFront)
 					{
 						continue;
 					}
-					fronts++;
 					long held = LandStrength(state, id, country);
+					tally.Fronts.Add((id, held));
 					if (held == 0)
 					{
-						empty++;
+						tally.Empty++;
 					}
-					ours += held;
+					tally.Ours += held;
 				}
 			}
 		}
-
-		CDate prepared = CDate.FromDayNumber((int)(entry.Hour / CGameState.HoursPerDay));
-		CDate today = CDate.FromDayNumber((int)(state.TotalHours / CGameState.HoursPerDay));
-		if (prepared.AddMonths(3) <= today)
-		{
-			enemy = enemy * Weakened / 1000;
-			if (country.Tag.Value == "JAP" && fronts < ShortFront)
-			{
-				return true;
-			}
-		}
-		if (fronts > 0 && empty * 1000L / fronts > MostEmpty)
-		{
-			return false;
-		}
-		return enemy <= ours;
+		return tally;
 	}
 
 	/// <summary>Whether a neighbouring area of the area's has its first province held by the target.</summary>

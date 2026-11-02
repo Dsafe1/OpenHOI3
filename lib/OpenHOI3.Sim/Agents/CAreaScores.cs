@@ -224,14 +224,19 @@ public static class CAreaScores
 		return value;
 	}
 
-	/// <summary>The length of the front of its area the province lies on, in provinces.</summary>
+	/// <summary>
+	/// The length of the front of its area the province lies on, in provinces: the first of its area's fronts holding it,
+	/// none 0. The fronts are asked for and not read off the area, where they are made only on the first asking - read off
+	/// it, an area nothing else had asked about since the network was made again looked to have no front, and its
+	/// provinces were tripled as on a narrow one.
+	/// </summary>
 	private static int FrontLength(CGameState state, CSupplyNetwork network, CProvince province)
 	{
-		if (network.AreaOf(province.Id)?.Fronts is not { } fronts)
+		if (network.AreaOf(province.Id) is not { } area)
 		{
 			return 0;
 		}
-		foreach (List<int> front in fronts)
+		foreach (List<int> front in CAreaFronts.Of(state, area))
 		{
 			if (front.Contains(province.Id))
 			{

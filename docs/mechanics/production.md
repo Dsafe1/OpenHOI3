@@ -117,6 +117,24 @@ country feels, from 0 to 100. The 0.25 is built into the original and no file ch
 `base_values` is added whole to every country's modifier, before anything else.
 `confirmed` (`modifiers.md`, section 4).
 
+The arithmetic is whole thousandths, each step dropping its remainder (`FINDINGS-distribute.md`, section 2):
+
+    t = land brigades in service * 1000 / total IC
+    t = t * 250 / 1000
+    n = effective neutrality (0 to 100000) * 1000 / 100000, held between 0 and 1000
+    the term = t * n / 1000
+
+**The brigades in service are counted every hour, with the officers** (`organisation.md`, section 1): every brigade of
+a land unit, those finished and waiting to be placed among them, but a reserve's while the country is not mobilised.
+*Exe-hardcoded*: the 250 and the count; *mod-able*: the peace and war figures, through `base_values` and the laws.
+
+**The term was built only on 2026-11-02.** Until then the code took the peace figure alone, waiting for units that had
+come a month before, and every country at peace asked for too few consumer goods. The AI's script hands what consumer
+goods do not need to production (`ministers.md`, section 5), so every country the AI runs built more than the original's:
+Japan, whose laws take its peace figure near the floor, gave consumer goods 2% of its IC on 1 July 1937 and production
+72%, where the Ireland game's save of that day has 20.8% and 55.6%, and had 82 divisions to its 74. With the term: 21.6%,
+51.0% and 74 divisions, and its officers' and research's shares of leadership the save's to a point.
+
 ## 4. Supplies
 
     supplies = share * total IC * IC_TO_SUPPLIES * (1 + GLOBAL_SUPPLIES + the technology bonus)

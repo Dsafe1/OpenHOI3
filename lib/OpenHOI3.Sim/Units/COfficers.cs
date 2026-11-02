@@ -52,13 +52,49 @@ public static class COfficers
 		return new CFixedPoint(ratio > most ? most : ratio);
 	}
 
-	/// <summary>Counts every country's need again and works out its ratio.</summary>
+	/// <summary>
+	/// The brigades of its land units - those finished and not yet placed among them - but a reserve's while the country
+	/// is not mobilised.
+	/// </summary>
+	public static int LandBrigadesInService(CCountry country)
+	{
+		int count = 0;
+		foreach (CUnit unit in country.AllUnits())
+		{
+			count += InService(country, unit);
+		}
+		foreach (CUnit unit in country.Deployments)
+		{
+			count += InService(country, unit);
+		}
+		return count;
+	}
+
+	/// <summary>Counts every country's need again and works out its ratio, and its land brigades in service with them.</summary>
 	public static void Update(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
 			country.OfficersNeeded = Needed(country);
+			country.LandBrigadesInService = LandBrigadesInService(country);
 			country.OfficerRatio = Ratio(state, country.Officers, country.OfficersNeeded);
 		}
+	}
+
+	private static int InService(CCountry country, CUnit unit)
+	{
+		if (!Theatres.CTheatres.IsLand(unit))
+		{
+			return 0;
+		}
+		int count = 0;
+		foreach (CSubUnit subUnit in unit.SubUnits)
+		{
+			if (country.Mobilised || !subUnit.IsReserve)
+			{
+				count++;
+			}
+		}
+		return count;
 	}
 }

@@ -207,10 +207,19 @@ division a line or a pull considers. Nothing thrown, nothing below nought. What 
 Three things to look into, none of them yet looked into:
 
 1. **China falls in five months.** Its IC goes from 56 to 8 and its fuel and supplies to nought within half a year of
-   the war; the original's China holds out for years whatever the AI does. Whether it is China's defence (the land block
-   at war), its supply, the battles or Japan's numbers is not found.
-2. **The Marco Polo Bridge comes a year late.** Japan's prepared war was "not ready" from 1 July 1937 to 5 July 1938.
-   Readiness is answered over the fronts (`foreignminister.md`, section 7), so where Japan's divisions stand decides it.
+   the war. ~~the original's China holds out for years whatever the AI does~~ - that was said with nothing behind it.
+   **The original's war, measured** (2026-11-02, the maintainer's Ireland game, Japan and China both its AI, a save a
+   month): China controls 339 provinces on 1 July 1937, 274 on 3 October, 224 on 5 January 1938, 188 on 3 April and 176
+   on 3 August - half its land in thirteen months, the front slowing from the spring - and **capitulates about 23 August
+   1938**: the capitulation enforces Japan's `china_war_goal`, whose `on_completion` is event 520 (`tfh/events/
+   surrender2.txt`), giving Japan six regions and a province, ending its wars with China and the warlords with a
+   non-aggression pact, and setting the flag that lets Japan make Mengkukuo. China lives on with 194 provinces. Shanxi is
+   annexed about 9 October 1937. So the original's ending is ours, and the difference is the speed: 13½ months there,
+   5½ here.
+2. **The Marco Polo Bridge comes a year late.** Japan's prepared war was "not ready" from 1 July 1937 to 5 July 1938;
+   the original's Japan takes the decision on 1 or 2 July 1937. **Mended** (2026-11-02, `moving.md`, section 21): a
+   province's front read off a cache, and a consumer goods demand without its standing army, had Japan's China front
+   empty; with both mended it is ready on 1 July 1937.
 3. **The Spanish Civil War is over in six months**, the Republic winning. With nobody playing either side the AI may win
    either way; how fast is worth a look beside the original.
 
@@ -218,6 +227,27 @@ Three things to look into, none of them yet looked into:
 (sic), our `GetFaction` answers a faction with no leader, and the empty leader's `GetCountry()` answers nil. It runs only
 when Japan has no war with a great power, so it begins after China's surrender. What the original's API answers for a
 misspelt faction, and for an empty tag's country, is not read. And one event's `load_oob` is not built.
+
+### To 1939 again, with the China front and consumer goods mended (2026-11-02)
+
+`headless <install> 1939`, with the Ireland game's saves of 1 July and 3 October 1937 and of January, April and August
+1938 beside it, after `moving.md` section 21's three mends: nothing thrown, nothing below nought.
+
+| date | ours | the original's, the Ireland game |
+| --- | --- | --- |
+| 21 March 1936 | Ethiopia surrenders to Italy | 21 or 22 March 1936 |
+| 30 January 1937 | the Spanish Civil War, the Republicans annexing the Nationalists on 26 October | the Nationalists win "in less than a year", the maintainer's word |
+| 1 July 1937, 19:00 | **the Marco Polo Bridge** | between 1 July 01:00 and 2 July 16:00 |
+| 17 September 1937 | Japan annexes Shanxi | about 9 October 1937 |
+| 27 December 1937 | **China capitulates**, Mengkukuo made the next day | about 23 August 1938 |
+| 12 March 1938 | the Anschluss | |
+
+So the war now starts on the original's day and ends the original's way, **twice as fast**: six months to the original's
+thirteen and a half. China's shares are the original's - consumer goods 49.6% on 1 July 1937 to the save's 48.0%,
+research 74% of its leadership to 77% - and **its technology is not: 32 levels summed to the save's 56** (Japan's 224 to
+241), the gap a new game has against the start save (`resources.md`, section 5). That is the first thing to look at in
+the speed. The Lua: 149 errors, all the misspelt faction of `JAP.lua` line 699, which starts once China is out of the
+war.
 
 ## 5. Not established
 

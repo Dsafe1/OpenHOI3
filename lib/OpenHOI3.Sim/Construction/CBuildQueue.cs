@@ -494,11 +494,17 @@ public static class CBuildQueue
 		}
 
 		// The next of the series is a new unit with new numbers, priced by the country
-		// as it is now.
+		// as it is now. A unit of several is named afresh, as a new order would be, and the
+		// line carries that name from now on; its brigades keep theirs.
 		construction.UnitId = ++state.LastUnitId;
 		foreach (CBrigadeOrder order in construction.Brigades)
 		{
 			order.Id = ++state.LastUnitId;
+		}
+		if (construction.Brigades.Count > 1)
+		{
+			construction.Name = CUnitNames.ForDivision(state, country, construction.Brigades[0].Type);
+			CUnitNames.Register(country, construction.Name);
 		}
 		Recalculate(country, construction);
 		if (construction.IsReserve)

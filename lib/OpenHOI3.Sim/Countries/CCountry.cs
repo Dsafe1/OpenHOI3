@@ -357,6 +357,13 @@ public sealed class CCountry
 	public CFixedPoint OfficersNeeded { get; set; }
 
 	/// <summary>
+	/// Its land brigades in service: every brigade of a land unit, those waiting to be placed among them, but a reserve's
+	/// while it is not mobilised. Counted again every hour by <see cref="COfficers"/>, as the original counts it with the
+	/// officers; the consumer goods its army calls for at peace are reckoned from it (<c>production.md</c>, section 3).
+	/// </summary>
+	public int LandBrigadesInService { get; set; }
+
+	/// <summary>
 	/// How many of the officers its units call for it has, where 1 is all of them: the
 	/// figure the top bar shows, and one of the things a brigade's organisation is held
 	/// to. Never above the define's most, and 1 for a country with no units. Written by
