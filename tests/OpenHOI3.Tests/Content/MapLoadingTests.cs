@@ -757,10 +757,11 @@ public class MapLoadingTests : IDisposable
 		_ = new CSimulation(state);
 
 		// The empty head of state's post is filled with him too, the first who may take it (politics.md, section 7):
-		// he counts once as the genius and once as the workhorse.
+		// he counts once as the genius and once as the workhorse - beside full_civilian_economy's -0.5 and 0.15, the law
+		// a new game gives a country with none in the group (politics.md, section 13).
 		Assert.Same(Germany(state).Government["armament_minister"], Germany(state).Government["head_of_state"]);
-		Assert.Equal(CFixedPoint.Parse("0.1"), Germany(state).Modifier["global_ic"]);
-		Assert.Equal(CFixedPoint.Parse("0.05"), Germany(state).Modifier["global_money"]);
+		Assert.Equal(CFixedPoint.Parse("-0.4"), Germany(state).Modifier["global_ic"]);
+		Assert.Equal(CFixedPoint.Parse("0.2"), Germany(state).Modifier["global_money"]);
 	}
 
 	[Fact]
@@ -775,7 +776,9 @@ public class MapLoadingTests : IDisposable
 		Write("history/countries/notes.txt", "economic_law = war_economy");
 		CCountry germany = Germany(LoadStart());
 
-		Assert.Empty(germany.Laws);
+		// Not the history's planned_economy, which is no law: only what a new game gives a country with none in a group,
+		// the last law of it that it is allowed (politics.md, section 13).
+		Assert.Equal(new[] { "free_press", "full_civilian_economy" }, germany.Laws.Values.Select(law => law.Name).OrderBy(name => name, StringComparer.Ordinal));
 		// The history's 99 is nobody, and the post is filled from the pool as an empty one (politics.md, section 7).
 		Assert.NotEqual(99, germany.Government["head_of_state"].Id);
 		Assert.Contains(_warnings, warning => warning.Contains("economic_law = planned_economy"));
@@ -1307,10 +1310,11 @@ public class MapLoadingTests : IDisposable
 
 		// Nobody has the use of a resource until a day has been run. Then: five IC at
 		// 0.05, and a third more for the gold - each with the 5% of the workhorse the empty head of state's post is
-		// filled with (politics.md, section 7).
-		Assert.Equal(CFixedPoint.Parse("0.262"), Germany(state).HomeProduced[EGoods.Money]);
+		// filled with (politics.md, section 7) and the 15% of full_civilian_economy, the law a new game gives a country
+		// with none in the group (politics.md, section 13).
+		Assert.Equal(CFixedPoint.Parse("0.300"), Germany(state).HomeProduced[EGoods.Money]);
 		simulation.RunHours(24);
-		Assert.Equal(CFixedPoint.Parse("0.345"), Germany(state).HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Parse("0.382"), Germany(state).HomeProduced[EGoods.Money]);
 	}
 
 	[Fact]

@@ -36,12 +36,10 @@ public static class CPoliticsAi
 			{
 				passes++;
 				var posted = new List<CCommand>();
+				// Every country, the player's too, as the original asks the script for every country it sets up for a new
+				// game (docs/compatibility.md, entry 6, reversed on 2026-11-02).
 				foreach (CCountry country in state.Countries)
 				{
-					if (state.Played.Contains(country.Tag))
-					{
-						continue;
-					}
 					scripts.RunLaws(state, country);
 					posted.AddRange(state.Outbox);
 					state.Outbox.Clear();

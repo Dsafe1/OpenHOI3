@@ -53,6 +53,8 @@ internal static class CTechGapCheck
 			list.Add(line);
 		}
 
+		int compared = 0;
+		int same = 0;
 		foreach (ClausewitzNode node in save.Children)
 		{
 			if (node.Key is null || !node.IsBlock || !CCountryTag.TryParse(node.Key, out CCountryTag tag)
@@ -69,9 +71,11 @@ internal static class CTechGapCheck
 				}
 				int saved = (int)(CFixedPoint.TryParse(entry.Children[0].Value, out CFixedPoint value) ? value : CFixedPoint.Zero).ToInt();
 				int ours = country.TechnologyLevels.GetValueOrDefault(entry.Key);
+				compared++;
 
 				if (saved == ours)
 				{
+					same++;
 					// Left where the history put it: was it behind what was due all the same?
 					int dueNow = Due(state, technology);
 					if (ours < dueNow)
@@ -130,6 +134,7 @@ internal static class CTechGapCheck
 			}
 		}
 
+		Console.WriteLine($"technology levels, a new game's beside the save's: {same} of {compared} the same");
 		string only = args.Skip(4).FirstOrDefault() ?? "";
 		foreach ((string kind, List<string> lines) in kinds)
 		{

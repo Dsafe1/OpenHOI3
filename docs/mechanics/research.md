@@ -257,6 +257,52 @@ are left out and counted.
 - **A strategic resource reaches research**: the Soviet Union's atomic research agrees
   only with its heavy water counted, which is worth 40% to `nuke_research`.
 
+## 9. A new game's head start
+
+Read 2026-11-02 (`reversing/findings/FINDINGS-starttech.md`, section 4), the original's
+`SetUpCountryLawsAndTechnologyForNewGame`, its second half; the first is the laws' (`politics.md`, section 13).
+`confirmed` throughout. As a new game is entered - **every country, the player's too**, once, before its order of
+battle is read, and **never when a save is loaded** - each country buys technology levels:
+
+    years   = the game's year x 1000 + (its month counted from 0 x 1000 - 1000) x 1000 / 12000 + 2000
+              - the start year x 1000                                  1917 on 1 January of the start year
+    budget  = years x 3650 / 1000 x min(the leadership of its core provinces, owned or not, 5) / 1000
+    while the budget is above nought:
+        the cheapest candidate, the first of equals in the technologies' order, the null technology first:
+            the null technology while it is not bought, at 125
+            each technology not in the folder `theory_folder`, that is not of one level and had already,
+            that the country may research a level further (section 5), whose current level was due before this year:
+                its cost (section 3), and double where its next level is not due before this year
+        none: stop
+        the budget less the candidate's cost over a hundred, undoubled; its level up one, no higher than its last
+
+Each division drops its remainder, in thousandths. A level is due as section 3 has it: `start_year` for the first,
+`first_offset` for the second, `additional_offset` more a level after. **Only the level is written** - no progress, no
+ability, no message - and its effects come with the country's modifier made again. The month's term is an off-by-one in
+the original: January counts as a twelfth below nothing, so the figure is 1917 and not 2000. The budget comes to about
+1.92 years of the core provinces' leadership at full cost, which is why the levels come in whole families - a practical
+makes one family cheap - and why a poor country stops part of the way.
+
+*Exe-hardcoded*: 3650, the two years, the twelfth, the cap of five, the doubling, the hundredth, the null technology's
+125 and its place, and the folder's name. *Mod-able*: the provinces' `leadership` and cores, the start date, and every
+technology's `difficulty`, `research_bonus_from`, `start_year`, `first_offset`, `additional_offset`, `max_level`, `folder`
+and `allow`, and the files' order, which breaks ties.
+
+**The null technology** is the original's built-in `notech`, which no file declares and which stands first in its
+technology database at a cost of 125 with no bonus. Buying it does nothing but take 1250 of the budget, and the start save
+holds it at 1 in the 88 countries whose budget reaches it. *Ours*: it is a charge on the budget and no technology here, so
+nothing keeps its level.
+
+**Against the start save**: a new game's technology levels are the save's in **28,987 of 28,987** - where they were
+28,511 before, the 476 the save holds above the history now given (`OpenHOI3.SaveCheck techgap`, 2026-11-02). That is
+China's whole infantry equipment, artillery, anti-tank and anti-air, cavalry and militia, and Germany's 22 levels, its 36
+as far behind left alone.
+
+*Ours*: every country's laws and levels are brought forward before any country's order of battle is read, where the
+original does both and reads the order of battle country by country; a technology's `allow` that asked about another
+country's units would see them later here. The start year is the game's own, one start being all there is
+(`docs/compatibility.md`, entry 1); the original takes `start_date` from `defines.lua`.
+
 ## What is not established, in one place
 
 - the six `allow` conditions of section 5, none of which has been read;

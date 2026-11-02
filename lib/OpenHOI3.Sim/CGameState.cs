@@ -39,6 +39,8 @@ public sealed class CGameState
 	private readonly Dictionary<string, CTechnology> _technologies =
 		new(StringComparer.OrdinalIgnoreCase);
 
+	private readonly List<CTechnology> _technologiesInOrder = new();
+
 	private readonly Dictionary<string, CModifier> _strategicResources =
 		new(StringComparer.OrdinalIgnoreCase);
 
@@ -69,7 +71,10 @@ public sealed class CGameState
 		}
 		foreach (CTechnology technology in technologies ?? Array.Empty<CTechnology>())
 		{
-			_technologies.TryAdd(technology.Name, technology);
+			if (_technologies.TryAdd(technology.Name, technology))
+			{
+				_technologiesInOrder.Add(technology);
+			}
 		}
 		_hours = (long)date.DayNumber * HoursPerDay;
 		Provinces = provinces;
@@ -163,6 +168,9 @@ public sealed class CGameState
 	public IReadOnlyList<CCountry> Countries => _countriesInOrder;
 
 	public IReadOnlyDictionary<string, CTechnology> Technologies => _technologies;
+
+	/// <summary>The technologies in the order they were read, which is the original's database order (research.md, section 9).</summary>
+	public IReadOnlyList<CTechnology> TechnologiesInOrder => _technologiesInOrder;
 
 	/// <summary>The theories and practicals there are, in the order the file lists them.</summary>
 	public IReadOnlyList<CTechnologyCategory> TechnologyCategories { get; }

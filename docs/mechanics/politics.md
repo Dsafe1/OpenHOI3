@@ -248,7 +248,9 @@ national unity 98 of 101**. Before the AI's look at the laws (section 12) nation
 laws, which `national_unity_effect` comes from, are the AI's. Three of the laws that differ are the rebels', whose
 conscription, economy and press no history gives, and the fourth is Israel's press law: free, as a democracy at peace
 is given, where the save keeps the history's state press. `laws=save` gives every country the save's laws instead,
-before the two days: 707 of 707 and national unity 99 of 101. Popularity and the cabinet carry the drift's draw on a
+before the two days: 707 of 707 and national unity 99 of 101. **Since 2026-11-02, with the engine's own pass before the
+Lua's (section 13), the new game gives the same: the laws 707 of 707 and national unity 99 of 101** with nothing from
+the save - the rebels' three and Israel's press were what the engine's pass moves. Popularity and the cabinet carry the drift's draw on a
 generator whose seeding is ours, so popularity is set against the save to within five points (928 of 1010 on 2026-10-14 with espionage's draws before it; the figure moves with every draw added ahead of the drift) and the
 cabinet differs where a party drew across the cut (Germany 7 seats of 8 here). The post that differs is New Zealand's
 foreign minister, whom its AI changed before the save was written - and whom the minister here changes on its first
@@ -369,13 +371,15 @@ law may be paid for on a new game, where none can be. **The maintainer has not l
 
 ## 12. The AI's politics
 
-`FINDINGS-government.md`, section E. **Only for the countries nobody plays** - the player's laws and ministers are
-never the AI's (`docs/compatibility.md`, entry 6). `CPoliticsAi` in `Sim/Politics`; the Lua's classes in
-`lib/OpenHOI3.Lua/Api`.
+`FINDINGS-government.md`, section E. **The minister is only for the countries nobody plays**; **a new game's look at
+the laws is for every country, the player's too**, as the original's is - ~~the player's laws and ministers are never
+the AI's (`docs/compatibility.md`, entry 6)~~, reversed by the maintainer on 2026-11-02, when it was found that part of
+what moves the player's laws in the original is the engine's own (section 13). `CPoliticsAi` in `Sim/Politics`; the
+Lua's classes in `lib/OpenHOI3.Lua/Api`.
 
 **A new game.** Once the parties are set up and the new game's diplomacy is done - its effective neutrality is what
-the laws' `allow` blocks read - the install's Lua `Laws(country)` is called for every country nobody plays, in the
-countries' order, handed the country itself. The changes it posts are made at once, and the look is made again until
+the laws' `allow` blocks read - the install's Lua `Laws(country)` is called for every country, in the countries' order,
+handed the country itself. The changes it posts are made at once, and the look is made again until
 a pass posts nothing - at most ten (*ours*: the start save holds the point repeating it reaches, three passes for
 Germany, and what repeats it in the original was not found). It is all done with the game being made, so a law command
 the script makes **pays nothing and posts no message** until the script's `SetEnablePostMessage(true)` - which Their
@@ -423,21 +427,45 @@ posts; the head of state is never asked his block; a group of the same ideology 
 ruling party's keeps the first; the default mobilising posts once for each neighbour that qualifies, and each spreads
 the threat again.
 
-**Against the saves.** The new game's laws: section 10, 703 of 707 groups. The cabinet:
+**Against the saves.** The new game's laws: section 10, 707 of 707 groups since 2026-11-02 (703 before section 13's
+pass). The cabinet:
 `OpenHOI3.SaveCheck politicsai <install> [days] [tag]` plays a new game with that country played - Germany for sixty
 days by default - and tells every law, minister and mobilisation the ministers post and what of the Lua failed. On
 2026-10-14 a hundred and ten days changed **198 posts in 64 countries**, where between the start save and one of
 20 April 1936 the original's changed 194 in 63; no law moved after the new game's look and nobody mobilised, as in the
 saves; and the Lua failed nowhere. Which posts and when hang on draws whose seeding is ours, so the count is the check.
 The new game's look also set the AI countries' brigades beside the start save's (`OpenHOI3.SaveCheck firstdays`):
-their strength from 3041 to 3435 of 3534, their diplomatic influence and officers from 4 to 72 of 77, their money
+their strength from 3041 to 3435 of 3534 - and to 3620 of 3620, the player's 172 of 172, once the engine's own pass of section 13 ran first (2026-11-02) - their diplomatic influence and officers from 4 to 72 of 77, their money
 from 5 to 76.
+
+## 13. A new game's laws brought forward
+
+Read 2026-11-02 (`reversing/findings/FINDINGS-starttech.md`, section 3), the original's
+`SetUpCountryLawsAndTechnologyForNewGame`, its first half; the second is the technology's (`research.md`, section 9).
+`confirmed` off the listing. As a new game is entered - **every country, the player's too**, once, before its order of
+battle is read and before the Lua's look of section 12, **never when a save is loaded** - each law group's laws are
+walked **from the last in the file's order** towards the country's own:
+
+- a law with any `unit_start_experience` ends the walk, the group keeping its law;
+- the country's own law ends it too, nothing being moved back;
+- the first law whose `allow` holds - asked of the country, with no FROM - becomes its law, put in place with no cost,
+  no command and no message.
+
+So **a law moves to the latest law of its group whose `allow` holds**, where that is later than its own, and
+`training_laws`, whose last law gives starting experience, is never touched. The country's modifier is made again after.
+A country with no law in a group takes the latest it is allowed. *Exe-hardcoded*: the walk and the test of
+`unit_start_experience`; *mod-able*: the laws' order in `common/laws.txt`, their `allow` blocks and which carry
+`unit_start_experience`.
+
+**Not set against a save**: the Lua's look runs after it, and the start save shows the two together. With both, the
+laws are section 10's.
 
 ## Not established
 
 - What repeats a new game's look at the laws (section 12): built as a pass repeated until nothing is posted.
 - What laws a country starts with that its history gives none - the rebels' conscription, economy and press (section
-  10).
+  10). Section 13's pass gives such a group the latest law it is allowed, where the original's country holds no law of
+  it; whether it holds a null law there that the walk meets first was not read.
 - The original's numbering of a country, which its minister's hour hangs on (section 12).
 - What normalises an existing country's organisation a second time before the first screen (section 2) -
   built as measured.

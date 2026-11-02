@@ -103,7 +103,15 @@ now** is the maintainer's word: this one is expected to be looked at again.
 
 `docs/mechanics/interface.md`, section 6.
 
-## 6. The player's country starts on its history's laws
+## 6. ~~The player's country starts on its history's laws~~
+
+**Reversed 2026-11-02 by the maintainer** ("Ok, then lets delete the entry"): the player's country starts as the
+original's does, its laws and technology brought forward with every other country's. The reading of that day found that
+part of what moves the player's laws before the first screen is **the engine's own**, not the AI's: as a new game is
+entered the original moves every country's laws to the latest each group allows and buys every country a head start in
+technology (`docs/mechanics/politics.md`, section 13; `research.md`, section 9; `reversing/findings/FINDINGS-starttech.md`).
+The Lua's look at the laws now runs for the player's country too (`politics.md`, section 12). What follows is kept as it
+was decided, for the record.
 
 **Decided** 2026-10-08 by the maintainer, having checked the original himself: a fresh
 1936 game as Germany shows `two_year_draft` on the first screen with nothing touched,

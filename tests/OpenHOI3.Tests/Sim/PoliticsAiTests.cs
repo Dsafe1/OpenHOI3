@@ -97,15 +97,16 @@ public class PoliticsAiTests
 	}
 
 	[Fact]
-	public void ANewGamesLawsMoveUntilTheyStopAndThePlayersStayAsTheHistoryGivesThem()
+	public void ANewGamesLawsMoveUntilTheyStopThePlayersToo()
 	{
 		CGameState state = World();
 		state.Played.Add(Ger);
 		state.AiScripts = new StepUp();
-		// Two passes that move Italy's press law and a third that posts nothing.
+		// Two passes that move each country's press law and a third that posts nothing - the player's as the AI's, as
+		// the original asks the script for every country (docs/compatibility.md, entry 6, reversed 2026-11-02).
 		Assert.Equal(3, CPoliticsAi.SetUpAtStart(state));
 		Assert.Equal("propaganda_press", state.Country(Ita)!.Laws["press_laws"].Name);
-		Assert.Equal("free_press", state.Country(Ger)!.Laws["press_laws"].Name);
+		Assert.Equal("propaganda_press", state.Country(Ger)!.Laws["press_laws"].Name);
 		Assert.Empty(state.Outbox);
 	}
 

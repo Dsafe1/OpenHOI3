@@ -142,7 +142,11 @@ production, manpower, leadership and victory points; every country's capital.
 
 **Does not agree, and is not explained:**
 
-- *Technology levels* - 28511 of 28987. In the other 476 the save is higher than the
+- *Technology levels* - ~~28511 of 28987~~ **28,987 of 28,987 since 2026-11-02**: the 476 the
+  save holds above the history are the original's head start for a new game, every country
+  buying levels with its core provinces' leadership (`research.md`, section 9;
+  `reversing/findings/FINDINGS-starttech.md`). What follows is the search that came before the
+  reading, kept for what it tried. In the 476 the save is higher than the
   history files say, usually by one: militia and cavalry equipment, agriculture, supply
   production. Something grants them and it is not the history.
 
@@ -167,7 +171,9 @@ production, manpower, leadership and victory points; every country's capital.
   done for the country the player has as for the rest. That much looks like the hand
   that changes the laws before the first screen (section 5); how it is done wants a
   reading, and whether the player's country should get it wants the maintainer's word,
-  as the laws did (`docs/compatibility.md`, entry 6).
+  as the laws did (`docs/compatibility.md`, entry 6). **Both came on 2026-11-02**: the
+  reading found the engine's own new-game pass, which gives every country its levels and
+  moves its laws, and the maintainer's word was "Yes everyone" - entry 6 reversed with it.
 - *Home production* for three countries: Canada's and Australia's metal, where the save
   has less than ours, and Honduras's energy.
 - *A country with no provinces has a full government in the save*, where the history files

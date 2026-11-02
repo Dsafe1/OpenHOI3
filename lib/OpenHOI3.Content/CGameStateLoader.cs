@@ -191,6 +191,21 @@ public static class CGameStateLoader
 				"by draws of a generator of its own, which is not built");
 		}
 
+		// Entering a new game brings every country forward, the player's too, before its order of battle is read: its laws
+		// to the latest each group allows, then a head start in technology bought with its core provinces' leadership
+		// (politics.md, section 13; research.md, section 9). The levels' effects come with the modifier made again. The
+		// original's entry has worked out every country's effective neutrality by then, which the laws' allow blocks read.
+		foreach (CCountry country in state.Countries)
+		{
+			Sim.Diplomacy.CNeutrality.UpdateEffective(state, country);
+		}
+		foreach (CCountry country in state.Countries)
+		{
+			Sim.Politics.CStartLaws.Move(state, country);
+			Sim.Research.CStartTechnology.Buy(state, country);
+		}
+		Sim.Modifiers.CCountryModifiers.Rebuild(state);
+
 		// The units come last, as they do in the original: a brigade is made by a country
 		// that already has its laws, its technology and its modifiers. The leaders the files
 		// name go on with them; the rest are chosen after the stockpile is set, as the
@@ -207,8 +222,9 @@ public static class CGameStateLoader
 		CPolitics.SetUpAtStart(state, warn);
 		// Entering the game gives the relations nobody gave, asking the install's Lua for them.
 		CDiplomacy.SetUpNewGame(state, warn);
-		// And every country nobody plays has its laws looked at by the AI until they stop moving, and is given a
-		// politics minister (politics.md, section 12). Ours: after the step above, whose effective neutrality the laws'
+		// And every country has its laws looked at by the install's Lua until they stop moving, the player's too (entry 6
+		// of docs/compatibility.md, reversed 2026-11-02), and every country nobody plays is given a politics minister
+		// (politics.md, section 12). Ours: after the step above, whose effective neutrality the laws'
 		// allow blocks read; where the original's look comes beside it was not read.
 		if (played is not null)
 		{
