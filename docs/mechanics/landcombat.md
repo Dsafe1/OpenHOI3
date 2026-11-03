@@ -548,6 +548,14 @@ arrive with the cooldown still active." That is what the rule above comes to: th
 has walked while it fought, so it is under way when the battle ends, arrives, and stands
 there until the delay has run out.
 
+**And a delay holds a unit falling back too.** A beaten defender sets off at `RETREAT_PROGRESS` times the
+share of its way the furthest of its side had walked - nothing, where none of them was walking - and
+nothing about falling back clears the delay, so one still running keeps it standing in the province it lost
+until the delay is out. Read in the bytes on 2026-11-02, and **tried in the original by the maintainer the
+same day**: "A unit with cooldown doesnt get movement progress during retreat, retreating does not clear it
+in any way. Only after it ran out does it begin gaining progress." The same holds for a defender the AI
+orders out of a battle, which falls back from where it stands (`movement.md`, section 4).
+
 **The leaders' `combat_move_speed`**, down the chain, is added beside the country's
 `combat_movement_speed` (`reversing/findings/FINDINGS-battleleaders.md`, section 8). `confirmed`
 

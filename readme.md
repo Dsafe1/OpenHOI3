@@ -1455,10 +1455,46 @@ months to the original's thirteen and a half**, ending the original's way by `ch
 32 levels summed to the save's 56, was the first suspect (`headless.md`, section 4, the last run). **Mended the same
 day**: a new game gives every country, the player's too, the original's head start in technology and brings its laws
 forward (`research.md`, section 9; `politics.md`, section 13; `docs/compatibility.md`, entry 6 reversed) - every
-technology level of the start save, 28,987 of 28,987, and its laws, 707 of 707. **The second suspect is how our China
+technology level of the start save, 28,987 of 28,987, and its laws, 707 of 707. Every start-date check run again after
+it gives the same or better - alignment 80 of 101, the free spies 101 of 101 and the levels abroad 10052 of 10100, the
+ladder of commands to 4 January 91 to 99 of 106 by level, the theatres, the AI's strategy and the moving figures
+unchanged - but one: **dissent 85 of 101**, where every miss was 0.018 before, because a new game's consumer goods
+share is set before any unit exists and so without the standing army's term (`politics.md`, section 10; with the term
+taken out, 94 of 101). **The second suspect is how our China
 loses its army**: the original's keeps 80 to 88 units through the war where ours falls from 90 to 54 by December 1937,
-and its front breaks in November - a run to 1939 with the head start in has not been made yet. The other open
-choices are **the land unit's orders window** (`land_unit_order`,
+and its front breaks in November.
+
+**Next, by the maintainer's word of 2026-11-03: a replay**, and China after it. Each run to December 1937 takes some
+twelve minutes and the China work wanted eight of them, most re-running one war with more tracing. A replay runs the
+simulation again with the recorded commands in place of the AI, so it saves the AI's share of each hour - not yet
+measured; on 2026-10-13 the Lua's trading alone was 11 ms of an ordinary hour's 15, before the unit agents. A recording
+holds only while the rules do not change: it serves a trace added to a run and a bug reproduced at its hour, not a fix
+tried. What it needs first, as seen on 2026-11-03 and nothing built:
+1. **A profile** of a few days of 1937 with the agents at work, to know the AI's share before anything is built.
+2. **A generator of the AI's own.** The agents, the AI's code and the AI's choice of an event's option draw on the
+   game's generator (eight places in `Sim/Agents` and `Sim/Ai`, and `docs/compatibility.md`, entry 11), so a run without
+   the AI would draw differently from the first missing draw on. Entry 11's choice is the maintainer's to reopen.
+3. **The AI acting through commands only.** It posts some eighty, but a few places write a unit's path straight
+   (`CJoinOrders` among them), and its own state - theatres, agents, plans - is written directly: each found, and made a
+   command or shown to be read by the AI alone.
+4. **A hash of the game state each day**, the recording's and the replay's set side by side - the check that a game is
+   replayable from its seed and its commands, which nothing tests today.
+5. A savegame of our own, to start a run at 30 June 1937, would save more and serve a fix as well, but has to write
+   out everything, the Lua's own state with it: after the replay, not instead.
+
+**And then China** (2026-11-02, the runs' traces in `OpenHOI3.SaveCheck headless ... inspect=CHI`). Every rule on the
+way a Chinese unit is lost is the original's as read: 32 of 50 lost to the end of the war were falling back with no
+supplies onto ground Japan held, 13 beaten with nowhere to go, 6 overtaken with enemies where they stood and ahead. A
+retreat begins with the attack delay still running and stands until it is out, which the maintainer tried in the
+original the same day (`landcombat.md`, section 9). What differs is the war: the original's China loses 13 units in
+eight months, ours 50 in six; set beside the Ireland game's saves month by month, **ours attacks less - 3 to 10 of its
+units carry an attack delay where the original's carry 15 to 39 - and falls back far more, 9 to 27 units at a time from
+October where the original has 1 to 5**, with as many Japanese units on its land in both. 113 of its 395 retreats to
+the end of the war were the AI ordering a defender out of a battle, not a battle lost. **Next in it**: read whether the
+original's AI orders a unit fighting a defence to move at all, which is a reading in the fact base and needs no run;
+then how often our China wins and loses its defences.
+
+The other open choices are **the land unit's orders window** (`land_unit_order`,
 brought up by Ctrl and a right click, `fleetsandair.md` *Not built*) - without it a player cannot give a strategic
 redeployment or a support attack, so neither can be tried in a game; the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
@@ -1747,8 +1783,13 @@ None of these blocks the list above.
     `PAN`, the two the base game's and BlackICE's tags collide with, are known.
 - **The production and technology screens' tooltips leave two things out** (2026-10-11): the
   standing army's term of the consumer goods
-  demand, which the simulation does not have either, so the slider says `0.00` of it
-  (`production.md`, section 3); and the lines of the trade and convoy lists, which are empty.
+  demand, which the simulation has since 2026-11-02 and the slider still says `0.00` of, counting the brigades its own
+  way, without those waiting to be placed (`production.md`, section 3); and the lines of the trade and convoy lists,
+  which are empty.
+- **A new game's consumer goods share leaves out the standing army** (2026-11-02): the shares are set before any unit
+  exists, so the two days run short of the demand and dissent rises where the save has none - 85 of 101 against 94
+  without the term (`politics.md`, section 10). What the original's starting share is made of is not established
+  (`production.md`, section 1); Germany's untouched 0.224 there is a place to start.
   Nothing disables a building's button or the underground's, so their tooltips' second
   lines never show (`productionscreen.md`, section 8).
 - **A technology's requirement text knows the base game's conditions only** (2026-10-12,

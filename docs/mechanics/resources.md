@@ -121,7 +121,8 @@ production, manpower, leadership and victory points; every country's capital.
 
 **Agrees, with a reason for what does not:**
 
-- *Laws* - only 367 of 707, and **the cause is the original's AI script, not the files.**
+- *Laws* - only 367 of 707 (546 since 2026-11-02, the engine's own new-game pass brought in - `politics.md`, section
+  13 - with the AI's script still left out of this check), and **the cause is the original's AI script, not the files.**
   Both layers of the install give Germany the same seven laws, and the save has five
   others. `script/ai_politics_minister.lua` accounts for every one of them: its `Laws`
   function sets education to the highest investment, training to basic, industry to

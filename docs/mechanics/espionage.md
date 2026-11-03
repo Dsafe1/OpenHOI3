@@ -336,7 +336,9 @@ the history's `medium_large_education_investment` where the original's AI had gi
 (`docs/compatibility.md`, entry 6), 1.2 over 1.1 of the leadership, and so 1.024 spies a day to 1.113 - and the levels
 abroad 10045 of 10100, **1794 spies abroad to the save's 1783**: 22 catches to its 33, where the reading's formula
 gives the neutral countries 1.8 times the chance. The rest is the rolls: a model of the two days from the save's own
-spies expects 24.9 catches, sd 5.0, as read, and the save's 33 is 1.6 sd above it (section 6).
+spies expects 24.9 catches, sd 5.0, as read, and the save's 33 is 1.6 sd above it (section 6). **On 2026-11-02**, with
+every country's laws brought forward as a new game is made, the player's too (`politics.md`, section 13; entry 6
+struck): free spies 101 of 101, the levels abroad 10052 of 10100 and 1798 spies abroad.
 
 Played on as Germany to the saves of 4 January 12:00 and 8 January 07:00 of the maintainer's other game: **the home
 at 7 and every priority and mission weight agree**, and the pool is short by that 0.089 a day and nothing else. The

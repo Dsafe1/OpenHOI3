@@ -250,13 +250,20 @@ conscription, economy and press no history gives, and the fourth is Israel's pre
 is given, where the save keeps the history's state press. `laws=save` gives every country the save's laws instead,
 before the two days: 707 of 707 and national unity 99 of 101. **Since 2026-11-02, with the engine's own pass before the
 Lua's (section 13), the new game gives the same: the laws 707 of 707 and national unity 99 of 101** with nothing from
-the save - the rebels' three and Israel's press were what the engine's pass moves. Popularity and the cabinet carry the drift's draw on a
-generator whose seeding is ours, so popularity is set against the save to within five points (928 of 1010 on 2026-10-14 with espionage's draws before it; the figure moves with every draw added ahead of the drift) and the
-cabinet differs where a party drew across the cut (Germany 7 seats of 8 here). The post that differs is New Zealand's
+the save - the rebels' three and Israel's press were what the engine's pass moves. The rest, run again that day, as
+before: the ruling party, the government and the last election 101 of 101, organisation 1010 of 1010, the posts 1009 of
+1010, and national unity's two misses Communist China's and the Dominican Republic's, each 0.002 short. Popularity and the cabinet carry the drift's draw on a
+generator whose seeding is ours, so popularity is set against the save to within five points (928 of 1010 on 2026-10-14 with espionage's draws before it, 932 on 2026-11-02; the figure moves with every draw added ahead of the drift) and the
+cabinet differs where a party drew across the cut (Germany 7 seats of 8 here; 877 of 1010 parties' seats on 2026-11-02, the rebels' among them). The post that differs is New Zealand's
 foreign minister, whom its AI changed before the save was written - and whom the minister here changes on its first
-day. Dissent differs by 0.018 where the AI moved its consumer goods. The start-date check (`OpenHOI3.SaveCheck
+day. Dissent differs by 0.018 where the AI moved its consumer goods - **and since the standing army came into the
+demand (`production.md`, section 3), by more in four countries: 85 of 101 agree on 2026-11-02**, the Soviet Union at
+0.278, Japan 0.244, Finland 0.846 and Afghanistan 0.950, where the save has 0.018 or nothing. A new game's consumer
+goods share is set before any unit exists, so it is the demand without its army, and the two days run short of it by
+the term; with the term taken out, 94 of 101 agree and every difference left is the 0.018. What the original's starting
+share is made of is not established (`production.md`, section 1). The start-date check (`OpenHOI3.SaveCheck
 <install> <save>`) gives the posts of the countries that own nothing 230 of 230, where the history alone gave 10; the
-diplomacy check's alignment rose from 50 to 60 of 101 with section 2 and to 79 with section 12.
+diplomacy check's alignment rose from 50 to 60 of 101 with section 2, to 79 with section 12 and to 80 with section 13.
 
 ## 11. The screen
 

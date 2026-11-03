@@ -40,6 +40,8 @@ internal static class CHeadlessTrial
 		CDate end = args.Length > 2 && int.TryParse(args[2], out int year) ? new CDate(year, 1, 1)
 			: args.Length > 2 && CDate.TryParse(args[2], out CDate given) ? given : new CDate(1948, 1, 1);
 		string lastInspected = "";
+		var armySeen = new Dictionary<int, string>();
+		var armyMarks = new Dictionary<int, (bool Retreating, int Destination)>();
 		string? inspect = args.FirstOrDefault(a => a.StartsWith("inspect=", StringComparison.Ordinal))?["inspect=".Length..];
 		var saves = new List<(long Hour, string Path)>();
 		foreach (string path in args.Skip(2).Where(a => a.EndsWith(".hoi3", StringComparison.OrdinalIgnoreCase)))
@@ -63,6 +65,10 @@ internal static class CHeadlessTrial
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts);
 		state.Played.Clear();
 		state.ScriptReport = new CScriptReport();
+		if (inspect is not null)
+		{
+			state.UnitRemovedTrace = unit => TellRemoved(state, unit, inspect);
+		}
 		var simulation = new CSimulation(state);
 		Console.WriteLine($"a new game, {state.Date}, nobody playing, loaded in {loading.ElapsedMilliseconds} ms; " +
 			$"the Lua with {scripts.Failures} errors, {warnings.Count} warnings while loading");
@@ -112,6 +118,7 @@ internal static class CHeadlessTrial
 				if (inspect is not null && state.Country(new CCountryTag(inspect)) is { } looked)
 				{
 					lastInspected = Inspect(state, looked, lastInspected);
+					InspectArmy(state, looked, armySeen, armyMarks);
 				}
 				if (state.Date == before)
 				{
@@ -250,6 +257,111 @@ internal static class CHeadlessTrial
 			}
 		}
 		return line;
+	}
+
+	/// <summary>
+	/// A country's land army for <c>inspect=TAG</c>: on the first of each month its units, brigades, strength and
+	/// organisation, with its manpower and its reinforcement share; and each land unit that leaves the game, told as it
+	/// stood the hour before.
+	/// </summary>
+	private static void InspectArmy(CGameState state, CCountry country, Dictionary<int, string> seen,
+		Dictionary<int, (bool Retreating, int Destination)> marks)
+	{
+		List<CUnit> land = country.AllUnits().Where(unit => unit.Kind is not (EUnitKind.Navy or EUnitKind.Air)).ToList();
+		if (state.Date.Day == 1 && state.Hour == 0)
+		{
+			List<CSubUnit> brigades = land.SelectMany(unit => unit.SubUnits).ToList();
+			long strength = brigades.Sum(brigade => brigade.Strength.Raw);
+			long organisation = brigades.Count == 0 ? 0 : brigades.Sum(brigade => brigade.Organisation.Raw) / brigades.Count;
+			Console.WriteLine($"  {state.Date} army {country.Tag}: land units {land.Count} (divisions " +
+				$"{land.Count(unit => unit.Kind == EUnitKind.Division)}), brigades {brigades.Count}, strength {strength / 1000}, " +
+				$"organisation {organisation / 1000.0:0.0} average, manpower {Whole(country.Manpower)}, " +
+				$"IC shares {string.Join(" ", country.ProductionShares.Select(share => share.ToThousandths().ToString()))}, " +
+				$"in the queue {country.Constructions.Count}");
+		}
+		// On the 1st, 11th and 21st, what its land units with brigades are doing - the figures a save can be set beside - and
+		// those of every country at war with it standing on land it owns.
+		if (state.Date.Day is 1 or 11 or 21 && state.Hour == 0)
+		{
+			string Doing(IEnumerable<CUnit> units)
+			{
+				List<CUnit> withBrigades = units.Where(unit => unit.SubUnits.Count > 0).ToList();
+				List<CUnit> delayed = withBrigades.Where(unit => unit.AttackDelay > CFixedPoint.Zero).ToList();
+				double mean = delayed.Count == 0 ? 0 : delayed.Average(unit => unit.AttackDelay.Raw / 1000.0);
+				return $"{withBrigades.Count} with brigades ({withBrigades.Sum(unit => unit.SubUnits.Count)}): delayed {delayed.Count} " +
+					$"(mean {mean:0.0} h), falling back {withBrigades.Count(unit => unit.IsRetreating)}, moving " +
+					$"{withBrigades.Count(unit => unit.IsMoving && !unit.IsRetreating)}, fighting {withBrigades.Count(unit => unit.IsFighting)}";
+			}
+			Console.WriteLine($"  {state.Date} doing {country.Tag}: {Doing(land)}");
+			var enemies = state.Countries.Where(other => OpenHOI3.Sim.Movement.CMovementRules.IsEnemy(state, other.Tag, country.Tag));
+			foreach (CCountry enemy in enemies)
+			{
+				List<CUnit> inside = enemy.AllUnits().Where(unit => unit.Kind is not (EUnitKind.Navy or EUnitKind.Air)
+					&& unit.Location > 0 && state.Province(unit.Location).Owner == country.Tag).ToList();
+				if (inside.Count > 0)
+				{
+					Console.WriteLine($"  {state.Date} doing {enemy.Tag} on {country.Tag}'s land: {Doing(inside)}");
+				}
+			}
+		}
+		var now = new HashSet<int>();
+		foreach (CUnit unit in land)
+		{
+			now.Add(unit.Id);
+			if (unit.SubUnits.Count == 0)
+			{
+				continue;
+			}
+			var here = state.Province(unit.Location);
+			string next = unit.Path.Count > 0 ? $"{unit.Path[0]} ({state.Province(unit.Path[0]).Controller})" : "-";
+			// A unit marked falling back, or given a new way while so marked: its whole path and who holds each step.
+			(bool Retreating, int Destination) mark = (unit.IsRetreating, unit.Path.Count > 0 ? unit.Path[^1] : 0);
+			if (marks.TryGetValue(unit.Id, out var before) && mark != before && unit.IsRetreating)
+			{
+				Console.WriteLine($"  {state.Date} {state.Hour}h falling back: {unit.Kind} '{unit.Name}' in {unit.Location} ({here.Controller}), " +
+					$"order {unit.Order}, was {(before.Retreating ? "falling back" : "not")} to {before.Destination}, path " +
+					string.Join(" ", unit.Path.Select(p => $"{p}({state.Province(p).Controller})")));
+			}
+			marks[unit.Id] = mark;
+			seen[unit.Id] = $"{unit.Kind} '{unit.Name}' in {unit.Location} {here.Name} ({here.Controller}), " +
+				$"{unit.SubUnits.Count} brigades, strength {CUnitTotals.Strength(unit)}, organisation {CUnitTotals.AverageOrganisation(unit)}, " +
+				$"retreating {unit.IsRetreating}, battles {unit.Combats.Count}, next {next}, supplies {unit.SuppliesReceived}, " +
+				$"enemy here {state.UnitsIn(unit.Location).Count(other => OpenHOI3.Sim.Movement.CMovementRules.IsEnemy(state, other.Owner, unit.Owner))}";
+		}
+		foreach (int id in seen.Keys.Where(id => !now.Contains(id)).ToList())
+		{
+			Console.WriteLine($"  {state.Date} {state.Hour}h lost: {seen[id]}");
+			seen.Remove(id);
+		}
+	}
+
+	/// <summary>
+	/// A land unit of the inspected country taken out of the game, as it is: where it stands and where it was going, who
+	/// holds each and who stands there, and the calls that took it out.
+	/// </summary>
+	private static void TellRemoved(CGameState state, CUnit unit, string tag)
+	{
+		if (unit.Owner.Value != tag || unit.Kind is EUnitKind.Navy or EUnitKind.Air || unit.SubUnits.Count == 0)
+		{
+			return;
+		}
+		string Enemies(int province) => string.Join(" ", state.UnitsIn(province)
+			.Where(other => OpenHOI3.Sim.Movement.CMovementRules.IsEnemy(state, other.Owner, unit.Owner))
+			.Select(other => $"{other.Owner}{(other.IsRetreating ? "(falling back)" : "")}"));
+		var here = state.Province(unit.Location);
+		string next = unit.Path.Count > 0
+			? $"{unit.Path[0]} held by {state.Province(unit.Path[0]).Controller}, enemies [{Enemies(unit.Path[0])}], " +
+				$"path {unit.Path.Count} long, progress {unit.MovementProgress}"
+			: "no path";
+		IEnumerable<string> calls = new System.Diagnostics.StackTrace(2, false).GetFrames()
+			.Select(frame => frame.GetMethod())
+			.Where(method => method is not null)
+			.Take(5)
+			.Select(method => $"{method!.DeclaringType?.Name}.{method.Name}");
+		Console.WriteLine($"  {state.Date} {state.Hour}h removed: {unit.Kind} '{unit.Name}' in {unit.Location} {here.Name} held by " +
+			$"{here.Controller}, enemies [{Enemies(unit.Location)}]; next {next}; falling back {unit.IsRetreating}, battles " +
+			$"{unit.Combats.Count}, strength {CUnitTotals.Strength(unit)}, organisation {CUnitTotals.AverageOrganisation(unit)}, " +
+			$"supplies {unit.SuppliesReceived}; by {string.Join(" < ", calls)}");
 	}
 
 	/// <summary>The great powers' figures and the world's.</summary>

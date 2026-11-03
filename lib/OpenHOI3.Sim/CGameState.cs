@@ -518,6 +518,12 @@ public sealed class CGameState
 	public (Countries.CCountryTag Country, Action<string> Write)? AiTrace { get; set; }
 
 	/// <summary>
+	/// Told of every unit taken out of the game, as it goes, for a tool tracing what a country loses. Null in a game.
+	/// Changes nothing.
+	/// </summary>
+	public Action<Units.CUnit>? UnitRemovedTrace { get; set; }
+
+	/// <summary>
 	/// Raised as an event fires, past its <c>fire_only_once</c> test, for whatever reports it - a
 	/// message, a tool. Never for anything that changes the game.
 	/// </summary>

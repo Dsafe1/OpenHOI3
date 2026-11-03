@@ -206,6 +206,7 @@ public static class CCombatRetreat
 			return;
 		}
 		unit.IsRemoved = true;
+		state.UnitRemovedTrace?.Invoke(unit);
 		// A fleet or an air unit takes its passengers with it; a passenger leaves its fleet's or its air unit's list
 		// (transport.md, sections 6 and 13.3); and a fleet lets its carriers' air groups go (section 13.1).
 		Transport.CTransport.RemovePassengers(state, unit);

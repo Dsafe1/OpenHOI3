@@ -963,7 +963,8 @@ beside the repository.
   most-threatening country, and **50 of 101 for alignment** - all 11 of the factions'. On
   2026-10-13, with `SpyMission` built and the base game's whole `autoexec.lua` loading, it gave
   the same with no Lua error (`docs/mechanics/lua.md`). The alignment misses were the AI's opening laws and the cabinets the
-  original fills as a game is entered: with both built it gives **79 of 101** (2026-10-14, `politics.md`, section 12);
+  original fills as a game is entered: with both built it gives **79 of 101** (2026-10-14, `politics.md`, section 12), and 80 with the engine's own new-game pass
+  (2026-11-02, section 13);
   `laws=save` after the save gives every country the save's
   laws before the two days (`docs/mechanics/alignment.md`, *Ours*), and
   `explain=<tag>` prints a country's drift term by term as its first step weighs it, and
@@ -1021,7 +1022,10 @@ beside the repository.
   engine's own new-game pass before the Lua's (`politics.md`, section 13), **the laws 707 of 707 and national unity 99
   of 101** without it. Popularity and the cabinet
   carry the drift's draw on a generator whose seeding is ours, so popularity is set beside the save to within five
-  points (`docs/mechanics/politics.md`, section 10). Run it after touching `Sim/Politics`, the history's government or
+  points (`docs/mechanics/politics.md`, section 10). **Dissent is 85 of 101 since 2026-11-02**, where the misses were
+  each 0.018: a new game's consumer goods share is set before any unit exists, without the standing army's term, and
+  the two days run short of it - the Soviet Union, Japan, Finland and Afghanistan up to 0.950 (94 of 101 with the term
+  taken out). Run it after touching `Sim/Politics`, the history's government or
   the Lua classes the politics script reaches.
   `OpenHOI3.SaveCheck foreignai <install> [days]` is a look: a new game with nobody playing and every minister at work
   (180 days with none given), telling every offer the foreign ministers make but trade, by kind and value, how each was
@@ -1053,7 +1057,7 @@ beside the repository.
   given a tag, that country's fleets and air units both ways. With the start save given twice it is the first screen: on
   2026-10-17 every theatre's army groups, armies, corps, divisions and fleets 106 of 106. `_01_01_00` to `_01_04_12`: **active, the
   stances, the area and the objectives 106 of 106**, the ladder 87 to 99 of 106 by level, air units 99 of 101 countries,
-  fleets 95 of 101; what differs is the balancing of divisions, which waits on the division need's reading, and the powers
+  fleets 95 of 101 - on 2026-11-02 the ladder 91 to 99, air units 96 and fleets 97; what differs is the balancing of divisions, which waits on the division need's reading, and the powers
   (`docs/mechanics/agents.md`, section 14). **Since the third piece, 2026-10-19**, it also sets the plan's axis and embark
   and debark beside the save, and every division and air unit of a country nobody plays: where it stands, whether a
   division moved or is on its way and where it is bound, and an air unit's mission whole, and the land each country holds
@@ -1084,10 +1088,10 @@ beside the repository.
   the install's Lua having given the relations and its two days run, beside the start save: the free spies, and in
   every presence the level, the priority, the nine mission weights and the covert-ops points; given a later save, it
   plays on to that save's hour and sets the player's country beside it. On 2026-10-14 every home level 101 of 101,
-  every priority, weight and point 10201 of 10201, **the levels abroad 10045 of 10100** - each that differs a spy caught
+  every priority, weight and point 10201 of 10201, **the levels abroad 10045 of 10100** (10052 on 2026-11-02) - each that differs a spy caught
   on the two days by another roll, the original catching more: 33 to our 22 with the triggered modifier `neutrality`
-  built, 18 before it - and the free spies 100 of 101, Germany's for its history's laws (`docs/mechanics/espionage.md`,
-  section 14). Run it
+  built, 18 before it - and the free spies 100 of 101, Germany's for its history's laws - 101 of 101 since 2026-11-02, when the player's laws
+  came to be brought forward too (`docs/mechanics/espionage.md`, section 14). Run it
   after touching `Sim/Espionage`, the relations a new game gives or the espionage share.
   `OpenHOI3.SaveCheck espionageai <install> [days] [tag] [save]` plays a new game with that country played (Germany for
   110 days by default) and every other country's intelligence and politics ministers at work, the trading left out, and
@@ -1109,7 +1113,10 @@ beside the repository.
   each year, the events and decisions, the Lua's errors and every key of script met that is not built (through
   `CGameState.ScriptReport`, which only a tool sets); given saves of the same start it sets every country's goods,
   manpower, officers, influence and technology beside each at its hour; `inspect=TAG` writes that country's hold on
-  its land each day. A run that throws stops and says on which hour. On 2026-10-16 it ran 1936 to 1948 in 44 minutes
+  its land each day, its land army on the first of each month, what its units and its enemies' on its land are doing
+  on the 1st, 11th and 21st - delayed, falling back, moving, fighting, the figures a save can be set beside - each
+  retreat as it begins with its whole way, and each land unit it loses, as it stood and with the calls that took it out
+  of the game (through `CGameState.UnitRemovedTrace`, which only a tool sets). A run that throws stops and says on which hour. On 2026-10-16 it ran 1936 to 1948 in 44 minutes
   in Release and found four things to mend (`docs/mechanics/headless.md`, section 4). **Since the same day the tech and
   production ministers act in it** (`ministers.md`): each snapshot also writes every great power's research queue, its
   two sets of shares and its units waiting, and its summed research progress, which is what to set beside a save's -
