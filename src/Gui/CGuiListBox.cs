@@ -60,18 +60,50 @@ public partial class CGuiListBox : CGuiObject
 		_content = new Control { Name = "Entries", MouseFilter = MouseFilterEnum.Ignore };
 		AddChild(_content);
 
-		if (context.Types.FindScrollbar(type.Scrollbar) is { } scrollbarType)
+		_context = context;
+		MakeScrollbar(type.Size.Y);
+	}
+
+	private CGuiContext? _context;
+
+	private void MakeScrollbar(float length)
+	{
+		if (_context?.Types.FindScrollbar(_type.Scrollbar) is not { } scrollbarType)
 		{
-			_scrollbar = new CGuiScrollbar();
-			_scrollbar.Initialise(scrollbarType, context, type.Size.Y);
-			_scrollbar.Position = new Vector2(type.Size.X, 0f);
-			_scrollbar.Visible = false;
-			// A bar that runs up and down has its greatest value at the top, so the top
-			// of the list is the bar's whole and the bottom its nothing.
-			_scrollbar.Moved += value =>
-				ShowFrom(Mathf.RoundToInt((1f - value.Raw / (float)CFixedPoint.Scale) * Unseen));
-			AddChild(_scrollbar);
+			return;
 		}
+		_scrollbar = new CGuiScrollbar();
+		_scrollbar.Initialise(scrollbarType, _context, length);
+		_scrollbar.Position = new Vector2(_type.Size.X, 0f);
+		_scrollbar.Visible = false;
+		// A bar that runs up and down has its greatest value at the top, so the top
+		// of the list is the bar's whole and the bottom its nothing.
+		_scrollbar.Moved += value =>
+			ShowFrom(Mathf.RoundToInt((1f - value.Raw / (float)CFixedPoint.Scale) * Unseen));
+		AddChild(_scrollbar);
+	}
+
+	/// <summary>
+	/// The box made this high, rows of the first entry's height counted again into it and its bar made as long: a list
+	/// the code sizes to what is in it, as the outliner's (<c>docs/mechanics/outliner.md</c>, section 1).
+	/// </summary>
+	public void SetHeight(float height)
+	{
+		if (Mathf.IsEqualApprox(Size.Y, height))
+		{
+			return;
+		}
+		Size = new Vector2(Size.X, height);
+		float pitch = _entries.Count > 0 ? _entries[0].Size.Y : 0f;
+		_rows = pitch > 0f ? CGuiLayout.ListRows((int)height, pitch) : 0;
+		if (_scrollbar is not null)
+		{
+			RemoveChild(_scrollbar);
+			_scrollbar.QueueFree();
+			_scrollbar = null;
+			MakeScrollbar(height);
+		}
+		Settle();
 	}
 
 	/// <summary>How many entries the list holds.</summary>
@@ -90,7 +122,7 @@ public partial class CGuiListBox : CGuiObject
 	{
 		_content.AddChild(entry);
 		_entries.Add(entry);
-		_rows = CGuiLayout.ListRows(_type.Size.Y, entry.Size.Y);
+		_rows = CGuiLayout.ListRows(Mathf.RoundToInt(Size.Y), entry.Size.Y);
 		Settle();
 	}
 

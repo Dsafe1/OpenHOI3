@@ -42,4 +42,15 @@ public class UserSettingsTests : IDisposable
 		Assert.Equal(1f, none.CounterScale);
 		Assert.Equal(100f, none.CounterDistance);
 	}
+
+	[Fact]
+	public void The_outliner_s_sections_are_read_whole_and_with_no_key_are_open_with_the_units()
+	{
+		File.WriteAllText(_path, "outliner=\n{\n2 3 7 8 9 1 10 }\n");
+		Assert.Equal(new[] { 2, 3, 7, 8, 9, 1, 10 }, CUserSettingsReader.Read(_path).Outliner);
+
+		File.WriteAllText(_path, "gui=\n{\nlanguage=l_english\n}\n");
+		Assert.Equal(new[] { 10, 4, 5, 6 }, CUserSettingsReader.Read(_path).Outliner);
+		Assert.Equal(new[] { 10, 4, 5, 6 }, CUserSettings.Default.Outliner);
+	}
 }

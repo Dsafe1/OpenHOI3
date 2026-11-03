@@ -24,13 +24,13 @@ public static class CCombatDamage
 	public const long MenPerStrength = 100;
 
 	/// <summary>The strength, in thousandths of full, under which a unit shatters whatever its officers.</summary>
-	private const long MostShatterThreshold = 500;
+	public const long MostShatterThreshold = 500;
 
 	/// <summary>How many thousandths each whole point of average experience takes off that, over a thousand.</summary>
-	private const long ShatterExperienceWeight = 3;
+	public const long ShatterExperienceWeight = 3;
 
 	/// <summary>How many thousandths each point of the unit's leader's skill takes off it, from a float of 10.5.</summary>
-	private const long ShatterSkillWeight = 10;
+	public const long ShatterSkillWeight = 10;
 
 	/// <summary>
 	/// One hit on a unit, spread over its brigades: the strength by each brigade's

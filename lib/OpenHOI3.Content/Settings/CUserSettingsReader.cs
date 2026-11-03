@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using OpenHOI3.Content.Clausewitz;
 
@@ -51,6 +52,26 @@ public static class CUserSettingsReader
 			CounterScale = map?.GetFloat("counter_scale", CUserSettings.Default.CounterScale) ?? CUserSettings.Default.CounterScale,
 			CounterDistance = map?.GetFloat("counter_distance", CUserSettings.Default.CounterDistance)
 				?? CUserSettings.Default.CounterDistance,
+			Outliner = Numbers(root.Get("outliner")) ?? CUserSettings.DefaultOutliner,
 		};
+	}
+
+	/// <summary>A block of bare whole numbers, the key's whole list replacing the default; null with no such block.</summary>
+	private static List<int>? Numbers(ClausewitzNode? node)
+	{
+		if (node is not { IsBlock: true })
+		{
+			return null;
+		}
+		var numbers = new List<int>();
+		foreach (ClausewitzNode child in node.Children)
+		{
+			if (child.Key is null && int.TryParse(child.Value, System.Globalization.NumberStyles.Integer,
+				System.Globalization.CultureInfo.InvariantCulture, out int number))
+			{
+				numbers.Add(number);
+			}
+		}
+		return numbers;
 	}
 }

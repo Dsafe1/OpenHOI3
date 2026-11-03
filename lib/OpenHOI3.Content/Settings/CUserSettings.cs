@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace OpenHOI3.Content.Settings;
 
 /// <summary>
@@ -6,6 +8,9 @@ namespace OpenHOI3.Content.Settings;
 /// </summary>
 public sealed class CUserSettings
 {
+	/// <summary>What a player with no <c>outliner</c> key has. Before <see cref="Default"/>, which is made from it.</summary>
+	public static readonly IReadOnlyList<int> DefaultOutliner = new[] { 10, 4, 5, 6 };
+
 	/// <summary>The settings a player with no file has: the original's own defaults where they were read.</summary>
 	public static CUserSettings Default { get; } = new();
 
@@ -26,4 +31,10 @@ public sealed class CUserSettings
 
 	/// <summary><c>counter_distance</c>: 100 in a new game's settings. Nothing uses it yet.</summary>
 	public float CounterDistance { get; init; } = 100f;
+
+	/// <summary>
+	/// <c>outliner</c>: the outliner's sections switched on, 1 to 9, and 10 where it is open, in no order. With no key the
+	/// original's own: open, with land units, fleets and air units. See <c>docs/mechanics/outliner.md</c>, section 3.
+	/// </summary>
+	public IReadOnlyList<int> Outliner { get; init; } = DefaultOutliner;
 }

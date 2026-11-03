@@ -57,6 +57,25 @@ public partial class CTopBar : Control
 	/// <summary>Raised when the button that opens the intelligence screen is pressed.</summary>
 	public event System.Action? IntelligencePressed;
 
+	/// <summary>Raised when the button that opens and shuts the outliner is pressed.</summary>
+	public event System.Action? OutlinerPressed;
+
+	private CGuiButton? _outlinerButton;
+
+	/// <summary>
+	/// The outliner's button as the outliner stands: frame 2 while it is open and 1 while it is shut, and hidden while a
+	/// screen covers it (<c>docs/mechanics/outliner.md</c>, section 1).
+	/// </summary>
+	public void ShowOutliner(bool open, bool shown)
+	{
+		if (_outlinerButton is null)
+		{
+			return;
+		}
+		_outlinerButton.SetFrame(open ? 2 : 1);
+		_outlinerButton.Visible = shown;
+	}
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, CSimulation simulation, CCountry? player)
 	{
@@ -110,6 +129,8 @@ public partial class CTopBar : Control
 		Bind(_window.FindButton("topbarbutton_diplo"), () => DiplomacyPressed?.Invoke());
 		Bind(_window.FindButton("topbarbutton_politics"), () => PoliticsPressed?.Invoke());
 		Bind(_window.FindButton("topbarbutton_intelligence"), () => IntelligencePressed?.Invoke());
+		_outlinerButton = _window.FindButton("topbar_outlinerbutton");
+		Bind(_outlinerButton, () => OutlinerPressed?.Invoke());
 
 		// The bar answers for its elements by name, as the original's does. With nobody played it is all there, its
 		// figures and name empty - the file's own sample text would name Germany - and nothing said of them.

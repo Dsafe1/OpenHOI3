@@ -47,6 +47,7 @@ public partial class CSession : Node
 	private CLocalisation _localisation = null!;
 	private CSimulation _simulation = null!;
 	private CTopBar? _topBar;
+	private COutliner? _outliner;
 	private CProductionView? _production;
 	private CTechnologyView? _technology;
 	private CDiplomacyView? _diplomacy;
@@ -305,6 +306,28 @@ public partial class CSession : Node
 		_topBar.DiplomacyPressed += () => Toggle(_diplomacy);
 		_topBar.PoliticsPressed += () => Toggle(_politics);
 		_topBar.IntelligencePressed += () => Toggle(_espionage);
+
+		// The outliner down the right, with the top bar's button for it (docs/mechanics/outliner.md).
+		if (Player is not null)
+		{
+			_outliner = new COutliner();
+			_outliner.Setup(gui, _simulation, Player, Settings.Outliner);
+			layer.AddChild(_outliner);
+			// Under the top bar, whose button for it stands over the outliner's top strip and has to keep its clicks.
+			layer.MoveChild(_outliner, _topBar.GetIndex());
+			COutliner outliner = _outliner;
+			CTopBar topBar = _topBar;
+			_topBar.OutlinerPressed += outliner.Toggle;
+			outliner.Toggled += () => topBar.ShowOutliner(outliner.IsOpen, !outliner.IsCovered);
+			topBar.ShowOutliner(outliner.IsOpen, !outliner.IsCovered);
+			outliner.UnitChosen += ChooseUnit;
+			outliner.CombatChosen += combat =>
+			{
+				ShowCombat(combat);
+				_mapView.CentreOn(combat.Province);
+			};
+			outliner.ProvinceChosen += province => _mapView.CentreOn(province);
+		}
 
 		if (Player is not null)
 		{
@@ -670,6 +693,9 @@ public partial class CSession : Node
 	/// <summary>What a frame does after the game's hours: the counters, the map's colours and the province shown.</summary>
 	private void ProcessAfterHours()
 	{
+		// The outliner steps aside while a country screen is up (outliner.md, section 1).
+		_outliner?.SetCovered(new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage }
+			.Any(view => view is { IsOpen: true }));
 
 		// The counters are worked out again when a day has gone by, a unit of the
 		// player's has been placed or ordered, or an hour has gone by with a unit on the

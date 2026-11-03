@@ -45,6 +45,14 @@ public sealed class CAlliedObjectives
 		return countries;
 	}
 
+	/// <summary>The provinces the requester has asked others to take, and whom, in the order asked.</summary>
+	public IReadOnlyList<(int Province, CCountryTag Country)> Asking(CCountryTag requester)
+	{
+		return _asking.TryGetValue(requester, out List<(int Province, CCountryTag Country)>? asking)
+			? asking
+			: System.Array.Empty<(int, CCountryTag)>();
+	}
+
 	/// <summary>The provinces the country has been asked to take, and by whom.</summary>
 	public IReadOnlyList<(int Province, CCountryTag Requester)> AskedOf(CCountryTag country)
 	{
