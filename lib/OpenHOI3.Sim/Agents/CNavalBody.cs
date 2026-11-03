@@ -452,7 +452,7 @@ public static class CNavalBody
 				endHour: state.TotalHours));
 			for (int index = 1; index < group.Count; index++)
 			{
-				CJoinOrders.Give(state, country, group[index], group[0]);
+				state.Outbox.Add(new CJoinUnitCommand(country.Tag, group[index].Id, group[0].Id));
 			}
 			foreach (CUnit fleet in group)
 			{

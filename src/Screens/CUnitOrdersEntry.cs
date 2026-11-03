@@ -22,7 +22,7 @@ public sealed class CUnitOrdersEntry : CUnitPanelEntry
 	/// <summary>Raised when the button that cancels the order is pressed.</summary>
 	public event Action? CancelPressed;
 
-	private CUnitOrdersEntry(CGuiWindow window, CGuiContext context, CGameState state, CUnit unit) : base(window)
+	private CUnitOrdersEntry(CGuiWindow window, CGuiContext context, CGameState state, CUnit unit, bool mayCancel) : base(window)
 	{
 		_context = context;
 		_state = state;
@@ -30,16 +30,17 @@ public sealed class CUnitOrdersEntry : CUnitPanelEntry
 		_orders = window.FindTextBox("orders");
 		if (window.FindButton("cancel_order_button") is { } cancel)
 		{
+			cancel.Disabled = !mayCancel;
 			cancel.Pressed += () => CancelPressed?.Invoke();
 		}
 		AnswerFor(name => CUnitOrderTooltips.Orders(context.Localisation.Localise, unit, name), "orders");
 		Update();
 	}
 
-	public static CUnitOrdersEntry? Create(CGuiContext context, CGameState state, CUnit unit)
+	public static CUnitOrdersEntry? Create(CGuiContext context, CGameState state, CUnit unit, bool mayCancel = true)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "sup_current_orders");
-		return window is null ? null : new CUnitOrdersEntry(window, context, state, unit);
+		return window is null ? null : new CUnitOrdersEntry(window, context, state, unit, mayCancel);
 	}
 
 	public override void Update()

@@ -98,6 +98,18 @@ public sealed class CEventScope
 	/// </summary>
 	public uint RandomState { get; set; }
 
+	/// <summary>A copy asked with a rebel faction, everything else kept: a command read back from a recording.</summary>
+	public CEventScope WithRebelFaction(Revolts.CRebelFaction faction)
+	{
+		return new CEventScope(Country, Province, FromCountry, FromProvince, null)
+		{
+			RandomState = RandomState,
+			Seed = Seed,
+			LookAheadDays = LookAheadDays,
+			RebelFaction = faction,
+		};
+	}
+
 	/// <summary>A copy with another country and province, and everything else kept.</summary>
 	public CEventScope With(CCountryTag? country, int province)
 	{

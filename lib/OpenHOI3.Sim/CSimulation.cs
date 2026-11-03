@@ -31,7 +31,7 @@ public sealed class CSimulation
 		{
 			foreach (CCommand posted in state.Outbox)
 			{
-				Post(posted);
+				Enqueue(posted);
 			}
 			state.Outbox.Clear();
 			Pump();
@@ -58,8 +58,52 @@ public sealed class CSimulation
 
 	public event Action? YearPassed;
 
+	/// <summary>
+	/// A command from outside the game - a player's order, a tool's - stamped with its place in the order and queued, and
+	/// kept where the game is being recorded. A game replaying a recording takes none: its players' orders come from the
+	/// recording, and another would put it where the recording does not fit (<c>docs/replay.md</c>, section 8). Answers
+	/// whether it was taken.
+	/// </summary>
+	public bool Post(CCommand command)
+	{
+		if (State.Replay is { IsReplaying: true })
+		{
+			return false;
+		}
+		State.Replay?.Posted(_turn, command);
+		Enqueue(command);
+		return true;
+	}
+
+	/// <summary>Whether commands from outside are taken: not while a recording is played back.</summary>
+	public bool TakesCommands => State.Replay is not { IsReplaying: true };
+
+	/// <summary>A recorded player's command, posted where it was: for <see cref="Replay.CReplay"/> alone.</summary>
+	internal void PostReplayed(CCommand command)
+	{
+		Enqueue(command);
+	}
+
+	/// <summary>
+	/// The queue drained until it has been drained that many times: what a replay does before a recorded command or an
+	/// hour, so that each runs after the drains it ran after. More drains than that already means the recording does not
+	/// fit.
+	/// </summary>
+	internal void DrainUntil(int turn)
+	{
+		if (_turn > turn)
+		{
+			throw new InvalidOperationException(
+				$"the recording has the queue drained {turn} times where it has been {_turn}: it was made with other rules or another game");
+		}
+		while (_turn < turn)
+		{
+			Pump();
+		}
+	}
+
 	/// <summary>Stamps a command with its place in the order and queues it.</summary>
-	public void Post(CCommand command)
+	private void Enqueue(CCommand command)
 	{
 		command.Serial = _nextSerial++;
 		command.Turn = _turn;
@@ -93,7 +137,7 @@ public sealed class CSimulation
 			// What the game posted while the command ran waits for the next turn.
 			foreach (CCommand posted in State.Outbox)
 			{
-				Post(posted);
+				Enqueue(posted);
 			}
 			State.Outbox.Clear();
 
@@ -131,7 +175,11 @@ public sealed class CSimulation
 		int due = Clock.HoursDue(realSeconds);
 		if (due == 0)
 		{
-			Pump();                                          // orders given while paused still happen
+			// Orders given while paused still happen; a replay drains the queue only as its recording did, before each hour.
+			if (State.Replay is not { IsReplaying: true })
+			{
+				Pump();
+			}
 			return 0;
 		}
 
@@ -156,7 +204,20 @@ public sealed class CSimulation
 
 	private void RunOneHour()
 	{
-		Post(new CHourlyTickCommand());
+		// A recording keeps how often the queue had been drained when the hour began; a replay first posts the players'
+		// commands that came before it and drains as far (docs/replay.md, section 8).
+		if (State.Replay is { } replay)
+		{
+			if (replay.IsReplaying)
+			{
+				replay.BeforeHour(this);
+			}
+			else
+			{
+				replay.Ticked(_turn);
+			}
+		}
+		Enqueue(new CHourlyTickCommand());
 		Pump();
 	}
 }

@@ -32,7 +32,14 @@ public sealed partial class CProvinceView : Control
 
 	private CGuiContext _context = null!;
 	private CSimulation _simulation = null!;
-	private CCountry _player = null!;
+	private CCountry? _player;
+
+	/// <summary>
+	/// Whose eyes the view sees through: the player's, or with nobody played - a replay looking on - the province's
+	/// controller's, else its owner's (docs/replay.md, section 6).
+	/// </summary>
+	private CCountry _viewer = null!;
+
 	private CGuiWindow? _window;
 	private CGuiWindow? _underground;
 	private CGuiWindow? _covertOps;
@@ -46,12 +53,16 @@ public sealed partial class CProvinceView : Control
 	private readonly List<CAlliedObjectiveEntry> _allies = new();
 	private int _askedCount = -1;
 
-	public void Setup(CGuiContext context, CSimulation simulation, CCountry player)
+	public void Setup(CGuiContext context, CSimulation simulation, CCountry? player)
 	{
 		_context = context;
 		_simulation = simulation;
 		_player = player;
+		_viewer = player!;
 	}
+
+	/// <summary>A replay, which takes no order: nothing in the view may be pressed (docs/replay.md, section 6).</summary>
+	private bool LooksOn => !_simulation.TakesCommands;
 
 	public bool IsOpen => _window is { Visible: true };
 
@@ -134,6 +145,12 @@ public sealed partial class CProvinceView : Control
 		{
 			return;
 		}
+		if ((_player ?? State.Country(province.Controller) ?? State.Country(province.Owner)) is not { } viewer)
+		{
+			Hide();
+			return;
+		}
+		_viewer = viewer;
 		_province = province;
 		_selected = selected;
 		_window.Visible = true;
@@ -230,13 +247,13 @@ public sealed partial class CProvinceView : Control
 			}
 		}
 
-		SetText("text_espionage", CProvinceViewText.Espionage(State, province, _player.Tag));
-		SetText("text_partisans", CRevoltRiskTooltip.Readout(State, province, _player.Tag));
-		SetText("text_manpower", CProvinceViewText.Manpower(State, province, _player.Tag));
-		SetText("text_leadership", CProvinceViewText.Leadership(State, province, _player.Tag));
+		SetText("text_espionage", CProvinceViewText.Espionage(State, province, _viewer.Tag));
+		SetText("text_partisans", CRevoltRiskTooltip.Readout(State, province, _viewer.Tag));
+		SetText("text_manpower", CProvinceViewText.Manpower(State, province, _viewer.Tag));
+		SetText("text_leadership", CProvinceViewText.Leadership(State, province, _viewer.Tag));
 		foreach ((Sim.Economy.EGoods goods, string text, string _, string _) in CProvinceViewText.Resources)
 		{
-			SetText(text, CProvinceViewText.Resource(State, province, _player.Tag, goods));
+			SetText(text, CProvinceViewText.Resource(State, province, _viewer.Tag, goods));
 		}
 		if (window.TryFindIcon("strategic_resource") is { } strategic)
 		{
@@ -312,9 +329,9 @@ public sealed partial class CProvinceView : Control
 				}
 				entry.SetTooltips(
 					() => _province is null ? CTooltip.Empty
-						: CProvinceViewTooltips.Building(Localise, State, _player, _province, entry.Building, entry.Label),
+						: CProvinceViewTooltips.Building(Localise, State, _viewer, _province, entry.Building, entry.Label),
 					() => _province is null ? CTooltip.Empty
-						: CProvinceViewTooltips.Pip(Localise, State, _player, _province, entry.Building));
+						: CProvinceViewTooltips.Pip(Localise, State, _viewer, _province, entry.Building));
 				entry.Pressed += Build;
 				_buildings.Add(entry);
 				list?.Add(entry.Window);
@@ -338,20 +355,20 @@ public sealed partial class CProvinceView : Control
 
 		foreach (CBuildingMemberEntry row in _buildings)
 		{
-			row.Show(CProvinceBuildingRows.Enabled(State, _player, row.Building, province, _selected),
-				CProvinceBuildingRows.Pips(State, _player, row.Building, province));
+			row.Show(!LooksOn && CProvinceBuildingRows.Enabled(State, _viewer, row.Building, province, _selected),
+				CProvinceBuildingRows.Pips(State, _viewer, row.Building, province));
 		}
 		UpdateUnderground(province);
-		SetText("cov_ops_points", CProvinceCovertOpsText.Points(State, _player, _controller)
+		SetText("cov_ops_points", CProvinceCovertOpsText.Points(State, _viewer, _controller)
 			.ToString(System.Globalization.CultureInfo.InvariantCulture));
 		if (_covertOps is { Visible: true })
 		{
 			foreach (CCovertOpsEntry row in _operations)
 			{
-				row.Show(CProvinceCovertOpsText.Enabled(State, _player, province, row.Operation));
+				row.Show(!LooksOn && CProvinceCovertOpsText.Enabled(State, _viewer, province, row.Operation));
 			}
 		}
-		List<CCountryTag> asked = State.AlliedObjectives.AskedBy(_player.Tag, province.Id);
+		List<CCountryTag> asked = State.AlliedObjectives.AskedBy(_viewer.Tag, province.Id);
 		if (asked.Count != _askedCount && _window.FindBox("allied_cooperation") is { } box)
 		{
 			_askedCount = asked.Count;
@@ -377,7 +394,7 @@ public sealed partial class CProvinceView : Control
 		{
 			return;
 		}
-		if (CProvinceUndergroundText.About(State, _player, province, _selected) is not { } about)
+		if (CProvinceUndergroundText.About(State, _viewer, province, _selected) is not { } about)
 		{
 			_underground.Visible = false;
 			return;
@@ -385,11 +402,11 @@ public sealed partial class CProvinceView : Control
 		_underground.Visible = true;
 		if (_underground.TryFindButton("spawn_partisan") is { } partisans)
 		{
-			partisans.Disabled = !CProvinceUndergroundText.MaySpawn(State, _player, about, _selected, partisans: true);
+			partisans.Disabled = LooksOn || !CProvinceUndergroundText.MaySpawn(State, _viewer, about, _selected, partisans: true);
 		}
 		if (_underground.TryFindButton("spawn_underground") is { } spread)
 		{
-			spread.Disabled = !CProvinceUndergroundText.MaySpawn(State, _player, about, _selected, partisans: false);
+			spread.Disabled = LooksOn || !CProvinceUndergroundText.MaySpawn(State, _viewer, about, _selected, partisans: false);
 		}
 		_underground.TryFindIcon("underground_status")?.SetProgress(CProvinceUndergroundText.Status(State, about));
 		if (_underground.FindTextBox("text_supression") is { } suppression)
@@ -399,13 +416,13 @@ public sealed partial class CProvinceView : Control
 		if (_underground.TryFindButton("underground_mission") is { } mission)
 		{
 			mission.SetFrame(CProvinceUndergroundText.MissionFrame(State, about));
-			mission.Disabled = about.UndergroundOwner != _player.Tag;
+			mission.Disabled = LooksOn || about.UndergroundOwner != _viewer.Tag;
 		}
 	}
 
 	private CTooltip Tooltip(string name)
 	{
-		return _province is null ? CTooltip.Empty : CProvinceViewTooltips.Element(Localise, State, _player, _province, name);
+		return _province is null ? CTooltip.Empty : CProvinceViewTooltips.Element(Localise, State, _viewer, _province, name);
 	}
 
 	private CTooltip FlagTooltip(CCountryTag? tag, string element)
@@ -426,9 +443,9 @@ public sealed partial class CProvinceView : Control
 	{
 		foreach (CProvince province in Targets())
 		{
-			if (province.Controller == _player.Tag && Sim.Construction.CBuildingLines.IsAllowed(State, _player, row.Building, province))
+			if (province.Controller == _viewer.Tag && Sim.Construction.CBuildingLines.IsAllowed(State, _viewer, row.Building, province))
 			{
-				_simulation.Post(new CConstructBuildingCommand(_player.Tag, row.Building.Key, province.Id, 1));
+				_simulation.Post(new CConstructBuildingCommand(_viewer.Tag, row.Building.Key, province.Id, 1));
 			}
 		}
 	}
@@ -439,8 +456,8 @@ public sealed partial class CProvinceView : Control
 		foreach (CProvince province in Targets())
 		{
 			bool may = partisans
-				? CUndergrounds.MayRaisePartisans(State, _player.Tag, province)
-				: CUndergrounds.MaySpread(State, _player.Tag, province);
+				? CUndergrounds.MayRaisePartisans(State, _viewer.Tag, province)
+				: CUndergrounds.MaySpread(State, _viewer.Tag, province);
 			if (may)
 			{
 				_simulation.Post(partisans ? new CSpawnPartisanCommand(province.Id) : new CSpawnUndergroundCommand(province.Id));
@@ -451,7 +468,7 @@ public sealed partial class CProvinceView : Control
 	/// <summary>The mission's button stepped - forward by a left click, back by a right - and the new action sent.</summary>
 	private void StepMission(CGuiButton mission, bool forward)
 	{
-		if (_province is null || CProvinceUndergroundText.About(State, _player, _province, _selected) is not { } about)
+		if (_province is null || CProvinceUndergroundText.About(State, _viewer, _province, _selected) is not { } about)
 		{
 			return;
 		}
@@ -459,7 +476,7 @@ public sealed partial class CProvinceView : Control
 		mission.SetFrame(frame);
 		foreach (CProvince province in Targets())
 		{
-			if (province.UndergroundOwner == _player.Tag && CUndergrounds.Has(State, province))
+			if (province.UndergroundOwner == _viewer.Tag && CUndergrounds.Has(State, province))
 			{
 				_simulation.Post(new CChangeUndergroundMissionCommand(province.Id, frame - 1));
 			}
@@ -492,13 +509,13 @@ public sealed partial class CProvinceView : Control
 		list?.Clear();
 		_operations.Clear();
 		CProvince province = _province;
-		foreach (CCovertOperation operation in CProvinceCovertOpsText.Listed(State, _player, province))
+		foreach (CCovertOperation operation in CProvinceCovertOpsText.Listed(State, _viewer, province))
 		{
 			if (CCovertOpsEntry.Create(_context, operation,
-				disabled => CProvinceViewTooltips.CovertOperation(Words(), _player, province, operation, disabled)) is { } row)
+				disabled => CProvinceViewTooltips.CovertOperation(Words(), _viewer, province, operation, disabled)) is { } row)
 			{
-				row.Pressed += entry => _simulation.Post(new CSendCovertOpsMissionCommand(_player.Tag, province.Id, entry.Operation.Name));
-				row.Show(CProvinceCovertOpsText.Enabled(State, _player, province, operation));
+				row.Pressed += entry => _simulation.Post(new CSendCovertOpsMissionCommand(_viewer.Tag, province.Id, entry.Operation.Name));
+				row.Show(!LooksOn && CProvinceCovertOpsText.Enabled(State, _viewer, province, operation));
 				_operations.Add(row);
 				list?.Add(row.Window);
 			}
@@ -521,8 +538,8 @@ public sealed partial class CProvinceView : Control
 		// Emptying the list frees its rows, so they are made again each time it opens.
 		list.Clear();
 		_allies.Clear();
-		List<CCountryTag> asked = State.AlliedObjectives.AskedBy(_player.Tag, _province.Id);
-		foreach (CCountry ally in CProvinceCovertOpsText.Allies(State, _player))
+		List<CCountryTag> asked = State.AlliedObjectives.AskedBy(_viewer.Tag, _province.Id);
+		foreach (CCountry ally in CProvinceCovertOpsText.Allies(State, _viewer))
 		{
 			if (CAlliedObjectiveEntry.Create(_context) is not { } entry)
 			{
@@ -532,10 +549,10 @@ public sealed partial class CProvinceView : Control
 			{
 				if (_province is { } here)
 				{
-					_simulation.Post(new CSetAlliedObjectiveCommand(country.Tag, _player.Tag, here.Id, ticked));
+					_simulation.Post(new CSetAlliedObjectiveCommand(country.Tag, _viewer.Tag, here.Id, ticked));
 				}
 			};
-			entry.Show(ally, asked.Contains(ally.Tag));
+			entry.Show(ally, asked.Contains(ally.Tag), enabled: !LooksOn);
 			_allies.Add(entry);
 			list.Add(entry.Window);
 		}
@@ -582,5 +599,5 @@ public sealed partial class CProvinceView : Control
 		}
 	}
 
-	private CScriptWords Words() => new(Localise, State, _player.Tag);
+	private CScriptWords Words() => new(Localise, State, _viewer.Tag);
 }

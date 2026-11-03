@@ -156,12 +156,15 @@ public static class CMapBuildings
 	/// The unit a click on a port or an airfield selects, or null: the next of the
 	/// player's units there after the one selected, round to the first again. With none
 	/// of them selected it is the second where there are several: the original turns its
-	/// list by one before it picks, each time.
+	/// list by one before it picks, each time. With no player, anybody's - a replay looking on.
 	/// </summary>
-	public static CUnit? Next(CGameState state, CCountryTag player, int province, EMapBuilding kind, CUnit? selected)
+	public static CUnit? Next(CGameState state, CCountryTag? player, int province, EMapBuilding kind, CUnit? selected)
 	{
 		List<CUnit> units = UnitsOf(state, province, kind);
-		units.RemoveAll(unit => unit.Owner != player);
+		if (player is { } tag)
+		{
+			units.RemoveAll(unit => unit.Owner != tag);
+		}
 		if (units.Count == 0)
 		{
 			return null;

@@ -179,6 +179,18 @@ public partial class CMapView : Node2D
 
 	private CCountryTag? _player;
 
+	/// <summary>
+	/// A replay, which looks on: any country's unit is selected by a click, and a right click orders nothing
+	/// (docs/replay.md, section 6).
+	/// </summary>
+	public bool LooksOn { get; set; }
+
+	/// <summary>Whose units a click on a port or an airfield picks: the player's, or anybody's in a replay.</summary>
+	private CCountryTag? Picker => LooksOn ? null : Player;
+
+	/// <summary>Who a unit clicked is selected for: the player, or in a replay its own owner, so that any may be.</summary>
+	private CCountryTag? Selector(CUnit unit) => LooksOn ? unit.Owner : Player;
+
 	/// <summary>Raised when the marker of a battle is clicked.</summary>
 	public event Action<CCombat>? CombatSelected;
 
@@ -661,7 +673,7 @@ public partial class CMapView : Node2D
 				{
 					_dragged = 0f;
 				}
-				else if (_dragged <= ClickSlack && _units.Count > 0 && _places is null
+				else if (_dragged <= ClickSlack && _units.Count > 0 && _places is null && !LooksOn
 					&& ProvinceAtScreen(button.Position) is int target && target > 0)
 				{
 					UnitsOrdered?.Invoke(new List<CUnit>(_units.Units), target, button.ShiftPressed);
@@ -760,10 +772,10 @@ public partial class CMapView : Node2D
 		CUnit? unit = null;
 		bool building = false;
 		CUnit? lone = _units.Single;
-		if (_places is null && Player is { } flier && _counters is not null
-			&& _counters.AirMap.AirBaseAt(clicked) is int airfield and > 0)
+		bool picks = LooksOn || Player is not null;
+		if (_places is null && picks && _counters is not null && _counters.AirMap.AirBaseAt(clicked) is int airfield and > 0)
 		{
-			unit = CMapBuildings.Next(_state, flier, airfield, EMapBuilding.Airfield, lone);
+			unit = CMapBuildings.Next(_state, Picker, airfield, EMapBuilding.Airfield, lone);
 			building = true;
 		}
 		if (unit is null && _places is null && _counters?.Click(clicked) is { } counter)
@@ -773,10 +785,10 @@ public partial class CMapView : Node2D
 		}
 		// Then a port or an airfield, which is how a fleet in port and an air unit
 		// at its base are picked: each click the next of the player's units there.
-		if (unit is null && _places is null && Player is { } player && _counters is not null
+		if (unit is null && _places is null && picks && _counters is not null
 			&& _counters.Buildings.At(clicked) is { Kind: not EMapBuilding.Other } picture)
 		{
-			unit = CMapBuildings.Next(_state, player, picture.Province, picture.Kind, lone);
+			unit = CMapBuildings.Next(_state, Picker, picture.Province, picture.Kind, lone);
 			building = true;
 		}
 		if (unit is not null)
@@ -789,7 +801,7 @@ public partial class CMapView : Node2D
 				{
 					return;
 				}
-				if (!_units.Remove(unit) && !_units.Add(unit, Player))
+				if (!_units.Remove(unit) && !_units.Add(unit, Selector(unit)))
 				{
 					return;
 				}
@@ -800,7 +812,7 @@ public partial class CMapView : Node2D
 			// unit where it is the player's; with Ctrl a land unit brings its whole command.
 			_units.Clear();
 			Select(0);
-			if (_units.Add(unit, Player) && click.CtrlPressed && CSelection.KindOf(unit) == ESelectionKind.Land)
+			if (_units.Add(unit, Selector(unit)) && click.CtrlPressed && CSelection.KindOf(unit) == ESelectionKind.Land)
 			{
 				_units.AddCommand(unit);
 			}

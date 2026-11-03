@@ -142,6 +142,18 @@ public sealed class CLeaderSelectionPanel
 			}
 		}
 
+		// A replay takes no order: the window is there to be read (docs/replay.md, section 6).
+		if (LooksOn)
+		{
+			foreach (string pressed in new[] { "noleader_button", "removeall_button", "auto_assign", "promote", "demote" })
+			{
+				if (window.FindButton(pressed) is { } button)
+				{
+					button.Disabled = true;
+				}
+			}
+		}
+
 		_list = window.FindListBox("leaderlist");
 		Fill();
 
@@ -207,6 +219,8 @@ public sealed class CLeaderSelectionPanel
 		}
 	}
 
+	private bool LooksOn => !_simulation.TakesCommands;
+
 	private void Post(CCommand command)
 	{
 		if (command.MayExecute(_simulation.State))
@@ -254,6 +268,10 @@ public sealed class CLeaderSelectionPanel
 			{
 				row.Chosen += chosen =>
 				{
+					if (LooksOn)
+					{
+						return;
+					}
 					Post(new CAssignLeaderCommand(_unit.Owner, _unit.Id, chosen.Id));
 					Close();
 				};

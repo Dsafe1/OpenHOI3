@@ -71,6 +71,7 @@ public static class CTick
 		Step(state, CMovement.RunHourly);
 		// After its units, each country's theatres: made where marked, looked after where not (theatres.md, section 1;
 		// ours: the original does each country's right after its own units).
+		// Ours: run in a replay too, being cheap and making and disbanding headquarters units of the game's (docs/replay.md).
 		Step(state, Theatres.CTheatres.RunHourly);
 		// The units go before their countries, so an hour's organisation is worked out
 		// with the officer ratio the hour before left.
@@ -95,26 +96,26 @@ public static class CTick
 		// each frame, docs/mechanics/events.md section 7).
 		Step(state, CEventPass.RunHourly);
 		// Each AI country answers the offers made to it (docs/mechanics/agreements.md, section 2).
-		Step(state, Agreements.CPactPasses.AnswerOffers);
+		AiStep(state, Agreements.CPactPasses.AnswerOffers);
 		// Then each AI country's trading, by the install's Lua (docs/mechanics/trade.md, section 9; ours:
 		// which of the two runs first in the original's hour was not read).
-		Step(state, Trade.CTradeAi.RunHourly);
+		AiStep(state, Trade.CTradeAi.RunHourly);
 		// Then each AI country's politics minister, in its own hour of the day (docs/mechanics/politics.md, section 12;
 		// ours: where in the hour beside trading was not read).
-		Step(state, Politics.CPoliticsAi.RunHourly);
+		AiStep(state, Politics.CPoliticsAi.RunHourly);
 		// And its intelligence minister, in its own hour (espionage.md, section 15; ours: where beside the politics).
-		Step(state, Espionage.CEspionageAi.RunHourly);
+		AiStep(state, Espionage.CEspionageAi.RunHourly);
 		// And its foreign minister's decisions and prepared wars (foreignminister.md, section 1; ours: where beside the
 		// others in the hour).
-		Step(state, Ai.CForeignAi.RunHourly);
+		AiStep(state, Ai.CForeignAi.RunHourly);
 		// And its production and tech ministers, each in an hour of its own, and the placing of its finished units
 		// (ministers.md, sections 1 to 6; ours: where beside the others in the hour).
-		Step(state, Economy.CProductionAi.RunHourly);
-		Step(state, Research.CResearchAi.RunHourly);
-		Step(state, Construction.CAiDeployment.RunHourly);
+		AiStep(state, Economy.CProductionAi.RunHourly);
+		AiStep(state, Research.CResearchAi.RunHourly);
+		AiStep(state, Construction.CAiDeployment.RunHourly);
 		// Then its unit agents: the order of battle under each theatre and each theatre's plan (agents.md, section 2; ours:
 		// after the ministers, every country in turn).
-		Step(state, Agents.CUnitAiPass.RunHourly);
+		AiStep(state, Agents.CUnitAiPass.RunHourly);
 		// Last, what countries know of the provinces units left and entered this hour (intelligence.md, section 5).
 		Step(state, Intelligence.CProvinceIntel.RaiseHourly);
 	}
@@ -139,7 +140,7 @@ public static class CTick
 		Step(state, Politics.CMinisterPosts.JoinDaily);          // a minister whose start date is today joins the pool
 		Step(state, CThreat.UpdateMostThreatening);               // before any country's day, as its neighbours are
 		Step(state, Wars.CSurrender.CountVictoryPoints);          // and with them its cores' victory points
-		Step(state, Ai.CAiStrategies.RunDaily);                   // before a country's day: its strategy, ten days old (aistrategy.md, 1)
+		AiStep(state, Ai.CAiStrategies.RunDaily);                   // before a country's day: its strategy, ten days old (aistrategy.md, 1)
 		Step(state, Countries.CActingCapital.EnsureCapitals);     // at the head of a country's day: a capital it owns,
 		Step(state, CNeutrality.RunDaily);                        // then neutrality
 		Step(state, Wars.CExile.SwapDaily);                       // early in it, an exile made a puppet where it is held
@@ -173,7 +174,7 @@ public static class CTick
 		Step(state, Wars.CExile.ReturnDaily);                     // and an exile leading its faction coming home
 		Step(state, CConvoyDay.Maintain);                         // late in a country's day
 		Step(state, Economy.CSpareManpower.UpdateDaily);          // at the very end of it, what it has to spare,
-		Step(state, Economy.CProductionAi.BalanceDaily);          // and the AI's sliders (ministers.md, section 5)
+		AiStep(state, Economy.CProductionAi.BalanceDaily);          // and the AI's sliders (ministers.md, section 5)
 		// Each province's own day, after every country's: what was bombed comes back, the suppression, the revolt risk's
 		// step and land at peace back to its owner, a province at a time; and then the pool is held.
 		Step(state, Weather.CClimate.RunDaily);                   // a province's day begins with its season (weather.md, 1)
@@ -287,6 +288,21 @@ public static class CTick
 	/// <summary>Not established for the original.</summary>
 	private static void RunYearlyPass(CGameState state)
 	{
+	}
+
+	/// <summary>
+	/// Runs one of the AI's steps: as any other, or recorded, or played back in its place where the game is replaying a
+	/// recording (<c>docs/replay.md</c>).
+	/// </summary>
+	private static void AiStep(CGameState state, Action<CGameState> step,
+		[CallerArgumentExpression(nameof(step))] string name = "")
+	{
+		if (state.Replay is not { } replay)
+		{
+			Step(state, step, name);
+			return;
+		}
+		replay.RunStep(state, name, s => Step(s, step, name));
 	}
 
 	/// <summary>Runs one step of a pass, timed where a tool has asked for a profile.</summary>

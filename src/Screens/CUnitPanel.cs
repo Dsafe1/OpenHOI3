@@ -331,7 +331,7 @@ public partial class CUnitPanel : Control
 			status.LocationPressed += () => ProvinceWanted?.Invoke(unit.Location);
 			Add(status);
 		}
-		if (CUnitOrdersEntry.Create(_context, state, unit) is { } orders)
+		if (CUnitOrdersEntry.Create(_context, state, unit, mayCancel: _player is not null) is { } orders)
 		{
 			orders.CancelPressed += () => CancelOrder(unit);
 			Add(orders);

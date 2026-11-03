@@ -47,8 +47,13 @@ public sealed class CAlliedObjectiveEntry
 		return window is null ? null : new CAlliedObjectiveEntry(window, context.Localisation.Localise);
 	}
 
-	public void Show(CCountry ally, bool asked)
+	/// <summary>The ally and whether it is asked; its box may not be pressed where the row is not enabled - a replay.</summary>
+	public void Show(CCountry ally, bool asked, bool enabled = true)
 	{
+		if (_box is not null)
+		{
+			_box.Disabled = !enabled;
+		}
 		Ally = ally;
 		Window.TryFindIcon("flag")?.SetCountry(ally);
 		if (Window.FindTextBox("country_name") is { } name)

@@ -11,6 +11,7 @@ using OpenHOI3.Lua;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Replay;
 using OpenHOI3.Sim.Script;
 using OpenHOI3.Sim.Units;
 
@@ -34,13 +35,15 @@ internal static class CHeadlessTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck headless <install folder> [until year] [savegame ...]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck headless <install folder> [until year] [savegame ...] [inspect=TAG] [hash] [record=FILE | replay=FILE]");
 			return 2;
 		}
 		CDate end = args.Length > 2 && int.TryParse(args[2], out int year) ? new CDate(year, 1, 1)
 			: args.Length > 2 && CDate.TryParse(args[2], out CDate given) ? given : new CDate(1948, 1, 1);
 		string lastInspected = "";
 		var armySeen = new Dictionary<int, string>();
+		// Each midnight, the state's hash part by part (docs/replay.md): two runs of one game should agree on every line.
+		bool hash = args.Contains("hash");
 		var armyMarks = new Dictionary<int, (bool Retreating, int Destination)>();
 		string? inspect = args.FirstOrDefault(a => a.StartsWith("inspect=", StringComparison.Ordinal))?["inspect=".Length..];
 		var saves = new List<(long Hour, string Path)>();
@@ -72,6 +75,19 @@ internal static class CHeadlessTrial
 		var simulation = new CSimulation(state);
 		Console.WriteLine($"a new game, {state.Date}, nobody playing, loaded in {loading.ElapsedMilliseconds} ms; " +
 			$"the Lua with {scripts.Failures} errors, {warnings.Count} warnings while loading");
+		// The AI recorded to a file as the game runs, or a recording played back in its place, from the first hour
+		// (docs/replay.md). A recording holds only while the rules are the same; a run that adds only what it tells may
+		// replay one.
+		string? recordTo = args.FirstOrDefault(a => a.StartsWith("record=", StringComparison.Ordinal))?["record=".Length..];
+		string? replayFrom = args.FirstOrDefault(a => a.StartsWith("replay=", StringComparison.Ordinal))?["replay=".Length..];
+		using CReplayFile? replayFile = recordTo is not null
+			? CReplayFile.Create(recordTo, new CReplayHeader(state.Played.ToList(), state.Seed))
+			: replayFrom is not null ? CReplayFile.Open(replayFrom, state) : null;
+		if (replayFile is not null)
+		{
+			state.Replay = recordTo is not null ? CReplay.Recording(replayFile.Write) : CReplay.Replaying(replayFile);
+			Console.WriteLine(recordTo is not null ? $"recording the AI to {recordTo}" : $"replaying the AI from {replayFrom}");
+		}
 
 		// What happens, counted by year.
 		var fired = new SortedDictionary<int, Dictionary<string, int>>();
@@ -123,6 +139,12 @@ internal static class CHeadlessTrial
 				if (state.Date == before)
 				{
 					continue;
+				}
+				if (hash)
+				{
+					ulong[] parts = OpenHOI3.Sim.Replay.CStateHash.Of(state);
+					Console.WriteLine($"  {state.Date} hash {OpenHOI3.Sim.Replay.CStateHash.Whole(parts):x16} " +
+						string.Join(" ", parts.Select((part, i) => $"{OpenHOI3.Sim.Replay.CStateHash.Parts[i]} {part:x16}")));
 				}
 				Below(state, below);
 				Happenings(state, factions, wars, living, happenings);

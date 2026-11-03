@@ -41,8 +41,8 @@ public partial class CTopBar : Control
 	private CGuiButton? _pauseBar;
 	private CCountry? _shown;
 
-	/// <summary>The country the bar is about.</summary>
-	public CCountry Player { get; set; } = null!;
+	/// <summary>The country the bar is about; none where nobody is played, and only the date and the clock are written.</summary>
+	public CCountry? Player { get; set; }
 
 	/// <summary>Raised when the buttons that open the production and technology screens are pressed.</summary>
 	public event System.Action? ProductionPressed;
@@ -58,7 +58,7 @@ public partial class CTopBar : Control
 	public event System.Action? IntelligencePressed;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
-	public void Setup(CGuiContext context, CSimulation simulation, CCountry player)
+	public void Setup(CGuiContext context, CSimulation simulation, CCountry? player)
 	{
 		_context = context;
 		_simulation = simulation;
@@ -111,12 +111,25 @@ public partial class CTopBar : Control
 		Bind(_window.FindButton("topbarbutton_politics"), () => PoliticsPressed?.Invoke());
 		Bind(_window.FindButton("topbarbutton_intelligence"), () => IntelligencePressed?.Invoke());
 
-		// The bar answers for its elements by name, as the original's does.
-		foreach (string name in CTopBarTooltips.Elements())
+		// The bar answers for its elements by name, as the original's does. With nobody played it is all there, its
+		// figures and name empty - the file's own sample text would name Germany - and nothing said of them.
+		if (Player is null)
 		{
-			if (_window.TryFindElement(name) is { } element)
+			foreach (CGuiTextBox? box in new[] { _energy, _metal, _rareMaterials, _crudeOil, _fuel, _supplies, _money, _ic,
+				_dissent, _nationalUnity, _diplomacy, _manpower, _leadership, _espionage, _countryName })
 			{
-				element.Tooltip = () => CTopBarTooltips.For(_context.Localisation.Localise, _simulation.State, Player, name);
+				Set(box, "");
+			}
+		}
+		else
+		{
+			CCountry player = Player;
+			foreach (string name in CTopBarTooltips.Elements())
+			{
+				if (_window.TryFindElement(name) is { } element)
+				{
+					element.Tooltip = () => CTopBarTooltips.For(_context.Localisation.Localise, _simulation.State, player, name);
+				}
 			}
 		}
 
@@ -139,8 +152,15 @@ public partial class CTopBar : Control
 			return;
 		}
 		CGameState state = _simulation.State;
-		CCountry country = Player;
+		Set(_date, CTopBarText.Date(state, _context.Localisation.Localise));
+		CClock clock = _simulation.Clock;
+		_speedIndicator?.SetFrame(CTopBarText.SpeedFrame(clock.Paused, clock.Speed));
+		_pauseBar?.SetFrame(CTopBarText.PauseFrame(clock.Paused));
 
+		if (Player is not { } country)
+		{
+			return;
+		}
 		Set(_energy, CTopBarText.Goods(state, country, EGoods.Energy));
 		Set(_metal, CTopBarText.Goods(state, country, EGoods.Metal));
 		Set(_rareMaterials, CTopBarText.Goods(state, country, EGoods.RareMaterials));
@@ -149,7 +169,6 @@ public partial class CTopBar : Control
 		Set(_supplies, CTopBarText.Goods(state, country, EGoods.Supplies));
 		Set(_money, CTopBarText.Goods(state, country, EGoods.Money));
 		Set(_ic, CTopBarText.Ic(country));
-		Set(_date, CTopBarText.Date(state, _context.Localisation.Localise));
 		Set(_dissent, CTopBarText.Dissent(state, country));
 		Set(_nationalUnity, CTopBarText.NationalUnity(country));
 		Set(_diplomacy, CTopBarText.Diplomacy(country));
@@ -164,10 +183,6 @@ public partial class CTopBar : Control
 			_flag?.SetCountry(country);
 			Set(_countryName, country.Name);
 		}
-
-		CClock clock = _simulation.Clock;
-		_speedIndicator?.SetFrame(CTopBarText.SpeedFrame(clock.Paused, clock.Speed));
-		_pauseBar?.SetFrame(CTopBarText.PauseFrame(clock.Paused));
 	}
 
 	private void TogglePause()

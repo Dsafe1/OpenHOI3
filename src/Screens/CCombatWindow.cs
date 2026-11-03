@@ -221,7 +221,7 @@ public partial class CCombatWindow : Control
 		}
 		if (_retreat is not null)
 		{
-			_retreat.Disabled = combat.Kind == ECombatKind.Naval && combat.Duration <= CNavalDisengage.RoundsBeforeLeaving;
+			_retreat.Disabled = _player is null || combat.Kind == ECombatKind.Naval && combat.Duration <= CNavalDisengage.RoundsBeforeLeaving;
 		}
 
 		List<string> modifiers = CCombatViewText.Modifiers(combat);

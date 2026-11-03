@@ -524,6 +524,12 @@ public sealed class CGameState
 	public Action<Units.CUnit>? UnitRemovedTrace { get; set; }
 
 	/// <summary>
+	/// The AI recorded as it runs, or played back in its place (<c>docs/replay.md</c>). Null in a game, where the AI simply
+	/// runs.
+	/// </summary>
+	public Replay.CReplay? Replay { get; set; }
+
+	/// <summary>
 	/// Raised as an event fires, past its <c>fire_only_once</c> test, for whatever reports it - a
 	/// message, a tool. Never for anything that changes the game.
 	/// </summary>

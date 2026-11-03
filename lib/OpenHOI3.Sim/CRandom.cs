@@ -58,6 +58,15 @@ public sealed class CRandom
 		return y;
 	}
 
+	/// <summary>Moves on by that many draws, as if they had been made: where a replay stands in for what drew them.</summary>
+	public void Skip(long draws)
+	{
+		for (long i = 0; i < draws; i++)
+		{
+			Next();
+		}
+	}
+
 	/// <summary>
 	/// Its state, to put back with <see cref="Restore"/>: for what only shows what a roll would give - a
 	/// dialog's chance - and must leave the game's rolls as they were.

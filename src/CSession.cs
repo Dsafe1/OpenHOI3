@@ -24,6 +24,7 @@ using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Replay;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
@@ -72,6 +73,12 @@ public partial class CSession : Node
 	private long _dayColoured;
 	private long _airMissions;
 
+	/// <summary>
+	/// The recording made with <c>--record=</c> or played back with <c>--replay=</c>, and whether a playback has run out.
+	/// </summary>
+	private CReplayFile? _replayFile;
+	private bool _replayEnded;
+
 	/// <summary>The country played when nothing says which. There is no screen to choose one on yet.</summary>
 	private const string DefaultPlayer = "GER";
 
@@ -111,22 +118,52 @@ public partial class CSession : Node
 		Map = CMap.Load(_directories);
 		// The install's Lua lives as long as the session: a new game asks it for its relations.
 		_aiScripts = new CAiScripts(_directories);
-		// Who plays is known before the game is made: the AI's first look at the laws leaves that country alone.
+		// Who plays is known before the game is made: the AI's first look at the laws leaves that country alone. A game
+		// replaying a recording is played by whoever played it when it was recorded, which its header says
+		// (docs/replay.md, sections 6 and 8).
+		string? replayFrom = Argument("--replay=");
+		string? recordTo = Argument("--record=");
 		string asked = PlayerArgument() ?? DefaultPlayer;
-		if (countries.Find(asked) is null)
+		IReadOnlyList<CCountryTag> played;
+		if (replayFrom is not null)
 		{
-			GD.Print($"--country: there is no country '{asked}', so {DefaultPlayer} is played.");
-			asked = DefaultPlayer;
+			played = CReplayFile.ReadHeader(replayFrom).Played;
+			if (PlayerArgument() is not null)
+			{
+				GD.Print($"--replay: the recording says who plays, so --country={asked} is left aside.");
+			}
 		}
-		State = CGameStateLoader.LoadStart(_directories, Map, localisation, countries, aiScripts: _aiScripts,
-			played: new[] { new CCountryTag(asked) });
+		else
+		{
+			if (countries.Find(asked) is null)
+			{
+				GD.Print($"--country: there is no country '{asked}', so {DefaultPlayer} is played.");
+				asked = DefaultPlayer;
+			}
+			played = new[] { new CCountryTag(asked) };
+		}
+		State = CGameStateLoader.LoadStart(_directories, Map, localisation, countries, aiScripts: _aiScripts, played: played);
 		GD.Print($"Loaded {Map.ProvinceCount - 1} provinces and {countries.Count} countries " +
 			$"for {State.Date} in {clock.ElapsedMilliseconds} ms.");
 
 		_simulation = new CSimulation(State);
 		// The simulation asks who is played by a person in one place, the state's list: an idle fleet of anybody
-		// else's starts no battle.
-		Player = State.Country(new CCountryTag(asked));
+		// else's starts no battle. A replay of a game nobody played shows the map alone.
+		Player = played.Count > 0 ? State.Country(played[0]) : null;
+		// The recording takes the AI's place, and the players', from the first hour, entering the game having run as it did
+		// when recorded; or the game is recorded from then. A replay takes no order of the player's: its screens look on.
+		if (replayFrom is not null)
+		{
+			_replayFile = CReplayFile.Open(replayFrom, State);
+			State.Replay = CReplay.Replaying(_replayFile);
+			GD.Print($"Replaying {replayFrom}, " + (Player is null ? "nobody playing." : $"{Player.Tag} looked on and given no orders."));
+		}
+		else if (recordTo is not null)
+		{
+			_replayFile = CReplayFile.Create(recordTo, new CReplayHeader(played, State.Seed));
+			State.Replay = CReplay.Recording(_replayFile.Write);
+			GD.Print($"Recording to {recordTo}, {Player?.Tag} playing.");
+		}
 
 		clock.Restart();
 		CGuiContext gui = CGuiContext.Load(_directories, localisation);
@@ -157,6 +194,8 @@ public partial class CSession : Node
 	{
 		var layer = new CanvasLayer { Name = "Hud" };
 		AddChild(layer);
+		bool looksOn = !_simulation.TakesCommands;
+		_mapView.LooksOn = looksOn;
 
 		if (Player is not null)
 		{
@@ -193,33 +232,48 @@ public partial class CSession : Node
 			_deployMenu.BuildingPlacingChanged += deployment => _mapView.ShowDeployment(deployment is null ? null
 				: province => Interface.Map.CDeploymentColours.Of(State, Player, deployment.Building, province));
 			_mapView.PlaceBuilding = province => _deployMenu.PlaceBuilding(province);
+		}
 
-			// The province view, up while provinces are selected and about the last chosen; a click that places
-			// something selects nothing for it (provinceview.md, section 1).
-			_provinceView = new CProvinceView();
-			_provinceView.Setup(gui, _simulation, Player);
-			layer.AddChild(_provinceView);
-			_mapView.ProvinceSelected += ShowProvinceView;
-			_provinceView.CloseRequested += () => _mapView.ClearSelection();
-			_provinceView.FlagPressed += FlagPressed;
+		// What follows is built in a replay of a game nobody played too, which looks on through each subject's own
+		// country: a province through its controller's eyes, a unit through its owner's, and nothing pressed does anything
+		// (docs/replay.md, section 6). A replay of a played game looks on through the player's screens; its unit panel and
+		// battle window are given no player, so that they offer nothing to press.
+		CCountry? actor = looksOn ? null : Player;
 
+		// The province view, up while provinces are selected and about the last chosen; a click that places
+		// something selects nothing for it (provinceview.md, section 1).
+		_provinceView = new CProvinceView();
+		_provinceView.Setup(gui, _simulation, Player);
+		layer.AddChild(_provinceView);
+		_mapView.ProvinceSelected += ShowProvinceView;
+		_provinceView.CloseRequested += () => _mapView.ClearSelection();
+		_provinceView.FlagPressed += FlagPressed;
+
+		if (Player is not null)
+		{
 			_alerts = new CAlerts();
 			_alerts.Setup(gui, Player);
 			layer.AddChild(_alerts);
 			_alerts.DeployablePressed += ToggleDeployMenu;
+		}
 
-			// The panel of the unit selected on the map. Its rows may choose another unit -
-			// one above it, one under it - and the map then goes to where that one is, as
-			// the original's does.
-			_unitPanel = new CUnitPanel();
-			_unitPanel.Setup(gui, _simulation, Player);
-			layer.AddChild(_unitPanel);
-			_unitPanel.UnitChosen += ChooseUnit;
-			_unitPanel.ProvinceWanted += province => _mapView.CentreOn(province);
-			_unitPanel.Ordered += () => _ordered = true;
-			_unitPanel.SelectionChanging += change => _mapView.ChangeUnits(change);
+		// The panel of the unit selected on the map. Its rows may choose another unit -
+		// one above it, one under it - and the map then goes to where that one is, as
+		// the original's does.
+		_unitPanel = new CUnitPanel();
+		_unitPanel.Setup(gui, _simulation, actor);
+		layer.AddChild(_unitPanel);
+		_unitPanel.UnitChosen += ChooseUnit;
+		_unitPanel.ProvinceWanted += province => _mapView.CentreOn(province);
+		_unitPanel.Ordered += () => _ordered = true;
+		_unitPanel.SelectionChanging += change => _mapView.ChangeUnits(change);
+		if (_deployMenu is not null)
+		{
 			_deployMenu.Toggled += ShowSelectedUnit;
+		}
 
+		if (Player is not null)
+		{
 			// The window of orders a right click with a fleet or an air unit brings up.
 			_orders = new COrdersWindow();
 			_orders.Setup(gui, _simulation, Player);
@@ -228,27 +282,31 @@ public partial class CSession : Node
 			_orders.Ordered += () => _ordered = true;
 			_orders.Toggled += () => ShowProvince(_shownProvince);
 			_orders.AreaShown += colours => _mapView.ShowAirArea(colours);
+		}
 
-			// The window of a battle, which a click on the battle's marker or on its row
-			// in a unit's panel brings up. It stands where the unit panel does, and a
-			// battle is selected in a unit's place: so the unit is let go.
-			_combat = new CCombatWindow();
-			_combat.Setup(gui, _simulation, Player);
-			layer.AddChild(_combat);
-			_combat.Toggled += () => ShowProvince(_shownProvince);
-			_combat.RetreatPressed += Retreat;
-			_unitPanel.CombatChosen += ShowCombat;
-			_mapView.CombatSelected += ShowCombat;
+		// The window of a battle, which a click on the battle's marker or on its row
+		// in a unit's panel brings up. It stands where the unit panel does, and a
+		// battle is selected in a unit's place: so the unit is let go.
+		_combat = new CCombatWindow();
+		_combat.Setup(gui, _simulation, actor);
+		layer.AddChild(_combat);
+		_combat.Toggled += () => ShowProvince(_shownProvince);
+		_combat.RetreatPressed += Retreat;
+		_unitPanel.CombatChosen += ShowCombat;
+		_mapView.CombatSelected += ShowCombat;
 
-			_topBar = new CTopBar();
-			_topBar.Setup(gui, _simulation, Player);
-			layer.AddChild(_topBar);
-			_topBar.ProductionPressed += () => Toggle(_production);
-			_topBar.TechnologyPressed += () => Toggle(_technology);
-			_topBar.DiplomacyPressed += () => Toggle(_diplomacy);
-			_topBar.PoliticsPressed += () => Toggle(_politics);
-			_topBar.IntelligencePressed += () => Toggle(_espionage);
+		// With nobody played the bar has no country, and its buttons no screens to open.
+		_topBar = new CTopBar();
+		_topBar.Setup(gui, _simulation, Player);
+		layer.AddChild(_topBar);
+		_topBar.ProductionPressed += () => Toggle(_production);
+		_topBar.TechnologyPressed += () => Toggle(_technology);
+		_topBar.DiplomacyPressed += () => Toggle(_diplomacy);
+		_topBar.PoliticsPressed += () => Toggle(_politics);
+		_topBar.IntelligencePressed += () => Toggle(_espionage);
 
+		if (Player is not null)
+		{
 			// The offers other countries make the player, as icons hanging from the top bar - over it,
 			// since the icons reach up into its window.
 			var offers = new CDiploOffers();
@@ -567,6 +625,8 @@ public partial class CSession : Node
 	{
 		_aiScripts?.Dispose();
 		_aiScripts = null;
+		_replayFile?.Dispose();
+		_replayFile = null;
 	}
 
 	/// <summary>
@@ -576,8 +636,12 @@ public partial class CSession : Node
 	public override void _Process(double delta)
 	{
 		// The readout is refreshed once a frame and not once an hour: at the top speed a
-		// frame holds thousands of hours.
-		if (_simulation.Advance(delta) > 0)
+		// frame holds thousands of hours. A replay that has run out of its recording goes no further.
+		if (_replayEnded)
+		{
+			_simulation.Clock.Paused = true;
+		}
+		else if (AdvanceUnlessTheReplayEnds(delta) > 0)
 		{
 			ShowProvince(_shownProvince);                       // its figures move with the days
 		}
@@ -824,6 +888,54 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
+	/// The frame's hours, but where a replay reaches the end of its recording: the clock is stopped there for good and
+	/// that is said, the hour it ended in being left part run (docs/replay.md, section 6).
+	/// </summary>
+	private int AdvanceUnlessTheReplayEnds(double delta)
+	{
+		int hours = 1;
+		UnlessTheReplayEnds(() => hours = _simulation.Advance(delta));
+		return hours;
+	}
+
+	/// <summary>
+	/// Runs hours some way - a frame's, or a developer switch's - unless a replay has run out of its recording, and
+	/// answers whether it may go on. Where it runs out, the clock is stopped for good and that is said.
+	/// </summary>
+	private bool UnlessTheReplayEnds(System.Action run)
+	{
+		if (_replayEnded)
+		{
+			return false;
+		}
+		try
+		{
+			run();
+			return true;
+		}
+		catch (CReplayEndedException ended)
+		{
+			_replayEnded = true;
+			_simulation.Clock.Paused = true;
+			GD.Print($"--replay: {ended.Message}; the clock stops here.");
+			return false;
+		}
+	}
+
+	/// <summary>What follows a switch on the command line - the recording of <c>--replay=</c> or <c>--record=</c> - or null.</summary>
+	private static string? Argument(string switchName)
+	{
+		foreach (string argument in UserArguments())
+		{
+			if (argument.StartsWith(switchName) && argument.Length > switchName.Length)
+			{
+				return argument[switchName.Length..];
+			}
+		}
+		return null;
+	}
+
+	/// <summary>
 	/// The tag given with <c>--country=</c> on the command line, or null. A tag is upper
 	/// case in every file, so one typed in lower case is taken for the same country.
 	/// </summary>
@@ -1020,6 +1132,10 @@ public partial class CSession : Node
 	/// driving it by hand:
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
 	/// <c>--country=ENG</c> plays that country and not Germany,
+	/// <c>--record=path.gz</c> records the game played - the player's orders and the AI's - and <c>--replay=path.gz</c>
+	/// plays a recording back, played by whoever played it and taking no orders, the map alone shown where nobody did, the
+	/// clock stopping where the recording ends (<c>docs/replay.md</c>, sections 6 and 8; both read as the session loads,
+	/// not here), <c>--hash</c> prints the game's hash each midnight,
 	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map (<c>--mode=weather</c> on the weather map)
 	/// (<c>supply</c>, <c>air</c> and <c>revolt</c> on those),
 	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen and
@@ -1086,6 +1202,17 @@ public partial class CSession : Node
 			{
 				int.TryParse(argument["--centre=".Length..], NumberStyles.Integer,
 					CultureInfo.InvariantCulture, out centre);
+			}
+			else if (argument == "--hash")
+			{
+				// Each midnight, the game's hash part by part, as the headless run's hash writes it: a recording and its
+				// replay should print the same lines (docs/replay.md, section 5).
+				_simulation.DayPassed += () =>
+				{
+					ulong[] parts = CStateHash.Of(State);
+					GD.Print($"{State.Date} hash {CStateHash.Whole(parts):x16} " +
+						string.Join(" ", parts.Select((part, i) => $"{CStateHash.Parts[i]} {part:x16}")));
+				};
 			}
 			else if (argument == "--run")
 			{
@@ -1162,7 +1289,7 @@ public partial class CSession : Node
 			{
 				// Runs that many days at once, whatever the clock says: a unit ordered or
 				// under construction can then be found finished.
-				_simulation.RunHours(days * 24);
+				UnlessTheReplayEnds(() => _simulation.RunHours(days * 24));
 			}
 			else if (argument.StartsWith("--lock=")
 				&& System.Enum.TryParse(argument["--lock=".Length..], ignoreCase: true, out EProductionCategory locked))
@@ -1499,7 +1626,10 @@ public partial class CSession : Node
 				for (int hour = 0; hour < hours; hour++)
 				{
 					await Frames(1);
-					_simulation.RunHours(1);
+					if (!UnlessTheReplayEnds(() => _simulation.RunHours(1)))
+					{
+						break;
+					}
 				}
 				await Frames(2);
 				continue;

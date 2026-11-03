@@ -252,6 +252,12 @@ if (args.Length > 0 && args[0] == "headless")
 	return CHeadlessTrial.Run(args);
 }
 
+// Whether a game plays back from a recording of its AI, and how much faster (docs/replay.md).
+if (args.Length > 0 && args[0] == "replaycheck")
+{
+	return CReplayCheck.Run(args);
+}
+
 // Where the time of an hour goes.
 if (args.Length > 0 && args[0] == "profile")
 {
