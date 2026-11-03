@@ -602,8 +602,35 @@ public sealed class CGameState
 	/// </summary>
 	public int ControlChanges => _handChanges.Count;
 
+	private readonly Dictionary<CCountryTag, int> _controlledCounts = new();
+	private int _controlledCountsAt = -1;
+
+	/// <summary>
+	/// How many provinces a country controls: counted over the map again only when a province has changed hands since
+	/// it was last asked. The agents ask it many times an hour, through the surrender progress.
+	/// </summary>
+	public int ControlledCount(CCountryTag tag)
+	{
+		if (_controlledCountsAt != ControlChanges)
+		{
+			_controlledCounts.Clear();
+			foreach (CProvince province in Provinces)
+			{
+				if (province.Controller is { } controller)
+				{
+					_controlledCounts[controller] = _controlledCounts.GetValueOrDefault(controller) + 1;
+				}
+			}
+			_controlledCountsAt = ControlChanges;
+		}
+		return _controlledCounts.GetValueOrDefault(tag);
+	}
+
 	/// <summary>What the map says of each country this hour, kept by <see cref="Countries.CCountryFacts"/>.</summary>
 	public Countries.CCountryFacts? CountryFacts { get; set; }
+
+	/// <summary>Every holder's air bases this hour, kept by <see cref="Agents.CAirBaseHolders"/>.</summary>
+	public Agents.CAirBaseHolders? AirBaseHolders { get; set; }
 
 	/// <summary>How many provinces each country owns, kept by <see cref="Countries.COwnedCounts"/>.</summary>
 	public Countries.COwnedCounts? OwnedCounts { get; set; }

@@ -462,12 +462,14 @@ public sealed class CCountry
 	/// <summary>Every unit it has, at every level, each before the units under it.</summary>
 	public IEnumerable<CUnit> AllUnits()
 	{
-		foreach (CUnit top in Units)
+		var stack = new Stack<CUnit>(Units.Count + 16);
+		for (int i = Units.Count - 1; i >= 0; i--)
 		{
-			foreach (CUnit unit in top.WithAllBelow())
-			{
-				yield return unit;
-			}
+			stack.Push(Units[i]);
+		}
+		foreach (CUnit unit in CUnit.Walk(stack))
+		{
+			yield return unit;
 		}
 	}
 

@@ -283,22 +283,35 @@ public sealed class CUnit
 	/// <summary>This unit and every unit under it or aboard its ships, itself first.</summary>
 	public IEnumerable<CUnit> WithAllBelow()
 	{
-		yield return this;
-		foreach (CSubUnit subUnit in SubUnits)
+		var stack = new Stack<CUnit>();
+		stack.Push(this);
+		foreach (CUnit unit in Walk(stack))
 		{
-			foreach (CUnit carried in subUnit.Carried)
-			{
-				foreach (CUnit unit in carried.WithAllBelow())
-				{
-					yield return unit;
-				}
-			}
+			yield return unit;
 		}
-		foreach (CUnit child in Children)
+	}
+
+	/// <summary>
+	/// Every unit from those on the stack down, each before what it carries and then the units under it - in one walk
+	/// and not an enumerator a level, which every unit would otherwise pass up through.
+	/// </summary>
+	internal static IEnumerable<CUnit> Walk(Stack<CUnit> stack)
+	{
+		while (stack.Count > 0)
 		{
-			foreach (CUnit unit in child.WithAllBelow())
+			CUnit unit = stack.Pop();
+			yield return unit;
+			for (int i = unit.Children.Count - 1; i >= 0; i--)
 			{
-				yield return unit;
+				stack.Push(unit.Children[i]);
+			}
+			for (int s = unit.SubUnits.Count - 1; s >= 0; s--)
+			{
+				List<CUnit> carried = unit.SubUnits[s].Carried;
+				for (int i = carried.Count - 1; i >= 0; i--)
+				{
+					stack.Push(carried[i]);
+				}
 			}
 		}
 	}

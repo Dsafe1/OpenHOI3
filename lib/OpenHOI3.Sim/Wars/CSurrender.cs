@@ -209,14 +209,6 @@ public static class CSurrender
 
 	private static int Controlled(CGameState state, CCountry country)
 	{
-		int count = 0;
-		foreach (CProvince province in state.Provinces)
-		{
-			if (province.Controller == country.Tag)
-			{
-				count++;
-			}
-		}
-		return count;
+		return state.ControlledCount(country.Tag);
 	}
 }

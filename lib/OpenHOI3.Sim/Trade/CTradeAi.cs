@@ -68,6 +68,7 @@ public static class CTradeAi
 		Supply.CSupplyNetworks.Refresh(state);
 		_ = state.NavalDistances;
 		_ = state.Positions;
+		_ = state.ControlledCount(default);
 		long made = System.Diagnostics.Stopwatch.GetTimestamp();
 		scripts.RunTrades(state, runs);
 		if (state.Profile is { } profile)

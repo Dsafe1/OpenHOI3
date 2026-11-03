@@ -71,10 +71,12 @@ public sealed class CReplay
 	{
 		if (IsReplaying)
 		{
-			if (Take(state) is not CReplayStep kept || kept.Hour != state.TotalHours || kept.Step != name)
+			CReplayEntry next = Take(state);
+			if (next is not CReplayStep kept || kept.Hour != state.TotalHours || kept.Step != name)
 			{
-				throw new InvalidOperationException(
-					$"the recording does not have hour {state.TotalHours}'s {name} next: it was made with other rules or another game");
+				string found = next is CReplayStep other ? $"hour {other.Hour}'s {other.Step}" : next.GetType().Name;
+				throw new InvalidOperationException($"the recording does not have hour {state.TotalHours}'s {name} next but " +
+					$"{found}: it was made with other rules or another game");
 			}
 			state.Outbox.AddRange(kept.Commands);
 			state.Random.Skip(kept.Draws);

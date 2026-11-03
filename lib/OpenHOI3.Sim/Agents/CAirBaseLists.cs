@@ -44,9 +44,10 @@ public static class CAirBaseLists
 				owners.Add(other);
 			}
 		}
+		CAirBaseHolders bases = CAirBaseHolders.Of(state, airBase);
 		foreach (CCountry owner in owners)
 		{
-			foreach (int id in Bases(state, owner, airBase))
+			foreach (int id in bases.Of(owner.Tag))
 			{
 				if (state.Province(id).TheatreId == theatre && !candidates.Contains(id))
 				{
@@ -62,7 +63,7 @@ public static class CAirBaseLists
 			{
 				continue;
 			}
-			foreach (int id in Bases(state, enemy, airBase))
+			foreach (int id in bases.Of(enemy.Tag))
 			{
 				if (ReferenceEquals(network.AreaOf(id), home))
 				{
@@ -84,22 +85,6 @@ public static class CAirBaseLists
 			Insert(agent.AirBasesNaval, id, Mean(state, unit.Plan, agent.EnemySightings, province));
 		}
 		agent.AirBasesMade = true;
-	}
-
-	/// <summary>The provinces a country holds with an air base built, in their order.</summary>
-	private static IEnumerable<int> Bases(CGameState state, CCountry country, CBuilding? airBase)
-	{
-		if (airBase is null)
-		{
-			yield break;
-		}
-		foreach (CProvince province in state.Provinces)
-		{
-			if (province.Controller == country.Tag && province.BuildingMaxLevel(airBase).Raw > 0)
-			{
-				yield return province.Id;
-			}
-		}
 	}
 
 	/// <summary>

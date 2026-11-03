@@ -62,6 +62,7 @@ public partial class CSession : Node
 	private CCombatWindow? _combat;
 	private Label _provinceLabel = null!;
 	private Debug.CDebugMenu? _debugMenu;
+	private Debug.CFrameLog? _frameLog;
 	private int _shownProvince;
 	private bool _unitsMoved;
 	private bool _hourPassed;
@@ -635,16 +636,40 @@ public partial class CSession : Node
 	/// </summary>
 	public override void _Process(double delta)
 	{
+		long frameStart = Stopwatch.GetTimestamp();
+		double simulation = 0;
+		int hours = 0;
 		// The readout is refreshed once a frame and not once an hour: at the top speed a
 		// frame holds thousands of hours. A replay that has run out of its recording goes no further.
 		if (_replayEnded)
 		{
 			_simulation.Clock.Paused = true;
 		}
-		else if (AdvanceUnlessTheReplayEnds(delta) > 0)
+		else
 		{
-			ShowProvince(_shownProvince);                       // its figures move with the days
+			hours = AdvanceUnlessTheReplayEnds(delta);
+			simulation = Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds;
+			if (hours > 0)
+			{
+				ShowProvince(_shownProvince);                       // its figures move with the days
+			}
 		}
+		ProcessAfterHours();
+		if (_frameLog is { } log)
+		{
+			log.Frame(delta, simulation, Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds - simulation, hours);
+			if (log.IsDone)
+			{
+				log.WriteSummary();
+				_frameLog = null;
+				GetTree().Quit();
+			}
+		}
+	}
+
+	/// <summary>What a frame does after the game's hours: the counters, the map's colours and the province shown.</summary>
+	private void ProcessAfterHours()
+	{
 
 		// The counters are worked out again when a day has gone by, a unit of the
 		// player's has been placed or ordered, or an hour has gone by with a unit on the
@@ -1178,7 +1203,9 @@ public partial class CSession : Node
 	/// other - sd with shift held as it lets go, D holding on at the end - ck1 presses Ctrl and 1,
 	/// and w2 waits two seconds of real time, which is
 	/// what a tooltip's second half waits on - once everything else is done,
-	/// <c>--run</c> starts the clock at the top speed instead of paused, and
+	/// <c>--run</c> starts the clock at the top speed instead of paused,
+	/// <c>--perf=60</c> writes once a second where a frame's time goes - the game's hours,
+	/// the session's own work, the drawing - and quits after sixty seconds with the sums, and
 	/// <c>--screenshot=path.png</c> saves what is on screen after a few frames and quits.
 	/// </summary>
 	private async void RunDeveloperArguments()
@@ -1213,6 +1240,15 @@ public partial class CSession : Node
 					GD.Print($"{State.Date} hash {CStateHash.Whole(parts):x16} " +
 						string.Join(" ", parts.Select((part, i) => $"{CStateHash.Parts[i]} {part:x16}")));
 				};
+			}
+			else if (argument.StartsWith("--perf="))
+			{
+				// Where a frame's time goes, once a second, and the game quits after so many seconds (Debug/CFrameLog).
+				if (double.TryParse(argument["--perf=".Length..], NumberStyles.Float, CultureInfo.InvariantCulture,
+					out double seconds))
+				{
+					_frameLog = new Debug.CFrameLog(seconds, GetViewport().GetViewportRid());
+				}
 			}
 			else if (argument == "--run")
 			{
