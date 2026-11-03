@@ -21,6 +21,7 @@ public partial class CGuiButton : CGuiObject
 	private CSpriteType? _sprite;
 	private ShaderMaterial? _material;
 	private Texture2D? _texture;
+	private CAlphaMask? _mask;
 	private TextureRect? _rect;
 	private CGuiCaption? _caption;
 	private CGuiFont? _font;
@@ -101,6 +102,7 @@ public partial class CGuiButton : CGuiObject
 		}
 		_sprite = sprite;
 		_texture = texture;
+		_mask = _context.Textures.AlphaMask(sprite);
 		// A button is the size of its picture, as it is when made: the province view's building rows swap a large
 		// default for small icons (provinceview.md, section 4).
 		Place(GuiType, FrameSize(texture, sprite.FrameCount));
@@ -119,6 +121,7 @@ public partial class CGuiButton : CGuiObject
 		}
 		// A masked shield has no picture until it is given a country.
 		_texture = _sprite is null || _sprite.IsMaskedShield ? null : context.Textures.Load(_sprite);
+		_mask = _texture is null ? null : context.Textures.AlphaMask(_sprite!);
 
 		Vector2 size = _texture is not null ? FrameSize(_texture, _sprite!.FrameCount) : new Vector2(type.Size.X, type.Size.Y);
 		Place(type, size);
@@ -187,6 +190,7 @@ public partial class CGuiButton : CGuiObject
 			return;
 		}
 		_texture = shield;
+		_mask = null;
 		Place(GuiType, FrameSize(shield, 1));
 		ShowFrame();
 	}
@@ -245,6 +249,30 @@ public partial class CGuiButton : CGuiObject
 				: _hovered ? EButtonLook.Over
 				: EButtonLook.Up);
 		}
+	}
+
+	/// <summary>
+	/// Whether a point of the button takes the mouse: anywhere on it, but where its sprite has <c>transparencecheck</c>
+	/// only where the frame it shows is drawn - the speed indicator lets the speed-up button beside it have the part of
+	/// its square it leaves empty (<c>docs/mechanics/interface.md</c>, section 5). The frame is counted from one, a
+	/// nought taken as the first and one past the last as the last, as the original's test takes it.
+	/// </summary>
+	public override bool _HasPoint(Vector2 point)
+	{
+		if (point.X < 0f || point.Y < 0f || point.X >= Size.X || point.Y >= Size.Y)
+		{
+			return false;
+		}
+		if (_mask is null || _sprite is null || Size.X <= 0f || Size.Y <= 0f)
+		{
+			return true;
+		}
+		int frames = Math.Max(1, _sprite.FrameCount);
+		int frame = Math.Clamp(_frame, 1, frames);
+		int frameWidth = _mask.Width / frames;
+		int x = (frame - 1) * _mask.Width / frames + (int)(point.X * frameWidth / Size.X);
+		int y = (int)(point.Y * _mask.Height / Size.Y);
+		return _mask.IsSolid(x, y);
 	}
 
 	public override void _GuiInput(InputEvent @event)

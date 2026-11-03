@@ -151,7 +151,7 @@ public partial class CGuiIcon : CGuiObject
 		for (int index = GetIndex() - 1; index >= 0; index--)
 		{
 			if (parent.GetChild(index) is CGuiButton { Visible: true } button
-				&& new Rect2(button.Position, button.Size).HasPoint(inParent))
+				&& button._HasPoint(inParent - button.Position))
 			{
 				return button;
 			}

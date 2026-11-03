@@ -324,8 +324,21 @@ files, with nothing in it placed by hand.
   a round frame. That the flag takes the mask's size and sits in the overlay's middle is
   *measured* on the maintainer's screenshot of that row, not read.
 - **`allwaystransparent = yes` lets clicks through.** `inferred` from the name. *Ours:* any
-  other icon takes the click, so the map under the bar does not; the original tests the
-  pixel (`transparencecheck`), and this does not.
+  other icon takes the click, so the map under the bar does not.
+- **`transparencecheck = yes` lets a click through a button wherever the pixel of the frame
+  it shows has no alpha** (`reversing/findings/FINDINGS-transparencecheck.md`). The sprite's
+  test is read whole: see-through where the alpha is nought, everywhere for
+  `allwaystransparent`, nowhere without the key, the frame held to one to `noOfFrames`, and
+  the point in the texture's own pixels from the frame's corner - `confirmed`. **A DXT1 or
+  DXT5 texture is refused as it loads** - "Texture ... have forbidden compression, have you
+  tried DXT3?" - and the sprite tested nowhere; DXT3 and uncompressed textures are tested.
+  That a click is what asks it is `inferred`: who calls the test was not found. The art bears
+  it out - the top bar's `speed_indicator` is drawn only in columns 4 to 13 of each 32-wide
+  frame and lies over the left ten pixels of `button_speedup`, which was pressed only on its
+  right part until this was built. *Ours:* a button answers by its sprite's pixel and its
+  shown frame, scaled from its size on screen to the texture's; an icon does not, and hands
+  a click on to a button under it only where that button would take it. Whether a button
+  whose sprite is `allwaystransparent` takes a click at all is not read, and here it does.
 - **An icon lying on a button does not keep a click from it.** The maintainer,
   2026-10-09: "The original allows clicks on the icon" - the counter on a line of a
   builder's list, whose sprite has `transparencecheck` and is solid where it was
@@ -561,8 +574,9 @@ scalable canvas of section 3 could not survive. So:
     until it was read. Of the list box there is left: where its scrollbar stands, how far
     a notch of the wheel moves it, and how a list that goes by its lines' heights scrolls.
 12. **Which frame a ticked checkbox shows.** The second here (section 7), unread.
-13. **Which element takes a click.** Nothing of how the original hands the mouse to an
-    element was read; two things are known from the maintainer's eye. A list box does
+13. **Which element takes a click.** How the original hands the mouse to an element was
+    not read, beyond a sprite's own test of a pixel (section 5), whose caller was not
+    found; two things are known from the maintainer's eye. A list box does
     not keep a click from what it lies over (section 2), and **an icon does not keep
     one from a button under it** - a click on the counter of a line of a list picks the
     line (2026-10-09). Here a button, a scrollbar and any icon not `allwaystransparent`

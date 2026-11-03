@@ -43,6 +43,12 @@ public sealed class CSpriteType
 	/// <summary>Never takes a click: what is under it does.</summary>
 	public bool AlwaysTransparent { get; init; }
 
+	/// <summary>
+	/// <c>transparencecheck</c>: a button drawn with it lets a click through where its frame's pixel has no alpha
+	/// (<c>docs/mechanics/interface.md</c>, section 5).
+	/// </summary>
+	public bool TransparenceCheck { get; init; }
+
 	public bool IsTiled => Kind.Equals("corneredTileSpriteType", StringComparison.OrdinalIgnoreCase);
 
 	/// <summary>
@@ -82,6 +88,7 @@ public sealed class CSpriteType
 			TileSize = node.GetVector2("size").ToGodot(),
 			Border = node.GetVector2("borderSize").ToGodot(),
 			AlwaysTransparent = node.GetBool("allwaystransparent"),
+			TransparenceCheck = node.GetBool("transparencecheck"),
 			PieSize = kind.Equals("PieChartType", StringComparison.OrdinalIgnoreCase) ? node.GetInt("size") : 0,
 			Horizontal = !node.GetString("horizontal").Equals("no", StringComparison.OrdinalIgnoreCase),
 		};

@@ -18,6 +18,7 @@ public sealed class CTextureManager
 {
 	private readonly CDirectorySettings _directories;
 	private readonly Dictionary<string, Texture2D?> _cache = new(StringComparer.OrdinalIgnoreCase);
+	private readonly Dictionary<string, CAlphaMask?> _masks = new(StringComparer.OrdinalIgnoreCase);
 
 	public CTextureManager(CDirectorySettings directories)
 	{
@@ -57,6 +58,57 @@ public sealed class CTextureManager
 		Texture2D? texture = image is null ? null : ImageTexture.CreateFromImage(image);
 		_cache[absolute] = texture;
 		return texture;
+	}
+
+	/// <summary>
+	/// Where a sprite with <c>transparencecheck</c> lets a click through, or null where it takes one everywhere: a sprite
+	/// without the key, and one whose texture is DXT1 or DXT5, which the original refuses as it loads it - "have forbidden
+	/// compression, have you tried DXT3?" - and then tests nowhere (<c>docs/mechanics/interface.md</c>, section 5).
+	/// </summary>
+	public CAlphaMask? AlphaMask(CSpriteType sprite)
+	{
+		if (!sprite.TransparenceCheck || _directories.ResolveTexture(sprite.TextureFile) is not { } absolute)
+		{
+			return null;
+		}
+		if (_masks.TryGetValue(absolute, out CAlphaMask? cached))
+		{
+			return cached;
+		}
+		CAlphaMask? mask = null;
+		if (IsDxt1OrDxt5(absolute))
+		{
+			CDiagnostics.Warn($"Texture {sprite.TextureFile} have forbidden compression, have you tried DXT3?");
+		}
+		else if (LoadImageAbsolute(absolute) is { } image)
+		{
+			mask = new CAlphaMask(image);
+		}
+		_masks[absolute] = mask;
+		return mask;
+	}
+
+	private static bool IsDxt1OrDxt5(string absolutePath)
+	{
+		if (!absolutePath.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
+		{
+			return false;
+		}
+		try
+		{
+			using FileStream stream = File.OpenRead(absolutePath);
+			var header = new byte[88];
+			if (stream.Read(header, 0, header.Length) < header.Length)
+			{
+				return false;
+			}
+			uint fourCc = BitConverter.ToUInt32(header, 84);
+			return fourCc is 0x31545844 or 0x35545844;   // the file's format code, "DXT1" or "DXT5"
+		}
+		catch (IOException)
+		{
+			return false;
+		}
 	}
 
 	/// <summary>
