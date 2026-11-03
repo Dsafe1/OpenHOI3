@@ -449,10 +449,14 @@ again, and the divisions balanced (10.2). At (number + 16) % 24: the air units (
    its need. n is at least that and at most 3 x the taker's need - count; under 1, nothing.
 6. **Which** (the donor's pick): for each of the donor theatre's areas a keep = its need (7.3) x f - f = 1 - n / (count -
    n - least given), at most 1 - rounded half to even, at least 1 where there is a need. A division is a candidate where it
-   is the donor's, not airborne, not a garrison on or bound for a province of more than 9 victory points, not retreating or
-   fighting, not bound for enemy land, fast enough where asked, and in an area that has more than its keep. Each is scored
-   (1 - its distance to the taker's fronts / the greatest) x 10, x 15 where its commander has given one already, x 0.25
-   unless its area is one of the taker's or beside one; the best above nought is taken, the first of equals, until n are.
+   is the donor's, not airborne, not a garrison on or bound for a province of more than 9 victory points, one the
+   may-leave test lets go - not strictly, a unit defending a battle held, the candidates so far left out of its count
+   (`moving.md`, 7.6) - not bound for enemy land, fast enough where asked, and in an area that has more than its keep.
+   **In the choosing**, a candidate with no idle division beside it on a war candidate's border (7.6, the count, those
+   taken so far left out) is passed over. Each is scored (1 - its distance to the taker's fronts / the greatest) x 10, x
+   15 where its commander has given one already, x 0.25 unless its area is one of the taker's or beside one, x the idle
+   divisions beside it / 100 where they are fewer than 100; the best above nought is taken, the first of equals, until n
+   are (`FINDINGS-moving.md` A.4e).
    A donor facing a war candidate gives no mobile division unless only fast ones were asked.
 7. **Whole commands**: a commander, not fighting, retreating or a theatre, all of whose subordinates were taken, goes in
    their place - and its own commander the same, once.

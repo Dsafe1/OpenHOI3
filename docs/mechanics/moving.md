@@ -177,15 +177,18 @@ is cleared.
 6. **Each committed division** (not a garrison, not airborne with transports), d where it is bound or stands. **Bound
    for enemy land** (held by a country at war with it or by the rebels): **passed over** with a way of fewer than 2
    provinces - an attack on a neighbour is left to run - or where d's area has 3 provinces or fewer; otherwise on as
-   below. **Bound for a province that is not an enemy's**, not retreating, in a battle, and d not a depot: sent on to its
-   next step (to d with a way of one), and on as below all the same (`FINDINGS-moving.md` A.4b). Then: **staying** where d
-   is a position that wants it; otherwise sent to the reachable position with room with the lowest key - have / want x 100,
+   below. **Bound for a province that is not an enemy's**, not retreating, holding ground in a battle, and d not a depot:
+   sent on to its next step (to d with a way of one), and on as below all the same (`FINDINGS-moving.md` A.4b). Then:
+   **staying** where d is a position that wants divisions and whose standing are within its cap - not its have within
+   its want; **then only where the may-leave test lets it go** (7.6), strictly for an agent below a theatre, the battle
+   it defends not asked about (`FINDINGS-moving.md` A.4e); otherwise sent to the reachable position with room with the lowest key - have / want x 100,
    or at war distance x (have / want + 0.1), x 0.66 for a land battle there, a depot, a province beside a hostile route,
    -50 x its terrain figure there (section 11.3); with the allied-soil budget spent, not onto a friend's soil from the
    capital's area. No position and d none: a second-ring province, drawn on a generator seeded with the unit's id.
 7. **Each position still short** pulls the division with the least squared distance x 16 + its dig-in / 100 + its attack
    delay / 1000 - 100 x its terrain figure here (x 0.25 where it is bound for no position or one that wants none, else
-   + 100 x its figure where it is bound), the first of them that can reach it. **Only from a position fuller than this
+   + 100 x its figure where it is bound), the first of them that can reach it and that the may-leave test lets go, as in
+   step 6. **Only from a position fuller than this
    one** (`FINDINGS-moving.md` A.4d): this one's fill is (have + 1) / want, the 1 left out where it is its own depot;
    the other's is (count - k) / want, count being those standing there where the division stands in it and those it has
    otherwise, and k - the division itself - 1 unless this one is its own depot, or has nobody and the other more than
@@ -200,18 +203,37 @@ is cleared.
 ### 7.4 The garrisons
 
 Each target wants the garrisons / the targets, the first remainder ones one more; a threatened one adds the brigades of
-hostile land units bound for it; at most the stack cap. Candidates: the garrisons, out of battle, free to leave, in the
+hostile land units bound for it; at most the stack cap. Candidates: the garrisons, not holding ground nor falling back,
+that the may-leave test lets go strictly (7.6), in the
 target's area (anywhere for a focus area), not in a threatened province, and not taken from a fuller hold position unless
 the target is threatened. The nearest by squared distance goes (x2 for a role-5 division leaving a better-scored
 position).
 
 ### 7.5 The reserve
 
-The second ring's provinces, each with room for round(10 x its infrastructure). Each held-back division with no blocking
-order, not a garrison, not already in such a province within its room: **stays** beside a war candidate across a river
+The second ring's provinces, each with room for round(10 x its infrastructure). Each held-back division not falling back,
+**not holding ground in a battle** (2026-11-03: ours had left both out, and moved held-back defenders out of their
+battles to the rear), with no blocking order, not a garrison, not already in such a province within its room: **stays** beside a war candidate across a river
 or in a fort with strength and organisation over 0.3, or beside a war candidate's units, fit, with fewer of the country's
 idle divisions there than half of those; otherwise goes to the ring province with the lowest distance + 20 x those there
 - 30 x (its depot's distance in steps - that province's).
+
+### 7.6 May it leave (`CAIUnit_UnitMayLeave`, `FINDINGS-moving.md` A.4e)
+
+Asked by the line (step 6 and the pull, 7.3), the garrisons (7.4), the sealift (section 15), the division picker
+(`agents.md`, 10.2) and the province lost (`OnProvinceControllerChanged`, not built: section 20) before a unit is taken
+away from where it stands. **Not where it is falling back.** In a battle: not while landing from the sea on enemy ground
+with its landing under way, nor in a sea battle's first four hours; and, where the caller asks, not from a battle it
+defends - a land battle holds nobody else. Then **the border**: over its province's edges that may be passed, to land
+held by an enemy, the **enemies** - land units of countries at war with it - and the **incoming** - land units of
+countries it may operate in, bound for its province. Not strict and nobody incoming: yes. Otherwise the **idle count**:
+with no neighbour held by a war candidate, 1000; else the other divisions in its province, **whoever's**, with nowhere to
+go and no way left, and not on the caller's list. With somebody incoming, no where the count is under 1; strict, no where
+the count less the enemies is under 1; else yes.
+
+So a division of an agent below a theatre facing enemy units across a border stays unless more idle divisions stay in
+its province than there are enemy units beside it - **a lone defender facing an attacker is not sent elsewhere**, though
+the battle itself never holds it. *Hardcoded*: the 1000, the four hours, every rule.
 
 ## 8. Falling back (`CAIUnit_FallBackFromLosingDefences`, `FINDINGS-moving.md` A.6)
 
@@ -429,7 +451,10 @@ troops**, else nothing at all:
    with no target standing or bound in the country's own area outside the theatre is **stranded**.
 3. **May a unit be shipped to an area** (`CAIUnit_MayShipUnitToArea`): never within its own block of land - so a target
    is never inside one piece of the side's land, and is dropped once the unit is there; never to a portless area it
-   cannot walk to; not into an enemy's area from a battle or in retreat, nor a headquarters or a garrison; not armour or
+   cannot walk to - **the area it is bound for or stands in** being the one asked whether it is landlocked or portless,
+   and the one asked about the one it must reach on foot; not one bound for or standing in enemy land, holding ground,
+   falling back, or that the may-leave test does not let go strictly with a unit defending a battle held (7.6,
+   `FINDINGS-moving.md` A.4e); not into an enemy's area a headquarters or a garrison; not armour or
    fast troops to a friendly area with no neighbour but the capital's, or from an area bordering an enemy; and then only
    where the sea between them is open (`CCountry_IsSeaRouteOpen`: at peace always; at war shut into or out of the
    Mediterranean where Gibraltar and Suez are both held by enemies, into or out of the Black Sea where its blocker is).
@@ -685,6 +710,11 @@ months on) - at least three hours left, and the order ends then.
   read.
 - The allies' units counted at a position where they hold a focus area at war (7.3, step 3).
 - The human's delegated AI: the objectives' areas (11.1), the agentless divisions of the played country (7.4).
+- **A province lost** (`CAIUnit::OnProvinceControllerChanged`, `FINDINGS-moving.md` A.4e, read 2026-11-03): an agent
+  told that a province its country held, in an area of three provinces or fewer beside its theatre, has changed
+  hands sends its land units in by the plain way until it has twice the enemy's brigades there - the fittest by distance
+  over speed, a headquarters ten times further, a third of strength at least, never one defending a battle. A
+  counter-attack into small areas: islands, enclaves.
 
 ## 21. Checked against the saves
 
@@ -876,3 +906,28 @@ The check gained three switches for this: `ready=TAG:TARGET,...` - the readiness
 last 45 days, the country's corps and its brigades' organisation against the save's; `unit=NAME` - that land unit hour
 by hour for the last eight days, with its ceiling, its commander's bonus and the chain above it; and `tracedays=N`, the
 trace for the last N days only. The land block's trace now writes each position's score.
+
+**A defender ordered out** (2026-11-03). China's army fell from 90 units to 54 by December 1937 where the original's kept
+80 to 88, and 113 of its 395 retreats to the end of the war were the AI ordering a division out of a battle it was
+defending rather than a battle lost. The question for the fact base was whether the original's AI does that at all. Its
+answer (`FINDINGS-moving.md` A.4e): **it does** - no battle holds a land unit the line wants elsewhere - but the line,
+the pull and the garrisons ask the may-leave test first (7.6), which ours did not have anywhere, and the line kept a
+division where its position's standing were within the cap, not its have within its want. The sealift's test was read
+again with it and had two misreadings, and the division picker gained the idle count it weighs candidates by. To 4
+January: moved or not **777 of 908** (774), bound **298 of 542** (275), standing 747, fleets 221 to 222, the rest as
+before. The rear (7.5) had left out its own two tests, falling back and holding ground, which the record had, and was
+the largest single mover of China's defenders out of their battles - 80 of 194 such moves in 1937.
+
+**And China lasts less, not more.** One run against another says little here: every country draws on one generator, so
+a rule that moves one Italian division in January 1936 changes Ethiopia's fall, the Spanish war's start and China's own
+production, and the two runs enter July 1937 with 86 and 77 Chinese units. So the rules were tried on a probe that
+switched them on only on 1 July 1937 - the runs alike to the hour until then - against the build without them, to
+September 1938, nobody playing: China's land units on the first of each month, 1937 July to December, 86 85 84 84 85 83
+without and 86 85 82 78 73 68 with, and its surrender on 19 March 1938 without and **28 January 1938 with**; the
+original's China keeps 80 to 88 and surrenders in mid-August. The AI moved China's defenders out of their battles 36
+times from July 1937 with the rules - 30 of them the line's re-order of a division passing through to its next step
+(A.4b) and 6 the fallback from losing defences - where the same rules with the rear's two tests still left out had moved
+them 194 times (the build without was not traced). So **taking defenders out of their battles was what kept ours alive
+longer, and is not the gap**: what is left is how its battles go. The trace
+is `OpenHOI3.SaveCheck headless ... inspect=TAG`, which now also writes each move the AI posts for one of the country's units in a
+battle, with the step that posted it.

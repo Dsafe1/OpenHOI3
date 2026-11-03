@@ -1062,8 +1062,8 @@ beside the repository.
   and debark beside the save, and every division and air unit of a country nobody plays: where it stands, whether a
   division moved or is on its way and where it is bound, and an air unit's mission whole, and the land each country holds
   of another; and it counts, each day, the land units left marked falling back with no way, which nothing would clear -
-  0 to 2 February - the axis 106 of 106, **774 of 908 divisions moving or staying as the save's and 275 of 542 bound for its
-  province**, embark and debark 93 of 106, fleets 221 to the save's 222, **air units where the save has them 53 of 59 and
+  0 to 2 February - the axis 106 of 106, **777 of 908 divisions moving or staying as the save's and 298 of 542 bound for its
+  province** (2026-11-03, with the may-leave test, `moving.md` section 7.6; 774 and 275 before), embark and debark 93 of 106, fleets 221 to the save's 222, **air units where the save has them 53 of 59 and
   their missions 59 of 59**, Italy's three intercepts an hour before the save's (`docs/mechanics/moving.md`, section 21).
   `player=TAG` plays another country than the later save's player - the Ireland game's saves have Germany run by the AI -
   and `trace=TAG` writes each pass of that country's land block and attack: the split, every position's want, have,
@@ -1116,7 +1116,8 @@ beside the repository.
   its land each day, its land army on the first of each month, what its units and its enemies' on its land are doing
   on the 1st, 11th and 21st - delayed, falling back, moving, fighting, the figures a save can be set beside - each
   retreat as it begins with its whole way, and each land unit it loses, as it stood and with the calls that took it out
-  of the game (through `CGameState.UnitRemovedTrace`, which only a tool sets). A run that throws stops and says on which hour. On 2026-10-16 it ran 1936 to 1948 in 44 minutes
+  of the game (through `CGameState.UnitRemovedTrace`, which only a tool sets), and each move the AI posts for one of its
+  units in a battle, marked where it defends, with the step that posted it (`CGameState.AiTrace`, filtered). A run that throws stops and says on which hour. On 2026-10-16 it ran 1936 to 1948 in 44 minutes
   in Release and found four things to mend (`docs/mechanics/headless.md`, section 4). **Since the same day the tech and
   production ministers act in it** (`ministers.md`): each snapshot also writes every great power's research queue, its
   two sets of shares and its units waiting, and its summed research progress, which is what to set beside a save's -

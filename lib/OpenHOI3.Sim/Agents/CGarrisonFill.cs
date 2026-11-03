@@ -69,7 +69,7 @@ public static class CGarrisonFill
 				foreach (CUnit unit in garrison)
 				{
 					int bound = CAgentUnits.DestinationOrPlace(unit);
-					if (bound == id || unit.IsFighting || unit.IsRetreating || unit.Location <= 0
+					if (bound == id || Combat.CCombats.IsHoldingGround(unit) || unit.IsRetreating || unit.Location <= 0
 						|| agent.Threatened.Contains(unit.Location))
 					{
 						continue;
@@ -79,6 +79,10 @@ public static class CGarrisonFill
 						continue;
 					}
 					if (!threatened && want.TryGetValue(bound, out int theirs) && have.GetValueOrDefault(bound) <= theirs)
+					{
+						continue;
+					}
+					if (!CUnitMayLeave.Allows(state, country, unit, null, strict: true, notDefending: false))
 					{
 						continue;
 					}

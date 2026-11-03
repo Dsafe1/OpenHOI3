@@ -52,7 +52,7 @@ public static class CAiMoves
 		unit.AiBound = province;
 		if (state.AiTrace is { } trace && trace.Country == country.Tag)
 		{
-			trace.Write($"    move {unit.Name}#{unit.Id} {unit.Location} -> {province} (way to {(unit.IsMoving ? unit.Path[^1] : 0)}, ai {unit.AiBound}, order {unit.Order}){(unit.IsFighting ? " (fighting)" : "")} by {new System.Diagnostics.StackFrame(1).GetMethod()?.Name}");
+			trace.Write($"    move {unit.Name}#{unit.Id} {unit.Location} -> {province} (way to {(unit.IsMoving ? unit.Path[^1] : 0)}, ai {unit.AiBound}, order {unit.Order}){(unit.IsFighting ? " (fighting)" : "")}{(System.Linq.Enumerable.Any(unit.Combats, combat => combat.Defender.Units.Contains(unit)) ? " (defending)" : "")} by {new System.Diagnostics.StackFrame(1).GetMethod()?.Name}");
 		}
 		if (safe && ShouldRedeploy(state, country, unit, province))
 		{

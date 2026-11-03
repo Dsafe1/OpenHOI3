@@ -319,7 +319,7 @@ public partial class CSession : Node
 			_events = new CEventWindows();
 			_events.Setup(gui, _simulation, Player);
 			layer.AddChild(_events);
-			layer.MoveChild(_events, _production.GetIndex());
+			layer.MoveChild(_events, _production!.GetIndex());
 
 			// Messages: the log on the bottom bar, and the popups beside the events.
 			var messageLog = new CMessageLogView();

@@ -44,7 +44,8 @@ public static class CReservePlacing
 		bool moved = false;
 		foreach (CUnit unit in agent.HeldBack)
 		{
-			if (CCommandLadder.IsBlocked(unit) || unit.IsGarrison || unit.Location <= 0)
+			if (unit.IsRetreating || CCombats.IsHoldingGround(unit) || CCommandLadder.IsBlocked(unit) || unit.IsGarrison
+				|| unit.Location <= 0)
 			{
 				continue;
 			}

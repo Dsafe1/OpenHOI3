@@ -71,6 +71,14 @@ internal static class CHeadlessTrial
 		if (inspect is not null)
 		{
 			state.UnitRemovedTrace = unit => TellRemoved(state, unit, inspect);
+			// Of the AI's own trace, only the moves it posts for a unit in a battle, and which step posted each.
+			state.AiTrace = (new CCountryTag(inspect), line =>
+			{
+				if (line.Contains("    move ", StringComparison.Ordinal) && line.Contains("(fighting)", StringComparison.Ordinal))
+				{
+					Console.WriteLine($"  {state.Date} {state.Hour}h ai{line}");
+				}
+			});
 		}
 		var simulation = new CSimulation(state);
 		Console.WriteLine($"a new game, {state.Date}, nobody playing, loaded in {loading.ElapsedMilliseconds} ms; " +

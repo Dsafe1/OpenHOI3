@@ -37,6 +37,9 @@ public static class CTheatreBalance
 
 	private const long FirstGiven = 10;
 
+	/// <summary>The idle divisions beside a candidate from which its score is whole; under it, a hundredth each.</summary>
+	private const int IdleForWhole = 100;
+
 	public static void Run(CGameState state, CCountry country)
 	{
 		var sorted = new List<CAgent>();
@@ -222,7 +225,7 @@ public static class CTheatreBalance
 		}
 		foreach (CUnit unit in donor.Land)
 		{
-			if (MayGive(state, country, donor, unit, fastOnly, network, keep, have))
+			if (MayGive(state, country, donor, unit, fastOnly, network, keep, have, candidates))
 			{
 				candidates.Add(unit);
 			}
@@ -251,11 +254,21 @@ public static class CTheatreBalance
 				{
 					continue;
 				}
+				// Only with an idle division left beside it on a border, and the fewer there the less worth giving.
+				int idle = CUnitMayLeave.IdleBeside(state, country, unit, picked);
+				if (idle < 1)
+				{
+					continue;
+				}
 				long score = (Whole - distances[unit] * Whole / most)
 					* (unit.Parent is { } parent && parents.Contains(parent) ? ParentGave : FirstGiven);
 				if (!TouchesTheatre(network, unit.Location, takerTheatre))
 				{
 					score = score * Unconnected / Whole;
+				}
+				if (idle < IdleForWhole)
+				{
+					score = score * idle / IdleForWhole;
 				}
 				if (score > bestScore)
 				{
@@ -277,10 +290,10 @@ public static class CTheatreBalance
 	}
 
 	private static bool MayGive(CGameState state, CCountry country, CAgent donor, CUnit unit, bool fastOnly,
-		CSupplyNetwork network, Dictionary<CSupplyArea, long> keep, Dictionary<CSupplyArea, long> have)
+		CSupplyNetwork network, Dictionary<CSupplyArea, long> keep, Dictionary<CSupplyArea, long> have, List<CUnit> candidates)
 	{
 		if (unit.Kind != EUnitKind.Division || unit.SubUnits.Count == 0 || ReferenceEquals(unit, donor.Unit) || unit.IsRemoved
-			|| unit.Location <= 0 || unit.IsRetreating || unit.IsFighting)
+			|| unit.Location <= 0)
 		{
 			return false;
 		}
@@ -291,6 +304,12 @@ public static class CTheatreBalance
 		}
 		int place = CAgentUnits.DestinationOrPlace(unit);
 		if (role == CArmyRole.Garrison && place > 0 && state.Province(place).Points > 9)
+		{
+			return false;
+		}
+		// Not one defending a battle, nor one its friends out in the enemy's land are coming back to; the border is
+		// weighed in the choosing (FINDINGS-moving.md A.4e).
+		if (!CUnitMayLeave.Allows(state, country, unit, candidates, strict: false, notDefending: true))
 		{
 			return false;
 		}

@@ -275,13 +275,18 @@ public static class CLineFill
 						continue;
 					}
 				}
-				else if (!unit.IsRetreating && unit.IsFighting && network.DepotOf(bound) != bound)
+				else if (!unit.IsRetreating && CCombats.IsHoldingGround(unit) && network.DepotOf(bound) != bound)
 				{
 					moved |= CAiMoves.Move(state, country, unit, unit.Path.Count > 1 ? unit.Path[0] : bound, safe: false);
 				}
 			}
-			if (byProvince.TryGetValue(bound, out CPosition? mine) && mine.Want > 0 && mine.Have <= mine.Want
+			// It stays where it is wanted and the position is not over its cap (FINDINGS-moving.md A.4e).
+			if (byProvince.TryGetValue(bound, out CPosition? mine) && mine.Want > 0 && mine.Standing <= mine.Cap
 				&& (!agent.TargetProvinces.Contains(bound) || BesideRoute(state, agent, bound)))
+			{
+				continue;
+			}
+			if (!CUnitMayLeave.Allows(state, country, unit, null, CUnitMayLeave.IsStrict(agent), notDefending: false))
 			{
 				continue;
 			}
@@ -402,7 +407,8 @@ public static class CLineFill
 					}
 					int bound = CAgentUnits.DestinationOrPlace(unit);
 					if (bound == position.Province || AttacksBeside(state, country, unit, bound)
-						|| (unit.IsFighting && byProvince.TryGetValue(unit.Location, out CPosition? holding) && holding.Want > 0))
+						|| (CCombats.IsHoldingGround(unit) && byProvince.TryGetValue(unit.Location, out CPosition? holding)
+							&& holding.Want > 0))
 					{
 						continue;
 					}
@@ -440,7 +446,8 @@ public static class CLineFill
 				CUnit? best = null;
 				foreach ((long _, CUnit unit) in System.Linq.Enumerable.OrderBy(keyed, entry => entry.Key))
 				{
-					if (CAiMoves.CanReach(state, country, unit, position.Province))
+					if (CAiMoves.CanReach(state, country, unit, position.Province)
+						&& CUnitMayLeave.Allows(state, country, unit, null, CUnitMayLeave.IsStrict(agent), notDefending: false))
 					{
 						best = unit;
 						break;

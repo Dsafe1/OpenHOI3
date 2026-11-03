@@ -1494,9 +1494,18 @@ original the same day (`landcombat.md`, section 9). What differs is the war: the
 eight months, ours 50 in six; set beside the Ireland game's saves month by month, **ours attacks less - 3 to 10 of its
 units carry an attack delay where the original's carry 15 to 39 - and falls back far more, 9 to 27 units at a time from
 October where the original has 1 to 5**, with as many Japanese units on its land in both. 113 of its 395 retreats to
-the end of the war were the AI ordering a defender out of a battle, not a battle lost. **Next in it**: read whether the
-original's AI orders a unit fighting a defence to move at all, which is a reading in the fact base and needs no run;
-then how often our China wins and loses its defences.
+the end of the war were the AI ordering a defender out of a battle, not a battle lost. **Read on 2026-11-03**
+(`FINDINGS-moving.md` A.4e; `moving.md`, sections 7.6 and 21): the original's AI does order a defender out - no land
+battle holds a unit - but the line, the pull, the garrisons, the sealift and the division picker first ask
+`CAIUnit_UnitMayLeave`, which ours had nowhere, and which keeps a division of an agent below a theatre beside enemy land
+unless more idle divisions stay than enemy units face it; and the rear passes over a division holding ground, which ours
+had left out. Built, with the line's stay test and two misreadings in the sealift's mended: to 4 January 777 of 908
+divisions move or stay as the save's (774) and 298 of 542 head for its province (275). **And China then lasts less**:
+with the rules switched on at 1 July 1937 on a probe, the runs alike until then, its army is 68 units in December 1937
+to 83 without, and it surrenders on 28 January 1938 to 19 March without - so the defenders taken out of battles were
+keeping it alive, and are not the gap. **Next in it**: how often our China wins and loses its defences, set against the
+original's - what its battles are made of, not who orders them. Not built from the same reading: the agent's answer to
+a province lost in a small area (`OnProvinceControllerChanged`, `moving.md` section 20).
 
 The other open choices are **the land unit's orders window** (`land_unit_order`,
 brought up by Ctrl and a right click, `fleetsandair.md` *Not built*) - without it a player cannot give a strategic

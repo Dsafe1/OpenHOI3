@@ -375,16 +375,24 @@ public static class CSealift
 		{
 			return false;
 		}
-		if ((area.IsLandlocked || area.Ports.Count < 1) && area.Provinces.Count > 0
+		// The landlocked test is of the area the unit is bound for or stands in, the reach of the area asked about
+		// (FINDINGS-moving.md A.4e).
+		int place = CAgentUnits.DestinationOrPlace(unit);
+		if (network.AreaOf(place) is { } bound && (bound.IsLandlocked || bound.Ports.Count < 1) && area.Provinces.Count > 0
 			&& CRouteFinder.Find(state, country, unit, unit.Location, area.Provinces[0]) is null)
 		{
 			return false;
 		}
-		bool enemy = CCountryLists.IsEnemy(state, country, area.Controller) || area.Controller.Value == CRebelFactions.Rebels;
-		if (enemy && (unit.IsFighting || unit.IsRetreating))
+		if (state.Province(place).Controller is { } holder && CCountryLists.IsEnemy(state, country, holder))
 		{
 			return false;
 		}
+		if (Combat.CCombats.IsHoldingGround(unit) || unit.IsRetreating
+			|| !CUnitMayLeave.Allows(state, country, unit, null, strict: true, notDefending: true))
+		{
+			return false;
+		}
+		bool enemy = CCountryLists.IsEnemy(state, country, area.Controller) || area.Controller.Value == CRebelFactions.Rebels;
 		int role = CArmyRole.Of(unit);
 		if (enemy && role is CArmyRole.Headquarters or CArmyRole.Garrison)
 		{
