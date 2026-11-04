@@ -60,6 +60,9 @@ public partial class CTopBar : Control
 	/// <summary>Raised when the button that opens and shuts the outliner is pressed.</summary>
 	public event System.Action? OutlinerPressed;
 
+	/// <summary>Raised when <c>topbar_menubutton</c> is pressed, which opens and shuts the in-game menu (<c>ingamemenu.md</c>).</summary>
+	public event System.Action? MenuPressed;
+
 	private CGuiButton? _outlinerButton;
 
 	/// <summary>
@@ -131,6 +134,7 @@ public partial class CTopBar : Control
 		Bind(_window.FindButton("topbarbutton_intelligence"), () => IntelligencePressed?.Invoke());
 		_outlinerButton = _window.FindButton("topbar_outlinerbutton");
 		Bind(_outlinerButton, () => OutlinerPressed?.Invoke());
+		Bind(_window.FindButton("topbar_menubutton"), () => MenuPressed?.Invoke());
 
 		// The bar answers for its elements by name, as the original's does. With nobody played it is all there, its
 		// figures and name empty - the file's own sample text would name Germany - and nothing said of them.

@@ -22,6 +22,10 @@ public sealed class CGuiContext
 	/// <summary>The message types of <c>interface/messagetypes.txt</c>: <c>docs/mechanics/messages.md</c>.</summary>
 	public required CMessageTypes MessageTypes { get; init; }
 
+	/// <summary>The player's own message settings, <c>messagetypes_custom.txt</c> in the player's folder.</summary>
+	public static string MessageTypesPath => System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(),
+		CMessageTypes.CustomFile);
+
 	/// <summary>What draws a button under the mouse, held down and switched off.</summary>
 	public CButtonShader ButtonShader { get; } = new();
 
@@ -41,7 +45,8 @@ public sealed class CGuiContext
 			Textures = textures,
 			Fonts = CGuiFonts.Load(directories),
 			Shields = new CShields(textures),
-			MessageTypes = CMessageTypes.Load(directories),
+			// The player's choices over the install's, as the original reads them at every start (ingamemenu.md, section 5).
+			MessageTypes = CMessageTypes.Load(directories, MessageTypesPath),
 		};
 	}
 }

@@ -50,6 +50,9 @@ public sealed class CConfirmDialog
 
 	public bool IsOpen => GodotObject.IsInstanceValid(_window) && !_window.IsQueuedForDeletion();
 
+	/// <summary>The dialog's window, for what else its opener puts on it - the shields of a <c>DefaultDialog</c>.</summary>
+	public CGuiWindow Window => _window;
+
 	public void Close()
 	{
 		if (IsOpen)

@@ -113,9 +113,10 @@ box, `messagelog`, a close button and the button that opens it again, and six ca
 
 ## Ours
 
-- **A player's choice of a type's settings is not built** - the settings window, its panel and the file
-  `messagetypes_custom.txt` the original keeps them in, per mod, in the player's documents. A type is
-  what `messagetypes.txt` says.
+- **A type's own settings window is not built**, the one a right click on a popup or a log row opens.
+  The in-game menu's panel and the player's file `messagetypes_custom.txt` are, since 2026-11-04,
+  read at every start over `messagetypes.txt` and written by the panel's Close (`ingamemenu.md`,
+  sections 4 and 5).
 - **No text on the map** (`onmap`), and no other message than an event's and a decision's yet.
 - A right click on a popup or a row - the original's way to its type's settings - does nothing.
 

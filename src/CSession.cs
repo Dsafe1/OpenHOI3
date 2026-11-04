@@ -61,6 +61,7 @@ public partial class CSession : Node
 	private CUnitPanel? _unitPanel;
 	private COrdersWindow? _orders;
 	private CCombatWindow? _combat;
+	private CInGameMenu? _menu;
 	private Label _provinceLabel = null!;
 	private Debug.CDebugMenu? _debugMenu;
 	private Debug.CFrameLog? _frameLog;
@@ -435,6 +436,22 @@ public partial class CSession : Node
 		layer.AddChild(_debugMenu);
 		_debugMenu.AddSwitch("Province readout", false, on => _provinceLabel.Visible = on);
 
+		// The in-game menu, over the other windows: the top bar's menu button and Escape with nothing selected open it,
+		// and opening it lets the selection go and shuts the side menus and a country view (docs/mechanics/ingamemenu.md).
+		_menu = new CInGameMenu();
+		_menu.Setup(gui, _directories, _simulation, Player);
+		layer.AddChild(_menu);
+		_topBar.MenuPressed += _menu.Toggle;
+		_menu.Opening += () =>
+		{
+			_deployMenu?.Close();
+			_mapView.ClearSelection();
+			foreach (CCountryView? view in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage })
+			{
+				view?.Close();
+			}
+		};
+
 		// Every tooltip, over everything else.
 		var tooltips = new CTooltips();
 		tooltips.Setup(gui);
@@ -565,6 +582,8 @@ public partial class CSession : Node
 		}
 		_mapView.SelectUnit(null);
 		_combat.Open(combat);
+		// Opening a battle's window closes the in-game menu, as its Close does (ingamemenu.md, section 2).
+		_menu?.Close();
 	}
 
 	/// <summary>
@@ -913,6 +932,11 @@ public partial class CSession : Node
 			case Key.Space or Key.Pause:
 				_simulation.Clock.Paused = !_simulation.Clock.Paused;
 				break;
+			case Key.Escape:
+				// What nothing took first - the map lets a selection go on the first, a shown button with the shortcut
+				// takes its own - opens the in-game menu, or closes it (ingamemenu.md, section 1).
+				_menu?.Toggle();
+				break;
 			case Key.KpAdd or Key.Plus or Key.Equal:
 				_simulation.Clock.Speed++;
 				break;
@@ -1239,7 +1263,7 @@ public partial class CSession : Node
 	/// with r the right button, with s shift held, with c Ctrl held, with t1.5: before the point
 	/// the button held down 1.5 seconds of real time, and h48 lets 48 hours go by, m460,40 moves
 	/// the pointer there without clicking, d700,310>900,500 drags from the one point to the
-	/// other - sd with shift held as it lets go, D holding on at the end - ck1 presses Ctrl and 1,
+	/// other - sd with shift held as it lets go, D holding on at the end - ck1 presses Ctrl and 1, esc presses Escape,
 	/// and w2 waits two seconds of real time, which is
 	/// what a tooltip's second half waits on - once everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused,
@@ -1721,11 +1745,12 @@ public partial class CSession : Node
 			// kH is not a click either: it presses and lets go of the key of that letter or digit, and K4 the same with
 			// Shift held - K4 opens the debug menu.
 			// ck1 the same with Ctrl held: Ctrl and a digit keeps a selection group.
+			// esc the same with Escape, which opens the in-game menu.
 			bool withCtrl = entry.Length == 3 && entry[0] == 'c';
 			string keyEntry = withCtrl ? entry[1..] : entry;
-			if (keyEntry.Length == 2 && keyEntry[0] is 'k' or 'K' && char.IsLetterOrDigit(keyEntry[1]))
+			if (entry == "esc" || keyEntry.Length == 2 && keyEntry[0] is 'k' or 'K' && char.IsLetterOrDigit(keyEntry[1]))
 			{
-				Key key = (Key)char.ToUpperInvariant(keyEntry[1]);
+				Key key = entry == "esc" ? Key.Escape : (Key)char.ToUpperInvariant(keyEntry[1]);
 				bool shifted = keyEntry[0] == 'K';
 				await Frames(2);
 				GetViewport().PushInput(new InputEventKey

@@ -104,6 +104,11 @@ public sealed partial class CMessageLogView : Control
 					Log.SetHidden(category, shown.Checked);
 					Refill();
 				};
+				// The original answers for the boxes by name, the message settings' tabs' names (ingamemenu.md, section 4).
+				if (CMessageSettingsText.TabTooltip(_context.Localisation.Localise, box) is { } tooltip)
+				{
+					shown.Tooltip = () => new Interface.Tooltips.CTooltip { Text = tooltip };
+				}
 			}
 		}
 		if (_log?.TryFindButton("closebutton") is { } close)

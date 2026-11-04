@@ -1,18 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using OpenHOI3.Content.Clausewitz;
 
 namespace OpenHOI3.Content.Messages;
 
 /// <summary>
-/// The message types of <c>interface/messagetypes.txt</c>, by name. A type declared twice is the
-/// second, whole; one nobody declared is <see cref="CMessageType.Null"/>, which logs - and here it is
-/// reported too, as is a key a type does not take. See <c>docs/mechanics/messages.md</c>, section 1.
+/// The message types of <c>interface/messagetypes.txt</c> and then the player's <c>messagetypes_custom.txt</c>, by name
+/// and in the order they were first declared. A type declared again is the second, whole, in its first place; one
+/// nobody declared is <see cref="CMessageType.Null"/>, which logs - and here it is reported too, as is a key a type does
+/// not take. See <c>docs/mechanics/messages.md</c>, section 1, and <c>docs/mechanics/ingamemenu.md</c>, section 5.
 /// </summary>
 public sealed class CMessageTypes
 {
 	public const string File = "interface/messagetypes.txt";
+
+	/// <summary>The player's own settings, in the player's folder.</summary>
+	public const string CustomFile = "messagetypes_custom.txt";
 
 	private static readonly string[] Categories =
 	{
@@ -20,6 +25,7 @@ public sealed class CMessageTypes
 	};
 
 	private readonly Dictionary<string, CMessageType> _types = new(StringComparer.Ordinal);
+	private readonly List<CMessageType> _order = new();
 	private readonly Action<string> _warn;
 	private readonly HashSet<string> _reported = new(StringComparer.Ordinal);
 
@@ -30,22 +36,21 @@ public sealed class CMessageTypes
 
 	public int Count => _types.Count;
 
-	public static CMessageTypes Load(CDirectorySettings directories, Action<string>? warn = null)
+	/// <summary>Every type, in the order it was first declared - the message settings' rows.</summary>
+	public IReadOnlyList<CMessageType> All => _order;
+
+	/// <summary>
+	/// The install's types, and over them the player's file where a path to it is given and it is there - as the
+	/// original reads them at every start.
+	/// </summary>
+	public static CMessageTypes Load(CDirectorySettings directories, string? customPath = null, Action<string>? warn = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var types = new CMessageTypes(warn);
-		string path = directories.Resolve(File);
-		if (!System.IO.File.Exists(path))
+		types.ReadFile(directories.Resolve(File));
+		if (customPath is not null)
 		{
-			return types;
-		}
-		try
-		{
-			types.Read(ClausewitzParser.ParseFile(path));
-		}
-		catch (Exception e)
-		{
-			warn($"Could not read '{path}': {e.Message}");
+			types.ReadFile(customPath);
 		}
 		return types;
 	}
@@ -56,6 +61,12 @@ public sealed class CMessageTypes
 		var types = new CMessageTypes(warn ?? CDiagnostics.Warn);
 		types.Read(root);
 		return types;
+	}
+
+	/// <summary>A file read over the types there are: each it names is overwritten whole, and a new one goes last.</summary>
+	public void ReadOver(ClausewitzNode root)
+	{
+		Read(root);
 	}
 
 	/// <summary>A type by name, or the null type - which logs - where nobody declared it.</summary>
@@ -72,6 +83,78 @@ public sealed class CMessageTypes
 		return CMessageType.Null;
 	}
 
+	/// <summary>
+	/// The settings window's Reset: the player's file deleted and the install's read again over the types, and nothing
+	/// else - a type only the player's file declared keeps what it had.
+	/// </summary>
+	public void Reset(CDirectorySettings directories, string customPath)
+	{
+		try
+		{
+			if (System.IO.File.Exists(customPath))
+			{
+				System.IO.File.Delete(customPath);
+			}
+		}
+		catch (Exception e)
+		{
+			_warn($"Could not delete '{customPath}': {e.Message}");
+		}
+		ReadFile(directories.Resolve(File));
+	}
+
+	/// <summary>The settings window's Close: every type, whole and in order, into the player's file.</summary>
+	public void WriteCustom(string customPath)
+	{
+		try
+		{
+			System.IO.File.WriteAllBytes(customPath, Encoding.Latin1.GetBytes(Write()));
+		}
+		catch (Exception e)
+		{
+			_warn($"Could not write '{customPath}': {e.Message}");
+		}
+	}
+
+	/// <summary>What <see cref="WriteCustom"/> writes, as the original writes it: a key a line, each line ended CR LF.</summary>
+	public string Write()
+	{
+		var text = new StringBuilder();
+		foreach (CMessageType type in _order)
+		{
+			text.Append(type.Name).Append("=\r\n{\r\n");
+			Line(text, "log", type.Log);
+			Line(text, "onmap", type.OnMap);
+			Line(text, "popup", type.Popup);
+			Line(text, "idle", type.Idle);
+			Line(text, "option", type.Option);
+			Line(text, "pausepopup", type.PausePopup);
+			text.Append("categories=\"").Append(Categories[(int)type.Category]).Append("\"\r\n}\r\n");
+		}
+		return text.ToString();
+	}
+
+	private static void Line(StringBuilder text, string key, bool value)
+	{
+		text.Append(key).Append('=').Append(value ? "yes" : "no").Append("\r\n");
+	}
+
+	private void ReadFile(string path)
+	{
+		if (!System.IO.File.Exists(path))
+		{
+			return;
+		}
+		try
+		{
+			Read(ClausewitzParser.ParseFile(path));
+		}
+		catch (Exception e)
+		{
+			_warn($"Could not read '{path}': {e.Message}");
+		}
+	}
+
 	private void Read(ClausewitzNode root)
 	{
 		foreach (ClausewitzNode block in root.Children)
@@ -80,8 +163,17 @@ public sealed class CMessageTypes
 			{
 				continue;
 			}
-			// A second declaration is the type, whole.
-			var type = new CMessageType(block.Key);
+			// A second declaration is the type, whole, where the first stood.
+			if (!_types.TryGetValue(block.Key, out CMessageType? type))
+			{
+				type = new CMessageType(block.Key);
+				_types[block.Key] = type;
+				_order.Add(type);
+			}
+			else
+			{
+				type.SetDefaults();
+			}
 			foreach (ClausewitzNode entry in block.Children)
 			{
 				string? value = entry.Value;
@@ -116,7 +208,6 @@ public sealed class CMessageTypes
 						break;
 				}
 			}
-			_types[block.Key] = type;
 		}
 	}
 

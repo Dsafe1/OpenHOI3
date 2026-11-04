@@ -3,7 +3,9 @@
 The player's settings are the original's own: `settings.txt` in `Documents\Paradox Interactive\Hearts of Iron III`, the
 file the original writes as it is played - **not** the one shipped beside its executable. Read once as a session starts
 (`Content/Settings`, `CUserSettingsReader`), and never written: nothing here changes a setting yet. By the maintainer's
-word on 2026-10-15 (`docs/compatibility.md`, entry 13). With no file, the original's defaults stand.
+word on 2026-10-15 (`docs/compatibility.md`, entry 13). With no file, the original's defaults stand. The same folder
+holds the player's message settings, `messagetypes_custom.txt`, which the in-game menu does write, as the original's
+does (`ingamemenu.md`, section 5).
 
 The file is Clausewitz script. What is read of it:
 

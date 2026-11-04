@@ -245,7 +245,8 @@ public partial class CGuiListBox : CGuiObject
 	{
 		if (@event is not InputEventMouseButton { Pressed: true } wheel || Unseen <= 0
 			|| wheel.ButtonIndex is not (MouseButton.WheelUp or MouseButton.WheelDown)
-			|| !IsVisibleInTree() || !new Rect2(Vector2.Zero, Size).HasPoint(GetLocalMousePosition()))
+			|| !IsVisibleInTree() || !new Rect2(Vector2.Zero, Size).HasPoint(GetLocalMousePosition())
+			|| CGuiModalBlocker.IsUnderPointer(GetViewport()))
 		{
 			return;
 		}

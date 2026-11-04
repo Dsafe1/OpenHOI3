@@ -34,6 +34,18 @@ public sealed class CMessageType
 
 	public EMessageCategory Category { get; set; } = EMessageCategory.Other;
 
+	/// <summary>Everything a declaration sets back to what it is with no key given, before a second one is read.</summary>
+	public void SetDefaults()
+	{
+		Log = true;
+		OnMap = false;
+		Popup = false;
+		Idle = false;
+		Option = false;
+		PausePopup = false;
+		Category = EMessageCategory.Other;
+	}
+
 	/// <summary>Whether a message of the type opens a popup: either key does.</summary>
 	public bool PopsUp => Popup || PausePopup;
 

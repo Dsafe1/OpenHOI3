@@ -16,8 +16,17 @@ public static class CUserSettingsReader
 	/// <summary>Where the original keeps the player's settings: its folder under the Documents folder.</summary>
 	public static string DefaultPath()
 	{
+		return System.IO.Path.Combine(UserFolder(), FileName);
+	}
+
+	/// <summary>
+	/// The player's folder of the base game, where the original keeps its settings, the message types the player chose
+	/// and the saves (<c>docs/mechanics/ingamemenu.md</c>, section 5). A mod's is its own; no mod is played yet.
+	/// </summary>
+	public static string UserFolder()
+	{
 		string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-		return System.IO.Path.Combine(documents, "Paradox Interactive", "Hearts of Iron III", FileName);
+		return System.IO.Path.Combine(documents, "Paradox Interactive", "Hearts of Iron III");
 	}
 
 	/// <summary>The settings in a file, or the defaults where there is none; anything not supported is reported.</summary>
