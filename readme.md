@@ -1536,9 +1536,12 @@ first's brigades left and the second's right, rows made once with arrows never g
 original's eleven tests - the division's limit, a headquarters' first brigade, types not buildable, carriers - a fleet's
 positioning penalty without its hundredfold and its ratio counting no submarine, and an emptied unit disbanded as the
 window shuts. Tried with `--click`; a `format` in quotes is not taken, measured on the screenshots. The AI's regrouping
-goes through the same test, and to 4 January nothing it does differs. **Next in the interface**: the right-click menu
-and the sidebar's lists (`rightclickmenu.gui`, `sidebar.gui`'s five lists) - perhaps left over from another game on the
-engine, the maintainer's word, so built to be switched off again if so - then the in-game menu and the settings window.
+goes through the same test, and to 4 January nothing it does differs. The multi-unit panel's merge and the single
+panel's new-unit button followed the same day (`selection.md`, section 5.4; `unitpanel.md`, section 7.1). **The
+right-click menu and the five side menus were read and are not built** (2026-11-04,
+`reversing/findings/FINDINGS-leftovermenus.md`): nothing in the original shows them to a player, and the maintainer's
+word was not to build them (`docs/compatibility.md`, entry 14). **Next in the interface**: the in-game menu and the
+settings window.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a

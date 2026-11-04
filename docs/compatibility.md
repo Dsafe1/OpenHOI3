@@ -284,6 +284,21 @@ documents folder, not the one next to the exe."
 
 ---
 
+## 14. The right-click menu and the five side menus are not built
+
+**Decided** 2026-11-04 by the maintainer, on the leftovers wave's reading: "Yeah dont build them."
+
+| | |
+| --- | --- |
+| the original | makes `interface/rightclickmenu.gui`'s menu and `sidebar.gui`'s provinces, army, naval, air and combat menus, and shows none of them to a player: the menu's in-game rows are never filled, and the side menus' top-bar handlers are never attached to a button. Its one live piece is a developer's: Shift and the right button over an element in the main menu, `Reload: <file>` and `Close` (*inferred* to show) |
+| here | neither file is read; `sidebar.gui`'s deploy menu is, as before |
+| the difference today | none a player sees; a developer has no Shift-and-right-click reload of one `.gui` file in the main menu |
+| a mod loses | nothing reachable: a `topbar.gui` that restores the `button_view*` buttons gets buttons that do nothing in the original too |
+| why | nothing in the original reaches them; building them would mean inventing a way in |
+| to undo | build them from `reversing/findings/FINDINGS-leftovermenus.md`, which has every row, click and figure |
+
+---
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they
