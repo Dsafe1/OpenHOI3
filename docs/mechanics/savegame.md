@@ -10,8 +10,9 @@ the maintainer's 45 saves. `confirmed` unless marked.
 ## 1. The stages
 
 1. **The reading** - done: `FINDINGS-savegame.md`.
-2. **The loader** - in increments, each set against the maintainer's saves (section 4). **The first is built**: the
-   clock, the generator, the played country, every province and country's figures below, the factions.
+2. **The loader** - in increments, each set against the maintainer's saves (sections 4 and 5). **The first is built**:
+   the clock, the generator, the played country, every province and country's figures below, the factions. **So is the
+   second**: the units, the leaders in service, the queue, what waits to be placed and the templates.
 3. **The writer** - a save loaded and written straight back set beside the file, block by block.
 4. **The save dialog** (`ingamemenu.md`, section 6) and the autosave at the settings' interval.
 
@@ -25,7 +26,7 @@ As the original's [exe], but where *Ours* says otherwise:
 2. **The save is read over it**, one key at a time. Every figure the save gives is set; **one it leaves out is set to
    what leaving it out means** - nought, none, the define's pressure - and not left as the history had it. **What is not
    loaded yet is cleared and reported**, never answered from the history (`CLAUDE.md`'s rule on what is not built):
-   today the units, the queue, the deployments, the leaders in service, the convoys, the wars and the pacts.
+   today the convoys, the wars, the pacts and the battles.
 3. **The played country** is the one asked for (`--country=`), else the one the save names. The original never takes
    it from the save - its lobby chooses, by default the save's own (*inferred*) - so the two come to the same.
 4. **The generator** is seeded with the save's `seed`, where the original throws `seed` and `count` away
@@ -33,7 +34,9 @@ As the original's [exe], but where *Ours* says otherwise:
    the seed is all a loaded game needs to go on with the draws it would have made; `count` is the writer's.
 5. **What the original works out again**, before the first hour: the provinces' and countries' modifiers, the strategic
    resources, IC, manpower, leadership, every country's effective neutrality, and **a fresh AI for every country** - the
-   ministers' first hours, and the strategy, which *Ours* makes again where the original keeps a saved one.
+   ministers' first hours, and the strategy, which *Ours* makes again where the original keeps a saved one. With the
+   units (section 5): each unit's leader put on, each brigade's figures made from its type and its levels, the queue's
+   cost, the officer ratio, and what an intercept watches.
 6. **None of a new game's two days**, the filling, the month or the first hour: a loaded game's first hour is the hour
    after its `date` [exe]. Nor are the laws moved, technology bought, the order-of-battle files read, history replayed or
    history revolts carried out.
@@ -64,8 +67,7 @@ sets the owners, the laws and the technology levels beside the save's and runs t
 `Germany1936_01_07_22.hoi3`: loaded in 1.7 seconds, **owners 14,168 of 14,168, laws 707 of 707, technology levels
 28,987 of 28,987**, and 24 hours run on. The list of what is left is the next increments' work:
 
-- **the units** - the whole tree, brigades, orders and missions, carried units, plans; the leaders in service; the
-  queue's three kinds of line and the deployments; the templates (`FINDINGS-savegame.md`, section C);
+- ~~**the units**~~ - the second increment, section 5;
 - **the wars** (`active_war`, `previous_war`) and **the pacts** (`diplomacy`), the battles (`combat`), `sunk_ships`;
 - the four id counters and the `id` blocks, the weather's fronts, the victory conditions and the faction's `progress`,
   the game's flags and its gameplay settings;
@@ -75,6 +77,66 @@ sets the owners, the laws and the technology levels beside the save's and runs t
   the rest the report lists; a province's supply figures and `out_of_supply_days`, which the day makes again, and its
   `history`.
 
+## 5. What the second increment reads: the units
+
+From `FINDINGS-savegame.md`, section C, [exe] but where marked.
+
+**Ids.** A unit's, a brigade's and a line's id is a pair (section 3). What the history made is type 41, and its serials
+are the numbers a new game here gives them - one count over units, brigades and lines - so they are kept as they are;
+the save's top-level `unit` is the next of them. What the player minted in play is type 4713, numbered here after that
+counter in the order it was minted, so a unit's place among its country's units, which reinforcement and the shares go
+by, is the original's (*Ours*: the numbers themselves are this game's). Any other type - another peer's - goes after
+both. A leader's id is his own (type 37), the number his file gives him.
+
+**The tree.** A country's top-level `theatre`, `armygroup`, `army`, `corps`, `division`, `navy` and `air` blocks, each
+with everything under it:
+
+| block | keys read |
+| --- | --- |
+| unit | `id`, `name`, `base`, `leader`, `previous`, `movement_progress`, `path`, `location`, `retreat`, `dig_in`, `attack_delay`, `combat_hours`, `is_prioritized`, `can_reinforce`, `can_upgrade`, `fuel` and `supplies` (what it was given), `start_date` and `end_date` (the order's two hours, `landorders.md` section 5), `disengage`, `possible_retreat`, `track` (shadowed by a patrol), `was_paradropped`, `is_reserve`, `plan`, `target` and `staging_province` (the AI's sealift and an airborne army's staging), `at_sea` (the hours before a fleet starts another battle), the order, every brigade, every unit under it |
+| brigade (`regiment`, `ship`, `wing`) | `id`, `name`, `type`, `organisation`, `strength`, `highest`, `experience`, `is_reserve`, `pride`, `current_distance`, every `<technology>={level progress}`, and a carrier's `air` groups |
+| order | `province`, `target`, `stance`, `start_date`, `death_date` (the end hour; `1.1.1` none), `return_to_base`, `time`, `priority`; a patrol's and an intercept's `provinces` and a join's `join_fleet` (the unit aimed at), an air order's `provinces` (its area), a sortie's `start` and `current`, a raid's `attack` (its hours to the next try at the convoys - *inferred* from the field it is written from), an escort's `convoy` and second `province`, a support attack's `combat`, an air supply's `supplies` and `fuel` |
+| plan | `active`, `allow_hq_reorg`, the three stances, `our_power`, `their_power`, `embark`, `debark`, `path`, `path2`, `ops_area`, every `objective`, `min` |
+
+- **A unit with no `location` is thrown away**, as the original deletes one - but the unit of a `unit_deployment`,
+  which never has one.
+- **A carrier's air group is read inside its ship**, the only place it is written, and based where the fleet is.
+- **A land unit aboard a fleet or an aeroplane is read inside its carrier**, and once every unit is read it is put back
+  under its land superior by `parent` - at the end of its children - or at the top of its country's units where it has
+  none, and aboard; a fleet's passenger is dug in nowhere and stages nowhere, as the original's fleet zeroes both.
+- **An order goes on from where the save has it**: nothing in it is started again. A target is found once every unit is
+  read, and a patrol's marks the fleet shadowed.
+- **No brigade takes its historical model**: a save never writes one, so a brigade's figures are its type's and its
+  levels' and nothing else, and the strength and organisation are as written.
+
+**The rest of a country's military part:**
+
+| block | read |
+| --- | --- |
+| `active_leaders` | each `<id>=` a leader of the files', in service in that order: `rank`, `skill` (only where not the file's), `current_experience`, `gainable_trait` (`duration`, `current`, each trait's progress) and `trait` - one held already not added twice; then his skill and experience raised to their floors. A number of no file's leader is passed over |
+| `military_construction`, `building_construction`, `convoy_construction` | in queue order, interleaved as written, each with `id`, `size`, `cost`, `duration`, `progress`, `status`, `location` - **never priced again**; a unit's line its `name`, `unit`, `manpower`, `is_reserve` and `factor`, `accumulated_experiance` and `accumulated_progress`, and each brigade's `id`, `name`, `experience` and `model`; a building line its `building`, counted from one in the file's order; a convoy line escorts where its second `status` is `yes` |
+| `unit_deployment`, `building_deployment` | a finished unit with no location, and a finished building, waiting to be placed |
+| `auto_maintain_convoy`, `auto_supply_convoy`, `auto_resource_convoy` | the three switches |
+| `saved_templates` | in place of the country file's; the original's empty `PW_TEMPLATE_` padding left out (*Ours*) |
+
+**Checked** with `OpenHOI3.SaveCheck load <install> <save> [hours] [later save]`, which finds every unit, brigade,
+leader in service and line of the save by its number and sets it beside the save - and, given a later save of the same
+game, runs to its hour and does it again, counting what differs by country. On 2026-11-04:
+
+- `Germany1936_01_07_22.hoi3` read: **2,001 of 2,001 units** - location, path, progress, leader and order - **4,072
+  of 4,072 brigades** in strength, organisation and experience, **3,303 of 3,303 leaders in service** in order, rank and
+  experience, and **179 of 179 lines** in number and progress. `Ireland1938_08_25_03.hoi3`, with carriers, passengers,
+  deployments and two years of the player's units: 2,304, 5,127, 4,623 and 253, all of them, and 24 hours run on.
+- From `_01_07_22` to `_01_08_02`, four hours over a midnight: locations 2,000 of 2,001, paths 1,980, orders 1,993,
+  strength 3,945 of 4,072, **organisation 3,100 of 4,072 - Germany's every brigade the save's** - and the lines'
+  progress 173 of 179. What differs is the AI and one thing not settled: Japan's 319 come from a theatre headquarters
+  its fresh AI makes in the first hour (the save's theatres are in its `ai` block, not read), which raises the officers
+  it needs; Britain's 219 are each a brigade reaching the ceiling the night's officers raise an hour after the save's
+  does (*Not established*).
+
+The first run found one fault, mended: the officer ratio is made in the hour, so a loaded game's first hour held every
+brigade to its type's own organisation until the ratio was made as the game is entered.
+
 ## Ours
 
 - A key nothing reads yet is reported, by its block and how often it was met, where the original drops an unknown key
@@ -82,8 +144,20 @@ sets the owners, the laws and the technology levels beside the save's and runs t
 - The AI's strategy is made again on a load, where the original keeps the one a save holds; the save's `ai` blocks are
   not read yet.
 - With no `--country=`, the save's own country is played; the original's lobby chooses.
+- A unit's number here is not the save's pair: what the player minted is numbered after the history's counter, so the
+  writer has to turn it back (section 5).
+- The save's empty `PW_TEMPLATE_` templates are left out, as a new game here has none.
 
 ## Not established
 
 - Whether a loaded game starts paused in the original.
 - Lua on the original's load path.
+- **Which hour first sees the officers the day adds.** Here the day's officers come after the hour's ratio, so a brigade
+  sees them an hour later than in Britain's saves; making the ratio again after the day's leadership puts Britain right
+  and two dozen countries wrong, so it is neither, and needs reading (section 5).
+- The country a unit's `country_intel` triple names: its first number is a country's, by a numbering not matched to the
+  save's order of countries, so the grants are reported and not read.
+- The exception the original makes where a carrying fleet is in its passenger's own subtree, the fleet written in the
+  passenger's place: in none of the maintainer's saves, and not handled.
+- A naval order's `capital`, `sub_unit` and `other`, the halt figure `stop` and an air order's figure for each air type:
+  nothing here holds them, so they are reported.

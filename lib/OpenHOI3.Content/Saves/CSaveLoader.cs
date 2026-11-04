@@ -30,7 +30,7 @@ public static class CSaveLoader
 	{
 		"capital", "acting_capital", "technology", "distribution", "leadership", "manpower", "officers", "diplo_influence",
 		"national_unity", "dissent", "neutrality", "effective_neutrality", "ideology", "flags", "variables",
-		"auto_assign_leaders",
+		"auto_assign_leaders", "auto_maintain_convoy", "auto_supply_convoy", "auto_resource_convoy",
 	};
 
 	private static readonly HashSet<string> ProvinceKeys = new(StringComparer.Ordinal)
@@ -49,6 +49,22 @@ public static class CSaveLoader
 		CGameState state = CGameStateLoader.BuildWorld(directories, map, localisation, countries, warn, aiScripts);
 		var report = new CSaveReport();
 		ClearUnread(state);
+
+		// The ids first: the history's counter and the highest minted in play, which every unit's number is made from.
+		var ids = new CSaveIds();
+		foreach (ClausewitzNode node in root.Children)
+		{
+			if (node.Key == "unit")
+			{
+				ids.SetHistoryNext((int)CSaveValues.Whole(node.Value));
+			}
+			else if (node.Key == "id" && node.IsBlock)
+			{
+				ids.SetHighest(node.GetInt("id"), node.GetInt("type"));
+			}
+		}
+		state.LastUnitId = ids.Reserved;
+		var units = new CSaveUnitReader(state, ids, report);
 
 		foreach (ClausewitzNode node in root.Children)
 		{
@@ -70,7 +86,7 @@ public static class CSaveLoader
 			}
 			if (node.IsBlock && CCountryTag.TryParse(node.Key, out CCountryTag tag) && state.Country(tag) is { } country)
 			{
-				ReadCountry(state, country, node, report);
+				ReadCountry(state, country, node, report, ids, units);
 				continue;
 			}
 			switch (node.Key)
@@ -89,7 +105,10 @@ public static class CSaveLoader
 				case "seed":
 					state.Seed = unchecked((uint)CSaveValues.Whole(node.Value));
 					break;
+				// The generator's count is the writer's; the history's counter and the highest id were read first.
 				case "count":
+				case "unit":
+				case "id":
 					break;
 				case "faction":
 					ReadFactions(state, node);
@@ -100,11 +119,17 @@ public static class CSaveLoader
 			}
 		}
 
+		units.Finish();
+		state.LastUnitId = Math.Max(state.LastUnitId, ids.Highest);
+
 		CCountryTag? player = played ?? (CCountryTag.TryParse(report.Player, out CCountryTag saved) ? saved : null);
 		if (player is { } who)
 		{
 			state.Played.Add(who);
 		}
+		// The historical models are the install's, for what is built from now on; a save's brigades never take theirs.
+		CHistoricalModelReader.Read(directories, countries, state.SubUnitTypes, state.Technologies,
+			Sim.Units.CHistoricalModels.DefaultCount(state), warn);
 		SetUpLoadedGame(state);
 		foreach (string line in report.Lines())
 		{
@@ -114,11 +139,16 @@ public static class CSaveLoader
 	}
 
 	/// <summary>
-	/// What the world holds from the history that a save would give and this does not read yet: cleared, so that nothing
-	/// is answered from the history in a loaded game (<c>CLAUDE.md</c>'s rule on what is not built).
+	/// What the world holds from the history that a save gives: cleared, so that what the save gives is all there is -
+	/// and what it gives that is not read yet is nothing, never answered from the history in a loaded game
+	/// (<c>CLAUDE.md</c>'s rule on what is not built).
 	/// </summary>
 	private static void ClearUnread(CGameState state)
 	{
+		foreach (Sim.Leaders.CLeader leader in state.Leaders.Values)
+		{
+			leader.Unit = null;
+		}
 		foreach (CCountry country in state.Countries)
 		{
 			country.Units.Clear();
@@ -177,7 +207,8 @@ public static class CSaveLoader
 		}
 	}
 
-	private static void ReadCountry(CGameState state, CCountry country, ClausewitzNode node, CSaveReport report)
+	private static void ReadCountry(CGameState state, CCountry country, ClausewitzNode node, CSaveReport report,
+		CSaveIds ids, CSaveUnitReader units)
 	{
 		country.Capital = (int)CSaveValues.Whole(node, "capital");
 		int acting = (int)CSaveValues.Whole(node, "acting_capital");
@@ -242,6 +273,9 @@ public static class CSaveLoader
 		country.Neutrality = CSaveValues.Fixed(node, "neutrality");
 		country.EffectiveNeutrality = CSaveValues.Fixed(node, "effective_neutrality");
 		country.AutoAssignLeaders = node.GetBool("auto_assign_leaders", true);
+		country.AutoMaintainConvoys = node.GetBool("auto_maintain_convoy", true);
+		country.AutoSupplyConvoys = node.GetBool("auto_supply_convoy", true);
+		country.AutoResourceConvoys = node.GetBool("auto_resource_convoy", true);
 		ReadFlags(country.Flags, node.Get("flags"));
 		country.Variables.Clear();
 		foreach (ClausewitzNode variable in node.Get("variables")?.Children ?? new List<ClausewitzNode>())
@@ -263,6 +297,40 @@ public static class CSaveLoader
 			{
 				ReadStatus(state, CGameState.Status(country, other), child);
 				continue;
+			}
+			// The military part (savegame.md, section 5): the units at the top of its tree, the queue's lines in order,
+			// what waits to be placed, the leaders in service and the templates.
+			if (child.IsBlock && CSaveUnitReader.UnitKinds.TryGetValue(key, out Sim.Units.EUnitKind kind))
+			{
+				if (units.Read(child, kind, country, parent: null, carriedBy: null) is { } unit)
+				{
+					country.Units.Add(unit);
+				}
+				continue;
+			}
+			switch (key)
+			{
+				case "military_construction" when child.IsBlock:
+					CSaveLines.ReadMilitary(state, country, child, ids, report);
+					continue;
+				case "building_construction" when child.IsBlock:
+					CSaveLines.ReadBuilding(state, country, child, ids, report);
+					continue;
+				case "convoy_construction" when child.IsBlock:
+					CSaveLines.ReadConvoy(state, country, child, ids, report);
+					continue;
+				case "unit_deployment" when child.IsBlock:
+					CSaveLines.ReadUnitDeployment(country, child, units, report);
+					continue;
+				case "building_deployment" when child.IsBlock:
+					CSaveLines.ReadBuildingDeployment(state, country, child, ids, report);
+					continue;
+				case "active_leaders" when child.IsBlock:
+					CSaveLeaders.Read(state, country, child, report);
+					continue;
+				case "saved_templates" when child.IsBlock:
+					CSaveLines.ReadTemplates(country, child);
+					continue;
 			}
 			if (!CountryKeys.Contains(key) && !laws.Contains(key) && !posts.Contains(key) && !categories.Contains(key))
 			{
@@ -358,6 +426,24 @@ public static class CSaveLoader
 	/// </summary>
 	private static void SetUpLoadedGame(CGameState state)
 	{
+		// Each unit's leader, as the save names him, of whatever country, rank or kind - as the files' are put on.
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (Sim.Units.CUnit unit in country.UnitsInOrder())
+			{
+				if (unit.LeaderId != 0 && state.Leaders.TryGetValue(unit.LeaderId, out Sim.Leaders.CLeader? leader))
+				{
+					Sim.Leaders.CLeaders.SetLeader(state, unit, leader, false, false);
+				}
+				// What an intercept watches is made from its provinces, and not saved.
+				if (unit.Order == Sim.Units.EUnitOrder.AirIntercept)
+				{
+					Sim.Missions.CAirIntercept.BuildWatch(state, unit);
+				}
+			}
+			Sim.Construction.CBuildQueue.UpdateCost(country);
+		}
+		CGameStateLoader.RegisterUnitNames(state);
 		state.ForgetPositions();
 		CProvinceModifiers.Rebuild(state);
 		CCountryModifiers.Rebuild(state);
@@ -367,6 +453,9 @@ public static class CSaveLoader
 		CCountryModifiers.RebuildDaily(state);
 		CManpower.Update(state);
 		CLeadership.Update(state);
+		// The officer ratio, which every brigade's ceiling of organisation is made with: before it, the first hour would
+		// hold every brigade to its type's own.
+		Sim.Units.COfficers.Update(state);
 		foreach (CCountry country in state.Countries)
 		{
 			CNeutrality.UpdateEffective(state, country);

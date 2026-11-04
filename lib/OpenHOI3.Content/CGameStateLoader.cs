@@ -326,15 +326,15 @@ public static class CGameStateLoader
 	}
 
 	/// <summary>
-	/// Every name the orders of battle gave is in use from the start, so that a unit
+	/// Every name the orders of battle - or a save - gave is in use from the start, so that a unit
 	/// ordered later is not called what one already is.
 	/// </summary>
-	private static void RegisterUnitNames(CGameState state)
+	public static void RegisterUnitNames(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
 			country.UnitNamesInUse.Clear();
-			foreach (CUnit unit in country.AllUnits())
+			foreach (CUnit unit in country.AllUnits().Concat(country.Deployments))
 			{
 				CUnitNames.Register(country, unit.Name);
 				foreach (CSubUnit subUnit in unit.SubUnits)
