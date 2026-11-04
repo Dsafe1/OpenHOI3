@@ -19,6 +19,10 @@ public sealed class ClausewitzNode
 {
 	public string? Key { get; init; }
 	public string? Value { get; init; }
+
+	/// <summary>Whether the value was written in quotes, which an interface file's <c>format</c> cares about.</summary>
+	public bool IsQuoted { get; init; }
+
 	public List<ClausewitzNode> Children { get; } = new();
 
 	public bool IsBlock => Value is null;

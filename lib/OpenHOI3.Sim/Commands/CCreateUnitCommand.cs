@@ -5,9 +5,10 @@ using OpenHOI3.Sim.Units;
 namespace OpenHOI3.Sim.Commands;
 
 /// <summary>
-/// A new, empty fleet or air group with the number given, in a province and based at its base, put under the
-/// headquarters given - as the original's agent attaches a unit it asked for as soon as it is made. The AI's agents post
-/// it as they split a fleet or an air group (<c>docs/mechanics/agents.md</c>, section 5.4).
+/// A new, empty division, fleet or air group with the number given - or the next, given none - in a province and based
+/// at its base, put under the headquarters given - as the original's agent attaches a unit it asked for as soon as it is
+/// made. The AI's agents post it as they split a fleet or an air group (<c>docs/mechanics/agents.md</c>, section 5.4),
+/// and the new-unit button for an empty unit beside the one selected (<c>unitpanel.md</c>, section 7.1).
 /// </summary>
 public sealed class CCreateUnitCommand : CCommand
 {
@@ -31,13 +32,14 @@ public sealed class CCreateUnitCommand : CCommand
 	public override bool MayExecute(CGameState state)
 	{
 		return state.Country(_owner) is not null && _province > 0 && _province < state.Provinces.Count
-			&& _kind is EUnitKind.Navy or EUnitKind.Air;
+			&& _kind is EUnitKind.Division or EUnitKind.Navy or EUnitKind.Air;
 	}
 
 	public override void Execute(CGameState state)
 	{
 		CCountry country = state.Country(_owner)!;
-		var unit = new CUnit(_kind, country.Tag) { Id = _id, Location = _province, Base = _base };
+		int id = _id > 0 ? _id : ++state.LastUnitId;
+		var unit = new CUnit(_kind, country.Tag) { Id = id, Location = _province, Base = _base };
 		country.Units.Add(unit);
 		state.ForgetPositions();
 		if (CUnitFinder.Find(state, _owner, _headquarters) is { } headquarters)

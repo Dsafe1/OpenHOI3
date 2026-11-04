@@ -12,8 +12,8 @@ namespace OpenHOI3.Screens;
 /// The strip of buttons of a selected unit: the <c>sup_buttons_window</c> window. Its
 /// three checkboxes - come first, be reinforced, be upgraded - are the unit's own and
 /// work, and so do the load and unload buttons (<c>docs/mechanics/transport.md</c>,
-/// section 12); the buttons that make a headquarters, attach, detach, load onto planes,
-/// disband and reorganise are shown as the original shows them and do nothing yet. See
+/// section 12), and the new-unit button; the buttons that make a headquarters, attach, detach
+/// and disband are shown as the original shows them and do nothing yet. See
 /// <c>docs/mechanics/unitpanel.md</c>, section 7.
 /// </summary>
 public sealed class CUnitButtonsEntry : CUnitPanelEntry
@@ -31,7 +31,11 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 	private readonly CGuiButton? _unload;
 	private readonly CGuiButton? _loadPlane;
 	private readonly CGuiButton? _unloadPlane;
+	private readonly CGuiButton? _newUnit;
 	private CCarryButtons _carry = CCarryButtons.None;
+
+	/// <summary>Raised when the new-unit button is pressed, with whether Ctrl was held - a split - or not.</summary>
+	public event Action<bool>? NewUnitPressed;
 
 	/// <summary>Raised when one of the three checkboxes is clicked, with what it now says.</summary>
 	public event Action<EUnitSupport, bool>? SupportChanged;
@@ -96,7 +100,12 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 			_unloadPlane.Pressed += () => PlaneUnloadPressed?.Invoke();
 		}
 		Unbuilt(window, "disbandbutton", shown: true);
-		Unbuilt(window, "newunitbutton", shown: true);
+		// A new empty unit beside this one, or with Ctrl the unit split, greyed by the original's rule (unitpanel.md, 7.1).
+		_newUnit = window.FindButton("newunitbutton");
+		if (_newUnit is not null)
+		{
+			_newUnit.Pressed += () => NewUnitPressed?.Invoke(Godot.Input.IsKeyPressed(Godot.Key.Ctrl));
+		}
 		if (_attach is not null)
 		{
 			_attach.Disabled = true;
@@ -133,6 +142,11 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		// A unit with none above it may be attached, and one with may be detached.
 		Show(_attach, _unit.Parent is null);
 		Show(_detach, _unit.Parent is not null);
+
+		if (_newUnit is not null)
+		{
+			_newUnit.Disabled = !_mayOrder || !CUnitSplit.MayPress(_unit);
+		}
 	}
 
 	private CGuiButton? Checkbox(CGuiWindow window, string name, EUnitSupport what, bool mayOrder)

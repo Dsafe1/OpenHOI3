@@ -284,6 +284,13 @@ public partial class CSession : Node
 			_orders.Ordered += () => _ordered = true;
 			_orders.Toggled += () => ShowProvince(_shownProvince);
 			_orders.AreaShown += colours => _mapView.ShowAirArea(colours);
+
+			// The window two selected units reorganise their brigades in (reorganise.md).
+			var reorganise = new CReorgWindow();
+			reorganise.Setup(gui, _simulation, Player);
+			reorganise.Selection = () => _mapView.Units.Units;
+			layer.AddChild(reorganise);
+			_unitPanel.ReorganiseWanted += reorganise.Open;
 		}
 
 		// The window of a battle, which a click on the battle's marker or on its row
@@ -1227,7 +1234,7 @@ public partial class CSession : Node
 	/// fires that event for the player, its trigger not asked, <c>--event=2602:1861</c> for a province of his and
 	/// <c>--event=2001:SPR</c> for another country, which answers it as the AI does,
 	/// <c>--lock=Supplies</c> locks that slider of the production screen,
-	/// <c>--select=Luftflotte II</c> selects the player's unit of that name,
+	/// <c>--select=Luftflotte II</c> selects the player's unit of that name, and with several apart by | each in turn,
 	/// <c>--click=700,310;r1240,886;h48</c> clicks at those points of the canvas, in turn -
 	/// with r the right button, with s shift held, with c Ctrl held, with t1.5: before the point
 	/// the button held down 1.5 seconds of real time, and h48 lets 48 hours go by, m460,40 moves
@@ -1646,12 +1653,21 @@ public partial class CSession : Node
 		// unit at its base, whose stack lies under the land units' there.
 		if (select is not null && Player is not null)
 		{
-			foreach (CUnit unit in Player.AllUnits())
+			// Several names apart by '|' select each in turn, the first first.
+			string[] names = select.Split('|');
+			for (int index = 0; index < names.Length; index++)
 			{
-				if (unit.Name == select)
+				if (Player.AllUnits().FirstOrDefault(unit => unit.Name == names[index]) is not { } unit)
+				{
+					continue;
+				}
+				if (index == 0)
 				{
 					_mapView.SelectUnit(unit);
-					break;
+				}
+				else
+				{
+					_mapView.ChangeUnits(selection => selection.Add(unit, Player.Tag));
 				}
 			}
 		}

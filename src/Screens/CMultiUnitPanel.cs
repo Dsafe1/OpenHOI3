@@ -28,7 +28,7 @@ public partial class CMultiUnitPanel : Control
 	/// <summary>The buttons whose systems are not built for one unit either: shown, never to be pressed.</summary>
 	private static readonly string[] Unbuilt =
 	{
-		"upgrade_all", "detach_multiunit", "highercomm_multiunit", "reorganizebutton", "mergebutton", "disband_multiunit",
+		"upgrade_all", "detach_multiunit", "highercomm_multiunit", "disband_multiunit",
 	};
 
 	private CGuiContext _context = null!;
@@ -43,6 +43,8 @@ public partial class CMultiUnitPanel : Control
 	private CGuiButton? _load;
 	private CGuiButton? _loadPlanes;
 	private CGuiButton? _unmount;
+	private CGuiButton? _reorganise;
+	private CGuiButton? _merge;
 	private CGuiScrollbarType? _sliderType;
 	private CGuiScrollbar? _slider;
 	private int _sliderFit;
@@ -65,6 +67,9 @@ public partial class CMultiUnitPanel : Control
 
 	/// <summary>A row's leader button or portrait: the leader window for its unit.</summary>
 	public event Action<CUnit>? LeaderWanted;
+
+	/// <summary>The reorganise button: the two units, the first selected first.</summary>
+	public event Action<CUnit, CUnit>? ReorganiseWanted;
 
 	/// <summary>Raised when the panel has posted an order that changes where units stand on the map.</summary>
 	public event Action? Ordered;
@@ -117,6 +122,24 @@ public partial class CMultiUnitPanel : Control
 		if (_unmount is not null)
 		{
 			_unmount.Pressed += Unmount;
+		}
+		// Two units reorganised: the first selected on the left, the second on the right (reorganise.md, section 1).
+		_reorganise = _window.FindButton("reorganizebutton");
+		if (_reorganise is not null)
+		{
+			_reorganise.Pressed += () =>
+			{
+				if (CSubUnitTransfer.MayReorganise(_units))
+				{
+					ReorganiseWanted?.Invoke(_units[0], _units[1]);
+				}
+			};
+		}
+		// The selected units made one, unless an AI agent runs any of them or any unit above one (selection.md, 5.4).
+		_merge = _window.FindButton("mergebutton");
+		if (_merge is not null)
+		{
+			_merge.Pressed += Merge;
 		}
 		if (_window.FindButton("close_multiunit") is { } close)
 		{
@@ -246,6 +269,22 @@ public partial class CMultiUnitPanel : Control
 		Carry(_load, carry, CMultiUnitText.FleetFor(state, _units) is not null);
 		Carry(_loadPlanes, carry, CMultiUnitText.PlaneFor(state, _units) is not null);
 		Carry(_unmount, carry, CMultiUnitText.Aboard(_units) > 0);
+		if (_reorganise is not null)
+		{
+			_reorganise.Disabled = !CSubUnitTransfer.MayReorganise(_units);
+		}
+		// Greyed where the rule says no; where it says yes, left as it was if an AI agent runs one of them.
+		if (_merge is not null && _player is not null)
+		{
+			if (!CUnitMerge.MayMerge(state, _player, _units))
+			{
+				_merge.Disabled = true;
+			}
+			else if (!CUnitMerge.HasAgentAbove(_units))
+			{
+				_merge.Disabled = false;
+			}
+		}
 		LayoutRows();
 	}
 
@@ -450,6 +489,21 @@ public partial class CMultiUnitPanel : Control
 				Post(new CUnloadUnitCommand(unit.Owner, unit.Id), unit);
 			}
 		}
+	}
+
+	/// <summary><c>mergebutton</c>: one merge of every selected unit, in selection order; nothing where an AI agent runs one.</summary>
+	private void Merge()
+	{
+		if (_player is null || _units.Count == 0 || CUnitMerge.HasAgentAbove(_units))
+		{
+			return;
+		}
+		var ids = new List<int>();
+		foreach (CUnit unit in _units)
+		{
+			ids.Add(unit.Id);
+		}
+		Post(new CMergeCommand(_units[0].Owner, ids), _units[0]);
 	}
 
 	/// <summary>A command of the player's own about one of its units, posted where it may run.</summary>

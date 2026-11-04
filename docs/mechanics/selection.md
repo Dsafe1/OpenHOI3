@@ -138,7 +138,9 @@ first row's unit: "3 Land Units".
 | `load_multiunit`, `load_on_air_multiunit`, `unmount_multiunit` | where the first row's unit is a land unit | where a fleet, an air unit, a passenger is found (`transport.md`, section 12) | a load or unload for each unit | `transport.md`, section 12 |
 | `close_multiunit` | always | always | lets the selection go | none |
 | `upgrade_all` | always | - | **not built** | `MULTI_SEL_UPGRADE_DESC` - not built either: its count is of the brigades that may be upgraded where they stand |
-| `detach_multiunit`, `highercomm_multiunit`, `reorganizebutton`, `mergebutton`, `disband_multiunit` | always | - | **not built** | `DETACH_ALL`, `HIGHER_COMMAND_MULTI_UNITS`, `REORGANISE_UNITS` or `NO_REORGANISE_UNITS` with `REORGANISE_UNITS_DRO`, `MERGE_UNITS` with `MERGE_UNITS_DRO`, `DISBAND_ALL_TITLE` |
+| `reorganizebutton` | always | exactly two units that may be reorganised (`reorganise.md`, section 1) | the reorganise window for the first and the second | `REORGANISE_UNITS` or `NO_REORGANISE_UNITS` with `REORGANISE_UNITS_DRO` |
+| `mergebutton` | always | by the merge rule (section 5.4); where it holds but an AI agent runs one of the units, left as it was | one merge of every selected unit, unless an AI agent runs one | `MERGE_UNITS` with `MERGE_UNITS_DRO` |
+| `detach_multiunit`, `highercomm_multiunit`, `disband_multiunit` | always | - | **not built** | `DETACH_ALL`, `HIGHER_COMMAND_MULTI_UNITS`, `DISBAND_ALL_TITLE` |
 
 The carrying three (`FINDINGS-transport.md` C.3): **two or more selected**; walking the selection in order, the
 whole weight adds up and the search fails at the first unit that is not a land unit, stands in another province than
@@ -164,6 +166,51 @@ original clicking the ribbon will select all subordinate units" (`FINDINGS-selec
 
 Both walk the command as section 2.1's Ctrl-click does: each unit followed by its own command before the next, in the
 order of battle's order.
+
+### 5.4 Merge
+
+Read 2026-11-04 (`reversing/findings/FINDINGS-merge.md`, and `reversing/findings/FINDINGS-selection.md` B.4 for the
+button). `confirmed`
+
+**The rule that greys the button**, asked of the selected units in selection order with the player's country - false
+at the first unit that fails, each against the **first**:
+
+- two or more units;
+- each in no battle, not falling back, going nowhere, in the first's province, not on loan (nothing is lent here), with
+  no attack delay;
+- **each of the first's level, and that a division, a fleet or an air unit** - no command above a division merges;
+- each a group of carrier aircraft where the first is, and not where it is not; where the first is an air unit on a
+  carrier, each on the same carrier;
+- **where the first is a land unit, all their brigades together no more than a division may hold** - the define
+  `BRIGADES_IN_DIVISION`, mod-able, 4 in the base game. A fleet or an air unit has no cap.
+
+The owner is not asked. Where the rule holds, the button is enabled **unless an AI agent runs one of the units or a
+unit above one**, and then it is left as it was. A press does nothing in that case either; otherwise it posts **one
+merge of every selected unit**, in selection order.
+
+**The merge asks nothing again** - the greying is the only gate - and passes over a unit gone since. It:
+
+1. **chooses the unit the rest go into**: the highest of `brigades x 10 + share x 10 / 1000 + skill x 2`, where `share`
+   is the unit's strength over its brigades' summed `max_strength` in thousandths (cut toward nought, so 95% gives 9;
+   nought where the sum is nought) and `skill` its leader's, nought without one. **Strictly highest, so the first of
+   equals**; the first unit where nobody scores above nought. The weights are exe-hardcoded;
+2. merges each other unit into it and takes it out of the game;
+3. gives the one chosen the best free leader where it has none and its country chooses its own leaders.
+
+There is no message.
+
+**One unit merged into another** - the merge's, and the AI's join-fleet and join-air orders' (`agents.md`, section
+5.4):
+
+- every brigade of the giver, in its order, to the taker;
+- two fleets: the giver's passengers go aboard the taker, dug in no longer and their staging province forgotten; two
+  air units: the giver's passengers to the taker the same way, their target forgotten. Nothing checks the taker's room
+  until the next test of too much aboard;
+- **the leaders**: where the taker has none, it takes the giver's; where both have one and **the giver's skill is
+  strictly higher**, the taker's goes free and it takes the giver's; otherwise each keeps his own and the giver's goes
+  free with it. The leader who moves loses the hours he banked towards a trait, and nobody loses organisation.
+
+A carrier's air groups are aboard their ship and go where it goes.
 
 ## 6. The orders window with several
 
@@ -210,7 +257,7 @@ same on every machine. `confirmed`
 
 ## 10. Not built
 
-- Upgrade-all, detach, higher command, reorganise, merge and disband: shown, never enabled - none of their systems is
+- Upgrade-all, detach, higher command and disband: shown, never enabled - none of their systems is
   built for one unit either. A disband command exists since 2026-10-17 (`CDisbandCommand`, `theatres.md`, section 9),
   posted only by the AI for a theatre-level unit no theatre owns; the buttons are not wired to it.
 - Over a counter the original's map tooltip is the unit's own; here it is the province's.
@@ -225,3 +272,5 @@ same on every machine. `confirmed`
 - Whether the original ever sees Alt (`FINDINGS-selection.md` A.11).
 - Which units lie in a stack's cycle and in what order: ours is `mapunits.md`'s.
 - Whether a side menu moves the rows right: the rows here stand at `unitlist_start` whatever is open.
+- Whether the merge button's shortcut, `g`, works while the button is greyed: here a shortcut goes through the button,
+  which a greyed one refuses.

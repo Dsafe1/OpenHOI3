@@ -305,6 +305,9 @@ public class UnitPanelTextTests
 		brigade.Strength = CFixedPoint.Parse("9.99");
 		Assert.Equal("999", CUnitPanelText.BrigadeMen(brigade));
 		Assert.Equal(33, CUnitPanelText.BrigadeStrengthBar(brigade));
+		// A ship's or a wing's is its strength as a whole percentage.
+		var ship = new CSubUnit(new CSubUnitType("destroyer", EUnitBranch.Naval)) { Strength = CFixedPoint.FromInt(100) };
+		Assert.Equal("100%", CUnitPanelText.BrigadeMen(ship));
 
 		// The brigade's own bar is against what it may have, which the officers decide.
 		Assert.Equal(100, CUnitPanelText.BrigadeOrganisationBar(state, country, brigade));

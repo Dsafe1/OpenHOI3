@@ -198,6 +198,29 @@ public class GuiTypesTests
 	}
 
 	[Fact]
+	public void AFormatInQuotesIsNotTakenAndTheOneBeforeItStands()
+	{
+		// The reorganise row's subunit_strength is written so, and its men stand to the left (interface.md, section 1).
+		var warnings = new List<string>();
+		CGuiWindowType row = Read("""
+			guiTypes = {
+				windowType = {
+					name = "row"
+					instantTextBoxType = {
+						name = "subunit_strength"
+						format = left
+						font = "Arial14_black"
+						format = "right"
+					}
+				}
+			}
+			""", warnings).FindWindow("row")!;
+
+		Assert.Equal(EGuiTextFormat.Left, row.Find<CGuiTextBoxType>("subunit_strength")!.Format);
+		Assert.Contains(warnings, warning => warning.Contains("'format' in quotes"));
+	}
+
+	[Fact]
 	public void AKeyAnElementDoesNotTakeIsReportedOnceHoweverOftenItComesUp()
 	{
 		var warnings = new List<string>();

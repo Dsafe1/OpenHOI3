@@ -243,8 +243,14 @@ public static class CNavalBattle
 	/// </summary>
 	public static long StackingPenalty(CGameState state, CCombatSide side)
 	{
+		return StackingPenalty(state, side.Units);
+	}
+
+	/// <summary>The same for any fleets: the reorganise window asks it of one (<c>reorganise.md</c>, section 2).</summary>
+	public static long StackingPenalty(CGameState state, IEnumerable<CUnit> fleets)
+	{
 		long hull = 0;
-		foreach (CUnit unit in side.Units)
+		foreach (CUnit unit in fleets)
 		{
 			foreach (CSubUnit ship in unit.SubUnits)
 			{

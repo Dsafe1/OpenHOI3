@@ -41,6 +41,12 @@ public partial class CUnitPanel : Control
 	/// <summary>A unit the player put aboard a fleet, whose selection goes to the fleet once it is aboard.</summary>
 	private (CUnit Unit, CUnit Fleet)? _boarding;
 
+	/// <summary>An empty unit asked for beside a unit, and the last unit number taken before it.</summary>
+	private (CUnit Unit, int After)? _creating;
+
+	/// <summary>A unit being split, and the last unit number taken before it.</summary>
+	private (CUnit Unit, int After)? _splitting;
+
 	private CLeaderSelectionPanel? _leaders;
 	private CMultiUnitPanel? _multi;
 	private CConfirmDialog? _confirm;
@@ -62,6 +68,9 @@ public partial class CUnitPanel : Control
 
 	/// <summary>Raised when the panel has posted an order that changes where units stand on the map.</summary>
 	public event Action? Ordered;
+
+	/// <summary>The multi-unit panel's reorganise button: the two units, the first selected first.</summary>
+	public event Action<CUnit, CUnit>? ReorganiseWanted;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, CSimulation simulation, CCountry? player)
@@ -89,6 +98,7 @@ public partial class CUnitPanel : Control
 		_multi.SelectionChanging += change => SelectionChanging?.Invoke(change);
 		_multi.LeaderWanted += OpenLeaders;
 		_multi.Ordered += () => Ordered?.Invoke();
+		_multi.ReorganiseWanted += (left, right) => ReorganiseWanted?.Invoke(left, right);
 		AddChild(_multi);
 
 		_window = CGuiWindow.Create(_context, WindowName);
@@ -150,6 +160,7 @@ public partial class CUnitPanel : Control
 
 	public override void _Process(double delta)
 	{
+		FollowNewUnits();
 		// The leader window a row of several opened is written as the header's is.
 		if (_unit is null && _leaders is not null)
 		{
@@ -365,6 +376,7 @@ public partial class CUnitPanel : Control
 				}
 			};
 			buttons.PlaneUnloadPressed += () => Post(new CUnloadFromPlaneCommand(owner.Tag, unit.Id), unit);
+			buttons.NewUnitPressed += split => NewUnit(unit, split);
 			Add(buttons);
 		}
 		if (CUnitBrigadesEntry.Create(_context, state, owner, unit) is { } brigades)
@@ -447,6 +459,88 @@ public partial class CUnitPanel : Control
 		{
 			_simulation.Post(command);
 			Ordered?.Invoke();
+		}
+	}
+
+	/// <summary>
+	/// The new-unit button (unitpanel.md, section 7.1): with Ctrl, the unit split where it may be; without, an empty unit of
+	/// its kind beside it - one at a time, a second press doing nothing until the first has come. What follows each is
+	/// done once its units exist, in <see cref="FollowNewUnits"/>.
+	/// </summary>
+	private void NewUnit(CUnit unit, bool split)
+	{
+		int after = _simulation.State.LastUnitId;
+		if (split)
+		{
+			if (CUnitSplit.MaySplit(unit) && Post(new CUnitSplitCommand(unit.Owner, unit.Id), unit))
+			{
+				_splitting = (unit, after);
+			}
+			return;
+		}
+		if (_creating is not null)
+		{
+			return;
+		}
+		EUnitKind kind = CMovementRules.IsLandUnit(unit) ? EUnitKind.Division : unit.Kind;
+		if (Post(new CCreateUnitCommand(unit.Owner, 0, kind, unit.Location, unit.Base, 0), unit))
+		{
+			_creating = (unit, after);
+		}
+	}
+
+	/// <summary>
+	/// Once the units a press asked for exist: an empty unit is added to the selection, the reorganise window opened with
+	/// the old unit on the left and the new on the right, and the new one put under the old one's commander where he may
+	/// take the old one; a split's units are the selection, the old first.
+	/// </summary>
+	private void FollowNewUnits()
+	{
+		if (_player is null)
+		{
+			return;
+		}
+		if (_creating is ({ } old, int after))
+		{
+			CUnit? created = _player.AllUnits().FirstOrDefault(unit => unit.Id > after && !unit.IsRemoved
+				&& unit.SubUnits.Count == 0 && unit.Location == old.Location && unit.Kind is EUnitKind.Division or EUnitKind.Navy
+					or EUnitKind.Air);
+			if (old.IsRemoved)
+			{
+				_creating = null;
+			}
+			else if (created is not null)
+			{
+				_creating = null;
+				SelectionChanging?.Invoke(selection => selection.Add(created, created.Owner));
+				ReorganiseWanted?.Invoke(old, created);
+				if (old.Parent is { } parent && Sim.Construction.CDeployment.MayTakeSubordinate(parent, old))
+				{
+					Post(new CAttachUnitCommand(old.Owner, created.Id, parent.Id), old);
+				}
+			}
+		}
+		if (_splitting is ({ } unit, int since))
+		{
+			List<CUnit> made = _player.AllUnits().Where(other => other.Id > since && !other.IsRemoved && other.SubUnits.Count > 0
+				&& other.Kind == unit.Kind).OrderBy(other => other.Id).ToList();
+			if (unit.IsRemoved)
+			{
+				_splitting = null;
+			}
+			else if (made.Count > 0)
+			{
+				_splitting = null;
+				SelectionChanging?.Invoke(selection =>
+				{
+					selection.Clear();
+					selection.Add(unit, unit.Owner);
+					foreach (CUnit other in made)
+					{
+						selection.Add(other, other.Owner);
+					}
+				});
+			}
 		}
 	}
 

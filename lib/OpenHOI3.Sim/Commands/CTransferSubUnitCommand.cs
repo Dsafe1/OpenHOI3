@@ -1,13 +1,12 @@
 using OpenHOI3.Sim.Countries;
-using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Commands;
 
 /// <summary>
 /// A ship or a wing moved into another unit: refused where that unit is fighting; a receiving unit with no name is named
-/// by its kind, numbered; it is given a leader where its country chooses its own and it has none; and a unit left empty
-/// loses its leader. A carrier's air groups ride on it. The AI's agents post it as they split a fleet or an air group
+/// by its kind, numbered; it is given a leader where its country chooses its own and it has none; and a unit left empty,
+/// or a land unit left with one brigade, loses its leader. A carrier's air groups ride on it. The AI's agents post it as they split a fleet or an air group
 /// (<c>docs/mechanics/agents.md</c>, section 5.4).
 /// </summary>
 public sealed class CTransferSubUnitCommand : CCommand
@@ -23,11 +22,12 @@ public sealed class CTransferSubUnitCommand : CCommand
 		_unit = unit;
 	}
 
+	/// <summary>The original's eleven tests, the two units in one province (<c>docs/mechanics/reorganise.md</c>, section 4).</summary>
 	public override bool MayExecute(CGameState state)
 	{
 		return CUnitFinder.FindSubUnit(state, _owner, _subUnit) is { Unit: not null } subUnit
-			&& CUnitFinder.Find(state, _owner, _unit) is { } unit && !unit.IsFighting
-			&& !ReferenceEquals(subUnit.Unit, unit) && (unit.Kind == EUnitKind.Navy) == (subUnit.Unit.Kind == EUnitKind.Navy);
+			&& CUnitFinder.Find(state, _owner, _unit) is { } unit && state.Country(_owner) is { } country
+			&& CSubUnitTransfer.MayTake(state, country, unit, subUnit, sameProvince: true);
 	}
 
 	public override void Execute(CGameState state)
@@ -36,27 +36,25 @@ public sealed class CTransferSubUnitCommand : CCommand
 		CSubUnit subUnit = CUnitFinder.FindSubUnit(state, _owner, _subUnit)!;
 		CUnit unit = CUnitFinder.Find(state, _owner, _unit)!;
 		CUnit source = subUnit.Unit!;
-		source.SubUnits.Remove(subUnit);
-		unit.SubUnits.Add(subUnit);
-		subUnit.Unit = unit;
-		if (unit.Name.Length < 2)
+		CSubUnitTransfer.Move(state, country, subUnit, unit);
+		// A land unit left with one brigade loses its leader too - the transfer's, which the split's move does not do.
+		if (source.SubUnits.Count == 1 && Movement.CMovementRules.IsLandUnit(source))
 		{
-			unit.Name = CUnitNames.ForKind(state, country, unit.Kind, unit.SubUnits[0].Type);
-			CUnitNames.Register(country, unit.Name);
+			Leaders.CLeaders.SetLeader(state, source, null, false, false);
 		}
-		if (country.AutoAssignLeaders && unit.Leader is null
-			&& !(unit.Kind <= EUnitKind.Division && unit.SubUnits.Count == 1))
+		// The player is told of his own (reorganise.md, section 4).
+		if (state.Played.Contains(unit.Owner))
 		{
-			CLeaders.AssignBest(state, country, unit);
+			state.RaisePactMessage(new Agreements.CPactMessage("TRANSFEREDSUBUNIT", "", "", unit.Owner, unit.Owner)
+			{
+				Told = unit.Owner,
+				Values = new[] { ("SUB", subUnit.Name), ("OLD", source.Name), ("NEW", unit.Name) },
+			});
 		}
-		if (source.SubUnits.Count == 0)
+		// A unit of one brigade now looks for a battle where it stands.
+		if (unit.SubUnits.Count == 1)
 		{
-			CLeaders.SetLeader(state, source, null, false, false);
+			Combat.CCombats.CheckForCombat(state, unit, unit.Location);
 		}
-		if (source.Kind == EUnitKind.Navy)
-		{
-			Transport.CTransport.CheckOverload(state, source);
-		}
-		state.ForgetPositions();
 	}
 }

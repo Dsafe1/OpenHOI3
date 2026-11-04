@@ -1,6 +1,5 @@
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
-using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
 
@@ -64,17 +63,13 @@ public static class CJoinOrders
 		}
 	}
 
-	/// <summary>The mover's ships or wings handed to the other, its leader freed and the mover taken out of the game.</summary>
+	/// <summary>
+	/// The mover merged into the other as the merge button merges (<c>CUnitMerge.MergeInto</c>) - its ships or wings, what
+	/// it carries and the more skilled leader - and taken out of the game.
+	/// </summary>
 	public static void Merge(CGameState state, CUnit mover, CUnit target)
 	{
-		foreach (CSubUnit subUnit in mover.SubUnits.ToArray())
-		{
-			mover.SubUnits.Remove(subUnit);
-			target.SubUnits.Add(subUnit);
-			subUnit.Unit = target;
-		}
-		CLeaders.SetLeader(state, mover, null, false, false);
+		CUnitMerge.MergeInto(state, target, mover);
 		CCombatRetreat.RemoveFromGame(state, mover);
-		state.ForgetPositions();
 	}
 }

@@ -589,10 +589,15 @@ public static class CUnitPanelText
 		return CRomanNumerals.Format(Math.Max(subUnit.HistoricalModel, 0) + 1);
 	}
 
-	/// <summary>A brigade's men.</summary>
+	/// <summary>
+	/// A brigade's strength as the original's rows write it: a brigade's men, strength times a hundred cut to a whole man;
+	/// a ship's or a wing's strength as a whole percentage.
+	/// </summary>
 	public static string BrigadeMen(CSubUnit subUnit)
 	{
-		return CBuilderText.Men(subUnit.Strength);
+		return subUnit.Type.Branch == EUnitBranch.Land
+			? CBuilderText.Men(subUnit.Strength)
+			: CNumberText.Format(subUnit.Strength, 0) + "%";
 	}
 
 	/// <summary>

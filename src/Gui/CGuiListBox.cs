@@ -126,6 +126,22 @@ public partial class CGuiListBox : CGuiObject
 		Settle();
 	}
 
+	/// <summary>
+	/// Takes every entry out and hands them back, not freed, for a list that keeps some of its rows when it is made again
+	/// - the reorganise window's (<c>docs/mechanics/reorganise.md</c>, section 3).
+	/// </summary>
+	public List<Control> Detach()
+	{
+		var entries = new List<Control>(_entries);
+		foreach (Control entry in entries)
+		{
+			_content.RemoveChild(entry);
+		}
+		_entries.Clear();
+		Settle();
+		return entries;
+	}
+
 	/// <summary>Empties the list.</summary>
 	public void Clear()
 	{

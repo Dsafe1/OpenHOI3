@@ -228,7 +228,8 @@ a carrier's wing, a group on loan and a group with no base are passed over.
   the country assigns its own and the unit has none; an emptied unit loses its leader; a carrier brings the air groups
   based on it.
 - **Join** (`join_fleet`, `join_air`): the unit sails or flies to the other's province; arrived, it is merged into the
-  other - its ships go over, and it is removed. With no other, it goes back to its base.
+  other as the merge button merges (`selection.md`, section 5.4) - its ships or wings and what it carries go over, the
+  more skilled leader stays - and it is removed. With no other, it goes back to its base.
 
 ## 6. Headquarters (sections B.6, B.7)
 

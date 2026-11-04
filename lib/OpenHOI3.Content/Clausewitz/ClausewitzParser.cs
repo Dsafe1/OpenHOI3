@@ -37,7 +37,7 @@ public static class ClausewitzParser
 		CloseBrace,
 	}
 
-	private readonly record struct Token(TokenKind Kind, string Text);
+	private readonly record struct Token(TokenKind Kind, string Text, bool Quoted = false);
 
 	private static List<Token> Tokenize(string text)
 	{
@@ -92,7 +92,7 @@ public static class ClausewitzParser
 					i++;
 				}
 				i++;                                  // closing quote
-				tokens.Add(new Token(TokenKind.Word, sb.ToString()));
+				tokens.Add(new Token(TokenKind.Word, sb.ToString(), Quoted: true));
 				continue;
 			}
 			int start = i;
@@ -146,7 +146,7 @@ public static class ClausewitzParser
 				}
 				else
 				{
-					parent.Children.Add(new ClausewitzNode { Key = key, Value = tokens[i].Text });
+					parent.Children.Add(new ClausewitzNode { Key = key, Value = tokens[i].Text, IsQuoted = tokens[i].Quoted });
 					i++;
 				}
 				continue;

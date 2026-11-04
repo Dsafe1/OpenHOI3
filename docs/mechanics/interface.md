@@ -95,6 +95,13 @@ at the first it was "a little too low and left" beside the original (the maintai
 2026-10-08; `reversing/findings/FINDINGS-builders.md`, section 6). Elements declared
 inside an element are each their own, however many share a keyword.
 
+**A `format` in quotes is not taken, and the one before it stands.** *Measured*, not read: the
+reorganise row's `subunit_strength` gives `format = left` and then `format = "right"` - the only
+two quoted formats in the base game - and on the maintainer's screenshot of the original's window
+its men stand to the left, just after the box's corner, where the second would have put them past
+the row's end (`reorganise.md`, section 2). The original's reading of the key was not opened; a
+format word is taken to be matched as a word, which a quoted string is not.
+
 *Ours, and stricter than the original:* a top-level key that is not `guiTypes`, a keyword
 that is no kind of element, a key a kind does not take, a key given twice, and an
 orientation or a format that is not a known word are each reported, once for each kind

@@ -448,6 +448,13 @@ public sealed class CGuiTypes
 			{
 				continue;
 			}
+			// A format in quotes is not taken, and the one before it stands (interface.md, section 1).
+			if (IsQuotedFormat(child))
+			{
+				Complain($"{node.Key} gives 'format' in quotes, which is not taken");
+				repeats = true;
+				continue;
+			}
 			if (last.ContainsKey(child.Key))
 			{
 				// Valid, and what the original does with it is known; it is said because
@@ -465,12 +472,23 @@ public sealed class CGuiTypes
 		var settled = new ClausewitzNode { Key = node.Key, Value = node.Value };
 		foreach (ClausewitzNode child in node.Children)
 		{
-			if (child.Key is null || IsElement(child) || ReferenceEquals(last[child.Key], child))
+			if (child.Key is null || IsElement(child)
+				|| (!IsQuotedFormat(child) && ReferenceEquals(last[child.Key], child)))
 			{
 				settled.Children.Add(child);
 			}
 		}
 		return settled;
+	}
+
+	/// <summary>
+	/// A <c>format</c> written in quotes: <i>measured</i>, on the maintainer's screenshot of the reorganise window, where
+	/// <c>subunit_strength</c>'s <c>format = left</c> and then <c>format = "right"</c> draw its men to the left - the only
+	/// two quoted formats in the base game.
+	/// </summary>
+	private static bool IsQuotedFormat(ClausewitzNode child)
+	{
+		return child.IsQuoted && string.Equals(child.Key, "format", StringComparison.OrdinalIgnoreCase);
 	}
 
 	private static bool IsElement(ClausewitzNode node)

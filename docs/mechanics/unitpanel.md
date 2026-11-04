@@ -243,7 +243,7 @@ A row is the window `subunit_entry`:
 | `subunit_name` | its name | built |
 | `subunit_type` | its type's name | built |
 | `subunit_level` | which model of its type it is, as a Roman numeral, I for the first | built, see below |
-| `subunit_amount` | its men: its strength x 100, as the builders write a strength (`builders.md`) | built |
+| `subunit_amount` | a brigade's men: its strength x 100, as the builders write a strength (`builders.md`); **a ship's or a wing's strength as a whole percentage**, "100%" - the brigade's own text, which the reorganise window's row shows too (`reversing/findings/FINDINGS-reorgwindow.md`, A.3; fixed 2026-11-04, when ships read "10,000") | built |
 | `unit_experience` | its stars, below | built |
 | `unit_cw_strip` | its width, as in section 4 | built |
 | `org_bar` | 100 x its organisation / the most it may have, officers and all (`organisation.md`) | built |
@@ -282,9 +282,50 @@ The window `sup_buttons_window`.
   fleet; **both work** since 2026-10-15 (`transport.md`, section 12): load where a fleet is
   found for it in its port, unload where the fleet is in port. The aeroplane buttons are shown
   as the original shows them and cannot be pressed - nothing carries by air yet - and
-  `disbandbutton` and `newunitbutton` as the file has them, neither pressable.
+  `disbandbutton` as the file has it, not pressable. **`newunitbutton` works** since 2026-11-04 (section 7.1).
 - **A fleet's and an air unit's panel ends in what it carries** (`sup_loaded`, after the units
   under it): `transport.md`, section 12.
+
+### 7.1 The new-unit button
+
+Read 2026-11-04 (`reversing/findings/FINDINGS-newunit.md`). `confirmed`. **Two buttons in one**: a plain press makes an
+empty unit to hand brigades to, Ctrl and a press split the unit.
+
+**Greyed**, at the first that holds:
+
+1. a land unit with one brigade or fewer - **two or fewer where it has a leader**;
+2. in a battle;
+3. an AI agent runs it or a unit above it;
+4. on loan (nothing is lent here);
+5. a fleet or an air unit carrying anything;
+6. a land unit aboard a fleet or a plane;
+7. an attack delay;
+
+and otherwise pressable where the unit has more than one brigade. All exe-hardcoded.
+
+**A plain press** - one at a time; a second does nothing until the first unit has come - makes **an empty unit beside
+it**: a division for a land unit of any level, else a fleet or an air unit, in its province and at its base. Once it
+exists **it is added to the selection and the reorganise window opens**, the selected unit on the left and the new one on
+the right (`reorganise.md`) - which disbands the new one at its close if nothing was moved into it. And where the
+selected unit has a commander who may take **the selected unit** - the original asks that and not of the new one - the
+new one is put under him.
+
+**Ctrl and a press** split the unit, where it has more than one brigade, is in no battle, is going nowhere, is at its
+own base if it is a fleet or an air unit, and holds no headquarters brigade if it is a land unit:
+
+1. **a new unit for every brigade but one**, of the old one's level, in its province, at its base, under its commander
+   where he may take it;
+2. into each, **the old unit's first brigade**, by the reorganise window's tests (`reorganise.md`, section 4) - so the
+   old unit keeps its last; and a first brigade that may not go is refused every time. Each new unit is named by its
+   brigade and looks for a battle where it stands;
+3. **a land unit and every land unit made lose their leaders**; a new fleet or air unit is given the best free one where
+   its country chooses its own;
+4. the selection becomes the old unit and the new ones, in that order.
+
+**Ours**: a new unit a refused brigade left empty is taken out at once, where the original leaves it for its hourly pass,
+which nothing here has yet; the new units take their numbers as the command runs, where the original reserves them as
+it is posted; and the selection, the reorganise window and the attaching are the panel's, done when it sees the units
+the command made - the original's command changes the player's selection itself.
 
 ## 8. The units under it
 
