@@ -16,7 +16,7 @@ public static class CMapArrows
 	/// unit falling back, the landing's for a land unit going ashore from the sea on
 	/// anybody's ground (<c>transport.md</c>, section 12), the attack's where an enemy of
 	/// its country holds the next province of its way - whether or not anybody stands
-	/// there - and the march's otherwise. The original has one more, for a redeployment.
+	/// there - the redeployment's under a strategic redeployment, and the march's otherwise.
 	/// </summary>
 	public static string TypeOf(CGameState state, CUnit unit)
 	{
@@ -33,6 +33,10 @@ public static class CMapArrows
 			&& CMovementRules.IsEnemy(state, unit.Owner, holder))
 		{
 			return CArrowTypes.Attack;
+		}
+		if (unit.Order == EUnitOrder.StrategicRedeployment)
+		{
+			return CArrowTypes.Strategic;
 		}
 		return CArrowTypes.Move;
 	}

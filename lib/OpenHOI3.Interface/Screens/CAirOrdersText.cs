@@ -171,11 +171,20 @@ public static class CAirOrdersText
 		return next;
 	}
 
-	/// <summary>A date widget's <c>date</c>: the day with its hour.</summary>
+	/// <summary>
+	/// A date widget's <c>date</c>: the year, the month's name cut to three letters, the day and the hour, under the four
+	/// columns of arrows - "1936 Jan 4 11:00". <i>Measured</i> on the maintainer's screenshots of the land orders window
+	/// (<c>docs/mechanics/landorders.md</c>, section 2); the original's formatter was not read.
+	/// </summary>
 	public static string DateText(Func<string, string> localise, long hour)
 	{
-		return CDate.FromDayNumber((int)(hour / CGameState.HoursPerDay))
-			.ToDisplayString(localise, (int)(hour % CGameState.HoursPerDay));
+		CDate date = CDate.FromDayNumber((int)(hour / CGameState.HoursPerDay));
+		string month = date.MonthKey.Length == 0 ? "" : localise(date.MonthKey);
+		if (month.Length > 3)
+		{
+			month = month[..3];
+		}
+		return $"{date.Year} {month} {date.Day} {hour % CGameState.HoursPerDay}:00";
 	}
 
 	/// <summary>The hour a "continuous" mission ends: the defines' end date.</summary>

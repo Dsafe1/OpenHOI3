@@ -65,6 +65,18 @@ public class MapArrowsTests
 	}
 
 	[Fact]
+	public void A_strategic_redeployment_has_the_redeployment_s_arrow_and_an_attack_still_comes_first()
+	{
+		CUnit home = Marching(Stettin);
+		home.Order = EUnitOrder.StrategicRedeployment;
+		Assert.Equal(CArrowTypes.Strategic, CMapArrows.TypeOf(State(atWar: true), home));
+
+		CUnit into = Marching(Posen);
+		into.Order = EUnitOrder.StrategicRedeployment;
+		Assert.Equal(CArrowTypes.Attack, CMapArrows.TypeOf(State(atWar: true), into));
+	}
+
+	[Fact]
 	public void Ground_held_by_a_country_at_peace_is_no_attack()
 	{
 		Assert.Equal(CArrowTypes.Move, CMapArrows.TypeOf(State(atWar: false), Marching(Posen)));

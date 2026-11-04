@@ -9,6 +9,8 @@ using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Missions;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -37,6 +39,10 @@ public partial class COrdersWindow : Control
 	private readonly List<CGuiButton> _boxes = new();
 	private List<COrderRow> _rows = new();
 	private CAirOrdersControls? _air;
+	private bool _isLand;
+	private CDateWidget? _landDate;
+	private CGuiButton? _sync;
+	private CGuiTextBox? _syncTitle;
 	private CUnit? _unit;
 	private int _province;
 	private int _ticked = -1;
@@ -76,8 +82,9 @@ public partial class COrdersWindow : Control
 	public Func<IReadOnlyList<CUnit>>? Selection { get; set; }
 
 	/// <summary>
-	/// The units Accept gives the order to: every selected unit of the window's unit's kind, the window's unit first -
-	/// or that unit alone where it is not among them (selection.md, section 6).
+	/// The units Accept gives the order to: every selected unit of the window's unit's kind - for the land window every
+	/// selected land unit (landorders.md, section 3) - the window's unit first, or that unit alone where it is not among
+	/// them (selection.md, section 6).
 	/// </summary>
 	private List<CUnit> Units()
 	{
@@ -89,7 +96,8 @@ public partial class COrdersWindow : Control
 		}
 		foreach (CUnit unit in selected)
 		{
-			if (unit != _unit && unit.Kind == _unit!.Kind && unit.Owner == _player.Tag)
+			bool sameKind = _isLand ? CMovementRules.IsLandUnit(unit) : unit.Kind == _unit!.Kind;
+			if (unit != _unit && sameKind && unit.Owner == _player.Tag)
 			{
 				units.Add(unit);
 			}
@@ -122,7 +130,9 @@ public partial class COrdersWindow : Control
 		_unit = unit;
 		_province = province;
 		bool isAir = unit.Kind == EUnitKind.Air;
-		_stance = isAir ? AirMemory.Stance : COrdersText.Aggressive;
+		_isLand = CMovementRules.IsLandUnit(unit);
+		// The land window has no stance of its own: its orders go out defensive (landorders.md, section 3).
+		_stance = isAir ? AirMemory.Stance : _isLand ? CMission.Defensive : COrdersText.Aggressive;
 		_priority = isAir ? AirMemory.Priority : 0;
 		AddChild(window);
 		// The window answers for its elements by name; each row of the list for itself.
@@ -145,12 +155,16 @@ public partial class COrdersWindow : Control
 		{
 			cancel.Pressed += Close;
 		}
-		_stanceValue = window.FindTextBox("stance_value");
-		_priorityValue = window.FindTextBox("priority_value");
-		Wire(window, "decrease_stance_button", () => _stance = COrdersText.StepStance(_stance, -1));
-		Wire(window, "increase_stance_button", () => _stance = COrdersText.StepStance(_stance, 1));
-		Wire(window, "decrease_priority_button", () => _priority = COrdersText.StepPriority(_priority, -1));
-		Wire(window, "increase_priority_button", () => _priority = COrdersText.StepPriority(_priority, 1));
+		// The land window has neither a stance nor a priority to set (landorders.md, section 2).
+		if (!_isLand)
+		{
+			_stanceValue = window.FindTextBox("stance_value");
+			_priorityValue = window.FindTextBox("priority_value");
+			Wire(window, "decrease_stance_button", () => _stance = COrdersText.StepStance(_stance, -1));
+			Wire(window, "increase_stance_button", () => _stance = COrdersText.StepStance(_stance, 1));
+			Wire(window, "decrease_priority_button", () => _priority = COrdersText.StepPriority(_priority, -1));
+			Wire(window, "increase_priority_button", () => _priority = COrdersText.StepPriority(_priority, 1));
+		}
 
 		if (isAir)
 		{
@@ -158,6 +172,15 @@ public partial class COrdersWindow : Control
 			_air.Changed += AirChanged;
 			// The order kept is the last window's, or with none the unit's own.
 			BuildRows(AirMemory.Order != EUnitOrder.None ? AirMemory.Order : unit.Order);
+		}
+		else if (_isLand)
+		{
+			// A date widget starting now, and the box of a move's synchronised arrival (landorders.md, section 2).
+			_landDate = CDateWidget.Create(_context, state, window, COrdersText.LandDatePlace, state.TotalHours);
+			_sync = window.FindButton(COrdersText.SyncBox);
+			_syncTitle = window.FindTextBox(COrdersText.SyncTitle);
+			BuildRows(EUnitOrder.None);
+			ShowLand();
 		}
 		else
 		{
@@ -189,7 +212,73 @@ public partial class COrdersWindow : Control
 		_boxes.Clear();
 		_unit = null;
 		_ticked = -1;
+		_isLand = false;
+		_landDate = null;
+		_sync = null;
+		_syncTitle = null;
 		Toggled?.Invoke();
+	}
+
+	public override void _Process(double delta)
+	{
+		if (_window is not null && _isLand)
+		{
+			ShowLand();
+		}
+	}
+
+	/// <summary>
+	/// The land window's frame (landorders.md, section 2): the box of a synchronised arrival shown only under Move
+	/// Order, the date raised to the estimate while it is ticked, and the day or night at the date's hour.
+	/// </summary>
+	private void ShowLand()
+	{
+		if (_unit is null)
+		{
+			return;
+		}
+		bool move = TickedOrder == EUnitOrder.Move;
+		if (_sync is not null)
+		{
+			_sync.Visible = move;
+		}
+		if (_syncTitle is not null)
+		{
+			_syncTitle.Visible = move;
+			_syncTitle.Text = _context.Localisation.Localise("ORDER_SYNC_ARRIVAL");
+		}
+		if (_landDate is not null && Synchronised)
+		{
+			_landDate.HoldAtLeast(Estimate());
+		}
+		long hour = _landDate?.Hour ?? _simulation.State.TotalHours;
+		CProvince province = _simulation.State.Province(_province);
+		bool night = CAirOrdersText.IsNightAtStart(_simulation.State, province, hour);
+		Func<string, string> localise = _context.Localisation.Localise;
+		if (_window!.FindTextBox(CAirOrdersText.DayTimeTitle) is { } title)
+		{
+			title.Text = CAirOrdersText.DayTimeText(localise, province.Name);
+		}
+		_window.FindIcon(CAirOrdersText.DayTimeIcon)?.SetFrame(CAirOrdersText.DayTimeFrame(night));
+		if (_window.FindTextBox(CAirOrdersText.DayTimeDescription) is { } description)
+		{
+			description.Text = localise(CAirOrdersText.DayTimeKey(night));
+		}
+	}
+
+	/// <summary>Whether the land window gives a move's synchronised arrival: Move Order ticked and its box with it.</summary>
+	private bool Synchronised => _isLand && TickedOrder == EUnitOrder.Move && _sync is { Checked: true, Visible: true };
+
+	/// <summary>The latest estimated arrival of the units the order is for (landorders.md, section 4).</summary>
+	private long Estimate()
+	{
+		return CArrivalEstimate.Latest(_simulation.State, _player, LandUnits(), _simulation.State.Province(_province));
+	}
+
+	/// <summary>The land window's: the selected land units that are not falling back (landorders.md, section 3).</summary>
+	private List<CUnit> LandUnits()
+	{
+		return Units().Where(unit => CMovementRules.IsLandUnit(unit) && !unit.IsRetreating).ToList();
 	}
 
 	/// <summary>
@@ -220,6 +309,11 @@ public partial class COrdersWindow : Control
 		CGameState state = _simulation.State;
 		CProvince province = state.Province(_province);
 		bool acceptDisabled = _accept?.Disabled ?? true;
+		if (_isLand)
+		{
+			return COrdersTooltips.Land(_context.Localisation.Localise, state, province,
+				_landDate?.Hour ?? state.TotalHours, element);
+		}
 		return _air is null
 			? COrdersTooltips.Naval(_context.Localisation.Localise, state, unit, province, acceptDisabled, TickedOrder, element)
 			: COrdersTooltips.Air(_context.Localisation.Localise, state, province, acceptDisabled, _ticked >= 0,
@@ -248,7 +342,11 @@ public partial class COrdersWindow : Control
 			}
 			COrderRow order = _rows[index];
 			CUnit unit = _unit!;
-			entry.SetTooltips(_ => COrdersTooltips.Row(_context.Localisation.Localise, state, unit, target, order), "name");
+			// The land window's rows say nothing (landorders.md, section 9).
+			if (!_isLand)
+			{
+				entry.SetTooltips(_ => COrdersTooltips.Row(_context.Localisation.Localise, state, unit, target, order), "name");
+			}
 			if (entry.FindButton("checkbox") is { } box)
 			{
 				int row = index;
@@ -333,6 +431,11 @@ public partial class COrdersWindow : Control
 			return;
 		}
 		// The order goes to every selected unit of the window's kind, each its own command (selection.md, section 6).
+		if (_isLand)
+		{
+			AcceptLand();
+			return;
+		}
 		if (_air is { Area: { } area })
 		{
 			_air.HoldStart(_rows[_ticked].Order);
@@ -356,6 +459,30 @@ public partial class COrdersWindow : Control
 				command = new CSetUnitOrderCommand(_player.Tag, given.Id, _rows[_ticked].Order, _province, _stance,
 					_priority, _rows[_ticked].Convoy);
 			}
+			if (command.MayExecute(_simulation.State))
+			{
+				_simulation.Post(command);
+				Ordered?.Invoke();
+			}
+		}
+		Close();
+	}
+
+	/// <summary>
+	/// The land window's accept (landorders.md, section 3): the ticked order for every selected land unit not falling
+	/// back, defensive, not to start before the date's hour - or, a move synchronised, not to arrive before the latest
+	/// estimate, worked out afresh.
+	/// </summary>
+	private void AcceptLand()
+	{
+		EUnitOrder order = _rows[_ticked].Order;
+		bool synchronised = Synchronised;
+		long? start = synchronised ? null : _landDate?.Hour ?? _simulation.State.TotalHours;
+		long? arrive = synchronised ? Estimate() : null;
+		foreach (CUnit given in LandUnits())
+		{
+			var command = new CSetUnitOrderCommand(_player.Tag, given.Id, order, _province, CMission.Defensive,
+				startHour: start, arriveHour: arrive);
 			if (command.MayExecute(_simulation.State))
 			{
 				_simulation.Post(command);

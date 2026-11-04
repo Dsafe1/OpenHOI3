@@ -426,6 +426,11 @@ public static class CUnitPanelText
 			{
 				case EUnitOrder.Move:
 					return CTextTemplate.Fill(localise(MoveOrderKey), ("WHERE", where));
+				// The land orders say themselves, a redeployment's UNIT being the province (landorders.md, sections 7 and 8).
+				case EUnitOrder.SupportAttack:
+					return CTextTemplate.Fill(localise("SUPPORT_ATTACK_D"), ("WHERE", where));
+				case EUnitOrder.StrategicRedeployment:
+					return CTextTemplate.Fill(localise("STRAT_REDEP_D"), ("UNIT", where));
 				case EUnitOrder.Rebase:
 					return localise(RebaseKey) + " :" + where;
 				case EUnitOrder.RebaseAir:

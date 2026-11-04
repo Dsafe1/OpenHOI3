@@ -77,4 +77,19 @@ public class FontDescriptorTests
 		Assert.Equal(0, font.LineHeight);
 		Assert.Equal(7, font.Advance('0'));
 	}
+
+	[Fact]
+	public void A_font_whose_characters_all_advance_alike_is_of_fixed_width_and_any_other_is_not()
+	{
+		Assert.Equal(0, CFontDescriptor.Parse(Descriptor).FixedAdvance);
+		// As the date widget's timefont is written: every character 10 (interface.md, section 6).
+		CFontDescriptor fixedWidth = CFontDescriptor.Parse("""
+			info face="SV Basic Manual" size=23 bold=1 italic=0 charset="ANSI" stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=1,1
+			common lineHeight=23 base=16 scaleW=256 scaleH=256 pages=1
+			char id=32   x=253   y=16    width=1     height=0     xoffset=0     yoffset=23    xadvance=10    page=0
+			char id=49   x=75    y=61    width=6     height=13    xoffset=1     yoffset=3     xadvance=10    page=0
+			char id=74   x=30    y=34    width=9     height=13    xoffset=0     yoffset=3     xadvance=10    page=0
+			""");
+		Assert.Equal(10, fixedWidth.FixedAdvance);
+	}
 }

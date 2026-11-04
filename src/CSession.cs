@@ -840,6 +840,12 @@ public partial class CSession : Node
 			_orders?.Open(unit, province);
 			return;
 		}
+		// A land unit with Ctrl held is asked too, in the land window (landorders.md, section 1).
+		if (CMovementRules.IsLandUnit(unit) && Input.IsKeyPressed(Key.Ctrl))
+		{
+			_orders?.Open(unit, province);
+			return;
+		}
 		if (unit.Kind == EUnitKind.Navy)
 		{
 			// A fleet where it is, while under way, halts. Otherwise a plain click asks

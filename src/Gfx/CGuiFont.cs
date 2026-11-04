@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using OpenHOI3.Interface;
 
@@ -43,9 +44,26 @@ public sealed class CGuiFont
 	/// </summary>
 	public float Narrowing { get; set; } = 1f;
 
+	/// <summary>
+	/// The advance every character of the original's font shared, or nought: such a font is drawn a character to a cell
+	/// of that width, each letter in the middle of its own, so that the date widget's figures stand in the boxes of the
+	/// picture behind them (<c>docs/mechanics/interface.md</c>, section 6).
+	/// </summary>
+	public int FixedAdvance { get; set; }
+
+	/// <summary>
+	/// How wide the original's glyph of each character was, for a font of fixed width: a letter of the typeface wider
+	/// than that is narrowed to it, so that an M keeps to its cell as the original's does (<c>interface.md</c>, section 6).
+	/// </summary>
+	public Func<char, int>? GlyphWidth { get; set; }
+
 	/// <summary>How wide a text comes out, in units of the reference canvas.</summary>
 	public float Width(string text)
 	{
+		if (FixedAdvance > 0)
+		{
+			return text.Length * FixedAdvance;
+		}
 		return Font is null ? 0f
 			: Font.GetStringSize(text, HorizontalAlignment.Left, -1f, Size).X * Narrowing;
 	}
@@ -61,6 +79,26 @@ public sealed class CGuiFont
 			return;
 		}
 		baseline += new Vector2(CGuiLayout.GlyphShiftX, CGuiLayout.GlyphShiftY);
+		if (FixedAdvance > 0)
+		{
+			for (int index = 0; index < text.Length; index++)
+			{
+				string letter = text[index].ToString();
+				float raw = Font.GetStringSize(letter, HorizontalAlignment.Left, -1f, Size).X;
+				float narrowing = Narrowing;
+				int glyph = GlyphWidth?.Invoke(text[index]) ?? 0;
+				if (glyph > 0 && raw * narrowing > glyph)
+				{
+					narrowing = glyph / raw;
+				}
+				float width = raw * narrowing;
+				float x = baseline.X + index * FixedAdvance + Mathf.Round((FixedAdvance - width) / 2f);
+				item.DrawSetTransform(new Vector2(x, baseline.Y), 0f, new Vector2(narrowing, 1f));
+				item.DrawString(Font, Vector2.Zero, letter, HorizontalAlignment.Left, -1f, Size, colour);
+			}
+			item.DrawSetTransform(Vector2.Zero, 0f, Vector2.One);
+			return;
+		}
 		item.DrawSetTransform(baseline, 0f, new Vector2(Narrowing, 1f));
 		item.DrawString(Font, Vector2.Zero, text, HorizontalAlignment.Left, -1f, Size, colour);
 		item.DrawSetTransform(Vector2.Zero, 0f, Vector2.One);

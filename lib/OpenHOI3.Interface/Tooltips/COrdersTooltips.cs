@@ -112,6 +112,21 @@ public static class COrdersTooltips
 		return Shared(localise, element);
 	}
 
+	/// <summary>
+	/// The land window, by the element's name: only the daytime row speaks, of the hour its date widget gives - its rows,
+	/// buttons, box and date say nothing (<c>docs/mechanics/landorders.md</c>, section 9).
+	/// </summary>
+	public static CTooltip Land(Func<string, string> localise, CGameState state, CProvince province, long hour, string element)
+	{
+		if (!DayTime.Contains(element))
+		{
+			return CTooltip.Empty;
+		}
+		bool night = CAirOrdersText.IsNightAtStart(state, province, hour);
+		return Text(CTextTemplate.Fill(localise("ORDER_DAY_TIME_DESC"),
+			("PROV", province.Name), ("TIME", localise(night ? "ORDER_NIGHT" : "ORDER_DAY"))));
+	}
+
 	private static CTooltip Shared(Func<string, string> localise, string element)
 	{
 		if (Stance.Contains(element))

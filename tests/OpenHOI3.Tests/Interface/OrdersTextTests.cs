@@ -218,4 +218,47 @@ public class OrdersTextTests
 		Assert.Equal(0, COrdersText.StepPriority(4, 1));
 		Assert.Equal(3, COrdersText.StepPriority(2, 1));
 	}
+
+	[Fact]
+	public void A_date_widget_writes_the_year_the_month_cut_to_three_letters_the_day_and_the_hour()
+	{
+		// As the maintainer's screenshots of the land window have it (landorders.md, section 2).
+		long hour = (long)new CDate(1936, 1, 4).DayNumber * CGameState.HoursPerDay + 11;
+		Assert.Equal("1936 Jan 4 11:00", CAirOrdersText.DateText(key => key, hour));
+		Assert.Equal("1936 May 1 0:00", CAirOrdersText.DateText(key => key, (long)new CDate(1936, 5, 1).DayNumber * 24));
+	}
+
+	[Fact]
+	public void A_land_unit_is_shown_the_same_three_rows_and_the_first_it_may_be_given_of_support_move_and_redeployment_is_ticked()
+	{
+		CGameState state = State(out CCountry country);
+		var division = new CUnit(EUnitKind.Division, Ger) { Id = ++state.LastUnitId, Location = Kiel, Name = "Division" };
+		var type = new CSubUnitType("infantry_brigade", EUnitBranch.Land);
+		type.Stats.Values.Set(CMovementSpeed.MaximumSpeed, CFixedPoint.FromInt(4));
+		var brigade = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = division };
+		brigade.Stats.CopyFrom(type.Stats);
+		division.SubUnits.Add(brigade);
+		country.Units.Add(division);
+		Assert.Equal(COrdersText.LandWindow, COrdersText.WindowFor(division));
+
+		// Beside, at home: a move and a redeployment, no support attack - and the move is ticked (landorders.md, section 2).
+		List<COrderRow> beside = COrdersText.Rows(state, country, new[] { division }, state.Province(Hamburg));
+		Assert.Equal(new[] { "MOVE_ORDER", "SUPPORT_ATTACK", "ORDER_STRATEGIC_REDEPLOYMENT" }, beside.Select(row => row.NameKey));
+		Assert.Equal(new[] { true, false, true }, beside.Select(row => row.MayGive));
+		Assert.Equal(0, COrdersText.Suggested(beside, state, country, division, state.Province(Hamburg)));
+
+		// Not beside: only the redeployment, which is ticked.
+		List<COrderRow> away = COrdersText.Rows(state, country, new[] { division }, state.Province(Rostock));
+		Assert.Equal(new[] { false, false, true }, away.Select(row => row.MayGive));
+		Assert.Equal(2, COrdersText.Suggested(away, state, country, division, state.Province(Rostock)));
+
+		// One of two that may not take a row greys it: the second stands in Rostock, not beside Hamburg.
+		var other = new CUnit(EUnitKind.Division, Ger) { Id = ++state.LastUnitId, Location = Rostock, Name = "Other" };
+		var second = new CSubUnit(type) { Id = ++state.LastUnitId, Unit = other };
+		second.Stats.CopyFrom(type.Stats);
+		other.SubUnits.Add(second);
+		country.Units.Add(other);
+		List<COrderRow> both = COrdersText.Rows(state, country, new[] { division, other }, state.Province(Hamburg));
+		Assert.Equal(new[] { false, false, true }, both.Select(row => row.MayGive));
+	}
 }

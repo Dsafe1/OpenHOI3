@@ -127,6 +127,19 @@ public sealed class CUnit
 	public int HoursAttacking { get; set; }
 
 	/// <summary>
+	/// The hour of the game before which it does not move at all, or none: what the land orders window's date gives an
+	/// order. A plain move and a halt empty it (<c>docs/mechanics/landorders.md</c>, section 5).
+	/// </summary>
+	public long? NotBeforeHour { get; set; }
+
+	/// <summary>
+	/// The hour of the game before which it does not arrive, waiting at the next province with its progress full, or
+	/// none: the land orders window's synchronised arrival. A plain move and a halt empty it (<c>landorders.md</c>,
+	/// section 5).
+	/// </summary>
+	public long? ArriveNotBeforeHour { get; set; }
+
+	/// <summary>
 	/// What this hour's circumstances make of its attack and of its defence, where 1 is
 	/// unchanged. Worked out afresh for every round of a battle.
 	/// </summary>

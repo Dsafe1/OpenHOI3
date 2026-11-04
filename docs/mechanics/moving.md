@@ -267,8 +267,11 @@ province where the units of countries at war with it - a rebel's not counted on 
 than it. The fallback and the march check's cut take the plain way, which only the step rules hold back
 (`movement.md`). **A strategic redeployment** always takes the very safe way, whoever orders it (`movement.md`, section
 3). It is an order: the unit goes at `STRAT_REDEP_BASE_SPEED` x its province's infrastructure (between a hundredth
-and a whole) instead of its own, and does not fight on the way (`movement.md`). **A support attack** is an order: the unit
-is given the way into the province and never makes progress on it - it attacks and does not enter.
+and a whole) instead of its own, and does not fight on the way (`movement.md`); each hour of the way starts its attack
+delay again (`landorders.md`, section 8). **A support attack** is an order: the unit is stopped where it stands, waits
+beside the province until a land battle begins there, is given the way in then and joins it without making progress -
+it attacks and does not enter - and the order ends with that battle (`landorders.md`, section 7). Its way into a
+province where nobody fights yet is taken away with the order.
 
 ## 11. The attack (`CAIUnit_ManageLandUnits`, `FINDINGS-aiconsumer.md`, `FINDINGS-moving.md` B)
 
@@ -669,8 +672,9 @@ months on) - at least three hours left, and the order ends then.
   faction not being the holder's.
 - **The second ring's draw** (7.3) is the game's own generator seeded with the unit's number; the original seeds an
   MT19937 the same way, its seeding not read.
-- **A support attack ends** once the province is no longer held against the unit, nobody stands there to fight, or its
-  way is gone: what ends the original's order was not read.
+- ~~**A support attack ends** once the province is no longer held against the unit, nobody stands there to fight, or its
+  way is gone: what ends the original's order was not read.~~ Read on 2026-11-04 and built as the original's
+  (`landorders.md`, section 7).
 - **The odds** (11.4): a unit that has never fought - neither attacked nor is fighting - counts no toughness, the
   original's defence products being nought until a battle sets them; the country's difficulty, encirclement and the
   technologies' free stacking are nought, none of them being built.

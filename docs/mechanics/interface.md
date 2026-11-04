@@ -449,6 +449,16 @@ scalable canvas of section 3 could not survive. So:
   height. That is every shipped typeface but Liberation Sans, and any a mod supplies.
 - **The baseline and the line's height are the descriptor's**, so text stands where it
   stood.
+- **A font whose descriptor gives every character the same advance is drawn a character
+  to a cell of that advance**, each letter in the middle of its own and **narrowed to the
+  width of the original's glyph of it** where the typeface draws it wider - an M of
+  Liberation Sans ran over its neighbours, the maintainer's screenshot of 2026-11-04,
+  where `timefont`'s M is 10 wide like its cell. Two in the base game
+  are: `Courier` and `timefont`, the date widget's, whose 143 characters all advance 10.
+  *Measured* on the maintainer's screenshots of the land orders window: each character of
+  the date starts exactly 10 pixels after the last, so its figures stand in the boxes of
+  `time_overlay` behind them - drawn in a typeface of its own widths they ran across the
+  boxes (`landorders.md`, section 2).
 - **The colour is the declaration's times the colour the glyphs were painted in.** Some
   glyph textures are white and take their colour from the `bitmapfont` entry; some
   carry it - the top bar's button font is dark grey in its texture and has no entry.
@@ -532,8 +542,11 @@ scalable canvas of section 3 could not survive. So:
 - **A button's shortcut is read** for function keys, `ESCAPE`, `ENTER` and single letters
   and digits. The other words the files use are not yet keys.
 - **A checkbox is a button that a click ticks or clears**, showing the second frame of
-  its sprite while ticked and the first while not. That the frames are those was not
-  read; a look at the original would settle it.
+  its sprite while ticked and the first while not - **and its fourth, ticked or not, while
+  it is switched off**, where its sheet has four (`reversing/findings/FINDINGS-landorders.md`,
+  section C; `confirmed`, read 2026-11-04 for the land orders window's greyed rows, whose
+  `GFX_checkbox_default` is an empty box, a ticked one and two grey filled ones). A third
+  state shows the third frame; what it is was not read, and nothing here shows it.
 - **A button says whether the mouse is held down on it**, which is what lets a screen
   repeat a step while it is (`builders.md`, section 6), and can be given another sprite
   by name.
@@ -573,7 +586,8 @@ scalable canvas of section 3 could not survive. So:
     drawn by the plain reading of their declarations (section 2). The list box was too,
     until it was read. Of the list box there is left: where its scrollbar stands, how far
     a notch of the wheel moves it, and how a list that goes by its lines' heights scrolls.
-12. **Which frame a ticked checkbox shows.** The second here (section 7), unread.
+12. ~~**Which frame a ticked checkbox shows.** The second here (section 7), unread.~~ Read
+    2026-11-04 (section 7): the second, and the fourth while switched off.
 13. **Which element takes a click.** How the original hands the mouse to an element was
     not read, beyond a sprite's own test of a pixel (section 5), whose caller was not
     found; two things are known from the maintainer's eye. A list box does

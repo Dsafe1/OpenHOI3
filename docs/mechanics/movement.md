@@ -417,8 +417,11 @@ with what is left over carried into the next leg as the march itself carries it.
   `confirmed` (`reversing/findings/FINDINGS-combatview.md`, section 9); the attack's was set
   beside the maintainer's screenshot of one on 2026-10-09 (`combatview.md`, section 9). A land
   unit going ashore from the sea, on anybody's ground, has `unitInvasionArrow`, asked after the
-  retreat's (`transport.md`, section 12). The original has one more, for a strategic
-  redeployment, which waits for that.
+  retreat's (`transport.md`, section 12). **A unit under a strategic redeployment has
+  `stratArrow`**, asked after the attack's and before the march's (`reversing/findings/FINDINGS-movement.md`,
+  the arrow's reading; built 2026-11-04 with the land orders window, `landorders.md`, at the
+  maintainer's word that its colour differs in the original) - its picture, `stratarrow.tga`,
+  is the colour.
 - **The unit panel** (`unitpanel.md`) says what a selected unit is doing - "Move to" the
   next province of its way - shows its speed, marks it as on the march, and has the
   button that halts it.
@@ -432,9 +435,11 @@ with what is left over carried into the next leg as the march itself carries it.
 - **A unit too weak is not routed onto an enemy's ground** in the original (one with no
   supplies or no fuel is not, here either: section 3). Nor is a country kept from
   attacking out of a neutral that merely lets it through.
-- **Coordinated arrival**: the original keeps two hours on a unit, one before which it does
-  not move and one before which it does not arrive, waiting at full progress.
-- **Strategic redeployment**, which is an order of its own with a speed of its own.
+- ~~**Coordinated arrival**: the original keeps two hours on a unit, one before which it does
+  not move and one before which it does not arrive, waiting at full progress.~~ Built
+  2026-11-04 with the land orders window (`landorders.md`, section 5).
+- ~~**Strategic redeployment**, which is an order of its own with a speed of its own.~~ Built,
+  and given by hand since 2026-11-04 (`landorders.md`, section 8).
 - **The weather itself**: what it does to a march is in (section 5), what makes it is not.
   A leader's part in the speed is built (2026-10-11), and the march check against the saves
   hours apart still gives 301 of 301.

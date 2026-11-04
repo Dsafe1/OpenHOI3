@@ -25,6 +25,7 @@ public sealed class CSetUnitOrderCommand : CCommand
 	private readonly int _time;
 	private readonly long _endHour;
 	private readonly long? _startHour;
+	private readonly long? _arriveHour;
 
 	/// <param name="stance">0 aggressive, which is what the orders window starts at; 1 defensive; 2 passive.</param>
 	/// <param name="priority">From 0 to 4.</param>
@@ -32,13 +33,18 @@ public sealed class CSetUnitOrderCommand : CCommand
 	/// <param name="provinces">An air mission: the provinces it covers. With none said, the order's own province.</param>
 	/// <param name="time">An air mission: 0 by day, 1 by night, 2 both.</param>
 	/// <param name="endHour">An air mission: the hour of the game after which it is over.</param>
-	/// <param name="startHour">An air mission: the hour before which it does not fly. With none said, the hour it is given.</param>
+	/// <param name="startHour">
+	/// An air mission: the hour before which it does not fly. With none said, the hour it is given. A land unit's order:
+	/// the hour before which the unit does not move, or none (<c>docs/mechanics/landorders.md</c>, section 3).
+	/// </param>
+	/// <param name="arriveHour">A land unit's order: the hour before which it does not arrive, or none.</param>
 	public CSetUnitOrderCommand(CCountryTag country, int unit, EUnitOrder order, int province,
 		int stance = CMission.Aggressive, int priority = 0, int convoy = 0,
 		System.Collections.Generic.IReadOnlyList<int>? provinces = null, int time = CMission.DayAndNight,
-		long endHour = CMission.NoEnd, long? startHour = null)
+		long endHour = CMission.NoEnd, long? startHour = null, long? arriveHour = null)
 	{
 		_startHour = startHour;
+		_arriveHour = arriveHour;
 		_country = country;
 		_unit = unit;
 		_order = order;
@@ -68,7 +74,7 @@ public sealed class CSetUnitOrderCommand : CCommand
 	{
 		CCountry country = state.Country(_country)!;
 		CUnitOrders.Give(state, country, Find(country)!, _order, _province, _stance, _priority, _convoy,
-			_provinces, _time, _endHour, _startHour);
+			_provinces, _time, _endHour, _startHour, _arriveHour);
 	}
 
 	private CUnit? Find(CCountry country)

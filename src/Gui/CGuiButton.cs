@@ -203,6 +203,7 @@ public partial class CGuiButton : CGuiObject
 		{
 			_disabled = value;
 			Tint();
+			ShowFrame();
 		}
 	}
 
@@ -221,9 +222,19 @@ public partial class CGuiButton : CGuiObject
 	{
 		if (_rect is not null && _texture is not null)
 		{
-			_rect.Texture = Frame(_texture, _frame, _sprite?.FrameCount ?? 1);
+			_rect.Texture = Frame(_texture, ShownFrame, _sprite?.FrameCount ?? 1);
 		}
 	}
+
+	/// <summary>
+	/// The frame drawn: the one chosen, but for a checkbox switched off its fourth, ticked or not, where its sheet has
+	/// four - the grey box of a row that cannot be given (<c>docs/mechanics/interface.md</c>, section 7).
+	/// </summary>
+	private int ShownFrame => IsCheckbox && _disabled && (_sprite?.FrameCount ?? 1) >= DisabledCheckboxFrame
+		? DisabledCheckboxFrame
+		: _frame;
+
+	private const int DisabledCheckboxFrame = 4;
 
 	/// <summary>
 	/// Whether the mouse is over the button. The button knows when nothing lies on it;
@@ -268,7 +279,7 @@ public partial class CGuiButton : CGuiObject
 			return true;
 		}
 		int frames = Math.Max(1, _sprite.FrameCount);
-		int frame = Math.Clamp(_frame, 1, frames);
+		int frame = Math.Clamp(ShownFrame, 1, frames);
 		int frameWidth = _mask.Width / frames;
 		int x = (frame - 1) * _mask.Width / frames + (int)(point.X * frameWidth / Size.X);
 		int y = (int)(point.Y * _mask.Height / Size.Y);

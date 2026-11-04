@@ -120,6 +120,12 @@ public static class CUnitOrders
 		switch (order)
 		{
 			case EUnitOrder.Move:
+				if (CMovementRules.IsLandUnit(unit))
+				{
+					// The land orders window's: a neighbour only (landorders.md, section 6).
+					return !unit.IsFighting && IsBeside(state, unit, province)
+						&& CMovementRules.MayMoveTo(state, country, unit, province);
+				}
 				return unit.Kind == EUnitKind.Navy
 					&& IsInRange(state, unit, order, province)
 					&& CMovementRules.MayMoveTo(state, country, unit, province);
@@ -138,9 +144,16 @@ public static class CUnitOrders
 				return Transport.CCarriers.MayRebase(state, unit, province);
 			case EUnitOrder.CarrierProtection:
 				return unit.Kind == EUnitKind.Air;                // the window offers it only aboard a carrier there
-			case EUnitOrder.StrategicRedeployment:
+			// The original's tests, which ask no distance and no way (landorders.md, section 6).
 			case EUnitOrder.SupportAttack:
-				return CMovementRules.IsLandUnit(unit) && CMovementRules.MayMoveTo(state, country, unit, province);
+				return CMovementRules.IsLandUnit(unit)
+					&& CMovementRules.IsEnemy(state, province.Controller, unit.Owner)
+					&& !unit.IsFighting && IsBeside(state, unit, province);
+			case EUnitOrder.StrategicRedeployment:
+				return CMovementRules.IsLandUnit(unit)
+					&& !CMovementRules.IsEnemy(state, province.Controller, unit.Owner)
+					&& !PathCrossesEnemy(state, unit) && !unit.IsFighting
+					&& IsOwnedLand(state.Province(unit.Location)) && IsOwnedLand(province);
 			case EUnitOrder.Paradrop:
 				return CParadrop.MayGive(unit, province);
 			case EUnitOrder.AirSupply:
@@ -148,6 +161,34 @@ public static class CUnitOrders
 			default:
 				return false;
 		}
+	}
+
+	/// <summary>Whether the province is next to the one the unit stands in: an edge leads to it.</summary>
+	private static bool IsBeside(CGameState state, CUnit unit, CProvince province)
+	{
+		return state.Province(unit.Location).EdgeTo(province.Id) is not null;
+	}
+
+	/// <summary>Whether a province an enemy of the unit's country holds lies on the way it already has.</summary>
+	private static bool PathCrossesEnemy(CGameState state, CUnit unit)
+	{
+		foreach (int step in unit.Path)
+		{
+			if (CMovementRules.IsEnemy(state, state.Province(step).Controller, unit.Owner))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// Land a country owns, which stands for the original's owner area of a province with provinces in it
+	/// (<c>landorders.md</c>, section 11).
+	/// </summary>
+	private static bool IsOwnedLand(CProvince province)
+	{
+		return !province.IsSea && province.Owner is not null;
 	}
 
 	/// <summary>
@@ -182,11 +223,15 @@ public static class CUnitOrders
 	/// <param name="provinces">An air mission: the provinces it covers. With none said, the order's own.</param>
 	/// <param name="time">An air mission: by day, by night, or both.</param>
 	/// <param name="endHour">An air mission: the hour of the game after which it is over.</param>
-	/// <param name="startHour">An air mission: the hour before which it is not fit to fly; with none, now.</param>
+	/// <param name="startHour">
+	/// An air mission: the hour before which it is not fit to fly; with none, now. A land unit's order: the hour before
+	/// which the unit does not move, or none (<c>landorders.md</c>, section 3).
+	/// </param>
+	/// <param name="arriveHour">A land unit's order: the hour before which it does not arrive, or none.</param>
 	public static void Give(CGameState state, CCountry country, CUnit unit, EUnitOrder order, int province,
 		int stance = CMission.Defensive, int priority = 0, int convoy = 0,
 		IReadOnlyList<int>? provinces = null, int time = CMission.DayAndNight, long endHour = CMission.NoEnd,
-		long? startHour = null)
+		long? startHour = null, long? arriveHour = null)
 	{
 		Clear(unit);
 		unit.Order = order;
@@ -196,6 +241,21 @@ public static class CUnitOrders
 			Stance = stance, Priority = priority, Convoy = convoy, Time = time, EndHour = endHour,
 			StartHour = startHour ?? state.TotalHours,
 		};
+		if (CMovementRules.IsLandUnit(unit))
+		{
+			// The order's two dates are the unit's, written before the order starts (landorders.md, section 5).
+			unit.NotBeforeHour = startHour;
+			unit.ArriveNotBeforeHour = arriveHour;
+			// A support attack stops a unit on its way where it stands, and routes nothing (section 7).
+			if (order == EUnitOrder.SupportAttack)
+			{
+				if (unit.IsMoving)
+				{
+					CMovement.Halt(state, unit);
+				}
+				return;
+			}
+		}
 		if (CAirMissions.IsAirMission(order))
 		{
 			CAirMissions.SetProvinces(state, unit, provinces ?? new[] { province });
@@ -268,6 +328,102 @@ public static class CUnitOrders
 		unit.Order = EUnitOrder.None;
 		unit.OrderProvince = 0;
 		unit.Mission = new CMission();
+	}
+
+	/// <summary>
+	/// A strategic redeployment's hour (<c>landorders.md</c>, section 8): done in the province; otherwise the attack
+	/// delay started again, whatever happens next; a next province an enemy holds or with a battle in it ends the order
+	/// where it is the target and is gone round otherwise; a battle ends it; and with no way the very safe way is found
+	/// again. Where none is, the order ends.
+	/// </summary>
+	private static void RunRedeployment(CGameState state, CCountry country, CUnit unit, int target)
+	{
+		if (unit.Location == target)
+		{
+			Clear(unit);
+			return;
+		}
+		Combat.CAttackDelay.Start(state, country, unit);
+		if (unit.IsMoving)
+		{
+			CProvince next = state.Province(unit.Path[0]);
+			if (CMovementRules.IsEnemy(state, next.Controller, unit.Owner) || Combat.CCombats.In(state, next.Id) is not null)
+			{
+				CMovement.Halt(state, unit);
+				if (next.Id == target || !RouteVerySafe(state, country, unit, target))
+				{
+					Clear(unit);
+				}
+				return;
+			}
+		}
+		if (unit.IsFighting)
+		{
+			Clear(unit);
+			return;
+		}
+		if (!unit.IsMoving && !RouteVerySafe(state, country, unit, target))
+		{
+			Clear(unit);
+		}
+	}
+
+	/// <summary>Gives the unit the very safe way to the province, answering whether there is one.</summary>
+	private static bool RouteVerySafe(CGameState state, CCountry country, CUnit unit, int target)
+	{
+		if (CRouteFinder.Find(state, country, unit, unit.Location, target, landSafety: ERouteSafety.VerySafe) is not { } route)
+		{
+			return false;
+		}
+		CMovement.SetPath(unit, route, clear: true);
+		return true;
+	}
+
+	/// <summary>
+	/// A support attack's hour (<c>landorders.md</c>, section 7): nothing before its hour; in a battle, the first hour
+	/// starts the attack delay and every hour counts as one of attacking; out of the battle it joined, the order ends with
+	/// a halt; while the delay runs it waits; with a land battle in the province a unit with no way is given the one step
+	/// in, which has it join; and with none a unit with a way loses it and the order.
+	/// </summary>
+	private static void RunSupportAttack(CGameState state, CCountry country, CUnit unit, int target)
+	{
+		if (unit.NotBeforeHour is { } notBefore && state.TotalHours < notBefore)
+		{
+			return;
+		}
+		if (unit.IsFighting)
+		{
+			if (!unit.Mission.Joined)
+			{
+				Combat.CAttackDelay.Start(state, country, unit);
+				unit.Mission.Joined = true;
+			}
+			unit.HoursAttacking++;
+			return;
+		}
+		if (unit.Mission.Joined)
+		{
+			CMovement.Halt(state, unit);
+			Clear(unit);
+			return;
+		}
+		if (unit.AttackDelay > CFixedPoint.Zero)
+		{
+			return;
+		}
+		if (Combat.CCombats.In(state, target) is not null)
+		{
+			if (!unit.IsMoving && CRouteFinder.Find(state, country, unit, unit.Location, target) is { } route)
+			{
+				CMovement.SetPath(unit, route, clear: true);
+			}
+			return;
+		}
+		if (unit.IsMoving)
+		{
+			CMovement.Halt(state, unit);
+			Clear(unit);
+		}
 	}
 
 	/// <summary>
@@ -356,24 +512,18 @@ public static class CUnitOrders
 		switch (unit.Order)
 		{
 			case EUnitOrder.Move:
-			case EUnitOrder.StrategicRedeployment:
 				if (unit.Location == target || !unit.IsMoving)
 				{
 					Clear(unit);
 				}
 				break;
 
-			// Ours: done once the province is no longer held against the unit, or its way is gone (moving.md, section 18).
+			case EUnitOrder.StrategicRedeployment:
+				RunRedeployment(state, country, unit, target);
+				break;
+
 			case EUnitOrder.SupportAttack:
-				if (!unit.IsMoving || !CMovementRules.IsEnemy(state, state.Province(target).Controller, unit.Owner)
-					|| (!unit.IsFighting && !Combat.CCombats.HasEnemyStanding(state, unit, target)))
-				{
-					Clear(unit);
-					if (unit.IsMoving && !unit.IsFighting)
-					{
-						CMovement.SetPath(unit, System.Array.Empty<int>(), clear: true);
-					}
-				}
+				RunSupportAttack(state, country, unit, target);
 				break;
 
 			case EUnitOrder.Rebase:

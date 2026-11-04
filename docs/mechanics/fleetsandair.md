@@ -402,9 +402,9 @@ play no part (`tooltips.md`, section 9).
 - **Several units selected** given one order together.
 - **The sounds of the click**, and the mark it leaves on the province. The window's tooltips
   are built since 2026-10-12 (section 8).
-- **The land window**, `land_unit_order` (the original's `CLandOrdersView`), which a land unit's right click brings
+- ~~**The land window**, `land_unit_order` (the original's `CLandOrdersView`), which a land unit's right click brings
   up with **Ctrl** held - the maintainer's word, 2026-10-19 - and which is the only way a player gives a land unit a
-  strategic redeployment or a support attack. Not read, not built.
+  strategic redeployment or a support attack. Not read, not built.~~ Read and built 2026-11-04: `landorders.md`.
 
 ## What is not established
 

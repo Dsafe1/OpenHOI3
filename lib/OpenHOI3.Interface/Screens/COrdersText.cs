@@ -18,6 +18,16 @@ public static class COrdersText
 	public const string NavalWindow = "naval_unit_order";
 	public const string AirWindow = "air_unit_order";
 
+	/// <summary>The land unit's, which a right click with Ctrl brings up (<c>docs/mechanics/landorders.md</c>).</summary>
+	public const string LandWindow = "land_unit_order";
+
+	/// <summary>Where the land window's date widget goes, a <c>positionType</c> of <c>orders.gui</c>.</summary>
+	public const string LandDatePlace = "land_mission_timewidget_start";
+
+	/// <summary>The land window's box for a move's synchronised arrival, and its words.</summary>
+	public const string SyncBox = "sync_checkbox";
+	public const string SyncTitle = "sync_title";
+
 	/// <summary>The window a row of the list is made from.</summary>
 	public const string EntryWindow = "order_entry";
 
@@ -58,6 +68,8 @@ public static class COrdersText
 			EUnitOrder.Paradrop => "PARADROP_MISSION",
 			EUnitOrder.RebaseCarrier => "REBASE_TO_CAG_MISSION",
 			EUnitOrder.AirSupply => "TRANS_SUP_MISSION",
+			EUnitOrder.SupportAttack => "SUPPORT_ATTACK",
+			EUnitOrder.StrategicRedeployment => "ORDER_STRATEGIC_REDEPLOYMENT",
 			_ => "",
 		};
 	}
@@ -77,19 +89,20 @@ public static class COrdersText
 		{
 			EUnitKind.Navy => NavalWindow,
 			EUnitKind.Air => AirWindow,
+			_ when CMovementRules.IsLandUnit(unit) => LandWindow,
 			_ => "",
 		};
 	}
 
 	/// <summary>
-	/// The rows for the first of several selected fleets, each greyed where any of the others may not take it - one
-	/// whose own list has no such row, or has it greyed (<c>selection.md</c>, section 6). For an air unit, or one
-	/// fleet, the first unit's rows as they are.
+	/// The rows for the first of several selected fleets or land units, each greyed where any of the others may not take
+	/// it - one whose own list has no such row, or has it greyed (<c>selection.md</c>, section 6; <c>landorders.md</c>,
+	/// section 2). For an air unit, or one unit, the first unit's rows as they are.
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, IReadOnlyList<CUnit> units, CProvince province)
 	{
 		List<COrderRow> rows = Rows(state, country, units[0], province);
-		if (units[0].Kind != EUnitKind.Navy)
+		if (units[0].Kind == EUnitKind.Air)
 		{
 			return rows;
 		}
@@ -146,6 +159,14 @@ public static class COrdersText
 						convoy.Id, state.Province(convoy.Start).Name, state.Province(convoy.End).Name));
 				}
 			}
+			return rows;
+		}
+		// A land unit is always shown the same three, whether or not each may be given (landorders.md, section 2).
+		if (CMovementRules.IsLandUnit(unit))
+		{
+			Add(NameKey(EUnitOrder.Move), EUnitOrder.Move);
+			Add(NameKey(EUnitOrder.SupportAttack), EUnitOrder.SupportAttack);
+			Add(NameKey(EUnitOrder.StrategicRedeployment), EUnitOrder.StrategicRedeployment);
 			return rows;
 		}
 		if (unit.Kind != EUnitKind.Air)
@@ -215,6 +236,21 @@ public static class COrdersText
 	public static int Suggested(IReadOnlyList<COrderRow> rows, CGameState state, CCountry country, CUnit unit,
 		CProvince province)
 	{
+		// The land window ticks the first of these that may be given (landorders.md, section 2).
+		if (CMovementRules.IsLandUnit(unit))
+		{
+			foreach (EUnitOrder rung in new[] { EUnitOrder.SupportAttack, EUnitOrder.Move, EUnitOrder.StrategicRedeployment })
+			{
+				for (int index = 0; index < rows.Count; index++)
+				{
+					if (rows[index].Order == rung && rows[index].MayGive)
+					{
+						return index;
+					}
+				}
+			}
+			return -1;
+		}
 		EUnitOrder order = CUnitOrders.Suggested(state, country, unit, province);
 		if (order == EUnitOrder.None)
 		{

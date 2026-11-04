@@ -42,6 +42,9 @@ public static class CMovement
 	{
 		unit.Path.Clear();
 		unit.MovementProgress = CFixedPoint.Zero;
+		// A halt empties both of the land orders window's dates (landorders.md, section 5).
+		unit.NotBeforeHour = null;
+		unit.ArriveNotBeforeHour = null;
 	}
 
 	/// <summary>
@@ -292,6 +295,12 @@ public static class CMovement
 		{
 			return;
 		}
+		// Nor before the hour its order is to start at, when it does not move at all (landorders.md, section 5; ours, that
+		// this holds back the look too).
+		if (unit.NotBeforeHour is { } notBefore && state.TotalHours < notBefore)
+		{
+			return;
+		}
 		if (!unit.IsRetreating)
 		{
 			if (unit.AttackDelay > CFixedPoint.Zero && unit.MovementProgress.Raw < 1)
@@ -372,6 +381,11 @@ public static class CMovement
 			}
 			return false;
 		}
+		// Before the hour its order was given to start at, it does not move (landorders.md, section 5).
+		if (unit.NotBeforeHour is { } notBefore && state.TotalHours < notBefore)
+		{
+			return false;
+		}
 		if (unit.Path[0] == unit.Location)
 		{
 			unit.Path.RemoveAt(0);
@@ -438,6 +452,12 @@ public static class CMovement
 		}
 		if (unit.MovementProgress < distance)
 		{
+			return false;
+		}
+		// Before the hour it is to arrive by, it waits at the next province with its progress full (landorders.md, section 5).
+		if (unit.ArriveNotBeforeHour is { } arrival && state.TotalHours < arrival)
+		{
+			unit.MovementProgress = distance;
 			return false;
 		}
 

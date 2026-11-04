@@ -71,6 +71,9 @@ public sealed class CMission
 	/// <summary>A paradrop: the player has been told of it.</summary>
 	public bool Told { get; set; }
 
+	/// <summary>A support attack: the unit has joined the battle it waited for (<c>docs/mechanics/landorders.md</c>, section 7).</summary>
+	public bool Joined { get; set; }
+
 	/// <summary>An air supply: the supplies aboard.</summary>
 	public CFixedPoint Supplies { get; set; }
 

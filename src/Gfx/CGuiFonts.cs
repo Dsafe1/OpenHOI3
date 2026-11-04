@@ -105,6 +105,8 @@ public sealed class CGuiFonts
 			font.Color *= made.Color;
 			font.Size = made.Size;
 			font.Narrowing = made.Narrowing;
+			font.FixedAdvance = made.FixedAdvance;
+			font.GlyphWidth = made.GlyphWidth;
 			font.Ascent = made.Ascent;
 			font.LineHeight = made.LineHeight;
 		}
@@ -248,6 +250,8 @@ public sealed class CGuiFonts
 		}
 		font.Ascent = descriptor.Base > 0 ? descriptor.Base : face.GetAscent(font.Size);
 		font.LineHeight = descriptor.LineHeight > 0 ? descriptor.LineHeight : face.GetHeight(font.Size);
+		font.FixedAdvance = descriptor.FixedAdvance;
+		font.GlyphWidth = font.FixedAdvance > 0 ? descriptor.GlyphWidth : null;
 	}
 
 	private static float Width(Font face, string text, int size)

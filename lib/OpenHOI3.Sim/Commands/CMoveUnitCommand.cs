@@ -78,6 +78,9 @@ public sealed class CMoveUnitCommand : CCommand
 			// A landing on a player's ground is noted for the warning (transport.md, section 11).
 			Transport.CInvasionWarnings.Note(state, unit);
 			CUnitOrders.Clear(unit);
+			// A plain move empties both of the land orders window's dates (landorders.md, section 5).
+			unit.NotBeforeHour = null;
+			unit.ArriveNotBeforeHour = null;
 		}
 	}
 

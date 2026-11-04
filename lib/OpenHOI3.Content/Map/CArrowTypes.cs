@@ -17,8 +17,11 @@ public sealed class CArrowTypes
 	/// <summary>The arrow of a unit whose next province an enemy holds.</summary>
 	public const string Attack = "attackArrow";
 
-	/// <summary>The arrow of a unit falling back. The original has one more, for a redeployment.</summary>
+	/// <summary>The arrow of a unit falling back.</summary>
 	public const string Retreat = "retreatArrow";
+
+	/// <summary>The arrow of a unit under a strategic redeployment (<c>docs/mechanics/landorders.md</c>, section 8).</summary>
+	public const string Strategic = "stratArrow";
 
 	/// <summary>The arrow of a unit landing from the sea, on anybody's ground.</summary>
 	public const string Invasion = "unitInvasionArrow";

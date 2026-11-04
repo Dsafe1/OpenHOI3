@@ -355,4 +355,92 @@ public class MovingTests
 		plan.TheirPower = -1;
 		Assert.Equal(1000, CAirBody.PowerRatio(plan));
 	}
+
+	[Fact]
+	public void A_support_attack_goes_only_beside_an_enemy_and_waits_there_for_a_battle_without_a_way()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		CUnit division = Division(state, Ger, 12, "infantry_brigade");
+		// At peace nobody is an enemy; at war only the province beside (landorders.md, section 6).
+		Assert.False(CUnitOrders.MayGive(state, germany, division, EUnitOrder.SupportAttack, state.Province(21)));
+		CWarDeclarations(state);
+		Assert.True(CUnitOrders.MayGive(state, germany, division, EUnitOrder.SupportAttack, state.Province(21)));
+		Assert.False(CUnitOrders.MayGive(state, germany, division, EUnitOrder.SupportAttack, state.Province(22)));
+		Assert.False(CUnitOrders.MayGive(state, germany, division, EUnitOrder.SupportAttack, state.Province(11)));
+
+		// Given on its way, it is stopped where it stands and routed nowhere (section 7).
+		CMovement.SetPath(division, new[] { 11 }, clear: true);
+		CUnitOrders.Give(state, germany, division, EUnitOrder.SupportAttack, 21);
+		Assert.False(division.IsMoving);
+		// With no battle there it waits, as long as need be.
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(EUnitOrder.SupportAttack, division.Order);
+		Assert.False(division.IsMoving);
+		// A way into a province where nobody fights is taken away with the order.
+		CMovement.SetPath(division, new[] { 21 }, clear: true);
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(EUnitOrder.None, division.Order);
+		Assert.False(division.IsMoving);
+	}
+
+	[Fact]
+	public void A_strategic_redeployment_goes_anywhere_not_held_by_an_enemy_and_starts_its_attack_delay_every_hour()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		CWarDeclarations(state);
+		CUnit division = Division(state, Ger, 1, "infantry_brigade");
+		// No distance is asked, a neighbour will do; an enemy's province will not (landorders.md, section 6).
+		Assert.True(CUnitOrders.MayGive(state, germany, division, EUnitOrder.StrategicRedeployment, state.Province(2)));
+		Assert.True(CUnitOrders.MayGive(state, germany, division, EUnitOrder.StrategicRedeployment, state.Province(12)));
+		Assert.False(CUnitOrders.MayGive(state, germany, division, EUnitOrder.StrategicRedeployment, state.Province(21)));
+
+		CUnitOrders.Give(state, germany, division, EUnitOrder.StrategicRedeployment, 6);
+		Assert.True(division.IsMoving);
+		Assert.Equal(CFixedPoint.Zero, division.AttackDelay);
+		// Each hour of the journey starts the delay again - twelve hours at the least (section 8).
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(CFixedPoint.FromInt(12), division.AttackDelay);
+		Assert.Equal(EUnitOrder.StrategicRedeployment, division.Order);
+		division.AttackDelay = CFixedPoint.FromInt(3);
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(CFixedPoint.FromInt(12), division.AttackDelay);
+		// In the province, it is done.
+		division.Location = 6;
+		CUnitOrders.RunHour(state, germany, division);
+		Assert.Equal(EUnitOrder.None, division.Order);
+	}
+
+	[Fact]
+	public void An_order_with_a_start_hour_does_not_move_before_it_and_one_with_an_arrival_hour_waits_at_full_progress()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		CUnit division = Division(state, Ger, 1, "infantry_brigade");
+		// The window's Move Order goes only beside (landorders.md, section 6).
+		Assert.True(CUnitOrders.MayGive(state, germany, division, EUnitOrder.Move, state.Province(2)));
+		Assert.False(CUnitOrders.MayGive(state, germany, division, EUnitOrder.Move, state.Province(3)));
+
+		var later = new CSetUnitOrderCommand(Ger, division.Id, EUnitOrder.Move, 2, startHour: state.TotalHours + 5);
+		Assert.True(later.MayExecute(state));
+		later.Execute(state);
+		Assert.True(division.IsMoving);
+		CMovement.RunHour(state, germany, division);
+		Assert.Equal(CFixedPoint.Zero, division.MovementProgress);
+
+		// Not to arrive before a far hour: it covers the way and waits at its end (section 5).
+		var synchronised = new CSetUnitOrderCommand(Ger, division.Id, EUnitOrder.Move, 2, arriveHour: state.TotalHours + 10_000);
+		synchronised.Execute(state);
+		CFixedPoint distance = CMovement.Distance(state, division);
+		division.MovementProgress = distance + CFixedPoint.FromInt(1);
+		CMovement.RunHour(state, germany, division);
+		Assert.Equal(1, division.Location);
+		Assert.Equal(distance, division.MovementProgress);
+
+		// A halt empties both hours.
+		CMovement.Halt(state, division);
+		Assert.Null(division.NotBeforeHour);
+		Assert.Null(division.ArriveNotBeforeHour);
+	}
 }

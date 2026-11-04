@@ -19,6 +19,7 @@ public sealed class CFontDescriptor
 	public const string Reference = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	private readonly Dictionary<int, int> _advances = new();
+	private readonly Dictionary<int, int> _widths = new();
 
 	/// <summary>The typeface's name, as the tool that made the glyphs was given it: <c>Arial</c>.</summary>
 	public string Face { get; private set; } = "";
@@ -74,6 +75,7 @@ public sealed class CFontDescriptor
 				if (numbers.Count >= 8)
 				{
 					descriptor._advances[numbers[0]] = numbers[7];
+					descriptor._widths[numbers[0]] = numbers[3];
 				}
 			}
 		}
@@ -84,6 +86,40 @@ public sealed class CFontDescriptor
 	public int Advance(char character)
 	{
 		return _advances.GetValueOrDefault(character);
+	}
+
+	/// <summary>
+	/// How wide the original's glyph of a character is drawn, or nothing for one the font does not have: what a letter of
+	/// a font of fixed width is narrowed to, so that it keeps to its cell (<c>docs/mechanics/interface.md</c>, section 6).
+	/// </summary>
+	public int GlyphWidth(char character)
+	{
+		return _widths.GetValueOrDefault(character);
+	}
+
+	/// <summary>
+	/// The advance every character of the font shares, or nought where they differ: a font of fixed width, such as the
+	/// date widget's <c>timefont</c>, whose characters each stand in a cell of the picture behind them
+	/// (<c>docs/mechanics/interface.md</c>, section 6).
+	/// </summary>
+	public int FixedAdvance
+	{
+		get
+		{
+			int shared = 0;
+			foreach (int advance in _advances.Values)
+			{
+				if (shared == 0)
+				{
+					shared = advance;
+				}
+				else if (advance != shared)
+				{
+					return 0;
+				}
+			}
+			return shared;
+		}
 	}
 
 	/// <summary>
