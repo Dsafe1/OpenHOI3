@@ -147,7 +147,20 @@ public partial class CSession : Node
 			}
 			played = new[] { new CCountryTag(asked) };
 		}
-		State = CGameStateLoader.LoadStart(_directories, Map, localisation, countries, aiScripts: _aiScripts, played: played);
+		// --load= a save of the original's: the game it holds, as far as the loader reads it (docs/mechanics/savegame.md),
+		// played by --country= or else by the country the save was played by.
+		if (Argument("--load=") is { } loadFrom)
+		{
+			CCountryTag? loadAs = PlayerArgument() is { } tag ? new CCountryTag(tag) : null;
+			(State, Content.Saves.CSaveReport report) = Content.Saves.CSaveLoader.Load(_directories, Map, localisation, countries,
+				loadFrom, loadAs, _aiScripts);
+			played = State.Played.ToList();
+			GD.Print($"--load: {loadFrom}, {string.Join(", ", played)} played.");
+		}
+		else
+		{
+			State = CGameStateLoader.LoadStart(_directories, Map, localisation, countries, aiScripts: _aiScripts, played: played);
+		}
 		GD.Print($"Loaded {Map.ProvinceCount - 1} provinces and {countries.Count} countries " +
 			$"for {State.Date} in {clock.ElapsedMilliseconds} ms.");
 

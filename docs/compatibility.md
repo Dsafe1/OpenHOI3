@@ -300,6 +300,21 @@ documents folder, not the one next to the exe."
 
 ---
 
+## 15. A loaded save goes on with its own generator
+
+**Decided** 2026-11-04 by the maintainer, asked whether a load should restore the save's `seed` and `count`: "Yes".
+
+| | |
+| --- | --- |
+| the original | writes its generator's `seed` and the number of draws, `count`, into every save, and **throws both away on a load** - `CGameState::LoadKey` takes neither - so a loaded game draws on whatever the generator holds (`reversing/findings/FINDINGS-savegame.md`, section A.3) |
+| here | a load seeds the game's generator with the save's `seed` and draws `count` times, so a loaded game goes on with the draws the saved game would have made |
+| the difference today | the rolls after a load: here a save loaded twice plays the same; in the original it need not |
+| a mod loses | nothing; no file can tell the two apart |
+| why | a game here is replayable from its seed and its commands (entry 11), and a load should not end that |
+| to undo | leave the generator as it stands and take neither key, as the original does |
+
+---
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they

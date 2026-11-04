@@ -36,6 +36,12 @@ if (args.Length > 0 && args[0] == "adjacency")
 	return CAdjacencyCheck.Run(args);
 }
 
+// A save of the original's loaded as a game here, and what of it is not loaded yet.
+if (args.Length > 0 && args[0] == "load")
+{
+	return CLoadCheck.Run(args);
+}
+
 // The writer of the player's settings is checked against a settings.txt the original wrote.
 if (args.Length > 0 && args[0] == "settings")
 {

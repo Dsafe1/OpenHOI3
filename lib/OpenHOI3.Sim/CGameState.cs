@@ -153,6 +153,12 @@ public sealed class CGameState
 	/// <summary>The hour of the day, 0 to 23.</summary>
 	public int Hour => (int)(_hours % HoursPerDay);
 
+	/// <summary>Sets the clock to a save's hour: only a loaded game, before it runs (<c>docs/mechanics/savegame.md</c>).</summary>
+	public void SetClock(long totalHours)
+	{
+		_hours = totalHours;
+	}
+
 	/// <summary>Moves the clock on by one hour. Only the hourly tick calls this.</summary>
 	public void AdvanceOneHour()
 	{

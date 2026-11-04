@@ -67,7 +67,21 @@ public static class CGameStateLoader
 		Action<CGameState>? beforeFirstDays = null)
 	{
 		warn ??= CDiagnostics.Warn;
+		CGameState state = BuildWorld(directories, map, localisation, countries, warn, aiScripts);
+		IReadOnlyDictionary<string, CSubUnitType> unitTypes = state.SubUnitTypes;
+		return SetUpNewGame(directories, state, countries, unitTypes, warn, fill, firstDays, played, beforeFirstDays);
+	}
 
+	/// <summary>
+	/// The world an install describes, as far as a new game and a loaded one share it: the provinces with the map's
+	/// figures, every database - units, technologies, laws, buildings, modifiers, traits, ideologies, posts - the defines,
+	/// the leaders and ministers of the files, the events and decisions, and the start's history folded in. A new game goes
+	/// on from it (<see cref="SetUpNewGame"/>); a loaded one fills its every dynamic figure from the save over it, as the
+	/// original refills the objects its startup made (<c>docs/mechanics/savegame.md</c>, section 2).
+	/// </summary>
+	public static CGameState BuildWorld(CDirectorySettings directories, CMap map, CLocalisation localisation,
+		CCountries countries, Action<string> warn, IAiScripts? aiScripts)
+	{
 		CDate start = ReadStartDate(directories);
 
 		var provinces = new CProvince[map.ProvinceCount];
@@ -184,6 +198,14 @@ public static class CGameStateLoader
 			type.ArmyText = localisation.Localise(type.Name + "_army");
 			type.DescText = localisation.Localise(type.Name + "_desc");
 		}
+		return state;
+	}
+
+	/// <summary>A new game from the world: the start's victory conditions, laws, technology, units, politics, AI and two days.</summary>
+	private static CGameState SetUpNewGame(CDirectorySettings directories, CGameState state, CCountries countries,
+		IReadOnlyDictionary<string, CSubUnitType> unitTypes, Action<string> warn, bool fill, bool firstDays,
+		IEnumerable<CCountryTag>? played, Action<CGameState>? beforeFirstDays)
+	{
 		// A new game's victory conditions: each faction's primaries (factions.md, section 8).
 		foreach (string faction in Sim.Wars.CVictoryConditions.ChooseAtStart(state))
 		{
