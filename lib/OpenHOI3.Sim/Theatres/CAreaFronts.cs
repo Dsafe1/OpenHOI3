@@ -64,7 +64,7 @@ public static class CAreaFronts
 		{
 			(int id, int at) = walk.Pop();
 			CProvince province = state.Province(id);
-			if (at >= province.Edges.Count)
+			if (at >= province.Edges.Length)
 			{
 				continue;
 			}

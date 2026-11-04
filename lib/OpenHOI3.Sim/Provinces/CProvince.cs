@@ -377,9 +377,12 @@ public sealed class CProvince
 
 	/// <summary>
 	/// The ways out of the province, in the order the original holds them, which is the
-	/// order a route is searched in. Filled from the map.
+	/// order a route is searched in. Filled from the map, and never changed after.
+	///
+	/// An array and not a read-only list because a <c>foreach</c> over an interface makes an enumerator each time, and
+	/// this is walked in nearly every pass: it was a tenth of everything the simulation allocated (2026-11-04).
 	/// </summary>
-	public IReadOnlyList<CProvinceEdge> Edges { get; set; } = System.Array.Empty<CProvinceEdge>();
+	public CProvinceEdge[] Edges { get; set; } = System.Array.Empty<CProvinceEdge>();
 
 	/// <summary>The way to a neighbour, or null when the two are not joined.</summary>
 	public CProvinceEdge? EdgeTo(int neighbour)

@@ -37,7 +37,7 @@ public class WeatherTests
 			{
 				edges.Add(new CProvinceEdge(id + 1, EProvinceEdgeKind.Plain, 0, CFixedPoint.One) { Bearing = 500 });
 			}
-			province.Edges = edges;
+			province.Edges = edges.ToArray();
 			return province;
 		}
 		var state = new CGameState(date ?? new CDate(1936, 1, 8),

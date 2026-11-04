@@ -51,76 +51,87 @@ public static class CConvoyRoute
 		// Whose straits are shut is asked of whoever holds the harbour it sails from.
 		CCountry? sailing = state.Country(state.Province(from).Controller);
 
-		var settled = new bool[count];
-		var cost = new long[count];
-		var cameFrom = new int[count];
-		var heap = new CPathHeap();
-		settled[from] = true;
-		cameFrom[from] = -1;
-		heap.Push(0, from);
-
-		while (heap.Count > 0)
+		// Only a settled province's figures are read, and each is written as it is settled; the start's are set here.
+		CRouteScratch scratch = CRouteScratch.Take(state, count);
+		try
 		{
-			int current = heap.Pop();
-			if (current == to)
-			{
-				var path = new List<int>();
-				for (int at = to; at != -1; at = cameFrom[at])
-				{
-					path.Add(at);
-				}
-				path.Reverse();
-				return path;
-			}
+			int[] settled = scratch.Settled;
+			int stamp = scratch.Stamp;
+			long[] cost = scratch.Cost;
+			int[] cameFrom = scratch.CameFrom;
+			var heap = new CPathHeap();
+			settled[from] = stamp;
+			cost[from] = 0;
+			cameFrom[from] = -1;
+			heap.Push(0, from);
 
-			CProvince here = state.Province(current);
-			long dearer = Dearer(state, here, owner);
-			bool attackedLately = here.LastConvoyAttackHour != CProvince.NoConvoyAttack
-				&& state.TotalHours / CGameState.HoursPerDay - here.LastConvoyAttackHour / CGameState.HoursPerDay
-					< DaysAnAttackIsRemembered;
-			foreach (CProvinceEdge edge in here.Edges)
+			while (heap.Count > 0)
 			{
-				if (edge.Kind == EProvinceEdgeKind.Impassable || edge.To <= 0 || edge.To >= count)
+				int current = heap.Pop();
+				if (current == to)
 				{
-					continue;
+					var path = new List<int>();
+					for (int at = to; at != -1; at = cameFrom[at])
+					{
+						path.Add(at);
+					}
+					path.Reverse();
+					return path;
 				}
-				CProvince there = state.Province(edge.To);
-				if (there.Id != to && !(there.IsSea && there.SeaIndex >= 0))
-				{
-					continue;
-				}
-				if (sailing is not null && CMovementRules.IsClosedWater(state, sailing, there))
-				{
-					continue;
-				}
-				if (settled[there.Id])
-				{
-					continue;
-				}
-				settled[there.Id] = true;
 
-				long step = edge.Distance.Raw;
-				// Water a convoy was attacked in is kept out of for five days.
-				if (attackedLately)
+				CProvince here = state.Province(current);
+				long dearer = Dearer(state, here, owner);
+				bool attackedLately = here.LastConvoyAttackHour != CProvince.NoConvoyAttack
+					&& state.TotalHours / CGameState.HoursPerDay - here.LastConvoyAttackHour / CGameState.HoursPerDay
+						< DaysAnAttackIsRemembered;
+				foreach (CProvinceEdge edge in here.Edges)
 				{
-					step *= AfterAnAttack;
+					if (edge.Kind == EProvinceEdgeKind.Impassable || edge.To <= 0 || edge.To >= count)
+					{
+						continue;
+					}
+					CProvince there = state.Province(edge.To);
+					if (there.Id != to && !(there.IsSea && there.SeaIndex >= 0))
+					{
+						continue;
+					}
+					if (sailing is not null && CMovementRules.IsClosedWater(state, sailing, there))
+					{
+						continue;
+					}
+					if (settled[there.Id] == stamp)
+					{
+						continue;
+					}
+					settled[there.Id] = stamp;
+
+					long step = edge.Distance.Raw;
+					// Water a convoy was attacked in is kept out of for five days.
+					if (attackedLately)
+					{
+						step *= AfterAnAttack;
+					}
+					if (dearer != CFixedPoint.Scale)
+					{
+						step = dearer * step / CFixedPoint.Scale;
+					}
+					if (step < 0)
+					{
+						continue;
+					}
+					cost[there.Id] = cost[current] + step;
+					cameFrom[there.Id] = current;
+					long still = CRouteFinder.StraightLine(state, there, goal) * CFixedPoint.Scale
+						* StraightLineWeight / CFixedPoint.Scale;
+					heap.Push(cost[there.Id] + still, there.Id);
 				}
-				if (dearer != CFixedPoint.Scale)
-				{
-					step = dearer * step / CFixedPoint.Scale;
-				}
-				if (step < 0)
-				{
-					continue;
-				}
-				cost[there.Id] = cost[current] + step;
-				cameFrom[there.Id] = current;
-				long still = CRouteFinder.StraightLine(state, there, goal) * CFixedPoint.Scale
-					* StraightLineWeight / CFixedPoint.Scale;
-				heap.Push(cost[there.Id] + still, there.Id);
 			}
+			return null;
 		}
-		return null;
+		finally
+		{
+			scratch.Release();
+		}
 	}
 
 	/// <summary>

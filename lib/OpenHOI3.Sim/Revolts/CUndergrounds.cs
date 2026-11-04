@@ -318,10 +318,10 @@ public static class CUndergrounds
 	public static void RaiseFrom(CGameState state, CCountry owner, CProvince source)
 	{
 		CProvince target = source;
-		IReadOnlyList<CProvinceEdge> edges = source.Edges;
-		if (edges.Count > 0)
+		CProvinceEdge[] edges = source.Edges;
+		if (edges.Length > 0)
 		{
-			CProvince drawn = state.Province(edges[state.Random.Next() % edges.Count].To);
+			CProvince drawn = state.Province(edges[state.Random.Next() % edges.Length].To);
 			if (Fits(state, drawn, source))
 			{
 				target = drawn;
@@ -360,11 +360,11 @@ public static class CUndergrounds
 	/// </summary>
 	public static CProvince? SpreadFrom(CGameState state, CProvince source)
 	{
-		if (Building(state) is not { } underground || source.Edges.Count == 0)
+		if (Building(state) is not { } underground || source.Edges.Length == 0)
 		{
 			return null;
 		}
-		CProvince target = state.Province(source.Edges[state.Random.Next() % source.Edges.Count].To);
+		CProvince target = state.Province(source.Edges[state.Random.Next() % source.Edges.Length].To);
 		if (Has(state, target) || target.Owner is not { } owner || owner != source.Owner)
 		{
 			return null;

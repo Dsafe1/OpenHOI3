@@ -27,14 +27,14 @@ public static class TestRoads
 			{
 				province.SetBuildingLevel(Infra, CFixedPoint.FromInt(10));
 			}
-			if (province.Edges.Count == 0 && province.Neighbours.Count > 0)
+			if (province.Edges.Length == 0 && province.Neighbours.Count > 0)
 			{
 				var edges = new List<CProvinceEdge>();
 				foreach (int neighbour in province.Neighbours)
 				{
 					edges.Add(new CProvinceEdge(neighbour, EProvinceEdgeKind.Plain, 0, CFixedPoint.One));
 				}
-				province.Edges = edges;
+				province.Edges = edges.ToArray();
 			}
 		}
 	}

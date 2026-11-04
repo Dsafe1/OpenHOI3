@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Supply;
 
@@ -287,39 +288,53 @@ public static class CWeatherFronts
 	/// </summary>
 	public static void PropagateHighPressure(CGameState state, int seed)
 	{
-		var distance = new long[state.Provinces.Count];
-		Array.Fill(distance, 99999);
-		long max = state.Defines[Section, CProvinceWeather.PressureMax].Raw;
-		long reduction = state.Defines[Section, PressureReduction].Raw;
-		long step = state.Defines[Section, PressurePropagation].Raw;
-		CProvince start = state.Province(seed);
-		start.Weather.Pressure = new CFixedPoint(max);
-		distance[seed] = 0;
-		var queue = new Queue<CProvince>();
-		queue.Enqueue(start);
-		while (queue.Count > 0)
+		// A province's distance is 99999 until this walk gives it one.
+		CRouteScratch scratch = CRouteScratch.Take(state, state.Provinces.Count);
+		try
 		{
-			CProvince current = queue.Dequeue();
-			foreach (CProvinceEdge edge in current.Edges)
+			int[] stamped = scratch.Settled;
+			int stamp = scratch.Stamp;
+			long[] distance = scratch.Cost;
+			long DistanceOf(int id) => stamped[id] == stamp ? distance[id] : 99999;
+
+			long max = state.Defines[Section, CProvinceWeather.PressureMax].Raw;
+			long reduction = state.Defines[Section, PressureReduction].Raw;
+			long step = state.Defines[Section, PressurePropagation].Raw;
+			CProvince start = state.Province(seed);
+			start.Weather.Pressure = new CFixedPoint(max);
+			distance[seed] = 0;
+			stamped[seed] = stamp;
+			var queue = new Queue<CProvince>();
+			queue.Enqueue(start);
+			while (queue.Count > 0)
 			{
-				CProvince next = state.Province(edge.To);
-				long cost = CSupplyFigures.SizeClass(next) + distance[current.Id];
-				if (distance[next.Id] <= cost)
+				CProvince current = queue.Dequeue();
+				foreach (CProvinceEdge edge in current.Edges)
 				{
-					continue;
-				}
-				long target = max - cost * One * reduction / One;
-				if (target <= next.Weather.Pressure.Raw)
-				{
-					continue;
-				}
-				next.Weather.Pressure = new CFixedPoint(next.Weather.Pressure.Raw + step);
-				distance[next.Id] = cost;
-				if (target > 0)
-				{
-					queue.Enqueue(next);
+					CProvince next = state.Province(edge.To);
+					long cost = CSupplyFigures.SizeClass(next) + DistanceOf(current.Id);
+					if (DistanceOf(next.Id) <= cost)
+					{
+						continue;
+					}
+					long target = max - cost * One * reduction / One;
+					if (target <= next.Weather.Pressure.Raw)
+					{
+						continue;
+					}
+					next.Weather.Pressure = new CFixedPoint(next.Weather.Pressure.Raw + step);
+					distance[next.Id] = cost;
+					stamped[next.Id] = stamp;
+					if (target > 0)
+					{
+						queue.Enqueue(next);
+					}
 				}
 			}
+		}
+		finally
+		{
+			scratch.Release();
 		}
 	}
 

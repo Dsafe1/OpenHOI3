@@ -224,7 +224,7 @@ public static class CSupplyNetworks
 			{
 				(int id, int at) = walk.Pop();
 				CProvince province = _state.Province(id);
-				if (at >= province.Edges.Count)
+				if (at >= province.Edges.Length)
 				{
 					continue;
 				}

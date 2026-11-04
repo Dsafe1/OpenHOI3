@@ -72,7 +72,7 @@ public class SupplyMapTests
 		{
 			if (_edges.TryGetValue(province.Id, out List<CProvinceEdge>? edges))
 			{
-				province.Edges = edges;
+				province.Edges = edges.ToArray();
 			}
 		}
 		var defines = new CDefines();

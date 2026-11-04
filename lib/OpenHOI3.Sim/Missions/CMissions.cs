@@ -271,7 +271,7 @@ public static class CMissions
 	{
 		CMission mission = unit.Mission;
 		CProvince centre = state.Province(unit.OrderProvince);
-		int count = centre.Edges.Count;
+		int count = centre.Edges.Length;
 		if (mission.Round == count)
 		{
 			if (unit.Location != centre.Id)
