@@ -488,6 +488,32 @@ public class MovementTests
 	}
 
 	[Fact]
+	public void ASearchFindsTheSameWayWhateverSearchesTheStateMadeBeforeIt()
+	{
+		// The working arrays are kept from one search to the next; nothing a search leaves in them may reach the next.
+		CCountry country = Germany();
+		CGameState state = State(country, potsdamToDessauKind: EProvinceEdgeKind.Impassable);
+		CUnit unit = Division(state, country, Berlin, Infantry());
+
+		List<int>? Fresh(int from, int to)
+		{
+			CGameState alone = State(country, potsdamToDessauKind: EProvinceEdgeKind.Impassable);
+			return Route(alone, country, Division(alone, country, from, Infantry()), to);
+		}
+
+		Assert.Null(Route(state, country, unit, Leipzig));                     // settles all it can reach and fails
+		for (int i = 0; i < 3; i++)
+		{
+			unit.Location = Leipzig;
+			Assert.Equal(Fresh(Leipzig, Dessau), Route(state, country, unit, Dessau));
+			unit.Location = Berlin;
+			Assert.Equal(Fresh(Berlin, Potsdam), Route(state, country, unit, Potsdam));
+			Assert.Null(Route(state, country, unit, Leipzig));
+		}
+		Assert.Equal(new[] { Dessau }, Fresh(Leipzig, Dessau));
+	}
+
+	[Fact]
 	public void TheStraightLineIsMeasuredTheShortWayRoundTheMapAndRoundedDown()
 	{
 		CCountry country = Germany();

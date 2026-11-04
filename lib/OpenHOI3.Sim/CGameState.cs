@@ -629,6 +629,9 @@ public sealed class CGameState
 	/// <summary>What the map says of each country this hour, kept by <see cref="Countries.CCountryFacts"/>.</summary>
 	public Countries.CCountryFacts? CountryFacts { get; set; }
 
+	/// <summary>The route finder's working arrays, kept from one search to the next by <see cref="Movement.CRouteScratch"/>.</summary>
+	internal Movement.CRouteScratch? RouteScratch { get; set; }
+
 	/// <summary>Every holder's air bases this hour, kept by <see cref="Agents.CAirBaseHolders"/>.</summary>
 	public Agents.CAirBaseHolders? AirBaseHolders { get; set; }
 

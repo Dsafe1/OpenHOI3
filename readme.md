@@ -1700,7 +1700,13 @@ None of these blocks the list above.
   hour's trading already runs side by side as the original's does (`trade.md`, *Ours*); what is left is
   the day - production, home production, supply, the surrender, trade routes - and, if that is not enough,
   the simulation on a thread of its own, which every screen that reads the state would have to allow for.
-  `OpenHOI3.SaveCheck profile` says where an hour's time goes.
+  `OpenHOI3.SaveCheck profile` says where an hour's time goes. **Measured on 2026-11-04**: the runtime is not
+  the lever - .NET 9 and 10, Server GC, the GC's budgets and the JIT's tiering all came out within the noise - and
+  allocation was. The route finder made five arrays the size of the map on every search, half of everything allocated
+  and every full collection; it keeps them now (`CRouteScratch`), and 30 days of the trial went from about 24.5 s to
+  20.5 s, an ordinary hour from 28 ms to 24, the state's hash the same every midnight. What allocates most after it
+  is the Lua's fields and strings, a `float` boxed for each figure the Lua classes hand over, and the enumerator a
+  `foreach` over `CProvince.Edges` makes, that being an `IReadOnlyList`.
 - **Where the AI runs in multiplayer is not settled** (2026-10-13). Here the AI runs inside the hourly tick,
   which every machine would run, and draws on the game's shared generator - which countries trade this
   hour, the AI's event option, the roll that answers an offer. The maintainer's understanding is that the

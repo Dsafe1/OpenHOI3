@@ -43,69 +43,80 @@ public static class CRouteFinder
 			return null;
 		}
 
-		var settled = new bool[count];
-		var cost = new long[count];
-		var estimate = new long[count];
-		var cameFrom = new int[count];
-		var next = new int[count];
-		System.Array.Fill(next, -1);
-		System.Array.Fill(cameFrom, -1);
-
-		settled[from] = true;
-		int head = from;
-		while (head != -1)
+		// Only a settled province's figures are read, and each is written as it is settled; the start's are set here.
+		CRouteScratch scratch = CRouteScratch.Take(state, count);
+		try
 		{
-			int current = head;
-			head = next[current];
-			if (current == to)
+			int[] settled = scratch.Settled;
+			int stamp = scratch.Stamp;
+			long[] cost = scratch.Cost;
+			long[] estimate = scratch.Estimate;
+			int[] cameFrom = scratch.CameFrom;
+			int[] next = scratch.Next;
+			cost[from] = 0;
+			cameFrom[from] = -1;
+			next[from] = -1;
+
+			settled[from] = stamp;
+			int head = from;
+			while (head != -1)
 			{
-				return PathTo(cameFrom, from, to);
+				int current = head;
+				head = next[current];
+				if (current == to)
+				{
+					return PathTo(cameFrom, from, to);
+				}
+
+				CProvince here = state.Province(current);
+				foreach (CProvinceEdge edge in here.Edges)
+				{
+					if (edge.To <= 0 || edge.To >= count || settled[edge.To] == stamp)
+					{
+						continue;
+					}
+					CProvince there = state.Province(edge.To);
+					if (!CMovementRules.MayStep(state, country, unit, here, there, edge)
+						|| (edge.To != to && !IsSafeStep(state, country, unit, there, landSafety)))
+					{
+						continue;
+					}
+					settled[edge.To] = stamp;
+
+					long step = StepCost(state, country, there, edge);
+					if (safe)
+					{
+						step = SafeStepCost(state, country, there, step);
+					}
+					cost[edge.To] = cost[current] + step;
+					estimate[edge.To] = cost[edge.To] + StraightLine(state, there, goal) * StraightLineWeight;
+					cameFrom[edge.To] = current;
+
+					// Before the first that is not cheaper, so the newest of equals is taken first.
+					int before = -1;
+					int after = head;
+					while (after != -1 && estimate[edge.To] > estimate[after])
+					{
+						before = after;
+						after = next[after];
+					}
+					next[edge.To] = after;
+					if (before == -1)
+					{
+						head = edge.To;
+					}
+					else
+					{
+						next[before] = edge.To;
+					}
+				}
 			}
-
-			CProvince here = state.Province(current);
-			foreach (CProvinceEdge edge in here.Edges)
-			{
-				if (edge.To <= 0 || edge.To >= count || settled[edge.To])
-				{
-					continue;
-				}
-				CProvince there = state.Province(edge.To);
-				if (!CMovementRules.MayStep(state, country, unit, here, there, edge)
-					|| (edge.To != to && !IsSafeStep(state, country, unit, there, landSafety)))
-				{
-					continue;
-				}
-				settled[edge.To] = true;
-
-				long step = StepCost(state, country, there, edge);
-				if (safe)
-				{
-					step = SafeStepCost(state, country, there, step);
-				}
-				cost[edge.To] = cost[current] + step;
-				estimate[edge.To] = cost[edge.To] + StraightLine(state, there, goal) * StraightLineWeight;
-				cameFrom[edge.To] = current;
-
-				// Before the first that is not cheaper, so the newest of equals is taken first.
-				int before = -1;
-				int after = head;
-				while (after != -1 && estimate[edge.To] > estimate[after])
-				{
-					before = after;
-					after = next[after];
-				}
-				next[edge.To] = after;
-				if (before == -1)
-				{
-					head = edge.To;
-				}
-				else
-				{
-					next[before] = edge.To;
-				}
-			}
+			return null;
 		}
-		return null;
+		finally
+		{
+			scratch.Release();
+		}
 	}
 
 	/// <summary>
