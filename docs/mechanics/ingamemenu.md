@@ -176,10 +176,10 @@ again.
 
 ## Ours
 
-- **Save Game, Game Options and Resign are greyed**, where the original greys none of them: there is no saving, no
-  game options screen and no screen after a game or main menu to go to yet - and a stand-in for any of them would be
-  wrong (`CLAUDE.md`'s rule on what is not built). Each is taken off the greyed list when its system arrives. The
-  readme's *Loose ends* lists them.
+- **Save Game and Resign are greyed**, where the original greys neither: there is no saving and no screen after a
+  game or main menu to go to yet - and a stand-in for either would be wrong (`CLAUDE.md`'s rule on what is not built).
+  Each is taken off the greyed list when its system arrives; the readme's *Loose ends* lists them. **Game Options was
+  greyed too, and opens the game options window since 2026-11-04** (`gameoptions.md`).
 - The keys that are not a button's - the clock's and the map's - are held while the menu is up (section 1).
 
 ## Not established

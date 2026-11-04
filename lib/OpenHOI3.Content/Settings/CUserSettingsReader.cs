@@ -7,7 +7,8 @@ namespace OpenHOI3.Content.Settings;
 
 /// <summary>
 /// Reads the player's <c>settings.txt</c> from <c>Documents\Paradox Interactive\Hearts of Iron III</c> - the one the
-/// original writes, and not the one beside its executable - and never writes it. See <c>docs/mechanics/settings.md</c>.
+/// original writes, and not the one beside its executable. <see cref="CUserSettingsWriter"/> writes it back. See
+/// <c>docs/mechanics/settings.md</c>.
 /// </summary>
 public static class CUserSettingsReader
 {
@@ -47,23 +48,74 @@ public static class CUserSettingsReader
 			warn($"Could not parse '{path}': {e.Message}; the default settings are used");
 			return CUserSettings.Default;
 		}
-		ClausewitzNode? map = root.Get("mapRenderingOptions");
-		bool alwaysCounters = map?.GetBool("alwaysCounters", true) ?? true;
+		CUserSettings d = CUserSettings.Default;
+		ClausewitzNode empty = new();
+		ClausewitzNode gui = root.Get("gui") ?? empty;
+		ClausewitzNode graphics = root.Get("graphics") ?? empty;
+		ClausewitzNode size = graphics.Get("size") ?? empty;
+		ClausewitzNode map = root.Get("mapRenderingOptions") ?? empty;
+		bool alwaysCounters = map.GetBool("alwaysCounters", d.AlwaysCounters);
 		if (!alwaysCounters)
 		{
 			warn($"'{path}': alwaysCounters = no is not supported; the map shows counters (docs/compatibility.md, entry 12)");
 		}
+		string autosave = root.GetString("autosave", d.Autosave);
+		if (Array.IndexOf(AutosaveNames, autosave) < 0)
+		{
+			warn($"'{path}': autosave = \"{autosave}\" is none of the original's frequencies; {d.Autosave} is used");
+			autosave = d.Autosave;
+		}
+		int shadowSize = graphics.GetInt("shadowSize", d.ShadowSize);
 		return new CUserSettings
 		{
 			Path = path,
-			Language = root.Get("gui")?.GetString("language", CUserSettings.Default.Language) ?? CUserSettings.Default.Language,
+			Language = gui.GetString("language", d.Language),
+			HasSetLanguage = gui.GetBool("has_set_language", d.HasSetLanguage),
+			// The original's least size, and its shadows held between 256 and 4096.
+			Width = Math.Max(size.GetInt("x", d.Width), 1024),
+			Height = Math.Max(size.GetInt("y", d.Height), 768),
+			RefreshRate = graphics.GetInt("refreshRate", d.RefreshRate),
+			FullScreen = graphics.GetBool("fullScreen", d.FullScreen),
+			Shadows = graphics.GetBool("shadows", d.Shadows),
+			ShadowSize = shadowSize < 1 ? 256 : Math.Min(shadowSize, 4096),
+			MultiSampling = graphics.GetInt("multi_sampling", d.MultiSampling),
+			AnisotropicFiltering = graphics.GetInt("anisotropic_filtering", d.AnisotropicFiltering),
+			Gamma = graphics.GetFloat("gamma", d.Gamma),
+			Adapter = graphics.GetInt("adapter", d.Adapter),
+			Vsync = graphics.GetBool("vsync", d.Vsync),
+			DebugMonitor = graphics.GetBool("debugmonitor", d.DebugMonitor),
+			SoundFxVolume = root.GetFloat("sound_fx_volume", d.SoundFxVolume),
+			MusicVolume = root.GetFloat("music_volume", d.MusicVolume),
+			ScrollSpeed = root.GetFloat("scroll_speed", d.ScrollSpeed),
+			CameraRotationSpeed = root.GetFloat("camera_rotation_speed", d.CameraRotationSpeed),
+			ZoomSpeed = root.GetFloat("zoom_speed", d.ZoomSpeed),
+			MouseSpeed = root.GetFloat("mouse_speed", d.MouseSpeed),
+			MasterVolume = root.GetFloat("master_volume", d.MasterVolume),
+			AmbientVolume = root.GetFloat("ambient_volume", d.AmbientVolume),
+			PauseOnEvent = root.GetBool("pause_on_event", d.PauseOnEvent),
+			RenderTrees = map.GetBool("renderTrees", d.RenderTrees),
+			OnMap = map.GetBool("onmap", d.OnMap),
+			SimpleWater = map.GetBool("simpleWater", d.SimpleWater),
 			AlwaysCounters = alwaysCounters,
-			CounterScale = map?.GetFloat("counter_scale", CUserSettings.Default.CounterScale) ?? CUserSettings.Default.CounterScale,
-			CounterDistance = map?.GetFloat("counter_distance", CUserSettings.Default.CounterDistance)
-				?? CUserSettings.Default.CounterDistance,
+			CounterDistance = map.GetFloat("counter_distance", d.CounterDistance),
+			Waves = map.GetBool("waves", d.Waves),
+			CounterScale = map.GetFloat("counter_scale", d.CounterScale),
+			RenderHierarchy = map.GetBool("render_hierarchy", d.RenderHierarchy),
+			ShowUnitNames = map.GetBool("show_unit_names", d.ShowUnitNames),
+			LastPlayer = root.GetString("lastplayer", d.LastPlayer),
+			LastHost = root.GetString("lasthost", d.LastHost),
+			ServerAddress = root.GetString("serveradress", d.ServerAddress),
+			DebugSaves = root.GetInt("debug_saves", d.DebugSaves),
+			Autosave = autosave,
+			Simple = root.GetBool("simple", d.Simple),
+			UseLegacyCamera = root.GetBool("use_legacy_camera", d.UseLegacyCamera),
+			Categories = Numbers(root.Get("categories")) ?? CUserSettings.DefaultCategories,
 			Outliner = Numbers(root.Get("outliner")) ?? CUserSettings.DefaultOutliner,
 		};
 	}
+
+	/// <summary>The autosave frequencies in the original's order, nought to five: the game options' Game tab steps through them.</summary>
+	public static readonly string[] AutosaveNames = { "NEVER", "WEEKLY", "MONTHLY", "HALFYEAR", "YEARLY", "FIVE_YEAR" };
 
 	/// <summary>A block of bare whole numbers, the key's whole list replacing the default; null with no such block.</summary>
 	private static List<int>? Numbers(ClausewitzNode? node)

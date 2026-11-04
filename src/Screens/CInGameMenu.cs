@@ -15,7 +15,8 @@ namespace OpenHOI3.Screens;
 /// The in-game menu: <c>menubar.gui</c>'s window <c>menu</c>, its six buttons on <c>menu_panel</c>, the dialog Quit
 /// opens and the message settings, <c>menu_message_settings</c>. Opening it stops the clock where it runs and always
 /// shows the six buttons; Close from one of its windows goes back to them, and leaves the clock stopped - the
-/// original's. Save Game, Game Options and Resign are greyed: what they lead to is not built. See
+/// original's. Game Options opens <see cref="CGameOptionsWindow"/>; Save Game and Resign are greyed: what they lead to is
+/// not built. See
 /// <c>docs/mechanics/ingamemenu.md</c>.
 /// </summary>
 public sealed partial class CInGameMenu : Control
@@ -46,13 +47,18 @@ public sealed partial class CInGameMenu : Control
 	public bool IsOpen => _window is { Visible: true };
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
-	public void Setup(CGuiContext context, CDirectorySettings directories, CSimulation simulation, CCountry? player)
+	/// <param name="options">The game options window Game Options opens, its Back and Apply coming back through the menu's close.</param>
+	public void Setup(CGuiContext context, CDirectorySettings directories, CSimulation simulation, CCountry? player,
+		CGameOptionsWindow? options)
 	{
 		_context = context;
 		_directories = directories;
 		_simulation = simulation;
 		_player = player;
+		_options = options;
 	}
+
+	private CGameOptionsWindow? _options;
 
 	public override void _Ready()
 	{
@@ -69,21 +75,28 @@ public sealed partial class CInGameMenu : Control
 		AddChild(_blocker);
 		AddChild(_window);
 		_window.Visible = false;
+		if (_options is not null)
+		{
+			// Over the menu's picture, which stays up behind it (gameoptions.md, section 1).
+			AddChild(_options);
+			_options.CloseRequested += Close;
+		}
 		_panel = _window.FindWindow("menu_panel");
 		_save = _window.FindWindow("menu_save");
 		_settings = _window.FindWindow("menu_message_settings");
 
 		if (_panel is not null)
 		{
-			// What these three lead to is not built - saving, the game options, the screen after a game - so they are
-			// greyed where the original greys none of them (ingamemenu.md, Ours).
-			foreach (string unbuilt in new[] { "menu_save_button", "menu_options_button", "menu_resign_button" })
+			// What these two lead to is not built - saving, the screen after a game - so they are greyed where the
+			// original greys neither (ingamemenu.md, Ours).
+			foreach (string unbuilt in new[] { "menu_save_button", "menu_resign_button" })
 			{
 				if (_panel.FindButton(unbuilt) is { } button)
 				{
 					button.Disabled = true;
 				}
 			}
+			Bind(_panel.FindButton("menu_options_button"), OpenOptions);
 			Bind(_panel.FindButton("menu_message_button"), OpenMessageSettings);
 			Bind(_panel.FindButton("menu_quit_button"), () => AskToEnd("QUIT"));
 			Bind(_panel.FindButton("menu_close_button"), Close);
@@ -158,12 +171,14 @@ public sealed partial class CInGameMenu : Control
 		{
 			return;
 		}
-		if (_save is { Visible: true } || _settings is { Visible: true })
+		if (_save is { Visible: true } || _settings is { Visible: true } || _options is { IsShown: true })
 		{
 			_window.Visible = false;
+			_options?.HideWindow();
 			Open();
 			return;
 		}
+		_options?.HideWindow();
 		if (_simulation.Clock.Paused && !_pausedBefore)
 		{
 			_simulation.Clock.Paused = false;
@@ -248,6 +263,17 @@ public sealed partial class CInGameMenu : Control
 		HideWindows();
 		List(null);
 		_settings.Visible = true;
+	}
+
+	/// <summary>Game Options: the options window shown and the six buttons hidden, the menu's picture left up.</summary>
+	private void OpenOptions()
+	{
+		if (_options is null)
+		{
+			return;
+		}
+		_options.Open();
+		HideWindows();
 	}
 
 	/// <summary>The window's Close: the player's file written, and back to the six buttons.</summary>

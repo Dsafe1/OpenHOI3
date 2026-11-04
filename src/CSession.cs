@@ -62,6 +62,7 @@ public partial class CSession : Node
 	private COrdersWindow? _orders;
 	private CCombatWindow? _combat;
 	private CInGameMenu? _menu;
+	private Gfx.CBrightnessLayer? _brightness;
 	private Label _provinceLabel = null!;
 	private Debug.CDebugMenu? _debugMenu;
 	private Debug.CFrameLog? _frameLog;
@@ -98,6 +99,7 @@ public partial class CSession : Node
 
 	/// <summary>The player's settings, read as the session starts: <c>docs/mechanics/settings.md</c>.</summary>
 	public Content.Settings.CUserSettings Settings { get; private set; } = Content.Settings.CUserSettings.Default;
+	// The game options window changes them, and the session writes them as it ends (gameoptions.md).
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CDirectorySettings directories)
@@ -438,8 +440,14 @@ public partial class CSession : Node
 
 		// The in-game menu, over the other windows: the top bar's menu button and Escape with nothing selected open it,
 		// and opening it lets the selection go and shuts the side menus and a country view (docs/mechanics/ingamemenu.md).
+		// Its Game Options window holds the player's settings (docs/mechanics/gameoptions.md).
+		var options = new CGameOptionsWindow();
+		options.Setup(gui, () => Settings, settings => Settings = settings, DisplayModes(), new[] { 2, 4, 8 },
+			(Settings.Width, Settings.Height, Settings.RefreshRate));
+		options.GammaPreviewed += scale => _brightness?.SetBrightness(scale);
+		options.Applied += ApplySettings;
 		_menu = new CInGameMenu();
-		_menu.Setup(gui, _directories, _simulation, Player);
+		_menu.Setup(gui, _directories, _simulation, Player, options);
 		layer.AddChild(_menu);
 		_topBar.MenuPressed += _menu.Toggle;
 		_menu.Opening += () =>
@@ -457,6 +465,51 @@ public partial class CSession : Node
 		tooltips.Setup(gui);
 		tooltips.MapTooltip = _ => ProvinceTooltip(_mapView.HoveredProvince);
 		AddChild(tooltips);
+
+		// The gamma setting over all of it, and what else of the settings shows at once; the multisampling the original
+		// takes at its start (gameoptions.md, section 3).
+		_brightness = new Gfx.CBrightnessLayer();
+		AddChild(_brightness);
+		ApplySettings(Settings);
+		GetViewport().Msaa2D = Settings.MultiSampling switch
+		{
+			>= 8 => Viewport.Msaa.Msaa8X,
+			>= 4 => Viewport.Msaa.Msaa4X,
+			>= 2 => Viewport.Msaa.Msaa2X,
+			_ => Viewport.Msaa.Disabled,
+		};
+	}
+
+	/// <summary>What of the player's settings takes effect at once: the gamma and the hierarchy's lines on the map.</summary>
+	private void ApplySettings(Content.Settings.CUserSettings settings)
+	{
+		_brightness?.SetBrightness(CGameOptions.Brightness(settings.Gamma));
+		if (_mapView.Counters is { } counters)
+		{
+			counters.HierarchyShown = settings.RenderHierarchy;
+		}
+	}
+
+	/// <summary>
+	/// The game options' resolutions, ours: the size and rate the settings name, the screen's rate beside it where the
+	/// screen is that size, and the screen's own size where it is another. The original asks the card for every mode.
+	/// </summary>
+	private List<CDisplayMode> DisplayModes()
+	{
+		Vector2I screen = DisplayServer.ScreenGetSize();
+		int screenRate = Mathf.RoundToInt(DisplayServer.ScreenGetRefreshRate());
+		var rates = new List<int> { Settings.RefreshRate };
+		bool sameSize = screen.X == Settings.Width && screen.Y == Settings.Height;
+		if (sameSize && screenRate > 0 && screenRate != Settings.RefreshRate)
+		{
+			rates.Add(screenRate);
+		}
+		var modes = new List<CDisplayMode> { new(Settings.Width, Settings.Height, rates) };
+		if (!sameSize && screen.X >= 1024 && screen.Y >= 720)
+		{
+			modes.Add(new CDisplayMode(screen.X, screen.Y, new[] { screenRate > 0 ? screenRate : 60 }));
+		}
+		return modes;
 	}
 
 	/// <summary>The tooltip of a province under the mouse, in the map mode shown: <c>docs/mechanics/tooltips.md</c>, section 7.</summary>
@@ -670,9 +723,13 @@ public partial class CSession : Node
 		}
 	}
 
-	/// <summary>The session's Lua goes with it.</summary>
+	/// <summary>
+	/// The session's Lua goes with it - and the player's settings are written, as the original writes them every time a
+	/// game is left (gameoptions.md, section 5).
+	/// </summary>
 	public override void _ExitTree()
 	{
+		Content.Settings.CUserSettingsWriter.WriteFile(Settings, Settings.Path ?? Content.Settings.CUserSettingsReader.DefaultPath());
 		_aiScripts?.Dispose();
 		_aiScripts = null;
 		_replayFile?.Dispose();

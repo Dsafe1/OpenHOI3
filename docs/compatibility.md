@@ -274,8 +274,9 @@ documents folder, not the one next to the exe."
 | | |
 | --- | --- |
 | the original | writes and reads `settings.txt` in `Documents\Paradox Interactive\Hearts of Iron III`, and ships one beside the executable |
-| here | reads the one in the Documents folder, and never writes it; the one beside the executable is not read |
-| the difference today | a setting changed here is not kept; nothing here changes one yet |
+| here | reads the one in the Documents folder ~~, and never writes it~~; the one beside the executable is not read |
+| the difference today | ~~a setting changed here is not kept; nothing here changes one yet~~ none: the game options window writes it since 2026-11-04 (`mechanics/gameoptions.md`), and a session writes it as it ends |
+| amended | **2026-11-04** by the maintainer, asked whether the game options window's Apply should write that same file as the original does: "Write the original's file". So it is written there, in the original's format, and a change made here is the original's next time too - as the message settings' `messagetypes_custom.txt` already is (`mechanics/ingamemenu.md`, section 5) |
 | a mod loses | nothing; a mod has no `settings.txt` of its own |
 | why | the player's settings are where the original keeps them, and one file serves both |
 | to undo | settings of our own, in our own file |

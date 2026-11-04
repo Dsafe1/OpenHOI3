@@ -36,7 +36,8 @@ public sealed class CConfirmDialog
 				Close();
 			};
 		}
-		if (window.FindButton("DeclineButton") is { } decline)
+		// DefaultInfoDialog has the one button.
+		if (window.TryFindButton("DeclineButton") is { } decline)
 		{
 			decline.Pressed += Close;
 		}

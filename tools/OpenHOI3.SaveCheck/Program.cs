@@ -36,6 +36,12 @@ if (args.Length > 0 && args[0] == "adjacency")
 	return CAdjacencyCheck.Run(args);
 }
 
+// The writer of the player's settings is checked against a settings.txt the original wrote.
+if (args.Length > 0 && args[0] == "settings")
+{
+	return CSettingsCheck.Run(args);
+}
+
 // The distances by sea are checked against the original's own cache of them.
 if (args.Length > 0 && args[0] == "navaldist")
 {
