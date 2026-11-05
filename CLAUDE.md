@@ -696,6 +696,7 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
     the fact base    depends on nothing
     OpenHOI3         depends on the fact base - PROSE ONLY
     OpenHOI3         never depends on BiceLib
+    OpenHOI3         never depends on Hoi3Recomp
 
 - **No build-specific offsets, addresses or vftable indices.** They describe one build of one
   executable we are not reimplementing, so they are meaningless here. What this project needs
@@ -704,6 +705,10 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 - **Never read anything out of BiceLib.** That is the mod's injected DLL. Its headers are full
   of exactly the offsets above, and "the DLL already worked this out" is the tempting shortcut
   that imports them.
+- **Never read anything out of Hoi3Recomp** (`GitHub/Hoi3Recomp`, since 2026-11-05). It lifts
+  the original's executable to C, so its generated code *is* the original's code, and its
+  design is written in the offsets above. How the original computes something is read in the
+  fact base's prose, never in a lifted function.
 
 ## Where knowledge about the original comes from
 
