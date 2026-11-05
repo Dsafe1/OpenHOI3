@@ -59,6 +59,18 @@ public static class CSaveValues
 		return true;
 	}
 
+	/// <summary>Hours since the calendar's start as a save writes them: <c>1936.1.7.22</c>.</summary>
+	public static string HoursText(long hours)
+	{
+		long day = Math.DivRem(hours, CGameState.HoursPerDay, out long hour);
+		if (hour < 0)
+		{
+			hour += CGameState.HoursPerDay;
+			day--;
+		}
+		return CDate.FromDayNumber((int)day) + "." + hour.ToString(CultureInfo.InvariantCulture);
+	}
+
 	/// <summary>The serial of an id block, <c>{ id = N type = T }</c>; nought where there is none.</summary>
 	public static int Id(ClausewitzNode? node)
 	{

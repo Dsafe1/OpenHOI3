@@ -15,7 +15,9 @@ the maintainer's 45 saves. `confirmed` unless marked.
    second**: the units, the leaders in service, the queue, what waits to be placed and the templates. **And the third**:
    the wars, the pacts, the trade routes, the convoys and mobilisation (section 6), and the battles, the finished
    battles and the sunk ships (section 7).
-3. **The writer** - a save loaded and written straight back set beside the file, block by block.
+3. **The writer** - a save loaded and written straight back set beside the file, block by block. **Its first increment
+   is built** (section 8): the layout, the top level's head, every province, each country's figures the loader's first
+   increment reads, and the factions.
 4. **The save dialog** (`ingamemenu.md`, section 6) and the autosave at the settings' interval.
 
 ## 2. What a load is
@@ -222,6 +224,38 @@ all of them in five saves: `Ireland1938_08_03_14.hoi3` - 4 land battles and 3 la
 land bombing; `Germany1936_09_02_21` - a land battle and a ground bombing, 22 finished; `Ireland1937_07_05_02` - a naval
 battle, 18 sunk. A day runs on from each without fault.
 
+## 8. The writer, its first increment
+
+`CSaveWriter` writes a game as the original's file, `CSaveTextWriter` with the original's layout [exe]
+(`FINDINGS-save.md`; `FINDINGS-savegame.md`, B.1 and B.2): lines end in CR LF; a key is indented a tab a level, the top
+level at column 0; a block's brace stands on its own line at its key's indentation; the root opens no brace and still
+closes one, so the file ends with one too many; a list of numbers stands at column 0, each followed by a space, its
+brace closing on the same line; a building's pair puts a space before each figure; a country's shares are a list
+indented at its block's depth, with five places; `faction={` is written with no line's end, so the first faction's
+key follows it on the line. The text goes out byte for byte as it was read: the readers take Windows-1252 as Latin-1,
+which keeps every byte.
+
+**What it writes**, in the original's order and each key where the original writes it:
+
+| block | written |
+| --- | --- |
+| top | `date`, `player`, `convoy` (the next convoy's number), `seed`; every province by id; every country in `common/countries.txt`'s order; `faction`, each with its members |
+| province | `flags`, `owner`, `controller`, every `core`, `manpower`, `leadership` and `revolt_risk` above nought, `strategic_resource`, every building built or working (its pair), `points`, `nationalism` where not nought, the seven pools each where any good is not nought - `pool`, `throughput`, `last_throughput`, `drawn`, `last_drawn`, `current_producing`, `max_producing`, a pool's goods supplies, money, crude oil, fuel, metal, energy, rare materials - and `weather`, each figure not nought and the pressure where not the define's |
+| country | `human` for a played country, `flags`, `variables`, `capital`, `acting_capital`, `technology` (every technology's level and progress), every category's ability, `diplo_influence`, `distribution`, `leadership`, `neutrality`, `officers`, every filled post, every law, `ideology`, `manpower`, the four `auto_*`, its relation, threat and occupation policy with every country that owns land, itself among them, `mobilize` while mobilised, `dissent`, `national_unity`, `effective_neutrality`, `highest_threat` |
+
+**What is not held is not written** - no stand-in for it, as nothing here answers from one. A technology's third figure,
+the leadership put into it, is written nought, and `notech`, the database's empty first entry, not at all.
+
+**Checked** with `OpenHOI3.SaveCheck write <install> <save> [written file]`, which loads a save, writes it, sets every
+province block beside the save's byte for byte and every block key by key - what the save has that was not written,
+what was written that it has not, values that differ and keys out of its order. On 2026-11-05, `Germany1936_01_07_22.hoi3`:
+**9,372 of 14,167 province blocks byte for byte, every other differing only by `out_of_supply_days` (4,400), `capital`
+(402) and one `history`**, which the game does not hold; every country's keys in the save's order, the written ones the
+same but each technology's third figure; `Ireland1939_09_06_18.hoi3` the same, with 8,548 provinces byte for byte and 22
+countries' effective neutrality a few hundredths off, the threat having moved within the day. **The check found a gap in
+the loader**, mended: `highest_threat`, the country each fears most, was not read, so every loaded country had its whole
+neutrality as its effective neutrality - 98 countries of the 1939 save, Britain 68 where the save has 0.
+
 ## Ours
 
 - A key nothing reads yet is reported, by its block and how often it was met, where the original drops an unknown key
@@ -263,6 +297,15 @@ battle, 18 sunk. A day runs on from each without fault.
 - A side emptied in play is decided once, by a flag the save does not keep, so the original decides it again at the
   fourth hour after a load; whether its message and its last-battle figures come again was not traced
   (`FINDINGS-savedbattle.md`, A.8); a side with no units loads here as it is written, and was not followed further.
+- **Expeditionary forces** - a unit one country has lent another, saved in the receiver's tree with
+  `expeditionary_owner` (the lender) and `expeditionary_date` - are not built, and the two keys are reported. In the
+  Ireland game's saves of 6 September 1939, Japan has lent 20 divisions to Manchukuo and 6 to Mengjiang, and the United
+  States one to the Philippines; one hour on from `_18`, 540 of Japan's brigades' organisation differs from `_19`. The
+  saves' brigades are full at Japan's officer ratio of 1.024 where ours is 1.237, Manchukuo's and Mengjiang's lent ones at
+  that same 1.024, and the receivers' own at ratios of about 1.39 where ours are 0.33 and 0.56. Counting a lent
+  division's officers to its lender gives Japan 1.022, near but not the save's, and does not fit the United States, so how
+  the original counts a lent unit, and whose ratio holds its organisation, needs reading
+  (`reversing/findings/FINDINGS-organisation.md`, section 1, has the count's two words on it).
 - What the sunk ships answer: `total_of_ours_sunk` and `total_sunk_by_us` are counts over `sunk_ships`, but their
   bodies were not read, so they stay unanswered.
 - A ship's, a brigade's and a wing's `home` and `builder` are reported throughout the unit tree and among the sunk

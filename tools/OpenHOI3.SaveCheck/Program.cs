@@ -42,6 +42,12 @@ if (args.Length > 0 && args[0] == "load")
 	return CLoadCheck.Run(args);
 }
 
+// A save loaded and written straight back, set beside the file.
+if (args.Length > 0 && args[0] == "write")
+{
+	return CWriteCheck.Run(args);
+}
+
 // The writer of the player's settings is checked against a settings.txt the original wrote.
 if (args.Length > 0 && args[0] == "settings")
 {

@@ -17,7 +17,7 @@ using OpenHOI3.Sim.Units;
 /// <summary>
 /// Loads a save of the original's as a game here and says how it went:
 ///
-///   OpenHOI3.SaveCheck load &lt;install folder&gt; &lt;savegame&gt; [hours]
+///   OpenHOI3.SaveCheck load &lt;install folder&gt; &lt;savegame&gt; [hours] [later savegame] [examples=TAG]
 ///
 /// what of the save is not loaded yet, block by block; the loaded game's figures set beside the save's where the loader
 /// reads them, and the ones it works out again - IC - beside nothing; and then the hours given run, to show the game goes
@@ -25,11 +25,16 @@ using OpenHOI3.Sim.Units;
 /// </summary>
 public static class CLoadCheck
 {
+	/// <summary>Given as <c>examples=TAG</c>: the examples of every miss are that country's, a dozen of them.</summary>
+	private static string? ExampleCountry;
+
 	public static int Run(string[] args)
 	{
+		ExampleCountry = args.FirstOrDefault(arg => arg.StartsWith("examples=", StringComparison.Ordinal))?["examples=".Length..];
+		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal)).ToArray();
 		if (args.Length < 3)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck load <install folder> <savegame> [hours] [later savegame]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck load <install folder> <savegame> [hours] [later savegame] [examples=TAG]");
 			return 2;
 		}
 		int hours = args.Length > 3 && int.TryParse(args[3], out int h) ? h : 24;
@@ -371,7 +376,7 @@ public static class CLoadCheck
 					: byCountry[what] = new Dictionary<string, int>();
 				countries[tag] = countries.GetValueOrDefault(tag) + 1;
 				List<string> list = examples.TryGetValue(what, out List<string>? found) ? found : examples[what] = new List<string>();
-				if (list.Count < 3)
+				if (ExampleCountry is { } only ? tag == only && list.Count < 12 : list.Count < 3)
 				{
 					list.Add(detail());
 				}
