@@ -65,6 +65,7 @@ public static class CNavalLosses
 				Transport.CCarriers.LetGo(state, ship);   // its air groups are let go (transport.md, section 13.1)
 				ship.Unit = null;
 				side.Sunk.Add(ship);
+				CSunkShips.Add(state, fleet.Owner, ship);
 				side.Targets.Remove(ship);
 				side.Combat.Other(side).Targets.Remove(ship);
 			}

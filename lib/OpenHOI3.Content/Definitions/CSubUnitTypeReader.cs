@@ -57,6 +57,7 @@ public static class CSubUnitTypeReader
 		adjusters.UnionWith(terrains);
 
 		var types = new List<CSubUnitType>();
+		var fileOf = new Dictionary<CSubUnitType, string>();
 		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var notNumbers = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -102,8 +103,10 @@ public static class CSubUnitTypeReader
 				CSubUnitStatsReader.Read(block, type.Stats, Statistics.Contains, adjusters.Contains,
 					entry => ReadOther(type, entry, unknownKeys), notNumbers);
 				types.Add(type);
+				fileOf[type] = file;
 			}
 		}
+		NumberInDatabaseOrder(types, fileOf);
 
 		if (types.Count == 0)
 		{
@@ -128,6 +131,50 @@ public static class CSubUnitTypeReader
 			warn($"unit types use {unknownKeys.Count} keys that are not understood: " + string.Join(", ", unknownKeys));
 		}
 		return types;
+	}
+
+	/// <summary>
+	/// Numbers the types as the original's database holds them: the files of each folder searched together, the lower
+	/// layer's first as the files are listed, but in the byte order of their names - upper case before lower, where
+	/// the listing ignores case - and a file's types in its order. See <c>docs/mechanics/savegame.md</c>, section 7.
+	/// </summary>
+	private static void NumberInDatabaseOrder(List<CSubUnitType> types, Dictionary<CSubUnitType, string> fileOf)
+	{
+		var files = new List<string>();
+		foreach (CSubUnitType type in types)
+		{
+			if (files.Count == 0 || files[^1] != fileOf[type])
+			{
+				files.Add(fileOf[type]);
+			}
+		}
+		// The listing keeps each folder's files together; within a folder the names are put in byte order.
+		var ordered = new List<string>();
+		int start = 0;
+		while (start < files.Count)
+		{
+			string folder = Path.GetDirectoryName(files[start]) ?? "";
+			int end = start;
+			while (end < files.Count && (Path.GetDirectoryName(files[end]) ?? "") == folder)
+			{
+				end++;
+			}
+			List<string> run = files.GetRange(start, end - start);
+			run.Sort((a, b) => string.CompareOrdinal(Path.GetFileName(a), Path.GetFileName(b)));
+			ordered.AddRange(run);
+			start = end;
+		}
+		int index = 0;
+		foreach (string file in ordered)
+		{
+			foreach (CSubUnitType type in types)
+			{
+				if (fileOf[type] == file)
+				{
+					type.DatabaseIndex = ++index;
+				}
+			}
+		}
 	}
 
 	private static void ReadOther(CSubUnitType type, ClausewitzNode entry, SortedSet<string> unknownKeys)

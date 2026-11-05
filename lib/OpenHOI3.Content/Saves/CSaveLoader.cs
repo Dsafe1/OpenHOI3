@@ -67,6 +67,7 @@ public static class CSaveLoader
 		state.LastUnitId = ids.Reserved;
 		var units = new CSaveUnitReader(state, ids, report);
 		var routes = new List<(Sim.Trade.CTradeRoute Route, int Convoy)>();
+		ClausewitzNode? combats = null;
 
 		foreach (ClausewitzNode node in root.Children)
 		{
@@ -129,6 +130,14 @@ public static class CSaveLoader
 				case "convoy" when !node.IsBlock:
 					state.LastConvoyId = Math.Max(state.LastConvoyId, (int)CSaveValues.Whole(node.Value) - 1);
 					break;
+				// Every ship that has left the game, each filed under its owner's tag (savegame.md, section 7).
+				case "sunk_ships" when node.IsBlock:
+					ReadSunkShips(state, node, units, report);
+					break;
+				// The battles are read once every unit is, since their sides name units.
+				case "combat" when node.IsBlock:
+					combats = node;
+					break;
 				default:
 					report.Unread("top", node.Key);
 					break;
@@ -142,6 +151,19 @@ public static class CSaveLoader
 		{
 			route.Convoy = convoys.GetValueOrDefault(convoy);
 			state.TradeRoutes.Add(route);
+		}
+		if (combats is not null)
+		{
+			CSaveCombats.Read(state, combats, units.ById, ids, report);
+		}
+		// Entering the game, a unit in a battle starts its count towards breaking off again from nought.
+		foreach (Sim.Combat.CCombat combat in state.Combats)
+		{
+			foreach (Sim.Units.CUnit unit in combat.Attacker.Units.Concat(combat.Defender.Units))
+			{
+				unit.Disengage = 0;
+				unit.DisengageTo = 0;
+			}
 		}
 
 		CCountryTag? player = played ?? (CCountryTag.TryParse(report.Player, out CCountryTag saved) ? saved : null);
@@ -193,6 +215,29 @@ public static class CSaveLoader
 		state.Aligns.Clear();
 		state.TradeRoutes.Clear();
 		state.LastConvoyId = 0;
+		state.Combats.Clear();
+		state.CombatHistory.Clear();
+		state.SunkShips.Clear();
+	}
+
+	/// <summary>
+	/// <c>sunk_ships</c>: each ship under its owner's tag, which is all that says whose it was - one under a tag of no
+	/// country is kept with none.
+	/// </summary>
+	private static void ReadSunkShips(CGameState state, ClausewitzNode block, CSaveUnitReader units, CSaveReport report)
+	{
+		foreach (ClausewitzNode entry in block.Children)
+		{
+			if (entry.Key is null || !entry.IsBlock)
+			{
+				continue;
+			}
+			CCountryTag? owner = CCountryTag.TryParse(entry.Key, out CCountryTag tag) && state.Country(tag) is not null ? tag : null;
+			if (units.ReadSunkShip(entry, state.Country(owner)) is { } ship)
+			{
+				Sim.Units.CSunkShips.Add(state, owner, ship);
+			}
+		}
 	}
 
 	private static void ReadProvince(CGameState state, CProvince province, ClausewitzNode node, CSaveReport report)

@@ -27,6 +27,13 @@ public sealed class CSubUnitType
 
 	public EUnitBranch Branch { get; }
 
+	/// <summary>
+	/// Its place in the original's database of types, from 1 - the place 0 is the database's empty type: the
+	/// <c>units</c> files in the byte order of their names, upper case first. A battle's <c>size</c> in a save is
+	/// written in this order. See <c>docs/mechanics/savegame.md</c>, section 7.
+	/// </summary>
+	public int DatabaseIndex { get; set; }
+
 	/// <summary>Its figures before any technology.</summary>
 	public CSubUnitStats Stats { get; } = new();
 

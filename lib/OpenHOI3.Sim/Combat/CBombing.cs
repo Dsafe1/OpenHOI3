@@ -245,7 +245,9 @@ public static class CBombing
 		}
 
 		var bombing = new CCombat(province.Id, kind);
-		state.Combats.Add(bombing);
+		// A bombing goes at the front of the list of battles and every other battle at the back, so a bombing's hour
+		// comes first and its dice are drawn before theirs (savegame.md, section 7).
+		state.Combats.Insert(0, bombing);
 		// A strategic bombing spreads its bomber's owner's threat (diplomacy.md, 5.3).
 		if (order == EUnitOrder.StrategicBombing && state.Country(unit.Owner) is { } bomberOwner)
 		{
@@ -421,6 +423,7 @@ public static class CBombing
 				Transport.CCarriers.LetGo(state, ship);   // its air groups are let go (transport.md, section 13.1)
 				ship.Unit = null;
 				side.Sunk.Add(ship);
+				CSunkShips.Add(state, fleet.Owner, ship);
 			}
 		}
 		if (fleet.SubUnits.Count == 0)

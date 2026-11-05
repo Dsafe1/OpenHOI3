@@ -8,7 +8,9 @@ using OpenHOI3.Content.Definitions;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Content.Saves;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -96,6 +98,8 @@ public static class CLoadCheck
 		CompareUnits(state, save, "  ", exact: true);
 		Console.WriteLine("the wars, pacts and convoys, beside the save they were read from:");
 		CompareDiplomacy(state, save, "  ");
+		Console.WriteLine("the battles, the finished battles and the sunk ships, beside the save they were read from:");
+		CompareCombats(state, save, "  ");
 
 		// Given a later save of the same game, the hours to it are run and the units set beside it.
 		ClausewitzNode? later = null;
@@ -193,6 +197,132 @@ public static class CLoadCheck
 		}
 		Line("convoys: harbours, transports and escorts, goods, way", ourConvoys, savedConvoys);
 		Line("each country's pool of transports and escorts, and mobilised", ourPools, savedPools);
+	}
+
+	/// <summary>
+	/// Every battle by its kind, province, hours and sides' units, each side's figures and lists, the order of the list
+	/// of battles - the save's bombings turned round in front of the rest - every finished battle and every sunk ship,
+	/// set beside the save's.
+	/// </summary>
+	private static void CompareCombats(CGameState state, ClausewitzNode save, string indent)
+	{
+		var ids = new CSaveIds();
+		foreach (ClausewitzNode node in save.Children)
+		{
+			if (node.Key == "unit")
+			{
+				ids.SetHistoryNext((int)CSaveValues.Whole(node.Value));
+			}
+			else if (node.Key == "id" && node.IsBlock)
+			{
+				ids.SetHighest(node.GetInt("id"), node.GetInt("type"));
+			}
+		}
+		void Line(string what, IEnumerable<string> ours, IEnumerable<string> saved)
+		{
+			var a = new List<string>(ours);
+			var b = new List<string>(saved);
+			var onlyOurs = a.Except(b).Take(2).ToList();
+			var onlySaved = b.Except(a).Take(2).ToList();
+			Console.WriteLine($"{indent}{what}: {a.Intersect(b).Count()} of {b.Count} the save's" +
+				(onlyOurs.Count > 0 ? $"; ours only {string.Join(" | ", onlyOurs)}" : "") +
+				(onlySaved.Count > 0 ? $"; save only {string.Join(" | ", onlySaved)}" : ""));
+		}
+		static string Figures(IEnumerable<string?> values) => string.Join(' ', values.Select(v => CSaveValues.Fixed(v).ToString()));
+		static string Nonzero(IEnumerable<(int Index, string Value)> figures)
+			=> string.Join(' ', figures.Where(f => f.Value != "0.000").OrderBy(f => f.Index).Select(f => $"{f.Index}:{f.Value}"));
+
+		ClausewitzNode block = save.Get("combat") ?? new ClausewitzNode();
+		var savedCombats = new List<string>();
+		var savedSides = new List<string>();
+		var savedOrder = new List<string>();
+		var savedBombings = new List<string>();
+		foreach (ClausewitzNode combat in block.Children)
+		{
+			if (combat.Key is not { } key || !CSaveCombats.Kinds.TryGetValue(key, out ECombatKind kind))
+			{
+				continue;
+			}
+			string name = $"{kind} {combat.GetInt("location")}";
+			(CBombing.IsBombing(kind) ? savedBombings : savedOrder).Add(name);
+			IEnumerable<int> Units(ClausewitzNode side, string list) => side.All(list).Select(u => ids.Of(u));
+			ClausewitzNode attacker = combat.Get("attacker") ?? new ClausewitzNode();
+			ClausewitzNode defender = combat.Get("defender") ?? new ClausewitzNode();
+			savedCombats.Add($"{name} {combat.GetInt("day")}/{combat.GetInt("duration")} " +
+				$"[{string.Join(' ', Units(attacker, "unit"))}] v [{string.Join(' ', Units(defender, "unit"))}]");
+			foreach ((string which, ClausewitzNode side) in new[] { ("A", attacker), ("D", defender) })
+			{
+				savedSides.Add($"{name} {which} dice {side.GetInt("dice")} losses {CSaveValues.Fixed(side, "losses")} " +
+					$"tactic {side.Get("tactic")?.Value ?? "-"} front [{string.Join(' ', Units(side, "front"))}] " +
+					$"reserves [{string.Join(' ', Units(side, "reserves"))}] sunk [{string.Join(' ', Units(side, "sunk_ship"))}] " +
+					$"positioning {(side.Get("positioning") is { } p ? CSaveValues.Fixed(p.Value) : CFixedPoint.Zero)} " +
+					$"size {Nonzero(side.Get("size")?.Children.Select((f, i) => (i, CSaveValues.Fixed(f.Value).ToString())) ?? [])} " +
+					$"strength {CSaveValues.Fixed(side, "strength")} " +
+					$"building {Nonzero(side.Get("building")?.Children.Select((f, i) => (i, CSaveValues.Fixed(f.Value).ToString())) ?? [])} " +
+					$"pool [{Figures(side.Get("pool")?.Children.Select(f => f.Value) ?? [])}] " +
+					$"producing [{Figures(side.Get("current_producing")?.Children.Select(f => f.Value) ?? [])}]");
+			}
+		}
+		savedBombings.Reverse();
+
+		var ourCombats = new List<string>();
+		var ourSides = new List<string>();
+		foreach (CCombat combat in state.Combats)
+		{
+			string name = $"{combat.Kind} {combat.Province}";
+			ourCombats.Add($"{name} {combat.Hour}/{combat.Duration} " +
+				$"[{string.Join(' ', combat.Attacker.Units.Select(u => u.Id))}] v [{string.Join(' ', combat.Defender.Units.Select(u => u.Id))}]");
+			bool bombing = CBombing.IsBombing(combat.Kind);
+			foreach ((string which, CCombatSide side) in new[] { ("A", combat.Attacker), ("D", combat.Defender) })
+			{
+				var sizes = side.Size.Select(pair => (pair.Key == CSaveCombats.EmptyType ? 0 : state.SubUnitTypes[pair.Key].DatabaseIndex,
+					pair.Value.ToString()));
+				var buildings = side.BuildingsDestroyed.Select(pair => (state.Buildings.First(b => b.Key == pair.Key).Index + 1,
+					pair.Value.ToString()));
+				bool bomber = bombing && side.IsAttacker;
+				ourSides.Add($"{name} {which} dice {side.Dice} losses {side.Losses} " +
+					$"tactic {(side.Tactic is { } tactic ? (state.Tactics.ToList().IndexOf(tactic) + 1).ToString() : "-")} " +
+					$"front [{string.Join(' ', side.Front.Select(u => u.Id))}] reserves [{string.Join(' ', side.Reserves.Select(u => u.Id))}] " +
+					$"sunk [{string.Join(' ', side.Sunk.Select(s => s.Id))}] positioning {side.Positioning} size {Nonzero(sizes)} " +
+					$"strength {side.StrengthDealt} building {Nonzero(buildings)} " +
+					$"pool [{(bomber ? string.Join(' ', Enumerable.Range(0, 7).Select(g => side.StockpileDestroyed[(EGoods)g].ToString())) : "")}] " +
+					$"producing [{(bomber ? string.Join(' ', Enumerable.Range(0, 7).Select(g => side.ProductionDestroyed[(EGoods)g].ToString())) : "")}]");
+			}
+		}
+		Line("battles: kind, province, hours, the two sides' units", ourCombats, savedCombats);
+		Line("their sides: dice, losses, tactic, front, reserves, sunk ships, positioning, size, a bomber's tallies", ourSides, savedSides);
+		string expected = string.Join(", ", savedBombings.Concat(savedOrder));
+		string order = string.Join(", ", state.Combats.Select(c => $"{c.Kind} {c.Province}"));
+		Console.WriteLine($"{indent}the list of battles in the original's order after a load, bombings turned round in front: " +
+			(order == expected ? "the same" : $"ours {order}; expected {expected}"));
+		Console.WriteLine($"{indent}units in a battle: {state.Combats.Sum(c => c.Attacker.Units.Count + c.Defender.Units.Count)}, " +
+			$"each holding it: {state.Combats.Sum(c => c.Attacker.Units.Concat(c.Defender.Units).Count(u => CBombing.IsBombing(c.Kind) ? u.Bombing == c : u.Combats.Contains(c)))}");
+
+		string Entry(long hour, int kind, int province, string attacker, string defender, bool convoy)
+			=> $"{kind} {province} {attacker}>{defender} {hour}{(convoy ? " convoy" : "")}";
+		var savedHistory = new List<string>();
+		foreach (ClausewitzNode entry in block.Get("history")?.Get("history")?.Children ?? [])
+		{
+			if (entry.Key is null && entry.IsBlock && CSaveValues.TryHours(entry.Get("end_date")?.Value?.Trim('"'), out long hour))
+			{
+				savedHistory.Add(Entry(hour, entry.GetInt("type"), entry.GetInt("location"), entry.Get("attacker")?.Value?.Trim('"') ?? "",
+					entry.Get("defender")?.Value?.Trim('"') ?? "", entry.Get("convoy")?.Value == "yes"));
+			}
+		}
+		Line("finished battles, in order", state.CombatHistory.Entries.Select(e => Entry(e.Hour, (int)e.Kind + 1, e.Province,
+			e.Attacker?.ToString() ?? "---", e.Defender?.ToString() ?? "---", e.IsConvoy)), savedHistory);
+
+		var savedSunk = new List<string>();
+		foreach (ClausewitzNode entry in save.Get("sunk_ships")?.Children ?? [])
+		{
+			if (entry.Key is { } owner && entry.IsBlock)
+			{
+				savedSunk.Add($"{owner} {ids.Of(entry.Get("id"))} {entry.Get("type")?.Value?.Trim('"')} {CSaveValues.Fixed(entry, "strength")} " +
+					$"by {(entry.Get("sunk_by") is { } by ? ids.Of(by) : 0)}");
+			}
+		}
+		Line("sunk ships: owner, id, type, strength, sinker", state.SunkShips.Select(s => $"{s.Owner?.ToString() ?? "---"} {s.Ship.Id} " +
+			$"{s.Ship.Type.Key} {s.Ship.Strength} by {s.Ship.SunkById}"), savedSunk);
 	}
 
 	/// <summary>

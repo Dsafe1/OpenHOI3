@@ -284,6 +284,8 @@ public static class CBomberFire
 			}
 			target.PendingOrganisationDamage += organisation;
 			target.PendingStrengthDamage += strength;
+			// The bombers keep what they have dealt, as it lands and before it is settled (savegame.md, section 7).
+			side.StrengthDealt = new CFixedPoint(side.StrengthDealt.Raw + strength);
 			if (kind == EUnitKind.Navy && StrengthLeft(target) < 0
 				&& (wing.Type.Flag(CAirModifiers.IsBomber) || wing.Type.Flag(CAirFire.IsCag)))
 			{

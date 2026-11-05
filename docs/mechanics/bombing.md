@@ -190,6 +190,11 @@ where an enemy land unit is on the move. So those two bomb on the way.
                                                             -> of ships for a fleet, else of land units
     the province has a bombing already                      -> none is made
 
+**A bombing goes at the front of the list of battles**, where every other battle goes at its back, so the bombings'
+hours are run first and their dice drawn before the battles'. `confirmed` - read for the savegame
+(`reversing/findings/FINDINGS-savedbattle.md`, B.2; `savegame.md`, section 7); until 2026-11-05 a bombing went at the
+back here.
+
 **Who is taken in.** The unit that starts is the bombers' first, and the unit it found the
 other side's. Then everybody else standing there is offered a side - **a land unit only to a
 bombing of land units, a fleet only to one of ships** - and, for a mission that goes for

@@ -223,6 +223,11 @@ public static class CCombatRetreat
 		if (unit.Kind == EUnitKind.Navy)
 		{
 			Transport.CCarriers.LetGoAll(state, unit);
+			// Every ship still in it leaves the game with it, and goes on the list of sunk ships (savegame.md, section 7).
+			foreach (CSubUnit sunk in unit.SubUnits)
+			{
+				CSunkShips.Add(state, unit.Owner, sunk);
+			}
 		}
 		// An air group aboard a carrier leaves the ship's list.
 		if (unit.CarriedBy is { } ship)

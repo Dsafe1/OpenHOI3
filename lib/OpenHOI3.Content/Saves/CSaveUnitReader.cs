@@ -224,14 +224,37 @@ public sealed class CSaveUnitReader
 
 	private void ReadSubUnit(ClausewitzNode block, string keyword, CUnit unit, CCountry owner)
 	{
+		bool regiment = keyword == "regiment";
+		if (Build(block, keyword, unit, owner, reserve: regiment && unit.IsReserve) is not { } subUnit)
+		{
+			return;
+		}
+		unit.SubUnits.Add(subUnit);
+		if (subUnit.Name.Length == 0 && regiment)
+		{
+			subUnit.Name = $"{unit.SubUnits.Count.ToString(CultureInfo.InvariantCulture)}. {unit.Name}";
+		}
+	}
+
+	/// <summary>
+	/// A ship of the save's <c>sunk_ships</c>: written as a ship in a fleet is, and belonging to no unit. Its owner is
+	/// the tag it is filed under, which the caller holds. See <c>docs/mechanics/savegame.md</c>, section 7.
+	/// </summary>
+	public CSubUnit? ReadSunkShip(ClausewitzNode block, CCountry? owner)
+	{
+		return Build(block, "sunk_ships", unit: null, owner, reserve: false);
+	}
+
+	/// <summary>A brigade, ship or wing read whole, its figures made again from its type and levels, and not put anywhere.</summary>
+	private CSubUnit? Build(ClausewitzNode block, string keyword, CUnit? unit, CCountry? owner, bool reserve)
+	{
 		string typeKey = block.Get("type")?.Value?.Trim('"') ?? "";
 		if (!_state.SubUnitTypes.TryGetValue(typeKey, out CSubUnitType? type))
 		{
 			_report.Unread(keyword, $"a brigade of no type known, {typeKey}, left out");
-			return;
+			return null;
 		}
-		bool regiment = keyword == "regiment";
-		var subUnit = new CSubUnit(type) { Unit = unit, IsReserve = regiment && unit.IsReserve };
+		var subUnit = new CSubUnit(type) { Unit = unit, IsReserve = reserve };
 		foreach (ClausewitzNode entry in block.Children)
 		{
 			if (entry.Key is not { } key)
@@ -266,12 +289,19 @@ public sealed class CSaveUnitReader
 				case "pride":
 					subUnit.IsPride = entry.Value == "yes";
 					break;
+				case "sunk_by":
+					// A sunk ship's sinker, a ship's or a wing's own id.
+					subUnit.SunkById = _ids.Of(entry);
+					break;
 				case "current_distance":
 					subUnit.Distance = CSaveValues.Fixed(entry.Value);
 					break;
+				case "air" when entry.IsBlock && owner is null:
+					_report.Unread(keyword, "an air group of a ship whose country does not exist");
+					break;
 				case "air" when entry.IsBlock:
 					// A carrier's air group: written here and nowhere else.
-					if (Read(entry, EUnitKind.Air, owner, parent: null, carriedBy: subUnit) is { } group)
+					if (Read(entry, EUnitKind.Air, owner!, parent: null, carriedBy: subUnit) is { } group)
 					{
 						subUnit.Carried.Add(group);
 					}
@@ -296,11 +326,7 @@ public sealed class CSaveUnitReader
 		{
 			subUnit.Id = ++_state.LastUnitId;
 		}
-		unit.SubUnits.Add(subUnit);
-		if (subUnit.Name.Length == 0 && regiment)
-		{
-			subUnit.Name = $"{unit.SubUnits.Count.ToString(CultureInfo.InvariantCulture)}. {unit.Name}";
-		}
+		return subUnit;
 	}
 
 	/// <summary>A theatre's plan, as <c>CUnitPlan</c> writes it.</summary>

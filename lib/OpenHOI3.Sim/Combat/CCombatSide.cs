@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Units;
@@ -61,8 +62,25 @@ public sealed class CCombatSide
 	/// <summary>Bombers of ships: whether they had their surprise in the round before this one.</summary>
 	public bool HadAirSurprise { get; set; }
 
-	/// <summary>Bombers: the levels of buildings they have destroyed, all kinds added together.</summary>
-	public CFixedPoint BuildingsDestroyed { get; set; }
+	/// <summary>
+	/// Bombers: the strength damage their hits have put on their targets over the bombing, counted as it lands and
+	/// before it is settled, so a little above the other side's losses. A save keeps it as <c>strength</c>.
+	/// </summary>
+	public CFixedPoint StrengthDealt { get; set; }
+
+	/// <summary>Bombers: the levels they have destroyed of each building, by its key. A save keeps it as <c>building</c>.</summary>
+	public Dictionary<string, CFixedPoint> BuildingsDestroyed { get; } = new(StringComparer.Ordinal);
+
+	/// <summary>
+	/// What has joined this side, by the key of each brigade's, ship's or wing's type: on land its men - its strength a
+	/// hundred times over - and a whole one for a ship or a wing. Counted again whenever a unit joins, never taken from,
+	/// so a unit that leaves and joins again counts twice; and a bombing's sides count nothing. A save keeps it as
+	/// <c>size</c>. See <c>docs/mechanics/savegame.md</c>, section 7.
+	/// </summary>
+	public Dictionary<string, CFixedPoint> Size { get; } = new(StringComparer.Ordinal);
+
+	/// <summary>A land brigade's men for each point of its strength, which is a constant of the original's.</summary>
+	public const long MenPerStrength = 100 * CFixedPoint.Scale;
 
 	/// <summary>Bombers: what they have destroyed of the province's stockpile.</summary>
 	public Economy.CGoodsPool StockpileDestroyed { get; } = new();
@@ -111,6 +129,11 @@ public sealed class CCombatSide
 			Units.Add(unit);
 		}
 		AddCountry(unit.Owner);
+		foreach (CSubUnit subUnit in unit.SubUnits)
+		{
+			long joined = Combat.Kind == ECombatKind.Land ? subUnit.Strength.Raw * MenPerStrength / CFixedPoint.Scale : CFixedPoint.Scale;
+			Size[subUnit.Type.Key] = new CFixedPoint(Size.GetValueOrDefault(subUnit.Type.Key).Raw + joined);
+		}
 		if (!unit.Combats.Contains(Combat))
 		{
 			unit.Combats.Add(Combat);

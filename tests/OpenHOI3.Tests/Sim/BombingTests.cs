@@ -738,7 +738,9 @@ public class BombingTests
 		Assert.Contains(lost, new long[] { 50, 100, 150 });
 		// The guns lose a quarter of that, by their damage factor.
 		Assert.Equal(lost / 4, 2000 - warsaw.BuildingLevel(Guns).Raw);
-		Assert.Equal(new CFixedPoint(lost + lost / 4), bombing.Attacker.BuildingsDestroyed);
+		// The bombers keep what they took off each building.
+		Assert.Equal(new CFixedPoint(lost), bombing.Attacker.BuildingsDestroyed[NavalBase.Key]);
+		Assert.Equal(new CFixedPoint(lost / 4), bombing.Attacker.BuildingsDestroyed[Guns.Key]);
 	}
 
 	[Fact]

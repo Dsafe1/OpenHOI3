@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Leaders;
@@ -149,7 +150,7 @@ public static class CProvinceBombing
 				}
 				take = Math.Min(take, current);
 				province.SetBuildingCurrentLevel(building, new CFixedPoint(current - take));
-				side.BuildingsDestroyed = new CFixedPoint(side.BuildingsDestroyed.Raw + take);
+				side.BuildingsDestroyed[building.Key] = new CFixedPoint(side.BuildingsDestroyed.GetValueOrDefault(building.Key).Raw + take);
 			}
 		}
 

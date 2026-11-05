@@ -9,12 +9,12 @@ the maintainer's 45 saves. `confirmed` unless marked.
 
 ## 1. The stages
 
-1. **The reading** - done: `FINDINGS-savegame.md`.
+1. **The reading** - done: `FINDINGS-savegame.md`, and for the battles `FINDINGS-savedbattle.md` (2026-11-05).
 2. **The loader** - in increments, each set against the maintainer's saves (sections 4 and 5). **The first is built**:
    the clock, the generator, the played country, every province and country's figures below, the factions. **So is the
-   second**: the units, the leaders in service, the queue, what waits to be placed and the templates. **The third is
-   half built**: the wars, the pacts, the trade routes, the convoys and mobilisation (section 6); its other half, the
-   battles, waits on a reading.
+   second**: the units, the leaders in service, the queue, what waits to be placed and the templates. **And the third**:
+   the wars, the pacts, the trade routes, the convoys and mobilisation (section 6), and the battles, the finished
+   battles and the sunk ships (section 7).
 3. **The writer** - a save loaded and written straight back set beside the file, block by block.
 4. **The save dialog** (`ingamemenu.md`, section 6) and the autosave at the settings' interval.
 
@@ -27,8 +27,8 @@ As the original's [exe], but where *Ours* says otherwise:
    startup's too, filled again in place.
 2. **The save is read over it**, one key at a time. Every figure the save gives is set; **one it leaves out is set to
    what leaving it out means** - nought, none, the define's pressure - and not left as the history had it. **What is not
-   loaded yet is cleared and reported**, never answered from the history (`CLAUDE.md`'s rule on what is not built):
-   today the battles, the finished battles and the sunk ships.
+   loaded yet is cleared and reported**, never answered from the history (`CLAUDE.md`'s rule on what is not built);
+   a new game's battles, finished battles and sunk ships are cleared before the save's are read.
 3. **The played country** is the one asked for (`--country=`), else the one the save names. The original never takes
    it from the save - its lobby chooses, by default the save's own (*inferred*) - so the two come to the same.
 4. **The generator** is seeded with the save's `seed`, where the original throws `seed` and `count` away
@@ -70,7 +70,8 @@ sets the owners, the laws and the technology levels beside the save's and runs t
 28,987 of 28,987**, and 24 hours run on. The list of what is left is the next increments' work:
 
 - ~~**the units**~~ - the second increment, section 5;
-- ~~**the wars** and **the pacts**~~ - the third increment, section 6; **the battles** (`combat`) and `sunk_ships`;
+- ~~**the wars** and **the pacts**~~ - the third increment, section 6; ~~**the battles** (`combat`) and `sunk_ships`~~ -
+  section 7;
 - the four id counters and the `id` blocks, the weather's fronts, the victory conditions and the faction's `progress`,
   the game's flags and its gameplay settings;
 - a country's own pools (`home`, `usage`, `to`, `back`, the traded ones), its politics (`organization`, `popularity`,
@@ -170,6 +171,57 @@ read and yesterday's pools (*Ours*) **organisation 3,203 of 4,072 and strength 4
 Two of Britain's and Japan's supply convoys are dropped at the first midnight where the original keeps them
 (*Not established*).
 
+## 7. What the third increment reads: battles, finished battles and sunk ships
+
+The second half of the third increment, read out of the original for it (`reversing/findings/FINDINGS-savedbattle.md`).
+
+**`sunk_ships`** [exe] is every ship that has left the game this session - sunk at sea, finished by bombs, or gone with
+its fleet when the fleet was disbanded or taken out of the game - in the order they went, each under its owner's tag,
+which is all that says whose it was. Nothing is ever taken off it. It is written as a ship in a fleet is, with `sunk_by`
+(its sinker's own id) where it was sunk. Here it is `CGameState.SunkShips` (`Sim/Units/CSunkShips`), kept in play from
+now on: a ship sunk in a battle at sea or by bombs, and every ship still in a fleet `CCombatRetreat.RemoveFromGame`
+takes out. It comes before `combat` in the file, so a battle's ships are found in it.
+
+**`combat`** holds each battle being fought under its kind's key - `land_combat`, `naval_combat`, `air_combat`,
+`ground_bombing`, `land_bombing`, `naval_bombing` - and `history`. A battle is made blank and put on the list of battles,
+**a bombing at its front and any other at its back** [exe] - in play as on a load, so **a save's bombings come back in
+the opposite order**, and a bombing's hour is run first. Then [exe]:
+
+| key | read |
+| --- | --- |
+| `location` | the province (`CCombat.Province`) |
+| `day` | the rounds fought, -1 before the first hour (`Hour`) |
+| `duration` | the hours begun (`Duration`); the two are equal after any whole hour |
+| `terrain` | checked against the terrains; the province's is what a battle here fights on |
+| a side's `unit` | each taken on as a unit joining in play is (`CCombatSide.Add`, `CNavalBattle.Join`, `CAirBattle.Join`, `CBombing.Join`): its owner on the side, its brigades' targets forgotten, what it brings counted into `size`, and **a fleet's ships put at their distances again**, a hundred further out since the battle has had a round - the saved `current_distance`s do not survive. Nobody goes into reserve: the original loads a save before any game is on screen |
+| `dice`, `losses` | as written |
+| `sunk_ship` | the ships the side has lost, or a bomber's has finished, found in `sunk_ships` by their own ids |
+| `size` | one figure for each unit type, in the original's database order [mod: units/*.txt] - its empty type first, then the `units` files in the byte order of their names, upper case first (`CSubUnitType.DatabaseIndex`) - overwriting what the joins counted. A side counts **a land brigade's strength a hundred times over** - men, at a constant hundred to a point [exe] - **and one for a ship or a wing**, whatever its strength, every time a unit joins, so one that joins twice counts twice; a bombing's sides count nothing (`CCombatSide.Size`) |
+| `tactic` | the tactic's place in `common/combat_tactics.txt` from 1 [mod: common/combat_tactics.txt]; written only where the side has one, which is every land side |
+| `front`, `reserves` | a land side's lists, in their order, as written |
+| `positioning` | a naval side's, overwriting what the joins worked out without the roll; the roll is not saved and never made again |
+| a bomber's `strength`, `building`, `pool`, `current_producing` | what its hits put on their targets, counted as they land (`StrengthDealt`); the levels it took off each building, the empty building first and then `common/buildings.txt`'s order [mod: common/buildings.txt]; what it took of the stockpile and of the day's production, in the goods' order |
+
+As a battle's block ends [exe]: it has begun, so its first hour is an ordinary one - no start, no naval roll; each unit
+holds it again; **a land battle sets up its attacker's front where it is not, asking twice, and never its defender's**,
+and sums its tactics; a ground bombing's side with nobody on it is the province's holder's. A land side's front counts as
+set up unless it has units and none of them on a list - a side saved before its battle's first hour, which no save of
+the maintainer's has; such a defender would stand with an empty front and lose at the fourth hour without a shot, which
+is the original's. Entering the game, every unit in a battle starts its count towards breaking off again from nought.
+
+**`history`** is the battles finished in the past week: each entry's `location`, `attacker` and `defender` (`---`
+none), `end_date`, `convoy` (written only for a raid on a convoy) and `type`, the kind from 1 - land, naval, air,
+ground, land and naval bombing [exe]. They are put at the end of the list as written; a load prunes nothing, and the
+first hour prunes to a week as every hour does.
+
+**Checked** with `OpenHOI3.SaveCheck load`, which now sets every battle - kind, province, hours, both sides' units - each
+side's dice, losses, tactic, lists, sunk ships, positioning, `size` and a bomber's tallies, the order of the list of
+battles, whether each unit holds its battle, every finished battle and every sunk ship beside the save. On 2026-11-05,
+all of them in five saves: `Ireland1938_08_03_14.hoi3` - 4 land battles and 3 land bombings, 56 finished, 30 sunk;
+`Ireland1937_11_02_21` - 2 land and a naval battle, 22 and 27; `Ireland1936_02_02_04` - a land and an air battle and a
+land bombing; `Germany1936_09_02_21` - a land battle and a ground bombing, 22 finished; `Ireland1937_07_05_02` - a naval
+battle, 18 sunk. A day runs on from each without fault.
+
 ## Ours
 
 - A key nothing reads yet is reported, by its block and how often it was met, where the original drops an unknown key
@@ -183,6 +235,11 @@ Two of Britain's and Japan's supply convoys are dropped at the first midnight wh
 - **What a province held when the supply pass last came to it is not saved**; a loaded province's is set to what it
   holds now. With none, nothing passes on the first midnight; with this, organisation four hours on gains 50 brigades
   (section 6).
+- **A land unit falling back leaves its side at once here**, where the original keeps a list of them on the side, saved
+  as `retreat`; no save of the maintainer's has one, and one would be reported. A `tactic` of no number known is
+  reported and leaves the side with none, so it picks one at its next hour, where the original holds an empty tactic
+  that counts as one until the next change of tactics. Neither is in any save.
+- The original keeps a battle on its province as well as its units; here a province's battles are found on the list.
 
 ## Not established
 
@@ -203,6 +260,10 @@ Two of Britain's and Japan's supply convoys are dropped at the first midnight wh
   day after a load; not followed further.
 - An alliance's and a puppet's `end_date` and a NAP's `balance`, `our_power` and `their_power`: nothing here holds
   them, so they are reported; whether the original ends an alliance or a puppet on its date in play was not read.
-- **The battles** (`combat`: the live ones by kind, and `history`, the finished ones) and `sunk_ships`: what a side's
-  `size`, `tactic`, `strength`, `building`, `pool` and `current_producing` are, what a finished battle's `type` numbers
-  and what a load does to a battle's fronts need the original's loaders read (the third increment's second half).
+- A side emptied in play is decided once, by a flag the save does not keep, so the original decides it again at the
+  fourth hour after a load; whether its message and its last-battle figures come again was not traced
+  (`FINDINGS-savedbattle.md`, A.8); a side with no units loads here as it is written, and was not followed further.
+- What the sunk ships answer: `total_of_ours_sunk` and `total_sunk_by_us` are counts over `sunk_ships`, but their
+  bodies were not read, so they stay unanswered.
+- A ship's, a brigade's and a wing's `home` and `builder` are reported throughout the unit tree and among the sunk
+  ships.

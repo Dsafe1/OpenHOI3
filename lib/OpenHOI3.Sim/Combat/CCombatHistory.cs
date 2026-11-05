@@ -22,7 +22,22 @@ public sealed class CCombatHistory
 	public void Record(CCombat combat, long hour)
 	{
 		_entries.Add(new CFinishedCombat(hour, combat.Kind, combat.Province,
-			First(combat.Attacker.Standing), First(combat.Defender.Standing)));
+			First(combat.Attacker.Standing), First(combat.Defender.Standing), combat.IsConvoyBattle));
+	}
+
+	/// <summary>
+	/// Puts an entry a save holds at the end of the list, as it stands: a load neither sorts nor prunes, and the first
+	/// hour after it prunes. See <c>docs/mechanics/savegame.md</c>, section 7.
+	/// </summary>
+	public void Add(CFinishedCombat entry)
+	{
+		_entries.Add(entry);
+	}
+
+	/// <summary>Empties the list, for a game loaded in its place.</summary>
+	public void Clear()
+	{
+		_entries.Clear();
 	}
 
 	/// <summary>
