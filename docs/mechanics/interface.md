@@ -339,6 +339,9 @@ files, with nothing in it placed by hand.
   the point in the texture's own pixels from the frame's corner - `confirmed`. **A DXT1 or
   DXT5 texture is refused as it loads** - "Texture ... have forbidden compression, have you
   tried DXT3?" - and the sprite tested nowhere; DXT3 and uncompressed textures are tested.
+  *Ours:* a compressed texture is unpacked before its alpha is read - until 2026-11-05 it was
+  read compressed, every pixel an error of the engine's, and the leader window, whose rows'
+  `select_leader_banner` is a DXT3 of 19,008 pixels, hung as it opened.
   That a click is what asks it is `inferred`: who calls the test was not found. The art bears
   it out - the top bar's `speed_indicator` is drawn only in columns 4 to 13 of each 32-wide
   frame and lies over the left ten pixels of `button_speedup`, which was pressed only on its

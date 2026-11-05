@@ -82,7 +82,16 @@ public sealed class CTextureManager
 		}
 		else if (LoadImageAbsolute(absolute) is { } image)
 		{
-			mask = new CAlphaMask(image);
+			// A compressed texture's pixels cannot be read as they are, so it is unpacked first: read pixel by pixel, each
+			// would fail with an error of its own.
+			if (image.IsCompressed() && image.Decompress() != Error.Ok)
+			{
+				CDiagnostics.Warn($"Texture {sprite.TextureFile} could not be unpacked to find where it is see-through");
+			}
+			else
+			{
+				mask = new CAlphaMask(image);
+			}
 		}
 		_masks[absolute] = mask;
 		return mask;
