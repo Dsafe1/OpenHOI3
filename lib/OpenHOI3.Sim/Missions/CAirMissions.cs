@@ -29,6 +29,18 @@ public static class CAirMissions
 		"AGGRESSIVE_ORGANISATION_LIMIT", "DEFENSIVE_ORGANISATION_LIMIT", "PASSIVE_ORGANISATION_LIMIT",
 	};
 
+	/// <summary>The define's organisation limit of a stance: aggressive, passive, and defensive for any other.</summary>
+	public static CFixedPoint OrganisationLimit(CGameState state, int stance)
+	{
+		string key = stance switch
+		{
+			CMission.Aggressive => OrganisationLimits[0],
+			CMission.Passive => OrganisationLimits[2],
+			_ => OrganisationLimits[1],
+		};
+		return state.Defines[CManpower.MilitarySection, key];
+	}
+
 	/// <summary>The orders under which an air unit starts and joins battles in the air.</summary>
 	public static bool IsAirMission(EUnitOrder order)
 	{

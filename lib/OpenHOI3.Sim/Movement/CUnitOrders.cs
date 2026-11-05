@@ -228,18 +228,21 @@ public static class CUnitOrders
 	/// which the unit does not move, or none (<c>landorders.md</c>, section 3).
 	/// </param>
 	/// <param name="arriveHour">A land unit's order: the hour before which it does not arrive, or none.</param>
+	/// <param name="target">The unit the order names as its target, which nothing here reads (savegame.md, section 9).</param>
 	public static void Give(CGameState state, CCountry country, CUnit unit, EUnitOrder order, int province,
 		int stance = CMission.Defensive, int priority = 0, int convoy = 0,
 		IReadOnlyList<int>? provinces = null, int time = CMission.DayAndNight, long endHour = CMission.NoEnd,
-		long? startHour = null, long? arriveHour = null)
+		long? startHour = null, long? arriveHour = null, CUnit? target = null)
 	{
 		Clear(unit);
 		unit.Order = order;
 		unit.OrderProvince = province;
+		// A given order's halt figure is its stance's limit, the command naming none (savegame.md, section 9).
 		unit.Mission = new CMission
 		{
 			Stance = stance, Priority = priority, Convoy = convoy, Time = time, EndHour = endHour,
-			StartHour = startHour ?? state.TotalHours,
+			StartHour = startHour ?? state.TotalHours, Stop = CAirMissions.OrganisationLimit(state, stance),
+			OrderTarget = target,
 		};
 		if (CMovementRules.IsLandUnit(unit))
 		{

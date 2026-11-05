@@ -1576,8 +1576,18 @@ it (`size`), and every ship that leaves the game goes on a list of sunk ships. *
 too** (section 8, `OpenHOI3.SaveCheck write`): the original's layout, the top level's head, every province, each
 country's figures and the factions - a save loaded and written back gives 9,372 of 14,167 province blocks byte for byte
 and every other differing only by what the game does not hold; its first run found the loader not reading
-`highest_threat`, mended. **Next up**: the writer's further increments, in the loader's - the units, then the wars,
-pacts, convoys and battles - then the save dialog.
+`highest_threat`, mended. **And its second** (section 9): each country's military part - the queue, the leaders in
+service, every unit tree with its brigades, orders, plans, carriers' groups and passengers, what waits to be placed and
+the templates - and the top level's two counters, every number given back as the save's pair; in nine saves of 1936 to
+1941 every country's military part is the save's line for line once a brigade's `home` and `builder`, `country_intel`
+and a lent unit's keys are taken out, but what a load changes as the original's does. The order keys the game does not
+use were read in the fact base for it (`FINDINGS-savegame.md`, C.11) and are written as the original's: an order's halt
+figure, kept on the order; a naval order's counts and an air order's figure per air type, nought for good. It mended the
+loader on the way: an invasion's landing sea and a deployment's own number are read now, the player's numbers run on
+from the history's with no gap, a waiting intercept no longer goes after the fleet its order names, and a naval order's
+being told to return is lost on a load as in the original; and a line passes over two numbers after its unit, the first
+for its deployment. **Next up**: the writer's
+further increments, in the loader's - the wars, pacts, convoys and battles - then the save dialog.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a

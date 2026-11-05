@@ -32,7 +32,7 @@ public sealed class CSaveUnitReader
 	private readonly CGameState _state;
 	private readonly CSaveIds _ids;
 	private readonly CSaveReport _report;
-	private readonly List<(CUnit Unit, int Target)> _targets = new();
+	private readonly List<(CUnit Unit, int Target, int OrderTarget)> _targets = new();
 	private readonly List<(CUnit Passenger, CUnit Carrier, int Parent, CCountry Owner)> _passengers = new();
 
 	public CSaveUnitReader(CGameState state, CSaveIds ids, CSaveReport report)
@@ -88,10 +88,10 @@ public sealed class CSaveUnitReader
 			{
 				if (order is { } known)
 				{
-					int target = CSaveOrders.Read(unit, known, entry, _ids, _report);
-					if (target > 0)
+					(int target, int orderTarget) = CSaveOrders.Read(_state, unit, known, entry, _ids, _report);
+					if (target > 0 || orderTarget > 0)
 					{
-						_targets.Add((unit, target));
+						_targets.Add((unit, target, orderTarget));
 					}
 				}
 				else
@@ -407,7 +407,7 @@ public sealed class CSaveUnitReader
 	/// </summary>
 	public void Finish()
 	{
-		foreach ((CUnit unit, int target) in _targets)
+		foreach ((CUnit unit, int target, int orderTarget) in _targets)
 		{
 			if (ById.TryGetValue(target, out CUnit? aimed))
 			{
@@ -416,6 +416,10 @@ public sealed class CSaveUnitReader
 				{
 					aimed.IsShadowed = true;
 				}
+			}
+			if (ById.TryGetValue(orderTarget, out CUnit? named))
+			{
+				unit.Mission.OrderTarget = named;
 			}
 		}
 		foreach ((CUnit passenger, CUnit carrier, int parentId, CCountry owner) in _passengers)

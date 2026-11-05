@@ -437,11 +437,14 @@ public class BuildQueueTests
 		Assert.Equal(EUnitKind.Division, division.Kind);
 		Assert.Equal("1. Division", division.Name);
 		Assert.Equal(11, division.Id);
+		// Its deployment takes the number after its own, which the line passed over.
+		Assert.Equal(12, division.DeploymentId);
 		Assert.Same(construction, Assert.Single(country.Constructions));
 		Assert.Equal(1, construction.Size);
 		Assert.Equal(CFixedPoint.Parse("0.500"), construction.Progress);
 		Assert.Equal(501, construction.UnitId);
-		Assert.Equal(502, construction.Brigades[0].Id);
+		// The next unit of the series takes a number and passes over two, as the first did.
+		Assert.Equal(504, construction.Brigades[0].Id);
 		Assert.Equal(CFixedPoint.Zero, construction.AccumulatedProgress);
 	}
 
@@ -564,7 +567,7 @@ public class BuildQueueTests
 		CConstruction construction = Assert.Single(country.Constructions);
 		Assert.Equal(101, construction.Id);
 		Assert.Equal(102, construction.UnitId);
-		Assert.Equal(103, construction.Brigades[0].Id);
+		Assert.Equal(105, construction.Brigades[0].Id);
 		Assert.Equal(2, construction.Size);
 		Assert.Equal(CFixedPoint.Parse("1.500"), construction.Manpower);
 		Assert.Equal(CFixedPoint.FromInt(97), country.Manpower);

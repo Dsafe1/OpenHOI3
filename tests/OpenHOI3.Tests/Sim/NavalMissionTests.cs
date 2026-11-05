@@ -618,6 +618,21 @@ public class NavalMissionTests
 	}
 
 	[Fact]
+	public void AnInterceptGivenOnAFleetNamesItAndIsStillAfterNobody()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit interceptor = Fleet(state, germany, Kiel, Destroyer, Destroyer);
+		CUnit enemy = Fleet(state, poland, Gdynia, Destroyer);
+		var command = new CSetUnitOrderCommand(germany.Tag, interceptor.Id, EUnitOrder.Intercept, Bight, target: enemy.Id);
+		Assert.True(command.MayExecute(state));
+		command.Execute(state);
+
+		// The order names the enemy, as the original's AI gives it; the fleet it chases is the one its search finds.
+		Assert.Same(enemy, interceptor.Mission.OrderTarget);
+		Assert.Null(interceptor.Mission.Target);
+	}
+
+	[Fact]
 	public void AnInterceptorLeavesAStrongerFleetAlone()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

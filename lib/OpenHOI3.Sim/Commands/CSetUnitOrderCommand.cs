@@ -26,6 +26,7 @@ public sealed class CSetUnitOrderCommand : CCommand
 	private readonly long _endHour;
 	private readonly long? _startHour;
 	private readonly long? _arriveHour;
+	private readonly int _target;
 
 	/// <param name="stance">0 aggressive, which is what the orders window starts at; 1 defensive; 2 passive.</param>
 	/// <param name="priority">From 0 to 4.</param>
@@ -38,11 +39,16 @@ public sealed class CSetUnitOrderCommand : CCommand
 	/// the hour before which the unit does not move, or none (<c>docs/mechanics/landorders.md</c>, section 3).
 	/// </param>
 	/// <param name="arriveHour">A land unit's order: the hour before which it does not arrive, or none.</param>
+	/// <param name="target">
+	/// The number of the unit the order names as its target, or nought: the enemy fleet the AI sends an intercept at
+	/// (<c>docs/mechanics/moving.md</c>, section 14). One no longer in the game when the command runs is named by none.
+	/// </param>
 	public CSetUnitOrderCommand(CCountryTag country, int unit, EUnitOrder order, int province,
 		int stance = CMission.Aggressive, int priority = 0, int convoy = 0,
 		System.Collections.Generic.IReadOnlyList<int>? provinces = null, int time = CMission.DayAndNight,
-		long endHour = CMission.NoEnd, long? startHour = null, long? arriveHour = null)
+		long endHour = CMission.NoEnd, long? startHour = null, long? arriveHour = null, int target = 0)
 	{
+		_target = target;
 		_startHour = startHour;
 		_arriveHour = arriveHour;
 		_country = country;
@@ -74,7 +80,8 @@ public sealed class CSetUnitOrderCommand : CCommand
 	{
 		CCountry country = state.Country(_country)!;
 		CUnitOrders.Give(state, country, Find(country)!, _order, _province, _stance, _priority, _convoy,
-			_provinces, _time, _endHour, _startHour, _arriveHour);
+			_provinces, _time, _endHour, _startHour, _arriveHour,
+			_target > 0 ? Revolts.CRebelFactions.FindUnit(state, _target) : null);
 	}
 
 	private CUnit? Find(CCountry country)

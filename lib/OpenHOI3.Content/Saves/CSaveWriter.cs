@@ -34,7 +34,14 @@ public static class CSaveWriter
 			writer.Quoted("player", player.Value);
 		}
 		writer.Int("convoy", state.LastConvoyId + 1);
+		writer.Int("unit", state.HistoryUnitNext);
 		writer.Int("seed", unchecked((int)state.Seed));
+		// The last serial minted in play, after which the original goes on numbering: the game's own count, where the
+		// original gathers the highest of what it holds (savegame.md, section 9).
+		if (state.LastUnitId >= state.HistoryUnitNext)
+		{
+			writer.IdPair("id", CSaveUnitWriter.Pair(state, state.LastUnitId));
+		}
 		foreach (CProvince province in state.Provinces)
 		{
 			if (province.Id != 0)
@@ -212,7 +219,7 @@ public static class CSaveWriter
 			CFixed15 progress = country.ResearchProgress.GetValueOrDefault(technology);
 			// The third figure is the leadership put into it, which the game does not hold.
 			writer.Key(technology);
-			writer.Line("{" + level.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + Five(progress) + " 0.000}");
+			writer.Line("{" + level.ToString(System.Globalization.CultureInfo.InvariantCulture) + " " + CSaveValues.FiveText(progress) + " 0.000}");
 		}
 		writer.End();
 		foreach (Sim.Research.CTechnologyCategory category in state.TechnologyCategories)
@@ -241,10 +248,22 @@ public static class CSaveWriter
 		writer.Quoted("ideology", country.RulingIdeology.Length > 0 ? country.RulingIdeology : "noIdeology");
 		WriteEventModifiers(writer, country.EventModifiers);
 		writer.Fixed("manpower", country.Manpower);
+		// The military part (savegame.md, section 9): the queue, the four switches, the leaders in service, the units
+		// at the top of its tree and what waits to be placed.
+		CSaveLines.WriteQueue(writer, state, country);
 		writer.Bool("auto_maintain_convoy", country.AutoMaintainConvoys);
 		writer.Bool("auto_supply_convoy", country.AutoSupplyConvoys);
 		writer.Bool("auto_resource_convoy", country.AutoResourceConvoys);
 		writer.Bool("auto_assign_leaders", country.AutoAssignLeaders);
+		CSaveLeaders.Write(writer, country);
+		foreach (Sim.Units.CUnit unit in country.Units)
+		{
+			if (CSaveUnitWriter.IsWrittenInPlace(unit))
+			{
+				CSaveUnitWriter.Write(writer, state, unit);
+			}
+		}
+		CSaveLines.WriteDeployments(writer, state, country);
 		// What it holds of every country that owns land, itself among them.
 		foreach (CCountry other in state.Countries)
 		{
@@ -262,6 +281,7 @@ public static class CSaveWriter
 			}
 			writer.End();
 		}
+		CSaveLines.WriteTemplates(writer, country);
 		if (country.Mobilised)
 		{
 			writer.Bool("mobilize", true);
@@ -276,14 +296,7 @@ public static class CSaveWriter
 	/// <summary>A list of shares with five places, indented and closing on its own line's end.</summary>
 	private static void WriteShares(CSaveTextWriter writer, string key, CFixed15[] shares)
 	{
-		writer.IndentedList(key, shares.Select(Five));
-	}
-
-	/// <summary>A fifteen-binary-place figure with five decimal places, as the original writes a share and a progress.</summary>
-	private static string Five(CFixed15 value)
-	{
-		decimal shown = (decimal)value.Raw / CFixed15.Scale;
-		return shown.ToString("0.00000", System.Globalization.CultureInfo.InvariantCulture);
+		writer.IndentedList(key, shares.Select(CSaveValues.FiveText));
 	}
 
 	/// <summary>

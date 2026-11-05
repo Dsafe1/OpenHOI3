@@ -33,6 +33,23 @@ public sealed class CMission
 	/// <summary>The fleet a patrol shadows or an interceptor is after, or null.</summary>
 	public CUnit? Target { get; set; }
 
+	/// <summary>
+	/// What the order names as its target, apart from what a mission finds: an intercept's, which the original keeps
+	/// beside the fleet its search found and saves as <c>target</c>. Nothing here reads it
+	/// (<c>docs/mechanics/savegame.md</c>, section 9).
+	/// </summary>
+	public CUnit? OrderTarget { get; set; }
+
+	/// <summary>The halt figure of an order the engine makes itself, and of every order before a command sets it.</summary>
+	public static readonly CFixedPoint NoStop = new(-1000);
+
+	/// <summary>
+	/// The order's halt figure, which the original keeps and saves as <c>stop</c>: a given order's is its stance's
+	/// organisation limit, one the engine makes itself keeps <see cref="NoStop"/>. Nothing in the original was found
+	/// reading it but its writer, and nothing here reads it (<c>docs/mechanics/savegame.md</c>, section 9).
+	/// </summary>
+	public CFixedPoint Stop { get; set; } = NoStop;
+
 	/// <summary>The target, where there is one and it is still in the game.</summary>
 	public CUnit? LiveTarget => Target is { IsRemoved: false } target ? target : null;
 

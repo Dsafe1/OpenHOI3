@@ -448,8 +448,9 @@ public static class CNavalBody
 			{
 				continue;
 			}
+			// An intercept on the enemy fleet, which the order names (moving.md, section 14).
 			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group[0].Id, EUnitOrder.Intercept, enemy.Location,
-				endHour: state.TotalHours));
+				endHour: state.TotalHours, target: enemy.Id));
 			for (int index = 1; index < group.Count; index++)
 			{
 				state.Outbox.Add(new CJoinUnitCommand(country.Tag, group[index].Id, group[0].Id));

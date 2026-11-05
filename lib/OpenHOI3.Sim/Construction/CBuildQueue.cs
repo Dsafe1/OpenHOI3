@@ -482,6 +482,8 @@ public static class CBuildQueue
 			unit.SubUnits.Add(subUnit);
 		}
 		unit.Name = name;
+		// Its deployment takes the number after the unit's, which the line passed over for it (buildqueue.md, section 4).
+		unit.DeploymentId = construction.UnitId + 1;
 		country.Deployments.Add(unit);
 
 		construction.AccumulatedExperience = CFixedPoint.Zero;
@@ -497,6 +499,7 @@ public static class CBuildQueue
 		// as it is now. A unit of several is named afresh, as a new order would be, and the
 		// line carries that name from now on; its brigades keep theirs.
 		construction.UnitId = ++state.LastUnitId;
+		state.LastUnitId += 2;
 		foreach (CBrigadeOrder order in construction.Brigades)
 		{
 			order.Id = ++state.LastUnitId;

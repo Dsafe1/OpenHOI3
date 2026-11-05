@@ -14,12 +14,14 @@ using OpenHOI3.Sim;
 /// <summary>
 /// Loads a save, writes it straight back and sets the two beside each other:
 ///
-///   OpenHOI3.SaveCheck write &lt;install folder&gt; &lt;savegame&gt; [written file]
+///   OpenHOI3.SaveCheck write &lt;install folder&gt; &lt;savegame&gt; [written file] [keys=text,text]
+///   OpenHOI3.SaveCheck write &lt;install folder&gt; new &lt;start-date savegame&gt; [written file] [keys=text,text]
 ///
 /// every province block byte for byte, and every block key by key - what the save has that was not written, what was
 /// written that the save has not, the values that differ, and keys out of the save's order - tallied by the kind of
-/// block, with the first few of each. Nothing of the install or the save is changed. See
-/// <c>docs/mechanics/savegame.md</c>, section 8.
+/// block, with the first few of each, or every key whose path holds one of the texts given. With <c>new</c>, a new game
+/// is written instead and set beside the start save. Nothing of the install or the save is changed. See
+/// <c>docs/mechanics/savegame.md</c>, sections 8 and 9.
 /// </summary>
 public static class CWriteCheck
 {
@@ -46,9 +48,9 @@ public static class CWriteCheck
 
 	public static int Run(string[] args)
 	{
-		if (args.Length < 3)
+		if (args.Length < 3 || args[2] == "new" && args.Length < 4)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck write <install folder> <savegame> [written file]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck write <install folder> <savegame | new start-date savegame> [written file] [keys=..]");
 			return 2;
 		}
 		var warnings = new List<string>();
@@ -56,15 +58,34 @@ public static class CWriteCheck
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
-		(CGameState state, CSaveReport _) = CSaveLoader.Load(directories, map, localisation, countries, args[2], warn: warnings.Add);
+		// With "new", a new game as a player gets it, the start save's country played, written beside that save: meant
+		// to differ where the original's AI has moved by then, and there to show the layout and the numbering.
+		bool fresh = args[2] == "new";
+		string savePath = fresh ? args[3] : args[2];
+		string[] rest = args.Skip(fresh ? 4 : 3).ToArray();
+		CGameState state;
+		if (fresh)
+		{
+			using var scripts = new OpenHOI3.Lua.CAiScripts(directories, warnings.Add);
+			ClausewitzNode start = ClausewitzParser.ParseFile(savePath);
+			state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
+				played: new[] { new OpenHOI3.Sim.Countries.CCountryTag(start.GetString("player")) });
+		}
+		else
+		{
+			(state, CSaveReport _) = CSaveLoader.Load(directories, map, localisation, countries, savePath, warn: warnings.Add);
+		}
 		var clock = Stopwatch.StartNew();
 		string written = CSaveWriter.Write(state);
 		Console.WriteLine($"written in {clock.ElapsedMilliseconds} ms, {written.Length:N0} characters");
-		string path = args.Length > 3 ? args[3] : System.IO.Path.Combine(System.IO.Path.GetTempPath(), "openhoi3_written.hoi3");
+		// keys=<text>,<text> lists every key whose path holds one of the texts, where otherwise only the commonest are.
+		s_keys = rest.FirstOrDefault(arg => arg.StartsWith("keys=", StringComparison.Ordinal))?[5..].Split(',');
+		string path = rest.FirstOrDefault(arg => !arg.StartsWith("keys=", StringComparison.Ordinal))
+			?? System.IO.Path.Combine(System.IO.Path.GetTempPath(), "openhoi3_written.hoi3");
 		System.IO.File.WriteAllBytes(path, Encoding.Latin1.GetBytes(written));
 		Console.WriteLine($"to {path}");
 
-		string original = Encoding.Latin1.GetString(System.IO.File.ReadAllBytes(args[2]));
+		string original = Encoding.Latin1.GetString(System.IO.File.ReadAllBytes(savePath));
 		CompareProvinceBytes(original, written, state.Provinces.Count);
 
 		ClausewitzNode saved = ClausewitzParser.Parse(original);
@@ -197,16 +218,22 @@ public static class CWriteCheck
 
 	private static string Cut(string text) => text.Length > 60 ? text[..60] + "..." : text;
 
+	/// <summary>With <c>keys=</c>, the texts one of which a key's path must hold to be listed, and then every such key is.</summary>
+	private static string[]? s_keys;
+
 	private static void Lines(string what, SortedDictionary<string, int> counts, CTally tally)
 	{
-		foreach ((string key, int count) in counts.OrderByDescending(pair => pair.Value).Take(25))
+		var shown = counts.Where(pair => s_keys is null || s_keys.Any(text => pair.Key.Contains(text, StringComparison.Ordinal)))
+			.OrderByDescending(pair => pair.Value).ToList();
+		int limit = s_keys is null ? 25 : int.MaxValue;
+		foreach ((string key, int count) in shown.Take(limit))
 		{
 			string example = tally.Examples.TryGetValue(key, out List<string>? list) ? list[0] : "";
 			Console.WriteLine($"{what}: {key} x{count}   {Cut(example)}");
 		}
-		if (counts.Count > 25)
+		if (shown.Count > limit)
 		{
-			Console.WriteLine($"{what}: and {counts.Count - 25} more keys");
+			Console.WriteLine($"{what}: and {shown.Count - limit} more keys");
 		}
 	}
 

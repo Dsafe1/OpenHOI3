@@ -102,6 +102,9 @@ public sealed class COrderUnitCommand : CCommand
 
 		construction.Id = ++state.LastUnitId;
 		construction.UnitId = ++state.LastUnitId;
+		// Two numbers passed over, the first of them the finished unit's deployment's, as every line of the original
+		// leaves them (buildqueue.md, section 4).
+		state.LastUnitId += 2;
 		foreach (CBrigadeOrder order in construction.Brigades)
 		{
 			order.Id = ++state.LastUnitId;

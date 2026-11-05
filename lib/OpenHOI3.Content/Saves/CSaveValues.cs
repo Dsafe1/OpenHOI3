@@ -30,6 +30,13 @@ public static class CSaveValues
 			: CFixed15.Zero;
 	}
 
+	/// <summary>A fifteen-binary-place figure with five decimal places, as the original writes a share and a progress.</summary>
+	public static string FiveText(CFixed15 value)
+	{
+		decimal shown = (decimal)value.Raw / CFixed15.Scale;
+		return shown.ToString("0.00000", CultureInfo.InvariantCulture);
+	}
+
 	/// <summary>A whole number, read without the float the parser's own reading goes through.</summary>
 	public static long Whole(string? text)
 	{

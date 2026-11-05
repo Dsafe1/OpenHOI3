@@ -256,6 +256,13 @@ public sealed class CGameState
 	/// </summary>
 	public int LastUnitId { get; set; }
 
+	/// <summary>
+	/// The first number not made by the history: what a new game's order of battle and queue gave are below it, and
+	/// what was made in play from it on - the original's <c>unit</c> counter, which a save writes each number by. See
+	/// <c>docs/mechanics/savegame.md</c>, section 5.
+	/// </summary>
+	public int HistoryUnitNext { get; set; } = 1;
+
 	/// <summary>The last number given to a convoy.</summary>
 	public int LastConvoyId { get; set; }
 

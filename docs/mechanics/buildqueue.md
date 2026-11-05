@@ -273,9 +273,16 @@ would allow it 42**. Germany's cruiser practical goes from 4.811 to 6.276 over t
 1.6 gained, then April's decay. Four more units finished between the saves, in countries an
 AI runs, have the experience this gives: 5 of 5.
 
-*Ours:* the original gives the unit's waiting place the number after the unit's and the
-next unit of a series the one after that, which collides with the first brigade's. Here
-the next of a series takes fresh numbers for its unit and its brigades. And a line may be
+**The unit's waiting place - its deployment - takes the number after the unit's**, which a
+line passes over for it: a file's line, as above, and a line ordered in play here takes one
+for itself, one for its unit, two passed over and one a brigade the same way (since
+2026-11-05, `savegame.md` section 9; the original's own in the saves leave the two too). A
+save writes the deployment's number, and the original finds a deployment by nothing else.
+`confirmed`
+
+*Ours:* the original gives the next unit of a series the number two after the last, which
+collides with the first brigade's. Here the next of a series takes fresh numbers for its
+unit, passing over two after it, and for its brigades. And a line may be
 aimed at a unit in the field, which the finished brigade then joins: not built.
 
 ## 7. Cancelling, moving and placing

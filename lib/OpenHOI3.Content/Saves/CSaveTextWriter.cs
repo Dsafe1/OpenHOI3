@@ -127,6 +127,29 @@ public sealed class CSaveTextWriter
 		CloseList();
 	}
 
+	/// <summary>A list of bare words at column 0, its brace closing on the same line: a leader's traits, a template's types.</summary>
+	public void Words(string key, IEnumerable<string> values)
+	{
+		Begin(key);
+		foreach (string value in values)
+		{
+			_text.Append(value).Append(' ');
+		}
+		CloseList();
+	}
+
+	/// <summary>The serial and the type of an id pair: <c>key = { id = N type = T }</c>.</summary>
+	public void IdPair(string key, (int Serial, int Type) pair)
+	{
+		IdPair(key, pair.Serial, pair.Type);
+	}
+
+	/// <summary>An empty line, as the original leaves after a patrol's fleet.</summary>
+	public void BlankLine()
+	{
+		_text.Append("\r\n");
+	}
+
 	/// <summary>A list of thousandths figures at column 0, its brace closing on the same line.</summary>
 	public void Figures(string key, IEnumerable<CFixedPoint> values)
 	{

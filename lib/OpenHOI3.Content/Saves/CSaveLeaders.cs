@@ -68,6 +68,41 @@ public static class CSaveLeaders
 		}
 	}
 
+	/// <summary>
+	/// The leaders in service, in their order: each <c>&lt;id&gt;=</c> at column 0, then his rank, his skill where it is
+	/// not his file's, his experience with five places, his progress towards each trait and his traits.
+	/// </summary>
+	public static void Write(CSaveTextWriter writer, CCountry country)
+	{
+		writer.Begin("active_leaders");
+		foreach (CLeader leader in country.ActiveLeaders)
+		{
+			writer.KeyAtColumnZero(leader.Id.ToString(System.Globalization.CultureInfo.InvariantCulture));
+			writer.OpenBrace();
+			writer.Int("rank", leader.Rank);
+			if (leader.Skill != leader.StartingSkill)
+			{
+				writer.Int("skill", leader.Skill);
+			}
+			writer.Key("current_experience");
+			writer.Line(CSaveValues.FiveText(leader.Experience));
+			writer.Begin("gainable_trait");
+			foreach ((CTrait trait, int progress) in leader.TraitProgress.Progress)
+			{
+				writer.Fixed(trait.Key, new CFixedPoint(progress));
+			}
+			writer.Int("duration", leader.TraitProgress.Duration);
+			writer.Int("current", leader.TraitProgress.CurrentHour);
+			writer.End();
+			if (leader.Traits.Count > 0)
+			{
+				writer.Words("trait", leader.Traits.Select(trait => trait.Key));
+			}
+			writer.End();
+		}
+		writer.End();
+	}
+
 	private static void ReadProgress(CGameState state, CTraitProgress progress, ClausewitzNode block, CSaveReport report)
 	{
 		progress.Progress.Clear();

@@ -225,6 +225,13 @@ public sealed class CUnit
 	public bool IsReserve { get; set; }
 
 	/// <summary>
+	/// While it waits to be placed, the number of the deployment it waits in, which the original's is apart from the
+	/// unit's own: as a save gave it, and nought where none did - a deployment made here is given none
+	/// (<c>docs/mechanics/savegame.md</c>, section 9).
+	/// </summary>
+	public int DeploymentId { get; set; }
+
+	/// <summary>
 	/// The number of the leader its order of battle names, or 0. It is put on the unit as
 	/// a game is made; see <see cref="Leader"/>.
 	/// </summary>

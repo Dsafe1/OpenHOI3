@@ -439,6 +439,9 @@ makes nobody at war (`war.md`, section 1).
    at naval stance 1) unless it carries troops; the nearest free fleets, reachable, with power, not on patrol unless the
    enemy carries troops, with a screen against all submarines, are gathered until they hold twice its power; holding its
    power - two thirds of it for a troop carrier - the first is given an **intercept** at it and the rest **join** it.
+   The intercept is given on the enemy fleet, which the order names as its `target` (`CMission.OrderTarget`) and
+   nothing in its hour reads: the fleet it chases is the one its own search finds (`savegame.md`, section 9). Named
+   since 2026-11-05, when the save writer found all six of the original's saved intercepts naming theirs.
 
 ## 15. The sealift (`CAIUnit::AssignAreaTargetsAndSealift`, `FINDINGS-moving.md` F.1 to F.7)
 

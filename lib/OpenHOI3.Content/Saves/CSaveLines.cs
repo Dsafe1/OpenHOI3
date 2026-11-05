@@ -125,7 +125,8 @@ public static class CSaveLines
 	}
 
 	/// <summary>A finished unit waiting to be placed: its number, then the one unit, which has no location.</summary>
-	public static void ReadUnitDeployment(CCountry country, ClausewitzNode block, CSaveUnitReader units, CSaveReport report)
+	public static void ReadUnitDeployment(CCountry country, ClausewitzNode block, CSaveIds ids, CSaveUnitReader units,
+		CSaveReport report)
 	{
 		foreach (ClausewitzNode entry in block.Children)
 		{
@@ -137,6 +138,7 @@ public static class CSaveLines
 			{
 				if (units.Read(entry, kind, country, parent: null, carriedBy: null, placed: false) is { } unit)
 				{
+					unit.DeploymentId = ids.Of(block.Get("id"));
 					country.Deployments.Add(unit);
 				}
 				continue;
@@ -180,6 +182,147 @@ public static class CSaveLines
 			}
 			country.Templates.Add(template);
 		}
+	}
+
+	/// <summary>The original pads a country's templates to this many with empty ones.</summary>
+	private const int TemplateSlots = 12;
+
+	/// <summary>
+	/// The queue, each line under its kind's key in queue order: the keys every line has, then a unit's name, number,
+	/// manpower, reserve, brigades and what it has gathered, a building line's building counted from one, and a convoy
+	/// line's second status, whether it builds escorts.
+	/// </summary>
+	public static void WriteQueue(CSaveTextWriter writer, CGameState state, CCountry country)
+	{
+		foreach (CConstruction line in country.Constructions)
+		{
+			writer.Begin(line.IsBuilding ? "building_construction" : line.IsConvoy ? "convoy_construction" : "military_construction");
+			writer.IdPair("id", CSaveUnitWriter.Pair(state, line.Id));
+			writer.Int("size", line.Size);
+			writer.Fixed("cost", line.Cost);
+			writer.Fixed("duration", line.Duration);
+			writer.Fixed("progress", line.Progress);
+			writer.Fixed("status", line.Status);
+			if (line.Location > 0)
+			{
+				writer.Int("location", line.Location);
+			}
+			writer.Quoted("country", line.Country.Value);
+			if (line.Building is { } building)
+			{
+				writer.Int("building", BuildingNumber(state, building));
+			}
+			else if (line.IsConvoy)
+			{
+				writer.Bool("status", line.IsEscorts);
+			}
+			else
+			{
+				WriteUnitLine(writer, state, line);
+			}
+			writer.End();
+		}
+	}
+
+	private static void WriteUnitLine(CSaveTextWriter writer, CGameState state, CConstruction line)
+	{
+		// A name of one letter is not written.
+		if (line.Name.Length >= 2)
+		{
+			writer.Quoted("name", line.Name);
+		}
+		writer.IdPair("unit", CSaveUnitWriter.Pair(state, line.UnitId));
+		writer.Fixed("manpower", line.Manpower);
+		if (line.IsReserve)
+		{
+			writer.Bool("is_reserve", true);
+			writer.Fixed("factor", line.ReservesFactor);
+		}
+		foreach (CBrigadeOrder brigade in line.Brigades)
+		{
+			writer.Begin(brigade.Type.Key);
+			writer.IdPair("id", CSaveUnitWriter.Pair(state, brigade.Id));
+			if (brigade.Name.Length > 0)
+			{
+				writer.Quoted("name", brigade.Name);
+			}
+			if (brigade.Model.Count > 0)
+			{
+				writer.IndentedList("model", brigade.Model.Select(level => level.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+			}
+			if (brigade.Experience.Raw > 0)
+			{
+				writer.Fixed("experience", brigade.Experience);
+			}
+			writer.End();
+		}
+		writer.Fixed("accumulated_experiance", line.AccumulatedExperience);
+		writer.Fixed("accumulated_progress", line.AccumulatedProgress);
+	}
+
+	/// <summary>
+	/// What waits to be placed: a finished unit with no location, and a finished building with its number and its
+	/// building. A unit's deployment's own number is written where it has one (<c>savegame.md</c>, section 9).
+	/// </summary>
+	public static void WriteDeployments(CSaveTextWriter writer, CGameState state, CCountry country)
+	{
+		foreach (CUnit unit in country.Deployments)
+		{
+			writer.Begin("unit_deployment");
+			if (unit.DeploymentId > 0)
+			{
+				writer.IdPair("id", CSaveUnitWriter.Pair(state, unit.DeploymentId));
+			}
+			CSaveUnitWriter.Write(writer, state, unit);
+			writer.End();
+		}
+		foreach (CBuildingDeployment deployment in country.BuildingDeployments)
+		{
+			writer.Begin("building_deployment");
+			writer.IdPair("id", CSaveUnitWriter.Pair(state, deployment.Id));
+			writer.Int("building", BuildingNumber(state, deployment.Building));
+			writer.End();
+		}
+	}
+
+	/// <summary>
+	/// The templates, each its brigades' types at column 0, padded to twelve with empty <c>PW_TEMPLATE_</c> entries
+	/// named by their place, as the original's list always is.
+	/// </summary>
+	public static void WriteTemplates(CSaveTextWriter writer, CCountry country)
+	{
+		writer.Begin("saved_templates");
+		foreach (CDivisionTemplate template in country.Templates)
+		{
+			if (template.Brigades.Count > 0)
+			{
+				writer.Words(template.Name, template.Brigades);
+			}
+			else
+			{
+				writer.Begin(template.Name);
+				writer.End();
+			}
+		}
+		for (int slot = country.Templates.Count; slot < TemplateSlots; slot++)
+		{
+			writer.Begin("PW_TEMPLATE_" + slot.ToString(System.Globalization.CultureInfo.InvariantCulture));
+			writer.End();
+		}
+		writer.End();
+	}
+
+	/// <summary>A building as a save names it: its place in the file, counted from one.</summary>
+	private static int BuildingNumber(CGameState state, CBuilding building)
+	{
+		for (int index = 0; index < state.Buildings.Count; index++)
+		{
+			if (state.Buildings[index] == building)
+			{
+				return index + 1;
+			}
+		}
+		return 0;
 	}
 
 	/// <summary>A line's shared key; answers whether it was one.</summary>

@@ -62,6 +62,7 @@ public static class CDeployment
 	public static void Place(CGameState state, CCountry country, CUnit unit, int provinceId)
 	{
 		country.Deployments.Remove(unit);
+		unit.DeploymentId = 0;
 		unit.Location = provinceId;
 		if (unit.Kind == EUnitKind.Navy || unit.Kind == EUnitKind.Air)
 		{

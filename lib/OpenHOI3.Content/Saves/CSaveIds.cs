@@ -25,7 +25,24 @@ public sealed class CSaveIds
 	public int Highest { get; private set; }
 
 	/// <summary>The highest number the history's and the player's minting can take: a number above it is free.</summary>
-	public int Reserved => _historyNext + _playedHighest;
+	public int Reserved => _historyNext - 1 + _playedHighest;
+
+	/// <summary>The save's <c>unit</c> counter, the next serial of what the history made.</summary>
+	public int HistoryNext => _historyNext;
+
+	/// <summary>
+	/// A number given back as the save's pair: below the history's counter, the history's own serial of type 41; from
+	/// it on, minted in play, type 4713 and counted from one at the counter. Nought is the null pair. Another peer's minting
+	/// is not told apart, and is written as the player's (<c>savegame.md</c>, *Ours*).
+	/// </summary>
+	public static (int Serial, int Type) Pair(int id, int historyNext)
+	{
+		if (id <= 0)
+		{
+			return (0, 0);
+		}
+		return id < historyNext ? (id, History) : (id - historyNext + 1, Played);
+	}
 
 	/// <summary>The save's <c>unit</c> counter: the next serial of what the history made.</summary>
 	public void SetHistoryNext(int next)
@@ -65,11 +82,11 @@ public sealed class CSaveIds
 		}
 		else if (type == Played)
 		{
-			id = _historyNext + serial;
+			id = _historyNext - 1 + serial;
 		}
 		else if (!_others.TryGetValue((serial, type), out id))
 		{
-			id = _historyNext + _playedHighest + 1 + _others.Count;
+			id = Reserved + 1 + _others.Count;
 			_others[(serial, type)] = id;
 		}
 		if (id > Highest)

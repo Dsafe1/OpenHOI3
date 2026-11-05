@@ -58,9 +58,16 @@ public class SaveUnitsTests
 		ids.SetHistoryNext(5608);
 		ids.SetHighest(2574, CSaveIds.Played);
 		Assert.Equal(87, ids.Of(87, CSaveIds.History));
-		Assert.Equal(5608 + 3, ids.Of(3, CSaveIds.Played));
+		// The player's first serial is the counter itself, right after the history's last.
+		Assert.Equal(5608, ids.Of(1, CSaveIds.Played));
+		Assert.Equal(5608 + 2, ids.Of(3, CSaveIds.Played));
 		Assert.True(ids.Of(10, CSaveIds.Played) > ids.Of(3, CSaveIds.Played));
 		Assert.Equal(0, ids.Of(0, 0));
+		// And each number is given back as the pair it came from.
+		Assert.Equal((87, CSaveIds.History), CSaveIds.Pair(87, ids.HistoryNext));
+		Assert.Equal((3, CSaveIds.Played), CSaveIds.Pair(ids.Of(3, CSaveIds.Played), ids.HistoryNext));
+		Assert.Equal((2574, CSaveIds.Played), CSaveIds.Pair(ids.Reserved, ids.HistoryNext));
+		Assert.Equal((0, 0), CSaveIds.Pair(0, ids.HistoryNext));
 		// A third type goes after both, and the same pair is the same number.
 		int other = ids.Of(1, 4714);
 		Assert.True(other > ids.Reserved);

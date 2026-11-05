@@ -17,7 +17,8 @@ the maintainer's 45 saves. `confirmed` unless marked.
    battles and the sunk ships (section 7).
 3. **The writer** - a save loaded and written straight back set beside the file, block by block. **Its first increment
    is built** (section 8): the layout, the top level's head, every province, each country's figures the loader's first
-   increment reads, and the factions.
+   increment reads, and the factions. **So is its second** (section 9): each country's military part - what the loader's
+   second increment reads.
 4. **The save dialog** (`ingamemenu.md`, section 6) and the autosave at the settings' interval.
 
 ## 2. What a load is
@@ -87,10 +88,12 @@ From `FINDINGS-savegame.md`, section C, [exe] but where marked.
 
 **Ids.** A unit's, a brigade's and a line's id is a pair (section 3). What the history made is type 41, and its serials
 are the numbers a new game here gives them - one count over units, brigades and lines - so they are kept as they are;
-the save's top-level `unit` is the next of them. What the player minted in play is type 4713, numbered here after that
-counter in the order it was minted, so a unit's place among its country's units, which reinforcement and the shares go
-by, is the original's (*Ours*: the numbers themselves are this game's). Any other type - another peer's - goes after
-both. A leader's id is his own (type 37), the number his file gives him.
+the save's top-level `unit` is the next of them. What the player minted in play is type 4713, numbered here from that
+counter on in the order it was minted - serial 1 is the counter itself, so the history's numbers and the player's run on
+with no gap - and a unit's place among its country's units, which reinforcement and the shares go by, is the original's
+(*Ours*: the numbers themselves are this game's). Any other type - another peer's - goes after both. A leader's id is
+his own (type 37), the number his file gives him. The counter is kept (`CGameState.HistoryUnitNext`), which is how the
+writer gives each number back as its pair (section 9).
 
 **The tree.** A country's top-level `theatre`, `armygroup`, `army`, `corps`, `division`, `navy` and `air` blocks, each
 with everything under it:
@@ -99,7 +102,7 @@ with everything under it:
 | --- | --- |
 | unit | `id`, `name`, `base`, `leader`, `previous`, `movement_progress`, `path`, `location`, `retreat`, `dig_in`, `attack_delay`, `combat_hours`, `is_prioritized`, `can_reinforce`, `can_upgrade`, `fuel` and `supplies` (what it was given), `start_date` and `end_date` (the order's two hours, `landorders.md` section 5), `disengage`, `possible_retreat`, `track` (shadowed by a patrol), `was_paradropped`, `is_reserve`, `plan`, `target` and `staging_province` (the AI's sealift and an airborne army's staging), `at_sea` (the hours before a fleet starts another battle), the order, every brigade, every unit under it |
 | brigade (`regiment`, `ship`, `wing`) | `id`, `name`, `type`, `organisation`, `strength`, `highest`, `experience`, `is_reserve`, `pride`, `current_distance`, every `<technology>={level progress}`, and a carrier's `air` groups |
-| order | `province`, `target`, `stance`, `start_date`, `death_date` (the end hour; `1.1.1` none), `return_to_base`, `time`, `priority`; a patrol's and an intercept's `provinces` and a join's `join_fleet` (the unit aimed at), an air order's `provinces` (its area), a sortie's `start` and `current`, a raid's `attack` (its hours to the next try at the convoys - *inferred* from the field it is written from), an escort's `convoy` and second `province`, a support attack's `combat`, an air supply's `supplies` and `fuel` |
+| order | `province`, `target`, `stance`, `start_date`, `death_date` (the end hour; `1.1.1` none), `return_to_base`, `time`, `priority`; a patrol's and an intercept's `provinces` and a join's `join_fleet` (the unit aimed at), an air order's `provinces` (its area), a sortie's `start` and `current`, a raid's `attack` (its hours to the next try at the convoys - *inferred* from the field it is written from), an escort's `convoy` and second `province`, a support attack's `combat`, an air supply's `supplies` and `fuel`, an invasion's `transport` (the sea the landing is made from, `FINDINGS-transport.md` B.1) |
 | plan | `active`, `allow_hq_reorg`, the three stances, `our_power`, `their_power`, `embark`, `debark`, `path`, `path2`, `ops_area`, every `objective`, `min` |
 
 - **A unit with no `location` is thrown away**, as the original deletes one - but the unit of a `unit_deployment`,
@@ -119,7 +122,7 @@ with everything under it:
 | --- | --- |
 | `active_leaders` | each `<id>=` a leader of the files', in service in that order: `rank`, `skill` (only where not the file's), `current_experience`, `gainable_trait` (`duration`, `current`, each trait's progress) and `trait` - one held already not added twice; then his skill and experience raised to their floors. A number of no file's leader is passed over |
 | `military_construction`, `building_construction`, `convoy_construction` | in queue order, interleaved as written, each with `id`, `size`, `cost`, `duration`, `progress`, `status`, `location` - **never priced again**; a unit's line its `name`, `unit`, `manpower`, `is_reserve` and `factor`, `accumulated_experiance` and `accumulated_progress`, and each brigade's `id`, `name`, `experience` and `model`; a building line its `building`, counted from one in the file's order; a convoy line escorts where its second `status` is `yes` |
-| `unit_deployment`, `building_deployment` | a finished unit with no location, and a finished building, waiting to be placed |
+| `unit_deployment`, `building_deployment` | a finished unit with no location, with the deployment's own `id` (`CUnit.DeploymentId`), and a finished building, waiting to be placed |
 | `auto_maintain_convoy`, `auto_supply_convoy`, `auto_resource_convoy` | the three switches |
 | `saved_templates` | in place of the country file's; the original's empty `PW_TEMPLATE_` padding left out (*Ours*) |
 
@@ -259,6 +262,84 @@ neutrality as its effective neutrality - 98 countries of the 1939 save, Britain 
 the modifiers events have given a country or a province, `modifier = { modifier = .. date = .. }` - 22 in the save of
 16 July 1941 - were reported and not read; they are read and written now.
 
+## 9. The writer, its second increment: the military part
+
+What the loader's second increment reads (section 5), written as the original writes it [exe]
+(`FINDINGS-savegame.md`, sections C.1 to C.8): `CSaveUnitWriter`, and a `Write` beside each reader - `CSaveOrders`,
+`CSaveLeaders`, `CSaveLines`.
+
+**The top level** gains `unit`, the history's counter, after `convoy`, and after `seed` the `id` block, the last serial
+of type 4713. **Every number goes back as its pair** (section 5): below the counter the history's own serial of type
+41, from it on type 4713 counted from one. The `id` block is the game's own count of what it has minted, where the
+original gathers the highest serial of what it holds; after a load they are the save's, and the original numbers on from
+it either way. **A new game counts as the history's everything it made before the game is entered**, its two days among
+it: the original's start save holds nothing of type 4713, its `unit` counter is 5,608, and a new game here comes to the
+same; its `id` of 106 counts what the original minted in those days and never writes, and here nothing is, so none is
+written.
+
+**A country's military part**, after `manpower` and in this order: the queue, each line under its kind's key; the
+four `auto_*` switches; `active_leaders`; the units at the top of its tree; what waits to be placed; then the relation
+blocks, and `saved_templates` after them.
+
+| block | written |
+| --- | --- |
+| line | `id`, `size`, `cost`, `duration`, `progress`, `status`, `location` where one, `country`; a unit's `name` where of two letters or more, `unit`, `manpower`, `is_reserve` and `factor` for a reserve, each brigade under its type (`id`, `name` where one, `model` - an indented list - and `experience` above nought), `accumulated_experiance`, `accumulated_progress`; a building line's `building` counted from one; a convoy line's second `status`, whether it builds escorts |
+| leader | `<id>=` at column 0, `rank`, `skill` where not his file's, `current_experience` with five places, `gainable_trait` - each trait's progress, `duration`, `current` - and `trait`, a list of words at column 0, where he has any |
+| unit | `id`, `name`, `base` for a fleet or an air unit not on a carrier, `leader`, `previous` above nought, `movement_progress`, `path` (an indented list) where it has one, `location` where it has one, `retreat`, `dig_in`, `attack_delay` and `combat_hours` above nought, `is_prioritized`, `can_reinforce`, `can_upgrade`, `fuel`, `supplies`, the brigades, the units under it but those aboard, the order, `start_date`, `disengage` and `possible_retreat` while the count runs, `end_date`, `track`, `was_paradropped`, the `plan` of an active corps or above; a land unit's `target`, `staging_province` and, aboard, `parent`; a fleet's or an aeroplane's passengers, each under its level; a fleet's `at_sea`, last |
+| brigade | `id`, `name`, `type`, `organisation`, `strength`, `highest`, `experience`, `is_reserve`, `pride`, `current_distance` while its unit is in a battle - not a bombing - `sunk_by`, a `<technology>={level progress}` line for each of its type's technologies, and a carrier's `air` groups |
+| order | `province`, `target` for an intercept (the fleet its order names) or a join, `stance`, `start_date` and `death_date` (`1.1.1.0` none), `return_to_base`, `time`, `priority`, `stop`; an air order's `return_to_base` and `priority` again, a naval order's own - its `return_to_base` always `no` - and its `capital`, `sub_unit` and `other`, always nought; an air order's `provinces`, a line each, and a nought for each air type in the database's order; a patrol's fleet (the null pair for none) and an intercept's once its search has found one, each followed by an empty line; a join's `join_fleet`, or its second `target` and an empty line; a raid's `attack`, a sortie's `start`, `provinces` and `current`, an escort's `province` and `convoy`, an invasion's `transport`, an air supply's `supplies` and `fuel`, a support attack's `combat` once it has joined |
+| plan | `active`, `allow_hq_reorg`, the three stances, `path` and `path2` where any, `our_power`, `their_power`, `embark`, `debark`, `ops_area` (a list at column 0), each `objective`, `min` |
+| templates | each template its types at column 0, then empty `PW_TEMPLATE_<n>` up to twelve, as the original's list always is |
+
+A unit's `disengage` comes between its two dates in every save - the fact base had the dates together, and is corrected.
+
+**The order keys the game does not use**, read for the writer (`FINDINGS-savegame.md`, section C.11) [exe]:
+
+- **`stop`, the halt figure**, is -1.000 from every order's constructor; an order given by a command takes the stance's
+  `AGGRESSIVE_`, `DEFENSIVE_` or `PASSIVE_ORGANISATION_LIMIT` [mod: common/defines.lua], and one the engine makes itself
+  - a null order, its own move order, and the carrier protection an air unit on a carrier is given unasked - keeps
+  -1.000. Nothing in the original was found reading it but its writer, and nothing here reads it: it is kept on the
+  order (`CMission.Stop`), set where `CUnitOrders.Give` gives an order and left at -1.000 by `CCarriers.GiveDuty`, so
+  that a save says what the original's would.
+- **A naval order's `capital`, `sub_unit` and `other` are nought for good**: the routine meant to count the fleet's
+  capital ships, submarines and others into them counts into a copy and keeps nothing. Written nought; a save's other
+  than nought is reported.
+- **An air order's figure for each air type** is one of a list of noughts its constructor makes; written nought for
+  each air type in the database's order, and a save's other than nought reported.
+- **A naval order's two `return_to_base`** are the order's, set when it is told to return, and the naval order's own,
+  which nothing in play sets; a load puts both into the naval order's own, so **being told to return is lost on a load,
+  in the original as here** - which `Ireland1937_10_03_21` shows, an interceptor told to return going on with its
+  intercept once loaded. Written the order's and then `no`; a save's naval order's own set is reported.
+
+**An intercept's `target` and `provinces` are two things** [exe]: `target` is the fleet the order names, kept as
+`CMission.OrderTarget` and read by nothing here; `provinces` is the fleet its search has found, `CMission.Target`,
+written only once there is one - an intercept still waiting in port writes none, as in the saves of July and October
+1937 and the first hour of May 1940's. The loader took both as the fleet it is after, which sent a loaded waiting
+interceptor straight out to sea. The AI's intercept names the enemy fleet it is given on (`moving.md`, section 14), as
+all six of the original's saved intercepts do; until 2026-11-05 it named none, and so wrote no `target`.
+
+**A deployment's number** is its unit's and one [exe]: a line's unit takes a number and **two are passed over**, the
+first for the finished unit's deployment - the original's own lines do so, from a file and in play. A line ordered or
+going on to the next of a series here passes them over too now, and a finished unit's deployment takes the first
+(`buildqueue.md`, section 4); a deployment with no number could be found by nothing in the original, and never placed.
+
+**Not held, so not written**: a brigade's `home` and `builder`, a unit's `country_intel` and a lent unit's
+`expeditionary_owner` and `expeditionary_date`; a paradrop's `message` and a rebase to a carrier's `carrier_target`, in
+no save.
+
+**Checked** with `OpenHOI3.SaveCheck write`, its `keys=` listing every key of the military part, and each country's
+military part set beside the save's line for line with the keys above taken out. On 2026-11-05, every country's in
+`Germany1936_01_07_22`, `Ireland1936_02_02_04`, `Germany1936_09_02_21`, `Ireland1938_08_25_03` (carriers, passengers,
+deployments), `Ireland1940_05_23_18` and `_19` and `Soviet_Union1941_07_16_19` - 191,822 lines in the first; and in
+`Ireland1937_07_05_02` and `Ireland1937_10_03_21` every country's but what a load changes as the original's does: a sea
+battle taken up again, its ships at their distances again and its fleet's count towards breaking off from nought
+(section 7), and an interceptor's being told to return. `write <install> new <start save>` writes a new game beside the
+start save: the counter is the save's and the layout the save's; the figures and the trees are meant to differ, the
+original's AI having moved by then. **The check mended the loader five times**: an invasion's landing sea was reported
+and not read; a deployment's own number was thrown away; the player's numbers left a gap at the counter, so a new
+game's first unit would have been serial 0, which the original never gives; a waiting intercept was sent after the
+fleet its order names; and a naval order kept its being told to return across a load, which the original's does not.
+
 ## Ours
 
 - A key nothing reads yet is reported, by its block and how often it was met, where the original drops an unknown key
@@ -266,8 +347,10 @@ the modifiers events have given a country or a province, `modifier = { modifier 
 - The AI's strategy is made again on a load, where the original keeps the one a save holds; the save's `ai` blocks are
   not read yet.
 - With no `--country=`, the save's own country is played; the original's lobby chooses.
-- A unit's number here is not the save's pair: what the player minted is numbered after the history's counter, so the
-  writer has to turn it back (section 5).
+- A unit's number here is not the save's pair: what the player minted is numbered from the history's counter on, and
+  the writer turns it back (sections 5 and 9). Another peer's minting is not told apart and is written as the player's.
+- The top level's `id` is the game's own count of what it minted, where the original gathers the highest of what it
+  holds (section 9).
 - The save's empty `PW_TEMPLATE_` templates are left out, as a new game here has none.
 - **What a province held when the supply pass last came to it is not saved**; a loaded province's is set to what it
   holds now. With none, nothing passes on the first midnight; with this, organisation four hours on gains 50 brigades
@@ -326,3 +409,8 @@ the modifiers events have given a country or a province, `modifier = { modifier 
   bodies were not read, so they stay unanswered.
 - A ship's, a brigade's and a wing's `home` and `builder` are reported throughout the unit tree and among the sunk
   ships.
+- **How the original numbers the brigades of a line ordered in play**: three numbers apart in the saves (4944, 4947,
+  4950), where a line here gives them one each after the two passed over. Not read; the numbers are this game's
+  (*Ours*), and only their order matters to the rules.
+- **Whether anything reads an order's `stop`**: three searches found nothing but the writer; an unrecorded function
+  reaching it another way is not ruled out (`FINDINGS-savegame.md`, C.11).

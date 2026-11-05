@@ -187,6 +187,24 @@ public class AirBattleTests
 	}
 
 	[Fact]
+	public void AGivenOrdersHaltFigureIsItsStancesLimitAndOneTheEngineMakesHasNone()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit fighters = Air(state, germany, Berlin, Fighter);
+
+		Give(state, germany, fighters, EUnitOrder.AirSuperiority, Warsaw, CMission.Aggressive);
+		Assert.Equal(CFixedPoint.Parse("0.2"), fighters.Mission.Stop);
+		Give(state, germany, fighters, EUnitOrder.AirSuperiority, Warsaw, CMission.Passive);
+		Assert.Equal(CFixedPoint.Parse("0.5"), fighters.Mission.Stop);
+		Give(state, germany, fighters, EUnitOrder.AirSuperiority, Warsaw, CMission.Defensive);
+		Assert.Equal(CFixedPoint.Parse("0.3"), fighters.Mission.Stop);
+
+		// An order cleared, as an order the engine makes itself, keeps the constructor's -1.
+		CUnitOrders.Clear(fighters);
+		Assert.Equal(CMission.NoStop, fighters.Mission.Stop);
+	}
+
+	[Fact]
 	public void ACircleIsEverythingJoinedToItsMiddleWithinItsRangeAndTheUnits()
 	{
 		CGameState state = State(out CCountry germany, out _);

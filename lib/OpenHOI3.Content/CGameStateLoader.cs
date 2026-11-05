@@ -279,7 +279,10 @@ public static class CGameStateLoader
 		{
 			CSupplyStart.FillNewGame(state);
 		}
-		// And the game runs from here.
+		// And the game runs from here. What was made until now, its two days' too, is numbered as the history's and
+		// what is made from here on as the player's: the original's start save has the one count up to here, type 41,
+		// and nothing of its own minting (savegame.md, section 9).
+		state.HistoryUnitNext = state.LastUnitId + 1;
 		state.IsRunning = true;
 		return state;
 	}

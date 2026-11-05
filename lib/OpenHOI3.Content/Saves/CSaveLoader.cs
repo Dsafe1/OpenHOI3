@@ -65,6 +65,7 @@ public static class CSaveLoader
 			}
 		}
 		state.LastUnitId = ids.Reserved;
+		state.HistoryUnitNext = ids.HistoryNext;
 		var units = new CSaveUnitReader(state, ids, report);
 		var routes = new List<(Sim.Trade.CTradeRoute Route, int Convoy)>();
 		ClausewitzNode? combats = null;
@@ -408,7 +409,7 @@ public static class CSaveLoader
 					CSaveLines.ReadConvoy(state, country, child, ids, report);
 					continue;
 				case "unit_deployment" when child.IsBlock:
-					CSaveLines.ReadUnitDeployment(country, child, units, report);
+					CSaveLines.ReadUnitDeployment(country, child, ids, units, report);
 					continue;
 				case "building_deployment" when child.IsBlock:
 					CSaveLines.ReadBuildingDeployment(state, country, child, ids, report);
