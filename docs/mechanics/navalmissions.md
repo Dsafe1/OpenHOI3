@@ -461,3 +461,9 @@ missions something to meet, there being no AI to send anything.
   window never ends by date, and none is built.
 - One byte on a fleet that keeps it out of a reserve's exchange, and one answer every naval
   order gives that nothing was found to ask.
+- **Whether a fleet may be sent to a province** (`CMovementRules.MayMoveTo` against the original's own test): the Soviet
+  Red Banner Baltic Fleet lies at Murmansk on a patrol of the Gulf of Riga in the Ireland game's saves of 16 July 1941.
+  The original leaves it be - its `movement_progress` of 0.916, left from its last voyage, stands all day - where the
+  patrol here asks whether it may go, is told yes, finds no safe way, and is given an empty path, which clears its
+  progress. The original's patrol step sets the path whether a way was found or not, so it must be told no; what in
+  the original's test refuses it (its range, the straits) was not read.

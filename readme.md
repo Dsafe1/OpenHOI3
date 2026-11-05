@@ -1845,7 +1845,8 @@ None of these blocks the list above.
     `messagetypes_custom.txt` are built (`ingamemenu.md`);
   - **a loaded save holds nothing yet of its politics, research queue, spies or AI** (`savegame.md`,
     section 4): they are cleared and reported, never answered from the history. A land side's list
-    of units falling back is not held (a unit falling back leaves its side at once here), and the two
+    of units falling back is not held - the original's is filled by nothing but a load, so it is
+    always empty (`FINDINGS-savedbattle.md`, A.11) - and the two
     conditions that count sunk ships stay unanswered, their bodies unread (section 7).
     `OpenHOI3.SaveCheck load` lists every key left. So the AI makes its theatres again, and Japan's
     makes a headquarters the save has not got in the first hour; which hour first sees the officers
@@ -1858,7 +1859,9 @@ None of these blocks the list above.
     (`savegame.md`, *Not established*). Set aside by the maintainer on 2026-11-05 for the savegame;
     it wants a reading first - how the officer count takes a lent unit and whose ratio holds its
     organisation, which countries the hourly recount passes over, and the lending itself with its
-    return date - and those saves are its check;
+    return date - and those saves are its check, with the six of 23 May 1940, an hour apart, where
+    Britain has lent France 2 divisions and Germany Slovakia 1 beside Japan's 44, and Germany's 531,
+    Britain's 372 and France's about 300 brigades drift the same way each hour;
   - **the in-game menu's Save Game and Resign are greyed** (`ingamemenu.md`, *Ours*), where the
     original greys neither: there is no saving and no screen after a game or main menu. The save
     dialog is read and specified there, section 6, for the day saving exists;

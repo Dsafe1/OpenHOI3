@@ -2,6 +2,7 @@ using OpenHOI3.Content.Saves;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Weather;
 
@@ -52,14 +53,17 @@ public class SaveWriterTests
 		oslo.Pool[EGoods.Supplies] = CFixedPoint.FromInt(4);
 		oslo.Weather.Pressure = CFixedPoint.FromInt(1015);
 		oslo.Weather.Temperature = new CFixedPoint(-5500);
+		Assert.True(CSaveValues.TryHours("1936.2.1.0", out long until));
+		oslo.EventModifiers.Add(new CTimedModifier(new CModifier("bombed_harbour"), until));
 
 		string text = CSaveWriter.Write(state);
 
 		// An unbuilt building, an empty pool and the pressure at its define are left out; a pool's goods go supplies first,
-		// then money, crude oil and fuel.
+		// then money, crude oil and fuel; a modifier an event gave comes last, with the hour it lasts to.
 		Assert.Contains(
 			"1=\r\n{\r\n\tflags=\r\n\t{\r\n\t}\r\n\towner=\"NOR\"\r\n\tcontroller=\"NOR\"\r\n\tcore=\"NOR\"\r\n\tinfra=\r\n\t{\r\n 2.000 2.000 \t}\r\n" +
-			"\tpoints=5\r\n\tpool=\r\n\t{\r\n\t\tsupplies=4.000\r\n\t\tfuel=3.000\r\n\t}\r\n\tweather=\r\n\t{\r\n\t\ttemperature=-5.500\r\n\t}\r\n}\r\n",
+			"\tpoints=5\r\n\tpool=\r\n\t{\r\n\t\tsupplies=4.000\r\n\t\tfuel=3.000\r\n\t}\r\n\tweather=\r\n\t{\r\n\t\ttemperature=-5.500\r\n\t}\r\n" +
+			"\tmodifier=\r\n\t{\r\n\t\tmodifier=\"bombed_harbour\"\r\n\t\tdate=\"1936.2.1.0\"\r\n\t}\r\n}\r\n",
 			text);
 		Assert.StartsWith("date=\"1936.1.7.0\"\r\n", text);
 	}

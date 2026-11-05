@@ -109,7 +109,20 @@ public static class CSaveWriter
 		WritePoolIfAny(writer, "current_producing", province.CurrentProducing);
 		WritePoolIfAny(writer, "max_producing", province.MaxProducing);
 		WriteWeather(writer, state, province.Weather);
+		WriteEventModifiers(writer, province.EventModifiers);
 		writer.End();
+	}
+
+	/// <summary>Each modifier an event gave, its name and the hour it lasts to, in the order given.</summary>
+	private static void WriteEventModifiers(CSaveTextWriter writer, List<Sim.Modifiers.CTimedModifier> given)
+	{
+		foreach (Sim.Modifiers.CTimedModifier modifier in given)
+		{
+			writer.Begin("modifier");
+			writer.Quoted("modifier", modifier.Modifier.Name);
+			writer.Date("date", modifier.UntilHour);
+			writer.End();
+		}
 	}
 
 	/// <summary>A pool of a province: left out where every good is nought, and within it each good that is not.</summary>
@@ -226,6 +239,7 @@ public static class CSaveWriter
 			}
 		}
 		writer.Quoted("ideology", country.RulingIdeology.Length > 0 ? country.RulingIdeology : "noIdeology");
+		WriteEventModifiers(writer, country.EventModifiers);
 		writer.Fixed("manpower", country.Manpower);
 		writer.Bool("auto_maintain_convoy", country.AutoMaintainConvoys);
 		writer.Bool("auto_supply_convoy", country.AutoSupplyConvoys);

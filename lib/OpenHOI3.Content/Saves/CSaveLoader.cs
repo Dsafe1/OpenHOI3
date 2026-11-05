@@ -30,14 +30,14 @@ public static class CSaveLoader
 	{
 		"capital", "acting_capital", "technology", "distribution", "leadership", "manpower", "officers", "diplo_influence",
 		"national_unity", "dissent", "neutrality", "effective_neutrality", "highest_threat", "ideology", "flags", "variables",
-		"auto_assign_leaders", "auto_maintain_convoy", "auto_supply_convoy", "auto_resource_convoy",
+		"auto_assign_leaders", "auto_maintain_convoy", "auto_supply_convoy", "auto_resource_convoy", "modifier",
 	};
 
 	private static readonly HashSet<string> ProvinceKeys = new(StringComparer.Ordinal)
 	{
 		"owner", "controller", "core", "manpower", "leadership", "revolt_risk", "points", "nationalism", "pool",
 		"current_producing", "max_producing", "weather", "flags", "strategic_resource", "drawn", "last_drawn", "throughput",
-		"last_throughput",
+		"last_throughput", "modifier",
 	};
 
 	/// <param name="played">The country played; null, the one the save says was.</param>
@@ -203,6 +203,7 @@ public static class CSaveLoader
 			country.Convoys.Clear();
 			country.Faction = "";
 			country.Overlord = null;
+			country.EventModifiers.Clear();
 			country.Mobilised = false;
 		}
 		state.Wars.Clear();
@@ -271,6 +272,7 @@ public static class CSaveLoader
 		ReadPool(province.LastSupplyThroughput, node.Get("last_throughput"));
 		ReadWeather(state, province.Weather, node.Get("weather"));
 		ReadFlags(province.Flags, node.Get("flags"));
+		ReadEventModifiers(state, province.EventModifiers, node, report);
 		// Every building: the level in working order first, what was built second; none written is none built.
 		var buildings = new HashSet<string>(StringComparer.Ordinal);
 		foreach (CBuilding building in state.Buildings)
@@ -362,6 +364,7 @@ public static class CSaveLoader
 		country.AutoSupplyConvoys = node.GetBool("auto_supply_convoy", true);
 		country.AutoResourceConvoys = node.GetBool("auto_resource_convoy", true);
 		ReadFlags(country.Flags, node.Get("flags"));
+		ReadEventModifiers(state, country.EventModifiers, node, report);
 		country.Variables.Clear();
 		foreach (ClausewitzNode variable in node.Get("variables")?.Children ?? new List<ClausewitzNode>())
 		{
@@ -510,6 +513,25 @@ public static class CSaveLoader
 			{
 				flags.Set(name);
 			}
+		}
+	}
+
+	/// <summary>
+	/// The modifiers events have given, each <c>modifier = { modifier = "name" date = "the hour it lasts to" }</c>, in the
+	/// order given. A name that is no static modifier is reported.
+	/// </summary>
+	private static void ReadEventModifiers(CGameState state, List<CTimedModifier> into, ClausewitzNode node, CSaveReport report)
+	{
+		into.Clear();
+		foreach (ClausewitzNode entry in node.All("modifier"))
+		{
+			string name = entry.Get("modifier")?.Value ?? "";
+			if (state.FindStaticModifier(name) is not { } modifier || !CSaveValues.TryHours(entry.Get("date")?.Value, out long until))
+			{
+				report.Unread("modifier", $"a modifier of no name known, {name}");
+				continue;
+			}
+			into.Add(new CTimedModifier(modifier, until));
 		}
 	}
 

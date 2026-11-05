@@ -61,8 +61,8 @@ provinces by id and then the countries in `common/countries.txt`'s order between
 | block | keys read |
 | --- | --- |
 | top | `date` (with the hour), `player`, `seed`, `faction` (each `country` a member) |
-| province | `owner`, `controller`, every `core`, `manpower`, `leadership`, `revolt_risk`, `points`, `nationalism`, `strategic_resource`, `pool`, `current_producing`, `max_producing`, every building's pair, `weather` (each figure, the pressure its define where none), `flags` |
-| country | `capital`, `acting_capital` (the capital where nought), every law group, every post (a minister of the country's by id), `ideology` (`noIdeology` none), `technology` (level and progress), every category's ability, `distribution` and `leadership` (the shares), `manpower`, `officers`, `diplo_influence`, `national_unity`, `dissent`, `neutrality`, `effective_neutrality`, `auto_assign_leaders`, `flags`, `variables`, and every other country's block - `value` the relation, `threat`, `occupation_policy` (none written, `no_occupation`) |
+| province | `owner`, `controller`, every `core`, `manpower`, `leadership`, `revolt_risk`, `points`, `nationalism`, `strategic_resource`, `pool`, `current_producing`, `max_producing`, every building's pair, `weather` (each figure, the pressure its define where none), `flags`, every `modifier` an event gave (its name and the hour it lasts to) |
+| country | `capital`, `acting_capital` (the capital where nought), every law group, every post (a minister of the country's by id), `ideology` (`noIdeology` none), `technology` (level and progress), every category's ability, `distribution` and `leadership` (the shares), `manpower`, `officers`, `diplo_influence`, `national_unity`, `dissent`, `neutrality`, `effective_neutrality`, `highest_threat` (the country it fears most; `---` none), `auto_assign_leaders`, `flags`, `variables`, every `modifier` an event gave, and every other country's block - `value` the relation, `threat`, `occupation_policy` (none written, `no_occupation`) |
 
 A country's stockpile is its capital's `pool`, so it comes with the provinces.
 
@@ -208,7 +208,8 @@ As a battle's block ends [exe]: it has begun, so its first hour is an ordinary o
 holds it again; **a land battle sets up its attacker's front where it is not, asking twice, and never its defender's**,
 and sums its tactics; a ground bombing's side with nobody on it is the province's holder's. A land side's front counts as
 set up unless it has units and none of them on a list - a side saved before its battle's first hour, which no save of
-the maintainer's has; such a defender would stand with an empty front and lose at the fourth hour without a shot, which
+the maintainer's has, nor can a player's attack make one: ordered while paused and saved at once, the save holds the
+march and not the battle, which the hour makes (`Soviet_Union1941_07_16_19` and `_20`, province 1985); such a defender would stand with an empty front and lose at the fourth hour without a shot, which
 is the original's. Entering the game, every unit in a battle starts its count towards breaking off again from nought.
 
 **`history`** is the battles finished in the past week: each entry's `location`, `attacker` and `defender` (`---`
@@ -240,8 +241,8 @@ which keeps every byte.
 | block | written |
 | --- | --- |
 | top | `date`, `player`, `convoy` (the next convoy's number), `seed`; every province by id; every country in `common/countries.txt`'s order; `faction`, each with its members |
-| province | `flags`, `owner`, `controller`, every `core`, `manpower`, `leadership` and `revolt_risk` above nought, `strategic_resource`, every building built or working (its pair), `points`, `nationalism` where not nought, the seven pools each where any good is not nought - `pool`, `throughput`, `last_throughput`, `drawn`, `last_drawn`, `current_producing`, `max_producing`, a pool's goods supplies, money, crude oil, fuel, metal, energy, rare materials - and `weather`, each figure not nought and the pressure where not the define's |
-| country | `human` for a played country, `flags`, `variables`, `capital`, `acting_capital`, `technology` (every technology's level and progress), every category's ability, `diplo_influence`, `distribution`, `leadership`, `neutrality`, `officers`, every filled post, every law, `ideology`, `manpower`, the four `auto_*`, its relation, threat and occupation policy with every country that owns land, itself among them, `mobilize` while mobilised, `dissent`, `national_unity`, `effective_neutrality`, `highest_threat` |
+| province | `flags`, `owner`, `controller`, every `core`, `manpower`, `leadership` and `revolt_risk` above nought, `strategic_resource`, every building built or working (its pair), `points`, `nationalism` where not nought, the seven pools each where any good is not nought - `pool`, `throughput`, `last_throughput`, `drawn`, `last_drawn`, `current_producing`, `max_producing`, a pool's goods supplies, money, crude oil, fuel, metal, energy, rare materials - `weather`, each figure not nought and the pressure where not the define's, and every `modifier` an event gave |
+| country | `human` for a played country, `flags`, `variables`, `capital`, `acting_capital`, `technology` (every technology's level and progress), every category's ability, `diplo_influence`, `distribution`, `leadership`, `neutrality`, `officers`, every filled post, every law, `ideology`, every `modifier` an event gave, `manpower`, the four `auto_*`, its relation, threat and occupation policy with every country that owns land, itself among them, `mobilize` while mobilised, `dissent`, `national_unity`, `effective_neutrality`, `highest_threat` |
 
 **What is not held is not written** - no stand-in for it, as nothing here answers from one. A technology's third figure,
 the leadership put into it, is written nought, and `notech`, the database's empty first entry, not at all.
@@ -254,7 +255,9 @@ what was written that it has not, values that differ and keys out of its order. 
 same but each technology's third figure; `Ireland1939_09_06_18.hoi3` the same, with 8,548 provinces byte for byte and 22
 countries' effective neutrality a few hundredths off, the threat having moved within the day. **The check found a gap in
 the loader**, mended: `highest_threat`, the country each fears most, was not read, so every loaded country had its whole
-neutrality as its effective neutrality - 98 countries of the 1939 save, Britain 68 where the save has 0.
+neutrality as its effective neutrality - 98 countries of the 1939 save, Britain 68 where the save has 0. **And a second**:
+the modifiers events have given a country or a province, `modifier = { modifier = .. date = .. }` - 22 in the save of
+16 July 1941 - were reported and not read; they are read and written now.
 
 ## Ours
 
@@ -269,8 +272,10 @@ neutrality as its effective neutrality - 98 countries of the 1939 save, Britain 
 - **What a province held when the supply pass last came to it is not saved**; a loaded province's is set to what it
   holds now. With none, nothing passes on the first midnight; with this, organisation four hours on gains 50 brigades
   (section 6).
-- **A land unit falling back leaves its side at once here**, where the original keeps a list of them on the side, saved
-  as `retreat`; no save of the maintainer's has one, and one would be reported. A `tactic` of no number known is
+- **A side's `retreat` list is not held.** The original has one and saves it, but nothing in it puts a unit there but
+  the loader (`reversing/findings/FINDINGS-savedbattle.md`, A.11): a unit falling back, by hand or beaten, leaves its
+  side at once and marches with its own `retreat`, as here, so the list is empty in every game and no save holds one.
+  One a save did hold would be reported. A `tactic` of no number known is
   reported and leaves the side with none, so it picks one at its next hour, where the original holds an empty tactic
   that counts as one until the next change of tactics. Neither is in any save.
 - The original keeps a battle on its province as well as its units; here a province's battles are found on the list.
@@ -304,8 +309,19 @@ neutrality as its effective neutrality - 98 countries of the 1939 save, Britain 
   saves' brigades are full at Japan's officer ratio of 1.024 where ours is 1.237, Manchukuo's and Mengjiang's lent ones at
   that same 1.024, and the receivers' own at ratios of about 1.39 where ours are 0.33 and 0.56. Counting a lent
   division's officers to its lender gives Japan 1.022, near but not the save's, and does not fit the United States, so how
-  the original counts a lent unit, and whose ratio holds its organisation, needs reading
-  (`reversing/findings/FINDINGS-organisation.md`, section 1, has the count's two words on it).
+  the original counts a lent unit, and whose ratio holds its organisation, needs reading. The six saves of 23 May 1940,
+  an hour apart, add Britain's 2 divisions lent to France and Germany's 1 to Slovakia: in every hour from one to the
+  next, Germany's 531, Britain's 372 and France's about 300 brigades are held a little higher than the save's. `reversing/findings/FINDINGS-organisation.md`, section 1, has the
+  count's two words on it.
+  The twelve saves of 16 July 1941, an hour apart, have Germany's 7 divisions lent to Slovakia, and there Germany's
+  brigades stand a little *above* our ceiling (62.895 to 62.000 for its army's headquarters), where Japan's stand below
+  it - so neither "the lender counts them" nor "the receiver does" fits every case.
+- **Italy's ceiling of organisation in July 1941 is the officer ratio's times 1.05** on every kind of brigade (44.100
+  for a headquarters of 30 at the ratio's cap of 1.4, where ours gives 42.000), so the hour brings 124 brigades down.
+  Its modifier for land organisation here is nought, and the event modifiers a save keeps are read; where the 5% comes
+  from was not found.
+- A faction's members are written in the order they joined; here they are written in `common/countries.txt`'s, the
+  order of joining not being held.
 - What the sunk ships answer: `total_of_ours_sunk` and `total_sunk_by_us` are counts over `sunk_ships`, but their
   bodies were not read, so they stay unanswered.
 - A ship's, a brigade's and a wing's `home` and `builder` are reported throughout the unit tree and among the sunk
