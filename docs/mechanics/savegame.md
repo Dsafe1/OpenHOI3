@@ -12,7 +12,9 @@ the maintainer's 45 saves. `confirmed` unless marked.
 1. **The reading** - done: `FINDINGS-savegame.md`.
 2. **The loader** - in increments, each set against the maintainer's saves (sections 4 and 5). **The first is built**:
    the clock, the generator, the played country, every province and country's figures below, the factions. **So is the
-   second**: the units, the leaders in service, the queue, what waits to be placed and the templates.
+   second**: the units, the leaders in service, the queue, what waits to be placed and the templates. **The third is
+   half built**: the wars, the pacts, the trade routes, the convoys and mobilisation (section 6); its other half, the
+   battles, waits on a reading.
 3. **The writer** - a save loaded and written straight back set beside the file, block by block.
 4. **The save dialog** (`ingamemenu.md`, section 6) and the autosave at the settings' interval.
 
@@ -26,7 +28,7 @@ As the original's [exe], but where *Ours* says otherwise:
 2. **The save is read over it**, one key at a time. Every figure the save gives is set; **one it leaves out is set to
    what leaving it out means** - nought, none, the define's pressure - and not left as the history had it. **What is not
    loaded yet is cleared and reported**, never answered from the history (`CLAUDE.md`'s rule on what is not built):
-   today the convoys, the wars, the pacts and the battles.
+   today the battles, the finished battles and the sunk ships.
 3. **The played country** is the one asked for (`--country=`), else the one the save names. The original never takes
    it from the save - its lobby chooses, by default the save's own (*inferred*) - so the two come to the same.
 4. **The generator** is seeded with the save's `seed`, where the original throws `seed` and `count` away
@@ -68,14 +70,13 @@ sets the owners, the laws and the technology levels beside the save's and runs t
 28,987 of 28,987**, and 24 hours run on. The list of what is left is the next increments' work:
 
 - ~~**the units**~~ - the second increment, section 5;
-- **the wars** (`active_war`, `previous_war`) and **the pacts** (`diplomacy`), the battles (`combat`), `sunk_ships`;
+- ~~**the wars** and **the pacts**~~ - the third increment, section 6; **the battles** (`combat`) and `sunk_ships`;
 - the four id counters and the `id` blocks, the weather's fronts, the victory conditions and the faction's `progress`,
   the game's flags and its gameplay settings;
 - a country's own pools (`home`, `usage`, `to`, `back`, the traded ones), its politics (`organization`, `popularity`,
   `cabinet`, `election`, `last_election`, `duration`, `ministers`), its research queue (`research`), its spies and their
-  missions, its convoys, alignment, war exhaustion, AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`), statistics and
-  the rest the report lists; a province's supply figures and `out_of_supply_days`, which the day makes again, and its
-  `history`.
+  missions, alignment, war exhaustion, AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`), statistics and the rest the
+  report lists; a province's `out_of_supply_days` and `capital`, which the day makes again, and its `history`.
 
 ## 5. What the second increment reads: the units
 
@@ -137,6 +138,38 @@ game, runs to its hour and does it again, counting what differs by country. On 2
 The first run found one fault, mended: the officer ratio is made in the hour, so a loaded game's first hour held every
 brigade to its type's own organisation until the ratio was made as the game is entered.
 
+## 6. What the third increment reads: wars, pacts, trade and convoys
+
+The first half of the third increment. Read off the saves and the history's own readers, whose blocks are the same
+shape; nothing in it needed the executable read again.
+
+| block | read |
+| --- | --- |
+| `active_war`, `previous_war` | the name, `limited`, every `attacker` and `defender` in order, `action` (the hour of its last action), and each `war_goal` - `casus_belli`, `actor`, `receiver`, `country`, `region` - filed under its actor, as the history's goals are; a finished war onto the list of finished wars. A war has no start date in a save |
+| `diplomacy` | `guarantee` (its start; its end is twenty years on, `agreements.md` section 6), `alliance`, `vassal` (the second a puppet of the first), `nap`, `embargo`, `influence` (for its influencer's faction) and `align` (for its leader's), each `first`, `second` and `start_date`; `trade` - `from`, `to`, `start_date`, `trade_from` and `trade_to` in the goods' order (`trade.md`, section 1), and its `convoy`, found among its owner's once every country is read |
+| a country's `convoy` | its number (type 42 - its own count - whose serial is its number here, as a new game numbers convoys), `start`, `end`, `path`, `convoys` (its transports), `escorts`, `start_date`, `last_attack`, `daily`, `trade`, `ship` (a flag for each good it carries, in the goods' order), `lend_lease` and `lendlease_targets` (the giver it serves) |
+| a country | `convoys` and `escorts` (its pool), `mobilize` (written only while mobilised) |
+| a province | `drawn`, `last_drawn`, `throughput`, `last_throughput` - what was asked of it and what passed, today and yesterday, which the day's carrying works from (`supply.md`, section 12) |
+| top | `convoy`, the next convoy's number |
+
+What a convoy would have and what its loading land yields are worked out by the day, as in a new game. The Allies'
+copies of a guarantee (`factions.md`, section 5) come back as plain guarantees, which act the same.
+
+**The reading found a fault in the Clausewitz reader**, mended: a block with no key - a save's list of finished battles
+is a run of them - was skipped while its closing brace closed the block around it, so everything after it in a save
+was read a level too high. Now it holds its own entries. Nothing a new game reads changed: the script check, the
+technology levels and the AI's strategies are as they were.
+
+**Checked** with `OpenHOI3.SaveCheck load`, which now also sets the wars by name and sides, the goals, every kind of
+pact, the routes with their convoys, every convoy - harbours, transports, escorts, goods, way - and each country's pool
+and mobilisation beside the save. On 2026-11-05: `Germany1936_01_07_22.hoi3` - 1 war and its goal, 22 guarantees, 9
+alliances, 9 puppets, 1 influence, 43 routes, 241 convoys and 101 pools, all the save's; `Ireland1938_08_25_03.hoi3` -
+4 wars, 21 guarantees, 10 alliances, 11 puppets, 2 NAPs, 3 influences, 4 alignments, 580 routes and 547 convoys, all
+of them. Four hours on to `_01_08_02`: the pacts the same, one trade route the AI's own, and with Italy's mobilisation
+read and yesterday's pools (*Ours*) **organisation 3,203 of 4,072 and strength 4,011** (3,100 and 3,945 in section 5).
+Two of Britain's and Japan's supply convoys are dropped at the first midnight where the original keeps them
+(*Not established*).
+
 ## Ours
 
 - A key nothing reads yet is reported, by its block and how often it was met, where the original drops an unknown key
@@ -147,6 +180,9 @@ brigade to its type's own organisation until the ratio was made as the game is e
 - A unit's number here is not the save's pair: what the player minted is numbered after the history's counter, so the
   writer has to turn it back (section 5).
 - The save's empty `PW_TEMPLATE_` templates are left out, as a new game here has none.
+- **What a province held when the supply pass last came to it is not saved**; a loaded province's is set to what it
+  holds now. With none, nothing passes on the first midnight; with this, organisation four hours on gains 50 brigades
+  (section 6).
 
 ## Not established
 
@@ -161,3 +197,12 @@ brigade to its type's own organisation until the ratio was made as the game is e
   passenger's place: in none of the maintainer's saves, and not handled.
 - A naval order's `capital`, `sub_unit` and `other`, the halt figure `stop` and an air order's figure for each air type:
   nothing here holds them, so they are reported.
+- **The first midnight after a load drops two supply convoys the original keeps** - Britain's to Dar es Salaam and
+  Japan's 103: nothing is asked of the far depot, where the original asks 1.49. The same network agrees province for
+  province on a new game (`OpenHOI3.SaveCheck supplypass ... network=10130`), so it is what the pass has on its first
+  day after a load; not followed further.
+- An alliance's and a puppet's `end_date` and a NAP's `balance`, `our_power` and `their_power`: nothing here holds
+  them, so they are reported; whether the original ends an alliance or a puppet on its date in play was not read.
+- **The battles** (`combat`: the live ones by kind, and `history`, the finished ones) and `sunk_ships`: what a side's
+  `size`, `tactic`, `strength`, `building`, `pool` and `current_producing` are, what a finished battle's `type` numbers
+  and what a load does to a battle's fronts need the original's loaders read (the third increment's second half).

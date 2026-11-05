@@ -122,6 +122,16 @@ public static class ClausewitzParser
 				i++;
 				return;
 			}
+			// A block with no key - a save's list of finished battles is a run of them - holds its own entries,
+			// and its closing brace closes it and not the block around it.
+			if (token.Kind == TokenKind.OpenBrace)
+			{
+				i++;
+				var anonymous = new ClausewitzNode();
+				ParseInto(anonymous, tokens, ref i, topLevel: false);
+				parent.Children.Add(anonymous);
+				continue;
+			}
 			if (token.Kind != TokenKind.Word)
 			{
 				i++;

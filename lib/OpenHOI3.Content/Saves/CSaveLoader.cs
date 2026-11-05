@@ -36,7 +36,8 @@ public static class CSaveLoader
 	private static readonly HashSet<string> ProvinceKeys = new(StringComparer.Ordinal)
 	{
 		"owner", "controller", "core", "manpower", "leadership", "revolt_risk", "points", "nationalism", "pool",
-		"current_producing", "max_producing", "weather", "flags", "strategic_resource",
+		"current_producing", "max_producing", "weather", "flags", "strategic_resource", "drawn", "last_drawn", "throughput",
+		"last_throughput",
 	};
 
 	/// <param name="played">The country played; null, the one the save says was.</param>
@@ -65,6 +66,7 @@ public static class CSaveLoader
 		}
 		state.LastUnitId = ids.Reserved;
 		var units = new CSaveUnitReader(state, ids, report);
+		var routes = new List<(Sim.Trade.CTradeRoute Route, int Convoy)>();
 
 		foreach (ClausewitzNode node in root.Children)
 		{
@@ -113,6 +115,20 @@ public static class CSaveLoader
 				case "faction":
 					ReadFactions(state, node);
 					break;
+				// The wars and pacts (savegame.md, section 6); a route's convoy is found once every country is read.
+				case "diplomacy" when node.IsBlock:
+					routes.AddRange(CSaveDiplomacy.Read(state, node, report));
+					break;
+				case "active_war" when node.IsBlock:
+					state.Wars.Add(CSaveWars.Read(state, node, report));
+					break;
+				case "previous_war" when node.IsBlock:
+					state.FinishedWars.Add(CSaveWars.Read(state, node, report));
+					break;
+				// The next convoy's number.
+				case "convoy" when !node.IsBlock:
+					state.LastConvoyId = Math.Max(state.LastConvoyId, (int)CSaveValues.Whole(node.Value) - 1);
+					break;
 				default:
 					report.Unread("top", node.Key);
 					break;
@@ -121,6 +137,12 @@ public static class CSaveLoader
 
 		units.Finish();
 		state.LastUnitId = Math.Max(state.LastUnitId, ids.Highest);
+		var convoys = state.Countries.SelectMany(country => country.Convoys).ToDictionary(convoy => convoy.Id);
+		foreach ((Sim.Trade.CTradeRoute route, int convoy) in routes)
+		{
+			route.Convoy = convoys.GetValueOrDefault(convoy);
+			state.TradeRoutes.Add(route);
+		}
 
 		CCountryTag? player = played ?? (CCountryTag.TryParse(report.Player, out CCountryTag saved) ? saved : null);
 		if (player is { } who)
@@ -158,11 +180,19 @@ public static class CSaveLoader
 			country.ActiveLeaders.Clear();
 			country.Convoys.Clear();
 			country.Faction = "";
+			country.Overlord = null;
+			country.Mobilised = false;
 		}
 		state.Wars.Clear();
+		state.FinishedWars.Clear();
 		state.Alliances.Clear();
 		state.Guarantees.Clear();
 		state.Naps.Clear();
+		state.Embargoes.Clear();
+		state.Influences.Clear();
+		state.Aligns.Clear();
+		state.TradeRoutes.Clear();
+		state.LastConvoyId = 0;
 	}
 
 	private static void ReadProvince(CGameState state, CProvince province, ClausewitzNode node, CSaveReport report)
@@ -184,8 +214,16 @@ public static class CSaveLoader
 		province.Nationalism = CSaveValues.Fixed(node, "nationalism");
 		province.StrategicResource = node.Get("strategic_resource")?.Value?.Trim('"') ?? "";
 		ReadPool(province.Pool, node.Get("pool"));
+		// What it held when the pass last came to it is not saved; what it holds now stands for it (savegame.md, Ours).
+		province.LastPool.CopyFrom(province.Pool);
 		ReadPool(province.CurrentProducing, node.Get("current_producing"));
 		ReadPool(province.MaxProducing, node.Get("max_producing"));
+		// What was asked of it and what passed through it, today and yesterday: the day's carrying works from yesterday's
+		// (supply.md, section 12).
+		ReadPool(province.SupplyDrawn, node.Get("drawn"));
+		ReadPool(province.LastSupplyDrawn, node.Get("last_drawn"));
+		ReadPool(province.SupplyThroughput, node.Get("throughput"));
+		ReadPool(province.LastSupplyThroughput, node.Get("last_throughput"));
 		ReadWeather(state, province.Weather, node.Get("weather"));
 		ReadFlags(province.Flags, node.Get("flags"));
 		// Every building: the level in working order first, what was built second; none written is none built.
@@ -330,6 +368,20 @@ public static class CSaveLoader
 					continue;
 				case "saved_templates" when child.IsBlock:
 					CSaveLines.ReadTemplates(country, child);
+					continue;
+				// Its convoys, and the transports and escorts in its pool (savegame.md, section 6).
+				case "convoy" when child.IsBlock:
+					CSaveConvoys.Read(state, country, child, report);
+					continue;
+				case "convoys":
+					country.Transports = (int)CSaveValues.Whole(child.Value);
+					continue;
+				case "escorts":
+					country.Escorts = (int)CSaveValues.Whole(child.Value);
+					continue;
+				// Written only while it is mobilised.
+				case "mobilize":
+					country.Mobilised = child.Value == "yes";
 					continue;
 			}
 			if (!CountryKeys.Contains(key) && !laws.Contains(key) && !posts.Contains(key) && !categories.Contains(key))

@@ -94,6 +94,8 @@ public static class CLoadCheck
 
 		Console.WriteLine("the units, beside the save they were read from:");
 		CompareUnits(state, save, "  ", exact: true);
+		Console.WriteLine("the wars, pacts and convoys, beside the save they were read from:");
+		CompareDiplomacy(state, save, "  ");
 
 		// Given a later save of the same game, the hours to it are run and the units set beside it.
 		ClausewitzNode? later = null;
@@ -116,6 +118,8 @@ public static class CLoadCheck
 			Console.WriteLine($"the units, beside {System.IO.Path.GetFileName(args[4])} - where the AI and the player " +
 				"gave other orders they differ, so a look:");
 			CompareUnits(state, later, "  ", exact: false);
+			Console.WriteLine("the wars, pacts and convoys, beside the later save:");
+			CompareDiplomacy(state, later, "  ");
 		}
 		Console.WriteLine($"{warnings.Count} warnings; the first few:");
 		foreach (string warning in warnings.Take(8))
@@ -123,6 +127,72 @@ public static class CLoadCheck
 			Console.WriteLine("  " + warning);
 		}
 		return 0;
+	}
+
+	/// <summary>
+	/// The wars by name and sides, every kind of pact as a set of pairs, the trade routes with their convoys, every
+	/// convoy by its number, and each country's pool of transports and escorts and whether it is mobilised, set beside
+	/// the save's.
+	/// </summary>
+	private static void CompareDiplomacy(CGameState state, ClausewitzNode save, string indent)
+	{
+		static string Tag(ClausewitzNode node, string key) => node.Get(key)?.Value?.Trim('"') ?? "";
+		void Line(string what, IEnumerable<string> ours, IEnumerable<string> saved)
+		{
+			var a = new HashSet<string>(ours);
+			var b = new HashSet<string>(saved);
+			string Few(IEnumerable<string> set) => string.Join(", ", set.Take(4));
+			Console.WriteLine($"{indent}{what}: {a.Intersect(b).Count()} of {b.Count} the save's" +
+				(a.Except(b).Any() ? $"; ours only {Few(a.Except(b))}" : "") + (b.Except(a).Any() ? $"; save only {Few(b.Except(a))}" : ""));
+		}
+
+		static string War(IEnumerable<CCountryTag> attackers, IEnumerable<CCountryTag> defenders, string name)
+			=> $"{name}: {string.Join(' ', attackers)} v {string.Join(' ', defenders)}";
+		Line("wars, by name and sides", state.Wars.Select(w => War(w.Attackers, w.Defenders, w.Name)),
+			save.All("active_war").Select(w => War(w.All("attacker").Select(a => new CCountryTag(a.Value!.Trim('"'))),
+				w.All("defender").Select(d => new CCountryTag(d.Value!.Trim('"'))), w.Get("name")?.Value?.Trim('"') ?? "")));
+		Line("war goals", state.Wars.SelectMany(w => w.Goals.Values.SelectMany(g => g)).Select(g => $"{g.Type.Name} {g.Actor} {g.Recipient}"),
+			save.All("active_war").SelectMany(w => w.All("war_goal")).Select(g => $"{Tag(g, "casus_belli")} {Tag(g, "actor")} {Tag(g, "receiver")}"));
+
+		ClausewitzNode diplomacy = save.Get("diplomacy") ?? new ClausewitzNode();
+		IEnumerable<string> Pacts(string kind) => diplomacy.All(kind).Select(p => $"{Tag(p, "first")}>{Tag(p, "second")}");
+		Line("guarantees", state.Guarantees.Select(g => $"{g.Guarantor}>{g.Guaranteed}"), Pacts("guarantee"));
+		Line("alliances", state.Alliances.Select(a => $"{a.First}>{a.Second}"), Pacts("alliance"));
+		Line("puppets", state.Countries.Where(c => c.Overlord is not null).Select(c => $"{c.Overlord}>{c.Tag}"), Pacts("vassal"));
+		Line("NAPs", state.Naps.Select(n => $"{n.First}>{n.Second}"), Pacts("nap"));
+		Line("embargoes", state.Embargoes.Select(e => $"{e.First}>{e.Second}"), Pacts("embargo"));
+		Line("influences", state.Influences.Select(i => $"{i.Influencer}>{i.Influenced}"), Pacts("influence"));
+		Line("alignments", state.Aligns.Select(a => $"{a.Aligner}>{a.Leader}"), Pacts("align"));
+		Line("trade routes, with their convoy's number",
+			state.TradeRoutes.Select(r => $"{r.From}>{r.To} {r.Convoy?.Id ?? 0}"),
+			diplomacy.All("trade").Select(t => $"{Tag(t, "from")}>{Tag(t, "to")} {t.Get("convoy")?.GetInt("id") ?? 0}"));
+
+		var ourConvoys = new List<string>();
+		var savedConvoys = new List<string>();
+		var ourPools = new List<string>();
+		var savedPools = new List<string>();
+		foreach (ClausewitzNode node in save.Children)
+		{
+			if (!CCountryTag.TryParse(node.Key, out CCountryTag tag) || state.Country(tag) is not { } country || !node.IsBlock)
+			{
+				continue;
+			}
+			foreach (ClausewitzNode convoy in node.All("convoy").Where(c => c.IsBlock))
+			{
+				savedConvoys.Add($"{tag} {convoy.Get("id")?.GetInt("id")} {convoy.GetInt("start")}>{convoy.GetInt("end")} " +
+					$"{convoy.GetInt("convoys")}/{convoy.GetInt("escorts")} [{string.Join(' ', convoy.Get("ship")?.Children.Select(s => s.Value) ?? Array.Empty<string?>())}] " +
+					$"{convoy.Get("path")?.Children.Count ?? 0} steps");
+			}
+			foreach (OpenHOI3.Sim.Convoys.CConvoy convoy in country.Convoys)
+			{
+				ourConvoys.Add($"{tag} {convoy.Id} {convoy.Start}>{convoy.End} {convoy.Transports}/{convoy.Escorts} " +
+					$"[{string.Join(' ', convoy.Carries.Select(c => c ? "1" : "0"))}] {convoy.Path.Count} steps");
+			}
+			savedPools.Add($"{tag} {node.GetInt("convoys")}/{node.GetInt("escorts")} {(node.Get("mobilize")?.Value == "yes" ? "mobilised" : "")}");
+			ourPools.Add($"{tag} {country.Transports}/{country.Escorts} {(country.Mobilised ? "mobilised" : "")}");
+		}
+		Line("convoys: harbours, transports and escorts, goods, way", ourConvoys, savedConvoys);
+		Line("each country's pool of transports and escorts, and mobilised", ourPools, savedPools);
 	}
 
 	/// <summary>

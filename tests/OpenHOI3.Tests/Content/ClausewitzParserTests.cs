@@ -182,4 +182,22 @@ public class ClausewitzParserTests
 		ClausewitzNode root = ClausewitzParser.Parse("size= {x=32 y=32 }");
 		Assert.Equal(new Vector2(32f, 32f), root.GetVector2("size"));
 	}
+
+	[Fact]
+	public void A_block_with_no_key_holds_its_entries_and_closes_only_itself()
+	{
+		// A save's finished battles, as the original writes them.
+		ClausewitzNode root = ClausewitzParser.Parse("""
+			combat = { history = { history = { { location = 5639 type = 5 } { location = 5650 type = 5 } } } land_combat = { day = 3 } }
+			after = 1
+			""");
+		ClausewitzNode combat = root.Get("combat")!;
+		ClausewitzNode[] entries = combat.Get("history")!.Get("history")!.Children.ToArray();
+		Assert.Equal(2, entries.Length);
+		Assert.All(entries, entry => Assert.True(entry.Key is null && entry.IsBlock));
+		Assert.Equal(5650, entries[1].GetInt("location"));
+		Assert.Equal(3, combat.Get("land_combat")!.GetInt("day"));
+		Assert.Equal(1, root.GetInt("after"));
+		Assert.Null(root.Get("location"));
+	}
 }
