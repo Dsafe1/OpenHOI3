@@ -160,6 +160,10 @@ public static class CLoadCheck
 		Line("wars, by name and sides", state.Wars.Select(w => War(w.Attackers, w.Defenders, w.Name)),
 			save.All("active_war").Select(w => War(w.All("attacker").Select(a => new CCountryTag(a.Value!.Trim('"'))),
 				w.All("defender").Select(d => new CCountryTag(d.Value!.Trim('"'))), w.Get("name")?.Value?.Trim('"') ?? "")));
+		// A name a declaration made is read back into its parts, which a declaration after the load names against.
+		Console.WriteLine($"{indent}wars named by a declaration, read back into their parts: " +
+			$"{state.Wars.Concat(state.FinishedWars).Count(w => w.MadeName is not null)} - " +
+			string.Join(", ", state.Wars.Where(w => w.MadeName is not null).Select(w => w.MadeName!.ToString()).Take(4)));
 		Line("war goals", state.Wars.SelectMany(w => w.Goals.Values.SelectMany(g => g)).Select(g => $"{g.Type.Name} {g.Actor} {g.Recipient}"),
 			save.All("active_war").SelectMany(w => w.All("war_goal")).Select(g => $"{Tag(g, "casus_belli")} {Tag(g, "actor")} {Tag(g, "receiver")}"));
 

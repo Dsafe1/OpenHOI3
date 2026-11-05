@@ -18,4 +18,7 @@ public sealed class CDiplomacyHistory
 	public List<OpenHOI3.Sim.Agreements.CNap> Naps { get; } = new();
 
 	public List<CHistoryRelation> Relations { get; } = new();
+
+	/// <summary>How many standing pacts were read, puppets among them: each holds its place in that count.</summary>
+	public long PactsRead { get; set; }
 }

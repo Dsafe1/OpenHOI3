@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Messages;
+using OpenHOI3.Content.Saves;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Messages;
 using OpenHOI3.Interface.Tooltips;
@@ -12,18 +14,19 @@ using OpenHOI3.Sim.Countries;
 namespace OpenHOI3.Screens;
 
 /// <summary>
-/// The in-game menu: <c>menubar.gui</c>'s window <c>menu</c>, its six buttons on <c>menu_panel</c>, the dialog Quit
-/// opens and the message settings, <c>menu_message_settings</c>. Opening it stops the clock where it runs and always
-/// shows the six buttons; Close from one of its windows goes back to them, and leaves the clock stopped - the
-/// original's. Game Options opens <see cref="CGameOptionsWindow"/>; Save Game and Resign are greyed: what they lead to is
-/// not built. See
-/// <c>docs/mechanics/ingamemenu.md</c>.
+/// The in-game menu: <c>menubar.gui</c>'s window <c>menu</c>, its six buttons on <c>menu_panel</c>, the save dialog
+/// <c>menu_save</c>, the dialog Quit opens and the message settings, <c>menu_message_settings</c>. Opening it stops the
+/// clock where it runs and always shows the six buttons; Close from one of its windows goes back to them, and leaves the
+/// clock stopped - the original's. Game Options opens <see cref="CGameOptionsWindow"/>; Resign is greyed: what it leads
+/// to is not built. See <c>docs/mechanics/ingamemenu.md</c>.
 /// </summary>
 public sealed partial class CInGameMenu : Control
 {
 	public const string WindowName = "menu";
 	public const string RowName = "message_entry";
+	public const string SaveRowName = "save_game_entry";
 	private const string DialogName = "DefaultDialog";
+	private const string ConfirmName = "DefaultConfirm";
 
 	private CGuiContext _context = null!;
 	private CDirectorySettings _directories = null!;
@@ -35,6 +38,8 @@ public sealed partial class CInGameMenu : Control
 	private CGuiWindow? _save;
 	private CGuiWindow? _settings;
 	private CGuiListBox? _list;
+	private CGuiListBox? _games;
+	private CGuiTextBox? _name;
 	private readonly List<(string Name, EMessageCategory? Category, CGuiButton Box)> _tabs = new();
 	private CConfirmDialog? _dialog;
 
@@ -87,19 +92,26 @@ public sealed partial class CInGameMenu : Control
 
 		if (_panel is not null)
 		{
-			// What these two lead to is not built - saving, the screen after a game - so they are greyed where the
-			// original greys neither (ingamemenu.md, Ours).
-			foreach (string unbuilt in new[] { "menu_save_button", "menu_resign_button" })
+			// What Resign leads to is not built - the screen after a game - so it is greyed where the original greys it
+			// not (ingamemenu.md, Ours).
+			if (_panel.FindButton("menu_resign_button") is { } resign)
 			{
-				if (_panel.FindButton(unbuilt) is { } button)
-				{
-					button.Disabled = true;
-				}
+				resign.Disabled = true;
 			}
+			Bind(_panel.FindButton("menu_save_button"), OpenSaveDialog);
 			Bind(_panel.FindButton("menu_options_button"), OpenOptions);
 			Bind(_panel.FindButton("menu_message_button"), OpenMessageSettings);
 			Bind(_panel.FindButton("menu_quit_button"), () => AskToEnd("QUIT"));
 			Bind(_panel.FindButton("menu_close_button"), Close);
+		}
+		if (_save is not null)
+		{
+			_games = _save.FindListBox("games");
+			_name = _save.FindTextBox("game_name");
+			_name?.MakeEditable();
+			Bind(_save.FindButton("save"), SaveTyped);
+			// Back to the six buttons, not to the map (ingamemenu.md, section 6).
+			Bind(_save.FindButton("cancel"), Toggle);
 		}
 		if (_settings is not null)
 		{
@@ -263,6 +275,117 @@ public sealed partial class CInGameMenu : Control
 		HideWindows();
 		List(null);
 		_settings.Visible = true;
+	}
+
+	/// <summary>
+	/// Save Game: the menu's other windows hidden, a row for every save in the folder, newest first, and the name offered
+	/// made again from nothing - the player's country and the hour (ingamemenu.md, section 6).
+	/// </summary>
+	private void OpenSaveDialog()
+	{
+		if (_save is null)
+		{
+			return;
+		}
+		HideWindows();
+		if (_games is not null)
+		{
+			_games.Clear();
+			var boxes = new List<CGuiButton>();
+			foreach (string file in CSaveFiles.List(SaveFolders()))
+			{
+				if (CGuiWindow.CreateEntry(_context, SaveRowName) is not { } row || row.TryFindButton("game") is not { } box)
+				{
+					break;
+				}
+				string text = CSaveFiles.RowText(file);
+				box.SetText(text);
+				boxes.Add(box);
+				// A click puts the row's name in the box and unticks the other rows; nothing is saved or loaded by it.
+				box.Pressed += () =>
+				{
+					if (_name is not null)
+					{
+						_name.Text = text;
+					}
+					foreach (CGuiButton other in boxes)
+					{
+						if (!ReferenceEquals(other, box))
+						{
+							other.Checked = false;
+						}
+					}
+				};
+				_games.Add(row);
+			}
+		}
+		_save.Visible = true;
+		if (_name is not null)
+		{
+			string offered = CSaveFiles.OfferedName(_player?.Name ?? "", _simulation.State.TotalHours);
+			_name.Text = offered;
+			if (_name.Editor is { } editor)
+			{
+				// Set again even where the box holds it already, the caret to its end.
+				editor.Text = offered;
+			}
+			// The original's request for the keyboard, granted once the box is shown.
+			_name.TakeKeyboard();
+		}
+	}
+
+	/// <summary>The player's folder of saves, where a save is written, then the install's, where one is also looked for.</summary>
+	private IEnumerable<string> SaveFolders()
+	{
+		yield return SaveFolder;
+		foreach (string folder in _directories.LayerFolders(CSaveFiles.FolderName))
+		{
+			yield return folder;
+		}
+	}
+
+	private static string SaveFolder =>
+		System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(), CSaveFiles.FolderName);
+
+	/// <summary>
+	/// <c>save</c>: nothing for an empty box; a file of the name in any of the folders is asked about first, and written
+	/// over only on OK; otherwise saved at once. No message says it was saved; then back to the six buttons.
+	/// </summary>
+	private void SaveTyped()
+	{
+		if (_name is null || CSaveFiles.FileName(_name.Text) is not { } file)
+		{
+			return;
+		}
+		string path = System.IO.Path.Combine(SaveFolder, file);
+		if (!SaveFolders().Any(folder => System.IO.File.Exists(System.IO.Path.Combine(folder, file))))
+		{
+			WriteSave(path);
+			return;
+		}
+		_dialog?.Close();
+		Func<string, string> localise = _context.Localisation.Localise;
+		_dialog = CConfirmDialog.Open(this, _context, ConfirmName, localise("CONFIRMSAVETITLE"),
+			localise("CONFIRMSAVETEXT").Replace("$NAME$", file, StringComparison.Ordinal));
+		if (_dialog is not null)
+		{
+			_dialog.Agreed += () => WriteSave(path);
+		}
+	}
+
+	/// <summary>The game written, or the failure logged as the original logs it; either way back to the six buttons.</summary>
+	private void WriteSave(string path)
+	{
+		try
+		{
+			CSaveFiles.Write(_simulation.State, _context.Localisation.Localise, path);
+		}
+		catch (Exception failed) when (failed is System.IO.IOException or UnauthorizedAccessException or ArgumentException
+			or NotSupportedException)
+		{
+			CDiagnostics.Warn($"Failed to write save file {path}: {failed.Message}");
+		}
+		Toggle();
 	}
 
 	/// <summary>Game Options: the options window shown and the six buttons hidden, the menu's picture left up.</summary>

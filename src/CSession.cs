@@ -413,6 +413,7 @@ public partial class CSession : Node
 			};
 		}
 		_simulation.DayPassed += () => _unitsMoved = true;
+		_simulation.DayPassed += DecideAutosave;
 		_simulation.HourPassed += () => _hourPassed = true;
 		_mapView.UnitSelected += unit =>
 		{
@@ -462,6 +463,11 @@ public partial class CSession : Node
 		_menu = new CInGameMenu();
 		_menu.Setup(gui, _directories, _simulation, Player, options);
 		layer.AddChild(_menu);
+		// The arrow keys scroll the map only where nothing before it takes them (interface.md, section 8; ingamemenu.md,
+		// section 1).
+		_mapView.ScrollKeysHeld = () => _menu.IsOpen
+			? (true, true)
+			: (gui.KeyboardFocus is { HasKeyboard: true }, false);
 		_topBar.MenuPressed += _menu.Toggle;
 		_menu.Opening += () =>
 		{
@@ -774,6 +780,7 @@ public partial class CSession : Node
 			}
 		}
 		ProcessAfterHours();
+		AutosaveIfDue();
 		if (_frameLog is { } log)
 		{
 			log.Frame(delta, simulation, Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds - simulation, hours);
@@ -783,6 +790,60 @@ public partial class CSession : Node
 				_frameLog = null;
 				GetTree().Quit();
 			}
+		}
+	}
+
+	/// <summary>An autosave decided on and not written yet, and whether it has waited its frame (savegame.md, section 11).</summary>
+	private bool _autosaveDue;
+	private bool _autosaveWaited;
+	private bool _debugSavesSaid;
+
+	/// <summary>
+	/// The autosave's decision, as each day begins: what an earlier day decided and was not written yet is dropped, and
+	/// the settings' frequency asked of today. With <c>debug_saves</c> set the original saves otherwise, which is not
+	/// built: said once, and nothing saved.
+	/// </summary>
+	private void DecideAutosave()
+	{
+		_autosaveDue = false;
+		_autosaveWaited = false;
+		if (Settings.DebugSaves != 0)
+		{
+			if (!_debugSavesSaid)
+			{
+				_debugSavesSaid = true;
+				CDiagnostics.Warn($"settings.txt: debug_saves = {Settings.DebugSaves} - its saves are not built, and nothing autosaves");
+			}
+			return;
+		}
+		_autosaveDue = Content.Saves.CAutosave.IsDue(Settings.Autosave, State.Date);
+	}
+
+	/// <summary>
+	/// The autosave's writing, once a frame after the hours: a decision waits one frame, then the three files are shifted
+	/// along and the game written to the first. A failure is logged as the original logs it.
+	/// </summary>
+	private void AutosaveIfDue()
+	{
+		if (!_autosaveDue)
+		{
+			return;
+		}
+		if (!_autosaveWaited)
+		{
+			_autosaveWaited = true;
+			return;
+		}
+		_autosaveDue = false;
+		_autosaveWaited = false;
+		string folder = System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(), Content.Saves.CSaveFiles.FolderName);
+		try
+		{
+			Content.Saves.CAutosave.Write(State, _localisation.Localise, folder);
+		}
+		catch (System.Exception failed) when (failed is System.IO.IOException or System.UnauthorizedAccessException)
+		{
+			CDiagnostics.Warn($"Failed to write save file {folder}: {failed.Message}");
 		}
 	}
 
@@ -1334,6 +1395,8 @@ public partial class CSession : Node
 	/// the button held down 1.5 seconds of real time, and h48 lets 48 hours go by, m460,40 moves
 	/// the pointer there without clicking, d700,310>900,500 drags from the one point to the
 	/// other - sd with shift held as it lets go, D holding on at the end - ck1 presses Ctrl and 1, esc presses Escape,
+	/// type:Text types the text into the edit box that has the keyboard, bs, del, left, right, home, end and enter press
+	/// those keys,
 	/// and w2 waits two seconds of real time, which is
 	/// what a tooltip's second half waits on - once everything else is done,
 	/// <c>--run</c> starts the clock at the top speed instead of paused,
@@ -1808,6 +1871,40 @@ public partial class CSession : Node
 					{
 						break;
 					}
+				}
+				await Frames(2);
+				continue;
+			}
+			// type:Text types each character of the text, as a key with its character, into what has the keyboard; bs,
+			// del, left, right, home, end and enter press those keys.
+			if (entry.StartsWith("type:", System.StringComparison.Ordinal) || entry is "bs" or "del" or "left" or "right" or "home"
+				or "end" or "enter")
+			{
+				var pressed = new List<(Key Key, long Unicode)>();
+				if (entry.StartsWith("type:", System.StringComparison.Ordinal))
+				{
+					pressed.AddRange(entry["type:".Length..].Select(typed => (Key.None, (long)typed)));
+				}
+				else
+				{
+					pressed.Add((entry switch
+					{
+						"bs" => Key.Backspace,
+						"del" => Key.Delete,
+						"left" => Key.Left,
+						"right" => Key.Right,
+						"home" => Key.Home,
+						"end" => Key.End,
+						_ => Key.Enter,
+					}, 0));
+				}
+				await Frames(2);
+				foreach ((Key key, long unicode) in pressed)
+				{
+					GetViewport().PushInput(new InputEventKey { Keycode = key, Unicode = unicode, Pressed = true }, true);
+					await Frames(1);
+					GetViewport().PushInput(new InputEventKey { Keycode = key, Unicode = unicode, Pressed = false }, true);
+					await Frames(1);
 				}
 				await Frames(2);
 				continue;

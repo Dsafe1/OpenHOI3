@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Convoys;
@@ -15,6 +17,39 @@ namespace OpenHOI3.Content.Saves;
 /// </summary>
 public static class CSaveConvoys
 {
+	/// <summary>The type of a convoy's id: its own count's.</summary>
+	public const int IdType = 42;
+
+	/// <summary>
+	/// A convoy as the original writes it: its number, harbours, ships, way where it has one, last attack, start, what it
+	/// carried, whether it serves a trade, what it carries, and whether it serves a lend-lease and whose
+	/// (<c>savegame.md</c>, section 10).
+	/// </summary>
+	public static void Write(CSaveTextWriter writer, CConvoy convoy)
+	{
+		writer.Begin("convoy");
+		writer.IdPair("id", convoy.Id, IdType);
+		writer.Int("start", convoy.Start);
+		writer.Int("end", convoy.End);
+		writer.Int("escorts", convoy.Escorts);
+		writer.Int("convoys", convoy.Transports);
+		if (convoy.Path.Count > 0)
+		{
+			writer.IndentedList("path", convoy.Path.Select(province => province.ToString(CultureInfo.InvariantCulture)));
+		}
+		writer.DateOrNull("last_attack", convoy.LastAttackHour == CConvoy.NeverAttacked ? null : convoy.LastAttackHour);
+		writer.Date("start_date", convoy.StartHour);
+		CSaveWriter.WritePool(writer, "daily", convoy.Daily);
+		writer.Bool("trade", convoy.IsTrade);
+		writer.Numbers("ship", convoy.Carries.Select(carries => carries ? 1L : 0L));
+		writer.Bool("lend_lease", convoy.IsLendLease);
+		if (convoy.LendLeaseFrom is { } giver)
+		{
+			writer.Quoted("lendlease_targets", giver.Value);
+		}
+		writer.End();
+	}
+
 	public static CConvoy Read(CGameState state, CCountry owner, ClausewitzNode block, CSaveReport report)
 	{
 		CCountryTag? giver = null;

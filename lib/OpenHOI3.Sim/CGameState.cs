@@ -315,8 +315,18 @@ public sealed class CGameState
 	/// <summary>The wars being fought now - and every war made since, which stays here when a side empties (<c>war.md</c>, section 1).</summary>
 	public List<CWar> Wars { get; }
 
-	/// <summary>Wars finished before the game, the original's <c>previous_war</c>: none is read yet, and a war's name is not reused against them.</summary>
+	/// <summary>The original's <c>previous_war</c>s, which a save gives: a war's name is not reused against them.</summary>
 	public List<CWar> FinishedWars { get; } = new();
+
+	/// <summary>
+	/// How many pacts have been made - alliances, guarantees, puppets, NAPs, embargoes, influences, alignments and trade
+	/// routes, counted as one: each pact holds its number, which is the order a save writes them in, the original keeping
+	/// them on one list (<c>savegame.md</c>, section 10).
+	/// </summary>
+	public long PactsMade { get; set; }
+
+	/// <summary>The number of a pact made now.</summary>
+	public long NextPact() => ++PactsMade;
 
 	/// <summary>
 	/// The casus belli types of <c>common/cb_types.txt</c>, by their number: the null type first, then the

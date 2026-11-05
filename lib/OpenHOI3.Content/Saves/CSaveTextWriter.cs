@@ -60,6 +60,16 @@ public sealed class CSaveTextWriter
 		_depth++;
 	}
 
+	/// <summary>
+	/// A line holding only the indentation: the empty key the original writes before the first of the finished battles,
+	/// whose brace then follows on a line of its own.
+	/// </summary>
+	public void IndentationLine()
+	{
+		Indent();
+		_text.Append("\r\n");
+	}
+
 	/// <summary>Closes the block last opened: its brace at its key's indentation.</summary>
 	public void End()
 	{
@@ -105,6 +115,12 @@ public sealed class CSaveTextWriter
 	public void Date(string key, long hours)
 	{
 		Quoted(key, CSaveValues.HoursText(hours));
+	}
+
+	/// <summary>A date with its hour, or the original's null date, <c>"1.1.1.0"</c>, where there is none.</summary>
+	public void DateOrNull(string key, long? hours)
+	{
+		Quoted(key, hours is { } at ? CSaveValues.HoursText(at) : "1.1.1.0");
 	}
 
 	/// <summary>An id pair, the serial first: <c>id = { id = N type = T }</c>.</summary>

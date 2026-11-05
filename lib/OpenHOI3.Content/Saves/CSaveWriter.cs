@@ -24,8 +24,13 @@ public static class CSaveWriter
 		EGoods.Supplies, EGoods.Money, EGoods.CrudeOil, EGoods.Fuel, EGoods.Metal, EGoods.Energy, EGoods.RareMaterials,
 	};
 
-	public static string Write(CGameState state)
+	/// <summary>
+	/// The game as a save's text. A war made in play is written under its name written out, which needs the
+	/// localisation; with none given, its text's key stands for it.
+	/// </summary>
+	public static string Write(CGameState state, Func<string, string>? localise = null)
 	{
+		localise ??= key => key;
 		var writer = new CSaveTextWriter();
 		writer.OpenRoot();
 		writer.Date("date", state.TotalHours);
@@ -56,7 +61,25 @@ public static class CSaveWriter
 				WriteCountry(writer, state, country);
 			}
 		}
+		// Every ship that has left the game, under its owner's tag, written always (savegame.md, section 10).
+		writer.Begin("sunk_ships");
+		foreach (Sim.Units.CSunkShip sunk in state.SunkShips)
+		{
+			CSaveUnitWriter.WriteSubUnit(writer, state, sunk.Owner?.Value ?? "---", sunk.Ship, fighting: false);
+		}
+		writer.End();
 		WriteFactions(writer, state);
+		// The pacts, the battles and the wars (savegame.md, section 10).
+		CSaveDiplomacy.Write(writer, state);
+		CSaveCombats.Write(writer, state);
+		foreach (Sim.Wars.CWar war in state.Wars)
+		{
+			CSaveWars.Write(writer, "active_war", war, localise);
+		}
+		foreach (Sim.Wars.CWar war in state.FinishedWars)
+		{
+			CSaveWars.Write(writer, "previous_war", war, localise);
+		}
 		writer.CloseRoot();
 		return writer.Text;
 	}
@@ -142,7 +165,8 @@ public static class CSaveWriter
 		WritePool(writer, key, pool);
 	}
 
-	private static void WritePool(CSaveTextWriter writer, string key, CGoodsPool pool)
+	/// <summary>A pool's block, written whatever it holds, each good that is not nought in a save's order.</summary>
+	internal static void WritePool(CSaveTextWriter writer, string key, CGoodsPool pool)
 	{
 		writer.Begin(key);
 		foreach (EGoods goods in PoolOrder)
@@ -288,6 +312,13 @@ public static class CSaveWriter
 		}
 		writer.Fixed("dissent", country.Dissent);
 		writer.Fixed("national_unity", country.NationalUnity);
+		// Its pool of transports and escorts and its convoys (savegame.md, section 10).
+		writer.Int("escorts", country.Escorts);
+		writer.Int("convoys", country.Transports);
+		foreach (Sim.Convoys.CConvoy convoy in country.Convoys)
+		{
+			CSaveConvoys.Write(writer, convoy);
+		}
 		writer.Fixed("effective_neutrality", country.EffectiveNeutrality);
 		writer.Quoted("highest_threat", country.MostThreatening?.Value ?? "---");
 		writer.End();

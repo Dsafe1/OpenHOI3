@@ -1548,8 +1548,8 @@ account of the original; Close goes back from its windows to the buttons and lea
 clock stopped once one has been open - the original's, which the maintainer confirmed in it; Quit asks and goes to the
 desktop; and the message settings list every type with its four boxes, the tabs, Reset, and a Close that writes
 `messagetypes_custom.txt`, which is now read at every start over the install's types. Tried with `--click`: the
-maintainer's file comes out byte for byte as the original wrote it. **Save Game and Resign are greyed** until saving
-and a screen after a game exist (*Loose ends*). **The game options window is built** (2026-11-04,
+maintainer's file comes out byte for byte as the original wrote it. **Resign is greyed** until a screen after a game
+exists (*Loose ends*); Save Game opens the save dialog since 2026-11-05 (`savegame.md`, section 11). **The game options window is built** (2026-11-04,
 `docs/mechanics/gameoptions.md`, read in one wave, `reversing/findings/FINDINGS-settingswindow.md`): the four tabs,
 Apply storing every tab and writing the player's `settings.txt` - the original's 21 keys in its order and format, set
 beside the maintainer's two files byte for byte by `OpenHOI3.SaveCheck settings` - with the restart notice for a
@@ -1586,8 +1586,20 @@ figure, kept on the order; a naval order's counts and an air order's figure per 
 loader on the way: an invasion's landing sea and a deployment's own number are read now, the player's numbers run on
 from the history's with no gap, a waiting intercept no longer goes after the fleet its order names, and a naval order's
 being told to return is lost on a load as in the original; and a line passes over two numbers after its unit, the first
-for its deployment. **Next up**: the writer's
-further increments, in the loader's - the wars, pacts, convoys and battles - then the save dialog.
+for its deployment. **And its third** (section 10): the pacts, the wars, each country's pool and convoys, the battles,
+the finished battles and the sunk ships - every war, convoy, battle and list of finished battles in fourteen saves the
+save's byte for byte, and the pacts too but for a NAP's three figures, which nothing holds. The pacts come out in the
+order they were made, whatever their kind, as the original keeps them on one list, so each pact now holds its number
+and a new game numbers the history's by date and file; a war made in play is written under its name written out, and a
+loaded one's name is read back into its parts, so a war declared after a load is no longer given a name a loaded war
+has. **And saving in play** (2026-11-05, section 11; `ingamemenu.md`, section 6): the menu's Save Game opens the save
+dialog - the folder listed newest first, the country's name and the hour offered, a row's name chosen, the question
+before a file is written over - and the autosave writes `autosave.hoi3` at the settings' frequency, shifting the
+original's two older files along, the player's folder being the original's own. The dialog's name is typed into as
+the original's edit box takes typing, read for it in the fact base (`FINDINGS-editbox.md`; `interface.md`, section 8):
+the keyboard given as the dialog opens or by a click, the six keys, the seven characters refused, the cap of 250, the
+caret's blink and the one wrapped line shown. **Next up**: what neither the loader nor the writer holds yet - politics,
+the research queue, spies, the AI's blocks, the weather's fronts, the statistics - section 4's list.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
@@ -1874,9 +1886,12 @@ None of these blocks the list above.
     return date - and those saves are its check, with the six of 23 May 1940, an hour apart, where
     Britain has lent France 2 divisions and Germany Slovakia 1 beside Japan's 44, and Germany's 531,
     Britain's 372 and France's about 300 brigades drift the same way each hour;
-  - **the in-game menu's Save Game and Resign are greyed** (`ingamemenu.md`, *Ours*), where the
-    original greys neither: there is no saving and no screen after a game or main menu. The save
-    dialog is read and specified there, section 6, for the day saving exists;
+  - **the in-game menu's Resign is greyed** (`ingamemenu.md`, *Ours*), where the original greys it
+    not: there is no screen after a game or main menu;
+  - **only the save dialog's edit box takes typing** (`interface.md`, section 8): the unit
+    panel's name waits on renaming a unit;
+  - **`debug_saves` other than nought autosaves nothing** (`savegame.md`, section 11): the
+    original's saves under it are named by a routine not read;
   - **of the player's settings, only the gamma, the multisampling, the hierarchy's lines and the
     outliner's sections are applied** (`gameoptions.md` and `settings.md`, *Ours*): the screen's
     size, rate and full screen are not taken at a start, there is no sound, the camera's speeds and

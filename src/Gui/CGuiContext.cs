@@ -26,6 +26,12 @@ public sealed class CGuiContext
 	public static string MessageTypesPath => System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(),
 		CMessageTypes.CustomFile);
 
+	/// <summary>
+	/// The edit box that has the keyboard: the last one clicked or given it, kept until another is - hiding it, Enter and
+	/// Escape take nothing away, as the original's (<c>docs/mechanics/interface.md</c>, section 8).
+	/// </summary>
+	public CGuiTextBox? KeyboardFocus { get; set; }
+
 	/// <summary>What draws a button under the mouse, held down and switched off.</summary>
 	public CButtonShader ButtonShader { get; } = new();
 

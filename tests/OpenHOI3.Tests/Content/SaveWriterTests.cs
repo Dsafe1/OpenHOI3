@@ -35,6 +35,20 @@ public class SaveWriterTests
 	}
 
 	[Fact]
+	public void A_game_with_no_sunk_ships_pacts_battles_or_wars_still_writes_their_blocks()
+	{
+		var norway = new CCountry { Tag = new CCountryTag("NOR"), Name = "Norway", DefinitionFile = "" };
+		var state = new CGameState(new CDate(1936, 1, 7), new[] { new CProvince(0, "", isSea: false) }, new[] { norway });
+
+		string text = CSaveWriter.Write(state);
+
+		// sunk_ships always, then the factions, the pacts, and the battles with an empty history, which has no key of its own.
+		Assert.EndsWith(
+			"sunk_ships=\r\n{\r\n}\r\nfaction={}\r\ndiplomacy=\r\n{\r\n}\r\ncombat=\r\n{\r\n\thistory=\r\n\t{\r\n\t}\r\n}\r\n}\r\n",
+			text);
+	}
+
+	[Fact]
 	public void A_province_is_written_in_the_originals_order_each_key_where_the_original_writes_it()
 	{
 		var nor = new CCountryTag("NOR");

@@ -52,7 +52,7 @@ public static class CPuppets
 		}
 		EndAgreements(state, vassal);
 
-		state.Alliances.Add(new CAlliance(overlord.Tag, vassal.Tag));
+		state.Alliances.Add(new CAlliance(overlord.Tag, vassal.Tag) { Made = state.NextPact(), Start = state.TotalHours });
 		vassal.AlignmentX = overlord.AlignmentX;
 		vassal.AlignmentY = overlord.AlignmentY;
 		if (COfferRules.RealFaction(overlord))
@@ -60,6 +60,9 @@ public static class CPuppets
 			CFactions.AddCountry(state, vassal, overlord.Faction, joinWars: true);
 		}
 		vassal.Overlord = overlord.Tag;
+		vassal.PuppetMade = state.NextPact();
+		vassal.PuppetStart = state.TotalHours;
+		vassal.PuppetEnd = null;
 		CFixedPoint relation = CRelations.Clamp(CRelations.Of(overlord, vassal) + PuppetRelation);
 		CGameState.Status(overlord, vassal).Relation = relation;
 		CGameState.Status(vassal, overlord).Relation = relation;

@@ -53,8 +53,8 @@ maintainer confirmed in the original the same day. `confirmed` unless marked.
 `autosave_value` [mod: settings.gui] shows the frequency's key, which is its name - `NEVER` "Never", `WEEKLY`, `MONTHLY`
 "Monthly", `HALFYEAR` "Half Year", `YEARLY` "Yearly", `FIVE_YEAR` "Five Years" [mod: localisation]. `increase_` steps
 up and **wraps from Five Years to Never**, `decrease_` steps down and wraps the other way [exe]. It reaches the settings
-only on Apply, and **outlives Back**: shown again at the next opening and stored by any later Apply. Here nothing
-autosaves yet, so the choice is kept and written and does nothing else.
+only on Apply, and **outlives Back**: shown again at the next opening and stored by any later Apply. Applied, it is
+the frequency the autosave goes by from the next day on (`savegame.md`, section 11).
 
 ### Video
 

@@ -175,6 +175,7 @@ public static class CGameStateLoader
 		state.Alliances.AddRange(diplomacy.Alliances);
 		state.Guarantees.AddRange(diplomacy.Guarantees);
 		state.Naps.AddRange(diplomacy.Naps);
+		NumberHistoryPacts(state);
 		state.AiScripts = aiScripts;
 		CRelations.SetFromHistory(state, diplomacy.Relations, start);
 		COccupationPolicies.SetFromHistory(state);
@@ -444,6 +445,38 @@ public static class CGameStateLoader
 	/// Gives each province the regions that list it, in the map's order of regions - as
 	/// the original's map does once it has read them.
 	/// </summary>
+	/// <summary>
+	/// The history's standing pacts numbered as the original makes them, a day of the history at a time: by their start,
+	/// and within a start in the order they were read - the files' order, then each file's (<c>savegame.md</c>, section 10).
+	/// </summary>
+	public static void NumberHistoryPacts(CGameState state)
+	{
+		var pacts = new List<(long Start, long Read, Action<long> Number)>();
+		for (int i = 0; i < state.Alliances.Count; i++)
+		{
+			int at = i;
+			pacts.Add((state.Alliances[i].Start, state.Alliances[i].Made, made => state.Alliances[at] = state.Alliances[at] with { Made = made }));
+		}
+		for (int i = 0; i < state.Guarantees.Count; i++)
+		{
+			int at = i;
+			pacts.Add((state.Guarantees[i].Start ?? 0, state.Guarantees[i].Made, made => state.Guarantees[at] = state.Guarantees[at] with { Made = made }));
+		}
+		for (int i = 0; i < state.Naps.Count; i++)
+		{
+			int at = i;
+			pacts.Add((state.Naps[i].Start, state.Naps[i].Made, made => state.Naps[at] = state.Naps[at] with { Made = made }));
+		}
+		foreach (CCountry country in state.Countries.Where(country => country.Overlord is not null))
+		{
+			pacts.Add((country.PuppetStart, country.PuppetMade, made => country.PuppetMade = made));
+		}
+		foreach ((long _, long _, Action<long> number) in pacts.OrderBy(pact => pact.Start).ThenBy(pact => pact.Read))
+		{
+			number(state.NextPact());
+		}
+	}
+
 	private static void AssignRegions(CGameState state)
 	{
 		for (int index = 0; index < state.Regions.Count; index++)

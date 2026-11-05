@@ -122,10 +122,10 @@ public static class CSaveLoader
 					routes.AddRange(CSaveDiplomacy.Read(state, node, report));
 					break;
 				case "active_war" when node.IsBlock:
-					state.Wars.Add(CSaveWars.Read(state, node, report));
+					state.Wars.Add(CSaveWars.Read(state, node, report, localisation.Localise));
 					break;
 				case "previous_war" when node.IsBlock:
-					state.FinishedWars.Add(CSaveWars.Read(state, node, report));
+					state.FinishedWars.Add(CSaveWars.Read(state, node, report, localisation.Localise));
 					break;
 				// The next convoy's number.
 				case "convoy" when !node.IsBlock:
@@ -204,6 +204,7 @@ public static class CSaveLoader
 			country.Convoys.Clear();
 			country.Faction = "";
 			country.Overlord = null;
+			country.PuppetEnd = null;
 			country.EventModifiers.Clear();
 			country.Mobilised = false;
 		}
@@ -216,6 +217,7 @@ public static class CSaveLoader
 		state.Influences.Clear();
 		state.Aligns.Clear();
 		state.TradeRoutes.Clear();
+		state.PactsMade = 0;
 		state.LastConvoyId = 0;
 		state.Combats.Clear();
 		state.CombatHistory.Clear();

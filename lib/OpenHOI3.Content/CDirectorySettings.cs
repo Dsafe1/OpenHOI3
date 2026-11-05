@@ -189,6 +189,16 @@ public sealed class CDirectorySettings
 	/// well. The results are ordered base layer first, because the registries built
 	/// from them resolve conflicts by load order and the expansion has to win.
 	/// </summary>
+	/// <summary>A game-relative folder in each layer, highest priority first, whether or not it exists.</summary>
+	public IEnumerable<string> LayerFolders(string gameRelativeDirectory)
+	{
+		string normalised = Normalise(gameRelativeDirectory);
+		foreach (string layer in Layers)
+		{
+			yield return InLayer(layer, normalised);
+		}
+	}
+
 	public string[] ListFiles(string gameRelativeDirectory, string searchPattern)
 	{
 		string normalised = Normalise(gameRelativeDirectory);

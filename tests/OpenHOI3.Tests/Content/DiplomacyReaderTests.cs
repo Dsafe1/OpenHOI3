@@ -89,9 +89,11 @@ public class DiplomacyReaderTests
 		", new CDate(1936, 1, 1));
 
 		long began = new CDate(1935, 6, 1).DayNumber * 24L;
-		Assert.Equal(new[] { new CGuarantee(new CCountryTag("ENG"), new CCountryTag("FRA"), began) }, _history.Guarantees);
+		long ends = new CDate(1948, 1, 1).DayNumber * 24L;
+		// Each numbered in the order the standing ones were read, and an end kept for a save to write.
+		Assert.Equal(new[] { new CGuarantee(new CCountryTag("ENG"), new CCountryTag("FRA"), began) { Made = 1, End = ends } }, _history.Guarantees);
 		// A pact that gives no start began on the day it is read for.
-		Assert.Equal(new[] { new OpenHOI3.Sim.Agreements.CNap(new CCountryTag("JAP"), new CCountryTag("SOV"), new CDate(1936, 1, 1).DayNumber * 24L) },
+		Assert.Equal(new[] { new OpenHOI3.Sim.Agreements.CNap(new CCountryTag("JAP"), new CCountryTag("SOV"), new CDate(1936, 1, 1).DayNumber * 24L) { Made = 2 } },
 			_history.Naps);
 	}
 

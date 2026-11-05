@@ -28,6 +28,9 @@ public sealed class CTradeRoute
 
 	public long Start { get; }
 
+	/// <summary>Its number among the pacts (<see cref="CGameState.NextPact"/>).</summary>
+	public long Made { get; init; }
+
 	/// <summary>The convoy serving it; none for a route over land, or one never made or since lost.</summary>
 	public CConvoy? Convoy { get; set; }
 

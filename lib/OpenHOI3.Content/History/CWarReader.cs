@@ -67,9 +67,12 @@ public static class CWarReader
 				continue;
 			}
 
+			// Its last action is the hour the history is folded to, not its first entry's: the start save's war of
+			// 1935.10.3 has 1936.1.1.0 (savegame.md, section 10; measured).
 			var war = new CWar(root.GetString("name"), FirstDate(root, date))
 			{
 				IsLimited = root.GetBool("limited_war"),
+				Action = date.DayNumber * (long)CGameState.HoursPerDay,
 			};
 			foreach (ClausewitzNode entry in CHistory.Fold(root, date))
 			{

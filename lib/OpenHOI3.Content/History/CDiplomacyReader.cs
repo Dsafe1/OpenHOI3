@@ -104,19 +104,29 @@ public static class CDiplomacyReader
 			{
 				continue;
 			}
+			// Each numbered in the order it was read, which the game's numbering takes within a start date
+			// (CGameStateLoader.NumberHistoryPacts); its end is only what a save writes.
+			long read = ++history.PactsRead;
+			long startHour = StartHour(entry, date);
+			long? endHour = CDate.TryParse(entry.GetString("end_date"), out CDate endDay)
+				? endDay.DayNumber * (long)CGameState.HoursPerDay
+				: null;
 			switch (kind)
 			{
 				case "vassal":
 					second.Overlord = first.Tag;
+					second.PuppetMade = read;
+					second.PuppetStart = startHour;
+					second.PuppetEnd = endHour;
 					break;
 				case "alliance":
-					history.Alliances.Add(new CAlliance(first.Tag, second.Tag));
+					history.Alliances.Add(new CAlliance(first.Tag, second.Tag) { Made = read, Start = startHour, End = endHour });
 					break;
 				case "nap":
-					history.Naps.Add(new CNap(first.Tag, second.Tag, StartHour(entry, date)));
+					history.Naps.Add(new CNap(first.Tag, second.Tag, startHour) { Made = read });
 					break;
 				default:
-					history.Guarantees.Add(new CGuarantee(first.Tag, second.Tag, StartHour(entry, date)));
+					history.Guarantees.Add(new CGuarantee(first.Tag, second.Tag, startHour) { Made = read, End = endHour });
 					break;
 			}
 		}

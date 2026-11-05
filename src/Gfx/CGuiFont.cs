@@ -18,6 +18,12 @@ public sealed class CGuiFont
 {
 	public string Name { get; init; } = "";
 	public string FontName { get; init; } = "";
+
+	/// <summary>
+	/// The entry's <c>effect</c>: on unless it says <c>effect = no</c>, as the original's default. An edit box in a font
+	/// with it on refuses seven characters (<c>docs/mechanics/interface.md</c>, section 8).
+	/// </summary>
+	public bool Effect { get; init; } = true;
 	/// <summary>
 	/// The colour to draw it in: the one its declaration gives, times the colour the
 	/// original's glyphs were painted in. Some of those are white and take their colour

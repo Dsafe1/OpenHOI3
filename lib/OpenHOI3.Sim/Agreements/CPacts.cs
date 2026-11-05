@@ -305,7 +305,7 @@ public static class CPacts
 				Charge(state, actor, "JOIN_ALLIANCE_INFLUENCE_COST");
 				break;
 			case EOfferStage.Accepted:
-				state.Alliances.Add(new CAlliance(actor.Tag, recipient.Tag));
+				state.Alliances.Add(new CAlliance(actor.Tag, recipient.Tag) { Made = state.NextPact(), Start = offer.Date });
 				Relation(state, actor, recipient, "ALLIANCE_RELATION_CHANGE");
 				Message(state, "MILALLACCEPT", "MILALLWEACCEPT", "MILLALLINVACCEPTOTHER", actor, recipient);
 				break;
@@ -333,7 +333,7 @@ public static class CPacts
 				Charge(state, actor, "NAP_JOIN_INFLUENCE_COST");
 				break;
 			case EOfferStage.Accepted:
-				state.Naps.Add(new CNap(actor.Tag, recipient.Tag, offer.Date));
+				state.Naps.Add(new CNap(actor.Tag, recipient.Tag, offer.Date) { Made = state.NextPact() });
 				Relation(state, actor, recipient, "NAP_RELATION_CHANGE");
 				Message(state, "WENAP", "THEYNAP", "OTHERNAP", actor, recipient);
 				break;
@@ -349,7 +349,7 @@ public static class CPacts
 	{
 		if (offer.Value)
 		{
-			state.Guarantees.Add(new CGuarantee(actor.Tag, recipient.Tag, offer.Date));
+			state.Guarantees.Add(new CGuarantee(actor.Tag, recipient.Tag, offer.Date) { Made = state.NextPact() });
 			// Under the Allies' rule every other member guarantees it too, a guarantee of its own by the faction, which
 			// takes the place of any it already gives (factions.md, section 5).
 			if (Wars.CFactions.HasRule(state, actor, Wars.CFactions.GuaranteeRule))
@@ -359,7 +359,7 @@ public static class CPacts
 					if (member != actor)
 					{
 						state.Guarantees.RemoveAll(g => g.Joins(member.Tag, recipient.Tag));
-						state.Guarantees.Add(new CGuarantee(member.Tag, recipient.Tag, offer.Date, ViaFaction: true));
+						state.Guarantees.Add(new CGuarantee(member.Tag, recipient.Tag, offer.Date, ViaFaction: true) { Made = state.NextPact() });
 					}
 				}
 			}
@@ -436,7 +436,7 @@ public static class CPacts
 		long threat = COfferRules.Define(state, "EMBARGO_THREAT_COST").Raw;
 		if (offer.Value)
 		{
-			state.Embargoes.Add(new CEmbargo(actor.Tag, recipient.Tag));
+			state.Embargoes.Add(new CEmbargo(actor.Tag, recipient.Tag) { Made = state.NextPact(), Start = offer.Date });
 			Trade.CTradeRoutes.EndPair(state, actor.Tag, recipient.Tag);
 			Relation(state, actor, recipient, "EMBARGO_RELATION_CHANGE");
 			Charge(state, actor, "EMBARGO_INFLUENCE_COST");
@@ -463,7 +463,7 @@ public static class CPacts
 				return;
 			}
 		}
-		state.Influences.Add(new CInfluence(actor.Tag, recipient.Tag, actor.Faction, offer.Date));
+		state.Influences.Add(new CInfluence(actor.Tag, recipient.Tag, actor.Faction, offer.Date) { Made = state.NextPact() });
 		Give(state, recipient, actor.Faction);
 		Charge(state, actor, "INFLUENCE_INFLUENCE_COST");
 		Message(state, "WEINFLUENCE", "THEYINFLUENCE", "OTHERINFLUENCE", actor, recipient, actor.Faction);
@@ -484,7 +484,7 @@ public static class CPacts
 		{
 			return;
 		}
-		state.Aligns.Add(new CAlign(actor.Tag, recipient.Tag, recipient.Faction, offer.Date));
+		state.Aligns.Add(new CAlign(actor.Tag, recipient.Tag, recipient.Faction, offer.Date) { Made = state.NextPact() });
 		Give(state, actor, recipient.Faction);
 		Charge(state, actor, "ALIGN_INFLUENCE_COST");
 		Message(state, "WEALIGN", "THEYALIGN", "OTHERALIGN", actor, recipient, recipient.Faction);

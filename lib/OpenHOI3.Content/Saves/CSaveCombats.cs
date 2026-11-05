@@ -374,6 +374,146 @@ public static class CSaveCombats
 		}
 	}
 
+	/// <summary>
+	/// <c>combat</c>: every battle being fought in the list's order, each under its kind's key, then <c>history</c>, the
+	/// finished battles - written as the original's writers do (<c>savegame.md</c>, section 10).
+	/// </summary>
+	public static void Write(CSaveTextWriter writer, CGameState state)
+	{
+		writer.Begin("combat");
+		foreach (CCombat combat in state.Combats)
+		{
+			WriteCombat(writer, state, combat);
+		}
+		// The history's own key holds the entries, and is left out where there are none. Each entry is an empty key
+		// with its block, and a text save writes a one-space token after each: so the first stands after a line of
+		// indentation, the rest after the token's line, and the closing brace follows the last token.
+		writer.Begin("history");
+		if (state.CombatHistory.Entries.Count > 0)
+		{
+			writer.Begin("history");
+			for (int i = 0; i < state.CombatHistory.Entries.Count; i++)
+			{
+				CFinishedCombat finished = state.CombatHistory.Entries[i];
+				if (i == 0)
+				{
+					writer.IndentationLine();
+				}
+				else
+				{
+					writer.Raw("\r\n");
+				}
+				writer.BeginAnonymous();
+				writer.Int("location", finished.Province);
+				writer.Quoted("attacker", finished.Attacker?.Value ?? None);
+				writer.Quoted("defender", finished.Defender?.Value ?? None);
+				writer.Date("end_date", finished.Hour);
+				if (finished.IsConvoy)
+				{
+					writer.Bool("convoy", true);
+				}
+				writer.Int("type", (int)finished.Kind + 1);
+				writer.End();
+				writer.Raw(" ");
+			}
+			writer.End();
+		}
+		writer.End();
+		writer.End();
+	}
+
+	/// <summary>A battle: its province, its two counters, its sides, and the terrain it is fought on.</summary>
+	private static void WriteCombat(CSaveTextWriter writer, CGameState state, CCombat combat)
+	{
+		writer.Begin(Kinds.First(pair => pair.Value == combat.Kind).Key);
+		writer.Int("location", combat.Province);
+		writer.Int("day", combat.Hour);
+		writer.Int("duration", combat.Duration);
+		WriteSide(writer, state, combat, combat.Attacker, "attacker");
+		WriteSide(writer, state, combat, combat.Defender, "defender");
+		if (state.Province(combat.Province).Terrain is { } terrain)
+		{
+			writer.Quoted("terrain", terrain.Name);
+		}
+		writer.End();
+	}
+
+	/// <summary>
+	/// A side: its die, its units in the order they joined, the ships it has lost, its losses, its size, its tactic where
+	/// it holds one; then a land side's front and reserves, a naval side's positioning, or a bomber's tallies.
+	/// </summary>
+	private static void WriteSide(CSaveTextWriter writer, CGameState state, CCombat combat, CCombatSide side, string key)
+	{
+		writer.Begin(key);
+		writer.Int("dice", side.Dice);
+		foreach (CUnit unit in side.Units)
+		{
+			writer.IdPair("unit", CSaveUnitWriter.Pair(state, unit.Id));
+		}
+		foreach (CSubUnit ship in side.Sunk)
+		{
+			writer.IdPair("sunk_ship", CSaveUnitWriter.Pair(state, ship.Id));
+		}
+		writer.Fixed("losses", side.Losses);
+		WriteSize(writer, state, side);
+		if (side.Tactic is { } tactic)
+		{
+			for (int i = 0; i < state.Tactics.Count; i++)
+			{
+				if (state.Tactics[i] == tactic)
+				{
+					writer.Int("tactic", i + 1);
+					break;
+				}
+			}
+		}
+		if (combat.Kind == ECombatKind.Land)
+		{
+			foreach (CUnit unit in side.Front)
+			{
+				writer.IdPair("front", CSaveUnitWriter.Pair(state, unit.Id));
+			}
+			foreach (CUnit unit in side.Reserves)
+			{
+				writer.IdPair("reserves", CSaveUnitWriter.Pair(state, unit.Id));
+			}
+		}
+		else if (combat.Kind == ECombatKind.Naval)
+		{
+			writer.Fixed("positioning", side.Positioning);
+		}
+		else if (side.IsAttacker && CBombing.IsBombing(combat.Kind))
+		{
+			writer.Fixed("strength", side.StrengthDealt);
+			// The empty building first, then the buildings in their file's order.
+			writer.Figures("building", new[] { CFixedPoint.Zero }
+				.Concat(state.Buildings.Select(building => side.BuildingsDestroyed.GetValueOrDefault(building.Key))));
+			writer.Figures("pool", Goods(side.StockpileDestroyed));
+			writer.Figures("current_producing", Goods(side.ProductionDestroyed));
+		}
+		writer.End();
+	}
+
+	/// <summary>A side's size: a figure for every type of the database, the empty type first, in the database's order.</summary>
+	private static void WriteSize(CSaveTextWriter writer, CGameState state, CCombatSide side)
+	{
+		var figures = new CFixedPoint[state.SubUnitTypes.Values.Max(type => type.DatabaseIndex) + 1];
+		figures[0] = side.Size.GetValueOrDefault(EmptyType);
+		foreach (CSubUnitType type in state.SubUnitTypes.Values)
+		{
+			figures[type.DatabaseIndex] = side.Size.GetValueOrDefault(type.Key);
+		}
+		writer.Figures("size", figures);
+	}
+
+	/// <summary>Seven figures in the goods' order.</summary>
+	private static IEnumerable<CFixedPoint> Goods(CGoodsPool pool)
+	{
+		return Enumerable.Range(0, CGoodsPool.Count).Select(index => pool[(EGoods)index]);
+	}
+
+	private const string None = "---";
+
 	/// <summary>A side's country, or none for <c>"---"</c>.</summary>
 	private static CCountryTag? Tag(ClausewitzNode entry, string key)
 	{

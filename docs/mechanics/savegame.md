@@ -18,8 +18,10 @@ the maintainer's 45 saves. `confirmed` unless marked.
 3. **The writer** - a save loaded and written straight back set beside the file, block by block. **Its first increment
    is built** (section 8): the layout, the top level's head, every province, each country's figures the loader's first
    increment reads, and the factions. **So is its second** (section 9): each country's military part - what the loader's
-   second increment reads.
-4. **The save dialog** (`ingamemenu.md`, section 6) and the autosave at the settings' interval.
+   second increment reads. **And its third** (section 10): what the loader's third reads - the pacts, the wars, the
+   convoys and the pools, the battles, the finished battles and the sunk ships.
+4. **The save dialog** (`ingamemenu.md`, section 6) and the autosave at the settings' interval - **both built**
+   (section 11).
 
 ## 2. What a load is
 
@@ -340,6 +342,95 @@ and not read; a deployment's own number was thrown away; the player's numbers le
 game's first unit would have been serial 0, which the original never gives; a waiting intercept was sent after the
 fleet its order names; and a naval order kept its being told to return across a load, which the original's does not.
 
+## 10. The writer, its third increment: pacts, wars, convoys and battles
+
+What the loader's third increment reads (sections 6 and 7), written as the original writes it [exe]
+(`FINDINGS-savegame.md`, B.2; `FINDINGS-savedbattle.md`, A.2, A.3, B.2 to B.4): a `Write` beside each reader -
+`CSaveDiplomacy`, `CSaveWars`, `CSaveConvoys`, `CSaveCombats` - and `sunk_ships` in `CSaveWriter`.
+
+**The top level** gains, after the countries, `sunk_ships` - written always, `sunk_ships={ }` with none - and after the
+factions `diplomacy`, `combat`, every `active_war` and every `previous_war`. **A country** gains, after
+`national_unity`, `escorts` and `convoys` (its pool) and each of its convoys.
+
+| block | written |
+| --- | --- |
+| `diplomacy` | **every pact in the order it was made, whatever its kind** - the original keeps them on one list - each `first`, `second`, the `end_date` the history gave a guarantee, an alliance or a puppet (`vassal`) where it gave one, and `start_date`; a trade's `to`, `from`, `trade_from` and `trade_to` in the goods' order (lists at column 0), its `convoy` where it has one, then `first` (its `from`), `second` (its `to`) and `start_date` |
+| `active_war`, `previous_war` | `name` - a war made in play's written out, "2nd War of German Aggression", as the war list shows it - `limited`, every `attacker` and `defender` in order, `action` (`1.1.1.0` none), `original_attacker` and `original_defender`, `---` in every save, and each `war_goal`'s `casus_belli`, `actor` and `receiver` - and its `country` and `region` where it names them, in no save, so where they go is *inferred* |
+| a country's `convoy` | `id` (type 42), `start`, `end`, `escorts`, `convoys`, `path` (an indented list) where it has one, `last_attack` (`1.1.1.0` never), `start_date`, `daily` - always, each good not nought in a pool's order - `trade`, `ship` (a 1 or 0 for each good, at column 0), `lend_lease`, and `lendlease_targets`, the giver, for a lend-lease convoy |
+| `sunk_ships` | each ship under its owner's tag, as a ship in a fleet is written |
+| a battle | under its kind's key, in the list's order: `location`, `day`, `duration`, each side, `terrain` (the province's) |
+| a side | `dice`, every `unit` in the order it joined, every `sunk_ship`, `losses`, `size` - a figure for each type of the database, the empty type first, at column 0 - `tactic` where it holds one; a land side's `front` and `reserves`, a naval side's `positioning`, a bomber's `strength`, `building` (the empty building first), `pool` and `current_producing` |
+| `history` | the finished battles' own `history` key, left out where there are none; each entry an empty key and its block - `location`, `attacker`, `defender` (`---` none), `end_date`, `convoy` where set, `type` - and a one-space token after each, so the first stands after a line of indentation and the closing brace after the last token |
+
+**Each pact holds its number among the pacts** (`CGameState.NextPact`) - an alliance, a guarantee, a NAP, an embargo,
+an influence, an alignment and a trade route its `Made`, a puppet its country's `PuppetMade` - given as it is made in
+play, in the save's order as a save is read, and for a new game **by its start date and within a date in the order the
+history's files are read** - the alliances, the guarantees, the NAPs and then the puppets, each file in its order - as
+the original applies its history a day at a time: the start save's guarantee of 1935 stands before its alliances of
+1936 (`CGameStateLoader.NumberHistoryPacts`; *measured* on the start save). An alliance and an embargo now hold their
+start, and a guarantee, an alliance and a puppet the end the history or a save gave them, which only the writer reads.
+
+**A war's name**: a war made in play is written under its name written out, so the writer is handed the localisation;
+and **a save's name a declaration made is read back into its parts** - the key whose text it fits, its order and its
+adjectives, each a country's - so that a war declared after the load is named against it, as the original's
+`CGameState_IsWarNameTaken` compares names (`war.md`, section 7). Until 2026-11-05 a loaded war kept only its text,
+and a German declaration after loading the 16 July 1941 save would have been "War of German Aggression" a second time.
+
+**A history war's `action`** is the hour the history is folded to, not its first entry's: the start save's war of 3
+October 1935 has `1936.1.1.0` (*measured*), which a new game now gives it.
+
+**Not held, so not written**: a NAP's `balance`, `our_power` and `their_power`; a `casus_belli` pact (`type`,
+`first`, `second`, `start_date`; two in the 16 July 1941 saves); an `undeclared_war`; a sunk ship's `home` and
+`builder`, as in the unit tree.
+
+**Checked** with `OpenHOI3.SaveCheck write` and each block set beside the save's as text. On 2026-11-05, in
+`Germany1936_01_07_22`, `_03_31_19` (lend-lease convoys) and `_09_02_21`, `Ireland1936_02_02_04`, `1937_07_05_02`,
+`1937_10_03_21`, `1937_11_02_21`, `1938_08_03_14`, `1938_08_25_03`, `1940_05_23_15`, `_18`, `_19`, `1941_07_16_18` and
+`Soviet_Union1941_07_16_19`: **every war and finished war, and every country's pool and convoys, the save's byte for
+byte** - 14,666 lines of convoys in `Ireland1938_08_25_03`; **the pacts byte for byte** but for what is not held, in the
+save's order - 12,715 lines in the same save; **every battle and every list of finished battles byte for byte** in the
+five saves with battles - land, naval and air battles, a ground and land bombings, 454 lines of finished battles in
+`Ireland1938_08_03_14` - the bombings coming after a load in the opposite order, as the original's load turns them
+(section 7); and every sunk ship but for `home` and `builder`. `write <install> new <start save>` gives the start save's
+283 lines of pacts byte for byte.
+
+## 11. Saving in play: the save dialog and the autosave
+
+**The save dialog** is the in-game menu's (`ingamemenu.md`, section 6): it lists the player's `save games` folder and
+the install's, writes to the player's, offers the country's name and the hour, and asks before writing over a file.
+A save is `CSaveWriter`'s text in the original's bytes, the file truncated where one stands (`CSaveFiles`).
+
+**The autosave** [exe] (`reversing/findings/FINDINGS-autosave.md`):
+
+- **Decided as each day begins**, by the interface's daily update after the day's pass: what an earlier day decided
+  and has not been written yet is dropped, then the frequency is asked of today. Never in a tutorial - there is none
+  here.
+- **The frequency** is `settings.txt`'s `autosave` [mod: settings.txt, the game options window]: `NEVER`; `WEEKLY`, a
+  day whose number from the calendar's start, less one, is a whole number of weeks; `MONTHLY`, the 1st; `HALFYEAR`, the
+  1st of January and of July; `YEARLY`, the 1st of January, the default; `FIVE_YEAR`, the 1st of January of a year
+  five divides (`CAutosave.IsDue`).
+- **Written a frame later**: the frame that finds the decision only marks that it has waited, and the next writes.
+  Here a frame's hours run first and the check comes after them (`CSession.AutosaveIfDue`).
+- **Three files** in the player's `save games` folder: `olderautosave.hoi3` is deleted, `oldautosave.hoi3` becomes
+  it, `autosave.hoi3` becomes `oldautosave.hoi3`, and the game is written to `autosave.hoi3`. **They are the
+  original's own files** - the player's folder is shared, as the settings are - so a game played here shifts the
+  original's autosaves along, and the other way round.
+- **`debug_saves`** other than nought [mod: settings.txt] makes the original ignore the frequency and save on the 1st of
+  every Nth month, one file a save, under a name the reading left part unread. **Not built**: said once, and nothing
+  autosaves.
+- No message says a save was made; a failure is logged, `Failed to write save file`.
+
+**Checked** by `SaveFilesTests` - the six frequencies' days, the three files shifted along and the dialog's names - and
+with `--click`: the dialog listing the maintainer's folder newest first, offering `Germany1936_01_01_00`, asking
+`CONFIRMSAVETEXT` before writing over that save and leaving it untouched on Cancel, and as Italy writing
+`Italy1936_01_01_00.hoi3`, which `OpenHOI3.SaveCheck load` read back whole - 1,666 units, every pact, all 261 convoys.
+The autosave was not run in the client, so as not to shift the maintainer's own autosaves along.
+
+**The hour an autosave holds is not established.** The maintainer's three autosaves - `1941.5.1.1`, `1941.6.1.1` and
+`1941.7.1.1` - each hold the first hour of the day, not the turn of the day the decision was made at. A frame's wait explains it at a speed of an hour or more a frame, and here a save is written after the next
+frame's hours too, so at such speeds it holds a later hour; at a slow speed both would hold the turn of the day. Why
+every one of the original's is exactly one hour on was not read.
+
 ## Ours
 
 - A key nothing reads yet is reported, by its block and how often it was met, where the original drops an unknown key
@@ -362,6 +453,9 @@ fleet its order names; and a naval order kept its being told to return across a 
   reported and leaves the side with none, so it picks one at its next hour, where the original holds an empty tactic
   that counts as one until the next change of tactics. Neither is in any save.
 - The original keeps a battle on its province as well as its units; here a province's battles are found on the list.
+- **The `save games` folder is made where it is missing** as a save is written; the original's write would fail
+  (*inferred*, `FINDINGS-ingamemenu.md`, C.2).
+- **Saves of one second are listed by name** in the save dialog, where the original's sort leaves them in no fixed order.
 
 ## Not established
 
@@ -380,8 +474,13 @@ fleet its order names; and a naval order kept its being told to return across a 
   Japan's 103: nothing is asked of the far depot, where the original asks 1.49. The same network agrees province for
   province on a new game (`OpenHOI3.SaveCheck supplypass ... network=10130`), so it is what the pass has on its first
   day after a load; not followed further.
-- An alliance's and a puppet's `end_date` and a NAP's `balance`, `our_power` and `their_power`: nothing here holds
-  them, so they are reported; whether the original ends an alliance or a puppet on its date in play was not read.
+- A NAP's `balance`, `our_power` and `their_power`: nothing here holds them, so they are reported. An alliance's and a
+  puppet's `end_date` are kept for the writer (section 10); whether the original ends an alliance or a puppet on its date
+  in play was not read.
+- **The start save's two `previous_war`s**, nameless and with nobody on either side, which every save of the maintainer's
+  has: a new game here has none. The base game's `history/wars` has two files with no war in them - `ContinuationWar.txt`
+  a comment alone, `SovietJapaneseWar.txt` all commented out - which may be where they come from (*inferred*), and the
+  fact base has the history replay appending to the list (`FINDINGS-war.md`, C.13) without saying what; not read.
 - A side emptied in play is decided once, by a flag the save does not keep, so the original decides it again at the
   fourth hour after a load; whether its message and its last-battle figures come again was not traced
   (`FINDINGS-savedbattle.md`, A.8); a side with no units loads here as it is written, and was not followed further.

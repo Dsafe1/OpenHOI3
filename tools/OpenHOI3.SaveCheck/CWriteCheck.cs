@@ -76,7 +76,7 @@ public static class CWriteCheck
 			(state, CSaveReport _) = CSaveLoader.Load(directories, map, localisation, countries, savePath, warn: warnings.Add);
 		}
 		var clock = Stopwatch.StartNew();
-		string written = CSaveWriter.Write(state);
+		string written = CSaveWriter.Write(state, localisation.Localise);
 		Console.WriteLine($"written in {clock.ElapsedMilliseconds} ms, {written.Length:N0} characters");
 		// keys=<text>,<text> lists every key whose path holds one of the texts, where otherwise only the commonest are.
 		s_keys = rest.FirstOrDefault(arg => arg.StartsWith("keys=", StringComparison.Ordinal))?[5..].Split(',');

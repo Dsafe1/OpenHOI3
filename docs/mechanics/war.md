@@ -262,6 +262,10 @@ by n's last digit, 11 to 13 taking `TH`: n is the least for which no war on the 
 finished - has the same name. **No casus belli's `war_name` is read.** `NORMAL_WAR_NAME` is the revolt
 war's, not built.
 
+The original compares the names as text. Here a made name is held as its parts (`CWarName`) and two are compared part
+for part, which comes to the same; a save holds the text, and the loader reads a name a declaration made back into its
+parts, so a war declared after a load is named against the loaded ones (`savegame.md`, section 10).
+
 ## 8. Messages
 
 Only the player is told. **A declaration**: the declarer is told `WEDECLWAR` "We declared war on

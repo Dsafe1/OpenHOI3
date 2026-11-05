@@ -56,6 +56,133 @@ public partial class CGuiTextBox : CGuiObject
 
 		// Until something sets it, a box shows what its file wrote in it.
 		Text = context.Localisation.Localise(type.Text);
+
+		// An edit box's own picture behind its text: its corners kept to the box's border and the rest repeated between
+		// them, as a text box's in a tooltip, from the box's border to 2 short of its far edges. Measured on the
+		// maintainer's screenshot of the save dialog, whose box of 260 by 32 and border 8 by 6 shows the picture's rim
+		// 246 by 20 - the picture has 2 clear all round - at 10 and 8 in; how the original draws it was not read
+		// (interface.md, section 8).
+		if (type.IsEdit && type.TextureFile.Length > 0 && context.Textures.LoadFromGamePath(type.TextureFile) is { } texture)
+		{
+			var background = new NinePatchRect
+			{
+				Name = "Background",
+				Texture = texture,
+				PatchMarginLeft = type.BorderSize.X,
+				PatchMarginRight = type.BorderSize.X,
+				PatchMarginTop = type.BorderSize.Y,
+				PatchMarginBottom = type.BorderSize.Y,
+				AxisStretchHorizontal = NinePatchRect.AxisStretchMode.Tile,
+				AxisStretchVertical = NinePatchRect.AxisStretchMode.Tile,
+				MouseFilter = MouseFilterEnum.Ignore,
+				ShowBehindParent = true,
+				Position = new Vector2(type.BorderSize.X, type.BorderSize.Y),
+				Size = new Vector2(type.MaxWidth - type.BorderSize.X - EditBackgroundShort, type.MaxHeight - type.BorderSize.Y - EditBackgroundShort),
+			};
+			AddChild(background);
+		}
+	}
+
+	/// <summary>How far short of an edit box's right and bottom edges its picture ends: measured, see above.</summary>
+	private const int EditBackgroundShort = 2;
+
+	/// <summary>
+	/// What an edit box made to take typing holds and does with keys; none for a box that only shows text - an edit box
+	/// whose screen has not asked for typing among them.
+	/// </summary>
+	public CEditText? Editor { get; private set; }
+
+	/// <summary>Raised when what the box holds is changed by typing.</summary>
+	public event System.Action? Typed;
+
+	/// <summary>
+	/// An edit box made to take typing: a click on it, or <see cref="TakeKeyboard"/>, gives it the keyboard, and it then
+	/// takes characters and its six keys before anything else, as the original's (<c>interface.md</c>, section 8).
+	/// </summary>
+	public void MakeEditable()
+	{
+		var type = (CGuiTextBoxType)GuiType;
+		if (!type.IsEdit || _font is null)
+		{
+			return;
+		}
+		CGuiFont font = _font;
+		Editor = new CEditText(font.Width, type.MaxWidth - 2f * type.BorderSize.X, font.Effect) { Text = _text };
+		MouseFilter = MouseFilterEnum.Stop;
+	}
+
+	/// <summary>The keyboard given to the box by code, as the original's request is granted at the end of its frame.</summary>
+	public void TakeKeyboard()
+	{
+		if (_context is not null && Editor is not null)
+		{
+			_context.KeyboardFocus = this;
+			QueueRedraw();
+		}
+	}
+
+	public bool HasKeyboard => Editor is not null && _context?.KeyboardFocus == this && IsVisibleInTree();
+
+	/// <summary>A press of the left button over the box gives it the keyboard; the caret stays where it was.</summary>
+	public override void _GuiInput(InputEvent @event)
+	{
+		if (Editor is not null && @event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left })
+		{
+			TakeKeyboard();
+			AcceptEvent();
+		}
+	}
+
+	/// <summary>
+	/// A key, before any button's shortcut or the map sees it: the six keys and the characters the box takes go no
+	/// further; what it refuses - Escape, Tab, the font's seven, anything with Ctrl - goes on.
+	/// </summary>
+	public override void _Input(InputEvent @event)
+	{
+		if (!HasKeyboard || @event is not InputEventKey { Pressed: true } key)
+		{
+			return;
+		}
+		CEditText editor = Editor!;
+		bool shift = key.ShiftPressed;
+		bool ctrl = key.CtrlPressed;
+		bool taken = key.Keycode switch
+		{
+			Key.Left => editor.Key(EEditKey.Left, shift, ctrl),
+			Key.Right => editor.Key(EEditKey.Right, shift, ctrl),
+			Key.Home => editor.Key(EEditKey.Home, shift, ctrl),
+			Key.End => editor.Key(EEditKey.End, shift, ctrl),
+			Key.Delete => editor.Key(EEditKey.Delete, shift, ctrl),
+			Key.Backspace => editor.Type(CEditText.Backspace, shift, ctrl),
+			Key.Enter or Key.KpEnter => editor.Type(CEditText.Enter, shift, ctrl),
+			Key.Escape => false,
+			_ => key.Unicode is > 0 and <= 0xFFFF && CWindows1252.FromUnicode((char)key.Unicode) is { } typed
+				&& editor.Type(typed, shift, ctrl),
+		};
+		if (!taken)
+		{
+			return;
+		}
+		GetViewport().SetInputAsHandled();
+		if (editor.Text != _text)
+		{
+			_text = editor.Text;
+			Typed?.Invoke();
+		}
+		QueueRedraw();
+	}
+
+	public override void _Process(double delta)
+	{
+		if (HasKeyboard)
+		{
+			bool shown = Editor!.CaretShown;
+			Editor.Tick(delta);
+			if (shown != Editor.CaretShown)
+			{
+				QueueRedraw();
+			}
+		}
 	}
 
 	/// <summary>What the box shows. Setting it to what it already shows does nothing.</summary>
@@ -69,6 +196,10 @@ public partial class CGuiTextBox : CGuiObject
 				return;
 			}
 			_text = value;
+			if (Editor is not null)
+			{
+				Editor.Text = value;
+			}
 			_lines.Clear();
 			foreach (string paragraph in value.Split('\n'))
 			{
@@ -161,6 +292,23 @@ public partial class CGuiTextBox : CGuiObject
 		// read, so the one case is all the rule there is.
 		Vector2 inset = type.IsEdit ? new Vector2(type.BorderSize.X - 1, type.BorderSize.Y + 1) : Vector2.Zero;
 		y += inset.Y;
+
+		// A box that takes typing shows the line its caret is on and only that, and the caret while it has the keyboard:
+		// the `cursor` sprite past the border by the width before it and 3, a line's height down for each line above.
+		if (Editor is not null)
+		{
+			string shown = Editor.ShownLine;
+			float x = inset.X + CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, _font.Width(shown));
+			_context?.TextIcons.Draw(this, _font, shown, x, y - _font.Ascent, Colour ?? _font.Color);
+			if (HasKeyboard && Editor.CaretShown && _context?.Sprites.Find("cursor") is { } sprite
+				&& _context.Textures.Load(sprite) is { } caret)
+			{
+				float across = type.BorderSize.X + _font.Width(shown[..Editor.CaretColumn]) + 3f;
+				float down = type.BorderSize.Y + _font.LineHeight * Editor.CaretRow;
+				DrawTexture(caret, new Vector2(across, down));
+			}
+			return;
+		}
 
 		foreach (List<CTextRun> line in _lines)
 		{

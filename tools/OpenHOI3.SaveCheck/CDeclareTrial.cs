@@ -47,11 +47,7 @@ internal static class CDeclareTrial
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts);
 		state.Played.Clear();
 		string Name(CCountryTag tag) => state.Country(tag)?.Name ?? tag.Value;
-		string WarName(CWar war) => war.MadeName is { } made
-			? localisation.Localise(made.Key).Replace("$ORDER$", made.Order == 1 ? "" : $"{made.Order}{Suffix(made.Order)} ")
-				.Replace("$FIRST$", made.First).Replace("$SECOND$", made.Second)
-			: war.Name;
-		string Suffix(int n) => localisation.Localise(n % 100 is >= 11 and <= 13 ? "TH" : (n % 10) switch { 1 => "ST", 2 => "ND", 3 => "RD", _ => "TH" });
+		string WarName(CWar war) => war.MadeName?.Text(localisation.Localise) ?? war.Name;
 
 		Console.WriteLine($"casus belli types: {string.Join(", ", state.CasusBelliTypes.Where(t => t.IsReal).Select(t => $"{t.Name} (rank {t.Rank}{(t.Always ? ", always" : "")})"))}");
 		foreach (CWar war in state.Wars)

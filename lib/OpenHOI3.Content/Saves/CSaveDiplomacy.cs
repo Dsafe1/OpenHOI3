@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agreements;
@@ -32,37 +34,42 @@ public static class CSaveDiplomacy
 				continue;
 			}
 			long start = CSaveOrders.Hour(pact.Get("start_date")?.Value) ?? 0;
+			// The end the history gave it, which nothing here acts on and the writer gives back (savegame.md, section 10).
+			long? end = CSaveOrders.Hour(pact.Get("end_date")?.Value);
 			switch (kind)
 			{
 				case "guarantee":
-					// Its end is twenty years after its start, worked out from that (agreements.md, section 6).
-					state.Guarantees.Add(new CGuarantee(first.Tag, second.Tag, start));
+					// It ends twenty years after its start, worked out from that (agreements.md, section 6).
+					state.Guarantees.Add(new CGuarantee(first.Tag, second.Tag, start) { Made = state.NextPact(), End = end });
 					Unread(pact, report, "first", "second", "start_date", "end_date");
 					break;
 				case "alliance":
-					state.Alliances.Add(new CAlliance(first.Tag, second.Tag));
-					Unread(pact, report, "first", "second", "start_date");
+					state.Alliances.Add(new CAlliance(first.Tag, second.Tag) { Made = state.NextPact(), Start = start, End = end });
+					Unread(pact, report, "first", "second", "start_date", "end_date");
 					break;
 				case "vassal":
 					second.Overlord = first.Tag;
-					Unread(pact, report, "first", "second", "start_date");
+					second.PuppetMade = state.NextPact();
+					second.PuppetStart = start;
+					second.PuppetEnd = end;
+					Unread(pact, report, "first", "second", "start_date", "end_date");
 					break;
 				case "nap":
-					state.Naps.Add(new CNap(first.Tag, second.Tag, start));
+					state.Naps.Add(new CNap(first.Tag, second.Tag, start) { Made = state.NextPact() });
 					Unread(pact, report, "first", "second", "start_date");
 					break;
 				case "embargo":
-					state.Embargoes.Add(new CEmbargo(first.Tag, second.Tag));
+					state.Embargoes.Add(new CEmbargo(first.Tag, second.Tag) { Made = state.NextPact(), Start = start });
 					Unread(pact, report, "first", "second", "start_date");
 					break;
 				// The faction an influence works for is its influencer's, and an alignment's its leader's, as each is
 				// made (agreements.md, sections 9 and 10).
 				case "influence":
-					state.Influences.Add(new CInfluence(first.Tag, second.Tag, first.Faction, start));
+					state.Influences.Add(new CInfluence(first.Tag, second.Tag, first.Faction, start) { Made = state.NextPact() });
 					Unread(pact, report, "first", "second", "start_date");
 					break;
 				case "align":
-					state.Aligns.Add(new CAlign(first.Tag, second.Tag, second.Faction, start));
+					state.Aligns.Add(new CAlign(first.Tag, second.Tag, second.Faction, start) { Made = state.NextPact() });
 					Unread(pact, report, "first", "second", "start_date");
 					break;
 				case "trade":
@@ -81,7 +88,10 @@ public static class CSaveDiplomacy
 	{
 		CCountryTag from = Tag(state, pact, "from")?.Tag ?? Tag(state, pact, "first")!.Tag;
 		CCountryTag to = Tag(state, pact, "to")?.Tag ?? Tag(state, pact, "second")!.Tag;
-		var route = new CTradeRoute(from, to, CTradeTerms.Of(Goods(pact.Get("trade_from")), Goods(pact.Get("trade_to"))), start);
+		var route = new CTradeRoute(from, to, CTradeTerms.Of(Goods(pact.Get("trade_from")), Goods(pact.Get("trade_to"))), start)
+		{
+			Made = state.NextPact(),
+		};
 		Unread(pact, report, "first", "second", "start_date", "from", "to", "trade_from", "trade_to", "convoy");
 		// A convoy's id is of its own count, type 42, and its serial is its number here.
 		return (route, pact.Get("convoy")?.GetInt("id") ?? 0);
@@ -96,6 +106,89 @@ public static class CSaveDiplomacy
 			amounts[i] = CSaveValues.Fixed(values[i].Value).Raw;
 		}
 		return amounts;
+	}
+
+	/// <summary>
+	/// <c>diplomacy</c>: every pact standing in the order it was made, as the original keeps them on one list - each
+	/// kind's keys in the original's order (<c>savegame.md</c>, section 10). A NAP's <c>balance</c>, <c>our_power</c>
+	/// and <c>their_power</c> are not held, and not written.
+	/// </summary>
+	public static void Write(CSaveTextWriter writer, CGameState state)
+	{
+		var pacts = new List<(long Made, Action Write)>();
+		foreach (CGuarantee guarantee in state.Guarantees)
+		{
+			pacts.Add((guarantee.Made, () => Pact(writer, "guarantee", guarantee.Guarantor, guarantee.Guaranteed, guarantee.Start, guarantee.End)));
+		}
+		foreach (CAlliance alliance in state.Alliances)
+		{
+			pacts.Add((alliance.Made, () => Pact(writer, "alliance", alliance.First, alliance.Second, alliance.Start, alliance.End)));
+		}
+		foreach (CCountry puppet in state.Countries)
+		{
+			if (puppet.Overlord is { } overlord)
+			{
+				pacts.Add((puppet.PuppetMade, () => Pact(writer, "vassal", overlord, puppet.Tag, puppet.PuppetStart, puppet.PuppetEnd)));
+			}
+		}
+		foreach (CNap nap in state.Naps)
+		{
+			pacts.Add((nap.Made, () => Pact(writer, "nap", nap.First, nap.Second, nap.Start, null)));
+		}
+		foreach (CEmbargo embargo in state.Embargoes)
+		{
+			pacts.Add((embargo.Made, () => Pact(writer, "embargo", embargo.First, embargo.Second, embargo.Start, null)));
+		}
+		foreach (CInfluence influence in state.Influences)
+		{
+			pacts.Add((influence.Made, () => Pact(writer, "influence", influence.Influencer, influence.Influenced, influence.Start, null)));
+		}
+		foreach (CAlign align in state.Aligns)
+		{
+			pacts.Add((align.Made, () => Pact(writer, "align", align.Aligner, align.Leader, align.Start, null)));
+		}
+		foreach (CTradeRoute route in state.TradeRoutes)
+		{
+			pacts.Add((route.Made, () => WriteRoute(writer, route)));
+		}
+		writer.Begin("diplomacy");
+		foreach ((long _, Action write) in pacts.OrderBy(pact => pact.Made))
+		{
+			write();
+		}
+		writer.End();
+	}
+
+	/// <summary>A pact's two countries, the end the history gave it where one, and its start.</summary>
+	private static void Pact(CSaveTextWriter writer, string kind, CCountryTag first, CCountryTag second, long? start, long? end)
+	{
+		writer.Begin(kind);
+		writer.Quoted("first", first.Value);
+		writer.Quoted("second", second.Value);
+		if (end is { } ends)
+		{
+			writer.Date("end_date", ends);
+		}
+		writer.DateOrNull("start_date", start);
+		writer.End();
+	}
+
+	/// <summary>A route: its two ends, both blocks in the goods' order, its convoy where it has one, then as a pact.</summary>
+	private static void WriteRoute(CSaveTextWriter writer, CTradeRoute route)
+	{
+		writer.Begin("trade");
+		writer.Quoted("to", route.To.Value);
+		writer.Quoted("from", route.From.Value);
+		writer.Figures("trade_from", Enumerable.Range(0, CGoodsPool.Count).Select(i => new CFixedPoint(route.Terms.From((EGoods)i))));
+		writer.Figures("trade_to", Enumerable.Range(0, CGoodsPool.Count).Select(i => new CFixedPoint(route.Terms.To((EGoods)i))));
+		if (route.Convoy is { } convoy)
+		{
+			writer.IdPair("convoy", convoy.Id, CSaveConvoys.IdType);
+		}
+		writer.Quoted("first", route.From.Value);
+		writer.Quoted("second", route.To.Value);
+		writer.Date("start_date", route.Start);
+		writer.End();
 	}
 
 	/// <summary>Every key of a pact but those read, reported under the pact's kind.</summary>

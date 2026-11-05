@@ -95,7 +95,7 @@ public static class CCountryEffects
 				{
 					// One the other way is left with nothing pointing at it in the original: it is gone.
 					state.Guarantees.RemoveAll(g => g.Joins(guarantor, guaranteed));
-					state.Guarantees.Add(new CGuarantee(guarantor, guaranteed, state.TotalHours));
+					state.Guarantees.Add(new CGuarantee(guarantor, guaranteed, state.TotalHours) { Made = state.NextPact() });
 				}
 				return true;
 			case "end_guarantee":
@@ -108,7 +108,7 @@ public static class CCountryEffects
 				if (scope.Country is { } first && CEffects.Target(state, effect, scope) is { } second
 					&& COfferRules.Nap(state, first, second) is null)
 				{
-					state.Naps.Add(new CNap(first, second, state.TotalHours));
+					state.Naps.Add(new CNap(first, second, state.TotalHours) { Made = state.NextPact() });
 				}
 				return true;
 			case "end_non_aggression_pact":

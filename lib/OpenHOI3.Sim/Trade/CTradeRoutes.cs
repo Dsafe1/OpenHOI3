@@ -27,7 +27,7 @@ public static class CTradeRoutes
 		{
 			return null;
 		}
-		var route = new CTradeRoute(deal.From, deal.To, deal.Terms, date);
+		var route = new CTradeRoute(deal.From, deal.To, deal.Terms, date) { Made = state.NextPact() };
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		if (CTradeRules.NeedsConvoy(state, network, from, to))
 		{

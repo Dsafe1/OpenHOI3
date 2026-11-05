@@ -34,7 +34,7 @@ defaults are the original's constructors' [exe]. A number is a figure, not thous
 | `mapRenderingOptions = { counter_scale }` | 1 | read and written; **every counter is drawn and hit-tested through it** in the original - not applied here |
 | `lastplayer`, `lasthost`, `serveradress` | "", "", "diplomacy.valkyrienet.com" | read and written; there is no game of several players |
 | `debug_saves` | 0 | read and written |
-| `autosave` | `YEARLY` | read and written; nothing autosaves yet. A name that is none of the six is reported and read as `YEARLY` |
+| `autosave` | `YEARLY` | read and written, and the autosave's frequency (`savegame.md`, section 11). A name that is none of the six is reported and read as `YEARLY` |
 | `simple`, `categories` | yes, six noughts | read and written; what they mean is not read |
 | `use_legacy_camera` | no | read and written |
 | `outliner` | 10 4 5 6 | **applied**: the outliner's sections (`outliner.md`, section 3). What the outliner changes is not carried back into it yet |

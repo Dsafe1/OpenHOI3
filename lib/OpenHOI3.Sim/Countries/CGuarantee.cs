@@ -10,6 +10,15 @@ namespace OpenHOI3.Sim.Countries;
 /// </summary>
 public readonly record struct CGuarantee(CCountryTag Guarantor, CCountryTag Guaranteed, long? Start = null, bool ViaFaction = false)
 {
+	/// <summary>Its number among the pacts (<see cref="CGameState.NextPact"/>).</summary>
+	public long Made { get; init; }
+
+	/// <summary>
+	/// The end the history or a save gave it, which a save writes; none for one made in play. It is not when it ends
+	/// here, which is twenty years after its start (<c>savegame.md</c>, section 10).
+	/// </summary>
+	public long? End { get; init; }
+
 	public bool Joins(CCountryTag a, CCountryTag b)
 	{
 		return (Guarantor == a && Guaranteed == b) || (Guarantor == b && Guaranteed == a);

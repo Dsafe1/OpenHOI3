@@ -916,9 +916,21 @@ public partial class CMapView : Node2D
 		_lastGroup = group;
 	}
 
+	/// <summary>
+	/// Which arrow keys the map may not scroll by now, because something before it takes them - across, down: the
+	/// in-game menu holds them all, and an edit box with the keyboard takes Left and Right and lets Up and Down go by
+	/// (<c>docs/mechanics/interface.md</c>, section 8). The keys are asked each frame rather than heard, so a key
+	/// taken elsewhere has to be said here.
+	/// </summary>
+	public Func<(bool Across, bool Down)>? ScrollKeysHeld { get; set; }
+
 	public override void _Process(double delta)
 	{
 		Vector2 direction = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down");
+		if (ScrollKeysHeld?.Invoke() is var (across, down))
+		{
+			direction = new Vector2(across ? 0f : direction.X, down ? 0f : direction.Y);
+		}
 		if (direction != Vector2.Zero)
 		{
 			_camera.Position += direction * (KeyScrollSpeed * (float)delta / _camera.Zoom.X);

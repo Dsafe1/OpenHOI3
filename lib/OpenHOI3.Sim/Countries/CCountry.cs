@@ -76,6 +76,18 @@ public sealed class CCountry
 	/// </summary>
 	public CCountryTag? Overlord { get; set; }
 
+	/// <summary>The number of the pact that made it a puppet, among the pacts (<see cref="CGameState.NextPact"/>).</summary>
+	public long PuppetMade { get; set; }
+
+	/// <summary>The hour it became a puppet.</summary>
+	public long PuppetStart { get; set; }
+
+	/// <summary>
+	/// The end the history or a save gave its being a puppet, which a save writes; none where it became one in play.
+	/// Nothing ends it on that date here (<c>savegame.md</c>, section 10).
+	/// </summary>
+	public long? PuppetEnd { get; set; }
+
 	/// <summary>Its place among the game state's countries, in the order they were declared.</summary>
 	public int Index { get; internal set; }
 

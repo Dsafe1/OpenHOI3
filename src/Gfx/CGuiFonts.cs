@@ -65,6 +65,7 @@ public sealed class CGuiFonts
 						Name = entry.GetString("name"),
 						FontName = entry.GetString("fontname"),
 						Color = entry.GetColor("color", CColor.White).ToGodot(),
+						Effect = !string.Equals(entry.GetString("effect"), "no", StringComparison.OrdinalIgnoreCase),
 					};
 					if (font.Name.Length != 0)
 					{

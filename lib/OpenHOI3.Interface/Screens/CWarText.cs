@@ -17,28 +17,7 @@ public static class CWarText
 	/// </summary>
 	public static string Name(Func<string, string> localise, CWar war)
 	{
-		if (war.MadeName is not { } made)
-		{
-			return war.Name;
-		}
-		string order = made.Order == 1 ? "" : $"{made.Order}{localise(Suffix(made.Order))} ";
-		return CTextTemplate.Fill(localise(made.Key), ("ORDER", order), ("FIRST", made.First), ("SECOND", made.Second));
-	}
-
-	/// <summary>The suffix key of an order by its last digit, eleven to thirteen taking <c>TH</c>.</summary>
-	public static string Suffix(int order)
-	{
-		if (order % 100 is >= 11 and <= 13)
-		{
-			return "TH";
-		}
-		return (order % 10) switch
-		{
-			1 => "ST",
-			2 => "ND",
-			3 => "RD",
-			_ => "TH",
-		};
+		return war.MadeName?.Text(localise) ?? war.Name;
 	}
 
 	/// <summary>

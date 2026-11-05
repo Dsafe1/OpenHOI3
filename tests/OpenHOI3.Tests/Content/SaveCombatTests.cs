@@ -159,6 +159,47 @@ public class SaveCombatTests
 	}
 
 	[Fact]
+	public void Battles_and_the_finished_ones_are_written_back_to_the_byte()
+	{
+		// A bombing's attacker writes its four tallies, a land side its tactic, front and reserves; a finished battle is an
+		// empty key and its block, a one-space token after each - the first after a line of indentation, the closing
+		// brace after the last token.
+		const string Size0 = "0.000 0.000 0.000 0.000 0.000 \t\t\t}\r\n";
+		string Pair(string key, int id) => $"\t\t\t{key}=\r\n\t\t\t{{\r\n\t\t\t\tid={id}\r\n\t\t\t\ttype=41\r\n\t\t\t}}\r\n";
+		string saved =
+			"combat=\r\n{\r\n" +
+			"\tland_bombing=\r\n\t{\r\n\t\tlocation=2\r\n\t\tday=1\r\n\t\tduration=1\r\n" +
+			"\t\tattacker=\r\n\t\t{\r\n\t\t\tdice=8\r\n" + Pair("unit", 4) + "\t\t\tlosses=0.040\r\n" +
+			"\t\t\tsize=\r\n\t\t\t{\r\n0.000 0.000 0.000 0.000 1.000 \t\t\t}\r\n\t\t\tstrength=46.039\r\n" +
+			"\t\t\tbuilding=\r\n\t\t\t{\r\n0.000 0.000 0.426 \t\t\t}\r\n" +
+			"\t\t\tpool=\r\n\t\t\t{\r\n0.100 0.200 0.000 0.000 0.000 0.000 0.000 \t\t\t}\r\n" +
+			"\t\t\tcurrent_producing=\r\n\t\t\t{\r\n0.000 0.000 0.000 0.000 2.300 0.000 0.000 \t\t\t}\r\n\t\t}\r\n" +
+			"\t\tdefender=\r\n\t\t{\r\n\t\t\tdice=1\r\n" + Pair("unit", 5) + "\t\t\tlosses=45.900\r\n\t\t\tsize=\r\n\t\t\t{\r\n" + Size0 + "\t\t}\r\n" +
+			"\t\tterrain=\"plains\"\r\n\t}\r\n" +
+			"\tland_combat=\r\n\t{\r\n\t\tlocation=2\r\n\t\tday=5\r\n\t\tduration=5\r\n" +
+			"\t\tattacker=\r\n\t\t{\r\n\t\t\tdice=3\r\n" + Pair("unit", 1) + Pair("unit", 2) + "\t\t\tlosses=1.000\r\n" +
+			"\t\t\tsize=\r\n\t\t\t{\r\n0.000 300.000 300.000 0.000 0.000 \t\t\t}\r\n\t\t\ttactic=1\r\n" + Pair("front", 1) + Pair("reserves", 2) + "\t\t}\r\n" +
+			"\t\tdefender=\r\n\t\t{\r\n\t\t\tdice=3\r\n" + Pair("unit", 3) + "\t\t\tlosses=1.000\r\n" +
+			"\t\t\tsize=\r\n\t\t\t{\r\n0.000 0.000 300.000 0.000 0.000 \t\t\t}\r\n\t\t\ttactic=2\r\n" + Pair("front", 3) + "\t\t}\r\n" +
+			"\t\tterrain=\"plains\"\r\n\t}\r\n" +
+			"\thistory=\r\n\t{\r\n\t\thistory=\r\n\t\t{\r\n\t\t\t\r\n" +
+			"\t\t\t{\r\n\t\t\t\tlocation=11932\r\n\t\t\t\tattacker=\"GER\"\r\n\t\t\t\tdefender=\"POL\"\r\n\t\t\t\tend_date=\"1938.8.1.4\"\r\n" +
+			"\t\t\t\tconvoy=yes\r\n\t\t\t\ttype=2\r\n\t\t\t}\r\n \r\n" +
+			"\t\t\t{\r\n\t\t\t\tlocation=5638\r\n\t\t\t\tattacker=\"GER\"\r\n\t\t\t\tdefender=\"---\"\r\n\t\t\t\tend_date=\"1938.8.2.10\"\r\n" +
+			"\t\t\t\ttype=5\r\n\t\t\t}\r\n \t\t}\r\n\t}\r\n}\r\n";
+		CGameState state = State(out Dictionary<int, CUnit> units);
+		state.HistoryUnitNext = 1000;
+		state.Province(2).Terrain = state.Terrains[0];
+		CSaveCombats.Read(state, ClausewitzParser.Parse(saved).Get("combat")!, units, new CSaveIds(), new CSaveReport());
+
+		var writer = new CSaveTextWriter();
+		writer.OpenRoot();
+		CSaveCombats.Write(writer, state);
+
+		Assert.Equal(saved, writer.Text);
+	}
+
+	[Fact]
 	public void The_finished_battles_are_put_at_the_end_as_written_and_a_sides_sunk_ship_is_one_of_the_sunk_ships()
 	{
 		CGameState state = State(out Dictionary<int, CUnit> units);

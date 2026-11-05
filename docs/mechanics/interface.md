@@ -57,7 +57,7 @@ What a particular screen puts in its elements is that screen's own spec: `topbar
 | `scrollbarType` | 34 | four buttons and a range | yes |
 | `shieldtype` | 22 | a country's flag in a frame, in a dialog - an icon on a masked shield sprite (2026-10-12) | yes |
 | `OverlappingElementsBoxType` | 21 | a row of things that may overlap | yes |
-| `editBoxType` | 21 | text the player types | shown, not typed in |
+| `editBoxType` | 21 | text the player types | shown; typed in where a screen makes it editable (section 8) |
 | `eu3dialogtype` | 15 | a window that may also hold shields | yes |
 
 Three more child keywords are read by the original and used by no file of its own or of
@@ -502,7 +502,7 @@ scalable canvas of section 3 could not survive. So:
   children are all there in their order and their names are known. A window counts how
   many it could not draw.
 - **An edit box is shown as the box of text it holds**, found by its name like any text
-  box, with the `size` it declares for room; typing into it is not built. Its text starts
+  box, with the `size` it declares for room; typing into one is section 8. Its text starts
   **further in than a text box's**: one less than a second border across, and one more
   than a second border down. *Measured* on the same screenshot, from the one edit box
   drawn so far - the unit's name, whose box has a border of 8 by 4 and its text 15 across
@@ -566,6 +566,59 @@ scalable canvas of section 3 could not survive. So:
   is which was not read, and the leader window's two that are taken for the right button
   were inferred from where they sit - the maintainer confirmed both on 2026-10-11
   (`leaders.md`, section 12).
+
+## 8. Typing into an edit box
+
+Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/FINDINGS-editbox.md`), and built
+(`CEditText` in `Interface/Text`, `CGuiTextBox.MakeEditable`). [exe] unless marked.
+
+- **The keyboard** goes to an edit box when it is clicked with the left button, or when a screen gives it - the
+  save dialog gives `game_name` it as it opens. **It stays there until another edit box takes it**: hiding the box,
+  Enter, Escape and a click on a button take nothing away. A hidden box takes no keys. A click does not move the
+  caret. **The box is offered every key before anything else** - a button's shortcut, the map - and what it takes goes
+  no further, so a letter typed into it pauses nothing and selects no group.
+- **What it takes**: every character as its one byte - Windows-1252 - inserted at the caret, the caret after it; and
+  **Backspace, Delete, Left, Right, Home and End**, no other key. Left and Right are taken only with neither Ctrl nor
+  Shift held, Delete without Shift. **Enter is taken and does nothing** - a box has no line break and no listener -
+  and Escape goes past it, to `cancel`'s shortcut in the save dialog. With Ctrl held no character reaches it; there is
+  no selection, no clipboard, no Up or Down.
+- **What it refuses**, which goes on to whatever else takes keys: Tab; and where its font's `effect` is on - **the
+  default; a font says `effect = no` to turn it off** [mod: `interface/core.gfx`] - the seven characters `"` `§` `¤`
+  `£` `@` `{` `}`. `game_name`'s `Arial12_bold` sets nothing, so the seven are refused there.
+- **At most 250 characters** typed, whatever the box's size: a character is taken and not inserted once the text
+  holds 250. Text a screen sets is never cut. No `.gui` key moves the cap; there is no `maxCharacters`.
+- **Backspace** erases the character before the caret - **and with the caret at the very start, the one after
+  it**. **Delete** the one after it. **Home** goes to the start of the caret's line, **End** to the line's length **as
+  the last edit left it**, which after the caret has moved to another line is that other line's.
+- **A typed `'` also moves the caret right**, and a `%` typed without Shift left: the original's key test takes
+  their codes for the arrows' (on a US layout `'` always, `%` never).
+- **The box shows only the line the caret is on**: its text is wrapped to its `size` across less twice its
+  `borderSize`, a line breaking where it and one `O` more would be wider - at the last space that fits, else after
+  the most characters that fit (*likely*) - so typing past the box's width jumps it to a new line. There is no
+  scrolling sideways.
+- **The caret** is the `cursor` sprite [mod: `interface/core.gfx`, `gfx/interface/textcursor`], past the box's border
+  by the width of its line before it and 3, and a line's height down for each line above its own. **It is on for half
+  a second and off for half a second**, and a key taken hides it until it next comes on - up to a second.
+- **A box's `textureFile` is drawn behind its text** [mod: the `.gui`], its corners kept to the box's `borderSize` and
+  the rest repeated between them, **from the border to 2 short of the box's right and bottom edges**. *Measured*, not
+  read, on the maintainer's screenshot of the save dialog (2026-11-05): `game_name`, 260 by 32 with a border of 8 by 6,
+  shows `small_tiles_dialog`'s rim 246 by 20 at 10 and 8 in - the picture has 2 clear all round - and set beside it ours
+  lies on it to the pixel, the text and the caret with it. Every edit box of the base game's with a picture is drawn so;
+  the unit panel's name has none. Until then no edit box's picture was drawn.
+
+*Ours*:
+
+- **Only a box a screen makes editable takes typing** - so far the save dialog's. The original's every edit box does;
+  the unit panel's name, which renaming a unit is not built for, shows its text and takes none.
+- **A character Windows-1252 has no byte for is not taken** and goes on; the original's window would be handed the
+  code page's own stand-in. Text set by code puts the caret at its end, where the original's was not read.
+- **The text stands where section 7 measured it**, 15 across and 9 down in the unit panel's box, and the caret where
+  it was read; how the original's box draws its line was not read. On the maintainer's screenshot of the save dialog
+  both lie on the original's to within a pixel, the caret's bar two units past the character before it.
+
+Not established: how a button matches its shortcut, so whether the original lets an Escape typed into the box insert
+its character before `cancel` takes it, and whether a box with the keyboard keeps Enter from a button whose shortcut it
+is; the wrap's exact break.
 
 ## What is not established, in one place
 

@@ -146,10 +146,14 @@ The file is the original's own, so a choice made here is the original's next tim
 
 ## 6. The save dialog (`menu_save`)
 
-*Read, and not built: there is no saving here yet* (*Ours*). Kept here so that the day it is, nothing has to be read
-again.
+**Built 2026-11-05** (`CInGameMenu`, `Content/Saves/CSaveFiles`; the save itself `savegame.md`, section 11), with
+typing into `game_name` as the original's edit box takes it (`interface.md`, section 8). Opened, it hides the menu's
+other windows, makes its list and its offered name again from nothing and **gives `game_name` the keyboard**, the
+caret at the name's end [exe; where the caret goes, *Ours*]. A key typed there goes no further - into no shortcut and
+not to the map - and Enter does not save: `save` has no shortcut.
 
-- It lists `save games/*.hoi3` in the player's folder [exe], **newest first** by the file's time in whole seconds - the
+- It lists `save games/*.hoi3` in the player's folder [exe] - and the install's `tfh` and base folders, PhysFS's search
+  path (*inferred*, `FINDINGS-ingamemenu.md`, C.2), a name found twice the first folder's - **newest first** by the file's time in whole seconds - the
   original's sort is not stable, so files of one second come in no fixed order - leaving out folders and **any name
   with a byte above 127**. The autosaves are listed like any other. A row, `save_game_entry`'s checkbox `game`, shows the
   name **cut at its first `.hoi3`**; a click puts that into `game_name` and unticks the other rows. Nothing is saved or
@@ -176,10 +180,12 @@ again.
 
 ## Ours
 
-- **Save Game and Resign are greyed**, where the original greys neither: there is no saving and no screen after a
-  game or main menu to go to yet - and a stand-in for either would be wrong (`CLAUDE.md`'s rule on what is not built).
-  Each is taken off the greyed list when its system arrives; the readme's *Loose ends* lists them. **Game Options was
-  greyed too, and opens the game options window since 2026-11-04** (`gameoptions.md`).
+- **Resign is greyed**, where the original greys it not: there is no screen after a game or main menu to go to yet -
+  and a stand-in would be wrong (`CLAUDE.md`'s rule on what is not built). It is taken off when that arrives; the
+  readme's *Loose ends* lists it. **Game Options was greyed too, and opens the game options window since 2026-11-04**
+  (`gameoptions.md`), **and Save Game, which opens the save dialog since 2026-11-05** (section 6).
+- Saves of one second are listed by name, where the original's sort leaves them in no fixed order; and the `save
+  games` folder is made where it is missing (`savegame.md`, *Ours*).
 - The keys that are not a button's - the clock's and the map's - are held while the menu is up (section 1).
 
 ## Not established
