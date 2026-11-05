@@ -1747,7 +1747,9 @@ None of these blocks the list above.
   pressure's hourly walk and the convoy's route took the same arrays, and `CProvince.Edges` became an array, a
   `foreach` over the read-only list it was having made an enumerator each time: 19.9 s to 18.9, no full collection
   left in fifteen days, weather and the supply pass with its convoys the same line for line. What allocates most now
-  is the Lua's fields and strings and a `float` boxed for each figure the Lua classes hand over.
+  is the Lua's fields and strings and a `float` boxed for each figure the Lua classes hand over. **Whether a C++
+  rewrite would help** was studied on 2026-11-05 (`docs/performance.md`): little for its cost, since the Lua is C
+  already; a port of the simulation alone is to be weighed on a profile of the finished game.
 - **Where the AI runs in multiplayer is not settled** (2026-10-13). Here the AI runs inside the hourly tick,
   which every machine would run, and draws on the game's shared generator - which countries trade this
   hour, the AI's event option, the roll that answers an offer. The maintainer's understanding is that the
