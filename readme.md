@@ -1639,8 +1639,19 @@ settings, read for this - the production screen's slider automation setting the 
 and its automatic-deployment box; with greying in the interface runtime (`interface.md`, section 7). Tried with
 `--click`. A launch with no `--country=`, `--load=` or `--replay=` - an empty country prompt among them - comes up on the
 main menu since the same day. **The far map mode** he asked for - the countries' names on the map, the zoomed-out shader -
-is the lobby's last piece he named, for later. **Next up**: war exhaustion, which nothing holds yet, or the
-military AI's gaps (*What the moving wave left*), or what the end-of-game screen shows.
+is the lobby's last piece he named; its reading is in the fact base (`FINDINGS-farmap.md`: A, what switches the far view -
+four thresholds on the camera's height - and what changes with it; B, the country names, laid along a least-squares line
+through the land a country controls by its capital, bent along a spline, in its faction's bitmap font, with no shader).
+
+**And the original's shaders, translated** (2026-11-06, `docs/mechanics/shaders.md`): by the maintainer's word - "We
+need to actually support moddable shaders", BlackICE changing the terrain, the sea and the air map's circles in its own
+`gfx/FX` - every effect file is read through the layers, preprocessed, parsed and each pass of each technique written as a
+Godot shader (`Content/Shaders`): all 88 passes of the install with BlackICE translate, the one problem `shadowmap.fx`'s
+own, and all 88 compile in Godot (`OpenHOI3.SaveCheck shaders`, `--shadercheck=`). **Nothing draws through them yet.
+Next up**: the map drawn as the original draws it - its meshes, the parameters and textures the executable sets each
+effect, its techniques picked at its thresholds - which wants a reading of those inputs first; then the far view and its
+country names on top. Then war exhaustion, or the military AI's gaps (*What the moving wave left*), or the end-of-game
+screen.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
@@ -2836,6 +2847,8 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Saves/              the original's .hoi3 saves: the loader, a save's values, its ids, units, orders, leaders and lines, wars, pacts and convoys, battles, what a load left unread, the writer and its layout
     Settings/           the player's settings.txt, from the original's folder under Documents
     Frontend/           the start's bookmark, for its look in the lobby
+    Shaders/            the original's effect files: the preprocessor, the parser, the syntax tree and the writer
+                        that translates each pass of a technique into a Godot shader
 lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and placement at its root
     Text/               colour escapes, number formats, templates, breaking lines
     Screens/            the text of each screen's figures

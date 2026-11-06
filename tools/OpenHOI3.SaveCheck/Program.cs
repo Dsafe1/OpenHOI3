@@ -48,6 +48,12 @@ if (args.Length > 0 && args[0] == "write")
 	return CWriteCheck.Run(args);
 }
 
+// Every effect file of the install's gfx/FX, and of a mod's, read and translated to Godot shaders.
+if (args.Length > 0 && args[0] == "shaders")
+{
+	return CShaderCheck.Run(args);
+}
+
 // The writer of the player's settings is checked against a settings.txt the original wrote.
 if (args.Length > 0 && args[0] == "settings")
 {

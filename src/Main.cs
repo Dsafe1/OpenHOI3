@@ -34,6 +34,11 @@ public partial class Main : Control
 
 		GD.Print("OpenHOI3 starting.");
 		MouseFilter = MouseFilterEnum.Ignore;
+		if (CSession.UserArguments().FirstOrDefault(a => a.StartsWith(Debug.CShaderCompileCheck.Switch)) is { } shaderCheck)
+		{
+			Debug.CShaderCompileCheck.Run(shaderCheck[Debug.CShaderCompileCheck.Switch.Length..], GetTree());
+			return;
+		}
 
 		string projectDirectory = ProjectSettings.GlobalizePath("res://");
 		CDirectorySettings? directories = CDirectorySettings.Discover(projectDirectory);
