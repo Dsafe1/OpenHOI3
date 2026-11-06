@@ -135,7 +135,8 @@ public static class CGameStateLoader
 		List<CModifier> staticModifiers = CModifierReader.ReadStaticModifiers(directories, warn);
 		staticModifiers.AddRange(CModifierReader.ReadEventModifiers(directories, warn));
 		List<CModifier> strategicResources = CModifierReader.ReadStrategicResources(directories, warn);
-		List<CWar> wars = CWarReader.Read(directories, countries, start, warn);
+		var finishedWars = new List<CWar>();
+		List<CWar> wars = CWarReader.Read(directories, countries, start, warn, finishedWars);
 		CDiplomacyHistory diplomacy = CDiplomacyReader.Apply(directories, countries, start, warn);
 
 		List<CTrait> traits = CTraitReader.Read(directories, warn);
@@ -176,6 +177,7 @@ public static class CGameStateLoader
 		state.Guarantees.AddRange(diplomacy.Guarantees);
 		state.Naps.AddRange(diplomacy.Naps);
 		NumberHistoryPacts(state);
+		state.FinishedWars.AddRange(finishedWars);
 		state.AiScripts = aiScripts;
 		CRelations.SetFromHistory(state, diplomacy.Relations, start);
 		COccupationPolicies.SetFromHistory(state);

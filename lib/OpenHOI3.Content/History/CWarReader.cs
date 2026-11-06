@@ -45,9 +45,36 @@ public static class CWarReader
 		return first;
 	}
 
-	/// <summary>The wars with someone on both sides on <paramref name="date"/>.</summary>
+	/// <summary>
+	/// Whether a war's history began on or before the date: its first dated entry is not after it, or it has none - the
+	/// original's start of a war of no history is the null date, before every date.
+	/// </summary>
+	private static bool BeganBy(ClausewitzNode root, CDate date)
+	{
+		bool anyDated = false;
+		foreach (ClausewitzNode entry in root.Children)
+		{
+			if (entry.Key is not null && entry.IsBlock && CDate.TryParse(entry.Key, out CDate dated))
+			{
+				if (dated.CompareTo(date) <= 0)
+				{
+					return true;
+				}
+				anyDated = true;
+			}
+		}
+		return !anyDated;
+	}
+
+	/// <summary>
+	/// The wars with someone on both sides on <paramref name="date"/>. Every file is a war, whatever it holds: one that is
+	/// not fought on the date and began on or before it - by its first dated entry, and any file with none - is a finished
+	/// war, put on <paramref name="finished"/> where one is given; one that begins later is neither
+	/// (<c>reversing/findings/FINDINGS-war.md</c>, C.13.1). So the base game's two files with no war in them are the two
+	/// nameless finished wars every save of the original holds.
+	/// </summary>
 	public static List<CWar> Read(CDirectorySettings directories, CCountries countries, CDate date,
-		Action<string>? warn = null)
+		Action<string>? warn = null, List<CWar>? finished = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var wars = new List<CWar>();
@@ -114,6 +141,12 @@ public static class CWarReader
 			if (war.Attackers.Count > 0 && war.Defenders.Count > 0)
 			{
 				wars.Add(war);
+			}
+			else if (BeganBy(root, date))
+			{
+				// A finished war keeps its name and what is left of its sides, and has no last action.
+				war.Action = 0;
+				finished?.Add(war);
 			}
 		}
 

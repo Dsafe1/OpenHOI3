@@ -22,6 +22,9 @@ the maintainer's 45 saves. `confirmed` unless marked.
    convoys and the pools, the battles, the finished battles and the sunk ships.
 4. **The save dialog** (`ingamemenu.md`, section 6) and the autosave at the settings' interval - **both built**
    (section 11).
+5. **The fourth increment**, loader and writer together, what neither held: **its first piece is built** (section 12),
+   each country's politics and research queue; the rest of section 4's list - spies, the AI's blocks, the weather's
+   fronts, the goods pools, the statistics - is still to come.
 
 ## 2. What a load is
 
@@ -79,9 +82,9 @@ sets the owners, the laws and the technology levels beside the save's and runs t
   section 7;
 - the four id counters and the `id` blocks, the weather's fronts, the victory conditions and the faction's `progress`,
   the game's flags and its gameplay settings;
-- a country's own pools (`home`, `usage`, `to`, `back`, the traded ones), its politics (`organization`, `popularity`,
-  `cabinet`, `election`, `last_election`, `duration`, `ministers`), its research queue (`research`), its spies and their
-  missions, alignment, war exhaustion, AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`), statistics and the rest the
+- a country's own pools (`home`, `usage`, `to`, `back`, the traded ones), ~~its politics (`organization`,
+  `popularity`, `cabinet`, `election`, `last_election`, `duration`, `ministers`), its research queue (`research`)~~ -
+  section 12 - its spies and their missions, alignment, war exhaustion, AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`), statistics and the rest the
   report lists; a province's `out_of_supply_days` and `capital`, which the day makes again, and its `history`.
 
 ## 5. What the second increment reads: the units
@@ -377,7 +380,15 @@ adjectives, each a country's - so that a war declared after the load is named ag
 and a German declaration after loading the 16 July 1941 save would have been "War of German Aggression" a second time.
 
 **A history war's `action`** is the hour the history is folded to, not its first entry's: the start save's war of 3
-October 1935 has `1936.1.1.0` (*measured*), which a new game now gives it.
+October 1935 has `1936.1.1.0`, which a new game now gives it - measured, and then read: entering a new game sets every
+active war's to the tick (`FINDINGS-savegame.md`, A.5).
+
+**A new game's finished wars** [exe] (`reversing/findings/FINDINGS-war.md`, C.13.1): every file of `history/wars` is a
+war, whatever it holds [mod: history/wars]; one with somebody on both sides on the start date is fought, one that is
+not and began on or before it - its first dated entry, or none at all - is finished, a `previous_war`, and one that
+begins later is neither. So the base game's two files with no war in them - `ContinuationWar.txt`, a comment alone,
+and `SovietJapaneseWar.txt`, all commented out - are **the two nameless `previous_war`s every save of the original
+holds**, and a new game here holds them too since 2026-11-05 (`CWarReader.Read`); they had been missing.
 
 **Not held, so not written**: a NAP's `balance`, `our_power` and `their_power`; a `casus_belli` pact (`type`,
 `first`, `second`, `start_date`; two in the 16 July 1941 saves); an `undeclared_war`; a sunk ship's `home` and
@@ -409,8 +420,9 @@ A save is `CSaveWriter`'s text in the original's bytes, the file truncated where
   day whose number from the calendar's start, less one, is a whole number of weeks; `MONTHLY`, the 1st; `HALFYEAR`, the
   1st of January and of July; `YEARLY`, the 1st of January, the default; `FIVE_YEAR`, the 1st of January of a year
   five divides (`CAutosave.IsDue`).
-- **Written a frame later**: the frame that finds the decision only marks that it has waited, and the next writes.
-  Here a frame's hours run first and the check comes after them (`CSession.AutosaveIfDue`).
+- **Written a frame later** in the original: the frame that finds the decision only marks that it has waited, and the
+  next writes, so what it holds hangs on the speed. **Here it is written as it is decided**, the hour that turned the
+  day run whole, so it always holds the turn of the day (`CSession.DecideAutosave`; `docs/compatibility.md`, entry 16).
 - **Three files** in the player's `save games` folder: `olderautosave.hoi3` is deleted, `oldautosave.hoi3` becomes
   it, `autosave.hoi3` becomes `oldautosave.hoi3`, and the game is written to `autosave.hoi3`. **They are the
   original's own files** - the player's folder is shared, as the settings are - so a game played here shifts the
@@ -423,13 +435,55 @@ A save is `CSaveWriter`'s text in the original's bytes, the file truncated where
 **Checked** by `SaveFilesTests` - the six frequencies' days, the three files shifted along and the dialog's names - and
 with `--click`: the dialog listing the maintainer's folder newest first, offering `Germany1936_01_01_00`, asking
 `CONFIRMSAVETEXT` before writing over that save and leaving it untouched on Cancel, and as Italy writing
-`Italy1936_01_01_00.hoi3`, which `OpenHOI3.SaveCheck load` read back whole - 1,666 units, every pact, all 261 convoys.
-The autosave was not run in the client, so as not to shift the maintainer's own autosaves along.
+`Italy1936_01_01_00.hoi3`, which `OpenHOI3.SaveCheck load` read back. **The hour an autosave holds hangs on the speed
+in the original**: the maintainer's three autosaves - `1941.5.1.1`, `1941.6.1.1` and `1941.7.1.1` - were made at speed
+and hold the first hour of the day, and at a slow speed it holds the turn of the day, `.0` (his word, 2026-11-05). Here
+it always holds the turn of the day, by his decision.
 
-**The hour an autosave holds is not established.** The maintainer's three autosaves - `1941.5.1.1`, `1941.6.1.1` and
-`1941.7.1.1` - each hold the first hour of the day, not the turn of the day the decision was made at. A frame's wait explains it at a speed of an hour or more a frame, and here a save is written after the next
-frame's hours too, so at such speeds it holds a later hour; at a slow speed both would hold the turn of the day. Why
-every one of the original's is exactly one hour on was not read.
+## 12. The fourth increment: politics and the research queue
+
+Read and written both ways (`CSavePolitics`), each key where the original writes it in a country block [exe]
+(`FINDINGS-savegame.md`, B.4; `reversing/findings/FINDINGS-government.md`, A.6, B.4, B.5 and B.7):
+
+| key | what | read | written |
+| --- | --- | --- | --- |
+| `research` | one a technology in the queue, in its order | a name no technology has is left out and reported | after the categories |
+| `last_election` | the day of the last election, at hour 0 | `1.1.1.0` is never | then these three |
+| `last_surrender` | the hour it last surrendered | `1.1.1.0` is never | |
+| `election` | read by nothing in the original, loaded inverted and saved again | not kept | always `yes` - nothing sets it, and every save of the maintainer's has it |
+| `duration` | the country's own term in months, 0 its government's | | |
+| `spiescaught` | the spies caught at home this month | | after `diplo_influence` |
+| `organization`, `popularity` | `{ data = { a figure a party } }`, one by each ideology's number, number 0 included | made at the ideologies' count, a number past the save's nought | after the shares, **each key at column 0** |
+| `government` | the form of government | none written is none | after `officers`; left out where there is none - the rebels' in every save |
+| `ministers` | the pool of ministers it may appoint, in its order, each by its number in the country's file | a number the file does not give is left out and reported | after the tags' blocks, on one line, `ministers={1 2 }`, `ministers={}` with none |
+| `cabinet` | each party's seats, by its ideology's number | **allotted again from popularity**, and the save's list kept behind | after the spies' keys, a list at column 0 |
+
+**A load does not run a new game's setting-up**, so until this increment a loaded game had no party figures, no seats
+and an empty pool, and the month's drift, the elections and the filling of posts worked on nothing; they are the save's
+now.
+
+**The cabinet after a load** [exe, *inferred* in part]: the original's `AfterLoad` allots the seats again from
+popularity, as a new game's setting-up and every drift do (`FINDINGS-government.md`, B.4) - so a load here does too
+(`CCabinet.Allot`). And reading `cabinet` **appends** the save's list to a cabinet already made, so the seats the game
+uses are the first, and the save's list stands behind them, read by nothing and written again after them
+(`FINDINGS-government.md`, B.7, *inferred* from the reading and the saves). `Germany1936_04_20_03`, a game the
+maintainer had loaded, bears it out: every country's `cabinet` has 22 figures, the first eleven the seats its
+popularity allots and the last eleven another set. So a country keeps the list a save gave (`CCountry.CabinetLoaded`)
+and **a game loaded here writes the seats and then the save's list**, 22 figures for a save of 11, and 33 for that one -
+as the original's would.
+
+**Not held, so not written**: `war_exhaustion`, `nukes`, `nocategory` and `last_mission_cancel` - in every save of the
+maintainer's `0.000`, `0.000`, `0.000` and `1.1.1.0`.
+
+**Checked** with `OpenHOI3.SaveCheck write` and each key's text set beside the save's. On 2026-11-06, in
+`Germany1936_01_01_00`, `_01_07_22`, `_04_20_03` and `_09_02_21`, `Ireland1936_03_11_04`, `1937_07_05_02`,
+`1938_08_03_14`, `1939_09_06_18`, `1940_05_23_15` and `1941_07_16_18`, and `Soviet_Union1941_07_16_21`: **every
+country's research queue, dates, spies caught, party figures, government and pool the save's byte for byte**, and its
+cabinet the save's seats followed by the save's list, **but for Italy in `Ireland1936_03_11_04`**, whose saved seats
+are not what its saved popularity allots - two to one party where the popularity gives one, the only such of 1,111
+country-saves, likely an event that moved popularity without an allotment after it, so a load here allots it otherwise
+as the original's `AfterLoad` would. `write <install> new <start save>` gives every key the start save's but
+popularity and the cabinet it allots, which a new game's draw on our generator moves (`politics.md`, section 10).
 
 ## Ours
 
@@ -477,10 +531,6 @@ every one of the original's is exactly one hour on was not read.
 - A NAP's `balance`, `our_power` and `their_power`: nothing here holds them, so they are reported. An alliance's and a
   puppet's `end_date` are kept for the writer (section 10); whether the original ends an alliance or a puppet on its date
   in play was not read.
-- **The start save's two `previous_war`s**, nameless and with nobody on either side, which every save of the maintainer's
-  has: a new game here has none. The base game's `history/wars` has two files with no war in them - `ContinuationWar.txt`
-  a comment alone, `SovietJapaneseWar.txt` all commented out - which may be where they come from (*inferred*), and the
-  fact base has the history replay appending to the list (`FINDINGS-war.md`, C.13) without saying what; not read.
 - A side emptied in play is decided once, by a flag the save does not keep, so the original decides it again at the
   fourth hour after a load; whether its message and its last-battle figures come again was not traced
   (`FINDINGS-savedbattle.md`, A.8); a side with no units loads here as it is written, and was not followed further.
@@ -511,5 +561,7 @@ every one of the original's is exactly one hour on was not read.
 - **How the original numbers the brigades of a line ordered in play**: three numbers apart in the saves (4944, 4947,
   4950), where a line here gives them one each after the two passed over. Not read; the numbers are this game's
   (*Ours*), and only their order matters to the rules.
+- **Why Italy's seats in `Ireland1936_03_11_04` are not what its popularity allots** (section 12): an event's change
+  of popularity, which no allotment follows, is the likely reason; not traced.
 - **Whether anything reads an order's `stop`**: three searches found nothing but the writer; an unrecorded function
   reaching it another way is not ruled out (`FINDINGS-savegame.md`, C.11).

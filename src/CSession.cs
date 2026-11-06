@@ -780,7 +780,6 @@ public partial class CSession : Node
 			}
 		}
 		ProcessAfterHours();
-		AutosaveIfDue();
 		if (_frameLog is { } log)
 		{
 			log.Frame(delta, simulation, Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds - simulation, hours);
@@ -793,20 +792,17 @@ public partial class CSession : Node
 		}
 	}
 
-	/// <summary>An autosave decided on and not written yet, and whether it has waited its frame (savegame.md, section 11).</summary>
-	private bool _autosaveDue;
-	private bool _autosaveWaited;
 	private bool _debugSavesSaid;
 
 	/// <summary>
-	/// The autosave's decision, as each day begins: what an earlier day decided and was not written yet is dropped, and
-	/// the settings' frequency asked of today. With <c>debug_saves</c> set the original saves otherwise, which is not
-	/// built: said once, and nothing saved.
+	/// The autosave, as each day begins - the hour that turned it run whole: where the settings' frequency names today,
+	/// the three files shifted along and the game written to the first at once, so that it holds the turn of the day
+	/// whatever the speed, where the original's waits a frame and at speed holds an hour later (docs/compatibility.md,
+	/// entry 16). With <c>debug_saves</c> set the original saves otherwise, which is not built: said once, and nothing
+	/// saved. A failure is logged as the original logs it.
 	/// </summary>
 	private void DecideAutosave()
 	{
-		_autosaveDue = false;
-		_autosaveWaited = false;
 		if (Settings.DebugSaves != 0)
 		{
 			if (!_debugSavesSaid)
@@ -816,26 +812,10 @@ public partial class CSession : Node
 			}
 			return;
 		}
-		_autosaveDue = Content.Saves.CAutosave.IsDue(Settings.Autosave, State.Date);
-	}
-
-	/// <summary>
-	/// The autosave's writing, once a frame after the hours: a decision waits one frame, then the three files are shifted
-	/// along and the game written to the first. A failure is logged as the original logs it.
-	/// </summary>
-	private void AutosaveIfDue()
-	{
-		if (!_autosaveDue)
+		if (!Content.Saves.CAutosave.IsDue(Settings.Autosave, State.Date))
 		{
 			return;
 		}
-		if (!_autosaveWaited)
-		{
-			_autosaveWaited = true;
-			return;
-		}
-		_autosaveDue = false;
-		_autosaveWaited = false;
 		string folder = System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(), Content.Saves.CSaveFiles.FolderName);
 		try
 		{

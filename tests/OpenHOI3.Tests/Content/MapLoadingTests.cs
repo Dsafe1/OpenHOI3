@@ -1085,6 +1085,34 @@ public class MapLoadingTests : IDisposable
 	}
 
 	[Fact]
+	public void AWarNotFoughtThatBeganByTheDateIsFinishedAndAFileWithNoWarInItIsOneOfNothing()
+	{
+		WriteStartFiles();
+		Write("history/wars/Fought.txt", "name = \"Fought\"\n1935.1.1 = { add_attacker = ITA add_defender = ENG }");
+		Write("history/wars/Later.txt", "name = \"Later\"\n1937.7.7 = { add_attacker = GER add_defender = FRA }");
+		Write("history/wars/Over.txt",
+			"name = \"Over\"\n1930.1.1 = { add_attacker = GER add_defender = FRA }\n1931.1.1 = { rem_attacker = GER }");
+		Write("history/wars/Empty.txt", "# No separate war\n");
+		CDirectorySettings directories = CDirectorySettings.At(_root);
+		CLocalisation localisation = CLocalisation.Load(directories, warn: _warnings.Add);
+		CCountries countries = CCountries.Load(directories, localisation, _warnings.Add);
+		var finished = new List<CWar>();
+
+		List<CWar> fought = CWarReader.Read(directories, countries, new CDate(1936, 1, 1), _warnings.Add, finished);
+
+		Assert.Equal(new[] { "Fought" }, fought.Select(war => war.Name));
+		// The one that ended keeps its name and what is left of its sides; the empty file is a war of nothing; the one
+		// that begins later is on neither list (FINDINGS-war.md, C.13.1).
+		Assert.Equal(new[] { "", "Over" }, finished.Select(war => war.Name).OrderBy(name => name, StringComparer.Ordinal));
+		CWar over = finished.Single(war => war.Name == "Over");
+		Assert.Empty(over.Attackers);
+		Assert.Equal(new[] { "FRA" }, over.Defenders.Select(tag => tag.Value));
+		Assert.Equal(0, over.Action);
+		CWar nothing = finished.Single(war => war.Name == "");
+		Assert.Empty(nothing.Attackers.Concat(nothing.Defenders));
+	}
+
+	[Fact]
 	public void AWarFileIsReplacedByTheExpansionsAndWhatItDoesNotUnderstandIsReported()
 	{
 		WriteStartFiles();

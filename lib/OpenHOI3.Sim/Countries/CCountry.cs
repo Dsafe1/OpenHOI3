@@ -182,6 +182,12 @@ public sealed class CCountry
 	/// <summary>Each party's seats in the cabinet, by its ideology's number (politics.md, section 4).</summary>
 	public int[] Cabinet { get; set; } = Array.Empty<int>();
 
+	/// <summary>
+	/// The cabinet a loaded save gave, kept behind <see cref="Cabinet"/> and written after it, as the original appends a
+	/// save's seats to a cabinet already made; nothing reads it. Empty in a new game (savegame.md, section 12).
+	/// </summary>
+	public int[] CabinetLoaded { get; set; } = Array.Empty<int>();
+
 	/// <summary>The history's party figures, by the ideology's name, until a game is set up with them.</summary>
 	public Dictionary<string, CFixedPoint> HistoryPopularity { get; } = new(StringComparer.OrdinalIgnoreCase);
 

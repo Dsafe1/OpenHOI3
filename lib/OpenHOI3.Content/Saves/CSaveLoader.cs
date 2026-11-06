@@ -352,6 +352,8 @@ public static class CSaveLoader
 		}
 		ReadShares(country.ProductionShares, node.Get("distribution"));
 		ReadShares(country.LeadershipShares, node.Get("leadership"));
+		// The research queue and the politics (savegame.md, section 12).
+		CSavePolitics.Read(state, country, node, report);
 
 		country.Manpower = CSaveValues.Fixed(node, "manpower");
 		country.Officers = CSaveValues.Fixed(node, "officers");
@@ -437,7 +439,8 @@ public static class CSaveLoader
 					country.Mobilised = child.Value == "yes";
 					continue;
 			}
-			if (!CountryKeys.Contains(key) && !laws.Contains(key) && !posts.Contains(key) && !categories.Contains(key))
+			if (!CountryKeys.Contains(key) && !laws.Contains(key) && !posts.Contains(key) && !categories.Contains(key)
+				&& !CSavePolitics.Keys.Contains(key))
 			{
 				report.Unread("country", key);
 			}
@@ -566,6 +569,8 @@ public static class CSaveLoader
 				}
 			}
 			Sim.Construction.CBuildQueue.UpdateCost(country);
+			// The seats, from the popularity the save gave (savegame.md, section 12).
+			CCabinet.Allot(state, country);
 		}
 		CGameStateLoader.RegisterUnitNames(state);
 		state.ForgetPositions();

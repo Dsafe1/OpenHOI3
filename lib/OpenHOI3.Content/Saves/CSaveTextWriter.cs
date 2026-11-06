@@ -120,7 +120,7 @@ public sealed class CSaveTextWriter
 	/// <summary>A date with its hour, or the original's null date, <c>"1.1.1.0"</c>, where there is none.</summary>
 	public void DateOrNull(string key, long? hours)
 	{
-		Quoted(key, hours is { } at ? CSaveValues.HoursText(at) : "1.1.1.0");
+		Quoted(key, hours is { } at ? CSaveValues.HoursText(at) : CSaveValues.NullDate);
 	}
 
 	/// <summary>An id pair, the serial first: <c>id = { id = N type = T }</c>.</summary>

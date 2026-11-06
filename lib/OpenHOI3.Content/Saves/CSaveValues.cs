@@ -66,6 +66,15 @@ public static class CSaveValues
 		return true;
 	}
 
+	/// <summary>The original's null date, which a save writes for "never".</summary>
+	public const string NullDate = "1.1.1.0";
+
+	/// <summary>A date with its hour as hours since the calendar's start; null for the null date, or none.</summary>
+	public static long? HoursOrNull(string? text)
+	{
+		return text?.Trim('"') != NullDate && TryHours(text, out long hours) ? hours : null;
+	}
+
 	/// <summary>Hours since the calendar's start as a save writes them: <c>1936.1.7.22</c>.</summary>
 	public static string HoursText(long hours)
 	{

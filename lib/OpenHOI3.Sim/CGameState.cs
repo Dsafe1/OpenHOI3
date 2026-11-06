@@ -315,7 +315,10 @@ public sealed class CGameState
 	/// <summary>The wars being fought now - and every war made since, which stays here when a side empties (<c>war.md</c>, section 1).</summary>
 	public List<CWar> Wars { get; }
 
-	/// <summary>The original's <c>previous_war</c>s, which a save gives: a war's name is not reused against them.</summary>
+	/// <summary>
+	/// The original's <c>previous_war</c>s: a new game's are the history's wars not fought on the start date that began
+	/// by it (<c>savegame.md</c>, section 10), a loaded game's the save's. A war's name is not reused against them.
+	/// </summary>
 	public List<CWar> FinishedWars { get; } = new();
 
 	/// <summary>

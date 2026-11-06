@@ -1598,8 +1598,14 @@ before a file is written over - and the autosave writes `autosave.hoi3` at the s
 original's two older files along, the player's folder being the original's own. The dialog's name is typed into as
 the original's edit box takes typing, read for it in the fact base (`FINDINGS-editbox.md`; `interface.md`, section 8):
 the keyboard given as the dialog opens or by a click, the six keys, the seven characters refused, the cap of 250, the
-caret's blink and the one wrapped line shown. **Next up**: what neither the loader nor the writer holds yet - politics,
-the research queue, spies, the AI's blocks, the weather's fronts, the statistics - section 4's list.
+caret's blink and the one wrapped line shown. **And the fourth increment's first piece** (2026-11-06, section 12):
+each country's politics and research queue, both ways - the queue, the election and surrender dates, the spies caught,
+the parties' organisation and popularity, the government, the pool of ministers and the cabinet - every one the save's
+byte for byte in eleven saves of 1936 to 1941. A loaded game had had no parties, seats or pool until then, a load not
+running a new game's setting-up. The cabinet is allotted again on a load and the save's list kept behind it, as the
+original appends it, so a reloaded game writes 22 figures as the original's does. **Next up**: the rest of what neither
+the loader nor the writer holds yet - spies, the AI's blocks, the weather's fronts, the goods pools, the statistics -
+section 4's list.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a

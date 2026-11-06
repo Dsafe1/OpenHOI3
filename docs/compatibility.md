@@ -315,6 +315,22 @@ documents folder, not the one next to the exe."
 
 ---
 
+## 16. An autosave holds the turn of the day, whatever the speed
+
+**Decided** 2026-11-05 by the maintainer, shown that his autosaves hold the first hour of the day: "On a slow speed it
+lands on 0. I guess we should fix that for OpenHoi3."
+
+| | |
+| --- | --- |
+| the original | decides on an autosave as the day begins and writes it a frame later (`reversing/findings/FINDINGS-autosave.md`), so what it holds hangs on the speed: at a slow speed the turn of the day, `1941.7.1.0`; at a fast one an hour later, `1941.7.1.1`, as every autosave of the maintainer's |
+| here | the autosave is written as the day is decided on, the hour that turned it run whole: always the turn of the day |
+| the difference today | an autosave made at speed holds the hour before the original's would |
+| a mod loses | nothing; no file can tell the two apart |
+| why | a save should not hang on how fast the game was running when it was made |
+| to undo | keep the decision and write it on the frame after the next, after that frame's hours (`CSession.DecideAutosave`) |
+
+---
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they

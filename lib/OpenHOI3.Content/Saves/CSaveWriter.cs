@@ -250,11 +250,17 @@ public static class CSaveWriter
 		{
 			writer.Fixed(category.Name, country.Abilities.GetValueOrDefault(category.Name));
 		}
+		// The research queue, the dates and the politics (savegame.md, section 12).
+		CSavePolitics.WriteResearch(writer, country);
+		CSavePolitics.WriteDates(writer, country);
 		writer.Fixed("diplo_influence", country.DiplomaticInfluence);
+		writer.Int("spiescaught", country.SpiesCaught);
 		WriteShares(writer, "distribution", country.ProductionShares);
 		WriteShares(writer, "leadership", country.LeadershipShares);
+		CSavePolitics.WriteParties(writer, country);
 		writer.Fixed("neutrality", country.Neutrality);
 		writer.Fixed("officers", country.Officers);
+		CSavePolitics.WriteGovernment(writer, country);
 		foreach (CGovernmentPosition position in state.GovernmentPositions)
 		{
 			if (country.Government.TryGetValue(position.Name, out CMinister? minister))
@@ -305,6 +311,7 @@ public static class CSaveWriter
 			}
 			writer.End();
 		}
+		CSavePolitics.WriteMinisters(writer, country);
 		CSaveLines.WriteTemplates(writer, country);
 		if (country.Mobilised)
 		{
@@ -319,6 +326,7 @@ public static class CSaveWriter
 		{
 			CSaveConvoys.Write(writer, convoy);
 		}
+		CSavePolitics.WriteCabinet(writer, country);
 		writer.Fixed("effective_neutrality", country.EffectiveNeutrality);
 		writer.Quoted("highest_threat", country.MostThreatening?.Value ?? "---");
 		writer.End();
