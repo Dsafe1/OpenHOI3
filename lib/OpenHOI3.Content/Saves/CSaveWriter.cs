@@ -37,9 +37,16 @@ public static class CSaveWriter
 		if (state.Played.FirstOrDefault() is { } player && state.Played.Count > 0)
 		{
 			writer.Quoted("player", player.Value);
+			// The player's switch; the original's other three of its own are not held (savegame.md, section 14).
+			writer.Bool("automate_trade", state.AutomateTrade.Contains(player));
 		}
+		// The next numbers of the four counters, the game's flags and the victory conditions (section 14).
+		writer.Int("rebel", state.LastRebelId + 1);
 		writer.Int("convoy", state.LastConvoyId + 1);
+		writer.Int("theatre", state.NextTheatreId);
 		writer.Int("unit", state.HistoryUnitNext);
+		CSaveTop.WriteFlags(writer, state);
+		CSaveTop.WriteVictoryConditions(writer, state);
 		writer.Int("seed", unchecked((int)state.Seed));
 		// The last serial minted in play, after which the original goes on numbering: the game's own count, where the
 		// original gathers the highest of what it holds (savegame.md, section 9).
@@ -47,6 +54,7 @@ public static class CSaveWriter
 		{
 			writer.IdPair("id", CSaveUnitWriter.Pair(state, state.LastUnitId));
 		}
+		CSaveTop.WriteFiredEvents(writer, state);
 		foreach (CProvince province in state.Provinces)
 		{
 			if (province.Id != 0)
@@ -68,6 +76,7 @@ public static class CSaveWriter
 			CSaveUnitWriter.WriteSubUnit(writer, state, sunk.Owner?.Value ?? "---", sunk.Ship, fighting: false);
 		}
 		writer.End();
+		CSaveTop.WriteFronts(writer, state);
 		WriteFactions(writer, state);
 		// The pacts, the battles and the wars (savegame.md, section 10).
 		CSaveDiplomacy.Write(writer, state);
@@ -326,6 +335,7 @@ public static class CSaveWriter
 		{
 			CSaveConvoys.Write(writer, convoy);
 		}
+		CSaveEspionage.Write(writer, state, country);
 		CSavePolitics.WriteCabinet(writer, country);
 		writer.Fixed("effective_neutrality", country.EffectiveNeutrality);
 		writer.Quoted("highest_threat", country.MostThreatening?.Value ?? "---");
@@ -348,6 +358,8 @@ public static class CSaveWriter
 		foreach (string faction in state.Countries.Select(country => country.Faction).Where(name => name.Length > 0).Distinct())
 		{
 			writer.Begin(faction);
+			// Its progress, the victory points its members hold, in thousandths (savegame.md, section 14).
+			writer.Fixed("progress", new CFixedPoint(state.FactionProgress.GetValueOrDefault(faction)));
 			foreach (CCountry member in state.Countries.Where(country => country.Faction == faction))
 			{
 				writer.Quoted("country", member.Tag.Value);

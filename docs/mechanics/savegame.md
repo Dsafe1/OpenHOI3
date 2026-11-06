@@ -23,8 +23,9 @@ the maintainer's 45 saves. `confirmed` unless marked.
 4. **The save dialog** (`ingamemenu.md`, section 6) and the autosave at the settings' interval - **both built**
    (section 11).
 5. **The fourth increment**, loader and writer together, what neither held: **its first piece is built** (section 12),
-   each country's politics and research queue; the rest of section 4's list - spies, the AI's blocks, the weather's
-   fronts, the goods pools, the statistics - is still to come.
+   each country's politics and research queue, **its second** (section 13), its spies, **and its third** (section 14),
+   the top level's counters, flags, victory conditions, fired events, fronts and faction progress; the rest of section
+   4's list - the AI's blocks, the goods pools, the statistics - is still to come.
 
 ## 2. What a load is
 
@@ -80,11 +81,11 @@ sets the owners, the laws and the technology levels beside the save's and runs t
 - ~~**the units**~~ - the second increment, section 5;
 - ~~**the wars** and **the pacts**~~ - the third increment, section 6; ~~**the battles** (`combat`) and `sunk_ships`~~ -
   section 7;
-- the four id counters and the `id` blocks, the weather's fronts, the victory conditions and the faction's `progress`,
-  the game's flags and its gameplay settings;
+- ~~the four id counters and the `id` blocks, the weather's fronts, the victory conditions and the faction's
+  `progress`, the game's flags~~ - section 14 - and its gameplay settings;
 - a country's own pools (`home`, `usage`, `to`, `back`, the traded ones), ~~its politics (`organization`,
   `popularity`, `cabinet`, `election`, `last_election`, `duration`, `ministers`), its research queue (`research`)~~ -
-  section 12 - its spies and their missions, alignment, war exhaustion, AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`), statistics and the rest the
+  section 12 - ~~its spies and their missions~~ - section 13; its active missions, alignment, war exhaustion, AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`), statistics and the rest the
   report lists; a province's `out_of_supply_days` and `capital`, which the day makes again, and its `history`.
 
 ## 5. What the second increment reads: the units
@@ -485,6 +486,61 @@ country-saves, likely an event that moved popularity without an allotment after 
 as the original's `AfterLoad` would. `write <install> new <start save>` gives every key the start save's but
 popularity and the cabinet it allots, which a new game's draw on our generator moves (`politics.md`, section 10).
 
+## 13. The fourth increment: spies
+
+Both ways (`CSaveEspionage`), after a country's convoys and before its `cabinet` [exe]
+(`reversing/findings/FINDINGS-espionage.md`, the record's table; `FINDINGS-savegame.md`, B.4): `spies`, the free
+spies, in thousandths; then five lists, each at column 0 with **an entry for the original's null country `---`
+first** - nought, its date the null date (`FINDINGS-savegame.md`, B.2, item 14) - and then one a country in `common/countries.txt`'s order
+[mod: common/countries.txt], so a country's place is its number here plus one (`espionage.md`, section 1):
+
+| key | each entry | read into |
+| --- | --- | --- |
+| `spy_priority` | a whole number | the presence's priority |
+| `spy_allocation` | thousandths | its level |
+| `spy_date` | a date with its hour, unquoted, `1.1.1.0` for never | the hour its missions last changed |
+| `spy_mission` | nine whole numbers a country, the missions in their order | the weights, and the shares worked out from them, which are not saved |
+| `covert_ops_points` | thousandths | its covert-ops points |
+
+A list that ends early leaves the rest nought. **Not held, so not written**: `last_mission_cancel`, which belongs to
+the active missions (`active_mission`, `last_mission`), not built - `1.1.1.0` in every save of the maintainer's.
+
+**Checked** with `OpenHOI3.SaveCheck write` in the eleven saves of section 12, on 2026-11-06: **every country's spies
+the save's byte for byte**. `write <install> new <start save>` gives every key the start save's but `spy_allocation`,
+72 of 101 countries, which is the spies the two days catch by another roll (`espionage.md`, section 14).
+
+## 14. The fourth increment: the top level's counters, flags, victory conditions, fired events and fronts
+
+Both ways (`CSaveTop`, and the factions' and the player's in `CSaveLoader` and `CSaveWriter`), each where the original
+writes it [exe] (`FINDINGS-savegame.md`, B.2):
+
+| key | what | read | written |
+| --- | --- | --- | --- |
+| `automate_trade` | the local player's switch | given to the country played, whoever that is | after `player`, where one is played |
+| `rebel`, `theatre` | the next rebel faction's and theatre's numbers | the game's counters | `rebel` before `convoy`, `theatre` after it |
+| `flags` | the game's own flags, each `yes` | each set | after `unit` |
+| `victory_conditions` | a `faction` list a faction - each chosen condition's name and date, `0.1.0.0` none, then the faction's name - and `game_finished` | as the original's loader sets them (`reversing/findings/FINDINGS-factionplay.md`, C.5): each named chosen, with its date, and **met where it has one**; the faction's others not chosen; a name the faction has not is left out and reported | after `flags` |
+| `fired_events` | an `id = { id = N type = 40 }` an event that fires once and has fired | found by its number | after `id`, **by number** - the original's is its table's bucket order, *inferred* the same: no save has more than two |
+| `weather` | each front, its `direction` and `rotation` in thousandths, `speed` - the hours to its next move - `home` and `provinces` | the fronts, in order | after `sunk_ships` |
+| a faction's `progress` | the victory points its members hold | the game's figure, made again each hour | the first key of its block |
+
+**Three things a load had lacked**: a new game's choice of victory conditions is not run on a load, so a loaded game
+had none chosen and the faction box's tooltip read "0/0"; the theatre counter was the history's, so a theatre made
+after a load could take a number a loaded one had; and a loaded game had no fronts, its first hour bearing new ones.
+
+**A province is not marked as under a front** by a load: the original does not save it, and the first hour's weather
+marks every front's provinces again before anything asks (`weather.md`, section 3). A zone's cooldown and heading are
+not saved either, and start again at nought, as in the original.
+
+**Not held, so not written**: the player's `ai` list and `automate_sliders` and `automate_tech_sliders`;
+`gameplaysettings`; `count`, the draws made on the generator; `undeclared_war`; the three statistics and
+`strategic_warfare`. And a faction's members are written in `common/countries.txt`'s order (*Not established*).
+
+**Checked** on 2026-11-06 with each top-level block's text set beside the save's: in the eleven saves of section 12 and
+`olderautosave.hoi3` of July 1941, **every one of these the save's byte for byte**, and each faction's `progress`
+in three of them. `write <install> new <start save>` gives all but the fronts the start save's - a new game's are drawn on
+our generator - and the seed.
+
 ## Ours
 
 - A key nothing reads yet is reported, by its block and how often it was met, where the original drops an unknown key
@@ -561,6 +617,8 @@ popularity and the cabinet it allots, which a new game's draw on our generator m
 - **How the original numbers the brigades of a line ordered in play**: three numbers apart in the saves (4944, 4947,
   4950), where a line here gives them one each after the two passed over. Not read; the numbers are this game's
   (*Ours*), and only their order matters to the rules.
+- **The order of `fired_events`**: the original walks its table of events that fire once bucket by bucket; written
+  here by number, which the two saves holding any agree with (section 14).
 - **Why Italy's seats in `Ireland1936_03_11_04` are not what its popularity allots** (section 12): an event's change
   of popularity, which no allotment follows, is the likely reason; not traced.
 - **Whether anything reads an order's `stop`**: three searches found nothing but the writer; an unrecorded function

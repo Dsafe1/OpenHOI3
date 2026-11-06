@@ -42,9 +42,10 @@ public class SaveWriterTests
 
 		string text = CSaveWriter.Write(state);
 
-		// sunk_ships always, then the factions, the pacts, and the battles with an empty history, which has no key of its own.
+		// sunk_ships always, then the weather's fronts, the factions, the pacts, and the battles with an empty history, which
+		// has no key of its own.
 		Assert.EndsWith(
-			"sunk_ships=\r\n{\r\n}\r\nfaction={}\r\ndiplomacy=\r\n{\r\n}\r\ncombat=\r\n{\r\n\thistory=\r\n\t{\r\n\t}\r\n}\r\n}\r\n",
+			"sunk_ships=\r\n{\r\n}\r\nweather=\r\n{\r\n}\r\nfaction={}\r\ndiplomacy=\r\n{\r\n}\r\ncombat=\r\n{\r\n\thistory=\r\n\t{\r\n\t}\r\n}\r\n}\r\n",
 			text);
 	}
 

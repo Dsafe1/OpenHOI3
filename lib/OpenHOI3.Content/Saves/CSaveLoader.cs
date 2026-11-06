@@ -69,6 +69,7 @@ public static class CSaveLoader
 		var units = new CSaveUnitReader(state, ids, report);
 		var routes = new List<(Sim.Trade.CTradeRoute Route, int Convoy)>();
 		ClausewitzNode? combats = null;
+		bool automateTrade = false;
 
 		foreach (ClausewitzNode node in root.Children)
 		{
@@ -139,8 +140,16 @@ public static class CSaveLoader
 				case "combat" when node.IsBlock:
 					combats = node;
 					break;
+				// The local player's, given to whoever is played once that is known (savegame.md, section 14).
+				case "automate_trade":
+					automateTrade = node.Value == "yes";
+					break;
 				default:
-					report.Unread("top", node.Key);
+					// The counters, the game's flags, the victory conditions, the fired events and the weather's fronts.
+					if (!CSaveTop.Read(state, node, report))
+					{
+						report.Unread("top", node.Key);
+					}
 					break;
 			}
 		}
@@ -171,6 +180,10 @@ public static class CSaveLoader
 		if (player is { } who)
 		{
 			state.Played.Add(who);
+			if (automateTrade)
+			{
+				state.AutomateTrade.Add(who);
+			}
 		}
 		// The historical models are the install's, for what is built from now on; a save's brigades never take theirs.
 		CHistoricalModelReader.Read(directories, countries, state.SubUnitTypes, state.Technologies,
@@ -222,6 +235,10 @@ public static class CSaveLoader
 		state.Combats.Clear();
 		state.CombatHistory.Clear();
 		state.SunkShips.Clear();
+		state.AutomateTrade.Clear();
+		state.FiredOnce.Clear();
+		state.Weather.Fronts.Clear();
+		state.GameFinished = false;
 	}
 
 	/// <summary>
@@ -354,6 +371,8 @@ public static class CSaveLoader
 		ReadShares(country.LeadershipShares, node.Get("leadership"));
 		// The research queue and the politics (savegame.md, section 12).
 		CSavePolitics.Read(state, country, node, report);
+		// Its spies, in it and in every other country (savegame.md, section 13).
+		CSaveEspionage.Read(state, country, node);
 
 		country.Manpower = CSaveValues.Fixed(node, "manpower");
 		country.Officers = CSaveValues.Fixed(node, "officers");
@@ -440,7 +459,7 @@ public static class CSaveLoader
 					continue;
 			}
 			if (!CountryKeys.Contains(key) && !laws.Contains(key) && !posts.Contains(key) && !categories.Contains(key)
-				&& !CSavePolitics.Keys.Contains(key))
+				&& !CSavePolitics.Keys.Contains(key) && !CSaveEspionage.Keys.Contains(key))
 			{
 				report.Unread("country", key);
 			}
@@ -456,7 +475,7 @@ public static class CSaveLoader
 		status.OccupationPolicy = COccupationPolicies.Find(state, policy)?.Index ?? 0;
 	}
 
-	/// <summary>The top-level <c>faction = { axis = { progress = .. country = "GER" ... } }</c>: each country named a member.</summary>
+	/// <summary>The top-level <c>faction = { axis = { progress = .. country = "GER" ... } }</c>: its progress, and each country named a member.</summary>
 	private static void ReadFactions(CGameState state, ClausewitzNode node)
 	{
 		foreach (ClausewitzNode faction in node.Children)
@@ -465,6 +484,7 @@ public static class CSaveLoader
 			{
 				continue;
 			}
+			state.FactionProgress[faction.Key] = (int)CSaveValues.Fixed(faction, "progress").Raw;
 			foreach (ClausewitzNode member in faction.All("country"))
 			{
 				if (Tag(member.Value) is { } tag && state.Country(tag) is { } country)

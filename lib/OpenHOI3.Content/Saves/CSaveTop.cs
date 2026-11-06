@@ -1,0 +1,206 @@
+using System.Collections.Generic;
+using System.Linq;
+using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Sim;
+using OpenHOI3.Sim.Script;
+using OpenHOI3.Sim.Wars;
+using OpenHOI3.Sim.Weather;
+
+namespace OpenHOI3.Content.Saves;
+
+/// <summary>
+/// The top level's blocks around the provinces and the countries, both ways: the next rebel faction's and theatre's
+/// numbers, the game's flags, the victory conditions, the events that fire once and have fired, and the weather's fronts.
+/// See <c>docs/mechanics/savegame.md</c>, section 14.
+/// </summary>
+public static class CSaveTop
+{
+	/// <summary>The date the victory conditions write for none: the original's null tick, which prints so.</summary>
+	public const string NoVictoryDate = "0.1.0.0";
+
+	/// <summary>The type an event's id has (<c>FINDINGS-savegame.md</c>, B.3).</summary>
+	public const int EventIdType = 40;
+
+	/// <summary>Reads a top-level key this holds; false for any other.</summary>
+	public static bool Read(CGameState state, ClausewitzNode node, CSaveReport report)
+	{
+		switch (node.Key)
+		{
+			// The next numbers, which the original's counters hold.
+			case "rebel" when !node.IsBlock:
+				state.LastRebelId = (int)CSaveValues.Whole(node.Value) - 1;
+				return true;
+			case "theatre" when !node.IsBlock:
+				state.NextTheatreId = (int)CSaveValues.Whole(node.Value);
+				return true;
+			case "flags" when node.IsBlock:
+				foreach (ClausewitzNode flag in node.Children)
+				{
+					if (flag.Key is { } name && flag.Value == "yes")
+					{
+						state.Flags.Set(name);
+					}
+				}
+				return true;
+			case "victory_conditions" when node.IsBlock:
+				ReadVictoryConditions(state, node, report);
+				return true;
+			case "fired_events" when node.IsBlock:
+				ReadFiredEvents(state, node, report);
+				return true;
+			case "weather" when node.IsBlock:
+				ReadFronts(state, node);
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	/// <summary>
+	/// <c>faction = { name date ... faction }</c> a faction, then <c>game_finished</c>: each condition named chosen, with
+	/// its date, and met where it has one, as the original's loader sets them; a faction's others not chosen. A name no
+	/// condition of the faction has is left out, as the original drops it, and reported.
+	/// </summary>
+	private static void ReadVictoryConditions(CGameState state, ClausewitzNode node, CSaveReport report)
+	{
+		foreach ((string _, List<CVictoryCondition> conditions) in state.VictoryConditions)
+		{
+			foreach (CVictoryCondition condition in conditions)
+			{
+				condition.Chosen = false;
+				condition.Met = false;
+				condition.Date = null;
+			}
+		}
+		foreach (ClausewitzNode faction in node.All("faction"))
+		{
+			List<string> tokens = faction.Children.Select(token => token.Value ?? "").ToList();
+			if (tokens.Count == 0)
+			{
+				continue;
+			}
+			string name = tokens[^1];
+			List<CVictoryCondition>? conditions = state.VictoryConditions.FirstOrDefault(entry => entry.Faction == name).Conditions;
+			if (conditions is null)
+			{
+				report.Unread("victory_conditions", $"a faction of no name known, {name}");
+				continue;
+			}
+			for (int i = 0; i + 1 < tokens.Count; i += 2)
+			{
+				if (conditions.FirstOrDefault(condition => condition.Name == tokens[i]) is not { } condition)
+				{
+					report.Unread("victory_conditions", $"a condition of no name known, {tokens[i]}");
+					continue;
+				}
+				condition.Chosen = true;
+				condition.Date = tokens[i + 1] != NoVictoryDate && CSaveValues.TryHours(tokens[i + 1], out long hours) ? hours : null;
+				condition.Met = condition.Date is not null;
+			}
+		}
+		state.GameFinished = node.GetBool("game_finished");
+	}
+
+	/// <summary>Each <c>id = { id = N type = 40 }</c>: an event that fires once and has fired, found by its number.</summary>
+	private static void ReadFiredEvents(CGameState state, ClausewitzNode node, CSaveReport report)
+	{
+		state.FiredOnce.Clear();
+		foreach (ClausewitzNode id in node.All("id"))
+		{
+			int number = CSaveValues.Id(id);
+			if (state.Events.FirstOrDefault(candidate => candidate.Id == number) is { } fired)
+			{
+				state.FiredOnce.Add(fired);
+			}
+			else
+			{
+				report.Unread("fired_events", $"an event of no number known, {number}");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Every front in its order: direction and rotation in thousandths, the hours to its next move, its home and its
+	/// provinces. No province is marked as under one: that is not saved, and the next hour marks them again.
+	/// </summary>
+	private static void ReadFronts(CGameState state, ClausewitzNode node)
+	{
+		state.Weather.Fronts.Clear();
+		foreach (ClausewitzNode entry in node.All("front"))
+		{
+			var front = new CWeatherFront((int)CSaveValues.Whole(entry, "home"), (int)CSaveValues.Fixed(entry, "direction").Raw,
+				(int)CSaveValues.Fixed(entry, "rotation").Raw)
+			{
+				MoveCountdown = (int)CSaveValues.Whole(entry, "speed"),
+			};
+			front.Provinces.Clear();
+			foreach (ClausewitzNode province in entry.Get("provinces")?.Children ?? new List<ClausewitzNode>())
+			{
+				front.Provinces.Add((int)CSaveValues.Whole(province.Value));
+			}
+			state.Weather.Fronts.Add(front);
+		}
+	}
+
+	/// <summary>The game's flags, every one set, in the order first set.</summary>
+	public static void WriteFlags(CSaveTextWriter writer, CGameState state)
+	{
+		writer.Begin("flags");
+		foreach ((string name, bool set) in state.Flags.All)
+		{
+			if (set)
+			{
+				writer.Word(name, "yes");
+			}
+		}
+		writer.End();
+	}
+
+	/// <summary>Each faction's chosen conditions, a name and a date each, then the faction's name; then <c>game_finished</c>.</summary>
+	public static void WriteVictoryConditions(CSaveTextWriter writer, CGameState state)
+	{
+		writer.Begin("victory_conditions");
+		foreach ((string faction, List<CVictoryCondition> conditions) in state.VictoryConditions)
+		{
+			writer.Words("faction", conditions.Where(condition => condition.Chosen)
+				.SelectMany(condition => new[]
+				{
+					condition.Name, condition.Date is { } hours ? CSaveValues.HoursText(hours) : NoVictoryDate,
+				})
+				.Append(faction));
+		}
+		writer.Bool("game_finished", state.GameFinished);
+		writer.End();
+	}
+
+	/// <summary>
+	/// The events that fire once and have fired, each an id pair: by number, where the original walks its table's buckets
+	/// (*inferred*: no save of the maintainer's holds more than two).
+	/// </summary>
+	public static void WriteFiredEvents(CSaveTextWriter writer, CGameState state)
+	{
+		writer.Begin("fired_events");
+		foreach (CEvent fired in state.FiredOnce.OrderBy(fired => fired.Id))
+		{
+			writer.IdPair("id", fired.Id, EventIdType);
+		}
+		writer.End();
+	}
+
+	/// <summary>The weather's fronts, the oldest first.</summary>
+	public static void WriteFronts(CSaveTextWriter writer, CGameState state)
+	{
+		writer.Begin("weather");
+		foreach (CWeatherFront front in state.Weather.Fronts)
+		{
+			writer.Begin("front");
+			writer.Fixed("direction", new CFixedPoint(front.Direction));
+			writer.Fixed("rotation", new CFixedPoint(front.Rotation));
+			writer.Int("speed", front.MoveCountdown);
+			writer.Int("home", front.Home);
+			writer.Numbers("provinces", front.Provinces.Select(province => (long)province));
+			writer.End();
+		}
+		writer.End();
+	}
+}

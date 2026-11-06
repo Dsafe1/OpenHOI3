@@ -1603,9 +1603,14 @@ each country's politics and research queue, both ways - the queue, the election 
 the parties' organisation and popularity, the government, the pool of ministers and the cabinet - every one the save's
 byte for byte in eleven saves of 1936 to 1941. A loaded game had had no parties, seats or pool until then, a load not
 running a new game's setting-up. The cabinet is allotted again on a load and the save's list kept behind it, as the
-original appends it, so a reloaded game writes 22 figures as the original's does. **Next up**: the rest of what neither
-the loader nor the writer holds yet - spies, the AI's blocks, the weather's fronts, the goods pools, the statistics -
-section 4's list.
+original appends it, so a reloaded game writes 22 figures as the original's does. **And its second** (section 13): each
+country's spies - the free spies, and in every country the priority, level, date of the last change of missions, the
+nine missions and the covert-ops points - the save's byte for byte in the same eleven saves. **And its third** (section
+14): the top level's rebel and theatre counters, the game's flags, the victory conditions, the fired events, the
+weather's fronts, each faction's progress and the player's Automate Trade - the save's byte for byte in twelve saves. A
+loaded game had had no victory conditions chosen, the history's theatre counter and no fronts. **Next up**: the rest of
+what neither the loader nor the writer holds yet - the AI's blocks, the goods pools, the statistics - section 4's
+list.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
