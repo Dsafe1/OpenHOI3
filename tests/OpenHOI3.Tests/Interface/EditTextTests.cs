@@ -156,4 +156,12 @@ public class EditTextTests
 		Assert.Equal((char)0x80, CWindows1252.FromUnicode('€'));
 		Assert.Null(CWindows1252.FromUnicode('Ж'));
 	}
+
+	[Fact]
+	public void A_text_held_as_its_bytes_is_drawn_with_windows_1252s_quotes_and_dashes()
+	{
+		// "Foch’s remark" and “ ” as the localisation holds them, bytes 0x92, 0x93 and 0x94; 0x81 has no character and stays.
+		Assert.Equal("Foch’s “peace” – \u0081", CWindows1252.ToDisplay("Foch\u0092s \u0093peace\u0094 \u0096 \u0081"));
+		Assert.Same("plain", CWindows1252.ToDisplay("plain"));
+	}
 }

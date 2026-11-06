@@ -50,6 +50,39 @@ public partial class CTechnologyView : CCountryView
 	protected override string WindowName => "country_technology";
 	protected override string TopColourName => "topcolor_technology";
 
+	protected override Sim.Settings.EAutomation? AutomationArea => Sim.Settings.EAutomation.Technology;
+
+	/// <summary>
+	/// The technology screen goes by the Technology setting itself and greys two parts apart (frontend.md, section 4.4):
+	/// Ai Control and Research AI the screen, with the folders, the tree, the skills and the queue enabled again; Ai
+	/// Control and Slider AI the leadership sliders.
+	/// </summary>
+	protected override void ApplyAutomation(Sim.Settings.CPlayerAutomation automation)
+	{
+		bool screen = automation.Technology is 1 or 2;
+		bool sliders = automation.Technology is 1 or 3;
+		if (Window is not null)
+		{
+			Window.Greying = screen ? EGreying.Greyed : EGreying.Inherit;
+		}
+		EGreying usable = screen ? EGreying.Enabled : EGreying.Inherit;
+		foreach ((string _, CGuiButton? button, CGuiIcon? _) in _folders)
+		{
+			if (button is not null)
+			{
+				button.Greying = usable;
+			}
+		}
+		foreach (CGuiObject? part in new CGuiObject?[] { _treeWindow, _skillsWindow, _queueList })
+		{
+			if (part is not null)
+			{
+				part.Greying = usable;
+			}
+		}
+		_sliders?.SetGreying(sliders ? EGreying.Greyed : usable);
+	}
+
 	protected override void Build(CGuiWindow window)
 	{
 		_leadership = window.FindTextBox("leader_ship_label");
@@ -362,9 +395,10 @@ public partial class CTechnologyView : CCountryView
 		Send(_sliders?.Flush());
 	}
 
+	/// <summary>What the player set, posted - nothing while the AI holds the sliders, under Ai Control or Slider AI [exe].</summary>
 	private void Send(CFixed15[]? shares)
 	{
-		if (shares is not null)
+		if (shares is not null && Simulation.State.Automation.Technology is not (1 or 3))
 		{
 			Simulation.Post(new CSetLeadershipSharesCommand(Player.Tag, shares));
 		}

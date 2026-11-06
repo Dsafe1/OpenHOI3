@@ -1548,8 +1548,8 @@ account of the original; Close goes back from its windows to the buttons and lea
 clock stopped once one has been open - the original's, which the maintainer confirmed in it; Quit asks and goes to the
 desktop; and the message settings list every type with its four boxes, the tabs, Reset, and a Close that writes
 `messagetypes_custom.txt`, which is now read at every start over the install's types. Tried with `--click`: the
-maintainer's file comes out byte for byte as the original wrote it. **Resign is greyed** until a screen after a game
-exists (*Loose ends*); Save Game opens the save dialog since 2026-11-05 (`savegame.md`, section 11). **The game options window is built** (2026-11-04,
+maintainer's file comes out byte for byte as the original wrote it. **Resign goes to the main menu** since 2026-11-06
+(`frontend.md`), through no end-of-game screen (*Loose ends*); Save Game opens the save dialog since 2026-11-05 (`savegame.md`, section 11). **The game options window is built** (2026-11-04,
 `docs/mechanics/gameoptions.md`, read in one wave, `reversing/findings/FINDINGS-settingswindow.md`): the four tabs,
 Apply storing every tab and writing the player's `settings.txt` - the original's 21 keys in its order and format, set
 beside the maintainer's two files byte for byte by `OpenHOI3.SaveCheck settings` - with the restart notice for a
@@ -1615,8 +1615,32 @@ been none. **And its fifth** (section 16): the AI's strategy - its personality, 
 their fronts - the save's byte for byte in twelve saves but for the figures nothing holds, and **kept on a load as the
 original keeps it**, until the first midnight ten days past the start date, where a load had made every strategy and
 theatre again, the theatres under new numbers; read for it in the fact base, the ten-day clock starting at the defines'
-start date. **Next up**: what is left of section 4's list - the statistics, the gameplay settings, the strategy's
-production shares and military access, war exhaustion, and a province's `history` - or the next piece of the plan.
+start date. What is left of section 4's list - the statistics, the gameplay settings, the strategy's production
+shares and military access, war exhaustion, and a province's `history` - each wants building or reading first.
+
+**And the front end** (2026-11-06, `docs/mechanics/frontend.md`, read in one wave of two,
+`reversing/findings/FINDINGS-frontend.md`): the program comes up on the original's main menu, its Single Player opening
+the lobby of `lobby.gui` pared down to the one start, by the maintainer's choice - the start's row with its bookmark's
+picture and shortcut shields, the world on the map behind it, a country chosen by a click on the map, the saved games
+newest first with a row loading its save the moment it is chosen and its player chosen, the chosen country's panel, and
+Play making the new game or going on with the save; Options opens the front end's settings window, Exit ends the
+program, and Resign comes back to the main menu. The Quick Start panel, the other bookmarks, the scenarios and the custom
+games are not offered (`docs/compatibility.md`, entry 17). Tried with `--click`, which the front end plays where no switch
+starts a game; the maintainer looked at it on 2026-11-06 - "Our main menu looks perfect imo" - and the lobby's shields
+were turned and placed by his screenshot of the original's. **The lobby's options are built too** (2026-11-06,
+`frontend.md`, section 4, a second wave of two readers): the panel of `options.gui` with the difficulty, the game mode -
+greyed, Arcade not being built (entry 18) - and the five areas a player may hand to the AI, each press said in the chat;
+the difficulty's static modifier and its combat modifier on land, at sea, in the air and in bombing; each area handed over
+giving the played country its minister, the production one with the strategy's walk, and the finished units placed every
+hour where deployment is; all of it saved and loaded (`savegame.md`, section 17). Tried with `--click`; the maintainer has
+not looked at the panel. **And in play** (2026-11-06, `frontend.md`, section 4.4): the country screens' automation
+arrows handing each area to the AI and back, what each screen takes from the player as the original's - greyed, where the original's only stops taking the mouse, by the maintainer's choice (`docs/compatibility.md`, entry 19); the technology screen by its four
+settings, read for this - the production screen's slider automation setting the player's sliders each day at its level,
+and its automatic-deployment box; with greying in the interface runtime (`interface.md`, section 7). Tried with
+`--click`. A launch with no `--country=`, `--load=` or `--replay=` - an empty country prompt among them - comes up on the
+main menu since the same day. **The far map mode** he asked for - the countries' names on the map, the zoomed-out shader -
+is the lobby's last piece he named, for later. **Next up**: war exhaustion, which nothing holds yet, or the
+military AI's gaps (*What the moving wave left*), or what the end-of-game screen shows.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
@@ -1903,8 +1927,11 @@ None of these blocks the list above.
     return date - and those saves are its check, with the six of 23 May 1940, an hour apart, where
     Britain has lent France 2 divisions and Germany Slovakia 1 beside Japan's 44, and Germany's 531,
     Britain's 372 and France's about 300 brigades drift the same way each hour;
-  - **the in-game menu's Resign is greyed** (`ingamemenu.md`, *Ours*), where the original greys it
-    not: there is no screen after a game or main menu;
+  - **the end-of-game screen of `backend.gui` is not built**, so Resign goes straight to the main
+    menu (`ingamemenu.md`, *Ours*; `frontend.md`); nor are the front end's multiplayer menu, tutorial
+    list, credits and victory conditions window, greyed there, nor Arcade's supply, the lobby's game mode
+    greyed for it (`docs/compatibility.md`, entry 18), nor the five alerts the player's automation
+    silences, no alert of them being built (`frontend.md`, section 4.3);
   - **only the save dialog's edit box takes typing** (`interface.md`, section 8): the unit
     panel's name waits on renaming a unit;
   - **`debug_saves` other than nought autosaves nothing** (`savegame.md`, section 11): the
@@ -2644,7 +2671,8 @@ seven of their buttons could not be pressed.
 An earlier iteration reproduced the original's front end directly from its `.gui` files
 and ran its main menu and lobby. That work left the tree in commit `4269708` and remains
 in git history. It is where the lessons below come from, and today's `src/Gui` started
-from its - though the lobby it drove is not coming back.
+from its. The lobby it drove was said not to be coming back until 2026-11-06, when today's
+`src/FrontEnd` built it anew from a reading.
 
 ## Requirements
 
@@ -2675,7 +2703,9 @@ tag and whether it may order every unit type - *Play OpenHOI3 (ask for arguments
 asks for the switches themselves, all in one box with spaces between, as in
 `--country=GER --war=GER:ENG --mission=ENG:patrol:10531 --run` - *Play OpenHOI3 (headless)*, and
 *Open Godot Editor*. The box reaches the game as one argument, and the game cuts an
-argument wherever a space is followed by `--`. The Godot executable path is read
+argument wherever a space is followed by `--`. **Without `--country=`, `--load=` or `--replay=` the main menu comes
+up**, and the country prompt is empty by default for that: a tag starts that game, nothing brings up the menu, and
+any other switch given then is printed as left aside (`src/Main.cs`). The Godot executable path is read
 from the `godotTools.editorPath.godot4` setting rather than hardcoded, so set it in
 `.vscode/settings.json` (git-ignored) or your VS Code user settings.
 
@@ -2690,7 +2720,9 @@ fonts/                  the open typefaces all text is drawn in, with their lice
 src/                    the Godot client
 src/Map/                the map view, and the unit counters on it
 src/Gfx/                decoding the original's textures and fonts
-src/Debug/              ours: the debug menu of developer switches, on Shift and 4
+src/Debug/              ours: the debug menu of developer switches, on Shift and 4, and --click's player
+src/FrontEnd/           the main menu and the lobby, with the world they offer, and the game Play
+                        hands to a session
 src/Gui/                the interface runtime: windows from the original's .gui files
 src/Screens/            one class for each screen: the top bar, production, technology,
                         the builder windows, the deploy menu, the alerts
@@ -2787,6 +2819,8 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
     Events/             when events are asked and fire: each country's candidates, the
                         day's roll, the chance of a day, a firing, the AI's option, an open
                         event; and which decisions are offered
+    Settings/           the game's difficulty and mode and what it does, and what the player
+                        hands to the AI - the record, who does a country's work, its ministers
 lib/OpenHOI3.Content/   reading an install: finding and layering it, localisation, the loader
     Clausewitz/         the script format
     Map/                the province bitmap, shapes, the edges between provinces with their
@@ -2801,6 +2835,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Messages/           the message types of interface/messagetypes.txt
     Saves/              the original's .hoi3 saves: the loader, a save's values, its ids, units, orders, leaders and lines, wars, pacts and convoys, battles, what a load left unread, the writer and its layout
     Settings/           the player's settings.txt, from the original's folder under Documents
+    Frontend/           the start's bookmark, for its look in the lobby
 lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and placement at its root
     Text/               colour escapes, number formats, templates, breaking lines
     Screens/            the text of each screen's figures

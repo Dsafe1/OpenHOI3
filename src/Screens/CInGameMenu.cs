@@ -51,6 +51,9 @@ public sealed partial class CInGameMenu : Control
 
 	public bool IsOpen => _window is { Visible: true };
 
+	/// <summary>Resign agreed to: the game is to end, nothing saved, and the front end come back.</summary>
+	public event Action? Resigned;
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	/// <param name="options">The game options window Game Options opens, its Back and Apply coming back through the menu's close.</param>
 	public void Setup(CGuiContext context, CDirectorySettings directories, CSimulation simulation, CCountry? player,
@@ -92,12 +95,9 @@ public sealed partial class CInGameMenu : Control
 
 		if (_panel is not null)
 		{
-			// What Resign leads to is not built - the screen after a game - so it is greyed where the original greys it
-			// not (ingamemenu.md, Ours).
-			if (_panel.FindButton("menu_resign_button") is { } resign)
-			{
-				resign.Disabled = true;
-			}
+			// Resign asks as Quit does, and agreed goes back to the front end's main menu - through no end-of-game screen,
+			// which is not built (ingamemenu.md, Ours; frontend.md, section 1).
+			Bind(_panel.FindButton("menu_resign_button"), () => AskToEnd("RESIGN"));
 			Bind(_panel.FindButton("menu_save_button"), OpenSaveDialog);
 			Bind(_panel.FindButton("menu_options_button"), OpenOptions);
 			Bind(_panel.FindButton("menu_message_button"), OpenMessageSettings);
@@ -259,6 +259,10 @@ public sealed partial class CInGameMenu : Control
 		if (key == "QUIT")
 		{
 			_dialog.Agreed += () => GetTree().Quit();
+		}
+		else
+		{
+			_dialog.Agreed += () => Resigned?.Invoke();
 		}
 	}
 

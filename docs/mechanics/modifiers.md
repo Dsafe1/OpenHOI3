@@ -318,8 +318,8 @@ the first day is run, which is why a new game's starting manpower leaves black s
   provinces' modifiers, `war` or `peace`, the spies' two unity modifiers (since 2026-10-14, with
   `espionage.md`), `dissent`, `neutrality` by its effective neutrality (since 2026-10-12, with
   `diplomacy.md`), its event modifiers and its triggered modifiers (since 2026-10-14, section 5).
-  The rest wait for what they need: war exhaustion, subjects, a difficulty setting and
-  governments in exile.
+  The rest wait for what they need: war exhaustion, subjects and governments in exile. The
+  difficulty's block is built since 2026-11-06 (`frontend.md`, section 4.3).
 - **A triggered modifier's conditions answer as every condition does** (`triggers.md`): one
   about what the simulation does not hold answers false. In Their Finest Hour's file that is
   `lost_national` alone, so `desperate_defence` stays off until it is built.

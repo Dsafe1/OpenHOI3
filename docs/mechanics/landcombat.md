@@ -309,8 +309,10 @@ which is what the last thousandth depends on:
 `surprise_chance`, which the original reads and throws away
 (`reversing/findings/FINDINGS-battleleaders.md`, sections 4 and 6).
 
-*Not built:* shore bombardment (fleets do not fight); the difficulty setting, which is the
-player's alone; mission efficiency; encirclement, which wants the areas a country's ground
+The difficulty is built since 2026-11-06 (`frontend.md`, section 4.3): `BM_DIFFICULTY` on every unit of a played
+country, attacking and defending.
+
+*Not built:* shore bombardment (fleets do not fight); mission efficiency; encirclement, which wants the areas a country's ground
 falls into, and with it `encirclement_bonus`; the
 landing craft that ease a landing at a port; and three technology figures - one off the
 crowding, one on the chance to avoid a hit, one on the dig-in cap.

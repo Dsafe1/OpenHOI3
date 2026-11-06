@@ -111,14 +111,14 @@
 		{
 			"id": "arguments",
 			"type": "promptString",
-			"description": "Switches, with spaces between: --country=ENG  --all-units  --war=GER:ENG  --sail=ENG:10531  --days=7  --mode=supply  --screen=production  --centre=10531  --zoom=6  --run",
+			"description": "Switches, with spaces between: --country=ENG  --all-units  --war=GER:ENG  --sail=ENG:10531  --days=7  --mode=supply  --screen=production  --centre=10531  --zoom=6  --run. Without --country=, --load= or --replay= the main menu comes up.",
 			"default": "--country=GER --war=GER:ENG --sail=ENG:10531"
 		},
 		{
 			"id": "country",
 			"type": "promptString",
-			"description": "The tag of the country to play: GER, ENG, FRA, ITA, SOV, USA, JAP, or any other. One the game does not have plays Germany.",
-			"default": "GER"
+			"description": "The tag of the country to play: GER, ENG, FRA, ITA, SOV, USA, JAP, or any other - or nothing, for the main menu. One the game does not have plays Germany.",
+			"default": ""
 		},
 		{
 			"id": "units",

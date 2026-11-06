@@ -182,7 +182,7 @@ nothing. In the original's order:
   ships his rank's `NAVAL_RANK_*` define commands is at least the fleet's - and some skill. **No
   trait comes into it**, nor the country's `leader_defence`, which a land battle's has.
 
-*Not built:* the difficulty setting.
+The difficulty setting is built since 2026-11-06 (`frontend.md`, section 4.3).
 
 ## 4. Who a ship shoots at
 

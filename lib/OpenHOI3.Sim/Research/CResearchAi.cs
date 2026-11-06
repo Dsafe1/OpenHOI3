@@ -23,9 +23,11 @@ public static class CResearchAi
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			bool played = state.Played.Contains(country.Tag);
-			country.ProductionCountdown = played ? 0 : state.Random.Next() % 3 + 1;
-			country.TechCountdown = played ? 0 : state.Random.Next() % 3 + 1;
+			// A played country's ministers where the player has handed their areas over (frontend.md, section 4).
+			country.ProductionCountdown = Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Production)
+				? state.Random.Next() % 3 + 1 : 0;
+			country.TechCountdown = Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Technology)
+				? state.Random.Next() % 3 + 1 : 0;
 		}
 	}
 
@@ -43,7 +45,7 @@ public static class CResearchAi
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
 		foreach (CCountry country in state.Countries)
 		{
-			if (!Works(state, country, country.TechCountdown))
+			if (!Works(state, country, country.TechCountdown, Settings.EAutomation.Technology))
 			{
 				continue;
 			}
@@ -54,7 +56,8 @@ public static class CResearchAi
 			country.TechCountdown = 1;
 			if (Hour(country, HourOffset) == hour)
 			{
-				state.AiScripts?.RunTech(state, country);
+				(bool sliders, bool research) = Settings.CAutomation.TechHalves(state, country);
+				state.AiScripts?.RunTech(state, country, sliders, research);
 			}
 		}
 	}
@@ -75,10 +78,13 @@ public static class CResearchAi
 		}
 	}
 
-	/// <summary>Whether a minister of a country works this hour at all: it has one, nobody plays it, and it owns land or is in exile.</summary>
-	public static bool Works(CGameState state, CCountry country, int countdown)
+	/// <summary>
+	/// Whether a minister of a country works this hour at all: it has one, the AI does the country's work in its area -
+	/// nobody plays it, or the player has handed the area over - and it owns land or is in exile.
+	/// </summary>
+	public static bool Works(CGameState state, CCountry country, int countdown, Settings.EAutomation area)
 	{
-		return countdown > 0 && !state.Played.Contains(country.Tag)
+		return countdown > 0 && Settings.CAutomation.AiRuns(state, country, area)
 			&& (COwnedCounts.Of(state).Count(country.Tag) > 0 || country.InExile);
 	}
 

@@ -611,6 +611,23 @@ reads (`FINDINGS-aistrategy.md`, C, read and not built); and `military_access`, 
 save's: in the eleven saves of section 12 and `olderautosave.hoi3`, **every country's strategies, lists and theatres
 the save's byte for byte**.
 
+## 17. The player's automation and the game's difficulty
+
+Both ways (`CSaveTop`), read 2026-11-06 (`reversing/findings/FINDINGS-frontend.md`, C.3 and D.3; `frontend.md`, section 4):
+
+- **After `player`**: `ai = { ... }`, the seven flags - diplomacy, production, technology, politics, intelligence,
+  Armies, deployment - each 0 or 1 but the sixth, which holds the Armies level, 7 Player Control down to 0 Theatres; then
+  `automate_trade`, the played country's, `automate_sliders` and `automate_tech_sliders`, the Technology setting [exe].
+  A flag other than 0 or 1 is refused on a load, as the original's setter refuses it [exe].
+- **After the top level's `flags`**: `gameplaysettings = { setgameplayoptions = { difficulty mode } }`, the difficulty 0
+  to 4 and the game mode 0 or 1 [exe]. A block without them leaves Normal and the normal mode.
+
+**What a load does with them**: the played country's ministers are made by them - an area handed over makes that area's
+minister, one not handed over has none - and its modifiers take the difficulty's block. The lobby may change them before
+Play (`frontend.md`, section 4).
+
+**Checked** on 2026-11-06 with `write` and `keys=automate,gameplaysettings`: `Germany1936_01_07_22.hoi3`'s the save's.
+
 ## Ours
 
 - A key nothing reads yet is reported, by its block and how often it was met, where the original drops an unknown key

@@ -14,8 +14,8 @@ namespace OpenHOI3.Sim.Combat;
 /// it noted on the wing and multiplied into its attack and its defence. It is the air
 /// battle's list with three differences - every wing crowds the others, a bomber that is
 /// also in an air battle fires the less for it, and bombers of ships may have a surprise -
-/// and without the nearness of the base and the fighter's bonus. The original also counts
-/// difficulty, which is not built. See <c>docs/mechanics/bombing.md</c>, section 9, and
+/// and without the nearness of the base and the fighter's bonus. The difficulty comes first
+/// on each wing. See <c>docs/mechanics/bombing.md</c>, section 9, and
 /// <c>docs/mechanics/leaders.md</c>, section 10, for what the leaders bring.
 /// </summary>
 public static class CBomberModifiers
@@ -85,6 +85,8 @@ public static class CBomberModifiers
 		foreach (CUnit unit in side.Units)
 		{
 			CCountry? owner = state.Country(unit.Owner);
+			// A played country's, by the difficulty, first on each of its wings (frontend.md, section 4).
+			long difficulty = Settings.CDifficulty.Combat(state, owner);
 			long airCombat = AirCombat(state, unit);
 			long missionEfficiency = unit.Order == EUnitOrder.Move ? 0 : CMissionEfficiency.Of(state, owner, unit.Order);
 			long experienceTrait = CCommandReach.Effect(state, unit, ETraitEffect.ExperienceBonus);
@@ -97,6 +99,11 @@ public static class CBomberModifiers
 				wing.CombatModifiers.Clear();
 				wing.CombatAttack = CFixedPoint.One;
 				wing.CombatDefence = CFixedPoint.One;
+
+				if (difficulty != 0)
+				{
+					Add(wing, ECombatModifier.Difficulty, difficulty, difficulty);
+				}
 
 				if (surprise > 0)
 				{

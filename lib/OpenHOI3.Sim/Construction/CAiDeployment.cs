@@ -46,8 +46,13 @@ public static class CAiDeployment
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.Deployments.Count > 0 && CResearchAi.Hour(country, HourOffset) == hour
-				&& !state.Played.Contains(country.Tag)
+			// A played country whose player has handed the deploying over places its units every hour, where any other's
+			// are placed in its minister's hour (frontend.md, section 4).
+			bool played = state.Played.Contains(country.Tag);
+			bool due = played
+				? state.Automation.Has(Settings.EAutomation.Deployment)
+				: CResearchAi.Hour(country, HourOffset) == hour;
+			if (country.Deployments.Count > 0 && due
 				&& (COwnedCounts.Of(state).Count(country.Tag) > 0 || country.InExile))
 			{
 				Deploy(state, country);

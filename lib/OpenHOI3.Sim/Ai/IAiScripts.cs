@@ -104,11 +104,11 @@ public interface IAiScripts
 	}
 
 	/// <summary>
-	/// <c>TechMinister_Tick(minister, true, true)</c>: a country's tech minister's day - its leadership shares set and its
+	/// <c>TechMinister_Tick(minister, sliders, research)</c>: a country's tech minister's day - its leadership shares set and its
 	/// free research slots filled - whose commands go to the state's outbox. See <c>docs/mechanics/ministers.md</c>,
 	/// section 2.
 	/// </summary>
-	void RunTech(CGameState state, CCountry country)
+	void RunTech(CGameState state, CCountry country, bool sliders = true, bool research = true)
 	{
 	}
 
@@ -121,11 +121,12 @@ public interface IAiScripts
 	}
 
 	/// <summary>
-	/// <c>BalanceProductionSliders(ai, country, 0, ...)</c> at the end of a country's day, handed each share's need over
-	/// its IC; false where the call failed, which leaves the rest of the country's day. See
+	/// <c>BalanceProductionSliders(ai, country, level, lendLease, ...)</c> at the end of a country's day, handed each share's
+	/// need over its IC: level 0 and no lend-lease for the AI, the player's slider automation level and his lend-lease share
+	/// for his own; false where the call failed, which leaves the rest of the country's day. See
 	/// <c>docs/mechanics/ministers.md</c>, section 5.
 	/// </summary>
-	bool BalanceProductionSliders(CGameState state, CCountry country) => true;
+	bool BalanceProductionSliders(CGameState state, CCountry country, int level = 0, double lendLease = 0) => true;
 
 	/// <summary><c>BalanceLendLeaseSliders(ai, country, tags, values)</c>, for a country that gives lend-lease to anyone.</summary>
 	void BalanceLendLeaseSliders(CGameState state, CCountry country)

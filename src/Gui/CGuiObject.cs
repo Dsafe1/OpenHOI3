@@ -43,6 +43,64 @@ public partial class CGuiObject : Control
 	/// </summary>
 	public Func<CTooltip>? PassiveTooltip { get; set; }
 
+	private EGreying _greying;
+
+	/// <summary>
+	/// Greys the element and everything in it, or enables them, where the original sets on an element whether it takes
+	/// the mouse and hands that down to all it holds - a screen run by the AI stopped whole and then its arrows let take
+	/// it again. The original's looks as before; this greys as well, by the maintainer's choice
+	/// (<c>docs/mechanics/interface.md</c>, section 7; <c>docs/compatibility.md</c>, entry 19). The nearest element up the
+	/// tree that says either decides, so a row added to a greyed list later is greyed too. A button greyed draws so and
+	/// cannot be pressed; a scrollbar draws grey and cannot be moved.
+	/// </summary>
+	public EGreying Greying
+	{
+		get => _greying;
+		set
+		{
+			if (_greying == value)
+			{
+				return;
+			}
+			_greying = value;
+			RefreshGreying(this);
+		}
+	}
+
+	/// <summary>Whether the element is greyed by itself or by what holds it.</summary>
+	public bool IsGreyed
+	{
+		get
+		{
+			for (Node? node = this; node is not null; node = node.GetParent())
+			{
+				if (node is CGuiObject { _greying: not EGreying.Inherit } decides)
+				{
+					return decides._greying == EGreying.Greyed;
+				}
+			}
+			return false;
+		}
+	}
+
+	/// <summary>Drawn again for a change of greying: what an element that looks greyed does about it.</summary>
+	internal virtual void ShowGreying()
+	{
+	}
+
+	/// <summary>Every element in a part of the tree drawn again for a change of greying above it.</summary>
+	private static void RefreshGreying(Node node)
+	{
+		if (node is CGuiObject element)
+		{
+			element.ShowGreying();
+		}
+		foreach (Node child in node.GetChildren())
+		{
+			RefreshGreying(child);
+		}
+	}
+
 	/// <summary>
 	/// Puts the control where its type says: its upper left corner at the type's
 	/// position, measured from the point of the parent its orientation names. The point

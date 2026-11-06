@@ -204,6 +204,17 @@ public static class CGameStateLoader
 		return state;
 	}
 
+	/// <summary>
+	/// A new game from a world <see cref="BuildWorld"/> made, as the lobby's Play makes one of the world it shows
+	/// (<c>docs/mechanics/frontend.md</c>, section 3): the played countries, then the rest of a new game.
+	/// </summary>
+	public static CGameState StartNewGame(CDirectorySettings directories, CGameState world, CCountries countries,
+		IEnumerable<CCountryTag> played, Action<string>? warn = null)
+	{
+		return SetUpNewGame(directories, world, countries, world.SubUnitTypes, warn ?? CDiagnostics.Warn, fill: true,
+			firstDays: true, played, beforeFirstDays: null);
+	}
+
 	/// <summary>A new game from the world: the start's victory conditions, laws, technology, units, politics, AI and two days.</summary>
 	private static CGameState SetUpNewGame(CDirectorySettings directories, CGameState state, CCountries countries,
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes, Action<string> warn, bool fill, bool firstDays,

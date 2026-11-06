@@ -535,6 +535,17 @@ public partial class CMapView : Node2D
 		SetZoom(zoom ?? _camera.Zoom.X);
 	}
 
+	/// <summary>
+	/// The camera over a point of the map, in the map's pixels with its rows counted from the bottom as the original
+	/// counts them, at a zoom.
+	/// </summary>
+	public void LookAt(float x, int rowFromBottom, float zoom)
+	{
+		_camera.Position = new Vector2(x, _map.DisplayRow(rowFromBottom) + 0.5f);
+		SetZoom(zoom);
+		ClampCamera();
+	}
+
 	/// <summary>The province alone selected, or with 0 none.</summary>
 	public void Select(int provinceId)
 	{

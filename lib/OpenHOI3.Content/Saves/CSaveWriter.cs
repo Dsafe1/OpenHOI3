@@ -37,8 +37,8 @@ public static class CSaveWriter
 		if (state.Played.FirstOrDefault() is { } player && state.Played.Count > 0)
 		{
 			writer.Quoted("player", player.Value);
-			// The player's switch; the original's other three of its own are not held (savegame.md, section 14).
-			writer.Bool("automate_trade", state.AutomateTrade.Contains(player));
+			// The local player's automation (savegame.md, section 17).
+			CSaveTop.WriteAutomation(writer, state, player);
 		}
 		// The next numbers of the four counters, the game's flags and the victory conditions (section 14).
 		writer.Int("rebel", state.LastRebelId + 1);
@@ -46,6 +46,7 @@ public static class CSaveWriter
 		writer.Int("theatre", state.NextTheatreId);
 		writer.Int("unit", state.HistoryUnitNext);
 		CSaveTop.WriteFlags(writer, state);
+		CSaveTop.WriteGamePlay(writer, state);
 		CSaveTop.WriteVictoryConditions(writer, state);
 		writer.Int("seed", unchecked((int)state.Seed));
 		// The last serial minted in play, after which the original goes on numbering: the game's own count, where the

@@ -26,6 +26,7 @@ public partial class CGuiScrollbar : CGuiObject
 	private Texture2D? _more;
 	private TextureRect? _slider;
 	private ShaderMaterial? _sliderLook;
+	private ShaderMaterial? _barLook;
 	private StyleBoxTexture? _trackBox;
 	private float _sliderLength;
 	private bool _horizontal;
@@ -88,6 +89,9 @@ public partial class CGuiScrollbar : CGuiObject
 
 		// The slider is a node of its own because it is a button like any other, and
 		// is drawn like one: lighter under the mouse, darker while held, grey when locked.
+		// What the bar draws itself - the track and the two end buttons - goes grey with it when greyed.
+		_barLook = context.ButtonShader.Material();
+		Material = _barLook;
 		if (slider is not null)
 		{
 			_sliderLook = context.ButtonShader.Material();
@@ -238,11 +242,30 @@ public partial class CGuiScrollbar : CGuiObject
 		ShowLook();
 	}
 
+	internal override void ShowGreying()
+	{
+		ShowLook();
+	}
+
+	public override void _EnterTree()
+	{
+		ShowLook();
+	}
+
+	/// <summary>
+	/// The slider lighter under the mouse, darker while held and grey while locked; and the whole bar grey while it is
+	/// greyed (<see cref="CGuiObject.Greying"/>), drawn as a disabled button is.
+	/// </summary>
 	private void ShowLook()
 	{
+		bool greyed = IsGreyed;
+		if (_barLook is not null)
+		{
+			CButtonShader.Set(_barLook, greyed ? EButtonLook.Disabled : EButtonLook.Up);
+		}
 		if (_sliderLook is not null)
 		{
-			CButtonShader.Set(_sliderLook, _locked ? EButtonLook.Disabled
+			CButtonShader.Set(_sliderLook, _locked || greyed ? EButtonLook.Disabled
 				: _dragging ? EButtonLook.Down
 				: _hovered ? EButtonLook.Over
 				: EButtonLook.Up);
@@ -280,7 +303,10 @@ public partial class CGuiScrollbar : CGuiObject
 		if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true })
 		{
 			AcceptEvent();
-			LockPressed?.Invoke();
+			if (!IsGreyed)
+			{
+				LockPressed?.Invoke();
+			}
 			return;
 		}
 
@@ -295,7 +321,7 @@ public partial class CGuiScrollbar : CGuiObject
 				ShowLook();
 				return;
 			}
-			if (_locked)
+			if (_locked || IsGreyed)
 			{
 				return;
 			}
@@ -353,7 +379,7 @@ public partial class CGuiScrollbar : CGuiObject
 	/// </summary>
 	public override void _Process(double delta)
 	{
-		if (_heldEnd == 0 || _locked)
+		if (_heldEnd == 0 || _locked || IsGreyed)
 		{
 			return;
 		}

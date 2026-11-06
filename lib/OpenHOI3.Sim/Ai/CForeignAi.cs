@@ -35,7 +35,7 @@ public static class CForeignAi
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			bool played = state.Played.Contains(country.Tag);
+			bool played = !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Diplomacy);
 			country.ForeignCountdown = played ? 0 : state.Random.Next() % 3 + 1;
 			country.ForeignMinister.SkipOnce = !played;
 		}
@@ -66,7 +66,7 @@ public static class CForeignAi
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
 		foreach (CCountry country in state.Countries)
 		{
-			if (!Research.CResearchAi.Works(state, country, country.ForeignCountdown))
+			if (!Research.CResearchAi.Works(state, country, country.ForeignCountdown, Settings.EAutomation.Diplomacy))
 			{
 				continue;
 			}

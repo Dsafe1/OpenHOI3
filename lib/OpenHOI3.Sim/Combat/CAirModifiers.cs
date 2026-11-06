@@ -13,7 +13,7 @@ namespace OpenHOI3.Sim.Combat;
 /// What an hour of a battle in the air makes of every wing: each thing that bears on it
 /// noted on the wing and multiplied into its attack and its defence. Only the attack
 /// decides anything - nothing in an air battle reads a wing's defence. The original also
-/// counts difficulty, which is not built. See <c>docs/mechanics/aircombat.md</c>, section 8,
+/// counts the difficulty first on each wing. See <c>docs/mechanics/aircombat.md</c>, section 8,
 /// and <c>docs/mechanics/leaders.md</c>, section 10, for what the leaders bring.
 /// </summary>
 public static class CAirModifiers
@@ -57,6 +57,8 @@ public static class CAirModifiers
 		foreach (CUnit unit in side.Units)
 		{
 			CCountry? owner = state.Country(unit.Owner);
+			// A played country's, by the difficulty, first on each of its wings (frontend.md, section 4).
+			long difficulty = Settings.CDifficulty.Combat(state, owner);
 			bool nearBase = unit.Base != 0
 				&& (unit.Base == province.Id || state.Province(unit.Base).EdgeTo(province.Id) is not null);
 			long missionEfficiency = CMissionEfficiency.Of(state, owner, unit.Order);
@@ -70,6 +72,11 @@ public static class CAirModifiers
 				wing.CombatModifiers.Clear();
 				wing.CombatAttack = CFixedPoint.One;
 				wing.CombatDefence = CFixedPoint.One;
+
+				if (difficulty != 0)
+				{
+					Add(wing, ECombatModifier.Difficulty, difficulty, difficulty);
+				}
 
 				long experience = Math.Max(0, wing.Experience.Raw);
 				if (wing.IsPride)

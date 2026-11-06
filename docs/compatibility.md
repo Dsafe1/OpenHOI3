@@ -329,6 +329,52 @@ lands on 0. I guess we should fix that for OpenHoi3."
 | why | a save should not hang on how fast the game was running when it was made |
 | to undo | keep the decision and write it on the frame after the next, after that frame's hours (`CSession.DecideAutosave`) |
 
+## 17. The front end offers the one start: no Quick Start, no other bookmarks, scenarios or custom games
+
+**Decided** 2026-11-06 by the maintainer, choosing a "Pared-down lobby" - the original's main menu and its lobby "as far
+as one start needs" - which follows from the settled decision of one canonical start (`CLAUDE.md`). Read in
+`reversing/findings/FINDINGS-frontend.md`; the screens are `docs/mechanics/frontend.md`.
+
+| | |
+| --- | --- |
+| the original | opens on the Quick Start panel where `settings.txt` says `simple=yes` - four buttons starting Germany in 1939, the United States in 1936, Japan in 1941 and the Soviet Union in 1941 - and on the main menu where `simple=no`; its lobby offers every bookmark of `common/bookmarks.txt`, the scenarios and the custom games |
+| here | the main menu always comes first and `simple` is not read for it; `toggle_quick_normal` is hidden; the lobby offers only the bookmark of the defines' `start_date`, and its Scenarios and Custom Games tabs are hidden |
+| the difference today | a player whose `settings.txt` says `simple=yes` sees the main menu where the original shows Quick Start |
+| a mod loses | its other bookmarks, scenarios and custom games, and the Quick Start panel's buttons |
+| why | one start: one set of starting conditions, one code path into the simulation |
+| to undo | the settled decision of one start first |
+
+## 18. Arcade cannot be chosen
+
+**Decided** 2026-11-06 in building the lobby's options, and not put to the maintainer: Arcade's supply is not built, so
+offering it would offer the normal mode under another name. Read in `reversing/findings/FINDINGS-frontend.md`, D.2; the
+panel is `docs/mechanics/frontend.md`, section 4.
+
+| | |
+| --- | --- |
+| the original | the lobby's Game Mode row offers Normal and Arcade; Arcade draws every unit's supplies and fuel from its capital, with no network, no supply convoys and the Supply map mode greyed |
+| here | the row's arrows are greyed and the mode stays Normal; a save or a `gameplaysettings` saying Arcade is read and kept, and plays as Normal |
+| the difference today | Arcade is not offered, and a game in Arcade plays with the network |
+| a mod loses | nothing of its files; a player loses the mode |
+| why | it is not built |
+| to undo | build Arcade's supply (D.2's sixteen places) and take the greying out of `CLobbyOptions` |
+
+## 19. A screen the AI runs is greyed
+
+**Decided** 2026-11-06 by the maintainer, on being shown the screens greyed under Ai Control: "The original actually does
+not grey out anything when switching to AI control. However I really like that our does, so lets keep it" - with the
+sliders greyed too, and the intelligence screen's Production and Ministers buttons left usable. Read in
+`reversing/findings/FINDINGS-frontend.md`, C.4; the screens are `docs/mechanics/frontend.md`, section 4.4.
+
+| | |
+| --- | --- |
+| the original | under the AI each screen's controls - the same ones as here - stop taking the mouse: a click on them passes through, and **they look exactly as before** |
+| here | the same controls are greyed - drawn as a disabled button is, the sliders' bars and knobs as well - and take no click; and **the production screen's sliders are greyed while its slider automation is above Manual Control**, the script setting them each day, where the original leaves them to be moved (the maintainer's word, 2026-11-06: "make the slider ai mode of the production screen grey out the slider"); and **handing production to the AI puts the slider automation back to Manual Control**, where the original keeps the level - his word the same day: otherwise "it looks confusing if the player has the sliders on prioritize production, but the bigger AI actually prioritizes upgrades". A save made after it writes `automate_sliders=0` |
+| the difference today | the player sees what the AI holds; the original shows nothing and ignores the click |
+| a mod loses | nothing: no file says how a screen under the AI looks |
+| why | the maintainer's preference: it shows which controls are the AI's |
+| to undo | have `CGuiObject.Greying` keep the element's look and only refuse the mouse |
+
 ---
 
 ## Stricter, with the same meaning

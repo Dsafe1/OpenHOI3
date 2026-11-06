@@ -128,6 +128,13 @@ precision, `production.md`'s needs; **the lend-lease figure always 0**, the lend
 anyone, **`BalanceLendLeaseSliders(ai, country, tags, values)`** then follows. A Lua error is reported and skips the rest
 of that country's day, the lend-lease call with it. What they post counts from the next day's shares.
 
+**A played country's own sliders** (built 2026-11-06, `frontend.md`, section 4.3): where production is the player's and
+his slider automation is above nought, the same call is made for it at the end of its day with **his level, 1 to 3, and
+his lend-lease share as it stands** - its fifteen binary places as a number, never below nought - and no
+`BalanceLendLeaseSliders` after it [exe]. At level 0 nothing is called for it; with production handed over, the AI's call
+at level 0. The production screen's arrow that raises the level sets the sliders by it at once in the original - here at
+the next hour (`frontend.md`, *Ours*).
+
 Their Finest Hour's script raises consumer goods for dissent, scales supplies by the stockpile, sets lend-lease to a
 "preferred" share where the country gives any, and hands the six to **`CAI.FastNormalizeByPriority(level, ...)`**:
 

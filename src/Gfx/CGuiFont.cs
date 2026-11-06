@@ -71,7 +71,7 @@ public sealed class CGuiFont
 			return text.Length * FixedAdvance;
 		}
 		return Font is null ? 0f
-			: Font.GetStringSize(text, HorizontalAlignment.Left, -1f, Size).X * Narrowing;
+			: Font.GetStringSize(Interface.Text.CWindows1252.ToDisplay(text), HorizontalAlignment.Left, -1f, Size).X * Narrowing;
 	}
 
 	/// <summary>
@@ -85,11 +85,13 @@ public sealed class CGuiFont
 			return;
 		}
 		baseline += new Vector2(CGuiLayout.GlyphShiftX, CGuiLayout.GlyphShiftY);
+		// The text is held as its Windows-1252 bytes; its curly quotes and dashes are drawn as themselves.
+		string shown = Interface.Text.CWindows1252.ToDisplay(text);
 		if (FixedAdvance > 0)
 		{
 			for (int index = 0; index < text.Length; index++)
 			{
-				string letter = text[index].ToString();
+				string letter = shown[index].ToString();
 				float raw = Font.GetStringSize(letter, HorizontalAlignment.Left, -1f, Size).X;
 				float narrowing = Narrowing;
 				int glyph = GlyphWidth?.Invoke(text[index]) ?? 0;
@@ -106,7 +108,7 @@ public sealed class CGuiFont
 			return;
 		}
 		item.DrawSetTransform(baseline, 0f, new Vector2(Narrowing, 1f));
-		item.DrawString(Font, Vector2.Zero, text, HorizontalAlignment.Left, -1f, Size, colour);
+		item.DrawString(Font, Vector2.Zero, shown, HorizontalAlignment.Left, -1f, Size, colour);
 		item.DrawSetTransform(Vector2.Zero, 0f, Vector2.One);
 	}
 }

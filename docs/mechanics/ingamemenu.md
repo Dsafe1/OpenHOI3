@@ -67,8 +67,9 @@ behind it, the clock stopped.
 | `menu_resign_button` | `RESIGN` | "Resign Game" | "Are you sure you want to resign and return to the main menu?" |
 
 The text is `frontend.csv`'s [mod: localisation]. **OK** (`AgreeButton`, `ENTER`): Quit ends the program, to the
-desktop; Resign ends the game into the screen the original shows after a game - what that screen shows was not read,
-and the main menu is reached only through it. **Neither saves first** [exe]. **Cancel** (`DeclineButton`, `ESCAPE`)
+desktop; Resign ends the game into the end-of-game screen of `backend.gui`, whose Exit puts the world back to its start
+and brings up a new front end on the main menu (`reversing/findings/FINDINGS-frontend.md`, A.6). **Neither saves first**
+[exe]. **Cancel** (`DeclineButton`, `ESCAPE`)
 only shuts the dialog.
 
 ## 4. The message settings (`menu_message_settings`)
@@ -180,17 +181,16 @@ not to the map - and Enter does not save: `save` has no shortcut.
 
 ## Ours
 
-- **Resign is greyed**, where the original greys it not: there is no screen after a game or main menu to go to yet -
-  and a stand-in would be wrong (`CLAUDE.md`'s rule on what is not built). It is taken off when that arrives; the
-  readme's *Loose ends* lists it. **Game Options was greyed too, and opens the game options window since 2026-11-04**
-  (`gameoptions.md`), **and Save Game, which opens the save dialog since 2026-11-05** (section 6).
+- ~~**Resign is greyed**~~ - **Resign goes to the main menu since 2026-11-06** (`frontend.md`), **straight there**: the
+  end-of-game screen between them is not built. **Game Options was greyed too, and opens the game options window since
+  2026-11-04** (`gameoptions.md`), **and Save Game, which opens the save dialog since 2026-11-05** (section 6).
 - Saves of one second are listed by name, where the original's sort leaves them in no fixed order; and the `save
   games` folder is made where it is missing (`savegame.md`, *Ours*).
 - The keys that are not a button's - the clock's and the map's - are held while the menu is up (section 1).
 
 ## Not established
 
-- What the original shows after a Resign, and so where Resign leads.
+- What the end-of-game screen shows after a Resign; that its Exit leads to the main menu is read (`frontend.md`).
 - Whether a checkbox the original's interface has ticked can always be unticked by a click - so whether clicking the
   ticked tab unticks it. Here it does.
 - Whether the interface marks a shortcut's key as taken, so that Escape on Close does not reach the map as well -

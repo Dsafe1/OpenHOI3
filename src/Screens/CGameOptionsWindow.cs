@@ -18,7 +18,14 @@ namespace OpenHOI3.Screens;
 public sealed partial class CGameOptionsWindow : Control
 {
 	public const string WindowName = "menu_settings_ingame";
+
+	/// <summary>The front end's copy of it, which the main menu's Settings opens (frontend.md, section 2).</summary>
+	public const string FrontEndWindowName = "menu_settings";
+
 	private const string InfoDialogName = "DefaultInfoDialog";
+
+	/// <summary>Which of the two windows this is.</summary>
+	private string _windowName = WindowName;
 
 	private CGuiContext _context = null!;
 	private Func<CUserSettings> _settings = null!;
@@ -46,11 +53,35 @@ public sealed partial class CGameOptionsWindow : Control
 
 	public bool IsShown => _window is { Visible: true };
 
+	/// <summary>
+	/// The resolutions offered, ours: the size and rate the settings name, the screen's rate beside it where the screen is
+	/// that size, and the screen's own size where it is another. The original asks the card for every mode.
+	/// </summary>
+	public static List<CDisplayMode> DisplayModes(CUserSettings settings)
+	{
+		Vector2I screen = DisplayServer.ScreenGetSize();
+		int screenRate = Mathf.RoundToInt(DisplayServer.ScreenGetRefreshRate());
+		var rates = new List<int> { settings.RefreshRate };
+		bool sameSize = screen.X == settings.Width && screen.Y == settings.Height;
+		if (sameSize && screenRate > 0 && screenRate != settings.RefreshRate)
+		{
+			rates.Add(screenRate);
+		}
+		var modes = new List<CDisplayMode> { new(settings.Width, settings.Height, rates) };
+		if (!sameSize && screen.X >= 1024 && screen.Y >= 720)
+		{
+			modes.Add(new CDisplayMode(screen.X, screen.Y, new[] { screenRate > 0 ? screenRate : 60 }));
+		}
+		return modes;
+	}
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	/// <param name="running">The mode the game runs at, which a changed choice asks a restart for.</param>
 	public void Setup(CGuiContext context, Func<CUserSettings> settings, Action<CUserSettings> setSettings,
-		IReadOnlyList<CDisplayMode> modes, IEnumerable<int> supportedSamples, (int Width, int Height, int Rate) running)
+		IReadOnlyList<CDisplayMode> modes, IEnumerable<int> supportedSamples, (int Width, int Height, int Rate) running,
+		string windowName = WindowName)
 	{
+		_windowName = windowName;
 		_context = context;
 		_settings = settings;
 		_setSettings = setSettings;
@@ -63,7 +94,7 @@ public sealed partial class CGameOptionsWindow : Control
 		Name = "GameOptions";
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		_window = CGuiWindow.Create(_context, WindowName);
+		_window = CGuiWindow.Create(_context, _windowName);
 		if (_window is null)
 		{
 			return;

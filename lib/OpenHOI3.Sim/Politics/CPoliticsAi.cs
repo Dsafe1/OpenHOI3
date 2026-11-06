@@ -61,7 +61,8 @@ public static class CPoliticsAi
 		}
 		foreach (CCountry country in state.Countries)
 		{
-			country.PoliticsCountdown = state.Played.Contains(country.Tag) ? 0 : state.Random.Next() % 3 + 1;
+			country.PoliticsCountdown = Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Politics)
+				? state.Random.Next() % 3 + 1 : 0;
 		}
 		return passes;
 	}
@@ -81,7 +82,7 @@ public static class CPoliticsAi
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.PoliticsCountdown <= 0 || state.Played.Contains(country.Tag)
+			if (country.PoliticsCountdown <= 0 || !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Politics)
 				|| (COwnedCounts.Of(state).Count(country.Tag) == 0 && !country.InExile))
 			{
 				continue;

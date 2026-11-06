@@ -98,6 +98,13 @@ public static class CCombatModifiers
 				Add(unit, ECombatModifier.MultipleCombats, -defines[CManpower.MilitarySection, MultipleCombatsPenalty].Raw);
 			}
 
+			// A played country's unit, by the difficulty (frontend.md, section 4).
+			long difficulty = Settings.CDifficulty.Combat(state, owner);
+			if (difficulty != 0)
+			{
+				Add(unit, ECombatModifier.Difficulty, difficulty);
+			}
+
 			// A tenth of a hundredth for each point of average experience.
 			long experience = CUnitTotals.AverageExperienceWithPride(state, unit).Raw * 10 / CFixedPoint.Scale;
 			if (experience != 0)

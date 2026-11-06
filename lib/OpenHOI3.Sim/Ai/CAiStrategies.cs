@@ -85,7 +85,9 @@ public static class CAiStrategies
 		strategy.Clear();
 		strategy.MadeHour = state.TotalHours;
 		strategy.Personality = CStrategyPersonality.Choose(state, country);
-		if (!state.Played.Contains(country.Tag))
+		// A played country's walk runs while its production is handed to the AI - the original's flag, odd as it is
+		// (frontend.md, section 4).
+		if (!state.Played.Contains(country.Tag) || state.Automation.Has(Settings.EAutomation.Production))
 		{
 			CStrategyWalk.Walk(state, country, strategy);
 		}

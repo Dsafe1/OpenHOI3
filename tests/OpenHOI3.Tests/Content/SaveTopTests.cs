@@ -6,6 +6,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Script;
+using OpenHOI3.Sim.Settings;
 using OpenHOI3.Sim.Wars;
 using OpenHOI3.Sim.Weather;
 
@@ -94,6 +95,42 @@ public class SaveTopTests
 			"weather=\r\n{\r\n\tfront=\r\n\t{\r\n\t\tdirection=0.015\r\n\t\trotation=0.000\r\n\t\tspeed=1\r\n\t\thome=13779\r\n" +
 			"\t\tprovinces=\r\n\t\t{\r\n13779 13626 \t\t}\r\n\t}\r\n}\r\n",
 			writer.Text);
+	}
+
+	[Fact]
+	public void The_players_automation_and_the_difficulty_are_written_and_read_back()
+	{
+		CGameState state = World();
+		var germany = new CCountryTag("GER");
+		state.Played.Add(germany);
+		state.AutomateTrade.Add(germany);
+		state.Automation.Flags[(int)EAutomation.Diplomacy] = 1;
+		state.Automation.Flags[(int)EAutomation.Deployment] = 1;
+		state.Automation.ArmiesLevel = 3;
+		state.Automation.Technology = 2;
+		state.Automation.Sliders = 1;
+		state.GamePlay.Difficulty = 4;
+		var writer = new CSaveTextWriter();
+		writer.OpenRoot();
+
+		CSaveTop.WriteAutomation(writer, state, germany);
+		CSaveTop.WriteGamePlay(writer, state);
+
+		// The Armies level in the sixth flag's place.
+		Assert.Contains("1 0 0 0 0 3 1 ", writer.Text);
+		Assert.Contains("automate_trade=yes", writer.Text);
+		CGameState read = World();
+		var report = new CSaveReport();
+		foreach (ClausewitzNode node in ClausewitzParser.Parse(writer.Text).Children)
+		{
+			if (node.Key != "automate_trade")
+			{
+				Assert.True(CSaveTop.Read(read, node, report));
+			}
+		}
+		Assert.Equal(state.Automation.Flags, read.Automation.Flags);
+		Assert.Equal((3, 2, 1), (read.Automation.ArmiesLevel, read.Automation.Technology, read.Automation.Sliders));
+		Assert.Equal((4, 0), (read.GamePlay.Difficulty, read.GamePlay.GameMode));
 	}
 
 	[Fact]

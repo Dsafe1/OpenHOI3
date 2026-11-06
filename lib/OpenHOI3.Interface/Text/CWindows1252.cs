@@ -18,6 +18,44 @@ public static class CWindows1252
 		['œ'] = 0x9C, ['ž'] = 0x9E, ['Ÿ'] = 0x9F,
 	};
 
+	private static readonly Dictionary<char, char> Shown = Invert();
+
+	private static Dictionary<char, char> Invert()
+	{
+		var shown = new Dictionary<char, char>();
+		foreach ((char unicode, byte code) in Specials)
+		{
+			shown[(char)code] = unicode;
+		}
+		return shown;
+	}
+
+	/// <summary>
+	/// A text held as its bytes, as it is drawn: each of 0x80 to 0x9F the character Windows-1252 gives it - the curly
+	/// quotes and apostrophe, the dashes - where a typeface would find only a control. Everything else as it is.
+	/// </summary>
+	public static string ToDisplay(string text)
+	{
+		int at = 0;
+		while (at < text.Length && (text[at] < '\u0080' || text[at] > '\u009F'))
+		{
+			at++;
+		}
+		if (at == text.Length)
+		{
+			return text;
+		}
+		char[] shown = text.ToCharArray();
+		for (int i = at; i < shown.Length; i++)
+		{
+			if (Shown.TryGetValue(shown[i], out char unicode))
+			{
+				shown[i] = unicode;
+			}
+		}
+		return new string(shown);
+	}
+
 	/// <summary>The byte's character, or none for a character Windows-1252 has no byte for.</summary>
 	public static char? FromUnicode(char typed)
 	{

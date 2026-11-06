@@ -100,7 +100,7 @@ public static class CAiCombatModel
 		return v;
 	}
 
-	/// <summary>The terms both sides share: combined arms, experience, the leader, dissent and want of supplies.</summary>
+	/// <summary>The terms both sides share: combined arms, experience, the leader, dissent, want of supplies and the difficulty.</summary>
 	private static long Common(CGameState state, CCountry owner, CUnit unit, bool attacking)
 	{
 		CDefines defines = state.Defines;
@@ -124,6 +124,8 @@ public static class CAiCombatModel
 			long lack = defines[CManpower.MilitarySection, CCombatModifiers.SupplyLackImpact].Raw * missing / Scale;
 			v -= CCombatModifiers.Scaled(lack, CCombatModifiers.Trait(state, unit, ETraitEffect.OutOfSupplyModifier));
 		}
+		// A played country's unit counts the difficulty here as in a battle (FINDINGS-aihelpers.md; frontend.md, section 4).
+		v += Settings.CDifficulty.Combat(state, owner);
 		return v;
 	}
 

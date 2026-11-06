@@ -51,6 +51,21 @@ public static class CSaveTop
 			case "weather" when node.IsBlock:
 				ReadFronts(state, node);
 				return true;
+			// The player's automation and the game's difficulty and mode (frontend.md, section 4).
+			case "ai" when node.IsBlock:
+				ReadAutomation(state, node);
+				return true;
+			case "automate_sliders":
+				state.Automation.Sliders = (int)CSaveValues.Whole(node.Value);
+				return true;
+			case "automate_tech_sliders":
+				state.Automation.Technology = (int)CSaveValues.Whole(node.Value);
+				return true;
+			case "gameplaysettings" when node.IsBlock:
+				List<ClausewitzNode> options = node.Get("setgameplayoptions")?.Children ?? new List<ClausewitzNode>();
+				state.GamePlay.Difficulty = options.Count > 0 ? (int)CSaveValues.Whole(options[0].Value) : Sim.Settings.CGamePlaySettings.NormalDifficulty;
+				state.GamePlay.GameMode = options.Count > 1 ? (int)CSaveValues.Whole(options[1].Value) : 0;
+				return true;
 			default:
 				return false;
 		}
@@ -99,6 +114,53 @@ public static class CSaveTop
 			}
 		}
 		state.GameFinished = node.GetBool("game_finished");
+	}
+
+	/// <summary>
+	/// <c>ai = { 0 0 0 0 0 7 0 }</c>: the seven flags, each set only where it is 0 or 1, as the original's setter refuses
+	/// anything else - and the sixth entry, which the original writes in its flag's place, the Armies level.
+	/// </summary>
+	private static void ReadAutomation(CGameState state, ClausewitzNode node)
+	{
+		Sim.Settings.CPlayerAutomation automation = state.Automation;
+		for (int i = 0; i < node.Children.Count && i < Sim.Settings.CPlayerAutomation.FlagCount; i++)
+		{
+			int value = (int)CSaveValues.Whole(node.Children[i].Value);
+			if (i == (int)Sim.Settings.EAutomation.Armies)
+			{
+				automation.ArmiesLevel = value;
+			}
+			else if (value is 0 or 1)
+			{
+				automation.Flags[i] = value;
+			}
+		}
+	}
+
+	/// <summary>
+	/// The local player's four keys after <c>player</c>: the seven flags with the Armies level in the sixth's place, Automate
+	/// Trade, the production sliders' level and the Technology setting.
+	/// </summary>
+	public static void WriteAutomation(CSaveTextWriter writer, CGameState state, Sim.Countries.CCountryTag player)
+	{
+		Sim.Settings.CPlayerAutomation automation = state.Automation;
+		var flags = new long[Sim.Settings.CPlayerAutomation.FlagCount];
+		for (int i = 0; i < flags.Length; i++)
+		{
+			flags[i] = i == (int)Sim.Settings.EAutomation.Armies ? automation.ArmiesLevel : automation.Flags[i];
+		}
+		writer.Numbers("ai", flags);
+		writer.Bool("automate_trade", state.AutomateTrade.Contains(player));
+		writer.Int("automate_sliders", automation.Sliders);
+		writer.Int("automate_tech_sliders", automation.Technology);
+	}
+
+	/// <summary><c>gameplaysettings = { setgameplayoptions = { difficulty mode } }</c>.</summary>
+	public static void WriteGamePlay(CSaveTextWriter writer, CGameState state)
+	{
+		writer.Begin("gameplaysettings");
+		writer.Numbers("setgameplayoptions", new long[] { state.GamePlay.Difficulty, state.GamePlay.GameMode });
+		writer.End();
 	}
 
 	/// <summary>Each <c>id = { id = N type = 40 }</c>: an event that fires once and has fired, found by its number.</summary>

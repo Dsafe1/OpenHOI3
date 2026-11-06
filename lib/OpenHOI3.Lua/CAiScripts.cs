@@ -315,15 +315,15 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	}
 
 	/// <summary>
-	/// <c>TechMinister_Tick(minister, true, true)</c>, the country's tech minister handed over with both its arguments
-	/// true, as a country nobody plays has them. A failure is reported.
+	/// <c>TechMinister_Tick(minister, sliders, research)</c>, the country's tech minister handed over with its two halves
+	/// - both for a country nobody plays, and for the player's as the Technology setting says. A failure is reported.
 	/// </summary>
-	public void RunTech(CGameState state, CCountry country)
+	public void RunTech(CGameState state, CCountry country, bool sliders = true, bool research = true)
 	{
 		_state = state;
 		try
 		{
-			_lua.Call("TechMinister_Tick", 0, new CLuaObject(_api.TechMinister, new CLuaAi(country)), true, true);
+			_lua.Call("TechMinister_Tick", 0, new CLuaObject(_api.TechMinister, new CLuaAi(country)), sliders, research);
 		}
 		catch (CLuaException e)
 		{
@@ -346,11 +346,12 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	}
 
 	/// <summary>
-	/// <c>BalanceProductionSliders(ai, country, 0, lendLease, consumer, production, supply, reinforce, upgrade,
-	/// hasReinforceBonus)</c>: the AI's level, and each share's need over the country's whole IC in single precision -
-	/// the lend-lease share's always nought, its need being nought. A failure is reported and answers false.
+	/// <c>BalanceProductionSliders(ai, country, level, lendLease, consumer, production, supply, reinforce, upgrade,
+	/// hasReinforceBonus)</c>: the level - 0 the AI's, 1 to 3 the player's slider automation - the lend-lease share - the
+	/// AI's always nought, its need being nought, the player's his current share - and each share's need over the
+	/// country's whole IC in single precision. A failure is reported and answers false.
 	/// </summary>
-	public bool BalanceProductionSliders(CGameState state, CCountry country)
+	public bool BalanceProductionSliders(CGameState state, CCountry country, int level = 0, double lendLease = 0)
 	{
 		_state = state;
 		float ic = country.TotalIc;
@@ -361,7 +362,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		}
 		try
 		{
-			_lua.Call("BalanceProductionSliders", 0, new CLuaObject(_api.Ai, new CLuaAi(country)), _api.Of(country), 0, 0.0,
+			_lua.Call("BalanceProductionSliders", 0, new CLuaObject(_api.Ai, new CLuaAi(country)), _api.Of(country), level, lendLease,
 				Need(EProductionCategory.ConsumerGoods), Need(EProductionCategory.Production), Need(EProductionCategory.Supplies),
 				Need(EProductionCategory.Reinforcement), Need(EProductionCategory.Upgrades),
 				country.Modifier[ReinforcementBonus].Raw > 0);

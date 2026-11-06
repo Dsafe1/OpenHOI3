@@ -39,10 +39,11 @@ public static class CProductionAi
 		{
 			return;
 		}
+		BalanceDue(state);
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
 		foreach (CCountry country in state.Countries)
 		{
-			if (!CResearchAi.Works(state, country, country.ProductionCountdown))
+			if (!CResearchAi.Works(state, country, country.ProductionCountdown, Settings.EAutomation.Production))
 			{
 				continue;
 			}
@@ -69,9 +70,10 @@ public static class CProductionAi
 	}
 
 	/// <summary>
-	/// At the end of every country's day, the sliders of each nobody plays that owns land and is not the rebels - the
-	/// two days a new game runs first among them - and then, where it gives lend-lease to anyone, the share of it.
-	/// A failure of the first leaves the second.
+	/// At the end of every country's day, for each that owns land and is not the rebels - the two days a new game runs
+	/// first among them: the AI's sliders where the AI runs its production, and then, where it gives lend-lease to anyone,
+	/// the share of it, a failure of the first leaving the second; and a played country's own sliders at the player's
+	/// slider automation level, where production is his and the level is above nought (ministers.md, section 5).
 	/// </summary>
 	public static void BalanceDaily(CGameState state)
 	{
@@ -81,14 +83,53 @@ public static class CProductionAi
 		}
 		foreach (CCountry country in state.Countries)
 		{
-			if (state.Played.Contains(country.Tag) || country.Tag.Value == "REB"
-				|| COwnedCounts.Of(state).Count(country.Tag) == 0)
+			if (country.Tag.Value == "REB" || COwnedCounts.Of(state).Count(country.Tag) == 0)
 			{
 				continue;
 			}
-			if (scripts.BalanceProductionSliders(state, country) && country.LendLeaseGiving.Count > 0)
+			if (!Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Production))
+			{
+				BalancePlayer(state, country);
+			}
+			else if (scripts.BalanceProductionSliders(state, country) && country.LendLeaseGiving.Count > 0)
 			{
 				scripts.BalanceLendLeaseSliders(state, country);
+			}
+		}
+	}
+
+	/// <summary>
+	/// A played country's sliders at the player's slider automation level, where production is his and the level is above
+	/// nought: the level, and his lend-lease share as it stands, never below nought, handed to the script with the needs.
+	/// </summary>
+	private static void BalancePlayer(CGameState state, CCountry country)
+	{
+		int level = state.Automation.Sliders;
+		if (level <= 0 || state.AiScripts is not { } scripts
+			|| Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Production))
+		{
+			return;
+		}
+		float lendLease = country.ProductionShares[(int)EProductionCategory.LendLease].Raw / (float)CFixed15.Scale;
+		scripts.BalanceProductionSliders(state, country, level, lendLease > 0 ? lendLease : 0f);
+	}
+
+	/// <summary>
+	/// The sliders of each played country set at once by a slider automation just raised above nought, as the production
+	/// screen's arrow sets them - here at the next hour, its command having run between hours.
+	/// </summary>
+	private static void BalanceDue(CGameState state)
+	{
+		if (!state.Automation.SlidersDue)
+		{
+			return;
+		}
+		state.Automation.SlidersDue = false;
+		foreach (CCountry country in state.Countries)
+		{
+			if (state.Played.Contains(country.Tag))
+			{
+				BalancePlayer(state, country);
 			}
 		}
 	}

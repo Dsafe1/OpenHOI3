@@ -69,6 +69,69 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	protected override string WindowName => "country_production";
 	protected override string TopColourName => "topcolor_production";
 
+	protected override Sim.Settings.EAutomation? AutomationArea => Sim.Settings.EAutomation.Production;
+
+	private CGuiTextBox? _sliderAutomation;
+	private CGuiButton? _autoDeployment;
+	private CGuiButton? _assignTheatres;
+
+	/// <summary>
+	/// The AI running production greys the whole window but the automatic-deployment box and the theatres' assignment,
+	/// and the slider automation above Manual Control greys the sliders (frontend.md, section 4.4).
+	/// </summary>
+	protected override void ApplyAutomation(Sim.Settings.CPlayerAutomation automation)
+	{
+		bool delegated = automation.Has(Sim.Settings.EAutomation.Production);
+		if (Window is not null)
+		{
+			Window.Greying = delegated ? EGreying.Greyed : EGreying.Inherit;
+		}
+		// The slider automation's sliders are the script's each day, so they are greyed too - ours, the original leaving
+		// them as they are (compatibility.md, entry 19).
+		_sliders?.SetGreying(!delegated && automation.Sliders > 0 ? EGreying.Greyed : EGreying.Inherit);
+		foreach (CGuiButton? button in new[] { _autoDeployment, _assignTheatres })
+		{
+			if (button is not null)
+			{
+				button.Greying = EGreying.Enabled;
+			}
+		}
+	}
+
+	/// <summary>
+	/// The slider automation's line and arrows, the left one up and the right one down, wrapping; and the automatic
+	/// deployment box, which places the player's finished units every hour while it is ticked (frontend.md, 4.4).
+	/// </summary>
+	private void BuildAutomation(CGuiWindow window)
+	{
+		_sliderAutomation = window.FindTextBox("slider_automation_setting");
+		foreach ((string name, bool left) in new[] { ("slider_arrow_left", true), ("slider_arrow_right", false) })
+		{
+			if (window.TryFindButton(name) is { } arrow)
+			{
+				arrow.Pressed += () => Simulation.Post(new CSetSliderAutomationCommand(CAutomationText.Step(
+					Simulation.State.Automation.Sliders, left, Sim.Settings.CPlayerAutomation.SliderLevels)));
+			}
+		}
+		_autoDeployment = window.TryFindButton("auto_deployment_checkbox");
+		if (_autoDeployment is not null)
+		{
+			_autoDeployment.Pressed += () => Simulation.Post(new CSetAutomationCommand(Sim.Settings.EAutomation.Deployment,
+				Simulation.State.Automation.Has(Sim.Settings.EAutomation.Deployment) ? 0 : 1));
+		}
+		_assignTheatres = window.TryFindButton("theatres_assign_button");
+	}
+
+	private void ShowAutomation()
+	{
+		Sim.Settings.CPlayerAutomation automation = Simulation.State.Automation;
+		Set(_sliderAutomation, CAutomationText.Sliders(Context.Localisation.Localise, automation));
+		if (_autoDeployment is not null)
+		{
+			_autoDeployment.Checked = automation.Has(Sim.Settings.EAutomation.Deployment);
+		}
+	}
+
 	protected override void Build(CGuiWindow window)
 	{
 		foreach ((string element, EGoods goods) in Resources)
@@ -85,6 +148,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		_strategicResources = window.FindBox("strat_resources");
 		_queueList = window.FindListBox("build_queue");
 		_tradeList = window.FindListBox("trade_list");
+		BuildAutomation(window);
 
 		// The original hides this one whenever the screen is drawn.
 		if (window.TryFindButton("theatres_calc_button") is { } calculate)
@@ -340,6 +404,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	{
 		CGameState state = Simulation.State;
 		CCountry country = Player;
+		ShowAutomation();
 
 		foreach ((CGuiTextBox box, EGoods goods) in _resources)
 		{
@@ -528,9 +593,10 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		}
 	}
 
+	/// <summary>What the player set, posted - nothing while the AI runs production [exe].</summary>
 	private void Send(CFixed15[]? shares)
 	{
-		if (shares is not null)
+		if (shares is not null && !Simulation.State.Automation.Has(Sim.Settings.EAutomation.Production))
 		{
 			Simulation.Post(new CSetProductionSharesCommand(Player.Tag, shares));
 		}

@@ -28,6 +28,7 @@ public static class CCombatModifierKeys
 		(ECombatModifier.River, "BM_RIVER_PENALTY"),
 		(ECombatModifier.LackOfSupplies, "BM_LACK_OF_SUPPLIES"),
 		(ECombatModifier.MultipleCombats, "BM_MULTIPLE"),
+		(ECombatModifier.Difficulty, "BM_DIFFICULTY"),
 		(ECombatModifier.CombinedArms, "BM_COMBINED_ARMS"),
 		(ECombatModifier.BaseProximity, "BM_BASE_PROXIMITY"),
 		(ECombatModifier.PoorScreens, "BM_POOR_SCREEN_PENALTY"),
@@ -41,13 +42,13 @@ public static class CCombatModifierKeys
 	};
 
 	/// <summary>
-	/// The original's names of the modifiers nothing here puts on a unit yet: difficulty,
+	/// The original's names of the modifiers nothing here puts on a unit yet:
 	/// encirclement, shore bombardment, the surprise penalty and the armour
 	/// advantage. A condition may name them; it never holds.
 	/// </summary>
 	public static readonly string[] NotBuilt =
 	{
-		"BM_DIFFICULTY", "BM_ENCIRCLEMENT_PENALTY", "BM_SHORE_BOMBARD",
+		"BM_ENCIRCLEMENT_PENALTY", "BM_SHORE_BOMBARD",
 		"BM_SURPRISE_PENALTY", "BM_ARMOR_ADVANTAGE",
 	};
 

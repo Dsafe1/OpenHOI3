@@ -349,7 +349,7 @@ the province or beside it, times `RADAR_COMBAT_IMPACT` and one plus the country'
   experience x (1 + `experience_bonus`), supplies x (1 + `out_of_supply_modifier`), the night
   and `night_attack`, and `COMBAT_LEADER_IMPACT` a point of the unit's own leader's skill where
   he has the rank for it - a land unit's by the land battle's ladder.
-- Not built: difficulty.
+- The difficulty, on both sides, since 2026-11-06 (`frontend.md`, section 4.3).
 
 **The bombed side**, each brigade, ship and wing: the capital ships' missing screens and the
 fort, on the defence alone; experience; mission efficiency; supplies; the radio; dissent;
@@ -461,7 +461,7 @@ of a selected province says there is a bombing.
   paradrop are built since 2026-10-16 (`transport.md`, section 13).
 - **What a strategic bombing does beyond the province**: the threat it adds to its country,
   and what it takes off the bombed country's unity.
-- **Difficulty** in what the hour makes of a wing; **the practical** a bombing earns. The
+- **The practical** a bombing earns; the difficulty is built since 2026-11-06 (`frontend.md`, section 4.3). The
   leaders are built since 2026-10-11 (`leaders.md`, section 10).
 - **The part of intelligence that lets a country see into ground beside its units**
   (`aircombat.md`, section 6): without it interdiction has nowhere to fly, and ground attack

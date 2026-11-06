@@ -92,6 +92,16 @@ public sealed partial class CDiplomacyView : CCountryView
 	protected override string WindowName => "country_diplomacy";
 	protected override string TopColourName => "topcolor_diplomacy";
 
+	protected override Sim.Settings.EAutomation? AutomationArea => Sim.Settings.EAutomation.Diplomacy;
+
+	/// <summary>The AI running diplomacy greys the decisions and the actions alone; the country list stays usable.</summary>
+	protected override void ApplyAutomation(Sim.Settings.CPlayerAutomation automation)
+	{
+		bool ai = automation.Has(Sim.Settings.EAutomation.Diplomacy);
+		Grey(_decisionList, ai);
+		Grey(_actionList, ai);
+	}
+
 	/// <summary>The province selected on the map, or 0: opening the screen chooses its owner.</summary>
 	public Func<int>? SelectedProvince { get; set; }
 

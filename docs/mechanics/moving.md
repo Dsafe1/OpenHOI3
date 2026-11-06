@@ -679,8 +679,8 @@ months on) - at least three hours left, and the order ends then.
   way is gone: what ends the original's order was not read.~~ Read on 2026-11-04 and built as the original's
   (`landorders.md`, section 7).
 - **The odds** (11.4): a unit that has never fought - neither attacked nor is fighting - counts no toughness, the
-  original's defence products being nought until a battle sets them; the country's difficulty, encirclement and the
-  technologies' free stacking are nought, none of them being built.
+  original's defence products being nought until a battle sets them; encirclement and the technologies' free stacking
+  are nought, neither being built. The country's difficulty is weighed since 2026-11-06 (`frontend.md`, section 4.3).
 - **The air** (section 17): a "busy" group, which the original asks of its order, is one under any order; a group the original
   gives the order "none" at its base has its order dropped; the places enemy fleets were seen are made again at each
   count of the aircraft wanted, where the original pushes onto them with nothing found clearing them; every enemy's bases

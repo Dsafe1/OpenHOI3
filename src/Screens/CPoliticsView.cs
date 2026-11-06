@@ -64,6 +64,9 @@ public sealed partial class CPoliticsView : CCountryView
 	protected override string WindowName => "country_politics";
 	protected override string TopColourName => "topcolor_politics";
 
+	/// <summary>The whole window taken while the AI runs politics, as the original's base does, and greyed.</summary>
+	protected override Sim.Settings.EAutomation? AutomationArea => Sim.Settings.EAutomation.Politics;
+
 	private CGameState State => Simulation.State;
 
 	private string Localise(string key) => Context.Localisation.Localise(key);

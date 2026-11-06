@@ -362,6 +362,10 @@ files, with nothing in it placed by hand.
 
 ## 6. Text
 
+- **A text is held as its Windows-1252 bytes and drawn as Windows-1252 shows them**: the 27 characters of 0x80 to 0x9F -
+  the curly quotes and apostrophe, the dashes, the euro, the ellipsis - are drawn and measured as themselves, where a
+  typeface would find only controls (`CWindows1252.ToDisplay`, in the font's drawing alone). Until 2026-11-06 they were
+  drawn as nothing - the start's description in the lobby lost its quotation marks and "Foch's" its apostrophe.
 - **A number is written with as many decimals as asked for, cut off and not rounded, and
   with nothing between the thousands.** `confirmed` 115.999 with none is `115`.
 - **A section sign and a letter change the colour of what follows and draw nothing.**
@@ -525,7 +529,11 @@ scalable canvas of section 3 could not survive. So:
   and 66 high: one at `(x, y)` covers `x + 9` to `x + 60` across and `y - 8` to `y + 58`
   down, with what was its left edge at the top. *Measured*, 2026-10-09, on the
   maintainer's screenshot of that window; the bar's rule would have stood them 55 further
-  left, over the picture between them. Not read, and known for those two only.
+  left, over the picture between them. Not read, and known for those two only. **A button that draws a country's shield
+  turns the same way** since 2026-11-06 - the lobby's shortcut shields, `lobby.gui`'s `shield` a negative quarter, set
+  beside the maintainer's screenshot of the original's lobby (`frontend.md`, section 3) - and with them the lobby's
+  `player_shield`, the province view's `owner_flag` and the politics screen's two selection buttons, whose files turn
+  them too. A button of any other picture is not turned.
 - **A line too wide for a text box that says `fixedsize = yes` is cut, and ends in three
   dots.** *Measured* on the same screenshot, where a division's name ends "CCN ..." in the
   middle of a word. *Ours:* as many letters are kept as leave the dots room in the box's
@@ -566,6 +574,17 @@ scalable canvas of section 3 could not survive. So:
   is which was not read, and the leader window's two that are taken for the right button
   were inferred from where they sit - the maintainer confirmed both on 2026-10-11
   (`leaders.md`, section 12).
+- **An element greys everything it holds** (`CGuiObject.Greying`, 2026-11-06): greyed, enabled, or left to what holds
+  it, the nearest element up the tree that says either deciding. A greyed button draws as a disabled one and cannot be
+  pressed, a checkbox showing its grey frame; a greyed scrollbar - a slider among them - is drawn grey, bar, end buttons
+  and knob, and cannot be moved or locked. **The original's counterpart greys nothing**: it is whether an element takes
+  the mouse, set on an element and handed down to every element under it as it is set - a button told no answers no
+  click and looks as before (`reversing/findings/FINDINGS-frontend.md`, C.4; `FINDINGS-guistatic.md`). A screen run by the
+  AI stops taking the mouse whole and its arrows then take it again (`frontend.md`, section 4.4); here it is greyed as
+  well, by the maintainer's choice (`docs/compatibility.md`, entry 19). Here the flag is asked up the tree instead, so a
+  row added later to a greyed list is greyed with it, and a button its screen enables each frame stays greyed under a
+  greyed window - which the original's would not, at the next frame. A button's own `Disabled` and its greying are
+  apart: either keeps it from being pressed.
 
 ## 8. Typing into an edit box
 

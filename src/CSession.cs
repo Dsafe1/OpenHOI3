@@ -36,8 +36,8 @@ namespace OpenHOI3;
 /// show them.
 ///
 /// A game is an object, not the process. Everything a game owns hangs off this node,
-/// so freeing it ends the game and adding another starts a new one - which is all that
-/// "new game", "load" and "exit to menu" will need when there is a menu to offer them.
+/// so freeing it ends the game and adding another starts a new one - which is what
+/// the front end's Play, a load and Resign do (<c>docs/mechanics/frontend.md</c>).
 /// </summary>
 public partial class CSession : Node
 {
@@ -83,7 +83,7 @@ public partial class CSession : Node
 	private CReplayFile? _replayFile;
 	private bool _replayEnded;
 
-	/// <summary>The country played when nothing says which. There is no screen to choose one on yet.</summary>
+	/// <summary>The country played where a developer switch starts a game and none says which; the lobby chooses otherwise.</summary>
 	private const string DefaultPlayer = "GER";
 
 	/// <summary>Where the province readout stands: at the screen's edge, and clear of the unit panel when that is up.</summary>
@@ -102,10 +102,17 @@ public partial class CSession : Node
 	// The game options window changes them, and the session writes them as it ends (gameoptions.md).
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
-	public void Setup(CDirectorySettings directories)
+	/// <param name="prepared">The game the lobby made ready; null to make one from the developer switches.</param>
+	public void Setup(CDirectorySettings directories, FrontEnd.CPreparedGame? prepared = null)
 	{
 		_directories = directories;
+		_prepared = prepared;
 	}
+
+	private FrontEnd.CPreparedGame? _prepared;
+
+	/// <summary>Raised when the player resigns: the game is to end and the front end come back (frontend.md, section 1).</summary>
+	public event System.Action? Resigned;
 
 	public override void _Ready()
 	{
@@ -117,6 +124,11 @@ public partial class CSession : Node
 		// The player's settings, from the original's own settings.txt in the Documents folder (settings.md); what of them
 		// is not supported is reported as it is read.
 		Settings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath());
+		if (_prepared is not null)
+		{
+			ReadyPrepared(_prepared);
+			return;
+		}
 		CLocalisation localisation = CLocalisation.Load(_directories);
 		_localisation = localisation;
 		CCountries countries = CCountries.Load(_directories, localisation);
@@ -187,7 +199,27 @@ public partial class CSession : Node
 		CGuiContext gui = CGuiContext.Load(_directories, localisation);
 		GD.Print($"Loaded {gui.Types.Count} interface elements and {gui.Sprites.Count} sprites " +
 			$"in {clock.ElapsedMilliseconds} ms.");
+		ShowGame(gui);
+	}
 
+	/// <summary>
+	/// A game the lobby made ready: what it read is the session's now, the Lua among it, and whoever its state says plays
+	/// plays it (frontend.md, section 3). The developer switches that make a game are not asked; the rest are.
+	/// </summary>
+	private void ReadyPrepared(FrontEnd.CPreparedGame prepared)
+	{
+		_localisation = prepared.Localisation;
+		Map = prepared.Map;
+		_aiScripts = prepared.AiScripts;
+		State = prepared.State;
+		_simulation = new CSimulation(State);
+		Player = State.Played.Count > 0 ? State.Country(State.Played.First()) : null;
+		ShowGame(prepared.Gui);
+	}
+
+	/// <summary>The map, the interface and the developer switches, once the game and its simulation are made.</summary>
+	private void ShowGame(CGuiContext gui)
+	{
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(Map, State);
 		_mapView.Player = Player?.Tag;
@@ -469,6 +501,7 @@ public partial class CSession : Node
 			? (true, true)
 			: (gui.KeyboardFocus is { HasKeyboard: true }, false);
 		_topBar.MenuPressed += _menu.Toggle;
+		_menu.Resigned += () => Resigned?.Invoke();
 		_menu.Opening += () =>
 		{
 			_deployMenu?.Close();
@@ -509,27 +542,8 @@ public partial class CSession : Node
 		}
 	}
 
-	/// <summary>
-	/// The game options' resolutions, ours: the size and rate the settings name, the screen's rate beside it where the
-	/// screen is that size, and the screen's own size where it is another. The original asks the card for every mode.
-	/// </summary>
-	private List<CDisplayMode> DisplayModes()
-	{
-		Vector2I screen = DisplayServer.ScreenGetSize();
-		int screenRate = Mathf.RoundToInt(DisplayServer.ScreenGetRefreshRate());
-		var rates = new List<int> { Settings.RefreshRate };
-		bool sameSize = screen.X == Settings.Width && screen.Y == Settings.Height;
-		if (sameSize && screenRate > 0 && screenRate != Settings.RefreshRate)
-		{
-			rates.Add(screenRate);
-		}
-		var modes = new List<CDisplayMode> { new(Settings.Width, Settings.Height, rates) };
-		if (!sameSize && screen.X >= 1024 && screen.Y >= 720)
-		{
-			modes.Add(new CDisplayMode(screen.X, screen.Y, new[] { screenRate > 0 ? screenRate : 60 }));
-		}
-		return modes;
-	}
+	/// <summary>The game options' resolutions: <see cref="CGameOptionsWindow.DisplayModes"/>.</summary>
+	private List<CDisplayMode> DisplayModes() => CGameOptionsWindow.DisplayModes(Settings);
 
 	/// <summary>The tooltip of a province under the mouse, in the map mode shown: <c>docs/mechanics/tooltips.md</c>, section 7.</summary>
 	private CTooltip? ProvinceTooltip(int provinceId)
@@ -1072,7 +1086,7 @@ public partial class CSession : Node
 	/// argument is cut wherever a space is followed by <c>--</c> - and nowhere else,
 	/// which leaves a path with a space in it whole.
 	/// </summary>
-	private static IEnumerable<string> UserArguments()
+	internal static IEnumerable<string> UserArguments()
 	{
 		foreach (string argument in OS.GetCmdlineUserArgs())
 		{
@@ -1328,7 +1342,8 @@ public partial class CSession : Node
 
 	/// <summary>
 	/// Arguments after <c>--</c> on the command line, for looking at the map without
-	/// driving it by hand:
+	/// driving it by hand - each of them only in a game one of <c>--country=</c>, <c>--load=</c> or <c>--replay=</c>
+	/// started, the main menu coming up without (<c>Main.SaysWhatToPlay</c>):
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
 	/// <c>--country=ENG</c> plays that country and not Germany,
 	/// <c>--record=path.gz</c> records the game played - the player's orders and the AI's - and <c>--replay=path.gz</c>
@@ -1809,7 +1824,8 @@ public partial class CSession : Node
 			}
 		}
 
-		if (clicks is not null)
+		// The clicks of a game the front end handed over were the front end's.
+		if (clicks is not null && _prepared is null)
 		{
 			await Click(clicks);
 		}
@@ -1828,233 +1844,9 @@ public partial class CSession : Node
 		GetTree().Quit();
 	}
 
-	/// <summary>
-	/// Clicks the left mouse button at each of some points of the 1920 x 1080 canvas, in
-	/// turn, as a hand would: the pointer moves there, the button goes down and comes up.
-	/// The clicks go in at the same door as real ones, so what would stop a real click
-	/// stops these.
-	/// </summary>
-	private async System.Threading.Tasks.Task Click(string points)
+	/// <summary>The clicks of <c>--click=</c>, played into the session's viewport (<see cref="Debug.CClickScript"/>).</summary>
+	private System.Threading.Tasks.Task Click(string points)
 	{
-		foreach (string entry in points.Split(';', System.StringSplitOptions.RemoveEmptyEntries))
-		{
-			// h48 is not a click: it lets that many hours go by, so that what a click set
-			// going can be seen further on.
-			if (entry.StartsWith('h') && int.TryParse(entry[1..], NumberStyles.Integer, CultureInfo.InvariantCulture, out int hours))
-			{
-				// An hour to a frame, as the game runs them, and nothing told to redraw: what
-				// the screen shows afterwards is what a player would see.
-				for (int hour = 0; hour < hours; hour++)
-				{
-					await Frames(1);
-					if (!UnlessTheReplayEnds(() => _simulation.RunHours(1)))
-					{
-						break;
-					}
-				}
-				await Frames(2);
-				continue;
-			}
-			// type:Text types each character of the text, as a key with its character, into what has the keyboard; bs,
-			// del, left, right, home, end and enter press those keys.
-			if (entry.StartsWith("type:", System.StringComparison.Ordinal) || entry is "bs" or "del" or "left" or "right" or "home"
-				or "end" or "enter")
-			{
-				var pressed = new List<(Key Key, long Unicode)>();
-				if (entry.StartsWith("type:", System.StringComparison.Ordinal))
-				{
-					pressed.AddRange(entry["type:".Length..].Select(typed => (Key.None, (long)typed)));
-				}
-				else
-				{
-					pressed.Add((entry switch
-					{
-						"bs" => Key.Backspace,
-						"del" => Key.Delete,
-						"left" => Key.Left,
-						"right" => Key.Right,
-						"home" => Key.Home,
-						"end" => Key.End,
-						_ => Key.Enter,
-					}, 0));
-				}
-				await Frames(2);
-				foreach ((Key key, long unicode) in pressed)
-				{
-					GetViewport().PushInput(new InputEventKey { Keycode = key, Unicode = unicode, Pressed = true }, true);
-					await Frames(1);
-					GetViewport().PushInput(new InputEventKey { Keycode = key, Unicode = unicode, Pressed = false }, true);
-					await Frames(1);
-				}
-				await Frames(2);
-				continue;
-			}
-			// kH is not a click either: it presses and lets go of the key of that letter or digit, and K4 the same with
-			// Shift held - K4 opens the debug menu.
-			// ck1 the same with Ctrl held: Ctrl and a digit keeps a selection group.
-			// esc the same with Escape, which opens the in-game menu.
-			bool withCtrl = entry.Length == 3 && entry[0] == 'c';
-			string keyEntry = withCtrl ? entry[1..] : entry;
-			if (entry == "esc" || keyEntry.Length == 2 && keyEntry[0] is 'k' or 'K' && char.IsLetterOrDigit(keyEntry[1]))
-			{
-				Key key = entry == "esc" ? Key.Escape : (Key)char.ToUpperInvariant(keyEntry[1]);
-				bool shifted = keyEntry[0] == 'K';
-				await Frames(2);
-				GetViewport().PushInput(new InputEventKey
-				{
-					Keycode = key, PhysicalKeycode = key, ShiftPressed = shifted, CtrlPressed = withCtrl, Pressed = true,
-				}, true);
-				await Frames(1);
-				GetViewport().PushInput(new InputEventKey
-				{
-					Keycode = key, PhysicalKeycode = key, ShiftPressed = shifted, CtrlPressed = withCtrl, Pressed = false,
-				}, true);
-				await Frames(2);
-				continue;
-			}
-			// w2 waits two seconds of real time, which a tooltip's second half waits on.
-			if (entry.StartsWith('w') && double.TryParse(entry[1..], NumberStyles.Float, CultureInfo.InvariantCulture, out double wait))
-			{
-				await ToSignal(GetTree().CreateTimer(wait), SceneTreeTimer.SignalName.Timeout);
-				await Frames(2);
-				continue;
-			}
-			// d700,310>900,500 holds the left button down at the first point, moves to the second
-			// in ten steps and lets go there: a drag. sd lets go with Shift held, and D does not let go,
-			// for a screenshot of the drag box.
-			bool shiftDrag = entry.StartsWith("sd");
-			string dragEntry = shiftDrag ? entry[1..] : entry;
-			if (dragEntry.StartsWith('d') || dragEntry.StartsWith('D'))
-			{
-				bool letGo = dragEntry[0] == 'd';
-				string[] ends = dragEntry[1..].Split('>');
-				string[] a = ends[0].Split(',');
-				string[] b = ends.Length == 2 ? ends[1].Split(',') : System.Array.Empty<string>();
-				if (a.Length == 2 && b.Length == 2
-					&& float.TryParse(a[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float ax)
-					&& float.TryParse(a[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float ay)
-					&& float.TryParse(b[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float bx)
-					&& float.TryParse(b[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float by))
-				{
-					var from = new Vector2(ax, ay);
-					var to = new Vector2(bx, by);
-					await Frames(3);
-					GetViewport().PushInput(new InputEventMouseMotion { Position = from, GlobalPosition = from }, true);
-					await Frames(1);
-					GetViewport().PushInput(new InputEventMouseButton
-					{
-						Position = from, GlobalPosition = from, ButtonIndex = MouseButton.Left, Pressed = true, ButtonMask = MouseButtonMask.Left,
-					}, true);
-					for (int step = 1; step <= 10; step++)
-					{
-						await Frames(1);
-						Vector2 there = from.Lerp(to, step / 10f);
-						GetViewport().PushInput(new InputEventMouseMotion { Position = there, GlobalPosition = there, ButtonMask = MouseButtonMask.Left }, true);
-					}
-					await Frames(1);
-					if (letGo)
-					{
-						GetViewport().PushInput(new InputEventMouseButton
-						{
-							Position = to, GlobalPosition = to, ButtonIndex = MouseButton.Left, Pressed = false, ShiftPressed = shiftDrag,
-						}, true);
-					}
-					await Frames(2);
-				}
-				else
-				{
-					GD.Print($"--click: '{entry}' is not a drag.");
-				}
-				continue;
-			}
-			// m before a point only moves the pointer there, which is how a tooltip is asked for.
-			if (entry.StartsWith('m'))
-			{
-				string[] to = entry[1..].Split(',');
-				if (to.Length == 2
-					&& float.TryParse(to[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float mx)
-					&& float.TryParse(to[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float my))
-				{
-					await Frames(3);
-					GetViewport().PushInput(new InputEventMouseMotion { Position = new Vector2(mx, my), GlobalPosition = new Vector2(mx, my) }, true);
-					await Frames(2);
-				}
-				else
-				{
-					GD.Print($"--click: '{entry}' is not a point to move to.");
-				}
-				continue;
-			}
-			// r before a point clicks the right button there, s holds shift down and c Ctrl,
-			// and t1.5: before the point holds the button down that many seconds.
-			string point = entry.TrimStart('r', 's', 'c');
-			string keys = entry[..(entry.Length - point.Length)];
-			MouseButton which = keys.Contains('r') ? MouseButton.Right : MouseButton.Left;
-			bool shift = keys.Contains('s');
-			bool ctrl = keys.Contains('c');
-			double holdFor = 0;
-			int colon = point.IndexOf(':');
-			if (point.StartsWith('t') && colon > 0)
-			{
-				double.TryParse(point[1..colon], NumberStyles.Float, CultureInfo.InvariantCulture, out holdFor);
-				point = point[(colon + 1)..];
-			}
-			string[] parts = point.Split(',');
-			if (parts.Length != 2
-				|| !float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float x)
-				|| !float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float y))
-			{
-				GD.Print($"--click: '{point}' is not a point.");
-				continue;
-			}
-			var at = new Vector2(x, y);
-			await Frames(3);
-			// A key held is told to the input singleton, which is what is asked whether it is down.
-			if (ctrl)
-			{
-				Input.ParseInputEvent(new InputEventKey { Keycode = Key.Ctrl, PhysicalKeycode = Key.Ctrl, Pressed = true });
-			}
-			if (shift)
-			{
-				Input.ParseInputEvent(new InputEventKey { Keycode = Key.Shift, PhysicalKeycode = Key.Shift, Pressed = true });
-			}
-			GetViewport().PushInput(new InputEventMouseMotion { Position = at, GlobalPosition = at }, true);
-			await Frames(1);
-			GetViewport().PushInput(new InputEventMouseButton
-			{
-				Position = at, GlobalPosition = at, ButtonIndex = which, Pressed = true, ShiftPressed = shift,
-				CtrlPressed = ctrl, ButtonMask = which == MouseButton.Right ? MouseButtonMask.Right : MouseButtonMask.Left,
-			}, true);
-			if (holdFor > 0)
-			{
-				await ToSignal(GetTree().CreateTimer(holdFor), SceneTreeTimer.SignalName.Timeout);
-			}
-			else
-			{
-				await Frames(2);
-			}
-			GetViewport().PushInput(new InputEventMouseButton
-			{
-				Position = at, GlobalPosition = at, ButtonIndex = which, Pressed = false, ShiftPressed = shift,
-				CtrlPressed = ctrl,
-			}, true);
-			if (ctrl)
-			{
-				Input.ParseInputEvent(new InputEventKey { Keycode = Key.Ctrl, PhysicalKeycode = Key.Ctrl, Pressed = false });
-			}
-			if (shift)
-			{
-				Input.ParseInputEvent(new InputEventKey { Keycode = Key.Shift, PhysicalKeycode = Key.Shift, Pressed = false });
-			}
-			await Frames(2);
-		}
-	}
-
-	private async System.Threading.Tasks.Task Frames(int count)
-	{
-		for (int frame = 0; frame < count; frame++)
-		{
-			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-		}
+		return new Debug.CClickScript(this, () => UnlessTheReplayEnds(() => _simulation.RunHours(1))).Run(points);
 	}
 }

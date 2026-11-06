@@ -14,7 +14,7 @@ namespace OpenHOI3.Sim.Combat;
 /// all of it only a ship's attack is ever asked for, by its own fire at the bombers: a
 /// land unit fires by its unit's figures, which these do not touch, and nothing in a
 /// bombing reads a defence - so the fort and the screens are noted here and decide
-/// nothing. The original also counts difficulty, which is not built. See
+/// nothing. The difficulty comes first on each of them. See
 /// <c>docs/mechanics/bombing.md</c>, section 9, and <c>docs/mechanics/leaders.md</c>,
 /// section 10, for what the leaders bring.
 /// </summary>
@@ -49,6 +49,8 @@ public static class CBombTargetModifiers
 		foreach (CUnit unit in side.Units)
 		{
 			CCountry? owner = state.Country(unit.Owner);
+			// A played country's, by the difficulty, first on each of its wings (frontend.md, section 4).
+			long difficulty = Settings.CDifficulty.Combat(state, owner);
 			long poorScreens = unit.Kind == EUnitKind.Navy ? PoorScreens(unit) : 0;
 			long missionEfficiency = CMissionEfficiency.Of(state, owner, unit.Order);
 			long crowding = crowd - (owner is null ? 0 : owner.Technology[FreeStacking].Raw);
@@ -69,6 +71,11 @@ public static class CBombTargetModifiers
 				subUnit.CombatModifiers.Clear();
 				subUnit.CombatAttack = CFixedPoint.One;
 				subUnit.CombatDefence = CFixedPoint.One;
+
+				if (difficulty != 0)
+				{
+					CBomberModifiers.Add(subUnit, ECombatModifier.Difficulty, difficulty, difficulty);
+				}
 
 				if (poorScreens > 0 && CShipCensus.IsCapital(subUnit))
 				{

@@ -16,6 +16,10 @@ public enum ECombatModifier
 	Amphibious,
 	Fort,
 	MultipleCombats,
+
+	/// <summary>The difficulty, for a played country's unit (<c>frontend.md</c>, section 4).</summary>
+	Difficulty,
+
 	Experience,
 	CombinedArms,
 	Dissent,

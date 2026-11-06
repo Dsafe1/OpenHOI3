@@ -128,6 +128,13 @@ public static class CCountryModifiers
 			AddSource(country, triggered.Modifier);
 		}
 
+		// The difficulty's block - a played country's level's _player one, any other's _ai one, none on normal - before
+		// the government in exile and a fractured government, as the original's step 20 (frontend.md, section 4).
+		if (Settings.CDifficulty.BlockName(state, country) is { } block && state.FindStaticModifier(block) is { } difficulty)
+		{
+			AddSource(country, difficulty);
+		}
+
 		// A fractured government, where a party of another group than the ruling party's holds a seat (step 18;
 		// politics.md, section 4).
 		if (Politics.CCabinet.IsFractured(state, country) && state.FindStaticModifier(Politics.CCabinet.Fractured) is { } fractured)

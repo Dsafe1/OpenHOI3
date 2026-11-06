@@ -41,6 +41,8 @@ public static class CNavalModifiers
 		foreach (CUnit fleet in side.Units)
 		{
 			CCountry? owner = state.Country(fleet.Owner);
+			// A played country's, by the difficulty, first on each of its ships (frontend.md, section 4).
+			long difficulty = Settings.CDifficulty.Combat(state, owner);
 			int capitals = 0, submarines = 0, screens = 0;
 			foreach (CSubUnit ship in fleet.SubUnits)
 			{
@@ -92,6 +94,11 @@ public static class CNavalModifiers
 				ship.CombatModifiers.Clear();
 				ship.CombatAttack = CFixedPoint.One;
 				ship.CombatDefence = CFixedPoint.One;
+
+				if (difficulty != 0)
+				{
+					Add(ship, ECombatModifier.Difficulty, difficulty, difficulty);
+				}
 
 				if (poorScreens > 0 && CShipCensus.IsCapital(ship))
 				{

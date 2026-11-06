@@ -57,6 +57,18 @@ public sealed class CSliderPanel
 		}
 	}
 
+	/// <summary>Every slider greyed, enabled, or left to the window it stands in (<see cref="CGuiObject.Greying"/>).</summary>
+	public void SetGreying(EGreying greying)
+	{
+		foreach (CEconomySlider? slider in _sliders)
+		{
+			if (slider is not null)
+			{
+				slider.Window.Greying = greying;
+			}
+		}
+	}
+
 	/// <summary>Raised when the button under a slider's title is pressed, with which share it is.</summary>
 	public event Action<int>? NeedPressed;
 

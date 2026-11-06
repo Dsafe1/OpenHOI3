@@ -67,6 +67,34 @@ public sealed partial class CEspionageView : CCountryView
 	protected override string WindowName => "country_espionage";
 	protected override string TopColourName => "topcolor_espionage";
 
+	protected override Sim.Settings.EAutomation? AutomationArea => Sim.Settings.EAutomation.Intelligence;
+
+	/// <summary>
+	/// The AI running intelligence greys the player's own priority, the two country panels and every row's priority, and
+	/// enables again what the original's does inside them - the production queue and the Production and Ministers buttons,
+	/// which only switch what the panel shows.
+	/// </summary>
+	protected override void ApplyAutomation(Sim.Settings.CPlayerAutomation automation)
+	{
+		bool ai = automation.Has(Sim.Settings.EAutomation.Intelligence);
+		Grey(_ownPriority, ai);
+		Grey(_info, ai);
+		Grey(_own, ai);
+		EGreying usable = ai ? EGreying.Enabled : EGreying.Inherit;
+		if (_sections is not null)
+		{
+			_sections.Greying = usable;
+		}
+		if (_info?.FindListBox("unit_queue") is { } queue)
+		{
+			queue.Greying = usable;
+		}
+		foreach (CEspionageCountryEntry row in _rows)
+		{
+			Grey(row.PriorityButton, ai);
+		}
+	}
+
 	/// <summary>The province selected on the map, or 0: the All tab chooses its owner.</summary>
 	public Func<int>? SelectedProvince { get; set; }
 

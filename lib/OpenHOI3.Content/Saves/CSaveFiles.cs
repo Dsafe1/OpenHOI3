@@ -50,6 +50,12 @@ public static class CSaveFiles
 			.Select(file => file.Key).ToList();
 	}
 
+	/// <summary>Where a listed save is: the first of the folders holding it, as <see cref="List"/> takes the first one's.</summary>
+	public static string? Find(IEnumerable<string> folders, string fileName)
+	{
+		return folders.Select(folder => Path.Combine(folder, fileName)).FirstOrDefault(File.Exists);
+	}
+
 	/// <summary>A row's text: the name cut at its first <c>.hoi3</c> - where <c>save</c> tests the last dot.</summary>
 	public static string RowText(string fileName)
 	{

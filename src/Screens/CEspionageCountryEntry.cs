@@ -76,6 +76,9 @@ public sealed class CEspionageCountryEntry
 
 	public CCountry Country { get; }
 
+	/// <summary>The row's priority button, which the AI running intelligence greys.</summary>
+	public CGuiButton? PriorityButton => _priority;
+
 	/// <summary>Raised when the row's checkbox or flag is clicked.</summary>
 	public event Action<CCountry>? Chosen;
 

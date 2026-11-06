@@ -319,7 +319,7 @@ hour the end.
 
 The two mission bonuses are on the attack alone as well, the one the defines call a
 defender's among them. The leaders' traits come down the unit's chain of command; dissent has
-no trait here. Not built: difficulty. The radio and the radar were
+no trait here. The difficulty is built since 2026-11-06 (`frontend.md`, section 4.3). The radio and the radar were
 added on 2026-10-10 with `bombing.md`, when the reading for it named their technology keys.
 **A wing's defence is worked out and nothing uses it**: only its attack decides anything.
 
@@ -452,7 +452,7 @@ selected province says there is a battle.
 - **Every other air order** - the reserve, the raid on convoys. The supply flight and the paradrop
   are built since 2026-10-16 (`transport.md`, section 13).
 - The orders window is whole since 2026-10-11, and the air map mode is built: `airmap.md`.
-- **Difficulty** in what the hour makes of a wing; **radar** in what a country knows. The
+- **Radar** in what a country knows; the difficulty is built since 2026-11-06 (`frontend.md`, section 4.3). The
   leaders are built since 2026-10-11 (`leaders.md`, section 10). The weather's part is built, and since 2026-10-15 so is the weather (`weather.md`).
 - **The practical** an air battle earns. Its experience, the leader's and the wings', is built
   since 2026-10-11 (`leaders.md`, section 11).

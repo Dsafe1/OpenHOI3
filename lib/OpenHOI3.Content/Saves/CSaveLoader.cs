@@ -634,7 +634,8 @@ public static class CSaveLoader
 		// A fresh AI for every country, as the original makes one: the ministers' first hours.
 		foreach (CCountry country in state.Countries)
 		{
-			country.PoliticsCountdown = state.Played.Contains(country.Tag) ? 0 : state.Random.Next() % 3 + 1;
+			country.PoliticsCountdown = Sim.Settings.CAutomation.AiRuns(state, country, Sim.Settings.EAutomation.Politics)
+				? state.Random.Next() % 3 + 1 : 0;
 		}
 		Sim.Espionage.CEspionageAi.SetUpAtStart(state);
 		CForeignAi.SetUpAtStart(state);

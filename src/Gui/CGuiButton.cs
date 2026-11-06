@@ -88,7 +88,7 @@ public partial class CGuiButton : CGuiObject
 	}
 
 	/// <summary>Whether the mouse is being held down on it now.</summary>
-	public bool IsDown => _held && !_disabled;
+	public bool IsDown => _held && !Off;
 
 	/// <summary>
 	/// Gives the button another sprite out of the <c>.gfx</c> files. One that no file
@@ -193,7 +193,27 @@ public partial class CGuiButton : CGuiObject
 		_mask = null;
 		Place(GuiType, FrameSize(shield, 1));
 		ShowFrame();
+		TurnShield();
 	}
+
+	/// <summary>
+	/// A shield turned by its type's rotation, as a turned flag icon is: about its own middle, a pixel and a half to the
+	/// right of it (<see cref="CGuiIcon"/>; <c>docs/mechanics/interface.md</c>, section 5) - the lobby's shields, a quarter
+	/// back, stand upright and apart.
+	/// </summary>
+	private void TurnShield()
+	{
+		if (GuiType is not CGuiButtonType { Rotation: not 0f } type)
+		{
+			return;
+		}
+		var size = new Vector2(OffsetRight - OffsetLeft, OffsetBottom - OffsetTop);
+		PivotOffset = size / 2f + new Vector2(ShieldPivotShift, 0f);
+		Rotation = -type.Rotation;
+	}
+
+	/// <summary>How far right of its middle a turned shield turns, measured on the battle window's flags.</summary>
+	private const float ShieldPivotShift = 1.5f;
 
 	/// <summary>A button that is not enabled draws in grey and cannot be pressed.</summary>
 	public bool Disabled
@@ -205,6 +225,21 @@ public partial class CGuiButton : CGuiObject
 			Tint();
 			ShowFrame();
 		}
+	}
+
+	/// <summary>Not pressable: disabled by its screen, or greyed by itself or what holds it (<see cref="CGuiObject.Greying"/>).</summary>
+	private bool Off => _disabled || IsGreyed;
+
+	/// <summary>Drawn again for a change of greying above it, or for coming into a greyed part of the tree.</summary>
+	internal override void ShowGreying()
+	{
+		Tint();
+		ShowFrame();
+	}
+
+	public override void _EnterTree()
+	{
+		ShowGreying();
 	}
 
 	/// <summary>Shows a frame of the sprite sheet, counted from one.</summary>
@@ -230,7 +265,7 @@ public partial class CGuiButton : CGuiObject
 	/// The frame drawn: the one chosen, but for a checkbox switched off its fourth, ticked or not, where its sheet has
 	/// four - the grey box of a row that cannot be given (<c>docs/mechanics/interface.md</c>, section 7).
 	/// </summary>
-	private int ShownFrame => IsCheckbox && _disabled && (_sprite?.FrameCount ?? 1) >= DisabledCheckboxFrame
+	private int ShownFrame => IsCheckbox && Off && (_sprite?.FrameCount ?? 1) >= DisabledCheckboxFrame
 		? DisabledCheckboxFrame
 		: _frame;
 
@@ -255,7 +290,7 @@ public partial class CGuiButton : CGuiObject
 	{
 		if (_material is not null)
 		{
-			CButtonShader.Set(_material, _disabled ? EButtonLook.Disabled
+			CButtonShader.Set(_material, Off ? EButtonLook.Disabled
 				: _held ? EButtonLook.Down
 				: _hovered ? EButtonLook.Over
 				: EButtonLook.Up);
@@ -296,7 +331,7 @@ public partial class CGuiButton : CGuiObject
 		else if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Right } right && RightPressed is not null)
 		{
 			AcceptEvent();
-			if (_disabled)
+			if (Off)
 			{
 				return;
 			}
@@ -318,7 +353,7 @@ public partial class CGuiButton : CGuiObject
 	/// </summary>
 	public void Click(InputEventMouseButton mouse)
 	{
-		if (_disabled)
+		if (Off)
 		{
 			return;
 		}
@@ -350,7 +385,7 @@ public partial class CGuiButton : CGuiObject
 
 	public override void _UnhandledKeyInput(InputEvent @event)
 	{
-		if (_shortcut == Key.None || _disabled || !IsVisibleInTree()
+		if (_shortcut == Key.None || Off || !IsVisibleInTree()
 			|| @event is not InputEventKey { Pressed: true, Echo: false } key || key.Keycode != _shortcut)
 		{
 			return;

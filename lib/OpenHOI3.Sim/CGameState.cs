@@ -513,6 +513,12 @@ public sealed class CGameState
 	/// </summary>
 	public HashSet<CCountryTag> AutomateTrade { get; } = new();
 
+	/// <summary>The difficulty and the game mode (<c>docs/mechanics/frontend.md</c>, section 4).</summary>
+	public Settings.CGamePlaySettings GamePlay { get; } = new();
+
+	/// <summary>What the player has handed to the AI, which every played country goes by (frontend.md, section 4).</summary>
+	public Settings.CPlayerAutomation Automation { get; } = new();
+
 	/// <summary>The game's own flags, which script sets: <c>docs/mechanics/effects.md</c>, section 3.</summary>
 	public Script.CFlags Flags { get; } = new();
 
