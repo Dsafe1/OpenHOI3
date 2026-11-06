@@ -4,6 +4,7 @@ using System.Linq;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Content.Settings;
+using OpenHOI3.Interface.Map;
 using OpenHOI3.Sim.Provinces;
 
 /// <summary>
@@ -79,8 +80,63 @@ public static class CQuadCheck
 			}
 		}
 		Console.WriteLine($"land rectangles and 4 the terrain-index texture's size: {fits} of {fits + differ}");
-		CheckBorders(directories, tiles, columns);
+		CheckSurf(tiles, columns);
+		CMap map = CMap.Load(directories, _ => { });
+		CheckRivers(map, cache);
+		CheckBorders(map, tiles, columns);
 		return problems.Count == 0 && outOfRange == 0 ? 0 : 1;
+	}
+
+	/// <summary>
+	/// The surf's quads made from every tile's wave pixels (<c>FINDINGS-mapdraw.md</c>, C.7): how many, the range of their
+	/// half-pixel coordinates and how many of the records' pixels the terrain paints as water.
+	/// </summary>
+	private static void CheckSurf(IReadOnlyList<CQuadTile> tiles, int columns)
+	{
+		int records = 0, vertices = 0, skipped = 0;
+		short lowX = short.MaxValue, highX = short.MinValue, lowZ = short.MaxValue, highZ = short.MinValue;
+		foreach (CQuadTile tile in tiles)
+		{
+			CWavePixel[] pixels = CWavePixel.Parse(tile.ShoreRecords);
+			(int midX, int midZ) = tile.Middle(columns);
+			List<short> shorts = CSurfQuads.Vertices(pixels, midX, midZ, out int bad);
+			records += pixels.Length;
+			skipped += bad;
+			vertices += shorts.Count / 4;
+			for (int i = 0; i < shorts.Count; i += 4)
+			{
+				lowX = Math.Min(lowX, shorts[i]);
+				highX = Math.Max(highX, shorts[i]);
+				lowZ = Math.Min(lowZ, shorts[i + 1]);
+				highZ = Math.Max(highZ, shorts[i + 1]);
+			}
+		}
+		Console.WriteLine($"surf: {records} wave pixels, {vertices} vertices, {skipped} of no known type; x {lowX} to {highX}, "
+			+ $"z {lowZ} to {highZ} half pixels from the tile's middle");
+	}
+
+	/// <summary>
+	/// The rivers traced and made into strips (<c>FINDINGS-mapdraw.md</c>, C.6), counted: their sources map.bin's list where
+	/// it is the map's, set beside the bitmap's index-0 pixels, which its builder takes them from.
+	/// </summary>
+	private static void CheckRivers(CMap map, CMapCache cache)
+	{
+		if (map.RiversFile is not { } file)
+		{
+			Console.WriteLine("rivers: no river bitmap");
+			return;
+		}
+		var watch = System.Diagnostics.Stopwatch.StartNew();
+		byte[] raster = CRiverTracer.Raster(CBitmapFile.Read(file));
+		IReadOnlyList<(int X, int Y)> sources = CMapBin.RiverSources(cache, raster, map.Width, map.Height,
+			problem => Console.WriteLine("problem: " + problem));
+		List<(int X, int Y)> fromBitmap = CMapBin.BitmapSources(raster, map.Width, map.Height);
+		int junctions = raster.Count(b => b == CRiverTracer.Junction);
+		List<CRiverPiece> pieces = CRiverTracer.Trace(raster, map.Width, map.Height, sources, map.IsWaterPixel, Console.WriteLine);
+		List<CRiverStrip> strips = CRiverMeshes.Build(pieces, (x, y) => map.IsSea(map.ProvinceAt(x, y)), 0.25f);
+		Console.WriteLine($"rivers: {sources.Count} sources, {(sources.SequenceEqual(fromBitmap) ? "the" : "NOT the")} bitmap's "
+			+ $"{fromBitmap.Count} index-0 pixels in order, {junctions} junctions; {pieces.Count} pieces, {pieces.Sum(p => p.Nodes.Count)} "
+			+ $"nodes, {strips.Sum(s => s.Vertices.Count)} vertices, {strips.Count(s => s.Exit is not null)} mouths, in {watch.ElapsedMilliseconds} ms");
 	}
 
 	/// <summary>
@@ -88,9 +144,8 @@ public static class CQuadCheck
 	/// corner flag of ±1000 taken off - should be the province its colour names, its lookup texel 14 × id + a slot, and the
 	/// slot one of that province's edges in the order the map gives them, whose province touches the pixel.
 	/// </summary>
-	private static void CheckBorders(CDirectorySettings directories, IReadOnlyList<CQuadTile> tiles, int columns)
+	private static void CheckBorders(CMap map, IReadOnlyList<CQuadTile> tiles, int columns)
 	{
-		CMap map = CMap.Load(directories, _ => { });
 		ushort[] raster = map.Raster.ToArray();
 		int seaLand = tiles.Sum(t => Enumerable.Range(0, t.LandIndices.Length / 3).Count(k => map.IsSea(t.LandProvinces[t.LandIndices[3 * k]])));
 		var seaIds = tiles.SelectMany(t => t.LandProvinces).Where(p => p > 0 && p < map.ProvinceCount && map.IsSea(p)).Distinct().Count();

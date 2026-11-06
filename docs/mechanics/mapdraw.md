@@ -12,7 +12,7 @@ may change; *Ours* where this departs.
 
 The original's scene, `FINDINGS-mapdraw.md` C.1: the land; the beaches; the rivers; the land borders under `border_cutoff`;
 the sea; the surf where `waves`; the water borders; the trees under height 100; the country names in the far view; the
-province names under 100. **Built so far: the land, the beaches, the land borders, the sea, the sea zones' borders, the highlight and the country names** (section 6). The overlays this project draws
+province names under 100. **Built so far: the land, the beaches, the rivers, the land borders, the sea, the surf, the sea zones' borders, the highlight and the country names** (section 6). The overlays this project draws
 in 2D - counters, buildings, arrows, the hierarchy, the selection, the weather and the air map's layers - stay as they are,
 over the map.
 
@@ -141,6 +141,62 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   shows it +0.098 in the terrain modes and about +0.044 in the others, and the sea never [exe]. Which provinces is the
   selection; the lookups are written again whenever it changes (`CMapSurface.SetSelection`); nothing marks the province
   under the mouse.
+- **The rivers, river.fx's RiverShader** (`FINDINGS-mapdraw.md`, C.6; `Interface/Map/CRiverTracer`, `CRiverMeshes`): made
+  once as the map is built and never again [exe], from `map/rivers.bmp` [mod], 8 bits a pixel - index 0 a source, 1 a
+  junction, 2 to 11 a river of width index − 2, 12 to 22 the same with a mouth of frame index − 12, anything else nothing.
+  **The trace**: each source in turn, by rows from the south and then from the west; from it the walk tries east, west,
+  north and south in that order, never straight back, and steps onto the first river pixel - dropping the last node where a
+  step north or south follows one east or west, unless the new pixel stops the river - and stops on a pixel the terrain
+  paints as water [mod: terrain.txt `is_water`], keeping it. With no step left it takes each junction about it not yet
+  visited, east, west, north, south, with the pixel beyond it, at the last node's width - one found west moving x and one
+  found north moving y for the tests after it [exe] - and stops. One list of visited pixels serves every source, and
+  nothing but a junction is tested against it. Then a river with a mouth drops its last two nodes, a river that did not end
+  at a junction gains one more node a pixel on in its last direction, and a river of one node is none. **The strip**: a
+  cardinal spline of tension 0.7 through the nodes' middles, a point before the first (2·P0 − P1, width 1) and one past the
+  last carried on from the segment before; three steps a segment, at t = 0, ½, 1, each a pair of vertices across the
+  spline's direction to the next step, the half-width (0.1·W + 0.15 + 0.1·r)/2 with r a draw of a generator of the
+  original's kind seeded 42, one draw a step in the rivers' order [exe]; the height 0.40, 0.02 more where the side's or the
+  middle's pixel one back and one south is not a sea province [exe]; `river_body.tga`'s u 1 on the north-or-left side and
+  0 on the other, its v k/8 on the first segment - the picture's tapered tip - and k/8 + ¼ after, each later segment opening
+  with the last pair again at ¼; `river_movement.tga`'s v the vertex's count over 3. Six vertices a segment, drawn as a
+  strip. A mouth is a quad on the last pair's middle, twice their spacing across and three pixels on, a frame of
+  `river_exit.dds` across it - TFH's map has none, so it is built from the reading alone. On TFH's map 722 sources and 282
+  junctions make 721 rivers, 61,532 nodes and 364,866 vertices - the fact base's figures - in about 0.1 s.
+  **The draw**: at every height and in every mode, after the beaches and before the land borders, blended by source alpha,
+  tested at 8, the depth tested and not written [exe]; tex0 `river_body.tga`, tex1 `river_movement.tga`, tex3
+  `colormap_water.dds` with its size twice and the map's, AbsoluteWorldMatrix the identity, vTime the clock - river.fx scrolls the
+  flow by 0.3 a unit and darkens it to the water's colour; its tex2, the fog, it never reads. **The sources are `map.bin`'s
+  list** (`Content/Map/CMapBin`), as the original takes them: a 20-byte head, a count and that many (x, y) pairs, then the
+  raster the junctions read. The original tests `map.bin` by date - it is the map's while none of positions,
+  provinces.bmp, terrain.bmp, definition.csv, adjacencies, terrain.txt, continent, region and coastlines is missing or newer
+  [exe] - and not `rivers.bmp`, so it traces an edited river bitmap from the old sources. **Here `rivers.bmp` is tested
+  too** (the maintainer's word, 2026-11-06; `docs/compatibility.md`, entry 20), and where the file is missing, stale or
+  does not read the sources are those its builder would write - every index-0 pixel by rows from the south and then from the
+  west [exe] - and the log says why. On this machine the player's folder's `map.bin` is the original's rebuild of TFH's,
+  newer than every file, and its 722 sources are the bitmap's in order; the one TFH ships is older than all ten, some by
+  hundredths of a second as the install was written, so a player who never ran the original gets the builder's list -
+  the same 722. *Ours*: a tile's rivers - by their source's tile - in one
+  mesh, under 65,536 vertices, with three materials for the copies of the map as the sea zones' borders have; the
+  generator's seeding is ours, `CRandom`'s, as nowhere else read; a loop of river pixels, which the original would walk for
+  ever, cut and reported; vTime in seconds - its unit not read, and the maintainer found the flow's and the foam's speed
+  right on 2026-11-06.
+- **The surf, beach.fx's BeachShader near and BeachShaderColor far** (C.7; `Content/Map/CWavePixel`,
+  `Interface/Map/CSurfQuads`): only where settings.txt's `waves` is on, and made once [exe]. The cache's seventh piece of a
+  tile is its wave pixels, 28 bytes each - a coastal pixel the terrain paints as water, x and y, its type of 52 by where
+  the land lies about it, and four offsets each type fixes; a province's records go to its own tile. One quad a record:
+  its four corners and its texture coordinates by the type, from the original's table, and every fourth record of a tile,
+  counted from its first, taking coordinates a tenth larger - but for one set whose u is 60 where a tenth more is 55, and
+  0.825 cut to 82 [exe]; each vertex x and z twice the record's place less the tile's middle plus the corner, u and v in
+  hundredths, every figure cut towards nought - so sixteen types' quarter corners move a quarter pixel towards the tile's
+  middle. The quad's triangles 0-1-2 and 2-3-0, nothing culled. **The draw**: after the sea and before the sea zones'
+  borders, at the height 0.31 [exe] between the sea's and the land's, the depth tested and written, so the land hides
+  what runs under it; near, under the first of terrain_sheet_heights, `shore.tga` scrolled by 0.2 of vTime and masked by
+  `shore_alpha.tga` twice, added (SRCALPHA / ONE, the pass's own) - the foam; far, black at 0.7 of
+  `shore_alpha_outline.tga`'s alpha, blended by source alpha (the sea's left states) - the coast's line [mod: map/terrain,
+  gfx/FX/beach.fx]. On TFH's cache 141,831 records and 567,324 vertices, x −173 to 219 and z −193 to 207 half pixels from
+  their tile's middle - the fact base's figures. *Ours*: each vertex holds the map's own place, twice the tile's middle
+  added, so three materials for each technique serve every tile; each tile's mesh drawn by two instances, a layer for each
+  technique.
 - **The device states** around each draw, `FINDINGS-mapdraw.md` C.1 and C.2: the land unblended (ONE / ZERO); the beaches
   SRCALPHA / ZERO, which their Graphical and General passes override; the sea SRCALPHA / INVSRCALPHA; the baseline alpha
   test at 8 / GREATEREQUAL where a pass turns the test on - each handed to the translator as the states the pass is laid over.
@@ -222,5 +278,9 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   lifting it while the one before goes dark.
 - **The junctions of the land borders, built the same day** (section 4), after the maintainer found the lines "very cut
   up" in a save of 1941: every place three provinces met lost its corner piece on every line into it.
-- **Next**: the rivers, the surf and the trees, in the scene's order - each wanting a reading first: what the rivers' meshes
-  are made from, how the surf's records of the cache become quads, where the trees' points come from.
+- **The rivers and the surf, built the same day** (section 4), after two readings in the fact base (C.6, C.7), their
+  counts the fact base's every one (`OpenHOI3.SaveCheck quads`). Checked with `--screenshot` and the maintainer has not
+  looked at them: near, the Elbe, the Weser and the rest light bands over the land; far, the rivers fine white lines and
+  every coast a dark line. **The near surf's foam was not made out** on a screenshot zoomed in on the German coast - the
+  pass adds white by three alphas, so it is faint by its own art, and whether as faint as the original's is for his eye.
+- **Next**: the trees - where their points come from wants a reading first.

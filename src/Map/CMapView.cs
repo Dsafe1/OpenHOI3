@@ -151,7 +151,7 @@ public partial class CMapView : Node2D
 	/// quad cache (<c>docs/mechanics/mapdraw.md</c>); where the cache cannot be read, or is stale, the map is drawn flat as
 	/// before. Before the node enters the tree, and after <see cref="Setup"/>.
 	/// </summary>
-	public void SetupSurface(CGuiContext gui, CDirectorySettings directories, CMapCache cache, bool simpleWater,
+	public void SetupSurface(CGuiContext gui, CDirectorySettings directories, CMapCache cache, bool simpleWater, bool waves,
 		IReadOnlyList<CQuadTile>? read = null)
 	{
 		IReadOnlyList<CQuadTile> tiles = read ?? CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
@@ -163,7 +163,7 @@ public partial class CMapView : Node2D
 			return;
 		}
 		_surface = new CMapSurface();
-		_surface.Setup(_map, gui, cache, tiles, CQuadCache.Columns(directories), simpleWater, _corners);
+		_surface.Setup(_map, gui, cache, tiles, CQuadCache.Columns(directories), simpleWater, waves, _corners);
 		_textures ??= gui.Textures;
 		_names = new CCountryMapNames { Name = "CountryNames", Visible = false };
 		_names.Setup(_map, _state, gui.Fonts);

@@ -33,6 +33,9 @@ public sealed class CMapCache
 	/// <summary>Whether the cache's stamp is the map files'; nothing of a cache that is not is read.</summary>
 	public bool IsCurrent { get; }
 
+	/// <summary>The install whose map files the cache is of.</summary>
+	public CDirectorySettings Directories => _directories;
+
 	/// <summary>
 	/// The cache of an install, its stamp checked once. <paramref name="userFolder"/> is the player's folder of the game
 	/// being played - the base game's <c>Documents\Paradox Interactive\Hearts of Iron III</c> - or null to look only in

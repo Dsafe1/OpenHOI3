@@ -227,7 +227,7 @@ public partial class CSession : Node
 			CArrowTypes.Load(_directories));
 		CMapCache cache = CMapCache.Open(_directories, Content.Settings.CUserSettingsReader.UserFolder(),
 			problem => GD.PushWarning($"map: {problem}"));
-		_mapView.SetupSurface(gui, _directories, cache, Settings.SimpleWater);
+		_mapView.SetupSurface(gui, _directories, cache, Settings.SimpleWater, Settings.Waves);
 		AddChild(_mapView);
 
 		BuildHud(gui);

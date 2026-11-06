@@ -1661,8 +1661,11 @@ view's country names** (`docs/mechanics/mapnames.md`): each country's name laid 
 the original lays it out, bent along it, in its faction's font - **and the sea zones' borders** through
 `borders_2_0.fx` and **the selected province's highlight** in the lookups (the fact base's B.8, B.9), after which nothing
 of this project's own is drawn over the surface, `PoliticalMap.gdshader` left as the flat map for an install with no quad
-cache. The maintainer set the far view beside the original's and it agrees. **Next up**: the rivers, the surf and the
-trees, each wanting a reading first;
+cache. The maintainer set the far view beside the original's and it agrees. **And the rivers and the surf** through
+`river.fx` and `beach.fx` (the fact base's C.6, C.7): the rivers traced out of `rivers.bmp` and made into strips as the
+original makes them, the surf's quads from the cache's wave pixels - near the foam, far the coast's black line - their
+counts the fact base's every one, tried with `--screenshot`, and the maintainer has not looked at them. **Next up**: the
+trees, wanting a reading first;
 then the interface's other effects the client still imitates in C# -
 `counter.fx`, `maskedflag.fx`, `hierarchy.fx`, `circle.fx`. Then war exhaustion, or the military AI's gaps (*What the moving wave
 left*), or the end-of-game screen.
@@ -1758,7 +1761,11 @@ None of these blocks the list above.
   asked until mods are layered, and a mod played before the original has built its cache gets the flat map. **Building
   the cache here** - the province meshes, the beaches, the border meshes and corners, the terrain-index pictures and the
   surf's records out of the map files, as a derived build of our own - wants the original's builder read
-  (`CProvinceManager_BuildQuads` and the rest), and is wanted before BlackICE is the target. Nothing marks the hovered
+  (`CProvinceManager_BuildQuads` and the rest), and is wanted before BlackICE is the target. **`map.bin` is tested by date for
+  the rivers' sources alone** (`CMapBin`, `docs/compatibility.md` entry 20): the land borders' junctions read its raster
+  whenever the `time` stamp is current, where the original would build the file again first - its raster half not read.
+  That reading should also say what the raster's two high bits mean (16 and 32, about 207,000 pixels of TFH's) and
+  whether anything reads them: the border code masks them off and nothing read so far uses them. Nothing marks the hovered
   province, as in the original; revolt risk's map style is ours.
   **The air map mode's land is a patchwork of greys**: `CMapView.AirOver`, the stand-in from before the surface, lays each
   colour over the province's terrain colour turned grey, and the surface's own technique then works on that again; what

@@ -15,10 +15,10 @@ public sealed class CBorderCache
 {
 	public const string PairsFile = "border_adj.bin";
 	public const string BitmapFile = "border_bitmap.bin";
-	public const string MapFile = "map.bin";
+	public const string MapFile = CMapBin.File;
 
 	/// <summary>The map cache's head: its tag, a word and two numbers [exe].</summary>
-	private const int MapHead = 20;
+	private const int MapHead = CMapBin.Head;
 
 	private readonly Dictionary<long, CBorderCorner> _corners = new();
 

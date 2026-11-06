@@ -375,6 +375,21 @@ sliders greyed too, and the intelligence screen's Production and Ministers butto
 | why | the maintainer's preference: it shows which controls are the AI's |
 | to undo | have `CGuiObject.Greying` keep the element's look and only refuse the mouse |
 
+## 20. An edited river bitmap is traced from its own sources
+
+**Decided** 2026-11-06 by the maintainer, on being told the rivers' sources are kept in `map.bin`, which the original
+tests by date against nine map files and not `rivers.bmp`: "switch to the map.bin way, but also fix the fault". Read in
+`reversing/findings/FINDINGS-mapdraw.md`, C.6; the rivers are `docs/mechanics/mapdraw.md`, section 4.
+
+| | |
+| --- | --- |
+| the original | `map.bin` holds the rivers' sources - every index-0 pixel of `rivers.bmp` - and is built again only when one of positions, provinces.bmp, terrain.bmp, definition.csv, adjacencies, terrain.txt, continent, region or coastlines is missing or newer than it; **an edited `rivers.bmp` alone is traced from the old sources** over the new pixels, so rivers break off or are lost until something else rebuilds the file |
+| here | the sources are read from `map.bin` as the original reads them, and the file is tested against `rivers.bmp` too: where the bitmap - or any of the nine - is missing or newer, or there is no `map.bin`, the sources are those its builder would write, taken from the bitmap, and the log says so (`CMapBin`) |
+| the difference today | only after `rivers.bmp` is edited with no other map file: the original draws the old sources' rivers, this the new |
+| a mod loses | nothing: a mod's rivers are what its bitmap says |
+| why | the maintainer's word: the original's test is a fault |
+| to undo | take `rivers` out of `CMapBin`'s list of sources |
+
 ---
 
 ## Stricter, with the same meaning

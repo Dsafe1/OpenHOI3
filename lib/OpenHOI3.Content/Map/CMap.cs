@@ -330,8 +330,12 @@ public sealed class CMap
 			BorderHeights = ReadHeights(definition, "border_heights"),
 			BorderCutoff = definition.GetFloat("border_cutoff", 0f),
 			WaterPixels = WaterMask(terrainBitmap, terrainDefinition, bitmap.Width, bitmap.Height),
+			RiversFile = riverBitmap is null ? null : riversBmp,
 		};
 	}
+
+	/// <summary>The river bitmap read, 8 bits and the map's size, which the map's surface traces its rivers from; null for none.</summary>
+	public string? RiversFile { get; private init; }
 
 	/// <summary>A list of camera heights of default.map, in the file's order; none where it has no such list.</summary>
 	private static float[] ReadHeights(ClausewitzNode definition, string key)
