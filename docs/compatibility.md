@@ -338,7 +338,7 @@ as one start needs" - which follows from the settled decision of one canonical s
 | | |
 | --- | --- |
 | the original | opens on the Quick Start panel where `settings.txt` says `simple=yes` - four buttons starting Germany in 1939, the United States in 1936, Japan in 1941 and the Soviet Union in 1941 - and on the main menu where `simple=no`; its lobby offers every bookmark of `common/bookmarks.txt`, the scenarios and the custom games |
-| here | the main menu always comes first and `simple` is not read for it; `toggle_quick_normal` is hidden; the lobby offers only the bookmark of the defines' `start_date`, and its Scenarios and Custom Games tabs are hidden |
+| here | the main menu always comes first and `simple` is not read for it; `toggle_quick_normal` is greyed; the lobby offers only the bookmark of the defines' `start_date`, and its Scenarios and Custom Games tabs are greyed - each of the three with a tooltip of ours saying why (the maintainer's word, 2026-11-06: "add them but grey them out with a tooltip that explains it") |
 | the difference today | a player whose `settings.txt` says `simple=yes` sees the main menu where the original shows Quick Start |
 | a mod loses | its other bookmarks, scenarios and custom games, and the Quick Start panel's buttons |
 | why | one start: one set of starting conditions, one code path into the simulation |

@@ -80,13 +80,21 @@ public partial class CLobby : Control
 		_saves = _window.FindWindow("save_games");
 		_panel = _window.FindWindow("singleplayer");
 		_play = _window.TryFindButton("play_button");
-		// One start, no multiplayer: the scenarios' and the custom games' tabs, the chat's box and the players' window are
-		// not offered (frontend.md, section 3; docs/compatibility.md, entry 17).
-		foreach (string hidden in new[] { "scenario_tab", "cgm_tab", "scenarios_label", "cgm_label", "lobby_chat_edit" })
+		// One start, no multiplayer: the chat's box and the players' window are not offered, and the scenarios' and the
+		// custom games' tabs are shown greyed, saying why (frontend.md, section 3; docs/compatibility.md, entry 17).
+		if (_window.TryFindElement("lobby_chat_edit") is { } chatEdit)
 		{
-			if (_window.TryFindElement(hidden) is { } element)
+			chatEdit.Visible = false;
+		}
+		foreach ((string tab, string why) in new[]
+		{
+			("scenario_tab", CLobbyText.ScenariosNotOffered), ("cgm_tab", CLobbyText.CustomGamesNotOffered),
+		})
+		{
+			if (_window.TryFindButton(tab) is { } button)
 			{
-				element.Visible = false;
+				button.Disabled = true;
+				button.Tooltip = () => new CTooltip { Text = why };
 			}
 		}
 		foreach (string hidden in new[] { "scenarios", "cgm_bookmarks" })

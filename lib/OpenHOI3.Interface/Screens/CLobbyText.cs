@@ -18,6 +18,28 @@ public static class CLobbyText
 	/// <summary>The name a loaded save goes by in the year label: SAVED_GAMES, "Saved Game".</summary>
 	public const string SavedGameKey = "SAVED_GAMES";
 
+	/// <summary>
+	/// The tooltip of the main menu's Quick Start button, greyed - ours, the original having no such text: one start is
+	/// offered (<c>docs/compatibility.md</c>, entry 17).
+	/// </summary>
+	public const string QuickStartNotOffered =
+		"Quick Start is not offered: OpenHOI3 plays one start, the historical one, chosen through Single Player.";
+
+	/// <summary>
+	/// The tooltip of the main menu's "Buy Bonus Items" button, greyed - ours: the original's opens the GamersGate store,
+	/// which OpenHOI3 does not reach.
+	/// </summary>
+	public const string StoreNotOffered =
+		"Buying bonus items is not offered: OpenHOI3 opens no store. What is installed, a DLC's content among it, is read as it is.";
+
+	/// <summary>The tooltip of the lobby's Scenarios tab, greyed - ours, as <see cref="QuickStartNotOffered"/>.</summary>
+	public const string ScenariosNotOffered =
+		"Scenarios are not offered: OpenHOI3 plays one start, the historical one on the start date.";
+
+	/// <summary>The tooltip of the lobby's Custom Games tab, greyed - ours, as <see cref="QuickStartNotOffered"/>.</summary>
+	public const string CustomGamesNotOffered =
+		"Custom games are not offered: OpenHOI3 plays one start, the historical one on the start date.";
+
 	private static readonly string[] Months =
 	{
 		"January", "February", "March", "April", "May", "June",

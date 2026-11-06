@@ -1,6 +1,8 @@
 using System;
 using Godot;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Tooltips;
 
 namespace OpenHOI3.FrontEnd;
 
@@ -68,8 +70,7 @@ public partial class CMainMenu : Control
 		// Hidden as the original always hides it; then what is not built greyed, and what is not offered hidden.
 		foreach (string hidden in new[]
 		{
-			"nudge_button", "gg_micro_button", "homepage_button", "forum_button", "facebook_button", "twitter_button",
-			"toggle_quick_normal",
+			"nudge_button", "homepage_button", "forum_button", "facebook_button", "twitter_button",
 		})
 		{
 			if (menuPanel.TryFindButton(hidden) is { } button)
@@ -82,6 +83,19 @@ public partial class CMainMenu : Control
 			if (menuPanel.TryFindButton(greyed) is { } button)
 			{
 				button.Disabled = true;
+			}
+		}
+		// Quick Start and the DLC store are shown, greyed, saying why they are not offered (docs/compatibility.md, entry 17;
+		// frontend.md, Ours).
+		foreach ((string name, string why) in new[]
+		{
+			("toggle_quick_normal", CLobbyText.QuickStartNotOffered), ("gg_micro_button", CLobbyText.StoreNotOffered),
+		})
+		{
+			if (menuPanel.TryFindButton(name) is { } button)
+			{
+				button.Disabled = true;
+				button.Tooltip = () => new CTooltip { Text = why };
 			}
 		}
 	}

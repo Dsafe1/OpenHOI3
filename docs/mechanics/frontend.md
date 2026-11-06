@@ -25,7 +25,9 @@ whole of the map, the engine's logo and `version_label` - with `mainmenu_panel` 
 | `exit_button` | ends the program at once - no question, nothing saved [exe] |
 | `nudge_button` | hidden, as the original always hides it [exe] |
 | `multi_player_button`, `tutorial_button`, `credits_button` | greyed: not built |
-| `gg_micro_button`, the four link buttons, `toggle_quick_normal` | hidden (*Ours*) |
+| `gg_micro_button` "Buy Bonus Items" | greyed, its tooltip ours: no store is opened (*Ours*) |
+| the four link buttons | hidden (*Ours*) |
+| `toggle_quick_normal` | greyed, its tooltip ours: Quick Start is not offered (*Ours*) |
 
 No button has a tooltip [exe]. A click on the map does nothing here; the map is under the backdrop and not seen (A.3).
 
@@ -193,8 +195,8 @@ says the lines.
 - **The Quick Start panel is not offered**, whatever `settings.txt`'s `simple` says, and the main menu always comes
   first: its four buttons start other dates than the one start (`CLAUDE.md`, *Settled decisions*;
   `docs/compatibility.md`, entry 17).
-- **Only the start's bookmark is offered**, and the Scenarios and Custom Games tabs are hidden - one start (entry 17).
-- **The GamersGate store and the four links to the publisher's pages are hidden.**
+- **Only the start's bookmark is offered**, and the Scenarios and Custom Games tabs are greyed, each with a tooltip of ours saying why - one start (entry 17); so is the main menu's Quick Start.
+- **The GamersGate store's button, "Buy Bonus Items", is greyed** with a tooltip of ours saying no store is opened (the maintainer's word, 2026-11-06), **and the four links to the publisher's pages are hidden.**
 - **`version_label`** says `OpenHOI3`, where the original writes its version and four letters of its checksum.
 - **Resign goes straight to the main menu**: the end-of-game screen of `backend.gui` the original shows first is not built.
 - **The seed of a new game is the game's own**, where the original takes one from the clock at Play (`docs/compatibility.md`,
