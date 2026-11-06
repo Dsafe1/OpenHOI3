@@ -5,8 +5,10 @@ models 1.1 and 2.0, plain text in the install - and a mod may ship its own: Blac
 tiling, edge noise, brightness and fog of war), `water_include.h` (its sea's colour, no waves, no fog) and `circle.fx`
 (the air map's green fill). So they are not rewritten by hand here: **each is read as it is and translated, pass by pass,
 into a Godot shader** when the game loads, by the maintainer's word of 2026-11-06 - "We need to actually support moddable
-shaders". Built that day; **nothing draws through them yet** (section 6). Ours throughout: the effect files are [mod]
-and what is done with them is this project's.
+shaders". Built that day. **The interface's buttons, icons and scrollbars draw through `buttonstate.fx` since then**
+(section 3.10), and **the map's land, beaches and sea through `terrain_2_0.fx` and `water.fx`** (`mapdraw.md`). Ours
+throughout: the effect files are [mod] and what is done with them
+is this project's.
 
 ## 1. What a file holds
 
@@ -63,19 +65,32 @@ translated.
    gets a fresh one. `CShaderUniform` gives the parameter's name in both.
 5. **The two stages**: `vertex()` builds each input of the entry point from a mesh's channels by semantic - `POSITION`
    from `VERTEX` with w one, `NORMAL`, `TANGENT`, `COLOR0` from `COLOR`, texture coordinates `UV` and `UV2` while they fit
-   in two components and otherwise and after them `CUSTOM0` to `CUSTOM3` (`CShaderVertexInput`) - calls it with the
-   `compile` line's values for its `uniform` parameters, writes the clip-space position to `POSITION` and every other
+   in two components and otherwise and after them `CUSTOM0` to `CUSTOM3` (`CShaderVertexInput`), a `POSITION` of four
+   components - the sea's (x, z, u, v) - a whole custom channel - calls it with the `compile` line's values for its
+   `uniform` parameters, writes the clip-space position to `POSITION` - its depth turned with `z = w − z`, Godot's being
+   reversed, and its y turned over, the rendering device's clip y running down the screen where Direct3D's runs up; both
+   are what Godot's own projection does and a written `POSITION` skips, and the map's screenshot showed the second - and every other
    output to a varying named by its semantic, **a colour clamped to nought and one as Direct3D 9 clamps it** between the
    stages. `fragment()` reads the pixel shader's inputs from those varyings by semantic - one the vertex shader does not
    give is nought and reported, as is the position, which these shader models cannot read - calls it and writes its
-   colour; **the alpha only where the pass blends**.
+   colour as the states in force say (7).
 6. **The fixed pipeline**, for a pass with no vertex shader: the position by a transform the engine sets
    (`fx_fixed_transform`), the vertex's colour and first texture coordinate passed on; with no pixel shader, the vertex's
    colour.
-7. **Render states**: drawn unshaded, never culled and without Godot's fog; `ALPHABLENDENABLE` a blend - mixed by alpha
-   unless `SrcBlend`/`DestBlend` say added or multiplied, Direct3D's own default being neither and the engine's device
-   state what decides (section 6) - and `ZENABLE` and `ZWRITEENABLE` off the depth test and depth writes. The rest are kept
-   as written for the engine.
+7. **Render states**: a pass draws under **the device's states as the engine leaves them at the draw, with the pass's own
+   laid over them** - Direct3D's way, and the effect files lean on it: `buttonstate.fx` turns blending on and leaves the
+   factors to the engine, and the far beaches' technique sets nothing and draws SRCALPHA / ZERO because the engine set that
+   (`reversing/findings/FINDINGS-mapdraw.md`, C). The caller hands the device's states by name; where it hands none, a
+   blend by source alpha is assumed, as the interface draws. From what is then in force: drawn unshaded, without Godot's fog
+   and never culled (the map is flat, and the winding the original's matrices give was not set against Godot's); the two
+   blend factors as Godot's blend modes exactly - SRCALPHA / INVSRCALPHA mixed, SRCALPHA / ONE and ONE / ONE added (the
+   latter with a solid alpha), ONE / INVSRCALPHA premultiplied, DESTCOLOR / ZERO and ZERO / SRCCOLOR multiplied, ONE /
+   ZERO solid, and **SRCALPHA / ZERO, which no mode of Godot's is, as the colour times its alpha written solid** - any other
+   pair mixed and reported; **the alpha test** where `ALPHATESTENABLE` is on, `ALPHAFUNC` against `ALPHAREF` over 255 - the
+   engine's 8 and GREATEREQUAL, so a tested pass discards alpha under 8/255 - as a `discard`; and `ZENABLE` and
+   `ZWRITEENABLE` off the depth test and depth writes - **and `ZWRITEENABLE` on, for a pass that blends, as
+   `depth_draw_always`**: Direct3D writes depth whether a pass blends or not, Godot's blended materials do not unless told,
+   and the map's sea, drawn after the beaches, covered them until this (`mapdraw.md`, section 6).
 8. **Samplers**: a `uniform sampler2D` with Direct3D's defaults where the file says nothing - point filtering, no mipmaps,
    wrapping - linear where either filter is linear or anisotropic, mipmapped where `MipFilter` is not `None`, repeating
    where `AddressU` wraps (`Mirror` and `Border` do not repeat). `CShaderTexture` gives the texture it reads and the file
@@ -84,6 +99,28 @@ translated.
    textures are sampled as they are (no `source_color`), and the colour written is converted from sRGB to linear
    (`fx_to_linear`), which the renderer's own conversion undoes. Blending happens in linear space here and in gamma space
    in the original - a difference for blended passes, not yet measured.
+
+10. **The canvas** (`EShaderTarget.Canvas`), for the interface: Godot's 2D renderer places the element, so the effect's
+    vertex shader runs for what else it gives - its texture coordinates, `buttonstate.fx`'s frame offset - its position
+    read from Godot's `VERTEX` with nought depth, its first texture coordinate from `UV` and its colour from `COLOR`, and
+    what it works out for `POSITION` dropped; a canvas has no normal or second coordinate (reported, nought). **The drawn
+    texture**: one texture of the effect may be named the element's own - `buttonstate.fx`'s `tex0` - and every sampler of
+    it then reads Godot's `TEXTURE`, handed down as a hidden parameter to every function that samples it, since Godot
+    shows `TEXTURE` to the stage functions alone; so an element is drawn as any other, a scrollbar's three textures through
+    one material among them, and the sampler's filter is the element's own. The colour is written as it is - Godot's 2D
+    draws in gamma space as Direct3D 9 does - its alpha solid where the pass does not blend, and multiplied by the
+    element's modulate, which stands for the colour the engine gives an element; not again where the vertex shader read
+    the vertex colour, which already carries it. `CEffectShaders` in the client reads and translates a file once and
+    keeps each technique's `Shader`; `CButtonShader` picks `buttonstate.fx`'s `up`, `over`, `down` and `disable` by the
+    element's look (`interface.md`, section 5). Checked on 2026-11-06: the main menu's greyed buttons grey, and the mouse
+    over Single Player raises it 22 a channel on average - the file's 0.1 of 255 less the pixels already full - the button
+    beside it unchanged.
+11. **Shared parameters**: a caller may name parameters to be Godot's **global uniforms** under names it gives -
+    `global uniform mat4 fx_map_view;` in place of the effect's `ViewMatrix` - which it registers with the rendering
+    server before any shader naming them is compiled, and then sets once for every material at the same time. Godot gives
+    a global uniform no value of its own, so a shared parameter's initialiser is dropped, and an array is never shared.
+    `CShaderUniform.Shared` marks one. The map's land and beaches share their view and projection: 2,700 materials take
+    one matrix each (`mapdraw.md`, section 3).
 
 What is kept that looks wrong, the files' own: `terrain_2_0.fx`'s overlay blend in `TerrainShader_Graphical` and
 `TerrainShader_General_Low` tests the overlay's red channel where its green is blended; `shadowmap.fx`'s `RenderShadow`
@@ -94,10 +131,12 @@ green by at most 5 of 255 - not to be seen (measured 2026-11-06).
 
 ## 4. What is checked, and how
 
-- `OpenHOI3.SaveCheck shaders <install> [mod folder] [out=folder] [file.fx] [pre=file]` reads and translates every effect
-  file, a mod's folder laid over the install's, and lists every problem; `out=` writes each pass as
-  `file.technique.pass.gdshader`, `pre=` the one file given preprocessed. On 2026-11-06: the install alone and with
-  BlackICE, **37 of 38 files and 87 of 88 passes without a problem**, the one `shadowmap.fx`'s above.
+- `OpenHOI3.SaveCheck shaders <install> [mod folder] [out=folder] [file.fx] [pre=file] [canvas]` reads and translates
+  every effect file, a mod's folder laid over the install's, and lists every problem; `out=` writes each pass as
+  `file.technique.pass.gdshader`, `pre=` the one file given preprocessed, `canvas` every pass for the canvas with the
+  file's first texture the drawn one. On 2026-11-06: the install alone and with BlackICE, **37 of 38 files and 87 of 88
+  passes without a problem**, the one `shadowmap.fx`'s above; for the canvas every pass compiles, the map's reported as
+  wanting what a canvas does not have.
 - `--shadercheck=folder` gives every `.gdshader` in a folder to Godot's renderer to compile and quits (it needs a window,
   a headless run compiles nothing), each name printed before its `SHADER ERROR`s. On 2026-11-06 **all 88 passes of the
   install with BlackICE, and of the install alone, compile without an error** - the positive control the run before it,
@@ -108,15 +147,13 @@ green by at most 5 of 255 - not to be seen (measured 2026-11-06).
 
 ## 5. Not built
 
-- **Drawing through them** (section 6): the engine side - meshes built with the channels the inputs name, every
-  parameter and texture set as the executable sets it, the technique picked as it picks it, and the device states the
-  effect files leave to it (culling, the blend factors, the alpha test).
 - Shader model 3 and asm effects, function-like macros, `#if` expressions: none of the files has them.
-- Caching the translations: to be measured first, by `CLAUDE.md`'s rule, once the game translates at its start.
+- Caching the translations: to be measured first, by `CLAUDE.md`'s rule. On 2026-11-06 the map's six terrain techniques
+  and six of the sea's are translated as a game is made, inside the surface's 0.9 s (`mapdraw.md`, section 6).
 
 ## 6. Next
 
-The map, drawn as the original draws it: the terrain, beaches, sea, borders and terra incognita through their techniques,
-picked at the original's thresholds (`FINDINGS-farmap.md`, A), with the parameters the executable sets each - a reading
-of the fact base's still to make for the inputs `MapGraphics_DrawScene` and its draws hand over - and then the far view's
-country names (B).
+The rest of the map through its own files, in the scene's order (`mapdraw.md`, section 6): the land borders, the far
+view's country names, the rivers, the surf and the trees; then the counters, the flags, the hierarchy's lines and the air
+map's circles, which this project still draws through shaders of its own - `counter.fx`, `maskedflag.fx`, `hierarchy.fx`
+and `circle.fx` are the original's for them.

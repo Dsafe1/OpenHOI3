@@ -290,7 +290,7 @@ public partial class CGuiButton : CGuiObject
 	{
 		if (_material is not null)
 		{
-			CButtonShader.Set(_material, Off ? EButtonLook.Disabled
+			_context!.ButtonShader.Set(_material, Off ? EButtonLook.Disabled
 				: _held ? EButtonLook.Down
 				: _hovered ? EButtonLook.Over
 				: EButtonLook.Up);

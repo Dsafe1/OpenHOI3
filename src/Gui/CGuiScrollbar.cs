@@ -27,6 +27,7 @@ public partial class CGuiScrollbar : CGuiObject
 	private TextureRect? _slider;
 	private ShaderMaterial? _sliderLook;
 	private ShaderMaterial? _barLook;
+	private CButtonShader? _buttonShader;
 	private StyleBoxTexture? _trackBox;
 	private float _sliderLength;
 	private bool _horizontal;
@@ -90,7 +91,8 @@ public partial class CGuiScrollbar : CGuiObject
 		// The slider is a node of its own because it is a button like any other, and
 		// is drawn like one: lighter under the mouse, darker while held, grey when locked.
 		// What the bar draws itself - the track and the two end buttons - goes grey with it when greyed.
-		_barLook = context.ButtonShader.Material();
+		_buttonShader = context.ButtonShader;
+		_barLook = _buttonShader.Material();
 		Material = _barLook;
 		if (slider is not null)
 		{
@@ -261,11 +263,11 @@ public partial class CGuiScrollbar : CGuiObject
 		bool greyed = IsGreyed;
 		if (_barLook is not null)
 		{
-			CButtonShader.Set(_barLook, greyed ? EButtonLook.Disabled : EButtonLook.Up);
+			_buttonShader?.Set(_barLook, greyed ? EButtonLook.Disabled : EButtonLook.Up);
 		}
 		if (_sliderLook is not null)
 		{
-			CButtonShader.Set(_sliderLook, _locked || greyed ? EButtonLook.Disabled
+			_buttonShader?.Set(_sliderLook, _locked || greyed ? EButtonLook.Disabled
 				: _dragging ? EButtonLook.Down
 				: _hovered ? EButtonLook.Over
 				: EButtonLook.Up);

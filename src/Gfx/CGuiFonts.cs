@@ -114,6 +114,20 @@ public sealed class CGuiFonts
 		return font;
 	}
 
+	/// <summary>A font file's descriptor, <c>gfx/fonts/&lt;name&gt;.fnt</c> in whichever layer has it, or null.</summary>
+	public CFontDescriptor? Descriptor(string fontName)
+	{
+		if (!_descriptors.TryGetValue(fontName, out CFontDescriptor? descriptor))
+		{
+			string path = _directories.Resolve($"gfx/fonts/{fontName}.fnt");
+			descriptor = File.Exists(path) ? CFontDescriptor.Load(path) : null;
+			_descriptors[fontName] = descriptor;
+		}
+		return descriptor;
+	}
+
+	private readonly Dictionary<string, CFontDescriptor?> _descriptors = new(StringComparer.OrdinalIgnoreCase);
+
 	private CGuiFont? Make(string fontName)
 	{
 		if (_files.TryGetValue(fontName, out CGuiFont? cached))

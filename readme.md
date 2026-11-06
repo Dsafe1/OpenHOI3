@@ -1647,11 +1647,22 @@ through the land a country controls by its capital, bent along a spline, in its 
 need to actually support moddable shaders", BlackICE changing the terrain, the sea and the air map's circles in its own
 `gfx/FX` - every effect file is read through the layers, preprocessed, parsed and each pass of each technique written as a
 Godot shader (`Content/Shaders`): all 88 passes of the install with BlackICE translate, the one problem `shadowmap.fx`'s
-own, and all 88 compile in Godot (`OpenHOI3.SaveCheck shaders`, `--shadercheck=`). **Nothing draws through them yet.
-Next up**: the map drawn as the original draws it - its meshes, the parameters and textures the executable sets each
-effect, its techniques picked at its thresholds - which wants a reading of those inputs first; then the far view and its
-country names on top. Then war exhaustion, or the military AI's gaps (*What the moving wave left*), or the end-of-game
-screen.
+own, and all 88 compile in Godot (`OpenHOI3.SaveCheck shaders`, `--shadercheck=`), for the 3D renderer and for the 2D
+canvas; **the buttons, icons and scrollbars draw through the install's `buttonstate.fx`**, translated for the canvas, in
+place of the hand-written shader of before. **And the map's land, beaches and sea, drawn as the original draws them**
+(2026-11-06, `docs/mechanics/mapdraw.md`): the install's quad cache read (`CQuadCache`, `OpenHOI3.SaveCheck quads`, the
+fact base's figures every one), the original's camera made to agree with the 2D view, and each tile through
+`terrain_2_0.fx` and the sea through `water.fx` as translated, fed what the executable feeds them
+(`FINDINGS-mapdraw.md`), their technique picked by the map mode's style and the 500 threshold - tried with
+`--screenshot`, and the maintainer has not looked at it. **And the land borders** through the cache's border meshes and
+`TerrainShader_Border`, province lines grey and country lines red, none in the far view, their junctions from the
+map cache's corner pixels made again for the controllers as the original does (the fact base's B.7) - **and the far
+view's country names** (`docs/mechanics/mapnames.md`): each country's name laid over the land joined to its capital as
+the original lays it out, bent along it, in its faction's font. **Next up**: the sea's borders, which
+`PoliticalMap.gdshader` still draws over the surface; the rivers, the surf and the trees, each wanting a reading first;
+then the interface's other effects the client still imitates in C# -
+`counter.fx`, `maskedflag.fx`, `hierarchy.fx`, `circle.fx`. Then war exhaustion, or the military AI's gaps (*What the moving wave
+left*), or the end-of-game screen.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
@@ -1736,6 +1747,14 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 None of these blocks the list above.
 
+- **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
+  and the front end makes its meshes again for each world it shows - the quad cache it reads once - which could be kept
+  between worlds; a map whose cache is missing or stale is drawn flat by
+  `PoliticalMap.gdshader` as before, the original's rebuilding of its cache not read; the selection's and the mouse's
+  highlight is ours, in 2D, until the original's - green in the first lookup - is built; revolt risk's map style is ours.
+  **The air map mode's land is a patchwork of greys**: `CMapView.AirOver`, the stand-in from before the surface, lays each
+  colour over the province's terrain colour turned grey, and the surface's own technique then works on that again; what
+  the original's lookup holds in that mode - the colour alone, its alpha - was not read, and is wanted before it is mended.
 - **A series names each division afresh since 2026-11-02**, as the Ireland game's saves show the original does
   (`docs/mechanics/buildqueue.md`, section 6) - measured and not read, so whether the original takes the new name by the
   same routine as a new order, and whether a series of ships or wings is named afresh too, are open.

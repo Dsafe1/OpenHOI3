@@ -48,6 +48,12 @@ if (args.Length > 0 && args[0] == "write")
 	return CWriteCheck.Run(args);
 }
 
+// The install's quad cache, the map's meshes as the original draws them.
+if (args.Length > 0 && args[0] == "quads")
+{
+	return CQuadCheck.Run(args);
+}
+
 // Every effect file of the install's gfx/FX, and of a mod's, read and translated to Godot shaders.
 if (args.Length > 0 && args[0] == "shaders")
 {

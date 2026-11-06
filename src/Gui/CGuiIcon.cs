@@ -291,7 +291,7 @@ public partial class CGuiIcon : CGuiObject
 			material = _context.ButtonShader.Material();
 			_rect.Material = material;
 		}
-		CButtonShader.Set(material, look);
+		_context.ButtonShader.Set(material, look);
 	}
 
 	/// <summary>How much of a progress bar is filled, in hundredths. Nothing to any other icon.</summary>

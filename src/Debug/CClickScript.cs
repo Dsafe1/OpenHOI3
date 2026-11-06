@@ -160,6 +160,41 @@ public sealed class CClickScript
 				}
 				continue;
 			}
+			// z+ before a point turns the wheel up there, which zooms the map in, and z- down; z+5 turns it five notches.
+			if (entry.StartsWith("z+") || entry.StartsWith("z-"))
+			{
+				bool upward = entry[1] == '+';
+				string rest = entry[2..];
+				int notches = 1;
+				int countEnd = rest.IndexOf(':');
+				if (countEnd > 0 && int.TryParse(rest[..countEnd], NumberStyles.Integer, CultureInfo.InvariantCulture, out int count))
+				{
+					notches = count;
+					rest = rest[(countEnd + 1)..];
+				}
+				string[] to = rest.Split(',');
+				if (to.Length == 2
+					&& float.TryParse(to[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float zx)
+					&& float.TryParse(to[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float zy))
+				{
+					var where = new Vector2(zx, zy);
+					await Frames(3);
+					_host.GetViewport().PushInput(new InputEventMouseMotion { Position = where, GlobalPosition = where }, true);
+					for (int notch = 0; notch < notches; notch++)
+					{
+						await Frames(1);
+						MouseButton wheel = upward ? MouseButton.WheelUp : MouseButton.WheelDown;
+						_host.GetViewport().PushInput(new InputEventMouseButton { Position = where, GlobalPosition = where, ButtonIndex = wheel, Pressed = true }, true);
+						_host.GetViewport().PushInput(new InputEventMouseButton { Position = where, GlobalPosition = where, ButtonIndex = wheel, Pressed = false }, true);
+					}
+					await Frames(2);
+				}
+				else
+				{
+					GD.Print($"--click: '{entry}' is not a point to turn the wheel at.");
+				}
+				continue;
+			}
 			// m before a point only moves the pointer there, which is how a tooltip is asked for.
 			if (entry.StartsWith('m'))
 			{

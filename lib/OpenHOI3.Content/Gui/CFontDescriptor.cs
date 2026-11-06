@@ -20,6 +20,13 @@ public sealed class CFontDescriptor
 
 	private readonly Dictionary<int, int> _advances = new();
 	private readonly Dictionary<int, int> _widths = new();
+	private readonly Dictionary<int, CFontGlyph> _glyphs = new();
+
+	/// <summary>A character's glyph - its box, offsets and advance - or nothing for one the font does not have.</summary>
+	public CFontGlyph? Glyph(char character)
+	{
+		return _glyphs.TryGetValue(character, out CFontGlyph glyph) ? glyph : null;
+	}
 
 	/// <summary>The typeface's name, as the tool that made the glyphs was given it: <c>Arial</c>.</summary>
 	public string Face { get; private set; } = "";
@@ -76,6 +83,7 @@ public sealed class CFontDescriptor
 				{
 					descriptor._advances[numbers[0]] = numbers[7];
 					descriptor._widths[numbers[0]] = numbers[3];
+					descriptor._glyphs[numbers[0]] = new CFontGlyph(numbers[3], numbers[4], numbers[5], numbers[6], numbers[7]);
 				}
 			}
 		}

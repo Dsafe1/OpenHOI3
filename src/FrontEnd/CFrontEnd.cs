@@ -34,6 +34,7 @@ public partial class CFrontEnd : Node
 	private CAiScripts? _aiScripts;
 	private CGuiContext _gui = null!;
 	private CMapView? _mapView;
+	private System.Collections.Generic.IReadOnlyList<Content.Map.CQuadTile>? _quadTiles;
 	private CMainMenu _menu = null!;
 	private CLobby _lobby = null!;
 	private CLobbyOptions? _lobbyOptions;
@@ -236,6 +237,9 @@ public partial class CFrontEnd : Node
 		}
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(_map, state);
+		// The quad cache read once for every world the front end shows.
+		_quadTiles ??= Content.Map.CQuadCache.Load(_directories, problem => GD.PushWarning($"map: {problem}"));
+		_mapView.SetupSurface(_gui, _directories, Settings.SimpleWater, _quadTiles);
 		AddChild(_mapView);
 		MoveChild(_mapView, 0);
 		_mapView.ProvinceSelected += province => _lobby?.ProvinceClicked(province);

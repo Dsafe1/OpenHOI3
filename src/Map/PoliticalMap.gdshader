@@ -27,6 +27,15 @@ uniform float province_border = 0.0;
 uniform int hovered_province = 0;
 // A texel a province, lit where the province is selected.
 uniform sampler2D selection : filter_nearest, repeat_disable;
+// Set where the surface is drawn in 3D under this (docs/mechanics/mapdraw.md): the surface draws the land's borders, so
+// only the lines between two sea provinces and the highlights are laid over it, as see-through black and white.
+uniform bool overlay_only = false;
+// A texel a province, lit where it is sea.
+uniform sampler2D sea : filter_nearest, repeat_disable;
+
+bool is_sea(int province) {
+	return province != 0 && texelFetch(sea, ivec2(province % 256, province / 256), 0).r > 0.5;
+}
 
 // Line half-widths, in screen pixels.
 const float COUNTRY_LINE = 0.9;
@@ -115,8 +124,24 @@ void fragment() {
 		if (down > 1.5) { country = 1.0; } else { province = 1.0; }
 	}
 
-	colour = mix(colour, colour * 0.72, province * province_border * (1.0 - country));
-	colour = mix(colour, colour * 0.25, country);
-
-	COLOR = vec4(colour, 1.0);
+	if (overlay_only) {
+		// Only between two sea provinces, and as a province's line: the sea has no holder to change.
+		bool sea_line = is_sea(here) && (province > 0.0 || country > 0.0)
+			&& (left == 0.0 || is_sea(province_at(texel + ivec2(-1, 0))))
+			&& (right == 0.0 || is_sea(province_at(texel + ivec2(1, 0))))
+			&& (up == 0.0 || is_sea(province_at(texel + ivec2(0, -1))))
+			&& (down == 0.0 || is_sea(province_at(texel + ivec2(0, 1))));
+		float dark = sea_line ? 0.28 * province_border : 0.0;
+		float light = 0.0;
+		if (here != 0 && texelFetch(selection, ivec2(here % 256, here / 256), 0).r > 0.5) {
+			light = 0.45;
+		} else if (here != 0 && here == hovered_province) {
+			light = 0.2;
+		}
+		COLOR = dark > 0.0 ? vec4(0.0, 0.0, 0.0, dark) : vec4(1.0, 1.0, 1.0, light);
+	} else {
+		colour = mix(colour, colour * 0.72, province * province_border * (1.0 - country));
+		colour = mix(colour, colour * 0.25, country);
+		COLOR = vec4(colour, 1.0);
+	}
 }

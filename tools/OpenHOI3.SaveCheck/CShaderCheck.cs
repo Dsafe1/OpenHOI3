@@ -8,7 +8,7 @@ using OpenHOI3.Content.Shaders;
 /// <summary>
 /// Reads and translates every effect file of the install's <c>gfx/FX</c>, and of a mod's where one is given:
 ///
-///   OpenHOI3.SaveCheck shaders &lt;install&gt; [mod folder] [out=folder] [file.fx]
+///   OpenHOI3.SaveCheck shaders &lt;install&gt; [mod folder] [out=folder] [file.fx] [canvas]
 ///
 /// Each file is preprocessed, parsed and every pass of every technique written as a Godot shader; it says how many of
 /// each read and translated and lists every problem. A mod's folder is laid over the install's, as the original lays
@@ -21,12 +21,14 @@ public static class CShaderCheck
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("shaders: <install> [mod folder] [out=folder] [file.fx]");
+			Console.Error.WriteLine("shaders: <install> [mod folder] [out=folder] [file.fx] [canvas]");
 			return 2;
 		}
 		CDirectorySettings directories = CDirectorySettings.At(args[1]);
-		string? mod = args.Skip(2).FirstOrDefault(a => !a.StartsWith("out=") && !a.EndsWith(".fx") && Directory.Exists(a));
+		string? mod = args.Skip(2).FirstOrDefault(a => !a.StartsWith("out=") && !a.EndsWith(".fx") && a != "canvas" && Directory.Exists(a));
 		string? output = args.FirstOrDefault(a => a.StartsWith("out="))?["out=".Length..];
+		// canvas writes every pass for the 2D canvas, the first texture of a file the drawn one.
+		bool canvas = args.Contains("canvas");
 		string? only = args.Skip(2).FirstOrDefault(a => a.EndsWith(".fx"));
 		// pre=file writes the one file given, preprocessed, for reading a problem's line against.
 		string? preprocessed = args.FirstOrDefault(a => a.StartsWith("pre="))?["pre=".Length..];
@@ -78,7 +80,9 @@ public static class CShaderCheck
 				foreach (CFxPass pass in technique.Passes)
 				{
 					passes++;
-					CGodotShader shader = CGodotShaderWriter.Write(effect, technique, pass);
+					CGodotShader shader = canvas
+						? CGodotShaderWriter.Write(effect, technique, pass, EShaderTarget.Canvas, effect.Variables.FirstOrDefault(v => v.Type.Base == EFxBase.Texture)?.Name)
+						: CGodotShaderWriter.Write(effect, technique, pass);
 					problems.AddRange(shader.Problems.Select(p => $"{technique.Name}.{pass.Name}: {p}"));
 					if (shader.Problems.Count == 0)
 					{

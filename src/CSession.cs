@@ -225,6 +225,7 @@ public partial class CSession : Node
 		_mapView.Player = Player?.Tag;
 		_mapView.SetupCounters(gui, CCounterTypes.Load(_directories), CBillboardTypes.Load(_directories),
 			CArrowTypes.Load(_directories));
+		_mapView.SetupSurface(gui, _directories, Settings.SimpleWater);
 		AddChild(_mapView);
 
 		BuildHud(gui);
@@ -896,6 +897,8 @@ public partial class CSession : Node
 			}
 			// The air map mode's rings, pictures and icons are made again each day.
 			_mapView.RefreshAirMap();
+			// And the country names' factions, which no change of hands marks.
+			_mapView.RefreshNames();
 		}
 		// Its colours, when one of the player's fighter missions has started or gone.
 		if (_mapView.Mode == CMapView.MapMode.Air)

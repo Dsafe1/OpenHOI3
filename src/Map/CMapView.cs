@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
+using OpenHOI3.Content;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Gfx;
 using OpenHOI3.Gui;
@@ -8,6 +10,7 @@ using OpenHOI3.Interface.Map;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Intelligence;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -143,6 +146,99 @@ public partial class CMapView : Node2D
 		_textures = gui.Textures;
 	}
 
+	/// <summary>
+	/// Gives the map its surface drawn as the original draws it, through the install's effect files, from the install's
+	/// quad cache (<c>docs/mechanics/mapdraw.md</c>); where the cache cannot be read the map is drawn flat as before. Before
+	/// the node enters the tree, and after <see cref="Setup"/>.
+	/// </summary>
+	public void SetupSurface(CGuiContext gui, CDirectorySettings directories, bool simpleWater, IReadOnlyList<CQuadTile>? read = null)
+	{
+		IReadOnlyList<CQuadTile> tiles = read ?? CQuadCache.Load(directories, problem => GD.PushWarning($"map: {problem}"));
+		// The borders' corners are this view's own: their bytes carry over from one change of hands to the next.
+		_corners = CBorderCache.Load(directories, _map.Width, _map.Height, problem => GD.PushWarning($"map: {problem}"));
+		if (tiles.Count == 0)
+		{
+			GD.PushWarning("map: no quad cache read, so the surface is drawn flat");
+			return;
+		}
+		_surface = new CMapSurface();
+		_surface.Setup(_map, gui, tiles, CQuadCache.Columns(directories), simpleWater, _corners);
+		_textures ??= gui.Textures;
+		_names = new CCountryMapNames { Name = "CountryNames", Visible = false };
+		_names.Setup(_map, _state, gui.Fonts);
+	}
+
+	private CMapSurface? _surface;
+	private CBorderCache? _corners;
+	private ushort[]? _pixels;
+	private int[]? _controllers;
+	private bool[]? _land;
+
+	/// <summary>Ours: how often at most the borders are made again, in seconds of the clock on the wall.</summary>
+	private const double BordersInterval = 0.25;
+	private bool _bordersDirty;
+	private double _sinceBorders;
+
+	/// <summary>The game's count of changes of hands when the borders were last made, or -1 before the first.</summary>
+	private long _bordersAt = -1;
+
+	/// <summary>
+	/// The border lookup made again, its corners worked out first where a province has changed hands since - as the
+	/// original runs its passes only at a change of controller (<c>FINDINGS-mapdraw.md</c>, B.7), so their bytes carry over.
+	/// </summary>
+	private void RefreshBorders()
+	{
+		if (_surface is null)
+		{
+			return;
+		}
+		// Every province's controller as a number once, for the passes and the lookup alike.
+		int count = _state.Provinces.Count;
+		if (_controllers?.Length != count)
+		{
+			_controllers = new int[count];
+			_land = new bool[count];
+			for (int id = 1; id < count; id++)
+			{
+				_land[id] = !_state.Provinces[id].IsSea;
+			}
+		}
+		int[] controllers = _controllers;
+		bool[] land = _land!;
+		for (int id = 0; id < count; id++)
+		{
+			controllers[id] = _state.Provinces[id].Controller is { } tag ? (_state.Country(tag)?.Index ?? -1) + 1 : 0;
+		}
+		if (_corners is not null && _state.ControlChanges != _bordersAt)
+		{
+			_bordersAt = _state.ControlChanges;
+			ushort[] pixels = _pixels ??= _map.Raster.ToArray();
+			int width = _map.Width;
+			CBorderCorners.Refresh(_corners, _map.Width, _map.Height, (x, y) => pixels[y * width + x],
+				id => id > 0 && id < land.Length && land[id], id => id < controllers.Length ? controllers[id] : 0);
+		}
+		_surface.SetBorders((a, b) => controllers[a] == controllers[b]);
+	}
+
+	/// <summary>The far view's country names, which come with the surface (<c>docs/mechanics/mapnames.md</c>).</summary>
+	private CCountryMapNames? _names;
+
+	/// <summary>
+	/// Whether the names are shown: in the far view - the camera above the first of `terrain_sheet_heights` - and in any map
+	/// style but 0, the terrain and weather modes [exe] (<c>FINDINGS-farmap.md</c>, B.4).
+	/// </summary>
+	private bool NamesShown()
+	{
+		float height = GetViewportRect().Size.Y / _camera.Zoom.Y / (2f * Mathf.Tan(CMapSurfaceCamera.FieldOfView / 2f));
+		return _map.Level(height) > 0 && Style(_mode) != 0;
+	}
+
+	/// <summary>Works out again which country names rest on what: once a day, for a faction joined or left.</summary>
+	public void RefreshNames()
+	{
+		_names?.Refresh();
+	}
+
 	/// <summary>The units on the map, or null when it was given none to draw.</summary>
 	public CUnitCounters? Counters => _counters;
 
@@ -246,6 +342,10 @@ public partial class CMapView : Node2D
 				_counters.AirMode = value == MapMode.Air;
 				_counters.WeatherMode = value == MapMode.Weather;
 			}
+			if (_surface is not null)
+			{
+				_surface.Style = Style(value);
+			}
 			RefreshColours();
 		}
 	}
@@ -259,9 +359,28 @@ public partial class CMapView : Node2D
 		}
 	}
 
+	/// <summary>
+	/// The original's map style for a mode (<c>reversing/findings/FINDINGS-farmap.md</c>, A.3): 0 the terrain and weather
+	/// modes, which draw the ground as it is, 18 the air mode, 9 supply and 2 the political - and ours for revolt risk,
+	/// which the original's style for it was not read.
+	/// </summary>
+	private static int Style(MapMode mode) => mode switch
+	{
+		MapMode.Terrain or MapMode.Weather => 0,
+		MapMode.Supply => 9,
+		MapMode.Air => 18,
+		_ => 2,
+	};
+
 	public override void _Ready()
 	{
+		if (_surface is not null)
+		{
+			_surface.Style = Style(_mode);
+			AddChild(_surface);
+		}
 		_material = new ShaderMaterial { Shader = GD.Load<Shader>(ShaderPath) };
+		_material.SetShaderParameter("overlay_only", _surface is not null);
 		_material.SetShaderParameter("province_ids", BuildProvinceTexture());
 		_material.SetShaderParameter("map_size", new Vector2I(_map.Width, _map.Height));
 		Material = _material;
@@ -277,6 +396,17 @@ public partial class CMapView : Node2D
 		_selectionImage = Image.CreateEmpty(PaletteWidth, rows, false, Image.Format.R8);
 		_selectionTexture = ImageTexture.CreateFromImage(_selectionImage);
 		_material.SetShaderParameter("selection", _selectionTexture);
+		// A texel a province, lit where it is sea: over the surface the 2D lines are the sea's alone, which the surface does
+		// not draw yet (mapdraw.md, section 6).
+		var seaImage = Image.CreateEmpty(PaletteWidth, rows, false, Image.Format.R8);
+		for (int id = 1; id < _map.ProvinceCount; id++)
+		{
+			if (_state.Provinces[id].IsSea)
+			{
+				seaImage.SetPixel(id % PaletteWidth, id / PaletteWidth, Colors.White);
+			}
+		}
+		_material.SetShaderParameter("sea", ImageTexture.CreateFromImage(seaImage));
 
 		// The stripes are the original's own picture, and without it nothing is striped.
 		if (_textures?.LoadImage(StripesPath) is { } stripes)
@@ -289,6 +419,11 @@ public partial class CMapView : Node2D
 		_camera = new Camera2D { Position = new Vector2(_map.Width / 2f, _map.Height / 2f) };
 		AddChild(_camera);
 		_camera.MakeCurrent();
+		// The names are drawn before the units' layers, as the original's scene draws them (FINDINGS-mapdraw.md, C.1).
+		if (_names is not null)
+		{
+			AddChild(_names);
+		}
 		if (_counters is not null)
 		{
 			_counters.Selection = _units;
@@ -445,7 +580,26 @@ public partial class CMapView : Node2D
 		}
 		_paletteTexture.Update(_paletteImage);
 		_stripeTexture.Update(_stripeImage);
+		_surface?.SetColours(_paletteImage, _stripeImage, KnownWell);
+		// The borders follow at most four times a second: at the top speed of a war, hands change most hours.
+		_bordersDirty = true;
+		_names?.Refresh();
 	}
+
+	/// <summary>
+	/// Whether the player knows a province at 2 or more, which the surface draws unfogged (<c>mapdraw.md</c>, section 5);
+	/// with nobody playing, every province.
+	/// </summary>
+	private float KnownWell(int id)
+	{
+		if (Player is not { } player || id <= 0 || id >= _state.Provinces.Count)
+		{
+			return 1f;
+		}
+		return CProvinceIntel.Level(_state, _state.Provinces[id], player) >= KnownWellLevel ? 1f : 0f;
+	}
+
+	private const int KnownWellLevel = 2;
 
 	/// <summary>How much of a province's colour the original's water shader lays over the sea.</summary>
 	private const float WaterTakes = 0.8f;
@@ -485,7 +639,10 @@ public partial class CMapView : Node2D
 	{
 		zoom = Mathf.Clamp(zoom, MinZoom(), MaxZoom());
 		_camera.Zoom = new Vector2(zoom, zoom);
-		_material.SetShaderParameter("province_border", Mathf.SmoothStep(1.2f, 2.5f, zoom));
+		// Over the surface the lines are the sea zones' alone, which the original's far view does not draw.
+		float height = GetViewportRect().Size.Y / zoom / (2f * Mathf.Tan(CMapSurfaceCamera.FieldOfView / 2f));
+		bool far = _surface is not null && _map.Level(height) > 0;
+		_material.SetShaderParameter("province_border", far ? 0f : Mathf.SmoothStep(1.2f, 2.5f, zoom));
 		ClampCamera();
 	}
 
@@ -506,6 +663,7 @@ public partial class CMapView : Node2D
 
 		Vector2 seen = GetViewportRect().Size / _camera.Zoom;
 		_counters?.ViewChanged(_camera.Zoom.X, new Rect2(position - seen / 2f, seen));
+		_surface?.SetView(position, _camera.Zoom.X, GetViewportRect().Size);
 	}
 
 	/// <summary>Where a point on the screen is on the map, in this node's coordinates.</summary>
@@ -947,6 +1105,19 @@ public partial class CMapView : Node2D
 			_camera.Position += direction * (KeyScrollSpeed * (float)delta / _camera.Zoom.X);
 			ClampCamera();
 			UpdateHover(GetViewport().GetMousePosition());
+		}
+		// The surface follows the 2D camera wherever it was moved from; nothing is made again where it has not.
+		_surface?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size);
+		if (_names is not null)
+		{
+			_names.Visible = NamesShown();
+		}
+		_sinceBorders += delta;
+		if (_bordersDirty && (_sinceBorders >= BordersInterval || _bordersAt < 0))
+		{
+			_bordersDirty = false;
+			_sinceBorders = 0;
+			RefreshBorders();
 		}
 	}
 }

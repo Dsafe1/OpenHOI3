@@ -32,8 +32,13 @@ public sealed class CGuiContext
 	/// </summary>
 	public CGuiTextBox? KeyboardFocus { get; set; }
 
-	/// <summary>What draws a button under the mouse, held down and switched off.</summary>
-	public CButtonShader ButtonShader { get; } = new();
+	/// <summary>The install's effect files as Godot shaders, a mod's over the install's (<c>docs/mechanics/shaders.md</c>).</summary>
+	public required CEffectShaders Effects { get; init; }
+
+	private CButtonShader? _buttonShader;
+
+	/// <summary>What draws a button under the mouse, held down and switched off: <c>buttonstate.fx</c>.</summary>
+	public CButtonShader ButtonShader => _buttonShader ??= new CButtonShader(Effects);
 
 	private CTextIconTextures? _textIcons;
 
@@ -53,6 +58,7 @@ public sealed class CGuiContext
 			Shields = new CShields(textures),
 			// The player's choices over the install's, as the original reads them at every start (ingamemenu.md, section 5).
 			MessageTypes = CMessageTypes.Load(directories, MessageTypesPath),
+			Effects = new CEffectShaders(directories),
 		};
 	}
 }

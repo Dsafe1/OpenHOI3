@@ -54,15 +54,45 @@ public sealed class CGodotShaderWriter
 	/// <summary>Translated code and the HLSL type of what it gives.</summary>
 	private readonly record struct Typed(string Code, CFxType Type, int? ArraySize = null);
 
-	private CGodotShaderWriter(CFxEffect effect)
+	private readonly EShaderTarget _target;
+	private readonly string? _drawnTexture;
+
+	/// <summary>The functions that sample the drawn texture, themselves or through what they call, which are handed it.</summary>
+	private readonly HashSet<string> _drawing = new(StringComparer.Ordinal);
+
+	/// <summary>The hidden parameter the drawn texture is handed down in: Godot's <c>TEXTURE</c> is seen in the stages alone.</summary>
+	private const string Drawn = "fx_drawn";
+
+	private readonly IReadOnlyDictionary<string, string>? _device;
+
+	/// <summary>The effect's parameters made Godot's global uniforms, each under the name given.</summary>
+	private readonly IReadOnlyDictionary<string, string>? _shared;
+
+	private CGodotShaderWriter(CFxEffect effect, EShaderTarget target, string? drawnTexture, IReadOnlyDictionary<string, string>? device,
+		IReadOnlyDictionary<string, string>? shared)
 	{
 		_effect = effect;
+		_target = target;
+		_drawnTexture = target == EShaderTarget.Canvas ? drawnTexture : null;
+		_device = device;
+		_shared = shared;
 	}
 
-	/// <summary>A pass of an effect's technique as a Godot shader.</summary>
-	public static CGodotShader Write(CFxEffect effect, CFxTechnique technique, CFxPass pass)
+	private bool Canvas => _target == EShaderTarget.Canvas;
+
+	/// <summary>
+	/// A pass of an effect's technique as a Godot shader, for the 3D renderer or the 2D canvas. On the canvas a texture of
+	/// the effect may be named the drawn one: every sampler of it reads the texture Godot draws the element with - its
+	/// <c>TEXTURE</c> - instead of a uniform, so the element is drawn as any other is. The device's render states as the
+	/// engine leaves them at the draw - <c>SRCBLEND</c>, <c>ALPHATESTENABLE</c>, <c>ZENABLE</c> and the rest, by name - are
+	/// what the pass's own are laid over; with none, a blend by source alpha. Parameters named in
+	/// <paramref name="shared"/> - one matrix for a thousand meshes - become Godot's global uniforms under the names given,
+	/// which the engine has to have registered before the shader is compiled.
+	/// </summary>
+	public static CGodotShader Write(CFxEffect effect, CFxTechnique technique, CFxPass pass, EShaderTarget target = EShaderTarget.Spatial,
+		string? drawnTexture = null, IReadOnlyDictionary<string, string>? device = null, IReadOnlyDictionary<string, string>? shared = null)
 	{
-		return new CGodotShaderWriter(effect).WritePass(technique, pass);
+		return new CGodotShaderWriter(effect, target, drawnTexture, device, shared).WritePass(technique, pass);
 	}
 
 	/// <summary>A name as the shader has it: the effect's own, but for one Godot's language reserves.</summary>
@@ -87,8 +117,9 @@ public sealed class CGodotShaderWriter
 			Problem(technique.Line, $"the pixel shader '{pass.Pixel.Function}' is not a function of the file");
 		}
 
-		code.Append("shader_type spatial;\n");
-		code.Append("render_mode ").Append(string.Join(", ", RenderModes(pass))).Append(";\n\n");
+		SetStates(pass);
+		code.Append(Canvas ? "shader_type canvas_item;\n" : "shader_type spatial;\n");
+		code.Append("render_mode ").Append(string.Join(", ", RenderModes())).Append(";\n\n");
 
 		// What the two entry points reach, in the file's order, which is the order Godot needs them declared in.
 		var reached = new HashSet<string>(StringComparer.Ordinal);
@@ -101,6 +132,7 @@ public sealed class CGodotShaderWriter
 		{
 			Collect(argument, names);
 		}
+		FindDrawing(reached);
 
 		foreach (CFxStruct type in StructsUsed(reached, vertex, pixel))
 		{
@@ -139,7 +171,12 @@ public sealed class CGodotShaderWriter
 			code.Append(type.Base == EFxBase.Float ? "varying " : "varying flat ").Append(GodotType(type)).Append(' ')
 				.Append(VaryingName(semantic)).Append(";\n");
 		}
-		if (varyings.Count > 0)
+		if (Canvas)
+		{
+			// The element's colour Godot gives it - its modulate - multiplied into what the pixel shader gives (section 3).
+			code.Append("varying vec4 fx_modulate;\n");
+		}
+		if (varyings.Count > 0 || Canvas)
 		{
 			code.Append('\n');
 		}
@@ -166,48 +203,191 @@ public sealed class CGodotShaderWriter
 		}
 		else
 		{
-			WriteFixedFragment(code, pass);
+			WriteFixedFragment(code);
 		}
 		return new CGodotShader(technique.Name, pass.Name, code.ToString(), uniforms, textures, inputs, pass.States, _problems);
 	}
 
 	// ----------------------------------------------------------------------------------------------- the pass's frame
 
+	/// <summary>The states in force for the pass: the engine's at the draw, the pass's own laid over them, upper case.</summary>
+	private Dictionary<string, string> _states = new(StringComparer.Ordinal);
+
 	/// <summary>
-	/// The render states a pass sets, as Godot's render modes: drawn unshaded and never culled, blended where
-	/// <c>ALPHABLENDENABLE</c> - mixed by alpha unless the blend states say added or multiplied - and the depth test and
-	/// depth writes where the pass turns them off. Culling and the rest are the engine's (section 4).
+	/// The states a pass draws under: the device's as the engine left them at the draw - or, where none are given, the
+	/// blend by source alpha the interface draws under - with every state the pass sets laid over them, as Direct3D lays a
+	/// pass's states over the device's (section 3.7).
 	/// </summary>
-	private static IEnumerable<string> RenderModes(CFxPass pass)
+	private void SetStates(CFxPass pass)
 	{
-		yield return "unshaded";
-		yield return "cull_disabled";
-		yield return "fog_disabled";
-		string? State(string name) => pass.States.LastOrDefault(s => s.Name == name)?.Value;
-		bool Off(string name) => State(name) is { } value && value.Equals("false", StringComparison.OrdinalIgnoreCase) || State(name) == "0";
-		bool On(string name) => State(name) is { } value && (value.Equals("true", StringComparison.OrdinalIgnoreCase) || value == "1");
-		if (On("ALPHABLENDENABLE"))
+		_states = new Dictionary<string, string>(StringComparer.Ordinal);
+		if (_device is null)
 		{
-			string source = (State("SRCBLEND") ?? "").ToUpperInvariant();
-			string destination = (State("DESTBLEND") ?? "").ToUpperInvariant();
-			yield return source == "ONE" && destination == "ONE" ? "blend_add"
-				: source is "DESTCOLOR" or "ZERO" && destination is "ZERO" or "SRCCOLOR" ? "blend_mul"
-				: "blend_mix";
+			_states["SRCBLEND"] = "SRCALPHA";
+			_states["DESTBLEND"] = "INVSRCALPHA";
 		}
-		if (Off("ZENABLE"))
+		else
 		{
-			yield return "depth_test_disabled";
+			foreach ((string name, string value) in _device)
+			{
+				_states[name.ToUpperInvariant()] = Normalised(value);
+			}
 		}
-		if (Off("ZWRITEENABLE"))
+		foreach (CFxPassState state in pass.States)
 		{
-			yield return "depth_draw_never";
+			_states[state.Name] = Normalised(state.Value);
 		}
 	}
 
-	private static bool Blends(CFxPass pass)
+	private static string Normalised(string value)
 	{
-		return pass.States.LastOrDefault(s => s.Name == "ALPHABLENDENABLE")?.Value is { } value
-			&& (value.Equals("true", StringComparison.OrdinalIgnoreCase) || value == "1");
+		string upper = value.Trim().ToUpperInvariant();
+		foreach (string prefix in new[] { "D3DBLEND_", "D3DCMP_", "D3DCULL_" })
+		{
+			if (upper.StartsWith(prefix, StringComparison.Ordinal))
+			{
+				return upper[prefix.Length..];
+			}
+		}
+		return upper;
+	}
+
+	/// <summary>A state in force, or Direct3D's default where neither the engine nor the pass set it.</summary>
+	private string State(string name, string fallback) => _states.TryGetValue(name, out string? value) ? value : fallback;
+
+	private bool On(string name, bool fallback)
+	{
+		string value = State(name, fallback ? "TRUE" : "FALSE");
+		return value is "TRUE" or "1";
+	}
+
+	/// <summary>
+	/// How the pass's colour meets what is drawn: Direct3D's two blend factors as one of Godot's blend modes - null where
+	/// the colour is written as it is - whether alpha is written for it, what alpha is written, and whether the colour is
+	/// multiplied by its own alpha first, which is how SRCALPHA / ZERO - the far beaches' - is drawn. A pair with no mode
+	/// of Godot's is mixed by alpha and reported.
+	/// </summary>
+	private (string? Mode, string Alpha, bool Premultiply) Blend()
+	{
+		if (!On("ALPHABLENDENABLE", false))
+		{
+			return (null, "1.0", false);
+		}
+		string source = State("SRCBLEND", "ONE");
+		string destination = State("DESTBLEND", "ZERO");
+		switch (source, destination)
+		{
+			case ("SRCALPHA", "INVSRCALPHA"):
+				return ("blend_mix", "fx_colour.a", false);
+			case ("ONE", "ZERO"):
+				return (null, "1.0", false);
+			case ("SRCALPHA", "ZERO"):
+				return (null, "1.0", true);
+			case ("SRCALPHA", "ONE"):
+				return ("blend_add", "fx_colour.a", false);
+			case ("ONE", "ONE"):
+				return ("blend_add", "1.0", false);
+			case ("ONE", "INVSRCALPHA"):
+				return ("blend_premul_alpha", "fx_colour.a", false);
+			case ("DESTCOLOR", "ZERO") or ("ZERO", "SRCCOLOR"):
+				return ("blend_mul", "1.0", false);
+			default:
+				Problem(0, $"the blend {source} / {destination} has no mode of Godot's: mixed by alpha");
+				return ("blend_mix", "fx_colour.a", false);
+		}
+	}
+
+	/// <summary>
+	/// The alpha test in force, as a condition that discards: <c>ALPHATESTENABLE</c> with its <c>ALPHAFUNC</c> against
+	/// <c>ALPHAREF</c> over 255 - the engine's 8 and GREATEREQUAL (<c>reversing/findings/FINDINGS-mapdraw.md</c>, C.2) - or
+	/// null where nothing is tested.
+	/// </summary>
+	private string? AlphaTest()
+	{
+		if (!On("ALPHATESTENABLE", false))
+		{
+			return null;
+		}
+		string reference = State("ALPHAREF", "0");
+		int value = reference.StartsWith("0X", StringComparison.Ordinal)
+			? int.Parse(reference[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture)
+			: int.TryParse(reference, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) ? parsed : 0;
+		string limit = (value / 255.0).ToString("0.0########", CultureInfo.InvariantCulture);
+		string? passes = State("ALPHAFUNC", "ALWAYS") switch
+		{
+			"ALWAYS" => null,
+			"NEVER" => "false",
+			"LESS" => $"fx_colour.a < {limit}",
+			"LESSEQUAL" => $"fx_colour.a <= {limit}",
+			"EQUAL" => $"fx_colour.a == {limit}",
+			"GREATER" => $"fx_colour.a > {limit}",
+			"NOTEQUAL" => $"fx_colour.a != {limit}",
+			"GREATEREQUAL" => $"fx_colour.a >= {limit}",
+			string other => Unknown(other),
+		};
+		return passes is null ? null : $"!({passes})";
+
+		string? Unknown(string function)
+		{
+			Problem(0, $"the alpha test {function} is not known: not tested");
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// The states in force as Godot's render modes: drawn unshaded, without Godot's fog and never culled - the map is flat
+	/// and the winding the original's matrices give was not set against Godot's - blended as <see cref="Blend"/> says, and
+	/// the depth test and depth writes off where <c>ZENABLE</c> and <c>ZWRITEENABLE</c> are (spatial alone).
+	/// </summary>
+	private IEnumerable<string> RenderModes()
+	{
+		yield return "unshaded";
+		if (!Canvas)
+		{
+			yield return "cull_disabled";
+			yield return "fog_disabled";
+		}
+		(string? mode, string _, bool _) = Blend();
+		if (mode is not null)
+		{
+			yield return mode;
+		}
+		if (!Canvas && !On("ZENABLE", true))
+		{
+			yield return "depth_test_disabled";
+		}
+		if (!Canvas && !On("ZWRITEENABLE", true))
+		{
+			yield return "depth_draw_never";
+		}
+		else if (!Canvas && mode is not null)
+		{
+			// Direct3D writes depth whether or not a pass blends; Godot's blended materials do not unless told to, and what is
+			// drawn after them - the sea after the beaches - would then cover them.
+			yield return "depth_draw_always";
+		}
+	}
+
+	/// <summary>The colour a pass gives, written as the states say: tested, multiplied by its alpha, blended or solid.</summary>
+	private void WriteColour(StringBuilder code)
+	{
+		if (AlphaTest() is { } discard)
+		{
+			code.Append("\tif (").Append(discard).Append(") { discard; }\n");
+		}
+		(string? mode, string alpha, bool premultiply) = Blend();
+		string rgb = premultiply ? "(fx_colour.rgb * fx_colour.a)" : "fx_colour.rgb";
+		if (Canvas)
+		{
+			// Godot's 2D draws in gamma space, as Direct3D 9 does: no conversion.
+			code.Append("\tCOLOR = vec4(clamp(").Append(rgb).Append(", 0.0, 1.0), clamp(").Append(alpha).Append(", 0.0, 1.0)) * fx_modulate;\n");
+			return;
+		}
+		code.Append("\tALBEDO = fx_to_linear(").Append(rgb).Append(");\n");
+		if (mode is not null)
+		{
+			code.Append("\tALPHA = clamp(").Append(alpha).Append(", 0.0, 1.0);\n");
+		}
 	}
 
 	/// <summary>
@@ -242,7 +422,15 @@ public sealed class CGodotShaderWriter
 			string array = variable.ArraySize is { } size ? $"[{size}]" : "";
 			string type = GodotType(variable.Type);
 			string? value = variable.Initialiser is { } initialiser ? Initialiser(initialiser, variable.Type, variable.ArraySize) : null;
-			if (variable.IsParameter)
+			if (variable.IsParameter && variable.ArraySize is null && _shared?.TryGetValue(variable.Name, out string? shared) == true)
+			{
+				// Godot's global uniforms take no value of their own: the engine registers each with one.
+				_globals[variable.Name] = new Symbol(variable.Type, null, shared);
+				code.Append("global uniform ").Append(type).Append(' ').Append(shared).Append(";\n");
+				uniforms.Add(new CShaderUniform(variable.Name, shared, variable.Type, type, null, variable.Semantic,
+					variable.Annotations, Shared: true));
+			}
+			else if (variable.IsParameter)
 			{
 				code.Append("uniform ").Append(type).Append(' ').Append(name).Append(array);
 				if (value is not null && variable.ArraySize is null)
@@ -271,9 +459,11 @@ public sealed class CGodotShaderWriter
 
 	private void WriteSamplers(StringBuilder code, HashSet<string> names, List<CShaderTexture> textures)
 	{
+		HashSet<string> drawn = DrawnSamplers();
 		foreach (CFxSampler sampler in _effect.Samplers)
 		{
-			string name = Rename(sampler.Name);
+			bool isDrawn = drawn.Contains(sampler.Name);
+			string name = isDrawn ? Drawn : Rename(sampler.Name);
 			_globals[sampler.Name] = new Symbol(sampler.Type, null, name);
 			if (!names.Contains(sampler.Name))
 			{
@@ -285,8 +475,12 @@ public sealed class CGodotShaderWriter
 			bool mipmap = State("MIPFILTER", "NONE") is not ("NONE" or "0");
 			bool repeat = State("ADDRESSU", "WRAP") == "WRAP";
 			string filter = (linear ? "filter_linear" : "filter_nearest") + (mipmap ? "_mipmap" : "");
-			code.Append("uniform ").Append(sampler.Type.Name == "samplerCUBE" ? "samplerCube" : "sampler2D").Append(' ').Append(name)
-				.Append(" : ").Append(filter).Append(repeat ? ", repeat_enable" : ", repeat_disable").Append(";\n");
+			// The drawn texture is Godot's TEXTURE, handed down; its filter and repeat are the element's to set from these.
+			if (!isDrawn)
+			{
+				code.Append("uniform ").Append(sampler.Type.Name == "samplerCUBE" ? "samplerCube" : "sampler2D").Append(' ').Append(name)
+					.Append(" : ").Append(filter).Append(repeat ? ", repeat_enable" : ", repeat_disable").Append(";\n");
+			}
 			CFxVariable? texture = _effect.Variables.FirstOrDefault(v => v.Name == sampler.Texture);
 			string? file = texture?.Annotations.TryGetValue("name", out string? named) == true ? named
 				: texture?.Annotations.TryGetValue("ResourceName", out string? resource) == true ? resource : null;
@@ -296,6 +490,42 @@ public sealed class CGodotShaderWriter
 	}
 
 	// ------------------------------------------------------------------------------------------ what the entries reach
+
+	/// <summary>The samplers that read the drawn texture.</summary>
+	private HashSet<string> DrawnSamplers()
+	{
+		return _drawnTexture is null ? new HashSet<string>()
+			: _effect.Samplers.Where(s => string.Equals(s.Texture, _drawnTexture, StringComparison.Ordinal)).Select(s => s.Name).ToHashSet();
+	}
+
+	/// <summary>Which reached functions sample the drawn texture, themselves or through a function they call.</summary>
+	private void FindDrawing(HashSet<string> reached)
+	{
+		HashSet<string> samplers = DrawnSamplers();
+		if (samplers.Count == 0)
+		{
+			return;
+		}
+		var direct = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+		foreach (CFxFunction function in _effect.Functions.Where(f => reached.Contains(f.Name)))
+		{
+			var found = new HashSet<string>(StringComparer.Ordinal);
+			Collect(function.Body, found);
+			direct[function.Name] = found;
+		}
+		bool changed = true;
+		while (changed)
+		{
+			changed = false;
+			foreach ((string name, HashSet<string> found) in direct)
+			{
+				if (!_drawing.Contains(name) && found.Any(n => samplers.Contains(n) || _drawing.Contains(n)) && _drawing.Add(name))
+				{
+					changed = true;
+				}
+			}
+		}
+	}
 
 	private void Reach(CFxFunction function, HashSet<string> reached, HashSet<string> names)
 	{
@@ -500,6 +730,10 @@ public sealed class CGodotShaderWriter
 			string name = LocalName(parameter.Name);
 			scope[parameter.Name] = new Symbol(parameter.Type, parameter.ArraySize, name);
 			parameters.Add($"{modifier}{GodotType(parameter.Type)} {name}{(parameter.ArraySize is { } size ? $"[{size}]" : "")}");
+		}
+		if (_drawing.Contains(function.Name))
+		{
+			parameters.Add($"sampler2D {Drawn}");
 		}
 		code.Append(string.Join(", ", parameters)).Append(") ");
 		WriteBlock(code, function.Body, 0);
@@ -1083,6 +1317,10 @@ public sealed class CGodotShaderWriter
 				arguments.Add(Convert(argument, parameter.Type, call.Line));
 			}
 		}
+		if (_drawing.Contains(function.Name))
+		{
+			arguments.Add(Drawn);
+		}
 		return new Typed($"{Rename(function.Name)}({string.Join(", ", arguments)})", function.ReturnType);
 	}
 
@@ -1568,11 +1806,17 @@ public sealed class CGodotShaderWriter
 		_scopes = new Stack<Dictionary<string, Symbol>>();
 		_scopes.Push(new Dictionary<string, Symbol>(StringComparer.Ordinal));
 		code.Append("void vertex() {\n");
+		if (Canvas)
+		{
+			code.Append("\tfx_modulate = COLOR;\n");
+		}
 		var channels = new ChannelAllocator();
+		bool readsColour = false;
 		string Read(string semantic, CFxType type)
 		{
 			string normal = Normal(semantic);
-			(string channel, string expression, CFxType given) = channels.For(normal, type);
+			readsColour |= normal == "COLOR0";
+			(string channel, string expression, CFxType given) = Canvas ? CanvasChannel(normal) : channels.For(normal, type);
 			if (!inputs.Any(i => i.Semantic == normal))
 			{
 				inputs.Add(new CShaderVertexInput(normal, channel, given.Columns));
@@ -1602,6 +1846,10 @@ public sealed class CGodotShaderWriter
 			arguments.Add(InputValue(parameter.Type, parameter.Semantic, Read));
 		}
 		bool returns = entry.ReturnType.Base != EFxBase.Void;
+		if (_drawing.Contains(entry.Name))
+		{
+			arguments.Add("TEXTURE");
+		}
 		string call = $"{Rename(entry.Name)}({string.Join(", ", arguments)})";
 		if (returns)
 		{
@@ -1611,13 +1859,27 @@ public sealed class CGodotShaderWriter
 		{
 			code.Append('\t').Append(call).Append(";\n");
 		}
+		if (Canvas && readsColour)
+		{
+			// The vertex colour the shader read already carries the element's modulate: not again.
+			code.Append("\tfx_modulate = vec4(1.0);\n");
+		}
 		bool position = false;
 		void Write(string semantic, string expression, CFxType type)
 		{
 			string normal = Normal(semantic);
 			if (normal == "POSITION")
 			{
-				code.Append("\tPOSITION = ").Append(Convert(new Typed(expression, type), CFxType.Vector(EFxBase.Float, 4), entry.Line)).Append(";\n");
+				// On the canvas Godot places the element; the position the shader works out is not used.
+				if (!Canvas)
+				{
+					code.Append("\tPOSITION = ").Append(Convert(new Typed(expression, type), CFxType.Vector(EFxBase.Float, 4), entry.Line)).Append(";\n");
+					// Direct3D's clip depth runs from nought near to w far, Godot's reversed from w near to nought far; and
+					// Direct3D's clip y runs up the screen where the rendering device's runs down, which Godot's own
+					// projection corrects and a written POSITION has to itself.
+					code.Append("\tPOSITION.z = POSITION.w - POSITION.z;\n");
+					code.Append("\tPOSITION.y = -POSITION.y;\n");
+				}
 				position = true;
 			}
 			else if (varyings.TryGetValue(normal, out CFxType? varying))
@@ -1732,6 +1994,10 @@ public sealed class CGodotShaderWriter
 			}
 			arguments.Add(InputValue(parameter.Type, parameter.Semantic, Read));
 		}
+		if (_drawing.Contains(entry.Name))
+		{
+			arguments.Add("TEXTURE");
+		}
 		string call = $"{Rename(entry.Name)}({string.Join(", ", arguments)})";
 		bool returns = entry.ReturnType.Base != EFxBase.Void;
 		if (returns)
@@ -1750,11 +2016,7 @@ public sealed class CGodotShaderWriter
 			{
 				string value = Convert(new Typed(expression, type), CFxType.Vector(EFxBase.Float, 4), entry.Line);
 				code.Append("\tvec4 fx_colour = ").Append(value).Append(";\n");
-				code.Append("\tALBEDO = fx_to_linear(fx_colour.rgb);\n");
-				if (Blends(pass))
-				{
-					code.Append("\tALPHA = clamp(fx_colour.a, 0.0, 1.0);\n");
-				}
+				WriteColour(code);
 				colour = true;
 			}
 			else if (normal == "DEPTH")
@@ -1781,11 +2043,19 @@ public sealed class CGodotShaderWriter
 	/// The fixed pipeline's vertex stage, for a pass with no vertex shader: the position by the engine's transform, its
 	/// colour and first texture coordinate passed on (section 3.6).
 	/// </summary>
-	private static void WriteFixedVertex(StringBuilder code, List<CShaderVertexInput> inputs)
+	private void WriteFixedVertex(StringBuilder code, List<CShaderVertexInput> inputs)
 	{
-		inputs.Add(new CShaderVertexInput("POSITION", "VERTEX", 3));
+		inputs.Add(new CShaderVertexInput("POSITION", "VERTEX", Canvas ? 2 : 3));
 		inputs.Add(new CShaderVertexInput("COLOR0", "COLOR", 4));
 		inputs.Add(new CShaderVertexInput("TEXCOORD0", "UV", 2));
+		if (Canvas)
+		{
+			code.Append("void vertex() {\n\tfx_modulate = vec4(1.0);\n");
+			code.Append('\t').Append(VaryingName("COLOR0")).Append(" = COLOR;\n");
+			code.Append('\t').Append(VaryingName("TEXCOORD0")).Append(" = UV;\n");
+			code.Append("}\n\n");
+			return;
+		}
 		code.Append("uniform mat4 fx_fixed_transform;\n");
 		code.Append("void vertex() {\n");
 		code.Append("\tPOSITION = fx_fixed_transform * vec4(VERTEX, 1.0);\n");
@@ -1795,16 +2065,35 @@ public sealed class CGodotShaderWriter
 	}
 
 	/// <summary>The fixed pipeline's colour, for a pass with no pixel shader: the vertex's colour, as its vertex stage gave it.</summary>
-	private static void WriteFixedFragment(StringBuilder code, CFxPass pass)
+	private void WriteFixedFragment(StringBuilder code)
 	{
 		code.Append("void fragment() {\n");
 		string colour = VaryingName("COLOR0");
-		code.Append("\tALBEDO = fx_to_linear(").Append(colour).Append(".rgb);\n");
-		if (Blends(pass))
-		{
-			code.Append("\tALPHA = ").Append(colour).Append(".a;\n");
-		}
+		// On the canvas the fixed pipeline's first stage by default: the texture times the vertex's colour.
+		// The vertex colour already carries the element's modulate; the fixed vertex stage leaves fx_modulate at one.
+		code.Append("\tvec4 fx_colour = ").Append(Canvas ? $"texture(TEXTURE, {VaryingName("TEXCOORD0")}) * {colour}" : colour).Append(";\n");
+		WriteColour(code);
 		code.Append("}\n");
+	}
+
+	/// <summary>
+	/// What a vertex input is on the canvas: the position Godot's own (with nought depth and w one), the first texture
+	/// coordinate its UV, the colour its vertex colour; anything else the canvas does not have, nought and reported.
+	/// </summary>
+	private (string Channel, string Expression, CFxType Type) CanvasChannel(string semantic)
+	{
+		switch (semantic)
+		{
+			case "POSITION":
+				return ("VERTEX", "vec4(VERTEX, 0.0, 1.0)", CFxType.Vector(EFxBase.Float, 4));
+			case "TEXCOORD0":
+				return ("UV", "UV", CFxType.Vector(EFxBase.Float, 2));
+			case "COLOR0":
+				return ("COLOR", "COLOR", CFxType.Vector(EFxBase.Float, 4));
+			default:
+				Problem(0, $"the canvas gives no {semantic}; it is nought");
+				return ("none", "vec4(0.0)", CFxType.Vector(EFxBase.Float, 4));
+		}
 	}
 
 	/// <summary>
@@ -1826,6 +2115,8 @@ public sealed class CGodotShaderWriter
 			}
 			(string, string, CFxType) result = semantic switch
 			{
+				// A position of four components - the sea's (x, z, u, v) - is a whole custom channel; any other the vertex with w one.
+				"POSITION" when wanted.Columns == 4 && !wanted.IsMatrix && _custom.Count > 0 => Custom(),
 				"POSITION" => ("VERTEX", "vec4(VERTEX, 1.0)", CFxType.Vector(EFxBase.Float, 4)),
 				"NORMAL" => ("NORMAL", "NORMAL", CFxType.Vector(EFxBase.Float, 3)),
 				"TANGENT" => ("TANGENT", "vec4(TANGENT, 1.0)", CFxType.Vector(EFxBase.Float, 4)),
@@ -1837,6 +2128,12 @@ public sealed class CGodotShaderWriter
 			};
 			_given[semantic] = result;
 			return result;
+		}
+
+		private (string, string, CFxType) Custom()
+		{
+			string channel = _custom.Dequeue();
+			return (channel, channel, CFxType.Vector(EFxBase.Float, 4));
 		}
 
 		private (string, string, CFxType) Other(CFxType wanted)

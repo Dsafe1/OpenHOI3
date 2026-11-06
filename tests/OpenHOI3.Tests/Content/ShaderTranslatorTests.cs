@@ -147,7 +147,7 @@ technique t { pass p { ALPHABLENDENABLE = True; PixelShader = compile ps_2_0 PS(
 		Assert.Empty(shader.Problems);
 		Assert.Contains("vec3 fx_1_LightDirection = (-uv.xyx);", shader.Code);
 		Assert.Contains("ALPHA = clamp(fx_colour.a, 0.0, 1.0);", shader.Code);
-		Assert.Contains("render_mode unshaded, cull_disabled, fog_disabled, blend_mix;", shader.Code);
+		Assert.Contains("render_mode unshaded, cull_disabled, fog_disabled, blend_mix, depth_draw_always;", shader.Code);
 	}
 
 	[Fact]
@@ -164,6 +164,87 @@ technique t { pass p { PixelShader = compile ps_2_0 PS(); } }");
 		// Direct3D's defaults: point filtering, no mipmaps.
 		Assert.Contains("uniform sampler2D Plain : filter_nearest, repeat_disable;", shader.Code);
 		Assert.All(shader.Textures, t => Assert.Equal(("tex0", "stripes.dds"), (t.Texture, t.File)));
+	}
+
+	[Fact]
+	public void On_the_canvas_the_drawn_texture_is_Godots_own_handed_down_and_the_element_keeps_its_modulate()
+	{
+		CFxEffect effect = CFxParser.Parse(Preprocess(@"
+texture tex0 < string name = ""Texture.tga""; >;
+float4x4 WorldViewProjectionMatrix;
+float vXOffset = 0;
+sampler MapTexture = sampler_state { Texture = <tex0>; MinFilter = Point; MagFilter = Point; };
+struct VS_INPUT { float4 vPosition : POSITION; float2 vTexCoord : TEXCOORD0; };
+struct VS_OUTPUT { float4 vPosition : POSITION; float2 vTexCoord : TEXCOORD0; };
+VS_OUTPUT VertexShaderStd(const VS_INPUT v) { VS_OUTPUT Out = (VS_OUTPUT)0; Out.vPosition = mul(v.vPosition, WorldViewProjectionMatrix);
+	Out.vTexCoord = v.vTexCoord; Out.vTexCoord.x += vXOffset; return Out; }
+float4 Sample(float2 uv) { return tex2D(MapTexture, uv); }
+float4 PixelShaderOver(VS_OUTPUT v) : COLOR { return Sample(v.vTexCoord) + float4(0.1, 0.1, 0.1, 0); }
+technique over { pass p0 { ALPHABLENDENABLE = True; VertexShader = compile vs_2_0 VertexShaderStd(); PixelShader = compile ps_2_0 PixelShaderOver(); } }"));
+		CFxTechnique technique = effect.Technique("over")!;
+
+		CGodotShader shader = CGodotShaderWriter.Write(effect, technique, technique.Passes[0], EShaderTarget.Canvas, "tex0");
+
+		Assert.Empty(shader.Problems);
+		Assert.StartsWith("shader_type canvas_item;", shader.Code);
+		// No uniform for the drawn texture: every function reaching it is handed Godot's TEXTURE.
+		Assert.DoesNotContain("uniform sampler2D MapTexture", shader.Code);
+		Assert.Contains("vec4 Sample(vec2 uv, sampler2D fx_drawn)", shader.Code);
+		Assert.Contains("return texture(fx_drawn, uv);", shader.Code);
+		Assert.Contains("PixelShaderOver(VS_OUTPUT(vec4(0.0), fx_v_texcoord0), TEXTURE)", shader.Code);
+		// Godot places the element: the vertex shader runs for its texture coordinate alone, read from UV.
+		Assert.DoesNotContain("POSITION =", shader.Code);
+		Assert.Contains("VertexShaderStd(VS_INPUT(vec4(VERTEX, 0.0, 1.0), UV))", shader.Code);
+		Assert.Contains("COLOR = vec4(clamp(fx_colour.rgb, 0.0, 1.0), clamp(fx_colour.a, 0.0, 1.0)) * fx_modulate;", shader.Code);
+	}
+
+	[Fact]
+	public void The_engines_device_states_are_what_a_passs_own_are_laid_over()
+	{
+		const string source = @"
+float4 PS(float2 uv : TEXCOORD0) : COLOR { return float4(uv, 0, 0.5); }
+technique beach { pass p { PixelShader = compile ps_2_0 PS(); } }
+technique tested { pass p { ALPHATESTENABLE = True; PixelShader = compile ps_2_0 PS(); } }";
+		CFxEffect effect = CFxParser.Parse(Preprocess(source));
+		// The engine's baseline and the far beaches' draw: blending on, SRCALPHA / ZERO, alpha test at 8, depth off.
+		var device = new Dictionary<string, string>
+		{
+			["ALPHABLENDENABLE"] = "1", ["SRCBLEND"] = "SRCALPHA", ["DESTBLEND"] = "ZERO", ["ALPHAREF"] = "8",
+			["ALPHAFUNC"] = "GREATEREQUAL", ["ZENABLE"] = "0",
+		};
+		CFxTechnique beach = effect.Technique("beach")!;
+		CFxTechnique tested = effect.Technique("tested")!;
+
+		CGodotShader plain = CGodotShaderWriter.Write(effect, beach, beach.Passes[0], EShaderTarget.Spatial, null, device);
+		CGodotShader alphaTested = CGodotShaderWriter.Write(effect, tested, tested.Passes[0], EShaderTarget.Spatial, null, device);
+
+		// SRCALPHA / ZERO: the colour times its alpha written over what is there, which no blend mode of Godot's is.
+		Assert.Contains("ALBEDO = fx_to_linear((fx_colour.rgb * fx_colour.a));", plain.Code);
+		Assert.DoesNotContain("ALPHA =", plain.Code);
+		Assert.Contains("depth_test_disabled", plain.Code);
+		Assert.DoesNotContain("discard", plain.Code);
+		// The pass turns the test on; the engine's reference and function hold.
+		Assert.Contains("if (!(fx_colour.a >= 0.031372549)) { discard; }", alphaTested.Code);
+	}
+
+	[Fact]
+	public void A_shared_parameter_is_a_global_uniform_and_the_position_is_turned_to_Godots_clip_space()
+	{
+		CFxEffect effect = CFxParser.Parse(Preprocess(Frame + "float4 PS(VS_OUTPUT v) : COLOR { return v.vColour; }\n" +
+			"technique t { pass p { VertexShader = compile vs_2_0 VS(); PixelShader = compile ps_2_0 PS(); } }"));
+		CFxTechnique technique = effect.Technique("t")!;
+
+		CGodotShader shader = CGodotShaderWriter.Write(effect, technique, technique.Passes[0],
+			shared: new Dictionary<string, string> { ["WorldViewProjection"] = "fx_map_wvp" });
+
+		Assert.Empty(shader.Problems);
+		Assert.Contains("global uniform mat4 fx_map_wvp;", shader.Code);
+		Assert.DoesNotContain("uniform mat4 WorldViewProjection", shader.Code);
+		Assert.Contains("(fx_map_wvp * v.vPosition)", shader.Code);
+		Assert.Contains(shader.Uniforms, u => u.FxName == "WorldViewProjection" && u.Name == "fx_map_wvp" && u.Shared);
+		// Direct3D's clip depth turned to Godot's reversed one, and its y, which runs up the screen, turned down.
+		Assert.Contains("POSITION.z = POSITION.w - POSITION.z;", shader.Code);
+		Assert.Contains("POSITION.y = -POSITION.y;", shader.Code);
 	}
 
 	[Fact]

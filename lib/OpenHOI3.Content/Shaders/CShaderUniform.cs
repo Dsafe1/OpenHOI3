@@ -6,7 +6,8 @@ namespace OpenHOI3.Content.Shaders;
 /// A parameter of an effect the engine sets, as a translation names it: the effect's name and the shader's - the same
 /// but where the effect's is a word of Godot's language - the effect's type and the shader's, its array size, its
 /// semantic and its annotations. A matrix of the effect's rows by columns is a square matrix in the shader whose columns
-/// are the effect's rows, padded with noughts (<c>docs/mechanics/shaders.md</c>, section 3).
+/// are the effect's rows, padded with noughts (<c>docs/mechanics/shaders.md</c>, section 3). A shared one is a global
+/// uniform of Godot's, set once for every shader that declares it, under the name it was shared as (section 3.11).
 /// </summary>
 public sealed record CShaderUniform(string FxName, string Name, CFxType FxType, string Type, int? ArraySize, string? Semantic,
-	IReadOnlyDictionary<string, string> Annotations);
+	IReadOnlyDictionary<string, string> Annotations, bool Shared = false);

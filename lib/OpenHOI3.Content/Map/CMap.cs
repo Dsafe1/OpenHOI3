@@ -326,7 +326,57 @@ public sealed class CMap
 			ClimateIndex = climate,
 			LowPressureZones = ReadLowPressureZones(definition, provinceCount, warn),
 			HighPressureZones = ReadHighPressureZones(definition, provinceCount, warn),
+			TerrainSheetHeights = ReadHeights(definition, "terrain_sheet_heights"),
+			BorderHeights = ReadHeights(definition, "border_heights"),
+			BorderCutoff = definition.GetFloat("border_cutoff", 0f),
 		};
+	}
+
+	/// <summary>A list of camera heights of default.map, in the file's order; none where it has no such list.</summary>
+	private static float[] ReadHeights(ClausewitzNode definition, string key)
+	{
+		if (definition.Get(key) is not { } list)
+		{
+			return Array.Empty<float>();
+		}
+		var heights = new List<float>();
+		foreach (ClausewitzNode entry in list.Children)
+		{
+			if (float.TryParse(entry.Value ?? entry.Key, NumberStyles.Float, CultureInfo.InvariantCulture, out float height))
+			{
+				heights.Add(height);
+			}
+		}
+		return heights.ToArray();
+	}
+
+	/// <summary>
+	/// <c>terrain_sheet_heights</c>: the camera heights above which the map is drawn the next way - its far view, a height
+	/// strictly above the first in TFH's 500 [mod: map/default.map] (<c>reversing/findings/FINDINGS-farmap.md</c>, A.1).
+	/// </summary>
+	public IReadOnlyList<float> TerrainSheetHeights { get; private init; } = Array.Empty<float>();
+
+	/// <summary><c>border_heights</c>: the heights at which the land borders take their next texture (150 and 500 in TFH).</summary>
+	public IReadOnlyList<float> BorderHeights { get; private init; } = Array.Empty<float>();
+
+	/// <summary><c>border_cutoff</c>: the height from which no land border is drawn (500.0 in TFH).</summary>
+	public float BorderCutoff { get; private init; }
+
+	/// <summary>
+	/// The map's level at a camera height, as the original counts it for the land: one more than the last of
+	/// <see cref="TerrainSheetHeights"/> the height is strictly above, nought for none - above nought the far view.
+	/// </summary>
+	public int Level(float height)
+	{
+		int level = 0;
+		for (int i = 0; i < TerrainSheetHeights.Count; i++)
+		{
+			if (height > TerrainSheetHeights[i])
+			{
+				level = i + 1;
+			}
+		}
+		return level;
 	}
 
 	/// <summary>

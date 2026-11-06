@@ -310,8 +310,10 @@ files, with nothing in it placed by hand.
   techniques. `up` draws the picture as it is. `over` adds a tenth to red, green and
   blue. `down` takes a tenth off. **`disable` draws it in grey**: each pixel's red, green
   and blue become their sum weighted 0.212671, 0.715160 and 0.072169. Transparency is
-  untouched by all four. The same shader is written again for this engine, and a
-  scrollbar's slider is drawn with it too - which is why a locked slider is grey, as
+  untouched by all four. **Since 2026-11-06 the install's own file is drawn**, translated
+  for the canvas (`shaders.md`, section 3.10), so a mod's `buttonstate.fx` is the one
+  that counts - it was written again by hand for this engine until then - and a
+  scrollbar's slider and bar are drawn with it too - which is why a locked slider is grey, as
   the maintainer said it should be on 2026-10-08. *Ours:* every button is drawn so,
   whether or not its sprite names that effect file; what a sprite with no effect file
   does under the mouse was not looked for. **An icon can be given a look too**: the

@@ -33,3 +33,4 @@ project/assembly_name="OpenHOI3"
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+rendering_device/d3d12/max_resource_descriptors=262144
