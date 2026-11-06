@@ -1608,9 +1608,11 @@ country's spies - the free spies, and in every country the priority, level, date
 nine missions and the covert-ops points - the save's byte for byte in the same eleven saves. **And its third** (section
 14): the top level's rebel and theatre counters, the game's flags, the victory conditions, the fired events, the
 weather's fronts, each faction's progress and the player's Automate Trade - the save's byte for byte in twelve saves. A
-loaded game had had no victory conditions chosen, the history's theatre counter and no fronts. **Next up**: the rest of
-what neither the loader nor the writer holds yet - the AI's blocks, the goods pools, the statistics - section 4's
-list.
+loaded game had had no victory conditions chosen, the history's theatre counter and no fronts. **And its fourth**
+(section 15): whether a country is in exile, its ten pools of goods, its battles fought, its strategic warfare, where it
+stands on the triangle and its lend-lease - the save's byte for byte in thirteen saves; a loaded government in exile had
+been none. **Next up**: the rest of what neither the loader nor the writer holds yet - the AI's blocks, kept on a load
+as the original keeps them, and the statistics - section 4's list.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a

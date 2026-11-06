@@ -124,6 +124,12 @@ public static class CStrategicWarfareImpacts
 		Prune(warfare.Convoys, oldest);
 		Prune(warfare.Allies, oldest);
 		Prune(warfare.Bombing, oldest);
+		Resum(warfare);
+	}
+
+	/// <summary>Each impact its list's sum, held to the most either way, the lists left as they are.</summary>
+	public static void Resum(CStrategicWarfare warfare)
+	{
 		warfare.ConvoyImpact = Sum(warfare.Convoys);
 		warfare.AlliesImpact = Sum(warfare.Allies);
 		warfare.BombingImpact = Sum(warfare.Bombing);

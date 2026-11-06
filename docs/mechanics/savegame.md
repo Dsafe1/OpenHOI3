@@ -24,8 +24,9 @@ the maintainer's 45 saves. `confirmed` unless marked.
    (section 11).
 5. **The fourth increment**, loader and writer together, what neither held: **its first piece is built** (section 12),
    each country's politics and research queue, **its second** (section 13), its spies, **and its third** (section 14),
-   the top level's counters, flags, victory conditions, fired events, fronts and faction progress; the rest of section
-   4's list - the AI's blocks, the goods pools, the statistics - is still to come.
+   the top level's counters, flags, victory conditions, fired events, fronts and faction progress, **and its fourth**
+   (section 15), exile, the goods pools, battles fought, strategic warfare, alignment and lend-lease; the rest of
+   section 4's list - the AI's blocks, the statistics - is still to come.
 
 ## 2. What a load is
 
@@ -83,9 +84,9 @@ sets the owners, the laws and the technology levels beside the save's and runs t
   section 7;
 - ~~the four id counters and the `id` blocks, the weather's fronts, the victory conditions and the faction's
   `progress`, the game's flags~~ - section 14 - and its gameplay settings;
-- a country's own pools (`home`, `usage`, `to`, `back`, the traded ones), ~~its politics (`organization`,
+- ~~a country's own pools (`home`, `usage`, `to`, `back`, the traded ones)~~ - section 15 - ~~its politics (`organization`,
   `popularity`, `cabinet`, `election`, `last_election`, `duration`, `ministers`), its research queue (`research`)~~ -
-  section 12 - ~~its spies and their missions~~ - section 13; its active missions, alignment, war exhaustion, AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`), statistics and the rest the
+  section 12 - ~~its spies and their missions~~ - section 13; its active missions, ~~alignment~~ - section 15 - war exhaustion, AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`), statistics and the rest the
   report lists; a province's `out_of_supply_days` and `capital`, which the day makes again, and its `history`.
 
 ## 5. What the second increment reads: the units
@@ -540,6 +541,37 @@ not saved either, and start again at nought, as in the original.
 `olderautosave.hoi3` of July 1941, **every one of these the save's byte for byte**, and each faction's `progress`
 in three of them. `write <install> new <start save>` gives all but the fronts the start save's - a new game's are drawn on
 our generator - and the seed.
+
+## 15. The fourth increment: exile, goods, battles fought, strategic warfare, alignment and lend-lease
+
+Both ways, each where the original writes it in a country block [exe] (`FINDINGS-savegame.md`, B.4):
+
+| key | what | read into | written |
+| --- | --- | --- | --- |
+| `government_in_exile` | `yes` while in exile | whether it is (`war.md`, section 14) | after `acting_capital`, only while in exile |
+| `strategic_warfare` | `alliance`, `convoy` and `ground_bombing`, each entry `"hour"="value"` at column 0, an empty line after each list | the three lists; each impact their sum, **nothing pruned** - an entry over a week old stays until the day's prune, as the saves hold them | then |
+| `pool` | an exile's own stockpile | it | then these ten, **each written whatever it holds** (`CSaveLedgers`) |
+| `home`, `usage`, `to`, `back`, `convoyed_out` | the day's ledgers so far: made at home, used by industry, supplies and fuel sent out and come back, carried out by convoy | each | |
+| `traded_for`, `traded_for_sans_allied`, `traded_away`, `traded_away_sans_allied` | paid and paid for, with and without allied supply | each | |
+| `land_battles_fought`, `air_battles_fought`, `naval_battles_fought` | the battles it has fought | each | then, each only above nought |
+| `alignment` | `position = { x y }`, an empty line after it | where it stands on the triangle | after `mobilize` |
+| `lendlease_targets`, `lendlease_distributions`, `lendlease_effectiveness` | whom it gives to, each one's weight and effectiveness | the giving, in order | after `cabinet`, only while it gives (`CSaveLendLease`) |
+| `lend_lease_from`, `lend_lease_from_values`, `lend_lease_income` | whom it receives from, what each has sent not yet made IC, and the whole of that | the receipts, in order, and the income | then, only while it receives |
+
+**A country in the lend-lease lists is its number among the countries plus one** - the null country `---` being
+0, as in the spies' lists (section 13): Britain is 3 and the United States 5 in every save.
+
+**Until this increment a loaded government in exile was no exile**: eight in the 16 July 1941 saves, each using its
+host's stockpile where its own is the save's.
+
+**Not held, so not written**: `prov_vp`, the victory points the country controls, an hourly sum the game keeps only by
+faction (`progress`, section 14); `offmap_vp`; and lend-lease's `lend_lease_from_yesterday`,
+`lend_lease_from_yesterday_values` and `lend_lease_income_yesterday`.
+
+**Checked** on 2026-11-06 with each key's text set beside the save's, in `Germany1936_01_01_00`, `_03_31_19` (the
+lend-lease of March 1936), `_04_20_03` and `_09_02_21`, `Ireland1936_03_11_04`, `1937_07_05_02`, `1937_10_03_21`,
+`1938_08_25_03`, `1939_09_06_18`, `1940_05_23_15` and `1941_07_16_18`, `Soviet_Union1941_07_16_21` and
+`olderautosave.hoi3`: **every country's the save's byte for byte**.
 
 ## Ours
 

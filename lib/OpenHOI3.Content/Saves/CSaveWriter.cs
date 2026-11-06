@@ -244,6 +244,25 @@ public static class CSaveWriter
 		writer.End();
 		writer.Int("capital", country.Capital);
 		writer.Int("acting_capital", country.ActingCapital);
+		// Whether it is in exile, its strategic warfare, its pools of goods and its battles fought (savegame.md, section 15).
+		if (country.InExile)
+		{
+			writer.Bool("government_in_exile", true);
+		}
+		CSaveStrategicWarfare.Write(writer, country);
+		CSaveLedgers.Write(writer, country);
+		if (country.LandBattlesFought > 0)
+		{
+			writer.Int("land_battles_fought", country.LandBattlesFought);
+		}
+		if (country.AirBattlesFought > 0)
+		{
+			writer.Int("air_battles_fought", country.AirBattlesFought);
+		}
+		if (country.NavalBattlesFought > 0)
+		{
+			writer.Int("naval_battles_fought", country.NavalBattlesFought);
+		}
 
 		writer.Begin("technology");
 		foreach (string technology in state.Technologies.Keys)
@@ -326,6 +345,14 @@ public static class CSaveWriter
 		{
 			writer.Bool("mobilize", true);
 		}
+		// Where it stands on the alignment triangle, an empty line after it (section 15).
+		writer.Begin("alignment");
+		writer.Begin("position");
+		writer.Fixed("x", new CFixedPoint(country.AlignmentX));
+		writer.Fixed("y", new CFixedPoint(country.AlignmentY));
+		writer.End();
+		writer.BlankLine();
+		writer.End();
 		writer.Fixed("dissent", country.Dissent);
 		writer.Fixed("national_unity", country.NationalUnity);
 		// Its pool of transports and escorts and its convoys (savegame.md, section 10).
@@ -337,6 +364,7 @@ public static class CSaveWriter
 		}
 		CSaveEspionage.Write(writer, state, country);
 		CSavePolitics.WriteCabinet(writer, country);
+		CSaveLendLease.Write(writer, state, country);
 		writer.Fixed("effective_neutrality", country.EffectiveNeutrality);
 		writer.Quoted("highest_threat", country.MostThreatening?.Value ?? "---");
 		writer.End();

@@ -31,6 +31,8 @@ public static class CSaveLoader
 		"capital", "acting_capital", "technology", "distribution", "leadership", "manpower", "officers", "diplo_influence",
 		"national_unity", "dissent", "neutrality", "effective_neutrality", "highest_threat", "ideology", "flags", "variables",
 		"auto_assign_leaders", "auto_maintain_convoy", "auto_supply_convoy", "auto_resource_convoy", "modifier",
+		"government_in_exile", "strategic_warfare", "land_battles_fought", "air_battles_fought", "naval_battles_fought",
+		"alignment",
 	};
 
 	private static readonly HashSet<string> ProvinceKeys = new(StringComparer.Ordinal)
@@ -373,6 +375,18 @@ public static class CSaveLoader
 		CSavePolitics.Read(state, country, node, report);
 		// Its spies, in it and in every other country (savegame.md, section 13).
 		CSaveEspionage.Read(state, country, node);
+		// Whether it is in exile, its pools of goods, its battles fought, its strategic warfare, where it stands on the
+		// triangle and its lend-lease (section 15); a count of battles is written only above nought.
+		country.InExile = node.GetBool("government_in_exile");
+		CSaveLedgers.Read(country, node);
+		country.LandBattlesFought = (int)CSaveValues.Whole(node, "land_battles_fought");
+		country.AirBattlesFought = (int)CSaveValues.Whole(node, "air_battles_fought");
+		country.NavalBattlesFought = (int)CSaveValues.Whole(node, "naval_battles_fought");
+		CSaveStrategicWarfare.Read(country, node.Get("strategic_warfare"));
+		ClausewitzNode? triangle = node.Get("alignment")?.Get("position");
+		country.AlignmentX = CSaveValues.Fixed(triangle, "x").Raw;
+		country.AlignmentY = CSaveValues.Fixed(triangle, "y").Raw;
+		CSaveLendLease.Read(state, country, node, report);
 
 		country.Manpower = CSaveValues.Fixed(node, "manpower");
 		country.Officers = CSaveValues.Fixed(node, "officers");
@@ -459,7 +473,8 @@ public static class CSaveLoader
 					continue;
 			}
 			if (!CountryKeys.Contains(key) && !laws.Contains(key) && !posts.Contains(key) && !categories.Contains(key)
-				&& !CSavePolitics.Keys.Contains(key) && !CSaveEspionage.Keys.Contains(key))
+				&& !CSavePolitics.Keys.Contains(key) && !CSaveEspionage.Keys.Contains(key) && !CSaveLedgers.Keys.Contains(key)
+				&& !CSaveLendLease.Keys.Contains(key))
 			{
 				report.Unread("country", key);
 			}
