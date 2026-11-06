@@ -25,15 +25,7 @@ public static class CRiverTracer
 	private static readonly (int Dx, int Dy)[] Directions = { (1, 0), (-1, 0), (0, 1), (0, -1) };
 
 	/// <summary>A river bitmap's palette indices, <c>[y * width + x]</c> with y counted from the south.</summary>
-	public static byte[] Raster(Content.Map.CBitmapFile rivers)
-	{
-		var raster = new byte[rivers.Width * rivers.Height];
-		for (int y = 0; y < rivers.Height; y++)
-		{
-			rivers.StoredRow(rivers.Height - 1 - y).CopyTo(raster.AsSpan(y * rivers.Width, rivers.Width));
-		}
-		return raster;
-	}
+	public static byte[] Raster(Content.Map.CBitmapFile rivers) => rivers.NorthRaster();
 
 	/// <param name="raster">The river bitmap's palette index at each pixel, <c>[y * width + x]</c> with y counted from the south.</param>
 	/// <param name="sources">Where the rivers start, in the order they are traced: map.bin's list (<c>CMapBin</c>).</param>

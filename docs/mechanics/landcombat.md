@@ -507,8 +507,10 @@ rolls for whether a shot lands, which are the game's, cost two each.
 carries, which is how every machine in a game rolls alike.
 
 *Ours:* the game holds a seed, and an hour's rolls start from the seed and the hour it is.
-How the original turns a figure into its generator's first state was not read, and neither
-was where its hourly figure comes from - so **an hour of the original cannot be rolled
+How the original turns a figure into its generator's first state is read since 2026-11-07 -
+the usual recurrence, its shift keeping the sign (`reversing/findings/FINDINGS-espionage.md`,
+the record's `MT19937Seed`), which `CRandom` follows - but where its hourly figure comes from
+is not, so **an hour of the original cannot be rolled
 again here**, and would need every roll that comes before the battles' in the hour as well:
 the units' pass and the AI's both draw. A battle here can be checked for what it does on
 average and for what does not depend on the dice, not hit for hit.

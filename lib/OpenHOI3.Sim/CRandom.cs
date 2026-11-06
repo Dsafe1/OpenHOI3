@@ -6,11 +6,14 @@ namespace OpenHOI3.Sim;
 ///
 /// It is the generator the original uses, a Mersenne Twister with two things about it
 /// that are the original's own: the shifts to the right keep the sign, and the twist
-/// leaves a word alone that is both odd and negative. A draw is never negative, which
-/// is why the original can write a roll as a plain remainder.
+/// leaves a word alone that is both odd and negative - its test is a signed remainder,
+/// y % 2 == 1. A draw is never negative, which is why the original can write a roll as a
+/// plain remainder.
 ///
-/// How the original turns a seed into its first state was not read; the usual way is
-/// used here. See <c>docs/mechanics/landcombat.md</c>, section 8.
+/// The seed turns into the first state as the usual way does but for the shift, which
+/// keeps the sign here too (<c>reversing/findings/FINDINGS-espionage.md</c>, the record's
+/// <c>MT19937Seed</c>; read 2026-11-07 - until then the usual, unsigned shift was used).
+/// See <c>docs/mechanics/landcombat.md</c>, section 8.
 /// </summary>
 public sealed class CRandom
 {
@@ -35,7 +38,8 @@ public sealed class CRandom
 		_words[0] = seed;
 		for (int i = 1; i < Size; i++)
 		{
-			_words[i] = SeedMultiplier * (_words[i - 1] ^ (_words[i - 1] >> 30)) + (uint)i;
+			// The shift keeps the sign, as every shift of the original's generator does [exe].
+			_words[i] = SeedMultiplier * (_words[i - 1] ^ (uint)((int)_words[i - 1] >> 30)) + (uint)i;
 		}
 		_index = 0;
 		Draws = 0;

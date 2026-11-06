@@ -83,6 +83,7 @@ public static class CQuadCheck
 		CheckSurf(tiles, columns);
 		CMap map = CMap.Load(directories, _ => { });
 		CheckRivers(map, cache);
+		CheckTrees(map);
 		CheckBorders(map, tiles, columns);
 		return problems.Count == 0 && outOfRange == 0 ? 0 : 1;
 	}
@@ -137,6 +138,42 @@ public static class CQuadCheck
 		Console.WriteLine($"rivers: {sources.Count} sources, {(sources.SequenceEqual(fromBitmap) ? "the" : "NOT the")} bitmap's "
 			+ $"{fromBitmap.Count} index-0 pixels in order, {junctions} junctions; {pieces.Count} pieces, {pieces.Sum(p => p.Nodes.Count)} "
 			+ $"nodes, {strips.Sum(s => s.Vertices.Count)} vertices, {strips.Count(s => s.Exit is not null)} mouths, in {watch.ElapsedMilliseconds} ms");
+	}
+
+	/// <summary>
+	/// The trees planted out of terrain.bmp (<c>FINDINGS-mapdraw.md</c>, C.8), counted by type - a type of density 1 or more
+	/// whatever the draws, the others their share of the pixels that drew - by row, and by tile.
+	/// </summary>
+	private static void CheckTrees(CMap map)
+	{
+		if (map.TerrainFile is not { } file)
+		{
+			Console.WriteLine("trees: no terrain bitmap");
+			return;
+		}
+		var watch = System.Diagnostics.Stopwatch.StartNew();
+		byte[] terrain = CBitmapFile.Read(file).NorthRaster();
+		CTreeField field = CTreeField.Build(terrain, map.Width, map.Height, map.ProvinceAt, map.IsSea, map.TreeTypeOfIndex,
+			map.TreeRowOfIndex, map.TreeTypes.Select(t => t.Density).ToArray());
+		long elapsed = watch.ElapsedMilliseconds;
+		var eligible = new int[map.TreeTypes.Count];
+		for (int y = 0; y < map.Height; y++)
+		{
+			for (int x = 0; x < map.Width; x++)
+			{
+				int index = terrain[y * map.Width + x];
+				int type = map.TreeTypeOfIndex[index];
+				if (type >= 0 && map.TreeRowOfIndex[index] > 0 && map.ProvinceAt(x, y) > 0)
+				{
+					eligible[type]++;
+				}
+			}
+		}
+		var points = field.Tiles.SelectMany(t => t).ToList();
+		Console.WriteLine($"trees: {points.Count} of {eligible.Sum()} pixels that drew, in {elapsed} ms; "
+			+ string.Join(", ", map.TreeTypes.Select((t, i) => $"{t.Name} {points.Count(p => p.Type == i)} of {eligible[i]}")));
+		Console.WriteLine($"trees by row 0..3: {string.Join(" / ", Enumerable.Range(0, 4).Select(k => points.Count(p => p.Kind == k)))}; "
+			+ $"{field.Tiles.Count(t => t.Count > 0)} of {field.Tiles.Length} tiles with trees, at most {field.Tiles.Max(t => t.Count)}");
 	}
 
 	/// <summary>

@@ -93,4 +93,15 @@ public sealed class CBitmapFile
 	{
 		return new ReadOnlySpan<byte>(_bytes, _pixelOffset + index * _stride, Width * BytesPerPixel);
 	}
+
+	/// <summary>An 8-bit bitmap's palette indices, <c>[y * Width + x]</c> with y counted from the south, as the map's are read.</summary>
+	public byte[] NorthRaster()
+	{
+		var raster = new byte[Width * Height];
+		for (int y = 0; y < Height; y++)
+		{
+			StoredRow(Height - 1 - y).CopyTo(raster.AsSpan(y * Width, Width));
+		}
+		return raster;
+	}
 }

@@ -12,7 +12,7 @@ may change; *Ours* where this departs.
 
 The original's scene, `FINDINGS-mapdraw.md` C.1: the land; the beaches; the rivers; the land borders under `border_cutoff`;
 the sea; the surf where `waves`; the water borders; the trees under height 100; the country names in the far view; the
-province names under 100. **Built so far: the land, the beaches, the rivers, the land borders, the sea, the surf, the sea zones' borders, the highlight and the country names** (section 6). The overlays this project draws
+province names under 100. **Built so far: the land, the beaches, the rivers, the land borders, the sea, the surf, the sea zones' borders, the trees, the highlight and the country names** (section 6). The overlays this project draws
 in 2D - counters, buildings, arrows, the hierarchy, the selection, the weather and the air map's layers - stay as they are,
 over the map.
 
@@ -176,8 +176,8 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   newer than every file, and its 722 sources are the bitmap's in order; the one TFH ships is older than all ten, some by
   hundredths of a second as the install was written, so a player who never ran the original gets the builder's list -
   the same 722. *Ours*: a tile's rivers - by their source's tile - in one
-  mesh, under 65,536 vertices, with three materials for the copies of the map as the sea zones' borders have; the
-  generator's seeding is ours, `CRandom`'s, as nowhere else read; a loop of river pixels, which the original would walk for
+  mesh, under 65,536 vertices, with three materials for the copies of the map as the sea zones' borders have; a loop of
+  river pixels, which the original would walk for
   ever, cut and reported; vTime in seconds - its unit not read, and the maintainer found the flow's and the foam's speed
   right on 2026-11-06.
 - **The surf, beach.fx's BeachShader near and BeachShaderColor far** (C.7; `Content/Map/CWavePixel`,
@@ -197,6 +197,34 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   their tile's middle - the fact base's figures. *Ours*: each vertex holds the map's own place, twice the tile's middle
   added, so three materials for each technique serve every tile; each tile's mesh drawn by two instances, a layer for each
   technique.
+- **The trees, terrain_2_0.fx's TreeShader** (C.8; `Content/Map/CTreeReader`, `Interface/Map/CTreeField`): planted once as
+  the map is made, and only where settings.txt's `renderTrees` is on then [exe] - `--trees` plants them whatever it says.
+  `map/trees.txt` [mod] gives the tree types in its order, each a sheet and a `tree_density` - read in thousandths, 1.0
+  where not given - which is **the chance a pixel has a tree**; terrain.txt's palette entries [mod] name a type in `tree`
+  and give a `tree_density` that is **not a density but the sheet's row**: the row is 4 − d, d the key's whole number or,
+  where the entry gives none, 4 less the index's place in its `color` list, and nought or less no trees [exe]. **The
+  planting**: tile by tile (50 pixels, rows from the south), each tile's own pixels from its south row and west to east; a
+  pixel whose province exists and whose palette index has a type and a d above nought takes a draw of a generator of the
+  original's kind seeded 42, and has a tree where the type's density is at least the draw as a share of one - every such
+  pixel spending a draw - its tree at the pixel's whole coordinates, 0.02 higher on land than on a sea province [exe]. A
+  tile keeps its trees by type, then by province in the order of their first tree, then as walked. A hundred more draws
+  turn a hundred template trees: **four flat horizontal cards** at heights 0.5, 0.375, 0.225 and 0.05, each a square of
+  diagonal 2.4 turned by the tree's angle, from the top the sheet's columns of highlights, middle, dark base and shadow
+  [exe] - nothing faces the camera, a canopy seen from above. A tile's n-th tree is template tree n mod 100 on its pixel,
+  its v moved down its row by a quarter a row, and in the weather mode a tree of a province colder than −5 takes the
+  sheet's snowed right half [exe]. On TFH's map 1,136,896 pixels draw and **1,002,520 trees** stand - forest, forest2,
+  jungle and jungle2, whose density is 1 or more, every pixel of theirs, the fact base's figures; woods, woods2 and
+  treemoun their 0.7, 0.7 and 0.5 shares - in 1,718 tiles, at most 2,500 a tile. The generator is the original's, its
+  seeding and twist both as the bytes have them since 2026-11-07, so the chance types' trees should stand where the
+  original's do; the fact base's simulation, its twist the textbook one, gave 1,002,313. **The draw**: under height 100 [exe], in
+  the terrain and weather modes only, after the sea zones' borders, a pass for each type with its sheet; the shader lifts
+  every card by the land's height; blended by source alpha, tested at 8, the depth tested and written. **At most 16 tiles
+  show trees at once** [exe]: each tile in view, in the tiles' order, takes a slot with no tile or else one whose tile is
+  out of view, and keeps it while in view; a slot's snow is fixed when it is filled, and choosing a mode empties them all.
+  *Ours*: the planting runs on a thread of its own as the surface is made, about 0.4 s in the optimised build, no tree
+  drawn until it is done; the tiles in view the ground the camera looks straight down on and two pixels more, where the
+  original's list of visible tiles was not read; a tree's vertices in the map's own coordinates, three materials a type for
+  the copies of the map.
 - **The device states** around each draw, `FINDINGS-mapdraw.md` C.1 and C.2: the land unblended (ONE / ZERO); the beaches
   SRCALPHA / ZERO, which their Graphical and General passes override; the sea SRCALPHA / INVSRCALPHA; the baseline alpha
   test at 8 / GREATEREQUAL where a pass turns the test on - each handed to the translator as the states the pass is laid over.
@@ -283,4 +311,10 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   looked at them: near, the Elbe, the Weser and the rest light bands over the land; far, the rivers fine white lines and
   every coast a dark line. **The near surf's foam was not made out** on a screenshot zoomed in on the German coast - the
   pass adds white by three alphas, so it is faint by its own art, and whether as faint as the original's is for his eye.
-- **Next**: the trees - where their points come from wants a reading first.
+- **The trees, built 2026-11-07** (section 4), after a reading in the fact base (C.8), which corrected the record's
+  trees.txt reader - it reads `tree_density` too - and its quad a tree - four. Checked with `--screenshot` and `--trees`:
+  the Black Forest a canopy of clumps seen from above, the Rhine plain bare; Karelia's trees snowed in the weather mode
+  and green in the terrain mode. **The maintainer's settings.txt has `renderTrees=no`**, so without `--trees` he sees
+  none, as the original would show him none. He has not looked at them.
+- **Next**: the map surface is whole but for the province names under height 100 and terra incognita (a scenario's
+  alone, which there are none of here).

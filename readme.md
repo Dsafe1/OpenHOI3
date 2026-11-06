@@ -1664,8 +1664,11 @@ of this project's own is drawn over the surface, `PoliticalMap.gdshader` left as
 cache. The maintainer set the far view beside the original's and it agrees. **And the rivers and the surf** through
 `river.fx` and `beach.fx` (the fact base's C.6, C.7): the rivers traced out of `rivers.bmp` and made into strips as the
 original makes them, the surf's quads from the cache's wave pixels - near the foam, far the coast's black line - their
-counts the fact base's every one, tried with `--screenshot`, and the maintainer has not looked at them. **Next up**: the
-trees, wanting a reading first;
+counts the fact base's every one, tried with `--screenshot`, and the maintainer has not looked at them. **And the
+trees** through `TreeShader` (the fact base's C.8): planted as the original plants them where settings.txt's `renderTrees`
+is on - `--trees` plants them regardless - a pixel of a tree palette entry keeping a tree by trees.txt's density, each four
+flat cards of its sheet, snowed in the weather mode below −5, at most 16 tiles at once under height 100. **Next up**: the
+province names under height 100, or move on;
 then the interface's other effects the client still imitates in C# -
 `counter.fx`, `maskedflag.fx`, `hierarchy.fx`, `circle.fx`. Then war exhaustion, or the military AI's gaps (*What the moving wave
 left*), or the end-of-game screen.
@@ -1765,7 +1768,13 @@ None of these blocks the list above.
   the rivers' sources alone** (`CMapBin`, `docs/compatibility.md` entry 20): the land borders' junctions read its raster
   whenever the `time` stamp is current, where the original would build the file again first - its raster half not read.
   That reading should also say what the raster's two high bits mean (16 and 32, about 207,000 pixels of TFH's) and
-  whether anything reads them: the border code masks them off and nothing read so far uses them. Nothing marks the hovered
+  whether anything reads them: the border code masks them off and nothing read so far uses them.
+- **`CRandom` seeds as the original since 2026-11-07**, the shift in its seeding keeping the sign (the record's
+  `MT19937Seed`), where it had used the textbook unsigned one; its twist, leaving a word that is odd and negative alone,
+  was right and is checked against the bytes the same day. A loaded game is untouched, its generator's state the save's;
+  a new game rolls differently from then, so **every recording made before it no longer replays**, and the figures the
+  savegame tool's trials are quoted with here - a battle's, a raid's, a landing's, the headless run's - were rolled
+  before it and may now come out otherwise until each is run again. Nothing marks the hovered
   province, as in the original; revolt risk's map style is ours.
   **The air map mode's land is a patchwork of greys**: `CMapView.AirOver`, the stand-in from before the surface, lays each
   colour over the province's terrain colour turned grey, and the surface's own technique then works on that again; what

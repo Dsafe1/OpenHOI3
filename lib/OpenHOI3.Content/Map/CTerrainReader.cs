@@ -30,7 +30,18 @@ public static class CTerrainReader
 	/// <param name="CategoryOfIndex">
 	/// For each of the bitmap's 256 palette indices, which category it paints, or -1.
 	/// </param>
-	public readonly record struct Definition(CTerrain[] Categories, int[] CategoryOfIndex);
+	public readonly record struct Definition(CTerrain[] Categories, int[] CategoryOfIndex)
+	{
+		/// <summary>For each palette index, the trees.txt entry its palette entry's <c>tree</c> names, or null.</summary>
+		public string?[]? TreeOfIndex { get; init; }
+
+		/// <summary>
+		/// For each palette index, d: the entry's <c>tree_density</c>, or where it gives none 4 less the index's place in its
+		/// <c>color</c> list, never below nought. Not a density: the row of the tree sheet, 4 − d, and no trees at nought
+		/// (<c>reversing/findings/FINDINGS-mapdraw.md</c>, C.8).
+		/// </summary>
+		public int[]? TreeRowOfIndex { get; init; }
+	}
 
 	/// <summary>
 	/// The file is a <c>categories</c> block, then one entry per palette index: a
@@ -75,6 +86,8 @@ public static class CTerrainReader
 
 		var categoryOfIndex = new int[256];
 		Array.Fill(categoryOfIndex, -1);
+		var treeOfIndex = new string?[256];
+		var treeRowOfIndex = new int[256];
 		var unknownTypes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		foreach (ClausewitzNode entry in root.Children)
@@ -95,13 +108,21 @@ public static class CTerrainReader
 				unknownTypes.Add(type);
 				continue;
 			}
+			string tree = entry.GetString("tree");
+			// An int read as the original's %i reads it; −1 where the key is not there.
+			int density = int.TryParse(entry.GetString("tree_density"), NumberStyles.Integer, CultureInfo.InvariantCulture,
+				out int given) ? given : -1;
+			int place = 0;
 			foreach (ClausewitzNode value in indices.Children)
 			{
 				if (int.TryParse(value.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int index)
 					&& index >= 0 && index < categoryOfIndex.Length)
 				{
 					categoryOfIndex[index] = category;
+					treeOfIndex[index] = tree.Length == 0 ? null : tree;
+					treeRowOfIndex[index] = density > -1 ? density : Math.Max(0, 4 - place);
 				}
+				place++;
 			}
 		}
 
@@ -113,7 +134,7 @@ public static class CTerrainReader
 		{
 			warn($"'{path}' paints with types that are not categories: {string.Join(", ", unknownTypes)}");
 		}
-		return new Definition(categories.ToArray(), categoryOfIndex);
+		return new Definition(categories.ToArray(), categoryOfIndex) { TreeOfIndex = treeOfIndex, TreeRowOfIndex = treeRowOfIndex };
 	}
 
 	/// <summary>How many pixels of the bitmap are painted with an index the definition gives no terrain.</summary>

@@ -80,9 +80,11 @@ public partial class CMapSurface : Node3D
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	/// <param name="waves">settings.txt's <c>waves</c>: whether the surf is made at all, as the original makes its meshes only then.</param>
+	/// <param name="trees">settings.txt's <c>renderTrees</c>: whether the trees are planted, as the original plants them only then.</param>
 	public void Setup(CMap map, CGuiContext gui, Content.Map.CMapCache cache, IReadOnlyList<CQuadTile> tiles, int columns,
-		bool simpleWater, bool waves, Content.Map.CBorderCache? corners = null)
+		bool simpleWater, bool waves, bool trees, Content.Map.CBorderCache? corners = null)
 	{
+		_plantTrees = trees;
 		_cache = cache;
 		_corners = corners;
 		_map = map;
@@ -125,6 +127,8 @@ public partial class CMapSurface : Node3D
 		BuildWaterBorders();
 		BuildRivers();
 		BuildSurf();
+		AddChild(_trees);
+		PlantTrees();
 		Shader? border = Terrain(BorderTechnique, BorderStates).Shader;
 		foreach (CSurfaceTile part in _parts)
 		{
@@ -172,6 +176,7 @@ public partial class CMapSurface : Node3D
 				if (IsInsideTree())
 				{
 					ShowTechniques();
+					ApplyTrees();
 				}
 			}
 		}
@@ -285,6 +290,9 @@ public partial class CMapSurface : Node3D
 	private const uint SurfNearLayer = 1u << 12;
 	private const uint SurfFarLayer = 1u << 13;
 
+	/// <summary>The trees, drawn only under height 100 in the terrain and weather modes.</summary>
+	private const uint TreeLayer = 1u << 14;
+
 	private static uint WayLayer(int way) => 1u << (1 + way);
 
 	private Camera3D _camera3D = null!;
@@ -295,7 +303,7 @@ public partial class CMapSurface : Node3D
 		uint Sea(string? technique) => technique is not null && _seaWays.TryGetValue(technique, out var sea) ? sea.Layer : 0;
 		bool warm = _warmFrames > 0;
 		_camera3D.CullMask = BaseLayer | (_shownWay >= 0 ? WayLayer(_shownWay) : 0) | (_bordersShown ? BorderLayer : 0) | Sea(_shownSea)
-			| (Far ? SurfFarLayer : SurfNearLayer)
+			| (Far ? SurfFarLayer : SurfNearLayer) | (_treesShown ? TreeLayer : 0)
 			| (warm && _warmWay >= 0 ? WayLayer(_warmWay) | BorderLayer : 0) | (warm ? Sea(_warmSea) | SurfNearLayer | SurfFarLayer : 0);
 	}
 
@@ -507,6 +515,7 @@ public partial class CMapSurface : Node3D
 		ApplyBorderHeight(_camera.Height);
 		ApplyWaterBorderView(_camera);
 		ApplyCopies(_camera);
+		ApplyTrees();
 		foreach ((ShaderMaterial material, CGodotShader?[] translations, uint _) in _seaWays.Values)
 		{
 			SetSeaCamera(material, translations, _camera);
@@ -521,6 +530,7 @@ public partial class CMapSurface : Node3D
 	/// </summary>
 	public override void _ExitTree()
 	{
+		FreeTreeSlots();
 		foreach (Node node in GetChildren().Concat(_borders.GetChildren()).Concat(_waterBorders.GetChildren()).Concat(_rivers.GetChildren()))
 		{
 			if (node is MeshInstance3D instance && instance.Mesh is { } mesh)
@@ -610,6 +620,12 @@ public partial class CMapSurface : Node3D
 		// The rivers' and the surf's vTime: the original's clock, whose unit was not read - seconds here, ours. Its wrap at a
 		// hundred moves the rivers' flow 30 repeats and the surf's 20, whole, so nothing jumps.
 		RenderingServer.GlobalShaderParameterSet(SharedTime, (float)_clock);
+		// The trees shown the frame their planting is done, where the camera already wants them.
+		if (_planting is { IsCompleted: true } && !_plantingSeen)
+		{
+			_plantingSeen = true;
+			ApplyTrees();
+		}
 	}
 
 	// ------------------------------------------------------------------------------------------------------------ meshes
@@ -1012,6 +1028,217 @@ public partial class CMapSurface : Node3D
 		if (skipped > 0)
 		{
 			GD.PushWarning($"map: {skipped} wave pixels of the quad cache are of no known type and make no surf");
+		}
+	}
+
+	// ----------------------------------------------------------------------------------------------------------- trees
+
+	public const string TreeTechnique = "TreeShader";
+
+	/// <summary>The trees drawn last of the surface, after the sea zones' borders (FINDINGS-mapdraw.md, C.1).</summary>
+	private const int TreePriority = 6;
+
+	/// <summary>Trees are drawn only under this height [exe].</summary>
+	private const float TreeHeight = 100f;
+
+	/// <summary>The tiles that may show trees at once, as the original's slots [exe].</summary>
+	private const int TreeSlots = 16;
+
+	private static readonly Dictionary<string, string> TreeStates = Baseline(("ALPHABLENDENABLE", "1"), ("SRCBLEND", "SRCALPHA"),
+		("DESTBLEND", "INVSRCALPHA"));
+
+	private readonly Node3D _trees = new() { Name = "Trees" };
+	private bool _plantTrees;
+	private bool _treesShown;
+	private bool _plantingSeen;
+	private System.Threading.Tasks.Task<CTreeField?>? _planting;
+	private ShaderMaterial[][]? _treeMaterials;
+	private CGodotShader? _treeTranslation;
+
+	/// <summary>Each slot's tile, or -1, and the instances drawing it, one for each tree type it holds.</summary>
+	private readonly (int Tile, List<MeshInstance3D> Instances)[] _treeSlots =
+		Enumerable.Range(0, TreeSlots).Select(_ => (-1, new List<MeshInstance3D>())).ToArray();
+
+	private Func<int, bool>? _treeSnow;
+
+	/// <summary>
+	/// Whether a province's trees are drawn snowed - in the weather mode, colder than −5 - or null in any other mode. Set as
+	/// the mode is chosen, which frees every slot, as the original's choosing a mode does; a slot's snow is then fixed until
+	/// it is freed again [exe].
+	/// </summary>
+	public Func<int, bool>? TreeSnow
+	{
+		get => _treeSnow;
+		set
+		{
+			_treeSnow = value;
+			FreeTreeSlots();
+			ApplyTrees();
+		}
+	}
+
+	/// <summary>
+	/// The trees planted as the original plants them as the map is made (FINDINGS-mapdraw.md, C.8), where settings.txt's
+	/// <c>renderTrees</c> is on. *Ours*: on a thread of its own, about 0.4 s in the optimised build, so that making the
+	/// surface does not wait on it; no trees are drawn until it is done.
+	/// </summary>
+	private void PlantTrees()
+	{
+		if (!_plantTrees || _map.TerrainFile is not { } file || _map.TreeTypes.Count == 0)
+		{
+			return;
+		}
+		var effect = Terrain(TreeTechnique, TreeStates);
+		if (effect.Shader is null)
+		{
+			return;
+		}
+		_treeTranslation = effect.Translation;
+		CGodotShader?[] translations = { effect.Translation };
+		_treeMaterials = _map.TreeTypes.Select(type => CopyMaterials(effect.Shader, translations, TreePriority, material =>
+		{
+			Set(material, translations, "vAlpha", 1f);
+			Set(material, translations, "BorderWidth", (float)CQuadTile.Size);
+			Set(material, translations, "BorderHeight", (float)CQuadTile.Size);
+			Set(material, translations, "AbsoluteWorldMatrix", Matrix(CD3DMatrix.Translation(0, 0, 0)));
+			SetTexture(material, translations, "tex0", _gui.Textures.LoadFromGamePath("map/" + type.Texture));
+		})).ToArray();
+		CMap map = _map;
+		_planting = System.Threading.Tasks.Task.Run<CTreeField?>(() =>
+		{
+			byte[] terrain = CBitmapFile.Read(file).NorthRaster();
+			return CTreeField.Build(terrain, map.Width, map.Height, map.ProvinceAt, map.IsSea, map.TreeTypeOfIndex,
+				map.TreeRowOfIndex, map.TreeTypes.Select(t => t.Density).ToArray());
+		});
+	}
+
+	/// <summary>
+	/// The trees under height 100 in the terrain and weather modes [exe]: each tile in view, in the tiles' order, that has no
+	/// slot takes a free one - one with no tile, else one whose tile is out of view - until the sixteen are taken, as the
+	/// original's slots are filled; a slot keeps its tile while it stays in view.
+	/// </summary>
+	private void ApplyTrees()
+	{
+		bool shown = _camera is { } camera && _style == 0 && camera.Height < TreeHeight
+			&& _planting is { IsCompletedSuccessfully: true, Result: not null };
+		if (shown != _treesShown)
+		{
+			_treesShown = shown;
+			ApplyCullMask();
+		}
+		if (!shown)
+		{
+			return;
+		}
+		CTreeField field = _planting!.Result!;
+		List<int> visible = VisibleTiles(_camera!, field.Columns, field.Tiles.Length);
+		foreach (int tile in visible)
+		{
+			if (Array.Exists(_treeSlots, s => s.Tile == tile))
+			{
+				continue;
+			}
+			int free = Array.FindIndex(_treeSlots, s => s.Tile < 0);
+			if (free < 0)
+			{
+				free = Array.FindIndex(_treeSlots, s => !visible.Contains(s.Tile));
+			}
+			if (free < 0)
+			{
+				break;
+			}
+			FillTreeSlot(free, tile, field);
+		}
+	}
+
+	/// <summary>
+	/// The tiles the camera looks down on, in the tiles' order: the ground in view, the camera looking straight down, two
+	/// pixels more each way for a tree's reach, the map wrapping east and west. *Ours*, for the original's list of visible
+	/// tiles, which was not read.
+	/// </summary>
+	private List<int> VisibleTiles(CMapSurfaceCamera camera, int columns, int count)
+	{
+		float halfHeight = camera.Height * MathF.Tan(CMapSurfaceCamera.FieldOfView / 2f) + 2;
+		float halfWidth = (halfHeight - 2) * (_screen.X / MathF.Max(1, _screen.Y)) + 2;
+		int rows = count / columns;
+		int rowFrom = Math.Max(0, (int)MathF.Floor((camera.Z - halfHeight) / CQuadTile.Size));
+		int rowTo = Math.Min(rows - 1, (int)MathF.Floor((camera.Z + halfHeight) / CQuadTile.Size));
+		var columnsSeen = new SortedSet<int>();
+		for (int x = (int)MathF.Floor(camera.X - halfWidth); x <= (int)MathF.Ceiling(camera.X + halfWidth); x++)
+		{
+			columnsSeen.Add(((x % _map.Width) + _map.Width) % _map.Width / CQuadTile.Size);
+		}
+		var tiles = new List<int>();
+		for (int row = rowFrom; row <= rowTo; row++)
+		{
+			foreach (int column in columnsSeen)
+			{
+				tiles.Add(column + columns * row);
+			}
+		}
+		return tiles;
+	}
+
+	/// <summary>A slot given a tile: a mesh for each tree type the tile holds, each tree its 16 vertices (C.8).</summary>
+	private void FillTreeSlot(int slot, int tile, CTreeField field)
+	{
+		ClearTreeSlot(slot);
+		List<MeshInstance3D> instances = _treeSlots[slot].Instances;
+		int middleX = tile % field.Columns * CQuadTile.Size + CQuadTile.Size / 2;
+		for (int type = 0; type < _treeMaterials!.Length; type++)
+		{
+			List<float> vertices = field.Vertices(tile, type, _treeSnow);
+			int trees = vertices.Count / (CTreeField.VerticesPerTree * CTreeField.Stride);
+			if (trees == 0)
+			{
+				continue;
+			}
+			var indices = new ushort[trees * CTreeField.Triangles.Length];
+			for (int p = 0; p < trees; p++)
+			{
+				for (int k = 0; k < CTreeField.Triangles.Length; k++)
+				{
+					indices[p * CTreeField.Triangles.Length + k] = (ushort)(CTreeField.VerticesPerTree * p + CTreeField.Triangles[k]);
+				}
+			}
+			ArrayMesh mesh = BuildMesh(indices, trees * CTreeField.VerticesPerTree, _treeTranslation, (semantic, v) => semantic switch
+			{
+				"POSITION" => new Vector4(vertices[5 * v], vertices[5 * v + 1], vertices[5 * v + 2], 1),
+				"TEXCOORD0" => new Vector4(vertices[5 * v + 3], vertices[5 * v + 4], 0, 1),
+				_ => null,
+			});
+			ShaderMaterial[] materials = _treeMaterials[type];
+			int copy = _camera is { } camera ? 1 + (int)MathF.Round(camera.Shift(middleX) / _map.Width) : 1;
+			MeshInstance3D instance = Instance($"Trees{tile}_{type}", mesh, materials[copy], TreeLayer);
+			_trees.AddChild(instance);
+			_copied.Add((instance, middleX, copy, materials));
+			instances.Add(instance);
+		}
+		_treeSlots[slot] = (tile, instances);
+	}
+
+	private void ClearTreeSlot(int slot)
+	{
+		List<MeshInstance3D> instances = _treeSlots[slot].Instances;
+		_copied.RemoveAll(c => instances.Contains(c.Instance));
+		foreach (MeshInstance3D instance in instances)
+		{
+			Mesh? mesh = instance.Mesh;
+			instance.Mesh = null;
+			instance.MaterialOverride = null;
+			_trees.RemoveChild(instance);
+			instance.QueueFree();
+			mesh?.Dispose();
+		}
+		instances.Clear();
+		_treeSlots[slot] = (-1, instances);
+	}
+
+	private void FreeTreeSlots()
+	{
+		for (int slot = 0; slot < TreeSlots; slot++)
+		{
+			ClearTreeSlot(slot);
 		}
 	}
 

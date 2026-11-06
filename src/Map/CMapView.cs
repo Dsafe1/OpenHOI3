@@ -151,7 +151,7 @@ public partial class CMapView : Node2D
 	/// quad cache (<c>docs/mechanics/mapdraw.md</c>); where the cache cannot be read, or is stale, the map is drawn flat as
 	/// before. Before the node enters the tree, and after <see cref="Setup"/>.
 	/// </summary>
-	public void SetupSurface(CGuiContext gui, CDirectorySettings directories, CMapCache cache, bool simpleWater, bool waves,
+	public void SetupSurface(CGuiContext gui, CDirectorySettings directories, CMapCache cache, bool simpleWater, bool waves, bool trees,
 		IReadOnlyList<CQuadTile>? read = null)
 	{
 		IReadOnlyList<CQuadTile> tiles = read ?? CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
@@ -163,7 +163,7 @@ public partial class CMapView : Node2D
 			return;
 		}
 		_surface = new CMapSurface();
-		_surface.Setup(_map, gui, cache, tiles, CQuadCache.Columns(directories), simpleWater, waves, _corners);
+		_surface.Setup(_map, gui, cache, tiles, CQuadCache.Columns(directories), simpleWater, waves, trees, _corners);
 		_textures ??= gui.Textures;
 		_names = new CCountryMapNames { Name = "CountryNames", Visible = false };
 		_names.Setup(_map, _state, gui.Fonts);
@@ -346,10 +346,18 @@ public partial class CMapView : Node2D
 			if (_surface is not null)
 			{
 				_surface.Style = Style(value);
+				_surface.TreeSnow = value == MapMode.Weather ? Snowed : null;
 			}
 			RefreshColours();
 		}
 	}
+
+	/// <summary>
+	/// Whether a province's trees are drawn snowed in the weather mode: its temperature below −5, strictly [exe]
+	/// (<c>reversing/findings/FINDINGS-weathersim.md</c>, C.5).
+	/// </summary>
+	private bool Snowed(int province) =>
+		province > 0 && province < _state.Provinces.Count && _state.Provinces[province].Weather.Temperature.Raw < -5000;
 
 	/// <summary>Works out again what the air map mode draws over the map, when it is on: once a day.</summary>
 	public void RefreshAirMap()

@@ -227,7 +227,8 @@ public partial class CSession : Node
 			CArrowTypes.Load(_directories));
 		CMapCache cache = CMapCache.Open(_directories, Content.Settings.CUserSettingsReader.UserFolder(),
 			problem => GD.PushWarning($"map: {problem}"));
-		_mapView.SetupSurface(gui, _directories, cache, Settings.SimpleWater, Settings.Waves);
+		_mapView.SetupSurface(gui, _directories, cache, Settings.SimpleWater, Settings.Waves,
+			Settings.RenderTrees || UserArguments().Contains("--trees"));
 		AddChild(_mapView);
 
 		BuildHud(gui);
@@ -1355,6 +1356,7 @@ public partial class CSession : Node
 	/// plays a recording back, played by whoever played it and taking no orders, the map alone shown where nobody did, the
 	/// clock stopping where the recording ends (<c>docs/replay.md</c>, sections 6 and 8; both read as the session loads,
 	/// not here), <c>--hash</c> prints the game's hash each midnight,
+	/// <c>--trees</c> plants the map's trees whatever settings.txt's <c>renderTrees</c> says (read as the map is made, not here),
 	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map (<c>--mode=weather</c> on the weather map)
 	/// (<c>supply</c>, <c>air</c> and <c>revolt</c> on those),
 	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen and

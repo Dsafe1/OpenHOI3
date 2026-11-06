@@ -286,6 +286,29 @@ public sealed class CMap
 			warn($"no terrain: '{terrainTxt}' or '{terrainBmp}' is missing");
 		}
 
+		// The trees: trees.txt's types, and each palette index's type by the name its terrain.txt entry gives, matched as
+		// written, an unknown name none (FINDINGS-mapdraw.md, C.8).
+		string treesTxt = directories.Resolve("map/" + definition.GetString("tree_definition", "trees.txt"));
+		List<CTreeType> treeTypes = CTreeReader.Read(treesTxt, warn);
+		var treeTypeOfIndex = new int[256];
+		Array.Fill(treeTypeOfIndex, -1);
+		var unknownTrees = new SortedSet<string>(StringComparer.Ordinal);
+		for (int index = 0; index < 256; index++)
+		{
+			if (terrainDefinition.TreeOfIndex?[index] is { } name)
+			{
+				treeTypeOfIndex[index] = treeTypes.FindIndex(t => t.Name == name);
+				if (treeTypeOfIndex[index] < 0)
+				{
+					unknownTrees.Add(name);
+				}
+			}
+		}
+		if (unknownTrees.Count > 0)
+		{
+			warn($"'{terrainTxt}' names trees '{Path.GetFileName(treesTxt)}' has not: {string.Join(", ", unknownTrees)}");
+		}
+
 		CBitmapFile? riverBitmap = null;
 		if (File.Exists(riversBmp))
 		{
@@ -331,8 +354,24 @@ public sealed class CMap
 			BorderCutoff = definition.GetFloat("border_cutoff", 0f),
 			WaterPixels = WaterMask(terrainBitmap, terrainDefinition, bitmap.Width, bitmap.Height),
 			RiversFile = riverBitmap is null ? null : riversBmp,
+			TerrainFile = terrainBitmap is null ? null : terrainBmp,
+			TreeTypes = treeTypes,
+			TreeTypeOfIndex = treeTypeOfIndex,
+			TreeRowOfIndex = terrainDefinition.TreeRowOfIndex ?? new int[256],
 		};
 	}
+
+	/// <summary>The terrain bitmap read, 8 bits and the map's size, which the map's surface plants its trees from; null for none.</summary>
+	public string? TerrainFile { get; private init; }
+
+	/// <summary>map/trees.txt's tree types, in the file's order.</summary>
+	public IReadOnlyList<CTreeType> TreeTypes { get; private init; } = Array.Empty<CTreeType>();
+
+	/// <summary>For each terrain palette index, the tree type its terrain.txt entry names, or -1.</summary>
+	public IReadOnlyList<int> TreeTypeOfIndex { get; private init; } = Array.Empty<int>();
+
+	/// <summary>For each terrain palette index, d of <see cref="CTerrainReader.Definition.TreeRowOfIndex"/>.</summary>
+	public IReadOnlyList<int> TreeRowOfIndex { get; private init; } = Array.Empty<int>();
 
 	/// <summary>The river bitmap read, 8 bits and the map's size, which the map's surface traces its rivers from; null for none.</summary>
 	public string? RiversFile { get; private init; }
