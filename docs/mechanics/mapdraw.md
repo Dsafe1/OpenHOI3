@@ -12,7 +12,7 @@ may change; *Ours* where this departs.
 
 The original's scene, `FINDINGS-mapdraw.md` C.1: the land; the beaches; the rivers; the land borders under `border_cutoff`;
 the sea; the surf where `waves`; the water borders; the trees under height 100; the country names in the far view; the
-province names under 100. **Built so far: the land, the beaches, the land borders, the sea and the country names** (section 6). The overlays this project draws
+province names under 100. **Built so far: the land, the beaches, the land borders, the sea, the sea zones' borders, the highlight and the country names** (section 6). The overlays this project draws
 in 2D - counters, buildings, arrows, the hierarchy, the selection, the weather and the air map's layers - stay as they are,
 over the map.
 
@@ -99,6 +99,24 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   lookup made again at most four times a second of the wall clock, a change of hands marking it - the passes and the
   lookup take about 9 and 10 ms in the optimised build, and at the top speed of a war hands change most hours; the corner
   cache read as a map view is made, about 0.1 to 0.2 s.
+- **The sea zones' borders, borders_2_0.fx's WaterBorderShader** (`FINDINGS-mapdraw.md`, B.8): a one-pixel quad on every
+  water pixel - terrain.bmp's category water [mod: map/terrain.bmp, terrain.txt] - from x 2 to the width less one and y 2
+  to the height less one whose `border_bitmap.bin` byte 0 or byte 3 is not nought, its corners (x − 1, y − 1), (x − 1, y),
+  (x, y), (x, y − 1) with uv (0,1), (0,0), (1,0), (1,1) and the two bytes, which pick a 64-texel column each of
+  `water_borders.dds` and `water_diag_borders.dds` [mod: map/terrain] - a code of 16 or more drawing nothing; gathered by
+  tile of 50 pixels, x outer and y inner, as the corner cache is read (`CBorderCache.WaterBorders`), built once and never
+  again [exe]. tex1 and tex3 those two pictures; the depth test off, depth written, blended by source alpha; drawn after
+  the sea and at every height - what hides them in the far view is their art, at most a fifth of black over a fifth of a
+  pixel (*inferred* there; the maintainer's screenshot of the original's far view shows none). On TFH 668,662 quads in
+  3,638 tiles: the borders between sea zones, and never the coast, which is the surf's. *Ours*: a vertex holds the map's
+  own coordinates where the original's holds the tile's, the product with the world-view-projection the same, so three
+  materials - a tile drawn a map's width west, where it is, a width east - serve every tile and a move of the camera sets
+  three matrices.
+- **The highlight** (B.9): a selected land province's texels in both lookups lifted - in style 0 the green 25 and nought
+  for any other province, in any other style red, green and blue +25 (255 from 230 up) and alpha full - so the land shader
+  shows it +0.098 in the terrain modes and about +0.044 in the others, and the sea never [exe]. Which provinces is the
+  selection; the lookups are written again whenever it changes (`CMapSurface.SetSelection`); nothing marks the province
+  under the mouse.
 - **The device states** around each draw, `FINDINGS-mapdraw.md` C.1 and C.2: the land unblended (ONE / ZERO); the beaches
   SRCALPHA / ZERO, which their Graphical and General passes override; the sea SRCALPHA / INVSRCALPHA; the baseline alpha
   test at 8 / GREATEREQUAL where a pass turns the test on - each handed to the translator as the states the pass is laid over.
@@ -133,9 +151,18 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   air 18 - which picks the sea's `…Color` techniques.
 - **The colours**: `CMapView.RefreshColours` hands its two palettes to the surface, which makes the lookups, the sea's
   rasters and the fog from them (section 5) - about 15 ms, the texel each samples worked out once for the map.
-- **What it costs**: at rest a frame of about 7 ms, the 2D map's own; a move of the camera a tenth of a millisecond; a
-  height crossing 500, where every material changes technique and two textures, about 17 ms; the surface's making about
-  0.9 s - the cache read in 0.2 s, 2,700 meshes and 1,774 terrain-index pictures in 0.7 - in the optimised build.
+- **What it costs**: at rest a frame of about 7 ms, the 2D map's own; a move of the camera a tenth of a millisecond; the
+  surface's making about 0.9 s - the cache read in 0.2 s, 2,700 meshes and 1,774 terrain-index pictures in 0.7 - in the
+  optimised build. **A crossing of 500** cost a frame of 120 to 145 ms at first, every time (the maintainer's report,
+  2026-11-06): our own work was some 17 ms, and the rest the rendering server's - giving 2,700 materials another shader,
+  and then, measured with each switched off in turn, showing or hiding a few thousand instances, the land's or the
+  borders' alike. *Ours* since: **the land and the beaches are drawn four ways** - Graphical near and far, General,
+  General_Low - each a material and an instance for every tile, sharing the tile's mesh and made the first time the way
+  is wanted, the same style's other height made and drawn with it for the first frames; the sea one material and instance
+  for each technique the same way; and what is drawn chosen by **render layers and the camera's cull mask** - a layer for
+  each way, one for the land borders, one for each technique of the sea - so a crossing changes one mask and no
+  instance. A crossing now costs 13 to 21 ms, the first zoom inwards about 70, of which 37 is the counters' first near
+  draw, as on the flat map.
 - **A surface gives back everything it made as it leaves the tree** - its meshes, its some 4,500 materials and their
   textures - where until then each lived on until the managed side's collector took its wrapper. Under the debugger that
   was long enough for the lobby's surfaces, one for each world it shows, to still hold their texture sets when the game's
@@ -164,10 +191,11 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   which blend, and the coast showed the land's pixel steps. What a General beach lets through is the frame's clear colour,
   the original's mid-grey, which the surface's camera now clears to.
 - **The far view's country names, built the same day**: `mapnames.md`.
-- **Still this project's own, over the surface**: `PoliticalMap.gdshader`, put to `overlay_only`, draws the lines between
-  two sea provinces - the original's water borders' meshes are made by a routine not read, not from the cache (B.4) - and
-  the selection's and the mouse's highlight, as see-through black and white, until those and the original's highlight -
-  green in the first lookup - are built; then it goes.
+- **The sea zones' borders and the highlight, built the same day** (section 4), and with them **nothing of this project's
+  own is drawn over the surface any more**: `PoliticalMap.gdshader` draws the flat map only where the install has no quad
+  cache - a mod with a map of its own and no cache - and the hover marking it drew is gone, the original marking nothing
+  under the mouse. Checked with `--screenshot`: the Baltic's faint lines between its zones, and a click on a province
+  lifting it while the one before goes dark.
 - **The junctions of the land borders, built the same day** (section 4), after the maintainer found the lines "very cut
   up" in a save of 1941: every place three provinces met lost its corner piece on every line into it.
 - **Next**: the rivers, the surf and the trees, in the scene's order - each wanting a reading first: what the rivers' meshes

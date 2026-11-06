@@ -329,6 +329,7 @@ public sealed class CMap
 			TerrainSheetHeights = ReadHeights(definition, "terrain_sheet_heights"),
 			BorderHeights = ReadHeights(definition, "border_heights"),
 			BorderCutoff = definition.GetFloat("border_cutoff", 0f),
+			WaterPixels = WaterMask(terrainBitmap, terrainDefinition, bitmap.Width, bitmap.Height),
 		};
 	}
 
@@ -361,6 +362,36 @@ public sealed class CMap
 
 	/// <summary><c>border_cutoff</c>: the height from which no land border is drawn (500.0 in TFH).</summary>
 	public float BorderCutoff { get; private init; }
+
+	/// <summary>
+	/// Which pixels terrain.bmp paints with a category that is water, x a column and y counted from the south; null where
+	/// the map has no terrain. The sea zones' borders are drawn on these (<c>docs/mechanics/mapdraw.md</c>, section 4).
+	/// </summary>
+	public System.Collections.BitArray? WaterPixels { get; private init; }
+
+	/// <summary>Whether a pixel is painted water; false off the map or where there is no terrain.</summary>
+	public bool IsWaterPixel(int x, int y)
+	{
+		return WaterPixels is { } water && x >= 0 && y >= 0 && x < Width && y < Height && water[y * Width + x];
+	}
+
+	private static System.Collections.BitArray? WaterMask(CBitmapFile? terrain, CTerrainReader.Definition definition, int width, int height)
+	{
+		if (terrain is null || definition.Categories is null)
+		{
+			return null;
+		}
+		var water = new System.Collections.BitArray(width * height);
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				int category = CTerrainReader.CategoryAt(terrain, definition, x, y);
+				water[y * width + x] = category >= 0 && definition.Categories[category].IsWater;
+			}
+		}
+		return water;
+	}
 
 	/// <summary>
 	/// The map's level at a camera height, as the original counts it for the land: one more than the last of

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Interface.Map;
 
@@ -11,7 +12,7 @@ public class BorderCornerTests
 	private const int Width = 4, Height = 4;
 
 	/// <summary>The three cache files for a 4 by 4 map: one junction pixel of province 1 at (1, 2), every pixel's bytes (3, 64, 0, 0).</summary>
-	private static CBorderCache Cache(byte cut = 0)
+	private static CBorderCache Cache(byte cut = 0, Func<int, int, bool>? water = null)
 	{
 		var pairs = new MemoryStream();
 		var writer = new BinaryWriter(pairs);
@@ -31,7 +32,7 @@ public class BorderCornerTests
 		var map = new byte[24 + pixels];
 		"MAP_CACH"u8.CopyTo(map);
 		map[24 + 2 * (Width + 1) + 2] = cut;
-		return CBorderCache.Read(pairs.ToArray(), bitmap, map, Width, Height, _ => throw new InvalidOperationException())!;
+		return CBorderCache.Read(pairs.ToArray(), bitmap, map, Width, Height, water, _ => throw new InvalidOperationException())!;
 	}
 
 	/// <summary>Province 1 west of x = 2, province 2 east of it, both land.</summary>
@@ -51,6 +52,19 @@ public class BorderCornerTests
 		Assert.Same(cache.At(2, 2), junction.Right);
 		// Sorted by rows from the south and then from the west.
 		Assert.Equal((1, 1), (cache.Corners[0].X, cache.Corners[0].Y));
+	}
+
+	[Fact]
+	public void A_sea_zones_border_quad_is_every_coded_water_pixel_inside_the_edges_by_tile()
+	{
+		// Every pixel's bytes are (3, 64, 0, 0), so every water pixel is coded; water east of x = 2.
+		CBorderCache cache = Cache(water: (x, y) => x >= 2);
+
+		CWaterBorderQuad[] quads = cache.WaterBorders[0].ToArray();
+
+		// x from 2 to the width less one and y from 2 to the height less one: (2..3) × (2..3), x outer.
+		Assert.Equal(new[] { (2, 2), (2, 3), (3, 2), (3, 3) }, quads.Select(q => ((int)q.X, (int)q.Y)));
+		Assert.All(quads, q => Assert.Equal((3, 0), ((int)q.Province, (int)q.Diagonal)));
 	}
 
 	[Fact]

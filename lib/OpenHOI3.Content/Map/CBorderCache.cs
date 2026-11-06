@@ -42,6 +42,51 @@ public sealed class CBorderCache
 	/// <summary>Each province's junction pixels in the file's order, by its id.</summary>
 	public IReadOnlyList<(int X, int Y)>[] Pairs { get; }
 
+	/// <summary>
+	/// The sea zones' border quads of each tile of 50 by 50 pixels, by the tile's index (row × columns + column), in the
+	/// order the original visits them, x outer and y inner (<c>FINDINGS-mapdraw.md</c>, B.8); empty where the map has no
+	/// terrain to tell water by.
+	/// </summary>
+	public IReadOnlyList<CWaterBorderQuad>[] WaterBorders { get; private init; } = Array.Empty<IReadOnlyList<CWaterBorderQuad>>();
+
+	/// <summary>
+	/// Every water pixel with a province or a diagonal code in the bitmap, from x 2 to the width less one and y 2 to the
+	/// height less one [exe], gathered by tile.
+	/// </summary>
+	private static IReadOnlyList<CWaterBorderQuad>[] GatherWaterBorders(byte[] bitmap, int width, int height, int columns,
+		Func<int, int, bool> isWater)
+	{
+		const int Tile = CQuadTile.Size;
+		int rows = (height + Tile - 1) / Tile;
+		var tiles = new IReadOnlyList<CWaterBorderQuad>[columns * rows];
+		int stride = width + 1;
+		for (int row = 0; row < rows; row++)
+		{
+			for (int column = 0; column < columns; column++)
+			{
+				var quads = new List<CWaterBorderQuad>();
+				for (int x = column * Tile; x < column * Tile + Tile; x++)
+				{
+					for (int y = row * Tile; y < row * Tile + Tile; y++)
+					{
+						if (x < 2 || y < 2 || x > width - 1 || y > height - 1 || !isWater(x, y))
+						{
+							continue;
+						}
+						long at = ((long)y * stride + x) * 4;
+						byte province = bitmap[at], diagonal = bitmap[at + 3];
+						if (province != 0 || diagonal != 0)
+						{
+							quads.Add(new CWaterBorderQuad((short)x, (short)y, province, diagonal));
+						}
+					}
+				}
+				tiles[row * columns + column] = quads;
+			}
+		}
+		return tiles;
+	}
+
 	/// <summary>Every entry, by rows from the south and then from the west, which is the order the passes go in.</summary>
 	public IReadOnlyList<CBorderCorner> Corners { get; }
 
@@ -51,7 +96,8 @@ public sealed class CBorderCache
 	private static long Key(int x, int y) => (long)y << 32 | (uint)x;
 
 	/// <summary>The cache, or null where the install has not the three files or they do not fit the map.</summary>
-	public static CBorderCache? Load(CDirectorySettings directories, int width, int height, Action<string> problem)
+	public static CBorderCache? Load(CDirectorySettings directories, int width, int height, Action<string> problem,
+		Func<int, int, bool>? isWater = null)
 	{
 		string pairsPath = directories.Resolve(PairsFile);
 		string bitmapPath = directories.Resolve(BitmapFile);
@@ -61,11 +107,12 @@ public sealed class CBorderCache
 			problem($"borders: no {PairsFile}, {BitmapFile} and {MapFile}; the borders' junctions are not drawn");
 			return null;
 		}
-		return Read(File.ReadAllBytes(pairsPath), File.ReadAllBytes(bitmapPath), File.ReadAllBytes(mapPath), width, height,
+		return Read(File.ReadAllBytes(pairsPath), File.ReadAllBytes(bitmapPath), File.ReadAllBytes(mapPath), width, height, isWater,
 			problem);
 	}
 
-	public static CBorderCache? Read(byte[] pairsFile, byte[] bitmap, byte[] map, int width, int height, Action<string> problem)
+	public static CBorderCache? Read(byte[] pairsFile, byte[] bitmap, byte[] map, int width, int height,
+		Func<int, int, bool>? isWater, Action<string> problem)
 	{
 		int stride = width + 1;
 		long pixels = (long)stride * (height + 1);
@@ -138,6 +185,10 @@ public sealed class CBorderCache
 		}
 		var sorted = new List<CBorderCorner>(corners.Values);
 		sorted.Sort((a, b) => a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
-		return new CBorderCache(pairs, sorted);
+		return new CBorderCache(pairs, sorted)
+		{
+			WaterBorders = isWater is null ? Array.Empty<IReadOnlyList<CWaterBorderQuad>>()
+				: GatherWaterBorders(bitmap, width, height, width / CQuadTile.Size + 1, isWater),
+		};
 	}
 }

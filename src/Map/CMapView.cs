@@ -155,7 +155,7 @@ public partial class CMapView : Node2D
 	{
 		IReadOnlyList<CQuadTile> tiles = read ?? CQuadCache.Load(directories, problem => GD.PushWarning($"map: {problem}"));
 		// The borders' corners are this view's own: their bytes carry over from one change of hands to the next.
-		_corners = CBorderCache.Load(directories, _map.Width, _map.Height, problem => GD.PushWarning($"map: {problem}"));
+		_corners = CBorderCache.Load(directories, _map.Width, _map.Height, problem => GD.PushWarning($"map: {problem}"), _map.IsWaterPixel);
 		if (tiles.Count == 0)
 		{
 			GD.PushWarning("map: no quad cache read, so the surface is drawn flat");
@@ -380,7 +380,6 @@ public partial class CMapView : Node2D
 			AddChild(_surface);
 		}
 		_material = new ShaderMaterial { Shader = GD.Load<Shader>(ShaderPath) };
-		_material.SetShaderParameter("overlay_only", _surface is not null);
 		_material.SetShaderParameter("province_ids", BuildProvinceTexture());
 		_material.SetShaderParameter("map_size", new Vector2I(_map.Width, _map.Height));
 		Material = _material;
@@ -396,17 +395,6 @@ public partial class CMapView : Node2D
 		_selectionImage = Image.CreateEmpty(PaletteWidth, rows, false, Image.Format.R8);
 		_selectionTexture = ImageTexture.CreateFromImage(_selectionImage);
 		_material.SetShaderParameter("selection", _selectionTexture);
-		// A texel a province, lit where it is sea: over the surface the 2D lines are the sea's alone, which the surface does
-		// not draw yet (mapdraw.md, section 6).
-		var seaImage = Image.CreateEmpty(PaletteWidth, rows, false, Image.Format.R8);
-		for (int id = 1; id < _map.ProvinceCount; id++)
-		{
-			if (_state.Provinces[id].IsSea)
-			{
-				seaImage.SetPixel(id % PaletteWidth, id / PaletteWidth, Colors.White);
-			}
-		}
-		_material.SetShaderParameter("sea", ImageTexture.CreateFromImage(seaImage));
 
 		// The stripes are the original's own picture, and without it nothing is striped.
 		if (_textures?.LoadImage(StripesPath) is { } stripes)
@@ -438,6 +426,12 @@ public partial class CMapView : Node2D
 
 	public override void _Draw()
 	{
+		// Over the original's surface nothing of the flat map is drawn: it draws the borders, the sea zones' and the selection
+		// itself (docs/mechanics/mapdraw.md, section 6). The flat map is drawn only where the install has no quad cache.
+		if (_surface is not null)
+		{
+			return;
+		}
 		DrawRect(new Rect2(-_map.Width, 0, _map.Width * 3, _map.Height), Colors.White);
 	}
 
@@ -639,10 +633,7 @@ public partial class CMapView : Node2D
 	{
 		zoom = Mathf.Clamp(zoom, MinZoom(), MaxZoom());
 		_camera.Zoom = new Vector2(zoom, zoom);
-		// Over the surface the lines are the sea zones' alone, which the original's far view does not draw.
-		float height = GetViewportRect().Size.Y / zoom / (2f * Mathf.Tan(CMapSurfaceCamera.FieldOfView / 2f));
-		bool far = _surface is not null && _map.Level(height) > 0;
-		_material.SetShaderParameter("province_border", far ? 0f : Mathf.SmoothStep(1.2f, 2.5f, zoom));
+		_material.SetShaderParameter("province_border", Mathf.SmoothStep(1.2f, 2.5f, zoom));
 		ClampCamera();
 	}
 
@@ -750,6 +741,8 @@ public partial class CMapView : Node2D
 			_selectionImage.SetPixel(province % PaletteWidth, province / PaletteWidth, Colors.White);
 		}
 		_selectionTexture.Update(_selectionImage);
+		// On the surface the selected provinces are lifted in its lookups, and nothing marks the one under the mouse (B.9).
+		_surface?.SetSelection(id => _selection.Contains(id));
 		EmitSignal(SignalName.ProvinceSelected, provinceId);
 	}
 

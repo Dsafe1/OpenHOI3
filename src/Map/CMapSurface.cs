@@ -48,7 +48,6 @@ public partial class CMapSurface : Node3D
 
 	/// <summary>Each tile's land and beaches, and the copy of the map its world matrix was last set for.</summary>
 	private readonly List<CSurfaceTile> _parts = new();
-	private ShaderMaterial _water = null!;
 
 	private readonly Dictionary<string, Texture2D?> _files = new(StringComparer.OrdinalIgnoreCase);
 	private readonly Image _lookup0 = Image.CreateEmpty(LookupSize, LookupSize, false, Image.Format.Rgba8);
@@ -69,7 +68,6 @@ public partial class CMapSurface : Node3D
 	private Vector2 _screen;
 	private double _clock;
 
-	private CGodotShader? _waterTranslation;
 
 	/// <summary>The land borders' corner cache, whose bytes the map view works out again; null where the install has none.</summary>
 	private Content.Map.CBorderCache? _corners;
@@ -92,12 +90,14 @@ public partial class CMapSurface : Node3D
 		// Godot draws 3D only through a current camera; the effects place everything themselves, so it stands anywhere.
 		// The original clears its frame to mid-grey before the scene (FINDINGS-mapdraw.md, C.1), and what a blended beach lets
 		// through is that grey, the sea being drawn after it.
-		AddChild(new Camera3D
+		_camera3D = new Camera3D
 		{
 			Name = "Camera",
 			Current = true,
 			Environment = new Godot.Environment { BackgroundMode = Godot.Environment.BGMode.Color, BackgroundColor = new Color(0x808080FF) },
-		});
+			CullMask = BaseLayer,
+		};
+		AddChild(_camera3D);
 		RegisterShared();
 		_lookup0Texture = ImageTexture.CreateFromImage(_lookup0);
 		_lookup1Texture = ImageTexture.CreateFromImage(_lookup1);
@@ -106,17 +106,20 @@ public partial class CMapSurface : Node3D
 		_fogTexture = ImageTexture.CreateFromImage(_fog);
 		_borderLookupTexture = ImageTexture.CreateFromImage(_borderLookup);
 		AddChild(_borders);
+		AddChild(_waterBorders);
 		BuildLand();
 		BuildSea();
-		ApplyTechniques();
+		BuildWaterBorders();
+		Shader? border = Terrain(BorderTechnique, BorderStates).Shader;
 		foreach (CSurfaceTile part in _parts)
 		{
-			SetTile(part);
+			if (part.Border is { } material)
+			{
+				material.Shader = border;
+			}
 			SetBorderTile(part);
 		}
-		SetLevelTextures();
-		SetStyleTextures();
-		SetWater();
+		// The land's way is made at the camera's first place, the height deciding which.
 	}
 
 	/// <summary>The global uniforms the shared parameters are, registered once for the process before any shader names them.</summary>
@@ -152,8 +155,7 @@ public partial class CMapSurface : Node3D
 				_style = value;
 				if (IsInsideTree())
 				{
-					ApplyTechniques();
-					SetStyleTextures();
+					ShowTechniques();
 				}
 			}
 		}
@@ -161,9 +163,25 @@ public partial class CMapSurface : Node3D
 
 	private bool Far => _level > 0;
 
-	private string LandTechnique => _style == 0 ? "TerrainShader_Graphical" : Far ? "TerrainShader_General_Low" : "TerrainShader_General";
+	/// <summary>
+	/// The four ways the land and the beaches are drawn (<c>FINDINGS-mapdraw.md</c>, A.2): style 0 Graphical at every height,
+	/// any other style General near and General_Low far; colormap.dds in style 0 and the political one otherwise; the noise
+	/// and the near sheet near, the overlay and the far sheet far [exe].
+	/// </summary>
+	private static (string Land, string Beach, bool Far, bool Political) Way(int way) => way switch
+	{
+		0 => ("TerrainShader_Graphical", "BeachShader_Graphical", false, false),
+		1 => ("TerrainShader_Graphical", "BeachShader_Graphical", true, false),
+		2 => ("TerrainShader_General", "BeachShader_General", false, true),
+		_ => ("TerrainShader_General_Low", "BeachShader_General_Low", true, true),
+	};
 
-	private string BeachTechnique => _style == 0 ? "BeachShader_Graphical" : Far ? "BeachShader_General_Low" : "BeachShader_General";
+	private int CurrentWay => (_style == 0 ? 0 : 2) + (Far ? 1 : 0);
+
+	/// <summary>Each way's instances under a node of their own, and the translations its materials were set through.</summary>
+	private readonly Node3D?[] _wayNodes = new Node3D?[CSurfaceTile.Ways];
+	private readonly CGodotShader?[][] _wayTranslations = new CGodotShader?[CSurfaceTile.Ways][];
+	private int _shownWay = -1;
 
 	private string WaterTechnique
 	{
@@ -199,54 +217,106 @@ public partial class CMapSurface : Node3D
 	}
 
 	/// <summary>
-	/// Every material given its technique's shader. A material keeps its parameters by name across a change of shader, and
-	/// every technique's are set on it, so only what the height or the style changes is set again.
+	/// The way the style and the height want shown, made first where it never was, and the others hidden; the sea's one
+	/// material given its technique. *Ours*: giving 2,700 materials another shader at a change of height made the rendering
+	/// device build each one's state again, a frame of 140 ms at every crossing of 500; a way once made keeps its materials,
+	/// so a crossing shows one node and hides another.
 	/// </summary>
-	private void ApplyTechniques()
+	private void ShowTechniques()
 	{
-		var land = Terrain(LandTechnique, LandStates);
-		var beach = Terrain(BeachTechnique, BeachStates);
-		var water = _gui.Effects.Get(WaterFile, WaterTechnique, EShaderTarget.Spatial, device: WaterStates);
-		_waterTranslation = water.Translation;
-		foreach (CSurfaceTile part in _parts)
+		if (_camera is null)
 		{
-			part.Land.Shader = land.Shader;
-			if (part.Beach is not null)
-			{
-				part.Beach.Shader = beach.Shader;
-			}
+			return;
 		}
-		_water.Shader = water.Shader;
-		_water.RenderPriority = SeaPriority;
-		Shader? border = Terrain(BorderTechnique, BorderStates).Shader;
-		foreach (CSurfaceTile part in _parts)
+		int way = CurrentWay;
+		MakeWay(way);
+		// The same style's other height made with it, so that the first crossing of 500 does not make 2,700 materials, and
+		// drawn too for the first frames, so that the rendering device has set them up before they are wanted.
+		if (_wayNodes[way ^ 1] is null)
 		{
-			if (part.Border is { } material && material.Shader != border)
-			{
-				material.Shader = border;
-			}
+			MakeWay(way ^ 1);
+			_warmWay = way ^ 1;
+			_warmFrames = 2;
 		}
+		_shownWay = way;
+		// The sea likewise: its technique's own material, the other height's made and warmed with it.
+		string sea = WaterTechnique;
+		MakeSea(sea);
+		string otherSea = sea.Contains("Near") ? sea.Replace("Near", "Far") : sea.Replace("Far", "Near");
+		if (otherSea != sea && !_seaWays.ContainsKey(otherSea))
+		{
+			MakeSea(otherSea);
+			_warmSea = otherSea;
+			_warmFrames = 2;
+		}
+		_shownSea = sea;
+		ApplyCullMask();
 	}
 
-	private CGodotShader[] TerrainAll => _terrainAll ??= TerrainTranslations().ToArray();
+	private string? _shownSea;
+	private string? _warmSea;
 
-	private CGodotShader[]? _terrainAll;
+	/// <summary>
+	/// The render layers: everything always drawn on the first, each way's land and beaches on one of its own, the land
+	/// borders on another. *Ours*: what is shown is chosen by the camera's cull mask and not by hiding instances - showing or
+	/// hiding a few thousand instances cost the rendering server some 120 ms at every crossing of 500, where a mask is one
+	/// call and no instance changes.
+	/// </summary>
+	private const uint BaseLayer = 1u;
+	private const uint BorderLayer = 1u << 5;
 
-	/// <summary>Every technique the land and the beaches may take, whose parameters are all set on each material.</summary>
-	private IEnumerable<CGodotShader> TerrainTranslations()
+	private static uint WayLayer(int way) => 1u << (1 + way);
+
+	private Camera3D _camera3D = null!;
+	private bool _bordersShown;
+
+	private void ApplyCullMask()
 	{
-		foreach (string technique in new[] { "TerrainShader_Graphical", "TerrainShader_General", "TerrainShader_General_Low" })
+		uint Sea(string? technique) => technique is not null && _seaWays.TryGetValue(technique, out var sea) ? sea.Layer : 0;
+		bool warm = _warmFrames > 0;
+		_camera3D.CullMask = BaseLayer | (_shownWay >= 0 ? WayLayer(_shownWay) : 0) | (_bordersShown ? BorderLayer : 0) | Sea(_shownSea)
+			| (warm && _warmWay >= 0 ? WayLayer(_warmWay) | BorderLayer : 0) | (warm ? Sea(_warmSea) : 0);
+	}
+
+	/// <summary>A way made ahead of its use, drawn under the one shown for so many frames, the land borders with it.</summary>
+	private int _warmWay = -1;
+	private int _warmFrames;
+
+	/// <summary>A way's materials and instances, one of each for every tile's land and beaches, set as the way draws them.</summary>
+	private void MakeWay(int way)
+	{
+		if (_wayNodes[way] is not null)
 		{
-			if (Terrain(technique, LandStates).Translation is { } translation)
-			{
-				yield return translation;
-			}
+			return;
 		}
-		foreach (string technique in new[] { "BeachShader_Graphical", "BeachShader_General", "BeachShader_General_Low" })
+		(string landTechnique, string beachTechnique, bool far, bool political) = Way(way);
+		var land = Terrain(landTechnique, LandStates);
+		var beach = Terrain(beachTechnique, BeachStates);
+		CGodotShader?[] translations = { land.Translation, beach.Translation };
+		_wayTranslations[way] = translations;
+		var node = new Node3D { Name = $"Way{way}" };
+		AddChild(node);
+		_wayNodes[way] = node;
+		Texture2D? colourMap = File(political ? "colormap_political.dds" : "colormap.dds");
+		Texture2D? overlay = far ? File("map_overlay_tile.dds") : File("noise_test2.dds");
+		Texture2D? sheet = far ? File("texturesheet2.tga") : File("texturesheet.tga");
+		foreach (CSurfaceTile part in _parts)
 		{
-			if (Terrain(technique, BeachStates).Translation is { } translation)
+			var landMaterial = new ShaderMaterial { Shader = land.Shader };
+			part.Land[way] = landMaterial;
+			node.AddChild(Instance($"Land{part.Tile.Index}", part.LandMesh, landMaterial, WayLayer(way)));
+			if (part.BeachMesh is { } beachMesh)
 			{
-				yield return translation;
+				var beachMaterial = new ShaderMaterial { Shader = beach.Shader };
+				part.Beach[way] = beachMaterial;
+				node.AddChild(Instance($"Beach{part.Tile.Index}", beachMesh, beachMaterial, WayLayer(way)));
+			}
+			foreach (ShaderMaterial material in part.Materials(way))
+			{
+				SetTile(part, material, translations);
+				SetTexture(material, translations, "tex4", colourMap);
+				SetTexture(material, translations, "tex5", overlay);
+				SetTexture(material, translations, "tex6", sheet);
 			}
 		}
 	}
@@ -319,9 +389,8 @@ public partial class CMapSurface : Node3D
 	/// picture, its middle, and the textures every tile shares whatever the height and the style. The beaches set no tex3,
 	/// tex5 or tex7 of their own in the original and keep the land's, which are these.
 	/// </summary>
-	private void SetTile(CSurfaceTile part)
+	private void SetTile(CSurfaceTile part, ShaderMaterial material, CGodotShader?[] translations)
 	{
-		CGodotShader[] translations = TerrainAll;
 		CQuadTile tile = part.Tile;
 		Texture2D? plain = File("colormap.dds");
 		float width = plain?.GetWidth() ?? 1;
@@ -329,7 +398,6 @@ public partial class CMapSurface : Node3D
 		(int x, int y, int w, int h) = tile.LandRectangle(_columns);
 		(int midX, int midY) = tile.Middle(_columns);
 		Texture2D? index = _gui.Textures.LoadFromGamePath($"map/cache/quad_textures/quad_texture_{tile.Index}.dds");
-		foreach (ShaderMaterial material in part.Materials)
 		{
 			Set(material, translations, "ColorMapWidth", width);
 			Set(material, translations, "ColorMapHeight", height);
@@ -344,7 +412,7 @@ public partial class CMapSurface : Node3D
 			Set(material, translations, "TerrainIndexSizeX", (float)(w + 4));
 			Set(material, translations, "TerrainIndexSizeY", (float)(h + 4));
 			Set(material, translations, "AbsoluteWorldMatrix", Matrix(CD3DMatrix.Translation(midX, 0, midY)));
-			Set(material, translations, "WorldMatrix", Matrix(CD3DMatrix.Translation(midX, 0, midY)));
+			Set(material, translations, "WorldMatrix", Matrix(CD3DMatrix.Translation(midX + part.Shift, 0, midY)));
 			SetTexture(material, translations, "tex0", File("base.dds"));
 			SetTexture(material, translations, "tex1", index);
 			SetTexture(material, translations, "tex2", _lookup0Texture);
@@ -352,57 +420,6 @@ public partial class CMapSurface : Node3D
 			SetTexture(material, translations, "tex7", File("stripes.dds"));
 		}
 	}
-
-	/// <summary>The textures the height picks: the overlay far and the noise near, the far sheet far [exe].</summary>
-	private void SetLevelTextures()
-	{
-		CGodotShader[] translations = TerrainAll;
-		Texture2D? overlay = Far ? File("map_overlay_tile.dds") : File("noise_test2.dds");
-		Texture2D? sheet = Far ? File("texturesheet2.tga") : File("texturesheet.tga");
-		foreach (CSurfaceTile part in _parts)
-		{
-			foreach (ShaderMaterial material in part.Materials)
-			{
-				SetTexture(material, translations, "tex5", overlay);
-				SetTexture(material, translations, "tex6", sheet);
-			}
-		}
-	}
-
-	/// <summary>The texture the style picks: colormap.dds in style 0 and the political one otherwise [exe].</summary>
-	private void SetStyleTextures()
-	{
-		CGodotShader[] translations = TerrainAll;
-		Texture2D? colourMap = File(_style == 0 ? "colormap.dds" : "colormap_political.dds");
-		foreach (CSurfaceTile part in _parts)
-		{
-			foreach (ShaderMaterial material in part.Materials)
-			{
-				SetTexture(material, translations, "tex4", colourMap);
-			}
-		}
-	}
-
-	/// <summary>What water.fx is fed (<c>FINDINGS-mapdraw.md</c>, B.1): the colour map's half-texel bounds, its textures, the fog and the sea's rasters.</summary>
-	private void SetWater()
-	{
-		var translations = new[] { "WaterSimple", "WaterFar", "WaterNear", "WaterSimpleColor", "WaterFarColor", "WaterNearColor" }
-			.Select(t => _gui.Effects.Get(WaterFile, t, EShaderTarget.Spatial, device: WaterStates).Translation).ToArray();
-		Texture2D? water = File("colormap_water.dds");
-		float w = water?.GetWidth() ?? 1;
-		float h = water?.GetHeight() ?? 1;
-		Set(_water, translations, "MinMaxUV", new Vector4(0.5f / w, 0.5f / h, (w - 0.5f) / w, (h - 0.5f) / h));
-		SetTexture(_water, translations, "ColorTex", water);
-		SetTexture(_water, translations, "OverlayTex", File("map_overlay_tile.dds"));
-		SetTexture(_water, translations, "NormalTex", File("sea_normal.dds"));
-		SetTexture(_water, translations, "FOWTex", _fogTexture);
-		SetTexture(_water, translations, "color0", _sea0Texture);
-		SetTexture(_water, translations, "color1", _sea1Texture);
-		SetTexture(_water, translations, "stripes", File("stripes.dds"));
-		_waterAll = translations;
-	}
-
-	private CGodotShader?[] _waterAll = Array.Empty<CGodotShader?>();
 
 	// ----------------------------------------------------------------------------------------------------------- camera
 
@@ -435,15 +452,13 @@ public partial class CMapSurface : Node3D
 			return;
 		}
 		int level = _map.Level(_camera.Height);
-		if (level != _level)
+		if (level != _level || _shownWay < 0)
 		{
 			_level = level;
-			ApplyTechniques();
-			SetLevelTextures();
+			ShowTechniques();
 		}
 		RenderingServer.GlobalShaderParameterSet(SharedView, Matrix(_camera.ViewAt));
 		RenderingServer.GlobalShaderParameterSet(SharedProjection, Matrix(_camera.Projection));
-		CGodotShader[]? translations = null;
 		foreach (CSurfaceTile part in _parts)
 		{
 			(int midX, int midY) = part.Tile.Middle(_columns);
@@ -451,11 +466,16 @@ public partial class CMapSurface : Node3D
 			if (shift != part.Shift)
 			{
 				part.Shift = shift;
-				translations ??= TerrainAll;
 				Projection world = Matrix(_camera.WorldAt(midX, midY));
-				foreach (ShaderMaterial material in part.Materials)
+				for (int way = 0; way < CSurfaceTile.Ways; way++)
 				{
-					Set(material, translations, "WorldMatrix", world);
+					if (_wayTranslations[way] is { } translations)
+					{
+						foreach (ShaderMaterial material in part.Materials(way))
+						{
+							Set(material, translations, "WorldMatrix", world);
+						}
+					}
 				}
 				if (part.Border is { } border)
 				{
@@ -464,8 +484,11 @@ public partial class CMapSurface : Node3D
 			}
 		}
 		ApplyBorderHeight(_camera.Height);
-		Set(_water, _waterAll, "CameraPosition", new Vector3(_camera.X, 0, _camera.Z));
-		Set(_water, _waterAll, "ViewProjectionMatrix", Matrix(_camera.ViewProjection));
+		ApplyWaterBorderView(_camera);
+		foreach ((ShaderMaterial material, CGodotShader?[] translations, uint _) in _seaWays.Values)
+		{
+			SetSeaCamera(material, translations, _camera);
+		}
 	}
 
 	/// <summary>
@@ -476,7 +499,7 @@ public partial class CMapSurface : Node3D
 	/// </summary>
 	public override void _ExitTree()
 	{
-		foreach (Node node in GetChildren().Concat(_borders.GetChildren()))
+		foreach (Node node in GetChildren().Concat(_borders.GetChildren()).Concat(_waterBorders.GetChildren()))
 		{
 			if (node is MeshInstance3D instance && instance.Mesh is { } mesh)
 			{
@@ -484,14 +507,41 @@ public partial class CMapSurface : Node3D
 				mesh.Dispose();
 			}
 		}
+		// The ways' instances share each tile's meshes, which are given back once, after them.
+		foreach (Node3D? way in _wayNodes)
+		{
+			foreach (Node node in way?.GetChildren() ?? new Godot.Collections.Array<Node>())
+			{
+				if (node is MeshInstance3D instance)
+				{
+					instance.Mesh = null;
+					instance.MaterialOverride = null;
+				}
+			}
+		}
 		foreach (CSurfaceTile part in _parts)
 		{
-			part.Land.Dispose();
-			part.Beach?.Dispose();
+			part.LandMesh.Dispose();
+			part.BeachMesh?.Dispose();
+			for (int way = 0; way < CSurfaceTile.Ways; way++)
+			{
+				part.Land[way]?.Dispose();
+				part.Beach[way]?.Dispose();
+			}
 			part.Border?.Dispose();
 		}
 		_parts.Clear();
-		_water.Dispose();
+		foreach ((ShaderMaterial material, CGodotShader?[] _, uint _) in _seaWays.Values)
+		{
+			material.Dispose();
+		}
+		_seaWays.Clear();
+		_seaMesh.Dispose();
+		foreach (ShaderMaterial? material in _waterBorderMaterials)
+		{
+			material?.Dispose();
+		}
+		_waterBorderTiles.Clear();
 		foreach (GodotObject made in new GodotObject[]
 		{
 			_lookup0Texture, _lookup1Texture, _sea0Texture, _sea1Texture, _fogTexture, _borderLookupTexture,
@@ -506,40 +556,45 @@ public partial class CMapSurface : Node3D
 	{
 		// water.fx's Time: a sawtooth from −100 to nought, a hundred seconds round [exe].
 		_clock = (_clock + delta) % 100.0;
-		if (_waterTranslation?.Uniforms.FirstOrDefault(u => u.FxName == "Time") is { } time)
+		if (_warmFrames > 0 && --_warmFrames == 0)
 		{
-			_water.SetShaderParameter(time.Name, (float)-_clock);
+			ApplyCullMask();
+		}
+		if (_shownSea is { } shown && _seaWays.TryGetValue(shown, out var sea))
+		{
+			Set(sea.Material, sea.Translations, "Time", (float)-_clock);
 		}
 	}
 
 	// ------------------------------------------------------------------------------------------------------------ meshes
 
-	/// <summary>Every tile's land, and its beaches where it has some, a mesh and a material each.</summary>
+	/// <summary>
+	/// Every tile's land and its beaches where it has some, a mesh each, made once - every technique of either takes the same
+	/// vertex - and its land borders, a mesh and a material.
+	/// </summary>
 	private void BuildLand()
 	{
-		var land = Terrain(LandTechnique, LandStates).Translation;
-		var beach = Terrain(BeachTechnique, BeachStates).Translation;
+		var land = Terrain(Way(0).Land, LandStates).Translation;
+		var beach = Terrain(Way(0).Beach, BeachStates).Translation;
 		foreach (CQuadTile tile in _tiles)
 		{
-			var landMaterial = new ShaderMaterial();
-			AddChild(MakeMesh($"Land{tile.Index}", tile.LandIndices, tile.LandProvinces.Length, land, landMaterial,
+			ArrayMesh landMesh = BuildMesh(tile.LandIndices, tile.LandProvinces.Length, land,
 				(semantic, v) => semantic switch
 				{
 					"POSITION" => new Vector4(tile.LandPositions[2 * v], tile.LandPositions[2 * v + 1], 0, 1),
 					"TEXCOORD0" => new Vector4(tile.LandProvinces[v] & 0xFF, tile.LandProvinces[v] >> 8, 0, 1),
 					_ => null,
-				}));
-			ShaderMaterial? beachMaterial = null;
+				});
+			ArrayMesh? beachMesh = null;
 			if (tile.BeachIndices.Length > 0)
 			{
-				beachMaterial = new ShaderMaterial();
-				AddChild(MakeMesh($"Beach{tile.Index}", tile.BeachIndices, tile.BeachColours.Length, beach, beachMaterial,
+				beachMesh = BuildMesh(tile.BeachIndices, tile.BeachColours.Length, beach,
 					(semantic, v) => semantic switch
 					{
 						"POSITION" => new Vector4(tile.BeachPositions[2 * v], tile.BeachPositions[2 * v + 1], 0, 1),
 						"COLOR0" => Colour(tile.BeachColours[v]),
 						_ => null,
-					}));
+					});
 			}
 			ShaderMaterial? borderMaterial = null;
 			if (tile.BorderIndices.Length > 0 && tile.BorderColours.Length > 0)
@@ -555,9 +610,120 @@ public partial class CMapSurface : Node3D
 							tile.BorderShorts[4 * v + 3]),
 						"COLOR0" => Colour(tile.BorderColours[v]),
 						_ => null,
-					}));
+					}, layer: BorderLayer));
 			}
-			_parts.Add(new CSurfaceTile(tile, landMaterial, beachMaterial, borderMaterial));
+			_parts.Add(new CSurfaceTile(tile, landMesh, beachMesh, borderMaterial));
+		}
+	}
+
+	// ------------------------------------------------------------------------------------------------------ water borders
+
+	public const string WaterBorderFile = "borders_2_0.fx";
+	public const string WaterBorderTechnique = "WaterBorderShader";
+
+	/// <summary>Drawn after the sea and over everything before, the depth test off [exe] (FINDINGS-mapdraw.md, B.8).</summary>
+	private const int WaterBorderPriority = 3;
+
+	private static readonly Dictionary<string, string> WaterBorderStates = Baseline(("ALPHABLENDENABLE", "1"), ("SRCBLEND", "SRCALPHA"),
+		("DESTBLEND", "INVSRCALPHA"), ("ZENABLE", "0"), ("ZWRITEENABLE", "1"));
+
+	/// <summary>The three materials, for a tile drawn a map's width west, where it is, and a width east.</summary>
+	private readonly ShaderMaterial[] _waterBorderMaterials = new ShaderMaterial[3];
+
+	/// <summary>Each tile's water-border mesh with the middle of its tile and the copy of the map it was last given.</summary>
+	private readonly List<(MeshInstance3D Instance, int MiddleX, int Copy)> _waterBorderTiles = new();
+
+	private readonly Node3D _waterBorders = new() { Name = "WaterBorders" };
+
+	/// <summary>
+	/// The sea zones' borders: for each tile of the corner cache's quads a mesh, each quad four vertices and six indices as the
+	/// original builds them (B.8). *Ours*: the vertices hold the map's own coordinates and not the tile's - the original's
+	/// world-view-projection is the tile's middle less the camera's place, and the product is the same - so that three
+	/// materials, one for each copy of the map, serve every tile, and moving the camera sets three matrices.
+	/// </summary>
+	private void BuildWaterBorders()
+	{
+		if (_corners is not { } cache || cache.WaterBorders.Length == 0)
+		{
+			return;
+		}
+		var effect = _gui.Effects.Get(WaterBorderFile, WaterBorderTechnique, EShaderTarget.Spatial, device: WaterBorderStates);
+		if (effect.Shader is null)
+		{
+			return;
+		}
+		CGodotShader?[] translations = { effect.Translation };
+		for (int copy = 0; copy < 3; copy++)
+		{
+			var material = new ShaderMaterial { Shader = effect.Shader, RenderPriority = WaterBorderPriority };
+			SetTexture(material, translations, "tex1", File("water_borders.dds"));
+			SetTexture(material, translations, "tex3", File("water_diag_borders.dds"));
+			_waterBorderMaterials[copy] = material;
+		}
+		_waterBorderAll = translations;
+		int columns = _map.Width / CQuadTile.Size + 1;
+		for (int index = 0; index < cache.WaterBorders.Length; index++)
+		{
+			IReadOnlyList<CWaterBorderQuad> quads = cache.WaterBorders[index];
+			if (quads.Count == 0)
+			{
+				continue;
+			}
+			// The four corners of each pixel's quad: (x − 1, y − 1), (x − 1, y), (x, y), (x, y − 1), uv (0,1), (0,0), (1,0), (1,1).
+			var indices = new ushort[quads.Count * 6];
+			for (int q = 0; q < quads.Count; q++)
+			{
+				int n = q * 4;
+				indices[q * 6] = (ushort)n;
+				indices[q * 6 + 1] = (ushort)(n + 1);
+				indices[q * 6 + 2] = (ushort)(n + 2);
+				indices[q * 6 + 3] = (ushort)(n + 2);
+				indices[q * 6 + 4] = (ushort)(n + 3);
+				indices[q * 6 + 5] = (ushort)n;
+			}
+			MeshInstance3D instance = MakeMesh($"WaterBorder{index}", indices, quads.Count * 4, effect.Translation,
+				_waterBorderMaterials[1],
+				(semantic, v) =>
+				{
+					CWaterBorderQuad quad = quads[v / 4];
+					int corner = v % 4;
+					return semantic switch
+					{
+						"POSITION" => new Vector4(quad.X - (corner < 2 ? 1 : 0), quad.Y - (corner is 0 or 3 ? 1 : 0), 0, 1),
+						"TEXCOORD0" => new Vector4(corner < 2 ? 0 : 1, corner is 0 or 3 ? 1 : 0, quad.Province, quad.Diagonal),
+						_ => null,
+					};
+				});
+			instance.MaterialOverride = _waterBorderMaterials[1];
+			_waterBorders.AddChild(instance);
+			_waterBorderTiles.Add((instance, index % columns * CQuadTile.Size + CQuadTile.Size / 2, 1));
+		}
+	}
+
+	private CGodotShader?[] _waterBorderAll = Array.Empty<CGodotShader?>();
+
+	/// <summary>The water borders' three matrices, and each tile given the copy of the map nearest the camera.</summary>
+	private void ApplyWaterBorderView(CMapSurfaceCamera camera)
+	{
+		if (_waterBorderTiles.Count == 0)
+		{
+			return;
+		}
+		float[] viewProjection = CD3DMatrix.Multiply(camera.ViewAt, camera.Projection);
+		for (int copy = 0; copy < 3; copy++)
+		{
+			float[] world = CD3DMatrix.Translation((copy - 1) * _map.Width, 0, 0);
+			Set(_waterBorderMaterials[copy], _waterBorderAll, "WorldViewProjectionMatrix", Matrix(CD3DMatrix.Multiply(world, viewProjection)));
+		}
+		for (int i = 0; i < _waterBorderTiles.Count; i++)
+		{
+			(MeshInstance3D instance, int middleX, int copy) = _waterBorderTiles[i];
+			int wanted = 1 + (int)MathF.Round(camera.Shift(middleX) / _map.Width);
+			if (wanted != copy)
+			{
+				instance.MaterialOverride = _waterBorderMaterials[wanted];
+				_waterBorderTiles[i] = (instance, middleX, wanted);
+			}
 		}
 	}
 
@@ -663,7 +829,12 @@ public partial class CMapSurface : Node3D
 	/// <summary>The land borders shown only under `border_cutoff`, so never in the far view, with the picture the height takes.</summary>
 	private void ApplyBorderHeight(float height)
 	{
-		_borders.Visible = height < _map.BorderCutoff;
+		bool shown = height < _map.BorderCutoff;
+		if (shown != _bordersShown)
+		{
+			_bordersShown = shown;
+			ApplyCullMask();
+		}
 		int picture = BorderPicture(height);
 		if (picture == _borderPicture)
 		{
@@ -701,8 +872,7 @@ public partial class CMapSurface : Node3D
 	/// <summary>The sea: the map's quad and its copies a width east and west, each (x, z, u, v) (<c>FINDINGS-mapdraw.md</c>, B.1).</summary>
 	private void BuildSea()
 	{
-		_water = new ShaderMaterial();
-		var water = _gui.Effects.Get(WaterFile, WaterTechnique, EShaderTarget.Spatial, device: WaterStates).Translation;
+		var water = _gui.Effects.Get(WaterFile, "WaterNear", EShaderTarget.Spatial, device: WaterStates).Translation;
 		float w = _map.Width;
 		float h = _map.Height;
 		var corners = new List<Vector4>();
@@ -716,8 +886,52 @@ public partial class CMapSurface : Node3D
 			corners.Add(new Vector4(dx, h, 0, 1));
 			indices.AddRange(new[] { first, (ushort)(first + 1), (ushort)(first + 2), first, (ushort)(first + 2), (ushort)(first + 3) });
 		}
-		AddChild(MakeMesh("Sea", indices.ToArray(), corners.Count, water, _water,
-			(semantic, v) => semantic == "POSITION" ? corners[v] : null));
+		// Every technique of water.fx takes the same vertex, so one mesh serves them all.
+		_seaMesh = BuildMesh(indices.ToArray(), corners.Count, water, (semantic, v) => semantic == "POSITION" ? corners[v] : null);
+	}
+
+	private ArrayMesh _seaMesh = null!;
+
+	/// <summary>Each technique of the sea wanted so far: its material, the translation it was set through and its layer.</summary>
+	private readonly Dictionary<string, (ShaderMaterial Material, CGodotShader?[] Translations, uint Layer)> _seaWays = new();
+
+	/// <summary>The first render layer the sea's techniques take, one each from it.</summary>
+	private const int FirstSeaLayer = 6;
+
+	/// <summary>A technique of the sea's material and instance, set as water.fx is fed (<c>FINDINGS-mapdraw.md</c>, B.1), where never made.</summary>
+	private void MakeSea(string technique)
+	{
+		if (_seaWays.ContainsKey(technique))
+		{
+			return;
+		}
+		var effect = _gui.Effects.Get(WaterFile, technique, EShaderTarget.Spatial, device: WaterStates);
+		var material = new ShaderMaterial { Shader = effect.Shader, RenderPriority = SeaPriority };
+		CGodotShader?[] translations = { effect.Translation };
+		Texture2D? water = File("colormap_water.dds");
+		float w = water?.GetWidth() ?? 1;
+		float h = water?.GetHeight() ?? 1;
+		Set(material, translations, "MinMaxUV", new Vector4(0.5f / w, 0.5f / h, (w - 0.5f) / w, (h - 0.5f) / h));
+		SetTexture(material, translations, "ColorTex", water);
+		SetTexture(material, translations, "OverlayTex", File("map_overlay_tile.dds"));
+		SetTexture(material, translations, "NormalTex", File("sea_normal.dds"));
+		SetTexture(material, translations, "FOWTex", _fogTexture);
+		SetTexture(material, translations, "color0", _sea0Texture);
+		SetTexture(material, translations, "color1", _sea1Texture);
+		SetTexture(material, translations, "stripes", File("stripes.dds"));
+		uint layer = 1u << (FirstSeaLayer + _seaWays.Count);
+		_seaWays[technique] = (material, translations, layer);
+		AddChild(Instance($"Sea{technique}", _seaMesh, material, layer));
+		if (_camera is { } camera)
+		{
+			SetSeaCamera(material, translations, camera);
+		}
+	}
+
+	private void SetSeaCamera(ShaderMaterial material, CGodotShader?[] translations, CMapSurfaceCamera camera)
+	{
+		Set(material, translations, "CameraPosition", new Vector3(camera.X, 0, camera.Z));
+		Set(material, translations, "ViewProjectionMatrix", Matrix(camera.ViewProjection));
 	}
 
 	/// <summary>
@@ -725,7 +939,32 @@ public partial class CMapSurface : Node3D
 	/// declaration holds, the triangles as the cache gives them; never culled by Godot, the effect placing it.
 	/// </summary>
 	private static MeshInstance3D MakeMesh(string name, ushort[] indices, int count, CGodotShader? translation, ShaderMaterial material,
-		Func<string, int, Vector4?> source)
+		Func<string, int, Vector4?> source, uint layer = BaseLayer)
+	{
+		ArrayMesh mesh = BuildMesh(indices, count, translation, source);
+		if (mesh.GetSurfaceCount() > 0)
+		{
+			mesh.SurfaceSetMaterial(0, material);
+		}
+		return Instance(name, mesh, null, layer);
+	}
+
+	/// <summary>A mesh instance never culled by Godot, the effect placing it, with the material it draws through where given.</summary>
+	private static MeshInstance3D Instance(string name, Mesh mesh, ShaderMaterial? material, uint layer = BaseLayer)
+	{
+		return new MeshInstance3D
+		{
+			Name = name,
+			Mesh = mesh,
+			MaterialOverride = material,
+			Layers = layer,
+			CustomAabb = new Aabb(new Vector3(-1e7f, -1e7f, -1e7f), new Vector3(2e7f, 2e7f, 2e7f)),
+			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+		};
+	}
+
+	/// <summary>The mesh alone, so that one mesh may be drawn by several instances, each through a material of its own.</summary>
+	private static ArrayMesh BuildMesh(ushort[] indices, int count, CGodotShader? translation, Func<string, int, Vector4?> source)
 	{
 		var arrays = new Godot.Collections.Array();
 		arrays.Resize((int)Godot.Mesh.ArrayType.Max);
@@ -783,15 +1022,8 @@ public partial class CMapSurface : Node3D
 		if (count > 0 && indices.Length > 0)
 		{
 			mesh.AddSurfaceFromArrays(Godot.Mesh.PrimitiveType.Triangles, arrays, null, null, format);
-			mesh.SurfaceSetMaterial(0, material);
 		}
-		return new MeshInstance3D
-		{
-			Name = name,
-			Mesh = mesh,
-			CustomAabb = new Aabb(new Vector3(-1e7f, -1e7f, -1e7f), new Vector3(2e7f, 2e7f, 2e7f)),
-			CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
-		};
+		return mesh;
 	}
 
 	// -------------------------------------------------------------------------------------------- the generated textures
@@ -808,41 +1040,80 @@ public partial class CMapSurface : Node3D
 			return;
 		}
 		// Both palettes are RGBA8 with 256 texels a row, as the lookups are, so a province's four bytes stand at id × 4 in each.
-		byte[] colours = palette.GetData();
-		byte[] seconds = stripes.GetData();
-		int count = Math.Min(_map.ProvinceCount, Math.Min(LookupSize * LookupSize, Math.Min(colours.Length, seconds.Length) / 4));
+		_colours = palette.GetData();
+		_seconds = stripes.GetData();
+		_knownWell = knownWell;
+		int count = Math.Min(_map.ProvinceCount, Math.Min(LookupSize * LookupSize, Math.Min(_colours.Length, _seconds.Length) / 4));
 		var first = new uint[_map.ProvinceCount];
 		var second = new uint[_map.ProvinceCount];
-		var bytes0 = new byte[LookupSize * LookupSize * 4];
-		var bytes1 = new byte[LookupSize * LookupSize * 4];
 		for (int id = 1; id < count; id++)
 		{
 			int at = id * 4;
-			first[id] = 0xFF000000u | (uint)colours[at] << 16 | (uint)colours[at + 1] << 8 | colours[at + 2];
-			second[id] = 0xFF000000u | (uint)seconds[at] << 16 | (uint)seconds[at + 1] << 8 | seconds[at + 2];
+			first[id] = 0xFF000000u | (uint)_colours[at] << 16 | (uint)_colours[at + 1] << 8 | _colours[at + 2];
+			second[id] = 0xFF000000u | (uint)_seconds[at] << 16 | (uint)_seconds[at + 1] << 8 | _seconds[at + 2];
+		}
+		WriteLookups();
+		BuildSeaRasters(first, second);
+		BuildFog(knownWell);
+	}
+
+	private byte[] _colours = Array.Empty<byte>();
+	private byte[] _seconds = Array.Empty<byte>();
+	private Func<int, float> _knownWell = _ => 1f;
+	private Func<int, bool> _selected = _ => false;
+
+	/// <summary>
+	/// The provinces selected, which the lookups lift (<c>FINDINGS-mapdraw.md</c>, B.9): both lookups written again, as the
+	/// original's refresh writes them whole after any change of the selection, the sea's rasters and the fog untouched.
+	/// </summary>
+	public void SetSelection(Func<int, bool> selected)
+	{
+		_selected = selected;
+		if (IsInsideTree() && _colours.Length > 0)
+		{
+			WriteLookups();
+		}
+	}
+
+	/// <summary>
+	/// The two province colour lookups (B.2, B.9). In style 0 the first holds the province's state - red the fog, 1.0 known
+	/// well and 0.5 less; blue the share frozen, not built, nought - and in both the green is 25 for a selected province and
+	/// nought for any other, the second's red and blue its second colour. In any other style each is the mode's colour, and a
+	/// selected province's red, green and blue are lifted by 0.1 - 25, or 255 from 230 up - its alpha full [exe].
+	/// </summary>
+	private void WriteLookups()
+	{
+		int count = Math.Min(_map.ProvinceCount, Math.Min(LookupSize * LookupSize, Math.Min(_colours.Length, _seconds.Length) / 4));
+		var bytes0 = new byte[LookupSize * LookupSize * 4];
+		var bytes1 = new byte[LookupSize * LookupSize * 4];
+		static byte Lift(byte value) => value >= 230 ? (byte)255 : (byte)(value + 25);
+		for (int id = 1; id < count; id++)
+		{
+			int at = id * 4;
+			bool selected = _selected(id);
 			if (_style == 0)
 			{
-				// Red the fog - 1.0 known well, 0.5 less - green the highlight, blue the share frozen: not built, nought.
-				bytes0[at] = knownWell(id) >= 1f ? (byte)255 : (byte)128;
+				bytes0[at] = _knownWell(id) >= 1f ? (byte)255 : (byte)128;
+				bytes0[at + 1] = selected ? (byte)25 : (byte)0;
+				bytes1[at] = _seconds[at];
+				bytes1[at + 1] = selected ? (byte)25 : (byte)0;
+				bytes1[at + 2] = _seconds[at + 2];
 			}
 			else
 			{
-				bytes0[at] = colours[at];
-				bytes0[at + 1] = colours[at + 1];
-				bytes0[at + 2] = colours[at + 2];
+				for (int c = 0; c < 3; c++)
+				{
+					bytes0[at + c] = selected ? Lift(_colours[at + c]) : _colours[at + c];
+					bytes1[at + c] = selected ? Lift(_seconds[at + c]) : _seconds[at + c];
+				}
 			}
 			bytes0[at + 3] = 255;
-			bytes1[at] = seconds[at];
-			bytes1[at + 1] = seconds[at + 1];
-			bytes1[at + 2] = seconds[at + 2];
 			bytes1[at + 3] = 255;
 		}
 		_lookup0.SetData(LookupSize, LookupSize, false, Image.Format.Rgba8, bytes0);
 		_lookup1.SetData(LookupSize, LookupSize, false, Image.Format.Rgba8, bytes1);
 		_lookup0Texture.Update(_lookup0);
 		_lookup1Texture.Update(_lookup1);
-		BuildSeaRasters(first, second);
-		BuildFog(knownWell);
 	}
 
 

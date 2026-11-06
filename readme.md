@@ -1658,8 +1658,11 @@ fact base's figures every one), the original's camera made to agree with the 2D 
 `TerrainShader_Border`, province lines grey and country lines red, none in the far view, their junctions from the
 map cache's corner pixels made again for the controllers as the original does (the fact base's B.7) - **and the far
 view's country names** (`docs/mechanics/mapnames.md`): each country's name laid over the land joined to its capital as
-the original lays it out, bent along it, in its faction's font. **Next up**: the sea's borders, which
-`PoliticalMap.gdshader` still draws over the surface; the rivers, the surf and the trees, each wanting a reading first;
+the original lays it out, bent along it, in its faction's font - **and the sea zones' borders** through
+`borders_2_0.fx` and **the selected province's highlight** in the lookups (the fact base's B.8, B.9), after which nothing
+of this project's own is drawn over the surface, `PoliticalMap.gdshader` left as the flat map for an install with no quad
+cache. The maintainer set the far view beside the original's and it agrees. **Next up**: the rivers, the surf and the
+trees, each wanting a reading first;
 then the interface's other effects the client still imitates in C# -
 `counter.fx`, `maskedflag.fx`, `hierarchy.fx`, `circle.fx`. Then war exhaustion, or the military AI's gaps (*What the moving wave
 left*), or the end-of-game screen.
