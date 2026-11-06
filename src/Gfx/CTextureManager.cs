@@ -50,6 +50,12 @@ public sealed class CTextureManager
 			CDiagnostics.Warn($"Texture not found for '{gameRelative}'");
 			return null;
 		}
+		return LoadFromFile(absolute);
+	}
+
+	/// <summary>A texture from a file already found - one of the map's cache, which is not looked for through the layers.</summary>
+	public Texture2D? LoadFromFile(string absolute)
+	{
 		if (_cache.TryGetValue(absolute, out Texture2D? cached))
 		{
 			return cached;

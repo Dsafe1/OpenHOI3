@@ -148,21 +148,22 @@ public partial class CMapView : Node2D
 
 	/// <summary>
 	/// Gives the map its surface drawn as the original draws it, through the install's effect files, from the install's
-	/// quad cache (<c>docs/mechanics/mapdraw.md</c>); where the cache cannot be read the map is drawn flat as before. Before
-	/// the node enters the tree, and after <see cref="Setup"/>.
+	/// quad cache (<c>docs/mechanics/mapdraw.md</c>); where the cache cannot be read, or is stale, the map is drawn flat as
+	/// before. Before the node enters the tree, and after <see cref="Setup"/>.
 	/// </summary>
-	public void SetupSurface(CGuiContext gui, CDirectorySettings directories, bool simpleWater, IReadOnlyList<CQuadTile>? read = null)
+	public void SetupSurface(CGuiContext gui, CDirectorySettings directories, CMapCache cache, bool simpleWater,
+		IReadOnlyList<CQuadTile>? read = null)
 	{
-		IReadOnlyList<CQuadTile> tiles = read ?? CQuadCache.Load(directories, problem => GD.PushWarning($"map: {problem}"));
+		IReadOnlyList<CQuadTile> tiles = read ?? CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
 		// The borders' corners are this view's own: their bytes carry over from one change of hands to the next.
-		_corners = CBorderCache.Load(directories, _map.Width, _map.Height, problem => GD.PushWarning($"map: {problem}"), _map.IsWaterPixel);
+		_corners = CBorderCache.Load(cache, _map.Width, _map.Height, problem => GD.PushWarning($"map: {problem}"), _map.IsWaterPixel);
 		if (tiles.Count == 0)
 		{
 			GD.PushWarning("map: no quad cache read, so the surface is drawn flat");
 			return;
 		}
 		_surface = new CMapSurface();
-		_surface.Setup(_map, gui, tiles, CQuadCache.Columns(directories), simpleWater, _corners);
+		_surface.Setup(_map, gui, cache, tiles, CQuadCache.Columns(directories), simpleWater, _corners);
 		_textures ??= gui.Textures;
 		_names = new CCountryMapNames { Name = "CountryNames", Visible = false };
 		_names.Setup(_map, _state, gui.Fonts);

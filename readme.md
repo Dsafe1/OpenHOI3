@@ -1752,9 +1752,14 @@ None of these blocks the list above.
 
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
   and the front end makes its meshes again for each world it shows - the quad cache it reads once - which could be kept
-  between worlds; a map whose cache is missing or stale is drawn flat by
-  `PoliticalMap.gdshader` as before, the original's rebuilding of its cache not read; the selection's and the mouse's
-  highlight is ours, in 2D, until the original's - green in the first lookup - is built; revolt risk's map style is ours.
+  between worlds; a map whose cache is missing or stale - its `time` stamp not the map files' (section 2.1, since
+  2026-11-06) - is drawn flat by `PoliticalMap.gdshader` as before. **The cache is the original's**, found in the
+  player's folder under Documents and then the install, as the original finds it; a mod's own folder (`user_dir`) is not
+  asked until mods are layered, and a mod played before the original has built its cache gets the flat map. **Building
+  the cache here** - the province meshes, the beaches, the border meshes and corners, the terrain-index pictures and the
+  surf's records out of the map files, as a derived build of our own - wants the original's builder read
+  (`CProvinceManager_BuildQuads` and the rest), and is wanted before BlackICE is the target. Nothing marks the hovered
+  province, as in the original; revolt risk's map style is ours.
   **The air map mode's land is a patchwork of greys**: `CMapView.AirOver`, the stand-in from before the surface, lays each
   colour over the province's terrain colour turned grey, and the surface's own technique then works on that again; what
   the original's lookup holds in that mode - the colour alone, its alpha - was not read, and is wanted before it is mended.

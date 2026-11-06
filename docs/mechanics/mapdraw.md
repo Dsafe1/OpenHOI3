@@ -29,6 +29,30 @@ land vertices, 443,825 land triangles over 10,621 provinces, 572,496 beach trian
 shipping a new provinces.bmp and no cache - the original makes the cache again (`CProvinceManager_BuildQuads`, not read);
 *not built*: such a map has no surface drawn and says so.
 
+### 2.1 Where the cache is found, and when it is the map's (`Content/Map/CMapCache`)
+
+Read in `reversing/findings/FINDINGS-mapbuild.md`. **Where.** The original resolves a file of `map/cache` in the player's
+folder under the Documents folder first - `Paradox Interactive\Hearts of Iron III`, or for a mod the folder its `.mod` file
+names as `user_dir` - and then through the content's layers [exe]. It writes every cache it builds there, so a mod's whole
+cache is in its own user folder and never in the install: on this machine BlackICE's sit under `Documents\...\Hearts of Iron
+III\BlackICE GitHub\map\cache` and the like, while TFH's ships in `tfh/map/cache` and its user folder holds only `map.bin`
+and `time`. Each file is looked for so here, one at a time, the user folder's copy first.
+
+**When.** `map/cache/time` holds four bytes, the stamp of the map files the cache was built from: the Fletcher-32 of
+`map/default.map` and of the six files it names as `positions`, `terrain_definition`, `provinces`, `terrain`, `definitions`
+and `adjacencies`, each through the layers, summed in 32 bits [exe]. The checksum's two sums start at nought and each is
+brought back by subtracting 65535 once whenever it passes 65535 - not a remainder, so a sum that lands on 65535 stays there.
+A file not there counts nought. `climate.bmp`, `rivers.bmp`, `continent.txt`, `region.txt`, `coastlines.txt` and
+`trees.txt` are not in it [exe], so a mod that changes only those keeps its cache - and the original's `climate.bin` goes
+stale unseen. **A cache whose `time` is missing or holds another stamp is stale**: the original builds a new one; here
+nothing of it is read - no meshes, no border corners - the map is drawn flat and the log says why. *Measured* on
+2026-11-06: TFH's map files make `93E125C4`, as `tfh/map/cache/time` and the user folder's `time` hold, and BlackICE
+GitHub's make `383756A4`, as its user folder's does. Working the stamp out takes about 140 ms, as the session's map is set
+up.
+
+*Not built*: a mod's `user_dir`, since no mod is played yet - the base game's user folder is the one asked. With a mod
+layered, its user folder is the one to pass, and a mod played before the original has built its cache gets the flat map.
+
 ## 3. Space and the camera
 
 The original's world: x the map's pixel column, z its row counted from the south, y up; a pixel's middle on whole

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenHOI3.Content;
 using OpenHOI3.Content.Map;
+using OpenHOI3.Content.Settings;
 using OpenHOI3.Sim.Provinces;
 
 /// <summary>
@@ -24,7 +25,12 @@ public static class CQuadCheck
 			return 2;
 		}
 		var problems = new List<string>();
-		IReadOnlyList<CQuadTile> tiles = CQuadCache.Load(CDirectorySettings.At(args[1]), problems.Add);
+		var directories = CDirectorySettings.At(args[1]);
+		var watch = System.Diagnostics.Stopwatch.StartNew();
+		CMapCache cache = CMapCache.Open(directories, CUserSettingsReader.UserFolder(), problems.Add);
+		Console.WriteLine($"cache {(cache.IsCurrent ? "current" : "stale")}, the stamp {CMapCache.Stamp(directories):X8} "
+			+ $"checked in {watch.ElapsedMilliseconds} ms; the index from {cache.Find(CQuadCache.IndexFile) ?? "nowhere"}");
+		IReadOnlyList<CQuadTile> tiles = CQuadCache.Load(cache, problems.Add);
 		foreach (string problem in problems)
 		{
 			Console.WriteLine("problem: " + problem);
@@ -46,14 +52,12 @@ public static class CQuadCheck
 		Console.WriteLine($"tile-local coordinates {low} to {high}; {outOfRange} indices out of range; {mixed} triangles mixing provinces");
 
 		// Each tile's land rectangle as the mesh gives it, against its terrain-index texture: the rectangle and 4.
-		var directories = CDirectorySettings.At(args[1]);
 		int columns = CQuadCache.Columns(directories);
 		int fits = 0;
 		int differ = 0;
 		foreach (CQuadTile tile in tiles)
 		{
-			string path = directories.Resolve($"map/cache/quad_textures/quad_texture_{tile.Index}.dds");
-			if (!System.IO.File.Exists(path))
+			if (cache.Find(CQuadCache.TextureFile(tile.Index)) is not { } path)
 			{
 				continue;
 			}

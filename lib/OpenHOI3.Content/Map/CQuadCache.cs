@@ -13,8 +13,11 @@ namespace OpenHOI3.Content.Map;
 /// </summary>
 public static class CQuadCache
 {
-	public const string IndexFile = "map/cache/quad_index.bin";
-	public const string QuadsFile = "map/cache/all_quads.bin";
+	public const string IndexFile = "quad_index.bin";
+	public const string QuadsFile = "all_quads.bin";
+
+	/// <summary>A tile's terrain-index picture, in the cache's folder.</summary>
+	public static string TextureFile(int tile) => $"quad_textures/quad_texture_{tile}.dds";
 
 	/// <summary>
 	/// How many tiles a row of the map has: its width over 50 and one [exe], the width provinces.bmp's - the file's head
@@ -31,14 +34,18 @@ public static class CQuadCache
 		return BitConverter.ToInt32(head, 18) / CQuadTile.Size + 1;
 	}
 
-	/// <summary>Every tile of the install's cache, or none where it has no cache.</summary>
-	public static IReadOnlyList<CQuadTile> Load(CDirectorySettings directories, Action<string> problem)
+	/// <summary>Every tile of the cache, or none where there is no cache or it is stale.</summary>
+	public static IReadOnlyList<CQuadTile> Load(CMapCache cache, Action<string> problem)
 	{
-		string index = directories.Resolve(IndexFile);
-		string quads = directories.Resolve(QuadsFile);
-		if (!File.Exists(index) || !File.Exists(quads))
+		if (!cache.IsCurrent)
 		{
-			problem($"quads: no {IndexFile} and {QuadsFile}; the map has no meshes");
+			return Array.Empty<CQuadTile>();
+		}
+		string? index = cache.Find(IndexFile);
+		string? quads = cache.Find(QuadsFile);
+		if (index is null || quads is null)
+		{
+			problem($"quads: no {CMapCache.Folder}/{IndexFile} and {QuadsFile}; the map has no meshes");
 			return Array.Empty<CQuadTile>();
 		}
 		return Read(File.ReadAllBytes(index), File.ReadAllBytes(quads), problem);

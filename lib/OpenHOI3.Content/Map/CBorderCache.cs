@@ -13,9 +13,9 @@ namespace OpenHOI3.Content.Map;
 /// </summary>
 public sealed class CBorderCache
 {
-	public const string PairsFile = "map/cache/border_adj.bin";
-	public const string BitmapFile = "map/cache/border_bitmap.bin";
-	public const string MapFile = "map/cache/map.bin";
+	public const string PairsFile = "border_adj.bin";
+	public const string BitmapFile = "border_bitmap.bin";
+	public const string MapFile = "map.bin";
 
 	/// <summary>The map cache's head: its tag, a word and two numbers [exe].</summary>
 	private const int MapHead = 20;
@@ -96,13 +96,17 @@ public sealed class CBorderCache
 	private static long Key(int x, int y) => (long)y << 32 | (uint)x;
 
 	/// <summary>The cache, or null where the install has not the three files or they do not fit the map.</summary>
-	public static CBorderCache? Load(CDirectorySettings directories, int width, int height, Action<string> problem,
+	public static CBorderCache? Load(CMapCache cache, int width, int height, Action<string> problem,
 		Func<int, int, bool>? isWater = null)
 	{
-		string pairsPath = directories.Resolve(PairsFile);
-		string bitmapPath = directories.Resolve(BitmapFile);
-		string mapPath = directories.Resolve(MapFile);
-		if (!File.Exists(pairsPath) || !File.Exists(bitmapPath) || !File.Exists(mapPath))
+		if (!cache.IsCurrent)
+		{
+			return null;
+		}
+		string? pairsPath = cache.Find(PairsFile);
+		string? bitmapPath = cache.Find(BitmapFile);
+		string? mapPath = cache.Find(MapFile);
+		if (pairsPath is null || bitmapPath is null || mapPath is null)
 		{
 			problem($"borders: no {PairsFile}, {BitmapFile} and {MapFile}; the borders' junctions are not drawn");
 			return null;

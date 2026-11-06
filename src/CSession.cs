@@ -225,7 +225,9 @@ public partial class CSession : Node
 		_mapView.Player = Player?.Tag;
 		_mapView.SetupCounters(gui, CCounterTypes.Load(_directories), CBillboardTypes.Load(_directories),
 			CArrowTypes.Load(_directories));
-		_mapView.SetupSurface(gui, _directories, Settings.SimpleWater);
+		CMapCache cache = CMapCache.Open(_directories, Content.Settings.CUserSettingsReader.UserFolder(),
+			problem => GD.PushWarning($"map: {problem}"));
+		_mapView.SetupSurface(gui, _directories, cache, Settings.SimpleWater);
 		AddChild(_mapView);
 
 		BuildHud(gui);

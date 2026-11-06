@@ -44,6 +44,7 @@ public partial class CMapSurface : Node3D
 	private CMap _map = null!;
 	private CGuiContext _gui = null!;
 	private IReadOnlyList<CQuadTile> _tiles = null!;
+	private Content.Map.CMapCache _cache = null!;
 	private int _columns;
 
 	/// <summary>Each tile's land and beaches, and the copy of the map its world matrix was last set for.</summary>
@@ -73,9 +74,10 @@ public partial class CMapSurface : Node3D
 	private Content.Map.CBorderCache? _corners;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
-	public void Setup(CMap map, CGuiContext gui, IReadOnlyList<CQuadTile> tiles, int columns, bool simpleWater,
-		Content.Map.CBorderCache? corners = null)
+	public void Setup(CMap map, CGuiContext gui, Content.Map.CMapCache cache, IReadOnlyList<CQuadTile> tiles, int columns,
+		bool simpleWater, Content.Map.CBorderCache? corners = null)
 	{
+		_cache = cache;
 		_corners = corners;
 		_map = map;
 		_gui = gui;
@@ -397,7 +399,7 @@ public partial class CMapSurface : Node3D
 		float height = plain?.GetHeight() ?? 1;
 		(int x, int y, int w, int h) = tile.LandRectangle(_columns);
 		(int midX, int midY) = tile.Middle(_columns);
-		Texture2D? index = _gui.Textures.LoadFromGamePath($"map/cache/quad_textures/quad_texture_{tile.Index}.dds");
+		Texture2D? index = _cache.Find(CQuadCache.TextureFile(tile.Index)) is { } indexFile ? _gui.Textures.LoadFromFile(indexFile) : null;
 		{
 			Set(material, translations, "ColorMapWidth", width);
 			Set(material, translations, "ColorMapHeight", height);
