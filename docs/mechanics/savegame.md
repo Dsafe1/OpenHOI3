@@ -25,8 +25,9 @@ the maintainer's 45 saves. `confirmed` unless marked.
 5. **The fourth increment**, loader and writer together, what neither held: **its first piece is built** (section 12),
    each country's politics and research queue, **its second** (section 13), its spies, **and its third** (section 14),
    the top level's counters, flags, victory conditions, fired events, fronts and faction progress, **and its fourth**
-   (section 15), exile, the goods pools, battles fought, strategic warfare, alignment and lend-lease; the rest of
-   section 4's list - the AI's blocks, the statistics - is still to come.
+   (section 15), exile, the goods pools, battles fought, strategic warfare, alignment and lend-lease, **and its fifth**
+   (section 16), the AI's strategy and theatres; the rest of section 4's list - the statistics, the gameplay settings,
+   the figures section 16 lists as not held - is still to come.
 
 ## 2. What a load is
 
@@ -46,7 +47,8 @@ As the original's [exe], but where *Ours* says otherwise:
    the seed is all a loaded game needs to go on with the draws it would have made; `count` is the writer's.
 5. **What the original works out again**, before the first hour: the provinces' and countries' modifiers, the strategic
    resources, IC, manpower, leadership, every country's effective neutrality, and **a fresh AI for every country** - the
-   ministers' first hours, and the strategy, which *Ours* makes again where the original keeps a saved one. With the
+   ministers' first hours; the strategy a save gave is kept until its ten days are up, and one never made is made
+   (section 16). With the
    units (section 5): each unit's leader put on, each brigade's figures made from its type and its levels, the queue's
    cost, the officer ratio, and what an intercept watches.
 6. **None of a new game's two days**, the filling, the month or the first hour: a loaded game's first hour is the hour
@@ -86,7 +88,7 @@ sets the owners, the laws and the technology levels beside the save's and runs t
   `progress`, the game's flags~~ - section 14 - and its gameplay settings;
 - ~~a country's own pools (`home`, `usage`, `to`, `back`, the traded ones)~~ - section 15 - ~~its politics (`organization`,
   `popularity`, `cabinet`, `election`, `last_election`, `duration`, `ministers`), its research queue (`research`)~~ -
-  section 12 - ~~its spies and their missions~~ - section 13; its active missions, ~~alignment~~ - section 15 - war exhaustion, AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`), statistics and the rest the
+  section 12 - ~~its spies and their missions~~ - section 13; its active missions, ~~alignment~~ - section 15 - war exhaustion, ~~AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`)~~ - section 16 - statistics and the rest the
   report lists; a province's `out_of_supply_days` and `capital`, which the day makes again, and its `history`.
 
 ## 5. What the second increment reads: the units
@@ -573,12 +575,48 @@ lend-lease of March 1936), `_04_20_03` and `_09_02_21`, `Ireland1936_03_11_04`, 
 `1938_08_25_03`, `1939_09_06_18`, `1940_05_23_15` and `1941_07_16_18`, `Soviet_Union1941_07_16_21` and
 `olderautosave.hoi3`: **every country's the save's byte for byte**.
 
+## 16. The fourth increment: the AI's strategy and theatres
+
+Both ways (`CSaveAiStrategy`), after the templates [exe] (`FINDINGS-savegame.md`, B.4;
+`reversing/findings/FINDINGS-aistrategy.md`, A and B; `reversing/findings/FINDINGS-theatres.md`):
+
+- **`ai_hard_strategy` and `ai_event_strategy`**, the strategies scripts give, are not built (`aistrategy.md`, section
+  12): written empty - `initialized=no`, `personality=balanced` - as every save of the maintainer's has them, and one
+  that says anything is reported.
+- **`ai`**: `initialized`, the `personality` (`military`, `capital`, `diplomacy`, `balanced` - a strategy never made
+  `balanced`), then the eight lists in the original's order - `conquer_prov`, `defend_prov`, `threat`, `antagonize`,
+  `befriend`, `protect`, `rival`, `vassal` - each entry an `id` (a province's number or a quoted tag) and a `value`, in
+  the list's order; **read back as they stand**, an entry the scaling left at nought among them, which the lists' own
+  add would drop (`CStrategyList.Append`).
+- **Each `area_theatre`**: its `id` (type 45); each `front` - its `provinces`, `local_enemy` where it faces anyone,
+  `front` (hot) and `sea=no`, every front here being a land one; its own `provinces` and its `key` provinces, each left
+  out where empty; its headquarters as `unit`, an id pair; `country`; `hot`. Read under its own number, its provinces
+  stamped with it, its areas and ports worked out again from its provinces as they are not saved.
+
+**What a load does with them** [exe] (FINDINGS-aistrategy.md, A, read for this on 2026-11-06): a saved strategy is
+`initialized` and kept; **its ten-day clock is not saved, and the original's starts at the defines' `start_date`**, so
+the first midnight ten days or more past the start date - the first midnight after any load from 11 January 1936 on -
+makes every strategy again. A load here dates each strategy so (`CAiStrategy.MadeHour`), and makes now only one never
+made. Every country's theatres start marked, as the original's constructor leaves them, so the first hour refreshes the
+loaded ones (`theatres.md`, section 8) - their fronts made again, their headquarters kept. **Until this increment a load
+made every strategy and every theatre again at once**, the theatres from nothing under new numbers - Japan gained a
+headquarters at P'yongyang the save does not have, four hours on from `Germany1936_01_07_22`; it does not now.
+
+**Not held, so not written**: `consolidate` and `static`, which the strategies scripts give would set; `max_subunits`,
+`land_perc`, `air_perc`, `naval_perc` and `armor_bias`, which the original works out with the strategy and nothing here
+reads (`FINDINGS-aistrategy.md`, C, read and not built); and `military_access`, read in part (section I). `war_with` and
+`building_prov` are in no save of the maintainer's.
+
+**Checked** on 2026-11-06 with each country's three blocks set beside the save's, the keys not held taken out of the
+save's: in the eleven saves of section 12 and `olderautosave.hoi3`, **every country's strategies, lists and theatres
+the save's byte for byte**.
+
 ## Ours
 
 - A key nothing reads yet is reported, by its block and how often it was met, where the original drops an unknown key
   without a word (*Stricter* in `docs/compatibility.md`).
-- The AI's strategy is made again on a load, where the original keeps the one a save holds; the save's `ai` blocks are
-  not read yet.
+- ~~The AI's strategy is made again on a load, where the original keeps the one a save holds; the save's `ai` blocks are
+  not read yet.~~ Kept, as the original keeps it, since 2026-11-06 (section 16).
 - With no `--country=`, the save's own country is played; the original's lobby chooses.
 - A unit's number here is not the save's pair: what the player minted is numbered from the history's counter on, and
   the writer turns it back (sections 5 and 9). Another peer's minting is not told apart and is written as the player's.

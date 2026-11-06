@@ -68,6 +68,15 @@ public sealed class CStrategyList<TKey> where TKey : notnull
 	}
 
 	/// <summary>
+	/// An entry put at the end as it is, with no add's rules: how a save's list is read back, an entry its scaling left at
+	/// nought among them.
+	/// </summary>
+	public void Append(TKey key, int weight)
+	{
+		_entries.Add((key, weight));
+	}
+
+	/// <summary>
 	/// The original's scaling: where the first weight is above 400 it becomes 400, and every other is scaled by the same
 	/// ratio - the ratio truncated to thousandths, each weight truncated to thousandths over it and then rounded.
 	/// </summary>

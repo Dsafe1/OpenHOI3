@@ -1611,8 +1611,12 @@ weather's fronts, each faction's progress and the player's Automate Trade - the 
 loaded game had had no victory conditions chosen, the history's theatre counter and no fronts. **And its fourth**
 (section 15): whether a country is in exile, its ten pools of goods, its battles fought, its strategic warfare, where it
 stands on the triangle and its lend-lease - the save's byte for byte in thirteen saves; a loaded government in exile had
-been none. **Next up**: the rest of what neither the loader nor the writer holds yet - the AI's blocks, kept on a load
-as the original keeps them, and the statistics - section 4's list.
+been none. **And its fifth** (section 16): the AI's strategy - its personality, its eight lists and its theatres with
+their fronts - the save's byte for byte in twelve saves but for the figures nothing holds, and **kept on a load as the
+original keeps it**, until the first midnight ten days past the start date, where a load had made every strategy and
+theatre again, the theatres under new numbers; read for it in the fact base, the ten-day clock starting at the defines'
+start date. **Next up**: what is left of section 4's list - the statistics, the gameplay settings, the strategy's
+production shares and military access, war exhaustion, and a province's `history` - or the next piece of the plan.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a

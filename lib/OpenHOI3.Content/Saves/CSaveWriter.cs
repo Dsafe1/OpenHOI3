@@ -341,6 +341,8 @@ public static class CSaveWriter
 		}
 		CSavePolitics.WriteMinisters(writer, country);
 		CSaveLines.WriteTemplates(writer, country);
+		// Its AI's strategies and theatres (savegame.md, section 16).
+		CSaveAiStrategy.Write(writer, state, country);
 		if (country.Mobilised)
 		{
 			writer.Bool("mobilize", true);

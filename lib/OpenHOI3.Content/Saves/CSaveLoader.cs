@@ -237,6 +237,11 @@ public static class CSaveLoader
 		state.Combats.Clear();
 		state.CombatHistory.Clear();
 		state.SunkShips.Clear();
+		state.Theatres.Clear();
+		foreach (CProvince province in state.Provinces)
+		{
+			province.TheatreId = 0;
+		}
 		state.AutomateTrade.Clear();
 		state.FiredOnce.Clear();
 		state.Weather.Fronts.Clear();
@@ -387,6 +392,8 @@ public static class CSaveLoader
 		country.AlignmentX = CSaveValues.Fixed(triangle, "x").Raw;
 		country.AlignmentY = CSaveValues.Fixed(triangle, "y").Raw;
 		CSaveLendLease.Read(state, country, node, report);
+		// Its AI's strategy and theatres (section 16).
+		CSaveAiStrategy.Read(state, country, node, ids, report);
 
 		country.Manpower = CSaveValues.Fixed(node, "manpower");
 		country.Officers = CSaveValues.Fixed(node, "officers");
@@ -474,7 +481,7 @@ public static class CSaveLoader
 			}
 			if (!CountryKeys.Contains(key) && !laws.Contains(key) && !posts.Contains(key) && !categories.Contains(key)
 				&& !CSavePolitics.Keys.Contains(key) && !CSaveEspionage.Keys.Contains(key) && !CSaveLedgers.Keys.Contains(key)
-				&& !CSaveLendLease.Keys.Contains(key))
+				&& !CSaveLendLease.Keys.Contains(key) && !CSaveAiStrategy.Keys.Contains(key))
 			{
 				report.Unread("country", key);
 			}
@@ -624,8 +631,7 @@ public static class CSaveLoader
 		{
 			CNeutrality.UpdateEffective(state, country);
 		}
-		// A fresh AI for every country, as the original makes one: the ministers' first hours, and the strategy made again
-		// where the original keeps a saved one (savegame.md, Ours).
+		// A fresh AI for every country, as the original makes one: the ministers' first hours.
 		foreach (CCountry country in state.Countries)
 		{
 			country.PoliticsCountdown = state.Played.Contains(country.Tag) ? 0 : state.Random.Next() % 3 + 1;
@@ -633,7 +639,17 @@ public static class CSaveLoader
 		Sim.Espionage.CEspionageAi.SetUpAtStart(state);
 		CForeignAi.SetUpAtStart(state);
 		Sim.Research.CResearchAi.SetUpAtStart(state);
-		CAiStrategies.MakeAtStart(state);
+		// The strategy the save gave is kept, dated from the start date as the original's is, so the first midnight ten days
+		// past it makes it again; one never made is made now (savegame.md, section 16).
+		long madeHour = (long)state.StartDate.DayNumber * CGameState.HoursPerDay;
+		foreach (CCountry country in state.Countries)
+		{
+			country.Strategy.MadeHour = madeHour;
+			if (!country.Strategy.IsMade)
+			{
+				CAiStrategies.Make(state, country);
+			}
+		}
 		state.IsRunning = true;
 	}
 }
