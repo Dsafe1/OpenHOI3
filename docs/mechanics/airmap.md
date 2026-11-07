@@ -198,8 +198,7 @@ section 7), built since 2026-10-11.
 
 ## 8. Turning it on
 
-*Ours:* `Tab` goes from the political map to the terrain, supply, air and round again, and
-`--mode=air` starts in it. The original has `mapmode_15` by the minimap. The rings and icons are
+The button `mapmode_15` by the minimap turns it on (`minimap.md`, section 4), and `--mode=air` starts in it. The rings and icons are
 drawn at every height of the camera, where the buildings are not drawn from far off
 (`mapunits.md`, section 7); what the original's far view does with them was not read.
 
@@ -216,7 +215,7 @@ drawn at every height of the camera, where the buildings are not drawn from far 
 
 - **Intelligence** past what `CIntelligence` has (`aircombat.md`, section 6), and so what the
   player knows of anybody else's ground beside his units.
-- **The map mode buttons.**
+- ~~**The map mode buttons.**~~ Built 2026-11-07 (`minimap.md`).
 - **The naval mode**, whose icons are of its own and were not read.
 
 ## Not established

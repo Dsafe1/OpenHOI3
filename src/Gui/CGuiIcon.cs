@@ -253,6 +253,22 @@ public partial class CGuiIcon : CGuiObject
 			return;
 		}
 
+		if (sprite is { IsScrolling: true })
+		{
+			// Its picture at its size, slid along itself through its effect's ScrollTech by its frame - which wraps.
+			_texture = sprite.OverlayFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.OverlayFile);
+			_scroll = _context.ProgressBars.ScrollMaterial(sprite);
+			Place(type, sprite.TileSize * type.Scale);
+			MouseFilter = MouseFilterEnum.Ignore;
+			if (_rect is not null)
+			{
+				_rect.Texture = _texture;
+				_rect.Material = _scroll?.Material;
+				_rect.TextureRepeat = TextureRepeatEnum.Enabled;
+			}
+			return;
+		}
+
 		// A masked shield has no picture until it is given a country.
 		_texture = sprite is null || sprite.IsMaskedShield ? null : _context.Textures.Load(sprite);
 		Vector2 size = _texture is null ? Vector2.Zero : FrameSize(_texture, sprite!.FrameCount) * type.Scale;
@@ -263,9 +279,18 @@ public partial class CGuiIcon : CGuiObject
 		ShowTexture(_texture);
 	}
 
-	/// <summary>Shows a frame of the sprite sheet, counted from one.</summary>
+	/// <summary>
+	/// Shows a frame of the sprite sheet, counted from one - or, for a scrolling sprite, slides its picture to that
+	/// frame: (frame - 1) over its steps, the whole of its texture being its picture here.
+	/// </summary>
 	public void SetFrame(int frame)
 	{
+		if (_scroll is not null && _sprite is not null)
+		{
+			_frame = frame;
+			_scroll.Set("CurrentState", Interface.Map.CMinimapFrame.OverlayShift(frame, _sprite.Step, 1f));
+			return;
+		}
 		if (frame == _frame)
 		{
 			return;
@@ -273,6 +298,9 @@ public partial class CGuiIcon : CGuiObject
 		_frame = frame;
 		ShowTexture(_texture);
 	}
+
+	/// <summary>A scrolling sprite's material, made from its effect's ScrollTech; null for any other icon.</summary>
+	private CProgressBarMaterial? _scroll;
 
 	/// <summary>
 	/// Draws the icon in one of the buttons' looks - the Strategic Effects window greys the rows a country does not have

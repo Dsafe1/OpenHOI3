@@ -153,7 +153,7 @@ what is shown, at a brightness b of 1 where the player knows the province at 2 o
 | nought | green (0.3, 0.9, 0.3), **not dimmed** |
 
 **An underground anywhere in the province paints it red** (b, 0.3b, 0.3b) (`undergrounds.md`, section 8).
-The map's tooltip adds nothing in this mode. Here `Tab` reaches it after the air map mode and `--mode=revolt`
+The map's tooltip adds nothing in this mode. The button `mapmode_5` turns it on (`minimap.md`, section 4), and `--mode=revolt`
 starts in it.
 
 **The alert** `alert_revoltrisk_in_provinces` ("Possible Partisans") is made and sorted every pass in the original and

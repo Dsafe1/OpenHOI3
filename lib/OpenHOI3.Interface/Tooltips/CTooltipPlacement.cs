@@ -14,11 +14,11 @@ public static class CTooltipPlacement
 	/// </summary>
 	public const double LowestFifth = 0.800000011920929;
 
-	/// <summary>How far left of the mouse a province's tooltip starts.</summary>
-	public const int LeftOfMouse = 50;
+	/// <summary>How far left of the minimap's corner a province's tooltip starts.</summary>
+	public const int LeftOfMinimap = 50;
 
-	/// <summary>How far above the mouse a province's tooltip ends.</summary>
-	public const int AboveMouse = 20;
+	/// <summary>How far above the minimap's corner a province's tooltip ends.</summary>
+	public const int AboveMinimap = 20;
 
 	/// <summary>
 	/// An element's tooltip with its point: the element's corner moved by the tooltip's own
@@ -36,10 +36,13 @@ public static class CTooltipPlacement
 		return tooltip with { X = x, Y = y + BelowElement };
 	}
 
-	/// <summary>A province's tooltip with its point: 50 left of the mouse and 20 above it, the box standing on it.</summary>
-	public static CTooltip AtMouse(CTooltip tooltip, int mouseX, int mouseY)
+	/// <summary>
+	/// A province's tooltip with its point: 50 left of the minimap's upper left corner and 20 above it, the box standing on
+	/// it - wherever on the map the mouse is (<c>reversing/findings/FINDINGS-minimap.md</c>, section 8).
+	/// </summary>
+	public static CTooltip AtMinimap(CTooltip tooltip, int cornerX, int cornerY)
 	{
-		return tooltip with { X = mouseX - LeftOfMouse, Y = mouseY - AboveMouse, Below = false };
+		return tooltip with { X = cornerX - LeftOfMinimap, Y = cornerY - AboveMinimap, Below = false };
 	}
 
 	/// <summary>

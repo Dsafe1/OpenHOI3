@@ -105,9 +105,10 @@ file's own spelling is `inferred`.
 ## 7. The map's tooltip
 
 With no element under the mouse and the mouse over the map, the tooltip is the province under
-the mouse's own - one routine with a part for each map mode - and its point is **50 left of the
-mouse and 20 above it**, the box standing above it. Nothing under the mouse gives an empty tooltip.
-`confirmed`.
+the mouse's own - one routine with a part for each map mode - and its point is **50 left of the minimap's upper left corner and 20 above it**, the box standing above it - wherever
+on the map the mouse is. Nothing under the mouse gives an empty tooltip. `confirmed`: corrected on 2026-11-07
+(`reversing/findings/FINDINGS-minimap.md`, section 8; `minimap.md`, section 6), where this said 50 left of the mouse
+and 20 above it - the original's routine takes the minimap's corner, which the fact base had read as the camera's.
 
 **What it says** was read whole on 2026-10-11 (`reversing/findings/FINDINGS-provincetooltip.md`)
 and is built (`CProvinceTooltip`), all of it in `text`, in this order:
@@ -202,11 +203,8 @@ that is read.
 
 ## Not established
 
-- **What the minimap does to the map's tooltip.** On the maintainer's screenshot a province's
-  tooltip stands over the minimap, and by the rule of section 7 the pointer was 50 right of the
-  box's left edge and 20 below it - on the minimap's frame, with the province under the minimap
-  named. So the minimap seems to let the map's tooltip through where the pointer is on it, at
-  least at its edge. There is no minimap here yet; it is to be looked at when there is.
+- ~~**What the minimap does to the map's tooltip.**~~ Answered 2026-11-07: the tooltip stands over the minimap's
+  corner wherever the mouse is, which is why the maintainer's screenshot has it there (section 7; `minimap.md`).
 - How the original breaks a tooltip's lines - at spaces, as a text box's own are broken here.
 - How it draws a text box's texture (section 1).
 - Where the original puts the box's text inside it; the box here is its text with the border

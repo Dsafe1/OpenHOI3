@@ -111,7 +111,8 @@ public partial class CMapView : Node2D
 	private float _dragged;
 	private int _hovered;
 	private int _selected;
-	private MapMode _mode = MapMode.Political;
+	// A game starts in the terrain mode, as the original's does (minimap.md, section 3).
+	private MapMode _mode = MapMode.Terrain;
 	private CUnitCounters? _counters;
 	private HashSet<int>? _places;
 
@@ -678,6 +679,29 @@ public partial class CMapView : Node2D
 		Vector2 seen = GetViewportRect().Size / _camera.Zoom;
 		_counters?.ViewChanged(_camera.Zoom.X, new Rect2(position - seen / 2f, seen));
 		_surface?.SetView(position, _camera.Zoom.X, GetViewportRect().Size);
+		CameraMoved?.Invoke();
+	}
+
+	/// <summary>Raised whenever the camera moves or its height changes: what the minimap's frame follows.</summary>
+	public event Action? CameraMoved;
+
+	/// <summary>Where the camera looks, in the map's pixels with y counted north, as the original's camera holds it.</summary>
+	public System.Numerics.Vector2 CameraOnMap => new(_camera.Position.X, _map.Height - _camera.Position.Y);
+
+	/// <summary>How high the original's camera would be to show the map as it is shown now.</summary>
+	public float CameraHeight => CMapCamera.HeightAt(_camera.Zoom.X, GetViewportRect().Size.Y);
+
+	/// <summary>The map's size in its pixels.</summary>
+	public System.Numerics.Vector2 MapSize => new(_map.Width, _map.Height);
+
+	/// <summary>
+	/// The camera over a point of the map at once, its height left alone: what a press on the minimap does
+	/// (<c>docs/mechanics/minimap.md</c>, section 2). Y is counted north.
+	/// </summary>
+	public void JumpTo(float x, float yNorth)
+	{
+		_camera.Position = new Vector2(x, _map.Height - yNorth);
+		ClampCamera();
 	}
 
 	/// <summary>Where a point on the screen is on the map, in this node's coordinates.</summary>
@@ -911,17 +935,6 @@ public partial class CMapView : Node2D
 				// Escape with anything selected lets it all go (provinceview.md, section 1).
 				ClearSelection();
 				GetViewport().SetInputAsHandled();
-				break;
-			case InputEventKey { Pressed: true, Echo: false, Keycode: Key.Tab }:
-				Mode = _mode switch
-				{
-					MapMode.Political => MapMode.Terrain,
-					MapMode.Terrain => MapMode.Weather,
-					MapMode.Weather => MapMode.Supply,
-					MapMode.Supply => MapMode.Air,
-					MapMode.Air => MapMode.Revolt,
-					_ => MapMode.Political,
-				};
 				break;
 		}
 	}

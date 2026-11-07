@@ -32,6 +32,12 @@ public sealed class CSpriteType
 	public OpenHOI3.Sim.CColor Colour { get; init; }
 	public OpenHOI3.Sim.CColor ColourTwo { get; init; }
 
+	/// <summary>A <c>scrollingSprite</c>'s <c>step</c>: how many frames its picture is slid through, a step a frame.</summary>
+	public int Step { get; init; } = 1;
+
+	/// <summary>A picture slid along itself by its frame: the original's <c>scrollingSprite</c>, the minimap's day and night.</summary>
+	public bool IsScrolling => Kind.Equals("scrollingSprite", StringComparison.OrdinalIgnoreCase);
+
 	/// <summary>
 	/// How many frames the texture holds, side by side. A frame is the texture's width
 	/// divided by this, whatever the texture's resolution.
@@ -94,6 +100,7 @@ public sealed class CSpriteType
 			EffectFile = node.GetString("effectFile"),
 			Colour = node.GetInterfaceColor("color"),
 			ColourTwo = node.GetInterfaceColor("colortwo"),
+			Step = Math.Max(1, node.GetInt("step", 1)),
 			FrameCount = Math.Max(1, node.GetInt("noOfFrames", 1)),
 			TileSize = node.GetVector2("size").ToGodot(),
 			Border = node.GetVector2("borderSize").ToGodot(),

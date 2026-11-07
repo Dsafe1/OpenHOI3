@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Content.Gui;
@@ -38,6 +39,25 @@ public sealed partial class CMessageLogView : Control
 
 	public CMessageLog Log { get; private set; } = null!;
 
+	/// <summary>Raised with a map mode button's number, from one, when it is pressed.</summary>
+	public event Action<int>? ModeButtonPressed;
+
+	private readonly CGuiButton?[] _modeButtons = new CGuiButton?[Interface.Map.CMapModeButtons.Count];
+
+	/// <summary>
+	/// Shows a map mode button down - its second frame - and every other up, as the original's does by the button's own
+	/// number. Nothing is ever hidden or greyed.
+	/// </summary>
+	public void ShowModeButton(int number)
+	{
+		for (int index = 0; index < _modeButtons.Length; index++)
+		{
+			_modeButtons[index]?.SetFrame(index + 1 == number
+				? Interface.Map.CMapModeButtons.PressedFrame
+				: Interface.Map.CMapModeButtons.ReleasedFrame);
+		}
+	}
+
 	/// <summary>The button by the minimap that opens and shuts the Strategic Effects window (<c>strategiceffects.md</c>).</summary>
 	public const string ModifiersButtonName = "menubar_modifiers_button";
 
@@ -75,15 +95,28 @@ public sealed partial class CMessageLogView : Control
 			return;
 		}
 		AddChild(bar);
-		// The bar holds the minimap, the map modes' buttons and the chat as well; of it only the log
-		// and the Strategic Effects button are built, so the rest is not shown.
+		// The bar holds the chat and the zoom buttons as well, which are not built, so they are not shown; the log, the
+		// Strategic Effects button, the map modes' buttons and the minimap's shadow are (minimap.md).
 		foreach (Node child in bar.GetChildren())
 		{
-			if (child is Control shown && child.Name != "messagelog_window" && child.Name != "OPENbutton"
-				&& child.Name != ModifiersButtonName)
+			string name = child.Name.ToString();
+			if (child is Control shown && name != "messagelog_window" && name != "OPENbutton" && name != ModifiersButtonName
+				&& name != "minimap_bg_shadow" && !name.StartsWith("mapmode_", StringComparison.Ordinal))
 			{
 				shown.Visible = false;
 			}
+		}
+		for (int number = 1; number <= Interface.Map.CMapModeButtons.Count; number++)
+		{
+			if (bar.TryFindButton(Interface.Map.CMapModeButtons.Name(number)) is not { } button)
+			{
+				continue;
+			}
+			int pressed = number;
+			button.Pressed += () => ModeButtonPressed?.Invoke(pressed);
+			string tooltip = _context.Localisation.Localise(Interface.Map.CMapModeButtons.TooltipKey(number));
+			button.Tooltip = () => new Interface.Tooltips.CTooltip { Text = tooltip };
+			_modeButtons[number - 1] = button;
 		}
 		if (bar.TryFindButton(ModifiersButtonName) is { } modifiers)
 		{

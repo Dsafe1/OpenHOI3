@@ -62,12 +62,13 @@ public class TooltipPlacementTests
 	}
 
 	[Fact]
-	public void AProvincesTooltipStandsAboveTheMouseAndToItsLeft()
+	public void AProvincesTooltipStandsAboveTheMinimapsCornerAndToItsLeft()
 	{
-		CTooltip placed = CTooltipPlacement.AtMouse(new CTooltip { Text = "a" }, 900, 500);
+		// The minimap's corner, wherever the mouse is: the base game's at 1557, 945 on a 1920 x 1080 canvas.
+		CTooltip placed = CTooltipPlacement.AtMinimap(new CTooltip { Text = "a" }, 1557, 945);
 
-		Assert.Equal(850, placed.X);
-		Assert.Equal(480, placed.Y);
+		Assert.Equal(1507, placed.X);
+		Assert.Equal(925, placed.Y);
 		Assert.False(placed.Below);
 	}
 

@@ -30,6 +30,9 @@ public partial class CTooltips : CanvasLayer
 	/// </summary>
 	public Func<Vector2, CTooltip?>? MapTooltip { get; set; }
 
+	/// <summary>The minimap's upper left corner on the screen, which a province's tooltip stands over; null where there is none.</summary>
+	public Func<Vector2?>? MapTooltipAnchor { get; set; }
+
 	public void Setup(CGuiContext context)
 	{
 		Name = "Tooltips";
@@ -117,7 +120,9 @@ public partial class CTooltips : CanvasLayer
 			return CTooltipPlacement.AtElement(tooltip, (int)corner.X, (int)corner.Y, screenHeight);
 		}
 		CTooltip province = MapTooltip?.Invoke(_mouse) ?? CTooltip.Empty;
-		return CTooltipPlacement.AtMouse(province, (int)_mouse.X, (int)_mouse.Y);
+		// It stands over the minimap's corner wherever the mouse is; with no minimap - the front end - over the mouse.
+		Vector2 anchor = MapTooltipAnchor?.Invoke() ?? _mouse;
+		return CTooltipPlacement.AtMinimap(province, (int)anchor.X, (int)anchor.Y);
 	}
 
 	/// <summary>

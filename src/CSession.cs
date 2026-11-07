@@ -409,6 +409,13 @@ public partial class CSession : Node
 			messageLog.Setup(gui);
 			layer.AddChild(messageLog);
 			layer.MoveChild(messageLog, 0);
+			// The minimap over the bar, and the map modes' buttons on it (docs/mechanics/minimap.md).
+			_minimap = new CMinimapView();
+			_minimap.Setup(gui, _mapView);
+			layer.AddChild(_minimap);
+			layer.MoveChild(_minimap, 1);
+			_modeButtons = messageLog;
+			messageLog.ModeButtonPressed += ChooseMapMode;
 			// The Strategic Effects window, which the bar's button by the minimap opens (docs/mechanics/strategiceffects.md).
 			_strategicEffects = new CStrategicEffectsView();
 			_strategicEffects.Setup(gui, _simulation, Player);
@@ -520,6 +527,7 @@ public partial class CSession : Node
 		var tooltips = new CTooltips();
 		tooltips.Setup(gui);
 		tooltips.MapTooltip = _ => ProvinceTooltip(_mapView.HoveredProvince);
+		tooltips.MapTooltipAnchor = () => _minimap?.Corner;
 		AddChild(tooltips);
 
 		// The gamma setting over all of it, and what else of the settings shows at once; the multisampling the original
@@ -845,12 +853,72 @@ public partial class CSession : Node
 		}
 	}
 
+	private CMinimapView? _minimap;
+	private CMessageLogView? _modeButtons;
+	private int _shownModeButton = -1;
+	private readonly HashSet<int> _unbuiltModesTold = new();
+
+	/// <summary>
+	/// The mode each map mode button sets, by its number from one, where that mode is built here: the original's terrain,
+	/// political, weather, revolt risk, supply and air (<c>docs/mechanics/minimap.md</c>, section 4).
+	/// </summary>
+	private static CMapView.MapMode? ModeOfButton(int button) => button switch
+	{
+		1 => CMapView.MapMode.Terrain,
+		2 => CMapView.MapMode.Political,
+		3 => CMapView.MapMode.Weather,
+		5 => CMapView.MapMode.Revolt,
+		8 => CMapView.MapMode.Supply,
+		15 => CMapView.MapMode.Air,
+		_ => null,
+	};
+
+	private static int MapModeButton(CMapView.MapMode mode)
+	{
+		for (int button = 1; button <= Interface.Map.CMapModeButtons.Count; button++)
+		{
+			if (ModeOfButton(button) == mode)
+			{
+				return button;
+			}
+		}
+		return 0;
+	}
+
+	/// <summary>A map mode button pressed: its mode set, or - where the mode is not built - nothing, said once in the log.</summary>
+	private void ChooseMapMode(int button)
+	{
+		if (ModeOfButton(button) is { } mode)
+		{
+			_mapView.Mode = mode;
+			return;
+		}
+		if (_unbuiltModesTold.Add(button))
+		{
+			GD.Print($"map: the mode of {Interface.Map.CMapModeButtons.Name(button)} is not built");
+		}
+	}
+
 	/// <summary>What a frame does after the game's hours: the counters, the map's colours and the province shown.</summary>
 	private void ProcessAfterHours()
 	{
-		// The outliner steps aside while a country screen is up (outliner.md, section 1).
-		_outliner?.SetCovered(new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage }
-			.Any(view => view is { IsOpen: true }));
+		// The outliner steps aside while a country screen is up (outliner.md, section 1), and the minimap is hidden
+		// (minimap.md, section 1).
+		bool covered = new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage }
+			.Any(view => view is { IsOpen: true });
+		_outliner?.SetCovered(covered);
+		if (_minimap is not null)
+		{
+			_minimap.Visible = !covered;
+			_minimap.SetHour(State.Hour);
+		}
+		// The button of the map's mode down, whoever set it (minimap.md, section 4).
+		int button = MapModeButton(_mapView.Mode);
+		if (button != _shownModeButton)
+		{
+			_shownModeButton = button;
+			_modeButtons?.ShowModeButton(button);
+		}
 
 		// The counters are worked out again when a day has gone by, a unit of the
 		// player's has been placed or ordered, or an hour has gone by with a unit on the

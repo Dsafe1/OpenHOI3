@@ -243,6 +243,10 @@ public partial class CFrontEnd : Node
 		_quadTiles ??= CQuadCache.Load(_mapCache, problem => GD.PushWarning($"map: {problem}"));
 		_mapView.SetupSurface(_gui, _directories, _mapCache, Settings.SimpleWater, Settings.Waves, Settings.RenderTrees, _quadTiles);
 		AddChild(_mapView);
+		// The countries to choose from by their colours: the original's front end sets the political style, where a game
+		// starts in the terrain mode (reversing/findings/FINDINGS-frontend.md, A.2; minimap.md, section 3). Set once the
+		// view is in the tree, which makes the palette its colours are written to.
+		_mapView.Mode = CMapView.MapMode.Political;
 		MoveChild(_mapView, 0);
 		_mapView.ProvinceSelected += province => _lobby?.ProvinceClicked(province);
 	}

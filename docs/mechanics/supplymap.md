@@ -92,14 +92,12 @@ selected province no longer repeats any of it.
 
 ## 4. Turning it on
 
-*Ours:* `Tab` goes from the political map to the terrain to supply and round again, and
-`--mode=supply` starts in it. The original has a row of buttons by the minimap, `mapmode_8` for
-this one, which waits for the minimap.
+The button `mapmode_8` by the minimap turns it on (`minimap.md`, section 4), and `--mode=supply` starts in it.
 
 ## Not built
 
 - **Intelligence**, and so what the map shows of anybody else's land.
-- **The map mode buttons.**
+- ~~**The map mode buttons.**~~ Built 2026-11-07 (`minimap.md`).
 
 ## Not established
 

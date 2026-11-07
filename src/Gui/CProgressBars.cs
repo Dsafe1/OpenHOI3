@@ -63,5 +63,26 @@ public sealed class CProgressBars
 		return material;
 	}
 
+	/// <summary>
+	/// A <c>scrollingSprite</c>'s material: its effect's <c>ScrollTech</c>, which samples its picture shifted along u by
+	/// <c>CurrentState</c> - the day and night overlay over the minimap (<c>reversing/findings/FINDINGS-minimap.md</c>,
+	/// section 4). Null, with a line in the log, where the effect has none.
+	/// </summary>
+	public CProgressBarMaterial? ScrollMaterial(CSpriteType sprite)
+	{
+		string file = sprite.EffectFile.Split('\\', '/').LastOrDefault(part => part.Length > 0) ?? DefaultEffect;
+		(Shader? shader, CGodotShader? translation) = _effects.Get(file, ScrollTechnique, EShaderTarget.Canvas, FilledTexture, device: States);
+		if (shader is null || translation is null)
+		{
+			CDiagnostics.Warn($"interface: gfx/FX/{file} has no '{ScrollTechnique}' to draw the scrolling sprite '{sprite.Name}' with, and it is not drawn");
+			return null;
+		}
+		var material = new CProgressBarMaterial(new ShaderMaterial { Shader = shader }, translation);
+		material.Set("CurrentState", 0f);
+		return material;
+	}
+
+	private const string ScrollTechnique = "ScrollTech";
+
 	public static Color Colour(CColor colour) => new(colour.R, colour.G, colour.B, colour.A);
 }

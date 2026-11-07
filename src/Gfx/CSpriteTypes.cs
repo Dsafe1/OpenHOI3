@@ -11,7 +11,7 @@ public sealed class CSpriteTypes
 	private static readonly string[] SpriteKinds =
 	{
 		"spriteType", "textSpriteType", "corneredTileSpriteType", "maskedShieldType",
-		"progressbartype", "tileSpriteType", "LineChartType", "PieChartType",
+		"progressbartype", "tileSpriteType", "LineChartType", "PieChartType", "scrollingSprite",
 	};
 
 	private readonly Dictionary<string, CSpriteType> _sprites =

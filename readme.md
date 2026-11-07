@@ -1686,8 +1686,15 @@ the arrow's band stopping a twentieth short of its end as the original's does, t
 counter - with which nothing drawn here imitates an effect of the original's (`shaders.md`, section 6). Open from the
 billboard reading: whether the pictures the original moves after hanging them - the large air pictures and the battle
 icons - ever stand where they are moved to; a screenshot of the air map mode with an air battle and a bombing in one
-province would settle it. **Next up**: war exhaustion, or the military AI's gaps (*What the moving wave
-left*), or the end-of-game screen.
+province would settle it. **And the minimap and the map mode buttons** (the fact base's `FINDINGS-minimap.md`;
+`docs/mechanics/minimap.md`): the original's fixed picture with its day and night slid by the hour and the camera's
+view a white frame whose size is a straight line in the height, a left press jumping the camera there, the sixteen
+buttons with their pressed frame and `MAPMODE_N` tooltips - `Tab` gone, the original having no key - a game starting
+in the terrain mode, and **the province's tooltip standing over the minimap's corner**, not the mouse, which corrected
+the fact base. **Next up**: the ten map modes not built, in three batches each read first - the country views
+(diplomatic, intel, theatre), the figures (infrastructure, victory points, strength, resources) and the rest
+(simplified terrain, naval, region) - their buttons doing nothing until then. Then war exhaustion, or the military AI's
+gaps (*What the moving wave left*), or the end-of-game screen.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
@@ -1985,8 +1992,8 @@ None of these blocks the list above.
     name, so an effect in a region names none;
   - **of messages, only an event's and a decision's are raised** (`messages.md`, *Ours*): none
     on the map, no settings window of a type's own - a right click on a popup or a log row does
-    nothing - and the bottom bar shows its log and nothing else of itself - the minimap, the map
-    modes' buttons and the chat are hidden; whether the original's button that opens the log
+    nothing - and of the bottom bar the chat and the zoom buttons are hidden (the minimap and the map
+    modes' buttons are built, `minimap.md`); whether the original's button that opens the log
     shows only while it is shut was not read. The in-game menu's message settings and
     `messagetypes_custom.txt` are built (`ingamemenu.md`);
   - **a loaded save holds nothing yet of its politics, research queue, spies or AI** (`savegame.md`,
@@ -2406,7 +2413,7 @@ None of these blocks the list above.
   `reversing/findings/FINDINGS-supplyconvoys.md`, section 8.
 - **The supply map mode shows the player's own land only.** There is no intelligence, so
   every other country's land is the grey the original gives land one knows nothing of; the
-  mode is turned on by `Tab` and not by the minimap's button; and its tooltip says of
+  mode is turned on by the minimap's button `mapmode_8` (since 2026-11-07); and its tooltip says of
   anybody else's province only its name and owner. `docs/mechanics/supplymap.md`.
 - **A new game's two days are run, and what the original's AI does around them is not.**
   There it changes laws for every country, some before the days and some after, and makes
@@ -2696,7 +2703,7 @@ In the game: the mouse wheel zooms, a middle or right drag pans, the arrow keys 
 click selects a province - or, on the top counter of a stack, its unit, and clicked again
 the next unit under it - a right click sends the selected unit to the province under the
 pointer, with shift after whatever it was already told, and on its own province halts it,
-and Tab goes round the political map, the terrain and supply. Sent at a province an enemy
+and the buttons by the minimap choose the map mode (`minimap.md`). Sent at a province an enemy
 stands in, a land unit fights for it from where it is: its arrow is red, its panel says so
 and ends in a row for the battle, from the battle's fourth hour a round marker with a
 number stands between the two sides, and a click on the row or the marker brings up the

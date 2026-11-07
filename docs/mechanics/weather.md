@@ -156,7 +156,7 @@ at sea; and the cloud an air unit may not fly into (`fleetsandair.md`). **Attrit
 
 ## 6. On screen
 
-**The weather map mode**, `Tab` after the terrain (the original's `mapmode_3`, "Weather Mapmode"): land is its terrain's
+**The weather map mode**, the button `mapmode_3` (`minimap.md`, section 4; "Weather Mapmode"): land is its terrain's
 colour, **greyed and lightened by how frozen it is** and **at half brightness where the player's intelligence of it is
 under 2**; land nobody owns is greyed and dimmed as six tenths of each; the sea is the terrain mode's. Its colours are
 made when the mode is chosen and again when a province changes hands - **not each hour**, as the original's.
