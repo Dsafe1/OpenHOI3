@@ -9,7 +9,8 @@ namespace OpenHOI3.Interface.Map;
 /// a smooth curve through the points of the path - a Catmull-Rom spline - cut twenty
 /// times between each two, with a band of fixed width laid along it and the head of the
 /// arrow's picture over its last stretch. See <c>docs/mechanics/movement.md</c>,
-/// section 7. Lengths are map units.
+/// section 7, and <c>reversing/findings/FINDINGS-movement.md</c>, sections 10 and 11.
+/// Lengths are map units.
 /// </summary>
 public static class CArrowBand
 {
@@ -31,40 +32,53 @@ public static class CArrowBand
 	/// </summary>
 	public const float Lead = 5f;
 
+	/// <summary>Only so many of the last cuts are weighed for the head: an earlier cut near the end stays shaft.</summary>
+	private const int HeadCuts = 120;
+
 	/// <summary>How far on along the curve the second point is taken that a cut's direction is worked out from.</summary>
 	private const float DirectionStep = 0.05f;
 
-	/// <summary>Two points of a path nearer than this count as one.</summary>
+	/// <summary>A point within this of the next on each axis is left out, and so is the next.</summary>
 	private const float Same = 0.1f;
 
 	/// <summary>
-	/// The cuts of the band along a path, the first at the path's first point and the
-	/// last at its last. Empty for a path of fewer than two different points.
+	/// The cuts of the band along a path, the first at the path's first point and the last a twentieth of the last leg
+	/// short of its end, each with its place along the arrow - its number over the number of cuts, so never one. Empty
+	/// for a path of fewer than two points left once the close ones are taken out.
 	/// </summary>
 	public static List<CArrowSample> Build(IReadOnlyList<Vector2> path)
 	{
-		var points = new List<Vector2>();
-		foreach (Vector2 point in path)
-		{
-			if (points.Count == 0 || Vector2.Distance(points[^1], point) >= Same)
-			{
-				points.Add(point);
-			}
-		}
 		var samples = new List<CArrowSample>();
-		if (points.Count < 2)
+		if (path.Count < 2)
 		{
 			return samples;
 		}
 
-		Vector2 end = points[^1];
-		var control = new List<Vector2>(points.Count + 2)
+		// The two points beyond the ends, from the path as it is given, and then the original's filter over the whole:
+		// the first and last always, and any other but where it is within a tenth of the next on both axes - when
+		// neither it nor the next is kept.
+		var given = new List<Vector2>(path.Count + 2) { path[0] - Unit(path[1] - path[0], Vector2.UnitX) * Lead };
+		given.AddRange(path);
+		given.Add(path[^1] + Unit(path[^1] - path[^2], Vector2.UnitX) * Lead);
+		var control = new List<Vector2> { given[0] };
+		for (int index = 1; index < given.Count - 1; index++)
 		{
-			points[0] - Vector2.Normalize(points[1] - points[0]) * Lead,
-		};
-		control.AddRange(points);
-		control.Add(end + Vector2.Normalize(end - points[^2]) * Lead);
+			Vector2 gap = given[index + 1] - given[index];
+			if (MathF.Abs(gap.X) < Same && MathF.Abs(gap.Y) < Same)
+			{
+				index++;
+				continue;
+			}
+			control.Add(given[index]);
+		}
+		control.Add(given[^1]);
+		if (control.Count < 4)
+		{
+			return samples;
+		}
 
+		Vector2 end = control[^2];
+		int total = (control.Count - 3) * Cuts;
 		Vector2 last = default;
 		for (int leg = 1; leg + 2 < control.Count; leg++)
 		{
@@ -80,18 +94,10 @@ public static class CArrowBand
 					used = Unit((last + across) * 0.5f, across);
 				}
 				last = across;
-				samples.Add(new CArrowSample(at + used * HalfWidth, at - used * HalfWidth, Column(at, end), 0f));
+				int number = samples.Count;
+				float column = number > total - HeadCuts ? Column(at, end) : ShaftColumn;
+				samples.Add(new CArrowSample(at + used * HalfWidth, at - used * HalfWidth, column, number / (float)total));
 			}
-		}
-
-		// The original's last cut is a twentieth of a leg short of the end. Here one more
-		// is made at the end itself, so that the tip of the head is always whole.
-		Vector2 closing = Across(end - Curve(control, control.Count - 3, 1f - DirectionStep));
-		samples.Add(new CArrowSample(end + closing * HalfWidth, end - closing * HalfWidth, 1f, 0f));
-
-		for (int index = 0; index < samples.Count; index++)
-		{
-			samples[index] = samples[index] with { Progress = index / (float)(samples.Count - 1) };
 		}
 		return samples;
 	}

@@ -63,6 +63,23 @@ public partial class CBattleMarkers : Node2D
 		_far = Load(gui, billboards.Find(CBillboardTypes.CombatStatus));
 		_near = Load(gui, billboards.Find(CBillboardTypes.CombatStatusClose));
 		TextureFilter = TextureFilterEnum.LinearWithMipmaps;
+		// The badge through the install's billboard.fx, as the original draws a plain billboard; its number in an item of
+		// its own over it, which the effect does not draw.
+		Material = CBillboardMaterial.Make(gui, billboards);
+		_numbers = RenderingServer.CanvasItemCreate();
+	}
+
+	/// <summary>Where the markers' numbers are written: a canvas item under this one, drawn over its badges.</summary>
+	private Rid _numbers;
+
+	public override void _Ready()
+	{
+		RenderingServer.CanvasItemSetParent(_numbers, GetCanvasItem());
+	}
+
+	public override void _ExitTree()
+	{
+		RenderingServer.FreeRid(_numbers);
 	}
 
 	private static Picture? Load(CGuiContext gui, CBillboardType? type)
@@ -135,6 +152,7 @@ public partial class CBattleMarkers : Node2D
 
 	public override void _Draw()
 	{
+		RenderingServer.CanvasItemClear(_numbers);
 		if (Current() is not { } picture)
 		{
 			return;
@@ -175,9 +193,9 @@ public partial class CBattleMarkers : Node2D
 		// The line a digit stands on is its ascent under the top of the line.
 		var start = new Vector2(middle.X - width / 2f,
 			middle.Y + (NumberDrop - 0.5f) * lineHeight + picture.Font.Ascent * scale);
-		DrawSetTransform(start, 0f, new Vector2(scale * picture.Font.Narrowing, scale));
-		DrawString(typeface, Vector2.Zero, text, HorizontalAlignment.Left, -1f, picture.Font.Size, picture.Font.Color);
-		DrawSetTransform(Vector2.Zero, 0f, Vector2.One);
+		RenderingServer.CanvasItemAddSetTransform(_numbers, new Transform2D(0f, new Vector2(scale * picture.Font.Narrowing, scale), 0f, start));
+		typeface.DrawString(_numbers, Vector2.Zero, text, HorizontalAlignment.Left, -1f, picture.Font.Size, picture.Font.Color);
+		RenderingServer.CanvasItemAddSetTransform(_numbers, Transform2D.Identity);
 	}
 
 	/// <summary>The battle whose marker is at a point of the map, or null: of two that overlap, the one drawn later.</summary>

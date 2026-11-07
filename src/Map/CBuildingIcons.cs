@@ -40,6 +40,8 @@ public partial class CBuildingIcons : Node2D
 		_state = state;
 		_gui = gui;
 		_billboards = billboards;
+		// Drawn through the install's billboard.fx, as the original draws a plain billboard.
+		Material = CBillboardMaterial.Make(gui, billboards);
 		TextureFilter = TextureFilterEnum.LinearWithMipmaps;
 		ShowBehindParent = true;
 	}

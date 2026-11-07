@@ -165,6 +165,9 @@ the interface imitated in C# is left imitated. And since the same day the weathe
 `weather_billboard.fx` (`weather.md`, section 6), the progress bars through `progress.fx` - whose float3 coordinate from
 a stream of two is filled as Direct3D fills a short input, nought and one for w - and every sprite through the effect
 it names, `buttonstate.fx` where it names none, `interpolated_buttonstate.fx` among them (`interface.md`, section 5).
-Not looked at yet: which of the other files of `gfx/FX` - `arrow.fx`, `front.fx`, `maptext.fx`, `flag.fx`, `avatar.fx`
-and the rest - something drawn here still imitates; and the `scrollingSprite`'s `ScrollTech`, the top bar's day and
-night strip, and `progressbar3dType` have no reading.
+And since the same day the path arrows through `arrow.fx` (`movement.md`, section 7) and every plain billboard - the
+pointer, the battle markers, the buildings and the air map's pictures - through `billboard.fx` (`mapunits.md`, section
+9). A survey of `gfx/FX` that day found nothing else drawn here that imitates an effect: the map's names use the fixed
+pipeline, `maptext.fx` is named nowhere in the executable (`reversing/findings/FINDINGS-farmap.md`), and
+`barchart.fx`, `linechart.fx`, the `scrollingSprite`'s `ScrollTech` (the top bar's day and night strip),
+`masked3dflag.fx`, `terraincognita.fx` and `avatar.fx` belong to things not built - each to be read when its thing is.

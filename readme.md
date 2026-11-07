@@ -1680,7 +1680,13 @@ technique and the overlay over it, the canvas route taking the mask's coordinate
 interface imitated in C# is left imitated. **And the weather's pictures, the progress bars and every sprite through the
 effect it names** (the fact base's weathersim C.3.1, `FINDINGS-progressfx.md`, `FINDINGS-buttonstatefx.md`) - the bars'
 upside-down pictures now the original's quad and not a measured flip. Left open by those readings: whether a multi-frame
-button whose file sets no frame takes its frame from its state (`interface.md`, section 5). **Next up**: war exhaustion, or the military AI's gaps (*What the moving wave
+button whose file sets no frame takes its frame from its state (`interface.md`, section 5). **And the path arrows through
+`arrow.fx` and every plain billboard through `billboard.fx`** (the fact base's movement 11, `FINDINGS-billboardfx.md`) -
+the arrow's band stopping a twentieth short of its end as the original's does, the pointer no longer scaled by its
+counter - with which nothing drawn here imitates an effect of the original's (`shaders.md`, section 6). Open from the
+billboard reading: whether the pictures the original moves after hanging them - the large air pictures and the battle
+icons - ever stand where they are moved to; a screenshot of the air map mode with an air battle and a bombing in one
+province would settle it. **Next up**: war exhaustion, or the military AI's gaps (*What the moving wave
 left*), or the end-of-game screen.
 
 The other open choices are the third piece's gaps - the balancing that moves
@@ -1766,6 +1772,13 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 None of these blocks the list above.
 
+- **Pictures the original moves after hanging them** (2026-11-07, `docs/mechanics/mapunits.md`, section 9;
+  `reversing/findings/FINDINGS-billboardfx.md`, *Not established*): the air map mode's large air and naval base and
+  anti-aircraft pictures, its battle and bombing icons, the naval mode's convoy icons and a building's `building_nudge`
+  are each moved by the original after its world transform is made, and nothing found makes it again - so on that
+  reading the original draws them all on the province's point. Here they stand where the files put them, by the
+  maintainer's word that day: "Lets keep it the way it is, but note the loose end." A screenshot of the original's air
+  map mode with an air battle and a bombing in one province would settle it.
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
   and the front end makes its meshes again for each world it shows - the quad cache it reads once - which could be kept
   between worlds; a map whose cache is missing or stale - its `time` stamp not the map files' (section 2.1, since

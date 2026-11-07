@@ -28,7 +28,6 @@ public partial class CUnitCounters : Node2D
 	/// <summary>The frame of the pointer's picture for a unit that is marching: the green one.</summary>
 	private const int MarchingFrame = 0;
 
-	private static readonly Color[] QuadColours = { Colors.White, Colors.White, Colors.White, Colors.White };
 
 	private CMap _map = null!;
 	private CGameState _state = null!;
@@ -37,13 +36,14 @@ public partial class CUnitCounters : Node2D
 	private CCounterKind? _near;
 	private CBillboardType? _pointer;
 	private Texture2D? _pointerTexture;
-	private readonly Dictionary<string, Texture2D?> _arrowTextures = new(StringComparer.OrdinalIgnoreCase);
+	private CPathArrows _arrows = null!;
+
+	/// <summary>What the pointers of units on the move are drawn with: the install's billboard.fx, or null to draw them plainly.</summary>
+	private ShaderMaterial? _pointerMaterial;
 	private CHierarchyLayer _hierarchy = null!;
 	private CBuildingIcons _buildings = null!;
 	private CAirMapLayer _airMap = null!;
 	private CBattleMarkers _markers = null!;
-	private readonly Vector2[] _quad = new Vector2[4];
-	private readonly Vector2[] _quadPicture = new Vector2[4];
 
 	private List<CMapStack> _stacks = new();
 	private readonly Dictionary<string, Texture2D?> _flags = new(StringComparer.OrdinalIgnoreCase);
@@ -69,12 +69,8 @@ public partial class CUnitCounters : Node2D
 	public void Setup(CMap map, CGameState state, CGuiContext gui, CCounterTypes types, CBillboardTypes billboards,
 		CArrowTypes arrows)
 	{
-		foreach (string name in new[] { CArrowTypes.Move, CArrowTypes.Attack, CArrowTypes.Retreat, CArrowTypes.Invasion, CArrowTypes.Strategic })
-		{
-			_arrowTextures[name] = arrows.Find(name) is { TextureFile.Length: > 0 } arrow && gui.Textures.Exists(arrow.TextureFile)
-				? gui.Textures.LoadFromGamePath(arrow.TextureFile)
-				: null;
-		}
+		_arrows = new CPathArrows(gui, arrows);
+		_pointerMaterial = CBillboardMaterial.Make(gui, billboards);
 		_pointer = billboards.Find(CBillboardTypes.CounterArrow);
 		if (_pointer is not null && _pointer.TextureFile.Length != 0 && gui.Textures.Exists(_pointer.TextureFile))
 		{
@@ -100,6 +96,11 @@ public partial class CUnitCounters : Node2D
 		_hierarchy = new CHierarchyLayer { Name = "Hierarchy" };
 		_hierarchy.Setup(map, state, gui);
 		AddChild(_hierarchy);
+
+		// The selected units' ways, over the lines and under the counters.
+		var arrowLayer = new Node2D { Name = "Arrows" };
+		AddChild(arrowLayer);
+		_arrows.SetParent(arrowLayer);
 
 		// The counters themselves, over the lines.
 		_plates = new Node2D { Name = "Plates" };
@@ -302,6 +303,7 @@ public partial class CUnitCounters : Node2D
 		}
 		_items.Clear();
 		_itemsUsed = 0;
+		_arrows.Free();
 	}
 
 	/// <summary>The next canvas item of the counters, emptied, with no material, at its place in the order drawn.</summary>
@@ -383,8 +385,8 @@ public partial class CUnitCounters : Node2D
 		CMapPosition here = _map.Positions[unit.Location];
 		CMapPosition next = _map.Positions[unit.Path[0]];
 		float heading = CCounterLayout.Heading(here.X, here.Y, next.X, next.Y, _map.Width);
-		System.Numerics.Vector2 at = CCounterLayout.PointerPlace(kind.Type, _pointer, counter.Size, heading);
-		float half = CCounterLayout.PointerHalfSize(kind.Type, _pointer, counter.Size);
+		System.Numerics.Vector2 at = CCounterLayout.PointerPlace(_pointer, heading);
+		float half = CCounterLayout.PointerHalfSize(_pointer);
 
 		// North is up on the map and down on the screen, so the angle turns the other way.
 		Vector2 middle = rect.GetCenter() + new Vector2(at.X, -at.Y);
@@ -417,8 +419,7 @@ public partial class CUnitCounters : Node2D
 
 	private void DrawPath(CCounterKind kind, CUnit unit)
 	{
-		Texture2D? arrowTexture = _arrowTextures.GetValueOrDefault(CMapArrows.TypeOf(_state, unit))
-			?? _arrowTextures.GetValueOrDefault(CArrowTypes.Move);
+		Texture2D? arrowTexture = _arrows.Texture(CMapArrows.TypeOf(_state, unit));
 		if (arrowTexture is null)
 		{
 			return;
@@ -437,28 +438,9 @@ public partial class CUnitCounters : Node2D
 			points.Add(new System.Numerics.Vector2(next.X, next.Y));
 		}
 
-		List<CArrowSample> band = CArrowBand.Build(points);
+		// The share of the whole way walked: the effect fills every cut up to the first not yet reached.
 		float walked = CMovement.WalkedShare(_state, unit) / (float)CFixedPoint.Scale;
-		for (int copy = -1; copy <= 1; copy++)
-		{
-			var shift = new Vector2(copy * _map.Width, 0f);
-			for (int index = 1; index < band.Count; index++)
-			{
-				CArrowSample a = band[index - 1];
-				CArrowSample b = band[index];
-				// The picture is the outline over the filled arrow: half its height each.
-				float top = a.Progress < walked ? 0.5f : 0f;
-				_quad[0] = new Vector2(a.Left.X, a.Left.Y) + shift;
-				_quad[1] = new Vector2(b.Left.X, b.Left.Y) + shift;
-				_quad[2] = new Vector2(b.Right.X, b.Right.Y) + shift;
-				_quad[3] = new Vector2(a.Right.X, a.Right.Y) + shift;
-				_quadPicture[0] = new Vector2(a.Along, top);
-				_quadPicture[1] = new Vector2(b.Along, top);
-				_quadPicture[2] = new Vector2(b.Along, top + 0.5f);
-				_quadPicture[3] = new Vector2(a.Along, top + 0.5f);
-				DrawPrimitive(_quad, QuadColours, _quadPicture, arrowTexture);
-			}
-		}
+		_arrows.Draw(CArrowBand.Build(points), arrowTexture, walked, _map.Width);
 	}
 
 	private Vector2 PointOf(int province)
@@ -530,6 +512,7 @@ public partial class CUnitCounters : Node2D
 	public override void _Draw()
 	{
 		ClearItems();
+		_arrows.Clear();
 		if (Kind() is not { } kind)
 		{
 			return;
@@ -566,12 +549,15 @@ public partial class CUnitCounters : Node2D
 			RenderingServer.CanvasItemSetMaterial(plate, kind.Material(_gui, counter, mark, worn).GetRid());
 			kind.Plate.DrawRect(plate, rect, false);
 
-			// What goes over it, under the next counter.
-			Rid item = NextItem();
+			// What goes over it, under the next counter: the pointer of a unit on the move, a plain billboard drawn through
+			// billboard.fx, and then the flag and the figures.
 			if (stack.Kind == EMapStack.Moving)
 			{
-				DrawPointer(item, kind, counter, rect);
+				Rid pointer = NextItem();
+				RenderingServer.CanvasItemSetMaterial(pointer, _pointerMaterial?.GetRid() ?? new Rid());
+				DrawPointer(pointer, kind, counter, rect);
 			}
+			Rid item = NextItem();
 			if (index != drawn.Count - 1)
 			{
 				continue;

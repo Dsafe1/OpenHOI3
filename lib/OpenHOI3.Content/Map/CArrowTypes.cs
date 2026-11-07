@@ -36,6 +36,13 @@ public sealed class CArrowTypes
 
 	public int Count => _types.Count;
 
+	/// <summary>
+	/// The effect file every arrow is drawn through: the first type read's <c>effect</c>. The original keeps every
+	/// arrow type's effect under one key, so the first one loaded is the one all of them use
+	/// (<c>reversing/findings/FINDINGS-movement.md</c>, section 11.7). Empty where no type names one.
+	/// </summary>
+	public string EffectFile { get; private set; } = "";
+
 	public CArrowType? Find(string name)
 	{
 		return _types.TryGetValue(name, out CArrowType? type) ? type : null;
@@ -65,6 +72,10 @@ public sealed class CArrowTypes
 					{
 						// The last declaration wins: files come base layer first.
 						types._types[type.Name] = type;
+						if (types.EffectFile.Length == 0)
+						{
+							types.EffectFile = type.Effect;
+						}
 					}
 				}
 			}
@@ -93,6 +104,7 @@ public sealed class CArrowTypes
 			TextureFile = node.GetString("textureFile"),
 			BodyTextureFile = node.GetString("bodytexture"),
 			Size = node.GetFloat("size"),
+			Effect = node.GetString("effect"),
 		};
 	}
 }

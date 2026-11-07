@@ -210,11 +210,14 @@ small green pointer at all times." It is the `counter_arrow` `billboardType` of
 - **Every unit with a path shows it**, selected or not. `confirmed`
 - Its picture is a strip of `noOfFrames` frames; the first, green, is the one a marching
   unit shows. `confirmed`. The second is red and its use was not read.
-- It is drawn in a square `2 * scale` across - 2 map units in the base game - times the
-  counter's own scale. `confirmed`
+- It is drawn in a square `2 * scale` across - 2 map units in the base game - **whatever
+  the counter's own scale**: the original hands the pointer that scale through a setter
+  its draw never reads, so the pointer is always drawn at one. `confirmed`, corrected on
+  2026-11-07 (`reversing/findings/FINDINGS-billboardfx.md`, section 2) - this said "times
+  the counter's own scale", which made a far counter's pointer up to 1.8 times as large.
 - **It stands `offset` from the middle of the counter, in the direction the unit is
-  going, and points that way** - 4.5 map units in the base game, times the counter's own
-  scale. The direction is from the unit point of the province the unit is in to that of
+  going, and points that way** - 4.5 map units in the base game, not scaled either. The
+  direction is from the unit point of the province the unit is in to that of
   the next province of its path, the short way round the map. `confirmed`, and the
   screenshot agrees to the degree: the pointer lies on the line it points along. It is
   about a seventh further from the counter there than 4.5, which is not explained.
@@ -465,6 +468,20 @@ there is no AI.
 Read out of the original on 2026-10-09 for the port and the airfield, which are how a fleet
 in port and an air unit at its base are seen and picked:
 `reversing/findings/FINDINGS-seaair.md`, section 6. `confirmed` unless marked.
+
+**Every plain `billboardType` is drawn through the install's own `billboard.fx`** since
+2026-11-07, translated for the canvas (`reversing/findings/FINDINGS-billboardfx.md`): the
+buildings here, the moving unit's pointer (section 2), the battle markers (`combatview.md`)
+and the air map mode's large pictures and icons (`airmap.md`). Every plain type shares the
+one effect kept under the key `Billboard`, the file `gfx/FX/billboard.fx` unless a type
+names another, technique `standard` by name; an unselected picture is drawn at a
+`vMultiplier` of one - a selected one at 1.5, which nothing selects - and the quad is always
+a square. *Ours:* a picture's frame is chosen by the part of its texture drawn rather than
+by `vXOffset`, which stays nought, so one material serves a layer; and a battle marker's
+number is written over its badge in an item of its own, the effect not being for text. The
+reading leaves open whether the pictures the original moves after hanging them - the large
+air and naval base and anti-aircraft pictures, the battle and convoy icons, and a
+building's `building_nudge` - ever reach the place they are moved to; here they do.
 
 - **A province shows a picture for every building it has any of that `buildings.txt`
   declares `onmap`**: its air base, its naval base, its forts, its anti-aircraft guns, its

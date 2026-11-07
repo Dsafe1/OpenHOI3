@@ -407,9 +407,26 @@ with what is left over carried into the next leg as the march itself carries it.
     arrow is made again in each province the unit enters, so the fill starts again there.
 
   On the screenshot the shaft's two lines are 1 map unit apart and the head 3.3 wide and
-  3.4 long, which is the picture's shaft and head on a band 4 wide. *Ours:* one more cut is
-  made at the very end, so that the tip is always whole; the original's last cut is a
-  twentieth of a leg short and its tip is whole on the screenshot all the same.
+  3.4 long, which is the picture's shaft and head on a band 4 wide.
+
+  **Since 2026-11-07 the arrow is drawn through the install's own `arrow.fx`**, translated for
+  the canvas, as the original feeds it (`reversing/findings/FINDINGS-movement.md`, section 11),
+  `confirmed`: a strip of two vertices a cut, the left edge with the picture's v nought and the
+  right with v a half; the first set of coordinates a cut's number over the number of cuts -
+  never one - and the second its column and v; `CurrentProgress` the share of the way walked,
+  and the effect filling every cut up to the first not yet reached. **The picture is the type's
+  `bodytexture`**, not its `textureFile`, which the original loads and never draws, and **every
+  arrow type draws through the first type's `effect`**, the original keeping them all under one
+  key; `size`, `endAt`, `height`, `type`, `heading` and the two colours do nothing. Three rules
+  came with it: **a point within a tenth of the next on both axes is left out, and so is the
+  next** - the points beyond the ends counted - where a point was dropped by its distance alone;
+  **only the last 119 cuts are weighed for the head**, so a way that comes back near its end
+  keeps its shaft there; and **the band stops at its last cut**, a twentieth of the last leg
+  short of the end, so a long last leg cuts the head's tip by about two pixels - this project
+  had made one more cut at the very end, which the reading shows the original does not.
+  *Ours:* the arrow lies on the canvas where the 2D view puts it, where the original's stands
+  0.48 over land and 0.78 at sea, flat; and it is drawn at three copies of the map, the
+  original's at two.
 - **An attack and a retreat have arrows of their own**, drawn the same way with another
   picture: `retreatArrow` for a unit falling back, which is asked first, and `attackArrow`
   **where an enemy of the unit's country holds the next province of its way** - whether or

@@ -298,20 +298,14 @@ public class MapCounterTests
 	{
 		// The base game's: a square two map units across, four and a half from the counter.
 		var pointer = new CBillboardType { Name = CBillboardTypes.CounterArrow, Scale = 1f, Offset = 4.5f, Frames = 2 };
-		var near = new CCounterType { Name = CCounterTypes.Near, Scale = 2.5f };
-		var far = new CCounterType { Name = CCounterTypes.Far, Scale = 3f, LevelScale = 0.2f };
-
-		Vector2 east = CCounterLayout.PointerPlace(near, pointer, 1, 0f);
+		Vector2 east = CCounterLayout.PointerPlace(pointer, 0f);
 		Assert.Equal(4.5f, east.X, 4);
 		Assert.Equal(0f, east.Y, 4);
-		Vector2 north = CCounterLayout.PointerPlace(near, pointer, 1, MathF.PI / 2f);
+		Vector2 north = CCounterLayout.PointerPlace(pointer, MathF.PI / 2f);
 		Assert.Equal(0f, north.X, 4);
 		Assert.Equal(4.5f, north.Y, 4);
-		Assert.Equal(1f, CCounterLayout.PointerHalfSize(near, pointer, 1), 4);
-
-		// A counter that is larger for its rank has its pointer further off and larger too.
-		Assert.Equal(8.1f, CCounterLayout.PointerPlace(far, pointer, 5, 0f).X, 4);
-		Assert.Equal(1.8f, CCounterLayout.PointerHalfSize(far, pointer, 5), 4);
+		// A counter's own scale reaches neither: the original hands it the pointer and the draw never reads it.
+		Assert.Equal(1f, CCounterLayout.PointerHalfSize(pointer), 4);
 	}
 
 	[Fact]
@@ -327,23 +321,25 @@ public class MapCounterTests
 	// --- the arrow of a selected unit ---
 
 	[Fact]
-	public void AnArrowIsCutTwentyTimesALegAndOnceMoreAtItsEnd()
+	public void AnArrowIsCutTwentyTimesALegAndStopsATwentiethShortOfItsEnd()
 	{
 		var straight = CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(20, 0) });
-		Assert.Equal(21, straight.Count);
-		Assert.Equal(41, CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(20, 0), new Vector2(40, 10) }).Count);
+		Assert.Equal(20, straight.Count);
+		Assert.Equal(40, CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(20, 0), new Vector2(40, 10) }).Count);
 
-		// Along a straight line the cuts run from one end to the other, the middle one in
-		// the middle - they bunch a little towards the ends - and the band is four wide.
+		// Along a straight line the cuts run from one end towards the other, the middle one in
+		// the middle - they bunch a little towards the ends - and the band is four wide. The last
+		// is at a twentieth of the leg short of the end, so the head's tip is cut.
 		Assert.Equal(0f, Middle(straight[0]).X, 3);
 		Assert.Equal(10f, Middle(straight[10]).X, 3);
-		Assert.Equal(20f, Middle(straight[^1]).X, 3);
+		Assert.InRange(Middle(straight[^1]).X, 18.5f, 19.9f);
 		Assert.All(straight, cut => Assert.Equal(2f * CArrowBand.HalfWidth, Vector2.Distance(cut.Left, cut.Right), 3));
 		Assert.All(straight, cut => Assert.Equal(0f, Middle(cut).Y, 3));
 
+		// A cut's place along the arrow is its number over the number of cuts: never one.
 		Assert.Equal(0f, straight[0].Progress);
 		Assert.Equal(0.5f, straight[10].Progress, 4);
-		Assert.Equal(1f, straight[^1].Progress);
+		Assert.Equal(19f / 20f, straight[^1].Progress, 4);
 	}
 
 	private static Vector2 Middle(CArrowSample cut) => (cut.Left + cut.Right) * 0.5f;
@@ -354,7 +350,7 @@ public class MapCounterTests
 		var band = CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(20, 0) });
 
 		Assert.Equal(0.5f, band[0].Along);            // the shaft's column
-		Assert.Equal(1f, band[^1].Along);             // the tip
+		Assert.InRange(band[^1].Along, 0.75f, 0.99f);  // near the tip, which the last cut falls short of
 		foreach (CArrowSample cut in band)
 		{
 			// Four from the end the head begins, and it is half way through two from it.
@@ -366,6 +362,24 @@ public class MapCounterTests
 	}
 
 	[Fact]
+	public void OnlyTheLastHundredAndNineteenCutsAreWeighedForTheHead()
+	{
+		// Out and back along the same line: the start lies within four of the end, and seven legs make 140 cuts, so the
+		// first twenty-one are not weighed and keep the shaft's column though they lie near the end.
+		var points = new List<Vector2> { new(1, 0) };
+		for (int leg = 0; leg < 7; leg++)
+		{
+			points.Add(new Vector2(leg % 2 == 0 ? 20 : 0, 0.2f * (leg + 1)));
+		}
+		points[^1] = new Vector2(0, 1.6f);
+		var band = CArrowBand.Build(points);
+
+		Assert.Equal(140, band.Count);
+		Assert.Equal(0.5f, band[0].Along);
+		Assert.True(band[^1].Along > 0.5f);
+	}
+
+	[Fact]
 	public void TheArrowIsACurveThroughEveryPointOfThePath()
 	{
 		var points = new[] { new Vector2(0, 0), new Vector2(20, 0), new Vector2(20, 20) };
@@ -374,16 +388,21 @@ public class MapCounterTests
 		// It goes through the corner and does not cut it: the first cut of each leg is at its point.
 		Assert.Equal(0f, Vector2.Distance(points[0], Middle(band[0])), 3);
 		Assert.Equal(0f, Vector2.Distance(points[1], Middle(band[20])), 3);
-		Assert.Equal(0f, Vector2.Distance(points[2], Middle(band[^1])), 3);
+		Assert.InRange(Vector2.Distance(points[2], Middle(band[^1])), 0.5f, 1.5f);
 		// And it bends on the way there, swinging outside the straight line.
 		Assert.True(Middle(band[15]).Y < 0f);
 	}
 
 	[Fact]
-	public void APathOfOnePointOrOfThePointTwiceHasNoArrow()
+	public void APointWithinATenthOfTheNextIsLeftOutAndSoIsTheNext()
 	{
 		Assert.Empty(CArrowBand.Build(new[] { new Vector2(3, 3) }));
 		Assert.Empty(CArrowBand.Build(new[] { new Vector2(3, 3), new Vector2(3.05f, 3) }));
-		Assert.Equal(21, CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(0, 0), new Vector2(9, 0) }).Count);
+		// The first point the same as the second: both go, and one point is left.
+		Assert.Empty(CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(0, 0), new Vector2(9, 0) }));
+		// A point near the next in the middle of the way: both go, and the way is one leg.
+		Assert.Equal(20, CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(10, 0), new Vector2(10.05f, 0.05f), new Vector2(30, 0) }).Count);
+		// Within a tenth on one axis only is not near.
+		Assert.Equal(60, CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(10, 0), new Vector2(10.05f, 5), new Vector2(30, 0) }).Count);
 	}
 }

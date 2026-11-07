@@ -28,6 +28,15 @@ public sealed class CBillboardTypes
 
 	private readonly Dictionary<string, CBillboardType> _types = new(StringComparer.OrdinalIgnoreCase);
 
+	/// <summary>The key every plain billboard's effect is kept under unless its declaration names another.</summary>
+	public const string PlainEffect = "Billboard";
+
+	/// <summary>The effect file a plain billboard draws through unless its declaration names another.</summary>
+	public const string PlainEffectFile = "gfx/FX/billboard.fx";
+
+	/// <summary>The technique a plain billboard is drawn with, by name.</summary>
+	public const string PlainTechnique = "standard";
+
 	/// <summary>The effect file of the first type read that names each <c>effect</c>.</summary>
 	private readonly Dictionary<string, string> _effectFiles = new(StringComparer.Ordinal);
 
@@ -71,9 +80,14 @@ public sealed class CBillboardTypes
 					{
 						// The last declaration wins: files come base layer first.
 						types._types[type.Name] = type;
-						if (type.Effect.Length != 0 && type.EffectFile.Length != 0)
+						// A plain billboardType starts with the key "Billboard" and the file gfx/FX/billboard.fx, which its
+						// declaration's own overwrite (FINDINGS-billboardfx.md, section 1).
+						bool plain = string.Equals(node.Key, "billboardType", StringComparison.OrdinalIgnoreCase);
+						string key = type.Effect.Length != 0 ? type.Effect : plain ? PlainEffect : "";
+						string effectFile = type.EffectFile.Length != 0 ? type.EffectFile : plain ? PlainEffectFile : "";
+						if (key.Length != 0 && effectFile.Length != 0)
 						{
-							types._effectFiles.TryAdd(type.Effect, type.EffectFile);
+							types._effectFiles.TryAdd(key, effectFile);
 						}
 					}
 				}

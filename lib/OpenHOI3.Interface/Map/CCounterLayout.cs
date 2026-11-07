@@ -98,19 +98,20 @@ public static class CCounterLayout
 
 	/// <summary>
 	/// Where the middle of a moving unit's pointer goes, from the middle of its counter:
-	/// the pointer's own <c>offset</c> away, in the direction the unit is going.
+	/// the pointer's own <c>offset</c> away, in the direction the unit is going - whatever the counter's own scale, which
+	/// the original hands the pointer where its draw never reads it (<c>reversing/findings/FINDINGS-billboardfx.md</c>,
+	/// section 2).
 	/// </summary>
 	/// <param name="heading">The direction of travel as an angle from east, turning towards north.</param>
-	public static Vector2 PointerPlace(CCounterType type, CBillboardType pointer, int size, float heading)
+	public static Vector2 PointerPlace(CBillboardType pointer, float heading)
 	{
-		float distance = pointer.Offset * Scale(type, size);
-		return new Vector2(MathF.Cos(heading) * distance, MathF.Sin(heading) * distance);
+		return new Vector2(MathF.Cos(heading) * pointer.Offset, MathF.Sin(heading) * pointer.Offset);
 	}
 
-	/// <summary>Half the side of the square the pointer is drawn in.</summary>
-	public static float PointerHalfSize(CCounterType type, CBillboardType pointer, int size)
+	/// <summary>Half the side of the square the pointer is drawn in: its <c>scale</c>, at a draw scale of one.</summary>
+	public static float PointerHalfSize(CBillboardType pointer)
 	{
-		return pointer.Scale * Scale(type, size);
+		return pointer.Scale;
 	}
 
 	/// <summary>
