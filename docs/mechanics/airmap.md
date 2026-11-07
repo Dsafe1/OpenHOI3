@@ -165,7 +165,10 @@ the original's list of a country's air bases - with **units based there** (of an
 of a disc that is brightest at its rim and fades inward, drawn four times about the base to make
 the whole disc, the radius at the picture's edge (its rim lies at about 0.9 of the radius). Its
 colour goes from **red** (1, 0, 0) at no strength through **yellow** at half to **green** at full,
-and it is seen through: its alpha is the picture's x 0.3 x dim. `confirmed`
+and it is seen through: its alpha is the picture's x 0.3 x dim. `confirmed`. **Since 2026-11-07 the rings are drawn
+through `circle.fx` itself**, translated, on the map's surface - nine vertices, the picture mirrored into each quarter,
+the ring 1.0 above the air base, no depth test (`mapdraw.md`, section 4; `reversing/findings/FINDINGS-airmap.md`,
+section 8) - the 2D drawing kept for a map drawn flat.
 
 The rings are made again each day, and when what is selected changes. `confirmed`. *Ours:* "the
 range" is the shortest of a unit's wings', which is the range its orders use; the original takes

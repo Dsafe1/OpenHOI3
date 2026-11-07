@@ -1671,8 +1671,10 @@ flat cards of its sheet, snowed in the weather mode below −5, at most 16 tiles
 province names** under height 100 (the fact base's farmap B.7): every province's name on its text position, turned and
 scaled as positions.txt says, wrapped at 320 only at spaces, fading in over 1.5 seconds as its tile comes into view, in
 kart_font's typewriter face, for which Liberation Mono now stands - with which the map's surface is whole but for terra
-incognita, a scenario's. **Next up**: the interface's other effects the client still imitates in C# -
-`counter.fx`, `maskedflag.fx`, `hierarchy.fx`, `circle.fx`. Then war exhaustion, or the military AI's gaps (*What the moving wave
+incognita, a scenario's. **And the hierarchy's lines and the air map's rings** through `hierarchy.fx` and `circle.fx`
+(the fact base's hierarchy 7 and airmap 8), on the surface, the 2D layers kept for a map drawn flat. **Next up**: the
+interface's two effects the client still imitates in C# - `counter.fx` and `maskedflag.fx`, both read (counters 10,
+`FINDINGS-maskedflag.md`), the flags wanting the canvas route to take a second set of texture coordinates. Then war exhaustion, or the military AI's gaps (*What the moving wave
 left*), or the end-of-game screen.
 
 The other open choices are the third piece's gaps - the balancing that moves

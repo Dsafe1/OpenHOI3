@@ -69,9 +69,23 @@ public partial class CHierarchyLayer : Node2D
 		}
 	}
 
+	/// <summary>
+	/// The map's surface, where there is one: the lines are then drawn by it, through the install's own hierarchy.fx
+	/// (<c>docs/mechanics/mapdraw.md</c>, section 4), and this layer only says which.
+	/// </summary>
+	public CMapSurface? Surface { get; set; }
+
 	public override void _Process(double delta)
 	{
-		if (_unit is null || !_shown || _texture is null)
+		bool drawn = _unit is not null && _shown && _texture is not null && IsVisibleInTree();
+		if (Surface is { } surface)
+		{
+			// In the map's own coordinates, y north, a unit point as the original takes it.
+			surface.SetHierarchy(drawn
+				? CHierarchyLines.Build(_unit!, MapPointOf, _map.Width, unit => CCommandReach.IsOutOfRange(_state, unit))
+				: new List<CHierarchyLine>());
+		}
+		if (!drawn)
 		{
 			return;
 		}
@@ -80,12 +94,23 @@ public partial class CHierarchyLayer : Node2D
 		{
 			_phase -= CHierarchyLines.PhaseEnd;
 		}
+		if (Surface is { } shown)
+		{
+			shown.SetHierarchyPhase((float)_phase);
+			return;
+		}
 		QueueRedraw();                                       // the arrowheads run
+	}
+
+	private System.Numerics.Vector2 MapPointOf(int province)
+	{
+		CMapPosition position = _map.Positions[province];
+		return new System.Numerics.Vector2(position.X, position.Y);
 	}
 
 	public override void _Draw()
 	{
-		if (_unit is null || !_shown || _texture is null)
+		if (_unit is null || !_shown || _texture is null || Surface is not null)
 		{
 			return;
 		}

@@ -164,6 +164,10 @@ public partial class CMapView : Node2D
 		}
 		_surface = new CMapSurface();
 		_surface.Setup(_map, gui, cache, tiles, CQuadCache.Columns(directories), simpleWater, waves, trees, _corners);
+		if (_counters is not null)
+		{
+			_counters.Surface = _surface;
+		}
 		_textures ??= gui.Textures;
 		_names = new CCountryMapNames { Name = "CountryNames", Visible = false };
 		_names.Setup(_map, _state, gui.Fonts);

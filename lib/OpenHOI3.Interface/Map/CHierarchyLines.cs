@@ -71,14 +71,15 @@ public static class CHierarchyLines
 			Vector2 to = pointOf(commander.Location);
 			if (mapWidth > 0f)
 			{
-				// The short way round: the east edge of the map is beside the west.
+				// The short way round: whichever end lies further east is moved a map's width west, so a line across the
+				// seam hangs off the map's west edge [exe] (reversing/findings/FINDINGS-hierarchy.md, section 7.2).
 				if (to.X - from.X > mapWidth * 0.5f)
 				{
 					to.X -= mapWidth;
 				}
 				else if (from.X - to.X > mapWidth * 0.5f)
 				{
-					to.X += mapWidth;
+					from.X -= mapWidth;
 				}
 			}
 			bool outOfReach = isOutOfReach(unit);

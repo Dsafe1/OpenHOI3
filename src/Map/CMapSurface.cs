@@ -129,6 +129,7 @@ public partial class CMapSurface : Node3D
 		BuildSurf();
 		AddChild(_trees);
 		PlantTrees();
+		AddChild(_overlays);
 		Shader? border = Terrain(BorderTechnique, BorderStates).Shader;
 		foreach (CSurfaceTile part in _parts)
 		{
@@ -516,6 +517,8 @@ public partial class CMapSurface : Node3D
 		ApplyWaterBorderView(_camera);
 		ApplyCopies(_camera);
 		ApplyTrees();
+		ApplyHierarchyView(_camera);
+		ApplyRingView(_camera);
 		foreach ((ShaderMaterial material, CGodotShader?[] translations, uint _) in _seaWays.Values)
 		{
 			SetSeaCamera(material, translations, _camera);
@@ -531,6 +534,8 @@ public partial class CMapSurface : Node3D
 	public override void _ExitTree()
 	{
 		FreeTreeSlots();
+		ClearHierarchy();
+		SetRings(new List<CAirBaseCircle>());
 		foreach (Node node in GetChildren().Concat(_borders.GetChildren()).Concat(_waterBorders.GetChildren()).Concat(_rivers.GetChildren()))
 		{
 			if (node is MeshInstance3D instance && instance.Mesh is { } mesh)
@@ -1239,6 +1244,245 @@ public partial class CMapSurface : Node3D
 		for (int slot = 0; slot < TreeSlots; slot++)
 		{
 			ClearTreeSlot(slot);
+		}
+	}
+
+	// ----------------------------------------------------------------------- the hierarchy's lines and the air bases' rings
+
+	public const string HierarchyFile = "hierarchy.fx";
+	public const string HierarchyTechnique = "Hierarchy";
+	public const string HierarchyPicture = "gfx/mapitems/hierarchy_line.tga";
+	public const string CircleFile = "circle.fx";
+	public const string CirclePicture = "map/Sector.dds";
+
+	/// <summary>
+	/// The rings drawn after the whole map and its pictures, and the hierarchy's lines after them, both before the counters,
+	/// which are this project's 2D layer over the surface (FINDINGS-airmap.md, 8.4; FINDINGS-hierarchy.md, 7.4).
+	/// </summary>
+	private const int RingPriority = 7;
+	private const int HierarchyPriority = 8;
+
+	/// <summary>The rings stand 1.0 above the ground [exe].</summary>
+	private const float RingHeight = 1.0f;
+
+	/// <summary>Neither is depth tested or writes depth: the rings' pass turns both off, the lines' draw does [exe].</summary>
+	private static readonly Dictionary<string, string> OverlayStates = Baseline(("ALPHABLENDENABLE", "1"), ("SRCBLEND", "SRCALPHA"),
+		("DESTBLEND", "INVSRCALPHA"), ("ZENABLE", "0"), ("ZWRITEENABLE", "0"));
+
+	private readonly Node3D _overlays = new() { Name = "Overlays" };
+
+	/// <summary>The lines' two materials: the mesh where it is, and the mesh a map's width east [exe].</summary>
+	private ShaderMaterial[]? _hierarchyMaterials;
+	private CGodotShader?[] _hierarchyTranslations = Array.Empty<CGodotShader?>();
+	private readonly List<MeshInstance3D> _hierarchyInstances = new();
+	private ArrayMesh? _hierarchyMesh;
+	private List<CHierarchyLine> _hierarchyLines = new();
+
+	/// <summary>Each ring's instance, material and centre, its world matrix moved to the copy of the map nearest the camera.</summary>
+	private readonly List<(MeshInstance3D Instance, ShaderMaterial Material, CAirBaseCircle Circle)> _rings = new();
+	private CGodotShader?[] _ringTranslations = Array.Empty<CGodotShader?>();
+	private Shader? _ringShader;
+	private List<CAirBaseCircle> _ringCircles = new();
+
+	/// <summary>
+	/// The selected unit's hierarchy as the original draws it through hierarchy.fx (FINDINGS-hierarchy.md, section 7): four
+	/// vertices a line, from the unit's unit point to its commander's, half as wide as (size + 1) × 0.2, its v running by
+	/// length, (u, v, range) in the second channel and its colour in the third; one mesh drawn where it is and a map's width
+	/// east. Made again only where the lines differ; none, an empty list. Positions in the map's own coordinates, y north.
+	/// </summary>
+	public void SetHierarchy(List<CHierarchyLine> lines)
+	{
+		if (lines.Count == _hierarchyLines.Count && lines.SequenceEqual(_hierarchyLines))
+		{
+			return;
+		}
+		_hierarchyLines = lines;
+		ClearHierarchy();
+		if (lines.Count == 0 || HierarchyMaterials() is not { } materials)
+		{
+			return;
+		}
+		var vertices = new List<(Godot.Vector2 Position, Vector3 UvRange, Color Colour)>();
+		var indices = new List<ushort>();
+		Span<System.Numerics.Vector2> corners = stackalloc System.Numerics.Vector2[4];
+		foreach (CHierarchyLine line in lines)
+		{
+			if (!CHierarchyLines.Corners(line, corners, out float pictures) || vertices.Count + 4 > MeshVertices)
+			{
+				continue;
+			}
+			float range = line.IsBroken ? 0f : 1f;
+			Color colour = line.Colour.ToGodot();
+			ushort n = (ushort)vertices.Count;
+			vertices.Add((new Godot.Vector2(corners[0].X, corners[0].Y), new Vector3(0, 0, range), colour));
+			vertices.Add((new Godot.Vector2(corners[1].X, corners[1].Y), new Vector3(1, 0, range), colour));
+			vertices.Add((new Godot.Vector2(corners[2].X, corners[2].Y), new Vector3(0, pictures, range), colour));
+			vertices.Add((new Godot.Vector2(corners[3].X, corners[3].Y), new Vector3(1, pictures, range), colour));
+			indices.AddRange(new[] { n, (ushort)(n + 1), (ushort)(n + 2), (ushort)(n + 1), (ushort)(n + 3), (ushort)(n + 2) });
+		}
+		if (indices.Count == 0)
+		{
+			return;
+		}
+		_hierarchyMesh = BuildMesh(indices.ToArray(), vertices.Count, _hierarchyTranslations[0], (semantic, v) => semantic switch
+		{
+			"POSITION" => new Vector4(vertices[v].Position.X, vertices[v].Position.Y, 0, 1),
+			"TEXCOORD0" => new Vector4(vertices[v].UvRange.X, vertices[v].UvRange.Y, vertices[v].UvRange.Z, 1),
+			"COLOR0" or "COLOR" => new Vector4(vertices[v].Colour.R, vertices[v].Colour.G, vertices[v].Colour.B, vertices[v].Colour.A),
+			_ => null,
+		});
+		foreach (ShaderMaterial material in materials)
+		{
+			MeshInstance3D instance = Instance("Hierarchy", _hierarchyMesh, material);
+			_overlays.AddChild(instance);
+			_hierarchyInstances.Add(instance);
+		}
+		if (_camera is { } camera)
+		{
+			ApplyHierarchyView(camera);
+		}
+	}
+
+	/// <summary>The lines' phase, which runs the arrowheads; the effect's Time.</summary>
+	public void SetHierarchyPhase(float phase)
+	{
+		if (_hierarchyMaterials is { } materials)
+		{
+			foreach (ShaderMaterial material in materials)
+			{
+				Set(material, _hierarchyTranslations, "Time", phase);
+			}
+		}
+	}
+
+	private ShaderMaterial[]? HierarchyMaterials()
+	{
+		if (_hierarchyMaterials is not null)
+		{
+			return _hierarchyMaterials;
+		}
+		var effect = _gui.Effects.Get(HierarchyFile, HierarchyTechnique, EShaderTarget.Spatial, device: OverlayStates);
+		if (effect.Shader is null)
+		{
+			return null;
+		}
+		_hierarchyTranslations = new[] { effect.Translation };
+		Texture2D? picture = _gui.Textures.LoadFromGamePath(HierarchyPicture);
+		_hierarchyMaterials = new ShaderMaterial[2];
+		for (int copy = 0; copy < 2; copy++)
+		{
+			var material = new ShaderMaterial { Shader = effect.Shader, RenderPriority = HierarchyPriority };
+			// *Ours*: the shared view holds the camera's place, so the effect's camera position is nought.
+			Set(material, _hierarchyTranslations, "CameraPosition", Godot.Vector2.Zero);
+			SetTexture(material, _hierarchyTranslations, "LineTexture", picture);
+			_hierarchyMaterials[copy] = material;
+			_copyMaterials.Add(material);
+		}
+		return _hierarchyMaterials;
+	}
+
+	private void ClearHierarchy()
+	{
+		foreach (MeshInstance3D instance in _hierarchyInstances)
+		{
+			instance.Mesh = null;
+			_overlays.RemoveChild(instance);
+			instance.QueueFree();
+		}
+		_hierarchyInstances.Clear();
+		_hierarchyMesh?.Dispose();
+		_hierarchyMesh = null;
+	}
+
+	/// <summary>The lines' view × projection, the second a map's width east [exe].</summary>
+	private void ApplyHierarchyView(CMapSurfaceCamera camera)
+	{
+		if (_hierarchyMaterials is not { } materials)
+		{
+			return;
+		}
+		float[] viewProjection = CD3DMatrix.Multiply(camera.ViewAt, camera.Projection);
+		for (int copy = 0; copy < 2; copy++)
+		{
+			float[] world = CD3DMatrix.Translation(copy * _map.Width, 0, 0);
+			Set(materials[copy], _hierarchyTranslations, "WorldViewProjectionMatrix", Matrix(CD3DMatrix.Multiply(world, viewProjection)));
+		}
+	}
+
+	/// <summary>
+	/// The air map mode's rings as the original draws them through circle.fx (FINDINGS-airmap.md, section 8): nine vertices
+	/// about the air base, Sector.dds mirrored into each quarter with its corner (1, 1) at the centre, two triangles a quarter,
+	/// 1.0 above the ground; vStrength the share and the dimming. Made again only where the rings differ; none, an empty list.
+	/// </summary>
+	public void SetRings(List<CAirBaseCircle> circles)
+	{
+		if (circles.Count == _ringCircles.Count && circles.SequenceEqual(_ringCircles))
+		{
+			return;
+		}
+		_ringCircles = circles;
+		foreach ((MeshInstance3D instance, ShaderMaterial material, CAirBaseCircle _) in _rings)
+		{
+			Mesh? mesh = instance.Mesh;
+			instance.Mesh = null;
+			instance.MaterialOverride = null;
+			_overlays.RemoveChild(instance);
+			instance.QueueFree();
+			mesh?.Dispose();
+			material.Dispose();
+		}
+		_rings.Clear();
+		if (circles.Count == 0)
+		{
+			return;
+		}
+		if (_ringShader is null)
+		{
+			var effect = _gui.Effects.Get(CircleFile, "Standard", EShaderTarget.Spatial, device: OverlayStates, shared: Shared);
+			if (effect.Shader is null)
+			{
+				return;
+			}
+			_ringShader = effect.Shader;
+			_ringTranslations = new[] { effect.Translation };
+		}
+		Texture2D? sector = _gui.Textures.LoadFromGamePath(CirclePicture);
+		// The nine corners and the quarters' triangles [exe].
+		ushort[] indices = { 3, 2, 1, 3, 1, 0, 0, 1, 8, 0, 8, 7, 4, 3, 0, 4, 0, 5, 5, 0, 7, 5, 7, 6 };
+		foreach (CAirBaseCircle circle in circles)
+		{
+			float r = circle.Radius;
+			(float X, float Z, float U, float V)[] corners =
+			{
+				(0, 0, 1, 1), (0, r, 1, 0), (-r, r, 0, 0), (-r, 0, 0, 1), (-r, -r, 0, 0),
+				(0, -r, 1, 0), (r, -r, 0, 0), (r, 0, 0, 1), (r, r, 0, 0),
+			};
+			ArrayMesh mesh = BuildMesh(indices, corners.Length, _ringTranslations[0], (semantic, v) => semantic switch
+			{
+				"POSITION" => new Vector4(corners[v].X, 0, corners[v].Z, 1),
+				"TEXCOORD0" => new Vector4(corners[v].U, corners[v].V, 0, 1),
+				_ => null,
+			});
+			var material = new ShaderMaterial { Shader = _ringShader, RenderPriority = RingPriority };
+			Set(material, _ringTranslations, "vStrength", new Godot.Vector2(circle.Share, circle.Dim));
+			SetTexture(material, _ringTranslations, "SectorTex", sector);
+			MeshInstance3D instance = Instance($"Ring{circle.Province}", mesh, material);
+			_overlays.AddChild(instance);
+			_rings.Add((instance, material, circle));
+		}
+		if (_camera is { } camera)
+		{
+			ApplyRingView(camera);
+		}
+	}
+
+	/// <summary>Each ring's world matrix: its centre 1.0 up, moved to the copy of the map nearest the camera.</summary>
+	private void ApplyRingView(CMapSurfaceCamera camera)
+	{
+		foreach ((MeshInstance3D _, ShaderMaterial material, CAirBaseCircle circle) in _rings)
+		{
+			float shift = camera.Shift(circle.X);
+			Set(material, _ringTranslations, "WorldMatrix", Matrix(CD3DMatrix.Translation(circle.X + shift, RingHeight, circle.Y)));
 		}
 	}
 

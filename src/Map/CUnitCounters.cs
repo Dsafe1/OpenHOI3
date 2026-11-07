@@ -138,6 +138,16 @@ public partial class CUnitCounters : Node2D
 	/// <summary>What the air map mode draws over the map.</summary>
 	public CAirMapLayer AirMap => _airMap;
 
+	/// <summary>The map's surface, which draws the hierarchy's lines and the air bases' rings where there is one.</summary>
+	public CMapSurface? Surface
+	{
+		set
+		{
+			_hierarchy.Surface = value;
+			_airMap.Surface = value;
+		}
+	}
+
 	/// <summary>Whether the air map mode is on, which shows its layer and works it out.</summary>
 	public bool AirMode
 	{

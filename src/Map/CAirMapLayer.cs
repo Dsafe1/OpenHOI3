@@ -87,6 +87,18 @@ public partial class CAirMapLayer : Node2D
 		_large.Add(new Large(province.Id, picture, x, y, CAirMapIcons.Size(level), frame));
 	}
 
+	/// <summary>
+	/// The map's surface, where there is one: the rings are then drawn by it, through the install's own circle.fx
+	/// (<c>docs/mechanics/mapdraw.md</c>, section 4), and this layer only says which.
+	/// </summary>
+	public CMapSurface? Surface { get; set; }
+
+	public override void _Process(double delta)
+	{
+		// The rings of the air map mode, none in any other: the surface makes them again only where they differ.
+		Surface?.SetRings(IsVisibleInTree() ? _circles : new List<CAirBaseCircle>());
+	}
+
 	/// <summary>Works out the rings again, which depend on what is selected.</summary>
 	public void RefreshCircles(CUnit? selected)
 	{
@@ -186,7 +198,7 @@ public partial class CAirMapLayer : Node2D
 	/// </summary>
 	private void DrawCircles()
 	{
-		if (_circles.Count == 0 || Ring() is not { } ring)
+		if (_circles.Count == 0 || Surface is not null || Ring() is not { } ring)
 		{
 			return;
 		}

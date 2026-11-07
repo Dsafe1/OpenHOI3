@@ -153,7 +153,8 @@ green by at most 5 of 255 - not to be seen (measured 2026-11-06).
 
 ## 6. Next
 
-The rest of the map through its own files, in the scene's order (`mapdraw.md`, section 6): the land borders, the far
-view's country names, the rivers, the surf and the trees; then the counters, the flags, the hierarchy's lines and the air
-map's circles, which this project still draws through shaders of its own - `counter.fx`, `maskedflag.fx`, `hierarchy.fx`
-and `circle.fx` are the original's for them.
+The map's surface is drawn through its own files whole (`mapdraw.md`, section 6), and since 2026-11-07 the hierarchy's
+lines and the air map's rings through `hierarchy.fx` and `circle.fx`. Left: the counters and the flags, which this
+project still puts together on the CPU - `counter.fx` and `maskedflag.fx` are the original's for them, read in
+`reversing/findings/FINDINGS-counters.md` (section 10) and `FINDINGS-maskedflag.md`. The flags want the canvas route to
+take a second set of texture coordinates (`maskedflag.fx`'s mask's), which it gives as nought today.

@@ -120,8 +120,9 @@ public class HierarchyLinesTests
 
 		CHierarchyLine line = CHierarchyLines.Build(army, PointOf, mapWidth: 1000)[0];
 
-		Assert.Equal(new Vector2(990, 100), line.From);
-		Assert.Equal(new Vector2(1100, 100), line.To);
+		// The end further east - the division's - is moved a map's width west, off the map's west edge [exe].
+		Assert.Equal(new Vector2(-10, 100), line.From);
+		Assert.Equal(new Vector2(100, 100), line.To);
 	}
 
 	[Fact]

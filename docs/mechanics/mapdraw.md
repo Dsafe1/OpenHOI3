@@ -12,7 +12,7 @@ may change; *Ours* where this departs.
 
 The original's scene, `FINDINGS-mapdraw.md` C.1: the land; the beaches; the rivers; the land borders under `border_cutoff`;
 the sea; the surf where `waves`; the water borders; the trees under height 100; the country names in the far view; the
-province names under 100. **Built so far: the land, the beaches, the rivers, the land borders, the sea, the surf, the sea zones' borders, the trees, the highlight, the country names and the province names** (section 6). The overlays this project draws
+province names under 100. **Built so far: the land, the beaches, the rivers, the land borders, the sea, the surf, the sea zones' borders, the trees, the highlight, the country names and the province names, and over them the air map's rings and the hierarchy's lines** (section 6). The overlays this project draws
 in 2D - counters, buildings, arrows, the hierarchy, the selection, the weather and the air map's layers - stay as they are,
 over the map.
 
@@ -225,6 +225,26 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   drawn until it is done; the tiles in view the ground the camera looks straight down on and two pixels more, where the
   original's list of visible tiles was not read; a tree's vertices in the map's own coordinates, three materials a type for
   the copies of the map.
+- **The air map's rings, circle.fx's Standard** (`reversing/findings/FINDINGS-airmap.md`, section 8): a ring for each
+  group `airmap.md` gives, nine vertices about the air base - the centre, then from north round anticlockwise seen from
+  above at the radius - their uv `1 − |x|/r, 1 − |z|/r`, so `map/Sector.dds` [mod] is mirrored into each quarter with its
+  corner (1, 1) at the centre; the triangles `3,2,1 3,1,0 0,1,8 0,8,7 4,3,0 4,0,5 5,0,7 5,7,6` [exe]; WorldMatrix the
+  translation to the air base's position 1.0 above the ground [exe], View and Projection the shared camera's, vStrength
+  (share, dim), SectorTex the picture; no technique chosen, so the file's one [mod]; the pass's depth test and write off,
+  blended by source alpha; drawn after the whole map and its pictures, in the air mode alone and at every height.
+  *Ours*: each ring's world matrix moved to the copy of the map nearest the camera, where the original makes no second
+  ring across the seam.
+- **The hierarchy's lines, hierarchy.fx's Hierarchy** (`reversing/findings/FINDINGS-hierarchy.md`, section 7): for the
+  selected land unit and every land unit under it whose commander stands elsewhere, four vertices from its province's
+  unit point to its commander's - `f ∓ a⊥` and `t ∓ a⊥`, a the line's direction times half its width, (size + 1) × 0.2 by
+  the unit's rank [exe] - u 0 and 1 across, v 0 at the unit and `|t − f| / 2w × 0.2` at the commander [exe], range 1 in
+  radio reach and 0 out, the colour by where the unit stands under the selected one (`mapunits.md`, section 8); triangles
+  `0,1,2 1,3,2`; the end further east moved a map's width west where the ends are more than half the map apart [exe].
+  The effect places them 2.0 up and runs the arrowheads by Time; drawn after the rings and the whole map, depth tested
+  and written by nothing, **where they are and a map's width east, never west** [exe], under the near view's height and
+  with `render_hierarchy` on. *Ours*: the effect's camera position nought and its world-view-projection the shared view
+  × projection, the shared view holding the camera's place; Time 12 a second, the original's 0.2 a drawn frame at sixty
+  frames.
 - **The province names** (`reversing/findings/FINDINGS-farmap.md`, B.7; `Content/Map/CProvinceLabel`,
   `Interface/Map/CProvinceNameLayout`, `src/Map/CProvinceNames`): **under height 100, in every map mode and whatever the
   settings** [exe] - the original's shown byte is 1 for every province and nothing clears it - every province, land and
@@ -345,4 +365,10 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   positions.txt turns them, in its own case, black. **kart_font's "Another Typewriter" had no stand-in**, and Liberation
   Sans drawn into its boxes left gaps round the narrow letters - "Bi el ef el d"; it is drawn in Liberation Mono since
   (`fonts/readme.md`), its letters 28 to 40 pixels wide being nearly a monospace. He has not looked at them.
-- **Next**: the map surface is whole but for terra incognita, a scenario's alone, which there are none of here.
+- **The hierarchy's lines and the air map's rings, built 2026-11-07** (section 4), through `hierarchy.fx` and `circle.fx`
+  after readings in the fact base (`FINDINGS-hierarchy.md` 7, `FINDINGS-airmap.md` 8), which corrected the lines' seam
+  - the end further east moved a width west, a copy drawn a width east only. Checked with `--screenshot`: OB West's
+  corps and divisions in their blues with the arrowheads running, and the air mode's rings green round Germany's bases at
+  every height. The 2D layers that drew both stay for a map drawn flat.
+- **Next**: the map surface is whole but for terra incognita, a scenario's alone, which there are none of here. The
+  counters and the flags are the interface's effects left.

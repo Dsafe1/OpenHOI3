@@ -387,7 +387,11 @@ lines and highlight" and that "they can be toggled with h":
   its left half, a broken line in its right. A line in reach is the left half, tinted, a
   fifth of the picture to each stretch as long as the line is wide, **and it runs**: the
   arrowheads go from the commander's end to the unit's. A line out of reach is the right
-  half, still. What the shader does is in `gfx/FX/hierarchy.fx`, which ships as text.
+  half, still. What the shader does is in `gfx/FX/hierarchy.fx`, which ships as text - and **since 2026-11-07 the lines
+  are drawn through it**, translated, on the map's surface (`mapdraw.md`, section 4), the 2D drawing kept for a map
+  drawn flat. **Across the seam** whichever end lies further east is moved a map's width west, and the original draws
+  the lines where they are and a map's width east, never west (`reversing/findings/FINDINGS-hierarchy.md`, section 7);
+  the end moved was the commander's, east, until the same day.
 - **How fast it runs**: the original moves the picture 0.006 of its length a frame,
   whatever the frame rate. *Ours:* 0.36 of its length a second, which is that at sixty
   frames.
