@@ -161,5 +161,10 @@ lines and the air map's rings through `hierarchy.fx` and `circle.fx`, and the co
 parameters are its own; the selection's pulse is a global uniform - and the shields through `maskedflag.fx`
 (`interface.md`, section 5), for which the canvas route takes a vertex's further inputs - the mask's texture
 coordinates - from Godot's `CUSTOM0` and `CUSTOM1`, an element drawn as a mesh carrying them. None of the four effects
-the interface imitated in C# is left imitated. Left: the weather's billboards (`weather_billboard.fx`), `progress.fx` and
-`interpolated_buttonstate.fx`, each wanting a reading of how the engine feeds it first.
+the interface imitated in C# is left imitated. And since the same day the weather's pictures through
+`weather_billboard.fx` (`weather.md`, section 6), the progress bars through `progress.fx` - whose float3 coordinate from
+a stream of two is filled as Direct3D fills a short input, nought and one for w - and every sprite through the effect
+it names, `buttonstate.fx` where it names none, `interpolated_buttonstate.fx` among them (`interface.md`, section 5).
+Not looked at yet: which of the other files of `gfx/FX` - `arrow.fx`, `front.fx`, `maptext.fx`, `flag.fx`, `avatar.fx`
+and the rest - something drawn here still imitates; and the `scrollingSprite`'s `ScrollTech`, the top bar's day and
+night strip, and `progressbar3dType` have no reading.

@@ -165,7 +165,14 @@ made when the mode is chosen and again when a province changes hands - **not eac
 `weatherBillboardType` of `interface/mapitems.gfx` named for its picture with `_simple` after it:
 `weather_partialcloud_simple`, `weather_cloud_simple`, `weather_rain_simple`, `weather_thunderstorm_simple`,
 `weather_snow_simple`, `weather_snow_storm_simple`, one `textureFile` each. A picture is twice `scale` (2.5) high and as
-wide as its texture's shape, its middle 4 map units over the province's point, up off the map drawn as north. They
+wide as its texture's shape, its middle 4 map units over the province's point - 4.3 over a sea zone's, whose anchor
+stands 0.3 off the water - up off the map drawn as north. **Since 2026-11-07 they are drawn through the install's own
+`weather_billboard.fx`**, translated for the canvas, by the technique the type's `effect` names, fed as the original
+feeds a picture's cloud: `vTime`, `vXOffset` nought, `vFlip` one - so a plain icon is a still sample of its texture.
+The file is the one the first type naming that `effect` gives, as the original keeps the effect under that name
+(`reversing/findings/FINDINGS-weathersim.md`, C.3.1). *Ours:* the pictures of one kind are drawn together, where the
+original draws them in the order its scene reaches them; and they are drawn over the counters, which the reading leaves
+open. They
 follow the hour, and draw at every zoom - dots from far off. **Measured** on the maintainer's screenshots of 2026-10-15:
 at 33 screen pixels to a map pixel, the square cloud over the Breton Coast is 162 pixels wide - 4.9 map pixels against
 the 5 a map unit to a pixel gives - and its middle 133 pixels, 4.0 map pixels, north of where the sea zone's name is
@@ -174,10 +181,13 @@ written.
 **Only the plain icons**: the original draws them where its `alwaysCounters` setting is on, and with it off draws the
 same names without `_simple` - a cloud with rain or snow falling under it, and lightning in a storm. **`alwaysCounters`
 off is not supported** (`docs/compatibility.md`, entry 12; `settings.md`), by the maintainer's word on 2026-10-15, so
-those are never drawn. They were built that day and taken out the same day; the original's `weather_billboard.fx` moved
+those are never drawn. They were built that day and taken out the same day; the original's `weather_billboard.fx` moves
 the rain at uv + (0.000025t, -0.00005t) for its colour alone and the snow at uv + (sin(-0.00001t x 3 x 3.14) / 100,
--0.00001t), t in milliseconds, and the lower picture hung `2 x scale - 0.3` under the cloud
-(`reversing/findings/FINDINGS-weathersim.md`, section C.3).
+-0.00001t), and the lower picture hangs `2 x scale - 0.3` under the cloud (`reversing/findings/FINDINGS-weathersim.md`,
+section C.3). **t is not milliseconds**, as this said until 2026-11-07: each frame adds the seconds since the game was
+launched, modulo 1000, so the rain and the lightning run with the frame rate and speed up for 16.7 minutes before
+falling back to nothing (C.3.1). **Should the full art ever come back, that clock is built as read** - the
+maintainer's word, 2026-11-07: "Keep it as read for now."
 
 **Its tooltip** takes the place of the province's name and owner:
 

@@ -34,6 +34,12 @@ public sealed class CBillboardType
 	/// </summary>
 	public System.Collections.Generic.IReadOnlyList<string> TextureFiles { get; init; } = System.Array.Empty<string>();
 
-	/// <summary><c>effect</c>: for weather, <c>RainTech</c> or <c>SnowTech</c>, which says how its lower picture moves.</summary>
+	/// <summary>
+	/// <c>effect</c>: for weather, <c>RainTech</c> or <c>SnowTech</c> - the technique of its effect file it is drawn with, and the
+	/// key its effect is kept under, so every type of one <c>effect</c> draws through the first such type's file.
+	/// </summary>
 	public string Effect { get; init; } = "";
+
+	/// <summary><c>effectFile</c>, as written: <c>gfx\\fx\\weather_billboard.fx</c> for the weather.</summary>
+	public string EffectFile { get; init; } = "";
 }

@@ -199,6 +199,25 @@ technique over { pass p0 { ALPHABLENDENABLE = True; VertexShader = compile vs_2_
 	}
 
 	[Fact]
+	public void A_vertex_input_with_fewer_components_than_declared_is_filled_as_Direct3D_fills_it()
+	{
+		// progress.fx's shape: a float3 coordinate from a stream of two.
+		CFxEffect effect = CFxParser.Parse(Preprocess(@"
+float CurrentState;
+struct VS_INPUT { float4 vPosition : POSITION; float3 vTexCoord : TEXCOORD0; };
+struct VS_OUTPUT { float4 vPosition : POSITION; float3 vTexCoord0 : TEXCOORD0; };
+VS_OUTPUT VS(const VS_INPUT v) { VS_OUTPUT Out = (VS_OUTPUT)0; Out.vPosition = v.vPosition; Out.vTexCoord0 = v.vTexCoord; return Out; }
+float4 PS(VS_OUTPUT v) : COLOR { if (v.vTexCoord0.x <= CurrentState) return float4(1, 0, 0, 1); else return float4(0, 1, 0, 1); }
+technique tec0 { pass p0 { VertexShader = compile vs_1_1 VS(); PixelShader = compile ps_2_0 PS(); } }"));
+		CFxTechnique technique = effect.Technique("tec0")!;
+
+		CGodotShader shader = CGodotShaderWriter.Write(effect, technique, technique.Passes[0], EShaderTarget.Canvas);
+
+		Assert.Empty(shader.Problems);
+		Assert.Contains("vec3(UV, 0.0)", shader.Code);
+	}
+
+	[Fact]
 	public void On_the_canvas_a_second_set_of_texture_coordinates_is_read_from_a_custom_channel()
 	{
 		// maskedflag.fx's shape: the flag's coordinates and the mask's, each its own set.

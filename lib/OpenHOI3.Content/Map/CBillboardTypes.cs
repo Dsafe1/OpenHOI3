@@ -28,7 +28,17 @@ public sealed class CBillboardTypes
 
 	private readonly Dictionary<string, CBillboardType> _types = new(StringComparer.OrdinalIgnoreCase);
 
+	/// <summary>The effect file of the first type read that names each <c>effect</c>.</summary>
+	private readonly Dictionary<string, string> _effectFiles = new(StringComparer.Ordinal);
+
 	public int Count => _types.Count;
+
+	/// <summary>
+	/// The effect file a type with this <c>effect</c> draws through: the first such type's. The original keeps a weather
+	/// type's effect under its <c>effect</c> and not its file, so a second file under one name is never loaded
+	/// (<c>reversing/findings/FINDINGS-weathersim.md</c>, C.3.1). Empty where no type names it.
+	/// </summary>
+	public string EffectFileOf(string effect) => _effectFiles.GetValueOrDefault(effect, "");
 
 	public CBillboardType? Find(string name)
 	{
@@ -61,6 +71,10 @@ public sealed class CBillboardTypes
 					{
 						// The last declaration wins: files come base layer first.
 						types._types[type.Name] = type;
+						if (type.Effect.Length != 0 && type.EffectFile.Length != 0)
+						{
+							types._effectFiles.TryAdd(type.Effect, type.EffectFile);
+						}
 					}
 				}
 			}
@@ -93,6 +107,7 @@ public sealed class CBillboardTypes
 			Font = node.GetString("font"),
 			TextureFiles = node.All("textureFile").Select(texture => texture.Value ?? "").Where(path => path.Length > 0).ToList(),
 			Effect = node.GetString("effect"),
+			EffectFile = node.GetString("effectFile"),
 		};
 	}
 }

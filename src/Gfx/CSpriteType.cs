@@ -25,8 +25,12 @@ public sealed class CSpriteType
 	public string OverlayFile { get; init; } = "";
 	public string MaskFile { get; init; } = "";
 
-	/// <summary>The effect a masked shield draws its flag through, as written: <c>gfx/FX/maskedflag.fx</c> in the base game.</summary>
+	/// <summary>The effect the sprite is drawn through, as written: a masked shield's <c>maskedflag.fx</c>, a progress bar's <c>progress.fx</c>.</summary>
 	public string EffectFile { get; init; } = "";
+
+	/// <summary>A progress bar's <c>color</c> and <c>colortwo</c>: what a bar with no pictures fills its part and the rest with.</summary>
+	public OpenHOI3.Sim.CColor Colour { get; init; }
+	public OpenHOI3.Sim.CColor ColourTwo { get; init; }
 
 	/// <summary>
 	/// How many frames the texture holds, side by side. A frame is the texture's width
@@ -88,6 +92,8 @@ public sealed class CSpriteType
 			OverlayFile = node.GetString("textureFile1"),
 			MaskFile = node.GetString("textureFile2"),
 			EffectFile = node.GetString("effectFile"),
+			Colour = node.GetInterfaceColor("color"),
+			ColourTwo = node.GetInterfaceColor("colortwo"),
 			FrameCount = Math.Max(1, node.GetInt("noOfFrames", 1)),
 			TileSize = node.GetVector2("size").ToGodot(),
 			Border = node.GetVector2("borderSize").ToGodot(),

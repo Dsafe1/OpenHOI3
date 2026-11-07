@@ -40,6 +40,11 @@ public sealed class CGuiContext
 	/// <summary>What draws a button under the mouse, held down and switched off: <c>buttonstate.fx</c>.</summary>
 	public CButtonShader ButtonShader => _buttonShader ??= new CButtonShader(Effects);
 
+	private CProgressBars? _progressBars;
+
+	/// <summary>What draws a progress bar: the effect its sprite names, <c>progress.fx</c>.</summary>
+	public CProgressBars ProgressBars => _progressBars ??= new CProgressBars(Effects);
+
 	private CTextIconTextures? _textIcons;
 
 	/// <summary>The flags and counters a text draws in its line.</summary>

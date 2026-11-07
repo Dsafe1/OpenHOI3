@@ -125,6 +125,36 @@ public sealed class ClausewitzNode
 		return new CColor(parts[0] / scale, parts[1] / scale, parts[2] / scale);
 	}
 
+	/// <summary>
+	/// Reads an interface type's colour, <c>{ r g b }</c> or <c>{ r g b a }</c>, as the original's colour reads one: each of
+	/// the first three divided by 255 where it is above one, on its own; the alpha one unless a fourth number follows, which
+	/// is taken as written (<c>reversing/findings/FINDINGS-progressfx.md</c>, section 1). The fallback where there are not
+	/// three numbers.
+	/// </summary>
+	public CColor GetInterfaceColor(string key, CColor fallback = default)
+	{
+		ClausewitzNode? node = Get(key);
+		if (node is null || !node.IsBlock)
+		{
+			return fallback;
+		}
+		var parts = new List<float>(4);
+		foreach (ClausewitzNode child in node.Children)
+		{
+			if (child.Value is not null && parts.Count < 4
+				&& float.TryParse(child.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out float component))
+			{
+				parts.Add(component);
+			}
+		}
+		if (parts.Count < 3)
+		{
+			return fallback;
+		}
+		static float Channel(float value) => value > 1f ? value / 255f : value;
+		return new CColor(Channel(parts[0]), Channel(parts[1]), Channel(parts[2]), parts.Count == 4 ? parts[3] : 1f);
+	}
+
 	/// <summary>Reads an <c>0xAARRGGBB</c> literal as used by <c>bitmapfont</c> entries.</summary>
 	public CColor GetColor(string key, CColor fallback)
 	{

@@ -1677,7 +1677,10 @@ through `counter.fx`** on the canvas (counters 10), with the corner's three mark
 an attack delay, orange an upgrade, which nothing makes yet - on the player's own (`mapunits.md`, section 2). **And the
 shields through `maskedflag.fx`** (`FINDINGS-maskedflag.md`; `interface.md`, section 5), the flag by its look's
 technique and the overlay over it, the canvas route taking the mask's coordinates from `CUSTOM0`; none of the four effects the
-interface imitated in C# is left imitated. **Next up**: war exhaustion, or the military AI's gaps (*What the moving wave
+interface imitated in C# is left imitated. **And the weather's pictures, the progress bars and every sprite through the
+effect it names** (the fact base's weathersim C.3.1, `FINDINGS-progressfx.md`, `FINDINGS-buttonstatefx.md`) - the bars'
+upside-down pictures now the original's quad and not a measured flip. Left open by those readings: whether a multi-frame
+button whose file sets no frame takes its frame from its state (`interface.md`, section 5). **Next up**: war exhaustion, or the military AI's gaps (*What the moving wave
 left*), or the end-of-game screen.
 
 The other open choices are the third piece's gaps - the balancing that moves

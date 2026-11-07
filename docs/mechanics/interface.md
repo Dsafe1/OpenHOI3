@@ -291,17 +291,28 @@ files, with nothing in it placed by hand.
   (`technologyscreen.md`, section 5); the Strategic Effects window's strip has 17 and is
   set from a modifier's `icon`, which the files give from 1 to 16 (`strategiceffects.md`,
   section 3). *Ours:* those two are drawn so; other icons' frames count from one.
-- **A `progressbartype` is a bar that fills from the left.** `inferred` from the
-  declarations: it has a `size` and two textures. *Ours:* the first texture is drawn
-  over the part that is filled and the second over the rest, each cut at the same place,
-  and an icon whose sprite is one takes the bar's size and is set in hundredths.
-  **Both pictures are drawn upside down.** *Measured*, 2026-10-09, on the maintainer's
-  screenshots of a battle: the plate under a unit of the battle window
-  (`GFX_combat_unit_bg`) has its light band over its dark one, where the picture has the
-  dark over the light; and the unit panel's two standing bars are bright on the left,
-  which a quarter turn of their pictures as they are would put on the right. Until then
-  one of the panel's two bars was drawn the wrong way round and nobody had seen it. Not
-  read.
+- **A `progressbartype` is a bar that fills from the left**, drawn since 2026-11-07
+  through the effect its sprite names - `progress.fx` - translated for the canvas
+  (`reversing/findings/FINDINGS-progressfx.md`), `confirmed`: `ColorProgress` where both
+  its pictures load, the first over the part filled and the second over the rest, and
+  `tec0` where either does not, its `color` and `colortwo` instead; the split where u
+  reaches `CurrentState`, the share in hundredths over 100. An icon whose sprite is one
+  takes the bar's `size` and is set in hundredths, capped at 100. A colour is read as the
+  original reads one: each of r, g and b over one divided by 255 on its own, the alpha
+  one unless a fourth number is written, and then taken as written - so `org_bar`'s
+  `{ 0 0 0 0 }` is clear. `horizontal = no` turns u up the bar, filling it from its foot.
+  **Both pictures are drawn upside down**, and the reading says why: the original's quad
+  has v nought along its foot (`likely` - the caller that makes its matrix was not read).
+  *Measured* first, 2026-10-09, on the maintainer's screenshots of a battle: the plate
+  under a unit of the battle window (`GFX_combat_unit_bg`) has its light band over its
+  dark one, where the picture has the dark over the light; and the unit panel's two
+  standing bars are bright on the left, which a quarter turn of their pictures as they
+  are would put on the right. The effect drawn on the quad gives those screenshots pixel
+  for pixel as the measured flip did. *Ours:* the share is not scaled by the part of its
+  texture the second picture fills - a texture here is the picture alone, where the
+  original's is padded to a power of two - and a screen's party colour on an
+  organisation bar is set as the effect's first colour. The original's `ScrollTech` is a
+  `scrollingSprite`'s, never a bar's.
 - **A sprite can be chosen by a name the code makes up** - `icon_` and a category,
   `GFX_` and a strategic resource. `confirmed` Where there is no sprite of that name
   the icon keeps the one its file gave it, and nothing is said.
@@ -314,13 +325,36 @@ files, with nothing in it placed by hand.
   for the canvas (`shaders.md`, section 3.10), so a mod's `buttonstate.fx` is the one
   that counts - it was written again by hand for this engine until then - and a
   scrollbar's slider and bar are drawn with it too - which is why a locked slider is grey, as
-  the maintainer said it should be on 2026-10-08. *Ours:* every button is drawn so,
-  whether or not its sprite names that effect file; what a sprite with no effect file
-  does under the mouse was not looked for. **An icon can be given a look too**: the
+  the maintainer said it should be on 2026-10-08. **A sprite is drawn through the effect
+  file it names, and one that names none through `buttonstate.fx`** - the original's
+  sprite type starts with that file before its declaration is read
+  (`reversing/findings/FINDINGS-buttonstatefx.md`), `confirmed` - so a sprite with no
+  effect file changes under the mouse as one naming it does. Since 2026-11-07 each
+  element's material is its own sprite's file's: the base game's one other is
+  `interpolated_buttonstate.fx`, the same four techniques with a linear sampler, on
+  `GFX_empty_position`, the box a portrait is drawn into. The technique is the element's
+  state's by name - a button's normal, pressed, hovered and disabled `up`, `down`, `over`
+  and `disable`, an icon's state one more than its own - and `Color`, white unless a
+  screen tints the sprite, multiplies every technique. **Open since that reading**: the
+  original's draw takes a sheet's frame from the state - `up` the first, `down` the
+  second, `over` the third, `disable` the fourth, each modulo the frames - wherever no
+  frame has been set, and whether code sets one on the 88 multi-frame buttons whose file
+  gives none - the map mode buttons among them - was not read; if nothing does, the
+  sentence above is wrong for them. **The technology screen's folder tabs are settled**:
+  the screen sets each tab's frame outright on every pass, 2 for the chosen folder and 1
+  for the rest, and a frame set so overrides the state's, so a tab keeps its picture under
+  the mouse - which is how BlackICE's avionics tab switches when chosen (the maintainer's
+  pointer, 2026-11-07; `reversing/findings/FINDINGS-buttonstatefx.md`, *Not
+  established*; `technologyscreen.md`, section 3). The maintainer knows of no button
+  that changes its picture on hover. *Ours:* an icon is drawn plainly until a screen
+  gives it a look, which `up` with a white `Color` comes to; the effect's `Point`
+  sampler is the element's own filter, as for every drawn texture (`shaders.md`, section
+  3.10); and the original's half-pixel shift of the quad, Direct3D 9's, is left out.
+  **An icon can be given a look too**: the
   Strategic Effects window draws a row's background and strip in `up` or `disable` by
   whether the country has the modifier (`strategiceffects.md`, section 3). The routine
-  sets the states 1 and 4; that they are `up` and `disable`, counted from one in the
-  shader's order, is `inferred`.
+  sets the states 1 and 4, which are `up` and `disable` - `confirmed` since the reading
+  of 2026-11-07, the interface choosing a technique by the state's name.
 - **A `maskedShieldType` draws a country's flag** between two textures: one over it, and a
   mask. **The flag is as see-through at each point as the mask is there** - `confirmed`,
   from `gfx/FX/maskedflag.fx`, which is plain text in the install: the flag's colour with
@@ -669,8 +703,10 @@ is; the wrap's exact break.
 4. **The keys each kind takes, other than a window's.**
 5. **Which of two buttons or icons of one name is found.**
 6. **What frame 0 draws**, and whether an icon's frames are counted from nought.
-7. **Which buttons `buttonstate.fx` is for.** The shader is read (section 5); whether a
-   sprite that names no effect file changes under the mouse was not looked for.
+7. **Whether code sets the frame of a multi-frame button that names none** - 88 in the
+   base game, the map mode buttons among them - where the original otherwise takes the
+   frame from the button's state (section 5; `reversing/findings/FINDINGS-buttonstatefx.md`,
+   *Not established*). Which sprites `buttonstate.fx` is for is read: every plain one.
 8. **Which look each element kind gives a shield**, and so when `over`, `down` and
    `disable` show (`reversing/findings/FINDINGS-maskedflag.md`, *Not established*): here a
    button's own, as any button's, and an icon's where its screen sets one.

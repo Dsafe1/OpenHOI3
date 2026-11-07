@@ -103,6 +103,13 @@ public partial class CGuiButton : CGuiObject
 		_sprite = sprite;
 		_texture = texture;
 		_mask = _context.Textures.AlphaMask(sprite);
+		// Drawn through the effect the new sprite names.
+		if (_rect is not null)
+		{
+			_material = _context.ButtonShader.Material(sprite);
+			_rect.Material = _material;
+			Tint();
+		}
 		// A button is the size of its picture, as it is when made: the province view's building rows swap a large
 		// default for small icons (provinceview.md, section 4).
 		Place(GuiType, FrameSize(texture, sprite.FrameCount));
@@ -137,7 +144,7 @@ public partial class CGuiButton : CGuiObject
 			MouseFilter = MouseFilterEnum.Ignore,
 		};
 		_rect.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		_material = context.ButtonShader.Material();
+		_material = context.ButtonShader.Material(_sprite);
 		_rect.Material = _material;
 		AddChild(_rect);
 		ShowFrame();

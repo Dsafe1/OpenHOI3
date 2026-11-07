@@ -32,6 +32,18 @@ public class RgbParsingTests
 	}
 
 	[Fact]
+	public void AnInterfaceColourDividesEachChannelOverOneAloneAndTakesItsAlphaAsWritten()
+	{
+		ClausewitzNode root = ClausewitzParser.Parse("a = { 0.0 128 1.0 } b = { 0.0 0.0 0.0 0.0 } c = { 0.5 0.5 } d = { 1 1 1 200 }");
+
+		Assert.Equal(new CColor(0f, 128f / 255f, 1f, 1f), root.GetInterfaceColor("a"));
+		// org_bar's: transparent black.
+		Assert.Equal(new CColor(0f, 0f, 0f, 0f), root.GetInterfaceColor("b"));
+		Assert.Equal(Magenta, root.GetInterfaceColor("c", Magenta));
+		Assert.Equal(200f, root.GetInterfaceColor("d").A);
+	}
+
+	[Fact]
 	public void FallsBackWhenMissingOrShort()
 	{
 		ClausewitzNode root = ClausewitzParser.Parse("a = { color = { 1 2 } }");

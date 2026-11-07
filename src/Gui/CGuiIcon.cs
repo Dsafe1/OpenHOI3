@@ -20,7 +20,6 @@ public partial class CGuiIcon : CGuiObject
 	private TextureRect? _rect;
 	private int _frame = 1;
 	private int _progress;
-	private Color _barColour = Colors.White;
 	private System.Collections.Generic.IReadOnlyList<(int Percent, Color Colour)> _slices = System.Array.Empty<(int, Color)>();
 	private CGuiButton? _over;
 	private CGuiButton? _pressed;
@@ -244,6 +243,9 @@ public partial class CGuiIcon : CGuiObject
 			// The bar's two pictures: the part that is filled, and the rest of it.
 			_texture = sprite.OverlayFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.OverlayFile);
 			_rest = sprite.MaskFile.Length == 0 ? null : _context.Textures.LoadFromGamePath(sprite.MaskFile);
+			_bar = _context.ProgressBars.Material(sprite, _texture, _rest);
+			Material = _bar?.Material;
+			_bar?.Set("CurrentState", _progress / 100f);
 			Place(type, sprite.TileSize * type.Scale);
 			MouseFilter = MouseFilterEnum.Ignore;
 			ShowTexture(null);
@@ -293,7 +295,7 @@ public partial class CGuiIcon : CGuiObject
 			{
 				return;
 			}
-			material = _context.ButtonShader.Material();
+			material = _context.ButtonShader.Material(_sprite);
 			_rect.Material = material;
 		}
 		_context.ButtonShader.Set(material, look);
@@ -308,15 +310,24 @@ public partial class CGuiIcon : CGuiObject
 			return;
 		}
 		_progress = hundredths;
+		// The share times the part of its texture the second picture fills, which is all of it here: a texture is the
+		// picture alone, where the original's is padded to a power of two.
+		_bar?.Set("CurrentState", hundredths / 100f);
 		QueueRedraw();
 	}
 
-	/// <summary>The colour a progress bar with no picture is filled with - the organisation bars' party colour.</summary>
+	/// <summary>
+	/// The colour a progress bar with no picture fills its part with - the organisation bars' party colour: the effect's
+	/// <c>vFirstColor</c>, in place of the sprite's <c>color</c>.
+	/// </summary>
 	public void SetBarColour(Color colour)
 	{
-		_barColour = colour;
+		_bar?.Set("vFirstColor", colour);
 		QueueRedraw();
 	}
+
+	/// <summary>A progress bar's material, made from its sprite's effect; null for any other icon.</summary>
+	private CProgressBarMaterial? _bar;
 
 	/// <summary>A pie chart's slices, each a whole percent in its colour, drawn from three o'clock against the clock, as the maintainer's screenshot of the original has them.</summary>
 	public void SetSlices(System.Collections.Generic.IReadOnlyList<(int Percent, Color Colour)> slices)
@@ -398,38 +409,28 @@ public partial class CGuiIcon : CGuiObject
 		{
 			return;
 		}
-		// A bar with no picture is its colour, filled from its foot where it stands upright.
-		if (_texture is null && _rest is null)
+		if (_bar is null)
 		{
-			if (_sprite.Horizontal)
-			{
-				DrawRect(new Rect2(0f, 0f, Mathf.Round(Size.X * _progress / 100f), Size.Y), _barColour);
-			}
-			else
-			{
-				float height = Mathf.Round(Size.Y * _progress / 100f);
-				DrawRect(new Rect2(0f, Size.Y - height, Size.X, height), _barColour);
-			}
 			return;
 		}
-		// A bar's two pictures are drawn upside down. Measured, not read: the plate under
-		// a unit of the battle window has its light band at the top where its picture
-		// has it at the bottom, and a standing bar of the unit panel is bright on its left.
-		DrawSetTransform(new Vector2(0f, Size.Y), 0f, new Vector2(1f, -1f));
-		float filled = Mathf.Round(Size.X * _progress / 100f);
-		if (_texture is not null && filled > 0f)
-		{
-			float part = _texture.GetWidth() * _progress / 100f;
-			DrawTextureRectRegion(_texture, new Rect2(0f, 0f, filled, Size.Y), new Rect2(0f, 0f, part, _texture.GetHeight()));
-		}
-		if (_rest is not null && filled < Size.X)
-		{
-			float from = _rest.GetWidth() * _progress / 100f;
-			DrawTextureRectRegion(_rest, new Rect2(filled, 0f, Size.X - filled, Size.Y),
-				new Rect2(from, 0f, _rest.GetWidth() - from, _rest.GetHeight()));
-		}
-		DrawSetTransform(Vector2.Zero, 0f, Vector2.One);
+		// The original's quad, y up: v nought along its foot and u nought at its left - so both pictures come out upside
+		// down, as measured on the maintainer's screenshots - and a bar that is not horizontal has u running up it, filling
+		// from its foot (FINDINGS-progressfx.md, section 4). The effect splits the two at the share.
+		_barPoints[0] = new Vector2(0f, Size.Y);
+		_barPoints[1] = Vector2.Zero;
+		_barPoints[2] = new Vector2(Size.X, 0f);
+		_barPoints[3] = Size;
+		bool across = _sprite.Horizontal;
+		_barUvs[0] = Vector2.Zero;
+		_barUvs[1] = across ? new Vector2(0f, 1f) : new Vector2(1f, 0f);
+		_barUvs[2] = Vector2.One;
+		_barUvs[3] = across ? new Vector2(1f, 0f) : new Vector2(0f, 1f);
+		DrawPrimitive(_barPoints, BarColours, _barUvs, _texture);
 	}
+
+	private readonly Vector2[] _barPoints = new Vector2[4];
+	private readonly Vector2[] _barUvs = new Vector2[4];
+	private static readonly Color[] BarColours = { Colors.White, Colors.White, Colors.White, Colors.White };
 
 	/// <summary>Each slice a fan from the middle, from three o'clock against the clock, a point every degree or so.</summary>
 	private void DrawPie()

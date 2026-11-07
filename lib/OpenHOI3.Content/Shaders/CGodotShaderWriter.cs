@@ -1821,6 +1821,18 @@ public sealed class CGodotShaderWriter
 			{
 				inputs.Add(new CShaderVertexInput(normal, channel, given.Columns));
 			}
+			// A vertex input the stream gives fewer components of than the shader declares has the rest filled as Direct3D
+			// fills them: nought, and one for w - progress.fx's float3 coordinate from a stream of two.
+			if (!type.IsMatrix && !given.IsMatrix && type.Columns > given.Columns && given.Columns >= 1 && type.Columns <= 4)
+			{
+				var fill = new List<string> { expression };
+				for (int component = given.Columns; component < type.Columns; component++)
+				{
+					fill.Add(component == 3 ? "1.0" : "0.0");
+				}
+				CFxType padded = CFxType.Vector(EFxBase.Float, type.Columns);
+				return Convert(new Typed($"{GodotType(padded)}({string.Join(", ", fill)})", padded), type, entry.Line);
+			}
 			return Convert(new Typed(expression, given), type, entry.Line);
 		}
 		var arguments = new List<string>();
