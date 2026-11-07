@@ -207,6 +207,18 @@ public partial class CMapView : Node2D
 	private CProvinceNames? _provinceNames;
 
 	private CMapSurface? _surface;
+
+	/// <summary>Whether the sea is drawn simple: the player's <c>simpleWater</c>, which Apply changes at once.</summary>
+	public bool SimpleWater
+	{
+		set
+		{
+			if (_surface is not null)
+			{
+				_surface.SimpleWater = value;
+			}
+		}
+	}
 	private CBorderCache? _corners;
 	private ushort[]? _pixels;
 	private int[]? _controllers;

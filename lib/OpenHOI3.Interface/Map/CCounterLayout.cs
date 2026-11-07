@@ -18,16 +18,19 @@ public static class CCounterLayout
 	/// <summary>How far each counter of a fanned stack is drawn from the one under it, west and north.</summary>
 	public const float FanStep = 0.3f;
 
-	/// <summary>A counter's own scale: 1 for a division, more for each rank above and less for a lone brigade.</summary>
-	public static float Scale(CCounterType type, int size)
+	/// <summary>
+	/// A counter's own scale: 1 for a division, more for each rank above and less for a lone brigade - the growth with rank
+	/// multiplied by the player's <c>counter_scale</c> (settings.txt, 0 to 2), which leaves a division as it is [exe].
+	/// </summary>
+	public static float Scale(CCounterType type, int size, float counterScale = 1f)
 	{
-		return (size - 1) * type.LevelScale + 1f;
+		return (size - 1) * type.LevelScale * counterScale + 1f;
 	}
 
 	/// <summary>Half a counter's height. It is as wide as its plate's picture makes it.</summary>
-	public static float HalfHeight(CCounterType type, int size)
+	public static float HalfHeight(CCounterType type, int size, float counterScale = 1f)
 	{
-		return type.Scale * Scale(type, size);
+		return type.Scale * Scale(type, size, counterScale);
 	}
 
 	/// <summary>How many of a stack's counters are drawn: the top ones, up to six.</summary>
@@ -60,15 +63,15 @@ public static class CCounterLayout
 	/// Where the two figures start, from the counter's middle: the left end of the line
 	/// their letters stand on.
 	/// </summary>
-	public static Vector2 FiguresPlace(CCounterType type, int size)
+	public static Vector2 FiguresPlace(CCounterType type, int size, float counterScale = 1f)
 	{
-		return Place(type.FiguresOffset, type, size);
+		return Place(type.FiguresOffset, type, size, counterScale);
 	}
 
 	/// <summary>How high a line of the two figures is.</summary>
-	public static float FiguresHeight(CCounterType type, int size)
+	public static float FiguresHeight(CCounterType type, int size, float counterScale = 1f)
 	{
-		return type.TextSize * type.Scale * Tenth * Scale(type, size) * LineOfSize;
+		return type.TextSize * type.Scale * Tenth * Scale(type, size, counterScale) * LineOfSize;
 	}
 
 	/// <summary>
@@ -76,15 +79,15 @@ public static class CCounterLayout
 	/// stand on that the first letter is at. The name is written turned a quarter, running
 	/// south from there with the tops of its letters to the east.
 	/// </summary>
-	public static Vector2 NamePlace(CCounterType type, int size)
+	public static Vector2 NamePlace(CCounterType type, int size, float counterScale = 1f)
 	{
-		return Place(type.NameOffset, type, size);
+		return Place(type.NameOffset, type, size, counterScale);
 	}
 
 	/// <summary>How high a line of the name is.</summary>
-	public static float NameHeight(CCounterType type, int size)
+	public static float NameHeight(CCounterType type, int size, float counterScale = 1f)
 	{
-		return NameSize * type.Scale * Tenth * Scale(type, size) * LineOfSize;
+		return NameSize * type.Scale * Tenth * Scale(type, size, counterScale) * LineOfSize;
 	}
 
 	/// <summary>
@@ -135,9 +138,9 @@ public static class CCounterLayout
 	}
 
 	/// <summary>Where the middle of the flag goes, from the counter's middle.</summary>
-	public static Vector2 FlagPlace(CCounterType type, int size)
+	public static Vector2 FlagPlace(CCounterType type, int size, float counterScale = 1f)
 	{
-		return Place(type.FlagOffset, type, size);
+		return Place(type.FlagOffset, type, size, counterScale);
 	}
 
 	/// <summary>The flag's width and height.</summary>
@@ -146,10 +149,10 @@ public static class CCounterLayout
 		return new Vector2(type.FlagWidth * type.Scale, type.FlagHeight * type.Scale);
 	}
 
-	private static Vector2 Place(Vector3 offset, CCounterType type, int size)
+	private static Vector2 Place(Vector3 offset, CCounterType type, int size, float counterScale)
 	{
 		// The file's three numbers are east, up off the map, and north.
-		float unit = type.Scale * Tenth * Scale(type, size);
+		float unit = type.Scale * Tenth * Scale(type, size, counterScale);
 		return new Vector2(offset.X * unit, offset.Z * unit);
 	}
 }

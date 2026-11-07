@@ -248,6 +248,22 @@ public partial class CUnitCounters : Node2D
 
 	private CCountryTag? _player;
 
+	/// <summary>
+	/// The player's <c>counter_scale</c>, which the far counters' growth with rank is multiplied by (mapunits.md, section 2):
+	/// read from settings.txt and changed by the game options' Apply, from the next frame.
+	/// </summary>
+	public float CounterScale
+	{
+		get => _counterScale;
+		set
+		{
+			_counterScale = value;
+			QueueRedraw();
+		}
+	}
+
+	private float _counterScale = 1f;
+
 	/// <summary>Raised when a refresh took out of the selection units that are no longer anywhere.</summary>
 	public event Action? SelectionLost;
 
@@ -543,10 +559,10 @@ public partial class CUnitCounters : Node2D
 		return _drawn;
 	}
 
-	private static Rect2 RectOf(CCounterKind kind, CMapCounter counter, Vector2 place, int drawn)
+	private Rect2 RectOf(CCounterKind kind, CMapCounter counter, Vector2 place, int drawn)
 	{
 		System.Numerics.Vector2 fan = CCounterLayout.FanOffset(drawn);
-		float half = CCounterLayout.HalfHeight(kind.Type, counter.Size);
+		float half = CCounterLayout.HalfHeight(kind.Type, counter.Size, CounterScale);
 		var middle = new Vector2(place.X + fan.X, place.Y - fan.Y);
 		return new Rect2(middle.X - half * kind.Aspect, middle.Y - half, 2f * half * kind.Aspect, 2f * half);
 	}
@@ -559,7 +575,7 @@ public partial class CUnitCounters : Node2D
 		{
 			return;
 		}
-		float reach = kind.Type.Scale * 4f;                     // further than any counter of a stack is from its place
+		float reach = kind.Type.Scale * 4f * Math.Max(1f, CounterScale); // further than any counter of a stack is from its place
 		Rect2 view = _view.Grow(reach);
 		DrawPath(kind);
 		foreach (CMapStack stack in _stacks)
@@ -609,20 +625,20 @@ public partial class CUnitCounters : Node2D
 			Vector2 middle = rect.GetCenter();
 			if (kind.Type.HasFlag && Flag(counter.Unit.Owner) is { } flag)
 			{
-				System.Numerics.Vector2 at = CCounterLayout.FlagPlace(kind.Type, counter.Size);
+				System.Numerics.Vector2 at = CCounterLayout.FlagPlace(kind.Type, counter.Size, CounterScale);
 				System.Numerics.Vector2 size = CCounterLayout.FlagSize(kind.Type);
 				var where = new Rect2(middle.X + at.X - size.X / 2f, middle.Y - at.Y - size.Y / 2f, size.X, size.Y);
 				RenderingServer.CanvasItemAddRect(item, where.Grow(CCounterLayout.FlagFrame(kind.Type)), Colors.Black);
 				flag.DrawRect(item, where, false);
 			}
-			float figures = CCounterLayout.FiguresHeight(kind.Type, counter.Size);
-			System.Numerics.Vector2 start = CCounterLayout.FiguresPlace(kind.Type, counter.Size);
+			float figures = CCounterLayout.FiguresHeight(kind.Type, counter.Size, CounterScale);
+			System.Numerics.Vector2 start = CCounterLayout.FiguresPlace(kind.Type, counter.Size, CounterScale);
 			DrawText(item, kind, counter.Figures, new Vector2(middle.X + start.X, middle.Y - start.Y), figures, 0f);
 			if (kind.CarriesName)
 			{
 				// Turned a quarter: it runs down the counter's right edge.
-				float name = CCounterLayout.NameHeight(kind.Type, counter.Size);
-				start = CCounterLayout.NamePlace(kind.Type, counter.Size);
+				float name = CCounterLayout.NameHeight(kind.Type, counter.Size, CounterScale);
+				start = CCounterLayout.NamePlace(kind.Type, counter.Size, CounterScale);
 				DrawText(item, kind, counter.Name, new Vector2(middle.X + start.X, middle.Y - start.Y), name, Mathf.Pi / 2f);
 			}
 		}
@@ -678,7 +694,7 @@ public partial class CUnitCounters : Node2D
 		{
 			return null;
 		}
-		float reach = kind.Type.Scale * 4f;
+		float reach = kind.Type.Scale * 4f * Math.Max(1f, CounterScale);
 		float x = Mathf.PosMod(point.X, _map.Width);
 		CMapStack? found = null;
 		foreach (CMapStack stack in _stacks)

@@ -186,6 +186,29 @@ public partial class CMapSurface : Node3D
 	private bool Far => _level > 0;
 
 	/// <summary>
+	/// The player's <c>simpleWater</c>: the sea drawn by water.fx's simple techniques, a flat colour, where on, and by the near
+	/// and far ones otherwise. Changed by the game options' Apply, it shows on the next frame, as the original's does; the
+	/// techniques it wants are made then, and the rest of its set made ahead as at the start.
+	/// </summary>
+	public bool SimpleWater
+	{
+		get => _simpleWater;
+		set
+		{
+			if (_simpleWater == value)
+			{
+				return;
+			}
+			_simpleWater = value;
+			if (IsInsideTree())
+			{
+				ShowTechniques();
+				_prepareIn = PrepareGap;
+			}
+		}
+	}
+
+	/// <summary>
 	/// The four ways the land and the beaches are drawn (<c>FINDINGS-mapdraw.md</c>, A.2): style 0 Graphical at every height,
 	/// any other style General near and General_Low far; colormap.dds in style 0 and the political one otherwise; the noise
 	/// and the near sheet near, the overlay and the far sheet far [exe].

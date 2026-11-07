@@ -151,10 +151,15 @@ has it.
   | a fleet | `XX` |
   | an air unit | `X` |
 
-- **A counter's own scale** is `(size - 1) * level_scale + 1`, `size` counting from 0 for
-  `X`: with the far counter's `level_scale` of 0.2 a lone brigade is drawn at 0.8, a
-  division at 1 and a theatre at 1.8. The near counter gives no `level_scale`, so every
-  near counter is the same size. `likely`
+- **A counter's own scale** is `(size - 1) * level_scale * counter_scale + 1`, `size` counting
+  from 0 for `X`: with the far counter's `level_scale` of 0.2 and `counter_scale` at its 1, a
+  lone brigade is drawn at 0.8, a division at 1 and a theatre at 1.8; at 2, a theatre at 2.6;
+  at 0, every far counter a division's size. The near counter gives no `level_scale`, so every
+  near counter is the same size. `confirmed` (`reversing/findings/FINDINGS-counters.md`,
+  section 10.3). `counter_scale` is the player's settings.txt [mod: settings], 0 to 2 by the
+  game options' slider - "Counter hierarchy scale" - and the maintainer's account, 2026-11-07,
+  is the same: each level up the chain is bigger. It is applied as it is read and from Apply
+  on, the original's every counter being drawn and hit-tested through it.
 - **A counter is `2 * scale * its own scale` high** and as wide as its plate's picture
   makes that. `likely`: it is how the original tests a click against one.
 - **`offset`, `offset2` and `offset3` are in tenths of `scale`**, times the counter's own
@@ -479,9 +484,12 @@ names another, technique `standard` by name; an unselected picture is drawn at a
 a square. *Ours:* a picture's frame is chosen by the part of its texture drawn rather than
 by `vXOffset`, which stays nought, so one material serves a layer; and a battle marker's
 number is written over its badge in an item of its own, the effect not being for text. The
-reading leaves open whether the pictures the original moves after hanging them - the large
-air and naval base and anti-aircraft pictures, the battle and convoy icons, and a
-building's `building_nudge` - ever reach the place they are moved to; here they do.
+pictures the original moves after hanging them - the large air and naval base and
+anti-aircraft pictures, the battle and convoy icons, and a building's `building_nudge` - do
+reach the place they are moved to, which the reading had left open: the maintainer's two
+screenshots of the original's air map mode, 2026-11-07, have the air battle icon east of a
+province and the bombing icon south-west of it in one and north-west in the other - 3 east,
+3 south and 3 north, as read. Here they stand there too.
 
 - **A province shows a picture for every building it has any of that `buildings.txt`
   declares `onmap`**: its air base, its naval base, its forts, its anti-aircraft guns, its

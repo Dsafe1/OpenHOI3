@@ -318,7 +318,12 @@ striped.
 
 - for **terrain**: what `priority` on an index entry means - about one land province in two hundred takes another
   terrain in the original, and `OpenHOI3.SaveCheck weather` names each (`weather.md`, section 7) - and where the original puts a
-  port that `positions.txt` does not place;
+  port that `positions.txt` does not place. **What the 48 have in common** (2026-11-07): none has a `text_position`, and
+  each is a near-tie in its square that the original gives to our runner-up - hills 116 to desert 106 in Al Hufrah,
+  desert 161 to hills 160 in Erkowit, plains 45 to jungle 42 in Krui. The maintainer's screenshots of four of them have the
+  name about the middle of the box, so the point is ours; a square moved a pixel or three fits the 48 and breaks more than
+  it mends (130 and more), and neither the base game's `terrain.bmp`, the whole province, every pixel of the square nor a
+  count by palette index fits them. So how the original breaks a near-tie, or counts a pixel, is what is not known;
 - ~~the **bearing** between a land province and a sea province~~: the naval base is the land end, its default the
   bounding box's centre (`weather.md`, section 3);
 - the order and merging of **two history files for one province**.

@@ -1790,13 +1790,6 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 None of these blocks the list above.
 
-- **Pictures the original moves after hanging them** (2026-11-07, `docs/mechanics/mapunits.md`, section 9;
-  `reversing/findings/FINDINGS-billboardfx.md`, *Not established*): the air map mode's large air and naval base and
-  anti-aircraft pictures, its battle and bombing icons, the naval mode's convoy icons and a building's `building_nudge`
-  are each moved by the original after its world transform is made, and nothing found makes it again - so on that
-  reading the original draws them all on the province's point. Here they stand where the files put them, by the
-  maintainer's word that day: "Lets keep it the way it is, but note the loose end." A screenshot of the original's air
-  map mode with an air battle and a bombing in one province would settle it.
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
   and the front end makes its meshes again for each world it shows - the quad cache it reads once - which could be kept
   between worlds; a map whose cache is missing or stale - its `time` stamp not the map files' (section 2.1, since
@@ -1821,9 +1814,6 @@ None of these blocks the list above.
   trade trial's 285 offers of 2026-10-13 (145 under the old seeding) and the air battle's ten over Warszawa (four battles
   in all under either) - and the trade trial had stopped running at all, a command executed without `MayExecute`. Nothing marks the hovered
   province, as in the original; revolt risk's map style is ours.
-  **The air map mode's land is a patchwork of greys**: `CMapView.AirOver`, the stand-in from before the surface, lays each
-  colour over the province's terrain colour turned grey, and the surface's own technique then works on that again; what
-  the original's lookup holds in that mode - the colour alone, its alpha - was not read, and is wanted before it is mended.
 - **A series names each division afresh since 2026-11-02**, as the Ireland game's saves show the original does
   (`docs/mechanics/buildqueue.md`, section 6) - measured and not read, so whether the original takes the new name by the
   same routine as a new order, and whether a series of ships or wings is named afresh too, are open.
@@ -2139,15 +2129,11 @@ None of these blocks the list above.
   asked first, as in the original (`airmap.md`, section 5). How the original keeps such a
   unit's counter off the map in the other modes was read (`reversing/findings/FINDINGS-seaair.md`,
   section 6) and is not built. `--select=<name>` picks one for a trial.
-- **The air map mode greys the wrong terrain.** The original lays its colours over its
-  terrain map mode turned grey - the textured one, tiles out of `map/terrain/texturesheet`
-  picked by `terrain.bmp` and tinted by `colormap.dds` - and here they lie over the flat
-  colour of each province's terrain, which is nearer the original's simplified terrain, since
-  the textured mode is not built. The maintainer, 2026-10-11, offered building it now: leave
-  it as is, for later in the plan.
+- **The air and naval map modes' greys are the original's since 2026-11-07**: the surface is handed each province's
+  colour as it is, and the install's `terrain_2_0.fx` and `water.fx` grey the textured ground and lay the colour over it
+  and the water, as the original's do; `CMapView.AirOver` mixes them itself only for the flat map, with no map cache.
 - **The air map mode is drawn by rules of ours where the original's were not read**
-  (`airmap.md`): its colours' alpha is laid at a half over that grey and the sea at the
-  water's 0.8, where what the original's shaders do was not followed through; its icons stand about
+  (`airmap.md`): its icons stand about
   the province's own point, not its label's; the small building pictures are still drawn
   under the large ones; the large pictures and their frames are worked out once a day; a
   ring's range is the shortest of the unit's wings'; and the rings and icons show from any

@@ -218,6 +218,12 @@ public class MapCounterTests
 		Assert.Equal(1f, CCounterLayout.Scale(far, 1), 4);
 		Assert.Equal(1.8f, CCounterLayout.Scale(far, 5), 4);
 		Assert.Equal(1f, CCounterLayout.Scale(near, 5), 4);            // the near one does not grow
+		// counter_scale multiplies the growth alone: a theatre 2.6 at 2, every counter a division's at 0.
+		Assert.Equal(2.6f, CCounterLayout.Scale(far, 5, 2f), 4);
+		Assert.Equal(1f, CCounterLayout.Scale(far, 5, 0f), 4);
+		Assert.Equal(1f, CCounterLayout.Scale(far, 1, 2f), 4);
+		Assert.Equal(1f, CCounterLayout.Scale(near, 5, 2f), 4);
+		Assert.Equal(7.8f, CCounterLayout.HalfHeight(far, 5, 2f), 4);
 
 		Assert.Equal(3f, CCounterLayout.HalfHeight(far, 1), 4);
 		Assert.Equal(5.4f, CCounterLayout.HalfHeight(far, 5), 4);

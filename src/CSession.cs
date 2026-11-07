@@ -227,6 +227,12 @@ public partial class CSession : Node
 		_mapView.RegionColours = CRegionMapColours.Assign(State.Regions, CInterfaceColorsReader.Read(_directories));
 		_mapView.SetupCounters(gui, CCounterTypes.Load(_directories), CBillboardTypes.Load(_directories),
 			CArrowTypes.Load(_directories));
+		// The player's settings the counters are drawn by, as they are read at start and as Apply changes them.
+		if (_mapView.Counters is { } drawn)
+		{
+			drawn.CounterScale = Settings.CounterScale;
+			drawn.HierarchyShown = Settings.RenderHierarchy;
+		}
 		CMapCache cache = CMapCache.Open(_directories, Content.Settings.CUserSettingsReader.UserFolder(),
 			problem => GD.PushWarning($"map: {problem}"));
 		_mapView.SetupSurface(gui, _directories, cache, Settings.SimpleWater, Settings.Waves,
@@ -546,13 +552,18 @@ public partial class CSession : Node
 		};
 	}
 
-	/// <summary>What of the player's settings takes effect at once: the gamma and the hierarchy's lines on the map.</summary>
+	/// <summary>
+	/// What of the player's settings takes effect at once: the gamma, the water, the counters' scale and the hierarchy's lines
+	/// on the map.
+	/// </summary>
 	private void ApplySettings(Content.Settings.CUserSettings settings)
 	{
 		_brightness?.SetBrightness(CGameOptions.Brightness(settings.Gamma));
+		_mapView.SimpleWater = settings.SimpleWater;
 		if (_mapView.Counters is { } counters)
 		{
 			counters.HierarchyShown = settings.RenderHierarchy;
+			counters.CounterScale = settings.CounterScale;
 		}
 	}
 
