@@ -252,70 +252,45 @@ public class MapCounterTests
 		Assert.Equal(new Vector2(-0.6f, 0.6f), CCounterLayout.FanOffset(2));
 	}
 
-	private static CPixels Solid(int width, int height, byte r, byte g, byte b, byte a)
+	[Fact]
+	public void ACountersCornerIsRedForSupplyBeforeYellowForItsAttackDelayAndOnlyThePlayersOwn()
 	{
-		var pixels = new CPixels(width, height);
-		for (int at = 0; at < pixels.Rgba.Length; at += 4)
-		{
-			pixels.Rgba[at] = r;
-			pixels.Rgba[at + 1] = g;
-			pixels.Rgba[at + 2] = b;
-			pixels.Rgba[at + 3] = a;
-		}
-		return pixels;
-	}
+		State(out CCountry country);
+		CUnit unit = Unit(country, 1, EUnitKind.Division, Berlin, Infantry);
 
-	private static (int R, int G, int B, int A) Pixel(CPixels pixels, int x, int y)
-	{
-		int at = (y * pixels.Width + x) * 4;
-		return (pixels.Rgba[at], pixels.Rgba[at + 1], pixels.Rgba[at + 2], pixels.Rgba[at + 3]);
+		Assert.Equal(ECounterMark.None, CCounterShading.MarkOf(unit, Ger));
+
+		unit.AttackDelay = CFixedPoint.FromInt(3);
+		Assert.Equal(ECounterMark.AttackDelay, CCounterShading.MarkOf(unit, Ger));
+		Assert.Equal(ECounterMark.None, CCounterShading.MarkOf(unit, new CCountryTag("ENG")));
+		Assert.Equal(ECounterMark.None, CCounterShading.MarkOf(unit, null));
+		unit.IsRetreating = true;
+		Assert.Equal(ECounterMark.None, CCounterShading.MarkOf(unit, Ger));
+		unit.IsRetreating = false;
+
+		// Under a twentieth of its fuel, and not at a twentieth of its supplies.
+		unit.FuelReceived = new CFixedPoint(49);
+		Assert.Equal(ECounterMark.Supply, CCounterShading.MarkOf(unit, Ger));
+		unit.FuelReceived = CFixedPoint.One;
+		unit.SuppliesReceived = new CFixedPoint(50);
+		Assert.Equal(ECounterMark.AttackDelay, CCounterShading.MarkOf(unit, Ger));
+
+		Assert.Equal(new CColor(1f, 0f, 0f), CCounterShading.ColourOf(ECounterMark.Supply));
+		Assert.Equal(new CColor(1f, 0.5f, 0f), CCounterShading.ColourOf(ECounterMark.Upgrade));
+		Assert.Equal(new CColor(1f, 1f, 0f), CCounterShading.ColourOf(ECounterMark.AttackDelay));
+		Assert.Equal(0f, CCounterShading.ColourOf(ECounterMark.None).A);
 	}
 
 	[Fact]
-	public void ACounterIsItsPlateInTheCountrysColourWithThePictureAndTheSizeMarkOverIt()
+	public void ACountersRingPulsesBetweenHalfAndFullAndItsSizeStripIsReadAsTheTextureHasIt()
 	{
-		// A plate two by two, light grey and solid but for its last pixel, which is a
-		// shadow; the mask is red everywhere but there.
-		CPixels plate = Solid(2, 2, 200, 200, 200, 255);
-		plate.Rgba[15] = 100;
-		CPixels mask = Solid(2, 2, 255, 0, 0, 255);
-		mask.Rgba[12] = 0;
+		Assert.Equal(0.5f, CCounterShading.SelectionIntensity(0), 4);
+		Assert.Equal(1f, CCounterShading.SelectionIntensity(Math.PI / 4), 4);
+		Assert.Equal(0.5f, CCounterShading.SelectionIntensity(Math.PI / 2), 4);
 
-		// The unit's picture: solid white in the upper left pixel and clear elsewhere.
-		CPixels picture = Solid(2, 2, 255, 255, 255, 0);
-		picture.Rgba[3] = 255;
-
-		// Two marks of two by two side by side. The first is clear; the second is solid
-		// black in its upper right pixel.
-		CPixels marks = Solid(4, 2, 0, 0, 0, 0);
-		marks.Rgba[(0 * 4 + 3) * 4 + 3] = 255;
-
-		var colour = new CColor(1f, 0.5f, 0f);
-		CPixels first = CCounterPainter.Paint(plate, mask, marks, 2, picture, colour, 0);
-		Assert.Equal((255, 255, 255, 255), Pixel(first, 0, 0));        // the picture
-		Assert.Equal((200, 100, 0, 255), Pixel(first, 1, 0));          // the plate, in the country's colour
-		Assert.Equal((200, 100, 0, 255), Pixel(first, 0, 1));
-		Assert.Equal((0, 0, 0, 100), Pixel(first, 1, 1));              // unpainted, and only as solid as the plate
-
-		CPixels second = CCounterPainter.Paint(plate, mask, marks, 2, picture, colour, 1);
-		Assert.Equal((0, 0, 0, 255), Pixel(second, 1, 0));             // the second mark is over the plate there
-		Assert.Equal((255, 255, 255, 255), Pixel(second, 0, 0));
-
-		CPixels plain = CCounterPainter.Paint(plate, mask, marks, 2, null, colour, 0);
-		Assert.Equal((200, 100, 0, 255), Pixel(plain, 0, 0));
-	}
-
-	[Fact]
-	public void ASelectedCountersRingIsTheMasksGreenAsSolidAsItsBlue()
-	{
-		CPixels mask = Solid(2, 1, 255, 0, 0, 255);
-		mask.Rgba[4 + 1] = 255;
-		mask.Rgba[4 + 2] = 128;
-
-		CPixels ring = CCounterPainter.Ring(mask);
-
-		Assert.Equal((0, 0, 0, 0), Pixel(ring, 0, 0));
-		Assert.Equal((255, 255, 255, 128), Pixel(ring, 1, 0));
+		// The original's strip, 384 wide in a texture of 512, and the same strip as a texture of its own.
+		Assert.Equal(0.125f, CCounterShading.SizeOffset(384, 512, 6), 5);
+		Assert.Equal(1f / 6f, CCounterShading.SizeOffset(384, 384, 6), 5);
 	}
 
 	[Fact]
@@ -410,12 +385,5 @@ public class MapCounterTests
 		Assert.Empty(CArrowBand.Build(new[] { new Vector2(3, 3) }));
 		Assert.Empty(CArrowBand.Build(new[] { new Vector2(3, 3), new Vector2(3.05f, 3) }));
 		Assert.Equal(21, CArrowBand.Build(new[] { new Vector2(0, 0), new Vector2(0, 0), new Vector2(9, 0) }).Count);
-	}
-
-	[Fact]
-	public void APictureIsAtLeastOnePixelAndFourBytesToEach()
-	{
-		Assert.Throws<ArgumentException>(() => new CPixels(0, 4));
-		Assert.Throws<ArgumentException>(() => new CPixels(2, 2, new byte[15]));
 	}
 }

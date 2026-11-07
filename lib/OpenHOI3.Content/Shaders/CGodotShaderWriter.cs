@@ -2078,7 +2078,9 @@ public sealed class CGodotShaderWriter
 
 	/// <summary>
 	/// What a vertex input is on the canvas: the position Godot's own (with nought depth and w one), the first texture
-	/// coordinate its UV, the colour its vertex colour; anything else the canvas does not have, nought and reported.
+	/// coordinate its UV, the colour its vertex colour, and any other - a second set of texture coordinates - the next of
+	/// the custom channels <c>CUSTOM0</c> and <c>CUSTOM1</c>, four components each, which an element drawn as a mesh
+	/// carries; past those, nought and reported.
 	/// </summary>
 	private (string Channel, string Expression, CFxType Type) CanvasChannel(string semantic)
 	{
@@ -2090,11 +2092,26 @@ public sealed class CGodotShaderWriter
 				return ("UV", "UV", CFxType.Vector(EFxBase.Float, 2));
 			case "COLOR0":
 				return ("COLOR", "COLOR", CFxType.Vector(EFxBase.Float, 4));
-			default:
-				Problem(0, $"the canvas gives no {semantic}; it is nought");
-				return ("none", "vec4(0.0)", CFxType.Vector(EFxBase.Float, 4));
 		}
+		if (_canvasCustom.TryGetValue(semantic, out string? given))
+		{
+			return (given, given, CFxType.Vector(EFxBase.Float, 4));
+		}
+		if (_canvasCustom.Count < CanvasCustomChannels.Length)
+		{
+			string channel = CanvasCustomChannels[_canvasCustom.Count];
+			_canvasCustom[semantic] = channel;
+			return (channel, channel, CFxType.Vector(EFxBase.Float, 4));
+		}
+		Problem(0, $"the canvas gives no {semantic}; it is nought");
+		return ("none", "vec4(0.0)", CFxType.Vector(EFxBase.Float, 4));
 	}
+
+	/// <summary>The custom channels a canvas item's vertex has, in the order given out.</summary>
+	private static readonly string[] CanvasCustomChannels = { "CUSTOM0", "CUSTOM1" };
+
+	/// <summary>Which custom channel each further vertex input was given on the canvas.</summary>
+	private readonly Dictionary<string, string> _canvasCustom = new(StringComparer.Ordinal);
 
 	/// <summary>
 	/// Which channel of a Godot mesh each semantic of a vertex is read from: the position the vertex, the normal, the

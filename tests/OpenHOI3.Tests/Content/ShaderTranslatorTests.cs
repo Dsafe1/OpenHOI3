@@ -199,6 +199,32 @@ technique over { pass p0 { ALPHABLENDENABLE = True; VertexShader = compile vs_2_
 	}
 
 	[Fact]
+	public void On_the_canvas_a_second_set_of_texture_coordinates_is_read_from_a_custom_channel()
+	{
+		// maskedflag.fx's shape: the flag's coordinates and the mask's, each its own set.
+		CFxEffect effect = CFxParser.Parse(Preprocess(@"
+texture tex0; texture tex1;
+sampler BaseTexture = sampler_state { Texture = <tex0>; };
+sampler MaskTexture = sampler_state { Texture = <tex1>; };
+struct VS_INPUT { float4 vPosition : POSITION; float2 vTexCoord : TEXCOORD0; float2 vMaskCoord : TEXCOORD1; float2 vMore : TEXCOORD2; float2 vLast : TEXCOORD3; };
+struct VS_OUTPUT { float4 vPosition : POSITION; float2 vTexCoord0 : TEXCOORD0; float2 vTexCoord1 : TEXCOORD1; };
+VS_OUTPUT VS(const VS_INPUT v) { VS_OUTPUT Out = (VS_OUTPUT)0; Out.vPosition = v.vPosition; Out.vTexCoord0 = v.vTexCoord;
+	Out.vTexCoord1 = v.vMaskCoord + v.vMore + v.vLast; return Out; }
+float4 PS(VS_OUTPUT v) : COLOR { float4 c = tex2D(BaseTexture, v.vTexCoord0); c.a = tex2D(MaskTexture, v.vTexCoord1).a; return c; }
+technique tec0 { pass p0 { ALPHABLENDENABLE = True; VertexShader = compile vs_1_1 VS(); PixelShader = compile ps_2_0 PS(); } }"));
+		CFxTechnique technique = effect.Technique("tec0")!;
+
+		CGodotShader shader = CGodotShaderWriter.Write(effect, technique, technique.Passes[0], EShaderTarget.Canvas, "tex0");
+
+		Assert.Contains("CUSTOM0.xy", shader.Code);
+		Assert.Contains("CUSTOM1.xy", shader.Code);
+		Assert.Contains(shader.Inputs, input => input is { Semantic: "TEXCOORD1", Channel: "CUSTOM0" });
+		Assert.Contains(shader.Inputs, input => input is { Semantic: "TEXCOORD2", Channel: "CUSTOM1" });
+		// A canvas item's vertex has two custom channels: a fourth set is nought, and said so.
+		Assert.Single(shader.Problems, problem => problem.Contains("the canvas gives no TEXCOORD3"));
+	}
+
+	[Fact]
 	public void The_engines_device_states_are_what_a_passs_own_are_laid_over()
 	{
 		const string source = @"

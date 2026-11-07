@@ -185,16 +185,28 @@ public partial class CGuiButton : CGuiObject
 	/// </summary>
 	public void SetCountry(CCountry country)
 	{
-		if (_context is null || _sprite is not { IsMaskedShield: true } || _context.Shields.Build(country, _sprite) is not { } shield)
+		if (_context is null || _sprite is not { IsMaskedShield: true } || _context.Shields.View(country, _sprite) is not { } shield
+			|| _context.Shields.Size(_sprite) is not { } size)
 		{
 			return;
 		}
-		_texture = shield;
+		_shield?.QueueFree();
+		_shield = shield;
+		_texture = null;
 		_mask = null;
-		Place(GuiType, FrameSize(shield, 1));
-		ShowFrame();
+		Place(GuiType, size);
+		// Drawn under the caption, where the picture is.
+		AddChild(shield);
+		if (_rect is not null)
+		{
+			MoveChild(shield, _rect.GetIndex() + 1);
+		}
+		Tint();
 		TurnShield();
 	}
+
+	/// <summary>The country's flag where the sprite draws flags and one has been given, or null.</summary>
+	private CShieldView? _shield;
 
 	/// <summary>
 	/// A shield turned by its type's rotation, as a turned flag icon is: about its own middle, a pixel and a half to the
@@ -288,12 +300,15 @@ public partial class CGuiButton : CGuiObject
 
 	private void Tint()
 	{
+		EButtonLook look = Off ? EButtonLook.Disabled
+			: _held ? EButtonLook.Down
+			: _hovered ? EButtonLook.Over
+			: EButtonLook.Up;
+		// A shield's look is its flag's technique of maskedflag.fx; any other button's buttonstate.fx's.
+		_shield?.SetLook(look);
 		if (_material is not null)
 		{
-			_context!.ButtonShader.Set(_material, Off ? EButtonLook.Disabled
-				: _held ? EButtonLook.Down
-				: _hovered ? EButtonLook.Over
-				: EButtonLook.Up);
+			_context!.ButtonShader.Set(_material, look);
 		}
 	}
 

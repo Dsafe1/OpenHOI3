@@ -278,6 +278,11 @@ public partial class CGuiIcon : CGuiObject
 	/// </summary>
 	public void SetLook(EButtonLook look)
 	{
+		if (_shield is not null)
+		{
+			_shield.SetLook(look);
+			return;
+		}
 		if (_rect is null)
 		{
 			return;
@@ -356,15 +361,21 @@ public partial class CGuiIcon : CGuiObject
 		{
 			return;
 		}
-		_texture = _context.Shields.Build(country, _sprite);
-		if (_texture is not null)
+		_shield?.QueueFree();
+		_shield = _context.Shields.View(country, _sprite);
+		if (_shield is not null && _context.Shields.Size(_sprite) is { } size)
 		{
 			var type = (CGuiIconType)GuiType;
-			Place(type, FrameSize(_texture, 1) * type.Scale);
+			Place(type, size * type.Scale);
 			Turn();                                          // about the middle of the size it has now
+			AddChild(_shield);
 		}
-		ShowTexture(_texture);
+		_texture = null;
+		ShowTexture(null);
 	}
+
+	/// <summary>The country's flag where the sprite draws flags and one has been given, or null.</summary>
+	private CShieldView? _shield;
 
 	private void ShowTexture(Texture2D? texture)
 	{

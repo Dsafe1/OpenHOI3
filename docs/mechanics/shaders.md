@@ -103,7 +103,9 @@ translated.
 10. **The canvas** (`EShaderTarget.Canvas`), for the interface: Godot's 2D renderer places the element, so the effect's
     vertex shader runs for what else it gives - its texture coordinates, `buttonstate.fx`'s frame offset - its position
     read from Godot's `VERTEX` with nought depth, its first texture coordinate from `UV` and its colour from `COLOR`, and
-    what it works out for `POSITION` dropped; a canvas has no normal or second coordinate (reported, nought). **The drawn
+    what it works out for `POSITION` dropped; any further input - `maskedflag.fx`'s second set of texture coordinates -
+    is the next of `CUSTOM0` and `CUSTOM1`, four components each, which an element drawn as a mesh carries (since
+    2026-11-07), and past those two nought and reported. **The drawn
     texture**: one texture of the effect may be named the element's own - `buttonstate.fx`'s `tex0` - and every sampler of
     it then reads Godot's `TEXTURE`, handed down as a hidden parameter to every function that samples it, since Godot
     shows `TEXTURE` to the stage functions alone; so an element is drawn as any other, a scrollbar's three textures through
@@ -154,7 +156,10 @@ green by at most 5 of 255 - not to be seen (measured 2026-11-06).
 ## 6. Next
 
 The map's surface is drawn through its own files whole (`mapdraw.md`, section 6), and since 2026-11-07 the hierarchy's
-lines and the air map's rings through `hierarchy.fx` and `circle.fx`. Left: the counters and the flags, which this
-project still puts together on the CPU - `counter.fx` and `maskedflag.fx` are the original's for them, read in
-`reversing/findings/FINDINGS-counters.md` (section 10) and `FINDINGS-maskedflag.md`. The flags want the canvas route to
-take a second set of texture coordinates (`maskedflag.fx`'s mask's), which it gives as nought today.
+lines and the air map's rings through `hierarchy.fx` and `circle.fx`, and the counters through `counter.fx` on the canvas
+(`mapunits.md`, section 2) - a canvas item to each counter, since a canvas item has one material and each counter's
+parameters are its own; the selection's pulse is a global uniform - and the shields through `maskedflag.fx`
+(`interface.md`, section 5), for which the canvas route takes a vertex's further inputs - the mask's texture
+coordinates - from Godot's `CUSTOM0` and `CUSTOM1`, an element drawn as a mesh carrying them. None of the four effects
+the interface imitated in C# is left imitated. Left: the weather's billboards (`weather_billboard.fx`), `progress.fx` and
+`interpolated_buttonstate.fx`, each wanting a reading of how the engine feeds it first.

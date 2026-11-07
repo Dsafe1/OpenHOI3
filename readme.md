@@ -1672,9 +1672,12 @@ province names** under height 100 (the fact base's farmap B.7): every province's
 scaled as positions.txt says, wrapped at 320 only at spaces, fading in over 1.5 seconds as its tile comes into view, in
 kart_font's typewriter face, for which Liberation Mono now stands - with which the map's surface is whole but for terra
 incognita, a scenario's. **And the hierarchy's lines and the air map's rings** through `hierarchy.fx` and `circle.fx`
-(the fact base's hierarchy 7 and airmap 8), on the surface, the 2D layers kept for a map drawn flat. **Next up**: the
-interface's two effects the client still imitates in C# - `counter.fx` and `maskedflag.fx`, both read (counters 10,
-`FINDINGS-maskedflag.md`), the flags wanting the canvas route to take a second set of texture coordinates. Then war exhaustion, or the military AI's gaps (*What the moving wave
+(the fact base's hierarchy 7 and airmap 8), on the surface, the 2D layers kept for a map drawn flat. **And the counters
+through `counter.fx`** on the canvas (counters 10), with the corner's three marks - red short of supplies or fuel, yellow
+an attack delay, orange an upgrade, which nothing makes yet - on the player's own (`mapunits.md`, section 2). **And the
+shields through `maskedflag.fx`** (`FINDINGS-maskedflag.md`; `interface.md`, section 5), the flag by its look's
+technique and the overlay over it, the canvas route taking the mask's coordinates from `CUSTOM0`; none of the four effects the
+interface imitated in C# is left imitated. **Next up**: war exhaustion, or the military AI's gaps (*What the moving wave
 left*), or the end-of-game screen.
 
 The other open choices are the third piece's gaps - the balancing that moves

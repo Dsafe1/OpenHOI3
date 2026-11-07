@@ -142,6 +142,7 @@ public partial class CMapView : Node2D
 		_counters = new CUnitCounters { Name = "Counters" };
 		_counters.Setup(_map, _state, gui, types, billboards, arrows);
 		_counters.Markers.Player = _player;
+		_counters.Player = _player;
 		_counters.AirMap.Player = _player;
 		_textures = gui.Textures;
 	}
@@ -277,6 +278,7 @@ public partial class CMapView : Node2D
 			if (_counters is not null)
 			{
 				_counters.Markers.Player = value;
+				_counters.Player = value;
 				_counters.AirMap.Player = value;
 			}
 		}

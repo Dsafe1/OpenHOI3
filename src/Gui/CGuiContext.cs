@@ -48,6 +48,7 @@ public sealed class CGuiContext
 	public static CGuiContext Load(CDirectorySettings directories, CLocalisation localisation)
 	{
 		var textures = new CTextureManager(directories);
+		var effects = new CEffectShaders(directories);
 		return new CGuiContext
 		{
 			Localisation = localisation,
@@ -55,10 +56,10 @@ public sealed class CGuiContext
 			Sprites = CSpriteTypes.Load(directories),
 			Textures = textures,
 			Fonts = CGuiFonts.Load(directories),
-			Shields = new CShields(textures),
+			Shields = new CShields(textures, effects),
 			// The player's choices over the install's, as the original reads them at every start (ingamemenu.md, section 5).
 			MessageTypes = CMessageTypes.Load(directories, MessageTypesPath),
-			Effects = new CEffectShaders(directories),
+			Effects = effects,
 		};
 	}
 }

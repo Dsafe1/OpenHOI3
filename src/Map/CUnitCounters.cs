@@ -30,9 +30,6 @@ public partial class CUnitCounters : Node2D
 
 	private static readonly Color[] QuadColours = { Colors.White, Colors.White, Colors.White, Colors.White };
 
-	/// <summary>How fast a selected counter's ring pulses.</summary>
-	private const float PulseSpeed = 3f;
-
 	private CMap _map = null!;
 	private CGameState _state = null!;
 	private CGuiContext _gui = null!;
@@ -55,7 +52,15 @@ public partial class CUnitCounters : Node2D
 	private Rect2 _view;
 	private CSelection _selection = new();
 	private readonly HashSet<CUnit> _selectedSet = new();
-	private double _time;
+
+	/// <summary>
+	/// Where the counters are drawn: two canvas items to a counter, in the order drawn - its plate through
+	/// <c>counter.fx</c>, which is a material of its own, and then its pointer, flag and figures - kept from frame to frame
+	/// and refilled.
+	/// </summary>
+	private Node2D _plates = null!;
+	private readonly List<Rid> _items = new();
+	private int _itemsUsed;
 
 	/// <summary>The first selected unit, or null: whose hierarchy is drawn and whose reach the air map dims by.</summary>
 	private CUnit? _selected => _selection.First;
@@ -95,6 +100,10 @@ public partial class CUnitCounters : Node2D
 		_hierarchy = new CHierarchyLayer { Name = "Hierarchy" };
 		_hierarchy.Setup(map, state, gui);
 		AddChild(_hierarchy);
+
+		// The counters themselves, over the lines.
+		_plates = new Node2D { Name = "Plates" };
+		AddChild(_plates);
 
 		// Over the counters: the markers of the battles the player has a part in.
 		_markers = new CBattleMarkers { Name = "Battles" };
@@ -186,6 +195,19 @@ public partial class CUnitCounters : Node2D
 	/// <summary>The first unit selected, or null.</summary>
 	public CUnit? Selected => _selected;
 
+	/// <summary>The country being played, whose counters alone show a mark in their corner.</summary>
+	public CCountryTag? Player
+	{
+		get => _player;
+		set
+		{
+			_player = value;
+			QueueRedraw();
+		}
+	}
+
+	private CCountryTag? _player;
+
 	/// <summary>Raised when a refresh took out of the selection units that are no longer anywhere.</summary>
 	public event Action? SelectionLost;
 
@@ -267,9 +289,47 @@ public partial class CUnitCounters : Node2D
 	{
 		if (_selected is not null)
 		{
-			_time += delta;
-			QueueRedraw();                                   // its ring pulses
+			// A selected counter's ring pulses by the clock's seconds, one figure for every counter.
+			CCounterKind.SetPulse(Time.GetTicksMsec() / 1000.0);
 		}
+	}
+
+	public override void _ExitTree()
+	{
+		foreach (Rid item in _items)
+		{
+			RenderingServer.FreeRid(item);
+		}
+		_items.Clear();
+		_itemsUsed = 0;
+	}
+
+	/// <summary>The next canvas item of the counters, emptied, with no material, at its place in the order drawn.</summary>
+	private Rid NextItem()
+	{
+		if (_itemsUsed == _items.Count)
+		{
+			Rid made = RenderingServer.CanvasItemCreate();
+			RenderingServer.CanvasItemSetParent(made, _plates.GetCanvasItem());
+			RenderingServer.CanvasItemSetDrawIndex(made, _items.Count);
+			RenderingServer.CanvasItemSetDefaultTextureFilter(made, RenderingServer.CanvasItemTextureFilter.LinearWithMipmaps);
+			_items.Add(made);
+		}
+		Rid item = _items[_itemsUsed++];
+		RenderingServer.CanvasItemClear(item);
+		RenderingServer.CanvasItemSetMaterial(item, new Rid());
+		return item;
+	}
+
+	/// <summary>Empties every canvas item of the counters, ready to be filled again.</summary>
+	private void ClearItems()
+	{
+		for (int index = 0; index < _itemsUsed; index++)
+		{
+			RenderingServer.CanvasItemClear(_items[index]);
+			RenderingServer.CanvasItemSetMaterial(_items[index], new Rid());
+		}
+		_itemsUsed = 0;
 	}
 
 	/// <summary>How high the original's camera would be to show the map as it is shown now.</summary>
@@ -313,7 +373,7 @@ public partial class CUnitCounters : Node2D
 	/// its <c>offset</c> away from the counter's middle in the direction the unit is
 	/// going, and turned to point that way. Every moving unit has one, selected or not.
 	/// </summary>
-	private void DrawPointer(CCounterKind kind, CMapCounter counter, Rect2 rect)
+	private void DrawPointer(Rid item, CCounterKind kind, CMapCounter counter, Rect2 rect)
 	{
 		CUnit unit = counter.Unit;
 		if (_pointer is null || _pointerTexture is null || !unit.IsMoving || unit.Location <= 0)
@@ -329,10 +389,10 @@ public partial class CUnitCounters : Node2D
 		// North is up on the map and down on the screen, so the angle turns the other way.
 		Vector2 middle = rect.GetCenter() + new Vector2(at.X, -at.Y);
 		float frame = _pointerTexture.GetWidth() / (float)_pointer.Frames;
-		DrawSetTransform(middle, -heading, Vector2.One);
-		DrawTextureRectRegion(_pointerTexture, new Rect2(-half, -half, 2f * half, 2f * half),
+		RenderingServer.CanvasItemAddSetTransform(item, new Transform2D(-heading, middle));
+		_pointerTexture.DrawRectRegion(item, new Rect2(-half, -half, 2f * half, 2f * half),
 			new Rect2(MarchingFrame * frame, 0f, frame, _pointerTexture.GetHeight()));
-		DrawSetTransform(Vector2.Zero, 0f, Vector2.One);
+		RenderingServer.CanvasItemAddSetTransform(item, Transform2D.Identity);
 	}
 
 	/// <summary>
@@ -469,6 +529,7 @@ public partial class CUnitCounters : Node2D
 
 	public override void _Draw()
 	{
+		ClearItems();
 		if (Kind() is not { } kind)
 		{
 			return;
@@ -497,22 +558,19 @@ public partial class CUnitCounters : Node2D
 		{
 			CMapCounter counter = drawn[index];
 			Rect2 rect = RectOf(kind, counter, place, index);
-			if (kind.Texture(_gui, counter) is { } texture)
-			{
-				DrawTextureRect(texture, rect, false);
-			}
-			// The ring: white on the selected unit's counter, and the counter type's second
-			// colour on that of every unit under it, each pulsing.
+			// The counter through counter.fx, its corner's mark and its ring with it: white on a selected unit's counter
+			// and the counter type's second colour on that of every unit under one, pulsing.
 			ECounterRing worn = CMapCounters.RingOf(counter.Unit, _selectedSet);
-			if (worn != ECounterRing.None && kind.Ring is { } ring)
-			{
-				float strength = 0.5f + 0.5f * Mathf.Abs(Mathf.Sin((float)_time * PulseSpeed));
-				Color colour = worn == ECounterRing.Under ? kind.Type.Color2.ToGodot() : Colors.White;
-				DrawTextureRect(ring, rect, false, new Color(colour.R * strength, colour.G * strength, colour.B * strength));
-			}
+			ECounterMark mark = CCounterShading.MarkOf(counter.Unit, Player);
+			Rid plate = NextItem();
+			RenderingServer.CanvasItemSetMaterial(plate, kind.Material(_gui, counter, mark, worn).GetRid());
+			kind.Plate.DrawRect(plate, rect, false);
+
+			// What goes over it, under the next counter.
+			Rid item = NextItem();
 			if (stack.Kind == EMapStack.Moving)
 			{
-				DrawPointer(kind, counter, rect);
+				DrawPointer(item, kind, counter, rect);
 			}
 			if (index != drawn.Count - 1)
 			{
@@ -526,18 +584,18 @@ public partial class CUnitCounters : Node2D
 				System.Numerics.Vector2 at = CCounterLayout.FlagPlace(kind.Type, counter.Size);
 				System.Numerics.Vector2 size = CCounterLayout.FlagSize(kind.Type);
 				var where = new Rect2(middle.X + at.X - size.X / 2f, middle.Y - at.Y - size.Y / 2f, size.X, size.Y);
-				DrawRect(where.Grow(CCounterLayout.FlagFrame(kind.Type)), Colors.Black);
-				DrawTextureRect(flag, where, false);
+				RenderingServer.CanvasItemAddRect(item, where.Grow(CCounterLayout.FlagFrame(kind.Type)), Colors.Black);
+				flag.DrawRect(item, where, false);
 			}
 			float figures = CCounterLayout.FiguresHeight(kind.Type, counter.Size);
 			System.Numerics.Vector2 start = CCounterLayout.FiguresPlace(kind.Type, counter.Size);
-			DrawText(kind, counter.Figures, new Vector2(middle.X + start.X, middle.Y - start.Y), figures, 0f);
+			DrawText(item, kind, counter.Figures, new Vector2(middle.X + start.X, middle.Y - start.Y), figures, 0f);
 			if (kind.CarriesName)
 			{
 				// Turned a quarter: it runs down the counter's right edge.
 				float name = CCounterLayout.NameHeight(kind.Type, counter.Size);
 				start = CCounterLayout.NamePlace(kind.Type, counter.Size);
-				DrawText(kind, counter.Name, new Vector2(middle.X + start.X, middle.Y - start.Y), name, Mathf.Pi / 2f);
+				DrawText(item, kind, counter.Name, new Vector2(middle.X + start.X, middle.Y - start.Y), name, Mathf.Pi / 2f);
 			}
 		}
 	}
@@ -548,7 +606,7 @@ public partial class CUnitCounters : Node2D
 	/// original's figures and name are on a screenshot of one: the figures' left end and
 	/// the foot of their digits on the type's place for them.
 	/// </summary>
-	private void DrawText(CCounterKind kind, string text, Vector2 start, float lineHeight, float turned)
+	private void DrawText(Rid item, CCounterKind kind, string text, Vector2 start, float lineHeight, float turned)
 	{
 		if (text.Length == 0 || kind.Font?.Font is not { } typeface || kind.Font.LineHeight <= 0f
 			|| lineHeight * _zoom < LeastTextOnScreen)
@@ -556,9 +614,9 @@ public partial class CUnitCounters : Node2D
 			return;
 		}
 		float scale = lineHeight / kind.Font.LineHeight;
-		DrawSetTransform(start, turned, new Vector2(scale * kind.Font.Narrowing, scale));
-		DrawString(typeface, Vector2.Zero, text, HorizontalAlignment.Left, -1f, kind.Font.Size, kind.Font.Color);
-		DrawSetTransform(Vector2.Zero, 0f, Vector2.One);
+		RenderingServer.CanvasItemAddSetTransform(item, new Transform2D(turned, new Vector2(scale * kind.Font.Narrowing, scale), 0f, start));
+		typeface.DrawString(item, Vector2.Zero, text, HorizontalAlignment.Left, -1f, kind.Font.Size, kind.Font.Color);
+		RenderingServer.CanvasItemAddSetTransform(item, Transform2D.Identity);
 	}
 
 	private Texture2D? Flag(CCountryTag tag)

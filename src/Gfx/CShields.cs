@@ -1,138 +1,183 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using OpenHOI3.Content;
+using OpenHOI3.Content.Shaders;
+using OpenHOI3.Gui;
 using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Gfx;
 
 /// <summary>
-/// Builds a country's flag as a <c>maskedShieldType</c> sprite shows it.
-///
-/// The game declares these with two textures and a shader that composites a country's
-/// flag between them: the flag takes the mask's size and its alpha, and the other
-/// texture, which carries the frame or the shading in its own alpha, goes over it. The
-/// thin shield's mask and the top bar flag's are solid, so there it comes to scaling
-/// the flag and blending the frame over it; the small round shield's mask is a disc.
-/// It is done once per country and sprite on the CPU and cached rather than needing a
-/// shader: <c>docs/mechanics/interface.md</c>, section 5.
+/// A country's flag as a <c>maskedShieldType</c> sprite shows it: the flag through the effect the sprite names - the
+/// install's own <c>gfx/FX/maskedflag.fx</c> in the base game, translated for the canvas - cut to its mask's alpha in the
+/// middle of its overlay, by the technique of the element's look, and then the overlay over it, plainly. Each shield is a
+/// <see cref="CShieldView"/> of its own; what a sprite's shields share - its pictures, its quad, its shaders - is made
+/// once. See <c>docs/mechanics/interface.md</c>, section 5, and <c>reversing/findings/FINDINGS-maskedflag.md</c>.
 /// </summary>
 public sealed class CShields
 {
-	private readonly CTextureManager _textures;
-	private readonly Dictionary<string, Texture2D?> _cache = new(StringComparer.OrdinalIgnoreCase);
-	private readonly Dictionary<string, Image?> _overlays = new(StringComparer.OrdinalIgnoreCase);
+	/// <summary>The effect a sprite that names none draws through.</summary>
+	private const string DefaultEffect = "maskedflag.fx";
 
-	public CShields(CTextureManager textures)
+	/// <summary>The effect's texture that is the flag: the one the quad is drawn with.</summary>
+	private const string FlagTexture = "tex0";
+
+	/// <summary>The effect's techniques, in the order of <see cref="EButtonLook"/>: there is no <c>up</c>, <c>tec0</c> is it.</summary>
+	private static readonly string[] Techniques = { "tec0", "over", "down", "disable" };
+
+	private readonly CTextureManager _textures;
+	private readonly CEffectShaders _effects;
+	private readonly Dictionary<string, CShieldParts?> _parts = new(StringComparer.OrdinalIgnoreCase);
+	private readonly Dictionary<string, Texture2D?> _flags = new(StringComparer.OrdinalIgnoreCase);
+
+	public CShields(CTextureManager textures, CEffectShaders effects)
 	{
 		_textures = textures;
-	}
-
-	/// <summary>The flag of a country as that sprite draws it, or null when its flag is missing.</summary>
-	public Texture2D? Build(CCountry country, CSpriteType sprite)
-	{
-		string key = sprite.Name + "/" + country.Tag.Value;
-		if (_cache.TryGetValue(key, out Texture2D? cached))
-		{
-			return cached;
-		}
-
-		Texture2D? shield = Compose(country, sprite);
-		_cache[key] = shield;
-		return shield;
-	}
-
-	private Texture2D? Compose(CCountry country, CSpriteType sprite)
-	{
-		Image? flag = _textures.LoadImage(country.FlagFile);
-		if (flag is null)
-		{
-			return null;
-		}
-		ToRgba(flag);
-
-		Image? overlay = Overlay(sprite);
-		if (overlay is null)
-		{
-			// Without the overlay the flag alone is still a usable shield.
-			return ImageTexture.CreateFromImage(flag);
-		}
-
-		// The mask sets the flag's size and cuts it: the flag is squeezed to the mask's
-		// size and is as see-through as the mask is at each point, as the original's own
-		// shader has it. The thin shield's mask is its overlay's size and cuts nothing;
-		// the small round one's is 40 by 26 with a disc in it, under an overlay of 32 by
-		// 32. The flag goes in the middle of the overlay, which sets the picture's size.
-		Image? mask = sprite.MaskFile.Length == 0 ? null : Mask(sprite);
-		Vector2I flagSize = mask?.GetSize() ?? overlay.GetSize();
-		if (flag.GetSize() != flagSize)
-		{
-			flag.Resize(flagSize.X, flagSize.Y, Image.Interpolation.Bilinear);
-		}
-		if (mask is not null)
-		{
-			for (int y = 0; y < flagSize.Y; y++)
-			{
-				for (int x = 0; x < flagSize.X; x++)
-				{
-					Color colour = flag.GetPixel(x, y);
-					colour.A = mask.GetPixel(x, y).A;
-					flag.SetPixel(x, y, colour);
-				}
-			}
-		}
-		Image composed = Image.CreateEmpty(overlay.GetWidth(), overlay.GetHeight(), false, Image.Format.Rgba8);
-		Vector2I at = (overlay.GetSize() - flagSize) / 2;
-		composed.BlitRect(flag, new Rect2I(Vector2I.Zero, flagSize), at);
-		composed.BlendRect(overlay, new Rect2I(Vector2I.Zero, overlay.GetSize()), Vector2I.Zero);
-		return ImageTexture.CreateFromImage(composed);
-	}
-
-	private Image? Mask(CSpriteType sprite)
-	{
-		string key = sprite.Name + "/mask";
-		if (_overlays.TryGetValue(key, out Image? cached))
-		{
-			return cached;
-		}
-		Image? mask = _textures.LoadImage(sprite.MaskFile);
-		if (mask is not null)
-		{
-			ToRgba(mask);
-		}
-		_overlays[key] = mask;
-		return mask;
+		_effects = effects;
 	}
 
 	/// <summary>
-	/// An image made plain RGBA to be drawn into: a <c>.dds</c> comes compressed - the diplomacy screen's
-	/// small shields do - and is unpacked first, which converting cannot do.
+	/// The size a sprite's shield is drawn at, its overlay's - or its mask's where it has no overlay - or null where it
+	/// cannot be drawn.
 	/// </summary>
-	private static void ToRgba(Image image)
+	public Vector2? Size(CSpriteType sprite) => Parts(sprite)?.Box;
+
+	/// <summary>A country's shield as a sprite draws it, or null where its flag or the sprite's pictures are missing.</summary>
+	public CShieldView? View(CCountry country, CSpriteType sprite)
 	{
-		if (image.IsCompressed())
+		if (Parts(sprite) is not { } parts || Flag(country) is not { } flag)
 		{
-			image.Decompress();
+			return null;
 		}
-		image.Convert(Image.Format.Rgba8);
+		return new CShieldView(parts, flag);
 	}
 
-	private Image? Overlay(CSpriteType sprite)
+	private Texture2D? Flag(CCountry country)
 	{
-		if (_overlays.TryGetValue(sprite.Name, out Image? cached))
+		if (!_flags.TryGetValue(country.FlagFile, out Texture2D? flag))
 		{
-			return cached;
+			flag = country.FlagFile.Length == 0 || !_textures.Exists(country.FlagFile) ? null : _textures.LoadFromGamePath(country.FlagFile);
+			_flags[country.FlagFile] = flag;
 		}
-		Image? overlay = sprite.OverlayFile.Length == 0 ? null : _textures.LoadImage(sprite.OverlayFile);
+		return flag;
+	}
+
+	private CShieldParts? Parts(CSpriteType sprite)
+	{
+		if (!_parts.TryGetValue(sprite.Name, out CShieldParts? parts))
+		{
+			parts = MakeParts(sprite);
+			_parts[sprite.Name] = parts;
+		}
+		return parts;
+	}
+
+	private CShieldParts? MakeParts(CSpriteType sprite)
+	{
+		Texture2D? mask = sprite.MaskFile.Length == 0 ? null : _textures.LoadFromGamePath(sprite.MaskFile);
+		if (mask is null)
+		{
+			CDiagnostics.Warn($"interface: the shield '{sprite.Name}' has no mask to cut a flag with, and is not drawn");
+			return null;
+		}
+		Texture2D? overlay = sprite.OverlayFile.Length == 0 ? null : _textures.LoadFromGamePath(sprite.OverlayFile);
 		if (overlay is null)
 		{
-			CDiagnostics.Warn($"The sprite '{sprite.Name}' has no texture to draw over a flag");
+			CDiagnostics.Warn($"interface: the shield '{sprite.Name}' has no texture to draw over a flag");
 		}
-		else
+		string file = EffectName(sprite.EffectFile);
+		var shaders = new Shader?[Techniques.Length];
+		CGodotShader? translation = null;
+		for (int look = 0; look < Techniques.Length; look++)
 		{
-			ToRgba(overlay);
+			(Shader? shader, CGodotShader? made) = _effects.Get(file, Techniques[look], EShaderTarget.Canvas, FlagTexture);
+			shaders[look] = shader;
+			translation ??= made;
 		}
-		_overlays[sprite.Name] = overlay;
-		return overlay;
+		if (translation is null || shaders[0] is null)
+		{
+			CDiagnostics.Warn($"interface: gfx/FX/{file} gives the shield '{sprite.Name}' no '{Techniques[0]}' technique, and it is not drawn");
+			return null;
+		}
+		Vector2 maskSize = mask.GetSize();
+		Vector2 box = overlay?.GetSize() ?? maskSize;
+		return new CShieldParts(Quad(translation, maskSize, box), box, overlay, mask, shaders, translation);
+	}
+
+	/// <summary>The file of <c>gfx/FX</c> a sprite's <c>effectFile</c> names, written with either slash.</summary>
+	private static string EffectName(string written)
+	{
+		string name = written.Split('\\', '/').LastOrDefault(part => part.Length > 0) ?? "";
+		return name.Length == 0 ? DefaultEffect : name;
+	}
+
+	/// <summary>
+	/// The flag's quad, as the original builds it (<c>FINDINGS-maskedflag.md</c>, section 4): the mask, W by H, in the
+	/// middle of the overlay's box, with the original's mix of whole-number and half halves - an odd W or H puts its
+	/// fourth corner half a pixel off - its first texture coordinates the flag's, 0 to 1, and its second the mask's.
+	/// Drawn unturned: the element turns the whole shield. The box is y up in the original; here y runs down.
+	/// </summary>
+	private static ArrayMesh Quad(CGodotShader translation, Vector2 mask, Vector2 box)
+	{
+		float ox = (box.X - mask.X) * 0.5f;
+		float oy = (box.Y - mask.Y) * 0.5f;
+		float w2 = (int)mask.X / 2;
+		float h2 = (int)mask.Y / 2;
+		float halfW = mask.X / 2f;
+		float halfH = mask.Y / 2f;
+		// The corners at nought rotation, y up: R(...) + the turning point, with R the identity.
+		Vector2[] up =
+		{
+			new(ox - w2 + w2, oy - h2 + h2),
+			new(ox - halfW + halfW, oy + halfH + halfH),
+			new(ox + halfW + halfW, oy + halfH + halfH),
+			new(ox + w2 + halfW, oy - h2 + halfH),
+		};
+		Vector2[] flag = { new(0, 1), new(0, 0), new(1, 0), new(1, 1) };
+		// The original's mask fills W/P(W) by H/P(H) of a texture padded to powers of two; a texture here is the picture alone.
+		Vector2[] masked = { new(0, 1), new(0, 0), new(1, 0), new(1, 1) };
+
+		var arrays = new Godot.Collections.Array();
+		arrays.Resize((int)Mesh.ArrayType.Max);
+		arrays[(int)Mesh.ArrayType.Vertex] = up.Select(corner => new Vector2(corner.X, box.Y - corner.Y)).ToArray();
+		// The fan v0 v1 v2 v3 as two triangles.
+		arrays[(int)Mesh.ArrayType.Index] = new[] { 0, 1, 2, 0, 2, 3 };
+		Mesh.ArrayFormat format = 0;
+		foreach (CShaderVertexInput input in translation.Inputs)
+		{
+			Vector2[]? values = input.Semantic switch
+			{
+				"TEXCOORD0" => flag,
+				"TEXCOORD1" => masked,
+				_ => null,
+			};
+			if (values is null)
+			{
+				continue;
+			}
+			if (input.Channel == "UV")
+			{
+				arrays[(int)Mesh.ArrayType.TexUV] = values;
+			}
+			else if (input.Channel is "CUSTOM0" or "CUSTOM1")
+			{
+				int slot = input.Channel[^1] - '0';
+				var custom = new float[values.Length * 4];
+				for (int v = 0; v < values.Length; v++)
+				{
+					custom[4 * v] = values[v].X;
+					custom[4 * v + 1] = values[v].Y;
+					custom[4 * v + 3] = 1f;
+				}
+				arrays[(int)Mesh.ArrayType.Custom0 + slot] = custom;
+				format |= (Mesh.ArrayFormat)((long)Mesh.ArrayCustomFormat.RgbaFloat
+					<< ((int)Mesh.ArrayFormat.FormatCustom0Shift + slot * (int)Mesh.ArrayFormat.FormatCustomBits));
+			}
+		}
+		var mesh = new ArrayMesh();
+		mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays, null, null, format);
+		return mesh;
 	}
 }

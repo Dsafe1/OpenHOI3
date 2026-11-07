@@ -324,14 +324,25 @@ files, with nothing in it placed by hand.
 - **A `maskedShieldType` draws a country's flag** between two textures: one over it, and a
   mask. **The flag is as see-through at each point as the mask is there** - `confirmed`,
   from `gfx/FX/maskedflag.fx`, which is plain text in the install: the flag's colour with
-  the mask's alpha. *Ours:* the flag is squeezed to the mask's size, cut by it, put in the
-  middle of the overlay and the overlay blended on top, once for each country and sprite.
-  The thin shield's mask and the top bar flag's are solid and their overlay's size, so
-  there it comes to the flag under its frame. **The small round shield's is a disc**, 40 by
-  26 under an overlay of 32 by 32: this said until 2026-10-09 that every mask shipped was
-  blank and applied none, and the battle row of the unit panel showed a square flag behind
-  a round frame. That the flag takes the mask's size and sits in the overlay's middle is
-  *measured* on the maintainer's screenshot of that row, not read.
+  the mask's alpha. **Since 2026-11-07 a shield is drawn as the original draws it**
+  (`reversing/findings/FINDINGS-maskedflag.md`), `confirmed`: the flag through the effect
+  the sprite's `effectFile` names - `maskedflag.fx`, and `maskedflag_greydown.fx` for
+  `GFX_minishield_greydown` - translated for the canvas, on a quad the mask's size in the
+  middle of the overlay's box, its corners as the original's (an odd width or height puts
+  the fourth half a pixel off), the flag's coordinates 0 to 1 and the mask's its second
+  set; then the overlay over it, plainly. **A look changes the flag alone**: `tec0` up,
+  `over`, `down` and `disable` - the overlay is the same in every look. The thin shield's
+  mask and the top bar flag's are solid and their overlay's size, so there it comes to the
+  flag under its frame. **The small round shield's is a disc**, 40 by 26 under an overlay of
+  32 by 32: this said until 2026-10-09 that every mask shipped was blank and applied none,
+  and the battle row of the unit panel showed a square flag behind a round frame. That the
+  mask sits in the overlay's middle was *measured* on the maintainer's screenshot of that
+  row and is now read. *Ours:* the original's flag is a cell of an atlas of every country's
+  flag, `FlagCoords` its column and row; here it is the country's own picture with
+  `FlagCoords` (1, 1, 0, 0), as the original draws a shield that has a picture of its own;
+  and the mask's second set runs 0 to 1, a texture here being the picture alone where the
+  original's is padded to a power of two. Each shield is a `CShieldView`, the flag its own
+  material's, `CShields` making what a sprite's shields share once.
 - **`allwaystransparent = yes` lets clicks through.** `inferred` from the name. *Ours:* any
   other icon takes the click, so the map under the bar does not.
 - **`transparencecheck = yes` lets a click through a button wherever the pixel of the frame
@@ -660,8 +671,9 @@ is; the wrap's exact break.
 6. **What frame 0 draws**, and whether an icon's frames are counted from nought.
 7. **Which buttons `buttonstate.fx` is for.** The shader is read (section 5); whether a
    sprite that names no effect file changes under the mouse was not looked for.
-8. **Where a `maskedShieldType` puts its flag** when the mask is not the overlay's size:
-   in the overlay's middle here, which fits the one case there is (section 5).
+8. **Which look each element kind gives a shield**, and so when `over`, `down` and
+   `disable` show (`reversing/findings/FINDINGS-maskedflag.md`, *Not established*): here a
+   button's own, as any button's, and an icon's where its screen sets one.
 9. **What `transparencecheck` tests**, and against which texture.
 10. **Tooltips** are read and built (2026-10-11): `tooltips.md` is the spec, and says what of
     them is open. `pdx_tooltip` and the three tooltip keys of a button are still read past -

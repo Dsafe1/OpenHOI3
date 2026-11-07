@@ -25,6 +25,9 @@ public sealed class CSpriteType
 	public string OverlayFile { get; init; } = "";
 	public string MaskFile { get; init; } = "";
 
+	/// <summary>The effect a masked shield draws its flag through, as written: <c>gfx/FX/maskedflag.fx</c> in the base game.</summary>
+	public string EffectFile { get; init; } = "";
+
 	/// <summary>
 	/// How many frames the texture holds, side by side. A frame is the texture's width
 	/// divided by this, whatever the texture's resolution.
@@ -84,6 +87,7 @@ public sealed class CSpriteType
 			TextureFile = node.GetString("textureFile"),
 			OverlayFile = node.GetString("textureFile1"),
 			MaskFile = node.GetString("textureFile2"),
+			EffectFile = node.GetString("effectFile"),
 			FrameCount = Math.Max(1, node.GetInt("noOfFrames", 1)),
 			TileSize = node.GetVector2("size").ToGodot(),
 			Border = node.GetVector2("borderSize").ToGodot(),

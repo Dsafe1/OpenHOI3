@@ -100,7 +100,40 @@ A key that is none of these is reported, where the original drops it.
     the whole as solid as the plate
 
 and for a selected counter the mask's green, in the selection's colour and pulsing, laid
-over through the mask's blue.
+over through the mask's blue; and where the counter has a mark, its owner's colour in the
+corner beyond u + v = 1.6 is the mark's, with a black edge between 1.57 and 1.6.
+
+**Since 2026-11-07 a counter is drawn through `counter.fx` itself**, translated for the
+canvas, as the original hands it its parameters (`reversing/findings/FINDINGS-counters.md`,
+section 10.4): `confirmed`
+
+| parameter | value |
+| --- | --- |
+| `BackgroundTex`, `MaskTex`, `SizeTex` | the type's three pictures |
+| `CounterTex` | the unit type's picture, below |
+| `SizeFrame` | the counter's size, 0 to 5 |
+| `SizeOffset` | the share of its texture the size strip fills, over its frames |
+| `CountryColor` | the owner's colour |
+| `vOtherColor` | the mark's colour, below; alpha nought where there is none |
+| `SelectionColor`, `Selected` | white on a selected unit's counter, the type's `color2` on one under it, and 1; else 0 |
+| `SelectionIntensity` | 0.5 + 0.5 \|sin 2t\|, t the clock's seconds |
+
+**The three marks** colour a counter's corner, on the player's own units alone, the first
+that holds: `confirmed`
+
+| mark | colour | where |
+| --- | --- | --- |
+| short | red (1, 0, 0) | given under a twentieth of its supplies or of its fuel - a constant of the executable's, which no define moves |
+| upgrading | orange (1, 0.5, 0) | a brigade of it being changed into another type |
+| attack delay | yellow (1, 1, 0) | an attack delay left, in no battle and not falling back |
+
+The orange one is a unit's line of brigade upgrades, which nothing here makes, so it never
+shows. `delayAfterAttackColor` is read by nothing in the original: the yellow is its own.
+*Ours:* the original's texture is a picture padded to a power of two, so its strip of 384 is
+0.75 of its texture and `SizeOffset` an eighth; a texture here is the picture alone and
+`SizeOffset` a sixth - the same frame either way. The effect's vertex shader and the lift a
+tilted camera gives a counter are not used: the canvas places the counter where the 2D view
+has it.
 
 - **The unit type's picture** is the sprite `GFX_small_counter_<key>` on the far counter
   and `GFX_map_counter_<key>` on the near one, `<key>` being **the type of the unit's first
@@ -160,9 +193,7 @@ So north is the way it was taken to be, and three things the reading did not giv
   there is to go by.
 - **The flag has a dark frame**, about a fortieth of `scale` wide.
 
-*Ours:* the original runs the shader for every counter every frame. Here a counter is
-painted once for each owner's colour, unit type and size that comes on screen, by the same
-arithmetic, and drawn as an ordinary picture. **The name is the unit's own**, as with
+*Ours:* **the name is the unit's own**, as with
 `show_unit_names` on - which is how the maintainer's game is set, and there are no
 leaders to name and no settings to choose by. The maintainer, 2026-10-09: "It can stay
 that way until we implement the settings" (`docs/compatibility.md`, entry 7). A unit type
@@ -323,7 +354,7 @@ asked.
 
 - **`OpenHOI3.Interface.Map`** has what can be checked with no engine: which units have a
   counter and how they stack (`CMapCounters`), what one says (`CCounterText`), where its
-  parts go (`CCounterLayout`) and the painting of one (`CCounterPainter`).
+  parts go (`CCounterLayout`) and what it hands `counter.fx` (`CCounterShading`).
   `OpenHOI3.Sim.Units.CUnitFigures` has the two figures, and
   `OpenHOI3.Sim.Construction.CDeployment` who may join whom.
 - **`src/Map/CUnitCounters`** draws them, over the map and in its coordinates; a click on
@@ -497,8 +528,8 @@ Nothing else in the menu says anything; its own close button would say `CLOSE`, 
 ## What is not built
 
 - **The other fifteen alerts**, and the tooltips of this one.
-- **A leader's name on a counter**, and the coloured corner that marks something about a
-  unit's state.
+- **A leader's name on a counter**, and the orange corner of a unit with a brigade being
+  changed into another type, which nothing here makes.
 - **The red frame of a moving unit's pointer.** Its picture has a green one and a red
   one; when the original shows the red was not read.
 - **Dragging a unit's line onto the map.**
@@ -513,8 +544,6 @@ For the reverse engineering:
 - who tells a unit's picture it is **seen from far away**, and what hides a counter and a
   building's picture in the far view - the heights are read (section 7), the routines
   that act on them for the drawing are not;
-- the **three marks** that colour a counter's corner, and what `delayAfterAttackColor` is
-  for;
 - how the map shows **where a unit may be placed**, and the click that places it;
 - **when the alert comes up**;
 - the **carrier air group** rule among the units a wing may join.
