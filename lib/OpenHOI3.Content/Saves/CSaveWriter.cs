@@ -282,6 +282,7 @@ public static class CSaveWriter
 		// The research queue, the dates and the politics (savegame.md, section 12).
 		CSavePolitics.WriteResearch(writer, country);
 		CSavePolitics.WriteDates(writer, country);
+		writer.Fixed("war_exhaustion", country.WarExhaustion);
 		writer.Fixed("diplo_influence", country.DiplomaticInfluence);
 		writer.Int("spiescaught", country.SpiesCaught);
 		WriteShares(writer, "distribution", country.ProductionShares);

@@ -98,6 +98,12 @@ public static class CCountryModifiers
 			AddSource(country, spies);
 		}
 
+		// What the file gives for war exhaustion is for one point of it (step 10; warexhaustion.md, section 4).
+		if (state.FindStaticModifier(Wars.CWarExhaustion.Modifier) is { } exhaustion)
+		{
+			AddSource(country, Scaled(exhaustion, country.WarExhaustion));
+		}
+
 		// What the file gives for dissent is for one point of it.
 		if (dissent is not null)
 		{

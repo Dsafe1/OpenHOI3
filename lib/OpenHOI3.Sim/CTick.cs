@@ -272,6 +272,9 @@ public static class CTick
 		{
 			Step(state, CResearch.DecayMonthly);
 		}
+		// War exhaustion after the decay, as the original's country month has it - and in the month before a new game's
+		// first hour too (warexhaustion.md, section 2).
+		Step(state, Wars.CWarExhaustion.RunMonthly);
 		// The parties drift every month, the one before a new game's first hour included: the start save holds exactly
 		// one drift (politics.md, section 3).
 		Step(state, Politics.CParties.RunMonthly);

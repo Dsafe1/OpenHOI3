@@ -25,6 +25,12 @@ public sealed class CWar
 	/// <summary>The day it began.</summary>
 	public CDate Started { get; }
 
+	/// <summary>
+	/// For a finished war, the day of the last entry of its history - when it ended; <see cref="CDate.Zero"/> where it has
+	/// none. A new game's war exhaustion counts from it (<c>warexhaustion.md</c>, section 3).
+	/// </summary>
+	public CDate Ended { get; set; }
+
 	public List<CCountryTag> Attackers { get; } = new();
 
 	public List<CCountryTag> Defenders { get; } = new();

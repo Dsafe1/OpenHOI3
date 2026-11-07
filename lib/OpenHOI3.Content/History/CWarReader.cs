@@ -46,6 +46,24 @@ public static class CWarReader
 	}
 
 	/// <summary>
+	/// When a finished war ended: the latest date its file has an entry for that is not after <paramref name="date"/> - the
+	/// original's last history entry, in year 2 or later; <see cref="CDate.Zero"/> where it has none.
+	/// </summary>
+	private static CDate LastDate(ClausewitzNode root, CDate date)
+	{
+		CDate last = CDate.Zero;
+		foreach (ClausewitzNode entry in root.Children)
+		{
+			if (entry.Key is not null && entry.IsBlock && CDate.TryParse(entry.Key, out CDate dated) && dated.Year >= 2
+				&& dated.CompareTo(date) <= 0 && dated.CompareTo(last) > 0)
+			{
+				last = dated;
+			}
+		}
+		return last;
+	}
+
+	/// <summary>
 	/// Whether a war's history began on or before the date: its first dated entry is not after it, or it has none - the
 	/// original's start of a war of no history is the null date, before every date.
 	/// </summary>
@@ -144,8 +162,10 @@ public static class CWarReader
 			}
 			else if (BeganBy(root, date))
 			{
-				// A finished war keeps its name and what is left of its sides, and has no last action.
+				// A finished war keeps its name and what is left of its sides, and has no last action; it ended on its last
+				// dated entry (warexhaustion.md, section 3).
 				war.Action = 0;
+				war.Ended = LastDate(root, date);
 				finished?.Add(war);
 			}
 		}

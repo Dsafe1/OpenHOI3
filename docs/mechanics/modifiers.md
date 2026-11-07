@@ -185,7 +185,7 @@ order**; `confirmed` throughout.
 9. **Espionage**: another country's spies on the "lower national unity" and "raise national
    unity" missions each contribute a static modifier scaled by their level and then by the
    mission's share, its own presence included (`espionage.md`, section 10).
-10. **`war_exhaustion`, multiplied by its war exhaustion.**
+10. **`war_exhaustion`, multiplied by its war exhaustion** (`warexhaustion.md`, section 4).
 11. **`dissent`, multiplied by its dissent.** What `static_modifiers.txt` gives is for one
     point: `global_ic = -0.01` there is 1% of IC for each point of dissent.
 12. **`neutrality`, multiplied by its effective neutrality over 100** - its neutrality less
@@ -318,7 +318,8 @@ the first day is run, which is why a new game's starting manpower leaves black s
   provinces' modifiers, `war` or `peace`, the spies' two unity modifiers (since 2026-10-14, with
   `espionage.md`), `dissent`, `neutrality` by its effective neutrality (since 2026-10-12, with
   `diplomacy.md`), its event modifiers and its triggered modifiers (since 2026-10-14, section 5).
-  The rest wait for what they need: war exhaustion, subjects and governments in exile. The
+  War exhaustion since 2026-11-07 (`warexhaustion.md`). The rest wait for what they need: subjects and governments in
+  exile. The
   difficulty's block is built since 2026-11-06 (`frontend.md`, section 4.3).
 - **A triggered modifier's conditions answer as every condition does** (`triggers.md`): one
   about what the simulation does not hold answers false. In Their Finest Hour's file that is

@@ -296,6 +296,12 @@ public sealed class CCountry
 	public CFixedPoint Dissent { get; set; }
 
 	/// <summary>
+	/// What its wars have worn it down by: banked each month it is at war and paid back to its neutrality in the first month
+	/// of peace. Never below nothing. See <c>docs/mechanics/warexhaustion.md</c>.
+	/// </summary>
+	public CFixedPoint WarExhaustion { get; set; }
+
+	/// <summary>
 	/// How far its people will go before giving up, from 1 to 100. Read from its history, and moved each day
 	/// (politics.md, section 6). 1 where the history gives none: the original's is nought until its first day lifts
 	/// it to the floor, before anything reads it.

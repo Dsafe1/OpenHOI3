@@ -74,6 +74,7 @@ public static class CStateHash
 			yield return Field(tag, "officers", h => h.Add(country.Officers.Raw));
 			yield return Field(tag, "national unity", h => h.Add(country.NationalUnity.Raw));
 			yield return Field(tag, "dissent", h => h.Add(country.Dissent.Raw));
+			yield return Field(tag, "war_exhaustion", h => h.Add(country.WarExhaustion.Raw));
 			yield return Field(tag, "neutrality", h => h.Add(country.Neutrality.Raw));
 			yield return Field(tag, "faction", h => h.Add(country.Faction));
 			yield return Field(tag, "mobilised", h => h.Add(country.Mobilised));

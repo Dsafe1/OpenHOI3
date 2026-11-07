@@ -99,8 +99,9 @@ Which is why countries with the same base IC start with very different amounts.
   (`leadership.md`, section 4).
 - **War exhaustion**: 0.05 for every month at war, up to 10; for a country at peace, 3 less
   0.05 for every month since its last war ended, and not below nothing - which is nothing
-  at all for a country that has never fought one. (measured: the savegame has every
-  country at 0.000 two days later, Italy included, so something takes it off again.)
+  at all for a country that has never fought one (`warexhaustion.md`, section 3). The
+  savegame's 0.000 two days later, Italy included, is BiceLib's patch, which zeroed it each
+  month in the executable the saves were made with.
 
 Of the 78 stockpiles belonging to a country that exists, metal and rare materials come
 out exact - to the thousandth - for 76 and money for 77 (section 6 has the rest). Energy
@@ -185,8 +186,8 @@ Three things about it that matter now:
   for who is in each and when it began: a war began on the earliest date its file has an
   entry for. **Puppets are not read**, so Manchukuo starts with the full 1890 metal.
 - **Supplies and fuel start as section 2 says**, once the units have been made: so many
-  days of what they use (`upkeep.md`, sections 1 and 7). War exhaustion starts at nothing:
-  nothing here reads it.
+  days of what they use (`upkeep.md`, sections 1 and 7). War exhaustion is set as the
+  original sets it since 2026-11-07 (`warexhaustion.md`).
 - Each day a country that holds its capital has what its provinces produced added to its
   stockpile. Then every country's shares of IC are run (`production.md`): money and
   supplies come in, and what consumer goods and supplies cost in metal, energy and rare
@@ -236,7 +237,8 @@ country's usage every day and its home production never, so that is what the sav
 - whether a history file's goods are **added or set**;
 - what decides the day **a war began** for this purpose, where its file has more than one
   dated entry;
-- what takes the starting **war exhaustion** off again;
+- ~~what takes the starting **war exhaustion** off again~~ - BiceLib's patch in the executable the saves were made
+  with (`warexhaustion.md`);
 - ~~how the original runs **two days before the first screen**~~ (section 3); what else those
   two days do besides what the checks here have shown;
 - ~~what moves the goods given to a country that does not exist **out of a capital somebody

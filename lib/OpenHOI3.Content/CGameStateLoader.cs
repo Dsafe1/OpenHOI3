@@ -184,6 +184,9 @@ public static class CGameStateLoader
 		ReportUnknownStrategicResources(state, warn);
 		CStockpile.FillAtStart(state, goodsGiven);
 		CProduction.SetStartingShares(state);
+		// What each country starts with of war exhaustion, by how long it has been at war or at peace (warexhaustion.md,
+		// section 3).
+		Sim.Wars.CWarExhaustion.SetAtStart(state);
 		CLeadership.SetAtStart(state);
 		CManpower.SetAtStart(state);
 		CLeaderReader.Read(directories, state, start, warn);

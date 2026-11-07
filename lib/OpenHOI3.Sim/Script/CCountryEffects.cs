@@ -30,6 +30,13 @@ public static class CCountryEffects
 					country.Dissent = Floored(country.Dissent + value);
 				}
 				return true;
+			case "war_exhaustion":
+				// Nothing is made again: the country's modifier takes it at its next rebuild (warexhaustion.md, section 5).
+				if (country is not null)
+				{
+					Wars.CWarExhaustion.Add(country, value);
+				}
+				return true;
 			case "national_unity":
 				// Changed as the day changes it, scaled by national_unity_effect and held to 1..100 (politics.md, section 6).
 				if (country is not null && value != CFixedPoint.Zero)

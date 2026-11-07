@@ -183,8 +183,8 @@ neutrality** is neutrality less the threat it feels from its most-threatening co
   day). In the base game only the spy mission's `spy_lower_neutrality` and the event modifier
   `prepare_for_war` carry it.
 - **Each month**, but REB's: war exhaustion grows by its modifier, is capped by its maximum, and **at
-  peace, all of it is paid back to neutrality at once** and set to 0. *War exhaustion is not built*,
-  so neither is this.
+  peace, all of it is paid back to neutrality at once** and set to 0 (`warexhaustion.md`, section 2;
+  built since 2026-11-07).
 - **The `neutrality` effect** adds its value, floored at 0, and makes effective neutrality again.
 - No war, peace, puppet or annexation writes neutrality.
 
@@ -221,7 +221,6 @@ war on another while its effective neutrality is at most
 - **A war is still given by hand** (`--war=`), so a war starts with none of war's relation or threat;
   the agreements' trade and aid, war and peace, factions, espionage and mobilising are later pieces and their
   sources above are reported as unbuilt where a script asks.
-- **War exhaustion is not built**, so neutrality is never paid back.
 
 ## Not established
 

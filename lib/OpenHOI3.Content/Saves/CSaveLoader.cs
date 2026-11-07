@@ -29,7 +29,7 @@ public static class CSaveLoader
 	private static readonly HashSet<string> CountryKeys = new(StringComparer.Ordinal)
 	{
 		"capital", "acting_capital", "technology", "distribution", "leadership", "manpower", "officers", "diplo_influence",
-		"national_unity", "dissent", "neutrality", "effective_neutrality", "highest_threat", "ideology", "flags", "variables",
+		"national_unity", "dissent", "war_exhaustion", "neutrality", "effective_neutrality", "highest_threat", "ideology", "flags", "variables",
 		"auto_assign_leaders", "auto_maintain_convoy", "auto_supply_convoy", "auto_resource_convoy", "modifier",
 		"government_in_exile", "strategic_warfare", "land_battles_fought", "air_battles_fought", "naval_battles_fought",
 		"alignment",
@@ -400,6 +400,7 @@ public static class CSaveLoader
 		country.DiplomaticInfluence = CSaveValues.Fixed(node, "diplo_influence");
 		country.NationalUnity = CSaveValues.Fixed(node, "national_unity");
 		country.Dissent = CSaveValues.Fixed(node, "dissent");
+		country.WarExhaustion = CSaveValues.Fixed(node, "war_exhaustion");
 		country.Neutrality = CSaveValues.Fixed(node, "neutrality");
 		country.EffectiveNeutrality = CSaveValues.Fixed(node, "effective_neutrality");
 		// The country it fears most, which its effective neutrality is worked out against again; "---" none.

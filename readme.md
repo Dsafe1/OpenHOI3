@@ -1616,7 +1616,8 @@ their fronts - the save's byte for byte in twelve saves but for the figures noth
 original keeps it**, until the first midnight ten days past the start date, where a load had made every strategy and
 theatre again, the theatres under new numbers; read for it in the fact base, the ten-day clock starting at the defines'
 start date. What is left of section 4's list - the statistics, the gameplay settings, the strategy's production
-shares and military access, war exhaustion, and a province's `history` - each wants building or reading first.
+shares and military access, and a province's `history` - each wants building or reading first; war exhaustion is
+built since 2026-11-07.
 
 **And the front end** (2026-11-06, `docs/mechanics/frontend.md`, read in one wave of two,
 `reversing/findings/FINDINGS-frontend.md`): the program comes up on the original's main menu, its Single Player opening
@@ -1698,8 +1699,13 @@ with its icons on the buildings' points; diplomatic, intel and theatre; simplifi
 of `interface/colors.txt`, and naval with its patrols, raids and escorts, its four icons of the week's battles and its
 large naval bases - each with its part of the province's tooltip, each coloured again when the original colours it, and
 the lobby's map political with the owner's colour as the ground, as the original's front end draws it. Reading for them
-corrected the fact base's map mode records. **Next up**: war exhaustion, or the military AI's gaps (*What the moving
-wave left*), or the end-of-game screen.
+corrected the fact base's map mode records. **And war exhaustion** (2026-11-07, `docs/mechanics/warexhaustion.md`): read
+whole in the fact base already, built in a session - a new game's figure by the calendar months at war or since peace,
+the month's 0.041 at war under its maximum, all of it paid back to neutrality in the first month of peace, the
+`war_exhaustion` modifier step, condition and effect, and the save's key. **No save can check it**: every save of the
+maintainer's was made with BiceLib's patch zeroing it each month written into the executable, so the start save's Italy is
+0.000 where ours is the original's 0.191; neutrality still agrees 101 of 101. **Next up**: the military AI's gaps
+(*What the moving wave left*), or the end-of-game screen.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
@@ -1936,7 +1942,7 @@ None of these blocks the list above.
   and a landless country's units, which the original destroys each hour. **A change of hands leaves out** unit
   rebasing, radar and the underground. **A
   pact is one object for both countries**, so annexation ends both sides of one (`war.md`, *Ours*). War
-  exhaustion is not built, so nothing pays back neutrality. **Units on ground they may no longer stand on are not marked** (`war.md`, *Not
+  exhaustion is paid back to neutrality since 2026-11-07 (`warexhaustion.md`). **Units on ground they may no longer stand on are not marked** (`war.md`, *Not
   built*), and undeclared wars and the revolt war are not built. Mobilising and spies spread no threat
   until they are built.
 - **Factions leave out** (`factions.md`, *Not built*): the custom game's leave and join; the AI inviting, and
@@ -2619,8 +2625,8 @@ None of these blocks the list above.
 - **A country's modifier is not yet all of the original's eighteen sources**: `base_values`, its
   faction's, its ministers, its laws, its government, its strategic resources, its provinces' modifiers,
   `war` or `peace`, the spies' two unity modifiers, `dissent`, neutrality, its event modifiers, its triggered
-  modifiers and `fractured_government` are in. The rest wait for what they need - a difficulty setting, war
-  exhaustion, subjects and governments in exile. `docs/mechanics/modifiers.md`, section 4.
+  modifiers, `fractured_government` and war exhaustion are in. The rest wait for what they need - a difficulty setting,
+  subjects and governments in exile. `docs/mechanics/modifiers.md`, section 4.
 - **One triggered modifier stays off for want of a condition**: `desperate_defence` asks `lost_national`, which is
   not built. `docs/mechanics/modifiers.md`, section 7.
 - **The goals window is not built**, which `menubar_goals_button` opens and which opening the Strategic Effects

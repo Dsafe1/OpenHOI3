@@ -193,7 +193,6 @@ never reads from the file (`espionage.md`, section 13).
 | --- | --- |
 | the event pass | `province_event` - `country_event` is built since 2026-10-16 (section 9) |
 | diplomacy | `undeclared_war`, `release_vassal`, `surrender_inherit` - the war and pact effects run (`war.md`, `agreements.md`), `release` since 2026-10-15 (`rebels.md`, section 8), `split_troops` since 2026-10-16 (section 9) |
-| war exhaustion | `war_exhaustion` - `neutrality` runs (`diplomacy.md`) |
 | the fog of war's switch | `remove_fow` |
 | the AI | `add_ai_strategy`, `fixed_ai_strategy` |
 | units an event gives or takes | `load_oob`, `add_division`, `remove_brigade` - a unit type's name is built since 2026-10-16 (section 9) |

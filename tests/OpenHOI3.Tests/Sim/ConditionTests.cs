@@ -63,14 +63,25 @@ public class ConditionTests
 		CGameState state = State();
 		var report = new CScriptReport();
 
-		Assert.False(Holds(state, "war_exhaustion = 0", CEventScope.Start(Ger), report));
+		Assert.False(Holds(state, "lost_ic = 0", CEventScope.Start(Ger), report));
 		Assert.False(Holds(state, "blockade = 1", CEventScope.Start(Ger), report));
-		Assert.True(Holds(state, "not = { war_exhaustion = 0 }", CEventScope.Start(Ger), report));
+		Assert.True(Holds(state, "not = { lost_ic = 0 }", CEventScope.Start(Ger), report));
 		Assert.False(Holds(state, "is_attacker = yes", CEventScope.Start(Ger), report));
 
-		Assert.Equal((EScriptGap.Unbuilt, 2), report.Gaps["war_exhaustion"]);
+		Assert.Equal((EScriptGap.Unbuilt, 2), report.Gaps["lost_ic"]);
 		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["blockade"].Why);
 		Assert.Equal(EScriptGap.BattleOnly, report.Gaps["is_attacker"].Why);
+	}
+
+	[Fact]
+	public void War_exhaustion_is_at_least_the_figure_written()
+	{
+		CGameState state = State();
+		state.Country(Ger)!.WarExhaustion = CFixedPoint.Parse("2.5");
+
+		Assert.True(Holds(state, "war_exhaustion = 2.5", CEventScope.Start(Ger)));
+		Assert.False(Holds(state, "war_exhaustion = 2.6", CEventScope.Start(Ger)));
+		Assert.True(Holds(state, "war_exhaustion = 0", CEventScope.Start(Pol)));
 	}
 
 	[Fact]

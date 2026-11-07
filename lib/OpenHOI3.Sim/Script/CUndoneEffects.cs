@@ -33,7 +33,6 @@ public static class CUndoneEffects
 		Add(EScriptGap.Unbuilt, "province_event");
 		// Diplomacy.
 		Add(EScriptGap.Unbuilt, "undeclared_war", "release_vassal", "surrender_inherit");
-		Add(EScriptGap.Unbuilt, "war_exhaustion");
 		// Espionage, the AI.
 		Add(EScriptGap.Unbuilt, "remove_fow");
 		Add(EScriptGap.Unbuilt, "add_ai_strategy", "fixed_ai_strategy");

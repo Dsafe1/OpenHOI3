@@ -272,7 +272,7 @@ impacts answer since 2026-10-14: `politics.md`, section 8. `spies` and `spy_miss
 | diplomacy | `truce_with`, `undeclared_war_with`, `casus_belli`, `has_cb`, `has_wargoal` |
 | the fog of war's switch | `remove_fow` |
 | the AI's missions | `active_mission`, `last_mission`, `is_mission_country`, `is_mission_province` |
-| a country's war record | `war_exhaustion`, `lost_IC`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
+| a country's war record | `lost_IC`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
 | the last battles | `last_battle_winner_losses` and the five others |
 | blockades | `blockade`, `is_blockaded` |
 | days out of supply | `out_of_supply_days` |
