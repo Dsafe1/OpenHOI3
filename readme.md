@@ -1667,9 +1667,11 @@ original makes them, the surf's quads from the cache's wave pixels - near the fo
 counts the fact base's every one, tried with `--screenshot`, and the maintainer has not looked at them. **And the
 trees** through `TreeShader` (the fact base's C.8): planted as the original plants them where settings.txt's `renderTrees`
 is on - `--trees` plants them regardless - a pixel of a tree palette entry keeping a tree by trees.txt's density, each four
-flat cards of its sheet, snowed in the weather mode below −5, at most 16 tiles at once under height 100. **Next up**: the
-province names under height 100, or move on;
-then the interface's other effects the client still imitates in C# -
+flat cards of its sheet, snowed in the weather mode below −5, at most 16 tiles at once under height 100. **And the
+province names** under height 100 (the fact base's farmap B.7): every province's name on its text position, turned and
+scaled as positions.txt says, wrapped at 320 only at spaces, fading in over 1.5 seconds as its tile comes into view, in
+kart_font's typewriter face, for which Liberation Mono now stands - with which the map's surface is whole but for terra
+incognita, a scenario's. **Next up**: the interface's other effects the client still imitates in C# -
 `counter.fx`, `maskedflag.fx`, `hierarchy.fx`, `circle.fx`. Then war exhaustion, or the military AI's gaps (*What the moving wave
 left*), or the end-of-game screen.
 
@@ -1772,9 +1774,13 @@ None of these blocks the list above.
 - **`CRandom` seeds as the original since 2026-11-07**, the shift in its seeding keeping the sign (the record's
   `MT19937Seed`), where it had used the textbook unsigned one; its twist, leaving a word that is odd and negative alone,
   was right and is checked against the bytes the same day. A loaded game is untouched, its generator's state the save's;
-  a new game rolls differently from then, so **every recording made before it no longer replays**, and the figures the
-  savegame tool's trials are quoted with here - a battle's, a raid's, a landing's, the headless run's - were rolled
-  before it and may now come out otherwise until each is run again. Nothing marks the hovered
+  a new game rolls differently from then, so **every recording made before it no longer replays**. The savegame tool's
+  trials were run again the same day under both seedings, side by side: those that roll moved a little (the raid 44
+  transports and 7 escorts where 38 and 3, the trade, the foreign minister's licences, the AI's spies and laws, the
+  agents 779 of 908), and `CLAUDE.md` gives the new figures beside the old; the landing, the airborne trials, diplomacy,
+  the AI's strategy and the replay check came out the same. Two figures quoted there were already stale before it - the
+  trade trial's 285 offers of 2026-10-13 (145 under the old seeding) and the air battle's ten over Warszawa (four battles
+  in all under either) - and the trade trial had stopped running at all, a command executed without `MayExecute`. Nothing marks the hovered
   province, as in the original; revolt risk's map style is ours.
   **The air map mode's land is a patchwork of greys**: `CMapView.AirOver`, the stand-in from before the surface, lays each
   colour over the province's terrain colour turned grey, and the surface's own technique then works on that again; what

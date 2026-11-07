@@ -29,6 +29,8 @@ public static class CPositionsReader
 {
 	private const string Unit = "unit";
 	private const string TextPosition = "text_position";
+	private const string TextRotation = "text_rotation";
+	private const string TextScale = "text_scale";
 	private const string BuildingPosition = "building_position";
 	private const string NavalBase = "naval_base";
 
@@ -44,10 +46,16 @@ public static class CPositionsReader
 		var navalBase = (CMapPosition[])unit.Clone();
 		var buildings = new CBuildingPosition[shapes.Count][];
 		Array.Fill(buildings, Array.Empty<CBuildingPosition>());
+		// A name stands at the centre of the bounding box where the file gives no text_position, as the unit point does.
+		var labels = new CProvinceLabel[shapes.Count];
+		for (int id = 0; id < shapes.Count; id++)
+		{
+			labels[id] = CProvinceLabel.Default with { X = unit[id].X, Y = unit[id].Y };
+		}
 		if (!File.Exists(path))
 		{
 			warn($"no positions: '{path}' is missing, and every province is at the centre of its bounding box");
-			return new CMapPositions(unit, text, navalBase, buildings, Array.Empty<CPortPlacement>());
+			return new CMapPositions(unit, text, navalBase, buildings, Array.Empty<CPortPlacement>()) { Labels = labels };
 		}
 		var placed = new List<CBuildingPosition>?[shapes.Count];
 		var ports = new List<CPortPlacement>();
@@ -91,6 +99,7 @@ public static class CPositionsReader
 					else if (depth == 2 && key == TextPosition)
 					{
 						text[province] = point;
+						labels[province] = labels[province] with { X = x, Y = y, Given = true };
 						if (isSea(province))
 						{
 							unit[province] = point;
@@ -137,6 +146,12 @@ public static class CPositionsReader
 				{
 					key = word;
 				}
+				else if (province > 0 && (key == TextRotation || key == TextScale)
+					&& float.TryParse(word, NumberStyles.Float, CultureInfo.InvariantCulture, out float value))
+				{
+					labels[province] = key == TextRotation ? labels[province] with { Rotation = value }
+						: labels[province] with { Scale = value };
+				}
 			}
 			else if (depth == 2 && key == BuildingPosition)
 			{
@@ -180,7 +195,7 @@ public static class CPositionsReader
 				buildings[id] = list.ToArray();
 			}
 		}
-		return new CMapPositions(unit, text, navalBase, buildings, ports.ToArray());
+		return new CMapPositions(unit, text, navalBase, buildings, ports.ToArray()) { Labels = labels };
 	}
 
 	/// <summary>

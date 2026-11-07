@@ -12,7 +12,7 @@ may change; *Ours* where this departs.
 
 The original's scene, `FINDINGS-mapdraw.md` C.1: the land; the beaches; the rivers; the land borders under `border_cutoff`;
 the sea; the surf where `waves`; the water borders; the trees under height 100; the country names in the far view; the
-province names under 100. **Built so far: the land, the beaches, the rivers, the land borders, the sea, the surf, the sea zones' borders, the trees, the highlight and the country names** (section 6). The overlays this project draws
+province names under 100. **Built so far: the land, the beaches, the rivers, the land borders, the sea, the surf, the sea zones' borders, the trees, the highlight, the country names and the province names** (section 6). The overlays this project draws
 in 2D - counters, buildings, arrows, the hierarchy, the selection, the weather and the air map's layers - stay as they are,
 over the map.
 
@@ -225,6 +225,29 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   drawn until it is done; the tiles in view the ground the camera looks straight down on and two pixels more, where the
   original's list of visible tiles was not read; a tree's vertices in the map's own coordinates, three materials a type for
   the copies of the map.
+- **The province names** (`reversing/findings/FINDINGS-farmap.md`, B.7; `Content/Map/CProvinceLabel`,
+  `Interface/Map/CProvinceNameLayout`, `src/Map/CProvinceNames`): **under height 100, in every map mode and whatever the
+  settings** [exe] - the original's shown byte is 1 for every province and nothing clears it - every province, land and
+  sea, has its `PROV<id>` [mod: localisation] written **in its own case** in the font called `tahoma_60` [mod:
+  interface/core.gfx], TFH's kart_font, black. positions.txt [mod] gives `text_position` as written, `text_rotation` in
+  radians (0 where not given) and `text_scale` (1 where not given); a province with no `text_position` - 8,001 of TFH's -
+  has its name at the centre of its bounding box, as its terrain is counted (section 4 of `map.md`). The fact base's
+  reading had it at the map's (0, 0), never seen, from the template's constructor; the maintainer's screenshot of the
+  original, 2026-11-07, named Stolp, Belgard and Falkenburg, none with a `text_position`, where ours had nothing, and the
+  reading was corrected. **The layout** [exe]: a name over 50 characters cut to
+  49; broken only at a glyph with no height - the space - and only where the line, the word and its space taken in, is
+  wider than 320 font pixels, the break going before that word, so a word is never split and the last never tested; each
+  glyph its advance and its kerning with the next; each line centred on the point, the lines stacked upwards, so **the
+  block stands on the point**; turned anticlockwise by the rotation; a font pixel 0.05 × text_scale × 0.5 map pixels.
+  **The slots** [exe]: at most 1000 names at once; each tile in view (50 pixels, a province's tile by the middle of its
+  bounding box), in the tiles' order, gives its provinces' names - by id - free slots until none is left; a name **fades
+  in over 1.5 seconds**, alpha 170 a second, nought not drawn, and only under 100; **a tile leaving the view frees its
+  names**, while the camera is under 970, so they fade in again when it comes back, and one that stays in view keeps
+  them across a zoom past 100. No depth: a later name over an earlier one. *Ours*: drawn on a 2D layer over the surface
+  as the country names are, each letter the typeface standing for the font at its glyph's box; the tiles in view the
+  ground the 2D view covers, where the original's list of visible tiles was not read; the names fade by the wall clock
+  from the frame, as the original's clock is the renderer's seconds; a rename (`change_province_name`) not built, the
+  province's name its history's.
 - **The device states** around each draw, `FINDINGS-mapdraw.md` C.1 and C.2: the land unblended (ONE / ZERO); the beaches
   SRCALPHA / ZERO, which their Graphical and General passes override; the sea SRCALPHA / INVSRCALPHA; the baseline alpha
   test at 8 / GREATEREQUAL where a pass turns the test on - each handed to the translator as the states the pass is laid over.
@@ -316,5 +339,10 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   the Black Forest a canopy of clumps seen from above, the Rhine plain bare; Karelia's trees snowed in the weather mode
   and green in the terrain mode. **The maintainer's settings.txt has `renderTrees=no`**, so without `--trees` he sees
   none, as the original would show him none. He has not looked at them.
-- **Next**: the map surface is whole but for the province names under height 100 and terra incognita (a scenario's
-  alone, which there are none of here).
+- **The province names, built 2026-11-07** (section 4), after a reading in the fact base (`FINDINGS-farmap.md`, B.7),
+  which found the shown byte gating nothing and the record's `MapTile_Update` an instruction inside another function.
+  Checked with `--screenshot` under Kassel: every name on its point, Göttingen, Duderstadt and Wuppertal turned as
+  positions.txt turns them, in its own case, black. **kart_font's "Another Typewriter" had no stand-in**, and Liberation
+  Sans drawn into its boxes left gaps round the narrow letters - "Bi el ef el d"; it is drawn in Liberation Mono since
+  (`fonts/readme.md`), its letters 28 to 40 pixels wide being nearly a monospace. He has not looked at them.
+- **Next**: the map surface is whole but for terra incognita, a scenario's alone, which there are none of here.

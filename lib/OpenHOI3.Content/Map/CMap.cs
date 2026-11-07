@@ -44,6 +44,7 @@ public sealed class CMap
 		Continents = continents;
 		Positions = positions.Unit;
 		TextPositions = positions.Text;
+		ProvinceLabels = positions.Labels;
 		NavalBasePositions = positions.NavalBase;
 		BuildingPositions = positions.Buildings;
 		Edges = edges;
@@ -109,6 +110,9 @@ public sealed class CMap
 	/// of its bounding box. Its terrain is taken around this point.
 	/// </summary>
 	public IReadOnlyList<CMapPosition> TextPositions { get; }
+
+	/// <summary>Per province id, where and how its name is written on the near map, as positions.txt gives it.</summary>
+	public IReadOnlyList<CProvinceLabel> ProvinceLabels { get; }
 
 	/// <summary>
 	/// Per province id, where its port is drawn: <c>naval_base</c>, or the centre of its

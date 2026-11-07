@@ -167,7 +167,11 @@ public partial class CMapView : Node2D
 		_textures ??= gui.Textures;
 		_names = new CCountryMapNames { Name = "CountryNames", Visible = false };
 		_names.Setup(_map, _state, gui.Fonts);
+		_provinceNames = new CProvinceNames { Name = "ProvinceNames" };
+		_provinceNames.Setup(_map, _state, gui.Fonts);
 	}
+
+	private CProvinceNames? _provinceNames;
 
 	private CMapSurface? _surface;
 	private CBorderCache? _corners;
@@ -420,6 +424,10 @@ public partial class CMapView : Node2D
 		if (_names is not null)
 		{
 			AddChild(_names);
+		}
+		if (_provinceNames is not null)
+		{
+			AddChild(_provinceNames);
 		}
 		if (_counters is not null)
 		{
@@ -1114,6 +1122,7 @@ public partial class CMapView : Node2D
 		{
 			_names.Visible = NamesShown();
 		}
+		_provinceNames?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size, delta);
 		_sinceBorders += delta;
 		if (_bordersDirty && (_sinceBorders >= BordersInterval || _bordersAt < 0))
 		{

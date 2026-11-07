@@ -86,8 +86,28 @@ public sealed class CFontDescriptor
 					descriptor._glyphs[numbers[0]] = new CFontGlyph(numbers[3], numbers[4], numbers[5], numbers[6], numbers[7]);
 				}
 			}
+			else if (line.StartsWith("kerning ", StringComparison.Ordinal))
+			{
+				// first, second and amount, taken by their place as the characters' numbers are.
+				List<int> numbers = Numbers(line);
+				if (numbers.Count >= 3)
+				{
+					descriptor._kerning[(numbers[0], numbers[1])] = numbers[2];
+				}
+			}
 		}
 		return descriptor;
+	}
+
+	private readonly Dictionary<(int, int), int> _kerning = new();
+
+	/// <summary>
+	/// How much more the pen moves between two characters than the first's advance says: the descriptor's kerning pair, or
+	/// nought. The map's province names are laid out with it (<c>reversing/findings/FINDINGS-farmap.md</c>, B.7.3).
+	/// </summary>
+	public int Kerning(char first, char second)
+	{
+		return _kerning.TryGetValue((first, second), out int amount) ? amount : 0;
 	}
 
 	/// <summary>How far the pen moves for a character, or nothing for one the font does not have.</summary>

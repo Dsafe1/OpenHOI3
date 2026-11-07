@@ -10,4 +10,8 @@ namespace OpenHOI3.Content.Map;
 /// <param name="Buildings">Every building the file places in the province, in the file's order.</param>
 /// <param name="Ports">Every <c>naval_base</c> position, in the file's order.</param>
 public sealed record CMapPositions(CMapPosition[] Unit, CMapPosition[] Text, CMapPosition[] NavalBase,
-	CBuildingPosition[][] Buildings, CPortPlacement[] Ports);
+	CBuildingPosition[][] Buildings, CPortPlacement[] Ports)
+{
+	/// <summary>Per province id, where and how its name is written on the near map; empty where the file was not read.</summary>
+	public CProvinceLabel[] Labels { get; init; } = System.Array.Empty<CProvinceLabel>();
+}

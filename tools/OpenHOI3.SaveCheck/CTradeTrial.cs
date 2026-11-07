@@ -92,7 +92,11 @@ internal static class CTradeTrial
 							break;
 					}
 				}
-				command.Execute(state);
+				// As the simulation runs a command: only where it may still be done, the unit or pact it names there yet.
+				if (command.MayExecute(state))
+				{
+					command.Execute(state);
+				}
 			}
 		}
 		Console.WriteLine($"{days} days in {clock.ElapsedMilliseconds} ms: {proposed} trades offered, {accepted} accepted, " +

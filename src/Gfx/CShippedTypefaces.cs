@@ -34,6 +34,8 @@ public sealed class CShippedTypefaces
 			["Tahoma"] = Default,
 			["Courier"] = new("LiberationMono-Regular.ttf", "LiberationMono-Bold.ttf"),
 			["Courier New"] = new("LiberationMono-Regular.ttf", "LiberationMono-Bold.ttf", SameWidths: true),
+			// kart_font's, the province names' on the map: a typewriter face whose letters run 28 to 40 pixels wide.
+			["Another Typewriter"] = new("LiberationMono-Regular.ttf", "LiberationMono-Bold.ttf"),
 			["Trebuchet MS"] = new("FiraSans-Regular.ttf", "FiraSans-Bold.ttf"),
 			["Franklin Gothic Demi Cond"] = new("BarlowCondensed-SemiBold.ttf"),
 			["Garamond"] = new("EBGaramond-Variable.ttf", VariableWeight: true),

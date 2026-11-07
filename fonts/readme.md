@@ -14,7 +14,7 @@ goes with them. The licence texts are beside the files and must stay there.
 | file | typeface | stands for | licence text |
 | --- | --- | --- | --- |
 | `LiberationSans-Regular.ttf`, `-Bold`, `-Italic`, `-BoldItalic` | Liberation Sans 2.1.5 | **Arial**, with the same widths letter for letter; Tahoma; and any typeface with no stand-in of its own | `OFL-Liberation.txt` |
-| `LiberationMono-Regular.ttf`, `-Bold` | Liberation Mono 2.1.5 | Courier | `OFL-Liberation.txt` |
+| `LiberationMono-Regular.ttf`, `-Bold` | Liberation Mono 2.1.5 | Courier; Another Typewriter (`kart_font`, the province names on the map), nearly a monospace | `OFL-Liberation.txt` |
 | `FiraSans-Regular.ttf`, `-Bold` | Fira Sans 4.203 | Trebuchet MS | `OFL-FiraSans.txt` |
 | `BarlowCondensed-SemiBold.ttf` | Barlow Condensed 1.408 | Franklin Gothic Demi Cond | `OFL-BarlowCondensed.txt` |
 | `EBGaramond-Variable.ttf` | EB Garamond 1.003, every weight in one file | Garamond, Adobe Garamond Pro | `OFL-EBGaramond.txt` |
