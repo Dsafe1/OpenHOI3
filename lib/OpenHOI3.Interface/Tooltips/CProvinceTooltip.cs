@@ -39,7 +39,7 @@ public static class CProvinceTooltip
 	/// <param name="selectedProvince">The province selected, or 0.</param>
 	/// <param name="network">The supply network, asked for only in the supply mode.</param>
 	public static CTooltip Build(Func<string, string> localise, CGameState state, CProvince province, EMapTooltipMode mode,
-		CCountryTag? player, CUnit? selectedUnit, int selectedProvince, Func<CSupplyNetwork> network)
+		CCountryTag? player, CUnit? selectedUnit, int selectedProvince, Func<CSupplyNetwork> network, bool continentPainting = false)
 	{
 		var text = new StringBuilder();
 		if (selectedUnit is not null && IsLand(selectedUnit) && state.Country(selectedUnit.Owner) is { } owner)
@@ -94,7 +94,7 @@ public static class CProvinceTooltip
 				text.Append(CMapModeText.Resources(localise, state, province, player));
 				break;
 			case EMapTooltipMode.Region:
-				text.Append(CMapModeText.Region(localise, state, province));
+				text.Append(CMapModeText.Region(localise, state, province, continentPainting));
 				break;
 			case EMapTooltipMode.Diplomatic:
 				text.Append(CMapModeText.Diplomatic(localise, state, province, player));

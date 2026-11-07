@@ -251,9 +251,17 @@ for the order of the tests.
 
 **A stack shows its top counter, or its top six** each drawn 0.3 map units west and 0.3
 north of the one under it. `confirmed`. Which it is depends on how well the player knows
-the units: the original has an intel level for every unit, 9 for the player's own, and
-under 3 a stack shows one counter with the unknown picture, under 2 nothing at all. There
-is no fog of war here, so every stack shows up to six.
+the units: **how well the player knows a unit** is 9 for its own units and its friends' - a
+country of the same real faction, or one allied with it - and otherwise what it knows of the
+province the unit stands in (`intelligence.md`) [exe]. A stack goes by its top counter's: **under
+2 it is not drawn and cannot be clicked, under 3 it shows one counter**, not fanned. Each counter
+goes by its own unit's: under 3 the unknown picture (`GFX_map_counter_unknown`, the small one far
+[mod: interface/counters.gfx]), under 5 the name `???`, under 7 the figures `?` (section 4).
+`confirmed` (`reversing/findings/FINDINGS-counters.md`, sections 5 and 6). *Ours:* the original
+takes the level of the first counter of its stack's list, here the top one; and it copies a unit's
+level as the unit enters a province, where here it is worked out as the counters are made again -
+when units move, and each day after the day's intelligence. Built since 2026-11-07: until then there
+was no fog of war, and every stack showed up to six.
 
 **Within a stack the higher rank is on top.** The maintainer, 2026-10-09: "Correct." The
 original sorts a stack by a number on each counter whose source was not read, so the
@@ -287,7 +295,7 @@ sum over the unit's brigades, divided, and held to 9: `confirmed`
   adds a brigade's figures into its unit's.
 - **The division is of whole thousandths, cutting; the result is then rounded to a whole
   number, a half going to the even one.**
-- A figure the player does not know - an intel level under 7 - is written `?`. Never, here.
+- A figure the player does not know - an intel level under 7 - is written `?` (section 3).
 
 They are for the eye. Nothing fights by them.
 
@@ -494,7 +502,10 @@ province and the bombing icon south-west of it in one and north-west in the othe
 - **A province shows a picture for every building it has any of that `buildings.txt`
   declares `onmap`**: its air base, its naval base, its forts, its anti-aircraft guns, its
   radar and the rest. The picture is the `billboardType` named `building_` and the
-  building's name, of `interface/mapitems.gfx`.
+  building's name, of `interface/mapitems.gfx`. **Only where the player knows the province at
+  all, or the building is declared `visibility`** [mod: common/buildings.txt]; a port or an
+  airfield shows itself in use - its second frame - only where the player knows the province
+  at 2 or more [exe] (`reversing/findings/FINDINGS-seaair.md`, section 6). Since 2026-11-07.
 - **It stands where `positions.txt` puts that building** in the province -
   `building_position = { air_base = { x y } }` - and is a square of twice the type's `scale`
   a side, 5 map units for all of them in the base game.
@@ -519,9 +530,6 @@ point (`mapmodes.md`, section 5); until then it stood at the province's unit poi
 
 *Ours:*
 
-- **there is no fog of war**, so every country's bases show whether they are in use; the
-  original shows the second frame only for a province the player knows well enough, and a
-  building at all only where he knows the province or the building is declared `visibility`;
 - the units of a port or an airfield are gone through in the order of their numbers, where
   the original goes by the order they came in. The maintainer, 2026-10-09: "Its fine the
   way it is";

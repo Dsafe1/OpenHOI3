@@ -224,7 +224,9 @@ public partial class CSession : Node
 		_mapView.Setup(Map, State);
 		_mapView.Player = Player?.Tag;
 		// Each region's colour, handed out once from interface/colors.txt: the region and theatre modes paint with them.
-		_mapView.RegionColours = CRegionMapColours.Assign(State.Regions, CInterfaceColorsReader.Read(_directories));
+		IReadOnlyList<CColor> interfaceColours = CInterfaceColorsReader.Read(_directories);
+		_mapView.RegionColours = CRegionMapColours.Assign(State.Regions, interfaceColours);
+		_mapView.ContinentColours = CRegionMapColours.AssignContinents(Map.ContinentNames, interfaceColours);
 		_mapView.SetupCounters(gui, CCounterTypes.Load(_directories), CBillboardTypes.Load(_directories),
 			CArrowTypes.Load(_directories));
 		// The player's settings the counters are drawn by, as they are read at start and as Apply changes them.
@@ -424,6 +426,8 @@ public partial class CSession : Node
 			layer.MoveChild(_minimap, 1);
 			_modeButtons = messageLog;
 			messageLog.ModeButtonPressed += ChooseMapMode;
+			messageLog.ZoomInPressed += () => _mapView.StepZoom(inwards: true);
+			messageLog.ZoomOutPressed += () => _mapView.StepZoom(inwards: false);
 			// The Strategic Effects window, which the bar's button by the minimap opens (docs/mechanics/strategiceffects.md).
 			_strategicEffects = new CStrategicEffectsView();
 			_strategicEffects.Setup(gui, _simulation, Player);
@@ -502,6 +506,8 @@ public partial class CSession : Node
 		_debugMenu = new Debug.CDebugMenu();
 		layer.AddChild(_debugMenu);
 		_debugMenu.AddSwitch("Province readout", false, on => _provinceLabel.Visible = on);
+		// The original's console command cpaint, an editor switch left in the release (mapmodes.md, section 7).
+		_debugMenu.AddSwitch("Continent painting (cpaint)", false, on => _mapView.ContinentPainting = on);
 
 		// The in-game menu, over the other windows: the top bar's menu button and Escape with nothing selected open it,
 		// and opening it lets the selection go and shuts the side menus and a country view (docs/mechanics/ingamemenu.md).
@@ -534,7 +540,10 @@ public partial class CSession : Node
 		// Every tooltip, over everything else.
 		var tooltips = new CTooltips();
 		tooltips.Setup(gui);
-		tooltips.MapTooltip = _ => ProvinceTooltip(_mapView.HoveredProvince);
+		// Over a counter the map's tooltip is the unit's own, else the province's (tooltips.md, section 7.1).
+		tooltips.MapTooltip = _ => _mapView.HoveredUnit is { } unit
+			? new CTooltip { Text = CUnitCounterTooltip.Build(_localisation.Localise, State, unit, Player?.Tag) }
+			: ProvinceTooltip(_mapView.HoveredProvince);
 		tooltips.MapTooltipAnchor = () => _minimap?.Corner;
 		AddChild(tooltips);
 
@@ -597,7 +606,7 @@ public partial class CSession : Node
 			_ => EMapTooltipMode.Political,
 		};
 		return CProvinceTooltip.Build(_localisation.Localise, State, State.Province(provinceId), mode, Player?.Tag,
-			_mapView.Units.First, _mapView.SelectedProvince, () => CSupplyNetworks.Refresh(State));
+			_mapView.Units.First, _mapView.SelectedProvince, () => CSupplyNetworks.Refresh(State), _mapView.ContinentPainting);
 	}
 
 	/// <summary>
@@ -1031,6 +1040,9 @@ public partial class CSession : Node
 			_mapView.RefreshModeIcons();
 			// And the country names' factions, which no change of hands marks.
 			_mapView.RefreshNames();
+			// And the counters and buildings by the day's intelligence, which decides what of each the player sees
+			// (mapunits.md, section 3).
+			_mapView.Counters?.Refresh();
 		}
 		// Its colours, when one of the player's fighter missions has started or gone.
 		if (_mapView.Mode == CMapView.MapMode.Air)

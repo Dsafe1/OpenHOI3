@@ -17,6 +17,7 @@ public sealed class CTextIconTextures
 	private readonly CSpriteTypes _sprites;
 	private readonly Dictionary<string, Texture2D?> _flags = new();
 	private readonly Dictionary<string, Texture2D?> _counters = new();
+	private (Texture2D? Texture, int Frames)? _strength;
 
 	public CTextIconTextures(CTextureManager textures, CSpriteTypes sprites)
 	{
@@ -32,6 +33,18 @@ public sealed class CTextIconTextures
 	{
 		foreach (CTextPiece piece in CTextIcons.Split(text))
 		{
+			if (piece.Strength is { } frame)
+			{
+				if (Strength() is { Texture: { } bars, Frames: > 0 } strength)
+				{
+					float frameWidth = bars.GetWidth() / (float)strength.Frames;
+					item.DrawTextureRectRegion(bars,
+						new Rect2(Mathf.Round(x), Mathf.Round(top - CStrengthIcons.AboveLineTop), CStrengthIcons.Width, CStrengthIcons.Height),
+						new Rect2(Mathf.Min(frame, strength.Frames - 1) * frameWidth, 0f, frameWidth, bars.GetHeight()));
+				}
+				x += CStrengthIcons.Advance;
+				continue;
+			}
 			if (piece.Counter is not null)
 			{
 				if (Counter(piece.Counter) is { } counter)
@@ -76,6 +89,13 @@ public sealed class CTextIconTextures
 			_flags[tag] = flag;
 		}
 		return flag;
+	}
+
+	/// <summary>The strength bars' sprite and its frame count, found once.</summary>
+	private (Texture2D? Texture, int Frames) Strength()
+	{
+		_strength ??= _sprites.Find(CStrengthIcons.Sprite) is { } sprite ? (_textures.Load(sprite), System.Math.Max(sprite.FrameCount, 1)) : (null, 0);
+		return _strength.Value;
 	}
 
 	/// <summary>The picture of the sprite <c>GFX_counter_</c> + name, or null where there is none - which draws nothing.</summary>

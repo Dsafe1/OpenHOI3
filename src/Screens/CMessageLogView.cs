@@ -42,6 +42,12 @@ public sealed partial class CMessageLogView : Control
 	/// <summary>Raised with a map mode button's number, from one, when it is pressed.</summary>
 	public event Action<int>? ModeButtonPressed;
 
+	/// <summary>Raised when the bar's zoom-in button is pressed, or Page Down: <c>minimap.md</c>, section 4.</summary>
+	public event Action? ZoomInPressed;
+
+	/// <summary>Raised when the bar's zoom-out button is pressed, or Page Up.</summary>
+	public event Action? ZoomOutPressed;
+
 	private readonly CGuiButton?[] _modeButtons = new CGuiButton?[Interface.Map.CMapModeButtons.Count];
 
 	/// <summary>
@@ -60,6 +66,10 @@ public sealed partial class CMessageLogView : Control
 
 	/// <summary>The button by the minimap that opens and shuts the Strategic Effects window (<c>strategiceffects.md</c>).</summary>
 	public const string ModifiersButtonName = "menubar_modifiers_button";
+
+	/// <summary>The bar's two zoom buttons, by the minimap.</summary>
+	public const string ZoomInName = "map_zoom_in";
+	public const string ZoomOutName = "map_zoom_out";
 
 	/// <summary>Raised when that button is pressed.</summary>
 	public event System.Action? ModifiersPressed;
@@ -95,13 +105,14 @@ public sealed partial class CMessageLogView : Control
 			return;
 		}
 		AddChild(bar);
-		// The bar holds the chat and the zoom buttons as well, which are not built, so they are not shown; the log, the
-		// Strategic Effects button, the map modes' buttons and the minimap's shadow are (minimap.md).
+		// The bar holds the chat as well, which is not built, so it is not shown; the log, the Strategic Effects button, the
+		// map modes' buttons, the zoom buttons and the minimap's shadow are (minimap.md).
 		foreach (Node child in bar.GetChildren())
 		{
 			string name = child.Name.ToString();
 			if (child is Control shown && name != "messagelog_window" && name != "OPENbutton" && name != ModifiersButtonName
-				&& name != "minimap_bg_shadow" && !name.StartsWith("mapmode_", StringComparison.Ordinal))
+				&& name != "minimap_bg_shadow" && name != ZoomInName && name != ZoomOutName
+				&& !name.StartsWith("mapmode_", StringComparison.Ordinal))
 			{
 				shown.Visible = false;
 			}
@@ -117,6 +128,14 @@ public sealed partial class CMessageLogView : Control
 			string tooltip = _context.Localisation.Localise(Interface.Map.CMapModeButtons.TooltipKey(number));
 			button.Tooltip = () => new Interface.Tooltips.CTooltip { Text = tooltip };
 			_modeButtons[number - 1] = button;
+		}
+		if (bar.TryFindButton(ZoomInName) is { } zoomIn)
+		{
+			zoomIn.Pressed += () => ZoomInPressed?.Invoke();
+		}
+		if (bar.TryFindButton(ZoomOutName) is { } zoomOut)
+		{
+			zoomOut.Pressed += () => ZoomOutPressed?.Invoke();
 		}
 		if (bar.TryFindButton(ModifiersButtonName) is { } modifiers)
 		{

@@ -46,4 +46,14 @@ public class FlagIconsTests
 	{
 		Assert.Equal(30f + 2f, CTextIcons.Measure("£armor_brigade x", text => text.Length));
 	}
+
+	[Fact]
+	public void A_brace_and_two_digits_are_a_strength_bar_8_wide_and_anything_else_is_text()
+	{
+		Assert.Equal(new[]
+		{
+			new CTextPiece("", null, null, 10), new CTextPiece("", null, null, 9), new CTextPiece(" {x", null),
+		}, CTextIcons.Split("{10{09 {x").ToArray());
+		Assert.Equal(8f + 8f + 3f, CTextIcons.Measure("{10{09 {x", text => text.Length));
+	}
 }

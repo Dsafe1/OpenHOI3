@@ -25,4 +25,7 @@ public sealed class CMapCounter
 
 	/// <summary>The first eight letters of the unit's name.</summary>
 	public required string Name { get; init; }
+
+	/// <summary>How well the player knows the unit, 0 to 9 (<see cref="CUnitIntel"/>).</summary>
+	public int Intel { get; init; } = CUnitIntel.Full;
 }

@@ -155,11 +155,14 @@ public static class CMapModeText
 		return "";
 	}
 
-	/// <summary>Each region that lists the province, peace regions starred, then its continent with a capital letter.</summary>
-	public static string Region(Func<string, string> localise, CGameState state, CProvince province)
+	/// <summary>
+	/// Each region that lists the province, peace regions starred - not with the editor's continent painting on - then its
+	/// continent with a capital letter.
+	/// </summary>
+	public static string Region(Func<string, string> localise, CGameState state, CProvince province, bool continentPainting = false)
 	{
 		var text = new StringBuilder();
-		foreach (int index in province.Regions)
+		foreach (int index in continentPainting ? System.Array.Empty<int>() : (System.Collections.Generic.IReadOnlyList<int>)province.Regions)
 		{
 			if (index < 0 || index >= state.Regions.Count)
 			{

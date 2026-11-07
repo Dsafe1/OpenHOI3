@@ -134,8 +134,12 @@ used for peace (`peace = yes`); then the province's continent with its first let
 key's localisation, or where the key has none and the region has provinces, `REGION_NAME` with `NAME` its first
 province's name - "$NAME$ Region" in Their Finest Hour [mod].
 
-*Ours:* the original's continent painting, a second form of the mode, is not built; with it on, the tooltip leaves the
-regions out.
+**Continent painting**, the original console's `cpaint` - an editor switch left in the release, which nothing in a game
+sets: the region mode then colours each province by its continent × b, grey where it has none, and the tooltip leaves the
+regions out. A continent's colour comes from `colors.txt` from its first colour again, in `map/continent.txt`'s order, with
+no test for an empty one [exe] - Their Finest Hour's europe 4 144 178, asia 181 72 106, africa 63 125 214. Built since
+2026-11-07; *ours*, it is a switch of the debug menu (Shift and 4), as the province readout is, there being no console. A
+continent past the colour list's end keeps white, which the reading leaves open.
 
 ## 8. Diplomatic
 
@@ -224,4 +228,3 @@ is at war with the defender - not quite the icons' test, which is the original's
 - Which theatre a province two countries' theatres hold names in the tooltip: here the first found.
 - Whether a dying naval order still colours its provinces: the original colours again before the order is taken apart.
 - Which of the original's provinces it does not simulate, which get no resource icon: here every province does.
-- The original's continent painting, read and not built.

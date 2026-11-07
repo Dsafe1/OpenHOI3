@@ -102,10 +102,12 @@ public static class CMapCounters
 	}
 
 	/// <summary>
-	/// Every stack on the map. Within one the higher rank is on top, and of two of a
-	/// rank the one made later.
+	/// Every stack on the map the player may see. Within one the higher rank is on top, and of two of a rank the one made
+	/// later. What the player knows of a unit (<see cref="CUnitIntel"/>) decides what its counter shows - under 3 the unknown
+	/// picture, under 5 the name <c>???</c>, under 7 the figures <c>?</c> - and of its top unit whether the stack shows at
+	/// all, under 2 not (mapunits.md, section 3).
 	/// </summary>
-	public static List<CMapStack> Build(CGameState state)
+	public static List<CMapStack> Build(CGameState state, CCountryTag? player = null)
 	{
 		var byPlace = new Dictionary<(int, EMapStack), CMapStack>();
 		var stacks = new List<CMapStack>();
@@ -124,14 +126,17 @@ public static class CMapCounters
 					byPlace[place] = stack;
 					stacks.Add(stack);
 				}
+				int intel = CUnitIntel.Level(state, unit, player);
+				string typeKey = CCounterText.TypeKey(unit);
 				stack.Counters.Add(new CMapCounter
 				{
 					Unit = unit,
 					Colour = country.Color,
-					TypeKey = CCounterText.TypeKey(unit),
+					TypeKey = intel >= CUnitIntel.TypeShown && typeKey.Length > 0 ? typeKey : CUnitIntel.UnknownType,
 					Size = CCounterText.Size(unit),
-					Figures = CCounterText.Figures(unit),
-					Name = CCounterText.Name(unit),
+					Figures = intel >= CUnitIntel.FiguresShown ? CCounterText.Figures(unit) : CCounterText.Figures(-1, -1),
+					Name = intel >= CUnitIntel.NameShown ? CCounterText.Name(unit) : CUnitIntel.UnknownName,
+					Intel = intel,
 				});
 			}
 		}
@@ -139,6 +144,8 @@ public static class CMapCounters
 		{
 			stack.Counters.Sort((a, b) => a.Size != b.Size ? a.Size.CompareTo(b.Size) : a.Unit.Id.CompareTo(b.Unit.Id));
 		}
+		// A stack whose top unit the player knows under 2 is not there for it: not drawn, not clicked.
+		stacks.RemoveAll(stack => stack.Counters[^1].Intel < CUnitIntel.StackShown);
 		return stacks;
 	}
 }

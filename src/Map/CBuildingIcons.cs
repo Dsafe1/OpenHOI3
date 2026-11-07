@@ -5,6 +5,7 @@ using OpenHOI3.Content.Map;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Map;
 
@@ -46,10 +47,13 @@ public partial class CBuildingIcons : Node2D
 		ShowBehindParent = true;
 	}
 
+	/// <summary>The country playing, whose knowledge of each province decides what of its buildings shows.</summary>
+	public CCountryTag? Player { get; set; }
+
 	/// <summary>Works out again which buildings there are and which bases have something in them.</summary>
 	public void Refresh()
 	{
-		_buildings = CMapBuildings.Build(_state, _map);
+		_buildings = CMapBuildings.Build(_state, _map, Player);
 		QueueRedraw();
 	}
 

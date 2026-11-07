@@ -1859,7 +1859,7 @@ None of these blocks the list above.
 
 - **Selection leaves out** (2026-10-16, `docs/mechanics/selection.md`, *Ours*, *Not built* and *Not established*):
   the multi-unit panel's upgrade-all, detach, higher command and disband, as the single panel leaves
-  them; **over a counter the original's map tooltip is the unit's own**, here still the province's; the selection
+  them; the selection
   groups are not saved, there being no saving; the rows do not move right for an open side menu; and **whether the
   original ever sees Alt**, which by the bytes cancels a box and by its keyboard is never set - here Alt does nothing.
 - **A unit left empty is not taken out each hour** (2026-11-04, `docs/mechanics/unitpanel.md`, section 7.1): the
@@ -1877,10 +1877,11 @@ None of these blocks the list above.
   2026-10-15 settled the pictures' size and place, that they draw at every zoom, and the tooltip without the province's
   name; and **only the `_simple` pictures are drawn**, `alwaysCounters` off being unsupported by his word that day
   (`docs/compatibility.md`, entry 12). **The player's settings are read from the original's `settings.txt` in the
-  Documents folder** (`docs/mechanics/settings.md`; `docs/compatibility.md`, entry 13) - of them only `alwaysCounters` matters yet, and **what
-  `counter_scale` does is not read** (he plays at 2). **The terrain mode is not dimmed where the player knows little**, though the original's
-  is (read; his game runs with `debug fow`, which hides it). And **about one land province in two hundred has another terrain in the original** than the map's rule gives it
-  here: `OpenHOI3.SaveCheck weather` names each, and they are the data for settling `map.md`'s terrain rule.
+  Documents folder** (`docs/mechanics/settings.md`; `docs/compatibility.md`, entry 13) - which of them apply, and when,
+  `settings.md` lists; `counter_scale` is applied since 2026-11-07. And **about one land province in two hundred has another
+  terrain in the original** than the map's rule gives it here: `OpenHOI3.SaveCheck weather` names each - 48, every one a
+  province without a `text_position` and a near-tie in its square that the original gives to our runner-up (`map.md`,
+  *What is not established*).
 - **Convoy lines leave out** (2026-10-15, `docs/mechanics/convoylines.md`, *Ours*, *Not built* and *Not established*):
   the AI's ordering of transports and escorts, BlackICE's history lines of them, and two things a screenshot would
   settle - whether the transports dialog draws the file's `on_complete_icon` and frame, which nothing sets, and which
@@ -1993,7 +1994,7 @@ None of these blocks the list above.
     name, so an effect in a region names none;
   - **of messages, only an event's and a decision's are raised** (`messages.md`, *Ours*): none
     on the map, no settings window of a type's own - a right click on a popup or a log row does
-    nothing - and of the bottom bar the chat and the zoom buttons are hidden (the minimap and the map
+    nothing - and of the bottom bar the chat is hidden (the minimap, the zoom buttons and the map
     modes' buttons are built, `minimap.md`); whether the original's button that opens the log
     shows only while it is shut was not read. The in-game menu's message settings and
     `messagetypes_custom.txt` are built (`ingamemenu.md`);
@@ -2189,11 +2190,11 @@ None of these blocks the list above.
   raid on convoys from the air is not, nor what a
   strategic bombing does to threat and to the bombed country's unity. `bombing.md`,
   section 13. `OpenHOI3.SaveCheck bombing` is a trial of it.
-- **Nothing draws a fog of war.** What every country knows of every province is read whole and
-  kept since 2026-10-14 (`intelligence.md`), and the missions, the sighting and the AI ask it, but
-  the map shows every country's units and buildings: the original hides a stack under 2, draws the
-  unknown picture under 3, names it `???` under 5 and its figures `?` under 7, and shows a
-  province's buildings from 6. Undergrounds, which give 9, are not built.
+- **The fog of war on the map is built since 2026-11-07** (`mapunits.md`, sections 3 and 9): a stack the player knows
+  under 2 is not there, under 3 it is one counter with the unknown picture, a name under 5 is `???` and the figures under
+  7 `?`; a building shows where the province is known at all or the building is `visibility`, a base in use from 2; the
+  terrain mode and the others dim what is known under 2. A unit's level is worked out when the counters are made again,
+  where the original copies it as the unit enters a province.
 - **A building has two levels now, and most rules were written when it had one.** A
   province's modifier is made from what works of a building, and whether there is a port or
   an airfield is asked of what was built. The supply network's roads are what was built, as
@@ -2207,9 +2208,8 @@ None of these blocks the list above.
 - ~~**No AI gives an air mission**~~ - the AI's air body gives them since 2026-10-19 (`moving.md`, section 17): close
   support, intercepts, logistical strikes and naval and port strikes. It gives no strategic bombing, nothing yet
   handing it the enemy's war industry.
-- **Every country's ports and airfields show whether they are in use**, there being no fog
-  of war; a building's picture is drawn at a size and from a zoom that are the reading's
-  and ours, never set beside the original; and a selected fleet in port has nothing on
+- **A building's picture is drawn at a size and from a zoom that are the reading's
+  and ours**, never set beside the original; and a selected fleet in port has nothing on
   the map to show it is selected. `docs/mechanics/mapunits.md`, section 9.
 - **A unit now moves before its organisation returns, not after.** The reading for fleets
   found that the original marches its units in the routine that looks at their orders, one

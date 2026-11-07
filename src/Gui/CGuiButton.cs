@@ -437,6 +437,8 @@ public partial class CGuiButton : CGuiObject
 			"ENTER" or "RETURN" => Key.Enter,
 			"SPACE" => Key.Space,
 			"TAB" => Key.Tab,
+			"PAGE_UP" => Key.Pageup,
+			"PAGE_DOWN" => Key.Pagedown,
 			"F1" => Key.F1,
 			"F2" => Key.F2,
 			"F3" => Key.F3,

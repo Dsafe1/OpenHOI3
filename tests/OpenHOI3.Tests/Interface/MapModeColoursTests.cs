@@ -101,4 +101,16 @@ public class MapModeColoursTests
 		Assert.Equal(colour, painted[1]);
 		Assert.Equal(colour, painted[2]);
 	}
+
+	[Fact]
+	public void ContinentPaintingHandsTheColoursOutFromTheFirstAgainInTheFilesOrder()
+	{
+		var colours = new[] { new CColor(1, 0, 0), new CColor(0, 1, 0) };
+
+		var assigned = CRegionMapColours.AssignContinents(new[] { "europe", "asia", "africa" }, colours);
+
+		Assert.Equal(colours[0], assigned["europe"]);
+		Assert.Equal(colours[1], assigned["asia"]);
+		Assert.Equal(CRegionMapColours.White, assigned["africa"]);
+	}
 }

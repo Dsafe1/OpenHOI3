@@ -159,6 +159,37 @@ it (`productionscreen.md`, section 8).
 in the air and naval modes, which are not built here. A tooltip for every province is built,
 where the original empties it for one the session does not simulate - none, in a campaign.
 
+### 7.1 Over a counter
+
+**Over a counter the map's tooltip is the unit's own** (`reversing/findings/FINDINGS-countertooltip.md`;
+`CUnitCounterTooltip`), the one on top of the stack under the mouse, and stands where a province's does, above the
+minimap's corner. Built 2026-11-07, read out of the original and tried with `--click`; the maintainer has not looked at it.
+
+**Which units** [exe]: a fleet in port the fleets in that port, an air unit at its base the units based there, anything
+else the units in its province - less land units at sea, and fleets in port under a hovered land unit. **Every country's,
+with no test of who sees them and no cap** - so an enemy known little of makes the player's own units beside it `?` too.
+
+**The head line**, where any unit is listed: `@` and each owner's tag and a space, in order of first appearance; then
+under 5 of what the player knows of the hovered unit (`mapunits.md`, section 3) `?`, else the best leader's name, or
+`NO_LEADER` [mod] with none - going down the list, a unit's leader replaces the one so far where his rank is at least as
+high and his skill higher, so it is not simply the highest ranked.
+
+**The body** [exe: the forms and the thresholds; mod: each type's `priority`]:
+
+    under 3:   "? £unknown", and nothing more
+    otherwise a line for each brigade type among the units, in the unit database's order:
+      8 and 9:  N £type and a strength bar for each brigade, a space after each five
+      6 and 7:  N £type, a space before a count of two figures and not before one
+      3 to 5:   ? £type where the type's priority is 6 or more, else ? £unknown - a line each
+
+`£` and a name draw the type's counter (section 7). **`{` and two digits draw a strength bar**, that frame of
+`GFX_tooltip_strength` [mod: interface/tooltipicons.gfx] - eleven frames of 16 by 20 - the pen moving 8; a brigade's frame
+is the tenths of its most strength, cut, and full from 99% [exe], its most with the reserves' penalty.
+
+*Ours:* the units in the order of the countries and then of each one's units, where the original's is the order they
+entered the province, so of two leaders of equal standing which one is named may differ; and a bar stands 3 above its
+line's top, where the original's place against the line was not read.
+
 ## 8. Placing the box
 
 `confirmed`:

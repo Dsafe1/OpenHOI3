@@ -39,6 +39,36 @@ public static class CRegionMapColours
 		return assigned;
 	}
 
+	/// <summary>
+	/// Each continent's colour, by its key, from the list's first colour again in <c>map/continent.txt</c>'s order, with no
+	/// test for an empty one - what the region mode paints with the editor's continent painting on (the console's
+	/// <c>cpaint</c>). A continent past the list's end keeps white, as one the original hands nothing.
+	/// </summary>
+	public static Dictionary<string, CColor> AssignContinents(IReadOnlyList<string> continents, IReadOnlyList<CColor> colours)
+	{
+		var assigned = new Dictionary<string, CColor>(System.StringComparer.Ordinal);
+		for (int index = 0; index < continents.Count; index++)
+		{
+			assigned[continents[index]] = index < colours.Count ? colours[index] : White;
+		}
+		return assigned;
+	}
+
+	/// <summary>
+	/// A province's colour with continent painting on: its continent's colour, at half brightness where the player knows it
+	/// below 2, grey where it has none.
+	/// </summary>
+	public static CColor OfContinent(CGameState state, CProvince province, CCountryTag? player,
+		IReadOnlyDictionary<string, CColor> continentColours)
+	{
+		float b = CVictoryPointMapColours.Brightness(state, province, player);
+		if (province.Continent.Length > 0 && continentColours.TryGetValue(province.Continent, out CColor colour))
+		{
+			return CSimplifiedTerrainColours.Scaled(colour, b);
+		}
+		return new CColor(0.5f * b, 0.5f * b, 0.5f * b);
+	}
+
 	public static CColor Of(CGameState state, CProvince province, CCountryTag? player, IReadOnlyList<CColor> regionColours)
 	{
 		float b = CVictoryPointMapColours.Brightness(state, province, player);

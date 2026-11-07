@@ -184,6 +184,49 @@ public class MapCounterTests
 	}
 
 	[Fact]
+	public void WhatThePlayerKnowsOfAProvinceDecidesWhatItsForeignStacksShow()
+	{
+		CGameState state = State(out CCountry germany);
+		var poland = new CCountry { Tag = new CCountryTag("POL"), Name = "Poland", DefinitionFile = "" };
+		var italy = new CCountry { Tag = new CCountryTag("ITA"), Name = "Italy", DefinitionFile = "" };
+		state = new CGameState(new CDate(1936, 1, 1), state.Provinces, new[] { germany, poland, italy });
+		CUnit unseen = Unit(poland, 1, EUnitKind.Division, Berlin, Infantry, Infantry);
+		CUnit glimpsed = Unit(poland, 2, EUnitKind.Division, Kiel, Infantry, Infantry);
+		CUnit glimpsedToo = Unit(poland, 3, EUnitKind.Corps, Kiel, Headquarters);
+		CUnit atSea = Unit(poland, 4, EUnitKind.Division, Baltic, Infantry, Infantry);
+		CUnit ally = Unit(italy, 5, EUnitKind.Division, Baltic, Infantry, Infantry);
+		state.Province(Berlin).Intel[germany.Index] = 1;
+		state.Province(Kiel).Intel[germany.Index] = 2;
+		state.Province(Baltic).Intel[germany.Index] = 6;
+		italy.Faction = germany.Faction = "axis";
+
+		var stacks = CMapCounters.Build(state, Ger);
+
+		// At 1 Poland's stack in Berlin is not there at all.
+		Assert.DoesNotContain(stacks, stack => stack.Province == Berlin);
+		// At 2 one counter, not fanned, the unknown picture, the name ??? and the figures ?.
+		CMapStack kiel = stacks.Single(stack => stack.Province == Kiel);
+		Assert.False(kiel.Fanned);
+		Assert.Same(glimpsedToo, kiel.Top.Unit);
+		Assert.Equal(CUnitIntel.UnknownType, kiel.Top.TypeKey);
+		Assert.Equal("???", kiel.Top.Name);
+		Assert.Equal("? - ?", kiel.Top.Figures);
+		Assert.Contains(kiel.Counters, counter => counter.Unit == glimpsed);
+		// At 6 the picture and the name, the figures still ?; Italy's, the same faction's, known whole and on top.
+		CMapStack baltic = stacks.Single(stack => stack.Province == Baltic);
+		Assert.True(baltic.Fanned);
+		Assert.Same(ally, baltic.Top.Unit);
+		Assert.Equal(CUnitIntel.Full, baltic.Top.Intel);
+		CMapCounter polish = baltic.Counters.Single(counter => counter.Unit == atSea);
+		Assert.Equal("infantry_brigade", polish.TypeKey);
+		Assert.NotEqual("???", polish.Name);
+		Assert.Equal("? - ?", polish.Figures);
+		// With nobody playing, everything.
+		Assert.Contains(CMapCounters.Build(state).Single(stack => stack.Province == Berlin).Counters, counter => counter.Unit == unseen);
+		Assert.Equal(CUnitIntel.Full, CUnitIntel.Level(state, atSea, null));
+	}
+
+	[Fact]
 	public void ClickingAStackSelectsItsTopUnitAndThenEachUnitUnderItInTurn()
 	{
 		CGameState state = State(out CCountry country);

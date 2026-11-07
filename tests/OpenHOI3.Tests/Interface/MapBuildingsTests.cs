@@ -81,7 +81,28 @@ public class MapBuildingsTests
 		List<CMapBuilding> buildings = CMapBuildings.Build(state, Placed, Own);
 
 		Assert.Equal((12.5f, 8.25f), (buildings[1].X, buildings[1].Y));        // as the file has it
-		Assert.Equal((10.5f, 10.5f), (buildings[0].X, buildings[0].Y));        // ours: the middle of its point's pixel
+		Assert.Equal((10.5f, 10.5f), (buildings[0].X, buildings[0].Y));        // the middle of its label point's pixel
+	}
+
+	[Fact]
+	public void WhatThePlayerKnowsOfAProvinceDecidesWhichOfItsBuildingsShowAndWhetherABaseIsInUse()
+	{
+		var visibleNavalBase = new CBuilding(1, "naval_base", 10, "", CFixedPoint.Zero) { IsOnMap = true, IsAlwaysVisible = true };
+		CGameState state = State(out CCountry germany, out CCountry england);
+		state = new CGameState(state.Date, state.Provinces, new[] { germany, england },
+			buildings: new[] { AirBase, visibleNavalBase, Industry });
+		state.Province(Kiel).SetBuildingLevel(visibleNavalBase, CFixedPoint.FromInt(2));
+		Unit(state, germany, EUnitKind.Navy, Kiel, Kiel);
+		state.Province(Hamburg).Intel[england.Index] = 1;
+
+		// England knows Kiel not at all: only the naval base, declared visibility, shows, and as not in use.
+		List<CMapBuilding> buildings = CMapBuildings.Build(state, Placed, Own, Eng);
+		Assert.Equal(new[] { (Kiel, "naval_base", 0), (Hamburg, "air_base", 0) },
+			buildings.Select(building => (building.Province, building.Building, building.Frame)));
+
+		// At 2 the fleet in port shows.
+		state.Province(Kiel).Intel[england.Index] = 2;
+		Assert.Equal(1, CMapBuildings.Build(state, Placed, Own, Eng).Single(building => building.Building == "naval_base").Frame);
 	}
 
 	[Fact]

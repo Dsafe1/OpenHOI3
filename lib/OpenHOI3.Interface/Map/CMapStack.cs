@@ -21,6 +21,9 @@ public sealed class CMapStack
 
 	public List<CMapCounter> Counters { get; } = new();
 
+	/// <summary>Whether it is drawn fanned, up to six counters: where the player knows its top unit at 3 or more.</summary>
+	public bool Fanned => Counters.Count == 0 || Counters[^1].Intel >= CUnitIntel.TypeShown;
+
 	public CMapCounter Top => Counters[^1];
 
 	/// <summary>

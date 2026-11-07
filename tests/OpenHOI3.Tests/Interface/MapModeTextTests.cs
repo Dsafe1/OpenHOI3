@@ -149,6 +149,8 @@ public class MapModeTextTests
 		berlin.Regions.AddRange(new[] { 0, 1 });
 
 		Assert.Equal("\n - Named\n - Breslau Region*\nEurope", CMapModeText.Region(Localise, state, berlin));
+		// With the editor's continent painting on, the continent alone.
+		Assert.Equal("\nEurope", CMapModeText.Region(Localise, state, berlin, continentPainting: true));
 	}
 
 	[Fact]

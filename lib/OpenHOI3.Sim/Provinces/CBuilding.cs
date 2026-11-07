@@ -37,6 +37,9 @@ public sealed class CBuilding
 	/// <summary><c>onmap</c>: whether a province that has any of it shows its picture on the map.</summary>
 	public bool IsOnMap { get; init; }
 
+	/// <summary><c>visibility</c>: whether its picture shows in a province the player knows nothing of.</summary>
+	public bool IsAlwaysVisible { get; init; }
+
 	/// <summary>
 	/// <c>damage_factor</c>: how much of a bomb's worth it loses, where 1 is all of it and
 	/// what a building has unless its file says otherwise. See

@@ -36,17 +36,20 @@ public static class CMapBuildings
 	}
 
 	/// <summary>Every building picture of the map, in the order of the provinces and of the buildings' file.</summary>
-	public static List<CMapBuilding> Build(CGameState state, CMap map)
+	public static List<CMapBuilding> Build(CGameState state, CMap map, CCountryTag? player = null)
 	{
-		return Build(state, map.BuildingPositions, map.LabelPositions);
+		return Build(state, map.BuildingPositions, map.LabelPositions, player);
 	}
 
 	/// <summary>
 	/// The same from the two things of the map it reads: where the positions file puts
 	/// each building of each province, and each province's label point (<see cref="CMap.LabelPositions"/>).
 	/// </summary>
+	/// <param name="player">The country playing, whose knowledge of a province decides what of its buildings shows: a
+	/// building at all where it knows the province or the building is <c>visibility</c>, a base in use from 2; null for
+	/// everything (mapunits.md, section 9).</param>
 	public static List<CMapBuilding> Build(CGameState state, IReadOnlyList<CBuildingPosition[]> placed,
-		IReadOnlyList<CMapPosition> labels)
+		IReadOnlyList<CMapPosition> labels, CCountryTag? player = null)
 	{
 		var ports = new HashSet<int>();
 		var airfields = new HashSet<int>();
@@ -77,16 +80,17 @@ public static class CMapBuildings
 		for (int id = 1; id < state.Provinces.Count && id < placed.Count && id < labels.Count; id++)
 		{
 			CProvince province = state.Provinces[id];
+			int known = player is { } tag ? Sim.Intelligence.CProvinceIntel.Level(state, province, tag) : CUnitIntel.Full;
 			foreach (CBuilding building in shown)
 			{
-				if (province.BuildingLevel(building) <= CFixedPoint.Zero)
+				if (province.BuildingLevel(building) <= CFixedPoint.Zero || (known == 0 && !building.IsAlwaysVisible))
 				{
 					continue;
 				}
 				EMapBuilding kind = KindOf(building.Key);
 				(float x, float y) = PlaceOf(placed, labels, id, building.Key);
-				int frame = (kind == EMapBuilding.Port && ports.Contains(id))
-					|| (kind == EMapBuilding.Airfield && airfields.Contains(id)) ? 1 : 0;
+				int frame = known > 1 && ((kind == EMapBuilding.Port && ports.Contains(id))
+					|| (kind == EMapBuilding.Airfield && airfields.Contains(id))) ? 1 : 0;
 				found.Add(new CMapBuilding(id, building.Key, kind, x, y, frame));
 			}
 		}

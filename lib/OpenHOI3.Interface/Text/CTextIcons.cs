@@ -6,8 +6,8 @@ namespace OpenHOI3.Interface.Text;
 
 /// <summary>
 /// A run of text cut into words and the pictures the original draws in text: a country's
-/// flag after <c>@</c> (<see cref="CFlagIcons"/>) and a unit counter after <c>£</c>
-/// (<see cref="CCounterIcons"/>).
+/// flag after <c>@</c> (<see cref="CFlagIcons"/>), a unit counter after <c>£</c>
+/// (<see cref="CCounterIcons"/>) and a strength bar for <c>{</c> and two digits (<see cref="CStrengthIcons"/>).
 /// </summary>
 public static class CTextIcons
 {
@@ -22,7 +22,8 @@ public static class CTextIcons
 		for (int index = 0; index < text.Length; index++)
 		{
 			char character = text[index];
-			if (character != CFlagIcons.Mark && character != CCounterIcons.Mark)
+			int? strength = character == CStrengthIcons.Mark ? CStrengthIcons.FrameAt(text, index) : null;
+			if (character != CFlagIcons.Mark && character != CCounterIcons.Mark && strength is null)
 			{
 				words.Append(character);
 				continue;
@@ -31,6 +32,12 @@ public static class CTextIcons
 			{
 				pieces.Add(new CTextPiece(words.ToString(), null));
 				words.Clear();
+			}
+			if (strength is { } frame)
+			{
+				pieces.Add(new CTextPiece("", null, null, frame));
+				index += 2;
+				continue;
 			}
 			if (character == CFlagIcons.Mark)
 			{
@@ -54,7 +61,7 @@ public static class CTextIcons
 		return pieces;
 	}
 
-	/// <summary>How wide a text is, its words as <paramref name="measure"/> has them, each flag 24 and each counter 30.</summary>
+	/// <summary>How wide a text is, its words as <paramref name="measure"/> has them, each flag 24, each counter 30 and each bar 8.</summary>
 	public static float Measure(string text, Func<string, float> measure)
 	{
 		float width = 0f;
@@ -62,6 +69,7 @@ public static class CTextIcons
 		{
 			width += piece.Tag is not null ? CFlagIcons.Advance
 				: piece.Counter is not null ? CCounterIcons.Advance
+				: piece.Strength is not null ? CStrengthIcons.Advance
 				: measure(piece.Text);
 		}
 		return width;

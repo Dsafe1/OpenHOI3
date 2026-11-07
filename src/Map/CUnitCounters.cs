@@ -242,6 +242,11 @@ public partial class CUnitCounters : Node2D
 		set
 		{
 			_player = value;
+			_buildings.Player = value;
+			if (_stacks.Count > 0)
+			{
+				Refresh();
+			}
 			QueueRedraw();
 		}
 	}
@@ -311,7 +316,7 @@ public partial class CUnitCounters : Node2D
 	{
 		// Standing stacks first, so that one on the move, which overlaps what stands in
 		// its province, is drawn over it and is the one a click there finds.
-		_stacks = CMapCounters.Build(_state).OrderBy(stack => stack.Kind).ToList();
+		_stacks = CMapCounters.Build(_state, Player).OrderBy(stack => stack.Kind).ToList();
 		// A fleet in port and an air unit at its base have no counter and stay selected
 		// all the same, and so does a land unit gone aboard; a unit that is no longer anywhere does not.
 		if (_selection.Count > 0 && _selection.RemoveWhere(unit => unit.IsRemoved || !CMapCounters.IsSomewhere(_state, unit)))
@@ -544,7 +549,8 @@ public partial class CUnitCounters : Node2D
 				break;
 			}
 		}
-		int room = CCounterLayout.Drawn(stack.Counters.Count) - (chosen is null ? 0 : 1);
+		// A stack the player knows too little of shows one counter, not fanned (mapunits.md, section 3).
+		int room = (stack.Fanned ? CCounterLayout.Drawn(stack.Counters.Count) : 1) - (chosen is null ? 0 : 1);
 		for (int index = stack.Counters.Count - 1; index >= 0 && _drawn.Count < room; index--)
 		{
 			if (!ReferenceEquals(stack.Counters[index], chosen))
@@ -685,6 +691,17 @@ public partial class CUnitCounters : Node2D
 	{
 		// The stack is stepped through only from the one selected unit's own counter (selection.md, section 2.1).
 		return StackAt(point)?.Next(_selection.Single);
+	}
+
+	/// <summary>The unit whose counter is on top of the stack at a point of the map - the one the map's tooltip tells of - or null.</summary>
+	public CUnit? UnitAt(Vector2 point)
+	{
+		if (StackAt(point) is not { } stack)
+		{
+			return null;
+		}
+		List<CMapCounter> drawn = Drawn(stack);
+		return drawn.Count > 0 ? drawn[^1].Unit : null;
 	}
 
 	/// <summary>The stack whose top counter is at a point of the map, or null.</summary>

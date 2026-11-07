@@ -69,6 +69,28 @@ public partial class CMapView : Node2D
 	/// <summary>Each region's colour by its number, handed out from <c>interface/colors.txt</c>: what the region mode paints.</summary>
 	public System.Collections.Generic.IReadOnlyList<CColor> RegionColours { get; set; } = System.Array.Empty<CColor>();
 
+	/// <summary>Each continent's colour, by its key, which the region mode paints with continent painting on.</summary>
+	public IReadOnlyDictionary<string, CColor> ContinentColours { get; set; } = new Dictionary<string, CColor>();
+
+	/// <summary>
+	/// The editor's continent painting, the original console's <c>cpaint</c>: the region mode then colours each province by
+	/// its continent (mapmodes.md, section 7). Nothing in a game sets it; the debug menu does.
+	/// </summary>
+	public bool ContinentPainting
+	{
+		get => _continentPainting;
+		set
+		{
+			_continentPainting = value;
+			if (_mode == MapMode.Region)
+			{
+				RefreshColours();
+			}
+		}
+	}
+
+	private bool _continentPainting;
+
 	[Signal]
 	public delegate void ProvinceHoveredEventHandler(int provinceId);
 
@@ -671,7 +693,9 @@ public partial class CMapView : Node2D
 			}
 			else if (_mode == MapMode.Region)
 			{
-				colour = CRegionMapColours.Of(_state, province, Player, RegionColours).ToGodot();
+				colour = (_continentPainting
+					? CRegionMapColours.OfContinent(_state, province, Player, ContinentColours)
+					: CRegionMapColours.Of(_state, province, Player, RegionColours)).ToGodot();
 			}
 			else if (_mode == MapMode.Diplomatic)
 			{
@@ -838,6 +862,16 @@ public partial class CMapView : Node2D
 		ClampCamera();
 	}
 
+	/// <summary>
+	/// The zoom buttons by the minimap and their keys, Page Down and Page Up: the camera's height a fifth lower or a fifth
+	/// higher, held between 40 and 1000, about the middle of the screen (<c>minimap.md</c>, section 4) [exe].
+	/// </summary>
+	public void StepZoom(bool inwards)
+	{
+		float height = Mathf.Clamp(CameraHeight * (inwards ? 0.8f : 1.2f), CMapCamera.LowestHeight, CMapCamera.HighestHeight);
+		ZoomAt(GetViewportRect().Size / 2f, CMapCamera.ZoomAt(height, GetViewportRect().Size.Y) / _camera.Zoom.X);
+	}
+
 	/// <summary>Puts a province in the middle of the screen, using its bounding box.</summary>
 	public void CentreOn(int provinceId, float? zoom = null)
 	{
@@ -968,8 +1002,16 @@ public partial class CMapView : Node2D
 		return _map.ProvinceAt(Mathf.FloorToInt(point.X), _map.DisplayRow(row));
 	}
 
+	/// <summary>The unit whose counter is under the mouse, or null: over a counter the map's tooltip is the unit's (tooltips.md, section 7.1).</summary>
+	public CUnit? HoveredUnit => _counters is not null && _mouseOnMap ? _counters.UnitAt(ScreenToMap(_mouse)) : null;
+
+	private Vector2 _mouse;
+	private bool _mouseOnMap;
+
 	private void UpdateHover(Vector2 screen)
 	{
+		_mouse = screen;
+		_mouseOnMap = true;
 		int province = ProvinceAtScreen(screen);
 		if (province == _hovered)
 		{
