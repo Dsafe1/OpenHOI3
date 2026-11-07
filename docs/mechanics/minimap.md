@@ -74,19 +74,19 @@ Each button sets its mode, and the original's numbers are not its modes' (`FINDI
 | `mapmode_1` | terrain | built |
 | `mapmode_2` | political | built |
 | `mapmode_3` | weather | built (`weather.md`, section 6) |
-| `mapmode_4` | intel | not built |
+| `mapmode_4` | intel | built (`mapmodes.md`, section 9) |
 | `mapmode_5` | revolt risk | built (`revolt.md`, section 7) |
-| `mapmode_6` | diplomatic | not built |
-| `mapmode_7` | region | not built |
+| `mapmode_6` | diplomatic | built (`mapmodes.md`, section 8) |
+| `mapmode_7` | region | built (`mapmodes.md`, section 7) |
 | `mapmode_8` | supply | built (`supplymap.md`) |
-| `mapmode_9` | infrastructure | not built |
-| `mapmode_10` | victory points | not built |
-| `mapmode_11` | theatre | not built |
-| `mapmode_12` | strength | not built |
-| `mapmode_13` | resources | not built |
-| `mapmode_14` | simplified terrain | not built |
+| `mapmode_9` | infrastructure | built (`mapmodes.md`, section 2) |
+| `mapmode_10` | victory points | built (`mapmodes.md`, section 3) |
+| `mapmode_11` | theatre | built (`mapmodes.md`, section 10) |
+| `mapmode_12` | strength | built (`mapmodes.md`, section 4) |
+| `mapmode_13` | resources | built (`mapmodes.md`, section 5) |
+| `mapmode_14` | simplified terrain | built (`mapmodes.md`, section 6) |
 | `mapmode_15` | air | built (`airmap.md`) |
-| `mapmode_16` | naval | not built |
+| `mapmode_16` | naval | built (`mapmodes.md`, section 11) |
 
 From left to right on screen they run 1, 14, 2 to 11, 15, 16, 12, 13 - the file's places. `confirmed`
 
@@ -103,8 +103,12 @@ From left to right on screen they run 1, 14, 2 to 11, 15, 16, 12, 13 - the file'
   deployment, the air orders window and the theatre editor; none presses a button, so the last pressed stays down.
   **Ours:** none of the three changes the mode here.
 
-**Ours:** a button whose mode is not built does nothing when pressed, and says so once in the log; the next pieces build
-those modes.
+Since 2026-11-07 every button's mode is built; until then a button whose mode was not did nothing.
+
+- **The minimap's background reaches up behind the buttons' lower part** - `minimap_bg` at 151 above the screen's foot,
+  the buttons at 156. The buttons take a press anywhere on them, as in the original. *Ours:* the minimap is drawn over
+  the bar here, so its background lets the mouse through; until the maintainer's report of 2026-11-07 it took every press
+  below a button's top five pixels.
 
 ## 5. The day and night overlay
 

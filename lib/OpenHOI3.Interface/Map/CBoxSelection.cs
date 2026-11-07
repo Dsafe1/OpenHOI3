@@ -35,7 +35,7 @@ public static class CBoxSelection
 	/// </summary>
 	public static int Take(CGameState state, CCountry player, IReadOnlyList<CMapPosition> unitPoints,
 		IReadOnlyList<CBuildingPosition[]> placed, float x1, float y1, float x2, float y2, int mapWidth,
-		CSelection selection)
+		CSelection selection, IReadOnlyList<CMapPosition>? labelPoints = null)
 	{
 		float left = MathF.Min(x1, x2) - Margin;
 		float right = MathF.Max(x1, x2) + Margin;
@@ -50,7 +50,7 @@ public static class CBoxSelection
 				{
 					continue;
 				}
-				(float x, float y) = PointOf(state, unit, unitPoints, placed);
+				(float x, float y) = PointOf(state, unit, unitPoints, placed, labelPoints);
 				if (y < bottom || y > top || !Within(x, left, right, mapWidth))
 				{
 					continue;
@@ -64,19 +64,21 @@ public static class CBoxSelection
 
 	/// <summary>
 	/// A unit's point on the map: its province's unit point - for a fleet in port the province's naval base, and for an
-	/// air unit at its base the province's air base, where the positions file puts them.
+	/// air unit at its base the province's air base, where the building's picture stands - with no point for it in the
+	/// positions file, the province's label point, which the unit points stand for where none is given.
 	/// </summary>
 	public static (float X, float Y) PointOf(CGameState state, CUnit unit, IReadOnlyList<CMapPosition> unitPoints,
-		IReadOnlyList<CBuildingPosition[]> placed)
+		IReadOnlyList<CBuildingPosition[]> placed, IReadOnlyList<CMapPosition>? labelPoints = null)
 	{
+		labelPoints ??= unitPoints;
 		int province = unit.Location;
 		if (CMapBuildings.IsInPort(state, unit))
 		{
-			return CMapBuildings.PlaceOf(placed, unitPoints, province, CMovementRules.NavalBase);
+			return CMapBuildings.PlaceOf(placed, labelPoints, province, CMovementRules.NavalBase);
 		}
 		if (CMapBuildings.IsAtAirfield(unit))
 		{
-			return CMapBuildings.PlaceOf(placed, unitPoints, province, CMovementRules.AirBase);
+			return CMapBuildings.PlaceOf(placed, labelPoints, province, CMovementRules.AirBase);
 		}
 		CMapPosition point = unitPoints[province];
 		return (point.X, point.Y);

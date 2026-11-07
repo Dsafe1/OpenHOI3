@@ -305,6 +305,11 @@ original shows occupied ground: "It uses striping", with a screenshot.
   side facing the country of the wide ones; with his word on which is which, that puts the
   heavy line at the edge of what is held. `inferred`
 
+Since 2026-11-07, as read (`reversing/findings/FINDINGS-mapmodescountries.md`, section 1): both colours are at half
+brightness where the player knows the province below 2, land nobody owns is grey 0.6, and **the lobby's map, where a
+country is chosen, is the other way round** - the owner's colour the ground and the controller's the stripes, undimmed -
+as the original's front end draws it. The other map modes are `mapmodes.md`.
+
 *Ours:* the original lays its colours over the grey of the terrain's own picture and
 lightens them; here a province is a flat colour. And with the picture missing nothing is
 striped.

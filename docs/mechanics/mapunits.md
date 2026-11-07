@@ -504,13 +504,16 @@ building's `building_nudge` - ever reach the place they are moved to; here they 
   `large_naval_base`, `large_anti_air` - which a province keeps beside the first and asks
   about a click at any height.
 
+**A building `positions.txt` gives no place stands in the middle of its province** - its label point, the centre of its
+box, which nothing in the file moves (`CMap.LabelPositions`) - and so do the fleets in its port and the air units at its
+base where a drag box asks for them. The maintainer's word, 2026-11-07, of the resource icons that share a building's
+point (`mapmodes.md`, section 5); until then it stood at the province's unit point, ours, the original's not read.
+
 *Ours:*
 
 - **there is no fog of war**, so every country's bases show whether they are in use; the
   original shows the second frame only for a province the player knows well enough, and a
   building at all only where he knows the province or the building is declared `visibility`;
-- a building `positions.txt` gives no place stands at the province's own point; what the
-  original does there was not read;
 - the units of a port or an airfield are gone through in the order of their numbers, where
   the original goes by the order they came in. The maintainer, 2026-10-09: "Its fine the
   way it is";

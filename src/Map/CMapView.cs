@@ -41,7 +41,33 @@ public partial class CMapView : Node2D
 		Revolt,
 		/// <summary>The ground greyed where it is frozen, with the weather's pictures over it: <c>docs/mechanics/weather.md</c>, section 6.</summary>
 		Weather,
+		/// <summary>A ramp by the infrastructure: <c>docs/mechanics/mapmodes.md</c>, section 2.</summary>
+		Infrastructure,
+		/// <summary>Victory points by who holds them: <c>mapmodes.md</c>, section 3.</summary>
+		VictoryPoints,
+		/// <summary>Land units' weight by who holds the ground: <c>mapmodes.md</c>, section 4.</summary>
+		Strength,
+		/// <summary>IC and strategic resources, with the resource icons: <c>mapmodes.md</c>, section 5.</summary>
+		Resources,
+		/// <summary>Each terrain's own colour: <c>mapmodes.md</c>, section 6.</summary>
+		SimplifiedTerrain,
+		/// <summary>Each region's colour: <c>mapmodes.md</c>, section 7.</summary>
+		Region,
+		/// <summary>The owners' standing towards the player: <c>mapmodes.md</c>, section 8.</summary>
+		Diplomatic,
+		/// <summary>What the player knows of each province: <c>mapmodes.md</c>, section 9.</summary>
+		Intel,
+		/// <summary>The player's theatres: <c>mapmodes.md</c>, section 10.</summary>
+		Theatre,
+		/// <summary>The player's fleets' missions, with the week's naval battles: <c>mapmodes.md</c>, section 11.</summary>
+		Naval,
 	}
+
+	/// <summary>Whether this is the front end's lobby map, whose political colours are the owners' with the controllers' as stripes.</summary>
+	public bool IsLobby { get; set; }
+
+	/// <summary>Each region's colour by its number, handed out from <c>interface/colors.txt</c>: what the region mode paints.</summary>
+	public System.Collections.Generic.IReadOnlyList<CColor> RegionColours { get; set; } = System.Array.Empty<CColor>();
 
 	[Signal]
 	public delegate void ProvinceHoveredEventHandler(int provinceId);
@@ -145,6 +171,7 @@ public partial class CMapView : Node2D
 		_counters.Markers.Player = _player;
 		_counters.Player = _player;
 		_counters.AirMap.Player = _player;
+		_counters.NavalMap.Player = _player;
 		_textures = gui.Textures;
 	}
 
@@ -281,6 +308,7 @@ public partial class CMapView : Node2D
 				_counters.Markers.Player = value;
 				_counters.Player = value;
 				_counters.AirMap.Player = value;
+				_counters.NavalMap.Player = value;
 			}
 		}
 	}
@@ -352,6 +380,8 @@ public partial class CMapView : Node2D
 			if (_counters is not null)
 			{
 				_counters.AirMode = value == MapMode.Air;
+				_counters.NavalMode = value == MapMode.Naval;
+				_counters.ResourceMode = value == MapMode.Resources;
 				_counters.WeatherMode = value == MapMode.Weather;
 			}
 			if (_surface is not null)
@@ -370,12 +400,17 @@ public partial class CMapView : Node2D
 	private bool Snowed(int province) =>
 		province > 0 && province < _state.Provinces.Count && _state.Provinces[province].Weather.Temperature.Raw < -5000;
 
-	/// <summary>Works out again what the air map mode draws over the map, when it is on: once a day.</summary>
-	public void RefreshAirMap()
+	/// <summary>Works out again what the air or the naval map mode draws over the map, when it is on: once a day.</summary>
+	public void RefreshModeIcons()
 	{
 		if (_mode == MapMode.Air && _counters is not null)
 		{
 			_counters.AirMap.Refresh(_units.First);
+		}
+		// The naval mode's icons follow the week's battles a day at a time, as the original's do (mapmodes.md, section 11).
+		if (_mode == MapMode.Naval && _counters is not null)
+		{
+			_counters.NavalMap.Refresh();
 		}
 	}
 
@@ -387,8 +422,16 @@ public partial class CMapView : Node2D
 	private static int Style(MapMode mode) => mode switch
 	{
 		MapMode.Terrain or MapMode.Weather => 0,
-		MapMode.Supply => 9,
+		MapMode.Supply or MapMode.Infrastructure => 9,
 		MapMode.Air => 18,
+		MapMode.Naval => 19,
+		MapMode.Diplomatic => 6,
+		MapMode.SimplifiedTerrain or MapMode.Region => 8,
+		MapMode.Intel => 12,
+		MapMode.VictoryPoints => 13,
+		MapMode.Theatre => 14,
+		MapMode.Strength => 15,
+		MapMode.Resources => 20,
 		_ => 2,
 	};
 
@@ -525,6 +568,12 @@ public partial class CMapView : Node2D
 		Dictionary<int, (CColor Ground, CColor Stripes)>? air = _mode == MapMode.Air && _airArea is null
 			? CAirMapColours.Build(_state, Player)
 			: null;
+		// The naval mode colours the sea as the air mode does (mapmodes.md, section 11), the theatre mode by the player's theatres.
+		Dictionary<int, (CColor Ground, CColor Stripes)>? naval = _mode == MapMode.Naval && _airArea is null
+			? CNavalMapColours.Build(_state, Player)
+			: null;
+		Dictionary<int, CColor>? theatres = _mode == MapMode.Theatre ? CTheatreMapColours.Build(_state, Player, RegionColours) : null;
+		Dictionary<int, List<CUnit>>? landUnits = null;
 		for (int id = 0; id < _map.ProvinceCount; id++)
 		{
 			CProvince province = _state.Provinces[id];
@@ -555,6 +604,14 @@ public partial class CMapView : Node2D
 				colour = AirOver(province, ground);
 				stripe = AirOver(province, stripes);
 			}
+			else if (naval is not null)
+			{
+				(CColor ground, CColor stripes) = naval.TryGetValue(id, out var both)
+					? both
+					: (CNavalMapColours.Grey, CNavalMapColours.Grey);
+				colour = AirOver(province, ground);
+				stripe = AirOver(province, stripes);
+			}
 			else if (province.IsSea)
 			{
 				colour = SeaColour;
@@ -577,16 +634,57 @@ public partial class CMapView : Node2D
 			{
 				colour = CWeatherMapColours.Of(_state, province, Player).ToGodot();
 			}
+			else if (_mode == MapMode.Infrastructure)
+			{
+				colour = CInfrastructureMapColours.Of(_state, province, Player).ToGodot();
+			}
+			else if (_mode == MapMode.VictoryPoints)
+			{
+				colour = CVictoryPointMapColours.Of(_state, province, Player).ToGodot();
+			}
+			else if (_mode == MapMode.Strength)
+			{
+				landUnits ??= CStrengthMapColours.LandUnits(_state);
+				colour = CStrengthMapColours.Of(_state, province, Player, landUnits).ToGodot();
+			}
+			else if (_mode == MapMode.Resources)
+			{
+				(CColor ground, CColor stripes) = CResourceMapColours.Of(_state, province, Player);
+				colour = ground.ToGodot();
+				stripe = stripes.ToGodot();
+			}
+			else if (_mode == MapMode.SimplifiedTerrain)
+			{
+				colour = CSimplifiedTerrainColours.Of(_state, province, Player).ToGodot();
+			}
+			else if (_mode == MapMode.Region)
+			{
+				colour = CRegionMapColours.Of(_state, province, Player, RegionColours).ToGodot();
+			}
+			else if (_mode == MapMode.Diplomatic)
+			{
+				(CColor ground, CColor stripes) = CDiplomaticMapColours.Of(_state, province, Player);
+				colour = ground.ToGodot();
+				stripe = stripes.ToGodot();
+			}
+			else if (_mode == MapMode.Intel)
+			{
+				colour = CIntelMapColours.Of(_state, province, Player).ToGodot();
+			}
+			else if (theatres is not null)
+			{
+				float b = CVictoryPointMapColours.Brightness(_state, province, Player);
+				colour = (theatres.TryGetValue(id, out CColor painted)
+					? CSimplifiedTerrainColours.Scaled(painted, b)
+					: new CColor(0.5f * b, 0.5f * b, 0.5f * b)).ToGodot();
+			}
 			else
 			{
-				// A province is the colour of whoever holds it, and the thin stripes
-				// are its owner's where that is somebody else.
-				CCountry? holder = _state.Country(province.Controller) ?? _state.Country(province.Owner);
-				colour = holder?.Color.ToGodot() ?? UnownedColour;
-				if (_state.Country(province.Owner) is { } owner && owner != holder)
-				{
-					stripe = owner.Color.ToGodot();
-				}
+				// The controller's colour with the owner's as the thin stripes - the other way round in the lobby
+				// (mapmodes.md, section 1).
+				(CColor ground, CColor stripes) = CPoliticalMapColours.Of(_state, province, Player, IsLobby);
+				colour = ground.ToGodot();
+				stripe = stripes.ToGodot();
 			}
 			if (_places is not null && _places.Contains(id))
 			{
@@ -622,10 +720,19 @@ public partial class CMapView : Node2D
 	/// <summary>How much of a province's colour the original's water shader lays over the sea.</summary>
 	private const float WaterTakes = 0.8f;
 
-	/// <summary>An air map mode colour as it is painted: over the sea, or over the ground turned grey.</summary>
-	private static Color AirOver(CProvince province, CColor air)
+	/// <summary>
+	/// An air or naval map mode colour as it is handed on. The surface's shaders - the install's terrain_2_0.fx and water.fx,
+	/// the sea's Color techniques - grey the ground and lay the colour over the land and the water themselves, so the surface
+	/// is given the colour as it is; only the flat map, with no surface, is given it laid over the sea or the ground turned
+	/// grey here, a stand-in for those shaders.
+	/// </summary>
+	private Color AirOver(CProvince province, CColor air)
 	{
 		var colour = new Color(air.R, air.G, air.B);
+		if (_surface is not null)
+		{
+			return colour;
+		}
 		if (province.IsSea)
 		{
 			return SeaColour.Lerp(colour, WaterTakes);
@@ -1065,7 +1172,8 @@ public partial class CMapView : Node2D
 			// The corners in the positions file's frame, where a unit's point is: y counts north, and a point stands
 			// half a pixel off the corner of its pixel.
 			CBoxSelection.Take(_state, player, _map.Positions, _map.BuildingPositions,
-				from.X - 0.5f, _map.Height - 0.5f - from.Y, to.X - 0.5f, _map.Height - 0.5f - to.Y, _map.Width, _units);
+				from.X - 0.5f, _map.Height - 0.5f - from.Y, to.X - 0.5f, _map.Height - 0.5f - to.Y, _map.Width, _units,
+				_map.LabelPositions);
 		}
 		UnitsChanged();
 	}

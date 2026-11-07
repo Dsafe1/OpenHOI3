@@ -50,12 +50,12 @@ public static class CAirBaseCircles
 	/// <summary>Every ring, base by base in the order of the provinces.</summary>
 	public static List<CAirBaseCircle> Build(CGameState state, CMap map, CCountryTag? player, CUnit? selected)
 	{
-		return Build(state, map.BuildingPositions, map.Positions, player, selected);
+		return Build(state, map.BuildingPositions, map.LabelPositions, player, selected);
 	}
 
-	/// <summary>The same from the two things of the map it reads: where buildings stand, and each province's own point.</summary>
+	/// <summary>The same from the two things of the map it reads: where buildings stand, and each province's label point.</summary>
 	public static List<CAirBaseCircle> Build(CGameState state, IReadOnlyList<CBuildingPosition[]> placed,
-		IReadOnlyList<CMapPosition> own, CCountryTag? player, CUnit? selected)
+		IReadOnlyList<CMapPosition> labels, CCountryTag? player, CUnit? selected)
 	{
 		var circles = new List<CAirBaseCircle>();
 		if (player is not { } us)
@@ -63,7 +63,7 @@ public static class CAirBaseCircles
 			return circles;
 		}
 		bool airSelected = selected is { Kind: EUnitKind.Air };
-		for (int id = 1; id < state.Provinces.Count && id < placed.Count && id < own.Count; id++)
+		for (int id = 1; id < state.Provinces.Count && id < placed.Count && id < labels.Count; id++)
 		{
 			CProvince province = state.Provinces[id];
 			if (province.Controller != us
@@ -76,7 +76,7 @@ public static class CAirBaseCircles
 			{
 				continue;
 			}
-			(float x, float y) = CMapBuildings.PlaceOf(placed, own, id, CMovementRules.AirBase);
+			(float x, float y) = CMapBuildings.PlaceOf(placed, labels, id, CMovementRules.AirBase);
 			foreach (Group group in Groups(based, selected))
 			{
 				float share = group.Most > 0

@@ -57,7 +57,7 @@ public partial class CWeatherLayer : Node2D
 				&& gui.Textures.Exists(type.TextureFiles[0])
 				&& gui.Textures.LoadFromGamePath(type.TextureFiles[0]) is { } texture)
 			{
-				_kinds[picture] = new Kind(type, texture, Material(gui, billboards, type), RenderingServer.CanvasItemCreate());
+				_kinds[picture] = new Kind(type, texture, MaterialOf(gui, billboards, type), RenderingServer.CanvasItemCreate());
 			}
 		}
 		Visible = false;
@@ -69,7 +69,7 @@ public partial class CWeatherLayer : Node2D
 	/// under, fed as the original feeds the upper quad - the picture still, <c>vTime</c> nought, <c>vXOffset</c> nought and
 	/// <c>vFlip</c> one - or null, with a line in the log, where the file has no such technique.
 	/// </summary>
-	private static ShaderMaterial? Material(CGuiContext gui, CBillboardTypes billboards, CBillboardType type)
+	private static ShaderMaterial? MaterialOf(CGuiContext gui, CBillboardTypes billboards, CBillboardType type)
 	{
 		string written = billboards.EffectFileOf(type.Effect);
 		string file = written.Split('\\', '/').LastOrDefault(part => part.Length > 0) ?? "";

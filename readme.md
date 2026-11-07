@@ -1691,10 +1691,15 @@ province would settle it. **And the minimap and the map mode buttons** (the fact
 view a white frame whose size is a straight line in the height, a left press jumping the camera there, the sixteen
 buttons with their pressed frame and `MAPMODE_N` tooltips - `Tab` gone, the original having no key - a game starting
 in the terrain mode, and **the province's tooltip standing over the minimap's corner**, not the mouse, which corrected
-the fact base. **Next up**: the ten map modes not built, in three batches each read first - the country views
-(diplomatic, intel, theatre), the figures (infrastructure, victory points, strength, resources) and the rest
-(simplified terrain, naval, region) - their buttons doing nothing until then. Then war exhaustion, or the military AI's
-gaps (*What the moving wave left*), or the end-of-game screen.
+the fact base. **And the ten map modes that were left** (2026-11-07, `docs/mechanics/mapmodes.md`; the fact base's
+`FINDINGS-mapmodesfigures.md`, `FINDINGS-mapmodescountries.md` and `FINDINGS-mapmodesrest.md`), read in three batches
+and tried with `--screenshot`, the maintainer not having looked: infrastructure, victory points, strength and resources
+with its icons on the buildings' points; diplomatic, intel and theatre; simplified terrain, region with its colours out
+of `interface/colors.txt`, and naval with its patrols, raids and escorts, its four icons of the week's battles and its
+large naval bases - each with its part of the province's tooltip, each coloured again when the original colours it, and
+the lobby's map political with the owner's colour as the ground, as the original's front end draws it. Reading for them
+corrected the fact base's map mode records. **Next up**: war exhaustion, or the military AI's gaps (*What the moving
+wave left*), or the end-of-game screen.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a

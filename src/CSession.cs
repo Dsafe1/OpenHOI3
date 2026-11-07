@@ -223,6 +223,8 @@ public partial class CSession : Node
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(Map, State);
 		_mapView.Player = Player?.Tag;
+		// Each region's colour, handed out once from interface/colors.txt: the region and theatre modes paint with them.
+		_mapView.RegionColours = CRegionMapColours.Assign(State.Regions, CInterfaceColorsReader.Read(_directories));
 		_mapView.SetupCounters(gui, CCounterTypes.Load(_directories), CBillboardTypes.Load(_directories),
 			CArrowTypes.Load(_directories));
 		CMapCache cache = CMapCache.Open(_directories, Content.Settings.CUserSettingsReader.UserFolder(),
@@ -571,6 +573,16 @@ public partial class CSession : Node
 			CMapView.MapMode.Air => EMapTooltipMode.Air,
 			CMapView.MapMode.Revolt => EMapTooltipMode.Revolt,
 			CMapView.MapMode.Weather => EMapTooltipMode.Weather,
+			CMapView.MapMode.Infrastructure => EMapTooltipMode.Infrastructure,
+			CMapView.MapMode.VictoryPoints => EMapTooltipMode.VictoryPoints,
+			CMapView.MapMode.Strength => EMapTooltipMode.Strength,
+			CMapView.MapMode.Resources => EMapTooltipMode.Resources,
+			CMapView.MapMode.SimplifiedTerrain => EMapTooltipMode.SimplifiedTerrain,
+			CMapView.MapMode.Region => EMapTooltipMode.Region,
+			CMapView.MapMode.Diplomatic => EMapTooltipMode.Diplomatic,
+			CMapView.MapMode.Intel => EMapTooltipMode.Intel,
+			CMapView.MapMode.Theatre => EMapTooltipMode.Theatre,
+			CMapView.MapMode.Naval => EMapTooltipMode.Naval,
 			_ => EMapTooltipMode.Political,
 		};
 		return CProvinceTooltip.Build(_localisation.Localise, State, State.Province(provinceId), mode, Player?.Tag,
@@ -856,20 +868,30 @@ public partial class CSession : Node
 	private CMinimapView? _minimap;
 	private CMessageLogView? _modeButtons;
 	private int _shownModeButton = -1;
-	private readonly HashSet<int> _unbuiltModesTold = new();
+	private long _diplomacyColoured;
+	private long _navalMissions;
 
 	/// <summary>
-	/// The mode each map mode button sets, by its number from one, where that mode is built here: the original's terrain,
-	/// political, weather, revolt risk, supply and air (<c>docs/mechanics/minimap.md</c>, section 4).
+	/// The mode each map mode button sets, by its number from one (<c>docs/mechanics/minimap.md</c>, section 4).
 	/// </summary>
 	private static CMapView.MapMode? ModeOfButton(int button) => button switch
 	{
 		1 => CMapView.MapMode.Terrain,
 		2 => CMapView.MapMode.Political,
 		3 => CMapView.MapMode.Weather,
+		4 => CMapView.MapMode.Intel,
 		5 => CMapView.MapMode.Revolt,
+		6 => CMapView.MapMode.Diplomatic,
+		7 => CMapView.MapMode.Region,
 		8 => CMapView.MapMode.Supply,
+		9 => CMapView.MapMode.Infrastructure,
+		10 => CMapView.MapMode.VictoryPoints,
+		11 => CMapView.MapMode.Theatre,
+		12 => CMapView.MapMode.Strength,
+		13 => CMapView.MapMode.Resources,
+		14 => CMapView.MapMode.SimplifiedTerrain,
 		15 => CMapView.MapMode.Air,
+		16 => CMapView.MapMode.Naval,
 		_ => null,
 	};
 
@@ -885,17 +907,12 @@ public partial class CSession : Node
 		return 0;
 	}
 
-	/// <summary>A map mode button pressed: its mode set, or - where the mode is not built - nothing, said once in the log.</summary>
+	/// <summary>A map mode button pressed: its mode set.</summary>
 	private void ChooseMapMode(int button)
 	{
 		if (ModeOfButton(button) is { } mode)
 		{
 			_mapView.Mode = mode;
-			return;
-		}
-		if (_unbuiltModesTold.Add(button))
-		{
-			GD.Print($"map: the mode of {Interface.Map.CMapModeButtons.Name(button)} is not built");
 		}
 	}
 
@@ -950,24 +967,57 @@ public partial class CSession : Node
 		_ordered = false;
 		_hourPassed = false;
 		// The map is coloured by who holds what, so it is coloured again when that changes.
+		// The resources, region, simplified terrain and naval modes are not: the original colours those only as they are
+		// chosen (mapmodes.md, section 1).
+		CMapView.MapMode mode = _mapView.Mode;
+		bool chosenOnly = mode is CMapView.MapMode.Resources or CMapView.MapMode.Region
+			or CMapView.MapMode.SimplifiedTerrain or CMapView.MapMode.Naval;
 		if (State.ControlChanges != _controlChanges)
 		{
 			_controlChanges = State.ControlChanges;
-			_mapView.RefreshColours();
+			if (!chosenOnly)
+			{
+				_mapView.RefreshColours();
+			}
 			_unitsMoved = true;
+		}
+		// The modes the original's refresh follows diplomacy for: again when a war, an alliance, a pact, military access or
+		// a faction changes.
+		if (mode is CMapView.MapMode.Political or CMapView.MapMode.Diplomatic or CMapView.MapMode.Intel
+			or CMapView.MapMode.Theatre or CMapView.MapMode.Infrastructure or CMapView.MapMode.VictoryPoints
+			or CMapView.MapMode.Strength)
+		{
+			long diplomacy = CMapModeTriggers.DiplomacyFigure(State);
+			if (diplomacy != _diplomacyColoured)
+			{
+				_diplomacyColoured = diplomacy;
+				_mapView.RefreshColours();
+			}
+		}
+		// The naval mode's, when one of the player's patrols, raids or escorts starts or goes.
+		if (mode == CMapView.MapMode.Naval)
+		{
+			long naval = CNavalMapColours.Figure(State, Player?.Tag);
+			if (naval != _navalMissions)
+			{
+				_navalMissions = naval;
+				_mapView.RefreshColours();
+			}
 		}
 		// The supply map mode is coloured by the day's carrying, so again each day.
 		long day = State.TotalHours / CGameState.HoursPerDay;
 		if (day != _dayColoured)
 		{
 			_dayColoured = day;
-			// And the revolt map mode by the day's revolt risk (ours: when the original colours it again was not read).
-			if (_mapView.Mode is CMapView.MapMode.Supply or CMapView.MapMode.Revolt)
+			// And the revolt map mode by the day's revolt risk (ours: when the original colours it again was not read), and the
+			// intel mode by the day's intelligence (ours: the original follows the edge of what the player's units see, by a
+			// pass whose caller was not found - mapmodes.md, section 9).
+			if (_mapView.Mode is CMapView.MapMode.Supply or CMapView.MapMode.Revolt or CMapView.MapMode.Intel)
 			{
 				_mapView.RefreshColours();
 			}
-			// The air map mode's rings, pictures and icons are made again each day.
-			_mapView.RefreshAirMap();
+			// The air and naval map modes' rings, pictures and icons are made again each day.
+			_mapView.RefreshModeIcons();
 			// And the country names' factions, which no change of hands marks.
 			_mapView.RefreshNames();
 		}
@@ -1540,6 +1590,12 @@ public partial class CSession : Node
 			else if (argument == "--mode=revolt")
 			{
 				_mapView.Mode = CMapView.MapMode.Revolt;
+			}
+			else if (argument.StartsWith("--mode=", System.StringComparison.Ordinal)
+				&& System.Enum.TryParse(argument["--mode=".Length..], ignoreCase: true, out CMapView.MapMode named))
+			{
+				// Any other mode by its name: --mode=diplomatic, --mode=victorypoints, --mode=simplifiedterrain and the rest.
+				_mapView.Mode = named;
 			}
 			else if (argument == "--screen=production")
 			{

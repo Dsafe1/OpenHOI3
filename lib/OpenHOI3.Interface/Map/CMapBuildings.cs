@@ -38,15 +38,15 @@ public static class CMapBuildings
 	/// <summary>Every building picture of the map, in the order of the provinces and of the buildings' file.</summary>
 	public static List<CMapBuilding> Build(CGameState state, CMap map)
 	{
-		return Build(state, map.BuildingPositions, map.Positions);
+		return Build(state, map.BuildingPositions, map.LabelPositions);
 	}
 
 	/// <summary>
 	/// The same from the two things of the map it reads: where the positions file puts
-	/// each building of each province, and each province's own point.
+	/// each building of each province, and each province's label point (<see cref="CMap.LabelPositions"/>).
 	/// </summary>
 	public static List<CMapBuilding> Build(CGameState state, IReadOnlyList<CBuildingPosition[]> placed,
-		IReadOnlyList<CMapPosition> own)
+		IReadOnlyList<CMapPosition> labels)
 	{
 		var ports = new HashSet<int>();
 		var airfields = new HashSet<int>();
@@ -74,7 +74,7 @@ public static class CMapBuildings
 			}
 		}
 		var found = new List<CMapBuilding>();
-		for (int id = 1; id < state.Provinces.Count && id < placed.Count && id < own.Count; id++)
+		for (int id = 1; id < state.Provinces.Count && id < placed.Count && id < labels.Count; id++)
 		{
 			CProvince province = state.Provinces[id];
 			foreach (CBuilding building in shown)
@@ -84,7 +84,7 @@ public static class CMapBuildings
 					continue;
 				}
 				EMapBuilding kind = KindOf(building.Key);
-				(float x, float y) = PlaceOf(placed, own, id, building.Key);
+				(float x, float y) = PlaceOf(placed, labels, id, building.Key);
 				int frame = (kind == EMapBuilding.Port && ports.Contains(id))
 					|| (kind == EMapBuilding.Airfield && airfields.Contains(id)) ? 1 : 0;
 				found.Add(new CMapBuilding(id, building.Key, kind, x, y, frame));
@@ -95,9 +95,10 @@ public static class CMapBuildings
 
 	/// <summary>
 	/// Where a building's picture stands: where positions.txt puts that building in the
-	/// province, or - ours - the province's own point where the file says nothing.
+	/// province, or where the file says nothing the middle of the province, its label point -
+	/// the maintainer's word, 2026-11-07.
 	/// </summary>
-	public static (float X, float Y) PlaceOf(IReadOnlyList<CBuildingPosition[]> placed, IReadOnlyList<CMapPosition> own,
+	public static (float X, float Y) PlaceOf(IReadOnlyList<CBuildingPosition[]> placed, IReadOnlyList<CMapPosition> labels,
 		int province, string building)
 	{
 		foreach (CBuildingPosition position in placed[province])
@@ -107,7 +108,7 @@ public static class CMapBuildings
 				return (position.X, position.Y);
 			}
 		}
-		return (own[province].X + 0.5f, own[province].Y + 0.5f);
+		return (labels[province].X + 0.5f, labels[province].Y + 0.5f);
 	}
 
 	/// <summary>Whether a unit is a fleet lying in a port.</summary>

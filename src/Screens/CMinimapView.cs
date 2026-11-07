@@ -40,7 +40,13 @@ public partial class CMinimapView : Control
 		Name = "Minimap";
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		Icon(Background);
+		// The background reaches up behind the lower part of the map modes' buttons on the bar below it (menubar.gui), which
+		// the original, drawing them over it, lets take the press; so it lets the mouse through, and the bar's shadow under it
+		// keeps a press on the frame off the map.
+		if (Icon(Background) is { } background)
+		{
+			background.MouseFilter = MouseFilterEnum.Ignore;
+		}
 		_picture = Icon(Picture);
 		_overlay = Icon(Overlay);
 		_frame = new CMinimapFrameLine { Name = "Frame" };

@@ -246,6 +246,7 @@ public partial class CFrontEnd : Node
 		// The countries to choose from by their colours: the original's front end sets the political style, where a game
 		// starts in the terrain mode (reversing/findings/FINDINGS-frontend.md, A.2; minimap.md, section 3). Set once the
 		// view is in the tree, which makes the palette its colours are written to.
+		_mapView.IsLobby = true;
 		_mapView.Mode = CMapView.MapMode.Political;
 		MoveChild(_mapView, 0);
 		_mapView.ProvinceSelected += province => _lobby?.ProvinceClicked(province);

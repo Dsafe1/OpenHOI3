@@ -93,6 +93,14 @@ public partial class CUnitCounters : Node2D
 		_airMap.Setup(map, state, gui, billboards);
 		AddChild(_airMap);
 
+		// Beside it, the naval mode's large naval bases and icons, and the resources mode's icons (mapmodes.md).
+		_navalMap = new CNavalMapLayer { Name = "NavalMap", ShowBehindParent = true };
+		_navalMap.Setup(map, state, gui, billboards);
+		AddChild(_navalMap);
+		_resourceMap = new CResourceMapLayer { Name = "ResourceMap", ShowBehindParent = true };
+		_resourceMap.Setup(map, state, gui, billboards);
+		AddChild(_resourceMap);
+
 		_hierarchy = new CHierarchyLayer { Name = "Hierarchy" };
 		_hierarchy.Setup(map, state, gui);
 		AddChild(_hierarchy);
@@ -118,6 +126,37 @@ public partial class CUnitCounters : Node2D
 	}
 
 	private CWeatherLayer _weather = null!;
+	private CNavalMapLayer _navalMap = null!;
+	private CResourceMapLayer _resourceMap = null!;
+	private bool _resourceMode;
+
+	/// <summary>What the naval map mode draws over the map.</summary>
+	public CNavalMapLayer NavalMap => _navalMap;
+
+	/// <summary>Whether the naval map mode is on, which shows its layer and works it out.</summary>
+	public bool NavalMode
+	{
+		get => _navalMap.Visible;
+		set
+		{
+			_navalMap.Visible = value;
+			if (value)
+			{
+				_navalMap.Refresh();
+			}
+		}
+	}
+
+	/// <summary>Whether the resources map mode is on, whose icons show only near.</summary>
+	public bool ResourceMode
+	{
+		get => _resourceMode;
+		set
+		{
+			_resourceMode = value;
+			_resourceMap.Visible = value && CameraHeight() < CResourceMapIcons.Highest;
+		}
+	}
 
 	/// <summary>Whether the weather map mode is on, which shows its pictures.</summary>
 	public bool WeatherMode
@@ -281,6 +320,9 @@ public partial class CUnitCounters : Node2D
 		_markers.Visible = close;
 		_buildings.ViewChanged(view);
 		_airMap.ViewChanged(view);
+		_navalMap.ViewChanged(view);
+		_resourceMap.Visible = _resourceMode && CameraHeight() < CResourceMapIcons.Highest;
+		_resourceMap.ViewChanged(view);
 		_markers.ViewChanged(zoom, view);
 		_weather.ViewChanged(view);
 		QueueRedraw();

@@ -314,6 +314,12 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   each way, one for the land borders, one for each technique of the sea - so a crossing changes one mask and no
   instance. A crossing now costs 13 to 21 ms, the first zoom inwards about 70, of which 37 is the counters' first near
   draw, as on the flat map.
+  **The first choice of a mode drawn another way** - any but terrain and weather, the land's General ways, or air and
+  naval, the sea's `…Color` techniques - then stalled most of a second on the materials of the way it wanted (the
+  maintainer's report, 2026-11-07, since a game starts in the terrain mode). *Ours* since: once the way shown is warm, the
+  surface makes and warms the rest one at a time, a way or a sea technique every fifteen frames, while the player looks at
+  the map; a switch then costs what any colouring does, 80 to 150 ms, the colours some 40 of it and the rest the
+  textures they rewrite.
 - **A surface gives back everything it made as it leaves the tree** - its meshes, its some 4,500 materials and their
   textures - where until then each lived on until the managed side's collector took its wrapper. Under the debugger that
   was long enough for the lobby's surfaces, one for each world it shows, to still hold their texture sets when the game's

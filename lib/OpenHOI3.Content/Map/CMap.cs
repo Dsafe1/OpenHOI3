@@ -43,6 +43,12 @@ public sealed class CMap
 		Terrain = terrain;
 		Continents = continents;
 		Positions = positions.Unit;
+		var labels = new CMapPosition[shapes.Length];
+		for (int id = 0; id < shapes.Length; id++)
+		{
+			labels[id] = shapes[id].IsEmpty ? default : new CMapPosition(shapes[id].CentreX, shapes[id].CentreY);
+		}
+		LabelPositions = labels;
 		TextPositions = positions.Text;
 		ProvinceLabels = positions.Labels;
 		NavalBasePositions = positions.NavalBase;
@@ -104,6 +110,12 @@ public sealed class CMap
 	/// The centre of its bounding box unless <c>positions.txt</c> says otherwise.
 	/// </summary>
 	public IReadOnlyList<CMapPosition> Positions { get; }
+
+	/// <summary>
+	/// Per province id, the centre of its bounding box, which nothing in <c>positions.txt</c> moves: where the original stands
+	/// a building's picture and a resource icon whose building the file gives the province no point for.
+	/// </summary>
+	public IReadOnlyList<CMapPosition> LabelPositions { get; }
 
 	/// <summary>
 	/// Per province id, where its name is written: <c>text_position</c>, or the centre

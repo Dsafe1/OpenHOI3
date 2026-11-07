@@ -132,7 +132,10 @@ and is built (`CProvinceTooltip`), all of it in `text`, in this order:
      always, attack, defence and attrition where not nothing;
    - *political*: on land the flags and the terrain's name; nothing more at sea;
    - *supply*: `supplymap.md`, section 3;
-   - *air*: `airmap.md`, section 7.
+   - *air*: `airmap.md`, section 7;
+   - *simplified terrain*: the terrain mode's;
+   - *infrastructure, victory points, resources, region, diplomatic, intel, theatre, naval*: `mapmodes.md`, the mode's
+     section; *strength* and *revolt risk* add nothing.
 4. **What is selected**: an air unit's or a fleet's distance from its base and its range,
    `"\n" + distance + "km (" + range + "km)"`, by sea for a fleet; or a selected province's,
    `PROV_DISTANCE_FROM`.
@@ -152,9 +155,8 @@ with no sprite draws nothing and still moves the pen. `confirmed`
 (`reversing/findings/FINDINGS-productiontooltip.md`, section 7). A build queue line's tooltip uses
 it (`productionscreen.md`, section 8).
 
-*Ours:* the original's tooltip says more in its other modes - diplomatic, intelligence, victory
-points, theatres, weather, resources, naval - which are not built here, and of the player's and its
-allies' objectives on the province, which do not exist here. A tooltip for every province is built,
+*Ours:* the original's tooltip also says the player's and its allies' objectives on the province, but
+in the air and naval modes, which are not built here. A tooltip for every province is built,
 where the original empties it for one the session does not simulate - none, in a campaign.
 
 ## 8. Placing the box

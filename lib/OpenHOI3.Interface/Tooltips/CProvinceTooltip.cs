@@ -56,6 +56,7 @@ public static class CProvinceTooltip
 		switch (mode)
 		{
 			case EMapTooltipMode.Terrain:
+			case EMapTooltipMode.SimplifiedTerrain:
 				if (!province.IsSea)
 				{
 					text.Append(Flags(province));
@@ -82,6 +83,30 @@ public static class CProvinceTooltip
 			case EMapTooltipMode.Weather:
 				// Put in place of all of the above, the name and owner with it (weather.md, section 6).
 				text.Clear().Append(CWeatherMapText.Text(localise, province));
+				break;
+			case EMapTooltipMode.Infrastructure:
+				text.Append(CMapModeText.Infrastructure(state, province, player));
+				break;
+			case EMapTooltipMode.VictoryPoints:
+				text.Append(CMapModeText.VictoryPoints(localise, province));
+				break;
+			case EMapTooltipMode.Resources:
+				text.Append(CMapModeText.Resources(localise, state, province, player));
+				break;
+			case EMapTooltipMode.Region:
+				text.Append(CMapModeText.Region(localise, state, province));
+				break;
+			case EMapTooltipMode.Diplomatic:
+				text.Append(CMapModeText.Diplomatic(localise, state, province, player));
+				break;
+			case EMapTooltipMode.Intel:
+				text.Append(CMapModeText.Intel(localise, state, province, player));
+				break;
+			case EMapTooltipMode.Theatre:
+				text.Append(CMapModeText.Theatre(state, province, player));
+				break;
+			case EMapTooltipMode.Naval:
+				text.Append(CMapModeText.Naval(localise, state, province, player));
 				break;
 		}
 

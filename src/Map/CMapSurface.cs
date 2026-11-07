@@ -312,6 +312,45 @@ public partial class CMapSurface : Node3D
 	private int _warmWay = -1;
 	private int _warmFrames;
 
+	/// <summary>
+	/// The frames before the first way or sea not yet made is made and warmed, and between one and the next: so that the first
+	/// choice of a map mode drawn another way - every mode but terrain and weather draws the land by the General techniques,
+	/// the air and naval modes the sea by the Color ones - does not stall on some 2,700 materials. *Ours.*
+	/// </summary>
+	private const int PrepareGap = 15;
+	private int _prepareIn = 2 * PrepareGap;
+
+	/// <summary>Makes and warms the first way, then the first sea technique, that nothing has made yet; nothing once all are.</summary>
+	private void PrepareNext()
+	{
+		for (int way = 0; way < CSurfaceTile.Ways; way++)
+		{
+			if (_wayNodes[way] is null)
+			{
+				MakeWay(way);
+				_warmWay = way;
+				_warmFrames = 2;
+				ApplyCullMask();
+				return;
+			}
+		}
+		string[] seas = _simpleWater
+			? new[] { "WaterSimple", "WaterSimpleColor" }
+			: new[] { "WaterNear", "WaterFar", "WaterNearColor", "WaterFarColor" };
+		foreach (string sea in seas)
+		{
+			if (!_seaWays.ContainsKey(sea))
+			{
+				MakeSea(sea);
+				_warmSea = sea;
+				_warmFrames = 2;
+				ApplyCullMask();
+				return;
+			}
+		}
+		_prepareIn = int.MaxValue;
+	}
+
 	/// <summary>A way's materials and instances, one of each for every tile's land and beaches, set as the way draws them.</summary>
 	private void MakeWay(int way)
 	{
@@ -617,6 +656,11 @@ public partial class CMapSurface : Node3D
 		if (_warmFrames > 0 && --_warmFrames == 0)
 		{
 			ApplyCullMask();
+		}
+		else if (_warmFrames == 0 && _camera is not null && --_prepareIn <= 0)
+		{
+			_prepareIn = PrepareGap;
+			PrepareNext();
 		}
 		if (_shownSea is { } shown && _seaWays.TryGetValue(shown, out var sea))
 		{
