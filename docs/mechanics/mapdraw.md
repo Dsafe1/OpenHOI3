@@ -309,17 +309,19 @@ showed the surface upside down**, Godot's clip y running the other way to Direct
   and then, measured with each switched off in turn, showing or hiding a few thousand instances, the land's or the
   borders' alike. *Ours* since: **the land and the beaches are drawn four ways** - Graphical near and far, General,
   General_Low - each a material and an instance for every tile, sharing the tile's mesh and made the first time the way
-  is wanted, the same style's other height made and drawn with it for the first frames; the sea one material and instance
+  is wanted, the same style's other height made with it; the sea one material and instance
   for each technique the same way; and what is drawn chosen by **render layers and the camera's cull mask** - a layer for
   each way, one for the land borders, one for each technique of the sea - so a crossing changes one mask and no
   instance. A crossing now costs 13 to 21 ms, the first zoom inwards about 70, of which 37 is the counters' first near
   draw, as on the flat map.
   **The first choice of a mode drawn another way** - any but terrain and weather, the land's General ways, or air and
   naval, the sea's `…Color` techniques - then stalled most of a second on the materials of the way it wanted (the
-  maintainer's report, 2026-11-07, since a game starts in the terrain mode). *Ours* since: once the way shown is warm, the
-  surface makes and warms the rest one at a time, a way or a sea technique every fifteen frames, while the player looks at
-  the map; a switch then costs what any colouring does, 80 to 150 ms, the colours some 40 of it and the rest the
-  textures they rewrite.
+  maintainer's report, 2026-11-07, since a game starts in the terrain mode). *Ours* since: the surface makes the rest one at a
+  time, a way or a sea technique every fifteen frames, while the player looks at the map; a switch then costs what any
+  colouring does, 80 to 150 ms, the colours some 40 of it and the rest the textures they rewrite. **Nothing is drawn ahead
+  of its use**: each way made ahead was drawn under the one shown for two frames to warm it, which flickered the map as a
+  game began (the maintainer's report, 2026-11-07) and, measured, made a first switch no faster; without the warming of
+  the other height a first zoom inwards costs about 50 ms instead of 35.
 - **A surface gives back everything it made as it leaves the tree** - its meshes, its some 4,500 materials and their
   textures - where until then each lived on until the managed side's collector took its wrapper. Under the debugger that
   was long enough for the lobby's surfaces, one for each world it shows, to still hold their texture sets when the game's

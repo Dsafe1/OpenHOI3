@@ -252,31 +252,27 @@ public partial class CMapSurface : Node3D
 		}
 		int way = CurrentWay;
 		MakeWay(way);
-		// The same style's other height made with it, so that the first crossing of 500 does not make 2,700 materials, and
-		// drawn too for the first frames, so that the rendering device has set them up before they are wanted.
+		// The same style's other height made with it, so that the first crossing of 500 does not make 2,700 materials. They
+		// are not drawn ahead of their use: drawing a way under the one shown flickered, and saved a first zoom inwards only
+		// some 15 ms.
 		if (_wayNodes[way ^ 1] is null)
 		{
 			MakeWay(way ^ 1);
-			_warmWay = way ^ 1;
-			_warmFrames = 2;
 		}
 		_shownWay = way;
-		// The sea likewise: its technique's own material, the other height's made and warmed with it.
+		// The sea likewise: its technique's own material, the other height's made with it.
 		string sea = WaterTechnique;
 		MakeSea(sea);
 		string otherSea = sea.Contains("Near") ? sea.Replace("Near", "Far") : sea.Replace("Far", "Near");
 		if (otherSea != sea && !_seaWays.ContainsKey(otherSea))
 		{
 			MakeSea(otherSea);
-			_warmSea = otherSea;
-			_warmFrames = 2;
 		}
 		_shownSea = sea;
 		ApplyCullMask();
 	}
 
 	private string? _shownSea;
-	private string? _warmSea;
 
 	/// <summary>
 	/// The render layers: everything always drawn on the first, each way's land and beaches on one of its own, the land
@@ -302,25 +298,21 @@ public partial class CMapSurface : Node3D
 	private void ApplyCullMask()
 	{
 		uint Sea(string? technique) => technique is not null && _seaWays.TryGetValue(technique, out var sea) ? sea.Layer : 0;
-		bool warm = _warmFrames > 0;
 		_camera3D.CullMask = BaseLayer | (_shownWay >= 0 ? WayLayer(_shownWay) : 0) | (_bordersShown ? BorderLayer : 0) | Sea(_shownSea)
-			| (Far ? SurfFarLayer : SurfNearLayer) | (_treesShown ? TreeLayer : 0)
-			| (warm && _warmWay >= 0 ? WayLayer(_warmWay) | BorderLayer : 0) | (warm ? Sea(_warmSea) | SurfNearLayer | SurfFarLayer : 0);
+			| (Far ? SurfFarLayer : SurfNearLayer) | (_treesShown ? TreeLayer : 0);
 	}
 
-	/// <summary>A way made ahead of its use, drawn under the one shown for so many frames, the land borders with it.</summary>
-	private int _warmWay = -1;
-	private int _warmFrames;
-
 	/// <summary>
-	/// The frames before the first way or sea not yet made is made and warmed, and between one and the next: so that the first
-	/// choice of a map mode drawn another way - every mode but terrain and weather draws the land by the General techniques,
-	/// the air and naval modes the sea by the Color ones - does not stall on some 2,700 materials. *Ours.*
+	/// The frames before the first way or sea not yet made is made, and between one and the next: so that the first choice of
+	/// a map mode drawn another way - every mode but terrain and weather draws the land by the General techniques, the air and
+	/// naval modes the sea by the Color ones - does not stall on some 2,700 materials. They are made and not drawn: drawing
+	/// each under the one shown to warm it flickered the map six times as a game began, and made a first switch no faster.
+	/// *Ours.*
 	/// </summary>
 	private const int PrepareGap = 15;
 	private int _prepareIn = 2 * PrepareGap;
 
-	/// <summary>Makes and warms the first way, then the first sea technique, that nothing has made yet; nothing once all are.</summary>
+	/// <summary>Makes the first way, then the first sea technique, that nothing has made yet; nothing once all are.</summary>
 	private void PrepareNext()
 	{
 		for (int way = 0; way < CSurfaceTile.Ways; way++)
@@ -328,9 +320,6 @@ public partial class CMapSurface : Node3D
 			if (_wayNodes[way] is null)
 			{
 				MakeWay(way);
-				_warmWay = way;
-				_warmFrames = 2;
-				ApplyCullMask();
 				return;
 			}
 		}
@@ -342,9 +331,6 @@ public partial class CMapSurface : Node3D
 			if (!_seaWays.ContainsKey(sea))
 			{
 				MakeSea(sea);
-				_warmSea = sea;
-				_warmFrames = 2;
-				ApplyCullMask();
 				return;
 			}
 		}
@@ -653,11 +639,7 @@ public partial class CMapSurface : Node3D
 	{
 		// water.fx's Time: a sawtooth from −100 to nought, a hundred seconds round [exe].
 		_clock = (_clock + delta) % 100.0;
-		if (_warmFrames > 0 && --_warmFrames == 0)
-		{
-			ApplyCullMask();
-		}
-		else if (_warmFrames == 0 && _camera is not null && --_prepareIn <= 0)
+		if (_camera is not null && --_prepareIn <= 0)
 		{
 			_prepareIn = PrepareGap;
 			PrepareNext();
