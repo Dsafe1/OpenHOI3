@@ -771,6 +771,9 @@ public sealed class CGameState
 		return _staticModifiers.TryGetValue(name, out CModifier? modifier) ? modifier : null;
 	}
 
+	/// <summary>The strategic resources by name, in the order of their file.</summary>
+	public IEnumerable<string> StrategicResourceNames => _strategicResources.Keys;
+
 	/// <summary>What a strategic resource is worth to whoever has it, or null when none has that name.</summary>
 	public CModifier? FindStrategicResource(string name)
 	{

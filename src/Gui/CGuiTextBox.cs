@@ -222,10 +222,13 @@ public partial class CGuiTextBox : CGuiObject
 	/// middle of a word; the routine was not read, so how the original measures the room
 	/// is not known. A line with a colour escape in it is left alone.
 	/// </summary>
+	/// <summary>The width a screen that lays a box out itself gives it, for breaking and cutting its lines, in place of its file's: the Statistics screen's cells.</summary>
+	public float? LaidOutWidth { get; set; }
+
 	private string Cut(string line)
 	{
 		var type = (CGuiTextBoxType)GuiType;
-		float inside = type.MaxWidth - 2f * type.BorderSize.X;
+		float inside = (LaidOutWidth ?? type.MaxWidth) - 2f * type.BorderSize.X;
 		if (!type.FixedSize || _font is null || inside <= 0f || line.Contains(CColouredText.Escape)
 			|| _font.Width(line) <= inside)
 		{
@@ -253,7 +256,7 @@ public partial class CGuiTextBox : CGuiObject
 	private IEnumerable<string> Wrap(string paragraph)
 	{
 		var type = (CGuiTextBoxType)GuiType;
-		float inside = type.MaxWidth - 2f * type.BorderSize.X;
+		float inside = (LaidOutWidth ?? type.MaxWidth) - 2f * type.BorderSize.X;
 		if (_font is null || inside <= 0f || (type.MaxHeight != 0 && type.MaxHeight < 2f * _font.LineHeight))
 		{
 			return new[] { paragraph };

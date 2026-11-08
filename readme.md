@@ -1731,9 +1731,7 @@ files are not in it. Whole windows the original opens:
 
 | window | reached from | the fact base |
 | --- | --- | --- |
-| the theatres screen (`country_theatres`) | the top bar | names only |
-| statistics (`ledger`) | the top bar | names only |
-| the strategic warfare manager (`swm_window`) | the top bar | names only |
+| the strategic warfare manager (`swm_window`) | the top bar | read (`FINDINGS-topscreens.md`, section C); it needs the game state's per-enemy records and their eight tallies before the window |
 | the order of battle browser (`oobbrowser`) | the unit panel, whose button is drawn and dead | not read |
 | the convoy windows (`convoy_details`, `convoy_settings`, `convoy_creation_window`) | production's "Create convoy" (`convoy_button`) | in part |
 | battle plans (`battleplans_window`) | the menu bar (`menubar_plans_*`) | not read |
@@ -2804,6 +2802,8 @@ screen is checked with `--click`, not only with a switch that reaches past its b
 the four builder windows passed every check that opened and filled them by name while
 seven of their buttons could not be pressed.
 
+The top bar's **Theatres** and **Statistics** buttons work since 2026-11-08 (`docs/mechanics/theatresscreen.md`, `statistics.md`): the theatres, their fronts, what a plan is short of and a Build that orders it, and the 26 pages of tables and pies. Tried with `--click`; the maintainer has not looked at them. A theatre's and a front's needs are worked out as the screen is filled, where the original refills an inactive plan daily. Of the ledger, the tooltips of its columns, a unit's order and model, points off the map and four of the goods pools are not built (`statistics.md`, sections 2 and 3).
+
 An earlier iteration reproduced the original's front end directly from its `.gui` files
 and ran its main menu and lobby. That work left the tree in commit `4269708` and remains
 in git history. It is where the lessons below come from, and today's `src/Gui` started
@@ -2978,6 +2978,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
 lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and placement at its root
     Text/               colour escapes, number formats, templates, breaking lines
     Screens/            the text of each screen's figures
+    Ledger/             the Statistics screen's pages, tables and pies
     Tooltips/           a tooltip, what the box shows of it, where it goes and when its
                         second half comes; the map's, the top bar's, the production and
                         technology screens', the sliders', the builder windows', the

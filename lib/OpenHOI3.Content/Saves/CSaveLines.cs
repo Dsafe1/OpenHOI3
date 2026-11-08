@@ -49,6 +49,9 @@ public static class CSaveLines
 				case "manpower":
 					line.Manpower = CSaveValues.Fixed(entry.Value);
 					break;
+				case "target":
+					line.Target = ids.Of(entry);
+					break;
 				case "is_reserve":
 					line.IsReserve = entry.Value == "yes";
 					break;
@@ -233,6 +236,10 @@ public static class CSaveLines
 		}
 		writer.IdPair("unit", CSaveUnitWriter.Pair(state, line.UnitId));
 		writer.Fixed("manpower", line.Manpower);
+		if (line.Target != 0)
+		{
+			writer.IdPair("target", CSaveUnitWriter.Pair(state, line.Target));
+		}
 		if (line.IsReserve)
 		{
 			writer.Bool("is_reserve", true);

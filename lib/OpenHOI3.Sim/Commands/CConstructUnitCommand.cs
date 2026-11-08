@@ -18,11 +18,12 @@ public sealed class CConstructUnitCommand : CCommand
 	private readonly COrderUnitCommand _order;
 
 	/// <param name="types">Each brigade's type, in the order the script appended them.</param>
-	public CConstructUnitCommand(CCountryTag country, IEnumerable<string> types, int size, bool isReserve)
+	/// <param name="target">The number of the headquarters the line is for; 0 for none.</param>
+	public CConstructUnitCommand(CCountryTag country, IEnumerable<string> types, int size, bool isReserve, int target = 0)
 	{
 		_country = country;
 		_types = types.ToArray();
-		_order = new COrderUnitCommand(country, _types.Select(type => (type, "")), size: size, isReserve: isReserve);
+		_order = new COrderUnitCommand(country, _types.Select(type => (type, "")), size: size, isReserve: isReserve, target: target);
 	}
 
 	public override bool MayExecute(CGameState state)

@@ -45,6 +45,9 @@ public sealed class CConstruction
 	/// </summary>
 	public CFixedPoint Status { get; set; } = CFixedPoint.One;
 
+	/// <summary>The number of the headquarters the line was ordered for, by the theatres screen; 0 for none.</summary>
+	public int Target { get; set; }
+
 	/// <summary>Whether what it builds are reserves.</summary>
 	public bool IsReserve { get; set; }
 

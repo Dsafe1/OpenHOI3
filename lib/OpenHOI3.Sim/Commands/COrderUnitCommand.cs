@@ -27,6 +27,7 @@ public sealed class COrderUnitCommand : CCommand
 	private readonly int _size;
 	private readonly bool _isReserve;
 	private readonly CCountryTag? _builder;
+	private readonly int _target;
 
 	/// <param name="brigades">
 	/// Each brigade, ship or wing: its type's key and the name it is to have. One with
@@ -46,9 +47,10 @@ public sealed class COrderUnitCommand : CCommand
 	/// nobody, for the ordering country's.
 	/// </param>
 	public COrderUnitCommand(CCountryTag country, IEnumerable<(string Type, string Name)> brigades, string name = "",
-		int size = 1, bool isReserve = false, IReadOnlyList<IReadOnlyList<int>?>? models = null, CCountryTag? builder = null)
+		int size = 1, bool isReserve = false, IReadOnlyList<IReadOnlyList<int>?>? models = null, CCountryTag? builder = null, int target = 0)
 	{
 		_builder = builder;
+		_target = target;
 		_country = country;
 		_brigades = System.Linq.Enumerable.ToArray(brigades);
 		_models = new IReadOnlyList<int>?[_brigades.Length];
@@ -181,7 +183,7 @@ public sealed class COrderUnitCommand : CCommand
 	private CConstruction Make(CGameState state, CCountry country)
 	{
 		CCountry levels = Builder(state, country);
-		var construction = new CConstruction(country.Tag) { Name = _name, Size = _size, IsReserve = _isReserve };
+		var construction = new CConstruction(country.Tag) { Name = _name, Size = _size, IsReserve = _isReserve, Target = _target };
 		if (_isReserve)
 		{
 			construction.ReservesFactor = CBuildQueue.ReservesFactor(country);

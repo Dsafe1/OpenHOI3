@@ -53,6 +53,8 @@ public partial class CSession : Node
 	private CDiplomacyView? _diplomacy;
 	private CPoliticsView? _politics;
 	private CEspionageView? _espionage;
+	private CTheatreView? _theatres;
+	private CLedgerView? _statistics;
 	private CStrategicEffectsView? _strategicEffects;
 	private CVictoryConditionsView? _victoryConditions;
 	private CanvasLayer? _hud;
@@ -355,6 +357,17 @@ public partial class CSession : Node
 			_espionage.Setup(gui, _simulation, Player);
 			_espionage.SelectedProvince = () => mapView.SelectedProvince;
 			layer.AddChild(_espionage);
+			_theatres = new CTheatreView();
+			_theatres.Setup(gui, _simulation, Player);
+			_theatres.MapSelection = () => mapView.Units.Units;
+			_theatres.HeadquartersChosen += ChooseUnit;
+			_theatres.ProvinceChosen += province => mapView.CentreOn(province);
+			layer.AddChild(_theatres);
+			_statistics = new CLedgerView();
+			_statistics.Setup(gui, _simulation, Player);
+			_statistics.UnitChosen += ChooseUnit;
+			_statistics.Opening += CloseCountryViews;
+			layer.AddChild(_statistics);
 
 			// The deploy menu and the alert that opens it. A unit chosen there is placed
 			// by a click on the map, which is shown where it may go.
@@ -448,6 +461,8 @@ public partial class CSession : Node
 		_topBar.DiplomacyPressed += () => Toggle(_diplomacy);
 		_topBar.PoliticsPressed += () => Toggle(_politics);
 		_topBar.IntelligencePressed += () => Toggle(_espionage);
+		_topBar.TheatresPressed += () => Toggle(_theatres);
+		_topBar.StatisticsPressed += () => _statistics?.Toggle();
 
 		// The outliner down the right, with the top bar's button for it (docs/mechanics/outliner.md).
 		if (Player is not null)
@@ -628,7 +643,7 @@ public partial class CSession : Node
 		{
 			_deployMenu?.Close();
 			_mapView.ClearSelection();
-			foreach (CCountryView? view in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage })
+			foreach (CCountryView? view in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage, _theatres })
 			{
 				view?.Close();
 			}
@@ -762,7 +777,8 @@ public partial class CSession : Node
 			view.Close();
 			return;
 		}
-		foreach (CCountryView? other in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage })
+		_statistics?.Shut();
+		foreach (CCountryView? other in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage, _theatres })
 		{
 			if (!ReferenceEquals(other, view))
 			{
@@ -770,6 +786,15 @@ public partial class CSession : Node
 			}
 		}
 		view.Open();
+	}
+
+	/// <summary>Every country screen shut, as the Statistics screen does when it opens.</summary>
+	private void CloseCountryViews()
+	{
+		foreach (CCountryView? view in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage, _theatres })
+		{
+			view?.Close();
+		}
 	}
 
 	/// <summary>
@@ -1040,7 +1065,7 @@ public partial class CSession : Node
 	{
 		// The outliner steps aside while a country screen is up (outliner.md, section 1), and the minimap is hidden
 		// (minimap.md, section 1).
-		bool covered = new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage }
+		bool covered = new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage, _theatres }
 			.Any(view => view is { IsOpen: true });
 		_outliner?.SetCovered(covered);
 		if (_minimap is not null)
@@ -1757,6 +1782,14 @@ public partial class CSession : Node
 			else if (argument == "--screen=intelligence")
 			{
 				Toggle(_espionage);
+			}
+			else if (argument == "--screen=statistics")
+			{
+				_statistics?.Toggle();
+			}
+			else if (argument == "--screen=theatres")
+			{
+				Toggle(_theatres);
 			}
 			else if (argument == "--screen=strategiceffects")
 			{
