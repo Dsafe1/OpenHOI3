@@ -1707,8 +1707,9 @@ maintainer's was made with BiceLib's patch zeroing it each month written into th
 0.000 where ours is the original's 0.191; neutrality still agrees 101 of 101. **And the map cache built here** (2026-11-08,
 `docs/mechanics/mapcache.md`, `Content/Map/Cache`): read whole in a wave of five readers (`reversing/findings/FINDINGS-mapcache.md`),
 every file of `map/cache` made from the map files in the original's formats, **each the original's byte for byte on two maps** -
-Their Finest Hour's shipped cache and the one the original built for BlackICE - in about 2.3 seconds. **The game now reads the cache from the player's Documents folder alone** (`docs/compatibility.md`, entry 22), never the install's, and builds it there where it is not the map's instead of drawing flat. **Next up**: the console
-below, the military AI's gaps (*What the moving wave left*), or the end-of-game screen.
+Their Finest Hour's shipped cache and the one the original built for BlackICE - in about 2.3 seconds. **The game now reads the cache from the player's Documents folder alone** (`docs/compatibility.md`, entry 22), never the install's, and builds it there where it is not the map's instead of drawing flat. **And the end of a game** (2026-11-08, `docs/mechanics/endgame.md`, read in `reversing/findings/FINDINGS-endgame.md`): the dialog that names a winner, the game held at its end date, a player with no land sent
+to the end, the end-of-game screen with its result worked out afresh, the victory conditions' window behind the goals button - which the reading found to be the same window - and their alert, and the lobby's
+choice of conditions. Reading for it settled how the font places a centre-measured text box. **Next up**: what remains of the interface below, the console, or the military AI's gaps (*What the moving wave left*).
 
 **The console**, planned 2026-11-08 and not built: the original's 53 commands are read whole in the fact base
 (`reversing/findings/FINDINGS-console.md`, section C), and the debug menu (Shift and 4) already has `debug fow` - for the
@@ -1722,6 +1723,43 @@ the switches that take no argument. Rated against what is built:
 | **easy** - the system exists; the command adds, sets or calls | `money`, `supplies`, `fuel`, `crudeoil`, `metal`, `energy`, `rarematerials`, `givemeall`, `addmanpower`, `addofficers`, `noneutrality`, `setnationalunity`, `election`, `reorg`, `surrender`, `guarantee`, `changeowner`, `changecontroller`, `conquerall`, `event` (the `--event=` switch already fires one), `revolt`, `alwayspartisants`, `instantresearch`, `instantconstruction`, `tooltipdebug`, `printtech`, `copyprov`; `debug tooltips`, `debug nopopup`, `debug minzoom`, `debug color`, `debug wireframe` |
 | **medium** - more wiring, or a small reading first | `tag` (the played country changed touches much of the interface), `aipause` (one country's AI steps left out), `teleport`, `date`, `debug render <layer>` (the map's layers are cut differently here), `debug yesmen` and `debug spy` (what each flag changes to be read), `detailedlog` (the save writer would serve), `reloadinterface`, `reloadfx`, `fullscreen` |
 | **not worth it now** | `nukes` (no nuclear system), `morehumans` (multiplayer), `paint`, `rpaint`, `ipaint` (the map editor), `nextsong` (no sound), `tutorial`, `spawnactor`, `reload`, `reloadtexture`, `window`, `randomlog`, `helplog`, `debug info`, `debug profile`, `debug log_profile`, `debug textures`, `debug assert`, `debug save`; and `weather` and `crash`, which the original refuses outside its developers' build |
+
+**What of the interface is missing**, inventoried 2026-11-08: the install's 58 `.gui` files set against the names the code looks up, each gap
+then set against the executable and the fact base. It is name matching: a button can count as found because its name is a common word (`close`,
+`build`), so a dead button inside a built screen may be hidden, and only some names put together in code were ruled out by hand. BlackICE's 20 extra
+files are not in it. Whole windows the original opens:
+
+| window | reached from | the fact base |
+| --- | --- | --- |
+| the theatres screen (`country_theatres`) | the top bar | names only |
+| statistics (`ledger`) | the top bar | names only |
+| the strategic warfare manager (`swm_window`) | the top bar | names only |
+| the order of battle browser (`oobbrowser`) | the unit panel, whose button is drawn and dead | not read |
+| the convoy windows (`convoy_details`, `convoy_settings`, `convoy_creation_window`) | production's "Create convoy" (`convoy_button`) | in part |
+| battle plans (`battleplans_window`) | the menu bar (`menubar_plans_*`) | not read |
+| go to a province (`goto_box`) | `button_goto` by the minimap | names only |
+| sunk ships and the pride of the fleet (`sunk_ships_view`, `brigade_view`) | the unit panel | not read |
+| the expeditionary force (`ExpeditionDialog`) | diplomacy | outline only |
+| the console (`console_wnd`) | Shift and 3 | read; the plan is above |
+
+Parts of screens that are built:
+
+| screen | what is missing |
+| --- | --- |
+| the unit panel | a headquarters' AI rows (`sup_unit_stance`, `sup_stance_change`, `sup_power_ratios`, `sup_desired_assets`), attaching brigades (`attachment_selection_panel`), choosing an upgrade (`select_upgrade_entry`); and the buttons drawn that cannot be pressed - make a headquarters, attach and detach, load, disband |
+| production | the AI's needs (`ai_need_queue`) and the convoy list (`convoy_queue`) |
+| politics | the rows that choose a country to puppet or liberate (`puppet_entry`, `liberate_entry`); their windows are only ever hidden |
+| diplomacy | the two lists of war goals (`goals_by_us`, `goals_at_us`) and the drift rows (`drift_entry`) |
+| the air builder | the plane's description (`selected_plane_desc_list`) |
+| the outliner | its configuration window (`outliner_configuration`) |
+| the popups | an election's result and a battle's start (`ElectionResultPopup`, `CombatStartPopup`); only `DefaultPopup` is built |
+| edit boxes | typing, but for the save dialog's |
+
+Not counted as missing: multiplayer (the metaserver, chat, the in-game lobby, hosting and joining); scenarios and custom games, by the settled decision above;
+the tutorial, the GamersGate store (`micro_interface`) and the `nudge` editor; and what is dead in the original - the side menus, the right-click menu
+(`FINDINGS-leftovermenus.md`), `SettingsMustRestartWindow` (`FINDINGS-settingswindow.md`), and `AllyCallDialog`, `ShieldedInformationDialog`,
+`capture_ship_entry` and `sup_odds`, which the executable never names. The victory conditions, their alert, the goals button and the end of the game were built from this list the same day (`docs/mechanics/endgame.md`). Suggested next: the theatres and
+statistics screens, the most visible dead buttons.
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
@@ -2032,9 +2070,7 @@ None of these blocks the list above.
     return date - and those saves are its check, with the six of 23 May 1940, an hour apart, where
     Britain has lent France 2 divisions and Germany Slovakia 1 beside Japan's 44, and Germany's 531,
     Britain's 372 and France's about 300 brigades drift the same way each hour;
-  - **the end-of-game screen of `backend.gui` is not built**, so Resign goes straight to the main
-    menu (`ingamemenu.md`, *Ours*; `frontend.md`); nor are the front end's multiplayer menu, tutorial
-    list, credits and victory conditions window, greyed there, nor Arcade's supply, the lobby's game mode
+  - the front end's multiplayer menu, tutorial list and credits are not built, greyed there, nor Arcade's supply, the lobby's game mode
     greyed for it (`docs/compatibility.md`, entry 18), nor the five alerts the player's automation
     silences, no alert of them being built (`frontend.md`, section 4.3);
   - **only the save dialog's edit box takes typing** (`interface.md`, section 8): the unit

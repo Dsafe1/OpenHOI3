@@ -446,9 +446,9 @@ files, with nothing in it placed by hand.
 
   The line's top is the box's top plus the border's height. A line's width is the sum
   of how far the pen moves for each letter. A box measured from the upper right has
-  the border added once more whichever way it is set. The other five orientations have
-  rules of their own that were not all worked through; *ours* treats them as the upper
-  left.
+  the border added once more whichever way it is set. **A box measured from the centre**, set centred, starts at the border, plus half the box, less half the
+  **widest** line, less half the line (2026-11-08, `reversing/findings/FINDINGS-textdraw.md`), so a single line ends at the middle of the box; set left or right it starts at the border. The other four
+  orientations have rules of their own that were not all worked through; *ours* treats them as the upper left.
 - **Every glyph is then drawn one unit right and one up of that.** The original adds
   half a pixel to both coordinates of every corner of a glyph, in a space whose second
   axis points up (`confirmed`), and beside its pictures that comes out as a whole pixel

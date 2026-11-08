@@ -10,7 +10,7 @@ not coming back. `confirmed` unless marked. **[exe]** a rule the executable hold
 
 1. **The program starts on it** - the main menu - unless a developer switch says what game to play: `--country=`,
    `--load=` or `--replay=` start that game straight away, as before.
-2. **A game left by Resign comes back to the main menu** [exe: never the lobby] (*Ours*: through no end-of-game screen).
+2. **A game left by Resign comes back to the main menu** [exe: never the lobby], through the end-of-game screen (`endgame.md`).
 3. Every visit is a new front end, its panels made anew (A.1, A.6).
 
 ## 2. The main menu
@@ -198,7 +198,6 @@ says the lines.
 - **Only the start's bookmark is offered**, and the Scenarios and Custom Games tabs are greyed, each with a tooltip of ours saying why - one start (entry 17); so is the main menu's Quick Start.
 - **The GamersGate store's button, "Buy Bonus Items", is greyed** with a tooltip of ours saying no store is opened (the maintainer's word, 2026-11-06), **and the four links to the publisher's pages are hidden.**
 - **`version_label`** says `OpenHOI3`, where the original writes its version and four letters of its checksum.
-- **Resign goes straight to the main menu**: the end-of-game screen of `backend.gui` the original shows first is not built.
 - **The seed of a new game is the game's own**, where the original takes one from the clock at Play (`docs/compatibility.md`,
   entry 11's reasoning: a game is replayable from its seed).
 - **The chat log has no lines of a save's transfer**, the original's "Savegame transfer started..." and the rest.

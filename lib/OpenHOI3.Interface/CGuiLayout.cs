@@ -51,11 +51,19 @@ public static class CGuiLayout
 	/// centred in the whole of the box's width from the border - half the box less
 	/// half the line, each half cut to a whole number. Set right it ends at the box's
 	/// right edge, and the border plays no part. A box measured from the upper right
-	/// has the border added once more, whichever way it is set.
+	/// has the border added once more, whichever way it is set. A box measured from the centre has an arithmetic of its own:
+	/// centred, half the widest line is taken off as well, so that a single line ends at the middle of the box and not around it; set
+	/// right it starts as set left. <paramref name="widest"/> is the block's widest line, the line's own where it is not given.
 	/// </summary>
 	public static float TextStart(EGuiTextFormat format, EGuiOrientation orientation, int border, int boxWidth,
-		float textWidth)
+		float textWidth, float? widest = null)
 	{
+		if (orientation == EGuiOrientation.Center)
+		{
+			return format == EGuiTextFormat.Centre
+				? border - (int)((widest ?? textWidth) / 2f) + boxWidth / 2 - (int)(textWidth / 2f)
+				: border;
+		}
 		int origin = orientation == EGuiOrientation.UpperRight ? border : 0;
 		return format switch
 		{

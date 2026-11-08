@@ -310,6 +310,7 @@ public partial class CGuiTextBox : CGuiObject
 			return;
 		}
 
+		float widest = 0f;
 		foreach (List<CTextRun> line in _lines)
 		{
 			float width = 0f;
@@ -317,7 +318,16 @@ public partial class CGuiTextBox : CGuiObject
 			{
 				width += CTextIcons.Measure(run.Text, _font.Width);
 			}
-			float x = inset.X + CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, width);
+			widest = Mathf.Max(widest, width);
+		}
+		foreach (List<CTextRun> line in _lines)
+		{
+			float width = 0f;
+			foreach (CTextRun run in line)
+			{
+				width += CTextIcons.Measure(run.Text, _font.Width);
+			}
+			float x = inset.X + CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, width, widest);
 
 			foreach (CTextRun run in line)
 			{

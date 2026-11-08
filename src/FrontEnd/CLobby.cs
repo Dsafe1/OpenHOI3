@@ -43,6 +43,8 @@ public partial class CLobby : Control
 	private bool _savesShown;
 	private bool _startChosen;
 	private CCountryTag? _chosen;
+	private CGuiButton? _victoryButton;
+	private CVictorySelectWindow? _victorySelect;
 
 	/// <summary>Back pressed: the main menu again, a loaded save let go.</summary>
 	public event Action? BackPressed;
@@ -104,9 +106,17 @@ public partial class CLobby : Control
 				panel.Visible = false;
 			}
 		}
-		if (_window.TryFindButton("victoryconditions_button") is { } victory)
+		_victoryButton = _window.TryFindButton(CVictoryWindowText.SelectButtonName);
+		if (_victoryButton is not null)
 		{
-			victory.Disabled = true;
+			_victorySelect = new CVictorySelectWindow();
+			_victorySelect.Setup(_context);
+			AddChild(_victorySelect);
+			_victoryButton.Pressed += OpenVictoryConditions;
+			_victoryButton.Tooltip = () => new CTooltip
+			{
+				Text = CVictoryWindowText.ButtonDisabledKey(World, ChosenCountry(), _frontEnd.SaveLoaded) is { } key ? Localise(key) : "",
+			};
 		}
 		if (_newGameTab is not null)
 		{
@@ -213,7 +223,26 @@ public partial class CLobby : Control
 		}
 		if (_play is not null)
 		{
-			_play.Disabled = WhyNot() is not null;
+			// Play cannot be pressed while the victory conditions' window is up.
+			_play.Disabled = WhyNot() is not null || _victorySelect is { IsOpen: true };
+		}
+		if (_victoryButton is not null)
+		{
+			_victoryButton.Disabled = CVictoryWindowText.ButtonDisabledKey(World, ChosenCountry(), _frontEnd.SaveLoaded) is not null;
+			if (_victoryButton.Disabled)
+			{
+				_victorySelect?.Shut();
+			}
+		}
+	}
+
+	private CCountry? ChosenCountry() => _chosen is { } tag ? World.Country(tag) : null;
+
+	private void OpenVictoryConditions()
+	{
+		if (_victorySelect is { IsOpen: false } window && ChosenCountry() is { } country)
+		{
+			window.Open(World, country);
 		}
 	}
 

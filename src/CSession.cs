@@ -54,6 +54,12 @@ public partial class CSession : Node
 	private CPoliticsView? _politics;
 	private CEspionageView? _espionage;
 	private CStrategicEffectsView? _strategicEffects;
+	private CVictoryConditionsView? _victoryConditions;
+	private CanvasLayer? _hud;
+	private CGuiContext? _gui;
+	private FrontEnd.CEndGameScreen? _endGame;
+	private bool _gameWasFinished;
+	private bool _victoryDialogShown;
 	private CProvinceView? _provinceView;
 	private CEventWindows? _events;
 	private CDeployMenu? _deployMenu;
@@ -249,6 +255,71 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
+	/// The three ways a game ends (<c>docs/mechanics/endgame.md</c>, section 2): the victory conditions, which raise the dialog and pause once; the end date, past which
+	/// the same dialog comes once and the game is held paused for good; and a player left with no provinces, who goes straight to the end.
+	/// </summary>
+	private void CheckTheGamesEnd()
+	{
+		if (_gui is null || _endGame is not null || !_simulation.TakesCommands || Player is null)
+		{
+			return;
+		}
+		bool justFinished = State.GameFinished && !_gameWasFinished;
+		_gameWasFinished = State.GameFinished;
+		// The end date's test is strictly after, by the hour.
+		bool pastTheEnd = State.Date > State.EndDate || (State.Date == State.EndDate && State.Hour > 0);
+		if (justFinished || pastTheEnd)
+		{
+			ShowVictoryDialog();
+			_simulation.Clock.Paused = true;
+		}
+		if (Player.Tag.Value != "REB" && Sim.Countries.CCountryLists.OwnedCount(State, Player.Tag) < 1)
+		{
+			ShowEndGame();
+		}
+	}
+
+	/// <summary>The dialog comes once in a session, whichever way the game came to its end.</summary>
+	private void ShowVictoryDialog()
+	{
+		if (_victoryDialogShown || _gui is null || _hud is null || Player is null)
+		{
+			return;
+		}
+		_victoryDialogShown = true;
+		System.Func<string, string> localise = _gui.Localisation.Localise;
+		CConfirmDialog? dialog = CConfirmDialog.Open(_hud, _gui, Interface.Screens.CEndGameText.DialogName,
+			Interface.Screens.CEndGameText.DialogTitle(localise, State, Player), Interface.Screens.CEndGameText.DialogText(localise, State));
+		if (dialog is not null)
+		{
+			dialog.Agreed += ShowEndGame;
+		}
+	}
+
+	/// <summary>The end-of-game screen over everything, with the world stopped behind it until Exit.</summary>
+	private void ShowEndGame()
+	{
+		if (_endGame is not null || _gui is null || _hud is null || Player is null)
+		{
+			Resigned?.Invoke();
+			return;
+		}
+		_simulation.Clock.Paused = true;
+		_mapView.Visible = false;
+		foreach (Node child in _hud.GetChildren())
+		{
+			if (child is CanvasItem item)
+			{
+				item.Visible = false;
+			}
+		}
+		_endGame = new FrontEnd.CEndGameScreen();
+		_endGame.Setup(_gui, State, Player);
+		_endGame.Exited += () => Resigned?.Invoke();
+		_hud.AddChild(_endGame);
+	}
+
+	/// <summary>
 	/// The game's own interface, from the original's interface files: so far the top
 	/// bar. Under it a province readout in a plain engine label, which is scaffolding
 	/// and goes when the province view comes.
@@ -257,6 +328,9 @@ public partial class CSession : Node
 	{
 		var layer = new CanvasLayer { Name = "Hud" };
 		AddChild(layer);
+		_hud = layer;
+		_gui = gui;
+		_gameWasFinished = State.GameFinished;
 		bool looksOn = !_simulation.TakesCommands;
 		_mapView.LooksOn = looksOn;
 
@@ -315,7 +389,7 @@ public partial class CSession : Node
 		if (Player is not null)
 		{
 			_alerts = new CAlerts();
-			_alerts.Setup(gui, Player);
+			_alerts.Setup(gui, Player, _simulation);
 			layer.AddChild(_alerts);
 			_alerts.DeployablePressed += ToggleDeployMenu;
 		}
@@ -433,6 +507,27 @@ public partial class CSession : Node
 			layer.AddChild(_strategicEffects);
 			layer.MoveChild(_strategicEffects, _production.GetIndex());
 			messageLog.ModifiersPressed += _strategicEffects.Toggle;
+			// The victory conditions' window, behind the bar's goals button and the alert; each shuts the other (endgame.md, section 5).
+			_victoryConditions = new CVictoryConditionsView();
+			_victoryConditions.Setup(gui, _simulation, Player);
+			layer.AddChild(_victoryConditions);
+			layer.MoveChild(_victoryConditions, _production.GetIndex());
+			messageLog.GoalsPressed += _victoryConditions.Toggle;
+			_victoryConditions.Opened += () => _strategicEffects.SetOpen(false);
+			messageLog.ModifiersPressed += () =>
+			{
+				if (_strategicEffects.IsOpen)
+				{
+					_victoryConditions.Shut();
+				}
+			};
+			_alerts.VictoryPressed += () =>
+			{
+				if (!_victoryConditions.IsOpen)
+				{
+					_victoryConditions.Toggle();
+				}
+			};
 			var popups = new CMessagePopups();
 			popups.Setup(gui, _simulation);
 			layer.AddChild(popups);
@@ -528,7 +623,7 @@ public partial class CSession : Node
 			? (true, true)
 			: (gui.KeyboardFocus is { HasKeyboard: true }, false);
 		_topBar.MenuPressed += _menu.Toggle;
-		_menu.Resigned += () => Resigned?.Invoke();
+		_menu.Resigned += ShowEndGame;
 		_menu.Opening += () =>
 		{
 			_deployMenu?.Close();
@@ -840,6 +935,7 @@ public partial class CSession : Node
 			}
 		}
 		ProcessAfterHours();
+		CheckTheGamesEnd();
 		if (_frameLog is { } log)
 		{
 			log.Frame(delta, simulation, Stopwatch.GetElapsedTime(frameStart).TotalMilliseconds - simulation, hours);
@@ -1629,6 +1725,18 @@ public partial class CSession : Node
 			{
 				// Any other mode by its name: --mode=diplomatic, --mode=victorypoints, --mode=simplifiedterrain and the rest.
 				_mapView.Mode = named;
+			}
+			else if (argument == "--screen=victory")
+			{
+				_victoryConditions?.Toggle();
+			}
+			else if (argument == "--screen=endgame")
+			{
+				ShowEndGame();
+			}
+			else if (argument == "--screen=vcconfirm")
+			{
+				ShowVictoryDialog();
 			}
 			else if (argument == "--screen=production")
 			{

@@ -181,8 +181,7 @@ not to the map - and Enter does not save: `save` has no shortcut.
 
 ## Ours
 
-- ~~**Resign is greyed**~~ - **Resign goes to the main menu since 2026-11-06** (`frontend.md`), **straight there**: the
-  end-of-game screen between them is not built. **Game Options was greyed too, and opens the game options window since
+- ~~**Resign is greyed**~~ - **Resign goes through the end-of-game screen since 2026-11-08** (`endgame.md`), to the main menu since 2026-11-06 (`frontend.md`). **Game Options was greyed too, and opens the game options window since
   2026-11-04** (`gameoptions.md`), **and Save Game, which opens the save dialog since 2026-11-05** (section 6).
 - Saves of one second are listed by name, where the original's sort leaves them in no fixed order; and the `save
   games` folder is made where it is missing (`savegame.md`, *Ours*).
@@ -190,7 +189,6 @@ not to the map - and Enter does not save: `save` has no shortcut.
 
 ## Not established
 
-- What the end-of-game screen shows after a Resign; that its Exit leads to the main menu is read (`frontend.md`).
 - Whether a checkbox the original's interface has ticked can always be unticked by a click - so whether clicking the
   ticked tab unticks it. Here it does.
 - Whether the interface marks a shortcut's key as taken, so that Escape on Close does not reach the map as well -

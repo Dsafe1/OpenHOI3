@@ -369,6 +369,9 @@ public sealed class CGameState
 	/// </summary>
 	public List<(string Faction, List<Wars.CVictoryCondition> Conditions)> VictoryConditions { get; set; } = new();
 
+	/// <summary>The factions whose conditions the lobby has chosen, which a new game's own choice leaves alone.</summary>
+	public HashSet<string> VictoryChoicesMade { get; } = new();
+
 	/// <summary>Whether a faction has met its victory conditions or the end date has passed: the game is finished.</summary>
 	public bool GameFinished { get; set; }
 

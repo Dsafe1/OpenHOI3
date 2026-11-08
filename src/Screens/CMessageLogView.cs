@@ -74,6 +74,9 @@ public sealed partial class CMessageLogView : Control
 	/// <summary>Raised when that button is pressed.</summary>
 	public event System.Action? ModifiersPressed;
 
+	/// <summary>Raised when the button that opens and shuts the victory conditions' window is pressed.</summary>
+	public event System.Action? GoalsPressed;
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context)
 	{
@@ -111,7 +114,7 @@ public sealed partial class CMessageLogView : Control
 		{
 			string name = child.Name.ToString();
 			if (child is Control shown && name != "messagelog_window" && name != "OPENbutton" && name != ModifiersButtonName
-				&& name != "minimap_bg_shadow" && name != ZoomInName && name != ZoomOutName
+				&& name != Interface.Screens.CVictoryWindowText.ButtonName && name != "minimap_bg_shadow" && name != ZoomInName && name != ZoomOutName
 				&& !name.StartsWith("mapmode_", StringComparison.Ordinal))
 			{
 				shown.Visible = false;
@@ -143,6 +146,14 @@ public sealed partial class CMessageLogView : Control
 			modifiers.Tooltip = () => new Interface.Tooltips.CTooltip
 			{
 				Text = _context.Localisation.Localise(Interface.Screens.CStrategicEffectsText.ButtonTooltip),
+			};
+		}
+		if (bar.TryFindButton(Interface.Screens.CVictoryWindowText.ButtonName) is { } goals)
+		{
+			goals.Pressed += () => GoalsPressed?.Invoke();
+			goals.Tooltip = () => new Interface.Tooltips.CTooltip
+			{
+				Text = _context.Localisation.Localise(Interface.Screens.CVictoryWindowText.ButtonTooltip),
 			};
 		}
 		_log = bar.FindWindow("messagelog_window");

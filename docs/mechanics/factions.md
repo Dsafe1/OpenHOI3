@@ -197,9 +197,7 @@ kept, only that it is finished.
 **A game finished by the conditions**, and **the clock passing the defines' `end_date`** (1948.1.1, strictly
 after) though that marks nothing finished, put up the original's `VCConfirm` dialog once: "Victory!" or
 "Defeat!", "§Y$FACTION$§W has achieved their victory conditions. Do you want to continue playing or resign
-the current game?", Resign and Continue (C.8). **How it chooses victory or defeat and which faction it names
-was not read**, so the end is not built: a game the conditions finish is marked finished and goes on, and
-the end date does nothing (*Not built*).
+the current game?", Resign and Continue (C.8). **Built since 2026-11-08: `endgame.md`.**
 
 ## Kept as read, though they look odd
 
@@ -234,14 +232,9 @@ the end date does nothing (*Not built*).
 - **The victory conditions' random fill**, for a faction with fewer primaries than the count: the original
   draws on a generator seeded from the wall clock. Their Finest Hour never needs it; a mod that does gets
   only its primaries, reported.
-- **The end of the game** (section 9): the dialog's choice and text were not read. The game is marked
-  finished and nothing is shown.
-- **The victory conditions' window** (`vc_window`) and **alert** (`alert_victory_conditions`, while another
-  faction has nine or more met): neither screen exists here.
 - **`release_vassal`** and the liberation and puppet commands that also join a faction.
 
 ## Not established
 
 - Whether a message variable holding a text key (`COMMENT`) is shown as the key's text: taken so here, as the
   war goal's and the government's are (`messages.md`).
-- The VCConfirm dialog: how victory or defeat is chosen, and which faction it names.

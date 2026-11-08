@@ -86,6 +86,22 @@ public class VictoryTests
 	}
 
 	[Fact]
+	public void A_lobby_choice_is_left_alone_by_a_new_games_own()
+	{
+		CGameState state = World();
+		state.Defines.Set(CVictoryConditions.Section, "NUMBER_OF_VICTORY_CONDITIONS", CFixedPoint.FromInt(1));
+		var axis = new List<CVictoryCondition> { Condition("a", "always = yes", true), Condition("b", "always = yes", false) };
+		state.VictoryConditions = new() { ("axis", axis) };
+		state.GameFinished = true;
+
+		CVictoryConditions.SetChosen(state, "axis", new[] { "b" });
+		CVictoryConditions.ChooseAtStart(state);
+
+		Assert.Equal(new[] { false, true }, axis.ConvertAll(c => c.Chosen));
+		Assert.False(state.GameFinished);
+	}
+
+	[Fact]
 	public void A_condition_is_met_while_it_holds_and_the_first_faction_with_enough_finishes_the_game()
 	{
 		CGameState state = World();

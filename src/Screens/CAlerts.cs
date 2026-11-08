@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Screens;
@@ -19,18 +21,32 @@ public partial class CAlerts : Control
 	private const string BannerName = "alerticon_banner";
 	private const string StartName = "alerticon_startposition";
 
+	/// <summary>The alert a faction near its victory conditions raises [exe: the sixteen's number].</summary>
+	private const int VictoryAlertNumber = 14;
+
+	private const string OffsetName = "alerticon_offset";
+
 	private CGuiContext _context = null!;
 	private CCountry _player = null!;
+	private CSimulation _simulation = null!;
 	private CGuiWindow? _deployable;
+	private CGuiWindow? _victory;
+
+	/// <summary>The alerts up, in the order they came up, which is the order they stand in.</summary>
+	private readonly List<CGuiWindow> _up = new();
 
 	/// <summary>Raised when the alert for units waiting to be placed is clicked.</summary>
 	public event Action? DeployablePressed;
 
+	/// <summary>Raised when the alert for a faction near victory is clicked.</summary>
+	public event Action? VictoryPressed;
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
-	public void Setup(CGuiContext context, CCountry player)
+	public void Setup(CGuiContext context, CCountry player, CSimulation simulation)
 	{
 		_context = context;
 		_player = player;
+		_simulation = simulation;
 	}
 
 	public override void _Ready()
@@ -39,40 +55,66 @@ public partial class CAlerts : Control
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 
-		_deployable = CGuiWindow.Create(_context, WindowName);
-		if (_deployable is null)
+		_deployable = Make(CDeployMenuText.AlertNumber, () => DeployablePressed?.Invoke());
+		_victory = Make(VictoryAlertNumber, () => VictoryPressed?.Invoke());
+		if (_victory?.FindIcon(IconName) is { } icon)
 		{
-			return;
+			icon.Tooltip = () => CVictoryWindowText.AlertTooltip(_context.Localisation.Localise, _simulation.State, _player);
 		}
-		AddChild(_deployable);
-		_deployable.MouseFilter = MouseFilterEnum.Ignore;
+	}
 
-		// The first alert up stands at the start position, and with one alert built it
-		// is always the first.
-		CGuiPoint start = _context.Types.FindPosition(StartName)?.Position ?? default;
-		_deployable.MoveTo(new Vector2(start.X, start.Y));
-
-		if (_deployable.FindIcon(IconName) is { } icon)
+	private CGuiWindow? Make(int number, Action pressed)
+	{
+		CGuiWindow? window = CGuiWindow.Create(_context, WindowName);
+		if (window is null)
 		{
-			icon.SetFrame(CDeployMenuText.AlertNumber + 1);
-			icon.Clicked += () => DeployablePressed?.Invoke();
+			return null;
 		}
-		if (_deployable.TryFindIcon(BannerName) is { } banner)
+		AddChild(window);
+		window.MouseFilter = MouseFilterEnum.Ignore;
+		if (window.FindIcon(IconName) is { } icon)
+		{
+			icon.SetFrame(number + 1);
+			icon.Clicked += pressed;
+		}
+		if (window.TryFindIcon(BannerName) is { } banner)
 		{
 			banner.MouseFilter = MouseFilterEnum.Ignore;
 		}
-		_deployable.Visible = false;
+		window.Visible = false;
+		return window;
 	}
 
 	/// <summary>
-	/// The alert is up while the country has a unit to place. When the original puts
-	/// it up was not read; its own tooltip says "We have units available to be deployed."
+	/// The deploy alert is up while the country has a unit to place, and the victory alert while a faction but the player's is three quarters of the way to winning.
 	/// </summary>
 	public override void _Process(double delta)
 	{
-		if (_deployable is not null)
+		Show(_deployable, _player.Deployments.Count > 0 || _player.BuildingDeployments.Count > 0);
+		Show(_victory, CVictoryWindowText.AlertFactions(_simulation.State, _player).Count > 0);
+	}
+
+	private void Show(CGuiWindow? window, bool up)
+	{
+		if (window is null || window.Visible == up)
 		{
-			_deployable.Visible = _player.Deployments.Count > 0 || _player.BuildingDeployments.Count > 0;
+			return;
+		}
+		window.Visible = up;
+		if (up)
+		{
+			_up.Add(window);
+		}
+		else
+		{
+			_up.Remove(window);
+		}
+		// The first up stands at the start position and each after it an offset on.
+		CGuiPoint start = _context.Types.FindPosition(StartName)?.Position ?? default;
+		CGuiPoint offset = _context.Types.FindPosition(OffsetName)?.Position ?? default;
+		for (int place = 0; place < _up.Count; place++)
+		{
+			_up[place].MoveTo(new Vector2(start.X + place * offset.X, start.Y));
 		}
 	}
 }

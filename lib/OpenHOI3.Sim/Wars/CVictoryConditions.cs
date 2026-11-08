@@ -29,6 +29,10 @@ public static class CVictoryConditions
 		int number = Number(state);
 		foreach ((string faction, List<CVictoryCondition> conditions) in state.VictoryConditions)
 		{
+			if (state.VictoryChoicesMade.Contains(faction))
+			{
+				continue;
+			}
 			int budget = number;
 			for (int i = 0; i < conditions.Count && budget > 0; i++)
 			{
@@ -45,6 +49,24 @@ public static class CVictoryConditions
 		}
 		state.GameFinished = false;
 		return shortOf;
+	}
+
+	/// <summary>A faction's choice made in the lobby: these conditions chosen and no others. A choice also clears a finished game, as the original's does.</summary>
+	public static void SetChosen(CGameState state, string faction, ICollection<string> names)
+	{
+		foreach ((string name, List<CVictoryCondition> conditions) in state.VictoryConditions)
+		{
+			if (name != faction)
+			{
+				continue;
+			}
+			foreach (CVictoryCondition condition in conditions)
+			{
+				condition.Chosen = names.Contains(condition.Name);
+			}
+		}
+		state.VictoryChoicesMade.Add(faction);
+		state.GameFinished = false;
 	}
 
 	/// <summary>
