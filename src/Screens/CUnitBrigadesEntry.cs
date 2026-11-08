@@ -21,6 +21,7 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 	private readonly CGameState _state;
 	private readonly CCountry _owner;
 	private readonly CUnit _unit;
+	private readonly CCountry? _player;
 
 	private readonly CGuiTextBox? _header;
 	private readonly CGuiListBox? _list;
@@ -34,12 +35,16 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 	/// <summary>The left button went down on a brigade's row.</summary>
 	public event System.Action<CSubUnit>? BrigadeDragStarted;
 
-	private CUnitBrigadesEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit)
+	/// <summary>A brigade's upgrade button was pressed.</summary>
+	public event System.Action<CUnitBrigadeRow>? UpgradeWanted;
+
+	private CUnitBrigadesEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CCountry? player, CUnit unit)
 		: base(window)
 	{
 		_context = context;
 		_state = state;
 		_owner = owner;
+		_player = player;
 		_unit = unit;
 
 		_header = window.FindTextBox("header");
@@ -53,17 +58,18 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 		Fill();
 	}
 
-	public static CUnitBrigadesEntry? Create(CGuiContext context, CGameState state, CCountry owner, CUnit unit)
+	public static CUnitBrigadesEntry? Create(CGuiContext context, CGameState state, CCountry owner, CCountry? player, CUnit unit)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "sup_subunits");
-		return window is null ? null : new CUnitBrigadesEntry(window, context, state, owner, unit);
+		return window is null ? null : new CUnitBrigadesEntry(window, context, state, owner, player, unit);
 	}
 
 	public override void Update()
 	{
 		Resized = false;
 		// Filled again when the unit's brigades are no longer the rows'.
-		if (!_rows.Select(row => row.SubUnit).SequenceEqual(_unit.SubUnits))
+		if (!_rows.Where(row => row.Line is not null).Select(row => row.Line).SequenceEqual(_unit.UpgradeLines)
+			|| !_rows.Where(row => row.SubUnit is not null).Select(row => row.SubUnit).SequenceEqual(_unit.SubUnits))
 		{
 			Fill();
 			return;
@@ -81,14 +87,24 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 		_list?.Clear();
 		_rows.Clear();
 		int rowHeight = 0;
+		foreach (Sim.Construction.CConstruction line in _unit.UpgradeLines)
+		{
+			if (CUnitBrigadeRow.CreateForLine(_context, _state, _owner, line) is { } row)
+			{
+				_rows.Add(row);
+				_list?.Add(row.Window);
+				rowHeight = (int)row.Window.Size.Y;
+			}
+		}
 		foreach (CSubUnit subUnit in _unit.SubUnits)
 		{
-			if (CUnitBrigadeRow.Create(_context, _state, _owner, subUnit) is not { } row)
+			if (CUnitBrigadeRow.Create(_context, _state, _owner, _player, subUnit) is not { } row)
 			{
 				continue;
 			}
 			row.Chosen += chosen => BrigadeChosen?.Invoke(chosen);
 			row.DragStarted += dragged => BrigadeDragStarted?.Invoke(dragged);
+			row.UpgradeWanted += wanted => UpgradeWanted?.Invoke(wanted);
 			_rows.Add(row);
 			_list?.Add(row.Window);
 			rowHeight = (int)row.Window.Size.Y;

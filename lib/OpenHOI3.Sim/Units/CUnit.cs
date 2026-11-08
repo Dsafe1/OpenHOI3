@@ -111,6 +111,9 @@ public sealed class CUnit
 
 	public bool IsFighting => Combats.Count > 0;
 
+	/// <summary>The lines of the queue changing a brigade of this unit into another type: its rows and its counter's orange corner.</summary>
+	public List<Construction.CConstruction> UpgradeLines { get; } = new();
+
 	/// <summary>
 	/// Falling back from a lost battle. A retreating unit is nobody's enemy: it starts
 	/// no battle, holds no ground, and stops retreating where it arrives.

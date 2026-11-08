@@ -127,8 +127,8 @@ that holds: `confirmed`
 | upgrading | orange (1, 0.5, 0) | a brigade of it being changed into another type |
 | attack delay | yellow (1, 1, 0) | an attack delay left, in no battle and not falling back |
 
-The orange one is a unit's line of brigade upgrades, which nothing here makes, so it never
-shows. `delayAfterAttackColor` is read by nothing in the original: the yellow is its own.
+The orange one is a unit's line of brigade upgrades (`upgrades.md`), which shows after red and before yellow.
+`delayAfterAttackColor` is read by nothing in the original: the yellow is its own.
 *Ours:* the original's texture is a picture padded to a power of two, so its strip of 384 is
 0.75 of its texture and `SizeOffset` an eighth; a texture here is the picture alone and
 `SizeOffset` a sixth - the same frame either way. The effect's vertex shader and the lift a

@@ -28,7 +28,6 @@ public partial class CMultiUnitPanel : Control
 	/// <summary>The buttons whose systems are not built for one unit either: shown, never to be pressed.</summary>
 	private static readonly string[] Unbuilt =
 	{
-		"upgrade_all",
 	};
 
 	private CGuiContext _context = null!;
@@ -166,6 +165,13 @@ public partial class CMultiUnitPanel : Control
 		{
 			close.Pressed += () => _pending.Add(selection => selection.Clear());
 		}
+		_upgradeAll = _window.FindButton("upgrade_all");
+		if (_upgradeAll is not null)
+		{
+			_upgradeAll.Pressed += ToggleUpgrades;
+		}
+		_upgradesWindow = _window.FindWindow(UpgradesWindowName);
+		_upgradesWindow?.Hide();
 		foreach (string name in Unbuilt)
 		{
 			if (_window.FindButton(name) is { } button)
@@ -252,6 +258,7 @@ public partial class CMultiUnitPanel : Control
 		_kept.RemoveAll(unit => !_units.Contains(unit));
 		if (!_rowUnits.SequenceEqual(_units))
 		{
+			CloseUpgrades();
 			RebuildRows();
 		}
 		if (Visible)
@@ -329,6 +336,96 @@ public partial class CMultiUnitPanel : Control
 	}
 
 	/// <summary>Writes the panel and lays the rows out.</summary>
+	private const string UpgradesWindowName = "upgrades_window";
+	private CGuiButton? _upgradeAll;
+	private CGuiWindow? _upgradesWindow;
+
+	/// <summary>The upgrade-all button: the window of what the selection's brigades may become, or shut where it is up (upgrades.md, section 6).</summary>
+	private void ToggleUpgrades()
+	{
+		if (_upgradesWindow is not { } window || window.FindListBox("list") is not { } list)
+		{
+			return;
+		}
+		if (window.Visible)
+		{
+			CloseUpgrades();
+			return;
+		}
+		if (_player is null)
+		{
+			return;
+		}
+		var targets = new List<CSubUnitType>();
+		if (CBrigadeUpgrades.CountUpgradeable(_simulation.State, _player, _units, targets) == 0)
+		{
+			CloseUpgrades();
+			return;
+		}
+		list.Clear();
+		foreach (CSubUnitType target in targets)
+		{
+			AddUpgradeRow(list, _context.Localisation.Localise(target.Key), target);
+		}
+		AddUpgradeRow(list, _context.Localisation.Localise("UPGRADE_CANCEL"), null);
+		// The rows are the panel's own children, so the window goes over them to be seen and to take the mouse.
+		if (window.GetParent() != this)
+		{
+			window.Reparent(this, keepGlobalTransform: true);
+		}
+		window.MoveToFront();
+		window.Visible = true;
+		_upgradeAll?.SetFrame(2);
+	}
+
+	private void AddUpgradeRow(CGuiListBox list, string text, CSubUnitType? target)
+	{
+		if (CGuiWindow.CreateEntry(_context, "select_upgrade_entry") is not { } entry || entry.TryFindButton("target") is not { } button)
+		{
+			return;
+		}
+		button.SetText(text);
+		button.Pressed += () =>
+		{
+			if (target is not null)
+			{
+				UpgradeSelection(target);
+			}
+			CloseUpgrades();
+		};
+		list.Add(entry);
+	}
+
+	/// <summary>One order for every brigade of the selection that may become the type where it stands.</summary>
+	private void UpgradeSelection(CSubUnitType target)
+	{
+		CGameState state = _simulation.State;
+		if (_player is null || CUnitAvailability.StillBuildable(state, _player, target) < 1)
+		{
+			return;
+		}
+		foreach (CUnit unit in _units)
+		{
+			foreach (CSubUnit brigade in unit.SubUnits)
+			{
+				if (CBrigadeUpgrades.MayUpgradeWhereItStands(state, brigade) && brigade.Type.UpgradeTargets.Contains(target))
+				{
+					var command = new CUpgradeRegimentCommand(unit.Owner, brigade.Id, target.Key);
+					if (command.MayExecute(state))
+					{
+						_simulation.Post(command);
+					}
+				}
+			}
+		}
+	}
+
+	private void CloseUpgrades()
+	{
+		_upgradeAll?.SetFrame(1);
+		_upgradesWindow?.Hide();
+	}
+
 	private void Update()
 	{
 		Func<string, string> localise = _context.Localisation.Localise;

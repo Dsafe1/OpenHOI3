@@ -5,6 +5,7 @@ using System.Text;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Movement;
@@ -57,6 +58,8 @@ public static class CBrigadeTooltips
 	{
 		switch (element)
 		{
+			case "upgrade_button":
+				return new CTooltip { Text = UpgradeButton(localise, state, owner, subUnit) };
 			case "unit_cw_strip":
 				return new CTooltip { Text = CUnitStatusTooltips.Width(localise, subUnit.Type.Stats[CSubUnitType.CombatWidth]) };
 			case "unitstatus_reserve":
@@ -69,6 +72,34 @@ public static class CBrigadeTooltips
 			default:
 				return new CTooltip { Text = Summary(localise, find, state, owner, subUnit) };
 		}
+	}
+
+	/// <summary>The upgrade button's words: the types the brigade may become, a line each.</summary>
+	public static string UpgradeButton(Func<string, string> localise, CGameState state, CCountry player, CSubUnit subUnit)
+	{
+		if (subUnit.Type.UpgradeTargets.Count == 0)
+		{
+			return "";
+		}
+		var text = new StringBuilder(localise("UNIT_CAN_UPGRADE_TO"));
+		foreach (CSubUnitType target in CBrigadeUpgrades.Targets(state, player, subUnit))
+		{
+			text.Append('\n').Append(localise(target.Key));
+		}
+		return text.ToString();
+	}
+
+	/// <summary>What a line changing a brigade's type says of itself, and the experience it will keep in its delayed half.</summary>
+	public static CTooltip UpgradeLine(Func<string, string> localise, CBrigadeOrder order)
+	{
+		string from = order.Upgrade is { } upgrade ? localise(upgrade.From.Key) : "";
+		return new CTooltip
+		{
+			Text = CTextTemplate.Fill(localise("BRIGADE_UPGRADE_MIL_CON_INFO"), ("FROM", from), ("TO", localise(order.Type.Key))),
+			Delayed = order.Experience.Raw > 0
+				? CTextTemplate.Fill(localise("BRIGADE_UPGRADE_INHERITED_EXP"), ("EXP", CNumberText.Format(order.Experience, 2)))
+				: "",
+		};
 	}
 
 	/// <summary>

@@ -137,7 +137,7 @@ first row's unit: "3 Land Units".
 | `prio_checkbox`, `reinf_checkbox`, `upgrade_checkbox` | always | always | **ticked where any selected unit has the flag**; a click sets the flag of every selected unit that differs to the box's new state | `MULTI_SEL_PRIO_DESC`, `MULTI_SEL_PRIO_REINF_DESC`, `MULTI_SEL_PRIO_UPG_DESC`: NUM with the flag, MAX selected |
 | `load_multiunit`, `load_on_air_multiunit`, `unmount_multiunit` | where the first row's unit is a land unit | where a fleet, an air unit, a passenger is found (`transport.md`, section 12) | a load or unload for each unit | `transport.md`, section 12 |
 | `close_multiunit` | always | always | lets the selection go | none |
-| `upgrade_all` | always | - | **not built** | `MULTI_SEL_UPGRADE_DESC` - not built either: its count is of the brigades that may be upgraded where they stand |
+| `upgrade_all` | always | - | the window of what the selection may become (`upgrades.md`, section 6) | `MULTI_SEL_UPGRADE_DESC`: its count is of the brigades that may be upgraded where they stand |
 | `reorganizebutton` | always | exactly two units that may be reorganised (`reorganise.md`, section 1) | the reorganise window for the first and the second | `REORGANISE_UNITS` or `NO_REORGANISE_UNITS` with `REORGANISE_UNITS_DRO` |
 | `mergebutton` | always | by the merge rule (section 5.4); where it holds but an AI agent runs one of the units, left as it was | one merge of every selected unit, unless an AI agent runs one | `MERGE_UNITS` with `MERGE_UNITS_DRO` |
 | `detach_multiunit`, `highercomm_multiunit`, `disband_multiunit` | always | - | **not built** | `DETACH_ALL`, `HIGHER_COMMAND_MULTI_UNITS`, `DISBAND_ALL_TITLE` |

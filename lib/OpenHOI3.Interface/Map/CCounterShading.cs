@@ -36,7 +36,10 @@ public static class CCounterShading
 		{
 			return ECounterMark.Supply;
 		}
-		// Orange is a unit's own line of brigade upgrades, which nothing here makes: it never shows.
+		if (unit.UpgradeLines.Count > 0)
+		{
+			return ECounterMark.Upgrade;
+		}
 		if (unit.AttackDelay.Raw > 0 && !unit.IsFighting && !unit.IsRetreating)
 		{
 			return ECounterMark.AttackDelay;

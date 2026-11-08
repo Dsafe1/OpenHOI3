@@ -1,5 +1,6 @@
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Commands;
 
@@ -30,6 +31,7 @@ public sealed class CCancelConstructionCommand : CCommand
 		CConstruction construction = Find(country)!;
 		country.Manpower = CFixedPoint.Max(CFixedPoint.Zero, country.Manpower + construction.Manpower * construction.Size);
 		country.Constructions.Remove(construction);
+		CBrigadeUpgrades.LineEnded(state, construction);
 		CBuildQueue.UpdateCost(country);
 	}
 

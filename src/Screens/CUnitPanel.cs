@@ -77,6 +77,65 @@ public partial class CUnitPanel : Control
 	/// <summary>The left button went down on a brigade's row.</summary>
 	public event Action<CSubUnit>? BrigadeDragStarted;
 
+	private const string UpgradeWindowName = "select_upgrade_window";
+	private const string UpgradeRowName = "select_upgrade_entry";
+	private CUnitBrigadeRow? _upgradeRow;
+
+	/// <summary>
+	/// A brigade's list of what it may become, one row a type and Cancel, beside its button. See
+	/// <c>docs/mechanics/upgrades.md</c>, section 5.
+	/// </summary>
+	private void ShowUpgradeList(CUnitBrigadeRow row)
+	{
+		CloseUpgradeList();
+		if (_player is null || row.SubUnit is not { } brigade || _window?.FindWindow(UpgradeWindowName) is not { } window
+			|| window.FindListBox("list") is not { } list || row.UpgradeButton is not { } button)
+		{
+			return;
+		}
+		_upgradeRow = row;
+		button.SetFrame(2);
+		list.Clear();
+		foreach (CSubUnitType target in CBrigadeUpgrades.Targets(_simulation.State, _player, brigade))
+		{
+			AddUpgradeRow(list, _context.Localisation.Localise(target.Key), target, brigade);
+		}
+		AddUpgradeRow(list, _context.Localisation.Localise("UPGRADE_CANCEL"), null, brigade);
+		list.Visible = true;
+		window.Visible = true;
+		// The figure is a place on the screen and not inside the window; the last pixel is measured (upgrades.md, section 5).
+		Vector2 offset = row.Window.GlobalPosition - _window.GlobalPosition;
+		list.GlobalPosition = button.Position + offset + Vector2.Down;
+	}
+
+	private void AddUpgradeRow(CGuiListBox list, string text, CSubUnitType? target, CSubUnit brigade)
+	{
+		if (CGuiWindow.CreateEntry(_context, UpgradeRowName) is not { } entry || entry.TryFindButton("target") is not { } button)
+		{
+			return;
+		}
+		button.SetText(text);
+		button.Pressed += () =>
+		{
+			if (target is not null && brigade.Unit is { } unit)
+			{
+				Post(new CUpgradeRegimentCommand(unit.Owner, brigade.Id, target.Key), unit);
+			}
+			CloseUpgradeList();
+		};
+		list.Add(entry);
+	}
+
+	private void CloseUpgradeList()
+	{
+		_upgradeRow?.UpgradeButton?.SetFrame(1);
+		_upgradeRow = null;
+		if (_window?.FindWindow(UpgradeWindowName) is { } window)
+		{
+			window.Visible = false;
+		}
+	}
+
 	/// <summary>The confirmation of a disband, which goes by itself when the unit does (attaching.md, section 6).</summary>
 	private void AskDisband(CUnit unit)
 	{
@@ -178,8 +237,8 @@ public partial class CUnitPanel : Control
 		_list = _window.FindListBox("list");
 		_list?.UseEntryHeights();
 		// Two windows of its own that come up over it: what a brigade may be upgraded
-		// to, and the stances an AI may be given. Neither is built.
-		foreach (string name in new[] { "select_upgrade_window", "sup_stance_change_window" })
+		// to, and the stances an AI may be given, which is not built.
+		foreach (string name in new[] { UpgradeWindowName, "sup_stance_change_window" })
 		{
 			if (_window.FindWindow(name) is { } child)
 			{
@@ -386,6 +445,7 @@ public partial class CUnitPanel : Control
 		{
 			return;
 		}
+		CloseUpgradeList();
 		_list.Clear();
 		_entries.Clear();
 		_parents.Clear();
@@ -459,8 +519,9 @@ public partial class CUnitPanel : Control
 			buttons.CreateHigherPressed += () => Post(new CCreateHigherCommand(owner.Tag, new[] { unit.Id }), unit);
 			Add(buttons);
 		}
-		if (CUnitBrigadesEntry.Create(_context, state, owner, unit) is { } brigades)
+		if (CUnitBrigadesEntry.Create(_context, state, owner, _player, unit) is { } brigades)
 		{
+			brigades.UpgradeWanted += ShowUpgradeList;
 			brigades.BrigadeChosen += subUnit => BrigadeChosen?.Invoke(subUnit);
 			brigades.BrigadeDragStarted += subUnit => BrigadeDragStarted?.Invoke(subUnit);
 			Add(brigades);

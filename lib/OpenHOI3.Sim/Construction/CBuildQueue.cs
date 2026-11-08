@@ -114,6 +114,11 @@ public static class CBuildQueue
 			CBuildingLines.Price(country, construction);
 			return;
 		}
+		if (construction.Brigades.Count != 0 && construction.Brigades[0].Upgrade is { } upgrade)
+		{
+			PriceUpgrade(country, construction, upgrade);
+			return;
+		}
 		long cost = 0;
 		long duration = 0;
 		bool several = construction.Brigades.Count > 1;
@@ -132,6 +137,39 @@ public static class CBuildQueue
 		construction.Duration = new CFixedPoint(duration);
 		construction.Cost = new CFixedPoint(cost);
 		construction.PracticalFactor = CFixedPoint.One;
+	}
+
+	/// <summary>
+	/// A change of type: the new brigade's cost less a share of the old type's at the new levels, by how much of its strength it
+	/// had, and its days less a share of the old type's; what it teaches goes down with what it costs. See
+	/// <c>docs/mechanics/upgrades.md</c>, section 3.
+	/// </summary>
+	private static void PriceUpgrade(CCountry country, CConstruction construction, CBrigadeUpgradeOrder upgrade)
+	{
+		CSubUnit built = AsBuilt(construction.Brigades[0], construction.IsReserve, out long levels);
+		CSubUnit old = AsBuilt(new CBrigadeOrder(upgrade.From), construction.IsReserve, out long _);
+		long newCost = CBuildCosts.BuildCost(country, built, levels);
+		long oldCost = CBuildCosts.BuildCost(country, old, levels);
+		long credit = (upgrade.CostFactor.Raw * upgrade.Strength / CFixedPoint.Scale) * oldCost / CFixedPoint.Scale;
+		long cost = newCost - credit;
+		if (cost < 1)
+		{
+			cost = 0;
+		}
+		long practical = CFixedPoint.Scale;
+		if (newCost != 0)
+		{
+			practical = (cost * CFixedPoint.Scale / newCost) * upgrade.PracticalFactor.Raw / CFixedPoint.Scale;
+		}
+		long days = CBuildCosts.BuildTime(country, built, levels) * CFixedPoint.Scale
+			- CBuildCosts.BuildTime(country, old, levels) * CFixedPoint.Scale * upgrade.TimeFactor.Raw / CFixedPoint.Scale;
+		if (days < 1)
+		{
+			days = 0;
+		}
+		construction.Cost = new CFixedPoint(cost);
+		construction.Duration = new CFixedPoint(days);
+		construction.PracticalFactor = new CFixedPoint(practical);
 	}
 
 	/// <summary>
@@ -346,6 +384,7 @@ public static class CBuildQueue
 			if (construction.Progress >= construction.Duration && Deliver(state, country, construction))
 			{
 				country.Constructions.Remove(construction);
+				CBrigadeUpgrades.LineEnded(state, construction);
 				delivered = true;
 			}
 		}
@@ -485,6 +524,12 @@ public static class CBuildQueue
 		// Its deployment takes the number after the unit's, which the line passed over for it (buildqueue.md, section 4).
 		unit.DeploymentId = construction.UnitId + 1;
 		country.Deployments.Add(unit);
+
+		// A line ordered for a unit joins it where it may, and otherwise waits to be placed like any other (upgrades.md, section 4).
+		if (construction.Target != 0 && CUnitFinder.Find(state, country.Tag, construction.Target) is { } target)
+		{
+			CDeployment.JoinOrdered(state, country, unit, target);
+		}
 
 		construction.AccumulatedExperience = CFixedPoint.Zero;
 		construction.AccumulatedProgress = CFixedPoint.Zero;

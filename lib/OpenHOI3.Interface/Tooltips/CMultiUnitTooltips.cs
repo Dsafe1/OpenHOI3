@@ -48,10 +48,18 @@ public static class CMultiUnitTooltips
 				};
 			case "mergebutton":
 				return new CTooltip { Text = localise("MERGE_UNITS"), Delayed = localise("MERGE_UNITS_DRO") };
+			case "upgrade_all":
+				return state.Country(units.Count == 0 ? null : units[0].Owner) is { } country
+					? new CTooltip
+					{
+						Text = CTextTemplate.Fill(localise("MULTI_SEL_UPGRADE_DESC"),
+							("NUM", CBrigadeUpgrades.CountUpgradeable(state, country, units).ToString(CultureInfo.InvariantCulture))),
+					}
+					: CTooltip.Empty;
 			case "disband_multiunit":
 				return new CTooltip { Text = localise("DISBAND_ALL_TITLE") };
 			default:
-				// close_multiunit says nothing; upgrade_all's figure needs the upgrades, which are not built.
+				// close_multiunit says nothing.
 				return CTooltip.Empty;
 		}
 	}

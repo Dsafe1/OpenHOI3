@@ -39,6 +39,9 @@ public sealed class CBrigadeOrder
 	/// </summary>
 	public List<int> Model { get; } = new();
 
+	/// <summary>Where it is an old brigade's change of type, what that was; none for a new one.</summary>
+	public CBrigadeUpgradeOrder? Upgrade { get; set; }
+
 	public override string ToString()
 	{
 		return Name.Length == 0 ? Type.Key : $"{Name} ({Type.Key})";

@@ -72,6 +72,13 @@ public static class CBuildQueueText
 		return (int)Math.Clamp(share * 100 / CFixedPoint.Scale, 0, 100);
 	}
 
+	/// <summary>A row of the unit panel for a line changing a brigade's type: how far along it is, to a tenth of a percent.</summary>
+	public static string UpgradeProgress(Func<string, string> localise, CConstruction construction)
+	{
+		long ratio = construction.Duration.Raw > 0 ? construction.Progress.Raw * CFixedPoint.Scale / construction.Duration.Raw : 0;
+		return Text.CTextTemplate.Fill(localise("UNIT_UPG_PROGRESS"), ("PROG", CNumberText.Format(new CFixedPoint(ratio * 100), 1)));
+	}
+
 	/// <summary>What the line is called: the unit's name, or its first brigade's where it has none.</summary>
 	public static string Name(CConstruction construction)
 	{

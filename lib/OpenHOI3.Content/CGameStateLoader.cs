@@ -147,6 +147,7 @@ public static class CGameStateLoader
 		{
 			ideologyNames.AddRange(group.IdeologyOrder);
 		}
+		CUnitUpgradeReader.Read(directories, unitTypes, warn);
 		var state = new CGameState(start, provinces, countries.Declared, buildings, technologies, staticModifiers,
 			defines, wars, strategicResources, categories)
 		{

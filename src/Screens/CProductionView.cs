@@ -575,7 +575,8 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 			_queue.Clear();
 			foreach (CConstruction construction in country.Constructions)
 			{
-				if (CBuildQueueEntry.Create(Context, construction) is not { } line)
+				string targetName = construction.Target != 0 ? OpenHOI3.Sim.Units.CUnitFinder.Find(Simulation.State, country.Tag, construction.Target)?.Name ?? "" : "";
+				if (CBuildQueueEntry.Create(Context, construction, targetName) is not { } line)
 				{
 					break;
 				}

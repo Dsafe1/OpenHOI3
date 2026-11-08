@@ -250,7 +250,7 @@ A row is the window `subunit_entry`:
 | `str_bar` | 100 x its strength / its type's `max_strength` | built |
 | `unitstatus_reserve` | shown for a reserve | built |
 | `unit_pride_star` | a star for a pride | built |
-| `upgrade_button` | shown where its type may be upgraded to another | hidden |
+| `upgrade_button` | shown where the brigade may be changed where it stands (`upgrades.md`, section 5) | hidden |
 
 - **The stars**: none under an experience of 1; otherwise the frame is two more than the
   experience over ten, rounded to the nearest whole and to the even one from a half, and
@@ -259,8 +259,7 @@ A row is the window `subunit_entry`:
   The original adds a define to a pride's experience first; not built.
 - **The model** is the one the brigade was made as. *Ours:* the original works out each
   time which model the brigade's technology levels fit best.
-- A row for an upgrade in progress, which the original adds under the brigades, is not
-  built.
+- A row for an upgrade in progress stands above the brigades (`upgrades.md`, section 5).
 - A click on a row selects the brigade in the original. Not built.
 
 ## 7. The buttons

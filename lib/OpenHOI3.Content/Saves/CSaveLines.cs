@@ -35,7 +35,7 @@ public static class CSaveLines
 			}
 			if (entry.IsBlock && state.SubUnitTypes.TryGetValue(key, out CSubUnitType? type))
 			{
-				line.Brigades.Add(ReadBrigade(type, entry, ids, report));
+				line.Brigades.Add(ReadBrigade(state, type, entry, ids, report));
 				continue;
 			}
 			switch (key)
@@ -261,6 +261,11 @@ public static class CSaveLines
 			{
 				writer.Fixed("experience", brigade.Experience);
 			}
+			if (brigade.Upgrade is { } upgrade)
+			{
+				writer.Word("upgrading_from_subunit", upgrade.From.Key);
+				writer.Fixed("upgrading_from_subunit_str", new CFixedPoint(upgrade.Strength));
+			}
 			writer.End();
 		}
 		writer.Fixed("accumulated_experiance", line.AccumulatedExperience);
@@ -368,9 +373,11 @@ public static class CSaveLines
 		return true;
 	}
 
-	private static CBrigadeOrder ReadBrigade(CSubUnitType type, ClausewitzNode block, CSaveIds ids, CSaveReport report)
+	private static CBrigadeOrder ReadBrigade(CGameState state, CSubUnitType type, ClausewitzNode block, CSaveIds ids, CSaveReport report)
 	{
 		var order = new CBrigadeOrder(type);
+		string from = "";
+		long strength = 0;
 		foreach (ClausewitzNode entry in block.Children)
 		{
 			switch (entry.Key)
@@ -386,6 +393,12 @@ public static class CSaveLines
 				case "experience":
 					order.Experience = CSaveValues.Fixed(entry.Value);
 					break;
+				case "upgrading_from_subunit":
+					from = entry.Value?.Trim('"') ?? "";
+					break;
+				case "upgrading_from_subunit_str":
+					strength = CSaveValues.Fixed(entry.Value).Raw;
+					break;
 				// The levels themselves, one for each of its type's technologies.
 				case "model":
 					order.Model.Clear();
@@ -398,6 +411,10 @@ public static class CSaveLines
 					report.Unread("a brigade under construction", entry.Key);
 					break;
 			}
+		}
+		if (state.SubUnitTypes.TryGetValue(from, out CSubUnitType? old))
+		{
+			order.Upgrade = CBrigadeUpgrades.Order(state, old, strength);
 		}
 		return order;
 	}

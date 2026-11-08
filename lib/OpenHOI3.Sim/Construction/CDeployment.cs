@@ -177,9 +177,9 @@ public static class CDeployment
 	/// chooses its own - while the one that gave it still holds whoever it was given, so
 	/// he is not to be had.
 	/// </summary>
-	public static void Join(CGameState state, CCountry country, CUnit unit, CUnit target)
+	public static void Join(CGameState state, CCountry country, CUnit unit, CUnit target, int province = 0)
 	{
-		Place(state, country, unit, target.Location);
+		Place(state, country, unit, province != 0 ? province : target.Location);
 		country.Units.Remove(unit);
 		if (unit.SubUnits.Count == 1 && Service(unit) == Service(target))
 		{
@@ -187,6 +187,15 @@ public static class CDeployment
 			unit.SubUnits.Clear();
 			subUnit.Unit = target;
 			target.SubUnits.Add(subUnit);
+			if (state.Played.Contains(country.Tag))
+			{
+				state.RaisePactMessage(new Agreements.CPactMessage("TRANSFEREDSUBUNIT", "", "", country.Tag, country.Tag)
+				{
+					Told = country.Tag,
+					Province = target.Location,
+					Values = new[] { ("SUB", subUnit.Name), ("OLD", unit.Name), ("NEW", target.Name) },
+				});
+			}
 			if (target.Leader is null && country.AutoAssignLeaders)
 			{
 				CLeaders.AssignBest(state, country, target);
@@ -196,6 +205,41 @@ public static class CDeployment
 		}
 		unit.Parent = target;
 		target.Children.Add(unit);
+	}
+
+	/// <summary>
+	/// A finished unit joining the unit its line was ordered for, where that may take its brigade or is a theatre that may take
+	/// it: at that unit's province, or else the nearest place in the home area; with none, or a unit that may not, it stays
+	/// waiting. See <c>docs/mechanics/upgrades.md</c>, section 4.
+	/// </summary>
+	public static void JoinOrdered(CGameState state, CCountry country, CUnit unit, CUnit target)
+	{
+		bool mayTake = unit.SubUnits.Count != 0 && CSubUnitTransfer.MayTake(state, country, target, unit.SubUnits[0], sameProvince: false);
+		if (!mayTake && !(target.Kind == EUnitKind.Theatre && MayTakeSubordinate(target, unit)))
+		{
+			return;
+		}
+		int province = target.Location;
+		if (province <= 0 || !MayPlace(state, country, unit, province))
+		{
+			province = 0;
+			long nearest = long.MaxValue;
+			foreach (int place in Places(state, country, unit))
+			{
+				long distance = target.Location <= 0 ? 0
+					: CMapDistance.Between(state.Province(target.Location), state.Province(place), state.MapWidth);
+				if (distance < nearest || (distance == nearest && place < province))
+				{
+					nearest = distance;
+					province = place;
+				}
+			}
+			if (province == 0)
+			{
+				return;
+			}
+		}
+		Join(state, country, unit, target, province);
 	}
 
 	private static bool MayPlace(CGameState state, CUnit unit, int provinceId, HashSet<int> home)

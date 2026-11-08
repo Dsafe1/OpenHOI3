@@ -34,6 +34,9 @@ public sealed class CSubUnitType
 	/// </summary>
 	public int DatabaseIndex { get; set; }
 
+	/// <summary>What a brigade of this type may be changed into, in the order <c>unit_upgrades.txt</c> leaves them.</summary>
+	public List<CSubUnitType> UpgradeTargets { get; } = new();
+
 	/// <summary>Its figures before any technology.</summary>
 	public CSubUnitStats Stats { get; } = new();
 

@@ -39,7 +39,7 @@ public sealed class CBuildQueueEntry
 	/// <summary>Raised when the line is to change its place.</summary>
 	public event Action<EQueueMove>? Moved;
 
-	private CBuildQueueEntry(CGuiWindow window, CConstruction construction)
+	private CBuildQueueEntry(CGuiWindow window, CConstruction construction, string targetName)
 	{
 		Window = window;
 		Construction = construction;
@@ -70,7 +70,7 @@ public sealed class CBuildQueueEntry
 		}
 		if (window.FindTextBox("unit_target") is { } target)
 		{
-			target.Text = "";                                    // nothing is built for a unit already in the field
+			target.Text = targetName.Length == 0 ? "" : "=> " + targetName;
 		}
 		if (window.FindIcon("original_country") is { } builder)
 		{
@@ -88,7 +88,7 @@ public sealed class CBuildQueueEntry
 
 	public CConstruction Construction { get; }
 
-	public static CBuildQueueEntry? Create(CGuiContext context, CConstruction construction)
+	public static CBuildQueueEntry? Create(CGuiContext context, CConstruction construction, string targetName = "")
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "queue_entry");
 		if (window is null)
@@ -97,7 +97,7 @@ public sealed class CBuildQueueEntry
 		}
 		// The line answers by which of its elements is under the mouse.
 		window.SetTooltips(element => CProductionTooltips.QueueLine(context.Localisation.Localise, construction, element));
-		return new CBuildQueueEntry(window, construction);
+		return new CBuildQueueEntry(window, construction, targetName);
 	}
 
 	public void Update(CGameState state, Func<string, string> localise)

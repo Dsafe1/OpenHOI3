@@ -238,15 +238,20 @@ public static class CProductionTooltips
 				or "series_info" or "unit_target":
 				// A building or convoy line has no brigades to tell of, and says nothing here (buildinglines.md, section 7;
 				// convoylines.md, section 4).
-				return new CTooltip { Text = construction.IsUnit ? Brigades(localise, construction) : "" };
+				return new CTooltip
+				{
+					Text = construction.IsUnit ? Brigades(localise, construction) : "",
+					Delayed = construction.IsUnit && construction.Brigades.Count != 0 && construction.Brigades[0].Upgrade is not null
+						? CBrigadeTooltips.UpgradeLine(localise, construction.Brigades[0]).Delayed : "",
+				};
 			default:
 				return new CTooltip { Text = Speed(localise, construction) };
 		}
 	}
 
 	/// <summary>
-	/// What a line builds: a counter and a name for each brigade, and the experience the unit
-	/// has gathered. Nothing is upgraded through the queue here, so a line is never an upgrade.
+	/// What a line builds: a counter and a name for each brigade - or, for a change of type, what it is from and to - and the
+	/// experience the unit has gathered.
 	/// </summary>
 	public static string Brigades(Func<string, string> localise, CConstruction construction)
 	{
@@ -255,13 +260,20 @@ public static class CProductionTooltips
 			return "";
 		}
 		var text = new StringBuilder();
-		for (int index = 0; index < construction.Brigades.Count; index++)
+		if (construction.Brigades[0].Upgrade is not null)
 		{
-			CBrigadeOrder brigade = construction.Brigades[index];
-			text.Append(CCounterIcons.Mark).Append(brigade.Type.Key).Append(' ').Append(brigade.Name);
-			if (index < construction.Brigades.Count - 1)
+			text.Append(CBrigadeTooltips.UpgradeLine(localise, construction.Brigades[0]).Text);
+		}
+		else
+		{
+			for (int index = 0; index < construction.Brigades.Count; index++)
 			{
-				text.Append('\n');
+				CBrigadeOrder brigade = construction.Brigades[index];
+				text.Append(CCounterIcons.Mark).Append(brigade.Type.Key).Append(' ').Append(brigade.Name);
+				if (index < construction.Brigades.Count - 1)
+				{
+					text.Append('\n');
+				}
 			}
 		}
 		text.Append('\n').Append(CTextTemplate.Fill(localise("BRIGADE_MIL_CON_CUMULATED_EXP"),

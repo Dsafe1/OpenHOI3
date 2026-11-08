@@ -162,6 +162,7 @@ public static class CSaveLoader
 		}
 
 		units.Finish();
+		Sim.Units.CBrigadeUpgrades.RegisterLines(state);
 		state.LastUnitId = Math.Max(state.LastUnitId, ids.Highest);
 		var convoys = state.Countries.SelectMany(country => country.Convoys).ToDictionary(convoy => convoy.Id);
 		foreach ((Sim.Trade.CTradeRoute route, int convoy) in routes)
