@@ -282,6 +282,11 @@ public partial class CDivisionDesignerView : CBuilderWindow
 		}
 		_shownBrigades = shown;
 
+		// The first brigade's picture; an empty design leaves it as it was.
+		if (_design.Count > 0)
+		{
+			ShowPhoto(Window?.FindIcon("selected_photo"), _design[0]);
+		}
 		_designList?.Clear();
 		_completion?.Clear();
 		for (int index = 0; index < _design.Count; index++)

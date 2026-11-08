@@ -263,6 +263,7 @@ public static class CBuildingLines
 			state.RaisePactMessage(new CPactMessage("BUILDING_DONE", "", "", first ?? holder, second ?? holder)
 			{
 				Told = holder,
+				Province = province.Id,
 				Values = new[] { ("NAME", building.Key), ("PROV", province.Name) },
 			});
 		}

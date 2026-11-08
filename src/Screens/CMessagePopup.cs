@@ -217,7 +217,7 @@ public sealed partial class CMessagePopup : Control
 		return height;
 	}
 
-	/// <summary>Set by the owner: shows a battle's message's battle, answering whether there was one.</summary>
+	/// <summary>Set by the owner: goes where the message's Goto goes, answering whether the popup stays.</summary>
 	public Func<CMessage, bool>? Goto { get; set; }
 
 	private void PressGoto()
@@ -244,8 +244,8 @@ public sealed partial class CMessagePopup : Control
 		float size = button.OffsetBottom - button.OffsetTop;
 		button.OffsetTop = top;
 		button.OffsetBottom = top + size;
-		// A battle's Goto shows it and the popup stays; any other goes to nothing, and so closes too.
-		if (name == "DeclineButton" && CMessageText.IsCombatStart(_message.Type.Name))
+		// The Goto: where it answers that it went somewhere the popup stays, and otherwise closes too (messages.md, section 4.1).
+		if (name == "DeclineButton")
 		{
 			button.Pressed += PressGoto;
 			return;

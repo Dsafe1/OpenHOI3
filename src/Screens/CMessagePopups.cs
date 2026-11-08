@@ -37,7 +37,7 @@ public sealed partial class CMessagePopups : Control
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 	}
 
-	/// <summary>Shows a battle's message's battle, answering whether there was one.</summary>
+	/// <summary>Goes where a message's Goto goes, answering whether its popup stays.</summary>
 	public Func<CMessage, bool>? Goto { get; set; }
 
 	public void Open(CMessage message)

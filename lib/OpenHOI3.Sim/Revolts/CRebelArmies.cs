@@ -144,6 +144,7 @@ public static class CRebelArmies
 		state.RaisePactMessage(new CPactMessage("REVOLT", "", "", CRebelFactions.Tag, held)
 		{
 			Told = held,
+			Province = province.Id,
 			Messenger = Messenger,
 			Values = new[]
 			{
@@ -157,6 +158,7 @@ public static class CRebelArmies
 			state.RaisePactMessage(new CPactMessage("PARTISANS", "", "", owner, held)
 			{
 				Told = owner,
+				Province = province.Id,
 				Messenger = Messenger,
 				Values = new[] { ("PROV", province.Name), ("EVIL", state.Country(held)?.Name ?? held.Value) },
 			});

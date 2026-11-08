@@ -5,6 +5,7 @@ using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
 
@@ -53,6 +54,26 @@ public abstract partial class CBuilderWindow : Control
 
 	/// <summary>How many lines the order makes.</summary>
 	protected int Parallel { get; private set; } = CBuilderText.FewestOrdered;
+
+	/// <summary>
+	/// The picture of the model of a type the country would build today, the first of its files that exists. Where none
+	/// does the icon keeps what it had, as it does in the original.
+	/// </summary>
+	protected void ShowPhoto(CGuiIcon? icon, CSubUnitType type)
+	{
+		if (icon is null)
+		{
+			return;
+		}
+		foreach (string path in CBrigadeCardText.Pictures(Player.Tag, type.Key, CHistoricalModels.PickCurrent(Simulation.State, Player, type)))
+		{
+			if (Context.Textures.Exists(path) && Context.Textures.LoadFromGamePath(path) is { } picture)
+			{
+				icon.SetTexture(picture);
+				return;
+			}
+		}
+	}
 
 	protected abstract string WindowName { get; }
 

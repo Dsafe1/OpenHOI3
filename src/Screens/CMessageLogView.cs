@@ -46,6 +46,9 @@ public sealed partial class CMessageLogView : Control
 	public event Action? ZoomInPressed;
 	public event Action? GotoPressed;
 
+	/// <summary>Raised with a row's message when the row is pressed: it does what the message's Goto does.</summary>
+	public event Action<CMessage>? RowPressed;
+
 	/// <summary>Raised when the bar's zoom-out button is pressed, or Page Up.</summary>
 	public event Action? ZoomOutPressed;
 
@@ -247,13 +250,18 @@ public sealed partial class CMessageLogView : Control
 			return;
 		}
 		_list.Clear();
-		foreach ((CMessage _, string text) in Log.Rows)
+		foreach ((CMessage message, string text) in Log.Rows)
 		{
 			if (CGuiWindow.CreateEntry(_context, RowName) is not { } row)
 			{
 				return;
 			}
-			row.TryFindButton("messagelogbutton")?.SetText(text);
+			if (row.TryFindButton("messagelogbutton") is { } button)
+			{
+				button.SetText(text);
+				CMessage pressed = message;
+				button.Pressed += () => RowPressed?.Invoke(pressed);
+			}
 			_list.Add(row);
 		}
 		_list.ShowLast();

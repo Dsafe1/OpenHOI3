@@ -197,9 +197,14 @@ public static class CBrigadeTooltips
 	/// </summary>
 	public static string ModelName(Func<string, string> localise, Func<string, string?> find, CCountry owner, CSubUnit subUnit)
 	{
-		int model = Math.Max(subUnit.HistoricalModel, 0);
-		string suffix = subUnit.Type.Key + "_" + model.ToString(CultureInfo.InvariantCulture);
+		return ModelName(localise, find, owner, subUnit.Type, Math.Max(subUnit.HistoricalModel, 0));
+	}
+
+	/// <summary>The name of a numbered model of a type.</summary>
+	public static string ModelName(Func<string, string> localise, Func<string, string?> find, CCountry owner, CSubUnitType type, int model)
+	{
+		string suffix = type.Key + "_" + model.ToString(CultureInfo.InvariantCulture);
 		return find(owner.Tag.Value + "_" + suffix) ?? find(suffix)
-			?? localise(subUnit.Type.Key) + " (" + CRomanNumerals.Format(model + 1) + ")";
+			?? localise(type.Key) + " (" + CRomanNumerals.Format(model + 1) + ")";
 	}
 }

@@ -616,17 +616,8 @@ public partial class CSession : Node
 				gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, answered, scope, option));
 			_simulation.State.DecisionTaken += (taken, scope) => Tell(CMessages.DecisionTaken(
 				gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, taken, scope));
-			popups.Goto = message =>
-			{
-				bool air = message.Type.Name.StartsWith("AIR", System.StringComparison.Ordinal);
-				if (_simulation.State.Combats.FirstOrDefault(combat => combat.Province == message.Province && (!air || combat.Kind == ECombatKind.Air)) is not { } battle)
-				{
-					return false;
-				}
-				ShowCombat(battle);
-				_mapView.CentreOn(battle.Province);
-				return true;
-			};
+			popups.Goto = GoToMessage;
+			messageLog.RowPressed += message => GoToMessage(message);
 			_simulation.State.CombatBegan += combat =>
 			{
 				if (CMessages.CombatBegan(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, combat) is { } message)
@@ -819,6 +810,79 @@ public partial class CSession : Node
 	/// A flag in the province view: the owner's opens the diplomacy screen; the occupier's first selects its capital,
 	/// which moves the view there (provinceview.md, section 2).
 	/// </summary>
+	/// <summary>Does what a message's Goto does, answering whether its popup stays. See <c>docs/mechanics/messages.md</c>, section 4.1.</summary>
+	private bool GoToMessage(CMessage message)
+	{
+		string type = message.Type.Name;
+		switch (CMessageGotos.Of(type))
+		{
+			case EMessageGoto.Battle:
+				bool air = type.StartsWith("AIR", System.StringComparison.Ordinal);
+				return ShowFound(State.Combats.FirstOrDefault(combat => combat.Province == message.Province
+					&& !Sim.Combat.CBombing.IsBombing(combat.Kind) && (!air || combat.Kind == ECombatKind.Air)));
+			case EMessageGoto.Bombing:
+				return ShowFound(Sim.Combat.CBombing.In(State, message.Province));
+			case EMessageGoto.Province:
+				CentreOnMessage(message);
+				return true;
+			case EMessageGoto.Capital:
+				if (State.Country(message.FirstCountry) is { ActingCapital: > 0 } country)
+				{
+					_mapView.CentreOn(country.ActingCapital);
+				}
+				return true;
+			case EMessageGoto.Invasion:
+				return CentreOnMessage(message);
+			case EMessageGoto.Screen:
+				_orders?.Close();
+				_mapView.SelectUnit(null);
+				_mapView.ClearSelection();
+				if (type == CMessageGotos.AgreementExpired)
+				{
+					if (message.Province > 0)
+					{
+						_mapView.Select(message.Province);
+					}
+					Toggle(_diplomacy);
+				}
+				else if (CMessageGotos.OpensTechnology(type))
+				{
+					Toggle(_technology);
+				}
+				else if (type == CMessageGotos.BuildingDone)
+				{
+					CentreOnMessage(message);
+				}
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	private bool ShowFound(CCombat? combat)
+	{
+		if (combat is null)
+		{
+			return false;
+		}
+		ShowCombat(combat);
+		_mapView.CentreOn(combat.Province);
+		return true;
+	}
+
+	/// <summary>The map centred on the message's province, or else on the acting capital of its first country or its second, answering whether there was one.</summary>
+	private bool CentreOnMessage(CMessage message)
+	{
+		int province = message.Province > 0 ? message.Province
+			: State.Country(message.FirstCountry is { } first ? first : message.SecondCountry)?.ActingCapital ?? 0;
+		if (province <= 0)
+		{
+			return false;
+		}
+		_mapView.CentreOn(province);
+		return true;
+	}
+
 	private void FlagPressed(CCountryTag country, bool occupier)
 	{
 		if (occupier && State.Country(country) is { Capital: > 0 } holder)

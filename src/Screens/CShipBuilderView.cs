@@ -36,6 +36,8 @@ public partial class CShipBuilderView : CTypeBuilderView
 
 	protected override string LabelName => "selected_ship_label";
 
+	protected override string PhotoName => "selected_ship_photo";
+
 	protected override IReadOnlyDictionary<string, (string Text, string Delayed)> HeaderTooltips => CBuilderTooltips.Ship;
 
 	protected override IReadOnlyList<int>? Model => Picked is null ? null : _levels;

@@ -93,6 +93,7 @@ public static class CInvasionWarnings
 			state.RaisePactMessage(new CPactMessage(Message, "", "", warning.Invader, warning.Player)
 			{
 				Told = warning.Player,
+				Province = warning.Units.Count == 0 ? 0 : warning.Units[0].Path[0],
 				Messenger = "MESSAGE_HEAD_MARS",
 				Values = new[] { ("ENEMY", state.Country(warning.Invader)?.Name ?? warning.Invader.Value),
 					("PROV", string.Join(",", provinces)) },

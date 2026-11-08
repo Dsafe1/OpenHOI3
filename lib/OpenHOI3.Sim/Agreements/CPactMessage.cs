@@ -36,6 +36,9 @@ public sealed record CPactMessage(string We, string They, string Other, CCountry
 	/// <summary>Who reports it, <c>$MESSENGER$</c>: the foreign office, or the general staff for a war.</summary>
 	public string Messenger { get; init; } = "MESSAGE_HEAD_CHAN";
 
+	/// <summary>The province it is about, where it is about one; a Goto goes there and otherwise to a capital.</summary>
+	public int Province { get; init; }
+
 	/// <summary>An election's parties' scores, by ideology, for the popup's pie; none for anything else.</summary>
 	public long[]? Scores { get; init; }
 

@@ -24,6 +24,10 @@ public partial class CBrigadeBuilderView : CTypeBuilderView
 
 	protected override string LabelName => "selected_brigade_label";
 
+	protected override string PhotoName => "selected_brigade_photo";
+
+	protected override string? DescriptionName => "selected_brigade_description";
+
 	protected override IReadOnlyDictionary<string, (string Text, string Delayed)> HeaderTooltips => CBuilderTooltips.Brigade;
 
 	protected override string? GroupSprite => "GFX_brigade_listbutton";

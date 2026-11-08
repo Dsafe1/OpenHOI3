@@ -200,6 +200,7 @@ public static class CCombats
 		state.RaisePactMessage(new Agreements.CPactMessage("PROVINCELOST", "", "", now, lost)
 		{
 			Told = lost,
+			Province = province.Id,
 			Messenger = "MESSAGE_HEAD_MARS",
 			Values = new[] { ("PROV", province.Name), ("COUNTRY", name) },
 		});

@@ -148,6 +148,8 @@ public static class CMessages
 			FirstCountry = pact.Actor,
 			SecondCountry = pact.Recipient,
 			Scores = pact.Scores,
+			// An agreement run out goes to the other side's capital, which the diplomacy screen then opens on.
+			Province = pact.Province > 0 || name != CMessageGotos.AgreementExpired ? pact.Province : state.Country(pact.Recipient)?.Capital ?? 0,
 		};
 		if (state.Country(player) is { } country)
 		{

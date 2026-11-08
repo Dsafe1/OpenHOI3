@@ -285,10 +285,10 @@ public static class CUndergrounds
 	private static void TellFound(CGameState state, CProvince province, CCountryTag owner)
 	{
 		var values = new[] { ("PROV", province.Name) };
-		state.RaisePactMessage(new CPactMessage("OURUNDERGROUNDREMOVED", "", "", owner, owner) { Told = owner, Values = values });
+		state.RaisePactMessage(new CPactMessage("OURUNDERGROUNDREMOVED", "", "", owner, owner) { Told = owner, Province = province.Id, Values = values });
 		if (province.Controller is { } holder && holder != owner)
 		{
-			state.RaisePactMessage(new CPactMessage("UNDERGROUNDREMOVED", "", "", holder, owner) { Told = holder, Values = values });
+			state.RaisePactMessage(new CPactMessage("UNDERGROUNDREMOVED", "", "", holder, owner) { Told = holder, Province = province.Id, Values = values });
 		}
 	}
 

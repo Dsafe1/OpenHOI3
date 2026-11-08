@@ -21,6 +21,8 @@ public partial class CAirBuilderView : CTypeBuilderView
 
 	protected override string LabelName => "selected_plane_label";
 
+	protected override string PhotoName => "selected_plane_photo";
+
 	/// <summary>One line for each technology of the type, made again when another is picked (builders.md, section 12).</summary>
 	protected override void ShowPicked(CSubUnitType? type)
 	{

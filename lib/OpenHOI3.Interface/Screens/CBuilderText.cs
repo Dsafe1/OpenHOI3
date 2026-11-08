@@ -16,6 +16,22 @@ namespace OpenHOI3.Interface.Screens;
 /// </summary>
 public static class CBuilderText
 {
+	/// <summary>
+	/// What a builder calls the type picked: the model the country would build today in brackets, marked "+*" where its
+	/// technologies are not exactly that model's, or the type's own name where it has no model. See
+	/// <c>docs/mechanics/builders.md</c>, section 7.
+	/// </summary>
+	public static string ModelLabel(Func<string, string> localise, Func<string, string?> find, CGameState state, CCountry country, CSubUnitType type)
+	{
+		int model = CHistoricalModels.PickCurrent(state, country, type);
+		if (model < 0)
+		{
+			return localise(type.Key);
+		}
+		string mark = model == CHistoricalModels.FindExact(state, country, type) ? "" : "+*";
+		return "(§Y" + Tooltips.CBrigadeTooltips.ModelName(localise, find, country, type, model) + mark + "§W)\n";
+	}
+
 	/// <summary>The fewest and the most a count of the order panel may be.</summary>
 	public const int FewestOrdered = 1;
 	public const int MostOrdered = 99;

@@ -232,6 +232,15 @@ line fills the panel: a label, a picture, one line of the type's figures in `sta
 the same columns as the list - and `on_complete_icon` and `on_complete_impact` as the
 designer's.
 
+**The label and the picture** (`reversing/findings/FINDINGS-messagegoto.md`, section 3). The model is the one the
+country would build today (`CHistoricalModels.PickCurrent`); the label is `(§Y` + its name + `§W)`, with `+*` after the
+name where the country's technologies are not exactly that model's, and the type's own name where it has no model.
+The picture is the model's, as the brigade card's: `<TAG>_<type>_<n>.tga`, `<type>_<n>.tga`, `<type>_0.tga` in
+`gfx/models`, the first that exists. **With nothing picked the label and the description are emptied and the picture
+stays what it was**; where no file exists it stays too. The brigade builder's `selected_brigade_description` lists the
+brigade's technologies, a line each, as the unit panel's summary does. The designer's `selected_photo` is its first
+brigade's, and an empty design leaves it. `confirmed`, but that the list's first is the first brigade added, `likely`.
+
 **A ship is the one thing whose equipment is chosen.** Picking a type sets a level for each
 of its technologies - the country's own - and lists them in `models`, a
 `shipbuild_model_entry` each with its `title`, the level chosen in `name`, and a `select`
@@ -441,7 +450,6 @@ group icon numbered past the groups says nothing, where the original reads past 
 ## What is not built
 
 - **Custom game mode**, in which the four price by points.
-- **`selected_photo`** and the three `selected_*_photo` pictures.
 
 ## What is not established, in one place
 
@@ -450,9 +458,9 @@ group icon numbered past the groups says nothing, where the original reads past 
    the spare template buttons really stay, what the panel shows with nothing picked.
 2. **Which key makes a step ten**, in the code: the buttons' tooltip says Ctrl, and Ctrl is what
    is built.
-3. **The label and the picture**: how a historical model is chosen for them.
+3. ~~**The label and the picture**: how a historical model is chosen for them.~~ Read 2026-11-08 (section 7).
 4. **The name of a level of a technology**, and the text of its effects.
-5. **The description** the air and brigade builders show.
+5. ~~**The description** the air and brigade builders show.~~ Read 2026-11-08 (sections 7 and 12).
 6. **What saving a template does**, beyond the command it posts, and how a country with no
    `default_templates` comes by any.
 7. ~~**What "of the type's branch" counts** for a ration.~~ Read 2026-10-16: the type's group (section 2).

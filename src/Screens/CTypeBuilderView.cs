@@ -22,6 +22,8 @@ public abstract partial class CTypeBuilderView : CBuilderWindow
 	private CGuiListBox? _list;
 	private CGuiListBox? _statistics;
 	private CGuiTextBox? _label;
+	private CGuiIcon? _photo;
+	private CGuiTextBox? _description;
 	private CGuiIcon? _completionIcon;
 	private CGuiTextBox? _completionText;
 	private string _sortBy = CBuilderLists.Priority;
@@ -43,6 +45,12 @@ public abstract partial class CTypeBuilderView : CBuilderWindow
 
 	/// <summary>The text box of the panel that names what is picked.</summary>
 	protected abstract string LabelName { get; }
+
+	/// <summary>The icon of the panel that pictures what is picked.</summary>
+	protected abstract string PhotoName { get; }
+
+	/// <summary>The text box of the panel that lists what is picked is equipped with, where the window has one.</summary>
+	protected virtual string? DescriptionName => null;
 
 	protected CBuilderColumn[] Columns => CBuilderLists.For(Branch);
 
@@ -69,6 +77,8 @@ public abstract partial class CTypeBuilderView : CBuilderWindow
 		Panel = window.FindWindow(PanelName);
 		_statistics = Panel?.FindListBox("stats_pos");
 		_label = Panel?.FindTextBox(LabelName);
+		_photo = Panel?.FindIcon(PhotoName);
+		_description = DescriptionName is { } description ? Panel?.FindTextBox(description) : null;
 
 		if (window.TryFindButton(CBuilderLists.SortByPriority) is { } byPriority)
 		{
@@ -187,15 +197,18 @@ public abstract partial class CTypeBuilderView : CBuilderWindow
 		if (Picked is null)
 		{
 			Set(_label, "");
+			Set(_description, "");
 			Set(_completionText, "");
 			ShowPicked(null);
 			return;
 		}
-		Set(_label, Context.Localisation.Localise(Picked.Key));
+		Set(_label, CBuilderText.ModelLabel(Context.Localisation.Localise, Context.Localisation.Find, Simulation.State, Player, Picked));
+		ShowPhoto(_photo, Picked);
 		_completionIcon?.SetSprite("icon_" + Picked.OnCompletion);
 		Set(_completionText, CBuilderText.OnCompletion(Picked));
 
 		CSubUnit today = CBuilderLists.AsBuiltToday(Player, Picked, out long _);
+		Set(_description, CBrigadeTooltips.Equipment(Context.Localisation.Localise, Context.Localisation.Find, Simulation.State, Player, today));
 		CSubUnit built = today;
 		if (Model is { } model)
 		{

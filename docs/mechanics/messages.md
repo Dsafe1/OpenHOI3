@@ -96,6 +96,26 @@ cross the screen's right or bottom edge is moved to the screen's size less 10.
   with one of them, both show it, and with neither the file's stays.
 - A popup's window may be dragged (`interface.md`, section 7).
 
+### 4.1 The Goto
+
+*From `reversing/findings/FINDINGS-messagegoto.md`.* What the Goto does is handed over by the place that raises the message, so it goes with the type (`CMessageGotos`) and no file can change it; the file says only whether the button is there. **A left click on a row of the log does the same**, and takes no notice of the answer.
+
+| what it does | the popup afterwards | types |
+| --- | --- | --- |
+| centres the map on the message's province, else the acting capital of its first country, else of its second | stays | 119 types: every diplomatic, trade, aid and faction message, the battles over, `ANNEX`, `DISBAND`, `PROVINCELOST`, `REVOLT`, `PARTISANS`, the undergrounds' |
+| shows the province's battle and centres on it, an air battle for the two `AIR` types | stays; closes with no battle | the six `ATTACK` types, `SHATTERED` |
+| shows the province's bombing and centres on it | stays; closes with none | `BOMBTHEM`, `BOMBUS` |
+| centres on the first country's acting capital | stays | `INDEPENDANCE`, `GIESWAPOTHER` |
+| centres as the first row | stays; closes with nowhere to go | `INVADEDUS`, `PARATROOPEDUS` |
+| closes the orders window and clears the selection, and then by type | stays | the 21 of `CMessageGotos.Screens` |
+| nothing | closes | events, decisions, laws and ministers, triggered modifiers and the like |
+
+The third-from-last row's "then by type": `DIPLOEXPIRE` selects the capital of the agreement's other side and opens the diplomacy screen on it; `TECH_ONCE` and `TECH_REPEAT` turn the technology screen on or off - **with it already up a Goto shuts it**, the original's; `BUILDING_DONE` centres as the first row; the others do nothing more.
+
+Which province a message is about is `CPactMessage.Province`, set where it names one. `INVADEDUS` takes the first landing unit's province: *inferred*, the raise was not read for it.
+
+**Not raised here**: `EXPRETURNED`, `EXPRETURNEDWE` and the three `UNITARRIVED`, whose Goto selects the unit and closes the popup. `TECH_ONCE` and `TECH_REPEAT` are in the table and nothing raises them yet. `LEADERDIED`, `SHIPSUNK`, `MINISTER_DEATH`, `REINFORCE` and `RETURN_EXILE_US` are declared and raised by no code in the original either.
+
 ## 5. The log
 
 **The message log** is `messagelog_window` in the `menubar` window of `interface/menubar.gui`: a list

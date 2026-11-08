@@ -120,6 +120,7 @@ public static class CParadrop
 		state.RaisePactMessage(new CPactMessage(Message, "", "", unit.Owner, player)
 		{
 			Told = player,
+			Province = target.Id,
 			Messenger = "MESSAGE_HEAD_MARS",
 			Values = new[] { ("ENEMY", state.Country(unit.Owner)?.Name ?? unit.Owner.Value), ("PROV", target.Name) },
 		});

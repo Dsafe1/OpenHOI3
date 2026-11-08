@@ -73,9 +73,9 @@ public static class CHistoricalModels
 	}
 
 	/// <summary>
-	/// The model whose every listed technology the country has at exactly the model's level, the first such;
-	/// -1 for none. Where it is not <see cref="PickCurrent"/>'s, a model's name carries "+*". The
-	/// exactness is inferred from the record's word, not read.
+	/// The first model that lists every technology of the type, each that changes a unit at exactly the country's
+	/// level and the others at any; -1 for none. Where it is not <see cref="PickCurrent"/>'s, a model's name carries
+	/// "+*".
 	/// </summary>
 	public static int FindExact(CGameState state, CCountry country, CSubUnitType type)
 	{
@@ -84,8 +84,8 @@ public static class CHistoricalModels
 			bool matches = true;
 			foreach (CTechnology technology in type.Technologies)
 			{
-				if (Level(state, country, type, model, technology) is { } wanted
-					&& country.TechnologyLevels.GetValueOrDefault(technology.Name) != wanted)
+				if (Level(state, country, type, model, technology) is not { } wanted
+					|| (technology.Change && country.TechnologyLevels.GetValueOrDefault(technology.Name) != wanted))
 				{
 					matches = false;
 					break;

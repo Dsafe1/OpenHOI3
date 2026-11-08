@@ -86,10 +86,15 @@ public static class CBrigadeCardText
 	/// </summary>
 	public static IEnumerable<string> Pictures(CCountryTag owner, CSubUnit subUnit)
 	{
-		string type = subUnit.Type.Key;
-		if (subUnit.HistoricalModel != CSubUnit.NoModel)
+		return Pictures(owner, subUnit.Type.Key, subUnit.HistoricalModel);
+	}
+
+	/// <summary>The same for a numbered model of a type, <see cref="CSubUnit.NoModel"/> for none.</summary>
+	public static IEnumerable<string> Pictures(CCountryTag owner, string type, int number)
+	{
+		if (number != CSubUnit.NoModel)
 		{
-			string model = subUnit.HistoricalModel.ToString(CultureInfo.InvariantCulture);
+			string model = number.ToString(CultureInfo.InvariantCulture);
 			yield return ModelsFolder + owner.Value + "_" + type + "_" + model + ".tga";
 			yield return ModelsFolder + type + "_" + model + ".tga";
 		}
