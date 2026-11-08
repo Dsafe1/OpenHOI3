@@ -45,6 +45,7 @@ public partial class CBattlePlanWindow : Control
 	private bool _saving, _renaming, _leftHeld;
 	private Vector2 _mouse;
 	private CConfirmDialog? _dialog;
+	private CPlanTool? _optionsDrawn;
 	private CPlanObjectTypes _types = null!;
 	private double _time;
 
@@ -206,7 +207,7 @@ public partial class CBattlePlanWindow : Control
 			var button = new CGuiButton();
 			button.Initialise(type, _context);
 			int chosen = index;
-			button.Position = new Vector2(width + (index / 7 + 1) * -33f, index % 7 * 33f);
+			button.Position = OptionPlace(index, width);
 			button.Pressed += () => Editor.ChooseOption(chosen);
 			button.Tooltip = () => Editor.OptionsOf(Editor.Tool) is { } tool && chosen < tool.Options.Count
 				? new CTooltip { Text = L(tool.Options[chosen].Name) }
@@ -219,6 +220,9 @@ public partial class CBattlePlanWindow : Control
 			_options.MoveChild(_optionMarker, _options.GetChildCount() - 1);
 		}
 	}
+
+	/// <summary>Where an option stands in its grid: seven down a column, the columns going left from the window's right edge.</summary>
+	private static Vector2 OptionPlace(int index, float width) => new(width + (index / 7 + 1) * -33f, index % 7 * 33f);
 
 	public void Toggle()
 	{
@@ -663,10 +667,16 @@ public partial class CBattlePlanWindow : Control
 			button.Visible = shown;
 			if (shown)
 			{
-				button.SetSprite(tool.Icon);
+				// Setting a picture puts a button back where its type says, so the grid's place goes on after it.
+				if (!ReferenceEquals(tool, _optionsDrawn))
+				{
+					button.SetSprite(tool.Icon);
+					button.Position = OptionPlace(index, _options.Size.X);
+				}
 				button.SetFrame(index + 1);
 			}
 		}
+		_optionsDrawn = tool;
 		int chosen = Editor.OptionOf(Editor.Tool);
 		if (_optionMarker is not null)
 		{
