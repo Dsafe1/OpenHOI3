@@ -107,6 +107,22 @@ public static class CConvoyMaker
 		}
 	}
 
+	/// <summary>A convoy by its number, with the country it belongs to.</summary>
+	public static (CCountry Owner, CConvoy Convoy)? Find(CGameState state, int id)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (CConvoy convoy in country.Convoys)
+			{
+				if (convoy.Id == id)
+				{
+					return (country, convoy);
+				}
+			}
+		}
+		return null;
+	}
+
 	/// <summary>Takes a convoy away. Its transports and its escorts go back to the country's free ones.</summary>
 	public static void Remove(CCountry country, CConvoy convoy)
 	{

@@ -44,6 +44,7 @@ public sealed partial class CMessageLogView : Control
 
 	/// <summary>Raised when the bar's zoom-in button is pressed, or Page Down: <c>minimap.md</c>, section 4.</summary>
 	public event Action? ZoomInPressed;
+	public event Action? GotoPressed;
 
 	/// <summary>Raised when the bar's zoom-out button is pressed, or Page Up.</summary>
 	public event Action? ZoomOutPressed;
@@ -114,7 +115,7 @@ public sealed partial class CMessageLogView : Control
 		{
 			string name = child.Name.ToString();
 			if (child is Control shown && name != "messagelog_window" && name != "OPENbutton" && name != ModifiersButtonName
-				&& name != Interface.Screens.CVictoryWindowText.ButtonName && name != "minimap_bg_shadow" && name != ZoomInName && name != ZoomOutName
+				&& name != Interface.Screens.CVictoryWindowText.ButtonName && name != "minimap_bg_shadow" && name != ZoomInName && name != ZoomOutName && name != "button_goto"
 				&& !name.StartsWith("mapmode_", StringComparison.Ordinal))
 			{
 				shown.Visible = false;
@@ -131,6 +132,10 @@ public sealed partial class CMessageLogView : Control
 			string tooltip = _context.Localisation.Localise(Interface.Map.CMapModeButtons.TooltipKey(number));
 			button.Tooltip = () => new Interface.Tooltips.CTooltip { Text = tooltip };
 			_modeButtons[number - 1] = button;
+		}
+		if (bar.TryFindButton("button_goto") is { } goTo)
+		{
+			goTo.Pressed += () => GotoPressed?.Invoke();
 		}
 		if (bar.TryFindButton(ZoomInName) is { } zoomIn)
 		{

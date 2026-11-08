@@ -519,6 +519,11 @@ public partial class CSession : Node
 			layer.MoveChild(_minimap, 1);
 			_modeButtons = messageLog;
 			messageLog.ModeButtonPressed += ChooseMapMode;
+			var gotoBox = new CGotoBoxView();
+			gotoBox.Setup(gui, _simulation.State);
+			gotoBox.ProvinceChosen += province => _mapView.CentreOn(province);
+			layer.AddChild(gotoBox);
+			messageLog.GotoPressed += gotoBox.Show;
 			messageLog.ZoomInPressed += () => _mapView.StepZoom(inwards: true);
 			messageLog.ZoomOutPressed += () => _mapView.StepZoom(inwards: false);
 			// The Strategic Effects window, which the bar's button by the minimap opens (docs/mechanics/strategiceffects.md).

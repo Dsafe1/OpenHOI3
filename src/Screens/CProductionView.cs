@@ -48,6 +48,9 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	private readonly List<CBuildQueueEntry> _queue = new();
 	private readonly CLendLeaseWindow _lendLease = new();
 	private CGuiListBox? _tradeList;
+	private CGuiListBox? _convoyList;
+	private readonly List<CConvoyEntry> _convoyRows = new();
+	private CConvoyDialogs? _convoyDialogs;
 	private readonly List<CTradeListEntry> _trades = new();
 	private CCountryTag? _tradesOf;
 	private CSliderPanel? _sliders;
@@ -148,6 +151,12 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		_strategicResources = window.FindBox("strat_resources");
 		_queueList = window.FindListBox("build_queue");
 		_tradeList = window.FindListBox("trade_list");
+		_convoyList = window.FindListBox("convoy_queue");
+		_convoyDialogs = new CConvoyDialogs(this, Context, Simulation, Player);
+		if (window.TryFindButton("convoy_button") is { } convoyButton)
+		{
+			convoyButton.Pressed += _convoyDialogs.ShowSettings;
+		}
 		BuildAutomation(window);
 
 		// The original hides this one whenever the screen is drawn.
@@ -254,6 +263,18 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	/// </summary>
 	public CTooltip? Answer(CGuiObject element)
 	{
+		if (_convoyDialogs is { } convoys && Window is not null)
+		{
+			// While the settings are up nothing speaks; while a convoy's details are, only its four steppers (convoywindows.md, section 7).
+			if (convoys.SettingsOpen && (convoys.Holds(element) || element == Window || Window.IsAncestorOf(element)))
+			{
+				return CTooltip.Empty;
+			}
+			if (convoys.DetailsOpen && !convoys.Holds(element) && (element == Window || Window.IsAncestorOf(element)))
+			{
+				return CTooltip.Empty;
+			}
+		}
 		if (_confirmBuild is not { IsOpen: true } dialog || dialog.Holds(element) || Window is null)
 		{
 			return null;
@@ -430,6 +451,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		ShowStrategicResources(country);
 		ShowQueue(state, country);
 		ShowTrades(state, country);
+		ShowConvoys(state, country);
 		ShowSliders(country);
 	}
 
@@ -466,6 +488,35 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		{
 			line.Update(country.Tag);
 		}
+	}
+
+	/// <summary>The list made again only where its length has changed; the rows filled each frame.</summary>
+	private void ShowConvoys(CGameState state, CCountry country)
+	{
+		if (_convoyList is null || _convoyDialogs is null)
+		{
+			return;
+		}
+		List<Sim.Convoys.CConvoy> convoys = CConvoyWindowText.Rows(state, country);
+		if (convoys.Count != _convoyRows.Count)
+		{
+			_convoyList.Clear();
+			_convoyRows.Clear();
+			foreach (Sim.Convoys.CConvoy convoy in convoys)
+			{
+				if (CConvoyEntry.Create(Context, state, convoy, country.Tag, _convoyDialogs.ShowDetails) is not { } row)
+				{
+					break;
+				}
+				_convoyList.Add(row.Window);
+				_convoyRows.Add(row);
+			}
+		}
+		foreach (CConvoyEntry row in _convoyRows)
+		{
+			row.Update();
+		}
+		_convoyDialogs.Update();
 	}
 
 	/// <summary>A line's cancel button: another confirmation each press, as in the original.</summary>
@@ -587,6 +638,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	{
 		Send(_sliders?.Flush());
 		_lendLease.Visible = false;
+		_convoyDialogs?.HideAll();
 		foreach (CBuilderWindow builder in _builders)
 		{
 			builder.Close();

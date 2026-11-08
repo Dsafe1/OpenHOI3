@@ -95,6 +95,9 @@ public partial class CGuiTextBox : CGuiObject
 	/// <summary>Raised when what the box holds is changed by typing.</summary>
 	public event System.Action? Typed;
 
+	/// <summary>Enter pressed while the box has the keyboard. The box takes the key, so nothing behind it sees it.</summary>
+	public event System.Action? Entered;
+
 	/// <summary>
 	/// An edit box made to take typing: a click on it, or <see cref="TakeKeyboard"/>, gives it the keyboard, and it then
 	/// takes characters and its six keys before anything else, as the original's (<c>interface.md</c>, section 8).
@@ -168,6 +171,10 @@ public partial class CGuiTextBox : CGuiObject
 		{
 			_text = editor.Text;
 			Typed?.Invoke();
+		}
+		if (key.Keycode is Key.Enter or Key.KpEnter)
+		{
+			Entered?.Invoke();
 		}
 		QueueRedraw();
 	}
