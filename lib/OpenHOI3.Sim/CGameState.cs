@@ -503,6 +503,9 @@ public sealed class CGameState
 	/// <summary>Every ship that has left the game, in the order they went. See <see cref="CSunkShips"/>.</summary>
 	public List<CSunkShip> SunkShips { get; } = new();
 
+	/// <summary>What the played country's wars have cost each side, enemy by enemy: the Strategic Warfare Manager's records.</summary>
+	public StrategicWarfare.CWarfareLedger Warfare { get; } = new();
+
 	/// <summary>
 	/// The landings on each player's ground, by the country making them, waiting to be told
 	/// (<c>docs/mechanics/transport.md</c>, section 11).

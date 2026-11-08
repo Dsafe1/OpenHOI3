@@ -190,7 +190,7 @@ public static class CTransport
 	/// organisation by <c>damage * 1000 / (n * 2000)</c> and strength by <c>damage * 1000 / (n * 1000)</c>, n the
 	/// brigades aboard - at once, and with no test of whether a passenger breaks.
 	/// </summary>
-	public static void LayDamage(CUnit fleet, long transportDamage)
+	public static void LayDamage(CUnit fleet, long transportDamage, CGameState? state = null, Combat.CCombatSide? side = null)
 	{
 		if (transportDamage <= 0 || fleet.Passengers.Count == 0)
 		{
@@ -212,6 +212,10 @@ public static class CTransport
 			foreach (CSubUnit brigade in passenger.SubUnits)
 			{
 				brigade.Organisation = new CFixedPoint(Math.Max(brigade.Organisation.Raw - organisation, 0));
+				if (state is not null && side is not null)
+				{
+					StrategicWarfare.CWarfareTally.Passenger(state, side, brigade, Math.Min(strength, brigade.Strength.Raw));
+				}
 				brigade.Strength = new CFixedPoint(Math.Max(brigade.Strength.Raw - strength, 0));
 			}
 		}

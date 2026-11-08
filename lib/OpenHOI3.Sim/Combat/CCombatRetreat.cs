@@ -36,8 +36,10 @@ public static class CCombatRetreat
 
 		unit.Combats.Remove(combat);
 		side.Remove(state, unit);
+		CCountryTag? killer = combat.Other(side).Countries.Count > 0 ? combat.Other(side).Countries[0] : null;
 		if (state.Country(unit.Owner) is not { } country || to == 0)
 		{
+			StrategicWarfare.CWarfareTally.UnitLost(state, killer, unit);
 			RemoveFromGame(state, unit);
 			return;
 		}
@@ -47,6 +49,7 @@ public static class CCombatRetreat
 			: CRouteFinder.Find(state, country, unit, unit.Location, to);
 		if (route is null)
 		{
+			StrategicWarfare.CWarfareTally.UnitLost(state, killer, unit);
 			RemoveFromGame(state, unit);
 			return;
 		}

@@ -1731,7 +1731,6 @@ files are not in it. Whole windows the original opens:
 
 | window | reached from | the fact base |
 | --- | --- | --- |
-| the strategic warfare manager (`swm_window`) | the top bar | read (`FINDINGS-topscreens.md`, section C); it needs the game state's per-enemy records and their eight tallies before the window |
 | the order of battle browser (`oobbrowser`) | the unit panel, whose button is drawn and dead | not read |
 | the convoy windows (`convoy_details`, `convoy_settings`, `convoy_creation_window`) | production's "Create convoy" (`convoy_button`) | in part |
 | battle plans (`battleplans_window`) | the menu bar (`menubar_plans_*`) | not read |
@@ -2802,7 +2801,7 @@ screen is checked with `--click`, not only with a switch that reaches past its b
 the four builder windows passed every check that opened and filled them by name while
 seven of their buttons could not be pressed.
 
-The top bar's **Theatres** and **Statistics** buttons work since 2026-11-08 (`docs/mechanics/theatresscreen.md`, `statistics.md`): the theatres, their fronts, what a plan is short of and a Build that orders it, and the 26 pages of tables and pies. Tried with `--click`; the maintainer has not looked at them. A theatre's and a front's needs are worked out as the screen is filled, where the original refills an inactive plan daily. Of the ledger, the tooltips of its columns, a unit's order and model, points off the map and four of the goods pools are not built (`statistics.md`, sections 2 and 3).
+The top bar's **Theatres** and **Statistics** buttons work since 2026-11-08 (`docs/mechanics/theatresscreen.md`, `statistics.md`): the theatres, their fronts, what a plan is short of and a Build that orders it, and the 26 pages of tables and pies. Tried with `--click`; the maintainer has not looked at them. A theatre's and a front's needs are worked out as the screen is filled, where the original refills an inactive plan daily. Of the ledger, the tooltips of its columns, a unit's order and model, points off the map and four of the goods pools are not built (`statistics.md`, sections 2 and 3). **The Strategic Warfare Manager** works since the same day (`docs/mechanics/strategicwarfare.md`): the records of each war, every tally but attrition - which is not built - the window and its charts through the install's `linechart.fx`, saved and loaded byte for byte. The maintainer has not looked at it.
 
 An earlier iteration reproduced the original's front end directly from its `.gui` files
 and ran its main menu and lobby. That work left the tree in commit `4269708` and remains
@@ -2879,6 +2878,7 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         neutrality, a new game's, the month's drift and each change
     Agreements/         an offer and the AI's answer to it, the pacts - NAP, embargo,
                         influence, alignment - what each does and how each ends
+    StrategicWarfare/   the played country's records of each war, their rings and what writes them
     Politics/           the parties and their drift, the cabinet, elections, national unity
                         and strategic warfare, the pool of ministers and the filling of
                         posts, a law changed, and the AI's politics

@@ -356,6 +356,8 @@ public static class CBombing
 		CBombTargetModifiers.Apply(state, bombing);
 		CBomberFire.Attack(state, bombing);
 		CAntiAircraft.Attack(state, bombing);
+		bombing.Attacker.NoteLosses();
+		bombing.Defender.NoteLosses();
 		Settle(state, bombing.Attacker);
 		Settle(state, bombing.Defender);
 
@@ -417,6 +419,7 @@ public static class CBombing
 			ship.Organisation = new CFixedPoint(ship.Organisation.Raw - organisation);
 			ship.PendingStrengthDamage = 0;
 			ship.PendingOrganisationDamage = 0;
+			side.NoteShip(ship, strength, ship.Strength < CNavalLosses.LeastStrengthAfloat);
 			if (ship.Strength < CNavalLosses.LeastStrengthAfloat)
 			{
 				fleet.SubUnits.RemoveAt(i);

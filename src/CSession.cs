@@ -55,6 +55,7 @@ public partial class CSession : Node
 	private CEspionageView? _espionage;
 	private CTheatreView? _theatres;
 	private CLedgerView? _statistics;
+	private CWarfareView? _warfare;
 	private CStrategicEffectsView? _strategicEffects;
 	private CVictoryConditionsView? _victoryConditions;
 	private CanvasLayer? _hud;
@@ -368,6 +369,9 @@ public partial class CSession : Node
 			_statistics.UnitChosen += ChooseUnit;
 			_statistics.Opening += CloseCountryViews;
 			layer.AddChild(_statistics);
+			_warfare = new CWarfareView();
+			_warfare.Setup(gui, _simulation);
+			layer.AddChild(_warfare);
 
 			// The deploy menu and the alert that opens it. A unit chosen there is placed
 			// by a click on the map, which is shown where it may go.
@@ -463,6 +467,7 @@ public partial class CSession : Node
 		_topBar.IntelligencePressed += () => Toggle(_espionage);
 		_topBar.TheatresPressed += () => Toggle(_theatres);
 		_topBar.StatisticsPressed += () => _statistics?.Toggle();
+		_topBar.StrategicWarfarePressed += () => _warfare?.Toggle();
 
 		// The outliner down the right, with the top bar's button for it (docs/mechanics/outliner.md).
 		if (Player is not null)
@@ -1782,6 +1787,10 @@ public partial class CSession : Node
 			else if (argument == "--screen=intelligence")
 			{
 				Toggle(_espionage);
+			}
+			else if (argument == "--screen=warfare")
+			{
+				_warfare?.Toggle();
 			}
 			else if (argument == "--screen=statistics")
 			{

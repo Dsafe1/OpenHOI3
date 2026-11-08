@@ -141,6 +141,8 @@ public static class CAirBattle
 		CAirModifiers.Apply(state, combat, combat.Defender);
 		CAirFire.Attack(state, combat, combat.Attacker);
 		CAirFire.Attack(state, combat, combat.Defender);
+		combat.Attacker.NoteLosses();
+		combat.Defender.NoteLosses();
 		Settle(combat.Attacker);
 		Settle(combat.Defender);
 

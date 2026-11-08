@@ -711,3 +711,7 @@ Play (`frontend.md`, section 4).
   of popularity, which no allotment follows, is the likely reason; not traced.
 - **Whether anything reads an order's `stop`**: three searches found nothing but the writer; an unrecorded function
   reaching it another way is not ruled out (`FINDINGS-savegame.md`, C.11).
+
+## 18. The strategic warfare manager's records
+
+The last block of the file, `strategic_warfare`, is read and written whole (`CSaveWarfare`; `strategicwarfare.md`, section 6): byte for byte on `Germany1936_03_31_19`, whose 8 enemies carry whole rings. A game saved before its first day writes the played country as its `player`, as the original, which sets it as a game is entered.

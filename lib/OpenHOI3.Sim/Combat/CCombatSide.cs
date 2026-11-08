@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Units;
 
@@ -81,6 +82,40 @@ public sealed class CCombatSide
 
 	/// <summary>A land brigade's men for each point of its strength, which is a constant of the original's.</summary>
 	public const long MenPerStrength = 100 * CFixedPoint.Scale;
+
+	/// <summary>
+	/// What this side has lost, by type: in a battle at sea a thousand for each ship gone; in any other its strength hour by hour, a brigade's a hundred times over. A sea battle's
+	/// lesser damage is <see cref="Damaged"/>. What the Strategic Warfare Manager prices (strategicwarfare.md, section 3).
+	/// </summary>
+	public Dictionary<string, long> Destroyed { get; } = new(StringComparer.Ordinal);
+
+	public Dictionary<string, long> Damaged { get; } = new(StringComparer.Ordinal);
+
+	/// <summary>Whether this is the ships' side of a bombing of ships.</summary>
+	public bool IsShips => Units.Count > 0 ? Units[0].Kind == EUnitKind.Navy : Sunk.Count > 0;
+
+	/// <summary>What is about to be settled, noted first: a brigade's share a hundred times over, a wing's as it is. Ships are noted as they are settled.</summary>
+	public void NoteLosses()
+	{
+		foreach (CUnit unit in Units.Where(unit => unit.Kind != EUnitKind.Navy))
+		{
+			foreach (CSubUnit subUnit in unit.SubUnits)
+			{
+				long lost = Math.Min(subUnit.PendingStrengthDamage * PendingShare / CFixedPoint.Scale, subUnit.Strength.Raw);
+				Destroyed[subUnit.Type.Key] = Destroyed.GetValueOrDefault(subUnit.Type.Key) + lost * (unit.Kind == EUnitKind.Air ? 1 : BrigadeMen);
+			}
+		}
+	}
+
+	/// <summary>A ship settled: a thousand where it is gone, otherwise what it took.</summary>
+	public void NoteShip(CSubUnit ship, long strength, bool gone)
+	{
+		Dictionary<string, long> into = gone ? Destroyed : Damaged;
+		into[ship.Type.Key] = into.GetValueOrDefault(ship.Type.Key) + (gone ? StrategicWarfare.CWarfareCosts.WholeShip : strength);
+	}
+
+	private const long PendingShare = 10;
+	private const long BrigadeMen = 100;
 
 	/// <summary>Bombers: what they have destroyed of the province's stockpile.</summary>
 	public Economy.CGoodsPool StockpileDestroyed { get; } = new();

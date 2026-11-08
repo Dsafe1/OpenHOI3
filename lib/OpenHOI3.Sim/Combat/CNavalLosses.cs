@@ -32,7 +32,7 @@ public static class CNavalLosses
 					transportDamage += ship.PendingStrengthDamage;
 				}
 			}
-			Transport.CTransport.LayDamage(fleet, transportDamage);
+			Transport.CTransport.LayDamage(fleet, transportDamage, state, side);
 			foreach (CSubUnit ship in fleet.SubUnits)
 			{
 				long strength = Math.Min(ship.PendingStrengthDamage, ship.Strength.Raw);
@@ -41,6 +41,7 @@ public static class CNavalLosses
 				ship.Organisation = new CFixedPoint(ship.Organisation.Raw - organisation);
 				ship.PendingStrengthDamage = 0;
 				ship.PendingOrganisationDamage = 0;
+				side.NoteShip(ship, strength, ship.Strength < LeastStrengthAfloat);
 			}
 		}
 	}

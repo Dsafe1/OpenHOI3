@@ -386,6 +386,9 @@ public static class CCombats
 		CCombatModifiers.Apply(state, combat, combat.Defender);
 		CLandFire.Attack(state, combat, combat.Attacker);
 		CLandFire.Attack(state, combat, combat.Defender);
+		StrategicWarfare.CWarfareTally.LandHour(state, combat);
+		combat.Attacker.NoteLosses();
+		combat.Defender.NoteLosses();
 		Settle(state, combat.Attacker);
 		Settle(state, combat.Defender);
 
@@ -481,6 +484,7 @@ public static class CCombats
 	/// </summary>
 	public static void Finish(CGameState state, CCombat combat)
 	{
+		StrategicWarfare.CWarfareTally.BattleEnded(state, combat);
 		// A fleet let out of a battle will start no other for some hours.
 		if (combat.Kind == ECombatKind.Naval)
 		{

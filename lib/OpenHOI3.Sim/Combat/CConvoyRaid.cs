@@ -136,8 +136,8 @@ public static class CConvoyRaid
 		CUnit? stand = MakeFleet(state, convoy, raider.Location);
 		if (stand is not null)
 		{
-			Fight(state, raider, stand);
-			Count(state, convoy, stand, raider);
+			CCombat fought = Fight(state, raider, stand);
+			Count(state, convoy, stand, raider, fought);
 			state.Province(raider.Location).LastConvoyAttackHour = state.TotalHours;
 			stand.IsRemoved = true;
 		}
@@ -195,7 +195,7 @@ public static class CConvoyRaid
 	/// other but for what <see cref="CCombat.IsConvoyBattle"/> changes, and it is on no
 	/// list: nobody else joins it and it is gone when the rounds are fought.
 	/// </summary>
-	public static void Fight(CGameState state, CUnit raider, CUnit stand)
+	public static CCombat Fight(CGameState state, CUnit raider, CUnit stand)
 	{
 		var combat = new CCombat(raider.Location, ECombatKind.Naval) { IsConvoyBattle = true };
 		CNavalBattle.Join(state, combat, combat.Attacker, raider);
@@ -229,6 +229,7 @@ public static class CConvoyRaid
 		}
 		// Like any battle that ends, it goes on the list of finished battles.
 		state.CombatHistory.Record(combat, state.TotalHours);
+		return combat;
 	}
 
 	/// <summary>
@@ -236,7 +237,7 @@ public static class CConvoyRaid
 	/// its transport ships lost, each counted at two ships to the hundred points; and
 	/// with a whole ship of either, the convoy loses that many of each, rounded.
 	/// </summary>
-	public static void Count(CGameState state, CConvoy convoy, CUnit stand, CUnit? raider = null)
+	public static void Count(CGameState state, CConvoy convoy, CUnit stand, CUnit? raider = null, CCombat? fought = null)
 	{
 		CCountry? owner = state.Country(convoy.Owner);
 		long lostEscorts = 0;
@@ -265,6 +266,7 @@ public static class CConvoyRaid
 		if (escorts >= CFixedPoint.Scale || transports >= CFixedPoint.Scale)
 		{
 			bool hadEscort = convoy.Escorts > 0;
+			StrategicWarfare.CWarfareTally.ConvoyRaid(state, convoy, fought, raider, RoundToNearest(transports));
 			CConvoyLosses.Lose(state, convoy, (int)RoundToNearest(transports), (int)RoundToNearest(escorts),
 				state.Country(raider?.Owner));
 			// What the owner's national unity makes of it (politics.md, section 6).

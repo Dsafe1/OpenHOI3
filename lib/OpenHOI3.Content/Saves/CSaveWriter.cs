@@ -90,6 +90,7 @@ public static class CSaveWriter
 		{
 			CSaveWars.Write(writer, "previous_war", war, localise);
 		}
+		CSaveWarfare.Write(writer, state);
 		writer.CloseRoot();
 		return writer.Text;
 	}

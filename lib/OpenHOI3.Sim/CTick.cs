@@ -131,6 +131,7 @@ public static class CTick
 		// worked out, its units lose the men who go home and draw their supplies, what its
 		// provinces produced reaches the stockpile, its IC is worked out, and then its six
 		// shares of IC are run and its four of leadership after them.
+		Step(state, state.Warfare.DailyUpdate);                   // the very first thing the original's day does (strategicwarfare.md, section 2)
 		Step(state, CStrategicResources.Update);                  // the first thing the original's day does
 		// Supplies go out along the network before any country's own day, so a unit
 		// draws on what reached its province this morning.

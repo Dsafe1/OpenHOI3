@@ -314,6 +314,7 @@ public static class CMovement
 			{
 				if (!IsHeldByAFriend(state, country, unit, next))
 				{
+					StrategicWarfare.CWarfareTally.UnitLost(state, state.Province(next).Controller, unit);
 					CCombatRetreat.RemoveFromGame(state, unit);
 				}
 				return;
@@ -409,6 +410,7 @@ public static class CMovement
 		{
 			if (unit.IsRetreating)
 			{
+				StrategicWarfare.CWarfareTally.UnitLost(state, next.Controller, unit);
 				CCombatRetreat.RemoveFromGame(state, unit);
 			}
 			else

@@ -58,7 +58,7 @@ public sealed class CSpriteTypes
 			CSpriteType sprite = CSpriteType.FromNode(child.Key, child);
 			// A pie chart and a progress bar may be drawn with no picture at all: the politics screen's are.
 			if (sprite.Name.Length == 0 || (sprite.TextureFile.Length == 0 && sprite.OverlayFile.Length == 0
-				&& !sprite.IsPieChart && !sprite.IsProgressBar))
+				&& !sprite.IsPieChart && !sprite.IsProgressBar && !sprite.IsLineChart))
 			{
 				continue;
 			}

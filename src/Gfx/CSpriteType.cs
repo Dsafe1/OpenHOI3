@@ -82,6 +82,13 @@ public sealed class CSpriteType
 	/// <summary>A pie chart: its <c>size</c> alone, the slices given by the screen that shows it.</summary>
 	public bool IsPieChart => Kind.Equals("PieChartType", StringComparison.OrdinalIgnoreCase);
 
+	public bool IsLineChart => Kind.Equals("LineChartType", StringComparison.OrdinalIgnoreCase);
+
+	/// <summary>A line chart's line, across, and whether it has an outline.</summary>
+	public float LineWidth { get; init; } = 1f;
+
+	public bool Outline { get; init; }
+
 	/// <summary>A pie chart's <c>size</c>.</summary>
 	public int PieSize { get; init; }
 
@@ -108,6 +115,8 @@ public sealed class CSpriteType
 			TransparenceCheck = node.GetBool("transparencecheck"),
 			PieSize = kind.Equals("PieChartType", StringComparison.OrdinalIgnoreCase) ? node.GetInt("size") : 0,
 			Horizontal = !node.GetString("horizontal").Equals("no", StringComparison.OrdinalIgnoreCase),
+			LineWidth = node.GetFloat("linewidth", 1f),
+			Outline = node.GetBool("outline"),
 		};
 	}
 }

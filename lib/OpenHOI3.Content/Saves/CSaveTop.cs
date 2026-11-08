@@ -33,6 +33,9 @@ public static class CSaveTop
 			case "theatre" when !node.IsBlock:
 				state.NextTheatreId = (int)CSaveValues.Whole(node.Value);
 				return true;
+			case "strategic_warfare" when node.IsBlock:
+				CSaveWarfare.Read(state, node);
+				return true;
 			case "flags" when node.IsBlock:
 				foreach (ClausewitzNode flag in node.Children)
 				{

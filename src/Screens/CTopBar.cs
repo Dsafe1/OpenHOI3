@@ -58,6 +58,7 @@ public partial class CTopBar : Control
 	public event System.Action? IntelligencePressed;
 	public event System.Action? TheatresPressed;
 	public event System.Action? StatisticsPressed;
+	public event System.Action? StrategicWarfarePressed;
 
 	/// <summary>Raised when the button that opens and shuts the outliner is pressed.</summary>
 	public event System.Action? OutlinerPressed;
@@ -136,6 +137,7 @@ public partial class CTopBar : Control
 		Bind(_window.FindButton("topbarbutton_intelligence"), () => IntelligencePressed?.Invoke());
 		Bind(_window.FindButton("topbarbutton_theatre"), () => TheatresPressed?.Invoke());
 		Bind(_window.FindButton("topbarbutton_statistics"), () => StatisticsPressed?.Invoke());
+		Bind(_window.FindButton("swm_open"), () => StrategicWarfarePressed?.Invoke());
 		_outlinerButton = _window.FindButton("topbar_outlinerbutton");
 		Bind(_outlinerButton, () => OutlinerPressed?.Invoke());
 		Bind(_window.FindButton("topbar_menubutton"), () => MenuPressed?.Invoke());
