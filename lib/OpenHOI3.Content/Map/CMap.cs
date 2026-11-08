@@ -374,6 +374,7 @@ public sealed class CMap
 			TreeTypes = treeTypes,
 			TreeTypeOfIndex = treeTypeOfIndex,
 			TreeRowOfIndex = terrainDefinition.TreeRowOfIndex ?? new int[256],
+			TerrainDefinition = terrainDefinition,
 		};
 	}
 
@@ -409,6 +410,9 @@ public sealed class CMap
 		}
 		return heights.ToArray();
 	}
+
+	/// <summary>What terrain.txt says of each palette index, which the map cache's builder reads.</summary>
+	public CTerrainReader.Definition TerrainDefinition { get; private init; }
 
 	/// <summary>
 	/// <c>terrain_sheet_heights</c>: the camera heights above which the map is drawn the next way - its far view, a height
@@ -500,6 +504,8 @@ public sealed class CMap
 			warn($"'{path}' must be 8 bits per pixel and {width} x {height} like the province bitmap; no climate was read from it");
 			return climate;
 		}
+		// Province 0 stands at the first pixel, having no point of its own; only the cache's file says so.
+		climate[0] = bitmap.StoredRow(height - 1)[0];
 		for (int id = 1; id < provinceCount; id++)
 		{
 			CMapPosition point = positions.Unit[id];

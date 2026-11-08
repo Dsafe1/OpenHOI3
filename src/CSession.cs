@@ -235,8 +235,7 @@ public partial class CSession : Node
 			drawn.CounterScale = Settings.CounterScale;
 			drawn.HierarchyShown = Settings.RenderHierarchy;
 		}
-		CMapCache cache = CMapCache.Open(_directories, Content.Settings.CUserSettingsReader.UserFolder(),
-			problem => GD.PushWarning($"map: {problem}"));
+		CMapCache cache = CMapView.OpenCache(_directories, Map);
 		_mapView.SetupSurface(gui, _directories, cache, Settings.SimpleWater, Settings.Waves,
 			Settings.RenderTrees || UserArguments().Contains("--trees"));
 		AddChild(_mapView);

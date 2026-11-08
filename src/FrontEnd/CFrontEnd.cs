@@ -239,7 +239,7 @@ public partial class CFrontEnd : Node
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(_map, state);
 		// The quad cache read once for every world the front end shows.
-		_mapCache ??= CMapCache.Open(_directories, CUserSettingsReader.UserFolder(), problem => GD.PushWarning($"map: {problem}"));
+		_mapCache ??= CMapView.OpenCache(_directories, _map);
 		_quadTiles ??= CQuadCache.Load(_mapCache, problem => GD.PushWarning($"map: {problem}"));
 		_mapView.SetupSurface(_gui, _directories, _mapCache, Settings.SimpleWater, Settings.Waves, Settings.RenderTrees, _quadTiles);
 		AddChild(_mapView);

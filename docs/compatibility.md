@@ -406,6 +406,19 @@ section 3.
 | why | the maintainer's word: a debugging aid for the player should not change how the AI plays |
 | to undo | fill every country's bytes with 9 at the start of `CProvinceIntel.Rebuild` where `FogOfWar` is off, and drop the played test in `CNavalSpotting.ShouldStart` |
 
+## 22. The map cache is the Documents folder's alone
+
+**Decided** 2026-11-08 by the maintainer, on being told the game was drawing from the install's shipped cache: "Please dont use that mapcache. Only use the one from documents". The rule is `docs/mechanics/mapcache.md`, section 11.
+
+| | |
+| --- | --- |
+| the original | looks in the player's folder and then the install, so Their Finest Hour's shipped `tfh/map/cache` serves until something newer is built |
+| here | the game asks `Documents\Paradox Interactive\Hearts of Iron III\map\cache` and nothing else, and builds the cache there where it is not the map's |
+| the difference today | the first start after that folder is emptied takes about 2.3 seconds longer and writes about 220 MB to it; what it draws is the same, every file being the shipped one byte for byte |
+| a mod loses | nothing: a cache is derived data |
+| why | the maintainer's word |
+| to undo | have `CMapCache.OpenOrBuild` take `Open`'s answer first, and pass `askInstall: true` |
+
 ---
 
 ## Stricter, with the same meaning

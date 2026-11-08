@@ -1704,9 +1704,11 @@ whole in the fact base already, built in a session - a new game's figure by the 
 the month's 0.041 at war under its maximum, all of it paid back to neutrality in the first month of peace, the
 `war_exhaustion` modifier step, condition and effect, and the save's key. **No save can check it**: every save of the
 maintainer's was made with BiceLib's patch zeroing it each month written into the executable, so the start save's Italy is
-0.000 where ours is the original's 0.191; neutrality still agrees 101 of 101. **Next up**: the map cache built here
-(the original's `CProvinceManager_BuildQuads` read first, a wave of several agents, the shipped cache the oracle byte for
-byte), the console below, the military AI's gaps (*What the moving wave left*), or the end-of-game screen.
+0.000 where ours is the original's 0.191; neutrality still agrees 101 of 101. **And the map cache built here** (2026-11-08,
+`docs/mechanics/mapcache.md`, `Content/Map/Cache`): read whole in a wave of five readers (`reversing/findings/FINDINGS-mapcache.md`),
+every file of `map/cache` made from the map files in the original's formats, **each the original's byte for byte on two maps** -
+Their Finest Hour's shipped cache and the one the original built for BlackICE - in about 2.3 seconds. **The game now reads the cache from the player's Documents folder alone** (`docs/compatibility.md`, entry 22), never the install's, and builds it there where it is not the map's instead of drawing flat. **Next up**: the console
+below, the military AI's gaps (*What the moving wave left*), or the end-of-game screen.
 
 **The console**, planned 2026-11-08 and not built: the original's 53 commands are read whole in the fact base
 (`reversing/findings/FINDINGS-console.md`, section C), and the debug menu (Shift and 4) already has `debug fow` - for the
@@ -1807,16 +1809,15 @@ None of these blocks the list above.
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
   and the front end makes its meshes again for each world it shows - the quad cache it reads once - which could be kept
   between worlds; a map whose cache is missing or stale - its `time` stamp not the map files' (section 2.1, since
-  2026-11-06) - is drawn flat by `PoliticalMap.gdshader` as before. **The cache is the original's**, found in the
-  player's folder under Documents and then the install, as the original finds it; a mod's own folder (`user_dir`) is not
-  asked until mods are layered, and a mod played before the original has built its cache gets the flat map. **Building
-  the cache here** - the province meshes, the beaches, the border meshes and corners, the terrain-index pictures and the
-  surf's records out of the map files, as a derived build of our own - wants the original's builder read
-  (`CProvinceManager_BuildQuads` and the rest), and is wanted before BlackICE is the target. **`map.bin` is tested by date for
+  2026-11-06) - has one built by `docs/mechanics/mapcache.md` since 2026-11-08, and is drawn flat by `PoliticalMap.gdshader` only
+  where it has no terrain to build from. **The cache is the player's Documents folder's alone**, the install's never read by the game; a mod's own folder (`user_dir`) is not
+  asked until mods are layered. **A rebuilt beach is the original's only given the noise's starting count**, which varies from one of the
+  original's runs to the next (`mapcache.md`, section 8). **`adjacencies.bin`, `navaldist.bin`, `climate.bin`,
+  `provincecache.bin` and `quad_format.bin` are built for compatibility with the original and read by nothing here**, the game working
+  those figures out as it starts (section 12). **`map.bin` is tested by date for
   the rivers' sources alone** (`CMapBin`, `docs/compatibility.md` entry 20): the land borders' junctions read its raster
-  whenever the `time` stamp is current, where the original would build the file again first - its raster half not read.
-  That reading should also say what the raster's two high bits mean (16 and 32, about 207,000 pixels of TFH's) and
-  whether anything reads them: the border code masks them off and nothing read so far uses them.
+  whenever the `time` stamp is current, where the original would build the file again first. Of the raster's two high bits
+  the land mesh reads 0x20, and nothing found reads 0x10 (`mapcache.md`, section 4).
 - **`CRandom` seeds as the original since 2026-11-07**, the shift in its seeding keeping the sign (the record's
   `MT19937Seed`), where it had used the textbook unsigned one; its twist, leaving a word that is odd and negative alone,
   was right and is checked against the bytes the same day. A loaded game is untouched, its generator's state the save's;
@@ -2925,6 +2926,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Map/                the province bitmap, shapes, the edges between provinces with their
                         kinds and distances, terrain, a province's points, and the
                         declarations of the unit counters, their pointer and the arrows
+      Cache/            the map cache made from the map files, in the original's formats
     Definitions/        what common/, technologies/ and units/ declare
     History/            what history/ gives on the start date, orders of battle among it
     Gui/                the interface files' declarations, and font descriptors

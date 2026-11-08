@@ -28,7 +28,7 @@ public static class CNavalDistanceCheck
 		var warnings = new List<string>();
 		CDirectorySettings directories = CDirectorySettings.At(args[1]);
 		CMap map = CMap.Load(directories, warnings.Add);
-		string path = args.Length > 2 ? args[2] : directories.Resolve("map/cache/navaldist.bin");
+		string path = args.Length > 2 ? args[2] : CMapCacheCheck.FileOf(directories, "navaldist.bin");
 		byte[] bytes = File.ReadAllBytes(path);
 
 		long cells = bytes.Length / 2;

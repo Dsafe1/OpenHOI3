@@ -45,13 +45,14 @@ brought back by subtracting 65535 once whenever it passes 65535 - not a remainde
 A file not there counts nought. `climate.bmp`, `rivers.bmp`, `continent.txt`, `region.txt`, `coastlines.txt` and
 `trees.txt` are not in it [exe], so a mod that changes only those keeps its cache - and the original's `climate.bin` goes
 stale unseen. **A cache whose `time` is missing or holds another stamp is stale**: the original builds a new one; here
-nothing of it is read - no meshes, no border corners - the map is drawn flat and the log says why. *Measured* on
+nothing of it is read - no meshes, no border corners. **Since 2026-11-08 the game asks the player's folder alone and builds the cache there where it is not the map's** (`mapcache.md`, section 11; `docs/compatibility.md`, entry 22), the map drawn
+flat only where it has no terrain to build from; the savegame tool's `quads` still looks in both, as the original does. *Measured* on
 2026-11-06: TFH's map files make `93E125C4`, as `tfh/map/cache/time` and the user folder's `time` hold, and BlackICE
 GitHub's make `383756A4`, as its user folder's does. Working the stamp out takes about 140 ms, as the session's map is set
 up.
 
 *Not built*: a mod's `user_dir`, since no mod is played yet - the base game's user folder is the one asked. With a mod
-layered, its user folder is the one to pass, and a mod played before the original has built its cache gets the flat map.
+layered, its user folder is the one to pass.
 
 ## 3. Space and the camera
 

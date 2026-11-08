@@ -136,7 +136,8 @@ public class MapLoadingTests : IDisposable
 
 		// Alpha placed at (1, 2); Beta at its box's centre (2, 2); Gamma by its last place, (1, 0); the sea zone by its
 		// text's place, (3, 0); Epsilon at (3, 2).
-		Assert.Equal(new byte[] { 0, 110, 120, 112, 132, 130 }, map.ClimateIndex.ToArray());
+		// Province 0 has no point of its own and reads the first pixel.
+		Assert.Equal(new byte[] { 102, 110, 120, 112, 132, 130 }, map.ClimateIndex.ToArray());
 		Assert.Equal(new[] { (4, 31), (5, 16) }, map.LowPressureZones);
 		Assert.Equal(new[] { 1 }, map.HighPressureZones);
 	}

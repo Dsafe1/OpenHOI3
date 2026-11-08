@@ -1,17 +1,17 @@
 using System;
 using System.IO;
 using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Content.Map.Cache;
 
 namespace OpenHOI3.Content.Map;
 
 /// <summary>
-/// Where the original's map cache is found, and whether it is the cache of the map files the install has
-/// (<c>docs/mechanics/mapdraw.md</c>, section 2.1). A file of <c>map/cache</c> is looked for in the player's folder
-/// under the Documents folder first - where the original writes the cache it builds - and then through the install's
-/// layers, which is where Their Finest Hour ships its own. The cache is the map's only while its <c>time</c> file holds the
+/// Where the map cache is found, and whether it is the cache of the map files the install has
+/// (<c>docs/mechanics/mapdraw.md</c>, section 2.1). The game asks the player's folder under the Documents folder and nothing else, and
+/// builds the cache there where it is not the map's (<see cref="OpenOrBuild"/>). The tools' <see cref="Open"/> looks there and then
+/// through the install's layers, as the original does. The cache is the map's only while its <c>time</c> file holds the
 /// stamp of seven map files: each file's Fletcher-32, the seven summed, a file that is not there counting nought
-/// (<c>reversing/findings/FINDINGS-mapbuild.md</c>). A missing <c>time</c> is stale too. A stale cache is not read: the
-/// original builds a new one, and here the map is then drawn flat.
+/// (<c>reversing/findings/FINDINGS-mapbuild.md</c>). A missing <c>time</c> is stale too.
 /// </summary>
 public sealed class CMapCache
 {
@@ -23,11 +23,15 @@ public sealed class CMapCache
 
 	private readonly string? _userFolder;
 
-	private CMapCache(CDirectorySettings directories, string? userFolder, bool current)
+	/// <summary>Whether a file the player's folder has not is looked for in the install; a cache built here has every file itself.</summary>
+	private readonly bool _askInstall;
+
+	private CMapCache(CDirectorySettings directories, string? userFolder, bool current, bool askInstall = true)
 	{
 		_directories = directories;
 		_userFolder = userFolder;
 		IsCurrent = current;
+		_askInstall = askInstall;
 	}
 
 	/// <summary>Whether the cache's stamp is the map files'; nothing of a cache that is not is read.</summary>
@@ -79,8 +83,45 @@ public sealed class CMapCache
 				return user;
 			}
 		}
+		if (!_askInstall)
+		{
+			return null;
+		}
 		string installed = _directories.Resolve(relative);
 		return File.Exists(installed) ? installed : null;
+	}
+
+	/// <summary>
+	/// The game's cache: the one in the player's folder and no other, the install's never asked, built there first where it is not this
+	/// map's (the maintainer's word; <c>docs/compatibility.md</c>, entry 22). See <c>docs/mechanics/mapcache.md</c>, section 11.
+	/// </summary>
+	public static CMapCache OpenOrBuild(CDirectorySettings directories, string userFolder, CMap map, Action<string> problem)
+	{
+		uint stamp = Stamp(directories);
+		string folder = Path.Combine(userFolder, Folder.Replace('/', Path.DirectorySeparatorChar));
+		if (!HoldsStamp(folder, stamp))
+		{
+			CMapCacheSource? source = CMapCacheSource.From(map, problem);
+			if (source is null)
+			{
+				return new CMapCache(directories, userFolder, current: false, askInstall: false);
+			}
+			problem($"cache: building the map's cache in {folder}");
+			// The stamp goes last, so that a build cut short is never taken for a cache.
+			CMapCacheBuilder.Build(source, folder, stamp);
+		}
+		return new CMapCache(directories, userFolder, current: true, askInstall: false);
+	}
+
+	private static bool HoldsStamp(string folder, uint stamp)
+	{
+		string path = Path.Combine(folder, StampFile);
+		if (!File.Exists(path))
+		{
+			return false;
+		}
+		byte[] stored = File.ReadAllBytes(path);
+		return stored.Length >= 4 && BitConverter.ToUInt32(stored, 0) == stamp;
 	}
 
 	/// <summary>

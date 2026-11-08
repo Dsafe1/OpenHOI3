@@ -41,6 +41,12 @@ public static class CTerrainReader
 		/// (<c>reversing/findings/FINDINGS-mapdraw.md</c>, C.8).
 		/// </summary>
 		public int[]? TreeRowOfIndex { get; init; }
+
+		/// <summary>For each palette index, its entry's <c>priority</c>: which entry of the texture sheet it draws; -1 where it gives none.</summary>
+		public int[]? PriorityOfIndex { get; init; }
+
+		/// <summary>The file's <c>terrain</c>, how many entries the texture sheet has; 256 where it does not say.</summary>
+		public int PaletteSize { get; init; }
 	}
 
 	/// <summary>
@@ -88,6 +94,8 @@ public static class CTerrainReader
 		Array.Fill(categoryOfIndex, -1);
 		var treeOfIndex = new string?[256];
 		var treeRowOfIndex = new int[256];
+		var priorityOfIndex = new int[256];
+		Array.Fill(priorityOfIndex, -1);
 		var unknownTypes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		foreach (ClausewitzNode entry in root.Children)
@@ -112,6 +120,7 @@ public static class CTerrainReader
 			// An int read as the original's %i reads it; −1 where the key is not there.
 			int density = int.TryParse(entry.GetString("tree_density"), NumberStyles.Integer, CultureInfo.InvariantCulture,
 				out int given) ? given : -1;
+			int priority = entry.GetInt("priority", -1);
 			int place = 0;
 			foreach (ClausewitzNode value in indices.Children)
 			{
@@ -119,6 +128,7 @@ public static class CTerrainReader
 					&& index >= 0 && index < categoryOfIndex.Length)
 				{
 					categoryOfIndex[index] = category;
+					priorityOfIndex[index] = priority;
 					treeOfIndex[index] = tree.Length == 0 ? null : tree;
 					treeRowOfIndex[index] = density > -1 ? density : Math.Max(0, 4 - place);
 				}
@@ -134,7 +144,13 @@ public static class CTerrainReader
 		{
 			warn($"'{path}' paints with types that are not categories: {string.Join(", ", unknownTypes)}");
 		}
-		return new Definition(categories.ToArray(), categoryOfIndex) { TreeOfIndex = treeOfIndex, TreeRowOfIndex = treeRowOfIndex };
+		return new Definition(categories.ToArray(), categoryOfIndex)
+		{
+			TreeOfIndex = treeOfIndex,
+			TreeRowOfIndex = treeRowOfIndex,
+			PriorityOfIndex = priorityOfIndex,
+			PaletteSize = root.GetInt("terrain", 256),
+		};
 	}
 
 	/// <summary>How many pixels of the bitmap are painted with an index the definition gives no terrain.</summary>

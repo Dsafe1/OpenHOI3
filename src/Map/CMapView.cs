@@ -198,6 +198,16 @@ public partial class CMapView : Node2D
 	}
 
 	/// <summary>
+	/// The map's cache: the one in the player's Documents folder and no other, built there where it is not this map's
+	/// (<c>docs/mechanics/mapcache.md</c>, section 11).
+	/// </summary>
+	public static CMapCache OpenCache(CDirectorySettings directories, CMap map)
+	{
+		return CMapCache.OpenOrBuild(directories, Content.Settings.CUserSettingsReader.UserFolder(), map,
+			problem => GD.PushWarning($"map: {problem}"));
+	}
+
+	/// <summary>
 	/// Gives the map its surface drawn as the original draws it, through the install's effect files, from the install's
 	/// quad cache (<c>docs/mechanics/mapdraw.md</c>); where the cache cannot be read, or is stale, the map is drawn flat as
 	/// before. Before the node enters the tree, and after <see cref="Setup"/>.

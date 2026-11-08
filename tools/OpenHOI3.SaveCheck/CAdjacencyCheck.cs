@@ -30,7 +30,7 @@ public static class CAdjacencyCheck
 		var warnings = new List<string>();
 		CDirectorySettings directories = CDirectorySettings.At(args[1]);
 		CMap map = CMap.Load(directories, warnings.Add);
-		string path = args.Length > 2 ? args[2] : directories.Resolve("map/cache/adjacencies.bin");
+		string path = args.Length > 2 ? args[2] : CMapCacheCheck.FileOf(directories, "adjacencies.bin");
 		byte[] bytes = File.ReadAllBytes(path);
 		Console.WriteLine($"cache: {path}, {bytes.Length} bytes");
 
@@ -155,7 +155,7 @@ public static class CAdjacencyCheck
 
 		// The climate index each province samples, against the original's map/cache/climate.bin: a 32 bit number a
 		// province from id 0 (docs/mechanics/weather.md, section 1).
-		string climatePath = directories.Resolve("map/cache/climate.bin");
+		string climatePath = CMapCacheCheck.FileOf(directories, "climate.bin");
 		if (File.Exists(climatePath))
 		{
 			byte[] climate = File.ReadAllBytes(climatePath);

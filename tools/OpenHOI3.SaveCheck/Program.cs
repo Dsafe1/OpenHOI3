@@ -49,6 +49,11 @@ if (args.Length > 0 && args[0] == "write")
 }
 
 // The install's quad cache, the map's meshes as the original draws them.
+if (args.Length > 0 && args[0] == "mapcache")
+{
+	return CMapCacheCheck.Run(args);
+}
+
 if (args.Length > 0 && args[0] == "quads")
 {
 	return CQuadCheck.Run(args);
