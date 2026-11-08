@@ -322,6 +322,13 @@ public sealed class CGameState
 	public List<CWar> FinishedWars { get; } = new();
 
 	/// <summary>
+	/// The fog of war, on unless the original console's <c>debug fow</c> - here the debug menu - turns it off: with it off the
+	/// countries played know every province at 9, the AI's left as they are (<c>intelligence.md</c>, section 3;
+	/// <c>compatibility.md</c>, entry 21). Not saved, as the original's is not.
+	/// </summary>
+	public bool FogOfWar { get; set; } = true;
+
+	/// <summary>
 	/// How many pacts have been made - alliances, guarantees, puppets, NAPs, embargoes, influences, alignments and trade
 	/// routes, counted as one: each pact holds its number, which is the order a save writes them in, the original keeping
 	/// them on one list (<c>savegame.md</c>, section 10).

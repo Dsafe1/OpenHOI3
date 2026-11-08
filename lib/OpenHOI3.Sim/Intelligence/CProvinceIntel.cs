@@ -85,6 +85,25 @@ public static class CProvinceIntel
 			radar.See(province);
 		}
 
+		// With the fog of war off the countries played know every province at 9 - and they alone: the original gives every
+		// country 9, ours leaves the AI's countries as they are (docs/compatibility.md, entry 21).
+		if (!state.FogOfWar)
+		{
+			foreach (CCountryTag played in state.Played)
+			{
+				if (state.Country(played) is { } country)
+				{
+					foreach (CProvince province in state.Provinces)
+					{
+						if (province.Id > 0 && country.Index < province.Intel.Length)
+						{
+							province.Intel[country.Index] = Most;
+						}
+					}
+				}
+			}
+		}
+
 		// What the hour compares against from now.
 		foreach (CCountry country in state.Countries)
 		{

@@ -390,6 +390,22 @@ tests by date against nine map files and not `rivers.bmp`: "switch to the map.bi
 | why | the maintainer's word: the original's test is a fault |
 | to undo | take `rivers` out of `CMapBin`'s list of sources |
 
+## 21. The fog of war turned off is the player's alone
+
+**Decided** 2026-11-08 by the maintainer, on the debug menu's `debug fow` switch being built as the original's: "Could you make
+it not affect the AI?" Read in `reversing/findings/FINDINGS-espionage.md` (the daily rebuild) and
+`reversing/findings/FINDINGS-navaldetection.md` (the sea battle's roll); the rule is `docs/mechanics/intelligence.md`,
+section 3.
+
+| | |
+| --- | --- |
+| the original | its console's `debug fow` off fills every country's knowledge of every province with 9 at each day's rebuild - the AI's too - and any fleet finds an enemy's without the roll |
+| here | the countries played alone know every province at 9, given at the end of the rebuild, and only their fleets skip the roll; every other country knows what it would with the fog of war on |
+| the difference today | with the switch off the AI plays as it would with it on: it does not see through the fog because the player turned it off |
+| a mod loses | nothing: no file sets it |
+| why | the maintainer's word: a debugging aid for the player should not change how the AI plays |
+| to undo | fill every country's bytes with 9 at the start of `CProvinceIntel.Rebuild` where `FogOfWar` is off, and drop the played test in `CNavalSpotting.ShouldStart` |
+
 ---
 
 ## Stricter, with the same meaning

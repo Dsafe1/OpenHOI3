@@ -506,6 +506,9 @@ public partial class CSession : Node
 		_debugMenu = new Debug.CDebugMenu();
 		layer.AddChild(_debugMenu);
 		_debugMenu.AddSwitch("Province readout", false, on => _provinceLabel.Visible = on);
+		// The original's console command debug fow, here for the countries played alone (intelligence.md, section 3;
+		// compatibility.md, entry 21), as a command.
+		_debugMenu.AddSwitch("Fog of war (debug fow)", State.FogOfWar, on => _simulation.Post(new CFogOfWarCommand(on)));
 		// The original's console command cpaint, an editor switch left in the release (mapmodes.md, section 7).
 		_debugMenu.AddSwitch("Continent painting (cpaint)", false, on => _mapView.ContinentPainting = on);
 
@@ -890,6 +893,7 @@ public partial class CSession : Node
 	private int _shownModeButton = -1;
 	private long _diplomacyColoured;
 	private long _navalMissions;
+	private bool _fogOfWarShown = true;
 
 	/// <summary>
 	/// The mode each map mode button sets, by its number from one (<c>docs/mechanics/minimap.md</c>, section 4).
@@ -1023,6 +1027,13 @@ public partial class CSession : Node
 				_navalMissions = naval;
 				_mapView.RefreshColours();
 			}
+		}
+		// The fog of war turned off or on: what everyone knows is made again with it, so the map and its counters follow.
+		if (State.FogOfWar != _fogOfWarShown)
+		{
+			_fogOfWarShown = State.FogOfWar;
+			_mapView.RefreshColours();
+			_mapView.Counters?.Refresh();
 		}
 		// The supply map mode is coloured by the day's carrying, so again each day.
 		long day = State.TotalHours / CGameState.HoursPerDay;

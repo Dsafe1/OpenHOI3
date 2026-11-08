@@ -1,3 +1,4 @@
+using System.Linq;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Intelligence;
@@ -60,6 +61,26 @@ public class IntelligenceTests
 		Assert.Equal(3, Known(state, Posen, Pol));
 		Assert.Equal(0, Known(state, Wilds, Ger));
 		Assert.Equal(0, Known(state, Rome, Pol));
+	}
+
+	[Fact]
+	public void With_the_fog_of_war_off_the_country_played_knows_every_province_at_9_and_the_AI_as_before()
+	{
+		CGameState state = ScriptWorld.State();
+		state.Played.Add(ScriptWorld.Slo);
+		CProvinceIntel.Rebuild(state);
+		int pol = Known(state, Posen, Pol);
+		Assert.NotEqual(9, Known(state, Posen, ScriptWorld.Slo));
+
+		new OpenHOI3.Sim.Commands.CFogOfWarCommand(false).Execute(state);
+
+		Assert.False(state.FogOfWar);
+		CCountry slovakia = C(state, ScriptWorld.Slo);
+		Assert.All(state.Provinces.Skip(1), province => Assert.Equal(9, province.Intel[slovakia.Index]));
+		Assert.Equal(pol, Known(state, Posen, Pol));                    // a country nobody plays knows what it knew
+
+		new OpenHOI3.Sim.Commands.CFogOfWarCommand(true).Execute(state);
+		Assert.NotEqual(9, Known(state, Posen, ScriptWorld.Slo));
 	}
 
 	[Fact]

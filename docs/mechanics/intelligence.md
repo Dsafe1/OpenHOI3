@@ -55,8 +55,15 @@ Once a day, late in the day (after the provinces' own day and the events, before
 game is entered. Every province is a real one here, so the original's test that a province takes part in the game
 always holds.
 
-1. **Every level to nought.** The original has a switch, its `fow` console command, that sets them all to 9 instead;
-   it is not built.
+1. **Every level to nought** - or, in the original, **to 9 with the fog of war off**, its console's `debug fow` [exe]: every
+   country then knows every province at 9, the AI's included, nothing below lowers it, the player's country is given 9 on
+   every province once more at the end, and a sea battle starts without the roll to find the enemy (`navalcombat.md`).
+   **Here the fog of war off is the countries played's alone** - they know every province at 9, given at the rebuild's end,
+   and their fleets find an enemy's without the roll - and the AI's countries know what they would with it on: the
+   maintainer's word, 2026-11-08, "make it not affect the AI" (`docs/compatibility.md`, entry 21). Built since 2026-11-08
+   (`CGameState.FogOfWar`, `CFogOfWarCommand`), a switch of the debug menu (Shift and 4) that posts the command. *Ours*
+   besides: what everyone knows is made again the moment it is turned, where the original's flag waits for the day's
+   rebuild; and it is not saved, as the original's is not.
 2. **Undergrounds**: a country's underground provinces give it and its list 9. *Not built*: there are no undergrounds.
 3. **Neighbours.** For every land province P with a controller, over its edges, each land neighbour N:
    - N is known **at least 3** by P's controller and each country on its list;
