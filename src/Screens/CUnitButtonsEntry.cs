@@ -32,7 +32,17 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 	private readonly CGuiButton? _loadPlane;
 	private readonly CGuiButton? _unloadPlane;
 	private readonly CGuiButton? _newUnit;
+	private readonly CGuiButton? _create;
 	private CCarryButtons _carry = CCarryButtons.None;
+
+	/// <summary>Raised when the attach button is pressed.</summary>
+	public event Action? AttachPressed;
+
+	/// <summary>Raised when the detach button is pressed.</summary>
+	public event Action? DetachPressed;
+
+	/// <summary>Raised when the button that makes a headquarters over the unit is pressed.</summary>
+	public event Action? CreateHigherPressed;
 
 	/// <summary>Raised when the new-unit button is pressed, with whether Ctrl was held - a split - or not.</summary>
 	public event Action<bool>? NewUnitPressed;
@@ -65,15 +75,20 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		_attach = window.FindButton("attach_button");
 		_detach = window.FindButton("detach_button");
 
-		// One of the five by the unit's level, and that one not to be pressed: making a
-		// headquarters is not built.
+		// One of the five by the unit's level; a theatre's edit_theatre is not built (attaching.md, section 1).
 		string level = CUnitPanelText.LevelButton(unit);
 		foreach (string name in CUnitPanelText.LevelButtons)
 		{
-			if (window.FindButton(name) is { } button)
+			if (window.FindButton(name) is not { } button)
 			{
-				button.Visible = name == level;
-				button.Disabled = true;
+				continue;
+			}
+			button.Visible = name == level;
+			button.Disabled = true;
+			if (name == level && name != "edit_theatre")
+			{
+				_create = button;
+				button.Pressed += () => CreateHigherPressed?.Invoke();
 			}
 		}
 
@@ -108,11 +123,11 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		}
 		if (_attach is not null)
 		{
-			_attach.Disabled = true;
+			_attach.Pressed += () => AttachPressed?.Invoke();
 		}
 		if (_detach is not null)
 		{
-			_detach.Disabled = true;
+			_detach.Pressed += () => DetachPressed?.Invoke();
 		}
 		AnswerFor(name => CUnitOrderTooltips.Buttons(context.Localisation.Localise, unit, _attach is { Disabled: false }, name,
 			_carry));
@@ -139,9 +154,21 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		Carry(_loadPlane, _carry.PlaneLoadShown, _carry.PlaneLoadEnabled);
 		Carry(_unloadPlane, _carry.PlaneUnloadShown, _carry.PlaneUnloadEnabled);
 
-		// A unit with none above it may be attached, and one with may be detached.
+		// A unit with none above it may be attached, and one with may be detached (attaching.md, section 1).
 		Show(_attach, _unit.Parent is null);
-		Show(_detach, _unit.Parent is not null);
+		Show(_detach, CAttachText.ShowsDetach(_unit));
+		if (_attach is not null)
+		{
+			_attach.Disabled = !_mayOrder || !CAttachText.MayAttach(_owner, _unit);
+		}
+		if (_detach is not null)
+		{
+			_detach.Disabled = !_mayOrder;
+		}
+		if (_create is not null)
+		{
+			_create.Disabled = !_mayOrder || !CAttachText.MayCreateHigher(_state, _owner, _unit);
+		}
 
 		if (_newUnit is not null)
 		{

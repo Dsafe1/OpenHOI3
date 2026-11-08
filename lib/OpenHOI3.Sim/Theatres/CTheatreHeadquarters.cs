@@ -186,7 +186,7 @@ public static class CTheatreHeadquarters
 	/// The province a theatre's headquarters is named after: of the theatre the province is in, the one with most
 	/// <c>victory points x 10000 + 5000 for a naval base + its IC</c>, the first of equals.
 	/// </summary>
-	private static CProvince? NamingProvince(CGameState state, CProvince province)
+	public static CProvince? NamingProvince(CGameState state, CProvince province)
 	{
 		if (CTheatreProvinces.Of(state, province.Id) is not { } theatre)
 		{

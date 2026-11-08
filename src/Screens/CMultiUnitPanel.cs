@@ -28,7 +28,7 @@ public partial class CMultiUnitPanel : Control
 	/// <summary>The buttons whose systems are not built for one unit either: shown, never to be pressed.</summary>
 	private static readonly string[] Unbuilt =
 	{
-		"upgrade_all", "detach_multiunit", "highercomm_multiunit", "disband_multiunit",
+		"upgrade_all", "disband_multiunit",
 	};
 
 	private CGuiContext _context = null!;
@@ -45,6 +45,8 @@ public partial class CMultiUnitPanel : Control
 	private CGuiButton? _unmount;
 	private CGuiButton? _reorganise;
 	private CGuiButton? _merge;
+	private CGuiButton? _detachAll;
+	private CGuiButton? _higher;
 	private CGuiScrollbarType? _sliderType;
 	private CGuiScrollbar? _slider;
 	private int _sliderFit;
@@ -70,6 +72,9 @@ public partial class CMultiUnitPanel : Control
 
 	/// <summary>The reorganise button: the two units, the first selected first.</summary>
 	public event Action<CUnit, CUnit>? ReorganiseWanted;
+
+	/// <summary>A new headquarters was asked for: one of its units, and the last unit number taken before it.</summary>
+	public event Action<CUnit, int>? HeadquartersAsked;
 
 	/// <summary>Raised when the panel has posted an order that changes where units stand on the map.</summary>
 	public event Action? Ordered;
@@ -135,6 +140,16 @@ public partial class CMultiUnitPanel : Control
 				}
 			};
 		}
+		_detachAll = _window.FindButton("detach_multiunit");
+		if (_detachAll is not null)
+		{
+			_detachAll.Pressed += DetachAll;
+		}
+		_higher = _window.FindButton("highercomm_multiunit");
+		if (_higher is not null)
+		{
+			_higher.Pressed += HigherCommand;
+		}
 		// The selected units made one, unless an AI agent runs any of them or any unit above one (selection.md, 5.4).
 		_merge = _window.FindButton("mergebutton");
 		if (_merge is not null)
@@ -159,6 +174,38 @@ public partial class CMultiUnitPanel : Control
 			fileSlider.Visible = false;
 		}
 		_window.SetTooltips(element => CMultiUnitTooltips.For(_context.Localisation.Localise, _simulation.State, _units, element));
+	}
+
+	/// <summary>One command per selected unit but a theatre, in selection order; the selection stays (attaching.md, section 3).</summary>
+	private void DetachAll()
+	{
+		if (_player is null)
+		{
+			return;
+		}
+		foreach (CUnit unit in CAttachText.Detachable(_units))
+		{
+			Post(new CDetachUnitCommand(unit.Owner, unit.Id), unit);
+		}
+	}
+
+	/// <summary>A brigade's men for each, or nothing; else the selection cleared and one headquarters (attaching.md, section 4).</summary>
+	private void HigherCommand()
+	{
+		if (_player is null)
+		{
+			return;
+		}
+		List<CUnit> units = CAttachText.ForHigher(_units);
+		CGameState state = _simulation.State;
+		if (units.Count == 0 || !CAttachText.HasMenFor(state, _player, units.Count))
+		{
+			return;
+		}
+		HeadquartersAsked?.Invoke(units[0], state.LastUnitId);
+		Post(new CCreateHigherCommand(_player.Tag, units.Select(unit => unit.Id).ToArray()), units[0]);
+		// At once and not at the frame's end, or it would take the new headquarters with it.
+		SelectionChanging?.Invoke(selection => selection.Clear());
 	}
 
 	/// <summary>Shows the panel for the units selected, two or more; for fewer it goes.</summary>
@@ -254,6 +301,14 @@ public partial class CMultiUnitPanel : Control
 	{
 		Func<string, string> localise = _context.Localisation.Localise;
 		CGameState state = _simulation.State;
+		if (_detachAll is not null)
+		{
+			_detachAll.Disabled = _player is null || CAttachText.Detachable(_units).Count == 0;
+		}
+		if (_higher is not null)
+		{
+			_higher.Disabled = _player is null || CAttachText.ForHigher(_units).Count == 0;
+		}
 		if (_desc is not null)
 		{
 			string text = CMultiUnitText.Desc(localise, _units);

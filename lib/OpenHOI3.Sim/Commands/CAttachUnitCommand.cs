@@ -29,6 +29,17 @@ public sealed class CAttachUnitCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		CAgentUnits.Attach(state, CUnitFinder.Find(state, _owner, _unit)!, CUnitFinder.Find(state, _owner, _parent)!);
+		CUnit unit = CUnitFinder.Find(state, _owner, _unit)!;
+		CUnit parent = CUnitFinder.Find(state, _owner, _parent)!;
+		CAgentUnits.Attach(state, unit, parent);
+		// The player is told of his own, where it has a name yet (attaching.md, section 2).
+		if (state.Played.Contains(unit.Owner) && unit.Name.Length > 0)
+		{
+			state.RaisePactMessage(new Agreements.CPactMessage("ATTACHEDUNIT", "", "", unit.Owner, unit.Owner)
+			{
+				Told = unit.Owner,
+				Values = new[] { ("UNIT", unit.Name), ("PARENT", parent.Name) },
+			});
+		}
 	}
 }

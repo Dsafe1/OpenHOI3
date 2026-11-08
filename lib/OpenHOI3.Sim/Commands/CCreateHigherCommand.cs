@@ -23,35 +23,60 @@ public sealed class CCreateHigherCommand : CCommand
 	private const long Twentieth = 50;
 
 	private readonly CCountryTag _owner;
-	private readonly int _unit;
+	private readonly int[] _units;
 	private readonly int _id;
 
 	/// <summary>Takes the ids as it is posted: the headquarters', its brigade's, and one left unused.</summary>
 	public CCreateHigherCommand(CGameState state, CCountryTag owner, int unit)
 	{
 		_owner = owner;
-		_unit = unit;
+		_units = new[] { unit };
 		_id = state.LastUnitId + 1;
 		state.LastUnitId += 3;
+	}
+
+	/// <summary>The player's, for one unit or several: the ids are taken as it runs, so that a replay comes out the same (attaching.md, section 5).</summary>
+	public CCreateHigherCommand(CCountryTag owner, int[] units)
+	{
+		_owner = owner;
+		_units = units;
 	}
 
 	public int Id => _id;
 
 	public override bool MayExecute(CGameState state)
 	{
-		if (CUnitFinder.Find(state, _owner, _unit) is not { } unit || CAgentUnits.Level(unit) < 1
-			|| CAgentUnits.Level(unit) > 4 || state.Country(_owner) is not { } country
+		if (_units.Length == 0 || state.Country(_owner) is not { } country
 			|| !state.SubUnitTypes.TryGetValue(CTheatreHeadquarters.HqBrigade, out CSubUnitType? type))
 		{
 			return false;
 		}
-		return country.Manpower.Raw >= type.Stats[CSubUnitStats.BuildCostManpower].Raw;
+		foreach (int id in _units)
+		{
+			if (CUnitFinder.Find(state, _owner, id) is not { } unit || CAgentUnits.Level(unit) < 1)
+			{
+				return false;
+			}
+		}
+		return country.Manpower.Raw >= _units.Length * type.Stats[CSubUnitStats.BuildCostManpower].Raw;
 	}
 
 	public override void Execute(CGameState state)
 	{
 		CCountry country = state.Country(_owner)!;
-		CUnit top = CUnitFinder.Find(state, _owner, _unit)!;
+		var units = new List<CUnit>();
+		foreach (int each in _units)
+		{
+			units.Add(CUnitFinder.Find(state, _owner, each)!);
+		}
+		CUnit top = units[0];
+		foreach (CUnit each in units)
+		{
+			if (each.Kind < top.Kind)
+			{
+				top = each;
+			}
+		}
 		CSubUnitType type = state.SubUnitTypes[CTheatreHeadquarters.HqBrigade];
 		int place = top.Location;
 		if (place > 0 && state.Province(place).IsSea && top.Transport is { } fleet)
@@ -62,8 +87,13 @@ public sealed class CCreateHigherCommand : CCommand
 		{
 			return;
 		}
-		var unit = new CUnit((EUnitKind)((int)top.Kind - 1), country.Tag) { Id = _id, Location = place };
-		var brigade = new CSubUnit(type) { Id = _id + 1, Unit = unit, Experience = CFixedPoint.Zero };
+		int id = _id > 0 ? _id : state.LastUnitId + 1;
+		if (_id == 0)
+		{
+			state.LastUnitId += 3;
+		}
+		var unit = new CUnit((EUnitKind)((int)top.Kind - 1), country.Tag) { Id = id, Location = place };
+		var brigade = new CSubUnit(type) { Id = id + 1, Unit = unit, Experience = CFixedPoint.Zero };
 		foreach (CTechnology technology in type.Technologies)
 		{
 			brigade.TechnologyLevels[technology.Name] = country.TechnologyLevels.GetValueOrDefault(technology.Name);
@@ -90,8 +120,26 @@ public sealed class CCreateHigherCommand : CCommand
 			CAgentUnits.Attach(state, unit, above);
 		}
 		CAgentUnits.Attach(state, top, unit);
+		foreach (CUnit other in units)
+		{
+			if (!ReferenceEquals(other, top) && CDeployment.MayTakeSubordinate(unit, other))
+			{
+				CAgentUnits.Attach(state, other, unit);
+			}
+		}
 
-		unit.Name = CUnitNames.ForKind(state, country, unit.Kind, type);
+		// An army group's is a theatre, and a new theatre that holds nothing but it (attaching.md, section 4).
+		if (unit.Kind == EUnitKind.Theatre)
+		{
+			unit.Name = CUnitNames.ForTheatre(state, country, CTheatreHeadquarters.NamingProvince(state, state.Province(place))?.Name);
+			CTheatre theatre = CTheatreProvinces.New(state, country.Tag);
+			theatre.Headquarters = unit.Id;
+			country.Strategy.Theatres.Add(theatre);
+		}
+		else
+		{
+			unit.Name = CUnitNames.ForKind(state, country, unit.Kind, type);
+		}
 		CUnitNames.Register(country, unit.Name);
 		state.ForgetPositions();
 		if (country.AutoAssignLeaders)

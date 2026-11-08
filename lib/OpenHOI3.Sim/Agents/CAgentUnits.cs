@@ -55,6 +55,22 @@ public static class CAgentUnits
 		return true;
 	}
 
+	/// <summary>The unit to the top of its country's order of battle, keeping what is under it; the agent above it sorts its subordinates again.</summary>
+	public static void Detach(CGameState state, CUnit unit)
+	{
+		if (unit.Parent is not { } parent || state.Country(unit.Owner) is not { } country)
+		{
+			return;
+		}
+		if (NearestAgent(parent) is { } agent)
+		{
+			agent.ReplanSubordinates = true;
+		}
+		parent.Children.Remove(unit);
+		unit.Parent = null;
+		country.Units.Add(unit);
+	}
+
 	/// <summary>The unit's original level: a theatre 0, an army group 1, an army 2, a corps 3, a division 4, else 5 or 6.</summary>
 	public static int Level(CUnit unit)
 	{

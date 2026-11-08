@@ -50,6 +50,10 @@ public partial class CUnitPanel : Control
 	private CLeaderSelectionPanel? _leaders;
 	private CMultiUnitPanel? _multi;
 	private CConfirmDialog? _confirm;
+	private CAttachmentPanel? _attachment;
+
+	/// <summary>Units given a new headquarters by the multi-unit panel, one of them and the last number taken before.</summary>
+	private (CUnit Unit, int After)? _headquarters;
 
 	/// <summary>
 	/// The leader window's filter of traits, kept from one window to the next for each kind
@@ -71,6 +75,37 @@ public partial class CUnitPanel : Control
 
 	/// <summary>The left button went down on a brigade's row.</summary>
 	public event Action<CSubUnit>? BrigadeDragStarted;
+
+	/// <summary>Each press makes the window anew, so a second press rebuilds it (attaching.md, section 2).</summary>
+	private void OpenAttachment(CCountry owner, CUnit unit)
+	{
+		CloseAttachment();
+		_attachment = CAttachmentPanel.Open(this, _context, _simulation, owner, unit);
+	}
+
+	private void CloseAttachment()
+	{
+		_attachment?.Close();
+		_attachment = null;
+	}
+
+	/// <summary>A new headquarters asked for from several units is selected once it exists (attaching.md, section 4).</summary>
+	private void FollowHeadquarters()
+	{
+		if (_headquarters is not ({ } unit, int after))
+		{
+			return;
+		}
+		if (unit.IsRemoved)
+		{
+			_headquarters = null;
+		}
+		else if (unit.Parent is { } made && made.Id > after)
+		{
+			_headquarters = null;
+			SelectionChanging?.Invoke(selection => selection.Add(made, made.Owner));
+		}
+	}
 
 	/// <summary>The panel stands this far from the screen's left, beside the order of battle browser.</summary>
 	public void SetLeft(float x)
@@ -117,6 +152,7 @@ public partial class CUnitPanel : Control
 		_multi.LeaderWanted += OpenLeaders;
 		_multi.Ordered += () => Ordered?.Invoke();
 		_multi.ReorganiseWanted += (left, right) => ReorganiseWanted?.Invoke(left, right);
+		_multi.HeadquartersAsked += (unit, after) => _headquarters = (unit, after);
 		AddChild(_multi);
 
 		_window = CGuiWindow.Create(_context, WindowName);
@@ -157,6 +193,10 @@ public partial class CUnitPanel : Control
 	/// <summary>Shows the single panel for a unit, or takes it down for none.</summary>
 	public void ShowUnit(CUnit? unit)
 	{
+		if (unit is null)
+		{
+			CloseAttachment();
+		}
 		if (ReferenceEquals(unit, _unit))
 		{
 			return;
@@ -178,6 +218,7 @@ public partial class CUnitPanel : Control
 	public override void _Process(double delta)
 	{
 		FollowNewUnits();
+		FollowHeadquarters();
 		// The leader window a row of several opened is written as the header's is.
 		if (_unit is null && _leaders is not null)
 		{
@@ -321,8 +362,9 @@ public partial class CUnitPanel : Control
 	/// </summary>
 	private void Rebuild()
 	{
-		// The window a leader is chosen in belongs to the header, which goes now.
+		// The window a leader is chosen in belongs to the header, which goes now, and the attachment window to the buttons.
 		CloseLeaders();
+		CloseAttachment();
 		if (_list is null)
 		{
 			return;
@@ -394,6 +436,9 @@ public partial class CUnitPanel : Control
 			};
 			buttons.PlaneUnloadPressed += () => Post(new CUnloadFromPlaneCommand(owner.Tag, unit.Id), unit);
 			buttons.NewUnitPressed += split => NewUnit(unit, split);
+			buttons.AttachPressed += () => OpenAttachment(owner, unit);
+			buttons.DetachPressed += () => Post(new CDetachUnitCommand(owner.Tag, unit.Id), unit);
+			buttons.CreateHigherPressed += () => Post(new CCreateHigherCommand(owner.Tag, new[] { unit.Id }), unit);
 			Add(buttons);
 		}
 		if (CUnitBrigadesEntry.Create(_context, state, owner, unit) is { } brigades)
