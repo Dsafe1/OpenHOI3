@@ -91,6 +91,15 @@ public static class CSaveWriter
 			CSaveWars.Write(writer, "previous_war", war, localise);
 		}
 		CSaveWarfare.Write(writer, state);
+		if (state.BattlePlansToSave is { } plans)
+		{
+			foreach (Sim.Plans.CBattlePlan plan in plans())
+			{
+				writer.Begin("battle_plan");
+				writer.Raw(BattlePlans.CBattlePlanFile.Write(plan, visibility: true));
+				writer.End();
+			}
+		}
 		writer.CloseRoot();
 		return writer.Text;
 	}

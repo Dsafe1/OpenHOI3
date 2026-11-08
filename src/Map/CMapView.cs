@@ -523,6 +523,10 @@ public partial class CMapView : Node2D
 		{
 			AddChild(_provinceNames);
 		}
+		if (PlanSigns is not null)
+		{
+			AddChild(PlanSigns);
+		}
 		if (_counters is not null)
 		{
 			_counters.Selection = _units;
@@ -858,6 +862,22 @@ public partial class CMapView : Node2D
 	}
 
 	/// <summary>Where a point on the screen is on the map, in this node's coordinates.</summary>
+	/// <summary>The battle plans' say over a mouse event before the map's; true where the map is to do nothing (battleplans.md, section 9).</summary>
+	public Func<InputEvent, bool>? PlanInput { get; set; }
+
+	/// <summary>A point of the screen in the map's own coordinates, y north, as a battle plan holds its points.</summary>
+	public (float X, float Y) WorldAt(Vector2 screen)
+	{
+		Vector2 point = ScreenToMap(screen);
+		return (point.X, _map.Height - point.Y);
+	}
+
+	/// <summary>The words of battle plans; has to be given before the node enters the tree.</summary>
+	public CBattlePlanSigns? PlanSigns { get; set; }
+
+	/// <summary>The surface, where the map is drawn on one.</summary>
+	public CMapSurface? Surface3D => _surface;
+
 	private Vector2 ScreenToMap(Vector2 screen)
 	{
 		return _camera.Position + (screen - GetViewportRect().Size / 2f) / _camera.Zoom;
@@ -1034,6 +1054,11 @@ public partial class CMapView : Node2D
 
 	public override void _UnhandledInput(InputEvent @event)
 	{
+		if (PlanInput?.Invoke(@event) == true)
+		{
+			GetViewport().SetInputAsHandled();
+			return;
+		}
 		switch (@event)
 		{
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelUp } wheel:

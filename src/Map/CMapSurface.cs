@@ -566,6 +566,7 @@ public partial class CMapSurface : Node3D
 		ApplyCopies(_camera);
 		ApplyTrees();
 		ApplyHierarchyView(_camera);
+		ApplyPlanView(_camera);
 		ApplyRingView(_camera);
 		foreach ((ShaderMaterial material, CGodotShader?[] translations, uint _) in _seaWays.Values)
 		{

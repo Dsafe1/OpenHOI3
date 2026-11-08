@@ -232,7 +232,7 @@ public partial class CSession : Node
 	/// <summary>The map, the interface and the developer switches, once the game and its simulation are made.</summary>
 	private void ShowGame(CGuiContext gui)
 	{
-		_mapView = new CMapView { Name = "Map" };
+		_mapView = new CMapView { Name = "Map", PlanSigns = new CBattlePlanSigns { Name = "BattlePlanSigns" } };
 		_mapView.Setup(Map, State);
 		_mapView.Player = Player?.Tag;
 		// Each region's colour, handed out once from interface/colors.txt: the region and theatre modes paint with them.
@@ -544,6 +544,24 @@ public partial class CSession : Node
 			gotoBox.ProvinceChosen += province => _mapView.CentreOn(province);
 			layer.AddChild(gotoBox);
 			messageLog.GotoPressed += gotoBox.Show;
+
+			// Battle plans: the window, what is drawn on the map and the bar's two buttons (docs/mechanics/battleplans.md).
+			var planTypes = Content.BattlePlans.CPlanObjectTypes.Load(_directories);
+			_mapView.PlanSigns?.Setup(Map, gui.Fonts, planTypes);
+			var plans = new CBattlePlanWindow();
+			plans.Setup(gui, _simulation.State, Player, _directories,
+				System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(), "battle plans"), _mapView,
+				Content.BattlePlans.CBattlePlanSettings.Load(_directories), planTypes);
+			layer.AddChild(plans);
+			foreach (Sim.Plans.CBattlePlan loaded in _simulation.State.LoadedBattlePlans)
+			{
+				plans.Book.Add(loaded);
+			}
+			_simulation.State.LoadedBattlePlans.Clear();
+			_simulation.State.BattlePlansToSave = () => plans.Book.All(_simulation.State);
+			messageLog.PlansTogglePressed += () => plans.ShowOnMap = !plans.ShowOnMap;
+			messageLog.PlansOpenPressed += plans.Toggle;
+			plans.ButtonsShown += messageLog.ShowPlans;
 			messageLog.ZoomInPressed += () => _mapView.StepZoom(inwards: true);
 			messageLog.ZoomOutPressed += () => _mapView.StepZoom(inwards: false);
 			// The Strategic Effects window, which the bar's button by the minimap opens (docs/mechanics/strategiceffects.md).

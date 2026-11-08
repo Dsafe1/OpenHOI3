@@ -53,6 +53,11 @@ public static class CSaveLoader
 		var report = new CSaveReport();
 		ClearUnread(state);
 
+		foreach (ClausewitzNode node in root.All("battle_plan"))
+		{
+			state.LoadedBattlePlans.Add(BattlePlans.CBattlePlanFile.Read(node));
+		}
+
 		// The ids first: the history's counter and the highest minted in play, which every unit's number is made from.
 		var ids = new CSaveIds();
 		foreach (ClausewitzNode node in root.Children)

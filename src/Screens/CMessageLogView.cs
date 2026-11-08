@@ -75,6 +75,23 @@ public sealed partial class CMessageLogView : Control
 	/// <summary>Raised when that button is pressed.</summary>
 	public event System.Action? ModifiersPressed;
 
+	/// <summary>The two buttons of battle plans, by the minimap (battleplans.md, section 1).</summary>
+	private CGuiButton? _plansToggle;
+
+	public event System.Action? PlansTogglePressed;
+
+	public event System.Action? PlansOpenPressed;
+
+	/// <summary>The toggle's frame by whether plans are drawn, and greyed while the window is up.</summary>
+	public void ShowPlans(bool onMap, bool windowUp)
+	{
+		if (_plansToggle is not null)
+		{
+			_plansToggle.SetFrame(onMap ? 1 : 2);
+			_plansToggle.Disabled = windowUp;
+		}
+	}
+
 	/// <summary>Raised when the button that opens and shuts the victory conditions' window is pressed.</summary>
 	public event System.Action? GoalsPressed;
 
@@ -115,11 +132,23 @@ public sealed partial class CMessageLogView : Control
 		{
 			string name = child.Name.ToString();
 			if (child is Control shown && name != "messagelog_window" && name != "OPENbutton" && name != ModifiersButtonName
+				&& name != "menubar_plans_toggle" && name != "menubar_plans_open"
 				&& name != Interface.Screens.CVictoryWindowText.ButtonName && name != "minimap_bg_shadow" && name != ZoomInName && name != ZoomOutName && name != "button_goto"
 				&& !name.StartsWith("mapmode_", StringComparison.Ordinal))
 			{
 				shown.Visible = false;
 			}
+		}
+		_plansToggle = bar.TryFindButton("menubar_plans_toggle");
+		if (_plansToggle is not null)
+		{
+			_plansToggle.Pressed += () => PlansTogglePressed?.Invoke();
+			_plansToggle.Tooltip = () => new Interface.Tooltips.CTooltip { Text = _context.Localisation.Localise("BP_TOGGLE_TOOLTIP") };
+		}
+		if (bar.TryFindButton("menubar_plans_open") is { } plansOpen)
+		{
+			plansOpen.Pressed += () => PlansOpenPressed?.Invoke();
+			plansOpen.Tooltip = () => new Interface.Tooltips.CTooltip { Text = _context.Localisation.Localise("BP_OPEN_TOOLTIP") };
 		}
 		for (int number = 1; number <= Interface.Map.CMapModeButtons.Count; number++)
 		{

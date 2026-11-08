@@ -553,6 +553,12 @@ public sealed class CGameState
 	/// </summary>
 	public List<Commands.CCommand> Outbox { get; } = new();
 
+	/// <summary>The battle plans a save held, waiting for the interface that keeps them; nothing simulated reads them.</summary>
+	public List<Plans.CBattlePlan> LoadedBattlePlans { get; } = new();
+
+	/// <summary>The interface's battle plans for a save to write, where one has been given (battleplans.md, section 7).</summary>
+	public Func<IEnumerable<Plans.CBattlePlan>>? BattlePlansToSave { get; set; }
+
 	/// <summary>
 	/// Where every condition and effect tells what of its script it could not answer or do, for a tool that wants to count it -
 	/// the headless run. Null in a game, where nobody asks. Changes nothing the events do.

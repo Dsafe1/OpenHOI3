@@ -54,6 +54,12 @@ if (args.Length > 0 && args[0] == "mapcache")
 	return CMapCacheCheck.Run(args);
 }
 
+// Every historical battle plan of an install read and written back (docs/mechanics/battleplans.md, section 7).
+if (args.Length > 1 && args[0] == "battleplans")
+{
+	return OpenHOI3.SaveCheck.CBattlePlanCheck.Run(args[1]);
+}
+
 if (args.Length > 0 && args[0] == "quads")
 {
 	return CQuadCheck.Run(args);
