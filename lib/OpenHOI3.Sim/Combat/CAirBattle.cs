@@ -127,6 +127,10 @@ public static class CAirBattle
 	/// </summary>
 	public static bool RunHour(CGameState state, CCombat combat)
 	{
+		if (!combat.HasBegun)
+		{
+			state.RaiseCombatBegan(combat);
+		}
 		combat.HasBegun = true;
 		combat.Duration++;
 		if (combat.Hour == CCombat.NotStarted)

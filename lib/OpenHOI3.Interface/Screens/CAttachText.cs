@@ -97,6 +97,19 @@ public static class CAttachText
 			&& country.Manpower.Raw >= type.Stats[CSubUnitStats.BuildCostManpower].Raw;
 	}
 
+	/// <summary>Whether <c>disbandbutton</c> may be pressed: as Disband All's test, and not in a battle.</summary>
+	public static bool MayDisband(CGameState state, CUnit unit)
+	{
+		return !unit.IsFighting && Disbandable(state, new[] { unit }).Count == 1;
+	}
+
+	/// <summary>Which of several selected units Disband All takes: not a land unit aboard anything, a theatre holding land, or a unit an AI agent runs.</summary>
+	public static List<CUnit> Disbandable(CGameState state, IEnumerable<CUnit> units)
+	{
+		return units.Where(unit => unit.Transport is null && unit.Plane is null && unit.Agent is null
+			&& !(unit.Kind == EUnitKind.Theatre && CTheatres.FindFor(state, unit) is { AllProvinces.Count: > 0 })).ToList();
+	}
+
 	/// <summary>Which of several selected units <c>detach_multiunit</c> takes: all but a theatre, with no test that one has a commander.</summary>
 	public static List<CUnit> Detachable(IEnumerable<CUnit> units)
 	{

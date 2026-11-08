@@ -98,3 +98,7 @@ An active plan's own. For an inactive one `our` is the sum over its brigades of 
 - Whether a played country's inactive plan can carry an area of operations; none does here.
 - Whether a threat list can hold the country with the null id, which would change the fixed scale of a front.
 - What a line's target does on delivery: nothing is known of it here but what the screen reads.
+
+## 8. The production screen's list
+
+*From `reversing/findings/FINDINGS-smallbatch.md`, section 3.* `ai_need_queue` is the same needs, a row for each of the played country's theatres whose headquarters stands, for any country. `CAiNeedEntry`. A row has the headquarters' name, the counts with **the trailing comma the theatres screen cuts**, or `NO_NEEDS_FOR_BUILDS` and `build` greyed, and `build` orders as the screen's Build does, with no test of whose it is. The line's tooltip names each type, a comma a new line. *Ours:* the row is worked out again as the hour turns or the queue's length changes and not each frame, and is not hidden while a builder window is up, the windows standing over it.

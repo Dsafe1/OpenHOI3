@@ -83,6 +83,8 @@ public sealed partial class CDiplomacyView : CCountryView
 	private bool _relationFlag = true;
 	private bool _nameFlag;
 	private CGuiWindow? _goalWindow;
+	private List<CWarGoal> _goalsByShown = new(), _goalsAtShown = new();
+	private List<CDriftRow> _driftShown = new();
 	private CGuiListBox? _driftList;
 	private CGuiIcon? _flag;
 	private CGuiIcon? _threatFlag;
@@ -278,7 +280,6 @@ public sealed partial class CDiplomacyView : CCountryView
 		}
 		if (_info.FindButton("toggle_diploview_button_goals") is { } goals)
 		{
-			// No war goals are built, so the two lists stay empty.
 			goals.Pressed += () =>
 			{
 				HidePanels();
@@ -473,8 +474,6 @@ public sealed partial class CDiplomacyView : CCountryView
 
 	private void ShowChosen()
 	{
-		// The drift list is not built yet, so it is empty.
-		_driftList?.Clear();
 		FillPanel();
 		ShowInfo();
 		MakeActions();
@@ -643,6 +642,83 @@ public sealed partial class CDiplomacyView : CCountryView
 			CDiplomacyScreenText.SurrenderBar(CSurrender.Progress(State, _chosen)));
 
 		FillStatus();
+		FillGoals();
+		FillDrift();
+	}
+
+	/// <summary>The two lists of war goals, each a flag on its goal's icon, made again only where they have changed.</summary>
+	private void FillGoals()
+	{
+		if (_goalWindow is null)
+		{
+			return;
+		}
+		List<CWarGoal> by = CDiplomacyPanelLists.GoalsBy(State, _chosen);
+		List<CWarGoal> at = CDiplomacyPanelLists.GoalsAt(State, _chosen);
+		if (by.SequenceEqual(_goalsByShown) && at.SequenceEqual(_goalsAtShown))
+		{
+			return;
+		}
+		_goalsByShown = by;
+		_goalsAtShown = at;
+		FillGoalBox("goals_by_us", by, goal => goal.Recipient);
+		FillGoalBox("goals_at_us", at, goal => goal.Actor);
+	}
+
+	private void FillGoalBox(string name, List<CWarGoal> goals, Func<CWarGoal, CCountryTag> flagged)
+	{
+		if (_goalWindow?.FindBox(name) is not { } box)
+		{
+			return;
+		}
+		box.Clear();
+		foreach (CWarGoal goal in goals)
+		{
+			if (CGuiWindow.CreateEntry(Context, CDiplomacyPanelLists.GoalRowName) is not { } row)
+			{
+				continue;
+			}
+			if (row.TryFindIcon("wargoal_icon") is { } icon)
+			{
+				icon.SetFrame(goal.Type.SpriteIndex);
+				icon.Tooltip = () => CDiplomacyPanelLists.GoalTooltip(Localise, State, goal);
+			}
+			if (State.Country(flagged(goal)) is { } country && row.TryFindIcon("wargoal_flag") is { } flag)
+			{
+				flag.SetCountry(country);
+			}
+			box.Add(row);
+		}
+	}
+
+	/// <summary>The list of influence, made again only where it has changed; a row chooses its country.</summary>
+	private void FillDrift()
+	{
+		if (_driftList is null)
+		{
+			return;
+		}
+		List<CDriftRow> rows = CDiplomacyPanelLists.Drift(Localise, State, _chosen);
+		if (rows.SequenceEqual(_driftShown))
+		{
+			return;
+		}
+		_driftShown = rows;
+		_driftList.Clear();
+		foreach (CDriftRow row in rows)
+		{
+			if (CGuiWindow.CreateEntry(Context, CDiplomacyPanelLists.DriftRowName) is not { } window)
+			{
+				continue;
+			}
+			Set(window.FindTextBox("name"), row.Name);
+			Set(window.FindTextBox("influence"), row.Influence);
+			if (window.TryFindButton("bg_button") is { } background)
+			{
+				background.Pressed += () => Choose(row.Country);
+			}
+			_driftList.Add(window);
+		}
 	}
 
 	/// <summary>The status list, made again only where its lines have changed, so that it keeps its scroll.</summary>

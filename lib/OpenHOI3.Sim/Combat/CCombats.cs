@@ -360,6 +360,7 @@ public static class CCombats
 		{
 			CFrontLine.SetUp(state, combat, combat.Defender);
 		}
+		state.RaiseCombatBegan(combat);
 	}
 
 	/// <summary>

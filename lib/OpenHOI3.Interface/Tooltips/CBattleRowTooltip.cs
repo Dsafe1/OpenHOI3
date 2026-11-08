@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
@@ -70,6 +72,66 @@ public static class CBattleRowTooltip
 			{
 				text.Append('@').Append(unit.Owner.Value).Append(" £").Append(ship.Type.Key).Append(' ').Append(unit.Name);
 				Join();
+			}
+		}
+		return text.ToString();
+	}
+
+	/// <summary>
+	/// The countries of a side's units, each once as they come - a rebel unit under its faction's name where it has one -
+	/// joined by commas and <c>AND</c> before the last.
+	/// </summary>
+	public static string CountryNames(Func<string, string> localise, CGameState state, CCombatSide side)
+	{
+		var names = new List<string>();
+		foreach (CUnit unit in side.Units)
+		{
+			string name = state.Country(unit.Owner)?.Name ?? unit.Owner.Value;
+			if (!names.Contains(name))
+			{
+				names.Add(name);
+			}
+		}
+		var text = new StringBuilder();
+		for (int index = 0; index < names.Count; index++)
+		{
+			text.Append(names[index]);
+			if (index + 2 < names.Count)
+			{
+				text.Append(", ");
+			}
+			else if (index + 2 == names.Count)
+			{
+				text.Append(' ').Append(localise("AND")).Append(' ');
+			}
+		}
+		return text.ToString();
+	}
+
+	/// <summary>
+	/// A side's units one to a line, as a battle's popup lists them: each name cut to twenty letters, and past the limit
+	/// the table's <c>AND_MORE</c> in place of the rest.
+	/// </summary>
+	public static string ShortNames(Func<string, string> localise, CCombatSide side, int limit)
+	{
+		const int MostLetters = 20;
+		var text = new StringBuilder();
+		int written = 0;
+		foreach (CUnit unit in side.Units)
+		{
+			bool land = CMovementSpeed.IsLand(unit);
+			IEnumerable<string> keys = land
+				? new[] { CUnitHeaderTooltips.LevelOf(unit) >= 3 && unit.SubUnits.Count > 0 ? unit.SubUnits[0].Type.Key : "" }
+				: unit.SubUnits.Select(each => each.Type.Key);
+			foreach (string key in keys)
+			{
+				if (written >= limit)
+				{
+					return text.Append(localise("AND_MORE")).ToString();
+				}
+				string name = unit.Name.Length > MostLetters ? unit.Name[..MostLetters] : unit.Name;
+				text.Append('@').Append(unit.Owner.Value).Append(" £").Append(key).Append(' ').Append(name).Append('\n');
+				written++;
 			}
 		}
 		return text.ToString();

@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Content.Messages;
 using OpenHOI3.Interface.Events;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agreements;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Script;
 
@@ -68,6 +70,60 @@ public static class CMessages
 	}
 
 	/// <summary>
+	/// The message of a battle begun, for a player on either side: its type by the kind of battle and the side he is on,
+	/// or a bombing's. A battle with nobody on a side says nothing. See <c>docs/mechanics/messages.md</c>, section 9.
+	/// </summary>
+	public static CMessage? CombatBegan(Func<string, string> localise, CMessageTypes types, CGameState state, CCountryTag? player, CCombat combat)
+	{
+		if (player is not { } own || state.Country(own) is not { } country)
+		{
+			return null;
+		}
+		bool bombing = CBombing.IsBombing(combat.Kind);
+		if (!bombing && (combat.Attacker.Standing.Count == 0 || combat.Defender.Standing.Count == 0))
+		{
+			return null;
+		}
+		bool ours = combat.Attacker.Standing.Contains(own);
+		if (!ours && !combat.Defender.Standing.Contains(own))
+		{
+			return null;
+		}
+		string name = bombing ? (ours ? "BOMBTHEM" : "BOMBUS")
+			: combat.Kind switch { ECombatKind.Land => "", ECombatKind.Naval => "NAVAL", _ => "AIR" } + (ours ? "ATTACKTHEM" : "ATTACKUS");
+		CCountryTag? first = ours ? own : combat.Attacker.Standing.FirstOrDefault();
+		CCountryTag? second = ours ? combat.Defender.Standing.FirstOrDefault() : own;
+		var message = new CMessage(types.Find(name), CMessageText.Date(localise, state.Date, state.Hour))
+		{
+			FirstCountry = first,
+			SecondCountry = second,
+			Province = combat.Province,
+		};
+		message.Variables.Add(("COUNTRY", country.Name));
+		message.Variables.Add(("MONARCHTITLE", RulerTitle(country)));
+		Government(localise, state, player, message);
+		message.Variables.Add(("MESSENGER", "MESSAGE_HEAD_MARS"));
+		message.Variables.Add(("ATTACKER", CBattleRowTooltip.CountryNames(localise, state, combat.Attacker)));
+		message.Variables.Add(("PROV", state.Province(combat.Province).Name));
+		message.Variables.Add(("DEFENDER", combat.Defender.Units.Count == 0 ? "" : CBattleRowTooltip.CountryNames(localise, state, combat.Defender)));
+		message.Variables.Add(("ATTUNIT", CBattleRowTooltip.Summary(localise, combat.Attacker)));
+		message.Variables.Add(("DEFUNIT", CBattleRowTooltip.Summary(localise, combat.Defender)));
+		if (bombing)
+		{
+			message.Variables.Add(("ORDER", combat.Attacker.Units.Count == 0 ? "" : COrdersText.NameKey(combat.Attacker.Units[0].Order)));
+			return message;
+		}
+		message.Variables.Add(("DEFTOTAL", CBattleRowTooltip.Summary(localise, combat.Defender)));
+		message.Variables.Add(("ATTTOTAL", CBattleRowTooltip.Summary(localise, combat.Attacker)));
+		message.Variables.Add(("DEFDETAIL", CBattleRowTooltip.ShortNames(localise, combat.Defender, DetailedUnits)));
+		message.Variables.Add(("ATTDETAIL", CBattleRowTooltip.ShortNames(localise, combat.Attacker, DetailedUnits)));
+		return message;
+	}
+
+	/// <summary>How many of a side's units a battle's popup names.</summary>
+	private const int DetailedUnits = 6;
+
+	/// <summary>
 	/// A pact's message: the type for the player as actor, as recipient or as neither, and none where
 	/// that type is empty. Its values are the player's country's standard ones, the player's ruler
 	/// again, the two countries, and an alignment's action and faction - the action first, since its
@@ -91,6 +147,7 @@ public static class CMessages
 		{
 			FirstCountry = pact.Actor,
 			SecondCountry = pact.Recipient,
+			Scores = pact.Scores,
 		};
 		if (state.Country(player) is { } country)
 		{

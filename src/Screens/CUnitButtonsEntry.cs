@@ -33,7 +33,11 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 	private readonly CGuiButton? _unloadPlane;
 	private readonly CGuiButton? _newUnit;
 	private readonly CGuiButton? _create;
+	private readonly CGuiButton? _disband;
 	private CCarryButtons _carry = CCarryButtons.None;
+
+	/// <summary>Raised when the disband button is pressed.</summary>
+	public event Action? DisbandPressed;
 
 	/// <summary>Raised when the attach button is pressed.</summary>
 	public event Action? AttachPressed;
@@ -114,7 +118,11 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		{
 			_unloadPlane.Pressed += () => PlaneUnloadPressed?.Invoke();
 		}
-		Unbuilt(window, "disbandbutton", shown: true);
+		_disband = window.FindButton("disbandbutton");
+		if (_disband is not null)
+		{
+			_disband.Pressed += () => DisbandPressed?.Invoke();
+		}
 		// A new empty unit beside this one, or with Ctrl the unit split, greyed by the original's rule (unitpanel.md, 7.1).
 		_newUnit = window.FindButton("newunitbutton");
 		if (_newUnit is not null)
@@ -169,6 +177,10 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		{
 			_create.Disabled = !_mayOrder || !CAttachText.MayCreateHigher(_state, _owner, _unit);
 		}
+		if (_disband is not null)
+		{
+			_disband.Disabled = !_mayOrder || !CAttachText.MayDisband(_state, _unit);
+		}
 
 		if (_newUnit is not null)
 		{
@@ -202,15 +214,6 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		{
 			button.Visible = shown;
 			button.Disabled = !enabled || !_mayOrder;
-		}
-	}
-
-	private static void Unbuilt(CGuiWindow window, string name, bool shown)
-	{
-		if (window.FindButton(name) is { } button)
-		{
-			button.Visible = shown;
-			button.Disabled = true;
 		}
 	}
 }

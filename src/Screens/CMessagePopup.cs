@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Messages;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Gfx;
 
 namespace OpenHOI3.Screens;
 
@@ -17,6 +20,11 @@ namespace OpenHOI3.Screens;
 public sealed partial class CMessagePopup : Control
 {
 	public const string WindowName = "DefaultPopup";
+	public const string CombatWindowName = "CombatStartPopup";
+	public const string ElectionWindowName = "ElectionResultPopup";
+
+	/// <summary>How far below the bottom's offset an election's OK stands.</summary>
+	private const float ElectionButtonDrop = 17f;
 
 	/// <summary>Where the lines start below the header's text, and how much lower the second goes.</summary>
 	private const float LineGap = 0f;
@@ -48,13 +56,20 @@ public sealed partial class CMessagePopup : Control
 		Name = "Message" + _message.Type.Name;
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		Window = CGuiWindow.Create(_context, WindowName);
+		bool combat = CMessageText.IsCombatStart(_message.Type.Name);
+		bool election = CMessageText.IsElection(_message.Type.Name);
+		Window = CGuiWindow.Create(_context, election ? ElectionWindowName : combat ? CombatWindowName : WindowName);
 		if (Window is null)
 		{
 			return;
 		}
 		AddChild(Window);
 		Func<string, string> localise = _context.Localisation.Localise;
+		if (election)
+		{
+			FillElection(localise);
+			return;
+		}
 
 		float y = 0f;
 		if (Window.FindTextBox("Header") is { } header)
@@ -81,6 +96,11 @@ public sealed partial class CMessagePopup : Control
 			y = top + line.DrawnHeight;
 		}
 
+		if (combat)
+		{
+			y = LayColumns(y);
+		}
+
 		// The flags: the first country's on the left, the second's on the right, one alone on both.
 		CCountryTag? left = _message.FirstCountry ?? _message.SecondCountry;
 		CCountryTag? right = _message.SecondCountry ?? _message.FirstCountry;
@@ -102,6 +122,112 @@ public sealed partial class CMessagePopup : Control
 		Button("DeclineButton", two, "_BTN3", height);
 	}
 
+	/// <summary>
+	/// The result of an election: its two texts, the pie of the scores and the new cabinet in two lists, with OK at the
+	/// picture's foot - the arithmetic there is the default popup's, and a picture keeps its own size.
+	/// </summary>
+	private void FillElection(Func<string, string> localise)
+	{
+		if (Window is not { } window)
+		{
+			return;
+		}
+		if (window.TryFindElement("Title") is CGuiTextBox title)
+		{
+			title.Text = CMessageText.Text(localise, _message, "_HEADER");
+		}
+		if (window.TryFindElement("Description") is CGuiTextBox description)
+		{
+			description.Text = CMessageText.Text(localise, _message, "_1");
+		}
+		CGameState state = _simulation.State;
+		if (state.Country(_message.FirstCountry) is not { } country)
+		{
+			return;
+		}
+		if (_message.Scores is { } scores && window.TryFindIcon("result_chart") is { } chart)
+		{
+			List<(int Percent, CColor Colour)> slices = CMessageText.ElectionSlices(state, scores);
+			chart.SetSlices(slices.Select(slice => (slice.Percent, slice.Colour.ToGodot())).ToList());
+			chart.Tooltip = () =>
+			{
+				int slice = chart.SliceAt(chart.MouseAt);
+				return slice < 0 || slice >= slices.Count ? new Interface.Tooltips.CTooltip()
+					: new Interface.Tooltips.CTooltip { Text = Interface.Screens.CPartyText.Qualified(localise, state.Ideologies[slice + 1].Name, country.Tag.Value) + " - §Y" + slices[slice].Percent + "%§W" };
+			};
+		}
+		var posts = state.GovernmentPositions;
+		int left = posts.Count / 2;
+		for (int index = 0; index < posts.Count; index++)
+		{
+			if (window.FindListBox(index < left ? "minister_list1" : "minister_list2") is { } list
+				&& CMinisterEntry.CreateElectionRow(_context, state, country, posts[index]) is { } row)
+			{
+				row.Refresh();
+				list.Add(row.Window);
+			}
+		}
+		float top = (window.GetChild(0) is Control picture ? picture.Size.Y : window.Size.Y) - ButtonsAbove + ElectionButtonDrop;
+		foreach ((string name, bool shown) in new[] { ("CenterOK", true), ("AgreeButton", false), ("DeclineButton", false) })
+		{
+			if (window.TryFindButton(name) is not { } button)
+			{
+				continue;
+			}
+			button.Visible = shown;
+			button.Position = new Vector2(button.Position.X, top);
+			if (shown)
+			{
+				button.SetText(CMessageText.Text(localise, _message, "_BTN1"));
+				button.Pressed += Close;
+			}
+		}
+	}
+
+	/// <summary>
+	/// A battle's divider and its two columns under the lines: the divider and the names at the same height, the totals under
+	/// the names by the right-hand name box's height, and the next thing under the totals by the right-hand total's.
+	/// </summary>
+	private float LayColumns(float y)
+	{
+		if (Window?.TryFindElement("combatstart_divider") is Control divider)
+		{
+			float height = divider.OffsetBottom - divider.OffsetTop;
+			divider.OffsetTop = y;
+			divider.OffsetBottom = y + height;
+		}
+		PlaceColumn("Line_left_1", "ATTDETAIL", y);
+		y += PlaceColumn("Line_right_1", "DEFDETAIL", y);
+		PlaceColumn("Line_left_2", "ATTTOTAL", y);
+		return y + PlaceColumn("Line_right_2", "DEFTOTAL", y);
+	}
+
+	/// <summary>A column at a height, keeping its own x; answers how high it is, a fixed box being its whole height.</summary>
+	private float PlaceColumn(string box, string variable, float y)
+	{
+		if (Window?.TryFindElement(box) is not CGuiTextBox text)
+		{
+			return 0f;
+		}
+		text.Text = CMessageText.Column(_message, variable);
+		var type = (CGuiTextBoxType)text.GuiType;
+		float height = type.FixedSize ? type.MaxHeight : text.DrawnHeight;
+		text.OffsetTop = y;
+		text.OffsetBottom = y + height;
+		return height;
+	}
+
+	/// <summary>Set by the owner: shows a battle's message's battle, answering whether there was one.</summary>
+	public Func<CMessage, bool>? Goto { get; set; }
+
+	private void PressGoto()
+	{
+		if (Goto?.Invoke(_message) != true)
+		{
+			Close();
+		}
+	}
+
 	private void Button(string name, bool shown, string suffix, float height)
 	{
 		if (Window?.TryFindButton(name) is not { } button)
@@ -118,7 +244,12 @@ public sealed partial class CMessagePopup : Control
 		float size = button.OffsetBottom - button.OffsetTop;
 		button.OffsetTop = top;
 		button.OffsetBottom = top + size;
-		// The Goto of an event's or a decision's message goes to nothing, and so closes too.
+		// A battle's Goto shows it and the popup stays; any other goes to nothing, and so closes too.
+		if (name == "DeclineButton" && CMessageText.IsCombatStart(_message.Type.Name))
+		{
+			button.Pressed += PressGoto;
+			return;
+		}
 		button.Pressed += Close;
 	}
 

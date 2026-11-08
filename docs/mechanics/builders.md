@@ -458,3 +458,7 @@ group icon numbered past the groups says nothing, where the original reads past 
 7. ~~**What "of the type's branch" counts** for a ration.~~ Read 2026-10-16: the type's group (section 2).
 8. **Whether a series is named unit by unit.** A line carries one name for its unit and one
    for each brigade; what its second unit is called was not read.
+
+## 12. The air builder's description
+
+*From `reversing/findings/FINDINGS-smallbatch.md`, section 4.* `selected_plane_desc_list` has a row for each technology of the type, `air_desc_entry`: its name, ` : §Y`, the name of the country's level of it. The original asks for the level's name with no country, so a country's own name for a level does not come in. Neither the ship builder nor any other has such a list.

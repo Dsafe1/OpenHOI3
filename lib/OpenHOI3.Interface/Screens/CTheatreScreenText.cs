@@ -112,6 +112,42 @@ public static class CTheatreScreenText
 		return counts.Length > 0 ? counts : localise("NO_NEEDS_FOR_BUILDS");
 	}
 
+	/// <summary>The production screen's line of a theatre's needs: the counts, each followed by a comma, the last too.</summary>
+	public static string QueueNeedsText(Func<string, string> localise, CGameState state, int[]? needs)
+	{
+		string counts = needs is null ? "" : Counts(state.SubUnitTypes.Values.OrderBy(type => type.DatabaseIndex).Select(type => (type.Key, needs[type.DatabaseIndex])));
+		return counts.Length > 0 ? counts + ", " : localise("NO_NEEDS_FOR_BUILDS");
+	}
+
+	/// <summary>That line's tooltip: each counter named in words, and a comma a new line.</summary>
+	public static string QueueNeedsTooltip(Func<string, string> localise, CGameState state, string line)
+	{
+		var text = new StringBuilder();
+		for (int at = 0; at < line.Length; at++)
+		{
+			char character = line[at];
+			if (character == '£')
+			{
+				int end = at + 1;
+				while (end < line.Length && (char.IsAsciiLetter(line[end]) || line[end] == '_'))
+				{
+					end++;
+				}
+				string key = line[(at + 1)..end];
+				if (state.SubUnitTypes.ContainsKey(key))
+				{
+					text.Append(localise(key));
+				}
+				at = end - 1;
+			}
+			else
+			{
+				text.Append(character == ',' ? '\n' : character);
+			}
+		}
+		return text.ToString();
+	}
+
 	public static string LandStanceKey(int stance) => LandStances[Math.Clamp(stance, 0, LandStances.Length - 1)];
 
 	public static string AirStanceKey(int stance) => AirStances[Math.Clamp(stance, 0, AirStances.Length - 1)];

@@ -343,6 +343,10 @@ public static class CBombing
 	/// </summary>
 	public static bool RunHour(CGameState state, CCombat bombing)
 	{
+		if (!bombing.HasBegun)
+		{
+			state.RaiseCombatBegan(bombing);
+		}
 		bombing.HasBegun = true;
 		bombing.Duration++;
 		if (bombing.Hour == CCombat.NotStarted)

@@ -38,6 +38,14 @@ The command makes one headquarters one level above the highest ranked; `hq_briga
 
 **An army group's** is a theatre: named by `NAMED_THEATHRE` after the best province of the theatre where it stands, or `THEATRE_NAME`, and a new theatre of the game's next number, holding its headquarters and nothing else.
 
+## 6. Disbanding
+
+*From `reversing/findings/FINDINGS-smallbatch.md`, section 1, and `FINDINGS-selection.md`, section B.4.*
+
+`disbandbutton` may be pressed unless the unit is a land unit aboard a fleet or a plane, a theatre headquarters whose theatre holds provinces, run by an AI agent of its own, or in a battle. It raises `DefaultConfirm` with `CONFIRM_DISBAND_TITLE` and `CONFIRM_DISBAND_DESC`, which goes by itself when the unit does and not when the selection changes. Ok posts `CDisbandCommand`.
+
+`disband_multiunit` raises `DISBAND_ALL_TITLE` and `DISBAND_ALL_DESC` with the number selected, and goes by itself if that number changes. Ok disbands every unit but those aboard, a theatre holding land or one with an agent - a unit in a battle is taken here - and clears the selection first. A unit on loan is left too in the original; nothing is lent here yet.
+
 ## 5. What is the original's and looks wrong
 
-A press asks for a whole brigade's men and charges a twentieth; a detach of several has no test of a commander; the order is the insertion's. *Ours:* the ids a player's headquarters takes are taken as the command runs, where the original reserves them as it is posted, so that a replay comes out the same. `edit_theatre` and `disbandbutton` are not built.
+A press asks for a whole brigade's men and charges a twentieth; a detach of several has no test of a commander; the order is the insertion's. *Ours:* the ids a player's headquarters takes are taken as the command runs, where the original reserves them as it is posted, so that a replay comes out the same. `edit_theatre` is not built.

@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Messages;
@@ -36,10 +37,14 @@ public sealed partial class CMessagePopups : Control
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 	}
 
+	/// <summary>Shows a battle's message's battle, answering whether there was one.</summary>
+	public Func<CMessage, bool>? Goto { get; set; }
+
 	public void Open(CMessage message)
 	{
 		var popup = new CMessagePopup();
 		popup.Setup(_context, _simulation, message);
+		popup.Goto = Goto;
 		AddChild(popup);
 		if (popup.Window is not { } window)
 		{

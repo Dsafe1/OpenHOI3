@@ -629,6 +629,17 @@ public sealed class CGameState
 		OfferAsked?.Invoke(offer);
 	}
 
+	/// <summary>Raised as a battle or a bombing first runs, for its message. Never for anything that changes the game.</summary>
+	public event Action<Combat.CCombat>? CombatBegan;
+
+	internal void RaiseCombatBegan(Combat.CCombat combat)
+	{
+		if (!combat.IsConvoyBattle)
+		{
+			CombatBegan?.Invoke(combat);
+		}
+	}
+
 	/// <summary>Raised as a decision is taken, before its effects, for its message.</summary>
 	public event Action<Script.CDecision, Script.CEventScope>? DecisionTaken;
 

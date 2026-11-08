@@ -49,6 +49,8 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	private readonly CLendLeaseWindow _lendLease = new();
 	private CGuiListBox? _tradeList;
 	private CGuiListBox? _convoyList;
+	private CGuiListBox? _needList;
+	private readonly List<CAiNeedEntry> _needRows = new();
 	private readonly List<CConvoyEntry> _convoyRows = new();
 	private CConvoyDialogs? _convoyDialogs;
 	private readonly List<CTradeListEntry> _trades = new();
@@ -152,6 +154,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		_queueList = window.FindListBox("build_queue");
 		_tradeList = window.FindListBox("trade_list");
 		_convoyList = window.FindListBox("convoy_queue");
+		_needList = window.FindListBox("ai_need_queue");
 		_convoyDialogs = new CConvoyDialogs(this, Context, Simulation, Player);
 		if (window.TryFindButton("convoy_button") is { } convoyButton)
 		{
@@ -452,6 +455,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		ShowQueue(state, country);
 		ShowTrades(state, country);
 		ShowConvoys(state, country);
+		ShowAiNeeds(state, country);
 		ShowSliders(country);
 	}
 
@@ -487,6 +491,34 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 		foreach (CTradeListEntry line in _trades)
 		{
 			line.Update(country.Tag);
+		}
+	}
+
+	/// <summary>One row for each theatre whose headquarters still stands, made again where their number changes.</summary>
+	private void ShowAiNeeds(CGameState state, CCountry country)
+	{
+		if (_needList is null)
+		{
+			return;
+		}
+		List<Sim.Theatres.CTheatre> theatres = country.Strategy.Theatres.Where(theatre => Sim.Theatres.CTheatres.Headquarters(state, theatre) is not null).ToList();
+		if (theatres.Count != _needRows.Count)
+		{
+			_needList.Clear();
+			_needRows.Clear();
+			foreach (Sim.Theatres.CTheatre theatre in theatres)
+			{
+				if (CAiNeedEntry.Create(Context, Simulation, country, theatre) is not { } row)
+				{
+					break;
+				}
+				_needList.Add(row.Window);
+				_needRows.Add(row);
+			}
+		}
+		foreach (CAiNeedEntry row in _needRows)
+		{
+			row.Refresh();
 		}
 	}
 

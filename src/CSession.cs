@@ -616,6 +616,24 @@ public partial class CSession : Node
 				gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, answered, scope, option));
 			_simulation.State.DecisionTaken += (taken, scope) => Tell(CMessages.DecisionTaken(
 				gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, taken, scope));
+			popups.Goto = message =>
+			{
+				bool air = message.Type.Name.StartsWith("AIR", System.StringComparison.Ordinal);
+				if (_simulation.State.Combats.FirstOrDefault(combat => combat.Province == message.Province && (!air || combat.Kind == ECombatKind.Air)) is not { } battle)
+				{
+					return false;
+				}
+				ShowCombat(battle);
+				_mapView.CentreOn(battle.Province);
+				return true;
+			};
+			_simulation.State.CombatBegan += combat =>
+			{
+				if (CMessages.CombatBegan(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, combat) is { } message)
+				{
+					Tell(message);
+				}
+			};
 			_simulation.State.PactMessaged += pact =>
 			{
 				if (CMessages.Pact(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, pact) is { } message)
@@ -1707,6 +1725,7 @@ public partial class CSession : Node
 	/// <c>--underground=POL:1440:0</c> finishes an underground of that country in that province, with an action,
 	/// <c>--money=GER:500</c> sets that country's money, so that it may pay for a law,
 	/// <c>--neutrality=GER:0</c> sets that country's neutrality, so that it may declare a war,
+	/// <c>--election</c> holds an election in the played country at once,
 	/// <c>--declare=TUR:IRQ</c> has the first declare war on the second with the first goal it has,
 	/// <c>--sail=ENG:10531</c> sends the strongest fleet of that country that can reach it
 	/// to that sea province,
@@ -1919,6 +1938,14 @@ public partial class CSession : Node
 					}
 				}
 				_simulation.Post(new CSetResearchQueueCommand(Player.Tag, queue));
+			}
+			else if (argument == "--election")
+			{
+				// Holds an election in the played country at once, for a look at its popup, whose date may be years away.
+				if (Player is not null)
+				{
+					Sim.Politics.CElections.Hold(State, Player);
+				}
 			}
 			else if (argument.StartsWith("--war="))
 			{

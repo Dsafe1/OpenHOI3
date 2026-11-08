@@ -36,6 +36,9 @@ public sealed record CPactMessage(string We, string They, string Other, CCountry
 	/// <summary>Who reports it, <c>$MESSENGER$</c>: the foreign office, or the general staff for a war.</summary>
 	public string Messenger { get; init; } = "MESSAGE_HEAD_CHAN";
 
+	/// <summary>An election's parties' scores, by ideology, for the popup's pie; none for anything else.</summary>
+	public long[]? Scores { get; init; }
+
 	/// <summary>Values of its own kind, after the rest: a licence's NUM and NAME, and its ACCEPTED or DECLINED.</summary>
 	public System.Collections.Generic.IReadOnlyList<(string Name, string Value)> Values { get; init; } =
 		System.Array.Empty<(string, string)>();

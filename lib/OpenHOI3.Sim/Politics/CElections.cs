@@ -75,6 +75,7 @@ public static class CElections
 			state.RaisePactMessage(new Agreements.CPactMessage(ResultsMessage, "", "", country.Tag, country.Tag)
 			{
 				Told = country.Tag,
+				Scores = scores,
 				Values = new[]
 				{
 					("PREVIOUS_PARTY", previous),

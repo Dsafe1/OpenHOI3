@@ -51,6 +51,7 @@ public partial class CUnitPanel : Control
 	private CMultiUnitPanel? _multi;
 	private CConfirmDialog? _confirm;
 	private CAttachmentPanel? _attachment;
+	private (CConfirmDialog? Dialog, CUnit Unit)? _disband;
 
 	/// <summary>Units given a new headquarters by the multi-unit panel, one of them and the last number taken before.</summary>
 	private (CUnit Unit, int After)? _headquarters;
@@ -75,6 +76,18 @@ public partial class CUnitPanel : Control
 
 	/// <summary>The left button went down on a brigade's row.</summary>
 	public event Action<CSubUnit>? BrigadeDragStarted;
+
+	/// <summary>The confirmation of a disband, which goes by itself when the unit does (attaching.md, section 6).</summary>
+	private void AskDisband(CUnit unit)
+	{
+		Func<string, string> localise = _context.Localisation.Localise;
+		_disband = (CConfirmDialog.Open(this, _context, "DefaultConfirm", localise("CONFIRM_DISBAND_TITLE"),
+			Interface.Text.CTextTemplate.Fill(localise("CONFIRM_DISBAND_DESC"), ("NAME", unit.Name))), unit);
+		if (_disband?.Dialog is { } dialog)
+		{
+			dialog.Agreed += () => Post(new CDisbandCommand(unit.Id), unit);
+		}
+	}
 
 	/// <summary>Each press makes the window anew, so a second press rebuilds it (attaching.md, section 2).</summary>
 	private void OpenAttachment(CCountry owner, CUnit unit)
@@ -219,6 +232,10 @@ public partial class CUnitPanel : Control
 	{
 		FollowNewUnits();
 		FollowHeadquarters();
+		if (_disband is ({ IsOpen: true } dialog, { IsRemoved: true }))
+		{
+			dialog.Close();
+		}
 		// The leader window a row of several opened is written as the header's is.
 		if (_unit is null && _leaders is not null)
 		{
@@ -437,6 +454,7 @@ public partial class CUnitPanel : Control
 			buttons.PlaneUnloadPressed += () => Post(new CUnloadFromPlaneCommand(owner.Tag, unit.Id), unit);
 			buttons.NewUnitPressed += split => NewUnit(unit, split);
 			buttons.AttachPressed += () => OpenAttachment(owner, unit);
+			buttons.DisbandPressed += () => AskDisband(unit);
 			buttons.DetachPressed += () => Post(new CDetachUnitCommand(owner.Tag, unit.Id), unit);
 			buttons.CreateHigherPressed += () => Post(new CCreateHigherCommand(owner.Tag, new[] { unit.Id }), unit);
 			Add(buttons);

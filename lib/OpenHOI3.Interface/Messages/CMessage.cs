@@ -31,6 +31,9 @@ public sealed class CMessage
 
 	public int Province { get; init; }
 
+	/// <summary>An election's parties' scores, by ideology.</summary>
+	public long[]? Scores { get; init; }
+
 	public override string ToString()
 	{
 		return $"{Type.Name}{Date}";

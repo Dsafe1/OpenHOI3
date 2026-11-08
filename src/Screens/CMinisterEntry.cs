@@ -19,6 +19,7 @@ namespace OpenHOI3.Screens;
 public sealed class CMinisterEntry
 {
 	public const string CabinetWindowName = "minister_entry";
+	public const string ElectionWindowName = "minister_entry2";
 	public const string ChoiceWindowName = "minister_select_entry";
 	private const string PortraitFolder = "gfx/pictures/portraits/";
 	private const string EmptyPortrait = "empty_position";
@@ -42,7 +43,7 @@ public sealed class CMinisterEntry
 		_post = post;
 		_own = own;
 		Func<string, string> localise = context.Localisation.Localise;
-		_button = window.FindButton("replace_minister");
+		_button = window.TryFindButton("replace_minister");
 		if (own is null)
 		{
 			if (window.FindTextBox("title") is { } title)
@@ -87,6 +88,13 @@ public sealed class CMinisterEntry
 	public static CMinisterEntry? CreateCabinetRow(CGuiContext context, CGameState state, CCountry country, CGovernmentPosition post)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, CabinetWindowName);
+		return window is null ? null : new CMinisterEntry(window, context, state, country, post, null);
+	}
+
+	/// <summary>A row of the election popup's lists: the post and who holds it now, with no button.</summary>
+	public static CMinisterEntry? CreateElectionRow(CGuiContext context, CGameState state, CCountry country, CGovernmentPosition post)
+	{
+		CGuiWindow? window = CGuiWindow.CreateEntry(context, ElectionWindowName);
 		return window is null ? null : new CMinisterEntry(window, context, state, country, post, null);
 	}
 

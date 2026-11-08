@@ -245,13 +245,19 @@ public partial class CGuiTextBox : CGuiObject
 	{
 		var type = (CGuiTextBoxType)GuiType;
 		float inside = (LaidOutWidth ?? type.MaxWidth) - 2f * type.BorderSize.X;
-		if (!type.FixedSize || _font is null || inside <= 0f || line.Contains(CColouredText.Escape)
-			|| _font.Width(line) <= inside)
+		if (!type.FixedSize || _font is null || inside <= 0f || line.Contains(CColouredText.Escape))
+		{
+			return line;
+		}
+		// A flag or a counter in the text is as wide as its picture, and not as its code.
+		CGuiFont font = _font;
+		float Measured(string text) => CTextIcons.Measure(text, font.Width);
+		if (Measured(line) <= inside)
 		{
 			return line;
 		}
 		int kept = line.Length;
-		while (kept > 0 && _font.Width(line[..kept] + CutMark) > inside)
+		while (kept > 0 && Measured(line[..kept] + CutMark) > inside)
 		{
 			kept--;
 		}

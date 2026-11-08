@@ -149,6 +149,23 @@ public static class CBrigadeTooltips
 	}
 
 	/// <summary>
+	/// The air builder's lines for a type: each technology on it, at the level its country has, by name and level. The
+	/// original asks with no country at all, so no country's own name for a level comes in.
+	/// </summary>
+	public static List<string> DescriptionLines(Func<string, string> localise, Func<string, string?> find, CCountry country, CSubUnitType type)
+	{
+		var lines = new List<string>();
+		foreach (CTechnology technology in type.Technologies)
+		{
+			int level = country.TechnologyLevels.GetValueOrDefault(technology.Name);
+			lines.Add(localise(technology.Name) + " : §Y" + LevelName(localise, find, NoCountry, technology, level) + "§W");
+		}
+		return lines;
+	}
+
+	private static readonly CCountryTag NoCountry = new("---");
+
+	/// <summary>
 	/// The name of a level of a technology with models: the country's own text for it, the
 	/// game's, or "Model" and the year - its start year at the first level and its offsets on
 	/// from there. Nothing at level 0.

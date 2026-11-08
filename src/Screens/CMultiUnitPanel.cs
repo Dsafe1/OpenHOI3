@@ -28,7 +28,7 @@ public partial class CMultiUnitPanel : Control
 	/// <summary>The buttons whose systems are not built for one unit either: shown, never to be pressed.</summary>
 	private static readonly string[] Unbuilt =
 	{
-		"upgrade_all", "disband_multiunit",
+		"upgrade_all",
 	};
 
 	private CGuiContext _context = null!;
@@ -46,6 +46,8 @@ public partial class CMultiUnitPanel : Control
 	private CGuiButton? _reorganise;
 	private CGuiButton? _merge;
 	private CGuiButton? _detachAll;
+	private CConfirmDialog? _disbandAsked;
+	private int _disbandCount;
 	private CGuiButton? _higher;
 	private CGuiScrollbarType? _sliderType;
 	private CGuiScrollbar? _slider;
@@ -140,6 +142,10 @@ public partial class CMultiUnitPanel : Control
 				}
 			};
 		}
+		if (_window.FindButton("disband_multiunit") is { } disband)
+		{
+			disband.Pressed += AskDisband;
+		}
 		_detachAll = _window.FindButton("detach_multiunit");
 		if (_detachAll is not null)
 		{
@@ -174,6 +180,32 @@ public partial class CMultiUnitPanel : Control
 			fileSlider.Visible = false;
 		}
 		_window.SetTooltips(element => CMultiUnitTooltips.For(_context.Localisation.Localise, _simulation.State, _units, element));
+	}
+
+	/// <summary>The confirmation of Disband All; it goes by itself if the selection's count changes (selection.md, section B.4).</summary>
+	private void AskDisband()
+	{
+		if (_player is null)
+		{
+			return;
+		}
+		Func<string, string> localise = _context.Localisation.Localise;
+		_disbandAsked = CConfirmDialog.Open(this, _context, "DefaultConfirm", localise("DISBAND_ALL_TITLE"),
+			Interface.Text.CTextTemplate.Fill(localise("DISBAND_ALL_DESC"), ("NUM", _units.Count.ToString(System.Globalization.CultureInfo.InvariantCulture))));
+		if (_disbandAsked is null)
+		{
+			return;
+		}
+		_disbandCount = _units.Count;
+		_disbandAsked.Agreed += () =>
+		{
+			List<CUnit> units = CAttachText.Disbandable(_simulation.State, _units);
+			SelectionChanging?.Invoke(selection => selection.Clear());
+			foreach (CUnit unit in units)
+			{
+				Post(new CDisbandCommand(unit.Id), unit);
+			}
+		};
 	}
 
 	/// <summary>One command per selected unit but a theatre, in selection order; the selection stays (attaching.md, section 3).</summary>
@@ -304,6 +336,10 @@ public partial class CMultiUnitPanel : Control
 		if (_detachAll is not null)
 		{
 			_detachAll.Disabled = _player is null || CAttachText.Detachable(_units).Count == 0;
+		}
+		if (_disbandAsked is { IsOpen: true } && _units.Count != _disbandCount)
+		{
+			_disbandAsked.Close();
 		}
 		if (_higher is not null)
 		{
