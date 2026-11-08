@@ -69,6 +69,7 @@ public static class CTick
 		// after another; only then is every unit's own hour run, which is where its
 		// organisation comes back.
 		Step(state, CMovement.RunHourly);
+		Step(state, Units.CEmptyUnits.RunHourly);
 		// After its units, each country's theatres: made where marked, looked after where not (theatres.md, section 1;
 		// ours: the original does each country's right after its own units).
 		// Ours: run in a replay too, being cheap and making and disbanding headquarters units of the game's (docs/replay.md).

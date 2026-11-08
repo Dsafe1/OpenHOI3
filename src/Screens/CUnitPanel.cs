@@ -63,6 +63,24 @@ public partial class CUnitPanel : Control
 	/// <summary>Raised when the row of a battle the unit is in is clicked.</summary>
 	public event Action<CCombat>? CombatChosen;
 
+	/// <summary>The order of battle button was pressed.</summary>
+	public event Action? BrowserWanted;
+
+	/// <summary>A brigade's row was clicked.</summary>
+	public event Action<CSubUnit>? BrigadeChosen;
+
+	/// <summary>The left button went down on a brigade's row.</summary>
+	public event Action<CSubUnit>? BrigadeDragStarted;
+
+	/// <summary>The panel stands this far from the screen's left, beside the order of battle browser.</summary>
+	public void SetLeft(float x)
+	{
+		if (_window is not null)
+		{
+			_window.Position = new Vector2(x, _window.Position.Y);
+		}
+	}
+
 	/// <summary>Raised when the panel asks for the map to show a province.</summary>
 	public event Action<int>? ProvinceWanted;
 
@@ -119,10 +137,9 @@ public partial class CUnitPanel : Control
 				child.Visible = false;
 			}
 		}
-		// The order of battle browser is not built.
 		if (_window.FindButton("oob_button") is { } browser)
 		{
-			browser.Disabled = true;
+			browser.Pressed += () => BrowserWanted?.Invoke();
 		}
 	}
 
@@ -381,6 +398,8 @@ public partial class CUnitPanel : Control
 		}
 		if (CUnitBrigadesEntry.Create(_context, state, owner, unit) is { } brigades)
 		{
+			brigades.BrigadeChosen += subUnit => BrigadeChosen?.Invoke(subUnit);
+			brigades.BrigadeDragStarted += subUnit => BrigadeDragStarted?.Invoke(subUnit);
 			Add(brigades);
 		}
 		_hasChildren = unit.Children.Count > 0;
@@ -483,7 +502,7 @@ public partial class CUnitPanel : Control
 			return;
 		}
 		EUnitKind kind = CMovementRules.IsLandUnit(unit) ? EUnitKind.Division : unit.Kind;
-		if (Post(new CCreateUnitCommand(unit.Owner, 0, kind, unit.Location, unit.Base, 0), unit))
+		if (Post(new CCreateUnitCommand(unit.Owner, 0, kind, unit.Location, unit.Base, 0, isAllowedEmpty: true), unit))
 		{
 			_creating = (unit, after);
 		}

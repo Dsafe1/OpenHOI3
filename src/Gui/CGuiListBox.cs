@@ -106,6 +106,15 @@ public partial class CGuiListBox : CGuiObject
 		Settle();
 	}
 
+	/// <summary>The first row in view.</summary>
+	public int First => _first;
+
+	/// <summary>Brings a row to the top of the view, as far as the list goes.</summary>
+	public void ScrollTo(int first)
+	{
+		ShowFrom(first);
+	}
+
 	/// <summary>How many entries the list holds.</summary>
 	public int Count => _entries.Count;
 

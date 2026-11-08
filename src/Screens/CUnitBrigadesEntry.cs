@@ -28,6 +28,12 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 	private readonly int _fileHeight;
 	private readonly List<CUnitBrigadeRow> _rows = new();
 
+	/// <summary>A brigade's row was clicked.</summary>
+	public event System.Action<CSubUnit>? BrigadeChosen;
+
+	/// <summary>The left button went down on a brigade's row.</summary>
+	public event System.Action<CSubUnit>? BrigadeDragStarted;
+
 	private CUnitBrigadesEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit)
 		: base(window)
 	{
@@ -81,6 +87,8 @@ public sealed class CUnitBrigadesEntry : CUnitPanelEntry
 			{
 				continue;
 			}
+			row.Chosen += chosen => BrigadeChosen?.Invoke(chosen);
+			row.DragStarted += dragged => BrigadeDragStarted?.Invoke(dragged);
 			_rows.Add(row);
 			_list?.Add(row.Window);
 			rowHeight = (int)row.Window.Size.Y;

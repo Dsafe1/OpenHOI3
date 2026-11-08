@@ -1731,9 +1731,7 @@ files are not in it. Whole windows the original opens:
 
 | window | reached from | the fact base |
 | --- | --- | --- |
-| the order of battle browser (`oobbrowser`) | the unit panel, whose button is drawn and dead | not read |
 | battle plans (`battleplans_window`) | the menu bar (`menubar_plans_*`) | not read |
-| sunk ships and the pride of the fleet (`sunk_ships_view`, `brigade_view`) | the unit panel | not read |
 | the expeditionary force (`ExpeditionDialog`) | diplomacy | outline only |
 | the console (`console_wnd`) | Shift and 3 | read; the plan is above |
 
@@ -1839,6 +1837,7 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 None of these blocks the list above.
 
+- **The order of battle browser takes drags only from its own rows and the unit panel's brigades.** The unit panel's child rows and leader button, the outliner and the deploy menu are also sources in the original (`docs/mechanics/oobbrowser.md`, section 8).
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
   and the front end makes its meshes again for each world it shows - the quad cache it reads once - which could be kept
   between worlds; a map whose cache is missing or stale - its `time` stamp not the map files' (section 2.1, since
@@ -2799,7 +2798,7 @@ screen is checked with `--click`, not only with a switch that reaches past its b
 the four builder windows passed every check that opened and filled them by name while
 seven of their buttons could not be pressed.
 
-The top bar's **Theatres** and **Statistics** buttons work since 2026-11-08 (`docs/mechanics/theatresscreen.md`, `statistics.md`): the theatres, their fronts, what a plan is short of and a Build that orders it, and the 26 pages of tables and pies. Tried with `--click`; the maintainer has not looked at them. A theatre's and a front's needs are worked out as the screen is filled, where the original refills an inactive plan daily. Of the ledger, the tooltips of its columns, a unit's order and model, points off the map and four of the goods pools are not built (`statistics.md`, sections 2 and 3). **The Strategic Warfare Manager** works since the same day (`docs/mechanics/strategicwarfare.md`): the records of each war, every tally but attrition - which is not built - the window and its charts through the install's `linechart.fx`, saved and loaded byte for byte. The maintainer has not looked at it. **The convoy windows and the go-to box** work since the same day (`docs/mechanics/convoywindows.md`): the production screen's list, making a convoy from two lists of ports, each convoy's ships and goods, the three automatic flags, and the box that finds a province. Tried with `--click`; the maintainer has not looked at them.
+The top bar's **Theatres** and **Statistics** buttons work since 2026-11-08 (`docs/mechanics/theatresscreen.md`, `statistics.md`): the theatres, their fronts, what a plan is short of and a Build that orders it, and the 26 pages of tables and pies. Tried with `--click`; the maintainer has not looked at them. A theatre's and a front's needs are worked out as the screen is filled, where the original refills an inactive plan daily. Of the ledger, the tooltips of its columns, a unit's order and model, points off the map and four of the goods pools are not built (`statistics.md`, sections 2 and 3). **The Strategic Warfare Manager** works since the same day (`docs/mechanics/strategicwarfare.md`): the records of each war, every tally but attrition - which is not built - the window and its charts through the install's `linechart.fx`, saved and loaded byte for byte. The maintainer has not looked at it. **The convoy windows and the go-to box** work since the same day (`docs/mechanics/convoywindows.md`): the production screen's list, making a convoy from two lists of ports, each convoy's ships and goods, the three automatic flags, and the box that finds a province. Tried with `--click`; the maintainer has not looked at them. **The order of battle browser** opens from the unit panel since the same day (`docs/mechanics/oobbrowser.md`): the player's whole tree in one list or two, Theatre Forces, and a unit, a brigade from the panel or a leader dragged onto a row; and **a brigade's card** (`docs/mechanics/brigadecard.md`), with a ship's sunk list and the pride of the fleet. Tried with `--click`; the maintainer has not looked at them.
 
 An earlier iteration reproduced the original's front end directly from its `.gui` files
 and ran its main menu and lobby. That work left the tree in commit `4269708` and remains

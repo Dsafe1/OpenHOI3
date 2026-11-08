@@ -68,6 +68,9 @@ public partial class CSession : Node
 	private CDeployMenu? _deployMenu;
 	private CAlerts? _alerts;
 	private CUnitPanel? _unitPanel;
+
+	/// <summary>The hour the player's empty units were last looked at.</summary>
+	private long _emptyUnitsHour = -1;
 	private COrdersWindow? _orders;
 	private CCombatWindow? _combat;
 	private CInGameMenu? _menu;
@@ -454,6 +457,23 @@ public partial class CSession : Node
 		_combat.Toggled += () => ShowProvince(_shownProvince);
 		_combat.RetreatPressed += Retreat;
 		_unitPanel.CombatChosen += ShowCombat;
+		if (Player is not null)
+		{
+			var cards = new CBrigadeCards();
+			cards.Setup(gui, _simulation, Player);
+			_unitPanel.BrigadeChosen += cards.Open;
+
+			// The order of battle browser, with the unit panel moved aside for it (docs/mechanics/oobbrowser.md).
+			var browser = new COobBrowser { Selection = () => _mapView.Units.Units };
+			browser.Setup(gui, _simulation, Player);
+			layer.AddChild(browser);
+			browser.UnitChosen += unit => ChooseUnit(unit);
+			browser.CountryViewsClosing += CloseCountryViews;
+			browser.WidthChanged += width => _unitPanel.SetLeft(width);
+			_unitPanel.BrowserWanted += browser.Toggle;
+			_unitPanel.BrigadeDragStarted += browser.BeginDragSubUnit;
+			layer.AddChild(cards);
+		}
 		_mapView.CombatSelected += ShowCombat;
 
 		// With nobody played the bar has no country, and its buttons no screens to open.
@@ -902,6 +922,21 @@ public partial class CSession : Node
 		}
 	}
 
+	/// <summary>The player's units left with no brigades go as the hours pass, but for one that is selected (reorganise.md, section 5).</summary>
+	private void DisbandEmptyUnits()
+	{
+		if (Player is null || State.TotalHours == _emptyUnitsHour)
+		{
+			return;
+		}
+		_emptyUnitsHour = State.TotalHours;
+		IReadOnlyList<CUnit> selected = _mapView.Units.Units;
+		foreach (CUnit unit in Player.AllUnits().Where(unit => CEmptyUnits.IsToGo(unit) && !selected.Contains(unit)).ToList())
+		{
+			_simulation.Post(new CDisbandCommand(unit.Id));
+		}
+	}
+
 	/// <summary>A row of the unit panel chose a unit, or none: it is selected, and the map shows where it is.</summary>
 	private void ChooseUnit(CUnit? unit)
 	{
@@ -952,6 +987,7 @@ public partial class CSession : Node
 	public override void _Process(double delta)
 	{
 		long frameStart = Stopwatch.GetTimestamp();
+		DisbandEmptyUnits();
 		double simulation = 0;
 		int hours = 0;
 		// The readout is refreshed once a frame and not once an hour: at the top speed a

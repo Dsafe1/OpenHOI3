@@ -165,6 +165,9 @@ public sealed class CUnit
 	/// <summary>Gone from the game. Whatever still holds it leaves it alone.</summary>
 	public bool IsRemoved { get; set; }
 
+	/// <summary>Whether it may stand with no brigades: the new-unit button's, until the reorganise window shuts.</summary>
+	public bool IsAllowedEmpty { get; set; }
+
 	/// <summary>
 	/// A fleet in a battle: how long it has been breaking away. Nothing until an order
 	/// to leave or the battle's own roll starts it, then an hour more each hour; at 5 it

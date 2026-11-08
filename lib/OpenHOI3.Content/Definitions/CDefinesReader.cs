@@ -33,6 +33,7 @@ public static class CDefinesReader
 		(CResearch.CountrySection, CResearch.AbilityGainDivisor),
 		(CUnitUpkeep.CountrySection, CUnitUpkeep.LowSupplyFactor),
 		(CManpower.MilitarySection, CReinforcement.PrideBonus),
+		(CManpower.MilitarySection, CPride.RedesignationDissent),
 		(CManpower.MilitarySection, CUpgrades.ShipSpeed),
 		(CManpower.MilitarySection, CUpgrades.AirSpeed),
 		(CManpower.MilitarySection, CUpgrades.LandSpeed),

@@ -124,6 +124,15 @@ public partial class CGuiTextBox : CGuiObject
 		}
 	}
 
+	/// <summary>A box that goes gives up the keyboard, so that nothing asks it afterwards.</summary>
+	public override void _ExitTree()
+	{
+		if (_context?.KeyboardFocus == this)
+		{
+			_context.KeyboardFocus = null;
+		}
+	}
+
 	public bool HasKeyboard => Editor is not null && _context?.KeyboardFocus == this && IsVisibleInTree();
 
 	/// <summary>A press of the left button over the box gives it the keyboard; the caret stays where it was.</summary>
@@ -268,7 +277,8 @@ public partial class CGuiTextBox : CGuiObject
 		{
 			return new[] { paragraph };
 		}
-		return CWordWrap.Wrap(paragraph, inside, _font.Width);
+		CGuiFont measured = _font;
+		return CWordWrap.Wrap(paragraph, inside, text => CTextIcons.Measure(text, measured.Width));
 	}
 
 	/// <summary>

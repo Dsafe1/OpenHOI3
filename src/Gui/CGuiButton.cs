@@ -36,6 +36,9 @@ public partial class CGuiButton : CGuiObject
 	/// <summary>Raised when the button is clicked, or its shortcut key is pressed.</summary>
 	public event Action? Pressed;
 
+	/// <summary>Raised when the left button goes down on it, as a drag begins.</summary>
+	public event Action? HeldDown;
+
 	/// <summary>Raised when the button is clicked twice in quick succession, after <see cref="Pressed"/> for the first.</summary>
 	public event Action? DoublePressed;
 
@@ -384,6 +387,7 @@ public partial class CGuiButton : CGuiObject
 		{
 			_held = true;
 			Tint();
+			HeldDown?.Invoke();
 			if (mouse.DoubleClick)
 			{
 				DoublePressed?.Invoke();

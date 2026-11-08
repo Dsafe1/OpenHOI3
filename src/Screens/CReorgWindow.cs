@@ -105,6 +105,10 @@ public partial class CReorgWindow : Control
 			{
 				_simulation.Post(new CDisbandCommand(unit.Id));
 			}
+			else if (unit is { IsRemoved: false, IsAllowedEmpty: true })
+			{
+				_simulation.Post(new CClearAllowedEmptyCommand(unit.Owner, unit.Id));
+			}
 		}
 		_window.QueueFree();
 		_window = null;

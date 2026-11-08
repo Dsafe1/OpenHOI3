@@ -56,6 +56,12 @@ public sealed class CUnitBrigadeRow : CUnitPanelEntry
 		{
 			width?.SetFrame(CUnitPanelText.WidthFrame(subUnit.Stats[CSubUnitType.CombatWidth]));
 		}
+		// A click opens the brigade's card, and a press may begin a drag to the order of battle browser.
+		if (window.TryFindButton("select") is { } select)
+		{
+			select.Pressed += () => Chosen?.Invoke(subUnit);
+			select.HeldDown += () => DragStarted?.Invoke(subUnit);
+		}
 		// Choosing what a brigade is upgraded to is not built.
 		Show(window.FindButton("upgrade_button"), false);
 		AnswerFor(name => CBrigadeTooltips.Row(context.Localisation.Localise, context.Localisation.Find, state, owner, subUnit, name),
@@ -64,6 +70,12 @@ public sealed class CUnitBrigadeRow : CUnitPanelEntry
 	}
 
 	public CSubUnit SubUnit { get; }
+
+	/// <summary>The row was clicked: the brigade's card is wanted.</summary>
+	public event System.Action<CSubUnit>? Chosen;
+
+	/// <summary>The left button went down on the row.</summary>
+	public event System.Action<CSubUnit>? DragStarted;
 
 	public static CUnitBrigadeRow? Create(CGuiContext context, CGameState state, CCountry owner, CSubUnit subUnit)
 	{

@@ -301,12 +301,12 @@ public partial class CGuiWindow : CGuiObject
 		return true;
 	}
 
-	/// <summary>What in a window does something with a click: its buttons, scrollbars and lists.</summary>
+	/// <summary>What in a window does something with a click: its buttons, scrollbars, lists and the boxes typed into.</summary>
 	private static IEnumerable<Control> Takers(Node node)
 	{
 		foreach (Node child in node.GetChildren())
 		{
-			if (child is CGuiButton or CGuiScrollbar or CGuiListBox)
+			if (child is CGuiButton or CGuiScrollbar or CGuiListBox or CGuiTextBox { Editor: not null })
 			{
 				yield return (Control)child;
 				continue;

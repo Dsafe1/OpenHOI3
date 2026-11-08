@@ -18,9 +18,12 @@ public sealed class CCreateUnitCommand : CCommand
 	private readonly int _province;
 	private readonly int _base;
 	private readonly int _headquarters;
+	private readonly bool _isAllowedEmpty;
 
-	public CCreateUnitCommand(CCountryTag owner, int id, EUnitKind kind, int province, int baseProvince, int headquarters)
+	public CCreateUnitCommand(CCountryTag owner, int id, EUnitKind kind, int province, int baseProvince, int headquarters,
+		bool isAllowedEmpty = false)
 	{
+		_isAllowedEmpty = isAllowedEmpty;
 		_owner = owner;
 		_id = id;
 		_kind = kind;
@@ -39,7 +42,7 @@ public sealed class CCreateUnitCommand : CCommand
 	{
 		CCountry country = state.Country(_owner)!;
 		int id = _id > 0 ? _id : ++state.LastUnitId;
-		var unit = new CUnit(_kind, country.Tag) { Id = id, Location = _province, Base = _base };
+		var unit = new CUnit(_kind, country.Tag) { Id = id, Location = _province, Base = _base, IsAllowedEmpty = _isAllowedEmpty };
 		country.Units.Add(unit);
 		state.ForgetPositions();
 		if (CUnitFinder.Find(state, _owner, _headquarters) is { } headquarters)

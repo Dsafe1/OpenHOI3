@@ -52,6 +52,46 @@ public static class CUnitSupply
 		return Math.Max(0, potency);
 	}
 
+	/// <summary>The supplies one brigade uses, as its card says: its unit's potency, and a part of it for a land brigade or a wing under strength.</summary>
+	public static CFixedPoint SubUnitSupply(CGameState state, CCountry owner, CSubUnit subUnit)
+	{
+		if (subUnit.Unit is not { } unit)
+		{
+			return subUnit.Stats[SupplyStatistic];
+		}
+		long used = subUnit.Stats[SupplyStatistic].Raw * (Potency(state, owner, unit) + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
+		if (unit.Kind != EUnitKind.Navy)
+		{
+			used = used * Share(subUnit) / CFixedPoint.Scale;
+		}
+		return new CFixedPoint(used);
+	}
+
+	/// <summary>
+	/// The fuel one brigade uses, as its card says. Unlike a unit's own total it goes with the brigade's strength, a ship
+	/// apart, so what a brigade shows and what its unit is charged are not one sum - the original's.
+	/// </summary>
+	public static CFixedPoint SubUnitFuel(CGameState state, CCountry owner, CSubUnit subUnit)
+	{
+		if (subUnit.Unit is not { } unit)
+		{
+			return subUnit.Stats[FuelStatistic];
+		}
+		long used = subUnit.Stats[FuelStatistic].Raw * (Potency(state, owner, unit) + LevelsHeld(subUnit) * PerLevel) / CFixedPoint.Scale;
+		if (subUnit.Type.Branch != EUnitBranch.Naval)
+		{
+			used = used * Share(subUnit) / CFixedPoint.Scale;
+		}
+		return new CFixedPoint(used);
+	}
+
+	/// <summary>A brigade's strength over its most, in thousandths; -1 where its type has no most.</summary>
+	private static long Share(CSubUnit subUnit)
+	{
+		long full = subUnit.Stats[CSubUnitType.MaxStrength].Raw;
+		return full == 0 ? -1 : subUnit.Strength.Raw * CFixedPoint.Scale / full;
+	}
+
 	/// <summary>The levels a brigade holds, of all its technologies added together.</summary>
 	public static long LevelsHeld(CSubUnit subUnit)
 	{

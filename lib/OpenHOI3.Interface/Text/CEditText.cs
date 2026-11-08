@@ -19,6 +19,9 @@ public sealed class CEditText
 
 	/// <summary>Backspace and Enter as the characters the box is handed.</summary>
 	public const char Backspace = '\b';
+
+	/// <summary>What this box refuses besides, as a name's box refuses a quotation mark.</summary>
+	public string AlsoRefused { get; set; } = "";
 	public const char Enter = '\r';
 	private const char Tab = '\t';
 
@@ -140,7 +143,7 @@ public sealed class CEditText
 	/// </summary>
 	public bool Type(char character, bool shift, bool ctrl)
 	{
-		if (ctrl || character == Tab || (_fontEffect && EffectRefused.Contains(character)))
+		if (ctrl || character == Tab || AlsoRefused.Contains(character) || (_fontEffect && EffectRefused.Contains(character)))
 		{
 			return false;
 		}
