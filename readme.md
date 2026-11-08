@@ -1704,8 +1704,22 @@ whole in the fact base already, built in a session - a new game's figure by the 
 the month's 0.041 at war under its maximum, all of it paid back to neutrality in the first month of peace, the
 `war_exhaustion` modifier step, condition and effect, and the save's key. **No save can check it**: every save of the
 maintainer's was made with BiceLib's patch zeroing it each month written into the executable, so the start save's Italy is
-0.000 where ours is the original's 0.191; neutrality still agrees 101 of 101. **Next up**: the military AI's gaps
-(*What the moving wave left*), or the end-of-game screen.
+0.000 where ours is the original's 0.191; neutrality still agrees 101 of 101. **Next up**: the map cache built here
+(the original's `CProvinceManager_BuildQuads` read first, a wave of several agents, the shipped cache the oracle byte for
+byte), the console below, the military AI's gaps (*What the moving wave left*), or the end-of-game screen.
+
+**The console**, planned 2026-11-08 and not built: the original's 53 commands are read whole in the fact base
+(`reversing/findings/FINDINGS-console.md`, section C), and the debug menu (Shift and 4) already has `debug fow` - for the
+countries played alone (`docs/compatibility.md`, entry 21) - and `cpaint`. The plan is a console like the original's,
+opened by `§` or `` ` ``, taking its command names, aliases and arguments and giving its answers, each command posted
+as a command so that a cheat is replayable, where only the original's `tag` goes through its queue; the debug menu keeps
+the switches that take no argument. Rated against what is built:
+
+| | commands |
+| --- | --- |
+| **easy** - the system exists; the command adds, sets or calls | `money`, `supplies`, `fuel`, `crudeoil`, `metal`, `energy`, `rarematerials`, `givemeall`, `addmanpower`, `addofficers`, `noneutrality`, `setnationalunity`, `election`, `reorg`, `surrender`, `guarantee`, `changeowner`, `changecontroller`, `conquerall`, `event` (the `--event=` switch already fires one), `revolt`, `alwayspartisants`, `instantresearch`, `instantconstruction`, `tooltipdebug`, `printtech`, `copyprov`; `debug tooltips`, `debug nopopup`, `debug minzoom`, `debug color`, `debug wireframe` |
+| **medium** - more wiring, or a small reading first | `tag` (the played country changed touches much of the interface), `aipause` (one country's AI steps left out), `teleport`, `date`, `debug render <layer>` (the map's layers are cut differently here), `debug yesmen` and `debug spy` (what each flag changes to be read), `detailedlog` (the save writer would serve), `reloadinterface`, `reloadfx`, `fullscreen` |
+| **not worth it now** | `nukes` (no nuclear system), `morehumans` (multiplayer), `paint`, `rpaint`, `ipaint` (the map editor), `nextsong` (no sound), `tutorial`, `spawnactor`, `reload`, `reloadtexture`, `window`, `randomlog`, `helplog`, `debug info`, `debug profile`, `debug log_profile`, `debug textures`, `debug assert`, `debug save`; and `weather` and `crash`, which the original refuses outside its developers' build |
 
 The other open choices are the third piece's gaps - the balancing that moves
 Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
