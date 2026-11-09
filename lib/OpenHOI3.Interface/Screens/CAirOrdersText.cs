@@ -276,6 +276,14 @@ public static class CAirOrdersText
 		{
 			return rebase;
 		}
+		// The bomb's row is ticked as it is made, whether or not it can be given, and only the rebase above ticks over it.
+		for (int index = 0; index < rows.Count; index++)
+		{
+			if (rows[index].Order == EUnitOrder.Nuke)
+			{
+				return index;
+			}
+		}
 		int kept = keep == EUnitOrder.None ? -1 : Row(keep);
 		if (kept >= 0)
 		{

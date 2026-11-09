@@ -2319,6 +2319,17 @@ public partial class CSession : Node
 					GD.Print($"--sail: '{argument["--sail=".Length..]}' is not a country with a fleet and a sea province it can reach.");
 				}
 			}
+			else if (argument.StartsWith("--nukes="))
+			{
+				// A country's bombs for a trial by hand: --nukes=GER:2.
+				string[] parts = argument["--nukes=".Length..].Split(':');
+				if (parts.Length == 2 && CCountryTag.TryParse(parts[0], out CCountryTag holder)
+					&& int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int bombs))
+				{
+					_simulation.Post(new CCheatCommand(ECheat.AddNukes, holder, null, bombs * 1000L, default, 0, ""));
+					_simulation.Pump();
+				}
+			}
 			else if (argument.StartsWith("--mission="))
 			{
 				// Gives a country's strongest fleet that may have it a mission for a province,
@@ -2334,7 +2345,7 @@ public partial class CSession : Node
 				// radius after the province where it is to cover more than the one.
 				if (parts.Length >= 3 && CCountryTag.TryParse(parts[0], out CCountryTag flier)
 					&& System.Enum.TryParse(parts[1], ignoreCase: true, out EUnitOrder airMission)
-					&& (CAirMissions.IsAirMission(airMission) || CBombingOrders.IsBombingMission(airMission))
+					&& (CAirMissions.IsAirMission(airMission) || CBombingOrders.IsBombingMission(airMission) || airMission == EUnitOrder.Nuke)
 					&& int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int over))
 				{
 					// A bombing mission likewise - groundattack, interdiction, navalstrike,
@@ -2343,7 +2354,7 @@ public partial class CSession : Node
 					string[] fired = CBombingOrders.GoesForLandUnits(airMission)
 						? new[] { CUnitTotals.SoftAttack, CUnitTotals.HardAttack }
 						: CBombingOrders.GoesForShips(airMission) ? new[] { CNavalFire.SeaAttack }
-						: CBombingOrders.IsBombingMission(airMission) ? new[] { CBombingOrders.StrategicAttack }
+						: CBombingOrders.IsBombingMission(airMission) || airMission == EUnitOrder.Nuke ? new[] { CBombingOrders.StrategicAttack }
 						: new[] { CAirMissions.AirAttack };
 					CUnit? wing = State.Country(flier)?.AllUnits()
 						.Where(unit => unit.Kind == EUnitKind.Air && unit.Location > 0 && unit.CarriedBy is null)

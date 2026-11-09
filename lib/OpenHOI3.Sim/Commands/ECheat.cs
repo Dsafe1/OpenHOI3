@@ -6,6 +6,7 @@ public enum ECheat
 	AddGood,
 	AddEveryGood,
 	AddManpower,
+	AddNukes,
 	AddOfficers,
 	NoNeutrality,
 	SetNationalUnity,

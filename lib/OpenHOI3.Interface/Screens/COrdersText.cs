@@ -66,6 +66,7 @@ public static class COrdersText
 			EUnitOrder.NavalStrike => "NAVALSTRIKE_BOMB",
 			EUnitOrder.CarrierProtection => "CAG_DUTY",
 			EUnitOrder.Paradrop => "PARADROP_MISSION",
+			EUnitOrder.Nuke => "NUKE_MISSION",
 			EUnitOrder.RebaseCarrier => "REBASE_TO_CAG_MISSION",
 			EUnitOrder.AirSupply => "TRANS_SUP_MISSION",
 			EUnitOrder.SupportAttack => "SUPPORT_ATTACK",
@@ -101,14 +102,14 @@ public static class COrdersText
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, IReadOnlyList<CUnit> units, CProvince province)
 	{
-		List<COrderRow> rows = Rows(state, country, units[0], province);
+		List<COrderRow> rows = Rows(state, country, units[0], province, units.Count);
 		if (units[0].Kind == EUnitKind.Air)
 		{
 			return rows;
 		}
 		for (int other = 1; other < units.Count; other++)
 		{
-			List<COrderRow> theirs = Rows(state, country, units[other], province);
+			List<COrderRow> theirs = Rows(state, country, units[other], province, units.Count);
 			for (int index = 0; index < rows.Count; index++)
 			{
 				COrderRow row = rows[index];
@@ -129,7 +130,7 @@ public static class COrdersText
 	/// province is land or sea. Of the air's, the raid on convoys and the reserve are
 	/// listed and cannot be ticked: they are not built.
 	/// </summary>
-	public static List<COrderRow> Rows(CGameState state, CCountry country, CUnit unit, CProvince province)
+	public static List<COrderRow> Rows(CGameState state, CCountry country, CUnit unit, CProvince province, int selected = 1)
 	{
 		var rows = new List<COrderRow>();
 		void Add(string key, EUnitOrder order = EUnitOrder.None)
@@ -192,6 +193,11 @@ public static class COrdersText
 		if (HasCarrier(state, province))
 		{
 			Add(NameKey(EUnitOrder.RebaseCarrier), EUnitOrder.RebaseCarrier);
+		}
+		// A bomb for every unit selected, or no row at all (nukes.md, section 3).
+		if (land && selected * 1000L <= country.Nukes.Raw && Sim.Missions.CNukeMission.MayCarry(unit))
+		{
+			Add(NameKey(EUnitOrder.Nuke), EUnitOrder.Nuke);
 		}
 		if (land && Has(unit, "transport_capability"))
 		{

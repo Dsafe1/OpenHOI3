@@ -29,8 +29,6 @@ public static class CUndoneEffects
 			}
 		}
 
-		// The event pass.
-		Add(EScriptGap.Unbuilt, "province_event");
 		// Diplomacy.
 		Add(EScriptGap.Unbuilt, "undeclared_war", "release_vassal", "surrender_inherit");
 		// Espionage, the AI.

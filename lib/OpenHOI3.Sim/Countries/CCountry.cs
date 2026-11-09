@@ -35,6 +35,9 @@ public sealed class CCountry
 	/// <summary>The console's <c>aipause</c>: while set, none of this country's AI runs.</summary>
 	public bool AiPaused { get; set; }
 
+	/// <summary>The nuclear bombs it holds, in thousandths: a thousand is one (<c>docs/mechanics/nukes.md</c>).</summary>
+	public CFixedPoint Nukes { get; set; }
+
 	/// <summary>The units this country has lent, which it goes on reinforcing and officering.</summary>
 	public List<CUnit> LentUnits { get; } = new();
 

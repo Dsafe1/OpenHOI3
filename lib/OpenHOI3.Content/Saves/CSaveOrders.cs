@@ -44,7 +44,7 @@ public static class CSaveOrders
 		["port_strike"] = EUnitOrder.PortStrike,
 		["naval_strike"] = EUnitOrder.NavalStrike,
 		["rebase_to_carrier"] = EUnitOrder.RebaseCarrier,
-		["nuke_mission"] = null,
+		["nuke_mission"] = EUnitOrder.Nuke,
 		["transport_supplies_mission"] = EUnitOrder.AirSupply,
 		["rebase_air"] = EUnitOrder.RebaseAir,
 		["air_reserve"] = null,
@@ -157,6 +157,10 @@ public static class CSaveOrders
 					break;
 				case "supplies":
 					mission.Supplies = CSaveValues.Fixed(entry.Value);
+					break;
+				case "nukes":
+					mission.Nukes = (int)CSaveValues.Whole(entry.Value);
+					mission.BombsFrom = state.Country(unit.Owner);
 					break;
 				case "fuel":
 					mission.Fuel = CSaveValues.Fixed(entry.Value);
@@ -282,6 +286,9 @@ public static class CSaveOrders
 				break;
 			case EUnitOrder.ConvoyRaid:
 				writer.Int("attack", mission.RaidCountdown);
+				break;
+			case EUnitOrder.Nuke:
+				writer.Int("nukes", mission.Nukes);
 				break;
 			case EUnitOrder.Sortie:
 				foreach (int waypoint in mission.Waypoints)

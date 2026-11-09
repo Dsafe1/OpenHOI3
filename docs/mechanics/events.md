@@ -164,8 +164,8 @@ files, so none of the 545 ids its `on_actions.txt` names for them is an event (`
 
 **Built** (2026-10-12): the reading of the file, the pick, the battles and the pride of the fleet; and the two
 coups (2026-10-14, `espionage.md`, section 11), though only the intelligence screen posts one.
-**Not built**: `on_encirclement` waits for a province's days without supply, which are not counted;
-`on_surrender` for surrender, `on_nuke_dropped` for the bomb. A battle's `last_*_losses` are not kept either.
+**Not built**: `on_encirclement` waits for a province's days without supply, which are not counted. A battle's
+`last_*_losses` are not kept either. `on_surrender` is `war.md`'s and `on_nuke_dropped` `nukes.md`'s.
 
 ## 9. Decisions
 

@@ -84,7 +84,7 @@ public static class CUnitOrders
 			EUnitKind.Air => new[]
 			{
 				EUnitOrder.CarrierProtection, EUnitOrder.AirSuperiority, EUnitOrder.AirIntercept, EUnitOrder.Paradrop,
-				EUnitOrder.RebaseCarrier, EUnitOrder.AirSupply, EUnitOrder.StrategicBombing,
+				EUnitOrder.RebaseCarrier, EUnitOrder.Nuke, EUnitOrder.AirSupply, EUnitOrder.StrategicBombing,
 				EUnitOrder.LogisticalStrike, EUnitOrder.RunwayCratering, EUnitOrder.InstallationStrike,
 				EUnitOrder.GroundAttack, EUnitOrder.Interdiction, EUnitOrder.PortStrike, EUnitOrder.NavalStrike,
 				EUnitOrder.RebaseAir,
@@ -156,6 +156,8 @@ public static class CUnitOrders
 					&& IsOwnedLand(state.Province(unit.Location)) && IsOwnedLand(province);
 			case EUnitOrder.Paradrop:
 				return CParadrop.MayGive(unit, province);
+			case EUnitOrder.Nuke:
+				return !province.IsSea && CNukeMission.MayGive(state, unit, province) && IsInRange(state, unit, order, province);
 			case EUnitOrder.AirSupply:
 				return CAirSupply.MayGive(unit, province);
 			default:
@@ -281,6 +283,9 @@ public static class CUnitOrders
 			case EUnitOrder.Paradrop:
 				CParadrop.TakeOff(state, country, unit);
 				return;
+			case EUnitOrder.Nuke:
+				CNukeMission.Start(state, country, unit);
+				return;
 			case EUnitOrder.AirSupply:
 				// Its start is the bombing frame's hour.
 				CAirMissions.SetProvinces(state, unit, provinces ?? new[] { province });
@@ -328,6 +333,7 @@ public static class CUnitOrders
 		{
 			shadowed.IsShadowed = false;
 		}
+		CNukeMission.GiveBack(unit.Mission);
 		unit.Order = EUnitOrder.None;
 		unit.OrderProvince = 0;
 		unit.Mission = new CMission();
@@ -472,13 +478,14 @@ public static class CUnitOrders
 			return;
 		}
 		if (unit.Order is EUnitOrder.RebaseCarrier or EUnitOrder.CarrierProtection or EUnitOrder.Paradrop
-			or EUnitOrder.AirSupply)
+			or EUnitOrder.AirSupply or EUnitOrder.Nuke)
 		{
 			bool going = unit.Order switch
 			{
 				EUnitOrder.RebaseCarrier => Transport.CCarriers.RunRebase(state, country, unit),
 				EUnitOrder.CarrierProtection => Transport.CCarriers.RunProtection(state, country, unit),
 				EUnitOrder.Paradrop => CParadrop.RunHour(state, country, unit),
+				EUnitOrder.Nuke => CNukeMission.RunHour(state, country, unit),
 				_ => CAirSupply.RunHour(state, country, unit),
 			};
 			if (!going)

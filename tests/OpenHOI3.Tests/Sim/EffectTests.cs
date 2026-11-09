@@ -298,10 +298,10 @@ public class EffectTests
 		CGameState state = State();
 		var report = new CScriptReport();
 
-		Run(state, "surrender_inherit = POL remove_fow = 5 province_event = 1001", CEventScope.Start(Ger), report);
+		Run(state, "surrender_inherit = POL remove_fow = 5 release_vassal = POL", CEventScope.Start(Ger), report);
 
 		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["surrender_inherit"].Why);
-		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["province_event"].Why);
+		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["release_vassal"].Why);
 		Assert.Equal(3, report.Gaps.Count);
 	}
 

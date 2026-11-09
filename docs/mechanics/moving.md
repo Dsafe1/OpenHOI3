@@ -711,7 +711,7 @@ months on) - at least three hours left, and the order ends then.
   beach; a landed division put under a theatre's headquarters; the played country's invasions over its own units; and
   the weak enemy ports the paradrop planner would read.
 - The enemy's war industry handed to the agents whose air bases are nearest (section 12): so no strategic bombing or nuke
-  mission (17.4), and the strategic list (17.1) measures against the objectives.
+  mission (17.4; `nukes.md`, *Ours*), and the strategic list (17.1) measures against the objectives.
 - The scenario game's rules (nine tenths of the garrisons to the line): there is one start.
 - A strategic redeployment's cost in supplies and organisation (`STRAT_REDEP_SUPPLY_MOD`, `STRAT_REDEP_ORG_LOSS`): not
   read.

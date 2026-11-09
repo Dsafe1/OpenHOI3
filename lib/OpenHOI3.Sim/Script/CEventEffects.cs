@@ -14,7 +14,7 @@ public static class CEventEffects
 
 	public static bool TryRun(CGameState state, CEffect effect, CEventScope scope)
 	{
-		if (effect.Keyword != "country_event")
+		if (effect.Keyword is not ("country_event" or "province_event"))
 		{
 			return false;
 		}
@@ -23,7 +23,9 @@ public static class CEventEffects
 		uint seed = (uint)(scope.NextProduct() & SeedMask);
 		CEventScope root = scope.Root;
 		CCountryTag? from = root.Country;
-		CEventScope fired = CEventScope.Start(scope.Country, 0, fromCountry: from,
+		// A province event is fired in the province, with no country: its owner answers (nukes.md, section 6).
+		bool province = effect.Keyword == "province_event";
+		CEventScope fired = CEventScope.Start(province ? null : scope.Country, province ? scope.Province : 0, fromCountry: from,
 			fromProvince: from is null ? root.Province : 0, randomState: seed);
 		int id = (int)effect.Argument.Amount.ToInt();
 		foreach (CEvent candidate in state.Events)

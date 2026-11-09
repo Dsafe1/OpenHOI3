@@ -16,6 +16,12 @@ Add to it whenever a spec records something of the original's that looks like a 
 - **A headquarters' supply tooltip could show its subordinates' use.** The unit panel's supply and fuel tooltips give only the unit's own use. For a headquarters the maintainer wants its own consumption and, separately, that of all the units under it. `unitpanel.md`, 10. *Unfinished.* Risk: none.
 - **A returning unit's subordinates stay behind.** An expeditionary unit goes home alone, and everything under it stays with the host as the host's own. The maintainer wants this changed. `expeditions.md`, 3. *Oversight.* Risk: small; saves hold ownership.
 
+## The nuclear bomb
+
+- **A bomb barely touches land units or air units on the ground.** The drop goes through a settlement that divides brigades' and wings' strength damage by a hundred, so a brigade loses under 1% where a ship is usually sunk. `nukes.md`. *Oversight.* Risk: war balance.
+- **A province keeps its industry until something makes its modifier again.** Every building is flattened and the modifier is not rebuilt. `nukes.md`. *Oversight.* Risk: small.
+- **A greyed row can be the ticked one,** and the window's two dates do nothing on this order. `nukes.md`. *Display.* Risk: none.
+
 ## Alerts
 
 - **A pact's second party cannot break it when the first has nothing on the border.** The balance is nought, and turned round for the second party it is -1 rather than very large, so in the three windows it reads as too few troops. `agreements.md`, 6. *Bug.* Risk: small; AI wars.

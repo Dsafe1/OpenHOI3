@@ -37,6 +37,7 @@ public static class CUnitOrderTooltips
 		[EUnitOrder.AirIntercept] = "INTERCEPT_DESC",
 		[EUnitOrder.CarrierProtection] = "CAG_DUTY_DESC",
 		[EUnitOrder.Paradrop] = "PARADROP_MISSION_DESC",
+		[EUnitOrder.Nuke] = "NUKE_MISSION_DESC",
 		[EUnitOrder.RebaseCarrier] = "REBASE_TO_CAG_MISSION_DESC",
 		[EUnitOrder.AirSupply] = "TRANS_SUP_MISSION_DESC",
 		[EUnitOrder.GroundAttack] = "GROUNDATTACK_BOMB_DESC",

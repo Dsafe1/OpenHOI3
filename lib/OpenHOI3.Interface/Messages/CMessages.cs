@@ -143,10 +143,12 @@ public static class CMessages
 		{
 			return null;
 		}
+		bool isNuke = name is Sim.Missions.CNukeMission.WeNuke or Sim.Missions.CNukeMission.NukeOnUs or Sim.Missions.CNukeMission.NukeOnOther;
 		var message = new CMessage(types.Find(name), CMessageText.Date(localise, state.Date, state.Hour))
 		{
-			FirstCountry = pact.Actor,
-			SecondCountry = pact.Recipient,
+			// A nuclear bomb's shows the province's owner and then the bomber or the province's holder (nukes.md, section 5).
+			FirstCountry = isNuke ? state.Province(pact.Province).Owner : pact.Actor,
+			SecondCountry = isNuke && name != Sim.Missions.CNukeMission.NukeOnUs ? pact.Recipient : pact.Actor == pact.Recipient ? pact.Recipient : isNuke ? pact.Actor : pact.Recipient,
 			Scores = pact.Scores,
 			// An agreement run out goes to the other side's capital, which the diplomacy screen then opens on.
 			Province = pact.Province > 0 || name != CMessageGotos.AgreementExpired ? pact.Province : state.Country(pact.Recipient)?.Capital ?? 0,
@@ -190,6 +192,11 @@ public static class CMessages
 			{
 				message.Variables.RemoveAll(variable => variable.Key == key);
 				message.Variables.Add((key, value));
+				continue;
+			}
+			if (key == "IMPACT" && isNuke)
+			{
+				message.Variables.Add((key, Text.CNumberText.Format(new Sim.CFixedPoint(long.Parse(value, System.Globalization.CultureInfo.InvariantCulture)), 1)));
 				continue;
 			}
 			// A landing's provinces are written as a list, each once (transport.md, section 11).

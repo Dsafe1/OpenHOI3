@@ -150,6 +150,10 @@ if (args.Length > 0 && args[0] == "airbattle")
 }
 
 // One bombing mission is flown for some days and what it did is told.
+if (args.Length > 0 && args[0] == "nuke")
+{
+	return CNukeTrial.Run(args);
+}
 if (args.Length > 0 && args[0] == "bombing")
 {
 	return CBombingTrial.Run(args);

@@ -222,6 +222,125 @@ public class BombingTests
 		return unit;
 	}
 
+	// ---- the nuclear bomb (nukes.md)
+
+	private static CGameState NukeWorld(out CCountry germany, out CCountry poland, bool atWar = true)
+	{
+		CGameState state = State(out germany, out poland, atWar);
+		state.Defines.Set(OpenHOI3.Sim.Research.CResearch.CountrySection, "NUKE_UNITY_IMPACT", CFixedPoint.One);
+		return state;
+	}
+
+	[Fact]
+	public void A_bomb_comes_out_of_the_stock_and_goes_back_with_the_order()
+	{
+		CGameState state = NukeWorld(out CCountry germany, out _);
+		germany.Nukes = CFixedPoint.FromInt(2);
+		CUnit bomber = Air(state, germany, Warsaw, Heavy);
+		CUnitOrders.Give(state, germany, bomber, EUnitOrder.Nuke, Warsaw);
+		Assert.Equal(1000, germany.Nukes.Raw);
+		Assert.Equal(1, bomber.Mission.Nukes);
+		CUnitOrders.Clear(bomber);
+		Assert.Equal(2000, germany.Nukes.Raw);
+	}
+
+	[Fact]
+	public void With_no_bomb_in_the_stock_the_order_ends_with_nothing_lost()
+	{
+		CGameState state = NukeWorld(out CCountry germany, out _);
+		CUnit bomber = Air(state, germany, Warsaw, Heavy);
+		CUnitOrders.Give(state, germany, bomber, EUnitOrder.Nuke, Warsaw);
+		Assert.False(CNukeMission.RunHour(state, germany, bomber));
+		Assert.Equal(0, germany.Nukes.Raw);
+	}
+
+	[Fact]
+	public void The_bomb_lays_the_buildings_flat_and_empties_the_goods_and_is_spent()
+	{
+		CGameState state = NukeWorld(out CCountry germany, out CCountry poland);
+		germany.Nukes = CFixedPoint.One;
+		poland.NationalUnity = CFixedPoint.FromInt(50);
+		CUnit bomber = Air(state, germany, Warsaw, Heavy);
+		CUnitOrders.Give(state, germany, bomber, EUnitOrder.Nuke, Warsaw);
+		bomber.Path.Clear();
+		Assert.False(CNukeMission.RunHour(state, germany, bomber));
+		CProvince warsaw = state.Province(Warsaw);
+		Assert.Equal(CFixedPoint.Zero, warsaw.BuildingLevel(Factory));
+		Assert.Equal(CFixedPoint.FromInt(8), warsaw.BuildingMaxLevel(Factory));
+		Assert.Equal(CFixedPoint.Zero, warsaw.Pool[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Zero, warsaw.CurrentProducing[EGoods.Metal]);
+		Assert.Equal(49000, poland.NationalUnity.Raw);
+		CUnitOrders.Clear(bomber);
+		Assert.Equal(0, germany.Nukes.Raw);
+	}
+
+	[Fact]
+	public void A_core_adds_its_industry_and_the_acting_capital_doubles_it()
+	{
+		CGameState state = NukeWorld(out _, out CCountry poland);
+		CProvince warsaw = state.Province(Warsaw);
+		long industry = warsaw.Modifier[CIndustrialCapacity.ProvinceIc].Raw;
+		Assert.Equal(1000, CNukeMission.UnityLost(state, poland, warsaw));
+		warsaw.Cores.Add(Pol);
+		Assert.Equal(1000 + industry, CNukeMission.UnityLost(state, poland, warsaw));
+		poland.ActingCapital = Warsaw;
+		Assert.Equal((1000 + industry) * 2, CNukeMission.UnityLost(state, poland, warsaw));
+	}
+
+	[Fact]
+	public void A_brigade_loses_about_a_hundredth_of_its_strength_and_all_its_organisation()
+	{
+		CGameState state = NukeWorld(out CCountry germany, out CCountry poland);
+		germany.Nukes = CFixedPoint.One;
+		CUnit division = Unit(state, poland, EUnitKind.Division, Warsaw, Infantry);
+		long before = division.SubUnits[0].Strength.Raw;
+		CUnit bomber = Air(state, germany, Warsaw, Heavy);
+		CUnitOrders.Give(state, germany, bomber, EUnitOrder.Nuke, Warsaw);
+		bomber.Path.Clear();
+		CNukeMission.RunHour(state, germany, bomber);
+		long lost = before - division.SubUnits[0].Strength.Raw;
+		Assert.InRange(lost, before * 6 / 1000, before * 11 / 1000);
+		Assert.Equal(CFixedPoint.Zero, division.SubUnits[0].Organisation);
+	}
+
+	[Fact]
+	public void The_order_ends_where_the_target_is_no_enemys_and_the_bomb_comes_back()
+	{
+		CGameState state = NukeWorld(out CCountry germany, out _, atWar: false);
+		CUnit bomber = Air(state, germany, Berlin, Heavy);
+		bomber.Order = EUnitOrder.Nuke;
+		bomber.OrderProvince = Warsaw;
+		bomber.Mission.Nukes = 1;
+		bomber.Mission.BombsFrom = germany;
+		Assert.False(CNukeMission.RunHour(state, germany, bomber));
+		CUnitOrders.Clear(bomber);
+		Assert.Equal(1000, germany.Nukes.Raw);
+	}
+
+	[Fact]
+	public void Technology_adds_to_the_stock_by_the_month()
+	{
+		CGameState state = NukeWorld(out CCountry germany, out _);
+		germany.Technology.Set(CNukeMission.Production, CFixedPoint.Parse("0.1"));
+		CNukeMission.RunMonthly(state);
+		Assert.Equal(100, germany.Nukes.Raw);
+	}
+
+	[Fact]
+	public void The_row_wants_a_bomb_for_each_unit_selected_and_is_ticked_even_where_it_cannot_be_given()
+	{
+		CGameState state = NukeWorld(out CCountry germany, out _);
+		CUnit bomber = Air(state, germany, Berlin, Heavy);
+		CProvince warsaw = state.Province(Warsaw);
+		Assert.DoesNotContain(OpenHOI3.Interface.Screens.COrdersText.Rows(state, germany, bomber, warsaw), row => row.Order == EUnitOrder.Nuke);
+		germany.Nukes = CFixedPoint.One;
+		var rows = OpenHOI3.Interface.Screens.COrdersText.Rows(state, germany, bomber, warsaw);
+		Assert.Contains(rows, row => row.Order == EUnitOrder.Nuke);
+		Assert.DoesNotContain(OpenHOI3.Interface.Screens.COrdersText.Rows(state, germany, bomber, warsaw, selected: 2), row => row.Order == EUnitOrder.Nuke);
+		int ticked = OpenHOI3.Interface.Screens.CAirOrdersText.Suggested(rows, state, germany, bomber, warsaw, EUnitOrder.None);
+		Assert.Equal(EUnitOrder.Nuke, rows[ticked].Order);
+	}
+
 	private static CUnit Air(CGameState state, CCountry country, int province, params CSubUnitType[] wings)
 	{
 		return Unit(state, country, EUnitKind.Air, province, wings);

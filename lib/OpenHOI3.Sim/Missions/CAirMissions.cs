@@ -55,7 +55,7 @@ public static class CAirMissions
 	{
 		return IsAirMission(order) || order == EUnitOrder.RebaseAir || CBombingOrders.IsBombingMission(order)
 			|| order is EUnitOrder.RebaseCarrier or EUnitOrder.CarrierProtection or EUnitOrder.Paradrop
-				or EUnitOrder.AirSupply;
+				or EUnitOrder.AirSupply or EUnitOrder.Nuke;
 	}
 
 	/// <summary>

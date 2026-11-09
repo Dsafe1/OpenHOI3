@@ -131,6 +131,7 @@ public sealed class CConsoleRunner
 				Cheat(ECheat.AddEveryGood, player?.Tag, amount: Thousands(args[0]));
 				return Ok("Added " + Atoi(args[0]).ToString(CultureInfo.InvariantCulture) + " of everything.");
 			case "addmanpower": return Added(args, ECheat.AddManpower, "manpower");
+			case "nukes": return Added(args, ECheat.AddNukes, "nukes");
 			case "addofficers": return Added(args, ECheat.AddOfficers, "officers");
 			case "noneutrality":
 				if (args.Length != 0)

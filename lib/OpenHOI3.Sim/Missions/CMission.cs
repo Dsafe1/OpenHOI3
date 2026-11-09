@@ -15,6 +15,12 @@ public sealed class CMission
 	public const int Defensive = 1;
 	public const int Passive = 2;
 
+	/// <summary>The bombs the order carries: one from the hour it takes it from the stock until it is dropped.</summary>
+	public int Nukes { get; set; }
+
+	/// <summary>The country a carried bomb goes back to.</summary>
+	public Countries.CCountry? BombsFrom { get; set; }
+
 	/// <summary>What a unit is making for before it has been told: no province.</summary>
 	public const int NoHeading = -1;
 

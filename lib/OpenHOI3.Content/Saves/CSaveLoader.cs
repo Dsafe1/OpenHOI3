@@ -402,6 +402,7 @@ public static class CSaveLoader
 		CSaveAiStrategy.Read(state, country, node, ids, report);
 
 		country.Manpower = CSaveValues.Fixed(node, "manpower");
+		country.Nukes = CSaveValues.Fixed(node, "nukes");
 		country.Officers = CSaveValues.Fixed(node, "officers");
 		country.DiplomaticInfluence = CSaveValues.Fixed(node, "diplo_influence");
 		country.NationalUnity = CSaveValues.Fixed(node, "national_unity");

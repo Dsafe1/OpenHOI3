@@ -438,7 +438,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 
 		// Nothing makes a bomb yet. The two counts are the transports and escorts free of the country's convoys, and
 		// the ships its queue still has to give (convoylines.md, section 4).
-		Set(_nukes, CProductionScreenText.Nukes(CFixedPoint.Zero));
+		Set(_nukes, CProductionScreenText.Nukes(Player.Nukes));
 		Set(_transports, CProductionScreenText.Convoys(country.Transports, CConvoyLines.BeingBuilt(state, country, escorts: false)));
 		Set(_escorts, CProductionScreenText.Convoys(country.Escorts, CConvoyLines.BeingBuilt(state, country, escorts: true)));
 		if (_escort is not null)

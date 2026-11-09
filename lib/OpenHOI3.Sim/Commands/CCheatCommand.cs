@@ -56,6 +56,9 @@ public sealed class CCheatCommand : CCommand
 					pool[good] += new CFixedPoint(_amount);
 				}
 				break;
+			case ECheat.AddNukes when country is not null:
+				country.Nukes = new CFixedPoint(country.Nukes.Raw + _amount);
+				break;
 			case ECheat.AddManpower when country is not null:
 				country.Manpower = new CFixedPoint(Math.Max(0, country.Manpower.Raw + _amount));
 				break;

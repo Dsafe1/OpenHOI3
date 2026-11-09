@@ -468,6 +468,8 @@ public static class CUnitPanelText
 					return CTextTemplate.Fill(localise("PARADROP_MISSION_SHORT_DESC"),
 						("TYPE", localise(!Sim.Missions.CAirMissions.IsFitToFly(state, unit) ? "STRAT_BOMB_WAITING"
 							: AirDoing(unit))));
+				case EUnitOrder.Nuke:
+					return CTextTemplate.Fill(localise("NUKE_MISSION_SHORT_DESC"), ("TYPE", localise(AirDoing(unit))));
 				case EUnitOrder.RebaseCarrier:
 					return CTextTemplate.Fill(localise("REBASE_TO_CAG_MISSION_SHORT_DESC"), ("TYPE", localise(AirDoing(unit))));
 				case EUnitOrder.CarrierProtection:

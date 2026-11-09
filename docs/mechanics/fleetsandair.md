@@ -252,7 +252,7 @@ air supply (`transport.md`, section 13.6), each listed where the original lists 
 is listed as the original lists it and cannot be ticked: an air unit's reserve and raid on convoys. A
 fleet carrying anything opens the window on Transport where it would on Rebase, and a plain right
 click on a coast the sea does not reach opens it where its first passenger may land there
-(`transport.md`, section 12). The nuclear bomb's row is left out, there being no bomb. The stance and the priority go with a fleet's order and mean something
+(`transport.md`, section 12). The nuclear bomb's row is `nukes.md`'s. The stance and the priority go with a fleet's order and mean something
 to its missions. In the original a row and `accept` say in a tooltip why they cannot be used.
 
 ## 5. The orders

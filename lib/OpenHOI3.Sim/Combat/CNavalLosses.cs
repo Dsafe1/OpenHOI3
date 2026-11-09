@@ -47,6 +47,34 @@ public static class CNavalLosses
 	}
 
 	/// <summary>
+	/// A fleet's notes taken off it outside a battle, a nuclear bomb's: as <see cref="Settle"/> takes them, nothing laid on
+	/// what it carries and nothing told to a side; and each ship with next to no strength left sunk, the fleet going with the
+	/// last.
+	/// </summary>
+	public static void SettleOutOfBattle(CGameState state, CUnit fleet)
+	{
+		for (int i = fleet.SubUnits.Count - 1; i >= 0; i--)
+		{
+			CSubUnit ship = fleet.SubUnits[i];
+			ship.Strength = new CFixedPoint(ship.Strength.Raw - Math.Min(ship.PendingStrengthDamage, ship.Strength.Raw));
+			ship.Organisation = new CFixedPoint(ship.Organisation.Raw - Math.Min(ship.PendingOrganisationDamage, ship.Organisation.Raw));
+			ship.PendingStrengthDamage = 0;
+			ship.PendingOrganisationDamage = 0;
+			if (ship.Strength < LeastStrengthAfloat)
+			{
+				fleet.SubUnits.RemoveAt(i);
+				Transport.CCarriers.LetGo(state, ship);
+				ship.Unit = null;
+				CSunkShips.Add(state, fleet.Owner, ship);
+			}
+		}
+		if (fleet.SubUnits.Count == 0)
+		{
+			CCombatRetreat.RemoveFromGame(state, fleet);
+		}
+	}
+
+	/// <summary>
 	/// Sinks every ship of a side that has next to no strength left: out of its fleet,
 	/// out of whatever had it in its sights, and onto the side's list. A fleet with no
 	/// ship left is removed from the game.

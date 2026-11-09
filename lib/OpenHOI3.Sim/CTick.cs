@@ -270,6 +270,7 @@ public static class CTick
 		// section 5).
 		Step(state, CProvinceModifiers.Rebuild);
 		Step(state, Provinces.CNationalism.DecayMonthly);
+		Step(state, Missions.CNukeMission.RunMonthly);            // the bombs its technology makes (nukes.md, section 1)
 		// The month's pass a new game runs before its first hour decays nothing: the
 		// original takes nothing off an ability until a game is under way.
 		if (!state.IsBeingMade)

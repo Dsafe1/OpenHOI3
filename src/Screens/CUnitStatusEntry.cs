@@ -35,6 +35,7 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 	private readonly CGuiIcon? _moving;
 	private readonly CGuiIcon? _distance;
 	private readonly CGuiIcon? _combinedArms;
+	private readonly CGuiIcon? _nuke;
 	private readonly CGuiIcon? _dugIn;
 	private readonly CGuiIcon? _delay;
 
@@ -64,8 +65,7 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 		_dugIn = window.FindIcon("unitstatus_dugin");
 		_delay = window.FindIcon("unitstatus_delay");
 
-		// A mark for what is not built: no nuclear order.
-		Show(window.FindIcon("unitstatus_nuke"), false);
+		_nuke = window.FindIcon("unitstatus_nuke");
 		string shortcut = "";
 		if (window.FindButton("unit_location_button") is { } button)
 		{
@@ -104,6 +104,7 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 
 		Show(_moving, _unit.IsMoving);
 		Show(_combinedArms, CUnitPanelText.HasCombinedArms(_state, _unit));
+		Show(_nuke, _unit.Order == EUnitOrder.Nuke && _unit.Mission.Nukes > 0);
 		Show(_dugIn, CUnitPanelText.IsDugIn(_unit));
 		Show(_delay, CUnitPanelText.IsDelayed(_unit));
 		// The second frame is for a unit out of its headquarters' radio range.

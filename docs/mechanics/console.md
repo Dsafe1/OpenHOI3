@@ -34,7 +34,7 @@ The first word is looked up **exactly, with its case**, by a row's name or one o
 
 ## 3. What is not
 
-Everything else in the table answers `Not built.`, *Ours*, in red: the commands the readme rates not worth building. `nukes` is to come with a nuclear system, by the maintainer's word on 2026-11-09.
+Everything else in the table answers `Not built.`, *Ours*, in red: the commands the readme rates not worth building. `nukes` adds a bomb for each one given (`nukes.md`).
 
 `debug render`'s layers here: `Trees`, `Borders`, `Text` (the province names and the far view's country names), `Rivers`, `Water` (the sea and the surf) and `WaterBorders` hide what they name. `Overlay`, `Objects`, `MapObjects` and `Effects` only turn over in the list, nothing here being drawn under them.
 

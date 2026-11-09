@@ -318,6 +318,7 @@ public static class CSaveWriter
 		writer.Quoted("ideology", country.RulingIdeology.Length > 0 ? country.RulingIdeology : "noIdeology");
 		WriteEventModifiers(writer, country.EventModifiers);
 		writer.Fixed("manpower", country.Manpower);
+		writer.Fixed("nukes", country.Nukes);
 		// The military part (savegame.md, section 9): the queue, the four switches, the leaders in service, the units
 		// at the top of its tree and what waits to be placed.
 		CSaveLines.WriteQueue(writer, state, country);

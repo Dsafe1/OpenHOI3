@@ -476,8 +476,8 @@ popularity allots and the last eleven another set. So a country keeps the list a
 and **a game loaded here writes the seats and then the save's list**, 22 figures for a save of 11, and 33 for that one -
 as the original's would.
 
-**Not held, so not written**: `nukes`, `nocategory` and `last_mission_cancel` - in every save of the maintainer's
-`0.000`, `0.000` and `1.1.1.0`. `war_exhaustion` is held, read and written since 2026-11-07 (`warexhaustion.md`, section
+**Not held, so not written**: `nocategory` and `last_mission_cancel` - in every save of the maintainer's `0.000` and
+`1.1.1.0`. `nukes` is held, read and written since 2026-11-09 (`nukes.md`). `war_exhaustion` is held, read and written since 2026-11-07 (`warexhaustion.md`, section
 6).
 
 **Checked** with `OpenHOI3.SaveCheck write` and each key's text set beside the save's. On 2026-11-06, in
