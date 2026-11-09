@@ -79,6 +79,14 @@ where the original keeps them, so the order of the rest is ours.
 - **`--screen=production` and `--screen=technology`** after `--` on the command line open
   a screen at once, for looking at it without a mouse.
 
+## 6. The picture behind them
+
+`menubar.gui`'s `bg_main_menus` (`GFX_bg_main_menus`) is up behind a country screen and the Statistics, and only them [exe]. It stands at the screen's corner, scaled by the larger of the screen's width over its width and the screen's height over its height, where that is above one, so a picture larger than the screen is cut off at the right and bottom [exe]. It covers the map and the bottom bar - the log, the map modes' buttons and the rest - and only the chat is put over it, the screen, the top bar and the alerts coming after [exe]; the map takes no click through it. The maintainer set this beside the original on 2026-11-09: the log and the map modes' buttons do not show there, and what stays over the picture is as it is here.
+
+A country screen also takes down the minimap, `minimap_bg` and `minimap_overlay` while it is up [exe], as well; the Statistics do not.
+
+`reversing/findings/FINDINGS-minimap.md`, *The picture behind the country screens*.
+
 ## What is not established, in one place
 
 1. **What the top bar's buttons do**, and whether opening one screen closes another.

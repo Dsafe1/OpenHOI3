@@ -56,6 +56,7 @@ public partial class CSession : Node
 	private CEspionageView? _espionage;
 	private CTheatreView? _theatres;
 	private CLedgerView? _statistics;
+	private CMenuBackground? _menuBackground;
 	private CWarfareView? _warfare;
 	private CStrategicEffectsView? _strategicEffects;
 	private CVictoryConditionsView? _victoryConditions;
@@ -594,6 +595,11 @@ public partial class CSession : Node
 			_minimap.Setup(gui, _mapView);
 			layer.AddChild(_minimap);
 			layer.MoveChild(_minimap, 1);
+			// The picture behind a country screen, over the map, the bar and the minimap (countryviews.md, section 6).
+			_menuBackground = new CMenuBackground();
+			_menuBackground.Setup(gui);
+			layer.AddChild(_menuBackground);
+			layer.MoveChild(_menuBackground, 2);
 			_modeButtons = messageLog;
 			messageLog.ModeButtonPressed += ChooseMapMode;
 			var gotoBox = new CGotoBoxView();
@@ -1116,6 +1122,25 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
+	/// The picture up behind a country screen or the Statistics, and with a country screen the minimap down so that the
+	/// picture shows where it was (<c>countryviews.md</c>, section 6).
+	/// </summary>
+	private void UpdateMenuBackground()
+	{
+		bool countryView = _production?.IsOpen == true || _technology?.IsOpen == true || _diplomacy?.IsOpen == true
+			|| _politics?.IsOpen == true || _espionage?.IsOpen == true || _theatres?.IsOpen == true;
+		bool shown = countryView || _statistics?.IsOpen == true;
+		if (_menuBackground is not null && _menuBackground.Visible != shown)
+		{
+			_menuBackground.SetShown(shown);
+		}
+		if (_minimap is not null && _minimap.Visible == countryView)
+		{
+			_minimap.Visible = !countryView;
+		}
+	}
+
+	/// <summary>
 	/// An alert clicked (<c>docs/mechanics/alerts.md</c>, section 4): the orders window closed, the selection let go but for
 	/// the two that go to a unit, and the view or the unit each one answers to. Six have no answer and only do the first.
 	/// </summary>
@@ -1217,6 +1242,7 @@ public partial class CSession : Node
 	{
 		long frameStart = Stopwatch.GetTimestamp();
 		DisbandEmptyUnits();
+		UpdateMenuBackground();
 		double simulation = 0;
 		int hours = 0;
 		// The readout is refreshed once a frame and not once an hour: at the top speed a
