@@ -30,7 +30,7 @@ public static class CAirBattle
 		if (unit == other || unit.Owner == other.Owner
 			|| unit.Kind != EUnitKind.Air || other.Kind != EUnitKind.Air
 			|| unit.IsRemoved || other.IsRemoved || unit.IsRetreating || other.IsRetreating
-			|| !CMovementRules.IsEnemy(state, unit.Owner, other.Owner))
+			|| !CMovementRules.IsEnemyIn(state, unit.Owner, other.Owner, unit.Location))
 		{
 			return false;
 		}

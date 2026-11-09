@@ -43,6 +43,12 @@ public static class CMovementRules
 		return unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air;
 	}
 
+	/// <summary>Enemies in this province: at war, or in a war nobody declared whose regions take it in (<c>war.md</c>, section 15).</summary>
+	public static bool IsEnemyIn(CGameState state, CCountryTag? a, CCountryTag? b, int province)
+	{
+		return IsEnemy(state, a, b) || (a is { } one && b is { } other && Wars.CUndeclaredWars.Covers(state, one, other, province));
+	}
+
 	/// <summary>Whether two countries are fighting each other in some war, or one of them is the rebels.</summary>
 	public static bool IsEnemy(CGameState state, CCountryTag? a, CCountryTag? b)
 	{

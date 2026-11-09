@@ -86,6 +86,66 @@ public static class COrderOfBattleReader
 	/// </summary>
 	/// <param name="provinceCount">One more than the highest province id there is.</param>
 	/// <returns>The last number given to a unit or a brigade.</returns>
+	/// <summary>
+	/// A file of units read into a country as a game runs, for <c>load_oob</c>: placed at once, each brigade held to its
+	/// ceiling and its experience left as the file gives it, and no leader chosen. A unit with no place is left out. A line of the build queue in
+	/// such a file is not built, and is reported.
+	/// </summary>
+	public static void ReadInto(CDirectorySettings directories, CGameState state, CCountry country, string file, Action<string>? warn = null)
+	{
+		warn ??= CDiagnostics.Warn;
+		string path = directories.Resolve($"{Directory}/{file}");
+		if (!File.Exists(path))
+		{
+			return;
+		}
+		ClausewitzNode root = ClausewitzParser.ParseFile(path);
+		var reading = new CReading(state.SubUnitTypes, state.Technologies, state.Provinces.Count);
+		reading.StartAfter(state.LastUnitId);
+		var made = new List<CUnit>();
+		foreach (ClausewitzNode entry in root.Children)
+		{
+			if (entry.Key is null)
+			{
+				continue;
+			}
+			if (entry.IsBlock && UnitKinds.TryGetValue(entry.Key, out EUnitKind kind))
+			{
+				CUnit unit = reading.ReadUnit(entry, kind, country, parent: null, carriedBy: null);
+				if (unit.Location != 0)
+				{
+					country.Units.Add(unit);
+					made.Add(unit);
+				}
+			}
+			else if (entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
+			{
+				warn($"{country.Tag}: '{file}' has a line of the build queue, which a game under way does not take from such a file");
+			}
+		}
+		state.LastUnitId = reading.LastId;
+		var waiting = new Stack<CUnit>(made);
+		while (waiting.Count > 0)
+		{
+			CUnit part = waiting.Pop();
+			foreach (CUnit child in part.Children)
+			{
+				waiting.Push(child);
+			}
+			{
+				foreach (CSubUnit subUnit in part.SubUnits)
+				{
+					CUnits.AfterLoad(state, country, subUnit);
+				}
+				if (part.LeaderId != 0 && state.Leaders.TryGetValue(part.LeaderId, out Sim.Leaders.CLeader? leader))
+				{
+					Sim.Leaders.CLeaders.SetLeader(state, part, leader, false, false);
+				}
+			}
+		}
+		state.ForgetPositions();
+	}
+
 	public static int Read(CDirectorySettings directories, IEnumerable<CCountry> countries,
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes, IReadOnlyDictionary<string, CTechnology> technologies,
 		int provinceCount, Action<string>? warn = null)
@@ -185,6 +245,12 @@ public static class COrderOfBattleReader
 		}
 
 		public int LastId { get; private set; }
+
+		/// <summary>Numbers what is read after the game's last number, for a file read as a game runs.</summary>
+		public void StartAfter(int last)
+		{
+			LastId = last;
+		}
 
 		/// <summary>
 		/// A unit being built as the game starts: a line of its country's build queue, as

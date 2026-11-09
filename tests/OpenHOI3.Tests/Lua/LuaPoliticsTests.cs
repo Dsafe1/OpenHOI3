@@ -127,7 +127,7 @@ end");
 	}
 
 	[Fact]
-	public void The_tick_is_handed_a_minister_whose_ai_posts_and_liberating_is_reported_and_posts_nothing()
+	public void The_tick_is_handed_a_minister_whose_ai_posts_and_a_liberation_is_posted_like_the_rest()
 	{
 		CGameState state = World();
 		using CAiScripts scripts = Load(@"
@@ -142,10 +142,10 @@ function PoliticsMinister_Tick(minister)
 	ai:Post(CLiberateCountryCommand(tag, tag))
 end");
 		scripts.RunPolitics(state, state.Country(Ita)!);
-		Assert.Equal(2, state.Outbox.Count);
+		Assert.Equal(3, state.Outbox.Count);
 		Assert.True(state.Outbox[0] is CToggleMobilisationCommand { Mobilise: true });
 		Assert.True(state.Outbox[1] is CChangeMinisterCommand { Minister: 7, Position: "foreign_minister" });
-		Assert.Single(_reports, report => report.Contains("CLiberateCountryCommand", StringComparison.Ordinal));
+		Assert.IsType<CLiberateCountryCommand>(state.Outbox[2]);
 	}
 
 	[Fact]

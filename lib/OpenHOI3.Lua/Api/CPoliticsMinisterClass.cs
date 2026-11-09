@@ -12,8 +12,6 @@ public static class CPoliticsMinisterClass
 {
 	private const string Name = "CAIPoliticsMinister";
 
-	private const string LiberationUnbuilt = "liberating a country (IsCapitalSafeToLiberate): false";
-
 	public static CLuaClass Define(CGameApi api)
 	{
 		return new CLuaClass(Name)
@@ -21,9 +19,9 @@ public static class CPoliticsMinisterClass
 			.Method("GetOwnerAI", call => call.Return(new CLuaObject(api.Ai, new CLuaAi(Of(call)))))
 			.Method("IsCapitalSafeToLiberate", call =>
 			{
-				Of(call);
-				api.ReportUnbuilt(LiberationUnbuilt);
-				return call.Return(false);
+				CCountry country = Of(call);
+				return call.Return(api.State.Country(call.Object<CCountryTag>(2, "CCountryTag")) is { } exile
+					&& OpenHOI3.Sim.Wars.CLiberation.IsCapitalSafe(api.State, country, exile));
 			});
 	}
 

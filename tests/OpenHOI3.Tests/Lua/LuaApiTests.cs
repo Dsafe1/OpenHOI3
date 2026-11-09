@@ -229,19 +229,17 @@ public sealed class LuaApiTests : IDisposable
 	}
 
 	[Fact]
-	public void What_is_not_built_answers_nought_and_is_reported_once()
+	public void A_country_may_make_a_puppet_where_it_has_one_to_make_and_nothing_is_reported()
 	{
 		CGameState state = World();
 		using CAiScripts scripts = Load();
-		Assert.Equal(false, scripts.Ask(state, $"{Ger}:GetCountry():CanCreatePuppet()"));
 		Assert.Equal(false, scripts.Ask(state, $"{Pol}:GetCountry():CanCreatePuppet()"));
 		Assert.Equal(false, scripts.Ask(state, $"{Ger}:GetCountry():IsGovernmentInExile()"));
-		Assert.Single(_reports);
-		Assert.All(_reports, report => Assert.StartsWith("LUA unbuilt: ", report));
+		Assert.Empty(_reports);
 		// Germany has no spies in Poland here, so the factor is Poland's counter-intelligence turned round - none - and
 		// nothing about it is unbuilt.
 		Assert.Equal(0.0, scripts.Ask(state, $"CAIIntel({Ger}, {Pol}):GetFactor()"));
-		Assert.Single(_reports);
+		Assert.Empty(_reports);
 	}
 
 	[Fact]

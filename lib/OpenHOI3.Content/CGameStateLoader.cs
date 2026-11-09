@@ -341,6 +341,7 @@ public static class CGameStateLoader
 			country.Constructions.Clear();
 			country.Deployments.Clear();
 		}
+		state.LoadOrderOfBattle = (country, file) => COrderOfBattleReader.ReadInto(directories, state, country, file);
 		state.LastUnitId = COrderOfBattleReader.Read(directories, state.Countries, state.SubUnitTypes,
 			state.Technologies, state.Provinces.Count, warn);
 		RegisterUnitNames(state);

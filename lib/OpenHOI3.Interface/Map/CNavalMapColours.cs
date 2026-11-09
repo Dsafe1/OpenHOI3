@@ -19,6 +19,7 @@ public static class CNavalMapColours
 	public static readonly CColor Grey = new(0.5f, 0.5f, 0.5f, 0.5f);
 	public static readonly CColor Patrol = new(0.25f, 1f, 0.25f, 0.5f);
 	public static readonly CColor Raid = new(1f, 0.25f, 0.25f, 0.5f);
+	public static readonly CColor Undeclared = new(1f, 210f / 255f, 0.25f, 0.5f);
 
 	/// <summary>The two colours of every province the player's naval orders paint; any other is grey.</summary>
 	public static Dictionary<int, (CColor Ground, CColor Stripes)> Build(CGameState state, CCountryTag? player)
@@ -27,6 +28,24 @@ public static class CNavalMapColours
 		if (state.Country(player) is not { } country)
 		{
 			return painted;
+		}
+		// The regions of its undeclared wars first, which what follows may paint over (war.md, section 15).
+		foreach (Sim.Wars.CUndeclaredWar war in state.UndeclaredWars)
+		{
+			if (!war.Attackers.Contains(country.Tag) && !war.Defenders.Contains(country.Tag))
+			{
+				continue;
+			}
+			foreach (CRegion region in state.Regions)
+			{
+				if (war.Regions.Contains(region.Name))
+				{
+					foreach (int id in region.Provinces)
+					{
+						painted[id] = (Undeclared, Undeclared);
+					}
+				}
+			}
 		}
 		foreach (CUnit unit in country.AllUnits())
 		{

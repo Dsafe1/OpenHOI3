@@ -373,3 +373,10 @@ hourly return of organisation were on this list until 2026-10-08. They are built
   at a figure that is not in the file;
 - what a type with no `type` line becomes;
 - what changes conscription laws before the units are made.
+
+## A file of units as a game runs
+
+`load_oob` reads a file under `history/units` into the scope's country [exe]: nothing where the name is empty, or where the country owns no land and is not the rebels. Its units are on the map at once at the file's `location`, and one with no location is left out. Numbers follow the game's last. Each brigade takes what the file gives, held to its ceiling as it stands now; **experience the file does not give is not filled in**, and a unit with no `leader` line has no leader, where a new game fills both [exe]. `reversing/findings/FINDINGS-scriptgaps.md`, section 6.
+
+**Ours**: a `military_construction` in such a file is reported and not taken. Neither of the base game's two files has one.
+

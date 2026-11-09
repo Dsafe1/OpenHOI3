@@ -25,7 +25,7 @@ public static class CAirTargets
 	public static long? Score(CGameState state, CUnit unit, CUnit candidate, bool needsWings)
 	{
 		if (CAirMissions.IsAtOwnBase(candidate)
-			|| !CMovementRules.IsEnemy(state, candidate.Owner, unit.Owner)
+			|| !CMovementRules.IsEnemyIn(state, candidate.Owner, unit.Owner, candidate.Location)
 			|| (needsWings && candidate.SubUnits.Count == 0))
 		{
 			return null;

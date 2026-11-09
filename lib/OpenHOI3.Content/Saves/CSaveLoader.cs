@@ -132,6 +132,25 @@ public static class CSaveLoader
 				case "active_war" when node.IsBlock:
 					state.Wars.Add(CSaveWars.Read(state, node, report, localisation.Localise));
 					break;
+				case "undeclared_war" when node.IsBlock:
+					var undeclared = new Sim.Wars.CUndeclaredWar();
+					foreach (ClausewitzNode entry in node.Children)
+					{
+						switch (entry.Key)
+						{
+							case "attacker":
+								undeclared.Attackers.Add(new CCountryTag(entry.Value ?? ""));
+								break;
+							case "defender":
+								undeclared.Defenders.Add(new CCountryTag(entry.Value ?? ""));
+								break;
+							case "region":
+								undeclared.Regions.Add(entry.Value ?? "");
+								break;
+						}
+					}
+					state.UndeclaredWars.Add(undeclared);
+					break;
 				case "previous_war" when node.IsBlock:
 					state.FinishedWars.Add(CSaveWars.Read(state, node, report, localisation.Localise));
 					break;

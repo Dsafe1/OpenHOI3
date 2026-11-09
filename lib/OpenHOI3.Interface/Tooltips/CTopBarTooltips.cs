@@ -146,9 +146,9 @@ public static class CTopBarTooltips
 	public static CFixedPoint DayChange(CCountry country, EGoods goods)
 	{
 		CFixedPoint goingOut = IntoNetwork(country, goods) + country.Usage[goods] + country.ConversionUsed[goods]
-			+ country.ConvoyedOut[goods] + country.TradedAway[goods];
+			+ country.ConvoyedOut[goods] + country.TradedAway[goods] - country.TributeSent[goods];
 		CFixedPoint comingIn = country.HomeProduced[goods] + ConvoyedIn(country, goods) + country.TradedFor[goods]
-			+ country.ConversionMade[goods] + country.SentBack[goods];
+			+ country.ConversionMade[goods] + country.SentBack[goods] + country.TributeReceived[goods];
 		return comingIn - goingOut;
 	}
 

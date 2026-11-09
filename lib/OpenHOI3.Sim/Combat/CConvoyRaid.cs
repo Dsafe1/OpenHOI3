@@ -94,7 +94,7 @@ public static class CConvoyRaid
 		CConvoy? target = null;
 		foreach (CConvoy convoy in Through(state, raider.Location))
 		{
-			if (convoy.Owner == raider.Owner || !CMovementRules.IsEnemy(state, convoy.Owner, raider.Owner)
+			if (convoy.Owner == raider.Owner || !CMovementRules.IsEnemyIn(state, convoy.Owner, raider.Owner, raider.Location)
 				|| convoy.Transports <= 0)
 			{
 				continue;

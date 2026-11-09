@@ -29,8 +29,6 @@ public static class CUnansweredConditions
 			}
 		}
 
-		// Diplomacy.
-		Add(EScriptGap.Unbuilt, "undeclared_war_with");
 		// The fog of war.
 		Add(EScriptGap.Unbuilt, "remove_fow");
 		// The AI's missions.
@@ -43,7 +41,7 @@ public static class CUnansweredConditions
 			"last_air_battle_loser_losses", "last_naval_battle_winner_losses", "last_naval_battle_loser_losses");
 		Add(EScriptGap.Unbuilt, "blockade", "is_blockaded", "out_of_supply_days");
 
-		Add(EScriptGap.Unread, "num_of_ports", "total_num_of_ports", "has_hostile_spy_mission");
+		Add(EScriptGap.Unread, "has_hostile_spy_mission");
 
 		Add(EScriptGap.BattleOnly, "is_attacker", "frontage_full", "reserves", "skill", "skill_advantage",
 			"has_armour_unit", "has_combined_arms", "has_combat_modifier", "is_convoy", "is_winner", "trait",

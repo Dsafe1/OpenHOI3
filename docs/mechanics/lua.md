@@ -168,7 +168,7 @@ for supplies or fuel) + sent back + repaid to it + conversion made + traded for,
 repaid away + used + conversion used + convoyed out + traded away - **the day's debt repaid taken off
 the spending**, as the original writes it; the debts move money alone (`aid.md`, section 1).
 `GetDailyExpense(g)` is traded away - repaid away + convoyed out + conversion used + sent to + used.
-The original has tribute's columns in each too, which are not built: nought, reported.
+Tribute's columns are in each too (`stockpile.md`, section 7).
 
 `GetResourceValues(country, g)` fills `vDailyExpense` (below), `vDailyHome`, `vConvoyedIn`, `vPool`,
 `vDailyIncome` (the income side of the balance) and `vDailyBalance`, each thousandths over 1000 as a
@@ -264,7 +264,7 @@ eleven functions that take nothing but tags, for every pair of countries. On 202
 the base game had 78 countries owning land, and every one of the eleven answered all 6,006 pairs
 without an error **but `DiploScore_PeaceAction`, which failed at `CAIIntel` every time**; with `CAIIntel`
 built the same day (section 7) all eleven answer every pair. What the scripts meet that is not built: the
-AI's strategy, governments in exile, espionage and tribute - the strategy built since 2026-10-16 (`aistrategy.md`).
+AI's strategy, governments in exile, espionage - the strategy built since 2026-10-16 (`aistrategy.md`).
 
 ## 7. `CAIIntel`
 

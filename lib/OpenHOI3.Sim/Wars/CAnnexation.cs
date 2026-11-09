@@ -69,6 +69,7 @@ public static class CAnnexation
 	/// <summary>What every other country does towards the annexed, in the original's order.</summary>
 	private static void Forget(CGameState state, CCountry other, CCountry annexed)
 	{
+		CUndeclaredWars.End(state, other.Tag, annexed.Tag);
 		if (CWarSides.Between(state, other.Tag, annexed.Tag) is { } war)
 		{
 			CWarSides.Leave(state, war, annexed.Tag);

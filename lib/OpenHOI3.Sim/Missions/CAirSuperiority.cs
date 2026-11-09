@@ -134,7 +134,7 @@ public static class CAirSuperiority
 			foreach (CUnit other in state.UnitsIn(id))
 			{
 				if (other.Kind != EUnitKind.Air || other.IsRemoved || other.Owner == unit.Owner
-					|| !CMovementRules.IsEnemy(state, other.Owner, unit.Owner))
+					|| !CMovementRules.IsEnemyIn(state, other.Owner, unit.Owner, other.Location))
 				{
 					continue;
 				}

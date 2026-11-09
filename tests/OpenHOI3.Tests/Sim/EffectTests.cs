@@ -293,16 +293,85 @@ public class EffectTests
 	}
 
 	[Fact]
+	public void Create_alliance_makes_one_with_nothing_checked()
+	{
+		CGameState state = State();
+
+		Run(state, "create_alliance = POL");
+		Run(state, "create_alliance = POL");
+
+		Assert.Equal(2, state.Alliances.Count);
+		Assert.True(CCountryLists.HasAlliance(state, Ger, Pol));
+	}
+
+	[Fact]
+	public void Surrender_inherit_annexes_as_inherit_does()
+	{
+		CGameState state = State();
+
+		Run(state, "surrender_inherit = POL");
+
+		Assert.Equal(0, CCountryLists.OwnedCount(state, Pol));
+	}
+
+	[Fact]
+	public void An_undeclared_war_adds_the_region_each_time_and_the_condition_sees_it()
+	{
+		CGameState state = State();
+
+		Run(state, "undeclared_war = { target = POL region = some_region } undeclared_war = { target = POL region = some_region }");
+
+		Assert.Single(state.UndeclaredWars);
+		Assert.Equal(2, state.UndeclaredWars[0].Regions.Count);
+		Assert.True(Holds(state, "undeclared_war_with = POL"));
+		Assert.False(Holds(state, "undeclared_war_with = ITA"));
+	}
+
+	[Fact]
+	public void Load_oob_asks_for_the_file_and_not_for_a_country_with_no_land()
+	{
+		CGameState state = State();
+		var asked = new System.Collections.Generic.List<string>();
+		state.LoadOrderOfBattle = (country, file) => asked.Add(country.Tag.Value + " " + file);
+
+		Run(state, "load_oob = \"x.txt\"");
+		Run(state, "SLO = { load_oob = \"y.txt\" }");
+
+		Assert.Equal(new[] { "GER x.txt" }, asked);
+	}
+
+	[Fact]
+	public void Release_vassal_gives_a_nation_its_cores_and_makes_it_a_puppet()
+	{
+		CGameState state = State();
+		var slovakia = new CCountryTag("SLO");
+
+		Run(state, "release_vassal = SLO");
+
+		Assert.Equal(Ger, Country(state, slovakia).Overlord);
+		Assert.Equal(slovakia, state.Province(3).Owner);
+	}
+
+	[Fact]
+	public void Release_vassal_does_nothing_for_a_nation_that_could_not_be_released()
+	{
+		CGameState state = State();
+
+		Run(state, "release_vassal = POL");
+
+		Assert.Null(Country(state, Pol).Overlord);
+	}
+
+	[Fact]
 	public void What_is_not_built_does_nothing_and_is_reported()
 	{
 		CGameState state = State();
 		var report = new CScriptReport();
 
-		Run(state, "surrender_inherit = POL remove_fow = 5 release_vassal = POL", CEventScope.Start(Ger), report);
+		Run(state, "remove_fow = 5 remove_brigade = \"x\"", CEventScope.Start(Ger), report);
 
-		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["surrender_inherit"].Why);
-		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["release_vassal"].Why);
-		Assert.Equal(3, report.Gaps.Count);
+		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["remove_brigade"].Why);
+		Assert.Equal(2, report.Gaps.Count);
 	}
 
 	[Fact]

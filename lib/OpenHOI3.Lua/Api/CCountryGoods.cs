@@ -7,12 +7,10 @@ namespace OpenHOI3.Lua.Api;
 /// <summary>
 /// A country's day of one good as the original's AI reads it: what came in less what went out, what
 /// went out, and what the AI reckons it needs. Money counts the day's debt repaid and repaid to it - the
-/// repaid **taken off** the spending, as the original writes it. The original's tribute columns are not
-/// built. See <c>docs/mechanics/lua.md</c>, section 4.2.
+/// repaid **taken off** the spending, as the original writes it. See <c>docs/mechanics/lua.md</c>, section 4.2.
 /// </summary>
 public static class CCountryGoods
 {
-	private const string TributeUnbuilt = "tribute: the day's goods count none";
 	private const string TechnologyIc = "ic_modifier";
 	private const string GlobalIc = "global_ic";
 
@@ -25,7 +23,6 @@ public static class CCountryGoods
 	/// <summary><c>GetDailyExpense</c>, thousandths: traded away, less repaid, convoyed out, conversion used, sent to and used.</summary>
 	public static long Expense(CGameApi api, CCountry country, EGoods goods)
 	{
-		api.ReportUnbuilt(TributeUnbuilt);
 		return Spending(country, goods);
 	}
 
@@ -35,20 +32,20 @@ public static class CCountryGoods
 	/// </summary>
 	public static long Income(CGameApi api, CCountry country, EGoods goods)
 	{
-		api.ReportUnbuilt(TributeUnbuilt);
 		long home = country.HomeProduced[goods].Raw;
 		if (goods is not (EGoods.Fuel or EGoods.Supplies))
 		{
 			home += country.ConvoyedIn[goods].Raw;
 		}
 		return home + country.SentBack[goods].Raw + Repaid(country.IncomeFromDebt, goods) + country.ConversionMade[goods].Raw
-			+ country.TradedFor[goods].Raw;
+			+ country.TradedFor[goods].Raw + country.TributeReceived[goods].Raw;
 	}
 
 	private static long Spending(CCountry country, EGoods goods)
 	{
 		return country.SentTo[goods].Raw - Repaid(country.RepaidAway, goods) + country.Usage[goods].Raw
-			+ country.ConversionUsed[goods].Raw + country.ConvoyedOut[goods].Raw + country.TradedAway[goods].Raw;
+			+ country.ConversionUsed[goods].Raw + country.ConvoyedOut[goods].Raw + country.TradedAway[goods].Raw
+			- country.TributeSent[goods].Raw;
 	}
 
 	/// <summary>A debt's money, which is the only good it moves.</summary>
@@ -77,7 +74,6 @@ public static class CCountryGoods
 				need = (float)(need * 0.5);
 			}
 		}
-		api.ReportUnbuilt(TributeUnbuilt);
 		float spent = CLuaFloats.SingleThousandths((int)Spending(country, goods));
 		return need < spent ? spent : need;
 	}

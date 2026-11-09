@@ -189,27 +189,13 @@ public static class CCountryClass
 			})
 			.Method("IsMobilized", call => call.Return(Of(call).Mobilised))
 			.Method("GetManpower", call => call.Return(api.Fixed(Of(call).Manpower)))
-			.Method("MayLiberateCountries", call =>
-			{
-				Of(call);
-				api.ReportUnbuilt(LiberationUnbuilt);
-				return call.Return(false);
-			})
-			.Method("CanCreatePuppet", call =>
-			{
-				Of(call);
-				api.ReportUnbuilt(PuppetUnbuilt);
-				return call.Return(false);
-			});
+			.Method("MayLiberateCountries", call => call.Return(CCountryLists.PossibleLiberations(api.State, Of(call)).Count != 0))
+			.Method("GetPossibleLiberations", call => call.ReturnIterator(Tags(api, CCountryLists.PossibleLiberations(api.State, Of(call)))))
+			.Method("CanCreatePuppet", call => call.Return(CCountryLists.PossibleVassals(api.State, Of(call)).Count != 0))
+			.Method("GetPossibleVassals", call => call.ReturnIterator(Tags(api, CCountryLists.PossibleVassals(api.State, Of(call)))));
 		// What the tech and production scripts reach (docs/mechanics/ministers.md, section 7).
 		return CCountryEconomyMethods.Add(luaClass, api);
 	}
-
-	/// <summary>What liberating a country needs, which is not built.</summary>
-	private const string LiberationUnbuilt = "liberating a country (MayLiberateCountries): false";
-
-	/// <summary>What releasing a puppet by a command needs, which is not built.</summary>
-	private const string PuppetUnbuilt = "releasing a puppet (CanCreatePuppet): false";
 
 	private static CCountry Of(CLuaCall call) => call.Object<CCountry>(1, Name);
 

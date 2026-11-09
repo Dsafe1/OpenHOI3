@@ -75,7 +75,7 @@ public static class CBombing
 	public static bool MayBomb(CGameState state, CUnit asker, CUnit other)
 	{
 		if (asker == other || asker.Owner == other.Owner || asker.IsRemoved || other.IsRemoved
-			|| asker.IsRetreating || other.IsRetreating || !CMovementRules.IsEnemy(state, asker.Owner, other.Owner))
+			|| asker.IsRetreating || other.IsRetreating || !CMovementRules.IsEnemyIn(state, asker.Owner, other.Owner, asker.Location))
 		{
 			return false;
 		}

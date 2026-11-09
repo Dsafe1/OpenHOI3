@@ -162,6 +162,7 @@ public static class CTick
 		Step(state, CIntelGrants.CountDown);                     // what others were given to know of a unit, a day less
 		Step(state, CResources.UpdateHomeProduction);
 		Step(state, CStockpile.AddHomeProduction);
+		Step(state, CTribute.RunDaily);                           // the end of it: a puppet's dues (stockpile.md, section 7)
 		Step(state, CResources.GatherCutOff);                     // what the sea cuts off waits in a harbour
 		Step(state, Aid.CDebts.RepayDaily);                       // the end of a country's production
 		Step(state, Trade.CTradeRoutes.RunDaily);                 // then each country's trade, before its IC

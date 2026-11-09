@@ -564,6 +564,15 @@ public sealed class CGameState
 	/// <summary>What the player has handed to the AI, which every played country goes by (frontend.md, section 4).</summary>
 	public Settings.CPlayerAutomation Automation { get; } = new();
 
+	/// <summary>The wars nobody declared (<c>docs/mechanics/war.md</c>, section 15).</summary>
+	public List<Wars.CUndeclaredWar> UndeclaredWars { get; } = new();
+
+	/// <summary>
+	/// Reads a file of units into a country as a game runs, for <c>load_oob</c>; set by whoever loaded the game, the
+	/// simulation reading no files of its own.
+	/// </summary>
+	public Action<Countries.CCountry, string>? LoadOrderOfBattle { get; set; }
+
 	/// <summary>The game's own flags, which script sets: <c>docs/mechanics/effects.md</c>, section 3.</summary>
 	public Script.CFlags Flags { get; } = new();
 

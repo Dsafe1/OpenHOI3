@@ -1818,7 +1818,11 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 **The nuclear bomb is built** (2026-11-09, `docs/mechanics/nukes.md`): the month's bombs, the order with its row and its hours, the drop with its messages and `on_nuke_dropped`, and `province_event`, with the console's `nukes` and a trial, `OpenHOI3.SaveCheck nuke`. The AI makes bombs and does not drop them, the enemy's war industry not being handed to its agents (*Loose ends*).
 
+**The script gaps of the base game are closed** (2026-11-09, `reversing/findings/FINDINGS-scriptgaps.md`): `release_vassal`, `create_alliance`, `surrender_inherit`, `load_oob`, the two port conditions, and the undeclared war (`war.md`, section 15) with its region's map colour; tribute (`stockpile.md`, section 7); and the AI's Lua answers on declaring war, puppets and liberation, with its two commands.
+
 ### Loose ends
+
+- **Script still unbuilt, for BlackICE's layer**: `remove_brigade`; a `military_construction` in a `load_oob` file; `release_vassal = REB`; `surrender_inherit`'s branches for a country at war with the annexer's enemies, where units go over by a draw; the last-battle loss conditions. **The undeclared war's** hostility is asked at battles, convoy raids and air and fleet targets, not at the AI's war-time gates or the land's movement (`war.md`, section 15).
 
 - **The AI drops no nuclear bomb**: its strategic targets, the enemy's war industry handed to the agents whose air bases are nearest, are not built (`moving.md`; `nukes.md`, *Ours*).
 

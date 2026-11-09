@@ -130,6 +130,8 @@ public static class CDeclarations
 		// 2. Their alliance and NAP end, saying nothing.
 		state.Alliances.RemoveAll(a => a.Joins(actor.Tag, recipient.Tag));
 		state.Naps.RemoveAll(n => n.Joins(actor.Tag, recipient.Tag));
+		// 3. A war nobody declared between them is over, this one taking its place.
+		CUndeclaredWars.End(state, actor.Tag, recipient.Tag);
 		// 4. The war, made or widened.
 		bool fresh = kept is null;
 		CWar war;

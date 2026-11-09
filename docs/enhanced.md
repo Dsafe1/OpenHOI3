@@ -12,9 +12,16 @@ Add to it whenever a spec records something of the original's that looks like a 
 
 ## Asked for by the maintainer
 
+- **Everything BiceLib adds to the original.** BiceLib, the DLL the BlackICE mod injects into the game, adds tooltips, hooks and patches; all of them should be considered for the enhanced engine. They are not listed here, BiceLib being the place to see them. Its offsets are no part of this project.
 - **The brigade builder's technology list can overflow.** The list of what a brigade's technologies are runs out of its box when there are many. The maintainer suggests a scrollable window. `builders.md`, 7. *Display.* Risk: none.
 - **A headquarters' supply tooltip could show its subordinates' use.** The unit panel's supply and fuel tooltips give only the unit's own use. For a headquarters the maintainer wants its own consumption and, separately, that of all the units under it. `unitpanel.md`, 10. *Unfinished.* Risk: none.
 - **A returning unit's subordinates stay behind.** An expeditionary unit goes home alone, and everything under it stays with the host as the host's own. The maintainer wants this changed. `expeditions.md`, 3. *Oversight.* Risk: small; saves hold ownership.
+
+## Script
+
+- **`create_alliance` checks nothing.** A second one makes a second alliance on the list. `agreements.md`. *Oversight.* Risk: small.
+- **Tribute landing in a harbour is counted nowhere.** The overlord's ledgers leave it out. `stockpile.md`, 7. *Display.* Risk: none.
+- **A unit loaded by `load_oob` keeps experience the file does not give at "none",** and gets no leader. `units.md`. *Oversight.* Risk: small.
 
 ## The nuclear bomb
 

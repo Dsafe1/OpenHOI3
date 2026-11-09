@@ -269,7 +269,7 @@ impacts answer since 2026-10-14: `politics.md`, section 8. `spies` and `spy_miss
 
 | waits for | conditions |
 | --- | --- |
-| diplomacy | `truce_with`, `undeclared_war_with`, `casus_belli`, `has_cb`, `has_wargoal` |
+| diplomacy | `truce_with`, `casus_belli`, `has_cb`, `has_wargoal` |
 | the fog of war's switch | `remove_fow` |
 | the AI's missions | `active_mission`, `last_mission`, `is_mission_country`, `is_mission_province` |
 | a country's war record | `lost_IC`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
@@ -277,8 +277,9 @@ impacts answer since 2026-10-14: `politics.md`, section 8. `spies` and `spy_miss
 | blockades | `blockade`, `is_blockaded` |
 | days out of supply | `out_of_supply_days` |
 
-**Unread - the original's answer is not known:** `num_of_ports` and `total_num_of_ports`, whose
-count nobody has read the making of; `has_hostile_spy_mission`, whose answer is a byte nothing
+**`num_of_ports` and `total_num_of_ports`** count the provinces the country owns with a port and a naval base built, whoever holds them and however damaged; the first only those in the same block of land as its acting capital [exe; `reversing/findings/FINDINGS-scriptgaps.md`, section 1].
+
+**Unread - the original's answer is not known:** `has_hostile_spy_mission`, whose answer is a byte nothing
 writes; and the `sea_zone` scope, whose province is a field nobody has named.
 
 **A battle's - asked where there is none:** `is_attacker`, `frontage_full`, `reserves`, `skill`,

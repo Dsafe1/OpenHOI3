@@ -14,6 +14,18 @@ public static class CDiplomacyEffects
 	{
 		switch (effect.Keyword)
 		{
+			case "create_alliance":
+				// No check of any kind: a second one is a second alliance (agreements.md, section 4).
+				if (state.Country(scope.Country) is { } actor && state.Country(CEffects.Target(state, effect, scope)) is { } recipient)
+				{
+					Agreements.CPacts.MakeAlliance(state, actor, recipient, state.TotalHours);
+					Politics.CLaws.OnDiplomacyChanged(state, actor);
+					Politics.CLaws.OnDiplomacyChanged(state, recipient);
+				}
+				return true;
+			case "undeclared_war":
+				UndeclaredWar(state, effect, scope);
+				return true;
 			case "relation":
 				// who's relation with the scope's country, written both ways; who = THIS is the scope itself.
 				if (CEffects.Field(effect, "who") is { } who
@@ -48,6 +60,25 @@ public static class CDiplomacyEffects
 				return true;
 			default:
 				return false;
+		}
+	}
+
+	/// <summary>The region added to the war between the scope and its target, or the controller of the scope's province (war.md, section 15).</summary>
+	private static void UndeclaredWar(CGameState state, CEffect effect, CEventScope scope)
+	{
+		CScriptArgument? target = CEffects.Field(effect, "target");
+		CCountryTag? defender = target is not null ? CEffects.Target(state, target, scope) : state.Province(scope.Province).Controller;
+		if (scope.Country is not { } attacker || defender is not { } other || CEffects.Field(effect, "region") is not { } region)
+		{
+			return;
+		}
+		Wars.CUndeclaredWars.AddRegion(state, attacker, other, region.Text);
+		foreach (CCountryTag tag in new[] { attacker, other })
+		{
+			if (state.Country(tag) is { } country)
+			{
+				Politics.CLaws.OnDiplomacyChanged(state, country);
+			}
 		}
 	}
 }

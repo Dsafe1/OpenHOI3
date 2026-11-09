@@ -29,15 +29,11 @@ public static class CUndoneEffects
 			}
 		}
 
-		// Diplomacy.
-		Add(EScriptGap.Unbuilt, "undeclared_war", "release_vassal", "surrender_inherit");
 		// Espionage, the AI.
 		Add(EScriptGap.Unbuilt, "remove_fow");
 		Add(EScriptGap.Unbuilt, "add_ai_strategy", "fixed_ai_strategy");
 		// Units an event gives or takes.
-		Add(EScriptGap.Unbuilt, "load_oob", "add_division", "remove_brigade");
-
-		Add(EScriptGap.Unread, "create_alliance");
+		Add(EScriptGap.Unbuilt, "add_division", "remove_brigade");
 		return reasons;
 	}
 }

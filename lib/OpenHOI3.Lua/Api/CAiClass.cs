@@ -88,10 +88,10 @@ public static class CAiClass
 			.Method("CanDeclareWar", call =>
 			{
 				call.Object<CLuaAi>(1, AiName);
-				call.Object<CCountryTag>(2, "CCountryTag");
-				call.Object<CCountryTag>(3, "CCountryTag");
-				api.ReportUnbuilt(DeclareUnbuilt);
-				return call.Return(false);
+				CCountryTag actor = call.Object<CCountryTag>(2, "CCountryTag");
+				CCountryTag target = call.Object<CCountryTag>(3, "CCountryTag");
+				return call.Return(api.State.Country(actor) is { } from && api.State.Country(target) is { } at
+					&& CCountryLists.OwnedCount(api.State, target) > 0 && OpenHOI3.Sim.Wars.CDeclarations.IsSelectable(api.State, from, at));
 			})
 			// The production script's (ministers.md, section 4): brigades of each type, by the type's index.
 			.Method("GetProductionSubUnitCounts", call => call.Return(new CLuaObject(api.ArrayInt,
@@ -119,8 +119,6 @@ public static class CAiClass
 	}
 
 	/// <summary>Whether the AI may declare a war, which was not read.</summary>
-	private const string DeclareUnbuilt = "the AI's own war declarations (CAI:CanDeclareWar): false";
-
 	/// <summary>How long a route may stay failing before an AI calls it stale: a fortnight.</summary>
 	private const long StaleHours = 336;
 

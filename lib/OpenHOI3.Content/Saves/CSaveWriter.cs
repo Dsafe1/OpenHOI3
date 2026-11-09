@@ -90,6 +90,23 @@ public static class CSaveWriter
 		{
 			CSaveWars.Write(writer, "previous_war", war, localise);
 		}
+		foreach (Sim.Wars.CUndeclaredWar undeclared in state.UndeclaredWars)
+		{
+			writer.Begin("undeclared_war");
+			foreach (CCountryTag attacker in undeclared.Attackers)
+			{
+				writer.Quoted("attacker", attacker.Value);
+			}
+			foreach (CCountryTag defender in undeclared.Defenders)
+			{
+				writer.Quoted("defender", defender.Value);
+			}
+			foreach (string region in undeclared.Regions)
+			{
+				writer.Quoted("region", region);
+			}
+			writer.End();
+		}
 		CSaveWarfare.Write(writer, state);
 		if (state.BattlePlansToSave is { } plans)
 		{

@@ -18,8 +18,6 @@ public static class CPoliticsCommandClass
 	private const string LiberateName = "CLiberateCountryCommand";
 
 	/// <summary>What liberating a country would need, which is not built.</summary>
-	private const string LiberationUnbuilt = "liberating a country (CLiberateCountryCommand): nothing is posted";
-
 	public static CLuaClass DefineChangeLaw(CGameApi api)
 	{
 		CLuaClass luaClass = new CLuaClass(LawCommandName)
@@ -65,8 +63,19 @@ public static class CPoliticsCommandClass
 		return luaClass.Constructs(call =>
 		{
 			CCountryTag liberated = call.Object<CCountryTag>(2, "CCountryTag");
-			call.Object<CCountryTag>(3, "CCountryTag");
-			return call.Return(new CLuaObject(luaClass, new CLuaNamed(liberated.Value)));
+			CCountryTag liberator = call.Object<CCountryTag>(3, "CCountryTag");
+			return call.Return(new CLuaObject(luaClass, new CLiberateCountryCommand(liberated, liberator)));
+		});
+	}
+
+	public static CLuaClass DefineCreateVassal(CGameApi api)
+	{
+		var luaClass = new CLuaClass("CCreateVassalCommand");
+		return luaClass.Constructs(call =>
+		{
+			CCountryTag vassal = call.Object<CCountryTag>(2, "CCountryTag");
+			CCountryTag overlord = call.Object<CCountryTag>(3, "CCountryTag");
+			return call.Return(new CLuaObject(luaClass, new CCreateVassalCommand(vassal, overlord)));
 		});
 	}
 
@@ -86,11 +95,6 @@ public static class CPoliticsCommandClass
 				api.Post(command);
 				break;
 			default:
-				if (luaClass?.Name == LiberateName)
-				{
-					api.ReportUnbuilt(LiberationUnbuilt);
-					break;
-				}
 				throw new CLuaError($"No matching overload found, candidates: void Post({CommandName(luaClass)})");
 		}
 		return 0;

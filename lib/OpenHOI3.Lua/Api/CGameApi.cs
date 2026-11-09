@@ -73,6 +73,7 @@ public sealed class CGameApi
 		ChangeMinister = CPoliticsCommandClass.DefineChangeMinister(this);
 		ToggleMobilization = CPoliticsCommandClass.DefineToggleMobilization(this);
 		Liberate = CPoliticsCommandClass.DefineLiberate(this);
+		CreateVassal = CPoliticsCommandClass.DefineCreateVassal(this);
 		SpyPresence = CSpyPresenceClass.Define(this);
 		IdeologyData = CIdeologyDataClass.Define(this);
 		IntelligenceMinister = CIntelligenceMinisterClass.Define(this);
@@ -195,6 +196,8 @@ public sealed class CGameApi
 
 	public CLuaClass Liberate { get; }
 
+	public CLuaClass CreateVassal { get; }
+
 	public CLuaClass SubUnit { get; }
 
 	public CLuaClass SubUnitDataBase { get; }
@@ -255,7 +258,7 @@ public sealed class CGameApi
 		GoodsPool, Strategy, Ai, ResourceValues, GameState, CountryDataBase, Intel, FixedPoint, Text, Date,
 		TradeAction, TradeRoute, GoodsValues, Modifier, TechnologyStatus, SubUnit, SubUnitDataBase, LicenceAction,
 		Law, LawGroup, LawDataBase, Minister, MinisterType, GovernmentPosition, PositionDataBase, PoliticsMinister,
-		ChangeLaw, ChangeMinister, ToggleMobilization, Liberate, SpyPresence, IdeologyData, IntelligenceMinister,
+		ChangeLaw, ChangeMinister, ToggleMobilization, Liberate, CreateVassal, SpyPresence, IdeologyData, IntelligenceMinister,
 		ChangeSpyPriority, ChangeSpyMission, TechMinister, ProductionMinister, Technology, TechnologyFolder,
 		TechnologyDataBase, Building, BuildingDataBase, ProvinceBuilding, Construction, MilitaryConstruction,
 		BrigadeConstruction, ArrayInt, ArrayFix, ArrayCountryTag, War, ForeignMinister, Decision, EventScope, Flags,

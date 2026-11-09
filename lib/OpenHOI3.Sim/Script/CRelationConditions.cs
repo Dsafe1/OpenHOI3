@@ -77,6 +77,10 @@ public static class CRelationConditions
 			case "vassal_of":
 				answer = country?.Overlord is { } overlord && overlord == CConditions.TagByOwner(state, trigger, scope);
 				return true;
+			case "undeclared_war_with":
+				answer = scope.Country is { } undeclaredOne && CConditions.TagDirect(trigger, scope) is { } undeclaredOther
+					&& Wars.CUndeclaredWars.Between(state, undeclaredOne, undeclaredOther) is not null;
+				return true;
 			case "num_of_vassals":
 				answer = (country is null ? 0 : CCountryLists.VassalCount(state, country)) >= Written(value, whole);
 				return true;

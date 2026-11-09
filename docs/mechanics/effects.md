@@ -191,13 +191,13 @@ never reads from the file (`espionage.md`, section 13).
 
 | waits for | effects |
 | --- | --- |
-| the event pass | `province_event` - `country_event` is built since 2026-10-16 (section 9) |
-| diplomacy | `undeclared_war`, `release_vassal`, `surrender_inherit` - the war and pact effects run (`war.md`, `agreements.md`), `release` since 2026-10-15 (`rebels.md`, section 8), `split_troops` since 2026-10-16 (section 9) |
+| the event pass | nothing: `country_event` is built since 2026-10-16 (section 9) and `province_event` since 2026-11-09 (`nukes.md`, section 5) |
+| diplomacy | the war and pact effects run (`war.md`, `agreements.md`), `release` since 2026-10-15 (`rebels.md`, section 8), `split_troops` since 2026-10-16 (section 9) |
 | the fog of war's switch | `remove_fow` |
 | the AI | `add_ai_strategy`, `fixed_ai_strategy` |
-| units an event gives or takes | `load_oob`, `add_division`, `remove_brigade` - a unit type's name is built since 2026-10-16 (section 9) |
+| units an event gives or takes | `add_division`, `remove_brigade` - `load_oob` is `units.md`'s since 2026-11-09, and a unit type's name is built since 2026-10-16 (section 9) |
 
-**Unread**: `create_alliance`, which runs a part of the alliance action nobody has read.
+`create_alliance`, `release_vassal`, `surrender_inherit` and `undeclared_war` are built since 2026-11-09 (`reversing/findings/FINDINGS-scriptgaps.md`).
 
 *Ours*: where the original faults - `strategic_resource` with a name no resource has, `organisation`
 on a country with no ruling party - nothing happens, and the first is reported when read.

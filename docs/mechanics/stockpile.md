@@ -245,3 +245,10 @@ country's usage every day and its home production never, so that is what the sav
   else holds**~~ - read 2026-10-10: the daily move of everything in cut-off land to its
   harbour, and the convoy from there (`convoys.md`, section 8);
 - everything in section 4's table beyond home production, usage and money.
+
+## 7. Tribute
+
+Each day, at the end of the country's production, a puppet pays its overlord everything above 2000 [exe] of money, crude oil, metal, energy and rare materials, never supplies or fuel. Nothing is paid where the overlord owns no land, the puppet's government has left its capital, or it is in exile [exe].
+
+It goes along the neighbours of the puppet's home block of land: to the overlord's stockpile for a block of the overlord's holding its acting capital or with no harbour; otherwise to that block's first harbour, where no ledger of the overlord's counts it [exe]. With no block of the overlord's beside the puppet's, nothing is paid. The AI's Lua and the day's change count it (`reversing/findings/FINDINGS-capitalreaders.md`, section 4).
+

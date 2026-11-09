@@ -308,14 +308,20 @@ public static class CPacts
 				Charge(state, actor, "JOIN_ALLIANCE_INFLUENCE_COST");
 				break;
 			case EOfferStage.Accepted:
-				state.Alliances.Add(new CAlliance(actor.Tag, recipient.Tag) { Made = state.NextPact(), Start = offer.Date });
-				Relation(state, actor, recipient, "ALLIANCE_RELATION_CHANGE");
-				Message(state, "MILALLACCEPT", "MILALLWEACCEPT", "MILLALLINVACCEPTOTHER", actor, recipient);
+				MakeAlliance(state, actor, recipient, offer.Date);
 				break;
 			default:
 				Message(state, "MILALLREJECT", "MILALLWEREJECT", "MILLALLJOINREJECTOTHER", actor, recipient);
 				break;
 		}
+	}
+
+	/// <summary>An alliance made: nothing checked, the actor's relation raised and the players told. <c>create_alliance</c> comes here too.</summary>
+	public static void MakeAlliance(CGameState state, CCountry actor, CCountry recipient, long date)
+	{
+		state.Alliances.Add(new CAlliance(actor.Tag, recipient.Tag) { Made = state.NextPact(), Start = date });
+		Relation(state, actor, recipient, "ALLIANCE_RELATION_CHANGE");
+		Message(state, "MILALLACCEPT", "MILALLWEACCEPT", "MILLALLINVACCEPTOTHER", actor, recipient);
 	}
 
 	private static void Nap(CGameState state, COffer offer, CCountry actor, CCountry recipient)

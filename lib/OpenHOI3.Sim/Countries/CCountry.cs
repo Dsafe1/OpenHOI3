@@ -35,6 +35,12 @@ public sealed class CCountry
 	/// <summary>The console's <c>aipause</c>: while set, none of this country's AI runs.</summary>
 	public bool AiPaused { get; set; }
 
+	/// <summary>What it was paid as tribute today (<c>docs/mechanics/stockpile.md</c>, section 7).</summary>
+	public Economy.CGoodsPool TributeReceived { get; } = new();
+
+	/// <summary>What it paid as tribute today, held below nought.</summary>
+	public Economy.CGoodsPool TributeSent { get; } = new();
+
 	/// <summary>The nuclear bombs it holds, in thousandths: a thousand is one (<c>docs/mechanics/nukes.md</c>).</summary>
 	public CFixedPoint Nukes { get; set; }
 

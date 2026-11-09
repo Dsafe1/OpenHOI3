@@ -69,7 +69,7 @@ public static class CCombats
 			&& unit.Plane is null && other.Plane is null
 			&& CMovementRules.IsLandUnit(unit) && CMovementRules.IsLandUnit(other)
 			&& unit.SubUnits.Count > 0 && other.SubUnits.Count > 0
-			&& CMovementRules.IsEnemy(state, unit.Owner, other.Owner);
+			&& CMovementRules.IsEnemyIn(state, unit.Owner, other.Owner, unit.Location);
 	}
 
 	/// <summary>

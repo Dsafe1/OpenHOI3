@@ -32,7 +32,7 @@ public static class CEnemyFleets
 		CUnit? best = null;
 		foreach (CUnit other in state.UnitsIn(province.Id))
 		{
-			if (other.Kind != EUnitKind.Navy || other.IsRemoved || !CMovementRules.IsEnemy(state, other.Owner, unit.Owner))
+			if (other.Kind != EUnitKind.Navy || other.IsRemoved || !CMovementRules.IsEnemyIn(state, other.Owner, unit.Owner, other.Location))
 			{
 				continue;
 			}

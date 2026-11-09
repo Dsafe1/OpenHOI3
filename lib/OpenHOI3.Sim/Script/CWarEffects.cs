@@ -42,7 +42,17 @@ public static class CWarEffects
 					CCasusBellis.Give(state, given, against);
 				}
 				return true;
+			case "load_oob":
+				// A file of units read into the scope's country, placed at once (units.md, section 3).
+				if (state.Country(scope.Country) is { } loaded && effect.Argument.Text.Length > 0
+					&& (CCountryLists.OwnedCount(state, loaded.Tag) > 0 || loaded.Tag.Value == "REB"))
+				{
+					loaded.OrderOfBattleFile = effect.Argument.Text;
+					state.LoadOrderOfBattle?.Invoke(loaded, effect.Argument.Text);
+				}
+				return true;
 			case "inherit":
+			case "surrender_inherit":
 				// The scope annexes TAG, unguarded: itself not refused (war.md, section 13).
 				if (state.Country(scope.Country) is { } annexer && state.Country(Inline(state, effect, scope)) is { } annexed)
 				{
@@ -83,6 +93,9 @@ public static class CWarEffects
 					}
 					CRelease.Release(state, cores, freed);
 				}
+				return true;
+			case "release_vassal":
+				ReleaseVassal(state, effect, scope);
 				return true;
 			case "create_vassal":
 				// TAG becomes the scope's puppet, unless it is already or owns nothing.
@@ -159,6 +172,50 @@ public static class CWarEffects
 	/// The country <c>casus_belli</c> and its kin mean, inline: THIS the root's country or its province's
 	/// owner, FROM the scope's own FROM country, otherwise the tag written.
 	/// </summary>
+	/// <summary>
+	/// <c>release_vassal</c>: a country the scope's may release, by name or drawn from the list, given its cores the scope's
+	/// owns and holds but for its capital, and made its puppet, in its faction. A rebel faction's release is not read, and
+	/// does nothing here (<c>docs/mechanics/effects.md</c>, section 8).
+	/// </summary>
+	private static void ReleaseVassal(CGameState state, CEffect effect, CEventScope scope)
+	{
+		if (state.Country(scope.Country) is not { } liberator)
+		{
+			return;
+		}
+		List<CCountry> possible = CCountryLists.PossibleVassals(state, liberator);
+		CCountry? vassal;
+		if (effect.Argument.IsWord("random"))
+		{
+			vassal = possible.Count == 0 ? null : possible[scope.Draw(possible.Count)];
+		}
+		else
+		{
+			vassal = state.Country(Inline(state, effect, scope));
+		}
+		if (vassal is null || !possible.Contains(vassal))
+		{
+			return;
+		}
+		var given = new List<Provinces.CProvince>();
+		foreach (Provinces.CProvince province in state.Provinces)
+		{
+			if (province.Cores.Contains(vassal.Tag) && province.Id != liberator.Capital && province.Owner == liberator.Tag
+				&& province.Controller == liberator.Tag)
+			{
+				given.Add(province);
+			}
+		}
+		CRelease.Release(state, given, vassal.Tag);
+		CPuppets.Tie(state, liberator, vassal);
+		if (Agreements.COfferRules.RealFaction(liberator))
+		{
+			CFactions.AddCountry(state, vassal, liberator.Faction, joinWars: true);
+		}
+		Politics.CLaws.OnDiplomacyChanged(state, vassal);
+		Politics.CLaws.OnDiplomacyChanged(state, liberator);
+	}
+
 	private static CCountryTag? Inline(CGameState state, CEffect effect, CEventScope scope)
 	{
 		CScriptArgument value = effect.Argument;

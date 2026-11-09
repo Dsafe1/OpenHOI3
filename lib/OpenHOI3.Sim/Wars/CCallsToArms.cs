@@ -115,6 +115,7 @@ public static class CCallsToArms
 				state.Alliances.RemoveAll(a => a.Joins(recipient.Tag, enemy.Tag));
 				state.Guarantees.RemoveAll(g => g.Joins(recipient.Tag, enemy.Tag));
 				state.Naps.RemoveAll(n => n.Joins(recipient.Tag, enemy.Tag));
+				CUndeclaredWars.End(state, recipient.Tag, enemy.Tag);
 				bool attacking = war.Attackers.Contains(actor.Tag);
 				System.Collections.Generic.List<CCountryTag> side = attacking ? war.Attackers : war.Defenders;
 				CCountryFacts facts = CCountryFacts.Of(state);

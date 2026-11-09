@@ -634,6 +634,14 @@ beside FROM's ground, to FROM where FROM is at war with its owner, and otherwise
     its declared capital for good; occupation never moves it.
 28. `create_vassal` and `inherit` refuse no country on both sides.
 
+## 15. A war nobody declared
+
+`undeclared_war = { target = ... region = ... }` starts one [exe; `reversing/findings/FINDINGS-scriptgaps.md`, section 4]: the pair's, made with the scope as attacker where they have none, and the region added every time, a region added twice being there twice. With no target it is the controller of the scope's province. It costs nothing, says nothing and has no diplomatic state of its own, and `undeclared_war_with` asks whether the pair has one.
+
+The two are enemies **only in its regions**: fleets and air units there fight, and each other's convoys are raided there. A formal declaration, a call to arms or an annexation ends it; no peace, event or date does. The naval map mode paints the regions orange for the player. Saved as `undeclared_war`, its attackers, defenders and regions.
+
+**Ours**: the original asks this everywhere a province is at hand. Here it is asked where a battle starts, where a convoy is raided and where an air unit or fleet looks for a target. The AI's own war-time gates do not count it, and the land's movement and blockades do not ask it, which matter only to a mod that lists land.
+
 ## Ours
 
 - **The war's name is kept as its key, the adjective of its first attacker and its order**, and written

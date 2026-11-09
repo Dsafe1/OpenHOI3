@@ -13,6 +13,31 @@ namespace OpenHOI3.Sim.Script;
 /// </summary>
 public static class CCountryConditions
 {
+	/// <summary>
+	/// The provinces it owns with a port and a naval base built, however damaged and whoever holds them; with
+	/// <paramref name="home"/>, only those in the same block of land as its acting capital [exe].
+	/// </summary>
+	private static int Ports(CGameState state, Countries.CCountry? country, bool home)
+	{
+		if (country is null)
+		{
+			return 0;
+		}
+		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
+		Supply.CSupplyArea? capital = network.AreaOf(country.ActingCapital);
+		int count = 0;
+		foreach (Provinces.CProvince province in state.Provinces)
+		{
+			if (province.Owner == country.Tag && province.PortSea != 0
+				&& Movement.CMovementRules.BuildingLevel(state, province, Movement.CMovementRules.NavalBase) > CFixedPoint.Zero
+				&& (!home || network.AreaOf(province.Id) == capital))
+			{
+				count++;
+			}
+		}
+		return count;
+	}
+
 	public static bool TryAnswer(CGameState state, CTrigger trigger, CEventScope scope, out bool answer)
 	{
 		CCountry? country = state.Country(scope.Country);
@@ -32,6 +57,12 @@ public static class CCountryConditions
 			case "capital":
 				// The declared capital; this and from ask for nought.
 				answer = (country?.Capital ?? 0) == WrittenWhole(value);
+				return true;
+			case "num_of_ports":
+				answer = Ports(state, country, home: true) >= WrittenWhole(value);
+				return true;
+			case "total_num_of_ports":
+				answer = Ports(state, country, home: false) >= WrittenWhole(value);
 				return true;
 			case "num_of_cities":
 				answer = CCountryLists.OwnedCount(state, scope.Country) >= CitiesWanted(state, trigger, scope);
