@@ -177,7 +177,7 @@ public static class CTheatreSort
 	}
 
 	/// <summary>The original's <c>CTheatre_CoversArea</c>: any area of the theatre's own country, or one of its focus areas.</summary>
-	private static bool Covers(CGameState state, CCountry country, CTheatre theatre, CSupplyArea area)
+	public static bool Covers(CGameState state, CCountry country, CTheatre theatre, CSupplyArea area)
 	{
 		return area.Controller == theatre.Country || CFocusAreas.Of(state, country, theatre).Contains(area);
 	}

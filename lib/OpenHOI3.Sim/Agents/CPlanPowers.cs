@@ -108,10 +108,11 @@ public static class CPlanPowers
 	}
 
 	/// <summary>The divisions one area calls for, as the donor's keep and the sealift ask it.</summary>
-	public static long NeedOf(CGameState state, CCountry country, CAgent agent, CSupplyArea area, bool relaxed = true)
+	public static long NeedOf(CGameState state, CCountry country, CAgent agent, CSupplyArea area, bool relaxed = true,
+		HashSet<CSupplyArea>? visited = null)
 	{
 		long power = 0;
-		return AreaNeed(state, country, agent, area, new HashSet<CSupplyArea>(), relaxed, ref power);
+		return AreaNeed(state, country, agent, area, visited ?? new HashSet<CSupplyArea>(), relaxed, ref power);
 	}
 
 	/// <summary><c>EstimateAreaNeed</c> whole, in its order (<c>agents.md</c>, section 7.5).</summary>

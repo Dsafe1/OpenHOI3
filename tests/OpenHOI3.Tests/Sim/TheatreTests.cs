@@ -410,4 +410,15 @@ public class TheatreTests
 		Assert.Equal("p6 HQ", CUnitNames.ForTheatre(state, poland, "p6"));
 		Assert.Equal("1st Theatre", CUnitNames.ForTheatre(state, poland, null));
 	}
+
+	[Theory]
+	[InlineData(1000)] // no fronts at all
+	[InlineData(500, 250_000L)]
+	[InlineData(1000, 2_000_000L)] // further off than the first best
+	[InlineData(800, 2_000_000L, 640_000L)]
+	[InlineData(-2147483648, 2147483648L)] // past 32 bits: negative, and returned as it stands
+	public void The_distance_to_a_theatres_fronts_stops_at_1000(long expected, params long[] squares)
+	{
+		Assert.Equal(expected, CMapDistance.LeastFromAMillion(squares));
+	}
 }

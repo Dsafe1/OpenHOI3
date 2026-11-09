@@ -1735,9 +1735,8 @@ the tutorial, the GamersGate store (`micro_interface`) and the `nudge` editor; a
 `capture_ship_entry` and `sup_odds`, which the executable never names, and the outliner's `outliner_configuration`, which it makes and never shows (`FINDINGS-outliner.md`, A.8). The victory conditions, their alert, the goals button and the end of the game were built from this list the same day (`docs/mechanics/endgame.md`). Suggested next: the theatres and
 statistics screens, the most visible dead buttons.
 
-The other open choices are the third piece's gaps - the balancing that moves
-Britain's and France's divisions where the original's barely does, the fleets that do not merge - each of which wants a
-reading in the fact base first (`CANDIDATES.md`, *What the moving wave left*); or the next piece of the AI.
+The other open choices are the third piece's gaps - the fleets that do not merge, which want a reading in the fact base
+first (`CANDIDATES.md`, *What the moving wave left*); or the next piece of the AI.
 
 The interface runtime is in, with three screens - the top bar, production and technology -
 the four windows the production screen orders a unit from, the deploy menu with the
@@ -1868,8 +1867,7 @@ None of these blocks the list above.
   the original does each country's right after its own.
 - **The unit agents leave out** (2026-10-17, `docs/mechanics/agents.md`, section 13): the air units' move between
   theatres by group difference and the war stance's combat values. The division need is read whole since 2026-10-19, and
-  **the balancing now moves too much for Britain and France** where the original moved little (the fact base's
-  `CANDIDATES.md`, *What the moving wave left*, item 1).
+  the balancing agrees with the 4 January save in all 106 theatres since 2026-11-09, the AI's lending of units with it (`agents.md`, sections 10.5 and 14).
 - **Moving and attacking leaves out** (2026-10-19, `docs/mechanics/moving.md`, sections 19 and 20): paradrops and
   strategic bombing, nothing yet handing the agents the enemy's war industry; the Allies' Baltic ban; a friend's area
   reinforced by sea. ~~**Fleets come out too many**~~ - 221 to the 4 January save's 222 since 2026-10-20, a join no

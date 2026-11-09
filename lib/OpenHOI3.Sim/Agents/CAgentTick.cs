@@ -50,6 +50,10 @@ public static class CAgentTick
 			CAgentProfile.Time(state, "the subordinates", () => CSubordinates.Sort(state, country, agent));
 		}
 		CAgentProfile.Time(state, "the threatened", () => CThreatenedProvinces.Update(state, country, agent));
+		if (full)
+		{
+			CAiExpeditions.Run(state, country, agent);
+		}
 		if (CHoldProvinces.IsDue(state, country, agent, full))
 		{
 			CAgentProfile.Time(state, "the hold list", () => CHoldProvinces.Rebuild(state, country, agent));

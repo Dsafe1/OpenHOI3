@@ -30,6 +30,25 @@ public static class CMapDistance
 		return (across * across + up * up) * 16;
 	}
 
+	/// <summary>
+	/// The least of some squares as the original's distance to a theatre's fronts takes it: in 32 bits, from a first best
+	/// of a million, the root only at the end - so nothing comes out over 1000, and no squares at all come out at 1000.
+	/// See <c>docs/mechanics/agents.md</c>, section 10.2.
+	/// </summary>
+	public static long LeastFromAMillion(System.Collections.Generic.IEnumerable<long> squares)
+	{
+		int least = 1_000_000;
+		foreach (long square in squares)
+		{
+			int wrapped = unchecked((int)square);
+			if (wrapped < least)
+			{
+				least = wrapped;
+			}
+		}
+		return least < 2 ? least : WholeRoot(least);
+	}
+
 	/// <summary>The square root of a whole number, rounded down, with no fractions on the way.</summary>
 	public static long WholeRoot(long value)
 	{

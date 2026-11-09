@@ -36,6 +36,36 @@ public class ExpeditionTests
 		new(EOfferKind.Expedition, Eng, Fra, stage, value, state.TotalHours) { Unit = unit, Recall = recall };
 
 	[Fact]
+	public void TheAisCommandLendsAUnitWithNoOfferAndNoRecall()
+	{
+		(CGameState state, CCountry england, CCountry france, CUnit corps, CUnit division) = World();
+		var command = new CSendExpeditionCommand(Eng, corps.Id, Fra);
+		Assert.True(command.MayExecute(state));
+		command.Execute(state);
+		Assert.Equal(Fra, division.Owner);
+		Assert.Equal(Eng, corps.Lender);
+		Assert.Null(corps.RecallHour);
+		Assert.Contains(corps, france.Units);
+		Assert.Contains(corps, england.LentUnits);
+	}
+
+	[Fact]
+	public void TheAisCommandSendsALentUnitHomeWithNobodyTold()
+	{
+		(CGameState state, CCountry england, CCountry france, CUnit corps, CUnit division) = World();
+		int told = 0;
+		state.PactMessaged += _ => told++;
+		new CSendExpeditionCommand(Eng, corps.Id, Fra).Execute(state);
+		new CDetachUnitCommand(Fra, division.Id).Execute(state);
+		new CSendExpeditionCommand(Fra, corps.Id, Eng).Execute(state);
+		Assert.Equal(Eng, corps.Owner);
+		Assert.Null(corps.Lender);
+		Assert.Contains(corps, england.Units);
+		Assert.DoesNotContain(corps, england.LentUnits);
+		Assert.Equal(0, told);
+	}
+
+	[Fact]
 	public void AnAcceptedOfferMovesTheUnitAndAllUnderItToTheHost()
 	{
 		(CGameState state, CCountry england, CCountry france, CUnit corps, CUnit division) = World();

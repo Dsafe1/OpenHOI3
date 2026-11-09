@@ -31,10 +31,11 @@ public static class CLoadCheck
 	public static int Run(string[] args)
 	{
 		ExampleCountry = args.FirstOrDefault(arg => arg.StartsWith("examples=", StringComparison.Ordinal))?["examples=".Length..];
-		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal)).ToArray();
+		string? trace = args.FirstOrDefault(arg => arg.StartsWith("trace=", StringComparison.Ordinal))?["trace=".Length..];
+		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal) && !arg.StartsWith("trace=", StringComparison.Ordinal)).ToArray();
 		if (args.Length < 3)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck load <install folder> <savegame> [hours] [later savegame] [examples=TAG]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck load <install folder> <savegame> [hours] [later savegame] [examples=TAG] [trace=TAG]");
 			return 2;
 		}
 		int hours = args.Length > 3 && int.TryParse(args[3], out int h) ? h : 24;
@@ -44,8 +45,14 @@ public static class CLoadCheck
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
 		var clock = Stopwatch.StartNew();
+		// Asked to trace a country's AI, the game gets the install's Lua, as the client gives it.
+		using OpenHOI3.Lua.CAiScripts? scripts = trace is null ? null : new OpenHOI3.Lua.CAiScripts(directories, warnings.Add);
 		(CGameState state, CSaveReport report) = CSaveLoader.Load(directories, map, localisation, countries, args[2],
-			warn: warnings.Add);
+			aiScripts: scripts, warn: warnings.Add);
+		if (trace is not null)
+		{
+			state.AiTrace = (new CCountryTag(trace), Console.WriteLine);
+		}
 		Console.WriteLine($"loaded {System.IO.Path.GetFileName(args[2])} in {clock.ElapsedMilliseconds} ms: " +
 			$"{state.Date} {state.Hour}:00, {report.Player} played, seed {state.Seed}");
 		Console.WriteLine("not loaded yet:");

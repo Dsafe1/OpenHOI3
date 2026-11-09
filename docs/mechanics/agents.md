@@ -457,7 +457,14 @@ again, and the divisions balanced (10.2). At (number + 16) % 24: the air units (
    taken so far left out) is passed over. Each is scored (1 - its distance to the taker's fronts / the greatest) x 10, x
    15 where its commander has given one already, x 0.25 unless its area is one of the taker's or beside one, x the idle
    divisions beside it / 100 where they are fewer than 100; the best above nought is taken, the first of equals, until n
-   are (`FINDINGS-moving.md` A.4e).
+   are (`FINDINGS-moving.md` A.4e). **The distance stops at 1000** (250 of the map's pixels): the original keeps the
+   least square from a first best of 1,000,000 and takes the root at the end, so a theatre with no fronts and anything
+   further off answer 1000 (`CMapDistance.LeastFromAMillion`). The greatest among the candidates is then 1000, and every
+   candidate at it scores nothing, so **a donor gives only what stands within 1000 of the taker's fronts**. Measured in the
+   running game (`FINDINGS-balancing.md`). It reads as an accident and is kept (`docs/enhanced.md`). The ratios, the scale
+   and the scores are single precision, as the original's, the 0.25 is not taken off a unit at sea, a garrison on its own
+   depot stays, the agent's target provinces give nobody, and a mountaineer division at rest in the mountains of the donor's
+   area scores a third. An area's "have" counts by where a division is bound.
    A donor facing a war candidate gives no mobile division unless only fast ones were asked.
 7. **Whole commands**: a commander, not fighting, retreating or a theatre, all of whose subordinates were taken, goes in
    their place - and its own commander the same, once.
@@ -485,6 +492,20 @@ the fleet with no agent of its own, no order, room for a whole unit, not its own
 with the most 10 - min(distance by sea to the port / 400, 10) + its room, is taken.
 
 Each moves by being put under the agent's headquarters, and both agents' subordinates are sorted again.
+
+### 10.5 Units on a friend's land (`CAIUnit::ManageExpeditions`, `FINDINGS-agents.md` C.7)
+
+Each agent of a country the AI runs, on its full pass, after its subordinates and the threatened provinces, goes through its
+land units standing in a real area. **A unit on loan** from a country not in exile goes home when it has no blocking order,
+its lender is nobody's to play and the lender may no longer operate in the area: what is under it is detached and the unit sent.
+**Anything else** - its own, or on loan from a government in exile - is lent to whoever holds the province, when neither
+its place nor where it is bound is the country's, the holder is no enemy either way round, **the two share a faction or both
+have none**, the unit has nothing under it and is no theatre, the country may operate in the area, the area's holder is
+not played or holds one of the country's priority provinces, and the area is outside the country's theatre. It is
+`CSendExpeditionCommand`, with nothing asked of the other country and no influence spent, and the lent unit's date is the
+game's end. It is how the USA's Phillippine Force is the Philippines' by the first balancing. An area "may be operated in"
+by `AreaMayWidenFrontSearch` as these ask it: the holder on the country's side or fighting beside it, and then in exile, a
+priority province in the area or beside it against an enemy, or the holder unplayed.
 
 ## 11. Kept as the original does them
 
@@ -519,7 +540,7 @@ Each moves by being put under the agent's headquarters, and both agents' subordi
 ## 13. Not built
 
 - **Moving and attacking** - the land block, `ManageLandUnits`, `IsUnitReservedForTransport`, the reserve and what is committed,
-  `ManageExpeditions` and `RebuildHoldProvinces` - the third piece; and with it the axis (the path to the objectives at stance 3 and 4), embark and debark, the
+  and `RebuildHoldProvinces` - the third piece; and with it the axis (the path to the objectives at stance 3 and 4), embark and debark, the
   movers between theatres, invasions, the pride, the leaders promoted and the units sent abroad by a landless country.
 - **The transport plane and strategic bomber wants**, and a term of the
   division demand whose source was not read, taken as nought.
@@ -563,5 +584,16 @@ differs now the naval bomber's want or a theatre whose divisions differ - divisi
 against 15), as the reading's own model predicts. **Britain and France move too much**: the original gave Home Command,
 whose need of about 31 against 18 divisions its aircraft want of 4 confirms, nothing by 4 January, nor Port Harcourt or
 St. John's, and moved one division each from the Army of India to the Far East and East Africa; ours sends India's
-divisions to all of them. With the old need nothing of Britain's moved. What holds the original back is not read
-(the fact base's queue, the moving wave's first item).
+divisions to all of them. With the old need nothing of Britain's moved.
+
+**With the distance's cap (10.2), the rest of the pick and the lending of units (10.5), 2026-11-09**, the same run: divisions
+**106 of 106**, army groups 106, armies 105, corps 104, fleets 102. The running game showed the cause: the first pass's needs
+the same as here in 104 of the 105 theatres that can be compared (one of Japan's is 34 against 55), India asked for 8 for Home
+and returning none. Of the running game's 102 picks in four days, 93 are ours in the same place with the same divisions. Eight
+of the rest are Britain's donors for Port Harcourt and St. John's in another order, all giving nobody: ours finds the Middle
+East a way there and the original does not. One is the Soviet Union's: its 42nd Corps has four divisions there on 2 January and
+five here, so it moves as divisions and not whole.
+
+**At war it is not yet so** (`Ireland1941_07_16_07`, run 51 hours both ways, 2026-11-09; `FINDINGS-balancing.md`): 20 of 24 theatres
+agree in need and count on the first pass, Vichy's ten picks all agree, and the Soviet Union's main theatre needs 64 here against
+the running game's 75. A loaded game's first hour does not balance here, where it does in the original.

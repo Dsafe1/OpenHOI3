@@ -106,6 +106,17 @@ public static class CExpeditions
 		{
 			return;
 		}
+		TakeHome(state, unit);
+		state.RaisePactMessage(new CPactMessage("EXPRETURNEDWE", "EXPRETURNED", "", host.Tag, lender.Tag) { Values = new[] { ("NAME", unit.Name) } });
+	}
+
+	/// <summary>The unit back with its lender, with nobody told.</summary>
+	public static void TakeHome(CGameState state, CUnit unit)
+	{
+		if (unit.Lender is not { } tag || state.Country(tag) is not { } lender || state.Country(unit.Owner) is not { } host)
+		{
+			return;
+		}
 		foreach (CUnit child in unit.Children.ToList())
 		{
 			LeaveParent(child);
@@ -123,7 +134,6 @@ public static class CExpeditions
 		unit.Owner = lender.Tag;
 		lender.Units.Add(unit);
 		state.ForgetPositions();
-		state.RaisePactMessage(new CPactMessage("EXPRETURNEDWE", "EXPRETURNED", "", host.Tag, lender.Tag) { Values = new[] { ("NAME", unit.Name) } });
 	}
 
 	/// <summary>Each host's first unit past its date goes home: several recalled come back one a day.</summary>

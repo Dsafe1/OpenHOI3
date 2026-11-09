@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
-using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Theatres;
@@ -20,10 +19,12 @@ namespace OpenHOI3.Sim.Agents;
 /// </summary>
 public static class CTheatreBalance
 {
-	private const long Whole = 1000;
-
 	/// <summary>An agent whose frontier is at peace sorts this much lower.</summary>
 	private const long AtPeace = 1000;
+
+	private const string Mountaineer = "bergsjaeger_brigade";
+
+	private const string Mountain = "mountain";
 
 	private static readonly string[] Mobile =
 		{ "motorized_brigade", "mechanized_brigade", "armor_brigade", "light_armor_brigade", "heavy_armor_brigade" };
@@ -31,11 +32,14 @@ public static class CTheatreBalance
 	/// <summary>The least speed a division given to a war candidate's whole surplus has, in thousandths.</summary>
 	private const long Fast = 2000;
 
-	private const long Unconnected = 250;
+	private const double Unconnected = 0.25;
 
-	private const long ParentGave = 15;
+	private const float ParentGave = 15f;
 
-	private const long FirstGiven = 10;
+	private const float FirstGiven = 10f;
+
+	/// <summary>A mountaineer division at rest in the mountains of the donor's area is this much less worth giving.</summary>
+	private const double MountaineerAtRest = 3.0;
 
 	/// <summary>The idle divisions beside a candidate from which its score is whole; under it, a hundredth each.</summary>
 	private const int IdleForWhole = 100;
@@ -50,6 +54,18 @@ public static class CTheatreBalance
 				continue;
 			}
 			CPlanPowers.Update(state, country, agent);
+			if (state.AiTrace is { } trace && trace.Country == country.Tag)
+			{
+				var names = new List<string>();
+				foreach (CUnit unit in agent.Land)
+				{
+					if (unit.Kind == EUnitKind.Division)
+					{
+						names.Add($"{unit.Id} {unit.Name}");
+					}
+				}
+				trace.Write($"balance {state.Date} {state.TotalHours % 24} agent {CAgents.TheatreOf(state, country, agent)?.Id} need {agent.DivisionNeed} count {agent.DivisionCount} [{string.Join("; ", names)}]");
+			}
 			long key = Key(agent);
 			int at = 0;
 			while (at < sorted.Count && Key(sorted[at]) >= key)
@@ -111,7 +127,7 @@ public static class CTheatreBalance
 			}
 		}
 		return donor.Unit is { Location: > 0 } from && taker.Unit is { Location: > 0 } to
-			&& CRouteFinder.Find(state, country, from, from.Location, to.Location) is not null;
+			&& CAiMoves.CanReach(state, country, from, to.Location);
 	}
 
 	private static void Give(CGameState state, CCountry country, CAgent donor, CAgent taker, CTheatre takerTheatre)
@@ -144,17 +160,21 @@ public static class CTheatreBalance
 					mobile.Add(unit);
 				}
 			}
-			Post(state, country, donor, taker, RollUp(mobile, Parents(mobile)));
+			Post(state, country, donor, taker, RollUp(mobile, Parents(mobile, donor.Unit), donor.Unit));
 		}
-		long ratioA = Ratio(countA, needA);
-		long ratioB = Ratio(countB, needB);
-		(long t1, long t2) = takerCandidate && donorCandidate ? (350L, 125L) : takerCandidate ? (300L, 100L) : (400L, 150L);
+		float ratioA = Ratio(countA, needA);
+		float ratioB = Ratio(countB, needB);
+		(float t1, float t2) = takerCandidate && donorCandidate ? (0.35f, 0.125f) : takerCandidate ? (0.3f, 0.1f) : (0.4f, 0.15f);
 		long n = 0;
-		if (ratioB - t1 > ratioA)
+		if ((double)ratioB - t1 > ratioA && (double)ratioB - t2 > ratioA)
 		{
-			while (n < needA - countA && Ratio(countA + n, needA) < Ratio(countB - n, needB) - t2)
+			while (n < needA - countA)
 			{
 				n++;
+				if (!((double)Ratio(countB - n, needB) - t2 > Ratio(countA + n, needA)))
+				{
+					break;
+				}
 			}
 		}
 		long minGive = 0;
@@ -174,14 +194,24 @@ public static class CTheatreBalance
 			return;
 		}
 		long divisor = countB - n - minGive;
-		long scale = divisor > 0 ? Whole - Math.Min(n * Whole / divisor, Whole) : Whole;
-		Post(state, country, donor, taker, Pick(state, country, donor, (int)n, fastOnly, takerTheatre, scale));
+		float scale = 1f;
+		if (divisor > 0)
+		{
+			scale = (float)(1.0 - Math.Min((float)((double)(float)n / (float)divisor), 1f));
+		}
+		List<CUnit> given = Pick(state, country, donor, (int)n, fastOnly, takerTheatre, scale);
+		if (state.AiTrace is { } trace && trace.Country == country.Tag)
+		{
+			trace.Write($"balance {state.Date} {state.TotalHours % 24} from {CAgents.TheatreOf(state, country, donor)?.Id} need {needB} count {countB}"
+				+ $" to {takerTheatre.Id} n {n} scale {scale:F4} gave {given.Count} [{string.Join("; ", given.ConvertAll(unit => unit.Name))}]");
+		}
+		Post(state, country, donor, taker, given);
 	}
 
-	/// <summary>A count against a need as a share, in thousandths: a whole where the need is none.</summary>
-	private static long Ratio(long count, long need)
+	/// <summary>A count against a need as a share, in single precision as the original has it: a whole where the need is none.</summary>
+	private static float Ratio(long count, long need)
 	{
-		return need <= 0 ? Whole : count * Whole / need;
+		return need <= 0 ? 1f : (float)((double)(float)count / (float)need);
 	}
 
 	private static bool HasMobile(CUnit division)
@@ -201,28 +231,23 @@ public static class CTheatreBalance
 	/// near the taker's fronts they stand, the best taken until there are enough, then rolled up into whole commands.
 	/// </summary>
 	private static List<CUnit> Pick(CGameState state, CCountry country, CAgent donor, int wanted, bool fastOnly,
-		CTheatre takerTheatre, long scale)
+		CTheatre takerTheatre, float scale)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		var keep = new Dictionary<CSupplyArea, long>();
 		var have = new Dictionary<CSupplyArea, long>();
 		if (CAgents.TheatreOf(state, country, donor) is { } donorTheatre)
 		{
+			var visited = new HashSet<CSupplyArea>();
 			foreach (CSupplyArea area in donorTheatre.Areas)
 			{
-				long need = CPlanPowers.NeedOf(state, country, donor, area);
-				long kept = HalfToEven(need * scale);
+				long need = CPlanPowers.NeedOf(state, country, donor, area, true, visited);
+				long kept = (long)Math.Round((double)((float)need * scale), MidpointRounding.ToEven);
 				keep[area] = need > 0 ? Math.Max(1, kept) : kept;
+				have[area] = CountIn(state, country, donor, network, area);
 			}
 		}
 		var candidates = new List<CUnit>();
-		foreach (CUnit unit in donor.Land)
-		{
-			if (unit.Kind == EUnitKind.Division && unit.Location > 0 && network.AreaOf(unit.Location) is { } area)
-			{
-				have[area] = have.GetValueOrDefault(area) + 1;
-			}
-		}
 		foreach (CUnit unit in donor.Land)
 		{
 			if (MayGive(state, country, donor, unit, fastOnly, network, keep, have, candidates))
@@ -230,24 +255,24 @@ public static class CTheatreBalance
 				candidates.Add(unit);
 			}
 		}
-		long most = 0;
-		var distances = new Dictionary<CUnit, long>();
+		float most = 0f;
+		var distances = new Dictionary<CUnit, float>();
 		foreach (CUnit unit in candidates)
 		{
-			long distance = DistanceToFronts(state, unit.Location, takerTheatre);
+			float distance = DistanceToFronts(state, unit.Location, takerTheatre);
 			distances[unit] = distance;
 			most = Math.Max(most, distance);
 		}
-		if (most == 0)
+		if (most == 0f)
 		{
-			most = 1;
+			most = 0.1f;
 		}
 		var picked = new List<CUnit>();
 		var parents = new List<CUnit>();
 		while (picked.Count < wanted)
 		{
 			CUnit? best = null;
-			long bestScore = 0;
+			float bestScore = 0f;
 			foreach (CUnit unit in candidates)
 			{
 				if (picked.Contains(unit) || (donor.FrontierWarCandidate && !fastOnly && HasMobile(unit)))
@@ -260,16 +285,18 @@ public static class CTheatreBalance
 				{
 					continue;
 				}
-				long score = (Whole - distances[unit] * Whole / most)
-					* (unit.Parent is { } parent && parents.Contains(parent) ? ParentGave : FirstGiven);
-				if (!TouchesTheatre(network, unit.Location, takerTheatre))
+				float near = (float)(1.0 - (double)distances[unit] / most);
+				float score = (float)((double)near * (unit.Parent is { } parent && parents.Contains(parent) ? ParentGave : FirstGiven));
+				if (network.AreaOf(unit.Location) is not null && !TouchesTheatre(network, unit.Location, takerTheatre))
 				{
-					score = score * Unconnected / Whole;
+					score = (float)((double)score * Unconnected);
 				}
-				if (idle < IdleForWhole)
+				if (IsMountaineerAtRest(state, donor, unit))
 				{
-					score = score * idle / IdleForWhole;
+					score = (float)((double)score / MountaineerAtRest);
 				}
+				float share = idle < IdleForWhole ? (float)((double)idle / IdleForWhole) : 1f;
+				score = (float)((double)score * share);
 				if (score > bestScore)
 				{
 					bestScore = score;
@@ -281,12 +308,12 @@ public static class CTheatreBalance
 				break;
 			}
 			picked.Add(best);
-			if (best.Parent is { } noted && !parents.Contains(noted))
+			if (best.Parent is { } noted && !ReferenceEquals(noted, donor.Unit) && !parents.Contains(noted))
 			{
 				parents.Add(noted);
 			}
 		}
-		return RollUp(picked, parents);
+		return RollUp(picked, parents, donor.Unit);
 	}
 
 	private static bool MayGive(CGameState state, CCountry country, CAgent donor, CUnit unit, bool fastOnly,
@@ -303,7 +330,7 @@ public static class CTheatreBalance
 			return false;
 		}
 		int place = CAgentUnits.DestinationOrPlace(unit);
-		if (role == CArmyRole.Garrison && place > 0 && state.Province(place).Points > 9)
+		if (role == CArmyRole.Garrison && place > 0 && (state.Province(place).Points > 9 || network.DepotOf(place) == place))
 		{
 			return false;
 		}
@@ -313,11 +340,16 @@ public static class CTheatreBalance
 		{
 			return false;
 		}
-		if (place > 0 && state.Province(place).Controller is { } holder && CCountryLists.IsEnemy(state, country, holder))
+		int bound = CAgentUnits.Destination(unit);
+		if (bound > 0 && state.Province(bound).Controller is { } holder && CCountryLists.IsEnemy(state, country, holder))
 		{
 			return false;
 		}
 		if (fastOnly && Slowest(unit) < Fast)
+		{
+			return false;
+		}
+		if (donor.TargetProvinces.Contains(unit.Location))
 		{
 			return false;
 		}
@@ -327,6 +359,47 @@ public static class CTheatreBalance
 			return false;
 		}
 		return true;
+	}
+
+	/// <summary>
+	/// The original's <c>CountDivisionsInArea</c> for a donor: its divisions heading for or standing in the area, or in
+	/// another country's area of the area's group where it may operate.
+	/// </summary>
+	private static long CountIn(CGameState state, CCountry country, CAgent donor, CSupplyNetwork network, CSupplyArea area)
+	{
+		long count = 0;
+		foreach (CUnit unit in donor.Land)
+		{
+			if (unit.Kind != EUnitKind.Division || CAgentUnits.DestinationOrPlace(unit) is not (> 0 and var anchor)
+				|| network.AreaOf(anchor) is not { } theirs)
+			{
+				continue;
+			}
+			if (ReferenceEquals(theirs, area)
+				|| (theirs.Group is { } group && ReferenceEquals(group, area.Group) && theirs.Controller != country.Tag
+					&& state.Country(theirs.Controller) is { } holder && CSupplyRelations.CanOperateIn(state, country, holder)))
+			{
+				count++;
+			}
+		}
+		return count;
+	}
+
+	/// <summary>A division with a mountaineer brigade, doing nothing, on a mountain of the donor's area of operations.</summary>
+	private static bool IsMountaineerAtRest(CGameState state, CAgent donor, CUnit unit)
+	{
+		if (CCommandLadder.IsBlocked(unit) || !donor.Area.Contains(unit.Location) || state.Province(unit.Location).Terrain?.Name != Mountain)
+		{
+			return false;
+		}
+		foreach (CSubUnit brigade in unit.SubUnits)
+		{
+			if (brigade.Type.Key == Mountaineer)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static long Slowest(CUnit unit)
@@ -339,18 +412,22 @@ public static class CTheatreBalance
 		return slowest;
 	}
 
-	/// <summary>The original's <c>DistanceToTheatreFronts</c>: the least distance to a province of the theatre's fronts.</summary>
+	/// <summary>
+	/// The original's <c>DistanceToTheatreFronts</c>: the least distance to a province of the theatre's fronts, which stops
+	/// at 1000 (<see cref="CMapDistance.LeastFromAMillion"/>) - and a candidate at the greatest distance scores nothing, so
+	/// a donor gives only what already stands near the taker's fronts.
+	/// </summary>
 	private static long DistanceToFronts(CGameState state, int province, CTheatre theatre)
 	{
-		long least = 1_000_000;
+		var squares = new List<long>();
 		foreach (CFront front in theatre.Fronts)
 		{
 			foreach (int id in front.Provinces)
 			{
-				least = Math.Min(least, CMapDistance.Between(state.Province(province), state.Province(id), state.MapWidth));
+				squares.Add(CMapDistance.Squared(state.Province(province), state.Province(id), state.MapWidth));
 			}
 		}
-		return least;
+		return CMapDistance.LeastFromAMillion(squares);
 	}
 
 	/// <summary>Whether the province's area is one of the theatre's areas or beside one.</summary>
@@ -370,12 +447,12 @@ public static class CTheatreBalance
 		return false;
 	}
 
-	private static List<CUnit> Parents(List<CUnit> units)
+	private static List<CUnit> Parents(List<CUnit> units, CUnit? agentUnit)
 	{
 		var parents = new List<CUnit>();
 		foreach (CUnit unit in units)
 		{
-			if (unit.Parent is { } parent && !parents.Contains(parent))
+			if (unit.Parent is { } parent && !ReferenceEquals(parent, agentUnit) && !parents.Contains(parent))
 			{
 				parents.Add(parent);
 			}
@@ -385,41 +462,36 @@ public static class CTheatreBalance
 
 	/// <summary>
 	/// The original's <c>CAIUnit_RollUpWholeCommands</c>: a noted command, not fighting, retreating or a theatre, all of
-	/// whose subordinates were picked, takes their place - and its own commander the same, once.
+	/// whose subordinates were picked, goes on the end in their place - and the commanders of those, not noted already, the
+	/// same once more.
 	/// </summary>
-	private static List<CUnit> RollUp(List<CUnit> picked, List<CUnit> parents)
+	private static List<CUnit> RollUp(List<CUnit> picked, List<CUnit> parents, CUnit? agentUnit)
 	{
 		var result = new List<CUnit>(picked);
-		foreach (CUnit parent in parents)
-		{
-			RollUpOne(result, parent, twice: true);
-		}
+		var above = new List<CUnit>();
+		RollOnce(result, parents, parents, above, agentUnit);
+		RollOnce(result, above, parents, null, agentUnit);
 		return result;
 	}
 
-	private static void RollUpOne(List<CUnit> result, CUnit parent, bool twice)
+	private static void RollOnce(List<CUnit> result, List<CUnit> commanders, List<CUnit> noted, List<CUnit>? above, CUnit? agentUnit)
 	{
-		if (parent.Kind == EUnitKind.Theatre || parent.IsFighting || parent.IsRetreating || parent.Children.Count == 0
-			|| result.Contains(parent))
+		foreach (CUnit commander in commanders)
 		{
-			return;
-		}
-		foreach (CUnit child in parent.Children)
-		{
-			if (!result.Contains(child))
+			if (commander.Kind == EUnitKind.Theatre || commander.IsFighting || commander.IsRetreating
+				|| !commander.Children.TrueForAll(result.Contains))
 			{
-				return;
+				continue;
 			}
-		}
-		int at = result.IndexOf(parent.Children[0]);
-		foreach (CUnit child in parent.Children)
-		{
-			result.Remove(child);
-		}
-		result.Insert(Math.Max(0, Math.Min(at, result.Count)), parent);
-		if (twice && parent.Parent is { } above)
-		{
-			RollUpOne(result, above, twice: false);
+			foreach (CUnit child in commander.Children)
+			{
+				result.Remove(child);
+			}
+			result.Add(commander);
+			if (above is not null && commander.Parent is { } next && !ReferenceEquals(next, agentUnit) && !noted.Contains(next))
+			{
+				above.Add(next);
+			}
 		}
 	}
 
@@ -455,12 +527,4 @@ public static class CTheatreBalance
 		return count;
 	}
 
-	/// <summary>A count in thousandths to a whole, a half to even.</summary>
-	private static long HalfToEven(long thousandths)
-	{
-		long whole = thousandths / Whole;
-		long rest = thousandths % Whole;
-		const long half = Whole / 2;
-		return rest > half || (rest == half && whole % 2 == 1) ? whole + 1 : whole;
-	}
 }
