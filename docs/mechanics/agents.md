@@ -593,9 +593,9 @@ and returning none. Of the running game's 102 picks in four days, 101 are ours i
 a theatre's headquarters asks whether areas the country may enter join them, seeking no way. The other is the Soviet Union's: its 42nd Corps has four divisions there on 2 January and
 five here, so it moves as divisions and not whole.
 
-**At war** (`Ireland1941_07_16_07`, run 51 hours both ways, 2026-11-09; `FINDINGS-balancing.md`): 23 of the 24 theatres that can
-be compared agree in need and count on the first pass, the Soviet Union's 75 among them, and Vichy's ten picks all agree. Germany's
-theatre 6 is 73 and 118 against the running game's 72 and 119, one finished division having been placed by then in the original
-and waiting here. Of the running game's 57 picks 43 are the same in place; one Soviet donor gives 10 of 15 where the original gives
-12, its units having moved on their own for 21 hours by then. A loaded game's first hour does not balance here, where it does in
-the original.
+**At war** (`Ireland1941_07_16_07`, run 51 hours both ways, 2026-11-09; `FINDINGS-balancing.md`): 27 of the 28 theatres
+compared agree in need and count on the first pass, the Soviet Union's 75 among them, and Vichy's ten picks and Portugal's three
+all agree. Germany's theatre 6 is 73 and 118 against the running game's 72 and 119: its 214. Infanterie-Division, waiting in the
+save, is placed by both but in other provinces (1626 there, 1861 here) and is under the theatre there by the next day, not here. Of
+the running game's 57 picks 47 are the same in place; one Soviet donor gives 10 of 15 where the original gives 12, its units having
+moved on their own for 21 hours by then. Italy's second day balances where the running game's does not.

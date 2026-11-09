@@ -222,6 +222,16 @@ public static class CSaveLoader
 		}
 		Sim.Supply.CSupplyNetworks.Refresh(state, force: true);
 		Sim.Wars.CSurrender.CountVictoryPoints(state);
+		// The original has run an AI pass by the time a loaded game stands paused at its hour: every agent made and bound,
+		// and its first pass done (measured in the running game, FINDINGS-balancing.md).
+		foreach (CCountry country in state.Countries)
+		{
+			// A loaded game is no first pass and waits for no theatre: FINDINGS-agents.md, the pass, step 5.
+			country.UnitAi.Waiting = false;
+			country.UnitAi.UnitPassDone = true;
+			country.Strategy.TheatresDirty = false;
+		}
+		Sim.Agents.CUnitAiPass.RunHourly(state);
 		return (state, report);
 	}
 
