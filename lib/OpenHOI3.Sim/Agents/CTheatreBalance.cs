@@ -127,7 +127,7 @@ public static class CTheatreBalance
 			}
 		}
 		return donor.Unit is { Location: > 0 } from && taker.Unit is { Location: > 0 } to
-			&& CAiMoves.CanReach(state, country, from, to.Location);
+			&& CAiMoves.ReachesByLand(state, country, from, to.Location);
 	}
 
 	private static void Give(CGameState state, CCountry country, CAgent donor, CAgent taker, CTheatre takerTheatre)

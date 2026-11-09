@@ -412,6 +412,17 @@ public class TheatreTests
 	}
 
 	[Fact]
+	public void Areas_are_joined_only_through_land_the_country_may_enter()
+	{
+		CGameState state = World(eastPrussia: true);
+		CCountry germany = state.Country(Ger)!;
+		Assert.False(OpenHOI3.Sim.Agents.CAreaPaths.Joined(state, germany, 1, 13));
+		state.Country(Pol)!.Faction = germany.Faction;
+		CSupplyNetworks.Refresh(state, force: true);
+		Assert.True(OpenHOI3.Sim.Agents.CAreaPaths.Joined(state, germany, 1, 13));
+	}
+
+	[Fact]
 	public void A_country_fighting_beside_another_shares_its_region_group()
 	{
 		CGameState state = World();

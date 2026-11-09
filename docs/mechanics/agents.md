@@ -589,13 +589,13 @@ divisions to all of them. With the old need nothing of Britain's moved.
 **With the distance's cap (10.2), the rest of the pick and the lending of units (10.5), 2026-11-09**, the same run: divisions
 **106 of 106**, army groups 106, armies 105, corps 104, fleets 102. The running game showed the cause: the first pass's needs
 the same as here in 104 of the 105 theatres that can be compared (one of Japan's is 34 against 55), India asked for 8 for Home
-and returning none. Of the running game's 102 picks in four days, 93 are ours in the same place with the same divisions. Eight
-of the rest are Britain's donors for Port Harcourt and St. John's in another order, all giving nobody: ours finds the Middle
-East a way there and the original does not. One is the Soviet Union's: its 42nd Corps has four divisions there on 2 January and
+and returning none. Of the running game's 102 picks in four days, 101 are ours in the same place with the same divisions, since the reach test of
+a theatre's headquarters asks whether areas the country may enter join them, seeking no way. The other is the Soviet Union's: its 42nd Corps has four divisions there on 2 January and
 five here, so it moves as divisions and not whole.
 
 **At war** (`Ireland1941_07_16_07`, run 51 hours both ways, 2026-11-09; `FINDINGS-balancing.md`): 23 of the 24 theatres that can
 be compared agree in need and count on the first pass, the Soviet Union's 75 among them, and Vichy's ten picks all agree. Germany's
-theatre 6 is 73 and 118 against the running game's 72 and 119. The running game's picks are not all reproduced: Britain's donors
-come in another order, and one Soviet donor gives 10 of 15 where the original gives 12. A loaded game's first hour does not
-balance here, where it does in the original.
+theatre 6 is 73 and 118 against the running game's 72 and 119, one finished division having been placed by then in the original
+and waiting here. Of the running game's 57 picks 43 are the same in place; one Soviet donor gives 10 of 15 where the original gives
+12, its units having moved on their own for 21 hours by then. A loaded game's first hour does not balance here, where it does in
+the original.

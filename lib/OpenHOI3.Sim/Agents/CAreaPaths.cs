@@ -7,7 +7,7 @@ namespace OpenHOI3.Sim.Agents;
 
 /// <summary>
 /// Whether two provinces are joined by a run of the supply network's areas, each beside the next, none held by an enemy
-/// of the country. The original's <c>CCountry_ProvincesConnectedByArea</c> with its enemies avoided. See
+/// of the country and each one the country may enter. The original's <c>CCountry_ProvincesConnectedByArea</c> with its enemies avoided. See
 /// <c>docs/mechanics/agents.md</c>, section 6.5.
 /// </summary>
 public static class CAreaPaths
@@ -35,7 +35,8 @@ public static class CAreaPaths
 			CSupplyArea area = open.Dequeue();
 			foreach (CSupplyArea beside in area.Neighbours)
 			{
-				if (seen.Contains(beside) || CMovementRules.IsEnemy(state, country.Tag, beside.Controller))
+				if (seen.Contains(beside) || beside.Provinces.Count == 0 || CMovementRules.IsEnemy(state, country.Tag, beside.Controller)
+					|| !CMovementRules.MayEnter(state, country, state.Province(beside.Provinces[0])))
 				{
 					continue;
 				}

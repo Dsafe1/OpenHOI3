@@ -2,6 +2,7 @@ using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Agents;
@@ -82,6 +83,66 @@ public static class CAiMoves
 			return false;
 		}
 		return CRouteFinder.Find(state, country, unit, unit.Location, province, landSafety: safety) is not null;
+	}
+
+	/// <summary>
+	/// The original's <c>CMapProvince::CanUnitReach</c> for a land unit, which looks for no way: not into the battle of an
+	/// enemy standing there while it fights, nor into an enemy's province; then yes in one area, or beside its province by
+	/// land, and otherwise, where it stands where it may not or has a neighbour it may enter, yes to an area beside its own
+	/// or joined to it by areas no enemy holds. The record of a failed order, which refuses a province for two days, is not
+	/// built (<c>docs/mechanics/moving.md</c>, section 10).
+	/// </summary>
+	public static bool ReachesByLand(CGameState state, CCountry country, CUnit unit, int province)
+	{
+		if (unit.Location == province)
+		{
+			return true;
+		}
+		if (unit.IsRetreating || unit.SubUnits.Count == 0 || unit.Location <= 0)
+		{
+			return false;
+		}
+		CProvince target = state.Province(province);
+		if (CMovementRules.IsEnemyIn(state, unit.Owner, target.Controller, province))
+		{
+			return false;
+		}
+		if (unit.IsFighting)
+		{
+			foreach (CUnit other in state.Positions.Of(province))
+			{
+				if (CMovementRules.IsLandUnit(other) && !other.IsRetreating && CMovementRules.IsEnemyIn(state, unit.Owner, other.Owner, province))
+				{
+					return false;
+				}
+			}
+		}
+		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		CSupplyArea? from = network.AreaOf(unit.Location);
+		CSupplyArea? to = network.AreaOf(province);
+		if (from is not null && ReferenceEquals(from, to))
+		{
+			return true;
+		}
+		CProvince here = state.Province(unit.Location);
+		bool way = !CMovementRules.MayEnter(state, country, here);
+		foreach (CProvinceEdge edge in here.Edges)
+		{
+			if (edge.Kind == EProvinceEdgeKind.Impassable || state.Province(edge.To).IsSea)
+			{
+				continue;
+			}
+			if (edge.To == province)
+			{
+				return true;
+			}
+			way |= CMovementRules.MayEnter(state, country, state.Province(edge.To));
+		}
+		if (!way)
+		{
+			return false;
+		}
+		return (from is not null && to is not null && from.Neighbours.Contains(to)) || CAreaPaths.Joined(state, country, unit.Location, province);
 	}
 
 	/// <summary>Not to a neighbour, and at least a quarter of its top speed times 200 hours at war, 600 at peace.</summary>

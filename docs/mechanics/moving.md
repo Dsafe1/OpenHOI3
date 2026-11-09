@@ -264,7 +264,10 @@ redeployment where 9 says so (`FINDINGS-moving.md` A.4c).
 way: short of the goal, a land unit does not step into a province held by a country at war with it or the rebels, nor
 into one with a land battle in it. The line's reach tests (7.3) ask the **safe** way: short of the goal, not through a
 province where the units of countries at war with it - a rebel's not counted on its own country's land - are stronger
-than it. The fallback and the march check's cut take the plain way, which only the step rules hold back
+than it. **That is ours and not the original's** (read 2026-11-09, `FINDINGS-balancing.md`): for a land unit its reach test seeks
+no way at all but asks whether the areas are joined, which the balancing does (`CAiMoves.ReachesByLand`). Asking so in the line
+changed nothing in either check against a running game, and the safe way is what ended a marching loop (`FINDINGS-moving.md` A.4c),
+so it stays until a save says otherwise. The fallback and the march check's cut take the plain way, which only the step rules hold back
 (`movement.md`). **A strategic redeployment** always takes the very safe way, whoever orders it (`movement.md`, section
 3). It is an order: the unit goes at `STRAT_REDEP_BASE_SPEED` x its province's infrastructure (between a hundredth
 and a whole) instead of its own, and does not fight on the way (`movement.md`); each hour of the way starts its attack
