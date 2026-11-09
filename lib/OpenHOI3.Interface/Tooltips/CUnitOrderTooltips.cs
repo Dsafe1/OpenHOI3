@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim.Units;
+using System.Linq;
+using OpenHOI3.Sim;
+using OpenHOI3.Sim.Agents;
 
 namespace OpenHOI3.Interface.Tooltips;
 
@@ -147,23 +150,36 @@ public static class CUnitOrderTooltips
 	}
 
 	/// <summary>
-	/// A headquarters' row for the AI. Nothing holds an aggression of its own or a setting yet,
-	/// and no AI commands anything, so the row says what the original says of a headquarters in
-	/// the player's hand at the middle setting.
+	/// A headquarters' row for the AI.
 	/// </summary>
-	public static CTooltip Objectives(Func<string, string> localise, CUnit unit, string element)
+	public static CTooltip Objectives(Func<string, string> localise, CGameState state, CUnit unit, string element)
 	{
 		switch (element)
 		{
+			case "objectives":
+				return new CTooltip
+				{
+					Text = unit.Plan.Active ? string.Join(", ", unit.Plan.Objectives.Select(objective => state.Province(objective.Province).Name)) : "",
+					Delayed = localise("OBJECTIVES_DESC"),
+				};
 			case "aggression_checkbox":
-				return new CTooltip { Text = localise("AGGRESSION_OFF") };
+				return new CTooltip { Text = localise(unit.HasOwnAggression ? "AGGRESSION_ON" : "AGGRESSION_OFF") };
 			case "tac_aggro_slider_bg":
 			case "tac_aggro_bg":
 			case "aggro_TrackButton":
 			case "aggro_SliderButton":
-				return new CTooltip { Text = CTextTemplate.Fill(localise("AGGRESSION_LEVEL"), ("STATUS", localise("AGGRESSION_NEUTRAL"))) };
+				long level = CUnitAggression.Of(unit);
+				return new CTooltip
+				{
+					Text = CTextTemplate.Fill(localise("AGGRESSION_LEVEL"), ("STATUS",
+						localise(level > 300 ? "AGGRESSION_AGGRESSIVE" : level < -300 ? "AGGRESSION_DEFENSIVE" : "AGGRESSION_NEUTRAL"))),
+				};
 			case "automate_checkbox":
-				return new CTooltip { Text = localise(Automate(unit)), Delayed = localise("AUTOMATED_DESC") };
+				return new CTooltip
+				{
+					Text = localise(CAgents.HighestOver(unit) is not null ? "AUTOMATED" : Automate(state, unit)),
+					Delayed = localise("AUTOMATED_DESC"),
+				};
 			case "reorg_hq_checkbox":
 				return new CTooltip { Text = localise("ALLOW_HQ_REORG") };
 			default:
@@ -173,15 +189,14 @@ public static class CUnitOrderTooltips
 
 	/// <summary>
 	/// Why a unit is not handed to an AI, by its level: a division never is, a theatre needs an
-	/// area - which nothing gives one here - a fleet or an air unit only goes with an army, and
-	/// anything else is the player's.
+	/// area, a fleet or an air unit only goes with an army, and anything else is the player's.
 	/// </summary>
-	public static string Automate(CUnit unit)
+	public static string Automate(CGameState state, CUnit unit)
 	{
 		return unit.Kind switch
 		{
 			EUnitKind.Division => "CANT_AUTO_DIVISIONS",
-			EUnitKind.Theatre => "CANT_AUTO_NO_AREA",
+			EUnitKind.Theatre when state.Country(unit.Owner) is not { } country || CAgents.TheatreHeadedBy(state, country, unit) is null => "CANT_AUTO_NO_AREA",
 			EUnitKind.Navy or EUnitKind.Air => "ONLY_AUTO_ARMIES",
 			_ => "PLAYER_CONTROLLED",
 		};

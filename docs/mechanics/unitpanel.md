@@ -368,9 +368,10 @@ original's on 2026-10-09 and the row was missing. It has two faces: `confirmed`
 - A row of a unit above (section 2) marks a unit that has a figure of its own with a
   star after its name: red above 0.1, blue below -0.1, grey between.
 
-**Here there is only the first face, and none of it can be pressed**: there is no AI to
-hand a headquarters to, and nothing an aggression would change. The box is clear, the
-slider stands in the middle, and the switch is off.
+Both faces are built (2026-11-09, `reversing/findings/FINDINGS-hqrows.md`). `automate_checkbox` takes away the highest agent over the unit or, with none, makes one for it, as a command (`CAutomateUnitCommand`).
+**Only a theatre's headquarters can be handed over here**, the agents being a theatre's: below that the box is greyed, *Ours*. `reorg_hq_checkbox` sets the plan's flag. The aggression box and slider are commands too, and a battle's tactic is picked by the leader's unit's aggressiveness: the first unit from it upward with an active plan by its stance (-1, -0.5, 0, 0.5, 1), or with none, the first with an aggression of its own.
+
+**Under an agent, on it or above it**, five rows follow, a headquarters only. A stance row each for the ground, air and naval stance, all `sup_unit_stance`: the button says the stance and its tooltip its description, and is greyed where a unit **above** this one holds the agent. It opens `sup_stance_change_window` over the row, five rows for the ground and three each for air and sea, the stance in force not marked; a second press fills it again and does not shut it, and a pick shuts it. A ground pick goes through the agent, its reserve let go; an air or naval pick is one change of the plan. `sup_power_ratios`: each side's power over the larger side's, the larger bar about full, under 0.100 both empty; the row takes no click and shows no tooltip: the original's routine has one for each bar, but the two text boxes lie over them and the maintainer has hovered there and seen none (2026-11-09). `sup_desired_assets`: `WE_NEED`, and each group's representative type the plan is short of as a number and its counter, or `TRADE_NOTHING`; its tooltip lists them by name.
 
 ## 10. Tooltips
 

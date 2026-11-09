@@ -62,7 +62,7 @@ public static class CAgentTick
 			}
 		}
 		bool landHour = full || (hour % 3 == 0 && (state.IsAtWar(country.Tag) || country.UnitAi.InRevolt));
-		if (landHour && country.UnitAi.RunsUnits)
+		if (landHour)
 		{
 			CAgentProfile.Time(state, "the land block", () => CLandBlock.Run(state, country, agent));
 		}
@@ -71,14 +71,14 @@ public static class CAgentTick
 			agent.FullPassPending = false;
 			CCommandProvince.PullIn(state, country, agent);
 		}
-		if (hour == a6 && country.UnitAi.RunsUnits)
+		if (hour == a6)
 		{
 			CAgentProfile.Time(state, "the sealift", () => CSealift.Run(state, country, agent));
 		}
 		CAgentProfile.Time(state, "the air bases", () => CAirBaseLists.Build(state, country, agent, full));
 		CAgentProfile.Time(state, "the air", () => CAirBody.Run(state, country, agent, full));
 		bool regroup = full || agent.ReplanNaval || state.IsAtWar(country.Tag);
-		if (country.UnitAi.RunsUnits)
+		if (country.UnitAi.RunsUnits || unit.Agent is not null)
 		{
 			int before = state.Outbox.Count;
 			CAgentProfile.Time(state, "the fleets", () => CNavalBody.Run(state, country, agent, regroup));
@@ -95,7 +95,7 @@ public static class CAgentTick
 			CAgentProfile.Time(state, "the fleets", () => CFleetRegroup.Run(state, country, agent));
 		}
 		CCommandProvince.March(state, country, agent);
-		if (landHour && country.UnitAi.RunsUnits)
+		if (landHour)
 		{
 			CAgentProfile.Time(state, "the attack", () => CLandAttack.Run(state, country, agent));
 		}

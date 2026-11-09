@@ -87,6 +87,28 @@ public static class CPlanWants
 		return any ? needed : new int[size];
 	}
 
+	/// <summary>
+	/// A plan's want less what it has, summed onto each group's representative type: what the unit panel's desired assets row names.
+	/// All noughts where nothing is wanted.
+	/// </summary>
+	public static int[] GroupDifference(CGameState state, CUnit unit)
+	{
+		int size = state.SubUnitTypes.Count + 1;
+		var group = new int[size];
+		int[] wanted = IsAiPlan(unit) ? PaddedMin(unit.Plan, size) : Compute(state, unit, null).Wanted;
+		if (wanted.Length == 0)
+		{
+			return group;
+		}
+		var have = new int[size];
+		Count(unit, have);
+		foreach (CSubUnitType type in state.SubUnitTypes.Values)
+		{
+			group[GroupOf(state, type).DatabaseIndex] += wanted[type.DatabaseIndex] - have[type.DatabaseIndex];
+		}
+		return group;
+	}
+
 	private static int[] PaddedMin(CUnitPlan plan, int size)
 	{
 		var min = new int[size];

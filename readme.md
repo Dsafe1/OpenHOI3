@@ -527,7 +527,7 @@ In order:
        built so**: a unit whose own leader lacks the rank or the skill gets none of the
        leader's bonus, its commanders' offence and defence traits with it; `fort_defence`
        and `surprise_chance` do nothing; the `trait` condition asks the leader's own traits
-       only. The aggressiveness a tactic is picked with stays 0: plans are the AI's;
+       only. The aggressiveness a tactic is picked with is the leader's unit's since 2026-11-09 (`unitpanel.md`, section 9); then plans were the AI's;
      - **at sea and in the air - built** (2026-10-11, `leaders.md`, section 10;
        `navalcombat.md`, `aircombat.md`, `bombing.md`): a unit's leader's bonus on every ship
        and wing - his skill alone, no trait - where he has the rank; his skill, whatever his
@@ -1737,8 +1737,6 @@ Parts of screens that are built:
 
 | screen | what is missing |
 | --- | --- |
-| the unit panel | a headquarters' AI rows (`sup_unit_stance`, `sup_stance_change`, `sup_power_ratios`, `sup_desired_assets`) |
-| politics | the rows that choose a country to puppet or liberate (`puppet_entry`, `liberate_entry`); their windows are only ever hidden |
 
 Not counted as missing: multiplayer (the metaserver, chat, the in-game lobby, hosting and joining); scenarios and custom games, by the settled decision above;
 the tutorial, the GamersGate store (`micro_interface`) and the `nudge` editor; and what is dead in the original - the side menus, the right-click menu
@@ -1829,6 +1827,7 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 None of these blocks the list above.
 
+- **Only a theatre's headquarters can be handed to the AI** by the unit panel's box (`unitpanel.md`, section 9); the original lets a corps, an army or an army group go too, and the agents here are a theatre's. The AI's own liberating and puppets are still reported unbuilt (`politics.md`, section 11.1).
 - **The console's `nukes` waits for a nuclear system**, and is to be built with it, by the maintainer's word on 2026-11-09 (`docs/mechanics/console.md`, section 3). The original adds the amount, in thousands and with no floor, to a country's stock of nukes; here it answers `Not built.`.
 - **A battle plan's arrows are drawn without the effect's stencil**, so two arrows of one colour crossing blend where the original paints each pixel once (`docs/mechanics/battleplans.md`, section 11). The translator does not carry stencil states yet.
 - **The order of battle browser takes drags only from its own rows and the unit panel's brigades.** The unit panel's child rows and leader button, the outliner and the deploy menu are also sources in the original (`docs/mechanics/oobbrowser.md`, section 8).
@@ -2501,7 +2500,7 @@ None of these blocks the list above.
   106 of 106 theatres level by level, the AI's first pass running as a game is entered
   (`agents.md`, section 2.1).
 - **Leaders in battle are built whole since 2026-10-11** (`docs/mechanics/leaders.md`,
-  sections 9 to 11) but for two things: the aggressiveness a tactic is picked with, which is
+  sections 9 to 11) but for two things: the aggressiveness a tactic is picked with, built since 2026-11-09 and until then
   the AI's, and `winter_attrition`, which waits for attrition. Nothing of a leader's
   experience or progress towards a trait is set against a save: no save has a battle in it.
 - **An order of battle that names a leader no file declares** has him ignored; what the

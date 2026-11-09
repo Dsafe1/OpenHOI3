@@ -1484,6 +1484,24 @@ public partial class CSession : Node
 		}
 		int unitId = unit.Id;
 		CCommand command;
+		// A headquarters' own agent takes the click for its plan; a unit under an agent above it takes no order at all
+		// (mapunits.md, section 12).
+		if (CPlanRowsText.AgentAboveItsOwn(unit))
+		{
+			return;
+		}
+		if (CMovementRules.IsLandUnit(unit) && unit.Kind != EUnitKind.Division && unit.Agent is not null)
+		{
+			if (!append)
+			{
+				_simulation.Post(new CTogglePlanObjectiveCommand(Player.Tag, unitId, province));
+			}
+			else if (CRouteFinder.Find(State, Player, unit, unit.Location, province) is { } route)
+			{
+				_simulation.Post(new CSetPlanAxisCommand(Player.Tag, unitId, route, new List<int>()));
+			}
+			return;
+		}
 		if (unit.Kind == EUnitKind.Air)
 		{
 			// An air unit is always asked what it is to do there.

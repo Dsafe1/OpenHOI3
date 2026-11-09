@@ -16,6 +16,28 @@ public static class CPuppets
 	private static readonly CFixedPoint PuppetRelation = CFixedPoint.FromInt(500);
 
 	/// <summary>
+	/// A puppet's bond made by the politics screen's two rows: the link, where the overlord stands on the triangle, the relation raised
+	/// by 500 and held to 200 both ways, the overlord's government where a new country may have it, and every post filled.
+	/// </summary>
+	public static void Tie(CGameState state, CCountry overlord, CCountry vassal)
+	{
+		vassal.Overlord = overlord.Tag;
+		vassal.PuppetMade = state.NextPact();
+		vassal.PuppetStart = state.TotalHours;
+		vassal.PuppetEnd = null;
+		vassal.AlignmentX = overlord.AlignmentX;
+		vassal.AlignmentY = overlord.AlignmentY;
+		CFixedPoint relation = CRelations.Clamp(CRelations.Of(overlord, vassal) + PuppetRelation);
+		CGameState.Status(overlord, vassal).Relation = relation;
+		CGameState.Status(vassal, overlord).Relation = relation;
+		if (vassal.GovernmentType != overlord.GovernmentType && state.Governments.GetValueOrDefault(overlord.GovernmentType) is { ValidForNewCountry: true })
+		{
+			vassal.GovernmentType = overlord.GovernmentType;
+		}
+		Politics.CMinisterPosts.Fill(state, vassal, refillAll: true, electedOnly: false);
+	}
+
+	/// <summary>
 	/// The vassal becomes the overlord's puppet, in the original's order: its provinces carrying an overlord's core
 	/// that either holds go to the overlord, peacefully; its own cores the overlord's side holds come back to it; it
 	/// leaves its faction and every war; every agreement it has with anyone ends - its puppets go free; it is

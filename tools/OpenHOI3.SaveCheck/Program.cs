@@ -198,6 +198,11 @@ if (args.Length > 0 && args[0] == "raid")
 }
 
 // A division put aboard a transport fleet and landed on an enemy's coast.
+if (args.Length > 0 && args[0] == "automate")
+{
+	return CAutomateTrial.Run(args);
+}
+
 if (args.Length > 0 && args[0] == "landing")
 {
 	return CLandingTrial.Run(args);

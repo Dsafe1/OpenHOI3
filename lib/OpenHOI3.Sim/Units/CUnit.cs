@@ -80,6 +80,12 @@ public sealed class CUnit
 	/// <summary>A division the AI holds back from its line: the original's <c>ai_held_back</c> (<c>docs/mechanics/moving.md</c>, section 2).</summary>
 	public bool IsHeldBack { get; set; }
 
+	/// <summary>Whether the unit has an aggression of its own: the panel's box.</summary>
+	public bool HasOwnAggression { get; set; }
+
+	/// <summary>The aggression of its own, -1 to 1.</summary>
+	public CFixedPoint Aggression { get; set; }
+
 	/// <summary>A division the AI keeps as a garrison: the original's <c>ai_garrison</c> (<c>moving.md</c>, section 7.2).</summary>
 	public bool IsGarrison { get; set; }
 

@@ -177,6 +177,12 @@ public sealed class CSaveUnitReader
 				case "was_paradropped":
 					unit.WasParadropped = entry.Value == "yes";
 					break;
+				case "aggression_enabled":
+					unit.HasOwnAggression = entry.Value == "yes";
+					break;
+				case "aggression_setting":
+					unit.Aggression = CSaveValues.Fixed(entry.Value);
+					break;
 				case "plan" when entry.IsBlock:
 					ReadPlan(unit.Plan, entry);
 					break;

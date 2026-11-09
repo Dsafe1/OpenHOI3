@@ -40,7 +40,7 @@ public sealed class CPathArrows
 
 	public CPathArrows(CGuiContext gui, CArrowTypes arrows)
 	{
-		foreach (string name in new[] { CArrowTypes.Move, CArrowTypes.Attack, CArrowTypes.Retreat, CArrowTypes.Invasion, CArrowTypes.Strategic })
+		foreach (string name in new[] { CPlanMarkers.OwnArrow, CPlanMarkers.OtherArrow, CArrowTypes.Move, CArrowTypes.Attack, CArrowTypes.Retreat, CArrowTypes.Invasion, CArrowTypes.Strategic })
 		{
 			_textures[name] = arrows.Find(name) is { BodyTextureFile.Length: > 0 } arrow && gui.Textures.Exists(arrow.BodyTextureFile)
 				? gui.Textures.LoadFromGamePath(arrow.BodyTextureFile)

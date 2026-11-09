@@ -5,6 +5,7 @@ using Godot;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Sim.Agents;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
@@ -33,6 +34,7 @@ public partial class CUnitPanel : Control
 	private CGuiWindow? _window;
 	private CGuiListBox? _list;
 	private readonly List<CUnitPanelEntry> _entries = new();
+	private bool _underAi;
 	private readonly List<CUnit> _parents = new();
 	private CUnit? _unit;
 	private bool _hasChildren;
@@ -237,7 +239,7 @@ public partial class CUnitPanel : Control
 		_list = _window.FindListBox("list");
 		_list?.UseEntryHeights();
 		// Two windows of its own that come up over it: what a brigade may be upgraded
-		// to, and the stances an AI may be given, which is not built.
+		// to, and the stances an AI may be given.
 		foreach (string name in new[] { UpgradeWindowName, "sup_stance_change_window" })
 		{
 			if (_window.FindWindow(name) is { } child)
@@ -330,7 +332,7 @@ public partial class CUnitPanel : Control
 		// under it and on the battles it is in; when any of them changes the list is made
 		// again.
 		if (!Above(unit).SequenceEqual(_parents) || unit.Children.Count > 0 != _hasChildren
-			|| !Battles(unit).SequenceEqual(_combats))
+			|| !Battles(unit).SequenceEqual(_combats) || CAgents.HighestOver(unit) is not null != _underAi)
 		{
 			Rebuild();
 			return;
@@ -485,10 +487,11 @@ public partial class CUnitPanel : Control
 		}
 		// A headquarters has a row for the AI that may command it; a division has none.
 		if (unit.Kind is EUnitKind.Theatre or EUnitKind.ArmyGroup or EUnitKind.Army or EUnitKind.Corps
-			&& CUnitObjectivesEntry.Create(_context, unit) is { } objectives)
+			&& CUnitObjectivesEntry.Create(_context, state, unit, command => Post(command, unit)) is { } objectives)
 		{
 			Add(objectives);
 		}
+		AddAiRows(state, unit);
 		if (CUnitButtonsEntry.Create(_context, state, owner, unit, mayOrder) is { } buttons)
 		{
 			buttons.SupportChanged += (what, on) => SetSupport(unit, what, on);
@@ -527,6 +530,7 @@ public partial class CUnitPanel : Control
 			Add(brigades);
 		}
 		_hasChildren = unit.Children.Count > 0;
+		_underAi = CAgents.HighestOver(unit) is not null;
 		if (_hasChildren && CUnitChildrenEntry.Create(_context, state, owner, unit) is { } children)
 		{
 			children.Selected += ChooseRow;
@@ -575,6 +579,35 @@ public partial class CUnitPanel : Control
 			return;
 		}
 		UnitChosen?.Invoke(unit);
+	}
+
+	/// <summary>The five rows of a headquarters under an AI, its own or one above it (unitpanel.md, section 9).</summary>
+	private void AddAiRows(CGameState state, CUnit unit)
+	{
+		if (_window?.FindWindow("sup_stance_change_window") is not { } change)
+		{
+			return;
+		}
+		change.Visible = false;
+		if (unit.Kind is not (EUnitKind.Theatre or EUnitKind.ArmyGroup or EUnitKind.Army or EUnitKind.Corps) || CAgents.HighestOver(unit) is null)
+		{
+			return;
+		}
+		foreach (EPlanStanceKind kind in new[] { EPlanStanceKind.Ground, EPlanStanceKind.Air, EPlanStanceKind.Naval })
+		{
+			if (CUnitStanceEntry.Create(_context, change, unit, kind, command => Post(command, unit)) is { } stance)
+			{
+				Add(stance);
+			}
+		}
+		if (CPowerRatioEntry.Create(_context, unit) is { } power)
+		{
+			Add(power);
+		}
+		if (CDesiredAssetsEntry.Create(_context, state, unit) is { } desired)
+		{
+			Add(desired);
+		}
 	}
 
 	private void Add(CUnitPanelEntry entry)

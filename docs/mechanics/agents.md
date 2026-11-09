@@ -488,7 +488,7 @@ Each moves by being put under the agent's headquarters, and both agents' subordi
 
 ## 11. Kept as the original does them
 
-- **The played country's agents exist and are never bound**; its theatres carry no plan.
+- **The played country's agents exist and are never bound**, but for a headquarters the player hands over by the unit panel's box (`mapunits.md`, section 12); its other theatres carry no plan.
 - **The ladder grows a level a day**; three ids are taken for a command and two used.
 - **A new command starts at a twentieth of its strength** with no experience, where a theatre's headquarters starts at a
   fifth with the starting experience.

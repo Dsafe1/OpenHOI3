@@ -8,6 +8,7 @@ using OpenHOI3.Gfx;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Agents;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Intelligence;
@@ -190,6 +191,9 @@ public partial class CMapView : Node2D
 	{
 		_counters = new CUnitCounters { Name = "Counters" };
 		_counters.Setup(_map, _state, gui, types, billboards, arrows);
+		_planMarkers = new CPlanMarkerLayer { Name = "PlanMarkers" };
+		_planMarkers.Setup(_map, _state, gui, billboards);
+		AddChild(_planMarkers);
 		_counters.Markers.Player = _player;
 		_counters.Player = _player;
 		_counters.AirMap.Player = _player;
@@ -813,6 +817,42 @@ public partial class CMapView : Node2D
 	private float _leastHeight = CMapCamera.LowestHeight;
 
 	/// <summary>The console's <c>debug minzoom</c>: the lowest height the camera comes down to.</summary>
+	private CPlanMarkerLayer? _planMarkers;
+
+	/// <summary>Each unit's drawn front line, by the area it was built from.</summary>
+	private readonly Dictionary<CUnit, List<int>> _fronts = new();
+
+	/// <summary>
+	/// A line goes with its unit's selection or its agent, and comes when a single headquarters of the player's is selected under an AI,
+	/// or when its area changes; an area gone empty leaves the line as it was (mapunits.md, section 11).
+	/// </summary>
+	private void UpdateFrontLines()
+	{
+		if (_surface is null)
+		{
+			return;
+		}
+		foreach (CUnit unit in _fronts.Keys.ToArray())
+		{
+			if (!_units.Contains(unit) || CAgents.HighestOver(unit) is null)
+			{
+				_fronts.Remove(unit);
+				_surface.ClearFront(unit.Id);
+			}
+		}
+		if (_units.Single is not { } selected || selected.Owner != _player || CAgents.HighestOver(selected) is null || selected.Plan.Area.Count == 0
+			|| (_fronts.TryGetValue(selected, out List<int>? built) && built.SequenceEqual(selected.Plan.Area)))
+		{
+			return;
+		}
+		_fronts[selected] = selected.Plan.Area.ToList();
+		_surface.SetFront(selected.Id, CFrontLines.Build(_state, selected, province =>
+		{
+			CProvince shown = _state.Province(province);
+			return new System.Numerics.Vector2(shown.CentreX, shown.CentreY);
+		}));
+	}
+
 	/// <summary>The console's <c>debug render</c>: the bits of the map's layers left on.</summary>
 	public int RenderLayers
 	{
@@ -1403,6 +1443,13 @@ public partial class CMapView : Node2D
 			_camera.Position += direction * (KeyScrollSpeed * (float)delta / _camera.Zoom.X);
 			ClampCamera();
 			UpdateHover(GetViewport().GetMousePosition());
+		}
+		UpdateFrontLines();
+		if (_planMarkers is not null && _counters is not null)
+		{
+			CPlanMarkers.CMarkers markers = CPlanMarkers.Of(_state, _state.Country(_player), _units.Single);
+			_planMarkers.SetObjectives(markers.Objectives);
+			_counters.PlanArrows = markers.Arrows;
 		}
 		// The surface follows the 2D camera wherever it was moved from; nothing is made again where it has not.
 		_surface?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size);

@@ -376,6 +376,16 @@ by Replace and SELECT with the message after it, a law chosen through its confir
 message after it, and mobilising. `--screen=politics` opens it, and `--money=GER:500` gives a country money so that a
 law may be paid for on a new game, where none can be. **The maintainer has not looked at it.**
 
+### 11.1 Making a puppet and liberating a country
+
+Read 2026-11-09, `reversing/findings/FINDINGS-puppetrows.md`; hardcoded but the windows and words. `create_puppet` and `liberate_country` are greyed where their list is empty, and each opens its own window, `puppet_select` or `liberate_select`, its rows filled once as it opens and none greyed; `back_button` shuts it. **Who may be made a puppet** (`CCountryLists.PossibleVassals`): walking the player's land that it holds, its capital left out, and each province's cores, a country with no land of its own, whose capital the player owns, in the order first come on. So occupied land gives nothing. **Who may be liberated**: a government in exile with land, whose declared capital the player holds, that is not its enemy - of any faction, whatever the tooltip's "in our faction" says.
+
+A row's flag opens a `DefaultDialog` at its own place and (150, 150), the target's name and flag twice and `VASSALPROVNUM`: its cores the player owns and holds for a puppet, its land the player's faction holds for a liberation. A row has no tooltip. A row's line names up to three provinces and otherwise counts them; it can differ from what the command gives, which leaves out the player's capital and takes land the rebels hold.
+
+`CCreateVassalCommand` (a country with no land): its cores given by `CRelease`, as `release` does - armies, technology and the news - then the bond, the overlord's place on the triangle, the relation raised 500 both ways and held to 200, the overlord's government where a new country may have it, every post filled, and its faction with its wars where it has a real one. `CLiberateCountryCommand`: every province the exile owns whose holder is in the liberator's faction goes back to it, no owner changing; across factions the same bond, relation, government and faction; `WE_RETURN_EXILE` or `RETURN_EXILE`; and it is no longer in exile. Two countries with no faction count as one.
+
+**Ours**: a list's order follows the provinces' numbers, where the original's follows the owner's list of provinces. **Not built**: the original gives a further alliance where one already stands, not traced as reachable; and the AI's own liberating and puppets, which stay reported as unbuilt (`CLiberateCountryCommand` from Lua, `MayLiberateCountries`, `CanCreatePuppet`).
+
 ## 12. The AI's politics
 
 `FINDINGS-government.md`, section E. **The minister is only for the countries nobody plays**; **a new game's look at

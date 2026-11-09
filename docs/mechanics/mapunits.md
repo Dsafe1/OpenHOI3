@@ -561,6 +561,28 @@ break, as the unit panel's counters say (`unitpanel.md`, section 10.1).
 Nothing else in the menu says anything; its own close button would say `CLOSE`, as every
 `closebutton` nothing else claims does, and the menu has none.
 
+## 11. The front line of a headquarters under an AI
+
+Read 2026-11-09, `reversing/findings/FINDINGS-frontline.md`; built in `CFrontLines` and drawn through the install's `front.fx` with its `front_arrow` picture. Hardcoded but that effect and that picture [mod]; the maintainer has not looked at it.
+
+A selected headquarters of the player's under an AI, its own or one above, has a line for **its own plan's area**. It comes when it is the single unit selected or its area changes, and goes when it is no longer selected or no AI is over it; an area gone empty leaves the line as it was. It is not drawn again on the hour, and it has no map mode, height or setting that hides it.
+
+Each province of the area in the plan's order is walked for its neighbours on **foreign land**: land held by someone not the unit's owner, not allied with it, not fighting beside it and with no puppet's tie either way; a friend at peace counts. Each step's point is **half way between two provinces' centres**, so the line does not follow the borders' pixels. What a walk cannot reach starts a new chain, and chains that meet are joined by the original's eight tests. A chain's points are eased twice (all but the two at each end) and their corners cut once, then made a strip six wide - a corner goes along the two segments' average normal, not lengthened - the distance so far along it and 0 or 1 across. It is flat on the map at height 1, not depth tested, drawn once and not again a map's width over. All of what makes it black and dashed is the picture, two dashes every 6.67 map pixels.
+
+## 12. A plan's objectives and arrows
+
+Read 2026-11-09, `reversing/findings/FINDINGS-frontline.md`, section 7; `CPlanMarkers`, `CPlanMarkerLayer`. Hardcoded but the pictures and types in `items.gfx`, `core.gfx` and `arrows.gfx` [mod]; the maintainer has not looked at them.
+
+While a headquarters of the player's under an AI is the single unit selected, **every** plan of the player's under an AI shows: a marker on each objective - `icon_objective_strip` and the province's name in white, the frame and the grey of `MapObjectiveOther` for a plan not the selected one's - and, for a land unit with an axis, an arrow along it, `AutomationArrow` or `OtherAutomationArrow`, from province centre to centre and a quarter of the last leg further, drawn fully walked and twice, as the original makes two.
+
+**A right click on a province**, with a land headquarters selected that holds an agent itself, is the plan's: plain, it makes the province an objective or takes it off (priority 400, to be held, and the agent's area worked out again); with Shift it draws the axis there from where the unit stands. A unit under an agent above it takes no order at all.
+
+**A headquarters handed over runs as a country the AI runs does**: its divisions are committed, marched and sent to attack, its fleets and air units managed, with what its own plan says. Its objectives narrow its area: an objective on land the country does not own makes the fronts beside that objective's area the only ones taken, hot fronts and war candidates apart, and the area is worked out again at once (`reversing/findings/FINDINGS-setarea.md`, passes A to D). An objective in an area none of the theatre's fronts face changes nothing, the fronts being the theatre's own, as the maintainer confirmed of the original on 2026-11-09; `OpenHOI3.SaveCheck automate` is the trial. The plan starts at Prepare with its air and naval stances lowest, as a theatre's adoption gives it.
+
+**What the axis does**: it is no order to march. At Attack or Blitz a province of the enemy's scores more as a place to attack where it is on the axis, and a little more beside it, in `CLandAttack`; at other stances it does nothing. The AI's own axis is only ever drawn for countries it runs.
+
+**Ours**: the route is `CRouteFinder`'s, where the original has a planned path finder not read, so an axis into a neutral country's land finds no way here. The name's size on the map is a reading of the type's scale. A headquarters' `army_role` is not tested, there being none here.
+
 ## What is not built
 
 - **The other fifteen alerts**, and the tooltips of this one.

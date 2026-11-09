@@ -52,6 +52,10 @@ public sealed partial class CPoliticsView : CCountryView
 	private readonly List<CPolicyEntry> _policies = new();
 	private CGuiListBox? _policyList;
 	private CGuiWindow? _policySelect;
+	private CGuiButton? _puppet;
+	private CGuiButton? _liberate;
+	private CConfirmDialog? _puppetDialog;
+	private Func<bool>? _confirmStaysOpen;
 	private CGuiListBox? _policyChoices;
 
 	private CGuiIcon? _pie;
@@ -115,18 +119,24 @@ public sealed partial class CPoliticsView : CCountryView
 			_revolt.Pressed += () => Simulation.Post(new CSpawnFullRevoltCommand(Player.Tag));
 			_revolt.Tooltip = () => CPoliticsTooltips.Revolt(Localise, State, Player);
 		}
-		// Making a puppet and liberating a country are not built.
-		if (window.FindButton("create_puppet") is { } puppet)
+		_puppet = window.FindButton("create_puppet");
+		if (_puppet is not null)
 		{
-			puppet.Disabled = true;
-			puppet.Tooltip = () => new CTooltip { Text = Localise("POL_PUPPET_NO") };
+			_puppet.Pressed += OpenPuppetSelection;
+			_puppet.Tooltip = () => CPuppetRowsText.PuppetTooltip(Localise, State, Player);
 		}
-		if (window.FindButton("liberate_country") is { } liberate)
+		_liberate = window.FindButton("liberate_country");
+		if (_liberate is not null)
 		{
-			liberate.Disabled = true;
-			liberate.Tooltip = () => new CTooltip { Text = Localise(CAlignment.FactionGroup(State, Player) is null
-				? "POL_LIB_C_NO_FACTION"
-				: Player.InExile ? "POL_LIB_C_WE_EXILE" : "POL_LIB_C_NO_EXILES") };
+			_liberate.Pressed += OpenLiberateSelection;
+			_liberate.Tooltip = () => CPuppetRowsText.LiberateTooltip(Localise, State, Player);
+		}
+		foreach (string name in new[] { "puppet_select", "liberate_select" })
+		{
+			if (window.FindWindow(name)?.TryFindButton("back_button") is { } back)
+			{
+				back.Pressed += HideSelections;
+			}
 		}
 
 		_warfare = window.FindWindow("strat_warfare");
@@ -254,6 +264,18 @@ public sealed partial class CPoliticsView : CCountryView
 	/// </summary>
 	private void RefreshButtons()
 	{
+		if (_puppet is not null)
+		{
+			_puppet.Disabled = CCountryLists.PossibleVassals(State, Player).Count == 0;
+		}
+		if (_liberate is not null)
+		{
+			_liberate.Disabled = CCountryLists.PossibleLiberations(State, Player).Count == 0;
+		}
+		if (_puppetDialog is { IsOpen: true } && _confirmStaysOpen?.Invoke() == false)
+		{
+			_puppetDialog.Close();
+		}
 		bool exile = Player.InExile;
 		bool atWar = State.IsAtWar(Player.Tag);
 		if (_revolt is not null)
@@ -495,6 +517,93 @@ public sealed partial class CPoliticsView : CCountryView
 				_policyList.Add(row.Window);
 			}
 		}
+	}
+
+	private void HideSelections()
+	{
+		foreach (string name in new[] { "liberate_select", "puppet_select" })
+		{
+			if (Window?.FindWindow(name) is { } selection)
+			{
+				selection.Visible = false;
+			}
+		}
+	}
+
+	/// <summary>The list of countries that may be made a puppet, each row with a flag to press.</summary>
+	private void OpenPuppetSelection()
+	{
+		if (FillSelection("puppet_select", out CGuiListBox? list, out CGuiWindow? selection))
+		{
+			foreach (CCountry target in CCountryLists.PossibleVassals(State, Player))
+			{
+				if (CGuiWindow.CreateEntry(Context, "puppet_entry") is not { } row)
+				{
+					continue;
+				}
+				Set(row.FindTextBox("name"), target.Name);
+				Set(row.FindTextBox("provinces"), CPuppetRowsText.ProvincesLine(Localise, State, Player, target));
+				if (row.TryFindButton("vassal_selection_button") is { } flag)
+				{
+					flag.SetCountry(target);
+					flag.Pressed += () => Confirm(target, CPuppetRowsText.PuppetDialogText(Localise, State, Player, target),
+						new CCreateVassalCommand(target.Tag, Player.Tag), () => CCountryLists.OwnedCount(State, target.Tag) < 1);
+				}
+				list!.Add(row);
+			}
+			selection!.Visible = true;
+		}
+	}
+
+	/// <summary>The list of governments in exile that may be liberated.</summary>
+	private void OpenLiberateSelection()
+	{
+		if (FillSelection("liberate_select", out CGuiListBox? list, out CGuiWindow? selection))
+		{
+			foreach (CCountry target in CCountryLists.PossibleLiberations(State, Player))
+			{
+				if (CGuiWindow.CreateEntry(Context, "liberate_entry") is not { } row)
+				{
+					continue;
+				}
+				Set(row.FindTextBox("name"), target.Name);
+				if (row.TryFindButton("selection_button") is { } flag)
+				{
+					flag.SetCountry(target);
+					flag.Pressed += () => Confirm(target, CPuppetRowsText.LiberateDialogText(Localise, State, Player, target),
+						new CLiberateCountryCommand(target.Tag, Player.Tag), () => target.InExile);
+				}
+				list!.Add(row);
+			}
+			selection!.Visible = true;
+		}
+	}
+
+	private bool FillSelection(string name, out CGuiListBox? list, out CGuiWindow? selection)
+	{
+		HideSelections();
+		_policySelect?.Hide();
+		selection = Window?.FindWindow(name);
+		list = selection?.FindListBox("select_list");
+		list?.Clear();
+		return list is not null;
+	}
+
+	/// <summary>The country's own dialog, its shields both the target's; it goes by itself when the country stops qualifying.</summary>
+	private void Confirm(CCountry target, string text, CCommand command, Func<bool> staysOpen)
+	{
+		HideSelections();
+		_puppetDialog?.Close();
+		_puppetDialog = CConfirmDialog.Open(this, Context, "DefaultDialog", target.Name, text);
+		if (_puppetDialog is null)
+		{
+			return;
+		}
+		_puppetDialog.Window.TryFindIcon("LeftShield")?.SetCountry(target);
+		_puppetDialog.Window.TryFindIcon("RightShield")?.SetCountry(target);
+		_puppetDialog.Window.Position += new Vector2(150, 150);
+		_confirmStaysOpen = staysOpen;
+		_puppetDialog.Agreed += () => Simulation.Post(command);
 	}
 
 	/// <summary>Every policy of the file in its order, unfiltered, under the occupied country's name.</summary>

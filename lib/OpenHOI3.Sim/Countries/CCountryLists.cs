@@ -264,25 +264,42 @@ public static class CCountryLists
 	/// </summary>
 	public static List<CCountry> PossibleVassals(CGameState state, CCountry country)
 	{
+		// By the provinces it owns and holds and each one's cores, so in the order they are first come on.
 		var vassals = new List<CCountry>();
-		foreach (CCountry other in state.Countries)
+		foreach (CProvince province in state.Provinces)
 		{
-			if (other == country || OwnedCount(state, other.Tag) > 0
-				|| state.Province(other.Capital).Owner != country.Tag || other.Capital == 0)
+			if (province.Id == country.Capital || province.Owner != country.Tag || province.Controller != country.Tag)
 			{
 				continue;
 			}
-			foreach (CProvince province in state.Provinces)
+			foreach (CCountryTag core in province.Cores)
 			{
-				if (province.Id != country.Capital && province.Owner == country.Tag && province.Controller == country.Tag
-					&& province.Cores.Contains(other.Tag))
+				if (state.Country(core) is { } other && other != country && !vassals.Contains(other) && OwnedCount(state, other.Tag) == 0
+					&& other.Capital != 0 && state.Province(other.Capital).Owner == country.Tag)
 				{
 					vassals.Add(other);
-					break;
 				}
 			}
 		}
 		return vassals;
+	}
+
+	/// <summary>
+	/// The governments in exile a country may liberate: each that still owns land, whose capital this country holds and that is not
+	/// its enemy - of any faction or none, whatever the screen's words say. See <c>docs/mechanics/politics.md</c>.
+	/// </summary>
+	public static List<CCountry> PossibleLiberations(CGameState state, CCountry country)
+	{
+		var exiles = new List<CCountry>();
+		foreach (CCountry other in state.Countries)
+		{
+			if (other != country && other.InExile && OwnedCount(state, other.Tag) > 0 && other.Capital != 0
+				&& state.Province(other.Capital).Controller == country.Tag && !IsEnemy(state, other, country.Tag))
+			{
+				exiles.Add(other);
+			}
+		}
+		return exiles;
 	}
 
 	/// <summary>How many provinces the country owns.</summary>

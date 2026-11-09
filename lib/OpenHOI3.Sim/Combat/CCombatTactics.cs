@@ -54,6 +54,8 @@ public static class CCombatTactics
 	/// greater its lead. With equal skill the attacker picks first and the defender
 	/// favours nothing. Nothing is picked unless both sides have a country.
 	/// </summary>
+	private static long Aggressiveness(CCombatSide side) => Units.CUnitAggression.Of(CCombatLeaders.HighestRanked(side)?.Unit);
+
 	public static void Pick(CGameState state, CCombat combat)
 	{
 		if (combat.Attacker.Countries.Count > 0 && combat.Defender.Countries.Count > 0)
@@ -62,18 +64,18 @@ public static class CCombatTactics
 			int defence = LeaderSkill(combat.Defender);
 			if (defence < attack)
 			{
-				PickFor(state, combat, combat.Defender, 0, 0, 0);
-				PickFor(state, combat, combat.Attacker, 0, combat.Defender.Tactic?.CounteredByNumber ?? 0, attack - defence);
+				PickFor(state, combat, combat.Defender, Aggressiveness(combat.Defender), 0, 0);
+				PickFor(state, combat, combat.Attacker, Aggressiveness(combat.Attacker), combat.Defender.Tactic?.CounteredByNumber ?? 0, attack - defence);
 			}
 			else if (attack < defence)
 			{
-				PickFor(state, combat, combat.Attacker, 0, 0, 0);
-				PickFor(state, combat, combat.Defender, 0, combat.Attacker.Tactic?.CounteredByNumber ?? 0, defence - attack);
+				PickFor(state, combat, combat.Attacker, Aggressiveness(combat.Attacker), 0, 0);
+				PickFor(state, combat, combat.Defender, Aggressiveness(combat.Defender), combat.Attacker.Tactic?.CounteredByNumber ?? 0, defence - attack);
 			}
 			else
 			{
-				PickFor(state, combat, combat.Attacker, 0, 0, 0);
-				PickFor(state, combat, combat.Defender, 0, 0, 0);
+				PickFor(state, combat, combat.Attacker, Aggressiveness(combat.Attacker), 0, 0);
+				PickFor(state, combat, combat.Defender, Aggressiveness(combat.Defender), 0, 0);
 			}
 		}
 		SumEffects(combat);

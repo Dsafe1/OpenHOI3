@@ -133,6 +133,11 @@ public static class CSaveUnitWriter
 		{
 			WritePlan(writer, unit.Plan);
 		}
+		if (unit.HasOwnAggression)
+		{
+			writer.Bool("aggression_enabled", true);
+			writer.Fixed("aggression_setting", unit.Aggression);
+		}
 		// Each level's own tail: a land unit's sealift target, its staging province and, aboard, its land superior; what
 		// a fleet or an aeroplane carries; and a fleet's wait after a battle, always last.
 		if (landUnit)

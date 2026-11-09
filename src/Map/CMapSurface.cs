@@ -569,6 +569,7 @@ public partial class CMapSurface : Node3D
 		ApplyCopies(_camera);
 		ApplyTrees();
 		ApplyHierarchyView(_camera);
+		ApplyFrontView(_camera);
 		ApplyPlanView(_camera);
 		ApplyRingView(_camera);
 		foreach ((ShaderMaterial material, CGodotShader?[] translations, uint _) in _seaWays.Values)
@@ -1320,6 +1321,9 @@ public partial class CMapSurface : Node3D
 	public const string HierarchyTechnique = "Hierarchy";
 	public const string HierarchyPicture = "gfx/mapitems/hierarchy_line.tga";
 	public const string CircleFile = "circle.fx";
+	public const string FrontFile = "front.fx";
+	public const string FrontTechnique = "Front";
+	public const string FrontPicture = "gfx/mapitems/front_arrow.tga";
 	public const string CirclePicture = "map/Sector.dds";
 
 	/// <summary>
@@ -1337,6 +1341,9 @@ public partial class CMapSurface : Node3D
 		("DESTBLEND", "INVSRCALPHA"), ("ZENABLE", "0"), ("ZWRITEENABLE", "0"));
 
 	private readonly Node3D _overlays = new() { Name = "Overlays" };
+	private readonly Dictionary<int, List<MeshInstance3D>> _fronts = new();
+	private ShaderMaterial? _frontMaterial;
+	private CGodotShader?[] _frontTranslations = Array.Empty<CGodotShader?>();
 
 	/// <summary>The lines' two materials: the mesh where it is, and the mesh a map's width east [exe].</summary>
 	private ShaderMaterial[]? _hierarchyMaterials;
@@ -1407,6 +1414,78 @@ public partial class CMapSurface : Node3D
 		if (_camera is { } camera)
 		{
 			ApplyHierarchyView(camera);
+		}
+	}
+
+	/// <summary>One unit's front lines drawn, a mesh each, in the place of any it had (mapunits.md, section 11).</summary>
+	public void SetFront(int unit, IReadOnlyList<CFrontLines.CStrip> strips)
+	{
+		ClearFront(unit);
+		if (FrontMaterial() is not { } material)
+		{
+			return;
+		}
+		var instances = new List<MeshInstance3D>();
+		foreach (CFrontLines.CStrip strip in strips)
+		{
+			ArrayMesh mesh = BuildMesh(strip.Indices, strip.Positions.Length, _frontTranslations[0], (semantic, v) => semantic switch
+			{
+				"POSITION" => new Vector4(strip.Positions[v].X, strip.Positions[v].Y, 0, 1),
+				"TEXCOORD0" => new Vector4(strip.Uvs[v].X, strip.Uvs[v].Y, 0, 1),
+				_ => null,
+			});
+			MeshInstance3D instance = Instance("Front", mesh, material);
+			_overlays.AddChild(instance);
+			instances.Add(instance);
+		}
+		_fronts[unit] = instances;
+		if (_camera is { } camera)
+		{
+			ApplyFrontView(camera);
+		}
+	}
+
+	public void ClearFront(int unit)
+	{
+		if (!_fronts.Remove(unit, out List<MeshInstance3D>? instances))
+		{
+			return;
+		}
+		foreach (MeshInstance3D instance in instances)
+		{
+			Mesh? mesh = instance.Mesh;
+			instance.Mesh = null;
+			_overlays.RemoveChild(instance);
+			instance.QueueFree();
+			mesh?.Dispose();
+		}
+	}
+
+	private ShaderMaterial? FrontMaterial()
+	{
+		if (_frontMaterial is not null)
+		{
+			return _frontMaterial;
+		}
+		var effect = _gui.Effects.Get(FrontFile, FrontTechnique, EShaderTarget.Spatial, device: OverlayStates);
+		if (effect.Shader is null)
+		{
+			return null;
+		}
+		_frontTranslations = new[] { effect.Translation };
+		_frontMaterial = new ShaderMaterial { Shader = effect.Shader, RenderPriority = RingPriority };
+		// *Ours*: the shared view holds the camera's place, so the effect's camera position is nought.
+		Set(_frontMaterial, _frontTranslations, "CameraPosition", Godot.Vector2.Zero);
+		SetTexture(_frontMaterial, _frontTranslations, "ArrowTexture", _gui.Textures.LoadFromGamePath(FrontPicture));
+		return _frontMaterial;
+	}
+
+	/// <summary>The lines' view × projection, drawn once and not again a map's width over [exe].</summary>
+	private void ApplyFrontView(CMapSurfaceCamera camera)
+	{
+		if (_frontMaterial is not null)
+		{
+			Set(_frontMaterial, _frontTranslations, "WorldViewProjectionMatrix", Matrix(CD3DMatrix.Multiply(camera.ViewAt, camera.Projection)));
 		}
 	}
 

@@ -1,6 +1,7 @@
 using System;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Tooltips;
+using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -21,7 +22,7 @@ public sealed class CUnitParentEntry : CUnitPanelEntry
 		if (window.FindButton("unit") is { } button)
 		{
 			// Set once: the original's has no update either.
-			button.SetText(unit.Name);
+			button.SetText(unit.Name + CPlanRowsText.AggressionMark(unit));
 			button.Pressed += () => Selected?.Invoke();
 		}
 	}

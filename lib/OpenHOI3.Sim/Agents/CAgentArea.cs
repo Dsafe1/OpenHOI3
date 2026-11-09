@@ -38,15 +38,20 @@ public static class CAgentArea
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		CFocusAreas.Rebuild(state, country, agent, theatre);
 		agent.Area.Clear();
-		foreach (CFront front in Candidates(state, country, agent, theatre))
+		List<CFront> candidates = Candidates(state, country, agent, theatre);
+		// A player's automated headquarters: the fronts facing its objectives' areas, whoever holds them, and those alone.
+		HashSet<CSupplyArea> objectiveAreas = ObjectiveAreas(state, network, country, unit);
+		HashSet<CFront> facing = FacingObjectives(state, network, country, candidates, objectiveAreas);
+		foreach (CFront front in candidates)
 		{
-			if (front.Enemy is not { } enemy || !IsTaken(state, country, theatre, front, enemy))
+			bool faces = facing.Contains(front);
+			if (front.Enemy is not { } enemy || !(faces || IsTaken(state, country, theatre, front, enemy, mayOpen: facing.Count == 0)))
 			{
 				continue;
 			}
 			foreach (int id in front.Provinces)
 			{
-				if (!agent.Area.Contains(id) && MayHold(state, network, country, state.Province(id)))
+				if (!agent.Area.Contains(id) && MayHold(state, network, country, state.Province(id), faces ? objectiveAreas : null))
 				{
 					agent.Area.Add(id);
 				}
@@ -125,11 +130,15 @@ public static class CAgentArea
 	}
 
 	/// <summary>Hot, a war candidate, or - with the fronts open - a front-worthy enemy.</summary>
-	private static bool IsTaken(CGameState state, CCountry country, CTheatre theatre, CFront front, Countries.CCountryTag enemy)
+	private static bool IsTaken(CGameState state, CCountry country, CTheatre theatre, CFront front, Countries.CCountryTag enemy, bool mayOpen)
 	{
 		if (front.IsHot || CFrontWorthy.IsWarCandidate(state, country, enemy))
 		{
 			return true;
+		}
+		if (!mayOpen)
+		{
+			return false;
 		}
 		bool open = !theatre.IsHot || CWarTargets.IsPreparingWarWith(state, country, enemy);
 		if (!open && state.Country(enemy) is { } other
@@ -145,7 +154,7 @@ public static class CAgentArea
 	/// Infrastructure enough, in a real area, the country's own, a front province or its subject's, and beside hostile land
 	/// that is itself in a real area.
 	/// </summary>
-	private static bool MayHold(CGameState state, CSupplyNetwork network, CCountry country, CProvince province)
+	private static bool MayHold(CGameState state, CSupplyNetwork network, CCountry country, CProvince province, HashSet<CSupplyArea>? only)
 	{
 		if (CSupplyFigures.MostInfrastructure(state, province) < LeastInfrastructure || network.AreaOf(province.Id) is null)
 		{
@@ -164,12 +173,57 @@ public static class CAgentArea
 				continue;
 			}
 			CProvince beside = state.Province(edge.To);
-			if (!beside.IsSea && IsHostile(state, country, beside.Controller) && network.AreaOf(beside.Id) is not null)
+			if (!beside.IsSea && IsHostile(state, country, beside.Controller) && network.AreaOf(beside.Id) is { } area
+				&& (only is null || only.Contains(area)))
 			{
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/// <summary>The areas of a player's plan's objectives on land the country does not own; none for a country the AI runs.</summary>
+	private static HashSet<CSupplyArea> ObjectiveAreas(CGameState state, CSupplyNetwork network, CCountry country, Units.CUnit unit)
+	{
+		var areas = new HashSet<CSupplyArea>();
+		if (country.UnitAi.RunsUnits)
+		{
+			return areas;
+		}
+		foreach (Units.CObjective objective in unit.Plan.Objectives)
+		{
+			if (state.Province(objective.Province).Owner != country.Tag && network.AreaOf(objective.Province) is { } area)
+			{
+				areas.Add(area);
+			}
+		}
+		return areas;
+	}
+
+	/// <summary>The fronts with a province beside hostile land in one of those areas.</summary>
+	private static HashSet<CFront> FacingObjectives(CGameState state, CSupplyNetwork network, CCountry country, List<CFront> fronts, HashSet<CSupplyArea> areas)
+	{
+		var facing = new HashSet<CFront>();
+		if (areas.Count == 0)
+		{
+			return facing;
+		}
+		foreach (CFront front in fronts)
+		{
+			foreach (int id in front.Provinces)
+			{
+				foreach (CProvinceEdge edge in state.Province(id).Edges)
+				{
+					CProvince beside = state.Province(edge.To);
+					if (edge.Kind != EProvinceEdgeKind.Impassable && !beside.IsSea && IsHostile(state, country, beside.Controller)
+						&& network.AreaOf(beside.Id) is { } area && areas.Contains(area))
+					{
+						facing.Add(front);
+					}
+				}
+			}
+		}
+		return facing;
 	}
 
 	/// <summary>Nobody's, the rebels', or not of the country's side and either not fighting beside it or its enemy.</summary>

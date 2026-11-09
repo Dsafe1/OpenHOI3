@@ -480,6 +480,51 @@ public partial class CUnitCounters : Node2D
 		}
 	}
 
+	/// <summary>The arrows along the plans of the player's headquarters under an AI.</summary>
+	public List<(List<int> Path, bool Own)> PlanArrows
+	{
+		get => _planArrows;
+		set
+		{
+			if (value.Count != _planArrows.Count || !value.Zip(_planArrows).All(pair => pair.First.Own == pair.Second.Own && pair.First.Path.SequenceEqual(pair.Second.Path)))
+			{
+				_planArrows = value;
+				QueueRedraw();
+			}
+		}
+	}
+
+	private List<(List<int> Path, bool Own)> _planArrows = new();
+
+	/// <summary>An arrow from province centre to province centre and a little past the last, drawn fully walked and twice, as the original makes two of it.</summary>
+	private void DrawPlanArrows()
+	{
+		foreach ((List<int> path, bool own) in _planArrows)
+		{
+			if (_arrows.Texture(own ? CPlanMarkers.OwnArrow : CPlanMarkers.OtherArrow) is not { } texture)
+			{
+				continue;
+			}
+			var points = new List<System.Numerics.Vector2>();
+			foreach ((int x, int y) in CPlanMarkers.ArrowPoints(path.Select(id => (_state.Province(id).CentreX, _state.Province(id).CentreY)).ToList()))
+			{
+				float across = x + 0.5f;
+				if (points.Count > 0)
+				{
+					across += Mathf.Round((points[^1].X - across) / _map.Width) * _map.Width;
+				}
+				points.Add(new System.Numerics.Vector2(across, _map.DisplayRow(y) + 0.5f));
+			}
+			if (points.Count < 2)
+			{
+				continue;
+			}
+			List<CArrowSample> band = CArrowBand.Build(points);
+			_arrows.Draw(band, texture, 1f, _map.Width);
+			_arrows.Draw(band, texture, 1f, _map.Width);
+		}
+	}
+
 	private void DrawPath(CCounterKind kind, CUnit unit)
 	{
 		Texture2D? arrowTexture = _arrows.Texture(CMapArrows.TypeOf(_state, unit));
@@ -577,6 +622,7 @@ public partial class CUnitCounters : Node2D
 	{
 		ClearItems();
 		_arrows.Clear();
+		DrawPlanArrows();
 		if (Kind() is not { } kind)
 		{
 			return;

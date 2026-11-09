@@ -319,7 +319,7 @@ public class UnitPanelTooltipTests
 	[InlineData(EUnitKind.Army, "PLAYER_CONTROLLED")]
 	public void AHeadquartersIsNotHandedToAnAiForAReasonOfItsLevel(EUnitKind kind, string key)
 	{
-		Assert.Equal(key, CUnitOrderTooltips.Automate(new CUnit(kind, Ger)));
+		Assert.Equal(key, CUnitOrderTooltips.Automate(new CGameState(new CDate(1936, 1, 1), new[] { new CProvince(0, "", isSea: false) }, new[] { new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "" } }), new CUnit(kind, Ger)));
 	}
 
 	// ---- the status

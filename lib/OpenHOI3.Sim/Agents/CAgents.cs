@@ -105,6 +105,24 @@ public static class CAgents
 		agent.Unit = null;
 	}
 
+	/// <summary>The highest agent on a unit or any unit above it, or null.</summary>
+	public static CAgent? HighestOver(CUnit unit)
+	{
+		CAgent? found = null;
+		for (CUnit? above = unit; above is not null; above = above.Parent)
+		{
+			found = above.Agent ?? found;
+		}
+		return found;
+	}
+
+	/// <summary>The theatre a unit is the headquarters of, or null.</summary>
+	public static CTheatre? TheatreHeadedBy(CGameState state, CCountry country, CUnit unit)
+	{
+		return unit.Kind != EUnitKind.Theatre ? null
+			: country.Strategy.Theatres.Find(theatre => CTheatres.Headquarters(state, theatre) == unit);
+	}
+
 	public static void Remove(CGameState state, CCountry country, CAgent agent)
 	{
 		Unbind(state, agent);
