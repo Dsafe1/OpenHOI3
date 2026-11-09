@@ -116,6 +116,15 @@ Which province a message is about is `CPactMessage.Province`, set where it names
 
 **Not raised here**: `EXPRETURNED`, `EXPRETURNEDWE` and the three `UNITARRIVED`, whose Goto selects the unit and closes the popup. `TECH_ONCE` and `TECH_REPEAT` are in the table and nothing raises them yet. `LEADERDIED`, `SHIPSUNK`, `MINISTER_DEATH`, `REINFORCE` and `RETURN_EXILE_US` are declared and raised by no code in the original either.
 
+### 4.2 The settings of a type
+
+A right click on a popup's background, its OK, Agree or Goto button, or on a row of the log, opens `MessageSettingWindow`
+(`messagesettings.gui`) for that message's type: `title_text` is the type's `_SETUP` text, and four boxes are ticked from
+the type - `log_button`, `popup_button`, `onmap_button`, `pause_button` (`pausepopup`). There is no box for `idle` [exe].
+It stands at the mouse's x and 150 above its y, moved back only by what it passes the screen's right and bottom by [exe].
+**OK writes the four into the type and the player's `messagetypes_custom.txt` at once**; Cancel closes. Each right click
+opens another window. A change is to the type, so it holds for every later message of it.
+
 ## 5. The log
 
 **The message log** is `messagelog_window` in the `menubar` window of `interface/menubar.gui`: a list

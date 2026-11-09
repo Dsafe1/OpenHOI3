@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using OpenHOI3.Content.Messages;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Messages;
 using OpenHOI3.Sim;
@@ -40,11 +41,20 @@ public sealed partial class CMessagePopups : Control
 	/// <summary>Goes where a message's Goto goes, answering whether its popup stays.</summary>
 	public Func<CMessage, bool>? Goto { get; set; }
 
+	/// <summary>The settings window of a message's type, by the mouse and over everything (<c>messages.md</c>, section 4.2).</summary>
+	public void OpenSettings(CMessageType type)
+	{
+		var window = new CMessageSettingWindow();
+		window.Setup(_context, type);
+		GetParent().AddChild(window);
+	}
+
 	public void Open(CMessage message)
 	{
 		var popup = new CMessagePopup();
 		popup.Setup(_context, _simulation, message);
 		popup.Goto = Goto;
+		popup.SettingsAsked += OpenSettings;
 		AddChild(popup);
 		if (popup.Window is not { } window)
 		{

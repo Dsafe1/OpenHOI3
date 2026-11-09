@@ -61,7 +61,7 @@ The rows `vc_entry` are the player's faction's chosen conditions. `vc_entry_bg` 
 
 ## 6. Alert 14
 
-Up while a faction but the player's has met at least three quarters of what wins - 9 of 12 - asked each frame (*Ours*: the original looks every three seconds of its clock). The tooltip is `VC_ALERT`, and its delayed half `VC_DANGER` with the faction and its count, **each faction writing over the last, so that only the last is named** [exe]. A click opens the window where it is shut and does nothing where it is open.
+Up while a faction but the player's has met at least three quarters of what wins - 9 of 12 - asked every three seconds with the other alerts (`alerts.md`). The tooltip is `VC_ALERT`, and its delayed half `VC_DANGER` with the faction and its count, **each faction writing over the last, so that only the last is named** [exe]. A click opens the window where it is shut and does nothing where it is open.
 
 The alerts stand in the order they came up, the first at `alerticon_startposition` and each after it an `alerticon_offset` on (`mapunits.md`, section 5).
 

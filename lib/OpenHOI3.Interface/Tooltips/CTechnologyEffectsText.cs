@@ -154,8 +154,12 @@ public static class CTechnologyEffectsText
 		("night", "NIGHT_ADJUSTER"), ("fort", "FORT_ADJUSTER"), ("river", "RIVER_ADJUSTER"), ("amphibious", "AMPH_ADJUSTER"),
 	};
 
-	/// <summary>The whole text for a number of levels of a technology, for a country.</summary>
-	public static string For(Func<string, string> localise, CGameState state, CCountry country, CTechnology technology, int levels)
+	/// <summary>
+	/// The whole text for a number of levels of a technology, for a country. Given a unit type, only that type's figures
+	/// are written of the types it changes, each on a line of its own, as a ship's list of levels has them.
+	/// </summary>
+	public static string For(Func<string, string> localise, CGameState state, CCountry country, CTechnology technology, int levels,
+		CSubUnitType? only = null)
 	{
 		bool beyondOne = levels > 1 || levels < -1;
 		if (levels < 0)
@@ -180,13 +184,17 @@ public static class CTechnologyEffectsText
 		}
 		foreach ((string key, CSubUnitStats stats) in technology.UnitEffects)
 		{
-			if (!state.SubUnitTypes.TryGetValue(key, out CSubUnitType? type) || !CUnitAvailability.IsUsableBy(country, type))
+			if (!state.SubUnitTypes.TryGetValue(key, out CSubUnitType? type) || !CUnitAvailability.IsUsableBy(country, type)
+				|| (only is not null && type != only))
 			{
 				continue;
 			}
 			string figures = UnitFigures(localise, state, stats, levels).Trim('\n', '\t', '\r', ' ');
 			// Each line of them is folded into one, a comma between.
-			figures = figures.Replace(" \n", ", ");
+			if (only is null)
+			{
+				figures = figures.Replace(" \n", ", ");
+			}
 			text.Append(localise(key + "_short")).Append(": ").Append(figures).Append('\n');
 		}
 		text.Append(CountryFigures(localise, state, technology, levels));

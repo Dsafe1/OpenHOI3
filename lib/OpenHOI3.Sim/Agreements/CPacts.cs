@@ -336,7 +336,9 @@ public static class CPacts
 				Charge(state, actor, "NAP_JOIN_INFLUENCE_COST");
 				break;
 			case EOfferStage.Accepted:
-				state.Naps.Add(new CNap(actor.Tag, recipient.Tag, offer.Date) { Made = state.NextPact() });
+				var nap = new CNap(actor.Tag, recipient.Tag, offer.Date) { Made = state.NextPact() };
+				state.Naps.Add(nap);
+				CNapBalance.Made(state, nap);
 				Relation(state, actor, recipient, "NAP_RELATION_CHANGE");
 				Message(state, "WENAP", "THEYNAP", "OTHERNAP", actor, recipient);
 				break;

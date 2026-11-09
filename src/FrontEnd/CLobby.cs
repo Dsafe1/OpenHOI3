@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Godot;
 using OpenHOI3.Content.Frontend;
 using OpenHOI3.Content.Gui;
@@ -237,6 +238,15 @@ public partial class CLobby : Control
 	}
 
 	private CCountry? ChosenCountry() => _chosen is { } tag ? World.Country(tag) : null;
+
+	/// <summary>Raised when the panel is made again, which is whenever another country or none may have been chosen.</summary>
+	public event Action? ChosenChanged;
+
+	/// <summary>The provinces the chosen country owns.</summary>
+	public IReadOnlyList<int> ChosenProvinces()
+	{
+		return _chosen is { } tag ? World.Provinces.Where(province => province.Owner == tag).Select(province => province.Id).ToList() : Array.Empty<int>();
+	}
 
 	private void OpenVictoryConditions()
 	{
@@ -526,6 +536,7 @@ public partial class CLobby : Control
 	/// <summary>The year label, and the chosen country's panel - hidden with none chosen.</summary>
 	private void RefreshPanel()
 	{
+		ChosenChanged?.Invoke();
 		if (_window?.FindTextBox("year_label") is { } year)
 		{
 			string name = _frontEnd.SaveLoaded || !_startChosen ? Localise(CLobbyText.SavedGameKey)

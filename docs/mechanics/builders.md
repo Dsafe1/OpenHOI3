@@ -245,8 +245,11 @@ brigade's, and an empty design leaves it. `confirmed`, but that the list's first
 of its technologies - the country's own - and lists them in `models`, a
 `shipbuild_model_entry` each with its `title`, the level chosen in `name`, and a `select`
 that opens `shipbuild_model_selection`: the technology's name, and a
-`shipbuild_possible_model_entry` for **every level from nothing to the country's**, the one
-chosen marked by `current_model`, each with a `change` button that takes that level and
+`shipbuild_possible_model_entry` for **every level from nothing to the country's** - its
+`name` the level's own, as a brigade's summary names one (`NO` at nothing; the country's
+text, the game's, or `Model` and a year), and its `effect` what that many levels do for this
+type of ship alone, each figure on its own line, so that nothing is the short name and no
+figure [exe] - the one chosen marked by `current_model`, each with a `change` button that takes that level and
 closes; `back_button` closes without. **A ship may be ordered at any level its country has
 reached or below, technology by technology, and each level left out makes it a hundredth
 cheaper and quicker.** In the `stats_pos` line a figure that the chosen levels have changed
@@ -320,8 +323,6 @@ otherwise `likely`, read in decompiled C.
   division would count for ever. It can only happen with no text for `DIVISION_NAME`.
 - **The label is the type's name**, and the picture is whatever the interface file gives.
   The original shows the name and the picture of a historical model.
-- **A level of a ship's technology is written as its number**, and what a level does is
-  not written at all. The original has a name for each level and a text of its effects.
 - **The description of a wing or a brigade is left empty.**
 - **A list does not cut its lines off at the side.** The files give lists 533 wide lines
   whose columns run past 850, so the original cannot either; it was not read.

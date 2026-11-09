@@ -143,6 +143,7 @@ public static class CTick
 		Step(state, CThreat.UpdateMostThreatening);               // before any country's day, as its neighbours are
 		Step(state, Wars.CSurrender.CountVictoryPoints);          // and with them its cores' victory points
 		AiStep(state, Ai.CAiStrategies.RunDaily);                   // before a country's day: its strategy, ten days old (aistrategy.md, 1)
+		Step(state, Agreements.CNapBalance.UpdateDaily);          // before a country's day: its pacts' borders
 		Step(state, Countries.CActingCapital.EnsureCapitals);     // at the head of a country's day: a capital it owns,
 		Step(state, CNeutrality.RunDaily);                        // then neutrality
 		Step(state, Wars.CExile.SwapDaily);                       // early in it, an exile made a puppet where it is held

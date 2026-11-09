@@ -103,6 +103,7 @@ public static class CLoadCheck
 		CompareUnits(state, save, "  ", exact: true);
 		Console.WriteLine("the wars, pacts and convoys, beside the save they were read from:");
 		CompareDiplomacy(state, save, "  ");
+		CompareNapBalances(state, "  ");
 		Console.WriteLine("the battles, the finished battles and the sunk ships, beside the save they were read from:");
 		CompareCombats(state, save, "  ");
 
@@ -143,6 +144,27 @@ public static class CLoadCheck
 	/// convoy by its number, and each country's pool of transports and escorts and whether it is mobilised, set beside
 	/// the save's.
 	/// </summary>
+	/// <summary>Each pact's border measured again and set beside what the save holds, which is as of the last seventh day.</summary>
+	private static void CompareNapBalances(CGameState state, string indent)
+	{
+		int same = 0;
+		foreach (OpenHOI3.Sim.Agreements.CNap nap in state.Naps)
+		{
+			(long balance, int ours, int theirs) = (nap.Balance, nap.OurPower, nap.TheirPower);
+			OpenHOI3.Sim.Agreements.CNapBalance.Measure(state, nap);
+			if (balance == nap.Balance && ours == nap.OurPower && theirs == nap.TheirPower)
+			{
+				same++;
+			}
+			else
+			{
+				Console.WriteLine($"{indent}  pact {nap.First}-{nap.Second}: the save {ours} to {theirs}, {balance}; measured {nap.OurPower} to {nap.TheirPower}, {nap.Balance}");
+			}
+			(nap.Balance, nap.OurPower, nap.TheirPower) = (balance, ours, theirs);
+		}
+		Console.WriteLine($"{indent}a pact's border measured again: {same} of {state.Naps.Count} the save's");
+	}
+
 	private static void CompareDiplomacy(CGameState state, ClausewitzNode save, string indent)
 	{
 		static string Tag(ClausewitzNode node, string key) => node.Get(key)?.Value?.Trim('"') ?? "";

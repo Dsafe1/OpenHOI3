@@ -1,18 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using OpenHOI3.Content.Gui;
 using OpenHOI3.Gui;
-using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Alerts;
+using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 
 namespace OpenHOI3.Screens;
 
 /// <summary>
-/// The row of alert icons under the top bar. The original has sixteen; the one built is
-/// the one that says units are waiting to be placed, and a click on it opens the deploy
-/// menu. See <c>docs/mechanics/mapunits.md</c>, section 5.
+/// The row of alert icons under the top bar: every three seconds of real time the alerts are tested, an icon put up at
+/// the row's end for each that has come up and one taken away for each that has gone, the row closing up. See
+/// <c>docs/mechanics/alerts.md</c>.
 /// </summary>
 public partial class CAlerts : Control
 {
@@ -20,26 +22,25 @@ public partial class CAlerts : Control
 	private const string IconName = "alerticon";
 	private const string BannerName = "alerticon_banner";
 	private const string StartName = "alerticon_startposition";
-
-	/// <summary>The alert a faction near its victory conditions raises [exe: the sixteen's number].</summary>
-	private const int VictoryAlertNumber = 14;
-
 	private const string OffsetName = "alerticon_offset";
+
+	/// <summary>How often the alerts are tested, in seconds of real time, paused or not [exe].</summary>
+	private const double PassSeconds = 3.0;
 
 	private CGuiContext _context = null!;
 	private CCountry _player = null!;
 	private CSimulation _simulation = null!;
-	private CGuiWindow? _deployable;
-	private CGuiWindow? _victory;
+
+	/// <summary>Seconds until the next pass; the first is the first frame.</summary>
+	private double _untilPass;
 
 	/// <summary>The alerts up, in the order they came up, which is the order they stand in.</summary>
-	private readonly List<CGuiWindow> _up = new();
+	private readonly List<(EAlert Alert, CGuiWindow Window)> _up = new();
 
-	/// <summary>Raised when the alert for units waiting to be placed is clicked.</summary>
-	public event Action? DeployablePressed;
+	private readonly Dictionary<EAlert, CTooltip> _tooltips = new();
 
-	/// <summary>Raised when the alert for a faction near victory is clicked.</summary>
-	public event Action? VictoryPressed;
+	/// <summary>Raised when an alert's icon is clicked.</summary>
+	public event Action<EAlert>? Pressed;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, CCountry player, CSimulation simulation)
@@ -54,16 +55,9 @@ public partial class CAlerts : Control
 		Name = "Alerts";
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-
-		_deployable = Make(CDeployMenuText.AlertNumber, () => DeployablePressed?.Invoke());
-		_victory = Make(VictoryAlertNumber, () => VictoryPressed?.Invoke());
-		if (_victory?.FindIcon(IconName) is { } icon)
-		{
-			icon.Tooltip = () => CVictoryWindowText.AlertTooltip(_context.Localisation.Localise, _simulation.State, _player);
-		}
 	}
 
-	private CGuiWindow? Make(int number, Action pressed)
+	private CGuiWindow? Make(EAlert alert)
 	{
 		CGuiWindow? window = CGuiWindow.Create(_context, WindowName);
 		if (window is null)
@@ -74,47 +68,63 @@ public partial class CAlerts : Control
 		window.MouseFilter = MouseFilterEnum.Ignore;
 		if (window.FindIcon(IconName) is { } icon)
 		{
-			icon.SetFrame(number + 1);
-			icon.Clicked += pressed;
+			icon.SetFrame((int)alert + 1);
+			icon.Clicked += () => Pressed?.Invoke(alert);
+			icon.Tooltip = () => _tooltips.GetValueOrDefault(alert) ?? new CTooltip();
 		}
 		if (window.TryFindIcon(BannerName) is { } banner)
 		{
 			banner.MouseFilter = MouseFilterEnum.Ignore;
 		}
-		window.Visible = false;
 		return window;
 	}
 
-	/// <summary>
-	/// The deploy alert is up while the country has a unit to place, and the victory alert while a faction but the player's is three quarters of the way to winning.
-	/// </summary>
 	public override void _Process(double delta)
 	{
-		Show(_deployable, _player.Deployments.Count > 0 || _player.BuildingDeployments.Count > 0);
-		Show(_victory, CVictoryWindowText.AlertFactions(_simulation.State, _player).Count > 0);
-	}
-
-	private void Show(CGuiWindow? window, bool up)
-	{
-		if (window is null || window.Visible == up)
+		_untilPass -= delta;
+		if (_untilPass > 0)
 		{
 			return;
 		}
-		window.Visible = up;
-		if (up)
+		_untilPass = PassSeconds;
+		List<CAlertShown> shown = CAlertPass.Run(_context.Localisation.Localise, _simulation.State, _player);
+		_tooltips.Clear();
+		foreach (CAlertShown alert in shown)
 		{
-			_up.Add(window);
+			_tooltips[alert.Alert] = alert.Tooltip;
 		}
-		else
+		bool changed = false;
+		for (int place = _up.Count - 1; place >= 0; place--)
 		{
-			_up.Remove(window);
+			if (!_tooltips.ContainsKey(_up[place].Alert))
+			{
+				_up[place].Window.QueueFree();
+				_up.RemoveAt(place);
+				changed = true;
+			}
 		}
-		// The first up stands at the start position and each after it an offset on.
+		foreach (CAlertShown alert in shown)
+		{
+			if (_up.All(up => up.Alert != alert.Alert) && Make(alert.Alert) is { } window)
+			{
+				_up.Add((alert.Alert, window));
+				changed = true;
+			}
+		}
+		if (changed)
+		{
+			Lay();
+		}
+	}
+
+	/// <summary>The first up stands at the start position and each after it an offset on.</summary>
+	private void Lay()
+	{
 		CGuiPoint start = _context.Types.FindPosition(StartName)?.Position ?? default;
 		CGuiPoint offset = _context.Types.FindPosition(OffsetName)?.Position ?? default;
 		for (int place = 0; place < _up.Count; place++)
 		{
-			_up[place].MoveTo(new Vector2(start.X + place * offset.X, start.Y));
+			_up[place].Window.MoveTo(new Vector2(start.X + place * offset.X, start.Y));
 		}
 	}
 }

@@ -49,6 +49,9 @@ public sealed partial class CMessageLogView : Control
 	/// <summary>Raised with a row's message when the row is pressed: it does what the message's Goto does.</summary>
 	public event Action<CMessage>? RowPressed;
 
+	/// <summary>A row right clicked: the settings of its message's type (<c>messages.md</c>, section 4.2).</summary>
+	public event Action<CMessage>? RowRightPressed;
+
 	/// <summary>Raised when the bar's zoom-out button is pressed, or Page Up.</summary>
 	public event Action? ZoomOutPressed;
 
@@ -136,7 +139,7 @@ public sealed partial class CMessageLogView : Control
 			string name = child.Name.ToString();
 			if (child is Control shown && name != "messagelog_window" && name != "OPENbutton" && name != ModifiersButtonName
 				&& name != "menubar_plans_toggle" && name != "menubar_plans_open"
-				&& name != Interface.Screens.CVictoryWindowText.ButtonName && name != "minimap_bg_shadow" && name != ZoomInName && name != ZoomOutName && name != "button_goto"
+				&& name != Interface.Screens.CVictoryWindowText.ButtonName && name != "minimap_bg_shadow" && name != "menubar_panel_bg" && name != ZoomInName && name != ZoomOutName && name != "button_goto"
 				&& !name.StartsWith("mapmode_", StringComparison.Ordinal))
 			{
 				shown.Visible = false;
@@ -261,6 +264,7 @@ public sealed partial class CMessageLogView : Control
 				button.SetText(text);
 				CMessage pressed = message;
 				button.Pressed += () => RowPressed?.Invoke(pressed);
+				button.RightPressed += () => RowRightPressed?.Invoke(pressed);
 			}
 			_list.Add(row);
 		}

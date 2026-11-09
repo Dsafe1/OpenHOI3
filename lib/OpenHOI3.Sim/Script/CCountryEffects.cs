@@ -115,7 +115,9 @@ public static class CCountryEffects
 				if (scope.Country is { } first && CEffects.Target(state, effect, scope) is { } second
 					&& COfferRules.Nap(state, first, second) is null)
 				{
-					state.Naps.Add(new CNap(first, second, state.TotalHours) { Made = state.NextPact() });
+					var nap = new CNap(first, second, state.TotalHours) { Made = state.NextPact() };
+					state.Naps.Add(nap);
+					CNapBalance.Made(state, nap);
 				}
 				return true;
 			case "end_non_aggression_pact":

@@ -97,7 +97,7 @@ public partial class CShipBuilderView : CTypeBuilderView
 			}
 			if (line.FindTextBox("name") is { } name)
 			{
-				name.Text = LevelText(_levels[index]);
+				name.Text = LevelText(type.Technologies[index], _levels[index]);
 			}
 			if (line.FindButton("select") is { } select)
 			{
@@ -128,11 +128,11 @@ public partial class CShipBuilderView : CTypeBuilderView
 			}
 			if (line.FindTextBox("name") is { } name)
 			{
-				name.Text = LevelText(level);
+				name.Text = LevelText(technology, level);
 			}
 			if (line.FindTextBox("effect") is { } effect)
 			{
-				effect.Text = "";                                // what a level does is not written out yet
+				effect.Text = CTechnologyEffectsText.For(Context.Localisation.Localise, Simulation.State, Player, technology, level, Picked);
 			}
 			if (line.FindIcon("current_model") is { } current)
 			{
@@ -206,8 +206,8 @@ public partial class CShipBuilderView : CTypeBuilderView
 		return (int)(type.Stats[CarrierSize].Raw / OpenHOI3.Sim.CFixedPoint.Scale);
 	}
 
-	private static string LevelText(int level)
+	private string LevelText(CTechnology technology, int level)
 	{
-		return level.ToString(CultureInfo.InvariantCulture);
+		return CBrigadeTooltips.LevelName(Context.Localisation.Localise, Context.Localisation.Find, Player.Tag, technology, level);
 	}
 }

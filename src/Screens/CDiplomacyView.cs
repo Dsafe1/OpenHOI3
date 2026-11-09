@@ -115,6 +115,11 @@ public sealed partial class CDiplomacyView : CCountryView
 	{
 		_chosen = Player;
 		_decisionList = window.FindListBox(DecisionListName);
+		// The picture of a custom game's own controls, which the file lays under the decisions; the original hides it in any other game.
+		if (window.TryFindIcon("cgm_diplo_bg") is { } customGamePanel)
+		{
+			customGamePanel.Visible = false;
+		}
 		_actionList = window.FindListBox("diploaction_list");
 		_countryList = window.FindListBox("country_listbox");
 		_driftList = window.FindListBox("drift_list");

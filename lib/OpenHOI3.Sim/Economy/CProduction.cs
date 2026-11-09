@@ -17,6 +17,9 @@ namespace OpenHOI3.Sim.Economy;
 /// </summary>
 public static class CProduction
 {
+	/// <summary>The hundredths of what consumer goods need that count as needed when looking for spare IC [exe].</summary>
+	private const long ConsumerGoodsMargin = 105;
+
 	public const int CategoryCount = 6;
 
 	private const string WarDemand = "war_consumer_goods_demand";
@@ -411,6 +414,49 @@ public static class CProduction
 	public static CFixedPoint ConsumerGoodsNeeded(CGameState state, CCountry country)
 	{
 		return ConsumerGoodsDemand(state, country) + country.Modifier[DissentModifier];
+	}
+
+	/// <summary>
+	/// What a share was given beyond what it needs, in thousandths of IC and never below nought: consumer goods, a
+	/// twentieth over what they need, count only with no dissent, and supplies and lend-lease never have any [exe].
+	/// </summary>
+	public static CFixedPoint SpareIn(CGameState state, CCountry country, EProductionCategory category)
+	{
+		long given = country.ProductionShares[(int)category].ToThousandths().Raw * country.TotalIc;
+		long wanted;
+		switch (category)
+		{
+			case EProductionCategory.ConsumerGoods:
+				if (country.Dissent.Raw > 0)
+				{
+					return CFixedPoint.Zero;
+				}
+				wanted = (Needed(state, country, category).Raw * ConsumerGoodsMargin + 50) / 100;
+				break;
+			case EProductionCategory.Production:
+				wanted = country.ProductionSpent.Raw;
+				break;
+			case EProductionCategory.Reinforcement:
+				wanted = country.ReinforcementCost.Raw;
+				break;
+			case EProductionCategory.Upgrades:
+				wanted = country.UpgradeCost.Raw;
+				break;
+			default:
+				return CFixedPoint.Zero;
+		}
+		return new CFixedPoint(Math.Max(0, given - wanted));
+	}
+
+	/// <summary>The spare IC of the five shares but lend-lease, whole [exe].</summary>
+	public static int AvailableIc(CGameState state, CCountry country)
+	{
+		long spare = 0;
+		for (int index = (int)EProductionCategory.ConsumerGoods; index < CategoryCount; index++)
+		{
+			spare += SpareIn(state, country, (EProductionCategory)index).Raw;
+		}
+		return (int)(spare / CFixedPoint.Scale);
 	}
 
 	/// <summary>

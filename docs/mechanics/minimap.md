@@ -113,6 +113,8 @@ Since 2026-11-07 every button's mode is built; until then a button whose mode wa
   the bar here, so its background lets the mouse through; until the maintainer's report of 2026-11-07 it took every press
   below a button's top five pixels.
 
+**The panel behind the column of buttons** at the screen's right is `menubar_panel_bg`, drawn from the file; nothing in the original asks for it by name [exe].
+
 ## 5. The day and night overlay
 
 `minimap_overlay` is a `scrollingSprite` - `daynight_overlay.tga`, 512 by 128, drawn 320 by 128 over the picture, `step`

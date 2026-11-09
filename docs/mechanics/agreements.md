@@ -194,9 +194,16 @@ leaves its influence at nought and ends the influence.
 **A NAP may be broken** once `NAP_UNBREAKABLE_MONTHS` months have passed from its start; after that,
 in each of three windows of `NAP_FORCE_BALANCE_RULE_MONTHS`, only while the breaker's brigades along
 the common border stand to the other's at `NAP_BREAK_FORCE_BALANCE_1`, `_2`, `_3` (2, 1, 0.5); after
-the third, always. **The balance along the border is not built** - it counts brigades on the fronts of
-an area, which the simulation does not hold - so **a NAP may not be broken inside the three windows**
-(listed under *Not built*).
+the third, always.
+
+**The balance** is the first party's over the second's, in thousandths: over each front province of the first
+party's land with a passable edge to land the second controls, the second's land brigades in that land for each such
+edge, and the first's in the province, once for each front it is on. Brigades alone, not strength [exe]. A million
+where the second has nothing there; **-1000 until first measured** [exe]. The second party sees it turned round, a
+million over it, and **-1 where it is nought**, so a second party facing nothing of the first's cannot break the
+pact in a window [exe; `enhanced.md`]. It is measured when a pact is made in a running game, and at the head of a
+country's day, as first party, on a day of the year divisible by seven, or while it is unmeasured, or while a game is
+being made [exe]. It is `CNapBalance`, saved as the pact's `balance`, `our_power` and `their_power`.
 
 **A war between two** ends their influence (and their trade routes, none yet) when it begins
 (`confirmed`). What a declaration of war ends besides - their alliance, NAP, guarantee, access and debts
@@ -294,7 +301,6 @@ how this runtime does it (`messages.md`, section 3); the original's order of fil
   the foreign minister's Lua, the AI's - so only trades reach the player (section 10).
 - **The player handing his diplomacy to the AI** ("Ai control"), under which his own offers are answered
   like an AI's and the 96-hour drop applies to him.
-- **The NAP's border balance** (section 6), the NAP alert, and a pact's save block - there is no save.
 - **The kinds of aid, war and peace, factions**: their rows, offers and pacts; trade is `trade.md`.
 - The sound `diplomaticoffer` a new offer plays.
 

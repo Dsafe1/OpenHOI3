@@ -114,6 +114,12 @@ public static class CResearch
 		return new CFixed15((CFixed15.FromThousandths(new CFixedPoint(gain)).Raw << CFixed15.Places) / cost.Raw);
 	}
 
+	/// <summary>The year a level of a technology is due: its start year at the first, its offsets from there.</summary>
+	public static int DueYear(CTechnology technology, int level)
+	{
+		return level <= 1 ? technology.StartYear : technology.FirstOffset + Math.Max(level - 2, 0) * technology.AdditionalOffset;
+	}
+
 	/// <summary>
 	/// What researching a level in a year costs over its plain cost, in thousandths: a
 	/// thousand, and more for every year it is early. Level 1 is due in the start year,
@@ -121,10 +127,7 @@ public static class CResearch
 	/// </summary>
 	public static long YearPenalty(CGameState state, CTechnology technology, int level, int year)
 	{
-		int due = level <= 1
-			? technology.StartYear
-			: technology.FirstOffset + Math.Max(level - 2, 0) * technology.AdditionalOffset;
-		long early = due - year;
+		long early = DueYear(technology, level) - year;
 		long penalty = CFixedPoint.Scale;
 		if (early > 0)
 		{

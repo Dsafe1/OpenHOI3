@@ -1814,7 +1814,11 @@ checks anything that moves from day to day.
 fact base and entered in its record, not only written up: this repository's `CLAUDE.md`,
 *Where knowledge about the original comes from*.
 
+**All sixteen alerts are built** (2026-11-09, `docs/mechanics/alerts.md`), the row under the top bar tested every three seconds of real time with each tooltip and click as the original's, and with them a round of the interface: the bottom right's panel, the custom game's picture under the decisions hidden, a ship technology's levels by name with what each does, the lobby's map at its one zoom with the whole chosen country lit, the wheel and the arrow keys leaving the map alone under a main window, and the settings window of a message's type on a right click (`messages.md`, section 4.2).
+
 ### Loose ends
+
+- **There is no sound**, so an alert coming up plays nothing.
 
 None of these blocks the list above.
 
@@ -2964,6 +2968,7 @@ lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and place
     BattlePlans/        the plans kept, the tools and the mouse, an arrow's mesh, what the window says
     Text/               colour escapes, number formats, templates, breaking lines
     Screens/            the text of each screen's figures
+    Alerts/             the sixteen alerts: which are up and what each says
     Ledger/             the Statistics screen's pages, tables and pies
     Tooltips/           a tooltip, what the box shows of it, where it goes and when its
                         second half comes; the map's, the top bar's, the production and

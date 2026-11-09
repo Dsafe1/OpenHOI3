@@ -394,7 +394,7 @@ begins later is neither. So the base game's two files with no war in them - `Con
 and `SovietJapaneseWar.txt`, all commented out - are **the two nameless `previous_war`s every save of the original
 holds**, and a new game here holds them too since 2026-11-05 (`CWarReader.Read`); they had been missing.
 
-**Not held, so not written**: a NAP's `balance`, `our_power` and `their_power`; a `casus_belli` pact (`type`,
+**Not held, so not written**: a `casus_belli` pact (`type`,
 `first`, `second`, `start_date`; two in the 16 July 1941 saves); an `undeclared_war`; a sunk ship's `home` and
 `builder`, as in the unit tree.
 
@@ -672,7 +672,7 @@ Play (`frontend.md`, section 4).
   Japan's 103: nothing is asked of the far depot, where the original asks 1.49. The same network agrees province for
   province on a new game (`OpenHOI3.SaveCheck supplypass ... network=10130`), so it is what the pass has on its first
   day after a load; not followed further.
-- A NAP's `balance`, `our_power` and `their_power`: nothing here holds them, so they are reported. An alliance's and a
+- An alliance's and a
   puppet's `end_date` are kept for the writer (section 10); whether the original ends an alliance or a puppet on its date
   in play was not read.
 - A side emptied in play is decided once, by a flag the save does not keep, so the original decides it again at the

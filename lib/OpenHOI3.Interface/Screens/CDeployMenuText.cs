@@ -15,9 +15,6 @@ public static class CDeployMenuText
 	/// <summary>The alert that says units are waiting, and the two keys of its tooltip.</summary>
 	public const string Alert = "alert_deployable_units";
 
-	/// <summary>Where that alert is among the original's sixteen, from 0. Its icon shows the frame after.</summary>
-	public const int AlertNumber = 1;
-
 	private const string TitleKey = "DEPLOY_UNITS";
 	private const string TargetTitleKey = "DEPLOY_SEL_TARGET";
 

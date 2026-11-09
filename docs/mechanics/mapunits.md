@@ -313,9 +313,7 @@ units waiting to be placed is `alert_deployable_units`, the second of the sixtee
 - **A click on this alert's icon opens the deploy menu**, closing any other side menu
   first. `confirmed`
 
-*Ours:* the alert is up while the country has a unit to place. When the original puts it
-up was not read; its tooltip is "We have units available to be deployed." It is the only
-alert built, so it is always at the start position; a second click on it closes the menu.
+All sixteen are built: `alerts.md`.
 
 ## 6. The deploy menu
 
@@ -585,7 +583,6 @@ While a headquarters of the player's under an AI is the single unit selected, **
 
 ## What is not built
 
-- **The other fifteen alerts**, and the tooltips of this one.
 - **A leader's name on a counter**, and the orange corner of a unit with a brigade being
   changed into another type, which nothing here makes.
 - **The red frame of a moving unit's pointer.** Its picture has a green one and a red

@@ -132,6 +132,7 @@ public partial class CFrontEnd : Node
 		};
 		_menu.ExitPressed += () => GetTree().Quit();
 		_lobby.BackPressed += ShowMenu;
+		_lobby.ChosenChanged += LightChosen;
 
 		var tooltips = new CTooltips();
 		tooltips.Setup(_gui);
@@ -249,7 +250,17 @@ public partial class CFrontEnd : Node
 		_mapView.IsLobby = true;
 		_mapView.Mode = CMapView.MapMode.Political;
 		MoveChild(_mapView, 0);
-		_mapView.ProvinceSelected += province => _lobby?.ProvinceClicked(province);
+		_mapView.ProvinceSelected += province =>
+		{
+			_lobby?.ProvinceClicked(province);
+			LightChosen();
+		};
+	}
+
+	/// <summary>Every province the chosen country owns lit on the map, in place of the one clicked.</summary>
+	private void LightChosen()
+	{
+		_mapView?.Light(_lobby?.ChosenProvinces() ?? Array.Empty<int>());
 	}
 
 	/// <summary>The map put over a province, as a shield or a save's country does.</summary>

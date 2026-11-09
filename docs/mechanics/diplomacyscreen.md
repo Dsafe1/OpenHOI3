@@ -324,3 +324,8 @@ never is**, the drift line or `DIP_ALIGNED_DRIFT` being written first. Last, the
 *From `reversing/findings/FINDINGS-diplomacyview.md`, E.5 and E.6.* `CDiplomacyPanelLists`. The Wargoals tab shows `goals_by_us` and `goals_at_us`, each icon of the goal's type with the flag of the other country: the goals in the wars of the chosen country, by its enemies in order. Its tooltip is the goal's name and, delayed, its setup text.
 
 `drift_list` has a row for each country with an influence and one for each with an alignment between it and the chosen - so a country may have two the same - saying `+` and the faction's `align_towards` in green where it is the chosen country's doing and the other's faction's name where it is the other way, and `--` with no faction or modifier to speak of. A row chooses its country. *Ours:* that the alignment runs the way the influence does is inferred from the modifier's being the aligner's.
+
+## The picture under the decisions
+
+The file lays an icon `cgm_diplo_bg` under Automate Trade and the decision list. It is a custom game's, and the original hides it in any other game [exe], so it is never drawn here, there being no custom games (`reversing/findings/FINDINGS-diplomacyview.md`).
+

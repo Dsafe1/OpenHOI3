@@ -37,6 +37,9 @@ No button has a tooltip [exe]. A click on the map does nothing here; the map is 
 made at the start date, the start selected, and the Historical Start tab shown; nothing in the save list ticked and
 nothing loaded (B.1). The camera over the map's (2900, 1600), its rows counted from the bottom [exe] (A.2), at a zoom of
 ours, 1.43, which frames Europe from Ireland to Turkey as the maintainer's screenshot of the original does (*measured*).
+**That zoom is fixed**: the wheel does nothing on the lobby's map, the maintainer's word of 2026-11-09. A chosen country is
+lit whole, every province it owns taking the lift a selected province takes, in place of the one clicked (the maintainer's
+word of 2026-11-09; the amount of the lift is the in-game selection's, set beside no screenshot of the lobby).
 
 **The chat log** `chatlog` [exe] (B.1, B.2): a row of `temp_frontend.gui`'s `lobby_chat_text` a line, a paragraph cut
 where it is wider than the row - CONNECTED "Connected." as the lobby opens, the start's name in yellow and its

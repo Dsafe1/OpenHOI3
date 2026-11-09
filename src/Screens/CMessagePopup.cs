@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using OpenHOI3.Content.Gui;
+using OpenHOI3.Content.Messages;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Messages;
 using OpenHOI3.Sim;
@@ -43,6 +44,9 @@ public sealed partial class CMessagePopup : Control
 	/// <summary>Raised when the popup is closed.</summary>
 	public event Action? Closed;
 
+	/// <summary>Raised by a right click on the background or a button: the settings of the message's type.</summary>
+	public event Action<CMessageType>? SettingsAsked;
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, CSimulation simulation, CMessage message)
 	{
@@ -64,6 +68,23 @@ public sealed partial class CMessagePopup : Control
 			return;
 		}
 		AddChild(Window);
+		foreach (string name in new[] { "CenterOK", "AgreeButton", "DeclineButton" })
+		{
+			if (Window.TryFindButton(name) is { } button)
+			{
+				button.RightPressed += AskSettings;
+			}
+		}
+		if ((Window.FindChild("Background", recursive: false, owned: false) ?? Window.GetChild(0)) is Control background)
+		{
+			background.GuiInput += input =>
+			{
+				if (input is InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: false })
+				{
+					AskSettings();
+				}
+			};
+		}
 		Func<string, string> localise = _context.Localisation.Localise;
 		if (election)
 		{
@@ -120,6 +141,11 @@ public sealed partial class CMessagePopup : Control
 		Button("CenterOK", !two, "_BTN1", height);
 		Button("AgreeButton", two, "_BTN2", height);
 		Button("DeclineButton", two, "_BTN3", height);
+	}
+
+	private void AskSettings()
+	{
+		SettingsAsked?.Invoke(_message.Type);
 	}
 
 	/// <summary>

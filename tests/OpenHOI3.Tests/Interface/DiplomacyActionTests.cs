@@ -142,7 +142,7 @@ public class DiplomacyActionTests
 	}
 
 	[Fact]
-	public void Revoking_a_pact_too_soon_says_so_and_then_asks_a_balance_that_is_not_built()
+	public void Revoking_a_pact_too_soon_says_so_and_then_asks_for_its_balance()
 	{
 		CGameState state = World();
 		state.Naps.Add(new CNap(ScriptWorld.Ger, ScriptWorld.Pol, state.TotalHours));
@@ -151,8 +151,8 @@ public class DiplomacyActionTests
 
 		Assert.Equal("Non-Aggression Pacts cannot be broken for the first §Y6§W months.",
 			CDiplomacyActions.Tooltip(Localise, state, revoke));
-		state.Naps[0] = state.Naps[0] with { Start = COfferRules.AddMonths(state.TotalHours, -7) };
-		Assert.Equal("We need §Y200%§W of their brigades. We currently have §Y0%§W.",
+		state.Naps[0] = state.Naps[0] with { Start = COfferRules.AddMonths(state.TotalHours, -7), Balance = 750 };
+		Assert.Equal("We need §Y200%§W of their brigades. We currently have §Y75%§W.",
 			CDiplomacyActions.Tooltip(Localise, state, revoke));
 	}
 

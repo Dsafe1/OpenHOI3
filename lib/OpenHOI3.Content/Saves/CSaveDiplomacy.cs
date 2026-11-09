@@ -55,8 +55,14 @@ public static class CSaveDiplomacy
 					Unread(pact, report, "first", "second", "start_date", "end_date");
 					break;
 				case "nap":
-					state.Naps.Add(new CNap(first.Tag, second.Tag, start) { Made = state.NextPact() });
-					Unread(pact, report, "first", "second", "start_date");
+					state.Naps.Add(new CNap(first.Tag, second.Tag, start)
+					{
+						Made = state.NextPact(),
+						Balance = pact.Get("balance") is null ? CNapBalance.Unmeasured : CSaveValues.Fixed(pact, "balance").Raw,
+						OurPower = pact.GetInt("our_power"),
+						TheirPower = pact.GetInt("their_power"),
+					});
+					Unread(pact, report, "balance", "our_power", "their_power", "first", "second", "start_date");
 					break;
 				case "embargo":
 					state.Embargoes.Add(new CEmbargo(first.Tag, second.Tag) { Made = state.NextPact(), Start = start });
@@ -110,8 +116,7 @@ public static class CSaveDiplomacy
 
 	/// <summary>
 	/// <c>diplomacy</c>: every pact standing in the order it was made, as the original keeps them on one list - each
-	/// kind's keys in the original's order (<c>savegame.md</c>, section 10). A NAP's <c>balance</c>, <c>our_power</c>
-	/// and <c>their_power</c> are not held, and not written.
+	/// kind's keys in the original's order (<c>savegame.md</c>, section 10).
 	/// </summary>
 	public static void Write(CSaveTextWriter writer, CGameState state)
 	{
@@ -133,7 +138,17 @@ public static class CSaveDiplomacy
 		}
 		foreach (CNap nap in state.Naps)
 		{
-			pacts.Add((nap.Made, () => Pact(writer, "nap", nap.First, nap.Second, nap.Start, null)));
+			pacts.Add((nap.Made, () =>
+			{
+				writer.Begin("nap");
+				writer.Fixed("balance", new CFixedPoint(nap.Balance));
+				writer.Int("our_power", nap.OurPower);
+				writer.Int("their_power", nap.TheirPower);
+				writer.Quoted("first", nap.First.Value);
+				writer.Quoted("second", nap.Second.Value);
+				writer.DateOrNull("start_date", nap.Start);
+				writer.End();
+			}));
 		}
 		foreach (CEmbargo embargo in state.Embargoes)
 		{

@@ -152,10 +152,13 @@ public static class CWarActions
 		{
 			if (state.TotalHours < COfferRules.AddMonths(nap.Start, unbreakable + step * window))
 			{
-				// The border's balance of brigades is not built, so it is nought - below any limit.
 				CFixedPoint limit = COfferRules.Define(state, "NAP_BREAK_FORCE_BALANCE_" + step);
-				return CTextTemplate.Fill(localise("DECLARE_WAR_NAP_LIMIT_TROOPS_BALANCE"),
-					("LIMIT_PERC", CNumberText.Trimmed(limit * 100)), ("CURR_PERC", CNumberText.Trimmed(CFixedPoint.Zero)));
+				long balance = CNapBalance.As(nap, actor.Tag);
+				if (balance < limit.Raw)
+				{
+					return CTextTemplate.Fill(localise("DECLARE_WAR_NAP_LIMIT_TROOPS_BALANCE"),
+						("LIMIT_PERC", CNumberText.Trimmed(limit * 100)), ("CURR_PERC", CNumberText.Trimmed(new CFixedPoint(balance) * 100)));
+				}
 			}
 		}
 		return localise("DECLARE_WAR_NAP_BREAKABLE");

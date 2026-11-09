@@ -12,8 +12,17 @@ Add to it whenever a spec records something of the original's that looks like a 
 
 ## Asked for by the maintainer
 
+- **The brigade builder's technology list can overflow.** The list of what a brigade's technologies are runs out of its box when there are many. The maintainer suggests a scrollable window. `builders.md`, 7. *Display.* Risk: none.
 - **A headquarters' supply tooltip could show its subordinates' use.** The unit panel's supply and fuel tooltips give only the unit's own use. For a headquarters the maintainer wants its own consumption and, separately, that of all the units under it. `unitpanel.md`, 10. *Unfinished.* Risk: none.
 - **A returning unit's subordinates stay behind.** An expeditionary unit goes home alone, and everything under it stays with the host as the host's own. The maintainer wants this changed. `expeditions.md`, 3. *Oversight.* Risk: small; saves hold ownership.
+
+## Alerts
+
+- **A pact's second party cannot break it when the first has nothing on the border.** The balance is nought, and turned round for the second party it is -1 rather than very large, so in the three windows it reads as too few troops. `agreements.md`, 6. *Bug.* Risk: small; AI wars.
+- **The partisans alert is never shown.** Alert 3 is complete, list and all, and nothing puts it up. `alerts.md`. *Dead.* Risk: none.
+- **"More efficient laws" means only earlier in the file.** Any law before the current one whose `allow` holds is offered, better or not. `alerts.md`. *Oversight.* Risk: none.
+- **A pact is listed before it can be broken.** The alert comes up three months before the pact may be broken at all and says so as "may be broken on". `alerts.md`. *Display.* Risk: none.
+- **Icons have no blink or banner.** The banner sits off the screen in the file and its 30-second timer is written and read by nothing. `alerts.md`. *Dead.* Risk: none.
 
 ## Land combat
 

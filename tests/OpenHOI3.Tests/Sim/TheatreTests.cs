@@ -302,6 +302,68 @@ public class TheatreTests
 		Assert.Equal(CFixedPoint.Parse("1.5"), germany.Manpower);
 	}
 
+	// ---- a pact's border (agreements.md, section 6)
+
+	private static void Brigades(CGameState state, CCountryTag owner, int province, int brigades, int id)
+	{
+		var type = new CSubUnitType("infantry_brigade", EUnitBranch.Land);
+		var unit = new CUnit(EUnitKind.Army, owner) { Id = id, Location = province, Name = "Unit" };
+		for (int i = 0; i < brigades; i++)
+		{
+			unit.SubUnits.Add(new CSubUnit(type));
+		}
+		state.Country(owner)!.Units.Add(unit);
+		state.ForgetPositions();
+	}
+
+	[Fact]
+	public void A_pact_counts_brigades_along_the_border_across_every_block_of_the_first_party()
+	{
+		CGameState state = World(eastPrussia: true);
+		Brigades(state, Ger, 12, 3, 901);
+		Brigades(state, Pol, 21, 2, 902);
+		Brigades(state, Pol, 22, 2, 903);
+		var nap = new OpenHOI3.Sim.Agreements.CNap(Ger, Pol, state.TotalHours);
+		OpenHOI3.Sim.Agreements.CNapBalance.Measure(state, nap);
+		Assert.Equal(3, nap.OurPower);
+		Assert.Equal(4, nap.TheirPower);
+		Assert.Equal(750, nap.Balance);
+		Assert.Equal(1333, OpenHOI3.Sim.Agreements.CNapBalance.As(nap, Pol));
+	}
+
+	[Fact]
+	public void A_pact_with_nothing_of_theirs_on_the_border_is_a_million_and_a_nought_turned_round_is_minus_one()
+	{
+		CGameState state = World();
+		var nap = new OpenHOI3.Sim.Agreements.CNap(Ger, Pol, state.TotalHours);
+		OpenHOI3.Sim.Agreements.CNapBalance.Measure(state, nap);
+		Assert.Equal(1000000, nap.Balance);
+		nap.Balance = 0;
+		Assert.Equal(-1, OpenHOI3.Sim.Agreements.CNapBalance.As(nap, Pol));
+		Assert.Equal(0, OpenHOI3.Sim.Agreements.CNapBalance.As(nap, Ger));
+	}
+
+	[Fact]
+	public void A_pact_may_be_broken_in_a_window_only_on_the_balance_and_after_them_always()
+	{
+		CGameState state = World();
+		foreach ((string key, int value) in new[] { ("NAP_UNBREAKABLE_MONTHS", 6), ("NAP_FORCE_BALANCE_RULE_MONTHS", 6), ("NAP_BREAK_FORCE_BALANCE_1", 2), ("NAP_BREAK_FORCE_BALANCE_2", 1), ("NAP_BREAK_FORCE_BALANCE_3", 1) })
+		{
+			state.Defines.Set("diplomacy", key, CFixedPoint.FromInt(value));
+		}
+		CCountry germany = state.Country(Ger)!;
+		CCountry poland = state.Country(Pol)!;
+		var nap = new OpenHOI3.Sim.Agreements.CNap(Ger, Pol, OpenHOI3.Sim.Agreements.COfferRules.AddMonths(state.TotalHours, -7)) { Balance = 2000 };
+		state.Naps.Add(nap);
+		Assert.True(OpenHOI3.Sim.Agreements.COfferRules.CanBreakNap(state, germany, poland));
+		Assert.False(OpenHOI3.Sim.Agreements.COfferRules.CanBreakNap(state, poland, germany));
+		nap.Balance = 1999;
+		Assert.False(OpenHOI3.Sim.Agreements.COfferRules.CanBreakNap(state, germany, poland));
+		state.Naps.Clear();
+		state.Naps.Add(new OpenHOI3.Sim.Agreements.CNap(Ger, Pol, OpenHOI3.Sim.Agreements.COfferRules.AddMonths(state.TotalHours, -24)));
+		Assert.True(OpenHOI3.Sim.Agreements.COfferRules.CanBreakNap(state, germany, poland));
+	}
+
 	// ---- readiness
 
 	[Fact]

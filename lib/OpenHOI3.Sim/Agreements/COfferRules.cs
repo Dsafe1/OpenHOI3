@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
@@ -333,7 +334,7 @@ public static class COfferRules
 	/// <summary>
 	/// Whether the breaker may break its NAP with the other: not for <c>NAP_UNBREAKABLE_MONTHS</c>, then
 	/// in each of three windows of <c>NAP_FORCE_BALANCE_RULE_MONTHS</c> only on the border's balance of
-	/// brigades, which is not built - so not - and after them always.
+	/// brigades, as the breaker sees it, and after them always.
 	/// </summary>
 	public static bool CanBreakNap(CGameState state, CCountry breaker, CCountry other)
 	{
@@ -343,7 +344,21 @@ public static class COfferRules
 		}
 		int unbreakable = (int)(Define(state, "NAP_UNBREAKABLE_MONTHS").Raw / 1000);
 		int window = (int)(Define(state, "NAP_FORCE_BALANCE_RULE_MONTHS").Raw / 1000);
-		return state.TotalHours >= AddMonths(nap.Start, unbreakable + 3 * window);
+		long date = AddMonths(nap.Start, unbreakable);
+		if (date > state.TotalHours)
+		{
+			return false;
+		}
+		long balance = CNapBalance.As(nap, breaker.Tag);
+		for (int step = 1; step <= 3; step++)
+		{
+			date = AddMonths(date, window);
+			if (date > state.TotalHours)
+			{
+				return balance >= Define(state, "NAP_BREAK_FORCE_BALANCE_" + step.ToString(CultureInfo.InvariantCulture)).Raw;
+			}
+		}
+		return true;
 	}
 
 	/// <summary>An hour some months on, the hour of the day kept.</summary>

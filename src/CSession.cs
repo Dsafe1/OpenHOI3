@@ -468,7 +468,7 @@ public partial class CSession : Node
 			_alerts = new CAlerts();
 			_alerts.Setup(gui, Player, _simulation);
 			layer.AddChild(_alerts);
-			_alerts.DeployablePressed += ToggleDeployMenu;
+			_alerts.Pressed += AlertPressed;
 		}
 
 		// The panel of the unit selected on the map. Its rows may choose another unit -
@@ -641,13 +641,6 @@ public partial class CSession : Node
 					_victoryConditions.Shut();
 				}
 			};
-			_alerts.VictoryPressed += () =>
-			{
-				if (!_victoryConditions.IsOpen)
-				{
-					_victoryConditions.Toggle();
-				}
-			};
 			var popups = new CMessagePopups();
 			popups.Setup(gui, _simulation);
 			layer.AddChild(popups);
@@ -680,6 +673,7 @@ public partial class CSession : Node
 				gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, taken, scope));
 			popups.Goto = GoToMessage;
 			messageLog.RowPressed += message => GoToMessage(message);
+			messageLog.RowRightPressed += message => popups.OpenSettings(message.Type);
 			_simulation.State.CombatBegan += combat =>
 			{
 				if (CMessages.CombatBegan(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, combat) is { } message)
@@ -759,9 +753,12 @@ public partial class CSession : Node
 		layer.AddChild(_menu);
 		// The arrow keys scroll the map only where nothing before it takes them (interface.md, section 8; ingamemenu.md,
 		// section 1). The console goes through its history on Up and Down.
-		_mapView.ScrollKeysHeld = () => _menu.IsOpen
+		bool mainWindow() => _menu.IsOpen || _production?.IsOpen == true || _technology?.IsOpen == true
+			|| _diplomacy?.IsOpen == true || _politics?.IsOpen == true || _espionage?.IsOpen == true || _theatres?.IsOpen == true;
+		_mapView.ScrollKeysHeld = () => mainWindow()
 			? (true, true)
 			: (gui.KeyboardFocus is { HasKeyboard: true }, _console?.IsOpen == true);
+		_mapView.WheelHeld = mainWindow;
 		_topBar.MenuPressed += _menu.Toggle;
 		_menu.Resigned += ShowEndGame;
 		_menu.Opening += () =>
@@ -1115,6 +1112,63 @@ public partial class CSession : Node
 		if (unit is { Location: > 0 })
 		{
 			_mapView.CentreOn(unit.Location);
+		}
+	}
+
+	/// <summary>
+	/// An alert clicked (<c>docs/mechanics/alerts.md</c>, section 4): the orders window closed, the selection let go but for
+	/// the two that go to a unit, and the view or the unit each one answers to. Six have no answer and only do the first.
+	/// </summary>
+	private void AlertPressed(Interface.Alerts.EAlert alert)
+	{
+		_orders?.Close();
+		CUnit? kept = alert == Interface.Alerts.EAlert.DeployableUnits ? _mapView.Units.First : null;
+		if (alert is not (Interface.Alerts.EAlert.BadSupply or Interface.Alerts.EAlert.LackOfTroops))
+		{
+			_mapView.ClearSelection();
+		}
+		if (alert != Interface.Alerts.EAlert.DeployableUnits)
+		{
+			_deployMenu?.Close();
+		}
+		switch (alert)
+		{
+			case Interface.Alerts.EAlert.DeployableUnits:
+				foreach (CCountryView? view in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage, _theatres })
+				{
+					view?.Close();
+				}
+				ToggleDeployMenu();
+				if (kept is not null)
+				{
+					_mapView.SelectUnit(kept);
+				}
+				break;
+			case Interface.Alerts.EAlert.NationalDecisions or Interface.Alerts.EAlert.CanInviteToFaction:
+				Toggle(_diplomacy);
+				break;
+			case Interface.Alerts.EAlert.WastedIc:
+				Toggle(_production);
+				break;
+			case Interface.Alerts.EAlert.FreeTechSlots or Interface.Alerts.EAlert.TechFarAhead:
+				Toggle(_technology);
+				break;
+			case Interface.Alerts.EAlert.PossibleLaw:
+				Toggle(_politics);
+				break;
+			case Interface.Alerts.EAlert.LackOfTroops or Interface.Alerts.EAlert.BadSupply:
+				if (Interface.Alerts.CAlertPass.NextUnit(_simulation.State, Player, alert, _mapView.Units.First) is { } unit)
+				{
+					_mapView.SelectUnit(unit);
+					_mapView.CentreOn(unit.Location);
+				}
+				break;
+			case Interface.Alerts.EAlert.VictoryConditions:
+				if (_victoryConditions is { IsOpen: false })
+				{
+					_victoryConditions.Toggle();
+				}
+				break;
 		}
 	}
 

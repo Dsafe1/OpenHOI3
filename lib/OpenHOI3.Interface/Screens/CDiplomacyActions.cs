@@ -547,11 +547,14 @@ public static class CDiplomacyActions
 				{
 					continue;
 				}
-				// The balance of brigades along the border is not built, so it is nought - below any limit.
 				CFixedPoint limit = COfferRules.Define(state, "NAP_BREAK_FORCE_BALANCE_" + step);
-				return CTextTemplate.Fill(localise("CANCELNAP_TOO_LOW_BALANCE"),
-					("LIMIT_PERC", CNumberText.Trimmed(limit * 100)),
-					("CURR_PERC", CNumberText.Trimmed(CFixedPoint.Zero)));
+				long balance = CNapBalance.As(nap, actor.Tag);
+				if (balance < limit.Raw)
+				{
+					return CTextTemplate.Fill(localise("CANCELNAP_TOO_LOW_BALANCE"),
+						("LIMIT_PERC", CNumberText.Trimmed(limit * 100)),
+						("CURR_PERC", CNumberText.Trimmed(new CFixedPoint(balance) * 100)));
+				}
 			}
 		}
 		return localise("CANCELNAPDESC");

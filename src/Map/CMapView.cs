@@ -1055,6 +1055,20 @@ public partial class CMapView : Node2D
 	private void Show(int provinceId)
 	{
 		_selected = provinceId;
+		LightSelection();
+		EmitSignal(SignalName.ProvinceSelected, provinceId);
+	}
+
+	/// <summary>Lights these provinces and no others, telling nobody: the lobby's whole chosen country.</summary>
+	public void Light(IEnumerable<int> provinces)
+	{
+		_selection.Clear();
+		_selection.AddRange(provinces);
+		LightSelection();
+	}
+
+	private void LightSelection()
+	{
 		_selectionImage.Fill(Colors.Black);
 		foreach (int province in _selection)
 		{
@@ -1062,8 +1076,8 @@ public partial class CMapView : Node2D
 		}
 		_selectionTexture.Update(_selectionImage);
 		// On the surface the selected provinces are lifted in its lookups, and nothing marks the one under the mouse (B.9).
-		_surface?.SetSelection(id => _selection.Contains(id));
-		EmitSignal(SignalName.ProvinceSelected, provinceId);
+		var lit = new HashSet<int>(_selection);
+		_surface?.SetSelection(lit.Contains);
 	}
 
 	/// <summary>The units selected, in the order selected.</summary>
@@ -1173,10 +1187,10 @@ public partial class CMapView : Node2D
 		}
 		switch (@event)
 		{
-			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelUp } wheel:
+			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelUp } wheel when !WheelStill:
 				ZoomAt(wheel.Position, ZoomStep);
 				break;
-			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelDown } wheel:
+			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelDown } wheel when !WheelStill:
 				ZoomAt(wheel.Position, 1f / ZoomStep);
 				break;
 			case InputEventMouseButton { ButtonIndex: MouseButton.Middle } button:
@@ -1430,6 +1444,12 @@ public partial class CMapView : Node2D
 	/// taken elsewhere has to be said here.
 	/// </summary>
 	public Func<(bool Across, bool Down)>? ScrollKeysHeld { get; set; }
+
+	/// <summary>Whether the wheel is to leave the map alone: a main window or the menu is up.</summary>
+	public Func<bool>? WheelHeld { get; set; }
+
+	/// <summary>The lobby's map stays at the height it opens at, and nothing else moves it while the wheel is held.</summary>
+	private bool WheelStill => IsLobby || WheelHeld?.Invoke() == true;
 
 	public override void _Process(double delta)
 	{

@@ -64,8 +64,8 @@ public class SaveDiplomacyTests
 		Assert.Equal((T("ENG"), T("ITA"), 262), (route.From, route.To, convoy));
 		Assert.Equal(3500, route.Terms.From(EGoods.Metal));
 		Assert.Equal(229, route.Terms.To(EGoods.Money));
-		// What nothing here holds is reported: a NAP's balance and powers.
-		Assert.Contains(("nap", "balance"), report.UnreadKeys.Keys);
+		Assert.DoesNotContain(("nap", "balance"), report.UnreadKeys.Keys);
+		Assert.Equal(1000000, state.Naps[0].Balance);
 		Assert.DoesNotContain(("alliance", "end_date"), report.UnreadKeys.Keys);
 		Assert.DoesNotContain(("guarantee", "end_date"), report.UnreadKeys.Keys);
 	}
@@ -82,7 +82,7 @@ public class SaveDiplomacyTests
 			"\t\tfirst=\"ENG\"\r\n\t\tsecond=\"ITA\"\r\n\t\tstart_date=\"1936.1.1.4\"\r\n\t}\r\n" +
 			"\talliance=\r\n\t{\r\n\t\tfirst=\"ITA\"\r\n\t\tsecond=\"GER\"\r\n\t\tstart_date=\"1936.1.3.0\"\r\n\t}\r\n" +
 			"\tvassal=\r\n\t{\r\n\t\tfirst=\"ENG\"\r\n\t\tsecond=\"SAF\"\r\n\t\tend_date=\"1945.1.1.0\"\r\n\t\tstart_date=\"1936.1.1.0\"\r\n\t}\r\n" +
-			"\tnap=\r\n\t{\r\n\t\tfirst=\"GER\"\r\n\t\tsecond=\"ENG\"\r\n\t\tstart_date=\"1936.1.5.3\"\r\n\t}\r\n" +
+			"\tnap=\r\n\t{\r\n\t\tbalance=-1.000\r\n\t\tour_power=0\r\n\t\ttheir_power=0\r\n\t\tfirst=\"GER\"\r\n\t\tsecond=\"ENG\"\r\n\t\tstart_date=\"1936.1.5.3\"\r\n\t}\r\n" +
 			"\tembargo=\r\n\t{\r\n\t\tfirst=\"ENG\"\r\n\t\tsecond=\"ITA\"\r\n\t\tstart_date=\"1936.1.6.0\"\r\n\t}\r\n" +
 			"\tinfluence=\r\n\t{\r\n\t\tfirst=\"ENG\"\r\n\t\tsecond=\"SAF\"\r\n\t\tstart_date=\"1936.1.1.16\"\r\n\t}\r\n" +
 			"\talign=\r\n\t{\r\n\t\tfirst=\"ETH\"\r\n\t\tsecond=\"GER\"\r\n\t\tstart_date=\"1936.1.6.5\"\r\n\t}\r\n" +
