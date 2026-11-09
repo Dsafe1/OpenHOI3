@@ -21,4 +21,12 @@ public enum ECheat
 	ToggleInstantConstruction,
 	ToggleAlwaysPartisans,
 	ToggleNoPopups,
+	ToggleAiPause,
+	SetEveryAiPause,
+	SetDate,
+	Teleport,
+	SetPlayed,
+	ToggleSpy,
+	ToggleYesmen,
+	SetColour,
 }

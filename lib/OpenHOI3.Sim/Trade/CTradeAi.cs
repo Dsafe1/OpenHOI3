@@ -27,6 +27,10 @@ public static class CTradeAi
 		var runs = new List<(CCountry Country, bool Propose)>();
 		foreach (CCountry country in state.Countries)
 		{
+			if (country.AiPaused)
+			{
+				continue;
+			}
 			if (state.Played.Contains(country.Tag))
 			{
 				// The Lua trades for a played country under Automate Trade, or whose diplomacy is handed to the AI

@@ -82,7 +82,7 @@ public static class CPoliticsAi
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.PoliticsCountdown <= 0 || !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Politics)
+			if (country.AiPaused || country.PoliticsCountdown <= 0 || !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Politics)
 				|| (COwnedCounts.Of(state).Count(country.Tag) == 0 && !country.InExile))
 			{
 				continue;

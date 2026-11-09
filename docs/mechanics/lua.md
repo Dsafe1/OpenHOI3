@@ -246,7 +246,7 @@ a war goal - and three more functions declare a fifth that is never passed, so i
 answer is a number turned into an integer as section 1 says; where the call fails - an error, no
 such function - it is 0**, reported: the offer is refused. A result that is not a number is 0 too,
 reported; in the original it escapes as an uncaught C++ exception. The original answers 100 without
-asking when the player offers under the `yesmen` cheat; there is no console here.
+asking when the player offers under the `yesmen` cheat (`console.md`), which is built.
 
 **An AI answering an offer asks it** for alliance, NAP and both kinds of transit rights, each hour
 (`agreements.md`, sections 2 and 3), and the request dialog asks it for the word it shows.

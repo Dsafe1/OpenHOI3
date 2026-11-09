@@ -15,6 +15,7 @@ public sealed partial class CConsoleView : Control
 	private const string EntryName = "console_entry_wnd";
 
 	private readonly List<string> _history = new();
+	private readonly List<string> _lines = new();
 	private CGuiContext _context = null!;
 	private CConsoleRunner _runner = null!;
 	private CGuiWindow? _window;
@@ -56,6 +57,26 @@ public sealed partial class CConsoleView : Control
 	}
 
 	public bool IsOpen => Visible;
+
+	/// <summary>What has been answered, as printed.</summary>
+	public IReadOnlyList<string> Lines => _lines;
+
+	public IReadOnlyList<string> History => _history;
+
+	/// <summary>What the console of the session before held, when that one gives the game over to this.</summary>
+	public void Restore(IReadOnlyList<string> lines, IReadOnlyList<string> history, bool open)
+	{
+		_history.AddRange(history);
+		foreach (string line in lines)
+		{
+			Add(line);
+		}
+		_list?.ShowLast();
+		if (open)
+		{
+			Toggle();
+		}
+	}
 
 	/// <summary>Opens it where it is shut, with the keyboard, and shuts it where it is open.</summary>
 	public void Toggle()
@@ -122,6 +143,7 @@ public sealed partial class CConsoleView : Control
 
 	private void Add(string text)
 	{
+		_lines.Add(text);
 		if (_list is null || CGuiWindow.CreateEntry(_context, EntryName) is not { } row)
 		{
 			return;

@@ -30,7 +30,10 @@ public sealed class CCountry
 	/// <summary>Game-relative path from <c>common/countries.txt</c>.</summary>
 	public required string DefinitionFile { get; init; }
 
-	public CColor Color { get; init; } = CColor.Gray;
+	public CColor Color { get; set; } = CColor.Gray;
+
+	/// <summary>The console's <c>aipause</c>: while set, none of this country's AI runs.</summary>
+	public bool AiPaused { get; set; }
 
 	public string GraphicalCulture { get; init; } = "";
 

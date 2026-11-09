@@ -97,8 +97,17 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		return RelationOnFailure;
 	}
 
+	/// <summary>What the console's <c>debug yesmen</c> makes every AI answer a played country, without asking the script.</summary>
+	private const int YesScore = 100;
+
+	private static bool Yes(CGameState state, CCountry actor) => state.AiYesmen && state.Played.Contains(actor.Tag);
+
 	public int DiploScore(CGameState state, string function, CCountry actor, CCountry recipient, CCountry observer)
 	{
+		if (Yes(state, actor))
+		{
+			return YesScore;
+		}
 		_state = state;
 		try
 		{
@@ -124,6 +133,10 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 			|| offer.Deal is not { } deal)
 		{
 			return ScoreOnFailure;
+		}
+		if (Yes(state, actor))
+		{
+			return YesScore;
 		}
 		CGameState? asked = _state;
 		_state = state;
@@ -165,6 +178,10 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		if (state.Country(offer.Actor) is not { } actor || state.Country(offer.Recipient) is not { } recipient)
 		{
 			return ScoreOnFailure;
+		}
+		if (Yes(state, actor))
+		{
+			return YesScore;
 		}
 		CGameState? asked = _state;
 		_state = state;

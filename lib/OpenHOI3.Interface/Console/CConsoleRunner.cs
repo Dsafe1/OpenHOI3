@@ -7,6 +7,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Revolts;
 using OpenHOI3.Sim.Units;
@@ -22,6 +23,15 @@ public sealed class CConsoleRunner
 {
 	private const string CountDeclined = "Invalid arguments count.";
 	private const string Amount = "Please specify the amount.";
+	private const string DateFormat = "Please specify the date in format yyyy.mm.dd.hh";
+	private const string RenderRule = "----------------------------------\n";
+
+	/// <summary>The map's layers as <c>debug render</c> names them, each with its bit.</summary>
+	private static readonly (string Name, int Bit)[] RenderLayers =
+	{
+		("Trees", 0x1), ("Borders", 0x2), ("Text", 0x8), ("Overlay", 0x10), ("Objects", 0x20), ("MapObjects", 0x40), ("Rivers", 0x80),
+		("Water", 0x100), ("WaterBorders", 0x200), ("Effects", 0x400),
+	};
 
 	private readonly IConsoleHost _host;
 
@@ -165,6 +175,32 @@ public sealed class CConsoleRunner
 				}
 				_host.ContinentPainting = !_host.ContinentPainting;
 				return Ok(_host.ContinentPainting ? "Now painting continent. Shift-click to painting the map." : "Painting disabled");
+			case "tag": return PlayAs(args);
+			case "aipause": return AiPause(args);
+			case "teleportselectionto": return Teleport(args);
+			case "date": return Date(args);
+			case "detailedlog":
+				if (args.Length == 0)
+				{
+					return Fail("Please specify file path and name.");
+				}
+				_host.WriteDetailedLog(args[0]);
+				return Ok("See logs/" + args[0] + ".log for result.");
+			case "reloadinterface":
+				if (args.Length != 0)
+				{
+					return Fail("Invalid arguments count");
+				}
+				_host.ReloadInterface();
+				return Ok("Interface reloaded.");
+			case "reloadfx": return ReloadFx(args);
+			case "fullscreen":
+				if (args.Length != 0)
+				{
+					return Fail("Invalid arguments.");
+				}
+				_host.Fullscreen = !_host.Fullscreen;
+				return Ok(_host.Fullscreen ? "Fullscreen mode ON." : "Fullscreen mode OFF.");
 			case "printtech": return PrintTech(args);
 			case "copyprov": return CopyProvinces(args);
 			case "debug": return Debug(args);
@@ -374,6 +410,128 @@ public sealed class CConsoleRunner
 		return Ok("Revolt created.");
 	}
 
+	private CConsoleReply PlayAs(string[] args)
+	{
+		if (args.Length == 0)
+		{
+			return Fail("Please specify the country tag");
+		}
+		if (args[0].Length == 0)
+		{
+			return Fail("empty tag. check your spaces");
+		}
+		if (Tag(args[0]) is not { } country || CCountryLists.OwnedCount(State, country.Tag) == 0)
+		{
+			return Fail("Such country does not exist.");
+		}
+		if (_host.Player is not { } player || !_host.TakesCommands)
+		{
+			return Fail("Can't change the country right now.");
+		}
+		Cheat(ECheat.SetPlayed, country.Tag, player.Tag);
+		_host.ShowCountryPlayed();
+		return Ok("Now Playing - " + country.Name);
+	}
+
+	private CConsoleReply AiPause(string[] args)
+	{
+		if (args.Length == 0)
+		{
+			return Ok(PausedList());
+		}
+		if (args.Length != 1)
+		{
+			return Fail("Please specify country tag, or \"all\" argument");
+		}
+		if (args[0] == "all")
+		{
+			bool anyPaused = State.Countries.Any(country => country.AiPaused);
+			Cheat(ECheat.SetEveryAiPause, amount: anyPaused ? 0 : 1);
+			return Ok(anyPaused ? "AI Unpaused for all" : "AI Paused for all");
+		}
+		if (Tag(args[0]) is not { } chosen)
+		{
+			return Fail("Invalid country tag");
+		}
+		Cheat(ECheat.ToggleAiPause, chosen.Tag);
+		return Ok(chosen.Name + (chosen.AiPaused ? " AI is now Paused" : " AI is now Unpaused"));
+	}
+
+	/// <summary>The countries whose AI is paused, six to a line.</summary>
+	private string PausedList()
+	{
+		var text = new StringBuilder("AI is paused for:\n");
+		int count = 0;
+		foreach (CCountry country in State.Countries.Where(country => country.AiPaused))
+		{
+			text.Append(country.Tag.Value).Append(", ");
+			if (++count % 6 == 0)
+			{
+				text.Append('\n');
+			}
+		}
+		return count == 0 ? text.Append("None").ToString() : text.ToString();
+	}
+
+	private CConsoleReply Teleport(string[] args)
+	{
+		if (args.Length == 0)
+		{
+			return Fail("Please specify the province id.");
+		}
+		if (_host.SelectedUnit is not { } unit || (CMovementRules.IsLandUnit(unit) && unit.Transport is not null))
+		{
+			return Fail("Select transportable unit first!");
+		}
+		// A number that is no province leaves the answer empty.
+		if (Province(args[0]) is not { } province)
+		{
+			return Ok("");
+		}
+		Cheat(ECheat.Teleport, unit.Owner, amount: unit.Id, province: province.Id);
+		return Ok("Unit moved.");
+	}
+
+	private CConsoleReply Date(string[] args)
+	{
+		if (args.Length == 0)
+		{
+			return Fail(DateFormat);
+		}
+		string[] parts = args[0].Split('.');
+		int hour = parts.Length > 3 ? Atoi(parts[3]) : 0;
+		// Ours: the original takes anything and walks the date backwards off it.
+		if (parts.Length < 3 || hour is < 0 or >= CGameState.HoursPerDay
+			|| !CDate.TryParse(Atoi(parts[0]) + "." + Atoi(parts[1]) + "." + Atoi(parts[2]), out CDate date))
+		{
+			return Fail(DateFormat);
+		}
+		Cheat(ECheat.SetDate, amount: (long)date.DayNumber * CGameState.HoursPerDay + hour);
+		return Ok("Date changed.");
+	}
+
+	private CConsoleReply ReloadFx(string[] args)
+	{
+		if (args.Length == 0)
+		{
+			return Fail("Please specify effect name");
+		}
+		string? reply = args[0] switch
+		{
+			"map" => "Map reloaded",
+			"front" => "Front reloaded",
+			"hierarchy" => "LineHierarchy reloaded",
+			"masked3dFlag" => "MaskedFlag reloaded",
+			_ => _host.EffectExists(args[0]) ? args[0] + " reloaded" : null,
+		};
+		if (reply is null)
+		{
+			return Fail("Reload failed");
+		}
+		_host.ReloadInterface();
+		return Ok(reply);
+	}
+
 	private CConsoleReply PrintTech(string[] args)
 	{
 		if (_host.Player is { } player)
@@ -426,18 +584,73 @@ public sealed class CConsoleRunner
 				Cheat(ECheat.ToggleNoPopups);
 				return Ok(State.NoPopups ? "Blocking all popups" : "Stopped blocking all popups");
 			case "minzoom":
-				if (args.Length > 1 && Atoi(args[1]) is > 0 and int height)
+				if (args.Length < 2)
 				{
-					_host.SetLeastHeight(height);
-					return Ok("Zoom limit set to " + height.ToString(CultureInfo.InvariantCulture));
+					return Fail("Please specify zoomlevel value.");
 				}
-				return Fail("Please specify some arguments.");
-			case "info" or "profile" or "assert" or "log_profile" or "textures" or "spy" or "yesmen" or "wireframe" or "render" or "color" or "save":
+				if (Atoi(args[1]) > 0)
+				{
+					_host.SetLeastHeight(Atoi(args[1]));
+				}
+				return Ok("Zoom limit set to " + Atoi(args[1]).ToString("F3", CultureInfo.InvariantCulture));
+			case "spy":
+				Cheat(ECheat.ToggleSpy);
+				return Ok(State.SpyCheat ? "Superior espionage turned ON." : "Superior espionage turned OFF.");
+			case "yesmen":
+				Cheat(ECheat.ToggleYesmen);
+				return Ok(State.AiYesmen ? "AI now always responds favorably" : "AI now uses normal responses.");
+			case "wireframe":
+				_host.Wireframe = !_host.Wireframe;
+				return Ok(_host.Wireframe ? "Wireframe ON" : "Wireframe OFF");
+			case "render": return Render(args);
+			case "color": return Colour(args);
+			case "info" or "profile" or "assert" or "log_profile" or "textures" or "save":
 				return Fail("Not built.");
 			default:
 				return Ok("");
 		}
 	}
+
+	/// <summary>Alone it lists what is drawn, the map mode's layers and the console's together; with a layer's name it turns that one over.</summary>
+	private CConsoleReply Render(string[] args)
+	{
+		if (args.Length == 1)
+		{
+			int shown = _host.ModeLayers & _host.RenderLayers;
+			var text = new StringBuilder(RenderRule).Append("Render options:\n");
+			foreach ((string name, int bit) in RenderLayers)
+			{
+				text.Append("\t\t").Append(name).Append(":\t").Append((shown & bit) != 0 ? "yes\n" : "no\n");
+			}
+			return Ok(text.Append(RenderRule).ToString());
+		}
+		foreach ((string name, int bit) in RenderLayers)
+		{
+			if (name.ToUpperInvariant() == args[1].ToUpperInvariant())
+			{
+				_host.RenderLayers ^= bit;
+			}
+		}
+		return Ok("");
+	}
+
+	private CConsoleReply Colour(string[] args)
+	{
+		if (args.Length != 5)
+		{
+			return Fail("4 more arguments needed: country tag, red, green, blue");
+		}
+		if (Tag(args[1]) is not { } country)
+		{
+			return Fail("Invalid country Tag");
+		}
+		long colour = Channel(args[2]) << 16 | Channel(args[3]) << 8 | Channel(args[4]);
+		Cheat(ECheat.SetColour, country.Tag, amount: colour);
+		_host.RefreshMapColours();
+		return Ok("Color applied to " + country.Name);
+	}
+
+	private static long Channel(string word) => Math.Clamp(Atoi(word), 0, 255);
 
 	private static CConsoleReply Help(string[] args)
 	{

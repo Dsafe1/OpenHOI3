@@ -29,7 +29,7 @@ public static class CUnitAiPass
 		foreach (CCountry country in state.Countries)
 		{
 			country.UnitAi.InRevolt = revolting.Contains(country.Tag);
-			if (country.Tag.Value == Revolts.CRebelFactions.Rebels || country.Strategy.TheatresDirty
+			if (country.AiPaused || country.Tag.Value == Revolts.CRebelFactions.Rebels || country.Strategy.TheatresDirty
 				|| (Countries.COwnedCounts.Of(state).Count(country.Tag) == 0 && !country.InExile))
 			{
 				continue;

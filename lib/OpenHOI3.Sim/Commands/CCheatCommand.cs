@@ -4,6 +4,7 @@ using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Politics;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Revolts;
@@ -112,7 +113,53 @@ public sealed class CCheatCommand : CCommand
 			case ECheat.ToggleNoPopups:
 				state.NoPopups = !state.NoPopups;
 				break;
+			case ECheat.ToggleAiPause when country is not null:
+				country.AiPaused = !country.AiPaused;
+				break;
+			case ECheat.SetEveryAiPause:
+				foreach (CCountry each in state.Countries)
+				{
+					each.AiPaused = _amount != 0;
+				}
+				break;
+			case ECheat.SetDate:
+				state.SetClock(_amount);
+				break;
+			case ECheat.Teleport when country is not null && country.AllUnits().FirstOrDefault(unit => unit.Id == _amount) is { } moved:
+				CUnitOrders.Clear(moved);
+				CMovement.Halt(state, moved);
+				CMovement.Enter(state, moved, _province);
+				break;
+			case ECheat.SetPlayed when country is not null && other is not null:
+				SetPlayed(state, country, other);
+				break;
+			case ECheat.ToggleSpy:
+				state.SpyCheat = !state.SpyCheat;
+				break;
+			case ECheat.ToggleYesmen:
+				state.AiYesmen = !state.AiYesmen;
+				break;
+			case ECheat.SetColour when country is not null:
+				country.Color = new CColor((_amount >> 16 & 0xFF) / 255f, (_amount >> 8 & 0xFF) / 255f, (_amount & 0xFF) / 255f);
+				break;
 		}
+	}
+
+	/// <summary>
+	/// The player takes up another country and the AI the one left. Its ministers' countdowns were left at nought while it
+	/// was played; they start again at their next hour, <i>ours</i>.
+	/// </summary>
+	private static void SetPlayed(CGameState state, CCountry taken, CCountry left)
+	{
+		state.Played.Remove(left.Tag);
+		state.Played.Add(taken.Tag);
+		left.UnitAi.RunsUnits = true;
+		taken.UnitAi.RunsUnits = false;
+		left.PoliticsCountdown = Math.Max(left.PoliticsCountdown, 1);
+		left.IntelligenceCountdown = Math.Max(left.IntelligenceCountdown, 1);
+		left.ForeignCountdown = Math.Max(left.ForeignCountdown, 1);
+		left.ProductionCountdown = Math.Max(left.ProductionCountdown, 1);
+		left.TechCountdown = Math.Max(left.TechCountdown, 1);
 	}
 
 	private static void ToggleGuarantee(CGameState state, CCountryTag guarantor, CCountryTag recipient)

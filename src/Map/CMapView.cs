@@ -813,6 +813,48 @@ public partial class CMapView : Node2D
 	private float _leastHeight = CMapCamera.LowestHeight;
 
 	/// <summary>The console's <c>debug minzoom</c>: the lowest height the camera comes down to.</summary>
+	/// <summary>The console's <c>debug render</c>: the bits of the map's layers left on.</summary>
+	public int RenderLayers
+	{
+		get => _renderLayers;
+		set
+		{
+			_renderLayers = value;
+			_surface?.SetLayers((value & 0x1) != 0, (value & 0x2) != 0, (value & 0x80) != 0, (value & 0x100) != 0, (value & 0x200) != 0);
+			if (_provinceNames is not null)
+			{
+				_provinceNames.Visible = TextShown;
+			}
+		}
+	}
+
+	private int _renderLayers = 0xFFFF;
+
+	private bool TextShown => (_renderLayers & 0x8) != 0;
+
+	/// <summary>The bits of the map's layers the mode shown leaves on [exe].</summary>
+	public int ModeLayers => _mode switch
+	{
+		MapMode.Terrain => 0xFFFF,
+		MapMode.Political or MapMode.Revolt => 0xFFBE,
+		MapMode.Weather => 0xFFBB,
+		MapMode.Resources => 0xFFAA,
+		MapMode.Air or MapMode.Naval => 0xFF9A,
+		_ => 0xFFBA,
+	};
+
+	/// <summary>Where the camera stands and how near, for the session that takes the game over.</summary>
+	public (Vector2 Centre, float Zoom) View
+	{
+		get => (_camera.Position, _camera.Zoom.X);
+		set
+		{
+			_camera.Position = value.Centre;
+			_camera.Zoom = new Vector2(value.Zoom, value.Zoom);
+			ClampCamera();
+		}
+	}
+
 	public void SetLeastHeight(int height)
 	{
 		_leastHeight = height;
@@ -1366,7 +1408,7 @@ public partial class CMapView : Node2D
 		_surface?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size);
 		if (_names is not null)
 		{
-			_names.Visible = NamesShown();
+			_names.Visible = NamesShown() && TextShown;
 		}
 		_provinceNames?.SetView(_camera.Position, _camera.Zoom.X, GetViewportRect().Size, delta);
 		_sinceBorders += delta;

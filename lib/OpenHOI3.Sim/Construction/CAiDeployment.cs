@@ -52,7 +52,7 @@ public static class CAiDeployment
 			bool due = played
 				? state.Automation.Has(Settings.EAutomation.Deployment)
 				: CResearchAi.Hour(country, HourOffset) == hour;
-			if (country.Deployments.Count > 0 && due
+			if (!country.AiPaused && country.Deployments.Count > 0 && due
 				&& (COwnedCounts.Of(state).Count(country.Tag) > 0 || country.InExile))
 			{
 				Deploy(state, country);

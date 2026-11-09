@@ -123,12 +123,19 @@ public partial class Main : Control
 		StartSession(game);
 	}
 
-	private void StartSession(FrontEnd.CPreparedGame? game)
+	private void StartSession(FrontEnd.CPreparedGame? game, Debug.CSessionCarry? carried = null)
 	{
 		_session?.QueueFree();
 		_session = new CSession { Name = "Session" };
-		_session.Setup(_directories, game);
+		_session.Setup(_directories, game, carried);
 		_session.Resigned += () => CallDeferred(MethodName.ShowFrontEnd);
+		_session.Replaced += (made, kept) =>
+		{
+			RemoveChild(_session);
+			_session.QueueFree();
+			_session = null;
+			StartSession(made, kept);
+		};
 		AddChild(_session);
 	}
 

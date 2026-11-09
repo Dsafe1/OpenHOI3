@@ -1711,7 +1711,7 @@ Their Finest Hour's shipped cache and the one the original built for BlackICE - 
 to the end, the end-of-game screen with its result worked out afresh, the victory conditions' window behind the goals button - which the reading found to be the same window - and their alert, and the lobby's
 choice of conditions. Reading for it settled how the font places a centre-measured text box. **Next up**: what remains of the interface below, the console, or the military AI's gaps (*What the moving wave left*).
 
-**The console is built** (2026-11-09, `docs/mechanics/console.md`) for the commands the table rates easy, and `event`, `election` and the rest of that row answer as the original's. What remains is the medium row; the table's other commands answer `Not built.`. The plan as it was, 2026-11-08: the original's 53 commands are read whole in the fact base
+**The console is built** (2026-11-09, `docs/mechanics/console.md`) for the commands the table rates easy and medium, each answering as the original's; the table's other commands answer `Not built.`. The plan as it was, 2026-11-08: the original's 53 commands are read whole in the fact base
 (`reversing/findings/FINDINGS-console.md`, section C), and the debug menu (Shift and 4) already has `debug fow` - for the
 countries played alone (`docs/compatibility.md`, entry 21) - and `cpaint`. The plan is a console like the original's,
 opened by `§` or `` ` ``, taking its command names, aliases and arguments and giving its answers, each command posted
@@ -1722,7 +1722,7 @@ the switches that take no argument. Rated against what is built:
 | --- | --- |
 | **easy** - the system exists; the command adds, sets or calls | `money`, `supplies`, `fuel`, `crudeoil`, `metal`, `energy`, `rarematerials`, `givemeall`, `addmanpower`, `addofficers`, `noneutrality`, `setnationalunity`, `election`, `reorg`, `surrender`, `guarantee`, `changeowner`, `changecontroller`, `conquerall`, `event` (the `--event=` switch already fires one), `revolt`, `alwayspartisants`, `instantresearch`, `instantconstruction`, `tooltipdebug`, `printtech`, `copyprov`; `debug tooltips`, `debug nopopup`, `debug minzoom`, `debug color`, `debug wireframe` |
 | **medium** - more wiring, or a small reading first | `tag` (the played country changed touches much of the interface), `aipause` (one country's AI steps left out), `teleport`, `date`, `debug render <layer>` (the map's layers are cut differently here), `debug yesmen` and `debug spy` (what each flag changes to be read), `detailedlog` (the save writer would serve), `reloadinterface`, `reloadfx`, `fullscreen` |
-| **not worth it now** | `nukes` (no nuclear system), `morehumans` (multiplayer), `paint`, `rpaint`, `ipaint` (the map editor), `nextsong` (no sound), `tutorial`, `spawnactor`, `reload`, `reloadtexture`, `window`, `randomlog`, `helplog`, `debug info`, `debug profile`, `debug log_profile`, `debug textures`, `debug assert`, `debug save`; and `weather` and `crash`, which the original refuses outside its developers' build |
+| **not worth it now** | `nukes` (no nuclear system: to be built with it, *Loose ends*), `morehumans` (multiplayer), `paint`, `rpaint`, `ipaint` (the map editor), `nextsong` (no sound), `tutorial`, `spawnactor`, `reload`, `reloadtexture`, `window`, `randomlog`, `debug info`, `debug profile`, `debug log_profile`, `debug textures`, `debug assert`, `debug save`; and `weather` and `crash`, which the original refuses outside its developers' build |
 
 **What of the interface is missing**, inventoried 2026-11-08: the install's 58 `.gui` files set against the names the code looks up, each gap
 then set against the executable and the fact base. It is name matching: a button can count as found because its name is a common word (`close`,
@@ -1829,6 +1829,7 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 None of these blocks the list above.
 
+- **The console's `nukes` waits for a nuclear system**, and is to be built with it, by the maintainer's word on 2026-11-09 (`docs/mechanics/console.md`, section 3). The original adds the amount, in thousands and with no floor, to a country's stock of nukes; here it answers `Not built.`.
 - **A battle plan's arrows are drawn without the effect's stencil**, so two arrows of one colour crossing blend where the original paints each pixel once (`docs/mechanics/battleplans.md`, section 11). The translator does not carry stencil states yet.
 - **The order of battle browser takes drags only from its own rows and the unit panel's brigades.** The unit panel's child rows and leader button, the outliner and the deploy menu are also sources in the original (`docs/mechanics/oobbrowser.md`, section 8).
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
@@ -2668,7 +2669,7 @@ None of these blocks the list above.
 - **An underground is ordered as any building is** since 2026-10-15 (`buildinglines.md`); `--underground=` and the
   trial finish one at once. **The AI does nothing with undergrounds**: its production minister builds them from a Lua
   method not read, and its C++ manager asks a unit's power and an unread test of an area (`undergrounds.md`, *Not
-  established*). The console's `alwayspartisants` is not built.
+  established*).
 - **Each spec ends with what is not established.** Those are questions for the reverse
   engineering. Production's, the oil conversions', leadership's, the starting
   stockpile's, research's and manpower's were answered by reading the executable; those

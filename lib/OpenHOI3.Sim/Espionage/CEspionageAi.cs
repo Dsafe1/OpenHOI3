@@ -33,7 +33,7 @@ public static class CEspionageAi
 		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.IntelligenceCountdown <= 0 || !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Intelligence)
+			if (country.AiPaused || country.IntelligenceCountdown <= 0 || !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Intelligence)
 				|| (COwnedCounts.Of(state).Count(country.Tag) == 0 && !country.InExile))
 			{
 				continue;

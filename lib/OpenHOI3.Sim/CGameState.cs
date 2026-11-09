@@ -340,6 +340,23 @@ public sealed class CGameState
 	/// <summary>The console's <c>debug nopopup</c>: no message is told at all, and the player's events are answered as the AI's.</summary>
 	public bool NoPopups { get; set; }
 
+	/// <summary>The console's <c>debug spy</c>: the intelligence screen shows another country's true figures.</summary>
+	public bool SpyCheat { get; set; }
+
+	/// <summary>The console's <c>debug yesmen</c>: an AI answers 100 to whatever a played country offers it.</summary>
+	public bool AiYesmen { get; set; }
+
+	/// <summary>Lets go of whatever a screen had listening, when another session takes the game over.</summary>
+	public void ForgetListeners()
+	{
+		EventFired = null;
+		EventAnswered = null;
+		PactMessaged = null;
+		OfferAsked = null;
+		CombatBegan = null;
+		DecisionTaken = null;
+	}
+
 	/// <summary>
 	/// How many pacts have been made - alliances, guarantees, puppets, NAPs, embargoes, influences, alignments and trade
 	/// routes, counted as one: each pact holds its number, which is the order a save writes them in, the original keeping

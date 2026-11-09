@@ -83,7 +83,7 @@ public static class CProductionAi
 		}
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.Tag.Value == "REB" || COwnedCounts.Of(state).Count(country.Tag) == 0)
+			if (country.AiPaused || country.Tag.Value == "REB" || COwnedCounts.Of(state).Count(country.Tag) == 0)
 			{
 				continue;
 			}

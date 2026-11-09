@@ -35,7 +35,7 @@ public static class CPactPasses
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.PendingOffers.Count == 0)
+			if (country.AiPaused || country.PendingOffers.Count == 0)
 			{
 				continue;
 			}

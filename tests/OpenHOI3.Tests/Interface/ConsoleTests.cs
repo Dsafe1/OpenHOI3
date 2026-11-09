@@ -5,6 +5,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Tests.Interface;
 
@@ -26,6 +27,34 @@ public class ConsoleTests
 		public bool ContinentPainting { get; set; }
 
 		public string Clipboard { get; private set; } = "";
+
+		public CUnit? SelectedUnit { get; set; }
+
+		public bool TakesCommands { get; set; } = true;
+
+		public int RenderLayers { get; set; } = 0xFFFF;
+
+		public int ModeLayers { get; set; } = 0xFFBE;
+
+		public bool Fullscreen { get; set; }
+
+		public bool Wireframe { get; set; }
+
+		public int Remade { get; private set; }
+
+		public bool EffectExists(string name) => name == "river.fx";
+
+		public void ShowCountryPlayed() => Remade++;
+
+		public void ReloadInterface() => Remade++;
+
+		public void RefreshMapColours()
+		{
+		}
+
+		public void WriteDetailedLog(string name)
+		{
+		}
 
 		public void Post(CCommand command)
 		{
@@ -120,6 +149,86 @@ public class ConsoleTests
 		host.SelectedProvinces = new List<int> { 3, 7 };
 		Assert.Equal("2 provinces copied to clipboard.", runner.Run("copyprov").Text);
 		Assert.Equal("3 7", host.Clipboard);
+	}
+
+	[Fact]
+	public void TheAiIsPausedOneCountryAtATimeOrAll()
+	{
+		(CConsoleRunner runner, _, CCountry germany) = World();
+		Assert.Equal("AI is paused for:\nNone", runner.Run("aipause").Text);
+		Assert.Equal("Germany AI is now Paused", runner.Run("aipause GER").Text);
+		Assert.True(germany.AiPaused);
+		Assert.Equal("AI is paused for:\nGER, ", runner.Run("aipause").Text);
+		Assert.Equal("AI Unpaused for all", runner.Run("aipause all").Text);
+		Assert.False(germany.AiPaused);
+		Assert.Equal("AI Paused for all", runner.Run("aipause all").Text);
+		Assert.Equal("Invalid country tag", runner.Run("aipause XXX").Text);
+		Assert.Equal("Please specify country tag, or \"all\" argument", runner.Run("aipause GER all").Text);
+	}
+
+	[Fact]
+	public void TheDateIsWrittenAndNothingElseRuns()
+	{
+		(CConsoleRunner runner, CHost host, _) = World();
+		Assert.Equal("Date changed.", runner.Run("date 1939.9.1.5").Text);
+		Assert.Equal(new CDate(1939, 9, 1), host.State.Date);
+		Assert.Equal(5, host.State.Hour);
+		Assert.Equal("Date changed.", runner.Run("date 1940.2.3").Text);
+		Assert.Equal(0, host.State.Hour);
+		Assert.False(runner.Run("date nonsense").Ok);
+		Assert.Equal(new CDate(1940, 2, 3), host.State.Date);
+	}
+
+	[Fact]
+	public void TagNeedsACountryWithLandAndAGameThatTakesCommands()
+	{
+		(CConsoleRunner runner, CHost host, _) = World();
+		Assert.Equal("Please specify the country tag", runner.Run("tag").Text);
+		Assert.Equal("Such country does not exist.", runner.Run("tag XXX").Text);
+		Assert.Equal("Such country does not exist.", runner.Run("tag GER").Text);
+		Assert.Equal(0, host.Remade);
+	}
+
+	[Fact]
+	public void RenderListsTheLayersByBothMasksAndNamesOneToTurnOver()
+	{
+		(CConsoleRunner runner, CHost host, _) = World();
+		string list = runner.Run("debug render").Text;
+		Assert.StartsWith("----------------------------------\nRender options:\n\t\tTrees:\tno\n\t\tBorders:\tyes\n\t\tText:\tyes\n", list);
+		Assert.EndsWith("\t\tEffects:\tyes\n----------------------------------\n", list);
+		Assert.Equal(new CConsoleReply(true, ""), runner.Run("debug render borders"));
+		Assert.Equal(0xFFFD, host.RenderLayers);
+		Assert.Contains("\t\tBorders:\tno\n", runner.Run("debug render").Text);
+	}
+
+	[Fact]
+	public void DebugSpyYesmenAndTheZoomAnswerAsTheOriginals()
+	{
+		(CConsoleRunner runner, CHost host, _) = World();
+		Assert.Equal("Superior espionage turned ON.", runner.Run("debug spy").Text);
+		Assert.True(host.State.SpyCheat);
+		Assert.Equal("AI now always responds favorably", runner.Run("debug yesmen").Text);
+		Assert.Equal("AI now uses normal responses.", runner.Run("debug yesmen").Text);
+		Assert.Equal("Zoom limit set to 5.000", runner.Run("debug minzoom 5").Text);
+		Assert.Equal("Please specify zoomlevel value.", runner.Run("debug minzoom").Text);
+	}
+
+	[Fact]
+	public void ReloadfxTakesItsFourNamesOrAFileThatIsThere()
+	{
+		(CConsoleRunner runner, CHost host, _) = World();
+		Assert.Equal("Map reloaded", runner.Run("reloadfx map").Text);
+		Assert.Equal("river.fx reloaded", runner.Run("reloadfx river.fx").Text);
+		Assert.Equal(new CConsoleReply(false, "Reload failed"), runner.Run("reloadfx none.fx"));
+		Assert.Equal(2, host.Remade);
+	}
+
+	[Fact]
+	public void TeleportWantsAUnitSelected()
+	{
+		(CConsoleRunner runner, _, _) = World();
+		Assert.Equal("Please specify the province id.", runner.Run("teleport").Text);
+		Assert.Equal("Select transportable unit first!", runner.Run("teleport 1").Text);
 	}
 
 	[Fact]

@@ -119,11 +119,29 @@ public partial class CSession : Node
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	/// <param name="prepared">The game the lobby made ready; null to make one from the developer switches.</param>
-	public void Setup(CDirectorySettings directories, FrontEnd.CPreparedGame? prepared = null)
+	/// <param name="carried">What the session before kept, where this one takes its game over.</param>
+	public void Setup(CDirectorySettings directories, FrontEnd.CPreparedGame? prepared = null, Debug.CSessionCarry? carried = null)
 	{
 		_directories = directories;
 		_prepared = prepared;
+		_carried = carried;
 	}
+
+	private Debug.CSessionCarry? _carried;
+
+	/// <summary>
+	/// Raised when the screens are to be made again around the same game: the console's <c>tag</c>, <c>reloadinterface</c> and
+	/// <c>reloadfx</c>. Every screen is told who plays and what it is built from as it is made.
+	/// </summary>
+	public event System.Action<FrontEnd.CPreparedGame, Debug.CSessionCarry>? Replaced;
+
+	/// <summary>Whether what the session holds has gone to the next, which then owns it.</summary>
+	private bool _handedOver;
+
+	/// <summary>Whether the next session is to read the interface again.</summary>
+	private bool _readInterfaceAgain;
+
+	private bool _wireframe;
 
 	private FrontEnd.CPreparedGame? _prepared;
 
@@ -261,7 +279,42 @@ public partial class CSession : Node
 		// long, and following the mouse it jumped about.
 		_mapView.ProvinceSelected += ShowProvince;
 
+		_mapView.RenderLayers = Settings.RenderTrees || UserArguments().Contains("--trees") ? 0xFFFF : 0xFFFE;
+		if (_carried is { } carried)
+		{
+			TakeUp(carried);
+			return;
+		}
 		RunDeveloperArguments();
+	}
+
+	/// <summary>What the session before kept.</summary>
+	private void TakeUp(Debug.CSessionCarry carried)
+	{
+		_mapView.View = (carried.Centre, carried.Zoom);
+		_mapView.RenderLayers = carried.RenderLayers;
+		_simulation.Clock.Paused = carried.Paused;
+		_simulation.Clock.Speed = carried.Speed;
+		_replayFile = carried.ReplayFile;
+		_wireframe = carried.Wireframe;
+		GetViewport().DebugDraw = _wireframe ? Viewport.DebugDrawEnum.Wireframe : Viewport.DebugDrawEnum.Disabled;
+		_console?.Restore(carried.ConsoleLines, carried.ConsoleHistory, carried.ConsoleOpen);
+	}
+
+	/// <summary>Everything made again around the same game, once the frame has ended.</summary>
+	private void HandOver()
+	{
+		if (_gui is null || _aiScripts is null || _handedOver)
+		{
+			return;
+		}
+		_handedOver = true;
+		State.ForgetListeners();
+		CGuiContext gui = _readInterfaceAgain ? CGuiContext.Load(_directories, _localisation) : _gui;
+		(Vector2 centre, float zoom) = _mapView.View;
+		var carried = new Debug.CSessionCarry(_console?.Lines.ToList() ?? new List<string>(), _console?.History.ToList() ?? new List<string>(),
+			_console?.IsOpen == true, centre, zoom, _mapView.RenderLayers, _simulation.Clock.Paused, _simulation.Clock.Speed, _replayFile, _wireframe);
+		Replaced?.Invoke(new FrontEnd.CPreparedGame(State, Map, _localisation, gui, _aiScripts), carried);
 	}
 
 	/// <summary>
@@ -1092,6 +1145,10 @@ public partial class CSession : Node
 	public override void _ExitTree()
 	{
 		Content.Settings.CUserSettingsWriter.WriteFile(Settings, Settings.Path ?? Content.Settings.CUserSettingsReader.DefaultPath());
+		if (_handedOver)
+		{
+			return;
+		}
 		_aiScripts?.Dispose();
 		_aiScripts = null;
 		_replayFile?.Dispose();
@@ -2312,6 +2369,10 @@ public partial class CSession : Node
 		}
 
 		// The clicks of a game the front end handed over were the front end's.
+		// All of it through what outlives the session, the console's tag being able to replace it half way.
+		Node host = GetParent();
+		SceneTree tree = GetTree();
+		Viewport viewport = GetViewport();
 		if (clicks is not null && _prepared is null)
 		{
 			await Click(clicks);
@@ -2323,23 +2384,25 @@ public partial class CSession : Node
 		}
 		for (int frame = 0; frame < 8; frame++)
 		{
-			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+			await host.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
 		}
-		await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
-		Error error = GetViewport().GetTexture().GetImage().SavePng(screenshot);
+		await host.ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+		Error error = viewport.GetTexture().GetImage().SavePng(screenshot);
 		GD.Print(error == Error.Ok ? $"Saved {screenshot}" : $"Could not save {screenshot}: {error}");
-		GetTree().Quit();
+		tree.Quit();
 	}
 
 	/// <summary>The clicks of <c>--click=</c>, played into the session's viewport (<see cref="Debug.CClickScript"/>).</summary>
 	private System.Threading.Tasks.Task Click(string points)
 	{
-		return new Debug.CClickScript(this, () => UnlessTheReplayEnds(() => _simulation.RunHours(1))).Run(points);
+		return new Debug.CClickScript(GetParent(), () => UnlessTheReplayEnds(() => _simulation.RunHours(1))).Run(points);
 	}
 
 	/// <summary>What the console's commands ask of the running game.</summary>
 	private sealed class CConsoleHost : IConsoleHost
 	{
+		private const string WireframesAsked = "openhoi3_wireframes";
+
 		private readonly CSession _session;
 
 		public CConsoleHost(CSession session)
@@ -2384,6 +2447,64 @@ public partial class CSession : Node
 		}
 
 		public void CopyToClipboard(string text) => DisplayServer.ClipboardSet(text);
+
+		public CUnit? SelectedUnit => _session._mapView.Units.First;
+
+		public bool TakesCommands => _session._simulation.TakesCommands;
+
+		public int RenderLayers
+		{
+			get => _session._mapView.RenderLayers;
+			set => _session._mapView.RenderLayers = value;
+		}
+
+		public int ModeLayers => _session._mapView.ModeLayers;
+
+		public bool Fullscreen
+		{
+			get => DisplayServer.WindowGetMode() is DisplayServer.WindowMode.Fullscreen or DisplayServer.WindowMode.ExclusiveFullscreen;
+			set => DisplayServer.WindowSetMode(value ? DisplayServer.WindowMode.Fullscreen : DisplayServer.WindowMode.Windowed);
+		}
+
+		public bool Wireframe
+		{
+			get => _session._wireframe;
+			set
+			{
+				_session._wireframe = value;
+				// A mesh has its lines only if it is made after this, so the first time everything is made again.
+				if (value && !RenderingServer.Singleton.HasMeta(WireframesAsked))
+				{
+					RenderingServer.Singleton.SetMeta(WireframesAsked, true);
+					RenderingServer.SetDebugGenerateWireframes(true);
+					_session.CallDeferred(MethodName.HandOver);
+					return;
+				}
+				_session.GetViewport().DebugDraw = value ? Viewport.DebugDrawEnum.Wireframe : Viewport.DebugDrawEnum.Disabled;
+			}
+		}
+
+		public bool EffectExists(string name)
+		{
+			return System.IO.File.Exists(_session._directories.Resolve(name)) || System.IO.File.Exists(_session._directories.Resolve("gfx/FX/" + name));
+		}
+
+		public void ShowCountryPlayed() => _session.CallDeferred(MethodName.HandOver);
+
+		public void ReloadInterface()
+		{
+			_session._readInterfaceAgain = true;
+			_session.CallDeferred(MethodName.HandOver);
+		}
+
+		public void RefreshMapColours() => _session._mapView.RefreshColours();
+
+		public void WriteDetailedLog(string name)
+		{
+			string path = System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(), "logs", name + ".log");
+			System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
+			Content.Saves.CSaveFiles.Write(_session.State, _session._localisation.Localise, path);
+		}
 
 		public void SetLeastHeight(int height) => _session._mapView.SetLeastHeight(height);
 

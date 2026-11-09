@@ -84,7 +84,7 @@ public static class CResearchAi
 	/// </summary>
 	public static bool Works(CGameState state, CCountry country, int countdown, Settings.EAutomation area)
 	{
-		return countdown > 0 && Settings.CAutomation.AiRuns(state, country, area)
+		return !country.AiPaused && countdown > 0 && Settings.CAutomation.AiRuns(state, country, area)
 			&& (COwnedCounts.Of(state).Count(country.Tag) > 0 || country.InExile);
 	}
 

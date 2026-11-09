@@ -55,6 +55,9 @@ public partial class CMapSurface : Node3D
 	/// <summary>Each tile's land and beaches, and the copy of the map its world matrix was last set for.</summary>
 	private readonly List<CSurfaceTile> _parts = new();
 
+	/// <summary>The sea's quads, one for each way of drawing it.</summary>
+	private readonly List<MeshInstance3D> _seas = new();
+
 	private readonly Dictionary<string, Texture2D?> _files = new(StringComparer.OrdinalIgnoreCase);
 	private readonly Image _lookup0 = Image.CreateEmpty(LookupSize, LookupSize, false, Image.Format.Rgba8);
 	private readonly Image _lookup1 = Image.CreateEmpty(LookupSize, LookupSize, false, Image.Format.Rgba8);
@@ -580,6 +583,20 @@ public partial class CMapSurface : Node3D
 	/// can be a long while - and the lobby makes a surface for every world it shows, so their texture sets ran the rendering
 	/// device's descriptor heap out once the game's own borders were first drawn.
 	/// </summary>
+	/// <summary>The console's <c>debug render</c>: the layers that are a node of their own here.</summary>
+	public void SetLayers(bool trees, bool borders, bool rivers, bool water, bool waterBorders)
+	{
+		_trees.Visible = trees;
+		_borders.Visible = borders;
+		_rivers.Visible = rivers;
+		_waterBorders.Visible = waterBorders;
+		_surf.Visible = water;
+		foreach (MeshInstance3D sea in _seas)
+		{
+			sea.Visible = water;
+		}
+	}
+
 	public override void _ExitTree()
 	{
 		FreeTreeSlots();
@@ -1755,7 +1772,10 @@ public partial class CMapSurface : Node3D
 		SetTexture(material, translations, "stripes", File("stripes.dds"));
 		uint layer = 1u << (FirstSeaLayer + _seaWays.Count);
 		_seaWays[technique] = (material, translations, layer);
-		AddChild(Instance($"Sea{technique}", _seaMesh, material, layer));
+		MeshInstance3D sea = Instance($"Sea{technique}", _seaMesh, material, layer);
+		sea.Visible = _surf.Visible;
+		_seas.Add(sea);
+		AddChild(sea);
 		if (_camera is { } camera)
 		{
 			SetSeaCamera(material, translations, camera);
