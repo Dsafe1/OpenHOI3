@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Leaders;
@@ -173,7 +174,7 @@ public static class CUnits
 	public static List<CUnit> InWorkingOrder(CCountry country, System.Predicate<CUnit> wanted)
 	{
 		var order = new List<CUnit>();
-		foreach (CUnit unit in country.UnitsInOrder())
+		foreach (CUnit unit in country.UnitsInOrder().Where(unit => unit.Lender is null).Concat(country.LentUnits))
 		{
 			if (!wanted(unit))
 			{

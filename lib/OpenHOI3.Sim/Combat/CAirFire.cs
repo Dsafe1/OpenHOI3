@@ -56,7 +56,7 @@ public static class CAirFire
 
 		foreach (CUnit unit in new List<CUnit>(side.Units))
 		{
-			CCountry? owner = state.Country(unit.Owner);
+			CCountry? owner = state.Country(unit.FiguresOwner);
 			foreach (CSubUnit wing in new List<CSubUnit>(unit.SubUnits))
 			{
 				long attack = wing.Stats[CAirMissions.AirAttack].Raw;

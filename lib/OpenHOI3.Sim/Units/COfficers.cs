@@ -1,3 +1,4 @@
+using System.Linq;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 
@@ -20,7 +21,8 @@ public static class COfficers
 	public static CFixedPoint Needed(CCountry country)
 	{
 		CFixedPoint needed = CFixedPoint.Zero;
-		foreach (CUnit unit in country.AllUnits())
+		// What it holds on loan is its lender's to officer, and what it has lent still its own.
+		foreach (CUnit unit in country.AllUnits().Where(unit => unit.Lender is null).Concat(country.LentUnits))
 		{
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{

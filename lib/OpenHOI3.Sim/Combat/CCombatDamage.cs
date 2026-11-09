@@ -41,7 +41,7 @@ public static class CCombatDamage
 	{
 		long full = CUnitTotals.FullStrength(unit).Raw;
 		int count = unit.SubUnits.Count;
-		if (full <= 0 || count <= 0 || state.Country(unit.Owner) is not { } owner)
+		if (full <= 0 || count <= 0 || state.Country(unit.FiguresOwner) is not { } owner)
 		{
 			return;
 		}
@@ -98,7 +98,7 @@ public static class CCombatDamage
 		{
 			men += Settle(subUnit);
 		}
-		if (state.Country(unit.Owner) is not { } owner)
+		if (state.Country(unit.FiguresOwner) is not { } owner)
 		{
 			return men;
 		}

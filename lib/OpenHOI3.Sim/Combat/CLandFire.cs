@@ -51,7 +51,7 @@ public static class CLandFire
 	public static void Fire(CGameState state, CCombat combat, CCombatSide side, CCombatStream rolls,
 		CUnit attacker, CCombatSide enemy)
 	{
-		if (enemy.Front.Count < 1 || state.Country(attacker.Owner) is not { } owner)
+		if (enemy.Front.Count < 1 || state.Country(attacker.FiguresOwner) is not { } owner)
 		{
 			return;
 		}

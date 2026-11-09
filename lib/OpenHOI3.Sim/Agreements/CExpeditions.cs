@@ -83,7 +83,11 @@ public static class CExpeditions
 
 	private static void Change(CGameState state, CUnit unit, CCountry lender, CCountry host)
 	{
-		unit.Lender ??= lender.Tag;
+		if (unit.Lender is null)
+		{
+			unit.Lender = lender.Tag;
+			lender.LentUnits.Add(unit);
+		}
 		unit.Owner = host.Tag;
 		if (unit.Agent is { } agent)
 		{
@@ -109,6 +113,7 @@ public static class CExpeditions
 		}
 		LeaveParent(unit);
 		host.Units.Remove(unit);
+		lender.LentUnits.Remove(unit);
 		unit.Lender = null;
 		unit.RecallHour = null;
 		if (unit.Agent is { } agent)

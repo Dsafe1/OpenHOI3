@@ -109,6 +109,7 @@ public static class CUnitSupply
 	/// </summary>
 	public static CFixedPoint SupplyConsumption(CGameState state, CCountry owner, CUnit unit)
 	{
+		owner = state.Country(unit.FiguresOwner) ?? owner;
 		long potency = Potency(state, owner, unit);
 		long total = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
@@ -128,6 +129,7 @@ public static class CUnitSupply
 	/// <summary>The fuel a unit's own brigades use in a day when they use any. Strength does not come into it.</summary>
 	public static CFixedPoint FuelConsumption(CGameState state, CCountry owner, CUnit unit)
 	{
+		owner = state.Country(unit.FiguresOwner) ?? owner;
 		long potency = Potency(state, owner, unit);
 		long total = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)

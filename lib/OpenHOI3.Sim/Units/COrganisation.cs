@@ -79,6 +79,7 @@ public static class COrganisation
 	public static CFixedPoint CeilingWithBonus(CGameState state, CCountry owner, CSubUnit subUnit, long bonus,
 		bool penaltyAtWar = false, bool penaltyAlways = false)
 	{
+		owner = (subUnit.Unit is { } lent ? state.Country(lent.FiguresOwner) : null) ?? owner;
 		long most = subUnit.Stats[CSubUnitType.DefaultOrganisation].Raw;
 		if (state.IsBeingMade)
 		{
@@ -152,6 +153,7 @@ public static class COrganisation
 	/// </summary>
 	public static long RegainFactor(CGameState state, CCountry owner, CUnit unit, CBaseCrowding crowding)
 	{
+		owner = state.Country(unit.FiguresOwner) ?? owner;
 		long factor = unit.SuppliesReceived.Raw;
 
 		CProvince province = state.Province(unit.Location);

@@ -73,7 +73,7 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 			shortcut = (button.GuiType as CGuiButtonType)?.Shortcut ?? "";
 		}
 		AnswerFor(name => CUnitStatusTooltips.For(context.Localisation.Localise, state, owner, unit, name, shortcut, _base?.Text ?? ""),
-			"unitlocation", "unitattrition", "unitbase", "speed", "unit_weight");
+			"unitlocation", "unitattrition", "unitbase", "speed", "unit_weight", "supply_status", "fuel_status");
 		Update();
 	}
 

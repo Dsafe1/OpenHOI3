@@ -137,6 +137,21 @@ public class ExpeditionTests
 	}
 
 	[Fact]
+	public void TheLenderKeepsALentUnitOnItsListAndTheHostDoesNotCountIt()
+	{
+		(CGameState state, CCountry england, CCountry france, CUnit corps, CUnit division) = World();
+		CExpeditions.HandOver(state, corps, england, france);
+		Assert.Contains(corps, england.LentUnits);
+		Assert.Contains(division, england.LentUnits);
+		Assert.Equal(Eng, corps.FiguresOwner);
+		Assert.DoesNotContain(CUnits.InWorkingOrder(france, _ => true), unit => unit == corps);
+		Assert.Contains(CUnits.InWorkingOrder(england, _ => true), unit => unit == corps);
+		CExpeditions.Return(state, corps);
+		Assert.DoesNotContain(corps, england.LentUnits);
+		Assert.Equal(Eng, corps.FiguresOwner);
+	}
+
+	[Fact]
 	public void ALentUnitIsNotMerged()
 	{
 		(CGameState state, CCountry england, _, CUnit corps, _) = World();

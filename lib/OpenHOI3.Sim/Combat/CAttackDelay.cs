@@ -99,6 +99,7 @@ public static class CAttackDelay
 	/// </summary>
 	public static void Start(CGameState state, CCountry country, CUnit unit)
 	{
+		country = state.Country(unit.FiguresOwner) ?? country;
 		long hours = state.Defines[CManpower.MilitarySection, unit.WasParadropped ? ParadropDelay : Delay].Raw / CFixedPoint.Scale;
 		long modify = state.Defines[CManpower.MilitarySection, DelayModify].Raw / CFixedPoint.Scale;
 		hours += state.Random.Next((int)modify);

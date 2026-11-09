@@ -179,6 +179,7 @@ public sealed class CSaveUnitReader
 					break;
 				case "expeditionary_owner":
 					unit.Lender = new CCountryTag(entry.Value);
+					_state.Country(unit.Lender)?.LentUnits.Add(unit);
 					break;
 				case "expeditionary_date":
 					unit.RecallHour = CSaveValues.HoursOrNull(entry.Value) is { } hours && hours < _state.EndDateHours ? hours : null;

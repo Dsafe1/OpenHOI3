@@ -1,3 +1,5 @@
+using System.Linq;
+using OpenHOI3.Sim.Supply;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -30,11 +32,31 @@ public static class CUnitStatusTooltips
 	/// finds the unit on the map, and <paramref name="suppliedFrom"/> the text the element
 	/// that names the supply's source shows.
 	/// </summary>
+	private static CFixedPoint Uses(CGameState state, CCountry owner, CUnit unit, EGoods goods) =>
+		goods == EGoods.Fuel ? CUnitSupply.FuelConsumption(state, owner, unit) : CUnitSupply.SupplyConsumption(state, owner, unit);
+
+	/// <summary>What the unit uses and got, and how many days of it lie where it draws for everyone standing there (unitpanel.md, section 10).</summary>
+	private static CTooltip Supplied(Func<string, string> localise, CGameState state, CCountry owner, CUnit unit, EGoods goods, string key, CFixedPoint received)
+	{
+		CProvince province = state.Province(CSupplyDraw.ProvinceOf(owner, unit));
+		long used = state.Positions.Of(province.Id).Sum(there => state.Country(there.Owner) is { } country ? Uses(state, country, there, goods).Raw : 0);
+		long days = used < 1 ? 0 : province.Pool[goods].Raw / used;
+		return new CTooltip
+		{
+			Text = CTextTemplate.Fill(localise(key), ("FROM", province.Name), ("DAYS", days.ToString(CultureInfo.InvariantCulture)),
+				("VAL", CNumberText.Format(new CFixedPoint(received.Raw * 100), 0)), ("CON", CNumberText.Format(Uses(state, owner, unit, goods), 2))),
+		};
+	}
+
 	public static CTooltip For(Func<string, string> localise, CGameState state, CCountry owner, CUnit unit, string element,
 		string shortcut, string suppliedFrom)
 	{
 		switch (element)
 		{
+			case "supply_status":
+				return Supplied(localise, state, owner, unit, EGoods.Supplies, "UW_SUPPLY_STATUS2", unit.SuppliesReceived);
+			case "fuel_status":
+				return Supplied(localise, state, owner, unit, EGoods.Fuel, "UW_SUPPLY_FUEL2", unit.FuelReceived);
 			case "unitlocation":
 				return new CTooltip
 				{

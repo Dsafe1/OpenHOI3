@@ -83,7 +83,7 @@ public static class CCombatModifiers
 			unit.DefencesUsed = 0;
 			// A unit landing on an enemy's coast has its two scales by its progress, attacker or not.
 			Transport.CLanding.SetScales(state, unit);
-			if (state.Country(unit.Owner) is not { } owner)
+			if (state.Country(unit.FiguresOwner) is not { } owner)
 			{
 				continue;
 			}

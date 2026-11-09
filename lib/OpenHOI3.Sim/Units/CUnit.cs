@@ -83,6 +83,9 @@ public sealed class CUnit
 	/// <summary>The country that lent this unit as an expeditionary force, or null (<c>expeditions.md</c>).</summary>
 	public CCountryTag? Lender { get; set; }
 
+	/// <summary>The country whose officers, technology and modifiers the unit's figures come from: its lender's where it is lent.</summary>
+	public CCountryTag FiguresOwner => Lender ?? Owner;
+
 	/// <summary>The hour a lent unit goes home after, or null while none has been asked for.</summary>
 	public long? RecallHour { get; set; }
 

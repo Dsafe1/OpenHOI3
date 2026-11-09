@@ -91,7 +91,7 @@ public static class CFrontLine
 
 	public static CFixedPoint UnitWidth(CGameState state, CUnit unit)
 	{
-		return state.Country(unit.Owner) is { } owner ? CUnitTotals.Width(owner, unit) : CUnitTotals.LeastWidth;
+		return state.Country(unit.FiguresOwner) is { } owner ? CUnitTotals.Width(owner, unit) : CUnitTotals.LeastWidth;
 	}
 
 	/// <summary>
@@ -254,7 +254,7 @@ public static class CFrontLine
 	/// </summary>
 	public static CFixedPoint ReinforceChance(CGameState state, CUnit unit, bool isAttacker)
 	{
-		if (!CUnitTotals.CanFight(unit) || state.Country(unit.Owner) is not { } owner)
+		if (!CUnitTotals.CanFight(unit) || state.Country(unit.FiguresOwner) is not { } owner)
 		{
 			return CFixedPoint.Zero;
 		}

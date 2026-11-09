@@ -33,7 +33,7 @@ public static class CNavalTargets
 	/// </summary>
 	public static CSubUnit? Pick(CGameState state, CCombat combat, CCombatSide side, CCombatSide other, CSubUnit ship)
 	{
-		CCountry? owner = ship.Unit is { } fleet0 ? state.Country(fleet0.Owner) : null;
+		CCountry? owner = ship.Unit is { } fleet0 ? state.Country(fleet0.FiguresOwner) : null;
 		long placed = (ship.Stats[CNavalBattle.Positioning].Raw + side.Positioning.Raw) * 100000 / CFixedPoint.Scale;
 		placed = placed * (CFixedPoint.Scale + (owner?.Technology[TargetingChance].Raw ?? 0)) / CFixedPoint.Scale;
 		int p = (int)(placed / CFixedPoint.Scale);
@@ -158,7 +158,7 @@ public static class CNavalTargets
 			return 0;
 		}
 		long skill = CCombatLeaders.UnitSkill(fleet) * CAirFire.SkillTargeting;
-		return state.Country(fleet.Owner) is { } owner ? skill + owner.Technology[TargetingChoice].Raw : skill;
+		return state.Country(fleet.FiguresOwner) is { } owner ? skill + owner.Technology[TargetingChoice].Raw : skill;
 	}
 
 	/// <summary>
@@ -221,7 +221,7 @@ public static class CNavalTargets
 		long most = 0;
 		foreach (CSubUnit candidate in side.Targets)
 		{
-			CCountry? owner = candidate.Unit is { } fleet ? state.Country(fleet.Owner) : null;
+			CCountry? owner = candidate.Unit is { } fleet ? state.Country(fleet.FiguresOwner) : null;
 			long full = owner is null
 				? candidate.Stats[CSubUnitType.MaxStrength].Raw
 				: CUnits.MaxStrength(state, owner, candidate, false, false).Raw;

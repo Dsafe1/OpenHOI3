@@ -57,7 +57,7 @@ public static class CBomberFire
 		var need = new CProvinceBombing.CNeed(state, bombing.Province);
 		foreach (CUnit unit in new List<CUnit>(side.Units))
 		{
-			CCountry? owner = state.Country(unit.Owner);
+			CCountry? owner = state.Country(unit.FiguresOwner);
 			if (CBombingOrders.PrefersFighting(unit.Order))
 			{
 				CollectFighting(state, other, side, owner);

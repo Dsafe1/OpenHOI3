@@ -24,6 +24,8 @@ public static class CSupplyDraw
 	/// <summary>The unit asks for what its brigades use today.</summary>
 	public static void Draw(CGameState state, CCountry owner, CUnit unit)
 	{
+		// The lender pays for what it lent.
+		owner = state.Country(unit.FiguresOwner) ?? owner;
 		Draw(state, owner, unit, CUnitSupply.SupplyConsumption(state, owner, unit).Raw,
 			CUnitSupply.FuelConsumption(state, owner, unit).Raw);
 	}

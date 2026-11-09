@@ -445,6 +445,8 @@ which ask how many days a depot's stock lasts its units; a fleet's or an air uni
 how well it supplies; the terms of the speed's multiplier one by one; and what the country's
 technology adds to the digging-in cap, whose figure is not known.
 
+**The two bars** say `UW_SUPPLY_STATUS2` and `UW_SUPPLY_FUEL2`: `CON` what the unit uses a day, two places; `VAL` the share it got last day, whole; `FROM` the province it draws on - the one it stands in, or a fleet's or air unit's base; `DAYS` what lies there over what **all the units standing there** use a day, whole, and 0 where they use none. Hardcoded but the words [mod].
+
 ### 10.3 The order and what an order calls itself
 
 `cancel_order_button` says `CANCEL_CURRENT_ORDER` - every order built may be called off, and

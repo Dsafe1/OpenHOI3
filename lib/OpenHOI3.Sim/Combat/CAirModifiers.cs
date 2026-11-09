@@ -56,7 +56,7 @@ public static class CAirModifiers
 
 		foreach (CUnit unit in side.Units)
 		{
-			CCountry? owner = state.Country(unit.Owner);
+			CCountry? owner = state.Country(unit.FiguresOwner);
 			// A played country's, by the difficulty, first on each of its wings (frontend.md, section 4).
 			long difficulty = Settings.CDifficulty.Combat(state, owner);
 			bool nearBase = unit.Base != 0

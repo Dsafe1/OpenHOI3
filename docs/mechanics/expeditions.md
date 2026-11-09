@@ -22,7 +22,11 @@ A withdrawal sets only the date, the return define's days from now; nobody is to
 
 ## 4. What a lent unit is
 
-The host's to order, but its leader is greyed: `compatibility.md`, entry 23. It shows the lender's flag on its counter and in the panel's `exp_force`, whose tooltip says who lent it. It may not be merged, reorganised, split, upgraded, disbanded or attached to, its upgrade box being greyed, and `split_troops` and removing all leaders pass it over. Saved as `expeditionary_owner` and `expeditionary_date`, the end date while no recall stands.
+The host's to order, but its leader is greyed: `compatibility.md`, entry 23. It shows the lender's flag on its counter and in the panel's `exp_force`, whose tooltip says who lent it. It may not be merged, reorganised, split, disbanded or attached to, or have a brigade's type changed, and `split_troops` and removing all leaders pass it over. Saved as `expeditionary_owner` and `expeditionary_date`, the end date while no recall stands.
+
+**Its figures are its lender's**: a brigade's organisation and the regain of it, what the unit uses and who pays for it, its combat width, the combat modifiers and what it fires with, its attack delay, the point it shatters and the officers it loses and gets back. The lender goes on officering and reinforcing it, and the host neither counts it nor reinforces it. Its brigades' stored figures are left as they were when lent.
+
+The passive upgrading by the sliders goes on as the original's, from the lender's. The upgrade command on the unit panel, a brigade changed to another type, is refused for a lent unit.
 
 ## 5. An annexation
 
@@ -30,4 +34,4 @@ What was lent to the country goes home and is shattered; what it lent comes back
 
 ## 6. Not built
 
-Whose officers, supply, reinforcement, upgrades, technology and combat modifiers apply: the lender's in the original, the host's here. The AI lending or giving back. A player asked to accept one, which only an AI's offer could raise. The exile's sending home.
+The AI lending or giving back. A player asked to accept one, which only an AI's offer could raise. The exile's sending home.
