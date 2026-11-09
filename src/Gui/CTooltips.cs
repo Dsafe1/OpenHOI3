@@ -85,8 +85,15 @@ public partial class CTooltips : CanvasLayer
 	/// The tooltip of what is under the mouse, with its point: an element's, from its
 	/// corner; else the map's, from the mouse.
 	/// </summary>
+	/// <summary>The console's <c>debug tooltips</c>: none at all where off.</summary>
+	public bool Enabled { get; set; } = true;
+
 	private CTooltip Ask(int screenHeight)
 	{
+		if (!Enabled)
+		{
+			return CTooltip.Empty;
+		}
 		if (GetViewport().GuiGetHoveredControl() is { } hovered)
 		{
 			if (Element(hovered) is not { } element)

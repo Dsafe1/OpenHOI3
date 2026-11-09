@@ -1711,7 +1711,7 @@ Their Finest Hour's shipped cache and the one the original built for BlackICE - 
 to the end, the end-of-game screen with its result worked out afresh, the victory conditions' window behind the goals button - which the reading found to be the same window - and their alert, and the lobby's
 choice of conditions. Reading for it settled how the font places a centre-measured text box. **Next up**: what remains of the interface below, the console, or the military AI's gaps (*What the moving wave left*).
 
-**The console**, planned 2026-11-08 and not built: the original's 53 commands are read whole in the fact base
+**The console is built** (2026-11-09, `docs/mechanics/console.md`) for the commands the table rates easy, and `event`, `election` and the rest of that row answer as the original's. What remains is the medium row; the table's other commands answer `Not built.`. The plan as it was, 2026-11-08: the original's 53 commands are read whole in the fact base
 (`reversing/findings/FINDINGS-console.md`, section C), and the debug menu (Shift and 4) already has `debug fow` - for the
 countries played alone (`docs/compatibility.md`, entry 21) - and `cpaint`. The plan is a console like the original's,
 opened by `§` or `` ` ``, taking its command names, aliases and arguments and giving its answers, each command posted
@@ -1732,7 +1732,6 @@ files are not in it. Whole windows the original opens:
 | window | reached from | the fact base |
 | --- | --- | --- |
 | the expeditionary force (`ExpeditionDialog`) | diplomacy | outline only |
-| the console (`console_wnd`) | Shift and 3 | read; the plan is above |
 
 Parts of screens that are built:
 

@@ -328,6 +328,18 @@ public sealed class CGameState
 	/// </summary>
 	public bool FogOfWar { get; set; } = true;
 
+	/// <summary>The console's <c>instantresearch</c>: a level is done whatever its progress.</summary>
+	public bool InstantResearch { get; set; }
+
+	/// <summary>The console's <c>instantconstruction</c>: a line the day reaches is done whatever its progress.</summary>
+	public bool InstantConstruction { get; set; }
+
+	/// <summary>The console's <c>alwayspartisants</c>: an underground raises partisans at any strength.</summary>
+	public bool IgnorePartisanSpawnLimit { get; set; }
+
+	/// <summary>The console's <c>debug nopopup</c>: no message is told at all, and the player's events are answered as the AI's.</summary>
+	public bool NoPopups { get; set; }
+
 	/// <summary>
 	/// How many pacts have been made - alliances, guarantees, puppets, NAPs, embargoes, influences, alignments and trade
 	/// routes, counted as one: each pact holds its number, which is the order a save writes them in, the original keeping

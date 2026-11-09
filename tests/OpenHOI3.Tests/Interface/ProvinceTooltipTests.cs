@@ -56,6 +56,15 @@ public class ProvinceTooltipTests
 	}
 
 	[Fact]
+	public void The_tooltip_debug_writes_the_owners_tag_and_number_and_the_provinces()
+	{
+		CGameState state = State();
+		string text = CProvinceTooltip.Build(Localise, state, state.Province(Berlin), EMapTooltipMode.Political, Ger, null, 0,
+			() => CSupplyNetworks.Refresh(state), debug: true).Text;
+		Assert.StartsWith($"Berlin (Germany)\n§YCountry tag:§! [§GGER§!] §Yindex:§! [§G{state.Country(Ger)!.Index + 1}§!]\n§YProvince id:§! [§G{Berlin}§!]", text);
+	}
+
+	[Fact]
 	public void The_political_mode_gives_the_name_the_owner_its_flag_and_the_ground()
 	{
 		Assert.Equal("Berlin (Germany) - ( @GER)\n[plains]", Text(State(), Berlin, EMapTooltipMode.Political));

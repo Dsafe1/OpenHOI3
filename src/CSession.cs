@@ -11,6 +11,7 @@ using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Messages;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
+using OpenHOI3.Interface.Console;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Lua;
 using OpenHOI3.Map;
@@ -77,6 +78,9 @@ public partial class CSession : Node
 	private Gfx.CBrightnessLayer? _brightness;
 	private Label _provinceLabel = null!;
 	private Debug.CDebugMenu? _debugMenu;
+	private CConsoleView? _console;
+	private CTooltips? _tooltips;
+	private bool _tooltipDebug;
 	private Debug.CFrameLog? _frameLog;
 	private int _shownProvince;
 	private bool _unitsMoved;
@@ -598,6 +602,11 @@ public partial class CSession : Node
 			CCountryTag player = Player.Tag;
 			void Tell(CMessage message)
 			{
+				// The console's debug nopopup: nothing at all, the log too.
+				if (_simulation.State.NoPopups)
+				{
+					return;
+				}
 				if (message.Type.Log)
 				{
 					messageLog.Add(message);
@@ -671,6 +680,12 @@ public partial class CSession : Node
 		_provinceLabel.Visible = false;
 		_debugMenu = new Debug.CDebugMenu();
 		layer.AddChild(_debugMenu);
+		if (gui is not null)
+		{
+			_console = new CConsoleView();
+			_console.Setup(gui, new Interface.Console.CConsoleRunner(new CConsoleHost(this)));
+			layer.AddChild(_console);
+		}
 		_debugMenu.AddSwitch("Province readout", false, on => _provinceLabel.Visible = on);
 		// The original's console command debug fow, here for the countries played alone (intelligence.md, section 3;
 		// compatibility.md, entry 21), as a command.
@@ -690,10 +705,10 @@ public partial class CSession : Node
 		_menu.Setup(gui, _directories, _simulation, Player, options);
 		layer.AddChild(_menu);
 		// The arrow keys scroll the map only where nothing before it takes them (interface.md, section 8; ingamemenu.md,
-		// section 1).
+		// section 1). The console goes through its history on Up and Down.
 		_mapView.ScrollKeysHeld = () => _menu.IsOpen
 			? (true, true)
-			: (gui.KeyboardFocus is { HasKeyboard: true }, false);
+			: (gui.KeyboardFocus is { HasKeyboard: true }, _console?.IsOpen == true);
 		_topBar.MenuPressed += _menu.Toggle;
 		_menu.Resigned += ShowEndGame;
 		_menu.Opening += () =>
@@ -708,6 +723,7 @@ public partial class CSession : Node
 
 		// Every tooltip, over everything else.
 		var tooltips = new CTooltips();
+		_tooltips = tooltips;
 		tooltips.Setup(gui);
 		// Over a counter the map's tooltip is the unit's own, else the province's (tooltips.md, section 7.1).
 		tooltips.MapTooltip = _ => _mapView.HoveredBase is { } hoveredBase
@@ -777,7 +793,7 @@ public partial class CSession : Node
 			_ => EMapTooltipMode.Political,
 		};
 		return CProvinceTooltip.Build(_localisation.Localise, State, State.Province(provinceId), mode, Player?.Tag,
-			_mapView.Units.First, _mapView.SelectedProvince, () => CSupplyNetworks.Refresh(State), _mapView.ContinentPainting);
+			_mapView.Units.First, _mapView.SelectedProvince, () => CSupplyNetworks.Refresh(State), _mapView.ContinentPainting, debug: _tooltipDebug);
 	}
 
 	/// <summary>
@@ -1476,6 +1492,11 @@ public partial class CSession : Node
 		if (Debug.CDebugMenu.IsMenuKey(key))
 		{
 			_debugMenu?.Toggle();
+			return;
+		}
+		if (_console is not null && CConsoleView.IsConsoleKey(key))
+		{
+			_console.Toggle();
 			return;
 		}
 		switch (key.Keycode)
@@ -2314,5 +2335,58 @@ public partial class CSession : Node
 	private System.Threading.Tasks.Task Click(string points)
 	{
 		return new Debug.CClickScript(this, () => UnlessTheReplayEnds(() => _simulation.RunHours(1))).Run(points);
+	}
+
+	/// <summary>What the console's commands ask of the running game.</summary>
+	private sealed class CConsoleHost : IConsoleHost
+	{
+		private readonly CSession _session;
+
+		public CConsoleHost(CSession session)
+		{
+			_session = session;
+		}
+
+		public CGameState State => _session.State;
+
+		public CCountry? Player => _session.Player;
+
+		public IReadOnlyList<int> SelectedProvinces => _session._mapView.SelectedProvinces;
+
+		public bool TooltipsOn
+		{
+			get => _session._tooltips?.Enabled ?? true;
+			set
+			{
+				if (_session._tooltips is not null)
+				{
+					_session._tooltips.Enabled = value;
+				}
+			}
+		}
+
+		public bool TooltipDebug
+		{
+			get => _session._tooltipDebug;
+			set => _session._tooltipDebug = value;
+		}
+
+		public bool ContinentPainting
+		{
+			get => _session._mapView.ContinentPainting;
+			set => _session._mapView.ContinentPainting = value;
+		}
+
+		public void Post(CCommand command)
+		{
+			_session._simulation.Post(command);
+			_session._simulation.Pump();
+		}
+
+		public void CopyToClipboard(string text) => DisplayServer.ClipboardSet(text);
+
+		public void SetLeastHeight(int height) => _session._mapView.SetLeastHeight(height);
+
+		public void Log(string line) => GD.Print(line);
 	}
 }

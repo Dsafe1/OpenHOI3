@@ -381,7 +381,7 @@ public static class CBuildQueue
 				AddProgress(country, construction, amount);
 			}
 
-			if (construction.Progress >= construction.Duration && Deliver(state, country, construction))
+			if ((construction.Progress >= construction.Duration || state.InstantConstruction) && Deliver(state, country, construction))
 			{
 				country.Constructions.Remove(construction);
 				CBrigadeUpgrades.LineEnded(state, construction);

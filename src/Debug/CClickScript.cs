@@ -82,6 +82,18 @@ public sealed class CClickScript
 				await Frames(2);
 				continue;
 			}
+			// arrow:up:1.5 holds an arrow key that many seconds, through Input, which the map's scrolling asks each frame.
+			if (entry.StartsWith("arrow:", System.StringComparison.Ordinal))
+			{
+				string[] arrow = entry.Split(':');
+				Key held = arrow[1] switch { "up" => Key.Up, "down" => Key.Down, "left" => Key.Left, _ => Key.Right };
+				await Frames(2);
+				Input.ParseInputEvent(new InputEventKey { Keycode = held, PhysicalKeycode = held, Pressed = true });
+				await _host.ToSignal(_host.GetTree().CreateTimer(double.Parse(arrow[2], CultureInfo.InvariantCulture)), SceneTreeTimer.SignalName.Timeout);
+				Input.ParseInputEvent(new InputEventKey { Keycode = held, PhysicalKeycode = held, Pressed = false });
+				await Frames(2);
+				continue;
+			}
 			// kH is not a click either: it presses and lets go of the key of that letter or digit, and K4 the same with
 			// Shift held - K4 opens the debug menu.
 			// ck1 the same with Ctrl held: Ctrl and a digit keeps a selection group.

@@ -39,7 +39,8 @@ public static class CProvinceTooltip
 	/// <param name="selectedProvince">The province selected, or 0.</param>
 	/// <param name="network">The supply network, asked for only in the supply mode.</param>
 	public static CTooltip Build(Func<string, string> localise, CGameState state, CProvince province, EMapTooltipMode mode,
-		CCountryTag? player, CUnit? selectedUnit, int selectedProvince, Func<CSupplyNetwork> network, bool continentPainting = false)
+		CCountryTag? player, CUnit? selectedUnit, int selectedProvince, Func<CSupplyNetwork> network, bool continentPainting = false,
+		bool debug = false)
 	{
 		var text = new StringBuilder();
 		if (selectedUnit is not null && IsLand(selectedUnit) && state.Country(selectedUnit.Owner) is { } owner)
@@ -51,6 +52,14 @@ public static class CProvinceTooltip
 		if (province.Owner is { } holder)
 		{
 			text.Append(" (").Append(state.Country(holder)?.Name ?? holder.Value).Append(')');
+		}
+		// The console's tooltipdebug: the owner's tag and number - the null country being first - and the province's.
+		if (debug)
+		{
+			int index = state.Country(province.Owner)?.Index + 1 ?? 0;
+			text.Append("\n§YCountry tag:§! [§G").Append(province.Owner?.Value ?? "")
+				.Append("§!] §Yindex:§! [§G").Append(index.ToString(System.Globalization.CultureInfo.InvariantCulture))
+				.Append("§!]\n§YProvince id:§! [§G").Append(province.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append("§!]");
 		}
 
 		switch (mode)

@@ -807,7 +807,15 @@ public partial class CMapView : Node2D
 	/// </summary>
 	private float MaxZoom()
 	{
-		return CMapCamera.ZoomAt(CMapCamera.LowestHeight, GetViewportRect().Size.Y);
+		return CMapCamera.ZoomAt(_leastHeight, GetViewportRect().Size.Y);
+	}
+
+	private float _leastHeight = CMapCamera.LowestHeight;
+
+	/// <summary>The console's <c>debug minzoom</c>: the lowest height the camera comes down to.</summary>
+	public void SetLeastHeight(int height)
+	{
+		_leastHeight = height;
 	}
 
 	private void SetZoom(float zoom)

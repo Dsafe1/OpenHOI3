@@ -26,7 +26,7 @@ public static class CEventFiring
 		}
 		state.RaiseEventFired(fired, scope);
 		CCountryTag? answers = scope.Country ?? state.Province(scope.Province).Owner;
-		if (answers is { } person && state.Played.Contains(person))
+		if (answers is { } person && state.Played.Contains(person) && !state.NoPopups)
 		{
 			if (!state.OpenEvents.Exists(open => open.Event == fired))
 			{

@@ -1,0 +1,65 @@
+namespace OpenHOI3.Interface.Console;
+
+/// <summary>
+/// The original's console commands, in the order of its table, with their aliases, arguments and help words as it writes
+/// them, misspellings and all. See <c>docs/mechanics/console.md</c>.
+/// </summary>
+public static class CConsoleTable
+{
+	public static readonly CConsoleCommandDef[] Commands =
+	{
+		new(true, "detailedlog", "Prints detailed log of entire game data (use for debugging).", new string[] { "dl" }, new string[] { "FilePathAndName" }),
+		new(true, "alwayspartisants", "Toggles ability to always spawn partisants from undergrounds.", new string[] { "ap" }, new string[] {  }),
+		new(true, "nextsong", "Changes the currently playing soundtrack.", new string[] {  }, new string[] {  }),
+		new(true, "morehumans", "Adds more humans", new string[] { "humans" }, new string[] { "num" }),
+		new(true, "window", "Opens or closes the specified window", new string[] { "wnd" }, new string[] { "Arguments: open/close", "window gui name" }),
+		new(true, "randomlog", "Toggles random logging", new string[] {  }, new string[] {  }),
+		new(true, "reload", "Reloads the gui or lua file", new string[] {  }, new string[] { "file name" }),
+		new(true, "reloadinterface", "Reloads the entire interface", new string[] {  }, new string[] {  }),
+		new(true, "reloadfx", "Reloads the shader", new string[] {  }, new string[] { "Arguments: map/front/hierarchy/masked3dFlag or *.fx filename" }),
+		new(true, "reloadtexture", "Reloads the specified texture", new string[] {  }, new string[] { "texture file name" }),
+		new(true, "event", "Executes an event", new string[] {  }, new string[] { "event id", "<country_TAG/province_ID>" }),
+		new(true, "election", "Starts an election", new string[] {  }, new string[] {  }),
+		new(true, "tag", "Switch control to another country", new string[] {  }, new string[] { "country_TAG" }),
+		new(true, "paint", "Switch to map painting mode.", new string[] {  }, new string[] {  }),
+		new(true, "rpaint", "Switch to region painting mode.", new string[] {  }, new string[] {  }),
+		new(true, "cpaint", "Switch to continent painting mode.", new string[] {  }, new string[] {  }),
+		new(true, "ipaint", "Switch to infra painting mode.", new string[] {  }, new string[] {  }),
+		new(true, "noneutrality", "Lower down your country neutrality", new string[] {  }, new string[] {  }),
+		new(true, "addofficers", "Adds a specified amount of officers", new string[] { "officers" }, new string[] { "num" }),
+		new(true, "addmanpower", "Adds a specified amount of manpower", new string[] { "manpower" }, new string[] { "num" }),
+		new(true, "nukes", "Adds a specified amount of nukes", new string[] {  }, new string[] { "num" }),
+		new(false, "weather", "Runs weather test", new string[] {  }, new string[] { "num" }),
+		new(true, "revolt", "Creates revolt at specified location", new string[] {  }, new string[] { "<revolt type>", "province id" }),
+		new(true, "date", "Changes current date", new string[] {  }, new string[] { "date in format yyyy.mm.dd.hh" }),
+		new(true, "money", "Adds specified amount of money", new string[] {  }, new string[] { "amount" }),
+		new(true, "supplies", "Adds specified amount of supplies", new string[] {  }, new string[] { "amount" }),
+		new(true, "crudeoil", "Adds specified amount of crude oil", new string[] { "crude" }, new string[] { "amount" }),
+		new(true, "fuel", "Adds specified amount of fuel", new string[] {  }, new string[] { "amount" }),
+		new(true, "metal", "Adds specified amount of metal", new string[] {  }, new string[] { "amount" }),
+		new(true, "energy", "Adds specified amount of energy", new string[] {  }, new string[] { "amount" }),
+		new(true, "rarematerials", "Adds specified amount of rare materials", new string[] { "rare" }, new string[] { "amount" }),
+		new(true, "givemeall", "Adds specified amount of all resources", new string[] {  }, new string[] { "amount" }),
+		new(true, "setnationalunity", "Sets the national unity of the provided country to the given value", new string[] {  }, new string[] { "country tag", "new national unity" }),
+		new(true, "teleportselectionto", "Teleports currently selected unit to location", new string[] { "teleport" }, new string[] { "province id" }),
+		new(true, "reorg", "Reorganize all friendly units at location", new string[] {  }, new string[] { "province id" }),
+		new(true, "instantconstruction", "Toggles instant construction", new string[] { "instantproduction", "inc" }, new string[] {  }),
+		new(true, "instantresearch", "Toggles instant research", new string[] { "inr" }, new string[] {  }),
+		new(true, "fullscreen", "Toggles full screen mode", new string[] {  }, new string[] {  }),
+		new(true, "surrender", "Annex the other country", new string[] {  }, new string[] { "loser country tag", "winner country tag" }),
+		new(true, "tutorial", "Sets or reload tutorial", new string[] {  }, new string[] { "chapter id", "<reload>" }),
+		new(true, "changeowner", "Change the owner of specified location", new string[] {  }, new string[] { "country tag", "province id" }),
+		new(true, "changecontroller", "Change the controller of specified location", new string[] {  }, new string[] { "country tag", "province id" }),
+		new(true, "copyprov", "Copy selected provinces ids to clipboard", new string[] {  }, new string[] {  }),
+		new(true, "debug", "Various debugging actions", new string[] {  }, new string[] { "Arguments: info/profile/tooltips/assert/log_profile/textures/fow/spy/yesmen/wireframe/minzoom/render/color/save/nopopup" }),
+		new(true, "spawnactor", "Spawns 3d object at location", new string[] {  }, new string[] { "actor name", "province id", "<animation>", "<gun>", "<hat>" }),
+		new(true, "conquerall", "Set all enemy provinces under our control.", new string[] {  }, new string[] { "country tag" }),
+		new(true, "tooltipdebug", "Toggle debug shown in game tooltip.", new string[] { "tdbg" }, new string[] {  }),
+		new(true, "aipause", "Pause AI for specified country or for all.", new string[] {  }, new string[] { "<country tag>", "<all>" }),
+		new(true, "guarantee", "Toggle guarantee of one country by another", new string[] {  }, new string[] { "country tag", "recipient country tag" }),
+		new(true, "printtech", "Prints actual technology levels to the log file.", new string[] { "pt" }, new string[] { "<nozero>" }),
+		new(false, "crash", "Simulate crashing the game", new string[] {  }, new string[] {  }),
+		new(true, "helplog", "Print out all console commands to game.log file.", new string[] {  }, new string[] {  }),
+		new(true, "help", "Print out all console commands or a specific command description.", new string[] {  }, new string[] { "command name" }),
+	};
+}

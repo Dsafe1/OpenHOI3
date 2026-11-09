@@ -42,14 +42,27 @@ public partial class CGuiListBox : CGuiObject
 		CSpriteType? background = context.Sprites.Find(type.Background);
 		if (background is not null && context.Textures.Load(background) is { } texture)
 		{
-			var behind = new TextureRect
-			{
-				Name = "Background",
-				Texture = texture,
-				ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-				StretchMode = background.IsTiled ? TextureRect.StretchModeEnum.Tile : TextureRect.StretchModeEnum.Scale,
-				MouseFilter = MouseFilterEnum.Ignore,
-			};
+			Control behind = background.IsTiled && background.Border != Vector2.Zero
+				? new NinePatchRect
+				{
+					Name = "Background",
+					Texture = texture,
+					PatchMarginLeft = (int)background.Border.X,
+					PatchMarginRight = (int)background.Border.X,
+					PatchMarginTop = (int)background.Border.Y,
+					PatchMarginBottom = (int)background.Border.Y,
+					AxisStretchHorizontal = NinePatchRect.AxisStretchMode.Tile,
+					AxisStretchVertical = NinePatchRect.AxisStretchMode.Tile,
+					MouseFilter = MouseFilterEnum.Ignore,
+				}
+				: new TextureRect
+				{
+					Name = "Background",
+					Texture = texture,
+					ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+					StretchMode = background.IsTiled ? TextureRect.StretchModeEnum.Tile : TextureRect.StretchModeEnum.Scale,
+					MouseFilter = MouseFilterEnum.Ignore,
+				};
 			behind.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 			AddChild(behind);
 		}

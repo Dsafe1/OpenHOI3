@@ -186,7 +186,7 @@ public static class CUndergrounds
 	public static bool MayRaisePartisans(CGameState state, CCountryTag country, CProvince province)
 	{
 		return province.UndergroundOwner == country && Has(state, province)
-			&& Strength(state, province) >= Define(state, "SPAWN_PARTISAN_LIMIT");
+			&& (state.IgnorePartisanSpawnLimit || Strength(state, province) >= Define(state, "SPAWN_PARTISAN_LIMIT"));
 	}
 
 	/// <summary>Whether an underground may spread: the country's, and at least the define's strength.</summary>

@@ -276,7 +276,7 @@ public static class CResearch
 
 		CFixed15 progress = country.ResearchProgress.GetValueOrDefault(name)
 			+ Gain(state, country, technology, level + 1, leadership);
-		if (progress < CFixed15.One)
+		if (progress < CFixed15.One && !state.InstantResearch)
 		{
 			country.ResearchProgress[name] = progress;
 			return false;
