@@ -1731,7 +1731,6 @@ files are not in it. Whole windows the original opens:
 
 | window | reached from | the fact base |
 | --- | --- | --- |
-| the expeditionary force (`ExpeditionDialog`) | diplomacy | outline only |
 
 Parts of screens that are built:
 
@@ -1828,6 +1827,7 @@ fact base and entered in its record, not only written up: this repository's `CLA
 None of these blocks the list above.
 
 - **Only a theatre's headquarters can be handed to the AI** by the unit panel's box (`unitpanel.md`, section 9); the original lets a corps, an army or an army group go too, and the agents here are a theatre's. The AI's own liberating and puppets are still reported unbuilt (`politics.md`, section 11.1).
+- **An expeditionary force's first piece is built** (`docs/mechanics/expeditions.md`): the window, the rows, the offer and answer, the hand-over and the return, the flag and what a lent unit may not do. A lent unit still counts as its host's for officers, supply, reinforcement, upgrades, technology and combat modifiers; the AI lends nothing and the exile does not send them home.
 - **The console's `nukes` waits for a nuclear system**, and is to be built with it, by the maintainer's word on 2026-11-09 (`docs/mechanics/console.md`, section 3). The original adds the amount, in thousands and with no floor, to a country's stock of nukes; here it answers `Not built.`.
 - **A battle plan's arrows are drawn without the effect's stencil**, so two arrows of one colour crossing blend where the original paints each pixel once (`docs/mechanics/battleplans.md`, section 11). The translator does not carry stencil states yet.
 - **The order of battle browser takes drags only from its own rows and the unit panel's brigades.** The unit panel's child rows and leader button, the outliner and the deploy menu are also sources in the original (`docs/mechanics/oobbrowser.md`, section 8).

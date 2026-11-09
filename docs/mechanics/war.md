@@ -689,7 +689,7 @@ beside FROM's ground, to FROM where FROM is at war with its owner, and otherwise
 - **`surrender_inherit`** - annexation's surrender mode, where a neighbouring co-belligerent takes control and a
   unit goes over on an even draw - and `release_vassal`. `release` is built since 2026-10-15 (`rebels.md`,
   section 12).
-- **Expeditionary forces**, which annexation and exile send home: there are none.
+- **Expeditionary forces**: an annexation sends them home (`expeditions.md`, section 5); a government going into exile does not yet.
 - **The cabinet refilled** when a puppet takes its overlord's government; the government's type alone is taken.
 - **What else an exile is**: its units drawing on friends' depots for free, its brigades built at its leader's
   technology, liberation, and its partisans turned to militia when it comes home. Organized Revolt, its undergrounds

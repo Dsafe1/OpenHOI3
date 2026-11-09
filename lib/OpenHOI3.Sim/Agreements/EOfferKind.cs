@@ -5,6 +5,7 @@ public enum EOfferKind
 {
 	Alliance,
 	NonAggressionPact,
+	Expedition,
 	Guarantee,
 	AskMilitaryAccess,
 	OfferMilitaryAccess,

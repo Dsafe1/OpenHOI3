@@ -75,7 +75,7 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		_mayOrder = mayOrder;
 		_priority = Checkbox(window, "prio_checkbox", EUnitSupport.Priority, mayOrder);
 		_reinforce = Checkbox(window, "reinf_checkbox", EUnitSupport.Reinforcement, mayOrder);
-		_upgrade = Checkbox(window, "upgrade_checkbox", EUnitSupport.Upgrade, mayOrder);
+		_upgrade = Checkbox(window, "upgrade_checkbox", EUnitSupport.Upgrade, mayOrder && unit.Lender is null);
 		_attach = window.FindButton("attach_button");
 		_detach = window.FindButton("detach_button");
 

@@ -64,6 +64,9 @@ public static class CPacts
 			case EOfferKind.Licence:
 				Licence(state, offer, actor, recipient);
 				break;
+			case EOfferKind.Expedition:
+				CExpeditions.Apply(state, offer, actor, recipient);
+				break;
 			// Whatever its stage: a declaration takes effect when it runs (war.md, section 5).
 			case EOfferKind.DeclareWar:
 				Wars.CDeclarations.Apply(state, actor, recipient, offer.Value, offer.WarGoal);

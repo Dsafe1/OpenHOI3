@@ -70,7 +70,7 @@ public static class CSplitTroops
 	/// </summary>
 	private static bool MayGo(CUnit unit, CCountry giver)
 	{
-		if (unit.IsRemoved || unit.Owner != giver.Tag || unit.Kind == EUnitKind.Theatre || unit.IsFighting)
+		if (unit.Lender is not null || unit.IsRemoved || unit.Owner != giver.Tag || unit.Kind == EUnitKind.Theatre || unit.IsFighting)
 		{
 			return false;
 		}

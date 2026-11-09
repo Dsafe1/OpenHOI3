@@ -250,6 +250,9 @@ public sealed class CGameState
 
 	public CDate EndDate { get; init; }
 
+	/// <summary>The end date in hours, what a lent unit with no recall under way is saved with.</summary>
+	public long EndDateHours => (long)EndDate.DayNumber * HoursPerDay;
+
 	/// <summary>
 	/// The last number given to a unit or a sub unit. The next one made takes the one
 	/// after it.

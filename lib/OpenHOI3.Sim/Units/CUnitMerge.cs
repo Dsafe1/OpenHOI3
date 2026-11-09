@@ -31,7 +31,7 @@ public static class CUnitMerge
 		int brigades = 0;
 		foreach (CUnit unit in units)
 		{
-			if (unit.IsFighting || unit.IsRetreating || unit.IsMoving || unit.Location != first.Location
+			if (unit.Lender is not null || unit.IsFighting || unit.IsRetreating || unit.IsMoving || unit.Location != first.Location
 				|| unit.AttackDelay > CFixedPoint.Zero || unit.Kind != first.Kind || first.Kind < EUnitKind.Division
 				|| CCarriers.IsCarrierAirGroup(unit) != firstCag)
 			{

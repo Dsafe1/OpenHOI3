@@ -526,6 +526,13 @@ public sealed partial class CDiplomacyView : CCountryView
 			trade.Closed += () => Closed(trade.Close);
 			(window, close, made) = (trade, trade.Close, () => trade.Window);
 		}
+		else if (offer.Kind == Sim.Agreements.EOfferKind.Expedition)
+		{
+			var expedition = new CExpeditionDialog();
+			expedition.Setup(Context, Simulation, offer, Player);
+			expedition.Closed += () => Closed(expedition.Close);
+			(window, close, made) = (expedition, expedition.Close, () => expedition.Window);
+		}
 		else if (offer.Kind == Sim.Agreements.EOfferKind.Licence)
 		{
 			var licence = new CLicenceDialog();

@@ -100,7 +100,7 @@ public static class CAttachText
 	/// <summary>Whether <c>disbandbutton</c> may be pressed: as Disband All's test, and not in a battle.</summary>
 	public static bool MayDisband(CGameState state, CUnit unit)
 	{
-		return !unit.IsFighting && Disbandable(state, new[] { unit }).Count == 1;
+		return unit.Lender is null && !unit.IsFighting && Disbandable(state, new[] { unit }).Count == 1;
 	}
 
 	/// <summary>Which of several selected units Disband All takes: not a land unit aboard anything, a theatre holding land, or a unit an AI agent runs.</summary>

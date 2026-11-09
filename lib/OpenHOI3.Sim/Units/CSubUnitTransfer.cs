@@ -18,7 +18,7 @@ public static class CSubUnitTransfer
 	/// </summary>
 	public static bool MayTake(CGameState state, CCountry country, CUnit unit, CSubUnit subUnit, bool sameProvince)
 	{
-		if (unit.IsFighting || !CUnitAvailability.IsBuildableType(subUnit.Type) || !SameKind(unit, subUnit))
+		if (unit.Lender is not null || subUnit.Unit?.Lender is not null || unit.IsFighting || !CUnitAvailability.IsBuildableType(subUnit.Type) || !SameKind(unit, subUnit))
 		{
 			return false;
 		}
@@ -121,7 +121,7 @@ public static class CSubUnitTransfer
 		int brigades = 0;
 		foreach (CUnit unit in units)
 		{
-			if (unit.IsFighting || unit.IsRetreating || unit.IsMoving || unit.AttackDelay > CFixedPoint.Zero
+			if (unit.Lender is not null || unit.IsFighting || unit.IsRetreating || unit.IsMoving || unit.AttackDelay > CFixedPoint.Zero
 				|| unit.Location != first.Location || CCarriers.IsCarrierAirGroup(unit) != firstCag)
 			{
 				return false;

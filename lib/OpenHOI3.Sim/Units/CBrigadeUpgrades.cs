@@ -30,7 +30,7 @@ public static class CBrigadeUpgrades
 	/// </summary>
 	public static bool MayUpgradeWhereItStands(CGameState state, CSubUnit brigade)
 	{
-		if (brigade.Unit is not { } unit || unit.IsFighting || unit.IsRetreating || state.Country(unit.Owner) is not { } owner)
+		if (brigade.Unit is not { } unit || unit.Lender is not null || unit.IsFighting || unit.IsRetreating || state.Country(unit.Owner) is not { } owner)
 		{
 			return false;
 		}

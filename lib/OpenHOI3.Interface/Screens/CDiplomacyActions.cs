@@ -39,6 +39,19 @@ public static class CDiplomacyActions
 			rows.Add(call);
 		}
 
+		// An expeditionary force, where allied or in one real faction: send, and at most one of each way to take back.
+		if (CCountryLists.HasAlliance(state, player.Tag, chosen.Tag) || COfferRules.OneRealFaction(player, chosen))
+		{
+			rows.Add(Row(EOfferKind.Expedition, true));
+			if (CExpeditionText.HoldsLentBy(player, chosen))
+			{
+				rows.Add(Row(EOfferKind.Expedition, false));
+			}
+			if (CExpeditionText.HoldsLentBy(chosen, player))
+			{
+				rows.Add(Row(EOfferKind.Expedition, false) with { Recall = true });
+			}
+		}
 		// Technology, where allied or in one real faction: stop where sharing, else share where a theory puts
 		// them below the player (aid.md, section 2).
 		if (CCountryLists.HasAlliance(state, player.Tag, chosen.Tag) || COfferRules.OneRealFaction(player, chosen))
@@ -195,6 +208,7 @@ public static class CDiplomacyActions
 			EOfferKind.RequestLendLease => offer.Value ? "REQLEND" : "CANCELLEND",
 			EOfferKind.OfferLendLease => offer.Value ? "OFFERLL" : "STOPLL",
 			EOfferKind.Licence => offer.Value ? "BUYLICENCE" : "SELLLICENCE",
+			EOfferKind.Expedition => offer.Value ? "SENDEXPED" : offer.Recall ? "RETRIEVEEXPED" : "RESENDEXPED",
 			EOfferKind.DeclareWar or EOfferKind.CallAlly or EOfferKind.AddWarGoal or EOfferKind.Peace => CWarActions.Prefix(offer),
 			EOfferKind.Faction => CFactionText.Prefix(offer),
 			_ => offer.Value ? "ALIGN" : "STOPALIGN",
@@ -226,6 +240,7 @@ public static class CDiplomacyActions
 			EOfferKind.RequestLendLease => RequestLendLeaseTooltip(localise, state, offer, actor, recipient),
 			EOfferKind.OfferLendLease => OfferLendLeaseTooltip(localise, state, offer, actor, recipient),
 			EOfferKind.Licence => LicenceTooltip(localise, state, offer, actor, recipient),
+			EOfferKind.Expedition => ExpeditionTooltip(localise, state, offer, actor, recipient),
 			EOfferKind.Faction => CFactionText.Tooltip(localise, state, offer, actor, recipient, (a, r) => EnRoute(localise, state, a, r)),
 			EOfferKind.DeclareWar or EOfferKind.CallAlly or EOfferKind.AddWarGoal or EOfferKind.Peace =>
 				CWarActions.Tooltip(localise, state, offer, actor, recipient, (a, r) => EnRoute(localise, state, a, r)),
@@ -769,6 +784,28 @@ public static class CDiplomacyActions
 		state.Influences.Exists(i => i.Influencer == influencer && i.Influenced == influenced);
 
 	/// <summary>An hour as the original writes it: " 13:00, 1 January, 1936", a space first.</summary>
+	private static string ExpeditionTooltip(Func<string, string> localise, CGameState state, COffer offer, CCountry actor, CCountry recipient)
+	{
+		if (actor == recipient)
+		{
+			return localise("ACT_NO_SELF");
+		}
+		if (offer.Value)
+		{
+			if (COfferRules.DiplomatEnRoute(state, actor, recipient))
+			{
+				return EnRoute(localise, state, actor, recipient);
+			}
+			CFixedPoint cost = COfferRules.Define(state, CExpeditions.CostDefine);
+			return actor.DiplomaticInfluence < cost
+				? Text.CTextTemplate.Fill(localise("DIP_NO_INFL"), ("INF", Text.CNumberText.Format(cost, 0)))
+				: localise("SENDEXPEDDESC");
+		}
+		return localise(offer.Recall ? "RETRIEVEEXPEDDESC" : "RESENDEXPEDDESC");
+	}
+
+	public static string HourDateOf(Func<string, string> localise, long hour) => HourDate(localise, hour);
+
 	internal static string HourDate(Func<string, string> localise, long hour)
 	{
 		long day = Math.Max(hour, 0) / CGameState.HoursPerDay;

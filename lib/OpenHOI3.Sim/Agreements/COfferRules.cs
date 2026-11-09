@@ -88,6 +88,8 @@ public static class COfferRules
 				return actor != recipient && Owns(state, recipient);
 			case EOfferKind.Licence:
 				return !atWar;
+			case EOfferKind.Expedition:
+				return CExpeditions.IsValid(state, offer, actor, recipient);
 			case EOfferKind.DeclareWar:
 				return Wars.CDeclarations.IsValid(state, actor, recipient, offer.WarGoal);
 			case EOfferKind.CallAlly:
@@ -226,6 +228,8 @@ public static class COfferRules
 					: Aid.CLendLease.Gives(actor, recipient);
 			case EOfferKind.Licence:
 				return !enRoute && !atWar && (!offer.Value || Afford(state, actor, offer));
+			case EOfferKind.Expedition:
+				return CExpeditions.IsSelectable(state, offer, actor, recipient);
 			case EOfferKind.DeclareWar:
 				return Wars.CDeclarations.IsSelectable(state, actor, recipient);
 			case EOfferKind.CallAlly:
@@ -260,6 +264,7 @@ public static class COfferRules
 			// Asking for lend-lease is charged the debt's define; offering it costs nothing (aid.md, section 5).
 			EOfferKind.RequestLendLease => offer.Value ? "ALLOW_DEBT_INFLUENCE_COST" : null,
 			EOfferKind.Licence => offer.Value ? "LICENCE_INFLUENCE_COST" : null,
+			EOfferKind.Expedition => offer.Value ? CExpeditions.CostDefine : null,
 			EOfferKind.DeclareWar => Wars.CDeclarations.InfluenceCost,
 			EOfferKind.CallAlly => Wars.CCallsToArms.InfluenceCost,
 			EOfferKind.Faction => Wars.CFactionOffers.CostDefine(offer.Value),
@@ -277,6 +282,7 @@ public static class COfferRules
 				or EOfferKind.RequestLendLease or EOfferKind.OfferLendLease => offer.Value,
 			// A licence is always answered.
 			EOfferKind.Licence => true,
+			EOfferKind.Expedition => offer.Value && offer.Stage == EOfferStage.Proposed,
 			EOfferKind.AskMilitaryAccess or EOfferKind.OfferMilitaryAccess => offer.Stage == EOfferStage.Proposed && offer.Value,
 			// Both kinds of call are answered (war.md, section 6).
 			EOfferKind.CallAlly => offer.Stage == EOfferStage.Proposed,
@@ -316,6 +322,7 @@ public static class COfferRules
 			EOfferKind.RequestLendLease => "DiploScore_RequestLendLease",
 			EOfferKind.OfferLendLease => "DiploScore_OfferLendLease",
 			EOfferKind.Licence => "DiploScore_LicenceTechnology",
+			EOfferKind.Expedition => "DiploScore_SendExpeditionaryForce",
 			EOfferKind.CallAlly => "DiploScore_CallAlly",
 			EOfferKind.Peace => "DiploScore_PeaceAction",
 			EOfferKind.Faction => "DiploScore_InviteToFaction",
@@ -349,6 +356,9 @@ public static class COfferRules
 	public static CFixedPoint Define(CGameState state, string name) => state.Defines[Section, name];
 
 	public static bool Afford(CGameState state, CCountry actor, COffer offer) => actor.DiplomaticInfluence >= Cost(state, offer);
+
+	/// <summary>In one faction, the two with none counted as one, as the check when an offer runs has it.</summary>
+	public static bool SameFactionEvenNone(CCountry one, CCountry other) => one.Faction == other.Faction;
 
 	public static bool DiplomatEnRoute(CGameState state, CCountry actor, CCountry recipient) =>
 		state.TotalHours <= CGameState.Status(actor, recipient).DiplomatUntil;

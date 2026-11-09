@@ -43,6 +43,7 @@ public static class CAnnexation
 			CProvinceHands.ChangeOwner(state, province, to, consequences: true);
 		}
 		annexed.Constructions.Clear();
+		CExpeditions.ReturnAll(state, annexed);
 		foreach (CUnit unit in annexed.UnitsInOrder())
 		{
 			CCombatRetreat.RemoveFromGame(state, unit);

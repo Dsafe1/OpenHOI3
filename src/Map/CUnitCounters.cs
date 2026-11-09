@@ -675,7 +675,7 @@ public partial class CUnitCounters : Node2D
 
 			// Only the one on top carries a flag and figures.
 			Vector2 middle = rect.GetCenter();
-			if (kind.Type.HasFlag && Flag(counter.Unit.Owner) is { } flag)
+			if (kind.Type.HasFlag && Flag(counter.Unit.Lender ?? counter.Unit.Owner) is { } flag)
 			{
 				System.Numerics.Vector2 at = CCounterLayout.FlagPlace(kind.Type, counter.Size, CounterScale);
 				System.Numerics.Vector2 size = CCounterLayout.FlagSize(kind.Type);

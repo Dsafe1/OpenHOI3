@@ -133,6 +133,11 @@ public static class CSaveUnitWriter
 		{
 			WritePlan(writer, unit.Plan);
 		}
+		if (unit.Lender is { } lender)
+		{
+			writer.Quoted("expeditionary_owner", lender.Value);
+			writer.Date("expeditionary_date", unit.RecallHour ?? state.EndDateHours);
+		}
 		if (unit.HasOwnAggression)
 		{
 			writer.Bool("aggression_enabled", true);

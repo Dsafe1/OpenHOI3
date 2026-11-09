@@ -191,6 +191,10 @@ public static class COobBrowserText
 	{
 		CUnit? other = dragged.Unit;
 		CLeader? old = row.Leader;
+		if (row.Lender is not null || other?.Lender is not null)
+		{
+			yield break;
+		}
 		yield return new CAssignLeaderCommand(owner, row.Id, dragged.Id, onlyFree: false);
 		if (old is not null && other is not null)
 		{

@@ -81,7 +81,14 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		{
 			window.FindIcon("counter_type")?.SetSprite(sprite);
 		}
-		Show(window.FindIcon("exp_force"), false);               // no unit is an expeditionary force yet
+		if (window.FindIcon("exp_force") is { } lent)
+		{
+			Show(lent, unit.Lender is not null);
+			if (unit.Lender is { } lender && state.Country(lender) is { } lentBy)
+			{
+				lent.SetCountry(lentBy);
+			}
+		}
 
 		if (window.FindButton("remove_unit_from_selection_button") is { } remove)
 		{
@@ -109,7 +116,13 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		}
 		if (_photo is not null)
 		{
-			_photo.Clicked += () => LeaderPressed?.Invoke();
+			_photo.Clicked += () =>
+			{
+				if (unit.Lender is null)
+				{
+					LeaderPressed?.Invoke();
+				}
+			};
 		}
 		_leaderTypes = window.FindIcon("leader_types");
 		AnswerFor(name => CUnitHeaderTooltips.Header(context.Localisation.Localise, state, owner, unit, name),

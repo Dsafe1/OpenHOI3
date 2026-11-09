@@ -177,6 +177,12 @@ public sealed class CSaveUnitReader
 				case "was_paradropped":
 					unit.WasParadropped = entry.Value == "yes";
 					break;
+				case "expeditionary_owner":
+					unit.Lender = new CCountryTag(entry.Value);
+					break;
+				case "expeditionary_date":
+					unit.RecallHour = CSaveValues.HoursOrNull(entry.Value) is { } hours && hours < _state.EndDateHours ? hours : null;
+					break;
 				case "aggression_enabled":
 					unit.HasOwnAggression = entry.Value == "yes";
 					break;

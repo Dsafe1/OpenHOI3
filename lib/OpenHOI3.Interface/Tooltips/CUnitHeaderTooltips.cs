@@ -35,6 +35,12 @@ public static class CUnitHeaderTooltips
 		{
 			case "unit_activity":
 				return new CTooltip { Text = Activity(localise, state, owner, unit) };
+			case "exp_force" when unit.Lender is { } lender:
+				return new CTooltip
+				{
+					Text = CTextTemplate.Fill(localise("UW_XP_FORCE_IRO"), ("COUNTRY", state.Country(lender)?.Name ?? "")),
+					Delayed = localise("UW_XP_FORCE_DRO"),
+				};
 			case "remove_unit_from_selection_button":
 				return Pair(localise, "DESELECT_UNIT", "DESELECT_UNIT_DRO");
 			case "only_unit_from_selection_button":

@@ -22,6 +22,10 @@ public static class CUnitSplit
 	/// </summary>
 	public static bool MayPress(CUnit unit)
 	{
+		if (unit.Lender is not null)
+		{
+			return false;
+		}
 		bool land = CMovementRules.IsLandUnit(unit);
 		if (land && unit.SubUnits.Count <= (unit.Leader is null ? 1 : 2))
 		{

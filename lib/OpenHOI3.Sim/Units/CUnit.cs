@@ -80,6 +80,12 @@ public sealed class CUnit
 	/// <summary>A division the AI holds back from its line: the original's <c>ai_held_back</c> (<c>docs/mechanics/moving.md</c>, section 2).</summary>
 	public bool IsHeldBack { get; set; }
 
+	/// <summary>The country that lent this unit as an expeditionary force, or null (<c>expeditions.md</c>).</summary>
+	public CCountryTag? Lender { get; set; }
+
+	/// <summary>The hour a lent unit goes home after, or null while none has been asked for.</summary>
+	public long? RecallHour { get; set; }
+
 	/// <summary>Whether the unit has an aggression of its own: the panel's box.</summary>
 	public bool HasOwnAggression { get; set; }
 

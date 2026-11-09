@@ -34,7 +34,7 @@ public sealed class CAssignLeaderCommand : CCommand
 	/// </summary>
 	public override bool MayExecute(CGameState state)
 	{
-		if (Find(state) is not { } unit)
+		if (Find(state) is not { } unit || unit.Lender is not null)
 		{
 			return false;
 		}

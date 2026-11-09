@@ -217,7 +217,7 @@ public static class CUnitPanelText
 	/// </summary>
 	public static bool MayChangeLeader(CGameState state, CUnit unit, CCountryTag? player)
 	{
-		if (unit.IsRetreating || unit.Combats.Count >= 1)
+		if (unit.Lender is not null || unit.IsRetreating || unit.Combats.Count >= 1)
 		{
 			return false;
 		}

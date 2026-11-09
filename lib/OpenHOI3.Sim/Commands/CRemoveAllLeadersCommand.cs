@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Leaders;
@@ -28,7 +29,7 @@ public sealed class CRemoveAllLeadersCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		foreach (CUnit unit in new List<CUnit>(state.Country(_country)!.AllUnits()))
+		foreach (CUnit unit in new List<CUnit>(state.Country(_country)!.AllUnits()).Where(unit => unit.Lender is null))
 		{
 			CLeaders.SetLeader(state, unit, null, true, false);
 		}

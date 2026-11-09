@@ -421,6 +421,12 @@ section 3.
 
 ---
 
+## 23. A lent unit's leader cannot be changed
+
+**The original**: the panel's `leader_button` on a lent unit is first disabled and then enabled again by a later test in the same routine, so the host may open the leader window, which lists the host's own leaders (the maintainer saw this on 2026-11-09).
+**Here**: the button and the portrait are greyed for a lent unit, and the command is refused. Chosen by the maintainer, 2026-11-09.
+**What a mod loses**: nothing; this is the engine's rule. **To undo**: drop the `Lender` tests in `CUnitPanelText.MayChangeLeader`, `CUnitHeaderEntry` and `CAssignLeaderCommand`.
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they

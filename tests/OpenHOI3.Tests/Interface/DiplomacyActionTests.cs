@@ -83,7 +83,7 @@ public class DiplomacyActionTests
 		List<COffer> toItaly = CDiplomacyActions.Rows(state, C(state, ScriptWorld.Ger), C(state, ScriptWorld.Ita));
 		Assert.Equal(new[]
 		{
-			EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.Embargo, EOfferKind.Licence, EOfferKind.Debt,
+			EOfferKind.Expedition, EOfferKind.NonAggressionPact, EOfferKind.Guarantee, EOfferKind.Embargo, EOfferKind.Licence, EOfferKind.Debt,
 			EOfferKind.Trade,
 			EOfferKind.RequestLendLease, EOfferKind.OfferLendLease,
 		}, toItaly.Select(row => row.Kind));

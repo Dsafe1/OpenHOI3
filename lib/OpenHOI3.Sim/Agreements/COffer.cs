@@ -24,6 +24,12 @@ public sealed record COffer(EOfferKind Kind, CCountryTag Actor, CCountryTag Reci
 	/// <summary>The war goal a declaration or an added goal carries (<c>war.md</c>, sections 3 and 5); none for the rest.</summary>
 	public Wars.CWarGoal? WarGoal { get; init; }
 
+	/// <summary>The unit an expeditionary force sends or takes back (<c>expeditions.md</c>); 0 for the rest, or for one not chosen yet.</summary>
+	public int Unit { get; init; }
+
+	/// <summary>A withdrawal of an expeditionary force by its lender, where otherwise the host gives it back.</summary>
+	public bool Recall { get; init; }
+
 	/// <summary>The enemy a call to arms is against (<c>war.md</c>, section 6); none for the rest.</summary>
 	public CCountryTag? Versus { get; init; }
 }

@@ -146,6 +146,7 @@ public static class CTick
 		Step(state, Countries.CActingCapital.EnsureCapitals);     // at the head of a country's day: a capital it owns,
 		Step(state, CNeutrality.RunDaily);                        // then neutrality
 		Step(state, Wars.CExile.SwapDaily);                       // early in it, an exile made a puppet where it is held
+		Step(state, Agreements.CExpeditions.RunDaily);           // a lent unit past its date goes home (expeditions.md, section 3)
 		Step(state, Agreements.CPactPasses.RunDaily);            // its pacts that have run their course, and influence's upkeep
 		Step(state, Aid.CTechnologySharing.CheckDaily);           // ours: where in the country's day was not placed exactly
 		Step(state, CAlignment.RunDaily);                         // later in it: a step every interval and a day
