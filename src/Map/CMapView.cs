@@ -1035,6 +1035,28 @@ public partial class CMapView : Node2D
 	/// <summary>The unit whose counter is under the mouse, or null: over a counter the map's tooltip is the unit's (tooltips.md, section 7.1).</summary>
 	public CUnit? HoveredUnit => _counters is not null && _mouseOnMap ? _counters.UnitAt(ScreenToMap(_mouse)) : null;
 
+	/// <summary>The port or airfield whose picture is under the mouse, asked as a click asks: the air map's large base, then any counter, then the pictures (tooltips.md, section 7.2).</summary>
+	public (int Province, EMapBuilding Kind)? HoveredBase
+	{
+		get
+		{
+			if (_counters is null || !_mouseOnMap)
+			{
+				return null;
+			}
+			Vector2 point = ScreenToMap(_mouse);
+			if (_counters.AirMap.AirBaseAt(point) is int airfield and > 0)
+			{
+				return (airfield, EMapBuilding.Airfield);
+			}
+			if (_counters.UnitAt(point) is not null || _counters.Buildings.At(point) is not { Kind: not EMapBuilding.Other } picture)
+			{
+				return null;
+			}
+			return (picture.Province, picture.Kind);
+		}
+	}
+
 	private Vector2 _mouse;
 	private bool _mouseOnMap;
 

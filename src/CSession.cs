@@ -710,9 +710,11 @@ public partial class CSession : Node
 		var tooltips = new CTooltips();
 		tooltips.Setup(gui);
 		// Over a counter the map's tooltip is the unit's own, else the province's (tooltips.md, section 7.1).
-		tooltips.MapTooltip = _ => _mapView.HoveredUnit is { } unit
-			? new CTooltip { Text = CUnitCounterTooltip.Build(_localisation.Localise, State, unit, Player?.Tag) }
-			: ProvinceTooltip(_mapView.HoveredProvince);
+		tooltips.MapTooltip = _ => _mapView.HoveredBase is { } hoveredBase
+			? new CTooltip { Text = CBaseTooltip.Build(_localisation.Localise, State, hoveredBase.Province, hoveredBase.Kind, Player?.Tag) }
+			: _mapView.HoveredUnit is { } unit
+				? new CTooltip { Text = CUnitCounterTooltip.Build(_localisation.Localise, State, unit, Player?.Tag) }
+				: ProvinceTooltip(_mapView.HoveredProvince);
 		tooltips.MapTooltipAnchor = () => _minimap?.Corner;
 		AddChild(tooltips);
 

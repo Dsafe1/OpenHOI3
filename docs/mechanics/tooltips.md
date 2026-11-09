@@ -159,6 +159,15 @@ it (`productionscreen.md`, section 8).
 in the air and naval modes, which are not built here. A tooltip for every province is built,
 where the original empties it for one the session does not simulate - none, in a campaign.
 
+### 7.2 Over a port or an airfield
+
+*From `reversing/findings/FINDINGS-seaair.md`, section 6.* **The picture of a port or an airfield answers as the base** (`CBaseTooltip`), asked in the order a click
+asks: in the air map mode the large air base, then any counter, then the pictures. A port's words are `PORT` [mod] where nothing lies there; **where anything does, the
+first fleet's counter tooltip stands instead** (section 7.1: all the fleets in the port), so `PORT` is shown only by an empty one. Then a line break and
+`UNITBASEPROVINCE_INFO` [mod]: `$AMOUNT$` the ships there, `$DAILY$` the port's capacity to two places. An airfield's: the first unit based there's counter tooltip and a line
+break, where there is one, and the same line - the wings based there, wherever they are, and the air base's working level. [exe: the shape.] Every country's, as a counter's;
+the first unit is the first of `CMapBuildings.UnitsOf`, by its number where the original's turns with each click (*Ours*, `mapunits.md`, section 9).
+
 ### 7.1 Over a counter
 
 **Over a counter the map's tooltip is the unit's own** (`reversing/findings/FINDINGS-countertooltip.md`;
