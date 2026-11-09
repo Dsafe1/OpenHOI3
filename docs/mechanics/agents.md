@@ -594,6 +594,8 @@ of the rest are Britain's donors for Port Harcourt and St. John's in another ord
 East a way there and the original does not. One is the Soviet Union's: its 42nd Corps has four divisions there on 2 January and
 five here, so it moves as divisions and not whole.
 
-**At war it is not yet so** (`Ireland1941_07_16_07`, run 51 hours both ways, 2026-11-09; `FINDINGS-balancing.md`): 20 of 24 theatres
-agree in need and count on the first pass, Vichy's ten picks all agree, and the Soviet Union's main theatre needs 64 here against
-the running game's 75. A loaded game's first hour does not balance here, where it does in the original.
+**At war** (`Ireland1941_07_16_07`, run 51 hours both ways, 2026-11-09; `FINDINGS-balancing.md`): 23 of the 24 theatres that can
+be compared agree in need and count on the first pass, the Soviet Union's 75 among them, and Vichy's ten picks all agree. Germany's
+theatre 6 is 73 and 118 against the running game's 72 and 119. The running game's picks are not all reproduced: Britain's donors
+come in another order, and one Soviet donor gives 10 of 15 where the original gives 12. A loaded game's first hour does not
+balance here, where it does in the original.

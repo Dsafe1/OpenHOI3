@@ -195,6 +195,10 @@ public static class CPlanPowers
 			}
 			power += theirs;
 			weightSum += score;
+			if (state.AiTrace is { } frontTrace && frontTrace.Country == country.Tag)
+			{
+				frontTrace.Write($"need F prov={id} holder={holder} score={score} power={theirs} sum={weightSum - score} count={count} weight={weight} cand={candidate}");
+			}
 			if (!faced.Contains(beside))
 			{
 				faced.Add(beside);
@@ -221,11 +225,15 @@ public static class CPlanPowers
 			? Worth(state, country, agent, area, theatre, capitalArea, relaxed)
 			: 0;
 		need += anyFront && worth > fronts ? worth : fronts;
-		if (area.Group is { } group && GroupProvinces(group) > 1)
+		if (state.AiTrace is { } sumTrace && sumTrace.Country == country.Tag)
+		{
+			sumTrace.Write($"need N area={area.Provinces[0]}/{area.Provinces.Count}/{first.Controller} n1={fronts} n2={worth} need={need} anyfront={(anyFront ? 1 : 0)} brigades={brigades} provinces={facedProvinces} relaxed={relaxed} theatre={theatre?.Id}");
+		}
+		if (area.RegionGroup is { } group && GroupProvinces(group) > 1)
 		{
 			foreach (CSupplyArea focus in agent.FocusAreas)
 			{
-				if (visited.Contains(focus) || !ReferenceEquals(focus.Group, group))
+				if (visited.Contains(focus) || !ReferenceEquals(focus.RegionGroup, group))
 				{
 					continue;
 				}

@@ -162,13 +162,13 @@ public static class CLandSplit
 		var wanted = new Dictionary<CSupplyGroup, int>();
 		foreach (int id in targets.GetRange(0, System.Math.Min(garrisons, targets.Count)))
 		{
-			if (network.AreaOf(id)?.Group is { } group)
+			if (network.AreaOf(id)?.RegionGroup is { } group)
 			{
 				wanted[group] = wanted.GetValueOrDefault(group) + 1;
 			}
 		}
 		if (targets.Count < garrisons && CAgents.TheatreOf(state, country, agent) is { } theatre
-			&& CTheatreProvinces.LargestArea(theatre)?.Group is { } largest)
+			&& CTheatreProvinces.LargestArea(theatre)?.RegionGroup is { } largest)
 		{
 			wanted[largest] = wanted.GetValueOrDefault(largest) + garrisons - targets.Count;
 		}
@@ -182,14 +182,14 @@ public static class CLandSplit
 			var there = new List<CUnit>();
 			foreach (CUnit unit in agent.Committed)
 			{
-				if (unit.IsGarrison && ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.Group, group))
+				if (unit.IsGarrison && ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.RegionGroup, group))
 				{
 					there.Add(unit);
 				}
 			}
 			if (state.AiTrace is { } trace && trace.Country == country.Tag)
 			{
-				trace.Write($"  block of {targets.Find(id => ReferenceEquals(network.AreaOf(id)?.Group, group))}: wants {count}, " +
+				trace.Write($"  block of {targets.Find(id => ReferenceEquals(network.AreaOf(id)?.RegionGroup, group))}: wants {count}, " +
 					$"has {there.Count}");
 			}
 			while (there.Count > count && Worst(there, holdScore) is { } dropped)
@@ -241,7 +241,7 @@ public static class CLandSplit
 		long bestScore = long.MinValue;
 		foreach (CUnit unit in agent.Committed)
 		{
-			if (unit.IsGarrison || !ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.Group, group)
+			if (unit.IsGarrison || !ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.RegionGroup, group)
 				|| FacesPreparedWar(state, country, unit))
 			{
 				continue;

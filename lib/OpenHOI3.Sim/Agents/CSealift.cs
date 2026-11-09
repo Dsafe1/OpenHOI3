@@ -371,7 +371,7 @@ public static class CSealift
 		CSupplyArea area)
 	{
 		CSupplyArea? own = network.AreaOf(unit.Location);
-		if (own is not null && own.Group is not null && ReferenceEquals(own.Group, area.Group))
+		if (own is not null && own.RegionGroup is not null && ReferenceEquals(own.RegionGroup, area.RegionGroup))
 		{
 			return false;
 		}

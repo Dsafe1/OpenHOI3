@@ -129,6 +129,15 @@ entry is kept the same way, for section 5. Guarantees, pacts and relations are r
 *Ours:* nothing makes or frees a puppet during a game yet, and nothing reads the dates again
 after the start - Mengjiang becomes Japan's on 12 May 1936 in the files and stays nobody's here.
 
+### 3.1 The AI's grouping
+
+The original keeps a second grouping of areas, which supply does not read and the unit AI does: **the land a country and those
+fighting beside it hold in one piece** (`CSupplyArea.RegionGroup`; `reversing/findings/FINDINGS-supplynetwork.md`, section 8). A
+neighbouring area joins where its holder is not the rebels and is on one side with whoever holds the group's first area, or
+fighting a war beside it and no enemy of it. It is the supply group without the "landlocked and away from its capital" limit on
+the second arm, so at peace the two are nearly always the same. At war they are not, and an AI country's focus areas, the keep
+of a theatre's divisions and everything else in `Sim/Agents` that asks "the same land" asks this one.
+
 ## 4. A group's depot
 
 `confirmed` as read, and **watched in the original by the maintainer** in three cases that

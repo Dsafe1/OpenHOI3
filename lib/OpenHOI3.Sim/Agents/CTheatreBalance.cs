@@ -376,7 +376,7 @@ public static class CTheatreBalance
 				continue;
 			}
 			if (ReferenceEquals(theirs, area)
-				|| (theirs.Group is { } group && ReferenceEquals(group, area.Group) && theirs.Controller != country.Tag
+				|| (theirs.RegionGroup is { } group && ReferenceEquals(group, area.RegionGroup) && theirs.Controller != country.Tag
 					&& state.Country(theirs.Controller) is { } holder && CSupplyRelations.CanOperateIn(state, country, holder)))
 			{
 				count++;

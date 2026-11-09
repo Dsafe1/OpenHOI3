@@ -27,7 +27,7 @@ public static class CFocusAreas
 		var groups = new List<CSupplyGroup>();
 		foreach (CSupplyArea area in theatre.Areas)
 		{
-			if (area.Group is { } group && !groups.Contains(group) && Provinces(group) > 1)
+			if (area.RegionGroup is { } group && !groups.Contains(group) && Provinces(group) > 1)
 			{
 				groups.Add(group);
 			}

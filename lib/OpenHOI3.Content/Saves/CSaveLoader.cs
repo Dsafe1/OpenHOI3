@@ -220,6 +220,8 @@ public static class CSaveLoader
 		{
 			warn($"save '{System.IO.Path.GetFileName(path)}': not loaded yet - {line}");
 		}
+		Sim.Supply.CSupplyNetworks.Refresh(state, force: true);
+		Sim.Wars.CSurrender.CountVictoryPoints(state);
 		return (state, report);
 	}
 

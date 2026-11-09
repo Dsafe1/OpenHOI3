@@ -411,6 +411,22 @@ public class TheatreTests
 		Assert.Equal("1st Theatre", CUnitNames.ForTheatre(state, poland, null));
 	}
 
+	[Fact]
+	public void A_country_fighting_beside_another_shares_its_region_group()
+	{
+		CGameState state = World();
+		CSupplyNetwork before = CSupplyNetworks.Refresh(state, force: true);
+		Assert.NotSame(before.AreaOf(1)!.RegionGroup, before.AreaOf(31)!.RegionGroup);
+		var war = new CWar("a war");
+		war.Attackers.Add(Ger);
+		war.Attackers.Add(Hol);
+		war.Defenders.Add(Pol);
+		state.Wars.Add(war);
+		CSupplyNetwork after = CSupplyNetworks.Refresh(state, force: true);
+		Assert.Same(after.AreaOf(1)!.RegionGroup, after.AreaOf(31)!.RegionGroup);
+		Assert.NotSame(after.AreaOf(1)!.RegionGroup, after.AreaOf(21)!.RegionGroup);
+	}
+
 	[Theory]
 	[InlineData(1000)] // no fronts at all
 	[InlineData(500, 250_000L)]

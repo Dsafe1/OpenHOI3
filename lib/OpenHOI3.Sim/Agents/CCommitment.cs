@@ -112,13 +112,13 @@ public static class CCommitment
 	private static bool IsAlliedSoil(CGameState state, CCountry country, CSupplyNetwork network, CSupplyArea? capitalArea,
 		CUnit unit)
 	{
-		if (unit.Location <= 0 || capitalArea?.Group is not { } group)
+		if (unit.Location <= 0 || capitalArea?.RegionGroup is not { } group)
 		{
 			return false;
 		}
 		CProvince here = state.Province(unit.Location);
 		return here.Controller is { } holder && holder != country.Tag
-			&& ReferenceEquals(network.AreaOf(unit.Location)?.Group, group);
+			&& ReferenceEquals(network.AreaOf(unit.Location)?.RegionGroup, group);
 	}
 
 	private static void Reserve(CGameState state, CCountry country, CAgent agent, CUnit headquarters, CTheatre? theatre,

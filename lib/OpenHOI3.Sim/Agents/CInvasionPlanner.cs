@@ -414,7 +414,7 @@ public static class CInvasionPlanner
 			{
 				continue;
 			}
-			if (!ReferenceEquals(area, capitalArea) && area.Group is { } group && CAreaHostility.GroupBordersEnemy(state, group))
+			if (!ReferenceEquals(area, capitalArea) && area.RegionGroup is { } group && CAreaHostility.GroupBordersEnemy(state, group))
 			{
 				continue;
 			}
@@ -468,7 +468,7 @@ public static class CInvasionPlanner
 			}
 			int role = CArmyRole.Of(unit);
 			if (role is CArmyRole.Armour or CArmyRole.Garrison
-				|| ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.Group, target.Group))
+				|| ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.RegionGroup, target.RegionGroup))
 			{
 				continue;
 			}

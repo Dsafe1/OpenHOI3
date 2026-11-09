@@ -40,6 +40,12 @@ public sealed class CSupplyArea
 	public CSupplyGroup? Group { get; set; }
 
 	/// <summary>
+	/// The land a country and those fighting beside it hold in one piece, which the AI asks and supply does not: the
+	/// original's second grouping of areas (<c>docs/mechanics/supply.md</c>, section 3.1).
+	/// </summary>
+	public CSupplyGroup? RegionGroup { get; set; }
+
+	/// <summary>
 	/// Its fronts by land, each its provinces in order: made the first time they are asked for, which the area being made
 	/// again with the network keeps up to date (<c>docs/mechanics/theatres.md</c>, section 2).
 	/// </summary>

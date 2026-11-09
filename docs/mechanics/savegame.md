@@ -55,6 +55,11 @@ As the original's [exe], but where *Ours* says otherwise:
    after its `date` [exe]. Nor are the laws moved, technology bought, the order-of-battle files read, history replayed or
    history revolts carried out.
 
+**The supply network is made again once a save is read**, and each country's victory points counted (2026-11-09). Reading the
+theatres builds it while the pacts are yet to come, and nothing would make it again until a province changed hands, so a puppet
+stood apart from its master for as long as no province did. Found setting a loaded game beside the running original
+(`reversing/findings/FINDINGS-balancing.md`).
+
 ## 3. How a save writes its values
 
 [exe], from the original's writers (`FINDINGS-save.md`; `FINDINGS-savegame.md`, sections B and C): a figure is thousandths

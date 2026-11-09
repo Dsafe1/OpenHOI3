@@ -552,7 +552,7 @@ public static class CLandAttack
 		foreach (CProvinceEdge edge in p.Edges)
 		{
 			CProvince q = state.Province(edge.To);
-			if (!q.IsSea && CApproaches.IsFriendly(state, country, q.Controller) && network.AreaOf(edge.To)?.Group is { } group)
+			if (!q.IsSea && CApproaches.IsFriendly(state, country, q.Controller) && network.AreaOf(edge.To)?.RegionGroup is { } group)
 			{
 				groups.Add(group);
 			}

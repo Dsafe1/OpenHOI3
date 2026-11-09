@@ -104,6 +104,7 @@ public static class CSupplyNetworks
 		var build = new CBuild(state, network);
 		build.MakeAreas();
 		build.MakeGroups();
+		build.MakeRegionGroups();
 		build.GiveDepots();
 		build.MeasureDistances();
 		return network;
@@ -339,6 +340,56 @@ public static class CSupplyNetworks
 					waiting.Push((next, 0));
 				}
 			}
+		}
+
+		/// <summary>
+		/// The AI's grouping: an area joins where its holder is not the rebels and is on the side of whoever holds the
+		/// group's first area, or fighting a war beside it and no enemy of it.
+		/// </summary>
+		public void MakeRegionGroups()
+		{
+			foreach (CCountry country in _state.Countries)
+			{
+				foreach (CSupplyArea start in _areasOf[country.Tag])
+				{
+					if (start.RegionGroup is not null)
+					{
+						continue;
+					}
+					var group = new CSupplyGroup();
+					var waiting = new Stack<(CSupplyArea Area, int Neighbour)>();
+					start.RegionGroup = group;
+					group.Areas.Add(start);
+					waiting.Push((start, 0));
+					while (waiting.Count > 0)
+					{
+						(CSupplyArea area, int at) = waiting.Pop();
+						if (at >= area.Neighbours.Count)
+						{
+							continue;
+						}
+						waiting.Push((area, at + 1));
+						CSupplyArea next = area.Neighbours[at];
+						if (next.RegionGroup is null && BelongsToRegion(group, next))
+						{
+							next.RegionGroup = group;
+							group.Areas.Add(next);
+							waiting.Push((next, 0));
+						}
+					}
+				}
+			}
+		}
+
+		private bool BelongsToRegion(CSupplyGroup group, CSupplyArea area)
+		{
+			if (area.Controller.Value == Revolts.CRebelFactions.Rebels || _state.Country(area.Controller) is not { } holder
+				|| _state.Country(group.Areas[0].Controller) is not { } first)
+			{
+				return false;
+			}
+			return CSupplyRelations.IsSameSide(holder, first)
+				|| (CCountryLists.FightingTogether(_state, first.Tag, holder.Tag) && !CCountryLists.IsEnemy(_state, first, holder.Tag));
 		}
 
 		private static void Join(CSupplyGroup group, CSupplyArea area)
