@@ -306,6 +306,9 @@ public sealed class CGameState
 
 	private CUnitPositions? _positions;
 
+	/// <summary>The table last thrown away: the order the next one keeps its units in.</summary>
+	private CUnitPositions? _lastPositions;
+
 	/// <summary>
 	/// How far it is by sea between any two ports or sea provinces. Worked out from the
 	/// map the first time it is asked, a row at a time, and never saved.
@@ -618,6 +621,12 @@ public sealed class CGameState
 	/// </summary>
 	public Action<Units.CUnit>? UnitRemovedTrace { get; set; }
 
+	/// <summary>Told of each battle's hour and each unit's firing, for a tool setting them beside the original's. Null in a game.</summary>
+	public Action<string>? CombatTrace { get; set; }
+
+	/// <summary>Run as a battle's hour begins, for a tool that puts the generator where the original's stood. Null in a game.</summary>
+	public Action<Combat.CCombat>? BeforeBattle { get; set; }
+
 	/// <summary>
 	/// The AI recorded as it runs, or played back in its place (<c>docs/replay.md</c>). Null in a game, where the AI simply
 	/// runs.
@@ -748,7 +757,17 @@ public sealed class CGameState
 	/// What every roll of this game starts from. An hour's rolls depend on it, on the
 	/// hour, and on the order they are made in - and on nothing else.
 	/// </summary>
-	public uint Seed { get; set; } = 1;
+	public uint Seed
+	{
+		get => _seed;
+		set
+		{
+			_seed = value;
+			Random.Seed(value);
+		}
+	}
+
+	private uint _seed = 1;
 
 	/// <summary>The game's one source of chance, seeded afresh every hour.</summary>
 	public CRandom Random { get; } = new();
@@ -760,7 +779,7 @@ public sealed class CGameState
 	/// Who stands where. Made when first asked for and thrown away at the start of each
 	/// hour and whenever a unit is put somewhere outside the march.
 	/// </summary>
-	public CUnitPositions Positions => _positions ??= new CUnitPositions(this);
+	public CUnitPositions Positions => _positions ??= new CUnitPositions(this, _lastPositions);
 
 	/// <summary>The units in a province, in the order they came.</summary>
 	public IReadOnlyList<CUnit> UnitsIn(int province)
@@ -771,16 +790,8 @@ public sealed class CGameState
 	/// <summary>To be called when a unit has been put, made or removed other than by its march.</summary>
 	public void ForgetPositions()
 	{
+		_lastPositions = _positions ?? _lastPositions;
 		_positions = null;
-	}
-
-	/// <summary>Seeds the hour's rolls: the game's seed and the hour it is.</summary>
-	public void SeedHour()
-	{
-		unchecked
-		{
-			Random.Seed(Seed * 2654435761u + (uint)_hours * 40503u + (uint)(_hours >> 32));
-		}
 	}
 
 	/// <summary>

@@ -13,6 +13,9 @@ public sealed class CCombatStream
 
 	private uint _state;
 
+	/// <summary>Where the rolls stand, for a tool's trace.</summary>
+	public uint State => _state;
+
 	public CCombatStream(int seed)
 	{
 		_state = (uint)seed;

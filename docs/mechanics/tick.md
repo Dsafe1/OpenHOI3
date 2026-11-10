@@ -71,13 +71,15 @@ A change of month always comes with a change of day, and a change of year with b
 
 The supply network is also rebuilt inside the hour when something changed it.
 
-**Weather has two places** (`weather.md`, section 4): **the fronts and high pressure before step 1**, right after the
-hour's rolls are seeded, so their draws are the hour's first; **every province's weather between steps 4 and 5**, so a
+**Weather has two places** (`weather.md`, section 4): **the fronts and high pressure before step 1**, so their draws are the hour's first; **every province's weather between steps 4 and 5**, so a
 march sees last hour's rain and mud and a battle the hour whole. Each province's season is made again first in its day.
 
 *Ours:* steps 1 to 3 and step 6 are built as far as there is anything for them to do.
-**Before step 1 the hour's rolls are seeded** - the original from a figure the hour's tick
-carries, here from the game's seed and the hour (`landcombat.md`, section 8). **Step 1 is
+**The generator is seeded once, when a game is made, and runs on from hour to hour** (`landcombat.md`, section 8).
+**The AI comes after every pass the hour runs, the day's among them**, each country reading the same world, and what it
+posts runs when the queue is next drained, before the next hour (read in the running game,
+`reversing/findings/FINDINGS-liveread.md`, section 2). The original runs the 102 at once on worker threads, in a different order
+every hour; here they go in turn. The hour's trading stays in the hourly pass, as the original's does. **Step 1 is
 where a unit moves and where a battle starts**: the look at its order (`fleetsandair.md`,
 section 5), the look for an enemy ahead, its attack delay, its march (`movement.md`,
 section 6), and the look at the province it stands in, every unit of every country in turn.

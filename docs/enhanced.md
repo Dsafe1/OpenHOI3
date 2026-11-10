@@ -187,6 +187,7 @@ Add to it whenever a spec records something of the original's that looks like a 
 - **A division over 1000 from a theatre's fronts can never be sent there.** The distance's first best is set against a square, so it caps at 1000, and a capped candidate scores nothing; a theatre with no fronts gets no one. `agents.md`, 10.2. *Bug.* Risk: AI land, where every overseas garrison stays short.
 - **Any AI unit on the land of a country with no faction is lent to it, where its own country has none either.** The test is one shared "no faction". `agents.md`, 10.5. *Oversight.* Risk: AI land; the USA's division in the Philippines goes this way on the first day.
 - **A garrison is rated higher the weaker it is.** `moving.md`, 18. *Bug.* Risk: AI land.
+- **The AI odds read a unit last battle figures.** The defence in `CAttackOdds` is the product its last battle left, nought for a unit that has never fought, so a fresh unit counts no toughness at all and a veteran is judged by a battle long over. `moving.md`, 11.4 and 18. *Oversight.* Risk: AI attacks.
 - **The terrain figure's neighbour term re-reads the province's own terrain.** `moving.md`, 18. *Bug.* Risk: AI attacks.
 - **The AI's air sunset ignores longitude.** `moving.md`, 17.4 and 18. *Oversight.* Risk: small.
 - **Multi-role wings alone fly nothing.** `moving.md`, 17.4 and 18. *Oversight.* Risk: AI air.

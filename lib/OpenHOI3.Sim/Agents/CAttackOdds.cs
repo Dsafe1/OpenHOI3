@@ -87,7 +87,7 @@ public static class CAttackOdds
 			if (unit.HoursAttacking > 0 || unit.IsFighting)
 			{
 				string kind = attacking ? CSubUnitStats.Toughness : CUnitTotals.Defensiveness;
-				tough += CUnitTotals.Sum(unit, kind).Raw * unit.CombatDefence.Raw / Scale * unit.CombatAttack.Raw / Scale;
+				tough += CUnitTotals.Sum(unit, kind).Raw * unit.CombatDefence.Raw / Scale * unit.LandingDefence.Raw / Scale;
 			}
 		}
 		softness /= units.Count;

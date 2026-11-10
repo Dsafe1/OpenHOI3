@@ -51,6 +51,8 @@ public static class CLandFire
 	public static void Fire(CGameState state, CCombat combat, CCombatSide side, CCombatStream rolls,
 		CUnit attacker, CCombatSide enemy)
 	{
+		state.CombatTrace?.Invoke($"FIRE u={attacker.Id} atk={(side.IsAttacker ? 1 : 0)} x={rolls.State:X8} draws={state.Random.Draws} " +
+			$"eFront={enemy.Front.Count} prod={attacker.CombatAttack.Raw},{attacker.CombatDefence.Raw},{attacker.LandingAttack.Raw},{attacker.LandingDefence.Raw}");
 		if (enemy.Front.Count < 1 || state.Country(attacker.FiguresOwner) is not { } owner)
 		{
 			return;

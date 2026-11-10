@@ -46,6 +46,9 @@ public static class CTick
 		{
 			RunYearlyPass(state);
 		}
+		// The AI comes after all of the hour's passes, the day's among them, every country reading the same world: what it
+		// posts runs when the queue is next drained, before the next hour (read in the running game, tick.md, section 3).
+		RunAiPass(state);
 
 		// Last of all the original removes the units queued for removal during the
 		// hour, so that nothing is freed in the middle of a pass. There are no units yet.
@@ -57,8 +60,6 @@ public static class CTick
 	/// </summary>
 	private static void RunHourlyPass(CGameState state)
 	{
-		// Every roll of the hour starts from the game's seed and the hour it is.
-		state.SeedHour();
 		// The first thing the hour does: the landings on the player's ground are looked at, and a new one is told
 		// (docs/mechanics/transport.md, section 11).
 		Step(state, Transport.CInvasionWarnings.RunHourly);
@@ -96,13 +97,23 @@ public static class CTick
 		// An event left unanswered past its time answers itself (ours: the original's window counts
 		// each frame, docs/mechanics/events.md section 7).
 		Step(state, CEventPass.RunHourly);
-		// Each AI country answers the offers made to it (docs/mechanics/agreements.md, section 2).
-		AiStep(state, Agreements.CPactPasses.AnswerOffers);
-		// Then each AI country's trading, by the install's Lua (docs/mechanics/trade.md, section 9; ours:
+		// Each AI country's trading, by the install's Lua (docs/mechanics/trade.md, section 9; ours:
 		// which of the two runs first in the original's hour was not read).
 		AiStep(state, Trade.CTradeAi.RunHourly);
-		// Then each AI country's politics minister, in its own hour of the day (docs/mechanics/politics.md, section 12;
-		// ours: where in the hour beside trading was not read).
+		// Last, what countries know of the provinces units left and entered this hour (intelligence.md, section 5).
+		Step(state, Intelligence.CProvinceIntel.RaiseHourly);
+	}
+
+	/// <summary>
+	/// What the AI does with the hour, after every pass the hour runs. The original runs it for every country at once on
+	/// worker threads, each reading the same world, and runs what they posted afterwards; here the countries go in turn
+	/// and what they post waits in the same way, so the one's commands are not seen by the next.
+	/// </summary>
+	private static void RunAiPass(CGameState state)
+	{
+		// Each AI country answers the offers made to it (docs/mechanics/agreements.md, section 2).
+		AiStep(state, Agreements.CPactPasses.AnswerOffers);
+		// Then its politics minister, in its own hour of the day (docs/mechanics/politics.md, section 12).
 		AiStep(state, Politics.CPoliticsAi.RunHourly);
 		// And its intelligence minister, in its own hour (espionage.md, section 15; ours: where beside the politics).
 		AiStep(state, Espionage.CEspionageAi.RunHourly);
@@ -117,8 +128,6 @@ public static class CTick
 		// Then its unit agents: the order of battle under each theatre and each theatre's plan (agents.md, section 2; ours:
 		// after the ministers, every country in turn).
 		AiStep(state, Agents.CUnitAiPass.RunHourly);
-		// Last, what countries know of the provinces units left and entered this hour (intelligence.md, section 5).
-		Step(state, Intelligence.CProvinceIntel.RaiseHourly);
 	}
 
 	/// <summary>

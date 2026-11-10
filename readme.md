@@ -114,6 +114,29 @@ Four choices sit under all of it:
 
 ### Next up
 
+**Next, set 2026-11-09: checking the original's running game against ours, through Cheat Engine.** The balancing was settled this
+way: the original is read live, its AI's picks logged, and ours run from the same start and set beside them
+(`docs/mechanics/agents.md`, section 14; the fact base's `findings/FINDINGS-balancing.md`). The bridge is the workspace's
+`.mcp.json`. The maintainer starts the game and Cheat Engine; a session needs nothing else. What each session logs is in the fact
+base's `CANDIDATES.md`, *Live probes queued*. In order:
+
+1. ~~**Short reads.**~~ Done 2026-11-10 (`reversing/findings/FINDINGS-liveread.md`): the generator is seeded once and runs on, and
+   the hourly reseeding is gone from here; the AI comes after all of the hour's passes; the attack odds' toughness was mended; a unit's
+   totals were right; Italy's 5% was `veteran_army`, which ours gives. Left over: the
+   Soviet Union's odds stand about 4% high by a term not found; and three AI steps (`CInvasionPlanner`, `CNavalBody`) draw on the game's
+   generator where the original's AI draws nothing on it.
+2. **The land battle**: *an established battle's hour is the original's roll for roll, given its generator* (2026-11-10,
+   `reversing/findings/FINDINGS-liveread.md`, section 7; a province's units are in order of arrival here too since then). Left: the first
+   front of a new battle, reserves coming up and the tactics, which no battle both games had going showed; the rest of the hour's draws
+   before the battles. The first front, reserves, each hour's modifiers, shots and damage, from a save with battles in it and the
+   generator's state restored, so that an hour can be played again roll for roll. `moving.md` names how battles go as what is left
+   of China falling in six months against the original's thirteen and a half.
+3. **Air, bombing and the sea**, the same way.
+4. **Republican Spain surrendering on 1 October 1936** in a headless run, which looks early, with the surrender progress logged
+   live, since no save holds it.
+5. **The AI's land movement**: after four days 782 of 908 divisions stand where the save has them, 789 move or stay as it does, and
+   317 of 542 are bound for its province. Load from a save rather than a new game, since differences compound from day one.
+
 As of 2026-10-19, stage 5's military AI built through its third piece, moving and attacking (the last paragraphs before *Loose ends*); before that, in stage 3 with stage 4 built as far as items 6 to 10 cut it - events and decisions, diplomacy through factions, politics and espionage, each in four pieces, and triggered modifiers, with occupation and revolt, the last of stage 4, built in its four pieces - and the economy of stage 2 next, buildings in the build queue first. Kept
 current as work lands, so that picking this up cold needs nothing but this file and
 `docs/mechanics/`.

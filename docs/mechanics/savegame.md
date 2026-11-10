@@ -43,8 +43,7 @@ As the original's [exe], but where *Ours* says otherwise:
 3. **The played country** is the one asked for (`--country=`), else the one the save names. The original never takes
    it from the save - its lobby chooses, by default the save's own (*inferred*) - so the two come to the same.
 4. **The generator** is seeded with the save's `seed`, where the original throws `seed` and `count` away
-   (`docs/compatibility.md`, entry 15). Here the hour seeds the generator again from the game's seed and the hour, so
-   the seed is all a loaded game needs to go on with the draws it would have made; `count` is the writer's.
+   (`docs/compatibility.md`, entry 15). The generator is then moved on by the save's `count`, so a game saved here goes on with the draws it would have made.
 5. **What the original works out again**, before the first hour: the provinces' and countries' modifiers, the strategic
    resources, IC, manpower, leadership, every country's effective neutrality, and **a fresh AI for every country** - the
    ministers' first hours; the strategy a save gave is kept until its ten days are up, and one never made is made
@@ -62,8 +61,8 @@ stood apart from its master for as long as no province did. Found setting a load
 
 **A loaded game is past its AI's first pass.** A game the original has loaded and stands paused at its hour already has every
 agent made and bound and its first pass marked done (read in the running game, 2026-11-09), and it balances from its first hour.
-So a load clears each strategy's "theatres to remake", marks the pass done and waiting over, and runs one AI pass before the
-first hour. How the original gets there, whether it runs a pass at all, was not read; this is the state it arrives at.
+So a load clears each strategy's "theatres to remake" and marks the pass done and waiting over, and entering the game runs one AI
+pass before the first hour, as it does for a new game. How the original gets there, whether it runs a pass at all, was not read; this is the state it arrives at.
 
 ## 3. How a save writes its values
 
@@ -702,10 +701,9 @@ Play (`frontend.md`, section 4).
   The twelve saves of 16 July 1941, an hour apart, have Germany's 7 divisions lent to Slovakia, and there Germany's
   brigades stand a little *above* our ceiling (62.895 to 62.000 for its army's headquarters), where Japan's stand below
   it - so neither "the lender counts them" nor "the receiver does" fits every case.
-- **Italy's ceiling of organisation in July 1941 is the officer ratio's times 1.05** on every kind of brigade (44.100
-  for a headquarters of 30 at the ratio's cap of 1.4, where ours gives 42.000), so the hour brings 124 brigades down.
-  Its modifier for land organisation here is nought, and the event modifiers a save keeps are read; where the 5% comes
-  from was not found.
+- ~~**Italy's ceiling of organisation in July 1941 is the officer ratio's times 1.05.**~~ It is the triggered modifier
+  `veteran_army`, 250 land battles and more being +5% land organisation, the save giving Italy 251 (read in the running game,
+  2026-11-10, `reversing/findings/FINDINGS-liveread.md`, section 5). Ours gives Italy that modifier on a load.
 - A faction's members are written in the order they joined; here they are written in `common/countries.txt`'s, the
   order of joining not being held.
 - What the sunk ships answer: `total_of_ours_sunk` and `total_sunk_by_us` are counts over `sunk_ships`, but their

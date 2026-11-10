@@ -344,7 +344,7 @@ bound for p, not retreating, **stands down**.
 
 Each side's units u, weight = mean strength share x mean organisation share x (engagement + its modifier): A += (1 + the
 country's `soft_attack` modifier) x soft attack x weight; B the same for hard; C the mean softness; D the mean
-toughness (theirs: defensiveness) x its last combat's two defence products / 10^6. Ours: engagement x (1 - the attacker's
+toughness (theirs: defensiveness) x its last combat's defence product x its landing's defence scale / 10^6. *Set beside the running game on 2026-11-10, 81 estimates of 16 July 1941: within 11%, half within 4%, Germany's single-unit estimates within 0.5% but one (`reversing/findings/FINDINGS-liveread.md`, section 6).* Ours: engagement x (1 - the attacker's
 share) for each battle it defends in, again where that share is over a half. Theirs: for its first battle as an attacker,
 x min(that battle's odds, 4) / 4 (0.01 for nought). Their damage = (1 - D_ours / 100)(A_theirs C_ours + B_theirs (1 -
 C_ours)); ours the same the other way; **odds = ours / theirs** - nought with no unit, 100 with no defender, 50 with no

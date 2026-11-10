@@ -28,11 +28,50 @@ public static class CLoadCheck
 	/// <summary>Given as <c>examples=TAG</c>: the examples of every miss are that country's, a dozen of them.</summary>
 	private static string? ExampleCountry;
 
+	/// <summary>The hours of the running game's clock are this many ahead of ours.</summary>
+	private const long OriginalTickOffset = 43_800_000;
+
+	private static void PutGenerator(CGameState state, string folder, CCombat combat)
+	{
+		string path = System.IO.Path.Combine(folder, $"mt_{state.TotalHours + OriginalTickOffset}_{combat.Province}_{(combat.Kind == ECombatKind.Land ? "L" : "B")}.txt");
+		if (!System.IO.File.Exists(path))
+		{
+			return;
+		}
+		string[] lines = System.IO.File.ReadAllLines(path);
+		string[] head = lines[0].Split(' ');
+		var words = new uint[624];
+		for (int i = 0; i < words.Length; i++)
+		{
+			words[i] = uint.Parse(lines[i + 1], System.Globalization.NumberStyles.HexNumber);
+		}
+		state.Random.Restore((words, int.Parse(head[1]), long.Parse(head[0])));
+	}
+
+	private static void WriteBattles(CGameState state, System.IO.TextWriter log)
+	{
+		foreach (CCombat combat in state.Combats.Where(c => c.Kind == ECombatKind.Land))
+		{
+			log.WriteLine($"AFTER prov {combat.Province} day {combat.Hour} dur {combat.Duration}");
+			foreach ((string name, CCombatSide side) in new[] { ("A", combat.Attacker), ("D", combat.Defender) })
+			{
+				log.WriteLine($" SIDE {name} dice {side.Dice} losses {side.Losses.Raw}");
+				foreach (CUnit unit in side.Units)
+				{
+					log.WriteLine($"  U {unit.Id} " + string.Join(" ", unit.SubUnits.Select(b => $"{b.Strength.Raw}/{b.Organisation.Raw}")));
+				}
+			}
+		}
+	}
+
 	public static int Run(string[] args)
 	{
 		ExampleCountry = args.FirstOrDefault(arg => arg.StartsWith("examples=", StringComparison.Ordinal))?["examples=".Length..];
 		string? trace = args.FirstOrDefault(arg => arg.StartsWith("trace=", StringComparison.Ordinal))?["trace=".Length..];
-		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal) && !arg.StartsWith("trace=", StringComparison.Ordinal)).ToArray();
+		string? generator = args.FirstOrDefault(arg => arg.StartsWith("generator=", StringComparison.Ordinal))?["generator=".Length..];
+		string? battles = args.FirstOrDefault(arg => arg.StartsWith("battles=", StringComparison.Ordinal))?["battles=".Length..];
+		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal) && !arg.StartsWith("trace=", StringComparison.Ordinal)
+			&& !arg.StartsWith("generator=", StringComparison.Ordinal) && !arg.StartsWith("battles=", StringComparison.Ordinal)).ToArray();
 		if (args.Length < 3)
 		{
 			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck load <install folder> <savegame> [hours] [later savegame] [examples=TAG] [trace=TAG]");
@@ -125,9 +164,23 @@ public static class CLoadCheck
 			}
 		}
 		clock.Restart();
-		for (int hour = 0; hour < hours; hour++)
+		System.IO.StreamWriter? battleLog = battles is null ? null : new System.IO.StreamWriter(battles);
+		if (battleLog is not null)
 		{
-			CTick.RunHour(state);
+			state.CombatTrace = battleLog.WriteLine;
+		}
+		if (generator is not null)
+		{
+			// generator=FOLDER: the original's generator as dumped as each battle's hour began, mt_<its tick>_<province>.txt.
+			state.BeforeBattle = combat => PutGenerator(state, generator, combat);
+		}
+		// Through the simulation, as the client plays a load: entering the game runs the AI's pass and what it posts.
+		var simulation = new CSimulation(state);
+		simulation.RunHours(hours);
+		if (battleLog is not null)
+		{
+			WriteBattles(state, battleLog);
+			battleLog.Dispose();
 		}
 		Console.WriteLine($"ran {hours} hours in {clock.ElapsedMilliseconds} ms, to {state.Date} {state.Hour}:00");
 		if (later is not null)

@@ -49,6 +49,7 @@ public static class CSaveWriter
 		CSaveTop.WriteGamePlay(writer, state);
 		CSaveTop.WriteVictoryConditions(writer, state);
 		writer.Int("seed", unchecked((int)state.Seed));
+		writer.Int("count", unchecked((int)state.Random.Draws));
 		// The last serial minted in play, after which the original goes on numbering: the game's own count, where the
 		// original gathers the highest of what it holds (savegame.md, section 9).
 		if (state.LastUnitId >= state.HistoryUnitNext)

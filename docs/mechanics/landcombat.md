@@ -503,17 +503,21 @@ fifteen bits of each multiplied together. One draw of the game's generator start
 hour, so a side's shooting costs the game one draw however many shots it fires - and the
 rolls for whether a shot lands, which are the game's, cost two each.
 
-**The original seeds its generator afresh every hour** from a figure the hour's tick
-carries, which is how every machine in a game rolls alike.
+**The original seeds its generator once and it runs on**: over 36 hours of a new game it was not seeded again and its count
+of draws ran from 7,771 to 25,530 (read in the running game, `reversing/findings/FINDINGS-liveread.md`, section 1). This corrects a
+reading that had every hour start afresh.
 
-*Ours:* the game holds a seed, and an hour's rolls start from the seed and the hour it is.
+*Ours:* the game holds a seed, the generator is seeded with it once and runs on, and a load moves it on by the save's count.
 How the original turns a figure into its generator's first state is read since 2026-11-07 -
 the usual recurrence, its shift keeping the sign (`reversing/findings/FINDINGS-espionage.md`,
-the record's `MT19937Seed`), which `CRandom` follows - but where its hourly figure comes from
-is not, so **an hour of the original cannot be rolled
-again here**, and would need every roll that comes before the battles' in the hour as well:
-the units' pass and the AI's both draw. A battle here can be checked for what it does on
-average and for what does not depend on the dice, not hit for hit.
+the record's `MT19937Seed`), which `CRandom` follows. **An hour of the original can be rolled again here given the generator's whole
+state at its start**, dumped from the running game, a save holding only its seed and count; that is the next step of *Next up* in the
+readme.
+
+**Set beside the running game, 2026-11-10** (`reversing/findings/FINDINGS-liveread.md`, section 7): the first hour of `Ireland1938_08_03_14.hoi3`, the
+original's generator put in before each battle (`OpenHOI3.SaveCheck load ... generator=FOLDER battles=FILE`). Every battle both had going gives the same
+fronts, the same side's stream, the same draws and every brigade the same strength and organisation to the thousandth, but for one brigade whose
+organisation and strength went a few hundredths otherwise: its country's experience for that hour, rolled before the battles, had come out otherwise.
 
 ## 9. The attack delay
 

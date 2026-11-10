@@ -100,6 +100,30 @@ public class MovementTests
 		subUnit.Stats.Adjusters[name] = adjuster;
 	}
 
+	[Fact]
+	public void AProvinceKeepsItsUnitsInTheOrderTheyCame()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		CUnit first = Division(state, country, Berlin, Infantry());
+		CUnit second = Division(state, country, Berlin, Infantry());
+		Assert.Equal(new[] { first, second }, state.UnitsIn(Berlin));
+
+		// One made next, which the order of battle would put anywhere, goes on the end of a table made afresh...
+		var made = new CUnit(EUnitKind.Division, country.Tag) { Id = ++state.LastUnitId, Location = Berlin, Name = "New" };
+		country.Units.Insert(0, made);
+		state.ForgetPositions();
+		Assert.Equal(new[] { first, second, made }, state.UnitsIn(Berlin));
+
+		// ...and one that leaves and comes back stands behind those who stayed.
+		first.Location = Potsdam;
+		state.ForgetPositions();
+		Assert.Equal(new[] { second, made }, state.UnitsIn(Berlin));
+		first.Location = Berlin;
+		state.ForgetPositions();
+		Assert.Equal(new[] { second, made, first }, state.UnitsIn(Berlin));
+	}
+
 	// --- speed ---
 
 	[Fact]

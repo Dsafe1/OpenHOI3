@@ -242,7 +242,7 @@ generator, over the original's wall clock and over the event scope's state of ch
 | | |
 | --- | --- |
 | the original | weighs each option by its `ai_chance`, cuts each share of a hundred to a whole number, and takes the first option a roll of 0 to 99 does not pass - the roll from a **fresh generator seeded with the time of day**, so the choice is reproducible from neither a save nor a seed |
-| here | the same weights, the same shares, the same test and the same fall to the first option - the roll from **the game's own generator**, which an hour seeds from the game's seed |
+| here | the same weights, the same shares, the same test and the same fall to the first option - the roll from **the game's own generator**, seeded once from the game's seed |
 | the difference today | which option an AI country takes, run against run: here a game played the same way chooses the same; in the original it differs every time |
 | a mod loses | nothing; no file can tell the two apart |
 | why | a game here is replayable from its seed and its commands, and the tests depend on it; a choice by the clock would make every AI event a different game |

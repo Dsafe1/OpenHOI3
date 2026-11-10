@@ -113,12 +113,14 @@ public static class CSaveLoader
 					report.Player = node.Value?.Trim('"') ?? "";
 					break;
 				// The game's generator goes on where the save left it, where the original throws both away
-				// (docs/compatibility.md, entry 15). The hour reseeds it, so the seed is all that carries the game on.
+				// (docs/compatibility.md, entry 15): seeded, then moved on by the draws the save counts.
 				case "seed":
 					state.Seed = unchecked((uint)CSaveValues.Whole(node.Value));
 					break;
-				// The generator's count is the writer's; the history's counter and the highest id were read first.
 				case "count":
+					state.Random.Skip(CSaveValues.Whole(node.Value));
+					break;
+				// The history's counter and the highest id were read first.
 				case "unit":
 				case "id":
 					break;
@@ -223,7 +225,8 @@ public static class CSaveLoader
 		Sim.Supply.CSupplyNetworks.Refresh(state, force: true);
 		Sim.Wars.CSurrender.CountVictoryPoints(state);
 		// The original has run an AI pass by the time a loaded game stands paused at its hour: every agent made and bound,
-		// and its first pass done (measured in the running game, FINDINGS-balancing.md).
+		// and its first pass done (measured in the running game, FINDINGS-balancing.md). Entering the game runs that pass
+		// here, as for a new game; a load marks it as being no first one.
 		foreach (CCountry country in state.Countries)
 		{
 			// A loaded game is no first pass and waits for no theatre: FINDINGS-agents.md, the pass, step 5.
@@ -231,7 +234,6 @@ public static class CSaveLoader
 			country.UnitAi.UnitPassDone = true;
 			country.Strategy.TheatresDirty = false;
 		}
-		Sim.Agents.CUnitAiPass.RunHourly(state);
 		return (state, report);
 	}
 
@@ -660,6 +662,9 @@ public static class CSaveLoader
 		CIndustrialCapacity.Update(state);
 		CStrategicResources.Update(state);
 		CCountryModifiers.Rebuild(state);
+		// What a triggered modifier's `lost_national` asks: worked out before they are tested, or a country that has lost its
+		// land would go without its modifier until the next midnight (seen in the running game, desperate_defence).
+		Sim.Wars.CSurrender.CountVictoryPoints(state);
 		CCountryModifiers.RebuildDaily(state);
 		CManpower.Update(state);
 		CLeadership.Update(state);

@@ -318,6 +318,7 @@ public static class CCombats
 			bool isNaval = combat.Kind == ECombatKind.Naval;
 			if (CBombing.IsBombing(combat.Kind))
 			{
+				Trace(state, combat);
 				if (CBombing.RunHour(state, combat))
 				{
 					Finish(state, combat);
@@ -326,6 +327,7 @@ public static class CCombats
 			}
 			if (combat.Kind == ECombatKind.Air)
 			{
+				Trace(state, combat);
 				if (CAirBattle.RunHour(state, combat))
 				{
 					Finish(state, combat);
@@ -343,11 +345,25 @@ public static class CCombats
 					Begin(state, combat);
 				}
 			}
+			Trace(state, combat);
 			if (isNaval ? CNavalBattle.RunHour(state, combat) : RunHour(state, combat))
 			{
 				Finish(state, combat);
 			}
 		}
+	}
+
+	private static void Trace(CGameState state, CCombat combat)
+	{
+		state.BeforeBattle?.Invoke(combat);
+		if (state.CombatTrace is not { } trace)
+		{
+			return;
+		}
+		string fronts = combat.Kind != ECombatKind.Land ? "" :
+			$" Af={string.Join(",", combat.Attacker.Front.ConvertAll(u => u.Id))} Ar={string.Join(",", combat.Attacker.Reserves.ConvertAll(u => u.Id))}" +
+			$" Df={string.Join(",", combat.Defender.Front.ConvertAll(u => u.Id))} Dr={string.Join(",", combat.Defender.Reserves.ConvertAll(u => u.Id))}";
+		trace($"COMBAT {combat.Kind} prov={combat.Province} day={combat.Hour} dur={combat.Duration} draws={state.Random.Draws}{fronts}");
 	}
 
 	public static void Begin(CGameState state, CCombat combat)
