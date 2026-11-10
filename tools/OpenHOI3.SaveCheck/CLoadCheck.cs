@@ -48,6 +48,26 @@ public static class CLoadCheck
 		state.Random.Restore((words, int.Parse(head[1]), long.Parse(head[0])));
 	}
 
+	/// <summary>watch=N,N: what a province holds after the hours, set beside the running game's.</summary>
+	private static void WriteProvince(CGameState state, System.IO.TextWriter log, int id)
+	{
+		CProvince province = state.Province(id);
+		string Goods(CGoodsPool pool) => string.Join(",", Enum.GetValues<EGoods>().Select(good => pool[good].Raw));
+		log.WriteLine($"P {id}");
+		log.WriteLine($" pool {Goods(province.Pool)}");
+		log.WriteLine($" current {Goods(province.CurrentProducing)}");
+		int at = 0;
+		foreach (CBuilding building in state.Buildings)
+		{
+			at++;
+			log.WriteLine($" B {at} {province.BuildingMaxLevel(building).Raw} {province.BuildingLevel(building).Raw}");
+		}
+		foreach (CUnit unit in state.UnitsIn(id))
+		{
+			log.WriteLine($" U {unit.Id} {unit.Owner.Value} " + string.Join(" ", unit.SubUnits.Select(b => $"{b.Id}:{b.Strength.Raw}/{b.Organisation.Raw}")));
+		}
+	}
+
 	private static void WriteBattles(CGameState state, System.IO.TextWriter log)
 	{
 		foreach (CCombat combat in state.Combats.Where(c => c.Kind == ECombatKind.Land))
@@ -70,8 +90,10 @@ public static class CLoadCheck
 		string? trace = args.FirstOrDefault(arg => arg.StartsWith("trace=", StringComparison.Ordinal))?["trace=".Length..];
 		string? generator = args.FirstOrDefault(arg => arg.StartsWith("generator=", StringComparison.Ordinal))?["generator=".Length..];
 		string? battles = args.FirstOrDefault(arg => arg.StartsWith("battles=", StringComparison.Ordinal))?["battles=".Length..];
+		string? watch = args.FirstOrDefault(arg => arg.StartsWith("watch=", StringComparison.Ordinal))?["watch=".Length..];
 		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal) && !arg.StartsWith("trace=", StringComparison.Ordinal)
-			&& !arg.StartsWith("generator=", StringComparison.Ordinal) && !arg.StartsWith("battles=", StringComparison.Ordinal)).ToArray();
+			&& !arg.StartsWith("generator=", StringComparison.Ordinal) && !arg.StartsWith("battles=", StringComparison.Ordinal)
+			&& !arg.StartsWith("watch=", StringComparison.Ordinal)).ToArray();
 		if (args.Length < 3)
 		{
 			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck load <install folder> <savegame> [hours] [later savegame] [examples=TAG] [trace=TAG]");
@@ -180,6 +202,10 @@ public static class CLoadCheck
 		if (battleLog is not null)
 		{
 			WriteBattles(state, battleLog);
+			foreach (string text in (watch ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
+			{
+				WriteProvince(state, battleLog, int.Parse(text));
+			}
 			battleLog.Dispose();
 		}
 		Console.WriteLine($"ran {hours} hours in {clock.ElapsedMilliseconds} ms, to {state.Date} {state.Hour}:00");

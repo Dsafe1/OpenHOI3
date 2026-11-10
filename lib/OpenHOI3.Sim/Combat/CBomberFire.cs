@@ -209,6 +209,8 @@ public static class CBomberFire
 
 	private static void FireWing(CGameState state, CCombat bombing, CCombatSide side, CUnit unit, CSubUnit wing)
 	{
+		state.CombatTrace?.Invoke($"BFIRE u={unit.Id} wing={wing.Id} draws={state.Random.Draws} targets={side.Targets.Count} " +
+			$"prod={wing.CombatAttack.Raw},{wing.CombatDefence.Raw}");
 		List<CSubUnit> targets = side.Targets;
 		if (targets.Count < 1)
 		{

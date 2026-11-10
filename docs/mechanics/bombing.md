@@ -474,5 +474,8 @@ of a selected province says there is a bombing.
 
 - What the bracket of a bombing mission's text says when, in a unit's panel.
 - Whether flying costs a wing organisation: nothing read takes any.
+- **Set beside the running game, 2026-11-10** (`reversing/findings/FINDINGS-liveread.md`, section 9): three land bombings of August 1938, an hour each, from
+  the original's generator at each one's start. Every wing's products, its list of targets, every draw to the end of the bombing, every wing's and every unit's
+  strength and organisation after it, and what lay in the province are the original's. A bombing's mission now counts in its wings' figures, which it did not.
 - Whether damage to a building shows in its province's modifier at once or with the day's
   pass. Here it is the day's pass.

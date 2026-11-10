@@ -544,6 +544,24 @@ public class OrganisationTests
 	}
 
 	[Fact]
+	public void AnAirGroupIsNeverCrowdedWhereItsCarrierIsAndAlwaysAwayFromIt()
+	{
+		CCountry country = Germany();
+		CUnit fleet = Unit(country, EUnitKind.Navy, Kiel);
+		Brigade(Destroyer(), fleet);
+		CUnit group = Unit(country, EUnitKind.Air, Kiel);
+		Brigade(Destroyer(), group);
+		group.CarriedBy = fleet.SubUnits[0];
+		CGameState state = State(new[] { country });
+
+		Assert.Equal(1000, new CBaseCrowding(state).Of(group));
+
+		// Flown off, it is measured against an air base where the carrier is, and there is none.
+		group.Location = Kiel + 1;
+		Assert.Equal(250, new CBaseCrowding(state).Of(group));
+	}
+
+	[Fact]
 	public void WhoeverHoldsThePortRunsItByItsOwnModifierAndTechnology()
 	{
 		CCountry country = Germany();

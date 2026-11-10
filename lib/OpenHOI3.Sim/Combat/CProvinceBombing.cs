@@ -82,6 +82,7 @@ public static class CProvinceBombing
 
 	public static void Bomb(CGameState state, CCombat bombing, CCombatSide side, CUnit unit, CSubUnit wing, CNeed need)
 	{
+		state.CombatTrace?.Invoke($"BRUN wing={wing.Id} draws={state.Random.Draws}");
 		CProvince province = state.Province(bombing.Province);
 		CDefines defines = state.Defines;
 		string military = CManpower.MilitarySection;

@@ -33,6 +33,7 @@ public sealed class CBaseCrowding
 	private readonly CBuilding? _airBase;
 	private readonly Dictionary<int, long> _ships = new();
 	private readonly Dictionary<int, long> _wings = new();
+	private readonly Dictionary<CSubUnit, long> _onCarrier = new();
 
 	public CBaseCrowding(CGameState state)
 	{
@@ -54,7 +55,12 @@ public sealed class CBaseCrowding
 		{
 			foreach (CUnit unit in country.AllUnits())
 			{
-				if (unit.Base == 0 || unit.CarriedBy is not null)
+				if (unit.CarriedBy is { } carrier)
+				{
+					_onCarrier[carrier] = _onCarrier.GetValueOrDefault(carrier) + unit.SubUnits.Count;
+					continue;
+				}
+				if (unit.Base == 0)
 				{
 					continue;
 				}
@@ -69,13 +75,25 @@ public sealed class CBaseCrowding
 
 	/// <summary>
 	/// How much of its usual work a unit's base does for it, in thousandths: all of it
-	/// for an army, for a unit with no base, and for an air group aboard its carrier.
+	/// for an army, for a unit with no base, and for an air group where its carrier is.
+	/// An air group away from its carrier is measured against the air base of the province
+	/// the carrier is in, usually none at sea, and so gets a quarter.
 	/// </summary>
 	public long Of(CUnit unit)
 	{
 		if (unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air)
 		{
 			return CFixedPoint.Scale;
+		}
+		if (unit.CarriedBy is { Unit: { } fleet } carrier)
+		{
+			if (unit.Location == fleet.Location)
+			{
+				return CFixedPoint.Scale;
+			}
+			long aboard = _onCarrier.GetValueOrDefault(carrier) * CFixedPoint.Scale;
+			long share = aboard > 0 ? RoomForWings(fleet.Location) * CFixedPoint.Scale / aboard : CFixedPoint.Scale;
+			return Math.Max(Least, Math.Min(share, CFixedPoint.Scale));
 		}
 		if (unit.CarriedBy is not null || unit.Base == 0)
 		{

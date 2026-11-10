@@ -851,6 +851,13 @@ public class NavalMissionTests
 
 		Assert.Equal(0, CMissionEfficiency.Of(state, germany, EUnitOrder.ConvoyRaid));
 		Assert.Equal("convoy_raid", CMissionEfficiency.NameOf(EUnitOrder.ConvoyRaid));
+		Assert.Equal("strategic_bomb", CMissionEfficiency.NameOf(EUnitOrder.StrategicBombing));
+		Assert.Equal("ground_attack", CMissionEfficiency.NameOf(EUnitOrder.GroundAttack));
+		foreach (EUnitOrder order in System.Enum.GetValues<EUnitOrder>())
+		{
+			string name = CMissionEfficiency.NameOf(order);
+			Assert.True(order == EUnitOrder.None || CMissionEfficiency.Names.Contains(name), $"{order} has no mission name");
+		}
 		Assert.Equal(32, CMissionEfficiency.Names.Count);
 		Assert.Equal(0, CMissionEfficiency.Of(state, germany, EUnitOrder.None));
 

@@ -131,7 +131,8 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    before the battles. The first front, reserves, each hour's modifiers, shots and damage, from a save with battles in it and the
    generator's state restored, so that an hour can be played again roll for roll. `moving.md` names how battles go as what is left
    of China falling in six months against the original's thirteen and a half.
-3. **Air, bombing and the sea**, the same way.
+3. **Air, bombing and the sea**, the same way. *Land bombing done 2026-11-10: three bombings the original's draw for draw and figure for figure*
+   (`reversing/findings/FINDINGS-liveread.md`, section 9). Air battles, sea battles and the bombing of ground or ships still to do.
 4. **Republican Spain surrendering on 1 October 1936** in a headless run, which looks early, with the surrender progress logged
    live, since no save holds it.
 5. **The AI's land movement**: after four days 782 of 908 divisions stand where the save has them, 789 move or stay as it does, and

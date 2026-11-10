@@ -167,6 +167,7 @@ has only so much room. `confirmed` for the arithmetic.
   the fleet's owner. That the technology's part is the key `naval_base_efficiency` is
   `inferred`: the original reads a figure off the controller's technology and the key is
   the one that fits. Nothing here measures it.
+- **An air group that has flown off its carrier is measured against the air base of the province the carrier is in**, and at sea there is none, so it does a quarter of its usual work (set beside the running game 2026-11-10: two carrier groups bombing in China; `reversing/findings/FINDINGS-liveread.md`, section 9).
 - **An air group aboard its carrier is never crowded**, where the carrier is. `confirmed`
 - **Ships do not crowd an airfield** nor wings a port: a province keeps the two apart.
   `confirmed` That another country's units based there count is `inferred`.

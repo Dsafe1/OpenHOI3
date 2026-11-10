@@ -319,7 +319,9 @@ public static class CCombats
 			if (CBombing.IsBombing(combat.Kind))
 			{
 				Trace(state, combat);
-				if (CBombing.RunHour(state, combat))
+				bool bombingOver = CBombing.RunHour(state, combat);
+				state.CombatTrace?.Invoke($"END draws={state.Random.Draws}");
+				if (bombingOver)
 				{
 					Finish(state, combat);
 				}
@@ -363,7 +365,8 @@ public static class CCombats
 		string fronts = combat.Kind != ECombatKind.Land ? "" :
 			$" Af={string.Join(",", combat.Attacker.Front.ConvertAll(u => u.Id))} Ar={string.Join(",", combat.Attacker.Reserves.ConvertAll(u => u.Id))}" +
 			$" Df={string.Join(",", combat.Defender.Front.ConvertAll(u => u.Id))} Dr={string.Join(",", combat.Defender.Reserves.ConvertAll(u => u.Id))}";
-		trace($"COMBAT {combat.Kind} prov={combat.Province} day={combat.Hour} dur={combat.Duration} draws={state.Random.Draws}{fronts}");
+		trace($"COMBAT {combat.Kind} prov={combat.Province} day={combat.Hour} dur={combat.Duration} draws={state.Random.Draws}" +
+			$" A={string.Join(",", combat.Attacker.Units.ConvertAll(u => u.Id))} D={string.Join(",", combat.Defender.Units.ConvertAll(u => u.Id))}{fronts}");
 	}
 
 	public static void Begin(CGameState state, CCombat combat)
