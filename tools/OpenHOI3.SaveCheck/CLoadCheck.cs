@@ -33,7 +33,7 @@ public static class CLoadCheck
 
 	private static void PutGenerator(CGameState state, string folder, CCombat combat)
 	{
-		string path = System.IO.Path.Combine(folder, $"mt_{state.TotalHours + OriginalTickOffset}_{combat.Province}_{(combat.Kind == ECombatKind.Land ? "L" : combat.Kind == ECombatKind.Air ? "A" : "B")}.txt");
+		string path = System.IO.Path.Combine(folder, $"mt_{state.TotalHours + OriginalTickOffset}_{combat.Province}_{(combat.Kind == ECombatKind.Land ? "L" : combat.Kind == ECombatKind.Air ? "A" : combat.Kind == ECombatKind.Naval ? "N" : "B")}.txt");
 		if (!System.IO.File.Exists(path))
 		{
 			return;
@@ -51,19 +51,25 @@ public static class CLoadCheck
 		string targets = System.IO.Path.ChangeExtension(path, ".targets");
 		if (System.IO.File.Exists(targets))
 		{
-			var held = new Dictionary<int, int>();
+			// And for a ship the distance it stands at, which a load draws up afresh, and its experience, rolled before the battles.
+			var held = new Dictionary<int, string[]>();
 			foreach (string line in System.IO.File.ReadAllLines(targets))
 			{
 				string[] parts = line.Split(' ');
-				held[int.Parse(parts[0])] = parts[2] == "1" ? int.Parse(parts[1]) : 0;
+				held[int.Parse(parts[0])] = parts;
 			}
 			foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
 			{
 				foreach (CSubUnit wing in side.Units.SelectMany(unit => unit.SubUnits))
 				{
-					if (held.TryGetValue(wing.Id, out int target))
+					if (held.TryGetValue(wing.Id, out string[]? parts))
 					{
-						wing.TargetId = target;
+						wing.TargetId = parts[2] == "1" ? int.Parse(parts[1]) : 0;
+						if (parts.Length >= 5)
+						{
+							wing.Distance = new CFixedPoint(long.Parse(parts[3]));
+							wing.Experience = new CFixedPoint(long.Parse(parts[4]));
+						}
 					}
 				}
 			}

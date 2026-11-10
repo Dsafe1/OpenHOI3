@@ -35,6 +35,18 @@ public static class CNavalFire
 
 	public static void Attack(CGameState state, CCombat combat, CCombatSide side)
 	{
+		if (state.CombatTrace is { } trace)
+		{
+			var ships = new System.Collections.Generic.List<string>();
+			foreach (CUnit sailing in side.Units)
+			{
+				foreach (CSubUnit ship in sailing.SubUnits)
+				{
+					ships.Add($"{ship.Id}:{ship.CombatAttack.Raw},{ship.CombatDefence.Raw},{ship.Strength.Raw}/{ship.Organisation.Raw},{ship.Distance.Raw}");
+				}
+			}
+			trace($"NAVSIDE atk={(side.IsAttacker ? 1 : 0)} pos={side.Positioning.Raw} draws={state.Random.Draws} ships={string.Join(" ", ships)}");
+		}
 		CCombatSide other = combat.Other(side);
 		CTraitGain.BankHour(state, side);
 		Creep(state, side);

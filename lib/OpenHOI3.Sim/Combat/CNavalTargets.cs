@@ -33,6 +33,7 @@ public static class CNavalTargets
 	/// </summary>
 	public static CSubUnit? Pick(CGameState state, CCombat combat, CCombatSide side, CCombatSide other, CSubUnit ship)
 	{
+		state.CombatTrace?.Invoke($"PICK ship={ship.Id} draws={state.Random.Draws}");
 		CCountry? owner = ship.Unit is { } fleet0 ? state.Country(fleet0.FiguresOwner) : null;
 		long placed = (ship.Stats[CNavalBattle.Positioning].Raw + side.Positioning.Raw) * 100000 / CFixedPoint.Scale;
 		placed = placed * (CFixedPoint.Scale + (owner?.Technology[TargetingChance].Raw ?? 0)) / CFixedPoint.Scale;

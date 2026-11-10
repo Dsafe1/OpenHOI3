@@ -415,3 +415,8 @@ many each has had sunk.
   raid on a convoy, and by nothing else: `navalmissions.md`, section 8.
 - What keeps a unit out of a battle for the count the original runs down an hour at a time
   beside the fleet's own wait.
+
+**Set beside the running game, 2026-11-10** (`reversing/findings/FINDINGS-liveread.md`, section 11): one hour of a battle of six ships against one in November 1937,
+from the original's generator at its start, with what a load does not carry put in by hand - each ship's target and its distance, which a load draws up afresh in the
+original as here (`reversing/findings/FINDINGS-savedbattle.md`, A.6) - and its experience. Each ship's products, position and distance, both sides' positioning, every
+draw and every ship's strength and organisation after the hour are the original's. Breaking off and a battle's first hour were not shown.
