@@ -122,6 +122,9 @@ public static class CLoadCheck
 		// skipentry: the save is of a game already entered, so the first pass's orders are in it and are not given again.
 		bool skipEntry = args.Contains("skipentry");
 		args = args.Where(arg => arg != "skipentry").ToArray();
+		// orders=FILE: every way either side gave, one a line.
+		string? ordersFile = args.FirstOrDefault(arg => arg.StartsWith("orders=", StringComparison.Ordinal))?["orders=".Length..];
+		args = args.Where(arg => !arg.StartsWith("orders=", StringComparison.Ordinal)).ToArray();
 		// agents=FILE: every agent's hold list and committed and held-back divisions after the hours, to set beside the running game's.
 		string? agentsFile = args.FirstOrDefault(arg => arg.StartsWith("agents=", StringComparison.Ordinal))?["agents=".Length..];
 		args = args.Where(arg => !arg.StartsWith("agents=", StringComparison.Ordinal)).ToArray();
@@ -274,7 +277,7 @@ public static class CLoadCheck
 				"gave other orders they differ, so a look:");
 			CompareUnits(state, later, "  ", exact: false);
 			Console.WriteLine("the ways given in those hours, beside the original's:");
-			CAiOrderCheck.Report(state, save, later, "  ", ExampleCountry);
+			CAiOrderCheck.Report(state, save, later, "  ", ExampleCountry, ordersFile);
 			Console.WriteLine("the wars, pacts and convoys, beside the later save:");
 			CompareDiplomacy(state, later, "  ");
 		}

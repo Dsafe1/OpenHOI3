@@ -95,8 +95,9 @@ public static class CAiOrderCheck
 		_ => "land units",
 	};
 
-	public static void Report(CGameState state, ClausewitzNode earlierSave, ClausewitzNode laterSave, string indent, string? onlyCountry)
+	public static void Report(CGameState state, ClausewitzNode earlierSave, ClausewitzNode laterSave, string indent, string? onlyCountry, string? allFile = null)
 	{
+		using System.IO.StreamWriter? everyWay = allFile is null ? null : new System.IO.StreamWriter(allFile);
 		Dictionary<string, SavedUnit> earlier = Units(earlierSave);
 		Dictionary<string, SavedUnit> later = Units(laterSave);
 		var ours = new Dictionary<string, CUnit>();
@@ -136,6 +137,10 @@ public static class CAiOrderCheck
 				all++;
 				bool originalOrdered = !Continues(before, theirs.Location, theirs.Path);
 				bool weOrdered = !Continues(before, unit.Location, unit.Path);
+				if (everyWay is not null && (originalOrdered || weOrdered))
+				{
+					everyWay.WriteLine($"{group}\t{theirs.Tag}\t{theirs.Kind}\t{before.Location}\t{(originalOrdered ? 1 : 0)}\t{(weOrdered ? 1 : 0)}\t{string.Join(' ', theirs.Path)}\t{string.Join(' ', unit.Path)}");
+				}
 				string who = $"{theirs.Tag} {theirs.Id} {theirs.Name.Trim('"')} at {before.Location}";
 				if (originalOrdered)
 				{
