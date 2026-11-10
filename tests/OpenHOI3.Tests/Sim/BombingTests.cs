@@ -515,7 +515,7 @@ public class BombingTests
 	[Fact]
 	public void WhoeverWalksOutOfAProvinceLeavesTheBombingOfIt()
 	{
-		CGameState state = State(out CCountry germany, out CCountry poland);
+		CGameState state = State(out CCountry germany, out CCountry poland).Paved(Roads);
 		CUnit bombers = Air(state, germany, Warsaw, Tactical);
 		bombers.Order = EUnitOrder.GroundAttack;
 		bombers.Mission.Destination = Warsaw;

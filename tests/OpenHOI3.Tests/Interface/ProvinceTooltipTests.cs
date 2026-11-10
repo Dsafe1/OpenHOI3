@@ -4,6 +4,7 @@ using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Tests.Sim;
 
 namespace OpenHOI3.Tests.Interface;
 
@@ -46,7 +47,7 @@ public class ProvinceTooltipTests
 			new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "", Capital = Berlin },
 			new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "", Capital = Warsaw },
 		};
-		return new CGameState(new CDate(1936, 1, 1), provinces, countries);
+		return new CGameState(new CDate(1936, 1, 1), provinces, countries, OpenHOI3.Tests.Sim.CTestRoads.With()).Paved();
 	}
 
 	private static string Text(CGameState state, int province, EMapTooltipMode mode, CUnit? unit = null, int selected = 0)

@@ -11,6 +11,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -21,7 +22,9 @@ using OpenHOI3.Sim.Units;
 ///
 /// what of the save is not loaded yet, block by block; the loaded game's figures set beside the save's where the loader
 /// reads them, and the ones it works out again - IC - beside nothing; and then the hours given run, to show the game goes
-/// on from there. Nothing is written. See <c>docs/mechanics/savegame.md</c>, section 4.
+/// on from there. Nothing is written. See <c>docs/mechanics/savegame.md</c>, section 4. With <c>route=UNIT:FROM:TO,...</c> it
+/// says instead the way ours finds for each, plain and very safe, on the save as loaded - to set beside a search the
+/// running game was seen to make - and stops.
 /// </summary>
 public static class CLoadCheck
 {
@@ -133,6 +136,8 @@ public static class CLoadCheck
 		string? generator = args.FirstOrDefault(arg => arg.StartsWith("generator=", StringComparison.Ordinal))?["generator=".Length..];
 		string? battles = args.FirstOrDefault(arg => arg.StartsWith("battles=", StringComparison.Ordinal))?["battles=".Length..];
 		string? watch = args.FirstOrDefault(arg => arg.StartsWith("watch=", StringComparison.Ordinal))?["watch=".Length..];
+		string? routes = args.FirstOrDefault(arg => arg.StartsWith("route=", StringComparison.Ordinal))?["route=".Length..];
+		args = args.Where(arg => !arg.StartsWith("route=", StringComparison.Ordinal)).ToArray();
 		// skipentry: the save is of a game already entered, so the first pass's orders are in it and are not given again.
 		bool skipEntry = args.Contains("skipentry");
 		args = args.Where(arg => arg != "skipentry").ToArray();
@@ -175,6 +180,27 @@ public static class CLoadCheck
 		foreach (string line in report.Lines())
 		{
 			Console.WriteLine("  " + line);
+		}
+
+		// route=UNIT:FROM:TO,...: the way ours finds for that unit on the save as loaded, plain and very safe, and stop.
+		if (routes is not null)
+		{
+			foreach (string asked in routes.Split(','))
+			{
+				int[] part = asked.Split(':').Select(int.Parse).ToArray();
+				CUnit? unit = state.Countries.SelectMany(country => country.AllUnits()).FirstOrDefault(each => each.Id == part[0]);
+				if (unit is null || state.Country(unit.Owner) is not { } owner)
+				{
+					Console.WriteLine($"ROUTE {asked}: no unit");
+					continue;
+				}
+				foreach (ERouteSafety safety in new[] { ERouteSafety.Plain, ERouteSafety.VerySafe })
+				{
+					List<int>? way = CRouteFinder.Find(state, owner, unit, part[1], part[2], landSafety: safety);
+					Console.WriteLine($"ROUTE {asked} {safety} at {unit.Location}: {(way is null ? "none" : string.Join(' ', way))}");
+				}
+			}
+			return 0;
 		}
 
 		// What was read, set beside the save it was read from: a miss here is a fault of the reading.

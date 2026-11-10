@@ -111,7 +111,7 @@ public class LandCombatTests
 				Land(Lodz, "Lodz", Pol, Edge(Posen), Edge(Warsaw)),
 			},
 			new[] { germany, poland, soviets }, defines: defines,
-			wars: atWar ? new[] { War(Ger, Pol) } : null, buildings: buildings);
+			wars: atWar ? new[] { War(Ger, Pol) } : null, buildings: CTestRoads.With(buildings ?? new CBuilding[0])).Paved();
 	}
 
 	private static CUnit Division(CGameState state, CCountry country, int province, int brigades = 3,

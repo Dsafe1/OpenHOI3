@@ -8,6 +8,7 @@ using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Transport;
 using OpenHOI3.Sim.Units;
+using OpenHOI3.Tests.Sim;
 
 namespace OpenHOI3.Tests.Interface;
 
@@ -51,7 +52,7 @@ public class OrdersTextTests
 		var bay = new CProvince(Bay, "Bay", isSea: true) { SeaIndex = 1, Edges = new[] { Edge(Kiel), Edge(Rostock) } };
 		return new CGameState(new CDate(1936, 1, 1),
 			new[] { new CProvince(0, "", isSea: false), kiel, hamburg, bay, rostock },
-			new[] { germany }, buildings: new[] { NavalBase, AirBase });
+			new[] { germany }, buildings: OpenHOI3.Tests.Sim.CTestRoads.With(NavalBase, AirBase)).Paved();
 	}
 
 	private static CUnit Unit(CGameState state, CCountry country, EUnitKind kind, int province,

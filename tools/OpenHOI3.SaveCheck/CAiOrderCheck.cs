@@ -127,7 +127,8 @@ public static class CAiOrderCheck
 			}
 		}
 
-		string Way(IReadOnlyList<int> path) => path.Count == 0 ? "stop" : path.Count <= 6
+		// Whole, where one country's examples are asked for; shortened otherwise.
+		string Way(IReadOnlyList<int> path) => path.Count == 0 ? "stop" : path.Count <= 6 || onlyCountry is not null
 			? string.Join(' ', path) : $"{string.Join(' ', path.Take(3))} .. {string.Join(' ', path.TakeLast(2))} ({path.Count})";
 
 		foreach (string group in new[] { "land units", "fleets", "air units" })

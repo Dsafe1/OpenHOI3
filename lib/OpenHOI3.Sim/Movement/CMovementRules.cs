@@ -198,6 +198,12 @@ public static class CMovementRules
 		{
 			return unit.Transport is null && Transport.CTransport.FleetToBoard(state, unit, province) is not null;
 		}
+		// A land unit stands only in land that is in an area: held by somebody and with more than one level of
+		// infrastructure built (supply.md, section 2). The original asks the province's owner area, and the null one says no.
+		if (IsLandUnit(unit) && Supply.CSupplyNetworks.Refresh(state).AreaOf(province.Id) is null)
+		{
+			return false;
+		}
 		CProvince here = state.Province(unit.Location);
 		return province.Controller == here.Controller || MayEnter(state, country, province);
 	}

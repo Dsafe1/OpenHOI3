@@ -75,7 +75,7 @@ public class MovementTests
 				Land(Leipzig, "Leipzig", Ger, Plains, Edge(Dessau, "1")),
 				Land(Posen, "Posen", Pol, Plains, Edge(Potsdam, "1")),
 			},
-			new[] { germany, poland }, defines: defines, wars: wars);
+			new[] { germany, poland }, CTestRoads.With(), defines: defines, wars: wars).Paved();
 	}
 
 	private static CCountry Germany() => new() { Tag = Ger, Name = "Germany", DefinitionFile = "" };
@@ -486,6 +486,21 @@ public class MovementTests
 	}
 
 	[Fact]
+	public void ALandUnitMayNotStandInOrPassThroughLandWithOneLevelOfInfrastructure()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		CUnit unit = Division(state, country, Berlin, Infantry());
+		Assert.NotNull(Route(state, country, unit, Leipzig));
+
+		// Dessau, the only way to Leipzig, down to one level: in no area, so nobody's land unit stands there.
+		state.Province(Dessau).SetBuildingLevel(CTestRoads.Infrastructure, CFixedPoint.One);
+		OpenHOI3.Sim.Supply.CSupplyNetworks.Refresh(state, force: true);
+		Assert.False(CMovementRules.MayStandIn(state, country, unit, state.Province(Dessau)));
+		Assert.Null(Route(state, country, unit, Leipzig));
+	}
+
+	[Fact]
 	public void AProvinceIsSettledTheFirstTimeItIsReachedSoTheRouteIsNotAlwaysTheCheapest()
 	{
 		// Start touches A, far, and B, near, in that order; B touches A; A touches the
@@ -505,7 +520,7 @@ public class MovementTests
 				Land(b, "B", Ger, Plains, Edge(start, "1"), Edge(a, "1")),
 				Land(goal, "Goal", Ger, Plains, Edge(a, "1")),
 			},
-			new[] { country });
+			new[] { country }, CTestRoads.With()).Paved();
 		CUnit unit = Division(state, country, start, Infantry());
 
 		Assert.Equal(new[] { a, goal }, Route(state, country, unit, goal));

@@ -159,7 +159,12 @@ Asked of the destination before anything, and of every step: `confirmed` unless 
   and uses some, or no fuel and burns some (`CPathFind::MayStep` in the fact base's record;
   built 2026-10-19). A unit cut off is routed round the enemy's land or not at all;
 - **only into a province the unit may stand in**: one held by whoever holds the ground
-  under it now, or one its country may walk on.
+  under it now, or one its country may walk on - and **for a land unit, only land that is in an area**: held by somebody
+  and with more than one level of infrastructure built (`supply.md`, section 2). Land with one level or none is closed to
+  every land unit, the goal of a route as well as a step on it. `confirmed` on the running game, 2026-11-10: its own search
+  never added such a province, and with the rule 57 of 60 of its searches set beside ours give its road
+  (`reversing/findings/FINDINGS-liveread.md`, section 32). It is what keeps a long march or a strategic redeployment on the
+  railways, where the shortest road would cross poor land.
 
 **Whose ground a country may walk on:** its own and a friend's, ground that belongs to
 nobody, and the ground of anyone it is at war with. In full, ground is closed only when all

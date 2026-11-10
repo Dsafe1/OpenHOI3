@@ -117,11 +117,11 @@ public class TransportTests
 				Land(Hela, "Hela", Pol, 40, 0, Edge(Bight), Edge(Deep), Edge(Gdynia)),
 				Land(Rostock, "Rostock", Ger, 0, 0, Edge(Kiel)),
 			},
-			new[] { germany, poland }, buildings: new[] { NavalBase }, defines: defines, wars: new List<CWar> { war })
+			new[] { germany, poland }, buildings: CTestRoads.With(NavalBase), defines: defines, wars: new List<CWar> { war })
 		{
 			MapWidth = 1000,
 			MapHeight = 1000,
-		};
+		}.Paved();
 	}
 
 	private static CUnit Fleet(CGameState state, CCountry country, int province, params CSubUnitType[] ships)
