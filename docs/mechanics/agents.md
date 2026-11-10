@@ -258,8 +258,9 @@ infrastructure below 200; the highest wins, strictly. Every hour the headquarter
 On the full pass, every non-division headquarters under the agent - one that is moving always, one standing still only
 where a child is under its full reach, it trespasses, or it stands on a front province while the frontier is at war - is
 sent to the province among its children: each land child's destination or place (reachable by areas no enemy holds) and
-every land neighbour of it in the same area; scored by the mean distance to the children, skipped at nought, -6 for where
-the headquarters is going, +1000 bordering foreign land, +100000 with infrastructure below 200; the lowest below 100000.
+every land neighbour of it in the same area, whether or not the child's own province could be reached; scored by the mean distance to the children - the
+garrisons left out where any child is none - skipped at nought, -6 for where the headquarters is going, +1000 bordering foreign land, +100000 with infrastructure below 200; the lowest
+below 100000, single precision throughout, and its own province where none is. Corps are walked before armies, each seeing where the one below has just been sent. **A headquarters trespassing is not built.**
 
 ### 6.5 Joined by areas
 

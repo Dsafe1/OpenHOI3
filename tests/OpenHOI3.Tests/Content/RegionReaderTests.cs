@@ -38,6 +38,23 @@ public class RegionReaderTests
 	}
 
 	[Fact]
+	public void The_word_ai_prio_marks_a_region_for_the_AIs_line()
+	{
+		List<CRegion> regions = Read(@"
+			plain_region = { 1 2 }
+			border_region = {
+				ai_prio
+				3 4
+			}
+		");
+
+		Assert.False(regions[0].AiPriority);
+		Assert.True(regions[1].AiPriority);
+		Assert.Equal(new[] { 3, 4 }, regions[1].Provinces);
+		Assert.Empty(_warnings);
+	}
+
+	[Fact]
 	public void An_entry_that_is_no_province_is_reported_and_left_out()
 	{
 		List<CRegion> regions = Read("edge_region = { 5 500 war }");

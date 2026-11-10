@@ -30,7 +30,7 @@ public static class CGarrisonFill
 			score.TryAdd(hold.Province, hold.Score);
 		}
 		var garrison = new List<CUnit>();
-		foreach (CUnit unit in agent.Committed)
+		foreach (CUnit unit in agent.CommittedAtFirst)
 		{
 			if (unit.IsGarrison)
 			{

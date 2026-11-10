@@ -16,6 +16,8 @@ public static class CRegionReader
 {
 	private const string Peace = "peace";
 
+	private const string AiPriority = "ai_prio";
+
 	public static List<CRegion> Read(string path, int provinceCount, Action<string> warn)
 	{
 		if (!File.Exists(path))
@@ -38,11 +40,16 @@ public static class CRegionReader
 			}
 			var provinces = new List<int>();
 			bool useForPeace = false;
+			bool aiPriority = false;
 			foreach (ClausewitzNode entry in block.Children)
 			{
 				if (entry.Key is null && string.Equals(entry.Value, Peace, StringComparison.OrdinalIgnoreCase))
 				{
 					useForPeace = true;
+				}
+				else if (entry.Key is null && string.Equals(entry.Value, AiPriority, StringComparison.OrdinalIgnoreCase))
+				{
+					aiPriority = true;
 				}
 				else if (int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int id)
 					&& id > 0 && id < provinceCount)
@@ -55,11 +62,11 @@ public static class CRegionReader
 					unknown++;
 				}
 			}
-			regions.Add(new CRegion(block.Key, provinces, useForPeace));
+			regions.Add(new CRegion(block.Key, provinces, useForPeace, aiPriority));
 		}
 		if (unknown > 0)
 		{
-			warn($"{unknown} entries are neither the id of a province nor '{Peace}'");
+			warn($"{unknown} entries are neither the id of a province nor '{Peace}' or '{AiPriority}'");
 		}
 		return regions;
 	}

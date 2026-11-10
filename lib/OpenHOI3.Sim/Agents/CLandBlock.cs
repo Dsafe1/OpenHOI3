@@ -46,7 +46,7 @@ public static class CLandBlock
 		{
 			return;
 		}
-		int n = agent.Committed.Count;
+		int n = agent.CommittedAtFirst.Count;
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		int budget;
 		List<CCountry> members = CCountryLists.FactionMembers(state, country.Faction);

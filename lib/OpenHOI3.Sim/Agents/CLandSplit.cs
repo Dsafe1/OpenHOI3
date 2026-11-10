@@ -33,7 +33,7 @@ public static class CLandSplit
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		bool airTransports = agent.AirTransports.Count > 0;
 		int brigaded = 0;
-		foreach (CUnit unit in agent.Committed)
+		foreach (CUnit unit in agent.CommittedAtFirst)
 		{
 			if (unit.SubUnits.Exists(brigade => brigade.Type.Key == "garrison_brigade"))
 			{
@@ -65,7 +65,7 @@ public static class CLandSplit
 				strong++;
 			}
 		}
-		int n = agent.Committed.Count;
+		int n = agent.CommittedAtFirst.Count;
 		int positions = agent.Positions.Count;
 		int garrisons;
 		int line;
@@ -92,6 +92,10 @@ public static class CLandSplit
 					strong = 1;
 				}
 				enemies *= 2;
+			}
+			if (state.AiTrace is { } splitTrace && splitTrace.Country == country.Tag)
+			{
+				splitTrace.Write($"  split: front list {agent.FrontProvinces.Count}, front {front}, enemies {enemies}, area sum {areaSum}, strong {strong}, targets {targets.Count}, brigaded {brigaded}, holds {agent.HoldProvinces.Count}");
 			}
 			int want = System.Math.Min(System.Math.Max(enemies, front), PerPosition * positions);
 			garrisons = System.Math.Min(System.Math.Min(agent.HoldProvinces.Count, n), n - want);
@@ -131,13 +135,17 @@ public static class CLandSplit
 	{
 		enemies = 0;
 		areaSum = 0;
-		var areas = new HashSet<CSupplyArea>();
 		foreach (int id in agent.FrontProvinces)
 		{
 			CProvince province = state.Province(id);
 			if (province.Controller is not { } holder || !CFrontWorthy.Is(state, country, holder))
 			{
 				continue;
+			}
+			// Its area's size for every such province, the same area again if it comes again (the original's list of areas goes unread).
+			if (network.AreaOf(id) is { } area)
+			{
+				areaSum += area.Provinces.Count;
 			}
 			int here = 0;
 			foreach (CUnit unit in state.Positions.Of(id))
@@ -148,10 +156,6 @@ public static class CLandSplit
 				}
 			}
 			enemies += here;
-			if (here > 0 && network.AreaOf(id) is { } area && areas.Add(area))
-			{
-				areaSum += area.Provinces.Count;
-			}
 		}
 	}
 
@@ -180,7 +184,7 @@ public static class CLandSplit
 		foreach ((CSupplyGroup group, int count) in wanted)
 		{
 			var there = new List<CUnit>();
-			foreach (CUnit unit in agent.Committed)
+			foreach (CUnit unit in agent.CommittedAtFirst)
 			{
 				if (unit.IsGarrison && ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.RegionGroup, group))
 				{
@@ -239,7 +243,7 @@ public static class CLandSplit
 		bool airTransports = agent.AirTransports.Count > 0;
 		CUnit? best = null;
 		long bestScore = long.MinValue;
-		foreach (CUnit unit in agent.Committed)
+		foreach (CUnit unit in agent.CommittedAtFirst)
 		{
 			if (unit.IsGarrison || !ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.RegionGroup, group)
 				|| FacesPreparedWar(state, country, unit))

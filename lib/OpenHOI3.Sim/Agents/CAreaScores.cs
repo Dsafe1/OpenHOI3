@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Sim.Ai;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
@@ -95,6 +96,10 @@ public static class CAreaScores
 				}
 			}
 			long scale = Scale(state, values, holders, ours);
+			if (state.AiTrace is { } scaleTrace && scaleTrace.Country == country.Tag && holders.Count > 0)
+			{
+				scaleTrace.Write($"  scale {id}: {scale} ours {ours} " + string.Join(" ", holders.ConvertAll(h => $"{h}={(state.Country(h) is { } c ? CombatValue(state, c, values) : -1)}")));
+			}
 			long fort = province.Modifier[CCombatModifiers.FortLevel].Raw / Whole;
 			int defend = country.Strategy.DefendProvinces.WeightOf(id);
 			long score = 10 * Whole;
@@ -213,7 +218,8 @@ public static class CAreaScores
 			return known;
 		}
 		long value = 0;
-		foreach (CUnit unit in country.AllUnits())
+		// Its own, what it has lent and what waits to be placed, and not what is lent to it (the original's RecountUnitTotals).
+		foreach (CUnit unit in country.AllUnits().Where(unit => unit.Lender is null).Concat(country.LentUnits).Concat(country.Deployments))
 		{
 			foreach (CSubUnit brigade in unit.SubUnits)
 			{
@@ -247,5 +253,16 @@ public static class CAreaScores
 	}
 
 	/// <summary>How many of its regions are marked to be held; ours: none is, the mark not being read.</summary>
-	private static int Regions(CGameState state, CProvince province) => 0;
+	private static int Regions(CGameState state, CProvince province)
+	{
+		int marked = 0;
+		foreach (int index in province.Regions)
+		{
+			if (state.Regions[index].AiPriority)
+			{
+				marked++;
+			}
+		}
+		return marked;
+	}
 }

@@ -59,10 +59,7 @@ public static class CCommandProvince
 		{
 			return;
 		}
-		if (CRouteFinder.Find(state, country, unit, unit.Location, agent.CommandProvince) is not null)
-		{
-			state.Outbox.Add(new CMoveUnitCommand(country.Tag, unit.Id, agent.CommandProvince));
-		}
+		CAiMoves.Move(state, country, unit, agent.CommandProvince, safe: true);
 	}
 
 	/// <summary>
@@ -89,10 +86,8 @@ public static class CCommandProvince
 			{
 				continue;
 			}
-			if (CRouteFinder.Find(state, country, unit, unit.Location, target) is not null)
-			{
-				state.Outbox.Add(new CMoveUnitCommand(country.Tag, unit.Id, target));
-			}
+			// Through the AI's move, so that a headquarters above this one sees where it is bound (FINDINGS-liveread.md, section 14).
+			CAiMoves.Move(state, country, unit, target, safe: true);
 		}
 	}
 
@@ -109,73 +104,81 @@ public static class CCommandProvince
 	}
 
 	/// <summary>
-	/// The original's <c>CAIUnit_PickProvinceAmongSubordinates</c>: each land subordinate's destination or place that the
-	/// headquarters can reach by areas no enemy holds, and its land neighbours in the same area, scored by the mean distance
-	/// to the subordinates, the lowest winning.
+	/// The original's <c>CAIUnit_PickProvinceAmongSubordinates</c>, as read on the listing: from each land child's destination
+	/// or place that the headquarters can reach by areas no enemy holds, and - whether or not it can - that place's land
+	/// neighbours in its area, the province with the least mean distance to the children, leaving out the garrisons where any
+	/// child is none, skipped at nought, 6 less for where it starts, 1000 more bordering foreign land, 100000 more with poor
+	/// roads; its own province where none is under 100000. Single precision throughout, as the original's. The rule for a
+	/// headquarters trespassing on the move is not built, nothing here marking a unit as trespassing.
 	/// </summary>
 	private static int AmongSubordinates(CGameState state, CCountry country, CUnit unit)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
-		var places = new List<int>();
-		foreach (CUnit child in unit.Children)
-		{
-			if (!child.IsRemoved && CTheatres.IsLand(child))
-			{
-				places.Add(CAgentUnits.DestinationOrPlace(child));
-			}
-		}
-		if (places.Count == 0)
+		int from = CAgentUnits.DestinationOrPlace(unit);
+		if (network.AreaOf(from) is null)
 		{
 			return 0;
 		}
-		int from = CAgentUnits.DestinationOrPlace(unit);
+		bool anyNotGarrison = false;
 		var candidates = new List<int>();
-		foreach (int place in places)
+		foreach (CUnit child in unit.Children)
 		{
-			if (place <= 0 || candidates.Contains(place) || !CAreaPaths.Joined(state, country, from, place))
+			if (child.IsRemoved || !CTheatres.IsLand(child))
 			{
 				continue;
 			}
-			candidates.Add(place);
-			CProvince province = state.Province(place);
-			CSupplyArea? area = network.AreaOf(place);
-			foreach (CProvinceEdge edge in province.Edges)
+			anyNotGarrison |= !child.IsGarrison;
+			int place = CAgentUnits.DestinationOrPlace(child);
+			if (place <= 0 || network.AreaOf(place) is not { } area || state.Province(place).IsSea)
 			{
-				CProvince beside = state.Province(edge.To);
-				if (!beside.IsSea && area is not null && ReferenceEquals(network.AreaOf(edge.To), area)
-					&& !candidates.Contains(edge.To))
+				continue;
+			}
+			if (CAreaPaths.Joined(state, country, from, place))
+			{
+				candidates.Add(place);
+			}
+			foreach (CProvinceEdge edge in state.Province(place).Edges)
+			{
+				if (edge.Kind != EProvinceEdgeKind.Impassable && !state.Province(edge.To).IsSea && ReferenceEquals(network.AreaOf(edge.To), area))
 				{
 					candidates.Add(edge.To);
 				}
 			}
 		}
-		int best = 0;
-		long least = Unplaced;
+		var places = new List<int>();
+		foreach (CUnit child in unit.Children)
+		{
+			if (!child.IsRemoved && CTheatres.IsLand(child) && !(anyNotGarrison && child.IsGarrison))
+			{
+				places.Add(CAgentUnits.DestinationOrPlace(child));
+			}
+		}
+		int best = unit.Location;
+		float least = Unplaced;
 		foreach (int candidate in candidates)
 		{
 			CProvince province = state.Province(candidate);
-			long total = 0;
+			float total = 0;
 			foreach (int place in places)
 			{
-				total += place <= 0 ? 0 : CMapDistance.Between(province, state.Province(place), state.MapWidth);
+				total = (float)((double)CMapDistance.Between(province, state.Province(place), state.MapWidth) + total);
 			}
-			long mean = total / places.Count;
-			if (mean == 0)
+			float score = places.Count > 0 ? (float)(total / (double)places.Count) : total;
+			if (score == 0)
 			{
 				continue;
 			}
-			long score = mean;
 			if (candidate == from)
 			{
-				score -= OwnStart;
+				score = (float)(score - (double)OwnStart);
 			}
 			if (CAreaFronts.BordersForeignLand(state, province))
 			{
-				score += BesideForeign;
+				score = (float)(score + (double)BesideForeign);
 			}
 			if (CSupplyFigures.EffectiveInfrastructure(province) < LeastInfrastructure)
 			{
-				score += PoorRoads;
+				score = (float)(score + (double)PoorRoads);
 			}
 			if (score < least)
 			{

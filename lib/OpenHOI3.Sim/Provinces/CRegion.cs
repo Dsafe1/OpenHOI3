@@ -9,11 +9,12 @@ namespace OpenHOI3.Sim.Provinces;
 /// </summary>
 public sealed class CRegion
 {
-	public CRegion(string name, IReadOnlyList<int> provinces, bool useForPeace)
+	public CRegion(string name, IReadOnlyList<int> provinces, bool useForPeace, bool aiPriority = false)
 	{
 		Name = name;
 		Provinces = provinces;
 		UseForPeace = useForPeace;
+		AiPriority = aiPriority;
 	}
 
 	public string Name { get; }
@@ -23,4 +24,10 @@ public sealed class CRegion
 
 	/// <summary>The word <c>peace</c> in its block. What reads it is not built.</summary>
 	public bool UseForPeace { get; }
+
+	/// <summary>
+	/// The word <c>ai_prio</c> in its block: each province of it scores 100 more as a place in the AI's line
+	/// (<c>docs/mechanics/moving.md</c>, section 3).
+	/// </summary>
+	public bool AiPriority { get; }
 }

@@ -70,6 +70,8 @@ otherwise); and where n > c - surplus, surplus = c - n. Otherwise surplus = -2. 
 A held-back division carries **held back**; one the land block makes a garrison (section 7.2), **garrison**. Committed
 divisions standing on a friend's land within the capital's block of land are counted, for the allied-soil budget.
 
+**The split, the allied-soil budget and the garrisons count every division committed before the reserve is taken out**, those since held back too: the list the line itself walks is the one after (`reversing/findings/FINDINGS-liveread.md`, section 14; `CAgent.CommittedAtFirst`).
+
 ## 3. The area's scores (`ScoreOpsAreaProvinces`, `FINDINGS-opsarea.md` section 2)
 
 Each province p of the area of operations, n of them, m committed divisions, in the area's order:
@@ -88,7 +90,7 @@ Each province p of the area of operations, n of them, m committed divisions, in 
 - Then: for a theatre agent, x3 where the province's front of its area is shorter than a fifth of the area of operations
   (the first of its area's fronts holding it; on none, 0 - so a province on no front is always tripled - and the fronts
   always made, the original making them with the area: `theatres.md`, section 2);
-  + the strategy's `defend_prov` for it, / 2 at peace, / 8 at war; +100 for each of its regions marked so; x the scale
+  + the strategy's `defend_prov` for it, / 2 at peace, / 8 at war; +100 for each of its regions marked `ai_prio` in `map/region.txt` (*mod-able*; `reversing/findings/FINDINGS-liveread.md`, section 14); x the scale
   above; and **nought** at war where no neighbour was interesting.
 
 The records go in descending order of score, and the scores' sum is kept: the line is shared out by them (section 7.3).

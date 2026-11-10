@@ -31,6 +31,7 @@ public static class CCommitment
 	public static void Run(CGameState state, CCountry country, CAgent agent)
 	{
 		agent.Committed.Clear();
+		agent.CommittedAtFirst.Clear();
 		agent.HeldBack.Clear();
 		agent.OnAlliedSoil = 0;
 		if (agent.Unit is not { } headquarters)
@@ -78,6 +79,10 @@ public static class CCommitment
 			}
 			unit.IsHeldBack = hold;
 			(hold ? agent.HeldBack : agent.Committed).Add(unit);
+			if (!hold)
+			{
+				agent.CommittedAtFirst.Add(unit);
+			}
 			if (!hold && IsAlliedSoil(state, country, network, capitalArea, unit))
 			{
 				agent.OnAlliedSoil++;

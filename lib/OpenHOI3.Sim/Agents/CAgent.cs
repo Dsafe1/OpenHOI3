@@ -98,6 +98,12 @@ public sealed class CAgent
 	/// <summary>Its divisions committed to the line.</summary>
 	public List<CUnit> Committed { get; } = new();
 
+	/// <summary>
+	/// The committed divisions before the reserve is taken out and recalled: what the garrison and line are split from and
+	/// the allied-soil budget is counted on (<c>docs/mechanics/moving.md</c>, section 2).
+	/// </summary>
+	public List<CUnit> CommittedAtFirst { get; } = new();
+
 	/// <summary>Its divisions held back.</summary>
 	public List<CUnit> HeldBack { get; } = new();
 
