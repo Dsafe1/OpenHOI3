@@ -176,7 +176,8 @@ public static class CLineFill
 		long key = long.MaxValue;
 		foreach (CPosition position in agent.Positions)
 		{
-			if (position.Want == ShutOut)
+			// A position scoring under 1, where the scores come to 1 or more, is given none of the rest either (FINDINGS-liveread.md, section 16).
+			if (position.Want == ShutOut || (position.Score < Whole && agent.PositionSum >= Whole))
 			{
 				continue;
 			}
@@ -494,7 +495,7 @@ public static class CLineFill
 		return false;
 	}
 
-	private static bool HasLandBattle(CGameState state, int province)
+	internal static bool HasLandBattle(CGameState state, int province)
 	{
 		foreach (CCombat combat in state.Combats)
 		{

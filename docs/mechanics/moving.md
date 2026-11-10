@@ -45,11 +45,10 @@ does not claim is **committed** or **held back**:
 
 1. The bar: r = our power / their power (`agents.md`, 7.3); **factor** 0.7 above 2, 0.6 above 1.5, 0.2 under 0.25, 0.3
    under 0.5, 0.4 under 0.75, else 0.5.
-2. **With the frontier not at war**, or for a theatre agent's division outside its theatre's largest area: a division
+2. **A theatre agent's division outside its theatre's largest area** is committed and its mark cleared. **With the frontier not at war** a division
    held back stays held back, any other is committed.
-3. Otherwise, with strength and organisation each the mean of its brigades' shares: held back where strength < factor
-   or organisation < 0.3; and one already held back stays so where strength < factor + (1 - factor) / 2 or organisation
-   < 0.65. The rest are committed.
+3. Otherwise one already held back stays so, whatever its figures - the bar for its coming back, at factor + (1 - factor) / 2 and 0.65, lies behind a test it has already failed and is never reached [exe, `reversing/findings/FINDINGS-liveread.md`, section 16]. And with strength and organisation each the mean of its brigades' shares: held back where strength < factor
+   or organisation < 0.3. The rest are committed.
 4. An airborne division (role 8) is held back whenever the test runs, and passed over where the agent has air
    transports.
 
@@ -62,15 +61,15 @@ otherwise); and where n > c - surplus, surplus = c - n. Otherwise surplus = -2. 
 - **Detach**: while fewer than surplus are held back, the committed division with the highest score is held back.
   Bound for (or standing in) a province: skipped where - for a theatre agent - it lies outside the theatre's largest
   area and its focus areas, or where a neighbour, by an edge not impassable, on land in a real area, not its country's, is
-  held by a country it prepares war on; on a frontier (an enemy neighbour) skipped where an air unit stands there or two
-  units or more do. Score = ((1 - organisation) + (1 - strength)) x 5, +1 with an attack delay running, +0.9 airborne,
+  held by a country it prepares war on; on a frontier (an enemy neighbour) skipped where a land battle is on there, or where fewer than two land
+  units of more than one brigade stand there [exe, the same section]. Score = ((1 - organisation) + (1 - strength)) x 5, +1 with an attack delay running, +0.9 airborne,
   +0.2 already held back; at stance 3 or more -2 armour, -1.5 fast, else +2 fast, +1 armour; its first brigade militia
   +2, mountain troops -2; on a frontier, less the divisions already held back there this pass.
 
 A held-back division carries **held back**; one the land block makes a garrison (section 7.2), **garrison**. Committed
 divisions standing on a friend's land within the capital's block of land are counted, for the allied-soil budget.
 
-**The split, the allied-soil budget and the garrisons count every division committed before the reserve is taken out**, those since held back too: the list the line itself walks is the one after (`reversing/findings/FINDINGS-liveread.md`, section 14; `CAgent.CommittedAtFirst`).
+**The split, the allied-soil budget and the garrisons count every division that passed through this**, those held back by the test or since: the list the line itself walks is the committed one after (`reversing/findings/FINDINGS-liveread.md`, section 14; `CAgent.CommittedAtFirst`).
 
 ## 3. The area's scores (`ScoreOpsAreaProvinces`, `FINDINGS-opsarea.md` section 2)
 
@@ -175,7 +174,7 @@ is cleared.
    counted nowhere; bound there, as heading. One falling back with under half its organisation is not counted. And allies' units where they hold a focus area
    at war, which is not built.
 4. **The rest**: nothing given out - every position wants 1, or 2 where its units are dug in; otherwise while the carry is
-   over 0.1, +1 to the position with the least want (an over-cap one sorted after).
+   over 0.1, +1 to the position with the least want (an over-cap one sorted after), one scoring under 1 left out where the scores come to 1 or more.
 5. **Supply cut**: where want > trunc(3.5 x cap) and the province's supplies are nought, or its need is five times its
    supplies, want is cut to that and the rest goes to the others under their own 3.5 x cap.
 6. **Each committed division** (not a garrison, not airborne with transports), d where it is bound or stands. **Bound

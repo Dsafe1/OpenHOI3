@@ -19,8 +19,6 @@ public static class CCommitment
 
 	private const long LeastOrganisation = 300;
 
-	private const long ComebackOrganisation = 650;
-
 	private const long RecallOrganisation = 330;
 
 	private const long RecallStrength = 750;
@@ -60,33 +58,36 @@ public static class CCommitment
 			{
 				continue;
 			}
-			bool test = agent.FrontierAtWar && !(headquarters.Kind == EUnitKind.Theatre && largest is not null
-				&& !ReferenceEquals(network.AreaOf(unit.Location), largest));
+			// Read on the listing (FINDINGS-liveread.md, section 16): outside the theatre's largest area a division is
+			// committed and its mark cleared; at peace it keeps what it had; at war one held back stays held back, the bar
+			// for coming back in the original never being reached; otherwise the bars.
+			bool outside = headquarters.Kind == EUnitKind.Theatre && largest is not null
+				&& !ReferenceEquals(network.AreaOf(unit.Location), largest);
 			bool hold;
-			if (!test)
+			if (outside)
 			{
-				hold = unit.IsHeldBack;
+				hold = false;
 			}
-			else if (airborne)
+			else if (!agent.FrontierAtWar || unit.IsHeldBack || airborne)
 			{
-				hold = true;
+				hold = unit.IsHeldBack || (agent.FrontierAtWar && airborne);
 			}
 			else
 			{
 				CUnitShares.Of(state, unit, out long strength, out long organisation);
-				hold = factor > strength || LeastOrganisation > organisation
-					|| (unit.IsHeldBack && (factor + (Whole - factor) / 2 > strength || ComebackOrganisation > organisation));
+				hold = factor > strength || LeastOrganisation > organisation;
 			}
 			unit.IsHeldBack = hold;
 			(hold ? agent.HeldBack : agent.Committed).Add(unit);
-			if (!hold)
-			{
-				agent.CommittedAtFirst.Add(unit);
-			}
+			agent.CommittedAtFirst.Add(unit);
 			if (!hold && IsAlliedSoil(state, country, network, capitalArea, unit))
 			{
 				agent.OnAlliedSoil++;
 			}
+		}
+		if (state.AiTrace is { } trace && trace.Country == country.Tag)
+		{
+			trace.Write($"  commitment {headquarters.Name}: factor {factor}, powers {headquarters.Plan.OurPower}/{headquarters.Plan.TheirPower}, committed {agent.Committed.Count}, held by the test {agent.HeldBack.Count}, stance {headquarters.Plan.Stance}");
 		}
 		Reserve(state, country, agent, headquarters, theatre, largest, network);
 	}
@@ -94,7 +95,8 @@ public static class CCommitment
 	/// <summary>The least strength a division is committed at: the better the powers stand, the higher.</summary>
 	private static long Factor(CUnitPlan plan)
 	{
-		long ratio = plan.TheirPower > 0 ? plan.OurPower * Whole / plan.TheirPower : long.MaxValue;
+		// The original's GetPowerRatio: a negative figure for them answers 1, and nought answers -1, which is the lowest bar but one.
+		long ratio = plan.TheirPower < 0 ? Whole : plan.TheirPower == 0 ? -1 : plan.OurPower * Whole / plan.TheirPower;
 		if (ratio > 2000)
 		{
 			return 700;
@@ -234,7 +236,9 @@ public static class CCommitment
 			{
 				continue;
 			}
-			if (onFrontier && Crowded(state, place))
+			// From the frontier only where no land battle is on and at least two units of more than one brigade stand
+			// (FINDINGS-liveread.md, section 16).
+			if (onFrontier && (CLineFill.HasLandBattle(state, place) || MultiBrigadeUnits(state, place) < 2))
 			{
 				continue;
 			}
@@ -289,17 +293,16 @@ public static class CCommitment
 	}
 
 	/// <summary>An air unit there, or two units or more.</summary>
-	private static bool Crowded(CGameState state, int province)
+	private static int MultiBrigadeUnits(CGameState state, int province)
 	{
 		int count = 0;
 		foreach (CUnit unit in state.Positions.Of(province))
 		{
-			if (unit.Kind == EUnitKind.Air)
+			if (CTheatres.IsLand(unit) && unit.SubUnits.Count > 1)
 			{
-				return true;
+				count++;
 			}
-			count++;
 		}
-		return count >= 2;
+		return count;
 	}
 }
