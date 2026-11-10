@@ -238,12 +238,23 @@ public static class CLoadCheck
 		if (agentsFile is not null)
 		{
 			using var dump = new System.IO.StreamWriter(agentsFile);
+			using (var roles = new System.IO.StreamWriter(agentsFile + ".roles"))
+			{
+				foreach (CCountry country in state.Countries)
+				{
+					foreach (CUnit unit in country.AllUnits().Where(u => u.Kind == EUnitKind.Division))
+					{
+						roles.WriteLine($"{country.Tag}	{unit.Name}	{CArmyRole.Of(unit)}	" + string.Join(",", unit.SubUnits.Select(s => s.Type.Key)));
+					}
+				}
+			}
 			foreach (CCountry country in state.Countries)
 			{
 				foreach (OpenHOI3.Sim.Agents.CAgent agent in country.UnitAi.Agents)
 				{
 					dump.WriteLine($"{country.Tag}\t{agent.Unit?.Name ?? "none"}\t" + string.Join(" ", agent.HoldProvinces.Select(h => $"{h.Province}:{h.Score}"))
-						+ $"\t{agent.Committed.Count}\t{agent.HeldBack.Count}\t{agent.CommittedAtFirst.Count}");
+						+ $"\t{agent.Committed.Count}\t{agent.HeldBack.Count}\t{agent.CommittedAtFirst.Count}"
+						+ "\t" + string.Join("|", agent.Committed.Select(u => u.Name)) + "\t" + string.Join("|", agent.HeldBack.Select(u => u.Name)));
 				}
 			}
 		}

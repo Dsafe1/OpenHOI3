@@ -84,8 +84,8 @@ public static class CArmyRole
 			{
 				byKey[role]++;
 			}
-			softness += type.Stats[CUnitTotals.Softness].Raw;
-			speed += type.Stats[Speed].Raw;
+			softness += brigade.Stats[CUnitTotals.Softness].Raw;
+			speed += brigade.Stats[Speed].Raw;
 			if (type.Stats[CSubUnitType.CombatWidth].Raw < CFixedPoint.Scale)
 			{
 				narrow++;

@@ -44,6 +44,15 @@ public static class CUnitAiPass
 	/// </summary>
 	public static void MakeAgentsOfLoad(CGameState state)
 	{
+		// The theatres' fronts are made again first: a save written straight after entering has them in another order, which
+		// is the order the positions of one score come in (FINDINGS-liveread.md, section 18).
+		foreach (CCountry country in state.Countries)
+		{
+			if (country.Strategy.Theatres.Count > 0)
+			{
+				Theatres.CTheatreRefresh.FrontsOfLoad(state, country);
+			}
+		}
 		foreach (CCountry country in state.Countries)
 		{
 			if (state.Played.Contains(country.Tag))

@@ -16,6 +16,15 @@ public static class CTheatreRefresh
 	/// <summary>The nearest theatre is looked for from this, in thousandths of a distance.</summary>
 	private const long Far = 0x4876e800;
 
+	/// <summary>On entering a loaded game: each theatre's fronts made again, and nothing else.</summary>
+	public static void FrontsOfLoad(CGameState state, CCountry country)
+	{
+		foreach (CTheatre theatre in country.Strategy.Theatres)
+		{
+			RebuildFronts(state, country, theatre);
+		}
+	}
+
 	public static void Refresh(CGameState state, CCountry country)
 	{
 		List<CTheatre> theatres = country.Strategy.Theatres;
