@@ -40,7 +40,7 @@ public static class CNavalBody
 
 	private const long SuperiorDefensive = 2000;
 
-	public static void Run(CGameState state, CCountry country, CAgent agent, bool regroup)
+	public static void Run(CGameState state, CCountry country, CAgent agent, bool regroup, bool forced)
 	{
 		// At peace the body runs only when its pass is forced - the agent's full pass, or a replan of its fleets.
 		if (agent.Unit is not { } headquarters || !regroup)
@@ -54,6 +54,12 @@ public static class CNavalBody
 		var handled = new HashSet<CUnit>();
 		ExistingOrders(state, country, ready, handled);
 		CFleetRegroup.Merge(state, country, agent, ready, handled);
+		// The rest - the survey, the ports, patrols and intercepts - only on a forced pass, at war or not
+		// (FINDINGS-liveread.md, section 25).
+		if (!forced)
+		{
+			return;
+		}
 		// Phase 6: what was ordered to join, and what it joins, is done with for this pass.
 		ready.RemoveAll(handled.Contains);
 		long enemyPower = Survey(state, country, agent, out List<CUnit> enemies);
@@ -106,7 +112,8 @@ public static class CNavalBody
 	/// <summary>Phase 4, over the ready fleets: what no longer makes sense is cancelled - a fleet sent home or stopped where it is.</summary>
 	private static void ExistingOrders(CGameState state, CCountry country, List<CUnit> ready, HashSet<CUnit> handled)
 	{
-		bool atWar = state.IsAtWar(country.Tag);
+		// A war nobody declared keeps a raid, an escort and a patrol as a war does (FINDINGS-liveread.md, section 25).
+		bool atWar = state.IsAtWar(country.Tag) || Wars.CUndeclaredWars.Involves(state, country.Tag);
 		foreach (CUnit fleet in ready)
 		{
 			switch (fleet.Order)
@@ -363,7 +370,8 @@ public static class CNavalBody
 	/// <summary>Phase 8: screens round the raided waters, or round the theatre's own ports' seas, five provinces a patrol.</summary>
 	private static void Patrol(CGameState state, CCountry country, CAgent agent, CUnit headquarters, List<CUnit> free)
 	{
-		if (headquarters.Plan.NavalStance == 0 || (!state.IsAtWar(country.Tag) && agent.RaidedWaters.Count == 0))
+		if (headquarters.Plan.NavalStance == 0 || (!state.IsAtWar(country.Tag) && !Wars.CUndeclaredWars.Involves(state, country.Tag)
+			&& agent.RaidedWaters.Count == 0))
 		{
 			return;
 		}

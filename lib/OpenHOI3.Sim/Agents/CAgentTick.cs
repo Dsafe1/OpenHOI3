@@ -65,7 +65,9 @@ public static class CAgentTick
 				CAgentProfile.Time(state, "the aircraft", () => CAircraftWants.Update(state, country, agent));
 			}
 		}
-		bool landHour = full || (hour % 3 == 0 && (state.IsAtWar(country.Tag) || country.UnitAi.InRevolt));
+		// At war, in a war nobody declared, or with provinces in revolt (FINDINGS-liveread.md, section 25).
+		bool fighting = state.IsAtWar(country.Tag) || Wars.CUndeclaredWars.Involves(state, country.Tag);
+		bool landHour = full || (hour % 3 == 0 && (fighting || country.UnitAi.InRevolt));
 		if (landHour)
 		{
 			CAgentProfile.Time(state, "the land block", () => CLandBlock.Run(state, country, agent));
@@ -81,11 +83,12 @@ public static class CAgentTick
 		}
 		CAgentProfile.Time(state, "the air bases", () => CAirBaseLists.Build(state, country, agent, full));
 		CAgentProfile.Time(state, "the air", () => CAirBody.Run(state, country, agent, full));
-		bool regroup = full || agent.ReplanNaval || state.IsAtWar(country.Tag);
+		bool forced = full || agent.ReplanNaval;
+		bool regroup = forced || fighting;
 		if (country.UnitAi.RunsUnits || unit.Agent is not null)
 		{
 			int before = state.Outbox.Count;
-			CAgentProfile.Time(state, "the fleets", () => CNavalBody.Run(state, country, agent, regroup));
+			CAgentProfile.Time(state, "the fleets", () => CNavalBody.Run(state, country, agent, regroup, forced));
 			if (state.AiTrace is { } trace && trace.Country == country.Tag)
 			{
 				for (int index = before; index < state.Outbox.Count; index++)

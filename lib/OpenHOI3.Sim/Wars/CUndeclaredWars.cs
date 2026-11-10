@@ -26,6 +26,12 @@ public static class CUndeclaredWars
 		war.Regions.Add(region);
 	}
 
+	/// <summary>Whether the country is on either side of a war nobody declared: the original's <c>in_undeclared_war</c>.</summary>
+	public static bool Involves(CGameState state, CCountryTag country)
+	{
+		return state.UndeclaredWars.Exists(war => war.Attackers.Contains(country) || war.Defenders.Contains(country));
+	}
+
 	/// <summary>Whether the two have such a war and the province lies in one of its regions.</summary>
 	public static bool Covers(CGameState state, CCountryTag one, CCountryTag other, int province)
 	{

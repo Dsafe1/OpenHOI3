@@ -418,8 +418,9 @@ else the capital. With nowhere, it is disbanded.
 
 ## 14. The fleets (`CAIUnit_ManageNavalUnits`, `FINDINGS-moving.md` D.2, `FINDINGS-airnaval4.md`)
 
-For a country the AI runs, around its regrouping (`agents.md`, section 5.2): **every hour while it is at war, and at
-peace only on the agent's full pass or when its fleets are to be planned again** - a foreign unit carrying troops seen
+For a country the AI runs, around its regrouping (`agents.md`, section 5.2): **every hour while it is at war or in a war
+nobody declared, and at peace only on the agent's full pass or when its fleets are to be planned again** - and **phases 6
+to 9 only on that forced pass**, at war as at peace (`FINDINGS-liveread.md`, section 25) - a foreign unit carrying troops seen
 (`FINDINGS-agents.md`, A.5, row 19; `FINDINGS-reorganise.md`). **At war means at war with some country**: a war whose
 other side has emptied - Ethiopia's capitulation leaves Italy alone in theirs, and the original never ends such a war -
 makes nobody at war (`war.md`, section 1).
@@ -430,7 +431,7 @@ makes nobody at war (`war.md`, section 1).
 3. *(the regrouping's port and repair, which leaves the fleets that are **ready**)*
 4. **Orders that no longer make sense**, of each ready fleet: a join is left to run, the fleet and the one it joins
    handled; an empty fleet's transport, a raid or an escort at peace, a
-   patrol at peace, and any other order of a fleet standing still at its base or an intercept standing still, are
+   patrol at peace (a war nobody declared counting as war), and any other order of a fleet standing still at its base or an intercept standing still, are
    cancelled - the fleet sent back to its base.
 5. *(the regrouping's split and merge, whose joins - the fleet and the one it joins - are handled too)*
 6. **The handled fleets are taken off the ready list**, and nothing below touches them this pass. **The survey**: the power of every fleet of a country at war with it within 1000 by sea of the theatre's ports, troop
