@@ -38,6 +38,8 @@ public static class CCommitment
 		}
 		bool airTransports = agent.AirTransports.Count > 0;
 		long factor = Factor(headquarters.Plan);
+		// How many have been held back where they stand: the test's first, then the reserve's (FINDINGS-liveread.md, section 19).
+		var counted = new Dictionary<int, int>();
 		CTheatre? theatre = CAgents.TheatreOf(state, country, agent);
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		CSupplyArea? largest = theatre is null ? null : CTheatreProvinces.LargestArea(theatre);
@@ -79,6 +81,10 @@ public static class CCommitment
 			}
 			unit.IsHeldBack = hold;
 			(hold ? agent.HeldBack : agent.Committed).Add(unit);
+			if (hold)
+			{
+				counted[unit.Location] = counted.GetValueOrDefault(unit.Location) + 1;
+			}
 			agent.CommittedAtFirst.Add(unit);
 			if (!hold && IsAlliedSoil(state, country, network, capitalArea, unit))
 			{
@@ -89,7 +95,7 @@ public static class CCommitment
 		{
 			trace.Write($"  commitment {headquarters.Name}: factor {factor}, powers {headquarters.Plan.OurPower}/{headquarters.Plan.TheirPower}, committed {agent.Committed.Count}, held by the test {agent.HeldBack.Count}, stance {headquarters.Plan.Stance}");
 		}
-		Reserve(state, country, agent, headquarters, theatre, largest, network);
+		Reserve(state, country, agent, headquarters, theatre, largest, network, counted);
 	}
 
 	/// <summary>The least strength a division is committed at: the better the powers stand, the higher.</summary>
@@ -129,7 +135,7 @@ public static class CCommitment
 	}
 
 	private static void Reserve(CGameState state, CCountry country, CAgent agent, CUnit headquarters, CTheatre? theatre,
-		CSupplyArea? largest, CSupplyNetwork network)
+		CSupplyArea? largest, CSupplyNetwork network, Dictionary<int, int> counted)
 	{
 		int stance = headquarters.Plan.Stance;
 		int surplus = -2;
@@ -154,7 +160,6 @@ public static class CCommitment
 		while (agent.HeldBack.Count > surplus + 2 && Recall(state, agent))
 		{
 		}
-		var counted = new Dictionary<int, int>();
 		while (agent.HeldBack.Count < surplus && Detach(state, country, agent, headquarters, theatre, largest, network, counted))
 		{
 		}
@@ -193,7 +198,7 @@ public static class CCommitment
 	{
 		int stance = headquarters.Plan.Stance;
 		CUnit? best = null;
-		long bestScore = -100_000 * Whole;
+		float bestScore = -100_000f;
 		foreach (CUnit unit in agent.Committed)
 		{
 			int place = CAgentUnits.DestinationOrPlace(unit);
@@ -242,37 +247,50 @@ public static class CCommitment
 			{
 				continue;
 			}
-			CUnitShares.Of(state, unit, out long strength, out long organisation);
-			long score = ((Whole - organisation) + (Whole - strength)) * 5;
+			// In single precision and in this order, read on the listing (FINDINGS-liveread.md, section 19). The first brigade's
+			// type counts only at an attacking stance: below it the branch for the role goes past that test.
+			CUnitShares.OfSingle(state, unit, out float strength, out float organisation);
+			float score = (float)(((1.0 - organisation) + (1.0 - strength)) * 5.0);
 			if (unit.AttackDelay.Raw > 0)
 			{
-				score += Whole;
+				score = (float)((double)score + 1.0);
 			}
 			int role = CArmyRole.Of(unit);
 			if (role == CArmyRole.Airborne)
 			{
-				score += 900;
+				score = (float)((double)score + 0.9f);
 			}
 			if (unit.IsHeldBack)
 			{
-				score += 200;
+				score = (float)((double)score + 0.2f);
 			}
 			if (stance >= CUnitPlan.Attacking)
 			{
-				score -= role == CArmyRole.Armour ? 2000 : role == CArmyRole.Fast ? 1500 : 0;
+				if (role == CArmyRole.Armour)
+				{
+					score = (float)((double)score - 2.0);
+				}
+				else if (role == CArmyRole.Fast)
+				{
+					score = (float)((double)score - 1.5);
+				}
+				if (unit.SubUnits.Count > 0)
+				{
+					string key = unit.SubUnits[0].Type.Key;
+					score = key == "militia_brigade" ? (float)((double)score + 2.0) : key == "bergsjaeger_brigade" ? (float)((double)score - 2.0) : score;
+				}
 			}
-			else
+			else if (role == CArmyRole.Fast)
 			{
-				score += role == CArmyRole.Fast ? 2000 : role == CArmyRole.Armour ? Whole : 0;
+				score = (float)((double)score + 2.0);
 			}
-			if (unit.SubUnits.Count > 0)
+			else if (role == CArmyRole.Armour)
 			{
-				string key = unit.SubUnits[0].Type.Key;
-				score += key == "militia_brigade" ? 2000 : key == "bergsjaeger_brigade" ? -2000 : 0;
+				score = (float)((double)score + 1.0);
 			}
 			if (onFrontier)
 			{
-				score -= counted.GetValueOrDefault(place) * Whole;
+				score = (float)((double)score - (float)counted.GetValueOrDefault(place));
 			}
 			if (score > bestScore)
 			{
@@ -287,8 +305,7 @@ public static class CCommitment
 		agent.Committed.Remove(best);
 		best.IsHeldBack = true;
 		agent.HeldBack.Add(best);
-		int at = CAgentUnits.DestinationOrPlace(best);
-		counted[at] = counted.GetValueOrDefault(at) + 1;
+		counted[best.Location] = counted.GetValueOrDefault(best.Location) + 1;
 		return true;
 	}
 

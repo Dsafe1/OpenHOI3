@@ -63,8 +63,8 @@ otherwise); and where n > c - surplus, surplus = c - n. Otherwise surplus = -2. 
   area and its focus areas, or where a neighbour, by an edge not impassable, on land in a real area, not its country's, is
   held by a country it prepares war on; on a frontier (an enemy neighbour) skipped where a land battle is on there, or where fewer than two land
   units of more than one brigade stand there [exe, the same section]. Score = ((1 - organisation) + (1 - strength)) x 5, +1 with an attack delay running, +0.9 airborne,
-  +0.2 already held back; at stance 3 or more -2 armour, -1.5 fast, else +2 fast, +1 armour; its first brigade militia
-  +2, mountain troops -2; on a frontier, less the divisions already held back there this pass.
+  +0.2 already held back; at stance 3 or more -2 armour, -1.5 fast, and its first brigade militia
+  +2, mountain troops -2; below stance 3 +2 fast, +1 armour and the first brigade not looked at; on a frontier, less the divisions already held back standing in the province it is bound for this pass, by the test or by this [exe, `reversing/findings/FINDINGS-liveread.md`, section 19].
 
 A held-back division carries **held back**; one the land block makes a garrison (section 7.2), **garrison**. Committed
 divisions standing on a friend's land within the capital's block of land are counted, for the allied-soil budget.
