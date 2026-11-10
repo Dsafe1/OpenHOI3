@@ -566,7 +566,8 @@ defines (`AIR*` in `defines.lua`, which make the weather penalty) and the map's 
 ### 17.1 The air base lists (`CAIUnit::BuildAirTargetProvinceLists`)
 
 On every full pass, and on the first pass after a replan, four lists are made of the **candidate bases** - the provinces
-in the agent's theatre that hold a built air base and are held by the country, its overlord or one of its puppets - each
+that hold a built air base: the country's own in the agent's theatre, and its overlord's and its puppets' wherever they lie
+(`FINDINGS-liveread.md`, section 27) - each
 base scored by a **mean distance**, lowest first, a base of equal score after those already there:
 
 | list | for | the mean distance to |
@@ -588,9 +589,10 @@ Each group, not retreating:
    partner is gone has its order dropped and goes on.
 2. **At war, its airfield marched on** - an enemy land unit beside it whose next step is into it: phase 2 is forced; a
    busy group not rebasing has its order dropped; it is a **candidate** whatever its state.
-3. **Unfit** (the regrouping's shares of strength and organisation, `agents.md`, section 5.3): under any order it is
-   called off - a carrier's group of only CAG put on **carrier protection**, any other's order dropped; with none, at its
-   base, it rests.
+3. **Unfit** - a wing under 0.5 of its strength or of its organisation at air stance 2, else 0.7: under any order it is
+   called off - a carrier's group of only CAG put on **carrier protection**, any other's order dropped. **Wanting rest** - a
+   wing under 0.75 of either at air stance 2, else 0.85: with no order, at its base, it rests. Both bars halved for a
+   carrier's or an interceptor group (`FINDINGS-liveread.md`, section 27).
 4. On the move, under an order or fighting: passed over. Otherwise a **candidate**.
 
 ### 17.3 Rebasing (phase 2)

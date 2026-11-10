@@ -173,24 +173,22 @@ public static class CAirBody
 				candidates.Add(group);
 				continue;
 			}
-			if (!CAirRegroup.IsFit(state, headquarters, group))
+			if (!CAirRegroup.IsFit(state, headquarters, group) && busy)
 			{
-				if (busy)
+				if (group.CarriedBy?.Unit is not null && AllCag(group))
 				{
-					if (group.CarriedBy?.Unit is not null && AllCag(group))
-					{
-						state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.CarrierProtection, group.Base));
-					}
-					else
-					{
-						state.Outbox.Add(new CDropOrderCommand(country.Tag, group.Id));
-					}
-					continue;
+					state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.CarrierProtection, group.Base));
 				}
-				if (CAirMissions.IsAtOwnBase(group))
+				else
 				{
-					continue;
+					state.Outbox.Add(new CDropOrderCommand(country.Tag, group.Id));
 				}
+				continue;
+			}
+			// A group with a wing damaged or tired past the higher bar rests at its base (FINDINGS-liveread.md, section 27).
+			if (!busy && CAirMissions.IsAtOwnBase(group) && CAirRegroup.WantsRest(state, headquarters, group))
+			{
+				continue;
 			}
 			if (CCommandLadder.IsBlocked(group) || group.IsFighting)
 			{

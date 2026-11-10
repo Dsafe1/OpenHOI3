@@ -27,14 +27,17 @@ public static class CAirRegroup
 	/// <summary>A group of fewer wings than this looks for another to join.</summary>
 	private const int Small = 3;
 
-	/// <summary>The shares of strength and organisation a wing needs, at the offensive air stance and otherwise, in thousandths.</summary>
-	private const long OffensiveStrength = 500;
+	/// <summary>
+	/// Below this share of strength or of organisation a wing is unfit, at air stance 2 and otherwise, in thousandths.
+	/// </summary>
+	private const long OffensiveUnfit = 500;
 
-	private const long OffensiveOrganisation = 750;
+	private const long OtherUnfit = 700;
 
-	private const long OtherStrength = 700;
+	/// <summary>Below this share of strength or of organisation a wing wants rest, at air stance 2 and otherwise.</summary>
+	private const long OffensiveRest = 750;
 
-	private const long OtherOrganisation = 850;
+	private const long OtherRest = 850;
 
 	/// <param name="taken">The groups the air body's first two phases have already given something to do.</param>
 	public static void Run(CGameState state, CCountry country, CAgent agent, bool force, IEnumerable<CUnit>? taken = null)
@@ -146,28 +149,41 @@ public static class CAirRegroup
 	}
 
 	/// <summary>
-	/// Every wing at the shares of strength and organisation the plan's air stance asks - halved for a group with a
-	/// carrier's wing or an interceptor. Ours: the original's two pairs of thresholds taken as one.
+	/// No wing under the unfit share of strength or of organisation the plan's air stance asks - 0.5 at stance 2, else 0.7 -
+	/// halved for a group with a carrier's wing or an interceptor (FINDINGS-liveread.md, section 27).
 	/// </summary>
 	public static bool IsFit(CGameState state, CUnit headquarters, CUnit group)
 	{
-		bool offensive = headquarters.Plan.AirStance == CUnitPlan.Offensive;
-		long strength = offensive ? OffensiveStrength : OtherStrength;
-		long organisation = offensive ? OffensiveOrganisation : OtherOrganisation;
+		return !AnyWingBelow(state, group, Bar(headquarters, group, OffensiveUnfit, OtherUnfit));
+	}
+
+	/// <summary>Some wing under the share that wants rest - 0.75 at stance 2, else 0.85 - halved as the unfit one is.</summary>
+	public static bool WantsRest(CGameState state, CUnit headquarters, CUnit group)
+	{
+		return AnyWingBelow(state, group, Bar(headquarters, group, OffensiveRest, OtherRest));
+	}
+
+	private static long Bar(CUnit headquarters, CUnit group, long offensive, long other)
+	{
+		long bar = headquarters.Plan.AirStance == CUnitPlan.Offensive ? offensive : other;
 		Dictionary<string, int> counts = Count(group);
 		if (counts.GetValueOrDefault(Cag) > 0 || counts.GetValueOrDefault(Interceptor) > 0)
 		{
-			strength /= 2;
-			organisation /= 2;
+			bar /= 2;
 		}
+		return bar;
+	}
+
+	private static bool AnyWingBelow(CGameState state, CUnit group, long bar)
+	{
 		foreach (CSubUnit wing in group.SubUnits)
 		{
-			if (CFleetRegroup.StrengthShare(wing) < strength || CFleetRegroup.OrganisationShare(state, wing) < organisation)
+			if (CFleetRegroup.StrengthShare(wing) < bar || CFleetRegroup.OrganisationShare(state, wing) < bar)
 			{
-				return false;
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	private static Dictionary<string, int> Count(CUnit group)

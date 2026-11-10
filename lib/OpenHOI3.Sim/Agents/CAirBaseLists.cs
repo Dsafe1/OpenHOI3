@@ -45,11 +45,13 @@ public static class CAirBaseLists
 			}
 		}
 		CAirBaseHolders bases = CAirBaseHolders.Of(state, airBase);
+		// Only the country's own bases are held to the theatre; its overlord's and its puppets' are taken wherever they lie
+		// (FINDINGS-liveread.md, section 27).
 		foreach (CCountry owner in owners)
 		{
 			foreach (int id in bases.Of(owner.Tag))
 			{
-				if (state.Province(id).TheatreId == theatre && !candidates.Contains(id))
+				if ((owner != country || state.Province(id).TheatreId == theatre) && !candidates.Contains(id))
 				{
 					candidates.Add(id);
 				}

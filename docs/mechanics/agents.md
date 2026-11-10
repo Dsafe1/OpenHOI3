@@ -201,9 +201,9 @@ Run for a country the AI runs (or a plan allowing headquarters reorganisation) w
 
 ### 5.3 Air groups (`ManageAirUnits`' regroup)
 
-Run when the agent's air pass is forced or **regroup air pending** is set, over the agent's air groups that are fit - every
-wing at half its strength and three quarters of its organisation at the offensive air stance, 0.7 and 0.85 otherwise,
-halved for a group with a carrier's wing or an interceptor - not busy and in no battle, at their own base. A group holding
+Run when the agent's air pass is forced or **regroup air pending** is set, over the agent's air groups that are fit - no
+wing under half its strength or half its organisation at air stance 2, 0.7 of either otherwise, halved for a group with a
+carrier's wing or an interceptor (the triage's lower pair, `moving.md`, section 17.2) - not busy and in no battle, at their own base. A group holding
 a carrier's wing, a group on loan and a group with no base are passed over.
 
 - **Split**, a group of more than one wing, walking its wings in order: a strategic bomber where there are more than 3; a
