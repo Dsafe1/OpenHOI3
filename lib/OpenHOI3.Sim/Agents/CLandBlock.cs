@@ -115,14 +115,17 @@ public static class CLandBlock
 					continue;
 				}
 				List<int>? ways = Ways(state, country, network, province, area);
-				if (ways is null || ways.Count == 0 || AnyBoundInto(country, id))
+				if (ways is null || ways.Count == 0)
 				{
 					continue;
 				}
+				// The defenders are taken from the back of the side's list (FINDINGS-liveread.md, section 24).
 				int next = 0;
-				foreach (CUnit unit in combat.Defender.Units.ToArray())
+				CUnit[] defenders = combat.Defender.Units.ToArray();
+				System.Array.Reverse(defenders);
+				foreach (CUnit unit in defenders)
 				{
-					if (unit.Owner != country.Tag || CCommandLadder.IsBlocked(unit))
+					if (unit.Owner != country.Tag || !CTheatres.IsLand(unit) || CCommandLadder.IsBlocked(unit))
 					{
 						continue;
 					}
@@ -142,6 +145,7 @@ public static class CLandBlock
 	{
 		var scored = new List<(int Province, long Score)>();
 		bool outside = false;
+		bool comingIn = false;
 		foreach (CProvinceEdge edge in province.Edges)
 		{
 			if (edge.Kind == EProvinceEdgeKind.Impassable)
@@ -153,16 +157,22 @@ public static class CLandBlock
 			{
 				continue;
 			}
-			bool river = edge.Kind == EProvinceEdgeKind.River;
-			if (CAgentArea.IsHostile(state, country, beside.Controller))
+			// Both kinds of river, and an enemy across one ends the look (FINDINGS-liveread.md, section 24).
+			bool river = edge.Kind is EProvinceEdgeKind.River or EProvinceEdgeKind.Crossing;
+			if (river && beside.Controller is { } across && CCountryLists.IsEnemy(state, country, across))
 			{
-				if (river)
-				{
-					return null;
-				}
-				continue;
+				return null;
 			}
-			if (!CApproaches.IsFriendly(state, country, beside.Controller))
+			// A friend's land unit standing beside and bound for the province keeps its defenders in.
+			foreach (CUnit unit in state.Positions.Of(edge.To))
+			{
+				if (CTheatres.IsLand(unit) && CApproaches.MayOperateIn(state, country, unit.Owner)
+					&& CAgentUnits.Destination(unit) == province.Id)
+				{
+					comingIn = true;
+				}
+			}
+			if (!CApproaches.MayOperateIn(state, country, beside.Controller))
 			{
 				continue;
 			}
@@ -191,6 +201,10 @@ public static class CLandBlock
 			}
 			scored.Insert(at, (edge.To, score));
 		}
+		if (comingIn)
+		{
+			return null;
+		}
 		var ways = new List<int>();
 		foreach ((int id, long _) in scored)
 		{
@@ -203,17 +217,6 @@ public static class CLandBlock
 		return ways;
 	}
 
-	private static bool AnyBoundInto(CCountry country, int province)
-	{
-		foreach (CUnit unit in country.AllUnits())
-		{
-			if (unit.Location != province && CAgentUnits.Destination(unit) == province)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
 
 	/// <summary>Long marches made strategic redeployments; marches through enemy land cut; a fight on the way stood down.</summary>
 	private static void CheckMarches(CGameState state, CCountry country, CAgent agent)

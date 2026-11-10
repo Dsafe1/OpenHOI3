@@ -246,9 +246,11 @@ the battle itself never holds it. *Hardcoded*: the 1000, the four hours, every r
 
 For each province of the area that is not its own depot and has a fort under 3, each land battle there at least 12 hours
 old (25 at stance 3 or more) in which the country defends and **the attacker holds more than 70% of the strength**:
-its neighbours are scored - a hostile one across a river ends it; one the country may operate in, infrastructure + 2 x
-fort, +10 across a river, +100 for the province's depot, / 100 inside the area. With nobody of the country bound into the
-province, every defender with no blocking order is sent, one to each neighbour in score order, round again. A sent unit
+its neighbours are scored - one at war with the country across a river or a crossing ends it; one the country may operate
+in (its side, or a co-belligerent not at war with it), infrastructure + 2 x fort, +10 across a river, +100 for the
+province's depot, / 100 inside the area. With no friendly land unit standing beside the province and bound for it, every
+defender with no blocking order is sent, **the last of the side first**, one to each neighbour in score order, round again
+(`FINDINGS-liveread.md`, section 24). The original sends an ally's defender too; here only the country's own. A sent unit
 sets full pass pending.
 
 ## 9. The march check (`CAIUnit_CheckLandMarches`)

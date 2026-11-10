@@ -138,7 +138,7 @@ public static class CReservePlacing
 		int ours = 0;
 		foreach (CUnit other in state.Positions.Of(unit.Location))
 		{
-			if (!ReferenceEquals(other, unit) && other.Owner == country.Tag && other.Kind == EUnitKind.Division
+			if (!ReferenceEquals(other, unit) && CApproaches.MayOperateIn(state, country, other.Owner) && other.Kind == EUnitKind.Division
 				&& !CCommandLadder.IsBlocked(other))
 			{
 				ours++;

@@ -213,17 +213,25 @@ public static class CApproaches
 				continue;
 			}
 			CProvince beside = state.Province(edge.To);
-			if (beside.IsSea || network.AreaOf(edge.To) is null || beside.Controller is not { } holder
-				|| holder.Value == CRebelFactions.Rebels || state.Country(holder) is not { } other)
-			{
-				continue;
-			}
-			if (CSupplyRelations.IsSameSide(country, other)
-				|| (CCountryLists.FightingTogether(state, country.Tag, holder) && !CCountryLists.IsEnemy(state, country, holder)))
+			if (!beside.IsSea && network.AreaOf(edge.To) is not null && MayOperateIn(state, country, beside.Controller))
 			{
 				yield return edge.To;
 			}
 		}
+	}
+
+	/// <summary>
+	/// The original's <c>CCountry::CanOperateIn</c>: the country's side - itself, its master, its puppets and its master's
+	/// other puppets - or a country fighting a war beside it and not at war with it. Never the rebels.
+	/// </summary>
+	public static bool MayOperateIn(CGameState state, CCountry country, CCountryTag? tag)
+	{
+		if (tag is not { } holder || holder.Value == CRebelFactions.Rebels || state.Country(holder) is not { } other)
+		{
+			return false;
+		}
+		return CSupplyRelations.IsSameSide(country, other)
+			|| (CCountryLists.FightingTogether(state, country.Tag, holder) && !CCountryLists.IsEnemy(state, country, holder));
 	}
 
 	/// <summary>Held by the country's side, or by a country fighting beside it that is not its enemy.</summary>
