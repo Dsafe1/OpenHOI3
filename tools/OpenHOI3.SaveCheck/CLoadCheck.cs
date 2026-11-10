@@ -33,7 +33,7 @@ public static class CLoadCheck
 
 	private static void PutGenerator(CGameState state, string folder, CCombat combat)
 	{
-		string path = System.IO.Path.Combine(folder, $"mt_{state.TotalHours + OriginalTickOffset}_{combat.Province}_{(combat.Kind == ECombatKind.Land ? "L" : "B")}.txt");
+		string path = System.IO.Path.Combine(folder, $"mt_{state.TotalHours + OriginalTickOffset}_{combat.Province}_{(combat.Kind == ECombatKind.Land ? "L" : combat.Kind == ECombatKind.Air ? "A" : "B")}.txt");
 		if (!System.IO.File.Exists(path))
 		{
 			return;
@@ -46,6 +46,28 @@ public static class CLoadCheck
 			words[i] = uint.Parse(lines[i + 1], System.Globalization.NumberStyles.HexNumber);
 		}
 		state.Random.Restore((words, int.Parse(head[1]), long.Parse(head[0])));
+
+		// What a save does not keep and a running game does: the target each wing is holding to.
+		string targets = System.IO.Path.ChangeExtension(path, ".targets");
+		if (System.IO.File.Exists(targets))
+		{
+			var held = new Dictionary<int, int>();
+			foreach (string line in System.IO.File.ReadAllLines(targets))
+			{
+				string[] parts = line.Split(' ');
+				held[int.Parse(parts[0])] = parts[2] == "1" ? int.Parse(parts[1]) : 0;
+			}
+			foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
+			{
+				foreach (CSubUnit wing in side.Units.SelectMany(unit => unit.SubUnits))
+				{
+					if (held.TryGetValue(wing.Id, out int target))
+					{
+						wing.TargetId = target;
+					}
+				}
+			}
+		}
 	}
 
 	/// <summary>watch=N,N: what a province holds after the hours, set beside the running game's.</summary>

@@ -463,3 +463,8 @@ selected province says there is a battle.
 - Whether flying costs a wing organisation: nothing read takes any.
 - What fills the list of who sees a unit, by which a country sees into ground beside its
   own units (section 6): nothing here does, and interdiction needs it (`bombing.md`).
+
+**Set beside the running game, 2026-11-10** (`reversing/findings/FINDINGS-liveread.md`, section 10): a battle in the air over one province, an hour of it, from
+the original's generator at its start and the targets its wings were holding to. Every wing's attack and defence products, every draw of both sides and every
+wing's strength and organisation after the hour are the original's. **A save does not keep a wing's target**, so here a wing picks afresh after a load, and the rolls of the hour after a load are not those of the hour a game goes
+on through. *That the original's own load does the same is inferred: no key holds it, and a reload of the original was not watched.*

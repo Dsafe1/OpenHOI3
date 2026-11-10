@@ -46,6 +46,18 @@ public static class CAirFire
 
 	public static void Attack(CGameState state, CCombat combat, CCombatSide side)
 	{
+		if (state.CombatTrace is { } trace)
+		{
+			var wings = new List<string>();
+			foreach (CUnit flying in side.Units)
+			{
+				foreach (CSubUnit wing in flying.SubUnits)
+				{
+					wings.Add($"{wing.Id}:{wing.CombatAttack.Raw},{wing.CombatDefence.Raw},{wing.Strength.Raw}/{wing.Organisation.Raw}");
+				}
+			}
+			trace($"AIRSIDE atk={(side.IsAttacker ? 1 : 0)} draws={state.Random.Draws} wings={string.Join(" ", wings)}");
+		}
 		CTraitGain.BankHour(state, side);
 		CCombatSide other = combat.Other(side);
 		CDefines defines = state.Defines;
@@ -115,6 +127,7 @@ public static class CAirFire
 	public static CSubUnit? PickTarget(CGameState state, CCombatSide side, CCombatSide other, CSubUnit wing,
 		CCountry? owner)
 	{
+		state.CombatTrace?.Invoke($"PICK draws={state.Random.Draws}");
 		if (wing.TargetId != 0 && Find(other, wing.TargetId) is { } kept)
 		{
 			return kept;
