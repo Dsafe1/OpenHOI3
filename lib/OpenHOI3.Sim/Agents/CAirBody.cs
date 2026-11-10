@@ -211,10 +211,12 @@ public static class CAirBody
 		HashSet<CUnit> handled)
 	{
 		CBuilding? airBase = CTheatreFigures.AirBase(state);
+		// Every air unit based at a province, nested under a headquarters or not: the air base's own list
+		// (FINDINGS-liveread.md, section 26).
 		var stationed = new Dictionary<int, int>();
 		foreach (CCountry anyone in state.Countries)
 		{
-			foreach (CUnit unit in anyone.Units)
+			foreach (CUnit unit in anyone.AllUnits())
 			{
 				if (!unit.IsRemoved && unit.Kind == EUnitKind.Air && unit.Base > 0)
 				{

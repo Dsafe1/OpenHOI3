@@ -599,7 +599,7 @@ On a full pass, or forced: each candidate not taken and holding no CAG takes its
 own base with a score of 1,000,000; for each listed base no enemy marches on, the score is the listed one -
 **averaged with the distance from the headquarters to the base** when the group's parent is anything but a theatre -
 and, but for a transport plane, **times the crowding** where it is over 1: (the wings sent there this pass + the wings of
-every air unit based there + the group's own unless it is based there) / the base's working level. A base scoring lower
+every air unit based there, nested under a headquarters or not + the group's own unless it is based there) / the base's working level. A base scoring lower
 than the best so far is the best. A best that is not its base: **rebase** there, the count of wings sent there and taken
 from its old base kept for the rest of the pass, and the group taken.
 
