@@ -686,8 +686,8 @@ public static class CSaveLoader
 		Sim.Espionage.CEspionageAi.SetUpAtStart(state);
 		CForeignAi.SetUpAtStart(state);
 		Sim.Research.CResearchAi.SetUpAtStart(state);
-		// The strategy the save gave is kept, dated from the start date as the original's is, so the first midnight ten days
-		// past it makes it again; one never made is made now (savegame.md, section 16).
+		// The strategy the save gave is kept until the game is entered, which makes every one again; one never made is
+		// made now (savegame.md, section 16).
 		long madeHour = (long)state.StartDate.DayNumber * CGameState.HoursPerDay;
 		foreach (CCountry country in state.Countries)
 		{

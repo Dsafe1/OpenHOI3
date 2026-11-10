@@ -95,7 +95,25 @@ public static class CAiOrderCheck
 		_ => "land units",
 	};
 
-	public static void Report(CGameState state, ClausewitzNode earlierSave, ClausewitzNode laterSave, string indent, string? onlyCountry, string? allFile = null)
+	/// <summary>Where every unit here stands and is bound, to tell afterwards what one stretch of hours gave it.</summary>
+	public static Dictionary<string, (int Location, IReadOnlyList<int> Path)> Snapshot(CGameState state)
+	{
+		var snapshot = new Dictionary<string, (int, IReadOnlyList<int>)>();
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (CUnit unit in country.AllUnits())
+			{
+				snapshot[Key(country.Tag.Value, unit.Name, unit.Kind)] = (unit.Location, unit.Path.ToList());
+			}
+		}
+		return snapshot;
+	}
+
+	/// <param name="oursBefore">
+	/// Where the game here stood at the stretch's start, where it has played on from the earlier save and so differs from it.
+	/// </param>
+	public static void Report(CGameState state, ClausewitzNode earlierSave, ClausewitzNode laterSave, string indent, string? onlyCountry,
+		string? allFile = null, Dictionary<string, (int Location, IReadOnlyList<int> Path)>? oursBefore = null)
 	{
 		using System.IO.StreamWriter? everyWay = allFile is null ? null : new System.IO.StreamWriter(allFile);
 		Dictionary<string, SavedUnit> earlier = Units(earlierSave);
@@ -136,7 +154,16 @@ public static class CAiOrderCheck
 				}
 				all++;
 				bool originalOrdered = !Continues(before, theirs.Location, theirs.Path);
-				bool weOrdered = !Continues(before, unit.Location, unit.Path);
+				SavedUnit ourBefore = before;
+				if (oursBefore is not null)
+				{
+					if (!oursBefore.TryGetValue(id, out var was))
+					{
+						continue;
+					}
+					ourBefore = before with { Location = was.Location, Path = was.Path };
+				}
+				bool weOrdered = !Continues(ourBefore, unit.Location, unit.Path);
 				if (everyWay is not null && (originalOrdered || weOrdered))
 				{
 					everyWay.WriteLine($"{group}\t{theirs.Tag}\t{theirs.Kind}\t{before.Location}\t{theirs.Name.Trim((char)34)}\t{(originalOrdered ? 1 : 0)}\t{(weOrdered ? 1 : 0)}\t{string.Join(' ', theirs.Path)}\t{string.Join(' ', unit.Path)}");

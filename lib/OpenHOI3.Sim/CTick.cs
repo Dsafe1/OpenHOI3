@@ -268,6 +268,11 @@ public static class CTick
 		// A loaded game has its agents made before that pass and so gives its orders in it (savegame.md, section 2).
 		if (state.LoadedFromSave)
 		{
+			// Every strategy is made again as a saved game is entered, so its ten days start here (savegame.md, section 16).
+			foreach (Countries.CCountry country in state.Countries)
+			{
+				Ai.CAiStrategies.Make(state, country);
+			}
 			Agents.CUnitAiPass.MakeAgentsOfLoad(state);
 		}
 		Agents.CUnitAiPass.RunHourly(state);

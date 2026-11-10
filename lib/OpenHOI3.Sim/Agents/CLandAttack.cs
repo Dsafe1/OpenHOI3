@@ -47,6 +47,10 @@ public static class CLandAttack
 		List<(CProvince Province, long Weight)> targets = Targets(state, country, agent, headquarters, stance);
 		foreach ((CProvince target, long weight) in targets)
 		{
+			if (state.AiTrace is { } weightTrace && weightTrace.Country == country.Tag)
+			{
+				weightTrace.Write($"  weight\t{state.TotalHours}\t{headquarters.Name}\t{target.Id}\t{weight}\t{stance}");
+			}
 			Attack(state, country, agent, headquarters, target, weight >= AsBlitz ? CUnitPlan.Blitzing : stance, stance);
 		}
 		CallOff(state, country, agent);

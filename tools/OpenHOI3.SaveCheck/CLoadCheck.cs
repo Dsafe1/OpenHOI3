@@ -17,7 +17,7 @@ using OpenHOI3.Sim.Units;
 /// <summary>
 /// Loads a save of the original's as a game here and says how it went:
 ///
-///   OpenHOI3.SaveCheck load &lt;install folder&gt; &lt;savegame&gt; [hours] [later savegame] [examples=TAG]
+///   OpenHOI3.SaveCheck load &lt;install folder&gt; &lt;savegame&gt; [hours] [later savegame] [examples=TAG] [series=A,B,C]
 ///
 /// what of the save is not loaded yet, block by block; the loaded game's figures set beside the save's where the loader
 /// reads them, and the ones it works out again - IC - beside nothing; and then the hours given run, to show the game goes
@@ -125,6 +125,10 @@ public static class CLoadCheck
 		// orders=FILE: every way either side gave, one a line.
 		string? ordersFile = args.FirstOrDefault(arg => arg.StartsWith("orders=", StringComparison.Ordinal))?["orders=".Length..];
 		args = args.Where(arg => !arg.StartsWith("orders=", StringComparison.Ordinal)).ToArray();
+		// series=A,B,C: saves an hour apart of the original's own run on from the later save, A being that save: after it,
+		// each hour is played and the ways given in that hour alone are set beside the original's.
+		string[]? series = args.FirstOrDefault(arg => arg.StartsWith("series=", StringComparison.Ordinal))?["series=".Length..].Split(',');
+		args = args.Where(arg => !arg.StartsWith("series=", StringComparison.Ordinal)).ToArray();
 		// agents=FILE: every agent's hold list and committed and held-back divisions after the hours, to set beside the running game's.
 		string? agentsFile = args.FirstOrDefault(arg => arg.StartsWith("agents=", StringComparison.Ordinal))?["agents=".Length..];
 		args = args.Where(arg => !arg.StartsWith("agents=", StringComparison.Ordinal)).ToArray();
@@ -281,6 +285,20 @@ public static class CLoadCheck
 			CAiOrderCheck.Report(state, save, later, "  ", ExampleCountry, ordersFile);
 			Console.WriteLine("the wars, pacts and convoys, beside the later save:");
 			CompareDiplomacy(state, later, "  ");
+		}
+		if (series is not null)
+		{
+			ClausewitzNode earlier = ClausewitzParser.ParseFile(series[0]);
+			for (int step = 1; step < series.Length; step++)
+			{
+				var before = CAiOrderCheck.Snapshot(state);
+				simulation.RunHours(1);
+				simulation.Pump();
+				ClausewitzNode next = ClausewitzParser.ParseFile(series[step]);
+				Console.WriteLine($"hour {step} of the series, {state.Date} {state.Hour}:00:");
+				CAiOrderCheck.Report(state, earlier, next, "  ", ExampleCountry, ordersFile is null ? null : $"{ordersFile}.h{step}", before);
+				earlier = next;
+			}
 		}
 		Console.WriteLine($"{warnings.Count} warnings; the first few:");
 		foreach (string warning in warnings.Take(8))

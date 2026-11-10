@@ -606,11 +606,10 @@ Both ways (`CSaveAiStrategy`), after the templates [exe] (`FINDINGS-savegame.md`
   out where empty; its headquarters as `unit`, an id pair; `country`; `hot`. Read under its own number, its provinces
   stamped with it, its areas and ports worked out again from its provinces as they are not saved.
 
-**What a load does with them** [exe] (FINDINGS-aistrategy.md, A, read for this on 2026-11-06): a saved strategy is
-`initialized` and kept; **its ten-day clock is not saved, and the original's starts at the defines' `start_date`**, so
-the first midnight ten days or more past the start date - the first midnight after any load from 11 January 1936 on -
-makes every strategy again. A load here dates each strategy so (`CAiStrategy.MadeHour`), and makes now only one never
-made. Every country's theatres start marked, as the original's constructor leaves them, so the first hour refreshes the
+**What a load does with them** [exe] (FINDINGS-aistrategy.md, A; FINDINGS-liveread.md, section 22): a saved strategy is
+kept until the game is **entered**, and entering makes every country's again, at the save's own hour, so its ten days
+start there - measured on the running game on 2026-11-10, where an earlier reading had the first midnight do it. A load
+here keeps the save's until the entering pass (`CTick.RunEntryPass`), so a save read and written back at once is unchanged. Every country's theatres start marked, as the original's constructor leaves them, so the first hour refreshes the
 loaded ones (`theatres.md`, section 8) - their fronts made again, their headquarters kept. **Until this increment a load
 made every strategy and every theatre again at once**, the theatres from nothing under new numbers - Japan gained a
 headquarters at P'yongyang the save does not have, four hours on from `Germany1936_01_07_22`; it does not now.
