@@ -224,9 +224,10 @@ public static class CSaveLoader
 		}
 		Sim.Supply.CSupplyNetworks.Refresh(state, force: true);
 		Sim.Wars.CSurrender.CountVictoryPoints(state);
-		// The original has run an AI pass by the time a loaded game stands paused at its hour: every agent made and bound,
-		// and its first pass done (measured in the running game, FINDINGS-balancing.md). Entering the game runs that pass
-		// here, as for a new game; a load marks it as being no first one.
+		// The original has run its AI passes by the time a loaded game stands paused at its hour: two of them, every agent
+		// made before the first (measured in the running game, reversing/findings/FINDINGS-liveread.md, section 12). Entering
+		// the game runs them here; a load marks them as being no first pass.
+		state.LoadedFromSave = true;
 		foreach (CCountry country in state.Countries)
 		{
 			// A loaded game is no first pass and waits for no theatre: FINDINGS-agents.md, the pass, step 5.

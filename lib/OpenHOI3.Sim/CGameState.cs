@@ -287,6 +287,9 @@ public sealed class CGameState
 	/// </summary>
 	public bool IsBeingMade { get; set; }
 
+	/// <summary>This game came from a save: its AI's first passes are no first passes (<c>docs/mechanics/savegame.md</c>, section 2).</summary>
+	public bool LoadedFromSave { get; set; }
+
 	/// <summary>
 	/// A game has been made and entered, and is running: the original's <c>in_game</c>. What only a running game does - an
 	/// AI strategy made again every ten days and at a change of war (<c>aistrategy.md</c>, section 1) - waits for it.

@@ -38,6 +38,38 @@ public static class CUnitAiPass
 		}
 	}
 
+	/// <summary>
+	/// Every country the AI runs given its agents, before a loaded game's first pass: in the running original they are
+	/// there when that pass begins (<c>docs/mechanics/savegame.md</c>, section 2).
+	/// </summary>
+	public static void MakeAgentsOfLoad(CGameState state)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			if (state.Played.Contains(country.Tag))
+			{
+				country.UnitAi.RunsUnits = false;
+			}
+			if (!country.UnitAi.RunsUnits || country.AiPaused || country.Tag.Value == Revolts.CRebelFactions.Rebels
+				|| (Countries.COwnedCounts.Of(state).Count(country.Tag) == 0 && !country.InExile))
+			{
+				continue;
+			}
+			CAgents.CreateForTheatres(state, country);
+			CAgents.BindAndAttachOrphans(state, country);
+		}
+	}
+
+	/// <summary>A loaded game's second pass before its first hour: the running original makes two, at the one hour.</summary>
+	public static void RunSecondOfLoad(CGameState state)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			country.UnitAi.LastPassHour = -1;
+		}
+		RunHourly(state);
+	}
+
 	private static void Run(CGameState state, CCountry country, int hour)
 	{
 		CUnitAi ai = country.UnitAi;

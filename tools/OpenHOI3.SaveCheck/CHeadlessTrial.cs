@@ -68,6 +68,12 @@ internal static class CHeadlessTrial
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts);
 		state.Played.Clear();
 		state.ScriptReport = new CScriptReport();
+		// seed=N: another game of the same start. watch=TAG,TAG: those countries' hold on their land each midnight.
+		if (args.FirstOrDefault(a => a.StartsWith("seed=", StringComparison.Ordinal)) is { } seedArgument)
+		{
+			state.Seed = uint.Parse(seedArgument["seed=".Length..]);
+		}
+		string[] watched = args.FirstOrDefault(a => a.StartsWith("watch=", StringComparison.Ordinal))?["watch=".Length..].Split(',') ?? Array.Empty<string>();
 		if (inspect is not null)
 		{
 			state.UnitRemovedTrace = unit => TellRemoved(state, unit, inspect);
@@ -147,6 +153,14 @@ internal static class CHeadlessTrial
 				if (state.Date == before)
 				{
 					continue;
+				}
+				foreach (string tag in watched)
+				{
+					if (state.Country(new CCountryTag(tag)) is { } held)
+					{
+						Console.WriteLine($"HOLD {state.Date} {tag} owned {state.Provinces.Count(p => p.Owner == held.Tag)} held {state.Provinces.Count(p => p.Controller == held.Tag)} " +
+							$"unity {held.NationalUnity.Raw} occupied {OpenHOI3.Sim.Wars.CSurrender.Occupied(held)} progress {OpenHOI3.Sim.Wars.CSurrender.Progress(state, held)} war {(state.IsAtWar(held.Tag) ? 1 : 0)}");
+					}
 				}
 				if (hash)
 				{

@@ -119,6 +119,9 @@ public static class CLoadCheck
 		string? generator = args.FirstOrDefault(arg => arg.StartsWith("generator=", StringComparison.Ordinal))?["generator=".Length..];
 		string? battles = args.FirstOrDefault(arg => arg.StartsWith("battles=", StringComparison.Ordinal))?["battles=".Length..];
 		string? watch = args.FirstOrDefault(arg => arg.StartsWith("watch=", StringComparison.Ordinal))?["watch=".Length..];
+		// skipentry: the save is of a game already entered, so the first pass's orders are in it and are not given again.
+		bool skipEntry = args.Contains("skipentry");
+		args = args.Where(arg => arg != "skipentry").ToArray();
 		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal) && !arg.StartsWith("trace=", StringComparison.Ordinal)
 			&& !arg.StartsWith("generator=", StringComparison.Ordinal) && !arg.StartsWith("battles=", StringComparison.Ordinal)
 			&& !arg.StartsWith("watch=", StringComparison.Ordinal)).ToArray();
@@ -225,8 +228,10 @@ public static class CLoadCheck
 			state.BeforeBattle = combat => PutGenerator(state, generator, combat);
 		}
 		// Through the simulation, as the client plays a load: entering the game runs the AI's pass and what it posts.
-		var simulation = new CSimulation(state);
+		var simulation = new CSimulation(state, discardEntryOrders: skipEntry);
 		simulation.RunHours(hours);
+		// The orders the last hour's AI posted wait for the next drain; the save was written after they ran.
+		simulation.Pump();
 		if (battleLog is not null)
 		{
 			WriteBattles(state, battleLog);
@@ -242,6 +247,8 @@ public static class CLoadCheck
 			Console.WriteLine($"the units, beside {System.IO.Path.GetFileName(args[4])} - where the AI and the player " +
 				"gave other orders they differ, so a look:");
 			CompareUnits(state, later, "  ", exact: false);
+			Console.WriteLine("the ways given in those hours, beside the original's:");
+			CAiOrderCheck.Report(state, save, later, "  ", ExampleCountry);
 			Console.WriteLine("the wars, pacts and convoys, beside the later save:");
 			CompareDiplomacy(state, later, "  ");
 		}

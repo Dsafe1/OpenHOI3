@@ -133,10 +133,15 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    of China falling in six months against the original's thirteen and a half.
 3. **Air, bombing and the sea**, the same way. *Land bombing, the air battle and the sea battle done 2026-11-10: three bombings, a battle in the air and a battle at sea the original's draw for draw and figure for
    figure* (`reversing/findings/FINDINGS-liveread.md`, sections 9 to 11). The bombing of ground or ships, and each battle's first hour and its breaking off, still to do.
-4. **Republican Spain surrendering on 1 October 1936** in a headless run, which looks early, with the surrender progress logged
-   live, since no save holds it.
+4. ~~**Republican Spain surrendering on 1 October 1936**~~: dropped 2026-11-10 by the maintainer's word, the original's run varying too much for one war's date to say anything.
 5. **The AI's land movement**: after four days 782 of 908 divisions stand where the save has them, 789 move or stay as it does, and
    317 of 542 are bound for its province. Load from a save rather than a new game, since differences compound from day one.
+   *Begun 2026-11-10.* The original can now be started, loaded, stepped by the hour and saved with nobody at the machine (the fact base's
+   `probes/hoi.lua`), and `OpenHOI3.SaveCheck load` sets the ways a stretch of hours gave beside the original's. **A load's two AI passes before
+   its first hour are built** (`savegame.md`, section 2), which moved a burst of about 180 orders out of the first hour. On the save of
+   16 July 1941, entering: the original gives 167 land units a new way and ours 234, 35 of them the same. Each of the next six hours beside
+   the original's (`skipentry`, the generator not restored): 5 of the original's 72 land ways the same, and 235 given that the original did not - most of them at the
+   hours divisible by three and in the Soviet Union and Germany. The next thing to read is why ours moves so many more units in those hours.
 
 As of 2026-10-19, stage 5's military AI built through its third piece, moving and attacking (the last paragraphs before *Loose ends*); before that, in stage 3 with stage 4 built as far as items 6 to 10 cut it - events and decisions, diplomacy through factions, politics and espionage, each in four pieces, and triggered modifiers, with occupation and revolt, the last of stage 4, built in its four pieces - and the economy of stage 2 next, buildings in the build queue first. Kept
 current as work lands, so that picking this up cold needs nothing but this file and

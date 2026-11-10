@@ -22,18 +22,40 @@ public sealed class CSimulation
 	private long _nextSerial;
 	private int _turn;
 
-	public CSimulation(CGameState state)
+	/// <param name="state">The game.</param>
+	/// <param name="discardEntryOrders">For a tool setting an hour beside a save the original wrote after its own entering:
+	/// the AI's first pass still makes what it makes, and its orders, which that save already holds, are thrown away.</param>
+	public CSimulation(CGameState state, bool discardEntryOrders = false)
 	{
 		State = state;
 		CTick.RunEntryPass(state);
-		// What entering posted - the AI's sort of its units into its theatres - runs at once.
-		if (state.Outbox.Count > 0)
+		if (discardEntryOrders)
 		{
-			foreach (CCommand posted in state.Outbox)
+			state.Outbox.Clear();
+		}
+		// What entering posted - the AI's sort of its units into its theatres - runs at once.
+		DrainOutbox();
+		// A loaded game runs a second AI pass before its first hour, and that one's orders run as well.
+		if (state.LoadedFromSave)
+		{
+			Agents.CUnitAiPass.RunSecondOfLoad(state);
+			if (discardEntryOrders)
+			{
+				state.Outbox.Clear();
+			}
+			DrainOutbox();
+		}
+	}
+
+	private void DrainOutbox()
+	{
+		if (State.Outbox.Count > 0)
+		{
+			foreach (CCommand posted in State.Outbox)
 			{
 				Enqueue(posted);
 			}
-			state.Outbox.Clear();
+			State.Outbox.Clear();
 			Pump();
 		}
 	}

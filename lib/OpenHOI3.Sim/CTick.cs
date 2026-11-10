@@ -265,6 +265,11 @@ public static class CTick
 		CEventPass.RebuildCandidates(state);
 		// And the AI's first pass over its units runs on the first frame, before an hour is played: each country reaches its
 		// gate and sorts its units into its theatres (agents.md, section 2.1). What it posts is run before the first frame.
+		// A loaded game has its agents made before that pass and so gives its orders in it (savegame.md, section 2).
+		if (state.LoadedFromSave)
+		{
+			Agents.CUnitAiPass.MakeAgentsOfLoad(state);
+		}
 		Agents.CUnitAiPass.RunHourly(state);
 	}
 

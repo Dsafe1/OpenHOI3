@@ -61,8 +61,11 @@ stood apart from its master for as long as no province did. Found setting a load
 
 **A loaded game is past its AI's first pass.** A game the original has loaded and stands paused at its hour already has every
 agent made and bound and its first pass marked done (read in the running game, 2026-11-09), and it balances from its first hour.
-So a load clears each strategy's "theatres to remake" and marks the pass done and waiting over, and entering the game runs one AI
-pass before the first hour, as it does for a new game. How the original gets there, whether it runs a pass at all, was not read; this is the state it arrives at.
+So a load clears each strategy's "theatres to remake" and marks the pass done and waiting over. **Entering a loaded game runs two AI passes
+at the save's hour, before its first hour** [exe, counted in the running game, 2026-11-10, `reversing/findings/FINDINGS-liveread.md`, section 12]: every agent
+is there when the first begins, each agent ticks in both and runs its land block once. Here the agents are made first (`CUnitAiPass.MakeAgentsOfLoad`), a pass
+runs and its orders are carried out, and a second pass the same (`CSimulation`). So a save the original writes straight after entering already holds those orders.
+Where the original makes the agents was not read.
 
 ## 3. How a save writes its values
 
