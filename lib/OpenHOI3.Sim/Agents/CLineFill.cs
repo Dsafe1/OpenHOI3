@@ -82,7 +82,8 @@ public static class CLineFill
 			position.Want = (int)want;
 			any |= want > 0;
 		}
-		Count(agent, byProvince);
+		CPositionCount.Count(state, country, agent.Committed, agent.Positions.ConvertAll(position => position.Province),
+			province => byProvince[province].Have++, province => byProvince[province].Standing++, divisionsOnly: true);
 		if (!any)
 		{
 			foreach (CPosition position in agent.Positions)
@@ -154,26 +155,6 @@ public static class CLineFill
 			any = true;
 		}
 		return any;
-	}
-
-	private static void Count(CAgent agent, Dictionary<int, CPosition> byProvince)
-	{
-		foreach (CUnit unit in agent.Committed)
-		{
-			if (unit.IsGarrison)
-			{
-				continue;
-			}
-			int bound = CAgentUnits.DestinationOrPlace(unit);
-			if (byProvince.TryGetValue(bound, out CPosition? position))
-			{
-				position.Have++;
-			}
-			if (byProvince.TryGetValue(unit.Location, out CPosition? standing))
-			{
-				standing.Standing++;
-			}
-		}
 	}
 
 	private static bool DugIn(CGameState state, int province)
@@ -361,7 +342,7 @@ public static class CLineFill
 	}
 
 	/// <summary>Held by a country at war with this one, or by the rebels.</summary>
-	private static bool IsEnemyHeld(CGameState state, CCountry country, int province)
+	internal static bool IsEnemyHeld(CGameState state, CCountry country, int province)
 	{
 		return state.Province(province).Controller is { } holder
 			&& (holder.Value == Revolts.CRebelFactions.Rebels || CCountryLists.IsEnemy(state, country, holder));

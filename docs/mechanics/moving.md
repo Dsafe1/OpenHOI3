@@ -168,8 +168,10 @@ is cleared.
    the cap, the rest carried. **The position cap**: nought unless it borders enemy land or lies in the area; the stack
    cap (5) less min(6, 2/3 of its fort), at least 1; where every enemy neighbour's area has fewer than 6 provinces, at most
    the enemy land units beside it (at least 1, doubled where one of those areas is coastal).
-3. **Count**: committed divisions standing in or bound for each position, and allies' units where they hold a focus area
-   at war.
+3. **Count** [exe, `reversing/findings/FINDINGS-liveread.md`, section 13]: every committed division, garrisons too: the first position in the list that is where it stands or where it is
+   bound takes it - standing there it counts as standing and heading unless it is on its way to a province no enemy holds, when it is
+   counted nowhere; bound there, as heading. One falling back with under half its organisation is not counted. And allies' units where they hold a focus area
+   at war, which is not built.
 4. **The rest**: nothing given out - every position wants 1, or 2 where its units are dug in; otherwise while the carry is
    over 0.1, +1 to the position with the least want (an over-cap one sorted after).
 5. **Supply cut**: where want > trunc(3.5 x cap) and the province's supplies are nought, or its need is five times its

@@ -22,6 +22,12 @@ public sealed class CUnit
 	/// <summary>The number it is known by, unique among units and sub units alike.</summary>
 	public int Id { get; set; }
 
+	/// <summary>
+	/// Its place in its country's list where a save put it there: the original's list on a load is the save's tree walked
+	/// children first (<c>docs/mechanics/savegame.md</c>, section 5). A unit made in play has none and comes after, by number.
+	/// </summary>
+	public long ListOrder { get; set; } = long.MaxValue;
+
 	public EUnitKind Kind { get; }
 
 	/// <summary>Whose it is. Only a rebel army that wins its independence changes hands (<c>rebels.md</c>, section 12).</summary>

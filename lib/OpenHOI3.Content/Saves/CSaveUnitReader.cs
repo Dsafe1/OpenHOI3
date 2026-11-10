@@ -32,6 +32,7 @@ public sealed class CSaveUnitReader
 	private readonly CGameState _state;
 	private readonly CSaveIds _ids;
 	private readonly CSaveReport _report;
+	private long _listed;
 	private readonly List<(CUnit Unit, int Target, int OrderTarget)> _targets = new();
 	private readonly List<(CUnit Passenger, CUnit Carrier, int Parent, CCountry Owner)> _passengers = new();
 
@@ -232,6 +233,8 @@ public sealed class CSaveUnitReader
 			unit.Id = ++_state.LastUnitId;
 		}
 		ById[unit.Id] = unit;
+		// Finished after all under it, which is the order of the original's list on a load (savegame.md, section 5).
+		unit.ListOrder = _listed++;
 		return unit;
 	}
 

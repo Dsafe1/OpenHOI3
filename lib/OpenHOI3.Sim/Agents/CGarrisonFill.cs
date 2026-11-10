@@ -29,8 +29,19 @@ public static class CGarrisonFill
 		{
 			score.TryAdd(hold.Province, hold.Score);
 		}
-		int each = garrisons / targets.Count;
-		int extra = garrisons % targets.Count;
+		var garrison = new List<CUnit>();
+		foreach (CUnit unit in agent.Committed)
+		{
+			if (unit.IsGarrison)
+			{
+				garrison.Add(unit);
+			}
+		}
+		var standing = new Dictionary<int, int>();
+		CPositionCount.Count(state, country, garrison, targets, province => have[province] = have.GetValueOrDefault(province) + 1,
+			province => standing[province] = standing.GetValueOrDefault(province) + 1, divisionsOnly: false);
+		int each = garrison.Count / targets.Count;
+		int extra = garrison.Count % targets.Count;
 		for (int index = 0; index < targets.Count; index++)
 		{
 			int id = targets[index];
@@ -41,20 +52,6 @@ public static class CGarrisonFill
 			}
 			want[id] = System.Math.Min(wanted, stack);
 		}
-		var garrison = new List<CUnit>();
-		foreach (CUnit unit in agent.Committed)
-		{
-			if (!unit.IsGarrison)
-			{
-				continue;
-			}
-			garrison.Add(unit);
-			int bound = CAgentUnits.DestinationOrPlace(unit);
-			if (want.ContainsKey(bound))
-			{
-				have[bound] = have.GetValueOrDefault(bound) + 1;
-			}
-		}
 		bool moved = false;
 		foreach (int id in targets)
 		{
@@ -62,51 +59,69 @@ public static class CGarrisonFill
 			CSupplyArea? area = network.AreaOf(id);
 			bool focus = area is not null && agent.FocusAreas.Contains(area);
 			CProvince target = state.Province(id);
+			bool depot = network.DepotOf(id) == id;
+			long targetScore = score.GetValueOrDefault(id);
 			while (have.GetValueOrDefault(id) < want[id])
 			{
 				CUnit? best = null;
-				long least = long.MaxValue;
+				float least = 1e18f;
 				foreach (CUnit unit in garrison)
 				{
 					int bound = CAgentUnits.DestinationOrPlace(unit);
-					if (bound == id || Combat.CCombats.IsHoldingGround(unit) || unit.IsRetreating || unit.Location <= 0
-						|| agent.Threatened.Contains(unit.Location))
+					if (Combat.CCombats.IsHoldingGround(unit) || unit.IsRetreating || unit.Location <= 0
+						|| !CUnitMayLeave.Allows(state, country, unit, null, strict: true, notDefending: false))
 					{
 						continue;
 					}
-					if (!focus && !ReferenceEquals(network.AreaOf(unit.Location), area))
+					// Where it is bound decides, not where it stands (FINDINGS-liveread.md, section 13).
+					if ((!focus && !ReferenceEquals(network.AreaOf(bound), area)) || bound == id
+						|| (state.Province(bound).Controller != country.Tag && CLineFill.IsEnemyHeld(state, country, bound))
+						|| agent.Threatened.Contains(bound))
 					{
 						continue;
 					}
-					if (!threatened && want.TryGetValue(bound, out int theirs) && have.GetValueOrDefault(bound) <= theirs)
+					// A position of the list is not stripped to fill another no fuller than it would be left.
+					long boundScore = 0;
+					if (!threatened && want.ContainsKey(bound) && (boundScore = score.GetValueOrDefault(bound)) > 0)
 					{
-						continue;
+						int spare = targetScore > boundScore || depot ? 0 : 1;
+						if (have.GetValueOrDefault(id) + (depot ? 0 : 1) >= standing.GetValueOrDefault(bound) - spare)
+						{
+							continue;
+						}
 					}
-					if (!CUnitMayLeave.Allows(state, country, unit, null, strict: true, notDefending: false))
+					// Single precision, as the original keeps the distance; a tie is the first unit's.
+					float squared = CMapDistance.Squared(state.Province(unit.Location), target, state.MapWidth);
+					if (boundScore > targetScore && CArmyRole.Of(unit) == CArmyRole.Garrison)
 					{
-						continue;
+						squared = (float)(squared * 2.0);
 					}
-					long squared = CMapDistance.Squared(state.Province(unit.Location), target, state.MapWidth);
-					if (CArmyRole.Of(unit) == CArmyRole.Garrison && score.GetValueOrDefault(bound) > score.GetValueOrDefault(id))
-					{
-						squared *= 2;
-					}
-					if (squared < least)
+					if (squared < least && CAiMoves.CanReach(state, country, unit, id))
 					{
 						least = squared;
 						best = unit;
 					}
 				}
-				int previous = best is null ? 0 : CAgentUnits.DestinationOrPlace(best);
-				if (best is null || !CAiMoves.Move(state, country, best, id, safe: true))
+				if (best is null)
 				{
 					break;
 				}
-				moved = true;
-				if (want.ContainsKey(previous))
+				int previous = CAgentUnits.Destination(best);
+				if (previous > 0)
 				{
-					have[previous] = have.GetValueOrDefault(previous) - 1;
+					if (want.ContainsKey(previous))
+					{
+						have[previous] = have.GetValueOrDefault(previous) - 1;
+					}
 				}
+				else if (want.ContainsKey(best.Location))
+				{
+					have[best.Location] = have.GetValueOrDefault(best.Location) - 1;
+					standing[best.Location] = standing.GetValueOrDefault(best.Location) - 1;
+				}
+				// The original counts it sent whether or not the order takes.
+				CAiMoves.Move(state, country, best, id, safe: true);
+				moved = true;
 				have[id] = have.GetValueOrDefault(id) + 1;
 			}
 		}

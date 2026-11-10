@@ -138,10 +138,10 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    317 of 542 are bound for its province. Load from a save rather than a new game, since differences compound from day one.
    *Begun 2026-11-10.* The original can now be started, loaded, stepped by the hour and saved with nobody at the machine (the fact base's
    `probes/hoi.lua`), and `OpenHOI3.SaveCheck load` sets the ways a stretch of hours gave beside the original's. **A load's two AI passes before
-   its first hour are built** (`savegame.md`, section 2), which moved a burst of about 180 orders out of the first hour. On the save of
-   16 July 1941, entering: the original gives 167 land units a new way and ours 234, 35 of them the same. Each of the next six hours beside
-   the original's (`skipentry`, the generator not restored): 5 of the original's 72 land ways the same, and 235 given that the original did not - most of them at the
-   hours divisible by three and in the Soviet Union and Germany. The next thing to read is why ours moves so many more units in those hours.
+   its first hour are built** (`savegame.md`, section 2), which moved a burst of about 180 orders out of the first hour. Each of the six hours after the save of 16 July 1941 beside
+   the original's (`skipentry`, the generator not restored): 5 of the original's 72 land ways the same, and 235 given that the original did not - but that compares fresh agents here with the original's running ones, so **entering is the like-for-like**: both sides' agents new, off one save.
+   Two things found so: a loaded game's list of units is the save's tree walked children first (`CUnit.ListOrder`), and the garrison step was mended as read (`CPositionCount`, `CGarrisonFill`; `reversing/findings/FINDINGS-liveread.md`, section 13).
+   Entering now: of the original's 167 land ways ours has 57 the same, 43 another way, 67 none, and 77 the original did not give. Germany's and the Soviet Union's are most of what is left.
 
 As of 2026-10-19, stage 5's military AI built through its third piece, moving and attacking (the last paragraphs before *Loose ends*); before that, in stage 3 with stage 4 built as far as items 6 to 10 cut it - events and decisions, diplomacy through factions, politics and espionage, each in four pieces, and triggered modifiers, with occupation and revolt, the last of stage 4, built in its four pieces - and the economy of stage 2 next, buildings in the build queue first. Kept
 current as work lands, so that picking this up cold needs nothing but this file and

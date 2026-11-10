@@ -514,13 +514,15 @@ public sealed class CCountry
 
 	/// <summary>
 	/// Every unit it has in the order the original keeps them, which is the order they
-	/// were made in and so the order of their numbers. Reinforcement and upgrades work
-	/// through them this way, and it decides who goes without when a share runs out.
+	/// were made in and so the order of their numbers - and in a loaded game the order the
+	/// save's tree gave them (<see cref="CUnit.ListOrder"/>), those made since after them.
+	/// Reinforcement and upgrades work through them this way, and it decides who goes
+	/// without when a share runs out.
 	/// </summary>
 	public List<CUnit> UnitsInOrder()
 	{
 		var units = new List<CUnit>(AllUnits());
-		units.Sort((a, b) => a.Id.CompareTo(b.Id));
+		units.Sort((a, b) => a.ListOrder != b.ListOrder ? a.ListOrder.CompareTo(b.ListOrder) : a.Id.CompareTo(b.Id));
 		return units;
 	}
 

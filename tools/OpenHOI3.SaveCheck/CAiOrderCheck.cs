@@ -119,6 +119,11 @@ public static class CAiOrderCheck
 			var invented = new List<string>();
 			var missedBy = new Dictionary<string, int>();
 			var inventedBy = new Dictionary<string, int>();
+			var byKind = new SortedDictionary<string, (int Given, int Same, int Other, int None, int Invented)>(StringComparer.Ordinal);
+			void Tally(EUnitKind kind, Func<(int Given, int Same, int Other, int None, int Invented), (int Given, int Same, int Other, int None, int Invented)> change)
+			{
+				byKind[kind.ToString()] = change(byKind.GetValueOrDefault(kind.ToString()));
+			}
 			int givenCount = 0;
 			int sameWay = 0;
 			int all = 0;
@@ -135,30 +140,39 @@ public static class CAiOrderCheck
 				if (originalOrdered)
 				{
 					givenCount++;
+					Tally(theirs.Kind, t => t with { Given = t.Given + 1 });
 					if (unit.Path.SequenceEqual(theirs.Path))
 					{
 						sameWay++;
+						Tally(theirs.Kind, t => t with { Same = t.Same + 1 });
 						given.Add(who);
 					}
 					else if (weOrdered)
 					{
 						missedBy[theirs.Tag] = missedBy.GetValueOrDefault(theirs.Tag) + 1;
+						Tally(theirs.Kind, t => t with { Other = t.Other + 1 });
 						other.Add($"{who}: the original {Way(theirs.Path)}, ours {Way(unit.Path)}, was {Way(before.Path)}");
 					}
 					else
 					{
 						missedBy[theirs.Tag] = missedBy.GetValueOrDefault(theirs.Tag) + 1;
+						Tally(theirs.Kind, t => t with { None = t.None + 1 });
 						missed.Add($"{who}: the original {Way(theirs.Path)}, ours left it on {Way(unit.Path)}");
 					}
 				}
 				else if (weOrdered)
 				{
 					inventedBy[theirs.Tag] = inventedBy.GetValueOrDefault(theirs.Tag) + 1;
+					Tally(theirs.Kind, t => t with { Invented = t.Invented + 1 });
 					invented.Add($"{who}: the original left it on {Way(theirs.Path)}, ours {Way(unit.Path)}");
 				}
 			}
 			Console.WriteLine($"{indent}{group}: {all} - the original gave {givenCount} ways, ours gave {sameWay} of them the same, " +
 				$"{other.Count} another way, {missed.Count} none; ours gave {invented.Count} the original did not");
+			foreach ((string kind, (int g, int s, int o, int n, int i)) in byKind)
+			{
+				Console.WriteLine($"{indent}  {kind}: the original {g}, the same {s}, another way {o}, none {n}; ours alone {i}");
+			}
 			Examples("another way", other);
 			Examples("none", missed);
 			Examples("not the original's", invented);
