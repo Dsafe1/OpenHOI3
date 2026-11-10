@@ -201,14 +201,18 @@ public static class CProvinceHoldValue
 		return 0;
 	}
 
+	/// <summary>The ships of the fleets based at this port, at sea or not (FINDINGS-liveread.md, section 15).</summary>
 	private static int Ships(CGameState state, CProvince province)
 	{
 		int ships = 0;
-		foreach (CUnit unit in state.Positions.Of(province.Id))
+		foreach (CCountry country in state.Countries)
 		{
-			if (unit.Kind == EUnitKind.Navy)
+			foreach (CUnit unit in country.AllUnits())
 			{
-				ships += unit.SubUnits.Count;
+				if (unit.Kind == EUnitKind.Navy && unit.Base == province.Id)
+				{
+					ships += unit.SubUnits.Count;
+				}
 			}
 		}
 		return ships;

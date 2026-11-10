@@ -530,11 +530,12 @@ public static class CSaveLoader
 		}
 	}
 
-	/// <summary>A pair block: the relation, a whole number; the threat; the occupation policy, none written none held.</summary>
+	/// <summary>A pair block: the relation, a whole number; the threat; military access, written where held; the occupation policy, none written none held.</summary>
 	private static void ReadStatus(CGameState state, CDiplomacyStatus status, ClausewitzNode node)
 	{
 		status.Relation = CFixedPoint.FromInt(CSaveValues.Whole(node, "value"));
 		status.Threat = CSaveValues.Fixed(node, "threat");
+		status.HasMilitaryAccess = node.GetBool("military_access");
 		string policy = node.Get("occupation_policy")?.Value?.Trim('"') ?? COccupationPolicies.NoOccupation;
 		status.OccupationPolicy = COccupationPolicies.Find(state, policy)?.Index ?? 0;
 	}

@@ -55,9 +55,13 @@ public static class CHoldProvinces
 			Insert(agent, id, CHoldScore.Of(state, country, agent, province, context) + 200 * Whole);
 			wanted++;
 		}
-		if ((agent.Unit is null || agent.Unit.Kind == EUnitKind.Theatre) && country.Overlord is null)
+		// A subject skips only its puppets' areas: the theatre's own provinces are looked at all the same (FINDINGS-liveread.md, section 15).
+		if (agent.Unit is null || agent.Unit.Kind == EUnitKind.Theatre)
 		{
-			Puppets(state, country, agent, seen, context);
+			if (country.Overlord is null)
+			{
+				Puppets(state, country, agent, seen, context);
+			}
 			if (CAgents.TheatreOf(state, country, agent) is { } theatre)
 			{
 				foreach (int id in theatre.AllProvinces)
@@ -120,8 +124,9 @@ public static class CHoldProvinces
 		{
 			return;
 		}
-		seen.Add(id);
-		Insert(agent, id, (score + Whole / 2) / Whole * Whole);
+		// Not marked as seen, as the original's list is not added to: a province of a puppet's area and of the theatre comes twice.
+		// The score is rounded to a whole number as the FPU does, a half to the even.
+		Insert(agent, id, (long)System.Math.Round(score / (double)Whole, System.MidpointRounding.ToEven) * Whole);
 	}
 
 	private static void Insert(CAgent agent, int province, long score)

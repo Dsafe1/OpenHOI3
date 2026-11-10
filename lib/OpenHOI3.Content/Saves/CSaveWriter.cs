@@ -364,6 +364,10 @@ public static class CSaveWriter
 			writer.Begin(other.Tag.Value);
 			writer.Int("value", status.Relation.Raw / CFixedPoint.Scale);
 			writer.Fixed("threat", status.Threat);
+			if (status.HasMilitaryAccess)
+			{
+				writer.Bool("military_access", true);
+			}
 			if (status.OccupationPolicy != 0 && status.OccupationPolicy < state.OccupationPolicies.Count)
 			{
 				writer.Quoted("occupation_policy", state.OccupationPolicies[status.OccupationPolicy].Name);

@@ -122,6 +122,9 @@ public static class CLoadCheck
 		// skipentry: the save is of a game already entered, so the first pass's orders are in it and are not given again.
 		bool skipEntry = args.Contains("skipentry");
 		args = args.Where(arg => arg != "skipentry").ToArray();
+		// agents=FILE: every agent's hold list and committed and held-back divisions after the hours, to set beside the running game's.
+		string? agentsFile = args.FirstOrDefault(arg => arg.StartsWith("agents=", StringComparison.Ordinal))?["agents=".Length..];
+		args = args.Where(arg => !arg.StartsWith("agents=", StringComparison.Ordinal)).ToArray();
 		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal) && !arg.StartsWith("trace=", StringComparison.Ordinal)
 			&& !arg.StartsWith("generator=", StringComparison.Ordinal) && !arg.StartsWith("battles=", StringComparison.Ordinal)
 			&& !arg.StartsWith("watch=", StringComparison.Ordinal)).ToArray();
@@ -232,6 +235,18 @@ public static class CLoadCheck
 		simulation.RunHours(hours);
 		// The orders the last hour's AI posted wait for the next drain; the save was written after they ran.
 		simulation.Pump();
+		if (agentsFile is not null)
+		{
+			using var dump = new System.IO.StreamWriter(agentsFile);
+			foreach (CCountry country in state.Countries)
+			{
+				foreach (OpenHOI3.Sim.Agents.CAgent agent in country.UnitAi.Agents)
+				{
+					dump.WriteLine($"{country.Tag}\t{agent.Unit?.Name ?? "none"}\t" + string.Join(" ", agent.HoldProvinces.Select(h => $"{h.Province}:{h.Score}"))
+						+ $"\t{agent.Committed.Count}\t{agent.HeldBack.Count}\t{agent.CommittedAtFirst.Count}");
+				}
+			}
+		}
 		if (battleLog is not null)
 		{
 			WriteBattles(state, battleLog);

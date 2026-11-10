@@ -121,6 +121,12 @@ public static class CSaveAiStrategy
 			Headquarters = ids.Of(node.Get("unit")),
 		};
 		state.Theatres[theatre.Id] = theatre;
+		// The theatre's own provinces are its last provinces key, its fronts having theirs inside them. The own come first
+		// among all its provinces, in the running original's list, whatever the save's order (FINDINGS-liveread.md, section 15).
+		foreach (int province in Numbers(node.Children.LastOrDefault(child => child.Key == "provinces")))
+		{
+			CTheatreProvinces.Add(state, theatre, province);
+		}
 		foreach (ClausewitzNode block in node.All("front"))
 		{
 			var front = new CFront
@@ -130,11 +136,6 @@ public static class CSaveAiStrategy
 			};
 			front.Provinces.AddRange(Numbers(block.Get("provinces")));
 			CTheatreProvinces.AddFront(state, theatre, front, reorder: false);
-		}
-		// The theatre's own provinces are its last provinces key, its fronts having theirs inside them.
-		foreach (int province in Numbers(node.Children.LastOrDefault(child => child.Key == "provinces")))
-		{
-			CTheatreProvinces.Add(state, theatre, province);
 		}
 		theatre.KeyProvinces.AddRange(Numbers(node.Get("key")));
 		CTheatreProvinces.RebuildAreas(state, theatre);

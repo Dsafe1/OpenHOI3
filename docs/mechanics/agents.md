@@ -370,7 +370,7 @@ aircraft wanted (section 9).
   by a country not in exile, 2 x points + 5.
 - 100 for C's acting capital; full, 60 for a strategic resource.
 - Half the province's IC - or, with hold: 100 for its own supply depot, half its IC x its revolt risk (the shown figure)
-  / 1000, and, full with a naval base and a port, 30 + 2 x the ships lying there.
+  / 1000, and, full with a naval base and a port, 30 + 2 x the ships of the fleets based there, at sea or not.
 - A quarter of the plan's objective's priority on it.
 
 ## 8. The area of operations (section E)
