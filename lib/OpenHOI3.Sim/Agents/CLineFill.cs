@@ -42,6 +42,9 @@ public static class CLineFill
 
 	private const long ReserveReach = 80;
 
+	/// <summary>Where the search for the best position starts: nothing is at or above it.</summary>
+	private const float StartKey = 1_000_000f;
+
 	public static bool Fill(CGameState state, CCountry country, CAgent agent, int line, int budget)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
@@ -104,7 +107,7 @@ public static class CLineFill
 		}
 		SupplyCutBack(state, agent);
 		bool moved = SendEach(state, country, agent, network, byProvince, budget);
-		moved |= PullShort(state, country, agent, byProvince);
+		moved |= PullShort(state, country, agent, byProvince, budget);
 		return moved;
 	}
 
@@ -272,10 +275,15 @@ public static class CLineFill
 			{
 				continue;
 			}
-			var keyed = new List<(long Key, CPosition Position)>();
+			// The positions in their order, read on the listing (FINDINGS-liveread.md, section 17): one where the division stands is
+			// taken at once, unless it is bound for a target province away from the hostile routes, when only a position beside
+			// one will do; otherwise the lowest key, in single precision as the original's, that it can reach.
+			bool besideRouteOnly = agent.TargetProvinces.Contains(bound) && !BesideRoute(state, agent, bound);
+			CPosition? best = null;
+			float least = StartKey;
 			foreach (CPosition position in agent.Positions)
 			{
-				if (position.Want <= 0 || position.Have >= position.Cap || position.Have >= position.Want)
+				if (position.Want == 0 || position.Have >= position.Cap)
 				{
 					continue;
 				}
@@ -285,52 +293,70 @@ public static class CLineFill
 				{
 					continue;
 				}
-				long key;
-				long fill = (long)position.Have * Whole / position.Want;
-				if (atWar)
+				if (besideRouteOnly)
 				{
-					long distance = CMapDistance.Between(state.Province(unit.Location), province, state.MapWidth);
-					key = distance * (fill + 100);
+					if (!BesideRoute(state, agent, position.Province))
+					{
+						continue;
+					}
 				}
-				else
-				{
-					key = fill * 100;
-				}
-				if (HasLandBattle(state, position.Province))
-				{
-					key = key * Cheaper / Whole;
-				}
-				if (network.DepotOf(position.Province) == position.Province)
-				{
-					key = key * Cheaper / Whole;
-				}
-				if (BesideRoute(state, agent, position.Province))
-				{
-					key = key * Cheaper / Whole;
-				}
-				key -= 50 * CUnitRatings.Terrain(state, country, province, unit, attacking: false);
-				keyed.Add((key, position));
-			}
-			CPosition? best = null;
-			foreach ((long _, CPosition position) in System.Linq.Enumerable.OrderBy(keyed, entry => entry.Key))
-			{
-				if (CAiMoves.CanReach(state, country, unit, position.Province))
+				else if (position.Province == unit.Location)
 				{
 					best = position;
 					break;
 				}
+				float ratio = (float)((double)(float)position.Have / (float)position.Want);
+				float key = (float)((double)ratio * 100.0);
+				if (ratio > 1f)
+				{
+					key = (float)((double)key + ((double)ratio - 1.0) * 100.0);
+				}
+				if (atWar)
+				{
+					long distance = CMapDistance.Between(state.Province(bound), province, state.MapWidth);
+					key = (float)((double)(float)distance * ((double)ratio + 0.1f));
+					if (HasLandBattle(state, position.Province))
+					{
+						key = (float)((double)key * 0.66f);
+					}
+				}
+				key = (float)((double)key - CUnitRatings.Terrain(state, country, province, unit, attacking: false) / (double)Whole * 50.0);
+				if (network.DepotOf(position.Province) == position.Province)
+				{
+					key = (float)((double)key * 0.66f);
+				}
+				if (BesideRoute(state, agent, position.Province))
+				{
+					key = (float)((double)key * 0.66f);
+				}
+				if (key < least && CAiMoves.CanReach(state, country, unit, position.Province))
+				{
+					least = key;
+					best = position;
+				}
 			}
 			if (best is not null)
 			{
-				if (CAiMoves.Move(state, country, unit, best.Province, safe: true))
+				if (best.Province == bound)
 				{
-					moved = true;
-					if (mine is not null)
-					{
-						mine.Have--;
-					}
-					best.Have++;
+					continue;
 				}
+				if (mine is not null)
+				{
+					mine.Have--;
+					if (mine.Province == unit.Location)
+					{
+						mine.Standing--;
+					}
+				}
+				best.Have++;
+				if (best.Province == unit.Location)
+				{
+					best.Standing++;
+				}
+				// The original counts it sent whatever the order answers.
+				CAiMoves.Move(state, country, unit, best.Province, safe: true);
+				moved = true;
 			}
 			else if (mine is null && agent.SecondRing.Count > 0)
 			{
@@ -367,19 +393,27 @@ public static class CLineFill
 	}
 
 	/// <summary>Each position still short pulls the nearest division from a fuller one, or a fit reserve.</summary>
-	private static bool PullShort(CGameState state, CCountry country, CAgent agent, Dictionary<int, CPosition> byProvince)
+	private static bool PullShort(CGameState state, CCountry country, CAgent agent, Dictionary<int, CPosition> byProvince, int budget)
 	{
 		bool moved = false;
 		bool atWar = agent.FrontierAtWar;
 		int stance = agent.Unit?.Plan.Stance ?? CUnitPlan.Defensive;
 		bool airTransports = agent.AirTransports.Count > 0;
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		CSupplyArea? capitalArea = network.AreaOf(country.ActingCapital);
 		foreach (CPosition position in agent.Positions)
 		{
-			while (position.Want > 0 && position.Have < position.Want)
+			if (position.Want <= 0)
+			{
+				continue;
+			}
+			// Worked out once for the position, before anybody is pulled to it (FINDINGS-liveread.md, section 17).
+			int notDepot = network.DepotOf(position.Province) == position.Province ? 0 : 1;
+			float fill = (float)((double)(float)(position.Have + notDepot) / (float)position.Want);
+			while (position.Have < position.Want)
 			{
 				CProvince here = state.Province(position.Province);
-				var keyed = new List<(long Key, CUnit Unit)>();
+				var keyed = new List<(float Key, CUnit Unit)>();
 				foreach (CUnit unit in agent.Committed)
 				{
 					if (unit.IsRetreating || unit.IsGarrison || unit.Location <= 0
@@ -388,6 +422,14 @@ public static class CLineFill
 						continue;
 					}
 					int bound = CAgentUnits.DestinationOrPlace(unit);
+					if (network.DepotOf(bound) == bound && CCommandLadder.IsBlocked(unit))
+					{
+						continue;
+					}
+					if (budget <= 0 && ReferenceEquals(network.AreaOf(unit.Location), capitalArea) && here.Controller != country.Tag)
+					{
+						continue;
+					}
 					if (bound == position.Province || AttacksBeside(state, country, unit, bound)
 						|| (CCombats.IsHoldingGround(unit) && byProvince.TryGetValue(unit.Location, out CPosition? holding)
 							&& holding.Want > 0))
@@ -400,9 +442,8 @@ public static class CLineFill
 					if (!bypass)
 					{
 						int count = unit.Location == bound ? from!.Standing : from!.Have;
-						int notDepot = network.DepotOf(position.Province) == position.Province ? 0 : 1;
 						int k = notDepot == 0 ? 0 : position.Have != 0 ? 1 : count <= 1 ? 1 : 0;
-						if ((long)(position.Have + notDepot) * from.Want >= (long)(count - k) * position.Want)
+						if (fill >= (float)((double)(float)(count - k) / (float)from.Want))
 						{
 							continue;
 						}
@@ -412,21 +453,23 @@ public static class CLineFill
 							continue;
 						}
 					}
+					// Single precision and in this order, the original's (FINDINGS-liveread.md, section 17).
 					long squared = CMapDistance.Squared(state.Province(unit.Location), here, state.MapWidth);
-					long key = squared * 16 + unit.DigIn.Raw / 100 + unit.AttackDelay.Raw / Whole
-						- 100 * CUnitRatings.Terrain(state, country, here, unit, attacking: false) / Whole;
+					float key = (float)(squared + (double)(float)(unit.DigIn.Raw / (double)Whole) * 10.0);
+					key = (float)((double)key + unit.AttackDelay.Raw / Whole);
+					key = (float)((double)key - CUnitRatings.Terrain(state, country, here, unit, attacking: false) / (double)Whole * 100.0);
 					if (from is null || from.Want <= 0)
 					{
-						key /= 4;
+						key = (float)((double)key * 0.25);
 					}
 					else
 					{
-						key += 100 * CUnitRatings.Terrain(state, country, state.Province(bound), unit, attacking: false) / Whole;
+						key = (float)((double)key + CUnitRatings.Terrain(state, country, state.Province(bound), unit, attacking: false) / (double)Whole * 100.0);
 					}
 					keyed.Add((key, unit));
 				}
 				CUnit? best = null;
-				foreach ((long _, CUnit unit) in System.Linq.Enumerable.OrderBy(keyed, entry => entry.Key))
+				foreach ((float _, CUnit unit) in System.Linq.Enumerable.OrderBy(keyed, entry => entry.Key))
 				{
 					if (CAiMoves.CanReach(state, country, unit, position.Province)
 						&& CUnitMayLeave.Allows(state, country, unit, null, CUnitMayLeave.IsStrict(agent), notDefending: false))
@@ -440,12 +483,10 @@ public static class CLineFill
 					moved |= SendReserve(state, country, agent, position);
 					break;
 				}
-				if (!CAiMoves.Move(state, country, best, position.Province, safe: true))
-				{
-					break;
-				}
-				moved = true;
+				// Where it was going, read before the order changes it; the original counts it sent whatever the order answers.
 				int leaving = CAgentUnits.DestinationOrPlace(best);
+				CAiMoves.Move(state, country, best, position.Province, safe: true);
+				moved = true;
 				if (byProvince.TryGetValue(leaving, out CPosition? left) && !ReferenceEquals(left, position))
 				{
 					left.Have--;
@@ -464,35 +505,48 @@ public static class CLineFill
 		return moved;
 	}
 
-	/// <summary>At war, a fit held-back division sent to a position beside a hostile route or under an attack going against it.</summary>
+	/// <summary>
+	/// With the frontier at war, fit held-back divisions sent to a position nobody else can fill, one at a time while it is
+	/// short, the nearest first; to one that has anybody only beside a hostile route or under an attack going against it.
+	/// The original's <c>CAIUnit_SendReservesToPosition</c>.
+	/// </summary>
 	private static bool SendReserve(CGameState state, CCountry country, CAgent agent, CPosition position)
 	{
-		if (!state.IsAtWar(country.Tag) || (!BesideRoute(state, agent, position.Province)
-			&& !UnderLosingAttack(state, position.Province)))
+		if (!agent.FrontierAtWar || agent.HeldBack.Count == 0
+			|| (position.Have > 0 && !BesideRoute(state, agent, position.Province) && !UnderLosingAttack(state, position.Province)))
 		{
 			return false;
 		}
 		CProvince here = state.Province(position.Province);
-		foreach (CUnit unit in agent.HeldBack)
+		bool sent = false;
+		for (int short_ = position.Want - position.Have; short_ > 0; short_--)
 		{
-			if (unit.Location <= 0 || CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false))
+			CUnit? best = null;
+			long least = long.MaxValue;
+			foreach (CUnit unit in agent.HeldBack)
 			{
-				continue;
+				if (unit.IsRetreating || unit.Location <= 0 || CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false))
+				{
+					continue;
+				}
+				CUnitShares.Of(state, unit, out long strength, out long organisation);
+				long distance = CMapDistance.Between(state.Province(unit.Location), here, state.MapWidth);
+				if (strength >= ReserveStrength && organisation >= ReserveOrganisation && distance <= ReserveReach && distance < least)
+				{
+					least = distance;
+					best = unit;
+				}
 			}
-			CUnitShares.Of(state, unit, out long strength, out long organisation);
-			if (strength < ReserveStrength || organisation < ReserveOrganisation
-				|| CMapDistance.Between(state.Province(unit.Location), here, state.MapWidth) > ReserveReach)
+			if (best is null)
 			{
-				continue;
+				break;
 			}
-			if (CAiMoves.Move(state, country, unit, position.Province, safe: true))
-			{
-				unit.IsHeldBack = false;
-				position.Have++;
-				return true;
-			}
+			agent.HeldBack.Remove(best);
+			best.IsHeldBack = false;
+			CAiMoves.Move(state, country, best, position.Province, safe: true);
+			sent = true;
 		}
-		return false;
+		return sent;
 	}
 
 	internal static bool HasLandBattle(CGameState state, int province)
