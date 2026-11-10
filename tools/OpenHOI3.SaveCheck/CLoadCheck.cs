@@ -257,7 +257,8 @@ public static class CLoadCheck
 				{
 					dump.WriteLine($"{country.Tag}\t{agent.Unit?.Name ?? "none"}\t" + string.Join(" ", agent.HoldProvinces.Select(h => $"{h.Province}:{h.Score}"))
 						+ $"\t{agent.Committed.Count}\t{agent.HeldBack.Count}\t{agent.CommittedAtFirst.Count}"
-						+ "\t" + string.Join("|", agent.Committed.Select(u => u.Name)) + "\t" + string.Join("|", agent.HeldBack.Select(u => u.Name)));
+						+ "\t" + string.Join("|", agent.Committed.Select(u => u.Name)) + "\t" + string.Join("|", agent.HeldBack.Select(u => u.Name))
+						+ "\t" + string.Join("|", agent.CommittedAtFirst.Where(u => u.IsGarrison).Select(u => u.Name)));
 				}
 			}
 		}

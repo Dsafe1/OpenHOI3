@@ -86,7 +86,7 @@ public static class CLineFill
 			any |= want > 0;
 		}
 		CPositionCount.Count(state, country, agent.Committed, agent.Positions.ConvertAll(position => position.Province),
-			province => byProvince[province].Have++, province => byProvince[province].Standing++, divisionsOnly: true);
+			province => byProvince[province].Have++, province => byProvince[province].Standing++, divisionsOnly: true, withAllies: agent);
 		if (!any)
 		{
 			foreach (CPosition position in agent.Positions)
@@ -328,6 +328,10 @@ public static class CLineFill
 				if (BesideRoute(state, agent, position.Province))
 				{
 					key = (float)((double)key * 0.66f);
+				}
+				if (state.AiTrace is { } keyTrace && keyTrace.Country == country.Tag)
+				{
+					keyTrace.Write($"  key\t{unit.Name}\t{position.Province}\t{position.Have}\t{position.Want}\t{key:F6}");
 				}
 				if (key < least && CAiMoves.CanReach(state, country, unit, position.Province))
 				{

@@ -59,7 +59,7 @@ public static class CLandSplit
 			{
 				continue;
 			}
-			targets.Add(hold.Province);
+			Insert(targets, agent, hold);
 			if (hold.Score >= StrongScore)
 			{
 				strong++;
@@ -122,11 +122,22 @@ public static class CLandSplit
 			}
 			if (!targets.Contains(hold.Province))
 			{
-				targets.Add(hold.Province);
+				Insert(targets, agent, hold);
 			}
 		}
 		Match(state, country, agent, network, targets, garrisons);
 		return (garrisons, line, targets);
+	}
+
+	/// <summary>The target put in its place by score, the higher first and after any of its own score, wherever it was found.</summary>
+	private static void Insert(List<int> targets, CAgent agent, CHoldProvince hold)
+	{
+		int at = targets.Count;
+		while (at > 0 && hold.Score > agent.HoldProvinces.Find(other => other.Province == targets[at - 1])!.Score)
+		{
+			at--;
+		}
+		targets.Insert(at, hold.Province);
 	}
 
 	/// <summary>The non-friendly land units on the front list whose holders are front-worthy, and their areas' provinces.</summary>
@@ -239,13 +250,16 @@ public static class CLandSplit
 
 	private static CUnit? Best(CGameState state, CCountry country, CAgent agent, CSupplyNetwork network, CSupplyGroup group)
 	{
-		bool atWar = state.IsAtWar(country.Tag);
+		// The agent's own frontier, not the country's wars: an agent far from the fighting does take armour for a garrison.
+		bool atWar = agent.FrontierAtWar;
 		bool airTransports = agent.AirTransports.Count > 0;
 		CUnit? best = null;
 		long bestScore = long.MinValue;
 		foreach (CUnit unit in agent.CommittedAtFirst)
 		{
-			if (unit.IsGarrison || !ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.RegionGroup, group)
+			// In the block by where it stands or where it is bound (FINDINGS-liveread.md, section 21).
+			if (unit.IsGarrison || (!ReferenceEquals(network.AreaOf(unit.Location)?.RegionGroup, group)
+				&& !(CAgentUnits.Destination(unit) > 0 && ReferenceEquals(network.AreaOf(CAgentUnits.Destination(unit))?.RegionGroup, group)))
 				|| FacesPreparedWar(state, country, unit))
 			{
 				continue;
@@ -280,7 +294,7 @@ public static class CLandSplit
 
 	private static bool FacesPreparedWar(CGameState state, CCountry country, CUnit unit)
 	{
-		foreach (CProvinceEdge edge in state.Province(unit.Location).Edges)
+		foreach (CProvinceEdge edge in state.Province(CAgentUnits.DestinationOrPlace(unit)).Edges)
 		{
 			if (state.Province(edge.To).Controller is { } holder && holder != country.Tag
 				&& CWarTargets.IsPreparingWarWith(state, country, holder))

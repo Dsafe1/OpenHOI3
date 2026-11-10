@@ -139,7 +139,7 @@ public static class CAiOrderCheck
 				bool weOrdered = !Continues(before, unit.Location, unit.Path);
 				if (everyWay is not null && (originalOrdered || weOrdered))
 				{
-					everyWay.WriteLine($"{group}\t{theirs.Tag}\t{theirs.Kind}\t{before.Location}\t{(originalOrdered ? 1 : 0)}\t{(weOrdered ? 1 : 0)}\t{string.Join(' ', theirs.Path)}\t{string.Join(' ', unit.Path)}");
+					everyWay.WriteLine($"{group}\t{theirs.Tag}\t{theirs.Kind}\t{before.Location}\t{theirs.Name.Trim((char)34)}\t{(originalOrdered ? 1 : 0)}\t{(weOrdered ? 1 : 0)}\t{string.Join(' ', theirs.Path)}\t{string.Join(' ', unit.Path)}");
 				}
 				string who = $"{theirs.Tag} {theirs.Id} {theirs.Name.Trim('"')} at {before.Location}";
 				if (originalOrdered)

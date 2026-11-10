@@ -90,8 +90,8 @@ public static class CGarrisonFill
 							continue;
 						}
 					}
-					// Single precision, as the original keeps the distance; a tie is the first unit's.
-					float squared = CMapDistance.Squared(state.Province(unit.Location), target, state.MapWidth);
+					// Single precision, as the original keeps the distance, from where it is bound; a tie is the first unit's.
+					float squared = CMapDistance.Squared(state.Province(bound), target, state.MapWidth);
 					if (boundScore > targetScore && CArmyRole.Of(unit) == CArmyRole.Garrison)
 					{
 						squared = (float)(squared * 2.0);

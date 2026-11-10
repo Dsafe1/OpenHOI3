@@ -152,11 +152,13 @@ is cleared.
    all (else enemies), strong = 1 where front <= enemies / 3, enemies x 2; want = min(max(enemies, front), 10 p); g =
    min(hold provinces, n, n - want), raised where below it to min(min(max(targets, garrison-brigade divisions), n), n -
    front), and at least strong; l = n - g, anything over 10 p back to g.
-4. Targets are topped up from the rest of the hold list until there are g of them.
+4. Targets are topped up from the rest of the hold list until there are g of them. The list is **kept in descending score**, so one
+   added here stands in its place by score, of equals the earlier first (`FINDINGS-liveread.md`, section 21).
 5. **Per block of land** of **the first g targets** (the shortfall to the theatre's largest area's), the garrisons standing or bound
    there are matched to its count: too many - the non-garrison-brigade one with the lowest hold score where it stands
-   (+1000 for militia, +500 for police) is unmarked; too few - of the unmarked committed divisions there, facing no
-   neighbour the country prepares war on, carrying no armour or mechanised brigade at war and no paratroops with air
+   (+1000 for militia, +500 for police) is unmarked; too few - of the unmarked committed divisions standing or bound there, facing
+   from where they are bound no neighbour the country prepares war on, carrying no armour or mechanised brigade **where the
+   agent's frontier is at war** (not the country's wars) and no paratroops with air
    transports about, the one with the best 10 x garrison rating (section 11.3) + (its mean distance to the area + 10) / 5,
    x 0.75 on a front province, x (1.5 - its organisation) is marked.
 
@@ -171,8 +173,8 @@ is cleared.
    the enemy land units beside it (at least 1, doubled where one of those areas is coastal).
 3. **Count** [exe, `reversing/findings/FINDINGS-liveread.md`, section 13]: every committed division, garrisons too: the first position in the list that is where it stands or where it is
    bound takes it - standing there it counts as standing and heading unless it is on its way to a province no enemy holds, when it is
-   counted nowhere; bound there, as heading. One falling back with under half its organisation is not counted. And allies' units where they hold a focus area
-   at war, which is not built.
+   counted nowhere; bound there, as heading. One falling back with under half its organisation is not counted. **For the line**, with focus areas and the frontier at
+   war, every land unit of each country fighting on our side that holds a focus area's first province is counted the same way.
 4. **The rest**: nothing given out - every position wants 1, or 2 where its units are dug in; otherwise while the carry is
    over 0.1, +1 to the position with the least want (an over-cap one sorted after), one scoring under 1 left out where the scores come to 1 or more.
 5. **Supply cut**: where want > trunc(3.5 x cap) and the province's supplies are nought, or its need is five times its
@@ -208,8 +210,8 @@ Each target wants the garrisons / the targets, the first remainder ones one more
 hostile land units bound for it; at most the stack cap. Candidates: the garrisons, not holding ground nor falling back,
 that the may-leave test lets go strictly (7.6), in the
 target's area (anywhere for a focus area), not in a threatened province, and not taken from a fuller hold position unless
-the target is threatened. The nearest by squared distance goes (x2 for a role-5 division leaving a better-scored
-position).
+the target is threatened. The nearest **from where it is bound** by squared distance goes (x2 for a role-5 division leaving a
+better-scored position).
 
 ### 7.5 The reserve
 
@@ -366,8 +368,8 @@ the path is empty; a second path is always empty. Posted only where it differs. 
 
 Each land unit of the agent in a battle, bound for an enemy province not on a hostile route: standing in a target
 province, stood down where every friendly neighbour of where it is bound lies in its own area; defending where the
-attacker holds more than half the strength and it may leave, stood down; on a support attack where every attacker of its
-battle has a blocking order, stood down.
+attacker holds more than half the strength, stood down, falling back or not; on a support attack where every attacker of its
+battle has an order that is neither a plain move nor none, stood down (`FINDINGS-liveread.md`, section 20).
 
 ## 12. The sea targets (`CEU3AI_AssignSeaTargetsToAgents`, `FINDINGS-moving.md` D.1)
 
@@ -720,7 +722,6 @@ months on) - at least three hours left, and the order ends then.
 - The scenario game's rules (nine tenths of the garrisons to the line): there is one start.
 - A strategic redeployment's cost in supplies and organisation (`STRAT_REDEP_SUPPLY_MOD`, `STRAT_REDEP_ORG_LOSS`): not
   read.
-- The allies' units counted at a position where they hold a focus area at war (7.3, step 3).
 - The human's delegated AI: the objectives' areas (11.1), the agentless divisions of the played country (7.4).
 - **A province lost** (`CAIUnit::OnProvinceControllerChanged`, `FINDINGS-moving.md` A.4e, read 2026-11-03): an agent
   told that a province its country held, in an area of three provinces or fewer beside its theatre, has changed

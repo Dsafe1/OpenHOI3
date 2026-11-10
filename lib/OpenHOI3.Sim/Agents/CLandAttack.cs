@@ -620,14 +620,15 @@ public static class CLandAttack
 				}
 				if (combat.Defender.Units.Contains(unit))
 				{
-					if (CCombatShares.AttackerShare(combat) > Scale / 2 && !unit.IsRetreating)
+					// A land battle always answers that it may be left, retreating or not (FINDINGS-liveread.md, section 20).
+					if (CCombatShares.AttackerShare(combat) > Scale / 2)
 					{
 						CAiMoves.StandDown(state, country, unit, "call-off: losing defence");
 						break;
 					}
 				}
 				else if (unit.Order == EUnitOrder.SupportAttack
-					&& combat.Attacker.Units.TrueForAll(other => CCommandLadder.IsBlocked(other)))
+					&& combat.Attacker.Units.TrueForAll(other => other.Order is not (EUnitOrder.None or EUnitOrder.Move)))
 				{
 					CAiMoves.StandDown(state, country, unit, "call-off: support attack");
 					break;

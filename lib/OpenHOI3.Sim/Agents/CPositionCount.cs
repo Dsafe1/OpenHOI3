@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Theatres;
 using OpenHOI3.Sim.Units;
 
@@ -10,14 +11,45 @@ namespace OpenHOI3.Sim.Agents;
 /// How many of some units each of a list of positions has: for each land unit, the first position in the list that is where
 /// it stands or where it is bound takes it. Standing there it counts as standing and as heading there - unless it is on its
 /// way to a province no enemy holds, when it is counted nowhere; bound there it counts as heading. A unit falling back with
-/// less than half its organisation is not counted. The original's <c>CAIUnit::CountUnitsAtPositions</c>, without the allies'
-/// units the line asks for. See <c>docs/mechanics/moving.md</c>, section 7.3.
+/// less than half its organisation is not counted. Given an agent at war with focus areas, every land unit of each country
+/// fighting on our side that holds the first province of one of those areas is counted the same way. The original's
+/// <c>CAIUnit::CountUnitsAtPositions</c>. See <c>docs/mechanics/moving.md</c>, section 7.3.
 /// </summary>
 public static class CPositionCount
 {
 	private const long HalfOrganisation = 500;
 
 	public static void Count(CGameState state, CCountry country, IEnumerable<CUnit> units, IReadOnlyList<int> positions,
+		Action<int> heading, Action<int> standing, bool divisionsOnly, CAgent? withAllies = null)
+	{
+		CountOwn(state, country, units, positions, heading, standing, divisionsOnly);
+		if (withAllies is null || withAllies.FocusAreas.Count == 0 || !withAllies.FrontierAtWar)
+		{
+			return;
+		}
+		foreach (CCountry other in state.Countries)
+		{
+			if (other.Tag != country.Tag && CCountryLists.FightingTogether(state, country.Tag, other.Tag)
+				&& !CCountryLists.IsEnemy(state, country, other.Tag) && HoldsAFocusArea(state, withAllies, other))
+			{
+				CountOwn(state, country, other.AllUnits(), positions, heading, standing, divisionsOnly);
+			}
+		}
+	}
+
+	private static bool HoldsAFocusArea(CGameState state, CAgent agent, CCountry other)
+	{
+		foreach (CSupplyArea area in agent.FocusAreas)
+		{
+			if (area.Provinces.Count > 0 && state.Province(area.Provinces[0]).Controller == other.Tag)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void CountOwn(CGameState state, CCountry country, IEnumerable<CUnit> units, IReadOnlyList<int> positions,
 		Action<int> heading, Action<int> standing, bool divisionsOnly)
 	{
 		foreach (CUnit unit in units)
