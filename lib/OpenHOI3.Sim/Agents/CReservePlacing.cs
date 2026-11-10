@@ -33,18 +33,14 @@ public static class CReservePlacing
 			long infrastructure = CSupplyFigures.EffectiveInfrastructure(state.Province(id));
 			room[id] = (int)((10 * infrastructure + Whole / 2) / Whole);
 		}
-		foreach (CUnit unit in agent.HeldBack)
-		{
-			int bound = CAgentUnits.DestinationOrPlace(unit);
-			if (room.ContainsKey(bound))
-			{
-				have[bound] = have.GetValueOrDefault(bound) + 1;
-			}
-		}
+		// Counted as a position's units are: a division standing in one and bound for another goes unseen in both.
+		CPositionCount.Count(state, country, agent.HeldBack, agent.SecondRing, province => have[province] = have.GetValueOrDefault(province) + 1,
+			_ => { }, divisionsOnly: false);
 		bool moved = false;
 		foreach (CUnit unit in agent.HeldBack)
 		{
-			if (unit.IsRetreating || CCombats.IsHoldingGround(unit) || CCommandLadder.IsBlocked(unit) || unit.IsGarrison
+			// A division on its way is looked at: the busy test here is the order's alone, not the moving one's (FINDINGS-liveread.md, section 23).
+			if (unit.IsRetreating || CCombats.IsHoldingGround(unit) || unit.Order is not (EUnitOrder.None or EUnitOrder.Move) || unit.IsGarrison
 				|| unit.Location <= 0)
 			{
 				continue;
@@ -63,6 +59,11 @@ public static class CReservePlacing
 			long least = long.MaxValue;
 			foreach (int id in agent.SecondRing)
 			{
+				// Never where it is bound: over its room there, it is sent on, and back again the next pass if the other is too.
+				if (id == bound)
+				{
+					continue;
+				}
 				long key = CMapDistance.Between(state.Province(unit.Location), state.Province(id), state.MapWidth)
 					+ 20 * have.GetValueOrDefault(id) - 30 * (hops - network.HopsOf(id));
 				if (key < least)

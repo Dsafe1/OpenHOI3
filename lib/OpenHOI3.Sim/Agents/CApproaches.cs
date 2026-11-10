@@ -199,8 +199,13 @@ public static class CApproaches
 		}
 	}
 
+	/// <summary>
+	/// Land across an edge that is not impassable, in an area of the supply network, held by the country's side or by a
+	/// country fighting beside it that is not its enemy (FINDINGS-liveread.md, section 23).
+	/// </summary>
 	private static IEnumerable<int> FriendlyBeside(CGameState state, CCountry country, int id)
 	{
+		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		foreach (CProvinceEdge edge in state.Province(id).Edges)
 		{
 			if (edge.Kind == EProvinceEdgeKind.Impassable)
@@ -208,7 +213,13 @@ public static class CApproaches
 				continue;
 			}
 			CProvince beside = state.Province(edge.To);
-			if (!beside.IsSea && IsFriendly(state, country, beside.Controller))
+			if (beside.IsSea || network.AreaOf(edge.To) is null || beside.Controller is not { } holder
+				|| holder.Value == CRebelFactions.Rebels || state.Country(holder) is not { } other)
+			{
+				continue;
+			}
+			if (CSupplyRelations.IsSameSide(country, other)
+				|| (CCountryLists.FightingTogether(state, country.Tag, holder) && !CCountryLists.IsEnemy(state, country, holder)))
 			{
 				yield return edge.To;
 			}

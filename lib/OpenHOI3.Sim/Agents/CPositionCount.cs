@@ -22,6 +22,14 @@ public static class CPositionCount
 	public static void Count(CGameState state, CCountry country, IEnumerable<CUnit> units, IReadOnlyList<int> positions,
 		Action<int> heading, Action<int> standing, bool divisionsOnly, CAgent? withAllies = null)
 	{
+		CountAt(state, country, units, positions, index => heading(positions[index]), index => standing(positions[index]),
+			divisionsOnly, withAllies);
+	}
+
+	/// <summary>The same, told by the index of the position in the list: a province listed twice is two records.</summary>
+	public static void CountAt(CGameState state, CCountry country, IEnumerable<CUnit> units, IReadOnlyList<int> positions,
+		Action<int> heading, Action<int> standing, bool divisionsOnly, CAgent? withAllies = null)
+	{
 		CountOwn(state, country, units, positions, heading, standing, divisionsOnly);
 		if (withAllies is null || withAllies.FocusAreas.Count == 0 || !withAllies.FrontierAtWar)
 		{
@@ -67,20 +75,21 @@ public static class CPositionCount
 				}
 			}
 			int bound = CAgentUnits.Destination(unit);
-			foreach (int position in positions)
+			for (int index = 0; index < positions.Count; index++)
 			{
+				int position = positions[index];
 				if (position == unit.Location)
 				{
 					if (bound <= 0 || (state.Province(bound).Controller is { } holder && CCountryLists.IsEnemy(state, country, holder)))
 					{
-						heading(position);
-						standing(position);
+						heading(index);
+						standing(index);
 					}
 					break;
 				}
 				if (position == bound)
 				{
-					heading(position);
+					heading(index);
 					break;
 				}
 			}

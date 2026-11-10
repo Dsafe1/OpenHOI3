@@ -292,10 +292,19 @@ public static class CLoadCheck
 			for (int step = 1; step < series.Length; step++)
 			{
 				var before = CAiOrderCheck.Snapshot(state);
+				var holders = state.Provinces.ToDictionary(province => province.Id, province => province.Controller?.Value);
 				simulation.RunHours(1);
 				simulation.Pump();
 				ClausewitzNode next = ClausewitzParser.ParseFile(series[step]);
 				Console.WriteLine($"hour {step} of the series, {state.Date} {state.Hour}:00:");
+				var changes = state.Provinces.Where(province => province.Controller?.Value != holders[province.Id])
+					.Select(province => $"{province.Id}:{holders[province.Id]}>{province.Controller?.Value}").ToList();
+				var theirs = next.Children.Where(node => node.IsBlock && int.TryParse(node.Key, out _))
+					.Select(node => (Id: int.Parse(node.Key!), Holder: node.Get("controller")?.Value ?? node.Get("owner")?.Value))
+					.Zip(earlier.Children.Where(node => node.IsBlock && int.TryParse(node.Key, out _)),
+						(now, then) => (now.Id, now.Holder, Was: then.Get("controller")?.Value ?? then.Get("owner")?.Value))
+					.Where(change => change.Holder != change.Was).Select(change => $"{change.Id}:{change.Was?.Trim('"')}>{change.Holder?.Trim('"')}").ToList();
+				Console.WriteLine($"  hands: ours {string.Join(' ', changes)} | the original {string.Join(' ', theirs)}");
 				CAiOrderCheck.Report(state, earlier, next, "  ", ExampleCountry, ordersFile is null ? null : $"{ordersFile}.h{step}", before);
 				earlier = next;
 			}

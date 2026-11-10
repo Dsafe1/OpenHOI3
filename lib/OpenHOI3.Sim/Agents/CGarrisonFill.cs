@@ -22,8 +22,17 @@ public static class CGarrisonFill
 		}
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		int stack = CPositionCap.Stack(state);
-		var want = new Dictionary<int, int>();
-		var have = new Dictionary<int, int>();
+		// One record a target, a province listed twice being two; a province is looked up as its last record
+		// (FINDINGS-liveread.md, section 23).
+		int count = targets.Count;
+		var want = new int[count];
+		var have = new int[count];
+		var standing = new int[count];
+		var record = new Dictionary<int, int>();
+		for (int index = 0; index < count; index++)
+		{
+			record[targets[index]] = index;
+		}
 		var score = new Dictionary<int, long>();
 		foreach (CHoldProvince hold in agent.HoldProvinces)
 		{
@@ -37,12 +46,10 @@ public static class CGarrisonFill
 				garrison.Add(unit);
 			}
 		}
-		var standing = new Dictionary<int, int>();
-		CPositionCount.Count(state, country, garrison, targets, province => have[province] = have.GetValueOrDefault(province) + 1,
-			province => standing[province] = standing.GetValueOrDefault(province) + 1, divisionsOnly: false);
-		int each = garrison.Count / targets.Count;
-		int extra = garrison.Count % targets.Count;
-		for (int index = 0; index < targets.Count; index++)
+		CPositionCount.CountAt(state, country, garrison, targets, index => have[index]++, index => standing[index]++, divisionsOnly: false);
+		int each = garrison.Count / count;
+		int extra = garrison.Count % count;
+		for (int index = 0; index < count; index++)
 		{
 			int id = targets[index];
 			int wanted = each + (index < extra ? 1 : 0);
@@ -50,18 +57,19 @@ public static class CGarrisonFill
 			{
 				wanted += Incoming(state, country, id);
 			}
-			want[id] = System.Math.Min(wanted, stack);
+			want[index] = System.Math.Min(wanted, stack);
 		}
 		bool moved = false;
-		foreach (int id in targets)
+		for (int at = 0; at < count; at++)
 		{
+			int id = targets[at];
 			bool threatened = agent.Threatened.Contains(id);
 			CSupplyArea? area = network.AreaOf(id);
 			bool focus = area is not null && agent.FocusAreas.Contains(area);
 			CProvince target = state.Province(id);
 			bool depot = network.DepotOf(id) == id;
 			long targetScore = score.GetValueOrDefault(id);
-			while (have.GetValueOrDefault(id) < want[id])
+			while (have[at] < want[at])
 			{
 				CUnit? best = null;
 				float least = 1e18f;
@@ -82,10 +90,10 @@ public static class CGarrisonFill
 					}
 					// A position of the list is not stripped to fill another no fuller than it would be left.
 					long boundScore = 0;
-					if (!threatened && want.ContainsKey(bound) && (boundScore = score.GetValueOrDefault(bound)) > 0)
+					if (!threatened && record.TryGetValue(bound, out int boundAt) && (boundScore = score.GetValueOrDefault(bound)) > 0)
 					{
 						int spare = targetScore > boundScore || depot ? 0 : 1;
-						if (have.GetValueOrDefault(id) + (depot ? 0 : 1) >= standing.GetValueOrDefault(bound) - spare)
+						if (have[at] + (depot ? 0 : 1) >= standing[boundAt] - spare)
 						{
 							continue;
 						}
@@ -109,20 +117,20 @@ public static class CGarrisonFill
 				int previous = CAgentUnits.Destination(best);
 				if (previous > 0)
 				{
-					if (want.ContainsKey(previous))
+					if (record.TryGetValue(previous, out int previousAt))
 					{
-						have[previous] = have.GetValueOrDefault(previous) - 1;
+						have[previousAt]--;
 					}
 				}
-				else if (want.ContainsKey(best.Location))
+				else if (record.TryGetValue(best.Location, out int hereAt))
 				{
-					have[best.Location] = have.GetValueOrDefault(best.Location) - 1;
-					standing[best.Location] = standing.GetValueOrDefault(best.Location) - 1;
+					have[hereAt]--;
+					standing[hereAt]--;
 				}
 				// The original counts it sent whether or not the order takes.
 				CAiMoves.Move(state, country, best, id, safe: true);
 				moved = true;
-				have[id] = have.GetValueOrDefault(id) + 1;
+				have[at]++;
 			}
 		}
 		return moved;

@@ -105,7 +105,8 @@ After the front list (`agents.md`, 8.2):
    colony cut off. Every province of each goes on the **target provinces**; from the three provinces of the area of
    operations nearest each, the way there, every province on it the country does not control and is at war with (or the
    rebels') goes on the **hostile routes**.
-3. **The second ring**: friendly land two steps out from the area of operations - not in it and not beside it.
+3. **The second ring**: friendly land two steps out from the area of operations - not in it and not beside it - each step
+   in an area of the supply network and held by the country's side or a country fighting beside it that is not its enemy.
 
 ## 5. The hold provinces (`RebuildHoldProvinces`, `FINDINGS-agents.md` C.7, `FINDINGS-moving.md` D.4)
 
@@ -206,7 +207,8 @@ is cleared.
 
 ### 7.4 The garrisons
 
-Each target wants the garrisons / the targets, the first remainder ones one more; a threatened one adds the brigades of
+**Each target is a record**, a province listed twice being two, each counted apart, a province looked up as its last
+record. Each target wants the garrisons / the targets, the first remainder ones one more; a threatened one adds the brigades of
 hostile land units bound for it; at most the stack cap. Candidates: the garrisons, not holding ground nor falling back,
 that the may-leave test lets go strictly (7.6), in the
 target's area (anywhere for a focus area), not in a threatened province, and not taken from a fuller hold position unless
@@ -217,9 +219,10 @@ better-scored position).
 
 The second ring's provinces, each with room for round(10 x its infrastructure). Each held-back division not falling back,
 **not holding ground in a battle** (2026-11-03: ours had left both out, and moved held-back defenders out of their
-battles to the rear), with no blocking order, not a garrison, not already in such a province within its room: **stays** beside a war candidate across a river
+battles to the rear), with no order but a plain move, not a garrison, not already in such a province within its room
+(counted as a position's units are, 7.3, so one standing in a ring province and bound for another counts in neither): **stays** beside a war candidate across a river
 or in a fort with strength and organisation over 0.3, or beside a war candidate's units, fit, with fewer of the country's
-idle divisions there than half of those; otherwise goes to the ring province with the lowest distance + 20 x those there
+idle divisions there than half of those; otherwise goes to the ring province, never the one it is bound for, with the lowest distance + 20 x those there
 - 30 x (its depot's distance in steps - that province's).
 
 ### 7.6 May it leave (`CAIUnit_UnitMayLeave`, `FINDINGS-moving.md` A.4e)
