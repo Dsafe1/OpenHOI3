@@ -207,8 +207,9 @@ public static class CMovementSpeed
 	}
 
 	/// <summary>
-	/// What a named circumstance does to the unit's movement: the sum of its brigades'
-	/// figures over how many brigades it has, in thousandths.
+	/// What a named circumstance does to the unit's movement: the sum of the figures of its
+	/// brigades that count towards it over how many brigades it has, all of them, in
+	/// thousandths (<c>CUnits.CountsTowardsItsUnit</c>).
 	/// </summary>
 	public static long Adjuster(CUnit unit, string name)
 	{
@@ -219,7 +220,7 @@ public static class CMovementSpeed
 		long sum = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			if (subUnit.Stats.Adjusters.TryGetValue(name, out Modifiers.CModifier? adjuster))
+			if (CUnits.CountsTowardsItsUnit(unit, subUnit) && subUnit.Stats.Adjusters.TryGetValue(name, out Modifiers.CModifier? adjuster))
 			{
 				sum += adjuster[MovementAdjuster].Raw;
 			}

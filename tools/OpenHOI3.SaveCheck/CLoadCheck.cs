@@ -52,19 +52,31 @@ public static class CLoadCheck
 		if (System.IO.File.Exists(targets))
 		{
 			// And for a ship the distance it stands at, which a load draws up afresh, and its experience, rolled before the battles.
-			var held = new Dictionary<int, string[]>();
-			foreach (string line in System.IO.File.ReadAllLines(targets))
+			// The dump is in the battle's own order, attackers then defenders, each unit's sub units in turn, and so are ours;
+			// a sub unit a load renumbered (its number taken twice in the save) is matched by its place, and a target named by
+			// the save's number is turned into ours.
+			string[][] rows = System.IO.File.ReadAllLines(targets).Select(line => line.Split(' ')).ToArray();
+			List<CSubUnit> ours = new[] { combat.Attacker, combat.Defender }.SelectMany(side => side.Units).SelectMany(unit => unit.SubUnits).ToList();
+			var held = new Dictionary<CSubUnit, string[]>();
+			var renamed = new Dictionary<int, int>();
+			bool byPlace = rows.Length == ours.Count;
+			for (int i = 0; i < rows.Length; i++)
 			{
-				string[] parts = line.Split(' ');
-				held[int.Parse(parts[0])] = parts;
+				CSubUnit? match = byPlace ? ours[i] : ours.FirstOrDefault(subUnit => subUnit.Id == int.Parse(rows[i][0]));
+				if (match is not null)
+				{
+					held[match] = rows[i];
+					renamed.TryAdd(int.Parse(rows[i][0]), match.Id);
+				}
 			}
 			foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
 			{
 				foreach (CSubUnit wing in side.Units.SelectMany(unit => unit.SubUnits))
 				{
-					if (held.TryGetValue(wing.Id, out string[]? parts))
+					if (held.TryGetValue(wing, out string[]? parts))
 					{
-						wing.TargetId = parts[2] == "1" ? int.Parse(parts[1]) : 0;
+						int target = int.Parse(parts[1]);
+						wing.TargetId = parts[2] == "1" ? renamed.GetValueOrDefault(target, target) : 0;
 						if (parts.Length >= 5)
 						{
 							wing.Distance = new CFixedPoint(long.Parse(parts[3]));
@@ -98,15 +110,17 @@ public static class CLoadCheck
 
 	private static void WriteBattles(CGameState state, System.IO.TextWriter log)
 	{
-		foreach (CCombat combat in state.Combats.Where(c => c.Kind == ECombatKind.Land))
+		foreach (CCombat combat in state.Combats)
 		{
-			log.WriteLine($"AFTER prov {combat.Province} day {combat.Hour} dur {combat.Duration}");
+			string kind = combat.Kind == ECombatKind.Land ? "L" : combat.Kind == ECombatKind.Air ? "A" : combat.Kind == ECombatKind.Naval ? "N" : "B";
+			log.WriteLine($"AFTER prov {combat.Province} {kind} day {combat.Hour} dur {combat.Duration}");
 			foreach ((string name, CCombatSide side) in new[] { ("A", combat.Attacker), ("D", combat.Defender) })
 			{
-				log.WriteLine($" SIDE {name} dice {side.Dice} losses {side.Losses.Raw}");
+				log.WriteLine($" SIDE {name} dice {side.Dice} losses {side.Losses.Raw} tactic {side.Tactic?.Number ?? -1} " +
+					$"front {string.Join(",", side.Front.Select(u => u.Id))} reserves {string.Join(",", side.Reserves.Select(u => u.Id))}");
 				foreach (CUnit unit in side.Units)
 				{
-					log.WriteLine($"  U {unit.Id} " + string.Join(" ", unit.SubUnits.Select(b => $"{b.Strength.Raw}/{b.Organisation.Raw}")));
+					log.WriteLine($"  U {unit.Id} " + string.Join(" ", unit.SubUnits.Select(b => $"{b.Id}:{b.Strength.Raw}/{b.Organisation.Raw}")));
 				}
 			}
 		}

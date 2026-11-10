@@ -54,7 +54,19 @@ public static class CCombatTactics
 	/// greater its lead. With equal skill the attacker picks first and the defender
 	/// favours nothing. Nothing is picked unless both sides have a country.
 	/// </summary>
-	private static long Aggressiveness(CCombatSide side) => Units.CUnitAggression.Of(CCombatLeaders.HighestRanked(side)?.Unit);
+	/// <summary>
+	/// The one aggressiveness a pick is made with: the defender's leader's unit's, or with none the attacker's leader's unit's, or
+	/// nought - and only the attacker's pick is given it, the defender picking with nought (FINDINGS-liveread.md, section 28). The
+	/// original's: the second leader's unit overwrites the first's in one local and the defender's call passes nought. Kept so.
+	/// </summary>
+	private static long Aggressiveness(CCombat combat)
+	{
+		if (CCombatLeaders.HighestRanked(combat.Defender)?.Unit is { } defending)
+		{
+			return Units.CUnitAggression.Of(defending);
+		}
+		return CCombatLeaders.HighestRanked(combat.Attacker)?.Unit is { } attacking ? Units.CUnitAggression.Of(attacking) : 0;
+	}
 
 	public static void Pick(CGameState state, CCombat combat)
 	{
@@ -62,20 +74,21 @@ public static class CCombatTactics
 		{
 			int attack = LeaderSkill(combat.Attacker);
 			int defence = LeaderSkill(combat.Defender);
+			long aggressiveness = Aggressiveness(combat);
 			if (defence < attack)
 			{
-				PickFor(state, combat, combat.Defender, Aggressiveness(combat.Defender), 0, 0);
-				PickFor(state, combat, combat.Attacker, Aggressiveness(combat.Attacker), combat.Defender.Tactic?.CounteredByNumber ?? 0, attack - defence);
+				PickFor(state, combat, combat.Defender, 0, 0, 0);
+				PickFor(state, combat, combat.Attacker, aggressiveness, combat.Defender.Tactic?.CounteredByNumber ?? 0, attack - defence);
 			}
 			else if (attack < defence)
 			{
-				PickFor(state, combat, combat.Attacker, Aggressiveness(combat.Attacker), 0, 0);
-				PickFor(state, combat, combat.Defender, Aggressiveness(combat.Defender), combat.Attacker.Tactic?.CounteredByNumber ?? 0, defence - attack);
+				PickFor(state, combat, combat.Attacker, aggressiveness, 0, 0);
+				PickFor(state, combat, combat.Defender, 0, combat.Attacker.Tactic?.CounteredByNumber ?? 0, defence - attack);
 			}
 			else
 			{
-				PickFor(state, combat, combat.Attacker, Aggressiveness(combat.Attacker), 0, 0);
-				PickFor(state, combat, combat.Defender, Aggressiveness(combat.Defender), 0, 0);
+				PickFor(state, combat, combat.Attacker, aggressiveness, 0, 0);
+				PickFor(state, combat, combat.Defender, 0, 0, 0);
 			}
 		}
 		SumEffects(combat);
@@ -99,6 +112,7 @@ public static class CCombatTactics
 		}
 
 		int roll = state.Random.Next();
+		state.CombatTrace?.Invoke($"TACTIC prov {combat.Province} {(side.IsAttacker ? "A" : "D")} aggr {aggressiveness} favoured {favoured} skill {skillDifference} roll {roll} weights {string.Join(",", weights)}");
 		long total = 0;
 		foreach (long weight in weights)
 		{

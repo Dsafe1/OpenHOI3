@@ -59,4 +59,7 @@ public enum ECombatModifier
 
 	/// <summary>In the air: a friend's radar station in the province or beside it.</summary>
 	Radar,
+
+	/// <summary>A defender alone in a pocket of one province with no friend's land beside it.</summary>
+	Encirclement,
 }

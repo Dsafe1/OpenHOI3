@@ -227,7 +227,7 @@ reserve and comes up by its chance. The order the first hour puts units on a fro
 the score between two reserves, are still the reading's alone. Only
 land units fight. Fifteen things bear on a unit each round - the ground, a river, forts, the
 night, experience, being dug in, crowding and the rest (`landcombat.md`, section 4) - and
-`CCombatModifiers` is where the seven that wait will go: leaders, encirclement and
+`CCombatModifiers` is where those that wait will go: shore bombardment and
 the others listed there. **Each side picks a tactic** out of `common/combat_tactics.txt`
 (`landcombat.md`, section 11), and with a battle's leader not built it is nearly always the
 plainest.

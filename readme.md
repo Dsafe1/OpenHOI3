@@ -125,14 +125,18 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    totals were right; Italy's 5% was `veteran_army`, which ours gives. Left over: the
    Soviet Union's odds stand about 4% high by a term not found; and three AI steps (`CInvasionPlanner`, `CNavalBody`) draw on the game's
    generator where the original's AI draws nothing on it.
-2. **The land battle**: *an established battle's hour is the original's roll for roll, given its generator* (2026-11-10,
-   `reversing/findings/FINDINGS-liveread.md`, section 7; a province's units are in order of arrival here too since then). Left: the first
-   front of a new battle, reserves coming up and the tactics, which no battle both games had going showed; the rest of the hour's draws
-   before the battles. The first front, reserves, each hour's modifiers, shots and damage, from a save with battles in it and the
-   generator's state restored, so that an hour can be played again roll for roll. `moving.md` names how battles go as what is left
-   of China falling in six months against the original's thirteen and a half.
-3. **Air, bombing and the sea**, the same way. *Land bombing, the air battle and the sea battle done 2026-11-10: three bombings, a battle in the air and a battle at sea the original's draw for draw and figure for
-   figure* (`reversing/findings/FINDINGS-liveread.md`, sections 9 to 11). The bombing of ground or ships, and each battle's first hour and its breaking off, still to do.
+2. ~~**The land battle**~~: *done 2026-11-10* (`reversing/findings/FINDINGS-liveread.md`, sections 7 and 28 to 31). Over four series of
+   hourly saves of the original's, about 250 hours, with the generator restored before each battle, a battle's every hour after its first
+   is the original's shot for shot, its tactic picks, new fronts and reserves coming up among them - once the tactic's aggressiveness was
+   given to the attacker alone, combined arms counted every brigade, a broken support brigade dropped out of its unit's terrain and the
+   other adjusters, and encirclement was built. Left: two single hours where one unit's one shot falls the other way, cause not found;
+   and a battle's or bombing's first hour, which the rolls made before the battles decide and a save does not carry.
+3. ~~**Air, bombing and the sea**~~: *done 2026-11-10 as far as the logs reach* (the same, section 30). Every bombing of land units, of
+   the ground and of ships logged is the original's after its first hour, since the province's fire at bombers was given the original's
+   friend test - at sea every unit of a country that is nobody's puppet fires, the bombers' own side too - and a carrier's air group was
+   counted standing with its carrier; the air battles of the last series are the original's. Left: one bombing at sea three shots short,
+   six hours of air battles in the first series over the sea south of Italy, and a sea battle at 10538 that drifts after its fourth
+   hour, none of them logged closely enough to say why; and, as for land, each battle's first hour. A sea battle's breaking off was not looked at closely.
 4. ~~**Republican Spain surrendering on 1 October 1936**~~: dropped 2026-11-10 by the maintainer's word, the original's run varying too much for one war's date to say anything.
 5. **The AI's land movement**: after four days 782 of 908 divisions stand where the save has them, 789 move or stay as it does, and
    317 of 542 are bound for its province. Load from a save rather than a new game, since differences compound from day one.
@@ -436,9 +440,9 @@ In order:
    defence each round - a river, a strait, forts, the ground, the night, the weather,
    experience, combined arms, dissent, lack of supplies, being dug in, crowding,
    envelopment, several battles at once, its country's cores - with day and night by each
-   province's own clock and digging in a level a day (`landcombat.md`, section 4). Seven more
-   wait: the leader and his traits, encirclement, shore bombardment, the difficulty setting
-   and the rest listed there. **The weather's part is built, and the weather since 2026-10-15** (`weather.md`).
+   province's own clock and digging in a level a day (`landcombat.md`, section 4) - and since
+   then the leader and his traits, the difficulty setting and, since 2026-11-10, encirclement.
+   What still waits - shore bombardment and the rest - is listed there. **The weather's part is built, and the weather since 2026-10-15** (`weather.md`).
 
    **And it is on screen** (`combatview.md`): a battle the player has a part in has a round
    marker on the map, green, yellow or red by how it goes for him, with the attacker's share
@@ -2173,11 +2177,9 @@ None of these blocks the list above.
 - **Which end of a scrollbar that runs up and down adds is not settled** (2026-10-12): the
   original's scrollbar is given a flag that swaps its two buttons, and what sets it was not
   read (`interface.md`, section 2). The sliders, across, take away on the left as here.
-- **A land battle has its leaders since 2026-10-11, less their aggressiveness**, which comes
-  from the AI's plans and is 0 here, so a reckless tactic weighs half (`landcombat.md`,
-  section 11). Of the things that bear on a unit in a round, six wait for what they read -
-  encirclement, shore bombardment, the difficulty setting, mission efficiency, paratroops,
-  landing craft -
+- **A land battle has its leaders since 2026-10-11**, and their aggressiveness since the plans, given to the attacker's
+  pick alone as the original gives it (`landcombat.md`, section 11). Of the things that bear on a unit in a round, three
+  wait for what they read - shore bombardment, mission efficiency, landing craft -
   and three technology figures are left out for want of their keys; `landcombat.md`,
   section 4, lists them. **And nothing makes weather**, so the weather's part of a battle
   and of a march comes to nothing and every province's night is by the clock alone. Beside

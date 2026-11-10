@@ -49,6 +49,7 @@ Add to it whenever a spec records something of the original's that looks like a 
 - **Amphibious defence dead, landing penalty a hundredth off.** `extra_amphibious_defence` is never read, and with no landing craft the penalty is -70.70%. `transport.md`, "What looks wrong", 6. *Dead.* Risk: moderate.
 - **A route is not always the cheapest.** A province is settled the first time a step reaches it, and a cheaper way found later does not replace that. `movement.md`, 3. *Oversight.* Risk: marches and AI paths.
 - **Rebels have no organisation.** Their country has no officers, so a brigade's ceiling is nought after its first hour; experience starts at -1.0. Confirmed by the maintainer. `rebels.md`, 13. *Oversight.* Risk: rebels far stronger.
+- **The attacker picks its tactic with the defender's aggressiveness,** and the defender always with none. One value is written from each side's leader in turn and only the attacker's pick is given it. `landcombat.md`, 11. *Bug.* Risk: small; which tactics come up.
 
 ## Sea
 
@@ -79,6 +80,7 @@ Add to it whenever a spec records something of the original's that looks like a 
 - **The intercept scores without a war test.** `aircombat.md`, 5 and 9. *Oversight.* Risk: small.
 - **A leaderless bomber almost never picks ships,** so naval and port strikes wear the port and hardly touch the fleet. `bombing.md`, 12. *Oversight.* Risk: moderate.
 - **A fleet in port fires its air attack three times.** `bombing.md`, 12. *Bug.* Risk: moderate.
+- **At sea, bombers are fired at by their own side.** Nobody holds a sea zone, and the friend test then passes every country that is nobody's puppet, so the bombers' own air attack and their friends' ships count towards the fire at them. `bombing.md`, 8. *Bug.* Risk: moderate; bombing at sea gets dearer.
 - **Two units cannot bomb one province's ground.** The second finds nobody to be against and turns home. `bombing.md`, 12. *Oversight.* Risk: moderate.
 - **A wing with no strategic attack still bombs,** one run an hour. `bombing.md`, 12. *Oversight.* Risk: small.
 - **Installation strike bombs radar only.** `bombing.md`, 12. *Unfinished.* Risk: moderate if widened.

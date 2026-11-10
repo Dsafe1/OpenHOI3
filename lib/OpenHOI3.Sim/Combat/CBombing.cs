@@ -40,14 +40,15 @@ public static class CBombing
 
 	/// <summary>
 	/// The units standing in a province, in the order they came - the fleets in its port
-	/// among them. An air group aboard a carrier is left out: carriers are not built.
+	/// among them, and an air group aboard a carrier there, which its carrier enters into
+	/// each province it enters (<c>reversing/findings/FINDINGS-transport.md</c>).
 	/// </summary>
 	public static IReadOnlyList<CUnit> Standing(CGameState state, CProvince province)
 	{
 		var standing = new List<CUnit>();
 		foreach (CUnit unit in state.UnitsIn(province.Id))
 		{
-			if (!unit.IsRemoved && unit.CarriedBy is null)
+			if (!unit.IsRemoved)
 			{
 				standing.Add(unit);
 			}

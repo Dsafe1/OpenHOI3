@@ -932,6 +932,22 @@ public class BombingTests
 	}
 
 	[Fact]
+	public void AtSeaEveryUnitOfACountryThatIsNobodysPuppetFiresThroughTheSeaZoneTheBombersToo()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CProvince bay = state.Province(Bay);
+		Assert.Equal(0, CAntiAircraft.ProvinceFire(state, bay));
+
+		Unit(state, poland, EUnitKind.Navy, Bay, Cruiser);       // three
+		Unit(state, germany, EUnitKind.Air, Bay, Tactical);      // one, though it is the bomber
+		Assert.Equal(1500 * 4, CAntiAircraft.ProvinceFire(state, bay));
+
+		// A puppet's units are nobody's friend at sea: its overlord is somebody.
+		poland.Overlord = Ger;
+		Assert.Equal(1500, CAntiAircraft.ProvinceFire(state, bay));
+	}
+
+	[Fact]
 	public void TheFireWearsTheBombersAndTheOtherSideNeverLoses()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

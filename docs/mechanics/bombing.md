@@ -311,8 +311,10 @@ The bombed side lists the bombers' wings with strength left. With none it fires 
 **The province's own fire**, in every bombing:
 
     guns  = its anti-aircraft level x (1 + its holder's provincial_aa_efficiency) x STATIC_AA_SCALE
-    units = the air attack of every unit standing in it whose country is its holder's or a
-            friend of it - a fleet in its port counted twice
+    units = the air attack of every unit standing in it whose country is a friend of its
+            holder by the original's test, military access counted - a fleet in its port
+            counted twice, a carrier's air group with its carrier; at sea, where nobody
+            holds the province, every unit of a country that is nobody's puppet
     n     = guns + 1.5 x units
     shots = the whole of n, and one more by a roll against its fraction; each at a wing
             drawn at random: the unused roll, the avoid roll,

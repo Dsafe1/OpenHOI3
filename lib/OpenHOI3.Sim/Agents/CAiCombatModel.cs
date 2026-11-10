@@ -97,6 +97,13 @@ public static class CAiCombatModel
 			// The original clamps a negative penalty to nought and so never takes it off.
 			v -= System.Math.Max(envelopment, 0);
 		}
+		// Encircled, as in a battle (reversing/findings/FINDINGS-aihelpers.md).
+		if (unit.Location > 0 && CCombatModifiers.IsEncircled(state, state.Province(unit.Location), unit.Owner))
+		{
+			long encircled = CCombatModifiers.Scaled(defines[CManpower.MilitarySection, CCombatModifiers.EncircledPenalty].Raw,
+				CCombatModifiers.Trait(state, unit, ETraitEffect.EncirclementBonus));
+			v -= System.Math.Max(encircled, 0);
+		}
 		return v;
 	}
 

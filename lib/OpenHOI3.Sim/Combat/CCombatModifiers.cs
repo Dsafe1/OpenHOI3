@@ -30,6 +30,7 @@ public static class CCombatModifiers
 	public const string StackingPenalty = "BASE_STACKING_PENALTY";
 	public const string NightPenalty = "BASE_NIGHT_PENALTY";
 	public const string EnvelopmentPenalty = "ENVELOPMENT_PENALTY";
+	public const string EncircledPenalty = "ENCIRCLED_PENALTY";
 	public const string LeaderImpact = "COMBAT_LEADER_IMPACT";
 
 	/// <summary>The country modifier a defending unit's leader bonus is made more or less by.</summary>
@@ -184,6 +185,13 @@ public static class CCombatModifiers
 					* defines[CManpower.MilitarySection, EnvelopmentPenalty].Raw / CFixedPoint.Scale;
 				envelopment = Scaled(envelopment, Trait(state, unit, ETraitEffect.EnvelopmentBonus));
 				Add(unit, ECombatModifier.Envelopment, -Math.Max(envelopment, 0));
+			}
+
+			if (!side.IsAttacker && !province.IsSea && IsEncircled(state, province, unit.Owner))
+			{
+				long encircled = Scaled(defines[CManpower.MilitarySection, EncircledPenalty].Raw,
+					Trait(state, unit, ETraitEffect.EncirclementBonus));
+				Add(unit, ECombatModifier.Encirclement, -Math.Max(encircled, 0));
 			}
 
 			if (province.Cores.Contains(unit.Owner))
@@ -379,17 +387,44 @@ public static class CCombatModifiers
 		return CCombinedArms.BaseBonus(state, CountedTypes(unit)) > CFixedPoint.Zero;
 	}
 
+	/// <summary>
+	/// Every brigade's type, spent or not: the original's definition rebuild marks each brigade's group for combined arms on
+	/// both of its paths, though a spent support brigade adds only its softness to the unit's other figures
+	/// (FINDINGS-liveread.md, section 28).
+	/// </summary>
 	private static List<CSubUnitType> CountedTypes(CUnit unit)
 	{
 		var types = new List<CSubUnitType>();
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			if (CUnits.CountsTowardsItsUnit(unit, subUnit))
-			{
-				types.Add(subUnit.Type);
-			}
+			types.Add(subUnit.Type);
 		}
 		return types;
+	}
+
+	/// <summary>
+	/// Whether a country's unit is encircled in a province: the province's area is of one
+	/// province, the province is not land with only sea beside it, and no area beside it is
+	/// held by a friend of the country by the original's test, military access counted
+	/// (<c>reversing/findings/FINDINGS-aihelpers.md</c>; seen in the running game,
+	/// <c>FINDINGS-liveread.md</c> section 31). A province in no area is not.
+	/// </summary>
+	public static bool IsEncircled(CGameState state, CProvince province, CCountryTag owner)
+	{
+		if (Supply.CSupplyNetworks.Refresh(state).AreaOf(province.Id) is not { } area || area.Provinces.Count >= 2
+			|| IsIsolatedLand(state, province))
+		{
+			return false;
+		}
+		foreach (Supply.CSupplyArea beside in area.Neighbours)
+		{
+			if (beside.Provinces.Count > 0 && state.Country(beside.Controller) is { } holder
+				&& Countries.CCountryLists.IsFriend(state, holder, owner, withAccess: true))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/// <summary>Land with no land beside it. A defender there cannot be enveloped.</summary>

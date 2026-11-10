@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
@@ -405,6 +406,13 @@ public static class CCombats
 
 		CCombatModifiers.Apply(state, combat, combat.Attacker);
 		CCombatModifiers.Apply(state, combat, combat.Defender);
+		if (state.CombatTrace is { } modifiers)
+		{
+			foreach (CUnit unit in combat.Attacker.Units.Concat(combat.Defender.Units))
+			{
+				modifiers($"MODS u={unit.Id} prod={unit.CombatAttack.Raw}/{unit.CombatDefence.Raw} " + string.Join(" ", unit.CombatModifiers.Select(m => $"{(int)m.Kind}:{m.Attack.Raw}")));
+			}
+		}
 		CLandFire.Attack(state, combat, combat.Attacker);
 		CLandFire.Attack(state, combat, combat.Defender);
 		StrategicWarfare.CWarfareTally.LandHour(state, combat);

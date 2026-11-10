@@ -226,6 +226,27 @@ public class CombatModifierTests
 	}
 
 	[Fact]
+	public void ABrokenSupportBrigadeTakesItsShareOfTheGroundAwayAndStillDividesIt()
+	{
+		var hills = new CTerrain("hills", isWater: false, default) { Defence = CFixedPoint.Zero };
+		CGameState state = State(out CCountry germany, out CCountry poland, hills);
+		CUnit attacker = Division(state, germany, Berlin);
+		CUnit defender = Division(state, poland, Posen);
+		CSubUnit engineers = defender.SubUnits[0];
+		engineers.Stats.Values.Set(CSubUnitType.CombatWidth, CFixedPoint.Zero);
+		var adjuster = new CModifier("hills");
+		adjuster.Set(CCombatModifiers.DefenceOf, CFixedPoint.Parse("0.3"));
+		engineers.Stats.Adjusters["hills"] = adjuster;
+		CCombat combat = Battle(state, attacker, defender, Noon);
+		Assert.Equal(CFixedPoint.Parse("0.1"), Of(defender, ECombatModifier.Terrain));
+
+		// Under one organisation it counts for nothing, and the unit is still three brigades.
+		engineers.Organisation = CFixedPoint.Parse("0.9");
+		Work(state, combat);
+		Assert.Equal(CFixedPoint.Zero, Of(defender, ECombatModifier.Terrain));
+	}
+
+	[Fact]
 	public void ARiverIsAgainstTheAttackerWhoCrossesItAndNobodyElse()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland, berlinToPosen: EProvinceEdgeKind.River);
@@ -517,6 +538,31 @@ public class CombatModifierTests
 		Assert.Equal(3, CCombatModifiers.Directions(combat));
 		Assert.Equal(CFixedPoint.Parse("-0.1"), Of(defender, ECombatModifier.Envelopment));
 		Assert.Equal(CFixedPoint.Zero, Of(first, ECombatModifier.Envelopment));
+	}
+
+	[Fact]
+	public void ADefenderAloneInAPocketOfOneProvinceIsEncircled()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		var infrastructure = new CBuilding(0, "infra", 10, OpenHOI3.Sim.Supply.CSupplyFigures.Infrastructure, CFixedPoint.Parse("0.1"));
+		var withRoads = new CGameState(state.Date, state.Provinces, new[] { germany, poland }, new[] { infrastructure },
+			defines: state.Defines, wars: state.Wars) { MapWidth = 1000, MapHeight = 1000 };
+		withRoads.Defines.Set(CManpower.MilitarySection, CCombatModifiers.EncircledPenalty, CFixedPoint.Parse("0.1"));
+		foreach (CProvince province in withRoads.Provinces)
+		{
+			province.SetBuildingLevel(infrastructure, CFixedPoint.FromInt(5));
+		}
+		CUnit attacker = Division(withRoads, germany, Berlin);
+		CUnit defender = Division(withRoads, poland, Posen);
+		CCombat combat = Battle(withRoads, attacker, defender, Noon);
+		// Warsaw is Poland's and beside it.
+		Assert.Equal(CFixedPoint.Zero, Of(defender, ECombatModifier.Encirclement));
+
+		withRoads.Province(Warsaw).Controller = Ger;
+		OpenHOI3.Sim.Supply.CSupplyNetworks.Refresh(withRoads, force: true);
+		Work(withRoads, combat);
+		Assert.Equal(CFixedPoint.Parse("-0.1"), Of(defender, ECombatModifier.Encirclement));
+		Assert.Equal(CFixedPoint.Zero, Of(attacker, ECombatModifier.Encirclement));
 	}
 
 	[Fact]

@@ -78,6 +78,7 @@ public static class CAntiAircraft
 					strengthLeast: 2, critical: 10);
 			}
 		}
+		state.CombatTrace?.Invoke($"AAEND draws={state.Random.Draws} wings " + string.Join(" ", wings.ConvertAll(w => $"{w.Id}:{w.PendingStrengthDamage}/{w.PendingOrganisationDamage}:{w.Strength.Raw}/{w.Organisation.Raw}")));
 	}
 
 	/// <summary>
@@ -110,10 +111,20 @@ public static class CAntiAircraft
 		return guns + UnitsShare * units / CFixedPoint.Scale;
 	}
 
+	/// <summary>
+	/// The original's friend test, military access counted. A province nobody holds - the sea - has the null tag for its
+	/// holder, and the test then holds for every country that is nobody's puppet: its own overlord is the null tag too
+	/// (FINDINGS-bombing.md, section 7). The original's, kept so - the bombers count towards the fire at them at sea.
+	/// </summary>
 	private static bool IsFriendOfHolder(CGameState state, CProvince province, CUnit unit)
 	{
+		if (state.Country(unit.Owner) is not { } owner)
+		{
+			return false;
+		}
 		return province.Controller is { } holder
-			&& (unit.Owner == holder || CIntelligence.IsFriend(state, holder, unit.Owner));
+			? Countries.CCountryLists.IsFriend(state, owner, holder, withAccess: true)
+			: owner.Overlord is null;
 	}
 
 	private static void FireFromProvince(CGameState state, CCombat bombing, List<CSubUnit> wings, long avoid)

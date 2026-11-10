@@ -15,6 +15,7 @@ public static class CCombatModifierKeys
 	{
 		(ECombatModifier.Dissent, "BM_DISSENT"),
 		(ECombatModifier.Leader, "BM_LEADER_BONUS"),
+		(ECombatModifier.Encirclement, "BM_ENCIRCLEMENT_PENALTY"),
 		(ECombatModifier.Envelopment, "BM_ENVELOPMENT_PENALTY"),
 		(ECombatModifier.Stacking, "BM_DIVISION_PENALTY"),
 		(ECombatModifier.Experience, "BM_EXPERIENCE"),
@@ -43,12 +44,12 @@ public static class CCombatModifierKeys
 
 	/// <summary>
 	/// The original's names of the modifiers nothing here puts on a unit yet:
-	/// encirclement, shore bombardment, the surprise penalty and the armour
-	/// advantage. A condition may name them; it never holds.
+	/// shore bombardment, the surprise penalty and the armour advantage. A
+	/// condition may name them; it never holds.
 	/// </summary>
 	public static readonly string[] NotBuilt =
 	{
-		"BM_ENCIRCLEMENT_PENALTY", "BM_SHORE_BOMBARD",
+		"BM_SHORE_BOMBARD",
 		"BM_SURPRISE_PENALTY", "BM_ARMOR_ADVANTAGE",
 	};
 

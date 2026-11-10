@@ -234,12 +234,12 @@ which is what the last thousandth depends on:
 | **forts** | an attacker | the province's `fort_level` - its `coastal_fort_level` for a landing - in **whole levels** x `BASE_FORT_PENALTY`, + `fort_attack` + the unit's `fort` attack figure; never in the attacker's favour |
 | **several battles** | a defender in more than one | -`MULTIPLE_COMBATS_PENALTY`, once however many |
 | **experience** | every unit | a hundredth for each point of its brigades' average experience (a pride of the fleet counting for `PRIDE_BONUS_EXP` more), x (1 + `experience_bonus`) |
-| **combined arms** | a unit whose mix of brigades counts | what the mix is worth (`builders.md`, section 6) + `combined_arms_bonus` |
+| **combined arms** | a unit whose mix of brigades counts - every brigade's group, a broken support brigade's too (`reversing/findings/FINDINGS-liveread.md`, section 28) | what the mix is worth (`builders.md`, section 6) + `combined_arms_bonus` |
 | **dissent** | every unit | -`COMBAT_DISSENT_IMPACT` x its country's dissent / 100, x (1 + `dissent_impact`) |
 | **lack of supplies** | a unit given less than all its supplies, but not one dropped from the air | -`COMBAT_SUPPLY_LACK_IMPACT` x the share it went without, x (1 + `out_of_supply_modifier`) |
 | **dug in** | a defender | its levels x `DIG_IN_FACTOR`, x (1 + `digin_bonus`) |
 | **crowding** | every unit of a crowded side | below |
-| **the ground** | every unit | the terrain's `attack` for an attacker and its `defence` for a defender, + the unit's own figure for that terrain |
+| **the ground** | every unit | the terrain's `attack` for an attacker and its `defence` for a defender, + the unit's own figure for that terrain - its brigades' figures over all its brigades, a support brigade under 0.1 strength or 1 organisation adding nothing and still dividing (`reversing/findings/FINDINGS-unitdef.md`; seen in the running game, `FINDINGS-liveread.md` section 29). So for the river, landing, fort and night figures, and the terrain's movement |
 | **the weather** | every unit's **attack** | below |
 | **the night** | every unit's **attack** | `BASE_NIGHT_PENALTY` + the unit's `night` attack figure + `night_attack`, where below nothing |
 | **its leader** | a unit whose leader has the rank for it and some skill | below |
@@ -312,8 +312,14 @@ which is what the last thousandth depends on:
 The difficulty is built since 2026-11-06 (`frontend.md`, section 4.3): `BM_DIFFICULTY` on every unit of a played
 country, attacking and defending.
 
-*Not built:* shore bombardment (fleets do not fight); mission efficiency; encirclement, which wants the areas a country's ground
-falls into, and with it `encirclement_bonus`; the
+**Encirclement** is built since 2026-11-10: a defender in a province whose area (`supply.md`, section 2) is of that
+province alone, which is not land with only sea beside it, and beside which no area is held by a friend of the unit's
+country - the original's friend test, military access counted - has `ENCIRCLED_PENALTY` x (1 + `encirclement_bonus`)
+against it, never in its favour, put on after envelopment. `confirmed` on the running game, where it was what the
+original's battle had and ours lacked (`reversing/findings/FINDINGS-liveread.md`, section 31;
+`reversing/findings/FINDINGS-aihelpers.md` for the test). The AI's odds weigh it too (`moving.md`, 11.4).
+
+*Not built:* shore bombardment (fleets do not fight); mission efficiency; the
 landing craft that ease a landing at a port; and three technology figures - one off the
 crowding, one on the chance to avoid a hit, one on the dig-in cap.
 
@@ -672,6 +678,14 @@ and afresh every day of the battle. Only where both sides still have a country.
 that counters the first's**, by the difference in skill. With equal skill the attacker picks
 first and the defender second, favouring nothing.
 
+**One aggressiveness serves the pick, and only the attacker picks with it.** It is the
+defender's leader's unit's where the defender has a leader, else the attacker's leader's
+unit's, else nothing; the attacker picks with it and the defender always with nothing.
+`confirmed` on the instructions and in the running game
+(`reversing/findings/FINDINGS-liveread.md`, section 28). The original's, and it looks like a
+slip - one local written twice and one side's call given nought - kept so
+(`docs/enhanced.md`).
+
 **A pick**, for each tactic whose `trigger` holds of the side:
 
     weight = base + what the technologies of the side's first country add to this tactic
@@ -692,9 +706,8 @@ remainder by the whole. A side for which nothing weighs anything has no tactic.
 - **A side's leader** is the one of highest rank among its units' leaders - the first of
   equals, and none of rank 0; with none, its skill is nothing. `confirmed`
 - **The leader's aggressiveness** comes from the stance of an active plan on a headquarters
-  above his unit, or from an aggression his unit is given. *Not built:* there are no plans and
-  nothing sets a unit's aggression, so every side's is 0, and a tactic with an aggressiveness
-  of its own - a reckless assault - weighs half.
+  above his unit, or from an aggression his unit is given (`unitpanel.md`, section 9) - and
+  reaches only the attacker's pick, as above.
 
 **The conditions** a `trigger` is made of, each judged on the side that is picking, with
 `AND`, `OR` and `NOT` around them:

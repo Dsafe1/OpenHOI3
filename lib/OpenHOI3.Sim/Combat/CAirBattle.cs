@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
@@ -143,7 +144,9 @@ public static class CAirBattle
 
 		CAirModifiers.Apply(state, combat, combat.Attacker);
 		CAirModifiers.Apply(state, combat, combat.Defender);
+		TraceSides(state, combat, "A");
 		CAirFire.Attack(state, combat, combat.Attacker);
+		TraceSides(state, combat, "D");
 		CAirFire.Attack(state, combat, combat.Defender);
 		combat.Attacker.NoteLosses();
 		combat.Defender.NoteLosses();
@@ -167,6 +170,21 @@ public static class CAirBattle
 		}
 		combat.Hour++;
 		return combat.Duration >= Hours;
+	}
+
+	/// <summary>
+	/// For the savegame tool: every wing of both sides as one side begins to shoot - strength, organisation, the two
+	/// products, pending damage and the target held - laid out as the fact base's live probe of the air battle writes it.
+	/// </summary>
+	private static void TraceSides(CGameState state, CCombat combat, string by)
+	{
+		if (state.CombatTrace is not { } trace)
+		{
+			return;
+		}
+		static string Wings(CCombatSide side) => string.Join(" ", System.Linq.Enumerable.SelectMany(side.Units, u => u.SubUnits).Select(w =>
+			$"{w.Id}:{w.Strength.Raw}/{w.Organisation.Raw}:p{w.CombatAttack.Raw}/{w.CombatDefence.Raw}:d{w.PendingStrengthDamage}/{w.PendingOrganisationDamage}:t{w.TargetId}"));
+		trace($"AIRATK prov {combat.Province} by {by} draws={state.Random.Draws}\n  A {Wings(combat.Attacker)}\n  D {Wings(combat.Defender)}");
 	}
 
 	private static void RollDice(CGameState state, CCombat combat)

@@ -152,8 +152,9 @@ public static class CUnitTotals
 
 	/// <summary>
 	/// What a named circumstance - a terrain, a river, a fort, the night - does to the
-	/// unit in one respect: its brigades' figures over how many brigades it has, in
-	/// thousandths.
+	/// unit in one respect: the figures of its brigades that count towards it over how many
+	/// brigades it has, all of them, in thousandths - so a broken support brigade takes its
+	/// share away and still divides (<c>reversing/findings/FINDINGS-unitdef.md</c>).
 	/// </summary>
 	public static long Adjuster(CUnit unit, string name, string kind)
 	{
@@ -164,7 +165,7 @@ public static class CUnitTotals
 		long sum = 0;
 		foreach (CSubUnit subUnit in unit.SubUnits)
 		{
-			if (subUnit.Stats.Adjusters.TryGetValue(name, out Modifiers.CModifier? adjuster))
+			if (CUnits.CountsTowardsItsUnit(unit, subUnit) && subUnit.Stats.Adjusters.TryGetValue(name, out Modifiers.CModifier? adjuster))
 			{
 				sum += adjuster[kind].Raw;
 			}
