@@ -24,7 +24,8 @@ using OpenHOI3.Sim.Units;
 /// reads them, and the ones it works out again - IC - beside nothing; and then the hours given run, to show the game goes
 /// on from there. Nothing is written. See <c>docs/mechanics/savegame.md</c>, section 4. With <c>route=UNIT:FROM:TO,...</c> it
 /// says instead the way ours finds for each, plain and very safe, on the save as loaded - to set beside a search the
-/// running game was seen to make - and stops.
+/// running game was seen to make - and stops; with <c>garrison=UNIT,...</c> (numbers or names) each unit's garrison rating and
+/// strength and organisation shares.
 /// </summary>
 public static class CLoadCheck
 {
@@ -138,6 +139,8 @@ public static class CLoadCheck
 		string? watch = args.FirstOrDefault(arg => arg.StartsWith("watch=", StringComparison.Ordinal))?["watch=".Length..];
 		string? routes = args.FirstOrDefault(arg => arg.StartsWith("route=", StringComparison.Ordinal))?["route=".Length..];
 		args = args.Where(arg => !arg.StartsWith("route=", StringComparison.Ordinal)).ToArray();
+		string? garrisons = args.FirstOrDefault(arg => arg.StartsWith("garrison=", StringComparison.Ordinal))?["garrison=".Length..];
+		args = args.Where(arg => !arg.StartsWith("garrison=", StringComparison.Ordinal)).ToArray();
 		// skipentry: the save is of a game already entered, so the first pass's orders are in it and are not given again.
 		bool skipEntry = args.Contains("skipentry");
 		args = args.Where(arg => arg != "skipentry").ToArray();
@@ -180,6 +183,26 @@ public static class CLoadCheck
 		foreach (string line in report.Lines())
 		{
 			Console.WriteLine("  " + line);
+		}
+
+		// garrison=UNIT,...: what ours weighs a division as a garrison by - its rating and its organisation share - and stop.
+		if (garrisons is not null)
+		{
+			foreach (string asked in garrisons.Split(','))
+			{
+				// A number, or a unit's name.
+				CUnit? unit = state.Countries.SelectMany(country => country.AllUnits())
+					.FirstOrDefault(each => int.TryParse(asked, out int number) ? each.Id == number : each.Name == asked);
+				string id = asked;
+				if (unit is null)
+				{
+					Console.WriteLine($"GARRISON {id}: no unit");
+					continue;
+				}
+				OpenHOI3.Sim.Agents.CUnitShares.Of(state, unit, out long strength, out long organisation);
+				Console.WriteLine($"GARRISON {id} {unit.Name} at {unit.Location}: rating {OpenHOI3.Sim.Agents.CUnitRatings.Garrison(unit)} strength {strength} organisation {organisation} front {OpenHOI3.Sim.Theatres.CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false)}");
+			}
+			return 0;
 		}
 
 		// route=UNIT:FROM:TO,...: the way ours finds for that unit on the save as loaded, plain and very safe, and stop.

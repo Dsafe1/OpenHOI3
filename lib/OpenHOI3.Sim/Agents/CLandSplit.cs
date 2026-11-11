@@ -276,13 +276,14 @@ public static class CLandSplit
 			{
 				continue;
 			}
-			CUnitShares.Of(state, unit, out _, out long organisation);
+			// Its mean strength share, which the original asks here and not its organisation (FINDINGS-liveread.md, section 34).
+			CUnitShares.Of(state, unit, out long strength, out _);
 			long score = 10 * CUnitRatings.Garrison(unit) + (MeanDistance(state, agent, unit) + 10) * Whole / 5;
 			if (CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false))
 			{
 				score = score * 3 / 4;
 			}
-			score = score * (1500 - organisation) / Whole;
+			score = score * (1500 - strength) / Whole;
 			if (score > bestScore)
 			{
 				bestScore = score;

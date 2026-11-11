@@ -161,7 +161,9 @@ is cleared.
    from where they are bound no neighbour the country prepares war on, carrying no armour or mechanised brigade **where the
    agent's frontier is at war** (not the country's wars) and no paratroops with air
    transports about, the one with the best 10 x garrison rating (section 11.3) + (its mean distance to the area + 10) / 5,
-   x 0.75 on a front province, x (1.5 - its organisation) is marked.
+   x 0.75 on a front province, x (1.5 - its mean strength share) is marked. **Its strength, not its organisation**:
+   `confirmed` on the running game, 2026-11-11, where every candidate's figure was the strength share
+   (`reversing/findings/FINDINGS-liveread.md`, section 34); this said organisation until then, after the fact base's prose.
 
 ### 7.3 The line
 
