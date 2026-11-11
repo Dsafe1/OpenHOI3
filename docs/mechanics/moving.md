@@ -154,7 +154,9 @@ is cleared.
    min(hold provinces, n, n - want), raised where below it to min(min(max(targets, garrison-brigade divisions), n), n -
    front), and at least strong; l = n - g, anything over 10 p back to g.
 4. Targets are topped up from the rest of the hold list until there are g of them. The list is **kept in descending score**, so one
-   added here stands in its place by score, of equals the earlier first (`FINDINGS-liveread.md`, section 21).
+   added here stands in its place by score, of equals the earlier first (`FINDINGS-liveread.md`, section 21). A **record** already
+   taken is skipped, not a province already listed: the hold list can name a province twice, and both records then become targets,
+   each wanting its garrison (section 36). Bulgaria's list on entering the save of July 1941 names 4368, 4555 and 4870 twice.
 5. **Per block of land** of **the first g targets** (the shortfall to the theatre's largest area's), the garrisons standing or bound
    there are matched to its count: too many - the non-garrison-brigade one with the lowest hold score where it stands
    (+1000 for militia, +500 for police) is unmarked; too few - of the unmarked committed divisions standing or bound there, facing

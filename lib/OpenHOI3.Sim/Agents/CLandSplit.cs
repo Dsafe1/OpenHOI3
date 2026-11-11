@@ -58,9 +58,13 @@ public static class CLandSplit
 			}
 		}
 		var targets = new List<int>();
+		// The records taken, by their place on the hold list: the top-up skips a record already taken and not a province
+		// already listed, so a province the list names twice may be two targets (FINDINGS-liveread.md, section 36).
+		var taken = new HashSet<int>();
 		int strong = 0;
-		foreach (CHoldProvince hold in agent.HoldProvinces)
+		for (int at = 0; at < agent.HoldProvinces.Count; at++)
 		{
+			CHoldProvince hold = agent.HoldProvinces[at];
 			CProvince province = state.Province(hold.Province);
 			if (hold.Score < TargetScore || province.Controller != country.Tag)
 			{
@@ -71,6 +75,7 @@ public static class CLandSplit
 				continue;
 			}
 			Insert(targets, agent, hold);
+			taken.Add(at);
 			if (hold.Score >= StrongScore)
 			{
 				strong++;
@@ -125,15 +130,15 @@ public static class CLandSplit
 		}
 		garrisons = System.Math.Max(garrisons, 0);
 		line = System.Math.Max(line, 0);
-		foreach (CHoldProvince hold in agent.HoldProvinces)
+		for (int at = 0; at < agent.HoldProvinces.Count; at++)
 		{
 			if (targets.Count >= garrisons)
 			{
 				break;
 			}
-			if (!targets.Contains(hold.Province))
+			if (!taken.Contains(at))
 			{
-				Insert(targets, agent, hold);
+				Insert(targets, agent, agent.HoldProvinces[at]);
 			}
 		}
 		Match(state, country, agent, network, targets, garrisons, ordered);
