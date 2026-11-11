@@ -154,7 +154,7 @@ public static class CAirBody
 			}
 			if (group.Order == EUnitOrder.JoinAir)
 			{
-				if (group.Mission.LiveTarget is { } partner)
+				if (CJoinOrders.SeenPartner(group) is { } partner)
 				{
 					handled.Add(group);
 					handled.Add(partner);

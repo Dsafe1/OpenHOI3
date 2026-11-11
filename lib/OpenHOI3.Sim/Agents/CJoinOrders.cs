@@ -21,7 +21,23 @@ public static class CJoinOrders
 		unit.Order = unit.Kind == EUnitKind.Air ? EUnitOrder.JoinAir : EUnitOrder.JoinFleet;
 		unit.OrderProvince = target.Location;
 		unit.Mission.Target = target;
+		unit.Mission.OrderTarget = target;
 		Head(state, country, unit, target.Location);
+	}
+
+	/// <summary>
+	/// The partner the AI sees a join going to: a join_air's order target, which a load never sets - the original's
+	/// <c>CJoinAirOrder::LoadKey</c> takes the saved target into the join's own reference alone - so a loaded join_air
+	/// is dead to the AI and called off, while it still merges; a join_fleet's target, which a load restores
+	/// (<c>docs/mechanics/agents.md</c>, section 5.4; FINDINGS-liveread.md, section 51).
+	/// </summary>
+	public static CUnit? SeenPartner(CUnit unit)
+	{
+		if (unit.Order == EUnitOrder.JoinAir)
+		{
+			return unit.Mission.OrderTarget is { IsRemoved: false } named ? named : null;
+		}
+		return unit.Mission.LiveTarget;
 	}
 
 	/// <summary>

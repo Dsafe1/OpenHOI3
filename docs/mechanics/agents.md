@@ -233,7 +233,13 @@ a carrier's wing, a group on loan and a group with no base are passed over.
   based on it.
 - **Join** (`join_fleet`, `join_air`): the unit sails or flies to the other's province; arrived, it is merged into the
   other as the merge button merges (`selection.md`, section 5.4) - its ships or wings and what it carries go over, the
-  more skilled leader stays - and it is removed. With no other, it goes back to its base.
+  more skilled leader stays - and it is removed. With no other, it goes back to its base. **A join_air keeps its partner
+  twice** - as the order's target and as the join's own - and a load restores only the second: so the merge still happens,
+  but the air body's triage and regrouping, which ask the first, find a loaded join_air dead, call it off and regroup
+  afresh (`confirmed` on the running game, 2026-11-11: Italy's 2nd Squadra Aerea, joining the 5th Comando Aerosiluranti
+  'Eolo' in the save of August 1938, read with no target on entering, and the Eolo sent to join it instead;
+  `reversing/findings/FINDINGS-liveread.md`, section 51). A join_fleet's target is restored. The original saving a loaded
+  join_air again would write its target once; ours writes it twice, as a join given in play is written.
 
 ## 6. Headquarters (sections B.6, B.7)
 

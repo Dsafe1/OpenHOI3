@@ -41,8 +41,9 @@ public sealed class CMission
 
 	/// <summary>
 	/// What the order names as its target, apart from what a mission finds: an intercept's, which the original keeps
-	/// beside the fleet its search found and saves as <c>target</c>. Nothing here reads it
-	/// (<c>docs/mechanics/savegame.md</c>, section 9).
+	/// beside the fleet its search found and saves as <c>target</c>, and a join_air's, given with the order and never
+	/// set by a load, which is what the AI asks of a join (<c>CJoinOrders.SeenPartner</c>;
+	/// <c>docs/mechanics/savegame.md</c>, section 9).
 	/// </summary>
 	public CUnit? OrderTarget { get; set; }
 

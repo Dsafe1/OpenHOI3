@@ -63,7 +63,7 @@ public static class CAirRegroup
 			{
 				continue;
 			}
-			if (CJoinOrders.IsJoin(group.Order) && group.Mission.LiveTarget is { } joining)
+			if (CJoinOrders.IsJoin(group.Order) && CJoinOrders.SeenPartner(group) is { } joining)
 			{
 				handled.Add(group);
 				handled.Add(joining);
