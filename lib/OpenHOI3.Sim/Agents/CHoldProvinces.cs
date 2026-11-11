@@ -79,37 +79,52 @@ public static class CHoldProvinces
 		agent.HoldProvincesMade = true;
 	}
 
-	/// <summary>The provinces of focus areas a puppet of the country holds where none of the puppet's land units is.</summary>
+	/// <summary>
+	/// The provinces of focus areas a puppet of the country holds, each but where one of the puppet's land units stands or
+	/// is bound - province by province, not the area as a whole (FINDINGS-liveread.md, section 52).
+	/// </summary>
 	private static void Puppets(CGameState state, CCountry country, CAgent agent, HashSet<int> seen,
 		(bool AtPeace, bool Full) context)
 	{
+		var guarded = new Dictionary<CCountryTag, HashSet<int>>();
 		foreach (CSupplyArea area in agent.FocusAreas)
 		{
-			if (state.Country(area.Controller) is not { } puppet || puppet.Overlord != country.Tag || Guarded(state, puppet, area))
+			if (state.Country(area.Controller) is not { } puppet || puppet.Overlord != country.Tag)
 			{
 				continue;
 			}
+			if (!guarded.TryGetValue(puppet.Tag, out HashSet<int>? held))
+			{
+				held = Guarded(puppet);
+				guarded[puppet.Tag] = held;
+			}
 			foreach (int id in area.Provinces)
 			{
-				Consider(state, country, agent, id, seen, context);
+				if (!held.Contains(id))
+				{
+					Consider(state, country, agent, id, seen, context);
+				}
 			}
 		}
 	}
 
-	private static bool Guarded(CGameState state, CCountry puppet, CSupplyArea area)
+	/// <summary>Where the puppet's land units stand, and where those on the move are bound.</summary>
+	private static HashSet<int> Guarded(CCountry puppet)
 	{
+		var held = new HashSet<int>();
 		foreach (CUnit unit in puppet.AllUnits())
 		{
 			if (unit.Kind is EUnitKind.Navy or EUnitKind.Air || unit.IsRemoved)
 			{
 				continue;
 			}
-			if (area.Provinces.Contains(CAgentUnits.DestinationOrPlace(unit)))
+			held.Add(unit.Location);
+			if (unit.IsMoving)
 			{
-				return true;
+				held.Add(unit.Path[^1]);
 			}
 		}
-		return false;
+		return held;
 	}
 
 	private static void Consider(CGameState state, CCountry country, CAgent agent, int id, HashSet<int> seen,

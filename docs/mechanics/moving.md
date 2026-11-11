@@ -116,8 +116,10 @@ After the front list (`agents.md`, 8.2):
 
 Made again where none are kept, where provinces are threatened, or on a full pass on a day of the month divisible by 7:
 each objective of the plan held by the country's side, scored by its hold score plus its priority; each priority
-province the country controls, scored hold score + 200; for a theatre agent, the provinces of focus areas a puppet of the country holds with none of the puppet's land units
-there - not for a subject - and its theatre's provinces - for a subject too - scored by their hold score where that is 0.1 or more, rounded a half to the even, and a province in both lists coming twice. In descending order, cut to the agent's
+province the country controls, scored hold score + 200; for a theatre agent, the provinces of focus areas a puppet of the country holds, each but where one of the puppet's land
+units stands or is bound - province by province, not the area as a whole (*confirmed* on the running game, 2026-11-11:
+Yemen's 9768 on Britain's East Africa list of July 1941 with Yemen's army in 9750, `FINDINGS-liveread.md`, section 52)
+- not for a subject - and its theatre's provinces - for a subject too - scored by their hold score where that is 0.1 or more, rounded a half to the even, and a province in both lists coming twice. In descending order, cut to the agent's
 divisions (or the objectives' count, if more) [exe, `reversing/findings/FINDINGS-liveread.md`, section 15].
 
 **The hold score** (`CAIUnit_ScoreHoldProvince`): nought below 200 infrastructure; nought outright for a province without
