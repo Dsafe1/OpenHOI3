@@ -297,7 +297,9 @@ Every hour while the country's stances are unsettled, then once a day at hour (n
    where more than one hot enemy exists over all agents and this one is not the least threatened; g = the friends' summed
    `army_combat_value` / the enemies', or 10; v = the front coverage (8.4) x r: **under 0.99 stance 2, under 1.98 stance 3,
    else 4**, and a 3 or 4 with g under 0.9 one less.
-3. A stance that differs is set, pushed down to the agent's children, and **plan posted** set.
+3. A stance that differs is set, pushed down to the agent's children, and **plan posted** set - and **the reserve released**: every
+   held-back division's mark cleared and the list emptied, so the next sort decides it again at the new stance
+   (`reversing/findings/FINDINGS-liveread.md`, section 45).
 4. A pass that ran whole with no agent at war without an area **settles** the country's stances; nothing unsettles them.
 
 ### 7.3 The powers (`UpdatePlanPower`)

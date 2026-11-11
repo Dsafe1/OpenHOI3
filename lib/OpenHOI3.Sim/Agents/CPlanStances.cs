@@ -127,5 +127,12 @@ public static class CPlanStances
 		agent.ReplanSubordinates = true;
 		CAreaScores.Score(state, country, agent, stance);
 		CPlanAxis.Update(state, country, agent, stance);
+		// A change of stance releases the reserve: every held-back division's mark cleared and the list emptied, so the
+		// next sort decides them again (FINDINGS-liveread.md, section 45).
+		foreach (Units.CUnit held in agent.HeldBack)
+		{
+			held.IsHeldBack = false;
+		}
+		agent.HeldBack.Clear();
 	}
 }
