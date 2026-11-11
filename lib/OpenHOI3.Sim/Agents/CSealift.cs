@@ -327,7 +327,7 @@ public static class CSealift
 				continue;
 			}
 			bool bordersEnemy = CAreaHostility.TouchesHostileArea(state, own);
-			long rating = CUnitRatings.Garrison(unit);
+			long rating = CUnitRatings.Garrison(state, unit);
 			long score = (ownHave - ownNeed) * Whole + (unit.IsStranded ? Stranded * Whole : 0);
 			if (enemyTarget)
 			{

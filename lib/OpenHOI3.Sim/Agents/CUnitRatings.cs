@@ -16,7 +16,7 @@ public static class CUnitRatings
 {
 	private const long Whole = 1000;
 
-	public static long Garrison(CUnit unit)
+	public static long Garrison(CGameState state, CUnit unit)
 	{
 		int n = unit.SubUnits.Count;
 		if (n < 1)
@@ -27,7 +27,7 @@ public static class CUnitRatings
 		long score = 0;
 		foreach (CSubUnit brigade in unit.SubUnits)
 		{
-			fill += CFleetRegroup.StrengthShare(brigade);
+			fill += CFleetRegroup.StrengthShare(state, brigade);
 			score += brigade.Type.Key switch
 			{
 				"police_brigade" or "garrison_brigade" => 100,
@@ -48,7 +48,7 @@ public static class CUnitRatings
 	/// 100. Two divisions a thousandth of a share apart rate apart here, where in thousandths they tie
 	/// (<c>reversing/findings/FINDINGS-liveread.md</c>, section 35).
 	/// </summary>
-	public static float GarrisonExact(CUnit unit)
+	public static float GarrisonExact(CGameState state, CUnit unit)
 	{
 		int n = unit.SubUnits.Count;
 		if (n < 1)
@@ -59,7 +59,8 @@ public static class CUnitRatings
 		int score = 0;
 		foreach (CSubUnit brigade in unit.SubUnits)
 		{
-			long most = brigade.Stats[CSubUnitType.MaxStrength].Raw;
+			// Its most as GetMaxStrength gives it, a reserve's less what its law keeps back (FINDINGS-liveread.md, section 38).
+			long most = state.Country(unit.Owner) is { } owner ? CUnits.MaxStrength(state, owner, brigade).Raw : brigade.Stats[CSubUnitType.MaxStrength].Raw;
 			float share = most <= 0 ? 1f : (float)(brigade.Strength.Raw / 1000.0 / (most / 1000.0));
 			fill = (float)((double)fill + share);
 			score += brigade.Type.Key switch

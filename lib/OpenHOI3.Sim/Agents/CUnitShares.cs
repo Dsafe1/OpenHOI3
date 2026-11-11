@@ -20,7 +20,7 @@ public static class CUnitShares
 		}
 		foreach (CSubUnit brigade in unit.SubUnits)
 		{
-			strength = (float)((double)(float)(CFleetRegroup.StrengthShare(brigade) / 1000.0) + strength);
+			strength = (float)((double)(float)(CFleetRegroup.StrengthShare(state, brigade) / 1000.0) + strength);
 			organisation = (float)((double)(float)(CFleetRegroup.OrganisationShare(state, brigade) / 1000.0) + organisation);
 		}
 		strength = (float)((double)strength / (float)count);
@@ -38,7 +38,7 @@ public static class CUnitShares
 		}
 		foreach (CSubUnit brigade in unit.SubUnits)
 		{
-			strength += CFleetRegroup.StrengthShare(brigade);
+			strength += CFleetRegroup.StrengthShare(state, brigade);
 			organisation += CFleetRegroup.OrganisationShare(state, brigade);
 		}
 		strength /= count;

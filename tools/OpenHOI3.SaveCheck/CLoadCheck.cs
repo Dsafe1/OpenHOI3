@@ -200,7 +200,7 @@ public static class CLoadCheck
 					continue;
 				}
 				OpenHOI3.Sim.Agents.CUnitShares.Of(state, unit, out long strength, out long organisation);
-				Console.WriteLine($"GARRISON {id} {unit.Name} at {unit.Location}: rating {OpenHOI3.Sim.Agents.CUnitRatings.Garrison(unit)} strength {strength} organisation {organisation} front {OpenHOI3.Sim.Theatres.CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false)}");
+				Console.WriteLine($"GARRISON {id} {unit.Name} at {unit.Location}: rating {OpenHOI3.Sim.Agents.CUnitRatings.Garrison(state, unit)} strength {strength} organisation {organisation} front {OpenHOI3.Sim.Theatres.CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false)}");
 			}
 			return 0;
 		}

@@ -123,12 +123,12 @@ public class MovingTests
 		CUnit garrison = Division(state, Ger, 1, "garrison_brigade", brigades: 1);
 		CUnit infantry = Division(state, Ger, 1, "infantry_brigade", brigades: 3);
 		// (100 + 20) x (2 - 1), held to 100; (20 + -20) x 1, held up to 1.
-		Assert.Equal(100_000, CUnitRatings.Garrison(garrison));
-		Assert.Equal(1_000, CUnitRatings.Garrison(infantry));
+		Assert.Equal(100_000, CUnitRatings.Garrison(state, garrison));
+		Assert.Equal(1_000, CUnitRatings.Garrison(state, infantry));
 		// At half strength a two-brigade garrison rates higher than at full: (100 + 0) x 1.5, held to 100, against 100.
 		CUnit worn = Division(state, Ger, 1, "garrison_brigade", brigades: 2);
 		worn.SubUnits.ForEach(brigade => brigade.Strength = CFixedPoint.FromInt(5));
-		Assert.Equal(100_000, CUnitRatings.Garrison(worn));
+		Assert.Equal(100_000, CUnitRatings.Garrison(state, worn));
 	}
 
 	[Fact]

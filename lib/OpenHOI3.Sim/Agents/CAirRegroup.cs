@@ -178,7 +178,7 @@ public static class CAirRegroup
 	{
 		foreach (CSubUnit wing in group.SubUnits)
 		{
-			if (CFleetRegroup.StrengthShare(wing) < bar || CFleetRegroup.OrganisationShare(state, wing) < bar)
+			if (CFleetRegroup.StrengthShare(state, wing) < bar || CFleetRegroup.OrganisationShare(state, wing) < bar)
 			{
 				return true;
 			}

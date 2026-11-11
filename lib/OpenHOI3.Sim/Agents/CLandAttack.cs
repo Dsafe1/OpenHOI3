@@ -476,7 +476,7 @@ public static class CLandAttack
 	{
 		long cost = EnemyNeighbours(state, country, unit.Location) * 10 * Scale
 			- 10 * CUnitRatings.Terrain(state, country, p, unit, attacking: true);
-		if (CUnitRatings.Garrison(unit) > GarrisonRating)
+		if (CUnitRatings.Garrison(state, unit) > GarrisonRating)
 		{
 			cost += 100 * Scale;
 		}

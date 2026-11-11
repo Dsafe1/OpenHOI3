@@ -560,7 +560,7 @@ public static class CInvasionPlanner
 	{
 		foreach (CSubUnit ship in fleet.SubUnits)
 		{
-			if (CFleetRegroup.StrengthShare(ship) < ReadyStrength || CFleetRegroup.OrganisationShare(state, ship) < ReadyOrganisation)
+			if (CFleetRegroup.StrengthShare(state, ship) < ReadyStrength || CFleetRegroup.OrganisationShare(state, ship) < ReadyOrganisation)
 			{
 				return false;
 			}

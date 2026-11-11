@@ -47,7 +47,7 @@ does not claim is **committed** or **held back**:
    under 0.5, 0.4 under 0.75, else 0.5.
 2. **A theatre agent's division outside its theatre's largest area** is committed and its mark cleared. **With the frontier not at war** a division
    held back stays held back, any other is committed.
-3. Otherwise one already held back stays so, whatever its figures - the bar for its coming back, at factor + (1 - factor) / 2 and 0.65, lies behind a test it has already failed and is never reached [exe, `reversing/findings/FINDINGS-liveread.md`, section 16]. And with strength and organisation each the mean of its brigades' shares: held back where strength < factor
+3. Otherwise one already held back stays so, whatever its figures - the bar for its coming back, at factor + (1 - factor) / 2 and 0.65, lies behind a test it has already failed and is never reached [exe, `reversing/findings/FINDINGS-liveread.md`, section 16]. And with strength and organisation each the mean of its brigades' shares - **a brigade's strength share is of its most as the game gives it, a reserve's held under its type's by the law's penalty while its country has not mobilised**, so a reserve at its ceiling counts as whole (`reversing/findings/FINDINGS-liveread.md`, section 38): held back where strength < factor
    or organisation < 0.3. The rest are committed.
 4. An airborne division (role 8) is held back whenever the test runs, and passed over where the agent has air
    transports.
@@ -148,8 +148,8 @@ is cleared.
 2. **Garrison targets**: from the hold list, best first, those scoring 20 or more that the country controls, but not a
    province of the area under 10 victory points that is not its own depot. **strong** = those scoring 50 or more.
 3. With p positions: garrisons g and line l. No positions: g = n. No hold provinces: l = n less the garrison-brigade
-   divisions. Otherwise: front = the front list's size; enemies = the non-friendly land units on it whose controller is
-   front-worthy; at war on the frontier front x 2, at least 2 x enemies where their areas hold fewer than 7 provinces in
+   divisions. Otherwise: front = the front list's size; enemies = the land units on it whose controller is front-worthy and
+   whose owner is no friend by the original's `IsFriend`, military access counting (section 38 of the live reads); at war on the frontier front x 2, at least 2 x enemies where their areas hold fewer than 7 provinces in
    all (else enemies), strong = 1 where front <= enemies / 3, enemies x 2; want = min(max(enemies, front), 10 p); g =
    min(hold provinces, n, n - want), raised where below it to min(min(max(targets, garrison-brigade divisions), n), n -
    front), and at least strong; l = n - g, anything over 10 p back to g.
@@ -166,6 +166,8 @@ is cleared.
    x 0.75 on a front province, x (1.5 - its mean strength share) is marked. **Its strength, not its organisation**:
    `confirmed` on the running game, 2026-11-11, where every candidate's figure was the strength share
    (`reversing/findings/FINDINGS-liveread.md`, section 34); this said organisation until then, after the fact base's prose.
+   A reserve's share, and its garrison rating's fill, are of its reduced most (section 38): Germany's reserve infantry in
+   August 1938, at their ceiling, rate at 1.5 - 1 and not 1.5 - 0.75, and the 3. Panzer-Division is marked before them.
    The pick is in the original's precision - the rating's fill a single per brigade, the score a single with double steps,
    compared strictly - so two divisions a thousandth of a share apart do not tie (section 35).
 

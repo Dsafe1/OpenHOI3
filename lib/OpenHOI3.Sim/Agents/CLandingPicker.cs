@@ -171,7 +171,7 @@ public static class CLandingPicker
 			}
 			foreach (CSubUnit brigade in unit.SubUnits)
 			{
-				long share = CFleetRegroup.StrengthShare(brigade);
+				long share = CFleetRegroup.StrengthShare(state, brigade);
 				if (brigade.Type.Key == "hq_brigade")
 				{
 					share /= 3;

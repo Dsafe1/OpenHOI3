@@ -177,7 +177,8 @@ public static class CLandSplit
 			int here = 0;
 			foreach (CUnit unit in state.Positions.Of(id))
 			{
-				if (CTheatres.IsLand(unit) && !CApproaches.IsFriendly(state, country, unit.Owner))
+				// Not a friend by CCountry::IsFriend, military access counting (FINDINGS-liveread.md, section 38).
+				if (CTheatres.IsLand(unit) && !CCountryLists.IsFriend(state, country, unit.Owner, withAccess: true))
 				{
 					here++;
 				}
@@ -298,7 +299,7 @@ public static class CLandSplit
 			// In the original's own precision, single and double as its listing has them, so that a near tie falls its way
 			// (section 35).
 			CUnitShares.Of(state, unit, out long strength, out _);
-			float pre = (float)((double)CUnitRatings.GarrisonExact(unit) * 10.0 + (float)(MeanDistanceExact(state, agent, unit) / 5.0));
+			float pre = (float)((double)CUnitRatings.GarrisonExact(state, unit) * 10.0 + (float)(MeanDistanceExact(state, agent, unit) / 5.0));
 			if (CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false))
 			{
 				pre = (float)(pre * 0.75);

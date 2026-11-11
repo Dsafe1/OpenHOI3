@@ -58,12 +58,12 @@ public static class CFleetRegroup
 		{
 			if (CShipCensus.IsTransport(ship))
 			{
-				if (StrengthShare(ship) < TransportWorn)
+				if (StrengthShare(state, ship) < TransportWorn)
 				{
 					return true;
 				}
 			}
-			else if (StrengthShare(ship) < ShipWorn || OrganisationShare(state, ship) < OrganisationWorn)
+			else if (StrengthShare(state, ship) < ShipWorn || OrganisationShare(state, ship) < OrganisationWorn)
 			{
 				return true;
 			}
@@ -71,9 +71,15 @@ public static class CFleetRegroup
 		return false;
 	}
 
-	public static long StrengthShare(CSubUnit ship)
+	/// <summary>
+	/// Its strength's share of its most, in thousandths: the most as the original's <c>CSubUnit::GetMaxStrength</c> gives it,
+	/// a reserve's less what its country's law keeps back (reversing/findings/FINDINGS-liveread.md, section 38).
+	/// </summary>
+	public static long StrengthShare(CGameState state, CSubUnit ship)
 	{
-		long most = ship.Stats[CSubUnitType.MaxStrength].Raw;
+		long most = ship.Unit is { } unit && state.Country(unit.Owner) is { } owner
+			? CUnits.MaxStrength(state, owner, ship).Raw
+			: ship.Stats[CSubUnitType.MaxStrength].Raw;
 		return most <= 0 ? CFixedPoint.Scale : ship.Strength.Raw * CFixedPoint.Scale / most;
 	}
 
@@ -125,7 +131,7 @@ public static class CFleetRegroup
 			foreach (CSubUnit ship in fleet.SubUnits)
 			{
 				bool transport = CShipCensus.IsTransport(ship);
-				if (StrengthShare(ship) < (transport ? TransportWorn : Damaged))
+				if (StrengthShare(state, ship) < (transport ? TransportWorn : Damaged))
 				{
 					damaged.Add(ship);
 				}
