@@ -256,11 +256,17 @@ infrastructure below 200; the highest wins, strictly. Every hour the headquarter
 ### 6.4 Headquarters pulled in
 
 On the full pass, every non-division headquarters under the agent - one that is moving always, one standing still only
-where a child is under its full reach, it trespasses, or it stands on a front province while the frontier is at war - is
-sent to the province among its children: each land child's destination or place (reachable by areas no enemy holds) and
+where a child is under its full reach, it trespasses, or it stands on a front province while the frontier is at war; one in
+a battle too, a land battle always letting it go - is sent, where the land reach test (`moving.md`, section 10) says it can
+get there, to the province among its children: each land child's destination or place (reachable by areas no enemy holds) and
 every land neighbour of it in the same area, whether or not the child's own province could be reached; scored by the mean distance to the children - the
-garrisons left out where any child is none - skipped at nought, -6 for where the headquarters is going, +1000 bordering foreign land, +100000 with infrastructure below 200; the lowest
+garrisons left out where any child is none - skipped at nought, -6 for where the headquarters is going, +1000 bordering foreign land, +100000 with infrastructure built below 200 (the
+most built, not what the province has the use of); the lowest
 below 100000, single precision throughout, and its own province where none is. Corps are walked before armies, each seeing where the one below has just been sent. **A headquarters trespassing is not built.**
+A child's "destination" is where the AI sent it in this pass where it did, else its way's end: so the children the land block has just
+moved count at their new goals. `confirmed` on the running game, 2026-11-11: every one of 72 choices made on the same children - the
+same places, goals and garrison marks - was the original's, and every choice that differed had children that differed
+(`reversing/findings/FINDINGS-liveread.md`, section 33).
 
 ### 6.5 Joined by areas
 

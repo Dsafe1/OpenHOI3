@@ -65,14 +65,17 @@ public static class CCommandProvince
 	/// <summary>
 	/// On the full pass: each headquarters under the agent but its own - one on the move always, one standing still where a
 	/// subordinate is out of its full reach or it stands on a front while the frontier is at war - sent to the province
-	/// among its subordinates.
+	/// among its subordinates, where the land reach test (the original's <c>CMapProvince::CanUnitReach</c>) says it can get
+	/// there. A land headquarters in a battle is looked at too, a land battle always letting it go
+	/// (<c>CAIUnit_PullHeadquartersIn</c> in the fact base's record).
 	/// </summary>
 	public static void PullIn(CGameState state, CCountry country, CAgent agent)
 	{
 		foreach (CUnit unit in agent.NonDivisions)
 		{
-			if (ReferenceEquals(unit, agent.Unit) || unit.IsRemoved || unit.IsRetreating || unit.IsFighting
-				|| unit.Location <= 0)
+			// One in a battle is left only where it may not leave it, and a land or an air battle always lets a unit go.
+			if (ReferenceEquals(unit, agent.Unit) || unit.IsRemoved || unit.IsRetreating || unit.Location <= 0
+				|| (unit.IsFighting && !CTheatres.IsLand(unit)))
 			{
 				continue;
 			}
@@ -82,7 +85,7 @@ public static class CCommandProvince
 				continue;
 			}
 			int target = AmongSubordinates(state, country, unit);
-			if (target <= 0 || target == CAgentUnits.DestinationOrPlace(unit))
+			if (target <= 0 || target == CAgentUnits.DestinationOrPlace(unit) || !CAiMoves.ReachesByLand(state, country, unit, target))
 			{
 				continue;
 			}
@@ -176,7 +179,8 @@ public static class CCommandProvince
 			{
 				score = (float)(score + (double)BesideForeign);
 			}
-			if (CSupplyFigures.EffectiveInfrastructure(province) < LeastInfrastructure)
+			// The infrastructure built, not what the province has the use of: the original reads its maximum here.
+			if (CSupplyFigures.MostInfrastructure(state, province) < LeastInfrastructure)
 			{
 				score = (float)(score + (double)PoorRoads);
 			}
