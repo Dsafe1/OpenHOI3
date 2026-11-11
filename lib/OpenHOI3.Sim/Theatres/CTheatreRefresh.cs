@@ -16,16 +16,18 @@ public static class CTheatreRefresh
 	/// <summary>The nearest theatre is looked for from this, in thousandths of a distance.</summary>
 	private const long Far = 0x4876e800;
 
-	/// <summary>On entering a loaded game: each theatre's fronts made again, and nothing else.</summary>
+	/// <summary>
+	/// On entering a loaded game: the refresh's provinces placed and dropped, stamped, areas and fronts made again, and not its
+	/// agents' or headquarters' upkeep (FINDINGS-liveread.md, section 44).
+	/// </summary>
 	public static void FrontsOfLoad(CGameState state, CCountry country)
 	{
-		foreach (CTheatre theatre in country.Strategy.Theatres)
-		{
-			RebuildFronts(state, country, theatre);
-		}
+		Refresh(state, country, ofLoad: true);
 	}
 
-	public static void Refresh(CGameState state, CCountry country)
+	public static void Refresh(CGameState state, CCountry country) => Refresh(state, country, ofLoad: false);
+
+	private static void Refresh(CGameState state, CCountry country, bool ofLoad)
 	{
 		List<CTheatre> theatres = country.Strategy.Theatres;
 		foreach (CProvince province in state.Provinces)
@@ -60,8 +62,16 @@ public static class CTheatreRefresh
 			CTheatreProvinces.Stamp(state, theatre);
 			CTheatreProvinces.RebuildAreas(state, theatre);
 			RebuildFronts(state, country, theatre);
+			if (ofLoad)
+			{
+				continue;
+			}
 			// Its agent sets its area again, or goes with a theatre left with no provinces (agents.md, section 1).
 			Agents.CAgents.Ensure(state, country, theatre, going: theatre.AllProvinces.Count == 0);
+		}
+		if (ofLoad)
+		{
+			return;
 		}
 		CTheatreUpkeep.Maintain(state, country, isMyHour: true);
 		country.Strategy.TheatresDirty = false;
