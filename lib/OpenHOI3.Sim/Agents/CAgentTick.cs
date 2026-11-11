@@ -77,7 +77,9 @@ public static class CAgentTick
 			agent.FullPassPending = false;
 			CCommandProvince.PullIn(state, country, agent);
 		}
-		if (hour == a6)
+		// Daily, at once while its flag is set, or every hour for a country the AI does not run (FINDINGS-moving.md, section D;
+		// FINDINGS-liveread.md, section 43).
+		if (hour == a6 || agent.ReassignAreasNow || !country.UnitAi.RunsUnits)
 		{
 			CAgentProfile.Time(state, "the sealift", () => CSealift.Run(state, country, agent));
 		}

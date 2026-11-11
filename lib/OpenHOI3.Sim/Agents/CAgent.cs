@@ -28,6 +28,12 @@ public sealed class CAgent
 	/// <summary>Its area of operations is to be set again at its next hour.</summary>
 	public bool AreaDirty { get; set; } = true;
 
+	/// <summary>
+	/// Its divisions' areas and sealift are worked out at its next hour and not only at its daily one: the original's
+	/// <c>reassign_areas_now</c>, set as an agent is made (FINDINGS-liveread.md, section 43).
+	/// </summary>
+	public bool ReassignAreasNow { get; set; } = true;
+
 	/// <summary>It has posted its plan once: the original's <c>stance_set</c>.</summary>
 	public bool PlanPosted { get; set; }
 

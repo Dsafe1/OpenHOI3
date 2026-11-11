@@ -474,7 +474,8 @@ makes nobody at war (`war.md`, section 1).
 
 ## 15. The sealift (`CAIUnit::AssignAreaTargetsAndSealift`, `FINDINGS-moving.md` F.1 to F.7)
 
-At the agent's hour A6, for a country the AI runs - **and only where its units can carry at least one whole unit of
+At the agent's hour A6 - and at its next hour while its **reassign** flag is set, which a new agent's is, so a loaded game's
+agents run it in its second entering pass (`reversing/findings/FINDINGS-liveread.md`, section 43) - for a country the AI runs - **and only where its units can carry at least one whole unit of
 troops**, else nothing at all:
 
 1. **The areas** are its theatre's, each with a **need** (`agents.md`, 7.5) relaxed where the country is at war and the area
@@ -504,10 +505,12 @@ troops**, else nothing at all:
    area with no neighbour, +100 where its commander is bound there, x2 a garrison or x0.25 on the area of operations
    where its own area borders an enemy. It is given the target and marched where it can walk, else listed for the sea.
 5. **Headquarters** whose land children stand mostly in another area are given that area's port, and not moved.
-6. **Embark and debark**: cleared where only one is set or nobody listed for debark stands in embark's area. With no
+6. **Embark and debark**: cleared where only one is set or nobody listed for debark is **bound for, or stands bound nowhere
+   in,** embark's area (the original's tally asks the destination; section 43). With no
    debark, troops listed and transports: each listed unit votes for its target - 1, 4 from an area with no need, +10 for
    land not the country's; the best not tried is the **debark**, and the **embark** the port nearest by sea to those
-   bound for it in the area where most of them stand, with a way by sea to it. With both: those standing at embark are
+   bound for it in the area where most of them stand, with a way by sea to it - the area's provinces walked in their order,
+   each with a naval base built, the first of equals kept (section 43). With both: those standing at embark are
    boarded, the others in its area marched there; transports - not busy, fit, the nearest by
    ((1 - strength) + (1 - organisation)) x 2 + 1 times the distance by sea - are sent there until they can carry the
    troops.

@@ -180,8 +180,16 @@ public static class CSealiftPickers
 		}
 		int best = 0;
 		long least = long.MaxValue;
-		foreach (int port in area.Ports)
+		// The area's provinces in their order, each with a sea link and a naval base built - not its ports largest first: a
+		// tie, as among ports equally far from troops inland, goes to the first (FINDINGS-liveread.md, section 43).
+		CBuilding? naval = CTheatreFigures.NavalBase(state);
+		foreach (int port in area.Provinces)
 		{
+			CProvince harbour = state.Province(port);
+			if (harbour.PortSea <= 0 || naval is null || harbour.BuildingMaxLevel(naval).Raw < CFixedPoint.Scale)
+			{
+				continue;
+			}
 			long sum = 0;
 			foreach (int at in troops)
 			{

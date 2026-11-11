@@ -29,6 +29,10 @@ public static class CSealift
 	{
 		agent.SealiftWeight = 0;
 		agent.SealiftPort = 0;
+		if (agent.Unit is not null)
+		{
+			agent.ReassignAreasNow = false;
+		}
 		if (agent.Unit is not { } headquarters || SumCapacity(country) < 1
 			|| CAgents.TheatreOf(state, country, agent) is not { } theatre)
 		{
@@ -455,7 +459,9 @@ public static class CSealift
 		int atEmbark = 0;
 		foreach (CUnit unit in listed)
 		{
-			if (unit.SealiftTarget == debark && embarkArea is not null && ReferenceEquals(network.AreaOf(unit.Location), embarkArea))
+			// Where it is bound, or stands bound nowhere: the original counts the area of its destination (FINDINGS-liveread.md, section 43).
+			if (unit.SealiftTarget == debark && embarkArea is not null
+				&& ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit)), embarkArea))
 			{
 				atEmbark++;
 			}
