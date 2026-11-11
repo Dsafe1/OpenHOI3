@@ -194,7 +194,7 @@ public static class CSealift
 					continue;
 				}
 				listed.Add(unit);
-				weight += CTransport.Weight(unit);
+				weight += Weight(unit);
 				continue;
 			}
 			if (unit.Kind == EUnitKind.Division && network.AreaOf(CAgentUnits.DestinationOrPlace(unit)) is { } area
@@ -265,7 +265,7 @@ public static class CSealift
 				else
 				{
 					listed.Add(unit);
-					weight += CTransport.Weight(unit);
+					weight += Weight(unit);
 				}
 				have[area] = have.GetValueOrDefault(area) + 1;
 				if (network.AreaOf(unit.Location) is { } from && have.ContainsKey(from))
@@ -541,6 +541,16 @@ public static class CSealift
 		}
 	}
 
+	/// <summary>
+	/// What a unit weighs to the sea lift: its summed definition's transport weight, whole units cut on their own - so a land
+	/// brigade with no width that is worn out counts nothing, as the original's rebuilt definition leaves it out; a
+	/// headquarters at no organisation weighs nought (FINDINGS-moving.md, section F; FINDINGS-liveread.md, section 50).
+	/// </summary>
+	private static long Weight(CUnit unit)
+	{
+		return CUnitTotals.Sum(unit, CSubUnitType.TransportWeight).Raw / CFixedPoint.Scale;
+	}
+
 	/// <summary>The troops bound for debark in embark's area marched there or boarded; transports sent until they can carry them.</summary>
 	private static void Board(CGameState state, CCountry country, CAgent agent, CSupplyNetwork network, List<CUnit> listed,
 		int embark, int debark)
@@ -555,7 +565,7 @@ public static class CSealift
 			{
 				continue;
 			}
-			troops += CTransport.Weight(unit);
+			troops += Weight(unit);
 			if (unit.Location == embark)
 			{
 				waiting.Add(unit);

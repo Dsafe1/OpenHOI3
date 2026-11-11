@@ -496,7 +496,11 @@ troops**, else nothing at all:
    target, else where they are bound, else where they stand, lies there.
 2. **Released**: a target in a real area out of the theatre, but a headquarters' in land the country may use; while an
    area has more than its need, the division bound there from farthest (outside the embark area first); a target that
-   may no longer be shipped (below). The rest with a target are **listed for the sea**, their weight summed. A division
+   may no longer be shipped (below). The rest with a target are **listed for the sea**, their weight summed - each unit's
+   the transport weight of the brigades that count towards it, in whole units cut on their own, so a worn-out brigade of no
+   width weighs nothing and a headquarters at no organisation nought (*confirmed* on the running game, 2026-11-11: Italy's
+   4a Armata waiting alone at the Metropolitana's embark entering July 1941 weighs nought, and no transport is sent for it;
+   `FINDINGS-liveread.md`, section 50). The boarding and sailing use the brigades' whole weight. A division
    with no target standing or bound in the country's own area outside the theatre is **stranded**.
 3. **May a unit be shipped to an area** (`CAIUnit_MayShipUnitToArea`): never within its own block of land - so a target
    is never inside one piece of the side's land, and is dropped once the unit is there; never to a portless area it
