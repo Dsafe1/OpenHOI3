@@ -427,6 +427,14 @@ section 3.
 **Here**: the button and the portrait are greyed for a lent unit, and the command is refused. Chosen by the maintainer, 2026-11-09.
 **What a mod loses**: nothing; this is the engine's rule. **To undo**: drop the `Lender` tests in `CUnitPanelText.MayChangeLeader`, `CUnitHeaderEntry` and `CAssignLeaderCommand`.
 
+---
+
+## 24. A loaded unit's first attack estimate counts its whole modifier
+
+**The original**: the AI's attack odds keep the part of each unit's modifier that hangs on the unit alone - combined arms, experience, the leader, dissent, supplies, the difficulty, and for a defender its dig-in, ground and encirclement - in a cache that nothing initialises, so a loaded unit's first estimate counts that part or nought by what memory held, differently from run to run (`reversing/findings/FINDINGS-liveread.md`, section 46; `docs/mechanics/moving.md`, section 11.4).
+**Here**: the part is always counted, as the original counts it after the unit's first hour. Ours, 2026-11-11, not put to the maintainer: uninitialised memory cannot be reproduced, and counting the part matches the most units. Tried the other way - nought for every loaded unit - entering the August 1938 save gave 110 of 110 land orders and the July 1941 save 16 the original did not give, where this gives 107 of 110 and 1.
+**What a mod loses**: nothing; this is the engine's arithmetic. **To undo**: there is no faithful undo; a run's nought units are not knowable.
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they

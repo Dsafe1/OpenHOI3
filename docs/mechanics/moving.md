@@ -375,7 +375,16 @@ C_ours)); ours the same the other way; **odds = ours / theirs** - nought with no
 damage of theirs. The modifier (`FINDINGS-aihelpers.md`): the sum, not the product, of the combined arms, experience,
 leader, dissent, supply and difficulty terms, the stacking from brigades over 3 a province, the weather, a river or a
 landing, the terrain and the fort - for attackers; the fort defence, combined arms, experience, leader, dig-in, terrain,
-dissent, supply, difficulty, encirclement, stacking and envelopment - for defenders.
+dissent, supply, difficulty, encirclement, stacking and envelopment - for defenders. Nothing holds the odds above
+nought: an attacker whose modifier is below -1 weighs negative, and the odds with it (`FINDINGS-liveread.md`, section 46).
+
+The original keeps the half of each modifier that hangs on the unit alone - for attackers everything before the stacking,
+for defenders everything but the stacking and envelopment - from the unit's hour to the next, and **never initialises that
+cache**: after a load each unit's first look counts the real half or nought, by what memory held, a quarter of them nought
+in one run of the 1941 save and others in the next (*measured*, section 46). **Ours** counts the real half always - it
+cannot do otherwise and it is what most units used - and works it out at each look rather than once an hour
+(`docs/compatibility.md`, entry 24). Entering a loaded game can therefore attack where the original happened not to: Japan's
+11\. Hoheishidan on 9381 in August 1938, whose half was nought that run.
 
 ### 11.6 The axis (`CAIUnit::UpdatePlanAxis`, `FINDINGS-agents.md` E.5)
 
