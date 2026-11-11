@@ -133,7 +133,9 @@ public static class CAgents
 	/// Every hour, for a country the AI runs: an agent for each theatre that has none, bound at once where the theatre's
 	/// headquarters exists.
 	/// </summary>
-	public static void CreateForTheatres(CGameState state, CCountry country)
+	/// <param name="bind">False for a loaded game's agents, which its first pass ticks with no unit and binds after
+	/// (FINDINGS-liveread.md, section 39).</param>
+	public static void CreateForTheatres(CGameState state, CCountry country, bool bind = true)
 	{
 		foreach (CTheatre theatre in country.Strategy.Theatres)
 		{
@@ -143,7 +145,7 @@ public static class CAgents
 			}
 			var agent = new CAgent(country.Tag, theatre.Id);
 			country.UnitAi.Agents.Add(agent);
-			if (CTheatres.Headquarters(state, theatre) is { } headquarters)
+			if (bind && CTheatres.Headquarters(state, theatre) is { } headquarters)
 			{
 				Bind(state, country, agent, headquarters);
 			}

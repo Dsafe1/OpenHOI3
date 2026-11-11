@@ -64,8 +64,9 @@ public static class CUnitAiPass
 			{
 				continue;
 			}
-			CAgents.CreateForTheatres(state, country);
-			CAgents.BindAndAttachOrphans(state, country);
+			// Made and not bound: the first pass ticks them with no unit and binds them after, so each runs its land block in
+			// the second (FINDINGS-liveread.md, section 39).
+			CAgents.CreateForTheatres(state, country, bind: false);
 		}
 	}
 

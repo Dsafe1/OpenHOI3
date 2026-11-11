@@ -63,8 +63,9 @@ stood apart from its master for as long as no province did. Found setting a load
 agent made and bound and its first pass marked done (read in the running game, 2026-11-09), and it balances from its first hour.
 So a load clears each strategy's "theatres to remake" and marks the pass done and waiting over. **Entering a loaded game runs two AI passes
 at the save's hour, before its first hour** [exe, counted in the running game, 2026-11-10, `reversing/findings/FINDINGS-liveread.md`, section 12]: every agent
-is there when the first begins, each agent ticks in both and runs its land block once. Here the agents are made first (`CUnitAiPass.MakeAgentsOfLoad`), a pass
-runs and its orders are carried out, and a second pass the same (`CSimulation`). So a save the original writes straight after entering already holds those orders.
+is there when the first begins, each agent ticks in both and runs its land block once - **in the second**: the agents tick in the first with no
+unit, that pass binds them, and they tick bound with their full pass pending in the second, whatever the hour (read live 2026-11-11, `reversing/findings/FINDINGS-liveread.md`,
+section 39). Here the agents are made unbound first (`CUnitAiPass.MakeAgentsOfLoad`), a pass runs and its orders are carried out, and a second pass the same (`CSimulation`). So a save the original writes straight after entering already holds those orders.
 Where the original makes the agents was not read. **Each theatre's fronts are made again as it enters** - a save written straight after has them in another order, and the positions of one score follow that order - and nothing else of the refresh is done (`CTheatreRefresh.FrontsOfLoad`; `reversing/findings/FINDINGS-liveread.md`, section 18; which routine does it was not read).
 
 ## 3. How a save writes its values
