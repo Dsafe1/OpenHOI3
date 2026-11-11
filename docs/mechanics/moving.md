@@ -195,7 +195,7 @@ is cleared.
    its want; **then only where the may-leave test lets it go** (7.6), strictly for an agent below a theatre, the battle
    it defends not asked about (`FINDINGS-moving.md` A.4e); otherwise, over the positions in their order with a want and under their cap: one where it stands is taken at once - where it is bound for a target province away from the hostile routes, only a position beside one is considered, and scored. Else the reachable position with the lowest key, in single precision [exe, `reversing/findings/FINDINGS-liveread.md`, section 17] - have / want x 100, and the excess over 1 x 100 again;
    at war instead the distance from where it is bound x (have / want + 0.1), x 0.66 for a land battle there; then -50 x its terrain figure there (section 11.3); then x 0.66 for a depot and for a province beside a hostile route; with the allied-soil budget spent, not onto a friend's soil from the
-   capital's area. No position and d none: a second-ring province, drawn on a generator seeded with the unit's id.
+   capital's area (**the soil test**, below). No position and d none: a second-ring province, drawn on a generator seeded with the unit's id.
 7. **Each position still short** - its fill worked out once, before anybody is pulled to it - pulls the division with the least squared distance x 16 + its dig-in / 100 + its attack
    delay / 1000 - 100 x its terrain figure here (x 0.25 where it is bound for no position or one that wants none, else
    + 100 x its figure where it is bound), the first of them that can reach it and that the may-leave test lets go, as in
@@ -207,7 +207,12 @@ is cleared.
    without asking. At war below stance 2 a division whose position is not over-filled moves only two steps. A pull
    takes one off the other position's count, and off those standing there where it stood in it. **Never pulled**: one retreating, a garrison, one
    airborne with transports about, **one bound for land of a country at war with it beside where it stands** - an
-   attack under way - and **one in a battle whose own province is a position that wants divisions** (A.4b). Also never pulled: bound for its own depot under a blocking order, and with the allied-soil budget spent, onto a friend's soil from the capital's area. Finding none, with the frontier at war, the nearest fit held-back division (strength 0.75, organisation 0.9, off the front,
+   attack under way - and **one in a battle whose own province is a position that wants divisions** (A.4b). Also never pulled: bound for its own depot under a blocking order, and with the allied-soil budget spent, onto a friend's soil from the capital's area (the soil test).
+   **The soil test** (`CAIUnit_IsMoveFromHomeAreaToAlliedSoil`, `reversing/findings/FINDINGS-liveread.md`, section 37): the
+   position's province held by a friend - not the country, nobody or the rebels; on its side, or fighting beside it and not
+   its enemy - and the division in the capital's area **by where it is bound** (where it stands, bound nowhere) where the
+   country holds that; bound for enemy ground, by where it stands, the country holding that. A division standing on a
+   neighbour's land and bound home is in the capital's area; it is the send's and the pull's alone. Finding none, with the frontier at war, the nearest fit held-back division (strength 0.75, organisation 0.9, off the front,
    within 80) is sent, one at a time while the position is short, to a position with nobody, or to one with somebody only beside a hostile route or under an attack going against it, and is no
    longer held back.
 

@@ -94,7 +94,7 @@ public static class CAgentArea
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		foreach (CSupplyArea area in agent.FocusAreas)
 		{
-			if (state.Country(area.Controller) is not { } other || !MayWiden(state, country, other))
+			if (!CFrontSearch.Allows(state, country, area, anyUnplayed: false, out _) || state.Country(area.Controller) is not { } other)
 			{
 				continue;
 			}
@@ -116,17 +116,6 @@ public static class CAgentArea
 			}
 		}
 		return fronts;
-	}
-
-	/// <summary>The original's <c>AreaMayWidenFrontSearch</c> for an AI country: the area's controller is its subject, or it leads its faction.</summary>
-	public static bool MayWiden(CGameState state, CCountry country, CCountry other)
-	{
-		if (other.Overlord == country.Tag)
-		{
-			return true;
-		}
-		return other.Faction.Length > 0 && other.Faction == country.Faction
-			&& Agreements.COfferRules.Leader(state, country.Faction) == country.Tag;
 	}
 
 	/// <summary>Hot, a war candidate, or - with the fronts open - a front-worthy enemy.</summary>

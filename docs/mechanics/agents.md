@@ -391,9 +391,17 @@ Whenever **area dirty** - set as an agent is made and whenever its theatres are 
 Nothing unless the agent has a theatre's headquarters.
 
 1. The focus areas are made again (8.3).
-2. **Candidate fronts**: the theatre's own, in order; then, for each focus area whose controller is the country's subject
-   (or whose faction the country leads), every front of that controller's theatres starting in the area and facing anyone
-   but the country, without repeats.
+2. **Candidate fronts**: the theatre's own, in order; then, for each focus area **the front search may widen into**, every
+   front of that controller's theatres starting in the area and facing anyone but the country, without repeats - a subject
+   taking only those against an enemy. The search may widen (`AreaMayWidenFrontSearch`, `CFrontSearch`;
+   `FINDINGS-subdivide.md`, section 6) into an area with provinces whose controller is not the rebels and is on the
+   country's side, or fighting beside it and not its enemy; then yes for a country in exile; yes, for a country the AI
+   runs, where one of its priority provinces lies in the area or in an area beside it held by an enemy; no where a person
+   plays the controller; yes where the controller is the country's subject or a member of the faction it leads; and
+   otherwise yes where an area beside it of **more than five provinces** is held by a country it is at war with, the side
+   it fights on led by a country nobody plays - which is how **Slovakia's theatre, facing only friends, takes Germany's
+   front against the Soviet Union** in July 1941 (`reversing/findings/FINDINGS-liveread.md`, section 37). The
+   expeditions ask the same with any unplayed controller enough, and the stranded units' recall as the area does.
 3. **Taken**: a front that is hot, or faces a war candidate (`theatres.md`, 4.1), or - with **wide open** - a front-worthy
    enemy. Wide open: the theatre is not hot, or the country prepares war on the enemy, or its threat from the enemy is at
    least 40 and the enemy's neutrality at most 20.

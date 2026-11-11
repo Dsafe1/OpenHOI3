@@ -68,10 +68,10 @@ public static class CStrandedRecall
 		return true;
 	}
 
-	/// <summary>An area the country may widen its fronts into: its subject's, or a faction member's where it leads.</summary>
+	/// <summary>An area the country may widen its fronts into (<see cref="CFrontSearch"/>).</summary>
 	private static bool MayStay(CGameState state, CCountry country, CSupplyArea? area)
 	{
-		return area is not null && state.Country(area.Controller) is { } other && CAgentArea.MayWiden(state, country, other);
+		return area is not null && CFrontSearch.Allows(state, country, area, anyUnplayed: false, out _);
 	}
 
 	private static int HomeFor(CGameState state, CCountry country, CSupplyNetwork network, CUnit unit)

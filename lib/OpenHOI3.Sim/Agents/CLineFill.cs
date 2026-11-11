@@ -288,8 +288,7 @@ public static class CLineFill
 					continue;
 				}
 				CProvince province = state.Province(position.Province);
-				if (budget <= 0 && ReferenceEquals(network.AreaOf(unit.Location), capitalArea)
-					&& province.Controller != country.Tag)
+				if (budget <= 0 && IsMoveToAlliedSoil(state, country, network, capitalArea, unit, province))
 				{
 					continue;
 				}
@@ -372,6 +371,38 @@ public static class CLineFill
 		return moved;
 	}
 
+	/// <summary>
+	/// The original's <c>CAIUnit_IsMoveFromHomeAreaToAlliedSoil</c>: the target held by a friend - not the country, nobody
+	/// or the rebels; on its side, or fighting beside it and not its enemy - and the unit in the capital's area: where it is
+	/// bound (or stands, bound nowhere) where the country holds that, or where it stands, held by the country, while bound
+	/// for enemy ground (reversing/findings/FINDINGS-liveread.md, section 37).
+	/// </summary>
+	private static bool IsMoveToAlliedSoil(CGameState state, CCountry country, CSupplyNetwork network, CSupplyArea? capitalArea,
+		CUnit unit, CProvince target)
+	{
+		if (target.Controller is not { } holder || holder == country.Tag || holder.Value == Revolts.CRebelFactions.Rebels
+			|| state.Country(holder) is not { } friend)
+		{
+			return false;
+		}
+		if (!CSupplyRelations.IsSameSide(country, friend)
+			&& (!CCountryLists.FightingTogether(state, country.Tag, holder) || CCountryLists.IsEnemy(state, country, holder)))
+		{
+			return false;
+		}
+		int bound = CAgentUnits.DestinationOrPlace(unit);
+		if (capitalArea is null)
+		{
+			return false;
+		}
+		if (state.Province(bound).Controller == country.Tag)
+		{
+			return ReferenceEquals(network.AreaOf(bound), capitalArea);
+		}
+		return IsEnemyHeld(state, country, bound) && state.Province(unit.Location).Controller == country.Tag
+			&& ReferenceEquals(network.AreaOf(unit.Location), capitalArea);
+	}
+
 	/// <summary>Held by a country at war with this one, or by the rebels.</summary>
 	internal static bool IsEnemyHeld(CGameState state, CCountry country, int province)
 	{
@@ -430,7 +461,7 @@ public static class CLineFill
 					{
 						continue;
 					}
-					if (budget <= 0 && ReferenceEquals(network.AreaOf(unit.Location), capitalArea) && here.Controller != country.Tag)
+					if (budget <= 0 && IsMoveToAlliedSoil(state, country, network, capitalArea, unit, here))
 					{
 						continue;
 					}

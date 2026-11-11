@@ -78,43 +78,10 @@ public static class CAiExpeditions
 		state.Outbox.Add(new CSendExpeditionCommand(country.Tag, unit.Id, holder.Tag));
 	}
 
-	/// <summary>
-	/// The original's <c>AreaMayWidenFrontSearch</c> as these two ask it, any unplayed country being enough: the area's
-	/// holder on the country's side or fighting beside it, and either the country in exile, a priority province in the
-	/// area or beside it against an enemy, or the holder nobody's to play.
-	/// </summary>
+	/// <summary>The original's <c>AreaMayWidenFrontSearch</c> as these two ask it, any unplayed country being enough.</summary>
 	private static bool MayOperateIn(CGameState state, CCountry country, CSupplyArea area)
 	{
-		if (area.Controller.Value == Revolts.CRebelFactions.Rebels || state.Country(area.Controller) is not { } holder)
-		{
-			return false;
-		}
-		if (!CSupplyRelations.IsSameSide(country, holder)
-			&& (!CCountryLists.FightingTogether(state, country.Tag, holder.Tag) || CCountryLists.IsEnemy(state, country, holder.Tag)))
-		{
-			return false;
-		}
-		if (country.InExile || (country.UnitAi.RunsUnits && PriorityInOrBeside(state, country, area)))
-		{
-			return true;
-		}
-		return !state.Played.Contains(area.Controller);
-	}
-
-	private static bool PriorityInOrBeside(CGameState state, CCountry country, CSupplyArea area)
-	{
-		if (HoldsPriorityProvince(state, country, area))
-		{
-			return true;
-		}
-		foreach (CSupplyArea beside in area.Neighbours)
-		{
-			if (CCountryLists.AtWar(state, country.Tag, beside.Controller) && HoldsPriorityProvince(state, country, beside))
-			{
-				return true;
-			}
-		}
-		return false;
+		return CFrontSearch.Allows(state, country, area, anyUnplayed: true, out _);
 	}
 
 	private static bool HoldsPriorityProvince(CGameState state, CCountry country, CSupplyArea area)
