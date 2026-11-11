@@ -79,7 +79,7 @@ public static class CCommandProvince
 			{
 				continue;
 			}
-			if (!unit.IsMoving && !OutOfReach(state, unit)
+			if (!unit.IsMoving && !OutOfReach(state, unit) && !IsTrespassing(state, country, unit)
 				&& !(agent.FrontierAtWar && CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false)))
 			{
 				continue;
@@ -107,17 +107,32 @@ public static class CCommandProvince
 	}
 
 	/// <summary>
-	/// The original's <c>CAIUnit_PickProvinceAmongSubordinates</c>, as read on the listing: from each land child's destination
+	/// Whether the unit stands where its owner may not enter - the original's trespassing mark, which it makes again every hour
+	/// and on any change of pact, so asked here as it stands; never the rebels' (FINDINGS-war.md; FINDINGS-liveread.md,
+	/// section 47).
+	/// </summary>
+	private static bool IsTrespassing(CGameState state, CCountry country, CUnit unit)
+	{
+		return country.Tag.Value != Revolts.CRebelFactions.Rebels && unit.Location > 0
+			&& !CMovementRules.MayEnter(state, country, state.Province(unit.Location));
+	}
+
+	/// <summary>
+	/// The original's <c>CAIUnit_PickProvinceAmongSubordinates</c>, as read on the listing: a headquarters trespassing on the
+	/// move answers where it is bound at once, and so is left on its way; otherwise from each land child's destination
 	/// or place that the headquarters can reach by areas no enemy holds, and - whether or not it can - that place's land
 	/// neighbours in its area, the province with the least mean distance to the children, leaving out the garrisons where any
 	/// child is none, skipped at nought, 6 less for where it starts, 1000 more bordering foreign land, 100000 more with poor
-	/// roads; its own province where none is under 100000. Single precision throughout, as the original's. The rule for a
-	/// headquarters trespassing on the move is not built, nothing here marking a unit as trespassing.
+	/// roads; its own province where none is under 100000. Single precision throughout, as the original's.
 	/// </summary>
 	private static int AmongSubordinates(CGameState state, CCountry country, CUnit unit)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		int from = CAgentUnits.DestinationOrPlace(unit);
+		if (unit.IsMoving && IsTrespassing(state, country, unit))
+		{
+			return from;
+		}
 		if (network.AreaOf(from) is null)
 		{
 			return 0;
