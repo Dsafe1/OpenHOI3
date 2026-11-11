@@ -93,7 +93,10 @@ public static class CMovementRules
 
 	/// <summary>
 	/// Whose ground a country may walk on: its own or a friend's, ground that belongs to
-	/// nobody, and ground of anyone it is at war with. The sea is anyone's.
+	/// nobody, and ground of anyone it is at war with. The sea is anyone's. A friend is the
+	/// original's <c>IsFriend</c> with military access counting - an overlord or a puppet, a
+	/// faction or alliance partner, a co-belligerent, a country it has access through
+	/// (<c>reversing/findings/FINDINGS-movement.md</c>, section 3.1).
 	/// </summary>
 	public static bool MayEnter(CGameState state, CCountry country, CProvince province)
 	{
@@ -109,11 +112,12 @@ public static class CMovementRules
 		{
 			return true;
 		}
-		if (IsFriendly(state, country, province.Controller))
+		if (province.Controller is { } controller && CCountryLists.IsFriend(state, country, controller, withAccess: true))
 		{
 			return true;
 		}
-		return IsFriendly(state, country, province.Owner) && !IsEnemy(state, province.Owner, province.Controller);
+		return province.Owner is { } owner && CCountryLists.IsFriend(state, country, owner, withAccess: true)
+			&& !IsEnemy(state, province.Owner, province.Controller);
 	}
 
 	/// <summary>

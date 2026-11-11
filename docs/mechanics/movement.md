@@ -173,9 +173,14 @@ the province is land; its controller is no friend; and its owner is no friend ei
 at war with the controller.
 
 A **friend**, in the original, is the country itself, its overlord or its puppet, an ally
-or a member of its faction, a co-belligerent, and a country it has military access to.
-*Ours:* the country itself and the members of its faction; the rest are diplomacy, which
-is stage 4.
+or a member of its faction, a co-belligerent, and a country it has military access to -
+`IsFriend` with access counting (`reversing/findings/FINDINGS-movement.md`, section 3.1). So
+since 2026-11-11 (`CCountryLists.IsFriend`), when it was found that Japan's divisions could not
+march through Manchukuo, its puppet: entering the save of April 1936, four Japanese divisions
+went to the wrong positions for want of a road there. **The other places that ask a friend
+by the old rule** - a capital in the unit panel's text, a retreat's way, a patrol's,
+a port's, the hour's look at what may be entered and two unit orders - still count only the
+country and its faction; what the original asks at each is not read.
 
 A land unit stands in the sea only where a fleet of its country waits there with room to
 carry it, which is how it is put aboard; and a land unit going ashore from the sea - its
@@ -465,8 +470,8 @@ with what is left over carried into the next leg as the march itself carries it.
 - **The weather itself**: what it does to a march is in (section 5), what makes it is not.
   A leader's part in the speed is built (2026-10-11), and the march check against the saves
   hours apart still gives 301 of 301.
-- **Walking on a puppet's, an overlord's or an ally's ground, or with military access.**
-  A friend here is the country itself or one of its own faction.
+- ~~**Walking on a puppet's, an overlord's or an ally's ground, or with military access.**~~
+  Built 2026-11-11 for whose ground may be entered (section 3); the other friend tests there name are not.
 - **The message** that a unit has arrived, and the sounds and the marks of the click.
 - **The tooltip** that says when a unit will arrive.
 
