@@ -458,8 +458,9 @@ makes nobody at war (`war.md`, section 1).
    than half the steps seen, it **relocates**: to the port with the most raidable tonnage - 10 a transport whose step is
    within its range of the port, less 20 a ship based there over its level, half again for its own base. **A fleet with
    no submarine** at a base crowded past its level and two goes to the port of the same area with the least distance + 10,
-   +2000 a ship over the port's level, x0.75 for staying. Its power, with no transports and no rebase or raid, adds to
-   the own power; a fleet not busy - or on patrol or escort - is **free**.
+   +2000 a ship over the port's level, x0.75 for staying. **A fleet holding a transport goes no further**: neither counted
+   nor free, it is sent on no patrol and no intercept (`reversing/findings/FINDINGS-liveread.md`, section 42). Any other's
+   power, with no rebase or raid, adds to the own power; a fleet not busy - or on patrol or escort - is **free**.
 8. **Patrol**, with the naval stance not 0 and at war or with raided waters: the raided waters, or else the sea of each of
    the theatre's ports; while any are left, a centre is drawn and the four nearest to it taken with it; the nearest free
    fleet with no order, no submarine and a screen is given a **patrol** over them for 168 hours. None left: the phase ends.

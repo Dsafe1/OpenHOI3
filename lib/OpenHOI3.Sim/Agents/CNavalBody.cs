@@ -219,7 +219,13 @@ public static class CNavalBody
 			{
 				Rebase(state, country, agent, fleet, arriving);
 			}
-			if (census.Transports == 0 && fleet.Order is not (EUnitOrder.Rebase or EUnitOrder.ConvoyRaid))
+			// A fleet carrying a transport is neither counted nor free: it patrols and intercepts nothing
+			// (FINDINGS-liveread.md, section 42).
+			if (census.Transports > 0)
+			{
+				continue;
+			}
+			if (fleet.Order is not (EUnitOrder.Rebase or EUnitOrder.ConvoyRaid))
 			{
 				ownPower += CUnitPower.Of(fleet);
 			}
