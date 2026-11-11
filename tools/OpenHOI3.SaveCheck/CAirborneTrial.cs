@@ -80,6 +80,9 @@ public static class CAirborneTrial
 		}
 		state.Played.Clear();
 		state.Played.Add(enemyTag);
+		// The trial's own country played too, as orders given by hand are a player's: run by the AI, its air AI takes the
+		// transport planes off the drop.
+		state.Played.Add(country.Tag);
 		state.PactMessaged += message =>
 		{
 			if (message.We == CParadrop.Message)
