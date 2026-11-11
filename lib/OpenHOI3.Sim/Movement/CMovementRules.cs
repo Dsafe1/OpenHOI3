@@ -73,25 +73,6 @@ public static class CMovementRules
 	}
 
 	/// <summary>
-	/// Whether a country counts another as a friend: itself, and a member of its own
-	/// faction. The original also counts an overlord or a puppet, an ally, a
-	/// co-belligerent and a country it has military access to.
-	/// </summary>
-	public static bool IsFriendly(CGameState state, CCountry country, CCountryTag? other)
-	{
-		if (other is null)
-		{
-			return false;
-		}
-		if (other == country.Tag)
-		{
-			return true;
-		}
-		return country.Faction.Length > 0 && state.Country(other) is { } theirs
-			&& theirs.Faction == country.Faction;
-	}
-
-	/// <summary>
 	/// Whose ground a country may walk on: its own or a friend's, ground that belongs to
 	/// nobody, and ground of anyone it is at war with. The sea is anyone's. A friend is the
 	/// original's <c>IsFriend</c> with military access counting - an overlord or a puppet, a
@@ -147,7 +128,7 @@ public static class CMovementRules
 		return !province.IsSea && province.Owner is not null && province.PortSea != 0
 			&& BuildingLevel(state, province, NavalBase) > CFixedPoint.Zero
 			&& !IsEnemy(state, province.Controller, country.Tag)
-			&& IsFriendly(state, country, province.Controller);
+			&& province.Controller is { } controller && CCountryLists.IsFriend(state, country, controller, withAccess: true);
 	}
 
 	/// <summary>

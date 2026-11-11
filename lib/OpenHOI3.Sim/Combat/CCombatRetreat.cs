@@ -118,7 +118,8 @@ public static class CCombatRetreat
 				{
 					continue;
 				}
-				if (CMovementRules.IsFriendly(state, country, neighbour.Controller))
+				// Its owner's, or on its side or fighting beside it and not its enemy (FINDINGS-liveread.md, section 41).
+				if (Agents.CApproaches.IsFriendly(state, country, neighbour.Controller))
 				{
 					worth += FriendlyNeighbour;
 				}

@@ -335,7 +335,7 @@ public static class CUnitPanelText
 		if (owner.Capital > 0 && owner.Capital < state.Provinces.Count)
 		{
 			CProvince capital = state.Province(owner.Capital);
-			if (CMovementRules.IsFriendly(state, owner, capital.Controller))
+			if (state.Country(capital.Controller) is { } holder && CCountryLists.IsFriend(state, holder, owner.Tag, withAccess: true))
 			{
 				where = " " + capital.Name;
 			}

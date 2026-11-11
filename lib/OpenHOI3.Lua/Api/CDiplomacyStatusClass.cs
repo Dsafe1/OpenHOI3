@@ -95,20 +95,6 @@ public static class CDiplomacyStatusClass
 	/// <summary>An alliance, military access, either the other's overlord, or a guarantee either way - in the original's order.</summary>
 	private static bool HasFriendlyAgreement(CGameApi api, CDiplomacyStatus status)
 	{
-		if (CCountryLists.HasAlliance(api.State, status.Holder, status.Other))
-		{
-			return true;
-		}
-		if (status.HasMilitaryAccess)
-		{
-			return true;
-		}
-		CCountry? holder = api.State.Country(status.Holder);
-		CCountry? other = api.State.Country(status.Other);
-		if (holder?.Overlord == status.Other || other?.Overlord == status.Holder)
-		{
-			return true;
-		}
-		return CCountryLists.HasGuarantee(api.State, status.Holder, status.Other);
+		return CCountryLists.HasFriendlyAgreement(api.State, status.Holder, status.Other);
 	}
 }

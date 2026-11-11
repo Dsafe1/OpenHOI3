@@ -334,7 +334,7 @@ public static class CMovement
 		foreach (CUnit other in state.UnitsIn(provinceId))
 		{
 			if (CMovementRules.IsLandUnit(other) && !other.IsRetreating
-				&& CMovementRules.IsFriendly(state, country, other.Owner))
+				&& state.Country(other.Owner) is { } standing && CCountryLists.IsFriend(state, standing, unit.Owner, withAccess: true))
 			{
 				return true;
 			}

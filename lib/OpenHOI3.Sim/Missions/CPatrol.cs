@@ -83,8 +83,11 @@ public static class CPatrol
 		}
 		foreach (CUnit other in state.UnitsIn(unit.Location))
 		{
+			// No friend: not of the patrol's own real faction, and no friendly agreement in its record towards the patrol's
+			// country (reversing/findings/FINDINGS-navalmissions.md, shadowing; FINDINGS-liveread.md, section 41).
 			if (other == unit || other.Kind != EUnitKind.Navy || other.IsRemoved || other.Owner == unit.Owner
-				|| CMovementRules.IsFriendly(state, country, other.Owner))
+				|| (state.Country(other.Owner) is { } theirs && theirs.Faction.Length > 0 && theirs.Faction == country.Faction)
+				|| CCountryLists.HasFriendlyAgreement(state, other.Owner, country.Tag))
 			{
 				continue;
 			}

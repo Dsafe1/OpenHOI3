@@ -952,7 +952,7 @@ beside the repository.
   fleet's missions: two countries are put at war, the first one's fleet with the most
   `convoy_attack` is sent to raid the water the most of the other's convoys go through, and
   each sinking is told - Germany against the United Kingdom for thirty days with no tags
-  given, which sinks 44 transports and 7 escorts since the generator's seeding was corrected on 2026-11-07 - 38 and 3
+  given, which sinks 51 transports and 6 escorts on 2026-11-11, with ports, the patrol's shadow and walking on a friend's ground asking the original's friend tests - 44 and 7 after the generator's seeding was corrected on 2026-11-07, 38 and 3
   before it, and 37 and none until 2026-10-13, when a war began to mobilise both sides (`docs/mechanics/war.md`, section 4). Run it after touching
   `lib/OpenHOI3.Sim/Missions`, `CConvoyRaid` or what a convoy does about an attack.
   `OpenHOI3.SaveCheck firstdays <install> <start-date savegame>` sets a new game as a player

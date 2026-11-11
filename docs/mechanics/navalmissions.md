@@ -156,8 +156,9 @@ the patrol is in - in the order they came - that is another country's, no friend
 patrol sights becomes the one it shadows. **No war is asked for**: a patrol shadows neutrals. A
 shadowed fleet is **twice as easily sighted** by anybody, and water a patrol shadows somebody
 in is known to its country at 9 from the day's turn (section 9), which is a sighting with no
-roll. *Ours:* a friend is the country itself and its faction; the original also lets off anyone
-it has a "friendly agreement" with, which was not read. And a fleet is let go when its shadow's
+roll. A friend is of the patrol's own real faction, or has a **friendly agreement** in its record towards the patrol's country: an
+alliance, military access, a vassal bond either way or a guarantee either way (`reversing/findings/FINDINGS-liveread.md`,
+section 41; `CCountryLists.HasFriendlyAgreement`, since 2026-11-11). And a fleet is let go when its shadow's
 order is taken away; what the original does then was not followed.
 
 **The convoys.** A patrol in no battle that has not been told to return to base and is not

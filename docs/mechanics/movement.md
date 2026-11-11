@@ -177,10 +177,12 @@ or a member of its faction, a co-belligerent, and a country it has military acce
 `IsFriend` with access counting (`reversing/findings/FINDINGS-movement.md`, section 3.1). So
 since 2026-11-11 (`CCountryLists.IsFriend`), when it was found that Japan's divisions could not
 march through Manchukuo, its puppet: entering the save of April 1936, four Japanese divisions
-went to the wrong positions for want of a road there. **The other places that ask a friend
-by the old rule** - a capital in the unit panel's text, a retreat's way, a patrol's,
-a port's, the hour's look at what may be entered and two unit orders - still count only the
-country and its faction; what the original asks at each is not read.
+went to the wrong positions for want of a road there. **Every other place asks the original's own test, and the right way
+round**, `IsFriend` not being symmetric (`reversing/findings/FINDINGS-liveread.md`, section 41): a port, the fleet's country of the
+port's holder; the naval and air rebase orders, the province's holder of the unit's country; a falling-back unit spared by a
+friend's hold, the standing unit's country of the moving one's; the unit panel's capital, its holder of the unit's owner. A
+beaten unit's way counts a neighbour friendly by `CanOperateIn` - on its side, or fighting beside it and not its enemy - and a
+patrol's shadow lets off its own faction and any country with a friendly agreement (`navalmissions.md`).
 
 A land unit stands in the sea only where a fleet of its country waits there with room to
 carry it, which is how it is put aboard; and a land unit going ashore from the sea - its
@@ -471,7 +473,7 @@ with what is left over carried into the next leg as the march itself carries it.
   A leader's part in the speed is built (2026-10-11), and the march check against the saves
   hours apart still gives 301 of 301.
 - ~~**Walking on a puppet's, an overlord's or an ally's ground, or with military access.**~~
-  Built 2026-11-11 for whose ground may be entered (section 3); the other friend tests there name are not.
+  Built 2026-11-11, with every other friend test the original's (section 3).
 - **The message** that a unit has arrived, and the sounds and the marks of the click.
 - **The tooltip** that says when a unit will arrive.
 

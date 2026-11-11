@@ -122,6 +122,29 @@ public static class CCountryLists
 		return false;
 	}
 
+	/// <summary>
+	/// The original's <c>CDiplomacyStatus::HasFriendlyAgreement</c>, of one country's record towards another, in its order: an
+	/// alliance, the holder's military access, a vassal bond with either at either end, or a guarantee either way.
+	/// </summary>
+	public static bool HasFriendlyAgreement(CGameState state, CCountryTag holder, CCountryTag other)
+	{
+		if (HasAlliance(state, holder, other))
+		{
+			return true;
+		}
+		CCountry? holding = state.Country(holder);
+		CCountry? towards = state.Country(other);
+		if (holding is not null && towards is not null && CGameState.Status(holding, towards).HasMilitaryAccess)
+		{
+			return true;
+		}
+		if (holding?.Overlord == other || towards?.Overlord == holder)
+		{
+			return true;
+		}
+		return HasGuarantee(state, holder, other);
+	}
+
 	public static bool HasAlliance(CGameState state, CCountryTag one, CCountryTag other)
 	{
 		foreach (CAlliance alliance in state.Alliances)

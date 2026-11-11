@@ -133,11 +133,11 @@ public static class CUnitOrders
 				return unit.Kind == EUnitKind.Navy
 					&& CMovementRules.BuildingLevel(state, province, CMovementRules.NavalBase) > CFixedPoint.Zero
 					&& CMovementRules.MayMoveTo(state, country, unit, province)
-					&& CMovementRules.IsFriendly(state, country, province.Controller);
+					&& state.Country(province.Controller) is { } controller && CCountryLists.IsFriend(state, controller, country.Tag, withAccess: true);
 			case EUnitOrder.RebaseAir:
 				return unit.Kind == EUnitKind.Air && !province.IsSea
 					&& !CMovementRules.IsEnemy(state, province.Controller, country.Tag)
-					&& CMovementRules.IsFriendly(state, country, province.Controller)
+					&& state.Country(province.Controller) is { } holder && CCountryLists.IsFriend(state, holder, country.Tag, withAccess: true)
 					&& CMovementRules.BuildingLevel(state, province, CMovementRules.AirBase) > CFixedPoint.Zero;
 			// Carrying by air and the carrier (transport.md, section 13): none of the four asks the range.
 			case EUnitOrder.RebaseCarrier:

@@ -1862,8 +1862,6 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 - **There is no sound**, so an alert coming up plays nothing.
 
-- **Six places still ask a friend by the old rule**, the country and its faction alone: the unit panel's capital text, a retreat's way, a patrol, a port, the hour's look at what may be entered and two unit orders (`movement.md`, section 3). Whose ground may be entered asks the original's `IsFriend` since 2026-11-11; what the original asks at the others is not read.
-
 None of these blocks the list above.
 
 - **Only a theatre's headquarters can be handed to the AI** by the unit panel's box (`unitpanel.md`, section 9); the original lets a corps, an army or an army group go too, and the agents here are a theatre's. The AI's own liberating and puppets are still reported unbuilt (`politics.md`, section 11.1).
