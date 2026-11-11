@@ -28,22 +28,33 @@ public static class CLandSplit
 
 	private const int SmallFrontAreas = 7;
 
-	public static (int Garrisons, int Line, List<int> Targets) Split(CGameState state, CCountry country, CAgent agent)
+	/// <summary>
+	/// The split, and the garrisons in the order the original's vector of them has them: those with a garrison brigade and
+	/// those still marked, in the committed order, less any dropped, and then each new pick as it is made
+	/// (FINDINGS-liveread.md, section 35). The garrison fill goes through them in that order, a tie to the earlier.
+	/// </summary>
+	public static (int Garrisons, int Line, List<int> Targets, List<CUnit> Ordered) Split(CGameState state, CCountry country, CAgent agent)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		bool airTransports = agent.AirTransports.Count > 0;
 		int brigaded = 0;
+		var ordered = new List<CUnit>();
 		foreach (CUnit unit in agent.CommittedAtFirst)
 		{
 			if (unit.SubUnits.Exists(brigade => brigade.Type.Key == "garrison_brigade"))
 			{
 				unit.IsGarrison = true;
 				brigaded++;
+				ordered.Add(unit);
 			}
 			else if (unit.IsGarrison && (state.Province(unit.Location).Controller != country.Tag
 				|| (CArmyRole.Of(unit) == CArmyRole.Airborne && airTransports)))
 			{
 				unit.IsGarrison = false;
+			}
+			else if (unit.IsGarrison)
+			{
+				ordered.Add(unit);
 			}
 		}
 		var targets = new List<int>();
@@ -125,8 +136,8 @@ public static class CLandSplit
 				Insert(targets, agent, hold);
 			}
 		}
-		Match(state, country, agent, network, targets, garrisons);
-		return (garrisons, line, targets);
+		Match(state, country, agent, network, targets, garrisons, ordered);
+		return (garrisons, line, targets, ordered);
 	}
 
 	/// <summary>The target put in its place by score, the higher first and after any of its own score, wherever it was found.</summary>
@@ -172,7 +183,7 @@ public static class CLandSplit
 
 	/// <summary>Each block of land's garrisons matched to its targets: the worst dropped, the best of the rest marked.</summary>
 	private static void Match(CGameState state, CCountry country, CAgent agent, CSupplyNetwork network, List<int> targets,
-		int garrisons)
+		int garrisons, List<CUnit> ordered)
 	{
 		var wanted = new Dictionary<CSupplyGroup, int>();
 		foreach (int id in targets.GetRange(0, System.Math.Min(garrisons, targets.Count)))
@@ -211,11 +222,13 @@ public static class CLandSplit
 			{
 				dropped.IsGarrison = false;
 				there.Remove(dropped);
+				ordered.Remove(dropped);
 			}
 			while (there.Count < count && Best(state, country, agent, network, group) is { } marked)
 			{
 				marked.IsGarrison = true;
 				there.Add(marked);
+				ordered.Add(marked);
 			}
 		}
 	}
@@ -254,7 +267,7 @@ public static class CLandSplit
 		bool atWar = agent.FrontierAtWar;
 		bool airTransports = agent.AirTransports.Count > 0;
 		CUnit? best = null;
-		long bestScore = long.MinValue;
+		float bestScore = float.MinValue;
 		foreach (CUnit unit in agent.CommittedAtFirst)
 		{
 			// In the block by where it stands or where it is bound (FINDINGS-liveread.md, section 21).
@@ -277,13 +290,15 @@ public static class CLandSplit
 				continue;
 			}
 			// Its mean strength share, which the original asks here and not its organisation (FINDINGS-liveread.md, section 34).
+			// In the original's own precision, single and double as its listing has them, so that a near tie falls its way
+			// (section 35).
 			CUnitShares.Of(state, unit, out long strength, out _);
-			long score = 10 * CUnitRatings.Garrison(unit) + (MeanDistance(state, agent, unit) + 10) * Whole / 5;
+			float pre = (float)((double)CUnitRatings.GarrisonExact(unit) * 10.0 + (float)(MeanDistanceExact(state, agent, unit) / 5.0));
 			if (CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false))
 			{
-				score = score * 3 / 4;
+				pre = (float)(pre * 0.75);
 			}
-			score = score * (1500 - strength) / Whole;
+			float score = (float)((1.5 - (float)((float)strength / 1000.0)) * pre);
 			if (score > bestScore)
 			{
 				bestScore = score;
@@ -304,6 +319,26 @@ public static class CLandSplit
 			}
 		}
 		return false;
+	}
+
+	/// <summary>
+	/// The unit's mean distance to the provinces of the area of operations, and ten, in the original's precision: each
+	/// distance added in double and kept a single, the mean a single and the ten added only where the area has provinces.
+	/// </summary>
+	private static float MeanDistanceExact(CGameState state, CAgent agent, CUnit unit)
+	{
+		if (agent.Area.Count == 0 || unit.Location <= 0)
+		{
+			return 0;
+		}
+		float sum = 0;
+		CProvince here = state.Province(unit.Location);
+		foreach (int id in agent.Area)
+		{
+			sum = (float)((double)CMapDistance.Between(here, state.Province(id), state.MapWidth) + sum);
+		}
+		float mean = (float)((double)sum / agent.Area.Count);
+		return (float)(mean + 10.0);
 	}
 
 	/// <summary>The unit's mean distance to the provinces of the area of operations.</summary>

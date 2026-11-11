@@ -164,6 +164,8 @@ is cleared.
    x 0.75 on a front province, x (1.5 - its mean strength share) is marked. **Its strength, not its organisation**:
    `confirmed` on the running game, 2026-11-11, where every candidate's figure was the strength share
    (`reversing/findings/FINDINGS-liveread.md`, section 34); this said organisation until then, after the fact base's prose.
+   The pick is in the original's precision - the rating's fill a single per brigade, the score a single with double steps,
+   compared strictly - so two divisions a thousandth of a share apart do not tie (section 35).
 
 ### 7.3 The line
 
@@ -215,7 +217,9 @@ hostile land units bound for it; at most the stack cap. Candidates: the garrison
 that the may-leave test lets go strictly (7.6), in the
 target's area (anywhere for a focus area), not in a threatened province, and not taken from a fuller hold position unless
 the target is threatened. The nearest **from where it is bound** by squared distance goes (x2 for a role-5 division leaving a
-better-scored position).
+better-scored position); **a tie goes to the earlier garrison in the split's order**: those with a garrison brigade and those
+still marked, in the committed order, less any dropped, then each new pick as it was picked - the vector the original's split
+hands its fill (`reversing/findings/FINDINGS-liveread.md`, section 35).
 
 ### 7.5 The reserve
 

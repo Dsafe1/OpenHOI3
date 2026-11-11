@@ -63,7 +63,7 @@ public static class CLandBlock
 			budget = n / 3;
 		}
 		budget -= agent.OnAlliedSoil;
-		(int garrisons, int line, List<int> targets) = CLandSplit.Split(state, country, agent);
+		(int garrisons, int line, List<int> targets, List<CUnit> ordered) = CLandSplit.Split(state, country, agent);
 		bool moved = false;
 		var trace = state.AiTrace is { } t && t.Country == country.Tag ? t.Write : null;
 		trace?.Invoke($"{state.Date}.{state.Hour} {agent.Unit.Name}: committed {n}, held back {agent.HeldBack.Count}, " +
@@ -79,7 +79,7 @@ public static class CLandBlock
 		}
 		if (!moved && garrisons > 0)
 		{
-			moved = CGarrisonFill.Fill(state, country, agent, garrisons, targets);
+			moved = CGarrisonFill.Fill(state, country, agent, garrisons, targets, ordered);
 			trace?.Invoke($"  garrisons moved {moved}");
 		}
 		if (!moved)

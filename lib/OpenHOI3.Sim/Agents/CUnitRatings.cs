@@ -43,6 +43,42 @@ public static class CUnitRatings
 	}
 
 	/// <summary>
+	/// The same rating in the original's own precision, as its garrison pick compares it: each brigade's strength over its
+	/// most added as a single, the mean score, the mean fill and the product each rounded to a single, held between 1 and
+	/// 100. Two divisions a thousandth of a share apart rate apart here, where in thousandths they tie
+	/// (<c>reversing/findings/FINDINGS-liveread.md</c>, section 35).
+	/// </summary>
+	public static float GarrisonExact(CUnit unit)
+	{
+		int n = unit.SubUnits.Count;
+		if (n < 1)
+		{
+			return 0;
+		}
+		float fill = 0;
+		int score = 0;
+		foreach (CSubUnit brigade in unit.SubUnits)
+		{
+			long most = brigade.Stats[CSubUnitType.MaxStrength].Raw;
+			float share = most <= 0 ? 1f : (float)(brigade.Strength.Raw / 1000.0 / (most / 1000.0));
+			fill = (float)((double)fill + share);
+			score += brigade.Type.Key switch
+			{
+				"police_brigade" or "garrison_brigade" => 100,
+				"militia_brigade" => 90,
+				"paratrooper_brigade" or "marine_brigade" => 75,
+				"infantry_brigade" => 20,
+				"bergsjaeger_brigade" => 10,
+				_ => 1,
+			};
+		}
+		float mean = (float)((double)score / n);
+		float meanFill = (float)((double)fill / n);
+		float rating = (float)(((double)mean + (2 - n) * 20) * (2.0 - meanFill));
+		return System.Math.Clamp(rating, 1f, 100f);
+	}
+
+	/// <summary>
 	/// How fit a division is to land on an enemy's coast, 0 to 100 in thousandths: ours, its mean strength share by a
 	/// hundred - the original's rating weighs it by type as well, which was not read (<c>moving.md</c>, section 18).
 	/// </summary>

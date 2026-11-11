@@ -14,7 +14,8 @@ namespace OpenHOI3.Sim.Agents;
 /// </summary>
 public static class CGarrisonFill
 {
-	public static bool Fill(CGameState state, CCountry country, CAgent agent, int garrisons, List<int> targets)
+	/// <param name="ordered">The garrisons in the order the split left them, which is the order a tie goes by.</param>
+	public static bool Fill(CGameState state, CCountry country, CAgent agent, int garrisons, List<int> targets, List<CUnit> ordered)
 	{
 		if (targets.Count == 0)
 		{
@@ -38,14 +39,7 @@ public static class CGarrisonFill
 		{
 			score.TryAdd(hold.Province, hold.Score);
 		}
-		var garrison = new List<CUnit>();
-		foreach (CUnit unit in agent.CommittedAtFirst)
-		{
-			if (unit.IsGarrison)
-			{
-				garrison.Add(unit);
-			}
-		}
+		var garrison = new List<CUnit>(ordered);
 		CPositionCount.CountAt(state, country, garrison, targets, index => have[index]++, index => standing[index]++, divisionsOnly: false);
 		int each = garrison.Count / count;
 		int extra = garrison.Count % count;
