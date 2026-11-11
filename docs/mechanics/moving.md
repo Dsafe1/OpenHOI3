@@ -57,7 +57,11 @@ Then **the reserve**, only with the frontier at war: with c committed and n prov
 otherwise); and where n > c - surplus, surplus = c - n. Otherwise surplus = -2. Then:
 
 - **Recall**: while more than surplus + 2 are held back, the held-back division with the most strength + organisation
-  (+1 for airborne), organisation at least 0.33 and strength at least 0.75, is committed again.
+  (+1 for airborne), organisation at least 0.33 and strength at least 0.75, is committed again - in single precision, the
+  first of equals winning, so divisions near full strength are told apart by what a float keeps of their shares (*confirmed* on the
+  running game, 2026-11-11: Smolensk HQ's 23 held back entering July 1941 the original's in order, where thousandths had
+  made three full divisions tie and recalled the 18. Tankovaya in place of the 115. Strelkovaya; `FINDINGS-liveread.md`,
+  section 49).
 - **Detach**: while fewer than surplus are held back, the committed division with the highest score is held back.
   Bound for (or standing in) a province: skipped where - for a theatre agent - it lies outside the theatre's largest
   area and its focus areas, or where a neighbour, by an edge not impassable, on land in a real area, not its country's, is

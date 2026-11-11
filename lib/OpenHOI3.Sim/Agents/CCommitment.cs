@@ -19,9 +19,11 @@ public static class CCommitment
 
 	private const long LeastOrganisation = 300;
 
-	private const long RecallOrganisation = 330;
+	/// <summary>The least organisation a held-back division is recalled at, as the original's single-precision constant.</summary>
+	private const float RecallOrganisationShare = 0.33f;
 
-	private const long RecallStrength = 750;
+	/// <summary>The least strength a held-back division is recalled at.</summary>
+	private const float RecallStrengthShare = 0.75f;
 
 	/// <summary>A reserve is kept only with more committed than this, below a theatre agent.</summary>
 	private const int FewDivisions = 10;
@@ -167,16 +169,22 @@ public static class CCommitment
 
 	private static bool Recall(CGameState state, CAgent agent)
 	{
+		// In single precision, as the original's: two full divisions differ by what a float keeps of their shares, and the
+		// first of equals wins (FINDINGS-liveread.md, section 49).
 		CUnit? best = null;
-		long bestScore = 0;
+		float bestScore = 0f;
 		foreach (CUnit unit in agent.HeldBack)
 		{
-			CUnitShares.Of(state, unit, out long strength, out long organisation);
-			if (RecallOrganisation > organisation || RecallStrength > strength)
+			CUnitShares.OfSingle(state, unit, out float strength, out float organisation);
+			if (RecallOrganisationShare > organisation || RecallStrengthShare > strength)
 			{
 				continue;
 			}
-			long score = strength + organisation + (CArmyRole.Of(unit) == CArmyRole.Airborne ? Whole : 0);
+			float score = (float)((double)strength + organisation);
+			if (CArmyRole.Of(unit) == CArmyRole.Airborne)
+			{
+				score = (float)((double)score + 1.0);
+			}
 			if (score > bestScore)
 			{
 				best = unit;
