@@ -169,7 +169,11 @@ Slot 78's sorting, as far as this piece needs it: over **the whole country's uni
 the agent when the nearest agent up its chain is this one - in practice, every unit under the theatre's headquarters - and
 a carrier's air group to the agent of the fleet its carrier is in. Belonging units go onto the agent's lists:
 
-- **land**: every land unit; **non-divisions** those above a division;
+- **land**: every land unit; **non-divisions** those above a division, but for one a sea lift or a drop has claimed
+  (`moving.md`, section 2), which goes on no list but land - so a headquarters bound for its embark is not pulled in, and
+  still counts as a division where the hold list is cut (`confirmed` on the running game, 2026-11-11: Italy's III Corpo
+  d'Armata dell'A.O.I. entering April 1936 and Britain's 7th Army entering July 1941 are on neither original list,
+  `reversing/findings/FINDINGS-liveread.md`, section 48);
 - **fleets**: every fleet; **transport fleets** those with a transport that carry something or do not need port;
 - **air**: every air unit, kept in order by range; **air transports** those that carry troops.
 

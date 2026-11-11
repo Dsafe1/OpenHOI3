@@ -55,7 +55,9 @@ public static class CSubordinates
 					break;
 				default:
 					agent.Land.Add(unit);
-					if (unit.Kind != EUnitKind.Division)
+					// One the sealift or a drop has claimed goes on no other list, a headquarters as much as a division, and
+					// so is not pulled in (FINDINGS-agents.md, C.6, step 5; FINDINGS-liveread.md, section 48).
+					if (unit.Kind != EUnitKind.Division && !CTransportReservation.IsReserved(state, unit))
 					{
 						agent.NonDivisions.Add(unit);
 					}
