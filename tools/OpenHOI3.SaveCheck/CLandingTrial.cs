@@ -61,6 +61,9 @@ public static class CLandingTrial
 		}
 		state.Played.Clear();
 		state.Played.Add(enemyTag);
+		// The landing's own country played too, as orders given by hand are a player's: run by the AI, its fleet AI takes the
+		// transports home mid-landing.
+		state.Played.Add(tag);
 		state.PactMessaged += message =>
 		{
 			if (message.We == CInvasionWarnings.Message)
