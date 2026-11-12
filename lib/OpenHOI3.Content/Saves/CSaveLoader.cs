@@ -217,6 +217,10 @@ public static class CSaveLoader
 		// The historical models are the install's, for what is built from now on; a save's brigades never take theirs.
 		CHistoricalModelReader.Read(directories, countries, state.SubUnitTypes, state.Technologies,
 			Sim.Units.CHistoricalModels.DefaultCount(state), warn);
+		// Entering the game brings every country up to date with its wars, a loaded one as a new one: each pair at war
+		// stamps last_war the hour now, so a truce follows any peace for a hundred days (war.md, section 4). Before the
+		// game runs, so no strategy is made again by it: entering makes them all.
+		Sim.Wars.CWarSides.BringAllUpToDate(state);
 		SetUpLoadedGame(state);
 		foreach (string line in report.Lines())
 		{

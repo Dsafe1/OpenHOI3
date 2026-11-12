@@ -47,7 +47,9 @@ As the original's [exe], but where *Ours* says otherwise:
    **The AI's own generator is not saved**, as in the original: a load seeds it from the save's `seed` at its first draw,
    so the AI's rolls after a load are not the saved game's, and a save loaded twice still plays the same (`enhanced.md`).
 5. **What the original works out again**, before the first hour: the provinces' and countries' modifiers, the strategic
-   resources, IC, manpower, leadership, every country's effective neutrality, and **a fresh AI for every country** - the
+   resources, IC, manpower, leadership, every country's effective neutrality, every country brought up to date with its
+   wars - each pair at war stamping `last_war` the hour loaded, so a peace in the next hundred days leaves a truce
+   (`war.md`, section 4; built 2026-11-12, found by `OpenHOI3.SaveCheck reload`) - and **a fresh AI for every country** - the
    ministers' first hours; the strategy a save gave is kept until its ten days are up, and one never made is made
    (section 16). With the
    units (section 5): each unit's leader put on, each brigade's figures made from its type and its levels, the queue's
