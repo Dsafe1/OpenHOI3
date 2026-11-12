@@ -826,6 +826,13 @@ beside the repository.
   like "keep ours or read the file's", the entry is written before the session ends,
   and a reversed decision is struck through, not deleted.
 - **A fault of the original is kept and listed.** The maintainer plans an enhanced version of the engine, said 2026-11-09. What looks like a bug, oversight or dead rule of the original is built as it is and given a line in `docs/enhanced.md`; it is not fixed here unless the maintainer says so.
+- **Check every addition against a whole game's replay that survives a save and a load.** The maintainer's word,
+  2026-11-12: the replay for players is to record a game from start to finish, through every save and load
+  (`docs/enhanced.md`; the replay built today is for development only, `docs/replay.md`, section 1). So ask of anything
+  added: would a game saved and loaded play on exactly as it would have without the load? State that later play hangs
+  on - a figure kept, a countdown, a list, a generator's place, a draw - has to be in the save or made again from it the
+  same. Where it cannot be, because the save keeps the original's keys, say so in the spec and add it to that entry in
+  `docs/enhanced.md`: that list is what the enhanced engine's own save will have to hold.
 - **Keep `readme.md`'s *Next up* and *Loose ends* current.** They are what a session with no
   memory of the last one starts from. When a piece of the plan lands, move it out of *Next
   up* and into *Where things stand*; when something is deferred, it goes under *Loose ends*.

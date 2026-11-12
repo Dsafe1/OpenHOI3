@@ -22,6 +22,12 @@ what any rule does puts units elsewhere, and the recorded orders no longer fit w
 
 It does not serve a fix tried: that needs the AI deciding again.
 
+**It is for development only.** It records from one starting point - a new game, or one save loaded - and plays back from
+that point, so it never crosses a load. **The replay the maintainer wants for players** (2026-11-12) records a whole game
+from its start to its end, through every save and load, to be watched afterwards; that needs a game to go on after a load
+exactly as it would have without one, which a save in the original's keys cannot give. It is in `enhanced.md`, and every
+addition is checked against it (`CLAUDE.md`, *Always*).
+
 ## 2. What is recorded
 
 **The AI's steps of the hour** are marked in `CTick` by `AiStep` in place of `Step`:
