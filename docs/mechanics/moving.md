@@ -323,7 +323,9 @@ country's own or a country's that exists. Not worth attacking: dropped.
 - **Every stance**: + (approaches - 1) x (20 at stance 3, 10 at 4, else 50); for each hostile route + 1000 where it is p,
   + 500 where beside it.
 - **The dead end**, off the routes: a single approach, in an area of more than 5 provinces, leading to an area of more
-  than 3, from which fewer than 3 approaches and no sea go on, while another enemy front province of p's area has an
+  than 3, from which fewer than 3 approaches go on and no sea that p touches too (a sea beside the approach alone does
+  not count; *read* 2026-11-12, `reversing/findings/FINDINGS-liveread.md`, section 59: Italy's 9807, inland behind Eritrea's
+  coast, dropped as the original's), while another enemy front province of p's area has an
   approach p lacks - dropped where that approach has fewer than 2 ways on or below stance 3, else x0.25 (stance 3) or
   x0.5.
 - **Stance 3 and up**: for each enemy neighbour with a friendly neighbour of its own and fewer than 3 enemy ones, +125

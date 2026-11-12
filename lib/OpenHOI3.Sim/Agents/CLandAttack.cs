@@ -222,12 +222,20 @@ public static class CLandAttack
 		bool sea = false;
 		foreach (CProvinceEdge edge in state.Province(single).Edges)
 		{
+			if (edge.Kind == EProvinceEdgeKind.Impassable)
+			{
+				continue;
+			}
 			CProvince beside = state.Province(edge.To);
 			if (beside.IsSea)
 			{
-				sea = true;
+				// Only a sea the target province touches too counts (FINDINGS-liveread.md, section 59).
+				if (p.EdgeTo(beside.Id) is not null)
+				{
+					sea = true;
+				}
 			}
-			else if (edge.Kind != EProvinceEdgeKind.Impassable && CApproaches.IsFriendly(state, country, beside.Controller))
+			else if (CApproaches.IsFriendly(state, country, beside.Controller))
 			{
 				onward++;
 			}
