@@ -522,25 +522,24 @@ public static class CSealift
 			var tried = new HashSet<int>();
 			while (true)
 			{
-				var votes = new Dictionary<int, long>();
+				// The original's votes are a hash map, and a tie goes to whichever target its walk meets first
+				// (reversing/findings/FINDINGS-liveread.md, section 62).
+				var votes = new CStdHashMap();
 				foreach (CUnit unit in listed)
 				{
-					if (tried.Contains(unit.SealiftTarget))
-					{
-						continue;
-					}
 					long vote = network.AreaOf(unit.Location) is { } own && need.GetValueOrDefault(own, 1) < 1 ? 4 : 1;
 					if (state.Province(unit.SealiftTarget).Controller != country.Tag)
 					{
 						vote += 10;
 					}
-					votes[unit.SealiftTarget] = votes.GetValueOrDefault(unit.SealiftTarget) + vote;
+					votes.Add(unit.SealiftTarget, vote);
 				}
 				int chosen = 0;
 				long most = 0;
-				foreach ((int target, long count) in votes)
+				// A target already tried keeps its place in the map, and is passed over only here.
+				foreach ((int target, long count) in votes.Walk())
 				{
-					if (count > most)
+					if (count > most && !tried.Contains(target))
 					{
 						most = count;
 						chosen = target;

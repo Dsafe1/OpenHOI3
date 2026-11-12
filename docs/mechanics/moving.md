@@ -552,7 +552,10 @@ troops**, else nothing at all:
 6. **Embark and debark**: cleared where only one is set or nobody listed for debark is **bound for, or stands bound nowhere
    in,** embark's area (the original's tally asks the destination; section 43). With no
    debark, troops listed and transports: each listed unit votes for its target - 1, 4 from an area with no need, +10 for
-   land not the country's; the best not tried is the **debark**, and the **embark** the port nearest by sea to those
+   land not the country's; the best not tried is the **debark**, **a tie going to the first in the walk of the original's
+   hash map** - eight buckets by its runtime's hash of the province, a target whose bucket is empty put at the end, any
+   other into its bucket's run in ascending order, a target tried keeping its place (`CStdHashMap`;
+   `reversing/findings/FINDINGS-liveread.md`, section 62) - and the **embark** the port nearest by sea to those
    bound for it in the area where most of them stand, with a way by sea to it - the area's provinces walked in their order,
    each with a naval base built, the first of equals kept (section 43). With both: those standing at embark are
    boarded, the others in its area marched there; transports - not busy, fit, the nearest by
@@ -750,8 +753,8 @@ months on) - at least three hours left, and the order ends then.
 - **The sealift** (section 15): the original's steps after boarding - unloading, merging and sailing a transport - are named
   by their calls only, so here a fleet at embark carrying troops, with nobody left waiting there, is given the transport
   mission to debark; a division's fitness for an enemy's area is its strength share, the original weighing it by its
-  type as well; the embark port's way to debark is any distance by sea; ties in the vote and the embark area, which the
-  original breaks by a hash map's order, go to the first found; and a unit trespassing in another country's land - a
+  type as well; the embark port's way to debark is any distance by sea; a tie in the embark area, which the
+  original breaks by a hash map's order of areas by their address, goes to the first found; and a unit trespassing in another country's land - a
   flag nothing here holds - is not looked for.
 - **Invasions** (section 16): a country preparing any war plans none, where the original lets a great power invade a
   lesser one it prepares war on a month after the plan; an invasion is over where the objective is held by someone the

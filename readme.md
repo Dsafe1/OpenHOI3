@@ -158,6 +158,9 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    areas are joined, as the original's (`moving.md`, section 10; `reversing/findings/FINDINGS-liveread.md`, section 60), and Italy's line
    of the second hour is the original's move for move, Tevere pulled to 9960; on 4 January 857 of 908 divisions where the save has
    them and 450 of 542 bound for its province (854 and 447 before), entering and the 48 hours unchanged, 217 of 299 and 135 of ours alone.
+   The sealift's pick is the original's score for score (section 61) and its vote walks the original's hash map (section 62).
+   **The plans' embark and debark that still differ vary with the original's own run**: two runs of the same new game gave
+   Australia, Republican Spain and the Dutch East Indies other targets or another order of votes, and Japan another port.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
