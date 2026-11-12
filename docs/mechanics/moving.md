@@ -385,7 +385,13 @@ C_ours)); ours the same the other way; **odds = ours / theirs** - nought with no
 damage of theirs. The modifier (`FINDINGS-aihelpers.md`): the sum, not the product, of the combined arms, experience,
 leader, dissent, supply and difficulty terms, the stacking from brigades over 3 a province, the weather, a river or a
 landing, the terrain and the fort - for attackers; the fort defence, combined arms, experience, leader, dig-in, terrain,
-dissent, supply, difficulty, encirclement, stacking and envelopment - for defenders. Nothing holds the odds above
+dissent, supply, difficulty, encirclement, stacking and envelopment - for defenders. The stacking is less the country's
+`unit_cooperation` and a hundredth for each point of the theatre leader's skill, as in a battle, and the country is the
+lender's for a lent unit. *Set beside the running game on 2026-11-12, an hour after a save with every unit's cached half
+fresh: 183 attackers' modifiers and 130 defenders' of Germany, the Soviet Union and Italy, every one the same
+(`reversing/findings/FINDINGS-liveread.md`, section 55) - Germany's 0.050 apart wherever crowded until `unit_cooperation`
+was taken off.* So the Soviet Union's estimates that stood about 4% high in section 6, read in the first hours after a
+load, were most likely its units' cached halves still nought there (*inferred*: nothing differs once they are fresh). Nothing holds the odds above
 nought: an attacker whose modifier is below -1 weighs negative, and the odds with it (`FINDINGS-liveread.md`, section 46).
 
 The original keeps the half of each modifier that hangs on the unit alone - for attackers everything before the stacking,

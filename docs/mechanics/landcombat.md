@@ -259,7 +259,11 @@ which is what the last thousandth depends on:
       the penalty  = 1 - what is left
 
   So three units are free for each direction of the attack - to the defender as well - and in
-  the base game each one more takes a tenth of what was left. **The commander of the theatre a
+  the base game each one more takes a tenth of what was left. **The unit's country's
+  `unit_cooperation` comes off it** - a technology's figure, 0.05 from the base game's land
+  doctrines, the country being the lender's for a lent unit (*built 2026-11-12*, from
+  `reversing/findings/FINDINGS-combatmods.md`, BM_DIVISION_PENALTY; the AI's estimate takes it off the same way and
+  was set beside the running game, `moving.md`, section 11.4) - and **the commander of the theatre a
   unit is under takes a hundredth off it for each point of his skill**, wherever he is - no
   reach, no rank - and what is left, where above nothing, is the unit's penalty.
 - **A trait**, named in the table by its key, is what that kind of effect comes to for the

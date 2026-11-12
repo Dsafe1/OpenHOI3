@@ -92,6 +92,53 @@ public static class CLoadCheck
 		}
 	}
 
+	/// <summary>model=FILE: each logged attack-estimate modifier beside ours, by country, with the mean difference.</summary>
+	private static void CompareModel(CGameState state, string file)
+	{
+		var seen = new HashSet<string>();
+		var byCountry = new Dictionary<string, (int Count, int Same, double Sum)>();
+		foreach (string line in System.IO.File.ReadLines(file, System.Text.Encoding.Latin1))
+		{
+			string[] part = line.Split('\t');
+			if (part.Length < 8 || !seen.Add(string.Join('\t', part.Skip(1))))
+			{
+				continue;
+			}
+			string tag = part[1];
+			int at = int.Parse(part[3]);
+			int target = int.Parse(part[4]);
+			// Read off the running game as unsigned words: -2 comes as 4294967294.
+			long brigades = unchecked((int)uint.Parse(part[5]));
+			long provinces = unchecked((int)uint.Parse(part[6]));
+			double theirs = double.Parse(part[7], System.Globalization.CultureInfo.InvariantCulture);
+			CUnit? unit = state.Country(new CCountryTag(tag))?.AllUnits().FirstOrDefault(each => each.Name == part[2] && each.Location == at);
+			if (unit is null)
+			{
+				Console.WriteLine($"MODEL {tag} {part[2]} at {at}: no such unit");
+				continue;
+			}
+			// A target of -1 is a defender's line: its crowding already less three a province, and the enemy's provinces.
+			long ours = target < 0
+				? OpenHOI3.Sim.Agents.CAiCombatModel.Defence(state, unit, brigades, (int)provinces)
+				: OpenHOI3.Sim.Agents.CAiCombatModel.Attack(state, unit, state.Province(target), brigades, provinces);
+			double difference = ours / 1000.0 - theirs;
+			bool same = Math.Abs(difference) < 0.0015;
+			(int count, int sameCount, double sum) = byCountry.GetValueOrDefault(tag);
+			byCountry[tag] = (count + 1, sameCount + (same ? 1 : 0), sum + difference);
+			CUnit top = unit;
+			while (top.Parent is not null)
+			{
+				top = top.Parent;
+			}
+			Console.WriteLine($"MODEL {tag}\t{part[2]}\t{at}>{target}\t{brigades}/{provinces}\tours {ours / 1000.0:F3}\ttheirs {theirs:F3}\t" +
+				$"{(same ? "" : $"diff {difference:F3}")}\ttop {top.Kind} {top.Name} leader {top.Leader?.Name ?? "none"} skill {top.Leader?.Skill ?? -1}");
+		}
+		foreach ((string tag, (int count, int same, double sum)) in byCountry)
+		{
+			Console.WriteLine($"MODEL {tag}: {same} of {count} the same, mean difference {sum / count:F4}");
+		}
+	}
+
 	/// <summary>watch=N,N: what a province holds after the hours, set beside the running game's.</summary>
 	private static void WriteProvince(CGameState state, System.IO.TextWriter log, int id)
 	{
@@ -141,6 +188,10 @@ public static class CLoadCheck
 		args = args.Where(arg => !arg.StartsWith("route=", StringComparison.Ordinal)).ToArray();
 		string? garrisons = args.FirstOrDefault(arg => arg.StartsWith("garrison=", StringComparison.Ordinal))?["garrison=".Length..];
 		args = args.Where(arg => !arg.StartsWith("garrison=", StringComparison.Ordinal)).ToArray();
+		// model=FILE: lines logged from the running game's attack estimate, a unit's own modifier total each - tick, owner,
+		// name, where it stands, target, brigades, provinces, value - each set beside ours on the save as loaded, and stop.
+		string? modelFile = args.FirstOrDefault(arg => arg.StartsWith("model=", StringComparison.Ordinal))?["model=".Length..];
+		args = args.Where(arg => !arg.StartsWith("model=", StringComparison.Ordinal)).ToArray();
 		// skipentry: the save is of a game already entered, so the first pass's orders are in it and are not given again.
 		bool skipEntry = args.Contains("skipentry");
 		args = args.Where(arg => arg != "skipentry").ToArray();
@@ -202,6 +253,12 @@ public static class CLoadCheck
 				OpenHOI3.Sim.Agents.CUnitShares.Of(state, unit, out long strength, out long organisation);
 				Console.WriteLine($"GARRISON {id} {unit.Name} at {unit.Location}: rating {OpenHOI3.Sim.Agents.CUnitRatings.Garrison(state, unit)} strength {strength} organisation {organisation} front {OpenHOI3.Sim.Theatres.CTheatreFigures.IsFrontProvince(state, state.Province(unit.Location), false)}");
 			}
+			return 0;
+		}
+
+		if (modelFile is not null)
+		{
+			CompareModel(state, modelFile);
 			return 0;
 		}
 

@@ -36,6 +36,9 @@ public static class CCombatModifiers
 	/// <summary>The country modifier a defending unit's leader bonus is made more or less by.</summary>
 	public const string LeaderDefence = "leader_defence";
 
+	/// <summary>The technology figure taken off the stacking penalty before the theatre commander's skill.</summary>
+	public const string FreeStacking = "unit_cooperation";
+
 	/// <summary>What each point of the theatre commander's skill takes off the stacking penalty, from a float of 10.5.</summary>
 	private const long StackingPerSkill = 10;
 
@@ -140,9 +143,9 @@ public static class CCombatModifiers
 				Add(unit, ECombatModifier.DugIn, Scaled(dug, Trait(state, unit, ETraitEffect.DiginBonus)));
 			}
 
-			// The theatre's commander takes a hundredth off for each point of his skill,
-			// however far off he is.
-			long crowded = stacking - TheatreSkill(unit) * StackingPerSkill;
+			// The country's unit_cooperation comes off it, and the theatre's commander takes a hundredth off for each
+			// point of his skill, however far off he is (reversing/findings/FINDINGS-combatmods.md, BM_DIVISION_PENALTY).
+			long crowded = stacking - owner.Technology[FreeStacking].Raw - TheatreSkill(unit) * StackingPerSkill;
 			if (crowded > 0)
 			{
 				Add(unit, ECombatModifier.Stacking, -crowded);

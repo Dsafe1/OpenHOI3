@@ -26,7 +26,7 @@ public static class CAiCombatModel
 
 	public static long Attack(CGameState state, CUnit unit, CProvince target, long brigades, long provinces)
 	{
-		if (state.Country(unit.Owner) is not { } owner)
+		if (state.Country(unit.FiguresOwner) is not { } owner)
 		{
 			return 0;
 		}
@@ -71,7 +71,7 @@ public static class CAiCombatModel
 
 	public static long Defence(CGameState state, CUnit unit, long crowd, int enemyProvinces)
 	{
-		if (state.Country(unit.Owner) is not { } owner)
+		if (state.Country(unit.FiguresOwner) is not { } owner)
 		{
 			return 0;
 		}
@@ -136,7 +136,11 @@ public static class CAiCombatModel
 		return v;
 	}
 
-	/// <summary>The crowding of n brigades over what a province holds, less a hundredth for each point of the theatre leader's skill.</summary>
+	/// <summary>
+	/// The crowding of n brigades over what a province holds, less the country's <c>unit_cooperation</c> and a hundredth for
+	/// each point of the theatre leader's skill (<c>reversing/findings/FINDINGS-aihelpers.md</c>; measured,
+	/// <c>reversing/findings/FINDINGS-liveread.md</c>, section 55).
+	/// </summary>
 	private static long Crowding(CGameState state, CCountry owner, CUnit unit, long n)
 	{
 		long each = Scale + state.Defines[CManpower.MilitarySection, CPositionCap.BaseStackingPenalty].Raw;
@@ -145,7 +149,7 @@ public static class CAiCombatModel
 		{
 			left = left * each / Scale;
 		}
-		long raw = Scale - left - CCombatModifiers.TheatreSkill(unit) * 10;
+		long raw = Scale - left - owner.Technology[CCombatModifiers.FreeStacking].Raw - CCombatModifiers.TheatreSkill(unit) * 10;
 		return raw > 0 ? raw : 0;
 	}
 }
