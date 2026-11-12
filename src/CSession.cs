@@ -132,6 +132,10 @@ public partial class CSession : Node
 		_prepared = prepared;
 		_carried = carried;
 		_replayFile = replayFile;
+		// The player's settings, from the original's own settings.txt in the Documents folder (settings.md); what of them
+		// is not supported is reported as it is read. Read here and not as the node enters the tree, because the music asks
+		// for them from the moment the session is made, and the defaults would have it play at full volume until then.
+		Settings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath());
 	}
 
 	private Debug.CSessionCarry? _carried;
@@ -159,9 +163,6 @@ public partial class CSession : Node
 	{
 		// The game is made before the session, on the loading screen: by the lobby, or from the developer switches
 		// (CSwitchedGame). What is left here makes the map and the interface, on the main thread, under that screen.
-		// The player's settings, from the original's own settings.txt in the Documents folder (settings.md); what of them
-		// is not supported is reported as it is read.
-		Settings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath());
 		ReadyPrepared(_prepared);
 	}
 

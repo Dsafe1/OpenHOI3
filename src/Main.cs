@@ -27,7 +27,10 @@ public partial class Main : Control
 	/// <summary>The soundtrack, one for the whole run (docs/mechanics/music.md).</summary>
 	private Audio.CMusic _music = null!;
 
-	/// <summary>The player's settings as the program started, which the music goes by before a screen has its own.</summary>
+	/// <summary>
+	/// The player's settings the music goes by while no screen holds them: the file's as the program starts, then whatever the
+	/// front end or the session last held as it went - its options window may have changed them.
+	/// </summary>
 	private Content.Settings.CUserSettings _startSettings = Content.Settings.CUserSettings.Default;
 
 	/// <summary>The switches that say what game to play, which start it without the front end.</summary>
@@ -192,6 +195,7 @@ public partial class Main : Control
 		}
 		CLoadingScreen screen = OpenLoadingScreen(frontEnd.Localisation);
 		await screen.Drawn();
+		_startSettings = frontEnd.Settings;
 		_frontEnd = null;
 		RemoveChild(frontEnd);
 		FrontEnd.CPreparedGame game;
@@ -241,6 +245,7 @@ public partial class Main : Control
 		session.Resigned += () =>
 		{
 			// Left without the end-of-game screen, which plays its own track: the music stopped, as on every road out.
+			_startSettings = session.Settings;
 			_music.LeaveGame();
 			CallDeferred(MethodName.ShowFrontEnd);
 		};
