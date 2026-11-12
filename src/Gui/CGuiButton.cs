@@ -412,12 +412,28 @@ public partial class CGuiButton : CGuiObject
 	public override void _UnhandledKeyInput(InputEvent @event)
 	{
 		if (_shortcut == Key.None || Off || !IsVisibleInTree()
-			|| @event is not InputEventKey { Pressed: true, Echo: false } key || key.Keycode != _shortcut)
+			|| @event is not InputEventKey { Pressed: true } key || !IsShortcut(key.Keycode, _shortcut)
+			|| (key.Echo && !Repeats(_shortcut)))
 		{
 			return;
 		}
 		GetViewport().SetInputAsHandled();
 		Pressed?.Invoke();
+	}
+
+	/// <summary>Whether a key is a shortcut's: the number pad's Enter is Enter.</summary>
+	internal static bool IsShortcut(Key pressed, Key shortcut)
+	{
+		return pressed == shortcut || (shortcut == Key.Enter && pressed == Key.KpEnter);
+	}
+
+	/// <summary>
+	/// Whether a shortcut presses again and again while its key is held, as a held key repeats: every one but Escape,
+	/// which closes a window and would then open the in-game menu and close it again.
+	/// </summary>
+	internal static bool Repeats(Key shortcut)
+	{
+		return shortcut != Key.Escape;
 	}
 
 	/// <summary>

@@ -608,7 +608,10 @@ scalable canvas of section 3 could not survive. So:
 - **The typefaces are in `fonts/`, with their licences**, and `fonts/readme.md` says where
   each came from. Which stands for which is one table in the client.
 - **A button's shortcut is read** for function keys, `ESCAPE`, `ENTER` and single letters
-  and digits. The other words the files use are not yet keys.
+  and digits. The other words the files use are not yet keys. *Ours*, by the maintainer's word of 2026-11-12: **a
+  held key presses its button again and again**, at the keyboard's own repeat, all but Escape - which would close a
+  window and then open the in-game menu and close it again - and **the number pad's Enter is Enter**. The clock's speed
+  keys repeat too; Space, Escape, H, the console's key and the debug menu's do not.
 - **A checkbox is a button that a click ticks or clears**, showing the second frame of
   its sprite while ticked and the first while not - **and its fourth, ticked or not, while
   it is switched off**, where its sheet has four (`reversing/findings/FINDINGS-landorders.md`,

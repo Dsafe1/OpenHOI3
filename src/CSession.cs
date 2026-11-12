@@ -156,6 +156,13 @@ public partial class CSession : Node
 
 	private FrontEnd.CPreparedGame _prepared = null!;
 
+	/// <summary>
+	/// Whether <c>--click=</c> is this session's to play: where the developer switches made the game, and not where the
+	/// front end handed it over, having played the clicks itself. Every game has come prepared since 2026-11-11, so that
+	/// can no longer be told from the prepared game, and until 2026-11-12 no game played them.
+	/// </summary>
+	public bool PlaysClicks { get; init; }
+
 	/// <summary>Raised when the player resigns: the game is to end and the front end come back (frontend.md, section 1).</summary>
 	public event System.Action? Resigned;
 
@@ -220,6 +227,13 @@ public partial class CSession : Node
 		if (_carried is { } carried)
 		{
 			TakeUp(carried);
+		}
+		else if (Player is { ActingCapital: > 0 } played)
+		{
+			// A game opens over the player's capital, at the height the original's camera starts at - a new game and a
+			// loaded one alike (the maintainer's word, 2026-11-12). Before the map modes are prepared, so that the view
+			// the loading screen makes ready is the one the game opens on.
+			_mapView.CentreOnFrom(played.ActingCapital, CMapCamera.StartHeight);
 		}
 	}
 
@@ -505,6 +519,13 @@ public partial class CSession : Node
 		_topBar = new CTopBar();
 		_topBar.Setup(gui, _simulation, Player);
 		layer.AddChild(_topBar);
+		// The alert icons stand from 63 down, inside the top bar's window, which is 100 high: over the bar, or their upper
+		// halves would not take a click. Only the icons take one; the rest of the row lets the mouse through.
+		if (_alerts is not null)
+		{
+			// The alerts stand before the bar, so the bar's own place is the one just after it once the alerts are taken out.
+			layer.MoveChild(_alerts, _topBar.GetIndex());
+		}
 		_topBar.ProductionPressed += () => Toggle(_production);
 		_topBar.TechnologyPressed += () => Toggle(_technology);
 		_topBar.DiplomacyPressed += () => Toggle(_diplomacy);
@@ -732,6 +753,7 @@ public partial class CSession : Node
 			? (true, true)
 			: (gui.KeyboardFocus is { HasKeyboard: true }, _console?.IsOpen == true);
 		_mapView.WheelHeld = mainWindow;
+		_mapView.CounterDistance = () => Settings.CounterDistance;
 		_topBar.MenuPressed += _menu.Toggle;
 		_menu.Resigned += ShowEndGame;
 		_menu.Opening += () =>
@@ -1607,7 +1629,12 @@ public partial class CSession : Node
 	/// <summary>Space or Pause stops and starts time; plus and minus change its speed.</summary>
 	public override void _UnhandledInput(InputEvent @event)
 	{
-		if (@event is not InputEventKey { Pressed: true, Echo: false } key)
+		if (@event is not InputEventKey { Pressed: true } key)
+		{
+			return;
+		}
+		// A held key repeats only the speed keys: the others are switches, which a repeat would flick on and off.
+		if (key.Echo && key.Keycode is not (Key.KpAdd or Key.Plus or Key.Equal or Key.KpSubtract or Key.Minus))
 		{
 			return;
 		}
@@ -2449,7 +2476,7 @@ public partial class CSession : Node
 		Node host = GetParent();
 		SceneTree tree = GetTree();
 		Viewport viewport = GetViewport();
-		if (clicks is not null && _prepared is null)
+		if (clicks is not null && PlaysClicks)
 		{
 			await Click(clicks);
 		}

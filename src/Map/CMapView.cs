@@ -116,7 +116,7 @@ public partial class CMapView : Node2D
 
 	/// <summary>
 	/// How far the pointer may travel with the right button down and its release still
-	/// be a click and not the end of a drag, in pixels of the screen.
+	/// be a click that orders, in pixels of the screen.
 	/// </summary>
 	private const float ClickSlack = 6f;
 
@@ -156,8 +156,11 @@ public partial class CMapView : Node2D
 	private CTextureManager? _textures;
 	private Camera2D _camera = null!;
 
+	/// <summary>Whether the middle button is held, which drags the map.</summary>
 	private bool _dragging;
-	private float _dragged;
+
+	/// <summary>Where on the screen the right button went down, while it is held.</summary>
+	private Vector2? _rightPress;
 	private int _hovered;
 	private int _selected;
 	// A game starts in the terrain mode, as the original's does (minimap.md, section 3).
@@ -189,7 +192,7 @@ public partial class CMapView : Node2D
 	/// </summary>
 	public void SetupCounters(CGuiContext gui, CCounterTypes types, CBillboardTypes billboards, CArrowTypes arrows)
 	{
-		_counters = new CUnitCounters { Name = "Counters" };
+		_counters = new CUnitCounters { Name = "Counters", CounterDistance = () => CounterDistance() };
 		_counters.Setup(_map, _state, gui, types, billboards, arrows);
 		_planMarkers = new CPlanMarkerLayer { Name = "PlanMarkers" };
 		_planMarkers.Setup(_map, _state, gui, billboards);
@@ -1004,6 +1007,12 @@ public partial class CMapView : Node2D
 		SetZoom(zoom ?? _camera.Zoom.X);
 	}
 
+	/// <summary>A province in the middle of the screen, seen from a height of the original's camera.</summary>
+	public void CentreOnFrom(int provinceId, float height)
+	{
+		CentreOn(provinceId, CMapCamera.ZoomAt(height, GetViewportRect().Size.Y));
+	}
+
 	/// <summary>
 	/// The camera over a point of the map, in the map's pixels with its rows counted from the bottom as the original
 	/// counts them, at a zoom.
@@ -1197,17 +1206,21 @@ public partial class CMapView : Node2D
 				_dragging = button.Pressed;
 				break;
 			case InputEventMouseButton { ButtonIndex: MouseButton.Right } button:
-				// The right button drags the map, and orders the selected unit when it is
-				// let go where it went down.
-				_dragging = button.Pressed;
+				// The right button orders the selected unit when it is let go where it went down. It does not move the
+				// map - the maintainer's word, 2026-11-12; the middle button, the keys and the minimap do.
 				if (button.Pressed)
 				{
-					_dragged = 0f;
+					_rightPress = button.Position;
 				}
-				else if (_dragged <= ClickSlack && _units.Count > 0 && _places is null && !LooksOn
-					&& ProvinceAtScreen(button.Position) is int target && target > 0)
+				else if (_rightPress is { } down && (button.Position - down).Length() <= ClickSlack && _units.Count > 0
+					&& _places is null && !LooksOn && ProvinceAtScreen(button.Position) is int target && target > 0)
 				{
+					_rightPress = null;
 					UnitsOrdered?.Invoke(new List<CUnit>(_units.Units), target, button.ShiftPressed);
+				}
+				else
+				{
+					_rightPress = null;
 				}
 				break;
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } press:
@@ -1241,7 +1254,6 @@ public partial class CMapView : Node2D
 				}
 				break;
 			case InputEventMouseMotion motion when _dragging:
-				_dragged += motion.Relative.Length();
 				_camera.Position -= motion.Relative / _camera.Zoom;
 				ClampCamera();
 				break;
@@ -1444,6 +1456,9 @@ public partial class CMapView : Node2D
 	/// taken elsewhere has to be said here.
 	/// </summary>
 	public Func<(bool Across, bool Down)>? ScrollKeysHeld { get; set; }
+
+	/// <summary>The player's <c>counter_distance</c>, which the counters and the battle markers go by.</summary>
+	public Func<float> CounterDistance { get; set; } = () => CMapCamera.CounterDistance;
 
 	/// <summary>Whether the wheel is to leave the map alone: a main window or the menu is up.</summary>
 	public Func<bool>? WheelHeld { get; set; }

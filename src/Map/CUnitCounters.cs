@@ -115,7 +115,7 @@ public partial class CUnitCounters : Node2D
 		AddChild(_plates);
 
 		// Over the counters: the markers of the battles the player has a part in.
-		_markers = new CBattleMarkers { Name = "Battles" };
+		_markers = new CBattleMarkers { Name = "Battles", CounterDistance = () => CounterDistance() };
 		_markers.Setup(map, state, gui, billboards, PlaceOfUnit);
 		AddChild(_markers);
 
@@ -234,6 +234,12 @@ public partial class CUnitCounters : Node2D
 
 	/// <summary>The first unit selected, or null.</summary>
 	public CUnit? Selected => _selected;
+
+	/// <summary>
+	/// The player's <c>counter_distance</c>, read as each frame is drawn so that the game options' Apply shows at once:
+	/// under it the near counter is drawn, at it and above the far one (mapunits.md, section 7).
+	/// </summary>
+	public Func<float> CounterDistance { get; set; } = () => CMapCamera.CounterDistance;
 
 	/// <summary>The country being played, whose counters alone show a mark in their corner.</summary>
 	public CCountryTag? Player
@@ -414,7 +420,7 @@ public partial class CUnitCounters : Node2D
 		{
 			return null;
 		}
-		CCounterKind? kind = CMapCamera.IsNear(height) ? _near ?? _far : _far ?? _near;
+		CCounterKind? kind = CMapCamera.IsNear(height, CounterDistance()) ? _near ?? _far : _far ?? _near;
 		return kind is null || 2f * kind.Type.Scale * _zoom < LeastCounterOnScreen ? null : kind;
 	}
 

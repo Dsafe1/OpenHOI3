@@ -22,8 +22,8 @@ public static class CMapCamera
 	public const float StartHeight = 330f;
 
 	/// <summary>
-	/// The original's <c>counter_distance</c> setting as a new game has it: under it a
-	/// unit is seen from near, at it and above from far.
+	/// The original's <c>counter_distance</c> setting as a new install has it: under it a
+	/// unit is seen from near, at it and above from far. The player's own is in their settings.
 	/// </summary>
 	public const float CounterDistance = 100f;
 
@@ -54,9 +54,12 @@ public static class CMapCamera
 		return height >= FarViewHeight;
 	}
 
-	/// <summary>Whether units are seen from near at a height: the near counter, not the far one.</summary>
-	public static bool IsNear(float height)
+	/// <summary>
+	/// Whether units are seen from near at a height: the near counter, not the far one - under the player's
+	/// <c>counter_distance</c>, 0 to 500 by the game options' slider.
+	/// </summary>
+	public static bool IsNear(float height, float counterDistance = CounterDistance)
 	{
-		return height < CounterDistance;
+		return height < counterDistance;
 	}
 }

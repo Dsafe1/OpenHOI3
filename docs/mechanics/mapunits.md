@@ -380,7 +380,7 @@ asked.
 
   | the camera's height | |
   | --- | --- |
-  | under `counter_distance`, 100 in a new game | the near view: figures, or with `always_counters` the near counter |
+  | under `counter_distance`, 100 in a new install and the player's own in `settings.txt` | the near view: figures, or with `always_counters` the near counter |
   | from there to 500 | the far counter |
   | **from 500 up** | **the far view: the map and nothing on it** - no counter, no building, no line of a hierarchy |
 
@@ -396,7 +396,11 @@ asked.
 
   *Ours:* the map here is drawn at a zoom, so each rule is asked of the height that zoom
   would be. The zoom goes as close as the original's lowest height; the other way it goes
-  on past the original's highest, until the whole map is on screen.
+  on past the original's highest, until the whole map is on screen. **A game opens over the
+  player's capital at the starting height, 330**, a new game and a loaded one alike - by the
+  maintainer's word of 2026-11-12, where it had opened on the whole map; where the original
+  puts its camera on a load was not read. The console's `tag` and the screens made again keep
+  the camera where it was.
 - **The near view is always counters.** The original's is counters or 3D figures by a
   setting. There are no figures here.
 - **The counters are worked out again** once a day, whenever a unit of the player's is

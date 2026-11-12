@@ -136,6 +136,9 @@ public partial class CBattleMarkers : Node2D
 		return towards == Vector2.Zero ? 0f : Mathf.Atan2(towards.X, -towards.Y);
 	}
 
+	/// <summary>The player's <c>counter_distance</c>: under it the near marker is drawn (mapunits.md, section 7).</summary>
+	public Func<float> CounterDistance { get; set; } = () => CMapCamera.CounterDistance;
+
 	public void ViewChanged(float zoom, Rect2 view)
 	{
 		_zoom = zoom;
@@ -146,7 +149,7 @@ public partial class CBattleMarkers : Node2D
 	/// <summary>The marker's picture for the present view: one from close by and another from further off.</summary>
 	private Picture? Current()
 	{
-		bool near = CMapCamera.IsNear(CMapCamera.HeightAt(_zoom, GetViewportRect().Size.Y));
+		bool near = CMapCamera.IsNear(CMapCamera.HeightAt(_zoom, GetViewportRect().Size.Y), CounterDistance());
 		return near ? _near ?? _far : _far ?? _near;
 	}
 

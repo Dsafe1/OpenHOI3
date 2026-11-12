@@ -6,7 +6,7 @@ Read from `reversing/findings/FINDINGS-alerts.md`. Figures marked [exe] are hard
 
 Every **three seconds of real time** [exe], paused or not and whatever screen is up, the alerts are tested for the played country, first on the first frame. An alert newly true gets an icon at the row's end; one no longer true loses its icon and the row closes up, the others keeping their order. An alert that comes back goes on the end. There are no alerts in a custom game, and a scenario holds off all but 11, 14 and 15 [exe]: there are neither here.
 
-The first icon stands at `alerticon_startposition` and each after it `alerticon_offset` on [gui]. An `alerticon_window`'s `alerticon` shows the frame of the alert's number and one [exe]. `alerticon_banner` is off the screen in the file and nothing touches it.
+The first icon stands at `alerticon_startposition` and each after it `alerticon_offset` on [gui]. An `alerticon_window`'s `alerticon` shows the frame of the alert's number and one [exe]. `alerticon_banner` is off the screen in the file and nothing touches it. *Ours*: the row lies over the top bar, whose window is 100 high where the icons stand from 63 down; under it, an icon's upper part did not take a click (mended 2026-11-12, the maintainer's report).
 
 The tests run in this order [exe], which is the order alerts that come up in one pass join the row: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 14, 12.
 

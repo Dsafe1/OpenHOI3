@@ -30,4 +30,13 @@ public class MapCameraTests
 		Assert.True(CMapCamera.IsNear(99f));
 		Assert.False(CMapCamera.IsNear(100f));
 	}
+
+	[Fact]
+	public void UnitsAreSeenFromNearUnderThePlayersCounterDistance()
+	{
+		// The game options' slider runs the setting from 0 to 500: at 250 a height of 200 is near, at 0 nothing is.
+		Assert.True(CMapCamera.IsNear(200f, 250f));
+		Assert.False(CMapCamera.IsNear(250f, 250f));
+		Assert.False(CMapCamera.IsNear(CMapCamera.LowestHeight, 0f));
+	}
 }

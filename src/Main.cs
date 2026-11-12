@@ -223,15 +223,17 @@ public partial class Main : Control
 		Gui.CGuiContext gui = null!;
 		await screen.OnMain(CLoadingSteps.GuiDefinitions, () => gui = Gui.CGuiContext.Load(_directories, made.Localisation));
 		await StartSession(screen, new FrontEnd.CPreparedGame(made.State, made.Map, made.Localisation, gui, made.AiScripts),
-			replayFile: made.ReplayFile);
+			replayFile: made.ReplayFile, switched: true);
 	}
 
 	/// <summary>
 	/// A game played: the session made under the loading screen - the map and the interface, then every map mode's surface -
 	/// and the screen taken away.
 	/// </summary>
+	/// <param name="switched">Whether the developer switches made the game, rather than the front end: the switches' clicks
+	/// are then the game's to play, where the front end played them itself.</param>
 	private async Task StartSession(CLoadingScreen screen, FrontEnd.CPreparedGame game, Debug.CSessionCarry? carried = null,
-		CReplayFile? replayFile = null)
+		CReplayFile? replayFile = null, bool switched = false)
 	{
 		// The songs, read against the game's own names; a session made again around the same game keeps the music as it is.
 		IReadOnlyList<CSong>? songs = null;
@@ -240,7 +242,7 @@ public partial class Main : Control
 			songs = await screen.Work(CLoadingSteps.Sounds, () => CSongReader.Load(_directories, game.State, CDiagnostics.Warn));
 		}
 		_session?.QueueFree();
-		var session = new CSession { Name = "Session", Music = _music };
+		var session = new CSession { Name = "Session", Music = _music, PlaysClicks = switched };
 		session.Setup(_directories, game, carried, replayFile);
 		session.Resigned += () =>
 		{
