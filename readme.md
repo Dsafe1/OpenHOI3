@@ -2154,7 +2154,7 @@ None of these blocks the list above.
   wait for what they read - shore bombardment, mission efficiency, landing craft -
   and three technology figures are left out for want of their keys; `landcombat.md`,
   section 4, lists them. A round gives no practical knowledge (section 3).
-- **The battle window says less than the original's.** No sound. An enemy's counter in it says what its
+- **The battle window says less than the original's.** An enemy's counter in it says what its
   unit is, where the original writes question marks on one it knows too little of; units
   in a battle stand where they stood, where the original has a place in each province for
   the attackers and one for the defenders; and what a click on the original's marker does
