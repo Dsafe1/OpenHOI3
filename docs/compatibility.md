@@ -310,7 +310,7 @@ documents folder, not the one next to the exe."
 | | |
 | --- | --- |
 | the original | writes its generator's `seed` and the number of draws, `count`, into every save, and **throws both away on a load** - `CGameState::LoadKey` takes neither - so a loaded game draws on whatever the generator holds (`reversing/findings/FINDINGS-savegame.md`, section A.3) |
-| here | a load seeds the game's generator with the save's `seed` and draws `count` times, so a loaded game goes on with the draws the saved game would have made |
+| here | a load seeds the game's generator with the save's `seed` and draws `count` times, so a loaded game goes on with the draws the saved game would have made. **The AI's own generator** (2026-11-12, `mechanics/landcombat.md`, section 8) is not in a save, as in the original, and a load seeds it from the save's `seed` at its first draw - the maintainer's word that day, to keep the save's keys the original's; writing it is in `enhanced.md` |
 | the difference today | the rolls after a load: here a save loaded twice plays the same; in the original it need not |
 | a mod loses | nothing; no file can tell the two apart |
 | why | a game here is replayable from its seed and its commands (entry 11), and a load should not end that |

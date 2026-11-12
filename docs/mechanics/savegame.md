@@ -44,6 +44,8 @@ As the original's [exe], but where *Ours* says otherwise:
    it from the save - its lobby chooses, by default the save's own (*inferred*) - so the two come to the same.
 4. **The generator** is seeded with the save's `seed`, where the original throws `seed` and `count` away
    (`docs/compatibility.md`, entry 15). The generator is then moved on by the save's `count`, so a game saved here goes on with the draws it would have made.
+   **The AI's own generator is not saved**, as in the original: a load seeds it from the save's `seed` at its first draw,
+   so the AI's rolls after a load are not the saved game's, and a save loaded twice still plays the same (`enhanced.md`).
 5. **What the original works out again**, before the first hour: the provinces' and countries' modifiers, the strategic
    resources, IC, manpower, leadership, every country's effective neutrality, and **a fresh AI for every country** - the
    ministers' first hours; the strategy a save gave is kept until its ten days are up, and one never made is made
