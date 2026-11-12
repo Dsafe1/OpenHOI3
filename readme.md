@@ -157,10 +157,10 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
 - Moving the map quickly or continuously, with the arrow keys for one, lags very hard after a few seconds.
 - The zoom is not smooth.
 - Holding the right mouse button should not move the map.
-- The music came up at full volume for a second while a save or the bookmark was loading (`music.md`, `loadingscreen.md`).
 - After loading, the map should open on the player's capital.
 - The lend-lease slider should be held at nought while there is nobody to give lend-lease to (`sliders.md`).
 - The notification icons cannot be clicked in their upper half, probably because the top bar takes the click.
+- The counter distance setting does not work.
 
 As of 2026-10-19, stage 5's military AI built through its third piece, moving and attacking (the last paragraphs before *Loose ends*); before that, in stage 3 with stage 4 built as far as items 6 to 10 cut it - events and decisions, diplomacy through factions, politics and espionage, each in four pieces, and triggered modifiers, with occupation and revolt, the last of stage 4, built in its four pieces - and the economy of stage 2 next, buildings in the build queue first. Kept
 current as work lands, so that picking this up cold needs nothing but this file and
