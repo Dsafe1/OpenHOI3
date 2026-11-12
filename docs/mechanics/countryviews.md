@@ -34,6 +34,11 @@ colour.
 top bar. Drawn once where the file puts it, it is a stripe in the corner. How the original
 spreads it was not read.
 
+**Ours:** both windows are made, and the screen's elements found, as it is **first opened**,
+not as the game is entered - the eight screens the top bar opens took a quarter of a second
+of a game's start (`loadingscreen.md`, section 4). When the original makes its screens was
+not read.
+
 ## 2. The picture follows the country
 
 `confirmed` The icon `bg_countryskin` is given the picture

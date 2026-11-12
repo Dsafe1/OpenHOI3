@@ -2384,10 +2384,16 @@ None of these blocks the list above.
   technology and modifiers 0.7, the province history 0.4, the AI's strategies 0.3; **3.2 the map and the interface** on
   the main thread, the window not answering - the 3D surface's meshes 1.2 (about half our arrays turned into the engine's,
   half the engine's own), its first style 0.6, the interface 0.7; and 1.3 preparing the map modes. Matching a mesh's
-  semantics once an input and not once a vertex was tried and saved 40 ms. What is left wants a change of structure: the
-  surface's meshes made off the main thread, or while the world is made, which needs no game; or the supply filling's
-  networks passed side by side, which is checked against saves network for network. The front end's map is the same
-  3D surface and holds its screen as long.
+  semantics once an input and not once a vertex was tried and saved 40 ms. **From the menu the surface is no longer made
+  again** since 2026-11-12: the game takes the lobby's (`loadingscreen.md`, section 4), and from Play the main thread is held
+  1.06 s where it was 2.34, the map modes take 58 ms where they took 1.14 s, and `LOAD_GFX` to the game is 1.27 s where it
+  was 4.34. A game from a switch still makes its own. **Nor are the borders' corners read again or the country screens made
+  as a game is entered** since the same day: the main thread is held 0.42 s and `LOAD_GFX` to the game is 0.60 s. And the
+  export ships its code compiled ahead (`PublishReadyToRun` in `OpenHOI3.csproj`): a new game made and a day run in the
+  savegame tool, published both ways, took 7.4 s where it took 7.9, for some 8.5 MB more in the export. What is
+  left wants more change of structure: the supply filling's networks passed side by side, which is checked against saves
+  network for network, and the passes of a new game country by country. A loaded 1941 game held the main thread 2.5 s
+  after the surface was kept, not measured before it and not looked into.
 - **A province's days out of supply are not counted**, and nothing is raised on its first.
 - **The fuel a new game starts with is exact for 18 countries of 76** and close for about
   twenty more, but twenty-five hold 2% to 19% more in the save than the rule gives -

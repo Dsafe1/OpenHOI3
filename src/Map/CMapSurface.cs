@@ -588,12 +588,6 @@ public partial class CMapSurface : Node3D
 		}
 	}
 
-	/// <summary>
-	/// Everything the surface made given back to the engine as it leaves: its meshes, its 4,500 materials and their
-	/// textures. Each has a wrapper on the managed side that holds it until the collector gets to it, which under a debugger
-	/// can be a long while - and the lobby makes a surface for every world it shows, so their texture sets ran the rendering
-	/// device's descriptor heap out once the game's own borders were first drawn.
-	/// </summary>
 	/// <summary>The console's <c>debug render</c>: the layers that are a node of their own here.</summary>
 	public void SetLayers(bool trees, bool borders, bool rivers, bool water, bool waterBorders)
 	{
@@ -608,8 +602,58 @@ public partial class CMapSurface : Node3D
 		}
 	}
 
-	public override void _ExitTree()
+	/// <summary>
+	/// The map view that draws through the surface now, and alone may: the surface outlives its views, the main menu's being
+	/// handed to the game's (<see cref="CMapSurfaceKeeper"/>), and a view that has let it go asks nothing of it.
+	/// </summary>
+	public object? Holder { get; set; }
+
+	/// <summary>
+	/// The surface given to another view of the same map: what the last view drew on it wiped - the selection, the
+	/// hierarchy's lines, the fronts, the air bases' rings, the battle plans and the trees' snow - every layer shown again, and
+	/// the corners of this view's own borders taken, since their bytes carry over from one change of hands to the next of one
+	/// game alone. The meshes, the materials and every way and sea technique already made are kept, which is the point.
+	/// </summary>
+	public void HandOver(object holder, Content.Map.CBorderCache? corners, bool simpleWater)
 	{
+		Holder = holder;
+		_corners = corners;
+		SimpleWater = simpleWater;
+		TreeSnow = null;
+		SetLayers(true, true, true, true, true);
+		if (!IsInsideTree())
+		{
+			return;
+		}
+		SetSelection(_ => false);
+		ClearHierarchy();
+		SetRings(new List<CAirBaseCircle>());
+		foreach (int unit in _fronts.Keys.ToList())
+		{
+			ClearFront(unit);
+		}
+		foreach (CPlanDrawn drawn in _planDrawn.Values)
+		{
+			Discard(drawn);
+		}
+		_planDrawn.Clear();
+	}
+
+	/// <summary>
+	/// Everything the surface made given back to the engine once nothing is to draw through it again: its meshes, its 4,500
+	/// materials and their textures. Each has a wrapper on the managed side that holds it until the collector gets to it,
+	/// which under a debugger can be a long while - and the lobby once made a surface for every world it showed, so their
+	/// texture sets ran the rendering device's descriptor heap out once the game's own borders were first drawn. Called by
+	/// <see cref="CMapSurfaceKeeper"/>, out of the tree; leaving the tree alone frees nothing, the surface being kept.
+	/// </summary>
+	public void Release()
+	{
+		Holder = null;
+		foreach (CPlanDrawn drawn in _planDrawn.Values)
+		{
+			Discard(drawn);
+		}
+		_planDrawn.Clear();
 		FreeTreeSlots();
 		ClearHierarchy();
 		SetRings(new List<CAirBaseCircle>());

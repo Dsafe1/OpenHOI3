@@ -73,6 +73,18 @@ public sealed partial class CLedgerView : Control
 		Name = "Statistics";
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+	}
+
+	private bool _made;
+
+	/// <summary>The windows made, once, as the screen first opens rather than as the game is entered (CCountryView.Make).</summary>
+	private void Make()
+	{
+		if (_made)
+		{
+			return;
+		}
+		_made = true;
 		_topColour = CGuiWindow.Create(_context, TopColourName);
 		if (_topColour is not null)
 		{
@@ -144,6 +156,7 @@ public sealed partial class CLedgerView : Control
 
 	private void SetOpen()
 	{
+		Make();
 		if (_window is null)
 		{
 			return;

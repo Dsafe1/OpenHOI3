@@ -220,21 +220,22 @@ public partial class CMapView : Node2D
 	/// before. Before the node enters the tree, and after <see cref="Setup"/>.
 	/// </summary>
 	public void SetupSurface(CGuiContext gui, CDirectorySettings directories, CMapCache cache, bool simpleWater, bool waves, bool trees,
-		IReadOnlyList<CQuadTile>? read = null)
+		CMapSurfaceKeeper keeper, IReadOnlyList<CQuadTile>? read = null)
 	{
 		IReadOnlyList<CQuadTile> tiles = read ?? CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
-		// The borders' corners are this view's own: their bytes carry over from one change of hands to the next.
-		_corners = CBorderCache.Load(cache, _map.Width, _map.Height, problem => GD.PushWarning($"map: {problem}"), _map.IsWaterPixel);
+		// The borders' corners are this view's own: their bytes carry over from one change of hands to the next. A copy of
+		// those read from the cache once (CMapSurfaceKeeper.Corners).
+		_corners = keeper.Corners(cache, _map);
 		if (tiles.Count == 0)
 		{
 			GD.PushWarning("map: no quad cache read, so the surface is drawn flat");
 			return;
 		}
-		_surface = new CMapSurface();
-		_surface.Setup(_map, gui, cache, tiles, CQuadCache.Columns(directories), simpleWater, waves, trees, _corners);
+		// The surface the last view of this map drew through, where there was one, else a new one (CMapSurfaceKeeper).
+		_held = keeper.Take(this, _map, gui, cache, tiles, CQuadCache.Columns(directories), simpleWater, waves, trees, _corners);
 		if (_counters is not null)
 		{
-			_counters.Surface = _surface;
+			_counters.Surface = _held;
 		}
 		_textures ??= gui.Textures;
 		_names = new CCountryMapNames { Name = "CountryNames", Visible = false };
@@ -245,7 +246,11 @@ public partial class CMapView : Node2D
 
 	private CProvinceNames? _provinceNames;
 
-	private CMapSurface? _surface;
+	/// <summary>The surface this view was given, which another view of the map may have taken since.</summary>
+	private CMapSurface? _held;
+
+	/// <summary>The surface while this view holds it, else null: a view put away does not draw through the next one's.</summary>
+	private CMapSurface? _surface => _held is { } held && ReferenceEquals(held.Holder, this) ? held : null;
 
 	/// <summary>Whether the sea is drawn simple: the player's <c>simpleWater</c>, which Apply changes at once.</summary>
 	public bool SimpleWater
@@ -488,10 +493,10 @@ public partial class CMapView : Node2D
 
 	public override void _Ready()
 	{
+		// The surface is the keeper's child, not the view's, so that it outlives the view.
 		if (_surface is not null)
 		{
 			_surface.Style = Style(_mode);
-			AddChild(_surface);
 		}
 		_material = new ShaderMaterial { Shader = GD.Load<Shader>(ShaderPath) };
 		_material.SetShaderParameter("province_ids", BuildProvinceTexture());

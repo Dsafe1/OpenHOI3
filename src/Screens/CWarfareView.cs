@@ -49,6 +49,18 @@ public sealed partial class CWarfareView : Control
 		Name = "StrategicWarfare";
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+	}
+
+	private bool _made;
+
+	/// <summary>The window made, once, as the screen first opens rather than as the game is entered (CCountryView.Make).</summary>
+	private void Make()
+	{
+		if (_made)
+		{
+			return;
+		}
+		_made = true;
 		_window = CGuiWindow.Create(_context, CWarfareText.WindowName);
 		if (_window is null)
 		{
@@ -121,6 +133,7 @@ public sealed partial class CWarfareView : Control
 
 	public void Toggle()
 	{
+		Make();
 		if (_window is null)
 		{
 			return;

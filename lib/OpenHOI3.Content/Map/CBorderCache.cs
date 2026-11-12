@@ -95,6 +95,31 @@ public sealed class CBorderCache
 
 	private static long Key(int x, int y) => (long)y << 32 | (uint)x;
 
+	/// <summary>
+	/// A cache as this one stands, whose corners may be worked out again without touching this one's: every entry copied
+	/// with its bytes and linked to its copied neighbours, the junction lists and the water borders - which nothing changes -
+	/// shared. What a map view takes for a game, in place of reading the three files again.
+	/// </summary>
+	public CBorderCache Copy()
+	{
+		var copied = new List<CBorderCorner>(Corners.Count);
+		foreach (CBorderCorner corner in Corners)
+		{
+			copied.Add(new CBorderCorner
+			{
+				X = corner.X,
+				Y = corner.Y,
+				Province = corner.Province,
+				Shade = corner.Shade,
+				Country = corner.Country,
+				Diagonal = corner.Diagonal,
+				Active = corner.Active,
+				Cut = corner.Cut,
+			});
+		}
+		return new CBorderCache(Pairs, copied) { WaterBorders = WaterBorders };
+	}
+
 	/// <summary>The cache, or null where the install has not the three files or they do not fit the map.</summary>
 	public static CBorderCache? Load(CMapCache cache, int width, int height, Action<string> problem,
 		Func<int, int, bool>? isWater = null)

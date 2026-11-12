@@ -4,6 +4,12 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>OpenHOI3</RootNamespace>
     <Nullable>enable</Nullable>
+    <!--
+      The export ships its code compiled ahead, the game and the four libraries alike, so that nothing is compiled while it
+      runs: a new game made and a day run took 7.4 s where it took 7.9 (2026-11-12, the savegame tool published both ways).
+      Publishing alone reads it - the export's dotnet publish - and a build from the editor is as before.
+    -->
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>

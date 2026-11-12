@@ -334,6 +334,7 @@ public partial class CTechnologyView : CCountryView
 	/// <summary>Chooses a technology by its key, as clicking it in the tree would. An unknown key chooses none.</summary>
 	public void SelectByKey(string key)
 	{
+		Make();
 		Select(Simulation.State.Technologies.GetValueOrDefault(key));
 	}
 

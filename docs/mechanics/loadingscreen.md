@@ -76,6 +76,26 @@ pace - five in a row under 40 ms, or 240 frames whatever they take - while the f
 On 2026-11-11 it took 1.1 to 1.2 s, and a game's first frames ran at their ordinary pace from the first second, the longest
 16 ms, where they had run 65 and 26 ms of drawing a frame and up to 144 ms for two seconds.
 
+**The surface is kept from one map to the next** (`CMapSurfaceKeeper`, since 2026-11-12, *ours*): the main menu's map, each
+world the lobby shows and the game Play makes draw the same map through the same interface files, so the game takes the
+surface the lobby drew - its meshes, its materials and every way and sea technique already made - and only what the last
+view drew on it is wiped: the selection, the hierarchy's lines, the fronts, the air bases' rings, the battle plans and the
+trees' snow, the borders' corners being the new view's own. A surface made from another map, other interface files or
+other `waves` and `renderTrees` settings is made anew and the old one freed; a return to the menu reads the front end's
+files again, and so makes it anew. Measured on 2026-11-12 with the optimised build, from Play on a new game as Germany:
+the main thread held under `LOAD_GFX` **2.34 s before, 1.06 s after**, the map modes **1.14 s before, 58 ms after**, and
+from `LOAD_GFX` to the screen going **4.34 s before, 1.27 s after**; the console's `tag`, making the session again around
+the same game, 0.70 s. The game's first picture was the same as before but for the rivers' and the surf's flow, whose clock
+runs on from the menu.
+
+**Two more things are not made as the game is entered** (2026-11-12, *ours*). The borders' corners are read from the
+cache's three files once and kept as read; each view takes a copy, made ahead on a thread of its own as the last is handed
+out (`CMapSurfaceKeeper.Corners`), where reading them again took 0.2 to 0.3 s and a copy 0.15 s. And the eight screens the top
+bar opens - production, technology, diplomacy, politics, intelligence, theatres, statistics and strategic warfare - make
+their windows as each is first opened (`countryviews.md`, section 1), where making them took 0.26 s; production's, the
+largest, costs some 80 ms at its first opening. With both, from Play on a new game as Germany: the main thread held under
+`LOAD_GFX` **0.42 s**, and `LOAD_GFX` to the screen going **0.60 s** - from 2.34 and 4.34 s before the surface was kept.
+
 ## 5. Developer switch
 
 `--loadingshot=path.png` saves the first loading screen with a line on it, as that line is drawn, to look at; nothing else
@@ -90,4 +110,6 @@ can, the other switches coming after it.
 
 - **Making the front end's map holds the screen still for about three seconds** under `CREATING_THE_WORLD`: the map view
   entering the tree - its surface, borders and names made as nodes - takes 2.7 s and its first style 0.5 s, on the main
-  thread, where nodes are made. The line stays drawn; the window does not answer meanwhile.
+  thread, where nodes are made. The line stays drawn; the window does not answer meanwhile. Since the surface is kept
+  (section 4) it is the first front end alone that pays it, and every return to the menu, which reads the front end's files
+  again; keeping those files would spare the return too.

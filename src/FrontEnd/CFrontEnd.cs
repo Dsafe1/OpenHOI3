@@ -63,6 +63,9 @@ public partial class CFrontEnd : Node
 
 	public CGuiContext Gui => _gui;
 
+	/// <summary>The program's keeper of the map's surface, which the game Play makes takes it from (CMapSurfaceKeeper).</summary>
+	public required CMapSurfaceKeeper Surfaces { get; init; }
+
 	public CDirectorySettings Directories => _directories;
 
 	/// <summary>The player's settings, read as the front end comes up and written by the settings window's Apply.</summary>
@@ -265,7 +268,8 @@ public partial class CFrontEnd : Node
 		// The quad cache read once for every world the front end shows.
 		_mapCache ??= CMapView.OpenCache(_directories, _map);
 		_quadTiles ??= CQuadCache.Load(_mapCache, problem => GD.PushWarning($"map: {problem}"));
-		_mapView.SetupSurface(_gui, _directories, _mapCache, Settings.SimpleWater, Settings.Waves, Settings.RenderTrees, _quadTiles);
+		_mapView.SetupSurface(_gui, _directories, _mapCache, Settings.SimpleWater, Settings.Waves, Settings.RenderTrees, Surfaces,
+			_quadTiles);
 		AddChild(_mapView);
 		// The countries to choose from by their colours: the original's front end sets the political style, where a game
 		// starts in the terrain mode (reversing/findings/FINDINGS-frontend.md, A.2; minimap.md, section 3). Set once the

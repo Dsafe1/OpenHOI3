@@ -55,6 +55,25 @@ public class BorderCornerTests
 	}
 
 	[Fact]
+	public void A_copy_has_the_same_corners_linked_among_themselves_and_working_it_out_again_leaves_the_original_as_read()
+	{
+		CBorderCache read = Cache(water: (x, y) => x >= 2);
+
+		CBorderCache copy = read.Copy();
+
+		Assert.Equal(read.Corners.Select(c => (c.X, c.Y, c.Province, c.Shade, c.Country, c.Diagonal, c.Active, c.Cut)),
+			copy.Corners.Select(c => (c.X, c.Y, c.Province, c.Shade, c.Country, c.Diagonal, c.Active, c.Cut)));
+		Assert.NotSame(read.At(1, 2), copy.At(1, 2));
+		Assert.Same(copy.At(2, 2), copy.At(1, 2)!.Right);
+		Assert.Same(read.Pairs, copy.Pairs);
+		Assert.Same(read.WaterBorders, copy.WaterBorders);
+
+		CBorderCorners.Refresh(copy, Width, Height, Province, _ => true, id => id);
+		Assert.Equal(1, copy.At(1, 2)!.Country);
+		Assert.Equal(0, read.At(1, 2)!.Country);
+	}
+
+	[Fact]
 	public void A_sea_zones_border_quad_is_every_coded_water_pixel_inside_the_edges_by_tile()
 	{
 		// Every pixel's bytes are (3, 64, 0, 0), so every water pixel is coded; water east of x = 2.

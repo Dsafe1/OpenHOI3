@@ -53,7 +53,23 @@ public abstract partial class CCountryView : Control
 		MouseFilter = MouseFilterEnum.Ignore;
 		SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
 		Visible = false;
+	}
 
+	/// <summary>Whether the windows are made: on the first opening, or the first thing asked of them.</summary>
+	private bool _made;
+
+	/// <summary>
+	/// The screen's windows made and its elements found, once, as it is first opened - not as the game is entered, where the
+	/// eight screens the top bar opens took a quarter of a second of the main thread, the window not answering
+	/// (<c>docs/mechanics/loadingscreen.md</c>, section 4). *Ours*: when the original makes its screens was not read.
+	/// </summary>
+	protected void Make()
+	{
+		if (_made)
+		{
+			return;
+		}
+		_made = true;
 		_topColour = CGuiWindow.Create(Context, TopColourName);
 		if (_topColour is not null)
 		{
@@ -167,6 +183,7 @@ public abstract partial class CCountryView : Control
 
 	public void Open()
 	{
+		Make();
 		if (Window is null || Visible)
 		{
 			return;

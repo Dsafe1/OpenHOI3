@@ -167,6 +167,12 @@ public partial class CSession : Node
 	/// </summary>
 	public bool PlaysClicks { get; init; }
 
+	/// <summary>
+	/// The program's keeper of the map's surface: the main menu's is taken over where it was made from the same map and
+	/// files, rather than made again (CMapSurfaceKeeper).
+	/// </summary>
+	public required CMapSurfaceKeeper Surfaces { get; init; }
+
 	/// <summary>Raised when the player resigns: the game is to end and the front end come back (frontend.md, section 1).</summary>
 	public event System.Action? Resigned;
 
@@ -219,7 +225,7 @@ public partial class CSession : Node
 		CMapCache cache = _mapCache ??= CMapView.OpenCache(_directories, Map);
 		_quadTiles ??= CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
 		_mapView.SetupSurface(gui, _directories, cache, Settings.SimpleWater, Settings.Waves,
-			Settings.RenderTrees || UserArguments().Contains("--trees"), _quadTiles);
+			Settings.RenderTrees || UserArguments().Contains("--trees"), Surfaces, _quadTiles);
 		AddChild(_mapView);
 
 		BuildHud(gui);

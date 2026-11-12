@@ -29,6 +29,9 @@ public partial class Main : Control
 
 	private Audio.CSoundEffects _sounds = null!;
 
+	/// <summary>The map's 3D surface, kept from the main menu's map to the game's and on, one for the whole run (CMapSurfaceKeeper).</summary>
+	private Map.CMapSurfaceKeeper _surfaces = null!;
+
 	/// <summary>
 	/// The player's settings the music goes by while no screen holds them: the file's as the program starts, then whatever the
 	/// front end or the session last held as it went - its options window may have changed them.
@@ -52,6 +55,12 @@ public partial class Main : Control
 		{
 			GetViewport().SetInputAsHandled();
 		}
+	}
+
+	/// <summary>The kept surface given back to the engine as the program ends.</summary>
+	public override void _ExitTree()
+	{
+		_surfaces?.Release();
 	}
 
 	public override void _Ready()
@@ -92,6 +101,7 @@ public partial class Main : Control
 		_sounds = new Audio.CSoundEffects { Name = "SoundEffects" };
 		_sounds.Setup(directories, () => _session?.Settings ?? _frontEnd?.Settings ?? _startSettings);
 		AddChild(_sounds);
+		_surfaces = new Map.CMapSurfaceKeeper(this);
 		_music.PlayTitle();
 		if (CSession.UserArguments().Any(SaysWhatToPlay))
 		{
@@ -180,7 +190,7 @@ public partial class Main : Control
 		CLoadingScreen screen = OpenLoadingScreen(known);
 		FrontEnd.CFrontEndContent content = await FrontEnd.CFrontEndContent.Load(screen, _directories);
 		content.Gui.Sounds = _sounds;
-		var frontEnd = new FrontEnd.CFrontEnd { Name = "FrontEnd" };
+		var frontEnd = new FrontEnd.CFrontEnd { Name = "FrontEnd", Surfaces = _surfaces };
 		frontEnd.Setup(_directories, content, first: !_frontEndShown);
 		_frontEndShown = true;
 		frontEnd.PlayRequested += chosen => Guarded(Play(chosen));
@@ -269,7 +279,7 @@ public partial class Main : Control
 		// game's screens are built from are given the sounds.
 		_sounds.Enabled = false;
 		game.Gui.Sounds = _sounds;
-		var session = new CSession { Name = "Session", Music = _music, PlaysClicks = switched };
+		var session = new CSession { Name = "Session", Music = _music, PlaysClicks = switched, Surfaces = _surfaces };
 		session.Setup(_directories, game, carried, replayFile);
 		session.Resigned += () =>
 		{

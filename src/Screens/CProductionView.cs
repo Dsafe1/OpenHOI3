@@ -47,7 +47,8 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	private CGuiOverlappingBox? _strategicResources;
 	private CGuiListBox? _queueList;
 	private readonly List<CBuildQueueEntry> _queue = new();
-	private readonly CLendLeaseWindow _lendLease = new();
+	/// <summary>The lend-lease window and the four windows a unit is ordered from, the screen's own: made as it is (Build).</summary>
+	private CLendLeaseWindow _lendLease = null!;
 	private CGuiListBox? _tradeList;
 	private CGuiListBox? _convoyList;
 	private CGuiListBox? _needList;
@@ -58,10 +59,10 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	private CCountryTag? _tradesOf;
 	private CSliderPanel? _sliders;
 	private string _shownResources = "\0";
-	private readonly CDivisionDesignerView _designer = new();
-	private readonly CShipBuilderView _ships = new();
-	private readonly CAirBuilderView _wings = new();
-	private readonly CBrigadeBuilderView _brigades = new();
+	private CDivisionDesignerView _designer = null!;
+	private CShipBuilderView _ships = null!;
+	private CAirBuilderView _wings = null!;
+	private CBrigadeBuilderView _brigades = null!;
 	private readonly List<CBuilderWindow> _builders = new();
 
 	/// <summary>What is left of the screen's own window while a builder window is up.</summary>
@@ -140,6 +141,13 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 
 	protected override void Build(CGuiWindow window)
 	{
+		// Made here and not with the screen, which is made only as it is first opened (CCountryView.Make): a node made and never
+		// put in the tree is never freed, and Godot reports it at exit.
+		_lendLease = new CLendLeaseWindow();
+		_designer = new CDivisionDesignerView();
+		_ships = new CShipBuilderView();
+		_wings = new CAirBuilderView();
+		_brigades = new CBrigadeBuilderView();
 		foreach ((string element, EGoods goods) in Resources)
 		{
 			if (window.FindTextBox(element) is { } box)
@@ -619,6 +627,7 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	/// <summary>Locks one share's slider where it is, as a right click on it would.</summary>
 	public void Lock(EProductionCategory category)
 	{
+		Make();
 		_sliders?.Group.SetHeld((int)category, true);
 	}
 
