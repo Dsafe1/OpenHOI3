@@ -102,15 +102,29 @@ Each "unless already playing" but where it says otherwise [exe]. **Built** marks
 | `message` | each alert icon that comes up | yes |
 | `message` | each event window shown - **played over itself**, so two windows at once are heard twice | yes |
 | `land_combat_1` … `6`, `naval_combat_1` … `3`, `air_combat_1` … `2`, `bomb_1` … `3` | while a battle's window is up (section 8) | yes |
-| `army_selected` | a revolt in a province the player holds, with its message | no |
-| `convoys_1` | ships lost from one of the played country's convoys | no |
-| `convoys_2` | the played country's raider sinking a convoy's ships, once a hit | no |
-| `tech_discovered` | the played country finishing a level | no |
-| `declarewar` | the player declaring war | no |
-| `declarewar_onus` | war declared on the player; nobody else hears either | no |
-| `diplomaticoffer` | an offer's icon appearing in the player's bar | no |
-| `diplomaticsuccess`, `diplomaticfailure` | the answer to an offer reaching the country that made it | no |
-| `ding` | a line added to the multiplayer connection log | no |
+| `army_selected` | a revolt in a province the player holds, with its `REVOLT` message | yes |
+| `convoys_1` | ships lost from one of the played country's convoys - only a raid that sank something takes any | yes |
+| `convoys_2` | the played country's raider sinking a convoy's ships, once a hit | yes |
+| `tech_discovered` | the played country finishing a level of the day's research | yes |
+| `declarewar` | the player declaring war - by the diplomacy screen, the AI or the `war` effect, which all declare alike | yes |
+| `declarewar_onus` | war declared on the player; nobody else hears either | yes |
+| `diplomaticoffer` | an offer's icon coming into the player's bar | yes |
+| `diplomaticsuccess`, `diplomaticfailure` | the answer to one of twelve offers, with its message (below) | yes |
+| `ding` | a line added to the multiplayer connection log | no - there is no multiplayer |
+
+**The answer to an offer** sounds `diplomaticsuccess` where it is accepted and `diplomaticfailure` where it is refused, heard
+by the side told the message's first key - the actor, the asker - and by nobody else [exe]. The twelve: asking for
+lend-lease, an alliance, asking military access, offering it, a call to arms (refused, only where an alliance was broken),
+a non-aggression pact, a faction, a trade, an expeditionary force, a licence, debt and peace. A faction's acceptance
+sounds for the inviter, or, on a join, for every member told; peace's for the asker and every played attacker still in the
+war. A guarantee, an embargo, influence, alignment and offering lend-lease sound nothing. A trade's messages, hidden from a
+player who has automated his trade, are silent with them.
+
+**Where it lives here.** What sounds with a message is the message's own (`CPactMessage.Sound`, `CMessages.PactSound`);
+the rest the simulation raises for a country (`CGameState.SoundCued`) - convoys in `CConvoyLosses`, a level in
+`CResearch.RunDaily`, a declaration in `CDeclarations.Apply` - and the client plays a sound only where that country is
+its player. The simulation names the sound and never plays it, so nothing of the game changes and a headless run hears
+nothing.
 
 **A right-click order** (`movement.md`, section 1; `fleetsandair.md`) [exe]:
 

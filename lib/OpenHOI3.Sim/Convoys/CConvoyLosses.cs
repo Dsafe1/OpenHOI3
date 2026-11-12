@@ -13,6 +13,10 @@ namespace OpenHOI3.Sim.Convoys;
 /// </summary>
 public static class CConvoyLosses
 {
+	/// <summary>The sounds of a raid's hit: the convoy's owner's, and the raider's.</summary>
+	public const string LostSound = "convoys_1";
+	public const string HitSound = "convoys_2";
+
 	public static void Lose(CGameState state, CConvoy convoy, int transports, int escorts, CCountry? raider = null)
 	{
 		int escortsLost = Math.Min(Math.Max(escorts, 0), convoy.Escorts);
@@ -22,6 +26,13 @@ public static class CConvoyLosses
 		if (raider is not null)
 		{
 			CThreat.ConvoyShipsLost(state, raider, transportsLost + escortsLost);
+		}
+		// The convoy's owner hears its ships lost and the raider its hit, a raid that sank something being the only caller
+		// (sound.md, section 7).
+		state.RaiseSound(LostSound, convoy.Owner);
+		if (raider is not null)
+		{
+			state.RaiseSound(HitSound, raider.Tag);
 		}
 		convoy.LastAttackHour = state.TotalHours;
 	}

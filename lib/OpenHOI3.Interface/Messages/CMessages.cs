@@ -124,6 +124,16 @@ public static class CMessages
 	private const int DetailedUnits = 6;
 
 	/// <summary>
+	/// The sound a pact's message makes for the player: its own where the player is the one told its first key - the actor,
+	/// or the country it names as told - and nothing for the recipient or anybody else (<c>docs/mechanics/sound.md</c>, section
+	/// 7). Asked only where the message itself was told, so a trade's, hidden from a player who automated his trade, is silent.
+	/// </summary>
+	public static string PactSound(CPactMessage pact, CCountryTag? player)
+	{
+		return pact.Sound.Length > 0 && pact.We.Length > 0 && player is { } own && own == (pact.Told ?? pact.Actor) ? pact.Sound : "";
+	}
+
+	/// <summary>
 	/// A pact's message: the type for the player as actor, as recipient or as neither, and none where
 	/// that type is empty. Its values are the player's country's standard ones, the player's ruler
 	/// again, the two countries, and an alignment's action and faction - the action first, since its

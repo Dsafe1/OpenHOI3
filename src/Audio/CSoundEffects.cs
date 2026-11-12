@@ -73,7 +73,8 @@ public partial class CSoundEffects : Node
 			return;
 		}
 		player.VolumeDb = CSoundVolume.Decibels(effect.Volume, scale);
-		player.Play();	}
+		player.Play();
+	}
 
 	private AudioStreamPlayer? Player(string name)
 	{

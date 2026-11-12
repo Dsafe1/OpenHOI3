@@ -28,6 +28,9 @@ public static class CResearch
 
 	/// <summary>What a technology of no difficulty costs, and what each point of difficulty adds, in thousandths.</summary>
 	private const long CostPerLevel = 125000;
+
+	/// <summary>What the country's player hears as a level of the day's research is finished.</summary>
+	public const string LevelSound = "tech_discovered";
 	private const long DifficultyStep = 100;
 
 	/// <summary>A technology is never made more than this much cheaper.</summary>
@@ -248,6 +251,8 @@ public static class CResearch
 			}
 
 			GainAbility(state, country, technology.OnCompletion, CFixedPoint.One);
+			// The country's player hears a level finished (sound.md, section 7).
+			state.RaiseSound(LevelSound, country.Tag);
 			country.ResearchQueue.Remove(name);
 			if (!technology.IsSingleLevel)
 			{

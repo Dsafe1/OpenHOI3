@@ -159,6 +159,7 @@ public static class CCallsToArms
 				{
 					Faction = actor.Faction,
 					Values = new[] { ("VERSUS", enemy.Name), ("VICTIM", enemy.Name), ("TARGETLIST", SideNames(state, war, recipient.Tag)) },
+					Sound = CPactMessage.Success,
 				});
 				break;
 			}
@@ -173,6 +174,7 @@ public static class CCallsToArms
 						actor.Tag, recipient.Tag)
 					{
 						Values = new[] { ("VERSUS", enemy.Name), ("TARGETLIST", SideNames(state, war, actor.Tag)) },
+						Sound = CPactMessage.Failure,
 					});
 				}
 				break;

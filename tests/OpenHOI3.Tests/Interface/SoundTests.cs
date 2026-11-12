@@ -1,4 +1,6 @@
+using OpenHOI3.Interface.Messages;
 using OpenHOI3.Interface.Sound;
+using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Units;
@@ -8,6 +10,30 @@ namespace OpenHOI3.Tests.Interface;
 /// <summary>How loud a sound effect plays, and which one is played: <c>docs/mechanics/sound.md</c>.</summary>
 public class SoundTests
 {
+	private static readonly CCountryTag Ger = new("GER"), Pol = new("POL"), Ita = new("ITA");
+
+	[Fact]
+	public void AnAnswersSoundIsHeardByTheSideToldTheFirstKeyAlone()
+	{
+		var nap = new CPactMessage("WENAP", "THEYNAP", "OTHERNAP", Ger, Pol) { Sound = CPactMessage.Success };
+
+		Assert.Equal(CPactMessage.Success, CMessages.PactSound(nap, Ger));
+		Assert.Equal("", CMessages.PactSound(nap, Pol));
+		Assert.Equal("", CMessages.PactSound(nap, Ita));
+		Assert.Equal("", CMessages.PactSound(nap, null));
+	}
+
+	[Fact]
+	public void AMessageToldToOneCountryIsHeardByItAndOneWithoutASoundBySomebodyNot()
+	{
+		var peace = new CPactMessage("PEACEACCEPT", "", "", Ger, Pol) { Told = Ita, Sound = CPactMessage.Success };
+		Assert.Equal(CPactMessage.Success, CMessages.PactSound(peace, Ita));
+		Assert.Equal("", CMessages.PactSound(peace, Ger));
+
+		var guarantee = new CPactMessage("WEGUARAT", "GUARATOUS", "GUARATOOTHER", Ger, Pol);
+		Assert.Equal("", CMessages.PactSound(guarantee, Ger));
+	}
+
 	[Theory]
 	[InlineData(100f, 100f, 1f)]
 	[InlineData(50f, 100f, 0.75f)]

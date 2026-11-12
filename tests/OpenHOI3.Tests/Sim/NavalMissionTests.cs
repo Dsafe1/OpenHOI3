@@ -444,6 +444,23 @@ public class NavalMissionTests
 	}
 
 	[Fact]
+	public void AConvoysShipsLostAreHeardByItsOwnerAndTheHitByTheRaider()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CConvoy convoy = Convoy(state, poland, 8, 2, Gdynia, Deep, Bight);
+		var heard = new List<(string Sound, CCountryTag By)>();
+		state.SoundCued += (sound, by) => heard.Add((sound, by));
+
+		CConvoyLosses.Lose(state, convoy, 1, 0, germany);
+		Assert.Equal(new[] { (CConvoyLosses.LostSound, poland.Tag), (CConvoyLosses.HitSound, germany.Tag) }, heard);
+
+		// With no raider named, the owner alone.
+		heard.Clear();
+		CConvoyLosses.Lose(state, convoy, 1, 0);
+		Assert.Equal(new[] { (CConvoyLosses.LostSound, poland.Tag) }, heard);
+	}
+
+	[Fact]
 	public void WhatTheConvoysFleetLostIsCountedAtTwoShipsToTheHundred()
 	{
 		CGameState state = State(out _, out CCountry poland);

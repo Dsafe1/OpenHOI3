@@ -691,6 +691,16 @@ public partial class CSession : Node
 				if (CMessages.Pact(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, pact) is { } message)
 				{
 					Tell(message);
+					// An answer to an offer and a revolt sound for the side told the first key (sound.md, section 7).
+					Sounds?.PlayUnlessPlaying(CMessages.PactSound(pact, player));
+				}
+			};
+			// The simulation's other sounds, each for one country's player (sound.md, section 7).
+			_simulation.State.SoundCued += (sound, heardBy) =>
+			{
+				if (heardBy == player)
+				{
+					Sounds?.PlayUnlessPlaying(sound);
 				}
 			};
 		}

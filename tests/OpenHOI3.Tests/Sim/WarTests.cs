@@ -104,6 +104,18 @@ public class WarTests
 	private static void Run(CGameState state, COffer offer) => new COfferCommand(offer).Execute(state);
 
 	[Fact]
+	public void A_declaration_is_heard_by_the_declarer_and_the_declared_on_and_nobody_brought_in()
+	{
+		CGameState state = World();
+		var heard = new List<(string Sound, CCountryTag By)>();
+		state.SoundCued += (sound, by) => heard.Add((sound, by));
+
+		Run(state, Declaration(state, Ger, Pol));
+
+		Assert.Equal(new[] { (CDeclarations.DeclareSound, Ger), (CDeclarations.DeclaredOnSound, Pol) }, heard);
+	}
+
+	[Fact]
 	public void A_declaration_makes_a_war_brings_in_puppets_guarantors_and_factions_and_asks_the_allies()
 	{
 		CGameState state = World();

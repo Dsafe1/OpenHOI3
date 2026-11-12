@@ -276,6 +276,24 @@ public class ResearchTests
 	}
 
 	[Fact]
+	public void AFinishedLevelIsHeardByTheCountrysPlayerAndADayThatFinishesNoneIsSilent()
+	{
+		CCountry country = Country();
+		CTechnology plain = Technology("plain", difficulty: 0);
+		CGameState state = State(country, plain, Technology("other"));
+		country.ResearchQueue.AddRange(new[] { "plain", "other" });
+		var heard = new List<(string Sound, CCountryTag By)>();
+		state.SoundCued += (sound, by) => heard.Add((sound, by));
+
+		Research(state, country, "0.001");
+		Assert.Empty(heard);
+
+		country.ResearchProgress["plain"] = new CFixed15(32768 - 100);
+		Research(state, country, "2");
+		Assert.Equal(new[] { (CResearch.LevelSound, country.Tag) }, heard);
+	}
+
+	[Fact]
 	public void AFinishedLevelOfManyCarriesWhatWasOverAndGoesToTheBackOfTheQueue()
 	{
 		CCountry country = Country();

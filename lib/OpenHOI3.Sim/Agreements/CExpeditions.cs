@@ -62,10 +62,10 @@ public static class CExpeditions
 				break;
 			case EOfferStage.Accepted when unit is not null:
 				HandOver(state, unit, actor, recipient);
-				state.RaisePactMessage(new CPactMessage("OUREXPACC", "EXPOTHER", "EXPOTHER", actor.Tag, recipient.Tag) { Values = new[] { ("UNIT", unit.Name) } });
+				state.RaisePactMessage(new CPactMessage("OUREXPACC", "EXPOTHER", "EXPOTHER", actor.Tag, recipient.Tag) { Values = new[] { ("UNIT", unit.Name) }, Sound = CPactMessage.Success });
 				break;
 			case EOfferStage.Declined:
-				state.RaisePactMessage(new CPactMessage("OUREXPDEC", "", "", actor.Tag, recipient.Tag) { Told = actor.Tag, Values = new[] { ("UNIT", unit?.Name ?? "") } });
+				state.RaisePactMessage(new CPactMessage("OUREXPDEC", "", "", actor.Tag, recipient.Tag) { Told = actor.Tag, Values = new[] { ("UNIT", unit?.Name ?? "") }, Sound = CPactMessage.Failure });
 				break;
 		}
 	}

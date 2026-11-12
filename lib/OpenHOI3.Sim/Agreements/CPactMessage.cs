@@ -42,6 +42,16 @@ public sealed record CPactMessage(string We, string They, string Other, CCountry
 	/// <summary>An election's parties' scores, by ideology, for the popup's pie; none for anything else.</summary>
 	public long[]? Scores { get; init; }
 
+	/// <summary>
+	/// The sound the original raises with it, heard by whoever is told its first key, <see cref="We"/> - the actor, or
+	/// <see cref="Told"/> where that is set: <see cref="Success"/> or <see cref="Failure"/> for the answer to one of the twelve
+	/// offers that sound one (<c>docs/mechanics/sound.md</c>, section 7); empty for the rest.
+	/// </summary>
+	public string Sound { get; init; } = "";
+
+	public const string Success = "diplomaticsuccess";
+	public const string Failure = "diplomaticfailure";
+
 	/// <summary>Values of its own kind, after the rest: a licence's NUM and NAME, and its ACCEPTED or DECLINED.</summary>
 	public System.Collections.Generic.IReadOnlyList<(string Name, string Value)> Values { get; init; } =
 		System.Array.Empty<(string, string)>();

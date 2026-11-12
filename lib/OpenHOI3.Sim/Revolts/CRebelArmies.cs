@@ -146,6 +146,8 @@ public static class CRebelArmies
 			Told = held,
 			Province = province.Id,
 			Messenger = Messenger,
+			// The holder hears an army's selection with it, the original's choice (sound.md, section 7).
+			Sound = "army_selected",
 			Values = new[]
 			{
 				("REBELS", faction.Name),

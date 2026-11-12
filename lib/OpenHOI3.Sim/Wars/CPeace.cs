@@ -141,7 +141,7 @@ public static class CPeace
 	{
 		if (offer.Stage == EOfferStage.Declined)
 		{
-			state.RaisePactMessage(new CPactMessage("PEACEDECLINE", "", "", actor.Tag, recipient.Tag));
+			state.RaisePactMessage(new CPactMessage("PEACEDECLINE", "", "", actor.Tag, recipient.Tag) { Sound = CPactMessage.Failure });
 			return;
 		}
 		if (offer.Stage != EOfferStage.Accepted || CWarSides.Between(state, actor.Tag, recipient.Tag) is not { } war)
@@ -199,7 +199,11 @@ public static class CPeace
 		{
 			if (played == actor.Tag || war.Attackers.Contains(played))
 			{
-				state.RaisePactMessage(new CPactMessage("PEACEACCEPT", "", "", actor.Tag, recipient.Tag) { Told = played });
+				state.RaisePactMessage(new CPactMessage("PEACEACCEPT", "", "", actor.Tag, recipient.Tag)
+				{
+					Told = played,
+					Sound = CPactMessage.Success,
+				});
 			}
 		}
 	}

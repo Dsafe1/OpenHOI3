@@ -364,6 +364,7 @@ public sealed class CGameState
 		OfferAsked = null;
 		CombatBegan = null;
 		DecisionTaken = null;
+		SoundCued = null;
 	}
 
 	/// <summary>
@@ -691,6 +692,19 @@ public sealed class CGameState
 		{
 			CombatBegan?.Invoke(combat);
 		}
+	}
+
+	/// <summary>
+	/// Raised where the original plays a sound for one country's player and no message carries it: a convoy's ships lost
+	/// and a raider's hit, a level finished, a war declared and declared on, a revolt in a province held
+	/// (<c>docs/mechanics/sound.md</c>, section 7). With the sound's name and the country whose player hears it; the client
+	/// plays it where that is its player. Never for anything that changes the game.
+	/// </summary>
+	public event Action<string, CCountryTag>? SoundCued;
+
+	internal void RaiseSound(string sound, CCountryTag heardBy)
+	{
+		SoundCued?.Invoke(sound, heardBy);
 	}
 
 	/// <summary>Raised as a decision is taken, before its effects, for its message.</summary>

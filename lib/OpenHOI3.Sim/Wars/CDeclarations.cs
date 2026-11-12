@@ -15,6 +15,10 @@ namespace OpenHOI3.Sim.Wars;
 /// </summary>
 public static class CDeclarations
 {
+	/// <summary>What the declarer's player hears, and the declared on's.</summary>
+	public const string DeclareSound = "declarewar";
+	public const string DeclaredOnSound = "declarewar_onus";
+
 	public const string InfluenceCost = "WARDEC_INFLUENCE_COST";
 	public const string RelationHit = "WARDEC_WAR_DIPLOMACY_HIT";
 	public const string Belligerency = "WARDEC_BELIGERENCY";
@@ -216,8 +220,10 @@ public static class CDeclarations
 		// 13. The two's units look for battles at once.
 		LookForBattles(state, actor);
 		LookForBattles(state, recipient);
-		// 14. The message.
+		// 14. The message, and the sounds: the declarer's player and the declared on's, nobody else (sound.md, section 7).
 		Tell(state, actor, recipient, war);
+		state.RaiseSound(DeclareSound, actor.Tag);
+		state.RaiseSound(DeclaredOnSound, recipient.Tag);
 		// 15. The overlord asked, the factions joined, the allies asked.
 		if (state.Country(recipient.Overlord) is { } master && !recipientSide.Contains(master.Tag))
 		{

@@ -117,6 +117,7 @@ public static class CPacts
 			state.RaisePactMessage(new CPactMessage("LICBUYDECLINE", "", "", buyer.Tag, seller.Tag)
 			{
 				Values = new[] { ("DECLINED", "DECLINED"), ("NAME", name), ("NUM", count) },
+				Sound = CPactMessage.Failure,
 			});
 			return;
 		}
@@ -144,6 +145,7 @@ public static class CPacts
 		state.RaisePactMessage(new CPactMessage("LICBUYACCEPT", "", "", buyer.Tag, seller.Tag)
 		{
 			Values = new[] { ("ACCEPTED", "ACCEPTED"), ("NAME", name), ("NUM", count) },
+			Sound = CPactMessage.Success,
 		});
 	}
 
@@ -169,10 +171,10 @@ public static class CPacts
 				break;
 			case EOfferStage.Accepted:
 				Aid.CLendLease.Add(recipient, actor);
-				Message(state, "LENDACCEPT", "", "", actor, recipient);
+				Message(state, "LENDACCEPT", "", "", actor, recipient, sound: CPactMessage.Success);
 				break;
 			default:
-				Message(state, "LENDDECLINE", "", "", actor, recipient);
+				Message(state, "LENDDECLINE", "", "", actor, recipient, sound: CPactMessage.Failure);
 				break;
 		}
 	}
@@ -244,10 +246,10 @@ public static class CPacts
 				break;
 			case EOfferStage.Accepted:
 				CGameState.Status(actor, recipient).AllowDebts = true;
-				Message(state, "DEBTALLOWACCEPT", "", "", actor, recipient);
+				Message(state, "DEBTALLOWACCEPT", "", "", actor, recipient, sound: CPactMessage.Success);
 				break;
 			default:
-				Message(state, "DEBTALLOWDECLINE", "", "", actor, recipient);
+				Message(state, "DEBTALLOWDECLINE", "", "", actor, recipient, sound: CPactMessage.Failure);
 				break;
 		}
 	}
@@ -283,10 +285,11 @@ public static class CPacts
 				state.RaisePactMessage(new CPactMessage("ACTRAWITHUS", "WETRADEAG", "OTHERTRADEAG", actor.Tag, recipient.Tag)
 				{
 					Deal = deal,
+					Sound = CPactMessage.Success,
 				});
 				break;
 			default:
-				Message(state, "DETRAWITHUS", "WEDETRA", "DETRAWITHOTHER", actor, recipient);
+				Message(state, "DETRAWITHUS", "WEDETRA", "DETRAWITHOTHER", actor, recipient, sound: CPactMessage.Failure);
 				break;
 		}
 	}
@@ -311,7 +314,7 @@ public static class CPacts
 				MakeAlliance(state, actor, recipient, offer.Date);
 				break;
 			default:
-				Message(state, "MILALLREJECT", "MILALLWEREJECT", "MILLALLJOINREJECTOTHER", actor, recipient);
+				Message(state, "MILALLREJECT", "MILALLWEREJECT", "MILLALLJOINREJECTOTHER", actor, recipient, sound: CPactMessage.Failure);
 				break;
 		}
 	}
@@ -321,7 +324,7 @@ public static class CPacts
 	{
 		state.Alliances.Add(new CAlliance(actor.Tag, recipient.Tag) { Made = state.NextPact(), Start = date });
 		Relation(state, actor, recipient, "ALLIANCE_RELATION_CHANGE");
-		Message(state, "MILALLACCEPT", "MILALLWEACCEPT", "MILLALLINVACCEPTOTHER", actor, recipient);
+		Message(state, "MILALLACCEPT", "MILALLWEACCEPT", "MILLALLINVACCEPTOTHER", actor, recipient, sound: CPactMessage.Success);
 	}
 
 	private static void Nap(CGameState state, COffer offer, CCountry actor, CCountry recipient)
@@ -346,12 +349,12 @@ public static class CPacts
 				state.Naps.Add(nap);
 				CNapBalance.Made(state, nap);
 				Relation(state, actor, recipient, "NAP_RELATION_CHANGE");
-				Message(state, "WENAP", "THEYNAP", "OTHERNAP", actor, recipient);
+				Message(state, "WENAP", "THEYNAP", "OTHERNAP", actor, recipient, sound: CPactMessage.Success);
 				break;
 			default:
 				Relation(state, actor, recipient, "NAP_REJECT_RELATION_CHANGE");
 				// The other way round from every other arm: the proposer is told "they", the one who declined "we".
-				Message(state, "THEYREJECTNAP", "WEREJECTNAP", "OTHERREJECTNAP", actor, recipient);
+				Message(state, "THEYREJECTNAP", "WEREJECTNAP", "OTHERREJECTNAP", actor, recipient, sound: CPactMessage.Failure);
 				break;
 		}
 	}
@@ -403,7 +406,7 @@ public static class CPacts
 			case EOfferStage.Accepted:
 				CGameState.Status(actor, recipient).HasMilitaryAccess = true;
 				Relation(state, actor, recipient, "MILACC_ACCEPT_RELATION_CHANGE");
-				Message(state, "ACCMILUS", "WEACCMIL", "ACCMILOTHER", actor, recipient);
+				Message(state, "ACCMILUS", "WEACCMIL", "ACCMILOTHER", actor, recipient, sound: CPactMessage.Success);
 				break;
 			default:
 				if (Played(state, actor, recipient))
@@ -411,7 +414,7 @@ public static class CPacts
 					Relation(state, actor, recipient, "MILACC_DECLINE_RELATION_CHANGE");
 				}
 				actor.DiplomaticInfluence += COfferRules.Define(state, "MILACCESS_INFLUENCE_COST");
-				Message(state, "DECMILUS", "WEDECMIL", "DECMILOTHER", actor, recipient);
+				Message(state, "DECMILUS", "WEDECMIL", "DECMILOTHER", actor, recipient, sound: CPactMessage.Failure);
 				break;
 		}
 	}
@@ -434,10 +437,10 @@ public static class CPacts
 			case EOfferStage.Accepted:
 				CGameState.Status(recipient, actor).HasMilitaryAccess = true;
 				CRelations.Change(actor, recipient, CFixedPoint.FromInt(10));
-				Message(state, "OFFACCMILUS", "WEOFFACCMIL", "OFFACCMILOTHER", actor, recipient);
+				Message(state, "OFFACCMILUS", "WEOFFACCMIL", "OFFACCMILOTHER", actor, recipient, sound: CPactMessage.Success);
 				break;
 			case EOfferStage.Declined:
-				Message(state, "OFFDECMILUS", "WEDECOFFMIL", "DECOFFMILOTHER", actor, recipient);
+				Message(state, "OFFDECMILUS", "WEDECOFFMIL", "DECOFFMILOTHER", actor, recipient, sound: CPactMessage.Failure);
 				break;
 		}
 	}
@@ -602,9 +605,10 @@ public static class CPacts
 		state.RaisePactMessage(new CPactMessage("", key, "", actor.Tag, recipient.Tag) { TurnedRound = true });
 	}
 
+	/// <param name="sound">The sound heard with the actor's key: <see cref="CPactMessage.Success"/>, <see cref="CPactMessage.Failure"/> or none.</param>
 	public static void Message(CGameState state, string we, string they, string other, CCountry actor, CCountry recipient,
-		string faction = "")
+		string faction = "", string sound = "")
 	{
-		state.RaisePactMessage(new CPactMessage(we, they, other, actor.Tag, recipient.Tag) { Faction = faction });
+		state.RaisePactMessage(new CPactMessage(we, they, other, actor.Tag, recipient.Tag) { Faction = faction, Sound = sound });
 	}
 }

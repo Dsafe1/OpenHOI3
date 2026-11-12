@@ -130,7 +130,12 @@ public sealed partial class CDiploOffers : Control
 		_bar.AddChild(window);
 		_icons.Add(icon);
 		Layout();
+		// Every new offer sounds, unless the sound is already playing (docs/mechanics/sound.md, section 7).
+		_context.Sounds?.PlayUnlessPlaying(OfferSound);
 	}
+
+	/// <summary>What an offer's icon coming into the bar sounds.</summary>
+	public const string OfferSound = "diplomaticoffer";
 
 	/// <summary>Oldest on the left, a step apart, every icon whose place starts within the bar's width.</summary>
 	private void Layout()

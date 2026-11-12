@@ -108,6 +108,7 @@ public static class CFactionOffers
 					{
 						Told = actor.Tag,
 						Values = new[] { ("FACTION", faction), ("BAD_COMMENT", comment), ("COMMENT_BAD", comment) },
+						Sound = CPactMessage.Failure,
 					});
 				}
 				break;
@@ -139,7 +140,13 @@ public static class CFactionOffers
 				: played != recipient.Tag ? "FACTIONJOINACCEPTOTHER" : "";
 			if (key.Length > 0)
 			{
-				state.RaisePactMessage(new CPactMessage(key, "", "", actor.Tag, recipient.Tag) { Told = played, Values = values });
+				// The invitation's and the join's acceptance sound; what everybody else is told does not.
+				state.RaisePactMessage(new CPactMessage(key, "", "", actor.Tag, recipient.Tag)
+				{
+					Told = played,
+					Values = values,
+					Sound = key == "FACTIONJOINACCEPTOTHER" ? "" : CPactMessage.Success,
+				});
 			}
 		}
 	}
