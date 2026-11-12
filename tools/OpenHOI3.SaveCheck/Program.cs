@@ -308,6 +308,12 @@ if (args.Length > 0 && args[0] == "replaycheck")
 	return CReplayCheck.Run(args);
 }
 
+// Whether a game goes on after a save and a load as it would have without them (docs/enhanced.md).
+if (args.Length > 0 && args[0] == "reload")
+{
+	return CReloadCheck.Run(args);
+}
+
 // Where the time of an hour goes.
 if (args.Length > 0 && args[0] == "profile")
 {

@@ -110,9 +110,10 @@ public static class CStateHash
 					h.Add(post.Value.Id);
 				}
 			});
+			// A level or a progress of nought is the same as none: a load holds every technology, a new game only those given.
 			yield return Field(tag, "technology", h =>
 			{
-				foreach (KeyValuePair<string, int> level in country.TechnologyLevels.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+				foreach (KeyValuePair<string, int> level in country.TechnologyLevels.Where(pair => pair.Value != 0).OrderBy(pair => pair.Key, StringComparer.Ordinal))
 				{
 					h.Add(level.Key);
 					h.Add(level.Value);
@@ -120,7 +121,7 @@ public static class CStateHash
 			});
 			yield return Field(tag, "research progress", h =>
 			{
-				foreach (KeyValuePair<string, CFixed15> progress in country.ResearchProgress.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+				foreach (KeyValuePair<string, CFixed15> progress in country.ResearchProgress.Where(pair => pair.Value.Raw != 0).OrderBy(pair => pair.Key, StringComparer.Ordinal))
 				{
 					h.Add(progress.Key);
 					h.Add(progress.Value.Raw);
@@ -266,7 +267,7 @@ public static class CStateHash
 					h.Add(unit.OrderProvince);
 				});
 				yield return Field(key, "attack delay", h => h.Add(unit.AttackDelay.Raw));
-				yield return Field(key, "leader", h => h.Add(unit.LeaderId));
+				yield return Field(key, "leader", h => h.Add(unit.Leader?.Id ?? 0));
 				yield return Field(key, "supplies", h => h.Add(unit.SuppliesReceived.Raw));
 				yield return Field(key, "brigades", h =>
 				{

@@ -1216,6 +1216,14 @@ beside the repository.
   on the first day they do, and how long each took. On 2026-11-03, 608 of 608 days to 1 September 1937, the replay's
   hours 224 s to the recording's 584 s. Run it after touching what an AI step does to the game, `Sim/Replay` or a
   command's fields: an AI step that changes the game other than by a command shows here the day it does.
+  `OpenHOI3.SaveCheck reload <install> [date] [hours after] [player=TAG] [save=FILE] [groups=N] [examples=N]` is the
+  check of the rule on a whole game's replay below: a new game with the install's Lua run to the date (1 February 1936
+  by default), written as a save, the save loaded as a second game, and the two set beside each other field by field -
+  every object either holds walked by reflection, the AI's own state with the rest, each path that differs told once
+  with its count and examples - as loaded and again as entered, then hour by hour for the hours given (48 by default),
+  the hash's parts and the first figures they part on. On 2026-11-12, saved on 1 March 1936: 352 paths as loaded, the
+  two games parting in the first hour; what each is lies in `docs/enhanced.md`, *A whole game's replay*. Run it after
+  adding anything the game keeps, and list what it shows lost.
   `OpenHOI3.SaveCheck supply <install> <savegame>` checks the supply network against what a
   save says of it, with the save's own owners, controllers and capitals, so a save of any
   day will do: the provinces marked `out_of_supply_days` are ours that draw on no depot -
