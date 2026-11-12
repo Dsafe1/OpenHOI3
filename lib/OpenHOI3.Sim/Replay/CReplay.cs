@@ -80,24 +80,27 @@ public sealed class CReplay
 			}
 			state.Outbox.AddRange(kept.Commands);
 			state.Random.Skip(kept.Draws);
+			state.AiRandom.Skip(kept.AiDraws);
 			state.LastUnitId += kept.UnitIds;
 			return;
 		}
 
 		int posted = state.Outbox.Count;
 		long draws = state.Random.Draws;
+		long aiDraws = state.AiRandom.Draws;
 		int unitIds = state.LastUnitId;
 		step(state);
-		if (state.Random.Draws < draws)
+		if (state.Random.Draws < draws || state.AiRandom.Draws < aiDraws)
 		{
-			throw new InvalidOperationException($"{name} seeded the generator again, which a recording cannot play back");
+			throw new InvalidOperationException($"{name} seeded a generator again, which a recording cannot play back");
 		}
 		var commands = new List<CCommand>(state.Outbox.Count - posted);
 		for (int i = posted; i < state.Outbox.Count; i++)
 		{
 			commands.Add(state.Outbox[i]);
 		}
-		Keep(new CReplayStep(state.TotalHours, name, commands, state.Random.Draws - draws, state.LastUnitId - unitIds));
+		Keep(new CReplayStep(state.TotalHours, name, commands, state.Random.Draws - draws, state.LastUnitId - unitIds,
+			state.AiRandom.Draws - aiDraws));
 	}
 
 	/// <summary>Recording: a command posted from outside the game, after that many drains of the queue.</summary>

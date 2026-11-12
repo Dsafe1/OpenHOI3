@@ -25,9 +25,9 @@ public static class CResearchAi
 		{
 			// A played country's ministers where the player has handed their areas over (frontend.md, section 4).
 			country.ProductionCountdown = Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Production)
-				? state.Random.Next() % 3 + 1 : 0;
+				? state.AiRandom.Next() % 3 + 1 : 0;
 			country.TechCountdown = Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Technology)
-				? state.Random.Next() % 3 + 1 : 0;
+				? state.AiRandom.Next() % 3 + 1 : 0;
 		}
 	}
 

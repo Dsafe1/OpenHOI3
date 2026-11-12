@@ -681,7 +681,7 @@ public static class CSaveLoader
 		foreach (CCountry country in state.Countries)
 		{
 			country.PoliticsCountdown = Sim.Settings.CAutomation.AiRuns(state, country, Sim.Settings.EAutomation.Politics)
-				? state.Random.Next() % 3 + 1 : 0;
+				? state.AiRandom.Next() % 3 + 1 : 0;
 		}
 		Sim.Espionage.CEspionageAi.SetUpAtStart(state);
 		CForeignAi.SetUpAtStart(state);

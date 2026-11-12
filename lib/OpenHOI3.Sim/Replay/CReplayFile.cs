@@ -142,6 +142,10 @@ public sealed class CReplayFile : IDisposable
 					json.WriteString("s", step.Step);
 					json.WriteNumber("d", step.Draws);
 					json.WriteNumber("u", step.UnitIds);
+					if (step.AiDraws != 0)
+					{
+						json.WriteNumber("a", step.AiDraws);
+					}
 					json.WriteStartArray("c");
 					foreach (CCommand command in step.Commands)
 					{
@@ -179,7 +183,8 @@ public sealed class CReplayFile : IDisposable
 					commands.Add(CCommandCodec.Read(command, state));
 				}
 				return new CReplayStep(root.GetProperty("h").GetInt64(), root.GetProperty("s").GetString()!, commands,
-					root.GetProperty("d").GetInt64(), root.GetProperty("u").GetInt32());
+					root.GetProperty("d").GetInt64(), root.GetProperty("u").GetInt32(),
+					root.TryGetProperty("a", out JsonElement ai) ? ai.GetInt64() : 0);
 			case "p":
 				return new CReplayPost(root.GetProperty("t").GetInt32(), CCommandCodec.Read(root.GetProperty("c"), state));
 			case "t":

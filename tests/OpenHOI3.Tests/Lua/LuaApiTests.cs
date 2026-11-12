@@ -267,10 +267,10 @@ public sealed class LuaApiTests : IDisposable
 		CCountry poland = state.Country(ScriptWorld.Pol)!;
 		poland.Modifier.Set("counter_intelligence", new CFixedPoint(-250));
 		Assert.Equal(0.25, (double)scripts.Ask(state, $"CAIIntel({Ger}, {Pol}):GetFactor()")!, 5);
-		long before = state.Random.Draws;
+		long before = state.AiRandom.Draws;
 		scripts.Ask(state, $"CAIIntel({Ger}, {Pol}):CalculateTheirPercievedMilitaryStrengh()");
 		// One draw for each of Poland's units, and one for the guess at what is hidden.
-		Assert.Equal(poland.UnitsInOrder().Count + 1, state.Random.Draws - before);
+		Assert.Equal(poland.UnitsInOrder().Count + 1, state.AiRandom.Draws - before);
 	}
 
 	[Fact]

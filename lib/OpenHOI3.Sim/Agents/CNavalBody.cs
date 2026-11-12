@@ -285,7 +285,7 @@ public static class CNavalBody
 		{
 			return;
 		}
-		long draw = state.Random.Next() % total;
+		long draw = state.AiRandom.Next() % total;
 		int chosen = 0;
 		foreach ((int province, long weight) in candidates)
 		{
@@ -395,7 +395,7 @@ public static class CNavalBody
 		}
 		while (waters.Count > 0)
 		{
-			int centre = waters[(int)(state.Random.Next() % waters.Count)];
+			int centre = waters[(int)(state.AiRandom.Next() % waters.Count)];
 			var area = new List<int> { centre };
 			waters.Remove(centre);
 			while (area.Count < PatrolArea && waters.Count > 0)

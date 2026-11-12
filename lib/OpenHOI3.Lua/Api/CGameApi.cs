@@ -283,7 +283,7 @@ public sealed class CGameApi
 	public CRandom? WorkerRandom { get; set; }
 
 	/// <summary>The generator a script draws on.</summary>
-	public CRandom Random => WorkerRandom ?? State.Random;
+	public CRandom Random => WorkerRandom ?? State.AiRandom;
 
 	/// <summary>A command a script gives, which reaches the game's outbox.</summary>
 	public void Post(Sim.Commands.CCommand command)

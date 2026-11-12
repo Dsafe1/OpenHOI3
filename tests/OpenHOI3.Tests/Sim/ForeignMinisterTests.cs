@@ -115,8 +115,9 @@ public class ForeignMinisterTests
 
 		Assert.InRange(state.Country(Ger)!.ForeignCountdown, 1, 3);
 		Assert.Equal(0, state.Country(Pol)!.ForeignCountdown);
-		// One draw for every country nobody plays.
-		Assert.Equal(4, state.Random.Draws);
+		// One draw for every country nobody plays, on the AI's generator: the game's is not touched.
+		Assert.Equal(4, state.AiRandom.Draws);
+		Assert.Equal(0, state.Random.Draws);
 		CCountry germany = state.Country(Ger)!;
 		Assert.Equal((germany.Index + 1 + 13) % 24, CResearchAi.Hour(germany, 13));
 	}
@@ -253,7 +254,7 @@ public class ForeignMinisterTests
 		Assert.Equal(new[] { "first", "second" }, Posted(state));
 		// One scope, one draw, for the whole pass.
 		Assert.Single(scripts.Asked.Select(a => a.Seed).Distinct());
-		Assert.Equal(1, state.Random.Draws);
+		Assert.Equal(1, state.AiRandom.Draws);
 		Assert.All(state.Outbox.OfType<CExecuteDecisionCommand>(), c => Assert.Equal(Ger, c.Scope.Country));
 	}
 
@@ -373,7 +374,7 @@ public class ForeignMinisterTests
 		Assert.Equal(new[] { "annexation_of_albania" }, Posted(state));
 		Assert.Empty(scripts.Asked);
 		// A draw for each ready target with a decision.
-		Assert.Equal(2, state.Random.Draws);
+		Assert.Equal(2, state.AiRandom.Draws);
 
 		// With Poland, a neighbour that is not ready, listed too, the day ends before anything is posted.
 		state.Outbox.Clear();

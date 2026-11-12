@@ -34,7 +34,8 @@ It does not serve a fix tried: that needs the AI deciding again.
 For each, as it runs, a `CReplayStep` keeps:
 
 - **the commands it posted**, in order - everything it added to the outbox;
-- **the draws it took** of the game's generator (`CRandom.Draws` before and after);
+- **the draws it took** of the game's generator and of the AI's (`CRandom.Draws` before and after, the AI's written as `a`
+  where it is not nought, since the AI's own generator of 2026-11-12, `mechanics/landcombat.md`, section 8);
 - **the unit numbers it took** (`LastUnitId` before and after) - the fleet and air regrouping take a new unit's number as
   they post the split, as the original does, and the number travels in the command.
 

@@ -125,8 +125,12 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    totals were right; Italy's 5% was `veteran_army`, which ours gives. ~~The Soviet Union's odds stand about 4% high by a term
    not found~~ - set beside the running game again on 2026-11-12 with the units' cached halves fresh, every attacker's and
    defender's modifier of three countries is the original's, 313 of 313, once `unit_cooperation` was taken off the crowding as
-   the original does, in the AI's estimate and in a battle (section 55; `moving.md`, section 11.4). Left over: three AI steps
-   (`CInvasionPlanner`, `CNavalBody`) draw on the game's generator where the original's AI draws on the C runtime's.
+   the original does, in the AI's estimate and in a battle (section 55; `moving.md`, section 11.4). ~~Three AI steps draw on
+   the game's generator~~ - since 2026-11-12 the AI has a generator of its own, as the original keeps its game state's beside
+   the static one battles draw on, and every draw the record puts on it goes there (section 59; `landcombat.md`, section 8):
+   the invasion planner and the convoy raid as the original's; the patrol's centre, which the original draws on the C
+   runtime's per-thread `rand`, there too. The savegame tool's trials that roll (the raid, the trade, the foreign minister,
+   the events) moved with it, and their figures in `CLAUDE.md` predate it; every recording made before no longer replays.
 2. ~~**The land battle**~~: *done 2026-11-10* (`reversing/findings/FINDINGS-liveread.md`, sections 7 and 28 to 31). Over four series of
    hourly saves of the original's, about 250 hours, with the generator restored before each battle, a battle's every hour after its first
    is the original's shot for shot, its tactic picks, new fronts and reserves coming up among them - once the tactic's aggressiveness was

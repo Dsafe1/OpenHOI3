@@ -78,7 +78,8 @@ internal static class CReplayCheck
 		}
 		int commands = recording.Steps.Sum(step => step.Commands.Count);
 		Console.WriteLine($"to {end}: recorded in {recordClock.ElapsedMilliseconds / 1000.0:0.0} s ({recording.Steps.Count()} steps, " +
-			$"{commands} commands, {recording.Steps.Sum(step => step.Draws)} draws), replayed in " +
+			$"{commands} commands, {recording.Steps.Sum(step => step.Draws)} draws of the game's generator and " +
+			$"{recording.Steps.Sum(step => step.AiDraws)} of the AI's), replayed in " +
 			$"{replayClock.ElapsedMilliseconds / 1000.0:0.0} s; {same} of {days} days the same");
 		recordedScripts.Dispose();
 		replayedScripts.Dispose();

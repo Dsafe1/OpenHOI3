@@ -41,7 +41,7 @@ public class TradeAiTests
 	private static List<(CCountryTag Tag, bool Propose)> Expected(CGameState state, ISet<CCountryTag> skipped)
 	{
 		var random = new CRandom();
-		random.Restore(state.Random.Snapshot());
+		random.Restore(state.AiRandom.Snapshot());
 		var runs = new List<(CCountryTag, bool)>();
 		foreach (CCountry country in state.Countries)
 		{

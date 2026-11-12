@@ -767,13 +767,22 @@ public sealed class CGameState
 		{
 			_seed = value;
 			Random.Seed(value);
+			AiRandom.Seed(value);
 		}
 	}
 
 	private uint _seed = 1;
 
-	/// <summary>The game's one source of chance, seeded afresh every hour.</summary>
+	/// <summary>The game's source of chance: battles, espionage, events, revolts, the weather and the rest.</summary>
 	public CRandom Random { get; } = new();
+
+	/// <summary>
+	/// The AI's own source of chance, as the original keeps one beside the game's: its trading roll, its answer to an offer,
+	/// its ministers' countdowns and decision scopes, the Lua's <c>GetAIRand</c> and <c>CAIIntel</c>, the invasion planner,
+	/// the convoy raid and the patrol - so what the AI decides never moves a battle's or an event's rolls
+	/// (<c>reversing/findings/FINDINGS-liveread.md</c>, section 59). Seeded with the game's seed, which is ours.
+	/// </summary>
+	public CRandom AiRandom { get; } = new();
 
 	/// <summary>The weather's own state: the pressure zones and the fronts (<c>docs/mechanics/weather.md</c>).</summary>
 	public Weather.CWeatherManager Weather { get; } = new();

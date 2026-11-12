@@ -48,6 +48,7 @@ public static class CStateHash
 		var hash = new CHasher();
 		hash.Add(state.TotalHours);
 		hash.Add(state.Random.Draws);
+		hash.Add(state.AiRandom.Draws);
 		return hash.Value;
 	}
 

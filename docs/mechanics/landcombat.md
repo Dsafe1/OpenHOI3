@@ -503,10 +503,17 @@ built:* the messages.
 `confirmed` for the two generators (`reversing/findings/FINDINGS-revolt.md`, section 1.2;
 `FINDINGS-landbattle.md`, section 3), *ours* for how they are started.
 
-**The game has one generator**, and everything that rolls draws from it in turn: a Mersenne
+**The game has its generator**, and everything that rolls draws from it in turn: a Mersenne
 Twister with two things about it that are the original's own - its shifts to the right keep
 the sign, and its twist leaves alone a word that is both odd and negative. A draw is never
-negative, so a roll is a plain remainder.
+negative, so a roll is a plain remainder. **The AI has a second of the same kind**, as the
+original keeps one in its game state beside the static one battles draw on: the AI's trading roll,
+its answer to an offer, its ministers' countdowns and decision scopes, the Lua's `GetAIRand` and
+`CAIIntel`, the invasion planner, the convoy raid and the patrol draw on it, so nothing the AI
+decides moves a battle's or an event's rolls (built 2026-11-12, `reversing/findings/FINDINGS-liveread.md`,
+section 59; until then they shared one, and a change to the AI moved, for one, the day the Spanish
+Civil War broke out). *Ours:* it is seeded with the game's seed, and a load seeds it afresh - a save
+keeps the game's generator's count alone.
 
 **A side's shooting has its own**: `x = x * 214013 + 2531011`, two steps a draw, the upper
 fifteen bits of each multiplied together. One draw of the game's generator starts it each

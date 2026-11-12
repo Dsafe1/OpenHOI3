@@ -102,7 +102,7 @@ public static class CPactPasses
 		{
 			return EOfferStage.Declined;
 		}
-		return state.Random.Next(100) < score ? EOfferStage.Accepted : EOfferStage.Declined;
+		return state.AiRandom.Next(100) < score ? EOfferStage.Accepted : EOfferStage.Declined;
 	}
 
 	/// <summary>

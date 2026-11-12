@@ -486,8 +486,10 @@ public static class CDiplomacyActions
 		// The AI's answer to a peace rolls the game's generator; the original's dialog rolls it too, this one puts
 		// it back, so that what a screen shows never moves a game's rolls (war.md, section 11).
 		var saved = state.Random.Snapshot();
+		var savedAi = state.AiRandom.Snapshot();
 		int score = CPactPasses.Score(state, offer);
 		state.Random.Restore(saved);
+		state.AiRandom.Restore(savedAi);
 		string key = score switch
 		{
 			< 1 => "DIPCHANCE_IMPOSSIBLE",

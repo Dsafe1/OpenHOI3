@@ -484,7 +484,7 @@ makes nobody at war (`war.md`, section 1).
 7. **Each ready fleet**, not retreating: **a wolfpack** - all submarines, not busy, at war, the naval
    stance not 0 - raids: over the enemy convoys handed to the agent, each step of a way but its ends, in its range, weighs
    the convoy's transports x |its place + 1 - the way's length / 2| - heaviest near the ends, nothing at the middle; one
-   is drawn on the game's generator by weight and the fleet given a **convoy raid** there for 504 hours. Fewer candidates
+   is drawn on the AI's generator by weight and the fleet given a **convoy raid** there for 504 hours. Fewer candidates
    than half the steps seen, it **relocates**: to the port with the most raidable tonnage - 10 a transport whose step is
    within its range of the port, less 20 a ship based there over its level, half again for its own base. **A fleet with
    no submarine** at a base crowded past its level and two goes to the port of the same area with the least distance + 10,
@@ -570,7 +570,7 @@ of the country's or - its capital's area bordering no hostile land - its fellow 
 it bordering) by an open sea. **Score**: 100001 with a priority province; a small island (ports, under 5 provinces, no
 neighbour) 10 a port level + 51, or -99 for Germany before 1944; an enemy's capital area its provinces + 1, at most 101,
 halved for a subject's; else 1 - plus, over its first 60 provinces, 8 a naval base level, 40 for victory points, 40 for a
-strategic resource, 5 for one the country owns, scaled to 20 provinces; plus a draw on the game's generator below a fifth
+strategic resource, 5 for one the country owns, scaled to 20 provinces; plus a draw on the AI's generator below a fifth
 of it (at least 5); over its least port distance to the capital's area / 200. The ten best, those under a tenth of the
 best dropped.
 
@@ -734,7 +734,7 @@ months on) - at least three hours left, and the order ends then.
 - **The threatened provinces** (section 6): the warning the original gives as a landing's way is set is taken in the hour.
 - **The axis** (11.6): the original also asks a test of each pair that was not read; here the nearest pair is
   taken, and with no way between them the path is empty.
-- **The fleets** (section 14): a patrol's centre is drawn on the game's generator, where the original draws on the C
+- **The fleets** (section 14): a patrol's centre is drawn on the AI's generator, where the original draws on the C
   runtime's `rand` of whichever worker thread ran the country, which nothing here could repeat - a fresh worker's stream
   starting at 41, 18467, 6334, the main thread's carrying on from every draw since the process began (*measured* on the
   running game, 2026-11-12, entering July 1941: Germany, Britain, the Soviet Union and the United States drew on the main
@@ -762,8 +762,8 @@ months on) - at least three hours left, and the order ends then.
   way is gone: what ends the original's order was not read.~~ Read on 2026-11-04 and built as the original's
   (`landorders.md`, section 7).
 - **The odds** (11.4): a unit that has never fought - neither attacked nor is fighting - counts no toughness, the
-  original's defence products being nought until a battle sets them; the technologies' free stacking is nought, not
-  being built. Encirclement is weighed since 2026-11-10 (`landcombat.md`, section 4). The country's difficulty is weighed since 2026-11-06 (`frontend.md`, section 4.3).
+  original's defence products being nought until a battle sets them; the technologies' free stacking (`unit_cooperation`) is taken off since 2026-11-12 (section 11.4), and
+  encirclement is weighed since 2026-11-10 (`landcombat.md`, section 4). The country's difficulty is weighed since 2026-11-06 (`frontend.md`, section 4.3).
 - **The air** (section 17): a "busy" group, which the original asks of its order, is one under any order; a group the original
   gives the order "none" at its base has its order dropped; the places enemy fleets were seen are made again at each
   count of the aircraft wanted, where the original pushes onto them with nothing found clearing them; every enemy's bases

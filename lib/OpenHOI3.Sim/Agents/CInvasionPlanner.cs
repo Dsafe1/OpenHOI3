@@ -187,7 +187,7 @@ public static class CInvasionPlanner
 		}
 		long total = g + f;
 		long k = System.Math.Max((total + 2) / 5, 5);
-		long score = total + state.Random.Next() % k;
+		long score = total + state.AiRandom.Next() % k;
 		if (capitalArea is not null)
 		{
 			long distance = PortDistance(state, area, capitalArea) / 200;
