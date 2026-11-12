@@ -138,6 +138,9 @@ public partial class CGuiButton : CGuiObject
 		MouseFilter = MouseFilterEnum.Stop;
 		_shortcut = ParseShortcut(type.Shortcut);
 		ShortcutText = type.Shortcut;
+		// Its sounds, chosen once as it is made, as the original resolves them (docs/mechanics/sound.md, section 3).
+		_clickSound = Interface.Sound.CClickSound.Choose(type.ClickSound, _sprite?.ClickSound ?? "");
+		_untickSound = Interface.Sound.CClickSound.Choose(type.UpSound, _sprite?.ClickSound ?? "");
 
 		_rect = new TextureRect
 		{
@@ -406,8 +409,18 @@ public partial class CGuiButton : CGuiObject
 				Checked = !Checked;
 			}
 			Pressed?.Invoke();
+			// After its action, unless it is still sounding: a button's click, a checkbox's tick or untick
+			// (docs/mechanics/sound.md, section 5). *Ours*: a checkbox here is ticked as the button comes up, and so sounds
+			// then, where the original's ticks and sounds as it goes down. A button's shortcut sounds nothing, as the original's.
+			_context?.Sounds?.PlayUnlessPlaying(IsCheckbox && !Checked ? _untickSound : _clickSound);
 		}
 	}
+
+	/// <summary>The sound a click makes, and a checkbox's tick: its own key, else its sprite's, else <c>click</c>.</summary>
+	private string _clickSound = Interface.Sound.CClickSound.Default;
+
+	/// <summary>A checkbox's untick: its <c>upsound</c>, else its sprite's <c>clicksound</c>, else <c>click</c> [exe].</summary>
+	private string _untickSound = Interface.Sound.CClickSound.Default;
 
 	public override void _UnhandledKeyInput(InputEvent @event)
 	{

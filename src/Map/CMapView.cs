@@ -7,6 +7,7 @@ using OpenHOI3.Content.Map;
 using OpenHOI3.Gfx;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
+using OpenHOI3.Interface.Sound;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agents;
 using OpenHOI3.Sim.Combat;
@@ -1109,6 +1110,7 @@ public partial class CMapView : Node2D
 	/// </summary>
 	public void StepZoom(bool inwards)
 	{
+		Sounds?.PlayUnlessPlaying("click");
 		float wanted = CMapZoom.ButtonTarget(_heightWanted ?? CameraHeight, inwards, _leastHeight, CMapCamera.HighestHeight);
 		if (CameraSettings?.Invoke().Legacy == true)
 		{
@@ -1189,6 +1191,11 @@ public partial class CMapView : Node2D
 	/// </summary>
 	private void Show(int provinceId)
 	{
+		// A province selected clicks (sound.md, section 7).
+		if (provinceId > 0)
+		{
+			Sounds?.PlayUnlessPlaying("click");
+		}
 		_selected = provinceId;
 		LightSelection();
 		EmitSignal(SignalName.ProvinceSelected, provinceId);
@@ -1217,6 +1224,12 @@ public partial class CMapView : Node2D
 
 	/// <summary>The units selected, in the order selected.</summary>
 	public CSelection Units => _units;
+
+	/// <summary>The units selected when the selection last changed, so that only a unit newly selected sounds.</summary>
+	private readonly HashSet<CUnit> _sounded = new(ReferenceEqualityComparer.Instance);
+
+	/// <summary>The sound effects (<c>docs/mechanics/sound.md</c>): none in the front end's map until it is given them.</summary>
+	public Audio.CSoundEffects? Sounds { get; set; }
 
 	/// <summary>
 	/// Selects one unit alone - its counter wears a ring - or with null lets every unit go. Asked by the panels and the
@@ -1254,6 +1267,17 @@ public partial class CMapView : Node2D
 		{
 			_lastGroup = -1;
 		}
+		// Each unit newly selected sounds as its kind - a fleet, an air unit, else an army - and a sound already playing
+		// is not started again, so a box of twenty divisions is heard once (sound.md, section 7).
+		foreach (CUnit unit in _units.Units)
+		{
+			if (!_sounded.Contains(unit))
+			{
+				Sounds?.PlayUnlessPlaying(CSelectionSounds.Selected(unit));
+			}
+		}
+		_sounded.Clear();
+		_sounded.UnionWith(_units.Units);
 		_counters?.SelectionChanged();
 		EmitSignal(SignalName.UnitSelected, _units.First?.Id ?? 0);
 	}

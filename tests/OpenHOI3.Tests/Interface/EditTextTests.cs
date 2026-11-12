@@ -14,6 +14,31 @@ public class EditTextTests
 	}
 
 	[Fact]
+	public void A_box_of_one_line_erases_at_once_a_character_that_would_wrap()
+	{
+		CEditText box = Box("Panzerkor");
+		box.MaxLines = 1;
+		Assert.True(box.Type('p', shift: false, ctrl: false));
+		Assert.Equal("Panzerkor", box.Text);
+		Assert.Equal(9, box.Caret);
+	}
+
+	[Fact]
+	public void A_name_too_wide_for_its_one_line_is_eaten_from_the_front_as_typing_begins_at_its_start()
+	{
+		// Filled by code past the one line, the caret at its start: the character typed goes, and then the one after the
+		// caret, until the name fits (FINDINGS-unitrename.md, section 5).
+		CEditText box = Box("1st Panzer Army");
+		box.MaxLines = 1;
+		box.CaretToStart();
+		box.Type('X', shift: true, ctrl: false);
+		// Nine characters to the line: "X" goes, then "1st Pa" from the front, leaving the last nine.
+		Assert.Single(box.Lines());
+		Assert.Equal("nzer Army", box.Text);
+		Assert.Equal(0, box.Caret);
+	}
+
+	[Fact]
 	public void A_character_goes_in_at_the_caret_and_the_caret_after_it()
 	{
 		CEditText box = Box("Germany");

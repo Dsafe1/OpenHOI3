@@ -39,6 +39,10 @@ public partial class CCombatWindow : Control
 	private CGuiIcon? _rightPlace;
 	private List<string> _shown = new();
 
+	/// <summary>The battle sound last started, and the window's own generator that picks the next - nothing of the game's.</summary>
+	private string? _battleSound;
+	private readonly Random _battleRolls = new();
+
 	/// <summary>Raised when the window comes up or goes away.</summary>
 	public event Action? Toggled;
 
@@ -205,6 +209,14 @@ public partial class CCombatWindow : Control
 			return;
 		}
 		CGameState state = _simulation.State;
+
+		// While the window is up a battle is heard, a variant at a time, the next picked when the last has ended - paused or
+		// not (docs/mechanics/sound.md, section 8).
+		if (_context.Sounds is { } sounds && (_battleSound is null || !sounds.IsPlaying(_battleSound)))
+		{
+			_battleSound = Interface.Sound.CBattleSounds.Name(combat.Kind, _battleRolls.Next());
+			sounds.Play(_battleSound);
+		}
 
 		_progress?.SetProgress(CCombatViewText.Progress(CCombatViewText.Share(combat)));
 		string width = CCombatViewText.Width(state, combat);

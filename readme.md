@@ -1867,7 +1867,7 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 - **The AI drops no nuclear bomb**: its strategic targets, the enemy's war industry handed to the agents whose air bases are nearest, are not built (`moving.md`; `nukes.md`, *Ours*).
 
-- **There are no sound effects.** The music is built (2026-11-11, `docs/mechanics/music.md`), and so is the loading screen with every map mode prepared under it (`docs/mechanics/loadingscreen.md`); the effects of `interface/sound.sfx` are not, so an alert coming up plays nothing. Whether the title theme loops at the main menu is to be heard in the original (`music.md`, section 3).
+- **The game's own sound effects are only half built.** Since 2026-11-12 the effects of `interface/sound.sfx` play (`docs/mechanics/sound.md`): every button's and checkbox's click, a province, a map mode, the zoom and the speed, a unit selected and ordered, an alert, an event window and a battle's window. What the simulation itself sounds is not built - convoys lost and sunk, a level finished, war declared by and on the player, an offer coming in and its answer, a revolt - and nor is the multiplayer log's `ding` (section 7). **The maintainer has not heard any of it.** Whether the title theme loops at the main menu is to be heard in the original (`music.md`, section 3).
 
 - **An agent's reassign flag is set only as it is made**: the original also sets it when a unit is created for it and when a unit lands or reaches the area it was bound for (`CAIUnit::OnUnitCreated` and slot 71; `reversing/findings/FINDINGS-liveread.md`, section 43). And on entering July 1941 ours sends Italy's 2nd Navy to the Metropolitana's embark, which the original does not; why was not read.
 
@@ -2108,8 +2108,6 @@ None of these blocks the list above.
   - the front end's multiplayer menu, tutorial list and credits are not built, greyed there, nor Arcade's supply, the lobby's game mode
     greyed for it (`docs/compatibility.md`, entry 18), nor the five alerts the player's automation
     silences, no alert of them being built (`frontend.md`, section 4.3);
-  - **only the save dialog's edit box takes typing** (`interface.md`, section 8): the unit
-    panel's name waits on renaming a unit;
   - **`debug_saves` other than nought autosaves nothing** (`savegame.md`, section 11): the
     original's saves under it are named by a routine not read;
   - **of the player's settings, only the gamma, the multisampling, the hierarchy's lines and the
@@ -2338,9 +2336,9 @@ None of these blocks the list above.
   are not there, and neither is any tooltip - which is where the original says when a
   unit will arrive, so the readout beside the panel still does, when a province is
   selected as well as the unit. `docs/mechanics/unitpanel.md`.
-- **A unit's name cannot be changed**: the edit box it is in is shown and not typed in.
-  Where an edit box puts its text and how a rotated icon is placed are measured and not read, both from the
-  unit panel alone (`docs/mechanics/interface.md`, section 7).
+- **Where an edit box puts its text and how a rotated icon is placed are measured and not read**, both from the
+  unit panel alone (`docs/mechanics/interface.md`, section 7). A unit is renamed from its name box since 2026-11-12
+  (`unitpanel.md`, section 3).
 - **The unit panel's attrition figure is always nought**: nothing wears a unit down for
   where it stands yet. Its supply and fuel bars are real since the supply pass was built.
   `unitpanel.md`, section 4.
@@ -2509,9 +2507,16 @@ None of these blocks the list above.
   two days for the brigades is ok for now. Maybe it comes up again later." For the player's country
   the unchanged laws are the decision (`docs/compatibility.md`, entry 6); for the rest it
   waits for the AI. `tick.md`, section 6.
-- **Making a new game takes about six seconds**, four of them the first convoys' routes
-  and two the filling. Neither has been looked at for speed; a day played takes a tenth of
-  a second.
+- **Starting a game takes about eleven seconds**, measured 2026-11-12 with the optimised build and `--country=GER`:
+  1.8 before the first loading line; **4.8 making the world** on the loading screen's thread - 2.2 of it the two first
+  days (the supply filling 1.0, the first day 0.8 with the first convoys' routes about 0.5 of it), the opening laws,
+  technology and modifiers 0.7, the province history 0.4, the AI's strategies 0.3; **3.2 the map and the interface** on
+  the main thread, the window not answering - the 3D surface's meshes 1.2 (about half our arrays turned into the engine's,
+  half the engine's own), its first style 0.6, the interface 0.7; and 1.3 preparing the map modes. Matching a mesh's
+  semantics once an input and not once a vertex was tried and saved 40 ms. What is left wants a change of structure: the
+  surface's meshes made off the main thread, or while the world is made, which needs no game; or the supply filling's
+  networks passed side by side, which is checked against saves network for network. The front end's map is the same
+  3D surface and holds its screen as long.
 - **A province's days out of supply are not counted**, and nothing is raised on its first.
   The original's arcade mode, where units draw on the stockpile and the network does not
   run, is not built, nor is a unit on loan to another country.
@@ -2901,7 +2906,7 @@ src/Map/                the map view, and the unit counters on it
 src/Gfx/                decoding the original's textures and fonts
 src/Debug/              ours: the debug menu of developer switches, on Shift and 4, and --click's player
 src/Loading/            the loading screen, and the steps of the front end's and a game's making it runs
-src/Audio/              the music, one player for the whole run
+src/Audio/              the music and the sound effects, one player of each for the whole run
 src/FrontEnd/           the main menu and the lobby, with the world they offer, and the game Play
                         hands to a session
 src/Gui/                the interface runtime: windows from the original's .gui files
@@ -3022,6 +3027,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Settings/           the player's settings.txt, from the original's folder under Documents
     Frontend/           the start's bookmark, for its look in the lobby
     Music/              the songs of music/*.txt
+    Sound/              the sound effects of interface/sound.sfx
     Shaders/            the original's effect files: the preprocessor, the parser, the syntax tree and the writer
                         that translates each pass of a technique into a Godot shader
 lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and placement at its root
@@ -3046,6 +3052,7 @@ lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and place
                         themselves: each leaf's line, the blocks, the asterisks
     Messages/           a message, its words, and the log it is kept in
     Music/              which song plays next, and how loud
+    Sound/              how loud a sound effect plays, and which a button, a unit and a battle play
     Loading/            the loading screen's pictures and where its parts stand
 lib/OpenHOI3.Lua/       the install's Lua, run on the simulation: the state the original
                         makes, its searcher and autoexec, and what the game asks it

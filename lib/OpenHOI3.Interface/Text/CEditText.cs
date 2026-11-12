@@ -22,6 +22,20 @@ public sealed class CEditText
 
 	/// <summary>What this box refuses besides, as a name's box refuses a quotation mark.</summary>
 	public string AlsoRefused { get; set; } = "";
+
+	/// <summary>
+	/// The most lines the box holds as it wraps, or none: a character typed that makes the text wrap past it is erased again
+	/// at once, as the original's layout backspaces after every insert while its lines are more than its most - the unit
+	/// panel's name holds one (<c>reversing/findings/FINDINGS-unitrename.md</c>, section 5). Text set by code is not fitted.
+	/// </summary>
+	public int? MaxLines { get; set; }
+
+	/// <summary>The caret to the text's start, as the unit panel's name box puts it when it is filled.</summary>
+	public void CaretToStart()
+	{
+		_caret = 0;
+		StoreLineLength();
+	}
 	public const char Enter = '\r';
 	private const char Tab = '\t';
 
@@ -161,6 +175,12 @@ public sealed class CEditText
 			_text = _text.Insert(_caret, character.ToString());
 			_caret++;
 			StoreLineLength();
+			// Backspace while the text wraps past the most lines it may have: the character just typed goes again, and at
+			// the very start - a name set too wide for the box - the one after the caret, eating it from the front [exe].
+			while (MaxLines is { } most && _text.Length > 0 && Lines().Count > most)
+			{
+				EraseBack();
+			}
 		}
 		if (!shift)
 		{

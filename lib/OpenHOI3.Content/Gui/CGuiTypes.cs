@@ -47,6 +47,7 @@ public sealed class CGuiTypes
 	{
 		"quadtexturesprite", "position", "tooltip", "tooltiptext", "delayedtooltiptext", "buttonfont", "buttontext",
 		"orientation", "shortcut", "clicksound", "parent", "rotation", "size", "scale", "format",
+		"oversound", "upsound", "downsound",
 	};
 
 	private static readonly string[] IconKeys =
@@ -225,6 +226,9 @@ public sealed class CGuiTypes
 					Font = node.GetString("buttonFont"),
 					Shortcut = node.GetString("shortcut"),
 					ClickSound = node.GetString("clicksound"),
+					UpSound = node.GetString("upsound"),
+					DownSound = node.GetString("downsound"),
+					OverSound = node.GetString("oversound"),
 					Rotation = node.GetFloat("rotation"),
 					IsCheckbox = keyword == "checkboxtype",
 					Size = Point(node, "size"),

@@ -18,7 +18,19 @@ public sealed class CGuiButtonType : CGuiType
 	/// <summary>The key that presses it, as the file names it: <c>F1</c>, <c>ESCAPE</c>.</summary>
 	public string Shortcut { get; init; } = "";
 
+	/// <summary>
+	/// The sound a click makes, and a checkbox's when ticked; empty for its sprite's or the default's
+	/// (<c>docs/mechanics/sound.md</c>).
+	/// </summary>
 	public string ClickSound { get; init; } = "";
+
+	/// <summary><c>upsound</c>: a checkbox's sound when unticked; a button's when shown up, which no vanilla button sets.</summary>
+	public string UpSound { get; init; } = "";
+
+	/// <summary><c>downsound</c> and <c>oversound</c>: read as the original reads them; no vanilla button sets either.</summary>
+	public string DownSound { get; init; } = "";
+
+	public string OverSound { get; init; } = "";
 
 	/// <summary>In radians.</summary>
 	public float Rotation { get; init; }

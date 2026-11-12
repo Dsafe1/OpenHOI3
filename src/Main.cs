@@ -27,6 +27,8 @@ public partial class Main : Control
 	/// <summary>The soundtrack, one for the whole run (docs/mechanics/music.md).</summary>
 	private Audio.CMusic _music = null!;
 
+	private Audio.CSoundEffects _sounds = null!;
+
 	/// <summary>
 	/// The player's settings the music goes by while no screen holds them: the file's as the program starts, then whatever the
 	/// front end or the session last held as it went - its options window may have changed them.
@@ -86,6 +88,10 @@ public partial class Main : Control
 		_music = new Audio.CMusic { Name = "Music" };
 		_music.Setup(directories, () => _session?.Settings ?? _frontEnd?.Settings ?? _startSettings);
 		AddChild(_music);
+		// The sound effects, by the same settings (docs/mechanics/sound.md); every screen's files are given them.
+		_sounds = new Audio.CSoundEffects { Name = "SoundEffects" };
+		_sounds.Setup(directories, () => _session?.Settings ?? _frontEnd?.Settings ?? _startSettings);
+		AddChild(_sounds);
 		_music.PlayTitle();
 		if (CSession.UserArguments().Any(SaysWhatToPlay))
 		{
@@ -173,6 +179,7 @@ public partial class Main : Control
 		}
 		CLoadingScreen screen = OpenLoadingScreen(known);
 		FrontEnd.CFrontEndContent content = await FrontEnd.CFrontEndContent.Load(screen, _directories);
+		content.Gui.Sounds = _sounds;
 		var frontEnd = new FrontEnd.CFrontEnd { Name = "FrontEnd" };
 		frontEnd.Setup(_directories, content, first: !_frontEndShown);
 		_frontEndShown = true;
@@ -258,6 +265,10 @@ public partial class Main : Control
 			songs = await screen.Work(CLoadingSteps.Sounds, () => CSongReader.Load(_directories, game.State, CDiagnostics.Warn));
 		}
 		_session?.QueueFree();
+		// Nothing is heard while a game's screen is being built, as the original switches its sound off then; the files the
+		// game's screens are built from are given the sounds.
+		_sounds.Enabled = false;
+		game.Gui.Sounds = _sounds;
 		var session = new CSession { Name = "Session", Music = _music, PlaysClicks = switched };
 		session.Setup(_directories, game, carried, replayFile);
 		session.Resigned += () =>
@@ -289,6 +300,7 @@ public partial class Main : Control
 		{
 			_music.EnterGame(game.State, () => _session?.Player, songs);
 		}
+		_sounds.Enabled = true;
 		session.Begin();
 	}
 

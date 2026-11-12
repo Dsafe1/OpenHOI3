@@ -109,6 +109,8 @@ public partial class CAlerts : Control
 			{
 				_up.Add((alert.Alert, window));
 				changed = true;
+				// Each alert that comes up sounds the message (docs/mechanics/sound.md, section 7).
+				_context.Sounds?.PlayUnlessPlaying(CEventWindows.MessageSound);
 			}
 		}
 		if (changed)

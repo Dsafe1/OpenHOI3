@@ -10,6 +10,7 @@ using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Messages;
 using OpenHOI3.Interface.Screens;
+using OpenHOI3.Interface.Sound;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Interface.Console;
 using OpenHOI3.Interface.Tooltips;
@@ -68,6 +69,9 @@ public partial class CSession : Node
 	private CVictoryConditionsView? _victoryConditions;
 	private CanvasLayer? _hud;
 	private CGuiContext? _gui;
+
+	/// <summary>The sound effects (<c>docs/mechanics/sound.md</c>): none where the game was made without them.</summary>
+	private Audio.CSoundEffects? Sounds => _gui?.Sounds;
 	private FrontEnd.CEndGameScreen? _endGame;
 	private bool _gameWasFinished;
 	private bool _victoryDialogShown;
@@ -375,6 +379,7 @@ public partial class CSession : Node
 		AddChild(layer);
 		_hud = layer;
 		_gui = gui;
+		_mapView.Sounds = gui.Sounds;
 		_gameWasFinished = State.GameFinished;
 		bool looksOn = !_simulation.TakesCommands;
 		_mapView.LooksOn = looksOn;
@@ -1347,6 +1352,11 @@ public partial class CSession : Node
 	{
 		if (ModeOfButton(button) is { } mode)
 		{
+			// A mode chosen clicks unless it is already on (sound.md, section 7).
+			if (_mapView.Mode != mode)
+			{
+				Sounds?.PlayUnlessPlaying("click");
+			}
 			_mapView.Mode = mode;
 		}
 	}
@@ -1570,12 +1580,15 @@ public partial class CSession : Node
 			{
 				_simulation.Post(new CSetPlanAxisCommand(Player.Tag, unitId, route, new List<int>()));
 			}
+			Sounds?.PlayUnlessPlaying(CSelectionSounds.Moved(unit));
 			return;
 		}
 		if (unit.Kind == EUnitKind.Air)
 		{
-			// An air unit is always asked what it is to do there.
+			// An air unit is always asked what it is to do there, and sounds its move whatever comes of it (sound.md,
+			// section 7).
 			_orders?.Open(unit, province);
+			Sounds?.PlayUnlessPlaying(CSelectionSounds.Moved(unit));
 			return;
 		}
 		// A land unit with Ctrl held is asked too, in the land window (landorders.md, section 1).
@@ -1600,6 +1613,7 @@ public partial class CSession : Node
 					&& !CTransportText.OpensOrdersOnCoast(State, Player, unit, State.Province(province)))
 				{
 					GD.Print($"{unit.Name} cannot reach {State.Province(province).Name} by sea.");
+					Sounds?.PlayUnlessPlaying(CSelectionSounds.Refused);
 					return;
 				}
 				_orders?.Open(unit, province);
@@ -1608,8 +1622,9 @@ public partial class CSession : Node
 			else
 			{
 				// With shift, or out of a battle, it is simply sent - and a fleet in a
-				// battle then counts four hours before it goes.
+				// battle then counts four hours before it goes. Its move sounds before its range is asked.
 				command = new CMoveUnitCommand(Player.Tag, unitId, province, append);
+				Sounds?.PlayUnlessPlaying(CSelectionSounds.Moved(unit));
 			}
 		}
 		else
@@ -1618,10 +1633,21 @@ public partial class CSession : Node
 				? new CCancelMovementCommand(Player.Tag, unitId)
 				: new CMoveUnitCommand(Player.Tag, unitId, province, append);
 		}
+		bool land = unit.Kind != EUnitKind.Navy;
 		if (!command.MayExecute(State))
 		{
 			GD.Print($"{unit.Name} may not go to {State.Province(province).Name}.");
+			// A land unit refused errs; a fleet has sounded its move already.
+			if (land)
+			{
+				Sounds?.PlayUnlessPlaying(CSelectionSounds.Refused);
+			}
 			return;
+		}
+		// A land unit halted where it stands is silent; one sent sounds its move.
+		if (land && command is CMoveUnitCommand)
+		{
+			Sounds?.PlayUnlessPlaying(CSelectionSounds.Moved(unit));
 		}
 		_simulation.Post(command);
 		_ordered = true;
@@ -1660,10 +1686,13 @@ public partial class CSession : Node
 				_menu?.Toggle();
 				break;
 			case Key.KpAdd or Key.Plus or Key.Equal:
+				// A change of speed clicks, by key as by button (sound.md, section 7).
 				_simulation.Clock.Speed++;
+				Sounds?.PlayUnlessPlaying("click");
 				break;
 			case Key.KpSubtract or Key.Minus:
 				_simulation.Clock.Speed--;
+				Sounds?.PlayUnlessPlaying("click");
 				break;
 			case Key.H:
 				// The original's key for its render_hierarchy setting.

@@ -67,6 +67,21 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		_player = player;
 
 		_name = window.FindTextBox("unitname");
+		// The single panel's name may be typed into, the player's own unit's; filled once, here, with the caret at its start,
+		// held to one line, and never filled again while the header is up - what is typed goes out as the header goes
+		// (TakeRename; FINDINGS-unitrename.md, section 3). A row of several selected units shows the name and takes nothing.
+		if (_name is not null && !row && player is { } playing && unit.Owner == playing)
+		{
+			_name.Text = unit.Name;
+			_name.MakeEditable();
+			if (_name.Editor is { } editor)
+			{
+				editor.AlsoRefused = "\"";
+				editor.MaxLines = 1;
+				editor.CaretToStart();
+				_editable = true;
+			}
+		}
 		_strength = window.FindTextBox("unitstrength");
 		_leader = window.FindTextBox("unitleader");
 		_photo = window.FindIcon("leader_photo");
@@ -138,6 +153,17 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		return window is null ? null : new CUnitHeaderEntry(window, context, state, owner, unit, player, row);
 	}
 
+	/// <summary>Whether the name box takes typing: the single panel's, for the player's own unit.</summary>
+	private readonly bool _editable;
+
+	/// <summary>
+	/// The rename what was typed makes, for when the header is taken down, or none (<see cref="CUnitPanelText.Rename"/>).
+	/// </summary>
+	public Sim.Commands.CRenameUnitCommand? TakeRename()
+	{
+		return _editable && _name?.Editor is { } editor ? CUnitPanelText.Rename(_unit.Owner, _unit, editor.Text) : null;
+	}
+
 	/// <summary>A row marked with Shift shows its "select this" button 15 pixels right of its place.</summary>
 	public void SetKept(bool kept)
 	{
@@ -149,7 +175,10 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 
 	public override void Update()
 	{
-		Set(_name, _unit.Name);
+		if (!_editable)
+		{
+			Set(_name, _unit.Name);
+		}
 		_size?.SetFrame(CDeployMenuText.SizeFrame(_unit));
 		_activity?.SetFrame(CUnitPanelText.ActivityFrame(_unit));
 		Set(_strength, CUnitPanelText.Strength(_unit));

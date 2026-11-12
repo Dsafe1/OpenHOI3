@@ -18,6 +18,9 @@ public sealed partial class CEventWindows : Control
 	private CSimulation _simulation = null!;
 	private CCountry _player = null!;
 
+	/// <summary>What a window shown and an alert come up sound.</summary>
+	public const string MessageSound = "message";
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, CSimulation simulation, CCountry player)
 	{
@@ -44,6 +47,9 @@ public sealed partial class CEventWindows : Control
 				view.Setup(_context, _simulation, waiting);
 				AddChild(view);
 				_shown[waiting] = view;
+				// Each window shown sounds the message on a voice of its own, so that two at once are heard over each other -
+				// the original's plain play (docs/mechanics/sound.md, section 7).
+				_context.Sounds?.Play(MessageSound);
 			}
 		}
 		foreach ((COpenEvent waiting, CEventWindowView view) in new List<KeyValuePair<COpenEvent, CEventWindowView>>(_shown))

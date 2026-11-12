@@ -319,6 +319,37 @@ public class OobBrowserTests
 	}
 
 	[Fact]
+	public void AUnitsRenameGivesUpTheOldNameAndTakesTheNew()
+	{
+		CCountry england = England();
+		CGameState state = World(england);
+		CUnit fleet = Unit(england, EUnitKind.Navy, null, 1, Ship);
+		fleet.Name = "Home Fleet";
+		england.UnitNamesInUse.Add("Home Fleet");
+		var rename = new CRenameUnitCommand(Eng, fleet.Id, "Grand Fleet");
+		Assert.True(rename.MayExecute(state));
+		rename.Execute(state);
+		Assert.Equal("Grand Fleet", fleet.Name);
+		Assert.Contains("Grand Fleet", england.UnitNamesInUse);
+		Assert.DoesNotContain("Home Fleet", england.UnitNamesInUse);
+		// A unit gone is renamed by nobody.
+		Assert.False(new CRenameUnitCommand(Eng, 99_999, "Ghost").MayExecute(state));
+	}
+
+	[Fact]
+	public void AUnitsNameIsSentTrimmedAndOnlyWhereItChangedByteForByte()
+	{
+		CCountry england = England();
+		CUnit fleet = Unit(england, EUnitKind.Navy, null, 1, Ship);
+		fleet.Name = "Home Fleet";
+		Assert.Null(CUnitPanelText.Rename(Eng, fleet, " Home Fleet\t"));
+		Assert.Null(CUnitPanelText.Rename(Eng, fleet, " \r\n "));
+		// A change of case is a rename.
+		Assert.NotNull(CUnitPanelText.Rename(Eng, fleet, "home fleet"));
+		Assert.NotNull(CUnitPanelText.Rename(Eng, fleet, "Grand Fleet"));
+	}
+
+	[Fact]
 	public void AModelsPicturesAreTriedCountryFirst()
 	{
 		var ship = new CSubUnit(Ship) { HistoricalModel = 2 };

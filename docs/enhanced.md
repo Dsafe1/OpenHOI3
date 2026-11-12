@@ -262,6 +262,15 @@ All of these are risk-free but for what the entry says.
 - **Every loading picture but the first is let go at the first main menu**, so a game is always entered over the same picture. `loadingscreen.md`, 1. *Dead.* Risk: none.
 - **The loading picture is a square of the screen's width**, its height taken from the width, so a portrait screen gets black bands and every picture's own bands are cut. `loadingscreen.md`, 1. *Bug.* Risk: none.
 
+## Sound effects
+
+- **A misspelled `clicksound` silences a button** rather than falling back to `click`: the choice asks whether a name is written, not whether it is a sound, and ten of the original's buttons name `close_window` or `start_game`, which `sound.sfx` has not got. `sound.md`, 5. *Bug.* Risk: none.
+- **A checkbox sounds its `upsound` when it is unticked**, a key that means the button coming up everywhere else. `sound.md`, 5. *Oversight.* Risk: none.
+- **The effects never go below about −50 dB before they stop.** The volume is linear in decibels from a floor of half, so the effects slider's lower half barely changes anything and its last step is a jump to silence. `sound.md`, 4. *Oversight.* Risk: none.
+- **The event window's `message` stacks** where every other sound the game plays is skipped while it plays, so several events at once are heard over each other. `sound.md`, 7. *Oversight.* Risk: none.
+- **A fleet sent out of its range still sounds its move**, the sound coming before the range is asked. `sound.md`, 7. *Oversight.* Risk: none.
+- **`buzzbeep`, `nuke` and `unit_upgraded` are never played**, nor a checkbox's `oversound`, nor `ambient_volume` read. `sound.md`, 5 and 7. *Dead.* Risk: none.
+
 ## Existing departures that could become switches
 
 - **A released puppet joins its master's supply at once** here, where the original takes some days. `compatibility.md`, entry 9. Risk: event chains timed on it.

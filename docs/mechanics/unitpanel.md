@@ -70,7 +70,7 @@ of the list of several selected units. `confirmed`
 
 | element | what it is given | |
 | --- | --- | --- |
-| `unitname` | the unit's name. An edit box: in the original the name is changed here | shown, not to be typed in |
+| `unitname` | the unit's name. An edit box, the name changed here (`reversing/findings/FINDINGS-unitrename.md`): typed into in the single panel for the player's own unit, filled once as the header is made with the caret at its start, held to one line - a character that would wrap is erased at once - with `"` refused besides the font's seven; **what is typed goes out as the header goes**, when the selection changes or the panel is made again, trimmed, and only where it is not empty and not the name byte for byte, as a `CRenameUnitCommand` that tests nothing but that the unit is still there [exe]. Enter sends nothing. A row of several selected units shows the name and takes nothing. *Ours*: the original also renames the unit at once on the player's own machine, beside its command; here the command alone does it | typed into and sent as read, since 2026-11-12 |
 | `counter_type` | the sprite `GFX_counter_` + the type of the unit's first brigade | built |
 | `counter_size` | the mark of its rank, as on a line of the deploy menu (`mapunits.md`, section 6) | built |
 | `unit_activity` | what it is doing, below | built in part |

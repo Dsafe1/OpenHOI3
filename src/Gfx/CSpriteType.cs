@@ -62,6 +62,9 @@ public sealed class CSpriteType
 	/// </summary>
 	public bool TransparenceCheck { get; init; }
 
+	/// <summary><c>clicksound</c>: what a button drawn with it sounds where the button names no sound of its own.</summary>
+	public string ClickSound { get; init; } = "";
+
 	public bool IsTiled => Kind.Equals("corneredTileSpriteType", StringComparison.OrdinalIgnoreCase);
 
 	/// <summary>
@@ -113,6 +116,7 @@ public sealed class CSpriteType
 			Border = node.GetVector2("borderSize").ToGodot(),
 			AlwaysTransparent = node.GetBool("allwaystransparent"),
 			TransparenceCheck = node.GetBool("transparencecheck"),
+			ClickSound = node.GetString("clicksound"),
 			PieSize = kind.Equals("PieChartType", StringComparison.OrdinalIgnoreCase) ? node.GetInt("size") : 0,
 			Horizontal = !node.GetString("horizontal").Equals("no", StringComparison.OrdinalIgnoreCase),
 			LineWidth = node.GetFloat("linewidth", 1f),

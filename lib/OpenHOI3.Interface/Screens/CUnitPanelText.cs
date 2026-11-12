@@ -207,6 +207,22 @@ public static class CUnitPanelText
 		return (int)(unit.Leader?.Type ?? ELeaderType.Land) + 1;
 	}
 
+	/// <summary>What the original trims off both ends of a name typed: line feed, tab, carriage return and space [exe].</summary>
+	private static readonly char[] NameTrimmed = { '\n', '\t', '\r', ' ' };
+
+	/// <summary>
+	/// The rename the unit panel's name box sends as its header is taken down - by a change of selection or the panel made
+	/// again - or none: the text trimmed, and sent only where it is not empty and not the unit's name byte for byte, case
+	/// and all (<c>reversing/findings/FINDINGS-unitrename.md</c>, section 3.2).
+	/// </summary>
+	public static Sim.Commands.CRenameUnitCommand? Rename(CCountryTag owner, CUnit unit, string typed)
+	{
+		string name = typed.Trim(NameTrimmed);
+		return name.Length == 0 || string.Equals(name, unit.Name, StringComparison.Ordinal)
+			? null
+			: new Sim.Commands.CRenameUnitCommand(owner, unit.Id, name);
+	}
+
 	/// <summary>
 	/// Whether the button that opens the window a leader is chosen in may be pressed. Not
 	/// for a unit falling back, one in a battle, a fleet at sea, or one standing where an

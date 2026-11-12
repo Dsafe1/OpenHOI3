@@ -684,8 +684,11 @@ Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/
 
 *Ours*:
 
-- **Only a box a screen makes editable takes typing** - so far the save dialog's. The original's every edit box does;
-  the unit panel's name, which renaming a unit is not built for, shows its text and takes none.
+- **Only a box a screen makes editable takes typing** - the save dialog's, the brigade card's, the console's, the go-to
+  box's, the battle plans' and, since 2026-11-12, the unit panel's name (`unitpanel.md`, section 3). The original's every
+  edit box does. The original's layout also backspaces after every insert while the text wraps past what the box holds -
+  its height, or its most lines where they are set (`reversing/findings/FINDINGS-unitrename.md`, section 5); here only a
+  box given a most (`CEditText.MaxLines`) is held so, the unit panel's name to one line.
 - **A character Windows-1252 has no byte for is not taken** and goes on; the original's window would be handed the
   code page's own stand-in. Text set by code puts the caret at its end, where the original's was not read.
 - **The text stands where section 7 measured it**, 15 across and 9 down in the unit panel's box, and the caret where

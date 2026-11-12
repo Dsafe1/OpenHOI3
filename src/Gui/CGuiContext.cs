@@ -32,6 +32,9 @@ public sealed class CGuiContext
 	/// </summary>
 	public CGuiTextBox? KeyboardFocus { get; set; }
 
+	/// <summary>The sound effects the screens built from these files play (<c>docs/mechanics/sound.md</c>); none in a tool.</summary>
+	public Audio.CSoundEffects? Sounds { get; set; }
+
 	/// <summary>The install's effect files as Godot shaders, a mod's over the install's (<c>docs/mechanics/shaders.md</c>).</summary>
 	public required CEffectShaders Effects { get; init; }
 

@@ -260,6 +260,8 @@ public partial class CFrontEnd : Node
 		}
 		_mapView = new CMapView { Name = "Map" };
 		_mapView.Setup(_map, state);
+		// A province clicked in the lobby clicks, as a country chosen there does in the original (sound.md, section 7).
+		_mapView.Sounds = _gui.Sounds;
 		// The quad cache read once for every world the front end shows.
 		_mapCache ??= CMapView.OpenCache(_directories, _map);
 		_quadTiles ??= CQuadCache.Load(_mapCache, problem => GD.PushWarning($"map: {problem}"));

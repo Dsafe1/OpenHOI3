@@ -33,6 +33,9 @@ public partial class CUnitPanel : Control
 
 	private CGuiWindow? _window;
 	private CGuiListBox? _list;
+
+	/// <summary>The single panel's header, whose name box sends what was typed as it goes.</summary>
+	private CUnitHeaderEntry? _header;
 	private readonly List<CUnitPanelEntry> _entries = new();
 	private bool _underAi;
 	private readonly List<CUnit> _parents = new();
@@ -448,6 +451,14 @@ public partial class CUnitPanel : Control
 			return;
 		}
 		CloseUpgradeList();
+		// The header going sends the name typed into it, as the original's header sends it as it is destroyed - when the
+		// selection changes or the panel is made again (FINDINGS-unitrename.md, section 3.2). *Ours*: the original also
+		// renames the unit at once, on this machine alone; here the command does it, every change being a command.
+		if (_header?.TakeRename() is { } rename)
+		{
+			_simulation.Post(rename);
+		}
+		_header = null;
 		_list.Clear();
 		_entries.Clear();
 		_parents.Clear();
@@ -471,6 +482,7 @@ public partial class CUnitPanel : Control
 
 		if (CUnitHeaderEntry.Create(_context, state, owner, unit, _player?.Tag) is { } header)
 		{
+			_header = header;
 			header.Deselected += () => UnitChosen?.Invoke(null);
 			header.LeaderPressed += () => OpenLeaders(unit);
 			Add(header);
