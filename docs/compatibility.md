@@ -153,7 +153,10 @@ each brigade to its new ceiling. As Germany, the original's AI countries' brigad
 
 `docs/mechanics/units.md`, section 8; `reversing/findings/FINDINGS-unitstart.md`, section 9.
 
-## 7. A counter always carries its unit's name
+## ~~7. A counter always carries its unit's name~~
+
+**Ended 2026-11-12**: the settings are built, so by its own terms this decision is over, and the maintainer put it back
+among the readme's *Loose ends* as work to do - the counter to follow `show_unit_names` as the original's does.
 
 **Decided** 2026-10-09 by the maintainer, told that the original writes the unit's name
 on a counter only with a setting on: "It can stay that way until we implement the

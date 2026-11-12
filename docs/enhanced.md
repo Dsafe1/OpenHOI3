@@ -177,6 +177,7 @@ Add to it whenever a spec records something of the original's that looks like a 
 - **Depot step 4 is nearly dead,** and may name a province that is not that area's depot. `supply.md`, 5. *Bug.* Risk: breaks the exact match with saves.
 - **Fuel and supplies use different days,** and a share cut by one province's room stays cut for those after. `supply.md`, 12. *Bug.* Risk: large against saves.
 - **Exile manpower replaces the whole sum,** where adding may be meant; not settled. `manpower.md`. *Bug.* Risk: small.
+- **The goods of a country that does not exist go to whoever holds its capital.** Everything lying in cut-off land is moved to its block's largest harbour each day, and a province's pool is also the stockpile of any country whose capital it is - so a country gone from the map ships its goods to the holder of its old capital. Kept by the maintainer's word of 2026-10-10, the save bearing it out. `convoys.md`, 8. *Oversight.* Risk: moderate against saves.
 - **A lend-lease share with nobody to give to wastes its IC.** Only the open production screen puts the slider back to nought; a player who never opens it - for a week, in the maintainer's own 1936 game, at 15.5% - loses that IC, and nothing passes it to the other shares. `sliders.md`, 2; `reversing/findings/FINDINGS-lendleaseslider.md`. *Oversight.* Risk: small; the AI's script already zeroes its own.
 
 ## AI

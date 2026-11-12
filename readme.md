@@ -1874,7 +1874,7 @@ fact base and entered in its record, not only written up: this repository's `CLA
 None of these blocks the list above.
 
 - **Only a theatre's headquarters can be handed to the AI** by the unit panel's box (`unitpanel.md`, section 9); the original lets a corps, an army or an army group go too, and the agents here are a theatre's. The AI's own liberating and puppets are still reported unbuilt (`politics.md`, section 11.1).
-- **An expeditionary force's first piece is built** (`docs/mechanics/expeditions.md`): the window, the rows, the offer and answer, the hand-over and the return, the flag and what a lent unit may not do. A lent unit's officers, supply, reinforcement and combat figures are its lender's. The AI lends nothing and the exile does not send them home.
+- **An expeditionary force's first piece is built** (`docs/mechanics/expeditions.md`): the window, the rows, the offer and answer, the hand-over and the return, the flag and what a lent unit may not do. A lent unit's officers, supply, reinforcement and combat figures are its lender's. The AI lends and sends home through its agents (`agents.md`, section 10.5), with nothing asked of the other country; no AI offers one to the player, and an exile does not send them home (`expeditions.md`, section 6).
 - **A battle plan's arrows are drawn without the effect's stencil**, so two arrows of one colour crossing blend where the original paints each pixel once (`docs/mechanics/battleplans.md`, section 11). The translator does not carry stencil states yet.
 - **The order of battle browser takes drags only from its own rows and the unit panel's brigades.** The unit panel's child rows and leader button, the outliner and the deploy menu are also sources in the original (`docs/mechanics/oobbrowser.md`, section 8).
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
@@ -1946,14 +1946,9 @@ None of these blocks the list above.
   "plausible against a real savegame" rests on the first four months.
 
 - **Selection leaves out** (2026-10-16, `docs/mechanics/selection.md`, *Ours*, *Not built* and *Not established*):
-  the multi-unit panel's upgrade-all, detach, higher command and disband, as the single panel leaves
-  them; the selection
-  groups are not saved, there being no saving; the rows do not move right for an open side menu; and **whether the
+  Ctrl and a click on the single panel's battle row, which here opens the battle and selects nothing more; the selection
+  groups are not saved; the rows do not move right for an open side menu; and **whether the
   original ever sees Alt**, which by the bytes cancels a box and by its keyboard is never set - here Alt does nothing.
-- **A unit left empty is not taken out each hour** (2026-11-04, `docs/mechanics/unitpanel.md`, section 7.1): the
-  original's hourly pass removes a unit with no brigades unless it is allowed to stand empty. Nothing here does, so a
-  split's new unit that a refused brigade left empty is taken out at once, and the reorganise window's close disbands an
-  empty unit as the original's does.
 
 - **The province view leaves out** (2026-10-15, `docs/mechanics/provinceview.md`, *Ours* and *Not established*):
   which provinces the original does not simulate and opens no view on - the maintainer knows of none but the sea's;
@@ -1971,7 +1966,7 @@ None of these blocks the list above.
   province without a `text_position` and a near-tie in its square that the original gives to our runner-up (`map.md`,
   *What is not established*).
 - **Convoy lines leave out** (2026-10-15, `docs/mechanics/convoylines.md`, *Ours*, *Not built* and *Not established*):
-  the AI's ordering of transports and escorts, BlackICE's history lines of them, and two things a screenshot would
+  BlackICE's history lines of transports and escorts, and two things a screenshot would
   settle - whether the transports dialog draws the file's `on_complete_icon` and frame, which nothing sets, and which
   category picture a convoy line shows (the buildings', last in the file, is inferred and drawn).
 - **The simulation runs on the frame's thread, so full speed draws one hour a frame** (2026-10-13). Built
@@ -2003,37 +1998,28 @@ None of these blocks the list above.
   generator per run either way, which makes a game replayable from its seed on any machine
   (`trade.md`, *Ours*).
 
-- **Lua's API is built as far as the offers that take only tags, and trade, reach** (2026-10-13,
-  `lua.md`): about a hundred methods of twenty-six classes, where the original registers some six
-  hundred. Nought or false, reported once: governments in exile, and the day's tribute and
-  debt (the AI's strategy answered since 2026-10-16, `aistrategy.md`); `CAIIntel` reads the spies since 2026-10-14 (`intelligence.md`). No `CFixedPoint` is
+- **Lua's API is built as far as the ministers reach** (`lua.md`): some three hundred methods, where the original
+  registers some six hundred. Nought or nil, reported once: a modifier's `GetValue` of any kind but the global IC's, and
+  the tech minister's monthly re-plan (`GetTechModifers`, `GetFolderModifers`). No `CFixedPoint` is
   written by `tostring`, nor made by a script. The lists of neighbours are worked out at each call,
   a third of a millisecond. **The original's main thread ran its Lua at
   24-bit x87 precision** (Direct3D 9's doing) and this runs it in doubles: whole numbers agree, what
-  the AI's fractions do is not established. **`Laws(country)`**, which the original calls for every
-  country entering a new game, is not called - for the player by `docs/compatibility.md`, entry 6,
-  for the rest until there is an AI. **The interpreter is built for 64-bit Windows only**, with the
+  the AI's fractions do is not established. **The interpreter is built for 64-bit Windows only**, with the
   Visual Studio C++ tools, as `openhoi3_lua.dll` - a name chosen because Lua for Windows puts a
   32-bit `lua51.dll` on the PATH, which Godot loaded in its place.
-- **War and its end leave out** (`war.md`, *Not built*): `surrender_inherit` and `release_vassal`;
-  expeditionary forces; the cabinet a new puppet's government would fill; an exile's free supply from friends,
-  its brigades at its leader's technology, liberation, the underground and militia; **the puppet's tribute**;
-  and a landless country's units, which the original destroys each hour. **A change of hands leaves out** unit
-  rebasing, radar and the underground. **A
-  pact is one object for both countries**, so annexation ends both sides of one (`war.md`, *Ours*). War
-  exhaustion is paid back to neutrality since 2026-11-07 (`warexhaustion.md`). **Units on ground they may no longer stand on are not marked** (`war.md`, *Not
-  built*), and undeclared wars and the revolt war are not built. Mobilising and spies spread no threat
-  until they are built.
-- **Factions leave out** (`factions.md`, *Not built*): the custom game's leave and join; the AI inviting, and
-  the Axis AI's limited wars; the victory conditions' random fill for a faction with fewer primaries than the
-  count, reported; **the end of a game** - the `VCConfirm` dialog was not read, so a game the conditions finish
-  is marked so and goes on, and the end date does nothing; the victory conditions' window and alert; and
-  `release_vassal` with the liberation and puppet commands.
-- **The agreements' first half leaves out** (`agreements.md`, section 9): **an AI's offer other than
-  trade** - the AI's foreign minister is not built, so only trades reach the player's bar of offers;
-  the player handing his diplomacy to the AI; **the NAP's border balance**, so a NAP may not be
-  broken inside its three windows and the tooltip says the player has 0% of the brigades; the NAP
-  alert; and aid. The dialog's influence and alignment drift
+- **War and its end leave out** (`war.md`, *Not built*): the cabinet a new puppet's government would fill; an exile's
+  free supply from friends, its brigades at its leader's technology, its partisans turned to militia when it comes home,
+  and its sending home of the expeditionary forces lent to it; and a landless country's units, which the original
+  destroys each hour. **A change of hands leaves out** the air and naval units based in the province, which the original
+  sends to the old side's nearest base, and radar. **A
+  pact is one object for both countries**, so annexation ends both sides of one (`war.md`, *Ours*). **Units on ground
+  they may no longer stand on are not marked** (`war.md`, *Not built*), and the revolt war is not built.
+- **Factions leave out** (`factions.md`, *Not built*): the victory conditions' random fill for a faction with fewer
+  primaries than the count, reported.
+- **The agreements leave out** (`agreements.md`, section 9): the player handing his diplomacy to the AI as the
+  original does it, under which his own offers are answered like an AI's and the 96-hour drop applies to him - the
+  lobby's automation gives his country a foreign minister (`frontend.md`, section 4), and offers to him are not checked
+  against it. The dialog's influence and alignment drift
   says each day's `align_towards` and the days; a message's `VAL` and `TIME`, which no text of the
   base game uses, are not given. **Every `DiploScore_NonAgression` answer on a new game is below
   nought** (`OpenHOI3.SaveCheck aiscore`), so the AI declines every NAP; whether the original's
@@ -2041,108 +2027,74 @@ None of these blocks the list above.
 - **Aid leaves out** (`aid.md`, *Ours*): the licence list's combat-value comparison (technology levels
   stand in), a licence row's stat block, a convoy's lend-lease efficiency lowered by sinkings, and the
   production screen losing its tooltips while the lend-lease window is open. **Every licence model shows
-  "+*"** in a new game: the exact-match rule behind the mark is inferred from the record's word. No AI
-  proposes debt, lend-lease, licences or sharing - the foreign minister's Lua is not built - and nothing
-  of lend-lease was set against a save, none of which holds any.
+  "+*"** in a new game: the exact-match rule behind the mark is inferred from the record's word. The foreign
+  minister proposes licences, and in a new game's first 180 days no debt or lend-lease (`foreignminister.md`,
+  section 9); the lend-lease day was never set against a save.
 - **Trade leaves out** (`trade.md`, section 16): what becomes of a route
-  when either country ends, not read; handing foreign policy to the AI; and the sound a new offer
+  when either country ends, not read; and the sound a new offer
   plays. **Automate Trade is a command here**, where the original's checkbox writes its local player's
   own flag (`trade.md`, *Ours*). **The offer dialogs' background**, `SandboxFloaterBackground`, is
-  drawn as its texture is, see-through grey; nobody has set it beside the original's. **It is slow**: with nobody playing, the install's trading scripts take
-  about 80 ms an hour, some two seconds a game day, nearly all of it the Lua itself after the
-  province scans it asked were cached (`CCountryFacts`); the original spreads it over worker
-  threads.
-- **The diplomacy screen shows nought or nothing for what is not built** (`diplomacyscreen.md`,
-  *Ours*): every country's surrender bar is full, a faction's victory bar empty and its tooltip
-  "0 out of 0" - no province's victory points are read yet - and its box has no victory
-  conditions; the goal lists and the drift list are empty, the action list holds the agreements
-  but not war's rows, and
-  `trade_automate_checkbox` does nothing. Which rows' checkboxes the original clears when another
-  is chosen, the order of equals under the nine sorts, and the order of a faction's members (the
-  history's, here the countries') were not read.
-- **The alignment triangle drifts without faction progress or influence** (`alignment.md`): a
-  faction's share of the victory points is taken as nought, so revanchism weighs every held core in
-  full, and no `align_towards_*` exists. **Its first step agrees with the start save for 50 countries
-  of 101** because the original's AI moves many countries' press laws and fills empty cabinet posts
-  as a game is entered, which changes their drift speed and susceptibility - neither is built here.
+  drawn as its texture is, see-through grey; nobody has set it beside the original's.
+- **Of the diplomacy screen, three things were not read** (`diplomacyscreen.md`, *Not established*): which rows'
+  checkboxes the original clears when another is chosen, the order of equals under the nine sorts, and the order of a
+  faction's members (the history's, here the countries').
+- **The alignment triangle's revanchism takes a faction's share of the victory points as nought** (`alignment.md`;
+  `CAlignment`), though faction progress is kept since 2026-10-13 (`factions.md`), so it weighs every held core in
+  full. **Its first step agrees with the start save for 80 countries of 101** (`politics.md`, section 13).
   The most-threatening country is worked out for every country each day, where the original does it
   for countries a flag it sets marks.
 
 - **Events fire and decisions are taken** (2026-10-12, `script.md`, `triggers.md`,
   `effects.md`, `events.md`), and much around them waits:
-  - **three on_actions have nothing to fire from** (`events.md`, section 8): `on_encirclement`
-    waits for a province's days without supply to be counted, `on_surrender` for surrender,
-    `on_nuke_dropped` for the bomb - the coups fire since 2026-10-14, though only the
-    intelligence screen posts one; and a battle's `last_*_losses` are not kept, so the six
-    conditions on them answer false;
-  - **the words of a condition or an effect about something not held are the original's, with
-    what it would name left out** (`scripttext.md`, *Ours*): a ruling party's name is empty, and
-    a guarantee or a pact is never
-    had - so `guarantee` always writes its line and `end_guarantee` never; province none has no
-    name, so an effect in a region names none;
-  - **of messages, only an event's and a decision's are raised** (`messages.md`, *Ours*): none
-    on the map, no settings window of a type's own - a right click on a popup or a log row does
-    nothing - and of the bottom bar the chat is hidden (the minimap, the zoom buttons and the map
-    modes' buttons are built, `minimap.md`); whether the original's button that opens the log
-    shows only while it is shut was not read. The in-game menu's message settings and
-    `messagetypes_custom.txt` are built (`ingamemenu.md`);
-  - **a loaded save holds nothing yet of its politics, research queue, spies or AI** (`savegame.md`,
-    section 4): they are cleared and reported, never answered from the history. A land side's list
+  - **`on_encirclement` has nothing to fire from** (`events.md`, section 8): it waits for a
+    province's days without supply to be counted; and a battle's `last_*_losses` are not kept, so
+    the six conditions on them answer false;
+  - **of messages, none is written on the map** (`onmap`, `messages.md`, *Ours*), and of the bottom
+    bar the chat is hidden; whether the original's button that opens the log shows only while it
+    is shut was not read;
+  - **of a loaded save** (`savegame.md`, *Ours* and *Not established*), a land side's list
     of units falling back is not held - the original's is filled by nothing but a load, so it is
     always empty (`FINDINGS-savedbattle.md`, A.11) - and the two
     conditions that count sunk ships stay unanswered, their bodies unread (section 7).
-    `OpenHOI3.SaveCheck load` lists every key left. So the AI makes its theatres again, and Japan's
-    makes a headquarters the save has not got in the first hour; which hour first sees the officers
+    `OpenHOI3.SaveCheck load` lists every key left. Which hour first sees the officers
     a day adds is not settled; and the first midnight after a load drops two supply convoys the
-    original keeps (`savegame.md`, *Not established*);
-  - **expeditionary forces are not built** - a unit one country lends another, which the original's
-    AI does with its puppets: Japan has 26 divisions lent to Manchukuo and Mengjiang in the Ireland
-    game's saves of 6 September 1939. A loaded lent unit counts as its receiver's, so the officer
-    ratios of all three are wrong and 540 of Japan's brigades drift from the save in an hour
-    (`savegame.md`, *Not established*). Set aside by the maintainer on 2026-11-05 for the savegame;
-    it wants a reading first - how the officer count takes a lent unit and whose ratio holds its
-    organisation, which countries the hourly recount passes over, and the lending itself with its
-    return date - and those saves are its check, with the six of 23 May 1940, an hour apart, where
-    Britain has lent France 2 divisions and Germany Slovakia 1 beside Japan's 44, and Germany's 531,
-    Britain's 372 and France's about 300 brigades drift the same way each hour;
-  - the front end's multiplayer menu, tutorial list and credits are not built, greyed there, nor Arcade's supply, the lobby's game mode
-    greyed for it (`docs/compatibility.md`, entry 18), nor the five alerts the player's automation
-    silences, no alert of them being built (`frontend.md`, section 4.3);
+    original keeps;
+  - **whose officer ratio holds a lent unit's organisation is not settled** (`savegame.md`, *Not
+    established*): here a lent unit's officers are its lender's (`expeditions.md`, section 4), and
+    the Ireland game's saves of 6 September 1939, where Japan has lent 26 divisions to Manchukuo
+    and Mengjiang, the six of 23 May 1940 and the twelve of 16 July 1941 fit neither "the lender
+    counts them" nor "the receiver does" in every case; it wants a reading, and those saves are its
+    check;
+  - the front end's multiplayer menu, tutorial list and credits are not built, and are greyed there
+    (`frontend.md`, section 2);
   - **`debug_saves` other than nought autosaves nothing** (`savegame.md`, section 11): the
     original's saves under it are named by a routine not read;
-  - **of the player's settings, only the gamma, the multisampling, the hierarchy's lines and the
-    outliner's sections are applied** (`gameoptions.md` and `settings.md`, *Ours*): the screen's
-    size, rate and full screen are not taken at a start, there is no sound, the camera's speeds and
-    the legacy camera are not its, nothing draws trees, water or names on counters, and the counter
-    distance and scale are kept and written and do nothing. The game options window lists the
-    settings' mode and the screen's, not the card's. What the outliner changes is not carried back
-    into the file;
-  - **the AI takes no decision**: the original's take them in its Lua scripts, and there is no
-    AI (`events.md`, section 9);
+  - **of the player's settings, the gamma, the multisampling, the hierarchy's lines, the simple
+    water, the trees and the surf, the counter scale, the zoom speed and the outliner's sections are
+    applied** (`settings.md`, section 1; `gameoptions.md`, *Ours*): the screen's size, rate and
+    full screen are not taken at a start, the scroll and mouse speeds and the legacy camera are not
+    the camera's, nothing draws names on counters, and the counter distance is kept and written and
+    does nothing. The game options window lists the settings' mode and the screen's, not the card's.
+    What the outliner changes is not carried back into the file;
   - **no event is asked in a new game's two first days** - ours; whether the original's are was
     not read (`events.md`, section 2);
   - **the decision list's button's `SELECT` is wider than its 32-pixel picture**, as the files
     have it - not set beside the original;
-  - **a condition the simulation cannot answer is false**, and the unbuilt list is long
-    (`triggers.md`, section 8). Inside a `not` that makes the `not` true, so `not = {
-    government = x }` holds everywhere, and **such an event fires** - the maintainer's word on
-    2026-10-12, "Just fire them" - so some of the base game's events will fire for every
-    country until governments and parties are built;
-  - **an effect on what the simulation does not hold does nothing** (`effects.md`, section 8):
-    `relation` (271 of the base game's effects), `neutrality`, `war`, the government's and the
-    parties', a unit type's name and the rest - each a system of its own still to build;
-  - **a change of controller by script does what a battle's does here**, the province changing
-    hands and nothing else - the damage to buildings, the plunder of a capital and the rebasing
-    of aircraft and ships wait for both (`effects.md`, section 5);
-  - **`create_alliance`** runs a part of the alliance action nobody has read, and does nothing;
-  - **`num_of_ports`, `total_num_of_ports`, `has_hostile_spy_mission` and `sea_zone`** are
-    unread in the original, not unbuilt here, and answer false until they are read;
+  - **a condition the simulation cannot answer is false** (`triggers.md`, section 8;
+    `CUnansweredConditions`): `remove_fow`, the AI's missions, a country's war record and the last
+    battles, blockades and a province's days out of supply. Inside a `not` that makes the `not`
+    true, and **such an event fires** - the maintainer's word on 2026-10-12, "Just fire them";
+  - **an effect on what the simulation does not hold does nothing** (`effects.md`, section 8;
+    `CUndoneEffects`): `remove_fow`, `add_ai_strategy`, `fixed_ai_strategy`, `add_division` and
+    `remove_brigade`;
+  - **a change of controller, by script or by a battle, leaves the aircraft and ships based in the
+    province where they are** - the original sends them elsewhere (`war.md`, *Not built*);
+  - **`has_hostile_spy_mission`** is unread in the original, not unbuilt here, and answers false
+    until it is read;
   - **the lists the original keeps a day** - neighbours, allies, the nations a country could
     release - are worked out when asked (`triggers.md`, section 6);
-  - **the other places the original writes triggers and effects** are not read with it -
-    `on_actions.txt`, `triggered_modifiers.txt`, the casus
-    belli, the AI's files - and a technology's `allow` and a tactic's or a trait's `trigger`
-    still go through the small readers they were built with (`CResearchCondition`,
+  - **a technology's `allow` and a tactic's or a trait's `trigger`
+    still go through the small readers they were built with** (`CResearchCondition`,
     `CCombatCondition`), which should become this one's - the battle's conditions answer
     false here for want of a battle in the scope, so that is where they go next;
   - **BlackICE's events have not been read**: a mod is not a layer here yet, and its 178
@@ -2151,17 +2103,13 @@ None of these blocks the list above.
     here reading the lists they name (`script.md`, *Not checked here*);
   - **a tag spelled like another of the original's own words** is not caught: only `PHI` and
     `PAN`, the two the base game's and BlackICE's tags collide with, are known.
-- **The production and technology screens' tooltips leave two things out** (2026-10-11): the
-  standing army's term of the consumer goods
-  demand, which the simulation has since 2026-11-02 and the slider still says `0.00` of, counting the brigades its own
-  way, without those waiting to be placed (`production.md`, section 3); and the lines of the trade and convoy lists,
-  which are empty.
+- **The consumer goods slider's tooltip leaves out the standing army's term of the demand** (2026-10-11), which the
+  simulation has since 2026-11-02 and the slider still says `0.00` of, counting the brigades its own
+  way, without those waiting to be placed (`production.md`, section 3; `CShareTooltips`).
 - **A new game's consumer goods share leaves out the standing army** (2026-11-02): the shares are set before any unit
   exists, so the two days run short of the demand and dissent rises where the save has none - 85 of 101 against 94
   without the term (`politics.md`, section 10). What the original's starting share is made of is not established
   (`production.md`, section 1); Germany's untouched 0.224 there is a place to start.
-  Nothing disables a building's button or the underground's, so their tooltips' second
-  lines never show (`productionscreen.md`, section 8).
 - **A technology's requirement text knows the base game's conditions only** (2026-10-12,
   `technologyscreen.md` section 9): a technology's level, `num_of_ports`, `any_owned_province`
   with `has_building`, and the three groups. BlackICE's `allow` blocks use `war`, `faction`,
@@ -2169,17 +2117,16 @@ None of these blocks the list above.
   cannot say until they are read - `has_country_flag`'s words are read already. A building
   under `any_owned_province` is "in" the province numbered nothing, whose name is empty here.
   The panel's `effects` list is still ours; the original cuts the same text into its rows.
-- **The battle window's tooltips leave three things out** (2026-10-12, `combatview.md`
-  section 12): a landing's lines, which wait for landings; the bombed side's rows, which say a
+- **The battle window's tooltips leave two things out** (2026-10-12, `combatview.md`
+  section 12): the bombed side's rows, which say a
   figure each in the original whose joins were not read; and what of the province a bombing's
   row in a unit's panel adds. A ship's positioning is scaled by `targeting_chance`, taken to be
   the figure the original names `naval_positioning_bonus`.
 - **The unit panel's tooltips leave out what is not built under them** (2026-10-12,
-  `unitpanel.md` section 10): the attrition breakdown, the supply and fuel lines, a fleet's
-  or an air unit's base and what it supplies, the terms of the speed's multiplier one by one,
+  `unitpanel.md` section 10): the attrition breakdown, a fleet's
+  or an air unit's base and how well it supplies, the terms of the speed's multiplier one by one,
   the organisation a brigade regains an hour, what technology adds to the digging-in cap, the
-  `+*` on a model the country no longer builds, a faction leader's name for a model, and the
-  upgrade button's list. A leader's traits on the way are in the traits file's order, where
+  `+*` on a model the country no longer builds and a faction leader's name for a model. A leader's traits on the way are in the traits file's order, where
   the original's are in the order they lie in its memory.
 - **The step of ten in the builder windows is Ctrl on the word of a tooltip** (2026-10-11):
   the original's own buttons say "Ctrl + LMB to add or remove 10", and the key its code asks
@@ -2191,15 +2138,8 @@ None of these blocks the list above.
   pick alone as the original gives it (`landcombat.md`, section 11). Of the things that bear on a unit in a round, three
   wait for what they read - shore bombardment, mission efficiency, landing craft -
   and three technology figures are left out for want of their keys; `landcombat.md`,
-  section 4, lists them. **And nothing makes weather**, so the weather's part of a battle
-  and of a march comes to nothing and every province's night is by the clock alone. Beside
-  those: the buildings a pushed-back defender damages, the relations and the events a decided
-  battle moves, a battle's experience and practical knowledge, and three of the four cases
-  of who a taken province goes to - a puppet's master, an exile's faction, a friend who
-  holds the ground beside it.
-- **The battle window says less than the original's.** No tooltip - which is where the
-  original says what each modifier is worth to a unit and what a tactic does - and no sound;
-  and only a land battle has one. An enemy's counter says what its
+  section 4, lists them. A round gives no practical knowledge (section 3).
+- **The battle window says less than the original's.** No sound. An enemy's counter in it says what its
   unit is, where the original writes question marks on one it knows too little of; units
   in a battle stand where they stood, where the original has a place in each province for
   the attackers and one for the defenders; and what a click on the original's marker does
@@ -2239,38 +2179,32 @@ None of these blocks the list above.
   stand, where its name is written - its terrain is taken around that - where its port
   is, the land end of a distance to the sea, and where each of its buildings is drawn.
   `docs/mechanics/map.md`, section 4, and `mapunits.md`, section 9.
-- **A window's background is no longer stretched to the window.** A plain picture named
-  as a window's background keeps its own size at the window's corner; only a cornered
-  tile fills the window. Measured on the orders windows and the files on 2026-10-09
-  (`docs/mechanics/interface.md`, section 3). No window built before then has a plain
-  picture for a background, so none changed; the fifteen of the base game that have one -
-  the event windows, the brigade view, the province finder - will be right when they come.
-- **Of an air unit's orders fifteen are built**: air superiority, the intercept, the eight
+- **Of an air unit's orders sixteen are built**: air superiority, the intercept, the eight
   bombing missions, the change of base, and since 2026-10-16 carrier protection, the paradrop,
-  the rebase to carrier and the air supply (`transport.md`, section 13). The window lists the
-  reserve and the raid on convoys as the original does, and they cannot be ticked; the bomb's
-  row is left out. `docs/mechanics/fleetsandair.md`, sections 4 and 5.
+  the rebase to carrier and the air supply (`transport.md`, section 13), and the nuclear bomb
+  (`nukes.md`). The window lists the
+  reserve and the raid on convoys as the original does, and they cannot be ticked.
+  `docs/mechanics/fleetsandair.md`, sections 4 and 5.
 - **A battle at sea, a battle in the air and a bombing have no marker on the map**, because
   the original gives them none: its marker is a land battle's alone, and from the battle's
   fourth hour (`combatview.md`, section 8). So they are reached by the row in a unit's
   panel and by nothing on the map. **The sea battle had a marker here when the maintainer
   looked at it**, and its going was not put to him: one line of `CCombatViewText.HasMarker`
   brings it back if he remembers the original otherwise. What the original shows of them
-  on the map is in its **air and naval map modes** - icons of the battles that are over -
-  and neither mode is built, nor the list of finished battles they are counted from.
+  on the map is in its **air and naval map modes** - icons of the battles that are over: the
+  air mode's are built (`airmap.md`), the naval mode's of convoys sunk and raiders fought are
+  not (`combatview.md`, *What is not built*).
 - **The retreat button of a battle on land is not the original's.** The original gives every
   unit of the player's the one order, to go where a beaten unit goes; here that is so for an
   air unit, a fleet is set breaking away, and a land unit is only halted
   (`combatview.md`, sections 2 and 11).
-- **A battle in the air was read and never watched.** Its window and its row in a unit's
-  panel were tried with real clicks and the maintainer has not looked at them
-  (`combatview.md`, section 11). Leaders and difficulty are not
-  in what the hour makes of a wing; a battle earns no practical and no experience.
-  `aircombat.md`, section 10. `OpenHOI3.SaveCheck airbattle` is a trial of it.
-- **Bombing was read and never watched**; its window is the air battle's and as little
-  looked at. A carrier's aircraft are built since 2026-10-16 (`transport.md`, section 13); the
-  raid on convoys from the air is not, nor what a
-  strategic bombing does to threat and to the bombed country's unity. `bombing.md`,
+- **A battle in the air has been set beside the running game for one hour and never watched.** Its window and its
+  row in a unit's panel were tried with real clicks and the maintainer has not looked at them
+  (`combatview.md`, section 11); an hour of one over a province came out the original's, every draw and figure, on
+  2026-11-10. A battle earns no practical. `aircombat.md`, section 10. `OpenHOI3.SaveCheck airbattle` is a trial of it.
+- **Bombing has been set beside the running game for three hours and never watched** - three land bombings of August
+  1938, an hour each, the original's on 2026-11-10; its window is the air battle's and as little
+  looked at. The raid on convoys from the air is not built, nor the practical a bombing earns. `bombing.md`,
   section 13. `OpenHOI3.SaveCheck bombing` is a trial of it.
 - **The fog of war on the map is built since 2026-11-07** (`mapunits.md`, sections 3 and 9): a stack the player knows
   under 2 is not there, under 3 it is one counter with the unknown picture, a name under 5 is `???` and the figures under
@@ -2284,9 +2218,6 @@ None of these blocks the list above.
   rest were not read for which they mean** - the order of an area's harbours, where a depot
   may be, a convoy's choice of harbour - and are given what was built, so that bombing does
   not rearrange a network. `bombing.md`, section 7.
-- **A land battle does no damage to a province's buildings.** In the original a defender
-  falling back does, by a roll for each building (`landcombat.md`); it waited for a
-  building to have a level that can be damaged, which it has now.
 - ~~**No AI gives an air mission**~~ - the AI's air body gives them since 2026-10-19 (`moving.md`, section 17): close
   support, intercepts, logistical strikes and naval and port strikes. It gives no strategic bombing, nothing yet
   handing it the enemy's war industry.
@@ -2302,19 +2233,17 @@ None of these blocks the list above.
   read on 2026-10-09, counts only a square of twenty pixels around the province's name. It
   changes 384 of the base game's 10,621 land provinces. Nothing in a savegame says which
   is right, so it rests on the reading. `docs/mechanics/map.md`, section 9.
-- **Nothing an enemy would change about a march is built**: no battle holds a unit, no
-  attack delay, no retreat; no fleet meets another or closes a crossing. A unit walks onto ground
-  its country may walk on - its own, its faction's, nobody's, and that of a country it is
-  at war with - and military access, alliances and puppets are not known yet.
-  `docs/mechanics/movement.md`, the last two sections.
+- **A unit too weak is not kept off an enemy's ground**, as the original's route keeps it, nor a
+  country from attacking out of a neutral that merely lets it through; and no message says a unit
+  has arrived. `docs/mechanics/movement.md`, *What is not built*.
 - **The march's speed is checked against savegames and its arrival is not.** The
   distances agree with the original's cache exactly and what an hour adds agrees with
   saves hours apart, division by division; the hour a unit arrives and what it keeps are
   as read. ~~**There is no weather**~~ - built 2026-10-15 (`weather.md`): mud and frost slow a march here as in the
   original's January. `movement.md`, section 5.
-- **The route found here is not always the AI's.** Set beside the paths in a savegame,
-  about nine in ten are the same; the original has two more careful finders the AI may
-  ask for, which are not read. A player's order uses the plain one, which is.
+- **The AI's two careful route finders weigh a fleet or an air unit as the plain one does**, where the original's
+  weigh them otherwise; for a land unit they are built (`movement.md`, section 3; `moving.md`, section 19). A player's
+  order uses the plain one.
 - **The arrow of a selected unit and the pointer beside every moving one are the
   original's own**, each read and held against a screenshot the maintainer gave on
   2026-10-09: the arrow a band along a curve through the path, hollow ahead of the unit
@@ -2323,34 +2252,21 @@ None of these blocks the list above.
   its tip is whole all the same, which was not made out. Where a moving unit's counter
   stands is from one screenshot, by a stack whose depth had to be counted off its edges.
   `docs/mechanics/movement.md`, section 7, and `mapunits.md`, sections 1 and 2.
-- **Only the marching arrow is drawn.** The original has others for an attack, a
-  retreat, a redeployment and a landing, declared beside it in `interface/arrows.gfx`.
-- **The unit panel shows more buttons than work.** The three checkboxes, the button that
-  halts a march, the button that goes to the unit's province and the rows that select a
-  unit above or under it do what the original's do. Making a headquarters, attaching and
-  detaching, loading, disbanding, reorganising, the leader, the order of battle browser
-  and selecting all subordinates are shown as the original shows them and cannot be
-  pressed, and so is a headquarters' row for the AI that might command it - the box that
-  hands it over and the slider for how aggressive it is. What an AI in command would
-  add to that, what a unit carries and the battles it is in
-  are not there, and neither is any tooltip - which is where the original says when a
-  unit will arrive, so the readout beside the panel still does, when a province is
-  selected as well as the unit. `docs/mechanics/unitpanel.md`.
+- **Of the unit panel's buttons only `edit_theatre` cannot be pressed** (`attaching.md`, section 5).
 - **Where an edit box puts its text and how a rotated icon is placed are measured and not read**, both from the
   unit panel alone (`docs/mechanics/interface.md`, section 7). A unit is renamed from its name box since 2026-11-12
   (`unitpanel.md`, section 3).
 - **The unit panel's attrition figure is always nought**: nothing wears a unit down for
   where it stands yet. Its supply and fuel bars are real since the supply pass was built.
   `unitpanel.md`, section 4.
-- **One unit at a time.** Nothing selects several, so the original's list of selected
-  units and the window over it are not built.
-- **The hierarchy of a selected unit is on the map, less what an AI would add.** A
+- **The hierarchy of a selected unit is on the map, less the ring an AI's command adds.** A
   selected land unit is joined to its commander and everything under it to theirs, in the
   original's picture and colours, a unit out of radio range by a broken dark red line
-  (since 2026-10-11); H switches the lines off and on; and the counter of every unit under
-  it wears the original's second ring colour. The setting is kept nowhere, the lines are
-  drawn at any zoom, and the green ring of a selected unit an AI commands has no AI to
-  show for. `docs/mechanics/mapunits.md`, section 8.
+  (since 2026-10-11); H switches the lines off and on, as the settings' `render_hierarchy` does; and the counter of
+  every unit under it wears the original's second ring colour. The lines are
+  drawn at any zoom, and a selected unit an AI commands does not wear the original's green ring (`ECounterRing`),
+  though a headquarters is handed to the AI since 2026-11-09 (`unitpanel.md`, section 9).
+  `docs/mechanics/mapunits.md`, section 8.
 - **What shows on the map at which zoom is the original's, told in its camera's heights**:
   nothing but the map from a height of 500 up, the far counter under that, the near one
   under 100. The maintainer's word for the two views, 2026-10-09, and the camera read for
@@ -2361,29 +2277,10 @@ None of these blocks the list above.
   moving, fighting and flying - how was not found. That the higher
   rank is on top of a stack is the maintainer's word, the original's sorting not having
   been read. `mapunits.md`, sections 1, 3 and 7.
-- **A counter's name is its unit's**, as the original writes it with `show_unit_names`
-  on; with it off the original writes the leader's. There are leaders now and no settings;
-  the maintainer decided on 2026-10-09 that it stays so until the settings are built.
-  `docs/compatibility.md`, entry 7.
-- **A unit can be selected and sent somewhere, and nothing more.** A click on the counter
-  on top of a stack puts a ring on its unit, and further clicks go through the stack - the
-  maintainer's account of the original, 2026-10-09; the order they go in is ours. There is
-  no panel for a unit.
-- **The provinces a unit may be placed in are tinted green**, which the maintainer has
-  seen and passed. That the original marks them is remembered; how, and the click on the
-  map that places a unit, were not read. `mapunits.md`, section 6.
-- **One alert of sixteen is built**, and it is up whenever a unit waits: when the
-  original puts it up was not read. `mapunits.md`, section 5.
+- **The provinces a unit may be placed in are tinted green our way**, over the mode's colours, which the maintainer
+  has seen and passed; the original paints the same grey and green for a unit as for a building, left so until he has
+  looked (`buildinglines.md`, *Ours*; `mapunits.md`, section 6).
 - **Loading runs under the loading screen** since 2026-11-11, on a thread of its own where it touches no engine object; making the front end's map still holds the screen still for about three seconds (`docs/mechanics/loadingscreen.md`, *Loose ends*).
-- **The game does not stop at the end date** in `common/defines.lua`.
-- **A new game is short of 476 technology levels the original starts with**, and why is
-  half found: 453 of them bring a country exactly up to what was due before 1936 in that
-  technology - Germany gets 22, the three that allow mountain troops, engineers and
-  carrier air groups among them - but which technologies are chosen is not found, it is
-  not research, and none of four guesses from the data fits. It wants a reading, and then
-  the maintainer's word on whether the player's country gets them, since they are given
-  to it as the laws were. `OpenHOI3.SaveCheck techgap`; `docs/mechanics/resources.md`,
-  section 5.
 - **Things the savegame shows that are not explained**: home production for three countries, governments for
   countries that do not exist yet (`docs/mechanics/resources.md`, section 5), what sets a
   country's shares of IC at the start, and why nine untouched countries make 10% more
@@ -2395,10 +2292,9 @@ None of these blocks the list above.
   against the original.** They are built from a reading of its code, the figures and the
   rules checked in the listing. The maintainer's first try, on 2026-10-08, found four
   things wrong; they are mended and on the second he found the windows right
-  (`builders.md`, section 10). Parts of them are ours for want of a reading: the name and the
-  picture a type is shown by, the names of a ship's technology levels and what each
-  does, the description of a wing or a brigade, every tooltip.
-  `docs/mechanics/builders.md`, the last four sections.
+  (`builders.md`, section 10). Parts of them are ours for want of a reading - what saving a
+  template does, and how a country with no `default_templates` comes by any.
+  `docs/mechanics/builders.md`, *What is not established*.
 - **Which element takes a click is ours, but for two things the maintainer saw.** Nothing
   of how the original hands the mouse to an element was read. A button, a scrollbar and
   an icon take a click, the uppermost first; a window, a text box and a list box do not;
@@ -2415,20 +2311,11 @@ None of these blocks the list above.
 - **A unit type's `available_trigger` is not asked.** It is script; a type that has one is
   taken to pass. The base game gives it to seven elite brigades, each also kept to its
   own country by `usable_by`.
-- **Every country's finished units but the player's wait for ever.** A finished unit
-  joins those waiting to be placed, where it eats and calls for officers, and the player
-  places his from the deploy menu. No other country orders, cancels or places anything,
-  there being no AI: what their files start them building is finished and then waits.
-- **The queue builds units and buildings, and no convoys.** The original's also holds convoys, and a finished
-  one prices every line of the queue again (`buildinglines.md`, section 5).
 - **Six countries' queues start somewhere else than the original's**: Britain's, the United
   States', Japan's, France's, Belgium's and the Netherlands' lines are priced as the game
   starts under laws or ministers the original's AI had already changed, and which they
   were is not known. Every line's cost and days agree once the save's laws are given.
   `buildqueue.md`, section 9.
-- **A unit shows as a counter and nowhere else.** No screen lists the units or says what
-  one holds; for that there is `tools/OpenHOI3.SaveCheck` - and, indirectly, the
-  production screen's supplies, fuel and four needs, and its queue.
 - **A battle at sea was read and never watched.** What decides its course - the order
   ships are drawn up in, who is shot at - rests on the reading alone (`navalcombat.md`,
   the end). `OpenHOI3.SaveCheck seabattle` is a trial of it.
@@ -2436,50 +2323,20 @@ None of these blocks the list above.
   maintainer looked at it on 2026-10-10 - "The sea battle window looked perfect"
   (`combatview.md`, section 10) - so where a ship's picture stands in its row and which of
   its two frames it shows have his eye and no measurement; the land battle's window had
-  four things wrong that only his screenshots showed. Its tooltips, its leader and its
-  sounds are not built.
-- **A fleet's missions were read and never watched, and six things in them look wrong.**
-  They are built as read and listed in `navalmissions.md`, section 12, for somebody who can
-  watch the original: an interceptor goes out once and then lies in port under its order;
-  a patrol sinks convoys; a sortie ordered from anywhere but its base is given a path that
-  does not begin where it is, and one that turns aside for an enemy does not go on; a
-  reserve never sees to a fleet of priority 4; a raider's ships shoot at their own last
-  ship; an escort hesitates an hour at the first end of its beat.
-- **Nobody gives the other countries' fleets a mission.** There is no AI: `--mission` on
-  the command line is the only way an enemy fleet patrols, raids or intercepts. And an
-  idle fleet of a country nobody plays starts no battle - the original's rule.
+  four things wrong that only his screenshots showed. Its sounds are not built.
 - **Carrying by sea and by air are built, and neither was looked at on screen by the maintainer**
   (`transport.md`); the carrier, the paradrop and the air supply were tried only with
-  `OpenHOI3.SaveCheck airborne`. Nobody but the player boards, lands, drops or flies supplies,
-  there being no AI; **the panel for several units selected** - its load, load on aeroplanes and
-  unmount - waits for selecting several; and the technology figures `paradrop_mission` and
+  `OpenHOI3.SaveCheck airborne`. The AI drops no paratroopers (`moving.md`, section 20); and the technology figures `paradrop_mission` and
   `transport_supplies_mission` do nothing, no reader of them having been found. Three small things
   are ours and listed in the spec's *Ours*: the nearest air base a carrier's groups go to, the
   order the planes' load button looks in, and a paradrop's start moved on only when its row is
   ticked and when accepted.
-- **A raid from the air is not built**, nor the threat a raider's country gains for a
-  ship sunk, nor any message about a raid.
+- **A raid from the air is not built**, nor any message about a raid (`navalmissions.md`, sections 8 and the end).
 - **Who is played by a person is state the client sets**, `CGameState.Played`, and not a
   command: it is asked in one place, the idle fleet's, and wants a proper home when a
   game can be joined or left.
 - **A fleet whose last ship is sunk is removed from the game at once**; what the original
   does with an empty fleet was not followed.
-- **A ship's own technology and its admiral are not in a sea battle**: the positioning a
-  technology adds, the targeting it adds, and every leader's skill and trait - which
-  between them decide how well a fleet is drawn up and whether it shoots at what matters.
-- **Convoys lose ships and none is built.** A raid sinks transports and escorts
-  (`navalmissions.md`, section 8), and no transport or escort is built, so a country lives
-  on those a new game gives it and only ever has fewer; no trade or lend-lease convoy; and
-  the production screen's list of them is empty, with its three switches always on.
-  `docs/mechanics/convoys.md`, *Not built*.
-- **The goods of a country that does not exist are shipped to whoever holds its capital**,
-  where that capital is cut off from the holder's own: everything lying in cut-off land goes
-  to its harbour each day, and a province's pool is also such a country's stockpile. It is
-  what the original does - Jerusalem, Cairo and Amman have no resources left two days into
-  the maintainer's save, and Britain has 450 crude oil it did not make - and **his word,
-  2026-10-10, is to follow it**. Such a country is still charged for consumer goods and
-  supplies, and its pool is made nothing again at each day's end. Not a loose end; noted here
-  because it looks like one. `convoys.md`, section 8.
 - **Seven countries that do not exist make about a tenth fewer supplies than the save says.**
   Sixteen of 23 agree. The maintainer's pointer for when it is taken up: a minister effect
   on supplies, and triggered modifiers that give supplies - applied since 2026-10-14, and
@@ -2490,23 +2347,29 @@ None of these blocks the list above.
   and the country's modifiers; here they are multiplied in turn. They agree with the save for
   78 countries of 78, and could part under a law and a local modifier at once.
   `reversing/findings/FINDINGS-supplyconvoys.md`, section 8.
-- **The supply map mode shows the player's own land only.** There is no intelligence, so
-  every other country's land is the grey the original gives land one knows nothing of; the
-  mode is turned on by the minimap's button `mapmode_8` (since 2026-11-07); and its tooltip says of
-  anybody else's province only its name and owner. `docs/mechanics/supplymap.md`.
-- **A new game's two days are run, and what the original's AI does around them is not.**
-  There it changes laws for every country, some before the days and some after, and makes
-  its theatres; a change of law holds every brigade to the running game's ceilings,
-  which is why the original's first screen shows reserves already down. Here nothing
-  changes a law, so a reserve stands at its own figure of organisation on the first screen
+- **The supply map mode shows the player's own land only.** It takes what the player knows of a province as 9 where
+  he holds it and nothing elsewhere (`CSupplyMapColours`), though what a country knows of every province is worked out
+  since 2026-10-14 (`intelligence.md`), so every other country's land is the grey the original gives land one knows
+  nothing of; and its tooltip says of anybody else's province only its name and owner. `docs/mechanics/supplymap.md`.
+- **A new game's laws are brought forward before its two days, and none is changed after them.**
+  The original's AI changes laws for every country, some before the days and some after; a change of law holds every
+  brigade to the running game's ceilings, which is why the original's first screen shows reserves already down. Here
+  the laws move before the days (`politics.md`, sections 12 and 13) and nothing holds a brigade after them, so a reserve
+  stands at its own figure of organisation on the first screen - Germany's at 35 to the start save's 28,
+  `OpenHOI3.SaveCheck firstdays` on 2026-11-12 -
   and the first hour played brings it down - **unless the unit is sent to attack before
   that hour is run**, since a unit that is fighting gets no hourly return and so is not
   held either: a German reserve division then fights its first battle at 35 where its
   ceiling is 14. Holding every brigade once the days are run would close it; that is not
   what the original does, and the maintainer's word on 2026-10-10 was to leave it: "The
-  two days for the brigades is ok for now. Maybe it comes up again later." For the player's country
-  the unchanged laws are the decision (`docs/compatibility.md`, entry 6); for the rest it
-  waits for the AI. `tick.md`, section 6.
+  two days for the brigades is ok for now. Maybe it comes up again later." `tick.md`, section 6.
+  **To be investigated again**, by his word of 2026-11-12: what holds the original's reserves down by its first screen,
+  and how ours can come to the same figures.
+- **A counter always carries its unit's name**, where the original reads the player's `show_unit_names`: on, a near
+  counter carries the unit's name cut to eight letters, and `???` below intelligence 5; off - a new install's default -
+  its leader's name, and nothing for a unit with none (`docs/compatibility.md`, entry 7, which ended with the settings;
+  `reversing/findings/FINDINGS-unitrename.md`, section 4). The setting is read and written (`CUserSettings.ShowUnitNames`,
+  the game options' box) and the counters do not ask it. Put back as open by the maintainer, 2026-11-12.
 - **Starting a game takes about eleven seconds**, measured 2026-11-12 with the optimised build and `--country=GER`:
   1.8 before the first loading line; **4.8 making the world** on the loading screen's thread - 2.2 of it the two first
   days (the supply filling 1.0, the first day 0.8 with the first convoys' routes about 0.5 of it), the opening laws,
@@ -2518,33 +2381,15 @@ None of these blocks the list above.
   networks passed side by side, which is checked against saves network for network. The front end's map is the same
   3D surface and holds its screen as long.
 - **A province's days out of supply are not counted**, and nothing is raised on its first.
-  The original's arcade mode, where units draw on the stockpile and the network does not
-  run, is not built, nor is a unit on loan to another country.
 - **The fuel a new game starts with is exact for 18 countries of 76** and close for about
   twenty more, but twenty-five hold 2% to 19% more in the save than the rule gives -
   Germany 9%, France 19%, landlocked Czechoslovakia 14%. What they have in common was not
   found, so something is missing from the sum. `docs/mechanics/upkeep.md`, the end.
-- **The AI's politics stops where its war plans begin** (2026-10-14, `politics.md`, section 12): `IsPreparingWar`,
-  `IsPreparingWarWith`, `CanDeclareWar` and `IsMilitarist` answer false, so no AI mobilises ahead of a war it plans;
-  and it neither liberates a country nor releases a puppet. What repeats a new game's look at the laws in the original
+- **The AI's politics neither liberates a country nor releases a puppet** (2026-10-14, `politics.md`, sections 11.1
+  and 12): both stay reported as unbuilt. What repeats a new game's look at the laws in the original
   was not found, and a minister's hour rests on a numbering of countries that is ours.
-- **The politics screen's revolt, puppet and liberation buttons cannot be pressed** (2026-10-14, `politics.md`,
-  section 11): rising up from exile, releasing a puppet from the screen and liberating a country are not built.
-- **Three things stop the hourly return of organisation in the original, and none can
-  happen here yet**: fighting, marching into a province an enemy holds, and being
-  carried at sea. `organisation.md`, section 3.
 - **Whose units share a base, and whether a technology's `naval_base_efficiency` is what
   widens a port**, are `inferred`. `organisation.md`, section 4.
-- **A game's units are made under its history's laws**, where the original's are made
-  under a conscription law something has already changed: Germany's reserves start at a
-  quarter of their strength here and at half there. It is the same gap as the manpower
-  one below, and like it waits for the AI. The maintainer confirmed it in the running
-  game on 2026-10-08 - an untouched first screen as Germany already shows
-  `two_year_draft` - and calls it a bug, since the AI should not touch the player's
-  country. **Decided the same day: the player's country keeps its history's laws**, so
-  for the country being played this gap is meant and stays (`docs/compatibility.md`,
-  entry 6); for the countries an AI runs it is still to be built.
-  `docs/mechanics/units.md`, section 8.
 - **A new game's theatre headquarters' brigades agree with the save in name and strength, 86
   of 86, and not in experience or organisation** - the AI's change of law after the two
   days, as above. The order of battle under them is the start save's on the first screen,
@@ -2553,37 +2398,30 @@ None of these blocks the list above.
 - **Leaders in battle are built whole since 2026-10-11** (`docs/mechanics/leaders.md`,
   sections 9 to 11) but for two things: the aggressiveness a tactic is picked with, built since 2026-11-09 and until then
   the AI's, and `winter_attrition`, which waits for attrition. Nothing of a leader's
-  experience or progress towards a trait is set against a save: no save has a battle in it.
+  experience or progress towards a trait is set against a save: saves hold battles since 2026-11-05, but not the
+  generator's state, so none can be played forward (`landcombat.md`, section 8).
 - **An order of battle that names a leader no file declares** has him ignored; what the
   original does was not read.
 - **Only the player turns a country's `auto_assign_leaders` off**, with the leader window's
-  checkbox: every country starts with it on, as in the original, and with no AI nobody else
-  ever changes it.
+  checkbox: every country starts with it on, as in the original, and nothing here changes it for any
+  other country.
 - **Twenty-four air groups aboard carriers, and their wings, have no name**, where the
   original names them `1st Air wing` and `1st CAG` by a rule that has not been read.
 - **Two blocks of a unit type are read and not kept**: `available_trigger`, which is
   script, and `extra_amphibious_defence`.
-- **A country starts with the manpower its history's laws give**, where the original's AI
-  has already chosen its own: Germany begins with 469 here and 882 there. The same goes
-  for the decision the United States' AI takes at once, which costs it three quarters of
-  its manpower. `docs/mechanics/manpower.md`, sections 4 and 6.
-- **Event modifiers are not applied.** What an event or a decision gives a country for a
-  time is one of the things its modifier takes in, with an end date. Nothing gives one
-  until events and decisions exist. `docs/mechanics/modifiers.md`, section 4.
-- **Strategic resources are shared on one of the original's three roads.** A faction's
-  majors and big industries on the holder's continent are given its resources. The faction
-  leader at war taking outsiders' needs alignment, and sharing across continents needs to
-  know what the original means by a sea region. A country's faction is also only what its
-  history file says: the original adds a leader's subjects.
-  `docs/mechanics/modifiers.md`, sections 6 and 7.
+- **A new game's manpower is the original's for 43 countries of 78**: Germany begins with 469 here and 882
+  there, though its laws are the start save's since 2026-11-02 (`OpenHOI3.SaveCheck firstdays`, 2026-11-12;
+  `politics.md`, section 13); why was not looked into. The United States' 1,051 against 255 is the decision its AI
+  takes at once in the original, which costs it three quarters of its manpower. `docs/mechanics/manpower.md`,
+  sections 4 and 6.
+- **Strategic resources are not shared across continents**: the link by a naval base on the same sea region needs to
+  know what the original means by a sea region. `docs/mechanics/modifiers.md`, sections 6 and 7.
 - **A resource once had is never lost here, and that the original behaves so is only
   `likely`.** Its one routine for the figure only raises it, and a search found nothing
   else that lowers it short of resetting the session - but that is a search coming up
   empty, and nobody has watched a running game lose a resource province. Worth settling in
   the running game, and deciding on purpose, before anything depends on it.
   `docs/mechanics/modifiers.md`, section 6.
-- **Only the player queues research.** There is no AI, so no other country researches
-  anything, and nor does the player's until the technology screen is used.
 - **A technology's `allow` block is read for the six kinds of condition the base game
   uses**, and none of the six has been read out of the original. Whether a port is a
   naval base, and whether it is owning or controlling a province that counts, are guesses.
@@ -2592,37 +2430,14 @@ None of these blocks the list above.
 - **Leadership makes officers that nothing takes away.** Influence is spent by diplomacy and
   spies are placed by espionage; a country whose presences are full or at priority 0 adds to its
   free spies without end, as the original's does. Officers are used - the ratio of them to what the units call for is what holds
-  organisation - but only battle loses any, and there is none. A country does start with
+  organisation - but only battle loses any. A country does start with
   the officers its units bring (`docs/mechanics/units.md`, section 7).
-- **The original's AI script changes laws and ministers before the first hour**, for every
-  country including the player's, so what a player sees on the first screen is not what
-  the history files say. This project has no AI, so its countries start with the
-  history's laws - Germany on basic mobilisation where the original shows a war economy.
-  For the player's country that is now the decision and not a gap
-  (`docs/compatibility.md`, entry 6); whether the AI may change the player's ministers
-  was not asked.
-  `docs/mechanics/resources.md`, section 5. It goes on changing them after the last of
-  those days is run, so a savegame's laws are not always the laws its figures were made
-  under; `docs/mechanics/production.md`, section 7.
 - **The savegame check's main run still reasons from day nought.** It loads a game with
   its two days not run and takes two days of each figure off the save, system by system,
   which is how each rule was first pinned down; its model of the units' two days has an
   hour before each day, where the original - and now the game - has one hour after both.
   The two give the same figures on the start save. `OpenHOI3.SaveCheck supplypass ...
   countries` is the check that runs the game's own first days (`tick.md`, section 6).
-- **Puppets are not read**, and one consequence shows already: Manchukuo starts with 1890
-  metal where the original holds a subject to 1000. Wars are read for who is in them and
-  when they began.
-- **One of the six shares of IC spends nothing**: lend-lease. IC put in it is wasted, and
-  wasted IC costs no resources. Production, reinforcement and upgrades spend what their
-  queue and their units take, and no more.
-- **Consumer goods demand is missing its standing-army term**, which needs neutrality as
-  well as the units it now has. So no country here is unhappy about the size of its army.
-  `docs/mechanics/production.md`, section 3.
-- **Only the player moves the shares.** There is no AI to move them, so every other
-  country keeps the shares it started with - a fifth of what consumer goods leave on
-  production, on reinforcement and on upgrades each, whatever its queue and its units
-  need.
 - **The laws the original's first two days ran under are not all known.** Its AI changes
   a country's training law and industrial policy more than once before the first screen,
   and both set what an upgrade costs and how long it takes. Germany's two days fit its
@@ -2638,14 +2453,6 @@ None of these blocks the list above.
   for which is a choice made by eye and easy to change (`fonts/readme.md`). Three display
   typefaces the original names - Eurostile, SV Basic Manual and urania_czech - have no
   stand-in and are drawn in Liberation Sans, with a line in the log. `docs/mechanics/interface.md`, section 6.
-- **The colours of coloured text are fixed in the code, and the original's are in its
-  files**, a `colorcodes` block in each font's declaration that a mod can change. The
-  maintainer decided on 2026-10-08, knowing that, that ours stay for now.
-  `docs/compatibility.md`, entry 5.
-- **How a button looks under the mouse, held and disabled is the original's own**, from
-  its shader, which is plain text in the install; and where a text box puts its text
-  is the original's own too, read out of its font. `docs/mechanics/interface.md`,
-  sections 5 and 6.
 - **Two kinds of element are read and not drawn**: edit boxes and the shields of a
   dialog. Nor is every screen's own tooltip shown yet (*Next up*, item 3), or an icon's `rotation` applied, and a checkbox is a
   button that does not stay down. `docs/mechanics/interface.md`, section 2.
@@ -2671,27 +2478,16 @@ None of these blocks the list above.
   its own tooltip keys: the original's handlers were not read.
   `docs/mechanics/technologyscreen.md` and `productionscreen.md`, what is not
   established.
-- **The production screen is part empty.** Its build queue is listed, with buttons that
-  move a line and take it out, and its four builder buttons open their windows; its other
-  three lists have nothing to list until there are convoys - its building buttons order buildings since
-  2026-10-15 (`buildinglines.md`). Five of its
-  six sliders show a need now - all but lend-lease - and the stock of supplies and of
-  fuel falls by what the units draw. What its queue's lines show was read out of the
-  original and has not been looked at beside it; what their buttons post is ours.
-  `docs/mechanics/productionscreen.md`, section 6.
+- **What the production screen's queue lines show was read out of the original and has not been looked at beside
+  it**; what their buttons post is ours. `docs/mechanics/productionscreen.md`, section 6.
 - **A technology's effects are listed as its file's keys and figures**, where the
   original writes them out in words, and what it does to a kind of unit is not listed
   at all. `docs/mechanics/technologyscreen.md`, section 7.
 - **A slider's lock lasts as long as the screen**, where the original keeps it with the
   country and so in the savegame. `docs/mechanics/sliders.md`, section 3.
-- **Four of the top bar's screen buttons open nothing** -
-  theatres, statistics, strategic warfare and the menu - and the country
-  played is Germany unless the game is started with `--country=TAG`.
-- **Two of the top bar's figures are less than the original's.** A resource's colour
-  comes from four of the thirteen ledgers, the rest being trade, convoys, debt and
-  tribute. National unity moves each day since 2026-10-14 (`politics.md`, section 6).
-  `docs/mechanics/topbar.md`, sections 2 and 6. The officer ratio was the third and is
-  worked out now (section 9).
+- **A resource's colour on the top bar leaves out trade, debt and tribute**, though all three move goods since
+  (`trade.md`, `aid.md`, `stockpile.md` section 7), so a country that buys what it uses is red where the original's
+  is yellow; and a government in exile's fuel and supplies are not shown as `-` (`CTopBarText`; `topbar.md`, section 2).
 - **Whether the top bar's picture changes with the country** was not read. The install
   has a background for each of many tags beside the generic one that is drawn, and the
   country screens do change theirs. `docs/mechanics/countryviews.md`, section 2.
@@ -2700,22 +2496,15 @@ None of these blocks the list above.
 - **A country's modifier is not yet all of the original's eighteen sources**: `base_values`, its
   faction's, its ministers, its laws, its government, its strategic resources, its provinces' modifiers,
   `war` or `peace`, the spies' two unity modifiers, `dissent`, neutrality, its event modifiers, its triggered
-  modifiers, `fractured_government` and war exhaustion are in. The rest wait for what they need - a difficulty setting,
-  subjects and governments in exile. `docs/mechanics/modifiers.md`, section 4.
-- **One triggered modifier stays off for want of a condition**: `desperate_defence` asks `lost_national`, which is
-  not built. `docs/mechanics/modifiers.md`, section 7.
-- **The goals window is not built**, which `menubar_goals_button` opens and which opening the Strategic Effects
-  window shuts in the original. `docs/mechanics/strategiceffects.md`, *Ours*.
+  modifiers, the difficulty's, `fractured_government` and war exhaustion are in. A subject's and a government in
+  exile's are not, though both are built since (`war.md`, sections 13 and 14). `docs/mechanics/modifiers.md`, section 4.
 - **A province's modifier is every step of the original's but radar's list** (2026-10-15,
   `docs/mechanics/modifiers.md`, sections 3 and 7), and no port is held blockaded, the flag `is_blockaded` reads not
   being built.
-- **Revolt risk is worked out and shown on the map, rebels rise and undergrounds work** (2026-10-15, `revolt.md`,
-  `rebels.md`, `undergrounds.md`); the province view, where the original shows a province's revolt risk, its tooltip and
-  the underground's window, is not built. **Of the rebels, what is left out** (`rebels.md`, *Ours*): a resilient
+- **Of the rebels, what is left out** (2026-10-15, `rebels.md`, *Ours*): a resilient
   faction's weighing of the odds, which asks a unit's power, no type of either install being resilient; what the
   original does with a rebel army of under 0.1 strength, a routine not read; a brigade's home province; and the
-  province's history, of which only the last day the rebels took it is kept. **A rebel brigade stands at nought
-  organisation after its first hour**, which follows from the rules as read and is the original's, by the maintainer's word.
+  province's history, of which only the last day the rebels took it is kept.
 - **An underground is ordered as any building is** since 2026-10-15 (`buildinglines.md`); `--underground=` and the
   trial finish one at once. **The AI does nothing with undergrounds**: its production minister builds them from a Lua
   method not read, and its C++ manager asks a unit's power and an unread test of an area (`undergrounds.md`, *Not
@@ -2759,8 +2548,8 @@ point: a single canonical start is one set of starting conditions to balance, on
 path into the simulation, and one start state to build from the history files. Every
 extra entry point is a permanent tax on all three.
 
-It also means nothing here has a reason to read `common/bookmarks.txt` or `scenarios/`,
-and no lobby is needed to choose between them.
+It also means nothing here reads `scenarios/`, and `common/bookmarks.txt` only for the one start's look in the lobby,
+which is pared down to that start (`docs/mechanics/frontend.md`; `docs/compatibility.md`, entry 17).
 
 ## Where things stand
 
