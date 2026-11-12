@@ -20,7 +20,23 @@ below. The licence texts are beside the files and must stay there.
 | `BarlowCondensed-SemiBold.ttf` | Barlow Condensed 1.408 | Franklin Gothic Demi Cond | `OFL-BarlowCondensed.txt` |
 | `EBGaramond-Variable.ttf` | EB Garamond 1.003, every weight in one file | Garamond, Adobe Garamond Pro | `OFL-EBGaramond.txt` |
 | `Anton-Regular.ttf` | Anton 2.116 | Impact | `OFL-Anton.txt` |
-| `BreitkopfFraktur.ttf` | Breitkopf Fraktur 2.10, by Dieter Steffmann (Typographer Mediengestaltung) | Olde English (`old_english`, `axis_country`: the Axis names on the map) | `FFC-BreitkopfFraktur.txt` |
+| `BreitkopfFraktur.ttf` - **downloaded, not in the repository**: below | Breitkopf Fraktur 2.10, by Dieter Steffmann (Typographer Mediengestaltung) | Olde English (`old_english`, `axis_country`: the Axis names on the map) | `FFC-BreitkopfFraktur.txt` |
+
+## Breitkopf Fraktur: download it yourself
+
+Its licence forbids publishing the file, so the repository does not hold it (`.gitignore`
+names it) - only its licence and its `.import`. To have the Axis names in Fraktur:
+
+1. download `https://www.1001fonts.com/download/breitkopf-fraktur.zip` - the font's page is
+   `https://www.1001fonts.com/breitkopf-fraktur-font.html`;
+2. take `BreitkopfFraktur.ttf` out of the zip and put it in this folder under that name,
+   unchanged (72,552 bytes, version 2.10);
+3. open the project in the editor once, or run its import, so that Godot imports it.
+
+Without it the game runs as before and draws the Axis names in Liberation Sans, saying so
+once in the log; `tools/export.ps1` warns that its export lacks it and leaves its licence
+out. Which typeface stands for which, and that this one is fetched, is the table in
+`src/Gfx/CShippedTypefaces.cs`.
 | `CodeRedOctober.ttf` | Code Red October 1.0, by Heaven Castro Studios, after ParaType's PT Mono | KyrillaSansSerif (`Kyril`, `comintern_country`: the Comintern names on the map) | `CodeRedOctober-info.txt`, `OFL-PTMono.txt` |
 
 Where they came from, unmodified:
@@ -44,10 +60,11 @@ Chosen by the maintainer on 2026-11-12. What each of the two non-OFL licences al
   `www.1001fonts.com/licenses/ffc.html` adds that it "may be embedded into an application
   ... as long as the application does not distribute the given typeface, such as offering it
   as a download" - the zip's older copy, which is the one kept here, has no such clause. So it
-  ships packed inside the exported game, which never offers it as a file of its own, and it
-  is kept in this repository while the repository is private. **Should the repository be made
-  public, this file is published by it**, which wants the author's written permission or
-  the font taken out. The author's own page says he gives his fonts away "for commercial
+  ships packed inside the exported game, which never offers it as a file of its own. **The
+  repository does not hold it** since 2026-11-12, by the maintainer's choice: a public
+  repository would publish it, so each builder downloads it (above). It was committed before
+  that, so the repository's history still holds it, until that history is rewritten or a
+  public repository starts without it. The author's own page says he gives his fonts away "for commercial
   purposes without any restrictions".
 - **Code Red October** is labelled *Freeware* by its author and comes with no other terms. Its
   file says it is "Based on ParaType's PT Mono", which is under the SIL Open Font License 1.1,

@@ -42,8 +42,8 @@ public sealed class CShippedTypefaces
 			["Garamond"] = new("EBGaramond-Variable.ttf", VariableWeight: true),
 			["Adobe Garamond Pro"] = new("EBGaramond-Variable.ttf", VariableWeight: true),
 			["Impact"] = new("Anton-Regular.ttf"),
-			// axis_country's, the Axis names on the map: a blackletter, here a Fraktur.
-			["Olde English"] = new("BreitkopfFraktur.ttf"),
+			// axis_country's, the Axis names on the map: a blackletter, here a Fraktur - downloaded, not in the repository.
+			["Olde English"] = new("BreitkopfFraktur.ttf", Fetched: true),
 			// comintern_country's, the Comintern names on the map: Latin letters drawn as Cyrillic ones.
 			["KyrillaSansSerif"] = new("CodeRedOctober.ttf"),
 		};
@@ -74,6 +74,16 @@ public sealed class CShippedTypefaces
 			(false, true) => typeface.Italic ?? typeface.Regular,
 			_ => typeface.Regular,
 		};
+		if (typeface.Fetched && !Exists(name))
+		{
+			// Not downloaded: Liberation Sans in its place, said once (fonts/readme.md).
+			if (_unknown.Add(name))
+			{
+				CDiagnostics.Warn($"The typeface '{Directory}{name}' is not downloaded, so text in '{face}' is drawn in "
+					+ "Liberation Sans; fonts/readme.md says where to get it");
+			}
+			return For("", bold, italic, out sameWidths);
+		}
 		FontFile? file = Load(name);
 		if (file is null || !bold || !typeface.VariableWeight)
 		{
@@ -87,6 +97,17 @@ public sealed class CShippedTypefaces
 			BaseFont = file,
 			VariationOpentype = new Dictionary { [weight] = BoldWeight },
 		};
+	}
+
+	/// <summary>
+	/// Whether the file is in <c>fonts/</c>. Run from the editor the file itself is asked, since its <c>.import</c>, which the
+	/// repository keeps, answers for it whether or not it was downloaded; an export holds no source files, and its pack only
+	/// what was there to import.
+	/// </summary>
+	private static bool Exists(string name)
+	{
+		string path = Directory + name;
+		return OS.HasFeature("editor") ? FileAccess.FileExists(path) : ResourceLoader.Exists(path);
 	}
 
 	private FontFile? Load(string name)

@@ -12,3 +12,6 @@ obj/
 
 # The standalone build tools/export.ps1 makes
 export/
+
+# A typeface whose licence forbids publishing it: each builder downloads it (fonts/readme.md)
+fonts/BreitkopfFraktur.ttf

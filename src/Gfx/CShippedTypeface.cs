@@ -15,5 +15,10 @@ namespace OpenHOI3.Gfx;
 /// <param name="VariableWeight">
 /// One file holds every weight, and bold is asked of it by number and not by file.
 /// </param>
+/// <param name="Fetched">
+/// The file is not in the repository, its licence forbidding that it be published there: whoever builds the game
+/// downloads it into <c>fonts/</c> as <c>fonts/readme.md</c> says, and where it is not there the text is drawn in Liberation
+/// Sans, with a warning rather than an error.
+/// </param>
 public sealed record CShippedTypeface(string Regular, string? Bold = null, string? Italic = null,
-	string? BoldItalic = null, bool SameWidths = false, bool VariableWeight = false);
+	string? BoldItalic = null, bool SameWidths = false, bool VariableWeight = false, bool Fetched = false);

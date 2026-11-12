@@ -2691,6 +2691,10 @@ from the `godotTools.editorPath.godot4` setting rather than hardcoded, so set it
 To run with content, place a Hearts of Iron 3 install in a `Hearts of Iron 3` folder
 in the parent of this repository.
 
+**One typeface is downloaded, not kept here**: Breitkopf Fraktur, the Axis names on the map, whose licence forbids
+publishing the file. `fonts/readme.md` says where to get it and where it goes; without it the game draws those names in
+Liberation Sans and says so once in the log, and an export warns that it lacks it.
+
 **The standalone game** is built by `tools/export.ps1` into `export/OpenHOI3/`: `OpenHOI3.exe` with the game's resources
 packed into it, its .NET folder `data_OpenHOI3_windows_x86_64` with `openhoi3_lua.dll`, and `OpenHOI3_licences/`. It needs the Godot
 4.7.1 .NET export templates (the editor's *Manage Export Templates*), and takes the editor's path from `-Godot` or the

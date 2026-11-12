@@ -64,5 +64,13 @@ Copy-Item (Join-Path $root 'fonts\*.txt') $licences
 Copy-Item (Join-Path $root 'fonts\readme.md') (Join-Path $licences 'fonts.md')
 Copy-Item (Join-Path $root 'native\lua\COPYRIGHT') (Join-Path $licences 'Lua-COPYRIGHT.txt')
 
+# Breitkopf Fraktur is not in the repository, its licence forbidding that it be published there: each builder downloads it
+# (fonts/readme.md). Without it the export draws the Axis names in Liberation Sans, and its licence does not go with it.
+$fraktur = Join-Path $root 'fonts\BreitkopfFraktur.ttf'
+if (-not (Test-Path $fraktur)) {
+    Remove-Item (Join-Path $licences 'FFC-BreitkopfFraktur.txt') -ErrorAction SilentlyContinue
+    Write-Warning 'fonts/BreitkopfFraktur.ttf is not downloaded, so this export draws the Axis names in Liberation Sans; fonts/readme.md says where to get it.'
+}
+
 Write-Host "Exported $out"
 Write-Host 'Copy the whole folder''s contents beside hoi3_tfh.exe to play.'
