@@ -667,10 +667,12 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
   no `SystemFont`, no lookup of an installed font by name, and `allow_system_fallback`
   off on every typeface, in its `.import` file and in code - a character a typeface
   lacks stays missing. Everything drawn comes from `fonts/` or from a mod's own
-  `gfx/fonts`. Those files are open typefaces under the SIL Open Font License, which is
-  why they may be here when the original's may not: **a font goes in `fonts/` only with
-  its licence text beside it and a row in `fonts/readme.md` saying where it came from**,
-  and never one extracted from an install or copied from a system folder.
+  `gfx/fonts`. Those files are typefaces whose licences let them ship with the game -
+  most under the SIL Open Font License, two free ones under their own terms (2026-11-12) -
+  which is why they may be here when the original's may not: **a font goes in `fonts/`
+  only with its licence text beside it and a row in `fonts/readme.md` saying where it came
+  from and what its licence allows**, and never one extracted from an install or copied
+  from a system folder.
 - **Bitmaps do not gain detail, so a texture may be supplied at any resolution.** Icons
   soften when enlarged; the answer is that a mod can ship a sharper
   file, and the runtime works in ratios of the texture rather than in its pixel counts. Two

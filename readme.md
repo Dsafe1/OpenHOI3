@@ -2633,9 +2633,9 @@ None of these blocks the list above.
   text in it lands where the original's did. Fira Sans for Trebuchet MS, Barlow
   Condensed for Franklin Gothic, EB Garamond and Anton for Impact are near relatives,
   sized by the height of a line and narrowed where they come out wider; which stands
-  for which is a choice made by eye and easy to change (`fonts/readme.md`). Six display
-  typefaces the original names have no stand-in and are drawn in Liberation Sans, with
-  a line in the log. `docs/mechanics/interface.md`, section 6.
+  for which is a choice made by eye and easy to change (`fonts/readme.md`). Three display
+  typefaces the original names - Eurostile, SV Basic Manual and urania_czech - have no
+  stand-in and are drawn in Liberation Sans, with a line in the log. `docs/mechanics/interface.md`, section 6.
 - **The colours of coloured text are fixed in the code, and the original's are in its
   files**, a `colorcodes` block in each font's declaration that a mod can change. The
   maintainer decided on 2026-10-08, knowing that, that ours stay for now.

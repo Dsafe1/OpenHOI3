@@ -79,7 +79,7 @@ pc installs."
 | --- | --- |
 | the original | has no such question: its glyphs are in its textures |
 | here | every typeface drawn is a file in `fonts/` or in a mod's own `gfx/fonts`. No installed font is looked up, and a character a typeface lacks is left out rather than borrowed |
-| a mod loses | nothing it had. But a descriptor that names a typeface this project has no stand-in for - six display faces in the base game - is drawn in Liberation Sans, and says so in the log |
+| a mod loses | nothing it had. But a descriptor that names a typeface this project has no stand-in for - three display faces in the base game - is drawn in Liberation Sans, and says so in the log |
 | why | the same text on every machine; and the original's typefaces are commercial and cannot be passed on, so open ones stand for them |
 | to undo | nothing to undo; a mod that wants a face supplies it (entry 3) |
 

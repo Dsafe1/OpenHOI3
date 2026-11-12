@@ -483,21 +483,24 @@ scalable canvas of section 3 could not survive. So:
   typeface lacks is left out and not borrowed from an installed font: text is the same
   everywhere.
 - **What stands for what.** The original's typefaces are commercial and cannot be passed
-  on; these are open, under the SIL Open Font License, and chosen by eye:
+  on; these are free to ship with the game - each one's licence is in `fonts/readme.md` -
+  and chosen by eye:
 
   | the descriptor names | drawn in | same widths |
   | --- | --- | --- |
   | Arial | Liberation Sans | yes: it was drawn to them |
   | Tahoma | Liberation Sans | no |
-  | Courier | Liberation Mono | no |
+  | Courier, Another Typewriter | Liberation Mono | no |
   | Trebuchet MS | Fira Sans | no |
   | Franklin Gothic Demi Cond | Barlow Condensed SemiBold | no |
   | Garamond, Adobe Garamond Pro | EB Garamond | no |
   | Impact | Anton | no |
+  | Olde English (`axis_country`) | Breitkopf Fraktur | no |
+  | KyrillaSansSerif (`comintern_country`) | Code Red October | no |
   | anything else | Liberation Sans, with a line in the log | no |
 
-  "Anything else" is six display faces in the install: Eurostile, KyrillaSansSerif,
-  Another Typewriter, Olde English, SV Basic Manual and urania_czech.
+  "Anything else" is three display faces in the install: Eurostile, SV Basic Manual and
+  urania_czech.
 - **The size is whatever makes the text as wide as the original's glyphs made it.** The
   descriptor gives how far the pen moves for each character; the letters and digits it
   has are measured in both, and the typeface is drawn at the size where the two agree.

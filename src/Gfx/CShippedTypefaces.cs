@@ -25,7 +25,8 @@ public sealed class CShippedTypefaces
 	/// <summary>
 	/// By the name a font descriptor gives. Liberation Sans was drawn to Arial's widths;
 	/// the others are near relatives - a humanist sans for Trebuchet, a condensed gothic
-	/// for Franklin Gothic's, a Garamond for Garamond, a heavy condensed for Impact.
+	/// for Franklin Gothic's, a Garamond for Garamond, a heavy condensed for Impact, a Fraktur
+	/// for Olde English and a faux-Cyrillic for KyrillaSansSerif.
 	/// </summary>
 	private static readonly System.Collections.Generic.Dictionary<string, CShippedTypeface> Stands =
 		new(StringComparer.OrdinalIgnoreCase)
@@ -41,6 +42,10 @@ public sealed class CShippedTypefaces
 			["Garamond"] = new("EBGaramond-Variable.ttf", VariableWeight: true),
 			["Adobe Garamond Pro"] = new("EBGaramond-Variable.ttf", VariableWeight: true),
 			["Impact"] = new("Anton-Regular.ttf"),
+			// axis_country's, the Axis names on the map: a blackletter, here a Fraktur.
+			["Olde English"] = new("BreitkopfFraktur.ttf"),
+			// comintern_country's, the Comintern names on the map: Latin letters drawn as Cyrillic ones.
+			["KyrillaSansSerif"] = new("CodeRedOctober.ttf"),
 		};
 
 	private readonly System.Collections.Generic.Dictionary<string, FontFile?> _files = new(StringComparer.OrdinalIgnoreCase);
