@@ -338,12 +338,15 @@ Kept in descending order.
 the rebels'; or its area under 6 provinces; or nobody standing there and stance 3 or more; or its friendly neighbours
 lying in more than one block of land (**shared**).
 
-**Candidates**: the childless land units beside p - not bound for enemy land elsewhere; not a garrison; this agent's; may
-attack; not in a battle - **on either side**, `IsHoldingGround` - where bound somewhere, or not shared, or not standing in a
+**Candidates**: the childless land units beside p - **where bound somewhere**, not bound for enemy land, not a garrison and
+this agent's; **one standing still is a candidate whichever it is**, a garrison or another agent's unit among them
+(*measured*, `reversing/findings/FINDINGS-liveread.md`, section 58: Italy's Divisione Libia, picked a garrison at a new
+game's second hour, joins the attack on 9987 the same hour); may attack; not in a battle - **on either side**, `IsHoldingGround` - where bound somewhere, or not shared, or not standing in a
 target province; not dry of
 fuel; not held back unless shared; not reserved for transport - bound by a sealift for the plan's debark and walking to or waiting in the embark area or bound into the debark area. **Cost** = 10 x the enemy land neighbours of
-where it stands - 10 x its terrain figure at p (11.3) + 100 where its garrison rating is over 95; / 5 with a blocking
-order. Taken **lowest cost first**, equals in the order met.
+where it stands - 10 x its terrain figure at p (11.3) + 100 where its garrison rating is over 95; / 10 for another
+agent's unit, else / 5 with a blocking order. Taken **lowest cost first**, equals in the order met - the list kept
+ascending, a new candidate put before the first of a higher cost (read again 2026-11-12, section 58).
 
 **The defenders**: p's land units at war with the country, the rebels', or of an undeclared war covering p. **The odds**
 (11.4) of the units already bound for p against them.

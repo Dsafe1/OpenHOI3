@@ -343,7 +343,7 @@ public static class CLandAttack
 				{
 					continue;
 				}
-				long cost = Cost(state, country, unit, p);
+				long cost = Cost(state, country, agent, unit, p);
 				int at = 0;
 				while (at < candidates.Count && candidates[at].Cost <= cost)
 				{
@@ -412,7 +412,7 @@ public static class CLandAttack
 		{
 			trace.Write($"  attack {p.Id} stance {effStance}/{planStance}: may {mayAttack}, candidates {candidates.Count}, " +
 				$"attackers {attackers.Count} ({mustStay.Count} must stay), defenders {defenders.Count}, odds {before} -> {odds}, " +
-				$"bar {attackBar};{refused}");
+				$"bar {attackBar};{refused} [{string.Join(", ", candidates.ConvertAll(c => $"{c.Unit.Name}:{c.Cost}"))}]");
 		}
 		if (mayAttack && odds >= attackBar && mustStay.Count < attackers.Count)
 		{
@@ -452,11 +452,13 @@ public static class CLandAttack
 	private static bool MayCommit(CGameState state, CCountry country, CAgent agent, CUnit unit, int bound, bool mayAttack,
 		bool shared)
 	{
-		if (bound > 0 && IsEnemyHeld(state, country, bound) || unit.IsGarrison || !mayAttack)
+		// Only a unit already bound somewhere is asked whether it goes to an enemy's province, is a garrison or is another
+		// agent's; one standing still is a candidate whichever it is (FINDINGS-liveread.md, section 58).
+		if (bound > 0 && (IsEnemyHeld(state, country, bound) || unit.IsGarrison || !ReferenceEquals(Topmost(unit), agent)))
 		{
 			return false;
 		}
-		if (!ReferenceEquals(Topmost(unit), agent))
+		if (!mayAttack)
 		{
 			return false;
 		}
@@ -471,8 +473,11 @@ public static class CLandAttack
 		return !CTransportReservation.IsReserved(state, unit);
 	}
 
-	/// <summary>10 for each enemy neighbour where it stands, less 10 times its terrain figure at the target, +100 for a garrison; / 5 with a blocking order.</summary>
-	private static long Cost(CGameState state, CCountry country, CUnit unit, CProvince p)
+	/// <summary>
+	/// 10 for each enemy neighbour where it stands, less 10 times its terrain figure at the target, +100 for a garrison; / 10
+	/// for another agent's unit, else / 5 with a blocking order.
+	/// </summary>
+	private static long Cost(CGameState state, CCountry country, CAgent agent, CUnit unit, CProvince p)
 	{
 		long cost = EnemyNeighbours(state, country, unit.Location) * 10 * Scale
 			- 10 * CUnitRatings.Terrain(state, country, p, unit, attacking: true);
@@ -480,14 +485,17 @@ public static class CLandAttack
 		{
 			cost += 100 * Scale;
 		}
-		if (CCommandLadder.IsBlocked(unit))
+		if (!ReferenceEquals(Topmost(unit), agent))
+		{
+			cost /= 10;
+		}
+		else if (CCommandLadder.IsBlocked(unit))
 		{
 			cost /= 5;
 		}
 		return cost;
 	}
 
-	/// <summary>A unit covering a defended enemy province nobody attacks, from a depot, with nobody to take over, stays.</summary>
 	/// <summary>
 	/// Whether a unit joining an attack stays where it is and supports: something beside it is defended and nobody is
 	/// bound there, it stands where a depot supplies, nobody there can stand in for it - a unit already joined to this attack does
