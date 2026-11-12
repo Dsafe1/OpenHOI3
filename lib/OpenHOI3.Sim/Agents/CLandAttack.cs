@@ -387,7 +387,7 @@ public static class CLandAttack
 					continue;
 				}
 			}
-			bool stay = MustStay(state, country, agent, unit);
+			bool stay = MustStay(state, country, agent, unit, attackers);
 			attackers.Add(unit);
 			long trial = CAttackOdds.Of(state, attackers, defenders, p);
 			if (odds > trial)
@@ -488,23 +488,47 @@ public static class CLandAttack
 	}
 
 	/// <summary>A unit covering a defended enemy province nobody attacks, from a depot, with nobody to take over, stays.</summary>
-	private static bool MustStay(CGameState state, CCountry country, CAgent agent, CUnit unit)
+	/// <summary>
+	/// Whether a unit joining an attack stays where it is and supports: something beside it is defended and nobody is
+	/// bound there, it stands where a depot supplies, nobody there can stand in for it - a unit already joined to this attack does
+	/// not - and it is not in a target area (<c>reversing/findings/FINDINGS-aiconsumer.md</c>;
+	/// <c>reversing/findings/FINDINGS-liveread.md</c>, section 54).
+	/// </summary>
+	private static bool MustStay(CGameState state, CCountry country, CAgent agent, CUnit unit, List<CUnit> attackers)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
-		if (Uncovered(state, country, unit.Location) == 0 || network.DepotOf(unit.Location) != unit.Location)
+		if (Uncovered(state, country, unit.Location) == 0 || network.DepotOf(unit.Location) == 0)
 		{
 			return false;
 		}
 		foreach (CUnit other in state.Positions.Of(unit.Location))
 		{
-			if (!ReferenceEquals(other, unit) && other.Owner == country.Tag && CTheatres.IsLand(other) && !other.IsFighting
+			if (!ReferenceEquals(other, unit) && CTheatres.IsLand(other) && MayStandIn(state, country, other) && !other.IsFighting
 				&& CArmyRole.Of(other) != CArmyRole.Headquarters && CAgentUnits.Destination(other) == 0
-				&& !CTransportReservation.IsReserved(state, other))
+				&& !CTransportReservation.IsReserved(state, other) && !attackers.Contains(other))
 			{
-				return agent.TargetProvinces.Contains(unit.Location);
+				return false;
 			}
 		}
-		return true;
+		return !agent.TargetProvinces.Contains(unit.Location);
+	}
+
+	/// <summary>Never a rebel unit; a unit of the country's own, or of a co-belligerent it is not at war with while it is not the rebels itself.</summary>
+	private static bool MayStandIn(CGameState state, CCountry country, CUnit other)
+	{
+		if (other.Owner.Value == CRebelFactions.Rebels)
+		{
+			return false;
+		}
+		if (other.Owner == country.Tag)
+		{
+			return true;
+		}
+		if (country.Tag.Value == CRebelFactions.Rebels || state.Country(other.Owner) is not { } owner)
+		{
+			return false;
+		}
+		return CSupplyRelations.IsFightingWith(state, country, owner) && !CCountryLists.IsEnemy(state, country, other.Owner);
 	}
 
 	/// <summary>The enemy provinces beside one where an enemy stands and nobody of the country is bound.</summary>

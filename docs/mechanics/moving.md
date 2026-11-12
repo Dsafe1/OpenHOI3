@@ -351,9 +351,13 @@ order. Taken **lowest cost first**, equals in the order met.
 **Committing**, each candidate: skipped with a combat cooldown and defenders; retreating; where the odds are at least the
 stance's bar (5 at stance 2, 3 at 4, else 4) and its province has more than one enemy neighbour; and, where p's area has
 more than 5 provinces, not shared, and p is defended or the stance under 3, strength under 0.7/0.5/0.6 or organisation
-under 0.75/0.5/0.6 (stance 2/4/else). It **must stay** unless it covers a defended enemy province nobody attacks, from a
-depot, and some other free unit there can take over, and it does not stand in a target province. It joins; the odds are
-worked out again, and where they fell it leaves.
+under 0.75/0.5/0.6 (stance 2/4/else). It **must stay** - and supports rather than marches - where something beside it is
+a defended enemy province nobody is bound for, where it stands draws on a depot, nobody there can stand in for it, and it
+does not stand in a target province. A stand-in is a land unit there that is not a headquarters, in no battle, bound
+nowhere, not reserved for transport and **not already joined to this attack**, of the country's own or of a co-belligerent
+it is not at war with, neither of them the rebels. So of three units in one province the last to join supports, the two
+before it each having had a stand-in (*measured* on the running game, `reversing/findings/FINDINGS-liveread.md`, section
+54). It joins; the odds are worked out again, and where they fell it leaves.
 
 **The decision**: attack bar 3 at stance 2, 1.1 at 4, else 1.5; cancel bar 0.8 - 0.2 and 0.01 where shared or where an
 attacker draws on no depot while p has a working port. Where it may attack, the odds reach the bar and at least one
