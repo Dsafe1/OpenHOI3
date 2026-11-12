@@ -1869,6 +1869,10 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 - **Script still unbuilt, for BlackICE's layer**: `remove_brigade`; a `military_construction` in a `load_oob` file; `release_vassal = REB`; `surrender_inherit`'s branches for a country at war with the annexer's enemies, where units go over by a draw; the last-battle loss conditions. **The undeclared war's** hostility is asked at battles, convoy raids and air and fleet targets, not at the AI's war-time gates or the land's movement (`war.md`, section 15).
 
+- **A brigade's model after a load**: a save names a brigade's levels and not its historical model, so after a load the
+  unit panel's numeral, the brigade card's picture and the model's name in the tooltip are the first model's; whether the
+  original works the model out from the levels was not read (`docs/enhanced.md`, *A whole game's replay*).
+
 - **The AI drops no nuclear bomb**: its strategic targets, the enemy's war industry handed to the agents whose air bases are nearest, are not built (`moving.md`; `nukes.md`, *Ours*).
 
 - **The game's own sound effects are only half built.** Since 2026-11-12 the effects of `interface/sound.sfx` play (`docs/mechanics/sound.md`): every button's and checkbox's click, a province, a map mode, the zoom and the speed, a unit selected and ordered, an alert, an event window and a battle's window. What the simulation itself sounds is not built - convoys lost and sunk, a level finished, war declared by and on the player, an offer coming in and its answer, a revolt - and nor is the multiplayer log's `ding` (section 7). **The maintainer has not heard any of it.** Whether the title theme loops at the main menu is to be heard in the original (`music.md`, section 3).
