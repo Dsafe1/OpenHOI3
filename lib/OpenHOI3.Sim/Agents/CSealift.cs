@@ -221,7 +221,8 @@ public static class CSealift
 		foreach (CSupplyArea area in areas)
 		{
 			long deficit = need[area] - have.GetValueOrDefault(area);
-			Insert(area.Controller == country.Tag ? ours : others, area, deficit);
+			bool own = area.Controller == country.Tag;
+			Insert(own ? ours : others, area, deficit, own);
 		}
 		foreach ((CSupplyArea area, long deficit) in others)
 		{
@@ -290,8 +291,15 @@ public static class CSealift
 		}
 	}
 
-	private static void Insert(List<(CSupplyArea, long)> list, CSupplyArea area, long deficit)
+	private static void Insert(List<(CSupplyArea, long)> list, CSupplyArea area, long deficit, bool own = false)
 	{
+		// One of the country's own areas with the head's deficit and more provinces than the head's area goes in front
+		// (FINDINGS-liveread.md, section 59).
+		if (own && list.Count > 0 && list[0].Item2 == deficit && area.Provinces.Count > list[0].Item1.Provinces.Count)
+		{
+			list.Insert(0, (area, deficit));
+			return;
+		}
 		int at = list.Count;
 		while (at > 0 && list[at - 1].Item2 < deficit)
 		{
@@ -317,6 +325,11 @@ public static class CSealift
 				continue;
 			}
 			if (CArmyRole.Of(unit) == CArmyRole.Airborne && agent.AirTransports.Count > 0)
+			{
+				continue;
+			}
+			// No enemy area beside its own may touch the target area as well (FINDINGS-moving.md F.5, step 4).
+			if (EnemyBetween(state, country, own, target))
 			{
 				continue;
 			}
@@ -349,9 +362,20 @@ public static class CSealift
 			{
 				score += 2 * rating;
 			}
-			if (unit.Parent is { } parent && network.AreaOf(Anchor(parent)) == target)
+			if (unit.Parent is { } parent)
 			{
-				score += 100 * Whole;
+				if (network.AreaOf(Anchor(parent)) == target)
+				{
+					score += 100 * Whole;
+				}
+				// And 50 for each other land unit under the same parent anchored there.
+				foreach (CUnit sibling in parent.Children)
+				{
+					if (!ReferenceEquals(sibling, unit) && Theatres.CTheatres.IsLand(sibling) && network.AreaOf(Anchor(sibling)) == target)
+					{
+						score += 50 * Whole;
+					}
+				}
 			}
 			if (bordersEnemy)
 			{
@@ -364,6 +388,19 @@ public static class CSealift
 			}
 		}
 		return best;
+	}
+
+	/// <summary>Whether an enemy-held area beside the unit's own area also borders the target area.</summary>
+	private static bool EnemyBetween(CGameState state, CCountry country, CSupplyArea own, CSupplyArea target)
+	{
+		foreach (CSupplyArea beside in own.Neighbours)
+		{
+			if (CCountryLists.IsEnemy(state, country, beside.Controller) && beside.Neighbours.Contains(target))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/// <summary>

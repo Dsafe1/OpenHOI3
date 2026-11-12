@@ -528,16 +528,21 @@ troops**, else nothing at all:
    fast troops to a friendly area with no neighbour but the capital's, or from an area bordering an enemy; and then only
    where the sea between them is open (`CCountry_IsSeaRouteOpen`: at peace always; at war shut into or out of the
    Mediterranean where Gibraltar and Suez are both held by enemies, into or out of the Black Sea where its blocker is).
-4. **The short areas**, the country's own in descending order of shortage, others' before them in ascending order: each
+4. **The short areas**, the country's own in descending order of shortage - one with the head's shortage and more
+   provinces than the head's area put in front - others' before them in ascending order: each
    wants its shortage, or the stranded where they outnumber it in an area bordering hostile land or the theatre's
    largest. Its **target**: a landing province for an enemy's area - near the objectives in it, a naval base and its
    holder's provinces beside it, fewer than six enemies, 1000 worse reached only over straits, 34 an enemy - or else the
    area's port nearest the objectives by sea. While its want is at least the next area's shortage - or any, for an enemy's
    - the best candidate goes: a division with no target, in a real area, that may be shipped, not airborne with air
-   transports, from an area with more than its need, scored by that surplus, +10000 stranded, + its fitness for an enemy's
-   area, + its garrison rating (or 101 less it) by which of the two areas border hostile land, + twice its rating for an
-   area with no neighbour, +100 where its commander is bound there, x2 a garrison or x0.25 on the area of operations
-   where its own area borders an enemy. It is given the target and marched where it can walk, else listed for the sea.
+   transports, **no enemy area beside its own touching the target area too**, from an area with more than its need, scored
+   by that surplus, +10000 stranded, + its fitness for an enemy's area, + its garrison rating (or 101 less it) by which of
+   the two areas border hostile land, + twice its rating for an area with no neighbour, +100 where its commander is bound
+   there, **+50 for each other land unit under that commander anchored there**, x2 a garrison or x0.25 on the area of
+   operations where its own area borders an enemy. (The order of the areas, the enemy-area rule and the siblings were
+   missing until 2026-11-12, `reversing/findings/FINDINGS-liveread.md`, section 59: in a new game's second hour Italy's
+   targets were seven divisions for Somaliland, where the original's are 23 Marzo for Rodos and an Eritrean division for
+   the Dodecanese, and Sardinia and Dalmatia's two divisions swapped.) It is given the target and marched where it can walk, else listed for the sea.
 5. **Headquarters** whose land children stand mostly in another area are given that area's port, and not moved.
 6. **Embark and debark**: cleared where only one is set or nobody listed for debark is **bound for, or stands bound nowhere
    in,** embark's area (the original's tally asks the destination; section 43). With no
