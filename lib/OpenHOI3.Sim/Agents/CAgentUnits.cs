@@ -51,6 +51,11 @@ public static class CAgentUnits
 		if (NearestAgent(parent) is { } newAgent)
 		{
 			newAgent.ReplanSubordinates = true;
+			// An air unit put under it asks the agent to regroup its air groups (FINDINGS-liveread.md, section 56).
+			if (unit.Kind == EUnitKind.Air)
+			{
+				newAgent.RegroupAirPending = true;
+			}
 		}
 		return true;
 	}

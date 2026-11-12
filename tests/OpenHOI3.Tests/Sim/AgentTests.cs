@@ -339,12 +339,42 @@ public class AgentTests
 		bomber.Organisation = CFixedPoint.FromInt(30);
 		group.SubUnits.Add(bomber);
 		CSubordinates.Sort(state, germany, agent);
-		CAirRegroup.Run(state, germany, agent, force: true);
+		CAirRegroup.Run(state, germany, agent, force: true, new HashSet<CUnit>(), agent.Air);
 		Drain(state);
 		CUnit made = Assert.Single(headquarters.Children, u => u.Kind == EUnitKind.Air && !ReferenceEquals(u, group));
 		Assert.Same(group.SubUnits.Count == 1 ? group.SubUnits[0] : null, bomber);
 		Assert.Equal("interceptor", Assert.Single(made.SubUnits).Type.Key);
 		Assert.Equal("1st Air wing", made.Name);
+	}
+
+	[Fact]
+	public void An_air_unit_put_under_an_agent_asks_it_to_regroup_and_a_division_does_not()
+	{
+		CGameState state = World();
+		(CAgent agent, CUnit headquarters) = Bound(state);
+		agent.RegroupAirPending = false;
+		CUnit division = Unit(state, EUnitKind.Division, 3, "infantry_brigade");
+		Assert.True(CAgentUnits.Attach(state, division, headquarters));
+		Assert.False(agent.RegroupAirPending);
+		CUnit group = Unit(state, EUnitKind.Air, 3, "tactical_bomber");
+		Assert.True(CAgentUnits.Attach(state, group, headquarters));
+		Assert.True(agent.RegroupAirPending);
+	}
+
+	[Fact]
+	public void At_peace_a_worn_group_at_its_base_is_still_ordered_to_join_another()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		(CAgent agent, CUnit headquarters) = Bound(state);
+		CUnit worn = Unit(state, EUnitKind.Air, 3, "tactical_bomber", parent: headquarters);
+		CUnit other = Unit(state, EUnitKind.Air, 3, "tactical_bomber", parent: headquarters);
+		worn.SubUnits[0].Organisation = CFixedPoint.FromInt(1);
+		other.SubUnits[0].Organisation = CFixedPoint.FromInt(1);
+		CSubordinates.Sort(state, germany, agent);
+		agent.RegroupAirPending = true;
+		CAirBody.Run(state, germany, agent, full: false);
+		Assert.Single(state.Outbox.OfType<CJoinUnitCommand>());
 	}
 
 	// ---- the plan

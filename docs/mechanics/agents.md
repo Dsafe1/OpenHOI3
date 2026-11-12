@@ -205,10 +205,14 @@ Run for a country the AI runs (or a plan allowing headquarters reorganisation) w
 
 ### 5.3 Air groups (`ManageAirUnits`' regroup)
 
-Run when the agent's air pass is forced or **regroup air pending** is set, over the agent's air groups that are fit - no
-wing under half its strength or half its organisation at air stance 2, 0.7 of either otherwise, halved for a group with a
-carrier's wing or an interceptor (the triage's lower pair, `moving.md`, section 17.2) - not busy and in no battle, at their own base. A group holding
-a carrier's wing, a group on loan and a group with no base are passed over.
+Run when the agent's air pass is forced or **regroup air pending** is set, over the triage's candidates (`moving.md`,
+section 17.2) - every group in no war, and at war one neither worn under an order nor tired and resting at its base - that
+are not busy, in no battle, at their own base and not taken. A group holding a carrier's wing, a group on loan and a group
+with no base are passed over. **Regroup air pending is also set whenever an air unit is put under the agent's chain** -
+the attach marks the nearest agent above it to sort its subordinates again and, for an air unit, to regroup - so the
+air units a country's orphans bring in are regrouped the hour after they are attached (*measured*,
+`reversing/findings/FINDINGS-liveread.md`, section 56: Japan's two Zerosen groups, attached at a new game's second hour,
+joined at its third).
 
 - **Split**, a group of more than one wing, walking its wings in order: a strategic bomber where there are more than 3; a
   tactical bomber where more than 2 or beside a strategic, naval, transport or CAS; a naval bomber where more than 2 or

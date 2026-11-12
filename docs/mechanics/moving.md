@@ -635,13 +635,17 @@ Each group, not retreating:
 
 1. **Joining** a partner that still exists: it and the partner are **taken** (passed over by phases 3 and 4); one whose
    partner is gone has its order dropped and goes on.
-2. **At war, its airfield marched on** - an enemy land unit beside it whose next step is into it: phase 2 is forced; a
+2. **In no war**, declared or undeclared, **or with no base**: a **candidate**, whatever its state - the steps below are a
+   country at war's (*measured* in a new game's first days, `reversing/findings/FINDINGS-liveread.md`, section 56: Japan's
+   bombers, landed at half their organisation, merge at its next full pass; Italy's Aeronautica AOI, tired in the war on
+   Ethiopia, rests and merges with nobody).
+3. **At war, its airfield marched on** - an enemy land unit beside it whose next step is into it: phase 2 is forced; a
    busy group not rebasing has its order dropped; it is a **candidate** whatever its state.
-3. **Unfit** - a wing under 0.5 of its strength or of its organisation at air stance 2, else 0.7: under any order it is
+4. **Unfit** - a wing under 0.5 of its strength or of its organisation at air stance 2, else 0.7: under any order it is
    called off - a carrier's group of only CAG put on **carrier protection**, any other's order dropped. **Wanting rest** - a
    wing under 0.75 of either at air stance 2, else 0.85: with no order, at its base, it rests. Both bars halved for a
    carrier's or an interceptor group (`FINDINGS-liveread.md`, section 27).
-4. On the move, under an order or fighting: passed over. Otherwise a **candidate**.
+5. On the move, under an order or fighting: passed over. Otherwise a **candidate**.
 
 ### 17.3 Rebasing (phase 2)
 
@@ -830,7 +834,14 @@ single wings is rebased on its agent's first full pass, before any merge, and la
 under the 0.75 the offensive air stance asks; the four at 4986 are fit and merge on 7 January, the five at 4691 later.
 **The original merges first**: its merged 3. Nihon Koukuujieitai stands at 4691 on 4 January at about 0.62 - worn by
 one flight, not by two - and 5. Nihon Koukuujieitai and the 3 Zerosen no Hikodan, which others joined, never left 5020.
-Which of the first hours' passes merges before the first rebase is not found; it wants a reading of those hours.
+Which of the first hours' passes merges before the first rebase is not found; it wants a reading of those hours. **Read on
+2026-11-12** (`reversing/findings/FINDINGS-liveread.md`, section 56), a new game logged hour by hour beside its own saves:
+the original too rebases first and lands its wings at half their organisation, and merges anyway - at peace the triage
+lists every group, worn or not, and the orphans attached at the second hour set their agent's **regroup air pending**, so
+the Zerosen merge at the third hour and the worn bombers at the full pass of the twelfth. With both built, the 4 January
+check against that new game's own save of the hour gives air units 101 of 101 countries and the Italian intercepts' end
+hours 3 of 3; against the maintainer's save Italy too is the save's, and Japan's 7 to 6 and the intercepts' hour are that
+game's own (the new game gives Japan's count exactly).
 To 20 April: air units 98 of 101 countries, where they stand 41 of 53, the mission 52 of 53 - China flies an intercept
 the save does not have.
 

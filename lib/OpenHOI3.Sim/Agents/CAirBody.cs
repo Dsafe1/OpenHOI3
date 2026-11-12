@@ -75,7 +75,7 @@ public static class CAirBody
 		{
 			Rebase(state, country, agent, headquarters, candidates, handled);
 		}
-		CAirRegroup.Run(state, country, agent, full, handled);
+		CAirRegroup.Run(state, country, agent, full, handled, candidates);
 		if (agent.RegroupAirPending || (!full && !atWar) || headquarters.Plan.AirStance == 0)
 		{
 			return;
@@ -138,9 +138,10 @@ public static class CAirBody
 	}
 
 	/// <summary>
-	/// The first phase: a group joining a live partner is set aside with it; one whose airfield an enemy marches on is
-	/// called off and kept; a worn group under an order is called off - a carrier's group put to protecting its carrier -
-	/// and one at rest at its base is left there; a group on the move, under an order or fighting is passed over.
+	/// The first phase: a group joining a live partner is set aside with it; in no war, or with no base, any other is a
+	/// candidate; otherwise one whose airfield an enemy marches on is called off and kept; a worn group under an order is
+	/// called off - a carrier's group put to protecting its carrier - and one at rest at its base is left there; a group on
+	/// the move, under an order or fighting is passed over.
 	/// </summary>
 	private static List<CUnit> Triage(CGameState state, CCountry country, CAgent agent, CUnit headquarters, bool atWar,
 		HashSet<CUnit> handled, ref bool force)
@@ -161,6 +162,13 @@ public static class CAirBody
 					continue;
 				}
 				state.Outbox.Add(new CDropOrderCommand(country.Tag, group.Id));
+			}
+			// In no war, declared or not, or with no base, a group is a candidate whatever its state: the tests below are a
+			// country at war's (FINDINGS-liveread.md, section 56).
+			if (!(atWar || Wars.CUndeclaredWars.Involves(state, country.Tag)) || group.Base <= 0)
+			{
+				candidates.Add(group);
+				continue;
 			}
 			bool busy = group.Order != EUnitOrder.None;
 			if (atWar && group.Base > 0 && IsMarchedOn(state, country, group.Base))

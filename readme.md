@@ -1918,9 +1918,12 @@ None of these blocks the list above.
   strategic bombing, nothing yet handing the agents the enemy's war industry; the Allies' Baltic ban; a friend's area
   reinforced by sea. ~~**Fleets come out too many**~~ - 221 to the 4 January save's 222 since 2026-10-20, a join no
   longer undone in the pass that ordered it, and a war with an empty side no longer keeping its last country at war;
-  **Japan's air groups stay apart** (9 to the save's 6): ours rebases them on the first full
-  pass and they are too worn to merge for days, where the original merges them first - which first-hour pass does it is
-  not found (`moving.md`, section 21); **Italy's three intercepts are given an hour before the save's**, the cause not found. Italy's war
+  ~~**Japan's air groups stay apart**~~ and ~~**Italy's three intercepts are given an hour before the save's**~~ - read on
+  2026-11-12 from a new game the original played hour by hour (`reversing/findings/FINDINGS-liveread.md`, section 56): at
+  peace every air group is a candidate for the regrouping, worn or not, and an air unit attached under an agent sets its
+  regroup air pending; set beside that game's own save of 4 January every country's count of air units is the original's
+  and so are the intercepts' hours, so the maintainer's save, a game of its own, differs from a new game there (`moving.md`,
+  section 21). Italy's war
   on Ethiopia keeps pace with the original's - 7 provinces held on 2 February to its 8 in the Ireland game's save - after
   the corrections of that evening and of the maintainer's Ireland game: stale areas, the pull's fuller test, the supply
   gate of a route and the AI running twice in the first hour (`moving.md`, section 21).

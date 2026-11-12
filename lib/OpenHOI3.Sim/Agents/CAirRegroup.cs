@@ -39,8 +39,11 @@ public static class CAirRegroup
 
 	private const long OtherRest = 850;
 
-	/// <param name="taken">The groups the air body's first two phases have already given something to do.</param>
-	public static void Run(CGameState state, CCountry country, CAgent agent, bool force, IEnumerable<CUnit>? taken = null)
+	/// <param name="taken">The groups the air body's first two phases have already given something to do, and the join pairs.</param>
+	/// <param name="candidates">The triage's candidates, which the split and the merge walk - so a group resting at its base
+	/// at war is in neither, though another may join it (FINDINGS-liveread.md, section 56).</param>
+	public static void Run(CGameState state, CCountry country, CAgent agent, bool force, IEnumerable<CUnit> taken,
+		IReadOnlyList<CUnit> candidates)
 	{
 		if (agent.Unit is not { } headquarters || agent.Air.Count == 0)
 		{
@@ -55,31 +58,13 @@ public static class CAirRegroup
 			return;
 		}
 		agent.RegroupAirPending = false;
-		var handled = new HashSet<CUnit>(taken ?? System.Array.Empty<CUnit>());
-		var fit = new List<CUnit>();
-		foreach (CUnit group in agent.Air)
+		var handled = new HashSet<CUnit>(taken);
+		foreach (CUnit group in candidates)
 		{
-			if (group.IsRemoved || group.IsRetreating)
+			if (group.IsRemoved)
 			{
 				continue;
 			}
-			if (CJoinOrders.IsJoin(group.Order) && CJoinOrders.SeenPartner(group) is { } joining)
-			{
-				handled.Add(group);
-				handled.Add(joining);
-				continue;
-			}
-			if (IsFit(state, headquarters, group) && !CCommandLadder.IsBlocked(group) && !group.IsFighting)
-			{
-				fit.Add(group);
-			}
-			else
-			{
-				Trace(state, country, $"air regroup: {group.Name}#{group.Id} unfit, blocked or fighting");
-			}
-		}
-		foreach (CUnit group in fit)
-		{
 			if (group.IsFighting || group.Base == 0 || group.Location != group.Base || CCommandLadder.IsBlocked(group)
 				|| handled.Contains(group) || group.SubUnits.Count == 0)
 			{
