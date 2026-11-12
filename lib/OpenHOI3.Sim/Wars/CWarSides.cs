@@ -126,9 +126,12 @@ public static class CWarSides
 	/// The original's <c>UpdateAtWarAndEnemies</c>: <c>last_war</c> is now towards every country the country
 	/// is at war with; in a running game its AI strategy is made again (aistrategy.md, section 1); at war and not
 	/// mobilised, it is given <c>initial_mobilization</c> for <c>MOBILIZATION_BONUS_DAYS</c>; at war with nobody and
-	/// mobilised, it is taken off where nobody plays it.
+	/// mobilised, it is taken off - with <paramref name="allowDemobilise"/>, unless <paramref name="suppressDemobilise"/>;
+	/// without, only where nobody plays it. Entering a game passes the first and, for a loaded game, the second; a change
+	/// of a war's sides passes neither (reversing/findings/FINDINGS-war.md, A.9).
 	/// </summary>
-	public static void BringUpToDate(CGameState state, CCountry country)
+	public static void BringUpToDate(CGameState state, CCountry country, bool allowDemobilise = false,
+		bool suppressDemobilise = false)
 	{
 		bool atWar = false;
 		foreach (CCountry other in state.Countries)
@@ -149,19 +152,23 @@ public static class CWarSides
 			}
 			country.Mobilised = true;
 		}
-		else if (!atWar && country.Mobilised && !state.Played.Contains(country.Tag))
+		else if (!atWar && country.Mobilised
+			&& (allowDemobilise ? !suppressDemobilise : !state.Played.Contains(country.Tag)))
 		{
 			country.EventModifiers.RemoveAll(given => given.Modifier.Name == Mobilisation);
 			country.Mobilised = false;
 		}
 	}
 
-	/// <summary>Every country brought up to date, as a game is entered.</summary>
-	public static void BringAllUpToDate(CGameState state)
+	/// <summary>
+	/// Every country brought up to date, as a game is entered: a country mobilised at peace is taken off, played or not,
+	/// but not in a loaded game, which keeps the mobilisation its save gave.
+	/// </summary>
+	public static void BringAllUpToDate(CGameState state, bool loaded = false)
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			BringUpToDate(state, country);
+			BringUpToDate(state, country, allowDemobilise: true, suppressDemobilise: loaded);
 		}
 	}
 

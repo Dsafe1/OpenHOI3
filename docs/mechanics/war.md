@@ -122,7 +122,10 @@ type.
 
 Whenever a country joins or leaves a side, **each of the two brought up to date**
 (`CCountry::UpdateAtWarAndEnemies`, A.9): for every country it is at war with, its record towards that
-country stamps **`last_war`, the hour now**. The same runs for every country as a game is loaded.
+country stamps **`last_war`, the hour now**. The same runs for every country as a game is entered, a new one and a
+loaded one, with two differences in the mobilisation below: entering takes a country mobilised at peace off whoever plays
+it, and **a loaded game takes nobody off**, the original passing it `loaded_from_save` (`FINDINGS-war.md`, A.9; built for a
+load 2026-11-12, where taking the save's mobilised countries off had cost six of the 167 ways entering July 1941 gives).
 **Nothing else stamps it** - not the hour, not the war's end (`FINDINGS-war.md` C.11).
 
 **A truce** with another country: not at war with it, and `last_war` no more than 2400 hours ago and not

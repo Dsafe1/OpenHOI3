@@ -219,8 +219,9 @@ public static class CSaveLoader
 			Sim.Units.CHistoricalModels.DefaultCount(state), warn);
 		// Entering the game brings every country up to date with its wars, a loaded one as a new one: each pair at war
 		// stamps last_war the hour now, so a truce follows any peace for a hundred days (war.md, section 4). Before the
-		// game runs, so no strategy is made again by it: entering makes them all.
-		Sim.Wars.CWarSides.BringAllUpToDate(state);
+		// game runs, so no strategy is made again by it: entering makes them all. A country mobilised at peace stays so, the
+		// original passing loaded_from_save to keep it (reversing/findings/FINDINGS-war.md, A.9).
+		Sim.Wars.CWarSides.BringAllUpToDate(state, loaded: true);
 		SetUpLoadedGame(state);
 		foreach (string line in report.Lines())
 		{
