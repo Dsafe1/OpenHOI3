@@ -542,7 +542,9 @@ troops**, else nothing at all:
    each with a naval base built, the first of equals kept (section 43). With both: those standing at embark are
    boarded, the others in its area marched there; transports - not busy, fit, the nearest by
    ((1 - strength) + (1 - organisation)) x 2 + 1 times the distance by sea - are sent there until they can carry the
-   troops.
+   troops, each by the AI's own move (section 10), so its destination is written at once and the naval body after it in
+   the pass finds the fleet under way and does not split it (`reversing/findings/FINDINGS-liveread.md`, section 57: New
+   Zealand's five transports sent to 7990 in a new game's second hour, kept whole).
 
 ## 16. Invasions (`FINDINGS-moving.md` E, `FINDINGS-invasion.md`)
 

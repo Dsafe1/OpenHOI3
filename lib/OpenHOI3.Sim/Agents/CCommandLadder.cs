@@ -298,7 +298,8 @@ public static class CCommandLadder
 	/// </summary>
 	public static bool IsBlocked(CUnit unit)
 	{
-		return unit.IsMoving || (unit.Order is not (EUnitOrder.None or EUnitOrder.Move or EUnitOrder.SupportAttack
+		// Moving by its destination, which the AI writes at once when it sends a unit in its pass (FINDINGS-liveread.md, section 57).
+		return CAgentUnits.Destination(unit) > 0 || (unit.Order is not (EUnitOrder.None or EUnitOrder.Move or EUnitOrder.SupportAttack
 			or EUnitOrder.CarrierProtection));
 	}
 }

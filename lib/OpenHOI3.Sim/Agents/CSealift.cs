@@ -625,7 +625,9 @@ public static class CSealift
 			}
 			present.Add(best);
 			capacity += CTransport.Capacity(best);
-			state.Outbox.Add(new CMoveUnitCommand(country.Tag, best.Id, embark));
+			// The AI's own move, as for any unit: its destination written at once, so the naval body that follows in the same
+			// pass sees the fleet under way (FINDINGS-liveread.md, section 57).
+			CAiMoves.Move(state, country, best, embark, safe: false);
 		}
 		// Ours: a fleet at embark carrying troops, with nobody left waiting there, sails them to debark.
 		if (waiting.Count == 0)

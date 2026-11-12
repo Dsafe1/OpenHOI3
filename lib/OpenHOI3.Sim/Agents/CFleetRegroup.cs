@@ -246,14 +246,20 @@ public static class CFleetRegroup
 		foreach (CUnit fleet in ready)
 		{
 			if (fleet.IsRetreating || fleet.IsFighting || fleet.SubUnits.Count == 0 || handled.Contains(fleet)
-				|| fleet.Order != EUnitOrder.None || fleet.IsMoving || fleet.Location != fleet.Base)
+				|| fleet.Order != EUnitOrder.None || CAgentUnits.Destination(fleet) > 0 || fleet.Location != fleet.Base)
 			{
 				continue;
 			}
-			CShipCensus left = Split(state, country, headquarters, fleet, counts[fleet]);
+			CShipCensus before = counts[fleet];
+			CShipCensus left = Split(state, country, headquarters, fleet, before);
 			counts[fleet] = left;
-			int ships = left.Capitals + left.Transports + left.Submarines + left.Carriers + left.Screens;
-			if (left.Transports > 0 || ships >= Small)
+			// A fleet that split goes on the handled list, so it is no partner; it may still look for one. Its ships are counted
+			// as it stands - those split off leave by command, after the pass (FINDINGS-liveread.md, section 57).
+			if (left != before)
+			{
+				handled.Add(fleet);
+			}
+			if (left.Transports > 0 || fleet.SubUnits.Count >= Small)
 			{
 				continue;
 			}

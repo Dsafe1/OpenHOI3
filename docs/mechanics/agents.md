@@ -191,14 +191,17 @@ Run for a country the AI runs (or a plan allowing headquarters reorganisation) w
 2. **Worn ships out.** Otherwise a fleet with a **damaged** ship (a transport below 0.5 of its strength, another below
    0.9) or a **resting** one (a non-transport below 0.9 of its organisation), with no order, at its own base: where 0 <
    damaged < ships and it is not fighting, one new fleet takes every damaged ship. Either way it sits out the rest.
-3. **Ready** fleets, in order, each not retreating or fighting, with ships, not handled this pass, with no order, at its
-   own base. Its ships are counted by role - **capital** (`capital = yes`), **transport** (`transport = yes`), **sub**
-   (`is_sub`), **carrier** (`carrier_size` > 0, not capital), **screen** (the rest).
+3. **Ready** fleets, in order, each not retreating or fighting, with ships, not handled this pass, with no order, not
+   bound anywhere - **by the destination the AI writes at once**, so a fleet the sealift sent earlier in the same pass is
+   not ready - at its own base. Its ships are counted by role - **capital** (`capital = yes`), **transport** (`transport =
+   yes`), **sub** (`is_sub`), **carrier** (`carrier_size` > 0, not capital), **screen** (the rest).
 4. **Split**, walking its ships in order: a capital goes when capitals > 4; a transport when transports > 4 or the fleet
    holds a capital or carrier; a sub when subs > 3 or the fleet holds any other ship (that count taken once); a screen or
    carrier when screens > 4. **Each ship that goes becomes a fleet of its own** in the fleet's province based at its base,
-   and its role's count goes down one.
-5. **Merge**: a fleet with no transport and fewer than 6 ships takes the first other ready fleet not handled whose
+   and its role's count goes down one. **A fleet that split goes on the handled list** - no partner for a merge, though it
+   may still look for one (`reversing/findings/FINDINGS-liveread.md`, section 57).
+5. **Merge**: a fleet with no transport - by the count left after the split - and **fewer than 6 ships as it stands**,
+   the ships split off leaving only when their commands run, takes the first other ready fleet not handled whose
    combined counts pass: no subs beside other ships, subs of one range (the first ships'), at most 3 subs; capitals +
    carriers at most 3 where this fleet has any; not screens alone; not transports beside capitals or carriers; at most 3
    screens; reachable by sea. It is ordered to **join** the other (5.4), and both are handled.
