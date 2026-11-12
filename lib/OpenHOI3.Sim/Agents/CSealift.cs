@@ -629,15 +629,26 @@ public static class CSealift
 				present.Add(fleet);
 			}
 		}
+		// Those boarded now count as aboard for the sailing below: the load and the order to sail go out in one pass, and the
+		// load runs first, as the original's (reversing/findings/FINDINGS-liveread.md, section 63).
+		var boarding = new HashSet<CUnit>();
+		int left = 0;
 		foreach (CUnit unit in waiting)
 		{
+			bool loaded = false;
 			foreach (CUnit fleet in present)
 			{
 				if (CTransport.CanCarry(fleet, unit))
 				{
 					state.Outbox.Add(new CLoadUnitCommand(country.Tag, unit.Id, fleet.Id));
+					boarding.Add(fleet);
+					loaded = true;
 					break;
 				}
+			}
+			if (!loaded)
+			{
+				left++;
 			}
 		}
 		while (troops > capacity)
@@ -673,12 +684,13 @@ public static class CSealift
 			// pass sees the fleet under way (FINDINGS-liveread.md, section 57).
 			CAiMoves.Move(state, country, best, embark, safe: false);
 		}
-		// Ours: a fleet at embark carrying troops, with nobody left waiting there, sails them to debark.
-		if (waiting.Count == 0)
+		// Ours: a fleet at embark carrying troops, or taking them aboard now, with nobody left waiting there unboarded, sails them
+		// to debark.
+		if (left == 0)
 		{
 			foreach (CUnit fleet in present)
 			{
-				if (fleet.Location == embark && fleet.Passengers.Count > 0 && fleet.Order == EUnitOrder.None)
+				if (fleet.Location == embark && (fleet.Passengers.Count > 0 || boarding.Contains(fleet)) && fleet.Order == EUnitOrder.None)
 				{
 					state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Transport, debark));
 				}

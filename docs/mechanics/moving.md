@@ -751,8 +751,10 @@ months on) - at least three hours left, and the order ends then.
   sea battle is sent home, the reading saying only that it disengages; an empty transport's order is always cancelled,
   the flag that spares one not being read.
 - **The sealift** (section 15): the original's steps after boarding - unloading, merging and sailing a transport - are named
-  by their calls only, so here a fleet at embark carrying troops, with nobody left waiting there, is given the transport
-  mission to debark; a division's fitness for an enemy's area is its strength share, the original weighing it by its
+  by their calls only, so here a fleet at embark carrying troops, or taking them aboard in the same pass, with nobody
+  left waiting there unboarded, is given the transport mission to debark - boarded and sent in one pass, as the running
+  game's Ceylon Command was on 3 January at 09:00, where ours waited a pass for the troops to be aboard and sailed a day
+  late (`reversing/findings/FINDINGS-liveread.md`, section 63); a division's fitness for an enemy's area is its strength share, the original weighing it by its
   type as well; the embark port's way to debark is any distance by sea; a tie in the embark area, which the
   original breaks by a hash map's order of areas by their address, goes to the first found; and a unit trespassing in another country's land - a
   flag nothing here holds - is not looked for.
