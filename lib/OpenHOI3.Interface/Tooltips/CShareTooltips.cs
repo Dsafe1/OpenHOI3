@@ -137,10 +137,11 @@ public static class CShareTooltips
 		var text = new System.Text.StringBuilder();
 		text.Append('\n').Append(CTextTemplate.Fill(localise("DCG_TOTAL_NEED"), ("PERC", Rounded(need * Hundred, 2)))).Append('\n');
 
-		// The standing army's term of the demand is not built, so it asks for nothing here.
+		// The standing army's term of the demand, by the brigades in service the hour counted - those waiting to be placed
+		// among them - as the demand itself takes it (production.md, section 3).
 		text.Append(CTextTemplate.Fill(localise("DCG_TROOPS_GOODS"),
-			("IC", Rounded(CFixed15.Zero, 2)),
-			("TROOPS", LandBrigadesInService(country).ToString(CultureInfo.InvariantCulture)))).Append('\n');
+			("IC", Rounded(CFixed15.FromThousandths(CProduction.StandingArmy(country)) * Hundred, 2)),
+			("TROOPS", country.LandBrigadesInService.ToString(CultureInfo.InvariantCulture)))).Append('\n');
 		text.Append(CModifierText.Sources(localise, country.ModifierSources, state.IsAtWar(country.Tag) ? WarDemand : PeaceDemand));
 
 		CFixed15 change = CProduction.DissentChange(state, country, share);
@@ -150,17 +151,6 @@ public static class CShareTooltips
 			text.Append('\n').Append(CTextTemplate.Fill(localise("DCG_DISSENT"), ("VAL", colour + Rounded(change, 2) + White))).Append(' ');
 		}
 		return text.ToString();
-	}
-
-	/// <summary>
-	/// The land brigades a standing army is counted by: every brigade of a land unit, a reserve's
-	/// only once the country has mobilised.
-	/// </summary>
-	public static int LandBrigadesInService(CCountry country)
-	{
-		return country.AllUnits()
-			.Where(unit => unit.Kind is not (EUnitKind.Navy or EUnitKind.Air) && (!unit.IsReserve || country.Mobilised))
-			.Sum(unit => unit.SubUnits.Count);
 	}
 
 	/// <summary>How much of the build queue the share pays for, what it needs and what it spent.</summary>

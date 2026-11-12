@@ -34,6 +34,9 @@ public sealed class COutlinerUnitEntry
 	/// <summary>Raised when the expand button is pressed.</summary>
 	public event Action? ExpandPressed;
 
+	/// <summary>Raised as the row's button goes down: a drag of its unit may follow.</summary>
+	public event Action? DragStarted;
+
 	private COutlinerUnitEntry(CGuiContext context, CGuiWindow window, CGuiWindow unitWindow, CGameState state, CCountry player,
 		COutlinerRow row, bool expanded)
 	{
@@ -75,6 +78,8 @@ public sealed class COutlinerUnitEntry
 		if (window.FindButton("outliner_standard") is { } background)
 		{
 			background.Pressed += () => Chosen?.Invoke();
+			// Held, the row's unit is picked up for the order of battle browser (oobbrowser.md, section 6).
+			background.HeldDown += () => DragStarted?.Invoke();
 		}
 	}
 

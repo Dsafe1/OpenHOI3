@@ -148,6 +148,22 @@ public class ShareTooltipTests
 	}
 
 	[Fact]
+	public void The_armys_line_is_the_standing_armys_term_by_the_brigades_the_hour_counted()
+	{
+		(CGameState state, CCountry germany) = State();
+		germany.Modifier.Set("peace_consumer_goods_demand", CFixedPoint.Parse("0.25"));
+		germany.LandBrigadesInService = 40;
+		germany.EffectiveNeutrality = CFixedPoint.FromInt(50);
+
+		string text = CShareTooltips.Production(Localise, state, germany, EProductionCategory.ConsumerGoods, Share("0.3"));
+
+		// 40 brigades over 100 IC, a quarter of that, by half the neutrality: 0.050, which the need takes too.
+		Assert.StartsWith("\nWe need a total of §Y30.00%§W of our IC into consumer goods.\n"
+			+ "Our §Y40§W regular brigades and mobilized reserve brigades require that §Y5.00%§W of IC be put into consumer goods when at peace.",
+			text);
+	}
+
+	[Fact]
 	public void Research_covers_the_projects_in_green_or_red()
 	{
 		(CGameState state, CCountry germany) = State();

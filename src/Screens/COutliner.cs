@@ -42,6 +42,9 @@ public partial class COutliner : Control
 	/// <summary>A unit's row was pressed.</summary>
 	public event Action<CUnit>? UnitChosen;
 
+	/// <summary>A unit's row went down: its unit may be dragged into the order of battle browser.</summary>
+	public event Action<CUnit>? UnitDragStarted;
+
 	/// <summary>A battle's or a bombing's row was pressed.</summary>
 	public event Action<CCombat>? CombatChosen;
 
@@ -208,6 +211,7 @@ public partial class COutliner : Control
 				if (COutlinerUnitEntry.Create(_context, state, _player, row, _expanded.Contains(unit)) is { } entry)
 				{
 					entry.Chosen += () => UnitChosen?.Invoke(unit);
+					entry.DragStarted += () => UnitDragStarted?.Invoke(unit);
 					entry.ExpandPressed += () => Expand(unit);
 					_updates.Add(entry.Update);
 					window = entry.Window;

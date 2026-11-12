@@ -1891,7 +1891,7 @@ None of these blocks the list above.
 - **Only a theatre's headquarters can be handed to the AI** by the unit panel's box (`unitpanel.md`, section 9); the original lets a corps, an army or an army group go too, and the agents here are a theatre's. The AI's own liberating and puppets are still reported unbuilt (`politics.md`, section 11.1).
 - **An expeditionary force's first piece is built** (`docs/mechanics/expeditions.md`): the window, the rows, the offer and answer, the hand-over and the return, the flag and what a lent unit may not do. A lent unit's officers, supply, reinforcement and combat figures are its lender's. The AI lends and sends home through its agents (`agents.md`, section 10.5), with nothing asked of the other country; no AI offers one to the player, and an exile does not send them home (`expeditions.md`, section 6).
 - **A battle plan's arrows are drawn without the effect's stencil**, so two arrows of one colour crossing blend where the original paints each pixel once (`docs/mechanics/battleplans.md`, section 11). The translator does not carry stencil states yet.
-- **The order of battle browser takes drags only from its own rows and the unit panel's brigades.** The unit panel's child rows and leader button, the outliner and the deploy menu are also sources in the original (`docs/mechanics/oobbrowser.md`, section 8).
+- **The order of battle browser takes no drag from the deploy menu**, where the original deploys a line dropped on a row under that row's unit - read only as far as `inferred`, and the deploy menu's lines are not dragged here at all. Its own rows, the unit panel's brigades, child rows and leader button and the outliner's unit rows are sources since 2026-11-13 (`docs/mechanics/oobbrowser.md`, sections 6 and 8).
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
   and the front end makes its meshes again for each world it shows - the quad cache it reads once - which could be kept
   between worlds; a map whose cache is missing or stale - its `time` stamp not the map files' (section 2.1, since
@@ -2118,9 +2118,6 @@ None of these blocks the list above.
     here reading the lists they name (`script.md`, *Not checked here*);
   - **a tag spelled like another of the original's own words** is not caught: only `PHI` and
     `PAN`, the two the base game's and BlackICE's tags collide with, are known.
-- **The consumer goods slider's tooltip leaves out the standing army's term of the demand** (2026-10-11), which the
-  simulation has since 2026-11-02 and the slider still says `0.00` of, counting the brigades its own
-  way, without those waiting to be placed (`production.md`, section 3; `CShareTooltips`).
 - **A new game's consumer goods share leaves out the standing army** (2026-11-02): the shares are set before any unit
   exists, so the two days run short of the demand and dissent rises where the save has none - 85 of 101 against 94
   without the term (`politics.md`, section 10). What the original's starting share is made of is not established

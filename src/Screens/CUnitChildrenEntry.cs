@@ -36,6 +36,9 @@ public sealed class CUnitChildrenEntry : CUnitPanelEntry
 	/// <summary>Raised by the ribbon, <c>select_all_childunits</c>.</summary>
 	public event Action? SelectAllPressed;
 
+	/// <summary>Raised with the unit of a row whose button went down: a drag of it may follow.</summary>
+	public event Action<CUnit>? DragStarted;
+
 	private CUnitChildrenEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit)
 		: base(window)
 	{
@@ -94,6 +97,7 @@ public sealed class CUnitChildrenEntry : CUnitPanelEntry
 				continue;
 			}
 			row.Selected += () => Selected?.Invoke(child);
+			row.DragStarted += () => DragStarted?.Invoke(child);
 			_rows.Add(row);
 			_list?.Add(row.Window);
 			rowHeight = (int)row.Window.Size.Y;

@@ -43,7 +43,7 @@ A click selects its unit and centres the map on it, closing any country screen, 
 
 ## 6. Dragging
 
-A press on a row's `drag_button` picks its unit up, on its portrait its leader. A press on a brigade's row of the unit panel picks the brigade up. It is a drag once the mouse has moved more than **2 pixels** on either axis. A floating row follows it, with no expand button; a leader's at 10 to its right. A closed row the mouse stays on for a second opens. Above or below a list, in its column, the list creeps by `sqrt(distance) * elapsed`, a line each time that passes 1.
+A press on a row's `drag_button` picks its unit up, on its portrait its leader. A press on a brigade's row of the unit panel picks the brigade up; on one of its child rows, or on a unit's row of the outliner, the unit (since 2026-11-13); on its leader button, the unit's leader (the same). A plain click on any of them does what it did, the drag beginning only once the mouse moves. It is a drag once the mouse has moved more than **2 pixels** on either axis. A floating row follows it, with no expand button; a leader's at 10 to its right. A closed row the mouse stays on for a second opens. Above or below a list, in its column, the list creeps by `sqrt(distance) * elapsed`, a line each time that passes 1.
 
 **On release, on a row** (the main list first):
 
@@ -55,12 +55,16 @@ A press on a row's `drag_button` picks its unit up, on its portrait its leader. 
 
 A drop not on a row does nothing. Nothing is undoable.
 
+**After a drop every row in view shows what the command did**: a unit moved takes its place in the tree, a row's brigades
+and name are written again each frame, and a leader moved shows on his new row - and **his old row shows the file's own
+picture**, where until 2026-11-13 it kept his portrait when the unit was left with none, so that he seemed to stand on both.
+
 ## 7. The second list
 
 The same as the first, with its own rows, scroll and expansion.
 
 ## 8. What is missing and what is the original's
 
-- **Unbuilt.** A unit dragged in from the unit panel's child rows or the outliner, a leader from the panel's leader button, and the deploy menu's drop into the browser: only the panel's brigades and the browser's own rows are sources. The window of the original has no leader list: `oob_leader_entry` is the floating row alone.
+- **Unbuilt.** The deploy menu's drop into the browser: a deployment line dragged onto a row, which the original deploys under the row's unit (`reversing/findings/FINDINGS-deploymenu.md`, section 6, `inferred`) - the deploy menu's lines are not dragged here at all. Every other source of the original's is built since 2026-11-13. The window of the original has no leader list: `oob_leader_entry` is the floating row alone.
 - *Ours:* a row with no leader keeps the file's picture where the original draws its null leader's.
 - *The original's, kept:* the split button's opening copy, losing what the second list held; a row's unit gone loses the list's expansion; `theatre_forces_button` on the main window alone.

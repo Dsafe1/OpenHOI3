@@ -193,8 +193,9 @@ half.
 hundred times the IC; the supply share's sentence runs into its first source; the upgrade share's
 two sentences touch; the reinforcement bonus is cut where everything else is rounded.
 
-*Ours:* the standing army's term of the consumer goods demand is not built, so it reads `0.00`; a
-land brigade is in service when its unit is not a reserve or the country has mobilised. Production
+The standing army's line is the term the demand takes (`production.md`, section 3) and the land brigades in service the
+hour counted, those waiting to be placed among them - since 2026-11-12; until then it read `0.00` and counted the brigades
+its own way. *Ours:* Production
 says what it spent as the day's spending of its queue. Nothing influences anybody, so the upkeep is
 nothing.
 

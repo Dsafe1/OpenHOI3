@@ -82,6 +82,12 @@ public partial class CUnitPanel : Control
 	/// <summary>The left button went down on a brigade's row.</summary>
 	public event Action<CSubUnit>? BrigadeDragStarted;
 
+	/// <summary>A child row's button going down: its unit may be dragged into the order of battle browser.</summary>
+	public event Action<CUnit>? UnitDragStarted;
+
+	/// <summary>The leader button going down on a unit with a leader: he may be dragged into the order of battle browser.</summary>
+	public event Action<CLeader>? LeaderDragStarted;
+
 	private const string UpgradeWindowName = "select_upgrade_window";
 	private const string UpgradeRowName = "select_upgrade_entry";
 	private CUnitBrigadeRow? _upgradeRow;
@@ -485,6 +491,7 @@ public partial class CUnitPanel : Control
 			_header = header;
 			header.Deselected += () => UnitChosen?.Invoke(null);
 			header.LeaderPressed += () => OpenLeaders(unit);
+			header.LeaderDragStarted += leader => LeaderDragStarted?.Invoke(leader);
 			Add(header);
 		}
 		if (CUnitStatusEntry.Create(_context, state, owner, unit) is { } status)
@@ -546,6 +553,7 @@ public partial class CUnitPanel : Control
 		if (_hasChildren && CUnitChildrenEntry.Create(_context, state, owner, unit) is { } children)
 		{
 			children.Selected += ChooseRow;
+			children.DragStarted += child => UnitDragStarted?.Invoke(child);
 			// The ribbon adds every land unit under this one to the selection, which keeps this one (selection.md, 5.3).
 			children.SelectAllPressed += () => SelectionChanging?.Invoke(selection => selection.AddCommand(unit));
 			Add(children);

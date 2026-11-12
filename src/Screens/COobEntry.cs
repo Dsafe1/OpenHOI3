@@ -142,6 +142,12 @@ public sealed class COobEntry
 			{
 				CLeaderEntry.ShowPortrait(_context, _photo, leader);
 			}
+			else
+			{
+				// A unit whose leader went elsewhere - dragged to another row - shows the file's own picture again, where
+				// it kept the portrait of the leader it no longer has.
+				_photo?.ShowSprite();
+			}
 		}
 		if (_drag is not null)
 		{

@@ -49,6 +49,9 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 	/// </summary>
 	public event Action? LeaderPressed;
 
+	/// <summary>Raised as the leader button goes down on a unit with a leader: a drag of him may follow.</summary>
+	public event Action<CLeader>? LeaderDragStarted;
+
 	/// <summary>A row's "select this" button, and where its file puts it: a row marked with Shift has it 15 pixels right.</summary>
 	private readonly CGuiButton? _only;
 	private readonly Godot.Vector2 _onlyHome;
@@ -128,6 +131,15 @@ public sealed class CUnitHeaderEntry : CUnitPanelEntry
 		if (_leaderButton is not null)
 		{
 			_leaderButton.Pressed += () => LeaderPressed?.Invoke();
+			// Held, the unit's leader is picked up for the order of battle browser, as the original's OnLeaderButton does
+			// (oobbrowser.md, section 6).
+			_leaderButton.HeldDown += () =>
+			{
+				if (unit.Leader is { } leader)
+				{
+					LeaderDragStarted?.Invoke(leader);
+				}
+			};
 		}
 		if (_photo is not null)
 		{

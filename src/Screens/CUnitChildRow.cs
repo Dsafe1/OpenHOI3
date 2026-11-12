@@ -30,6 +30,9 @@ public sealed class CUnitChildRow : CUnitPanelEntry
 	/// <summary>Raised when the row's button is pressed.</summary>
 	public event Action? Selected;
 
+	/// <summary>Raised as the row's button goes down: a drag of its unit may follow.</summary>
+	public event Action? DragStarted;
+
 	private CUnitChildRow(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit)
 		: base(window)
 	{
@@ -59,6 +62,8 @@ public sealed class CUnitChildRow : CUnitPanelEntry
 		if (window.FindButton("select") is { } select)
 		{
 			select.Pressed += () => Selected?.Invoke();
+			// Held, the row's unit is picked up for the order of battle browser (oobbrowser.md, section 6).
+			select.HeldDown += () => DragStarted?.Invoke();
 		}
 		AnswerFor(name => CUnitHeaderTooltips.ChildRow(context.Localisation.Localise, owner, unit, name), "order", "objective", "org_bar", "str_bar");
 		Update();

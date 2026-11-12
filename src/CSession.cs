@@ -56,6 +56,9 @@ public partial class CSession : Node
 	private CSimulation _simulation = null!;
 	private CTopBar? _topBar;
 	private COutliner? _outliner;
+
+	/// <summary>The order of battle browser, which the unit panel and the outliner drag units and leaders into.</summary>
+	private COobBrowser? _browser;
 	private CProductionView? _production;
 	private CTechnologyView? _technology;
 	private CDiplomacyView? _diplomacy;
@@ -522,6 +525,10 @@ public partial class CSession : Node
 			browser.WidthChanged += width => _unitPanel.SetLeft(width);
 			_unitPanel.BrowserWanted += browser.Toggle;
 			_unitPanel.BrigadeDragStarted += browser.BeginDragSubUnit;
+			// And from the panel's child rows and leader button, and the outliner's unit rows below (oobbrowser.md, section 6).
+			_unitPanel.UnitDragStarted += browser.BeginDragUnit;
+			_unitPanel.LeaderDragStarted += browser.BeginDragLeader;
+			_browser = browser;
 			layer.AddChild(cards);
 		}
 		_mapView.CombatSelected += ShowCombat;
@@ -560,6 +567,10 @@ public partial class CSession : Node
 			outliner.Toggled += () => topBar.ShowOutliner(outliner.IsOpen, !outliner.IsCovered);
 			topBar.ShowOutliner(outliner.IsOpen, !outliner.IsCovered);
 			outliner.UnitChosen += ChooseUnit;
+			if (_browser is { } dropTarget)
+			{
+				outliner.UnitDragStarted += dropTarget.BeginDragUnit;
+			}
 			outliner.CombatChosen += combat =>
 			{
 				ShowCombat(combat);

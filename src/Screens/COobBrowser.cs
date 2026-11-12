@@ -402,6 +402,27 @@ public partial class COobBrowser : Control
 		}
 	}
 
+	/// <summary>
+	/// A unit pressed somewhere else while the browser is up - the unit panel's child row, the outliner's unit row - picked
+	/// up as a row of the browser's own would be (<c>docs/mechanics/oobbrowser.md</c>, section 6).
+	/// </summary>
+	public void BeginDragUnit(CUnit unit)
+	{
+		if (_open)
+		{
+			BeginDrag(unit, null, null);
+		}
+	}
+
+	/// <summary>The unit panel's leader button pressed while the browser is up: its leader picked up, as a row's portrait is.</summary>
+	public void BeginDragLeader(CLeader leader)
+	{
+		if (_open)
+		{
+			BeginDrag(null, null, leader);
+		}
+	}
+
 	private void BeginDrag(CUnit? unit, CSubUnit? subUnit, CLeader? leader)
 	{
 		_draggedUnit = unit;
