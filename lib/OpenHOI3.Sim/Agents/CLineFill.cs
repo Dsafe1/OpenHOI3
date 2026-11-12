@@ -332,7 +332,7 @@ public static class CLineFill
 				{
 					keyTrace.Write($"  key\t{unit.Name}\t{position.Province}\t{position.Have}\t{position.Want}\t{key:F6}");
 				}
-				if (key < least && CAiMoves.CanReach(state, country, unit, position.Province))
+				if (key < least && CAiMoves.ReachesByLand(state, country, unit, position.Province))
 				{
 					least = key;
 					best = position;
@@ -506,7 +506,7 @@ public static class CLineFill
 				CUnit? best = null;
 				foreach ((float _, CUnit unit) in System.Linq.Enumerable.OrderBy(keyed, entry => entry.Key))
 				{
-					if (CAiMoves.CanReach(state, country, unit, position.Province)
+					if (CAiMoves.ReachesByLand(state, country, unit, position.Province)
 						&& CUnitMayLeave.Allows(state, country, unit, null, CUnitMayLeave.IsStrict(agent), notDefending: false))
 					{
 						best = unit;

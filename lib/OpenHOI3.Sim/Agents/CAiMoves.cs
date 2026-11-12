@@ -68,8 +68,8 @@ public static class CAiMoves
 
 	/// <summary>
 	/// The original's <c>CMapProvince::CanUnitReach</c>: yes where the unit stands there already; no for a unit falling back
-	/// or with no brigade; otherwise whether the unit has a way there - the safe way, as the line asks it
-	/// (<c>docs/mechanics/moving.md</c>, section 10).
+	/// or with no brigade; otherwise whether the unit has a way there - the safe way, as the garrisons ask it; the line asks
+	/// <see cref="ReachesByLand"/>, as the original does (<c>docs/mechanics/moving.md</c>, section 10).
 	/// </summary>
 	public static bool CanReach(CGameState state, CCountry country, CUnit unit, int province,
 		ERouteSafety safety = ERouteSafety.Safe)

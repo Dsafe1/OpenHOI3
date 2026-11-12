@@ -292,12 +292,14 @@ redeployment where 9 says so (`FINDINGS-moving.md` A.4c).
 
 **The way.** A move asked for safely - the line's, the garrisons', the rear's and the reserves' - takes the **very safe**
 way: short of the goal, a land unit does not step into a province held by a country at war with it or the rebels, nor
-into one with a land battle in it. The line's reach tests (7.3) ask the **safe** way: short of the goal, not through a
-province where the units of countries at war with it - a rebel's not counted on its own country's land - are stronger
-than it. **That is ours and not the original's** (read 2026-11-09, `FINDINGS-balancing.md`): for a land unit its reach test seeks
-no way at all but asks whether the areas are joined, which the balancing does (`CAiMoves.ReachesByLand`). Asking so in the line
-changed nothing in either check against a running game, and the safe way is what ended a marching loop (`FINDINGS-moving.md` A.4c),
-so it stays until a save says otherwise. The fallback and the march check's cut take the plain way, which only the step rules hold back
+into one with a land battle in it. The line's reach tests (7.3) - the send's and the pull's - ask what the original's
+asks of a land unit (`FINDINGS-balancing.md`): **no way at all, but whether the areas are joined** (`CAiMoves.ReachesByLand`),
+as the balancing does. They asked the safe way until 2026-11-12, when the running game's new game showed the difference: at
+its second hour Italy's line sends four Eritrean divisions to 9734, already full, and none to 9960 or 9980 in Somalia, which
+no land of Italy's joins to Eritrea - where the safe way, through weakly held Ethiopian land, had chosen them, the very safe
+move had then found no way, and the pull had seen both positions filled (`reversing/findings/FINDINGS-liveread.md`, section
+60). The marching loop the safe way once ended (`FINDINGS-moving.md` A.4c) does not come back: no area held by an enemy joins
+two areas. Other reach tests - the garrisons' - still ask the safe way, not having been set beside the running game. The fallback and the march check's cut take the plain way, which only the step rules hold back
 (`movement.md`). **A strategic redeployment** always takes the very safe way, whoever orders it (`movement.md`, section
 3). It is an order: the unit goes at `STRAT_REDEP_BASE_SPEED` x its province's infrastructure (between a hundredth
 and a whole) instead of its own, and does not fight on the way (`movement.md`); each hour of the way starts its attack
