@@ -27,9 +27,10 @@ names and tooltips; `src/Screens/CMinimapView` builds the minimap and `CMinimapF
 | `mapmode_1` .. `mapmode_16` | the map mode buttons, in the `menubar` window, two frames each |
 
 The bar's window also has the zoom buttons, `map_zoom_in` and `map_zoom_out`, built since 2026-11-07: a press, or their
-shortcuts Page Down and Page Up, takes a fifth off the camera's height or adds one, held between 40 and 1000 [exe]
-(`reversing/findings/FINDINGS-minimap.md`, section 5). *Ours:* the original changes the height it wants and the camera
-moves to it, where here the camera is there at once, about the middle of the screen; and there is no `click`. **The minimap is hidden while a country screen is
+shortcuts Page Down and Page Up, takes a fifth of the height the camera wants off it or adds one, held between 40 and
+1000 [exe] (`reversing/findings/FINDINGS-minimap.md`, section 5), about the middle of the screen, and the camera eases to
+it as it does to a wheel notch, at once with `use_legacy_camera` (`mapunits.md`, section 7; since 2026-11-12, where it had
+been there at once). *Ours:* there is no `click`. **The minimap is hidden while a country screen is
 up** - production, technology, diplomacy, politics, intelligence - and shown again when it shuts. Nothing else hides it
 and there is no way to shut it: the file's `minimap_closed` is commented out and nothing reads it. `confirmed`
 

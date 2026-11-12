@@ -135,6 +135,20 @@ public sealed class CSliderPanel
 		_group.Load(total, _sent ?? _known);
 	}
 
+	/// <summary>
+	/// Holds a slider to a limit, as the original's production screen does each frame it is open: one over it is put down
+	/// and the free ones take up the rest, and what that makes is sent to the game as a setting of the player's would be
+	/// (<c>reversing/findings/FINDINGS-lendleaseslider.md</c>, section 3).
+	/// </summary>
+	public void HoldToLimit(int share, CFixedPoint? limit)
+	{
+		_group.SetLimit(share, limit);
+		if (_group.ClampToLimits())
+		{
+			_changed = true;
+		}
+	}
+
 	/// <summary>Draws one slider: its place, its lock and the two lines of text.</summary>
 	public void Show(int share, string value, string need)
 	{

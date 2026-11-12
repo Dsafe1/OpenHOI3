@@ -126,7 +126,6 @@ public partial class CMapView : Node2D
 	/// <summary>The original's picture of the stripes that mark ground held by another than its owner.</summary>
 	private const string StripesPath = "map/terrain/stripes.dds";
 
-	private const float ZoomStep = 1.25f;
 	/// <summary>Map pixels a second at zoom 1, for the keyboard.</summary>
 	private const float KeyScrollSpeed = 900f;
 
@@ -892,6 +891,7 @@ public partial class CMapView : Node2D
 		get => (_camera.Position, _camera.Zoom.X);
 		set
 		{
+			StopEase(height: true);
 			_camera.Position = value.Centre;
 			_camera.Zoom = new Vector2(value.Zoom, value.Zoom);
 			ClampCamera();
@@ -950,6 +950,7 @@ public partial class CMapView : Node2D
 	/// </summary>
 	public void JumpTo(float x, float yNorth)
 	{
+		StopEase(height: false);
 		_camera.Position = new Vector2(x, _map.Height - yNorth);
 		ClampCamera();
 	}
@@ -976,23 +977,146 @@ public partial class CMapView : Node2D
 		return _camera.Position + (screen - GetViewportRect().Size / 2f) / _camera.Zoom;
 	}
 
-	private void ZoomAt(Vector2 screen, float factor)
+	/// <summary>The settings the zoom goes by: <c>zoom_speed</c> and <c>use_legacy_camera</c> [mod: settings.txt].</summary>
+	public Func<(float ZoomSpeed, bool Legacy)>? CameraSettings { get; set; }
+
+	/// <summary>The height the camera is easing to, or null where it stands at the one it wants.</summary>
+	private float? _heightWanted;
+
+	/// <summary>The point the camera is easing to, or null where it stands over it.</summary>
+	private Vector2? _aimWanted;
+
+	/// <summary>Whether this frame has had its wheel notch: the original takes one a frame, however far the wheel turned.</summary>
+	private bool _notched;
+
+	/// <summary>
+	/// A wheel notch, as the original's camera takes it (<c>reversing/findings/FINDINGS-camerazoom.md</c>): the target
+	/// height a tenth lower or a fifth higher at the default <c>zoom_speed</c>, sized by the height now; and, unless the
+	/// target landed on a limit or the pointer is within six pixels of an edge, the look target pulled about an eighth of
+	/// the way towards the point under the pointer, in or out. Both are then eased to, a frame at a time
+	/// (<see cref="EaseCamera"/>). With <c>use_legacy_camera</c> the height is taken at once and nothing is pulled.
+	/// </summary>
+	private void WheelNotch(Vector2 screen, bool inwards)
 	{
-		// Whatever is under the mouse stays under it.
-		Vector2 anchor = ScreenToMap(screen);
-		SetZoom(_camera.Zoom.X * factor);
-		_camera.Position = anchor - (screen - GetViewportRect().Size / 2f) / _camera.Zoom;
-		ClampCamera();
+		if (_notched)
+		{
+			return;
+		}
+		_notched = true;
+		(float speed, bool legacy) = CameraSettings?.Invoke() ?? (CMapZoom.DefaultSpeed, false);
+		Vector2 size = GetViewportRect().Size;
+		float height = CameraHeight;
+		float lowest = _leastHeight;
+		float highest = HighestHeight();
+		float wanted = CMapZoom.NotchTarget(_heightWanted ?? height, height, speed, inwards, lowest, highest);
+		if (legacy)
+		{
+			_heightWanted = null;
+			SetZoom(CMapCamera.ZoomAt(wanted, size.Y));
+			return;
+		}
+		_heightWanted = wanted;
+		bool inside = inwards ? wanted > lowest : highest > wanted;
+		if (inside && screen.X > CMapZoom.PullMargin && screen.Y > CMapZoom.PullMargin
+			&& screen.X < size.X - CMapZoom.PullMargin && screen.Y < size.Y - CMapZoom.PullMargin)
+		{
+			Vector2 under = ScreenToMap(screen);
+			Vector2 aim = _aimWanted ?? _camera.Position;
+			float left = CMapZoom.PullLeft(height, speed);
+			_aimWanted = new Vector2(CMapZoom.Pull(aim.X, under.X, left), CMapZoom.Pull(aim.Y, under.Y, left));
+		}
 	}
 
 	/// <summary>
-	/// The zoom buttons by the minimap and their keys, Page Down and Page Up: the camera's height a fifth lower or a fifth
-	/// higher, held between 40 and 1000, about the middle of the screen (<c>minimap.md</c>, section 4) [exe].
+	/// The highest the camera goes. *Ours*: the original's stops at 1000; here it goes on until the whole map is on
+	/// screen, as it did before the zoom eased.
+	/// </summary>
+	private float HighestHeight()
+	{
+		return CMapCamera.HeightAt(MinZoom(), GetViewportRect().Size.Y);
+	}
+
+	/// <summary>
+	/// One frame of the original's ease: the height and the look point each close 0.197 of the gap to the ones wanted -
+	/// a frame, not a second, as the original's does (<c>docs/enhanced.md</c>). A few thousandths short is taken as there.
+	/// </summary>
+	private void EaseCamera()
+	{
+		if (_heightWanted is null && _aimWanted is null)
+		{
+			return;
+		}
+		Vector2 size = GetViewportRect().Size;
+		if (_heightWanted is { } wanted)
+		{
+			float next = CMapZoom.EaseTowards(CameraHeight, wanted);
+			if (Math.Abs(wanted - next) <= wanted * 1e-5f)
+			{
+				next = wanted;
+				_heightWanted = null;
+			}
+			_camera.Zoom = Vector2.One * Mathf.Clamp(CMapCamera.ZoomAt(next, size.Y), MinZoom(), MaxZoom());
+			_material.SetShaderParameter("province_border", Mathf.SmoothStep(1.2f, 2.5f, _camera.Zoom.X));
+		}
+		if (_aimWanted is { } aim)
+		{
+			Vector2 from = _camera.Position;
+			// The short way round the map: the camera folds back onto the middle copy, the aim may not have.
+			aim.X = from.X + Mathf.Wrap(aim.X - from.X, -_map.Width / 2f, _map.Width / 2f);
+			Vector2 next = new(CMapZoom.EaseTowards(from.X, aim.X), CMapZoom.EaseTowards(from.Y, aim.Y));
+			if ((aim - next).Length() <= 0.01f)
+			{
+				next = aim;
+				_aimWanted = null;
+			}
+			_camera.Position = next;
+		}
+		ClampCamera();
+		if (_aimWanted is { } kept)
+		{
+			// Held to what the camera may show from north to south at its height now, as the original holds its target the
+			// next frame, so that the ease ends.
+			float half = size.Y / _camera.Zoom.Y / 2f;
+			float y = half * 2f >= _map.Height ? _map.Height / 2f : Mathf.Clamp(kept.Y, half, _map.Height - half);
+			Vector2 from = _camera.Position;
+			_aimWanted = new Vector2(from.X + Mathf.Wrap(kept.X - from.X, -_map.Width / 2f, _map.Width / 2f), y);
+		}
+	}
+
+	/// <summary>A drag or the keys move the camera, and the point it is easing to with it, as the original's move its target.</summary>
+	private void ShiftAim(Vector2 by)
+	{
+		if (_aimWanted is { } aim)
+		{
+			_aimWanted = aim + by;
+		}
+	}
+
+	/// <summary>Whatever puts the camera somewhere at once ends its ease there; with a height too, the height's.</summary>
+	private void StopEase(bool height)
+	{
+		_aimWanted = null;
+		if (height)
+		{
+			_heightWanted = null;
+		}
+	}
+
+	/// <summary>
+	/// The zoom buttons by the minimap and their keys, Page Down and Page Up: the target height a fifth of itself lower or
+	/// higher, held between the lowest and 1000, about the middle of the screen, eased as a notch is - or at once with
+	/// <c>use_legacy_camera</c> (<c>minimap.md</c>, section 4; <c>reversing/findings/FINDINGS-camerazoom.md</c>, section 4) [exe].
 	/// </summary>
 	public void StepZoom(bool inwards)
 	{
-		float height = Mathf.Clamp(CameraHeight * (inwards ? 0.8f : 1.2f), CMapCamera.LowestHeight, CMapCamera.HighestHeight);
-		ZoomAt(GetViewportRect().Size / 2f, CMapCamera.ZoomAt(height, GetViewportRect().Size.Y) / _camera.Zoom.X);
+		float wanted = CMapZoom.ButtonTarget(_heightWanted ?? CameraHeight, inwards, _leastHeight, CMapCamera.HighestHeight);
+		if (CameraSettings?.Invoke().Legacy == true)
+		{
+			_heightWanted = null;
+			SetZoom(CMapCamera.ZoomAt(wanted, GetViewportRect().Size.Y));
+			return;
+		}
+		_heightWanted = wanted;
 	}
 
 	/// <summary>Puts a province in the middle of the screen, using its bounding box.</summary>
@@ -1003,6 +1127,7 @@ public partial class CMapView : Node2D
 			return;
 		}
 		CProvinceShape shape = _map.Shapes[provinceId];
+		StopEase(height: zoom is not null);
 		_camera.Position = new Vector2(shape.CentreX + 0.5f, _map.DisplayRow(shape.CentreY) + 0.5f);
 		SetZoom(zoom ?? _camera.Zoom.X);
 	}
@@ -1019,6 +1144,7 @@ public partial class CMapView : Node2D
 	/// </summary>
 	public void LookAt(float x, int rowFromBottom, float zoom)
 	{
+		StopEase(height: true);
 		_camera.Position = new Vector2(x, _map.DisplayRow(rowFromBottom) + 0.5f);
 		SetZoom(zoom);
 		ClampCamera();
@@ -1197,10 +1323,10 @@ public partial class CMapView : Node2D
 		switch (@event)
 		{
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelUp } wheel when !WheelStill:
-				ZoomAt(wheel.Position, ZoomStep);
+				WheelNotch(wheel.Position, inwards: true);
 				break;
 			case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelDown } wheel when !WheelStill:
-				ZoomAt(wheel.Position, 1f / ZoomStep);
+				WheelNotch(wheel.Position, inwards: false);
 				break;
 			case InputEventMouseButton { ButtonIndex: MouseButton.Middle } button:
 				_dragging = button.Pressed;
@@ -1255,6 +1381,7 @@ public partial class CMapView : Node2D
 				break;
 			case InputEventMouseMotion motion when _dragging:
 				_camera.Position -= motion.Relative / _camera.Zoom;
+				ShiftAim(-motion.Relative / _camera.Zoom);
 				ClampCamera();
 				break;
 			case InputEventMouseMotion motion:
@@ -1475,10 +1602,14 @@ public partial class CMapView : Node2D
 		}
 		if (direction != Vector2.Zero)
 		{
-			_camera.Position += direction * (KeyScrollSpeed * (float)delta / _camera.Zoom.X);
+			Vector2 scrolled = direction * (KeyScrollSpeed * (float)delta / _camera.Zoom.X);
+			_camera.Position += scrolled;
+			ShiftAim(scrolled);
 			ClampCamera();
 			UpdateHover(GetViewport().GetMousePosition());
 		}
+		EaseCamera();
+		_notched = false;
 		UpdateFrontLines();
 		if (_planMarkers is not null && _counters is not null)
 		{

@@ -199,26 +199,10 @@ public static class CCountryEconomyMethods
 		return airfields;
 	}
 
-	/// <summary>
-	/// The lend-lease a country may give as a share of its IC: nought where it gives none; else the low define and its
-	/// effective neutrality's part of the way to the high one, a neutrality at the limit or more giving the low.
-	/// </summary>
+	/// <summary>The lend-lease a country may give as a share of its IC (<see cref="Sim.Aid.CLendLease.MaxFraction"/>).</summary>
 	private static CFixedPoint MaxLendLeaseFraction(CGameApi api, CCountry country)
 	{
-		if (country.LendLeaseGiving.Count == 0)
-		{
-			return CFixedPoint.Zero;
-		}
-		const string section = Sim.Agreements.COfferRules.Section;
-		long limit = api.State.Defines[section, Sim.Aid.CLendLease.NeutralityLimitDefine].Raw;
-		if (limit == 0)
-		{
-			limit = 10;
-		}
-		long n = Math.Clamp(country.EffectiveNeutrality.Raw * CFixedPoint.Scale / limit, 0, CFixedPoint.Scale);
-		long low = api.State.Defines[section, "LEND_LEASE_MAX_IC_LOW"].Raw;
-		long high = api.State.Defines[section, "LEND_LEASE_MAX_IC_HIGH"].Raw;
-		return new CFixedPoint(low + (high - low) * (CFixedPoint.Scale - n) / CFixedPoint.Scale);
+		return Sim.Aid.CLendLease.MaxFraction(api.State, country);
 	}
 
 	/// <summary>

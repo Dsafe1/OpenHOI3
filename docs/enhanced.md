@@ -177,6 +177,7 @@ Add to it whenever a spec records something of the original's that looks like a 
 - **Depot step 4 is nearly dead,** and may name a province that is not that area's depot. `supply.md`, 5. *Bug.* Risk: breaks the exact match with saves.
 - **Fuel and supplies use different days,** and a share cut by one province's room stays cut for those after. `supply.md`, 12. *Bug.* Risk: large against saves.
 - **Exile manpower replaces the whole sum,** where adding may be meant; not settled. `manpower.md`. *Bug.* Risk: small.
+- **A lend-lease share with nobody to give to wastes its IC.** Only the open production screen puts the slider back to nought; a player who never opens it - for a week, in the maintainer's own 1936 game, at 15.5% - loses that IC, and nothing passes it to the other shares. `sliders.md`, 2; `reversing/findings/FINDINGS-lendleaseslider.md`. *Oversight.* Risk: small; the AI's script already zeroes its own.
 
 ## AI
 
@@ -201,6 +202,9 @@ Add to it whenever a spec records something of the original's that looks like a 
 ## Interface
 
 All of these are risk-free but for what the entry says.
+
+- **The map's zoom eases by the frame, not by the second.** Height and look point close 0.197 of the gap each frame, so the zoom is quicker the faster the game draws. A per-second ease of `1 − 0.803^(60·dt)` would feel the same at every frame rate. `mapunits.md`, 7; `reversing/findings/FINDINGS-camerazoom.md`. *Oversight.*
+- **Only the wheel's sign counts, one notch a frame.** A quick turn is one notch. `reversing/findings/FINDINGS-camerazoom.md`, 1. *Oversight.*
 
 - **Influence's colour never reaches the screen.** `topbar.md`, 7. *Bug.*
 - **Tribute sent to a master shows green with a plus.** `topbar.md`, 14. *Display.*

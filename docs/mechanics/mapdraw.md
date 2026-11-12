@@ -252,10 +252,13 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
   sea, has its `PROV<id>` [mod: localisation] written **in its own case** in the font called `tahoma_60` [mod:
   interface/core.gfx], TFH's kart_font, black. positions.txt [mod] gives `text_position` as written, `text_rotation` in
   radians (0 where not given) and `text_scale` (1 where not given); a province with no `text_position` - 8,001 of TFH's -
-  has its name at the centre of its bounding box, as its terrain is counted (section 4 of `map.md`). The fact base's
-  reading had it at the map's (0, 0), never seen, from the template's constructor; the maintainer's screenshot of the
-  original, 2026-11-07, named Stolp, Belgard and Falkenburg, none with a `text_position`, where ours had nothing, and the
-  reading was corrected. **The layout** [exe]: a name over 50 characters cut to
+  has its name **two map pixels south of the centre of its bounding box** [exe the 2.0], whatever its scale - the
+  point the original's geometry pass writes before positions.txt is read (`reversing/findings/FINDINGS-provincenamepoint.md`).
+  The fact base's reading had it at the map's (0, 0), never seen, from the template's constructor; the maintainer's
+  screenshot of the original, 2026-11-07, named Stolp, Belgard and Falkenburg, none with a `text_position`, where ours
+  had nothing, and the reading was corrected to the centre; his screenshot of 2026-11-12 had Bautzen, Lauban, Sagar and
+  four more 1.9 pixels south of ours, and the 2.0 was read. Its terrain is still counted around the plain centre
+  (section 4 of `map.md`). **The layout** [exe]: a name over 50 characters cut to
   49; broken only at a glyph with no height - the space - and only where the line, the word and its space taken in, is
   wider than 320 font pixels, the break going before that word, so a word is never split and the last never tested; each
   glyph its advance and its kerning with the next; each line centred on the point, the lines stacked upwards, so **the

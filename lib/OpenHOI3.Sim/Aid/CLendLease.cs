@@ -70,6 +70,41 @@ public static class CLendLease
 	/// <summary>Whether the giver gives the receiver lend-lease.</summary>
 	public static bool Gives(CCountry giver, CCountry receiver) => giver.LendLeaseGiving.Exists(g => g.Receiver == receiver.Tag);
 
+	/// <summary>
+	/// The lend-lease a country may give as a share of its IC: nought where it gives none; else the low define and its
+	/// effective neutrality's part of the way to the high one, a neutrality at the limit or more giving the low
+	/// (<c>reversing/findings/FINDINGS-tradeaid.md</c>, the cap; the Lua's <c>GetMaxLendLeaseFraction</c>).
+	/// </summary>
+	public static CFixedPoint MaxFraction(CGameState state, CCountry country)
+	{
+		if (country.LendLeaseGiving.Count == 0)
+		{
+			return CFixedPoint.Zero;
+		}
+		const string section = Agreements.COfferRules.Section;
+		long limit = state.Defines[section, NeutralityLimitDefine].Raw;
+		if (limit == 0)
+		{
+			limit = 10;
+		}
+		long n = System.Math.Clamp(country.EffectiveNeutrality.Raw * CFixedPoint.Scale / limit, 0, CFixedPoint.Scale);
+		long low = state.Defines[section, "LEND_LEASE_MAX_IC_LOW"].Raw;
+		long high = state.Defines[section, "LEND_LEASE_MAX_IC_HIGH"].Raw;
+		return new CFixedPoint(low + (high - low) * (CFixedPoint.Scale - n) / CFixedPoint.Scale);
+	}
+
+	/// <summary>
+	/// The most IC the production screen lets the lend-lease slider hold: nought where the country gives lend-lease to
+	/// nobody, else its IC times <see cref="MaxFraction"/>, to the thousandth (<c>reversing/findings/FINDINGS-lendleaseslider.md</c>,
+	/// section 3.1). The game's own share is not held to it: only the screen does that.
+	/// </summary>
+	public static CFixedPoint SliderLimit(CGameState state, CCountry country)
+	{
+		return country.LendLeaseGiving.Count == 0
+			? CFixedPoint.Zero
+			: new CFixedPoint((long)country.TotalIc * MaxFraction(state, country).Raw);
+	}
+
 	/// <summary>Begins it: the receiver at weight 500 and effectiveness nought, and the giver among the receiver's.</summary>
 	public static void Add(CCountry giver, CCountry receiver)
 	{

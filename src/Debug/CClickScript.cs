@@ -141,6 +141,19 @@ public sealed class CClickScript
 				await Frames(2);
 				continue;
 			}
+			// zin:900,500 turns the wheel a notch towards the map over that point, zout:900,500 a notch away.
+			if (entry.StartsWith("zin:", System.StringComparison.Ordinal) || entry.StartsWith("zout:", System.StringComparison.Ordinal))
+			{
+				bool inwards = entry.StartsWith("zin:", System.StringComparison.Ordinal);
+				string[] over = entry[(inwards ? 4 : 5)..].Split(',');
+				var pointer = new Vector2(float.Parse(over[0], CultureInfo.InvariantCulture), float.Parse(over[1], CultureInfo.InvariantCulture));
+				MouseButton notch = inwards ? MouseButton.WheelUp : MouseButton.WheelDown;
+				await Frames(2);
+				_host.GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = notch, Pressed = true, Position = pointer, GlobalPosition = pointer }, true);
+				_host.GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = notch, Pressed = false, Position = pointer, GlobalPosition = pointer }, true);
+				await Frames(1);
+				continue;
+			}
 			// d700,310>900,500 holds the left button down at the first point, moves to the second
 			// in ten steps and lets go there: a drag. sd lets go with Shift held, and D does not let go,
 			// for a screenshot of the drag box.

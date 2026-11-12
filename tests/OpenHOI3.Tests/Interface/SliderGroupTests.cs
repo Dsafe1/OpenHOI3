@@ -34,6 +34,66 @@ public class SliderGroupTests
 	}
 
 	[Fact]
+	public void ASliderOverItsLimitIsPutDownAndTheFreeOnesShareWhatItHeld()
+	{
+		// Six shares of 100 IC, lend-lease the last with 15.5 of them and a limit of nought: it gives nobody anything
+		// (FINDINGS-lendleaseslider.md, section 3).
+		CSliderGroup group = Group("100", "0.169", "0.169", "0.169", "0.169", "0.169", "0.155");
+		group.SetLimit(5, CFixedPoint.Zero);
+
+		Assert.True(group.ClampToLimits());
+		Assert.Equal(0, group[5].Raw);
+		Assert.Equal(100_000, Sum(group));
+		// 15.5 shared equally among the five others, 3.1 each - to a thousandth or two, the shares being loaded through
+		// 15-bit fractions.
+		Assert.InRange(group[0].Raw, 19_998, 20_002);
+		Assert.False(group.ClampToLimits());
+	}
+
+	[Fact]
+	public void ASliderCannotBeDraggedPastItsLimitNorTakeMoreThanItInTheSharing()
+	{
+		CSliderGroup group = Group("100", "0.5", "0.5", "0");
+		group.SetLimit(2, CFixedPoint.Parse("10"));
+
+		group.Move(2, CFixedPoint.Parse("40"));
+		Assert.Equal(10_000, group[2].Raw);
+		Assert.Equal(100_000, Sum(group));
+
+		// Lowering another frees IC: lend-lease, at its limit, takes none of it.
+		group.Move(0, CFixedPoint.Parse("20"));
+		Assert.Equal(10_000, group[2].Raw);
+		Assert.Equal(100_000, Sum(group));
+	}
+
+	[Fact]
+	public void ALockedSliderOverItsLimitIsLeftAsTheOriginalLeavesIt()
+	{
+		CSliderGroup group = Group("100", "0.8", "0.2");
+		group.SetHeld(1, true);
+		group.SetLimit(1, CFixedPoint.Zero);
+
+		Assert.False(group.ClampToLimits());
+		Assert.Equal(20_000, group[1].Raw);
+	}
+
+	[Fact]
+	public void LessThanHalfAHundredthOverTheLimitIsLeftAsTheOriginalLeavesIt()
+	{
+		CSliderGroup group = Group("100", "1", "0");
+		group.Move(1, new CFixedPoint(4));
+		group.SetLimit(1, CFixedPoint.Zero);
+		Assert.False(group.ClampToLimits());
+		Assert.Equal(4, group[1].Raw);
+
+		group.SetLimit(1, null);
+		group.Move(1, new CFixedPoint(5));
+		group.SetLimit(1, CFixedPoint.Zero);
+		Assert.True(group.ClampToLimits());
+		Assert.Equal(0, group[1].Raw);
+	}
+
+	[Fact]
 	public void ASliderHoldsAnAmountAndNotAShare()
 	{
 		CSliderGroup group = Group("100", "0.25", "0.75");

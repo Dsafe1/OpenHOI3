@@ -46,11 +46,12 @@ public static class CPositionsReader
 		var navalBase = (CMapPosition[])unit.Clone();
 		var buildings = new CBuildingPosition[shapes.Count][];
 		Array.Fill(buildings, Array.Empty<CBuildingPosition>());
-		// A name stands at the centre of the bounding box where the file gives no text_position, as the unit point does.
+		// A name stands two map pixels south of the centre of the bounding box where the file gives no text_position: the
+		// original sets that point before it reads the file (CProvinceLabel.FallbackSouth).
 		var labels = new CProvinceLabel[shapes.Count];
 		for (int id = 0; id < shapes.Count; id++)
 		{
-			labels[id] = CProvinceLabel.Default with { X = unit[id].X, Y = unit[id].Y };
+			labels[id] = CProvinceLabel.Default with { X = unit[id].X, Y = unit[id].Y - CProvinceLabel.FallbackSouth };
 		}
 		if (!File.Exists(path))
 		{

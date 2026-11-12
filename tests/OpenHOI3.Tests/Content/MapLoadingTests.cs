@@ -203,8 +203,9 @@ public class MapLoadingTests : IDisposable
 
 		// text_position as written, not cut; rotation 0.5 where given; scale 1 where not.
 		Assert.Equal(new CProvinceLabel(3.6f, 0.4f, true, 0.5f, 1f), map.ProvinceLabels[4]);
-		// Nothing said: the centre of its bounding box, and not given.
-		Assert.Equal(new CProvinceLabel(2, 2, false, 0, 1), map.ProvinceLabels[2]);
+		// Nothing said: two pixels south of the centre of its bounding box, (2, 2), and not given - as the original sets it
+		// before it reads the file (FINDINGS-provincenamepoint.md).
+		Assert.Equal(new CProvinceLabel(2, 0, false, 0, 1), map.ProvinceLabels[2]);
 	}
 
 	[Fact]

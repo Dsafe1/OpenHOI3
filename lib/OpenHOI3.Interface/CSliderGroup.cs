@@ -17,12 +17,56 @@ public sealed class CSliderGroup
 {
 	private readonly long[] _values;
 	private readonly bool[] _held;
+	private readonly long[] _limits;
 	private long _total;
+
+	/// <summary>
+	/// The least excess over a limit that <see cref="ClampToLimits"/> takes back, in thousandths: the original rounds the
+	/// amount to the hundredth, so anything under 0.005 of an IC comes to nothing (sliders.md, section 3).
+	/// </summary>
+	private const long LeastClamped = 5;
 
 	public CSliderGroup(int count)
 	{
 		_values = new long[count];
 		_held = new bool[count];
+		_limits = new long[count];
+		Array.Fill(_limits, -1);
+	}
+
+	/// <summary>
+	/// The most a slider may hold below the total, or none: the original's limit of a share, which only lend-lease has -
+	/// nought where its country gives lend-lease to nobody (<c>reversing/findings/FINDINGS-lendleaseslider.md</c>).
+	/// </summary>
+	public void SetLimit(int index, CFixedPoint? limit)
+	{
+		_limits[index] = limit is { } most ? Math.Max(most.Raw, 0) : -1;
+	}
+
+	/// <summary>
+	/// Puts every slider over its limit down to it, the others that are free taking up what it held in equal parts, as the
+	/// original's production screen does each frame it is open. A locked slider is left where it is, as the original's
+	/// is. Answers whether anything moved.
+	/// </summary>
+	public bool ClampToLimits()
+	{
+		bool moved = false;
+		for (int index = 0; index < _values.Length; index++)
+		{
+			if (_limits[index] >= 0 && !_held[index] && _values[index] - _limits[index] >= LeastClamped)
+			{
+				_values[index] = _limits[index];
+				Settle(index);
+				moved = true;
+			}
+		}
+		return moved;
+	}
+
+	/// <summary>The most a slider may hold: the total, or its limit where that is less.</summary>
+	private long Ceiling(int index)
+	{
+		return _limits[index] >= 0 ? Math.Min(_total, _limits[index]) : _total;
 	}
 
 	public int Count => _values.Length;
@@ -59,10 +103,10 @@ public sealed class CSliderGroup
 		Settle(-1);
 	}
 
-	/// <summary>The player moves one slider. The free ones take up the difference.</summary>
+	/// <summary>The player moves one slider, no further than its limit. The free ones take up the difference.</summary>
 	public void Move(int index, CFixedPoint value)
 	{
-		_values[index] = Math.Clamp(value.Raw, 0, _total);
+		_values[index] = Math.Clamp(value.Raw, 0, Ceiling(index));
 		Settle(index);
 	}
 
@@ -118,14 +162,14 @@ public sealed class CSliderGroup
 					odd--;
 				}
 				long before = _values[index];
-				_values[index] = Math.Clamp(before + wanted, 0, _total);
+				_values[index] = Math.Clamp(before + wanted, 0, Ceiling(index));
 				left -= _values[index] - before;
 			}
 		}
 
 		if (left != 0 && moved >= 0)
 		{
-			_values[moved] = Math.Clamp(_values[moved] + left, 0, _total);
+			_values[moved] = Math.Clamp(_values[moved] + left, 0, Ceiling(moved));
 		}
 	}
 
@@ -136,7 +180,7 @@ public sealed class CSliderGroup
 
 	private bool CanTake(int index, long left)
 	{
-		return left > 0 ? _values[index] < _total : _values[index] > 0;
+		return left > 0 ? _values[index] < Ceiling(index) : _values[index] > 0;
 	}
 
 	private long Sum()

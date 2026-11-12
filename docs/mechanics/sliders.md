@@ -88,8 +88,20 @@ shares that have one:
 (`upkeep.md`, section 8); production needs nothing until there is a build queue, and
 diplomacy nothing until there is diplomacy.
 
-`confirmed` **`limit`** is hidden unless the share gives a figure of nought or more to put
-it at, and only lend-lease does. *Ours:* it stays hidden.
+`confirmed` **`limit`** is hidden unless the share gives a figure above nought to put it at
+(`ja`; "nought or more" here until 2026-11-12), and only lend-lease does. *Ours:* it stays hidden.
+
+`confirmed` **The production screen holds lend-lease to that limit**
+(`reversing/findings/FINDINGS-lendleaseslider.md`): each frame it is open, a slider over its limit is put down to it and
+the free sliders share what it held in equal parts (section 3), and what that makes is sent to the game within a second as
+any setting of the player's is. Lend-lease's limit is **nought while the country gives lend-lease to nobody** - an
+agreement given and not yet ended, whatever its state - and otherwise its IC times the most it may give
+(`LEND_LEASE_MAX_IC_LOW` to `_HIGH` by effective neutrality over `LEND_LEASE_NEUTRALITY_LIMIT` [mod: common/defines.lua],
+`aid.md`). So the slider moves under the mouse and springs back; it is neither greyed nor locked. A locked slider is not
+held to it, nor an excess under half a hundredth of an IC [exe]. **The game's own share is not held to it**: a country
+whose screen is not open keeps the share and its IC goes nowhere (`docs/enhanced.md`); the AI's script zeroes its own
+[mod: script/ai_production_minister.lua]. Built 2026-11-12 (`CSliderGroup.SetLimit`, `ClampToLimits`;
+`CLendLease.SliderLimit`), by the maintainer's report that the original holds the slider at nought.
 
 ## 3. The sliders always hold the whole between them
 

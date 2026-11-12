@@ -754,6 +754,7 @@ public partial class CSession : Node
 			: (gui.KeyboardFocus is { HasKeyboard: true }, _console?.IsOpen == true);
 		_mapView.WheelHeld = mainWindow;
 		_mapView.CounterDistance = () => Settings.CounterDistance;
+		_mapView.CameraSettings = () => (Settings.ZoomSpeed, Settings.UseLegacyCamera);
 		_topBar.MenuPressed += _menu.Toggle;
 		_menu.Resigned += ShowEndGame;
 		_menu.Opening += () =>

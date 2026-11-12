@@ -401,6 +401,19 @@ asked.
   maintainer's word of 2026-11-12, where it had opened on the whole map; where the original
   puts its camera on a load was not read. The console's `tag` and the screens made again keep
   the camera where it was.
+- **The zoom eases, as the original's does** (`reversing/findings/FINDINGS-camerazoom.md`; `CMapZoom`), built
+  2026-11-12 on the maintainer's report that ours was not smooth - it had been ×1.25 a notch at once. A wheel notch
+  sets a **target height** of the current height less `0.2 × zoom_speed / 100` of it towards the map, or more
+  `0.4 × zoom_speed / 100` away [exe the figures; mod: settings.txt `zoom_speed`, 50 by default - a tenth in, a fifth
+  out], held to the limits, at most one notch a frame; and, unless the target landed on a limit or the pointer is within
+  six pixels of an edge, it **pulls the look target** `(4/15) × zoom_speed / 100` of the way - 0.133 by default -
+  towards the point under the pointer, **in or out**. Then **every frame** the height and the look point each close
+  **0.197 of the gap** [exe] - a frame and not a second, as the original's: about half the way in three frames and nine
+  tenths in ten (`docs/enhanced.md`). A drag or the keys carry the target along; a jump - a province centred, the
+  minimap pressed - ends the position's ease, and with a height given the height's. `use_legacy_camera` [mod:
+  settings.txt] takes the height at once and pulls nothing. *Ours* as before: the highest height for the wheel is where
+  the whole map is on screen, past the original's 1000; the lobby's map does not zoom, as the original's front end's
+  does not.
 - **The near view is always counters.** The original's is counters or 3D figures by a
   setting. There are no figures here.
 - **The counters are worked out again** once a day, whenever a unit of the player's is

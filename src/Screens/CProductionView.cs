@@ -5,6 +5,7 @@ using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Aid;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
@@ -600,6 +601,9 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 			return;
 		}
 		_sliders.Follow(CFixedPoint.FromInt(country.TotalIc), country.ProductionShares);
+		// Lend-lease may hold no more than the country may give - nought while it gives to nobody, which the open screen puts
+		// back each time it is drawn, the IC going to the free sliders (FINDINGS-lendleaseslider.md).
+		_sliders.HoldToLimit((int)EProductionCategory.LendLease, CLendLease.SliderLimit(Simulation.State, country));
 		foreach (int share in SliderOrder)
 		{
 			var category = (EProductionCategory)share;
