@@ -611,7 +611,11 @@ scalable canvas of section 3 could not survive. So:
   and digits. The other words the files use are not yet keys. *Ours*, by the maintainer's word of 2026-11-12: **a
   held key presses its button again and again**, at the keyboard's own repeat, all but Escape - which would close a
   window and then open the in-game menu and close it again - and **the number pad's Enter is Enter**. The clock's speed
-  keys repeat too; Space, Escape, H, the console's key and the debug menu's do not.
+  keys repeat too; Space, Escape, H, the console's key and the debug menu's do not. **The arrow keys go no further
+  than the game's own nodes** (`Main._Input`): Godot answers an arrow, as its `ui_` actions, by searching the whole tree
+  for a control to focus when none has it - 26 ms an event with the tree at some 21,000 nodes - and a held arrow's
+  repeats took the map from 90 frames a second to 26 (2026-11-12). Nothing here uses Godot's focus; the map scrolls by
+  asking whether a key is down.
 - **A checkbox is a button that a click ticks or clears**, showing the second frame of
   its sprite while ticked and the first while not - **and its fourth, ticked or not, while
   it is switched off**, where its sheet has four (`reversing/findings/FINDINGS-landorders.md`,

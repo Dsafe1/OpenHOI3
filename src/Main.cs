@@ -36,6 +36,22 @@ public partial class Main : Control
 	/// <summary>The switches that say what game to play, which start it without the front end.</summary>
 	private static readonly string[] GameSwitches = { "--country=", "--load=", "--replay=" };
 
+	/// <summary>
+	/// The arrow keys stop here, after everything under this node has had them - a text box or the console takes its own
+	/// first - and before Godot's own interface. That answers an arrow, bound to its <c>ui_left</c> and the others, by
+	/// looking through the whole tree for a control to give the focus to, when none has it; with some 21,000 nodes that
+	/// took 26 ms an event, and a held arrow's repeats, thirty a second, took the map from 90 frames a second to 20
+	/// (2026-11-12). Nothing here uses Godot's focus, and the map scrolls by asking whether a key is down, which a handled
+	/// event leaves as it is.
+	/// </summary>
+	public override void _Input(InputEvent @event)
+	{
+		if (@event is InputEventKey { Keycode: Key.Left or Key.Right or Key.Up or Key.Down })
+		{
+			GetViewport().SetInputAsHandled();
+		}
+	}
+
 	public override void _Ready()
 	{
 		// The content library reports to standard error until told otherwise, because

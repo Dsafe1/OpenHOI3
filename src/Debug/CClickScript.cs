@@ -86,14 +86,27 @@ public sealed class CClickScript
 				await Frames(2);
 				continue;
 			}
-			// arrow:up:1.5 holds an arrow key that many seconds, through Input, which the map's scrolling asks each frame.
+			// arrow:up:1.5 holds an arrow key that many seconds, through Input, which the map's scrolling asks each frame -
+			// repeating as a keyboard's held key does, after half a second and then thirty times a second, which is what
+			// once made a held arrow lag (Main._Input).
 			if (entry.StartsWith("arrow:", System.StringComparison.Ordinal))
 			{
 				string[] arrow = entry.Split(':');
 				Key held = arrow[1] switch { "up" => Key.Up, "down" => Key.Down, "left" => Key.Left, _ => Key.Right };
 				await Frames(2);
 				Input.ParseInputEvent(new InputEventKey { Keycode = held, PhysicalKeycode = held, Pressed = true });
-				await _host.ToSignal(_host.GetTree().CreateTimer(double.Parse(arrow[2], CultureInfo.InvariantCulture)), SceneTreeTimer.SignalName.Timeout);
+				double seconds = double.Parse(arrow[2], CultureInfo.InvariantCulture);
+				var heldFor = System.Diagnostics.Stopwatch.StartNew();
+				double nextRepeat = 0.5;
+				while (heldFor.Elapsed.TotalSeconds < seconds && _host.IsInsideTree())
+				{
+					if (heldFor.Elapsed.TotalSeconds >= nextRepeat)
+					{
+						Input.ParseInputEvent(new InputEventKey { Keycode = held, PhysicalKeycode = held, Pressed = true, Echo = true });
+						nextRepeat += 1.0 / 30.0;
+					}
+					await Frames(1);
+				}
 				Input.ParseInputEvent(new InputEventKey { Keycode = held, PhysicalKeycode = held, Pressed = false });
 				await Frames(2);
 				continue;
