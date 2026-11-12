@@ -46,6 +46,12 @@ public partial class CSession : Node
 	private CAiScripts? _aiScripts;
 	private CMapView _mapView = null!;
 	private CLocalisation _localisation = null!;
+
+	/// <summary>The soundtrack, which the end-of-game screen and the console's <c>nextsong</c> ask; set before the node enters the tree.</summary>
+	public Audio.CMusic? Music { get; init; }
+
+	/// <summary>The localisation the game was made with, which the loading screen writes its lines from after a resign.</summary>
+	public CLocalisation Localisation => _localisation;
 	private CSimulation _simulation = null!;
 	private CTopBar? _topBar;
 	private COutliner? _outliner;
@@ -100,9 +106,6 @@ public partial class CSession : Node
 	private CReplayFile? _replayFile;
 	private bool _replayEnded;
 
-	/// <summary>The country played where a developer switch starts a game and none says which; the lobby chooses otherwise.</summary>
-	private const string DefaultPlayer = "GER";
-
 	/// <summary>Where the province readout stands: at the screen's edge, and clear of the unit panel when that is up.</summary>
 	private const float ReadoutAtEdge = 16f;
 	private const float ReadoutBesidePanel = 420f;
@@ -119,13 +122,16 @@ public partial class CSession : Node
 	// The game options window changes them, and the session writes them as it ends (gameoptions.md).
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
-	/// <param name="prepared">The game the lobby made ready; null to make one from the developer switches.</param>
+	/// <param name="prepared">The game made ready, by the lobby or from the developer switches (<see cref="CSwitchedGame"/>).</param>
 	/// <param name="carried">What the session before kept, where this one takes its game over.</param>
-	public void Setup(CDirectorySettings directories, FrontEnd.CPreparedGame? prepared = null, Debug.CSessionCarry? carried = null)
+	/// <param name="replayFile">The recording <c>--replay=</c> plays or <c>--record=</c> writes, which the session then owns.</param>
+	public void Setup(CDirectorySettings directories, FrontEnd.CPreparedGame prepared, Debug.CSessionCarry? carried = null,
+		CReplayFile? replayFile = null)
 	{
 		_directories = directories;
 		_prepared = prepared;
 		_carried = carried;
+		_replayFile = replayFile;
 	}
 
 	private Debug.CSessionCarry? _carried;
@@ -144,102 +150,24 @@ public partial class CSession : Node
 
 	private bool _wireframe;
 
-	private FrontEnd.CPreparedGame? _prepared;
+	private FrontEnd.CPreparedGame _prepared = null!;
 
 	/// <summary>Raised when the player resigns: the game is to end and the front end come back (frontend.md, section 1).</summary>
 	public event System.Action? Resigned;
 
 	public override void _Ready()
 	{
-		// Loading is done here, on the main thread, and holds the first frame for as
-		// long as it takes - about a second and a half for the base game. That is
-		// acceptable while there is nothing else to show, and not once there is a
-		// loading screen to keep moving.
-		var clock = Stopwatch.StartNew();
+		// The game is made before the session, on the loading screen: by the lobby, or from the developer switches
+		// (CSwitchedGame). What is left here makes the map and the interface, on the main thread, under that screen.
 		// The player's settings, from the original's own settings.txt in the Documents folder (settings.md); what of them
 		// is not supported is reported as it is read.
 		Settings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath());
-		if (_prepared is not null)
-		{
-			ReadyPrepared(_prepared);
-			return;
-		}
-		CLocalisation localisation = CLocalisation.Load(_directories);
-		_localisation = localisation;
-		CCountries countries = CCountries.Load(_directories, localisation);
-		Map = CMap.Load(_directories);
-		// The install's Lua lives as long as the session: a new game asks it for its relations.
-		_aiScripts = new CAiScripts(_directories);
-		// Who plays is known before the game is made: the AI's first look at the laws leaves that country alone. A game
-		// replaying a recording is played by whoever played it when it was recorded, which its header says
-		// (docs/replay.md, sections 6 and 8).
-		string? replayFrom = Argument("--replay=");
-		string? recordTo = Argument("--record=");
-		string asked = PlayerArgument() ?? DefaultPlayer;
-		IReadOnlyList<CCountryTag> played;
-		if (replayFrom is not null)
-		{
-			played = CReplayFile.ReadHeader(replayFrom).Played;
-			if (PlayerArgument() is not null)
-			{
-				GD.Print($"--replay: the recording says who plays, so --country={asked} is left aside.");
-			}
-		}
-		else
-		{
-			if (countries.Find(asked) is null)
-			{
-				GD.Print($"--country: there is no country '{asked}', so {DefaultPlayer} is played.");
-				asked = DefaultPlayer;
-			}
-			played = new[] { new CCountryTag(asked) };
-		}
-		// --load= a save of the original's: the game it holds, as far as the loader reads it (docs/mechanics/savegame.md),
-		// played by --country= or else by the country the save was played by.
-		if (Argument("--load=") is { } loadFrom)
-		{
-			CCountryTag? loadAs = PlayerArgument() is { } tag ? new CCountryTag(tag) : null;
-			(State, Content.Saves.CSaveReport report) = Content.Saves.CSaveLoader.Load(_directories, Map, localisation, countries,
-				loadFrom, loadAs, _aiScripts);
-			played = State.Played.ToList();
-			GD.Print($"--load: {loadFrom}, {string.Join(", ", played)} played.");
-		}
-		else
-		{
-			State = CGameStateLoader.LoadStart(_directories, Map, localisation, countries, aiScripts: _aiScripts, played: played);
-		}
-		GD.Print($"Loaded {Map.ProvinceCount - 1} provinces and {countries.Count} countries " +
-			$"for {State.Date} in {clock.ElapsedMilliseconds} ms.");
-
-		_simulation = new CSimulation(State);
-		// The simulation asks who is played by a person in one place, the state's list: an idle fleet of anybody
-		// else's starts no battle. A replay of a game nobody played shows the map alone.
-		Player = played.Count > 0 ? State.Country(played[0]) : null;
-		// The recording takes the AI's place, and the players', from the first hour, entering the game having run as it did
-		// when recorded; or the game is recorded from then. A replay takes no order of the player's: its screens look on.
-		if (replayFrom is not null)
-		{
-			_replayFile = CReplayFile.Open(replayFrom, State);
-			State.Replay = CReplay.Replaying(_replayFile);
-			GD.Print($"Replaying {replayFrom}, " + (Player is null ? "nobody playing." : $"{Player.Tag} looked on and given no orders."));
-		}
-		else if (recordTo is not null)
-		{
-			_replayFile = CReplayFile.Create(recordTo, new CReplayHeader(played, State.Seed));
-			State.Replay = CReplay.Recording(_replayFile.Write);
-			GD.Print($"Recording to {recordTo}, {Player?.Tag} playing.");
-		}
-
-		clock.Restart();
-		CGuiContext gui = CGuiContext.Load(_directories, localisation);
-		GD.Print($"Loaded {gui.Types.Count} interface elements and {gui.Sprites.Count} sprites " +
-			$"in {clock.ElapsedMilliseconds} ms.");
-		ShowGame(gui);
+		ReadyPrepared(_prepared);
 	}
 
 	/// <summary>
-	/// A game the lobby made ready: what it read is the session's now, the Lua among it, and whoever its state says plays
-	/// plays it (frontend.md, section 3). The developer switches that make a game are not asked; the rest are.
+	/// A game made ready: what it read is the session's now, the Lua among it, and whoever its state says plays plays it
+	/// (frontend.md, section 3). The developer switches that make a game have been asked by then; the rest are asked here.
 	/// </summary>
 	private void ReadyPrepared(FrontEnd.CPreparedGame prepared)
 	{
@@ -249,8 +177,14 @@ public partial class CSession : Node
 		State = prepared.State;
 		_simulation = new CSimulation(State);
 		Player = State.Played.Count > 0 ? State.Country(State.Played.First()) : null;
+		_mapCache = prepared.Cache;
+		_quadTiles = prepared.Tiles;
 		ShowGame(prepared.Gui);
 	}
+
+	/// <summary>The map cache and its quad tiles as read before the session, handed on to the next session made around the game.</summary>
+	private CMapCache? _mapCache;
+	private IReadOnlyList<CQuadTile>? _quadTiles;
 
 	/// <summary>The map, the interface and the developer switches, once the game and its simulation are made.</summary>
 	private void ShowGame(CGuiContext gui)
@@ -270,9 +204,10 @@ public partial class CSession : Node
 			drawn.CounterScale = Settings.CounterScale;
 			drawn.HierarchyShown = Settings.RenderHierarchy;
 		}
-		CMapCache cache = CMapView.OpenCache(_directories, Map);
+		CMapCache cache = _mapCache ??= CMapView.OpenCache(_directories, Map);
+		_quadTiles ??= CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
 		_mapView.SetupSurface(gui, _directories, cache, Settings.SimpleWater, Settings.Waves,
-			Settings.RenderTrees || UserArguments().Contains("--trees"));
+			Settings.RenderTrees || UserArguments().Contains("--trees"), _quadTiles);
 		AddChild(_mapView);
 
 		BuildHud(gui);
@@ -284,9 +219,37 @@ public partial class CSession : Node
 		if (_carried is { } carried)
 		{
 			TakeUp(carried);
-			return;
 		}
-		RunDeveloperArguments();
+	}
+
+	/// <summary>
+	/// The loading screen's last steps, the map shown under it: every map mode's surface made, and the first frames drawn
+	/// until they come at their ordinary pace, so that neither stops the game once it is shown
+	/// (<c>docs/mechanics/loadingscreen.md</c>).
+	/// </summary>
+	public async System.Threading.Tasks.Task PrepareMapModes(Loading.CLoadingScreen screen)
+	{
+		screen.Say(Loading.CLoadingSteps.MapModes);
+		await screen.Drawn();
+		var clock = Stopwatch.StartNew();
+		while (_mapView.Surface3D?.PrepareNow() == true)
+		{
+			await screen.Drawn();
+		}
+		await screen.Settled();
+		GD.Print($"Map modes prepared in {clock.ElapsedMilliseconds} ms.");
+	}
+
+	/// <summary>
+	/// The game shown, the loading screen gone: the developer switches run - after it, so that the clicks they send reach the
+	/// game - where the session does not take a game over from the one before.
+	/// </summary>
+	public void Begin()
+	{
+		if (_carried is null)
+		{
+			RunDeveloperArguments();
+		}
 	}
 
 	/// <summary>What the session before kept.</summary>
@@ -315,7 +278,7 @@ public partial class CSession : Node
 		(Vector2 centre, float zoom) = _mapView.View;
 		var carried = new Debug.CSessionCarry(_console?.Lines.ToList() ?? new List<string>(), _console?.History.ToList() ?? new List<string>(),
 			_console?.IsOpen == true, centre, zoom, _mapView.RenderLayers, _simulation.Clock.Paused, _simulation.Clock.Speed, _replayFile, _wireframe);
-		Replaced?.Invoke(new FrontEnd.CPreparedGame(State, Map, _localisation, gui, _aiScripts), carried);
+		Replaced?.Invoke(new FrontEnd.CPreparedGame(State, Map, _localisation, gui, _aiScripts, _mapCache, _quadTiles), carried);
 	}
 
 	/// <summary>
@@ -369,6 +332,9 @@ public partial class CSession : Node
 			return;
 		}
 		_simulation.Clock.Paused = true;
+		// The victory march where the player's faction won, the dies irae otherwise (docs/mechanics/music.md, section 4).
+		(int winner, _) = CEndGameText.Result(State);
+		Music?.PlayEnd(winner >= 0 && CEndGameText.Factions[winner] == Player.Faction);
 		_mapView.Visible = false;
 		foreach (Node child in _hud.GetChildren())
 		{
@@ -1738,7 +1704,7 @@ public partial class CSession : Node
 	}
 
 	/// <summary>What follows a switch on the command line - the recording of <c>--replay=</c> or <c>--record=</c> - or null.</summary>
-	private static string? Argument(string switchName)
+	internal static string? Argument(string switchName)
 	{
 		foreach (string argument in UserArguments())
 		{
@@ -1754,7 +1720,7 @@ public partial class CSession : Node
 	/// The tag given with <c>--country=</c> on the command line, or null. A tag is upper
 	/// case in every file, so one typed in lower case is taken for the same country.
 	/// </summary>
-	private static string? PlayerArgument()
+	internal static string? PlayerArgument()
 	{
 		foreach (string argument in UserArguments())
 		{
@@ -2605,6 +2571,8 @@ public partial class CSession : Node
 			_session._readInterfaceAgain = true;
 			_session.CallDeferred(MethodName.HandOver);
 		}
+
+		public string NextSong() => _session.Music?.NextSong() ?? "";
 
 		public void RefreshMapColours() => _session._mapView.RefreshColours();
 

@@ -52,6 +52,12 @@ public interface IConsoleHost
 	/// <summary>The interface and the map's effects read again from the install, and everything made again from them.</summary>
 	void ReloadInterface();
 
+	/// <summary>
+	/// The soundtrack's next song picked as a track's end picks it and played at once: its path, or nothing where none could be
+	/// (<c>docs/mechanics/music.md</c>, section 2.4).
+	/// </summary>
+	string NextSong();
+
 	/// <summary>The map's colours made again.</summary>
 	void RefreshMapColours();
 

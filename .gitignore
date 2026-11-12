@@ -9,3 +9,6 @@ obj/
 
 # VS Code (machine-specific Godot path; launch.json and tasks.json are shared)
 .vscode/settings.json
+
+# The standalone build tools/export.ps1 makes
+export/

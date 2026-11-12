@@ -48,6 +48,11 @@ public class ConsoleTests
 
 		public void ReloadInterface() => Remade++;
 
+		/// <summary>The song <c>nextsong</c> answers, as a host's music would pick it.</summary>
+		public string Song { get; set; } = "";
+
+		public string NextSong() => Song;
+
 		public void RefreshMapColours()
 		{
 		}
@@ -95,6 +100,17 @@ public class ConsoleTests
 		(CConsoleRunner runner, _, _) = World();
 		Assert.Equal(new CConsoleReply(false, "Unknown command"), runner.Run("MANPOWER 5"));
 		Assert.Equal(new CConsoleReply(true, "Added 5 manpower."), runner.Run("manpower 5"));
+	}
+
+	[Fact]
+	public void NextSongSaysWhatItPlaysAndNothingWhereNoneCouldBePicked()
+	{
+		(CConsoleRunner runner, var host, _) = World();
+		host.Song = "music/bigarmy.mp3";
+		Assert.Equal(new CConsoleReply(true, "Now playing music/bigarmy.mp3"), runner.Run("nextsong"));
+		host.Song = "";
+		Assert.Equal(new CConsoleReply(true, "Now playing "), runner.Run("nextsong"));
+		Assert.Equal(new CConsoleReply(false, "Invalid arguments count."), runner.Run("nextsong 2"));
 	}
 
 	[Fact]

@@ -68,30 +68,40 @@ public partial class CFrontEnd : Node
 	/// <summary>The player's settings, read as the front end comes up and written by the settings window's Apply.</summary>
 	public CUserSettings Settings { get; private set; } = CUserSettings.Default;
 
-	/// <summary>Play pressed: the game made ready, the Lua and everything read now the session's.</summary>
-	public event Action<CPreparedGame>? Launched;
+	/// <summary>
+	/// Play pressed for the country chosen: the game is to be made, by <see cref="Prepare"/> on the loading screen, and
+	/// handed over (frontend.md, section 3; <c>docs/mechanics/loadingscreen.md</c>).
+	/// </summary>
+	public event Action<CCountryTag>? PlayRequested;
 
 	/// <summary>Has to be called before the node enters the tree.</summary>
+	/// <param name="content">What the front end is made from, read under the loading screen.</param>
 	/// <param name="first">Whether this is the front end the program came up on, which alone plays <c>--click=</c>.</param>
-	public void Setup(CDirectorySettings directories, bool first = false)
+	public void Setup(CDirectorySettings directories, CFrontEndContent content, bool first = false)
 	{
 		_directories = directories;
+		_content = content;
 		_first = first;
 	}
 
 	private bool _first;
+	private CFrontEndContent _content = null!;
 
 	public override void _Ready()
 	{
 		var clock = Stopwatch.StartNew();
-		Settings = CUserSettingsReader.Read(CUserSettingsReader.DefaultPath());
-		_localisation = CLocalisation.Load(_directories);
-		_countries = CCountries.Load(_directories, _localisation);
-		_map = CMap.Load(_directories);
-		_aiScripts = new CAiScripts(_directories);
-		_gui = CGuiContext.Load(_directories, _localisation);
-		MakeWorld();
-		Start = CBookmarkReader.ReadStart(_directories, _countries, World.StartDate);
+		Settings = _content.Settings;
+		_localisation = _content.Localisation;
+		_countries = _content.Countries;
+		_map = _content.Map;
+		_aiScripts = _content.AiScripts;
+		_gui = _content.Gui;
+		_mapCache = _content.Cache;
+		_quadTiles = _content.Tiles;
+		World = _content.World;
+		SaveLoaded = false;
+		ShowOnMap(World);
+		Start = _content.Start;
 		GD.Print($"Front end ready in {clock.ElapsedMilliseconds} ms.");
 
 		var layer = new CanvasLayer { Name = "Interface" };
@@ -142,11 +152,22 @@ public partial class CFrontEnd : Node
 		_brightness.SetBrightness(CGameOptions.Brightness(Settings.Gamma));
 
 		ShowMenu();
+	}
+
+	/// <summary>
+	/// The front end shown, the loading screen gone: the developer's clicks played, by the first front end alone - after the
+	/// screen, which would take them.
+	/// </summary>
+	public void Begin()
+	{
 		if (_first)
 		{
 			RunClicks();
 		}
 	}
+
+	/// <summary>The localisation the front end was made with, which the loading screen writes its lines from.</summary>
+	public CLocalisation Localisation => _localisation;
 
 	/// <summary>The Lua goes with the front end unless a game took it.</summary>
 	public override void _ExitTree()
@@ -287,19 +308,35 @@ public partial class CFrontEnd : Node
 	public string PlayerName => Settings.LastPlayer.Length > 0 ? Settings.LastPlayer : "Player";
 
 	/// <summary>
-	/// Play: a new game set up from the start's world with the country chosen played, or the save's world going on with
-	/// the country chosen played in its player's place - and handed over (frontend.md, section 3).
+	/// Play: the lobby put away and the game asked for, which <see cref="Prepare"/> makes on the loading screen
+	/// (frontend.md, section 3).
 	/// </summary>
 	public void Launch(CCountryTag chosen)
+	{
+		if (_lobbyOptions is not null)
+		{
+			_lobbyOptions.Visible = false;
+		}
+		if (_aiScripts is null)
+		{
+			return;
+		}
+		// The Lua goes with the game from here: the front end leaves the tree as the game is made, and keeps it alive.
+		_handedOver = true;
+		PlayRequested?.Invoke(chosen);
+	}
+
+	/// <summary>
+	/// The game Play asked for: a new game set up from the start's world with the country chosen played, or the save's world
+	/// going on with the country chosen played in its player's place. Touches no engine object, so it runs on the loading
+	/// screen's thread; what was read goes with it, and the session owns the Lua from then.
+	/// </summary>
+	public CPreparedGame Prepare(CCountryTag chosen)
 	{
 		CGameState state = World;
 		// The Options panel's choices are the game's from Play, a loaded save's too (frontend.md, section 4).
 		state.GamePlay.CopyFrom(ChosenPlay);
 		state.Automation.CopyFrom(ChosenAutomation);
-		if (_lobbyOptions is not null)
-		{
-			_lobbyOptions.Visible = false;
-		}
 		if (SaveLoaded)
 		{
 			bool automated = state.Played.Any(played => state.AutomateTrade.Remove(played));
@@ -320,12 +357,8 @@ public partial class CFrontEnd : Node
 			state = CGameStateLoader.StartNewGame(_directories, World, _countries, new[] { chosen });
 			GD.Print($"New game as {chosen} set up in {clock.ElapsedMilliseconds} ms.");
 		}
-		if (_aiScripts is null)
-		{
-			return;
-		}
 		_handedOver = true;
-		Launched?.Invoke(new CPreparedGame(state, _map, _localisation, _gui, _aiScripts));
+		return new CPreparedGame(state, _map, _localisation, _gui, _aiScripts!, _mapCache, _quadTiles);
 	}
 
 	/// <summary>

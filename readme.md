@@ -1757,7 +1757,7 @@ the switches that take no argument. Rated against what is built:
 | --- | --- |
 | **easy** - the system exists; the command adds, sets or calls | `money`, `supplies`, `fuel`, `crudeoil`, `metal`, `energy`, `rarematerials`, `givemeall`, `addmanpower`, `addofficers`, `noneutrality`, `setnationalunity`, `election`, `reorg`, `surrender`, `guarantee`, `changeowner`, `changecontroller`, `conquerall`, `event` (the `--event=` switch already fires one), `revolt`, `alwayspartisants`, `instantresearch`, `instantconstruction`, `tooltipdebug`, `printtech`, `copyprov`; `debug tooltips`, `debug nopopup`, `debug minzoom`, `debug color`, `debug wireframe` |
 | **medium** - more wiring, or a small reading first | `tag` (the played country changed touches much of the interface), `aipause` (one country's AI steps left out), `teleport`, `date`, `debug render <layer>` (the map's layers are cut differently here), `debug yesmen` and `debug spy` (what each flag changes to be read), `detailedlog` (the save writer would serve), `reloadinterface`, `reloadfx`, `fullscreen` |
-| **not worth it now** | `nukes` (no nuclear system: to be built with it, *Loose ends*), `morehumans` (multiplayer), `paint`, `rpaint`, `ipaint` (the map editor), `nextsong` (no sound), `tutorial`, `spawnactor`, `reload`, `reloadtexture`, `window`, `randomlog`, `debug info`, `debug profile`, `debug log_profile`, `debug textures`, `debug assert`, `debug save`; and `weather` and `crash`, which the original refuses outside its developers' build |
+| **not worth it now** | `nukes` (no nuclear system: to be built with it, *Loose ends*), `morehumans` (multiplayer), `paint`, `rpaint`, `ipaint` (the map editor), `tutorial`, `spawnactor`, `reload`, `reloadtexture`, `window`, `randomlog`, `debug info`, `debug profile`, `debug log_profile`, `debug textures`, `debug assert`, `debug save`; and `weather` and `crash`, which the original refuses outside its developers' build |
 
 **What of the interface is missing**, inventoried 2026-11-08: the install's 58 `.gui` files set against the names the code looks up, each gap
 then set against the executable and the fact base. It is name matching: a button can count as found because its name is a common word (`close`,
@@ -1860,7 +1860,7 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 - **The AI drops no nuclear bomb**: its strategic targets, the enemy's war industry handed to the agents whose air bases are nearest, are not built (`moving.md`; `nukes.md`, *Ours*).
 
-- **There is no sound**, so an alert coming up plays nothing.
+- **There are no sound effects.** The music is built (2026-11-11, `docs/mechanics/music.md`), and so is the loading screen with every map mode prepared under it (`docs/mechanics/loadingscreen.md`); the effects of `interface/sound.sfx` are not, so an alert coming up plays nothing. Whether the title theme loops at the main menu is to be heard in the original (`music.md`, section 3).
 
 - **An agent's reassign flag is set only as it is made**: the original also sets it when a unit is created for it and when a unit lands or reaches the area it was bound for (`CAIUnit::OnUnitCreated` and slot 71; `reversing/findings/FINDINGS-liveread.md`, section 43). And on entering July 1941 ours sends Italy's 2nd Navy to the Metropolitana's embark, which the original does not; why was not read.
 
@@ -2366,7 +2366,7 @@ None of these blocks the list above.
   map that places a unit, were not read. `mapunits.md`, section 6.
 - **One alert of sixteen is built**, and it is up whenever a unit waits: when the
   original puts it up was not read. `mapunits.md`, section 5.
-- **Loading runs on the main thread** and holds the window for under a second at startup.
+- **Loading runs under the loading screen** since 2026-11-11, on a thread of its own where it touches no engine object; making the front end's map still holds the screen still for about three seconds (`docs/mechanics/loadingscreen.md`, *Loose ends*).
 - **The game does not stop at the end date** in `common/defines.lua`.
 - **A new game is short of 476 technology levels the original starts with**, and why is
   half found: 453 of them bring a country exactly up to what was due before 1936 in that
@@ -2873,6 +2873,14 @@ from the `godotTools.editorPath.godot4` setting rather than hardcoded, so set it
 To run with content, place a Hearts of Iron 3 install in a `Hearts of Iron 3` folder
 in the parent of this repository.
 
+**The standalone game** is built by `tools/export.ps1` into `export/OpenHOI3/`: `OpenHOI3.exe` with the game's resources
+packed into it, its .NET folder `data_OpenHOI3_windows_x86_64` with `openhoi3_lua.dll`, and `OpenHOI3_licences/`. It needs the Godot
+4.7.1 .NET export templates (the editor's *Manage Export Templates*), and takes the editor's path from `-Godot` or the
+setting above. **An exported build plays the install it is placed in** - the folder of its exe and nothing else - so it is
+played by copying the folder's contents beside `hoi3_tfh.exe`, which is the player's step; the script never writes to an
+install (`src/Main.cs`, `CDirectorySettings.BesideExecutable`). Tried on 2026-11-11 from a stand-in install: a new game
+made through the install's Lua, the music, and 117 frames a second.
+
 ## Repository layout
 
 ```
@@ -2882,6 +2890,8 @@ src/                    the Godot client
 src/Map/                the map view, and the unit counters on it
 src/Gfx/                decoding the original's textures and fonts
 src/Debug/              ours: the debug menu of developer switches, on Shift and 4, and --click's player
+src/Loading/            the loading screen, and the steps of the front end's and a game's making it runs
+src/Audio/              the music, one player for the whole run
 src/FrontEnd/           the main menu and the lobby, with the world they offer, and the game Play
                         hands to a session
 src/Gui/                the interface runtime: windows from the original's .gui files
@@ -3001,6 +3011,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Saves/              the original's .hoi3 saves: the loader, a save's values, its ids, units, orders, leaders and lines, wars, pacts and convoys, battles, what a load left unread, the writer and its layout
     Settings/           the player's settings.txt, from the original's folder under Documents
     Frontend/           the start's bookmark, for its look in the lobby
+    Music/              the songs of music/*.txt
     Shaders/            the original's effect files: the preprocessor, the parser, the syntax tree and the writer
                         that translates each pass of a technique into a Godot shader
 lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and placement at its root
@@ -3024,6 +3035,8 @@ lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and place
     Script/             what a block of conditions and a block of effects say of
                         themselves: each leaf's line, the blocks, the asterisks
     Messages/           a message, its words, and the log it is kept in
+    Music/              which song plays next, and how loud
+    Loading/            the loading screen's pictures and where its parts stand
 lib/OpenHOI3.Lua/       the install's Lua, run on the simulation: the state the original
                         makes, its searcher and autoexec, and what the game asks it
     Native/             the interpreter's C API, the trampoline, a state, a call, a class

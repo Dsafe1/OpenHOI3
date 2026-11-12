@@ -31,6 +31,10 @@ public sealed class CClickScript
 	{
 		foreach (string entry in points.Split(';', System.StringSplitOptions.RemoveEmptyEntries))
 		{
+			if (!_host.IsInsideTree())
+			{
+				return;
+			}
 			// h48 is not a click: it lets that many hours go by, so that what a click set
 			// going can be seen further on.
 			if (entry.StartsWith('h') && int.TryParse(entry[1..], NumberStyles.Integer, CultureInfo.InvariantCulture, out int hours))
@@ -292,7 +296,8 @@ public sealed class CClickScript
 
 	private async System.Threading.Tasks.Task Frames(int count)
 	{
-		for (int frame = 0; frame < count; frame++)
+		// A click may take its host out of the tree - Play puts the front end away - and nothing is left to wait on.
+		for (int frame = 0; frame < count && _host.IsInsideTree(); frame++)
 		{
 			await _host.ToSignal(_host.GetTree(), SceneTree.SignalName.ProcessFrame);
 		}

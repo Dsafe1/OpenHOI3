@@ -435,6 +435,14 @@ section 3.
 **Here**: the part is always counted, as the original counts it after the unit's first hour. Ours, 2026-11-11, not put to the maintainer: uninitialised memory cannot be reproduced, and counting the part matches the most units. Tried the other way - nought for every loaded unit - entering the August 1938 save gave 110 of 110 land orders and the July 1941 save 16 the original did not give, where this gives 107 of 110 and 1.
 **What a mod loses**: nothing; this is the engine's arithmetic. **To undo**: there is no faithful undo; a run's nought units are not knowable.
 
+---
+
+## 25. BiceLib's Lua functions are not provided
+
+**The original**: with BlackICE, `script/bicelib_lua.lua` calls functions that BiceLib - the mod's DLL, injected into the original's process - registers with the game's Lua, for its overlay, autosaves, map modes and commands.
+**Here**: nothing provides them, so a call to one fails where the mod is played. An accepted break, by the maintainer's word on 2026-11-11: BiceLib's features are to come back later as a native interface of this engine's own that the mod can call, built from the fact base's prose, never from BiceLib's code or offsets.
+**What a mod loses**: every BiceLib feature, until that interface exists. **To undo**: build the interface; nothing here is to be removed.
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they

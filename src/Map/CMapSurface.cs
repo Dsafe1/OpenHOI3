@@ -338,15 +338,24 @@ public partial class CMapSurface : Node3D
 	private const int PrepareGap = 15;
 	private int _prepareIn = 2 * PrepareGap;
 
+	/// <summary>
+	/// The loading screen's step: the next way or sea technique nothing has made yet, made now rather than in play, so that
+	/// no first choice of a map mode stops the map (<c>docs/mechanics/loadingscreen.md</c>). Answers false once all are made.
+	/// </summary>
+	public bool PrepareNow()
+	{
+		return _camera is not null && PrepareNext();
+	}
+
 	/// <summary>Makes the first way, then the first sea technique, that nothing has made yet; nothing once all are.</summary>
-	private void PrepareNext()
+	private bool PrepareNext()
 	{
 		for (int way = 0; way < CSurfaceTile.Ways; way++)
 		{
 			if (_wayNodes[way] is null)
 			{
 				MakeWay(way);
-				return;
+				return true;
 			}
 		}
 		string[] seas = _simpleWater
@@ -357,10 +366,11 @@ public partial class CMapSurface : Node3D
 			if (!_seaWays.ContainsKey(sea))
 			{
 				MakeSea(sea);
-				return;
+				return true;
 			}
 		}
 		_prepareIn = int.MaxValue;
+		return false;
 	}
 
 	/// <summary>A way's materials and instances, one of each for every tile's land and beaches, set as the way draws them.</summary>

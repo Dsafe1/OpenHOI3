@@ -70,6 +70,18 @@ public sealed class CDirectorySettings
 		return null;
 	}
 
+	/// <summary>
+	/// The install an exported build plays: the folder its executable was placed in, and nothing else. A drop-in
+	/// engine is put beside the original's own <c>hoi3_tfh.exe</c>, so the folder that holds it is the install; no
+	/// other place is searched, so a build put anywhere else says so rather than playing an install it happened to
+	/// find. Null where that folder is not an install.
+	/// </summary>
+	public static CDirectorySettings? BesideExecutable(string executablePath)
+	{
+		string? folder = Path.GetDirectoryName(Path.GetFullPath(executablePath));
+		return folder is not null && IsGameRoot(folder) ? new CDirectorySettings(folder) : null;
+	}
+
 	public static string[] SearchedLocations(string projectDir)
 	{
 		var result = new List<string>();

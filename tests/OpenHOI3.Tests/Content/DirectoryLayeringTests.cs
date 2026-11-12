@@ -46,6 +46,25 @@ public class DirectoryLayeringTests : IDisposable
 	private CDirectorySettings Settings => CDirectorySettings.At(_root);
 
 	[Fact]
+	public void AnExportedBuildPlaysTheFolderItIsPlacedIn()
+	{
+		Directory.CreateDirectory(Path.Combine(_root, "localisation"));
+
+		CDirectorySettings? beside = CDirectorySettings.BesideExecutable(Path.Combine(_root, "OpenHOI3.exe"));
+
+		Assert.NotNull(beside);
+		Assert.Equal(Path.GetFullPath(_root), beside!.GameRoot);
+	}
+
+	[Fact]
+	public void AnExportedBuildOutsideAnInstallFindsNone()
+	{
+		// No localisation folder, so the fixture is not an install; and nothing above it is searched.
+		Assert.Null(CDirectorySettings.BesideExecutable(Path.Combine(_root, "OpenHOI3.exe")));
+		Assert.Null(CDirectorySettings.BesideExecutable(Path.Combine(_root, "interface", "OpenHOI3.exe")));
+	}
+
+	[Fact]
 	public void ExpansionCopyWinsOverBase()
 	{
 		Write("interface/core.gfx", "base");

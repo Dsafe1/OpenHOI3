@@ -194,6 +194,14 @@ public sealed class CConsoleRunner
 				}
 				_host.ReloadInterface();
 				return Ok("Interface reloaded.");
+			case "nextsong":
+				// The same pick as a track's end, played at once; the original answers with the path, nothing where none
+				// could be picked (docs/mechanics/music.md, section 2.4).
+				if (args.Length != 0)
+				{
+					return Fail("Invalid arguments count.");
+				}
+				return Ok("Now playing " + _host.NextSong());
 			case "reloadfx": return ReloadFx(args);
 			case "fullscreen":
 				if (args.Length != 0)
