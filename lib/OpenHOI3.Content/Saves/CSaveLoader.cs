@@ -32,7 +32,7 @@ public static class CSaveLoader
 		"national_unity", "dissent", "war_exhaustion", "neutrality", "effective_neutrality", "highest_threat", "ideology", "flags", "variables",
 		"auto_assign_leaders", "auto_maintain_convoy", "auto_supply_convoy", "auto_resource_convoy", "modifier",
 		"government_in_exile", "strategic_warfare", "land_battles_fought", "air_battles_fought", "naval_battles_fought",
-		"alignment",
+		"alignment", "nukes",
 	};
 
 	private static readonly HashSet<string> ProvinceKeys = new(StringComparer.Ordinal)
