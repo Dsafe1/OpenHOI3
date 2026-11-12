@@ -315,7 +315,7 @@ public static class CSealift
 		bool enemyTarget = CCountryLists.IsEnemy(state, country, target.Controller);
 		bool targetTouches = CAreaHostility.TouchesHostileArea(state, target);
 		CUnit? best = null;
-		long bestScore = 0;
+		float bestScore = 0;
 		foreach (CUnit unit in agent.Land)
 		{
 			if (unit.Kind != EUnitKind.Division || unit.SubUnits.Count == 0 || unit.SealiftTarget > 0
@@ -344,42 +344,50 @@ public static class CSealift
 				continue;
 			}
 			bool bordersEnemy = CAreaHostility.TouchesHostileArea(state, own);
-			long rating = CUnitRatings.Garrison(state, unit);
-			long score = (ownHave - ownNeed) * Whole + (unit.IsStranded ? Stranded * Whole : 0);
+			// In single precision, as the original keeps the score, with the garrison rating in its own precision: two divisions
+			// a ten-thousandth of a share apart score apart (reversing/findings/FINDINGS-liveread.md, section 61).
+			float rating = CUnitRatings.GarrisonExact(state, unit);
+			float score = (float)(ownHave - ownNeed) + (unit.IsStranded ? Stranded : 0);
 			if (enemyTarget)
 			{
-				score += CUnitRatings.Fitness(state, unit);
+				score = (float)((double)score + CUnitRatings.Fitness(state, unit) / (double)Whole);
 			}
 			else if (!targetTouches && bordersEnemy)
 			{
-				score += rating;
+				score = (float)((double)score + rating);
 			}
 			else if (targetTouches && !bordersEnemy)
 			{
-				score += 101 * Whole - rating;
+				score = (float)((double)score + (101.0 - rating));
 			}
 			if (target.Neighbours.Count < 1)
 			{
-				score += 2 * rating;
+				score = (float)((double)score + 2.0 * rating);
 			}
 			if (unit.Parent is { } parent)
 			{
 				if (network.AreaOf(Anchor(parent)) == target)
 				{
-					score += 100 * Whole;
+					score = (float)((double)score + 100.0);
 				}
 				// And 50 for each other land unit under the same parent anchored there.
 				foreach (CUnit sibling in parent.Children)
 				{
 					if (!ReferenceEquals(sibling, unit) && Theatres.CTheatres.IsLand(sibling) && network.AreaOf(Anchor(sibling)) == target)
 					{
-						score += 50 * Whole;
+						score = (float)((double)score + 50.0);
 					}
 				}
 			}
 			if (bordersEnemy)
 			{
-				score = unit.IsGarrison ? score * 2 : agent.Area.Contains(unit.Location) ? score / 4 : score;
+				// Quartered where it is anchored - bound, or standing - in the area of operations (FINDINGS-liveread.md, section 61).
+				score = unit.IsGarrison ? (float)((double)score * 2.0) : agent.Area.Contains(CAgentUnits.DestinationOrPlace(unit)) ? (float)((double)score * 0.25) : score;
+			}
+			if (state.AiTrace is { } trace && trace.Country == country.Tag)
+			{
+				trace.Write($"    sealift score {unit.Name} for {target.Provinces[0]}: {score:F4} (own {ownHave}-{ownNeed}, rating {rating:F5}, " +
+					$"garrison {unit.IsGarrison}, in area {agent.Area.Contains(CAgentUnits.DestinationOrPlace(unit))}, borders {bordersEnemy})");
 			}
 			if (score > bestScore)
 			{
