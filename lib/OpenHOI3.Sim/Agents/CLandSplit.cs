@@ -224,9 +224,11 @@ public static class CLandSplit
 			}
 			while (there.Count > count && Worst(there, targets, targetScores) is { } dropped)
 			{
+				// Out of both by the original's swap with the last, which leaves the rest out of order: the next drop's first of
+				// equals and the order the garrisons are sent in hang on it (FINDINGS-liveread.md, section 71).
 				dropped.IsGarrison = false;
-				there.Remove(dropped);
-				ordered.Remove(dropped);
+				CStdVector.SwapRemove(there, dropped);
+				CStdVector.SwapRemove(ordered, dropped);
 			}
 			while (there.Count < count && Best(state, country, agent, network, group) is { } marked)
 			{

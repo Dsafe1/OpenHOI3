@@ -175,7 +175,11 @@ is cleared.
    being **that of the last garrison target on the province where it stands or is bound, 1 where no target is** (+1000
    for militia, +500 for police), the first of equals going - Poland's Warszawa HQ at 10:00 on 1 January, its 9th and
    15th Dywizja at 1626 and its 55th Reserve at 2158 all on no target, drops the 9th, which then goes to the line
-   (`confirmed` on the running game, 2026-11-13, `reversing/findings/FINDINGS-liveread.md`, section 70); too few - of the unmarked committed divisions standing or bound there, facing
+   (`confirmed` on the running game, 2026-11-13, `reversing/findings/FINDINGS-liveread.md`, section 70). **A dropped
+   division leaves the block's list and the garrisons by the original's swap with the last entry**, so the rest do not
+   close up in order: the next drop's first of equals and the order the garrisons are sent in both hang on it - China's
+   Yan'an HQ at 15:00 on 1 January, marked 4., 30., 31., 27. and 28. Jun for three targets, drops the 30. and then, the
+   28. now standing second, the 28., and sends 4., 27. and 31. Jun in that order (`confirmed`, section 71); too few - of the unmarked committed divisions standing or bound there, facing
    from where they are bound no neighbour the country prepares war on, carrying no armour or mechanised brigade **where the
    agent's frontier is at war** (not the country's wars) and no paratroops with air
    transports about, the one with the best 10 x garrison rating (section 11.3) + (its mean distance to the area + 10) / 5,
@@ -243,8 +247,9 @@ that the may-leave test lets go strictly (7.6), in the
 target's area (anywhere for a focus area), not in a threatened province, and not taken from a fuller hold position unless
 the target is threatened. The nearest **from where it is bound** by squared distance goes (x2 for a role-5 division leaving a
 better-scored position); **a tie goes to the earlier garrison in the split's order**: those with a garrison brigade and those
-still marked, in the committed order, less any dropped, then each new pick as it was picked - the vector the original's split
-hands its fill (`reversing/findings/FINDINGS-liveread.md`, section 35).
+still marked, in the committed order, less any dropped - each by moving the last into its place (section 5 above) - then
+each new pick as it was picked - the vector the original's split hands its fill (`reversing/findings/FINDINGS-liveread.md`,
+sections 35 and 71).
 
 ### 7.5 The reserve
 

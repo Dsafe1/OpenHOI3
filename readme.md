@@ -162,10 +162,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    Since 2026-11-13, with a join_air ending at its range (section 67), the hold list's weekly rebuild on the 1st, 8th,
    15th, 22nd and 29th (section 68), the peace-time +20 spread in single precision (section 69) and the garrison dropped
    scored by the garrison targets (section 70): on 4 January 892 of 908 divisions where the hourly saves have them, 902
-   move or stay as theirs, 499 of 541 bound for their province, and every air figure theirs - what still differs is
+   move or stay as theirs, 499 of 541 bound for their province, and every air figure theirs. With a dropped garrison
+   taken out by the original's swap with the last entry (section 71): 896, 905 and 529 of 541 - what still differs is
    shared by both of the original's runs, the Soviet Union's most of it.
    **The plans' embark and debark that still differ vary with the original's own run**: two runs of the same new game gave
-   Australia, Republican Spain and the Dutch East Indies other targets or another order of votes, and Japan another port.
+   Australia, Republican Spain and the Dutch East Indies other targets or another order of votes, and Japan another port;
+   a third run, watched live, gave Australia a third order of its sealift's areas and a third debark (section 71) - so its
+   1st and 4th Australian Divisions, apart from both saves, are the original's spread and not a fault here.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
