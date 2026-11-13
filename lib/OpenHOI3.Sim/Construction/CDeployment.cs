@@ -219,27 +219,38 @@ public static class CDeployment
 		{
 			return;
 		}
-		int province = target.Location;
-		if (province <= 0 || !MayPlace(state, country, unit, province))
+		int province = PlaceToJoin(state, country, unit, target);
+		if (province == 0)
 		{
-			province = 0;
-			long nearest = long.MaxValue;
-			foreach (int place in Places(state, country, unit))
-			{
-				long distance = target.Location <= 0 ? 0
-					: CMapDistance.Between(state.Province(target.Location), state.Province(place), state.MapWidth);
-				if (distance < nearest || (distance == nearest && place < province))
-				{
-					nearest = distance;
-					province = place;
-				}
-			}
-			if (province == 0)
-			{
-				return;
-			}
+			return;
 		}
 		Join(state, country, unit, target, province);
+	}
+
+	/// <summary>
+	/// Where a waiting unit joining one in the field is put, as the original's join puts it: the other's province where it
+	/// may be placed there, else the nearest province of the home area where it may; nought where there is none.
+	/// </summary>
+	public static int PlaceToJoin(CGameState state, CCountry country, CUnit unit, CUnit target)
+	{
+		int province = target.Location;
+		if (province > 0 && MayPlace(state, country, unit, province))
+		{
+			return province;
+		}
+		province = 0;
+		long nearest = long.MaxValue;
+		foreach (int place in Places(state, country, unit))
+		{
+			long distance = target.Location <= 0 ? 0
+				: CMapDistance.Between(state.Province(target.Location), state.Province(place), state.MapWidth);
+			if (distance < nearest || (distance == nearest && place < province))
+			{
+				nearest = distance;
+				province = place;
+			}
+		}
+		return province;
 	}
 
 	private static bool MayPlace(CGameState state, CUnit unit, int provinceId, HashSet<int> home)

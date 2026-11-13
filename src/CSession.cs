@@ -575,6 +575,13 @@ public partial class CSession : Node
 			if (_browser is { } dropTarget)
 			{
 				outliner.UnitDragStarted += dropTarget.BeginDragUnit;
+				// And a deploy menu line, handed over once the pointer is in the browser (mapunits.md, section 6).
+				if (_deployMenu is { } deploy)
+				{
+					deploy.BrowserOpen = () => dropTarget.IsOpen;
+					deploy.OverBrowser = dropTarget.Holds;
+					deploy.DraggedIntoBrowser += dropTarget.BeginDragDeployment;
+				}
 			}
 			outliner.CombatChosen += combat =>
 			{

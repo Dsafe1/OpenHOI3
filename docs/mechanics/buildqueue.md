@@ -326,7 +326,9 @@ original places it in the nearest province of the capital's area where it could,
 then joins them. Here the command is refused: the menu lists only units standing where
 the new one may be placed, so it takes a change between the listing and the order. And
 the command asks what the menu asks, where the original's asks nothing (`builders.md`,
-section 9, is the same choice).
+section 9, is the same choice). **But for a line dropped on the order of battle browser's row** (since 2026-11-13,
+`mapunits.md`, section 6), which may name any unit of a higher level: then the command takes the original's way - the
+nearest province of the capital's area where the target's will not do - and asks nothing more.
 
 ## 8. Ours
 

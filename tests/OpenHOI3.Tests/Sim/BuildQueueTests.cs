@@ -764,6 +764,33 @@ public class BuildQueueTests
 	}
 
 	[Fact]
+	public void AUnitDroppedOnTheBrowsersRowIsPutInTheHomeAreaNearestWhereItsTargetStands()
+	{
+		CCountry country = Germany();
+		CSubUnitType infantry = Infantry();
+		CSubUnitType artillery = Artillery();
+		CGameState state = State(country, infantry, artillery);
+
+		// A corps cut off in Lodz: the menu offers it nothing, but a drop on its row deploys the division where it may go,
+		// the home area's nearest province, and puts it under the corps all the same.
+		CUnit corps = InTheField(state, country, EUnitKind.Corps, Lodz, infantry);
+		CUnit newDivision = Finished(state, country, infantry, artillery);
+		Assert.False(new CDeployUnitCommand(Ger, newDivision.Id, 0, corps.Id).MayExecute(state));
+		var dropped = new CDeployUnitCommand(Ger, newDivision.Id, corps.Location, corps.Id, dropped: true);
+		Assert.True(dropped.MayExecute(state));
+
+		var simulation = new CSimulation(state);
+		simulation.Post(dropped);
+		simulation.Post(new CAttachUnitCommand(Ger, newDivision.Id, corps.Id));
+		simulation.Pump();
+
+		Assert.Empty(country.Deployments);
+		Assert.Same(corps, newDivision.Parent);
+		Assert.NotEqual(Lodz, newDivision.Location);
+		Assert.Contains(newDivision.Location, CDeployment.HomeArea(state, country));
+	}
+
+	[Fact]
 	public void ADivisionTakesNoMoreBrigadesThanItMayHaveAndACorpsNoMoreThanFiveUnits()
 	{
 		CCountry country = Germany();

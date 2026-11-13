@@ -35,6 +35,19 @@ public partial class CDeployMenu : Control
 
 	private CUnit? _placing;
 	private CBuildingDeployment? _placingBuilding;
+
+	/// <summary>A unit's line pressed and not yet handed to the order of battle browser.</summary>
+	private CUnit? _pressed;
+	private Vector2 _mouse;
+
+	/// <summary>Whether the order of battle browser is open, asked each frame the menu is up.</summary>
+	public Func<bool>? BrowserOpen { get; set; }
+
+	/// <summary>Whether a point is inside the order of battle browser's window.</summary>
+	public Func<Vector2, bool>? OverBrowser { get; set; }
+
+	/// <summary>Raised when a pressed line's unit is handed to the order of battle browser as a drag.</summary>
+	public event Action<CUnit>? DraggedIntoBrowser;
 	private bool _choosingTarget;
 	private bool _targetsStale;
 	private bool _listStale;
@@ -160,6 +173,37 @@ public partial class CDeployMenu : Control
 		}
 	}
 
+	public override void _Input(InputEvent input)
+	{
+		// The event's own point, so that the developer switches drag too, as the browser takes it.
+		if (input is InputEventMouse mouse)
+		{
+			_mouse = mouse.Position;
+		}
+	}
+
+	/// <summary>
+	/// The original's mouse observer, first each frame the menu is up: with the browser closed a pressed line is forgotten;
+	/// with it open, a pressed line and the pointer inside its window hand the line's unit to it as a drag. No button is
+	/// asked - the browser's own drag lets a press whose button is up go (<c>docs/mechanics/mapunits.md</c>, section 6).
+	/// </summary>
+	private void WatchDrag()
+	{
+		if (BrowserOpen?.Invoke() != true)
+		{
+			_pressed = null;
+			return;
+		}
+		if (_pressed is { } unit && OverBrowser?.Invoke(_mouse) == true)
+		{
+			_pressed = null;
+			if (_player.Deployments.Contains(unit))
+			{
+				DraggedIntoBrowser?.Invoke(unit);
+			}
+		}
+	}
+
 	/// <summary>Every frame while it is up, as the original's does.</summary>
 	private void Refresh()
 	{
@@ -167,6 +211,7 @@ public partial class CDeployMenu : Control
 		{
 			return;
 		}
+		WatchDrag();
 		if (_placing is not null && !_player.Deployments.Contains(_placing))
 		{
 			Placed();                                        // it went somewhere, or is no longer waiting
@@ -212,7 +257,13 @@ public partial class CDeployMenu : Control
 			_listed.Add(unit);
 			if (CDeploymentEntry.Create(_context, unit) is { } line)
 			{
-				line.Selected += () => Choose(unit);
+				// A click chooses the line and forgets a press; a press marks it for the drag into the browser.
+				line.Selected += () =>
+				{
+					_pressed = null;
+					Choose(unit);
+				};
+				line.DragStarted += () => _pressed = unit;
 				_list.Add(line.Window);
 			}
 		}
