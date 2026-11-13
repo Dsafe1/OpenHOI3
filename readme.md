@@ -1710,6 +1710,11 @@ main menu since the same day. **The far map mode** he asked for - the countries'
 is the lobby's last piece he named; its reading is in the fact base (`FINDINGS-farmap.md`: A, what switches the far view -
 four thresholds on the camera's height - and what changes with it; B, the country names, laid along a least-squares line
 through the land a country controls by its capital, bent along a spline, in its faction's bitmap font, with no shader).
+**And the file checksum** (2026-11-13, `docs/mechanics/checksum.md`, read in `reversing/findings/FINDINGS-checksum.md`):
+the original's figure over the same files at `CREATING_CHKSUM`, and its four letters on the main menu's `version_label`
+and the lobby's `checksum` - `OpenHOI3 (GSKH)` for Their Finest Hour, the version name summed being the original's by the
+maintainer's word, so the letters are the original's. `OpenHOI3.SaveCheck checksum` gives the figure of the original's own
+log for the base game and for BlackICE 15.1. Tried with `--click`.
 
 **And the original's shaders, translated** (2026-11-06, `docs/mechanics/shaders.md`): by the maintainer's word - "We
 need to actually support moddable shaders", BlackICE changing the terrain, the sea and the air map's circles in its own
@@ -2832,6 +2837,7 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         hands to the AI - the record, who does a country's work, its ministers
 lib/OpenHOI3.Content/   reading an install: finding and layering it, localisation, the loader
     BattlePlans/        a battle plan's file both ways, bp_settings.txt and the arrow and icon types
+    Checksum/           the original's file checksum over the install, which the version label's letters come from
     Clausewitz/         the script format
     Map/                the province bitmap, shapes, the edges between provinces with their
                         kinds and distances, terrain, a province's points, and the

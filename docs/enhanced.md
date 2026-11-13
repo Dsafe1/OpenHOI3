@@ -303,6 +303,10 @@ All of these are risk-free but for what the entry says.
 - **Every loading picture but the first is let go at the first main menu**, so a game is always entered over the same picture. `loadingscreen.md`, 1. *Dead.* Risk: none.
 - **The loading picture is a square of the screen's width**, its height taken from the width, so a portrait screen gets black bands and every picture's own bands are cut. `loadingscreen.md`, 1. *Bug.* Risk: none.
 
+## The file checksum
+
+- **The checksum guards little.** Each file's sum is added to one 32-bit figure, so exchanging two files' contents, moving a file between two summed folders or adding an empty file changes nothing; two installs agree by chance far more often than a real hash would allow; and the AI's Lua, the interface and the localisation are not summed at all, though players who differ there play different games. A hash over every file the game reads, by path and content, would guard a multiplayer of the enhanced engine's own. `checksum.md`, 7. *Oversight.* Risk: the letters would no longer be the original's.
+
 ## Sound effects
 
 - **A misspelled `clicksound` silences a button** rather than falling back to `click`: the choice asks whether a name is written, not whether it is a sound, and ten of the original's buttons name `close_window` or `start_game`, which `sound.sfx` has not got. `sound.md`, 5. *Bug.* Risk: none.

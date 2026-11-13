@@ -1,0 +1,85 @@
+# The file checksum
+
+The figure the original works out over its files as it starts, logs to the player's `logs/setup.log` as
+`Checksum is HoI3 v4.02 (GSKH)    1499173604`, and writes as four letters on the main menu and in the lobby. Read in
+`reversing/findings/FINDINGS-checksum.md`. Built 2026-11-13 (`lib/OpenHOI3.Content/Checksum`), **and it is the original's
+figure to the unit** for Their Finest Hour and for BlackICE 15.1 (section 6).
+
+Every rule below is the executable's [exe]; the files summed are the install's and a mod's [mod].
+
+## 1. A file's checksum
+
+Two sums from nought over the file's bytes taken unsigned: the first adds each byte, the second adds the first after each
+byte, and each is brought back by subtracting 65535 once whenever it passes 65535 - so a sum that lands on 65535 stays
+there, where a remainder would make it nought. The answer is the first in the upper 16 bits and the second in the lower.
+It is the map cache's stamp's sum (`mapcache.md`; `CMapCache.Checksum`). A file that is not there gives nothing.
+
+## 2. What is summed
+
+Every term is added into one 32-bit figure, so the order is no part of the result. In the original's order:
+
+1. `common`: its `.lua` files, then its `.txt` files; `common/countries`, `.txt`
+2. `events`, `missions`
+3. `units` and `units/models`, `.txt`; then `units` and `units/country`, `.lua`
+4. `technologies`, `decisions`
+5. `history/countries`, `history/diplomacy`, `history/provinces` **with every subfolder**, `history/wars`,
+   `history/leaders`, `history/units`
+6. `map/default.map`, `map/cache/time` and `map/cache/adjacencies.bin`, each alone
+7. `cgm`, `.txt`, with every subfolder; `battleplans`, `.txt` and then `.pln`, with every subfolder
+8. the version name `HoI3 v4.02`, its bytes taken **signed** - which changes nothing for its ASCII, and is kept so
+
+Folders are `.txt` unless said. A file goes in where its name ends in the extension byte for byte, case and all: `a.TXT`
+does not. A name with a character past ASCII is never listed, as the original's file system refuses one; nor is `.svn`,
+as a file or as a folder to go down into. A folder whose name ends in the extension is not a file. Nothing else goes in:
+not `interface`, `gfx`, `localisation`, `script` - the AI's Lua - `sound`, `music`, `scenarios`, any other map file, or any
+subfolder of `common` but `countries`.
+
+**The version name is the original's**, by the maintainer's word on 2026-11-13: "match the originals name". So the same
+files give the same letters here as in the original, and a player can set this game's beside the original's main menu.
+
+## 3. Which copy of a file
+
+The original reads through one file system laid over several folders, the last mounted first: a mod's user folder and the
+mod, then `tfh/`, then the install's root, then the player's folder, `Documents\Paradox Interactive\Hearts of Iron III`.
+A folder's names are all of theirs, each once, and a name is read from the first folder that has it. **In a folder a
+mod's `replace_path` names, only the files the mod's two folders hold are listed** - the base game's beside them are not
+summed at all.
+
+So the map's three files come from wherever they are first found, and **the map cache's two are the player's folder's**,
+the one the original builds and the one this game builds the same byte for byte (`mapcache.md`). The checksum is
+therefore worked out after the cache is current: here the cache is opened, and built where it is not the map's, with the
+map at `INIT_MAP_LOGIC`, where the original checks it too, and the checksum runs at `CREATING_CHKSUM` after the history
+(`loadingscreen.md`, section 3).
+
+*Ours*: no mod is played yet, so the client's search path is `tfh/`, the root and the player's folder;
+`CChecksumSearchPath` takes a mod's folders and replaced folders, and the savegame tool uses them (section 6).
+
+## 4. When
+
+Once, at the first front end of a run - the original's once at startup - and kept for every front end after it.
+*Measured*: 1.7 to 2.0 s for Their Finest Hour's 11,824 files, where the original's log has 6.7 s; 5.7 s for BlackICE 15.1's
+14,177, the original's 10 to 27 s. A game started by a developer switch skips the front end and has no checksum.
+
+## 5. The label
+
+The main menu's `version_label` and the lobby's `checksum` say the name, a space and the four letters in brackets. With
+the checksum as a signed 32-bit figure, the letters are the figure, then the figure shifted right by 4, by 8 and by 12
+keeping its sign, each C's remainder by 26 made positive and added to `A`. The original adds its version's `executable`
+figure to the checksum first; that is nought in every run logged, and nothing here sets it.
+
+*Ours*: the name is `OpenHOI3` where the original's is `HoI3 v4.02` (`CVersionText`), and the original's
+`    Mod: <name>` after it waits for mods.
+
+## 6. Checked
+
+`OpenHOI3.SaveCheck checksum <install> [mod name]` works the figure out and sets it beside the last `Checksum is` line of
+the player's `logs/setup.log`, the mod's user folder's where a mod is named. On 2026-11-13: Their Finest Hour
+`1499173604 (GSKH)`, 11,824 files, the same as the original's log of that day; BlackICE 15.1 `-410340735 (ZAUD)`, 14,177
+files, the same as its log of 9 November, no file of the mod newer. A log written before a summed file last changed
+differs, and says nothing.
+
+## 7. What it does not guard
+
+The original's figure is a weak guard, kept as it is and listed in `docs/enhanced.md`: it is a sum of sums, so swapping two
+files' contents, moving a file between summed folders or adding an empty one changes nothing; it is 32 bits; and it leaves
+out the AI's Lua, the interface and the localisation. A multiplayer of this game's own would want more.

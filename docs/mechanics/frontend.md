@@ -47,7 +47,7 @@ description each time it is chosen, then PLR_CONNECT "Player $NAME$ joined the g
 box is hidden in a game of one.
 
 **The players' box** `multiplayer`, shown in a game of one too: FE_NUM_PLAYERS "Number of Players: 1", `checksum` the
-version (*Ours*), and a row of `multiplayer_entry` for the player - `player_shield` the chosen country's, `name` the
+version label, `OpenHOI3` and the original's four letters (`checksum.md`, section 5), and a row of `multiplayer_entry` for the player - `player_shield` the chosen country's, `name` the
 player's name, which is `settings.txt`'s `lastplayer` (*inferred*: the original makes its human from the application's
 name, and the maintainer's screenshot and file both say "Player").
 
@@ -200,7 +200,9 @@ says the lines.
   `docs/compatibility.md`, entry 17).
 - **Only the start's bookmark is offered**, and the Scenarios and Custom Games tabs are greyed, each with a tooltip of ours saying why - one start (entry 17); so is the main menu's Quick Start.
 - **The GamersGate store's button, "Buy Bonus Items", is greyed** with a tooltip of ours saying no store is opened (the maintainer's word, 2026-11-06), **and the four links to the publisher's pages are hidden.**
-- **`version_label`** says `OpenHOI3`, where the original writes its version and four letters of its checksum.
+- **`version_label`** says `OpenHOI3` where the original writes its version name, then in brackets the four letters of its
+  file checksum, the original's for the same files - `OpenHOI3 (GSKH)` for Their Finest Hour (`checksum.md`, since
+  2026-11-13).
 - **The seed of a new game is the game's own**, where the original takes one from the clock at Play (`docs/compatibility.md`,
   entry 11's reasoning: a game is replayable from its seed).
 - **The chat log has no lines of a save's transfer**, the original's "Savegame transfer started..." and the rest.

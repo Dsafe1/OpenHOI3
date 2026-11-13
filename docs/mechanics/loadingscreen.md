@@ -51,10 +51,11 @@ names, in the original's order where the work allows:
 | the front end | (none) | the localisation, which the lines are written from | |
 | | `LOADING_MAP_SPRITES` | the interface: `.gfx` and `.gui` | 1 |
 | | `LOADING_DATABASES` | the countries | |
-| | `INIT_MAP_LOGIC` | the map | |
+| | `INIT_MAP_LOGIC` | the map, and its cache, built where it is not the map's | |
 | | `LOADING_DATABASES2` | the install's Lua | |
 | | `LOADING_HISTORY` | the world at the start date and its bookmark | 1 |
-| | `LOAD_GFX` | the map cache, built where it is not the map's, and its quads | 1 |
+| | `CREATING_CHKSUM` | the file checksum (`checksum.md`), worked out at the first front end of a run and kept for the rest | 1 |
+| | `LOAD_GFX` | the map cache's quads | |
 | | `CREATING_THE_WORLD` | the front end and its map made | 2 |
 | a game from Play | `ADAPTING_HISTORY` | the new game set up, or the save's handed on | |
 | | `LOADING_SOUNDS` | the songs (`music.md`) | |
@@ -62,7 +63,7 @@ names, in the original's order where the work allows:
 | | *Preparing the Map Modes...* | section 4 | |
 | a game from a switch | (none), `LOADING_HISTORY`, `LOADING_GUI_DEF`, then as from Play | the localisation; the game; the interface | 2 at the second |
 
-Where the original steps the pictures at a line that has no step here - its checksum, its province names - the next line
+Where the original steps the pictures at a line that has no step here - its province names - the next line
 here steps once more, so that **each line shows the picture the original shows with it**. A return to the menu reads the
 front end again, with its lines, where the original shows `LOAD_GFX` alone.
 
