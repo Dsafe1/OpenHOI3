@@ -2697,6 +2697,12 @@ played by copying the folder's contents beside `hoi3_tfh.exe`, which is the play
 install (`src/Main.cs`, `CDirectorySettings.BesideExecutable`). Tried on 2026-11-11 from a stand-in install: a new game
 made through the install's Lua, the music, and 117 frames a second.
 
+**Logs and crashes.** Every run, the editor's and the exported game's, writes Godot's log to
+`%APPDATA%\Godot\app_userdata\OpenHoi3\logs\godot.log`, each line as it is printed, the last twenty runs kept beside it. An
+exception nothing catches - an access violation inside a call into the engine among them, which .NET ends the process for
+without Godot's log hearing of it - is written to a `crash-<time>.log` in the same folder (`src/Debug/CCrashLog.cs`). Windows'
+own Application event log holds the same .NET stack and the faulting module.
+
 ## Repository layout
 
 ```

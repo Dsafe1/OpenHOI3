@@ -74,6 +74,8 @@ public partial class Main : Control
 		// code the line was written says nothing about them.
 		CDiagnostics.WarnSink = message => GD.Print("WARNING: " + message);
 		CDiagnostics.ErrorSink = message => GD.PushError(message);
+		// An exception nothing catches - a crash inside the engine among them - is written beside the logs.
+		Debug.CCrashLog.Install();
 
 		GD.Print("OpenHOI3 starting.");
 		MouseFilter = MouseFilterEnum.Ignore;
