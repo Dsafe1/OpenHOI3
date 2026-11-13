@@ -98,7 +98,7 @@ public static class CFleetRegroup
 	public static void Run(CGameState state, CCountry country, CAgent agent)
 	{
 		List<CUnit> ready = Ready(state, country, agent);
-		Merge(state, country, agent, ready, new HashSet<CUnit>());
+		Merge(state, country, agent, ready, new List<CUnit>());
 		agent.ReplanNaval = false;
 	}
 
@@ -163,7 +163,7 @@ public static class CFleetRegroup
 	/// The split and merge (the naval body's phase 5), where the country may reorganise: what it orders to join, and the
 	/// fleets they join, go on the handled list with those the existing orders put there.
 	/// </summary>
-	public static void Merge(CGameState state, CCountry country, CAgent agent, List<CUnit> ready, HashSet<CUnit> handled)
+	public static void Merge(CGameState state, CCountry country, CAgent agent, List<CUnit> ready, List<CUnit> handled)
 	{
 		if (agent.Unit is not { } headquarters || !(country.UnitAi.RunsUnits || headquarters.Plan.AllowHqReorg))
 		{
@@ -224,7 +224,7 @@ public static class CFleetRegroup
 	}
 
 	private static void SplitAndMerge(CGameState state, CCountry country, CUnit headquarters, List<CUnit> ready,
-		HashSet<CUnit> handled)
+		List<CUnit> handled)
 	{
 		// A fleet joining another, and the other, are handled before the merge (the naval body's phase 4).
 		foreach (CUnit fleet in ready)

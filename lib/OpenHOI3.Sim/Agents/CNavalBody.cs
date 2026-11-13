@@ -51,7 +51,9 @@ public static class CNavalBody
 		Withdraw(state, country, agent);
 		IdleHome(state, country, agent, headquarters);
 		List<CUnit> ready = CFleetRegroup.Ready(state, country, agent);
-		var handled = new HashSet<CUnit>();
+		// A vector in the order fleets were put on it, as the original keeps it: phase 6 takes them out of the ready fleets in
+		// that order (FINDINGS-liveread.md, section 72).
+		var handled = new List<CUnit>();
 		ExistingOrders(state, country, ready, handled);
 		CFleetRegroup.Merge(state, country, agent, ready, handled);
 		// The rest - the survey, the ports, patrols and intercepts - only on a forced pass, at war or not
@@ -60,8 +62,13 @@ public static class CNavalBody
 		{
 			return;
 		}
-		// Phase 6: what was ordered to join, and what it joins, is done with for this pass.
-		ready.RemoveAll(handled.Contains);
+		// Phase 6: what was ordered to join, and what it joins, is done with for this pass - each taken out of the ready fleets
+		// by the original's swap with the last, which reorders the rest: the ports below are handed out in that order
+		// (FINDINGS-liveread.md, section 72).
+		foreach (CUnit fleet in handled)
+		{
+			CStdVector.SwapRemove(ready, fleet);
+		}
 		long enemyPower = Survey(state, country, agent, out List<CUnit> enemies);
 		long ownPower = 0;
 		var free = new List<CUnit>();
@@ -110,7 +117,7 @@ public static class CNavalBody
 	}
 
 	/// <summary>Phase 4, over the ready fleets: what no longer makes sense is cancelled - a fleet sent home or stopped where it is.</summary>
-	private static void ExistingOrders(CGameState state, CCountry country, List<CUnit> ready, HashSet<CUnit> handled)
+	private static void ExistingOrders(CGameState state, CCountry country, List<CUnit> ready, List<CUnit> handled)
 	{
 		// A war nobody declared keeps a raid, an escort and a patrol as a war does (FINDINGS-liveread.md, section 25).
 		bool atWar = state.IsAtWar(country.Tag) || Wars.CUndeclaredWars.Involves(state, country.Tag);

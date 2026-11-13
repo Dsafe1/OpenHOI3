@@ -163,8 +163,11 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    15th, 22nd and 29th (section 68), the peace-time +20 spread in single precision (section 69) and the garrison dropped
    scored by the garrison targets (section 70): on 4 January 892 of 908 divisions where the hourly saves have them, 902
    move or stay as theirs, 499 of 541 bound for their province, and every air figure theirs. With a dropped garrison
-   taken out by the original's swap with the last entry (section 71): 896, 905 and 529 of 541 - what still differs is
-   shared by both of the original's runs, the Soviet Union's most of it.
+   taken out by the original's swap with the last entry (section 71): 896, 905 and 529 of 541; with the naval body's
+   handled fleets taken off its ready list the same way (section 72), 906 and 530 - what still differs is shared by both
+   of the original's runs. **Britain's fleets are one over both runs on 4 January** since then: at 11:00 on 1 January its
+   Far East Command, with troops listed for the sea, takes the 3rd Transport Ship Squadron that the original hands East
+   Africa Command - there before section 72, and lasting to 4 January only since.
    **The plans' embark and debark that still differ vary with the original's own run**: two runs of the same new game gave
    Australia, Republican Spain and the Dutch East Indies other targets or another order of votes, and Japan another port;
    a third run, watched live, gave Australia a third order of its sealift's areas and a third debark (section 71) - so its

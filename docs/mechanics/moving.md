@@ -498,7 +498,12 @@ makes nobody at war (`war.md`, section 1).
    patrol at peace (a war nobody declared counting as war), and any other order of a fleet standing still at its base or an intercept standing still, are
    cancelled - the order taken away and the fleet sent to its base by a plain move, so it sails on with no order.
 5. *(the regrouping's split and merge, whose joins - the fleet and the one it joins - are handled too)*
-6. **The handled fleets are taken off the ready list**, and nothing below touches them this pass. **The survey**: the power of every fleet of a country at war with it within 1000 by sea of the theatre's ports, troop
+6. **The handled fleets are taken off the ready list**, and nothing below touches them this pass - each in the order it
+   went on the handled list, by the original's swap with the last entry, so the fleets left are not in their first order
+   and the ports below are handed out in the new one: Japan's Imperial General Headquarters at the second hour of a new
+   game then sends 14., 16. and 20. Kaigun to 5346, 19. to 5218 and 18. to 4986, as the original, where the first order
+   sent the 18. to 5346 and the 20. to 5218 - which moved three home provinces' hold scores by the ships based there and
+   the noon garrison drop with them (`confirmed`, `reversing/findings/FINDINGS-liveread.md`, section 72). **The survey**: the power of every fleet of a country at war with it within 1000 by sea of the theatre's ports, troop
    carriers listed first.
 7. **Each ready fleet**, not retreating: **a wolfpack** - all submarines, not busy, at war, the naval
    stance not 0 - raids: over the enemy convoys handed to the agent, each step of a way but its ends, in its range, weighs
