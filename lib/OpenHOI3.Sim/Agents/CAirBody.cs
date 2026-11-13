@@ -224,7 +224,8 @@ public static class CAirBody
 		{
 			foreach (CUnit unit in anyone.AllUnits())
 			{
-				if (!unit.IsRemoved && unit.Kind == EUnitKind.Air && unit.Base > 0)
+				// A carrier's air group is on its carrier's list, not the airfield's (FINDINGS-liveread.md, section 66).
+				if (!unit.IsRemoved && unit.Kind == EUnitKind.Air && unit.Base > 0 && unit.CarriedBy is null)
 				{
 					stationed[unit.Base] = stationed.GetValueOrDefault(unit.Base) + unit.SubUnits.Count;
 				}
@@ -274,6 +275,11 @@ public static class CAirBody
 					{
 						score *= load;
 					}
+				}
+				if (state.AiTrace is { } trace && trace.Country == country.Tag)
+				{
+					trace.Write($"    air rebase {group.Name} base {id}: listed {listed:F3} score {score:F3} (moved {moved.GetValueOrDefault(id)}, " +
+						$"stationed {stationed.GetValueOrDefault(id)}, level {(airBase is null ? 0 : province.BuildingLevel(airBase).Raw)})");
 				}
 				if (bestScore > score)
 				{
