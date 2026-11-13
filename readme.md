@@ -2164,9 +2164,8 @@ None of these blocks the list above.
   wait for what they read - shore bombardment, mission efficiency, landing craft -
   and three technology figures are left out for want of their keys; `landcombat.md`,
   section 4, lists them. A round gives no practical knowledge (section 3).
-- **The battle window says less than the original's.** Units in a battle stand where they stood,
-  where the original has a place in each province for the attackers and one for the defenders;
-  and what a click on the original's marker does was not read - here it opens the window.
+- **The battle window says less than the original's.** Units in a battle stand in a stack for the attackers and one
+  for the defenders since 2026-11-14, as the original's (`mapunits.md`, section 3); what a click on the original's marker does was not read - here it opens the window.
   `docs/mechanics/combatview.md` ends with the list. An enemy the player knows under intel level 3
   shows the unknown counter's "?" since 2026-11-13, its picture alone, as the original's
   (`combatview.md`, section 5).
@@ -2295,11 +2294,12 @@ None of these blocks the list above.
   under 100. The maintainer's word for the two views, 2026-10-09, and the camera read for
   the figures (`mapunits.md`, section 7). The zoom here goes out further than the
   original's camera goes up, until the whole map is on screen.
-- **Where four of a province's five stacks stand is ours.** The original stands a standing unit at the
-  province's `unit` point, as here, and makes four more points from that for units
-  moving, fighting and flying - how was not found. That the higher
-  rank is on top of a stack is the maintainer's word, the original's sorting not having
-  been read. `mapunits.md`, sections 1, 3 and 7.
+- **A province's five stacks are the original's since 2026-11-14**, the moving stack at the original's 2.5 east and
+  1.0 north by the maintainer's word, where a screenshot's measure had put it. A battle's two sides have their stacks, on the
+  point on land and 2.4 to either side at sea, and which counter of a stack is on top is read: the player's own,
+  then the higher rank, then the selected unit's place in the province's list (`mapunits.md`, sections 1 and 3;
+  `reversing/findings/FINDINGS-mapstacks.md`). Of two units the list does not part, the original puts first the one
+  that came into the province first; this game keeps no such record, and puts first the one made first.
 - **The provinces a unit may be placed in are tinted green our way**, over the mode's colours, which the maintainer
   has seen and passed; the original paints the same grey and green for a unit as for a building, left so until he has
   looked (`buildinglines.md`, *Ours*; `mapunits.md`, section 6).

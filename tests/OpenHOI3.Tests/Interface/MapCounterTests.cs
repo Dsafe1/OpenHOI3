@@ -6,6 +6,7 @@ using OpenHOI3.Content.Map;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -154,9 +155,9 @@ public class MapCounterTests
 		Assert.False(CMapCounters.HasCounter(state, nowhere));
 		Assert.False(CMapCounters.HasCounter(state, aboard));
 
-		Assert.Equal(EMapStack.Standing, CMapCounters.StackOf(division));
-		Assert.Equal(EMapStack.Standing, CMapCounters.StackOf(atSea));
-		Assert.Equal(EMapStack.Air, CMapCounters.StackOf(flying));
+		Assert.Equal(EMapStack.Standing, CMapCounters.StackOf(state, division));
+		Assert.Equal(EMapStack.Standing, CMapCounters.StackOf(state, atSea));
+		Assert.Equal(EMapStack.Air, CMapCounters.StackOf(state, flying));
 	}
 
 	[Fact]
@@ -174,13 +175,130 @@ public class MapCounterTests
 
 		Assert.Equal(3, stacks.Count);
 		CMapStack berlin = stacks.Single(stack => stack.Province == Berlin && stack.Kind == EMapStack.Standing);
-		Assert.Equal(new[] { brigade, first, second, corps }, berlin.Counters.Select(counter => counter.Unit));
+		// The bottom first: a lone brigade is a division as the original ranks it, and of one rank the first stands higher.
+		Assert.Equal(new[] { brigade, second, first, corps }, berlin.Counters.Select(counter => counter.Unit));
 		Assert.Same(corps, berlin.Top.Unit);
 		Assert.Equal(2, berlin.Top.Size);
 		Assert.Equal("hq_brigade", berlin.Top.TypeKey);
 		Assert.Equal(country.Color, berlin.Top.Colour);
 		Assert.Same(flying, stacks.Single(stack => stack.Kind == EMapStack.Air).Top.Unit);
 		Assert.Same(elsewhere, stacks.Single(stack => stack.Province == Kiel).Top.Unit);
+	}
+
+	[Fact]
+	public void ThePlayersOwnUnitsComeFirstAndAtSeaFleetsBeforePassengers()
+	{
+		CGameState state = State(out CCountry country);
+		var polishCorps = new CUnit(EUnitKind.Corps, new CCountryTag("POL")) { Id = 1 };
+		CUnit division = Unit(country, 2, EUnitKind.Division, Berlin, Infantry, Infantry);
+		CUnit fleet = Unit(country, 3, EUnitKind.Navy, Baltic, Destroyer);
+		CUnit passenger = Unit(country, 4, EUnitKind.Corps, Baltic, Headquarters);
+		CUnit flying = Unit(country, 5, EUnitKind.Air, Baltic, Fighter);
+		var carried = new CUnit(EUnitKind.Division, Ger) { Id = 6, Plane = flying };
+
+		// The player's own first, whatever the rank.
+		Assert.True(CProvinceUnitOrder.Before(division, polishCorps, Ger, landProvince: true));
+		Assert.False(CProvinceUnitOrder.Before(polishCorps, division, Ger, landProvince: true));
+		// With nobody playing, by rank.
+		Assert.True(CProvinceUnitOrder.Before(polishCorps, division, null, landProvince: true));
+		// At sea a fleet before the corps it carries; in a land province the other way.
+		Assert.True(CProvinceUnitOrder.Before(fleet, passenger, Ger, landProvince: false));
+		Assert.True(CProvinceUnitOrder.Before(passenger, fleet, Ger, landProvince: true));
+		// An air unit before a land unit it carries, and otherwise after land by rank.
+		Assert.True(CProvinceUnitOrder.Before(flying, carried, Ger, landProvince: true));
+		Assert.False(CProvinceUnitOrder.Before(carried, flying, Ger, landProvince: true));
+		Assert.True(CProvinceUnitOrder.Before(division, flying, Ger, landProvince: true));
+	}
+
+	[Fact]
+	public void ASelectedUnitsPlaceStartsItsProvincesStacks()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit corps = Unit(country, 1, EUnitKind.Corps, Berlin, Headquarters);
+		CUnit first = Unit(country, 2, EUnitKind.Division, Berlin, Infantry, Infantry);
+		CUnit second = Unit(country, 3, EUnitKind.Division, Berlin, Infantry, Infantry);
+		CUnit third = Unit(country, 4, EUnitKind.Division, Berlin, Infantry, Infantry);
+		CMapStack berlin = CMapCounters.Build(state).Single(stack => stack.Province == Berlin);
+
+		Assert.Equal(new[] { corps, first, second, third }, CMapCounters.TopDown(berlin, 0).Select(counter => counter.Unit));
+		// The second selected: it on top, the third under it, and the corps and the first after them, round the list.
+		int cursor = berlin.Counters.Single(counter => counter.Unit == second).ListIndex;
+		Assert.Equal(new[] { second, third, corps, first }, CMapCounters.TopDown(berlin, cursor).Select(counter => counter.Unit));
+	}
+
+	/// <summary>A battle in a province, with Germany on the side given and Poland on the other.</summary>
+	private static CCombat Battle(CGameState state, int province, bool germanyAttacks, ECombatKind kind = ECombatKind.Land)
+	{
+		var combat = new CCombat(province, kind);
+		(germanyAttacks ? combat.Attacker : combat.Defender).AddCountry(Ger);
+		(germanyAttacks ? combat.Defender : combat.Attacker).AddCountry(new CCountryTag("POL"));
+		state.Combats.Add(combat);
+		return combat;
+	}
+
+	[Fact]
+	public void AUnitInABattleStandsWithItsSideAheadOfItsPath()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit attacker = Unit(country, 1, EUnitKind.Division, Kiel, Infantry, Infantry);
+		CUnit defender = Unit(country, 2, EUnitKind.Division, Berlin, Infantry, Infantry);
+		attacker.Combats.Add(Battle(state, Berlin, germanyAttacks: true));
+		attacker.Path.Add(Berlin);
+		defender.Combats.Add(Battle(state, Berlin, germanyAttacks: false));
+		CUnit flying = Unit(country, 3, EUnitKind.Air, Berlin, Fighter);
+		flying.Combats.Add(state.Combats[0]);
+
+		// Attacking from Kiel, with no battle in Kiel: its own first battle, where Germany attacks - and ahead of its path.
+		Assert.Equal(EMapStack.Attacking, CMapCounters.StackOf(state, attacker));
+		// In Berlin the first land battle there is asked, whichever the unit is in, and Germany attacks in it.
+		Assert.Equal(EMapStack.Attacking, CMapCounters.StackOf(state, defender));
+		// An air unit stays with the air units, in a battle or not.
+		Assert.Equal(EMapStack.Air, CMapCounters.StackOf(state, flying));
+	}
+
+	[Fact]
+	public void AnAttackerWhoseOwnProvinceIsAttackedStandsWithTheDefenders()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit division = Unit(country, 1, EUnitKind.Division, Kiel, Infantry, Infantry);
+		CCombat attackOnKiel = Battle(state, Kiel, germanyAttacks: false);
+		CCombat attackFromKiel = Battle(state, Berlin, germanyAttacks: true);
+		division.Combats.Add(attackFromKiel);
+		division.Combats.Add(attackOnKiel);
+
+		// The battle in its own province is asked first, whichever the unit joined first.
+		Assert.Equal(EMapStack.Defending, CMapCounters.StackOf(state, division));
+		Assert.False(CMapCounters.IsAttackerHere(state, division));
+	}
+
+	[Fact]
+	public void AStackStandsOnTheProvincesPointButOnTheMoveAndASeaBattlesSides()
+	{
+		Assert.Equal(Vector2.Zero, CCounterLayout.StackOffset(EMapStack.Standing, sea: false));
+		Assert.Equal(Vector2.Zero, CCounterLayout.StackOffset(EMapStack.Air, sea: true));
+		Assert.Equal(Vector2.Zero, CCounterLayout.StackOffset(EMapStack.Attacking, sea: false));
+		Assert.Equal(Vector2.Zero, CCounterLayout.StackOffset(EMapStack.Defending, sea: false));
+		Assert.Equal(new Vector2(-2.4f, -2.4f), CCounterLayout.StackOffset(EMapStack.Attacking, sea: true));
+		Assert.Equal(new Vector2(2.4f, 2.4f), CCounterLayout.StackOffset(EMapStack.Defending, sea: true));
+		Assert.Equal(CCounterLayout.MovingStack, CCounterLayout.StackOffset(EMapStack.Moving, sea: false));
+	}
+
+	[Fact]
+	public void TwoFleetsInASeaBattleStandInTwoStacks()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit ours = Unit(country, 1, EUnitKind.Navy, Baltic, Destroyer);
+		var theirs = new CUnit(EUnitKind.Navy, new CCountryTag("POL")) { Id = 2, Location = Baltic };
+		theirs.SubUnits.Add(new CSubUnit(Destroyer) { Unit = theirs });
+		country.Units.Add(theirs);
+		CCombat battle = Battle(state, Baltic, germanyAttacks: true, ECombatKind.Naval);
+		ours.Combats.Add(battle);
+		theirs.Combats.Add(battle);
+
+		var stacks = CMapCounters.Build(state);
+
+		Assert.Same(ours, stacks.Single(stack => stack.Kind == EMapStack.Attacking).Top.Unit);
+		Assert.Same(theirs, stacks.Single(stack => stack.Kind == EMapStack.Defending).Top.Unit);
 	}
 
 	[Fact]
@@ -212,12 +330,13 @@ public class MapCounterTests
 		Assert.Equal("???", kiel.Top.Name);
 		Assert.Equal("? - ?", kiel.Top.Figures);
 		Assert.Contains(kiel.Counters, counter => counter.Unit == glimpsed);
-		// At 6 the picture and the name, the figures still ?; Italy's, the same faction's, known whole and on top.
+		// At 6 the picture and the name, the figures still ?; Italy's, the same faction's, known whole.
 		CMapStack baltic = stacks.Single(stack => stack.Province == Baltic);
 		Assert.True(baltic.Fanned);
-		Assert.Same(ally, baltic.Top.Unit);
-		Assert.Equal(CUnitIntel.Full, baltic.Top.Intel);
+		Assert.Equal(CUnitIntel.Full, baltic.Counters.Single(counter => counter.Unit == ally).Intel);
 		CMapCounter polish = baltic.Counters.Single(counter => counter.Unit == atSea);
+		// Neither is the player's, both are divisions: the first in the province's list is on top.
+		Assert.Same(atSea, baltic.Top.Unit);
 		Assert.Equal("infantry_brigade", polish.TypeKey);
 		Assert.NotEqual("???", polish.Name);
 		Assert.Equal("? - ?", polish.Figures);
@@ -240,9 +359,10 @@ public class MapCounterTests
 
 		Assert.Same(corps, berlin.Next(null));
 		Assert.Same(corps, berlin.Next(elsewhere));            // a unit of another stack is none of this one's
-		Assert.Same(second, berlin.Next(corps));
-		Assert.Same(first, berlin.Next(second));
-		Assert.Same(corps, berlin.Next(first));                // round to the top again
+		// The unit after the selected one in the province's list: the corps, then its divisions in their order.
+		Assert.Same(first, berlin.Next(corps));
+		Assert.Same(second, berlin.Next(first));
+		Assert.Same(corps, berlin.Next(second));               // round to the top again
 		Assert.Same(elsewhere, kiel.Next(elsewhere));          // a stack of one stays on it
 	}
 

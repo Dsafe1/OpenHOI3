@@ -28,4 +28,7 @@ public sealed class CMapCounter
 
 	/// <summary>How well the player knows the unit, 0 to 9 (<see cref="CUnitIntel"/>).</summary>
 	public int Intel { get; init; } = CUnitIntel.Full;
+
+	/// <summary>Its unit's place in its province's list of units on the map (<see cref="CProvinceUnitOrder"/>), from 0.</summary>
+	public int ListIndex { get; set; }
 }

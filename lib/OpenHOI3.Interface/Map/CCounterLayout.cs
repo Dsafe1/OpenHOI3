@@ -92,12 +92,32 @@ public static class CCounterLayout
 
 	/// <summary>
 	/// Where the stack of units on the move stands from the province's own point, east
-	/// and north. Measured on a screenshot of the original, 2026-10-09, in which a
-	/// division setting off lies half a counter east and a third of one north of the
-	/// stack it leaves. The original's own figure, read since, is 2.5 and 1.0; the
-	/// measure stays until the maintainer has compared the two.
+	/// and north: the original's own figure, 2.5 and 1.0, by the maintainer's word of
+	/// 2026-11-14, where a measure of his screenshot had given 2.6 and 1.5.
 	/// </summary>
-	public static readonly Vector2 MovingStack = new(2.6f, 1.5f);
+	public static readonly Vector2 MovingStack = new(2.5f, 1.0f);
+
+	/// <summary>Where a battle's attackers stand from the province's own point at sea, east and north: 2.4 west and south.</summary>
+	public static readonly Vector2 SeaAttackers = new(-2.4f, -2.4f);
+
+	/// <summary>Where a battle's defenders stand from it at sea: 2.4 east and north.</summary>
+	public static readonly Vector2 SeaDefenders = new(2.4f, 2.4f);
+
+	/// <summary>
+	/// Where a stack stands from its province's own point, east and north: the standing stack and the air units on it, the
+	/// moving stack beside it, and a battle's two sides on it on land and to either side of it at sea - the original's five
+	/// points of a province, which only a sea zone spreads (<c>docs/mechanics/mapunits.md</c>, section 1).
+	/// </summary>
+	public static Vector2 StackOffset(EMapStack stack, bool sea)
+	{
+		return stack switch
+		{
+			EMapStack.Moving => MovingStack,
+			EMapStack.Attacking when sea => SeaAttackers,
+			EMapStack.Defending when sea => SeaDefenders,
+			_ => Vector2.Zero,
+		};
+	}
 
 	/// <summary>
 	/// Where the middle of a moving unit's pointer goes, from the middle of its counter:

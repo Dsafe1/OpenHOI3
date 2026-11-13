@@ -38,21 +38,22 @@ maintainer showed the original's bombers lying over the stack they bomb: `confir
 | --- | --- |
 | standing | on it |
 | on the move | 2.5 east and 1.0 along the map's y |
-| the two sides of a battle | on it; **at sea only**, 2.4 west and 2.4 south of it, and 2.4 east and 2.4 north |
+| the two sides of a battle | on it; **at sea only**, the attackers 2.4 west and 2.4 south of it, the defenders 2.4 east and 2.4 north |
 | **air units** | **on it**, as the standing stack - and drawn after it, so over it |
 
 On the original's screenshot the bombers' counter lies a quarter of a counter south and east
 of the defenders' top counter: that top counter is the stack's point moved 0.3 west and north
 for each of the four counters under it, and the bombers' is on the point itself.
 **Here until 2026-10-10 the stack of aircraft stood a counter's width east and north of the
-standing one** - a guess, and the maintainer saw it was wrong. The battle points are not
-built: a unit in a battle stands in the standing or the moving stack, which on land is where
-the original puts a battle's units anyway, except that an attacker with a path is in the
-moving stack here.
-**The stack of units on the move is drawn 2.6 map units east and 1.5 north of the standing
-one** - half a counter and a third of one - and over it. (measured) The reading above gives
-2.5 and 1.0; the measure is kept until the maintainer has looked at the two side by side,
-since the original's view is tilted and his eye approved this one. On a
+standing one** - a guess, and the maintainer saw it was wrong. **The battle stacks are built
+since 2026-11-14** (section 3): until then a unit in a battle stood in the standing or the
+moving stack, an attacker with a path among the moving, and a sea battle's two fleets in one
+stack. The stacks are drawn in the original's order of the five - standing, moving, attacking,
+defending, air - so on land a battle's sides lie over the standing stack on the same point.
+**The stack of units on the move is drawn 2.5 map units east and 1.0 north of the standing
+one**, the reading's figure, and over it - by the maintainer's word of 2026-11-14: "Use the
+originals, that is the correct one." Until then it was drawn 2.6 east and 1.5 north, as
+measured below, the measure kept until he had chosen between the two. On a
 screenshot of the original the maintainer gave on 2026-10-09, a division setting off lies
 3.7 map units east and 0.5 north of the top counter of the stack it leaves; that counter
 is itself 0.3 west and north for each of the four under it. The count of the stack is
@@ -244,10 +245,21 @@ for the order of the tests.
 
 | stack | |
 | --- | --- |
-| air | an air unit |
-| attacking, defending | a unit in a combat |
-| moving | a unit with provinces left to move through |
+| air | an air unit, or a land unit carried by one |
+| attacking, defending | a unit in a combat, by its side |
+| moving | a unit with provinces left to move through, or a land unit aboard a fleet that has |
 | standing | every other |
+
+**Which battle stack** (`reversing/findings/FINDINGS-mapstacks.md`, section 1, `confirmed`): the
+original asks one battle - the first of the province's kind, a land battle on land and a sea battle
+at sea, fought in the province the unit stands in, or where there is none the unit's own first
+battle - whether the unit's owner is among its attackers still in the fight. Yes, the attackers'
+stack; no, the defenders'. So an attacker on land, standing in its own province where there is
+usually no battle, goes by the battle it is in; and **an attacker standing in a province that is
+itself attacked stands with the defenders**. Built 2026-11-14 (`CMapCounters.StackOf`,
+`IsAttackerHere`), and seen on the maintainer's save of 2 November 1937: a Japanese fleet south-west
+of the Western Ryukyu Sea's point and the Chinese fleet it attacks north-east, where both had stood
+in one stack.
 
 **A stack shows its top counter, or its top six** each drawn 0.3 map units west and 0.3
 north of the one under it. `confirmed`. Which it is depends on how well the player knows
@@ -263,18 +275,34 @@ level as the unit enters a province, where here it is worked out as the counters
 when units move, and each day after the day's intelligence. Built since 2026-11-07: until then there
 was no fog of war, and every stack showed up to six.
 
-**Within a stack the higher rank is on top.** The maintainer, 2026-10-09: "Correct." The
-original sorts a stack by a number on each counter whose source was not read, so the
-rule is his and not the reading's. *Ours:* of two of a rank the one made later is on top,
-and a selected unit is brought to the top of its stack.
+**Within a stack the higher rank is on top.** The maintainer, 2026-10-09: "Correct." - and
+read since, 2026-11-14 (`reversing/findings/FINDINGS-mapstacks.md`, sections 2 and 3,
+`confirmed`). A province keeps its units with a counter in one list, sorted as each comes in:
+**the player's own first**; then an air unit before a land unit it carries; then in a land
+province everything else before a fleet, and at sea a fleet first; then **the higher rank
+first** - a theatre, an army group, an army, a corps, a division (a lone brigade among them),
+a fleet, an air unit. Of two it does not part, the one that came into the province first
+stands first. **The first of the list is on top of its stack**, and the rest under it in the
+list's order - **until a unit of the province is selected: then its place starts the list**,
+so it is on top, the units after it under it and those before it at the bottom. The click that
+steps through a stack takes the unit after the selected one in the same list, which is then on
+top in its turn. Built so since 2026-11-14 (`CProvinceUnitOrder`, `CMapCounters.TopDown`), and
+seen in a new game: Berlin's stack with the theatre's command on top, and Heeresgruppe A on top
+after the second click. *Ours:* this game keeps no record of when a unit came into a province,
+so of two the list does not part the one made first stands first; the original's list is one
+for the province, and here each stack is ordered by it; and with several selected the cursor is
+the place of the last selected in the province, as the original sets it at each selection.
+Until 2026-11-14 the player's own units were not put first, of two of a rank the one made later
+was on top, and a selected unit was brought to the top with the others left as they were.
 
 **Only the counter on top of a stack takes a click.** `confirmed`: the original asks a
 near counter whether the mouse is on it only where it is the top one of a stack. The
 maintainer, 2026-10-09, of what follows from it: "You click the top unit only, if you hit
 the lower ones the click goes through to the province. Then if you keep clicking the unit
 it cycles through the units in the province." So a click on the top counter selects its
-unit, and each further click the next unit of the stack. *Ours* for the order, which was
-not read: from the top down, and round to the top again. **The stack is stepped through only
+unit, and each further click the next unit of the stack: the next in the province's list
+(above), round to the first again - read since (`selection.md`, section 2.1). *Ours:* the
+original steps through the province's units of the selected one's owner, here the stack's. **The stack is stepped through only
 from the one selected unit's own counter**; with several selected a click takes the top unit,
 only the player's own units are selected at all, and Shift adds the next one instead
 (`selection.md`, section 2.1, read 2026-10-16).
@@ -638,8 +666,9 @@ While a headquarters of the player's under an AI is the single unit selected, **
 
 For the reverse engineering:
 
-- how a province's **five stack points** are made from its one `unit` point;
-- what a counter's **place in its stack** is taken from;
+- ~~how a province's **five stack points** are made from its one `unit` point~~ - read 2026-10-10 (section 1);
+- ~~what a counter's **place in its stack** is taken from~~ - read 2026-11-14 (section 3); what else
+  the original's frame does with a province's units in a battle, showing or hiding them, was not;
 - what a **text's size** is divided by;
 - who tells a unit's picture it is **seen from far away**, and what hides a counter and a
   building's picture in the far view - the heights are read (section 7), the routines
