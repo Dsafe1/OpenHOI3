@@ -42,7 +42,13 @@ public static class CPositionsReader
 		{
 			unit[id] = shapes[id].IsEmpty ? default : new CMapPosition(shapes[id].CentreX, shapes[id].CentreY);
 		}
-		var text = (CMapPosition[])unit.Clone();
+		// Where the file gives no text_position the point is two map pixels south of the centre, as the original sets it before
+		// it reads the file - and its terrain is counted round that point (FINDINGS-liveread.md, section 74).
+		var text = new CMapPosition[shapes.Count];
+		for (int id = 0; id < shapes.Count; id++)
+		{
+			text[id] = shapes[id].IsEmpty ? default : new CMapPosition(unit[id].X, (int)(unit[id].Y - CProvinceLabel.FallbackSouth));
+		}
 		var navalBase = (CMapPosition[])unit.Clone();
 		var buildings = new CBuildingPosition[shapes.Count][];
 		Array.Fill(buildings, Array.Empty<CBuildingPosition>());

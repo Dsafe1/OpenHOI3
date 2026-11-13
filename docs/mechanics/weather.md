@@ -221,7 +221,9 @@ draws and the zones' cooldowns are no save's); a land province that disagrees is
 
 **Each of those land provinces agrees in everything given another terrain** - Phongsali as jungle and not mountain, Al
 Hufrah as desert and not hills: the map's choice of a province's terrain, which `map.md` lists as not established, and
-which this check now measures. `OpenHOI3.SaveCheck weather <install> <start-date save>` is a look: a new game's weather
+which this check now measures. **Settled 2026-11-13**: none of them has a `text_position`, and the original counts a
+province's terrain round its default text point, two pixels south of the centre (`map.md`, section 9); with it both
+pairs of saves agree in every province's eight figures (`reversing/findings/FINDINGS-liveread.md`, section 74). `OpenHOI3.SaveCheck weather <install> <start-date save>` is a look: a new game's weather
 spread over the provinces beside the start save's - 20 fronts to its 21, and every figure's spread alike.
 
 ## What looks wrong and is built so

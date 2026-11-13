@@ -214,7 +214,7 @@ public class MapLoadingTests : IDisposable
 		CMap map = Load();
 
 		Assert.Equal(new CMapPosition(0, 1), map.TextPositions[1]);        // text_position, on land too
-		Assert.Equal(new CMapPosition(2, 2), map.TextPositions[2]);        // nothing said: the centre
+		Assert.Equal(new CMapPosition(2, 0), map.TextPositions[2]);        // nothing said: two pixels south of the centre
 		Assert.Equal(new CMapPosition(3, 2), map.NavalBasePositions[3]);   // naval_base inside building_position
 		Assert.Equal(new CMapPosition(1, 2), map.NavalBasePositions[1]);   // nothing said: the centre
 	}

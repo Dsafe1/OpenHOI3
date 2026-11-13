@@ -118,8 +118,8 @@ public sealed class CMap
 	public IReadOnlyList<CMapPosition> LabelPositions { get; }
 
 	/// <summary>
-	/// Per province id, where its name is written: <c>text_position</c>, or the centre
-	/// of its bounding box. Its terrain is taken around this point.
+	/// Per province id, where its name is written: <c>text_position</c>, or two map pixels
+	/// south of the centre of its bounding box. Its terrain is taken around this point.
 	/// </summary>
 	public IReadOnlyList<CMapPosition> TextPositions { get; }
 

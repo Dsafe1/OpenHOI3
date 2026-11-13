@@ -99,8 +99,10 @@ agrees (`movement.md`, section 2). (measured)
 
 A province has **two more points**, each also starting at the centre:
 
-- **where its name is written**: `text_position`, truncated, on any province - land too. A
-  land province's terrain is taken around it (section 9);
+- **where its name is written**: `text_position`, truncated, on any province - land too; **where the file gives none,
+  two map pixels south of the centre**, which the original sets before it reads the file. A land province's terrain is
+  taken around it (section 9) - with the centre itself, 92 of the 94 provinces whose terrain was not the running game's
+  had no `text_position` (`reversing/findings/FINDINGS-liveread.md`, section 74);
 - **where its port is drawn**: `naval_base = { x y }` inside `building_position`. It is the
   land end of the distance between a land province and the sea beside it - and **the pixel
   it falls on decides whether the province has a port at all**, and onto which sea
@@ -249,8 +251,10 @@ narrower: it counts **only a small square around where the province's name is wr
   category and a `color` holding a **palette index**. `terrain.bmp` is 8 bits per pixel, the
   same size and the same way up as the province bitmap, and each pixel is one of those
   indices. (measured)
-- **A province's terrain, from the map** - `confirmed` as read, and not checked against a
-  running game, there being nothing in a savegame to check it by:
+- **A province's terrain, from the map** - `confirmed` as read, and **checked against the running game on 2026-11-13**:
+  every one of its 14,168 provinces' terrain, read off the game's province templates, is this rule's, the text position
+  being two pixels south of the centre where `positions.txt` gives none (section 4;
+  `reversing/findings/FINDINGS-liveread.md`, section 74):
 
       it starts as the category painted at the province's unit point (section 4);
       on land, the 20 x 20 pixels from ten west and ten south of its text position are
@@ -316,14 +320,12 @@ striped.
 
 ## What is not established, in one place
 
-- for **terrain**: what `priority` on an index entry means - about one land province in two hundred takes another
-  terrain in the original, and `OpenHOI3.SaveCheck weather` names each (`weather.md`, section 7) - and where the original puts a
-  port that `positions.txt` does not place. **What the 48 have in common** (2026-11-07): none has a `text_position`, and
-  each is a near-tie in its square that the original gives to our runner-up - hills 116 to desert 106 in Al Hufrah,
-  desert 161 to hills 160 in Erkowit, plains 45 to jungle 42 in Krui. The maintainer's screenshots of four of them have the
-  name about the middle of the box, so the point is ours; a square moved a pixel or three fits the 48 and breaks more than
-  it mends (130 and more), and neither the base game's `terrain.bmp`, the whole province, every pixel of the square nor a
-  count by palette index fits them. So how the original breaks a near-tie, or counts a pixel, is what is not known;
+- for **terrain**: what `priority` on an index entry means, and where the original puts a port that `positions.txt`
+  does not place. ~~Which terrain about one land province in two hundred takes~~: **settled 2026-11-13** - none of the
+  48 had a `text_position`, and the original counts round its default text point, two pixels south of the centre, where
+  ours counted round the centre; the name is still drawn about the middle of the box, as the maintainer's screenshots
+  have it. With that every province's terrain is the running game's, all 14,168 read off it, and `weather` agrees in
+  every province (`reversing/findings/FINDINGS-liveread.md`, section 74);
 - ~~the **bearing** between a land province and a sea province~~: the naval base is the land end, its default the
   bounding box's centre (`weather.md`, section 3);
 - the order and merging of **two history files for one province**.

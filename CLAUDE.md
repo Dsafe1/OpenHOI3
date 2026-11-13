@@ -855,7 +855,8 @@ beside the repository.
   map loader. `OpenHOI3.SaveCheck weather <install> <earlier save> <later save>` gives every province a save's weather
   and the game its fronts, runs an hour and sets it beside a save an hour later: on 2026-10-15 `Germany1936_01_08_02`
   and `_03` give every front's provinces in order and every province's eight figures but 48 land provinces', each of
-  which agrees given another terrain - the map's terrain rule, which the check lists (`weather.md`, section 7); with only
+  which agrees given another terrain - the map's terrain rule, which the check lists (`weather.md`, section 7); since
+  2026-11-13, the terrain counted round the default text point two pixels south of the centre, all of them; with only
   a start save it is a look at a new game's weather beside it. Run it after touching `Sim/Weather` or the map's
   terrain. `OpenHOI3.SaveCheck research <install> <earlier save> <later save>` does it for research,
   the monthly decay and the build queue - a building line's price among it, 21 of 21 in January (`buildinglines.md`, section 8), and every convoy line's, 107 of 107 on 1 April, with the lines paid in full worked forward where the two saves are of one session - 69 of 70 to 20 April (`convoylines.md`, section 6) -
