@@ -303,7 +303,11 @@ To a province: a retreating unit is not moved; where it is the province the unit
 **stand-down** - no order, no way, out of the battles it attacks in, where it stands (`CCancelMovementCommand`); where it
 is going there already and not fighting, nothing - **in a battle it is ordered again, which takes it out of the battle**,
 so a caller that does not want that skips it (11.2); otherwise the march (`CMoveUnitCommand`), or a strategic
-redeployment where 9 says so (`FINDINGS-moving.md` A.4c).
+redeployment where 9's test says so (`FINDINGS-moving.md` A.4c) - **whatever order the unit already holds**: a division
+redeploying that is sent somewhere else far off is given a new redeployment, and keeps its pace. Ours had passed over a
+unit already redeploying and sent it a plain march, which left it standing a day until the next pass redeployed it -
+the United States' 43rd and 1st Cavalry Divisions re-aimed at 11:00 on 1 January (`confirmed` on the listing,
+`reversing/findings/FINDINGS-liveread.md`, section 75).
 
 **The way.** A move asked for safely - the line's, the garrisons', the rear's and the reserves' - takes the **very safe**
 way: short of the goal, a land unit does not step into a province held by a country at war with it or the rebels, nor

@@ -506,7 +506,7 @@ internal static class CAgentCheck
 					chain.Add($"{up.Name}@{up.Location}");
 				}
 				Console.WriteLine($"{state.Date}.{state.Hour} {country.Tag} {unit.Name} at {unit.Location}" +
-					$"{(unit.Path.Count > 0 ? " > " + unit.Path[^1] : "")} {unit.Order}{(unit.IsHeldBack ? " held back" : "")}: " +
+					$"{(unit.Path.Count > 0 ? " > " + unit.Path[^1] : "")} mp {unit.MovementProgress} w t{state.Province(unit.Location).Weather.Temperature} p{state.Province(unit.Location).Weather.Precipitation} m{state.Province(unit.Location).Weather.Muddyness} f{state.Province(unit.Location).Weather.Frozen} {unit.Order}{(unit.IsHeldBack ? " held back" : "")}: " +
 					$"org {brigade.Organisation} of {COrganisation.Ceiling(state, country, brigade)}, bonus {COrganisation.CommanderBonus(state, unit)}, " +
 					$"reach {reach}, army {army?.Name ?? "none"} led by {army?.Leader?.Name ?? "nobody"}; under {string.Join(" < ", chain)}");
 			}

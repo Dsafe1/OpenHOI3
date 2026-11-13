@@ -145,10 +145,13 @@ public static class CAiMoves
 		return (from is not null && to is not null && from.Neighbours.Contains(to)) || CAreaPaths.Joined(state, country, unit.Location, province);
 	}
 
-	/// <summary>Not to a neighbour, and at least a quarter of its top speed times 200 hours at war, 600 at peace.</summary>
+	/// <summary>
+	/// Not to a neighbour, and at least a quarter of its top speed times 200 hours at war, 600 at peace - whatever order the
+	/// unit holds, so one already redeploying is given a new redeployment and keeps its pace (FINDINGS-liveread.md, section 75).
+	/// </summary>
 	public static bool ShouldRedeploy(CGameState state, CCountry country, CUnit unit, int province)
 	{
-		if (unit.Order == EUnitOrder.StrategicRedeployment || CAreaScores.Borders(state, unit.Location, province))
+		if (CAreaScores.Borders(state, unit.Location, province))
 		{
 			return false;
 		}
