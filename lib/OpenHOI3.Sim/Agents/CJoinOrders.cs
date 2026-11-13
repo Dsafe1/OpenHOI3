@@ -55,7 +55,9 @@ public static class CJoinOrders
 			}
 			return false;
 		}
-		if (unit.Location == target.Location && !target.IsMoving)
+		// A fleet merges as soon as the two share a province, the other under way or not (CJoinFleetOrder::IsActive;
+		// reversing/findings/FINDINGS-liveread.md, section 65); an air unit only into one standing still.
+		if (unit.Location == target.Location && (unit.Kind == EUnitKind.Navy || !target.IsMoving))
 		{
 			Merge(state, unit, target);
 			return false;

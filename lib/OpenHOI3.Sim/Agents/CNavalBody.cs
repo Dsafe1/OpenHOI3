@@ -116,6 +116,14 @@ public static class CNavalBody
 		bool atWar = state.IsAtWar(country.Tag) || Wars.CUndeclaredWars.Involves(state, country.Tag);
 		foreach (CUnit fleet in ready)
 		{
+			// Any order but a join of a fleet holding a transport and carrying nothing - a rebase under way among them - is
+			// cancelled first (reversing/findings/FINDINGS-liveread.md, section 65).
+			if (IsBusy(fleet) && fleet.Order != EUnitOrder.JoinFleet && fleet.Passengers.Count == 0
+				&& CShipCensus.Of(fleet).Transports > 0)
+			{
+				Cancel(state, country, fleet);
+				continue;
+			}
 			switch (fleet.Order)
 			{
 				case EUnitOrder.JoinFleet:
@@ -147,8 +155,17 @@ public static class CNavalBody
 		}
 	}
 
+	/// <summary>
+	/// The order taken away and the fleet sent to its base by a plain move, which leaves it no order - the original's order of
+	/// "none" and its move; a fleet at its base is given its base again, an order that ends at once.
+	/// </summary>
 	private static void Cancel(CGameState state, CCountry country, CUnit fleet)
 	{
+		if (fleet.Base > 0 && fleet.Location != fleet.Base)
+		{
+			state.Outbox.Add(new CMoveUnitCommand(country.Tag, fleet.Id, fleet.Base));
+			return;
+		}
 		state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Rebase, fleet.Base > 0 ? fleet.Base : fleet.Location));
 	}
 

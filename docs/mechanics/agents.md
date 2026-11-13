@@ -238,8 +238,10 @@ joined at its third).
   receiving unit with no name is named `NAVY_NAME` or `AIR_NAME` numbered, the first number free; its leader is chosen where
   the country assigns its own and the unit has none; an emptied unit loses its leader; a carrier brings the air groups
   based on it.
-- **Join** (`join_fleet`, `join_air`): the unit sails or flies to the other's province; arrived, it is merged into the
-  other as the merge button merges (`selection.md`, section 5.4) - its ships or wings and what it carries go over, the
+- **Join** (`join_fleet`, `join_air`): the unit sails or flies to the other's province; arrived - **a fleet as soon as
+  the two share a province, the other under way or not** (`CJoinFleetOrder::IsActive`; a fleet chasing one at sea
+  otherwise never caught it, `reversing/findings/FINDINGS-liveread.md`, section 65), an air unit where the other stands
+  still - it is merged into the other as the merge button merges (`selection.md`, section 5.4) - its ships or wings and what it carries go over, the
   more skilled leader stays - and it is removed. With no other, it goes back to its base. **A join_air keeps its partner
   twice** - as the order's target and as the join's own - and a load restores only the second: so the merge still happens,
   but the air body's triage and regrouping, which ask the first, find a loaded join_air dead, call it off and regroup

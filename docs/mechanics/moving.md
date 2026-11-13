@@ -477,9 +477,11 @@ makes nobody at war (`war.md`, section 1).
    while the plan has an embark.
 3. *(the regrouping's port and repair, which leaves the fleets that are **ready**)*
 4. **Orders that no longer make sense**, of each ready fleet: a join is left to run, the fleet and the one it joins
-   handled; an empty fleet's transport, a raid or an escort at peace, a
+   handled; **any other order of a fleet holding a transport and carrying nothing** - a rebase under way among them, as
+   the running game's French transport fleet lost its own at sea (`reversing/findings/FINDINGS-liveread.md`, section 65)
+   - a raid or an escort at peace, a
    patrol at peace (a war nobody declared counting as war), and any other order of a fleet standing still at its base or an intercept standing still, are
-   cancelled - the fleet sent back to its base.
+   cancelled - the order taken away and the fleet sent to its base by a plain move, so it sails on with no order.
 5. *(the regrouping's split and merge, whose joins - the fleet and the one it joins - are handled too)*
 6. **The handled fleets are taken off the ready list**, and nothing below touches them this pass. **The survey**: the power of every fleet of a country at war with it within 1000 by sea of the theatre's ports, troop
    carriers listed first.

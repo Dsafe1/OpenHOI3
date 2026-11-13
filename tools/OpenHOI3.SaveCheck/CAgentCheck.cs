@@ -250,7 +250,7 @@ internal static class CAgentCheck
 				foreach (CUnit unit in ourAll.Where(u => u.Kind is EUnitKind.Navy or EUnitKind.Air))
 				{
 					Console.WriteLine($"  {unit.Id,6} {Key(unit),-5} {unit.Name,-28} at {unit.Location,5} base {unit.Base,5} under " +
-						$"{unit.Parent?.Name ?? "-"}, {unit.Order}{(unit.IsMoving ? " moving" : "")}: {string.Join(" ", unit.SubUnits.Select(s => s.Type.Key))}");
+						$"{unit.Parent?.Name ?? "-"}, {unit.Order}{(unit.IsMoving ? " moving" : "")} fuel {unit.FuelReceived} supplies {unit.SuppliesReceived}: {string.Join(" ", unit.SubUnits.Select(s => s.Type.Key))}");
 				}
 				Console.WriteLine("and the save's:");
 				foreach (CSavedUnit unit in theirAll.Where(u => u.Kind is "navy" or "air"))
