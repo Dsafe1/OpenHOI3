@@ -146,12 +146,22 @@ public static class COrderOfBattleReader
 		state.ForgetPositions();
 	}
 
+	/// <param name="nameSubUnit">
+	/// For a new game, what a ship or a wing the file leaves unnamed is called, asked as its block closes: every name is
+	/// then registered with its country as it is read, so only a name earlier in the file can take a number from it
+	/// (<c>docs/mechanics/units.md</c>, section 3). None gives no names and registers none.
+	/// </param>
+	/// <param name="unnamed">
+	/// Where a new game is told each unit the file leaves unnamed that the original names as a game is entered - an air
+	/// group aboard a carrier as its block closes, a unit at the top of the file as it is added - in that order.
+	/// </param>
 	public static int Read(CDirectorySettings directories, IEnumerable<CCountry> countries,
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes, IReadOnlyDictionary<string, CTechnology> technologies,
-		int provinceCount, Action<string>? warn = null)
+		int provinceCount, Action<string>? warn = null, Func<CCountry, CSubUnitType, string>? nameSubUnit = null,
+		List<(CCountry Country, CUnit Unit)>? unnamed = null)
 	{
 		warn ??= CDiagnostics.Warn;
-		var reading = new CReading(unitTypes, technologies, provinceCount);
+		var reading = new CReading(unitTypes, technologies, provinceCount) { NameSubUnit = nameSubUnit, Unnamed = unnamed };
 
 		foreach (CCountry country in countries)
 		{
@@ -188,6 +198,10 @@ public static class COrderOfBattleReader
 					else
 					{
 						country.Units.Add(unit);
+						if (unit.Name.Length == 0)
+						{
+							unnamed?.Add((country, unit));
+						}
 					}
 				}
 				else if (entry.IsBlock && entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
@@ -245,6 +259,20 @@ public static class COrderOfBattleReader
 		}
 
 		public int LastId { get; private set; }
+
+		/// <summary>What an unnamed ship or wing is called, for a new game; with it, every name read is registered as read.</summary>
+		public Func<CCountry, CSubUnitType, string>? NameSubUnit { get; init; }
+
+		/// <summary>Where a new game is told the units it names as it is entered, in the order the original lists them.</summary>
+		public List<(CCountry Country, CUnit Unit)>? Unnamed { get; init; }
+
+		private void Registered(CCountry owner, string name)
+		{
+			if (NameSubUnit is not null)
+			{
+				CUnitNames.Register(owner, name);
+			}
+		}
 
 		/// <summary>Numbers what is read after the game's last number, for a file read as a game runs.</summary>
 		public void StartAfter(int last)
@@ -410,6 +438,7 @@ public static class COrderOfBattleReader
 				else if (key.Equals("name", StringComparison.OrdinalIgnoreCase))
 				{
 					unit.Name = entry.Value ?? "";
+					Registered(owner, unit.Name);
 				}
 				else if (key.Equals("location", StringComparison.OrdinalIgnoreCase))
 				{
@@ -443,6 +472,11 @@ public static class COrderOfBattleReader
 				}
 			}
 			unit.Id = ++LastId;
+			// An air group aboard a carrier joins its country's list of units as its block closes, unnamed or not.
+			if (carriedBy is not null && unit.Name.Length == 0)
+			{
+				Unnamed?.Add((owner, unit));
+			}
 			return unit;
 		}
 
@@ -475,6 +509,7 @@ public static class COrderOfBattleReader
 				if (key.Equals("name", StringComparison.OrdinalIgnoreCase))
 				{
 					subUnit.Name = entry.Value ?? "";
+					Registered(owner, subUnit.Name);
 				}
 				else if (key.Equals("historical_model", StringComparison.OrdinalIgnoreCase))
 				{
@@ -534,6 +569,12 @@ public static class COrderOfBattleReader
 			{
 				// A regiment nobody named is its place in its unit, and the unit's name.
 				subUnit.Name = $"{unit.SubUnits.Count.ToString(CultureInfo.InvariantCulture)}. {unit.Name}";
+			}
+			else if (subUnit.Name.Length == 0 && NameSubUnit is not null)
+			{
+				// A ship or a wing nobody named is named as its block closes, a new game's "1st CAG" (units.md, section 3).
+				subUnit.Name = NameSubUnit(owner, type);
+				CUnitNames.Register(owner, subUnit.Name);
 			}
 		}
 

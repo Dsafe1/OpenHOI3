@@ -246,6 +246,8 @@ All of these are risk-free but for what the entry says.
 - **Tribute sent to a master shows green with a plus.** `topbar.md`, 14. *Display.*
 - **The technology panel goes stale.** Its name, year, difficulty and rows of what the level does are made only when a technology is pressed, so a level finished or a law changed leaves the old ones up; and a one-level technology is described at level 1 for ever, a many-level one a level past its last. `technologyscreen.md`, 7. *Display.*
 - **Money repaid on a debt counts as coming in.** The top bar's colour, the ledger tooltip's change and the Lua's daily balance take `repaid away` away from what goes out, though it is held above nought, so a repayment turns money green. `topbar.md`, 2. *Bug.*
+- **Ordinals past 110 go wrong:** "111st", "112nd", "113rd" - only 11, 12 and 13 are sent to "th". `builders.md`, 8; `units.md`, 3. *Bug.*
+- **An unnamed air group and its wing can be numbered apart:** the wing is named as the file is read and the group after it, so a name later in the file takes a group's number but never a wing's. `units.md`, 3. *Oversight.*
 - **Diplomacy rows go stale:** threat, name and flag. `diplomacyscreen.md`, 8. *Display.*
 - **A zero balance reads "surplus"** on a red icon. `diplomacyscreen.md`, 8. *Display.*
 - **The highest-threat tooltip describes the wrong thing.** `diplomacyscreen.md`, 8. *Display.*

@@ -340,11 +340,37 @@ public static class CGameStateLoader
 			country.Units.Clear();
 			country.Constructions.Clear();
 			country.Deployments.Clear();
+			country.UnitNamesInUse.Clear();
+			country.UnitNameCursors.Clear();
 		}
 		state.LoadOrderOfBattle = (country, file) => COrderOfBattleReader.ReadInto(directories, state, country, file);
+		var unnamed = new List<(CCountry Country, CUnit Unit)>();
 		state.LastUnitId = COrderOfBattleReader.Read(directories, state.Countries, state.SubUnitTypes,
-			state.Technologies, state.Provinces.Count, warn);
+			state.Technologies, state.Provinces.Count, warn,
+			(country, type) => CUnitNames.ForSubUnit(state, country, type), unnamed);
 		RegisterUnitNames(state);
+		NameUnnamedUnits(state, unnamed);
+	}
+
+	/// <summary>
+	/// A new game's units the files leave unnamed, named once every file has been read - so a name anywhere in the
+	/// country's file can take a number - in the order they joined the country's list, each the first free number of its
+	/// kind's pattern, <c>$TYPE$</c> its first brigade's: a carrier's air group "1st Air wing". The original's walk over a
+	/// country's units as a new game is entered (<c>docs/mechanics/units.md</c>, section 3).
+	/// </summary>
+	private static void NameUnnamedUnits(CGameState state, List<(CCountry Country, CUnit Unit)> unnamed)
+	{
+		foreach ((CCountry country, CUnit unit) in unnamed)
+		{
+			if (unit.Name.Length != 0)
+			{
+				continue;
+			}
+			unit.Name = unit.Kind == EUnitKind.Theatre
+				? CUnitNames.ForTheatre(state, country, null)
+				: CUnitNames.ForKind(state, country, unit.Kind, unit.SubUnits.Count > 0 ? unit.SubUnits[0].Type : null);
+			CUnitNames.Register(country, unit.Name);
+		}
 	}
 
 	/// <summary>

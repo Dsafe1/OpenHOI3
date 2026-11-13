@@ -2420,8 +2420,6 @@ None of these blocks the list above.
 - **Only the player turns a country's `auto_assign_leaders` off**, with the leader window's
   checkbox: every country starts with it on, as in the original, and nothing here changes it for any
   other country.
-- **Twenty-four air groups aboard carriers, and their wings, have no name**, where the
-  original names them `1st Air wing` and `1st CAG` by a rule that has not been read.
 - **Two blocks of a unit type are read and not kept**: `available_trigger`, which is
   script, and `extra_amphibious_defence`.
 - **A new game's manpower is the original's for 43 countries of 78**: Germany begins with 469 here and 882
