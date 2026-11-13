@@ -114,7 +114,10 @@ After the front list (`agents.md`, 8.2):
 
 ## 5. The hold provinces (`RebuildHoldProvinces`, `FINDINGS-agents.md` C.7, `FINDINGS-moving.md` D.4)
 
-Made again where none are kept, where provinces are threatened, or on a full pass on a day of the month divisible by 7:
+Made again where none are kept, where provinces are threatened, or on a full pass on a day of the month that, **counted
+from nought, is divisible by 7** - the 1st, 8th, 15th, 22nd and 29th (`confirmed` on the running game, 2026-11-13: East
+Africa Command's list made again at 09:00 on 1 January with a fifth division come in, its line left at nothing and its
+Tanganyikan Colonial Army where it stood; `reversing/findings/FINDINGS-liveread.md`, section 68):
 each objective of the plan held by the country's side, scored by its hold score plus its priority; each priority
 province the country controls, scored hold score + 200; for a theatre agent, the provinces of focus areas a puppet of the country holds, each but where one of the puppet's land
 units stands or is bound - province by province, not the area as a whole (*confirmed* on the running game, 2026-11-11:

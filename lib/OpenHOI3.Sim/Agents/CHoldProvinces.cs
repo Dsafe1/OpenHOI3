@@ -22,7 +22,8 @@ public static class CHoldProvinces
 	public static bool IsDue(CGameState state, CCountry country, CAgent agent, bool full)
 	{
 		return !agent.HoldProvincesMade || agent.Threatened.Count > 0
-			|| (full && (state.Date.Day % 7 == 0 || !country.UnitAi.RunsUnits));
+			// The day of the month counted from nought, so the 1st, 8th, 15th, 22nd and 29th (FINDINGS-liveread.md, section 68).
+			|| (full && ((state.Date.Day - 1) % 7 == 0 || !country.UnitAi.RunsUnits));
 	}
 
 	public static void Rebuild(CGameState state, CCountry country, CAgent agent)
