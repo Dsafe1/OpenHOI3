@@ -2157,13 +2157,12 @@ None of these blocks the list above.
   the attackers and one for the defenders; and what a click on the original's marker does
   was not read - here it opens the window. `docs/mechanics/combatview.md` ends with the
   list.
-- **An air unit at its base cannot be clicked** where land units stand in the same
-  province, **outside the air map mode**: since 2026-10-10 an air stack stands on the
-  province's own point as the land stack does (`mapunits.md`, section 1), and a click takes
-  the stack drawn on top, which is the land one. In the air map mode the large air base is
-  asked first, as in the original (`airmap.md`, section 5). How the original keeps such a
-  unit's counter off the map in the other modes was read (`reversing/findings/FINDINGS-seaair.md`,
-  section 6) and is not built. `--select=<name>` picks one for a trial.
+- **Whether a land counter beats the large air base picture in the air map mode is not read.** Here the large air base is
+  asked first in that mode. In the original every picture is scored and a counter always beats a building picture - the
+  large air base's among them, 1.0 to at least 1.1 (`reversing/findings/FINDINGS-seaair.md`, section 6, read off the bytes on
+  2026-11-13) - so it hangs on whether land counters are drawn, and so hit, in the air map mode. Outside it a counter over an
+  airfield's picture takes the click here as in the original, and an air unit at its base under a land stack is reached
+  from the air map mode (`docs/enhanced.md`, *Interface*). `--select=<name>` picks one for a trial.
 - **The air and naval map modes' greys are the original's since 2026-11-07**: the surface is handed each province's
   colour as it is, and the install's `terrain_2_0.fx` and `water.fx` grey the textured ground and lay the colour over it
   and the water, as the original's do; `CMapView.AirOver` mixes them itself only for the flat map, with no map cache.

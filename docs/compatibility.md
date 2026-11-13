@@ -446,6 +446,20 @@ section 3.
 **Here**: nothing provides them, so a call to one fails where the mod is played. An accepted break, by the maintainer's word on 2026-11-11: BiceLib's features are to come back later as a native interface of this engine's own that the mod can call, built from the fact base's prose, never from BiceLib's code or offsets.
 **What a mod loses**: every BiceLib feature, until that interface exists. **To undo**: build the interface; nothing here is to be removed.
 
+## 26. A click with a docked fleet or a based air unit selected goes where it is aimed
+
+**The original**: while exactly one unit is selected that has no counter on the map - a fleet lying in port, an air unit at
+its own base - its click test offers no building picture and no counter but those of the same owner's units in that unit's
+own province, and otherwise answers nothing (`reversing/findings/FINDINGS-seaair.md`, section 6, read off the bytes on
+2026-11-13). The maintainer tried it in the running game the same day: clicking a port with fleets in it goes *fleet,
+nothing changes, fleet* - every second click is lost.
+**Here**: the click goes to what is under it as it does with anything else selected - a port's or an airfield's picture to
+the next of the player's units there, a counter to its unit - so a port goes *fleet, fleet*. By the maintainer's word on
+2026-11-13: "in this case we can make an exception and implement the fixed Fleet -> Fleet right away".
+**What a mod loses**: nothing; no file says anything about it. **To undo**: in `CMapView.Click`, while the one unit
+selected has no counter, ask no building picture and take a counter only of the same owner's units in that unit's
+province, falling to nothing otherwise.
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they

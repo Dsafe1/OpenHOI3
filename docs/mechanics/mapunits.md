@@ -534,6 +534,13 @@ province and the bombing icon south-west of it in one and north-west in the othe
   player's after it - and selects the one that is then first; so the first click picks the
   second of several. A click on any other building's picture goes on to the province under
   it, which opens the province view (`provinceview.md`).
+- **A counter over a building's picture takes the click** [exe]: the original scores every picture under the pointer and
+  takes the highest, a building's picture 1.0 and a counter `(its place in its stack + 1) × 0.1 + 1`, so a counter always
+  wins (`reversing/findings/FINDINGS-seaair.md`, section 6, read off the bytes on 2026-11-13). Here counters are asked
+  before buildings, which comes to the same.
+- **While a docked fleet or a based air unit is the one unit selected, a click still goes where it is aimed** - *ours*, by
+  the maintainer's word on 2026-11-13: the original then offers no building's picture and no unit elsewhere, so that every
+  second click on a port is lost, which he saw in the running game (`docs/compatibility.md`, entry 26).
 - The original has a second picture for three of them - `large_air_base`,
   `large_naval_base`, `large_anti_air` - which a province keeps beside the first and asks
   about a click at any height.
