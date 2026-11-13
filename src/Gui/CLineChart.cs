@@ -134,7 +134,7 @@ public sealed partial class CLineChart : Control
 				custom[at + 3] = corners[corner][3];
 			}
 		}
-		var arrays = new Godot.Collections.Array();
+		using var arrays = new Godot.Collections.Array();
 		arrays.Resize((int)Mesh.ArrayType.Max);
 		arrays[(int)Mesh.ArrayType.Vertex] = positions;
 		arrays[(int)Mesh.ArrayType.Custom0] = custom;
