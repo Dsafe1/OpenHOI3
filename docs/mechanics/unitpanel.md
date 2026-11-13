@@ -49,9 +49,10 @@ frame from the unit as it then is.
   frame the panel is up. `confirmed`. Here the list is made again when the units above the
   selected one change or it gains or loses its first subordinate, and otherwise only
   written; the original makes it again on events that were not read. *Ours.*
-- **The panel is up while a unit is selected** and comes down with the selection. It
-  stands where the deploy menu does and gives way to it. *Ours:* which of the two the
-  original shows was not read.
+- **The panel is up while a unit is selected** and comes down with the selection. With the
+  deploy menu open it stands beside it, the order of battle browser between the two, as the
+  original's screenshots show them (the maintainer's, 2026-11-13; `mapunits.md`, section 6);
+  until then it gave way to the menu.
 - The window's own `oob_button`, the tab down the screen's left edge, opens the order of
   battle browser. Not built: it is shown and cannot be pressed.
 

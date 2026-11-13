@@ -86,6 +86,18 @@ public partial class COobBrowser : Control
 	/// <summary>How much of the screen's left the browser takes.</summary>
 	public float TotalWidth => !_open ? 0f : COobBrowserText.WindowWidth * (SplitShown ? 2 : 1);
 
+	/// <summary>Where its file puts the browser across, which the deploy menu pushes it aside from.</summary>
+	private float _baseX;
+
+	/// <summary>The browser moved this far right of where its file puts it: beside the deploy menu, where that is open.</summary>
+	public void SetLeft(float x)
+	{
+		if (_window is not null)
+		{
+			_window.Position = new Vector2(_baseX + x, _window.Position.Y);
+		}
+	}
+
 	public override void _Ready()
 	{
 		Name = COobBrowserText.WindowName;
@@ -98,6 +110,7 @@ public partial class COobBrowser : Control
 		}
 		AddChild(_window);
 		_window.Visible = false;
+		_baseX = _window.Position.X;
 		CGuiWindow? split = _window.FindWindow(COobBrowserText.SplitName);
 		_main = MakeView(_window);
 		_split = split is null ? null : MakeView(split);
