@@ -215,10 +215,7 @@ public static class CNavalBody
 			{
 				Raid(state, country, agent, fleet);
 			}
-			else if (census.Submarines == 0)
-			{
-				Rebase(state, country, agent, fleet, arriving);
-			}
+			Rebase(state, country, agent, fleet, arriving, census.Submarines);
 			// A fleet carrying a transport is neither counted nor free: it patrols and intercepts nothing
 			// (FINDINGS-liveread.md, section 42).
 			if (census.Transports > 0)
@@ -327,38 +324,63 @@ public static class CNavalBody
 		}
 	}
 
-	/// <summary>A fleet at a base crowded past its level and two goes to the port of its area with the least distance and crowding.</summary>
-	private static void Rebase(CGameState state, CCountry country, CAgent agent, CUnit fleet, Dictionary<int, int> arriving)
+	/// <summary>
+	/// A fleet not busy goes to a better port of its theatre: whatever it holds where its base lies outside the theatre, and
+	/// otherwise - no submarine aboard - where its base lies in another area than its commander's or is crowded past its level
+	/// and two. The port is the theatre's in its commander's area with the least distance from the commander + 10, +2000 a
+	/// ship over the port's level, x0.75 for staying, in single precision (reversing/findings/FINDINGS-airnaval4.md, the
+	/// naval body's rebase; reversing/findings/FINDINGS-liveread.md, section 64).
+	/// </summary>
+	private static void Rebase(CGameState state, CCountry country, CAgent agent, CUnit fleet, Dictionary<int, int> arriving,
+		int submarines)
 	{
-		if (fleet.Base == 0 || IsBusy(fleet) || CAgents.TheatreOf(state, country, agent) is not { } theatre)
-		{
-			return;
-		}
-		if (Berths(state, fleet.Base) + arriving.GetValueOrDefault(fleet.Base) <= Level(state, fleet.Base) + 2)
+		if (IsBusy(fleet) || CAgents.TheatreOf(state, country, agent) is not { } theatre)
 		{
 			return;
 		}
 		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
-		var area = network.AreaOf(fleet.Base);
+		int commanderAt = fleet.Parent?.Location ?? 0;
+		var commanderArea = commanderAt > 0 ? network.AreaOf(commanderAt) : null;
+		// A base outside the theatre: rebased whatever the fleet holds and however empty the port.
+		bool forced = fleet.Base == 0 || state.Province(fleet.Base).TheatreId != theatre.Id;
+		if (!forced)
+		{
+			if (submarines > 0)
+			{
+				return;
+			}
+			if (!ReferenceEquals(network.AreaOf(fleet.Base), commanderArea))
+			{
+				forced = true;
+			}
+			else if (Berths(state, fleet.Base) + arriving.GetValueOrDefault(fleet.Base) <= Level(state, fleet.Base) + 2)
+			{
+				return;
+			}
+		}
+		if (commanderAt <= 0)
+		{
+			return;
+		}
 		int best = 0;
-		long least = 1_000_000 * Whole;
+		float least = 1e6f;
 		foreach (int port in theatre.Ports)
 		{
-			if (!ReferenceEquals(network.AreaOf(port), area))
+			if (!ReferenceEquals(network.AreaOf(port), commanderArea))
 			{
 				continue;
 			}
 			bool there = port == fleet.Base;
-			long score = (CMapDistance.Between(state.Province(port), state.Province(fleet.Base), state.MapWidth) + 10) * Whole;
+			float score = (float)(CMapDistance.Between(state.Province(port), state.Province(commanderAt), state.MapWidth) + 10.0);
 			long load = Berths(state, port) + arriving.GetValueOrDefault(port) + (there ? 0 : fleet.SubUnits.Count);
 			long over = load - Level(state, port);
 			if (over > 0)
 			{
-				score += over * 2000 * Whole;
+				score = (float)(over * 2000 + (double)score);
 			}
 			if (there)
 			{
-				score = score * 3 / 4;
+				score = (float)((double)score * 0.75);
 			}
 			if (score < least && CRouteFinder.Find(state, country, fleet, fleet.Location, port) is not null)
 			{
@@ -369,6 +391,10 @@ public static class CNavalBody
 		if (best > 0 && best != fleet.Base)
 		{
 			arriving[best] = arriving.GetValueOrDefault(best) + fleet.SubUnits.Count;
+			if (fleet.Base > 0)
+			{
+				arriving[fleet.Base] = arriving.GetValueOrDefault(fleet.Base) - fleet.SubUnits.Count;
+			}
 			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Rebase, best));
 		}
 	}
