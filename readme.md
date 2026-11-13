@@ -2149,12 +2149,12 @@ None of these blocks the list above.
   wait for what they read - shore bombardment, mission efficiency, landing craft -
   and three technology figures are left out for want of their keys; `landcombat.md`,
   section 4, lists them. A round gives no practical knowledge (section 3).
-- **The battle window says less than the original's.** An enemy's counter in it says what its
-  unit is, where the original writes question marks on one it knows too little of; units
-  in a battle stand where they stood, where the original has a place in each province for
-  the attackers and one for the defenders; and what a click on the original's marker does
-  was not read - here it opens the window. `docs/mechanics/combatview.md` ends with the
-  list.
+- **The battle window says less than the original's.** Units in a battle stand where they stood,
+  where the original has a place in each province for the attackers and one for the defenders;
+  and what a click on the original's marker does was not read - here it opens the window.
+  `docs/mechanics/combatview.md` ends with the list. An enemy the player knows under intel level 3
+  shows the unknown counter's "?" since 2026-11-13, its picture alone, as the original's
+  (`combatview.md`, section 5).
 - **Whether a land counter beats the large air base picture in the air map mode is not read.** Here the large air base is
   asked first in that mode. In the original every picture is scored and a counter always beats a building picture - the
   large air base's among them, 1.0 to at least 1.1 (`reversing/findings/FINDINGS-seaair.md`, section 6, read off the bytes on

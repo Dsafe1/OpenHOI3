@@ -135,7 +135,7 @@ Each is a window `division_option`. `confirmed`
 
 | element | what it is given |
 | --- | --- |
-| `counter_type` | the sprite `GFX_counter_` + the type of the unit's first brigade, where there is such a sprite |
+| `counter_type` | the sprite `GFX_counter_` + the type of the unit's first brigade, where the player knows the unit at intel level 3 or more and it has a brigade; otherwise `GFX_counter_unknown`, a counter box with a "?" - set only where there is such a sprite. The 3 is hardcoded, the map counter's own threshold (`mapunits.md`, section 3); a friend's units are always known. **Nothing else of the entry is hidden** - the name, the place, the bars and the tooltips are the unit's whatever is known, and no element writes `???` or `?`. The picture is chosen as the entry is made and kept until the list is made again. Ships and wings are never hidden (`reversing/findings/FINDINGS-combatview.md`, section 15) |
 | `name` | the unit's name |
 | `location` | the name of the province it is in |
 | `unit_cw_strip` | a frame by its brigades' widths added up: 1 under 2, 2 under 4, 3 under 6, 4 under 8, 5 from 8 - the unit panel's own strip |
@@ -463,9 +463,11 @@ defender's damage where it defends.
 
 **The row in a unit's panel** says, the attacker's side first:
 
-    each unit: "@" and its country's tag, " £" and its first brigade's type - none for an army or
-          above (inferred: the original asks a figure of the unit's taken to be its level) -
+    each unit: "@" and its country's tag, " £" and its first brigade's type - "unknown", the
+          unknown counter, where the player knows it under intel level 3 or it has no brigade -
           " " and its name; joined by ", " and " " + AND + " " before the last
+          (corrected 2026-11-13: this said "none for an army or above", reading the figure
+          tested as the unit's level; it is the intel level - FINDINGS-combatview.md, section 15)
     a fleet's or an air unit's ships or wings each so, with the FLEET's name, the joins counted
           by units - so one fleet's ships run together, kept as read
     a line break, and what the side comes to by its first unit: UNIT_ATTACK_INFO_ARMY with its
@@ -486,9 +488,6 @@ defender's damage where it defends.
 - **The marker's first three hours.** The original makes a land battle's marker when it is
   first refreshed and then leaves it standing between refreshes; here it is worked out again
   whenever the map is, which shows the same from the fourth hour on.
-- **The enemy's counters**: the original writes question marks on a counter whose unit it
-  does not know enough about, name and figures both - the defender's on the screenshot. Here
-  every counter says what its unit is.
 - **Where units in a battle stand.** The original has a place in each province for the
   attackers and one for the defenders; here a unit in a battle stands where it stood.
 

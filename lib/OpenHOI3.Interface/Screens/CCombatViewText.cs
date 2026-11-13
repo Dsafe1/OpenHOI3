@@ -286,10 +286,24 @@ public static class CCombatViewText
 
 	// ---- a unit in a list
 
-	/// <summary>The sprite of a unit's picture in a list of the window, or an empty string.</summary>
-	public static string UnitSprite(CUnit unit)
+	/// <summary>
+	/// The sprite of a unit's picture in a list of the window: <c>GFX_counter_</c> and <see cref="CounterKey"/>. The rest
+	/// of the entry is the unit's whatever the player knows of it.
+	/// </summary>
+	public static string UnitSprite(CGameState state, CUnit unit, CCountryTag? player)
 	{
-		return CCounterText.Sprite(CCounterText.ListSprite, unit);
+		return CCounterText.ListSprite + CounterKey(state, unit, player);
+	}
+
+	/// <summary>
+	/// The key a land unit's counter is drawn by in a battle - in a list of the window, and in a battle's list of names:
+	/// its first brigade's type's where the player knows it at intel level 3 or more, else, and for a unit with no brigade,
+	/// <c>unknown</c>, the box with a "?" (<c>combatview.md</c>, section 5). A friend's units are always known.
+	/// </summary>
+	public static string CounterKey(CGameState state, CUnit unit, CCountryTag? player)
+	{
+		string key = CUnitIntel.Level(state, unit, player) >= CUnitIntel.TypeShown ? CCounterText.TypeKey(unit) : "";
+		return key.Length > 0 ? key : CUnitIntel.UnknownType;
 	}
 
 	/// <summary>The frame of a unit's width strip, by its brigades' widths added up.</summary>

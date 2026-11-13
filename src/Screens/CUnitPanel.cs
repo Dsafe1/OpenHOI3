@@ -572,7 +572,7 @@ public partial class CUnitPanel : Control
 		_combats.AddRange(Battles(unit));
 		foreach (CCombat combat in _combats)
 		{
-			if (CUnitCombatEntry.Create(_context, state, unit, combat) is { } battle)
+			if (CUnitCombatEntry.Create(_context, state, unit, combat, _player?.Tag) is { } battle)
 			{
 				battle.Selected += () => CombatChosen?.Invoke(combat);
 				Add(battle);

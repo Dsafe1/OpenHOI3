@@ -217,22 +217,41 @@ public class BattleTooltipTests
 	[Fact]
 	public void ASidesNamesAreJoinedAndOneFleetsShipsRunTogether()
 	{
+		CGameState state = State(out _);
 		var combat = new CCombat(Posen);
 		combat.Attacker.Add(Unit(Ger, EUnitKind.Division, "1. Inf", "infantry_brigade"));
 		combat.Attacker.Add(Unit(Ger, EUnitKind.Army, "8. Armee", "hq_brigade"));
 		combat.Attacker.Add(Unit(Ger, EUnitKind.Division, "3. Inf", "infantry_brigade"));
 
-		Assert.Equal("@GER £infantry_brigade 1. Inf, @GER £ 8. Armee and  @GER £infantry_brigade 3. Inf",
-			CBattleRowTooltip.Names(Localise, combat.Attacker));
+		// An army is drawn by its first brigade as a division is: the test is what is known, not the level.
+		Assert.Equal("@GER £infantry_brigade 1. Inf, @GER £hq_brigade 8. Armee and  @GER £infantry_brigade 3. Inf",
+			CBattleRowTooltip.Names(Localise, state, combat.Attacker, null));
 
 		var sea = new CCombat(Posen, ECombatKind.Naval);
 		sea.Attacker.Add(Unit(Ger, EUnitKind.Navy, "1. Flotte", "heavy_cruiser", "destroyer"));
-		Assert.Equal("@GER £heavy_cruiser 1. Flotte@GER £destroyer 1. Flotte", CBattleRowTooltip.Names(Localise, sea.Attacker));
+		Assert.Equal("@GER £heavy_cruiser 1. Flotte@GER £destroyer 1. Flotte", CBattleRowTooltip.Names(Localise, state, sea.Attacker, null));
+	}
+
+	[Fact]
+	public void ALandUnitThePlayerKnowsLittleOfIsTheUnknownCounterAndAShipIsNot()
+	{
+		CGameState state = State(out _);
+		var combat = new CCombat(Posen);
+		CUnit polish = Unit(Pol, EUnitKind.Division, "7. DP", "infantry_brigade");
+		polish.Location = Posen;
+		combat.Defender.Add(polish);
+		var sea = new CCombat(Posen, ECombatKind.Naval);
+		sea.Defender.Add(Unit(Pol, EUnitKind.Navy, "Flota", "destroyer"));
+
+		Assert.Equal("@POL £unknown 7. DP", CBattleRowTooltip.Names(Localise, state, combat.Defender, Ger));
+		Assert.Equal("@POL £infantry_brigade 7. DP", CBattleRowTooltip.Names(Localise, state, combat.Defender, Pol));
+		Assert.Equal("@POL £destroyer Flota", CBattleRowTooltip.Names(Localise, state, sea.Defender, Ger));
 	}
 
 	[Fact]
 	public void TheRowSaysBothSidesWithVersusBetween()
 	{
+		CGameState state = State(out _);
 		var combat = new CCombat(Posen);
 		combat.Attacker.Add(Unit(Ger, EUnitKind.Division, "1. Inf", "infantry_brigade", "infantry_brigade"));
 		combat.Defender.Add(Unit(Pol, EUnitKind.Division, "7. DP", "infantry_brigade"));
@@ -241,6 +260,6 @@ public class BattleTooltipTests
 			"@GER £infantry_brigade 1. Inf\nWith 2 brigades in 1 units, 2,000 soldiers."
 			+ "\n§RVERSUS§W\n"
 			+ "@POL £infantry_brigade 7. DP\nWith 1 brigades in 1 units, 1,000 soldiers.",
-			CBattleRowTooltip.For(Localise, combat).Text);
+			CBattleRowTooltip.For(Localise, state, combat, null).Text);
 	}
 }

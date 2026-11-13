@@ -115,8 +115,8 @@ public static class CMessages
 		}
 		message.Variables.Add(("DEFTOTAL", CBattleRowTooltip.Summary(localise, combat.Defender)));
 		message.Variables.Add(("ATTTOTAL", CBattleRowTooltip.Summary(localise, combat.Attacker)));
-		message.Variables.Add(("DEFDETAIL", CBattleRowTooltip.ShortNames(localise, combat.Defender, DetailedUnits)));
-		message.Variables.Add(("ATTDETAIL", CBattleRowTooltip.ShortNames(localise, combat.Attacker, DetailedUnits)));
+		message.Variables.Add(("DEFDETAIL", CBattleRowTooltip.ShortNames(localise, state, combat.Defender, DetailedUnits, own)));
+		message.Variables.Add(("ATTDETAIL", CBattleRowTooltip.ShortNames(localise, state, combat.Attacker, DetailedUnits, own)));
 		return message;
 	}
 

@@ -154,10 +154,10 @@ public partial class CCombatWindow : Control
 		// both of theirs from one window.
 		_attacker = isNaval ? CNavalSideView.Create(_context, state, combat.Attacker)
 			: isAir ? CAirSideView.Create(_context, state, combat.Attacker)
-			: CCombatSideView.Create(_context, state, combat.Attacker);
+			: CCombatSideView.Create(_context, state, combat.Attacker, _player?.Tag);
 		_defender = isNaval ? CNavalSideView.Create(_context, state, combat.Defender)
 			: isAir ? CAirSideView.Create(_context, state, combat.Defender)
-			: CCombatSideView.Create(_context, state, combat.Defender);
+			: CCombatSideView.Create(_context, state, combat.Defender, _player?.Tag);
 		if (_attacker is not null)
 		{
 			window.AddChild(_attacker.Window);

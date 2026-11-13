@@ -32,15 +32,17 @@ public sealed class CCombatSideView : ICombatSideView
 	private readonly CGuiIcon? _tacticPicture;
 	private readonly List<CCombatUnitEntry> _front = new();
 	private readonly List<CCombatUnitEntry> _waiting = new();
+	private readonly CCountryTag? _player;
 	private CCountryTag? _flag;
 	private CCombatTactic? _tactic;
 
-	private CCombatSideView(CGuiWindow window, CGuiContext context, CGameState state, CCombatSide side)
+	private CCombatSideView(CGuiWindow window, CGuiContext context, CGameState state, CCombatSide side, CCountryTag? player)
 	{
 		Window = window;
 		_context = context;
 		_state = state;
 		_side = side;
+		_player = player;
 		_committedLabel = window.FindTextBox("committed_label");
 		_reservesLabel = window.FindTextBox("reserves_label");
 		_committed = window.FindListBox("committed");
@@ -57,10 +59,11 @@ public sealed class CCombatSideView : ICombatSideView
 
 	public CGuiWindow Window { get; }
 
-	public static CCombatSideView? Create(CGuiContext context, CGameState state, CCombatSide side)
+	/// <param name="player">Whose knowledge decides which units show the unknown picture; nobody's knows everything.</param>
+	public static CCombatSideView? Create(CGuiContext context, CGameState state, CCombatSide side, CCountryTag? player)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, side.IsAttacker ? "combat_side_l" : "combat_side_r");
-		return window is null ? null : new CCombatSideView(window, context, state, side);
+		return window is null ? null : new CCombatSideView(window, context, state, side, player);
 	}
 
 	/// <summary>Whether either of the side's lists has anything in it. A battle window with an empty side goes away.</summary>
@@ -130,7 +133,7 @@ public sealed class CCombatSideView : ICombatSideView
 		entries.Clear();
 		foreach (CUnit unit in units)
 		{
-			if (CCombatUnitEntry.Create(_context, _state, _side.Combat, unit, chance) is { } entry)
+			if (CCombatUnitEntry.Create(_context, _state, _side.Combat, unit, chance, _player) is { } entry)
 			{
 				entries.Add(entry);
 				list.Add(entry.Window);

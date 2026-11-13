@@ -4,6 +4,7 @@ using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
+using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Screens;
@@ -23,7 +24,7 @@ public sealed class CCombatUnitEntry
 	private readonly CGuiIcon? _organisation;
 	private readonly CGuiTextBox? _location;
 
-	private CCombatUnitEntry(CGuiWindow window, CGameState state, CUnit unit)
+	private CCombatUnitEntry(CGuiWindow window, CGameState state, CUnit unit, CCountryTag? player)
 	{
 		Window = window;
 		Unit = unit;
@@ -32,11 +33,8 @@ public sealed class CCombatUnitEntry
 		_organisation = window.FindIcon("org_bar");
 		_location = window.FindTextBox("location");
 
-		string sprite = CCombatViewText.UnitSprite(unit);
-		if (sprite.Length != 0)
-		{
-			window.FindIcon("counter_type")?.SetSprite(sprite);
-		}
+		// The picture is decided as the entry is made and kept until the list is made again, as the original's.
+		window.FindIcon("counter_type")?.SetSprite(CCombatViewText.UnitSprite(state, unit, player));
 		window.FindIcon("unit_cw_strip")?.SetFrame(CCombatViewText.UnitWidthFrame(unit));
 		window.FindIcon("combat_unit_bg")?.SetProgress(WholePlate);
 		if (window.FindTextBox("name") is { } name)
@@ -51,7 +49,8 @@ public sealed class CCombatUnitEntry
 	public CUnit Unit { get; }
 
 	/// <param name="chance">Whether the entry says its chance of coming up - an attacker's reserve - rather than the unit's whole.</param>
-	public static CCombatUnitEntry? Create(CGuiContext context, CGameState state, CCombat combat, CUnit unit, bool chance)
+	/// <param name="player">Whose knowledge of the unit decides its picture; nobody's knows everything.</param>
+	public static CCombatUnitEntry? Create(CGuiContext context, CGameState state, CCombat combat, CUnit unit, bool chance, CCountryTag? player)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "division_option");
 		if (window is null)
@@ -63,7 +62,7 @@ public sealed class CCombatUnitEntry
 				? CBattleUnitTooltips.Reserve(localise, state, unit)
 				: CBattleUnitTooltips.Unit(localise, state, combat, unit, element),
 			"name", "location", "org_bar", "str_bar");
-		return new CCombatUnitEntry(window, state, unit);
+		return new CCombatUnitEntry(window, state, unit, player);
 	}
 
 	/// <summary>Writes what an hour may have changed: the two bars and where the unit is.</summary>
