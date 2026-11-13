@@ -201,9 +201,10 @@ its folder.
 
 *Ours:* `start` puts the technology on the end of the queue, or takes it off; the panel's
 own `close` goes back to the theories and practicals. **The lines of `effects` are ours**:
-the original writes each effect out in words, unit by unit, from a routine that was not
-read; here a line is the effect's key and its figure, as the technology's file gives them,
-and what a technology does to a kind of unit is not listed at all.
+the original fills them with the text of what the levels do - the entry's tooltip, section 9, built since 2026-10-12 -
+cut into rows and for a level of its own, how and which not read (*What is not established*, item 3); here a line is
+still the effect's key and its figure, as the technology's file gives them, and what a technology does to a kind of unit
+is not listed at all.
 
 ## 8. Ours
 

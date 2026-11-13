@@ -292,7 +292,7 @@ defender's:
   with none**. The two sides' pictures are different files. What the frames show was not read.
 
 *Ours:* a ship with no name of its own - the throwaway ships of a raid never get here - shows
-its type's key. *Not built:* the leader. The sound is built since 2026-11-12 (`sound.md`, section 8). A row's tooltip is built since
+its type's key. Each side's leader is shown since 2026-10-11 (`leaders.md`, section 12) and the sound since 2026-11-12 (`sound.md`, section 8). A row's tooltip is built since
 2026-10-12 (section 12).
 
 **On the map** there is nothing: the window is reached by the row in a fleet's panel.
@@ -378,8 +378,8 @@ theirs, and a division under bombs is worth what it is in a battle.
 *Ours:* a building is asked nothing but whether the mission bombs it and the province has any;
 the original asks the building one thing more, which was not identified. *Ours:* a unit's panel
 says a bombing mission is "attacking" the province while the unit is in a bombing there, and
-"resting" otherwise (`bombing.md`, section 13). *Not built:* a bombed row's tooltip and the leader;
-the sound is built since 2026-11-12 (`sound.md`, section 8). A wing's row's tooltip is built since 2026-10-12 (section 12).
+"resting" otherwise (`bombing.md`, section 13). *Not built:* a bombed row's tooltip.
+Each side's leader is shown since 2026-10-11 (`leaders.md`, section 12) and the sound since 2026-11-12 (`sound.md`, section 8). A wing's row's tooltip is built since 2026-10-12 (section 12).
 
 **On the map** the original shows a battle in the air and a bombing only once they are over,
 and only in its air map mode: three small icons to a province - an air battle, "bombed us",

@@ -2128,7 +2128,6 @@ None of these blocks the list above.
   `check_variable`, `has_country_flag` and more, which the loader leaves out and the tooltip
   cannot say until they are read - `has_country_flag`'s words are read already. A building
   under `any_owned_province` is "in" the province numbered nothing, whose name is empty here.
-  The panel's `effects` list is still ours; the original cuts the same text into its rows.
 - **The battle window's tooltips leave two things out** (2026-10-12, `combatview.md`
   section 12): the bombed side's rows, which say a
   figure each in the original whose joins were not read; and what of the province a bombing's
@@ -2334,7 +2333,7 @@ None of these blocks the list above.
   maintainer looked at it on 2026-10-10 - "The sea battle window looked perfect"
   (`combatview.md`, section 10) - so where a ship's picture stands in its row and which of
   its two frames it shows have his eye and no measurement; the land battle's window had
-  four things wrong that only his screenshots showed. Its sounds are not built.
+  four things wrong that only his screenshots showed. Its sounds are built since 2026-11-12 (`sound.md`, section 8).
 - **Carrying by sea and by air are built, and neither was looked at on screen by the maintainer**
   (`transport.md`); the carrier, the paradrop and the air supply were tried only with
   `OpenHOI3.SaveCheck airborne`. The AI drops no paratroopers (`moving.md`, section 20); and the technology figures `paradrop_mission` and
@@ -2465,14 +2464,12 @@ None of these blocks the list above.
   the size a texture was designed at is still not decided (*The interface*, above).
 - **Only Arial's stand-in has Arial's widths.** Liberation Sans was drawn to them, so
   text in it lands where the original's did. Fira Sans for Trebuchet MS, Barlow
-  Condensed for Franklin Gothic, EB Garamond and Anton for Impact are near relatives,
+  Condensed for Franklin Gothic, EB Garamond for Garamond, Anton for Impact, Breitkopf Fraktur for Olde English (the Axis
+  names, downloaded by each builder) and Code Red October for KyrillaSansSerif (the Comintern's) are near relatives,
   sized by the height of a line and narrowed where they come out wider; which stands
   for which is a choice made by eye and easy to change (`fonts/readme.md`). Three display
   typefaces the original names - Eurostile, SV Basic Manual and urania_czech - have no
   stand-in and are drawn in Liberation Sans, with a line in the log. `docs/mechanics/interface.md`, section 6.
-- **Two kinds of element are read and not drawn**: edit boxes and the shields of a
-  dialog. Nor is every screen's own tooltip shown yet (*Next up*, item 3), or an icon's `rotation` applied, and a checkbox is a
-  button that does not stay down. `docs/mechanics/interface.md`, section 2.
 - **How scrollbars and boxes of overlapping elements lay themselves out is ours.**
   Neither was read out of the original; each is the plain reading of what the files
   declare. So is where a line of text breaks. **The list box was the third, and when it
@@ -2497,9 +2494,11 @@ None of these blocks the list above.
   established.
 - **What the production screen's queue lines show was read out of the original and has not been looked at beside
   it**; what their buttons post is ours. `docs/mechanics/productionscreen.md`, section 6.
-- **A technology's effects are listed as its file's keys and figures**, where the
-  original writes them out in words, and what it does to a kind of unit is not listed
-  at all. `docs/mechanics/technologyscreen.md`, section 7.
+- **The technology panel's `effects` list shows its file's keys and figures**, and nothing of what it does to a kind of
+  unit. The original fills it with the text of what its levels do - the entry's tooltip, built here since 2026-10-12
+  (`CTechnologyEffectsText`) - cut into rows, for a level of its own; how it is cut and for which level was not read
+  (`docs/mechanics/technologyscreen.md`, sections 7 and 9, and its *What is not established*, item 3). Taking the
+  tooltip's text a line a row, for the level the panel names, would be the plain reading.
 - **A slider's lock lasts as long as the screen**, where the original keeps it with the
   country and so in the savegame. `docs/mechanics/sliders.md`, section 3.
 - **A resource's colour on the top bar leaves out trade, debt and tribute**, though all three move goods since
