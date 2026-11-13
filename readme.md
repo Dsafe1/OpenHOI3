@@ -2261,7 +2261,6 @@ None of these blocks the list above.
   its tip is whole all the same, which was not made out. Where a moving unit's counter
   stands is from one screenshot, by a stack whose depth had to be counted off its edges.
   `docs/mechanics/movement.md`, section 7, and `mapunits.md`, sections 1 and 2.
-- **Of the unit panel's buttons only `edit_theatre` cannot be pressed** (`attaching.md`, section 5).
 - **Where an edit box puts its text and how a rotated icon is placed are measured and not read**, both from the
   unit panel alone (`docs/mechanics/interface.md`, section 7). A unit is renamed from its name box since 2026-11-12
   (`unitpanel.md`, section 3).

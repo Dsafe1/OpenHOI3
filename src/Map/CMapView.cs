@@ -422,6 +422,51 @@ public partial class CMapView : Node2D
 
 	private Func<CProvince, CColor>? _deployment;
 
+	private CTheatreEditor? _theatreEditor;
+
+	/// <summary>The original's map style for the theatre editor's mode 17 (<c>reversing/findings/FINDINGS-farmap.md</c>, A.3).</summary>
+	private const int EditorStyle = 2;
+
+	/// <summary>The theatre headquarters the theatre editor is open for, or null.</summary>
+	public CUnit? TheatreEditing => _theatreEditor?.Headquarters;
+
+	/// <summary>Raised when the theatre editor gives provinces to a theatre: its number, and the provinces in order.</summary>
+	public event Action<int, int[]>? TheatreEdited;
+
+	/// <summary>
+	/// Opens the theatre editor for a theatre headquarters - the original's map mode 17, the minimap's buttons left as they
+	/// are - or with null closes it, anything left gathered given to the theatre of the headquarters it was opened for
+	/// (<c>docs/mechanics/attaching.md</c>, section 7).
+	/// </summary>
+	public void SetTheatreEditing(CUnit? headquarters)
+	{
+		if (_theatreEditor is { } open)
+		{
+			Give(open, open.Headquarters);
+		}
+		_theatreEditor = headquarters is null ? null : new CTheatreEditor(headquarters);
+		// Mode 17 draws in the political mode's style, 2, whatever mode was up; closing gives the mode's own back.
+		if (_surface is not null)
+		{
+			_surface.Style = _theatreEditor is null ? Style(_mode) : EditorStyle;
+		}
+		_box?.HideBox();
+		RefreshColours();
+	}
+
+	/// <summary>What the editor has gathered, given to the theatre heading the unit's chain, where there is one.</summary>
+	private void Give(CTheatreEditor editor, CUnit unit)
+	{
+		int[] provinces = editor.Release();
+		if (provinces.Length > 0 && CTheatreEditor.TheatreOf(_state, unit) is { } theatre)
+		{
+			TheatreEdited?.Invoke(theatre.Id, provinces);
+		}
+	}
+
+	/// <summary>A point of the map in the positions file's frame, where y counts north: what a box is gathered in.</summary>
+	private Vector2 PositionsFrame(Vector2 map) => new(map.X - 0.5f, _map.Height - 0.5f - map.Y);
+
 	/// <summary>
 	/// Asked with the province under a left click while a building is being placed: answers whether the click placed it.
 	/// </summary>
@@ -442,7 +487,7 @@ public partial class CMapView : Node2D
 			}
 			if (_surface is not null)
 			{
-				_surface.Style = Style(value);
+				_surface.Style = _theatreEditor is null ? Style(value) : EditorStyle;
 				_surface.TreeSnow = value == MapMode.Weather ? Snowed : null;
 			}
 			RefreshColours();
@@ -646,6 +691,10 @@ public partial class CMapView : Node2D
 			else if (_deployment is not null)
 			{
 				colour = _deployment(province).ToGodot();
+			}
+			else if (_theatreEditor is not null && Player is { } editing && !province.IsSea)
+			{
+				colour = _theatreEditor.Colour(_state, editing, province, RegionColours).ToGodot();
 			}
 			else if (_airArea is not null)
 			{
@@ -1272,6 +1321,11 @@ public partial class CMapView : Node2D
 		{
 			_lastGroup = -1;
 		}
+		// The theatre editor ends once the selection is no longer exactly one theatre headquarters (attaching.md, section 7).
+		if (_theatreEditor is not null && !CTheatreEditor.Keeps(_units.Units))
+		{
+			SetTheatreEditing(null);
+		}
 		// Each unit newly selected sounds as its kind - a fleet, an air unit, else an army - and a sound already playing
 		// is not started again, so a box of twenty divisions is heard once (sound.md, section 7).
 		foreach (CUnit unit in _units.Units)
@@ -1382,12 +1436,27 @@ public partial class CMapView : Node2D
 				// The press only marks where the gesture began; its release is the click or the end of a drag
 				// (selection.md, section 2).
 				_press = ScreenToMap(press.Position);
+				if (_theatreEditor is { } starting)
+				{
+					Vector2 point = PositionsFrame(_press.Value);
+					starting.Begin(point.X, point.Y);
+				}
 				break;
 			case InputEventMouseButton { Pressed: false, ButtonIndex: MouseButton.Left } release when _press is { } from:
 				_press = null;
 				_box?.HideBox();
 				Vector2 to = ScreenToMap(release.Position);
-				if (_places is null && CBoxSelection.IsDrag(from.X, from.Y, to.X, to.Y))
+				if (_theatreEditor is { } painting && CBoxSelection.IsDrag(from.X, from.Y, to.X, to.Y))
+				{
+					// The editor's drag paints and selects nothing: what is under the box goes to the selected unit's theatre.
+					if (_units.Units.FirstOrDefault() is { } selected)
+					{
+						Give(painting, selected);
+					}
+					painting.Release();
+					RefreshColours();
+				}
+				else if (_places is null && CBoxSelection.IsDrag(from.X, from.Y, to.X, to.Y))
 				{
 					BoxSelect(from, to, release.ShiftPressed);
 				}
@@ -1402,6 +1471,18 @@ public partial class CMapView : Node2D
 				if (_places is null && CBoxSelection.IsDrag(start.X, start.Y, here.X, here.Y))
 				{
 					_box?.ShowBox(start, here, _camera.Zoom.X);
+					// The editor gathers the box again each time the pointer has moved more than two map units.
+					if (_theatreEditor is { } gathering && Player is { } painter
+						&& CTheatreEditor.TheatreOf(_state, gathering.Headquarters) is { } theatre)
+					{
+						Vector2 a = PositionsFrame(start);
+						Vector2 b = PositionsFrame(here);
+						if (gathering.ShouldGather(b.X, b.Y))
+						{
+							gathering.Gather(_state, painter, theatre, a.X, a.Y, b.X, b.Y, _map.Width);
+							RefreshColours();
+						}
+					}
 				}
 				else
 				{

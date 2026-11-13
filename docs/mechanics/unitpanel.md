@@ -274,7 +274,8 @@ The window `sup_buttons_window`.
   headquarters' box is passed down.
 - **One of five buttons by the unit's level**: a division `create_corps`, a corps
   `create_army`, an army `create_armygroup`, an army group `create_theatre`, a theatre
-  `edit_theatre`. `confirmed`. Shown, and cannot be pressed.
+  `edit_theatre`. `confirmed`. The first four make a headquarters (`attaching.md`, section 4); `edit_theatre` opens the
+  theatre editor (`attaching.md`, section 7).
 - **`attach_button` for a unit with none above it, `detach_button` for one with.**
   `confirmed`. Shown, and cannot be pressed.
 - `load_button` for a land unit that is aboard nothing, `unload_button` for one aboard a
