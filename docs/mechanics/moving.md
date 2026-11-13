@@ -84,8 +84,12 @@ Each province p of the area of operations, n of them, m committed divisions, in 
   front-worthy enemy that is major or over 100 IC. The distinct holders of interesting or worthy neighbours (not the
   rebels): where their brigades' combat value, averaged, is at most 15% of the country's, the score is scaled by
   max(r / 0.15, 0.05).
-- **Frontier not at war**: 10 x fort + 10, +10 where worthy, and +20 for exactly m mod n of the n provinces, spread by a
-  carried fraction in the area's order.
+- **Frontier not at war**: 10 x fort + 10, +10 where worthy, and +20 for m mod n of the n provinces, spread by a
+  carried fraction in the area's order - **the fraction and the carry in single precision**, each step worked in double
+  and rounded back, the carry compared with 1 and 1 taken off. Czechoslovakia's 25 divisions over 35 provinces give 25
+  of them +20, where thousandths gave 24; with 25 the sum is 2090, above the 23-division line times the best score of 90,
+  so the line fill hands no position a share, every position wants one, and the 10. and 6. divize are stopped where
+  they stand (`confirmed` on the running game, 2026-11-13, `reversing/findings/FINDINGS-liveread.md`, section 69).
 - **At war, stance under 3**: from 10; 10 x friendly - 10 where its area holds more than 5 provinces; + 2 x fort + 20
   unless it has at most one friendly neighbour and three front ones; +100 for its own supply depot.
 - **At war, stance 3 or more**: 10, or 15 for a depot; doubled for each province of the hostile routes (section 4) it

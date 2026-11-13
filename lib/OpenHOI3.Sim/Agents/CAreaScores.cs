@@ -42,8 +42,10 @@ public static class CAreaScores
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
 		var values = new Dictionary<CCountryTag, long>();
 		long ours = CombatValue(state, country, values);
-		long fraction = agent.Committed.Count % n * Whole / n;
-		long carry = 0;
+		// The spread of the +20s is carried in single precision, each step worked in double and rounded back, as the
+		// original's (FINDINGS-liveread.md, section 69): in thousandths 25 of 35 came out 24.
+		float fraction = (float)((double)(float)(agent.Committed.Count % n) / (double)(float)n);
+		float carry = 0f;
 		var front = new HashSet<int>(agent.FrontProvinces);
 		bool atWar = agent.FrontierAtWar;
 		foreach (int id in agent.Area)
@@ -107,15 +109,15 @@ public static class CAreaScores
 			if (!atWar)
 			{
 				prio = defend / 2;
-				carry += fraction;
+				carry = (float)((double)carry + (double)fraction);
 				score = (10 * fort + 10) * Whole;
 				if (worthy)
 				{
 					score += 10 * Whole;
 				}
-				if (carry >= Whole)
+				if (carry >= 1f)
 				{
-					carry -= Whole;
+					carry = (float)((double)carry - 1.0);
 					score += 20 * Whole;
 				}
 			}
