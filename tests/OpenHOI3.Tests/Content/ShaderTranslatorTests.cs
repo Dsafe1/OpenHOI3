@@ -273,6 +273,37 @@ technique tested { pass p { ALPHATESTENABLE = True; PixelShader = compile ps_2_0
 	}
 
 	[Fact]
+	public void The_stencil_that_paints_a_pixel_once_is_a_test_against_a_value_of_its_layers_own()
+	{
+		const string source = @"
+float4 PS(float2 uv : TEXCOORD0) : COLOR { return float4(uv, 0, 0.5); }
+technique once { pass p { STENCILREF = 0; STENCILMASK = 255; STENCILWRITEMASK = 255; STENCILENABLE = True; STENCILFUNC = Equal;
+	STENCILFAIL = Keep; STENCILZFAIL = Keep; STENCILPASS = Incr; PixelShader = compile ps_2_0 PS(); } }
+technique other { pass p { STENCILENABLE = True; STENCILFUNC = Less; STENCILPASS = Replace; PixelShader = compile ps_2_0 PS(); } }
+technique off { pass p { PixelShader = compile ps_2_0 PS(); } }";
+		CFxEffect effect = CFxParser.Parse(Preprocess(source));
+		CFxTechnique once = effect.Technique("once")!, other = effect.Technique("other")!, off = effect.Technique("off")!;
+
+		// battlearrow.fx's: equal to nought and increment - the value one past the reference, not yet written, passes.
+		CGodotShader first = CGodotShaderWriter.Write(effect, once, once.Passes[0]);
+		Assert.Empty(first.Problems);
+		Assert.Contains("stencil_mode read, write, compare_not_equal, 1;", first.Code);
+		// After the engine's third clear: a value of its own, which passes over the earlier layers' as a cleared stencil.
+		CGodotShader fourth = CGodotShaderWriter.Write(effect, once, once.Passes[0], stencilLayer: 3);
+		Assert.Contains("stencil_mode read, write, compare_not_equal, 4;", fourth.Code);
+		// Past what the stencil's byte holds, and a form Godot's has no match for: drawn without one, and said so.
+		CGodotShader full = CGodotShaderWriter.Write(effect, once, once.Passes[0], stencilLayer: 255);
+		Assert.DoesNotContain("stencil_mode", full.Code);
+		Assert.Single(full.Problems, problem => problem.Contains("past the 255 values"));
+		CGodotShader unmatched = CGodotShaderWriter.Write(effect, other, other.Passes[0]);
+		Assert.DoesNotContain("stencil_mode", unmatched.Code);
+		Assert.Single(unmatched.Problems, problem => problem.Contains("the stencil LESS / REPLACE"));
+		// The canvas has no stencil, and a pass with it off writes none.
+		Assert.DoesNotContain("stencil_mode", CGodotShaderWriter.Write(effect, once, once.Passes[0], EShaderTarget.Canvas).Code);
+		Assert.DoesNotContain("stencil_mode", CGodotShaderWriter.Write(effect, off, off.Passes[0]).Code);
+	}
+
+	[Fact]
 	public void A_shared_parameter_is_a_global_uniform_and_the_position_is_turned_to_Godots_clip_space()
 	{
 		CFxEffect effect = CFxParser.Parse(Preprocess(Frame + "float4 PS(VS_OUTPUT v) : COLOR { return v.vColour; }\n" +

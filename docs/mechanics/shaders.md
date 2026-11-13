@@ -90,7 +90,18 @@ translated.
    engine's 8 and GREATEREQUAL, so a tested pass discards alpha under 8/255 - as a `discard`; and `ZENABLE` and
    `ZWRITEENABLE` off the depth test and depth writes - **and `ZWRITEENABLE` on, for a pass that blends, as
    `depth_draw_always`**: Direct3D writes depth whether a pass blends or not, Godot's blended materials do not unless told,
-   and the map's sea, drawn after the beaches, covered them until this (`mapdraw.md`, section 6).
+   and the map's sea, drawn after the beaches, covered them until this (`mapdraw.md`, section 6). **The stencil**, since
+   2026-11-13, in the one form the files use: `battlearrow.fx`'s two passes test `EQUAL` against a reference and
+   increment where they pass, keeping the value where they fail, whole masks - so a pixel is painted once and every later
+   draw over it fails. Godot has no increment, so that is written as `stencil_mode read, write, compare_not_equal`
+   against the reference plus one, which writes that value: the same while nothing else writes the stencil, and nothing
+   here does. **Godot clears the stencil once a frame**, where the engine clears it between the battle plans' colours;
+   so the caller says how many clears come before a draw, and the Nth layer writes the reference plus one plus N - a
+   value nothing earlier wrote, which passes over it as a cleared stencil would, so long as the layers are drawn in
+   order. Past 255, and any other stencil, is reported and drawn without one; the canvas has no stencil at all. Two
+   arrows of one colour crossing paint the crossing once: checked with `--click` on 2026-11-13, the crossing the same red
+   as either arrow (168,112,93 at its middle), the positive control the same run without the stencil (193,85,72, a darker
+   diamond), and a blue arrow, the next layer, blending over both (`battleplans.md`, section 11).
 8. **Samplers**: a `uniform sampler2D` with Direct3D's defaults where the file says nothing - point filtering, no mipmaps,
    wrapping - linear where either filter is linear or anisotropic, mipmapped where `MipFilter` is not `None`, repeating
    where `AddressU` wraps (`Mirror` and `Border` do not repeat). `CShaderTexture` gives the texture it reads and the file
@@ -145,7 +156,7 @@ green by at most 5 of 255 - not to be seen (measured 2026-11-06).
   whose three errors (a local hiding a global) it printed.
 - `ShaderTranslatorTests`: the preprocessor's conditionals and repeated includes, macros, the parser's samplers and
   passes, `mul` by a matrix and a padded `float4x3`, the silent conversions, the renamed local, the samplers' hints, a
-  pixel shader reading what the vertex shader does not give.
+  pixel shader reading what the vertex shader does not give, the stencil that paints a pixel once with its layers.
 
 ## 5. Not built
 
