@@ -2493,11 +2493,9 @@ None of these blocks the list above.
   established.
 - **What the production screen's queue lines show was read out of the original and has not been looked at beside
   it**; what their buttons post is ours. `docs/mechanics/productionscreen.md`, section 6.
-- **The technology panel's `effects` list shows its file's keys and figures**, and nothing of what it does to a kind of
-  unit. The original fills it with the text of what its levels do - the entry's tooltip, built here since 2026-10-12
-  (`CTechnologyEffectsText`) - cut into rows, for a level of its own; how it is cut and for which level was not read
-  (`docs/mechanics/technologyscreen.md`, sections 7 and 9, and its *What is not established*, item 3). Taking the
-  tooltip's text a line a row, for the level the panel names, would be the plain reading.
+- **The technology panel's `effects` rows keep their window's size**, where the original resizes each to 180 wide;
+  how it clips a wider row was not read. The rows themselves are the original's since 2026-11-13 - the tooltip's text
+  at its level, laid out and cut as it cuts it (`docs/mechanics/technologyscreen.md`, section 7).
 - **A slider's lock lasts as long as the screen**, where the original keeps it with the
   country and so in the savegame. `docs/mechanics/sliders.md`, section 3.
 - **A resource's colour on the top bar leaves out one pool** the original adds to what comes in and no reading has

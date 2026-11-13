@@ -244,6 +244,7 @@ All of these are risk-free but for what the entry says.
 
 - **Influence's colour never reaches the screen.** `topbar.md`, 7. *Bug.*
 - **Tribute sent to a master shows green with a plus.** `topbar.md`, 14. *Display.*
+- **The technology panel goes stale.** Its name, year, difficulty and rows of what the level does are made only when a technology is pressed, so a level finished or a law changed leaves the old ones up; and a one-level technology is described at level 1 for ever, a many-level one a level past its last. `technologyscreen.md`, 7. *Display.*
 - **Money repaid on a debt counts as coming in.** The top bar's colour, the ledger tooltip's change and the Lua's daily balance take `repaid away` away from what goes out, though it is held above nought, so a repayment turns money green. `topbar.md`, 2. *Bug.*
 - **Diplomacy rows go stale:** threat, name and flag. `diplomacyscreen.md`, 8. *Display.*
 - **A zero balance reads "surplus"** on a red icon. `diplomacyscreen.md`, 8. *Display.*

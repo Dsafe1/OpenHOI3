@@ -87,21 +87,22 @@ public sealed class CTechDetails
 		set => _window.Visible = value;
 	}
 
-	public void Update(CGameState state, CCountry country, CTechnology technology)
+	/// <summary>
+	/// Makes the panel for a technology, as the original does when one is pressed in the tree or the queue: its name,
+	/// its level's name, year and difficulty, its picture and description, and the rows of what its level does. None of
+	/// it is made again until something is pressed - a level finished meanwhile leaves the old figures up, as the
+	/// original's panel does (<c>technologyscreen.md</c>, section 7).
+	/// </summary>
+	public void Show(CGameState state, CCountry country, CTechnology technology)
 	{
 		Func<string, string> localise = _context.Localisation.Localise;
 		string name = localise(technology.Name);
 		int level = country.TechnologyLevels.GetValueOrDefault(technology.Name);
-		bool queued = country.ResearchQueue.Contains(technology.Name);
 		bool done = technology.IsSingleLevel && level >= 1;
 		_state = state;
 		_country = country;
-
-		if (!ReferenceEquals(technology, _shown))
-		{
-			_shown = technology;
-			ShowOnce(technology);
-		}
+		_shown = technology;
+		ShowOnce(state, country, technology);
 
 		if (_name is not null)
 		{
@@ -120,6 +121,25 @@ public sealed class CTechDetails
 		{
 			_year.Text = done ? "" : CTechnologyScreenText.YearDue(technology, level).ToString(CultureInfo.InvariantCulture);
 		}
+		Update(state, country);
+	}
+
+	/// <summary>
+	/// What the panel keeps up to date as it stands: whether the technology is finished or on the queue, and the button
+	/// that starts or stops it - ours, the original's routine for these not being read apart from the panel's making.
+	/// </summary>
+	public void Update(CGameState state, CCountry country)
+	{
+		if (_shown is not { } technology)
+		{
+			return;
+		}
+		Func<string, string> localise = _context.Localisation.Localise;
+		int level = country.TechnologyLevels.GetValueOrDefault(technology.Name);
+		bool queued = country.ResearchQueue.Contains(technology.Name);
+		bool done = technology.IsSingleLevel && level >= 1;
+		_state = state;
+		_country = country;
 		if (_finished is not null)
 		{
 			_finished.Visible = done;
@@ -136,8 +156,8 @@ public sealed class CTechDetails
 		}
 	}
 
-	/// <summary>What does not change while one technology is shown.</summary>
-	private void ShowOnce(CTechnology technology)
+	/// <summary>The picture, the description, the category icons and the rows of what the level does.</summary>
+	private void ShowOnce(CGameState state, CCountry country, CTechnology technology)
 	{
 		string photo = PhotoFolder + technology.Name + ".tga";
 		if (_photo is not null)
@@ -162,23 +182,31 @@ public sealed class CTechDetails
 			(category, weight) => _country is null ? CTooltip.Empty
 				: new CTooltip { Text = CTechnologyTooltips.CategoryIcon(_context.Localisation.Localise, _country, category, weight) });
 
-		// What a level is worth, one line an effect. The original writes these out in
-		// words of its own, unit by unit; that has not been read, so these are the plain
-		// figures the technology's file gives.
+		// What its level does: the text a tree entry's tooltip gives, at the same level, laid out at the row's text box
+		// width and cut into rows - a piece under two characters dropped, and an empty row always last.
 		if (_effects is null)
 		{
 			return;
 		}
 		_effects.Clear();
-		foreach ((string kind, CFixedPoint value) in technology.EffectPerLevel.Values)
+		if (CGuiWindow.CreateEntry(_context, "detail_entry") is not { } first)
 		{
-			if (CGuiWindow.CreateEntry(_context, "detail_entry") is not { } line)
+			return;
+		}
+		CGuiTextBox? box = first.FindTextBox("text");
+		string text = CTechnologyEffectsText.For(_context.Localisation.Localise, state, country, technology,
+			CTechnologyTooltips.EntryLevel(country, technology));
+		List<string> rows = box is null ? new List<string> { "" } : CTechDetailsRows.Rows(text, box.MaxWidth, box.Measure);
+		for (int index = 0; index < rows.Count; index++)
+		{
+			CGuiWindow? line = index == 0 ? first : CGuiWindow.CreateEntry(_context, "detail_entry");
+			if (line is null)
 			{
-				return;
+				break;
 			}
-			if (line.FindTextBox("text") is { } text)
+			if (line.FindTextBox("text") is { } row)
 			{
-				text.Text = _context.Localisation.Localise(kind) + ": " + (value.Raw > 0 ? "+" : "") + value;
+				row.Text = rows[index];
 			}
 			_effects.Add(line);
 		}
