@@ -149,15 +149,15 @@ public class TransportTextTests
 		fleet.Location = Bight;
 		division.Location = Bight;
 		Assert.True(CMapCounters.HasCounter(state, division));
-		Assert.Equal(EMapStack.Standing, CMapCounters.StackOf(division));
+		Assert.Equal(EMapStack.Standing, CMapCounters.StackOf(state, division));
 		fleet.Path.Add(Kiel);
-		Assert.Equal(EMapStack.Moving, CMapCounters.StackOf(division));
+		Assert.Equal(EMapStack.Moving, CMapCounters.StackOf(state, division));
 		fleet.Path.Clear();
 
 		// Its way ashore is drawn with the landing's arrow.
 		division.Path.Add(Hela);
 		Assert.Equal(CArrowTypes.Invasion, CMapArrows.TypeOf(state, division));
-		Assert.Equal(EMapStack.Standing, CMapCounters.StackOf(division));
+		Assert.Equal(EMapStack.Standing, CMapCounters.StackOf(state, division));
 	}
 
 	[Fact]

@@ -146,7 +146,7 @@ public class AirTransportTextTests
 		Assert.Equal("UW_UNLOAD_PLANE_BASE_ONLY",
 			CUnitOrderTooltips.Buttons(Localise, division, false, "unload_plane_button", buttons).Text);
 		// A passenger aboard an air unit stands among the air units on the map.
-		Assert.Equal(EMapStack.Air, CMapCounters.StackOf(division));
+		Assert.Equal(EMapStack.Air, CMapCounters.StackOf(state, division));
 	}
 
 	[Fact]

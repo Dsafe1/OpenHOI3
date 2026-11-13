@@ -53,6 +53,9 @@ public partial class CUnitCounters : Node2D
 	private CSelection _selection = new();
 	private readonly HashSet<CUnit> _selectedSet = new();
 
+	/// <summary>Each unit with a counter: its province and its place in the province's list, made again with the stacks.</summary>
+	private readonly Dictionary<CUnit, (int Province, int Index)> _listPlaces = new();
+
 	/// <summary>
 	/// Where the counters are drawn: two canvas items to a counter, in the order drawn - its plate through
 	/// <c>counter.fx</c>, which is a material of its own, and then its pointer, flag and figures - kept from frame to frame
@@ -223,7 +226,7 @@ public partial class CUnitCounters : Node2D
 		}
 		CCounterKind? kind = _near ?? _far;
 		return kind is not null && CMapCounters.HasCounter(_state, unit)
-			? PlaceOf(new CMapStack(unit.Location, CMapCounters.StackOf(unit)), kind)
+			? PlaceOf(new CMapStack(unit.Location, CMapCounters.StackOf(_state, unit)), kind)
 			: PointOf(unit.Location);
 	}
 
@@ -320,9 +323,17 @@ public partial class CUnitCounters : Node2D
 	/// <summary>Works out again which units are where. Call it when one has been placed, made or moved.</summary>
 	public void Refresh()
 	{
-		// Standing stacks first, so that one on the move, which overlaps what stands in
-		// its province, is drawn over it and is the one a click there finds.
+		// In the original's order of a province's stacks - standing, moving, a battle's two sides, air - so that one drawn
+		// over another is drawn later and is the one a click there finds.
 		_stacks = CMapCounters.Build(_state, Player).OrderBy(stack => stack.Kind).ToList();
+		_listPlaces.Clear();
+		foreach (CMapStack stack in _stacks)
+		{
+			foreach (CMapCounter counter in stack.Counters)
+			{
+				_listPlaces[counter.Unit] = (stack.Province, counter.ListIndex);
+			}
+		}
 		// A fleet in port and an air unit at its base have no counter and stay selected
 		// all the same, and so does a land unit gone aboard; a unit that is no longer anywhere does not.
 		if (_selection.Count > 0 && _selection.RemoveWhere(unit => unit.IsRemoved || !CMapCounters.IsSomewhere(_state, unit)))
@@ -429,14 +440,11 @@ public partial class CUnitCounters : Node2D
 	{
 		CMapPosition position = _map.Positions[stack.Province];
 		var place = new Vector2(position.X + 0.5f, _map.DisplayRow(position.Y) + 0.5f);
-		// The stack of aircraft stands on the province's own point, as the standing stack
-		// does, and is drawn after it - so over it. Only the stack on the move has a point
-		// of its own on land.
-		if (stack.Kind == EMapStack.Moving)
-		{
-			place += new Vector2(CCounterLayout.MovingStack.X, -CCounterLayout.MovingStack.Y);
-		}
-		return place;
+		// The stack of aircraft and a land battle's two sides stand on the province's own point, as the standing stack
+		// does, and are drawn after it - so over it, the stacks being drawn in the original's order. Only the stack on the
+		// move has a point of its own on land; at sea a battle's sides stand to either side.
+		System.Numerics.Vector2 offset = CCounterLayout.StackOffset(stack.Kind, _state.Province(stack.Province).IsSea);
+		return place + new Vector2(offset.X, -offset.Y);
 	}
 
 	/// <summary>
@@ -541,7 +549,7 @@ public partial class CUnitCounters : Node2D
 		// From where its counter is, which for a unit on the move is beside the province's
 		// point - or, for a fleet still in port, from the port.
 		Vector2 from = CMapCounters.HasCounter(_state, unit)
-			? PlaceOf(new CMapStack(unit.Location, CMapCounters.StackOf(unit)), kind)
+			? PlaceOf(new CMapStack(unit.Location, CMapCounters.StackOf(_state, unit)), kind)
 			: WayPointOf(unit, unit.Location);
 		var points = new List<System.Numerics.Vector2> { new(from.X, from.Y) };
 		foreach (int province in unit.Path)
@@ -578,40 +586,31 @@ public partial class CUnitCounters : Node2D
 	}
 
 	/// <summary>
-	/// The counters of a stack that are drawn, the bottom one first: its top six, with
-	/// the selected unit brought to the top if it is in the stack at all.
+	/// The counters of a stack that are drawn, the bottom one first: its top six, from the first of the province's list
+	/// or, where a unit of the province is selected, from that unit's place in it, on round the list - so the selected unit
+	/// is on top and those after it under it, as the original's province keeps its cursor (mapunits.md, section 3).
 	/// </summary>
 	private List<CMapCounter> Drawn(CMapStack stack)
 	{
 		_drawn.Clear();
-		// Ours with several selected: the first of them in the stack, in the order they were selected.
-		CMapCounter? chosen = null;
+		// The original's cursor is the place of the unit selected last in the province; the selection's order stands for it.
+		int cursor = 0;
 		foreach (CUnit selected in _selection.Units)
 		{
-			foreach (CMapCounter counter in stack.Counters)
+			if (_listPlaces.TryGetValue(selected, out (int Province, int Index) place) && place.Province == stack.Province)
 			{
-				if (ReferenceEquals(counter.Unit, selected))
-				{
-					chosen = counter;
-				}
-			}
-			if (chosen is not null)
-			{
-				break;
+				cursor = place.Index;
 			}
 		}
 		// A stack the player knows too little of shows one counter, not fanned (mapunits.md, section 3).
-		int room = (stack.Fanned ? CCounterLayout.Drawn(stack.Counters.Count) : 1) - (chosen is null ? 0 : 1);
-		for (int index = stack.Counters.Count - 1; index >= 0 && _drawn.Count < room; index--)
+		int room = stack.Fanned ? CCounterLayout.Drawn(stack.Counters.Count) : 1;
+		foreach (CMapCounter counter in CMapCounters.TopDown(stack, cursor))
 		{
-			if (!ReferenceEquals(stack.Counters[index], chosen))
+			if (_drawn.Count == room)
 			{
-				_drawn.Insert(0, stack.Counters[index]);
+				break;
 			}
-		}
-		if (chosen is not null)
-		{
-			_drawn.Add(chosen);
+			_drawn.Insert(0, counter);
 		}
 		return _drawn;
 	}
@@ -741,8 +740,18 @@ public partial class CUnitCounters : Node2D
 	/// </summary>
 	public CUnit? Click(Vector2 point)
 	{
-		// The stack is stepped through only from the one selected unit's own counter (selection.md, section 2.1).
-		return StackAt(point)?.Next(_selection.Single);
+		// The stack is stepped through only from the one selected unit's own counter (selection.md, section 2.1); any other
+		// stack gives the unit drawn on top of it.
+		if (StackAt(point) is not { } stack)
+		{
+			return null;
+		}
+		if (_selection.Single is { } single && stack.Counters.Any(counter => ReferenceEquals(counter.Unit, single)))
+		{
+			return stack.Next(single);
+		}
+		List<CMapCounter> drawn = Drawn(stack);
+		return drawn.Count > 0 ? drawn[^1].Unit : null;
 	}
 
 	/// <summary>The unit whose counter is on top of the stack at a point of the map - the one the map's tooltip tells of - or null.</summary>

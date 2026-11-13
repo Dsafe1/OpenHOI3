@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Units;
 
@@ -82,15 +84,20 @@ public static class CMapCounters
 		return false;
 	}
 
-	/// <summary>Which of its province's stacks a unit that has a counter is in.</summary>
-	public static EMapStack StackOf(CUnit unit)
+	/// <summary>
+	/// Which of its province's stacks a unit that has a counter is in, by the original's tests in its order: an air unit,
+	/// or a land unit aboard one (<c>transport.md</c>, section 13.6); a unit in a battle, by its side; a unit with a path;
+	/// and every other (mapunits.md, section 3).
+	/// </summary>
+	public static EMapStack StackOf(CGameState state, CUnit unit)
 	{
-		// The two stacks of a battle are not built: on land the original stands them on the
-		// standing point, and at sea 2.4 to either side of it.
-		// And a land unit aboard an air unit with the air units (transport.md, section 13.6).
 		if (unit.Kind == EUnitKind.Air || unit.Plane is not null)
 		{
 			return EMapStack.Air;
+		}
+		if (unit.IsFighting)
+		{
+			return IsAttackerHere(state, unit) ? EMapStack.Attacking : EMapStack.Defending;
 		}
 		// A land unit aboard a fleet stands with the moving counters while the fleet has a
 		// path, whatever its own (transport.md, section 12).
@@ -102,8 +109,38 @@ public static class CMapCounters
 	}
 
 	/// <summary>
-	/// Every stack on the map the player may see. Within one the higher rank is on top, and of two of a rank the one made
-	/// later. What the player knows of a unit (<see cref="CUnitIntel"/>) decides what its counter shows - under 3 the unknown
+	/// Which side of a battle a fighting unit's counter stands with: the original asks the first battle of the province's
+	/// kind - a land battle on land, a sea battle at sea - fought in the province the unit stands in, else the unit's own
+	/// first battle, whether the unit's owner is among that battle's attackers still in the fight. So an attacker standing
+	/// in a province that is itself attacked stands with the defenders (mapunits.md, section 3).
+	/// </summary>
+	public static bool IsAttackerHere(CGameState state, CUnit unit)
+	{
+		if (unit.Combats.Count == 0)
+		{
+			return false;
+		}
+		ECombatKind kind = state.Province(unit.Location).IsSea ? ECombatKind.Naval : ECombatKind.Land;
+		CCombat combat = state.Combats.FirstOrDefault(battle => battle.Province == unit.Location && battle.Kind == kind)
+			?? unit.Combats[0];
+		return combat.Attacker.Standing.Contains(unit.Owner);
+	}
+
+	/// <summary>
+	/// A stack's counters from the top down as the original draws them: from the first of the province's list - or, where
+	/// a unit of the province is selected, from that unit's place in it - on round the list, so the selected unit is on top
+	/// and the units after it come under it (<c>mapunits.md</c>, section 3).
+	/// </summary>
+	/// <param name="cursor">The list place of the province's selected unit, or 0.</param>
+	public static List<CMapCounter> TopDown(CMapStack stack, int cursor)
+	{
+		return stack.Counters.OrderBy(counter => counter.ListIndex >= cursor ? counter.ListIndex - cursor
+			: counter.ListIndex - cursor + int.MaxValue / 2).ToList();
+	}
+
+	/// <summary>
+	/// Every stack on the map the player may see. Within one the first of the province's list is on top - the player's own,
+	/// then the higher rank (<see cref="CProvinceUnitOrder"/>) - until a unit is selected (<see cref="TopDown"/>). What the player knows of a unit (<see cref="CUnitIntel"/>) decides what its counter shows - under 3 the unknown
 	/// picture, under 5 the name <c>???</c>, under 7 the figures <c>?</c> - and of its top unit whether the stack shows at
 	/// all, under 2 not (mapunits.md, section 3).
 	/// </summary>
@@ -119,7 +156,7 @@ public static class CMapCounters
 				{
 					continue;
 				}
-				(int, EMapStack) place = (unit.Location, StackOf(unit));
+				(int, EMapStack) place = (unit.Location, StackOf(state, unit));
 				if (!byPlace.TryGetValue(place, out CMapStack? stack))
 				{
 					stack = new CMapStack(place.Item1, place.Item2);
@@ -140,9 +177,20 @@ public static class CMapCounters
 				});
 			}
 		}
-		foreach (CMapStack stack in stacks)
+		// Each province's units in the original's order, the first on top: so a stack's list runs from its last to its first.
+		foreach (IGrouping<int, CMapStack> province in stacks.GroupBy(stack => stack.Province))
 		{
-			stack.Counters.Sort((a, b) => a.Size != b.Size ? a.Size.CompareTo(b.Size) : a.Unit.Id.CompareTo(b.Unit.Id));
+			List<CMapCounter> counters = province.SelectMany(stack => stack.Counters).ToList();
+			List<CUnit> order = CProvinceUnitOrder.Sort(counters.Select(counter => counter.Unit), player,
+				!state.Province(province.Key).IsSea);
+			foreach (CMapCounter counter in counters)
+			{
+				counter.ListIndex = order.IndexOf(counter.Unit);
+			}
+			foreach (CMapStack stack in province)
+			{
+				stack.Counters.Sort((a, b) => b.ListIndex.CompareTo(a.ListIndex));
+			}
 		}
 		// A stack whose top unit the player knows under 2 is not there for it: not drawn, not clicked.
 		stacks.RemoveAll(stack => stack.Counters[^1].Intel < CUnitIntel.StackShown);
