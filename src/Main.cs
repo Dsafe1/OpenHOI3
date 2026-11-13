@@ -102,7 +102,7 @@ public partial class Main : Control
 		_sounds.Setup(directories, () => _session?.Settings ?? _frontEnd?.Settings ?? _startSettings);
 		AddChild(_sounds);
 		_surfaces = new Map.CMapSurfaceKeeper(this);
-		_music.PlayTitle();
+		PlayTitleOnFirstFrame();
 		if (CSession.UserArguments().Any(SaysWhatToPlay))
 		{
 			Guarded(StartSwitched());
@@ -118,6 +118,17 @@ public partial class Main : Control
 			}
 			ShowFrontEnd();
 		}
+	}
+
+	/// <summary>
+	/// The title theme once the first frame of ours is drawn - the loading screen, or the main menu - and not while the
+	/// engine's own splash still stands, which it does until <c>_Ready</c> has made the first screen (docs/mechanics/music.md,
+	/// section 3).
+	/// </summary>
+	private async void PlayTitleOnFirstFrame()
+	{
+		await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+		_music.PlayTitle();
 	}
 
 	/// <summary>
