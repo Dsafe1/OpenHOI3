@@ -244,6 +244,7 @@ All of these are risk-free but for what the entry says.
 
 - **Influence's colour never reaches the screen.** `topbar.md`, 7. *Bug.*
 - **Tribute sent to a master shows green with a plus.** `topbar.md`, 14. *Display.*
+- **Money repaid on a debt counts as coming in.** The top bar's colour, the ledger tooltip's change and the Lua's daily balance take `repaid away` away from what goes out, though it is held above nought, so a repayment turns money green. `topbar.md`, 2. *Bug.*
 - **Diplomacy rows go stale:** threat, name and flag. `diplomacyscreen.md`, 8. *Display.*
 - **A zero balance reads "surplus"** on a red icon. `diplomacyscreen.md`, 8. *Display.*
 - **The highest-threat tooltip describes the wrong thing.** `diplomacyscreen.md`, 8. *Display.*

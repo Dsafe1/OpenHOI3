@@ -2500,9 +2500,9 @@ None of these blocks the list above.
   tooltip's text a line a row, for the level the panel names, would be the plain reading.
 - **A slider's lock lasts as long as the screen**, where the original keeps it with the
   country and so in the savegame. `docs/mechanics/sliders.md`, section 3.
-- **A resource's colour on the top bar leaves out trade, debt and tribute**, though all three move goods since
-  (`trade.md`, `aid.md`, `stockpile.md` section 7), so a country that buys what it uses is red where the original's
-  is yellow; and a government in exile's fuel and supplies are not shown as `-` (`CTopBarText`; `topbar.md`, section 2).
+- **A resource's colour on the top bar leaves out one pool** the original adds to what comes in and no reading has
+  named; trade, debt and tribute are in it since 2026-11-13, with their lines in its tooltip and a government in
+  exile's supplies and fuel a dash (`topbar.md`, sections 2 and 14).
 - **Whether the top bar's picture changes with the country** was not read. The install
   has a background for each of many tags beside the generic one that is drawn, and the
   country screens do change theirs. `docs/mechanics/countryviews.md`, section 2.
