@@ -167,6 +167,7 @@ public static class CTick
 		Step(state, CMissions.RunDaily);                          // a unit's day begins with its order's
 		Step(state, CDigIn.RunDaily);                             // and then with this
 		Step(state, CUnitUpkeep.RunDaily);
+		Step(state, Agents.CPlanWants.RefreshDaily);              // a headquarters' inactive plan, in the units' day (FINDINGS-liveread.md, section 76)
 		Step(state, Transport.CTransport.CheckEveryOverload);    // the last of a fleet's day (transport.md, section 6)
 		Step(state, CIntelGrants.CountDown);                     // what others were given to know of a unit, a day less
 		Step(state, CResources.UpdateHomeProduction);

@@ -28,9 +28,11 @@ public sealed class CSetPlanAreaCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		CUnitPlan plan = CUnitFinder.Find(state, _owner, _unit)!.Plan;
+		CUnit unit = CUnitFinder.Find(state, _owner, _unit)!;
+		CUnitPlan plan = unit.Plan;
 		plan.Area.Clear();
 		plan.Area.AddRange(_area);
 		Agents.CAircraftWants.Pad(state, plan);
+		Agents.CPlanWants.Refresh(state, unit);
 	}
 }

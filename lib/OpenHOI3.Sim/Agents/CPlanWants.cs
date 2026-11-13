@@ -8,8 +8,10 @@ using OpenHOI3.Sim.Units;
 namespace OpenHOI3.Sim.Agents;
 
 /// <summary>
-/// What a plan wants built and what it is short of - the original's <c>ComputePlanWantedSubUnits</c> and <c>CUnit::UpdatePlanForceNeeds</c>. Nothing here changes the
-/// game: where the original refills an inactive plan once a day, unsaved, the theatres screen asks here as it is filled (<c>docs/mechanics/theatresscreen.md</c>, section 6).
+/// What a plan wants built and what it is short of - the original's <c>ComputePlanWantedSubUnits</c> and <c>CUnit::UpdatePlanForceNeeds</c>. The theatres screen
+/// asks here as it is filled (<c>docs/mechanics/theatresscreen.md</c>, section 6); and once a day a theatre whose plan is not active has its powers and its
+/// <c>min</c> written from here, as the original's daily unit update writes them - which gives a small AI country's first power its post when its agent binds
+/// (<see cref="Refresh"/>; <c>reversing/findings/FINDINGS-liveread.md</c>, section 76).
 /// A shortage is taken off twice, and one mountain and one garrison step are taken with no call for them: the original's, kept.
 /// </summary>
 public static class CPlanWants
@@ -26,6 +28,54 @@ public static class CPlanWants
 	private const string TacticalBomber = "tactical_bomber";
 	private const string Interceptor = "interceptor";
 	private const string InfantryKey = "infantry_brigade";
+
+	/// <summary>
+	/// Every headquarters' day: <see cref="Refresh"/> for each, as the original's <c>CUnit::UpdateDaily</c> does at midnight.
+	/// </summary>
+	public static void RefreshDaily(CGameState state)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (CUnit unit in country.UnitsInOrder())
+			{
+				if (!unit.IsRemoved)
+				{
+					Refresh(state, unit);
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// The original's <c>CUnit::RefreshPlanForceNeeds</c> and <c>UpdatePlanForceNeeds</c> as far as they change the game: a theatre,
+	/// or a headquarters with an agent, whose chain's top is not a theatre with an active plan has its own plan's powers and
+	/// <c>min</c> made again from the whole order of battle under it, with no command. Run by the day and by the commands that
+	/// set a plan's area, its forces or its stance - so an AI theatre's plan, its area set before it is switched on, holds its
+	/// order of battle's figure when the first power update asks it, and that update posts the small figure it works out
+	/// (<c>reversing/findings/FINDINGS-liveread.md</c>, section 76).
+	/// </summary>
+	public static void Refresh(CGameState state, CUnit unit)
+	{
+		if (unit.Kind is EUnitKind.Division or EUnitKind.Navy or EUnitKind.Air
+			|| (unit.Kind != EUnitKind.Theatre && unit.Agent is null))
+		{
+			return;
+		}
+		CUnit top = unit;
+		while (top.Parent is not null)
+		{
+			top = top.Parent;
+		}
+		if (top.Plan.Active && top.Kind == EUnitKind.Theatre)
+		{
+			return;
+		}
+		CPlanWanted wanted = Compute(state, unit, null);
+		unit.Plan.OurPower = wanted.OurPower;
+		unit.Plan.TheirPower = wanted.TheirPower;
+		unit.Plan.Min.Clear();
+		unit.Plan.Min.AddRange(wanted.Wanted);
+	}
 
 	/// <summary>Whether the top of the unit's chain has an active plan, which leaves the plan's own figures standing.</summary>
 	public static bool IsAiPlan(CUnit unit)
@@ -202,8 +252,10 @@ public static class CPlanWants
 		foreach (CSubUnit brigade in Collect(state, unit, useArea ? area : null))
 		{
 			Tally(brigade, own);
-			our += CUnitPower.Value(brigade) * Ratio(brigade.Strength.Raw, brigade.Stats[CSubUnitType.MaxStrength].Raw) / Whole
-				* Ratio(brigade.Organisation.Raw, brigade.Stats[CSubUnitType.DefaultOrganisation].Raw) / Whole;
+			// Over the brigade's own maxima, as the original's slot 12 and organisation ceiling give them: the reserve penalty and
+			// the commander's bonus counted - a reserve brigade at its reduced strength is whole (FINDINGS-liveread.md, section 76).
+			our += CUnitPower.Value(brigade) * Ratio(brigade.Strength.Raw, CUnits.MaxStrength(state, country, brigade).Raw) / Whole
+				* Ratio(brigade.Organisation.Raw, COrganisation.Ceiling(state, country, brigade).Raw) / Whole;
 		}
 
 		(Roles enemy, long their, int mountainEnemy) = Census(state, country, area);

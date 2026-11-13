@@ -28,8 +28,10 @@ public sealed class CSetPlanForcesCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		CUnitPlan plan = CUnitFinder.Find(state, _owner, _unit)!.Plan;
+		CUnit unit = CUnitFinder.Find(state, _owner, _unit)!;
+		CUnitPlan plan = unit.Plan;
 		plan.Min.Clear();
 		plan.Min.AddRange(_min);
+		Agents.CPlanWants.Refresh(state, unit);
 	}
 }

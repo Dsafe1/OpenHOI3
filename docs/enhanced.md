@@ -26,6 +26,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **Its generator**: the entry above.
 - **Every agent and what it holds** - its committed, held-back, garrison and reserve divisions, its positions, the subordinates promised, its plan's ports and priority - and each country's unit pass: made afresh on entering, which runs two passes and gives their orders again, so divisions move in the first hour where the saved game's would not (`savegame.md`, 2 and 5).
 - **The AI strategy**: the save's lists are kept only until entering makes every country's again (`savegame.md`, 16).
+- **An inactive plan's `min`**: the original writes a plan's `min` only while it is active, so a played country's theatre - whose powers and wants are made again each midnight and when its area, forces or stance are set - loads with its powers and no `min` until the next midnight. Nothing here reads an inactive plan's `min` (`agents.md`, 7.3; `reversing/findings/FINDINGS-liveread.md`, section 76).
 - **The five ministers' countdowns**, the foreign minister's skipped first work and the production minister's desperation: started again.
 - **The Lua's memory**: Their Finest Hour's scripts keep none between calls, a mod's may (`replay.md`, 7).
 

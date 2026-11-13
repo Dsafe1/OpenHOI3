@@ -167,7 +167,8 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    handled fleets taken off its ready list the same way (section 72), 906 and 530; with every province's terrain the
    running game's (section 74 - counted round the default text point two pixels south of the centre, which also leaves
    the weather check agreeing in every province), 897, 906 and 533; with a unit already redeploying given a new
-   redeployment when sent far off (section 75), 901 placed - what still differs is shared by both of the original's
+   redeployment when sent far off (section 75), 901 placed; and with an inactive plan's powers made again from its order
+   of battle (section 76), the plans' own power 93 of 106 where it was 44 - what still differs is shared by both of the original's
    runs, and the 1 Moukogo Kiheishidan's place is the new game's weather, a front over it that the original has not. **Britain's fleets are one over both runs on 4 January**: the 47th Navy, a light cruiser split
    off and joining the 1st Transport Ship Squadron, never catches it in the original - re-aimed once, at midnight, by
    something that is not the AI's move, the record's `CJoinFleetOrder::IsActive` re-aiming nothing - where ours re-aims it

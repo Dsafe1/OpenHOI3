@@ -331,7 +331,13 @@ Every hour while the country's stances are unsettled, then once a day at hour (n
 At binding and at hour A0: our = **the sum of every division's power** on the agent's land list, a division getting x (1000
 + 80 x its province's fort level) / 1000 unless it is moving or the stance is 3 or more; their = **the enemy's power the
 area faces**, gathered as the division need is worked out (7.5): each counted front province's hostile units' power by
-the province's weight. **They are written only when either changes in its whole number.** A unit's power is the sum over its
+the province's weight. **They are written only when either changes in its whole number** - and a figure under one still gets its first post,
+because a theatre whose plan is not yet active has its powers and its `min` made again from the whole order of battle
+under it, every brigade's combat value by its strength over its own maximum (the reserve penalty counted) and its
+organisation over its ceiling: each midnight, and when a command sets its area, its forces or its stance. An AI theatre's
+area is set before its plan is switched on, so the plan holds its order of battle's figure - Denmark's new Copenhagen HQ
+77.195 - when the first power update asks, and the 0.188 it works out is posted (`confirmed` on the running game,
+`reversing/findings/FINDINGS-liveread.md`, section 76). A unit's power is the sum over its
 brigades of `(strength/100) x value / 1000 x (organisation/100) / 1000`, a land brigade's value `(soft + hard + piercing
 attack + (defensiveness + toughness)/10 + armour) x (2000 - softness) / 1000`, an air wing's `air_attack + air_defence +
 500`, a ship's `(500 + sea_attack + sea_defence) x hull / 1000`, all in thousandths.

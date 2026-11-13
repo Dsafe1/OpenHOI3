@@ -57,7 +57,7 @@ A queue line remembers the headquarters (`target`, saved as the original's).
 
 ## 6. What a plan is short of
 
-Nothing here changes the game. The original refills an inactive plan once a day, unsaved; **we work it out as the screen is filled.** An active plan at the top of the chain - an AI's - answers from its own `min` and powers, and a row then shows the same as the theatre.
+Nothing here changes the game. The original refills an inactive plan once a day and when its area, forces or stance are set - and so does the game here since 2026-11-14, its powers kept and its `min` not saved (`agents.md`, 7.3) - but **the screen still works it out as it is filled.** An active plan at the top of the chain - an AI's - answers from its own `min` and powers, and a row then shows the same as the theatre.
 
 **Short of**, per type: `difference` is wanted less what the unit and all under it hold, signed. Each difference adds to its group's total. Then for each type with a positive difference, in database order, the lesser of that and what its group is still short of is taken: that is the need, and the group's total comes down by it. A surplus of one type so cancels a shortage of another in its group.
 
@@ -87,7 +87,7 @@ Aircraft: 9 (an army 3, a corps nought) × `s` / 1000 and half of it, at a theat
 
 ### 6.2 Powers
 
-An active plan's own. For an inactive one `our` is the sum over its brigades of value × strength share × organisation share, and `their` the enemy's raw value; with no enemy that gives the third frame and the `BAD` sentence, which is how a played country's theatre always reads.
+An active plan's own. For an inactive one `our` is the sum over its brigades of value × strength share × organisation share - each over the brigade's own maximum, the strength's with the reserve penalty and the organisation's ceiling (`reversing/findings/FINDINGS-liveread.md`, section 76) - and `their` the enemy's raw value; with no enemy that gives the third frame and the `BAD` sentence, which is how a played country's theatre always reads.
 
 ### 6.3 A province's garrison score
 

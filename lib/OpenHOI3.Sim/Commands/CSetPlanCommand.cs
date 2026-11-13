@@ -44,11 +44,14 @@ public sealed class CSetPlanCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		CUnitPlan plan = CUnitFinder.Find(state, _owner, _unit)!.Plan;
+		CUnit unit = CUnitFinder.Find(state, _owner, _unit)!;
+		CUnitPlan plan = unit.Plan;
 		plan.Active = true;
-		if (_stance != Unchanged)
+		if (_stance != Unchanged && plan.Stance != _stance)
 		{
 			plan.Stance = _stance;
+			// A change of stance makes the plan's forces again (FINDINGS-liveread.md, section 76).
+			Agents.CPlanWants.Refresh(state, unit);
 		}
 		if (_airStance != UnchangedAirOrNaval)
 		{
