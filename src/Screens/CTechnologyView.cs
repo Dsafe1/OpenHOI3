@@ -123,16 +123,10 @@ public partial class CTechnologyView : CCountryView
 		_sliders = new CSliderPanel(Context, window, "tech_slider", "leadership_slider_start",
 			"leadership_slider_offset", SliderOrder,
 			share => Context.Localisation.Localise(CSliderText.TitleKey((ELeadershipCategory)share)));
-		_sliders.NeedPressed += share =>
-		{
-			if (_sliders.Group.IsHeld(share))
-			{
-				_sliders.Group.SetHeld(share, false);
-				return;
-			}
-			_sliders.Move(share, Need((ELeadershipCategory)share));
-			_sliders.Group.SetHeld(share, true);
-		};
+		_sliders.NeedPressed += share => _sliders.PinAtNeed(share, Need((ELeadershipCategory)share));
+		// The screen keeps no locks of its own: its sliders start locked as the production screen's first four entries say,
+		// officers by the fourth and research by the first, and it never writes them - the original's (sliders.md, section 3).
+		_sliders.LoadLocks(share => CProductionView.MirrorLocked(Player, CLeadership.CategoryCount - 1 - share));
 
 		Func<string, string> localise = Context.Localisation.Localise;
 		_sliders.SetTooltips(

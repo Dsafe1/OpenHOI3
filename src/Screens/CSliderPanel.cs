@@ -98,6 +98,27 @@ public sealed class CSliderPanel
 
 	public CSliderGroup Group => _group;
 
+	/// <summary>Each slider locked or not as the country's mirror says, as the original's are when its sliders are made.</summary>
+	public void LoadLocks(Func<int, bool> locked)
+	{
+		for (int share = 0; share < _sliders.Length; share++)
+		{
+			_group.SetHeld(share, locked(share));
+		}
+	}
+
+	/// <summary>
+	/// The need button: the slider put at its need and half a step, and locked - pressed on a slider already locked, moved
+	/// to its need and left locked. On these screens it never lets go (<c>docs/mechanics/sliders.md</c>, section 3).
+	/// </summary>
+	public void PinAtNeed(int share, CFixedPoint need)
+	{
+		CFixedPoint halfStep = _sliders[share]?.Scrollbar is { } bar ? new CFixedPoint(bar.StepSize.Raw / 2) : CFixedPoint.Zero;
+		_group.SetHeld(share, false);
+		Move(share, need + halfStep);
+		_group.SetHeld(share, true);
+	}
+
 	/// <summary>The player moves a slider, by hand or by its button. The others make room.</summary>
 	public void Move(int share, CFixedPoint value)
 	{

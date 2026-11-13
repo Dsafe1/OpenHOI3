@@ -525,6 +525,10 @@ public static class CSaveLoader
 				case "mobilize":
 					country.Mobilised = child.Value == "yes";
 					continue;
+				// The production screen's slider locks, the played country's alone written, any block's read (sliders.md, section 3).
+				case "slider_locks" when child.IsBlock:
+					country.SliderLocks = child.Children.Select(value => (int)CSaveValues.Whole(value.Value)).ToArray();
+					continue;
 			}
 			if (!CountryKeys.Contains(key) && !laws.Contains(key) && !posts.Contains(key) && !categories.Contains(key)
 				&& !CSavePolitics.Keys.Contains(key) && !CSaveEspionage.Keys.Contains(key) && !CSaveLedgers.Keys.Contains(key)

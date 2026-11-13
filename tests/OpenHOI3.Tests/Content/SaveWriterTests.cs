@@ -50,6 +50,25 @@ public class SaveWriterTests
 	}
 
 	[Fact]
+	public void The_slider_locks_are_written_for_the_played_country_alone_before_its_alignment()
+	{
+		var norway = new CCountry { Tag = new CCountryTag("NOR"), Name = "Norway", DefinitionFile = "" };
+		var sweden = new CCountry { Tag = new CCountryTag("SWE"), Name = "Sweden", DefinitionFile = "" };
+		var state = new CGameState(new CDate(1936, 1, 7), new[] { new CProvince(0, "", isSea: false) }, new[] { norway, sweden });
+		state.Played.Add(norway.Tag);
+		var command = new OpenHOI3.Sim.Commands.CSetSliderLocksCommand(norway.Tag, new[] { 1, 0, 0, 0, 1, 0 });
+		Assert.True(command.MayExecute(state));
+		command.Execute(state);
+		sweden.SliderLocks[0] = 1;
+
+		string text = CSaveWriter.Write(state);
+
+		// Upgrades and consumer goods locked, the list's order; Sweden, played by nobody here, writes none.
+		Assert.Contains("\tslider_locks=\r\n\t{\r\n1 0 0 0 1 0 \t}\r\n\talignment=", text);
+		Assert.Single(System.Text.RegularExpressions.Regex.Matches(text, "slider_locks"));
+	}
+
+	[Fact]
 	public void A_province_is_written_in_the_originals_order_each_key_where_the_original_writes_it()
 	{
 		var nor = new CCountryTag("NOR");

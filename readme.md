@@ -2494,8 +2494,6 @@ None of these blocks the list above.
 - **The technology panel's `effects` rows keep their window's size**, where the original resizes each to 180 wide;
   how it clips a wider row was not read. The rows themselves are the original's since 2026-11-13 - the tooltip's text
   at its level, laid out and cut as it cuts it (`docs/mechanics/technologyscreen.md`, section 7).
-- **A slider's lock lasts as long as the screen**, where the original keeps it with the
-  country and so in the savegame. `docs/mechanics/sliders.md`, section 3.
 - **A resource's colour on the top bar leaves out one pool** the original adds to what comes in and no reading has
   named; trade, debt and tribute are in it since 2026-11-13, with their lines in its tooltip and a government in
   exile's supplies and fuel a dash (`topbar.md`, sections 2 and 14).

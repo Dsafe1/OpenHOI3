@@ -382,6 +382,11 @@ public static class CSaveWriter
 		{
 			writer.Bool("mobilize", true);
 		}
+		// The production screen's slider locks, for the country the local player plays alone (sliders.md, section 3).
+		if (state.Played.Count > 0 && state.Played.First() == country.Tag)
+		{
+			writer.Numbers("slider_locks", country.SliderLocks.Select(locked => (long)locked));
+		}
 		// Where it stands on the alignment triangle, an empty line after it (section 15).
 		writer.Begin("alignment");
 		writer.Begin("position");
