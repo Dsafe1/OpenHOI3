@@ -171,8 +171,11 @@ is cleared.
    taken is skipped, not a province already listed: the hold list can name a province twice, and both records then become targets,
    each wanting its garrison (section 36). Bulgaria's list on entering the save of July 1941 names 4368, 4555 and 4870 twice.
 5. **Per block of land** of **the first g targets** (the shortfall to the theatre's largest area's), the garrisons standing or bound
-   there are matched to its count: too many - the non-garrison-brigade one with the lowest hold score where it stands
-   (+1000 for militia, +500 for police) is unmarked; too few - of the unmarked committed divisions standing or bound there, facing
+   there are matched to its count: too many - the non-garrison-brigade one with the lowest score is unmarked, the score
+   being **that of the last garrison target on the province where it stands or is bound, 1 where no target is** (+1000
+   for militia, +500 for police), the first of equals going - Poland's Warszawa HQ at 10:00 on 1 January, its 9th and
+   15th Dywizja at 1626 and its 55th Reserve at 2158 all on no target, drops the 9th, which then goes to the line
+   (`confirmed` on the running game, 2026-11-13, `reversing/findings/FINDINGS-liveread.md`, section 70); too few - of the unmarked committed divisions standing or bound there, facing
    from where they are bound no neighbour the country prepares war on, carrying no armour or mechanised brigade **where the
    agent's frontier is at war** (not the country's wars) and no paratroops with air
    transports about, the one with the best 10 x garrison rating (section 11.3) + (its mean distance to the area + 10) / 5,

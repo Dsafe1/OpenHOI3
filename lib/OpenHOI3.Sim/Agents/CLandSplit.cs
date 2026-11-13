@@ -58,6 +58,8 @@ public static class CLandSplit
 			}
 		}
 		var targets = new List<int>();
+		// Each target's record score beside it, which the drop asks (FINDINGS-liveread.md, section 70).
+		var targetScores = new List<long>();
 		// The records taken, by their place on the hold list: the top-up skips a record already taken and not a province
 		// already listed, so a province the list names twice may be two targets (FINDINGS-liveread.md, section 36).
 		var taken = new HashSet<int>();
@@ -74,7 +76,7 @@ public static class CLandSplit
 			{
 				continue;
 			}
-			Insert(targets, agent, hold);
+			Insert(targets, targetScores, agent, hold);
 			taken.Add(at);
 			if (hold.Score >= StrongScore)
 			{
@@ -138,15 +140,15 @@ public static class CLandSplit
 			}
 			if (!taken.Contains(at))
 			{
-				Insert(targets, agent, agent.HoldProvinces[at]);
+				Insert(targets, targetScores, agent, agent.HoldProvinces[at]);
 			}
 		}
-		Match(state, country, agent, network, targets, garrisons, ordered);
+		Match(state, country, agent, network, targets, targetScores, garrisons, ordered);
 		return (garrisons, line, targets, ordered);
 	}
 
 	/// <summary>The target put in its place by score, the higher first and after any of its own score, wherever it was found.</summary>
-	private static void Insert(List<int> targets, CAgent agent, CHoldProvince hold)
+	private static void Insert(List<int> targets, List<long> scores, CAgent agent, CHoldProvince hold)
 	{
 		int at = targets.Count;
 		while (at > 0 && hold.Score > agent.HoldProvinces.Find(other => other.Province == targets[at - 1])!.Score)
@@ -154,6 +156,7 @@ public static class CLandSplit
 			at--;
 		}
 		targets.Insert(at, hold.Province);
+		scores.Insert(at, hold.Score);
 	}
 
 	/// <summary>The non-friendly land units on the front list whose holders are front-worthy, and their areas' provinces.</summary>
@@ -189,7 +192,7 @@ public static class CLandSplit
 
 	/// <summary>Each block of land's garrisons matched to its targets: the worst dropped, the best of the rest marked.</summary>
 	private static void Match(CGameState state, CCountry country, CAgent agent, CSupplyNetwork network, List<int> targets,
-		int garrisons, List<CUnit> ordered)
+		List<long> targetScores, int garrisons, List<CUnit> ordered)
 	{
 		var wanted = new Dictionary<CSupplyGroup, int>();
 		foreach (int id in targets.GetRange(0, System.Math.Min(garrisons, targets.Count)))
@@ -203,11 +206,6 @@ public static class CLandSplit
 			&& CTheatreProvinces.LargestArea(theatre)?.RegionGroup is { } largest)
 		{
 			wanted[largest] = wanted.GetValueOrDefault(largest) + garrisons - targets.Count;
-		}
-		var holdScore = new Dictionary<int, long>();
-		foreach (CHoldProvince hold in agent.HoldProvinces)
-		{
-			holdScore.TryAdd(hold.Province, hold.Score);
 		}
 		foreach ((CSupplyGroup group, int count) in wanted)
 		{
@@ -224,7 +222,7 @@ public static class CLandSplit
 				trace.Write($"  block of {targets.Find(id => ReferenceEquals(network.AreaOf(id)?.RegionGroup, group))}: wants {count}, " +
 					$"has {there.Count}");
 			}
-			while (there.Count > count && Worst(there, holdScore) is { } dropped)
+			while (there.Count > count && Worst(there, targets, targetScores) is { } dropped)
 			{
 				dropped.IsGarrison = false;
 				there.Remove(dropped);
@@ -239,17 +237,30 @@ public static class CLandSplit
 		}
 	}
 
-	private static CUnit? Worst(List<CUnit> there, Dictionary<int, long> holdScore)
+	/// <summary>
+	/// The garrison to drop: the least by the score of the last garrison target where it stands or is bound, 1 where it is
+	/// on none, +1000 with militia and +500 with police, a garrison brigade never; the first of equals, from 10,000,000
+	/// (FINDINGS-liveread.md, section 70).
+	/// </summary>
+	private static CUnit? Worst(List<CUnit> there, List<int> targets, List<long> targetScores)
 	{
 		CUnit? worst = null;
-		long least = long.MaxValue;
+		long least = 10_000_000 * Whole;
 		foreach (CUnit unit in there)
 		{
 			if (unit.SubUnits.Exists(brigade => brigade.Type.Key == "garrison_brigade"))
 			{
 				continue;
 			}
-			long score = holdScore.GetValueOrDefault(CAgentUnits.DestinationOrPlace(unit));
+			int place = CAgentUnits.DestinationOrPlace(unit);
+			long score = Whole;
+			for (int at = 0; at < targets.Count; at++)
+			{
+				if (targets[at] == place)
+				{
+					score = targetScores[at];
+				}
+			}
 			if (unit.SubUnits.Exists(brigade => brigade.Type.Key == "militia_brigade"))
 			{
 				score += 1000 * Whole;
