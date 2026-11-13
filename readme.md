@@ -159,6 +159,11 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    of the second hour is the original's move for move, Tevere pulled to 9960; on 4 January 857 of 908 divisions where the save has
    them and 450 of 542 bound for its province (854 and 447 before), entering and the 48 hours unchanged, 217 of 299 and 135 of ours alone.
    The sealift's pick is the original's score for score (section 61) and its vote walks the original's hash map (section 62).
+   Since 2026-11-13, with a join_air ending at its range (section 67), the hold list's weekly rebuild on the 1st, 8th,
+   15th, 22nd and 29th (section 68), the peace-time +20 spread in single precision (section 69) and the garrison dropped
+   scored by the garrison targets (section 70): on 4 January 892 of 908 divisions where the hourly saves have them, 902
+   move or stay as theirs, 499 of 541 bound for their province, and every air figure theirs - what still differs is
+   shared by both of the original's runs, the Soviet Union's most of it.
    **The plans' embark and debark that still differ vary with the original's own run**: two runs of the same new game gave
    Australia, Republican Spain and the Dutch East Indies other targets or another order of votes, and Japan another port.
 
