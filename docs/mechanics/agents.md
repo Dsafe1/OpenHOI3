@@ -538,7 +538,11 @@ enemy ship is handed to anyone.
 **Transports**, at (number + 8) % 24, for each agent with troops listed for the sea (`moving.md`, section 15) and a sealift
 port - its theatre's largest area's largest naval base: while their weight is above what its transport fleets can carry,
 the fleet with no agent of its own, no order, room for a whole unit, not its own and not the sealift's of another agent,
-with the most 10 - min(distance by sea to the port / 400, 10) + its room, is taken.
+with the most 10 - min(distance by sea to the port / 400, 10) + its room, is taken. **What is taken is kept from the same
+agent alone**, the list made again for each: a fleet one agent took is still its old agent's until the command runs, so a
+later agent may take it too, and its attach, coming last, holds - Britain's 3rd Transport Ship Squadron goes to Far East
+Command and then to East Africa Command at 11:00 on 1 January, East Africa keeping it (`confirmed` on the running game,
+`reversing/findings/FINDINGS-liveread.md`, section 73).
 
 Each moves by being put under the agent's headquarters, and both agents' subordinates are sorted again.
 

@@ -138,13 +138,16 @@ public static class CFleetMovers
 	/// <summary>Transport fleets taken by each agent with troops for the sea until its transports can carry them, nearest its port first.</summary>
 	public static void Gather(CGameState state, CCountry country)
 	{
-		var taken = new HashSet<CUnit>();
 		foreach (CAgent agent in country.UnitAi.Agents)
 		{
 			if (agent.Unit is not { } headquarters || agent.SealiftPort <= 0 || agent.SealiftWeight <= 0)
 			{
 				continue;
 			}
+			// What this agent has taken, made again for each agent: a fleet another took this pass is still its old agent's
+			// until the command runs, so a later agent may take it too and its attach, coming last, holds - Britain's 3rd
+			// Transport Ship Squadron taken by Far East Command and then East Africa Command (FINDINGS-liveread.md, section 73).
+			var taken = new HashSet<CUnit>();
 			long have = 0;
 			foreach (CUnit fleet in agent.TransportFleets)
 			{
