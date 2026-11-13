@@ -1925,7 +1925,7 @@ None of these blocks the list above.
   country at war does in a merge; and they are looked after as one step of the hour after every country's units, where
   the original does each country's right after its own.
 - **The unit agents leave out** (2026-10-17, `docs/mechanics/agents.md`, section 13): the war stance's combat values. The
-  air units' move between theatres by group difference is built since 2026-11-14 (`agents.md`, section 10.3). The division need is read whole since 2026-10-19, and
+  air units' move between theatres by group difference is built since 2026-11-13 (`agents.md`, section 10.3). The division need is read whole since 2026-10-19, and
   the balancing agrees with the 4 January save in all 106 theatres since 2026-11-09, the AI's lending of units with it (`agents.md`, sections 10.5 and 14).
 - **Moving and attacking leaves out** (2026-10-19, `docs/mechanics/moving.md`, sections 19 and 20): paradrops and
   strategic bombing, nothing yet handing the agents the enemy's war industry; the Allies' Baltic ban; a friend's area

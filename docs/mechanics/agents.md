@@ -238,11 +238,16 @@ joined at its third).
   receiving unit with no name is named `NAVY_NAME` or `AIR_NAME` numbered, the first number free; its leader is chosen where
   the country assigns its own and the unit has none; an emptied unit loses its leader; a carrier brings the air groups
   based on it.
-- **Join** (`join_fleet`, `join_air`): the unit sails or flies to the other's province; arrived - **a fleet as soon as
-  the two share a province, the other under way or not** (`CJoinFleetOrder::IsActive`; a fleet chasing one at sea
-  otherwise never caught it, `reversing/findings/FINDINGS-liveread.md`, section 65), an air unit where the other stands
-  still - it is merged into the other as the merge button merges (`selection.md`, section 5.4) - its ships or wings and what it carries go over, the
-  more skilled leader stays - and it is removed. With no other, it goes back to its base. **A join_air keeps its partner
+- **Join** (`join_fleet`, `join_air`): the unit sails or flies to the other's province; arrived - **as soon as the two
+  share a province, the other under way or not** (`CJoinFleetOrder::IsActive`, `CJoinAirOrder::IsActive`; a fleet chasing
+  one at sea otherwise never caught it, `reversing/findings/FINDINGS-liveread.md`, section 65) - it is merged into the other
+  as the merge button merges (`selection.md`, section 5.4) - its ships or wings and what it carries go over, the
+  more skilled leader stays - and it is removed. With no other, or an air unit's other itself joining or holding no wing,
+  it goes back to its base; an air unit with no base is simply done. **An air unit on its way then asks what every air
+  order asks** (`CAirOrder::IsActive`, `aircombat.md`, section 1): beyond its range from its base it turns for home and
+  the order is done - Japan's 4. Nihon Koukuujieitai, sent from 4986 to join the 5th at 4691 on 1 January at 23:00, turns
+  back at 11919 three hours later and is home at 4986 at 04:00, as in the original (`confirmed` on the running game,
+  FINDINGS-liveread.md, section 67). **A join_air keeps its partner
   twice** - as the order's target and as the join's own - and a load restores only the second: so the merge still happens,
   but the air body's triage and regrouping, which ask the first, find a loaded join_air dead, call it off and regroup
   afresh (`confirmed` on the running game, 2026-11-11: Italy's 2nd Squadra Aerea, joining the 5th Comando Aerosiluranti
@@ -516,7 +521,7 @@ by its group's entry of the plans' group difference (section 7, `CPlanWants.Grou
 count - what the pass has moved to that one), the current agent's difference -1000 where it has none - the first agent
 that qualifies taking it; or, holding a tactical bomber and no interceptor, multi-role or CAS, it goes to an agent whose
 frontier faces a war candidate from one whose does not. On such a move the pass's tally is kept for every listed type; on
-the capital's pull it is not (`reversing/findings/FINDINGS-agents.md`, F.4; built 2026-11-14 - Japan's naval bomber group
+the capital's pull it is not (`reversing/findings/FINDINGS-agents.md`, F.4; built 2026-11-13 - Japan's naval bomber group
 then goes to the Kwantung Army and Italy's to Africa, every theatre's air units 106 of 106 against the played save of 4
 January).
 

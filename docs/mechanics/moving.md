@@ -495,7 +495,7 @@ makes nobody at war (`war.md`, section 1).
    agent's), otherwise only with no submarine, where its base lies in another area than its commander's or is crowded past
    its level and two - to the theatre's port in its commander's area with the least distance from the commander + 10,
    +2000 a ship over the port's level, x0.75 for staying, in single precision, a fleet leaving taken off its old base's
-   count (read on the listing 2026-11-14, `reversing/findings/FINDINGS-liveread.md`, section 64: the USA's 2nd USN
+   count (read on the listing 2026-11-13, `reversing/findings/FINDINGS-liveread.md`, section 64: the USA's 2nd USN
    Submarine Fleet, based at Manila, which the Philippines own, sails for Honolulu at the eleventh hour). **A fleet holding a transport goes no further**: neither counted
    nor free, it is sent on no patrol and no intercept (`reversing/findings/FINDINGS-liveread.md`, section 42). Any other's
    power, with no rebase or raid, adds to the own power; a fleet not busy - or on patrol or escort - is **free**.

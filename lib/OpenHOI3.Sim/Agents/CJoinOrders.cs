@@ -46,8 +46,15 @@ public static class CJoinOrders
 	/// </summary>
 	public static bool RunHour(CGameState state, CCountry country, CUnit unit)
 	{
+		bool air = unit.Kind == EUnitKind.Air;
+		// An air group with no base is done where it is (CJoinAirOrder::IsActive).
+		if (air && unit.Base == 0)
+		{
+			return false;
+		}
 		CUnit? target = unit.Mission.LiveTarget;
-		if (target is null || target.Owner != unit.Owner || IsJoin(target.Order) || target.Kind != unit.Kind)
+		if (target is null || target.Owner != unit.Owner || IsJoin(target.Order) || target.Kind != unit.Kind
+			|| (air && target.SubUnits.Count == 0))
 		{
 			if (unit.Base > 0 && unit.Location != unit.Base)
 			{
@@ -55,12 +62,22 @@ public static class CJoinOrders
 			}
 			return false;
 		}
-		// A fleet merges as soon as the two share a province, the other under way or not (CJoinFleetOrder::IsActive;
-		// reversing/findings/FINDINGS-liveread.md, section 65); an air unit only into one standing still.
-		if (unit.Location == target.Location && (unit.Kind == EUnitKind.Navy || !target.IsMoving))
+		// Either merges as soon as the two share a province, the other under way or not (CJoinFleetOrder::IsActive and
+		// CJoinAirOrder::IsActive; reversing/findings/FINDINGS-liveread.md, sections 65 and 67).
+		if (unit.Location == target.Location)
 		{
 			Merge(state, unit, target);
 			return false;
+		}
+		// An air group then asks what every air order asks, so one beyond its range from its base turns for home and
+		// loses the order (CAirOrder::IsActive; FINDINGS-liveread.md, section 67).
+		if (air && !Missions.CAirMissions.IsStillGoing(state, country, unit))
+		{
+			return false;
+		}
+		if (air && unit.Mission.ReturnToBase)
+		{
+			return true;
 		}
 		if (!unit.IsMoving || unit.Path[^1] != target.Location)
 		{
