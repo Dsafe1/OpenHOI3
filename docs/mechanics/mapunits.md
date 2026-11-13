@@ -320,6 +320,12 @@ All sixteen are built: `alerts.md`.
 The window `sidebar_deploy` of `interface/sidebar.gui`: a title, the list
 `deployment_queue`, and `close`. `confirmed` throughout, but where marked.
 
+**The menu, the order of battle browser and the unit panel stand side by side**: the menu at the screen's left, 256 wide by
+its file, the browser at its right edge and the panel at the browser's - each pushed aside by those before it, and back to
+the edge when the menu closes. The original's screenshots show the three up at once (the maintainer's, 2026-11-13); until
+then the panel gave way to the menu here, which left the browser shut and the drag below impossible. *Ours:* the
+arithmetic, from the screenshots and not read.
+
 **Its list is the country's units waiting to be placed**, in the order they were finished,
 each a `deployment_entry` - and since 2026-10-15 the buildings waiting after them, a line each with the building's name
 and no pictures, placed by a click where the map shows green (`buildinglines.md`, section 6):
@@ -371,7 +377,8 @@ a lone brigade, ship or wing, only where it may be placed in the row unit's prov
 browser's `CTransferSubUnitCommand`. The deploy command so posted puts the unit where the original's join puts it - the row
 unit's province, or the nearest province of the home area where it may go - and asks nothing more of the target, as the
 original's asks nothing; the second command then finds the work done. A drop on no row posts nothing, and the line stays.
-Built 2026-11-13 and tested; **not tried on screen**, a unit waiting in the menu not having been come by. *Not
+Built 2026-11-13 and tested, and tried on screen with `--click` the same day: a division ordered, finished by the
+console's `inc`, dragged from the menu onto a corps' row, which it joined, the player told. *Not
 established*, so not built: what the original does where the join finds no province at all - the attach would hang the
 waiting unit under the row by the reading, not traced - and whether the player is told `TRANSFEREDSUBUNIT` twice. Its
 rule about a carrier's air group and the room aboard was not read through, and is not

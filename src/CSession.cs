@@ -527,7 +527,7 @@ public partial class CSession : Node
 			layer.AddChild(browser);
 			browser.UnitChosen += unit => ChooseUnit(unit);
 			browser.CountryViewsClosing += CloseCountryViews;
-			browser.WidthChanged += width => _unitPanel.SetLeft(width);
+			browser.WidthChanged += _ => LayOutLeftColumn();
 			_unitPanel.BrowserWanted += browser.Toggle;
 			_unitPanel.BrigadeDragStarted += browser.BeginDragSubUnit;
 			// And from the panel's child rows and leader button, and the outliner's unit rows below (oobbrowser.md, section 6).
@@ -1036,12 +1036,24 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
-	/// The unit panel is up for the unit selected on the map, and gives way to the
-	/// deploy menu, which stands in the same place.
+	/// The unit panel is up for the unit selected on the map, the deploy menu open or not: the original stands the two side by
+	/// side, the order of battle browser between them (<c>docs/mechanics/mapunits.md</c>, section 6).
 	/// </summary>
 	private void ShowSelectedUnit()
 	{
-		_unitPanel?.ShowSelection(_deployMenu is { IsOpen: true } ? System.Array.Empty<CUnit>() : _mapView.Units.Units);
+		_unitPanel?.ShowSelection(_mapView.Units.Units);
+		LayOutLeftColumn();
+	}
+
+	/// <summary>
+	/// The deploy menu at the screen's left, where it is open, the order of battle browser at its right edge, and the unit
+	/// panel at the browser's - each pushed aside by those before it, as the original's screenshots stand them.
+	/// </summary>
+	private void LayOutLeftColumn()
+	{
+		float left = _deployMenu is { IsOpen: true } deploy ? deploy.Width : 0f;
+		_browser?.SetLeft(left);
+		_unitPanel?.SetLeft(left + (_browser?.TotalWidth ?? 0f));
 	}
 
 	/// <summary>Ctrl and a digit: the selected units become the group, by a command (selection.md, section 7).</summary>

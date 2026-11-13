@@ -80,6 +80,9 @@ public partial class CDeployMenu : Control
 
 	public bool IsOpen => Visible;
 
+	/// <summary>How wide the menu's window is - 256 by its file - which the browser and the unit panel stand beside.</summary>
+	public float Width => _window?.Size.X ?? 0f;
+
 	public override void _Ready()
 	{
 		Name = WindowName;
