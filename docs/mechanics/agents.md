@@ -509,8 +509,16 @@ again, and the divisions balanced (10.2). At (number + 16) % 24: the air units (
 ### 10.3 Air
 
 Every agent in order is offered every unit of the country not moved this pass and not its own: **one holding a transport
-plane or a paratrooper brigade goes to the theatre of the capital**; and an air unit holding a tactical bomber, and no
-interceptor, multi-role or CAS, goes to an agent whose frontier faces a war candidate from one whose does not.
+plane or a paratrooper brigade goes to the theatre of the capital**; otherwise **it goes where the move gains more than 1**
+- over the five listed types it holds (tactical, strategic and naval bombers, transport planes, paratroopers), each counted
+by its group's entry of the plans' group difference (section 7, `CPlanWants.GroupDifference`, taken as the pass begins): the sum of
+(the receiver's difference - what the pass has moved to it - the unit's count) - (its current agent's difference + the
+count - what the pass has moved to that one), the current agent's difference -1000 where it has none - the first agent
+that qualifies taking it; or, holding a tactical bomber and no interceptor, multi-role or CAS, it goes to an agent whose
+frontier faces a war candidate from one whose does not. On such a move the pass's tally is kept for every listed type; on
+the capital's pull it is not (`reversing/findings/FINDINGS-agents.md`, F.4; built 2026-11-14 - Japan's naval bomber group
+then goes to the Kwantung Army and Italy's to Africa, every theatre's air units 106 of 106 against the played save of 4
+January).
 
 ### 10.4 Fleets and transports (`FINDINGS-agents.md` F.3, F.5)
 
@@ -587,7 +595,7 @@ priority province in the area or beside it against an enemy, or the holder unpla
   the second list of countries whose requests count (`non_hostile_countries`).
 - ~~**The air groups' rebasing** (`ManageAirUnits`' second phase) and the busy groups the first phase sends to rest.~~
   Built with the third piece, 2026-10-19 (`moving.md`, section 17).
-- **Of the movers between theatres** (section 10): the air units' move by the plan's group difference; a transport fleet
+- **Of the movers between theatres** (section 10): a transport fleet
   taken from an agent with troops of its own for the sea, which the original allows by weights not read; and in the
   donor's pick, a division's own supply depot keeping a garrison, the idle divisions beside a war candidate's border, a
   mountain division standing in the mountains, and the target areas.
