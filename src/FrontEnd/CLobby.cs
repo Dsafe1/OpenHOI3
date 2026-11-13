@@ -171,10 +171,10 @@ public partial class CLobby : Control
 		{
 			count.Text = Interface.Text.CTextTemplate.Fill(Localise("FE_NUM_PLAYERS"), ("NUM", "1"));
 		}
-		// Ours where the original writes its version and four letters of its checksum, as on the main menu.
+		// Our name where the original writes its version, then its checksum's four letters, as on the main menu.
 		if (players.FindTextBox("checksum") is { } version)
 		{
-			version.Text = "OpenHOI3";
+			version.Text = _frontEnd.VersionLabel;
 		}
 		if (players.FindListBox("multiplayer_list") is not { } list)
 		{

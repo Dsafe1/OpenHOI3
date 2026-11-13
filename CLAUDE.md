@@ -926,6 +926,10 @@ beside the repository.
   strategies and theatres but for the figures nothing holds (section 16); `write <install> new <start save>` writes a new game
   beside the start save, its history counter the save's 5,608 and its pacts the save's in its order. Run it after
   touching `CSaveWriter`, `CSaveUnitWriter`, a reader's `Write`, how a pact is numbered or anything they write.
+  `OpenHOI3.SaveCheck checksum <install> [mod name]` works out the original's file checksum and sets it beside the last
+  `Checksum is` line of the player's `logs/setup.log`, the mod's user folder's with a mod: on 2026-11-13 Their Finest Hour
+  `1499173604 (GSKH)` and BlackICE 15.1 `-410340735 (ZAUD)`, the original's both (`docs/mechanics/checksum.md`). A log older
+  than a summed file says nothing. Run it after touching `Content/Checksum` or how the map cache is found.
   `OpenHOI3.SaveCheck settings [settings.txt]` reads the player's settings - the Documents folder's with none given - and
   writes them again in memory beside the file: on 2026-11-04 the maintainer's base game file and BlackICE's came out byte
   for byte (`docs/mechanics/settings.md`, section 2). Run it after touching `Content/Settings`.

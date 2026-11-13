@@ -77,6 +77,12 @@ if (args.Length > 0 && args[0] == "settings")
 	return CSettingsCheck.Run(args);
 }
 
+// The file checksum against the figure the original logs (docs/mechanics/checksum.md, section 6).
+if (args.Length > 0 && args[0] == "checksum")
+{
+	return CChecksumCheck.Run(args);
+}
+
 // The distances by sea are checked against the original's own cache of them.
 if (args.Length > 0 && args[0] == "navaldist")
 {

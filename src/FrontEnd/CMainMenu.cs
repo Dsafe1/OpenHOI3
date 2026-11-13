@@ -30,10 +30,13 @@ public partial class CMainMenu : Control
 	public event Action? SettingsPressed;
 	public event Action? ExitPressed;
 
+	private string _versionLabel = Interface.Screens.CVersionText.Name;
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
-	public void Setup(CGuiContext context)
+	public void Setup(CGuiContext context, string versionLabel)
 	{
 		_context = context;
+		_versionLabel = versionLabel;
 	}
 
 	public override void _Ready()
@@ -54,10 +57,10 @@ public partial class CMainMenu : Control
 				panel.Visible = false;
 			}
 		}
-		// Ours where the original writes its version and four letters of its checksum (frontend.md, Ours).
+		// Our name where the original writes its version, then the four letters of its file checksum (checksum.md, section 5).
 		if (_window.FindTextBox("version_label") is { } version)
 		{
-			version.Text = "OpenHOI3";
+			version.Text = _versionLabel;
 		}
 		if (_window.FindWindow(PanelName) is not { } menuPanel)
 		{

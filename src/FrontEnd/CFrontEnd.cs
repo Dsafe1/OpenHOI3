@@ -90,6 +90,9 @@ public partial class CFrontEnd : Node
 	private bool _first;
 	private CFrontEndContent _content = null!;
 
+	/// <summary>The main menu's version label and the lobby's checksum: ours, with the original's four letters.</summary>
+	public string VersionLabel => Interface.Screens.CVersionText.Label(_content.Checksum);
+
 	public override void _Ready()
 	{
 		var clock = Stopwatch.StartNew();
@@ -110,7 +113,7 @@ public partial class CFrontEnd : Node
 		var layer = new CanvasLayer { Name = "Interface" };
 		AddChild(layer);
 		_menu = new CMainMenu();
-		_menu.Setup(_gui);
+		_menu.Setup(_gui, VersionLabel);
 		layer.AddChild(_menu);
 		_lobby = new CLobby();
 		_lobby.Setup(this);

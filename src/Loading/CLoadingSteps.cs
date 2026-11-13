@@ -10,6 +10,7 @@ public static class CLoadingSteps
 	public const string SecondDatabases = "LOADING_DATABASES2";
 	public const string MapLogic = "INIT_MAP_LOGIC";
 	public const string History = "LOADING_HISTORY";
+	public const string Checksum = "CREATING_CHKSUM";
 	public const string GuiDefinitions = "LOADING_GUI_DEF";
 	public const string Graphics = "LOAD_GFX";
 	public const string World = "CREATING_THE_WORLD";
