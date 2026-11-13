@@ -7,6 +7,7 @@ using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
+using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Units;
 
@@ -19,30 +20,32 @@ namespace OpenHOI3.Interface.Tooltips;
 /// </summary>
 public static class CBattleRowTooltip
 {
-	public static CTooltip For(Func<string, string> localise, CCombat combat)
+	/// <param name="player">Whose knowledge decides which land units are drawn by the unknown counter; nobody's knows everything.</param>
+	public static CTooltip For(Func<string, string> localise, CGameState state, CCombat combat, CCountryTag? player)
 	{
-		string text = Side(localise, combat.Attacker) + "\n" + localise("COMB_TT_VS") + "\n" + Side(localise, combat.Defender);
+		string text = Side(localise, state, combat.Attacker, player) + "\n" + localise("COMB_TT_VS") + "\n"
+			+ Side(localise, state, combat.Defender, player);
 		return new CTooltip { Text = text };
 	}
 
 	/// <summary>A side: its units by name, then a line of what they come to. Nothing for a side with nobody.</summary>
-	public static string Side(Func<string, string> localise, CCombatSide side)
+	public static string Side(Func<string, string> localise, CGameState state, CCombatSide side, CCountryTag? player)
 	{
 		if (side.Units.Count == 0)
 		{
 			return "";
 		}
-		return Names(localise, side) + "\n" + Summary(localise, side);
+		return Names(localise, state, side, player) + "\n" + Summary(localise, side);
 	}
 
 	/// <summary>
-	/// Each unit as <c>@</c> and its country's tag, <c> £</c> and its first brigade's type - none
-	/// for an army or above - a space and its name, joined by commas and <c>AND</c> before the
-	/// last. A fleet's or an air unit's ships or wings are named each for itself, with the fleet's
-	/// name, and the count that places the joins is of units, taken down once a ship - so one
-	/// fleet's ships run together. The original's.
+	/// Each unit as <c>@</c> and its country's tag, <c> £</c> and its counter's key - a land unit's first brigade's
+	/// type, or <c>unknown</c> where the player knows it under intel level 3 (<see cref="CCombatViewText.CounterKey"/>) -
+	/// a space and its name, joined by commas and <c>AND</c> before the last. A fleet's or an air unit's ships or wings are
+	/// named each for itself, whatever is known, with the fleet's name, and the count that places the joins is of units,
+	/// taken down once a ship - so one fleet's ships run together. The original's.
 	/// </summary>
-	public static string Names(Func<string, string> localise, CCombatSide side)
+	public static string Names(Func<string, string> localise, CGameState state, CCombatSide side, CCountryTag? player)
 	{
 		var text = new StringBuilder();
 		int remaining = side.Units.Count - 1;
@@ -63,7 +66,7 @@ public static class CBattleRowTooltip
 		{
 			if (CMovementSpeed.IsLand(unit))
 			{
-				string key = CUnitHeaderTooltips.LevelOf(unit) >= 3 && unit.SubUnits.Count > 0 ? unit.SubUnits[0].Type.Key : "";
+				string key = CCombatViewText.CounterKey(state, unit, player);
 				text.Append('@').Append(unit.Owner.Value).Append(" £").Append(key).Append(' ').Append(unit.Name);
 				Join();
 				continue;
@@ -112,7 +115,7 @@ public static class CBattleRowTooltip
 	/// A side's units one to a line, as a battle's popup lists them: each name cut to twenty letters, and past the limit
 	/// the table's <c>AND_MORE</c> in place of the rest.
 	/// </summary>
-	public static string ShortNames(Func<string, string> localise, CCombatSide side, int limit)
+	public static string ShortNames(Func<string, string> localise, CGameState state, CCombatSide side, int limit, CCountryTag? player)
 	{
 		const int MostLetters = 20;
 		var text = new StringBuilder();
@@ -121,7 +124,7 @@ public static class CBattleRowTooltip
 		{
 			bool land = CMovementSpeed.IsLand(unit);
 			IEnumerable<string> keys = land
-				? new[] { CUnitHeaderTooltips.LevelOf(unit) >= 3 && unit.SubUnits.Count > 0 ? unit.SubUnits[0].Type.Key : "" }
+				? new[] { CCombatViewText.CounterKey(state, unit, player) }
 				: unit.SubUnits.Select(each => each.Type.Key);
 			foreach (string key in keys)
 			{

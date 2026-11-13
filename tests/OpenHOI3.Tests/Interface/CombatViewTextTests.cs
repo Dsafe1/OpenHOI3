@@ -287,12 +287,30 @@ public class CombatViewTextTests
 	}
 
 	[Fact]
+	public void A_unit_known_under_intel_level_3_shows_the_unknown_counter()
+	{
+		CGameState state = State(out CCountry italy, out CCountry ethiopia);
+		CUnit unit = Division(state, italy, Dolo, organisation: "15", strength: "24");
+		CProvince dolo = state.Province(Dolo);
+
+		// Its own country knows it whole; Ethiopia knows Dolo at nought, then at 2, then at 3.
+		Assert.Equal("GFX_counter_militia_brigade", CCombatViewText.UnitSprite(state, unit, italy.Tag));
+		Assert.Equal("GFX_counter_unknown", CCombatViewText.UnitSprite(state, unit, ethiopia.Tag));
+		dolo.Intel[ethiopia.Index] = 2;
+		Assert.Equal("unknown", CCombatViewText.CounterKey(state, unit, ethiopia.Tag));
+		dolo.Intel[ethiopia.Index] = 3;
+		Assert.Equal("GFX_counter_militia_brigade", CCombatViewText.UnitSprite(state, unit, ethiopia.Tag));
+		// A unit with no brigade is the unknown counter, known or not.
+		Assert.Equal("GFX_counter_unknown", CCombatViewText.UnitSprite(state, new CUnit(EUnitKind.Division, Ita), null));
+	}
+
+	[Fact]
 	public void A_unit_in_a_list_shows_its_kind_its_width_and_its_two_bars()
 	{
 		CGameState state = State(out CCountry italy, out CCountry ethiopia);
 		CUnit unit = Division(state, italy, Dolo, organisation: "15", strength: "24");
 
-		Assert.Equal("GFX_counter_militia_brigade", CCombatViewText.UnitSprite(unit));
+		Assert.Equal("GFX_counter_militia_brigade", CCombatViewText.UnitSprite(state, unit, null));
 		Assert.Equal(2, CCombatViewText.UnitWidthFrame(unit));   // a width of 3 is under 4
 		Assert.Equal(80, CCombatViewText.StrengthBar(unit));
 		Assert.Equal(50, CCombatViewText.OrganisationBar(state, unit));

@@ -123,16 +123,37 @@ it. The original's floats need the ten rounds and the tolerance; whole numbers d
 
 `confirmed` **A locked slider stays where it is.** The original's own words for it:
 `SLIDER_UNLOCKED_TOOLTIP`, "Right click to lock", and `SLIDER_LOCKED_TOOLTIP`, "Locked,
-right click to unlock". `inferred` The lock is kept with the country, so it is still on
-when the screen is opened again. *Ours:* a right click on the slider locks and unlocks it; the lock lasts as long as the
-screen object does. `confirmed` **A locked slider is drawn in grey**: locking is
+right click to unlock". `confirmed` **A locked slider is drawn in grey**: locking is
 disabling the slider's own button, and a disabled button is drawn by the `disable`
 technique of the original's button shader (`interface.md`, section 5). The maintainer
 said the same of the running game on 2026-10-08.
 
-`confirmed` **`ic_need_button` puts the slider at its need and locks it there**; pressed
-on a slider already locked it lets go. For lend-lease it opens the lend-lease window and
-moves nothing.
+**Where the lock is kept** (`reversing/findings/FINDINGS-countryviews.md`, section 6, `confirmed` but where marked):
+
+- **A right click on the slider locks and unlocks it**, where its `.gui` entry says `lockable = yes` (the default is no;
+  both screens' files say yes) and its `drag` is on; a locked slider is unlocked by a right click too.
+- **The country keeps a mirror of the production screen's locks**: six figures, 1 locked, in the screen's list order -
+  upgrades, reinforcement, supplies, production, consumer goods, lend-lease, the shares' own order turned round. The
+  screen writes it while open; **its sliders start locked as it says whenever they are made**. Nothing in the game reads
+  it, and the balancing goes by the sliders themselves.
+- **A save keeps it for the played country alone**, `slider_locks = { 0 0 0 0 0 0 }` before `alignment` - every save of
+  the maintainer's has the one block, in the `player=` country - and a load reads it from any block. So a production lock
+  lasts the session and a save and a load. Where the key falls beside `mobilize` no save shows; here it is after it.
+- **The technology screen keeps no locks of its own**: its sliders start locked as the production screen's first four
+  entries say - research by upgrades, espionage by reinforcement, diplomacy by supplies, officers by production - and it
+  never writes them, so a lock set there lasts only while the screen stands. The original's, kept (`docs/enhanced.md`).
+- New countries start with every entry 0.
+
+*Ours:* the screens are made the first time they are opened, and read the mirror then, where the original makes them
+as a game is entered; nothing but the production screen writes the mirror, so the production screen comes up the same,
+and the technology screen takes the production entries as they stand at its first opening rather than at the game's
+start. The original writes the mirror straight from its screen and sends no command, it being one client's; here it is
+`CSetSliderLocksCommand`, posted when the locks differ from the country's, as nothing changes the game otherwise.
+
+`confirmed` **`ic_need_button` puts the slider at its need and half a step and locks it there**; pressed on a slider
+already locked it moves it to its need and **leaves it locked** - the path that would let go needs a latch nothing sets
+on these sliders. *Corrected 2026-11-13: this said a press on a locked slider lets go.* For lend-lease it opens the
+lend-lease window and moves nothing.
 
 ## 4. When the game is told
 

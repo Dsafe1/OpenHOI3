@@ -144,7 +144,7 @@ public sealed class CPathArrows
 			picture[2 * cut] = new Vector2(sample.Along, 0f);
 			picture[2 * cut + 1] = new Vector2(sample.Along, 0.5f);
 		}
-		var arrays = new Godot.Collections.Array();
+		using var arrays = new Godot.Collections.Array();
 		arrays.Resize((int)Mesh.ArrayType.Max);
 		arrays[(int)Mesh.ArrayType.Vertex] = vertices;
 		Mesh.ArrayFormat format = 0;

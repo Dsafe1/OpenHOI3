@@ -1953,7 +1953,7 @@ public partial class CMapSurface : Node3D
 	/// <summary>The mesh alone, so that one mesh may be drawn by several instances, each through a material of its own.</summary>
 	private static ArrayMesh BuildMesh(ushort[] indices, int count, CGodotShader? translation, Func<string, int, Vector4?> source)
 	{
-		var arrays = new Godot.Collections.Array();
+		using var arrays = new Godot.Collections.Array();
 		arrays.Resize((int)Godot.Mesh.ArrayType.Max);
 		var vertices = new Vector3[count];
 		Godot.Mesh.ArrayFormat format = 0;

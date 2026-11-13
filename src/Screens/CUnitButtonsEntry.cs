@@ -48,6 +48,9 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 	/// <summary>Raised when the button that makes a headquarters over the unit is pressed.</summary>
 	public event Action? CreateHigherPressed;
 
+	/// <summary>Raised when a theatre headquarters' <c>edit_theatre</c> is pressed, with whether the editor is now on.</summary>
+	public event Action<bool>? EditTheatrePressed;
+
 	/// <summary>Raised when the new-unit button is pressed, with whether Ctrl was held - a split - or not.</summary>
 	public event Action<bool>? NewUnitPressed;
 
@@ -67,7 +70,7 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 	public event Action? PlaneUnloadPressed;
 
 	private CUnitButtonsEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit unit,
-		bool mayOrder) : base(window)
+		bool mayOrder, bool editing) : base(window)
 	{
 		_state = state;
 		_owner = owner;
@@ -79,7 +82,7 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		_attach = window.FindButton("attach_button");
 		_detach = window.FindButton("detach_button");
 
-		// One of the five by the unit's level; a theatre's edit_theatre is not built (attaching.md, section 1).
+		// One of the five by the unit's level; a theatre's is edit_theatre, the theatre editor (attaching.md, sections 1 and 7).
 		string level = CUnitPanelText.LevelButton(unit);
 		foreach (string name in CUnitPanelText.LevelButtons)
 		{
@@ -89,7 +92,20 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 			}
 			button.Visible = name == level;
 			button.Disabled = true;
-			if (name == level && name != "edit_theatre")
+			if (name == level && name == "edit_theatre")
+			{
+				// Never greyed; a press turns the editor on or off by the button's own picture, frame 2 while it is on.
+				button.Disabled = false;
+				button.SetFrame(editing ? 2 : 1);
+				button.Pressed += () =>
+				{
+					bool on = !editing;
+					editing = on;
+					button.SetFrame(on ? 2 : 1);
+					EditTheatrePressed?.Invoke(on);
+				};
+			}
+			else if (name == level)
 			{
 				_create = button;
 				button.Pressed += () => CreateHigherPressed?.Invoke();
@@ -142,10 +158,12 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		Update();
 	}
 
-	public static CUnitButtonsEntry? Create(CGuiContext context, CGameState state, CCountry owner, CUnit unit, bool mayOrder)
+	/// <param name="editing">Whether the theatre editor is open for the unit, which its <c>edit_theatre</c> shows down.</param>
+	public static CUnitButtonsEntry? Create(CGuiContext context, CGameState state, CCountry owner, CUnit unit, bool mayOrder,
+		bool editing = false)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "sup_buttons_window");
-		return window is null ? null : new CUnitButtonsEntry(window, context, state, owner, unit, mayOrder);
+		return window is null ? null : new CUnitButtonsEntry(window, context, state, owner, unit, mayOrder, editing);
 	}
 
 	public override void Update()

@@ -360,7 +360,20 @@ being placed - the maintainer, 2026-10-09: "Looks good". That the original marks
 how the game is remembered; how was not
 read, nor was the click on the map that places a unit - only the menu's side of it. While
 a unit is being placed a click on the map is for the province and not for a counter on it.
-The original also lets a unit's line be dragged onto a unit on the map: not built. Its
+**A unit's line may be dragged into the order of battle browser** - never onto the map, which this said until
+2026-11-13 (`reversing/findings/FINDINGS-deploymenu.md`, section 6, `confirmed`). The left button going down on a unit's
+line marks it - a building's line, or one of the target list, marks nothing - and while the menu is up, each frame, a marked
+line is forgotten with the browser closed, and with it open is handed to it once the pointer is inside the browser's window,
+no button asked: a unit of one brigade, ship or wing as that one, any other as the unit. The browser's own drag rules then
+hold (`oobbrowser.md`, section 6), the rows lit by their test with the province left out. **The drop** on a row its test
+allows: for a unit, `CDeployUnitCommand` with the row's unit its target and then the browser's own `CAttachUnitCommand`; for
+a lone brigade, ship or wing, only where it may be placed in the row unit's province, the deploy command and then the
+browser's `CTransferSubUnitCommand`. The deploy command so posted puts the unit where the original's join puts it - the row
+unit's province, or the nearest province of the home area where it may go - and asks nothing more of the target, as the
+original's asks nothing; the second command then finds the work done. A drop on no row posts nothing, and the line stays.
+Built 2026-11-13 and tested; **not tried on screen**, a unit waiting in the menu not having been come by. *Not
+established*, so not built: what the original does where the join finds no province at all - the attach would hang the
+waiting unit under the row by the reading, not traced - and whether the player is told `TRANSFEREDSUBUNIT` twice. Its
 rule about a carrier's air group and the room aboard was not read through, and is not
 asked.
 
@@ -611,7 +624,8 @@ While a headquarters of the player's under an AI is the single unit selected, **
   changed into another type, which nothing here makes.
 - **The red frame of a moving unit's pointer.** Its picture has a green one and a red
   one; when the original shows the red was not read.
-- **Dragging a unit's line onto the map.**
+- ~~**Dragging a unit's line onto the map.**~~ The original has no such drag; the line goes into the order of battle
+  browser (section 6).
 
 ## What is not established, in one place
 

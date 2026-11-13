@@ -196,14 +196,28 @@ its folder.
   `tech_status_researching` for one on the queue;
 - **`start`** reads the text of `ITEM_RESEARCH_START` and is disabled when the technology
   may not be researched; for one already on the queue it reads the text of `cancel`;
-- **`effects`** is a list of what the technology does, one `detail_entry` window a line,
-  its text box `text` holding the line.
+- **`effects`** is a list of what the technology does, one `detail_entry` window a row, its text box `text` holding
+  the row (`reversing/findings/FINDINGS-countryviews.md`, section 5.5, `confirmed`):
+  - **the text is a tree entry's tooltip's what-the-levels-do** (section 9), **at the same level**: the country's
+    level plus one, or 1 for a technology of one level - no cap, so one at its last level is described a level past
+    it, and a finished one-level technology shows what it did before, the units and buildings it allows among it.
+    Every figure is the total at that level, not the step to it;
+  - **laid out at the row text box's `maxWidth`** in its font, whole: a line breaks where it and one `O` are wider,
+    at the last space that leaves it narrow enough, the space dropped, or - its first word too wide - after the most
+    characters that fit. A colour escape measures nothing;
+  - **then split at its line breaks**, and a row made of each piece as it is - **a piece under two characters is no
+    row**, so a blank line vanishes; no colour is carried onto a continuation, no space trimmed. A first row is made
+    before any piece, and a new one after a piece only where another follows - so **the list always ends in an empty
+    row**, and a technology that does nothing shows one empty row;
+  - **made only when the panel is**: a technology pressed in the tree or the queue, the same one again included. A
+    level finished, a law or a minister changed meanwhile leaves the panel's name, year, difficulty and rows as they
+    were until something is pressed - the original's, kept (`docs/enhanced.md`). The width, the font and the row's
+    size are the `.gui`'s; the two characters and the rule are the executable's.
 
-*Ours:* `start` puts the technology on the end of the queue, or takes it off; the panel's
-own `close` goes back to the theories and practicals. **The lines of `effects` are ours**:
-the original writes each effect out in words, unit by unit, from a routine that was not
-read; here a line is the effect's key and its figure, as the technology's file gives them,
-and what a technology does to a kind of unit is not listed at all.
+*Ours:* `start` puts the technology on the end of the queue, or takes it off; the panel's own `close` goes back to the
+theories and practicals. `start` and the two status icons are kept up to date as the panel stands, the original's
+routine for them past the panel's making not being read. The original also resizes each filled row to 180 wide, and how a
+row wider than that or than the list (310) is clipped was not read; here a row keeps its window's size.
 
 ## 8. Ours
 
@@ -341,9 +355,9 @@ efficiency has no `%` and radio strength one; a building under `any_owned_provin
    `start` and the queue's dates reading year first all right.
 2. **What the buttons do**: the folders, an entry's click and double click, `cancel`, the
    four priority buttons, `start`, the panel's `close`.
-3. **The panel's `effects` list.** The original makes it from the text section 9 gives an
+3. ~~**The panel's `effects` list.** The original makes it from the text section 9 gives an
    entry's tooltip, cut into rows and for a level of its own, and neither was read; its rows are
-   ours (section 7).
+   ours (section 7).~~ Read 2026-11-13 and built (section 7); how a wide row is clipped is still open.
 4. **Whether an icon's frames count from nought.**
 5. **The separator in a level's name key.**
 6. **Sharing.** A category another country shares shows green, and an entry's input icons

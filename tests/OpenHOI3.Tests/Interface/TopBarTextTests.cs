@@ -90,6 +90,53 @@ public class TopBarTextTests
 		Assert.StartsWith(Green, CTopBarText.Goods(_state, _country, EGoods.Fuel));
 	}
 
+	[Fact]
+	public void WhatIsBoughtTurnsALossYellowAndNotGreen()
+	{
+		// A country that buys the oil it burns: a loss that buying covers.
+		Hold(EGoods.CrudeOil, "100");
+		Day(EGoods.CrudeOil, "0", "2");
+		_country.TradedFor[EGoods.CrudeOil] = CFixedPoint.Parse("2");
+		Assert.StartsWith(Yellow, CTopBarText.Goods(_state, _country, EGoods.CrudeOil));
+
+		// Buying more than it burns is still no gain.
+		_country.TradedFor[EGoods.CrudeOil] = CFixedPoint.Parse("5");
+		Assert.StartsWith(Yellow, CTopBarText.Goods(_state, _country, EGoods.CrudeOil));
+	}
+
+	[Fact]
+	public void TributeAndDebtCountOnEachSideAsTheOriginalSignsThem()
+	{
+		// Tribute received comes in; tribute sent is held below nought and goes out.
+		Hold(EGoods.Metal, "100");
+		_country.TributeReceived[EGoods.Metal] = CFixedPoint.Parse("1");
+		Assert.StartsWith(Green, CTopBarText.Goods(_state, _country, EGoods.Metal));
+		_country.TributeReceived[EGoods.Metal] = CFixedPoint.Zero;
+		_country.TributeSent[EGoods.Metal] = CFixedPoint.Parse("-1");
+		Assert.StartsWith(Red, CTopBarText.Goods(_state, _country, EGoods.Metal));
+
+		// Money repaid on a debt is taken away from what goes out, so a repayment alone shows green - the original's.
+		Hold(EGoods.Money, "100");
+		_country.RepaidAway = CFixedPoint.Parse("1");
+		Assert.StartsWith(Green, CTopBarText.Goods(_state, _country, EGoods.Money));
+		_country.RepaidAway = CFixedPoint.Zero;
+		_country.IncomeFromDebt = CFixedPoint.Parse("1");
+		Assert.StartsWith(Green, CTopBarText.Goods(_state, _country, EGoods.Money));
+		// Debt is money alone.
+		Hold(EGoods.Energy, "100");
+		Assert.StartsWith(Yellow, CTopBarText.Goods(_state, _country, EGoods.Energy));
+	}
+
+	[Fact]
+	public void AGovernmentInExileShowsADashForSuppliesAndFuel()
+	{
+		_country.InExile = true;
+
+		Assert.Equal(CTopBarText.None, CTopBarText.Goods(_state, _country, EGoods.Supplies));
+		Assert.Equal(CTopBarText.None, CTopBarText.Goods(_state, _country, EGoods.Fuel));
+		Assert.StartsWith(Yellow, CTopBarText.Goods(_state, _country, EGoods.Money));
+	}
+
 	[Theory]
 	[InlineData("99999.000", "99999")]
 	[InlineData("99999.001", "99K")]                                 // one thousandth over, and it is thousands

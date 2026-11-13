@@ -287,6 +287,12 @@ public partial class CGuiTextBox : CGuiObject
 		return CWordWrap.Wrap(paragraph, inside, text => CTextIcons.Measure(text, measured.Width));
 	}
 
+	/// <summary>The box's <c>maxWidth</c> as its file gives it, border and all.</summary>
+	public float MaxWidth => ((CGuiTextBoxType)GuiType).MaxWidth;
+
+	/// <summary>How wide a text is in the box's font, colour escapes and all as given; nought with no font.</summary>
+	public float Measure(string text) => _font is null ? 0f : CTextIcons.Measure(text, _font.Width);
+
 	/// <summary>
 	/// A paragraph broken at its spaces to the box's width in its font, however tall the box: for a list
 	/// that makes a row of each piece, as the diplomacy screen's status list does.

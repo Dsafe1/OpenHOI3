@@ -68,14 +68,18 @@ public sealed class CGodotShaderWriter
 	/// <summary>The effect's parameters made Godot's global uniforms, each under the name given.</summary>
 	private readonly IReadOnlyDictionary<string, string>? _shared;
 
+	/// <summary>How many times the engine has cleared the stencil before this draw in its frame; see <see cref="StencilMode"/>.</summary>
+	private readonly int _stencilLayer;
+
 	private CGodotShaderWriter(CFxEffect effect, EShaderTarget target, string? drawnTexture, IReadOnlyDictionary<string, string>? device,
-		IReadOnlyDictionary<string, string>? shared)
+		IReadOnlyDictionary<string, string>? shared, int stencilLayer)
 	{
 		_effect = effect;
 		_target = target;
 		_drawnTexture = target == EShaderTarget.Canvas ? drawnTexture : null;
 		_device = device;
 		_shared = shared;
+		_stencilLayer = stencilLayer;
 	}
 
 	private bool Canvas => _target == EShaderTarget.Canvas;
@@ -87,12 +91,14 @@ public sealed class CGodotShaderWriter
 	/// engine leaves them at the draw - <c>SRCBLEND</c>, <c>ALPHATESTENABLE</c>, <c>ZENABLE</c> and the rest, by name - are
 	/// what the pass's own are laid over; with none, a blend by source alpha. Parameters named in
 	/// <paramref name="shared"/> - one matrix for a thousand meshes - become Godot's global uniforms under the names given,
-	/// which the engine has to have registered before the shader is compiled.
+	/// which the engine has to have registered before the shader is compiled. <paramref name="stencilLayer"/> is how many
+	/// times the engine has cleared the stencil before this draw in its frame, which Godot does once a frame alone.
 	/// </summary>
 	public static CGodotShader Write(CFxEffect effect, CFxTechnique technique, CFxPass pass, EShaderTarget target = EShaderTarget.Spatial,
-		string? drawnTexture = null, IReadOnlyDictionary<string, string>? device = null, IReadOnlyDictionary<string, string>? shared = null)
+		string? drawnTexture = null, IReadOnlyDictionary<string, string>? device = null, IReadOnlyDictionary<string, string>? shared = null,
+		int stencilLayer = 0)
 	{
-		return new CGodotShaderWriter(effect, target, drawnTexture, device, shared).WritePass(technique, pass);
+		return new CGodotShaderWriter(effect, target, drawnTexture, device, shared, stencilLayer).WritePass(technique, pass);
 	}
 
 	/// <summary>A name as the shader has it: the effect's own, but for one Godot's language reserves.</summary>
@@ -119,7 +125,12 @@ public sealed class CGodotShaderWriter
 
 		SetStates(pass);
 		code.Append(Canvas ? "shader_type canvas_item;\n" : "shader_type spatial;\n");
-		code.Append("render_mode ").Append(string.Join(", ", RenderModes())).Append(";\n\n");
+		code.Append("render_mode ").Append(string.Join(", ", RenderModes())).Append(";\n");
+		if (StencilMode() is { } stencil)
+		{
+			code.Append(stencil).Append('\n');
+		}
+		code.Append('\n');
 
 		// What the two entry points reach, in the file's order, which is the order Godot needs them declared in.
 		var reached = new HashSet<string>(StringComparer.Ordinal);
@@ -242,7 +253,7 @@ public sealed class CGodotShaderWriter
 	private static string Normalised(string value)
 	{
 		string upper = value.Trim().ToUpperInvariant();
-		foreach (string prefix in new[] { "D3DBLEND_", "D3DCMP_", "D3DCULL_" })
+		foreach (string prefix in new[] { "D3DBLEND_", "D3DCMP_", "D3DCULL_", "D3DSTENCILOP_" })
 		{
 			if (upper.StartsWith(prefix, StringComparison.Ordinal))
 			{
@@ -295,6 +306,53 @@ public sealed class CGodotShaderWriter
 				Problem(0, $"the blend {source} / {destination} has no mode of Godot's: mixed by alpha");
 				return ("blend_mix", "fx_colour.a", false);
 		}
+	}
+
+	/// <summary>
+	/// The stencil test in force as Godot's <c>stencil_mode</c>, or null where <c>STENCILENABLE</c> is off - and on the
+	/// canvas, which has no stencil in Godot. Godot compares against one reference and, where the test passes, writes that
+	/// reference, where Direct3D may do anything to the value. The one form the install's files use - a test for
+	/// <c>EQUAL</c> to the reference and <c>INCR</c> where it passes, every mask whole and the failures kept,
+	/// <c>battlearrow.fx</c>'s, so that the first arrow to reach a pixel is the only one drawn there - comes to the same as
+	/// testing that the value is not the reference plus one and writing that, while nothing else writes the stencil, which
+	/// nothing here does (<c>docs/mechanics/shaders.md</c>, section 3). Any other form is reported and not tested.
+	/// Godot clears the stencil once a frame, where the engine may clear it between draws - between the colours of the
+	/// battle plans' arrows - so a draw after the engine's Nth clear writes the reference plus one plus N: a value no
+	/// earlier draw wrote, which passes over everything earlier as a cleared stencil would.
+	/// </summary>
+	private string? StencilMode()
+	{
+		if (Canvas || !On("STENCILENABLE", false))
+		{
+			return null;
+		}
+		string function = State("STENCILFUNC", "ALWAYS");
+		string onPass = State("STENCILPASS", "KEEP");
+		int reference = Number(State("STENCILREF", "0"));
+		bool wholeMasks = (Number(State("STENCILMASK", "255")) & 0xFF) == 0xFF && (Number(State("STENCILWRITEMASK", "255")) & 0xFF) == 0xFF;
+		bool keptOnFailure = State("STENCILFAIL", "KEEP") == "KEEP" && State("STENCILZFAIL", "KEEP") == "KEEP";
+		if (!(function == "EQUAL" && onPass is "INCR" or "INCRSAT" && wholeMasks && keptOnFailure && reference >= 0))
+		{
+			Problem(0, $"the stencil {function} / {onPass} has no form of Godot's: not tested");
+			return null;
+		}
+		int written = reference + 1 + Math.Max(_stencilLayer, 0);
+		if (written > 255)
+		{
+			Problem(0, $"the stencil's layer {_stencilLayer} is past the 255 values Godot's stencil holds: not tested");
+			return null;
+		}
+		return $"stencil_mode read, write, compare_not_equal, {written};";
+	}
+
+	/// <summary>A state's number as Direct3D writes it, in decimal or after <c>0x</c>; nought where it is neither.</summary>
+	private static int Number(string value)
+	{
+		if (value.StartsWith("0X", StringComparison.Ordinal))
+		{
+			return int.TryParse(value[2..], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int hex) ? hex : 0;
+		}
+		return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) ? parsed : 0;
 	}
 
 	/// <summary>

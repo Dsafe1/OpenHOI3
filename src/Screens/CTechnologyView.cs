@@ -44,6 +44,9 @@ public partial class CTechnologyView : CCountryView
 	private CGuiListBox? _queueList;
 	private CTechDetails? _details;
 	private CTechnology? _selected;
+
+	/// <summary>Whether a press has asked for the panel to be made again, which is the only time it is.</summary>
+	private bool _detailsAsked;
 	private string _folder = "";
 	private string _treeFolder = "\0";
 
@@ -120,16 +123,10 @@ public partial class CTechnologyView : CCountryView
 		_sliders = new CSliderPanel(Context, window, "tech_slider", "leadership_slider_start",
 			"leadership_slider_offset", SliderOrder,
 			share => Context.Localisation.Localise(CSliderText.TitleKey((ELeadershipCategory)share)));
-		_sliders.NeedPressed += share =>
-		{
-			if (_sliders.Group.IsHeld(share))
-			{
-				_sliders.Group.SetHeld(share, false);
-				return;
-			}
-			_sliders.Move(share, Need((ELeadershipCategory)share));
-			_sliders.Group.SetHeld(share, true);
-		};
+		_sliders.NeedPressed += share => _sliders.PinAtNeed(share, Need((ELeadershipCategory)share));
+		// The screen keeps no locks of its own: its sliders start locked as the production screen's first four entries say,
+		// officers by the fourth and research by the first, and it never writes them - the original's (sliders.md, section 3).
+		_sliders.LoadLocks(share => CProductionView.MirrorLocked(Player, CLeadership.CategoryCount - 1 - share));
 
 		Func<string, string> localise = Context.Localisation.Localise;
 		_sliders.SetTooltips(
@@ -249,9 +246,14 @@ public partial class CTechnologyView : CCountryView
 		if (_details is not null)
 		{
 			_details.Visible = detailed;
-			if (_selected is not null)
+			if (_selected is not null && _detailsAsked)
 			{
-				_details.Update(state, country, _selected);
+				_detailsAsked = false;
+				_details.Show(state, country, _selected);
+			}
+			else if (_selected is not null)
+			{
+				_details.Update(state, country);
 			}
 		}
 	}
@@ -338,10 +340,11 @@ public partial class CTechnologyView : CCountryView
 		Select(Simulation.State.Technologies.GetValueOrDefault(key));
 	}
 
-	/// <summary>Chooses the technology the panel is about, or none.</summary>
+	/// <summary>Chooses the technology the panel is about, or none; a press makes the panel again, the same technology's too.</summary>
 	private void Select(CTechnology? technology)
 	{
 		_selected = technology;
+		_detailsAsked = technology is not null;
 		if (technology is not null && technology.Folder.Length > 0
 			&& _folders.Any(folder => folder.Folder.Equals(technology.Folder, StringComparison.OrdinalIgnoreCase)))
 		{

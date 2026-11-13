@@ -73,6 +73,10 @@ The title theme, `music/titletheme_heartsofiron.mp3` [exe], starts as the progra
 loading screen, where the master volume is above nought, and plays through the main menu, the lobby and the making of a
 game, until the game's first frame stops it [exe].
 
+*Ours:* it starts as the first frame of ours is drawn - the loading screen - and not before: until then the engine's own
+splash stands, which the original has none of. Every track is started at the settings' volume; until 2026-11-13 the title
+theme began at full volume, the volume being set only by the first frame's look, which the startup held off.
+
 At the main menu the original plays the title theme again when it ends - but two looks in one frame race for the track's
 end, and the reading has the one that does not replay it winning as a rule, so that the theme plays once and the menu falls
 silent (*inferred*, not heard). **Built so: the title theme plays once.** It is to be checked by ear against the original.

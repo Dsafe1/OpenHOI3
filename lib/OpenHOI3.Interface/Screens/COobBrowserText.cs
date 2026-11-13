@@ -170,10 +170,13 @@ public static class COobBrowserText
 		return !ReferenceEquals(row, dragged) && CDeployment.MayTakeSubordinate(row, dragged);
 	}
 
-	/// <summary>Whether a dragged brigade, ship or wing may join the row's unit.</summary>
-	public static bool MayTakeSubUnit(CGameState state, CCountry country, CUnit row, CSubUnit dragged)
+	/// <summary>
+	/// Whether a dragged brigade, ship or wing may join the row's unit - in the same province, but for one dragged out of the
+	/// deploy menu, which the test asks anywhere (<c>docs/mechanics/oobbrowser.md</c>, section 6).
+	/// </summary>
+	public static bool MayTakeSubUnit(CGameState state, CCountry country, CUnit row, CSubUnit dragged, bool sameProvince = true)
 	{
-		return !ReferenceEquals(row, dragged.Unit) && CSubUnitTransfer.MayTake(state, country, row, dragged, sameProvince: true);
+		return !ReferenceEquals(row, dragged.Unit) && CSubUnitTransfer.MayTake(state, country, row, dragged, sameProvince);
 	}
 
 	/// <summary>Whether a dragged leader may take the row's unit, and where it has a leader, he the dragged leader's.</summary>

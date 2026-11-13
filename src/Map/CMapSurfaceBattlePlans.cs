@@ -21,8 +21,19 @@ public partial class CMapSurface
 	public const string MapInfoFile = "mapinfo.fx";
 	public const string MapInfoTechnique = "MapInfo";
 
-	/// <summary>Drawn after the hierarchy's lines.</summary>
+	/// <summary>
+	/// Drawn after the hierarchy's lines: the arrows a colour at a time in the palette's order, each colour's fills and then
+	/// its outlines, and the icons over every arrow (<c>battleplans.md</c>, section 11).
+	/// </summary>
 	private const int PlanPriority = 9;
+
+	/// <summary>How many colours have a stencil of their own; a colour further on shares the last one's.</summary>
+	private const int PlanStencilLayers = 50;
+
+	private const int IconPriority = PlanPriority + 2 * PlanStencilLayers;
+
+	/// <summary>Which of the original's colour lists, each with its stencil cleared, a colour is drawn in.</summary>
+	private static int PlanLayer(int colour) => Math.Clamp(colour, 0, PlanStencilLayers - 1);
 
 	private static readonly Dictionary<string, string> PlanStates = Baseline(("ALPHABLENDENABLE", "1"), ("SRCBLEND", "SRCALPHA"), ("DESTBLEND", "INVSRCALPHA"));
 
@@ -37,7 +48,8 @@ public partial class CMapSurface
 	}
 
 	private readonly Dictionary<object, CPlanDrawn> _planDrawn = new();
-	private (Shader? Shader, CGodotShader? Translation)[]? _arrowEffect;
+	/// <summary>The arrow's two passes for each colour's stencil layer.</summary>
+	private readonly Dictionary<int, (Shader? Shader, CGodotShader? Translation)[]> _arrowEffects = new();
 	private (Shader? Shader, CGodotShader? Translation)? _iconEffect;
 	private readonly Dictionary<string, Texture2D?> _planTextures = new(StringComparer.OrdinalIgnoreCase);
 
@@ -97,16 +109,22 @@ public partial class CMapSurface
 
 	private bool DrawStroke(CPlanStroke stroke, CBattleArrowType type, Func<int, (float R, float G, float B)> palette, double time)
 	{
-		_arrowEffect ??= new[]
+		// The original clears the stencil between its colour lists, so a colour's arrows keep from painting a pixel twice and
+		// another colour's draw over them; Godot clears it once a frame, so each colour writes a value of its own.
+		int layer = PlanLayer(stroke.Colour);
+		if (!_arrowEffects.TryGetValue(layer, out var effect))
 		{
-			_gui.Effects.Get(BattleArrowFile, BattleArrowTechnique, EShaderTarget.Spatial, pass: 0, device: PlanStates),
-			_gui.Effects.Get(BattleArrowFile, BattleArrowTechnique, EShaderTarget.Spatial, pass: 1, device: PlanStates),
-		};
-		if (_arrowEffect[0].Shader is null || _arrowEffect[1].Shader is null)
+			_arrowEffects[layer] = effect = new[]
+			{
+				_gui.Effects.Get(BattleArrowFile, BattleArrowTechnique, EShaderTarget.Spatial, pass: 0, device: PlanStates, stencilLayer: layer),
+				_gui.Effects.Get(BattleArrowFile, BattleArrowTechnique, EShaderTarget.Spatial, pass: 1, device: PlanStates, stencilLayer: layer),
+			};
+		}
+		if (effect[0].Shader is null || effect[1].Shader is null)
 		{
 			return false;
 		}
-		int signature = HashCode.Combine(stroke.Points.Count, stroke.Points.Count > 0 ? stroke.Points[^1] : default, stroke.Type, stroke.OriginX, stroke.OriginY, stroke.SnapPrefix);
+		int signature = HashCode.Combine(stroke.Points.Count, stroke.Points.Count > 0 ? stroke.Points[^1] : default, stroke.Type, stroke.OriginX, stroke.OriginY, stroke.SnapPrefix, layer);
 		if (!_planDrawn.TryGetValue(stroke, out CPlanDrawn? drawn))
 		{
 			_planDrawn[stroke] = drawn = new CPlanDrawn { Signature = signature ^ 1 };
@@ -126,7 +144,7 @@ public partial class CMapSurface
 				indices.AddRange(new[] { (ushort)at, (ushort)(at + 1), (ushort)(at + 2), (ushort)(at + 1), (ushort)(at + 3), (ushort)(at + 2) });
 			}
 			indices.AddRange(new[] { (ushort)body, (ushort)(body + 1), (ushort)(body + 2), (ushort)(body + 1), (ushort)(body + 3), (ushort)(body + 2) });
-			drawn.Mesh = BuildMesh(indices.ToArray(), vertices.Count, _arrowEffect[0].Translation, (semantic, v) => semantic switch
+			drawn.Mesh = BuildMesh(indices.ToArray(), vertices.Count, effect[0].Translation, (semantic, v) => semantic switch
 			{
 				"POSITION" => new Vector4(vertices[v].X, vertices[v].Y, 0, 1),
 				"TEXCOORD0" => new Vector4(vertices[v].U, vertices[v].V, vertices[v].IsHead, 1),
@@ -134,10 +152,11 @@ public partial class CMapSurface
 			});
 			for (int copy = 0; copy < 2; copy++)
 			{
-				ShaderMaterial first = StrokeMaterial(_arrowEffect[0], type), second = StrokeMaterial(_arrowEffect[1], type);
+				ShaderMaterial first = StrokeMaterial(effect[0], type, PlanPriority + 2 * layer);
+				ShaderMaterial second = StrokeMaterial(effect[1], type, PlanPriority + 2 * layer + 1);
 				first.NextPass = second;
-				drawn.Materials.Add((first, _arrowEffect[0].Translation));
-				drawn.Materials.Add((second, _arrowEffect[1].Translation));
+				drawn.Materials.Add((first, effect[0].Translation));
+				drawn.Materials.Add((second, effect[1].Translation));
 				MeshInstance3D instance = Instance("BattleArrow", drawn.Mesh, first);
 				_overlays.AddChild(instance);
 				drawn.Instances.Add(instance);
@@ -153,9 +172,9 @@ public partial class CMapSurface
 		return true;
 	}
 
-	private ShaderMaterial StrokeMaterial((Shader? Shader, CGodotShader? Translation) effect, CBattleArrowType type)
+	private ShaderMaterial StrokeMaterial((Shader? Shader, CGodotShader? Translation) effect, CBattleArrowType type, int priority)
 	{
-		var material = new ShaderMaterial { Shader = effect.Shader, RenderPriority = PlanPriority };
+		var material = new ShaderMaterial { Shader = effect.Shader, RenderPriority = priority };
 		CGodotShader?[] one = { effect.Translation };
 		Set(material, one, "CameraPosition", Godot.Vector2.Zero);
 		Set(material, one, "NoFade", type.NoFade);
@@ -192,7 +211,7 @@ public partial class CMapSurface
 			});
 			for (int copy = 0; copy < 2; copy++)
 			{
-				var material = new ShaderMaterial { Shader = _iconEffect.Value.Shader, RenderPriority = PlanPriority };
+				var material = new ShaderMaterial { Shader = _iconEffect.Value.Shader, RenderPriority = IconPriority };
 				Set(material, one, "CameraPosition", Godot.Vector2.Zero);
 				SetTexture(material, one, "tex0", PlanTexture(type.Texture));
 				_copyMaterials.Add(material);

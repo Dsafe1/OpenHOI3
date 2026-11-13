@@ -29,10 +29,6 @@ public static class CTopBarText
 	private const string NationalUnityChange = "national_unity";
 
 	/// <summary>
-	/// A resource: what the country holds, in whole units, coloured by whether the day
-	/// took more of it than it brought.
-	/// </summary>
-	/// <summary>
 	/// What convoys brought a country today that counts as coming in: everything but
 	/// supplies and fuel, which a convoy lands in a harbour across the sea and not in
 	/// the stockpile.
@@ -42,17 +38,48 @@ public static class CTopBarText
 		return goods is EGoods.Supplies or EGoods.Fuel ? CFixedPoint.Zero : country.ConvoyedIn[goods];
 	}
 
+	/// <summary>A debt is repaid in money alone.</summary>
+	private static CFixedPoint RepaidAway(CCountry country, EGoods goods) => goods == EGoods.Money ? country.RepaidAway : CFixedPoint.Zero;
+
+	private static CFixedPoint IncomeFromDebt(CCountry country, EGoods goods) => goods == EGoods.Money ? country.IncomeFromDebt : CFixedPoint.Zero;
+
+	/// <summary>
+	/// What went out of a good today, as the original sums it (<c>topbar.md</c>, section 2): what went to the units,
+	/// less what was repaid on debts and less tribute sent, and what was used, converted, convoyed and traded away.
+	/// Tribute sent is held below nought, so taking it away adds it; a repayment is held above nought and is taken
+	/// away all the same - the original's, kept (<c>docs/enhanced.md</c>). Our two pools of what went to the units
+	/// are the original's one.
+	/// </summary>
+	public static CFixedPoint DayOut(CCountry country, EGoods goods)
+	{
+		return country.SentTo[goods] + country.UnitDrawn[goods] - RepaidAway(country, goods) - country.TributeSent[goods]
+			+ country.Usage[goods] + country.ConversionUsed[goods] + country.ConvoyedOut[goods] + country.TradedAway[goods];
+	}
+
+	/// <summary>
+	/// What came in of a good today without what was bought: made at home, landed by convoys (not supplies or fuel),
+	/// sent back by the units, repaid on debts owed to the country, made by converting and tribute received.
+	/// </summary>
+	public static CFixedPoint DayIn(CCountry country, EGoods goods)
+	{
+		return country.HomeProduced[goods] + ConvoyedIn(country, goods) + country.SentBack[goods] + IncomeFromDebt(country, goods)
+			+ country.ConversionMade[goods] + country.TributeReceived[goods];
+	}
+
+	/// <summary>
+	/// A resource: what the country holds, in whole units, coloured by whether the day
+	/// took more of it than it brought; a government in exile's supplies and fuel a dash.
+	/// </summary>
 	public static string Goods(CGameState state, CCountry country, EGoods goods)
 	{
-		// What went out today, with what left the stockpile for the units and what its convoys carried
-		// away, and what came in, with what the provinces sent back and what convoys landed. The original
-		// adds trade, debt and tribute to each side; none of those move anything yet.
-		// What was made away from the capital counts as made and as gone, until it has travelled in.
-		CFixedPoint goingOut = country.Usage[goods] + country.ConversionUsed[goods] + country.UnitDrawn[goods]
-			+ country.SentTo[goods] + country.ConvoyedOut[goods];
-		CFixedPoint comingIn = country.HomeProduced[goods] + country.ConversionMade[goods] + country.SentBack[goods]
-			+ ConvoyedIn(country, goods);
-		CFixedPoint tradedFor = CFixedPoint.Zero;
+		// A government in exile has no supplies or fuel to show.
+		if (country.InExile && goods is EGoods.Supplies or EGoods.Fuel)
+		{
+			return None;
+		}
+		CFixedPoint goingOut = DayOut(country, goods);
+		CFixedPoint comingIn = DayIn(country, goods);
+		CFixedPoint tradedFor = country.TradedFor[goods];
 
 		// Red is a loss even with what is bought, yellow a loss that buying covers.
 		char colour = goingOut > comingIn + tradedFor ? CColouredText.Red

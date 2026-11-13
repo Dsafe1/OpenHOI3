@@ -18,6 +18,12 @@ public sealed class CDeploymentEntry
 	/// <summary>Raised when the line's button is pressed.</summary>
 	public event Action? Selected;
 
+	/// <summary>
+	/// Raised when the left button goes down on a unit's line, which may then be dragged into the order of battle browser
+	/// (<c>docs/mechanics/mapunits.md</c>, section 6); a building's line raises nothing.
+	/// </summary>
+	public event Action? DragStarted;
+
 	private CDeploymentEntry(CGuiWindow window, CUnit unit)
 	{
 		Window = window;
@@ -31,6 +37,7 @@ public sealed class CDeploymentEntry
 		if (window.FindButton("select") is { } select)
 		{
 			select.Pressed += () => Selected?.Invoke();
+			select.HeldDown += () => DragStarted?.Invoke();
 		}
 	}
 

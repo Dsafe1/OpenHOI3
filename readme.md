@@ -1902,8 +1902,7 @@ None of these blocks the list above.
 
 - **Only a theatre's headquarters can be handed to the AI** by the unit panel's box (`unitpanel.md`, section 9); the original lets a corps, an army or an army group go too, and the agents here are a theatre's. The AI's own liberating and puppets are still reported unbuilt (`politics.md`, section 11.1).
 - **An expeditionary force's first piece is built** (`docs/mechanics/expeditions.md`): the window, the rows, the offer and answer, the hand-over and the return, the flag and what a lent unit may not do. A lent unit's officers, supply, reinforcement and combat figures are its lender's. The AI lends and sends home through its agents (`agents.md`, section 10.5), with nothing asked of the other country; no AI offers one to the player, and an exile does not send them home (`expeditions.md`, section 6).
-- **A battle plan's arrows are drawn without the effect's stencil**, so two arrows of one colour crossing blend where the original paints each pixel once (`docs/mechanics/battleplans.md`, section 11). The translator does not carry stencil states yet.
-- **The order of battle browser takes no drag from the deploy menu**, where the original deploys a line dropped on a row under that row's unit - read only as far as `inferred`, and the deploy menu's lines are not dragged here at all. Its own rows, the unit panel's brigades, child rows and leader button and the outliner's unit rows are sources since 2026-11-13 (`docs/mechanics/oobbrowser.md`, sections 6 and 8).
+- **The deploy menu's drag into the order of battle browser has not been tried on screen** (built 2026-11-13, `mapunits.md`, section 6): no unit waiting in the menu was come by. And where the original's join finds no province for a dropped unit, what its following attach does was not traced; here the unit stays waiting.
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
   and the front end makes its meshes again for each world it shows - the quad cache it reads once - which could be kept
   between worlds; a map whose cache is missing or stale - its `time` stamp not the map files' (section 2.1, since
@@ -2140,7 +2139,6 @@ None of these blocks the list above.
   `check_variable`, `has_country_flag` and more, which the loader leaves out and the tooltip
   cannot say until they are read - `has_country_flag`'s words are read already. A building
   under `any_owned_province` is "in" the province numbered nothing, whose name is empty here.
-  The panel's `effects` list is still ours; the original cuts the same text into its rows.
 - **The battle window's tooltips leave two things out** (2026-10-12, `combatview.md`
   section 12): the bombed side's rows, which say a
   figure each in the original whose joins were not read; and what of the province a bombing's
@@ -2163,12 +2161,12 @@ None of these blocks the list above.
   wait for what they read - shore bombardment, mission efficiency, landing craft -
   and three technology figures are left out for want of their keys; `landcombat.md`,
   section 4, lists them. A round gives no practical knowledge (section 3).
-- **The battle window says less than the original's.** An enemy's counter in it says what its
-  unit is, where the original writes question marks on one it knows too little of; units
-  in a battle stand where they stood, where the original has a place in each province for
-  the attackers and one for the defenders; and what a click on the original's marker does
-  was not read - here it opens the window. `docs/mechanics/combatview.md` ends with the
-  list.
+- **The battle window says less than the original's.** Units in a battle stand where they stood,
+  where the original has a place in each province for the attackers and one for the defenders;
+  and what a click on the original's marker does was not read - here it opens the window.
+  `docs/mechanics/combatview.md` ends with the list. An enemy the player knows under intel level 3
+  shows the unknown counter's "?" since 2026-11-13, its picture alone, as the original's
+  (`combatview.md`, section 5).
 - **Whether a land counter beats the large air base picture in the air map mode is not read.** Here the large air base is
   asked first in that mode. In the original every picture is scored and a counter always beats a building picture - the
   large air base's among them, 1.0 to at least 1.1 (`reversing/findings/FINDINGS-seaair.md`, section 6, read off the bytes on
@@ -2275,7 +2273,6 @@ None of these blocks the list above.
   its tip is whole all the same, which was not made out. Where a moving unit's counter
   stands is from one screenshot, by a stack whose depth had to be counted off its edges.
   `docs/mechanics/movement.md`, section 7, and `mapunits.md`, sections 1 and 2.
-- **Of the unit panel's buttons only `edit_theatre` cannot be pressed** (`attaching.md`, section 5).
 - **Where an edit box puts its text and how a rotated icon is placed are measured and not read**, both from the
   unit panel alone (`docs/mechanics/interface.md`, section 7). A unit is renamed from its name box since 2026-11-12
   (`unitpanel.md`, section 3).
@@ -2346,7 +2343,7 @@ None of these blocks the list above.
   maintainer looked at it on 2026-10-10 - "The sea battle window looked perfect"
   (`combatview.md`, section 10) - so where a ship's picture stands in its row and which of
   its two frames it shows have his eye and no measurement; the land battle's window had
-  four things wrong that only his screenshots showed. Its sounds are not built.
+  four things wrong that only his screenshots showed. Its sounds are built since 2026-11-12 (`sound.md`, section 8).
 - **Carrying by sea and by air are built, and neither was looked at on screen by the maintainer**
   (`transport.md`); the carrier, the paradrop and the air supply were tried only with
   `OpenHOI3.SaveCheck airborne`. The AI drops no paratroopers (`moving.md`, section 20); and the technology figures `paradrop_mission` and
@@ -2434,8 +2431,6 @@ None of these blocks the list above.
 - **Only the player turns a country's `auto_assign_leaders` off**, with the leader window's
   checkbox: every country starts with it on, as in the original, and nothing here changes it for any
   other country.
-- **Twenty-four air groups aboard carriers, and their wings, have no name**, where the
-  original names them `1st Air wing` and `1st CAG` by a rule that has not been read.
 - **Two blocks of a unit type are read and not kept**: `available_trigger`, which is
   script, and `extra_amphibious_defence`.
 - **A new game's manpower is the original's for 43 countries of 78**: Germany begins with 469 here and 882
@@ -2477,14 +2472,12 @@ None of these blocks the list above.
   the size a texture was designed at is still not decided (*The interface*, above).
 - **Only Arial's stand-in has Arial's widths.** Liberation Sans was drawn to them, so
   text in it lands where the original's did. Fira Sans for Trebuchet MS, Barlow
-  Condensed for Franklin Gothic, EB Garamond and Anton for Impact are near relatives,
+  Condensed for Franklin Gothic, EB Garamond for Garamond, Anton for Impact, Breitkopf Fraktur for Olde English (the Axis
+  names, downloaded by each builder) and Code Red October for KyrillaSansSerif (the Comintern's) are near relatives,
   sized by the height of a line and narrowed where they come out wider; which stands
   for which is a choice made by eye and easy to change (`fonts/readme.md`). Three display
   typefaces the original names - Eurostile, SV Basic Manual and urania_czech - have no
   stand-in and are drawn in Liberation Sans, with a line in the log. `docs/mechanics/interface.md`, section 6.
-- **Two kinds of element are read and not drawn**: edit boxes and the shields of a
-  dialog. Nor is every screen's own tooltip shown yet (*Next up*, item 3), or an icon's `rotation` applied, and a checkbox is a
-  button that does not stay down. `docs/mechanics/interface.md`, section 2.
 - **How scrollbars and boxes of overlapping elements lay themselves out is ours.**
   Neither was read out of the original; each is the plain reading of what the files
   declare. So is where a line of text breaks. **The list box was the third, and when it
@@ -2509,14 +2502,12 @@ None of these blocks the list above.
   established.
 - **What the production screen's queue lines show was read out of the original and has not been looked at beside
   it**; what their buttons post is ours. `docs/mechanics/productionscreen.md`, section 6.
-- **A technology's effects are listed as its file's keys and figures**, where the
-  original writes them out in words, and what it does to a kind of unit is not listed
-  at all. `docs/mechanics/technologyscreen.md`, section 7.
-- **A slider's lock lasts as long as the screen**, where the original keeps it with the
-  country and so in the savegame. `docs/mechanics/sliders.md`, section 3.
-- **A resource's colour on the top bar leaves out trade, debt and tribute**, though all three move goods since
-  (`trade.md`, `aid.md`, `stockpile.md` section 7), so a country that buys what it uses is red where the original's
-  is yellow; and a government in exile's fuel and supplies are not shown as `-` (`CTopBarText`; `topbar.md`, section 2).
+- **The technology panel's `effects` rows keep their window's size**, where the original resizes each to 180 wide;
+  how it clips a wider row was not read. The rows themselves are the original's since 2026-11-13 - the tooltip's text
+  at its level, laid out and cut as it cuts it (`docs/mechanics/technologyscreen.md`, section 7).
+- **A resource's colour on the top bar leaves out one pool** the original adds to what comes in and no reading has
+  named; trade, debt and tribute are in it since 2026-11-13, with their lines in its tooltip and a government in
+  exile's supplies and fuel a dash (`topbar.md`, sections 2 and 14).
 - **Whether the top bar's picture changes with the country** was not read. The install
   has a background for each of many tags beside the generic one that is drawn, and the
   country screens do change theirs. `docs/mechanics/countryviews.md`, section 2.
@@ -2660,7 +2651,7 @@ screen is checked with `--click`, not only with a switch that reaches past its b
 the four builder windows passed every check that opened and filled them by name while
 seven of their buttons could not be pressed.
 
-The top bar's **Theatres** and **Statistics** buttons work since 2026-11-08 (`docs/mechanics/theatresscreen.md`, `statistics.md`): the theatres, their fronts, what a plan is short of and a Build that orders it, and the 26 pages of tables and pies. Tried with `--click`; the maintainer has not looked at them. A theatre's and a front's needs are worked out as the screen is filled, where the original refills an inactive plan daily. Of the ledger, the tooltips of its columns, a unit's order and model, points off the map and four of the goods pools are not built (`statistics.md`, sections 2 and 3). **The Strategic Warfare Manager** works since the same day (`docs/mechanics/strategicwarfare.md`): the records of each war, every tally but attrition - which is not built - the window and its charts through the install's `linechart.fx`, saved and loaded byte for byte. The maintainer has not looked at it. **The convoy windows and the go-to box** work since the same day (`docs/mechanics/convoywindows.md`): the production screen's list, making a convoy from two lists of ports, each convoy's ships and goods, the three automatic flags, and the box that finds a province. Tried with `--click`; the maintainer has not looked at them. **The order of battle browser** opens from the unit panel since the same day (`docs/mechanics/oobbrowser.md`): the player's whole tree in one list or two, Theatre Forces, and a unit, a brigade from the panel or a leader dragged onto a row; and **a brigade's card** (`docs/mechanics/brigadecard.md`), with a ship's sunk list and the pride of the fleet. Tried with `--click`, and the maintainer found them good. **Attaching, detaching and making a headquarters** from the unit panel and the multi-unit panel work since the same day (`docs/mechanics/attaching.md`), and the maintainer found them good. **Battle plans** work since the same day (`docs/mechanics/battleplans.md`): the window, its three lists, importing the install's historical plans, saving to files and in the saved game, and the tools that draw arrows, borders, icons and text through the install's effect files. Tried with `--click`, and the maintainer found them good. The diplomacy panel's war goals and influences, the battle-start and election popups, the single and multi-unit Disband, the production screen's theatre needs, the air builder's description, every message's Goto (`docs/mechanics/messages.md`, section 4.1) the picture, label and description of what a builder window has picked and changing a brigade's type (`docs/mechanics/upgrades.md`) since the same day; tried with `--click`, and the maintainer has not looked at them.
+The top bar's **Theatres** and **Statistics** buttons work since 2026-11-08 (`docs/mechanics/theatresscreen.md`, `statistics.md`): the theatres, their fronts, what a plan is short of and a Build that orders it, and the 26 pages of tables and pies. Tried with `--click`; the maintainer has not looked at them. A theatre's and a front's needs are worked out as the screen is filled, where the original refills an inactive plan daily. Of the ledger, the tooltips of its columns, a unit's order and model, points off the map and four of the goods pools are not built (`statistics.md`, sections 2 and 3). **The Strategic Warfare Manager** works since the same day (`docs/mechanics/strategicwarfare.md`): the records of each war, every tally but attrition - which is not built - the window and its charts through the install's `linechart.fx`, saved and loaded byte for byte. The maintainer has not looked at it. **The convoy windows and the go-to box** work since the same day (`docs/mechanics/convoywindows.md`): the production screen's list, making a convoy from two lists of ports, each convoy's ships and goods, the three automatic flags, and the box that finds a province. Tried with `--click`; the maintainer has not looked at them. **The order of battle browser** opens from the unit panel since the same day (`docs/mechanics/oobbrowser.md`): the player's whole tree in one list or two, Theatre Forces, and a unit, a brigade from the panel or a leader dragged onto a row; and **a brigade's card** (`docs/mechanics/brigadecard.md`), with a ship's sunk list and the pride of the fleet. Tried with `--click`, and the maintainer found them good. **Attaching, detaching and making a headquarters** from the unit panel and the multi-unit panel work since the same day (`docs/mechanics/attaching.md`), and the maintainer found them good. **Battle plans** work since the same day (`docs/mechanics/battleplans.md`): the window, its three lists, importing the install's historical plans, saving to files and in the saved game, and the tools that draw arrows, borders, icons and text through the install's effect files. Tried with `--click`, and the maintainer found them good. Since 2026-11-13 the arrows draw through the effect's stencil too, a colour at a time, so two of one colour cross without the crossing darkening (section 11). The diplomacy panel's war goals and influences, the battle-start and election popups, the single and multi-unit Disband, the production screen's theatre needs, the air builder's description, every message's Goto (`docs/mechanics/messages.md`, section 4.1) the picture, label and description of what a builder window has picked and changing a brigade's type (`docs/mechanics/upgrades.md`) since the same day; tried with `--click`, and the maintainer has not looked at them.
 
 An earlier iteration reproduced the original's front end directly from its `.gui` files
 and ran its main menu and lobby. That work left the tree in commit `4269708` and remains
@@ -2717,6 +2708,12 @@ setting above. **An exported build plays the install it is placed in** - the fol
 played by copying the folder's contents beside `hoi3_tfh.exe`, which is the player's step; the script never writes to an
 install (`src/Main.cs`, `CDirectorySettings.BesideExecutable`). Tried on 2026-11-11 from a stand-in install: a new game
 made through the install's Lua, the music, and 117 frames a second.
+
+**Logs and crashes.** Every run, the editor's and the exported game's, writes Godot's log to
+`%APPDATA%\Godot\app_userdata\OpenHoi3\logs\godot.log`, each line as it is printed, the last twenty runs kept beside it. An
+exception nothing catches - an access violation inside a call into the engine among them, which .NET ends the process for
+without Godot's log hearing of it - is written to a `crash-<time>.log` in the same folder (`src/Debug/CCrashLog.cs`). Windows'
+own Application event log holds the same .NET stack and the faulting module.
 
 ## Repository layout
 

@@ -18,14 +18,21 @@ public sealed class CDeployUnitCommand : CCommand
 	private readonly int _unit;
 	private readonly int _province;
 	private readonly int _target;
+	private readonly bool _dropped;
 
 	/// <param name="target">The number of the unit to join, or 0 to stand alone in the province.</param>
-	public CDeployUnitCommand(CCountryTag country, int unit, int province, int target = 0)
+	/// <param name="dropped">
+	/// A line dropped on a row of the order of battle browser: the command then asks nothing of the target, as the
+	/// original's asks nothing, and the unit is put where the original's join puts it - the target's province, or the
+	/// nearest of the home area where it may go - or, where there is none, stays waiting (<c>mapunits.md</c>, section 6).
+	/// </param>
+	public CDeployUnitCommand(CCountryTag country, int unit, int province, int target = 0, bool dropped = false)
 	{
 		_country = country;
 		_unit = unit;
 		_province = province;
 		_target = target;
+		_dropped = dropped;
 	}
 
 	public override bool MayExecute(CGameState state)
@@ -38,7 +45,11 @@ public sealed class CDeployUnitCommand : CCommand
 		{
 			return CDeployment.MayPlace(state, country, unit, _province);
 		}
-		return FindTarget(country) is { } target && CDeployment.MayJoin(state, country, unit, target);
+		if (FindTarget(country) is not { } target)
+		{
+			return false;
+		}
+		return _dropped ? CDeployment.PlaceToJoin(state, country, unit, target) != 0 : CDeployment.MayJoin(state, country, unit, target);
 	}
 
 	public override void Execute(CGameState state)
@@ -47,7 +58,9 @@ public sealed class CDeployUnitCommand : CCommand
 		CUnit unit = Find(country)!;
 
 		// A land unit comes with its days of supplies, out of the stockpile.
-		int province = _target != 0 ? FindTarget(country)!.Location : _province;
+		int province = _target == 0 ? _province
+			: _dropped ? CDeployment.PlaceToJoin(state, country, unit, FindTarget(country)!)
+			: FindTarget(country)!.Location;
 		if (CMovementRules.IsLandUnit(unit) && !state.Province(province).IsSea)
 		{
 			CSupplyCarry.Bring(state, country, unit, from: 0, province);
@@ -55,7 +68,7 @@ public sealed class CDeployUnitCommand : CCommand
 
 		if (_target != 0)
 		{
-			CDeployment.Join(state, country, unit, FindTarget(country)!);
+			CDeployment.Join(state, country, unit, FindTarget(country)!, _dropped ? province : 0);
 		}
 		else
 		{

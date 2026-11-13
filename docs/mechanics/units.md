@@ -151,9 +151,20 @@ A regiment with no name is named for its place in its unit and the unit's name, 
 name stands when the regiment is read: `3. 1st Division`. `confirmed`, and measured: 790
 of the 2912 regiments the base game starts with are named that way, and all agree.
 
-A wing or an air group with no name is named by a rule that has not been read. **Not
-built**: 24 air groups aboard carriers and their 24 wings start with no name here, where
-the original has `1st Air wing` and `1st CAG`.
+**A ship or a wing with no name is named as its block closes**, while the file is read: its type's
+list in the country's file first - for a ship or a wing only, once round from where the list left
+off - then `SUBUNIT_NAME` with the first number whose name the country does not use, `$TYPE$` the
+type's `_short` text: `1st CAG`. Every name is the country's as it is read, so only a name earlier
+in the file can take a number from it. **A unit with no name is named once every file has been
+read**, as the new game is entered, in the order it joined the country's list - a carrier's air
+group as its block closes, a unit at the top of the file as it is added: its level's pattern with
+the first free number, `$TYPE$` its first brigade's - `AIR_NAME`, `1st Air wing` - and never a
+list. So a name anywhere in the file can take a group's number, and the two numbers are two
+searches over two texts, agreeing while each group holds one wing. Only a new game names; a save
+and `load_oob` leave a unit as it is, so an unnamed group `load_oob` brings stays unnamed.
+`confirmed` (`reversing/findings/FINDINGS-unitstart.md`, section 6a), and measured: the 24 air
+groups aboard carriers and their wings are the save's, 24 of 24 - BlackICE's `AIR_NAME` gives
+`1st CAG Air wing`. The ordinal is the one of `builders.md`, section 8, `111st` and all.
 
 ### Numbers
 
@@ -282,14 +293,14 @@ beside the save's, matched by number:
 | | agree |
 | --- | --- |
 | a brigade of that number, in the unit of that number, of that type | 3706 of 3706 |
-| its name, where the file or section 3 gives one | 3682 of 3682 |
+| its name, where the file or section 3 gives one | 3706 of 3706 |
 | whether it is a reserve | 3706 of 3706 |
 | the strength it started with (the save's `highest`) | 3706 of 3706 |
 | its experience | 3706 of 3706 |
 | the level of every technology that takes new equipment | 26648 of 26648 |
 | the level of every doctrine, or its country's where that is higher | 10235 of 10235 |
 | its strength is no more than it started with | 3706 of 3706 |
-| a unit of that number, name and kind | 1555 of 1579 |
+| a unit of that number, name and kind | 1579 of 1579 (1555 until the carriers' air groups were named, 2026-11-13) |
 | where it is | 1578 of 1579 |
 | where a fleet or an air group is based | 244 of 244 |
 | which unit commands it, where the file nests it | 994 of 1028 |
@@ -297,8 +308,8 @@ beside the save's, matched by number:
 
 What does not agree, and why:
 
-- **The 24 units** are the unnamed air groups aboard carriers (section 3). One of them is
-  also the one unit in a different province: the file puts it where its fleet is not.
+- **The one unit in a different province** is an air group aboard a carrier: the file puts it
+  where its fleet is not.
 - **The 34 commanders** are units the file nests and the save has under a theatre of the
   original's own making, below.
 - **The five countries' officers** were Britain, the United States, France, the Netherlands

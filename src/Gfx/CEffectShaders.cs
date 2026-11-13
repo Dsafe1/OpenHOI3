@@ -15,7 +15,7 @@ public sealed class CEffectShaders
 {
 	private readonly CDirectorySettings _directories;
 	private readonly Dictionary<string, CFxEffect?> _effects = new(System.StringComparer.OrdinalIgnoreCase);
-	private readonly Dictionary<(string File, string Technique, int Pass, EShaderTarget Target, string? Drawn, string States), (Shader? Shader, CGodotShader? Translation)> _shaders = new();
+	private readonly Dictionary<(string File, string Technique, int Pass, EShaderTarget Target, string? Drawn, string States, int StencilLayer), (Shader? Shader, CGodotShader? Translation)> _shaders = new();
 
 	public CEffectShaders(CDirectorySettings directories)
 	{
@@ -48,17 +48,18 @@ public sealed class CEffectShaders
 	/// A pass of a technique of an effect file as a Godot shader, with its translation - what the engine is to set on it -
 	/// or nulls where there is no such technique. <paramref name="device"/> is the device's render states around the draw,
 	/// which the pass's own override (<c>shaders.md</c>, section 3.7), and <paramref name="shared"/> the parameters made
-	/// Godot's global uniforms and their names, which the caller registers first (section 3.11).
+	/// Godot's global uniforms and their names, which the caller registers first (section 3.11), and
+	/// <paramref name="stencilLayer"/> how many times the engine has cleared the stencil before the draw (section 3.7).
 	/// </summary>
 	public (Shader? Shader, CGodotShader? Translation) Get(string file, string technique, EShaderTarget target,
 		string? drawnTexture = null, int pass = 0, IReadOnlyDictionary<string, string>? device = null,
-		IReadOnlyDictionary<string, string>? shared = null)
+		IReadOnlyDictionary<string, string>? shared = null, int stencilLayer = 0)
 	{
 		string states = device is null ? "" : string.Join(";", System.Linq.Enumerable.Select(
 			System.Linq.Enumerable.OrderBy(device, s => s.Key, System.StringComparer.Ordinal), s => s.Key + "=" + s.Value));
 		states += "|" + (shared is null ? "" : string.Join(";", System.Linq.Enumerable.Select(
 			System.Linq.Enumerable.OrderBy(shared, s => s.Key, System.StringComparer.Ordinal), s => s.Key + "=" + s.Value)));
-		var key = (file, technique, pass, target, drawnTexture, states);
+		var key = (file, technique, pass, target, drawnTexture, states, stencilLayer);
 		if (_shaders.TryGetValue(key, out var made))
 		{
 			return made;
@@ -66,7 +67,7 @@ public sealed class CEffectShaders
 		made = (null, null);
 		if (Effect(file) is { } effect && effect.Technique(technique) is { } found && pass < found.Passes.Count)
 		{
-			CGodotShader translation = CGodotShaderWriter.Write(effect, found, found.Passes[pass], target, drawnTexture, device, shared);
+			CGodotShader translation = CGodotShaderWriter.Write(effect, found, found.Passes[pass], target, drawnTexture, device, shared, stencilLayer);
 			foreach (string problem in translation.Problems)
 			{
 				Content.CDiagnostics.Warn($"shaders: {file} {technique}.{found.Passes[pass].Name}: {problem}");

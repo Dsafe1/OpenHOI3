@@ -6,6 +6,7 @@ using OpenHOI3.Gui;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
+using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Units;
@@ -49,6 +50,9 @@ public partial class COobBrowser : Control
 	private CUnit? _draggedUnit;
 	private CSubUnit? _draggedSubUnit;
 	private CLeader? _draggedLeader;
+
+	/// <summary>The deploy menu's waiting unit being dragged, whose drop deploys it under the row's unit.</summary>
+	private CUnit? _deployment;
 	private int _dragState;
 	private Vector2 _dragFrom;
 	private COobEntry? _hovered;
@@ -414,6 +418,38 @@ public partial class COobBrowser : Control
 		}
 	}
 
+	/// <summary>
+	/// A deploy menu line handed over once the pointer is in the browser: a waiting unit of one brigade, ship or wing dragged
+	/// as that one, any other as the unit (<c>docs/mechanics/oobbrowser.md</c>, section 6; <c>mapunits.md</c>, section 6).
+	/// </summary>
+	public void BeginDragDeployment(CUnit unit)
+	{
+		if (!_open)
+		{
+			return;
+		}
+		if (unit.SubUnits.Count == 1)
+		{
+			BeginDrag(null, unit.SubUnits[0], null);
+		}
+		else
+		{
+			BeginDrag(unit, null, null);
+		}
+		_deployment = unit;
+	}
+
+	/// <summary>Whether a point is inside the browser's own window, its edges counted in.</summary>
+	public bool Holds(Vector2 point)
+	{
+		if (!_open || _window is null)
+		{
+			return false;
+		}
+		Rect2 rect = _window.GetGlobalRect();
+		return point.X >= rect.Position.X && point.X <= rect.End.X && point.Y >= rect.Position.Y && point.Y <= rect.End.Y;
+	}
+
 	/// <summary>The unit panel's leader button pressed while the browser is up: its leader picked up, as a row's portrait is.</summary>
 	public void BeginDragLeader(CLeader leader)
 	{
@@ -428,6 +464,7 @@ public partial class COobBrowser : Control
 		_draggedUnit = unit;
 		_draggedSubUnit = subUnit;
 		_draggedLeader = leader;
+		_deployment = null;
 		_dragState = 1;
 	}
 
@@ -436,6 +473,7 @@ public partial class COobBrowser : Control
 		_draggedUnit = null;
 		_draggedSubUnit = null;
 		_draggedLeader = null;
+		_deployment = null;
 		_dragState = 0;
 		_hovered = null;
 		_hoverTime = 0;
@@ -460,7 +498,8 @@ public partial class COobBrowser : Control
 		}
 		if (_draggedSubUnit is { } subUnit)
 		{
-			return COobBrowserText.MayTakeSubUnit(_simulation.State, _player, row, subUnit);
+			// One out of the deploy menu is asked anywhere; where it may be placed is the drop's to ask.
+			return COobBrowserText.MayTakeSubUnit(_simulation.State, _player, row, subUnit, sameProvince: _deployment is null);
 		}
 		return _draggedLeader is { } leader && COobBrowserText.MayTakeLeader(row, leader);
 	}
@@ -502,6 +541,11 @@ public partial class COobBrowser : Control
 
 	private void Post(CUnit row)
 	{
+		if (_deployment is { } waiting)
+		{
+			PostDeployment(row, waiting);
+			return;
+		}
 		if (_draggedUnit is { } unit)
 		{
 			_simulation.Post(new CAttachUnitCommand(_player.Tag, unit.Id, row.Id));
@@ -517,6 +561,27 @@ public partial class COobBrowser : Control
 				_simulation.Post(command);
 			}
 		}
+	}
+
+	/// <summary>
+	/// A waiting unit dropped on a row, as the original's drop posts it: the deploy command with the row's unit its target,
+	/// then the browser's own command as well - the attach for a unit, the transfer for a lone brigade, ship or wing, which
+	/// alone is first asked whether it may be placed in the row unit's province (<c>mapunits.md</c>, section 6).
+	/// </summary>
+	private void PostDeployment(CUnit row, CUnit waiting)
+	{
+		if (_draggedSubUnit is { } subUnit)
+		{
+			if (!CDeployment.MayPlace(_simulation.State, _player, waiting, row.Location))
+			{
+				return;
+			}
+			_simulation.Post(new CDeployUnitCommand(_player.Tag, waiting.Id, row.Location, row.Id, dropped: true));
+			_simulation.Post(new CTransferSubUnitCommand(_player.Tag, subUnit.Id, row.Id));
+			return;
+		}
+		_simulation.Post(new CDeployUnitCommand(_player.Tag, waiting.Id, row.Location, row.Id, dropped: true));
+		_simulation.Post(new CAttachUnitCommand(_player.Tag, waiting.Id, row.Id));
 	}
 
 	public override void _Process(double delta)

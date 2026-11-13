@@ -160,6 +160,9 @@ public partial class CGuiScrollbar : CGuiObject
 
 	public CFixedPoint Maximum => new(_maximum);
 
+	/// <summary>The step its file gives it, which a value is held to.</summary>
+	public CFixedPoint StepSize => new(_step);
+
 	/// <summary>
 	/// What a press of an end button moves the value by, before Ctrl. A list box sets it to a
 	/// line: the original's counts its bar in lines, a line a step, where this one's runs from

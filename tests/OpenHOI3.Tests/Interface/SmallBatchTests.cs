@@ -97,7 +97,7 @@ public class SmallBatchTests
 		{
 			combat.Attacker.Units.Add(new CUnit(EUnitKind.Division, Eng) { Name = "Unit " + index });
 		}
-		string text = CBattleRowTooltip.ShortNames(key => key, combat.Attacker, 6);
+		string text = CBattleRowTooltip.ShortNames(key => key, state, combat.Attacker, 6, null);
 		Assert.Equal(7, text.Split('\n').Length);
 		Assert.EndsWith("AND_MORE", text);
 	}
@@ -105,9 +105,11 @@ public class SmallBatchTests
 	[Fact]
 	public void ANameIsCutToTwentyLetters()
 	{
+		CGameState state = World();
 		var combat = new CCombat(1);
 		combat.Attacker.Units.Add(new CUnit(EUnitKind.Division, Eng) { Name = new string('x', 30) });
-		Assert.Equal("@ENG £ " + new string('x', 20) + "\n", CBattleRowTooltip.ShortNames(key => key, combat.Attacker, 6));
+		// A unit with no brigade is drawn by the unknown counter.
+		Assert.Equal("@ENG £unknown " + new string('x', 20) + "\n", CBattleRowTooltip.ShortNames(key => key, state, combat.Attacker, 6, null));
 	}
 
 	[Fact]

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using OpenHOI3.Interface.Modifiers;
+using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
@@ -97,7 +98,9 @@ public static class CTopBarTooltips
 		}
 		if (Ledgers.TryGetValue(element, out EGoods goods))
 		{
-			return new CTooltip { Text = Ledger(localise, country, goods) };
+			// A government in exile's supplies and fuel, shown as a dash, say nothing.
+			return country.InExile && goods is EGoods.Supplies or EGoods.Fuel ? CTooltip.Empty
+				: new CTooltip { Text = Ledger(localise, country, goods) };
 		}
 		return element.ToLowerInvariant() switch
 		{
@@ -127,11 +130,19 @@ public static class CTopBarTooltips
 		Gain(text, localise, "RES_PROD", country.HomeProduced[goods]);
 		Gain(text, localise, "RES_CONVOYED_IN", convoyedIn);
 		Gain(text, localise, "RES_TRADED_FOR", country.TradedFor[goods]);
+		Gain(text, localise, "RES_INC_DEBT", goods == EGoods.Money ? country.IncomeFromDebt : CFixedPoint.Zero);
+		Gain(text, localise, "RES_FROM_PUPPETS", country.TributeReceived[goods]);
 		// The used half of converting is written negated, whichever way it went.
 		Signed(text, localise, "RES_CONVERTED", -country.ConversionUsed[goods]);
 		Signed(text, localise, "RES_CONVERTED", country.ConversionMade[goods]);
 		Loss(text, localise, "RES_TRADED_AWAY", country.TradedAway[goods]);
+		Loss(text, localise, "RES_REPAID_AWAY", goods == EGoods.Money ? country.RepaidAway : CFixedPoint.Zero);
 		Loss(text, localise, "RES_CONVOYED_OUT", country.ConvoyedOut[goods]);
+		// Tribute sent is held below nought and written green with a plus though it is a loss - the original's.
+		if (country.TributeSent[goods].Raw < 0)
+		{
+			text.Append(Line(localise, "RES_SENT_TO_MASTER", GreenPlus + CNumberText.Format(-country.TributeSent[goods], 2)));
+		}
 		Loss(text, localise, "RES_INTO_NET", intoNetwork);
 		Loss(text, localise, "RES_USED", country.Usage[goods]);
 		Gain(text, localise, "RES_SHIPPED_BACK", country.SentBack[goods]);
@@ -145,11 +156,7 @@ public static class CTopBarTooltips
 	/// </summary>
 	public static CFixedPoint DayChange(CCountry country, EGoods goods)
 	{
-		CFixedPoint goingOut = IntoNetwork(country, goods) + country.Usage[goods] + country.ConversionUsed[goods]
-			+ country.ConvoyedOut[goods] + country.TradedAway[goods] - country.TributeSent[goods];
-		CFixedPoint comingIn = country.HomeProduced[goods] + ConvoyedIn(country, goods) + country.TradedFor[goods]
-			+ country.ConversionMade[goods] + country.SentBack[goods] + country.TributeReceived[goods];
-		return comingIn - goingOut;
+		return CTopBarText.DayIn(country, goods) + country.TradedFor[goods] - CTopBarText.DayOut(country, goods);
 	}
 
 	private static CFixedPoint ConvoyedIn(CCountry country, EGoods goods) =>

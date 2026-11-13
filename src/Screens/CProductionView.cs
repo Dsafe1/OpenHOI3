@@ -58,6 +58,9 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 	private readonly List<CTradeListEntry> _trades = new();
 	private CCountryTag? _tradesOf;
 	private CSliderPanel? _sliders;
+
+	/// <summary>The slider locks last sent to the country, so that one change is posted once.</summary>
+	private int[]? _sentLocks;
 	private string _shownResources = "\0";
 	private CDivisionDesignerView _designer = null!;
 	private CShipBuilderView _ships = null!;
@@ -197,15 +200,11 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 				_lendLease.Open();
 				return;
 			}
-			// The button puts the slider at its need and holds it there; pressed again it lets go.
-			if (_sliders.Group.IsHeld(share))
-			{
-				_sliders.Group.SetHeld(share, false);
-				return;
-			}
-			_sliders.Move(share, Need((EProductionCategory)share));
-			_sliders.Group.SetHeld(share, true);
+			// The button puts the slider at its need and locks it; pressed again it moves it there and leaves it locked.
+			_sliders.PinAtNeed(share, Need((EProductionCategory)share));
 		};
+		// The sliders start locked as the country's mirror says (sliders.md, section 3).
+		_sliders.LoadLocks(share => MirrorLocked(Player, LockEntry(share)));
 
 		SetTooltips(window);
 	}
@@ -622,6 +621,40 @@ public partial class CProductionView : CCountryView, ITooltipOwner
 				: CSliderText.Need(Context.Localisation.Localise, need);
 			_sliders.Show(share, CSliderText.Value(_sliders.Group[share], need), line);
 		}
+		MirrorLocks(country);
+	}
+
+	/// <summary>
+	/// The entry of the country's slider locks a production share is: the place of its slider in the screen's list, the
+	/// shares' own order turned round - upgrades first (<c>docs/mechanics/sliders.md</c>, section 3).
+	/// </summary>
+	public static int LockEntry(int share) => CProduction.CategoryCount - 1 - share;
+
+	/// <summary>Whether the country's mirror has an entry locked, an entry it has not got being unlocked.</summary>
+	public static bool MirrorLocked(CCountry country, int entry) =>
+		entry >= 0 && entry < country.SliderLocks.Length && country.SliderLocks[entry] > 0;
+
+	/// <summary>
+	/// Writes the sliders' locks into the country, as the original's screen does each frame it is open - here by a command,
+	/// and only when they differ from what the country has and from what was last sent.
+	/// </summary>
+	private void MirrorLocks(CCountry country)
+	{
+		if (_sliders is null)
+		{
+			return;
+		}
+		int[] locks = new int[CProduction.CategoryCount];
+		for (int share = 0; share < locks.Length; share++)
+		{
+			locks[LockEntry(share)] = _sliders.Group.IsHeld(share) ? 1 : 0;
+		}
+		if (locks.AsSpan().SequenceEqual(country.SliderLocks) || (_sentLocks is not null && locks.AsSpan().SequenceEqual(_sentLocks)))
+		{
+			return;
+		}
+		_sentLocks = locks;
+		Simulation.Post(new CSetSliderLocksCommand(country.Tag, locks));
 	}
 
 	/// <summary>Locks one share's slider where it is, as a right click on it would.</summary>

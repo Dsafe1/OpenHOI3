@@ -24,6 +24,10 @@ public class TopBarTooltipTests
 		"RES_CONVERTED" => "$VAL$ converted.\n",
 		"RES_USED" => "$VAL$ used.\n",
 		"RES_INTO_NET" => "$VAL$ into network.\n",
+		"RES_INC_DEBT" => "$VAL$ income from debt.\n",
+		"RES_FROM_PUPPETS" => "$VAL$ from puppets.\n",
+		"RES_REPAID_AWAY" => "$VAL$ repaid.\n",
+		"RES_SENT_TO_MASTER" => "$VAL$ sent to master.\n",
 		"IC_NUMBER_IRO" => "Wasted IC: §Y$WASTED$§W. Base IC: §Y$BASE$§W. Available IC: §Y$AVAILABLE$§W.\n",
 		"FROM_TECHNOLOGY" => "From Improved Technology",
 		"DISSENTV_IRO" => "With the current investment in consumer goods, dissent will change by $CHANGE$ every day.",
@@ -107,6 +111,37 @@ public class TopBarTooltipTests
 		germany.SentTo[EGoods.Supplies] = CFixedPoint.FromInt(2);
 
 		Assert.Equal("Changes by §R-5.00§W every day.\n§R-5.00§W into network.\n\n", For(state, germany, "supplies_number").Text);
+	}
+
+	[Fact]
+	public void Debt_and_tribute_have_lines_of_their_own_and_tribute_sent_is_green()
+	{
+		(CGameState state, CCountry germany) = State();
+		germany.IncomeFromDebt = CFixedPoint.FromInt(4);
+		germany.RepaidAway = CFixedPoint.FromInt(1);
+		germany.TributeReceived[EGoods.Money] = CFixedPoint.FromInt(2);
+		germany.TributeSent[EGoods.Money] = CFixedPoint.FromInt(-3);
+
+		// In 4 + 2, out - 1 + 3: the repayment taken away from what goes out, as the original sums it.
+		Assert.Equal(
+			"Changes by §G+4.00§W every day.\n"
+			+ "§G+4.00§W income from debt.\n"
+			+ "§G+2.00§W from puppets.\n"
+			+ "§R-1.00§W repaid.\n"
+			+ "§G+3.00§W sent to master.\n"
+			+ "\n",
+			For(state, germany, "money_number").Text);
+	}
+
+	[Fact]
+	public void A_government_in_exile_says_nothing_of_its_supplies_and_fuel()
+	{
+		(CGameState state, CCountry germany) = State();
+		germany.InExile = true;
+
+		Assert.Equal(CTooltip.Empty, For(state, germany, "supplies_number"));
+		Assert.Equal(CTooltip.Empty, For(state, germany, "fuel_number"));
+		Assert.NotEqual(CTooltip.Empty, For(state, germany, "money_number"));
 	}
 
 	[Fact]

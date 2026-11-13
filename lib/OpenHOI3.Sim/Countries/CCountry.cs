@@ -298,6 +298,15 @@ public sealed class CCountry
 	/// </summary>
 	public CFixed15[] ProductionShares { get; } = new CFixed15[CProduction.CategoryCount];
 
+	/// <summary>
+	/// Which of the production screen's sliders the player has locked, 1 or 0, in that screen's list order - upgrades,
+	/// reinforcement, supplies, production, consumer goods, lend-lease, the reverse of <see cref="EProductionCategory"/>.
+	/// The original's mirror of its sliders' locks: nothing in the game reads it; the screens are made from it, the
+	/// technology screen from its first four, and a save keeps it for the played country as <c>slider_locks</c>.
+	/// Changed only by a command (<c>docs/mechanics/sliders.md</c>, section 3).
+	/// </summary>
+	public int[] SliderLocks { get; set; } = new int[CProduction.CategoryCount];
+
 	/// <summary>The resources its industry used today. Cleared and counted again each day.</summary>
 	public CGoodsPool Usage { get; } = new();
 

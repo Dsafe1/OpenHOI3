@@ -59,11 +59,13 @@ without it.** `tribute sent` is held as a negative, which is why it is taken awa
 
 The original's: `§G3804`, `§G1906`, `§G951`, `§R1870`, `§G462`, `§G391`, `§G591`.
 
-*Ours:* of the thirteen ledgers eight exist yet - produced at home, used, the two sides of
-converting, sent to units and sent back by them (`supply.md`), and convoyed out and in
-(`convoys.md`) - so the colour is those. With no trade there is no `traded for`,
-and a country that takes exactly what it makes is yellow. There are no governments in
-exile.
+**`repaid away` is held above nought and taken away all the same** (`reversing/findings/FINDINGS-tradeaid.md`
+adds the day's repayment to it as it is), so money repaid on a debt makes the colour greener, not redder - the
+original's, kept and listed in `docs/enhanced.md`. A debt is repaid in money alone.
+
+*Ours:* every ledger is there since 2026-11-13 - trade (`trade.md`), debt (`aid.md`) and tribute
+(`stockpile.md`, section 7) with the rest - but **one more pool the original adds to what comes in**, which no
+reading has named (`reversing/findings/FINDINGS-topbar.md`); it is left out.
 
 ## 3. IC
 
@@ -235,9 +237,9 @@ negated, green though it is a loss**), `RES_INTO_NET` and `RES_USED` (`§R`, neg
 of the good's global kind - `global_energy`, `global_metal`, `global_rare_materials`,
 `global_crude_oil`, `global_fuel`, `global_supplies`, `global_money`.
 
-*Ours:* of the ledgers, those section 2 lists exist; `RES_INTO_NET` is what left the stockpile
-for units and what was made away from the capital, the two pools this project keeps of what the
-original keeps as one.
+*Ours:* the ledgers section 2 has, all of its lines since 2026-11-13, debt's and tribute's among them;
+`RES_INTO_NET` is what left the stockpile for units and what was made away from the capital, the two pools this
+project keeps of what the original keeps as one.
 
 **IC.** `IC_NUMBER_IRO` with `WASTED`, `BASE` and `AVAILABLE` - section 3's three figures, whole;
 where technology adds to IC, `FROM_TECHNOLOGY` + `": §G+"` + it x 100 to two places + `"%§W\n"`;
@@ -302,8 +304,7 @@ IC with a minister's and a law's lines, and manpower's delayed half.
 
 **Kept as read, though they look odd:**
 
-1. **Tribute sent to a master shows green, with a plus**, though it is a loss. Nothing pays
-   tribute here yet.
+1. **Tribute sent to a master shows green, with a plus**, though it is a loss.
 2. **Dissent's change is rounded** where every other figure is cut.
 3. **Manpower's delayed half has a blank line before the technology line** wherever a source
    after the last flat-manpower one has nothing of it - the line break that source leaves, and

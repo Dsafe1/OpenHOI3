@@ -411,6 +411,69 @@ public class TheatreTests
 		Assert.Equal("1st Theatre", CUnitNames.ForTheatre(state, poland, null));
 	}
 
+	/// <summary>Germany's two theatres: 1 to 6 and 7 to 12, each province stamped.</summary>
+	private static (CTheatre West, CTheatre East) TwoTheatres(CGameState state)
+	{
+		CCountry germany = state.Country(Ger)!;
+		CTheatre west = CTheatreProvinces.New(state, Ger);
+		CTheatre east = CTheatreProvinces.New(state, Ger);
+		germany.Strategy.Theatres.Add(west);
+		germany.Strategy.Theatres.Add(east);
+		for (int id = 1; id <= 12; id++)
+		{
+			CTheatreProvinces.Add(state, id <= 6 ? west : east, id);
+		}
+		return (west, east);
+	}
+
+	[Fact]
+	public void The_theatre_editors_command_moves_provinces_between_theatres_and_places_and_drops_nothing()
+	{
+		CGameState state = World();
+		(CTheatre west, CTheatre east) = TwoTheatres(state);
+		// Poland's 25 is no province of Germany's; the command checks nothing of who holds it.
+		var command = new CUpdateTheatreCommand(east.Id, new[] { 5, 6, 25 });
+		Assert.True(command.MayExecute(state));
+		command.Execute(state);
+
+		Assert.Equal(east.Id, state.Province(5).TheatreId);
+		Assert.Equal(east.Id, state.Province(6).TheatreId);
+		Assert.DoesNotContain(5, west.AllProvinces);
+		Assert.Contains(6, east.AllProvinces);
+		Assert.Contains(25, east.Provinces);
+		// An empty list is refused, and a theatre that is gone takes nothing.
+		Assert.False(new CUpdateTheatreCommand(east.Id, System.Array.Empty<int>()).MayExecute(state));
+		new CUpdateTheatreCommand(9999, new[] { 4 }).Execute(state);
+		Assert.Equal(west.Id, state.Province(4).TheatreId);
+	}
+
+	[Fact]
+	public void The_theatre_editors_box_gathers_the_players_provinces_not_in_the_theatre_and_lets_go_of_those_it_leaves()
+	{
+		CGameState state = World();
+		(CTheatre _, CTheatre east) = TwoTheatres(state);
+		var headquarters = new CUnit(EUnitKind.Theatre, Ger) { Id = 900, Location = 9 };
+		east.Headquarters = headquarters.Id;
+		var editor = new OpenHOI3.Interface.Map.CTheatreEditor(headquarters);
+
+		// Label points stand at ten times the number: a box from 38 to 62, grown by 2, holds 4, 5 and 6 of the west's and 7
+		// of the east's own, which is left out.
+		editor.Begin(38, 0);
+		editor.Gather(state, Ger, east, 38, 0, 72, 0, state.MapWidth);
+		Assert.Equal(new[] { 4, 5, 6 }, editor.Edit);
+		// Narrowed, 6 leaves; Poland's provinces are never gathered.
+		editor.Gather(state, Ger, east, 38, 0, 55, 0, state.MapWidth);
+		Assert.Equal(new[] { 4, 5 }, editor.Edit);
+		editor.Gather(state, Ger, east, 200, 0, 300, 0, state.MapWidth);
+		Assert.Empty(editor.Edit);
+		// The box is gathered again only once the pointer has moved more than two whole units.
+		Assert.False(editor.ShouldGather(40, 0));
+		Assert.True(editor.ShouldGather(41, 0));
+		editor.Gather(state, Ger, east, 38, 0, 45, 0, state.MapWidth);
+		Assert.Equal(new[] { 4 }, editor.Release());
+		Assert.Empty(editor.Edit);
+	}
+
 	[Fact]
 	public void Areas_are_joined_only_through_land_the_country_may_enter()
 	{

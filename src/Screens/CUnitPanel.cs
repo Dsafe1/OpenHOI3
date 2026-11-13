@@ -88,6 +88,12 @@ public partial class CUnitPanel : Control
 	/// <summary>The leader button going down on a unit with a leader: he may be dragged into the order of battle browser.</summary>
 	public event Action<CLeader>? LeaderDragStarted;
 
+	/// <summary>A theatre headquarters' <c>edit_theatre</c> pressed: the editor wanted open for it, or with null closed.</summary>
+	public event Action<CUnit?>? TheatreEditingWanted;
+
+	/// <summary>Which headquarters the theatre editor is open for, asked as the panel is made.</summary>
+	public Func<CUnit?>? TheatreEditing { get; set; }
+
 	private const string UpgradeWindowName = "select_upgrade_window";
 	private const string UpgradeRowName = "select_upgrade_entry";
 	private CUnitBrigadeRow? _upgradeRow;
@@ -511,8 +517,9 @@ public partial class CUnitPanel : Control
 			Add(objectives);
 		}
 		AddAiRows(state, unit);
-		if (CUnitButtonsEntry.Create(_context, state, owner, unit, mayOrder) is { } buttons)
+		if (CUnitButtonsEntry.Create(_context, state, owner, unit, mayOrder, ReferenceEquals(TheatreEditing?.Invoke(), unit)) is { } buttons)
 		{
+			buttons.EditTheatrePressed += on => TheatreEditingWanted?.Invoke(on ? unit : null);
 			buttons.SupportChanged += (what, on) => SetSupport(unit, what, on);
 			buttons.LoadPressed += fleet =>
 			{
@@ -572,7 +579,7 @@ public partial class CUnitPanel : Control
 		_combats.AddRange(Battles(unit));
 		foreach (CCombat combat in _combats)
 		{
-			if (CUnitCombatEntry.Create(_context, state, unit, combat) is { } battle)
+			if (CUnitCombatEntry.Create(_context, state, unit, combat, _player?.Tag) is { } battle)
 			{
 				battle.Selected += () => CombatChosen?.Invoke(combat);
 				Add(battle);

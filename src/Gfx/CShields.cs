@@ -139,7 +139,7 @@ public sealed class CShields
 		// The original's mask fills W/P(W) by H/P(H) of a texture padded to powers of two; a texture here is the picture alone.
 		Vector2[] masked = { new(0, 1), new(0, 0), new(1, 0), new(1, 1) };
 
-		var arrays = new Godot.Collections.Array();
+		using var arrays = new Godot.Collections.Array();
 		arrays.Resize((int)Mesh.ArrayType.Max);
 		arrays[(int)Mesh.ArrayType.Vertex] = up.Select(corner => new Vector2(corner.X, box.Y - corner.Y)).ToArray();
 		// The fan v0 v1 v2 v3 as two triangles.

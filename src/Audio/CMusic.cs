@@ -62,10 +62,10 @@ public partial class CMusic : Node
 
 	private bool Audible => _settings().MasterVolume > 0f;
 
-	/// <summary>The title theme, as the startup's load begins, where the master volume is above nought.</summary>
+	/// <summary>The title theme, as the startup's load begins, where the master volume is above nought and no game has begun.</summary>
 	public void PlayTitle()
 	{
-		if (Audible)
+		if (Audible && _game is null)
 		{
 			Play(CMusicTracks.Title);
 		}
@@ -123,7 +123,8 @@ public partial class CMusic : Node
 		return path;
 	}
 
-	public override void _Process(double delta)
+	/// <summary>The player set to the settings' volume, as they stand - each frame, and before any track starts.</summary>
+	private void ApplyVolume()
 	{
 		CUserSettings settings = _settings();
 		float decibels = CMusicTracks.Decibels(settings.MasterVolume, settings.MusicVolume);
@@ -132,6 +133,11 @@ public partial class CMusic : Node
 			_volumeSent = decibels;
 			_player.VolumeDb = decibels;
 		}
+	}
+
+	public override void _Process(double delta)
+	{
+		ApplyVolume();
 		if (_game is null || !Audible)
 		{
 			return;
@@ -207,6 +213,8 @@ public partial class CMusic : Node
 		}
 		_player.Stream = stream;
 		_ended = false;
+		// The volume first: a track started before the first frame's look would otherwise begin at the player's full volume.
+		ApplyVolume();
 		_player.Play();
 		GD.Print($"new song {gameRelative}");
 	}

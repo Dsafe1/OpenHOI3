@@ -30,7 +30,7 @@ public sealed class CUnitCombatEntry : CUnitPanelEntry
 	/// <summary>Raised when the row is clicked.</summary>
 	public event Action? Selected;
 
-	private CUnitCombatEntry(CGuiWindow window, CGuiContext context, CGameState state, CUnit unit, CCombat combat)
+	private CUnitCombatEntry(CGuiWindow window, CGuiContext context, CGameState state, CUnit unit, CCombat combat, CCountryTag? player)
 		: base(window)
 	{
 		_context = context;
@@ -41,7 +41,7 @@ public sealed class CUnitCombatEntry : CUnitPanelEntry
 		_progress = window.FindIcon("progress");
 		_attackerFlag = window.FindIcon("attacker_flag");
 		_defenderFlag = window.FindIcon("defender_flag");
-		AnswerFor(_ => CBattleRowTooltip.For(context.Localisation.Localise, combat), "desc");
+		AnswerFor(_ => CBattleRowTooltip.For(context.Localisation.Localise, state, combat, player), "desc");
 		if (window.FindButton("select") is { } select)
 		{
 			select.Pressed += () =>
@@ -57,10 +57,11 @@ public sealed class CUnitCombatEntry : CUnitPanelEntry
 
 	public CCombat Combat { get; }
 
-	public static CUnitCombatEntry? Create(CGuiContext context, CGameState state, CUnit unit, CCombat combat)
+	/// <param name="player">Whose knowledge decides which land units the tooltip draws by the unknown counter.</param>
+	public static CUnitCombatEntry? Create(CGuiContext context, CGameState state, CUnit unit, CCombat combat, CCountryTag? player)
 	{
 		CGuiWindow? window = CGuiWindow.CreateEntry(context, "combat_entry");
-		return window is null ? null : new CUnitCombatEntry(window, context, state, unit, combat);
+		return window is null ? null : new CUnitCombatEntry(window, context, state, unit, combat, player);
 	}
 
 	/// <summary>

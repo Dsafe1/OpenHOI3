@@ -477,6 +477,11 @@ public partial class CSession : Node
 		_unitPanel.ProvinceWanted += province => _mapView.CentreOn(province);
 		_unitPanel.Ordered += () => _ordered = true;
 		_unitPanel.SelectionChanging += change => _mapView.ChangeUnits(change);
+		// The theatre editor: the button opens and closes it on the map, and what it paints goes to the theatre as a command
+		// (attaching.md, section 7).
+		_unitPanel.TheatreEditing = () => _mapView.TheatreEditing;
+		_unitPanel.TheatreEditingWanted += headquarters => _mapView.SetTheatreEditing(headquarters);
+		_mapView.TheatreEdited += (theatre, provinces) => _simulation.Post(new Sim.Commands.CUpdateTheatreCommand(theatre, provinces));
 		if (_deployMenu is not null)
 		{
 			_deployMenu.Toggled += ShowSelectedUnit;
@@ -570,6 +575,13 @@ public partial class CSession : Node
 			if (_browser is { } dropTarget)
 			{
 				outliner.UnitDragStarted += dropTarget.BeginDragUnit;
+				// And a deploy menu line, handed over once the pointer is in the browser (mapunits.md, section 6).
+				if (_deployMenu is { } deploy)
+				{
+					deploy.BrowserOpen = () => dropTarget.IsOpen;
+					deploy.OverBrowser = dropTarget.Holds;
+					deploy.DraggedIntoBrowser += dropTarget.BeginDragDeployment;
+				}
 			}
 			outliner.CombatChosen += combat =>
 			{

@@ -27,12 +27,18 @@ public static class CTheatreRefresh
 
 	public static void Refresh(CGameState state, CCountry country) => Refresh(state, country, ofLoad: false);
 
-	private static void Refresh(CGameState state, CCountry country, bool ofLoad)
+	/// <summary>
+	/// The refresh with its flag off, as the theatre editor's command asks it: no province placed and none the country no
+	/// longer holds dropped - both sit behind the flag - and the rest as ever (<c>docs/mechanics/attaching.md</c>, section 7).
+	/// </summary>
+	public static void RefreshKeepingProvinces(CGameState state, CCountry country) => Refresh(state, country, ofLoad: false, place: false);
+
+	private static void Refresh(CGameState state, CCountry country, bool ofLoad, bool place = true)
 	{
 		List<CTheatre> theatres = country.Strategy.Theatres;
 		foreach (CProvince province in state.Provinces)
 		{
-			if (province.Controller != country.Tag)
+			if (!place || province.Controller != country.Tag)
 			{
 				continue;
 			}
@@ -43,6 +49,10 @@ public static class CTheatreRefresh
 		}
 		foreach (CTheatre theatre in theatres)
 		{
+			if (!place)
+			{
+				break;
+			}
 			foreach (int id in theatre.AllProvinces.ToArray())
 			{
 				CProvince province = state.Province(id);

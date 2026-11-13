@@ -58,7 +58,9 @@ The first point twice; a new point once the last but one is over 5 away; the las
 
 Through the install's `battlearrow.fx` (`BattleArrow`, two passes) and `mapinfo.fx` (`MapInfo`), at height 0.5 with no terrain, the depth tested and not written. A selected object pulses. Each is drawn where it is and a map's width east.
 
-*Ours:* the two passes' **stencil is not carried over**: the original's keeps a colour's overlapping arrows from painting a pixel twice, and here the overlap of two arrows of one colour blends.
+The arrows go a colour at a time, the stencil cleared between colours (`reversing/findings/FINDINGS-battleplandraw.md`), and the effect's stencil - equal to nought, incremented where it passes - lets a pixel be painted once in a colour: two arrows of one colour crossing paint the crossing once, the first pass's fill before the second's outline, and an arrow of another colour blends over them. The icons are drawn after every arrow. Godot clears its stencil once a frame, so each colour's passes write a value of their own (`shaders.md`, section 3.7), and each colour's fills and outlines have their own render priority, in the palette's order. Checked with `--click` on 2026-11-13: two red arrows crossing are one red where they cross (168,112,93, where the same run without the stencil gave a darker 193,85,72), and a blue arrow through them blends with both.
+
+*Ours:* within a colour **every fill is drawn before any outline**, where the original draws each arrow's fill and then its outline, the arrows in an order a sort of its own gives (its comparison not read). Godot's sort of what blends does not keep the order a mesh was drawn in, so the original's cannot be followed. It shows only where two arrows of one colour cross: there the original lets the first arrow's outline cut across the second's fill, and here a fill always covers the other arrow's outline. A colour past the fiftieth shares the fiftieth's stencil.
 
 ## 12. Text on the map
 

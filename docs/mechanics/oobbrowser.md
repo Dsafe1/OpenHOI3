@@ -65,6 +65,10 @@ The same as the first, with its own rows, scroll and expansion.
 
 ## 8. What is missing and what is the original's
 
-- **Unbuilt.** The deploy menu's drop into the browser: a deployment line dragged onto a row, which the original deploys under the row's unit (`reversing/findings/FINDINGS-deploymenu.md`, section 6, `inferred`) - the deploy menu's lines are not dragged here at all. Every other source of the original's is built since 2026-11-13. The window of the original has no leader list: `oob_leader_entry` is the floating row alone.
+- **The deploy menu's line** is a source too since 2026-11-13 (`reversing/findings/FINDINGS-deploymenu.md`, section 6,
+  `confirmed`; `mapunits.md`, section 6): handed over once the pointer is in the browser's window, a unit of one brigade as
+  that brigade and any other as the unit, the sub-unit test asked anywhere rather than in the same province; its drop posts
+  the deploy command and then the browser's own. Every source of the original's is built. The window of the original has no
+  leader list: `oob_leader_entry` is the floating row alone.
 - *Ours:* a row with no leader keeps the file's picture where the original draws its null leader's.
 - *The original's, kept:* the split button's opening copy, losing what the second list held; a row's unit gone loses the list's expansion; `theatre_forces_button` on the main window alone.
