@@ -264,7 +264,7 @@ sprites, but no one uses them and they are also not easily moddable. So they are
 | --- | --- |
 | the original | `mapRenderingOptions`' `alwaysCounters` in the player's `settings.txt`: `yes` draws counters at every zoom and the weather map mode's plain `_simple` icons; `no` draws the units as figures close in and the weather as clouds with rain and snow falling under them |
 | here | always as `yes`: counters, and the `_simple` weather icons; a `settings.txt` saying `no` is reported and read as `yes` |
-| the difference today | the units' figures and the full weather art of `interface/mapitems.gfx` - `weather_rain`, `weather_snow` and the rest without `_simple` - are never drawn |
+| the difference today | the units' figures and the full weather art of `interface/mapitems.gfx` - `weather_rain`, `weather_snow` and the rest without `_simple` - are never drawn; nor is `selection_projection`, the mark the original lays under a selected unit only without counters (`docs/mechanics/movement.md`, section 7, read 2026-11-14) |
 | a mod loses | what it gives those types and its unit figures; its `_simple` types and its counters are drawn as before |
 | why | nobody plays with them, and the figures are not easily modded: a dead feature |
 | to undo | read `alwaysCounters` and draw the figures and the full weather pictures - the layer that drew the clouds, the falling rain and snow and the lightning was built on 2026-10-15 and taken out the same day (`docs/mechanics/weather.md`, section 6) |

@@ -586,8 +586,22 @@ with what is left over carried into the next leg as the march itself carries it.
   leaves a blue ring at Zerbst's unit point, about the size of a counter, with the way's arrow and
   the panel's "Move to" as the positive control; one of Köslin sent into the Southern Baltic a red
   cross at the sea zone's point, the panel saying "No Order". Nobody has set it beside the original's
-  on screen. `selection_projection`, the mark under a selected unit, is not built: what makes it was
-  not read.
+  on screen.
+
+  **`selection_projection`, the mark under a selected unit, is the figures' alone, and so is not
+  drawn here** (`reversing/findings/FINDINGS-movement.md`, section 13.8, read 2026-11-14, `confirmed`
+  unless marked). The original makes it as a unit is selected **only where the player's
+  `alwaysCounters` is off** [exe; mod: `settings.txt`] - with counters, the install's setting and the
+  only one this project has (`docs/compatibility.md`, entry 12), there is none, and a selected counter
+  is marked by its ring alone (`mapunits.md`, section 8). What it is without counters, for the record:
+  one for every selected unit, of every kind, hung on its province and lying at its stack's point - the
+  standing, the moving, a battle's or the aircraft's - hidden while a fleet is in port or an air unit
+  at its base; it follows the unit from province to province and between the standing and the moving
+  stack as it marches, and goes when the unit is deselected. The install's type [mod]: `size` 5,
+  `expanding` 0.7, `spin` 0.4, not pulsing and with no `duration`, so by the rules above it grows to 5
+  units in 0.7 s, turns 0.4 × 3.14 radians a second and never fades. Nothing of it is built: building
+  it would draw what the original never draws with counters. *Inferred*: which of its maker's branches
+  hide it on entering a province, by the avatar's matching ones.
 - **The unit panel** (`unitpanel.md`) says what a selected unit is doing - "Move to" the
   next province of its way - shows its speed, marks it as on the march, and has the
   button that halts it.
@@ -619,7 +633,8 @@ with what is left over carried into the next leg as the march itself carries it.
 - ~~**The message** that a unit has arrived~~ - built 2026-11-14 (section 6) - ~~and the sounds
   and the marks of the click~~ - built, the marks 2026-11-14 (section 7). **Left of the click**: an air
   unit in a battle the original sends straight on with the sent mark and nothing asked, where this
-  project opens the orders window for every air unit (`sound.md`, section 7); and `selection_projection`.
+  project opens the orders window for every air unit (`sound.md`, section 7). ~~And `selection_projection`~~ -
+  read 2026-11-14 and the original's only without counters, so not drawn here (section 7).
 - **The tooltip** that says when a unit will arrive.
 
 ## What is not established, in one place

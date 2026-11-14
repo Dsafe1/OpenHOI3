@@ -546,6 +546,14 @@ lines and highlight" and that "they can be toggled with h":
 - The original gives the rings out when a unit is selected and takes them back when it no
   longer is, so a unit attached under it in between has none until then. *Ours:* they
   follow the order of battle as it is.
+- **The ring is all there is under a selected counter.** The original has a mark for a
+  selected unit, `selection_projection` of `interface/mapitems.gfx` - a picture laid on the
+  map under the unit's stack that grows, turns and stays until the unit is deselected,
+  following it as it marches - but **it makes it only where `alwaysCounters` is off**, for
+  the units' figures [exe] (`reversing/findings/FINDINGS-movement.md`, section 13.8, read
+  2026-11-14). With counters, which is the install's setting and the only one here
+  (`docs/compatibility.md`, entry 12), it makes none, so none is drawn here
+  (`movement.md`, section 7).
 
 A unit out of radio range is any link up its chain of command letting less than all of its
 command through (`leaders.md`, section 8); its line is dark red and drawn from the broken half

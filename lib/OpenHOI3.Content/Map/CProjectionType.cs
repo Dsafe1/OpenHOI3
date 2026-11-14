@@ -3,7 +3,8 @@ namespace OpenHOI3.Content.Map;
 /// <summary>
 /// A <c>projectionType</c> of the interface's <c>.gfx</c> files: a picture laid flat on the map from above through the
 /// install's <c>gfx/FX/project.fx</c>, which grows, pulses, spins and fades by these figures. The three the original has
-/// are the marks of a unit: <c>selection_projection</c>, and <c>legal_selection_projection</c> and
+/// are the marks of a unit: <c>selection_projection</c>, which the original lays under a selected unit only where
+/// <c>alwaysCounters</c> is off and which is therefore never made here, and <c>legal_selection_projection</c> and
 /// <c>illegal_selection_projection</c>, which a right click leaves on the province ordered. Each key's default is the
 /// original's (<c>reversing/findings/FINDINGS-movement.md</c>, section 13.1). Lengths in map units, times in seconds.
 /// See <c>docs/mechanics/movement.md</c>, section 7.

@@ -2366,8 +2366,10 @@ None of these blocks the list above.
   (`reversing/findings/FINDINGS-liveread.md`, section 88), which `CAiMoves` does not yet; the route not asking a fleet's
   goal whether closed waters cut it off (`fleetsandair.md`, section 1); ~~and the click's marks~~ - built 2026-11-14,
   `legal_selection_projection` and `illegal_selection_projection` through the install's `project.fx`, cut to a land
-  province's own triangles (`movement.md`, section 7; `reversing/findings/FINDINGS-movement.md`, section 13) - leaving
-  `selection_projection`, the mark under a selected unit, whose maker was not read, and an air unit in a battle, which the
+  province's own triangles (`movement.md`, section 7; `reversing/findings/FINDINGS-movement.md`, section 13) - and
+  ~~`selection_projection`, the mark under a selected unit, whose maker was not read~~ - read 2026-11-14, the original's
+  only where `alwaysCounters` is off and so never drawn here (`movement.md`, section 7;
+  `reversing/findings/FINDINGS-movement.md`, section 13.8) - leaving an air unit in a battle, which the
   original sends straight on where this project opens the orders window. ~~`EXPRETURNED`'s Goto,
   whose message carries no unit~~ - built 2026-11-14, the message carrying the unit and its Goto selecting it whoever
   holds it (`messages.md`, section 4.1). `docs/mechanics/movement.md`, *What is not built*.
