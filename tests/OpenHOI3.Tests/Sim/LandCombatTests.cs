@@ -1028,6 +1028,24 @@ public class LandCombatTests
 	}
 
 	[Fact]
+	public void TheSpeedTooltipsTermsGiveADefenderOneWhereTheModifierGivesAHundredth()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit attacker = Division(state, germany, Berlin);
+		CUnit defender = Division(state, poland, Posen);
+		Fight(state, attacker, Posen);
+		defender.Path.Add(Warsaw);
+
+		Assert.Equal(330, CMovementSpeed.Terms(state, germany, attacker).Combat);
+		Assert.Equal(10, CMovementSpeed.Modifier(state, poland, defender));
+		Assert.Equal(1000, CMovementSpeed.Terms(state, poland, defender).Combat);
+
+		CCombats.LeaveAll(state, defender);
+		defender.IsRetreating = true;
+		Assert.Equal(1100, CMovementSpeed.Terms(state, poland, defender).Retreating);
+	}
+
+	[Fact]
 	public void AnAttackersWalkIsHeldAtTheFarEndWhileItFights()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

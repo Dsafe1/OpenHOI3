@@ -146,8 +146,8 @@ public static class CUnitStatusTooltips
 
 	/// <summary>
 	/// <c>speed</c>: what the speed is, the speed the unit has where something scales it, each
-	/// brigade's own, and how much of its speed it has. The terms that make that up are not
-	/// written: which of them the original counts is not built here.
+	/// brigade's own, and how much of its speed it has, with the terms that make that up
+	/// written one by one, as the original's tooltip works them out (<see cref="SpeedModifier"/>).
 	/// </summary>
 	public static string Speed(Func<string, string> localise, CGameState state, CCountry owner, CUnit unit)
 	{
@@ -166,7 +166,30 @@ public static class CUnitStatusTooltips
 		text.Append('\n');
 		if (modifier != Scale)
 		{
-			text.Append(CTextTemplate.Fill(localise("SPEED_MODIFIER"), ("PERC", Multiplier(modifier))));
+			text.Append(SpeedModifier(localise, modifier, CMovementSpeed.Terms(state, owner, unit)));
+		}
+		return text.ToString();
+	}
+
+	/// <summary>
+	/// The original's breakdown of the speed's multiplier: <c>SPEED_MODIFIER</c> with the whole, then for each term not
+	/// one, in its order, a line break, <c>- </c> and the term's key with it - each a percentage to two places.
+	/// </summary>
+	public static string SpeedModifier(Func<string, string> localise, long modifier, CSpeedTerms terms)
+	{
+		var text = new StringBuilder(CTextTemplate.Fill(localise("SPEED_MODIFIER"), ("PERC", Multiplier(modifier))));
+		foreach ((string key, long term) in new[]
+		{
+			("SPEED_MODIFIER_COMBAT", terms.Combat), ("SPEED_MODIFIER_FUEL", terms.Fuel), ("SPEED_MODIFIER_TERRAIN", terms.Terrain),
+			("SPEED_MODIFIER_TRAIT", terms.Trait), ("SPEED_MODIFIER_ADJACIENCY", terms.Adjacency),
+			("SPEED_MODIFIER_WEATHER", terms.Weather), ("SPEED_MODIFIER_LOCAL_MOD", terms.LocalModifier),
+			("SPEED_MODIFIER_MOTORIZED_BONUS", terms.MobileBonus), ("SPEED_MODIFIER_RETREATING", terms.Retreating),
+		})
+		{
+			if (term != Scale)
+			{
+				text.Append("\n- ").Append(CTextTemplate.Fill(localise(key), ("PERC", Multiplier(term))));
+			}
 		}
 		return text.ToString();
 	}

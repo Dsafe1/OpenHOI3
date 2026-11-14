@@ -2177,7 +2177,7 @@ None of these blocks the list above.
   the figure the original names `naval_positioning_bonus`.
 - **The unit panel's tooltips leave out what is not built under them** (2026-10-12,
   `unitpanel.md` section 10): the attrition breakdown, a fleet's
-  or an air unit's base and how well it supplies, the terms of the speed's multiplier one by one,
+  or an air unit's base and how well it supplies,
   the organisation a brigade regains an hour, what technology adds to the digging-in cap, the
   `+*` on a model the country no longer builds and a faction leader's name for a model. A leader's traits on the way are in the traits file's order, where
   the original's are in the order they lie in its memory.

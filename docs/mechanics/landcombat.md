@@ -587,7 +587,7 @@ orders out of a battle, which falls back from where it stands (`movement.md`, se
 A unit dropped from the air starts its delay from `PARATROOP_MISSION_DELAY` (`transport.md`, section 13.4).
 
 The technologies' `attack_movement_speed` (the land doctrines' 0.02 a level) makes the tactics' speed count for more too,
-added beside `combat_movement_speed` here and in an attacker's walk in a battle (`movement.md`, section 3), since
+added beside `combat_movement_speed` here and in an attacker's walk in a battle (`movement.md`, section 5), since
 2026-11-14 - its key read off the fact base's field map, where this said a technology figure was not built.
 
 ## 10. Trying it, and what is not here
