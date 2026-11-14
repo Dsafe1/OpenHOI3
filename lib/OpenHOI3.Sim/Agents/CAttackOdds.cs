@@ -83,8 +83,9 @@ public static class CAttackOdds
 			soft += (Scale + softBonus) * CUnitTotals.Sum(unit, CUnitTotals.SoftAttack).Raw / Scale * weight / Million;
 			hard += (Scale + hardBonus) * CUnitTotals.Sum(unit, CUnitTotals.HardAttack).Raw / Scale * weight / Million;
 			softness += CUnitTotals.AverageSoftness(unit).Raw;
-			// A unit that has never fought has defence products of nought, and so counts no toughness at all.
-			if (unit.HoursAttacking > 0 || unit.IsFighting)
+			// A unit no battle has worked out yet has defence products of nought, and so counts no toughness at all;
+			// one whose battle is over keeps its last hour's.
+			if (unit.HasCombatProducts)
 			{
 				string kind = attacking ? CSubUnitStats.Toughness : CUnitTotals.Defensiveness;
 				tough += CUnitTotals.Sum(unit, kind).Raw * unit.CombatDefence.Raw / Scale * unit.LandingDefence.Raw / Scale;

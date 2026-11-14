@@ -226,6 +226,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    46. **That remake is the original's** (section 90): its own build from nothing, called on the running game at the same
    hour, makes the same four theatres province for province; what neither run had is the trigger - Britain's
    invitation to Australia, which the install's Lua makes only on a one-in-seven draw of the AI's generator.
+   **A finished battle's toughness stays in the odds** (section 93; `moving.md`, section 11.4): the defence product its
+   last hour made is never cleared, so four German divisions whose attack on 2390 is over still give odds of about 10 at
+   noon on 16 July 1941 and the 6th H Arm Division keeps its way to 2448, as in all three runs; ours, counting toughness
+   only while a unit fought, had fallen to 2.8 and sent it in. Against the July series' three runs ours' ways alone went
+   75 to 58; at the war's start 110 to 113 the same, 9 to 6 missed and 45 to 42 alone. The same save's first odds on a
+   loaded battle differ from load to load in the original - section 46's uninitialised cache - so 2390's attack is
+   called off at entering in one recorded run of three.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

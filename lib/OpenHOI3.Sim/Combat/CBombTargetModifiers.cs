@@ -64,6 +64,7 @@ public static class CBombTargetModifiers
 			unit.CombatModifiers.Clear();
 			unit.CombatAttack = CFixedPoint.One;
 			unit.CombatDefence = CFixedPoint.One;
+			unit.HasCombatProducts = true;
 			unit.DefencesUsed = 0;
 
 			foreach (CSubUnit subUnit in unit.SubUnits)

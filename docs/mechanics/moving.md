@@ -421,7 +421,13 @@ bound for p, not retreating, **stands down**.
 
 Each side's units u, weight = mean strength share x mean organisation share x (engagement + its modifier): A += (1 + the
 country's `soft_attack` modifier) x soft attack x weight; B the same for hard; C the mean softness; D the mean
-toughness (theirs: defensiveness) x its last combat's defence product x its landing's defence scale / 10^6. *Set beside the running game on 2026-11-10, 81 estimates of 16 July 1941: within 11%, half within 4%, Germany's single-unit estimates within 0.5% but one (`reversing/findings/FINDINGS-liveread.md`, section 6).* Ours: engagement x (1 - the attacker's
+toughness (theirs: defensiveness) x its last combat's defence product x its landing's defence scale / 10^6 - **the
+product of the last hour any battle worked it out, kept when the battle is over**, nothing clearing it, and nought on a
+unit no battle has worked out since it was made or loaded, a save keeping none (`FINDINGS-attackodds.md`, section 7).
+So the four German divisions whose attack on 2390 has ended by 10:00 on 16 July 1941 still count their toughness at
+noon: the original's odds stay about 10 in all three runs and its 6th H Arm Division keeps its way to 2448, where ours,
+counting toughness only while a unit fought, had fallen to 2.8 and sent it in (`confirmed` on the running game,
+`reversing/findings/FINDINGS-liveread.md`, section 93). *Set beside the running game on 2026-11-10, 81 estimates of 16 July 1941: within 11%, half within 4%, Germany's single-unit estimates within 0.5% but one (`reversing/findings/FINDINGS-liveread.md`, section 6).* Ours: engagement x (1 - the attacker's
 share) for each battle it defends in, again where that share is over a half. Theirs: for its first battle as an attacker,
 x min(that battle's odds, 4) / 4 (0.01 for nought). Their damage = (1 - D_ours / 100)(A_theirs C_ours + B_theirs (1 -
 C_ours)); ours the same the other way; **odds = ours / theirs** - nought with no unit, 100 with no defender, 50 with no
@@ -823,7 +829,8 @@ months on) - at least three hours left, and the order ends then.
 - **A called-off attack halts where it is**; nothing sends it back.
 - **The terrain figure's neighbour term re-reads the province's own terrain.**
 - **A garrison is rated higher the weaker it is.**
-- **A unit nobody has attacked counts no toughness in the odds**, its defence products being nought until it fights.
+- **A unit nobody has attacked counts no toughness in the odds**, its defence products being nought until it fights;
+  **and one whose battle is over counts its last hour's**, which nothing clears.
 - **A province of 500 or more is attacked as at stance 4.**
 - **The air's sunset ignores longitude** (17.4): the hour of the game's clock is set against a sunset worked from latitude
   alone, so the AI's daylight missions keep the same hours from Lisbon to Vladivostok.
@@ -876,8 +883,7 @@ months on) - at least three hours left, and the order ends then.
 - ~~**A support attack ends** once the province is no longer held against the unit, nobody stands there to fight, or its
   way is gone: what ends the original's order was not read.~~ Read on 2026-11-04 and built as the original's
   (`landorders.md`, section 7).
-- **The odds** (11.4): a unit that has never fought - neither attacked nor is fighting - counts no toughness, the
-  original's defence products being nought until a battle sets them; the technologies' free stacking (`unit_cooperation`) is taken off since 2026-11-12 (section 11.4), and
+- **The odds** (11.4): the technologies' free stacking (`unit_cooperation`) is taken off since 2026-11-12 (section 11.4), and
   encirclement is weighed since 2026-11-10 (`landcombat.md`, section 4). The country's difficulty is weighed since 2026-11-06 (`frontend.md`, section 4.3).
 - **The air** (section 17): a "busy" group, which the original asks of its order, is one under any order; a group the original
   gives the order "none" at its base has its order dropped; the places enemy fleets were seen are made again at each

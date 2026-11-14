@@ -172,6 +172,14 @@ public sealed class CUnit
 	public CFixedPoint CombatDefence { get; set; } = CFixedPoint.One;
 
 	/// <summary>
+	/// Whether a battle or a bombing has worked out the two figures above since the unit was made or loaded. Nothing
+	/// clears them when the battle ends, so the AI's odds go on reading the last hour's; before the first, the
+	/// original's figures are nought, and the odds count no toughness for the unit (<c>moving.md</c>, section 11.4).
+	/// A save keeps neither.
+	/// </summary>
+	public bool HasCombatProducts { get; set; }
+
+	/// <summary>
 	/// What this hour of its battle holds for and against it, in the order it was worked
 	/// out. The two figures above are these multiplied together.
 	/// </summary>

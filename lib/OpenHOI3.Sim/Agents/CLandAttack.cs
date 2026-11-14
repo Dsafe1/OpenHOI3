@@ -420,7 +420,8 @@ public static class CLandAttack
 		{
 			trace.Write($"  attack {p.Id} stance {effStance}/{planStance}: may {mayAttack}, candidates {candidates.Count}, " +
 				$"attackers {attackers.Count} ({mustStay.Count} must stay), defenders {defenders.Count}, odds {before} -> {odds}, " +
-				$"bar {attackBar};{refused} [{string.Join(", ", candidates.ConvertAll(c => $"{c.Unit.Name}:{c.Cost}"))}]");
+				$"bar {attackBar};{refused} [{string.Join(", ", candidates.ConvertAll(c => $"{c.Unit.Name}:{c.Cost}"))}]; " +
+				$"attackers [{string.Join(", ", attackers.ConvertAll(u => $"{u.Name}@{u.Location}"))}]");
 		}
 		if (mayAttack && odds >= attackBar && mustStay.Count < attackers.Count)
 		{

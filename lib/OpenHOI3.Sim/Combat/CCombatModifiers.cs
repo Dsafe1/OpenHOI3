@@ -84,6 +84,7 @@ public static class CCombatModifiers
 			unit.CombatModifiers.Clear();
 			unit.CombatAttack = CFixedPoint.One;
 			unit.CombatDefence = CFixedPoint.One;
+			unit.HasCombatProducts = true;
 			unit.DefencesUsed = 0;
 			// A unit landing on an enemy's coast has its two scales by its progress, attacker or not.
 			Transport.CLanding.SetScales(state, unit);

@@ -348,6 +348,27 @@ public class MovingTests
 		Assert.Equal(1_000, CAttackOdds.Of(state, new List<CUnit> { ours }, new List<CUnit> { theirs }, target));
 	}
 
+	[Fact]
+	public void A_unit_counts_its_last_battle_hours_toughness_after_the_battle_and_none_before_its_first()
+	{
+		CGameState state = World();
+		CUnit ours = Division(state, Ger, 12, "infantry_brigade");
+		CUnit theirs = Division(state, Pol, 21, "infantry_brigade");
+		CProvince target = state.Province(21);
+		var attackers = new List<CUnit> { ours };
+		var defenders = new List<CUnit> { theirs };
+
+		// Hours of attacking alone give it nothing: no battle has worked out its defence product.
+		ours.HoursAttacking = 5;
+		Assert.Equal(1_000, CAttackOdds.Of(state, attackers, defenders, target));
+
+		// A battle hour has, and in no battle now it still keeps it: their damage is cut by its toughness.
+		ours.HoursAttacking = 0;
+		ours.HasCombatProducts = true;
+		Assert.False(ours.IsFighting);
+		Assert.True(CAttackOdds.Of(state, attackers, defenders, target) > 1_000);
+	}
+
 	private static CUnit AirGroup(CGameState state, CCountryTag owner, int airBase, string typeKey)
 	{
 		var type = new CSubUnitType(typeKey, EUnitBranch.Air);

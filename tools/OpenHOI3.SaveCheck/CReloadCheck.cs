@@ -123,7 +123,7 @@ internal static class CReloadCheck
 		"CGameState._handChanges", "CProvince._handChanges", "CGameState._controlledCounts", "CGameState._controlledCountsAt",
 		"CGameState.IntelFingerprint", "CCountryFacts.ControlChanges", "COwnedCounts.ControlChanges",
 		"CSupplyNetwork.ControlChanges",
-		"CUnit.CombatAttack", "CUnit.CombatDefence", "CUnit.CombatModifiers", "CUnit.DefencesUsed",
+		"CUnit.CombatAttack", "CUnit.CombatModifiers", "CUnit.DefencesUsed",
 		"CSubUnit.CombatAttack", "CSubUnit.CombatDefence", "CSubUnit.CombatModifiers",
 	};
 
