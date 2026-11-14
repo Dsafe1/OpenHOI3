@@ -363,9 +363,22 @@ public static class CLineFill
 			}
 			else if (mine is null && agent.SecondRing.Count > 0)
 			{
-				var draw = new CRandom((uint)unit.Id);
+				// Seeded with the original's own number for the unit - the serial of its save pair, not this game's one count
+				// (FINDINGS-liveread.md, section 91).
+				var draw = new CRandom((uint)state.OriginalSerial(unit.Id));
 				int index = (int)(draw.Next() % agent.SecondRing.Count);
-				moved |= CAiMoves.Move(state, country, unit, agent.SecondRing[index], safe: true);
+				if (state.AiTrace is { } ringTrace && ringTrace.Country == country.Tag)
+				{
+					ringTrace.Write($"  second ring for {unit.Name}#{unit.Id} (serial {state.OriginalSerial(unit.Id)}): [{string.Join(' ', agent.SecondRing)}], index {index}");
+				}
+				// Not where it is bound or stands, only where the land reach test lets it, and counted moved whatever the move
+				// does, as the original's.
+				int ring = agent.SecondRing[index];
+				if (ring > 0 && ring != bound && CAiMoves.ReachesByLand(state, country, unit, ring))
+				{
+					CAiMoves.Move(state, country, unit, ring, safe: true);
+					moved = true;
+				}
 			}
 		}
 		return moved;

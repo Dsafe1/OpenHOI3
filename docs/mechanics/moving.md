@@ -220,7 +220,13 @@ is cleared.
    its want; **then only where the may-leave test lets it go** (7.6), strictly for an agent below a theatre, the battle
    it defends not asked about (`FINDINGS-moving.md` A.4e); otherwise, over the positions in their order with a want and under their cap: one where it stands is taken at once - where it is bound for a target province away from the hostile routes, only a position beside one is considered, and scored. Else the reachable position with the lowest key, in single precision [exe, `reversing/findings/FINDINGS-liveread.md`, section 17] - have / want x 100, and the excess over 1 x 100 again;
    at war instead the distance from where it is bound x (have / want + 0.1), x 0.66 for a land battle there; then -50 x its terrain figure there (section 11.3); then x 0.66 for a depot and for a province beside a hostile route; with the allied-soil budget spent, not onto a friend's soil from the
-   capital's area (**the soil test**, below). No position and d none: a second-ring province, drawn on a generator seeded with the unit's id.
+   capital's area (**the soil test**, below). No position and d none: a second-ring province, drawn on a generator seeded with
+   **the original's own number for the unit** - the serial of its save pair, which for a unit minted in play is not this
+   game's one count (`savegame.md`, section 5; `CGameState.OriginalSerial`) - the first draw's signed remainder by the ring's
+   size; not where the unit is bound or stands, only where the land reach test lets it, and the line counted moved whether
+   or not the move posts anything. Guangxi's Duli Di'28 Shi, number 6200 of type 4713 in the war start's save, draws its own
+   province, so the line moves nothing and the garrisons go, as in both of the original's runs
+   (`reversing/findings/FINDINGS-liveread.md`, section 91).
 7. **Each position still short** - its fill worked out once, before anybody is pulled to it - pulls the division with the least squared distance x 16 + its dig-in / 100 + its attack
    delay / 1000 - 100 x its terrain figure here (x 0.25 where it is bound for no position or one that wants none, else
    + 100 x its figure where it is bound), the first of them that can reach it and that the may-leave test lets go, as in
@@ -862,8 +868,9 @@ months on) - at least three hours left, and the order ends then.
 - **The raided waters** (section 12, step 5) are the sea provinces on the side's convoys' ways whose last raid was within
   a month: the list of finished battles here keeps a week and not whose convoy a raid was on.
 - **The hold list** (section 5) holds a province once.
-- **The second ring's draw** (7.3) is the game's own generator seeded with the unit's number; the original seeds an
-  MT19937 the same way, its seeding not read.
+- ~~**The second ring's draw** (7.3) is the game's own generator seeded with the unit's number; the original seeds an
+  MT19937 the same way, its seeding not read.~~ Read on 2026-11-14: the game's own seeding and twist, seeded with the unit's
+  serial (`reversing/findings/FINDINGS-liveread.md`, section 91).
 - ~~**A support attack ends** once the province is no longer held against the unit, nobody stands there to fight, or its
   way is gone: what ends the original's order was not read.~~ Read on 2026-11-04 and built as the original's
   (`landorders.md`, section 7).

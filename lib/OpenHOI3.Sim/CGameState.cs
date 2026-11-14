@@ -266,6 +266,16 @@ public sealed class CGameState
 	/// </summary>
 	public int HistoryUnitNext { get; set; } = 1;
 
+	/// <summary>
+	/// The original's own number of a unit, brigade or line - the serial of its save pair, which is what the original seeds
+	/// a draw on a unit with: below <see cref="HistoryUnitNext"/> the number itself, the history's; from it on, minted in
+	/// play, counted from one at it (<c>docs/mechanics/savegame.md</c>, section 5; <c>docs/mechanics/moving.md</c>, section 2).
+	/// </summary>
+	public int OriginalSerial(int id)
+	{
+		return id <= 0 ? 0 : id < HistoryUnitNext ? id : id - HistoryUnitNext + 1;
+	}
+
 	/// <summary>The last number given to a convoy.</summary>
 	public int LastConvoyId { get; set; }
 
