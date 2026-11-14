@@ -2231,9 +2231,8 @@ None of these blocks the list above.
   air mode's are built (`airmap.md`), the naval mode's of convoys sunk and raiders fought are
   not (`combatview.md`, *What is not built*).
 - **The retreat button sends a land or an air unit where a beaten one goes, as the original's**, since 2026-11-14
-  (`combatview.md`, sections 2 and 11). A fleet is set breaking away with nowhere named; the original's move order also
-  notes the fleet's retreat province as where it is to go once out, which is not built (`reversing/findings/FINDINGS-movement.md`,
-  section 2).
+  (`combatview.md`, sections 2 and 11), and a fleet where a beaten one runs, once its count to break away has run (section
+  10, since the same day).
 - **A battle in the air has been set beside the running game for one hour and never watched.** Its window and its
   row in a unit's panel were tried with real clicks and the maintainer has not looked at them
   (`combatview.md`, section 11); an hour of one over a province came out the original's, every draw and figure, on
