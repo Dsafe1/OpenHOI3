@@ -51,4 +51,6 @@ Four at `pie_one_offset` to `pie_four_offset`, each with a `pie_heading` and a l
 
 ## 5. What is saved
 
-Only `nation_size_statistics` is ever filled in the original, yearly, and nothing reads it; `income_statistics` and `inflation_statistics` stay empty. Nothing on these pages keeps a history here.
+Only `nation_size_statistics` is ever filled in the original, yearly, and nothing reads it; `income_statistics` and `inflation_statistics` stay empty (`reversing/findings/FINDINGS-topscreens.md`, B.6 and B.7). **The graphs it would feed are dead in the original**: the file's graph section is hidden and never drawn, so nothing here draws one either.
+
+**Kept for the save since 2026-11-14** (`CNationSize`, `CStatisticsSeries`): as each year begins, for the null country `---` and then every country in `common/countries.txt`'s order, the provinces it owns are added to its line with the year - a line made at the end for one that has none - so a 1936 start's lines begin at 1937. A save writes the three blocks after the wars, every time: the two the original never fills empty, and each line of the nation size as a `ledger_data` block of its figures (`ledger_data_y`), its years (`ledger_data_x`) and its `name`, read back whole; one of the empty two that holds anything is reported. `Ireland1940_05_23_15` comes back with all three blocks the same. Where the yearly pass stands beside the day's and the month's was not established. Hardcoded [exe].

@@ -158,8 +158,7 @@ public static class CMovementSpeed
 			{
 				if (combat.Attacker.Units.Contains(unit))
 				{
-					long quicker = Scale + country.Modifier[CAttackDelay.CombatMovementSpeed].Raw
-						+ CCommandReach.Effect(state, unit, ETraitEffect.CombatMoveSpeed);
+					long quicker = CAttackDelay.Quicker(state, country, unit);
 					long pace = state.Defines[CManpower.MilitarySection, CombatMovementSpeed].Raw + combat.TacticSpeed.Raw;
 					inBattle = System.Math.Min(Scale, System.Math.Max(SlowestInBattle, quicker * pace / Scale));
 					break;
@@ -204,6 +203,61 @@ public static class CMovementSpeed
 			modifier = modifier * (Scale + RetreatHaste) / Scale;
 		}
 		return modifier;
+	}
+
+	/// <summary>
+	/// The terms the speed tooltip writes, each worked out again by itself as the original's tooltip does it - which is
+	/// not quite the modifier's way: in a battle a unit on no attacking side is given the whole of the quickness over
+	/// one, held at one, where the modifier gives it a hundredth; and the weather and the province's own
+	/// <c>local_unit_speed</c> are two terms where the modifier adds them into one.
+	/// </summary>
+	public static CSpeedTerms Terms(CGameState state, CCountry country, CUnit unit)
+	{
+		CProvince here = state.Province(unit.Location);
+		CProvince? next = unit.IsMoving ? state.Province(unit.Path[0]) : null;
+		long combat = Scale;
+		if (unit.IsFighting && unit.IsMoving)
+		{
+			long pace = Scale;
+			foreach (CCombat battle in unit.Combats)
+			{
+				if (battle.Attacker.Units.Contains(unit))
+				{
+					pace = state.Defines[CManpower.MilitarySection, CombatMovementSpeed].Raw + battle.TacticSpeed.Raw;
+					break;
+				}
+			}
+			combat = System.Math.Max(SlowestInBattle, System.Math.Min(Scale, CAttackDelay.Quicker(state, country, unit) * pace / Scale));
+		}
+		long fuel = unit.Kind != EUnitKind.Air && !unit.IsRetreating && BurnsFuel(unit)
+			? unit.FuelReceived.Raw * SpeedFromFuel / Scale + SpeedWithoutFuel
+			: Scale;
+		long terrain = Scale, trait = Scale, adjacency = Scale;
+		if (next is not null)
+		{
+			if (next.Terrain is { } ground)
+			{
+				terrain = Scale + Adjuster(unit, ground.Name);
+				trait = Scale + CCommandReach.TerrainEffect(state, unit, ETraitEffect.TerrainSpeed, ground.Name);
+			}
+			if (here.EdgeTo(next.Id) is { Kind: EProvinceEdgeKind.Crossing or EProvinceEdgeKind.River })
+			{
+				adjacency = Scale + Adjuster(unit, RiverAdjuster);
+			}
+		}
+		long weather = Scale, local = Scale, mobile = Scale;
+		if (IsLand(unit))
+		{
+			weather = Scale + CWeatherEffects.Movement(state, here.Weather, country);
+			local = Scale + here.Modifier[LocalUnitSpeed].Raw;
+			long share = MobileShare(unit);
+			if (share > 0)
+			{
+				mobile = Scale + country.Modifier[MobileSpeed].Raw * share / Scale;
+			}
+		}
+		long retreating = unit.IsRetreating ? Scale + RetreatHaste : Scale;
+		return new CSpeedTerms(combat, fuel, terrain, trait, adjacency, weather, local, mobile, retreating);
 	}
 
 	/// <summary>

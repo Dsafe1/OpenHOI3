@@ -60,11 +60,15 @@ public sealed class CCombatWingEntry
 		{
 			return null;
 		}
-		// A row of what is bombed says a figure in the original, which is not built.
 		if (row is { Kind: ECombatRowKind.SubUnit, SubUnit: { } wing })
 		{
 			window.SetTooltips(element => CBattleUnitTooltips.Wing(context.Localisation.Localise, wing, element),
 				"name", "org_bar", "str_bar");
+		}
+		else
+		{
+			// A row of what is bombed says its figure wherever it is asked (combatview.md, section 12).
+			window.SetTooltips(_ => CBattleUnitTooltips.BombedRow(state, combat, row), "name", "org_bar", "str_bar");
 		}
 		return new CCombatWingEntry(window, context, state, combat, row);
 	}

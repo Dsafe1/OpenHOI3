@@ -111,6 +111,7 @@ public static class CSaveWriter
 			}
 			writer.End();
 		}
+		CSaveTop.WriteStatistics(writer, state);
 		CSaveWarfare.Write(writer, state);
 		if (state.BattlePlansToSave is { } plans)
 		{
@@ -192,6 +193,11 @@ public static class CSaveWriter
 		if (province.LastConvoyAttackHour != CProvince.NoConvoyAttack)
 		{
 			writer.Date("last_convoy_attack", province.LastConvoyAttackHour);
+		}
+		// After the weather and the last convoy attack, where it is above nought.
+		if (province.OutOfSupplyDays > 0)
+		{
+			writer.Int("out_of_supply_days", province.OutOfSupplyDays);
 		}
 		WriteEventModifiers(writer, province.EventModifiers);
 		writer.End();

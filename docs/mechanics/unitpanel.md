@@ -437,15 +437,14 @@ the original asks was not read.
 | `unitstatus_dugin` | `UW_DUGIN` with the days dug in and `UNIT_DIGIN_CAP` |
 | `unitstatus_combinedarms` | `CA_BONUS_DETAILS_TOTAL`, then on lines of their own the mix's own `CA_BONUS_DETAILS_BASE`, what technology adds `CA_BONUS_DETAILS_TECH` and what the leaders' traits add `CA_BONUS_DETAILS_TRAIT`, the last two only above nothing; each a percentage to two places |
 | `unitstatus_moving` | on the march and in no battle, `ESTIMATE_ARIVAL` |
-| `speed` | `UW_SPEED` and a line break; where something scales its speed, ` / ` and the speed it has with `KPH`; a line for each brigade, its counter, its name, ` - `, its type's speed, a space and `KPH`; a line break; and where something scales it, `SPEED_MODIFIER` with the whole multiplier as a percentage to two places, green above one and red below |
+| `speed` | `UW_SPEED` and a line break; where something scales its speed, ` / ` and the speed it has with `KPH`; a line for each brigade, its counter, its name, ` - `, its type's speed, a space and `KPH`; a line break; and where something scales it, `SPEED_MODIFIER` with the whole multiplier as a percentage to two places, green above one and red below, then for each term not one, in this order, a line break, `- ` and its line with the term the same way: `SPEED_MODIFIER_COMBAT`, `_FUEL`, `_TERRAIN`, `_TRAIT`, `_ADJACIENCY`, `_WEATHER`, `_LOCAL_MOD`, `_MOTORIZED_BONUS`, `_RETREATING` (since 2026-11-14) |
 | `unitstatus_distance` | `UW_DIS_OUT_OF_RANGE` where a unit above is out of radio range; for a headquarters, `UW_EFFECTIVE_RADIO_STRENGTH` with its level's name and how far it reaches in full; then for each headquarters up the chain, `UW_DIST_TO` with its province, its level's name, its name, **the name of the unit below it in the chain** and the distance between them, green where all its command gets through and yellow otherwise - each line ending in a line break |
 
 **A headquarters out of reach is yellow, never red**: the original's red is for a reach under
 nothing, and a reach is never under nothing. Kept as read.
 
-*Not built*: a fleet's or an air unit's base and how well it supplies; the terms of the speed's
-multiplier one by one; and what the country's technology adds to the digging-in cap, whose
-figure is not known.
+*Not built*: a fleet's or an air unit's base and how well it supplies; and what the country's
+technology adds to the digging-in cap, whose figure is not known.
 
 **`unitattrition`** breaks the first brigade's attrition into its causes (since 2026-11-14,
 `CUnitStatusTooltips.Attrition`; `reversing/findings/FINDINGS-unitpaneltooltips.md`, section 11).
@@ -463,6 +462,12 @@ with a line break. Last a blank line, `§Y`, `TERRAIN_ATTRITION`, `§!`, `§R+` 
 the whole figure to two places with `%§!`. **The weather written is the weather before the figure
 holds it at nothing**, so a cold that winter effects take past nothing writes no line and adds
 nothing - the original's. All hardcoded but the words and the defines the causes read [mod].
+
+**The speed's terms are worked out again by the tooltip, not taken from the multiplier**, as the original's are
+(`reversing/findings/FINDINGS-unitpaneltooltips.md`, section 11; `CMovementSpeed.Terms`), and they do not always multiply
+to it: a unit in a battle that attacks in none is given its quickness held at one where the multiplier gives it a
+hundredth, and the weather and the province's `local_unit_speed` are two lines where the multiplier adds them into one
+term. Kept as read. Hardcoded but the words and the defines and modifiers each term reads [mod].
 
 **The two bars** say `UW_SUPPLY_STATUS2` and `UW_SUPPLY_FUEL2`: `CON` what the unit uses a day, two places; `VAL` the share it got last day, whole; `FROM` the province it draws on - the one it stands in, or a fleet's or air unit's base; `DAYS` what lies there over what **all the units standing there** use a day, whole, and 0 where they use none. Hardcoded but the words [mod].
 

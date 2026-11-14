@@ -103,6 +103,17 @@ public static class COnActions
 
 	private static readonly CFixedPoint MostExperience = CFixedPoint.FromInt(100);
 
+	/// <summary>
+	/// A province's first day out of supply in an area with no working port: <c>on_encirclement</c>, in a scope of the
+	/// province and no country - so its owner answers - seeded with a draw of the game's generator, made whether or not
+	/// the on_action has an event (<c>docs/mechanics/supply.md</c>, section 18).
+	/// </summary>
+	public static void Encirclement(CGameState state, int province)
+	{
+		var scope = CEventScope.Start(null, province, randomState: (uint)state.Random.Next());
+		Fire(state, "on_encirclement", scope);
+	}
+
 	/// <summary>The event of an id - the later of two that share one, as the original finds it.</summary>
 	private static CEvent? Find(CGameState state, int id)
 	{

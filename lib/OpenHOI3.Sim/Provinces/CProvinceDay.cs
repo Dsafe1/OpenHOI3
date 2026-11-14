@@ -32,6 +32,7 @@ public static class CProvinceDay
 				CProvinceModifiers.RebuildOne(state, province);
 			}
 			CRevoltRisk.StepDaily(state, province);
+			Supply.COutOfSupplyDays.RunDaily(state, province);
 			Countries.CCountryTag? holder = province.Controller;
 			COccupiedLand.Return(state, province);
 			if (province.Controller != holder)

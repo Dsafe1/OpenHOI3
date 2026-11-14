@@ -25,7 +25,77 @@ public static class CBattleRowTooltip
 	{
 		string text = Side(localise, state, combat.Attacker, player) + "\n" + localise("COMB_TT_VS") + "\n"
 			+ Side(localise, state, combat.Defender, player);
+		if (CBombing.IsBombing(combat.Kind))
+		{
+			text += Bombed(localise, state, combat);
+		}
 		return new CTooltip { Text = text };
+	}
+
+	/// <summary>
+	/// What of the province a bombing bombs, by the first bomber's mission: a space and each building it takes that the
+	/// province has built any of; then a space, <c>BOMB_PROD_OFF</c>, a space and each good whose stockpile it takes; then
+	/// the same with <c>BOMB_POOL_OFF</c> for each good whose production it takes that the province can make - the two
+	/// keys each over the other's list, as the original writes them. Each list joined with commas, <c>AND</c> before its
+	/// last and a full stop after it; nothing for a list with nothing in it.
+	/// </summary>
+	public static string Bombed(Func<string, string> localise, CGameState state, CCombat combat)
+	{
+		if (combat.Attacker.Units.Count == 0)
+		{
+			return "";
+		}
+		EUnitOrder order = combat.Attacker.Units[0].Order;
+		Sim.Provinces.CProvince province = state.Province(combat.Province);
+		var buildings = new List<string>();
+		foreach (Sim.Provinces.CBuilding building in state.Buildings)
+		{
+			if (Sim.Missions.CBombingOrders.BombsBuilding(order, building) && province.BuildingMaxLevel(building).Raw > 0)
+			{
+				buildings.Add(localise(building.Key));
+			}
+		}
+		var stockpiles = new List<string>();
+		var production = new List<string>();
+		for (int index = 0; index < Sim.Economy.CGoodsPool.Count; index++)
+		{
+			var goods = (Sim.Economy.EGoods)index;
+			if (Sim.Missions.CBombingOrders.BombsStockpile(order, goods))
+			{
+				stockpiles.Add(localise(CAirCombatText.GoodsKeys[index]));
+			}
+			if (Sim.Missions.CBombingOrders.BombsProduction(order, goods) && province.MaxProducing[goods].Raw > 0)
+			{
+				production.Add(localise(CAirCombatText.GoodsKeys[index]));
+			}
+		}
+		var text = new StringBuilder();
+		if (buildings.Count > 0)
+		{
+			text.Append(' ').Append(Joined(localise, buildings));
+		}
+		if (stockpiles.Count > 0)
+		{
+			text.Append(' ').Append(localise("BOMB_PROD_OFF")).Append(' ').Append(Joined(localise, stockpiles));
+		}
+		if (production.Count > 0)
+		{
+			text.Append(' ').Append(localise("BOMB_POOL_OFF")).Append(' ').Append(Joined(localise, production));
+		}
+		return text.ToString();
+	}
+
+	/// <summary>Names joined: a comma and a space between, a space, <c>AND</c> and a space before the last, a full stop after it.</summary>
+	private static string Joined(Func<string, string> localise, List<string> names)
+	{
+		var text = new StringBuilder();
+		for (int index = 0; index < names.Count; index++)
+		{
+			text.Append(names[index]);
+			int left = names.Count - 1 - index;
+			text.Append(left > 1 ? ", " : left == 1 ? " " + localise("AND") + " " : ".");
+		}
+		return text.ToString();
 	}
 
 	/// <summary>A side: its units by name, then a line of what they come to. Nothing for a side with nobody.</summary>

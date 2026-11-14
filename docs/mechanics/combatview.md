@@ -462,8 +462,11 @@ beside the maintainer's three screenshots of a landing at Danzig, figure for fig
     BATTLE_ATTACKMOD and BATTLE_DEFENDMOD + ": §Y" + the figure, 2 places + "§W%\n"
     its combat modifiers, as a unit's
 
-**A wing** - its bars, and anything else its attack, defence and modifiers as a ship's. *Not
-built*: the bombed side's rows, which say a figure each in the original.
+**A wing** - its bars, and anything else its attack, defence and modifiers as a ship's. **A row
+of what is bombed** says a figure wherever it is asked (since 2026-11-14,
+`CBattleUnitTooltips.BombedRow`): a building its working level to two places, `/` and its built
+level to none - `2.50/4`; a good held what lies in the province, two places; a good made what the
+province makes now `/` the most it can, both to two places [exe].
 
 **A tactic's own text**: its figures, a line break; `TACTIC_COUNTERED_BY` with the tactic that
 counters it; and `TACTIC_COUNTERS`, then a line break where it counters more than one, and each
@@ -487,21 +490,26 @@ defender's damage where it defends.
           submarines; _AIR with fighters, bombers and rockets
     "\n" + COMB_TT_VS + "\n", and the defender's side the same
 
-*Not built*: what of the province a bombing's row adds.
+**A bombing's row adds what of the province it bombs** (since 2026-11-14,
+`CBattleRowTooltip.Bombed`) [exe], by its first bomber's mission and nothing where the bombers are
+gone: a space and each building the mission bombs that the province has built any of; then a space,
+`BOMB_PROD_OFF`, a space and each good whose **stockpile** it bombs; then the same with
+`BOMB_POOL_OFF` and each good whose **production** it bombs that the province can make. Each list is
+joined with `, `, ` ` + `AND` + ` ` before its last and `.` after it, and left out where it is
+empty. **The two keys stand each over the other's goods** - a logistical strike, which bombs
+supplies and fuel where they lie, reads "Production of Supplies and Fuel.", and a strategic
+bombing's resources are "Stockpiles of" - as the original writes them (`docs/enhanced.md`).
+Neither of the two was looked at on screen: no bombing was brought up for it.
 
 ---
 
 ## What is not built
 
-- **Tooltips** the original has and section 12 lists as not built: the bombed side's rows, and
-  what of the province a bombing's row adds.
 - **The naval mode's icons** of convoys sunk and raiders fought. The air map mode's of finished
   air battles and bombings are built: `airmap.md`.
 - **The marker's first three hours.** The original makes a land battle's marker when it is
   first refreshed and then leaves it standing between refreshes; here it is worked out again
   whenever the map is, which shows the same from the fourth hour on.
-- **Where units in a battle stand.** The original has a place in each province for the
-  attackers and one for the defenders; here a unit in a battle stands where it stood.
 
 ## What is not established
 

@@ -106,7 +106,8 @@ sets the owners, the laws and the technology levels beside the save's and runs t
 - ~~a country's own pools (`home`, `usage`, `to`, `back`, the traded ones)~~ - section 15 - ~~its politics (`organization`,
   `popularity`, `cabinet`, `election`, `last_election`, `duration`, `ministers`), its research queue (`research`)~~ -
   section 12 - ~~its spies and their missions~~ - section 13; its active missions, ~~alignment~~ - section 15 - war exhaustion, ~~AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`)~~ - section 16 - statistics and the rest the
-  report lists; a province's `out_of_supply_days` and `capital`, which the day makes again, and its `history`.
+  report lists; a province's `capital`, which the day makes again, and its `history`. A province's
+  `out_of_supply_days` is read and written since 2026-11-14, and entering counts it once more (`supply.md`, section 18).
 
 ## 5. What the second increment reads: the units
 
@@ -280,7 +281,9 @@ the leadership put into it, is written nought, and `notech`, the database's empt
 province block beside the save's byte for byte and every block key by key - what the save has that was not written,
 what was written that it has not, values that differ and keys out of its order. On 2026-11-05, `Germany1936_01_07_22.hoi3`:
 **9,372 of 14,167 province blocks byte for byte, every other differing only by `out_of_supply_days` (4,400), `capital`
-(402) and one `history`**, which the game does not hold; every country's keys in the save's order, the written ones the
+(402) and one `history`**, which the game does not hold - since 2026-11-14 `out_of_supply_days` is held and the same
+4,400 come out one higher than the save's, entering having counted them once more as the original's does (`supply.md`,
+section 18), and the count is unchanged; every country's keys in the save's order, the written ones the
 same but each technology's third figure; `Ireland1939_09_06_18.hoi3` the same, with 8,548 provinces byte for byte and 22
 countries' effective neutrality a few hundredths off, the threat having moved within the day. **The check found a gap in
 the loader**, mended: `highest_threat`, the country each fears most, was not read, so every loaded country had its whole
@@ -775,12 +778,11 @@ Each of these was dropped here, most with no report, and is read and written bot
 - **The null technology's level**, `notech`, first in the technology block (`research.md`, section 9). Any other name the
   install has no technology for is reported, where it was passed over.
 
-**Still read by nothing here, each reported**: a province's `capital`, `history` and `out_of_supply_days` (the last is
-the days a province has been out of supply, which `on_encirclement` and the condition of that name read - not built);
-a country's `human`, `prov_vp`, `offmap_vp` (worked out again as a game is entered), `last_mission_cancel` (the null date
+**Still read by nothing here, each reported**: a province's `capital` and `history`; a country's `human`, `prov_vp`, `offmap_vp` (worked out again as a game is entered), `last_mission_cancel` (the null date
 in every save) and the three `lend_lease_*_yesterday`; `nocategory`; a brigade's, ship's and wing's `home` and `builder`
-and a line's `builder`; a unit's `country_intel` (section *Not established*); and the top level's three graph
-statistics. The original reads all of them.
+and a line's `builder`; and a unit's `country_intel` (section *Not established*). The original reads all of them.
+`out_of_supply_days` and the top level's three graph statistics were on this list until later the same day
+(`supply.md`, section 18; `statistics.md`, section 5).
 
 **Checked** on 2026-11-14 on `Germany1936_01_01_00`, `Germany1936_09_02_21`, `Ireland1938_08_03_14`,
 `Ireland1940_05_23_15`, `Ireland1941_07_16_07` and `autosave_prewar`: nothing the save holds of the above is left out of

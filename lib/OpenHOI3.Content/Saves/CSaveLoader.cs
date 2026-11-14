@@ -39,7 +39,7 @@ public static class CSaveLoader
 	{
 		"owner", "controller", "core", "manpower", "leadership", "revolt_risk", "points", "nationalism", "pool",
 		"current_producing", "max_producing", "weather", "flags", "strategic_resource", "drawn", "last_drawn", "throughput",
-		"last_throughput", "modifier", "underground_owner", "underground_action", "last_convoy_attack",
+		"last_throughput", "modifier", "underground_owner", "underground_action", "last_convoy_attack", "out_of_supply_days",
 	};
 
 	/// <param name="played">The country played; null, the one the save says was.</param>
@@ -227,7 +227,9 @@ public static class CSaveLoader
 		{
 			warn($"save '{System.IO.Path.GetFileName(path)}': not loaded yet - {line}");
 		}
-		Sim.Supply.CSupplyNetworks.Refresh(state, force: true);
+		// Entering a loaded game gives every province a depot, none being saved, and counts its days out of supply once more
+		// (supply.md, section 18).
+		Sim.Supply.COutOfSupplyDays.Enter(state, newGame: false);
 		Sim.Wars.CSurrender.CountVictoryPoints(state);
 		// The original has run its AI passes by the time a loaded game stands paused at its hour: two of them, every agent
 		// made before the first (measured in the running game, reversing/findings/FINDINGS-liveread.md, section 12). Entering
@@ -351,6 +353,7 @@ public static class CSaveLoader
 		ReadPool(province.SupplyThroughput, node.Get("throughput"));
 		ReadPool(province.LastSupplyThroughput, node.Get("last_throughput"));
 		ReadWeather(state, province.Weather, node.Get("weather"));
+		province.OutOfSupplyDays = (int)CSaveValues.Whole(node, "out_of_supply_days");
 		ReadFlags(province.Flags, node.Get("flags"));
 		ReadEventModifiers(state, province.EventModifiers, node, report);
 		// Every building: the level in working order first, what was built second; none written is none built.

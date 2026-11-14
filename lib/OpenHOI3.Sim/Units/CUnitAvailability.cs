@@ -81,6 +81,17 @@ public static class CUnitAvailability
 	}
 
 	/// <summary>
+	/// Whether the country answers the type's <c>available_trigger</c>: asked as one "all of" block in a scope of the country
+	/// alone, and only where the block holds something - none, or an empty one, passes. A country given every unit to try
+	/// passes too.
+	/// </summary>
+	public static bool PassesTrigger(CGameState state, CCountry country, CSubUnitType type)
+	{
+		return country.EveryUnitUnlocked || type.AvailableTrigger is not { Children.Count: > 0 } trigger
+			|| Script.CConditions.All(state, trigger, Script.CEventScope.Start(country.Tag), null);
+	}
+
+	/// <summary>
 	/// Whether a type is one the country has the use of: unlocked, and its own to use.
 	/// A country that has been given every unit to try has the use of them all.
 	/// </summary>
@@ -99,7 +110,7 @@ public static class CUnitAvailability
 	/// </summary>
 	public static long StillBuildable(CGameState state, CCountry country, CSubUnitType type)
 	{
-		if (!MayUse(state, country, type))
+		if (!MayUse(state, country, type) || !PassesTrigger(state, country, type))
 		{
 			return 0;
 		}

@@ -328,4 +328,39 @@ public class AirCombatTextTests
 		Assert.False(CAirCombatText.KeepsWindowUp(battle.Defender, 0));
 		Assert.True(CAirCombatText.KeepsWindowUp(battle.Defender, 2));
 	}
+
+	[Fact]
+	public void A_row_of_what_is_bombed_says_its_figure()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CCombat bombing = Bombing(state, Wings(state, germany, "strategic_bomber"), EUnitOrder.StrategicBombing);
+		state.Province(Poznan).SetBuildingCurrentLevel(Factory, CFixedPoint.Parse("2.5"));
+
+		string Of(CCombatRow row) => OpenHOI3.Interface.Tooltips.CBattleUnitTooltips.BombedRow(state, bombing, row).Text;
+
+		// A building's working level to two places over what was built to none; a good made, now over the most.
+		Assert.Equal("2.50/4", Of(new CCombatRow(ECombatRowKind.Building, Building: Factory)));
+		Assert.Equal("3.00/9.00", Of(new CCombatRow(ECombatRowKind.GoodMade, Goods: EGoods.Metal)));
+		Assert.Equal("100.00", Of(new CCombatRow(ECombatRowKind.GoodHeld, Goods: EGoods.Supplies)));
+	}
+
+	[Fact]
+	public void A_bombings_row_adds_what_it_bombs_with_the_originals_two_words_each_over_the_others_goods()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit bombers = Wings(state, germany, "strategic_bomber");
+		CCombat bombing = Bombing(state, bombers, EUnitOrder.StrategicBombing);
+
+		// The production a strategic bombing takes, of what the province makes, is written after "Stockpiles of".
+		Assert.Equal(" Anti-Aircraft Guns AND Industrial Capacity. BOMB_POOL_OFF Metal AND Rare Materials.",
+			OpenHOI3.Interface.Tooltips.CBattleRowTooltip.Bombed(Localise, state, bombing));
+
+		// And the stockpiles a logistical strike takes after "Production of".
+		bombers.Order = EUnitOrder.LogisticalStrike;
+		Assert.Equal(" Anti-Aircraft Guns AND infra. BOMB_PROD_OFF Supplies AND Fuel.",
+			OpenHOI3.Interface.Tooltips.CBattleRowTooltip.Bombed(Localise, state, bombing));
+
+		bombers.Order = EUnitOrder.GroundAttack;
+		Assert.Equal("", OpenHOI3.Interface.Tooltips.CBattleRowTooltip.Bombed(Localise, state, bombing));
+	}
 }

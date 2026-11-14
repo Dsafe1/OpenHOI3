@@ -27,6 +27,20 @@ public static class CAttackDelay
 	/// <summary>The country modifier that makes a tactic's speed count for more.</summary>
 	public const string CombatMovementSpeed = "combat_movement_speed";
 
+	/// <summary>The technologies' figure that does the same, the technology status's own field.</summary>
+	public const string TechnologyAttackMovementSpeed = "attack_movement_speed";
+
+	/// <summary>
+	/// How much quicker a unit attacks: one, the country's combat movement speed, its technologies' attack movement
+	/// speed and its commanders' combat_move_speed trait - which the attack delay's hour and the walk in a battle are both
+	/// multiplied by (<c>reversing/findings/FINDINGS-landbattle.md</c>; <c>FINDINGS-movement.md</c>, section 2).
+	/// </summary>
+	public static long Quicker(CGameState state, CCountry country, CUnit unit)
+	{
+		return CFixedPoint.Scale + country.Modifier[CombatMovementSpeed].Raw + country.Technology[TechnologyAttackMovementSpeed].Raw
+			+ Leaders.CCommandReach.Effect(state, unit, Leaders.ETraitEffect.CombatMoveSpeed);
+	}
+
 	/// <summary>How many thousandths of an hour an hour of attacking takes off the delay.</summary>
 	private const long PerHourFought = 250;
 
@@ -84,9 +98,7 @@ public static class CAttackDelay
 					break;
 				}
 			}
-			// The original adds a technology figure too, whose key is not known here.
-			long quicker = CFixedPoint.Scale + country.Modifier[CombatMovementSpeed].Raw
-				+ Leaders.CCommandReach.Effect(state, unit, Leaders.ETraitEffect.CombatMoveSpeed);
+			long quicker = Quicker(state, country, unit);
 			long off = PerHourFought + quicker * speed / CFixedPoint.Scale;
 			unit.AttackDelay = CFixedPoint.Max(new CFixedPoint(unit.AttackDelay.Raw - off), CFixedPoint.One);
 		}

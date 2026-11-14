@@ -56,6 +56,12 @@ public sealed class CSubUnitType
 	public List<string> UsableBy { get; } = new();
 
 	/// <summary>
+	/// Its file's <c>available_trigger</c>, script a country must answer to build one, asked of the country alone; none, or
+	/// a block with nothing in it, lets any country (<c>docs/mechanics/builders.md</c>, section 2).
+	/// </summary>
+	public Script.CTrigger? AvailableTrigger { get; set; }
+
+	/// <summary>
 	/// The technologies that improve it, in the order they are declared: every one with
 	/// a block of this type's name. A brigade keeps a level of each.
 	/// </summary>

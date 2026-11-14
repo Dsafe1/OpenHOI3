@@ -66,8 +66,12 @@ alpini are four in every hundred of the infantry's group, not of all land brigad
 6` and `max_percentage_of_type = 0.04`: Italy may have six, or four in every hundred brigades
 of the infantry's group, whichever is more.
 
-*Ours:* an `available_trigger` is script and is not evaluated yet; a type that has one is
-taken to pass.
+**An `available_trigger`** is asked since 2026-11-14 [exe]: as one "all of" block in a scope of
+the country alone, after availability and `usable_by`, and only where the block holds something -
+an empty one passes (`reversing/findings/FINDINGS-builders.md`; `CUnitAvailability.PassesTrigger`).
+Their Finest Hour gives one to its seven elite brigades, every one empty; a mod's decides. A
+country given every unit to try passes it. *Ours:* what the units files say outside the block is
+not set beside the script grammar, as they are not script.
 
 ## 3. A list
 

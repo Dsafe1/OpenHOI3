@@ -42,6 +42,10 @@ public static class CProvinceConditions
 			case "leadership":
 				answer = here.Leadership >= value.Amount;
 				return true;
+			case "out_of_supply_days":
+				// Strictly more days than the figure, of the scope's province alone (supply.md, section 18).
+				answer = !none && here.OutOfSupplyDays > CConditions.WholeOf(value.Amount);
+				return true;
 			case "continent":
 				answer = here.Continent.Equals(Continent(state, trigger, scope), StringComparison.Ordinal);
 				return true;

@@ -36,6 +36,17 @@ public static class CSaveTop
 			case "strategic_warfare" when node.IsBlock:
 				CSaveWarfare.Read(state, node);
 				return true;
+			// The three graph histories (statistics.md, section 5): the nation size read whole; the other two the original
+			// never fills, and one that holds anything is reported.
+			case "nation_size_statistics" when node.IsBlock:
+				ReadSeries(state.NationSizeStatistics, node);
+				return true;
+			case "income_statistics" or "inflation_statistics" when node.IsBlock:
+				if (node.Children.Count > 0)
+				{
+					report.Unread("top", node.Key + ", not empty");
+				}
+				return true;
 			case "flags" when node.IsBlock:
 				foreach (ClausewitzNode flag in node.Children)
 				{
@@ -250,6 +261,47 @@ public static class CSaveTop
 			writer.IdPair("id", fired.Id, EventIdType);
 		}
 		writer.End();
+	}
+
+	/// <summary>
+	/// The three graph histories, after the wars: <c>income_statistics</c> and <c>inflation_statistics</c> empty, as the
+	/// original never fills them, and <c>nation_size_statistics</c> a <c>ledger_data</c> block a line - its figures, its
+	/// years and its name (statistics.md, section 5).
+	/// </summary>
+	public static void WriteStatistics(CSaveTextWriter writer, CGameState state)
+	{
+		writer.Begin("income_statistics");
+		writer.End();
+		writer.Begin("nation_size_statistics");
+		foreach (Sim.Countries.CStatisticsSeries series in state.NationSizeStatistics)
+		{
+			writer.Begin("ledger_data");
+			writer.Numbers("ledger_data_y", series.Values);
+			writer.Numbers("ledger_data_x", series.Years.Select(year => (long)year));
+			writer.Quoted("name", series.Name);
+			writer.End();
+		}
+		writer.End();
+		writer.Begin("inflation_statistics");
+		writer.End();
+	}
+
+	/// <summary>A history's lines, each <c>ledger_data</c> block's name with its years and figures beside each other.</summary>
+	private static void ReadSeries(List<Sim.Countries.CStatisticsSeries> into, ClausewitzNode node)
+	{
+		into.Clear();
+		foreach (ClausewitzNode block in node.All("ledger_data"))
+		{
+			var series = new Sim.Countries.CStatisticsSeries(block.Get("name")?.Value?.Trim('"') ?? "");
+			List<ClausewitzNode> years = block.Get("ledger_data_x")?.Children ?? new List<ClausewitzNode>();
+			List<ClausewitzNode> values = block.Get("ledger_data_y")?.Children ?? new List<ClausewitzNode>();
+			for (int index = 0; index < years.Count && index < values.Count; index++)
+			{
+				series.Years.Add((int)CSaveValues.Whole(years[index].Value));
+				series.Values.Add(CSaveValues.Whole(values[index].Value));
+			}
+			into.Add(series);
+		}
 	}
 
 	/// <summary>The weather's fronts, the oldest first.</summary>

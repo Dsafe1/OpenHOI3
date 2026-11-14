@@ -542,6 +542,12 @@ public sealed class CGameState
 	/// <summary>Every ship that has left the game, in the order they went. See <see cref="CSunkShips"/>.</summary>
 	public List<CSunkShip> SunkShips { get; } = new();
 
+	/// <summary>
+	/// <c>nation_size_statistics</c>: each country's provinces owned as each year began, a line a country, kept for the save
+	/// alone (<see cref="Countries.CNationSize"/>).
+	/// </summary>
+	public List<Countries.CStatisticsSeries> NationSizeStatistics { get; } = new();
+
 	/// <summary>What the played country's wars have cost each side, enemy by enemy: the Strategic Warfare Manager's records.</summary>
 	public StrategicWarfare.CWarfareLedger Warfare { get; } = new();
 

@@ -2115,9 +2115,9 @@ None of these blocks the list above.
 
 - **Events fire and decisions are taken** (2026-10-12, `script.md`, `triggers.md`,
   `effects.md`, `events.md`), and much around them waits:
-  - **`on_encirclement` has nothing to fire from** (`events.md`, section 8): it waits for a
-    province's days without supply to be counted; and a battle's `last_*_losses` are not kept, so
-    the six conditions on them answer false;
+  - **`on_encirclement` fires since 2026-11-14**, a province's days without supply counted as the
+    original counts them (`supply.md`, section 18), the start save's every figure given; a battle's
+    `last_*_losses` are not kept, so the six conditions on them answer false;
   - **of messages, none is written on the map** (`onmap`, `messages.md`, *Ours*), and of the bottom
     bar the chat is hidden; whether the original's button that opens the log shows only while it
     is shut was not read;
@@ -2128,9 +2128,9 @@ None of these blocks the list above.
     `OpenHOI3.SaveCheck load` lists every key left - since the sweep of 2026-11-14 (section 19),
     which made a pair's dates and debt, the offers waiting, the casus belli, a province's
     underground and last convoy attack, the AI strategy's scalars and the null technology's level
-    read and written both ways, only keys of systems not built: a province's `capital`, `history`
-    and `out_of_supply_days`, a brigade's `home` and `builder`, the ledger's graphs and a few
-    more, each of which the original reads. Which hour first sees the officers
+    read and written both ways - and `out_of_supply_days` and the ledger's graphs since - only keys
+    of systems not built: a province's `capital` and `history`, a brigade's `home` and `builder`
+    and a few more, each of which the original reads. Which hour first sees the officers
     a day adds is not settled; and the first midnight after a load drops two supply convoys the
     original keeps;
   - **whose officer ratio holds a lent unit's organisation is not settled** (`savegame.md`, *Not
@@ -2187,14 +2187,14 @@ None of these blocks the list above.
   `check_variable`, `has_country_flag` and more, which the loader leaves out and the tooltip
   cannot say until they are read - `has_country_flag`'s words are read already. A building
   under `any_owned_province` is "in" the province numbered nothing, whose name is empty here.
-- **The battle window's tooltips leave two things out** (2026-10-12, `combatview.md`
-  section 12): the bombed side's rows, which say a
-  figure each in the original whose joins were not read; and what of the province a bombing's
-  row in a unit's panel adds. A ship's positioning is scaled by `targeting_chance`, taken to be
+- **The battle window's tooltips are whole since 2026-11-14** (`combatview.md`, section 12): the
+  bombed side's rows say their figure and a bombing's row in a unit's panel what of the province
+  it bombs, with the original's two words each over the other's goods (`docs/enhanced.md`); neither
+  was looked at on screen. A ship's positioning is scaled by `targeting_chance`, taken to be
   the figure the original names `naval_positioning_bonus`.
 - **The unit panel's tooltips leave out what is not built under them** (2026-10-12,
   `unitpanel.md` section 10): a fleet's
-  or an air unit's base and how well it supplies, the terms of the speed's multiplier one by one,
+  or an air unit's base and how well it supplies,
   the organisation a brigade regains an hour, what technology adds to the digging-in cap, the
   `+*` on a model the country no longer builds and a faction leader's name for a model. A leader's traits on the way are in the traits file's order, where
   the original's are in the order they lie in its memory.
@@ -2209,9 +2209,10 @@ None of these blocks the list above.
   wait for what they read - shore bombardment, mission efficiency, landing craft -
   and three technology figures are left out for want of their keys; `landcombat.md`,
   section 4, lists them. A round gives no practical knowledge (section 3).
-- **The battle window says less than the original's.** Units in a battle stand in a stack for the attackers and one
+- **What is left of the battle window's list** (`docs/mechanics/combatview.md` ends with it): the naval map mode's
+  icons and a land marker's first three hours. Units in a battle stand in a stack for the attackers and one
   for the defenders since 2026-11-14, as the original's (`mapunits.md`, section 3); what a click on the original's marker does was not read - here it opens the window.
-  `docs/mechanics/combatview.md` ends with the list. An enemy the player knows under intel level 3
+  An enemy the player knows under intel level 3
   shows the unknown counter's "?" since 2026-11-13, its picture alone, as the original's
   (`combatview.md`, section 5).
 - **Whether a land counter beats the large air base picture in the air map mode is not read.** Here the large air base is
@@ -2375,9 +2376,9 @@ None of these blocks the list above.
   nothing and its windows do the refusing; here the command refuses too, so that nothing
   can be ordered round the window. Not a departure a mod can meet: the same things are
   refused, a step later. `builders.md`, section 9.
-- **A unit type's `available_trigger` is not asked.** It is script; a type that has one is
-  taken to pass. The base game gives it to seven elite brigades, each also kept to its
-  own country by `usable_by`.
+- **A unit type's `available_trigger` is asked since 2026-11-14** (`builders.md`, section 2), of
+  the country alone, as the original's count of what may still be built asks it; the base game's
+  seven are empty and pass, so only a mod's decides anything.
 - **Six countries' queues start somewhere else than the original's**: Britain's, the United
   States', Japan's, France's, Belgium's and the Netherlands' lines are priced as the game
   starts under laws or ministers the original's AI had already changed, and which they
@@ -2478,8 +2479,7 @@ None of these blocks the list above.
 - **Only the player turns a country's `auto_assign_leaders` off**, with the leader window's
   checkbox: every country starts with it on, as in the original, and nothing here changes it for any
   other country.
-- **Two blocks of a unit type are read and not kept**: `available_trigger`, which is
-  script, and `extra_amphibious_defence`.
+- **A block of a unit type is read and not kept**: `extra_amphibious_defence`.
 - **A new game's manpower is the original's for 43 countries of 78**: Germany begins with 469 here and 882
   there, though its laws are the start save's since 2026-11-02 (`OpenHOI3.SaveCheck firstdays`, 2026-11-12;
   `politics.md`, section 13); why was not looked into. The United States' 1,051 against 255 is the decision its AI

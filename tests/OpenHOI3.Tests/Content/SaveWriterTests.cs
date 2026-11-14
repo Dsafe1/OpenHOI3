@@ -35,6 +35,32 @@ public class SaveWriterTests
 	}
 
 	[Fact]
+	public void The_nation_size_is_taken_each_year_for_the_null_country_and_every_other_and_comes_back_from_the_save()
+	{
+		var nor = new CCountryTag("NOR");
+		var norway = new CCountry { Tag = nor, Name = "Norway", DefinitionFile = "" };
+		var sweden = new CCountry { Tag = new CCountryTag("SWE"), Name = "Sweden", DefinitionFile = "" };
+		var oslo = new CProvince(1, "Oslo", isSea: false) { Owner = nor, Controller = nor };
+		var state = new CGameState(new CDate(1937, 1, 1), new[] { new CProvince(0, "", isSea: false), oslo }, new[] { norway, sweden });
+
+		CNationSize.SampleYearly(state);
+
+		string text = CSaveWriter.Write(state);
+		Assert.Contains(
+			"income_statistics=\r\n{\r\n}\r\nnation_size_statistics=\r\n{\r\n" +
+			"\tledger_data=\r\n\t{\r\n\t\tledger_data_y=\r\n\t\t{\r\n0 \t\t}\r\n\t\tledger_data_x=\r\n\t\t{\r\n1937 \t\t}\r\n\t\tname=\"---\"\r\n\t}\r\n" +
+			"\tledger_data=\r\n\t{\r\n\t\tledger_data_y=\r\n\t\t{\r\n1 \t\t}\r\n\t\tledger_data_x=\r\n\t\t{\r\n1937 \t\t}\r\n\t\tname=\"NOR\"\r\n\t}\r\n" +
+			"\tledger_data=\r\n\t{\r\n\t\tledger_data_y=\r\n\t\t{\r\n0 \t\t}\r\n\t\tledger_data_x=\r\n\t\t{\r\n1937 \t\t}\r\n\t\tname=\"SWE\"\r\n\t}\r\n" +
+			"}\r\ninflation_statistics=\r\n{\r\n}\r\n",
+			text);
+
+		var loaded = new CGameState(new CDate(1937, 1, 1), new[] { new CProvince(0, "", isSea: false) }, new[] { norway });
+		Assert.True(CSaveTop.Read(loaded, OpenHOI3.Content.Clausewitz.ClausewitzParser.Parse(text).Get("nation_size_statistics")!, new CSaveReport()));
+		Assert.Equal(new long[] { 1 }, loaded.NationSizeStatistics[1].Values);
+		Assert.Equal(new[] { 1937 }, loaded.NationSizeStatistics[1].Years);
+	}
+
+	[Fact]
 	public void A_game_with_no_sunk_ships_pacts_battles_or_wars_still_writes_their_blocks()
 	{
 		var norway = new CCountry { Tag = new CCountryTag("NOR"), Name = "Norway", DefinitionFile = "" };
@@ -43,9 +69,11 @@ public class SaveWriterTests
 		string text = CSaveWriter.Write(state);
 
 		// sunk_ships always, then the weather's fronts, the factions, the pacts, and the battles with an empty history, which
-		// has no key of its own.
+		// has no key of its own; and the three graph histories, empty.
 		Assert.EndsWith(
-			"sunk_ships=\r\n{\r\n}\r\nweather=\r\n{\r\n}\r\nfaction={}\r\ndiplomacy=\r\n{\r\n}\r\ncombat=\r\n{\r\n\thistory=\r\n\t{\r\n\t}\r\n}\r\nstrategic_warfare=\r\n{\r\n\tplayer=\"---\"\r\n\tcount=0\r\n}\r\n}\r\n",
+			"sunk_ships=\r\n{\r\n}\r\nweather=\r\n{\r\n}\r\nfaction={}\r\ndiplomacy=\r\n{\r\n}\r\ncombat=\r\n{\r\n\thistory=\r\n\t{\r\n\t}\r\n}\r\n" +
+			"income_statistics=\r\n{\r\n}\r\nnation_size_statistics=\r\n{\r\n}\r\ninflation_statistics=\r\n{\r\n}\r\n" +
+			"strategic_warfare=\r\n{\r\n\tplayer=\"---\"\r\n\tcount=0\r\n}\r\n}\r\n",
 			text);
 	}
 
