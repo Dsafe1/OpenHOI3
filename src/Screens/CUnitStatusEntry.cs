@@ -89,7 +89,7 @@ public sealed class CUnitStatusEntry : CUnitPanelEntry
 		bool isLand = CMovementSpeed.IsLand(_unit);
 
 		Set(_location, CUnitPanelText.Location(_state, _unit));
-		Set(_attrition, CUnitPanelText.Attrition(_unit));
+		Set(_attrition, CUnitPanelText.Attrition(_state, _unit));
 		Set(_base, CUnitPanelText.SuppliedFrom(localise, _state, _owner, _unit));
 		Set(_speed, CUnitPanelText.Speed(localise, _state, _owner, _unit));
 		Set(_weight, CUnitPanelText.Weight(_unit));

@@ -30,9 +30,10 @@ public static class CUnitUpkeep
 		{
 			foreach (CUnit unit in country.UnitsInOrder())
 			{
-				// The men go first, by how well the unit was supplied yesterday.
+				// The men go first, by how well the unit was supplied yesterday; attrition last, as the original's day ends a unit.
 				Rotate(state, country, unit);
 				CSupplyDraw.Draw(state, country, unit);
+				CAttrition.ApplyDaily(state, country, unit);
 			}
 
 			// A unit finished and not yet placed eats too, out of the capital, though

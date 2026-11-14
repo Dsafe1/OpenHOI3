@@ -20,7 +20,7 @@ namespace OpenHOI3.Interface.Tooltips;
 /// <summary>
 /// What the status of a selected unit says in a tooltip: where it is and is supplied from,
 /// its weight and width, the marks of what holds for it, its speed and how far its
-/// headquarters are. Attrition, supply and fuel are not built and say nothing. See
+/// headquarters are. Attrition's breakdown, supply and fuel are not built and say nothing. See
 /// <c>docs/mechanics/unitpanel.md</c>, section 10.
 /// </summary>
 public static class CUnitStatusTooltips

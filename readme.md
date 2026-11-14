@@ -1991,7 +1991,8 @@ None of these blocks the list above.
   scaffolding readout under the top bar is put away behind the debug menu's switch, Shift and 4** (`src/Debug`), by
   his choice: it alone shows the supply and the country's figures.
 - **Weather leaves out** (2026-10-15, `docs/mechanics/weather.md`, *Ours*, *Not built* and *Not established*):
-  **attrition**, which is not built at all and reads the temperature and wind. The maintainer's screenshots of
+  nothing of the weather's own now - **attrition**, which reads the temperature and wind, is built since 2026-11-14
+  (`upkeep.md`, section 3a). The maintainer's screenshots of
   2026-10-15 settled the pictures' size and place, that they draw at every zoom, and the tooltip without the province's
   name; and **only the `_simple` pictures are drawn**, `alwaysCounters` off being unsupported by his word that day
   (`docs/compatibility.md`, entry 12). **The player's settings are read from the original's `settings.txt` in the
@@ -2284,9 +2285,9 @@ None of these blocks the list above.
 - **Where an edit box puts its text and how a rotated icon is placed are measured and not read**, both from the
   unit panel alone (`docs/mechanics/interface.md`, section 7). A unit is renamed from its name box since 2026-11-12
   (`unitpanel.md`, section 3).
-- **The unit panel's attrition figure is always nought**: nothing wears a unit down for
-  where it stands yet. Its supply and fuel bars are real since the supply pass was built.
-  `unitpanel.md`, section 4.
+- **Attrition is built since 2026-11-14** (`upkeep.md`, section 3a): a land unit out of battle wears down each day by its
+  province, the weather and the ground, and the panel shows its figure. The panel's tooltip breaking the figure into its
+  causes is not built.
 - **The hierarchy of a selected unit is on the map, less the ring an AI's command adds.** A
   selected land unit is joined to its commander and everything under it to theirs, in the
   original's picture and colours, a unit out of radio range by a broken dark red line
@@ -2432,7 +2433,7 @@ None of these blocks the list above.
   (`agents.md`, section 2.1).
 - **Leaders in battle are built whole since 2026-10-11** (`docs/mechanics/leaders.md`,
   sections 9 to 11) but for two things: the aggressiveness a tactic is picked with, built since 2026-11-09 and until then
-  the AI's, and `winter_attrition`, which waits for attrition. Nothing of a leader's
+  the AI's, and `winter_attrition`, which counts in attrition since 2026-11-14 (`upkeep.md`, section 3a). Nothing of a leader's
   experience or progress towards a trait is set against a save: saves hold battles since 2026-11-05, but not the
   generator's state, so none can be played forward (`landcombat.md`, section 8).
 - **An order of battle that names a leader no file declares** has him ignored; what the

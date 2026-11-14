@@ -322,12 +322,20 @@ public static class CUnitPanelText
 	}
 
 	/// <summary>
-	/// What its province wears it down by. Attrition is not built: a unit loses nothing,
-	/// and one with no brigades has no figure, as in the original.
+	/// What its province wears it down by: its first brigade's attrition there, as the original asks it of the first, whole -
+	/// the figure is a percentage as it stands, 1.000 reading <c>1%</c> - and <c>?%</c> for a unit with no brigades
+	/// (upkeep.md, section 3a).
 	/// </summary>
-	public static string Attrition(CUnit unit)
+	public static string Attrition(CGameState state, CUnit unit)
 	{
-		return unit.SubUnits.Count == 0 ? "?%" : "0%";
+		if (unit.SubUnits.Count == 0)
+		{
+			return "?%";
+		}
+		long figure = unit.Location > 0 && unit.Location < state.Provinces.Count
+			? CAttrition.Of(state, state.Province(unit.Location), unit.SubUnits[0])
+			: 0;
+		return (figure / CFixedPoint.Scale).ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
 	}
 
 	/// <summary>

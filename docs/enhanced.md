@@ -199,6 +199,8 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 ## Economy and production
 
+- **The strategic warfare records count attrition by two different tests.** The player's own brigade's loss counts only where the province it stands in is held by another than its owner; a foreign brigade's loss in the player's province counts whoever holds it, so an enemy's army wearing down in ground it has taken from him still counts on its record. `strategicwarfare.md`, 3; `upkeep.md`, 3a. *Oversight.* Risk: none to the simulation; the records' figures.
+
 - **The null technology charges budget for nothing.** `notech` costs 125 and takes 1250 of a new game's head start. `research.md`, 9. *Bug.* Risk: start-save checks.
 - **Building orders are barely checked,** and a new line's size is never capped. `buildinglines.md`, "What looks wrong". *Oversight.* Risk: small.
 - **A line's price ignores its size,** and an order joining a line is not priced again. `buildinglines.md`, "What looks wrong". *Oversight.* Risk: moderate.
