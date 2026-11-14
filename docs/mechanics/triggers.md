@@ -275,7 +275,9 @@ impacts answer since 2026-10-14: `politics.md`, section 8. `spies` and `spy_miss
 | a country's war record | `lost_IC`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
 | the last battles | `last_battle_winner_losses` and the five others |
 | blockades | `blockade`, `is_blockaded` |
-| days out of supply | `out_of_supply_days` |
+
+**`out_of_supply_days`** answers since 2026-11-14: strictly more days out of supply than its figure, of the scope's
+province, false with none (`supply.md`, section 18).
 
 **`num_of_ports` and `total_num_of_ports`** count the provinces the country owns with a port and a naval base built, whoever holds them and however damaged; the first only those in the same block of land as its acting capital [exe; `reversing/findings/FINDINGS-scriptgaps.md`, section 1].
 

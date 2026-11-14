@@ -68,9 +68,16 @@ public sealed class CProvince
 			{
 				_controller = value;
 				_handChanges?.Add();
+				ControllerChanged = true;
 			}
 		}
 	}
+
+	/// <summary>
+	/// Its controller changed since its days out of supply were last counted for it: the hour's end counts them, as the
+	/// original counts them at the change (<see cref="Supply.COutOfSupplyDays"/>).
+	/// </summary>
+	public bool ControllerChanged { get; set; }
 
 	/// <summary>Where a change of owner or controller is counted from now on: the game's, as it is made.</summary>
 	internal void CountChangesIn(CHandChanges changes)
@@ -261,6 +268,13 @@ public sealed class CProvince
 	/// section 9.
 	/// </summary>
 	public long LastConvoyAttackHour { get; set; } = NoConvoyAttack;
+
+	/// <summary>
+	/// The days in a row it has drawn on no depot - counted up each day it draws on none, a province nobody owns among
+	/// them, and set to nought on a day it draws on one; <c>on_encirclement</c> and the condition of the name read it. See
+	/// <c>docs/mechanics/supply.md</c>, section 18.
+	/// </summary>
+	public int OutOfSupplyDays { get; set; }
 
 	/// <summary>
 	/// How much of a building there is here that is in working order: its current level,

@@ -207,6 +207,19 @@ public class OccupationTests
 	}
 
 	[Fact]
+	public void Days_out_of_supply_want_strictly_more_days_of_the_scopes_province()
+	{
+		CGameState state = World();
+		state.Province(4).OutOfSupplyDays = 3;
+		bool Holds(string text) => CConditions.All(state, ScriptWorld.Condition(text), CEventScope.Start(ScriptWorld.Pol, 4), null);
+
+		Assert.True(Holds("out_of_supply_days = 2"));
+		Assert.False(Holds("out_of_supply_days = 3"));
+		// A country's scope has no province, and answers false (supply.md, section 18).
+		Assert.False(CConditions.All(state, ScriptWorld.Condition("out_of_supply_days = 0"), CEventScope.Start(ScriptWorld.Pol), null));
+	}
+
+	[Fact]
 	public void The_coast_land_or_sea_and_nothing_held_alike_beside_it()
 	{
 		var statics = new List<CModifier>();

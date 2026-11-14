@@ -39,7 +39,7 @@ public static class CUnansweredConditions
 			"total_we_bomb", "total_sunk_by_us", "total_of_ours_sunk");
 		Add(EScriptGap.Unbuilt, "last_battle_winner_losses", "last_battle_loser_losses", "last_air_battle_winner_losses",
 			"last_air_battle_loser_losses", "last_naval_battle_winner_losses", "last_naval_battle_loser_losses");
-		Add(EScriptGap.Unbuilt, "blockade", "is_blockaded", "out_of_supply_days");
+		Add(EScriptGap.Unbuilt, "blockade", "is_blockaded");
 
 		Add(EScriptGap.Unread, "has_hostile_spy_mission");
 

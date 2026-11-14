@@ -195,7 +195,7 @@ A province with no owner, or in no area, **draws on nothing**. Any other:
 - otherwise asks for one, as below, of the country that holds it.
 
 **A province that draws on nothing counts its days out of supply**, which is what a save
-writes as `out_of_supply_days`. *Ours:* the days are not counted yet; nothing reads them.
+writes as `out_of_supply_days` (section 18).
 
 **Asking.** A country is asked about a province *for* a country, itself at first; the areas
 already asked about are remembered, and an area is never asked about twice. With the area
@@ -648,9 +648,41 @@ Run it after touching `lib/OpenHOI3.Sim/Supply` or `lib/OpenHOI3.Sim/Convoys`.
 `country=<tag>` one country's day, `days=<n>` with it follows the country on, and
 `convoys=<tag>` lists every convoy of one country that is not the save's.
 
+## 18. Days out of supply, and `on_encirclement`
+
+Built 2026-11-14 (`Sim/Supply/COutOfSupplyDays`; `reversing/findings/FINDINGS-supplynetwork.md`, section 5;
+`FINDINGS-eventfire.md`, section 1.6). **Each province counts the days in a row it has drawn on no depot**: wherever the
+original gives a province its depot, the count goes up by one where it draws on none and to nought where it draws on
+one. A province nobody owns draws on none, so the sea counts every day from the start. That happens [exe]:
+
+- **in the province's own day**, after its revolt step and before the return of occupied land;
+- **on a change of its controller** - here at the end of the hour the change came in, from the network the hour left,
+  so that none is waiting between hours, where the original counts at the change (*ours*);
+- **once for every province as a game is entered**, before a new game's days and after a load's reading - after a load
+  every province, none of the save's depots being kept, so a loaded count is one more than the save's;
+- **once a day on the one province farthest from its depot, where that is over 500** - not built: one province, and
+  the distance it hangs on is the original's own.
+
+**A new game's history counts each province it gives a controller once already**, as it sets the controller: so as a
+game is made, land with a controller is counted twice and the sea once, before the two days - which gives the start
+save's every figure, **3,547 provinces at 3 and 853 at 4** (`OpenHOI3.SaveCheck write ... new ...`, 2026-11-14;
+*measured*, the history's call itself not read). The seven days to `Germany1936_01_07_22` make them 9 and 10, as that
+save has them.
+
+**`on_encirclement`** [exe] fires in the province's day where the count is exactly 1 and the province's area has no
+working port: one draw of the game's generator seeds a scope of the province and no country, so its owner answers,
+the draw made whether or not the on_action has an event (`events.md`, section 8). So **land cut off by others' gains
+fires it on its first day, and land taken into a pocket does not** - counted at its capture, it is past 1 by its day.
+Their Finest Hour has five events on it, 6501 to 6505.
+
+**The condition `out_of_supply_days = N`** [exe] holds where the scope's province has been out of supply for strictly
+more than N days; a scope with no province is false. A save writes the count where it is above nought, after the
+weather and the last convoy attack (`savegame.md`).
+
 ## Not built
 
-- **The days out of supply**, and the message a province's first day out of supply raises.
+- **The message a province's first day out of supply raises**, if any is more than `on_encirclement`'s event; and
+  the day's count on the farthest province (section 18).
 - **A unit on loan**, **arcade mode**, and **units carried by aircraft** (sections 13 and 14).
   Units carried by ships are built since 2026-10-15 (`transport.md`).
 - **Leaders**, which change what a unit uses.

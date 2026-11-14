@@ -2103,9 +2103,9 @@ None of these blocks the list above.
 
 - **Events fire and decisions are taken** (2026-10-12, `script.md`, `triggers.md`,
   `effects.md`, `events.md`), and much around them waits:
-  - **`on_encirclement` has nothing to fire from** (`events.md`, section 8): it waits for a
-    province's days without supply to be counted; and a battle's `last_*_losses` are not kept, so
-    the six conditions on them answer false;
+  - **`on_encirclement` fires since 2026-11-14**, a province's days without supply counted as the
+    original counts them (`supply.md`, section 18), the start save's every figure given; a battle's
+    `last_*_losses` are not kept, so the six conditions on them answer false;
   - **of messages, none is written on the map** (`onmap`, `messages.md`, *Ours*), and of the bottom
     bar the chat is hidden; whether the original's button that opens the log shows only while it
     is shut was not read;

@@ -569,4 +569,81 @@ public class SupplyNetworkTests
 		Assert.Equal(berlin, second.DepotOf(posen));
 		Assert.NotSame(second, CSupplyNetworks.Refresh(state, force: true));
 	}
+
+	// --- days out of supply (supply.md, section 18) ---
+
+	[Fact]
+	public void A_day_drawing_on_no_depot_counts_one_more_and_a_day_drawing_on_one_sets_it_to_nought()
+	{
+		int roma = Land(Ita, industry: 5);
+		int oasis = Land(Ita, infra: 4);
+		Country(Ita, roma);
+		CGameState state = State();
+
+		COutOfSupplyDays.RunDaily(state, state.Province(oasis));
+		COutOfSupplyDays.RunDaily(state, state.Province(oasis));
+		COutOfSupplyDays.RunDaily(state, state.Province(roma));
+
+		Assert.Equal(2, state.Province(oasis).OutOfSupplyDays);
+		Assert.Equal(0, state.Province(roma).OutOfSupplyDays);
+	}
+
+	[Fact]
+	public void The_first_day_out_in_an_area_with_no_port_draws_for_on_encirclement_and_a_later_day_does_not()
+	{
+		int roma = Land(Ita, industry: 5);
+		int oasis = Land(Ita, infra: 4);
+		Country(Ita, roma);
+		CGameState state = State();
+
+		long before = state.Random.Draws;
+		COutOfSupplyDays.RunDaily(state, state.Province(oasis));
+		Assert.Equal(before + 1, state.Random.Draws);
+		COutOfSupplyDays.RunDaily(state, state.Province(oasis));
+		Assert.Equal(before + 1, state.Random.Draws);
+	}
+
+	[Fact]
+	public void Land_taken_out_of_supply_is_counted_at_the_hours_end_so_its_first_day_is_past_one()
+	{
+		int berlin = Land(Ger, industry: 5);
+		int posen = Land(Pol, infra: 4);
+		int warsaw = Land(Pol, industry: 5);
+		Join(posen, warsaw);
+		Country(Ger, berlin);
+		Country(Pol, warsaw);
+		CGameState state = State();
+		CProvince taken = state.Province(posen);
+		COutOfSupplyDays.Enter(state, newGame: false);
+		Assert.Equal(0, taken.OutOfSupplyDays);                        // Poland's, beside its capital
+
+		// Taken by a country with no land beside it: a pocket, counted at the hour's end.
+		taken.Controller = Ger;
+		Assert.True(taken.ControllerChanged);
+		COutOfSupplyDays.CountChangesOfHands(state);
+		Assert.Equal(1, taken.OutOfSupplyDays);
+		Assert.False(taken.ControllerChanged);
+
+		// So its day makes it two, and fires nothing.
+		long before = state.Random.Draws;
+		COutOfSupplyDays.RunDaily(state, taken);
+		Assert.Equal(2, taken.OutOfSupplyDays);
+		Assert.Equal(before, state.Random.Draws);
+	}
+
+	[Fact]
+	public void A_new_game_counts_land_with_a_controller_twice_as_it_is_entered_and_the_sea_once()
+	{
+		int roma = Land(Ita, industry: 5);
+		int oasis = Land(Ita, infra: 4);
+		int nobody = Land(null, infra: 4);
+		Country(Ita, roma);
+		CGameState state = State();
+
+		COutOfSupplyDays.Enter(state, newGame: true);
+
+		Assert.Equal(2, state.Province(oasis).OutOfSupplyDays);
+		Assert.Equal(1, state.Province(nobody).OutOfSupplyDays);
+		Assert.Equal(0, state.Province(roma).OutOfSupplyDays);
+	}
 }

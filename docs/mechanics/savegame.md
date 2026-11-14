@@ -106,7 +106,8 @@ sets the owners, the laws and the technology levels beside the save's and runs t
 - ~~a country's own pools (`home`, `usage`, `to`, `back`, the traded ones)~~ - section 15 - ~~its politics (`organization`,
   `popularity`, `cabinet`, `election`, `last_election`, `duration`, `ministers`), its research queue (`research`)~~ -
   section 12 - ~~its spies and their missions~~ - section 13; its active missions, ~~alignment~~ - section 15 - war exhaustion, ~~AI (`ai`, `ai_hard_strategy`, `ai_event_strategy`)~~ - section 16 - statistics and the rest the
-  report lists; a province's `out_of_supply_days` and `capital`, which the day makes again, and its `history`.
+  report lists; a province's `capital`, which the day makes again, and its `history`. A province's
+  `out_of_supply_days` is read and written since 2026-11-14, and entering counts it once more (`supply.md`, section 18).
 
 ## 5. What the second increment reads: the units
 

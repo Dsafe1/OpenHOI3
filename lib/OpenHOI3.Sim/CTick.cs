@@ -102,6 +102,9 @@ public static class CTick
 		AiStep(state, Trade.CTradeAi.RunHourly);
 		// Last, what countries know of the provinces units left and entered this hour (intelligence.md, section 5).
 		Step(state, Intelligence.CProvinceIntel.RaiseHourly);
+		// And the days out of supply of every province that changed hands in the hour (ours: the original counts each at its
+		// change; supply.md, section 18).
+		Step(state, Supply.COutOfSupplyDays.CountChangesOfHands);
 	}
 
 	/// <summary>
@@ -235,6 +238,9 @@ public static class CTick
 		{
 			Weather.CWeatherPass.AtNewGame(state);
 		}
+		// Entering gives every province still without one a depot, before the days run, the history's controllers having
+		// counted theirs once already (supply.md, section 18).
+		Supply.COutOfSupplyDays.Enter(state, newGame: true);
 		RunDailyPass(state);
 		CSupplyStart.Fill(state);
 		RunDailyPass(state);

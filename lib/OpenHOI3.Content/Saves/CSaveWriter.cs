@@ -177,6 +177,11 @@ public static class CSaveWriter
 		WritePoolIfAny(writer, "current_producing", province.CurrentProducing);
 		WritePoolIfAny(writer, "max_producing", province.MaxProducing);
 		WriteWeather(writer, state, province.Weather);
+		// After the weather and the last convoy attack, where it is above nought.
+		if (province.OutOfSupplyDays > 0)
+		{
+			writer.Int("out_of_supply_days", province.OutOfSupplyDays);
+		}
 		WriteEventModifiers(writer, province.EventModifiers);
 		writer.End();
 	}
