@@ -673,7 +673,8 @@ save has them.
 working port: one draw of the game's generator seeds a scope of the province and no country, so its owner answers,
 the draw made whether or not the on_action has an event (`events.md`, section 8). So **land cut off by others' gains
 fires it on its first day, and land taken into a pocket does not** - counted at its capture, it is past 1 by its day.
-Their Finest Hour has five events on it, 6501 to 6505.
+**In Their Finest Hour it fires nothing**: its 33 ids, 6501 and on, are no event of the install's
+(`OpenHOI3.SaveCheck script` lists them), and the original passes them over; a mod that gives it events has them fire.
 
 **The condition `out_of_supply_days = N`** [exe] holds where the scope's province has been out of supply for strictly
 more than N days; a scope with no province is false. A save writes the count where it is above nought, after the
