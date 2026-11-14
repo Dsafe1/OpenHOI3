@@ -34,13 +34,26 @@ public partial class CGuiTextBox : CGuiObject
 			if (_colour != value)
 			{
 				_colour = value;
-				QueueRedraw();
+				Redraw();
 			}
 		}
 	}
 
 	private Color? _colour;
 	private CGuiContext? _context;
+
+	/// <summary>The size of a textBoxType's picture behind its text, where it has one that could be loaded.</summary>
+	private (int Width, int Height)? _background;
+
+	/// <summary>What a textBoxType's lines are drawn on, cut off where the original's picture of them ends; none for the other kinds.</summary>
+	private Control? _clip;
+
+	/// <summary>Draws the text again, wherever it is drawn.</summary>
+	private void Redraw()
+	{
+		QueueRedraw();
+		_clip?.QueueRedraw();
+	}
 
 	public void Initialise(CGuiTextBoxType type, CGuiContext context)
 	{
@@ -52,6 +65,20 @@ public partial class CGuiTextBox : CGuiObject
 		if (_font is null)
 		{
 			CDiagnostics.Warn($"interface: '{type.Name}' names the font '{type.Font}', which could not be loaded");
+		}
+
+		// A textBoxType's font draws it into a picture of its own, of which only part is shown: its lines are drawn on a
+		// child that cuts them off there. The box's textureFile, which the original draws into that picture behind the
+		// lines, is not drawn here, but having one centres the lines up and down (interface.md, section 6).
+		if (!type.IsInstant && !type.IsEdit)
+		{
+			if (type.TextureFile.Length > 0 && context.Textures.LoadFromGamePath(type.TextureFile) is { } picture)
+			{
+				_background = (picture.GetWidth(), picture.GetHeight());
+			}
+			_clip = new Control { Name = "Text", ClipContents = true, MouseFilter = MouseFilterEnum.Ignore };
+			_clip.Draw += DrawClipped;
+			AddChild(_clip);
 		}
 
 		// Until something sets it, a box shows what its file wrote in it.
@@ -221,12 +248,79 @@ public partial class CGuiTextBox : CGuiObject
 			{
 				_lines.Add(CColouredText.Parse(line));
 			}
-			QueueRedraw();
+			Clip();
+			Redraw();
 		}
 	}
 
-	/// <summary>The width a screen that lays a box out itself gives it, for breaking and cutting its lines, in place of its file's: the Statistics screen's cells.</summary>
-	public float? LaidOutWidth { get; set; }
+	/// <summary>The width a screen that lays a box out itself gives it, for breaking, cutting and placing its lines, in place of its file's: the Statistics screen's cells.</summary>
+	public float? LaidOutWidth
+	{
+		get => _laidOutWidth;
+		set
+		{
+			_laidOutWidth = value;
+			Clip();
+		}
+	}
+
+	private float? _laidOutWidth;
+
+	/// <summary>
+	/// A textBoxType's width and height as its font takes them: its file's, or the screen's width, with a box of fixed
+	/// size given its picture's where it gives nought (<see cref="CTextBoxPlacement.Size"/>).
+	/// </summary>
+	private (int Width, int Height) FontSize()
+	{
+		var type = (CGuiTextBoxType)GuiType;
+		int width = LaidOutWidth is { } laidOut ? (int)laidOut : type.MaxWidth;
+		return CTextBoxPlacement.Size(width, type.MaxHeight, type.FixedSize, type.BorderSize.X, type.BorderSize.Y,
+			_background?.Width, _background?.Height);
+	}
+
+	/// <summary>Whether a textBoxType's lines are laid out in a picture of the box's size (<see cref="CTextBoxPlacement.Fits"/>).</summary>
+	private bool Fits()
+	{
+		(int width, int height) = FontSize();
+		return CTextBoxPlacement.Fits(width, height, ((CGuiTextBoxType)GuiType).FixedSize);
+	}
+
+	/// <summary>Sizes what a textBoxType's lines are drawn on to the part of the original's picture of them that is shown.</summary>
+	private void Clip()
+	{
+		if (_clip is null || _font is null)
+		{
+			return;
+		}
+		var type = (CGuiTextBoxType)GuiType;
+		(int width, int height) = FontSize();
+		(float shownWidth, float shownHeight) = CTextBoxPlacement.Shown(Fits(), width, height, type.BorderSize.X,
+			type.BorderSize.Y, Widest(), _lines.Count, _font.LineHeight);
+		_clip.Position = Vector2.Zero;
+		_clip.Size = new Vector2(Mathf.Max(0f, shownWidth), Mathf.Max(0f, shownHeight));
+	}
+
+	/// <summary>How wide a laid-out line is.</summary>
+	private float LineWidth(List<CTextRun> line)
+	{
+		float width = 0f;
+		foreach (CTextRun run in line)
+		{
+			width += CTextIcons.Measure(run.Text, _font!.Width);
+		}
+		return width;
+	}
+
+	/// <summary>The widest of the laid-out lines.</summary>
+	private float Widest()
+	{
+		float widest = 0f;
+		foreach (List<CTextRun> line in _lines)
+		{
+			widest = Mathf.Max(widest, LineWidth(line));
+		}
+		return widest;
+	}
 
 	/// <summary>
 	/// The width an <c>instantTextBoxType</c> of no <c>maxWidth</c> is given by the object that draws it, after the cut
@@ -254,16 +348,23 @@ public partial class CGuiTextBox : CGuiObject
 		}
 		CGuiFont font = _font;
 		float Measure(string run) => CTextIcons.Measure(run, font.Width);
-		float width = LaidOutWidth ?? type.MaxWidth;
-
-		// A textBoxType is cut only where it has a height; an instantTextBoxType whatever it has.
-		if (type.FixedSize && (type.IsInstant || type.MaxHeight != 0))
+		if (type.IsInstant)
 		{
-			text = CFixedSizeCut.Cut(text, width, type.MaxHeight, type.BorderSize.X, font.LineHeight, Measure);
+			float width = LaidOutWidth ?? type.MaxWidth;
+			if (type.FixedSize)
+			{
+				text = CFixedSizeCut.Cut(text, width, type.MaxHeight, type.BorderSize.X, font.LineHeight, Measure);
+			}
+			return CFontLineBreak.Break(text, width == 0f ? InstantDefaultWidth : width, type.BorderSize.X, Measure);
 		}
-		return type.IsInstant
-			? CFontLineBreak.Break(text, width == 0f ? InstantDefaultWidth : width, type.BorderSize.X, Measure)
-			: CTextBoxLineBreak.Break(text, width, type.BorderSize.X, Measure);
+
+		// A textBoxType is cut only where it has a height, its picture's where it gives none and is of fixed size.
+		(int boxWidth, int boxHeight) = FontSize();
+		if (type.FixedSize && boxHeight != 0)
+		{
+			text = CFixedSizeCut.Cut(text, boxWidth, boxHeight, type.BorderSize.X, font.LineHeight, Measure);
+		}
+		return CTextBoxLineBreak.Break(text, boxWidth, type.BorderSize.X, Measure);
 	}
 
 	/// <summary>
@@ -346,31 +447,49 @@ public partial class CGuiTextBox : CGuiObject
 			return;
 		}
 
-		float widest = 0f;
-		foreach (List<CTextRun> line in _lines)
+		// A textBoxType's lines are drawn on the child that cuts them off (DrawClipped).
+		if (_clip is not null)
 		{
-			float width = 0f;
-			foreach (CTextRun run in line)
-			{
-				width += CTextIcons.Measure(run.Text, _font.Width);
-			}
-			widest = Mathf.Max(widest, width);
+			return;
 		}
+		float widest = Widest();
 		foreach (List<CTextRun> line in _lines)
 		{
-			float width = 0f;
-			foreach (CTextRun run in line)
-			{
-				width += CTextIcons.Measure(run.Text, _font.Width);
-			}
-			float x = inset.X + CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, width, widest);
-
-			foreach (CTextRun run in line)
-			{
-				Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : Colour ?? _font.Color;
-				x = _context is null ? x : _context.TextIcons.Draw(this, _font, run.Text, x, y - _font.Ascent, colour);
-			}
+			float x = inset.X + CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, LineWidth(line), widest);
+			DrawLine(this, line, x, y - _font.Ascent);
 			y += _font.LineHeight;
+		}
+	}
+
+	/// <summary>One laid-out line, its colour escapes obeyed, from its left end and its top.</summary>
+	private void DrawLine(CanvasItem item, List<CTextRun> line, float x, float top)
+	{
+		foreach (CTextRun run in line)
+		{
+			Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : Colour ?? _font!.Color;
+			x = _context is null ? x : _context.TextIcons.Draw(item, _font!, run.Text, x, top, colour);
+		}
+	}
+
+	/// <summary>
+	/// A textBoxType's lines, placed as the original's font places them in the picture it draws them into
+	/// (<see cref="CTextBoxPlacement"/>), on the child that is as large as the part of that picture shown.
+	/// </summary>
+	private void DrawClipped()
+	{
+		if (_font is null || _clip is null)
+		{
+			return;
+		}
+		var type = (CGuiTextBoxType)GuiType;
+		(int width, int height) = FontSize();
+		bool fits = Fits();
+		float top = CTextBoxPlacement.Top(fits, _background is not null, height, type.BorderSize.Y, _lines.Count, _font.LineHeight);
+		foreach (List<CTextRun> line in _lines)
+		{
+			float x = CTextBoxPlacement.LineStart(type.Format, fits, width, type.BorderSize.X, LineWidth(line));
+			DrawLine(_clip, line, x, top);
+			top += _font.LineHeight;
 		}
 	}
 }

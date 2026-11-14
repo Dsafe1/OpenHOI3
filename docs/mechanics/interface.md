@@ -449,6 +449,37 @@ files, with nothing in it placed by hand.
   the border added once more whichever way it is set. **A box measured from the centre**, set centred, starts at the border, plus half the box, less half the
   **widest** line, less half the line (2026-11-08, `reversing/findings/FINDINGS-textdraw.md`), so a single line ends at the middle of the box; set left or right it starts at the border. The other four
   orientations have rules of their own that were not all worked through; *ours* treats them as the upper left.
+  **That is an `instantTextBoxType`'s rule, and a button caption's.** A `textBoxType` is placed by another routine of
+  the font, which draws it into a picture of its own (read 2026-11-14, `reversing/findings/FINDINGS-textdraw.md`,
+  section 2.2.1; `CTextBoxPlacement`):
+  - **A box fits where it says `fixedsize = yes`, or gives both a `maxWidth` and a `maxHeight`.** Then its picture is
+    the box's size - 320 across where it gives no width - and
+
+    | set | the line starts, from the box's left edge |
+    | --- | --- |
+    | left | at the border |
+    | centre | at half the box's width less half the line's, each half cut to a whole number. **The border plays no part** |
+    | right | one short of the border on the right: the box's width, less the border, less one, less the line |
+
+  - **A box that does not fit** - no height and not of fixed size, 18 of the 341 in the base game and Their Finest
+    Hour, the game options' `MustRestartTextBox` among them - is drawn into a picture as wide as its widest line and
+    the border on both sides, and **every line starts at the border whatever its format**: a centred one is set left.
+  - **The orientation plays no part in the text**: it places the box. So a box measured from the upper right does not
+    add its border twice as an `instantTextBoxType` does - the production screen's IC figure and its title.
+  - The first line's top is the border's height down, the next a line's height under it - **except in a box that fits
+    and has a picture behind its text**, its `textureFile`, where the lines start half of what the box's height leaves
+    them down, cut to a whole number towards nought, with no border in it: the console's `console_text`, 16 high in
+    `garamond_16`, whose line is 16, starts at its top, where its border would put it 1 down. The original draws that
+    picture into the same picture, behind the text, as nine parts; *ours* draws only an edit box's (section 8).
+  - **Only part of the picture is shown, and the text outside it is cut off**: in a box that fits, its width less the
+    border on the right and its height less the border at the bottom - or where it gives no height, its lines and the
+    border above and below; in a box that does not, all of it. So a `textBoxType`'s lines past its height are cut off,
+    and a line too wide for its box loses its ends.
+  - A box of fixed size that gives its width or height as nought, with a picture behind its text, takes that
+    dimension from the picture, less the border once.
+
+  *Ours:* the original's picture is drawn on screen one unit narrower and lower than the texels it shows, each way -
+  a squeeze of a pixel over the box - which is not followed, nor is it known whether its pictures do the same.
 - **Every glyph is then drawn one unit right and one up of that.** The original adds
   half a pixel to both coordinates of every corner of a glyph, in a space whose second
   axis points up (`confirmed`), and beside its pictures that comes out as a whole pixel
@@ -506,10 +537,8 @@ files, with nothing in it placed by hand.
   *Ours:* the original's oddity at the end of an `instantTextBoxType`'s text - a last word wider
   than the box makes the whole line's width that word's for its placing - and the one-short width
   a `textBoxType` keeps for a line broken inside a word are not followed: a line is placed by its
-  own measured width. **A `textBoxType`'s lines run on past its height** here; the original's,
-  drawn into a picture of the box's size, are likely cut off there (not read), and it places a
-  centred line without its border and centres its text up and down where it has a picture behind
-  it (read, not built - section 3's rule is used for both kinds). **An edit box** keeps the rule
+  own measured width. **A `textBoxType`'s lines are cut off past its height less its border** and
+  placed by a rule of their own, above (read and built 2026-11-14). **An edit box** keeps the rule
   from before the reading - broken at its spaces where it is high enough for a second line - since
   which line of its layout it shows when a screen sets its text was not read (section 8); **a
   button's caption** stays one line, the box the original gives it not read; and **the lobby's
@@ -763,11 +792,12 @@ is; the wrap's exact break.
 1. **The table of colours a font with no `colorcodes` falls back to**: who fills it, and
    with what.
 2. **How a text box lays its text out**, beyond section 6 (where a line breaks, the cut of a
-   `fixedsize` box and how the two kinds of text box differ in breaking are read since
-   2026-11-14): whether a `textBoxType` cuts off lines past its height, which line an edit box
+   `fixedsize` box, how the two kinds of text box differ in breaking, and where a `textBoxType`
+   places its lines and cuts them off are read since 2026-11-14): which line an edit box
    shows when a screen sets its text, the box a button's caption is given, the five orientations
-   other than the upper left and right, and why the pictures sit half a pixel the other
-   way from the text.
+   other than the upper left and right, why the pictures sit half a pixel the other
+   way from the text, and how a `textBoxType`'s picture lays out the nine parts of its
+   background and which container crops it.
 3. **Where the position is measured to** - that it is the upper left corner is a fit on
    the files - and how `rotation` and `scale` turn and size an icon. A quarter turn is applied
    as section 7 says - one way for a bar and another for a flag - and **where an edit box
