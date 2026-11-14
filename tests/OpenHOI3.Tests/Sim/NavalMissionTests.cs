@@ -362,6 +362,32 @@ public class NavalMissionTests
 	}
 
 	[Fact]
+	public void APatrolTellsOfAFleetItDidNotShadowTheHourBeforeAndOnlyThat()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland, atWar: false);
+		CUnit patrol = Fleet(state, germany, Bight, Destroyer);
+		CUnit stranger = Fleet(state, poland, Bight, Destroyer);
+		var told = new List<CPatrolTrackMessage>();
+		state.PatrolTracked += told.Add;
+		CUnitOrders.Give(state, germany, patrol, EUnitOrder.Patrol, Bight);
+
+		Assert.Same(stranger, patrol.Mission.Target);
+		Assert.Equal(new[] { new CPatrolTrackMessage(Ger, Bight, Pol, patrol.Id, patrol.Name, stranger.Name) }, told);
+
+		// The same fleet again the next hour is no news.
+		CPatrol.UpdateShadow(state, germany, patrol);
+		Assert.Same(stranger, patrol.Mission.Target);
+		Assert.Single(told);
+
+		// Shadowing nobody for an hour, it is news again.
+		patrol.Mission.Target = null;
+		stranger.IsShadowed = false;
+		CPatrol.UpdateShadow(state, germany, patrol);
+		Assert.Same(stranger, patrol.Mission.Target);
+		Assert.Equal(2, told.Count);
+	}
+
+	[Fact]
 	public void APatrolFollowsTheFleetItShadows()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland, atWar: false);

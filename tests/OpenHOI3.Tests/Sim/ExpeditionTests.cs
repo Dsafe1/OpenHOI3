@@ -182,6 +182,22 @@ public class ExpeditionTests
 	}
 
 	[Fact]
+	public void AUnitSentHomeTellsBothSidesAboutWhereItStandsAndCarriesItForItsGoto()
+	{
+		(CGameState state, CCountry england, CCountry france, CUnit corps, _) = World();
+		CExpeditions.HandOver(state, corps, england, france);
+		var told = new List<CPactMessage>();
+		state.PactMessaged += told.Add;
+		CExpeditions.Return(state, corps);
+		CPactMessage message = Assert.Single(told);
+		Assert.Equal(("EXPRETURNEDWE", "EXPRETURNED", "", Fra, Eng), (message.We, message.They, message.Other, message.Actor, message.Recipient));
+		Assert.Equal((1, 7), (message.Province, message.Unit));
+		Assert.Equal(new[] { ("NAME", "I Corps") }, message.Values);
+		Assert.Equal(OpenHOI3.Interface.Messages.EMessageGoto.Unit, OpenHOI3.Interface.Messages.CMessageGotos.Of("EXPRETURNED"));
+		Assert.Equal(OpenHOI3.Interface.Messages.EMessageGoto.Unit, OpenHOI3.Interface.Messages.CMessageGotos.Of("EXPRETURNEDWE"));
+	}
+
+	[Fact]
 	public void ALentUnitIsNotMerged()
 	{
 		(CGameState state, CCountry england, _, CUnit corps, _) = World();

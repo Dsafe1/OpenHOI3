@@ -66,11 +66,13 @@ public static class CPatrol
 	/// <summary>
 	/// Lets go of the fleet it shadowed and looks for one afresh: the first fleet in the
 	/// province the patrol is in, in the order they came, that is another country's and
-	/// no friend's and that the patrol sights. No war is asked for.
+	/// no friend's and that the patrol sights. No war is asked for. A fleet it did not shadow
+	/// the hour before raises <c>PATROLTRACK</c> for the patrol's country (section 3.1).
 	/// </summary>
 	public static void UpdateShadow(CGameState state, CCountry country, CUnit unit)
 	{
 		CMission mission = unit.Mission;
+		CUnit? before = mission.Target;
 		if (mission.LiveTarget is { } was)
 		{
 			was.IsShadowed = false;
@@ -95,6 +97,13 @@ public static class CPatrol
 			{
 				mission.Target = other;
 				other.IsShadowed = true;
+				// A new one, set against the one held as the hour began: told to the patrol's player alone, who the
+				// interface picks out (reversing/findings/FINDINGS-navalmissions.md, section 4).
+				if (other != before)
+				{
+					state.RaisePatrolTracked(new CPatrolTrackMessage(unit.Owner, unit.Location, other.Owner, unit.Id, unit.Name,
+						other.Name));
+				}
 				return;
 			}
 		}

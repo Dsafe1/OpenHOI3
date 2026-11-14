@@ -108,14 +108,14 @@ cross the screen's right or bottom edge is moved to the screen's size less 10.
 | centres on the first country's acting capital | stays | `INDEPENDANCE`, `GIESWAPOTHER` |
 | centres as the first row | stays; closes with nowhere to go | `INVADEDUS`, `PARATROOPEDUS` |
 | closes the orders window and clears the selection, and then by type | stays | the 21 of `CMessageGotos.Screens` |
-| clears the selection, selects the message's unit and centres on it | closes, whatever it found | the three `UNITARRIVED` (`movement.md`, section 6, step 10) |
+| clears the selection, selects the message's unit - by its number, whoever holds it now - and centres on it | closes, whatever it found | the three `UNITARRIVED` (`movement.md`, section 6, step 10), `EXPRETURNED`, `EXPRETURNEDWE` (`expeditions.md`, section 3) |
 | nothing | closes | events, decisions, laws and ministers, triggered modifiers and the like |
 
 The fourth-from-last row's "then by type": `DIPLOEXPIRE` selects the capital of the agreement's other side and opens the diplomacy screen on it; `TECH_ONCE` and `TECH_REPEAT` turn the technology screen on or off - **with it already up a Goto shuts it**, the original's; `BUILDING_DONE` centres as the first row; the others do nothing more.
 
 Which province a message is about is `CPactMessage.Province`, set where it names one. `INVADEDUS` takes the first landing unit's province: *inferred*, the raise was not read for it.
 
-**`EXPRETURNED` and `EXPRETURNEDWE` have the unit's Goto too** in the original; here their message carries no unit, so they are left out of that row and close doing nothing. The three `UNITARRIVED` are raised since 2026-11-14. `TECH_ONCE` and `TECH_REPEAT` are in the table and nothing raises them yet. `LEADERDIED`, `SHIPSUNK`, `MINISTER_DEATH`, `REINFORCE` and `RETURN_EXILE_US` are declared and raised by no code in the original either.
+**A message carries a unit by its number** (`CMessage.Unit`, `CPactMessage.Unit`), as the original's carries a persistent id, which its unit Goto looks up in the whole game: an expeditionary force returned is the lender's by then, and the host's player told `EXPRETURNEDWE` has it selected all the same (`reversing/findings/FINDINGS-expedition.md`, the addition of 2026-11-14). `PATROLTRACK` carries its patrol too, and its Goto is the province's (`navalmissions.md`, section 3.1). The three `UNITARRIVED` are raised since 2026-11-14, and `EXPRETURNED` and `EXPRETURNEDWE` carry their unit since the same day. `TECH_ONCE` and `TECH_REPEAT` are in the table and nothing raises them yet. `LEADERDIED`, `SHIPSUNK`, `MINISTER_DEATH`, `REINFORCE` and `RETURN_EXILE_US` are declared and raised by no code in the original either.
 
 ### 4.2 The settings of a type
 

@@ -2329,7 +2329,8 @@ None of these blocks the list above.
   country from attacking out of a neutral that merely lets it through; and no message says a unit
   has arrived.~~ All three built 2026-11-14 (`movement.md`, sections 1, 3 and 6). Left: the rest of the
   click's test of a province - a unit in a battle sent only where it may fall back - and the click's
-  sounds and marks; and `EXPRETURNED`'s Goto, whose message carries no unit (`messages.md`, section 4.1).
+  sounds and marks. ~~`EXPRETURNED`'s Goto, whose message carries no unit~~ - built 2026-11-14, the message
+  carrying the unit and its Goto selecting it whoever holds it (`messages.md`, section 4.1).
   `docs/mechanics/movement.md`, *What is not built*.
 - **The march's speed is checked against savegames and its arrival is not.** The
   distances agree with the original's cache exactly and what an hour adds agrees with
@@ -2438,8 +2439,9 @@ None of these blocks the list above.
 - ~~**A raid from the air is not built**, nor any message about a raid~~ - **built 2026-11-14**: the raid on convoys
   from the air, its pick of a province and its bombing of a convoy's ships, and the three messages of a raid,
   read out of the original and tried with `OpenHOI3.SaveCheck raid ... air` (`navalmissions.md`, sections 8.1 to 8.3).
-  Left: the patrol's `PATROLTRACK`, a lend-lease convoy's lost efficiency, whether the original's AI ever gives the
-  air raid, and the maintainer has not looked at any of it.
+  The patrol's `PATROLTRACK` is built the same day (`navalmissions.md`, section 3.1), tried with
+  `OpenHOI3.SaveCheck raid ... patrol` and a row of the log clicked. Left: a lend-lease convoy's lost efficiency,
+  whether the original's AI ever gives the air raid, and the maintainer has not looked at any of it.
 - **Who is played by a person is state the client sets**, `CGameState.Played`, and not a
   command: it is asked in one place, the idle fleet's, and wants a proper home when a
   game can be joined or left.

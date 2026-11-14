@@ -43,6 +43,12 @@ public sealed record CPactMessage(string We, string They, string Other, CCountry
 	public long[]? Scores { get; init; }
 
 	/// <summary>
+	/// The unit it is about, by its number, for a Goto that selects it - an expeditionary force returned
+	/// (<c>expeditions.md</c>, section 3); 0 for the rest.
+	/// </summary>
+	public int Unit { get; init; }
+
+	/// <summary>
 	/// The sound the original raises with it, heard by whoever is told its first key, <see cref="We"/> - the actor, or
 	/// <see cref="Told"/> where that is set: <see cref="Success"/> or <see cref="Failure"/> for the answer to one of the twelve
 	/// offers that sound one (<c>docs/mechanics/sound.md</c>, section 7); empty for the rest.

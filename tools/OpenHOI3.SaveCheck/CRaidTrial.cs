@@ -11,6 +11,7 @@ using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Convoys;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Missions;
 using OpenHOI3.Sim.Movement;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -26,7 +27,9 @@ using OpenHOI3.Sim.Units;
 /// its range that the most of the victim's convoys go through; and the days are let go
 /// by, each sinking told. With <c>air</c> it is the raider's air unit with the most
 /// <c>sea_attack</c>, given the raid on convoys from the air for that province within its
-/// range. Every message the raids raise is counted by its type, and the first of each
+/// range. With <c>patrol</c> the fleet is given a patrol of that province instead, its country played: a patrol tries
+/// the convoys as a raider does and shadows the foreign fleets it sights, each fleet it takes up told as it happens
+/// with its <c>PATROLTRACK</c>. Every message the raids raise is counted by its type, and the first of each
 /// written as the log would. With no tags it is Germany against the United Kingdom, for
 /// thirty days. See <c>docs/mechanics/navalmissions.md</c>, sections 8 and 13.
 /// </summary>
@@ -35,10 +38,12 @@ public static class CRaidTrial
 	public static int Run(string[] args)
 	{
 		bool fromTheAir = args.Any(arg => arg.Equals("air", StringComparison.OrdinalIgnoreCase));
-		args = args.Where(arg => !arg.Equals("air", StringComparison.OrdinalIgnoreCase)).ToArray();
+		bool patrol = args.Any(arg => arg.Equals("patrol", StringComparison.OrdinalIgnoreCase));
+		args = args.Where(arg => !arg.Equals("air", StringComparison.OrdinalIgnoreCase)
+			&& !arg.Equals("patrol", StringComparison.OrdinalIgnoreCase)).ToArray();
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck raid <install folder> [raider tag] [victim tag] [days] [seed] [air]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck raid <install folder> [raider tag] [victim tag] [days] [seed] [air | patrol]");
 			return 2;
 		}
 		var warnings = new List<string>();
@@ -71,11 +76,12 @@ public static class CRaidTrial
 
 		// From the air the raider's country is played, as the bombing trial's is, so that the AI neither takes its air unit
 		// for its own nor sends fleets of its own raiding beside it.
-		if (fromTheAir)
+		// A patrol's country is played too: its PATROLTRACK is a player's message alone (navalmissions.md, section 3).
+		if (fromTheAir || patrol)
 		{
 			state.Played.Add(raiderTag);
 		}
-		EUnitOrder order = fromTheAir ? EUnitOrder.AirConvoyRaid : EUnitOrder.ConvoyRaid;
+		EUnitOrder order = fromTheAir ? EUnitOrder.AirConvoyRaid : patrol ? EUnitOrder.Patrol : EUnitOrder.ConvoyRaid;
 		List<CUnit> candidates = (fromTheAir
 			? raiders.AllUnits()
 				.Where(unit => unit.Kind == EUnitKind.Air && unit.Location > 0 && unit.CarriedBy is null)
@@ -138,9 +144,19 @@ public static class CRaidTrial
 				Console.WriteLine($"    {raid.Type} to {raid.Told}:{CMessageText.Log(localisation.Localise, message)}");
 			}
 		};
+		// A patrol's new shadow, counted for everybody - the AI's patrols raise it too, which only a player would see - and
+		// told as it happens for the raider's country.
+		state.PatrolTracked += track =>
+		{
+			told[CPatrolTrackMessage.Type] = told.GetValueOrDefault(CPatrolTrackMessage.Type) + 1;
+			if (track.Told == raiderTag && CMessages.PatrolTrack(localisation.Localise, messageTypes, state, track.Told, track) is { } message)
+			{
+				Console.WriteLine($"    {CPatrolTrackMessage.Type} to {track.Told}:{CMessageText.Log(localisation.Localise, message)}");
+			}
+		};
 
 		CProvince sea = state.Province(target);
-		string attacking = fromTheAir ? "raid convoys from the air" : "raid convoys";
+		string attacking = fromTheAir ? "raid convoys from the air" : patrol ? "patrol" : "raid convoys";
 		Console.WriteLine($"{state.Date} {state.Hour}:00  {Describe(raider)}, at {state.Province(raider.Location).Name}, is to {attacking} in "
 			+ $"{sea.Name} ({sea.Id}), which {through[target]} of them go through. It attacks at {new CFixedPoint(CConvoyRaid.Attack(raider))}"
 			+ (fromTheAir ? $", five times that against escorts." : "."));
@@ -152,9 +168,16 @@ public static class CRaidTrial
 		int transports = 0;
 		int escorts = 0;
 		int arrived = -1;
+		CUnit? shadowing = null;
 		for (int hour = 1; hour <= days * CGameState.HoursPerDay && !raider.IsRemoved; hour++)
 		{
 			simulation.RunHours(1);
+			if (patrol && raider.Mission.LiveTarget != shadowing)
+			{
+				shadowing = raider.Mission.LiveTarget;
+				Console.WriteLine($"{state.Date} {state.Hour}:00  in {state.Province(raider.Location).Name}: "
+					+ (shadowing is null ? "shadowing nobody." : $"shadowing {shadowing.Name} ({shadowing.Owner})."));
+			}
 			if (arrived < 0 && raider.Location == target)
 			{
 				arrived = hour;

@@ -204,6 +204,38 @@ public static class CMessages
 	}
 
 	/// <summary>
+	/// A patrol's new shadow, <c>PATROLTRACK</c>, for the patrol's player and nobody else: about the patrol's province, the
+	/// patrol's country first and the shadowed fleet's second, carrying the patrol's number. Its values are the player's
+	/// standard ones, MONARCHTITLE again, OUR_FLEET the patrol's name, OTHER the shadowed fleet's country's name, OTHERS the
+	/// fleet's own name and PROV the province's. See <c>docs/mechanics/navalmissions.md</c>, section 3.1.
+	/// </summary>
+	public static CMessage? PatrolTrack(Func<string, string> localise, CMessageTypes types, CGameState state, CCountryTag? player,
+		Sim.Missions.CPatrolTrackMessage track)
+	{
+		if (player is not { } own || own != track.Told || state.Country(own) is not { } country)
+		{
+			return null;
+		}
+		var message = new CMessage(types.Find(Sim.Missions.CPatrolTrackMessage.Type), CMessageText.Date(localise, state.Date, state.Hour))
+		{
+			FirstCountry = track.Told,
+			SecondCountry = track.Other,
+			Province = track.Province,
+			Unit = track.Patrol,
+		};
+		message.Variables.Add(("COUNTRY", country.Name));
+		message.Variables.Add(("MONARCHTITLE", RulerTitle(country)));
+		message.Variables.Add(("TITLE", RulerTitle(country)));
+		Government(localise, state, player, message);
+		message.Variables.Add(("MONARCHTITLE", RulerTitle(country)));
+		message.Variables.Add(("OUR_FLEET", track.PatrolName));
+		message.Variables.Add(("OTHER", state.Country(track.Other)?.Name ?? track.Other.Value));
+		message.Variables.Add(("OTHERS", track.OtherName));
+		message.Variables.Add(("PROV", state.Province(track.Province).Name));
+		return message;
+	}
+
+	/// <summary>
 	/// The sound a pact's message makes for the player: its own where the player is the one told its first key - the actor,
 	/// or the country it names as told - and nothing for the recipient or anybody else (<c>docs/mechanics/sound.md</c>, section
 	/// 7). Asked only where the message itself was told, so a trade's, hidden from a player who automated his trade, is silent.
@@ -242,6 +274,7 @@ public static class CMessages
 			Scores = pact.Scores,
 			// An agreement run out goes to the other side's capital, which the diplomacy screen then opens on.
 			Province = pact.Province > 0 || name != CMessageGotos.AgreementExpired ? pact.Province : state.Country(pact.Recipient)?.Capital ?? 0,
+			Unit = pact.Unit,
 		};
 		if (state.Country(player) is { } country)
 		{

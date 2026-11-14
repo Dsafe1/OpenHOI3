@@ -18,7 +18,7 @@ Where allied or in one real faction, above Share Technology: **Expeditionary For
 
 The influence is paid when offered and never refunded. The AI answers by `DiploScore_SendExpeditionaryForce` in the install's Lua. Accepted, the unit leaves its commander and it and all under it go to the host, each remembering who lent it first; the lender is told `OUREXPACC` and everyone else `EXPOTHER`. Declined, the lender alone is told `OUREXPDEC`.
 
-A withdrawal sets only the date, the return define's days from now; nobody is told. Each day a host sends home **the first** unit past its date, so several come one a day. It goes alone: **what is under it stays with the host as the host's own**. `EXPRETURNEDWE` to the host and `EXPRETURNED` to the lender. No peace, change of alliance or end of a war sends one home.
+A withdrawal sets only the date, the return define's days from now; nobody is told. Each day a host sends home **the first** unit past its date, so several come one a day. It goes alone: **what is under it stays with the host as the host's own**. `EXPRETURNEDWE` to the host and `EXPRETURNED` to the lender, each with the player's standard values, ACTOR the host, RECIPIENT the lender, MESSENGER the foreign office and NAME the unit's, about the province the unit stands in, the host first and the lender second, and **carrying the unit**: its Goto selects it - the lender's by then - and centres on it, and the popup closes (`messages.md`, section 4.1; `reversing/findings/FINDINGS-expedition.md`, the addition of 2026-11-14). Checked on screen: a save's Phillippine Force sent home to the United States is selected at Manila by the popup's Go to. No peace, change of alliance or end of a war sends one home.
 
 ## 4. What a lent unit is
 

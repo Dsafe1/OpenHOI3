@@ -99,7 +99,10 @@ public static class CExpeditions
 		}
 	}
 
-	/// <summary>The unit goes home alone; what is under it stays with the host, as the host's own.</summary>
+	/// <summary>
+	/// The unit goes home alone; what is under it stays with the host, as the host's own. The host's player and the
+	/// lender's are told, about the province the unit stands in, the message carrying the unit for its Goto.
+	/// </summary>
 	public static void Return(CGameState state, CUnit unit)
 	{
 		if (unit.Lender is not { } tag || state.Country(tag) is not { } lender || state.Country(unit.Owner) is not { } host)
@@ -107,7 +110,12 @@ public static class CExpeditions
 			return;
 		}
 		TakeHome(state, unit);
-		state.RaisePactMessage(new CPactMessage("EXPRETURNEDWE", "EXPRETURNED", "", host.Tag, lender.Tag) { Values = new[] { ("NAME", unit.Name) } });
+		state.RaisePactMessage(new CPactMessage("EXPRETURNEDWE", "EXPRETURNED", "", host.Tag, lender.Tag)
+		{
+			Values = new[] { ("NAME", unit.Name) },
+			Province = unit.Location,
+			Unit = unit.Id,
+		});
 	}
 
 	/// <summary>The unit back with its lender, with nobody told.</summary>

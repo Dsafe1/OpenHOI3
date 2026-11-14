@@ -171,6 +171,32 @@ not aggressive starts no battle with a fleet that has more than five thirds of i
 and capital ships; and found by somebody, an aggressive patrol can be made the defender by
 anyone, a passive one by nobody, and a defensive one only by a fleet weaker than itself.
 
+### 3.1 What a new shadow tells the player
+
+`confirmed` (`reversing/findings/FINDINGS-navalmissions.md`, section 4, the addition of 2026-11-14). A patrol that takes
+up a fleet raises `PATROLTRACK` - log and map, **no popup**, category combat, in Their Finest Hour's
+`interface/messagetypes.txt` - where:
+
+    the fleet taken up is not the one it held as the hour began - the same fleet found again is no news,
+        and one found after an hour of shadowing nobody, or the other of two fleets, is news again
+    and the patrol's country is the player's on this machine
+
+    the player's country's standard values: COUNTRY, MONARCHTITLE, TITLE, a value for each post
+        of its government (messages.md, section 3)
+    MONARCHTITLE  the patrol's country's ruler's title, again
+    OUR_FLEET     the patrol's name
+    OTHER         the shadowed fleet's country's name
+    OTHERS        the shadowed fleet's own name
+    PROV          the province's name
+    province: the patrol's, which is the shadowed fleet's;  first country: the patrol's;  second: the
+        shadowed fleet's;  unit: the patrol
+
+**It carries the patrol, but its Goto centres on the province** (`messages.md`, section 4.1). Two things are the
+original's and kept: a patrol that loses sight of a fleet for one hour, the sighting roll failing, tells of it again
+the next - so a patrol beside a fleet it can barely see tells of it over and over - and the log line "`$OUR_FLEET$ found
+$OTHERS$ fleet in $PROV$.`" puts the fleet's own name where it reads like a country's adjective ("Schlachtflotte found
+46th Navy fleet in Channel Approach.") - the text's, and a mod may change it. Both are listed in `docs/enhanced.md`.
+
 ## 4. The raid on convoys, as an order
 
 `confirmed` (`FINDINGS-navalmissions.md`, section 5). The patrol's hour without the shadowing,
@@ -543,7 +569,7 @@ line he was shown.)
 
 ## 13. Trying it
 
-**A trial.** `OpenHOI3.SaveCheck raid <install> [raider] [victim] [days] [seed]` puts two
+**A trial.** `OpenHOI3.SaveCheck raid <install> [raider] [victim] [days] [seed] [air | patrol]` puts two
 countries at war, gives the first one's fleet with the most `convoy_attack` the order to raid
 convoys in the water within its range that the most of the other's convoys go through, and
 tells each sinking for so many days. It is not a check: there is nothing to set it against.
@@ -580,6 +606,14 @@ raider's country is played so that the AI leaves it be. `raid <install> ITA ENG 
 
 (Germany's air units reach none of Britain's convoys' water in 1936.)
 
+**A patrol**, `patrol` after the rest: the fleet is given a patrol of that water instead, its country played, and each
+fleet the patrol takes up is told with its `PATROLTRACK` as it happens; the count at the end is everybody's, the AI's
+patrols raising it too. On 2026-11-14 the plain run gave the same figures before and after `PATROLTRACK` was built -
+30 raids that sank something, 46 transports and 12 escorts - with `PATROLTRACK 428` added to its count, and
+`raid <install> GER ENG 30 0 patrol` the same 7 raids, 10 transports and no escort before and after, the Schlachtflotte
+telling of seven fleets taken up in the Bristol Channel, the Channel Approach and the Western English Channel between 5
+and 8 January ("Schlachtflotte found 46th Navy fleet in Channel Approach."), and `PATROLTRACK 74` in all.
+
 **In the client** `--mission=ENG:patrol:10531` gives the strongest fleet of a country that may
 have it a mission for a province - reserve, patrol, intercept, sortie or convoyraid, with
 `:passive` or `:defensive` after the province. With `--war=GER:ENG` that gives the player's own
@@ -596,8 +630,8 @@ gives the air unit with the most sea attack that reaches the province the raid f
   (`leaders.md`, section 10).
 - **Intelligence** beyond a unit's own part (section 9).
 - **Several waypoints for a sortie.**
-- The **message of a patrol's new shadow**, `PATROLTRACK`. A convoy too strong and ships lost are
-  built since 2026-11-14 (section 8.2).
+- ~~The **message of a patrol's new shadow**, `PATROLTRACK`.~~ Built 2026-11-14 (section 3.1), with a convoy too
+  strong and ships lost (section 8.2).
 
 ### Not established
 

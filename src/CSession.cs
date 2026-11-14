@@ -732,6 +732,14 @@ public partial class CSession : Node
 					Tell(message);
 				}
 			};
+			// A patrol's new shadow (navalmissions.md, section 3.1).
+			_simulation.State.PatrolTracked += track =>
+			{
+				if (CMessages.PatrolTrack(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, track) is { } message)
+				{
+					Tell(message);
+				}
+			};
 			_simulation.State.PactMessaged += pact =>
 			{
 				if (CMessages.Pact(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, pact) is { } message)
@@ -965,8 +973,10 @@ public partial class CSession : Node
 			case EMessageGoto.Invasion:
 				return CentreOnMessage(message);
 			case EMessageGoto.Unit:
-				// The original's GotoUnitForMessage answers false whatever it found, so the popup closes.
-				if (State.Country(message.FirstCountry)?.AllUnits().FirstOrDefault(unit => unit.Id == message.Unit) is { } found)
+				// The original's GotoUnitForMessage answers false whatever it found, so the popup closes. It finds the unit by
+				// its number whoever holds it now - an expeditionary force returned is the second country's, not the first's.
+				if (message.Unit != 0 && State.Countries.SelectMany(country => country.AllUnits())
+					.FirstOrDefault(unit => unit.Id == message.Unit && !unit.IsRemoved) is { } found)
 				{
 					_mapView.ClearSelection();
 					_mapView.SelectUnit(found);

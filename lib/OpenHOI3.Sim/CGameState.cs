@@ -364,6 +364,7 @@ public sealed class CGameState
 		OfferAsked = null;
 		CombatBegan = null;
 		ConvoyRaidMessaged = null;
+		PatrolTracked = null;
 		DecisionTaken = null;
 		SoundCued = null;
 		UnitArrived = null;
@@ -717,6 +718,17 @@ public sealed class CGameState
 	internal void RaiseConvoyRaidMessage(Convoys.CConvoyRaidMessage message)
 	{
 		ConvoyRaidMessaged?.Invoke(message);
+	}
+
+	/// <summary>
+	/// Raised as a patrol takes up a fleet it did not shadow the hour before, for whoever plays the patrol's country to be
+	/// told (<c>docs/mechanics/navalmissions.md</c>, section 3.1). Never for anything that changes the game.
+	/// </summary>
+	public event Action<Missions.CPatrolTrackMessage>? PatrolTracked;
+
+	internal void RaisePatrolTracked(Missions.CPatrolTrackMessage message)
+	{
+		PatrolTracked?.Invoke(message);
 	}
 
 	/// <summary>
