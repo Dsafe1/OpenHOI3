@@ -699,9 +699,10 @@ In order:
       headquarters' row, and **a leader's own tooltip** - his rank, command, skill, how far to
       the next and his traits. A text box over a button now answers first where the mouse is
       over it and leaves the button its clicks (`CGuiObject.PassiveTooltip`). Tried with
-      `--click`; the maintainer has not looked at it. Attrition, supply and fuel, a base's
-      supply, the speed's terms and the hourly regain wait for what they describe (*Loose
-      ends*). Reading for it corrected the fact base: the order of the radio lines' text and
+      `--click`; the maintainer has not looked at it. Supply and fuel came later, and the
+      attrition breakdown on 2026-11-14 (section 10.2, tried with `--click` at Edd and
+      Vercelli); a base's supply, the speed's terms and the hourly regain wait for what they
+      describe (*Loose ends*). Reading for it corrected the fact base: the order of the radio lines' text and
       line break, and that a headquarters out of reach is yellow;
    6. **a unit's other windows - built** (2026-10-12, `mapunits.md` section 10,
       `fleetsandair.md` section 8): read whole - **the deploy menu's lines** list their unit's
@@ -2160,7 +2161,7 @@ None of these blocks the list above.
   row in a unit's panel adds. A ship's positioning is scaled by `targeting_chance`, taken to be
   the figure the original names `naval_positioning_bonus`.
 - **The unit panel's tooltips leave out what is not built under them** (2026-10-12,
-  `unitpanel.md` section 10): the attrition breakdown, a fleet's
+  `unitpanel.md` section 10): a fleet's
   or an air unit's base and how well it supplies, the terms of the speed's multiplier one by one,
   the organisation a brigade regains an hour, what technology adds to the digging-in cap, the
   `+*` on a model the country no longer builds and a faction leader's name for a model. A leader's traits on the way are in the traits file's order, where

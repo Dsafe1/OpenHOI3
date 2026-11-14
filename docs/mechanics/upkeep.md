@@ -167,8 +167,8 @@ reads `1%` (`unitpanel.md`, section 4).
 Italy's five in East Africa differ by 0.001 to 0.006, not explained - a division standing at that midnight in another
 province than the original's would do it.
 
-*Not built*: the panel's attrition tooltip, the original's breakdown of the figure into its causes, whose arithmetic was
-not followed into every term (`reversing/findings/FINDINGS-unitpaneltooltips.md`, section 11).
+The panel's tooltip breaks the figure into its causes since 2026-11-14 (`unitpanel.md`, section 10.2;
+`reversing/findings/FINDINGS-unitpaneltooltips.md`, section 11).
 
 ## 4. Reinforcement
 

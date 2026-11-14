@@ -21,7 +21,8 @@ public static class CModifierText
 	/// The sources of one kind, a line each, in the order they were added. A source with
 	/// nothing of the kind writes nothing, and no line break.
 	/// </summary>
-	public static string Sources(Func<string, string> localise, IEnumerable<CModifierSource> sources, string kind)
+	public static string Sources(Func<string, string> localise, IEnumerable<CModifierSource> sources, string kind,
+		long scale = CFixedPoint.Scale)
 	{
 		var text = new StringBuilder();
 		int last = 0;
@@ -32,9 +33,25 @@ public static class CModifierText
 				text.Append('\n');
 			}
 			last = text.Length;
-			text.Append(Line(localise, source, kind).Trim(Trimmed));
+			text.Append(Line(localise, source, kind, scale).Trim(Trimmed));
 		}
 		return text.ToString();
+	}
+
+	/// <summary>
+	/// A modifier's contributors to one kind, each value times <paramref name="scale"/> in thousandths: the
+	/// sources' lines, or with none kept and a value of the kind, the modifier's own line, which a summed
+	/// modifier writes under no name.
+	/// </summary>
+	public static string Contributors(Func<string, string> localise, CModifier total, IReadOnlyCollection<CModifierSource> sources,
+		string kind, long scale)
+	{
+		if (sources.Count == 0)
+		{
+			long raw = total[kind].Raw;
+			return raw == 0 ? "" : ": " + Value(CModifierKinds.Of(kind), new CFixedPoint(raw * scale / CFixedPoint.Scale));
+		}
+		return Sources(localise, sources, kind, scale);
 	}
 
 	/// <summary>What the original trims off a source's line: line breaks, tabs, returns and spaces.</summary>
@@ -45,7 +62,7 @@ public static class CModifierText
 	/// value coloured by whether more is better, and the white that closes it. A province's
 	/// is headed by its name.
 	/// </summary>
-	public static string Line(Func<string, string> localise, CModifierSource source, string kind)
+	public static string Line(Func<string, string> localise, CModifierSource source, string kind, long scale = CFixedPoint.Scale)
 	{
 		CFixedPoint value = source.Modifier[kind];
 		if (value.Raw == 0)
@@ -53,7 +70,7 @@ public static class CModifierText
 			return "";
 		}
 		string name = source.Heading ?? localise(source.Modifier.Name);
-		return name + ": " + Value(CModifierKinds.Of(kind), value);
+		return name + ": " + Value(CModifierKinds.Of(kind), new CFixedPoint(value.Raw * scale / CFixedPoint.Scale));
 	}
 
 	/// <summary>Every value the modifier holds, a line each in the original's order of kinds, each under the kind's own name.</summary>
