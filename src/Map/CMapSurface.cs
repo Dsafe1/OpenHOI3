@@ -763,43 +763,60 @@ public partial class CMapSurface : Node3D
 	/// </summary>
 	private void BuildLand()
 	{
-		var land = Terrain(Way(0).Land, LandStates).Translation;
-		var beach = Terrain(Way(0).Beach, BeachStates).Translation;
-		foreach (CQuadTile tile in _tiles)
+		// The translations taken here, on the main thread, where a first one makes its shader.
+		CGodotShader? land = Terrain(Way(0).Land, LandStates).Translation;
+		CGodotShader? beach = Terrain(Way(0).Beach, BeachStates).Translation;
+		CGodotShader? borders = BorderTranslation;
+		// Every tile's arrays filled side by side - the tiles are only read - and then handed to the engine in their order on
+		// the main thread: the filling was half of the front end's still window (loadingscreen.md, section 3).
+		var filled = new (CMeshArrays Land, CMeshArrays? Beach, CMeshArrays? Border)[_tiles.Count];
+		System.Threading.Tasks.Parallel.For(0, _tiles.Count, index =>
 		{
-			ArrayMesh landMesh = BuildMesh(tile.LandIndices, tile.LandProvinces.Length, land,
+			CQuadTile tile = _tiles[index];
+			CMeshArrays landArrays = Fill(tile.LandIndices, tile.LandProvinces.Length, land,
 				(semantic, v) => semantic switch
 				{
 					"POSITION" => new Vector4(tile.LandPositions[2 * v], tile.LandPositions[2 * v + 1], 0, 1),
 					"TEXCOORD0" => new Vector4(tile.LandProvinces[v] & 0xFF, tile.LandProvinces[v] >> 8, 0, 1),
 					_ => null,
 				});
-			ArrayMesh? beachMesh = null;
-			if (tile.BeachIndices.Length > 0)
-			{
-				beachMesh = BuildMesh(tile.BeachIndices, tile.BeachColours.Length, beach,
+			CMeshArrays? beachArrays = tile.BeachIndices.Length == 0 ? null
+				: Fill(tile.BeachIndices, tile.BeachColours.Length, beach,
 					(semantic, v) => semantic switch
 					{
 						"POSITION" => new Vector4(tile.BeachPositions[2 * v], tile.BeachPositions[2 * v + 1], 0, 1),
 						"COLOR0" => Colour(tile.BeachColours[v]),
 						_ => null,
 					});
-			}
-			ShaderMaterial? borderMaterial = null;
-			if (tile.BorderIndices.Length > 0 && tile.BorderColours.Length > 0)
-			{
-				// Each vertex (x, z, u, v) as the cache keeps them - x and z carrying the corner flag of ±1000 the effect
-				// takes off, u and v a texel of the lookup - and the colour whose blue and alpha pick the pattern's columns.
-				borderMaterial = new ShaderMaterial { RenderPriority = BorderPriority };
-				_borders.AddChild(MakeMesh($"Border{tile.Index}", tile.BorderIndices, tile.BorderColours.Length, BorderTranslation,
-					borderMaterial,
+			// Each border vertex (x, z, u, v) as the cache keeps them - x and z carrying the corner flag of ±1000 the effect
+			// takes off, u and v a texel of the lookup - and the colour whose blue and alpha pick the pattern's columns.
+			CMeshArrays? borderArrays = tile.BorderIndices.Length == 0 || tile.BorderColours.Length == 0 ? null
+				: Fill(tile.BorderIndices, tile.BorderColours.Length, borders,
 					(semantic, v) => semantic switch
 					{
 						"POSITION" => new Vector4(tile.BorderShorts[4 * v], tile.BorderShorts[4 * v + 1], tile.BorderShorts[4 * v + 2],
 							tile.BorderShorts[4 * v + 3]),
 						"COLOR0" => Colour(tile.BorderColours[v]),
 						_ => null,
-					}, layer: BorderLayer));
+					});
+			filled[index] = (landArrays, beachArrays, borderArrays);
+		});
+		for (int index = 0; index < _tiles.Count; index++)
+		{
+			CQuadTile tile = _tiles[index];
+			(CMeshArrays landArrays, CMeshArrays? beachArrays, CMeshArrays? borderArrays) = filled[index];
+			ArrayMesh landMesh = Commit(landArrays);
+			ArrayMesh? beachMesh = beachArrays is null ? null : Commit(beachArrays);
+			ShaderMaterial? borderMaterial = null;
+			if (borderArrays is not null)
+			{
+				borderMaterial = new ShaderMaterial { RenderPriority = BorderPriority };
+				ArrayMesh borderMesh = Commit(borderArrays);
+				if (borderMesh.GetSurfaceCount() > 0)
+				{
+					borderMesh.SurfaceSetMaterial(0, borderMaterial);
+				}
+				_borders.AddChild(Instance($"Border{tile.Index}", borderMesh, null, BorderLayer));
 			}
 			_parts.Add(new CSurfaceTile(tile, landMesh, beachMesh, borderMaterial));
 		}
@@ -1953,10 +1970,34 @@ public partial class CMapSurface : Node3D
 	/// <summary>The mesh alone, so that one mesh may be drawn by several instances, each through a material of its own.</summary>
 	private static ArrayMesh BuildMesh(ushort[] indices, int count, CGodotShader? translation, Func<string, int, Vector4?> source)
 	{
-		using var arrays = new Godot.Collections.Array();
-		arrays.Resize((int)Godot.Mesh.ArrayType.Max);
-		var vertices = new Vector3[count];
-		Godot.Mesh.ArrayFormat format = 0;
+		return Commit(Fill(indices, count, translation, source));
+	}
+
+	/// <summary>A mesh's arrays, worked out with nothing of the engine's: so on any thread, many at once.</summary>
+	private sealed class CMeshArrays
+	{
+		public required int Count { get; init; }
+		public required Vector3[] Vertices { get; init; }
+		public required int[] Indices { get; init; }
+		public Vector2[]? Uv { get; set; }
+		public Vector2[]? Uv2 { get; set; }
+		public Color[]? Colours { get; set; }
+		public float[]?[] Custom { get; } = new float[]?[4];
+		public Godot.Mesh.ArrayFormat Format { get; set; }
+	}
+
+	/// <summary>
+	/// Each of a translation's vertex inputs filled from the source, vertex by vertex - the part of a mesh that is only our
+	/// own arithmetic, which <see cref="BuildLand"/> runs for every tile side by side (<c>loadingscreen.md</c>, section 3).
+	/// </summary>
+	private static CMeshArrays Fill(ushort[] indices, int count, CGodotShader? translation, Func<string, int, Vector4?> source)
+	{
+		var made = new CMeshArrays
+		{
+			Count = count,
+			Vertices = new Vector3[count],
+			Indices = indices.Select(i => (int)i).ToArray(),
+		};
 		foreach (CShaderVertexInput input in translation?.Inputs ?? Array.Empty<CShaderVertexInput>())
 		{
 			switch (input.Channel)
@@ -1965,7 +2006,7 @@ public partial class CMapSurface : Node3D
 					for (int v = 0; v < count; v++)
 					{
 						Vector4 value = source(input.Semantic, v) ?? new Vector4(0, 0, 0, 1);
-						vertices[v] = new Vector3(value.X, value.Y, value.Z);
+						made.Vertices[v] = new Vector3(value.X, value.Y, value.Z);
 					}
 					break;
 				case "UV" or "UV2":
@@ -1975,7 +2016,14 @@ public partial class CMapSurface : Node3D
 						Vector4 value = source(input.Semantic, v) ?? Vector4.Zero;
 						uv[v] = new Vector2(value.X, value.Y);
 					}
-					arrays[(int)(input.Channel == "UV" ? Godot.Mesh.ArrayType.TexUV : Godot.Mesh.ArrayType.TexUV2)] = uv;
+					if (input.Channel == "UV")
+					{
+						made.Uv = uv;
+					}
+					else
+					{
+						made.Uv2 = uv;
+					}
 					break;
 				case "COLOR":
 					var colours = new Color[count];
@@ -1984,7 +2032,7 @@ public partial class CMapSurface : Node3D
 						Vector4 value = source(input.Semantic, v) ?? Vector4.One;
 						colours[v] = new Color(value.X, value.Y, value.Z, value.W);
 					}
-					arrays[(int)Godot.Mesh.ArrayType.Color] = colours;
+					made.Colours = colours;
 					break;
 				case "CUSTOM0" or "CUSTOM1" or "CUSTOM2" or "CUSTOM3":
 					int slot = input.Channel[^1] - '0';
@@ -1997,18 +2045,45 @@ public partial class CMapSurface : Node3D
 						custom[4 * v + 2] = value.Z;
 						custom[4 * v + 3] = value.W;
 					}
-					arrays[(int)Godot.Mesh.ArrayType.Custom0 + slot] = custom;
-					format |= (Godot.Mesh.ArrayFormat)((long)Godot.Mesh.ArrayCustomFormat.RgbaFloat
+					made.Custom[slot] = custom;
+					made.Format |= (Godot.Mesh.ArrayFormat)((long)Godot.Mesh.ArrayCustomFormat.RgbaFloat
 						<< ((int)Godot.Mesh.ArrayFormat.FormatCustom0Shift + slot * (int)Godot.Mesh.ArrayFormat.FormatCustomBits));
 					break;
 			}
 		}
-		arrays[(int)Godot.Mesh.ArrayType.Vertex] = vertices;
-		arrays[(int)Godot.Mesh.ArrayType.Index] = indices.Select(i => (int)i).ToArray();
-		var mesh = new ArrayMesh();
-		if (count > 0 && indices.Length > 0)
+		return made;
+	}
+
+	/// <summary>The arrays handed to the engine as a mesh, on the main thread.</summary>
+	private static ArrayMesh Commit(CMeshArrays made)
+	{
+		using var arrays = new Godot.Collections.Array();
+		arrays.Resize((int)Godot.Mesh.ArrayType.Max);
+		if (made.Uv is not null)
 		{
-			mesh.AddSurfaceFromArrays(Godot.Mesh.PrimitiveType.Triangles, arrays, null, null, format);
+			arrays[(int)Godot.Mesh.ArrayType.TexUV] = made.Uv;
+		}
+		if (made.Uv2 is not null)
+		{
+			arrays[(int)Godot.Mesh.ArrayType.TexUV2] = made.Uv2;
+		}
+		if (made.Colours is not null)
+		{
+			arrays[(int)Godot.Mesh.ArrayType.Color] = made.Colours;
+		}
+		for (int slot = 0; slot < made.Custom.Length; slot++)
+		{
+			if (made.Custom[slot] is { } custom)
+			{
+				arrays[(int)Godot.Mesh.ArrayType.Custom0 + slot] = custom;
+			}
+		}
+		arrays[(int)Godot.Mesh.ArrayType.Vertex] = made.Vertices;
+		arrays[(int)Godot.Mesh.ArrayType.Index] = made.Indices;
+		var mesh = new ArrayMesh();
+		if (made.Count > 0 && made.Indices.Length > 0)
+		{
+			mesh.AddSurfaceFromArrays(Godot.Mesh.PrimitiveType.Triangles, arrays, null, null, made.Format);
 		}
 		return mesh;
 	}

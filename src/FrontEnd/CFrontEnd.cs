@@ -93,8 +93,17 @@ public partial class CFrontEnd : Node
 	/// <summary>The main menu's version label and the lobby's checksum: ours, with the original's four letters.</summary>
 	public string VersionLabel => Interface.Screens.CVersionText.Label(_content.Checksum);
 
-	public override void _Ready()
+	/// <summary>
+	/// The world and its map made, its surface's meshes with it, before the front end enters the tree: a step of the loading
+	/// screen of its own, so that the window draws a frame between it and the rest (<c>loadingscreen.md</c>, section 3).
+	/// Done by entering where it was not called.
+	/// </summary>
+	public void PrepareMap()
 	{
+		if (_mapView is not null)
+		{
+			return;
+		}
 		var clock = Stopwatch.StartNew();
 		Settings = _content.Settings;
 		_localisation = _content.Localisation;
@@ -108,7 +117,14 @@ public partial class CFrontEnd : Node
 		SaveLoaded = false;
 		ShowOnMap(World);
 		Start = _content.Start;
-		GD.Print($"Front end ready in {clock.ElapsedMilliseconds} ms.");
+		GD.Print($"Front end's map made in {clock.ElapsedMilliseconds} ms.");
+	}
+
+	public override void _Ready()
+	{
+		var clock = Stopwatch.StartNew();
+		PrepareMap();
+		Callable.From(() => GD.Print($"Front end ready in {clock.ElapsedMilliseconds} ms.")).CallDeferred();
 
 		var layer = new CanvasLayer { Name = "Interface" };
 		AddChild(layer);
@@ -278,12 +294,13 @@ public partial class CFrontEnd : Node
 		_quadTiles ??= CQuadCache.Load(_mapCache, problem => GD.PushWarning($"map: {problem}"));
 		_mapView.SetupSurface(_gui, _directories, _mapCache, Settings.SimpleWater, Settings.Waves, Settings.RenderTrees, Surfaces,
 			_quadTiles);
-		AddChild(_mapView);
 		// The countries to choose from by their colours: the original's front end sets the political style, where a game
-		// starts in the terrain mode (reversing/findings/FINDINGS-frontend.md, A.2; minimap.md, section 3). Set once the
-		// view is in the tree, which makes the palette its colours are written to.
+		// starts in the terrain mode (reversing/findings/FINDINGS-frontend.md, A.2; minimap.md, section 3). Set before the
+		// view enters the tree, so that its surface is made in that style alone and not in the terrain's first, which the
+		// lobby never draws - 0.6 s of a still window (loadingscreen.md, section 3).
 		_mapView.IsLobby = true;
 		_mapView.Mode = CMapView.MapMode.Political;
+		AddChild(_mapView);
 		MoveChild(_mapView, 0);
 		if (kept is { } view)
 		{

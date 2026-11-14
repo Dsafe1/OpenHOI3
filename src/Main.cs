@@ -201,18 +201,20 @@ public partial class Main : Control
 			_session = null;
 		}
 		CLoadingScreen screen = OpenLoadingScreen(known);
-		FrontEnd.CFrontEndContent content = await FrontEnd.CFrontEndContent.Load(screen, _directories);
+		FrontEnd.CFrontEndContent content = await FrontEnd.CFrontEndContent.Load(screen, _directories, _surfaces);
 		content.Gui.Sounds = _sounds;
 		var frontEnd = new FrontEnd.CFrontEnd { Name = "FrontEnd", Surfaces = _surfaces };
 		frontEnd.Setup(_directories, content, first: !_frontEndShown);
 		_frontEndShown = true;
 		frontEnd.PlayRequested += chosen => Guarded(Play(chosen));
-		// The map made under "Creating the World...", the original stepping the pictures at the province names too.
+		// The map made under "Creating the World...", the original stepping the pictures at the province names too - in two
+		// pieces on the main thread, the map's surface and then the rest, with a frame drawn between (loadingscreen.md, section 3).
+		await screen.OnMain(CLoadingSteps.World, frontEnd.PrepareMap, steps: 2);
 		await screen.OnMain(CLoadingSteps.World, () =>
 		{
 			AddChild(frontEnd);
 			MoveChild(frontEnd, 0);
-		}, steps: 2);
+		});
 		_frontEnd = frontEnd;
 		await screen.Settled();
 		screen.QueueFree();

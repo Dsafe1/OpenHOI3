@@ -56,7 +56,7 @@ names, in the original's order where the work allows:
 | | `LOADING_HISTORY` | the world at the start date and its bookmark | 1 |
 | | `CREATING_CHKSUM` | the file checksum (`checksum.md`), worked out at the first front end of a run and kept for the rest | 1 |
 | | `LOAD_GFX` | the map cache's quads | |
-| | `CREATING_THE_WORLD` | the front end and its map made | 2 |
+| | `CREATING_THE_WORLD` | the front end's map and its surface made; then, a frame later, the rest of the front end | 2 |
 | a game from Play | `ADAPTING_HISTORY` | the new game set up, or the save's handed on | |
 | | `LOADING_SOUNDS` | the songs (`music.md`) | |
 | | `LOAD_GFX` | the map and the interface of the game | 1 |
@@ -109,8 +109,19 @@ can, the other switches coming after it.
 
 ## Loose ends
 
-- **Making the front end's map holds the screen still for about three seconds** under `CREATING_THE_WORLD`: the map view
-  entering the tree - its surface, borders and names made as nodes - takes 2.7 s and its first style 0.5 s, on the main
-  thread, where nodes are made. The line stays drawn; the window does not answer meanwhile. Since the surface is kept
-  (section 4) it is the first front end alone that pays it, and every return to the menu, which reads the front end's files
-  again; keeping those files would spare the return too.
+- **Making the front end's map holds the screen still in two pieces** under `CREATING_THE_WORLD`, about 1.1 s and 0.8 s with
+  a frame drawn between, on the main thread, where nodes are made; the window does not answer within each. It was one piece of
+  3.2 s until 2026-11-14, measured part by part that day and cut so (*ours*, all of it):
+  - the borders' corners are read and the first copy made on the loading screen's thread, under `LOAD_GFX`
+    (`CMapSurfaceKeeper.PrepareCorners`), where the main thread read and copied them: 0.4 s;
+  - the lobby's map enters the tree in the political style, which it was given only after, so its surface was made in the
+    terrain style first - every land material of both heights, some 0.6 s - for nothing the lobby draws. The game Play
+    makes, which opens in the terrain style, now makes those under *Preparing the Map Modes...*, a frame apart (section 4);
+  - each tile's land, beach and border arrays are filled side by side, the engine's part of each mesh left on the main
+    thread: 0.1 s of the 0.6 s the land took;
+  - the front end's map and surface are made a step before the front end enters the tree (`CFrontEnd.PrepareMap`), so the
+    two pieces are apart.
+
+  What is left: the meshes handed to the engine and the water borders, rivers and surf, 1.1 s; the political style's land
+  materials of both heights as the view takes its first height, 0.65 s; the front end's windows, 0.16 s. Every return to the
+  menu pays them again, reading the front end's files anew; keeping those files would spare it.
