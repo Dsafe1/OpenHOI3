@@ -1975,7 +1975,7 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 None of these blocks the list above.
 
 - **Only a theatre's headquarters can be handed to the AI** by the unit panel's box (`unitpanel.md`, section 9); the original lets a corps, an army or an army group go too, and the agents here are a theatre's. The AI's own liberating and puppets are still reported unbuilt (`politics.md`, section 11.1).
-- **An expeditionary force's first piece is built** (`docs/mechanics/expeditions.md`): the window, the rows, the offer and answer, the hand-over and the return, the flag and what a lent unit may not do. A lent unit's officers, supply, reinforcement and combat figures are its lender's. The AI lends and sends home through its agents (`agents.md`, section 10.5), with nothing asked of the other country; no AI offers one to the player, and an exile does not send them home (`expeditions.md`, section 6).
+- **An expeditionary force's first piece is built** (`docs/mechanics/expeditions.md`): the window, the rows, the offer and answer, the hand-over and the return, the flag and what a lent unit may not do. A lent unit's officers, supply, reinforcement and combat figures are its lender's. The AI lends and sends home through its agents (`agents.md`, section 10.5), with nothing asked of the other country, the AI's command carrying a unit's whole tree; no AI offers one to the player. An annexation and, since 2026-11-14, a government going into exile send home what was lent to the country, both sides told, and shatter it at its lender's (`expeditions.md`, section 5).
 - **The deploy menu's drag into the order of battle browser** (built 2026-11-13, `mapunits.md`, section 6): where the original's join finds no province for a dropped unit, what its following attach does was not traced; here the unit stays waiting.
 - **The map's surface** (2026-11-06, `docs/mechanics/mapdraw.md`, section 6): it takes about 0.9 s as a game is made,
   and the front end makes its meshes again for each world it shows - the quad cache it reads once - which could be kept
@@ -2109,8 +2109,9 @@ None of these blocks the list above.
   Visual Studio C++ tools, as `openhoi3_lua.dll` - a name chosen because Lua for Windows puts a
   32-bit `lua51.dll` on the PATH, which Godot loaded in its place.
 - **War and its end leave out** (`war.md`, *Not built*): the cabinet a new puppet's government would fill; an exile's
-  free supply from friends, its brigades at its leader's technology, its partisans turned to militia when it comes home,
-  and its sending home of the expeditionary forces lent to it; and a landless country's units, which the original
+  free supply from friends, its brigades at its leader's technology and its partisans turned to militia when it comes
+  home (its sending home of the units lent to it is built since 2026-11-14, `expeditions.md`, section 5); and a
+  landless country's units, which the original
   destroys each hour. **A change of hands leaves out** the air and naval units based in the province, which the original
   sends to the old side's nearest base, and radar. **A
   pact is one object for both countries**, so annexation ends both sides of one (`war.md`, *Ours*). **Units on ground

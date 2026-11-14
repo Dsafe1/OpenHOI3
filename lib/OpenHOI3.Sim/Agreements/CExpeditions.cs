@@ -81,6 +81,46 @@ public static class CExpeditions
 		state.ForgetPositions();
 	}
 
+	/// <summary>
+	/// The AI's command, the original's <c>CSendExpeditionCommand</c>: the unit and everything under it go to the
+	/// target together, the tree kept. Each that came from the target first is the target's own again; any other is lent
+	/// - remembering who it came from first, its own owner where it came from nobody - with no recall standing. Nobody
+	/// is told and nothing waits.
+	/// </summary>
+	public static void Send(CGameState state, CUnit unit, CCountry owner, CCountry target)
+	{
+		LeaveParent(unit);
+		owner.Units.Remove(unit);
+		target.Units.Add(unit);
+		SendOne(state, unit, target);
+		state.ForgetPositions();
+	}
+
+	private static void SendOne(CGameState state, CUnit unit, CCountry target)
+	{
+		if (unit.Lender == target.Tag)
+		{
+			unit.Lender = null;
+			target.LentUnits.Remove(unit);
+		}
+		else if (unit.Lender is null && state.Country(unit.Owner) is { } owner)
+		{
+			unit.Lender = owner.Tag;
+			owner.LentUnits.Add(unit);
+		}
+		// Ours: the original leaves a unit coming home its old date, which nothing reads without a lender.
+		unit.RecallHour = null;
+		unit.Owner = target.Tag;
+		if (unit.Agent is { } agent)
+		{
+			Agents.CAgents.Unbind(state, agent);
+		}
+		foreach (CUnit child in unit.Children)
+		{
+			SendOne(state, child, target);
+		}
+	}
+
 	private static void Change(CGameState state, CUnit unit, CCountry lender, CCountry host)
 	{
 		if (unit.Lender is null)
@@ -100,8 +140,10 @@ public static class CExpeditions
 	}
 
 	/// <summary>
-	/// The unit goes home alone; what is under it stays with the host, as the host's own. The host's player and the
-	/// lender's are told, about the province the unit stands in, the message carrying the unit for its Goto.
+	/// The original's <c>CUnit::ReturnFromExpedition</c>: the unit goes home alone; what is under it is detached and stays
+	/// with the host, still on loan, each a unit of its own. The host's player and the lender's are told, about the
+	/// province the unit stands in, the message carrying the unit for its Goto. Its three callers: the host's day, an
+	/// annexation and a government going into exile.
 	/// </summary>
 	public static void Return(CGameState state, CUnit unit)
 	{
@@ -118,7 +160,10 @@ public static class CExpeditions
 		});
 	}
 
-	/// <summary>The unit back with its lender, with nobody told.</summary>
+	/// <summary>
+	/// <see cref="Return"/>'s hand-over, with nobody told: the unit leaves its commander and its lender's list, its agent
+	/// lets it go, and it is its lender's, its children detached where they stand, each keeping its lender.
+	/// </summary>
 	public static void TakeHome(CGameState state, CUnit unit)
 	{
 		if (unit.Lender is not { } tag || state.Country(tag) is not { } lender || state.Country(unit.Owner) is not { } host)
@@ -149,17 +194,23 @@ public static class CExpeditions
 	{
 		foreach (CCountry host in state.Countries)
 		{
-			if (host.AllUnits().FirstOrDefault(unit => unit.Lender is not null && unit.RecallHour < state.TotalHours) is { } due)
+			if (host.AllUnits().Any(IsDue))
 			{
-				Return(state, due);
+				// The first in the country's list of units.
+				Return(state, host.UnitsInOrder().First(IsDue));
 			}
 		}
+
+		bool IsDue(CUnit unit) => unit.Lender is not null && unit.RecallHour < state.TotalHours;
 	}
 
-	/// <summary>A country annexed: what was lent to it goes home shattered, and what it lent comes back to be destroyed with the rest.</summary>
+	/// <summary>
+	/// A country annexed: every unit lent to it, of every level in its list's order, goes home and is shattered; then
+	/// every unit it lent, in the order of its list of them, comes back to be destroyed with the rest.
+	/// </summary>
 	public static void ReturnAll(CGameState state, CCountry annexed)
 	{
-		foreach (CUnit lent in annexed.AllUnits().Where(unit => unit.Lender is not null).ToList())
+		foreach (CUnit lent in annexed.UnitsInOrder().Where(unit => unit.Lender is not null).ToList())
 		{
 			CCountryTag lender = lent.Lender!.Value;
 			Return(state, lent);
@@ -168,9 +219,9 @@ public static class CExpeditions
 				Combat.CCombatRetreat.Shatter(state, home, lent);
 			}
 		}
-		foreach (CCountry host in state.Countries)
+		foreach (CUnit lentOut in annexed.LentUnits.ToList())
 		{
-			foreach (CUnit lentOut in host.AllUnits().Where(unit => unit.Lender == annexed.Tag).ToList())
+			if (lentOut.Lender == annexed.Tag && !lentOut.IsRemoved)
 			{
 				Return(state, lentOut);
 			}

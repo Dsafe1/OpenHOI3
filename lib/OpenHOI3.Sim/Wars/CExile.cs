@@ -24,9 +24,10 @@ public static class CExile
 	/// The country goes into exile, in the original's order - nothing for one in exile already: its own money is
 	/// nought and it is an exile, its stockpile its own pool from now on; manpower and officers cut to a tenth; its
 	/// building queue deleted; every unit standing on ground a country not its friend holds taken out of the game -
-	/// at sea, none; where it led its faction, the member of greatest IC, not in exile, put at the front; where
-	/// another leads its faction, its government sits in the leader's seat; and where it then does not own its seat,
-	/// every trade route it has ends. Nobody is told.
+	/// at sea, none - but one lent to it, which goes home and is shattered there, its two sides told
+	/// (<c>expeditions.md</c>, section 5); where it led its faction, the member of greatest IC, not in exile, put at
+	/// the front; where another leads its faction, its government sits in the leader's seat; and where it then does
+	/// not own its seat, every trade route it has ends. Nothing else is told.
 	/// </summary>
 	public static void Enter(CGameState state, CCountry country)
 	{
@@ -39,11 +40,28 @@ public static class CExile
 		country.Manpower = new CFixedPoint(country.Manpower.Raw * Kept / 1000);
 		country.Officers = new CFixedPoint(country.Officers.Raw * Kept / 1000);
 		country.Constructions.Clear();
+		var lent = new List<CUnit>();
 		foreach (CUnit unit in country.UnitsInOrder())
 		{
 			if (state.Province(unit.Location).Controller is { } holder && !IsFriend(state, holder, country))
 			{
-				CCombatRetreat.RemoveFromGame(state, unit);
+				if (unit.Lender is null)
+				{
+					CCombatRetreat.RemoveFromGame(state, unit);
+				}
+				else
+				{
+					lent.Add(unit);
+				}
+			}
+		}
+		// What was lent to it and stands there goes home, both sides told, and is shattered at its lender's.
+		foreach (CUnit unit in lent)
+		{
+			CExpeditions.Return(state, unit);
+			if (state.Country(unit.Owner) is { } lender && lender != country)
+			{
+				CCombatRetreat.Shatter(state, lender, unit);
 			}
 		}
 		if (COfferRules.RealFaction(country))

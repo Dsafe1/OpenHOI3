@@ -16,7 +16,7 @@ using OpenHOI3.Sim.Wars;
 /// as the player would from the declare-war dialog, then runs some hours with the AI answering the calls to
 /// arms, and says who is where:
 ///
-///   OpenHOI3.SaveCheck declare &lt;install folder&gt; [actor] [recipient] [limited] [hours] [peace] [occupy]
+///   OpenHOI3.SaveCheck declare &lt;install folder&gt; [actor] [recipient] [limited] [hours] [peace] [occupy [lend=TAG]]
 ///
 /// Germany on Poland for 48 hours with nothing given. First it says what a new game holds of war: the casus
 /// belli types read, the history's wars with their goals, who is mobilised. No save keeps a declaration. See
@@ -28,7 +28,7 @@ internal static class CDeclareTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck declare <install folder> [actor] [recipient] [limited] [hours] [peace] [occupy]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck declare <install folder> [actor] [recipient] [limited] [hours] [peace] [occupy [lend=TAG]]");
 			return 2;
 		}
 		string[] tags = args.Skip(2).Where(a => a.Length == 3 && !int.TryParse(a, out _)).ToArray();
@@ -152,7 +152,8 @@ internal static class CDeclareTrial
 		}
 		if (args.Contains("occupy"))
 		{
-			Occupy(state, actor, recipient, told, Name);
+			CCountryTag? lender = args.FirstOrDefault(a => a.StartsWith("lend=", StringComparison.Ordinal)) is { } lend ? new CCountryTag(lend[5..]) : null;
+			Occupy(state, actor, recipient, told, Name, lender);
 			Sides("after the surrender");
 		}
 		Console.WriteLine($"{reports.Count} Lua errors{(reports.Count > 0 ? ": " + string.Join("; ", reports.Take(3)) : "")}");
@@ -161,9 +162,12 @@ internal static class CDeclareTrial
 
 	/// <summary>
 	/// The recipient's units are taken away, the actor is given every province it owns to hold, and hours run to the end of the next day: the
-	/// recipient's surrender progress before and after, and what its surrender made of it and its land.
+	/// recipient's surrender progress before and after, and what its surrender made of it and its land. With
+	/// <c>lend=TAG</c>, that country first lends the recipient two divisions, one standing on ground held by a country
+	/// neither at war nor the recipient's friend and one in the lender's seat, and both are told before and after.
 	/// </summary>
-	private static void Occupy(CGameState state, CCountry actor, CCountry recipient, List<CPactMessage> told, Func<CCountryTag, string> name)
+	private static void Occupy(CGameState state, CCountry actor, CCountry recipient, List<CPactMessage> told, Func<CCountryTag, string> name,
+		CCountryTag? lenderTag)
 	{
 		Console.WriteLine();
 		// Its units go first, or they would take their ground back within the hour.
@@ -171,6 +175,17 @@ internal static class CDeclareTrial
 		{
 			OpenHOI3.Sim.Combat.CCombatRetreat.RemoveFromGame(state, unit);
 		}
+		CCountry? lender = lenderTag is { } tag ? state.Country(tag) : null;
+		List<OpenHOI3.Sim.Units.CUnit> lent = lender is null ? new() : Lend(state, lender, recipient);
+		void Lent(string when)
+		{
+			foreach (var unit in lent)
+			{
+				Console.WriteLine($"   {when}: {unit.Name} is {unit.Owner}'s{(unit.Lender is { } l ? $", lent by {l}" : "")}, at {state.Province(unit.Location).Name}" +
+					$"{(unit.IsRemoved ? ", out of the game" : "")}, on its lender's list {lender!.LentUnits.Contains(unit)}, under {unit.Parent?.Name ?? "nobody"}");
+			}
+		}
+		Lent("lent");
 		int owned = state.Provinces.Count(province => province.Owner == recipient.Tag);
 		// Through the setter with no consequences, so the capture's occupation policy is set (occupation.md, section 2).
 		new CHoldLandCommand(actor.Tag, recipient.Tag).Execute(state);
@@ -197,6 +212,24 @@ internal static class CDeclareTrial
 		Console.WriteLine($"   overlord {(recipient.Overlord is { } o ? name(o) : "none")}; in exile {recipient.InExile}; acting capital {state.Province(recipient.ActingCapital).Name}; " +
 			$"at war {state.IsAtWar(recipient.Tag)}; faction '{recipient.Faction}'");
 		Console.WriteLine($"   told: {string.Join(", ", told.Skip(heard).Select(m => m.Told is { } t ? $"{m.We} to {t}" : $"{m.We}/{m.They}/{m.Other}"))}");
+		Lent("after");
+	}
+
+	/// <summary>The lender's first two divisions, put where <see cref="Occupy"/> says and handed over as an accepted offer hands them.</summary>
+	private static List<OpenHOI3.Sim.Units.CUnit> Lend(CGameState state, CCountry lender, CCountry host)
+	{
+		var divisions = lender.UnitsInOrder().Where(unit => unit.Kind == OpenHOI3.Sim.Units.EUnitKind.Division && unit.Lender is null).Take(2).ToList();
+		OpenHOI3.Sim.Provinces.CProvince? away = state.Provinces.FirstOrDefault(province => !province.IsSea && province.Controller is { } holder
+			&& holder != host.Tag && holder != lender.Tag && !CExile.IsFriend(state, holder, host) && !state.IsAtWar(holder));
+		int[] places = { away?.Id ?? lender.ActingCapital, lender.ActingCapital };
+		for (int i = 0; i < divisions.Count; i++)
+		{
+			divisions[i].Location = places[i];
+			divisions[i].Path.Clear();
+			CExpeditions.HandOver(state, divisions[i], lender, host);
+		}
+		state.ForgetPositions();
+		return divisions;
 	}
 
 	/// <summary>

@@ -243,6 +243,11 @@ public static class CCombatRetreat
 		}
 		unit.IsRemoved = true;
 		state.UnitRemovedTrace?.Invoke(unit);
+		// A unit on loan leaves its lender's list of them, which reinforces and upgrades it (expeditions.md, section 4).
+		if (unit.Lender is { } lender)
+		{
+			state.Country(lender)?.LentUnits.Remove(unit);
+		}
 		Missions.CNukeMission.GiveBack(unit.Mission);
 		// A fleet or an air unit takes its passengers with it; a passenger leaves its fleet's or its air unit's list
 		// (transport.md, sections 6 and 13.3); and a fleet lets its carriers' air groups go (section 13.1).

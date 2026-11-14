@@ -107,6 +107,9 @@ public class ExpeditionTests
 		Assert.Equal(Fra, division.Owner);
 		Assert.Null(division.Parent);
 		Assert.Contains(division, france.Units);
+		// Still on loan: only detached, as the original's children are.
+		Assert.Equal(Eng, division.Lender);
+		Assert.Contains(division, england.LentUnits);
 	}
 
 	[Fact]
@@ -204,5 +207,86 @@ public class ExpeditionTests
 		var other = new CUnit(EUnitKind.Corps, Eng) { Id = 9, Location = 1 };
 		corps.Lender = Fra;
 		Assert.False(CUnitMerge.MayMerge(state, england, new[] { corps, other }));
+	}
+
+	[Fact]
+	public void TheAisCommandSendsALentUnitHomeWithEverythingUnderIt()
+	{
+		(CGameState state, CCountry england, CCountry france, CUnit corps, CUnit division) = World();
+		new CSendExpeditionCommand(Eng, corps.Id, Fra).Execute(state);
+		new CSendExpeditionCommand(Fra, corps.Id, Eng).Execute(state);
+		Assert.Equal((Eng, Eng), (corps.Owner, division.Owner));
+		Assert.Null(corps.Lender);
+		Assert.Null(division.Lender);
+		Assert.Same(corps, division.Parent);
+		Assert.Contains(corps, england.Units);
+		Assert.DoesNotContain(corps, france.Units);
+		Assert.Empty(england.LentUnits);
+	}
+
+	[Fact]
+	public void TheAisCommandLendsAUnitsChildrenWithItAndNoRecall()
+	{
+		(CGameState state, CCountry england, _, CUnit corps, CUnit division) = World();
+		division.RecallHour = 5;
+		new CSendExpeditionCommand(Eng, corps.Id, Fra).Execute(state);
+		Assert.Equal(Eng, division.Lender);
+		Assert.Null(division.RecallHour);
+		Assert.Same(corps, division.Parent);
+		Assert.Equal(new[] { corps, division }, england.LentUnits);
+	}
+
+	[Fact]
+	public void AUnitOnLoanTakenOutOfTheGameLeavesItsLendersList()
+	{
+		(CGameState state, CCountry england, CCountry france, CUnit corps, CUnit division) = World();
+		CExpeditions.HandOver(state, corps, england, france);
+		OpenHOI3.Sim.Combat.CCombatRetreat.RemoveFromGame(state, division);
+		Assert.Equal(new[] { corps }, england.LentUnits);
+	}
+
+	[Fact]
+	public void AGovernmentGoingIntoExileSendsHomeWhatWasLentToItOnGroundNoFriendHolds()
+	{
+		CGameState state = WarTests.World();
+		var ger = new CCountryTag("GER");
+		CCountry france = state.Country(Fra)!;
+		CCountry britain = state.Country(Eng)!;
+		var war = new OpenHOI3.Sim.Wars.CWar("test");
+		state.Wars.Add(war);
+		OpenHOI3.Sim.Wars.CWarSides.Join(state, war, ger, attacking: true);
+		OpenHOI3.Sim.Wars.CWarSides.Join(state, war, Fra, attacking: false);
+		state.Province(4).Controller = ger;
+		var own = new CUnit(EUnitKind.Division, Fra) { Id = 20, Name = "1re", Location = 4 };
+		var inParis = new CUnit(EUnitKind.Corps, Eng) { Id = 21, Name = "BEF", Location = 4 };
+		var under = new CUnit(EUnitKind.Division, Eng) { Id = 22, Name = "1st", Location = 4, Parent = inParis };
+		inParis.Children.Add(under);
+		var nobodys = new CUnit(EUnitKind.Division, Eng) { Id = 23, Name = "2nd", Location = 0 };
+		france.Units.Add(own);
+		britain.Units.Add(inParis);
+		britain.Units.Add(nobodys);
+		CExpeditions.HandOver(state, inParis, britain, france);
+		CExpeditions.HandOver(state, nobodys, britain, france);
+		var told = new List<CPactMessage>();
+		state.PactMessaged += told.Add;
+
+		OpenHOI3.Sim.Wars.CExile.Enter(state, france);
+		Assert.True(own.IsRemoved);
+		// Every level lent goes home on its own and is shattered at its lender's capital, each side told where it stood.
+		foreach (CUnit unit in new[] { inParis, under })
+		{
+			Assert.False(unit.IsRemoved);
+			Assert.Equal(Eng, unit.Owner);
+			Assert.Null(unit.Lender);
+			Assert.Null(unit.Parent);
+			Assert.Equal(5, unit.Location);
+			Assert.Contains(unit, britain.Units);
+		}
+		Assert.Equal(new[] { ("EXPRETURNEDWE", "BEF", 4), ("EXPRETURNEDWE", "1st", 4) },
+			told.Select(message => (message.We, message.Values[0].Value, message.Province)));
+		Assert.All(told, message => Assert.Equal((Fra, Eng), (message.Actor, message.Recipient)));
+		// Ground nobody holds is not asked about.
+		Assert.Equal((Fra, (CCountryTag?)Eng), (nobodys.Owner, nobodys.Lender));
+		Assert.Equal(new[] { nobodys }, britain.LentUnits);
 	}
 }

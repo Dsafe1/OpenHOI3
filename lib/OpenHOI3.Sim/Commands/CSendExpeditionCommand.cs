@@ -5,8 +5,8 @@ using OpenHOI3.Sim.Units;
 namespace OpenHOI3.Sim.Commands;
 
 /// <summary>
-/// A unit sent to another country with all under it, with nothing asked of the other: lent, or home where the other is the
-/// country it came from. The AI's agents post it (<c>docs/mechanics/agents.md</c>, section 10.5). The original's
+/// A unit sent to another country with all under it, the tree kept, with nothing asked of the other: lent, or home where
+/// the other is the country it came from (<see cref="CExpeditions.Send"/>). The AI's agents post it (<c>docs/mechanics/agents.md</c>, section 10.5). The original's
 /// <c>CSendExpeditionCommand</c>.
 /// </summary>
 public sealed class CSendExpeditionCommand : CCommand
@@ -29,14 +29,6 @@ public sealed class CSendExpeditionCommand : CCommand
 
 	public override void Execute(CGameState state)
 	{
-		CUnit unit = CUnitFinder.Find(state, _owner, _unit)!;
-		if (unit.Lender == _target)
-		{
-			CExpeditions.TakeHome(state, unit);
-		}
-		else
-		{
-			CExpeditions.HandOver(state, unit, state.Country(_owner)!, state.Country(_target)!);
-		}
+		CExpeditions.Send(state, CUnitFinder.Find(state, _owner, _unit)!, state.Country(_owner)!, state.Country(_target)!);
 	}
 }

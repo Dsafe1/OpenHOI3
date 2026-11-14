@@ -1090,8 +1090,11 @@ beside the repository.
   on 2026-10-13 Ethiopia became Italy's puppet, Austria was annexed by Germany and France went into exile in
   London. The land is given as a capture gives it, so it also says the occupation policy the capture set: on
   2026-10-14 `collaboration_government` for Italy towards Ethiopia and `civil_war` for China towards Guangxi, as
-  the original's saves of February and April hold (`occupation.md`, section 6). Run it after touching `Sim/Wars`,
-  `Sim/Occupation` or what a declaration reads.
+  the original's saves of February and April hold (`occupation.md`, section 6). With `lend=TAG` after `occupy`, that
+  country first lends the recipient two divisions, one on a neutral's ground and one in its own seat, and says what
+  became of each: on 2026-11-14 `GER FRA occupy lend=ENG` sent the first home to London, both sides told, and left the
+  second France's on loan (`expeditions.md`, section 5). Run it after touching `Sim/Wars`,
+  `Sim/Occupation`, what a declaration reads or `CExpeditions`.
   `OpenHOI3.SaveCheck faction <install> [actor] [recipient] [neutral]` is a look too: each faction of a new game with its
   members, rules, progress - the start save's 115, 263 and 173 of 1172 - and victory conditions met, how many countries
   each leader's join and invite rows are open to - none on 1 January 1936, every neutrality being too high - and then the

@@ -570,9 +570,10 @@ yes`, in order - nothing for one in exile already: its own money is nought and *
 now on** (`pool_in_exile`), what lay in its seat's pool staying there; **manpower and officers cut to a tenth**; its
 building queue deleted; every unit standing on ground held by a country not its friend - itself, its overlord or
 puppet, a puppet of its overlord, its faction, an ally, a country fighting beside it, one giving it access - taken
-out of the game, **at sea none**; where it led its faction, the member of greatest IC, not in exile, put at the
-front; where another leads, **its government sits in that leader's seat**; and where it then does not own its
-seat, every trade route it has ends. Nobody is told.
+out of the game, **at sea none** - but a unit lent to it, set aside and, after the walk, sent home to its lender,
+both sides told, and shattered there (`expeditions.md`, section 5); where it led its faction, the member of greatest
+IC, not in exile, put at the front; where another leads, **its government sits in that leader's seat**; and where it
+then does not own its seat, every trade route it has ends. Nothing but the lent units' going home is told.
 
 **An exile** never surrenders - its progress is 0; has its occupied land returned by no day; **anything it takes in
 battle goes to its faction's leader**, where the faction has two or more and it is not the leader; ground freed whose
@@ -700,7 +701,6 @@ The two are enemies **only in its regions**: fleets and air units there fight, a
 - **`surrender_inherit`** - annexation's surrender mode, where a neighbouring co-belligerent takes control and a
   unit goes over on an even draw - and `release_vassal`. `release` is built since 2026-10-15 (`rebels.md`,
   section 12).
-- **Expeditionary forces**: an annexation sends them home (`expeditions.md`, section 5); a government going into exile does not yet.
 - **The cabinet refilled** when a puppet takes its overlord's government; the government's type alone is taken.
 - **What else an exile is**: its units drawing on friends' depots for free, its brigades built at its leader's
   technology, liberation, and its partisans turned to militia when it comes home. Organized Revolt, its undergrounds
