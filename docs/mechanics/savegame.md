@@ -53,7 +53,8 @@ As the original's [exe], but where *Ours* says otherwise:
    ministers' first hours; the strategy a save gave is kept until its ten days are up, and one never made is made
    (section 16). With the
    units (section 5): each unit's leader put on, each brigade's figures made from its type and its levels, the queue's
-   cost, the officer ratio, and what an intercept watches.
+   cost, the officer ratio, and what an intercept watches. Every province's season and night for the saved hour
+   (`weather.md`, section 4), and, as any game is entered, each land battle's modifiers (section 20).
 6. **None of a new game's two days**, the filling, the month or the first hour: a loaded game's first hour is the hour
    after its `date` [exe]. Nor are the laws moved, technology bought, the order-of-battle files read, history replayed or
    history revolts carried out.
@@ -127,7 +128,7 @@ with everything under it:
 
 | block | keys read |
 | --- | --- |
-| unit | `id`, `name`, `base`, `leader`, `previous`, `movement_progress`, `path`, `location`, `retreat`, `dig_in`, `attack_delay`, `combat_hours`, `is_prioritized`, `can_reinforce`, `can_upgrade`, `fuel` and `supplies` (what it was given), `start_date` and `end_date` (the order's two hours, `landorders.md` section 5), `disengage`, `possible_retreat`, `track` (shadowed by a patrol), `was_paradropped`, `is_reserve`, `plan`, `target` and `staging_province` (the AI's sealift and an airborne army's staging), `at_sea` (the hours before a fleet starts another battle), the order, every brigade, every unit under it |
+| unit | `id`, `name`, `base`, `leader`, `previous`, `movement_progress`, `path`, `location`, `retreat`, `dig_in`, `attack_delay`, `combat_hours`, `is_prioritized`, `can_reinforce`, `can_upgrade`, `fuel` and `supplies` (what it was given), `start_date` and `end_date` (the order's two hours, `landorders.md` section 5), `disengage`, `possible_retreat`, `track` (shadowed by a patrol), `was_paradropped`, `is_reserve`, `plan`, `target` and `staging_province` (the AI's sealift and an airborne army's staging), `at_sea` (the hours before a fleet starts another battle), `country_intel` (what other countries were given to know of it, three numbers a grant - the country's place plus one, the days left, the level; section 20), the order, every brigade, every unit under it |
 | brigade (`regiment`, `ship`, `wing`) | `id`, `name`, `type`, `organisation`, `strength`, `highest`, `experience`, `is_reserve`, `pride`, `current_distance`, every `<technology>={level progress}`, and a carrier's `air` groups |
 | order | `province`, `target`, `stance`, `start_date`, `death_date` (the end hour; `1.1.1` none), `return_to_base`, `time`, `priority`; a patrol's and an intercept's `provinces` and a join's `join_fleet` (the unit aimed at), an air order's `provinces` (its area), a sortie's `start` and `current`, a raid's `attack` (its hours to the next try at the convoys - *inferred* from the field it is written from), an escort's `convoy` and second `province`, a support attack's `combat`, an air supply's `supplies` and `fuel`, an invasion's `transport` (the sea the landing is made from, `FINDINGS-transport.md` B.1) |
 | plan | `active`, `allow_hq_reorg`, the three stances, `our_power`, `their_power`, `embark`, `debark`, `path`, `path2`, `ops_area`, every `objective`, `min` |
@@ -686,8 +687,10 @@ Play (`frontend.md`, section 4).
 - **Which hour first sees the officers the day adds.** Here the day's officers come after the hour's ratio, so a brigade
   sees them an hour later than in Britain's saves; making the ratio again after the day's leadership puts Britain right
   and two dozen countries wrong, so it is neither, and needs reading (section 5).
-- The country a unit's `country_intel` triple names: its first number is a country's, by a numbering not matched to the
-  save's order of countries, so the grants are reported and not read.
+- ~~The country a unit's `country_intel` triple names: its first number is a country's, by a numbering not matched to the
+  save's order of countries, so the grants are reported and not read.~~ It is the country's place plus one, as
+  lend-lease numbers its countries (*measured*, section 20); read and written since 2026-11-14. That the original's
+  stored figure is that number was not read in the bytes.
 - The exception the original makes where a carrying fleet is in its passenger's own subtree, the fleet written in the
   passenger's place: in none of the maintainer's saves, and not handled.
 - A naval order's `capital`, `sub_unit` and `other`, the halt figure `stop` and an air order's figure for each air type:
@@ -780,10 +783,57 @@ Each of these was dropped here, most with no report, and is read and written bot
 
 **Still read by nothing here, each reported**: a province's `capital` and `history`; a country's `human`, `prov_vp`, `offmap_vp` (worked out again as a game is entered), `last_mission_cancel` (the null date
 in every save) and the three `lend_lease_*_yesterday`; `nocategory`; a brigade's, ship's and wing's `home` and `builder`
-and a line's `builder`; and a unit's `country_intel` (section *Not established*). The original reads all of them.
+and a line's `builder`. The original reads all of them.
 `out_of_supply_days` and the top level's three graph statistics were on this list until later the same day
-(`supply.md`, section 18; `statistics.md`, section 5).
+(`supply.md`, section 18; `statistics.md`, section 5), and a unit's `country_intel` until the next section.
 
 **Checked** on 2026-11-14 on `Germany1936_01_01_00`, `Germany1936_09_02_21`, `Ireland1938_08_03_14`,
 `Ireland1940_05_23_15`, `Ireland1941_07_16_07` and `autosave_prewar`: nothing the save holds of the above is left out of
 the writing, and the only figure written otherwise is `last_war` for the pairs at war, by the stamp above.
+
+## 20. What a load gives back: the reload check, path by path
+
+`OpenHOI3.SaveCheck reload <install> <date> 24` (`CLAUDE.md`, *Always*) runs a new game to the date, saves it, loads the
+save as a second game and sets the two beside each other field by field. On 2026-11-14 every path it told at 5 January
+and 1 March 1936, as loaded and as entered, was put in one of four classes: under an entry of `docs/enhanced.md`'s *A
+whole game's replay*; noise in the check itself; the loader's own gap, where the original's save keeps a thing or its
+load makes it again and ours did not; or lost in the original too and not yet listed - each of the last added there.
+**The loader's gaps, mended**:
+
+- **`country_intel`** (section 5): the grants on a unit, three numbers each. The first is **the country's place plus
+  one**, as lend-lease numbers its countries - *measured*: read so, `Germany1936_01_07_22`'s 22 grants name no country
+  granted its own units and no country that does not yet exist, where read as the place itself the Soviet Union's units
+  would be granted to the Soviet Union and to Croatia; and they are written back as they were read. Without them a
+  loaded game's knowledge of 102 provinces differed after entering, the grants being what puts a country's knowledge of
+  a unit's province up.
+- **Every province's season and night** are made for the saved hour as a loaded game is entered, as the original's
+  entering does (`weather.md`, section 4); the season had waited to be asked for.
+- **A land battle's modifiers** are made again for both sides as any game is entered, as the original's entering does
+  for every battle (`reversing/findings/FINDINGS-savegame.md`, A.5): the AI's odds read them before the battle's next
+  hour. A battle at sea's, in the air's and a bombing's wait for their hour, their modifiers drawing on the generator,
+  and whether the original's entering draws for them was not read.
+- **`load_oob`** did nothing in a loaded game: the reader of order-of-battle files was given to a new game alone.
+- **An acting capital of nought** - a country that has none - follows its capital again, as one does in a running game,
+  where the load had fixed it at nought.
+- **The strategic warfare manager's `player="---"`**, which the writer gives a game nobody plays, was read as a country
+  of that tag.
+- **A building or convoy line counted progress towards the experience it never gathers**: the two figures are a unit
+  line's alone, as the original keeps them on its military line and writes them for no other (`FINDINGS-savegame.md`,
+  C.8). Nothing read them; a load gave them back as nought.
+
+**Noise in the check, left out by it since** (`CReloadCheck.Skipped`, `docs/enhanced.md`): the numbers a unit's file or
+save names its leader by, and a unit line's `is_reserve`, read only as a game is made or loaded; whether a game was
+loaded; caches made again on demand; the count of changes of hands since a game began and the stamps that watch it; and
+a battle hour's figures, which stay on a unit after its battle. An array grown only as far as its last entry above
+nought counts its missing tail as nought.
+
+**Still differing and ours**, not the save's: a loaded game's `cabinet` list, kept behind the seats as the original
+appends it (section 12). The order of a country's ministers among the sources of its modifier, which the tooltips list,
+was on this line - the history had put them in its file's order and a load in the posts' order - until the rebuild
+walked the posts in `government_positions.txt`'s order, as the original walks its cabinet's fixed slots, the same
+day (`modifiers.md`, section 4).
+
+**The counts**, `groups=5000`: at 1 March, **215 paths as loaded to 154, 410 as entered to 297**; at 5 January, **243 to
+197 and 524 to 460** (at 1 March as loaded, 314 before the sweep of section 19 and 228 after it; the same day's later
+work brought it to the 215 this began from). The two games still part in
+the first hour after the load, in the generator, the relations and the units, as `docs/enhanced.md` says they must.

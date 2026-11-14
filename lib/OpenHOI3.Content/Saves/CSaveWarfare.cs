@@ -17,7 +17,8 @@ public static class CSaveWarfare
 	{
 		CWarfareLedger ledger = state.Warfare;
 		ledger.Clear();
-		ledger.Player = node.Get("player")?.Value?.Trim('"') is { Length: > 0 } player ? new CCountryTag(player) : null;
+		// `---`, the null tag, is no player: what the writer gives a game nobody plays.
+		ledger.Player = node.Get("player")?.Value?.Trim('"') is { Length: > 0 } player && player != "---" ? new CCountryTag(player) : null;
 		foreach (ClausewitzNode entry in node.Children.Where(child => child.IsBlock && child.Key is not null))
 		{
 			ClausewitzNode[] rings = entry.Children.Where(child => child.Key == "container").ToArray();

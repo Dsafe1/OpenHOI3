@@ -28,6 +28,24 @@ public static class CWeatherPass
 	}
 
 	/// <summary>
+	/// What entering a loaded game makes again of the weather: every province's season and its night for the saved hour.
+	/// The save's weather is kept, and no picture is chosen and no front marked until the first hour - the original's
+	/// too (<c>weather.md</c>, section 4; <c>reversing/findings/FINDINGS-weathersim.md</c>, A.6).
+	/// </summary>
+	public static void AtLoad(CGameState state)
+	{
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.Id == 0)
+			{
+				continue;
+			}
+			province.Climate = CClimate.Of(state, province);
+			province.IsNight = CDaylight.IsNight(state, province);
+		}
+	}
+
+	/// <summary>
 	/// What a new game does with the weather before its first day: every province reset - nothing, and the default
 	/// pressure - its season and its night for the hour the game starts at, and its temperature set to the one it is
 	/// pulled toward; then <c>INITIAL_SIMULATION_HOURS_AHEAD</c> hours of the fronts and every province's weather, with

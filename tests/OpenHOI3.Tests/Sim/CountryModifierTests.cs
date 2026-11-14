@@ -328,4 +328,36 @@ public class CountryModifierTests
 		CResearch.DecayMonthly(state);
 		Assert.Equal(CFixedPoint.Parse("9.82"), germany.Abilities["naval_engineering"]);
 	}
+
+	[Fact]
+	public void TheMinistersComeAmongTheSourcesInTheirPostsOrderWhateverOrderTheyWereSeatedIn()
+	{
+		var posts = new[]
+		{
+			new OpenHOI3.Sim.Politics.CGovernmentPosition("head_of_state", 1, false),
+			new OpenHOI3.Sim.Politics.CGovernmentPosition("armament_minister", 2, true),
+			new OpenHOI3.Sim.Politics.CGovernmentPosition("chief_of_navy", 3, true),
+		};
+		CMinister Seated(int id, string post, string type)
+		{
+			var minister = new CMinister(id, "Minister " + id);
+			minister.SetType(post, new CMinisterType(Modifier(type)));
+			return minister;
+		}
+
+		// Seated the other way round, as a save's cabinet might seat them against the history's file.
+		CCountry germany = Country("GER", 1);
+		germany.Government["chief_of_navy"] = Seated(3, "chief_of_navy", "naval_type");
+		germany.Government["armament_minister"] = Seated(2, "armament_minister", "armament_type");
+		germany.Government["head_of_state"] = Seated(1, "head_of_state", "state_type");
+
+		CCountryModifiers.Rebuild(germany, posts: posts);
+
+		var names = new List<string>();
+		foreach (CModifierSource source in germany.ModifierSources)
+		{
+			names.Add(source.Modifier.Name);
+		}
+		Assert.Equal(new[] { "state_type", "armament_type", "naval_type" }, names);
+	}
 }

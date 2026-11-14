@@ -52,6 +52,8 @@ public static class CSaveLoader
 		CGameState state = CGameStateLoader.BuildWorld(directories, map, localisation, countries, warn, aiScripts);
 		var report = new CSaveReport();
 		ClearUnread(state);
+		// What `load_oob` reads a file with, as a new game is given it: without it the effect did nothing in a loaded game.
+		state.LoadOrderOfBattle = (country, file) => History.COrderOfBattleReader.ReadInto(directories, state, country, file);
 
 		foreach (ClausewitzNode node in root.All("battle_plan"))
 		{
@@ -379,8 +381,17 @@ public static class CSaveLoader
 		CSaveIds ids, CSaveUnitReader units)
 	{
 		country.Capital = (int)CSaveValues.Whole(node, "capital");
+		// None written, or nought, is a country with no acting capital of its own, which follows its capital - as one that
+		// has never had one does in a running game.
 		int acting = (int)CSaveValues.Whole(node, "acting_capital");
-		country.ActingCapital = acting > 0 ? acting : country.Capital;
+		if (acting > 0)
+		{
+			country.ActingCapital = acting;
+		}
+		else
+		{
+			country.FollowCapital();
+		}
 
 		var laws = new HashSet<string>(StringComparer.Ordinal);
 		foreach (CLawGroup group in state.LawGroups)
@@ -706,6 +717,8 @@ public static class CSaveLoader
 		{
 			CNeutrality.UpdateEffective(state, country);
 		}
+		// Every province's season and night for the saved hour, as entering a loaded game makes them (weather.md, section 4).
+		Sim.Weather.CWeatherPass.AtLoad(state);
 		// A fresh AI for every country, as the original makes one: the ministers' first hours.
 		foreach (CCountry country in state.Countries)
 		{

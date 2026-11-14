@@ -267,6 +267,18 @@ public static class CTick
 		CResources.UpdateHomeProduction(state);
 		CProduction.Estimate(state);
 		COfficers.Update(state);
+		// Each land battle's sides given the hour's circumstances again, as the original's entering does for every battle
+		// (reversing/findings/FINDINGS-savegame.md, A.5): what the AI's odds read before the battle's next hour, and nothing
+		// a save keeps. A battle at sea, in the air or a bombing waits for its hour - their modifiers draw on the generator,
+		// and whether the original's entering draws for them was not read (docs/enhanced.md).
+		foreach (CCombat combat in state.Combats)
+		{
+			if (combat.Kind == ECombatKind.Land)
+			{
+				CCombatModifiers.Apply(state, combat, combat.Attacker);
+				CCombatModifiers.Apply(state, combat, combat.Defender);
+			}
+		}
 		Intelligence.CProvinceIntel.Rebuild(state);
 		// Entering a game makes every country's candidate events, as the month does.
 		CEventPass.RebuildCandidates(state);

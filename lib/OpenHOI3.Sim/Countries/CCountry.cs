@@ -68,6 +68,9 @@ public sealed class CCountry
 
 	private int? _actingCapital;
 
+	/// <summary>Leaves it with no acting capital of its own, so that it follows its declared capital: a save that gives none.</summary>
+	public void FollowCapital() => _actingCapital = null;
+
 	/// <summary>The history's first capital, where a government whose capital fell goes back to once it holds it again.</summary>
 	public int OriginalCapital { get; set; }
 

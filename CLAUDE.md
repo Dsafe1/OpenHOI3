@@ -1226,9 +1226,11 @@ beside the repository.
   by default), written as a save, the save loaded as a second game, and the two set beside each other field by field -
   every object either holds walked by reflection, the AI's own state with the rest, each path that differs told once
   with its count and examples - as loaded and again as entered, then hour by hour for the hours given (48 by default),
-  the hash's parts and the first figures they part on. On 2026-11-12, saved on 1 March 1936: 352 paths as loaded, the
-  two games parting in the first hour; what each is lies in `docs/enhanced.md`, *A whole game's replay*. Run it after
-  adding anything the game keeps, and list what it shows lost.
+  the hash's parts and the first figures they part on. On 2026-11-14, saved on 1 March 1936 with `groups=5000`: 154
+  paths as loaded and 297 as entered, every one under an entry of `docs/enhanced.md`, *A whole game's replay*, or one
+  of the two of ours `savegame.md`, section 20, names, the
+  check leaving out its own noise (`CReloadCheck.Skipped`; `savegame.md`, section 20), the two games parting in the
+  first hour. Run it after adding anything the game keeps, and list what it shows lost.
   `OpenHOI3.SaveCheck supply <install> <savegame>` checks the supply network against what a
   save says of it, with the save's own owners, controllers and capitals, so a save of any
   day will do: the provinces marked `out_of_supply_days` are ours that draw on no depot -

@@ -414,12 +414,14 @@ public static class CBuildQueue
 		{
 			fraction = construction.Duration.Raw == 0 ? -1 : amount * CFixedPoint.Scale / construction.Duration.Raw;
 		}
-		// A building or a convoy gathers no experience.
+		// A building or a convoy gathers no experience, and counts none of its building towards it: the two figures are a
+		// unit line's alone, as the original keeps them on its military line and a save writes them for no other
+		// (reversing/findings/FINDINGS-savegame.md, C.8).
 		if (construction.IsUnit)
 		{
 			construction.AccumulatedExperience += new CFixedPoint(ExperienceRate(country, construction) * fraction / CFixedPoint.Scale);
+			construction.AccumulatedProgress += new CFixedPoint(fraction);
 		}
-		construction.AccumulatedProgress += new CFixedPoint(fraction);
 		construction.Progress += new CFixedPoint(amount);
 
 		if (amount >= FullDay)

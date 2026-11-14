@@ -62,7 +62,7 @@ public static class CCountryModifiers
 		CModifier? war = state.FindStaticModifier(War);
 		CModifier? peace = state.FindStaticModifier(Peace);
 		CModifier? dissent = state.FindStaticModifier(Dissent);
-		Rebuild(country, baseValues, Diplomacy.CAlignment.FactionGroup(state, country)?.FactionModifier);
+		Rebuild(country, baseValues, Diplomacy.CAlignment.FactionGroup(state, country)?.FactionModifier, state.GovernmentPositions);
 		// Its government, after its laws (step 5).
 		if (state.GovernmentOf(country) is { } government)
 		{
@@ -217,7 +217,13 @@ public static class CCountryModifiers
 	/// The static modifier every country starts from. It is where a country's demand for
 	/// consumer goods begins, before its laws take theirs off.
 	/// </param>
-	public static void Rebuild(CCountry country, CModifier? baseValues = null, CModifier? faction = null)
+	/// <param name="posts">
+	/// The cabinet posts in <c>government_positions.txt</c>'s order, which the original walks its cabinet's fixed slots
+	/// in, so that the ministers come among the modifier's sources in the same order whether the government was given
+	/// by the history or by a save (<c>modifiers.md</c>, section 4). Without it, the government's own order.
+	/// </param>
+	public static void Rebuild(CCountry country, CModifier? baseValues = null, CModifier? faction = null,
+		IReadOnlyList<Politics.CGovernmentPosition>? posts = null)
 	{
 		country.Modifier.Clear();
 		country.ModifierSources.Clear();
@@ -231,11 +237,24 @@ public static class CCountryModifiers
 			AddSource(country, faction);
 		}
 
-		foreach ((string position, CMinister minister) in country.Government)
+		if (posts is { Count: > 0 })
 		{
-			if (minister.TypeIn(position) is { } type)
+			foreach (Politics.CGovernmentPosition post in posts)
 			{
-				AddSource(country, type.Modifier);
+				if (country.Government.TryGetValue(post.Name, out CMinister? minister) && minister.TypeIn(post.Name) is { } type)
+				{
+					AddSource(country, type.Modifier);
+				}
+			}
+		}
+		else
+		{
+			foreach ((string position, CMinister minister) in country.Government)
+			{
+				if (minister.TypeIn(position) is { } type)
+				{
+					AddSource(country, type.Modifier);
+				}
 			}
 		}
 		foreach (CLaw law in country.Laws.Values)

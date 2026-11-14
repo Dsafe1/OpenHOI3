@@ -90,6 +90,22 @@ public class BuildingLineTests
 	}
 
 	[Fact]
+	public void A_day_of_work_moves_a_building_line_on_and_counts_none_of_it_towards_experience()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(RebelWorld.Ger)!;
+		var line = new CConstruction(germany.Tag) { Building = AirBase, Size = 1, Location = 2 };
+		CBuildingLines.Price(germany, line);
+
+		CBuildQueue.AddProgress(germany, line, 1000);
+
+		// What a save writes for a unit line alone, and the original keeps on its military line alone.
+		Assert.Equal(CFixedPoint.One, line.Progress);
+		Assert.Equal(CFixedPoint.Zero, line.AccumulatedProgress);
+		Assert.Equal(CFixedPoint.Zero, line.AccumulatedExperience);
+	}
+
+	[Fact]
 	public void A_finished_line_builds_a_level_that_does_not_work_teaches_in_full_and_tells_the_holder()
 	{
 		CGameState state = World();

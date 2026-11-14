@@ -17,10 +17,20 @@ internal sealed class CStateDiff
 	private readonly int _maxDepth;
 	private static readonly Regex Numbers = new(@"\[[^\]]*\]", RegexOptions.Compiled);
 
-	public CStateDiff(int maxDepth = 60, int examples = 1)
+	private readonly HashSet<string> _skippedFields;
+
+	/// <param name="skippedFields">Fields left out, each as its declaring type's name and its own: what the caller knows to be
+	/// a cache or a figure read only as a game is made or loaded, which no later play reads.</param>
+	public CStateDiff(int maxDepth = 60, int examples = 1, IEnumerable<string>? skippedFields = null)
 	{
 		_maxDepth = maxDepth;
 		Examples = examples;
+		_skippedFields = new HashSet<string>(skippedFields ?? Array.Empty<string>(), StringComparer.Ordinal);
+	}
+
+	private IEnumerable<FieldInfo> Fields(Type type)
+	{
+		return FieldsOf(type).Where(field => !_skippedFields.Contains($"{field.DeclaringType!.Name}.{Clean(field.Name)}"));
 	}
 
 	/// <summary>How many examples each group keeps.</summary>
@@ -61,7 +71,7 @@ internal sealed class CStateDiff
 		if (type.IsValueType && !IsValue(type))
 		{
 			// A struct holding a reference is walked, its copies being new boxes each time.
-			foreach (FieldInfo field in FieldsOf(type))
+			foreach (FieldInfo field in Fields(type))
 			{
 				Walk(field.GetValue(a), field.GetValue(b), $"{path}.{Clean(field.Name)}", depth + 1);
 			}
@@ -145,7 +155,11 @@ internal sealed class CStateDiff
 			}
 			else
 			{
-				if (left.Count != right.Count)
+				// An array grown only as far as its last entry above nought, as a province's building levels are: entries of
+				// nought past the shorter's end are the same as none, as in a dictionary.
+				List<object?> longer = left.Count > right.Count ? left : right;
+				int shorter = Math.Min(left.Count, right.Count);
+				if (left.Count != right.Count && !(type.IsArray && longer.Skip(shorter).All(IsNought)))
 				{
 					Note(path + ".Count", $"{left.Count} / {right.Count}");
 				}
@@ -159,7 +173,7 @@ internal sealed class CStateDiff
 				return;
 			}
 		}
-		foreach (FieldInfo field in FieldsOf(type))
+		foreach (FieldInfo field in Fields(type))
 		{
 			Walk(field.GetValue(a), field.GetValue(b), $"{path}.{Clean(field.Name)}", depth + 1);
 		}

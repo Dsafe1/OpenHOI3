@@ -191,6 +191,9 @@ public sealed class CSaveUnitReader
 				case "aggression_setting":
 					unit.Aggression = CSaveValues.Fixed(entry.Value);
 					break;
+				case "country_intel":
+					ReadIntelGrants(unit, entry);
+					break;
 				case "plan" when entry.IsBlock:
 					ReadPlan(unit.Plan, entry);
 					break;
@@ -236,6 +239,33 @@ public sealed class CSaveUnitReader
 		// Finished after all under it, which is the order of the original's list on a load (savegame.md, section 5).
 		unit.ListOrder = _listed++;
 		return unit;
+	}
+
+	/// <summary>
+	/// <c>country_intel</c>: what other countries were given to know of the unit, three numbers a grant - the country's
+	/// number plus one, as lend-lease numbers its countries, the days left and the level (savegame.md, section 5). A number
+	/// of no country is reported and the grant passed over.
+	/// </summary>
+	private void ReadIntelGrants(CUnit unit, ClausewitzNode entry)
+	{
+		unit.IntelGrants.Clear();
+		List<ClausewitzNode> values = entry.Children;
+		for (int i = 0; i + 2 < values.Count; i += 3)
+		{
+			long number = CSaveValues.Whole(values[i].Value ?? values[i].Key) - 1;
+			if (number < 0 || number >= _state.Countries.Count)
+			{
+				_report.Unread("unit", $"country_intel of no country known, {values[i].Value ?? values[i].Key}");
+				continue;
+			}
+			int days = (int)CSaveValues.Whole(values[i + 1].Value ?? values[i + 1].Key);
+			int level = (int)CSaveValues.Whole(values[i + 2].Value ?? values[i + 2].Key);
+			unit.IntelGrants.Add(new CIntelGrant(_state.Countries[(int)number].Tag, days, level));
+		}
+		if (values.Count % 3 != 0)
+		{
+			_report.Unread("unit", "country_intel not in threes");
+		}
 	}
 
 	private void ReadSubUnit(ClausewitzNode block, string keyword, CUnit unit, CCountry owner)

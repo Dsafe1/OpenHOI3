@@ -1684,7 +1684,7 @@ and every other differing only by what the game does not hold; its first run fou
 service, every unit tree with its brigades, orders, plans, carriers' groups and passengers, what waits to be placed and
 the templates - and the top level's two counters, every number given back as the save's pair; in nine saves of 1936 to
 1941 every country's military part is the save's line for line once a brigade's `home` and `builder`, `country_intel`
-and a lent unit's keys are taken out, but what a load changes as the original's does. The order keys the game does not
+(read and written since 2026-11-14, `savegame.md` section 20) and a lent unit's keys are taken out, but what a load changes as the original's does. The order keys the game does not
 use were read in the fact base for it (`FINDINGS-savegame.md`, C.11) and are written as the original's: an order's halt
 figure, kept on the order; a naval order's counts and an air order's figure per air type, nought for good. It mended the
 loader on the way: an invasion's landing sea and a deployment's own number are read now, the player's numbers run on
@@ -1935,6 +1935,14 @@ fact base and entered in its record, not only written up: this repository's `CLA
 - **A brigade's model after a load**: a save names a brigade's levels and not its historical model, so after a load the
   unit panel's numeral, the brigade card's picture and the model's name in the tooltip are the first model's; whether the
   original works the model out from the levels was not read (`docs/enhanced.md`, *A whole game's replay*).
+
+- **What a load still does not give back**, checked path by path on 2026-11-14 (`OpenHOI3.SaveCheck reload`;
+  `savegame.md`, section 20): every path is under an entry of `docs/enhanced.md`'s *A whole game's replay* or is noise
+  the check now leaves out, but for one of ours - whether a battle at sea, in the air or a bombing has its modifiers
+  made again on entering, as the original's entering does (whether it draws for them was not read). The order of a
+  country's ministers among its modifier's sources, which the tooltips list, is the posts' since the same day, as the
+  original walks its cabinet's fixed slots (`modifiers.md`, section 4). `country_intel` is read and written since; that
+  its first number is the country's place plus one is *measured*, not read.
 
 - **The AI drops no nuclear bomb**: its strategic targets, the enemy's war industry handed to the agents whose air bases are nearest, are not built (`moving.md`; `nukes.md`, *Ours*).
 

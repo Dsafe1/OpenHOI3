@@ -126,6 +126,37 @@ public class SaveUnitWriterTests
 		Assert.Equal(Tree, writer.Text);
 	}
 
+	/// <summary>A division others have been given to know of: one grant of a country known and one of a number of none.</summary>
+	private const string Known =
+		"division=\r\n{\r\n\tid=\r\n\t{\r\n\t\tid=40\r\n\t\ttype=41\r\n\t}\r\n\tname=\"3. Division\"\r\n" +
+		"\tmovement_progress=0.000\r\n\tlocation=2\r\n\tis_prioritized=no\r\n\tcan_reinforce=yes\r\n\tcan_upgrade=yes\r\n" +
+		"\tfuel=1.000\r\n\tsupplies=1.000\r\n\tcountry_intel=\r\n\t{\r\n1 31 8 9 20 4 \t}\r\n}\r\n";
+
+	[Fact]
+	public void What_others_were_given_to_know_of_a_unit_is_read_by_the_countrys_number_plus_one_and_written_back()
+	{
+		CGameState state = State(out CCountry germany);
+		var ids = new CSaveIds();
+		ids.SetHistoryNext(100);
+		var report = new CSaveReport();
+		var reader = new CSaveUnitReader(state, ids, report);
+		ClausewitzNode block = ClausewitzParser.Parse(Known).Children[0];
+		CUnit unit = reader.Read(block, CSaveUnitReader.UnitKinds[block.Key!], germany, parent: null, carriedBy: null)!;
+		reader.Finish();
+
+		// Number 1 is the first country; number 9 is none of this game's one country, reported and passed over.
+		CIntelGrant grant = Assert.Single(unit.IntelGrants);
+		Assert.Equal(Ger, grant.Country);
+		Assert.Equal(31, grant.Days);
+		Assert.Equal(8, grant.Level);
+		Assert.Contains(report.Lines(), line => line.Contains("country_intel", System.StringComparison.Ordinal));
+
+		var writer = new CSaveTextWriter();
+		writer.OpenRoot();
+		CSaveUnitWriter.Write(writer, state, unit);
+		Assert.Equal(Known.Replace("1 31 8 9 20 4 ", "1 31 8 "), writer.Text);
+	}
+
 	[Fact]
 	public void An_intercept_keeps_the_fleet_its_order_names_apart_from_the_one_it_has_found()
 	{

@@ -105,13 +105,36 @@ internal static class CReloadCheck
 		return firstPart < 0 ? 0 : 1;
 	}
 
+	/// <summary>
+	/// What the check leaves out, as noise in the check itself and not anything later play hangs on (<c>docs/enhanced.md</c>,
+	/// the section's opening): the numbers a unit's file or a save names its leader by and a unit line's <c>is_reserve</c>,
+	/// read only as a game is made or loaded - the leader himself and the brigades' reserve are compared; whether a game was
+	/// loaded; caches made again on demand to the same figures - the distances by sea, the route finder's arrays, the land
+	/// within two edges of a province, the air bases each country holds; and the count of changes of hands since a game
+	/// began, with the stamps of the caches that watch it, which counts events and not state - each game's caches agree
+	/// with its own count; and a unit's and a brigade's figures of a battle's hour - its circumstances and the defences it
+	/// has used - which each battle hour makes again before anything reads them, and which stay on a unit, read by
+	/// nothing, once its battle is over.
+	/// </summary>
+	private static readonly string[] Skipped =
+	{
+		"CUnit.LeaderId", "CUnit.IsReserve", "CGameState.LoadedFromSave",
+		"CGameState._navalDistances", "CGameState.RouteScratch", "CProvince.NearProvinces", "CGameState.AirBaseHolders",
+		"CGameState._handChanges", "CProvince._handChanges", "CGameState._controlledCounts", "CGameState._controlledCountsAt",
+		"CGameState.IntelFingerprint", "CCountryFacts.ControlChanges", "COwnedCounts.ControlChanges",
+		"CSupplyNetwork.ControlChanges",
+		"CUnit.CombatAttack", "CUnit.CombatDefence", "CUnit.CombatModifiers", "CUnit.DefencesUsed",
+		"CSubUnit.CombatAttack", "CSubUnit.CombatDefence", "CSubUnit.CombatModifiers",
+	};
+
 	private static void Report(string when, CGameState a, CGameState b, int groups)
 	{
-		var diff = new CStateDiff(examples: s_examples);
-		// The countries first, so that a unit's path runs through its country and not through whatever reaches it first.
+		var diff = new CStateDiff(examples: s_examples, skippedFields: Skipped);
+		// The countries first, so that a unit's path runs through its country and not through whatever reaches it first; each
+		// under its tag, which the grouping takes out and the examples keep.
 		foreach (CCountry country in a.Countries)
 		{
-			diff.Compare(country, b.Country(country.Tag), "country");
+			diff.Compare(country, b.Country(country.Tag), $"country[{country.Tag}]");
 		}
 		diff.Compare(a, b, "state");
 		Console.WriteLine($"{when}: {diff.Groups.Count} paths differ");

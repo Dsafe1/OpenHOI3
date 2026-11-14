@@ -145,7 +145,11 @@ hours of fronts and every province's weather with the clock, the night and the s
 chosen. With the first days' hour that is 97 hours before the first played.
 
 **A save** keeps each province's eight figures - a figure left out where nought, pressure where `PRESSUREDEFAULT` - and the
-fronts in their order, and nothing of the zones' cooldowns and headings. No save is loaded here.
+fronts in their order, and nothing of the zones' cooldowns and headings. **A load** [exe] keeps the save's weather and
+fronts, and entering the loaded game makes each province's season and night again for the saved hour - no temperature
+seed, no ninety-six hours, no first days. No picture is chosen and no front marked on a province until the first hour,
+and the zones' cooldowns and headings start at nought - in the original only in a fresh process, a process that has run
+a game keeping that game's - so a front over its home holds no zone back in that hour and any zone may spawn one (`reversing/findings/FINDINGS-weathersim.md`, A.6; `savegame.md`, section 20; `docs/enhanced.md`).
 
 ## 5. What weather does
 
@@ -256,7 +260,7 @@ spread over the provinces beside the start save's - 20 fronts to its 21, and eve
 ## Not built
 
 - **Attrition**, which reads the temperature and the wind.
-- **Loading a save**, and with it what a load does to the weather.
+- ~~**Loading a save**, and with it what a load does to the weather.~~ Built (section 4).
 
 ## Not established
 

@@ -156,4 +156,15 @@ public class SaveTopTests
 		// Only the provinces the save gives, its home not put in front of them.
 		Assert.Equal(new[] { 11465, 11458 }, front.Provinces);
 	}
+
+	[Fact]
+	public void The_strategic_warfare_managers_null_tag_is_no_player()
+	{
+		CGameState state = World();
+		CSaveWarfare.Read(state, Top("strategic_warfare=\r\n{\r\n\tplayer=\"---\"\r\n\tcount=0\r\n}\r\n", "strategic_warfare"));
+		Assert.Null(state.Warfare.Player);
+
+		CSaveWarfare.Read(state, Top("strategic_warfare=\r\n{\r\n\tplayer=\"GER\"\r\n\tcount=0\r\n}\r\n", "strategic_warfare"));
+		Assert.Equal(new CCountryTag("GER"), state.Warfare.Player);
+	}
 }

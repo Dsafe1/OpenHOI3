@@ -172,7 +172,11 @@ order**; `confirmed` throughout.
    in `common/ideologies.txt` (`factions.md`, section 1).
 3. **Each minister in its government, as the minister type he has for the seat he holds.**
    The same man is a different modifier in a different seat; one seated where he was
-   declared no type for adds nothing.
+   declared no type for adds nothing. **The posts are walked in their order**, the original's
+   cabinet being an array of fixed slots in `common/government_positions.txt`'s order - so
+   the ministers come among a modifier's sources, which the tooltips list, in that order
+   however the government was seated (`reversing/findings/FINDINGS-countrymodifier.md`, the
+   record's `CCountry::RebuildStaticModifiers`, step 5).
 4. **Each of its laws.**
 5. **Its government**, which is a modifier too. In Their Finest Hour no government declares
    anything but which ideologies and positions it allows, so this adds nothing there.

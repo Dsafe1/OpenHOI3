@@ -143,6 +143,13 @@ public static class CSaveUnitWriter
 			writer.Bool("aggression_enabled", true);
 			writer.Fixed("aggression_setting", unit.Aggression);
 		}
+		// What other countries were given to know of it: the country's number plus one, the days left and the level, one
+		// line of threes, where there are any (savegame.md, section 5).
+		if (unit.IntelGrants.Count > 0)
+		{
+			writer.Numbers("country_intel", unit.IntelGrants.SelectMany(grant =>
+				new long[] { (state.Country(grant.Country)?.Index ?? -1) + 1, grant.Days, grant.Level }));
+		}
 		// Each level's own tail: a land unit's sealift target, its staging province and, aboard, its land superior; what
 		// a fleet or an aeroplane carries; and a fleet's wait after a battle, always last.
 		if (landUnit)
