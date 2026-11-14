@@ -42,9 +42,10 @@ What `active`, `is_buildable`, `usable_by`, `unit_group`, `minimum_of_type` and
 `max_percentage_of_type` decide - which types a country may order, and how many - is
 `builders.md`, section 2; `unit_group` is the combined arms group, section 4 there.
 
-**Ours**: a key that is none of those is reported, where the original drops it. Two blocks
-are read and not kept, because nothing uses them yet: `available_trigger`, which is
-script, and `extra_amphibious_defence`.
+**Ours**: a key that is none of those is reported, where the original drops it.
+`available_trigger` is script, and is read with the rest of script onto each type
+(`CUnitAvailableTriggerReader`, since 2026-11-14; `builders.md`, section 2).
+`extra_amphibious_defence` is read and not kept, because nothing uses it yet.
 
 A type with no `type` line of the three is left out and reported. **Ours** - what the
 original does with one was not read.

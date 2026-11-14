@@ -42,7 +42,10 @@ public static class CSubUnitTypeReader
 		"amphibious", "fort", "night", "river",
 	};
 
-	/// <summary>Blocks that are read and not yet kept: script, and a table nothing here uses.</summary>
+	/// <summary>
+	/// Blocks this passes over: script, which <c>CUnitAvailableTriggerReader</c> reads onto the type with the rest of
+	/// script, and a table nothing here uses.
+	/// </summary>
 	private static readonly HashSet<string> BlocksNotKept = new(StringComparer.OrdinalIgnoreCase)
 	{
 		"available_trigger", "extra_amphibious_defence",

@@ -2359,9 +2359,9 @@ None of these blocks the list above.
   nothing and its windows do the refusing; here the command refuses too, so that nothing
   can be ordered round the window. Not a departure a mod can meet: the same things are
   refused, a step later. `builders.md`, section 9.
-- **A unit type's `available_trigger` is not asked.** It is script; a type that has one is
-  taken to pass. The base game gives it to seven elite brigades, each also kept to its
-  own country by `usable_by`.
+- **A unit type's `available_trigger` is asked since 2026-11-14** (`builders.md`, section 2), of
+  the country alone, as the original's count of what may still be built asks it; the base game's
+  seven are empty and pass, so only a mod's decides anything.
 - **Six countries' queues start somewhere else than the original's**: Britain's, the United
   States', Japan's, France's, Belgium's and the Netherlands' lines are priced as the game
   starts under laws or ministers the original's AI had already changed, and which they
@@ -2462,8 +2462,7 @@ None of these blocks the list above.
 - **Only the player turns a country's `auto_assign_leaders` off**, with the leader window's
   checkbox: every country starts with it on, as in the original, and nothing here changes it for any
   other country.
-- **Two blocks of a unit type are read and not kept**: `available_trigger`, which is
-  script, and `extra_amphibious_defence`.
+- **A block of a unit type is read and not kept**: `extra_amphibious_defence`.
 - **A new game's manpower is the original's for 43 countries of 78**: Germany begins with 469 here and 882
   there, though its laws are the start save's since 2026-11-02 (`OpenHOI3.SaveCheck firstdays`, 2026-11-12;
   `politics.md`, section 13); why was not looked into. The United States' 1,051 against 255 is the decision its AI

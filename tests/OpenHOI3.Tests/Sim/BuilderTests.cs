@@ -124,6 +124,40 @@ public class BuilderTests
 	}
 
 	[Fact]
+	public void ATypesAvailableTriggerIsAskedOfTheCountryAndAnEmptyOnePasses()
+	{
+		CCountry country = Germany();
+		CSubUnitType guards = Type("guards_brigade");
+		guards.AvailableTrigger = ScriptWorld.Condition("tag = ITA");
+		CSubUnitType ss = Type("waffenSS_brigade");
+		ss.AvailableTrigger = ScriptWorld.Condition("");
+		CGameState state = State(country, new[] { guards, ss });
+
+		Assert.Equal(0, CUnitAvailability.StillBuildable(state, country, guards));
+		Assert.Equal(CUnitAvailability.Unlimited, CUnitAvailability.StillBuildable(state, country, ss));
+
+		guards.AvailableTrigger = ScriptWorld.Condition("tag = GER");
+		Assert.Equal(CUnitAvailability.Unlimited, CUnitAvailability.StillBuildable(state, country, guards));
+	}
+
+	[Fact]
+	public void TheTriggerIsReadFromItsUnitsFileTheFirstBlockOfANameWinningAndTheRestOfTheFileNotReported()
+	{
+		CCountry country = Germany();
+		CSubUnitType guards = Type("guards_brigade");
+		CGameState state = State(country, new[] { guards });
+		OpenHOI3.Content.Script.CScriptContext context = OpenHOI3.Tests.Content.ScriptFixture.Context();
+
+		OpenHOI3.Content.Script.CUnitAvailableTriggerReader.ReadText(
+			"guards_brigade = {\n\tusable_by = { SOV }\n\tavailable_trigger = { tag = GER }\n}\n" +
+			"guards_brigade = {\n\tavailable_trigger = { tag = ITA }\n}\n",
+			state, context, new HashSet<string>());
+
+		Assert.Equal(0, context.Problems.Count);
+		Assert.Equal(CUnitAvailability.Unlimited, CUnitAvailability.StillBuildable(state, country, guards));
+	}
+
+	[Fact]
 	public void ACountryGivenEveryUnitToTryMayOrderWhatIsLockedOrAnothersAndNothingElse()
 	{
 		CCountry country = Germany();

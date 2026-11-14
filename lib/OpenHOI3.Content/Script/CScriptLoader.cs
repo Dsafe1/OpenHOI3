@@ -23,6 +23,7 @@ public static class CScriptLoader
 		state.VictoryConditions = CFactionAimsReader.Read(directories, state, context);
 		CLawAllowReader.Read(directories, state, context);
 		COccupationPolicyAllowReader.Read(directories, state, context);
+		CUnitAvailableTriggerReader.Read(directories, state, context);
 		state.RebelTypes = CRebelTypeReader.Read(directories, state, context);
 		state.CovertOperations.AddRange(CCovertOpsReader.Read(directories, context));
 		state.TriggeredModifiers.AddRange(CTriggeredModifierReader.Read(directories, context));
