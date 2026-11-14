@@ -779,7 +779,7 @@ In order:
       panel's reading. Tried with `--click`; the maintainer's screenshot of the original shows
       a trait's icon answering with its name, which settled that the original shows them;
    9. **the technology screen's last two - built** (2026-10-12, `technologyscreen.md`
-      section 9; `CRequirementText`, `CTechnologyEffectsText`): read whole out of the original,
+      section 9; `CRequirementText`, since 2026-11-14 `CConditionText`, and `CTechnologyEffectsText`): read whole out of the original,
       tried with `--click`, and the maintainer has not looked at them. **Why not** is the
       `allow` block's account of itself, every condition with a red or green asterisk and the
       words turned round inside a "none of" - **indented as the mod's DLL corrects the
@@ -2203,10 +2203,10 @@ None of these blocks the list above.
     until it is read;
   - **the lists the original keeps a day** - neighbours, allies, the nations a country could
     release - are worked out when asked (`triggers.md`, section 6);
-  - **a technology's `allow` and a tactic's or a trait's `trigger`
-    still go through the small readers they were built with** (`CResearchCondition`,
-    `CCombatCondition`), which should become this one's - the battle's conditions answer
-    false here for want of a battle in the scope, so that is where they go next;
+  - **a tactic's or a trait's `trigger` still goes through the small reader it was built
+    with** (`CCombatCondition`), which should become this one's - the battle's conditions answer
+    false here for want of a battle in the scope, so that is where they go next. A technology's
+    `allow` is this one's since 2026-11-14 (`research.md`, section 5);
   - **BlackICE's events have not been read**: a mod is not a layer here yet, and its 178
     event and 98 decision files are the harder test;
   - **missions, spy missions, ministers' and leaders' ids** are taken as written, nothing
@@ -2217,12 +2217,11 @@ None of these blocks the list above.
   shares are set once the units are read, under the laws brought forward and before an empty post is filled; all 24
   untouched countries' are the start save's, Germany's 0.224 among them, and dissent 101 of 101 (`production.md`,
   section 1).
-- **A technology's requirement text knows the base game's conditions only** (2026-10-12,
-  `technologyscreen.md` section 9): a technology's level, `num_of_ports`, `any_owned_province`
-  with `has_building`, and the three groups. BlackICE's `allow` blocks use `war`, `faction`,
-  `check_variable`, `has_country_flag` and more, which the loader leaves out and the tooltip
-  cannot say until they are read - `has_country_flag`'s words are read already. A building
-  under `any_owned_province` is "in" the province numbered nothing, whose name is empty here.
+- ~~**A technology's requirement text knows the base game's conditions only** (2026-10-12,
+  `technologyscreen.md` section 9)~~ - since 2026-11-14 the `allow` block is script and its
+  account `CConditionText`'s, a decision's, so every condition with words in `scripttext.md` says
+  itself. Still open: a building under `any_owned_province` is "in" the province numbered
+  nothing, whose name is empty here.
 - **The battle window's tooltips are whole since 2026-11-14** (`combatview.md`, section 12): the
   bombed side's rows say their figure and a bombing's row in a unit's panel what of the province
   it bombs, with the original's two words each over the other's goods (`docs/enhanced.md`); neither
@@ -2595,11 +2594,13 @@ None of these blocks the list above.
 - ~~**A resource once had is never lost here, and that the original behaves so is only `likely`**~~ - `confirmed`
   2026-11-14 for as long as the game runs, and a load forgets it in the original and here
   (`docs/mechanics/modifiers.md`, section 6; `docs/enhanced.md`). Not watched in a running game.
-- **A technology's `allow` block is read for the six kinds of condition the base game
-  uses**, and none of the six has been read out of the original. Whether a port is a
-  naval base, and whether it is owning or controlling a province that counts, are guesses.
-  A mod that uses any other condition gets a warning and the condition left out.
-  `docs/mechanics/research.md`, section 5.
+- ~~**A technology's `allow` block is read for the six kinds of condition the base game
+  uses**, and none of the six has been read out of the original.~~ Read and built 2026-11-14:
+  the original holds the block as the general trigger and asks it of the country alone, so it is
+  read as script here (`CTechnologyAllowReader`) and answered by `CConditions`, any condition a mod
+  writes with it; a home port is one the country **owns** with a naval base built, in its acting
+  capital's area, and a theory or practical is no condition. The start's technology 28,987 of
+  28,987 still. `docs/mechanics/research.md`, section 5.
 - **Leadership makes officers that nothing takes away.** Influence is spent by diplomacy and
   spies are placed by espionage; a country whose presences are full or at priority 0 adds to its
   free spies without end, as the original's does. Officers are used - the ratio of them to what the units call for is what holds

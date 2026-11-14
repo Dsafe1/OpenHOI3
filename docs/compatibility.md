@@ -234,7 +234,7 @@ well was not looked at.
 | the difference today | only the spaces before a line and an asterisk on a block inside a scope. No base game technology nests deeper than three levels, and nothing here has a country scope yet |
 | a mod loses | nothing of its files; a mod that worked round the original's indentation in its texts would see its own spaces added to correct ones |
 | why | the original's is a bug that makes a nested block unreadable, and the mod already plays with it mended |
-| to undo | the three sums in `CRequirementText` back to the original's - `reversing/findings/FINDINGS-techtext.md`, section 2 has them |
+| to undo | the three sums in `CConditionText` - which draws a technology's `allow` since 2026-11-14, as it draws a decision's, `CRequirementText` having been folded into it - back to the original's - `reversing/findings/FINDINGS-techtext.md`, section 2 has them |
 
 `docs/mechanics/technologyscreen.md`, section 9; `reversing/findings/FINDINGS-techtext.md`,
 sections 2 and 4.

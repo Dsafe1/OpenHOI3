@@ -13,6 +13,7 @@ using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Script;
 using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Tests.Content;
@@ -1273,11 +1274,12 @@ public class MapLoadingTests : IDisposable
 		Assert.True(arms.IsNuclear);
 		Assert.Equal(("infantry_theory", CFixedPoint.Parse("-0.1")), Assert.Single(arms.Decay));
 		Assert.Empty(arms.EffectPerLevel.Values);            // none of its own keys is an effect
-		Assert.Equal(new[] { EResearchCondition.TechnologyLevel, EResearchCondition.Ability, EResearchCondition.Any, EResearchCondition.OwnsProvinceWithBuilding },
-			arms.Allow!.Children.Select(condition => condition.Kind));
-		Assert.Equal(new[] { EResearchCondition.TechnologyLevel, EResearchCondition.Ports },
-			arms.Allow.Children[2].Children.Select(condition => condition.Kind));
+		// The allow block is script: a category is no condition in it, and is reported with the script's problems.
+		Assert.Equal(new[] { "steel_production", "OR", "any_owned_province" }, arms.Allow!.Children.Select(condition => condition.Key));
+		Assert.Equal(ETriggerKind.Technology, arms.Allow.Children[0].Kind);
+		Assert.Equal(new[] { "industral_production", "num_of_ports" }, arms.Allow.Children[1].Children.Select(condition => condition.Key));
 		Assert.DoesNotContain(_warnings, warning => warning.Contains("technolog"));
+		Assert.Contains(_warnings, warning => warning.StartsWith("events and decisions: 1 problems"));
 	}
 
 	[Fact]
@@ -1294,11 +1296,13 @@ public class MapLoadingTests : IDisposable
 		CGameState state = LoadStart();
 
 		CTechnology odd = state.Technologies["odd"];
-		Assert.Single(odd.Allow!.Children);
+		// As script: the unknown key is left out and reported, and so is war written with a block, the wrong shape for
+		// the condition it is anywhere else.
+		Assert.Equal("steel_production", odd.Allow!.Children[0].Key);
+		Assert.DoesNotContain(odd.Allow.Children, condition => condition.Key == "has_flying_saucers");
 		Assert.Single(odd.ResearchBonusFrom);
 		Assert.Equal("", odd.OnCompletion);
-		Assert.Contains(_warnings, warning => warning.Contains("2 conditions that are not understood")
-			&& warning.Contains("has_flying_saucers") && warning.Contains("war"));
+		Assert.Contains(_warnings, warning => warning.StartsWith("events and decisions: 2 problems"));
 		Assert.Contains(_warnings, warning => warning.Contains("categories that are not defined") && warning.Contains("alchemy"));
 	}
 

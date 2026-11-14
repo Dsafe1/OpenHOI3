@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using OpenHOI3.Content.Script;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
@@ -7,6 +8,7 @@ using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Script;
 
 namespace OpenHOI3.Tests.Sim;
 
@@ -42,7 +44,7 @@ public class ResearchTests
 
 	/// <summary>A technology of difficulty 2 due in 1918, as most of the first ones are.</summary>
 	private static CTechnology Technology(string name, int difficulty = 2, int levels = 1, int startYear = 1918,
-		int firstOffset = 1932, CResearchCondition? allow = null, string onCompletion = "infantry_theory",
+		int firstOffset = 1932, CTrigger? allow = null, string onCompletion = "infantry_theory",
 		bool nuclear = false, params (string Category, string Weight)[] bonus)
 	{
 		return new CTechnology(name, levels, Modifier(name, ("ic_modifier", "0.1")))
@@ -59,12 +61,46 @@ public class ResearchTests
 	}
 
 	/// <summary>The original's own numbers for the four defines research reads.</summary>
+	/// <summary>
+	/// An <c>allow</c> block read from its text as the game reads one, against the technologies named and the two
+	/// buildings here; nothing in it may be a problem unless <paramref name="problems"/> takes them.
+	/// </summary>
+	private static CTrigger Allow(string text, string[] technologies, List<string>? problems = null)
+	{
+		var names = new CScriptNames { ProvinceCount = 10 };
+		names.AddCountry(new CCountryTag("GER"));
+		foreach (string technology in technologies)
+		{
+			names.Add(EScriptName.Technology, technology);
+		}
+		names.Add(EScriptName.Building, NavalBase.Key);
+		names.Add(EScriptName.Building, Reactor.Key);
+		var context = new CScriptContext(names);
+		CTrigger allow = CTrigger.All();
+		CTriggerReader.ReadInto(allow, CScriptParser.Parse(text, context.Problems), context);
+		if (problems is null)
+		{
+			Assert.Empty(context.Problems.All);
+		}
+		else
+		{
+			problems.AddRange(context.Problems.All.Select(problem => problem.Message));
+		}
+		return allow;
+	}
+
 	private static CGameState State(CCountry country, params CTechnology[] technologies)
+	{
+		return State(country, 0, technologies);
+	}
+
+	/// <param name="portSea">The sea the capital's port lies on, or nought for none.</param>
+	private static CGameState State(CCountry country, int portSea, params CTechnology[] technologies)
 	{
 		var provinces = new List<CProvince>
 		{
 			new(0, "", isSea: false),
-			new(1, "Capital", isSea: false) { Owner = country.Tag, Controller = country.Tag },
+			new(1, "Capital", isSea: false) { Owner = country.Tag, Controller = country.Tag, PortSea = portSea },
 		};
 		var defines = new CDefines();
 		defines.Set("country", "TECHNOLOGY_YEAR_IMPACT", CFixedPoint.Parse("1.5"));
@@ -243,9 +279,7 @@ public class ResearchTests
 	public void ATechnologyThatMayNotBeResearchedKeepsItsPlaceAndTakesNothing()
 	{
 		CCountry country = Country();
-		var needsOther = new CResearchCondition(EResearchCondition.All);
-		needsOther.Children.Add(new CResearchCondition(EResearchCondition.TechnologyLevel, "b", CFixedPoint.One));
-		CGameState state = State(country, Technology("a", allow: needsOther), Technology("b"));
+		CGameState state = State(country, Technology("a", allow: Allow("b = 1", new[] { "a", "b" })), Technology("b"));
 		country.ResearchQueue.AddRange(new[] { "a", "b" });
 
 		Research(state, country, "1");
@@ -373,53 +407,77 @@ public class ResearchTests
 	}
 
 	[Fact]
-	public void AnAllowBlockAsksForLevelsAbilitiesPortsAndBuildings()
+	public void AnAllowBlockAsksForLevelsPortsAndBuildingsOfTheCountry()
 	{
 		CCountry country = Country();
-		CGameState state = State(country, Technology("steel", levels: 3));
-		var level = new CResearchCondition(EResearchCondition.TechnologyLevel, "steel", CFixedPoint.FromInt(2));
-		var ability = new CResearchCondition(EResearchCondition.Ability, "infantry_practical", CFixedPoint.FromInt(10));
-		var ports = new CResearchCondition(EResearchCondition.Ports, "", CFixedPoint.One);
-		var reactor = new CResearchCondition(EResearchCondition.OwnsProvinceWithBuilding, "nuclear_reactor");
+		CTechnology target = Technology("target");
+		CGameState state = State(country, 2, target, Technology("steel", levels: 3));
+		bool May(string allow)
+		{
+			target.Allow = Allow(allow, new[] { "target", "steel" });
+			return CResearch.MayResearch(state, country, target, 1);
+		}
 
-		Assert.False(level.Holds(state, country));
+		Assert.False(May("steel = 2"));
 		country.TechnologyLevels["steel"] = 2;
-		Assert.True(level.Holds(state, country));
+		Assert.True(May("steel = 2"));
 
-		Assert.False(ability.Holds(state, country));
-		country.Abilities["infantry_practical"] = CFixedPoint.FromInt(10);
-		Assert.True(ability.Holds(state, country));
-
-		Assert.False(ports.Holds(state, country));
+		// A home port: a province it owns with a port and a naval base built, in its capital's area.
+		Assert.False(May("num_of_ports = 1"));
 		state.Province(1).SetBuildingLevel(NavalBase, CFixedPoint.One);
-		Assert.True(ports.Holds(state, country));
+		Assert.True(May("num_of_ports = 1"));
+		// What was built counts, bombed or not; owning counts, holding does not.
+		state.Province(1).SetBuildingCurrentLevel(NavalBase, CFixedPoint.Zero);
+		Assert.True(May("num_of_ports = 1"));
+		state.Province(1).Controller = new CCountryTag("POL");
+		Assert.True(May("num_of_ports = 1"));
 
-		Assert.False(reactor.Holds(state, country));
+		Assert.False(May("any_owned_province = { has_building = nuclear_reactor }"));
 		state.Province(1).SetBuildingLevel(Reactor, CFixedPoint.One);
-		Assert.True(reactor.Holds(state, country));
+		Assert.True(May("any_owned_province = { has_building = nuclear_reactor }"));
+	}
+
+	[Fact]
+	public void AnAllowBlockTakesAnyConditionTheScriptHasAskedOfTheCountry()
+	{
+		CCountry country = Country();
+		CTechnology target = Technology("target");
+		CGameState state = State(country, target);
+		target.Allow = Allow("tag = GER year = 1936 NOT = { war = yes }", new[] { "target" });
+		Assert.True(CResearch.MayResearch(state, country, target, 1));
+
+		target.Allow = Allow("year = 1937", new[] { "target" });
+		Assert.False(CResearch.MayResearch(state, country, target, 1));
+	}
+
+	[Fact]
+	public void ACategoryIsNoConditionAndIsReportedAndLeftOut()
+	{
+		// The original's condition language has no theory or practical among its names.
+		var problems = new List<string>();
+		CTrigger allow = Allow("infantry_practical = 10", new[] { "target" }, problems);
+
+		Assert.Empty(allow.Children);
+		Assert.Single(problems);
 	}
 
 	[Fact]
 	public void GroupsOfConditionsHoldTogetherOrSeparatelyOrNotAtAll()
 	{
 		CCountry country = Country();
-		CGameState state = State(country, Technology("a"), Technology("b"));
+		CTechnology target = Technology("target");
+		CGameState state = State(country, target, Technology("a"), Technology("b"));
 		country.TechnologyLevels["a"] = 1;
-		var hasA = new CResearchCondition(EResearchCondition.TechnologyLevel, "a", CFixedPoint.One);
-		var hasB = new CResearchCondition(EResearchCondition.TechnologyLevel, "b", CFixedPoint.One);
-
-		CResearchCondition Group(EResearchCondition kind)
+		bool May(string allow)
 		{
-			var group = new CResearchCondition(kind);
-			group.Children.Add(hasA);
-			group.Children.Add(hasB);
-			return group;
+			target.Allow = Allow(allow, new[] { "target", "a", "b" });
+			return CResearch.MayResearch(state, country, target, 1);
 		}
 
-		Assert.False(Group(EResearchCondition.All).Holds(state, country));
-		Assert.True(Group(EResearchCondition.Any).Holds(state, country));
-		Assert.False(Group(EResearchCondition.None).Holds(state, country));
-		Assert.True(new CResearchCondition(EResearchCondition.All).Holds(state, country));   // nothing asked
+		Assert.False(May("AND = { a = 1 b = 1 }"));
+		Assert.True(May("OR = { a = 1 b = 1 }"));
+		Assert.False(May("NOT = { a = 1 b = 1 }"));
+		Assert.True(May(""));                                             // nothing asked
 	}
 
 	// --- decay ---
@@ -524,9 +582,7 @@ public class ResearchTests
 	public void WhatEachProjectWouldBeGivenIsWhatADayGivesIt()
 	{
 		CCountry country = Country();
-		var needsOther = new CResearchCondition(EResearchCondition.All);
-		needsOther.Children.Add(new CResearchCondition(EResearchCondition.TechnologyLevel, "a", CFixedPoint.One));
-		CGameState state = State(country, Technology("a"), Technology("blocked", allow: needsOther), Technology("c"),
+		CGameState state = State(country, Technology("a"), Technology("blocked", allow: Allow("a = 1", new[] { "a" })), Technology("c"),
 			Technology("d"));
 		country.ResearchQueue.AddRange(new[] { "a", "blocked", "c", "d" });
 

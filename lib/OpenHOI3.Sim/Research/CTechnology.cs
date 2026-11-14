@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Script;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Sim.Research;
@@ -58,8 +59,12 @@ public sealed class CTechnology
 	public IReadOnlyList<(string Category, CFixedPoint Amount)> Decay { get; init; } =
 		Array.Empty<(string, CFixedPoint)>();
 
-	/// <summary>What must hold for it to be researched at all, or null for nothing.</summary>
-	public CResearchCondition? Allow { get; init; }
+	/// <summary>
+	/// Its <c>allow</c> block - what must hold for it to be researched at all, asked of the country alone - or null
+	/// for none. It is read as script once everything it may name is loaded, as the original reads it with the
+	/// whole condition language (<c>docs/mechanics/research.md</c>, section 5).
+	/// </summary>
+	public CTrigger? Allow { get; set; }
 
 	/// <summary>
 	/// Whether its <c>allow</c> block holds anything at all, understood here or not.

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using OpenHOI3.Content.Script;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
@@ -87,14 +88,27 @@ public class TechnologyTextTests
 		return (state, germany);
 	}
 
-	private static CResearchCondition Level(string technology, int level) =>
-		new(EResearchCondition.TechnologyLevel, technology, CFixedPoint.FromInt(level));
-
-	private static CResearchCondition Group(EResearchCondition kind, params CResearchCondition[] children)
+	/// <summary>
+	/// Why the technology <c>target</c> may not be researched, its <c>allow</c> block read out of a technology file
+	/// by the reader the game uses; nothing in it may be a problem.
+	/// </summary>
+	private static string WhyNot(CGameState state, CCountry country, string allow)
 	{
-		var group = new CResearchCondition(kind);
-		group.Children.AddRange(children);
-		return group;
+		var names = new CScriptNames { ProvinceCount = state.Provinces.Count };
+		names.AddCountry(Ger);
+		foreach (string technology in state.Technologies.Keys)
+		{
+			names.Add(EScriptName.Technology, technology);
+		}
+		foreach (CBuilding building in state.Buildings)
+		{
+			names.Add(EScriptName.Building, building.Key);
+		}
+		var context = new CScriptContext(names);
+		CTechnologyAllowReader.ReadText("target = { difficulty = 3 allow = { " + allow + " } }", state, context,
+			new HashSet<string>());
+		Assert.Empty(context.Problems.All);
+		return CTechnologyTooltips.WhyNot(Localise, state, country, state.Technologies["target"]);
 	}
 
 	// ---- the allow block
@@ -102,25 +116,22 @@ public class TechnologyTextTests
 	[Fact]
 	public void At_the_top_each_condition_is_a_line_with_its_asterisk_and_no_header()
 	{
-		(CGameState state, CCountry germany) = State(new[] { Technology("infantry_activation"), Technology("smallarms_technology") });
+		(CGameState state, CCountry germany) = State(new[]
+			{ Technology("target"), Technology("infantry_activation"), Technology("smallarms_technology") });
 		germany.TechnologyLevels["infantry_activation"] = 1;
-		CResearchCondition allow = Group(EResearchCondition.All, Level("infantry_activation", 1), Level("smallarms_technology", 3));
 
 		Assert.Equal(
 			"(§G*§W)§YInfantry Activation (Infantry)§W at least §Y1§W\n"
 			+ "(§R*§W)§YSmall Arms (Infantry)§W at least §Y3§W\n",
-			CRequirementText.For(Localise, state, germany, allow));
+			WhyNot(state, germany, "infantry_activation = 1 smallarms_technology = 3"));
 	}
 
 	[Fact]
 	public void A_group_inside_a_group_is_indented_a_level_deeper_than_its_header()
 	{
-		(CGameState state, CCountry germany) = State(new[] { Technology("infantry_activation"), Technology("smallarms_technology") });
+		(CGameState state, CCountry germany) = State(new[]
+			{ Technology("target"), Technology("infantry_activation"), Technology("smallarms_technology") });
 		germany.TechnologyLevels["infantry_activation"] = 1;
-		CResearchCondition allow = Group(EResearchCondition.All,
-			Group(EResearchCondition.Any,
-				Level("infantry_activation", 1),
-				Group(EResearchCondition.All, Level("smallarms_technology", 3), Level("infantry_activation", 2))));
 
 		Assert.Equal(
 			"(§G*§W)One of the following must be true:\n"
@@ -128,40 +139,51 @@ public class TechnologyTextTests
 			+ "   (§R*§W)All of the below:\n"
 			+ "      (§R*§W)§YSmall Arms (Infantry)§W at least §Y3§W\n"
 			+ "      (§R*§W)§YInfantry Activation (Infantry)§W at least §Y2§W\n",
-			CRequirementText.For(Localise, state, germany, allow));
+			WhyNot(state, germany,
+				"OR = { infantry_activation = 1 AND = { smallarms_technology = 3 infantry_activation = 2 } }"));
 	}
 
 	[Fact]
 	public void A_none_of_says_the_opposite_green_where_it_does_not_hold_and_sits_on_its_parents_line()
 	{
-		(CGameState state, CCountry germany) = State(new[] { Technology("infantry_activation"), Technology("smallarms_technology") });
+		(CGameState state, CCountry germany) = State(new[]
+			{ Technology("target"), Technology("infantry_activation"), Technology("smallarms_technology") });
 		germany.TechnologyLevels["smallarms_technology"] = 4;
-		CResearchCondition allow = Group(EResearchCondition.All,
-			Group(EResearchCondition.None, Level("infantry_activation", 1)),
-			Group(EResearchCondition.Any, Level("infantry_activation", 2), Group(EResearchCondition.None, Level("smallarms_technology", 3))));
 
 		Assert.Equal(
 			"(§G*§W)§YInfantry Activation (Infantry)§W lower than §Y1§W\n"
 			+ "(§R*§W)One of the following must be true:\n"
 			+ "   (§R*§W)§YInfantry Activation (Infantry)§W at least §Y2§W\n"
 			+ "   (§R*§W)§YSmall Arms (Infantry)§W lower than §Y3§W\n",
-			CRequirementText.For(Localise, state, germany, allow));
+			WhyNot(state, germany,
+				"NOT = { infantry_activation = 1 } OR = { infantry_activation = 2 NOT = { smallarms_technology = 3 } }"));
 	}
 
 	[Fact]
 	public void Any_owned_province_names_the_country_and_its_building_has_no_asterisk()
 	{
 		var reactor = new CBuilding(0, "nuclear_reactor", 10, "", default);
-		(CGameState state, CCountry germany) = State(System.Array.Empty<CTechnology>(), new[] { reactor });
-		CResearchCondition allow = Group(EResearchCondition.All,
-			new CResearchCondition(EResearchCondition.OwnsProvinceWithBuilding, "nuclear_reactor"),
-			new CResearchCondition(EResearchCondition.Ports, "", CFixedPoint.FromInt(1)));
+		(CGameState state, CCountry germany) = State(new[] { Technology("target") }, new[] { reactor });
 
 		Assert.Equal(
 			"(§R*§W)Any owned province (Germany):\n"
 			+ "   Have a §YNuclear Reactor§W in §Y§W\n"
 			+ "(§R*§W)Number of home ports at least §Y1§W\n",
-			CRequirementText.For(Localise, state, germany, allow));
+			WhyNot(state, germany, "any_owned_province = { has_building = nuclear_reactor } num_of_ports = 1"));
+	}
+
+	[Fact]
+	public void A_condition_the_base_game_never_puts_in_an_allow_block_says_itself_as_anywhere_else()
+	{
+		// BlackICE's technologies ask the year, wars and flags; the original reads the whole language.
+		(CGameState state, CCountry germany) = State(new[] { Technology("target") });
+		germany.Flags.Set("rearmament");
+
+		Assert.Equal(
+			"(§G*§W)THE_YEAR_IS_AFTER§Y1936§W\n"
+			+ "(§R*§W)ATWAR\n"
+			+ "(§G*§W)HAVE_COUNTRY_FLAG'§Yrearmament§W'\n",
+			WhyNot(state, germany, "year = 1936 war = yes has_country_flag = rearmament"));
 	}
 
 	// ---- what levels do

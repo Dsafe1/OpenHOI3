@@ -155,20 +155,38 @@ A level of a technology may be researched when all of these hold: `confirmed`
 *Ours:* a technology with no `max_level` has 1. All 85 of Their Finest Hour's that leave
 it out are single-level, where the first rule already limits them.
 
-**`allow` is written in the script's condition language**, which is stage 4. Their Finest
-Hour's 213 blocks use six things, and those are read here; anything else is reported when
-the files are loaded and then left out, as the original leaves out a key it does not know.
+**`allow` is the whole of the script's condition language**, the same as an event's
+`trigger` (`triggers.md`). `confirmed`: a technology holds its block as an embedded "all of"
+that the general trigger grammar loads, flagged as a block of script, so a key no lookup knows
+when it is read is held back and tried again once every technology is loaded - which is how one
+technology names another further down the files - and reported and left out if it is still
+nothing (`script.md`). **It is asked of the country alone**: a scope whose country is the
+country, with no province and no FROM, and which is its own root, so THIS is the country. An
+empty block holds. So any condition a mod writes in a technology's `allow` is a condition here,
+answering as it does for an event asked of a country, and two `allow` blocks in one technology
+add to one another, as the original loads both into the one block it holds.
+(`reversing/findings/FINDINGS-research.md`, the section on the gate's scope.)
+
+Their Finest Hour's 213 blocks use six things, each answering as `triggers.md` has it:
 
 | in the block | holds when |
 | --- | --- |
 | `<technology> = N` | the country has level N of it or more |
-| `<category> = N` | its ability in the category is N or more |
-| `num_of_ports = N` | it controls N or more provinces with a naval base |
-| `any_owned_province = { has_building = X }` | a province it owns has building X |
-| `OR = { }`, `AND = { }`, `NOT = { }` | as they say |
+| `num_of_ports = N` | it has N or more **home ports**: provinces it **owns** - whoever holds them - with a port and a naval base **built**, bombed or not, in the area of its acting capital (`triggers.md`, section 8), so a colony's port does not count |
+| `any_owned_province = { has_building = X }` | a province it owns has building X built, a level or more |
+| `OR = { }`, `AND = { }`, `NOT = { }` | as they say; `NOT` holds when none of its conditions does |
 
-`inferred` for all six: none has been read out of the executable, and for `num_of_ports`
-whether a port is a naval base, and whether owning or controlling counts, is a guess.
+`confirmed` for all of them (`reversing/findings/FINDINGS-scriptgaps.md`, section 1, for
+`num_of_ports`; `FINDINGS-triggerleaves.md` for `has_building`). **A theory or practical is no
+condition**: the names a condition may be are a government position, a building, a technology,
+a unit type, a law group and a combined-arms group, so `infantry_theory = 3` in an `allow` is
+reported and left out, as the original logs it and drops it. Neither Their Finest Hour nor
+BlackICE writes one. BlackICE's blocks use `year`, `war`, `faction`, `controls`,
+`check_variable`, `has_country_flag`, province scopes and more, all answered.
+
+The original's gate has one more refusal, for a custom game only: a level below the figure the
+custom game's settings give the technology. There is one start here and no custom game
+(`docs/compatibility.md`, entry 1), so it never applies.
 
 ## 6. Decay
 
@@ -306,7 +324,6 @@ country's units would see them later here. The start year is the game's own, one
 
 ## What is not established, in one place
 
-- the six `allow` conditions of section 5, none of which has been read;
 - how abilities are **recomputed when a game starts**;
 - how the original **orders its technology categories**, which only matters to an
   interface.

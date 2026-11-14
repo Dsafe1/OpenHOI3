@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using OpenHOI3.Interface.Modifiers;
+using OpenHOI3.Interface.Script;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agreements;
@@ -106,7 +107,9 @@ public static class CTechnologyTooltips
 
 	/// <summary>
 	/// Why a technology may not be researched: had already, for one of one level; otherwise its
-	/// <c>allow</c> block's account of itself - every condition, met or not.
+	/// <c>allow</c> block's account of itself in a scope of the country - every condition, met or not,
+	/// written as a decision's <c>allow</c> is, the original drawing both with one routine
+	/// (<c>docs/mechanics/technologyscreen.md</c>, section 9).
 	/// </summary>
 	public static string WhyNot(Func<string, string> localise, CGameState state, CCountry country, CTechnology technology)
 	{
@@ -115,7 +118,9 @@ public static class CTechnologyTooltips
 		{
 			return localise("ALREADY_RESEARCHED");
 		}
-		return technology.Allow is { } allow ? CRequirementText.For(localise, state, country, allow) : "";
+		return technology.Allow is { } allow
+			? CConditionText.For(new CScriptWords(localise, state, country.Tag), allow, CResearch.AllowScope(country))
+			: "";
 	}
 
 	/// <summary>A theory or practical: its name.</summary>

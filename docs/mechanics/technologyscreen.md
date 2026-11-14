@@ -298,7 +298,12 @@ country gives research:
 The penalty is the year's of `research.md`, section 3; a year has 365 days and today counts as left.
 
 **Why not: the `allow` block's account of itself** (`reversing/findings/FINDINGS-techtext.md`,
-read 2026-10-12; `CRequirementText`; tried with `--click`). Every condition is written, met or not,
+read 2026-10-12; tried with `--click`). The original draws it with the routine a decision's
+`allow` is drawn with, in a scope of the country alone, and so does this: since 2026-11-14 the block
+is the script's own (`research.md`, section 5) and its account is `CConditionText`'s
+(`scripttext.md`, section 3), so **every condition the script's text has words for says itself
+here**, BlackICE's `year`, `war` and `has_country_flag` among them - tried with `--click` on
+Hungary's Submarine Technology, the same before and after. Every condition is written, met or not,
 each with an asterisk, `(§G*§W)` where it holds and `(§R*§W)` where not. A level of indent is three
 spaces. **The indentation is the one the mod's DLL corrects the original's to, by the
 maintainer's word** (`docs/compatibility.md`, entry 10); the words and the order are the
@@ -342,9 +347,10 @@ efficiency has no `%` and radio strength one; a building under `any_owned_provin
 
 *Ours:*
 
-- **A condition the reading has no words for is left out**: a category's name as a condition, and
+- ~~**A condition the reading has no words for is left out**: a category's name as a condition, and
   every trigger the base game's technologies do not use - BlackICE's `war`, `faction`,
-  `has_country_flag` and the rest (*Not established*).
+  `has_country_flag` and the rest (*Not established*).~~ Since 2026-11-14 every condition says
+  itself as `scripttext.md` writes it; a category's name is no condition and is not in the block.
 - **A text box lets the mouse through** to what is under it; over an entry's name it is the entry's
   background that answers, which says the same.
 
@@ -362,6 +368,8 @@ efficiency has no `%` and radio strength one; a building under `any_owned_provin
 5. **The separator in a level's name key.**
 6. **Sharing.** A category another country shares shows green, and an entry's input icons
    may show the sharer's figure; nothing shares yet.
-7. **The words of every other condition** a mod's `allow` block may hold, and which condition a
-   category's name makes; and **the name of the province numbered nothing**, which the original
-   gives a building under `any_owned_province` and is empty here.
+7. ~~**The words of every other condition** a mod's `allow` block may hold, and which condition a
+   category's name makes~~ - settled 2026-11-14: the block is the script's, its words
+   `scripttext.md`'s, and a category's name makes none (`research.md`, section 5); still open,
+   **the name of the province numbered nothing**, which the original gives a building under
+   `any_owned_province` and is empty here.

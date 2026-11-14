@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Script;
 
 namespace OpenHOI3.Sim.Research;
 
@@ -146,7 +147,11 @@ public static class CResearch
 		return efficiency < LeastEfficiency ? LeastEfficiency : efficiency;
 	}
 
-	/// <summary>Whether the country may research that level of a technology.</summary>
+	/// <summary>
+	/// Whether the country may research that level of a technology: a real level, not above the highest, and the
+	/// technology's <c>allow</c> block holding in a scope of the country alone - no province, no FROM - as the
+	/// original asks it (<c>docs/mechanics/research.md</c>, section 5).
+	/// </summary>
 	public static bool MayResearch(CGameState state, CCountry country, CTechnology technology, int level)
 	{
 		if (technology.IsSingleLevel && (level > 1 || level < 0))
@@ -157,7 +162,13 @@ public static class CResearch
 		{
 			return false;
 		}
-		return technology.Allow?.Holds(state, country) ?? true;
+		return technology.Allow is not { } allow || CConditions.All(state, allow, AllowScope(country), null);
+	}
+
+	/// <summary>The scope a technology's <c>allow</c> block is asked in: the country, and nothing else.</summary>
+	public static CEventScope AllowScope(CCountry country)
+	{
+		return CEventScope.Start(country.Tag);
 	}
 
 	/// <summary>Whether the country may research the next level of a technology.</summary>

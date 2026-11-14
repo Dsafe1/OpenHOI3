@@ -16,9 +16,10 @@ namespace OpenHOI3.Content.Definitions;
 ///
 /// A block holds what a level is worth as plain numbers - <c>ic_modifier = 0.025</c> -
 /// and what researching it takes: its difficulty, the years its levels are due, whose
-/// ability makes it cheaper and what must hold first. A block named after a unit type is
-/// what a level adds to that type (<c>docs/mechanics/units.md</c>, section 2). What it
-/// unlocks is skipped without comment. See <c>docs/mechanics/research.md</c>, section 1.
+/// ability makes it cheaper. A block named after a unit type is what a level adds to that
+/// type (<c>docs/mechanics/units.md</c>, section 2). What it unlocks is skipped without
+/// comment, and its <c>allow</c> block is script, which <c>CTechnologyAllowReader</c> reads
+/// once everything it may name is loaded. See <c>docs/mechanics/research.md</c>, section 1.
 /// </summary>
 public static class CTechnologyReader
 {
@@ -106,7 +107,7 @@ public static class CTechnologyReader
 		var technologies = new List<CTechnology>();
 		int duplicates = 0;
 
-		// Every block first, because a technology's conditions name other technologies.
+		// Every block first, the first of a name standing.
 		var blocks = new List<ClausewitzNode>();
 		var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (string file in directories.ListFiles(TechnologyDirectory, "*.txt"))
@@ -142,7 +143,6 @@ public static class CTechnologyReader
 		{
 			categoryNames.Add(category.Name);
 		}
-		var unknownConditions = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var unknownCategories = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		foreach (ClausewitzNode block in blocks)
@@ -183,9 +183,8 @@ public static class CTechnologyReader
 				Folder = block.GetString("folder"),
 				ResearchBonusFrom = ReadAmounts(block.Get("research_bonus_from"), categories is null ? null : categoryNames, unknownCategories),
 				Decay = ReadAmounts(block.Get("decay"), categories is null ? null : categoryNames, unknownCategories),
-				Allow = block.Get("allow") is { IsBlock: true } allow
-					? ReadGroup(allow, EResearchCondition.All, names, categoryNames, unknownConditions)
-					: null,
+				// The allow block is script, read with the rest of it once everything it may name is loaded
+				// (CTechnologyAllowReader).
 				HasPrecondition = block.Get("allow") is { IsBlock: true, Children.Count: > 0 },
 				ActivatesUnits = block.All("activate_unit")
 					.Where(entry => entry.Value is { Length: > 0 })
@@ -274,11 +273,6 @@ public static class CTechnologyReader
 			warn($"technologies name {unknownCategories.Count} categories that are not defined: " +
 				string.Join(", ", unknownCategories));
 		}
-		if (unknownConditions.Count > 0)
-		{
-			warn($"technologies' allow blocks have {unknownConditions.Count} conditions that are not understood " +
-				$"and were left out: {string.Join(", ", unknownConditions)}");
-		}
 		return technologies;
 	}
 
@@ -306,72 +300,5 @@ public static class CTechnologyReader
 			amounts.Add((entry.Key, amount));
 		}
 		return amounts;
-	}
-
-	/// <summary>
-	/// The conditions a technology's <c>allow</c> block uses. Anything else is collected
-	/// to be reported, and left out.
-	/// </summary>
-	private static CResearchCondition ReadGroup(ClausewitzNode block, EResearchCondition kind,
-		HashSet<string> technologies, HashSet<string> categories, SortedSet<string> unknown)
-	{
-		var group = new CResearchCondition(kind);
-		foreach (ClausewitzNode entry in block.Children)
-		{
-			if (entry.Key is null)
-			{
-				continue;                                    // a stray word, such as a comment mark the file left in
-			}
-
-			string key = entry.Key;
-			if (entry.IsBlock)
-			{
-				if (key.Equals("OR", StringComparison.OrdinalIgnoreCase))
-				{
-					group.Children.Add(ReadGroup(entry, EResearchCondition.Any, technologies, categories, unknown));
-				}
-				else if (key.Equals("AND", StringComparison.OrdinalIgnoreCase))
-				{
-					group.Children.Add(ReadGroup(entry, EResearchCondition.All, technologies, categories, unknown));
-				}
-				else if (key.Equals("NOT", StringComparison.OrdinalIgnoreCase))
-				{
-					group.Children.Add(ReadGroup(entry, EResearchCondition.None, technologies, categories, unknown));
-				}
-				else if (key.Equals("any_owned_province", StringComparison.OrdinalIgnoreCase)
-					&& entry.Children.Count == 1 && entry.Children[0] is { Key: { } inner, Value: { } building }
-					&& inner.Equals("has_building", StringComparison.OrdinalIgnoreCase))
-				{
-					group.Children.Add(new CResearchCondition(EResearchCondition.OwnsProvinceWithBuilding, building));
-				}
-				else
-				{
-					unknown.Add(key);
-				}
-				continue;
-			}
-
-			if (!CFixedPoint.TryParse(entry.Value, out CFixedPoint amount))
-			{
-				unknown.Add(key);
-			}
-			else if (technologies.Contains(key))
-			{
-				group.Children.Add(new CResearchCondition(EResearchCondition.TechnologyLevel, key, amount));
-			}
-			else if (categories.Contains(key))
-			{
-				group.Children.Add(new CResearchCondition(EResearchCondition.Ability, key, amount));
-			}
-			else if (key.Equals("num_of_ports", StringComparison.OrdinalIgnoreCase))
-			{
-				group.Children.Add(new CResearchCondition(EResearchCondition.Ports, "", amount));
-			}
-			else
-			{
-				unknown.Add(key);
-			}
-		}
-		return group;
 	}
 }
