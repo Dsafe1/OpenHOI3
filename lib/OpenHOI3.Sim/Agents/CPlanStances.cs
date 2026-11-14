@@ -125,8 +125,11 @@ public static class CPlanStances
 		state.Outbox.Add(new CSetPlanCommand(country.Tag, unit.Id, stance, CSetPlanCommand.UnchangedAirOrNaval,
 			CSetPlanCommand.UnchangedAirOrNaval));
 		agent.ReplanSubordinates = true;
-		CAreaScores.Score(state, country, agent, stance);
-		CPlanAxis.Update(state, country, agent, stance);
+		// The scores and the axis read the plan's stance as it stands, the new one only posted: so they are made at the old
+		// stance, and a load's entering - 2 posted at no coverage, then the old stance back - leaves the area scored at 2
+		// under a plan at 4 until the area is next set (FINDINGS-liveread.md, section 86).
+		CAreaScores.Score(state, country, agent, unit.Plan.Stance);
+		CPlanAxis.Update(state, country, agent, unit.Plan.Stance);
 		// A change of stance releases the reserve: every held-back division's mark cleared and the list emptied, so the
 		// next sort decides them again (FINDINGS-liveread.md, section 45).
 		foreach (Units.CUnit held in agent.HeldBack)

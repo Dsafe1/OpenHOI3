@@ -209,6 +209,8 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    six days into Poland, where the runs agree on 122 new ways and one alone gives 34. With the uncovered count leaving out
    the province attacked, ours gives 77 of the runs' shared ways where it gave 54, misses 33 where it missed 54, and gives
    46 of its own alone where 52 - still the furthest of the three tests from the original, and the next place to look.
+   With a change of stance scoring the area at the stance it leaves (section 86), as a load's entering does it, ours'
+   ways alone fall to 37 there and to 77 in the July 1941 series, where they were 102.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

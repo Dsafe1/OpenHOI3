@@ -336,7 +336,9 @@ Every hour while the country's stances are unsettled, then once a day at hour (n
    else 4**, and a 3 or 4 with g under 0.9 one less.
 3. A stance that differs is set, pushed down to the agent's children, and **plan posted** set - and **the reserve released**: every
    held-back division's mark cleared and the list emptied, so the next sort decides it again at the new stance
-   (`reversing/findings/FINDINGS-liveread.md`, section 45).
+   (`reversing/findings/FINDINGS-liveread.md`, section 45). The area's provinces are scored again and the axis made
+   again **at the stance being left**, the new one only posted: entering a load, a plan at 4 is posted 2 on the first pass
+   (no coverage yet) and 4 on the second, and its area stays scored at 2 until it is next set (section 86).
 4. A pass that ran whole with no agent at war without an area **settles** the country's stances; nothing unsettles them.
 
 ### 7.3 The powers (`UpdatePlanPower`)
