@@ -2180,7 +2180,8 @@ None of these blocks the list above.
     have it - not set beside the original;
   - **a condition the simulation cannot answer is false** (`triggers.md`, section 8;
     `CUnansweredConditions`): `remove_fow`, the AI's missions, a country's war record and the last
-    battles, blockades and a province's days out of supply. Inside a `not` that makes the `not`
+    battles, and blockades - a province's days out of supply answer since 2026-11-14 (`supply.md`, section 18). Inside a
+    `not` that makes the `not`
     true, and **such an event fires** - the maintainer's word on 2026-10-12, "Just fire them";
   - **an effect on what the simulation does not hold does nothing** (`effects.md`, section 8;
     `CUndoneEffects`): `remove_fow`, `add_ai_strategy`, `fixed_ai_strategy`, `add_division` and
@@ -2452,9 +2453,17 @@ None of these blocks the list above.
   (`transport.md`); the carrier, the paradrop and the air supply were tried only with
   `OpenHOI3.SaveCheck airborne`. The AI drops no paratroopers (`moving.md`, section 20); and the technology figures `paradrop_mission` and
   `transport_supplies_mission` do nothing, no reader of them having been found. Three small things
-  are ours and listed in the spec's *Ours*: the nearest air base a carrier's groups go to, the
-  order the planes' load button looks in, and a paradrop's start moved on only when its row is
-  ticked and when accepted.
+  are ours and listed in the spec's *Ours*: the nearest air base a carrier's groups go to and the
+  order the planes' load button looks in - a paradrop's start is held every frame while its row is ticked since
+  2026-11-14, as the original's (`transport.md`, section 13.4).
+- **A fleet's `select_land` and `select_air` buttons do nothing** (found by the maintainer, 2026-11-14): the panel of
+  a fleet or an air unit carrying others (`CLoadedUnitsEntry`) finds both and greys them always, where the original's
+  select every land unit aboard and every carrier air group aboard its carriers, each pressable where any is
+  (`transport.md`, section 12; `UW_SELECT_LAND`, `UW_SELECT_AIR`). What a press does beyond selecting -
+  whether it centres the map, and what becomes of the fleet's own selection - was not read.
+- **A fleet's and an air unit's strength figure is empty** (found by the maintainer, 2026-11-14): the unit panel's
+  `unitstrength` shows a land unit's men and nothing for a fleet or an air unit (`CUnitPanelText.Strength`), where the
+  original shows their count of ships or wings - the figure for those was not read (`unitpanel.md`, section 3).
 - ~~**A raid from the air is not built**, nor any message about a raid~~ - **built 2026-11-14**: the raid on convoys
   from the air, its pick of a province and its bombing of a convoy's ships, and the three messages of a raid,
   read out of the original and tried with `OpenHOI3.SaveCheck raid ... air` (`navalmissions.md`, sections 8.1 to 8.3).
@@ -2466,11 +2475,10 @@ None of these blocks the list above.
   game can be joined or left.
 - **A fleet whose last ship is sunk is removed from the game at once**; what the original
   does with an empty fleet was not followed.
-- **Seven countries that do not exist make about a tenth fewer supplies than the save says.**
-  Sixteen of 23 agree. The maintainer's pointer for when it is taken up: a minister effect
-  on supplies, and triggered modifiers that give supplies - applied since 2026-10-14, and
-  this not checked against them since.
-  `docs/mechanics/production.md`, section 7.
+- ~~**Seven countries that do not exist make about a tenth fewer supplies than the save says.**~~ All 23 do since
+  2026-11-14: the start-date run's "supplies made in a day, where nothing has moved the shares" gives 23 of 23, the
+  shares set where the original sets them and the Lua's changes of law run after the two days
+  (`reversing/findings/FINDINGS-startshares.md`; `docs/mechanics/production.md`, sections 1 and 7).
 - **What a province yields is now read, and is still computed as it was measured.** The
   original takes the technology first and then one factor that is the sum of the province's
   and the country's modifiers; here they are multiplied in turn. They agree with the save for
@@ -2480,20 +2488,15 @@ None of these blocks the list above.
   he holds it and nothing elsewhere (`CSupplyMapColours`), though what a country knows of every province is worked out
   since 2026-10-14 (`intelligence.md`), so every other country's land is the grey the original gives land one knows
   nothing of; and its tooltip says of anybody else's province only its name and owner. `docs/mechanics/supplymap.md`.
-- **A new game's laws are brought forward before its two days, and none is changed after them.**
-  The original's AI changes laws for every country, some before the days and some after; a change of law holds every
-  brigade to the running game's ceilings, which is why the original's first screen shows reserves already down. Here
-  the laws move before the days (`politics.md`, sections 12 and 13) and nothing holds a brigade after them, so a reserve
-  stands at its own figure of organisation on the first screen - Germany's at 35 to the start save's 28,
-  `OpenHOI3.SaveCheck firstdays` on 2026-11-12 -
-  and the first hour played brings it down - **unless the unit is sent to attack before
-  that hour is run**, since a unit that is fighting gets no hourly return and so is not
-  held either: a German reserve division then fights its first battle at 35 where its
-  ceiling is 14. Holding every brigade once the days are run would close it; that is not
-  what the original does, and the maintainer's word on 2026-10-10 was to leave it: "The
-  two days for the brigades is ok for now. Maybe it comes up again later." `tick.md`, section 6.
-  **To be investigated again**, by his word of 2026-11-12: what holds the original's reserves down by its first screen,
-  and how ours can come to the same figures.
+- ~~**A new game's laws are brought forward before its two days, and none is changed after them.**~~ Investigated as the
+  maintainer asked on 2026-11-12, and answered on 2026-11-14: the engine's own pass brings the laws forward before the
+  days, and **the install's Lua's changes of law go through the command queue and run after them**, which is what holds
+  every brigade to the running game's ceilings by the first screen. Built so (`politics.md`, section 12; `tick.md`,
+  section 6): `OpenHOI3.SaveCheck firstdays` gives every brigade's organisation the start save's, 3,792 of 3,792 -
+  Germany's reserves at 28 where they stood at 35 - so a reserve sent to attack before the first hour no longer fights
+  above its ceiling. **Left**: that the Lua's changes run after the days rests on the command route and the save, not
+  on the queue's drain read off the bytes (`inferred`); a breakpoint on the law command while a new game is entered
+  would settle it (`reversing/findings/FINDINGS-startshares.md`, section 2).
 - **A counter always carries its unit's name**, where the original reads the player's `show_unit_names`: on, a near
   counter carries the unit's name cut to eight letters, and `???` below intelligence 5; off - a new install's default -
   its leader's name, and nothing for a unit with none (`docs/compatibility.md`, entry 7, which ended with the settings;
@@ -2515,11 +2518,14 @@ None of these blocks the list above.
   left wants more change of structure: the supply filling's networks passed side by side, which is checked against saves
   network for network, and the passes of a new game country by country. A loaded 1941 game held the main thread 2.5 s
   after the surface was kept, not measured before it and not looked into.
-- **A province's days out of supply are not counted**, and nothing is raised on its first.
-- **The fuel a new game starts with is exact for 18 countries of 76** and close for about
-  twenty more, but twenty-five hold 2% to 19% more in the save than the rule gives -
-  Germany 9%, France 19%, landlocked Czechoslovakia 14%. What they have in common was not
-  found, so something is missing from the sum. `docs/mechanics/upkeep.md`, the end.
+- ~~**A province's days out of supply are not counted**, and nothing is raised on its first.~~ Counted since 2026-11-14,
+  read and written in a save, and `on_encirclement` raised on the first day where the area is landlocked (`supply.md`,
+  section 18); Their Finest Hour's ids there are no events.
+- ~~**The fuel a new game starts with is exact for 18 countries of 76**~~ - a new game's fuel is the start save's for
+  76 of 78 countries since 2026-11-14 (`OpenHOI3.SaveCheck firstdays`: the Soviet Union 0.053 and Colombia 0.006
+  apart), the opening laws and shares now standing where the original's do. The 18 of 76 is still what the start-date
+  run's day-nought sum gives ("fuel at the start: all a country's provinces hold, less two days' refining"), which
+  reasons from the files and not from a game's own first days. `docs/mechanics/upkeep.md`, the end.
 - **The AI's politics neither liberates a country nor releases a puppet** (2026-10-14, `politics.md`, sections 11.1
   and 12): both stay reported as unbuilt. What repeats a new game's look at the laws in the original
   was not found, and a minister's hour rests on a numbering of countries that is ours.
@@ -2541,11 +2547,11 @@ None of these blocks the list above.
   checkbox: every country starts with it on, as in the original, and nothing here changes it for any
   other country.
 - **A block of a unit type is read and not kept**: `extra_amphibious_defence`.
-- **A new game's manpower is the original's for 43 countries of 78**: Germany begins with 469 here and 882
-  there, though its laws are the start save's since 2026-11-02 (`OpenHOI3.SaveCheck firstdays`, 2026-11-12;
-  `politics.md`, section 13); why was not looked into. The United States' 1,051 against 255 is the decision its AI
-  takes at once in the original, which costs it three quarters of its manpower. `docs/mechanics/manpower.md`,
-  sections 4 and 6.
+- ~~**A new game's manpower is the original's for 43 countries of 78**~~ - 78 of 78 since 2026-11-14
+  (`OpenHOI3.SaveCheck firstdays`): a new game's pool starts at its most after the engine's pass of the laws, which is
+  Germany's 882, and the history's decisions are taken as a game is set up - the United States' `new_deal`, which
+  costs it the 40% that left 255 (`reversing/findings/FINDINGS-startshares.md`, sections 2 and 4;
+  `docs/mechanics/manpower.md`, sections 4 and 6; `events.md`, section 13).
 - **Strategic resources are not shared across continents**: the link by a naval base on the same sea region needs to
   know what the original means by a sea region. `docs/mechanics/modifiers.md`, sections 6 and 7.
 - **A resource once had is never lost here, and that the original behaves so is only
@@ -2570,11 +2576,12 @@ None of these blocks the list above.
   hour before each day, where the original - and now the game - has one hour after both.
   The two give the same figures on the start save. `OpenHOI3.SaveCheck supplypass ...
   countries` is the check that runs the game's own first days (`tick.md`, section 6).
-- **The laws the original's first two days ran under are not all known.** Its AI changes
-  a country's training law and industrial policy more than once before the first screen,
-  and both set what an upgrade costs and how long it takes. Germany's two days fit its
-  history's training law and not the one its save shows; the savegame check tries both
-  for every country and says which fitted. `docs/mechanics/upkeep.md`, section 9.
+- ~~**The laws the original's first two days ran under are not all known.**~~ Known since 2026-11-14: the laws the
+  engine's pass brings forward, the install's Lua's own changes coming only after the days
+  (`reversing/findings/FINDINGS-startshares.md`, section 2). The start-date run, which loads the save's laws, says which
+  countries fit only with their history's put back - on 2026-11-14 sixteen, every one by its industrial policy and none
+  by its training law (`docs/mechanics/upkeep.md`, section 9). That the Lua's changes run after the days is `inferred`,
+  as the entry on a new game's laws above says.
 - **An icon or a button is the pixel size of its texture.** That is right for the
   original's art and is the one thing a sharper replacement must not change; what says
   the size a texture was designed at is still not decided (*The interface*, above).
