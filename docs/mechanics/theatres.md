@@ -35,7 +35,11 @@ is one of a province's edges in their order (`movement.md`, section 2); **an imp
    section 1); and one whose prepared war on a neighbour is dropped (`aistrategy.md`, 9.4).
 4. **Made from nothing at once** for a country nobody plays, in a running game, wherever its strategy is made again at
    once: a war joined or left, a faction joined, a peace (`aistrategy.md`, section 1); for a played country there, only
-   refreshed.
+   refreshed. **Checked against the original's own build, called on the running game** at the war's start (Germany, 23
+   hours after `Ireland1939_09_06_18`, once Australia's joining the Allies has made its war change): the same four
+   theatres, the old two kept by overlap and two new ones of 3 fronts and 1, not hot, with 182, 103, 53 and 31 provinces
+   in both - only the new ids differ. The hourly mark's refresh at that state makes none, in both
+   (`reversing/findings/FINDINGS-liveread.md`, section 90).
 
 ## 2. An area's fronts
 

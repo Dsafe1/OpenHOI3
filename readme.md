@@ -223,7 +223,9 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    load; a unit at sea may not be shipped at war, so the 2nd fills Lerwick. The July 1941 series' shared ways went 186 to
    215 and its own alone 114 to 78. At the war's start the staging draw shifts the AI's generator, a German diplomacy
    change remakes Germany's theatres and a western one neither run makes moves its divisions: Germany's ways alone 17 to
-   46 - whether the original's own remake would make that theatre is the next thing to read.
+   46. **That remake is the original's** (section 90): its own build from nothing, called on the running game at the same
+   hour, makes the same four theatres province for province; what neither run had is the trigger - Britain's
+   invitation to Australia, which the install's Lua makes only on a one-in-seven draw of the AI's generator.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
