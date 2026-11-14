@@ -161,7 +161,7 @@ Each new theatre N, in order, is set beside the country's old theatres: the **ov
 provinces x 1000 / the old one's provinces`, and the first old one to reach **500** is taken. Taken, it takes N's fronts,
 provinces, key provinces and areas, **keeping its own number and headquarters**, and N is dropped; not, N stands. Each
 old theatre left over is dropped, and **its headquarters disbanded**. A theatre's key provinces it no longer holds are
-dropped. Then the theatres are looked after (section 9) as in the country's own hour.
+dropped. Then the theatres are looked after (section 9) as in the country's own hour, and the friends are told (8.1).
 
 ## 8. Refreshed
 
@@ -170,7 +170,20 @@ in an area of one province, the theatre whose headquarters commands a land unit 
 the theatre most of its neighbours (by edges not impassable, the country's) are in, the first of equals; else the
 theatre with the nearest province. Each theatre's provinces the country no longer holds leave it. Then each theatre's
 fronts are made again: for each of its areas, the country's fronts of it (section 3), each keeping only the theatre's
-provinces, given to it (5.6), the theatre hot if one is. Then the theatres are looked after as in the country's hour.
+provinces, given to it (5.6), the theatre hot if one is. Then the theatres are looked after as in the country's hour,
+and the friends are told.
+
+### 8.1 The friends told
+
+At the end of a build (section 7) and of a refresh, where the country holds at least one province: every other country
+it fights a war beside and is not at war with - the rebels never - that holds a province itself has each of its agents
+bound to a theatre headquarters marked **area dirty** (agents.md, section 8) where any of the country's theatres is
+connected to that agent's theatre - the two share an area, or the country's headquarters can reach the province theirs
+stands in by land (the reach test of agents.md, section 6.4). That agent's next hour sets its area again, and so is a
+full pass. So one province changing hands sets off a full pass for every friend near: on 17 July 1941, 12:00, Barce
+passing from Italy to Britain gave Bulgaria's divisions in Serbia new places in the line and its 1-va Armija a new
+command province, in all three runs of the original (`reversing/findings/FINDINGS-liveread.md`, section 83). The
+original's list of those countries (`non_hostile_countries`) is made once a day; **ours** asks it as it stands.
 
 ## 9. Looked after, every hour
 

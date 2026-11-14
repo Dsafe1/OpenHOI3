@@ -192,6 +192,12 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    one, keeps its commander, and a command is scored by how far the unit is beyond *its* reach - Italy's army group no
    longer walks to two armies the original never gives it, nor do Canada's, Spain's, China's, Brazil's, Argentina's or the
    United States' headquarters move; ways no run of the original gives 84, mostly the Soviet Union's and Germany's.
+   With the friends told when a country's theatres are made or refreshed, and an agent's full pass asked after its area
+   (section 83), a province changing hands sets off a full pass that hour for every friend near - Barce's capture moves
+   Bulgaria's divisions in Serbia as all three runs do - and the ways all three give that ours did not fall 12 to 5. What
+   is left is mostly downstream of a battle at 2390 that ours wins at hour 45 (an attack at hour 5 at odds just over the
+   bar) and of Sinkiang joining the Comintern at 18:00 on the second day, which is the install's Lua drawing its
+   invitation (`math.random(10)`) where none of the original's three runs drew it.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

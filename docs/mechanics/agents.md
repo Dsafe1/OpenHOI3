@@ -84,7 +84,9 @@ country nobody plays - **every unit is put under the theatre it stands in**:
 
 hour = the hour of the day; A0 = the country's number % 24, A3 = (number + 3) % 24, A6 = (number + 6) % 24, A9 = (number +
 9) % 24. **The full pass** is hour A6, or **full pass pending** - set as an agent is made and whenever its area is set
-(section 8), cleared when a full pass has run.
+(section 8), cleared when a full pass has run. It is asked after step 5 below, so **an area set in step 1 makes the same
+hour's pass full** (`reversing/findings/FINDINGS-liveread.md`, section 83: the original asks it after the area and the
+focus areas).
 
 1. **Area dirty**, or hour 1 on a day of the year divisible by 7 (from 0, 1 January; 365 days): the area is set
    (section 8).

@@ -21,7 +21,6 @@ public static class CAgentTick
 		int a3 = (number + 3) % CGameState.HoursPerDay;
 		int a6 = (number + 6) % CGameState.HoursPerDay;
 		int a9 = (number + 9) % CGameState.HoursPerDay;
-		bool full = hour == a6 || agent.FullPassPending;
 
 		if (agent.AreaDirty || (hour == 1 && dayOfYear % 7 == 0))
 		{
@@ -44,6 +43,9 @@ public static class CAgentTick
 		{
 			CFocusAreas.Rebuild(state, country, agent, theatre);
 		}
+		// The full pass is asked for here, after the area was set: an area set this hour makes this hour's pass full
+		// (FINDINGS-liveread.md, section 83).
+		bool full = hour == a6 || agent.FullPassPending;
 		CAgentProfile.Time(state, "the coverage", () => CFrontCoverage.Update(state, country, agent));
 		if (agent.ReplanSubordinates || hour == a9 || full)
 		{

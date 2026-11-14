@@ -84,6 +84,7 @@ public static class CTheatreRefresh
 			return;
 		}
 		CTheatreUpkeep.Maintain(state, country, isMyHour: true);
+		CTheatreFriends.Tell(state, country);
 		country.Strategy.TheatresDirty = false;
 	}
 

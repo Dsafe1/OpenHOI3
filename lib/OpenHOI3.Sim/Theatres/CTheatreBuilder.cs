@@ -62,6 +62,7 @@ public static class CTheatreBuilder
 		Merge(state, country, made);
 		SetBesideOld(state, country, made);
 		CTheatreUpkeep.Maintain(state, country, isMyHour: true);
+		CTheatreFriends.Tell(state, country);
 		country.Strategy.TheatresDirty = false;
 	}
 

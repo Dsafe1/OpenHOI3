@@ -418,6 +418,40 @@ public class AgentTests
 	}
 
 	[Fact]
+	public void A_theatre_build_marks_the_theatre_agent_of_a_friend_fighting_beside_it_whose_headquarters_it_can_reach()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		CCountry holland = state.Country(Hol)!;
+		Bound(state);
+		var hq = new CUnit(EUnitKind.Theatre, Hol) { Id = ++_nextId, Location = 32, Name = "Den Haag HQ" };
+		var brigade = new CSubUnit(state.SubUnitTypes[CTheatreHeadquarters.HqBrigade]) { Id = ++_nextId, Unit = hq };
+		CUnits.RebuildStats(brigade);
+		hq.SubUnits.Add(brigade);
+		holland.Units.Add(hq);
+		state.ForgetPositions();
+		CTheatreBuilder.Build(state, holland);
+		CAgent dutch = Assert.Single(holland.UnitAi.Agents);
+		CAgents.BindAndAttachOrphans(state, holland);
+		Drain(state);
+		Assert.Same(hq, dutch.Unit);
+
+		// At peace with nobody beside it: nothing.
+		dutch.AreaDirty = false;
+		CTheatreBuilder.Build(state, germany);
+		Assert.False(dutch.AreaDirty);
+
+		// Fighting Poland beside Germany, and reached by Germany's headquarters overland (FINDINGS-liveread.md, section 83).
+		var war = new CWar("war");
+		war.Attackers.Add(Ger);
+		war.Attackers.Add(Hol);
+		war.Defenders.Add(Pol);
+		state.Wars.Add(war);
+		CTheatreBuilder.Build(state, germany);
+		Assert.True(dutch.AreaDirty);
+	}
+
+	[Fact]
 	public void A_hot_theatre_aims_at_every_province_with_points_beyond_its_front_at_twenty_a_point()
 	{
 		CGameState state = World();
