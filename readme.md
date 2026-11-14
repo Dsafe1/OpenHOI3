@@ -205,6 +205,10 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    the runs' on day 14 went 857 to 869, on day 30 825 to 831 and 834 to 850; Italy's divisions in Italy are now the most
    of what both runs share and ours misses. The agents check's `places=FILE` writes every division's place and way for
    setting two runs beside ours.
+   **A war's start is set beside two runs of the original too** (section 85): 48 hours from `Ireland1939_09_06_18`, Germany
+   six days into Poland, where the runs agree on 122 new ways and one alone gives 34. With the uncovered count leaving out
+   the province attacked, ours gives 77 of the runs' shared ways where it gave 54, misses 33 where it missed 54, and gives
+   46 of its own alone where 52 - still the furthest of the three tests from the original, and the next place to look.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

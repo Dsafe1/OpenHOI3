@@ -378,8 +378,12 @@ ascending, a new candidate put before the first of a higher cost (read again 202
 stance's bar (5 at stance 2, 3 at 4, else 4) and its province has more than one enemy neighbour; and, where p's area has
 more than 5 provinces, not shared, and p is defended or the stance under 3, strength under 0.7/0.5/0.6 or organisation
 under 0.75/0.5/0.6 (stance 2/4/else). It **must stay** - and supports rather than marches - where something beside it is
-a defended enemy province nobody is bound for, where it stands draws on a depot, nobody there can stand in for it, and it
-does not stand in a target province. A stand-in is a land unit there that is not a headquarters, in no battle, bound
+**uncovered**, where it stands draws on a depot, nobody there can stand in for it, and it does not stand in a target
+province. **Uncovered** neighbours of its province, by edges not impassable, in a real area and held by an enemy - **p
+itself left out** - are those where anybody stands or the holder's friends are stepping in (any, where the unit's area is
+one province and the neighbour's more than five) that no land unit of the country standing in the unit's province is bound
+for - at stance 4, none of the country's at all (*read* on the listing, `reversing/findings/FINDINGS-liveread.md`,
+section 85: at 21:00 on 6 September 1939 the 36. Infanterie-Division (mot) beside nothing but its target goes in). A stand-in is a land unit there that is not a headquarters, in no battle, bound
 nowhere, not reserved for transport and **not already joined to this attack**, of the country's own or of a co-belligerent
 it is not at war with, neither of them the rebels. So of three units in one province the last to join supports, the two
 before it each having had a stand-in (*measured* on the running game, `reversing/findings/FINDINGS-liveread.md`, section

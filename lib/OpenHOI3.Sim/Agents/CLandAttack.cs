@@ -395,7 +395,7 @@ public static class CLandAttack
 					continue;
 				}
 			}
-			bool stay = MustStay(state, country, agent, unit, attackers);
+			bool stay = MustStay(state, country, agent, unit, attackers, p.Id, effStance);
 			attackers.Add(unit);
 			long trial = CAttackOdds.Of(state, attackers, defenders, p);
 			if (odds > trial)
@@ -510,10 +510,11 @@ public static class CLandAttack
 	/// not - and it is not in a target area (<c>reversing/findings/FINDINGS-aiconsumer.md</c>;
 	/// <c>reversing/findings/FINDINGS-liveread.md</c>, section 54).
 	/// </summary>
-	private static bool MustStay(CGameState state, CCountry country, CAgent agent, CUnit unit, List<CUnit> attackers)
+	private static bool MustStay(CGameState state, CCountry country, CAgent agent, CUnit unit, List<CUnit> attackers, int target,
+		int stance)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
-		if (Uncovered(state, country, unit.Location) == 0 || network.DepotOf(unit.Location) == 0)
+		if (Uncovered(state, country, unit, target, stance) == 0 || network.DepotOf(unit.Location) == 0)
 		{
 			return false;
 		}
@@ -547,29 +548,79 @@ public static class CLandAttack
 		return CSupplyRelations.IsFightingWith(state, country, owner) && !CCountryLists.IsEnemy(state, country, other.Owner);
 	}
 
-	/// <summary>The enemy provinces beside one where an enemy stands and nobody of the country is bound.</summary>
-	private static int Uncovered(CGameState state, CCountry country, int province)
+	/// <summary>
+	/// The original's <c>ai_uncovered_enemy_neighbours</c>, worked out for the unit and the province it is offered: the
+	/// neighbours of its province, by edges not impassable, in a real area and held by an enemy - **the target itself left
+	/// out** - where anybody stands or the holder's friends are stepping in (or any such neighbour, where the unit's area is
+	/// one province and the neighbour's more than five), that no land unit of the country in the unit's province is bound
+	/// for - nor, at stance 4, any of the country's (<c>reversing/findings/FINDINGS-liveread.md</c>, section 85).
+	/// </summary>
+	private static int Uncovered(CGameState state, CCountry country, CUnit unit, int target, int stance)
 	{
+		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		CSupplyArea? own = network.AreaOf(unit.Location);
 		int count = 0;
-		foreach (CProvinceEdge edge in state.Province(province).Edges)
+		foreach (CProvinceEdge edge in state.Province(unit.Location).Edges)
 		{
 			CProvince r = state.Province(edge.To);
-			if (r.IsSea || !IsEnemyHeld(state, country, edge.To) || !HasLandUnit(state, edge.To))
+			if (edge.Kind == EProvinceEdgeKind.Impassable || r.IsSea || network.AreaOf(edge.To) is not { } area
+				|| !IsEnemyHeld(state, country, edge.To) || edge.To == target)
 			{
 				continue;
 			}
-			bool attacked = false;
-			foreach (CUnit unit in country.AllUnits())
+			bool lone = own is not null && own.Provinces.Count == 1 && area.Provinces.Count > 5;
+			if (!lone && state.Positions.Of(edge.To).Count + SteppingIn(state, r) < 1)
 			{
-				if (CAgentUnits.Destination(unit) == edge.To)
+				continue;
+			}
+			bool covered = false;
+			foreach (CUnit other in state.Positions.Of(unit.Location))
+			{
+				if (CTheatres.IsLand(other) && other.Owner == country.Tag && CAgentUnits.Destination(other) == edge.To)
 				{
-					attacked = true;
+					covered = true;
 					break;
 				}
 			}
-			if (!attacked)
+			if (!covered && stance == CUnitPlan.Blitzing)
+			{
+				foreach (CUnit other in country.AllUnits())
+				{
+					if (CTheatres.IsLand(other) && CAgentUnits.Destination(other) == edge.To)
+					{
+						covered = true;
+						break;
+					}
+				}
+			}
+			if (!covered)
 			{
 				count++;
+			}
+		}
+		return count;
+	}
+
+	/// <summary>
+	/// The land units beside a province whose next step is into it, of its holder or a friend of the holder's: the original's
+	/// <c>CollectUnitsMovingIntoProvince</c> asked for friends.
+	/// </summary>
+	private static int SteppingIn(CGameState state, CProvince province)
+	{
+		if (state.Country(province.Controller) is not { } holder)
+		{
+			return 0;
+		}
+		int count = 0;
+		foreach (CProvinceEdge edge in province.Edges)
+		{
+			foreach (CUnit other in state.Positions.Of(edge.To))
+			{
+				if (CTheatres.IsLand(other) && other.IsMoving && other.Path[0] == province.Id
+					&& CCountryLists.IsFriend(state, holder, other.Owner, withAccess: false))
+				{
+					count++;
+				}
 			}
 		}
 		return count;
