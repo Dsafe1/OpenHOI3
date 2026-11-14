@@ -555,6 +555,14 @@ public partial class CSession : Node
 		_topBar.PoliticsPressed += () => Toggle(_politics);
 		_topBar.IntelligencePressed += () => Toggle(_espionage);
 		_topBar.TheatresPressed += () => Toggle(_theatres);
+		// A screen's own close button is the same toggle in the original, the selection cleared with it (countryviews.md, section 1).
+		foreach (CCountryView? view in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage, _theatres })
+		{
+			if (view is not null)
+			{
+				view.CloseRequested += () => Toggle(view);
+			}
+		}
 		_topBar.StatisticsPressed += () => _statistics?.Toggle();
 		_topBar.StrategicWarfarePressed += () => _warfare?.Toggle();
 
@@ -1004,15 +1012,22 @@ public partial class CSession : Node
 		}
 	}
 
+	/// <summary>
+	/// A country screen opened, or shut where it is the one open - the original's one toggle for the top bar's buttons, the
+	/// screens' close buttons, the alerts and the rest. Either way the side menus close and **the selection is cleared**, units
+	/// and provinces alike, as the original's toggle ends (countryviews.md, section 1).
+	/// </summary>
 	private void Toggle(CCountryView? view)
 	{
 		if (view is null)
 		{
 			return;
 		}
+		_deployMenu?.Close();
 		if (view.IsOpen)
 		{
 			view.Close();
+			_mapView.ClearSelection();
 			return;
 		}
 		_statistics?.Shut();
@@ -1024,14 +1039,21 @@ public partial class CSession : Node
 			}
 		}
 		view.Open();
+		_mapView.ClearSelection();
 	}
 
-	/// <summary>Every country screen shut, as the Statistics screen does when it opens.</summary>
+	/// <summary>
+	/// Every country screen shut, as the Statistics screen does when it opens: through the original's toggle where one is
+	/// open, so the selection is cleared then and only then (topscreens.md, section B.1).
+	/// </summary>
 	private void CloseCountryViews()
 	{
 		foreach (CCountryView? view in new CCountryView?[] { _production, _technology, _diplomacy, _politics, _espionage, _theatres })
 		{
-			view?.Close();
+			if (view is { IsOpen: true })
+			{
+				Toggle(view);
+			}
 		}
 	}
 

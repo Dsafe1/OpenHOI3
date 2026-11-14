@@ -39,6 +39,9 @@ public abstract partial class CCountryView : Control
 	/// <summary>Raised when the screen goes up or comes down.</summary>
 	public event Action? Toggled;
 
+	/// <summary>Raised by the close button, for the game screen's toggle; with nobody listening the screen closes itself.</summary>
+	public event Action? CloseRequested;
+
 	/// <summary>Has to be called before the node enters the tree.</summary>
 	public void Setup(CGuiContext context, CSimulation simulation, CCountry player)
 	{
@@ -96,7 +99,17 @@ public abstract partial class CCountryView : Control
 
 		if (Window.TryFindButton("close_button") is { } close)
 		{
-			close.Pressed += Close;
+			close.Pressed += () =>
+			{
+				if (CloseRequested is { } requested)
+				{
+					requested();
+				}
+				else
+				{
+					Close();
+				}
+			};
 		}
 		_automationLine = Window.FindTextBox("automation_setting");
 		_arrowLeft = Window.TryFindButton("mode_arrow_left");
