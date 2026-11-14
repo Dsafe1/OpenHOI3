@@ -14,8 +14,9 @@ namespace OpenHOI3.Sim.Modifiers;
 /// A resource is worth as much as the infrastructure of the province it is in is
 /// intact, to whoever controls the province and to the bigger members of its faction.
 /// A country's figure for a resource is the best any such province gives, and once
-/// reached it is kept: nothing found in the original takes it down again, which is a
-/// search coming up empty and not something seen in a running game.
+/// reached it is kept for as long as the game runs - nothing in the original takes it down
+/// but a new session, which a load is: a loaded game works every figure out again from
+/// the provinces as they stand.
 /// </summary>
 public static class CStrategicResources
 {
@@ -54,9 +55,18 @@ public static class CStrategicResources
 	/// Otherwise the two must not be at war with each other, and either they are in one faction and the
 	/// receiver is a major or has a large industry, or the receiver leads a faction at war and the holder
 	/// stands outside it within the bonus distance of its corner; and their capitals must be on
-	/// one continent.
+	/// one continent, or both have a naval base on one of the coastlines' regions.
 	/// </summary>
 	public static bool GetsFrom(CGameState state, CCountry receiver, CCountry holder)
+	{
+		return GetsFrom(state, receiver, holder, new CCoastlineReach(state));
+	}
+
+	/// <summary>
+	/// <see cref="GetsFrom(CGameState, CCountry, CCountry)"/>, with the naval bases' coastlines worked out once for
+	/// as many questions as are asked of one game state.
+	/// </summary>
+	public static bool GetsFrom(CGameState state, CCountry receiver, CCountry holder, CCoastlineReach coastlines)
 	{
 		if (ReferenceEquals(receiver, holder))
 		{
@@ -81,7 +91,12 @@ public static class CStrategicResources
 
 		string here = state.Province(receiver.ActingCapital).Continent;
 		string there = state.Province(holder.ActingCapital).Continent;
-		return here.Length > 0 && here.Equals(there, StringComparison.OrdinalIgnoreCase);
+		if (here.Length > 0 && here.Equals(there, StringComparison.OrdinalIgnoreCase))
+		{
+			return true;
+		}
+		// Failing that, by sea: a naval base of each beside one region of map/coastlines.txt.
+		return coastlines.Links(receiver, holder);
 	}
 
 	private static bool AreAtWar(CGameState state, CCountryTag one, CCountryTag other)
@@ -104,6 +119,7 @@ public static class CStrategicResources
 	public static void Update(CGameState state)
 	{
 		HashSet<string> landowners = CManpower.Landowners(state);
+		var coastlines = new CCoastlineReach(state);
 		foreach (CProvince province in state.Provinces)
 		{
 			if (province.StrategicResource.Length == 0 || state.Country(province.Controller) is not { } holder)
@@ -114,7 +130,7 @@ public static class CStrategicResources
 			CFixedPoint efficiency = Efficiency(province);
 			foreach (CCountry country in state.Countries)
 			{
-				if (!landowners.Contains(country.Tag.Value) || !GetsFrom(state, country, holder))
+				if (!landowners.Contains(country.Tag.Value) || !GetsFrom(state, country, holder, coastlines))
 				{
 					continue;
 				}

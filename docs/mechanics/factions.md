@@ -150,7 +150,8 @@ A country is given another's strategic resources (`modifiers.md`, section 6) by 
 a major, or a country with more than 100 base IC, by any member of its faction; and **a faction's leader at
 war, by any country outside the faction whose place on the triangle is within `FACTION_STRAT_BONUS_DIST`
 (100) of the faction's corner** - not of the leader - strictly under, the squares compared in thousandths.
-Either way the two must not be at war with each other and their capitals must be on one continent.
+Either way the two must not be at war with each other, and their capitals must be on one continent or each
+must have a naval base beside one of the coast regions `map/coastlines.txt` names (`modifiers.md`, section 6).
 
 ## 7. A faction's progress
 

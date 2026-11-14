@@ -22,6 +22,8 @@ public class CountryModifierTests
 	/// <summary>Not a building of the original's: something that takes half a province's infrastructure away.</summary>
 	private static readonly CBuilding Ruin = new(2, "ruin", 1, "local_infrastructure", CFixedPoint.Parse("-0.5"));
 
+	private static readonly CBuilding NavalBase = new(3, "naval_base", 10, "naval_base_efficiency", CFixedPoint.Zero);
+
 	private static CModifier Modifier(string name, params (string Kind, string Value)[] values)
 	{
 		var modifier = new CModifier(name);
@@ -60,6 +62,12 @@ public class CountryModifierTests
 
 	private static CGameState State(CCountry[] countries, CProvince[] provinces, params CWar[] wars)
 	{
+		return State(countries, provinces, System.Array.Empty<CRegion>(), System.Array.Empty<int>(), wars);
+	}
+
+	private static CGameState State(CCountry[] countries, CProvince[] provinces, CRegion[] regions, int[] coastlines,
+		params CWar[] wars)
+	{
 		var all = new List<CProvince> { new(0, "", isSea: false) };
 		all.AddRange(provinces);
 
@@ -81,9 +89,37 @@ public class CountryModifierTests
 			Modifier("black_soil", ("global_manpower_modifier", "0.1")),
 		};
 		var categories = new[] { new CTechnologyCategory("naval_engineering", true) };
-		return new CGameState(new CDate(1936, 1, 10), all, countries, new[] { Infra, Industry, Ruin },
+		var state = new CGameState(new CDate(1936, 1, 10), all, countries, new[] { Infra, Industry, Ruin, NavalBase },
 			staticModifiers: statics, defines: defines, wars: wars, strategicResources: resources,
-			technologyCategories: categories);
+			technologyCategories: categories)
+		{
+			Regions = regions,
+			CoastlineRegions = coastlines,
+		};
+		// What the map loader does: each province is given the regions that list it, in their order.
+		for (int index = 0; index < regions.Length; index++)
+		{
+			foreach (int id in regions[index].Provinces)
+			{
+				state.Provinces[id].Regions.Add(index);
+			}
+		}
+		return state;
+	}
+
+	/// <summary>A sea province, and the land beside it.</summary>
+	private static CProvince Sea(int id)
+	{
+		return new CProvince(id, $"S{id}", isSea: true);
+	}
+
+	/// <summary>Gives a land province a naval base on the sea beside it.</summary>
+	private static CProvince Port(CProvince land, int sea, int level = 1)
+	{
+		land.Edges = new[] { new CProvinceEdge(sea, EProvinceEdgeKind.Plain, 0, CFixedPoint.Zero) };
+		land.SetBuildingMaxLevel(NavalBase, CFixedPoint.FromInt(level));
+		land.SetBuildingLevel(NavalBase, CFixedPoint.FromInt(level));
+		return land;
 	}
 
 	private static CSimulation RunADay(CGameState state)
@@ -146,8 +182,8 @@ public class CountryModifierTests
 	[Fact]
 	public void AResourceOnceHadIsKeptWhenTheProvinceIsLost()
 	{
-		// The original's one routine for the figure only raises it, and nothing was found
-		// that takes it down again. Likely, not confirmed: modifiers.md, section 6.
+		// The original's one routine for the figure only raises it, and nothing else in it
+		// writes the figure but a new session's reset (modifiers.md, section 6).
 		CCountry holland = Country("HOL", 1);
 		CCountry japan = Country("JAP", 3);
 		CProvince goldfield = Land(2, "HOL", "gold");
@@ -217,6 +253,72 @@ public class CountryModifierTests
 			new[] { Land(1, "SAF", "gold", continent: "africa"), Land(2, "ENG") });
 		RunADay(state);
 
+		Assert.Equal(CFixedPoint.Zero, britain.Modifier["global_money"]);
+	}
+
+	/// <summary>
+	/// South Africa's gold and the United Kingdom on another continent: a naval base of each beside the seas 4 and 5. The
+	/// regions are 0, the seas' own, listing both, and 1 and 2, one sea each; <paramref name="coastlines"/> is which of
+	/// them coastlines.txt names.
+	/// </summary>
+	private static (CCountry Britain, CGameState State) Coasts(int[] coastlines, string britainsBaseHolder = "ENG",
+		int southAfricasBase = 1)
+	{
+		CCountry southAfrica = Country("SAF", 1, "allies");
+		CCountry britain = Country("ENG", 2, "allies", major: true);
+		CCountry france = Country("FRA", 6, "allies");
+		CProvince britishBase = Port(Land(3, "ENG"), 5);
+		britishBase.Controller = new CCountryTag(britainsBaseHolder);
+		var regions = new[]
+		{
+			new CRegion("both_seas", new[] { 4, 5 }, false),
+			new CRegion("atlantic_coast_region", new[] { 4 }, false),
+			new CRegion("north_sea_region", new[] { 5 }, false),
+			new CRegion("indian_coast_region", new[] { 4, 5 }, false),
+		};
+		CGameState state = State(new[] { southAfrica, britain, france }, new[]
+		{
+			Port(Land(1, "SAF", "gold", continent: "africa"), 4, southAfricasBase), Land(2, "ENG"), britishBase, Sea(4), Sea(5),
+			Land(6, "FRA"),
+		}, regions, coastlines);
+		RunADay(state);
+		return (britain, state);
+	}
+
+	[Fact]
+	public void AFactionOnAnotherContinentSharesThroughNavalBasesOnOneOfTheCoastlines()
+	{
+		(CCountry britain, _) = Coasts(new[] { 3 });
+		Assert.Equal(CFixedPoint.Parse("0.33"), britain.Modifier["global_money"]);
+	}
+
+	[Fact]
+	public void TwoCoastlinesDoNotJoinThoughARegionOffTheListHoldsBothSeas()
+	{
+		// Regions 1 and 2 are each touched by one country only; region 0 by both, but coastlines.txt does not name it.
+		(CCountry britain, _) = Coasts(new[] { 1, 2 });
+		Assert.Equal(CFixedPoint.Zero, britain.Modifier["global_money"]);
+	}
+
+	[Fact]
+	public void NoCoastlinesNoLinkBySea()
+	{
+		(CCountry britain, _) = Coasts(System.Array.Empty<int>());
+		Assert.Equal(CFixedPoint.Zero, britain.Modifier["global_money"]);
+	}
+
+	[Fact]
+	public void ANavalBaseCountsForWhoeverControlsIt()
+	{
+		// The British base held by France: France has a base on the coast, the United Kingdom none.
+		(CCountry britain, _) = Coasts(new[] { 3 }, britainsBaseHolder: "FRA");
+		Assert.Equal(CFixedPoint.Zero, britain.Modifier["global_money"]);
+	}
+
+	[Fact]
+	public void ACoastWithNoNavalBaseBuiltLinksNothing()
+	{
+		(CCountry britain, _) = Coasts(new[] { 3 }, southAfricasBase: 0);
 		Assert.Equal(CFixedPoint.Zero, britain.Modifier["global_money"]);
 	}
 

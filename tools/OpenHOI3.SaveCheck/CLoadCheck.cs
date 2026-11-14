@@ -327,6 +327,7 @@ public static class CLoadCheck
 			Console.WriteLine($"  {country.Tag}: IC {country.TotalIc} of base {country.BaseIc}, manpower {country.Manpower}, " +
 				$"officers {country.Officers}, unity {country.NationalUnity}, faction '{country.Faction}'");
 		}
+		CStrategicResourceLook.Print(state);
 
 		Console.WriteLine("the units, beside the save they were read from:");
 		CompareUnits(state, save, "  ", exact: true);

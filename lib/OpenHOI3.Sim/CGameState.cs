@@ -222,6 +222,13 @@ public sealed class CGameState
 	public IReadOnlyList<CRegion> Regions { get; init; } = Array.Empty<CRegion>();
 
 	/// <summary>
+	/// The regions <c>map/coastlines.txt</c> names, as indices into <see cref="Regions"/>: two countries whose naval
+	/// bases both border a sea province of one of them may share their strategic resources across continents. See
+	/// <c>docs/mechanics/modifiers.md</c>, section 6.
+	/// </summary>
+	public IReadOnlyList<int> CoastlineRegions { get; init; } = Array.Empty<int>();
+
+	/// <summary>
 	/// Every event, country and province events alike, in the order their files are read; set
 	/// once everything they name is loaded. See <c>docs/mechanics/script.md</c>.
 	/// </summary>

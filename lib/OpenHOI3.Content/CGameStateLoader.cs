@@ -162,6 +162,7 @@ public static class CGameStateLoader
 			MapWidth = map.Width,
 			MapHeight = map.Height,
 			Regions = map.Regions,
+			CoastlineRegions = map.CoastlineRegions,
 			Continents = map.ContinentNames,
 			IdeologyGroups = ideologyGroups,
 			GovernmentPositions = positions,

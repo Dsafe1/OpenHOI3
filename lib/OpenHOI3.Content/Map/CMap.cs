@@ -106,6 +106,12 @@ public sealed class CMap
 	public IReadOnlyList<CRegion> Regions { get; }
 
 	/// <summary>
+	/// The regions <c>coastlines.txt</c> names, as indices into <see cref="Regions"/> in their order: the coasts along
+	/// which naval bases let two countries share a strategic resource (<c>docs/mechanics/modifiers.md</c>, section 6).
+	/// </summary>
+	public IReadOnlyList<int> CoastlineRegions { get; init; } = Array.Empty<int>();
+
+	/// <summary>
 	/// Per province id, the one point that stands for it: where a unit there is drawn.
 	/// The centre of its bounding box unless <c>positions.txt</c> says otherwise.
 	/// </summary>
@@ -350,6 +356,9 @@ public sealed class CMap
 
 		string regionTxt = directories.Resolve("map/" + definition.GetString("region", "region.txt"));
 		List<CRegion> regions = CRegionReader.Read(regionTxt, provinceCount, warn);
+		// Read straight after the regions, whose names it is matched against, as the original's map loader does.
+		string coastlinesTxt = directories.Resolve("map/" + definition.GetString("coastlines", "coastlines.txt"));
+		List<int> coastlineRegions = CCoastlinesReader.Read(coastlinesTxt, regions, warn);
 
 		string climateBmp = directories.Resolve("map/" + definition.GetString("climate", "climate.bmp"));
 		byte[] climate = ReadClimate(climateBmp, bitmap.Width, bitmap.Height, positions, provinceCount, warn);
@@ -363,6 +372,7 @@ public sealed class CMap
 			})
 		{
 			ClimateIndex = climate,
+			CoastlineRegions = coastlineRegions,
 			LowPressureZones = ReadLowPressureZones(definition, provinceCount, warn),
 			HighPressureZones = ReadHighPressureZones(definition, provinceCount, warn),
 			TerrainSheetHeights = ReadHeights(definition, "terrain_sheet_heights"),

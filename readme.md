@@ -2588,14 +2588,13 @@ None of these blocks the list above.
   Germany's 882, and the history's decisions are taken as a game is set up - the United States' `new_deal`, which
   costs it the 40% that left 255 (`reversing/findings/FINDINGS-startshares.md`, sections 2 and 4;
   `docs/mechanics/manpower.md`, sections 4 and 6; `events.md`, section 13).
-- **Strategic resources are not shared across continents**: the link by a naval base on the same sea region needs to
-  know what the original means by a sea region. `docs/mechanics/modifiers.md`, sections 6 and 7.
-- **A resource once had is never lost here, and that the original behaves so is only
-  `likely`.** Its one routine for the figure only raises it, and a search found nothing
-  else that lowers it short of resetting the session - but that is a search coming up
-  empty, and nobody has watched a running game lose a resource province. Worth settling in
-  the running game, and deciding on purpose, before anything depends on it.
-  `docs/mechanics/modifiers.md`, section 6.
+- ~~**Strategic resources are not shared across continents**~~ - since 2026-11-14 they are, as the original shares
+  them: by naval bases beside one of the coast regions `map/coastlines.txt` names (`docs/mechanics/modifiers.md`,
+  section 6). Left: the original's list of a country's naval bases is a day behind a base finished in play, here it
+  is not (section 7); and none of it has been set against a running game - no save shows a country's levels.
+- ~~**A resource once had is never lost here, and that the original behaves so is only `likely`**~~ - `confirmed`
+  2026-11-14 for as long as the game runs, and a load forgets it in the original and here
+  (`docs/mechanics/modifiers.md`, section 6; `docs/enhanced.md`). Not watched in a running game.
 - **A technology's `allow` block is read for the six kinds of condition the base game
   uses**, and none of the six has been read out of the original. Whether a port is a
   naval base, and whether it is owning or controlling a province that counts, are guesses.

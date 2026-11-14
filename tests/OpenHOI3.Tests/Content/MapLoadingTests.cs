@@ -70,6 +70,8 @@ public class MapLoadingTests : IDisposable
 		Write("map/continent.txt", "west = {\n\t1 2 3\n}\neast = { 5 }\n");
 		// Beta in two regions, the coast's first.
 		Write("map/region.txt", "coast_region = { 2 4 }\nland_region = { peace 1 2 3 }\n");
+		// Found by its default name, default.map not naming it.
+		Write("map/coastlines.txt", "strategic_resource_coastlines = { coast_region }\n");
 		Write("map/definition.csv",
 			"province;red;green;blue;x;x\n" +
 			"1;10;0;0;Alpha;x\n2;20;0;0;Beta;x\n3;30;0;0;Gamma;x\n4;40;0;0;Delta;x\n5;50;0;0;Epsilon;x\n" +
@@ -367,6 +369,14 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal(new[] { "coast_region", "land_region" }, map.Regions.Select(region => region.Name));
 		Assert.Equal(new[] { 1, 2, 3 }, map.Regions[1].Provinces);
 		Assert.True(map.Regions[1].UseForPeace);
+	}
+
+	[Fact]
+	public void TheCoastlinesAreTheRegionsTheirFileNames()
+	{
+		CMap map = Load();
+
+		Assert.Equal(new[] { 0 }, map.CoastlineRegions);
 	}
 
 	[Fact]

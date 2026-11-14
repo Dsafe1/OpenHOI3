@@ -65,6 +65,8 @@ internal static class CFirstDaysCheck
 		Console.WriteLine();
 		Compare(state, save, examples);
 		Console.WriteLine();
+		CStrategicResourceLook.Print(state);
+		Console.WriteLine();
 
 		// What a day costs as the game is played, the comparison being done.
 		clock.Restart();

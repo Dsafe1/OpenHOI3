@@ -276,12 +276,16 @@ file may name one. `confirmed` unless marked.
 that have it and whose controller's resources the country is given.
 
 - **So a resource counts once**, however many provinces of it there are.
-- **The figure is only ever raised** where it is worked out: `confirmed`. **That nothing
-  else lowers it is `likely`**, not confirmed: a search of the original found no other
-  place that writes it but the one that sets every country back to nothing when a session
-  is reset, and it has not been watched in a running game. If it holds, a country that
-  loses the province keeps the resource at the best it ever had it, which reads like an
-  oversight.
+- **The figure is only ever raised** where it is worked out, **and nothing else lowers it
+  while the game runs**: `confirmed` by a search of every place in the original that could
+  reach it, which finds the known ones (`reversing/findings/FINDINGS-countrymodifier.md`,
+  section 7). So a country that loses the province keeps the resource at the best it ever
+  had it - an oversight, kept (`docs/enhanced.md`). Not watched in a running game.
+- **A load forgets it.** The one thing that sets the figures back is a new session, every
+  country's to nothing, and loading a save begins with one; the figures are then worked out
+  from the provinces as the save has them. So a resource lost before a save is gone after
+  the load, in the original and here (`confirmed`; `docs/enhanced.md`, *A whole game's
+  replay*).
 - A country that owns no province gets none.
 - The country's modifier takes the resource's modifier with every value multiplied by the
   figure, each product dropping what does not fit.
@@ -297,9 +301,30 @@ are not at war with each other and one of these holds:
 
 and then one of these:
 
-- their capitals are on the same continent;
-- both have a naval base beside the same sea region. The arithmetic of this was read and
-  what a region is here was not.
+- their acting capitals are on the same continent;
+- failing that, **both have a naval base beside one coast region**: a sea province listed by
+  one of the regions `map/coastlines.txt` names - in Their Finest Hour and BlackICE
+  `indian_coast_region`, `atlantic_coast_region` and `pacific_coast_region` (mod-able: the
+  file, and the regions' provinces in `map/region.txt`).
+
+**The coast regions** (read 2026-11-14, `reversing/findings/FINDINGS-countrymodifier.md`,
+section 7; `confirmed`). `map/coastlines.txt` (default.map's `coastlines`) is read with the
+map, straight after `region.txt`:
+
+- its key `strategic_resource_coastlines` holds a list of words, each taken as a region's
+  name; a later block of the key replaces an earlier one, and anything else in the file is
+  passed over;
+- **the regions are found by walking `region.txt`'s regions in their order** and taking each
+  whose name equals one of the words, **case and all**, once however often it is named; the
+  original warns where it took fewer regions than there are words (a misspelt name, or one
+  given twice);
+- a missing file, or one without the key, leaves no coast regions, and the link never holds.
+
+**A country's naval bases** are the provinces it **controls** whose naval base is built to
+any level - what was built, so a bombed base counts. A base is beside every sea province one
+of its edges leads to (the map's edges, every kind). The two countries are linked when one
+coast region lists a sea province beside a base of each. No faction, level or port is asked
+of the base beyond that.
 
 (measured) France holds black soil in Indochina. The United Kingdom, a major in the same
 faction with its capital in the same continent, gains manpower with black soil's 10% from
@@ -333,9 +358,18 @@ the first day is run, which is why a new game's starting manpower leaves black s
   `lost_national` alone, so `desperate_defence` stays off until it is built.
 - **Strategic resources are shared within a faction as the original shares them**, to a
   major or a country with more than 100 base IC whose capital is on the holder's
-  continent, and to a faction's leader at war from a country outside it aligned within
-  `FACTION_STRAT_BONUS_DIST` of its corner (`factions.md`, section 6). The sea-region link is
-  not built: it needs to know what a region is.
+  continent or whose naval bases share a coast region with the holder's, and to a faction's
+  leader at war from a country outside it aligned within `FACTION_STRAT_BONUS_DIST` of its
+  corner (`factions.md`, section 6). The coast regions since 2026-11-14 (`CCoastlinesReader`,
+  `CCoastlineReach`). *Ours*: the original's list of a country's naval bases is made again
+  each day after the resources are worked out, and at a change of hands, so a base finished
+  in play joins it a day late; here the bases are taken from the provinces as they stand
+  each time. What changed: nothing at the start, where the Allies are the United Kingdom and
+  France, both in Europe; in the Ireland game's saves of September 1939, May 1940 and July
+  1941 the United Kingdom and France gain 13 to 25 resources by the coasts - South Africa's
+  gold, Canada's uranium and tungsten, the United States' among them (`OpenHOI3.SaveCheck
+  load`, which lists them). No save shows a country's levels, so this is set against the
+  reading alone.
 - **Nothing damages infrastructure yet**, so every province with any gives its resource
   whole, and the one unidentified modifier value is taken as nothing.
 - **A country's faction is what its history file says**, and what play makes of it since
@@ -419,8 +453,6 @@ not have is written as a percentage, more being better, as most are.
 - the **list of the 143 modifier kinds**, in a form this project may read - 140 of them are now
   in `CModifierKinds`, read from the original's definitions;
 - what a **faction's own modifier** is loaded from;
-- what a **region** is in the link that lets two countries on different continents share
-  a strategic resource, and which script key sets the value added to a province's
-  efficiency;
+- which script key sets the value added to a province's resource efficiency;
 - what marks the edge of an **area**: whether it is land a country owns or controls, and
   whether a strait joins two.
