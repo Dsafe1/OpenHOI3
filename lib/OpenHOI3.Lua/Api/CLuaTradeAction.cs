@@ -30,9 +30,15 @@ public sealed class CLuaTradeAction
 	/// <summary>The route it carries: made again on each change, so one a script holds is as it was.</summary>
 	public CTradeRoute Route { get; set; }
 
+	/// <summary>
+	/// The start of a standing route <c>SetRoute</c> copied, which the original's copy keeps and a save writes with the
+	/// offer; none for a route the action made itself.
+	/// </summary>
+	public long? RouteStart { get; set; }
+
 	/// <summary>The offer it stands for, proposed.</summary>
 	public COffer Offer => new(EOfferKind.Trade, Actor, Recipient, EOfferStage.Proposed, Value, Date)
 	{
-		Deal = new CTradeDeal(Route.From, Route.To, Route.Terms),
+		Deal = new CTradeDeal(Route.From, Route.To, Route.Terms) { Start = RouteStart },
 	};
 }

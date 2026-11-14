@@ -101,4 +101,34 @@ public class SaveWriterTests
 			text);
 		Assert.StartsWith("date=\"1936.1.7.0\"\r\n", text);
 	}
+
+	[Fact]
+	public void An_underground_goes_after_the_controller_a_convoy_attack_after_the_weather_and_the_null_technology_first()
+	{
+		var nor = new CCountryTag("NOR");
+		var pol = new CCountryTag("POL");
+		var norway = new CCountry { Tag = nor, Name = "Norway", DefinitionFile = "", NullTechnologyLevel = 1 };
+		var poland = new CCountry { Tag = pol, Name = "Poland", DefinitionFile = "" };
+		var defines = new CDefines();
+		defines.Set(CProvinceWeather.Section, CProvinceWeather.PressureDefault, CFixedPoint.FromInt(1015));
+		var oslo = new CProvince(1, "Oslo", isSea: false)
+		{
+			Owner = nor, Controller = nor, Points = 5, UndergroundOwner = pol, UndergroundAction = OpenHOI3.Sim.Revolts.CUndergrounds.Spread,
+		};
+		var skagerrak = new CProvince(2, "Skagerrak", isSea: true);
+		var state = new CGameState(new CDate(1936, 1, 7), new[] { new CProvince(0, "", isSea: false), oslo, skagerrak },
+			new[] { norway, poland }, defines: defines);
+		oslo.Weather.Pressure = CFixedPoint.FromInt(1015);
+		skagerrak.Weather.Pressure = CFixedPoint.FromInt(1015);
+		Assert.True(CSaveValues.TryHours("1936.1.6.11", out long attacked));
+		skagerrak.LastConvoyAttackHour = attacked;
+
+		string text = CSaveWriter.Write(state);
+
+		// The action is left out only where it is to build up strength.
+		Assert.Contains("\towner=\"NOR\"\r\n\tcontroller=\"NOR\"\r\n\tunderground_owner=\"POL\"\r\n\tunderground_action=1\r\n\tpoints=5\r\n", text);
+		Assert.Contains("2=\r\n{\r\n\tflags=\r\n\t{\r\n\t}\r\n\tpoints=0\r\n\tweather=\r\n\t{\r\n\t}\r\n\tlast_convoy_attack=\"1936.1.6.11\"\r\n}\r\n", text);
+		Assert.Contains("\ttechnology=\r\n\t{\r\n\t\tnotech={1 0.00000 0.000}\r\n", text);
+		Assert.Contains("\ttechnology=\r\n\t{\r\n\t\tnotech={0 0.00000 0.000}\r\n", text);
+	}
 }

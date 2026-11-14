@@ -81,12 +81,43 @@ public static class CSaveDiplomacy
 				case "trade":
 					routes.Add(ReadRoute(state, pact, start, report));
 					break;
+				// A casus belli the first holds on the second (war.md, section 2). One already run out the original files on
+				// no record, and it is left out here.
+				case "casus_belli":
+					ReadCasusBelli(state, pact, first, second, start, end, report);
+					Unread(pact, report, "type", "first", "second", "start_date", "end_date");
+					break;
 				default:
 					report.Unread("diplomacy", kind);
 					break;
 			}
 		}
 		return routes;
+	}
+
+	/// <summary>What a casus belli of the null type is saved as: the key of the original's first type.</summary>
+	public const string NullCasusBelli = "nocasusbelli";
+
+	/// <summary>A casus belli: its type by name, the null type's key or a type of the install's; any other name is reported.</summary>
+	private static void ReadCasusBelli(CGameState state, ClausewitzNode pact, CCountry first, CCountry second, long start,
+		long? end, CSaveReport report)
+	{
+		string name = pact.Get("type")?.Value?.Trim('"') ?? NullCasusBelli;
+		Sim.Wars.CCasusBelliType type = Sim.Wars.CCasusBellis.Find(state, name);
+		if (!type.IsReal && name != NullCasusBelli)
+		{
+			report.Unread("casus_belli", $"a type of no name known, {name}");
+			return;
+		}
+		if (end is { } ends && ends < state.TotalHours)
+		{
+			return;
+		}
+		CGameState.Status(first, second).CasusBelli.Add(new Sim.Wars.CCasusBelli(type.Index, end)
+		{
+			Start = pact.Get("start_date") is null ? null : start,
+			Made = state.NextPact(),
+		});
 	}
 
 	/// <summary>A route: who hands over what each day, both blocks in the goods' order, and its convoy's number.</summary>
@@ -103,7 +134,8 @@ public static class CSaveDiplomacy
 		return (route, pact.Get("convoy")?.GetInt("id") ?? 0);
 	}
 
-	private static long[] Goods(ClausewitzNode? block)
+	/// <summary>A block of the seven goods' amounts, in their order; a good it leaves out is nought.</summary>
+	internal static long[] Goods(ClausewitzNode? block)
 	{
 		var amounts = new long[CGoodsPool.Count];
 		List<ClausewitzNode> values = block?.Children ?? new List<ClausewitzNode>();
@@ -166,6 +198,16 @@ public static class CSaveDiplomacy
 		{
 			pacts.Add((route.Made, () => WriteRoute(writer, route)));
 		}
+		foreach (CCountry holder in state.Countries)
+		{
+			foreach (CCountry target in state.Countries)
+			{
+				foreach (Sim.Wars.CCasusBelli casusBelli in CGameState.Status(holder, target).CasusBelli)
+				{
+					pacts.Add((casusBelli.Made, () => WriteCasusBelli(writer, state, holder.Tag, target.Tag, casusBelli)));
+				}
+			}
+		}
 		writer.Begin("diplomacy");
 		foreach ((long _, Action write) in pacts.OrderBy(pact => pact.Made))
 		{
@@ -185,6 +227,23 @@ public static class CSaveDiplomacy
 			writer.Date("end_date", ends);
 		}
 		writer.DateOrNull("start_date", start);
+		writer.End();
+	}
+
+	/// <summary>A casus belli: its type's name, the null type's key for the null type, then as a pact.</summary>
+	private static void WriteCasusBelli(CSaveTextWriter writer, CGameState state, CCountryTag holder, CCountryTag target,
+		Sim.Wars.CCasusBelli casusBelli)
+	{
+		writer.Begin("casus_belli");
+		Sim.Wars.CCasusBelliType? type = state.CasusBelliTypes.FirstOrDefault(each => each.Index == casusBelli.Type);
+		writer.Quoted("type", type is { IsReal: true } ? type.Name : NullCasusBelli);
+		writer.Quoted("first", holder.Value);
+		writer.Quoted("second", target.Value);
+		if (casusBelli.End is { } ends)
+		{
+			writer.Date("end_date", ends);
+		}
+		writer.DateOrNull("start_date", casusBelli.Start);
 		writer.End();
 	}
 

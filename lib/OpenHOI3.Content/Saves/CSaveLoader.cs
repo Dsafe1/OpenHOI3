@@ -39,7 +39,7 @@ public static class CSaveLoader
 	{
 		"owner", "controller", "core", "manpower", "leadership", "revolt_risk", "points", "nationalism", "pool",
 		"current_producing", "max_producing", "weather", "flags", "strategic_resource", "drawn", "last_drawn", "throughput",
-		"last_throughput", "modifier",
+		"last_throughput", "modifier", "underground_owner", "underground_action", "last_convoy_attack",
 	};
 
 	/// <param name="played">The country played; null, the one the save says was.</param>
@@ -317,6 +317,14 @@ public static class CSaveLoader
 	{
 		province.Owner = Tag(node.Get("owner")?.Value);
 		province.Controller = Tag(node.Get("controller")?.Value);
+		// Its underground's country, and what an underground here does - build up strength where none is written, as the
+		// original leaves that one out (undergrounds.md, section 6).
+		province.UndergroundOwner = Tag(node.Get("underground_owner")?.Value);
+		province.UndergroundAction = node.Get("underground_action")?.Value is { } action
+			? (int)CSaveValues.Whole(action)
+			: Sim.Revolts.CUndergrounds.BuildUp;
+		// The hour a raid last fought a convoy in its water, written where it is a date (navalmissions.md, section 9).
+		province.LastConvoyAttackHour = CSaveOrders.Hour(node.Get("last_convoy_attack")?.Value) ?? CProvince.NoConvoyAttack;
 		province.Cores.Clear();
 		foreach (ClausewitzNode core in node.All("core"))
 		{
@@ -397,9 +405,22 @@ public static class CSaveLoader
 		// Technology: every entry its level and the progress towards the next.
 		country.TechnologyLevels.Clear();
 		country.ResearchProgress.Clear();
+		country.NullTechnologyLevel = 0;
 		foreach (ClausewitzNode entry in node.Get("technology")?.Children ?? new List<ClausewitzNode>())
 		{
-			if (entry.Key is not null && entry.IsBlock && entry.Children.Count >= 2 && state.Technologies.ContainsKey(entry.Key))
+			// The original's built-in null technology, its level alone.
+			if (entry.Key == CSaveWriter.NullTechnology && entry.IsBlock && entry.Children.Count >= 1)
+			{
+				country.NullTechnologyLevel = (int)CSaveValues.Whole(entry.Children[0].Value);
+				continue;
+			}
+			// A technology the install does not have - the original skips it too - is reported.
+			if (entry.Key is { } unknown && !state.Technologies.ContainsKey(unknown))
+			{
+				report.Unread("technology", unknown);
+				continue;
+			}
+			if (entry.Key is not null && entry.IsBlock && entry.Children.Count >= 2)
 			{
 				country.TechnologyLevels[entry.Key] = (int)CSaveValues.Whole(entry.Children[0].Value);
 				CFixed15 progress = CSaveValues.Fixed15(entry.Children[1].Value);
@@ -475,7 +496,13 @@ public static class CSaveLoader
 			// A block under another country's tag is what the two hold of each other.
 			if (child.IsBlock && CCountryTag.TryParse(key, out CCountryTag otherTag) && state.Country(otherTag) is { } other)
 			{
-				ReadStatus(state, CGameState.Status(country, other), child);
+				CSaveStatus.Read(state, CGameState.Status(country, other), child, report);
+				continue;
+			}
+			// An offer on its list, under its kind's key (section 19).
+			if (child.IsBlock && CSaveOffers.IsOffer(key))
+			{
+				CSaveOffers.Read(state, country, child, ids, report);
 				continue;
 			}
 			// The military part (savegame.md, section 5): the units at the top of its tree, the queue's lines in order,
@@ -537,16 +564,6 @@ public static class CSaveLoader
 				report.Unread("country", key);
 			}
 		}
-	}
-
-	/// <summary>A pair block: the relation, a whole number; the threat; military access, written where held; the occupation policy, none written none held.</summary>
-	private static void ReadStatus(CGameState state, CDiplomacyStatus status, ClausewitzNode node)
-	{
-		status.Relation = CFixedPoint.FromInt(CSaveValues.Whole(node, "value"));
-		status.Threat = CSaveValues.Fixed(node, "threat");
-		status.HasMilitaryAccess = node.GetBool("military_access");
-		string policy = node.Get("occupation_policy")?.Value?.Trim('"') ?? COccupationPolicies.NoOccupation;
-		status.OccupationPolicy = COccupationPolicies.Find(state, policy)?.Index ?? 0;
 	}
 
 	/// <summary>The top-level <c>faction = { axis = { progress = .. country = "GER" ... } }</c>: its progress, and each country named a member.</summary>

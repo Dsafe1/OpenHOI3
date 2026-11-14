@@ -290,8 +290,9 @@ and `allow`, and the files' order, which breaks ties.
 
 **The null technology** is the original's built-in `notech`, which no file declares and which stands first in its
 technology database at a cost of 125 with no bonus. Buying it does nothing but take 1250 of the budget, and the start save
-holds it at 1 in the 88 countries whose budget reaches it. *Ours*: it is a charge on the budget and no technology here, so
-nothing keeps its level.
+holds it at 1 in the 88 countries whose budget reaches it. *Ours*: it is a charge on the budget and no technology here; its
+level alone is kept, `CCountry.NullTechnologyLevel`, set to 1 where it is bought, read from a save and written first in
+the technology block as the original writes it (since 2026-11-14, `savegame.md`, section 19).
 
 **Against the start save**: a new game's technology levels are the save's in **28,987 of 28,987** - where they were
 28,511 before, the 476 the save holds above the history now given (`OpenHOI3.SaveCheck techgap`, 2026-11-02). That is

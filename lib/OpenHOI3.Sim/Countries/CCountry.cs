@@ -164,6 +164,12 @@ public sealed class CCountry
 	public Dictionary<string, int> TechnologyLevels { get; } = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
+	/// The level of the original's built-in null technology, which no file declares and which does nothing: 1 where a new
+	/// game's head start bought it, as a save keeps it (<c>docs/mechanics/research.md</c>, section 9).
+	/// </summary>
+	public int NullTechnologyLevel { get; set; }
+
+	/// <summary>
 	/// What its technologies are worth in all: each one's effect times its level. Kept
 	/// apart from <see cref="Modifier"/>, as the original keeps it, because the two are
 	/// applied differently. Rebuilt with it.

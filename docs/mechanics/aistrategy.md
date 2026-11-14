@@ -255,7 +255,8 @@ BlackICE fire none.
 - **Not built**: military access, the production shares and the brigades the AI aims for - the military AI's, read but
   not needed yet (`FINDINGS-aistrategy.md`, sections C and I); `add_ai_strategy` (section 10); a scenario's
   `ai_hard_strategy` and missions, there being one start (`CLAUDE.md`, *Settled decisions*); `static` and
-  `consolidate`; and in the walk `has_building` and a unit type, which are reported where met. Historical friends are
+  `consolidate`. A save's military access, shares, brigades and the two flags are kept as it holds them and written back
+  (`savegame.md`, section 16), and nothing here acts on them; and in the walk `has_building` and a unit type, which are reported where met. Historical friends are
   not read (9.2).
 
 ## 13. Checked against the start save

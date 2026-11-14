@@ -64,13 +64,17 @@ public static class CCasusBellis
 
 	/// <summary>
 	/// The original's <c>AddCasusBelli</c>: the holder is given a casus belli of the null type on the target,
-	/// for ever, each time it is asked - never on itself.
+	/// for ever, dated the hour, each time it is asked - never on itself.
 	/// </summary>
 	public static void Give(CGameState state, CCountry holder, CCountry target)
 	{
 		if (holder != target)
 		{
-			CGameState.Status(holder, target).CasusBelli.Add(new CCasusBelli(CCasusBelliType.Null.Index));
+			CGameState.Status(holder, target).CasusBelli.Add(new CCasusBelli(CCasusBelliType.Null.Index)
+			{
+				Start = state.TotalHours,
+				Made = state.NextPact(),
+			});
 		}
 	}
 

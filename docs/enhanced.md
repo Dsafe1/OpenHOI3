@@ -38,7 +38,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **The pacts' numbers and the order of their lists**, made again in the save's order - the order the hour's work goes through them in.
 - **The order of each country's units**: the save's tree walked children first, units made in play after (`savegame.md`, 5), and the order of a unit's subordinates.
 - **The names**: where each unit type's list of names had got to, and the names of units lost, which stay in use in a running game - so a new unit after a load can be named otherwise (`builders.md`).
-- **A diplomat on his way** after an offer, and **the offers waiting for an answer**: lost.
+- ~~**A diplomat on his way** after an offer, and **the offers waiting for an answer**: lost.~~ Kept since 2026-11-14 (`savegame.md`, section 19), as the original keeps them - but for **an added war goal waiting for its answer**, which the original writes as `add_war_goal` and its country loader does not name, so it is lost on a load in the original and here. *Oversight.* Risk: none; a mod's save is unaffected.
 - **The alignment drift's next step**: taken at once after a load (`alignment.md`).
 - **The spies' cursor** in each priority band (`espionage.md`, 4).
 - **The weather's zones**: their cooldowns and headings (`weather.md`).

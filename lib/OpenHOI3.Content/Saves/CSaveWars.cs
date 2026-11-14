@@ -91,20 +91,26 @@ public static class CSaveWars
 		writer.Quoted("original_defender", None);
 		foreach (CWarGoal goal in war.Goals.Values.SelectMany(goals => goals))
 		{
-			writer.Begin("war_goal");
-			writer.Quoted("casus_belli", goal.Type.Name);
-			writer.Quoted("actor", goal.Actor.Value);
-			writer.Quoted("receiver", goal.Recipient.Value);
-			// Where a goal names them; in no save, so where the original writes them is inferred.
-			if (goal.Country is { } third)
-			{
-				writer.Quoted("country", third.Value);
-			}
-			if (goal.Region is { } region)
-			{
-				writer.Quoted("region", region.Name);
-			}
-			writer.End();
+			WriteGoal(writer, goal);
+		}
+		writer.End();
+	}
+
+	/// <summary>A war goal's block: its type, its two countries, and a third country and a region where it names them.</summary>
+	internal static void WriteGoal(CSaveTextWriter writer, CWarGoal goal)
+	{
+		writer.Begin("war_goal");
+		writer.Quoted("casus_belli", goal.Type.Name);
+		writer.Quoted("actor", goal.Actor.Value);
+		writer.Quoted("receiver", goal.Recipient.Value);
+		// Where a goal names them; in no save, so where the original writes them is inferred.
+		if (goal.Country is { } third)
+		{
+			writer.Quoted("country", third.Value);
+		}
+		if (goal.Region is { } region)
+		{
+			writer.Quoted("region", region.Name);
 		}
 		writer.End();
 	}
@@ -155,22 +161,31 @@ public static class CSaveWars
 
 	private static void ReadGoal(CGameState state, CWar war, ClausewitzNode block, CSaveReport report)
 	{
+		if (ReadGoalBlock(state, block, report) is not { } goal)
+		{
+			return;
+		}
+		if (!war.Goals.TryGetValue(goal.Actor, out List<CWarGoal>? goals))
+		{
+			war.Goals[goal.Actor] = goals = new List<CWarGoal>();
+		}
+		goals.Add(goal);
+	}
+
+	/// <summary>A war goal's block read: none, and reported, where it names no actor or receiver; any other key reported.</summary>
+	internal static CWarGoal? ReadGoalBlock(CGameState state, ClausewitzNode block, CSaveReport report)
+	{
 		if (!CCountryTag.TryParse(block.Get("actor")?.Value?.Trim('"'), out CCountryTag actor)
 			|| !CCountryTag.TryParse(block.Get("receiver")?.Value?.Trim('"'), out CCountryTag receiver))
 		{
 			report.Unread("war_goal", "a goal of no actor or receiver");
-			return;
+			return null;
 		}
 		var goal = new CWarGoal(CCasusBellis.Find(state, block.Get("casus_belli")?.Value?.Trim('"') ?? ""), actor, receiver)
 		{
 			Country = CCountryTag.TryParse(block.Get("country")?.Value?.Trim('"'), out CCountryTag third) ? third : null,
 			Region = state.Regions.FirstOrDefault(region => region.Name == block.Get("region")?.Value?.Trim('"')),
 		};
-		if (!war.Goals.TryGetValue(actor, out List<CWarGoal>? goals))
-		{
-			war.Goals[actor] = goals = new List<CWarGoal>();
-		}
-		goals.Add(goal);
 		foreach (ClausewitzNode entry in block.Children)
 		{
 			if (entry.Key is { } key && key is not ("casus_belli" or "actor" or "receiver" or "country" or "region"))
@@ -178,5 +193,6 @@ public static class CSaveWars
 				report.Unread("war_goal", key);
 			}
 		}
+		return goal;
 	}
 }
