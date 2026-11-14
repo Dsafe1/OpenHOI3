@@ -62,6 +62,14 @@ One row for each unit above the selected one, the highest first. A row is one bu
 `unit`, with the unit's name on it, set once. **A click selects that unit and takes the map
 to where it is.** `confirmed`
 
+The rows are a plain walk up the order of battle, nothing else asked
+(`reversing/findings/FINDINGS-unitpanel.md`, section 2, and `FINDINGS-transport.md`, section D.1, read 2026-11-14). **An air group aboard a carrier is in the order of
+battle under its carrier's fleet** - hung there as it is read from an order of battle or a save, or rebased to the
+carrier (`transport.md`, section 13.1) - so its rows are the fleet and whatever is above the fleet: the 5th Air wing
+aboard USS Ranger shows "CONUS East Theater" and "USS Ranger Taskforce" on the maintainer's screenshot of the original,
+and HMS Furious's 1st Air wing "Home Command Theatre" and "Home Fleet" here. A click on the fleet's row selects the fleet
+and takes the map to it, as for any row. A group whose fleet was merged into another has nobody above it and no rows.
+
 The original writes the name in green for a unit an AI commands. Not built: there is no AI.
 
 ## 3. The header
@@ -353,8 +361,10 @@ A row is the window `childunit_entry`: `name`, the unit's name - and ` (`, its l
 5; `objective`, an AI's, empty; `counter_type`, `counter_size`, `org_bar` and `str_bar` as
 the header's. **A click selects that unit and takes the map to it.**
 
-The original leaves an air unit that is aboard a carrier out of the list; here a group aboard is nobody's child,
-so it is not in it either (`transport.md`, section 13.1).
+**The original leaves an air unit based on a carrier out of the list**, and out of the count that decides whether the
+window is there: the groups aboard a fleet's carriers are under the fleet in the order of battle (section 2), and the
+fleet's list of what it carries shows them instead (`transport.md`, section 12). A group under a fleet whose carrier
+sank is no longer based on it, and is listed. `confirmed`
 
 ## 9. A headquarters' row
 

@@ -382,6 +382,24 @@ public class UnitPanelTextTests
 		Assert.Equal("100", CUnitPanelText.ChildMen(corps));
 	}
 
+	[Fact]
+	public void AFleetsListOfUnitsUnderItLeavesOutTheGroupsBasedOnItsCarriers()
+	{
+		State(out CCountry country);
+		CUnit fleet = Unit(country, EUnitKind.Navy, Berlin, Type("carrier"));
+		CUnit aboard = Unit(country, EUnitKind.Air, Berlin, Type("cag"));
+		CUnit landed = Unit(country, EUnitKind.Air, Berlin, Type("cag"));
+		aboard.CarriedBy = fleet.SubUnits[0];
+		fleet.SubUnits[0].Carried.Add(aboard);
+		fleet.Children.AddRange(new[] { aboard, landed });
+
+		// The group aboard is under the fleet and its list of what it carries shows it; one whose carrier sank is listed.
+		Assert.Equal(new[] { landed }, CUnitPanelText.Children(fleet));
+		fleet.Children.Remove(landed);
+		Assert.Empty(CUnitPanelText.Children(fleet));
+		Assert.Equal("", CUnitPanelText.ChildrenHeader(Localise, fleet));
+	}
+
 	// --- the buttons ---
 
 	[Fact]

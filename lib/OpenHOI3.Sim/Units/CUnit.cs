@@ -340,7 +340,8 @@ public sealed class CUnit
 
 	/// <summary>
 	/// Every unit from those on the stack down, each before what it carries and then the units under it - in one walk
-	/// and not an enumerator a level, which every unit would otherwise pass up through.
+	/// and not an enumerator a level, which every unit would otherwise pass up through. An air group aboard a carrier is
+	/// one of its fleet's units and is met as that; only one with no unit above it is met through its ship.
 	/// </summary>
 	internal static IEnumerable<CUnit> Walk(Stack<CUnit> stack)
 	{
@@ -357,7 +358,10 @@ public sealed class CUnit
 				List<CUnit> carried = unit.SubUnits[s].Carried;
 				for (int i = carried.Count - 1; i >= 0; i--)
 				{
-					stack.Push(carried[i]);
+					if (carried[i].Parent is null)
+					{
+						stack.Push(carried[i]);
+					}
 				}
 			}
 		}

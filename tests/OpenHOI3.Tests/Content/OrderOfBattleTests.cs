@@ -554,7 +554,7 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
-	public void ACarriersAirGroupsAreAboardTheShipAndNumberedBeforeIt()
+	public void ACarriersAirGroupsAreAboardTheShipUnderItsFleetAndNumberedBeforeIt()
 	{
 		(CCountry country, _, int last) = Read("""
 			navy = {
@@ -569,7 +569,10 @@ public class OrderOfBattleTests : IDisposable
 		CUnit aboard = Assert.Single(ship.Carried);
 		Assert.Equal(EUnitKind.Air, aboard.Kind);
 		Assert.Same(ship, aboard.CarriedBy);
-		Assert.Null(aboard.Parent);
+		// The original's CShip reading hangs it under the fleet (transport.md, section 13.1), and it is met once.
+		Assert.Same(country.Units[0], aboard.Parent);
+		Assert.Same(aboard, Assert.Single(country.Units[0].Children));
+		Assert.Single(country.Units);
 		Assert.Equal(1, aboard.SubUnits[0].Id);
 		Assert.Equal(2, aboard.Id);
 		Assert.Equal(3, ship.Id);

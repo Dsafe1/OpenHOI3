@@ -136,6 +136,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **The air orders' priority is never sent,** though the window shows, steps and remembers it. `fleetsandair.md`, "The air window". *Dead.* Risk: only if honoured.
 - **Transport planes wrecked by a drop,** left at a hundredth of their organisation, on an enemy or not. `transport.md`, "What looks wrong", 15. *Oversight.* Risk: small.
 - **Air supply's accounting.** It counts its load before capping by what lies there, picks the last short province and not the neediest, and delivers whether the target is still a friend's or not. `transport.md`, "What looks wrong", 18. *Oversight.* Risk: small.
+- **A sunk carrier's air groups stay under its fleet** in the order of battle, based on an airfield, and **a fleet merged away leaves its carriers' groups aboard with nobody above them** - the carriers having gone to the other fleet, the groups not. `transport.md`, "What looks wrong", 22. *Oversight.* Risk: small; the panel and the browser show them where they are not.
 
 ## Leaders
 

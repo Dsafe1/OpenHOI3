@@ -192,7 +192,7 @@ public static class CAirborneTrial
 		foreach (CSubUnit ship in fleet.SubUnits.Where(CShipCensus.IsCarrier))
 		{
 			Console.WriteLine($"{Now(state)}  {fleet.Name} in {port.Name}: {ship.Name} holds {ship.Stats[CShipCensus.CarrierSize]} "
-				+ $"wings, aboard {string.Join(", ", ship.Carried.Select(unit => $"{unit.Name} ({unit.SubUnits.Count} wing, base {unit.Base})"))}.");
+				+ $"wings, aboard {string.Join(", ", ship.Carried.Select(unit => $"{unit.Name} ({unit.SubUnits.Count} wing, base {unit.Base}, under {Above(unit)})"))}.");
 		}
 		// A group already aboard is taken off to an airfield first; otherwise one is made at the airfield.
 		CUnit? group = fleet.SubUnits.Where(CShipCensus.IsCarrier).SelectMany(ship => ship.Carried).FirstOrDefault();
@@ -207,7 +207,8 @@ public static class CAirborneTrial
 			Post(simulation, new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.RebaseAir, airBase.Id), "rebase to the airfield");
 			Watch(state, simulation, group, days, EUnitOrder.RebaseAir);
 			Console.WriteLine($"{Now(state)}  off the carrier: aboard {group.CarriedBy?.Name ?? "nothing"}, in {state.Province(group.Location).Name}, "
-				+ $"based at {state.Province(group.Base).Name}, organisation {CUnitTotals.AverageOrganisation(group)}, order {group.Order}.");
+				+ $"based at {state.Province(group.Base).Name}, organisation {CUnitTotals.AverageOrganisation(group)}, order {group.Order}, "
+				+ $"under {Above(group)}.");
 		}
 		else
 		{
@@ -218,7 +219,7 @@ public static class CAirborneTrial
 		Post(simulation, new CSetUnitOrderCommand(country.Tag, group.Id, EUnitOrder.RebaseCarrier, port.Id, 1, 0, 0,
 			new[] { port.Id }, CMission.DayAndNight, CMission.NoEnd, state.TotalHours), "rebase to carrier");
 		Console.WriteLine($"{Now(state)}  given: aboard {group.CarriedBy?.Name ?? "nothing"}, based at {state.Province(group.Base).Name}, "
-			+ $"on its way {group.Path.Count} provinces.");
+			+ $"on its way {group.Path.Count} provinces, under {Above(group)}.");
 		Watch(state, simulation, group, days, EUnitOrder.RebaseCarrier);
 		simulation.RunHours(1);
 		Console.WriteLine($"{Now(state)}  {group.Name} in {state.Province(group.Location).Name}, at its base {CAirMissions.IsAtOwnBase(group)}, "
@@ -236,8 +237,19 @@ public static class CAirborneTrial
 		}
 		CCombatRetreat.RemoveFromGame(state, fleet);
 		Console.WriteLine($"{Now(state)}  {fleet.Name} taken away: {group.Name} aboard {group.CarriedBy?.Name ?? "nothing"}, base "
-			+ $"{(group.Base == 0 ? "none" : state.Province(group.Base).Name)}, order {group.Order}.");
+			+ $"{(group.Base == 0 ? "none" : state.Province(group.Base).Name)}, order {group.Order}, under {Above(group)}.");
 		return 0;
+	}
+
+	/// <summary>The units above one in the order of battle, the highest first, as its panel lists them.</summary>
+	private static string Above(CUnit unit)
+	{
+		var above = new List<string>();
+		for (CUnit? at = unit.Parent; at is not null; at = at.Parent)
+		{
+			above.Insert(0, at.Name);
+		}
+		return above.Count == 0 ? "nobody" : string.Join(" > ", above);
 	}
 
 	private static int Supply(CGameState state, CSimulation simulation, CCountry country, int days)

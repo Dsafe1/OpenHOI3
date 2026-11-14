@@ -285,6 +285,17 @@ public static class CCombatRetreat
 		CCountry? country = state.Country(unit.Owner);
 		foreach (CUnit child in unit.Children)
 		{
+			// A fleet's units are its carriers' air groups, and the original leaves each with none above it - one still
+			// aboard a ship, which a merge hands to another fleet, met through that ship (transport.md, section 13.1).
+			if (unit.Kind == EUnitKind.Navy)
+			{
+				child.Parent = null;
+				if (child.CarriedBy is null)
+				{
+					country?.Units.Add(child);
+				}
+				continue;
+			}
 			child.Parent = unit.Parent;
 			if (unit.Parent is not null)
 			{

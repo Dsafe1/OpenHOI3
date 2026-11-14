@@ -132,6 +132,9 @@ public class SaveUnitsTests
 		Assert.Equal(3, group.Base);
 		Assert.Equal(EUnitOrder.CarrierProtection, group.Order);
 		Assert.Equal(OpenHOI3.Sim.Missions.CMission.NoEnd, group.Mission.EndHour);
+		// And hung under the fleet, as the original's CShip reading does it (transport.md, section 13.1).
+		Assert.Same(fleet, group.Parent);
+		Assert.Equal(new[] { group }, fleet.Children);
 
 		// The passenger is back under the theatre, aboard its fleet, and dug in nowhere.
 		CUnit passenger = Assert.Single(fleet.Passengers);

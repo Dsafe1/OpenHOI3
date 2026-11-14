@@ -227,6 +227,10 @@ public class AirTransportTests
 		Assert.Same(fleet.SubUnits[0], group.CarriedBy);
 		Assert.Contains(group, fleet.SubUnits[0].Carried);
 		Assert.DoesNotContain(group, germany.Units);
+		// Hung under the fleet in the order of battle, so the fleet is the unit above it - and it is met once.
+		Assert.Same(fleet, group.Parent);
+		Assert.Equal(new[] { group }, fleet.Children);
+		Assert.Single(germany.AllUnits(), unit => ReferenceEquals(unit, group));
 		Assert.Equal(Kiel, group.Base);
 		Assert.Equal(new[] { Kiel }, group.Path);
 
@@ -275,7 +279,69 @@ public class AirTransportTests
 		Assert.Equal(Kiel, group.Base);          // Kiel is nearer the Bight than Berlin
 		Assert.Equal(EUnitOrder.None, group.Order);
 		Assert.Contains(group, germany.Units);
+		Assert.Null(group.Parent);
 		Assert.False(group.IsRemoved);
+	}
+
+	[Fact]
+	public void AGroupStaysUnderItsFleetWhenItsCarrierSinksAndLeavesItForAnAirfield()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit theatre = Unit(state, germany, EUnitKind.Theatre, Kiel, 0, Carrier);
+		CUnit fleet = Unit(state, germany, EUnitKind.Navy, Kiel, 1, Carrier, based: Kiel);
+		germany.Units.Remove(fleet);
+		fleet.Parent = theatre;
+		theatre.Children.Add(fleet);
+		CUnit group = Unit(state, germany, EUnitKind.Air, Kiel, 1, Cag);
+		CCarriers.BaseOn(state, group, fleet.SubUnits[0]);
+		Assert.Equal(new[] { theatre, fleet }, Above(group));
+
+		// The carrier sunk: off the ship, the fleet still above it, as the original leaves it.
+		CCarriers.LetGo(state, fleet.SubUnits[0]);
+		Assert.Null(group.CarriedBy);
+		Assert.Same(fleet, group.Parent);
+		Assert.DoesNotContain(group, germany.Units);
+		Assert.Single(germany.AllUnits(), unit => ReferenceEquals(unit, group));
+
+		// Aboard again and rebased to an airfield, it leaves the fleet for the top of the order of battle.
+		CCarriers.BaseOn(state, group, fleet.SubUnits[0]);
+		CUnitOrders.Give(state, germany, group, EUnitOrder.RebaseAir, Berlin);
+		CUnitOrders.RunHour(state, germany, group);
+		Assert.Null(group.CarriedBy);
+		Assert.Null(group.Parent);
+		Assert.Empty(fleet.Children);
+		Assert.Contains(group, germany.Units);
+	}
+
+	[Fact]
+	public void AFleetMergedAwayLeavesItsCarriersGroupsAboardWithNobodyAboveThem()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit keeper = Unit(state, germany, EUnitKind.Navy, Kiel, 2, Carrier, based: Kiel);
+		CUnit giver = Unit(state, germany, EUnitKind.Navy, Kiel, 1, Carrier, based: Kiel);
+		CUnit group = Unit(state, germany, EUnitKind.Air, Kiel, 1, Cag);
+		CCarriers.BaseOn(state, group, giver.SubUnits[0]);
+
+		CUnitMerge.MergeInto(state, keeper, giver);
+		CCombatRetreat.RemoveFromGame(state, giver);
+
+		// Its carrier is the keeper's now, and the original's removal leaves the group with no unit above it.
+		Assert.Same(keeper, group.CarriedBy!.Unit);
+		Assert.Null(group.Parent);
+		Assert.Empty(keeper.Children);
+		Assert.DoesNotContain(group, germany.Units);
+		Assert.Single(germany.AllUnits(), unit => ReferenceEquals(unit, group));
+		Assert.False(group.IsRemoved);
+	}
+
+	private static List<CUnit> Above(CUnit unit)
+	{
+		var above = new List<CUnit>();
+		for (CUnit? at = unit.Parent; at is not null; at = at.Parent)
+		{
+			above.Insert(0, at);
+		}
+		return above;
 	}
 
 	[Fact]

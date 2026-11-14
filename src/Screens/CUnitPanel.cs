@@ -346,7 +346,7 @@ public partial class CUnitPanel : Control
 		// The run of entries depends on what is above the unit, on whether anything is
 		// under it and on the battles it is in; when any of them changes the list is made
 		// again.
-		if (!Above(unit).SequenceEqual(_parents) || unit.Children.Count > 0 != _hasChildren
+		if (!Above(unit).SequenceEqual(_parents) || CUnitPanelText.Children(unit).Count > 0 != _hasChildren
 			|| !Battles(unit).SequenceEqual(_combats) || CAgents.HighestOver(unit) is not null != _underAi)
 		{
 			Rebuild();
@@ -555,7 +555,8 @@ public partial class CUnitPanel : Control
 			brigades.BrigadeDragStarted += subUnit => BrigadeDragStarted?.Invoke(subUnit);
 			Add(brigades);
 		}
-		_hasChildren = unit.Children.Count > 0;
+		// Only the units it lists: an air group based on a carrier is under its fleet but not in this list.
+		_hasChildren = CUnitPanelText.Children(unit).Count > 0;
 		_underAi = CAgents.HighestOver(unit) is not null;
 		if (_hasChildren && CUnitChildrenEntry.Create(_context, state, owner, unit) is { } children)
 		{

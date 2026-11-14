@@ -89,35 +89,35 @@ public static class CCarriers
 	}
 
 	/// <summary>
-	/// Puts an air unit aboard a ship: off the ship or out from under the commander it had, onto the ship's list, and
-	/// based where the ship's fleet is.
+	/// Puts an air unit aboard a ship: off the ship it was on, onto the new ship's list, based where the ship's fleet is,
+	/// and hung under that fleet in the order of battle - out from under the commander it had, the last of the fleet's
+	/// units. So the fleet and whatever is above it are the units above the group (transport.md, section 13.1).
 	/// </summary>
 	public static void BaseOn(CGameState state, CUnit unit, CSubUnit ship)
 	{
 		unit.CarriedBy?.Carried.Remove(unit);
-		if (unit.CarriedBy is null)
-		{
-			LeaveCommander(state, unit);
-		}
 		unit.CarriedBy = ship;
 		ship.Carried.Add(unit);
 		if (ship.Unit is { } fleet)
 		{
 			unit.Base = fleet.Location;
+			AttachToFleet(state, unit, fleet);
 		}
 	}
 
-	private static void LeaveCommander(CGameState state, CUnit unit)
+	/// <summary>
+	/// The group hung last under the fleet, as the original's attaching does it: already under it, it goes to the end;
+	/// otherwise it leaves where it was, and the agents above where it was and where it goes are told.
+	/// </summary>
+	private static void AttachToFleet(CGameState state, CUnit unit, CUnit fleet)
 	{
-		if (unit.Parent is { } parent)
+		if (ReferenceEquals(unit.Parent, fleet))
 		{
-			parent.Children.Remove(unit);
-			unit.Parent = null;
+			fleet.Children.Remove(unit);
+			fleet.Children.Add(unit);
+			return;
 		}
-		else
-		{
-			state.Country(unit.Owner)?.Units.Remove(unit);
-		}
+		Agents.CAgentUnits.Attach(state, unit, fleet);
 	}
 
 	/// <summary>
@@ -296,21 +296,26 @@ public static class CCarriers
 	}
 
 	/// <summary>
-	/// A ship gone - sunk, or with its fleet - lets go every air group based on it: off its list, with no base and no
-	/// order, then given the nearest air base of its country in a straight line, where it stands.
+	/// A ship sunk lets go every air group based on it: off its list, with no base and no order, then given the nearest
+	/// air base of its country in a straight line, where it stands. **It stays under the fleet in the order of battle**,
+	/// as the original leaves it (transport.md, section 13.1).
 	/// </summary>
 	public static void LetGo(CGameState state, CSubUnit ship)
 	{
 		foreach (CUnit group in new List<CUnit>(ship.Carried))
 		{
-			LeaveCarrier(state, group);
+			ship.Carried.Remove(group);
+			group.CarriedBy = null;
 			group.Base = 0;
 			CUnitOrders.Clear(group);
 			group.Base = NearestAirBase(state, group);
 		}
 	}
 
-	/// <summary>An air group leaves the ship it is aboard, and stands in the order of battle on its own.</summary>
+	/// <summary>
+	/// An air group leaves the ship it is aboard, and with it its place under the fleet: it stands at the top of its
+	/// country's order of battle, the agent above where it was told. Nothing for a group aboard nothing.
+	/// </summary>
 	public static void LeaveCarrier(CGameState state, CUnit unit)
 	{
 		if (unit.CarriedBy is not { } ship)
@@ -319,18 +324,38 @@ public static class CCarriers
 		}
 		ship.Carried.Remove(unit);
 		unit.CarriedBy = null;
-		if (!unit.IsRemoved && state.Country(unit.Owner) is { } country && !country.Units.Contains(unit))
-		{
-			country.Units.Add(unit);
-		}
+		LeaveTree(state, unit);
 	}
 
-	/// <summary>Every air group aboard a fleet's carriers let go, as the fleet leaves the game.</summary>
+	/// <summary>
+	/// Every air group aboard a fleet's carriers let go, as the fleet leaves the game - out of the order of battle too.
+	/// </summary>
 	public static void LetGoAll(CGameState state, CUnit fleet)
 	{
 		foreach (CSubUnit ship in fleet.SubUnits)
 		{
+			foreach (CUnit group in new List<CUnit>(ship.Carried))
+			{
+				LeaveTree(state, group);
+			}
 			LetGo(state, ship);
+		}
+	}
+
+	/// <summary>
+	/// Out from under the unit above it, the agent above told, onto the top of the order of battle. A group aboard a
+	/// ship with no unit above it is not on the country's list but met through its ship (<see cref="CUnit.WithAllBelow"/>),
+	/// so one coming off its ship with none goes onto the list here.
+	/// </summary>
+	private static void LeaveTree(CGameState state, CUnit unit)
+	{
+		if (unit.Parent is not null)
+		{
+			Agents.CAgentUnits.Detach(state, unit);
+		}
+		else if (!unit.IsRemoved && state.Country(unit.Owner) is { } country && !country.Units.Contains(unit))
+		{
+			country.Units.Add(unit);
 		}
 	}
 

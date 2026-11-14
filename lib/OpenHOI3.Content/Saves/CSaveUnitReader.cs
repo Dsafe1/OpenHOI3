@@ -350,10 +350,13 @@ public sealed class CSaveUnitReader
 					_report.Unread(keyword, "an air group of a ship whose country does not exist");
 					break;
 				case "air" when entry.IsBlock:
-					// A carrier's air group: written here and nowhere else.
-					if (Read(entry, EUnitKind.Air, owner!, parent: null, carriedBy: subUnit) is { } group)
+					// A carrier's air group: written here and nowhere else, and hung under the fleet as its block is met
+					// (transport.md, section 13.1). A ship of no unit - a sunk one - reads it and throws it away, as the
+					// original's does.
+					if (Read(entry, EUnitKind.Air, owner!, parent: unit, carriedBy: subUnit) is { } group && unit is not null)
 					{
 						subUnit.Carried.Add(group);
+						unit.Children.Add(group);
 					}
 					break;
 				default:

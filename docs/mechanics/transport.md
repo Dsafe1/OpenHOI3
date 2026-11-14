@@ -417,7 +417,10 @@ ships in order; the first fit is taken. **Nothing asks about range, war, an ally
 sea.**
 
 **Given**, the order keeps that fleet, and the unit's base becomes the first ship of it with room **at once**: the unit
-leaves the ship or the commander it was under and goes on the new ship's list. Then it flies:
+leaves the ship it was on and goes on the new ship's list, and **it is hung under the fleet in the order of battle** -
+out from under the commander it had, the last of the fleet's units (one already under the fleet goes to the end), the
+AI agent above where it was and the one above the fleet told to sort their units again, the second to regroup its air.
+Then it flies:
 
 - **To the carrier**: it is given the way to the province the fleet is in now, and the light at its hour of arrival is
   judged as a strike judges it (`bombing.md`, section 2) - by day it will not arrive at night, by night not by day; with
@@ -427,11 +430,36 @@ leaves the ship or the commander it was under and goes on the new ship's list. T
   nothing halves its organisation on landing.
 
 A group based on a carrier **with no order is given carrier protection** for the province it is in, the hour after.
-**Rebased to an airfield** it leaves the carrier and lands with half its organisation, as any air unit
-(`fleetsandair.md`, section 5).
+**Rebased to an airfield** it leaves the carrier, **and with it its place under the fleet** - to the top of the order of
+battle, not back to the commander it had - and lands with half its organisation, as any air unit (`fleetsandair.md`,
+section 5).
 
 **Its carrier sunk**, a group based on it is let go: off the ship, no base, no order, and **given the nearest air base
-of its country in a straight line**, where it stands. **Its fleet removed whole**, each carrier's groups the same.
+of its country in a straight line**, where it stands - **and it stays under the fleet in the order of battle**. **Its
+fleet removed whole**, each carrier's groups the same, and each taken out from under the fleet.
+
+**In the order of battle** (`reversing/findings/FINDINGS-transport.md`, section D.1, read 2026-11-14). An air group aboard a carrier
+is one of its fleet's units: an order of battle's or a save's `air` block inside a `ship` hangs the group under the ship's
+fleet as it is met, and the rebase above does the same. What follows is the original's, and is so here:
+
+- **The unit panel's units above** a group are the fleet and what is above the fleet (`unitpanel.md`, section 2), and a
+  click on the fleet's row selects the fleet. **The fleet's list of the units under it leaves out a group based on a
+  carrier**, its list of what it carries showing it (`unitpanel.md`, section 8).
+- **The order of battle browser** shows the groups under their fleet, and the outliner under the fleet in the naval
+  units; a click on a group's row selects the group.
+- **The attach and detach buttons**: a group of carrier air groups alone with a unit above it shows no detach button,
+  and with none may not be attached; nothing but the rebase puts an air unit under a fleet, a fleet taking no air unit by
+  the attach command.
+- **Whatever walks up the chain walks through the fleet**: the radio reach - a fleet passes all of its command through, so
+  a group is out of range where its fleet is - a leader's traits coming down the chain at half a step, the experience a
+  battle gives the leaders above a unit, and the AI agent a unit answers to.
+- **`split_troops` keeps a fleet with a group under it** (`effects.md`).
+- **A save** writes a group based on a carrier inside its ship alone, and one under a fleet whose carrier sank as one of
+  the fleet's units.
+- **A fleet merged into another**: its ships go over with their groups aboard, and the fleet's removal leaves each of its
+  units with nobody above it - a group still aboard then belongs to no unit. **A removed fleet's units are left with
+  nobody above them** whatever they are; what the removal of a headquarters does with the land units under it here is
+  the readme's *Loose ends*.
 
 ### 13.2 Carrier protection
 
@@ -658,6 +686,9 @@ each row's strength 1.
     carrier's province, of any kind.
 21. **An air unit's `select_land` may be pressed and does nothing**: the panel's update enables it wherever anything is
     aboard, a fleet or an air unit, and the click asks first whether the carrier is a fleet. Listed in `enhanced.md`.
+22. **A sunk carrier's air groups stay under its fleet** in the order of battle, though based on an airfield now, and
+    **a fleet merged into another leaves its carriers' groups aboard with nobody above them**: the merge hands the ships
+    over and the removal of the emptied fleet takes its units out from under it. Listed in `enhanced.md`.
 
 ## Ours
 

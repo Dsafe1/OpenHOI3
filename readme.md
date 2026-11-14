@@ -2484,13 +2484,17 @@ None of these blocks the list above.
 - ~~**A fleet's and an air unit's strength figure is empty**~~ (found by the maintainer, 2026-11-14) - **built the same
   day**: the count of its own ships or wings, plain - the Home Fleet's 19 - read out of the original (`unitpanel.md`,
   section 3) and looked at with `--click`.
-- **A carrier air group's panel lists no units above it** (found by the maintainer, 2026-11-14, on a screenshot of the
-  original): there the 5th Air wing aboard USS Ranger shows "USS Ranger Taskforce" and above it "CONUS East Theater" as
-  its units above, as though it stood in the order of battle under its carrier's fleet; here the panel walks only the
-  unit's own superiors (`CUnitPanel.Above`, `unit.Parent`), and an air group aboard a carrier has none. How the
-  original makes that chain - the carrier's fleet as the group's parent in the tree, or the panel walking the carrier
-  - and whether the order of battle browser and a click on the row treat it so, was not read (`unitpanel.md`,
-  section 2; `transport.md`, section 13.1).
+- ~~**A carrier air group's panel lists no units above it**~~ (found by the maintainer, 2026-11-14, on a screenshot of
+  the original) - **built the same day**: the original hangs an air group aboard a carrier under the carrier's fleet in
+  the order of battle - as an order of battle or a save is read, and as it is rebased to the carrier - and the panel
+  walks up the tree and nothing else. So here too: HMS Furious's 1st Air wing shows "Home Command Theatre" and "Home
+  Fleet", a click on the fleet's row selects it, the order of battle browser and the outliner show the groups under
+  their fleet, and the fleet's own list of units under it leaves them out (`unitpanel.md`, sections 2 and 8;
+  `transport.md`, section 13.1, which lists what else follows - the radio reach, the traits, `split_troops`, a sunk
+  carrier's groups staying under the fleet). Tried with `--click`; the maintainer has not looked at it. **Left**: what
+  the removal of a headquarters does with the units under it - the original's `CGameState::RemoveUnit` leaves each with
+  nobody above it, where here an army's, a corps' or an army group's go to the headquarters above it; a removed fleet's
+  are left so since this item, the rest not (`reversing/findings/FINDINGS-transport.md`, section D.1).
 - ~~**A raid from the air is not built**, nor any message about a raid~~ - **built 2026-11-14**: the raid on convoys
   from the air, its pick of a province and its bombing of a convoy's ships, and the three messages of a raid,
   read out of the original and tried with `OpenHOI3.SaveCheck raid ... air` (`navalmissions.md`, sections 8.1 to 8.3).

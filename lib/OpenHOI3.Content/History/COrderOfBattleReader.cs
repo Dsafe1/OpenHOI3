@@ -541,8 +541,11 @@ public static class COrderOfBattleReader
 				}
 				else if (entry.IsBlock && key.Equals("air", StringComparison.OrdinalIgnoreCase))
 				{
-					// What a carrier has aboard.
-					subUnit.Carried.Add(ReadUnit(entry, EUnitKind.Air, owner, parent: null, carriedBy: subUnit));
+					// What a carrier has aboard: hung under the fleet as its block is met, the original's CShip reading
+					// (transport.md, section 13.1).
+					CUnit group = ReadUnit(entry, EUnitKind.Air, owner, parent: unit, carriedBy: subUnit);
+					subUnit.Carried.Add(group);
+					unit.Children.Add(group);
 				}
 				else if (entry.IsBlock && _technologies.ContainsKey(key))
 				{

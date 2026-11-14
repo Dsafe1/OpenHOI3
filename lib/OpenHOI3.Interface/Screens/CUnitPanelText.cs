@@ -681,10 +681,21 @@ public static class CUnitPanelText
 
 	// ---- the units under it
 
-	/// <summary>The units directly under one, in the order it holds them.</summary>
+	/// <summary>
+	/// The units directly under one that the panel lists, in the order it holds them: all but an air group based on a
+	/// carrier, which its fleet's list of what it carries shows instead (unitpanel.md, section 2).
+	/// </summary>
 	public static IReadOnlyList<CUnit> Children(CUnit unit)
 	{
-		return unit.Children;
+		var shown = new List<CUnit>(unit.Children.Count);
+		foreach (CUnit child in unit.Children)
+		{
+			if (child.Kind != EUnitKind.Air || child.CarriedBy is null)
+			{
+				shown.Add(child);
+			}
+		}
+		return shown;
 	}
 
 	/// <summary>
@@ -697,7 +708,7 @@ public static class CUnitPanelText
 		foreach ((EUnitKind kind, string key) in LevelKeys)
 		{
 			int count = 0;
-			foreach (CUnit child in unit.Children)
+			foreach (CUnit child in Children(unit))
 			{
 				if (child.Kind == kind)
 				{
