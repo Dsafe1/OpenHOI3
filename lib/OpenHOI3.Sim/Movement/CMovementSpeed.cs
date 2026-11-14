@@ -158,8 +158,7 @@ public static class CMovementSpeed
 			{
 				if (combat.Attacker.Units.Contains(unit))
 				{
-					long quicker = Scale + country.Modifier[CAttackDelay.CombatMovementSpeed].Raw
-						+ CCommandReach.Effect(state, unit, ETraitEffect.CombatMoveSpeed);
+					long quicker = CAttackDelay.Quicker(state, country, unit);
 					long pace = state.Defines[CManpower.MilitarySection, CombatMovementSpeed].Raw + combat.TacticSpeed.Raw;
 					inBattle = System.Math.Min(Scale, System.Math.Max(SlowestInBattle, quicker * pace / Scale));
 					break;

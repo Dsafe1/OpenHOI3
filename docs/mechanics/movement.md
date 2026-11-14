@@ -252,7 +252,7 @@ What an hour adds to the progress, in the same thousandths as a distance: `confi
 
 | | term | |
 | --- | --- | --- |
-| 1 | **in a battle, with a path**: attacking in one, `(1000 + the country's combat_movement_speed + the leaders' combat_move_speed) x (COMBAT_MOVEMENT_SPEED + the tactics' speed) / 1000`, held between 10 and 1000; in one any other way, 10 | built, less a technology figure |
+| 1 | **in a battle, with a path**: attacking in one, `(1000 + the country's combat_movement_speed + the technologies' attack_movement_speed + the leaders' combat_move_speed) x (COMBAT_MOVEMENT_SPEED + the tactics' speed) / 1000`, held between 10 and 1000; in one any other way, 10 | built; the technologies' term since 2026-11-14 |
 | 2 | **fuel**, for a land unit or a fleet whose brigades burn any: `fuel received x 900 / 1000 + 100` | built |
 | 3 | **the next province's terrain**: 1000 + the unit's adjuster for it | built |
 | 4 | 1000 + the leaders' `terrain_speed` for that terrain, by its name, down the chain of command (`leaders.md`, section 8) | built 2026-10-11 |

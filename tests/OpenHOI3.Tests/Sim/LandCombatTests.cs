@@ -1015,6 +1015,19 @@ public class LandCombatTests
 	}
 
 	[Fact]
+	public void TheTechnologiesAttackMovementSpeedQuickensAnAttackersWalk()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit attacker = Division(state, germany, Berlin);
+		Division(state, poland, Posen);
+		Fight(state, attacker, Posen);
+		germany.Technology.Set(CAttackDelay.TechnologyAttackMovementSpeed, CFixedPoint.Parse("0.1"));
+
+		// 1.1 x 0.33, as the country's combat movement speed would be.
+		Assert.Equal(363, CMovementSpeed.Modifier(state, germany, attacker));
+	}
+
+	[Fact]
 	public void AnAttackersWalkIsHeldAtTheFarEndWhileItFights()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
