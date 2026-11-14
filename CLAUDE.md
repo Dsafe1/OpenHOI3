@@ -970,8 +970,11 @@ beside the repository.
   before it, and 37 and none until 2026-10-13, when a war began to mobilise both sides (`docs/mechanics/war.md`, section 4) - and 37 and 5 on 2026-11-14 in the tree the raid from the air was built on, the same before and after it. It ends by counting the raid's messages by type. With `air` the raider's air unit with the most `sea_attack` that reaches such water is given the raid on convoys from the air and its country is played: `ITA ENG 30 0 air` sinks a transport a raid, 5 raids by 6 January, its organisation worn to nought by then (`docs/mechanics/navalmissions.md`, sections 8.1 to 8.3). Run it after touching
   `lib/OpenHOI3.Sim/Missions`, `CConvoyRaid` or what a convoy does about an attack.
   `OpenHOI3.SaveCheck firstdays <install> <start-date savegame>` sets a new game as a player
-  gets it, its two days run, beside the save country by country. **It is meant to differ** -
-  the original's AI has changed laws and shares by then - and is there to show by how much.
+  gets it, its two days run, beside the save country by country. On 2026-11-14, with the Lua's changes of law run after
+  the days, a new game's shares, manpower and history decisions as the original's (`politics.md`, section 12;
+  `production.md`, section 1; `events.md`, section 13): every brigade's strength and organisation, technology, ability,
+  officers, influence, manpower and line of the queue, and every stockpile's metal, rare materials and money, the save's;
+  Germany's every figure but 0.030 of supplies. What differs is the AI's - shares it has moved, headquarters it has made.
   It also sets every province's nationalism and every pair's occupation policy beside the
   save's: on 2026-10-14 nationalism 5 of 5 and no policy on either side (`occupation.md`, section 6).
   The like-for-like is `supplypass <install> <start-date savegame> countries`, below: with
@@ -1043,7 +1046,8 @@ beside the repository.
   2026-10-13, with `SpyMission` built and the base game's whole `autoexec.lua` loading, it gave
   the same with no Lua error (`docs/mechanics/lua.md`). The alignment misses were the AI's opening laws and the cabinets the
   original fills as a game is entered: with both built it gives **79 of 101** (2026-10-14, `politics.md`, section 12), and 80 with the engine's own new-game pass
-  (2026-11-02, section 13);
+  (2026-11-02, section 13), and **100 of 101** once the Lua's changes of law came after the two days, with the shares,
+  the manpower and a minister's first type of the same day (2026-11-14, section 12) - the rebels the one left;
   `laws=save` after the save gives every country the save's
   laws before the two days (`docs/mechanics/alignment.md`, *Ours*), and
   `explain=<tag>` prints a country's drift term by term as its first step weighs it, and
@@ -1103,10 +1107,10 @@ beside the repository.
   engine's own new-game pass before the Lua's (`politics.md`, section 13), **the laws 707 of 707 and national unity 99
   of 101** without it. Popularity and the cabinet
   carry the drift's draw on a generator whose seeding is ours, so popularity is set beside the save to within five
-  points (`docs/mechanics/politics.md`, section 10). **Dissent is 85 of 101 since 2026-11-02**, where the misses were
-  each 0.018: a new game's consumer goods share is set before any unit exists, without the standing army's term, and
-  the two days run short of it - the Soviet Union, Japan, Finland and Afghanistan up to 0.950 (94 of 101 with the term
-  taken out). Run it after touching `Sim/Politics`, the history's government or
+  points (`docs/mechanics/politics.md`, section 10). **Dissent and national unity are 101 of 101 since 2026-11-14**, a
+  new game's shares being set once its units are read, with the standing army's term, and the Lua's changes of law
+  run after the days (`production.md`, section 1; `politics.md`, section 12); dissent was 85 of 101 from 2026-11-02.
+  Run it after touching `Sim/Politics`, the history's government or
   the Lua classes the politics script reaches.
   `OpenHOI3.SaveCheck foreignai <install> [days]` is a look: a new game with nobody playing and every minister at work
   (180 days with none given), telling every offer the foreign ministers make but trade, by kind and value, how each was
@@ -1129,8 +1133,8 @@ beside the repository.
   provinces in order, enemy, heat - its own provinces in order, its key province and headquarters; each headquarters
   made, by name, place and brigade; and the next theatre number. Given a tag, that country's both ways; `trace=` tells
   one country's making step by step. On 2026-10-17 **all 108 theatres of all 78 countries agree, and the next number,
-  312**; the new brigades 86 of 86 in name and strength and not in experience or organisation, the AI's change of law
-  after the two days (`docs/mechanics/theatres.md`, section 13). Run it after touching `Sim/Theatres`, the supply
+  312**; the new brigades 86 of 86 in name and strength, and since 2026-11-14, the Lua's changes of law run after the
+  two days, in experience and organisation too (`docs/mechanics/theatres.md`, section 13; `politics.md`, section 12). Run it after touching `Sim/Theatres`, the supply
   network's areas, the front-worthy table or the unit names.
   `OpenHOI3.SaveCheck agents <install> <start-date savegame> <later savegame> [tag] [examples]` makes a new game as a player
   gets it, runs it to the later save's hour, and sets beside the save every theatre's order of battle (army groups,

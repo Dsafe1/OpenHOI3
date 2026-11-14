@@ -178,6 +178,15 @@ elected posts (1, 1); a coup, a government changed by script, a release or a lib
 A country with no ruling party then takes its head of state's ideology. **Measured**: 220 of 220 posts for
 the 22 countries the history names nobody for.
 
+**A minister is the first type his block gives for a post.** `confirmed` (`reversing/findings/FINDINGS-startshares.md`):
+the original appends each post-and-type line of a minister's block to his list of postings in the file's order, and
+asks his type in a post of the first line that names it, so a second line for the same post is read and never used.
+(measured) Honduras's armament minister of 1936 is declared a laissez-faire capitalist and then a resource
+industrialist; the start save's energy for Honduras, 17.500, is the first's, where the second's 5% more resources gave
+18.000 until 2026-11-14. The base game declares a post twice or more 270 times, 71 of them with different types -
+Germany's chief of security 111 a prince of terror and an efficient sociopath among them. *Exe-hardcoded*: the first
+wins; *mod-able*: the blocks. Listed in `docs/enhanced.md`: the second line is dropped without a word.
+
 ## 8. Script
 
 | | |
@@ -396,13 +405,25 @@ Lua's classes in `lib/OpenHOI3.Lua/Api`.
 
 **A new game.** Once the parties are set up and the new game's diplomacy is done - its effective neutrality is what
 the laws' `allow` blocks read - the install's Lua `Laws(country)` is called for every country, in the countries' order,
-handed the country itself. The changes it posts are made at once, and the look is made again until
-a pass posts nothing - at most ten (*ours*: the start save holds the point repeating it reaches, three passes for
-Germany, and what repeats it in the original was not found). It is all done with the game being made, so a law command
-the script makes **pays nothing and posts no message** until the script's `SetEnablePostMessage(true)` - which Their
-Finest Hour's does, and nobody is told anyway, the country being nobody's. This runs after the units are made, so a
-conscription law's tail cuts each brigade to its new ceiling, as the original's does. Then each such country is given
-a politics minister, which first works after `draw mod 3 + 1` hours, a draw on the game's generator each.
+handed the country itself. It is done with the game being made, so a law command the script makes **pays nothing and
+posts no message** until the script's `SetEnablePostMessage(true)` - which Their Finest Hour's does, and nobody is told
+anyway: the commands were made free and silent. **What it posts waits on the queue until the new game's two days are
+run** (`tick.md`, section 6), as the original's commands wait on its session's queue until the entry that posted them is
+over - `likely` from the reading, which has the posts go to that queue and the queue drained outside the entry
+(`reversing/findings/FINDINGS-startshares.md`), and (measured) on the start save: 16 untouched countries made their
+supplies under the industrial policy before the change, and 74 countries' brigades are held to the running game's
+ceilings, which only a change of law after the days does. So the days are run under the laws the engine brought forward
+(section 13), and then the changes are made, each holding its country's brigades to the running game's ceilings and
+pricing its build queue again (section 9). Then the look is made again, and its changes, until a pass posts nothing - at
+most ten (*ours*: the start save holds the point repeating it reaches, three passes for Germany, and what repeats it in
+the original was not found). Each such country is given a politics minister as the look is first made, which first
+works after `draw mod 3 + 1` hours, a draw on the game's generator each.
+
+Until 2026-11-14 the changes were made at once, before the days. Made after them - with a new game's shares
+(`production.md`, section 1), its manpower (`manpower.md`, section 4) and a minister's first type for a post (section 7)
+read the same day - a new game is the start save's in every brigade's organisation (3,792 of 3,792, from 962), every
+country's dissent (101 of 101, from 85), national unity (101 of 101, from 99) and the alignment of 100 of 101 countries
+(from 80; 93 with the laws and the shares alone) - `OpenHOI3.SaveCheck firstdays`, `politics` and `diplomacy`.
 
 **Its hour.** Each hour, after the trading, every politics minister in the countries' order: one whose country owns
 land or is in exile counts down to its first work, and from then on is asked every hour, but does something only in

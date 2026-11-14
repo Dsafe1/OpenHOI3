@@ -234,7 +234,10 @@ and `trigger`, and an `icon`. Every other key of a block is a modifier, as in se
 - **So the list keeps the order its entries came on**, not the file's, and the rebuild
   adds them in that order (step 14) - which is the order a modifier's sources name them
   in (section 8).
-- The same test runs on entering a game, each country's straight before its rebuild.
+- The same test runs on entering a game, each country's straight before its rebuild - for a
+  new game before the country's laws are brought forward and it is set up, so what a triggered
+  modifier gives is in the manpower it starts with (`manpower.md`, section 4; since 2026-11-14,
+  where it was first tested on the first day and France started 30% over).
 - So a triggered modifier is on or off from the day its conditions change. Nothing else
   rebuilds the list: a modifier rebuilt at another time - a decision taken - adds the list
   as it stands.

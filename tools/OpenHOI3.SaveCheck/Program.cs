@@ -430,6 +430,17 @@ foreach (ClausewitzNode node in save.Children)
 	}
 }
 
+// Where the new game put each line of the build queue, before anything below reads the orders of battle again: priced
+// under the laws it brought forward, the Lua's changes coming after the two days (buildqueue.md, section 5).
+var linesStartedAt = new Dictionary<int, CFixedPoint>();
+foreach (CCountry country in state.Countries)
+{
+	foreach (OpenHOI3.Sim.Construction.CConstruction construction in country.Constructions)
+	{
+		linesStartedAt[construction.Id] = construction.Progress;
+	}
+}
+
 // ---- units: what the orders of battle make, before anything below gives a country the save's laws
 List<string> unitLaws = CUnitCheck.Run(directories, savedCountries, state, lawBook, Compare);
 
@@ -546,6 +557,25 @@ foreach (IGrouping<int, (ClausewitzNode Node, CCountry Country)> sharing in save
 		converted[goods] = expected - capital.Pool[goods];
 	}
 	conversions[sharing.Key] = (who, converted);
+}
+
+// ---- the shares of IC a new game gives, where nothing has moved them since: a country that does not exist, and the
+// player who had not touched them (production.md, section 1). The countries an AI runs have had theirs set by it.
+foreach ((ClausewitzNode node, CCountry country) in savedCountries)
+{
+	List<ClausewitzNode> savedShares = node.Get("distribution")?.Children ?? new List<ClausewitzNode>();
+	if (savedShares.Count != CProduction.CategoryCount
+		|| (CResources.HoldsCapital(state, country) && country.Tag.Value != save.GetString("player")))
+	{
+		continue;
+	}
+	bool same = true;
+	for (int i = 0; i < CProduction.CategoryCount; i++)
+	{
+		same &= Share(savedShares[i].Value) == country.ProductionShares[i];
+	}
+	Compare("the shares of IC a new game gives, where nothing has moved them", same,
+		() => $"{country.Tag}: save {string.Join(" ", savedShares.Select(share => share.Value))}, ours {string.Join(" ", country.ProductionShares)}");
 }
 
 // ---- what is computed. The original's AI has changed laws by the time anything can be saved,
@@ -778,7 +808,7 @@ foreach ((int capitalId, (string who, CGoodsPool change)) in conversions)
 // ---- the units two days on, which is where the save is: now that each country has the laws,
 // the technology and the shares its last day was run with.
 List<string> upkeepLaws = CUpkeepCheck.Run(savedCountries, state, save, historyLaws, lawBook, Compare,
-	out List<string> heldToCeilings, out List<string> notHeldToCeilings);
+	out List<string> heldToCeilings, out List<string> notHeldToCeilings, linesStartedAt);
 
 CProduction.RunDaily(state);
 string playersDay = "";

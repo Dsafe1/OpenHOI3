@@ -125,8 +125,12 @@ internal static class CBuildQueueCheck
 	}
 
 	/// <summary>Sets a country's lines, two days on, beside the save's.</summary>
+	/// <param name="startedAt">
+	/// Where the new game put each line, by its number: priced under the laws the new game brought forward and the
+	/// ministers its history gave, before the Lua's changes of law, which come after the two days.
+	/// </param>
 	public static void CompareProgress(CCountry country, IReadOnlyDictionary<int, ClausewitzNode> saved, bool isPlayer,
-		CKept kept, Action<string, bool, Func<string>> compare)
+		CKept kept, IReadOnlyDictionary<int, CFixedPoint> startedAt, Action<string, bool, Func<string>> compare)
 	{
 		const int daysBehind = 2;
 		string tag = country.Tag.Value;
@@ -152,12 +156,14 @@ internal static class CBuildQueueCheck
 				() => $"{who}: save {progress}, ours {construction.Progress}  {facts}");
 
 			// What the shares did in the two days aside: the save's line is where a new
-			// game put it, and at most two days' work on.
-			CFixedPoint started = CFixedPoint.Max(CFixedPoint.Zero, construction.Duration - kept.DaysToGo(construction));
+			// game put it, and at most two days' work on. A new game prices its lines
+			// under the laws it brought forward, before the Lua's changes come after the
+			// days and price them again, the work done left alone (buildqueue.md, section 5).
+			CFixedPoint started = startedAt.GetValueOrDefault(construction.Id);
 			compare("the build queue: where each line stood as the game started, by the save's less at most two days",
 				progress >= started && progress <= started + CFixedPoint.FromInt(daysBehind),
 				() => $"{who}: save {progress} two days on, ours started at {started}  " +
-					$"({construction.Duration} days in all, {kept.DaysToGo(construction)} to go by its file)");
+					$"({construction.Duration} days in all under the save's laws, {kept.DaysToGo(construction)} to go by its file)");
 
 			CFixedPoint counted = Number(line.GetString("accumulated_progress"));
 			compare($"the build queue, two days on: how much of the building has been counted, {whose}",

@@ -7,6 +7,7 @@ using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Units;
 using OpenHOI3.Sim.Wars;
 
 namespace OpenHOI3.Tests.Sim;
@@ -139,6 +140,34 @@ public class ProductionTests
 		Assert.Equal(new[] { "0.17999", "0.09998", "0.17999", "0.17999", "0.17999", "0.17999" },
 			eastGermany.ProductionShares.Select(share => share.ToString()));
 		Assert.True(CProduction.AreValidShares(eastGermany.ProductionShares));
+	}
+
+	[Fact]
+	public void ANewGamesSharesCountTheStandingArmyItsUnitsMakeAsGermanysDoInTheStartSave()
+	{
+		// Germany as the start save has it, untouched: laws worth -0.05 at peace, 201 IC, 33 land brigades in service
+		// and an effective neutrality of 60 - 0.200 and 0.024 of standing army, shares written 0.22400 and 0.15518.
+		CCountry germany = Country("GER", 1, ("peace_consumer_goods_demand", "-0.05"));
+		CGameState state = State(new[] { germany }, new[] { Land(1, "GER") });
+		var infantry = new CSubUnitType("infantry_brigade", EUnitBranch.Land);
+		for (int division = 0; division < 12; division++)
+		{
+			var unit = new CUnit(EUnitKind.Division, germany.Tag) { Id = ++state.LastUnitId, Location = 1, Name = "Division" };
+			for (int i = 0; i < 3; i++)
+			{
+				// The last division's three are reserves, which are not in service while the country is not mobilised.
+				unit.SubUnits.Add(new CSubUnit(infantry) { Id = ++state.LastUnitId, Unit = unit, IsReserve = division == 11 });
+			}
+			germany.Units.Add(unit);
+		}
+		germany.TotalIc = 201;
+		germany.EffectiveNeutrality = CFixedPoint.FromInt(60);
+
+		CProduction.SetStartingShares(state);
+
+		Assert.Equal(33, germany.LandBrigadesInService);
+		Assert.Equal(new[] { "0.15518", "0.22400", "0.15518", "0.15518", "0.15518", "0.15518" },
+			germany.ProductionShares.Select(share => share.ToString()));
 	}
 
 	[Fact]

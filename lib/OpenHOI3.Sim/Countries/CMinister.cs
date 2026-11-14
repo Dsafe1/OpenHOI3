@@ -42,9 +42,16 @@ public sealed class CMinister
 		return _typeByPosition.ContainsKey(position);
 	}
 
+	/// <summary>
+	/// Declares him for a position as a minister type. <b>The first a block gives for a position is the one he is</b>: the
+	/// original appends every pair to his list of postings and finds a post by the first pair that names it, so a second
+	/// line for the same post is never seen - Honduras's armament minister of 1936, declared a laissez-faire capitalist and
+	/// then a resource industrialist, is the first, and the start save's resources bear it out
+	/// (<c>docs/mechanics/politics.md</c>, section 7).
+	/// </summary>
 	public void SetType(string position, CMinisterType type)
 	{
-		_typeByPosition[position] = type;
+		_typeByPosition.TryAdd(position, type);
 	}
 
 	/// <summary>The minister type he is in a position, or null if he was not declared for it.</summary>

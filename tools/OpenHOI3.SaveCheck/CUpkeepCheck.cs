@@ -50,11 +50,13 @@ internal static class CUpkeepCheck
 	/// organisation, which is what a change of law after the two days does.
 	/// </param>
 	/// <param name="notHeld">The countries whose brigades it shows above that ceiling.</param>
+	/// <param name="startedAt">Where the new game put each line of the build queue, by its number.</param>
 	/// <returns>The countries whose upgrades fit a law out of their history better than the save's, and which law.</returns>
 	public static List<string> Run(IReadOnlyList<(ClausewitzNode Node, CCountry Country)> countries, CGameState state,
 		ClausewitzNode save, IReadOnlyDictionary<string, Dictionary<string, CLaw>> historyLaws,
 		IReadOnlyDictionary<string, Dictionary<string, CLaw>> lawBook,
-		Action<string, bool, Func<string>> compare, out List<string> held, out List<string> notHeld)
+		Action<string, bool, Func<string>> compare, out List<string> held, out List<string> notHeld,
+		IReadOnlyDictionary<int, CFixedPoint> startedAt)
 	{
 		held = new List<string>();
 		notHeld = new List<string>();
@@ -106,7 +108,7 @@ internal static class CUpkeepCheck
 			PutBack(country, start);
 			Give(state, country, best, found, history);
 			RunDays(state, country, queue, abilities);
-			CBuildQueueCheck.CompareProgress(country, savedQueue, tag == player, queue, compare);
+			CBuildQueueCheck.CompareProgress(country, savedQueue, tag == player, queue, startedAt, compare);
 			List<string> put = Groups.Where((group, index) => (best & (1 << index)) != 0 && history[group] != found[group]).ToList();
 			if (put.Count > 0)
 			{

@@ -5,9 +5,8 @@ using OpenHOI3.Sim.Countries;
 namespace OpenHOI3.Sim.Politics;
 
 /// <summary>
-/// The AI's politics, for the countries nobody plays - never the player's (<c>docs/compatibility.md</c>, entry 6). A
-/// new game has every such country's laws looked at by the install's Lua until they stop moving, and gives each a
-/// politics minister. The minister works once a day, in an hour of its country's own: on the 1st, 8th, 15th, 22nd and
+/// The AI's politics. A new game has every country's laws looked at by the install's Lua, the player's too, the changes
+/// made once the game's two first days are run, and gives each country nobody plays a politics minister. The minister works once a day, in an hour of its country's own: on the 1st, 8th, 15th, 22nd and
 /// 29th it fills the empty posts, and then the Lua's <c>PoliticsMinister_Tick</c> runs. See
 /// <c>docs/mechanics/politics.md</c>, section 12.
 /// </summary>
@@ -20,51 +19,82 @@ public static class CPoliticsAi
 	public const int MostLawPasses = 10;
 
 	/// <summary>
-	/// A new game's politics for the countries nobody plays: <c>Laws(country)</c> for each, in the countries' order,
-	/// the changes it posts made at once - free and silent while the game is being made - and again until a pass
-	/// posts nothing; then each is given a politics minister, which first works after one to three hours, a draw on
-	/// the game's generator each. Answers how many passes were run.
+	/// A new game's politics: <c>Laws(country)</c> for every country, the player's too, in the countries' order - the
+	/// changes it posts made free and silent, the game being made, and <b>held</b> in <see cref="CGameState.NewGameLaws"/>
+	/// until the game's two first days are run (<see cref="RunNewGameLaws"/>); then each country nobody plays is given a
+	/// politics minister, which first works after one to three hours, a draw on the game's generator each.
 	/// </summary>
-	public static int SetUpAtStart(CGameState state)
+	public static void SetUpAtStart(CGameState state)
 	{
-		int passes = 0;
-		if (state.AiScripts is { } scripts)
+		state.NewGameLaws.Clear();
+		if (state.AiScripts is not null)
 		{
-			bool was = state.IsBeingMade;
-			state.IsBeingMade = true;
-			while (passes < MostLawPasses)
-			{
-				passes++;
-				var posted = new List<CCommand>();
-				// Every country, the player's too, as the original asks the script for every country it sets up for a new
-				// game (docs/compatibility.md, entry 6, reversed on 2026-11-02).
-				foreach (CCountry country in state.Countries)
-				{
-					scripts.RunLaws(state, country);
-					posted.AddRange(state.Outbox);
-					state.Outbox.Clear();
-				}
-				foreach (CCommand command in posted)
-				{
-					if (command.MayExecute(state))
-					{
-						command.Execute(state);
-					}
-				}
-				state.Outbox.Clear();
-				if (posted.Count == 0)
-				{
-					break;
-				}
-			}
-			state.IsBeingMade = was;
+			state.NewGameLaws.AddRange(LookAtLaws(state));
 		}
 		foreach (CCountry country in state.Countries)
 		{
 			country.PoliticsCountdown = Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Politics)
 				? state.AiRandom.Next() % 3 + 1 : 0;
 		}
-		return passes;
+	}
+
+	/// <summary>
+	/// The changes of law a new game's look posted, run once its two first days are, as the original's queue runs them
+	/// after the days - so the days are run under the laws the new game brought forward, and each change then holds the
+	/// country's brigades to the running game's ceilings. Then the look again, and its changes, until a look posts
+	/// nothing (ours: what repeats it in the original was not found). Answers how many looks there were, the one
+	/// <see cref="SetUpAtStart"/> made among them; none where nothing was held.
+	/// </summary>
+	public static int RunNewGameLaws(CGameState state)
+	{
+		if (state.NewGameLaws.Count == 0)
+		{
+			return 0;
+		}
+		var posted = new List<CCommand>(state.NewGameLaws);
+		state.NewGameLaws.Clear();
+		int passes = 1;
+		while (true)
+		{
+			foreach (CCommand command in posted)
+			{
+				if (command.MayExecute(state))
+				{
+					command.Execute(state);
+				}
+			}
+			state.Outbox.Clear();
+			if (posted.Count == 0 || passes == MostLawPasses || state.AiScripts is null)
+			{
+				return passes;
+			}
+			passes++;
+			posted = LookAtLaws(state);
+		}
+	}
+
+	/// <summary>
+	/// One look at every country's laws by the Lua's <c>Laws(country)</c>, the player's too, as the original asks the
+	/// script for every country it sets up for a new game (<c>docs/compatibility.md</c>, entry 6, reversed on 2026-11-02):
+	/// the changes it posts, made while the game counts as being made, so free and silent.
+	/// </summary>
+	private static List<CCommand> LookAtLaws(CGameState state)
+	{
+		var posted = new List<CCommand>();
+		if (state.AiScripts is not { } scripts)
+		{
+			return posted;
+		}
+		bool was = state.IsBeingMade;
+		state.IsBeingMade = true;
+		foreach (CCountry country in state.Countries)
+		{
+			scripts.RunLaws(state, country);
+			posted.AddRange(state.Outbox);
+			state.Outbox.Clear();
+		}
+		state.IsBeingMade = was;
+		return posted;
 	}
 
 	/// <summary>

@@ -296,6 +296,28 @@ public class EventTests
 	}
 
 	[Fact]
+	public void A_new_game_runs_the_effects_of_the_decisions_its_history_took_political_first_and_unasked()
+	{
+		CGameState state = ScriptWorld.State();
+		// The diplomatic decision of the name comes first in the file; the new game looks among the political first.
+		var diplomatic = new CDecision("new_deal", EDecisionGroup.Diplomatic, "decisions/test.txt", 1);
+		diplomatic.Effects.AddRange(ScriptWorld.Effects("set_country_flag = diplomatic"));
+		var political = new CDecision("new_deal", EDecisionGroup.Political, "decisions/test.txt", 2);
+		political.Potential.Children.AddRange(ScriptWorld.Condition("tag = POL").Children);
+		political.Allow.Children.AddRange(ScriptWorld.Condition("tag = POL").Children);
+		political.Effects.AddRange(ScriptWorld.Effects("set_country_flag = nd"));
+		state.Decisions = new[] { diplomatic, political };
+		state.Country(Ger)!.HistoryDecisions.AddRange(new[] { "new_deal", "never_written" });
+
+		List<string> unknown = CDecisions.TakeHistoryAtNewGame(state);
+
+		// Neither its potential nor its allow is asked: Germany is not Poland.
+		Assert.True(Flag(state, Ger, "nd"));
+		Assert.False(Flag(state, Ger, "diplomatic"));
+		Assert.Equal(new[] { "GER has unknown decision 'never_written'" }, unknown);
+	}
+
+	[Fact]
 	public void A_decision_is_asked_again_when_it_runs_and_may_be_taken_again()
 	{
 		CGameState state = ScriptWorld.State();

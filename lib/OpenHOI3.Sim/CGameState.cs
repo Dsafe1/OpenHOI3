@@ -609,6 +609,12 @@ public sealed class CGameState
 	/// </summary>
 	public List<Commands.CCommand> Outbox { get; } = new();
 
+	/// <summary>
+	/// The changes of law the install's Lua posted as a new game was set up, waiting on the queue until the game's two
+	/// first days are run; empty at any other time (<c>docs/mechanics/politics.md</c>, section 12).
+	/// </summary>
+	public List<Commands.CCommand> NewGameLaws { get; } = new();
+
 	/// <summary>The battle plans a save held, waiting for the interface that keeps them; nothing simulated reads them.</summary>
 	public List<Plans.CBattlePlan> LoadedBattlePlans { get; } = new();
 

@@ -97,7 +97,11 @@ and (measured): until then this was a walk through any land the country controls
 agreed for all but three of the countries that produce anything at the start. With the
 infrastructure in it two of the three agree - Australia's and Canada's metal, 1.1 and 5.5 a
 day over the save's, from mines behind land with one level or none - and the home figure of
-metal is right for 78 countries of 78. Honduras's energy is still half a unit over.
+metal is right for 78 countries of 78. Honduras's energy was half a unit over until
+2026-11-14: its armament minister is declared a laissez-faire capitalist and then a resource
+industrialist, and the original takes the first a block gives for a post, where this took the
+second and its 5% more resources (`politics.md`, section 7). Every figure of home production
+is the save's since: 78 of 78 countries for each good, 20 of 20 for crude oil.
 
 ## 4. Technology levels
 
@@ -137,9 +141,10 @@ production, manpower, leadership and victory points; every country's capital.
   moves one step a call. (measured) The laws a player sees on the first screen are the
   script's, not the history's. The comparison above applies the save's laws to our
   countries first, for that reason.
-- *Government seats* - 779 of 780 for countries that exist. The same script has an
-  `OfficeManagement` function that picks ministers, which is the likely cause of the one
-  that differs and of the next item; `inferred`, as that function was not followed through.
+- *Government seats* - 780 of 780 for countries that exist, and 230 of 230 for those that do not,
+  since the original's filling of empty posts at a new game was read (`politics.md`, section 7).
+  This said 779 and guessed at the script's `OfficeManagement`, which runs for nobody before the
+  first hour.
 
 **Does not agree, and is not explained:**
 
@@ -175,11 +180,13 @@ production, manpower, leadership and victory points; every country's capital.
   as the laws did (`docs/compatibility.md`, entry 6). **Both came on 2026-11-02**: the
   reading found the engine's own new-game pass, which gives every country its levels and
   moves its laws, and the maintainer's word was "Yes everyone" - entry 6 reversed with it.
-- *Home production* for three countries: Canada's and Australia's metal, where the save
-  has less than ours, and Honduras's energy.
-- *A country with no provinces has a full government in the save*, where the history files
-  give it none - probably the AI's office management, as above. This project leaves the
-  seats empty.
+- ~~*Home production* for three countries: Canada's and Australia's metal, where the save
+  has less than ours, and Honduras's energy.~~ All three agree: the first two since the
+  capital's area was read (section 3), Honduras's since 2026-11-14 (`politics.md`, section 7).
+- ~~*A country with no provinces has a full government in the save*, where the history files
+  give it none.~~ It is the original's filling of empty posts as a new game sets a country up,
+  not the AI (`politics.md`, section 7): built, 230 of 230 posts of the 23 such countries the
+  save's (`OpenHOI3.SaveCheck`'s start-date run).
 
 **Cannot be checked:** IC itself, which the original does not save. What it saves is what
 industry *used*, which is never more than there was - and after `base_values` was added,
@@ -189,11 +196,14 @@ no country uses more than this project gives it.
 
 - ~~how the original decides a province is **joined to the capital**~~ - read, 2026-10-09:
   `supply.md`, section 2;
-- why **Honduras's energy** is half a unit a day over the save's;
+- ~~why **Honduras's energy** is half a unit a day over the save's~~ - a minister's first type
+  for a post is his (section 3);
 - where the **476 extra technology levels** come from: they bring a country up to what was
   due before the start year, in technologies chosen by a rule not found (above);
-- **when and how often the AI runs** before the first hour, and why it runs for the
-  player's country;
+- ~~**when and how often the AI runs** before the first hour, and why it runs for the
+  player's country~~ - the engine's own pass and the set-up's call of the Lua's `Laws` for every
+  country (`politics.md`, sections 12 and 13), the Lua's changes run after the two days; what
+  repeats that call is still not found;
 - what makes current production **step back up**, and how fast.
 
 How a stockpile is filled at the start was on this list. It has been measured since:

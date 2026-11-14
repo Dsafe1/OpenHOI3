@@ -56,6 +56,40 @@ public static class CDecisions
 		return Find(state, name, EDecisionGroup.Diplomatic) ?? Find(state, name, EDecisionGroup.Political);
 	}
 
+	/// <summary>
+	/// What a new game does with the decisions each country's history says it has taken (<c>decision = name</c>, less
+	/// any <c>remove_decision</c>, by the start date): for each, in the history's order, the decision of that name - the
+	/// political ones looked in first, then the diplomatic, the reverse of <see cref="Find(CGameState, string)"/> - and
+	/// its effect run in the country's scope, one scope for all the country's decisions so that each draws on where the
+	/// one before left its chance. Neither <c>potential</c> nor <c>allow</c> is asked, and nothing is told. Answers the
+	/// names no decision has, each with its country, for the caller to report. See <c>docs/mechanics/events.md</c>,
+	/// section 13.
+	/// </summary>
+	public static List<string> TakeHistoryAtNewGame(CGameState state)
+	{
+		var unknown = new List<string>();
+		foreach (CCountry country in state.Countries)
+		{
+			if (country.HistoryDecisions.Count == 0)
+			{
+				continue;
+			}
+			CEventScope scope = ScopeOf(country.Tag);
+			foreach (string name in country.HistoryDecisions)
+			{
+				if ((Find(state, name, EDecisionGroup.Political) ?? Find(state, name, EDecisionGroup.Diplomatic)) is { } decision)
+				{
+					CEffects.Run(state, decision.Effects, scope);
+				}
+				else
+				{
+					unknown.Add($"{country.Tag} has unknown decision '{name}'");
+				}
+			}
+		}
+		return unknown;
+	}
+
 	/// <summary>Whether it may be taken now: its state of chance set back to its seed, then <c>potential</c> and <c>allow</c>.</summary>
 	public static bool MayTake(CGameState state, CDecision decision, CEventScope scope)
 	{

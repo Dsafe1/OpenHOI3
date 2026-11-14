@@ -32,6 +32,9 @@ public static class CStockpile
 	/// </summary>
 	private const long MoneyShare = 50;
 
+	/// <summary>The most IC-days a subject country is given at the start, whole. It is built into the original.</summary>
+	public const long SubjectAmount = 1000;
+
 	/// <summary>
 	/// How many whole months the country has been in the oldest war it is still
 	/// fighting, by the calendar: October to January is three. Nothing for a country at peace.
@@ -95,9 +98,13 @@ public static class CStockpile
 				continue;
 			}
 
-			// Its base IC for that many days, in thousandths. A subject country's is held to
-			// a thousand in the original; there are no subjects here yet.
+			// Its base IC for that many days, in thousandths; a subject country's held to a
+			// thousand (stockpile.md, section 2) - Manchukuo's 1890 to 1000.
 			long icDays = (long)country.BaseIc * DaysAtStart(state, country) * CFixedPoint.Scale;
+			if (country.Overlord is not null)
+			{
+				icDays = Math.Min(icDays, SubjectAmount * CFixedPoint.Scale);
+			}
 
 			stockpile[EGoods.CrudeOil] += new CFixedPoint(icDays);
 			stockpile[EGoods.Metal] += new CFixedPoint(icDays);

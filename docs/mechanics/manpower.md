@@ -107,10 +107,15 @@ years of what it gets.**
 - The year here is the most divided by `MAX_MANPOWER` again.
 - **Whatever manpower a country's history file gives is thrown away**: the pool is set, not
   added to. No history file in Their Finest Hour gives any.
-- **The laws that count are the ones the original's AI has chosen**, not the history's: it
-  picks its laws before the country is set up (`resources.md`, section 5). Germany's
+- **The laws that count are the ones the new game brought forward**, not the history's: the
+  engine moves every country's laws to the latest each group allows before the country is set
+  up (`politics.md`, section 13), and the set-up works the most out again under them. Germany's
   history says volunteer army, which would start it with 469; it starts with 882, on the
-  two-year draft its AI took.
+  two-year draft. The Lua's changes come after the two days and do not touch the pool
+  (`politics.md`, section 12). And **the effects of the decisions its history has taken** are
+  in it, which the set-up runs first (`events.md`, section 13): the United States' New Deal.
+- **Its triggered modifiers are in it**, tested as the game is entered before the set-up
+  (`modifiers.md`, section 5): France's population crisis.
 - **A strategic resource does not count yet.** `confirmed`: who has the use of which is
   not worked out when a new game is entered, only when its first day is run
   (`modifiers.md`, section 6). (measured) The Soviet Union and France hold the two
@@ -122,8 +127,11 @@ years of what it gets.**
 
 - **The income is worked out and added once a day**, before leadership, and the most once a
   month and on entering a game - the original's own times.
-- **There is no AI**, so a country starts under its history's laws: Germany with 469 here
-  where the original gives it 882.
+- ~~**There is no AI**, so a country starts under its history's laws: Germany with 469 here
+  where the original gives it 882.~~ Since 2026-11-14 a new game starts the pool at its most
+  once the laws are brought forward, the decisions of the history run and the triggered
+  modifiers tested, as the original does: 882 for Germany, and every country of the start
+  save's 78 of 78 (`OpenHOI3.SaveCheck firstdays`).
 - **Only reinforcement spends manpower** (`upkeep.md`, section 4). Nothing is built, so
   the pool mostly grows.
 - **A government in exile is treated as any other country.** There are none yet.
@@ -135,19 +143,20 @@ levels the start save has, works out what it started with and two days of income
 compares that with the save's manpower:
 
 - **all 23 countries that do not exist yet**, to the thousandth;
-- **76 of the 78 that do** (75 until 2026-10-14). Every one of them has units, so units
-  cost no manpower in a game's first two days. The United Kingdom is among them only
-  because it is given France's black soil.
+- **78 of the 78 that do** since 2026-11-14 (76 until then, 75 until 2026-10-14). Every one of
+  them has units, so units cost no manpower in a game's first two days. The United Kingdom is
+  among them only because it is given France's black soil.
 
 The three that did not fit, each for something this project did not have:
 
-- **The United States** has 254.936 where 1050.564 is worked out. Its AI takes the New Deal
-  decision before the country is set up, and the modifier that gives takes 40% off; with it
-  the figure is exact. Decisions are stage 4.
+- **The United States** had 254.936 where 1050.564 was worked out. Its history takes the New
+  Deal decision, whose effect the new game's set-up runs, and the modifier that gives takes 40%
+  off; with it the figure is exact - and is since 2026-11-14 (`events.md`, section 13).
 - **France** fits exactly with the triggered modifier `population_crisis`, 30% off - and
   does since triggered modifiers were built on 2026-10-14 (`modifiers.md`, section 5).
-- **Brazil** fits with one minister's 5% left out: its AI appointed him after the last day
-  was run, as it does with laws (`production.md`, section 7).
+- **Brazil** fitted with one minister's 5% left out. It fits since 2026-11-14 as declared: the
+  minister is the first type his block gives for the post, not the second (`politics.md`,
+  section 7).
 
 The later saves cannot check the income of a country that has units, because by then its
 manpower has been spent on them as well. They do check a country without any: East Germany,

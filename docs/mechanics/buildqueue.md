@@ -219,10 +219,13 @@ duration is taken as the days it still has to go:** `confirmed`
 two days in the save has it at 309. Germany's other two, with 61 to go of 206 and 244, are
 at 147 and 185.
 
-*Ours:* built as read. The country being played keeps its history's laws
-(`docs/compatibility.md`, entry 6), so its lines start where the original's do; the others
-start where their history's laws put them, where the original's AI has changed laws and
-ministers first (section 9).
+**The laws a line is priced under as it starts are the ones the new game brought forward**
+(`politics.md`, section 13) and the ministers its history gives. The Lua's changes of law
+come after the two days and price the line again, the work done left alone (section 2;
+`politics.md`, section 12). `confirmed` for the order, and (measured) 30 of 30 lines start
+where the start save's are, less at most two days' work (section 9).
+
+*Ours:* built as read, every country alike, the player's too.
 
 ## 6. Finishing
 
@@ -337,8 +340,8 @@ nearest province of the capital's area where the target's will not do - and asks
   place. `CDeployment` has where a finished unit may go and whom it may join.
 - **Only the player's queue moves by anything but the day.** There is no AI, so no other
   country orders, cancels or places anything; a unit one of them finishes waits for ever.
-- **Nothing calls the pricing on a change of law**, there being nothing that changes a law
-  (`organisation.md`, section 5, is the same). It is built and tested.
+- ~~**Nothing calls the pricing on a change of law**~~ - a change of law prices the queue again
+  (`politics.md`, section 9), a new game's Lua changes among them, after its two days.
 - ~~**Convoys are not built.**~~ The original's queue holds three kinds of line, and since 2026-10-15 this one holds all
   three: units, buildings (`buildinglines.md`) and convoys (`convoylines.md`). A convoy line is priced once, when it is
   ordered, and passed over by every pricing of the queue after.
@@ -356,7 +359,7 @@ and the technology its save shows, and compares. The start save:
 | the days a line takes, under the laws the save shows | 30 of 30 |
 | progress, experience, building counted and `status` two days on: the player's country | 3 of 3 each |
 | the same: the others | 4, 12, 12 and 14 of 27 |
-| where a line stood as the game started, by the save's less at most two days' work | 16 of 30 |
+| where a line stood as the game started, by the save's less at most two days' work | 30 of 30 (16 until 2026-11-14) |
 | what the player's industry used on the last day, the queue with it | 1 of 1 |
 
 and, as `OpenHOI3.SaveCheck research <install> <earlier> <later>`, each pair of later
@@ -372,12 +375,16 @@ lines were:
 | the experience of a unit finished in between | 5 of 5 |
 | a finished unit waiting to be placed: strength, and organisation | 1 of 1 each |
 
-**What disagrees is the AI's.** Six countries' lines - Britain's, the United States',
-Japan's, France's, Belgium's and the Netherlands' - stood somewhere else as the game
-started than their history's laws or the save's would put them: the original priced them
-under laws or ministers its AI has since changed again. And the countries an AI runs have
-had their shares moved since the last day. The two lines whose price differs at a later
-save are in countries where something else was finished in between - a building or a
+**Where the lines started is answered** (2026-11-14): six countries' lines - Britain's, the
+United States', Japan's, France's, Belgium's and the Netherlands' - stood where neither their
+history's laws nor the save's put them, because the original priced them under the laws its
+own new-game pass had brought forward (`politics.md`, section 13), and the Lua's changes came
+after the days. The check takes where a new game here put each line, which since the pass of
+2026-11-02 is that. **What still disagrees is the AI's**: the countries an AI runs have had
+their shares moved since the last day, so their two days' work on a line is not the check's.
+A new game as a player gets it, with its own production minister, has every line where the
+save does, all 30 (`OpenHOI3.SaveCheck firstdays`). The two lines whose price differs at a
+later save are in countries where something else was finished in between - a building or a
 convoy prices every line again too, and the check does not work those lines forward.
 
 ## What is not built
@@ -399,6 +406,6 @@ convoy prices every line again too, and the check does not work those lines forw
 - ~~**How a builder window makes a brigade's model.**~~ `builders.md`, section 7.
 - ~~**What bounds an area**, for placing.~~ Read, 2026-10-09: `supply.md`, section 2.
 - **The second rule for placing** that one kind of session uses in place of the area.
-- **Why six countries' lines start where they do**: which laws and ministers the
-  original's AI had given them when the game started.
+- ~~**Why six countries' lines start where they do**~~ - priced under the laws the new
+  game brought forward (section 5).
 - **What a line aimed at a unit does**, past that it joins it.

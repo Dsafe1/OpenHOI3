@@ -89,13 +89,18 @@ public static class CProduction
 
 	/// <summary>
 	/// Gives every country the shares a new game starts with: consumer goods at what the
-	/// country demands, and the rest split equally between the other five.
+	/// country demands, and the rest split equally between the other five - each of the six
+	/// first set to a fifth of what consumer goods leave, then consumer goods to the demand.
+	/// A new game does it once the units are read, its land brigades in service counted
+	/// here first, so that the standing army's term is in the demand; and before an empty
+	/// post is filled. See <c>docs/mechanics/production.md</c>, section 1.
 	/// </summary>
 	public static void SetStartingShares(CGameState state)
 	{
 		CCountryModifiers.Rebuild(state);
 		foreach (CCountry country in state.Countries)
 		{
+			country.LandBrigadesInService = Units.COfficers.LandBrigadesInService(country, state);
 			CFixed15 consumerGoods = CFixed15.FromThousandths(ConsumerGoodsDemand(state, country));
 			var each = new CFixed15((CFixed15.Scale - consumerGoods.Raw) / (CategoryCount - 1));
 			for (int i = 0; i < CategoryCount; i++)

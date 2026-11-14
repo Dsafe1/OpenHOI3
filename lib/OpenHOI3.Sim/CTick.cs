@@ -221,7 +221,8 @@ public static class CTick
 	/// <param name="weather">
 	/// Whether the new game's weather is made first; a check that has given the provinces a save's weather leaves it out.
 	/// </param>
-	public static void RunFirstDays(CGameState state, bool weather = true)
+	/// <returns>How many looks the Lua took at the laws once the days were run (<see cref="Politics.CPoliticsAi.RunNewGameLaws"/>).</returns>
+	public static int RunFirstDays(CGameState state, bool weather = true)
 	{
 		bool was = state.IsBeingMade;
 		state.IsBeingMade = true;
@@ -247,8 +248,12 @@ public static class CTick
 		RunMonthlyPass(state);
 		RunHourlyPass(state);
 		state.IsBeingMade = was;
+		// Then the changes of law the install's Lua posted as the game was set up, which the original's queue runs once
+		// its entry is over - after the days, and before the AI's first pass posts anything (politics.md, section 12).
+		int lawPasses = Politics.CPoliticsAi.RunNewGameLaws(state);
 		// What the first screen shows is worked out for the game as it now runs.
 		RunEntryPass(state);
+		return lawPasses;
 	}
 
 	/// <summary>

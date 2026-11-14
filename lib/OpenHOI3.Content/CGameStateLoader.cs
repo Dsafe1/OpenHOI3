@@ -238,6 +238,9 @@ public static class CGameStateLoader
 		foreach (CCountry country in state.Countries)
 		{
 			Sim.Diplomacy.CNeutrality.UpdateEffective(state, country);
+			// And its triggered modifiers tested, as the original's entry tests them for each country before its new-game
+			// set-up - so France's population crisis is in the most manpower it starts with (manpower.md, section 4).
+			Sim.Modifiers.CTriggeredModifiers.Update(state, country);
 		}
 		foreach (CCountry country in state.Countries)
 		{
@@ -254,7 +257,20 @@ public static class CGameStateLoader
 			CHistoricalModels.DefaultCount(state), warn);
 		ReadUnits(directories, state, warn);
 		CUnits.SetAtStart(state);
+		// Each country's set-up for a new game, once its order of battle is read: the effects of the decisions its history
+		// says it has taken (events.md, section 13), and its manpower started at its most under the laws and technology
+		// brought forward and what those decisions gave (manpower.md, section 4).
+		foreach (string unknown in Sim.Events.CDecisions.TakeHistoryAtNewGame(state))
+		{
+			warn(unknown);
+		}
+		CManpower.SetAtStart(state);
 		CBuildQueue.SetUpAtStart(state);
+		// The shares of IC a new game starts with, once the units are read and counted and before any empty post is
+		// filled: so under the laws brought forward, with the standing army's term, and without the ministers the
+		// filling gives (production.md, section 1).
+		CIndustrialCapacity.Update(state);
+		CProduction.SetStartingShares(state);
 		CStockpile.AddUnitGoodsAtStart(state);
 		CLeaders.AssignAtStart(state);
 		// The parties from the history, the pool and the empty posts, the elections' dates and the seats, as the
@@ -262,18 +278,15 @@ public static class CGameStateLoader
 		CPolitics.SetUpAtStart(state, warn);
 		// Entering the game gives the relations nobody gave, asking the install's Lua for them.
 		CDiplomacy.SetUpNewGame(state, warn);
-		// And every country has its laws looked at by the install's Lua until they stop moving, the player's too (entry 6
-		// of docs/compatibility.md, reversed 2026-11-02), and every country nobody plays is given a politics minister
-		// (politics.md, section 12). Ours: after the step above, whose effective neutrality the laws'
-		// allow blocks read; where the original's look comes beside it was not read.
+		// And every country has its laws looked at by the install's Lua, the player's too (entry 6 of
+		// docs/compatibility.md, reversed 2026-11-02), what it posts held until the two days are run, and every country
+		// nobody plays is given a politics minister (politics.md, section 12). Ours: after the step above, whose effective
+		// neutrality the laws' allow blocks read.
 		if (played is not null)
 		{
 			state.Played.UnionWith(played);
 		}
-		if (CPoliticsAi.SetUpAtStart(state) == CPoliticsAi.MostLawPasses)
-		{
-			warn($"politics: the AI's laws were still moving after {CPoliticsAi.MostLawPasses} passes");
-		}
+		CPoliticsAi.SetUpAtStart(state);
 		// And an intelligence minister (espionage.md, section 15; ours: its draw after the politics minister's).
 		Sim.Espionage.CEspionageAi.SetUpAtStart(state);
 		// And a foreign, a production and a tech minister, in that order (foreignminister.md and ministers.md, section 1;
@@ -284,18 +297,33 @@ public static class CGameStateLoader
 		Sim.Ai.CAiStrategies.MakeAtStart(state);
 		// And the two days the original has behind it on the first screen are run, with
 		// the provinces filled along the supply network between them, so that no army
-		// starts hungry.
+		// starts hungry. The changes of law the Lua posted above are run after the days, as the original's queue runs
+		// them (politics.md, section 12).
+		int lawPasses;
 		if (fill && firstDays)
 		{
 			beforeFirstDays?.Invoke(state);
-			CTick.RunFirstDays(state);
+			lawPasses = CTick.RunFirstDays(state);
 			// Then the game is entered, and every country is brought up to date with its wars: Italy and
 			// Ethiopia are mobilised for thirty days, as the start save has them (war.md, section 4).
 			Sim.Wars.CWarSides.BringAllUpToDate(state);
 		}
-		else if (fill)
+		else
 		{
-			CSupplyStart.FillNewGame(state);
+			// A game made without its days, for a check that reasons about them one system at a time: the changes made
+			// at once, while it is still being made, so that nobody is held to a ceiling a running game would have.
+			bool was = state.IsBeingMade;
+			state.IsBeingMade = true;
+			lawPasses = CPoliticsAi.RunNewGameLaws(state);
+			state.IsBeingMade = was;
+			if (fill)
+			{
+				CSupplyStart.FillNewGame(state);
+			}
+		}
+		if (lawPasses == CPoliticsAi.MostLawPasses)
+		{
+			warn($"politics: the AI's laws were still moving after {CPoliticsAi.MostLawPasses} passes");
 		}
 		// And the game runs from here. What was made until now, its two days' too, is numbered as the history's and
 		// what is made from here on as the player's: the original's start save has the one count up to here, type 41,

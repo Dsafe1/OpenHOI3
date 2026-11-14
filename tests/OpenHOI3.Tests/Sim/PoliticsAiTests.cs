@@ -36,7 +36,9 @@ public class PoliticsAiTests
 			int at = press.Laws.IndexOf(country.Laws[press.Name]);
 			if (at + 1 < press.Laws.Count)
 			{
-				state.Outbox.Add(new CChangeLawCommand(country.Tag, press.Laws[at + 1].Name, press.Name, payCost: false, postMessage: false));
+				// As the Lua's command class makes one: the two flags kept only while a game is under way.
+				state.Outbox.Add(new CChangeLawCommand(country.Tag, press.Laws[at + 1].Name, press.Name,
+					payCost: !state.IsBeingMade, postMessage: !state.IsBeingMade));
 			}
 		}
 
@@ -102,12 +104,51 @@ public class PoliticsAiTests
 		CGameState state = World();
 		state.Played.Add(Ger);
 		state.AiScripts = new StepUp();
-		// Two passes that move each country's press law and a third that posts nothing - the player's as the AI's, as
-		// the original asks the script for every country (docs/compatibility.md, entry 6, reversed 2026-11-02).
-		Assert.Equal(3, CPoliticsAi.SetUpAtStart(state));
+		// The first look posts each country's first step and nothing changes until the days are run: the original's queue
+		// runs what the script posted after them.
+		CPoliticsAi.SetUpAtStart(state);
+		Assert.Equal(2, state.NewGameLaws.Count);
+		Assert.Equal("free_press", state.Country(Ita)!.Laws["press_laws"].Name);
+		Assert.Equal("free_press", state.Country(Ger)!.Laws["press_laws"].Name);
+		// Then the held changes, a second look that moves each country's press law again and a third that posts nothing -
+		// the player's as the AI's, as the original asks the script for every country (docs/compatibility.md, entry 6,
+		// reversed 2026-11-02).
+		Assert.Equal(3, CPoliticsAi.RunNewGameLaws(state));
 		Assert.Equal("propaganda_press", state.Country(Ita)!.Laws["press_laws"].Name);
 		Assert.Equal("propaganda_press", state.Country(Ger)!.Laws["press_laws"].Name);
 		Assert.Empty(state.Outbox);
+		Assert.Empty(state.NewGameLaws);
+		Assert.Equal(0, CPoliticsAi.RunNewGameLaws(state));
+	}
+
+	[Fact]
+	public void ANewGamesChangesOfLawAreMadeFreeAndSilentThoughRunOnceTheGameIsRunning()
+	{
+		CGameState state = World();
+		state.Played.Add(Ger);
+		state.AiScripts = new StepUp();
+		int told = 0;
+		state.PactMessaged += _ => told++;
+		CPoliticsAi.SetUpAtStart(state);
+		CPoliticsAi.RunNewGameLaws(state);
+		// Every look is made with the game being made, so no command it posts tells the player, though they are run
+		// with the game under way.
+		Assert.False(state.IsBeingMade);
+		Assert.Equal("propaganda_press", state.Country(Ger)!.Laws["press_laws"].Name);
+		Assert.Equal(0, told);
+	}
+
+	[Fact]
+	public void AMinisterIsTheFirstTypeHisBlockGivesForAPost()
+	{
+		// Honduras's armament minister of 1936: a laissez-faire capitalist, then a resource industrialist.
+		var minister = new CMinister(79004, "Roberto Michelleti Bain");
+		var first = new CMinisterType(new CModifier("laissez_faires_capitalist"));
+		minister.SetType("armament_minister", first);
+		minister.SetType("armament_minister", new CMinisterType(new CModifier("resource_industrialist")));
+
+		Assert.Same(first, minister.TypeIn("armament_minister"));
+		Assert.True(minister.MayTake("armament_minister"));
 	}
 
 	[Fact]

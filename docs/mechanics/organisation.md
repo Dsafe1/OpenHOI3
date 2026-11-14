@@ -279,7 +279,10 @@ stops, and ships and wings take the country's ratio like the rest.
   `leaders.md`, section 8.
 - **Being carried**, which stops the hourly return (section 3), and the paratroop and
   redeployment rules beside it.
-- **Anything that changes a law**, so section 5 is never called in a game.
+- ~~**Anything that changes a law**, so section 5 is never called in a game.~~ A change of law
+  holds a country's brigades (`politics.md`, section 9), and a new game's Lua changes are run
+  after its two days, as section 7 has it: every brigade of the start save the first screen's
+  since 2026-11-14 (`OpenHOI3.SaveCheck firstdays`, 3,792 of 3,792).
 - **Units lent to another country**, which count for and take the ratio of the country
   that lent them.
 - ~~**The supply network.**~~ Built: a unit is given its share of what lies in the province

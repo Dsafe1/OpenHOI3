@@ -268,6 +268,23 @@ where either fails - **and never enables it again** until the screen is opened a
 button does not ask `allow` itself; the command does when it runs. The rest of the diplomacy screen is
 `diplomacyscreen.md`.
 
+## 13. The decisions a history has taken
+
+`confirmed` (`reversing/findings/FINDINGS-startshares.md`, section 4, which gathers the record's reading of the original's
+set-up of a country for a new game). A country's history may say `decision = <name>`, and
+`remove_decision = <name>` takes it off again (*ours*: the first of that name, should one be there twice); the dated blocks up to the start count, in their order. **As a new game sets each country up, once its
+order of battle is read, each decision on that list has its effect run** in the country's scope - FROM none, province
+none, a state of chance of nought, **one scope for all the country's decisions**, so each draws on where the one before
+left it. The name is looked for **among the political decisions first, then the diplomatic** - the reverse of taking one
+(section 9). Neither `potential` nor `allow` is asked, nothing is told and nothing is filed in the history. A name no
+decision has is reported (`<TAG> has unknown decision '<name>'`) and skipped. Never on a load.
+
+(measured) The United States' history takes `new_deal` on 1 January 1936, the only decision of the base game's
+histories dated by the start: the start save holds its flag `nd` and the modifier `us_new_deal`, and the United States'
+manpower, 254.936, is the most that modifier's 40% less gives. Built 2026-11-14 (`CDecisions.TakeHistoryAtNewGame`): a
+new game's manpower is the save's for 78 of 78 countries (`OpenHOI3.SaveCheck firstdays`). *Exe-hardcoded*: when, and
+the order of the two tables; *mod-able*: the lines and the decisions.
+
 ## Not established
 
 - What the original draws when an event's picture does not load.

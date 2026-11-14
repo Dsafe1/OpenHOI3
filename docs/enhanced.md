@@ -207,6 +207,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **Minister intelligence effects do nothing:** `peace_offmap_intel` and `offmap_political_intel`. `intelligence.md`, 1. *Dead.* Risk: small.
 - **Radar stays on the list when lost,** and the far radar ring is never reached. `intelligence.md`, "What looks wrong". *Bug.* Risk: small.
 - **The law dialog's Ok checks nothing.** `politics.md`, 11. *Oversight.* Risk: small; whether the command refuses was not confirmed.
+- **A minister's second type for the same post is dropped without a word**: the first his block gives is the one he is, and 71 of the base game's lines that give a post again give it another type. `politics.md`, 7. *Oversight.* Risk: small - the base game's own ministers would change; report the line instead.
 
 ## Economy and production
 

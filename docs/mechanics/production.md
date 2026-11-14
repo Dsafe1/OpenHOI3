@@ -49,16 +49,27 @@ Germany's stockpile - because Berlin is its capital.
 
 ### What the shares start as
 
-**Not established.** (measured) In the savegame, every country nobody has touched - the 23
-that do not exist, and Germany, which the player had not played - has **five shares exactly
-equal and a consumer goods share that is a round number of thousandths**: East Germany
-0.100 and five of 0.180, Germany 0.224 and five of 0.15518. For about half of them the
-consumer goods share is what the country demanded under its history file's laws (section
-3); for the rest it is something else. The countries the AI runs have shares of its own
-choosing.
+`confirmed` - read 2026-11-14 (`reversing/findings/FINDINGS-startshares.md`) - and (measured) 24 of 24. As a new game
+is entered, each country in turn has its laws brought forward and its technology bought (`politics.md`, section 13),
+its order of battle read and its set-up for a new game run; then its land brigades in service are counted
+(`organisation.md`, section 1) and its shares set:
 
-*Ours:* a new game gives every country a consumer goods share equal to what it demands,
-and splits the rest equally between the other five.
+    cg   = the demand (section 3) in thousandths, turned into a share: cg * 32768 / 1000, the remainder dropped
+    rest = (32768 - cg) / 5, the remainder dropped
+    each of the six shares = rest;  then consumer goods = cg
+
+So the demand is the one of that moment: **under the laws the new game brought forward** - the Lua's changes come after
+the two days (`politics.md`, section 12) - **with the standing army's term**, the units being read, and **without the
+ministers the filling of empty posts gives**, who are put in after. *Exe-hardcoded*: when, and the five-way split;
+*mod-able*: the demand's figures, through `base_values`, the laws and the history's ministers.
+
+(measured) Every country nobody has touched in the start save - the 23 that do not exist, and Germany, which the player
+had not played - has these shares: East Germany 0.09998 and five of 0.17999, from mixed industry and a full civilian
+economy; Germany 0.22400 and five of 0.15518 - 0.200 under the war economy and mixed industry the new game brought it
+to, and 0.024 for its 33 land brigades in service on 201 IC at an effective neutrality of 60. Until 2026-11-14 the shares
+were set here before the units were read and the laws brought forward, and 11 of the 24 agreed. Counting the ministers
+the filling gives would leave seven short - Vichy France, East Germany, the Social Republic, Lebanon, Syria, Mengkukuo
+and Guyana, each by a minister's 0.02 or 0.025. The countries the AI runs have shares of its own choosing by the save.
 
 ## 2. What a point of IC costs
 
@@ -177,7 +188,6 @@ reinforcement and upgrades, and section 3 here for consumer goods.
   sends IC to the country's receivers, and the rest of it is wasted where it has none.
   Production spends what its queue takes (`buildqueue.md`), and reinforcement and upgrades
   what their units take (`upkeep.md`); the rest of what the three are given is wasted.
-- **The standing-army term is zero**: the units are there now, and neutrality is not.
 - ~~**All the supplies go to the stockpile.**~~ Since the supply pass was built they are made
   where the factories are, as section 4 says and as fuel is, and travel to the stockpile a
   province a day (`supply.md`, section 15).
@@ -198,19 +208,15 @@ day was run.
 - **What a country that does not exist uses in a day** agrees to the thousandth, in metal,
   energy and rare materials, for 22 of 22. Until 2026-10-10 it was 20: Guyana and the Italian
   Social Republic had an IC here that counted their ministers (`ic.md`, section 3).
-- **The supplies made in a day** agree for 16 of 23, Germany among them; 14 before Guyana
-  and the Social Republic had the right IC.
-- **The laws in the save are not always the laws the last day was run under.** For nine
-  of those sixteen, Germany included, the figures fit only with the industrial policy
-  from the country's history file put back in place of the one the save shows. So the
-  AI's last change of law comes *after* the last daily pass, with the date not moving.
-  The tool tries this by itself and says which countries needed it.
-- **The seven that do not agree are each out by 10% or close to it** of what their share makes. It
-  is not their industrial policy, which their history and the save agree on. A minister
-  the AI has since replaced would do it; **not established.** The maintainer's pointer,
-  2026-10-10, for when it is taken up: there is a minister effect on supplies (the types
-  with `global_supplies`), and some triggered modifiers give supplies too - applied since
-  2026-10-14 (`modifiers.md`, section 5); this check has not been run against them since.
+- **The supplies made in a day** agree for 23 of 23, Germany among them (16 until the triggered modifiers of
+  2026-10-14; 14 before Guyana and the Social Republic had the right IC).
+- **The laws in the save are not the laws the two days were run under.** For 16 of the 23, Germany included, the
+  figures fit only with the industrial policy the new game brought forward in place of the consumer goods the save
+  shows - mixed industry gives 10% more supplies. **Answered on 2026-11-14**: the install's Lua looks at every
+  country's laws as the new game is set up, before the days, but its changes are commands, which the original's queue
+  runs once the new game's entry is over - after the days (`politics.md`, section 12;
+  `reversing/findings/FINDINGS-startshares.md`). A new game here does the same since that day, and the tool still tries
+  the history's laws by itself and says which countries needed them.
 
 One rounding rule came out of this and is not in the fact base: the consumer goods bill is
 the share turned into thousandths *first* and then multiplied by the IC, where the supply
@@ -225,16 +231,16 @@ against a cost of 16.160: the 16.160 was the cost under the laws the save shows,
 change of law made after the last day, and the consumer goods bill is 44.823 and not the
 45.024 the sum assumed.)
 
-Not checked: dissent, because nothing in the save has any to speak of; and the
-standing-army term, which this project cannot compute yet.
+**The shares a new game gives** are the save's for all 24 countries nothing has moved (section 1), and with them the
+standing-army term is seen working: Germany's 0.224 is 0.200 and 0.024 of it. Dissent two days in is the save's for 101
+of 101 since the same day (`OpenHOI3.SaveCheck politics`).
 
 ## What is not established, in one place
 
-- what **sets the shares** at the start of a game;
+- ~~what **sets the shares** at the start of a game~~ - read 2026-11-14, section 1;
 - whether a charge can take a **stockpile below zero**;
-- what makes **nine untouched countries' supplies** 10% more than their laws and
-  technology give;
+- ~~what makes **nine untouched countries' supplies** 10% more than their laws and technology give~~ - the Lua's
+  changes of law come after the two days, section 7;
 - ~~**lend-lease**, in full~~ - read 2026-10-13, `aid.md`, section 3;
-- how the game decides a brigade is in service is read, but the **standing-army term has
-  not been seen working**: Germany's untouched consumer goods share in the savegame is
-  0.224, and the formula gives 0.252 from the laws and brigades the same save holds.
+- ~~the **standing-army term has not been seen working**~~ - it has: Germany's 0.224 at the start (section 1). The
+  0.252 this said the formula gives came from the save's laws, which the shares were never set under.

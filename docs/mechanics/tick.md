@@ -223,23 +223,21 @@ different while it does not:
 **The original's AI then changes laws**, for every country, the player's among them, and a
 change of law holds every brigade of that country to the running game's ceilings
 (`organisation.md`, section 5). That is why the original's first screen shows Germany's
-reserves at 28.000. It also changes some laws *before* the days and some after, so a save's
-laws are not always the ones its two days ran under (`upkeep.md`, section 9).
+reserves at 28.000. The engine's own pass moves laws *before* the days (`politics.md`, section 13);
+the Lua's look is made before them too, but what it posts waits on the queue and is run after them,
+so a save's laws are not the ones its two days ran under (`politics.md`, section 12).
 
 *Ours:* **built on 2026-10-10**: `CTick.RunFirstDays`, which a new game runs as it is made,
 in that order and with the game "being made" throughout. Three things about it:
 
-- **Nothing changes a law here**, there being no AI, and the player's country keeps its
-  history's by decision (`docs/compatibility.md`, entry 6). So nobody is held: a reserve
-  stands at its own figure on the first screen and the first hour played brings it to its
-  ceiling, which is what the original does for the one country whose laws its AI left alone.
-  **One thing comes of it that the original all but never shows**: the hourly return skips
-  a unit that is fighting or marching onto enemy ground (`organisation.md`, section 3), so
-  a reserve division sent to attack before the first hour is run keeps its own figure for
-  that battle - 35 for a German reserve, where its ceiling is 14. Holding every brigade
-  once the days are run would close it and is one line; it is not done because it is not
-  what the original does. The maintainer, asked on 2026-10-10: "The two days for the
-  brigades is ok for now. Maybe it comes up again later." So it stays as it is.
+- **Since 2026-11-14 the Lua's changes of law are run once the days are**, with the game no
+  longer being made, before the figures of the first screen are worked out and before the AI's
+  first pass posts anything (`CPoliticsAi.RunNewGameLaws`). So every country whose laws the Lua
+  moves is held to the running game's ceilings, the player's too, and a new game's first screen
+  has every brigade's organisation the start save's (`OpenHOI3.SaveCheck firstdays`, 3,792 of
+  3,792). Until then the changes were made before the days and nobody was held; the reserve
+  division sent to attack before the first hour, which kept its own figure for that battle -
+  35 for a German reserve, where its ceiling is 14 - is held as the original holds it.
 - **The figures of the first screen are worked out afterwards for a running game**, by the
   pass that is run on entering one, so the top bar shows what the first day played will
   make.
@@ -251,10 +249,12 @@ in that order and with the game "being made" throughout. Three things about it:
 
 `OpenHOI3.SaveCheck firstdays <install> <start-date save>` makes a new game as a player
 gets it and sets every country beside the save: stockpile, manpower, officers, influence,
-abilities, technology, the build queue, every brigade's strength and organisation. **It is
-meant to differ**, and says where: the original's AI has changed laws and shares by then,
-and has made headquarters. For Germany, which the save's player has: the abilities and the
-build queue agree, and the rest is what `two_year_draft` and `war_economy` make of it.
+abilities, technology, the build queue, every brigade's strength and organisation. Since
+2026-11-14 it is the save's for Germany, which the save's player has, in every figure, and for
+the others in every brigade, technology and ability, in influence and officers, and in manpower
+but for the United States, whose New Deal its set-up takes, and France (2026-11-14: 76 of 77).
+Where it differs it is the AI's: the shares it has set by the save, and the headquarters it has
+made.
 
 The like-for-like is `OpenHOI3.SaveCheck supplypass <install> <start-date save> countries`,
 which gives every country the save's laws, ministers, technology and shares, makes its

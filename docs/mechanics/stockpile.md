@@ -66,6 +66,9 @@ country is set up once, in turn. `confirmed` throughout unless marked.
 - **A subject country's `amount` is held to 1000**, whatever its IC. Manchukuo has a base
   IC of 21 and starts with exactly 1000 metal, 500 rare materials and 2.5 money, not 1890,
   945 and 4.725. (measured, and it is the only subject whose IC is high enough to show it.)
+  `confirmed` too, by the record's reading of the set-up. Built only on 2026-11-14 - the code
+  had said there were no subjects yet: every stockpile's metal, rare materials and money is
+  the save's since (`OpenHOI3.SaveCheck firstdays`, 78 of 78).
 - **Everything is added to the pool of the country's capital, whoever holds that
   province.** A country that does not exist yet still has a base IC of five and a capital,
   so 450 metal, 900 energy, 225 rare materials and 450 crude oil are put in a province

@@ -140,6 +140,13 @@ public sealed class CCountry
 	public List<(string Policy, CCountryTag Occupied)> HistoryOccupationPolicies { get; } = new();
 
 	/// <summary>
+	/// The decisions its history says it has taken by the start date - each <c>decision = name</c>, less any a
+	/// <c>remove_decision</c> took off - in the order written: their effects are run as a new game is set up
+	/// (<c>docs/mechanics/events.md</c>, section 13).
+	/// </summary>
+	public List<string> HistoryDecisions { get; } = new();
+
+	/// <summary>
 	/// Where it stands on the alignment triangle, thousandths: its history's point, then where its
 	/// drift takes it. See <c>docs/mechanics/alignment.md</c>.
 	/// </summary>

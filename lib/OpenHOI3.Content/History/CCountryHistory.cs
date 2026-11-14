@@ -222,6 +222,15 @@ public static class CCountryHistory
 						badAmounts++;
 					}
 				}
+				else if (entry.Key.Equals("decision", StringComparison.OrdinalIgnoreCase))
+				{
+					// Onto the list of decisions taken, whose effects a new game runs (events.md, section 13).
+					country.HistoryDecisions.Add(entry.Value);
+				}
+				else if (entry.Key.Equals("remove_decision", StringComparison.OrdinalIgnoreCase))
+				{
+					country.HistoryDecisions.Remove(entry.Value);
+				}
 				else if (entry.Key.Equals("join_faction", StringComparison.OrdinalIgnoreCase))
 				{
 					country.Faction = entry.Value;

@@ -96,6 +96,20 @@ public class StockpileTests
 	}
 
 	[Fact]
+	public void ASubjectsAmountIsHeldToAThousandAsManchukuosIs()
+	{
+		// Manchukuo, Japan's puppet: a base IC of 21, which would give 1890, starts with 1000 metal, 500 rare materials
+		// and 2.5 money.
+		CCountry manchukuo = Country("MAN", 1);
+		manchukuo.Overlord = new CCountryTag("JAP");
+		CGameState state = State(new[] { manchukuo }, new[] { Land(1, "MAN", industry: 16) });
+
+		CStockpile.FillAtStart(state);
+
+		AssertHolds(state.Province(1).Pool, metal: "1000", energy: "2000", rares: "500", crudeOil: "1000", money: "2.5");
+	}
+
+	[Fact]
 	public void ItIsTheBaseIcThatCountsAndNotWhatTheLawsLeave()
 	{
 		CCountry germany = Country("GER", 1);
