@@ -130,11 +130,13 @@ Yemen's 9768 on Britain's East Africa list of July 1941 with Yemen's army in 975
 divisions (or the objectives' count, if more) [exe, `reversing/findings/FINDINGS-liveread.md`, section 15].
 
 **The hold score** (`CAIUnit_ScoreHoldProvince`): nought below 200 infrastructure; nought outright for a province without
-victory points or a depot beside a war candidate; France's 4000 for each neighbour Belgium or Luxembourg holds, and
-Belgium's for each Luxembourg holds, while Germany has land, another faction and peace with them; otherwise, over its
+victory points or a depot beside a war candidate; for France each neighbour Belgium or Luxembourg holds, and for Belgium
+each Luxembourg holds - the holder not the country's subject, while Germany holds land, is in another faction than the
+country's and is at peace with the holder - **adds 4000 and is counted**, in place of the rest; otherwise, over its
 neighbours' holders that are no friend: t = the holder's threat towards the country (+ the country's antagonism of it at
 peace) - where t is 100 or more and the holder's surrender progress is under a tenth, t is added and the neighbour
-counted; score = their mean / 20 + the count, + what it is worth with **hold** (`agents.md`, 7.6), + 200 where it is
+counted (the record's reading, `CAIUnit_ScoreHoldProvince`; on 6 September 1939 it puts Paris before the Belgian border
+among France's garrison targets, as both runs of the original send their garrisons); score = their mean / 20 + the count, + what it is worth with **hold** (`agents.md`, 7.6), + 200 where it is
 threatened (section 6), + the holder's `defend_prov` for it.
 
 ## 6. Threatened from the sea (`FINDINGS-moving.md` A.1)
@@ -819,8 +821,7 @@ months on) - at least three hours left, and the order ends then.
   merge by the join command; and the ranges and the port radius are in the map's own units throughout.
 - **The raided waters** (section 12, step 5) are the sea provinces on the side's convoys' ways whose last raid was within
   a month: the list of finished battles here keeps a week and not whose convoy a raid was on.
-- **The hold list** (section 5) holds a province once; the Low Countries' term takes "another faction" as Germany's
-  faction not being the holder's.
+- **The hold list** (section 5) holds a province once.
 - **The second ring's draw** (7.3) is the game's own generator seeded with the unit's number; the original seeds an
   MT19937 the same way, its seeding not read.
 - ~~**A support attack ends** once the province is no longer held against the unit, nobody stands there to fight, or its

@@ -50,7 +50,14 @@ public static class CHoldScore
 			{
 				return 0;
 			}
-			score += LowCountriesTerm(state, country, holder);
+			// France's fear of the Low Countries goes into the threat as one more threatening neighbour of 4000, in place of
+			// the holder's own threat - the record's CAIUnit_ScoreHoldProvince, "adds 4000 and counts one".
+			if (IsFearedLowCountry(state, country, holder))
+			{
+				sum += LowCountries;
+				count++;
+				continue;
+			}
 			if (CCountryLists.IsFriend(state, country, holder, true) || state.Country(holder) is not { } other)
 			{
 				continue;
@@ -82,21 +89,20 @@ public static class CHoldScore
 		return score;
 	}
 
-	/// <summary>France's fear of the Low Countries' neighbour, and Belgium's of Luxembourg's, while Germany stands apart.</summary>
-	private static long LowCountriesTerm(CGameState state, CCountry country, CCountryTag holder)
+	/// <summary>
+	/// For France, a neighbour held by Belgium or Luxembourg - for Belgium, one held by Luxembourg - whose overlord is not the
+	/// country, while Germany holds land, is in another faction than the country's and is not at war with the holder.
+	/// </summary>
+	private static bool IsFearedLowCountry(CGameState state, CCountry country, CCountryTag holder)
 	{
 		bool french = country.Tag.Value == "FRA" && holder.Value is "BEL" or "LUX";
 		bool belgian = country.Tag.Value == "BEL" && holder.Value == "LUX";
 		if (!french && !belgian)
 		{
-			return 0;
+			return false;
 		}
-		if (state.Country(new CCountryTag("GER")) is not { } germany || CCountryLists.OwnedCount(state, germany.Tag) == 0
-			|| state.Country(holder) is not { } other || germany.Faction == other.Faction
-			|| CCountryLists.AtWar(state, germany.Tag, holder))
-		{
-			return 0;
-		}
-		return LowCountries * Whole;
+		return state.Country(new CCountryTag("GER")) is { } germany && state.Country(holder) is { } other
+			&& other.Overlord != country.Tag && state.ControlledCount(germany.Tag) > 0 && germany.Faction != country.Faction
+			&& !CCountryLists.AtWar(state, germany.Tag, holder);
 	}
 }
