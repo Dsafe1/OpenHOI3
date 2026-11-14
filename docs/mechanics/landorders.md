@@ -119,8 +119,10 @@ It is given the **very safe** way there at once (`movement.md`, section 3). Then
   for each unit redeploying - so it always arrives with a fresh delay;
 - where the next province of its way is held by an enemy **or has a battle in it**: if that is the target, the order
   ends with the way taken away; otherwise the way is taken away and the very safe way found again, the order ending if
-  there is none;
-- in a battle: the order ends;
+  there is none - **given as any way is, so a unit in a battle leaves it**, falling back where it was holding ground
+  (`reversing/findings/FINDINGS-liveread.md`, section 87: Poland's 55th reserve division, attacked at 2447 on 6 September
+  1939, goes round by 2508 and the battle is left with no defender);
+- in a battle (still, after that): the order ends;
 - with no way: the very safe way is found again, the order ending if there is none.
 
 Its speed, its supplies and its organisation on the way are `movement.md`'s.

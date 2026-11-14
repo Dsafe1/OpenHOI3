@@ -360,7 +360,9 @@ public static class CUnitOrders
 			if (CMovementRules.IsEnemy(state, next.Controller, unit.Owner) || Combat.CCombats.In(state, next.Id) is not null)
 			{
 				CMovement.Halt(state, unit);
-				if (next.Id == target || !RouteVerySafe(state, country, unit, target))
+				// The new way is given as any way is, so a unit in a battle leaves it, falling back where it was holding
+				// ground; one still in a battle after that ends the order (FINDINGS-liveread.md, section 87).
+				if (next.Id == target || !RouteVerySafe(state, country, unit, target) || unit.IsFighting)
 				{
 					Clear(unit);
 				}
@@ -385,6 +387,7 @@ public static class CUnitOrders
 		{
 			return false;
 		}
+		Combat.CCombats.LeaveForMarch(state, unit);
 		CMovement.SetPath(unit, route, clear: true);
 		return true;
 	}
