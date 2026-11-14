@@ -58,24 +58,24 @@ public static class CUnitHeaderTooltips
 			case "leader_photo":
 				return unit.Leader is { } leader ? new CTooltip { Text = CLeaderTooltip.For(localise, state, leader) } : CTooltip.Empty;
 			default:
-				return Shared(localise, owner, unit, element);
+				return Shared(localise, state, owner, unit, element);
 		}
 	}
 
 	/// <summary>A row of a unit under the selected one.</summary>
-	public static CTooltip ChildRow(Func<string, string> localise, CCountry owner, CUnit unit, string element)
+	public static CTooltip ChildRow(Func<string, string> localise, CGameState state, CCountry owner, CUnit unit, string element)
 	{
 		return element switch
 		{
 			"order" => new CTooltip { Text = CUnitOrderTooltips.Description(localise, unit) },
 			// An objective is an AI's to set, and there is none.
 			"objective" => CTooltip.Empty,
-			_ => Shared(localise, owner, unit, element),
+			_ => Shared(localise, state, owner, unit, element),
 		};
 	}
 
 	/// <summary>What the header and a row say alike: the brigades by their counters, the level and the two bars.</summary>
-	private static CTooltip Shared(Func<string, string> localise, CCountry owner, CUnit unit, string element)
+	private static CTooltip Shared(Func<string, string> localise, CGameState state, CCountry owner, CUnit unit, string element)
 	{
 		switch (element)
 		{
@@ -84,16 +84,26 @@ public static class CUnitHeaderTooltips
 			case "counter_size":
 				return Level(localise, unit);
 			case "org_bar":
-				// The original adds what a brigade regains an hour, which is not built here.
 				return new CTooltip
 				{
-					Text = localise("CURR_COMB_ORG") + "§Y" + CNumberText.Format(CUnitTotals.AverageOrganisation(unit), 1) + "§W\n",
+					Text = localise("CURR_COMB_ORG") + "§Y" + CNumberText.Format(CUnitTotals.AverageOrganisation(unit), 1) + "§W\n"
+						+ Regain(state, owner, unit),
 				};
 			case "str_bar":
 				return new CTooltip { Text = localise("CURR_COMB_STR") + "§Y" + CNumberText.Format(StrengthShare(unit), 1) + "%§W\n" };
 			default:
 				return CTooltip.Empty;
 		}
+	}
+
+	/// <summary>
+	/// The organisation bar's second line: <c>+§Y</c> and what a brigade of the unit's mean morale regains an hour, to
+	/// three places, with nothing to close it - the original's; nothing for a unit fighting or aboard a fleet at sea
+	/// (<see cref="COrganisation.ShownRegain"/>).
+	/// </summary>
+	public static string Regain(CGameState state, CCountry owner, CUnit unit)
+	{
+		return COrganisation.ShownRegain(state, owner, unit) is { } regain ? "+§Y" + CNumberText.Format(new CFixedPoint(regain), 3) : "";
 	}
 
 	private static CTooltip Pair(Func<string, string> localise, string text, string delayed)

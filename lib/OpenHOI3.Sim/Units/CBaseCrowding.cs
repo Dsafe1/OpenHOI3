@@ -111,6 +111,43 @@ public sealed class CBaseCrowding
 	}
 
 	/// <summary>
+	/// What the base of a fleet or an air group is and how well it serves, as the unit panel's tooltip says it: the
+	/// province it is named by - an air group aboard a carrier by its fleet's base where the fleet has one, else where
+	/// the carrier is - what the base has room for and what is based there, both in thousandths, and the share, held
+	/// between a quarter and the whole. Worked out as <see cref="Of"/> works it, but for one thing: with nothing based
+	/// there the share is a quarter, not the whole. Null for an army, or a unit with no base
+	/// (<c>docs/mechanics/unitpanel.md</c>, section 10.2).
+	/// </summary>
+	public (int Province, long Room, long Based, long Share)? Describe(CUnit unit)
+	{
+		if (unit.Kind != EUnitKind.Navy && unit.Kind != EUnitKind.Air)
+		{
+			return null;
+		}
+		int province;
+		long based;
+		long room;
+		if (unit.CarriedBy is { Unit: { } fleet } carrier)
+		{
+			province = fleet.Base != 0 ? fleet.Base : fleet.Location;
+			based = _onCarrier.GetValueOrDefault(carrier) * CFixedPoint.Scale;
+			room = unit.Location == fleet.Location ? based : RoomForWings(fleet.Location);
+		}
+		else if (unit.CarriedBy is null && unit.Base != 0)
+		{
+			province = unit.Base;
+			based = (unit.Kind == EUnitKind.Navy ? _ships : _wings).GetValueOrDefault(unit.Base) * CFixedPoint.Scale;
+			room = unit.Kind == EUnitKind.Navy ? RoomForShips(unit.Base) : RoomForWings(unit.Base);
+		}
+		else
+		{
+			return null;
+		}
+		long share = based > 0 ? room * CFixedPoint.Scale / based : 0;
+		return (province, room, based, Math.Max(Least, Math.Min(share, CFixedPoint.Scale)));
+	}
+
+	/// <summary>
 	/// The ships a port has room for: so many for each level of its naval base, and
 	/// more where whoever holds it runs its ports better.
 	/// </summary>

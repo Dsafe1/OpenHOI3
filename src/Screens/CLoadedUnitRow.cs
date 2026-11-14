@@ -53,7 +53,7 @@ public sealed class CLoadedUnitRow : CUnitPanelEntry
 		{
 			select.Pressed += () => Selected?.Invoke();
 		}
-		AnswerFor(name => CUnitHeaderTooltips.ChildRow(context.Localisation.Localise, owner, unit, name), "order", "objective",
+		AnswerFor(name => CUnitHeaderTooltips.ChildRow(context.Localisation.Localise, state, owner, unit, name), "order", "objective",
 			"org_bar", "str_bar");
 		Update();
 	}

@@ -159,11 +159,7 @@ public static class COrganisation
 		CProvince province = state.Province(unit.Location);
 		if (province.Id != 0 && !province.IsSea)
 		{
-			long roads = province.Modifier[Infrastructure].Raw
-				* (province.Modifier[LocalInfrastructure].Raw + province.Modifier[GlobalInfrastructure].Raw + CFixedPoint.Scale)
-				/ CFixedPoint.Scale;
-			roads = Math.Min(Math.Max(roads, LeastInfrastructure), CFixedPoint.Scale);
-			factor = roads * factor / CFixedPoint.Scale;
+			factor = Roads(province) * factor / CFixedPoint.Scale;
 		}
 
 		factor = owner.OfficerRatio.Raw * factor / CFixedPoint.Scale;
@@ -174,6 +170,45 @@ public static class COrganisation
 		factor = (owner.Modifier[RegainModifier].Raw + CFixedPoint.Scale) * factor / CFixedPoint.Scale;
 
 		return unit.SuppliesReceived.Raw == 0 ? Unsupplied : factor;
+	}
+
+	/// <summary>
+	/// What the organisation bar's tooltip says a unit regains an hour, in thousandths; null for a unit that is fighting
+	/// or aboard a fleet at sea, which say nothing. The hour's factor worked out again, not taken from it, and not quite
+	/// the same way: the roads count wherever the unit stands, at sea too, and a unit given no supplies is not turned to a
+	/// loss; then times its brigades' mean morale and the fifth of it an hour brings back, with no low or high bonus
+	/// (<c>docs/mechanics/organisation.md</c>, section 3; <c>unitpanel.md</c>, section 10.1).
+	/// </summary>
+	public static long? ShownRegain(CGameState state, CCountry owner, CUnit unit)
+	{
+		if (unit.IsFighting || (unit.Transport is not null && state.Province(unit.Location).IsSea))
+		{
+			return null;
+		}
+		owner = state.Country(unit.FiguresOwner) ?? owner;
+		long factor = unit.SuppliesReceived.Raw;
+		CProvince province = state.Province(unit.Location);
+		if (province.Id != 0)
+		{
+			factor = Roads(province) * factor / CFixedPoint.Scale;
+		}
+		factor = owner.OfficerRatio.Raw * factor / CFixedPoint.Scale;
+		if (unit.Kind == EUnitKind.Navy || unit.Kind == EUnitKind.Air)
+		{
+			factor = new CBaseCrowding(state).Of(unit) * factor / CFixedPoint.Scale;
+		}
+		factor = (owner.Modifier[RegainModifier].Raw + CFixedPoint.Scale) * factor / CFixedPoint.Scale;
+		factor = CUnitTotals.Mean(unit, Morale).Raw * factor / CFixedPoint.Scale;
+		return factor * ShareOfAnHour / CFixedPoint.Scale;
+	}
+
+	/// <summary>The roads' term: a province's infrastructure by its two modifiers, held between a hundredth and the whole.</summary>
+	private static long Roads(CProvince province)
+	{
+		long roads = province.Modifier[Infrastructure].Raw
+			* (province.Modifier[LocalInfrastructure].Raw + province.Modifier[GlobalInfrastructure].Raw + CFixedPoint.Scale)
+			/ CFixedPoint.Scale;
+		return Math.Min(Math.Max(roads, LeastInfrastructure), CFixedPoint.Scale);
 	}
 
 	/// <summary>

@@ -148,6 +148,15 @@ aboard a fleet at sea; it multiplies organisation by `PARATROOP_DROP_ORG_MULT` o
 drop; and it takes `STRAT_REDEP_ORG_LOSS` off the hour's gain of a brigade being strategically
 redeployed. None of those three can happen yet.
 
+**What the unit panel says of it** (read 2026-11-14, `reversing/findings/FINDINGS-unitpaneltooltips.md`, section 3.5;
+`COrganisation.ShownRegain`): the organisation bar's tooltip works the factor out again, not quite as the hour does -
+the roads count wherever the unit stands, so a fleet at sea is shown a hundredth of what it gets; a unit given no
+supplies is shown nothing, where the hour takes organisation away; the low and high bonus is left out - and multiplies
+it by **the unit's mean morale**, its brigades' `default_morale` over all of them with a broken support brigade counted
+as nothing, as the unit's own figures are made (`reversing/findings/FINDINGS-unitdef.md`), and by the fifth an hour.
+Nothing for a unit fighting or aboard a fleet at sea. Hardcoded but the modifiers and defines [mod: `org_regain`,
+`default_morale`].
+
 *Ours:* a new game has had one hour of this before it starts, at the end of the two days
 run as it is made and under the ceiling of a game not yet running (`tick.md`, section 6).
 So the first hour played is the first thing to hold a brigade to section 2: reserves fall

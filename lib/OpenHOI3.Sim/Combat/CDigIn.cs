@@ -15,12 +15,24 @@ public static class CDigIn
 {
 	public const string Cap = "UNIT_DIGIN_CAP";
 
+	/// <summary>The technology effect that raises the cap, a level for each whole one.</summary>
+	public const string TechnologyCap = "dig_in_cap";
+
+	/// <summary>
+	/// How far a country's units may dig in: the define and what its technologies add (<c>landcombat.md</c>, section 4;
+	/// <c>reversing/findings/FINDINGS-unitpaneltooltips.md</c>, section 5). No file of the base game adds any.
+	/// </summary>
+	public static CFixedPoint CapOf(CGameState state, CCountry country)
+	{
+		return state.Defines[CManpower.MilitarySection, Cap] + country.Technology[TechnologyCap];
+	}
+
 	/// <summary>The day's digging, for every land unit of every country at war.</summary>
 	public static void RunDaily(CGameState state)
 	{
-		CFixedPoint cap = state.Defines[CManpower.MilitarySection, Cap];
 		foreach (CCountry country in state.Countries)
 		{
+			CFixedPoint cap = CapOf(state, country);
 			bool atWar = state.IsAtWar(country.Tag);
 			foreach (CUnit unit in country.AllUnits())
 			{

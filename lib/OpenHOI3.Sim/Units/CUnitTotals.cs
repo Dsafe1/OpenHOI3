@@ -47,6 +47,28 @@ public static class CUnitTotals
 		return new CFixedPoint(twice ? sum * 2 : sum);
 	}
 
+	/// <summary>
+	/// A statistic the original averages for a unit - its organisation and its morale: the figures of the brigades that
+	/// still count towards it over how many brigades it has, all of them, so a broken support brigade takes its share
+	/// away and still divides (<c>reversing/findings/FINDINGS-unitdef.md</c>).
+	/// </summary>
+	public static CFixedPoint Mean(CUnit unit, string statistic)
+	{
+		if (unit.SubUnits.Count == 0)
+		{
+			return CFixedPoint.Zero;
+		}
+		long sum = 0;
+		foreach (CSubUnit subUnit in unit.SubUnits)
+		{
+			if (CUnits.CountsTowardsItsUnit(unit, subUnit))
+			{
+				sum += subUnit.Stats[statistic].Raw;
+			}
+		}
+		return new CFixedPoint(sum * CFixedPoint.Scale / (unit.SubUnits.Count * (long)CFixedPoint.Scale));
+	}
+
 	/// <summary>How soft the unit is: its brigades' softness over how many brigades it has, all of them.</summary>
 	public static CFixedPoint AverageSoftness(CUnit unit)
 	{

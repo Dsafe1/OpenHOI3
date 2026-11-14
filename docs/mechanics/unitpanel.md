@@ -406,7 +406,7 @@ The header, by element - a pair is the text and what comes after a moment:
 | `counter_size` | a unit whose counter is a brigade's (a lone brigade, an air unit) `UNIT_BRIGADE_NAME` and `UNIT_BRIGADE_DESC`; any other its level's `_NAME` and `_DESC` of `UNIT_THEATHRE`, `UNIT_ARMYGROUP`, `UNIT_ARMY`, `UNIT_CORP`, `UNIT_DIVISION`, `UNIT_NAVY`, `UNIT_AIR` |
 | `unitstrength` | a land unit: `UW_TOTAL_STR_IRO` with the men of its most, then each brigade's line, `- `, its men in red under half its most, yellow under its most and white at it, `/` and its most; a fleet or an air unit: a line for each ship or wing short of its most, green from 90%, yellow from 66%, red below, after `UW_FOLLOWING_HURT` - or `UW_ALL_FIT` where none is |
 | `unitleader`, `leader_photo` | the leader's tooltip, 10.5 |
-| `org_bar` | `CURR_COMB_ORG` and the average organisation to one place |
+| `org_bar` | `CURR_COMB_ORG` and the average organisation to one place, a line break, then `+§Y` and what a brigade of the unit's mean morale regains an hour to three places, nothing closing it; no second line for a unit fighting or aboard a fleet at sea (since 2026-11-14) |
 | `str_bar` | `CURR_COMB_STR` and the strength over the most, as a percentage to one place |
 
 A unit under it says the same of its counters, its level and its two bars, and of `order`
@@ -418,8 +418,11 @@ many hours on. **A date** is written ` 13:00, 1 January, 1936` - with a space in
 not the top bar's form. **On the march** the date is when it reaches the next province, and
 the province is that one.
 
-*Not built*: the organisation bar's second line - the organisation a brigade regains an hour,
-whose unit-wide term is not read. The leader window's own part, which the header asks first
+**The organisation bar's second line** is the hour's factor worked out again and times the unit's mean morale and the
+fifth of it an hour brings back (`organisation.md`, section 3; `COrganisation.ShownRegain`; read 2026-11-14,
+`reversing/findings/FINDINGS-unitpaneltooltips.md`, section 3.5). Not quite the hour's own: **the roads count at sea**,
+so a fleet at sea is shown a hundredth of what it regains, and **a unit given no supplies is shown nothing** where the
+hour takes organisation away; both the original's, kept and listed in `docs/enhanced.md`. The leader window's own part, which the header asks first
 while that window is up, is the window's (`leaders.md`, section 13). *Ours*: a unit is unable to act when it has no brigades; what
 the original asks was not read.
 
@@ -429,12 +432,12 @@ the original asks was not read.
 | --- | --- |
 | `unitlocation` | `UW_LOC_IRO`, and `SHORTCUT` and the key of the button that finds the unit after a moment |
 | `unitattrition` | the first brigade's attrition by its causes, below |
-| `unitbase` | a land unit `UW_SUPPLIES_FROM` and, after a moment, what the element itself shows; a fleet or an air unit `UW_BASED_FROM` |
+| `unitbase` | a land unit `UW_SUPPLIES_FROM` and, after a moment, what the element itself shows; a fleet or an air unit `UW_BASED_FROM` and, after a moment, `UW_BASE_NAVAL_SUPPLY_INFO` or `UW_BASE_AIR_SUPPLY_INFO`, below (since 2026-11-14) |
 | `unit_weight` | `TRANSPORT_WEIGHT` |
 | `unit_cw_strip` | `UNIT_COMBAT_WIDTH`, `: ` and the width to one place in yellow |
-| `unitstatus_delay` | `UW_ATTACK_DELAY` as the header's |
+| `unitstatus_delay` | `UW_STRATDEPLOYMENT_DELAY` for a unit under a strategic redeployment, any other `UW_ATTACK_DELAY`, both as the header's (since 2026-11-14) |
 | `unitstatus_nuke` | `UW_CARRYING_NUKE` |
-| `unitstatus_dugin` | `UW_DUGIN` with the days dug in and `UNIT_DIGIN_CAP` |
+| `unitstatus_dugin` | `UW_DUGIN` with the days dug in and the cap: `UNIT_DIGIN_CAP` and the country's technologies' `dig_in_cap` (since 2026-11-14), each whole |
 | `unitstatus_combinedarms` | `CA_BONUS_DETAILS_TOTAL`, then on lines of their own the mix's own `CA_BONUS_DETAILS_BASE`, what technology adds `CA_BONUS_DETAILS_TECH` and what the leaders' traits add `CA_BONUS_DETAILS_TRAIT`, the last two only above nothing; each a percentage to two places |
 | `unitstatus_moving` | on the march and in no battle, `ESTIMATE_ARIVAL` |
 | `speed` | `UW_SPEED` and a line break; where something scales its speed, ` / ` and the speed it has with `KPH`; a line for each brigade, its counter, its name, ` - `, its type's speed, a space and `KPH`; a line break; and where something scales it, `SPEED_MODIFIER` with the whole multiplier as a percentage to two places, green above one and red below, then for each term not one, in this order, a line break, `- ` and its line with the term the same way: `SPEED_MODIFIER_COMBAT`, `_FUEL`, `_TERRAIN`, `_TRAIT`, `_ADJACIENCY`, `_WEATHER`, `_LOCAL_MOD`, `_MOTORIZED_BONUS`, `_RETREATING` (since 2026-11-14) |
@@ -443,8 +446,17 @@ the original asks was not read.
 **A headquarters out of reach is yellow, never red**: the original's red is for a reach under
 nothing, and a reach is never under nothing. Kept as read.
 
-*Not built*: a fleet's or an air unit's base and how well it supplies; and what the country's
-technology adds to the digging-in cap, whose figure is not known.
+**A base and how well it serves** (read 2026-11-14, `reversing/findings/FINDINGS-unitpaneltooltips.md`, section 5;
+`CBaseCrowding.Describe`): `NAME` the base's province - for an air group aboard a carrier its fleet's base where the
+fleet has one, else where the carrier is; `VAL` the share of its work the base does, as a percentage to one place;
+`SHIPS` or `PLANES` how many ships or wings are based there, whole; `DAILY` what it has room for, to two places. Room
+and share are the crowded base's (`organisation.md`, section 4): a port's naval base by `NAVAL_BASE_EFFICIENCY` and its
+holder's `naval_base_efficiency`, an airfield's level, an air group where its carrier is as much as is aboard; the share
+held between a quarter and the whole - and **a quarter where nothing is based**, where the hour's crowding takes the
+whole: the original's. Hardcoded but the words, the define and the modifier [mod].
+
+**The digging-in cap** is the one the day's digging holds a unit to (`landcombat.md`, section 4): the define and the
+technologies' `dig_in_cap`, which no file of the base game declares [mod].
 
 **`unitattrition`** breaks the first brigade's attrition into its causes (since 2026-11-14,
 `CUnitStatusTooltips.Attrition`; `reversing/findings/FINDINGS-unitpaneltooltips.md`, section 11).
@@ -492,7 +504,7 @@ and `NAVAL_STACK_POS_PENALTY_MAX`. A brigade's row: `unit_cw_strip` its type's w
 status's; `unitstatus_reserve` `UW_RESERVE_INFO` with what the country's
 `reserves_penalty_size` takes away; anything else **its summary**:
 
-    (§Y + the model's name + §W)
+    (§Y + the model's name + +* where marked + §W), and no line for a type with no model
     PRIDE_OF_FLEET, for the pride of a fleet
     SUBTT_STRENGTH: §Y + its strength + §W/ + its most - men for a brigade, else whole and %
     SUBTT_ORG: §Y + its organisation + §W/ + the most it may have, each with the places it needs
@@ -503,16 +515,18 @@ status's; `unitstatus_reserve` `UW_RESERVE_INFO` with what the country's
           for a technology of one level - and, where it is on its way to the next level,
           §W(+ the way it has come as a percentage to two places %)
 
-**A model's name** is the country's text `GER_infantry_brigade_1`, else the game's
-`infantry_brigade_1`, else the type's name and the model's number plus one in Roman numerals.
+**The model** is the one nearest the levels the brigade carries, of its builder's models, else its owner's, and is
+marked `+*` where the first its levels match exactly is not that one - not, as this said until 2026-11-14, "a model the
+country no longer builds": nothing here asks what the country builds (`units.md`, section 5). **A model's name** is
+that country's text `GER_infantry_brigade_1`, for a member of a faction that does not lead it the leader's text, else
+the game's `infantry_brigade_1`, else the type's name and the model's number plus one in Roman numerals (the faction
+leader's since 2026-11-14). The brigade's numeral in its row is the model nearest its levels of its **owner's** models.
 **A level's name** is nothing at level 0; else the country's text `GER_infantry_activation_3`,
 else the game's, else `MODEL_TAG` and **a year**: the technology's `start_year` at level 1 and
 `first_offset` plus `additional_offset` for each level past 2 - so Their Finest Hour's infantry
 technologies run 1918, 1934, 1936 and on by two. That the figure after a level is the way to
-the next one is `likely`. *Not built*: the faction leader's name for a model, the mark `+*` on a
-model the country no longer builds, a brigade's upgrade button and what it would upgrade to,
-and the line of a row that stands for an upgrade being made. *Inferred*: that the speed and the
-range are yellow.
+the next one is `likely`. A brigade's upgrade button and the line of a row that stands for an
+upgrade being made are built (`upgrades.md`). *Inferred*: that the speed and the range are yellow.
 
 The strip of buttons: each checkbox says what a click would do - `UW_TURN_ON_PRIO` or
 `UW_TURN_OFF_PRIO`, `_REINF`, `_UPGRADE` - by the unit's own setting; `create_corps` and its

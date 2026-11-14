@@ -544,6 +544,53 @@ public class OrganisationTests
 	}
 
 	[Fact]
+	public void ThePanelSaysWhatABaseHasRoomForAndWhatIsBasedThere()
+	{
+		CCountry country = Germany();
+		CUnit fleet = Unit(country, EUnitKind.Navy, Baltic);
+		fleet.Base = Kiel;
+		for (int i = 0; i < 12; i++)
+		{
+			Brigade(Destroyer(), fleet);
+		}
+		CUnit empty = Unit(country, EUnitKind.Navy, Kiel);
+		CGameState state = State(new[] { country });
+		state.Province(Kiel).SetBuildingLevel(NavalBase, CFixedPoint.FromInt(1));
+
+		Assert.Equal((Kiel, 6000L, 12000L, 500L), new CBaseCrowding(state).Describe(fleet));
+		Assert.Null(new CBaseCrowding(state).Describe(Unit(country)));
+		// A fleet of no ships at its base: the hour counts it uncrowded, the panel a quarter.
+		CUnit lone = Unit(country, EUnitKind.Navy, Berlin);
+		Assert.Equal(1000, new CBaseCrowding(state).Of(lone));
+		Assert.Equal(250, new CBaseCrowding(state).Describe(lone)!.Value.Share);
+		Assert.Equal(12000, new CBaseCrowding(state).Describe(empty)!.Value.Based);
+	}
+
+	[Fact]
+	public void ThePanelsRegainCountsTheRoadsAtSeaAndNeverALoss()
+	{
+		CCountry country = Germany();
+		CUnit division = Unit(country);
+		Brigade(Infantry(), division);
+		Brigade(Infantry(), division);
+		division.SuppliesReceived = CFixedPoint.One;
+		CUnit fleet = Unit(country, EUnitKind.Navy, Baltic);
+		fleet.SuppliesReceived = CFixedPoint.One;
+		Brigade(Destroyer(), fleet);
+		CGameState state = State(new[] { country });
+
+		// Berlin's full roads, 1.4 officers, morale 0.3, a fifth an hour: 1.4 x 0.3 x 0.2.
+		Assert.Equal(1400, Factor(state, country, division));
+		Assert.Equal(84, COrganisation.ShownRegain(state, country, division));
+		// At sea the hour leaves the roads out; the panel takes a hundredth for them.
+		Assert.Equal(1400 * 250 / 1000, Factor(state, country, fleet));
+		Assert.Equal(0, COrganisation.ShownRegain(state, country, fleet));
+		division.SuppliesReceived = CFixedPoint.Zero;
+		Assert.Equal(-1000, Factor(state, country, division));
+		Assert.Equal(0, COrganisation.ShownRegain(state, country, division));
+	}
+
+	[Fact]
 	public void AnAirGroupIsNeverCrowdedWhereItsCarrierIsAndAlwaysAwayFromIt()
 	{
 		CCountry country = Germany();

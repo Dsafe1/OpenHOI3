@@ -305,8 +305,11 @@ which is what the last thousandth depends on:
   has twelve hours of day all year; and at the far north June has no night and December one
   hour of day.
 - **Digging in.** A land unit of a country at war with no path and in no battle gains a level
-  a day while it has fewer than `UNIT_DIGIN_CAP`; each hour a unit with a path, or of a country
-  at peace, has none.
+  a day while it has fewer than `UNIT_DIGIN_CAP` and its country's technologies' `dig_in_cap` - the
+  file's figure, a level for each whole one, which no file of Their Finest Hour declares [mod: the
+  define and the effect] (read 2026-11-14, `reversing/findings/FINDINGS-unitpaneltooltips.md`,
+  section 5; the daily pass had left the technology out until then); each hour a unit with a path, or
+  of a country at peace, has none.
 
 **Two traits do nothing in a land battle**, as the original is written, and are built so:
 `fort_defence`, whose arm of the fort's figure is reached only for an attacker, and

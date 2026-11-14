@@ -68,16 +68,20 @@ public static class CUnitStatusTooltips
 					DelayedExtra = shortcut.Length > 0 ? localise("SHORTCUT") + shortcut : "",
 				};
 			case "unitbase":
-				// A fleet's and an air unit's base and what it supplies are not built: the line alone.
 				return CMovementSpeed.IsLand(unit)
 					? new CTooltip { Text = localise("UW_SUPPLIES_FROM"), Delayed = suppliedFrom }
-					: new CTooltip { Text = localise("UW_BASED_FROM") };
+					: new CTooltip { Text = localise("UW_BASED_FROM"), Delayed = BaseSupply(localise, state, unit) };
 			case "unit_weight":
 				return new CTooltip { Text = localise("TRANSPORT_WEIGHT") };
 			case "unit_cw_strip":
 				return new CTooltip { Text = Width(localise, CUnitPanelText.Width(unit)) };
 			case "unitstatus_delay":
-				return new CTooltip { Text = CUnitHeaderTooltips.AttackDelay(localise, state, unit, "UW_ATTACK_DELAY") };
+				// A strategic redeployment's wait is called that; any other an attack delay.
+				return new CTooltip
+				{
+					Text = CUnitHeaderTooltips.AttackDelay(localise, state, unit,
+						unit.Order == EUnitOrder.StrategicRedeployment ? "UW_STRATDEPLOYMENT_DELAY" : "UW_ATTACK_DELAY"),
+				};
 			case "unitstatus_nuke":
 				return new CTooltip { Text = localise("UW_CARRYING_NUKE") };
 			case "unitstatus_dugin":
@@ -85,7 +89,7 @@ public static class CUnitStatusTooltips
 				{
 					Text = CTextTemplate.Fill(localise("UW_DUGIN"),
 						("CURR", CNumberText.Format(unit.DigIn, 0)),
-						("CAP", CNumberText.Format(state.Defines[CManpower.MilitarySection, CDigIn.Cap], 0))),
+						("CAP", CNumberText.Format(CDigIn.CapOf(state, owner), 0))),
 				};
 			case "unitstatus_combinedarms":
 				return new CTooltip { Text = CombinedArms(localise, state, owner, unit) };
@@ -166,6 +170,25 @@ public static class CUnitStatusTooltips
 	}
 
 	private static string Two(long thousandths) => CNumberText.Format(new CFixedPoint(thousandths), 2);
+
+	/// <summary>
+	/// <c>unitbase</c>'s second half for a fleet or an air unit: <c>UW_BASE_NAVAL_SUPPLY_INFO</c> or
+	/// <c>UW_BASE_AIR_SUPPLY_INFO</c> - the base's province, the share of its work it does, as a percentage to one place,
+	/// how many ships or wings are based there and what it has room for, to two places. Nothing for a unit with no base.
+	/// </summary>
+	public static string BaseSupply(Func<string, string> localise, CGameState state, CUnit unit)
+	{
+		if (new CBaseCrowding(state).Describe(unit) is not { } supply)
+		{
+			return "";
+		}
+		bool isNavy = unit.Kind == EUnitKind.Navy;
+		return CTextTemplate.Fill(localise(isNavy ? "UW_BASE_NAVAL_SUPPLY_INFO" : "UW_BASE_AIR_SUPPLY_INFO"),
+			("NAME", state.Province(supply.Province).Name),
+			("VAL", CNumberText.Format(new CFixedPoint(supply.Share * 100), 1)),
+			(isNavy ? "SHIPS" : "PLANES", CNumberText.Format(new CFixedPoint(supply.Based), 0)),
+			("DAILY", CNumberText.Format(new CFixedPoint(supply.Room), 2)));
+	}
 
 	/// <summary>A width's line: <c>UNIT_COMBAT_WIDTH: §Y1.0§W</c> and a line break.</summary>
 	public static string Width(Func<string, string> localise, CFixedPoint width)

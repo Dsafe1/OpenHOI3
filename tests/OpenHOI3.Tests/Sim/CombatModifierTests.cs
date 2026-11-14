@@ -480,6 +480,20 @@ public class CombatModifierTests
 	}
 
 	[Fact]
+	public void TechnologysDigInCapRaisesTheCapALevelForEachWholeOne()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit unit = Division(state, germany, Berlin);
+		germany.Technology.Set(CDigIn.TechnologyCap, CFixedPoint.FromInt(2));
+		for (int day = 0; day < 15; day++)
+		{
+			CDigIn.RunDaily(state);
+		}
+		Assert.Equal(CFixedPoint.FromInt(12), CDigIn.CapOf(state, germany));
+		Assert.Equal(CFixedPoint.FromInt(12), unit.DigIn);
+	}
+
+	[Fact]
 	public void BeingDugInHelpsADefenderAndNotAnAttacker()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
