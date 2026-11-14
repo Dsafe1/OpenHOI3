@@ -8,13 +8,16 @@ namespace OpenHOI3.Content.Script;
 /// <summary>
 /// Reads <c>common/triggered_modifiers.txt</c>: a block an entry, with its <c>potential</c> and <c>trigger</c>
 /// conditions, asked in a country's scope, and its <c>icon</c>; every other key is a kind of modifier with its number,
-/// and one that is not a number is reported. See <c>docs/mechanics/modifiers.md</c>, section 5.
+/// one that is not a number is reported, and one that is no kind (<see cref="CModifierKeys"/>) is reported and dropped,
+/// as the original logs and drops it. See <c>docs/mechanics/modifiers.md</c>, sections 2 and 5.
 /// </summary>
 public static class CTriggeredModifierReader
 {
 	public const string File = "common/triggered_modifiers.txt";
 
-	public static List<CTriggeredModifier> Read(CDirectorySettings directories, CScriptContext context)
+	/// <param name="kinds">The kinds of modifier the file may name; none for the engine's and the missions' alone.</param>
+	public static List<CTriggeredModifier> Read(CDirectorySettings directories, CScriptContext context,
+		CModifierKeys? kinds = null)
 	{
 		var read = new List<CTriggeredModifier>();
 		string path = directories.Resolve(File);
@@ -23,22 +26,24 @@ public static class CTriggeredModifierReader
 			return read;
 		}
 		context.Problems.File = Path.GetRelativePath(directories.GameRoot, path).Replace('\\', '/');
-		ReadFile(CScriptParser.ParseFile(path, context.Problems), read, context);
+		ReadFile(CScriptParser.ParseFile(path, context.Problems), read, context, kinds);
 		return read;
 	}
 
-	public static void ReadFile(CScriptNode root, List<CTriggeredModifier> read, CScriptContext context)
+	public static void ReadFile(CScriptNode root, List<CTriggeredModifier> read, CScriptContext context,
+		CModifierKeys? kinds = null)
 	{
+		kinds ??= CModifierKeys.WithoutFactions;
 		foreach (CScriptNode node in root.Children)
 		{
 			if (CEventReader.Block(node, context))
 			{
-				read.Add(ReadOne(node, context));
+				read.Add(ReadOne(node, context, kinds));
 			}
 		}
 	}
 
-	private static CTriggeredModifier ReadOne(CScriptNode node, CScriptContext context)
+	private static CTriggeredModifier ReadOne(CScriptNode node, CScriptContext context, CModifierKeys kinds)
 	{
 		var entry = new CTriggeredModifier(node.Key);
 		foreach (CScriptNode child in node.Children)
@@ -64,7 +69,13 @@ public static class CTriggeredModifierReader
 					}
 					break;
 				default:
-					if (child.IsBlock)
+					// A quoted key is never a keyword, so it is no kind either.
+					if (child.KeyQuoted || !kinds.Contains(child.Key))
+					{
+						context.Problems.Add(EScriptProblem.UnknownKey, child.Line,
+							$"'{child.Key}' is no kind of modifier; the original logs 'unknown modifier' and drops it");
+					}
+					else if (child.IsBlock)
 					{
 						context.Problems.Add(EScriptProblem.WrongShape, child.Line,
 							$"'{child.Key}' is not a key of a triggered modifier, and a modifier takes a number; the original drops it");

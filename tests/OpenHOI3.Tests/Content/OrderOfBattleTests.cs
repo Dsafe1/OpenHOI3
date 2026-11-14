@@ -122,7 +122,8 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	/// <summary>Reads country AAA's order of battle from the text given, and country BBB's if a second is.</summary>
-	private (CCountry First, CCountry Second, int LastId) Read(string first, string? second = null)
+	private (CCountry First, CCountry Second, int LastId) Read(string first, string? second = null,
+		IReadOnlyDictionary<int, OpenHOI3.Sim.Leaders.CLeader>? leaders = null)
 	{
 		Dictionary<string, CSubUnitType> types = Types();
 		Dictionary<string, CTechnology> technologies = Technologies(types);
@@ -136,8 +137,50 @@ public class OrderOfBattleTests : IDisposable
 			Write("history/units/b.txt", second);
 			b.OrderOfBattleFile = "b.txt";
 		}
-		int last = COrderOfBattleReader.Read(Directories, countries.Declared, types, technologies, provinceCount: 100, _warnings.Add);
+		int last = COrderOfBattleReader.Read(Directories, countries.Declared, types, technologies, provinceCount: 100, _warnings.Add,
+			leaders: leaders);
 		return (a, b, last);
+	}
+
+	[Fact]
+	public void ALeaderNoFileDeclaresIsPassedOverAndReportedLeavingWhatAnEarlierLineGave()
+	{
+		var leaders = new Dictionary<int, OpenHOI3.Sim.Leaders.CLeader> { [77] = new(77) };
+		(CCountry country, _, _) = Read("""
+			division = { name = "Known" location = 12 leader = 77 regiment = { type = foot_brigade historical_model = 1 } }
+			division = { name = "Unknown" location = 12 leader = 99 regiment = { type = foot_brigade historical_model = 1 } }
+			division = { name = "Both" location = 12 leader = 77 leader = 98 regiment = { type = foot_brigade historical_model = 1 } }
+			""", leaders: leaders);
+
+		Assert.Equal(new[] { 77, 0, 77 }, country.Units.Select(unit => unit.LeaderId));
+		Assert.Contains(_warnings, warning => warning.StartsWith("2 leaders named in orders of battle")
+			&& warning.Contains("AAA 98") && warning.Contains("AAA 99"));
+	}
+
+	[Fact]
+	public void AnExtraAmphibiousDefenceIsKeptByTheKindOfBrigadeAndOneThatIsNoTypeIsReported()
+	{
+		Write("units/assault.txt", """
+			assault_ship = {
+				type = naval
+				max_strength = 100
+				amphibious_invasion_defence = 0.25
+				extra_amphibious_defence = {
+					foot_brigade = 0.25
+					tank_brigade = 0.5
+					staff_brigade = lots
+				}
+			}
+			""");
+
+		CSubUnitType assault = Types()["assault_ship"];
+
+		Assert.Equal(CFixedPoint.Parse("0.25"), assault.ExtraAmphibiousDefence["foot_brigade"]);
+		Assert.Equal(CFixedPoint.Parse("0.5"), assault.ExtraAmphibiousDefence["tank_brigade"]);
+		Assert.False(assault.ExtraAmphibiousDefence.ContainsKey("staff_brigade"));
+		Assert.Contains(_warnings, warning => warning.Contains("assault_ship: tank_brigade"));
+		Assert.Contains(_warnings, warning => warning.Contains("assault_ship.extra_amphibious_defence.staff_brigade"));
+		Assert.DoesNotContain(_warnings, warning => warning.Contains("not understood"));
 	}
 
 	// ---- unit types

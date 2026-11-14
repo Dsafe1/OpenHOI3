@@ -27,7 +27,13 @@ public static class CScriptLoader
 		CTechnologyAllowReader.Read(directories, state, context);
 		state.RebelTypes = CRebelTypeReader.Read(directories, state, context);
 		state.CovertOperations.AddRange(CCovertOpsReader.Read(directories, context));
-		state.TriggeredModifiers.AddRange(CTriggeredModifierReader.Read(directories, context));
+		var factions = new List<string>();
+		foreach (Sim.Diplomacy.CIdeologyGroup group in state.IdeologyGroups)
+		{
+			factions.Add(group.Faction);
+		}
+		state.TriggeredModifiers.AddRange(CTriggeredModifierReader.Read(directories, context,
+			new Sim.Modifiers.CModifierKeys(factions)));
 		CheckAcrossFiles(state.Events, state.Decisions, context);
 		return context.Problems;
 	}

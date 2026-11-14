@@ -2576,12 +2576,18 @@ None of these blocks the list above.
   the AI's, and `winter_attrition`, which counts in attrition since 2026-11-14 (`upkeep.md`, section 3a). Nothing of a leader's
   experience or progress towards a trait is set against a save: saves hold battles since 2026-11-05, but not the
   generator's state, so none can be played forward (`landcombat.md`, section 8).
-- **An order of battle that names a leader no file declares** has him ignored; what the
-  original does was not read.
+- ~~**An order of battle that names a leader no file declares** has him ignored; what the
+  original does was not read.~~ Read 2026-11-14: the original does nothing with the line - no log,
+  nothing made - and the unit keeps what an earlier line gave it, or is given the best free leader as
+  any unit without one is; built so, and the line reported (`leaders.md`, section 5;
+  `reversing/findings/FINDINGS-modifierkinds.md`, section 5).
 - **Only the player turns a country's `auto_assign_leaders` off**, with the leader window's
   checkbox: every country starts with it on, as in the original, and nothing here changes it for any
   other country.
-- **A block of a unit type is read and not kept**: `extra_amphibious_defence`.
+- ~~**A block of a unit type is read and not kept**: `extra_amphibious_defence`.~~ Kept on each type since
+  2026-11-14 and asked as the original asks it, of a fleet's summed table, which never holds a ship's - so it
+  does nothing, as in the original (`transport.md`, section 9; `docs/enhanced.md`). What the original does with
+  a name in it that is no unit type was not read; ours reports it (`units.md`, section 1).
 - ~~**A new game's manpower is the original's for 43 countries of 78**~~ - 78 of 78 since 2026-11-14
   (`OpenHOI3.SaveCheck firstdays`): a new game's pool starts at its most after the engine's pass of the laws, which is
   Germany's 882, and the history's decisions are taken as a game is set up - the United States' `new_deal`, which
@@ -2657,8 +2663,13 @@ None of these blocks the list above.
   is cut. The rows are the original's since 2026-11-13 - the tooltip's text at its level, laid out and cut as it cuts
   it - and since 2026-11-14 a filled row is 180 wide and its text's height, so the rows stand 14 apart
   (`docs/mechanics/technologyscreen.md`, section 7).
-- **A misspelt modifier is not reported.** The modifier kinds are not a closed list here,
-  so any key a block does not own is taken as one. `docs/mechanics/modifiers.md`, section 7.
+- ~~**A misspelt modifier is not reported.** The modifier kinds are not a closed list here,
+  so any key a block does not own is taken as one.~~ Since 2026-11-14 the kinds are the original's closed list -
+  its 107 keys, the 32 missions by their orders' keys and a `suseptibility_` for each faction, 142 in Their Finest
+  Hour - and a key outside it is reported and dropped in every file of modifiers, buildings included, where the
+  original logs it, or drops it in silence (`docs/mechanics/modifiers.md`, section 2). The base game, Their Finest
+  Hour and BlackICE use none. On the way, a mission's efficiency modifier is read by the mission's own key, as files
+  write it; it had been read as `<mission>_eff`, which no file can set (`navalmissions.md`, section 10).
 - **A country's modifier is not yet all of the original's eighteen sources**: `base_values`, its
   faction's, its ministers, its laws, its government, its strategic resources, its provinces' modifiers,
   `war` or `peace`, the spies' two unity modifiers, `dissent`, neutrality, its event modifiers, its triggered

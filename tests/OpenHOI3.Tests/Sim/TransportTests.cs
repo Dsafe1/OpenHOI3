@@ -456,6 +456,24 @@ public class TransportTests
 	}
 
 	[Fact]
+	public void AnAssaultShipsExtraAmphibiousDefenceIsKeptAndDoesNothing()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CSubUnitType assault = Ship("assault_ship", capability: "60", defence: "1");
+		assault.ExtraAmphibiousDefence[Infantry.Key] = CFixedPoint.Parse("0.25");
+		CUnit craft = Fleet(state, germany, Bight, assault);
+		CUnit division = Division(state, germany, Bight);
+		CTransport.Board(craft, division);
+		CMovement.SetPath(division, new[] { Hela }, clear: true);
+
+		// The fleet's own table is the original's summed one, which no ship's table reaches.
+		Assert.Empty(CLanding.FleetExtraDefence(craft));
+		// So the cut is the fleet's 1.0 of 3.5 alone: 1000 * 1000 / 3500 is 285, and -700 x (1010 - 285) / 1000 is -507.
+		// With the table it would be 1.25 of 3.5, and -457.
+		Assert.Equal(-507, CLanding.CutPenalty(state, division, -700));
+	}
+
+	[Fact]
 	public void AUnitThatCannotFightWaitsForOneThatCanOrIsHalted()
 	{
 		CGameState state = State(out CCountry germany, out _);

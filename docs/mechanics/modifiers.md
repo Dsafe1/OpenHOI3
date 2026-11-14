@@ -13,14 +13,15 @@ Sources: `reversing/CLASSES.md` (*Modifiers*, *buildings.txt, key by key*),
 `reversing/findings/FINDINGS-countrymodifier.md` (all of section 4 to 6 here),
 `reversing/findings/FINDINGS-occupation.md`
 (section 1.4), `reversing/findings/FINDINGS-espionage.md`,
-`reversing/findings/FINDINGS-startup.md` (section 7), `reversing/findings/FINDINGS-definitions.md`.
+`reversing/findings/FINDINGS-startup.md` (section 7), `reversing/findings/FINDINGS-definitions.md`,
+`reversing/findings/FINDINGS-modifierkinds.md` (the closed list of kinds, section 2 here).
 
 ## 1. What a modifier is
 
-- **There is a fixed set of modifier kinds - 143 of them** - each with a name that is also
-  the key the script files use: `global_ic`, `local_ic`, `infrastructure`,
-  `supply_throughput` and so on. `confirmed`: every one was read by name out of a running
-  game. The list itself is not written out in the fact base's prose.
+- **There is a fixed set of modifier kinds - 143 of them** - each with a key the script files
+  use: `global_ic`, `local_ic`, `infrastructure`, `supply_throughput` and so on. `confirmed`:
+  every one was read by name out of a running game, and on 2026-11-14 out of what makes them
+  (section 2, *The kinds a block may name*). In Their Finest Hour they are 142 keys.
 - **A modifier is one value per kind**, in thousandths, nearly all of them zero. `confirmed`
 - **Many things are modifiers.** The compiler's own type information says laws, minister
   types, ideologies, leader traits, occupation policies and the entries of
@@ -38,19 +39,49 @@ take it away later. The source is there or it is not, and the rebuild finds out.
 ## 2. In the files
 
 A block that defines a modifier-bearing thing has a few keys of its own and treats **every
-other key as a modifier**. `confirmed` for buildings, by reading; `inferred` for the others
-from the same loader shape and from the files.
+other key as a modifier**, of the closed list below. `confirmed` for every file in the table
+(`reversing/findings/FINDINGS-modifierkinds.md`, sections 2 and 3).
 
 | file | what it declares | its own keys |
 | --- | --- | --- |
 | `common/buildings.txt` | buildings, one modifier each | see `ic.md`, section 1 |
 | `common/laws.txt` | law groups, each holding laws | `cost`, `allow` |
 | `common/minister_types.txt` | what a minister can be good at | `decay` |
-| `common/static_modifiers.txt`, `event_modifiers.txt` | named modifiers the engine or an event applies | `icon` |
+| `common/static_modifiers.txt`, `event_modifiers.txt` | named modifiers the engine or an event applies | none |
 | `common/occupation_policies.txt` | occupation policies | `allow` |
 | `common/strategic_resources.txt` | what each strategic resource is worth to whoever has it | none |
-| `common/ideologies.txt` | ideology groups and ideologies | `color` |
+| `common/ideologies.txt` | ideologies, and each faction's `modifier` | `color`; the faction's none |
 | `common/triggered_modifiers.txt` | modifiers that apply while a condition holds | `potential`, `trigger` |
+| `common/governments.txt` | governments | `duration`, `valid_for_new_country`, `election`, an ideology's or a post's name |
+| `common/government_positions.txt` | the posts of a cabinet | `changeable` |
+
+**`icon` is every modifier's own key** - a picture's frame - so every block of the table takes
+it but a building's, a building being no modifier. `confirmed`
+
+### The kinds a block may name
+
+**A closed list, every kind made before the first file of modifiers is read**: `confirmed`
+
+1. **The engine's 108**, 107 keys - `naval_intel_boost` is made twice, and the first is the one
+   found. They are `CModifierKeys.Engine` in `lib/OpenHOI3.Sim/Modifiers`, in the original's
+   order, which is the order section 8's table writes them in.
+2. **The 32 mission efficiencies, by the order's own key** - `convoy_raid = 0.1`, not
+   `convoy_raid_eff`, which is the kind's name and what is localised (section 8). The base
+   game's event modifiers set `air_intercept`, `convoy_raid` and `naval_strike` so.
+3. **One for each faction of `common/ideologies.txt`**: `suseptibility_` and its tag, in the
+   original's spelling - `suseptibility_axis`, `_allies`, `_comintern` - which the minister
+   types use. **Each is made once its faction's block is read**, so a faction's own `modifier`
+   may not name its own kind nor a later faction's.
+
+A key is matched **without case**, as the original's reader lower-cases what it looks up, and a
+quoted key is never a kind. **A key that is none of them is logged and dropped** by every file of
+the table but buildings, which **drop it in silence**. The base game, Their Finest Hour and
+BlackICE use none (**measured** 2026-11-14 over every file of the table).
+
+**Ours**: every such key is **reported** - buildings' too - and dropped, as the original drops it.
+A file's report lists each as its block and the key; a triggered modifier's is an `UnknownKey`
+problem of `OpenHOI3.SaveCheck script`. An ideology's and a post's kinds are read for that check
+and not kept; nothing here was read to use them.
 
 `static_modifiers.txt` says of itself that its names "can NOT be removed or changed, as the
 code uses them": the engine looks each one up by name - the difficulty levels, `overseas`,
@@ -340,10 +371,8 @@ the first day is run, which is why a new game's starting manpower leaves black s
 ## 7. Ours
 
 - **A modifier is a set of named values**, holding only the kinds that are not zero. The
-  kinds are not a closed list yet: with no list of the 143 in prose, any key that is not
-  one of a block's own is taken as a modifier. So a misspelt modifier is *not* reported
-  yet, which is the opposite of what this project wants, and it stays a loose end until the
-  list exists.
+  kinds are the closed list of section 2 since 2026-11-14, and a misspelt one is reported and
+  dropped - a building's too, which the original drops in silence.
 - **A country's modifier is steps 1 to 9, 11 to 14 and 18 of section 4**: `base_values`,
   its faction's (since 2026-10-13, with `factions.md`), its ministers, its laws, its government
   and `fractured_government` (since 2026-10-14, with `politics.md`), its strategic resources, its
@@ -442,17 +471,19 @@ plain number, more is better: `local_manpower`, `global_manpower`, `fort_level`,
 more is worse: `incorporate_cost`, the two consumer goods demands, `dissent`,
 `supply_consumption`, `peacetime_manpower_rotation`, `unit_recruitment_time`, `threat_impact`,
 `national_unity_effect`, `reserves_penalty_size`, `neutrality`, the five build speeds,
-`jungle_effects`, `sw_national_unity_effect`. The 32 mission efficiencies (`*_eff`) are both.
+`jungle_effects`, `sw_national_unity_effect`. The 32 mission efficiencies are both, each named
+by its order's key and `_eff` - `convoy_raid_eff` is what is localised for `convoy_raid` - and
+so is a faction's `suseptibility_` kind, named by its own key. They come after the 107 in the
+original's order, the missions first. `confirmed` (`reversing/findings/FINDINGS-modifierkinds.md`,
+section 1).
 
 *Ours:* a province's line is its name, `": "`, and its value as above - the original heads the
-province's own sources with the name, and what those are was not read. A kind the table does
-not have is written as a percentage, more being better, as most are.
+province's own sources with the name, and what those are was not read.
 
 ## What is not established, in one place
 
-- the **list of the 143 modifier kinds**, in a form this project may read - 140 of them are now
-  in `CModifierKinds`, read from the original's definitions;
-- what a **faction's own modifier** is loaded from;
+- what a **faction's own modifier** is loaded from - it is the faction block's `modifier`, read
+  as a modifier (section 2); what more the faction's loader does with it was not read;
 - which script key sets the value added to a province's resource efficiency;
 - what marks the edge of an **area**: whether it is land a country owns or controls, and
   whether a strait joins two.

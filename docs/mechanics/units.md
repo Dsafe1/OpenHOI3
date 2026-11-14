@@ -45,7 +45,11 @@ What `active`, `is_buildable`, `usable_by`, `unit_group`, `minimum_of_type` and
 **Ours**: a key that is none of those is reported, where the original drops it.
 `available_trigger` is script, and is read with the rest of script onto each type
 (`CUnitAvailableTriggerReader`, since 2026-11-14; `builders.md`, section 2).
-`extra_amphibious_defence` is read and not kept, because nothing uses it yet.
+`extra_amphibious_defence` is a block of kinds of brigade, each with a number - `assault_ship`'s gives
+the four armoured kinds and mechanised 0.25 - kept on the type (`CSubUnitType.ExtraAmphibiousDefence`)
+and asked as the original asks it, which comes to nothing (`transport.md`, section 9). The original keeps
+the names as written and looks them up later; **ours**: a name that is no unit type is reported, and what
+the original does with one was not read (`reversing/findings/FINDINGS-modifierkinds.md`, section 4).
 
 A type with no `type` line of the three is left out and reported. **Ours** - what the
 original does with one was not read.

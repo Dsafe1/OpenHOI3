@@ -10,8 +10,11 @@ namespace OpenHOI3.Interface.Modifiers;
 /// </summary>
 public static class CModifierKinds
 {
-	/// <summary>The 32 mission efficiencies the original makes at startup end in this, and are both percentages and better for more.</summary>
-	private const string MissionEfficiencySuffix = "_eff";
+	/// <summary>
+	/// The names of the 32 mission efficiencies the original makes at startup end in this, and they are both percentages
+	/// and better for more; a file writes the mission's key alone.
+	/// </summary>
+	private const string MissionEfficiencySuffix = Sim.Missions.CMissionEfficiency.ModifierSuffix;
 
 	/// <summary>In the original's order. <c>naval_intel_boost</c> is built twice there; it is here once, at its first place.</summary>
 	public static IReadOnlyList<CModifierKind> All { get; } = new CModifierKind[]
@@ -138,8 +141,9 @@ public static class CModifierKinds
 	}
 
 	/// <summary>
-	/// How a kind is written. A mission efficiency, and - ours - any kind the original does
-	/// not build, is a percentage that is better for more, as most are; its name is its key.
+	/// How a kind is written. A mission efficiency, a faction's <c>suseptibility_</c> and - ours - any kind the original
+	/// does not build is a percentage that is better for more, as most are; a mission's name is its key and <c>_eff</c>,
+	/// any other's its key.
 	/// </summary>
 	public static CModifierKind Of(string key)
 	{
@@ -147,16 +151,24 @@ public static class CModifierKinds
 		{
 			return kind;
 		}
+		if (MissionIndex(key) >= 0)
+		{
+			return new CModifierKind(key, key + MissionEfficiencySuffix, true, true);
+		}
 		return new CModifierKind(key, key, true, true);
 	}
 
-	/// <summary>Whether the original builds the kind, its 32 mission efficiencies included.</summary>
+	/// <summary>Whether the original builds the kind: its own, the 32 mission efficiencies and a faction's.</summary>
 	public static bool IsKnown(string key)
 	{
-		return ByKey.ContainsKey(key) || key.EndsWith(MissionEfficiencySuffix, StringComparison.OrdinalIgnoreCase);
+		return ByKey.ContainsKey(key) || MissionIndex(key) >= 0
+			|| key.StartsWith(Sim.Modifiers.CModifierKeys.SusceptibilityPrefix, StringComparison.OrdinalIgnoreCase);
 	}
 
-	/// <summary>The place of a kind in the original's order, and every unknown kind after all the known.</summary>
+	/// <summary>
+	/// The place of a kind in the original's order - its own kinds, then the missions' - and every other kind after all
+	/// of them.
+	/// </summary>
 	public static int Order(string key)
 	{
 		for (int index = 0; index < All.Count; index++)
@@ -166,6 +178,20 @@ public static class CModifierKinds
 				return index;
 			}
 		}
-		return All.Count;
+		int mission = MissionIndex(key);
+		return All.Count + (mission >= 0 ? mission : Sim.Modifiers.CModifierKeys.Missions.Count);
+	}
+
+	private static int MissionIndex(string key)
+	{
+		IReadOnlyList<string> missions = Sim.Modifiers.CModifierKeys.Missions;
+		for (int index = 0; index < missions.Count; index++)
+		{
+			if (string.Equals(missions[index], key, StringComparison.OrdinalIgnoreCase))
+			{
+				return index;
+			}
+		}
+		return -1;
 	}
 }

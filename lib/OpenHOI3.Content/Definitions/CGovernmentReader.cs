@@ -17,6 +17,9 @@ public static class CGovernmentReader
 	private const string GovernmentsFile = "common/governments.txt";
 	private const string PositionsFile = "common/government_positions.txt";
 
+	/// <summary>A post's own key besides the kinds of modifier.</summary>
+	private static readonly HashSet<string> PositionKeys = new(StringComparer.OrdinalIgnoreCase) { "changeable" };
+
 	/// <summary>The cabinet posts, numbered from 1 in the file's order; <c>changeable = no</c> is a fixed one.</summary>
 	public static List<CGovernmentPosition> ReadPositions(CDirectorySettings directories, Action<string>? warn = null)
 	{
@@ -26,6 +29,9 @@ public static class CGovernmentReader
 		{
 			return positions;
 		}
+		// A post is a modifier besides: what of it is a kind is read and not kept, and a key that is none is reported.
+		Sim.Modifiers.CModifierKeys kinds = CModifierReader.Kinds(directories);
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
@@ -34,7 +40,9 @@ public static class CGovernmentReader
 			}
 			bool changeable = !block.GetString("changeable").Equals("no", StringComparison.OrdinalIgnoreCase);
 			positions.Add(new CGovernmentPosition(block.Key, positions.Count + 1, changeable));
+			CModifierReader.ReadBlock(block, PositionKeys, kinds, unknown, out _);
 		}
+		CModifierReader.ReportUnknown(warn, PositionsFile, "government positions", unknown);
 		return positions;
 	}
 
@@ -60,6 +68,8 @@ public static class CGovernmentReader
 		var ownKeys = new HashSet<string>(ideologyNames, StringComparer.OrdinalIgnoreCase) { "election", "duration", "valid_for_new_country" };
 		ownKeys.UnionWith(positionNames);
 
+		Sim.Modifiers.CModifierKeys kinds = CModifierReader.Kinds(directories);
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		int unreadable = 0;
 		foreach (ClausewitzNode block in root.Children)
 		{
@@ -67,7 +77,7 @@ public static class CGovernmentReader
 			{
 				continue;
 			}
-			var government = new CGovernment(block.Key, CModifierReader.ReadBlock(block, ownKeys, out int bad));
+			var government = new CGovernment(block.Key, CModifierReader.ReadBlock(block, ownKeys, kinds, unknown, out int bad));
 			unreadable += bad;
 			foreach (ClausewitzNode entry in block.Children)
 			{
@@ -110,6 +120,7 @@ public static class CGovernmentReader
 		{
 			warn($"'{GovernmentsFile}': {unreadable} entries are neither an ideology, a post nor a number");
 		}
+		CModifierReader.ReportUnknown(warn, GovernmentsFile, "governments", unknown);
 		return governments;
 	}
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Movement;
@@ -142,8 +143,9 @@ public static class CLanding
 	}
 
 	/// <summary>
-	/// What a landing does to the amphibious penalty where it is aboard a fleet: the fleet's invasion defence, up to
-	/// <c>AMPHIBIOUS_INVADE_LANDING_PENALTY_DECREASE</c>, cuts it - and with none it is a hundredth worse.
+	/// What a landing does to the amphibious penalty where it is aboard a fleet: the fleet's invasion defence, weighed by
+	/// <see cref="FleetExtraDefence"/> for the unit's brigades and up to <c>AMPHIBIOUS_INVADE_LANDING_PENALTY_DECREASE</c>,
+	/// cuts it - and with none it is a hundredth worse.
 	/// </summary>
 	public static long CutPenalty(CGameState state, CUnit unit, long penalty)
 	{
@@ -152,10 +154,31 @@ public static class CLanding
 			return penalty;
 		}
 		long cap = state.Defines[CManpower.MilitarySection, PenaltyDecrease].Raw;
-		long cut = cap == 0 ? -1 : System.Math.Min(FleetDefence(fleet), cap);
+		// The landing unit's share of the fleet's invasion defence: one, and for each of its brigades what the fleet's table
+		// gives that kind.
+		IReadOnlyDictionary<string, CFixedPoint> extra = FleetExtraDefence(fleet);
+		long weight = Scale;
+		foreach (CSubUnit brigade in unit.SubUnits)
+		{
+			weight += extra.TryGetValue(brigade.Type.Key, out CFixedPoint more) ? more.Raw : 0;
+		}
+		long cut = cap == 0 ? -1 : System.Math.Min(weight * FleetDefence(fleet) / Scale, cap);
 		long share = cap == 0 ? 0 : cut * Scale / cap;
 		return penalty * (Scale + Worse - share) / Scale;
 	}
+
+	/// <summary>
+	/// The fleet's table of <c>extra_amphibious_defence</c>, by kind of brigade, as the original asks it: of the one
+	/// definition a fleet's ships are summed into, which is made with an empty table and to which the summing copies no
+	/// ship's - so it is always empty, and an assault ship's table does nothing. A fault of the original, kept
+	/// (<c>docs/mechanics/transport.md</c>, section 9; <c>docs/enhanced.md</c>).
+	/// </summary>
+	public static IReadOnlyDictionary<string, CFixedPoint> FleetExtraDefence(CUnit fleet)
+	{
+		return NoExtraDefence;
+	}
+
+	private static readonly IReadOnlyDictionary<string, CFixedPoint> NoExtraDefence = new Dictionary<string, CFixedPoint>();
 
 	/// <summary>The original's <c>floor(1010.5)</c>: a penalty with nothing to cut it is a hundredth worse.</summary>
 	private const long Worse = 10;

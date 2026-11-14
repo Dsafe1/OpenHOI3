@@ -523,7 +523,10 @@ in a block named after the mission:
     convoy_raid   = { reduction_modifier = -0.50 }
 
 A country's efficiency at a mission is each such `efficiency` times the level it has of the
-technology, plus the country modifier `<mission>_eff`, which nothing in the base game sets. It
+technology, plus the country's modifier of the mission, which a file writes by the mission's own key -
+`convoy_raid = 0.25`, as three of the base game's event modifiers do - and the original names
+`<mission>_eff` (`modifiers.md`, section 2; until 2026-11-14 this read a kind `convoy_raid_eff` no
+file can set). It
 is used twice: in the sighting above, and **on the attack and the defence of every ship of a
 fleet whose order is that mission**, in any battle it is in (`navalcombat.md`, section 3); a
 plain move is no mission.

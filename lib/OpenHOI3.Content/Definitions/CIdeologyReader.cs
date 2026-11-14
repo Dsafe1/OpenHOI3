@@ -36,12 +36,17 @@ public static class CIdeologyReader
 	public static List<CIdeologyGroup> Read(ClausewitzNode root, Action<string> warn)
 	{
 		var groups = new List<CIdeologyGroup>();
+		// The kinds of modifier known as each group is read: a faction's own kind is made once its block is read, so a
+		// group's blocks know only the factions before it (modifiers.md, section 2).
+		var factions = new List<string>();
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
 			{
 				continue;
 			}
+			var kinds = new Sim.Modifiers.CModifierKeys(factions);
 			ClausewitzNode? position = block.Get("position");
 			ClausewitzNode? faction = block.Get("faction");
 			if (position is null)
@@ -55,7 +60,7 @@ public static class CIdeologyReader
 				FactionNeutrality = Number(faction?.GetString("neutrality")),
 				Influence = faction?.GetString("influence") ?? "",
 				FactionIcon = int.TryParse(faction?.GetString("icon"), out int icon) ? icon : 0,
-				FactionModifier = modifier is { IsBlock: true } ? ReadModifier(modifier, block.Key, warn) : new(),
+				FactionModifier = modifier is { IsBlock: true } ? ReadModifier(modifier, block.Key, kinds, unknown, warn) : new(),
 			};
 			ReadRules(faction?.Get("rule"), group, warn);
 			foreach (ClausewitzNode ideology in block.Children)
@@ -65,10 +70,14 @@ public static class CIdeologyReader
 					group.Ideologies.Add(ideology.Key);
 					group.IdeologyOrder.Add(ideology.Key);
 					group.IdeologyColours[ideology.Key] = ideology.GetRgb("color", CColor.Gray);
+					// An ideology is a modifier with a colour of its own; what of it is a kind is read and not kept.
+					CModifierReader.ReadBlock(ideology, IdeologyKeys, kinds, unknown, out _);
 				}
 			}
 			groups.Add(group);
+			factions.Add(group.Faction);
 		}
+		CModifierReader.ReportUnknown(warn, IdeologiesFile, "ideologies and faction modifiers", unknown);
 		return groups;
 	}
 
@@ -104,9 +113,14 @@ public static class CIdeologyReader
 		}
 	}
 
-	private static Sim.Modifiers.CModifier ReadModifier(ClausewitzNode block, string group, Action<string> warn)
+	/// <summary>An ideology's own key besides the kinds of modifier.</summary>
+	private static readonly HashSet<string> IdeologyKeys = new(StringComparer.OrdinalIgnoreCase) { "color" };
+
+	private static Sim.Modifiers.CModifier ReadModifier(ClausewitzNode block, string group,
+		Sim.Modifiers.CModifierKeys kinds, SortedSet<string> unknown, Action<string> warn)
 	{
-		Sim.Modifiers.CModifier modifier = CModifierReader.ReadBlock(block, new HashSet<string>(), out int unreadable);
+		Sim.Modifiers.CModifier modifier = CModifierReader.ReadBlock(block, new HashSet<string>(), kinds, unknown,
+			out int unreadable);
 		if (unreadable > 0)
 		{
 			warn($"'{IdeologiesFile}': {unreadable} entries of the group '{group}''s faction modifier are not numbers");

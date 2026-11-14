@@ -1,3 +1,4 @@
+using System.Linq;
 using OpenHOI3.Interface.Modifiers;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Modifiers;
@@ -59,8 +60,21 @@ public class ModifierTextTests
 		Assert.Equal(new CModifierKind("national_unity_effect", "MODIFIER_NATIONAL_UNITY_EFFECT", true, false),
 			CModifierKinds.Of("national_unity_effect"));
 		Assert.Equal(107, CModifierKinds.All.Count);
-		Assert.True(CModifierKinds.IsKnown("convoy_raid_eff"));
+		// A mission efficiency is written by the mission's key and named by the key and _eff.
+		Assert.True(CModifierKinds.IsKnown("convoy_raid"));
+		Assert.False(CModifierKinds.IsKnown("convoy_raid_eff"));
+		Assert.Equal(new CModifierKind("convoy_raid", "convoy_raid_eff", true, true), CModifierKinds.Of("convoy_raid"));
+		Assert.True(CModifierKinds.IsKnown("suseptibility_axis"));
 		Assert.False(CModifierKinds.IsKnown("made_up"));
+	}
+
+	[Fact]
+	public void The_kinds_written_are_the_kinds_a_file_may_name_in_the_same_order()
+	{
+		Assert.Equal(OpenHOI3.Sim.Modifiers.CModifierKeys.Engine, CModifierKinds.All.Select(kind => kind.Key).ToArray());
+		Assert.Equal(107, CModifierKinds.Order("support_attack"));
+		Assert.Equal(107 + 8, CModifierKinds.Order("convoy_escort"));
+		Assert.Equal(107 + 32, CModifierKinds.Order("suseptibility_axis"));
 	}
 
 	[Fact]

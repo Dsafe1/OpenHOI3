@@ -37,6 +37,8 @@ public static class CBuildingReader
 		var buildings = new List<CBuilding>();
 		var lists = new List<(List<string> Required, List<string> Excluded)>();
 		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		Sim.Modifiers.CModifierKeys kinds = CModifierReader.Kinds(directories);
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (ClausewitzNode block in root.Children)
 		{
 			if (block.Key is null || !block.IsBlock)
@@ -55,6 +57,12 @@ public static class CBuildingReader
 			{
 				if (entry.Key is null || OwnKeys.Contains(entry.Key))
 				{
+					continue;
+				}
+				if (!kinds.Contains(entry.Key))
+				{
+					// The original passes over a key that is no kind of modifier in silence (modifiers.md, section 2).
+					unknown.Add($"{block.Key}: {entry.Key}");
 					continue;
 				}
 				if (entry.Value is null || !CFixedPoint.TryParse(entry.Value, out CFixedPoint value))
@@ -90,6 +98,7 @@ public static class CBuildingReader
 			});
 			lists.Add((Names(block, "prerequisites"), Names(block, "not_if_x_exists")));
 		}
+		CModifierReader.ReportUnknown(warn, path, "buildings", unknown);
 		// The two lists of buildings are resolved once every building is read, as the original does at load
 		// (docs/mechanics/buildinglines.md, section 1).
 		for (int index = 0; index < buildings.Count; index++)

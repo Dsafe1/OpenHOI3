@@ -10,11 +10,9 @@ namespace OpenHOI3.Content.Definitions;
 
 /// <summary>
 /// Reads the files whose blocks are modifiers. Such a block has a few keys of its own
-/// and treats every other key as a kind of modifier. See
-/// <c>docs/mechanics/modifiers.md</c>, section 2.
-///
-/// The kinds of modifier are not a closed list here yet, so a misspelt one is taken at
-/// its word rather than reported.
+/// and treats every other key as a kind of modifier, of a closed list (<see cref="CModifierKeys"/>):
+/// one that is none - a misspelt one - is reported and dropped, as the original logs and drops it.
+/// See <c>docs/mechanics/modifiers.md</c>, section 2.
 /// </summary>
 public static class CModifierReader
 {
@@ -29,17 +27,25 @@ public static class CModifierReader
 	private static readonly HashSet<string> NoKeys = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
-	/// A block's modifier: every key that is not one of its own, with its number.
-	/// Returns how many such keys had something other than a number.
+	/// A block's modifier: every key that is not one of its own, nor <c>icon</c>, which every modifier takes, with its
+	/// number. A key that is no kind the original knows is added to <paramref name="unknown"/> - the block's name and the
+	/// key - and dropped. <paramref name="unreadable"/> is how many kinds had something other than a number.
 	/// </summary>
-	public static CModifier ReadBlock(ClausewitzNode block, HashSet<string> ownKeys, out int unreadable)
+	public static CModifier ReadBlock(ClausewitzNode block, HashSet<string> ownKeys, CModifierKeys kinds,
+		ICollection<string> unknown, out int unreadable)
 	{
 		var modifier = new CModifier(block.Key ?? "");
 		unreadable = 0;
 		foreach (ClausewitzNode entry in block.Children)
 		{
-			if (entry.Key is null || ownKeys.Contains(entry.Key))
+			if (entry.Key is null || ownKeys.Contains(entry.Key)
+				|| entry.Key.Equals(CModifierKeys.Icon, StringComparison.OrdinalIgnoreCase))
 			{
+				continue;
+			}
+			if (!kinds.Contains(entry.Key))
+			{
+				unknown.Add($"{block.Key}: {entry.Key}");
 				continue;
 			}
 			if (entry.Value is not null && CFixedPoint.TryParse(entry.Value, out CFixedPoint value))
@@ -55,6 +61,30 @@ public static class CModifierReader
 		return modifier;
 	}
 
+	/// <summary>
+	/// The kinds of modifier an install's files may name once its ideologies are read: the engine's, the missions' and
+	/// one for each faction of <c>common/ideologies.txt</c>, which is read for its factions' tags alone.
+	/// </summary>
+	public static CModifierKeys Kinds(CDirectorySettings directories)
+	{
+		var factions = new List<string>();
+		foreach (Sim.Diplomacy.CIdeologyGroup group in CIdeologyReader.Read(directories, _ => { }))
+		{
+			factions.Add(group.Faction);
+		}
+		return new CModifierKeys(factions);
+	}
+
+	/// <summary>Ours: every key of a file's modifiers that is no kind, in one line, which the original logs one by one.</summary>
+	public static void ReportUnknown(Action<string> warn, string path, string what, SortedSet<string> unknown)
+	{
+		if (unknown.Count > 0)
+		{
+			warn($"'{path}': {unknown.Count} keys of {what} are no kind of modifier and were dropped, as the original drops " +
+				$"them: {string.Join("; ", unknown)}");
+		}
+	}
+
 	/// <summary><c>common/laws.txt</c>: groups, each holding the laws a country picks one of.</summary>
 	public static Dictionary<string, Dictionary<string, CLaw>> ReadLaws(CDirectorySettings directories,
 		Action<string> warn)
@@ -66,6 +96,8 @@ public static class CModifierReader
 			return groups;
 		}
 
+		CModifierKeys kinds = Kinds(directories);
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		int unreadable = 0;
 		foreach (ClausewitzNode group in root.Children)
 		{
@@ -84,7 +116,7 @@ public static class CModifierReader
 				{
 					continue;
 				}
-				laws[law.Key] = new CLaw(group.Key, ReadBlock(law, LawKeys, out int bad))
+				laws[law.Key] = new CLaw(group.Key, ReadBlock(law, LawKeys, kinds, unknown, out int bad))
 				{
 					Cost = CFixedPoint.TryParse(law.GetString("cost"), out CFixedPoint cost) ? cost : CFixedPoint.Zero,
 				};
@@ -95,6 +127,7 @@ public static class CModifierReader
 		{
 			warn($"'{path}': {unreadable} entries inside laws are neither the law's own keys nor a number");
 		}
+		ReportUnknown(warn, path, "laws", unknown);
 		return groups;
 	}
 
@@ -114,6 +147,8 @@ public static class CModifierReader
 			return policies;
 		}
 
+		CModifierKeys kinds = Kinds(directories);
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		int unreadable = 0;
 		foreach (ClausewitzNode block in root.Children)
 		{
@@ -121,13 +156,15 @@ public static class CModifierReader
 			{
 				continue;
 			}
-			policies.Add(new Sim.Occupation.COccupationPolicy(ReadBlock(block, PolicyKeys, out int bad), policies.Count));
+			policies.Add(new Sim.Occupation.COccupationPolicy(ReadBlock(block, PolicyKeys, kinds, unknown, out int bad),
+				policies.Count));
 			unreadable += bad;
 		}
 		if (unreadable > 0)
 		{
 			warn($"'{path}': {unreadable} entries inside occupation policies are neither the policy's own keys nor a number");
 		}
+		ReportUnknown(warn, path, "occupation policies", unknown);
 		return policies;
 	}
 
@@ -143,6 +180,8 @@ public static class CModifierReader
 			return types;
 		}
 
+		CModifierKeys kinds = Kinds(directories);
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		int unreadable = 0;
 		foreach (ClausewitzNode type in root.Children)
 		{
@@ -150,7 +189,7 @@ public static class CModifierReader
 			{
 				continue;
 			}
-			var read = new CMinisterType(ReadBlock(type, MinisterTypeKeys, out int bad));
+			var read = new CMinisterType(ReadBlock(type, MinisterTypeKeys, kinds, unknown, out int bad));
 			unreadable += bad;
 
 			// decay = { a_category = -0.25 }: what he adds to that category's decay. A type
@@ -175,6 +214,7 @@ public static class CModifierReader
 		{
 			warn($"'{path}': {unreadable} entries inside minister types are not numbers");
 		}
+		ReportUnknown(warn, path, "minister types", unknown);
 		return types;
 	}
 
@@ -205,6 +245,8 @@ public static class CModifierReader
 			return modifiers;
 		}
 
+		CModifierKeys kinds = Kinds(directories);
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		int unreadable = 0;
 		foreach (ClausewitzNode block in root.Children)
 		{
@@ -212,13 +254,14 @@ public static class CModifierReader
 			{
 				continue;
 			}
-			modifiers.Add(ReadBlock(block, StaticModifierKeys, out int bad));
+			modifiers.Add(ReadBlock(block, StaticModifierKeys, kinds, unknown, out int bad));
 			unreadable += bad;
 		}
 		if (unreadable > 0)
 		{
 			warn($"'{path}': {unreadable} entries inside {what} are not numbers");
 		}
+		ReportUnknown(warn, path, what, unknown);
 		return modifiers;
 	}
 
@@ -236,6 +279,8 @@ public static class CModifierReader
 			return resources;
 		}
 
+		CModifierKeys kinds = Kinds(directories);
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		int unreadable = 0;
 		foreach (ClausewitzNode block in root.Children)
 		{
@@ -243,13 +288,14 @@ public static class CModifierReader
 			{
 				continue;
 			}
-			resources.Add(ReadBlock(block, NoKeys, out int bad));
+			resources.Add(ReadBlock(block, NoKeys, kinds, unknown, out int bad));
 			unreadable += bad;
 		}
 		if (unreadable > 0)
 		{
 			warn($"'{path}': {unreadable} entries inside strategic resources are not numbers");
 		}
+		ReportUnknown(warn, path, "strategic resources", unknown);
 		return resources;
 	}
 

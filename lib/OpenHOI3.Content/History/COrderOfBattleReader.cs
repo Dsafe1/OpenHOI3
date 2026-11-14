@@ -100,7 +100,7 @@ public static class COrderOfBattleReader
 			return;
 		}
 		ClausewitzNode root = ClausewitzParser.ParseFile(path);
-		var reading = new CReading(state.SubUnitTypes, state.Technologies, state.Provinces.Count);
+		var reading = new CReading(state.SubUnitTypes, state.Technologies, state.Provinces.Count) { Leaders = state.Leaders };
 		reading.StartAfter(state.LastUnitId);
 		var made = new List<CUnit>();
 		foreach (ClausewitzNode entry in root.Children)
@@ -124,6 +124,7 @@ public static class COrderOfBattleReader
 			}
 		}
 		state.LastUnitId = reading.LastId;
+		Report(warn, reading.UnknownLeaders, UnknownLeadersReport);
 		var waiting = new Stack<CUnit>(made);
 		while (waiting.Count > 0)
 		{
@@ -158,10 +159,13 @@ public static class COrderOfBattleReader
 	public static int Read(CDirectorySettings directories, IEnumerable<CCountry> countries,
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes, IReadOnlyDictionary<string, CTechnology> technologies,
 		int provinceCount, Action<string>? warn = null, Func<CCountry, CSubUnitType, string>? nameSubUnit = null,
-		List<(CCountry Country, CUnit Unit)>? unnamed = null)
+		List<(CCountry Country, CUnit Unit)>? unnamed = null, IReadOnlyDictionary<int, Sim.Leaders.CLeader>? leaders = null)
 	{
 		warn ??= CDiagnostics.Warn;
-		var reading = new CReading(unitTypes, technologies, provinceCount) { NameSubUnit = nameSubUnit, Unnamed = unnamed };
+		var reading = new CReading(unitTypes, technologies, provinceCount)
+		{
+			NameSubUnit = nameSubUnit, Unnamed = unnamed, Leaders = leaders,
+		};
 
 		foreach (CCountry country in countries)
 		{
@@ -232,8 +236,13 @@ public static class COrderOfBattleReader
 		Report(warn, reading.BadLocations, "units are in a province that does not exist and were put in province 1");
 		Report(warn, reading.BadNumbers, "figures in orders of battle are not numbers and were ignored");
 		Report(warn, reading.NotApplied, "keys of the country's own in orders of battle are not applied from there");
+		Report(warn, reading.UnknownLeaders, UnknownLeadersReport);
 		return reading.LastId;
 	}
+
+	/// <summary>Ours: the original passes them over in silence.</summary>
+	private const string UnknownLeadersReport =
+		"leaders named in orders of battle are declared by no file and were passed over, as the original passes them over";
 
 	private static void Report(Action<string> warn, SortedSet<string> found, string what)
 	{
@@ -416,6 +425,13 @@ public static class COrderOfBattleReader
 		public SortedSet<string> BadLocations { get; } = new(StringComparer.OrdinalIgnoreCase);
 		public SortedSet<string> BadNumbers { get; } = new(StringComparer.OrdinalIgnoreCase);
 		public SortedSet<string> NotApplied { get; } = new(StringComparer.OrdinalIgnoreCase);
+		public SortedSet<string> UnknownLeaders { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+		/// <summary>
+		/// The game's leaders, every file's, by number: a <c>leader</c> line naming none of them is passed over, leaving the
+		/// unit whatever an earlier line gave it. None takes every number at its word.
+		/// </summary>
+		public IReadOnlyDictionary<int, Sim.Leaders.CLeader>? Leaders { get; init; }
 
 		public CUnit ReadUnit(ClausewitzNode block, EUnitKind kind, CCountry owner, CUnit? parent, CSubUnit? carriedBy)
 		{
@@ -450,8 +466,17 @@ public static class COrderOfBattleReader
 				}
 				else if (key.Equals("leader", StringComparison.OrdinalIgnoreCase))
 				{
-					// A file gives the leader's number; a savegame a block holding it.
-					unit.LeaderId = entry.IsBlock ? entry.GetInt("id") : Whole(entry.Value);
+					// A file gives the leader's number; a savegame a block holding it. The original looks it up among every
+					// leader of the game as the line is read and, finding none, does nothing at all (leaders.md, section 5).
+					int leader = entry.IsBlock ? entry.GetInt("id") : Whole(entry.Value);
+					if (Leaders is null || Leaders.ContainsKey(leader))
+					{
+						unit.LeaderId = leader;
+					}
+					else
+					{
+						UnknownLeaders.Add($"{owner.Tag} {leader}");
+					}
 				}
 				else if (key.Equals("is_reserve", StringComparison.OrdinalIgnoreCase))
 				{

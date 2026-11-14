@@ -138,7 +138,11 @@ A country at a time, once its units are read: `confirmed`
 1. **Every one of its leaders whose rank is not 0 is put in service**, in the order it keeps
    them (section 1). His rank is what his history makes it by the start.
 2. **A unit its order of battle gives `leader = N` is given leader N - whoever he is**: of any
-   country, any rank, any kind, in service or not. Nothing is asked.
+   country, any rank, any kind, in service or not. Nothing is asked. **Where no file declares a
+   leader N, the line does nothing at all** - nothing is logged or made, and the unit keeps what an
+   earlier `leader` line gave it, or none, so that step 4 gives it one
+   (`reversing/findings/FINDINGS-modifierkinds.md`, section 5). `confirmed`. **Ours**: such a line
+   is reported. No order of battle of Their Finest Hour has one; BlackICE has 33, none in a start file.
 3. **Its starting stockpile is worked out** (`stockpile.md`, section 2) - so the days of
    supplies and fuel in it are of what its units use with only the leaders of step 2
    (section 8).
@@ -672,8 +676,6 @@ in the box over a row's trait icon.
 
 ## Not established
 
-- What an order of battle naming an unknown leader does in the original. *Ours:* it is
-  ignored.
 - Which "first" `rank` the day's putting in service means where a history is not written in
   date order.
 - Why Germany's stockpile of supplies two days in is 0.030 above the save's, where it was 3.264

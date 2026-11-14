@@ -232,13 +232,18 @@ unless it is the rebels' - **or attacks over a strait** (an edge of the crossing
 
     v = AMPHIBIOUS_LANDING_PENALTY + the unit's amphibious attack adjuster + its leaders' amph_attack trait     (define -0.7)
     where v < 0, it stands in the sea and is aboard a fleet:
-        r = min(the fleet's invasion defence, LANDING_PENALTY_DECREASE)                                         (define 3.5)
+        s = 1000 + for each of the unit's brigades, the fleet's extra_amphibious_defence for its kind            (always 0)
+        r = min(s * the fleet's invasion defence / 1000, LANDING_PENALTY_DECREASE)                              (define 3.5)
         v = v * (1010 - r * 1000 / LANDING_PENALTY_DECREASE) / 1000
     v = max(v, -989)
     where v < 0: the modifier
 
 So with no invasion defence the penalty is **made worse by a hundredth** - -70% is -70.70%, as the screenshots show - and
-at a defence of 3.5 it is cut to a hundredth. The adjuster is the mean over the unit's brigades (`amphibious`, *units
+at a defence of 3.5 it is cut to a hundredth. **`s` is always 1000**: a ship type's `extra_amphibious_defence` (*units
+file*: `assault_ship` gives 0.25 for the armoured and mechanised brigades) is meant to raise a landing brigade's share of
+the defence, but the original asks it of the one definition a fleet's ships are summed into, which it makes with an empty
+table and to which the summing copies no ship's (`reversing/findings/FINDINGS-transport.md`, B.4). The table is kept on
+each type and asked so (`CLanding.FleetExtraDefence`), and it does nothing. The adjuster is the mean over the unit's brigades (`amphibious`, *units
 file*: engineers 0.4, marines 0.5). A strait assault from land gets the penalty but not the cut and not the scales.
 
 **The forts it meets** are the coast's `COASTAL_FORT_LEVEL`, and **shore bombardment** counts the enemy fleets in the sea
@@ -659,7 +664,7 @@ each row's strength 1.
    bring none.
 5. **Boarding keeps a unit's path**, and a fleet with a passenger on the move may not move.
 6. **The landing penalty is made a hundredth worse** with no landing craft (`-70.70%`), and **`extra_amphibious_defence`
-   does nothing**: the original never reads it.
+   does nothing**: the original asks it of a fleet's summed table, which is always empty (section 9).
 7. **The landing scales are set for any landing unit in a battle**, attacker or not.
 8. **The invasion mission sends every passenger to the flanks** while the units bound for the target are fewer than the
    enemy's plus six and twice the enemy's - and counts the first in units and the rest in brigades. A distance of nought

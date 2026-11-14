@@ -8,13 +8,18 @@ namespace OpenHOI3.Sim.Missions;
 /// <summary>
 /// How good a country is at a mission: what its technologies give it - each one's
 /// <c>efficiency</c> for the mission times the level the country has of it - and the
-/// country modifier <c>&lt;mission&gt;_eff</c>. It is put on the attack of every ship of a
+/// country modifier of the mission, which a file writes by the mission's own name,
+/// <c>convoy_raid = 0.1</c>. It is put on the attack of every ship of a
 /// fleet under the order, and it sets an escort or a patrol against a raider when one
 /// looks for the other. See <c>docs/mechanics/navalmissions.md</c>, section 10.
 /// </summary>
 public static class CMissionEfficiency
 {
-	/// <summary>What the country modifier of a mission is called: its name and this.</summary>
+	/// <summary>
+	/// What the original calls the country modifier of a mission - its name and this - and so the key its name on screen
+	/// is localised from. A file never writes it: it writes the mission's name (<c>docs/mechanics/modifiers.md</c>,
+	/// section 2).
+	/// </summary>
 	public const string ModifierSuffix = "_eff";
 
 	/// <summary>
@@ -79,7 +84,7 @@ public static class CMissionEfficiency
 		{
 			return 0;
 		}
-		long efficiency = country.Modifier[name + ModifierSuffix].Raw;
+		long efficiency = country.Modifier[name].Raw;
 		foreach ((string technologyName, int level) in country.TechnologyLevels)
 		{
 			if (level > 0 && state.Technologies.TryGetValue(technologyName, out CTechnology? technology)

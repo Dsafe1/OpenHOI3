@@ -54,6 +54,42 @@ public class TriggeredModifierReaderTests
 			}", context), read, context);
 
 		Assert.Equal(CFixedPoint.Zero, Assert.Single(read).Modifier["global_leadership"]);
-		Assert.Equal(2, ScriptFixture.Of(context, EScriptProblem.WrongShape).Length);
+		// A block of a key that is no kind is a key nothing takes; a kind's word is the wrong shape.
+		Assert.Single(ScriptFixture.Of(context, EScriptProblem.UnknownKey));
+		Assert.Single(ScriptFixture.Of(context, EScriptProblem.WrongShape));
+	}
+
+	[Fact]
+	public void A_key_that_is_no_kind_of_modifier_is_reported_and_dropped()
+	{
+		CScriptContext context = ScriptFixture.Context();
+		var read = new List<CTriggeredModifier>();
+		CTriggeredModifierReader.ReadFile(ScriptFixture.Parse(@"
+			odd = {
+				global_lc = 0.1
+				""global_ic"" = 0.2
+				convoy_raid = 0.05
+				suseptibility_axis = 0.3
+			}", context), read, context, new CModifierKeys(new[] { "axis" }));
+
+		CModifier modifier = Assert.Single(read).Modifier;
+		Assert.False(modifier.Values.ContainsKey("global_lc"));
+		Assert.False(modifier.Values.ContainsKey("global_ic"));
+		Assert.Equal(CFixedPoint.Parse("0.05"), modifier["convoy_raid"]);
+		Assert.Equal(CFixedPoint.Parse("0.3"), modifier["suseptibility_axis"]);
+		// The misspelt kind, and the quoted key, which is never a keyword.
+		Assert.Equal(2, ScriptFixture.Of(context, EScriptProblem.UnknownKey).Length);
+	}
+
+	[Fact]
+	public void A_factions_kind_is_unknown_without_its_faction()
+	{
+		CScriptContext context = ScriptFixture.Context();
+		var read = new List<CTriggeredModifier>();
+		CTriggeredModifierReader.ReadFile(ScriptFixture.Parse(@"
+			odd = { suseptibility_axis = 0.3 }", context), read, context);
+
+		Assert.Empty(Assert.Single(read).Modifier.Values);
+		Assert.Single(ScriptFixture.Of(context, EScriptProblem.UnknownKey));
 	}
 }

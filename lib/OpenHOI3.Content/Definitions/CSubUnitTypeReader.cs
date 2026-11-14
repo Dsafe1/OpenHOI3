@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using OpenHOI3.Content.Clausewitz;
+using OpenHOI3.Sim;
 using OpenHOI3.Sim.Units;
 
 namespace OpenHOI3.Content.Definitions;
@@ -44,12 +45,15 @@ public static class CSubUnitTypeReader
 
 	/// <summary>
 	/// Blocks this passes over: script, which <c>CUnitAvailableTriggerReader</c> reads onto the type with the rest of
-	/// script, and a table nothing here uses.
+	/// script.
 	/// </summary>
 	private static readonly HashSet<string> BlocksNotKept = new(StringComparer.OrdinalIgnoreCase)
 	{
-		"available_trigger", "extra_amphibious_defence",
+		"available_trigger",
 	};
+
+	/// <summary>A table of kinds of brigade, each with a number: <see cref="CSubUnitType.ExtraAmphibiousDefence"/>.</summary>
+	public const string ExtraAmphibiousDefence = "extra_amphibious_defence";
 
 	/// <param name="terrains">The names of the terrains, each of which a type may have a block for.</param>
 	public static List<CSubUnitType> Read(CDirectorySettings directories, IEnumerable<string> terrains,
@@ -104,12 +108,13 @@ public static class CSubUnitTypeReader
 					OnCompletion = block.GetString("on_completion"),
 				};
 				CSubUnitStatsReader.Read(block, type.Stats, Statistics.Contains, adjusters.Contains,
-					entry => ReadOther(type, entry, unknownKeys), notNumbers);
+					entry => ReadOther(type, entry, unknownKeys, notNumbers), notNumbers);
 				types.Add(type);
 				fileOf[type] = file;
 			}
 		}
 		NumberInDatabaseOrder(types, fileOf);
+		ReportUnknownBrigades(types, warn);
 
 		if (types.Count == 0)
 		{
@@ -180,10 +185,58 @@ public static class CSubUnitTypeReader
 		}
 	}
 
-	private static void ReadOther(CSubUnitType type, ClausewitzNode entry, SortedSet<string> unknownKeys)
+	/// <summary>
+	/// Ours: a kind of brigade named in a type's <c>extra_amphibious_defence</c> that no type is, reported. What the
+	/// original does with one was not read; it keeps the names as written and looks them up after the files are read.
+	/// </summary>
+	private static void ReportUnknownBrigades(List<CSubUnitType> types, Action<string> warn)
+	{
+		var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (CSubUnitType type in types)
+		{
+			names.Add(type.Key);
+		}
+		var unknown = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (CSubUnitType type in types)
+		{
+			foreach (string brigade in type.ExtraAmphibiousDefence.Keys)
+			{
+				if (!names.Contains(brigade))
+				{
+					unknown.Add($"{type.Key}: {brigade}");
+				}
+			}
+		}
+		if (unknown.Count > 0)
+		{
+			warn($"{unknown.Count} kinds of brigade in {ExtraAmphibiousDefence} are no unit type: " + string.Join("; ", unknown));
+		}
+	}
+
+	private static void ReadOther(CSubUnitType type, ClausewitzNode entry, SortedSet<string> unknownKeys,
+		SortedSet<string> notNumbers)
 	{
 		string key = entry.Key!;
-		if (!entry.IsBlock && Flags.Contains(key))
+		if (entry.IsBlock && key.Equals(ExtraAmphibiousDefence, StringComparison.OrdinalIgnoreCase))
+		{
+			// Every key a kind of brigade and its number, a name written twice keeping the last.
+			foreach (ClausewitzNode brigade in entry.Children)
+			{
+				if (brigade.Key is null)
+				{
+					continue;
+				}
+				if (!brigade.IsBlock && CFixedPoint.TryParse(brigade.Value, out CFixedPoint value))
+				{
+					type.ExtraAmphibiousDefence[brigade.Key] = value;
+				}
+				else
+				{
+					notNumbers.Add($"{type.Key}.{ExtraAmphibiousDefence}.{brigade.Key}");
+				}
+			}
+		}
+		else if (!entry.IsBlock && Flags.Contains(key))
 		{
 			type.Flags[key] = entry.Value!.Equals("yes", StringComparison.OrdinalIgnoreCase);
 		}

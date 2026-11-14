@@ -376,7 +376,7 @@ public static class CGameStateLoader
 		var unnamed = new List<(CCountry Country, CUnit Unit)>();
 		state.LastUnitId = COrderOfBattleReader.Read(directories, state.Countries, state.SubUnitTypes,
 			state.Technologies, state.Provinces.Count, warn,
-			(country, type) => CUnitNames.ForSubUnit(state, country, type), unnamed);
+			(country, type) => CUnitNames.ForSubUnit(state, country, type), unnamed, state.Leaders);
 		RegisterUnitNames(state);
 		NameUnnamedUnits(state, unnamed);
 	}

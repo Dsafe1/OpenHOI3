@@ -62,6 +62,14 @@ public sealed class CSubUnitType
 	public Script.CTrigger? AvailableTrigger { get; set; }
 
 	/// <summary>
+	/// Its file's <c>extra_amphibious_defence</c>: for each kind of brigade it names, in thousandths, what a landing of that
+	/// kind is meant to add to the share of the type's <c>amphibious_invasion_defence</c> it gets - an assault ship's for
+	/// armour. Kept as read; the original asks it of a fleet's own summed table, which never holds one, so it does nothing
+	/// (<c>docs/mechanics/transport.md</c>, section 9).
+	/// </summary>
+	public Dictionary<string, CFixedPoint> ExtraAmphibiousDefence { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
 	/// The technologies that improve it, in the order they are declared: every one with
 	/// a block of this type's name. A brigade keeps a level of each.
 	/// </summary>
