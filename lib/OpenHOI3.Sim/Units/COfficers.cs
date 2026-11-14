@@ -18,11 +18,10 @@ public static class COfficers
 	/// figure, whatever state it is in - those of a unit finished and not yet placed
 	/// among them.
 	/// </summary>
-	public static CFixedPoint Needed(CCountry country)
+	public static CFixedPoint Needed(CCountry country, CGameState? state = null)
 	{
 		CFixedPoint needed = CFixedPoint.Zero;
-		// What it holds on loan is its lender's to officer, and what it has lent still its own.
-		foreach (CUnit unit in country.AllUnits().Where(unit => unit.Lender is null).Concat(country.LentUnits))
+		foreach (CUnit unit in Counted(country, state))
 		{
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
@@ -58,10 +57,10 @@ public static class COfficers
 	/// The brigades of its land units - those finished and not yet placed among them - but a reserve's while the country
 	/// is not mobilised.
 	/// </summary>
-	public static int LandBrigadesInService(CCountry country)
+	public static int LandBrigadesInService(CCountry country, CGameState? state = null)
 	{
 		int count = 0;
-		foreach (CUnit unit in country.AllUnits())
+		foreach (CUnit unit in Counted(country, state))
 		{
 			count += InService(country, unit);
 		}
@@ -77,9 +76,28 @@ public static class COfficers
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			country.OfficersNeeded = Needed(country);
-			country.LandBrigadesInService = LandBrigadesInService(country);
+			country.OfficersNeeded = Needed(country, state);
+			country.LandBrigadesInService = LandBrigadesInService(country, state);
 			country.OfficerRatio = Ratio(state, country.Officers, country.OfficersNeeded);
+		}
+	}
+
+	/// <summary>
+	/// The units a country's count takes, the original's <c>CCountry::RecountUnitTotals</c>: its own with no lender, and those
+	/// lent to it by a member of its own faction - so a unit lent to a country outside the lender's faction is counted by
+	/// neither. The United States, lending the Phillippine Force to the Philippines at a new game's third hour, needs 300
+	/// officers fewer until its three new armies' headquarters bring the need back (reversing/findings/FINDINGS-liveread.md,
+	/// section 79).
+	/// </summary>
+	private static System.Collections.Generic.IEnumerable<CUnit> Counted(CCountry country, CGameState? state)
+	{
+		foreach (CUnit unit in country.AllUnits())
+		{
+			if (unit.Lender is not { } lender
+				|| (state?.Country(lender) is { } from && country.Faction.Length > 0 && from.Faction == country.Faction))
+			{
+				yield return unit;
+			}
 		}
 	}
 

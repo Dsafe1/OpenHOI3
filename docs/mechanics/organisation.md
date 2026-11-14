@@ -38,8 +38,13 @@ hour - so an hour's organisation is worked out with the ratio the hour before le
 `confirmed`
 
 **A unit finished and not yet placed is counted too** (`buildqueue.md`, section 6).
-`confirmed`, and built. The original also counts the units lent to a country, and counts a
-unit it has lent out for the country that lent it; nothing is lent here yet.
+`confirmed`, and built. **A unit lent out is counted by neither country**, unless the two share a
+faction, when the one it is lent to counts it: the count takes a country's own units with no lender,
+then those lent to it by a member of its faction, then those waiting to be placed (`CCountry::RecountUnitTotals`).
+The United States lends the Phillippine Force to the Philippines at a new game's third hour and needs 300 officers
+fewer until its three new armies' headquarters bring the need back - its divisions' organisation in the hourly saves
+rises and falls back so, and does so here since 2026-11-14 (`confirmed` on the running game,
+`reversing/findings/FINDINGS-liveread.md`, section 79). This said the lender went on counting it.
 
 **Measured.** Taking each country's officers from the save over what its saved brigades
 call for gives the ratio every figure in section 7 is right with: 0.985 for Britain
