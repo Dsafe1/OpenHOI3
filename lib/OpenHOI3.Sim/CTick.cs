@@ -320,9 +320,13 @@ public static class CTick
 		Step(state, Revolts.CRebelFactionMonth.RunMonthly);
 	}
 
-	/// <summary>Not established for the original.</summary>
+	/// <summary>
+	/// As a year begins: the sample of <c>nation_size_statistics</c>, the one thing of the original's yearly pass built
+	/// (statistics.md, section 5); where the pass stands beside the day's and the month's was not established.
+	/// </summary>
 	private static void RunYearlyPass(CGameState state)
 	{
+		Step(state, Countries.CNationSize.SampleYearly);
 	}
 
 	/// <summary>

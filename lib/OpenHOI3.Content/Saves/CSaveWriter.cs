@@ -108,6 +108,7 @@ public static class CSaveWriter
 			}
 			writer.End();
 		}
+		CSaveTop.WriteStatistics(writer, state);
 		CSaveWarfare.Write(writer, state);
 		if (state.BattlePlansToSave is { } plans)
 		{

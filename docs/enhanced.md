@@ -267,7 +267,7 @@ All of these are risk-free but for what the entry says.
 - **The claims box shows cores,** the owner's among them. `provinceview.md`. *Display.*
 - **Intelligence keys are one out:** `INTEL_2` is "Intel lvl 3". `provinceview.md`. *Display.*
 - **The port tooltip misstates the rule.** `provinceview.md`. *Display.*
-- **The statistics graph section is dead.** `statistics.md`, 2. *Unfinished.*
+- **The statistics graph section is dead.** `statistics.md`, 2. *Unfinished.* The nation size's yearly history it would draw is kept and saved since 2026-11-14, so a graph of it has its data from the game's first year; income and inflation are never sampled (`statistics.md`, 5).
 - **The victory alert names only the last faction.** `endgame.md`, 6. *Bug.*
 - **Closing the menu leaves the game paused** after opening any of its windows. `ingamemenu.md`, 2. *Bug.*
 - **Message settings half-work.** A click on a name does nothing, no tab starts ticked, and Reset leaves the rows. `ingamemenu.md`, 4. *Oversight.*
