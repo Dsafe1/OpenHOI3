@@ -171,7 +171,8 @@ is cleared.
    taken is skipped, not a province already listed: the hold list can name a province twice, and both records then become targets,
    each wanting its garrison (section 36). Bulgaria's list on entering the save of July 1941 names 4368, 4555 and 4870 twice.
 5. **Per block of land** of **the first g targets** (the shortfall to the theatre's largest area's), the garrisons standing or bound
-   there are matched to its count: too many - the non-garrison-brigade one with the lowest score is unmarked, the score
+   there - one standing in one block and bound for another counted in both: Poland's 55. reserve division, at 2447 for
+   2701, is Warszawa's garrison on 6 September 1939 - are matched to its count: too many - the non-garrison-brigade one with the lowest score is unmarked, the score
    being **that of the last garrison target on the province where it stands or is bound, 1 where no target is** (+1000
    for militia, +500 for police), the first of equals going - Poland's Warszawa HQ at 10:00 on 1 January, its 9th and
    15th Dywizja at 1626 and its 55th Reserve at 2158 all on no target, drops the 9th, which then goes to the line

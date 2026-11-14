@@ -212,7 +212,10 @@ public static class CLandSplit
 			var there = new List<CUnit>();
 			foreach (CUnit unit in agent.CommittedAtFirst)
 			{
-				if (unit.IsGarrison && ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.RegionGroup, group))
+				// Standing in the block or heading there: one standing in one block and bound for another counts in both
+				// (FINDINGS-moving.md, section A.3: "standing or heading there").
+				if (unit.IsGarrison && (ReferenceEquals(network.AreaOf(unit.Location)?.RegionGroup, group)
+					|| (CAgentUnits.Destination(unit) > 0 && ReferenceEquals(network.AreaOf(CAgentUnits.Destination(unit))?.RegionGroup, group))))
 				{
 					there.Add(unit);
 				}
