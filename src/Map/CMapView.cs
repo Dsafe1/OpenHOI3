@@ -948,8 +948,7 @@ public partial class CMapView : Node2D
 		{
 			StopEase(height: true);
 			_camera.Position = value.Centre;
-			_camera.Zoom = new Vector2(value.Zoom, value.Zoom);
-			ClampCamera();
+			SetZoom(value.Zoom);                                // the borders' shading with the zoom, as every other zoom sets it
 		}
 	}
 

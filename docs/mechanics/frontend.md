@@ -69,7 +69,11 @@ pressed - as the save dialog lists them (`savegame.md`, section 11). A row is `s
 `shield` the save's `player` read off the head of the file - the date first, `player` second, or third after `scenario` -
 `title` the file name before `.hoi3`, `date` the head's date as a bookmark's. **Choosing a row loads the save at once**
 [exe] - the row ticked and the others not, the start unchosen and the shields gone - and the save's world is on the map,
-**its `player` chosen**. Choosing another loads that.
+**its `player` chosen and the map centred on that country's capital** [exe], **at the lobby's fixed zoom**: the original
+keeps one camera for the front end, so a save loaded moves it and does not zoom it. Choosing another loads that. *Ours:*
+each world gets a map view of its own, and the new one takes the old one's camera before it is centred; until 2026-11-14
+it did not, and a save loaded came up over the whole map, centred there on the capital at that zoom - the maintainer's
+report.
 
 **Choosing a country** (B.4): a click on the map chooses **the owner of the province** - not its holder - where it has
 one [exe]; a save's country may be changed so, its own player then left to the AI. A shield of the start chooses too.
