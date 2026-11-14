@@ -218,34 +218,53 @@ night there at the start date's hour and month, as a picture and a word.
 the hour, **held between the defines' `start_date` and `end_date`**. While "continuous" is
 ticked their arrows are switched off and the mission ends on the defines' `end_date`;
 otherwise it flies from the first date to the second. Before its start an air mission is not
-fit to fly (`aircombat.md`, section 1).
+fit to fly (`aircombat.md`, section 1). **While a paradrop's row is ticked the start is held
+every frame at the hour now and `PARADROP_MIN_TIME` hours or later**, and again as it is
+accepted - so in a window left open the start follows the clock (`transport.md`, section 13.4).
 
 **`second_target`** reads `ORDER_NO_SECOND_TARGET` - "Right-click on the map to select a
 second target province." - whenever accept cannot be pressed, and is left alone when it can:
 **so it is empty until the first time accept is greyed, and the hint from then on.** The
-original never shows `ORDER_SECOND_TARGET`: what it would name is never set.
+original never shows `ORDER_SECOND_TARGET`: what it would name is never set. **The hint is
+wider than its box, 172 by 18, and is broken onto lines as the font breaks every text box's
+text - at the box's width, its height playing no part - each line centred, running on down
+past the box** (`interface.md`, section 6; `reversing/findings/FINDINGS-textdraw.md`): in
+`Arial12_black`, "Right-click on the map to select a" over "second target province.".
 
 **Accept** can be pressed with a row ticked and a province on the area's list. It gives the
 order with the list, the stance, the hours, the start and the end - **and not the priority,
 which the air window shows, steps and remembers and never sends** - unless the unit's own
 order is a change of base still under way, which is left to finish. The window then closes.
 
-**The map while it is up** is the window's, whatever the mode, and comes back as the mode
-draws it when the window closes:
+**The map while it is up** is the window's, whatever the mode, drawn in the original's map
+style 16, and comes back as the mode draws it when the window closes - each province's ground
+and stripes alike:
 
-    out of the unit's range of its base        nothing
+    out of the unit's range of its base        nothing: (0, 0, 0) and alpha nought
     sea, or land the unit's country holds      (0.6, 0.9, 0.6)
     land of a country at war with it           (0.9, 0.6, 0.6)
     other land                                 (0.6, 0.6, 0.6)
-    on the area's list, and in range           (0.5, 0.8, 0.8)
+    then the area's list:
+        in range                               (0.5, 0.8, 0.8)
+        out of range                           (1, 0, 0), pure red
 
-*Ours:* **"nothing" is drawn as the terrain mode draws the province** - how the original's map
-draws a colour with no alpha was not read. **The window's title is not written again** when a
-right click moves it to another province, which is the original's. Its tooltips are section 8's;
-a paradrop's earliest start is kept when its row is ticked and when it is accepted, not every frame (`transport.md`,
-section 13.4); and a click at
-the base province of an air unit cannot pick it out from under the land units there:
-`--select=` does it for a trial.
+**A province on the list out of range is red**, which corrected the fact base on 2026-11-14:
+the strategic bombing, the installation strike and interdiction take a province with no test of
+range (`bombing.md`, section 1), so shift and a right click past the unit's reach adds one.
+**"Nothing" is handed to the map's shaders as it is**, and in style 16 they draw it as the
+original's do: the land shader lays three tenths of the colour less 0.7 over the ground turned
+grey and takes half as much again - **the ground greyed and darkened, 1.05 times its grey less
+0.315** - and the water shader lays it 0.8 over the water - **a fifth of the water left, near
+black** (`reversing/findings/FINDINGS-airorders.md`, section 8; `mapdraw.md`, section 4). That
+the land is drawn and not dropped rests on the alpha test being off at the land's draw, which is
+*inferred*: were it on, the air and naval modes' land, whose colours carry an alpha of a half,
+would be dropped whole. Not set beside the running game. **The window's title is not written
+again** when a right click moves it to another province, which is the original's. Its tooltips
+are section 8's.
+
+*Ours:* a click at the base province of an air unit cannot pick it out from under the land units
+there: `--select=` does it for a trial. The flat map, drawn only with no map cache, has no
+shaders and is given "nothing" already worked out as they would draw it.
 
 *Ours:* **a fleet's move, its change of base and its eight missions are built** - the missions
 are `navalmissions.md`, and the transport and the invasion `transport.md` - **and an air unit's

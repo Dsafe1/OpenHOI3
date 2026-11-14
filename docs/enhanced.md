@@ -246,6 +246,8 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 All of these are risk-free but for what the entry says.
 
+- **A text's first word too wide for its box leaves the first line empty, and a last word too wide places its line by that word alone.** The font's line breaking tests a word as its space arrives; with nothing laid out yet the long-word break cannot fire, so a first word wider than the box breaks before itself onto a second line; and at the end a last word wider than the box is kept on its line with the line's width for its placing taken as the word's. The first is built (`CFontLineBreak`), the second not, a line here being placed by its own measured width. `interface.md`, 6; `reversing/findings/FINDINGS-textdraw.md`. *Bug.*
+
 - **A bombing's row names its goods under each other's words.** The goods whose stockpile the mission bombs are written after "Production of" and those whose production it bombs after "Stockpiles of", so a logistical strike reads "Production of Supplies and Fuel." `combatview.md`, 12. *Bug.*
 
 - **A port or an airfield under a counter cannot be clicked.** A click takes the highest score, and a counter's (at least 1.1) always beats a building picture's (1.0), so an air unit at its base or a fleet in port whose base's picture lies under a land stack is reached only from the air map mode, or by moving the map. The enhanced engine could offer the building where the click falls on its badge outside the counter, or a list of what lies under the click. `mapunits.md`, 9; `reversing/findings/FINDINGS-seaair.md`, 6. *Oversight.*

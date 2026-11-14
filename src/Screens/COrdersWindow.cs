@@ -57,10 +57,10 @@ public partial class COrdersWindow : Control
 
 	/// <summary>
 	/// Raised when the map is to show an air mission's area, with each province's colour -
-	/// null for a province the unit cannot reach - and with null when it is to show its
-	/// own mode again.
+	/// <see cref="CAirAreaColours.Nothing"/> for a province the unit cannot reach - and with
+	/// null when it is to show its own mode again.
 	/// </summary>
-	public event Action<Func<CProvince, CColor?>?>? AreaShown;
+	public event Action<Func<CProvince, CColor>?>? AreaShown;
 
 	/// <summary>What the last air window kept for the next: the session's.</summary>
 	public CAirOrdersMemory AirMemory { get; private set; } = CAirOrdersMemory.First;
@@ -225,6 +225,8 @@ public partial class COrdersWindow : Control
 		{
 			ShowLand();
 		}
+		// The air window's every frame: a paradrop's start held at now and PARADROP_MIN_TIME hours (transport.md, section 13.4).
+		_air?.HoldStart(TickedOrder);
 	}
 
 	/// <summary>
@@ -383,8 +385,7 @@ public partial class COrdersWindow : Control
 		}
 		if (_air is not null)
 		{
-			_air.HoldStart(TickedOrder);        // a paradrop starts a day ahead at the earliest
-			_air.MakeArea(TickedOrder);         // which redoes accept and the map
+			_air.MakeArea(TickedOrder);         // which redoes accept and the map; the next frame holds a paradrop's start
 			return;
 		}
 		ShowAccept();

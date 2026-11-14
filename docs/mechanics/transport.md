@@ -475,7 +475,9 @@ unit's list.
 
 `PARADROP_MISSION` - "Airborne Assault". **May be given for any land province** - nothing else is asked, not range, not
 war, not that anything is aboard; the window offers it only to an air unit carrying something, over land, and **moves
-its start to now and `PARADROP_MIN_TIME` (24, *define*) hours** where it is earlier.
+its start to now and `PARADROP_MIN_TIME` (24, *define*) hours** where it is earlier - every frame while its row is ticked,
+as the window's update does, and as it is accepted, so the start follows the clock while the window is open
+(`fleetsandair.md`, section 4).
 
 **Taking off**, as it is given and every hour it is not over its target:
 
@@ -663,8 +665,6 @@ plane or a paratrooper: `OpenHOI3.SaveCheck airborne <install> [paradrop|carrier
   country holds with an air base built; the first of equals in the map's order wins. The reading says no more.
 - **The air unit the planes' load button finds** is looked for among the units in the province, in the order it lists
   them, that are based there; the original walks the province's own list of the units based on it.
-- **The air window moves a paradrop's start on** when its row is ticked and when it is accepted; the original also does
-  it every frame the window is up.
 
 ## Not built
 

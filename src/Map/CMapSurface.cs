@@ -241,7 +241,10 @@ public partial class CMapSurface : Node3D
 	}
 
 	/// <summary>The device's states around each draw, as the original's scene sets them (<c>FINDINGS-mapdraw.md</c>, C.1-C.2).</summary>
-	private static readonly Dictionary<string, string> LandStates = Baseline(("ALPHABLENDENABLE", "0"), ("SRCBLEND", "ONE"), ("DESTBLEND", "ZERO"));
+	// The land untested: the alpha test at the scene's start is the unit layers' last write, off, and an alpha-tested land
+	// would drop every province of a colour under 0.7 alpha - the air and naval modes' land whole (mapdraw.md, section 4).
+	private static readonly Dictionary<string, string> LandStates = Baseline(("ALPHABLENDENABLE", "0"), ("SRCBLEND", "ONE"), ("DESTBLEND", "ZERO"),
+		("ALPHATESTENABLE", "0"));
 	private static readonly Dictionary<string, string> BeachStates = Baseline(("ALPHABLENDENABLE", "1"), ("SRCBLEND", "SRCALPHA"), ("DESTBLEND", "ZERO"));
 	private static readonly Dictionary<string, string> WaterStates = Baseline(("ALPHABLENDENABLE", "1"), ("SRCBLEND", "SRCALPHA"), ("DESTBLEND", "INVSRCALPHA"), ("ZENABLE", "1"));
 
@@ -2111,8 +2114,9 @@ public partial class CMapSurface : Node3D
 		for (int id = 1; id < count; id++)
 		{
 			int at = id * 4;
-			first[id] = 0xFF000000u | (uint)_colours[at] << 16 | (uint)_colours[at + 1] << 8 | _colours[at + 2];
-			second[id] = 0xFF000000u | (uint)_seconds[at] << 16 | (uint)_seconds[at + 1] << 8 | _seconds[at + 2];
+			// Word for word, alpha and all (B.2).
+			first[id] = (uint)_colours[at + 3] << 24 | (uint)_colours[at] << 16 | (uint)_colours[at + 1] << 8 | _colours[at + 2];
+			second[id] = (uint)_seconds[at + 3] << 24 | (uint)_seconds[at] << 16 | (uint)_seconds[at + 1] << 8 | _seconds[at + 2];
 		}
 		WriteLookups();
 		BuildSeaRasters(first, second);
@@ -2140,8 +2144,9 @@ public partial class CMapSurface : Node3D
 	/// <summary>
 	/// The two province colour lookups (B.2, B.9). In style 0 the first holds the province's state - red the fog, 1.0 known
 	/// well and 0.5 less; blue the share frozen, not built, nought - and in both the green is 25 for a selected province and
-	/// nought for any other, the second's red and blue its second colour. In any other style each is the mode's colour, and a
-	/// selected province's red, green and blue are lifted by 0.1 - 25, or 255 from 230 up - its alpha full [exe].
+	/// nought for any other, the second's red and blue its second colour, alpha full. In any other style each is the mode's
+	/// colour as written, alpha and all, and a selected province's red, green and blue are lifted by 0.1 - 25, or 255 from
+	/// 230 up - its alpha full [exe].
 	/// </summary>
 	private void WriteLookups()
 	{
@@ -2168,6 +2173,11 @@ public partial class CMapSurface : Node3D
 					bytes0[at + c] = selected ? Lift(_colours[at + c]) : _colours[at + c];
 					bytes1[at + c] = selected ? Lift(_seconds[at + c]) : _seconds[at + c];
 				}
+				// The colour's alpha as written - the air window's "nothing" nought, the air and naval modes' a half - but full
+				// where selected.
+				bytes0[at + 3] = selected ? (byte)255 : _colours[at + 3];
+				bytes1[at + 3] = selected ? (byte)255 : _seconds[at + 3];
+				continue;
 			}
 			bytes0[at + 3] = 255;
 			bytes1[at + 3] = 255;

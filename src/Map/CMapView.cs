@@ -397,18 +397,28 @@ public partial class CMapView : Node2D
 	}
 
 	/// <summary>
-	/// Colours the map for the air orders window while it is up, whatever the mode, or with
-	/// null gives the mode back. A province given no colour - one the unit cannot reach -
-	/// is drawn as the terrain mode draws it, which is ours: the original gives it nothing
-	/// at all, and how its map draws that was not read.
+	/// Colours the map for the air orders window while it is up, whatever the mode, in the original's map style 16 - or
+	/// with null gives the mode and its style back (<c>docs/mechanics/fleetsandair.md</c>, section 4). A province the unit
+	/// cannot reach is given nothing, every part of its colour nought, and the surface's shaders draw that as the original's
+	/// do: the ground turned grey and darkened, the sea near black.
 	/// </summary>
-	public void ShowAirArea(Func<CProvince, CColor?>? colours)
+	public void ShowAirArea(Func<CProvince, CColor>? colours)
 	{
 		_airArea = colours;
+		if (_surface is not null)
+		{
+			_surface.Style = SurfaceStyle;
+		}
 		RefreshColours();
 	}
 
-	private Func<CProvince, CColor?>? _airArea;
+	private Func<CProvince, CColor>? _airArea;
+
+	/// <summary>The original's map style while the air orders window is up, its mode 15 (<c>FINDINGS-minimap.md</c>, section 6).</summary>
+	private const int AirOrdersStyle = 16;
+
+	/// <summary>The style the surface draws in: the air orders window's, the theatre editor's or the mode's own.</summary>
+	private int SurfaceStyle => _airArea is not null ? AirOrdersStyle : _theatreEditor is not null ? EditorStyle : Style(_mode);
 
 	/// <summary>
 	/// Colours every province by the building being placed from the deploy menu - the original's map mode 14 - or with
@@ -448,7 +458,7 @@ public partial class CMapView : Node2D
 		// Mode 17 draws in the political mode's style, 2, whatever mode was up; closing gives the mode's own back.
 		if (_surface is not null)
 		{
-			_surface.Style = _theatreEditor is null ? Style(_mode) : EditorStyle;
+			_surface.Style = SurfaceStyle;
 		}
 		_box?.HideBox();
 		RefreshColours();
@@ -492,7 +502,7 @@ public partial class CMapView : Node2D
 			}
 			if (_surface is not null)
 			{
-				_surface.Style = _theatreEditor is null ? Style(value) : EditorStyle;
+				_surface.Style = SurfaceStyle;
 				_surface.TreeSnow = value == MapMode.Weather ? Snowed : null;
 			}
 			RefreshColours();
@@ -546,7 +556,7 @@ public partial class CMapView : Node2D
 		// The surface is the keeper's child, not the view's, so that it outlives the view.
 		if (_surface is not null)
 		{
-			_surface.Style = Style(_mode);
+			_surface.Style = SurfaceStyle;
 		}
 		_material = new ShaderMaterial { Shader = GD.Load<Shader>(ShaderPath) };
 		_material.SetShaderParameter("province_ids", BuildProvinceTexture());
@@ -703,9 +713,7 @@ public partial class CMapView : Node2D
 			}
 			else if (_airArea is not null)
 			{
-				colour = _airArea(province) is { } shown ? shown.ToGodot()
-					: province.IsSea ? SeaColour
-					: province.Terrain?.Color.ToGodot() ?? UnownedColour;
+				colour = AirAreaOver(province, _airArea(province));
 			}
 			else if (air is not null)
 			{
@@ -847,7 +855,8 @@ public partial class CMapView : Node2D
 		var colour = new Color(air.R, air.G, air.B);
 		if (_surface is not null)
 		{
-			return colour;
+			// Its alpha with it: the lookups and the sea's rasters carry it in these styles (mapdraw.md, section 5.1).
+			return new Color(air.R, air.G, air.B, air.A);
 		}
 		if (province.IsSea)
 		{
@@ -856,6 +865,27 @@ public partial class CMapView : Node2D
 		Color terrain = province.Terrain?.Color.ToGodot() ?? UnownedColour;
 		float grey = terrain.Luminance;
 		return new Color(grey, grey, grey).Lerp(colour, air.A);
+	}
+
+	/// <summary>
+	/// An air orders window's colour as it is handed on: to the surface as it is, alpha and all, its shaders drawing
+	/// "nothing" as the original's do; to the flat map, with no surface, a province given nothing as those shaders would
+	/// draw it - the ground turned grey and darkened, the sea a fifth of its colour - and any other colour flat.
+	/// </summary>
+	private Color AirAreaOver(CProvince province, CColor air)
+	{
+		if (_surface is not null || air != CAirAreaColours.Nothing)
+		{
+			return new Color(air.R, air.G, air.B, air.A);
+		}
+		if (province.IsSea)
+		{
+			Color sea = SeaColour * CAirAreaColours.NothingOverSea;
+			return new Color(sea.R, sea.G, sea.B);
+		}
+		Color terrain = province.Terrain?.Color.ToGodot() ?? UnownedColour;
+		float grey = CAirAreaColours.NothingOverLand(terrain.Luminance);
+		return new Color(grey, grey, grey);
 	}
 
 	// --- the camera ---

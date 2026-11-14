@@ -271,13 +271,28 @@ public partial class CGuiTextBox : CGuiObject
 	public float DrawnHeight => _font is null ? 0f : _lines.Count * _font.LineHeight + 2f * ((CGuiTextBoxType)GuiType).BorderSize.Y;
 
 	/// <summary>
+	/// Whether the box breaks its text where the original's font does, whatever its height - its lines running on down past
+	/// it (<c>CFontLineBreak</c>; <c>docs/mechanics/interface.md</c>, section 6). Set by a screen before its text, for a box
+	/// known to wrap in the original: the air orders window's <c>second_target</c>. Every box of the original's breaks so;
+	/// here the others keep the rule below.
+	/// </summary>
+	public bool BreaksAsTheFont { get; set; }
+
+	/// <summary>
 	/// Breaks a line that is too wide for the box at its spaces - but only in a box tall
 	/// enough for a second line, so that a figure a little wider than its box is not
-	/// pushed out of sight, or in one of no height, which grows with its text.
+	/// pushed out of sight, or in one of no height, which grows with its text - or, where
+	/// <see cref="BreaksAsTheFont"/> is set, as the original's font does.
 	/// </summary>
 	private IEnumerable<string> Wrap(string paragraph)
 	{
 		var type = (CGuiTextBoxType)GuiType;
+		if (BreaksAsTheFont && _font is not null)
+		{
+			CGuiFont font = _font;
+			return CFontLineBreak.Break(paragraph, LaidOutWidth ?? type.MaxWidth, type.BorderSize.X,
+				text => CTextIcons.Measure(text, font.Width));
+		}
 		float inside = (LaidOutWidth ?? type.MaxWidth) - 2f * type.BorderSize.X;
 		if (_font is null || inside <= 0f || (type.MaxHeight != 0 && type.MaxHeight < 2f * _font.LineHeight))
 		{

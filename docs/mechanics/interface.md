@@ -457,10 +457,27 @@ files, with nothing in it placed by hand.
   arithmetic). *Ours:* all text is drawn so. With it the figure's stem is in the same
   two columns as the original's and its top and bottom on the same rows; what differs
   is the letter, which here has a foot the original's has not.
-- **Where a line breaks was not read.** *Ours:* a line too wide for its box is broken at
-  its spaces - but only in a box high enough for a second line, so that a figure a
-  little wider than a one-line box is not pushed out of sight. A colour that is on
-  when a line breaks is on for the next.
+- **Where a line breaks** (read 2026-11-14, `reversing/findings/FINDINGS-textdraw.md`):
+  **at the box's `maxWidth` - 320 where it gives none - and its `maxHeight` plays no part**,
+  so a text wider than its box goes on to further lines, each a line's height under the last,
+  running on down past the box; each line is placed as the first is, so set centre each is
+  centred by its own width. A word is taken with the space after it: at each space, where the
+  line, that word and its space and twice the border are wider than the box, the line breaks
+  before the word, keeping its own trailing space - which is measured with it, so a centred
+  line stands half a space left; a word over 50 that runs past the edge, once something has
+  been laid out, is broken where it reaches it; the last word is tested without a space, and
+  not at all where it alone is wider than the box; a newline ends a line; past 55 lines the
+  rest is dropped. A first word too wide for the box, a space after it, leaves the first line
+  empty - kept (`docs/enhanced.md`, *Interface*). `CFontLineBreak` is that rule.
+  *Ours:* **only a box a screen opts into breaks so** (`CGuiTextBox.BreaksAsTheFont`) - the air
+  orders window's `second_target` (`fleetsandair.md`, section 4) since 2026-11-14. Every other
+  box keeps the rule from before the reading: broken at its spaces, measured without trailing
+  spaces, and only in a box high enough for a second line or of no height, so that a figure a
+  little wider than a one-line box - in a typeface of other widths than the original's - is not
+  pushed onto a line of its own. Moving every box to the original's rule waits on the screens
+  being looked at again. The original's oddity at the end - a last word wider than the box
+  makes the whole line's width that word's for its placing - is not followed: a line is placed
+  by its own measured width. A colour that is on when a line breaks is on for the next.
 - **A font is a texture of glyphs and a descriptor**, `gfx/fonts/<name>.fnt` and `.tga`.
   `confirmed` The original reads the descriptor's numbers by position and never its key
   names, and a descriptor that says it has a page and does not name it is normal.
@@ -536,7 +553,8 @@ scalable canvas of section 3 could not survive. So:
   may set every box every frame.
 - **`format` is `left`, `centre` or `right`**, and `center` is written 51 times and works.
   `measured` *Ours:* the text is set against that side of the box, inside `borderSize`.
-  How the original uses `borderSize`, and where it breaks a line, are not read.
+  How the original uses `borderSize` and where it breaks a line are read since: the placing
+  above, and the breaking a few items up.
 
 ## 7. Ours
 
@@ -703,7 +721,7 @@ is; the wrap's exact break.
 
 1. **The table of colours a font with no `colorcodes` falls back to**: who fills it, and
    with what.
-2. **How a text box lays its text out**, beyond section 6: where a line breaks, how a
+2. **How a text box lays its text out**, beyond section 6 (where a line breaks is read since 2026-11-14): how a
    `fixedsize` box measures a line it cuts (section 7), what the two kinds of text box
    differ in, the five orientations
    other than the upper left and right, and why the pictures sit half a pixel the other

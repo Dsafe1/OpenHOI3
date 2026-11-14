@@ -110,6 +110,11 @@ public sealed class CAirOrdersControls
 			_continuous.Pressed += SwitchDates;
 		}
 		_secondTarget = window.FindTextBox(CAirOrdersText.SecondTargetText);
+		if (_secondTarget is not null)
+		{
+			// Its hint is wider than its 172 and broken onto lines down past its 18, as the original's font breaks it.
+			_secondTarget.BreaksAsTheFont = true;
+		}
 
 		// The start is now, the end a month on.
 		long now = state.TotalHours;
@@ -167,7 +172,8 @@ public sealed class CAirOrdersControls
 
 	/// <summary>
 	/// A paradrop's start is moved on to now and <c>PARADROP_MIN_TIME</c> hours where it is earlier
-	/// (<c>transport.md</c>, section 13.4).
+	/// (<c>transport.md</c>, section 13.4): every frame the window is up, as the original's update does, and as it is
+	/// accepted - so the start follows the clock while the window stays open.
 	/// </summary>
 	public void HoldStart(EUnitOrder order)
 	{

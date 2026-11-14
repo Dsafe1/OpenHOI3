@@ -205,12 +205,38 @@ public class AirOrdersTextTests
 		CGameState state = State(out CCountry germany);
 		CUnit unit = Unit(state, germany, Fighter);
 		var listed = new HashSet<int> { Warsaw };
-		CColor? Of(int id) => CAirAreaColours.Of(state, unit, EUnitOrder.AirSuperiority, listed, state.Province(id));
+		CColor Of(int id) => CAirAreaColours.Of(state, unit, EUnitOrder.AirSuperiority, listed, state.Province(id));
 
 		Assert.Equal(new CColor(0.5f, 0.8f, 0.8f), Of(Warsaw));
-		Assert.Equal(0.9f, Of(Berlin)!.Value.G, 3);
-		Assert.Equal(0.9f, Of(Baltic)!.Value.G, 3);
+		Assert.Equal(0.9f, Of(Berlin).G, 3);
+		Assert.Equal(0.9f, Of(Baltic).G, 3);
 		listed.Clear();
-		Assert.Equal(0.9f, Of(Warsaw)!.Value.R, 3);
+		Assert.Equal(0.9f, Of(Warsaw).R, 3);
+	}
+
+	[Fact]
+	public void OutOfReachIsNothingAndAListedProvinceOutOfReachIsRed()
+	{
+		CGameState state = State(out CCountry germany);
+		CUnit unit = Unit(state, germany, Fighter);
+		// 10 km is two and a half map pixels: Berlin, its base, is reached and Warsaw, ten pixels off, is not.
+		unit.SubUnits[0].Stats.Values.Set(CUnitOrders.Range, CFixedPoint.FromInt(10));
+		var listed = new HashSet<int>();
+		CColor Of(int id) => CAirAreaColours.Of(state, unit, EUnitOrder.AirSuperiority, listed, state.Province(id));
+
+		Assert.Equal(new CColor(0f, 0f, 0f, 0f), Of(Warsaw));
+		Assert.Equal(0.9f, Of(Berlin).G, 3);
+		listed.Add(Warsaw);
+		Assert.Equal(new CColor(1f, 0f, 0f, 1f), Of(Warsaw));
+		Assert.Equal(new CColor(1f, 0f, 0f, 1f), CAirAreaColours.ListedOutOfRange);
+	}
+
+	[Fact]
+	public void NothingIsDrawnAsTheGroundGreyedAndDarkened()
+	{
+		// The land shader: 1.5 x (0.7 x grey + 0.3 x (0 - 0.7)), held to [0, 1].
+		Assert.Equal(0.735f, CAirAreaColours.NothingOverLand(1f), 4);
+		Assert.Equal(0.21f, CAirAreaColours.NothingOverLand(0.5f), 4);
+		Assert.Equal(0f, CAirAreaColours.NothingOverLand(0.2f));
 	}
 }

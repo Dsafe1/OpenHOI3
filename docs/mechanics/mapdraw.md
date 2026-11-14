@@ -275,13 +275,20 @@ As `FINDINGS-mapdraw.md` A.2 and B.1 have it, by parameter name:
 - **The device states** around each draw, `FINDINGS-mapdraw.md` C.1 and C.2: the land unblended (ONE / ZERO); the beaches
   SRCALPHA / ZERO, which their Graphical and General passes override; the sea SRCALPHA / INVSRCALPHA; the baseline alpha
   test at 8 / GREATEREQUAL where a pass turns the test on - each handed to the translator as the states the pass is laid over.
+  **The land is drawn with the alpha test off** since 2026-11-14 (*inferred*, `FINDINGS-airorders.md`, section 8): the land
+  passes set none, the last write before the scene is the unit layers' test off, and the General shaders' alpha is the
+  lookup's less 0.7, so under the test every colour of an alpha under 0.7 - the air and naval modes' a half, the air orders
+  window's "nothing" - would drop its land whole. Until then the lookups were written at full alpha and nothing was dropped.
 
 ## 5. The generated textures
 
 **5.1 The province colour lookups**: two 256 by 256 pictures, a texel for each province at (id mod 256, id / 256): the first
 each province's colour of the map mode, the second its second colour, which the stripes blend in where it differs; texel 0
 nothing [exe]. In style 0 the first holds the province's state instead: red 1.0 where the player knows it at 2 or more, 0.5
-under, nought where it is not simulated; blue the share frozen in the Weather mode; green the highlight [exe].
+under, nought where it is not simulated; blue the share frozen in the Weather mode; green the highlight [exe]. In any other
+style both hold the mode's colours as written, **alpha and all** - a selected province's alpha full (section 4, the highlight)
+- and the sea's rasters take them word for word (B.2); so the air orders window's "nothing", alpha nought, reaches the
+shaders as nought (`fleetsandair.md`, section 4). Until 2026-11-14 every alpha was written full here.
 
 **5.2 The sea's**: two 1024 by 1024 rasters of the map, each texel the colour of the province under it (sampled nearest), grey
 (0x80808080) off any province; and the fog, 1024 by 1024 of one channel, each texel four samples blended bilinearly -

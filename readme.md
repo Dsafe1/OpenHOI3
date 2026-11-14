@@ -2240,10 +2240,14 @@ None of these blocks the list above.
   under the large ones; the large pictures and their frames are worked out once a day; a
   ring's range is the shortest of the unit's wings'; and the rings and icons show from any
   height.
-- **The air orders window is less than the original's in three ways**: a paradrop's
-  earliest start kept only when its row is ticked and when accepted, a province out of the unit's reach drawn as the terrain mode
-  draws it - how the original draws "nothing" was not read - and the line under the sliders
-  is not wrapped into its box. `fleetsandair.md`, section 4.
+- **The air orders window's map rests on one inference, and only its hint breaks lines as the original's font does**
+  (2026-11-14; `fleetsandair.md`, section 4): a province out of the unit's reach is handed to the shaders as the
+  original's "nothing", alpha nought, in map style 16, and comes out the ground greyed and darkened and the sea near black
+  - which holds only if the original's land is drawn with the alpha test off, *inferred* and not watched in the running
+  game (`mapdraw.md`, section 4). The font's line breaking is read and built (`CFontLineBreak`; `interface.md`, section 6),
+  but only `second_target` opts into it: every other text box keeps the rule from before the reading until the screens
+  are looked at again. The paradrop's start held every frame is built and was not tried on screen - no 1936 order of
+  battle has a transport plane.
 - **Four rules of how the interface draws are measured on screenshots and not read**: a
   bar's picture upside down, where a turned flag stands, where a round shield puts its
   flag, and where a name too long for its box is cut - the last of which ends ten pixels
