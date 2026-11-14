@@ -125,7 +125,7 @@ public static class CBomberFire
 	/// or its fleets by what the mission goes for. A ship goes on the list only by a
 	/// roll of its own: ten in a hundred for each point of the bombers' leader's skill,
 	/// more by the country's <c>naval_air_target_chance</c> - and with no leader, one in
-	/// a hundred.
+	/// a hundred - but under the raid on convoys from the air, every ship.
 	/// </summary>
 	public static void CollectTargets(CGameState state, CCombatSide other, CCombatSide side, CUnit bomber,
 		CCountry? owner)
@@ -146,7 +146,7 @@ public static class CBomberFire
 			{
 				continue;
 			}
-			if (isFleet && !CBombingOrders.GoesForShips(order))
+			if (isFleet && !CBombingOrders.GoesForShips(order) && !CBombingOrders.RaidsConvoys(order))
 			{
 				continue;
 			}
@@ -154,7 +154,8 @@ public static class CBomberFire
 			{
 				continue;
 			}
-			if (!isFleet)
+			// A raider on convoys from the air takes every ship, no roll asked.
+			if (!isFleet || CBombingOrders.RaidsConvoys(order))
 			{
 				Add(targets, unit);
 				continue;
@@ -199,7 +200,7 @@ public static class CBomberFire
 			long attack = wing.Stats[CUnitTotals.SoftAttack].Raw * softness / CFixedPoint.Scale + hard;
 			return attack * (CFixedPoint.Scale + CCommandReach.Effect(state, unit, ETraitEffect.TacticalAttack)) / CFixedPoint.Scale;
 		}
-		if (CBombingOrders.GoesForShips(order))
+		if (CBombingOrders.GoesForShips(order) || CBombingOrders.RaidsConvoys(order))
 		{
 			return wing.Stats[CNavalFire.SeaAttack].Raw
 				* (CFixedPoint.Scale + CCommandReach.Effect(state, unit, ETraitEffect.NavalAttack)) / CFixedPoint.Scale;

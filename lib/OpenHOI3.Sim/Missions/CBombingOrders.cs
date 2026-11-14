@@ -30,10 +30,19 @@ public static class CBombingOrders
 		return IsStrike(order) || IsBombing(order);
 	}
 
-	/// <summary>The missions that keep the province they fly at from one sortie to the next.</summary>
+	/// <summary>The missions that keep the province they fly at from one sortie to the next - the raid on convoys from the air among them.</summary>
 	public static bool IsStrike(EUnitOrder order)
 	{
-		return order is EUnitOrder.GroundAttack or EUnitOrder.Interdiction or EUnitOrder.NavalStrike;
+		return order is EUnitOrder.GroundAttack or EUnitOrder.Interdiction or EUnitOrder.NavalStrike or EUnitOrder.AirConvoyRaid;
+	}
+
+	/// <summary>
+	/// Raids convoys: bombs nothing and starts no bombing, but in the raid's own battle fires its sea attack at every ship
+	/// of the convoy's, which it needs no roll to find (<c>navalmissions.md</c>, section 8.1).
+	/// </summary>
+	public static bool RaidsConvoys(EUnitOrder order)
+	{
+		return order == EUnitOrder.AirConvoyRaid;
 	}
 
 	/// <summary>The missions that forget their province once a bombing has it, and pick afresh at their base.</summary>
@@ -76,7 +85,7 @@ public static class CBombingOrders
 	/// <summary>
 	/// Whether a mission may be given for a province: ground attack and interdiction for
 	/// land an enemy holds; the four strategic kinds for that, by a unit with a strategic
-	/// attack; a naval strike for water; a port strike for land.
+	/// attack; a naval strike and the raid on convoys for water; a port strike for land.
 	/// </summary>
 	public static bool MayGive(CGameState state, CCountry country, CUnit unit, EUnitOrder order, CProvince province)
 	{
@@ -90,6 +99,7 @@ public static class CBombingOrders
 			case EUnitOrder.Interdiction:
 				return !province.IsSea && CMovementRules.IsEnemy(state, province.Controller, unit.Owner);
 			case EUnitOrder.NavalStrike:
+			case EUnitOrder.AirConvoyRaid:
 				return province.IsSea;
 			case EUnitOrder.PortStrike:
 				return !province.IsSea;
@@ -107,6 +117,9 @@ public static class CBombingOrders
 		{
 			case EUnitOrder.GroundAttack:
 				return !province.IsSea;
+			// The raid on convoys from the air lists any province at all.
+			case EUnitOrder.AirConvoyRaid:
+				return true;
 			case EUnitOrder.NavalStrike:
 				return province.IsSea && province.SeaIndex >= 0;       // water that is no lake
 			case EUnitOrder.PortStrike:
@@ -138,7 +151,8 @@ public static class CBombingOrders
 		{
 			return province.Id == unit.OrderProvince;
 		}
-		if (!IsBombingMission(order))
+		// The raid on convoys from the air bombs nowhere: its raid is its own hour's.
+		if (!IsBombingMission(order) || RaidsConvoys(order))
 		{
 			return false;
 		}

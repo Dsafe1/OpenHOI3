@@ -208,6 +208,38 @@ public class SaveUnitWriterTests
 	}
 
 	[Fact]
+	public void A_raid_on_convoys_from_the_air_is_read_as_one_and_written_back_with_nothing_of_its_hours()
+	{
+		CGameState state = State(out CCountry germany);
+		var ids = new CSaveIds();
+		ids.SetHistoryNext(100);
+		var reader = new CSaveUnitReader(state, ids, new CSaveReport());
+		const string Air =
+			"air=\r\n{\r\n\tid=\r\n\t{\r\n\t\tid=50\r\n\t\ttype=41\r\n\t}\r\n\tname=\"Fliegerkorps\"\r\n\tbase=1\r\n" +
+			"\tmovement_progress=0.000\r\n\tlocation=1\r\n\tis_prioritized=no\r\n\tcan_reinforce=yes\r\n\tcan_upgrade=yes\r\n" +
+			"\tfuel=1.000\r\n\tsupplies=1.000\r\n" +
+			"\twing=\r\n\t{\r\n\t\tid=\r\n\t\t{\r\n\t\t\tid=51\r\n\t\t\ttype=41\r\n\t\t}\r\n\t\tname=\"1st CAG\"\r\n\t\ttype=\"cag\"\r\n" +
+			"\t\torganisation=60.000\r\n\t\tstrength=100.000\r\n\t\thighest=100.000\r\n\t\texperience=15.000\r\n\t}\r\n" +
+			"\tair_convoy_raid=\r\n\t{\r\n\t\tprovince=3\r\n\t\tstance=1\r\n\t\tstart_date=\"1.1.1.0\"\r\n" +
+			"\t\tdeath_date=\"1.1.1.0\"\r\n\t\treturn_to_base=no\r\n\t\ttime=2\r\n\t\tpriority=0\r\n\t\tstop=-1.000\r\n" +
+			"\t\treturn_to_base=no\r\n\t\tpriority=0\r\n\t\tprovinces=3\r\n\t\tcag=0.000\r\n\t}\r\n}\r\n";
+		CUnit raider = reader.Read(ClausewitzParser.Parse(Air).Children[0], EUnitKind.Air, germany, parent: null, carriedBy: null)!;
+		germany.Units.Add(raider);
+		reader.Finish();
+
+		Assert.Equal(EUnitOrder.AirConvoyRaid, raider.Order);
+		Assert.Equal(new[] { 3 }, raider.Mission.Provinces);
+		Assert.Equal(0, raider.Mission.RaidCountdown);
+
+		// Its count of hours is not written: the original's air order writes none.
+		raider.Mission.RaidCountdown = 7;
+		var writer = new CSaveTextWriter();
+		writer.OpenRoot();
+		CSaveUnitWriter.Write(writer, state, raider);
+		Assert.Equal(Air, writer.Text);
+	}
+
+	[Fact]
 	public void Leaders_a_line_and_the_templates_are_written_as_the_original_writes_them()
 	{
 		CGameState state = State(out CCountry germany);

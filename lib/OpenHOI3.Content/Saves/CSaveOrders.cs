@@ -29,7 +29,8 @@ public static class CSaveOrders
 		["sortie"] = EUnitOrder.Sortie,
 		["convoy_escort"] = EUnitOrder.ConvoyEscort,
 		["convoy_raid"] = EUnitOrder.ConvoyRaid,
-		["air_convoy_raid"] = null,
+		// Its hours to the next try are not saved: the original's air order writes none, and a load starts them at nought.
+		["air_convoy_raid"] = EUnitOrder.AirConvoyRaid,
 		["transport"] = EUnitOrder.Transport,
 		["invasion"] = EUnitOrder.Invasion,
 		["strategic_bomb"] = EUnitOrder.StrategicBombing,

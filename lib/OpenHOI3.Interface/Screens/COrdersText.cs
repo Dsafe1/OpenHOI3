@@ -64,6 +64,7 @@ public static class COrdersText
 			EUnitOrder.Interdiction => "INTERDICT_BOMB",
 			EUnitOrder.PortStrike => "PORTSTRIKE_BOMB",
 			EUnitOrder.NavalStrike => "NAVALSTRIKE_BOMB",
+			EUnitOrder.AirConvoyRaid => "ORDER_AIR_CONVOY_RAID",
 			EUnitOrder.CarrierProtection => "CAG_DUTY",
 			EUnitOrder.Paradrop => "PARADROP_MISSION",
 			EUnitOrder.Nuke => "NUKE_MISSION",
@@ -127,8 +128,8 @@ public static class COrdersText
 	/// there is, the ones that cannot be given with their boxes greyed. An air unit is
 	/// shown only the orders it could ever fly: by what its wings can attack, what it
 	/// carries, whether it is aboard a carrier here or a carrier lies here, and whether the
-	/// province is land or sea. Of the air's, the raid on convoys and the reserve are
-	/// listed and cannot be ticked: they are not built.
+	/// province is land or sea. Of the air's, the reserve is listed and cannot be ticked:
+	/// it is not built.
 	/// </summary>
 	public static List<COrderRow> Rows(CGameState state, CCountry country, CUnit unit, CProvince province, int selected = 1)
 	{
@@ -224,7 +225,7 @@ public static class COrdersText
 			else
 			{
 				Add(NameKey(EUnitOrder.NavalStrike), EUnitOrder.NavalStrike);
-				Add("ORDER_AIR_CONVOY_RAID");
+				Add(NameKey(EUnitOrder.AirConvoyRaid), EUnitOrder.AirConvoyRaid);
 			}
 		}
 		if (land)

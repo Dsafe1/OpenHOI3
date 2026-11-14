@@ -65,10 +65,15 @@ public static class CStrategicWarfareImpacts
 		AddConvoy(state, owner, hadEscort ? value / 2 : value);
 	}
 
-	/// <summary>A sea battle's first hour where a defending fleet raids convoys or patrols: <c>STRAT_RAIDER_FOUGHT_IMPACT</c> to the attacker's first country.</summary>
+	/// <summary>
+	/// A sea battle's first hour where a defending fleet raids convoys or patrols: <c>STRAT_RAIDER_FOUGHT_IMPACT</c> to the
+	/// attacker's first country. The original asks it only of a raid on a convoy, whose defender is the convoy's own fleet
+	/// under no order - so it is never given (navalmissions.md, section 8.3; docs/enhanced.md).
+	/// </summary>
 	public static void SeaBattleBegun(CGameState state, Combat.CCombat combat)
 	{
-		bool raiders = combat.Defender.Units.Exists(unit => unit.Order is Units.EUnitOrder.ConvoyRaid or Units.EUnitOrder.Patrol);
+		bool raiders = combat.IsConvoyBattle
+			&& combat.Defender.Units.Exists(unit => unit.Order is Units.EUnitOrder.ConvoyRaid or Units.EUnitOrder.Patrol);
 		if (raiders && combat.Attacker.Countries.Count > 0 && state.Country(combat.Attacker.Countries[0]) is { } attacker)
 		{
 			AddConvoy(state, attacker, state.Defines[Section, "STRAT_RAIDER_FOUGHT_IMPACT"].Raw);
@@ -78,12 +83,13 @@ public static class CStrategicWarfareImpacts
 	/// <summary>
 	/// An air battle's first hour where a defending wing is on strategic bombing: the attacker's wings times
 	/// <c>STRAT_BOMBER_FOUGHT_IMPACT</c> over five to its first country, times <c>STRAT_BOMBER_NONCRIT_IMPACT_FRACTION</c>
-	/// where the province is land one of the defender's countries controls and is not its core.
+	/// where the province is land one of the defender's countries controls and is not its core. And where a defending wing
+	/// raids convoys from the air, the attacker's wings times <c>STRAT_AIR_RAIDER_FOUGHT_IMPACT</c> over five to the same
+	/// country's convoy list (navalmissions.md, section 8.3).
 	/// </summary>
 	public static void AirBattleBegun(CGameState state, Combat.CCombat combat)
 	{
-		if (!combat.Defender.Units.Exists(unit => unit.Order == Units.EUnitOrder.StrategicBombing)
-			|| combat.Attacker.Countries.Count == 0 || state.Country(combat.Attacker.Countries[0]) is not { } attacker)
+		if (combat.Attacker.Countries.Count == 0 || state.Country(combat.Attacker.Countries[0]) is not { } attacker)
 		{
 			return;
 		}
@@ -92,6 +98,18 @@ public static class CStrategicWarfareImpacts
 		{
 			wings += unit.SubUnits.Count;
 		}
+		if (combat.Defender.Units.Exists(unit => unit.Order == Units.EUnitOrder.StrategicBombing))
+		{
+			BomberFought(state, combat, attacker, wings);
+		}
+		if (combat.Defender.Units.Exists(unit => unit.Order == Units.EUnitOrder.AirConvoyRaid))
+		{
+			AddConvoy(state, attacker, wings * state.Defines[Section, "STRAT_AIR_RAIDER_FOUGHT_IMPACT"].Raw / 5);
+		}
+	}
+
+	private static void BomberFought(CGameState state, Combat.CCombat combat, CCountry attacker, long wings)
+	{
 		long value = wings * state.Defines[Section, "STRAT_BOMBER_FOUGHT_IMPACT"].Raw / 5;
 		Provinces.CProvince province = state.Province(combat.Province);
 		if (!province.IsSea && province.Controller is { } holder && combat.Defender.Countries.Contains(holder)

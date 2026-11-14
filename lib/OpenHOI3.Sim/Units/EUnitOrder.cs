@@ -107,4 +107,11 @@ public enum EUnitOrder
 
 	/// <summary>An air unit: carry a nuclear bomb to an enemy's province and drop it (<c>docs/mechanics/nukes.md</c>).</summary>
 	Nuke,
+
+	/// <summary>
+	/// An air unit: fly at the sea province of its mission that the most enemy transports go through, and every twelve
+	/// hours there try the convoys as a raiding fleet does, with its sea attack (<c>docs/mechanics/navalmissions.md</c>,
+	/// section 8.1).
+	/// </summary>
+	AirConvoyRaid,
 }

@@ -12,9 +12,9 @@ namespace OpenHOI3.Sim.Combat;
 /// One try at the convoys of a sea province. The raider finds a convoy by a roll, is
 /// set against its escorts, and where it is the stronger fights it: a throwaway fleet of
 /// destroyers and transport ships is made out of the convoy's two counts, and five
-/// rounds of the battle at sea are fought against it on the spot, at point-blank. What
-/// that fleet lost is then taken off the convoy. See
-/// <c>docs/mechanics/navalmissions.md</c>, section 8.
+/// rounds of the battle at sea are fought against it on the spot, at point-blank - five
+/// hours of a bombing of ships, for an air raider. What that fleet lost is then taken off
+/// the convoy. See <c>docs/mechanics/navalmissions.md</c>, sections 8 to 8.2.
 /// </summary>
 public static class CConvoyRaid
 {
@@ -44,17 +44,28 @@ public static class CConvoyRaid
 	/// <summary>Transports' damage worth more than this much of a ship, and under a whole one, counts as one.</summary>
 	private const long LeastTransportLoss = 300;
 
+	/// <summary>What an air raider's attack is multiplied by before it is set against a convoy's defence.</summary>
+	private const long AirAttackScale = 5000;
+
+	/// <summary>Whether a unit raids at all: a fleet or an air unit. Anything else brings nothing to a raid.</summary>
+	public static bool MayRaid(CUnit raider) => raider.Kind is EUnitKind.Navy or EUnitKind.Air;
+
 	/// <summary>
-	/// What a raider can do to a convoy: each ship's <c>convoy_attack</c> times a
-	/// hundredth of its strength and a hundredth of its organisation. An air unit, which
-	/// raids with <c>sea_attack</c>, is not built.
+	/// What a raider can do to a convoy: each ship's <c>convoy_attack</c> - each wing's
+	/// <c>sea_attack</c>, for an air unit - times a hundredth of its strength and a
+	/// hundredth of its organisation.
 	/// </summary>
 	public static long Attack(CUnit raider)
 	{
 		long attack = 0;
+		if (!MayRaid(raider))
+		{
+			return 0;
+		}
+		string fired = raider.Kind == EUnitKind.Air ? CNavalFire.SeaAttack : ConvoyAttack;
 		foreach (CSubUnit ship in raider.SubUnits)
 		{
-			long figure = ship.Stats[ConvoyAttack].Raw * ship.Strength.Raw / CFixedPoint.Scale;
+			long figure = ship.Stats[fired].Raw * ship.Strength.Raw / CFixedPoint.Scale;
 			figure = figure * CFixedPoint.Scale / 100000;
 			figure = figure * ship.Organisation.Raw / CFixedPoint.Scale;
 			attack += figure * CFixedPoint.Scale / 100000;
@@ -87,7 +98,7 @@ public static class CConvoyRaid
 	public static CConvoy? Find(CGameState state, CUnit raider, long attack)
 	{
 		long detect = 0;
-		foreach (CSubUnit ship in raider.SubUnits)
+		foreach (CSubUnit ship in MayRaid(raider) ? raider.SubUnits : new List<CSubUnit>())
 		{
 			detect = Math.Max(detect, ship.Stats[CNavalSpotting.SurfaceDetection].Raw);
 		}
@@ -117,7 +128,7 @@ public static class CConvoyRaid
 	/// </summary>
 	public static bool Resolve(CGameState state, CCountry country, CUnit raider)
 	{
-		if (raider.Kind != EUnitKind.Navy)
+		if (!MayRaid(raider))
 		{
 			return false;
 		}
@@ -126,8 +137,13 @@ public static class CConvoyRaid
 		{
 			return false;
 		}
-		if (CConvoyRules.Defence(convoy) > attack)
+		// An air raider is set against the escorts at five times its attack; it found its convoy at its plain attack.
+		long tested = raider.Kind == EUnitKind.Air ? attack * AirAttackScale / CFixedPoint.Scale : attack;
+		if (CConvoyRules.Defence(convoy) > tested)
 		{
+			// The raider's country is told it found a convoy too strong for it (section 8.2).
+			state.RaiseConvoyRaidMessage(new CConvoyRaidMessage(CConvoyRaidMessage.TooStrong, raider.Owner, raider.Location,
+				raider.Owner, convoy.Owner, convoy.Start, convoy.End) { Unit = raider.Name });
 			// Beaten off: a little national unity for the convoy's owner (politics.md, section 6).
 			Politics.CStrategicWarfareImpacts.RaidBeatenOff(state, state.Country(convoy.Owner));
 			return false;
@@ -136,9 +152,12 @@ public static class CConvoyRaid
 		CUnit? stand = MakeFleet(state, convoy, raider.Location);
 		if (stand is not null)
 		{
-			CCombat fought = Fight(state, raider, stand);
+			// The convoy's fleet is in the raider's province while it is fought, where the province's own fire counts it.
+			state.Positions.Move(stand, 0, raider.Location);
+			CCombat fought = raider.Kind == EUnitKind.Air ? FightFromTheAir(state, raider, stand) : Fight(state, raider, stand);
 			Count(state, convoy, stand, raider, fought);
 			state.Province(raider.Location).LastConvoyAttackHour = state.TotalHours;
+			state.Positions.Remove(stand, raider.Location);
 			stand.IsRemoved = true;
 		}
 		return true;
@@ -233,6 +252,57 @@ public static class CConvoyRaid
 	}
 
 	/// <summary>
+	/// The battle of an air raider: a bombing of ships, the raider bombing and the convoy's fleet bombed, set up as the
+	/// raid's and not as a bombing is started - so the raider is in no bombing, the battle is on its own list of battles
+	/// for the rounds - and five hours of it at once, at point-blank, nobody asked whether they have lost. Its wings fire
+	/// their sea attack at every ship of the convoy's, which needs no roll to be found (<c>bombing.md</c>, section 6); the
+	/// province's guns and the ships fire back as in any bombing.
+	/// </summary>
+	public static CCombat FightFromTheAir(CGameState state, CUnit raider, CUnit stand)
+	{
+		var combat = new CCombat(raider.Location, ECombatKind.NavalBombing) { IsConvoyBattle = true, HasBegun = true };
+		Enter(combat.Attacker, raider);
+		Enter(combat.Defender, stand);
+		foreach (CUnit unit in new[] { raider, stand })
+		{
+			foreach (CSubUnit subUnit in unit.SubUnits)
+			{
+				subUnit.Distance = RaidDistance;
+			}
+		}
+		raider.Combats.Add(combat);
+		for (int round = 0; round < Rounds; round++)
+		{
+			if (round < ExperienceRounds)
+			{
+				CCombatExperience.Grant(state, raider, convoyRaid: true);
+			}
+			CBombing.RunHour(state, combat);
+		}
+		raider.Combats.Remove(combat);
+		foreach (CCombatSide side in new[] { combat.Attacker, combat.Defender })
+		{
+			side.Units.Clear();
+		}
+		state.CombatHistory.Record(combat, state.TotalHours);
+		return combat;
+	}
+
+	/// <summary>A unit taken onto a side as the original's combatant takes it: on the list, its country with it, and every sub unit's target forgotten.</summary>
+	private static void Enter(CCombatSide side, CUnit unit)
+	{
+		if (!side.Units.Contains(unit))
+		{
+			side.Units.Add(unit);
+		}
+		side.AddCountry(unit.Owner);
+		foreach (CSubUnit subUnit in unit.SubUnits)
+		{
+			subUnit.TargetId = 0;
+		}
+	}
+
+	/// <summary>
 	/// What the raid cost the convoy: the strength its destroyers lost and the strength
 	/// its transport ships lost, each counted at two ships to the hundred points; and
 	/// with a whole ship of either, the convoy loses that many of each, rounded.
@@ -268,7 +338,7 @@ public static class CConvoyRaid
 			bool hadEscort = convoy.Escorts > 0;
 			StrategicWarfare.CWarfareTally.ConvoyRaid(state, convoy, fought, raider, RoundToNearest(transports));
 			CConvoyLosses.Lose(state, convoy, (int)RoundToNearest(transports), (int)RoundToNearest(escorts),
-				state.Country(raider?.Owner));
+				state.Country(raider?.Owner), stand.Location);
 			// What the owner's national unity makes of it (politics.md, section 6).
 			Politics.CStrategicWarfareImpacts.RaidSank(state, owner, transports, escorts, hadEscort);
 		}

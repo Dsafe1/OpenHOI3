@@ -43,6 +43,7 @@ public static class CUnitOrderTooltips
 		[EUnitOrder.GroundAttack] = "GROUNDATTACK_BOMB_DESC",
 		[EUnitOrder.Interdiction] = "INTERDICT_BOMB_DESC",
 		[EUnitOrder.NavalStrike] = "NAVALSTRIKE_BOMB_DESC",
+		[EUnitOrder.AirConvoyRaid] = "AIR_CONVOY_DESC",
 		[EUnitOrder.StrategicBombing] = "STRAT_BOMB_DESC",
 		[EUnitOrder.LogisticalStrike] = "LOG_BOMB_DESC",
 		[EUnitOrder.RunwayCratering] = "AIRFIELD_BOMB_DESC",

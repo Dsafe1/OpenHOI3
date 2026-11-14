@@ -724,6 +724,14 @@ public partial class CSession : Node
 					Tell(message);
 				}
 			};
+			// A raid on a convoy: ships lost, ships sunk, a convoy too strong (navalmissions.md, section 8.2).
+			_simulation.State.ConvoyRaidMessaged += raid =>
+			{
+				if (CMessages.ConvoyRaid(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, raid) is { } message)
+				{
+					Tell(message);
+				}
+			};
 			_simulation.State.PactMessaged += pact =>
 			{
 				if (CMessages.Pact(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, pact) is { } message)
@@ -2448,11 +2456,11 @@ public partial class CSession : Node
 					&& int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int over))
 				{
 					// A bombing mission likewise - groundattack, interdiction, navalstrike,
-					// strategicbombing, logisticalstrike, runwaycratering, installationstrike or
-					// portstrike - for the air unit with the most of the attack it fires.
+					// strategicbombing, logisticalstrike, runwaycratering, installationstrike,
+					// portstrike or airconvoyraid - for the air unit with the most of the attack it fires.
 					string[] fired = CBombingOrders.GoesForLandUnits(airMission)
 						? new[] { CUnitTotals.SoftAttack, CUnitTotals.HardAttack }
-						: CBombingOrders.GoesForShips(airMission) ? new[] { CNavalFire.SeaAttack }
+						: CBombingOrders.GoesForShips(airMission) || CBombingOrders.RaidsConvoys(airMission) ? new[] { CNavalFire.SeaAttack }
 						: CBombingOrders.IsBombingMission(airMission) || airMission == EUnitOrder.Nuke ? new[] { CBombingOrders.StrategicAttack }
 						: new[] { CAirMissions.AirAttack };
 					CUnit? wing = State.Country(flier)?.AllUnits()

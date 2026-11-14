@@ -331,10 +331,132 @@ follow an attack, each `confirmed` (`FINDINGS-supplyconvoys.md`) and built with 
 - for a hundred days it is **given** escorts up to its share of what its country has, where a
   convoy never attacked is given none - and gives none back.
 
-*Not built:* an air unit raids with `sea_attack` and five times the attack; the raider's country
-gains threat for each ship sunk; a lend-lease convoy loses efficiency; the messages; and the
-strategic warfare figures. The experience a raid gives is built since 2026-10-11 (`leaders.md`,
-section 11): before each of its first three rounds, at `EXP_GAIN_CONVOY_MODIFIER`.
+*Not built:* a lend-lease convoy loses efficiency. The raider's country's threat for each ship
+sunk (`diplomacy.md`, 5.3) and the strategic warfare figures (`politics.md`, section 6;
+`strategicwarfare.md`) are built, and so is the experience a raid gives, since 2026-10-11
+(`leaders.md`, section 11): before each of its first three rounds, at `EXP_GAIN_CONVOY_MODIFIER`.
+
+**A convoy's ship sunk outright counts for nothing** (`confirmed` as the count's walk, the
+removal being every battle hour's own): the count walks the throwaway fleet as the rounds leave
+it, and a ship that went under a tenth of a point of strength has left it. A fleet's raid hardly
+ever does that; one from the air can, a bomb's tenfold roll finishing a transport ship. Kept so,
+and listed in `docs/enhanced.md`.
+
+### 8.1 The raid from the air
+
+`confirmed` (`FINDINGS-navalmissions.md`, section 9 and its addition of 2026-11-14;
+`FINDINGS-bombing.md`, sections 1, 2 and 6). The original's `air_convoy_raid`, "Convoy Raiding"
+in the air orders window - **an order of its own, and alive**: the window offers it, and a
+naval bomber given it raids.
+
+**May be given** for any province that is not land, by an air unit whose wings have
+`sea_attack` (the window lists it for one; `fleetsandair.md`, section 4). **Its list of
+provinces takes any province at all**, unlike the naval strike's.
+
+**Its hour** is a strike's (`bombing.md`, section 2), with one thing before it:
+
+    no base                                       -> the order is over
+    its hours to the next try, down by one - wherever it is
+    in the province it flies at, with under one left:
+        the try of section 8, by this unit, and twelve hours again
+    then the strike's hour
+
+The hours start at **nought**, so the first try is the first hour it is in its province.
+**It bombs nothing and starts no bombing anywhere**: the strike's hour then finds it standing
+in its province with no bombing, and picks again - and **its pick never takes the province it
+is in**, so it leaves the hour it arrives, for another of its list or home where there is none
+other. From its base it flies out again at once. With one province on its list it goes there,
+tries if its hours have run, comes home and goes back - every other sortie finding its hours
+not yet run, for a base near its water (`docs/enhanced.md`).
+
+**Which province**: of the mission's provinces in order, the one the unit is in passed over,
+
+    score = 1000 + 1000 x the transports of every convoy going through it whose owner is not
+            the unit's and is at war with it - or either is REB, or an undeclared war covers
+            the province
+    the first that beats the best so far, which starts at nought
+
+so the first province always stands until another has more, and one with no convoy at all
+still scores. Its own convoys count nothing.
+
+**The try** is section 8's with three differences:
+
+- the attack is each wing's **`sea_attack`** - never `convoy_attack` - times a hundredth of its
+  strength and a hundredth of its organisation; detection is the best `surface_detection`
+  among the wings;
+- a convoy is still **found** against the plain attack - one with its defence at or under it
+  preferred - and only the test against its escorts **multiplies the attack by 5**: a defence
+  above five times the attack is too strong;
+- **the battle is a bombing of ships** (`bombing.md`) and not a battle at sea: the raider
+  bombing, the convoy's throwaway fleet bombed, set up as the raid's - the raider in no bombing,
+  the battle on its own list of battles for the rounds - every ship and wing at a distance of 1,
+  and **five hours of it at once**, the raider's experience before the first three, and
+  nobody asked whether they have lost. Each hour is a bombing's hour: the wings' fire, their
+  bombs on the province - a sea province, so nothing - the province's guns and the friendly
+  air attack standing in it (the convoy's own fleet among it, and, at sea, the raider), and
+  each ship's own air attack back.
+
+**What the wings fire at**: under this order, **every ship of the convoy's fleet with
+strength left, with no roll** - where a naval strike's wing finds a ship only by its leader's
+roll - and with its `sea_attack`, bettered by its leaders' `naval_attack` as a naval strike's.
+A wing's hit on a ship is a bombing's: its two dice through the ship's hull, three tenths of
+the strength and a half of the organisation, times `BOMB_SHIP_DAMAGE_MODIFIER`. **The convoy's
+ships' own shooting does nothing to a wing of this battle but by the bombing's fire**: the
+eightieth and the doubled organisation of section 8 are a battle at sea's.
+
+Everything after the battle - the count, the losses, the convoy's escorts wanted, the province
+and the convoy remembering the hour, the list of finished battles - is section 8's.
+
+*Ours:* the air unit's hours to its next try are on the order's mission, as a fleet's are; the
+original keeps them on the order and **neither writes nor reads them in a save**, so a loaded
+game starts them at nought here as in the original (`docs/enhanced.md`, *A whole game's replay*).
+
+### 8.2 What a raid tells the players
+
+`confirmed` (`FINDINGS-navalmissions.md`, the addition of 2026-11-14). Three message types of
+`interface/messagetypes.txt`, all three logged, put on the map and popped up with a Goto in
+Their Finest Hour, category combat. Each is raised only where the country told is the player's
+on this machine; the Goto centres on the province (`messages.md`, section 4.1).
+
+**A convoy too strong** - the try found a convoy and its escorts beat the attack -
+`CONVOY_TOO_STRONG`, to the **raider's** country:
+
+    the raider's country's standard values: COUNTRY, MONARCHTITLE, TITLE, a value for each post
+        of its government (messages.md, section 3)
+    PROV        the raider's province
+    LOCATION    the same
+    CONVOY      "<start> - <end>", the convoy's two ports
+    EVIL        the convoy's owner's name
+    UNIT        the raider's name
+    province: the raider's;  first country: the raider's;  second: the convoy's owner
+
+**Ships lost** - the count took a whole ship or more - two messages, the owner's first:
+`CONVOY_ATTACK_ON_US` to the **convoy's owner**, with the sound `convoys_1`, and
+`WE_ATTACK_CONVOY` to the **raider's** country, with `convoys_2` (`sound.md`, section 7):
+
+    PROV        the raid's province
+    TRANSPORTS  the transports lost - as taken off, never more than the convoy had
+    ESCORTS     the escorts lost, likewise
+    CONVOY      "<start> - <end>"
+    EVIL        the raider's country's name
+    TITLE       the player's ruler's title
+    province: the raid's;  first country: the convoy's owner;  second: the raider's
+
+These carry **none** of a country's standard values, so their texts' `$TITLE$` is the one of
+their own. The three are the same for a fleet, a patrol and an air unit. **A raid starts no
+battle message** (`messages.md`, section 9).
+
+### 8.3 A raider fought
+
+`confirmed` (the same addition). A battle's first hour gives the strategic warfare figures:
+
+- **at sea**, where the battle is **a raid's own** and a defending fleet raids convoys or
+  patrols: `STRAT_RAIDER_FOUGHT_IMPACT` to the attacker's first country's convoy figure. The
+  defender of a raid's battle is always the convoy's fleet, under no order, so **this is never
+  given** - kept so, and listed in `docs/enhanced.md`. It had been built for every sea battle.
+- **in the air**, where a defending unit raids convoys from the air: the attacker's wings times
+  `STRAT_AIR_RAIDER_FOUGHT_IMPACT` over five, to the attacker's first country's convoy figure -
+  beside, and not instead of, the bomber's of a strategic bombing (`politics.md`, section 6).
 
 ## 9. What missions add to the sighting
 
@@ -437,21 +559,45 @@ With no tags it is Germany against the United Kingdom for thirty days. On the st
 so, and on 2026-10-11 once the leaders and the experience of battle were built.) Britain's convoys fall from 78 to 27 in the first week whatever the raider does: a country at
 war unmakes the supply convoys it does not need (`convoys.md`, section 7).
 
+On 2026-11-14, before and after the messages and the raid from the air were built, the same run
+gave the same figures line for line - 24 raids that sank something, 37 transports and 5 escorts,
+the AI moving the German fleet off after its month - and now ends by counting the messages raised:
+`CONVOY_ATTACK_ON_US 28, WE_ATTACK_CONVOY 28`, the AI's other German raiders among them, the first
+of each written as its log line ("The Lefkosia - Dover convoy lost 2 transport(s) and 0 escort(s)
+in Channel Approach.").
+
+**From the air**, `air` after the rest: the raider's air unit with the most `sea_attack` that
+reaches such water from its base is given the raid on convoys from the air for it, and the
+raider's country is played so that the AI leaves it be. `raid <install> ITA ENG 30 0 air`, on
+2026-11-14:
+
+    Italy's 3rd Comando Aerosiluranti, one wing attacking at 2.45 - 12.25 against escorts - from
+    Roma at the Gulf of Tunis, which 39 of Britain's convoys go through: there in two hours, home
+    and out again every six, a try every twelve; 5 raids that sank something by 6 January, a
+    transport each, its organisation worn from 35 to under 15 by the province's fire and the
+    destroyers' air attack, and at nought on the sixth day, when its order is dropped and it lies
+    at Roma
+
+(Germany's air units reach none of Britain's convoys' water in 1936.)
+
 **In the client** `--mission=ENG:patrol:10531` gives the strongest fleet of a country that may
 have it a mission for a province - reserve, patrol, intercept, sortie or convoyraid, with
 `:passive` or `:defensive` after the province. With `--war=GER:ENG` that gives the player's own
-missions something to meet, there being no AI to send anything.
+missions something to meet, there being no AI to send anything. `--mission=ITA:airconvoyraid:10568`
+gives the air unit with the most sea attack that reaches the province the raid from the air.
 
 ### Not built
 
-- **Aircraft**: the air convoy raid. A carrier's aircraft in a battle are built since 2026-10-16
+- **The AI's raid from the air**: whether the original's AI gives the order was not read; the
+  AI here gives it to nobody. A carrier's aircraft in a battle are built since 2026-10-16
   (`transport.md`, section 13.2), and the air missions are `aircombat.md`'s and `bombing.md`'s.
 - **Weather** and the **AI** - no fleet of a country nobody plays is ever given a mission but
   by `--mission`. The leaders a raid's battle asks are built since 2026-10-11
   (`leaders.md`, section 10).
 - **Intelligence** beyond a unit's own part (section 9).
 - **Several waypoints for a sortie.**
-- The **messages**: a patrol's new shadow, a convoy too strong, ships lost.
+- The **message of a patrol's new shadow**, `PATROLTRACK`. A convoy too strong and ships lost are
+  built since 2026-11-14 (section 8.2).
 
 ### Not established
 

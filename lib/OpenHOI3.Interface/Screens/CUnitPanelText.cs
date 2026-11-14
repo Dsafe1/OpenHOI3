@@ -502,6 +502,17 @@ public static class CUnitPanelText
 					return CTextTemplate.Fill(localise("TRANS_SUP_MISSION_SHORT_DESC"),
 						("TYPE", localise(unit.Mission.ReturnToBase ? "TS_RETURNING"
 							: Sim.Missions.CAirMissions.IsAtOwnBase(unit) && !unit.IsMoving ? "TS_WAITING" : "TS_SUPPLYING")));
+				// The raid on convoys from the air, read (navalmissions.md, section 8.1): returning; waiting at its base while
+				// unfit to fly or with nowhere to fly at; otherwise attacking the province it flies at.
+				case EUnitOrder.AirConvoyRaid:
+				{
+					int strike = unit.Mission.Destination;
+					bool grounded = unit.Location == unit.Base && !Sim.Missions.CAirMissions.IsFitToFly(state, unit);
+					string doing = unit.Mission.ReturnToBase ? localise("STRAT_BOMB_RETURNING")
+						: grounded || strike <= 0 || strike >= state.Provinces.Count ? localise("STRAT_BOMB_WAITING")
+						: CTextTemplate.Fill(localise("STRAT_BOMB_ATTACKING"), ("PROV", state.Province(strike).Name));
+					return CTextTemplate.Fill(localise("AIR_CONVOY_SHORT_DESC"), ("UNIT", doing));
+				}
 				// What a bombing mission puts in the brackets was not read either: these
 				// are the three texts the original has for it, by what the unit is doing.
 				case EUnitOrder.StrategicBombing:

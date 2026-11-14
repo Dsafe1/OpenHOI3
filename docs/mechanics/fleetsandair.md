@@ -270,8 +270,9 @@ shaders and is given "nothing" already worked out as they would draw it.
 are `navalmissions.md`, and the transport and the invasion `transport.md` - **and an air unit's
 change of base, its two fighting missions (`aircombat.md`) and its eight bombing missions
 (`bombing.md`), and since 2026-10-16 carrier protection, the paradrop, the rebase to carrier and the
-air supply (`transport.md`, section 13.6), each listed where the original lists it.** Every other row
-is listed as the original lists it and cannot be ticked: an air unit's reserve and raid on convoys. A
+air supply (`transport.md`, section 13.6), and since 2026-11-14 the raid on convoys
+(`navalmissions.md`, section 8.1), each listed where the original lists it.** Every other row
+is listed as the original lists it and cannot be ticked: an air unit's reserve. A
 fleet carrying anything opens the window on Transport where it would on Rebase, and a plain right
 click on a coast the sea does not reach opens it where its first passenger may land there
 (`transport.md`, section 12). The nuclear bomb's row is `nukes.md`'s. The stance and the priority go with a fleet's order and mean something
@@ -402,12 +403,12 @@ play no part (`tooltips.md`, section 9).
 
 ## What is not built
 
-- **An air unit's reserve and raid on convoys.** The air window's other controls
+- **An air unit's reserve.** The air window's other controls
   are built since 2026-10-11. A fleet's reserve, patrol, intercept, sortie, convoy raiding and
   escort are built since 2026-10-10 and are `navalmissions.md`, its transport and invasion since
   2026-10-15 and are `transport.md`; an air unit's air superiority and intercept since
-  2026-10-10, and are `aircombat.md`; and its eight bombing missions since the same day, and are
-  `bombing.md`.
+  2026-10-10, and are `aircombat.md`; its eight bombing missions since the same day, and are
+  `bombing.md`; and its raid on convoys since 2026-11-14, `navalmissions.md`, section 8.1.
 - **Carrying by air** is built since 2026-10-16 - an air group based aboard a carrier, a land
   unit aboard aeroplanes, the paradrop, the air supply: `transport.md`, section 13. Troops aboard a
   fleet are built since 2026-10-15.

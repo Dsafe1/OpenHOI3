@@ -159,6 +159,51 @@ public static class CMessages
 	}
 
 	/// <summary>
+	/// A raid on a convoy's message, for the one country told and nobody else: its province and two countries as raised.
+	/// Ships lost and ships sunk carry the raid's own values - the province, the two counts, the convoy's route, the
+	/// raider's country and the player's ruler's title - and none of a country's standard ones; a convoy too strong
+	/// carries the raider's country's standard values and then the province twice, the route, the convoy's owner and the
+	/// raider's name. See <c>docs/mechanics/navalmissions.md</c>, section 8.2.
+	/// </summary>
+	public static CMessage? ConvoyRaid(Func<string, string> localise, CMessageTypes types, CGameState state, CCountryTag? player,
+		Sim.Convoys.CConvoyRaidMessage raid)
+	{
+		if (player is not { } own || own != raid.Told || state.Country(own) is not { } country)
+		{
+			return null;
+		}
+		var message = new CMessage(types.Find(raid.Type), CMessageText.Date(localise, state.Date, state.Hour))
+		{
+			FirstCountry = raid.First,
+			SecondCountry = raid.Second,
+			Province = raid.Province,
+		};
+		string province = state.Province(raid.Province).Name;
+		string route = state.Province(raid.ConvoyStart).Name + " - " + state.Province(raid.ConvoyEnd).Name;
+		string second = state.Country(raid.Second)?.Name ?? raid.Second.Value;
+		if (raid.Type == Sim.Convoys.CConvoyRaidMessage.TooStrong)
+		{
+			message.Variables.Add(("COUNTRY", country.Name));
+			message.Variables.Add(("MONARCHTITLE", RulerTitle(country)));
+			message.Variables.Add(("TITLE", RulerTitle(country)));
+			Government(localise, state, player, message);
+			message.Variables.Add(("PROV", province));
+			message.Variables.Add(("LOCATION", province));
+			message.Variables.Add(("CONVOY", route));
+			message.Variables.Add(("EVIL", second));
+			message.Variables.Add(("UNIT", raid.Unit));
+			return message;
+		}
+		message.Variables.Add(("PROV", province));
+		message.Variables.Add(("TRANSPORTS", raid.Transports.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+		message.Variables.Add(("ESCORTS", raid.Escorts.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+		message.Variables.Add(("CONVOY", route));
+		message.Variables.Add(("EVIL", second));
+		message.Variables.Add(("TITLE", RulerTitle(country)));
+		return message;
+	}
+
+	/// <summary>
 	/// The sound a pact's message makes for the player: its own where the player is the one told its first key - the actor,
 	/// or the country it names as told - and nothing for the recipient or anybody else (<c>docs/mechanics/sound.md</c>, section
 	/// 7). Asked only where the message itself was told, so a trade's, hidden from a player who automated his trade, is silent.

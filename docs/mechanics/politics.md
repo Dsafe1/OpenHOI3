@@ -146,7 +146,7 @@ a negative bombing entry also by `1 + sw_national_unity_effect`. The writers:
 | --- | --- | --- |
 | convoys | a raid beaten off (`CONVOY_TOO_STRONG`) | `-(STRAT_CONVOY_DAMAGE / victim's convoys) / 10`, to the victim |
 | convoys | a raid that sinks ships | `(transports + escorts lost) x STRAT_CONVOY_DAMAGE / victim's convoys / 1000`, halved with an escort, to the victim |
-| convoys | a sea battle's first hour where a defending unit is raiding convoys or patrolling | `STRAT_RAIDER_FOUGHT_IMPACT`, to the attacker's first country |
+| convoys | a sea battle's first hour, **a raid's own battle** only, where a defending unit is raiding convoys or patrolling - which is never, the defender of a raid's battle being the convoy's fleet under no order (`navalmissions.md`, 8.3) | `STRAT_RAIDER_FOUGHT_IMPACT`, to the attacker's first country |
 | convoys | an air battle's first hour where a defender is raiding convoys from the air | attacker's wings x `STRAT_AIR_RAIDER_FOUGHT_IMPACT` / 5 |
 | bombing | an air battle's first hour where a defender is on strategic bombing | attacker's wings x `STRAT_BOMBER_FOUGHT_IMPACT` / 5, times `STRAT_BOMBER_NONCRIT_IMPACT_FRACTION` where the province is land a **defender's** country controls and not its core |
 | bombing | a strategic bombing starting | `STRAT_BOMBING_PENALTY`, to the target unit's owner, else the province's controller |
@@ -158,8 +158,8 @@ only where the province is in the area of C's acting capital, C is a friend of t
 has strong allies at war; then each of C's units adds `brigades x STRAT_NO_ALLIES_HELP_PENALTY` and each of
 those allies' `brigades x STRAT_ALLIES_HELP`.
 
-**Not built**: the allies' writer - what "strong allies" is was not read - and the air raid on convoys, which
-no air unit here flies. The other five are.
+**Not built**: the allies' writer - what "strong allies" is was not read. The other six are; the air raider's
+since 2026-11-14, with the raid on convoys from the air (`navalmissions.md`, 8.1 and 8.3).
 
 ## 7. Ministers: the pool and the filling of posts
 

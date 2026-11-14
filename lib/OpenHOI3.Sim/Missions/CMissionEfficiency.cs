@@ -63,6 +63,7 @@ public static class CMissionEfficiency
 			EUnitOrder.Interdiction => "interdiction",
 			EUnitOrder.PortStrike => "port_strike",
 			EUnitOrder.NavalStrike => "naval_strike",
+			EUnitOrder.AirConvoyRaid => "air_convoy_raid",
 			EUnitOrder.Nuke => "nuke_mission",
 			EUnitOrder.JoinFleet => "join_fleet",
 			EUnitOrder.JoinAir => "join_air",

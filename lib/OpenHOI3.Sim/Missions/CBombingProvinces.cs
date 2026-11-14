@@ -44,8 +44,42 @@ public static class CBombingProvinces
 			EUnitOrder.RunwayCratering => Highest(state, unit, RunwayWorth),
 			EUnitOrder.InstallationStrike => Highest(state, unit, InstallationWorth),
 			EUnitOrder.PortStrike => Highest(state, unit, PortWorth),
+			EUnitOrder.AirConvoyRaid => PickForConvoyRaid(state, unit),
 			_ => 0,
 		};
+	}
+
+	/// <summary>
+	/// The raid on convoys from the air: of the mission's provinces but the one the unit is in, the first with the most
+	/// transports of the convoys going through it that belong to an enemy there - a thousand and a thousand a
+	/// transport, so a province with none still scores and the first province of the list stands until another has more.
+	/// </summary>
+	private static int PickForConvoyRaid(CGameState state, CUnit unit)
+	{
+		int best = 0;
+		long most = 0;
+		foreach (int id in unit.Mission.Provinces)
+		{
+			CProvince province = state.Province(id);
+			if (id == unit.Location || !CBombingOrders.MayList(state, unit, unit.Order, province))
+			{
+				continue;
+			}
+			long score = CFixedPoint.Scale;
+			foreach (Convoys.CConvoy convoy in CConvoyRaid.Through(state, id))
+			{
+				if (convoy.Owner != unit.Owner && CMovementRules.IsEnemyIn(state, convoy.Owner, unit.Owner, id))
+				{
+					score += convoy.Transports * (long)CFixedPoint.Scale;
+				}
+			}
+			if (score > most)
+			{
+				most = score;
+				best = id;
+			}
+		}
+		return best;
 	}
 
 	/// <summary>

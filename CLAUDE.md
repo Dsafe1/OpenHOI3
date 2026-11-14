@@ -962,12 +962,12 @@ beside the repository.
   the strongest fleet of each of two countries is put in one sea province, the first country
   played by a person, and the fight is told hour by hour - Germany against the United Kingdom
   with no tags given. Run it after touching the `CNaval` classes there.
-  `OpenHOI3.SaveCheck raid <install> [raider] [victim] [days] [seed]` is the trial of a
+  `OpenHOI3.SaveCheck raid <install> [raider] [victim] [days] [seed] [air]` is the trial of a
   fleet's missions: two countries are put at war, the first one's fleet with the most
   `convoy_attack` is sent to raid the water the most of the other's convoys go through, and
   each sinking is told - Germany against the United Kingdom for thirty days with no tags
   given, which sinks 51 transports and 6 escorts on 2026-11-11, with ports, the patrol's shadow and walking on a friend's ground asking the original's friend tests - 44 and 7 after the generator's seeding was corrected on 2026-11-07, 38 and 3
-  before it, and 37 and none until 2026-10-13, when a war began to mobilise both sides (`docs/mechanics/war.md`, section 4). Run it after touching
+  before it, and 37 and none until 2026-10-13, when a war began to mobilise both sides (`docs/mechanics/war.md`, section 4) - and 37 and 5 on 2026-11-14 in the tree the raid from the air was built on, the same before and after it. It ends by counting the raid's messages by type. With `air` the raider's air unit with the most `sea_attack` that reaches such water is given the raid on convoys from the air and its country is played: `ITA ENG 30 0 air` sinks a transport a raid, 5 raids by 6 January, its organisation worn to nought by then (`docs/mechanics/navalmissions.md`, sections 8.1 to 8.3). Run it after touching
   `lib/OpenHOI3.Sim/Missions`, `CConvoyRaid` or what a convoy does about an attack.
   `OpenHOI3.SaveCheck firstdays <install> <start-date savegame>` sets a new game as a player
   gets it, its two days run, beside the save country by country. **It is meant to differ** -

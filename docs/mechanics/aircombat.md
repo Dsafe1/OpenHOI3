@@ -449,8 +449,9 @@ selected province says there is a battle.
 - ~~A **carrier's aircraft**, with the order that keeps them over their fleet.~~ Built on
   2026-10-16: carrier protection fights in the air while a battle goes on in its carrier's
   province (`transport.md`, section 13.2). Bombing and anti-aircraft fire are `bombing.md`'s.
-- **Every other air order** - the reserve, the raid on convoys. The supply flight and the paradrop
-  are built since 2026-10-16 (`transport.md`, section 13).
+- **Every other air order** - the reserve. The supply flight and the paradrop are built since
+  2026-10-16 (`transport.md`, section 13), the raid on convoys since 2026-11-14 (`navalmissions.md`,
+  section 8.1).
 - The orders window is whole since 2026-10-11, and the air map mode is built: `airmap.md`.
 - **Radar** in what a country knows; the difficulty is built since 2026-11-06 (`frontend.md`, section 4.3). The
   leaders are built since 2026-10-11 (`leaders.md`, section 10). The weather's part is built, and since 2026-10-15 so is the weather (`weather.md`).

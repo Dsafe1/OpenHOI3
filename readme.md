@@ -2264,11 +2264,11 @@ None of these blocks the list above.
   stand, where its name is written - its terrain is taken around that - where its port
   is, the land end of a distance to the sea, and where each of its buildings is drawn.
   `docs/mechanics/map.md`, section 4, and `mapunits.md`, section 9.
-- **Of an air unit's orders sixteen are built**: air superiority, the intercept, the eight
+- **Of an air unit's orders seventeen are built**: air superiority, the intercept, the eight
   bombing missions, the change of base, and since 2026-10-16 carrier protection, the paradrop,
-  the rebase to carrier and the air supply (`transport.md`, section 13), and the nuclear bomb
-  (`nukes.md`). The window lists the
-  reserve and the raid on convoys as the original does, and they cannot be ticked.
+  the rebase to carrier and the air supply (`transport.md`, section 13), the nuclear bomb
+  (`nukes.md`), and since 2026-11-14 the raid on convoys (`navalmissions.md`, section 8.1). The
+  window lists the reserve as the original does, and it cannot be ticked.
   `docs/mechanics/fleetsandair.md`, sections 4 and 5.
 - **A battle at sea, a battle in the air and a bombing have no marker on the map**, because
   the original gives them none: its marker is a land battle's alone, and from the battle's
@@ -2288,7 +2288,7 @@ None of these blocks the list above.
   2026-11-10. A battle earns no practical. `aircombat.md`, section 10. `OpenHOI3.SaveCheck airbattle` is a trial of it.
 - **Bombing has been set beside the running game for three hours and never watched** - three land bombings of August
   1938, an hour each, the original's on 2026-11-10; its window is the air battle's and as little
-  looked at. The raid on convoys from the air is not built, nor the practical a bombing earns. `bombing.md`,
+  looked at. The practical a bombing earns is not built. `bombing.md`,
   section 13. `OpenHOI3.SaveCheck bombing` is a trial of it.
 - **The fog of war on the map is built since 2026-11-07** (`mapunits.md`, sections 3 and 9): a stack the player knows
   under 2 is not there, under 3 it is one counter with the unknown picture, a name under 5 is `???` and the figures under
@@ -2418,7 +2418,11 @@ None of these blocks the list above.
   are ours and listed in the spec's *Ours*: the nearest air base a carrier's groups go to, the
   order the planes' load button looks in, and a paradrop's start moved on only when its row is
   ticked and when accepted.
-- **A raid from the air is not built**, nor any message about a raid (`navalmissions.md`, sections 8 and the end).
+- ~~**A raid from the air is not built**, nor any message about a raid~~ - **built 2026-11-14**: the raid on convoys
+  from the air, its pick of a province and its bombing of a convoy's ships, and the three messages of a raid,
+  read out of the original and tried with `OpenHOI3.SaveCheck raid ... air` (`navalmissions.md`, sections 8.1 to 8.3).
+  Left: the patrol's `PATROLTRACK`, a lend-lease convoy's lost efficiency, whether the original's AI ever gives the
+  air raid, and the maintainer has not looked at any of it.
 - **Who is played by a person is state the client sets**, `CGameState.Played`, and not a
   command: it is asked in one place, the idle fleet's, and wants a proper home when a
   game can be joined or left.

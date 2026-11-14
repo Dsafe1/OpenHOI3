@@ -14,7 +14,8 @@ Sources: `reversing/findings/FINDINGS-bombing.md`, with `reversing/findings/FIND
 **Nothing here was watched in the original, and nothing can be checked against a save**: none
 of the maintainer's has a bombing, and the rolls cannot be made again. It is the fifth of the
 pieces air and naval combat was cut into (`navalcombat.md`); a carrier's aircraft, the raid on
-convoys from the air and the air side on screen are not in it.
+convoys from the air (`navalmissions.md`, section 8.1, whose battle is a bombing of ships run by
+this spec's hour) and the air side on screen are not in it.
 
 **It is written to do what the original does, its oddities with it.** Section 12 gathers the
 oddest, and the maintainer has seen none of them.
@@ -459,8 +460,10 @@ of a selected province says there is a bombing.
   enemy's ships beside a sea battle, and a carrier as a base at all.~~ Built on 2026-10-16
   (`transport.md`, sections 13.1 and 13.2): carrier protection goes for ships in its carrier's
   province alone, and a fleet in a battle sends it in.
-- **The raid on convoys from the air**, the reserve, the atom bomb. The supply flight and the
-  paradrop are built since 2026-10-16 (`transport.md`, section 13).
+- **The reserve.** The supply flight and the paradrop are built since 2026-10-16 (`transport.md`,
+  section 13), the atom bomb since then (`nukes.md`), and the raid on convoys from the air - a strike
+  whose battle is a bombing of a convoy's ships, its wings taking every ship with no roll - since
+  2026-11-14 (`navalmissions.md`, section 8.1).
 - **What a strategic bombing does beyond the province**: the threat it adds to its country,
   and what it takes off the bombed country's unity.
 - **The practical** a bombing earns; the difficulty is built since 2026-11-06 (`frontend.md`, section 4.3). The

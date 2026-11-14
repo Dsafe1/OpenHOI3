@@ -363,6 +363,7 @@ public sealed class CGameState
 		PactMessaged = null;
 		OfferAsked = null;
 		CombatBegan = null;
+		ConvoyRaidMessaged = null;
 		DecisionTaken = null;
 		SoundCued = null;
 		UnitArrived = null;
@@ -699,6 +700,17 @@ public sealed class CGameState
 		{
 			CombatBegan?.Invoke(combat);
 		}
+	}
+
+	/// <summary>
+	/// Raised as a raid on a convoy tells a country's player something - ships lost, ships sunk, a convoy too strong
+	/// (<c>docs/mechanics/navalmissions.md</c>, section 8.2). Never for anything that changes the game.
+	/// </summary>
+	public event Action<Convoys.CConvoyRaidMessage>? ConvoyRaidMessaged;
+
+	internal void RaiseConvoyRaidMessage(Convoys.CConvoyRaidMessage message)
+	{
+		ConvoyRaidMessaged?.Invoke(message);
 	}
 
 	/// <summary>

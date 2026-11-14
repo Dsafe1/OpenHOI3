@@ -493,6 +493,213 @@ public class NavalMissionTests
 		Assert.Equal((0, 0), (convoy.Transports, convoy.Escorts));
 	}
 
+	// --- the raid from the air and the messages of a raid: navalmissions.md, sections 8.1 to 8.3 ---
+
+	private static CSubUnitType Bomber(string seaAttack = "10")
+	{
+		var type = new CSubUnitType("naval_bomber", EUnitBranch.Air);
+		void Set(string name, string value) => type.Stats.Values.Set(name, CFixedPoint.Parse(value));
+		Set(CMovementSpeed.MaximumSpeed, "300");
+		Set(CUnitOrders.Range, "1000");
+		Set(CSubUnitType.MaxStrength, "100");
+		Set(CSubUnitType.DefaultOrganisation, "30");
+		Set(CNavalFire.SeaAttack, seaAttack);
+		Set(CConvoyRaid.ConvoyAttack, "50");                                    // never read for an air unit
+		Set(CNavalSpotting.SurfaceDetection, "100");
+		return type;
+	}
+
+	private static CUnit AirUnit(CGameState state, CCountry country, int province, CSubUnitType wingType, int wings = 1)
+	{
+		var unit = new CUnit(EUnitKind.Air, country.Tag)
+		{
+			Id = ++state.LastUnitId, Location = province, Base = Kiel, Name = "Fliegerkorps",
+		};
+		for (int i = 0; i < wings; i++)
+		{
+			var wing = new CSubUnit(wingType)
+			{
+				Id = ++state.LastUnitId, Unit = unit, Strength = CFixedPoint.FromInt(100),
+				Organisation = CFixedPoint.FromInt(30), Experience = CFixedPoint.Zero, Name = wingType.Key,
+			};
+			wing.Stats.CopyFrom(wingType.Stats);
+			unit.SubUnits.Add(wing);
+		}
+		country.Units.Add(unit);
+		state.ForgetPositions();
+		return unit;
+	}
+
+	[Fact]
+	public void AnAirRaiderFiresItsSeaAttackAndIsSetAgainstTheEscortsAtFiveTimesIt()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		state.Defines.Set(CManpower.MilitarySection, CBomberFire.ShipDamage, CFixedPoint.Parse("1.05"));
+		CUnit raider = AirUnit(state, germany, Bight, Bomber());
+		CConvoy convoy = Convoy(state, poland, 4, 2, Gdynia, Deep, Bight);
+		var told = new List<CConvoyRaidMessage>();
+		state.ConvoyRaidMessaged += told.Add;
+
+		// One wing at 30 organisation: 10 x 1 x 0.3, its convoy attack of 50 not read. Two escorts over three provinces
+		// defend at 3.33 - more than 3, which a fleet could not take on, and less than five times it.
+		Assert.Equal(3000, CConvoyRaid.Attack(raider));
+		Assert.Equal(3333, CConvoyRules.Defence(convoy));
+		// Its wings find the ships by its order's mission.
+		raider.Order = EUnitOrder.AirConvoyRaid;
+		Assert.True(CConvoyRaid.Resolve(state, germany, raider));
+
+		// Five hours of a bombing of ships, gone at once and on the list of finished battles as a convoy battle.
+		Assert.Empty(state.Combats);
+		Assert.False(raider.IsFighting);
+		Assert.Null(raider.Bombing);
+		Assert.Equal(state.TotalHours, state.Province(Bight).LastConvoyAttackHour);
+		Assert.True(convoy.Transports < 4);
+		Assert.Contains(told, message => message.Type == CConvoyRaidMessage.Sank && message.Told == Ger);
+		Assert.Contains(told, message => message.Type == CConvoyRaidMessage.Lost && message.Told == Pol);
+		Assert.DoesNotContain(state.UnitsIn(Bight), unit => unit.Owner == Pol);
+	}
+
+	[Fact]
+	public void AConvoyTooStrongTellsTheRaidersCountryWhoFoundItAndWhoseItWas()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit raider = Fleet(state, germany, Bight, Submarine);
+		CConvoy convoy = Convoy(state, poland, 4, 2, Gdynia, Deep, Bight);
+		var told = new List<CConvoyRaidMessage>();
+		state.ConvoyRaidMessaged += told.Add;
+
+		Assert.False(CConvoyRaid.Resolve(state, germany, raider));
+		CConvoyRaidMessage message = Assert.Single(told);
+		Assert.Equal(new CConvoyRaidMessage(CConvoyRaidMessage.TooStrong, Ger, Bight, Ger, Pol, Gdynia, Bight) { Unit = raider.Name },
+			message);
+		Assert.Equal((4, 2), (convoy.Transports, convoy.Escorts));
+	}
+
+	[Fact]
+	public void ShipsLostTellTheOwnerAndTheRaiderTheCountsAsTakenOff()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CConvoy convoy = Convoy(state, poland, 3, 1, Gdynia, Deep, Bight);
+		var told = new List<CConvoyRaidMessage>();
+		state.ConvoyRaidMessaged += told.Add;
+
+		CConvoyLosses.Lose(state, convoy, 99, 0, germany, Deep);
+		Assert.Equal(new[]
+		{
+			new CConvoyRaidMessage(CConvoyRaidMessage.Lost, Pol, Deep, Pol, Ger, Gdynia, Bight) { Transports = 3, Escorts = 0 },
+			new CConvoyRaidMessage(CConvoyRaidMessage.Sank, Ger, Deep, Pol, Ger, Gdynia, Bight) { Transports = 3, Escorts = 0 },
+		}, told);
+
+		// With no raider, or no province, nobody is told.
+		told.Clear();
+		CConvoyLosses.Lose(state, convoy, 0, 1, null, Deep);
+		CConvoyLosses.Lose(state, convoy, 0, 1, germany);
+		Assert.Empty(told);
+	}
+
+	[Fact]
+	public void TheAirRaidFliesAtTheProvinceWithTheMostEnemyTransportsButTheOneItIsIn()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit raider = AirUnit(state, germany, Deep, Bomber());
+		raider.Order = EUnitOrder.AirConvoyRaid;
+		raider.Mission.Provinces.AddRange(new[] { Bight, Deep, Far, Outer });
+		Convoy(state, poland, 9, 0, Gdynia, Deep);
+		Convoy(state, poland, 5, 0, Deep, Far);
+		Convoy(state, poland, 5, 0, Outer);
+		Convoy(state, germany, 40, 0, Kiel, Bight);                               // its own count for nothing
+
+		// Deep has the most and is where it is; Far and Outer have five each and Far comes first.
+		Assert.Equal(Far, CBombingProvinces.Pick(state, raider));
+		// With nothing to raid anywhere, the first province but its own still scores.
+		poland.Convoys.Clear();
+		Assert.Equal(Bight, CBombingProvinces.Pick(state, raider));
+
+		Assert.True(CBombingOrders.IsStrike(EUnitOrder.AirConvoyRaid));
+		Assert.True(CBombingOrders.MayList(state, raider, EUnitOrder.AirConvoyRaid, state.Province(Kiel)));
+		Assert.False(CBombingOrders.MayGive(state, germany, raider, EUnitOrder.AirConvoyRaid, state.Province(Kiel)));
+		Assert.True(CBombingOrders.MayGive(state, germany, raider, EUnitOrder.AirConvoyRaid, state.Province(Far)));
+		Assert.False(CBombingOrders.ShouldBomb(state, raider, state.Province(Far)));
+	}
+
+	[Fact]
+	public void TheAirRaidCountsItsHoursDownEverywhereAndTriesOnlyInItsProvince()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit raider = AirUnit(state, germany, Bight, Bomber());
+		raider.Order = EUnitOrder.AirConvoyRaid;
+		raider.Mission.Provinces.Add(Bight);
+		raider.Mission.Destination = Deep;
+		CConvoy convoy = Convoy(state, poland, 40, 0, Gdynia, Deep, Bight);
+
+		// Not in its province: the count goes down and nothing is tried.
+		CBombingMissions.RunHour(state, germany, raider);
+		Assert.Equal(-1, raider.Mission.RaidCountdown);
+		Assert.Equal(CConvoy.NeverAttacked, convoy.LastAttackHour);
+
+		// In it with no hours left: a try, and twelve hours again.
+		raider.Location = Deep;
+		raider.Mission.Destination = Deep;
+		raider.Mission.ReturnToBase = false;
+		state.ForgetPositions();
+		CBombingMissions.RunHour(state, germany, raider);
+		Assert.Equal(CMissions.HoursBetweenRaids, raider.Mission.RaidCountdown);
+		Assert.Equal(state.TotalHours, state.Province(Deep).LastConvoyAttackHour);
+	}
+
+	[Fact]
+	public void AnAirRaidersWingsTakeEveryShipOfTheConvoysFleetWithNoRoll()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit raider = AirUnit(state, germany, Bight, Bomber());
+		raider.Order = EUnitOrder.AirConvoyRaid;
+		CUnit stand = CConvoyRaid.MakeFleet(state, Convoy(state, poland, 3, 1, Gdynia, Bight), Bight)!;
+		var combat = new CCombat(Bight, ECombatKind.NavalBombing) { IsConvoyBattle = true };
+		combat.Defender.Units.Add(stand);
+
+		long draws = state.Random.Draws;
+		CBomberFire.CollectTargets(state, combat.Defender, combat.Attacker, raider, germany);
+		Assert.Equal(4, combat.Attacker.Targets.Count);
+		Assert.Equal(draws, state.Random.Draws);
+		Assert.Equal(raider.SubUnits[0].Stats[CNavalFire.SeaAttack].Raw,
+			CBomberFire.AttackOf(state, raider, raider.SubUnits[0], stand.SubUnits[0]));
+
+		// A naval strike's wings roll for each ship, and with no leader find one in a hundred.
+		raider.Order = EUnitOrder.NavalStrike;
+		CBomberFire.CollectTargets(state, combat.Defender, combat.Attacker, raider, germany);
+		Assert.True(state.Random.Draws > draws);
+	}
+
+	[Fact]
+	public void FightingAnAirRaiderCountsOnTheConvoyListAndARaiderFoughtAtSeaOnlyInAConvoyBattle()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		state.Defines.Set(CManpower.MilitarySection, "STRAT_AIR_RAIDER_FOUGHT_IMPACT", CFixedPoint.Parse("0.02"));
+		state.Defines.Set(CManpower.MilitarySection, "STRAT_RAIDER_FOUGHT_IMPACT", CFixedPoint.Parse("0.015"));
+		CUnit raider = AirUnit(state, germany, Bight, Bomber());
+		raider.Order = EUnitOrder.AirConvoyRaid;
+		CUnit fighters = AirUnit(state, poland, Bight, Bomber(), wings: 5);
+
+		var battle = new CCombat(Bight, ECombatKind.Air);
+		battle.Attacker.Units.Add(fighters);
+		battle.Attacker.AddCountry(Pol);
+		battle.Defender.Units.Add(raider);
+		battle.Defender.AddCountry(Ger);
+		OpenHOI3.Sim.Politics.CStrategicWarfareImpacts.AirBattleBegun(state, battle);
+		Assert.Single(poland.StrategicWarfare.Convoys);
+
+		// A fleet raiding convoys fought in an ordinary sea battle counts for nothing.
+		CUnit fleet = Fleet(state, germany, Bight, Submarine);
+		fleet.Order = EUnitOrder.ConvoyRaid;
+		var sea = new CCombat(Bight, ECombatKind.Naval);
+		sea.Attacker.Units.Add(Fleet(state, poland, Bight, Destroyer));
+		sea.Attacker.AddCountry(Pol);
+		sea.Defender.Units.Add(fleet);
+		sea.Defender.AddCountry(Ger);
+		OpenHOI3.Sim.Politics.CStrategicWarfareImpacts.SeaBattleBegun(state, sea);
+		Assert.Single(poland.StrategicWarfare.Convoys);
+	}
+
 	[Fact]
 	public void ARaidIsFiveRoundsAgainstTheConvoysFleetAndIsThenGone()
 	{

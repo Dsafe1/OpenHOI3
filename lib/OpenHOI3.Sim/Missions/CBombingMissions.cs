@@ -8,7 +8,7 @@ namespace OpenHOI3.Sim.Missions;
 
 /// <summary>
 /// The hour of a bombing mission. There are two frames. A strike - ground attack,
-/// interdiction, the naval strike - keeps the province it flies at from sortie to sortie
+/// interdiction, the naval strike, the raid on convoys - keeps the province it flies at from sortie to sortie
 /// and picks another only when that one is no longer the enemy's or it arrived and
 /// nothing started. A bombing - the strategic kinds and the port strike - forgets its
 /// province the moment a bombing has it and picks afresh at its base. Either way a unit
@@ -34,6 +34,18 @@ public static class CBombingMissions
 		if (unit.Base == 0)
 		{
 			return false;
+		}
+		// The raid on convoys from the air counts its hours down wherever it is, and in its province with none left tries
+		// the convoys there and counts twelve again - before the frame (navalmissions.md, section 8.1).
+		if (CBombingOrders.RaidsConvoys(unit.Order))
+		{
+			CMission raid = unit.Mission;
+			raid.RaidCountdown--;
+			if (unit.Location == raid.Destination && raid.RaidCountdown < 1)
+			{
+				Combat.CConvoyRaid.Resolve(state, country, unit);
+				raid.RaidCountdown = CMissions.HoursBetweenRaids;
+			}
 		}
 		RunFrame(state, country, unit);
 		// A port strike with nowhere in mind and no port of an enemy's left on its list is done.

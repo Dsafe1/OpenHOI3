@@ -162,7 +162,7 @@ box, `messagelog`, a close button and the button that opens it again, and six ca
 
 *From `reversing/findings/FINDINGS-smallbatch.md`, sections 2 and 5, and `FINDINGS-messageshow.md`, section 3.* `CMessages.CombatBegan`, `CMessagePopup`.
 
-As a battle first runs, a player on either side is told: `ATTACKTHEM` or `ATTACKUS` with `NAVAL` or `AIR` before it by the kind, or for a bombing `BOMBTHEM` or `BOMBUS`. A convoy raid says nothing, and a battle with nobody left on a side nothing either. Whether it pops up, goes on the map or the log is the type's in `messagetypes.txt`, where only `ATTACKUS` pops up by default.
+As a battle first runs, a player on either side is told: `ATTACKTHEM` or `ATTACKUS` with `NAVAL` or `AIR` before it by the kind, or for a bombing `BOMBTHEM` or `BOMBUS`. A convoy raid's battle says nothing, and a battle with nobody left on a side nothing either; a raid has three messages of its own, `CONVOY_TOO_STRONG`, `CONVOY_ATTACK_ON_US` and `WE_ATTACK_CONVOY` (`navalmissions.md`, section 8.2; `CMessages.ConvoyRaid`). Whether it pops up, goes on the map or the log is the type's in `messagetypes.txt`, where only `ATTACKUS` pops up by default.
 
 The six battle types use `CombatStartPopup`. Under the six lines the divider and the two lists of names stand at the same height, a side's first six units, each to twenty letters and then `AND_MORE`; the two totals stand under them by the height of the right-hand names; and everything below goes under the totals by the right-hand total's height. **Goto** shows the province's battle - for an air type its air battle - and the popup stays; with no such battle it closes.
 

@@ -366,7 +366,8 @@ public static class CBombing
 		Settle(state, bombing.Attacker);
 		Settle(state, bombing.Defender);
 
-		if (bombing.Duration >= Hours && CNavalBattle.HasLost(bombing.Attacker))
+		// A raid on a convoy from the air never asks who has lost (navalmissions.md, section 8.1).
+		if (bombing.Duration >= Hours && !bombing.IsConvoyBattle && CNavalBattle.HasLost(bombing.Attacker))
 		{
 			CCombats.Conclude(state, bombing, attackerLost: true);
 			foreach (CUnit unit in new List<CUnit>(bombing.Attacker.Units))

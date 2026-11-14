@@ -87,7 +87,7 @@ public static class CUnitOrders
 				EUnitOrder.RebaseCarrier, EUnitOrder.Nuke, EUnitOrder.AirSupply, EUnitOrder.StrategicBombing,
 				EUnitOrder.LogisticalStrike, EUnitOrder.RunwayCratering, EUnitOrder.InstallationStrike,
 				EUnitOrder.GroundAttack, EUnitOrder.Interdiction, EUnitOrder.PortStrike, EUnitOrder.NavalStrike,
-				EUnitOrder.RebaseAir,
+				EUnitOrder.AirConvoyRaid, EUnitOrder.RebaseAir,
 			},
 			_ => System.Array.Empty<EUnitOrder>(),
 		};
