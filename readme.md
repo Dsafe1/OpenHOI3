@@ -2170,10 +2170,10 @@ None of these blocks the list above.
   `check_variable`, `has_country_flag` and more, which the loader leaves out and the tooltip
   cannot say until they are read - `has_country_flag`'s words are read already. A building
   under `any_owned_province` is "in" the province numbered nothing, whose name is empty here.
-- **The battle window's tooltips leave two things out** (2026-10-12, `combatview.md`
-  section 12): the bombed side's rows, which say a
-  figure each in the original whose joins were not read; and what of the province a bombing's
-  row in a unit's panel adds. A ship's positioning is scaled by `targeting_chance`, taken to be
+- **The battle window's tooltips are whole since 2026-11-14** (`combatview.md`, section 12): the
+  bombed side's rows say their figure and a bombing's row in a unit's panel what of the province
+  it bombs, with the original's two words each over the other's goods (`docs/enhanced.md`); neither
+  was looked at on screen. A ship's positioning is scaled by `targeting_chance`, taken to be
   the figure the original names `naval_positioning_bonus`.
 - **The unit panel's tooltips leave out what is not built under them** (2026-10-12,
   `unitpanel.md` section 10): the attrition breakdown, a fleet's
@@ -2192,9 +2192,10 @@ None of these blocks the list above.
   wait for what they read - shore bombardment, mission efficiency, landing craft -
   and three technology figures are left out for want of their keys; `landcombat.md`,
   section 4, lists them. A round gives no practical knowledge (section 3).
-- **The battle window says less than the original's.** Units in a battle stand in a stack for the attackers and one
+- **What is left of the battle window's list** (`docs/mechanics/combatview.md` ends with it): the naval map mode's
+  icons and a land marker's first three hours. Units in a battle stand in a stack for the attackers and one
   for the defenders since 2026-11-14, as the original's (`mapunits.md`, section 3); what a click on the original's marker does was not read - here it opens the window.
-  `docs/mechanics/combatview.md` ends with the list. An enemy the player knows under intel level 3
+  An enemy the player knows under intel level 3
   shows the unknown counter's "?" since 2026-11-13, its picture alone, as the original's
   (`combatview.md`, section 5).
 - **Whether a land counter beats the large air base picture in the air map mode is not read.** Here the large air base is

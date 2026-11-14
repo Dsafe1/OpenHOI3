@@ -240,6 +240,8 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 All of these are risk-free but for what the entry says.
 
+- **A bombing's row names its goods under each other's words.** The goods whose stockpile the mission bombs are written after "Production of" and those whose production it bombs after "Stockpiles of", so a logistical strike reads "Production of Supplies and Fuel." `combatview.md`, 12. *Bug.*
+
 - **A port or an airfield under a counter cannot be clicked.** A click takes the highest score, and a counter's (at least 1.1) always beats a building picture's (1.0), so an air unit at its base or a fleet in port whose base's picture lies under a land stack is reached only from the air map mode, or by moving the map. The enhanced engine could offer the building where the click falls on its badge outside the counter, or a list of what lies under the click. `mapunits.md`, 9; `reversing/findings/FINDINGS-seaair.md`, 6. *Oversight.*
 
 - **The map's zoom eases by the frame, not by the second.** Height and look point close 0.197 of the gap each frame, so the zoom is quicker the faster the game draws. A per-second ease of `1 − 0.803^(60·dt)` would feel the same at every frame rate. `mapunits.md`, 7; `reversing/findings/FINDINGS-camerazoom.md`. *Oversight.*

@@ -172,7 +172,26 @@ public static class CBattleUnitTooltips
 		return Text(text.ToString());
 	}
 
-	/// <summary>A wing; a row of what is bombed has nothing built for it.</summary>
+	/// <summary>
+	/// A row of what is bombed, which says a figure: a building its working level to two places, <c>/</c> and its built
+	/// level to none; a good held what lies in the province; a good made what the province makes now, <c>/</c> and the
+	/// most it can - each to two places (<c>docs/mechanics/combatview.md</c>, section 12).
+	/// </summary>
+	public static CTooltip BombedRow(CGameState state, CCombat combat, CCombatRow row)
+	{
+		CProvince province = state.Province(combat.Province);
+		static string Two(CFixedPoint value) => CNumberText.Format(value, 2);
+		return row switch
+		{
+			{ Kind: ECombatRowKind.Building, Building: { } building } =>
+				Text(Two(province.BuildingLevel(building)) + "/" + CNumberText.Format(province.BuildingMaxLevel(building), 0)),
+			{ Kind: ECombatRowKind.GoodHeld } => Text(Two(province.Pool[row.Goods])),
+			{ Kind: ECombatRowKind.GoodMade } => Text(Two(province.CurrentProducing[row.Goods]) + "/" + Two(province.MaxProducing[row.Goods])),
+			_ => CTooltip.Empty,
+		};
+	}
+
+	/// <summary>A wing; a row of what is bombed has its own (<see cref="BombedRow"/>).</summary>
 	public static CTooltip Wing(Func<string, string> localise, CSubUnit wing, string element)
 	{
 		switch (element)
