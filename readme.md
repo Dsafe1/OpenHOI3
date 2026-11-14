@@ -174,7 +174,9 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    **Three more differences are the original's own run-to-run spread**, read on the running game (sections 75 and 77): its
    new game's weather differs between its runs in half the provinces, so the 1 Moukogo Kiheishidan and the Superga, slowed
    by a front ours has, are not faults here; and the Dutch East Indies' second sealift target came out 7780, 7744 and 6434
-   in three runs.
+   in three runs. With a ship weighed once in the naval score and a country's own fleets handed out within the same reach
+   as the enemy's (section 78), the plans' `min` 105 of 106 and 106 of 106 against the played save - the one left, Japan's
+   Kwantung Army, is the hourly run's own: run B and a third run have ours.
    **The plans' embark and debark that still differ vary with the original's own run**: two runs of the same new game gave
    Australia, Republican Spain and the Dutch East Indies other targets or another order of votes, and Japan another port;
    a third run, watched live, gave Australia a third order of its sealift's areas and a third debark (section 71) - so its

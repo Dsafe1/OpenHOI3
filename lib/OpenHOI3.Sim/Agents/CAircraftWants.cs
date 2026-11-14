@@ -125,22 +125,35 @@ public static class CAircraftWants
 		{
 			foreach (CSubUnit ship in fleet.SubUnits)
 			{
-				score += Weight(ship) + (CShipCensus.IsSubmarine(ship) ? 0 : AnyShip);
+				score += Weight(ship, CShipCensus.IsSubmarine(ship));
 			}
 		}
 		foreach (CUnit fleet in agent.FriendlyFleets)
 		{
 			foreach (CSubUnit ship in fleet.SubUnits)
 			{
-				score -= Weight(ship) + (CShipCensus.IsTransport(ship) ? 0 : AnyShip);
+				score -= Weight(ship, CShipCensus.IsTransport(ship));
 			}
 		}
 		return score;
 	}
 
-	private static long Weight(CSubUnit ship)
+	/// <summary>
+	/// One ship's weight, one of three and never more: a heavy cruiser 70, else a capital ship 150, else any ship but the
+	/// one left out 20 - a heavy cruiser, itself a capital ship in the unit files, counted once (0x4B5BF2 and 0x4B5E38 on
+	/// the listing; reversing/findings/FINDINGS-liveread.md, section 78).
+	/// </summary>
+	private static long Weight(CSubUnit ship, bool leftOut)
 	{
-		return (ship.Type.Key == HeavyCruiser ? HeavyCruiserWeight : 0) + (CShipCensus.IsCapital(ship) ? CapitalWeight : 0);
+		if (ship.Type.Key == HeavyCruiser)
+		{
+			return HeavyCruiserWeight;
+		}
+		if (CShipCensus.IsCapital(ship))
+		{
+			return CapitalWeight;
+		}
+		return leftOut ? 0 : AnyShip;
 	}
 
 	private static bool Available(CGameState state, CCountry country, string key)

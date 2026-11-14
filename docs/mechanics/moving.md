@@ -458,12 +458,14 @@ Once a day, at the country's hour (its number % 24), for the played country too,
 5. **The raided waters**: each sea province where the country's or a fellow fighter's convoy was raided within the last
    month goes to every agent with a port within 2000 by sea.
 6. **Its own fleets** and its fellow fighters': each to the agent with the least mean distance from its ports - a fifth for
-   the capital's theatre.
+   the capital's theatre - **over its ports within 2000 by sea, with a naval base level or more among them**, as the enemy's
+   (and 2000 itself within reach for both; `confirmed` on the listing, `reversing/findings/FINDINGS-liveread.md`, section 78).
 7. Each agent's **submarine want** is its want / 20.
 
 The enemy fleets handed to an agent are what threatens its coast (section 6), and they and its own side's are what its
-naval bomber want weighs (`agents.md`, section 9): a heavy cruiser 0.07, a capital ship 0.15 and any ship but a submarine
-0.02 of theirs, the same off for its side's but for a transport - so at peace the want is nought or below.
+naval bomber want weighs (`agents.md`, section 9): a heavy cruiser 0.07, else a capital ship 0.15, else any ship but a
+submarine 0.02 of theirs - **one of the three and never more**, so a heavy cruiser, a capital ship in the unit files, counts
+0.07 alone - the same off for its side's but for a transport; so at peace the want is nought or below (section 78).
 
 ## 13. The pass's remainders (`FINDINGS-moving.md` F.8, F.9)
 

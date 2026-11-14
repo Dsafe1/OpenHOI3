@@ -143,7 +143,9 @@ public static class CSeaTargets
 			foreach (int port in theatre.Ports)
 			{
 				long distance = Sea(state, fleet.Location, port);
-				if (distance < 0 || (enemyLoad && distance >= FleetReach))
+				// A port 2000 away still counts, for its own side's fleets as for the enemy's; and either needs a whole level of
+				// naval base among those ports (0x48C91D and 0x48D340 on the listing; FINDINGS-liveread.md, section 78).
+				if (distance < 0 || distance > FleetReach)
 				{
 					continue;
 				}
@@ -151,7 +153,7 @@ public static class CSeaTargets
 				bases += Level(state, port);
 				count++;
 			}
-			if (count == 0 || (enemyLoad && bases < 1))
+			if (count == 0 || bases < 1)
 			{
 				continue;
 			}
