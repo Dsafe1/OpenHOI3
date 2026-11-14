@@ -71,10 +71,18 @@ The window is `combat` of `interface/combat.gui`. `confirmed` unless marked.
   kind of battle is shown and the other two hidden.
 - **`label_battlename`** is the battle's name, set once: the text `BATTLE_OF`, a space, and
   the name of the province. Nothing else goes into it.
-- **`closebutton`** takes the window down. **`retreat_button`** orders every unit of the
-  player's in the battle to stop, whichever side it is on. *Ours:* a unit that is attacking
-  is halted, which breaks its attack off (`landcombat.md`, section 9); a unit that is not on
-  the march has nothing to stop, and is left.
+- **`closebutton`** takes the window down. **`retreat_button`** gives every unit of the
+  player's in the battle, the attackers' first and then the defenders', whichever side it is
+  on, the original's move order with no target - **go where a beaten unit goes** [exe]
+  (`reversing/findings/FINDINGS-movement.md`, section 2). For a land unit that is the
+  province beside the one it stands in that is worth most to fall back to (`landcombat.md`,
+  section 9) - an attacker's from its own province, so it is not stopped where it stands as a
+  beaten attacker is. With a way there, the unit leaves every battle it is in, is marked as
+  falling back where the other side still has somebody, and is left with no order; with
+  nowhere to go, or no way there, **nothing happens** - the button removes nobody, where a
+  beaten unit with nowhere is removed from the game. Built so since 2026-11-14
+  (`CFallBackCommand`); until then a land unit was only halted, which broke an attack off and
+  left a defender standing.
 
 ## 3. Every frame
 

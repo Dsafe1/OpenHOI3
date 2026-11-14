@@ -1111,9 +1111,9 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
-	/// The battle window's retreat button: every unit of the player's in the battle is
-	/// told to stop. One that is attacking breaks its attack off; one that is not on the
-	/// march has nothing to stop.
+	/// The battle window's retreat button: every unit of the player's in the battle, the attackers' first, sent where a
+	/// beaten one goes - the original's move order to its retreat province - out of every battle it is in (combatview.md,
+	/// section 2). A fleet is set breaking away.
 	/// </summary>
 	private void Retreat(CCombat combat)
 	{
@@ -1140,25 +1140,11 @@ public partial class CSession : Node
 				}
 				continue;
 			}
-			// An air unit is sent where a beaten one goes, out of a battle or a bombing.
-			if (unit.Kind == EUnitKind.Air)
+			// A land or an air unit is sent where a beaten one goes, out of a battle or a bombing.
+			var fallBack = new CFallBackCommand(Player.Tag, unit.Id);
+			if (fallBack.MayExecute(State))
 			{
-				var fallBack = new CFallBackCommand(Player.Tag, unit.Id);
-				if (fallBack.MayExecute(State))
-				{
-					_simulation.Post(fallBack);
-					_ordered = true;
-				}
-				continue;
-			}
-			if (!unit.IsMoving)
-			{
-				continue;
-			}
-			var command = new CCancelMovementCommand(Player.Tag, unit.Id);
-			if (command.MayExecute(State))
-			{
-				_simulation.Post(command);
+				_simulation.Post(fallBack);
 				_ordered = true;
 			}
 		}

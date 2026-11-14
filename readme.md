@@ -2223,10 +2223,10 @@ None of these blocks the list above.
   on the map is in its **air and naval map modes** - icons of the battles that are over: the
   air mode's are built (`airmap.md`), the naval mode's of convoys sunk and raiders fought are
   not (`combatview.md`, *What is not built*).
-- **The retreat button of a battle on land is not the original's.** The original gives every
-  unit of the player's the one order, to go where a beaten unit goes; here that is so for an
-  air unit, a fleet is set breaking away, and a land unit is only halted
-  (`combatview.md`, sections 2 and 11).
+- **The retreat button sends a land or an air unit where a beaten one goes, as the original's**, since 2026-11-14
+  (`combatview.md`, sections 2 and 11). A fleet is set breaking away with nowhere named; the original's move order also
+  notes the fleet's retreat province as where it is to go once out, which is not built (`reversing/findings/FINDINGS-movement.md`,
+  section 2).
 - **A battle in the air has been set beside the running game for one hour and never watched.** Its window and its
   row in a unit's panel were tried with real clicks and the maintainer has not looked at them
   (`combatview.md`, section 11); an hour of one over a province came out the original's, every draw and figure, on
