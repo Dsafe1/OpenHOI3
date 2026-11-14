@@ -186,6 +186,12 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    Australia, Republican Spain and the Dutch East Indies other targets or another order of votes, and Japan another port;
    a third run, watched live, gave Australia a third order of its sealift's areas and a third debark (section 71) - so its
    1st and 4th Australian Divisions, apart from both saves, are the original's spread and not a fault here.
+   **The 48 hours after July 1941 are set beside three runs of the original since 2026-11-14** (section 82): they give
+   each other the same new way for 228 land units, another for 18, and one run alone gives one 105 times, so a difference
+   is ours only where all three agree. The first found was the reorganisation's: a unit with a sealift `target`, or under
+   one, keeps its commander, and a command is scored by how far the unit is beyond *its* reach - Italy's army group no
+   longer walks to two armies the original never gives it, nor do Canada's, Spain's, China's, Brazil's, Argentina's or the
+   United States' headquarters move; ways no run of the original gives 84, mostly the Soviet Union's and Germany's.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

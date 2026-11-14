@@ -131,14 +131,20 @@ sorted: army groups, armies, corps, and the rest - **garrisons** where the first
 down one, the headquarters' up one); so is each of the agent's fleets (5.1) whose parent is not. Then divisions to corps,
 corps to armies, armies to army groups, each unit U with parent P in order:
 
+- U is left alone where the sealift means it, or P, for somewhere (the saved `target` above nought).
 - reach(H) = H's first brigade's `radio_strength` x the `RADIO_<level>_LEADER_DISTANCE` of H's level / 1000, nought for a
   unit with no brigade; over = -1000, or with a parent, `distance(U's destination or place, P's destination or place) -
   reach(P)`, in thousandths.
 - With P exactly one level above U: U is **kept** where P's march order blocks it or over <= 0, while P's promised count
   plus its children of U's kind is at most 4; otherwise, and with P elsewhere or none, U looks for a command:
 - each candidate K of the level above, in order: n = K's promised count + 1 + its children of U's kind; K may take U at n
-  <= 4, and at n = 5 only if K is P or U is beyond P's reach; score = the distance from U's place to K's, plus K's own
-  over where positive, **x 0.85 where K is P**; the lowest below 1,000,000 wins, the first of equals.
+  <= 4, and at n = 5 only if K is P or U is beyond P's reach and no garrison of its agent's; score = the distance from
+  U's place to K's, plus **how far U is beyond K's reach** - `distance(U's destination or place, K's destination or
+  place) - reach(K)` - where positive, **x 0.85 where K is P**, in single precision; the lowest below 1,000,000 wins, the
+  first of equals. The added term is U's distance beyond K, not K's beyond its own parent, and the sealift's skip was not
+  built: both read on the listing on 2026-11-14, after Italy's two armies under its theatre, each with a `target`, stayed
+  there for two days in three runs of the original and were moved under an army group here
+  (`reversing/findings/FINDINGS-liveread.md`, section 82).
 - A winner other than P: P's promised count down one, the winner's up one, and U attached under the winner.
 
 ### 4.3 What attaching does

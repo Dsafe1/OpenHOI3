@@ -285,6 +285,30 @@ public class AgentTests
 		Assert.Single(far.Children);
 	}
 
+	[Fact]
+	public void A_unit_the_sealift_means_for_somewhere_and_one_under_such_a_unit_keep_their_commander()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		(CAgent agent, CUnit headquarters) = Bound(state);
+		CUnit corps = Unit(state, EUnitKind.Corps, 10, CTheatreHeadquarters.HqBrigade, parent: headquarters);
+		CUnit bound = Unit(state, EUnitKind.Division, 11, "infantry_brigade", parent: headquarters);
+		bound.SealiftTarget = 25;
+		CUnit army = Unit(state, EUnitKind.Army, 11, CTheatreHeadquarters.HqBrigade, parent: headquarters);
+		army.SealiftTarget = 25;
+		CUnit under = Unit(state, EUnitKind.Corps, 11, CTheatreHeadquarters.HqBrigade, parent: army);
+		CUnit free = Unit(state, EUnitKind.Division, 11, "infantry_brigade", parent: headquarters);
+		CSubordinates.Sort(state, germany, agent);
+		CCommandLadder.Organise(state, germany, agent);
+		Drain(state);
+		// FINDINGS-liveread.md, section 82: Italy's 2nd Army and 2a Armata, each with a target, stayed under the theatre.
+		Assert.Same(headquarters, bound.Parent);
+		Assert.Same(army, under.Parent);
+		// A command under such a unit still takes others: the nearest, in the division's own province.
+		Assert.Same(under, free.Parent);
+		Assert.Empty(corps.Children);
+	}
+
 	// ---- fleets and air groups
 
 	[Fact]

@@ -23,11 +23,11 @@ public static class CCommandLadder
 	/// <summary>The most subordinates a command keeps of the level below, before the one being placed.</summary>
 	private const int Room = 4;
 
-	/// <summary>The current commander's score is this share of its distance, in thousandths.</summary>
-	private const long Kept = 850;
+	/// <summary>The current commander's score is multiplied by this.</summary>
+	private const double Kept = 0.85;
 
-	/// <summary>A score at or above this places nothing, in thousandths of a distance.</summary>
-	private const long Unplaced = 1_000_000_000;
+	/// <summary>A score at or above this places nothing.</summary>
+	private const float Unplaced = 1_000_000f;
 
 	private const long NotOver = -1000;
 
@@ -197,12 +197,22 @@ public static class CCommandLadder
 		return best;
 	}
 
-	/// <summary>Section 4.2: each unit kept under its commander, or moved to the nearest command of the level above with room.</summary>
+	/// <summary>
+	/// Section 4.2: each unit kept under its commander, or moved to the nearest command of the level above with room. A unit
+	/// the sealift means for somewhere, or whose commander it means for somewhere, is left alone. A command is scored by the
+	/// distance between the two units' places, plus how far the unit's destination is beyond the command's reach, the current
+	/// commander's at 0.85 of that; single precision, as the original's (<c>reversing/findings/FINDINGS-liveread.md</c>,
+	/// section 82).
+	/// </summary>
 	private static void Assign(CGameState state, CCountry country, List<CUnit> units, List<CUnit> commands, bool reorg)
 	{
 		foreach (CUnit unit in units)
 		{
 			CUnit? parent = unit.Parent;
+			if (unit.SealiftTarget > 0 || parent?.SealiftTarget > 0)
+			{
+				continue;
+			}
 			long over = parent is null ? NotOver : Over(state, unit, parent);
 			if (parent is not null && CAgentUnits.Level(parent) == CAgentUnits.Level(unit) - 1)
 			{
@@ -220,7 +230,7 @@ public static class CCommandLadder
 				continue;
 			}
 			CUnit? winner = null;
-			long least = Unplaced;
+			float least = Unplaced;
 			foreach (CUnit command in commands)
 			{
 				if (command.IsRemoved)
@@ -228,26 +238,22 @@ public static class CCommandLadder
 					continue;
 				}
 				int n = command.Promised + 1 + ChildrenOf(command, unit.Kind);
-				bool mayTake = n <= Room || (n == Room + 1 && (over > 0 || ReferenceEquals(command, parent)));
+				bool mayTake = n <= Room || (n == Room + 1 && ((over > 0 && !unit.IsGarrison) || ReferenceEquals(command, parent)));
 				if (!mayTake || unit.Location <= 0 || command.Location <= 0)
 				{
 					continue;
 				}
-				long score = CMapDistance.Between(state.Province(unit.Location), state.Province(command.Location),
-					state.MapWidth) * CFixedPoint.Scale;
-				if (command.Parent is { } above)
+				float score = CMapDistance.Between(state.Province(unit.Location), state.Province(command.Location), state.MapWidth);
+				long beyond = Over(state, unit, command);
+				if (beyond > 0)
 				{
-					long commandOver = Over(state, command, above);
-					if (commandOver > 0)
-					{
-						score += commandOver;
-					}
+					score = (float)((double)(float)((double)(float)beyond / CFixedPoint.Scale) + score);
 				}
 				if (ReferenceEquals(command, parent))
 				{
-					score = score * Kept / CFixedPoint.Scale;
+					score = (float)(score * Kept);
 				}
-				if (score < least)
+				if ((double)least > score)
 				{
 					least = score;
 					winner = command;
