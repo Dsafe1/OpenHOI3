@@ -183,7 +183,9 @@ public sealed class CTechDetails
 				: new CTooltip { Text = CTechnologyTooltips.CategoryIcon(_context.Localisation.Localise, _country, category, weight) });
 
 		// What its level does: the text a tree entry's tooltip gives, at the same level, laid out at the row's text box
-		// width and cut into rows - a piece under two characters dropped, and an empty row always last.
+		// width and cut into rows - a piece under two characters dropped, and an empty row always last. Each row goes into
+		// the list before its text is set, so the list counts its rows by the window's own height; a row given a piece is
+		// then made 180 wide and as tall as its text, and the list lays its rows out a first row's height apart.
 		if (_effects is null)
 		{
 			return;
@@ -204,11 +206,14 @@ public sealed class CTechDetails
 			{
 				break;
 			}
+			_effects.Add(line);
 			if (line.FindTextBox("text") is { } row)
 			{
 				row.Text = rows[index];
+				(float width, float height) = CTechDetailsRows.RowSize(rows[index], line.Size.X, line.Size.Y, row.DrawnHeight);
+				line.Size = new Godot.Vector2(width, height);
 			}
-			_effects.Add(line);
 		}
+		_effects.Relayout();
 	}
 }

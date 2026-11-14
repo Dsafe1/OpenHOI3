@@ -2653,15 +2653,10 @@ None of these blocks the list above.
   established.
 - **What the production screen's queue lines show was read out of the original and has not been looked at beside
   it**; what their buttons post is ours. `docs/mechanics/productionscreen.md`, section 6.
-- **The technology panel's `effects` rows keep their window's size**, where the original resizes each to 180 wide;
-  how it clips a wider row was not read. The rows themselves are the original's since 2026-11-13 - the tooltip's text
-  at its level, laid out and cut as it cuts it (`docs/mechanics/technologyscreen.md`, section 7).
-- **A resource's colour on the top bar leaves out one pool** the original adds to what comes in and no reading has
-  named; trade, debt and tribute are in it since 2026-11-13, with their lines in its tooltip and a government in
-  exile's supplies and fuel a dash (`topbar.md`, sections 2 and 14).
-- **Whether the top bar's picture changes with the country** was not read. The install
-  has a background for each of many tags beside the generic one that is drawn, and the
-  country screens do change theirs. `docs/mechanics/countryviews.md`, section 2.
+- **How the technology panel's `effects` list draws a row wider than 180 or than the list** was not read; here nothing
+  is cut. The rows are the original's since 2026-11-13 - the tooltip's text at its level, laid out and cut as it cuts
+  it - and since 2026-11-14 a filled row is 180 wide and its text's height, so the rows stand 14 apart
+  (`docs/mechanics/technologyscreen.md`, section 7).
 - **A misspelt modifier is not reported.** The modifier kinds are not a closed list here,
   so any key a block does not own is taken as one. `docs/mechanics/modifiers.md`, section 7.
 - **A country's modifier is not yet all of the original's eighteen sources**: `base_values`, its

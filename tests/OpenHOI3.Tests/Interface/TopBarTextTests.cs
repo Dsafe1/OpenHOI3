@@ -128,6 +128,24 @@ public class TopBarTextTests
 	}
 
 	[Fact]
+	public void TheBarsPictureIsLookedForUnderTheCountrysTag()
+	{
+		Assert.Equal("gfx/interface/skins/topbar_GER.dds", CTopBarText.SkinFile(new CCountryTag("GER")));
+		Assert.Equal("topbar_bg", CTopBarText.SkinIcon);
+	}
+
+	[Fact]
+	public void WhatGovernmentsInExileHandOverComesIn()
+	{
+		// The host of an exile's seat is handed its supplies and fuel each day; that is a gain on the bar.
+		Hold(EGoods.Supplies, "100");
+		Day(EGoods.Supplies, "0", "1");
+		Assert.StartsWith(Red, CTopBarText.Goods(_state, _country, EGoods.Supplies));
+		_country.ReceivedFromExiles[EGoods.Supplies] = CFixedPoint.Parse("1.001");
+		Assert.StartsWith(Green, CTopBarText.Goods(_state, _country, EGoods.Supplies));
+	}
+
+	[Fact]
 	public void AGovernmentInExileShowsADashForSuppliesAndFuel()
 	{
 		_country.InExile = true;

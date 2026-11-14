@@ -277,6 +277,8 @@ All of these are risk-free but for what the entry says.
 
 - **Influence's colour never reaches the screen.** `topbar.md`, 7. *Bug.*
 - **Tribute sent to a master shows green with a plus.** `topbar.md`, 14. *Display.*
+- **What governments in exile hand over has no line in a resource's tooltip.** The change at its head counts their supplies and fuel, and no line under it says where they came from, so the lines do not add up to the change. `topbar.md`, 14. *Display.*
+- **The top bar's country picture is set once, as the game is entered**, so a played country changed in play would keep the first one's picture. Nothing here shows it: the console's `tag` makes every screen again, the bar with them. `topbar.md`, 1. *Oversight.*
 - **The technology screen's sliders take the production screen's locks:** it reads the first four entries of the production screen's mirror for its own four - research locked where upgrades were - and never writes it, so its own locks last only while the screen stands. `sliders.md`, 3. *Bug.*
 - **The technology panel goes stale.** Its name, year, difficulty and rows of what the level does are made only when a technology is pressed, so a level finished or a law changed leaves the old ones up; and a one-level technology is described at level 1 for ever, a many-level one a level past its last. `technologyscreen.md`, 7. *Display.*
 - **Money repaid on a debt counts as coming in.** The top bar's colour, the ledger tooltip's change and the Lua's daily balance take `repaid away` away from what goes out, though it is held above nought, so a repayment turns money green. `topbar.md`, 2. *Bug.*

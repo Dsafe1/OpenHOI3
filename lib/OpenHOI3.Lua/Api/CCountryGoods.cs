@@ -28,7 +28,7 @@ public static class CCountryGoods
 
 	/// <summary>
 	/// The income side of the balance: home production - and convoyed in, but not for supplies or fuel - with
-	/// what came back, was repaid to it, was made and was traded for.
+	/// what came back, was handed over by governments in exile, was repaid to it, was made and was traded for.
 	/// </summary>
 	public static long Income(CGameApi api, CCountry country, EGoods goods)
 	{
@@ -37,7 +37,8 @@ public static class CCountryGoods
 		{
 			home += country.ConvoyedIn[goods].Raw;
 		}
-		return home + country.SentBack[goods].Raw + Repaid(country.IncomeFromDebt, goods) + country.ConversionMade[goods].Raw
+		return home + country.SentBack[goods].Raw + country.ReceivedFromExiles[goods].Raw
+			+ Repaid(country.IncomeFromDebt, goods) + country.ConversionMade[goods].Raw
 			+ country.TradedFor[goods].Raw + country.TributeReceived[goods].Raw;
 	}
 

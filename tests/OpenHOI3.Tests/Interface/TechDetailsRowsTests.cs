@@ -30,6 +30,14 @@ public class TechDetailsRowsTests
 	}
 
 	[Fact]
+	public void A_filled_row_is_180_wide_and_as_tall_as_its_text_and_an_empty_one_keeps_its_windows_size()
+	{
+		// country_technology.gui's detail_entry is 1024 by 16; Arial12's line is 14 high.
+		Assert.Equal((180f, 14f), CTechDetailsRows.RowSize("ab", 1024, 16, 14));
+		Assert.Equal((1024f, 16f), CTechDetailsRows.RowSize("", 1024, 16, 0));
+	}
+
+	[Fact]
 	public void No_text_is_one_empty_row()
 	{
 		Assert.Equal(new[] { "" }, CTechDetailsRows.Rows("", 10, Measure));

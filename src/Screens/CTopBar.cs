@@ -155,6 +155,7 @@ public partial class CTopBar : Control
 		else
 		{
 			CCountry player = Player;
+			ShowSkin(player);
 			foreach (string name in CTopBarTooltips.Elements())
 			{
 				if (_window.TryFindElement(name) is { } element)
@@ -213,6 +214,25 @@ public partial class CTopBar : Control
 			_shown = country;
 			_flag?.SetCountry(country);
 			Set(_countryName, country.Name);
+		}
+	}
+
+	/// <summary>
+	/// The bar's picture is the country's own where the install has one - <c>gfx/interface/skins/topbar_TAG.dds</c> - and
+	/// otherwise what its sprite names, set once as the game is entered (<c>docs/mechanics/topbar.md</c>, section 1). The
+	/// icon is asked for only where the file is there, as the original asks for it; one the window lacks is named in the
+	/// log, where the original's would fail.
+	/// </summary>
+	private void ShowSkin(CCountry player)
+	{
+		string file = CTopBarText.SkinFile(player.Tag);
+		if (!_context.Textures.Exists(file) || _window?.FindIcon(CTopBarText.SkinIcon) is not { } icon)
+		{
+			return;
+		}
+		if (_context.Textures.LoadFromGamePath(file) is { } skin)
+		{
+			icon.SetTexture(skin);
 		}
 	}
 

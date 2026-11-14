@@ -164,7 +164,8 @@ nothing here yet has a null element to show.
 ### 4.2 Goods, the day and surrender
 
 `GetDailyBalance(g)` is what came in less what went out: home production (and convoyed in, but not
-for supplies or fuel) + sent back + repaid to it + conversion made + traded for, less sent to -
+for supplies or fuel) + sent back + handed over by governments in exile (since 2026-11-14, `topbar.md`, section 2) +
+repaid to it + conversion made + traded for, less sent to -
 repaid away + used + conversion used + convoyed out + traded away - **the day's debt repaid taken off
 the spending**, as the original writes it; the debts move money alone (`aid.md`, section 1).
 `GetDailyExpense(g)` is traded away - repaid away + convoyed out + conversion used + sent to + used.

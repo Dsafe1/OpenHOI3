@@ -216,8 +216,20 @@ its folder.
 
 *Ours:* `start` puts the technology on the end of the queue, or takes it off; the panel's own `close` goes back to the
 theories and practicals. `start` and the two status icons are kept up to date as the panel stands, the original's
-routine for them past the panel's making not being read. The original also resizes each filled row to 180 wide, and how a
-row wider than that or than the list (310) is clipped was not read; here a row keeps its window's size.
+routine for them past the panel's making not being read.
+
+**A row a piece is put in is made 180 wide and as tall as its text** - its text box's own account of it, its lines
+times its font's line height and its border twice: Arial12's 14 for every filled row, a piece never wrapping again. A
+row left empty - the last, or the only one of a technology that does nothing - keeps its window's file size, 1024 by 16.
+`confirmed` (read 2026-11-14, `reversing/findings/FINDINGS-countryviews.md`, section 5.5). **What that does to the list**,
+by the list box's rule (`interface.md`, section 2): each row is put in the list before its text is set, so the list
+counts its rows by the 16 of the file - five in the box's 82 - and then lays them out **a first row's height apart, 14**,
+where they were 16 apart before; `spacing` plays no part, so the empty row last is 14 below the last line, not 2.
+`confirmed` from the two readings together; nothing measured on the original's screen. Built 2026-11-14
+(`CTechDetailsRows.RowSize`) and tried with `--click`: Small Arms pressed in the tree, its rows 14 apart, two presses of
+the list's down arrow moving it two rows. *Not read:* how a row wider than 180 or than the list (310) is drawn - the
+original's draw list has a scissor flag, but the one rectangle it would cut to is written nowhere but the graphics'
+constructor, which zeroes it, so nothing seems to set it (`inferred`); here nothing is cut.
 
 ## 8. Ours
 

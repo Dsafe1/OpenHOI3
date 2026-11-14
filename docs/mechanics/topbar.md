@@ -26,8 +26,28 @@ finds these by name:
 | icon | `player_flag` |
 | buttons | `topbarbutton_diplo`, `topbarbutton_prod`, `topbarbutton_tech`, `topbarbutton_politics`, `topbarbutton_intelligence`, `topbarbutton_theatre`, `topbarbutton_statistics`, `swm_open`, `topbar_menubutton`, `topbar_outlinerbutton`, `button_speedup`, `button_speeddown`, `speed_indicator`, `pause_bg` |
 
-The other icons - the pictures beside the figures, the background - are found by nothing
-and are there to be looked at.
+The other icons - the pictures beside the figures - are found by nothing and are there to
+be looked at.
+
+**The bar's picture is the country's own where the install has one.** `confirmed` (read
+2026-11-14, `reversing/findings/FINDINGS-topbar.md`, *The skin*): as the game is entered, once,
+the file `gfx/interface/skins/topbar_` + the played country's tag + `.dds` is looked for, and
+**only where it is there** the icon `topbar_bg` is given it, drawn through the sprite
+`GFX_topbar_bg` as before; otherwise the icon keeps what that sprite names, `topbar_generic`. By
+the tag alone - not the faction, not the government. Their Finest Hour has 46 such files, `GER`,
+`ENG`, `SOV` and `USA` among them, Siam among the minors; Ireland has none and keeps the generic
+picture. The same step gives the country screens theirs (`countryviews.md`, section 2).
+
+- **Nothing sets it again**: the step's one caller is the entering of the game, so a played
+  country changed in play would keep the first one's picture - listed in `docs/enhanced.md`.
+  *Ours:* the console's `tag` makes every screen again (`console.md`), so here the bar follows.
+- **The original does not ask whether the window has `topbar_bg`**: a mod with the file and no
+  such icon would fail. *Ours:* the icon is asked for only where the file is there, as the
+  original asks, and one the window lacks is named in the log.
+
+Built 2026-11-14 (`CTopBarText.SkinFile`, `CTopBar`) and looked at with `--country=GER`, `ENG`,
+`SOV`, `USA`, `SIA` and `IRE`: the five with a file each drawn in its own, Ireland's the generic
+green, the main checkout's the generic green for all.
 
 **Every figure is set again on every pass**, and a box set to what it already shows does
 nothing. The date is the exception: it is worked out only when the hour has changed. The
@@ -46,7 +66,8 @@ flag and the name are set only when the country played changes.
     out = sent to units - repaid away - tribute sent + used + used in converting
           + convoyed out + traded away
     in  = produced at home + convoyed in (not for supplies or fuel) + sent back by units
-          + income from debt + made by converting + tribute received
+          + handed over by governments in exile + income from debt + made by converting
+          + tribute received
 
     red     if out > in + traded for
     green   else if out < in
@@ -63,9 +84,14 @@ The original's: `§G3804`, `§G1906`, `§G951`, `§R1870`, `§G462`, `§G391`, `
 adds the day's repayment to it as it is), so money repaid on a debt makes the colour greener, not redder - the
 original's, kept and listed in `docs/enhanced.md`. A debt is repaid in money alone.
 
-*Ours:* every ledger is there since 2026-11-13 - trade (`trade.md`), debt (`aid.md`) and tribute
-(`stockpile.md`, section 7) with the rest - but **one more pool the original adds to what comes in**, which no
-reading has named (`reversing/findings/FINDINGS-topbar.md`); it is left out.
+**Handed over by governments in exile** is the pool the reading of the bar left unnamed: each day a government in
+exile hands its supplies and fuel to whoever controls its acting capital, and they are counted here for that country
+(`war.md`, section 14; `reversing/findings/FINDINGS-surrender.md`, C.5). So only supplies and fuel ever have any of it.
+`confirmed`
+
+Every ledger is there since 2026-11-14 - trade (`trade.md`), debt (`aid.md`) and tribute (`stockpile.md`, section 7)
+since 2026-11-13, what exiles hand over since 2026-11-14 - and the same sum is the Lua's daily balance and income
+(`lua.md`, section 4.2).
 
 ## 3. IC
 
@@ -233,7 +259,8 @@ then one line for each of these that is not nothing, in this order, each its key
 what converting used, negated, `§R`; then what it made, `§G+` - `RES_TRADED_AWAY`,
 `RES_REPAID_AWAY`, `RES_CONVOYED_OUT` (each `§R` and negated), `RES_SENT_TO_MASTER` (**`§G+` and
 negated, green though it is a loss**), `RES_INTO_NET` and `RES_USED` (`§R`, negated),
-`RES_SHIPPED_BACK` (`§G+`). Each key ends in its own newline. Last, a newline and the sources
+`RES_SHIPPED_BACK` (`§G+`). **What governments in exile hand over is in the change and has no line of
+its own.** Each key ends in its own newline. Last, a newline and the sources
 of the good's global kind - `global_energy`, `global_metal`, `global_rare_materials`,
 `global_crude_oil`, `global_fuel`, `global_supplies`, `global_money`.
 
@@ -304,7 +331,8 @@ IC with a minister's and a law's lines, and manpower's delayed half.
 
 **Kept as read, though they look odd:**
 
-1. **Tribute sent to a master shows green, with a plus**, though it is a loss.
+1. **Tribute sent to a master shows green, with a plus**, though it is a loss; and **what exiles hand
+   over is counted in the change with no line saying so** (`docs/enhanced.md`).
 2. **Dissent's change is rounded** where every other figure is cut.
 3. **Manpower's delayed half has a blank line before the technology line** wherever a source
    after the last flat-manpower one has nothing of it - the line break that source leaves, and
@@ -329,11 +357,7 @@ IC with a minister's and a law's lines, and manpower's delayed half.
 3. **How spare IC is rounded** share by share.
 4. **What moves national unity each day.** The savegames show it moving and fit spies; the
    routine has not been read.
-5. **The skin.** The bar's background is the sprite `GFX_topbar_bg`, whose texture is
-   `skins/topbar_generic`; the same folder holds a `country_bg` for each of many tags, and
-   the original looks `GFX_topbar_bg` up by name from its code. Whether it swaps the bar's
-   picture by country was not read. The country screens do swap theirs, from the same
-   folder (`countryviews.md`, section 2), which makes it likely.
+5. ~~**The skin.**~~ Read 2026-11-14: it follows the country's tag (section 1).
 6. **`pause_bg`'s own tooltip.** The bar gives the button `PAUSE_RESUME` or `FE_PAUSED_TEXT`
    (section 12), and nothing read asks a button for it, so whether it is ever shown is not
    known. Here it is not.

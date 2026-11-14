@@ -134,6 +134,17 @@ public class TopBarTooltipTests
 	}
 
 	[Fact]
+	public void What_exiles_hand_over_is_in_the_change_and_has_no_line_of_its_own()
+	{
+		(CGameState state, CCountry germany) = State();
+		germany.ReceivedFromExiles[EGoods.Fuel] = CFixedPoint.FromInt(2);
+		germany.Usage[EGoods.Fuel] = CFixedPoint.FromInt(1);
+
+		// The original counts the pool in the day's change and writes no line for it.
+		Assert.Equal("Changes by §G+1.00§W every day.\n§R-1.00§W used.\n\n", For(state, germany, "fuel_number").Text);
+	}
+
+	[Fact]
 	public void A_government_in_exile_says_nothing_of_its_supplies_and_fuel()
 	{
 		(CGameState state, CCountry germany) = State();

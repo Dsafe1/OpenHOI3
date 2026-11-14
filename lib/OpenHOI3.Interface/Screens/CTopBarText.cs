@@ -28,6 +28,16 @@ public static class CTopBarText
 
 	private const string NationalUnityChange = "national_unity";
 
+	/// <summary>The icon the bar's own picture is: <c>topbar.gui</c>'s, of the sprite <c>GFX_topbar_bg</c>.</summary>
+	public const string SkinIcon = "topbar_bg";
+
+	/// <summary>
+	/// The country's own picture for the bar: <c>gfx/interface/skins/topbar_</c>, the played country's tag, <c>.dds</c>.
+	/// Where the install has it, it takes the place of what <c>GFX_topbar_bg</c> names, as the game is entered
+	/// (<c>topbar.md</c>, section 1).
+	/// </summary>
+	public static string SkinFile(CCountryTag tag) => "gfx/interface/skins/topbar_" + tag + ".dds";
+
 	/// <summary>
 	/// What convoys brought a country today that counts as coming in: everything but
 	/// supplies and fuel, which a convoy lands in a harbour across the sea and not in
@@ -58,11 +68,13 @@ public static class CTopBarText
 
 	/// <summary>
 	/// What came in of a good today without what was bought: made at home, landed by convoys (not supplies or fuel),
-	/// sent back by the units, repaid on debts owed to the country, made by converting and tribute received.
+	/// sent back by the units, handed over by governments in exile, repaid on debts owed to the country, made by
+	/// converting and tribute received.
 	/// </summary>
 	public static CFixedPoint DayIn(CCountry country, EGoods goods)
 	{
-		return country.HomeProduced[goods] + ConvoyedIn(country, goods) + country.SentBack[goods] + IncomeFromDebt(country, goods)
+		return country.HomeProduced[goods] + ConvoyedIn(country, goods) + country.SentBack[goods]
+			+ country.ReceivedFromExiles[goods] + IncomeFromDebt(country, goods)
 			+ country.ConversionMade[goods] + country.TributeReceived[goods];
 	}
 

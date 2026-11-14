@@ -46,9 +46,10 @@ not read.
 has that file**. If it has not, the icon keeps what its sprite names - the generic one.
 The install has such a file for many countries.
 
-This answers, for the country screens, the question `topbar.md` leaves open for the top
-bar. The same folder holds `topbar_TAG.dds` files beside them, which makes it `likely`
-the top bar does the same; that was still not read.
+The top bar does the same with `topbar_TAG.dds` from the same folder, in the same step - read
+2026-11-14 (`topbar.md`, section 1): as the original enters a game it asks each country screen
+for its picture and then sets the bar's. *Ours:* a screen takes its picture when it is first
+opened and again whenever the country played is another.
 
 ## 3. The line that says who runs it
 
