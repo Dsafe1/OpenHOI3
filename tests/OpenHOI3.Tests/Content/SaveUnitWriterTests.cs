@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Saves;
 using OpenHOI3.Sim;
@@ -157,6 +158,22 @@ public class SaveUnitWriterTests
 		writer.OpenRoot();
 		CSaveUnitWriter.Write(writer, state, unit);
 		Assert.Equal(Known.Replace("1 31 8 9 20 4 ", "1 31 8 "), writer.Text);
+	}
+
+	[Fact]
+	public void A_second_country_intel_key_adds_its_grants_to_the_first_ones()
+	{
+		// The original's loader appends each key's triples to what the unit holds (savegame.md, section 5).
+		CGameState state = State(out CCountry germany);
+		var ids = new CSaveIds();
+		ids.SetHistoryNext(100);
+		var reader = new CSaveUnitReader(state, ids, new CSaveReport());
+		string twice = Known.Replace("1 31 8 9 20 4 \t}", "1 31 8 \t}\r\n\tcountry_intel=\r\n\t{\r\n1 5 3 \t}");
+		ClausewitzNode block = ClausewitzParser.Parse(twice).Children[0];
+		CUnit unit = reader.Read(block, CSaveUnitReader.UnitKinds[block.Key!], germany, parent: null, carriedBy: null)!;
+		reader.Finish();
+
+		Assert.Equal(new[] { (31, 8), (5, 3) }, unit.IntelGrants.Select(g => (g.Days, g.Level)));
 	}
 
 	[Fact]

@@ -1959,11 +1959,12 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 - **What a load still does not give back**, checked path by path on 2026-11-14 (`OpenHOI3.SaveCheck reload`;
   `savegame.md`, section 20): every path is under an entry of `docs/enhanced.md`'s *A whole game's replay* or is noise
-  the check now leaves out, but for one of ours - whether a battle at sea, in the air or a bombing has its modifiers
-  made again on entering, as the original's entering does (whether it draws for them was not read). The order of a
+  the check now leaves out. ~~Whether a battle at sea, in the air or a bombing has its modifiers made again on entering~~:
+  every battle's are, of every kind, as the original's entering does, read the same day - a battle at sea or a bombing
+  of ships saved before its first round drawing for its surprise, no other (`savegame.md`, section 20). The order of a
   country's ministers among its modifier's sources, which the tooltips list, is the posts' since the same day, as the
-  original walks its cabinet's fixed slots (`modifiers.md`, section 4). `country_intel` is read and written since; that
-  its first number is the country's place plus one is *measured*, not read.
+  original walks its cabinet's fixed slots (`modifiers.md`, section 4). `country_intel` is read and written since, its
+  first number the country's place plus one - the original's id of it, written and read unchanged, read the same day.
 
 - **The AI drops no nuclear bomb**: its strategic targets, the enemy's war industry handed to the agents whose air bases are nearest, are not built (`moving.md`; `nukes.md`, *Ours*).
 

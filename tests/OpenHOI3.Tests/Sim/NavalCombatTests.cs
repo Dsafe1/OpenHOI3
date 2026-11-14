@@ -377,6 +377,34 @@ public class NavalCombatTests
 	}
 
 	[Fact]
+	public void EnteringABattleSavedBeforeItsFirstRoundRollsTheSurpriseAndOneSavedLaterDoesNot()
+	{
+		// Entering a game asks every battle's modifiers again, the attacker first (savegame.md, section 20).
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		state.Defines.Set(CManpower.MilitarySection, CNavalModifiers.SurpriseChance, CFixedPoint.FromInt(100));
+		CUnit wolves = Fleet(state, germany, Bight, Submarine, Destroyer);
+		CUnit theirs = Fleet(state, poland, Bight, Submarine);
+		CCombat combat = Battle(state, wolves, theirs);
+
+		// Saved before its first round: one draw for the attacker's fleet with a submarine, none for the defender's.
+		combat.Hour = CCombat.NotStarted;
+		long draws = state.Random.Draws;
+		CCombats.ApplyModifiers(state, combat);
+		Assert.Equal(draws + 1, state.Random.Draws);
+		Assert.Equal(CFixedPoint.FromInt(6), wolves.SubUnits[0].CombatAttack);
+		Assert.True(combat.Attacker.HadSurprise);
+
+		// Saved after its rounds began: nothing is drawn, and a surprise the save does not keep is gone.
+		combat.Hour = 1;
+		combat.Attacker.HadSurprise = false;
+		draws = state.Random.Draws;
+		CCombats.ApplyModifiers(state, combat);
+		Assert.Equal(draws, state.Random.Draws);
+		Assert.Equal(CFixedPoint.One, wolves.SubUnits[0].CombatAttack);
+		Assert.False(combat.Attacker.HadSurprise);
+	}
+
+	[Fact]
 	public void ACapitalShipWithTooFewScreensDefendsWorseAndAnExperiencedShipDoesBoth()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

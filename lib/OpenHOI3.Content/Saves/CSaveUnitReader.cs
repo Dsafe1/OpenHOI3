@@ -243,12 +243,12 @@ public sealed class CSaveUnitReader
 
 	/// <summary>
 	/// <c>country_intel</c>: what other countries were given to know of the unit, three numbers a grant - the country's
-	/// number plus one, as lend-lease numbers its countries, the days left and the level (savegame.md, section 5). A number
+	/// number plus one, the original's null country being the first, then the days left and the level, each stored as
+	/// written (savegame.md, section 5). Appended to what the unit holds, as the original appends a second key's. A number
 	/// of no country is reported and the grant passed over.
 	/// </summary>
 	private void ReadIntelGrants(CUnit unit, ClausewitzNode entry)
 	{
-		unit.IntelGrants.Clear();
 		List<ClausewitzNode> values = entry.Children;
 		for (int i = 0; i + 2 < values.Count; i += 3)
 		{

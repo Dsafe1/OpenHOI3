@@ -360,6 +360,21 @@ public static class CLoadCheck
 		}
 		// Through the simulation, as the client plays a load: entering the game runs the AI's pass and what it posts.
 		var simulation = new CSimulation(state, discardEntryOrders: skipEntry);
+		// What entering made of each battle's modifiers, by kind: how many of its holders - a land battle's units, every
+		// other kind's brigades, ships and wings - note any (savegame.md, section 20).
+		if (state.Combats.Count > 0)
+		{
+			Console.WriteLine("battles' modifiers as entered, holders noting any, by kind: " + string.Join(", ",
+				state.Combats.GroupBy(c => c.Kind).Select(g =>
+				{
+					var holders = g.SelectMany(c => c.Attacker.Units.Concat(c.Defender.Units)).ToList();
+					int all = g.Key == ECombatKind.Land ? holders.Count : holders.Sum(u => u.SubUnits.Count);
+					int noted = g.Key == ECombatKind.Land
+						? holders.Count(u => u.CombatModifiers.Count > 0)
+						: holders.Sum(u => u.SubUnits.Count(s => s.CombatModifiers.Count > 0));
+					return $"{g.Key} {noted} of {all}";
+				})));
+		}
 		simulation.RunHours(hours);
 		// The orders the last hour's AI posted wait for the next drain; the save was written after they ran.
 		simulation.Pump();

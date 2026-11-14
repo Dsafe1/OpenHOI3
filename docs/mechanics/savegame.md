@@ -128,7 +128,7 @@ with everything under it:
 
 | block | keys read |
 | --- | --- |
-| unit | `id`, `name`, `base`, `leader`, `previous`, `movement_progress`, `path`, `location`, `retreat`, `dig_in`, `attack_delay`, `combat_hours`, `is_prioritized`, `can_reinforce`, `can_upgrade`, `fuel` and `supplies` (what it was given), `start_date` and `end_date` (the order's two hours, `landorders.md` section 5), `disengage`, `possible_retreat`, `track` (shadowed by a patrol), `was_paradropped`, `is_reserve`, `plan`, `target` and `staging_province` (the AI's sealift and an airborne army's staging), `at_sea` (the hours before a fleet starts another battle), `country_intel` (what other countries were given to know of it, three numbers a grant - the country's place plus one, the days left, the level; section 20), the order, every brigade, every unit under it |
+| unit | `id`, `name`, `base`, `leader`, `previous`, `movement_progress`, `path`, `location`, `retreat`, `dig_in`, `attack_delay`, `combat_hours`, `is_prioritized`, `can_reinforce`, `can_upgrade`, `fuel` and `supplies` (what it was given), `start_date` and `end_date` (the order's two hours, `landorders.md` section 5), `disengage`, `possible_retreat`, `track` (shadowed by a patrol), `was_paradropped`, `is_reserve`, `plan`, `target` and `staging_province` (the AI's sealift and an airborne army's staging), `at_sea` (the hours before a fleet starts another battle), `country_intel` (what other countries were given to know of it, three numbers a grant - the country's place plus one, which is the original's id of it, the days left, the level, each stored as written; section 20), the order, every brigade, every unit under it |
 | brigade (`regiment`, `ship`, `wing`) | `id`, `name`, `type`, `organisation`, `strength`, `highest`, `experience`, `is_reserve`, `pride`, `current_distance`, every `<technology>={level progress}`, and a carrier's `air` groups |
 | order | `province`, `target`, `stance`, `start_date`, `death_date` (the end hour; `1.1.1` none), `return_to_base`, `time`, `priority`; a patrol's and an intercept's `provinces` and a join's `join_fleet` (the unit aimed at), an air order's `provinces` (its area), a sortie's `start` and `current`, a raid's `attack` (its hours to the next try at the convoys - *inferred* from the field it is written from), an escort's `convoy` and second `province`, a support attack's `combat`, an air supply's `supplies` and `fuel`, an invasion's `transport` (the sea the landing is made from, `FINDINGS-transport.md` B.1) |
 | plan | `active`, `allow_hq_reorg`, the three stances, `our_power`, `their_power`, `embark`, `debark`, `path`, `path2`, `ops_area`, every `objective`, `min` |
@@ -698,8 +698,8 @@ Play (`frontend.md`, section 4).
   and two dozen countries wrong, so it is neither, and needs reading (section 5).
 - ~~The country a unit's `country_intel` triple names: its first number is a country's, by a numbering not matched to the
   save's order of countries, so the grants are reported and not read.~~ It is the country's place plus one, as
-  lend-lease numbers its countries (*measured*, section 20); read and written since 2026-11-14. That the original's
-  stored figure is that number was not read in the bytes.
+  lend-lease numbers its countries - the original's id of the country, stored so and written and read unchanged (read,
+  section 20); read and written since 2026-11-14.
 - The exception the original makes where a carrying fleet is in its passenger's own subtree, the fleet written in the
   passenger's place: in none of the maintainer's saves, and not handled.
 - A naval order's `capital`, `sub_unit` and `other`, the halt figure `stop` and an air order's figure for each air type:
@@ -810,17 +810,31 @@ load makes it again and ours did not; or lost in the original too and not yet li
 **The loader's gaps, mended**:
 
 - **`country_intel`** (section 5): the grants on a unit, three numbers each. The first is **the country's place plus
-  one**, as lend-lease numbers its countries - *measured*: read so, `Germany1936_01_07_22`'s 22 grants name no country
-  granted its own units and no country that does not yet exist, where read as the place itself the Soviet Union's units
-  would be granted to the Soviet Union and to Croatia; and they are written back as they were read. Without them a
-  loaded game's knowledge of 102 provinces differed after entering, the grants being what puts a country's knowledge of
-  a unit's province up.
+  one**, as lend-lease numbers its countries - **read**: the original stores the granted country's id, its countries
+  being numbered from a null country before the first of the save's blocks, and its writer and loader copy the three
+  numbers unchanged (`reversing/findings/FINDINGS-savegame.md`, C.2). It had been *measured* first: read so,
+  `Germany1936_01_07_22`'s 22 grants name no country granted its own units and no country that does not yet exist. Its
+  loader also appends a second key's grants to the first's, as this does since; with a count not a multiple of three the
+  original reads past what it parsed, where this reports it and passes over the rest. Without the grants a loaded game's
+  knowledge of 102 provinces differed after entering, the grants being what puts a country's knowledge of a unit's
+  province up.
 - **Every province's season and night** are made for the saved hour as a loaded game is entered, as the original's
   entering does (`weather.md`, section 4); the season had waited to be asked for.
-- **A land battle's modifiers** are made again for both sides as any game is entered, as the original's entering does
-  for every battle (`reversing/findings/FINDINGS-savegame.md`, A.5): the AI's odds read them before the battle's next
-  hour. A battle at sea's, in the air's and a bombing's wait for their hour, their modifiers drawing on the generator,
-  and whether the original's entering draws for them was not read.
+- **Every battle's modifiers** are made again as any game is entered, of every kind - land, sea, air and the
+  bombings - the attacker's side and then the defender's, as the original's entering does and as each kind's own hour
+  does (`reversing/findings/FINDINGS-savegame.md`, A.5.1; `CCombats.ApplyModifiers`): the AI's odds read them before the
+  battle's next hour. Until the same day only a land battle's were; the rest waited for their hour. **Only two draw on
+  the generator, and only while a battle has not fought a round past its first**: a battle at sea, one draw for each of
+  the attacker's fleets with a submarine, and a bombing of ships, one draw for the bombers - their chance of a surprise.
+  A saved battle has fought a round past its first unless it was saved before its first round, so only such a battle
+  draws as a game is entered, and it draws again in that first round. In a new game the original's entering comes
+  before the two days and finds no battle; here the pass after them finds the first hour's, past their first round, and
+  draws nothing. **Checked** with `OpenHOI3.SaveCheck load` and the hour run, the holders noting any modifier as entered
+  set beside those before the change: `Ireland1936_02_02_04` - land 2 of 2 and 2, air 5 of 5 where 0, a bombing of land
+  4 of 4 where 0; `Ireland1937_07_05_02` sea 4 of 4 where 0; `Ireland1937_11_02_21` land 7 of 7 and 7, sea 6 of 6 where
+  0; `Ireland1938_08_03_14` land 13 of 13 and 13, a bombing of land 16 of 16 where 0. No save of the maintainer's holds
+  a battle saved before its first round, so none draws. **A surprise is lost on a load**, in the original too: it is
+  carried from round to round on the side, which the save does not keep (`docs/enhanced.md`).
 - **`load_oob`** did nothing in a loaded game: the reader of order-of-battle files was given to a new game alone.
 - **An acting capital of nought** - a country that has none - follows its capital again, as one does in a running game,
   where the load had fixed it at nought.

@@ -793,6 +793,36 @@ public class BombingTests
 	}
 
 	[Fact]
+	public void EnteringABombingOfShipsSavedBeforeItsFirstRoundDrawsOnceAndOneOfLandNever()
+	{
+		// Entering a game asks every battle's modifiers again, bombings too (savegame.md, section 20).
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit fleet = Unit(state, poland, EUnitKind.Navy, Bay, Cruiser);
+		CUnit torpedoes = Air(state, germany, Bay, Torpedo);
+		torpedoes.Order = EUnitOrder.NavalStrike;
+		var bombing = new CCombat(Bay, ECombatKind.NavalBombing);
+		CBombing.Join(bombing.Attacker, torpedoes);
+		CBombing.Join(bombing.Defender, fleet);
+		state.SeedHour();
+
+		long draws = state.Random.Draws;
+		CCombats.ApplyModifiers(state, bombing);
+		Assert.Equal(draws + 1, state.Random.Draws);
+		bombing.Hour = 1;
+		CCombats.ApplyModifiers(state, bombing);
+		Assert.Equal(draws + 1, state.Random.Draws);
+
+		CUnit bombers = Air(state, germany, Warsaw, Tactical);
+		bombers.Order = EUnitOrder.GroundAttack;
+		CUnit resting = Unit(state, poland, EUnitKind.Division, Warsaw, Infantry);
+		var onLand = new CCombat(Warsaw, ECombatKind.LandBombing);
+		CBombing.Join(onLand.Attacker, bombers);
+		CBombing.Join(onLand.Defender, resting);
+		CCombats.ApplyModifiers(state, onLand);
+		Assert.Equal(draws + 1, state.Random.Draws);
+	}
+
+	[Fact]
 	public void AShipGoesOnALeaderlessBombersListOneTimeInAHundred()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

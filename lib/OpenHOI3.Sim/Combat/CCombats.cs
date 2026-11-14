@@ -34,6 +34,35 @@ public static class CCombats
 		return null;
 	}
 
+	/// <summary>
+	/// What the hour's circumstances make of both sides of a battle, by its kind: the attacker's side first and then the
+	/// defender's, as each kind's own hour asks them and as entering a game asks them of every battle on the list
+	/// (<c>docs/mechanics/savegame.md</c>, section 20). A battle at sea and a bombing of ships draw on the game's
+	/// generator for a surprise while they have not fought a round past their first; the others draw nothing.
+	/// </summary>
+	public static void ApplyModifiers(CGameState state, CCombat combat)
+	{
+		switch (combat.Kind)
+		{
+			case ECombatKind.Land:
+				CCombatModifiers.Apply(state, combat, combat.Attacker);
+				CCombatModifiers.Apply(state, combat, combat.Defender);
+				break;
+			case ECombatKind.Naval:
+				CNavalModifiers.Apply(state, combat, combat.Attacker);
+				CNavalModifiers.Apply(state, combat, combat.Defender);
+				break;
+			case ECombatKind.Air:
+				CAirModifiers.Apply(state, combat, combat.Attacker);
+				CAirModifiers.Apply(state, combat, combat.Defender);
+				break;
+			default:
+				CBomberModifiers.Apply(state, combat);
+				CBombTargetModifiers.Apply(state, combat);
+				break;
+		}
+	}
+
 	public static bool HasCombatIn(CUnit unit, int province)
 	{
 		foreach (CCombat combat in unit.Combats)
