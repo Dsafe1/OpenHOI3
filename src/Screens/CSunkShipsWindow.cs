@@ -71,7 +71,8 @@ public sealed class CSunkShipsWindow
 			row.FindIcon("country")?.SetCountry(owner);
 			if (row.FindTextBox("model") is { } model)
 			{
-				model.Text = CBrigadeTooltips.ModelName(context.Localisation.Localise, context.Localisation.Find, owner, sunk.Ship);
+				model.Text = CBrigadeTooltips.ModelLabel(context.Localisation.Localise, context.Localisation.Find, state, owner, sunk.Ship)
+					?? context.Localisation.Localise(sunk.Ship.Type.Key);
 			}
 		}
 	}

@@ -295,6 +295,9 @@ All of these are risk-free but for what the entry says.
 - **Revolt tooltip mismatches, and its alert is never shown.** `revolt.md`, 7. *Unfinished.*
 - **Offers past the tenth are invisible,** and still decline themselves after a week. `agreements.md`, oddity 11. *Oversight.*
 - **The trade list goes stale** when one route ends as another starts. `trade.md`, 15. *Oversight.*
+- **The organisation bar's hourly regain is not the hour's.** It counts the roads at sea too, so a fleet at sea is shown a hundredth of what it regains, and shows a unit given no supplies regaining nothing where the hour takes organisation away. `unitpanel.md`, 10.1; `organisation.md`, 3. *Display.*
+- **A base with nothing based there is shown doing a quarter of its work**, where the hour's crowding counts it whole. `unitpanel.md`, 10.2. *Display.*
+- **A model out of a file that leaves a technology out is marked `+*` wherever it shows**, being matched exactly by nothing, though it is the model the brigade was raised as. `units.md`, 5. *Display.*
 
 ## Script, events and weather
 

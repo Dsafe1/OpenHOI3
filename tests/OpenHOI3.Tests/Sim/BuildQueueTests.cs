@@ -493,6 +493,24 @@ public class BuildQueueTests
 	}
 
 	[Fact]
+	public void ALineBuiltAtAnothersLevelsGivesItsBrigadesThatBuilderAndItsOwnNone()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country, Infantry());
+		foreach (CCountryTag? builder in new CCountryTag?[] { new CCountryTag("ITA"), country.Tag })
+		{
+			var construction = new CConstruction(country.Tag) { Builder = builder };
+			construction.Brigades.Add(new CBrigadeOrder(Infantry()));
+			CBuildQueue.Recalculate(country, construction);
+			construction.Progress = construction.Duration;
+			Assert.True(CBuildQueue.Deliver(state, country, construction));
+		}
+
+		Assert.Equal(new CCountryTag("ITA"), country.Deployments[0].SubUnits[0].Builder);
+		Assert.Null(country.Deployments[1].SubUnits[0].Builder);
+	}
+
+	[Fact]
 	public void ACountryThatHoldsNothingIsDeliveredNothing()
 	{
 		CCountry country = Germany();

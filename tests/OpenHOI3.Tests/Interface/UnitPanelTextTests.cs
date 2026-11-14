@@ -299,9 +299,10 @@ public class UnitPanelTextTests
 
 		Assert.Equal("§Y2§W Brigades", CUnitPanelText.BrigadesHeader(Localise, division));
 		Assert.Equal("GFX_counter_infantry_brigade", CUnitPanelText.BrigadeSprite(brigade));
-		Assert.Equal("I", CUnitPanelText.BrigadeLevel(brigade));          // no model is the first
+		Assert.Equal("I", CUnitPanelText.BrigadeLevel(state, country, brigade));          // a type with no model shows the first
+		// An order of battle's model is not what the numeral shows: the levels are (BrigadeModelTests).
 		brigade.HistoricalModel = 2;
-		Assert.Equal("III", CUnitPanelText.BrigadeLevel(brigade));
+		Assert.Equal("I", CUnitPanelText.BrigadeLevel(state, country, brigade));
 		Assert.Equal("3,000", CUnitPanelText.BrigadeMen(brigade));
 		brigade.Strength = CFixedPoint.Parse("9.99");
 		Assert.Equal("999", CUnitPanelText.BrigadeMen(brigade));

@@ -21,7 +21,7 @@ public static class CSaveLines
 	/// <summary>The keys every line has, read here for all three kinds.</summary>
 	private static readonly HashSet<string> Shared = new(System.StringComparer.Ordinal)
 	{
-		"id", "size", "cost", "duration", "progress", "status", "location", "country",
+		"id", "size", "cost", "duration", "progress", "status", "location", "country", "builder",
 	};
 
 	public static void ReadMilitary(CGameState state, CCountry country, ClausewitzNode block, CSaveIds ids, CSaveReport report)
@@ -211,6 +211,10 @@ public static class CSaveLines
 				writer.Int("location", line.Location);
 			}
 			writer.Quoted("country", line.Country.Value);
+			if (line.Builder is { } builder)
+			{
+				writer.Quoted("builder", builder.Value);
+			}
 			if (line.Building is { } building)
 			{
 				writer.Int("building", BuildingNumber(state, building));
@@ -368,6 +372,9 @@ public static class CSaveLines
 				line.Location = (int)CSaveValues.Whole(entry.Value);
 				break;
 			case "country":
+				break;
+			case "builder":
+				line.Builder = new CCountryTag(entry.Value?.Trim('"') ?? "");
 				break;
 		}
 		return true;

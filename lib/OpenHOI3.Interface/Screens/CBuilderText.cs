@@ -29,7 +29,7 @@ public static class CBuilderText
 			return localise(type.Key);
 		}
 		string mark = model == CHistoricalModels.FindExact(state, country, type) ? "" : "+*";
-		return "(§Y" + Tooltips.CBrigadeTooltips.ModelName(localise, find, country, type, model) + mark + "§W)\n";
+		return "(§Y" + Tooltips.CBrigadeTooltips.ModelName(localise, find, state, country, type, model) + mark + "§W)\n";
 	}
 
 	/// <summary>The fewest and the most a count of the order panel may be.</summary>

@@ -46,7 +46,7 @@ public sealed class CBrigadeCard
 
 		Func<string, string> localise = context.Localisation.Localise;
 		var state = simulation.State;
-		foreach (string path in CBrigadeCardText.Pictures(owner.Tag, subUnit))
+		foreach (string path in CBrigadeCardText.Pictures(state, owner, subUnit))
 		{
 			if (context.Textures.Exists(path) && context.Textures.LoadFromGamePath(path) is { } picture)
 			{
@@ -69,7 +69,7 @@ public sealed class CBrigadeCard
 		}
 		if (window.FindTextBox("label") is { } label)
 		{
-			label.Text = CBrigadeCardText.Label(localise, context.Localisation.Find, owner, subUnit);
+			label.Text = CBrigadeCardText.Label(localise, context.Localisation.Find, state, owner, subUnit);
 		}
 		_name = window.FindTextBox("subunit_name");
 		if (_name is not null)

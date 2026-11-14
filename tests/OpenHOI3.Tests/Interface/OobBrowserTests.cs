@@ -352,9 +352,9 @@ public class OobBrowserTests
 	[Fact]
 	public void AModelsPicturesAreTriedCountryFirst()
 	{
-		var ship = new CSubUnit(Ship) { HistoricalModel = 2 };
-		Assert.Equal(new[] { "gfx/models/ENG_battleship_2.tga", "gfx/models/battleship_2.tga", "gfx/models/battleship_0.tga" }, CBrigadeCardText.Pictures(Eng, ship));
-		Assert.Equal(new[] { "gfx/models/battleship_0.tga" }, CBrigadeCardText.Pictures(Eng, new CSubUnit(Ship)));
+		Assert.Equal(new[] { "gfx/models/ENG_battleship_2.tga", "gfx/models/battleship_2.tga", "gfx/models/battleship_0.tga" },
+			CBrigadeCardText.Pictures(Eng, "battleship", 2));
+		Assert.Equal(new[] { "gfx/models/battleship_0.tga" }, CBrigadeCardText.Pictures(Eng, "battleship", CSubUnit.NoModel));
 	}
 
 	[Fact]

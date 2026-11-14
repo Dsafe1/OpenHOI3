@@ -64,8 +64,18 @@ public sealed class CSubUnit
 	/// <summary>The most strength it has ever had. Raised to its strength, and never lowered.</summary>
 	public CFixedPoint Highest { get; set; }
 
-	/// <summary>Which of its country's models of this type it was raised as.</summary>
+	/// <summary>
+	/// Which of its country's models of this type an order of battle raised it as, which gives it its levels and nothing
+	/// more: what it is shown as is worked out from those levels (<see cref="CHistoricalModels.OfBrigade"/>). A save
+	/// never names one.
+	/// </summary>
 	public int HistoricalModel { get; set; } = NoModel;
+
+	/// <summary>
+	/// The country that built it, where a save names one or its line was another's - a licence's seller; nobody
+	/// otherwise. Its models are the ones it is named by.
+	/// </summary>
+	public Countries.CCountryTag? Builder { get; set; }
 
 	/// <summary>A reserve is kept under strength until its country mobilises.</summary>
 	public bool IsReserve { get; set; }

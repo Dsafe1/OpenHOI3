@@ -183,7 +183,10 @@ public sealed class COrderUnitCommand : CCommand
 	private CConstruction Make(CGameState state, CCountry country)
 	{
 		CCountry levels = Builder(state, country);
-		var construction = new CConstruction(country.Tag) { Name = _name, Size = _size, IsReserve = _isReserve, Target = _target };
+		var construction = new CConstruction(country.Tag)
+		{
+			Name = _name, Size = _size, IsReserve = _isReserve, Target = _target, Builder = ReferenceEquals(levels, country) ? null : levels.Tag,
+		};
 		if (_isReserve)
 		{
 			construction.ReservesFactor = CBuildQueue.ReservesFactor(country);

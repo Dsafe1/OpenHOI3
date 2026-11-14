@@ -103,16 +103,18 @@ public static class CBrigadeTooltips
 	}
 
 	/// <summary>
-	/// A brigade's summary: its model in brackets, the pride of the fleet, its strength,
-	/// organisation and experience, a ship's or a wing's speed and range, and its equipment.
-	/// The original marks a model that is not the one its country builds today with <c>+*</c>;
-	/// which one that is, is not built here, and nothing is marked.
+	/// A brigade's summary: its model in brackets - the model nearest its levels, of its builder's models, marked
+	/// <c>+*</c> where its levels match none exactly, and no line where the type has no model - the pride of the fleet,
+	/// its strength, organisation and experience, a ship's or a wing's speed and range, and its equipment.
 	/// </summary>
 	public static string Summary(Func<string, string> localise, Func<string, string?> find, CGameState state, CCountry owner,
 		CSubUnit subUnit)
 	{
 		var text = new StringBuilder();
-		text.Append("(§Y").Append(ModelName(localise, find, owner, subUnit)).Append("§W)\n");
+		if (ModelLabel(localise, find, state, owner, subUnit) is { } model)
+		{
+			text.Append("(§Y").Append(model).Append("§W)\n");
+		}
 		if (subUnit.IsPride)
 		{
 			text.Append(localise("PRIDE_OF_FLEET")).Append('\n');
@@ -222,20 +224,42 @@ public static class CBrigadeTooltips
 	}
 
 	/// <summary>
-	/// Which model of its type a brigade is: the country's name for it, the game's, or the
-	/// type's name and the model's number in Roman numerals. The original also tries the name
-	/// a faction's leader gives it, which is not built.
+	/// Which model of its type a brigade is shown as, by name, with <c>+*</c> where its levels match none of the models
+	/// exactly: the model nearest its own levels, of its builder's models where another country built it and else its
+	/// owner's (<see cref="CHistoricalModels.OfBrigade"/>). Null for a type with no model. The summary, the brigade card's
+	/// label and a sunk ship's row all say this.
 	/// </summary>
-	public static string ModelName(Func<string, string> localise, Func<string, string?> find, CCountry owner, CSubUnit subUnit)
+	public static string? ModelLabel(Func<string, string> localise, Func<string, string?> find, CGameState state, CCountry owner,
+		CSubUnit subUnit)
 	{
-		return ModelName(localise, find, owner, subUnit.Type, Math.Max(subUnit.HistoricalModel, 0));
+		CCountry builder = CHistoricalModels.BuilderOf(state, owner, subUnit);
+		int model = CHistoricalModels.OfBrigade(state, builder, subUnit);
+		if (model < 0)
+		{
+			return null;
+		}
+		return ModelName(localise, find, state, builder, subUnit.Type, model)
+			+ (CHistoricalModels.IsInexact(state, builder, subUnit) ? "+*" : "");
 	}
 
-	/// <summary>The name of a numbered model of a type.</summary>
-	public static string ModelName(Func<string, string> localise, Func<string, string?> find, CCountry owner, CSubUnitType type, int model)
+	/// <summary>
+	/// The name of a country's numbered model of a type: the country's text for it, <c>GER_infantry_brigade_1</c>; for a
+	/// member of a faction that does not lead it, the leader's; the game's, <c>infantry_brigade_1</c>; or the type's name
+	/// and the model's number plus one in Roman numerals.
+	/// </summary>
+	public static string ModelName(Func<string, string> localise, Func<string, string?> find, CGameState state, CCountry country,
+		CSubUnitType type, int model)
 	{
 		string suffix = type.Key + "_" + model.ToString(CultureInfo.InvariantCulture);
-		return find(owner.Tag.Value + "_" + suffix) ?? find(suffix)
-			?? localise(type.Key) + " (" + CRomanNumerals.Format(model + 1) + ")";
+		if (find(country.Tag.Value + "_" + suffix) is { } own)
+		{
+			return own;
+		}
+		if (Sim.Agreements.COfferRules.Leader(state, country.Faction) is { } leader && leader != country.Tag
+			&& find(leader.Value + "_" + suffix) is { } leaders)
+		{
+			return leaders;
+		}
+		return find(suffix) ?? localise(type.Key) + " (" + CRomanNumerals.Format(model + 1) + ")";
 	}
 }

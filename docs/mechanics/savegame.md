@@ -142,7 +142,10 @@ with everything under it:
 - **An order goes on from where the save has it**: nothing in it is started again. A target is found once every unit is
   read, and a patrol's marks the fleet shadowed.
 - **No brigade takes its historical model**: a save never writes one, so a brigade's figures are its type's and its
-  levels' and nothing else, and the strength and organisation are as written.
+  levels' and nothing else, and the strength and organisation are as written. **What it is shown as needs none**: the
+  original works it out from those levels wherever it shows it, its builder's models where `builder` names one
+  (`units.md`, section 5; read 2026-11-14), and so does this. A brigade's and a line's `builder` are read and written
+  back since the same day.
 
 **The rest of a country's military part:**
 
@@ -353,7 +356,8 @@ first for the finished unit's deployment - the original's own lines do so, from 
 going on to the next of a series here passes them over too now, and a finished unit's deployment takes the first
 (`buildqueue.md`, section 4); a deployment with no number could be found by nothing in the original, and never placed.
 
-**Not held, so not written**: a brigade's `home` and `builder`, a unit's `country_intel` and a lent unit's
+**Not held, so not written**: a brigade's `home`, and its `builder` but where a save named one or its line was
+another's (since 2026-11-14; the original names the owner itself on most brigades, by a rule not read), a unit's `country_intel` and a lent unit's
 `expeditionary_owner` and `expeditionary_date`; a paradrop's `message` and a rebase to a carrier's `carrier_target`, in
 no save.
 
@@ -727,8 +731,8 @@ Play (`frontend.md`, section 4).
   order of joining not being held.
 - What the sunk ships answer: `total_of_ours_sunk` and `total_sunk_by_us` are counts over `sunk_ships`, but their
   bodies were not read, so they stay unanswered.
-- A ship's, a brigade's and a wing's `home` and `builder` are reported throughout the unit tree and among the sunk
-  ships.
+- A ship's, a brigade's and a wing's `home` is reported throughout the unit tree and among the sunk ships; its
+  `builder`, and a line's, are read since 2026-11-14 (`units.md`, section 5).
 - **How the original numbers the brigades of a line ordered in play**: three numbers apart in the saves (4944, 4947,
   4950), where a line here gives them one each after the two passed over. Not read; the numbers are this game's
   (*Ours*), and only their order matters to the rules.
@@ -782,8 +786,8 @@ Each of these was dropped here, most with no report, and is read and written bot
   install has no technology for is reported, where it was passed over.
 
 **Still read by nothing here, each reported**: a province's `capital` and `history`; a country's `human`, `prov_vp`, `offmap_vp` (worked out again as a game is entered), `last_mission_cancel` (the null date
-in every save) and the three `lend_lease_*_yesterday`; `nocategory`; a brigade's, ship's and wing's `home` and `builder`
-and a line's `builder`. The original reads all of them.
+in every save) and the three `lend_lease_*_yesterday`; `nocategory`; and a brigade's, ship's and wing's `home` (its
+`builder` and a line's are read since 2026-11-14, `units.md`, section 5). The original reads all of them.
 `out_of_supply_days` and the top level's three graph statistics were on this list until later the same day
 (`supply.md`, section 18; `statistics.md`, section 5), and a unit's `country_intel` until the next section.
 

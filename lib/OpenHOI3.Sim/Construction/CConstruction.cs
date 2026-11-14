@@ -23,6 +23,12 @@ public sealed class CConstruction
 	/// <summary>Who it is for.</summary>
 	public CCountryTag Country { get; }
 
+	/// <summary>
+	/// The country whose levels it is built at, where one is named - a licence's seller, or what a save says; nobody
+	/// otherwise. A brigade it delivers is given it where it is not <see cref="Country"/> (<c>buildqueue.md</c>, section 4).
+	/// </summary>
+	public CCountryTag? Builder { get; set; }
+
 	/// <summary>What the unit will be called. One with no name takes its first brigade's.</summary>
 	public string Name { get; set; } = "";
 

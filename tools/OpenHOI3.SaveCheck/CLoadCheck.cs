@@ -330,6 +330,7 @@ public static class CLoadCheck
 
 		Console.WriteLine("the units, beside the save they were read from:");
 		CompareUnits(state, save, "  ", exact: true);
+		ShowModels(state, "  ");
 		Console.WriteLine("the wars, pacts and convoys, beside the save they were read from:");
 		CompareDiplomacy(state, save, "  ");
 		CompareNapBalances(state, "  ");
@@ -442,6 +443,48 @@ public static class CLoadCheck
 	/// convoy by its number, and each country's pool of transports and escorts and whether it is mobilised, set beside
 	/// the save's.
 	/// </summary>
+	/// <summary>
+	/// A look: which model every brigade of the save is shown as, worked out from the levels it carries - a save names
+	/// none - with how many are marked <c>+*</c> and how many name a builder, and examples of brigades shown past their
+	/// type's first model, the <c>examples=</c> country's where one is given (<c>docs/mechanics/units.md</c>, section 5).
+	/// </summary>
+	private static void ShowModels(CGameState state, string indent)
+	{
+		var byModel = new SortedDictionary<int, int>();
+		int inexact = 0;
+		int built = 0;
+		var examples = new List<string>();
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (CUnit unit in country.AllUnits())
+			{
+				foreach (CSubUnit brigade in unit.SubUnits)
+				{
+					CCountry builder = CHistoricalModels.BuilderOf(state, country, brigade);
+					int model = CHistoricalModels.OfBrigade(state, builder, brigade);
+					bool marked = model >= 0 && CHistoricalModels.IsInexact(state, builder, brigade);
+					byModel[model] = byModel.GetValueOrDefault(model) + 1;
+					inexact += marked ? 1 : 0;
+					built += brigade.Builder is null ? 0 : 1;
+					if (model > 0 && examples.Count < 8 && (ExampleCountry is null || country.Tag.Value == ExampleCountry))
+					{
+						string levels = string.Join(" ", brigade.Type.Technologies.Where(technology => technology.Change)
+							.Select(technology => $"{technology.Name}={brigade.TechnologyLevels.GetValueOrDefault(technology.Name)}"));
+						examples.Add($"{country.Tag} {brigade.Id} '{brigade.Name}' {brigade.Type.Key}: model {model} " +
+							$"({OpenHOI3.Interface.Text.CRomanNumerals.Format(model + 1)}){(marked ? " +*" : "")} of {builder.Tag}'s; {levels}");
+					}
+				}
+			}
+		}
+		Console.WriteLine($"{indent}the model each brigade is shown as, from its levels: " +
+			string.Join(" ", byModel.Select(pair => $"{(pair.Key < 0 ? "none" : OpenHOI3.Interface.Text.CRomanNumerals.Format(pair.Key + 1))}:{pair.Value}")) +
+			$"; marked +* {inexact}; naming a builder {built}");
+		foreach (string example in examples)
+		{
+			Console.WriteLine($"{indent}    {example}");
+		}
+	}
+
 	/// <summary>Each pact's border measured again and set beside what the save holds, which is as of the last seventh day.</summary>
 	private static void CompareNapBalances(CGameState state, string indent)
 	{

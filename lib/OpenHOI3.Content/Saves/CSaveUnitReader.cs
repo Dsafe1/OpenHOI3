@@ -335,6 +335,10 @@ public sealed class CSaveUnitReader
 				case "pride":
 					subUnit.IsPride = entry.Value == "yes";
 					break;
+				case "builder":
+					// Whose models it is named by (units.md, section 5).
+					subUnit.Builder = new CCountryTag(entry.Value?.Trim('"') ?? "");
+					break;
 				case "sunk_by":
 					// A sunk ship's sinker, a ship's or a wing's own id.
 					subUnit.SunkById = _ids.Of(entry);

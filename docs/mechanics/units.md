@@ -253,6 +253,44 @@ blocks are named `<unit type>.<number>`: `confirmed`
 `measured`: where a country's file has the model, all 3,215 levels on its brigades are
 the file's.
 
+**What a brigade is shown as** (read 2026-11-14, `reversing/findings/FINDINGS-unitpaneltooltips.md`, section 13).
+`historical_model` gives a brigade its levels and is never asked again: the original keeps it, never writes it to a
+save, and no screen reads it. Everywhere a brigade's model shows, it is **the model nearest the levels the brigade
+itself carries**: `confirmed`
+
+    score of a model = sum, over the technologies the model lists that change a unit (`change`),
+                       of |the brigade's level - the model's| x 1000
+    the least wins, from 999,999,000, the first of equals; none for a type with no model
+
+and it is marked `+*` where **the first model the brigade's levels match exactly** is not that one - none matching, or
+an earlier one alike: a model matches where it lists every technology the brigade carries, each that changes a unit at
+the brigade's level and the rest at any. So a model out of a file that leaves a technology out is never matched
+exactly, and is marked wherever it is shown. Whose models: `confirmed`
+
+| where | whose models | the brigade's |
+| --- | --- | --- |
+| the unit panel's numeral, the reorganise window's | its owner's | Roman numeral of the number plus one, I for none |
+| its summary, its card's label, a sunk ship's row | its builder's, else its owner's | name and `+*`; the type's name for none (the summary leaves the line out) |
+| its card's picture | its builder's, else its owner's | `<TAG>_<type>_<n>.tga`, `<type>_<n>.tga`, `<type>_0.tga` |
+
+**A builder** is the country a save's `builder` names, or a line's builder where it is not the line's country - a
+licence's seller (`buildqueue.md`, section 4): `confirmed`. The original writes `builder` on most brigades, naming the
+owner itself on nearly all (3,195 of 3,201 in a save of July 1941, Manchukuo's from Japan the rest); here one is held
+where a save names one or a line gives one, and written back where held. Who else sets it was not read.
+
+**A model's name**: the country's text `GER_infantry_brigade_1` - the set's own country, the builder's or the owner's;
+for a member of a faction that does not lead it, the faction leader's - Hungary in the Axis taking
+`GER_infantry_brigade_1`; the game's
+`infantry_brigade_1`; else the type's name and ` (` the number plus one in Roman numerals `)`. `confirmed` for the
+order, read 2026-11-14; the leader is the faction's first member.
+
+So **a save loaded is shown as it was**, its levels being in it: in `Germany1936_04_20_03.hoi3` 2,413 brigades show as
+I, 1,415 as II, 247 as III and 8 as IV, 321 of them marked, where all had shown as I. And a new game's brigades show,
+by their levels, as the model their order of battle names: 3,685 of 3,706 on 1 January 1936 (`OpenHOI3.SaveCheck` on the
+start save); the 21 others are models whose levels an earlier model has too - Britain's file has no `battleship.0` and
+its `battleship.1` lists every technology at nought, as the default model 0 does - and show as the earlier, as the
+original's first of equals does.
+
 ## 6. Experience
 
 Still as the game starts, once the units exist. For each brigade whose experience is

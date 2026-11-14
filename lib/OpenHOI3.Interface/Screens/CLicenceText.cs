@@ -78,9 +78,7 @@ public static class CLicenceText
 			return null;
 		}
 		string? Find(string key) => localise(key) is var text && text != key ? text : null;
-		string suffix = type.Key + "_" + model.ToString(CultureInfo.InvariantCulture);
-		string name = Find(seller.Tag.Value + "_" + suffix) ?? Find(suffix)
-			?? localise(type.Key) + " (" + CRomanNumerals.Format(model + 1) + ")";
+		string name = Tooltips.CBrigadeTooltips.ModelName(localise, Find, state, seller, type, model);
 		return CHistoricalModels.FindExact(state, seller, type) == model ? name : name + "+*";
 	}
 

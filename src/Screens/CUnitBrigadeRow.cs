@@ -151,7 +151,7 @@ public sealed class CUnitBrigadeRow : CUnitPanelEntry
 				&& CBrigadeUpgrades.Targets(_state, _player, SubUnit).Count > 0);
 		}
 		Set(_name, SubUnit.Name);
-		Set(_level, CUnitPanelText.BrigadeLevel(SubUnit));
+		Set(_level, CUnitPanelText.BrigadeLevel(_state, _owner, SubUnit));
 		Set(_amount, CUnitPanelText.BrigadeMen(SubUnit));
 		_experience?.SetFrame(CUnitPanelText.ExperienceFrame(SubUnit.Experience));
 		_organisationBar?.SetProgress(CUnitPanelText.BrigadeOrganisationBar(_state, _owner, SubUnit));

@@ -609,10 +609,13 @@ public static class CUnitPanelText
 		return CCounterText.ListSprite + subUnit.Type.Key;
 	}
 
-	/// <summary>Which model of its type a brigade is, as a Roman numeral: I for the first and for none.</summary>
-	public static string BrigadeLevel(CSubUnit subUnit)
+	/// <summary>
+	/// Which model of its type a brigade is, as a Roman numeral: the model of its owner's nearest the levels it carries -
+	/// not its builder's, as the summary's is - and I for none.
+	/// </summary>
+	public static string BrigadeLevel(CGameState state, CCountry owner, CSubUnit subUnit)
 	{
-		return CRomanNumerals.Format(Math.Max(subUnit.HistoricalModel, 0) + 1);
+		return CRomanNumerals.Format(Math.Max(CHistoricalModels.OfBrigade(state, owner, subUnit), 0) + 1);
 	}
 
 	/// <summary>

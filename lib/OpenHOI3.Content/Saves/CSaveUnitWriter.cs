@@ -204,6 +204,10 @@ public static class CSaveUnitWriter
 		{
 			writer.Fixed("current_distance", subUnit.Distance);
 		}
+		if (subUnit.Builder is { } builder)
+		{
+			writer.Quoted("builder", builder.Value);
+		}
 		if (subUnit.SunkById != 0)
 		{
 			writer.IdPair("sunk_by", Pair(state, subUnit.SunkById));

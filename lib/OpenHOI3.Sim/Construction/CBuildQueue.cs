@@ -501,6 +501,10 @@ public static class CBuildQueue
 			subUnit.Name = order.Name;
 			subUnit.Experience = new CFixedPoint(Math.Min(MostExperience,
 				Math.Max(order.Experience.Raw, construction.AccumulatedExperience.Raw)));
+			if (construction.Builder is { } builder && builder != country.Tag)
+			{
+				subUnit.Builder = builder;
+			}
 
 			long gain = subUnit.Stats[CompletionSize].Raw;
 			if (construction.IsReserve)

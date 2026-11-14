@@ -45,7 +45,7 @@ public sealed class CReorgEntry
 		Func<string, string> localise = context.Localisation.Localise;
 		Set(window.FindTextBox("subunit_name"), subUnit.Name);
 		Set(window.FindTextBox("subunit_type"), localise(subUnit.Type.Key));
-		Set(window.FindTextBox("subunit_level"), CUnitPanelText.BrigadeLevel(subUnit));
+		Set(window.FindTextBox("subunit_level"), CUnitPanelText.BrigadeLevel(state, owner, subUnit));
 		Set(window.FindTextBox("subunit_strength"), CReorgText.Strength(subUnit));
 		// The type's counter where one is drawn for it; else the file's own picture stays.
 		window.FindIcon("counter_type")?.SetSprite(CUnitPanelText.BrigadeSprite(subUnit));

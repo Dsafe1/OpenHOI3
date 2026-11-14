@@ -50,6 +50,55 @@ public static class CHistoricalModels
 	/// </summary>
 	public static int PickCurrent(CGameState state, CCountry country, CSubUnitType type)
 	{
+		return Nearest(state, country, type, country.TechnologyLevels);
+	}
+
+	/// <summary>
+	/// The first model that lists every technology of the type, each that changes a unit at exactly the country's
+	/// level and the others at any; -1 for none. Where it is not <see cref="PickCurrent"/>'s, a model's name carries
+	/// "+*".
+	/// </summary>
+	public static int FindExact(CGameState state, CCountry country, CSubUnitType type)
+	{
+		return Exact(state, country, type, country.TechnologyLevels);
+	}
+
+	/// <summary>
+	/// Which of a country's models of its type a brigade is shown as - by the unit panel's numeral, its card's picture and
+	/// name, its summary and a sunk ship's row: the model nearest the levels the brigade itself carries, as
+	/// <see cref="Nearest"/> scores them. Its own levels and nothing else, so a brigade loaded from a save, which names no
+	/// model, is shown as the one it was. -1 for a type with no model. See <c>docs/mechanics/units.md</c>, section 5.
+	/// </summary>
+	public static int OfBrigade(CGameState state, CCountry country, CSubUnit subUnit)
+	{
+		return Nearest(state, country, subUnit.Type, subUnit.TechnologyLevels);
+	}
+
+	/// <summary>
+	/// Whether a brigade's model is marked <c>+*</c>: where the first model its levels match exactly is not the nearest -
+	/// none matching, mostly, as when a level has been upgraded past the models a country has.
+	/// </summary>
+	public static bool IsInexact(CGameState state, CCountry country, CSubUnit subUnit)
+	{
+		return Exact(state, country, subUnit.Type, subUnit.TechnologyLevels) != OfBrigade(state, country, subUnit);
+	}
+
+	/// <summary>
+	/// Whose models a brigade is named by: the country that built it where it was built for another - a licence's seller -
+	/// and otherwise its owner.
+	/// </summary>
+	public static CCountry BuilderOf(CGameState state, CCountry owner, CSubUnit subUnit)
+	{
+		return state.Country(subUnit.Builder) ?? owner;
+	}
+
+	/// <summary>
+	/// The model of a type nearest a set of levels: each model scored by the sum, over the technologies it lists that
+	/// change a unit, of how far the level is from the model's, a thousand a level; the least wins, the first of equals.
+	/// -1 for a type with no model.
+	/// </summary>
+	public static int Nearest(CGameState state, CCountry country, CSubUnitType type, IReadOnlyDictionary<string, int> levels)
+	{
 		long best = 999_999_000;
 		int chosen = -1;
 		for (int model = 0; model < Count(state, country, type); model++)
@@ -61,7 +110,7 @@ public static class CHistoricalModels
 				{
 					continue;
 				}
-				score += Math.Abs(country.TechnologyLevels.GetValueOrDefault(technology.Name) - wanted) * 1000L;
+				score += Math.Abs(levels.GetValueOrDefault(technology.Name) - wanted) * 1000L;
 			}
 			if (score < best)
 			{
@@ -73,11 +122,10 @@ public static class CHistoricalModels
 	}
 
 	/// <summary>
-	/// The first model that lists every technology of the type, each that changes a unit at exactly the country's
-	/// level and the others at any; -1 for none. Where it is not <see cref="PickCurrent"/>'s, a model's name carries
-	/// "+*".
+	/// The first model that lists every technology of the type, each that changes a unit at exactly the level given and
+	/// the others at any; -1 for none.
 	/// </summary>
-	public static int FindExact(CGameState state, CCountry country, CSubUnitType type)
+	public static int Exact(CGameState state, CCountry country, CSubUnitType type, IReadOnlyDictionary<string, int> levels)
 	{
 		for (int model = 0; model < Count(state, country, type); model++)
 		{
@@ -85,7 +133,7 @@ public static class CHistoricalModels
 			foreach (CTechnology technology in type.Technologies)
 			{
 				if (Level(state, country, type, model, technology) is not { } wanted
-					|| (technology.Change && country.TechnologyLevels.GetValueOrDefault(technology.Name) != wanted))
+					|| (technology.Change && levels.GetValueOrDefault(technology.Name) != wanted))
 				{
 					matches = false;
 					break;

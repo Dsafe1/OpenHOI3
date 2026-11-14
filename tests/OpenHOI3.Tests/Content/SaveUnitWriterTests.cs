@@ -60,7 +60,7 @@ public class SaveUnitWriterTests
 		"\t\tis_prioritized=yes\r\n\t\tcan_reinforce=no\r\n\t\tcan_upgrade=yes\r\n\t\tfuel=1.000\r\n\t\tsupplies=1.000\r\n" +
 		"\t\tregiment=\r\n\t\t{\r\n\t\t\tid=\r\n\t\t\t{\r\n\t\t\t\tid=4\r\n\t\t\t\ttype=4713\r\n\t\t\t}\r\n" +
 		"\t\t\tname=\"Infanterie-Regiment 1\"\r\n\t\t\ttype=\"infantry_brigade\"\r\n\t\t\torganisation=30.500\r\n" +
-		"\t\t\tstrength=3.000\r\n\t\t\thighest=3.000\r\n\t\t\texperience=0.000\r\n\t\t\tis_reserve=yes\r\n\t\t}\r\n" +
+		"\t\t\tstrength=3.000\r\n\t\t\thighest=3.000\r\n\t\t\texperience=0.000\r\n\t\t\tis_reserve=yes\r\n\t\t\tbuilder=\"ITA\"\r\n\t\t}\r\n" +
 		"\t\tstrategic_redeployment=\r\n\t\t{\r\n\t\t\tprovince=2\r\n\t\t\tstance=1\r\n\t\t\tstart_date=\"1936.1.7.0\"\r\n" +
 		"\t\t\tdeath_date=\"1936.1.9.0\"\r\n\t\t\treturn_to_base=no\r\n\t\t\ttime=2\r\n\t\t\tpriority=0\r\n\t\t\tstop=0.300\r\n\t\t}\r\n" +
 		"\t\tstart_date=\"1936.1.7.0\"\r\n\t\tdisengage=4\r\n\t\tpossible_retreat=2\r\n\t\tend_date=\"1936.1.8.12\"\r\n\t}\r\n" +
@@ -110,6 +110,8 @@ public class SaveUnitWriterTests
 		CUnit theatre = germany.Units[0];
 		Assert.Equal(102, theatre.Children[0].Id);
 		Assert.Contains(theatre.Children, child => child.Transport is not null);
+		// Whose models a brigade is named by comes back (units.md, section 5).
+		Assert.Equal(new CCountryTag("ITA"), theatre.Children[0].SubUnits[0].Builder);
 
 		var writer = new CSaveTextWriter();
 		writer.OpenRoot();

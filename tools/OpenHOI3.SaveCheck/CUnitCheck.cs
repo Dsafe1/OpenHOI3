@@ -313,6 +313,14 @@ internal static class CUnitCheck
 					() => $"{who} {technology.Name}: save {savedLevel}, ours {ours}  (model {subUnit.HistoricalModel}, the country has {countrys})");
 			}
 		}
+		// What it is shown as is worked out from its levels, which is what a save loaded later has to go by (units.md, section 5).
+		if (subUnit.HistoricalModel >= 0)
+		{
+			int shown = CHistoricalModels.OfBrigade(state, CHistoricalModels.BuilderOf(state, country, subUnit), subUnit);
+			compare("brigades: shown, by their levels, as the model their order of battle names", shown == subUnit.HistoricalModel,
+				() => $"{who}: shown as {shown}, the file's {subUnit.HistoricalModel}");
+		}
+
 		int listed = node.Children.Count(child => child.Key is not null && child.IsBlock && state.Technologies.ContainsKey(child.Key));
 		compare("brigades: how many technologies each lists", listed == subUnit.Type.Technologies.Count,
 			() => $"{who}: save {listed}, ours {subUnit.Type.Technologies.Count}");

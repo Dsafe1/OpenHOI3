@@ -74,19 +74,23 @@ public static class CBrigadeCardText
 		};
 	}
 
-	/// <summary>The line under the picture, the model in brackets.</summary>
-	public static string Label(Func<string, string> localise, Func<string, string?> find, CCountry owner, CSubUnit subUnit)
+	/// <summary>The line under the picture: the model in brackets, or the type's name where it has none.</summary>
+	public static string Label(Func<string, string> localise, Func<string, string?> find, CGameState state, CCountry owner, CSubUnit subUnit)
 	{
-		return "(§Y" + CBrigadeTooltips.ModelName(localise, find, owner, subUnit) + "§W)\n";
+		return CBrigadeTooltips.ModelLabel(localise, find, state, owner, subUnit) is { } model
+			? "(§Y" + model + "§W)\n"
+			: localise(subUnit.Type.Key);
 	}
 
 	/// <summary>
-	/// The pictures a brigade may have, in the order they are tried: its country's of its model, the game's of its model,
-	/// and the type's first. With no model the original tries a path it has put together wrongly, which is never found.
+	/// The pictures a brigade may have, in the order they are tried: its builder's - its owner's where nobody else built
+	/// it - of the model nearest its levels, the game's of that model, and the type's first. With no model the original
+	/// tries a path it has put together wrongly, which is never found.
 	/// </summary>
-	public static IEnumerable<string> Pictures(CCountryTag owner, CSubUnit subUnit)
+	public static IEnumerable<string> Pictures(CGameState state, CCountry owner, CSubUnit subUnit)
 	{
-		return Pictures(owner, subUnit.Type.Key, subUnit.HistoricalModel);
+		CCountry builder = CHistoricalModels.BuilderOf(state, owner, subUnit);
+		return Pictures(builder.Tag, subUnit.Type.Key, CHistoricalModels.OfBrigade(state, builder, subUnit));
 	}
 
 	/// <summary>The same for a numbered model of a type, <see cref="CSubUnit.NoModel"/> for none.</summary>

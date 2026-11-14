@@ -1928,13 +1928,15 @@ fact base and entered in its record, not only written up: this repository's `CLA
 
 **The script gaps of the base game are closed** (2026-11-09, `reversing/findings/FINDINGS-scriptgaps.md`): `release_vassal`, `create_alliance`, `surrender_inherit`, `load_oob`, the two port conditions, and the undeclared war (`war.md`, section 15) with its region's map colour; tribute (`stockpile.md`, section 7); and the AI's Lua answers on declaring war, puppets and liberation, with its two commands.
 
+**A brigade is shown as the model its levels are** (2026-11-14, `docs/mechanics/units.md`, section 5): the unit panel's
+numeral, the reorganise window's, the summary, the brigade card's label and picture and a sunk ship's row take the model
+nearest the levels the brigade carries, as the original does everywhere, marked `+*` where its levels match none
+exactly, and a faction member's model takes its leader's name before the game's. So a save loaded shows its brigades as
+they were - II and III where all had shown as I - and a brigade's and a line's `builder` are held, read and written.
+
 ### Loose ends
 
 - **Script still unbuilt, for BlackICE's layer**: `remove_brigade`; a `military_construction` in a `load_oob` file; `release_vassal = REB`; `surrender_inherit`'s branches for a country at war with the annexer's enemies, where units go over by a draw; the last-battle loss conditions. **The undeclared war's** hostility is asked at battles, convoy raids and air and fleet targets, not at the AI's war-time gates or the land's movement (`war.md`, section 15).
-
-- **A brigade's model after a load**: a save names a brigade's levels and not its historical model, so after a load the
-  unit panel's numeral, the brigade card's picture and the model's name in the tooltip are the first model's; whether the
-  original works the model out from the levels was not read (`docs/enhanced.md`, *A whole game's replay*).
 
 - **What a load still does not give back**, checked path by path on 2026-11-14 (`OpenHOI3.SaveCheck reload`;
   `savegame.md`, section 20): every path is under an entry of `docs/enhanced.md`'s *A whole game's replay* or is noise
@@ -2202,12 +2204,12 @@ None of these blocks the list above.
   it bombs, with the original's two words each over the other's goods (`docs/enhanced.md`); neither
   was looked at on screen. A ship's positioning is scaled by `targeting_chance`, taken to be
   the figure the original names `naval_positioning_bonus`.
-- **The unit panel's tooltips leave out what is not built under them** (2026-10-12,
-  `unitpanel.md` section 10): a fleet's
-  or an air unit's base and how well it supplies,
-  the organisation a brigade regains an hour, what technology adds to the digging-in cap, the
-  `+*` on a model the country no longer builds and a faction leader's name for a model. A leader's traits on the way are in the traits file's order, where
-  the original's are in the order they lie in its memory.
+- **The unit panel's tooltips are whole since 2026-11-14** (`unitpanel.md` section 10): a fleet's or an air unit's base
+  and how well it serves, the organisation a brigade regains an hour, the digging-in cap with the technologies'
+  `dig_in_cap` - which the day's digging now holds a unit to as well (`landcombat.md`, section 4) - a strategic
+  redeployment's wait by its own key, and a brigade's model by its levels with `+*` and a faction leader's name. The
+  maintainer has not looked at them. One thing is ours: a leader's traits on the way are in the traits file's order,
+  where the original's are in the order they lie in its memory, which nothing can give again.
 - **The step of ten in the builder windows is Ctrl on the word of a tooltip** (2026-10-11):
   the original's own buttons say "Ctrl + LMB to add or remove 10", and the key its code asks
   was not traced (`builders.md`, section 6). It was shift here until then.

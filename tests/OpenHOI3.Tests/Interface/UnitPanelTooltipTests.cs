@@ -285,6 +285,73 @@ public class UnitPanelTooltipTests
 		Assert.Equal("Current Strength at §Y88.8%§W\n", CUnitHeaderTooltips.Header(Localise, null!, country, division, "str_bar").Text);
 	}
 
+	[Fact]
+	public void TheOrganisationBarSaysWhatABrigadeOfTheMeanMoraleRegainsAnHour()
+	{
+		CGameState state = State(out CCountry country);
+		CSubUnitType infantry = Type("infantry_brigade");
+		infantry.Stats.Values.Set(COrganisation.Morale, CFixedPoint.Parse("0.3"));
+		CUnit division = Unit(country, EUnitKind.Division, Berlin, "1. Inf", infantry, infantry);
+		division.SubUnits[0].Organisation = CFixedPoint.FromInt(20);
+		division.SuppliesReceived = CFixedPoint.One;
+		country.OfficerRatio = CFixedPoint.One;
+
+		// Berlin has no roads here, so a hundredth: 1 x 0.01 x 1 x 1 x 0.3 x 0.2 = 0.0006, cut to 0.
+		Assert.Equal("Current Organisation at §Y25.0§W\n+§Y0.000",
+			CUnitHeaderTooltips.Header(key => key == "CURR_COMB_ORG" ? "Current Organisation at " : Localise(key), state, country, division,
+				"org_bar").Text);
+		state.Province(Berlin).Modifier.Set(COrganisation.Infrastructure, CFixedPoint.One);
+		Assert.Equal("+§Y0.060", CUnitHeaderTooltips.Regain(state, country, division));
+		// Given nothing, it regains nothing, where the hour takes organisation away.
+		division.SuppliesReceived = CFixedPoint.Zero;
+		Assert.Equal("+§Y0.000", CUnitHeaderTooltips.Regain(state, country, division));
+	}
+
+	[Fact]
+	public void TheDugInCapIsTheDefinesAndWhatTechnologyAdds()
+	{
+		CGameState state = State(out CCountry country);
+		state.Defines.Set(CManpower.MilitarySection, CDigIn.Cap, CFixedPoint.FromInt(10));
+		country.Technology.Set(CDigIn.TechnologyCap, CFixedPoint.FromInt(2));
+		CUnit division = Unit(country, EUnitKind.Division, Berlin, "1. Inf", Type("infantry_brigade"));
+		division.DigIn = CFixedPoint.FromInt(4);
+
+		Assert.Equal("4 of 12", CUnitStatusTooltips.For(key => key == "UW_DUGIN" ? "$CURR$ of $CAP$" : Localise(key), state, country, division,
+			"unitstatus_dugin", "", "").Text);
+	}
+
+	[Fact]
+	public void AStrategicRedeploymentsWaitIsNotCalledAnAttackDelay()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit division = Unit(country, EUnitKind.Division, Berlin, "1. Inf", Type("infantry_brigade"));
+		division.AttackDelay = CFixedPoint.FromInt(5);
+		string Texts(string key) => key == "UW_STRATDEPLOYMENT_DELAY" ? "Redeployed, $HOURS$." : Localise(key);
+
+		Assert.StartsWith("Delay 5", CUnitStatusTooltips.For(Texts, state, country, division, "unitstatus_delay", "", "").Text);
+		division.Order = EUnitOrder.StrategicRedeployment;
+		Assert.Equal("Redeployed, 5.", CUnitStatusTooltips.For(Texts, state, country, division, "unitstatus_delay", "", "").Text);
+	}
+
+	[Fact]
+	public void AFactionMembersModelTakesItsLeadersNameBeforeTheGames()
+	{
+		CGameState state = State(out CCountry germany);
+		var italy = new CCountry { Tag = new CCountryTag("ITA"), Name = "Italy", DefinitionFile = "" };
+		var withItaly = new CGameState(state.Date, new[] { new CProvince(0, "", isSea: false) }, new[] { germany, italy });
+		germany.Faction = "axis";
+		italy.Faction = "axis";
+		CSubUnitType infantry = Type("infantry_brigade");
+		string? Find(string key) => key switch { "GER_infantry_brigade_1" => "Infanterie 1", "infantry_brigade_1" => "Infantry 1", _ => null };
+
+		// Germany leads, being first: its own. Italy has none of its own and takes its leader's.
+		Assert.Equal("Infanterie 1", CBrigadeTooltips.ModelName(Localise, Find, withItaly, germany, infantry, 1));
+		Assert.Equal("Infanterie 1", CBrigadeTooltips.ModelName(Localise, Find, withItaly, italy, infantry, 1));
+		italy.Faction = "";
+		Assert.Equal("Infantry 1", CBrigadeTooltips.ModelName(Localise, Find, withItaly, italy, infantry, 1));
+		Assert.Equal("Infantry (III)", CBrigadeTooltips.ModelName(Localise, None, withItaly, italy, infantry, 2));
+	}
+
 	// ---- the order and the buttons
 
 	[Fact]
@@ -371,18 +438,22 @@ public class UnitPanelTooltipTests
 	public void ABrigadesSummaryNamesItsModelAndListsItsEquipment()
 	{
 		CGameState state = State(out CCountry country);
-		CUnit division = Unit(country, EUnitKind.Division, Berlin, "1. Inf", Type("infantry_brigade"));
+		state.Defines.Set(CHistoricalModels.MilitarySection, CHistoricalModels.MaxDefine, CFixedPoint.FromInt(10));
+		CSubUnitType infantry = Type("infantry_brigade");
+		infantry.Technologies.Add(state.Technologies["infantry_activation"]);
+		CUnit division = Unit(country, EUnitKind.Division, Berlin, "1. Inf", infantry);
 		CSubUnit brigade = division.SubUnits[0];
-		brigade.HistoricalModel = 1;
+		// The order of battle's model is not what it is shown as: its levels are.
+		brigade.HistoricalModel = 0;
 		brigade.TechnologyLevels["infantry_activation"] = 2;
 		brigade.TechnologyProgress["infantry_activation"] = new CFixedPoint(250);
 
-		Assert.Equal("Infantry (II)", CBrigadeTooltips.ModelName(Localise, None, country, brigade));
-		Assert.Equal("Infanterie-Brigade 36", CBrigadeTooltips.ModelName(Localise,
-			key => key == "GER_infantry_brigade_1" ? "Infanterie-Brigade 36" : null, country, brigade));
+		Assert.Equal("Infantry (III)", CBrigadeTooltips.ModelLabel(Localise, None, state, country, brigade));
+		Assert.Equal("Infanterie-Brigade 36", CBrigadeTooltips.ModelLabel(Localise,
+			key => key == "GER_infantry_brigade_2" ? "Infanterie-Brigade 36" : null, state, country, brigade));
 
 		string summary = CBrigadeTooltips.Summary(Localise, None, state, country, brigade);
-		Assert.StartsWith("(§YInfantry (II)§W)\nStrength: §Y3,000§W/3,000\n", summary);
+		Assert.StartsWith("(§YInfantry (III)§W)\nStrength: §Y3,000§W/3,000\n", summary);
 		Assert.Contains("Experience: §Y0.000§W%\n", summary);
 		Assert.EndsWith("Infantry Activation : §YModel 1934§W(+25.00%)§W\n", summary);
 	}
