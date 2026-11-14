@@ -122,18 +122,28 @@ public class EditTextTests
 	}
 
 	[Fact]
-	public void A_long_text_wraps_at_its_last_space_that_fits_and_the_box_shows_the_carets_line_alone()
+	public void A_long_text_wraps_by_the_text_layouts_rule_and_the_box_shows_the_carets_line_alone()
 	{
 		CEditText box = Box("Deutsches Reich 1936");
-		// "Deutsches" fills the nine, so the space after it does not fit and the line breaks before it.
-		Assert.Equal(new[] { (0, 9), (9, 7), (16, 4) }, box.Lines());
+		// The first nine characters reach the box less an O; "Deutsches" and an O just fit, so the line is cut at the last
+		// space before the ninth character's end - the space after "Deutsches" - and the space belongs to neither line.
+		Assert.Equal(new[] { (0, 9), (10, 5), (16, 4) }, box.Lines());
 		Assert.Equal("1936", box.ShownLine);
 		Assert.Equal(2, box.CaretRow);
 		box.Key(EEditKey.Home, false, false);
 		box.Key(EEditKey.Left, false, false);
-		Assert.Equal(" Reich ", box.ShownLine);
-		// No space to break at: after the most characters that fit.
+		Assert.Equal("Reich", box.ShownLine);
+		Assert.Equal(5, box.CaretColumn);
+		// No space to break at: after the first characters to reach the box less an O.
 		Assert.Equal(new[] { (0, 9), (9, 3) }, Box("abcdefghijkl").Lines());
+	}
+
+	[Fact]
+	public void A_line_kept_whole_may_be_the_box_less_an_O_where_one_cut_off_is_narrower()
+	{
+		// Nine characters and an O are the hundred: the line stands. Ten are not: cut at the space, the word on its own.
+		Assert.Single(Box("abcd efgh").Lines());
+		Assert.Equal(new[] { (0, 4), (5, 5) }, Box("abcd efghi").Lines());
 	}
 
 	[Fact]

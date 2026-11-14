@@ -117,6 +117,7 @@ public partial class CGuiButton : CGuiObject
 		// default for small icons (provinceview.md, section 4).
 		Place(GuiType, FrameSize(texture, sprite.FrameCount));
 		ShowFrame();
+		RemakeCaption();
 		return true;
 	}
 
@@ -169,6 +170,7 @@ public partial class CGuiButton : CGuiObject
 	/// </summary>
 	public void SetText(string text)
 	{
+		_captionText = text;
 		if (_sprite is { IsPlain: true })
 		{
 			text = "";
@@ -181,14 +183,42 @@ public partial class CGuiButton : CGuiObject
 		}
 		if (_caption is null)
 		{
+			// Laid out as the original's button lays it out: on a sprite, in the sprite's picture as a textBoxType's text,
+			// and with no sprite, as an instantTextBoxType's in the box its size gives (interface.md, section 6).
+			var type = (CGuiButtonType)GuiType;
 			_caption = new CGuiCaption();
-			_caption.Initialise(text, _font, ((CGuiButtonType)GuiType).Format);
+			if (_sprite is not null && _texture is not null)
+			{
+				(int width, int height, bool cut) = Interface.Text.CButtonCaption.SpriteBox(_texture.GetWidth(),
+					_texture.GetHeight(), _sprite.FrameCount, type.BorderSize.X, type.BorderSize.Y);
+				_caption.InitialiseSprite(text, _font, width, height, type.BorderSize.X, type.BorderSize.Y, cut);
+			}
+			else
+			{
+				_caption.InitialiseText(text, _font, type.Format, type.Orientation,
+					Interface.Text.CButtonCaption.TextWidth(type.Size.X));
+			}
 			AddChild(_caption);
 		}
 		else
 		{
 			_caption.Text = text;
 		}
+	}
+
+	/// <summary>The words last asked for, which a new sprite lays out again or, a plain one, hides.</summary>
+	private string _captionText = "";
+
+	/// <summary>The caption laid out again, for a picture of another size or kind.</summary>
+	private void RemakeCaption()
+	{
+		if (_caption is { } caption)
+		{
+			RemoveChild(caption);
+			caption.QueueFree();
+			_caption = null;
+		}
+		SetText(_captionText);
 	}
 
 	/// <summary>

@@ -2272,17 +2272,21 @@ None of these blocks the list above.
 - **Every text box breaks its lines as the original's font does since 2026-11-14** (`interface.md`, section 6): an
   `instantTextBoxType` by `CFontLineBreak`, a `textBoxType` by `CTextBoxLineBreak` - the original draws the two through
   different routines of its font - a box of fixed size cut first to the original's " ..." (`CFixedSizeCut`), and a
-  tooltip, a row of the message log, the diplomacy status list and the technology panel's effects laid out by the
-  original's text layout (`CTextLayoutLineBreak`). Left as they were, the original's rule not read for them: **an edit
-  box** (which line of its layout it shows when a screen sets its text), **a button's caption** (drawn by the
-  instantTextBoxType's routine, but with what box was not read - here one line, centred), and **the lobby's chat**.
-  **A `textBoxType` is placed by its own routine since the same day** (`CTextBoxPlacement`;
-  `reversing/findings/FINDINGS-textdraw.md`, section 2.2.1): a centred line without its border, a right one a pixel
-  short of it, every line at the border in a box with no height, no orientation in it, the lines centred up and down
-  where it has a picture behind it, and **cut off past its height and width less its border**. Not built of it: the
-  **picture behind a `textBoxType`'s text**, which the original draws as nine parts into the same picture - here only an
-  edit box's is drawn - and the one-unit squeeze of that picture on screen. The maintainer has not looked at the screens
-  since either change.
+  tooltip, a row of the message log, a line of the lobby's chat, the diplomacy status list, the technology panel's
+  effects and an edit box's text laid out by the original's text layout (`CTextLayoutLineBreak`) - the edit box showing
+  the caret's line, the last where a screen set the text. **A button's caption** is laid out as the original's button
+  lays it out (`CButtonCaption`; `reversing/findings/FINDINGS-textdraw.md`, section 1): on a text sprite as a
+  `textBoxType`'s text in the sprite's picture - cut, broken, centred each way, cut off past the picture - and with no
+  sprite as an `instantTextBoxType`'s in its `size`; a scrollbar's end buttons keep one line in the middle, how the
+  original draws theirs not read. **A `textBoxType` is placed by its own routine since the same day**
+  (`CTextBoxPlacement`; `reversing/findings/FINDINGS-textdraw.md`, section 2.2.1): a centred line without its border,
+  a right one a pixel short of it, every line at the border in a box with no height, no orientation in it, the lines
+  centred up and down where it has a picture behind it, and **cut off past its height and width less its border** -
+  and **the picture behind its text is drawn**, nine parts stretched, two short of the shown part's far edges where its
+  border is not nought (`CTextBoxPicture`, section 2.2.2), the tooltip's and an edit box's alike. Not built: the one-unit
+  squeeze of that picture on screen, the original's nearest sampling of it, and - **a disagreement to settle** - where an
+  edit box with a picture puts its line up and down: the reading puts `game_name`'s three pixels lower than the measured
+  placing kept here (`interface.md`, section 8). The maintainer has not looked at the screens since these changes.
 - **Four rules of how the interface draws are measured on screenshots and not read**: a
   bar's picture upside down, where a turned flag stands, where a round shield puts its
   flag, and where a name too long for its box is cut - the last of which ends ten pixels

@@ -83,38 +83,14 @@ public sealed class CEditText
 	public bool CaretShown { get; private set; } = true;
 
 	/// <summary>
-	/// The text's lines as the box wraps them: at each line's end, and where a line with one <c>O</c> more would be wider
-	/// than the box, at the last space that fits - the space kept at the end of the line - else after the most
-	/// characters that fit. Each line by its start and its length.
+	/// The text's lines as the box's layout breaks them, the original's text layout's rule
+	/// (<see cref="CTextLayoutLineBreak"/>): at each newline, and where a line with one <c>O</c> more is wider than the
+	/// box, at the last space before the first character at which it reaches the box less the <c>O</c> - the space
+	/// belonging to neither line - else after that character. Each line by its start and its length.
 	/// </summary>
 	public IReadOnlyList<(int Start, int Length)> Lines()
 	{
-		var lines = new List<(int, int)>();
-		float room = _innerWidth - _width("O");
-		int start = 0;
-		while (true)
-		{
-			int end = _text.IndexOf('\n', start);
-			int paragraphEnd = end < 0 ? _text.Length : end;
-			while (start < paragraphEnd && _width(_text[start..paragraphEnd]) > room)
-			{
-				int fits = start + 1;
-				while (fits < paragraphEnd && _width(_text[start..(fits + 1)]) <= room)
-				{
-					fits++;
-				}
-				int space = _text.LastIndexOf(' ', fits - 1, fits - start);
-				int next = space > start ? space + 1 : fits;
-				lines.Add((start, next - start));
-				start = next;
-			}
-			lines.Add((start, paragraphEnd - start));
-			if (end < 0)
-			{
-				return lines;
-			}
-			start = end + 1;
-		}
+		return CTextLayoutLineBreak.Ranges(_text, _innerWidth, _width);
 	}
 
 	/// <summary>The line the caret is on, by its place among the lines: the last that begins at or before it.</summary>

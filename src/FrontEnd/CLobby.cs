@@ -357,8 +357,10 @@ public partial class CLobby : Control
 	}
 
 	/// <summary>
-	/// A line of the chat log, <c>lobby_chat_text</c> rows of one line each: a paragraph cut where it is wider than a row,
-	/// a row for each line, the log scrolled to its end.
+	/// A line of the chat log, <c>lobby_chat_text</c> rows of one line each: the text laid out by the original's text
+	/// layout in the font of the row's <c>messagelogtext</c> and its width less 10, as the message log's rows are
+	/// (<see cref="Interface.Text.CTextLayoutLineBreak"/>; <c>interface.md</c>, section 6), a row for each line, the log
+	/// scrolled to its end. Each row is drawn alone, so a colour does not run on into the next.
 	/// </summary>
 	public void Say(string text)
 	{
@@ -366,29 +368,38 @@ public partial class CLobby : Control
 		{
 			return;
 		}
-		Gfx.CGuiFont? font = _context.Fonts.Find(ChatFont);
-		foreach (string paragraph in text.Split('\n'))
+		CGuiTextBoxType? boxType = null;
+		foreach (CGuiType child in rowType.Children)
 		{
-			IEnumerable<string> lines = font is null ? new[] { paragraph }
-				: Interface.Text.CWordWrap.Wrap(paragraph, rowType.Size.X, font.Width);
-			foreach (string line in lines)
+			if (child is CGuiTextBoxType candidate && candidate.Name == ChatTextName)
 			{
-				if (CGuiWindow.CreateEntry(_context, ChatRowName) is not { } row)
-				{
-					return;
-				}
-				if (row.FindTextBox("messagelogtext") is { } box)
-				{
-					box.Text = line;
-				}
-				chat.Add(row);
+				boxType = candidate;
 			}
+		}
+		Gfx.CGuiFont? font = boxType is null ? null : _context.Fonts.Find(boxType.Font);
+		IEnumerable<string> lines = font is null || boxType is null ? text.Split('\n')
+			: Interface.Text.CTextLayoutLineBreak.Break(text, boxType.MaxWidth - ChatRoomShort,
+				run => Interface.Text.CTextIcons.Measure(run, font.Width));
+		foreach (string line in lines)
+		{
+			if (CGuiWindow.CreateEntry(_context, ChatRowName) is not { } row)
+			{
+				return;
+			}
+			if (row.FindTextBox(ChatTextName) is { } box)
+			{
+				box.Text = line;
+			}
+			chat.Add(row);
 		}
 		chat.ShowLast();
 	}
 
 	private const string ChatRowName = "lobby_chat_text";
-	private const string ChatFont = "Arial12_bold";
+	private const string ChatTextName = "messagelogtext";
+
+	/// <summary>How much narrower than the row's text box the chat is laid out [exe].</summary>
+	private const int ChatRoomShort = 10;
 
 	/// <summary>
 	/// A shield of <c>lobby.gui</c>'s top-level <c>shield</c> for each of the start's countries, in the bookmark's order,

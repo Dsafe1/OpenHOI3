@@ -44,6 +44,16 @@ public sealed class CGuiButtonType : CGuiType
 	/// </summary>
 	public CGuiPoint Size { get; init; }
 
-	/// <summary>Where its caption stands: in the middle unless the file says otherwise.</summary>
+	/// <summary>
+	/// Where its caption stands on a button with no sprite: in the middle unless the file says otherwise. A sprite's caption
+	/// is centred whatever it says (<c>docs/mechanics/interface.md</c>, section 6). Which way the original's default goes
+	/// was not read.
+	/// </summary>
 	public EGuiTextFormat Format { get; init; } = EGuiTextFormat.Centre;
+
+	/// <summary>
+	/// The border its caption is laid out inside on a sprite, as a <c>textBoxType</c>'s <c>borderSize</c>. No button of the
+	/// base game or of BlackICE gives one.
+	/// </summary>
+	public CGuiPoint BorderSize { get; init; }
 }

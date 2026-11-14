@@ -47,7 +47,7 @@ public sealed class CGuiTypes
 	{
 		"quadtexturesprite", "position", "tooltip", "tooltiptext", "delayedtooltiptext", "buttonfont", "buttontext",
 		"orientation", "shortcut", "clicksound", "parent", "rotation", "size", "scale", "format",
-		"oversound", "upsound", "downsound",
+		"oversound", "upsound", "downsound", "bordersize",
 	};
 
 	private static readonly string[] IconKeys =
@@ -233,6 +233,7 @@ public sealed class CGuiTypes
 					IsCheckbox = keyword == "checkboxtype",
 					Size = Point(node, "size"),
 					Format = node.Get("format") is null ? EGuiTextFormat.Centre : Format(node),
+					BorderSize = Point(node, "borderSize"),
 				};
 
 			case "icontype":

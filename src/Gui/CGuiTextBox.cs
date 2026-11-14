@@ -45,6 +45,9 @@ public partial class CGuiTextBox : CGuiObject
 	/// <summary>The size of a textBoxType's picture behind its text, where it has one that could be loaded.</summary>
 	private (int Width, int Height)? _background;
 
+	/// <summary>The picture behind the text - a textBoxType's or an edit box's textureFile - where it could be loaded.</summary>
+	private Texture2D? _picture;
+
 	/// <summary>What a textBoxType's lines are drawn on, cut off where the original's picture of them ends; none for the other kinds.</summary>
 	private Control? _clip;
 
@@ -67,12 +70,18 @@ public partial class CGuiTextBox : CGuiObject
 			CDiagnostics.Warn($"interface: '{type.Name}' names the font '{type.Font}', which could not be loaded");
 		}
 
-		// A textBoxType's font draws it into a picture of its own, of which only part is shown: its lines are drawn on a
-		// child that cuts them off there. The box's textureFile, which the original draws into that picture behind the
-		// lines, is not drawn here, but having one centres the lines up and down (interface.md, section 6).
+		// The box's textureFile, drawn behind its text in nine parts (CTextBoxPicture; interface.md, sections 6 and 8).
+		if (!type.IsInstant && type.TextureFile.Length > 0)
+		{
+			_picture = context.Textures.LoadFromGamePath(type.TextureFile);
+		}
+
+		// A textBoxType's font draws it into a picture of its own, of which only part is shown: its lines and its picture
+		// are drawn on a child that cuts them off there. Having a picture centres the lines up and down (interface.md,
+		// section 6).
 		if (!type.IsInstant && !type.IsEdit)
 		{
-			if (type.TextureFile.Length > 0 && context.Textures.LoadFromGamePath(type.TextureFile) is { } picture)
+			if (_picture is { } picture)
 			{
 				_background = (picture.GetWidth(), picture.GetHeight());
 			}
@@ -81,37 +90,34 @@ public partial class CGuiTextBox : CGuiObject
 			AddChild(_clip);
 		}
 
-		// Until something sets it, a box shows what its file wrote in it.
-		Text = context.Localisation.Localise(type.Text);
-
-		// An edit box's own picture behind its text: its corners kept to the box's border and the rest repeated between
-		// them, as a text box's in a tooltip, from the box's border to 2 short of its far edges. Measured on the
-		// maintainer's screenshot of the save dialog, whose box of 260 by 32 and border 8 by 6 shows the picture's rim
-		// 246 by 20 - the picture has 2 clear all round - at 10 and 8 in; how the original draws it was not read
-		// (interface.md, section 8).
-		if (type.IsEdit && type.TextureFile.Length > 0 && context.Textures.LoadFromGamePath(type.TextureFile) is { } texture)
+		// Until something sets it, a box shows what its file wrote in it - its picture with nothing on it where it wrote
+		// nothing, as the original's draws a picture under an empty text.
+		_text = context.Localisation.Localise(type.Text);
+		if (_text.Length > 0)
 		{
-			var background = new NinePatchRect
-			{
-				Name = "Background",
-				Texture = texture,
-				PatchMarginLeft = type.BorderSize.X,
-				PatchMarginRight = type.BorderSize.X,
-				PatchMarginTop = type.BorderSize.Y,
-				PatchMarginBottom = type.BorderSize.Y,
-				AxisStretchHorizontal = NinePatchRect.AxisStretchMode.Tile,
-				AxisStretchVertical = NinePatchRect.AxisStretchMode.Tile,
-				MouseFilter = MouseFilterEnum.Ignore,
-				ShowBehindParent = true,
-				Position = new Vector2(type.BorderSize.X, type.BorderSize.Y),
-				Size = new Vector2(type.MaxWidth - type.BorderSize.X - EditBackgroundShort, type.MaxHeight - type.BorderSize.Y - EditBackgroundShort),
-			};
-			AddChild(background);
+			Relayout();
+		}
+		else
+		{
+			Clip();
 		}
 	}
 
-	/// <summary>How far short of an edit box's right and bottom edges its picture ends: measured, see above.</summary>
-	private const int EditBackgroundShort = 2;
+	/// <summary>
+	/// A box's picture, in the nine parts the original's font cuts it in (<see cref="CTextBoxPicture"/>), from a point of
+	/// what draws it: as large as what the box shows less two each way its border is not nought.
+	/// </summary>
+	public static void DrawPicture(CanvasItem item, Texture2D picture, Vector2 at, float shownWidth, float shownHeight,
+		int borderX, int borderY)
+	{
+		(float width, float height) = CTextBoxPicture.Size(shownWidth, shownHeight, borderX, borderY);
+		foreach (CPicturePart part in CTextBoxPicture.Parts(width, height, borderX, borderY, picture.GetWidth(),
+			picture.GetHeight()))
+		{
+			item.DrawTextureRectRegion(picture, new Rect2(at.X + part.X, at.Y + part.Y, part.Width, part.Height),
+				new Rect2(part.SourceX, part.SourceY, part.SourceWidth, part.SourceHeight));
+		}
+	}
 
 	/// <summary>
 	/// What an edit box made to take typing holds and does with keys; none for a box that only shows text - an edit box
@@ -243,14 +249,20 @@ public partial class CGuiTextBox : CGuiObject
 			{
 				Editor.Text = value;
 			}
-			_lines.Clear();
-			foreach (string line in CColouredText.CarryColour(Lines(value)))
-			{
-				_lines.Add(CColouredText.Parse(line));
-			}
-			Clip();
-			Redraw();
+			Relayout();
 		}
+	}
+
+	/// <summary>The text laid out again, and what its lines are drawn on sized to it.</summary>
+	private void Relayout()
+	{
+		_lines.Clear();
+		foreach (string line in CColouredText.CarryColour(Lines(_text)))
+		{
+			_lines.Add(CColouredText.Parse(line));
+		}
+		Clip();
+		Redraw();
 	}
 
 	/// <summary>The width a screen that lays a box out itself gives it, for breaking, cutting and placing its lines, in place of its file's: the Statistics screen's cells.</summary>
@@ -333,7 +345,7 @@ public partial class CGuiTextBox : CGuiObject
 	/// The text as the original's font lays it out (<c>docs/mechanics/interface.md</c>, section 6): a box of fixed size
 	/// cut first (<see cref="CFixedSizeCut"/>), then broken at its width whatever its height, the lines running on down
 	/// past it - an <c>instantTextBoxType</c>'s by <see cref="CFontLineBreak"/>, a <c>textBoxType</c>'s by
-	/// <see cref="CTextBoxLineBreak"/>. An edit box keeps the rule from before the reading (<see cref="EditLines"/>).
+	/// <see cref="CTextBoxLineBreak"/>. An edit box shows one line of its text layout's (<see cref="EditLines"/>).
 	/// </summary>
 	private List<string> Lines(string text)
 	{
@@ -374,22 +386,17 @@ public partial class CGuiTextBox : CGuiObject
 	public float DrawnHeight => _font is null ? 0f : _lines.Count * _font.LineHeight + 2f * ((CGuiTextBoxType)GuiType).BorderSize.Y;
 
 	/// <summary>
-	/// An edit box's text when it shows it all: each paragraph broken at its spaces, but only in a box tall enough for a
-	/// second line. The original's edit box shows one line of its text layout, the caret's (<c>interface.md</c>, section
-	/// 8); which line that is when a screen sets a text was not read, so this is ours.
+	/// What an edit box that takes no typing shows of a text a screen sets: the line of its text layout the caret is on,
+	/// the box's width less twice its border the layout's room (<see cref="CTextLayoutLineBreak"/>) - and a set text leaves
+	/// the caret at its end, so the last line (<c>interface.md</c>, section 8).
 	/// </summary>
 	private List<string> EditLines(string text)
 	{
 		var type = (CGuiTextBoxType)GuiType;
-		var lines = new List<string>();
 		CGuiFont font = _font!;
 		float inside = (LaidOutWidth ?? type.MaxWidth) - 2f * type.BorderSize.X;
-		bool wraps = inside > 0f && (type.MaxHeight == 0 || type.MaxHeight >= 2f * font.LineHeight);
-		foreach (string paragraph in text.Split('\n'))
-		{
-			lines.AddRange(wraps ? CWordWrap.Wrap(paragraph, inside, run => CTextIcons.Measure(run, font.Width)) : new[] { paragraph });
-		}
-		return lines;
+		List<string> lines = CTextLayoutLineBreak.Break(text, inside, run => CTextIcons.Measure(run, font.Width));
+		return new List<string> { lines[^1] };
 	}
 
 	/// <summary>The box's <c>maxWidth</c> as its file gives it, border and all.</summary>
@@ -421,6 +428,15 @@ public partial class CGuiTextBox : CGuiObject
 			return;
 		}
 		var type = (CGuiTextBoxType)GuiType;
+		// An edit box's picture: drawn where the original puts the object that draws its line, the border in, and as large
+		// as that object shows - the box less the border once (interface.md, section 8).
+		if (type.IsEdit && _picture is { } picture)
+		{
+			(float shownWidth, float shownHeight) = CTextBoxPlacement.Shown(true, type.MaxWidth, type.MaxHeight,
+				type.BorderSize.X, type.BorderSize.Y, 0f, 0, 0f);
+			DrawPicture(this, picture, new Vector2(type.BorderSize.X, type.BorderSize.Y), shownWidth, shownHeight,
+				type.BorderSize.X, type.BorderSize.Y);
+		}
 		float y = type.BorderSize.Y + _font.Ascent;
 		// An edit box's text starts further in than a text box's: nearly a second border
 		// across, and a little more than one down. Measured against a screenshot of the
@@ -482,6 +498,10 @@ public partial class CGuiTextBox : CGuiObject
 			return;
 		}
 		var type = (CGuiTextBoxType)GuiType;
+		if (_picture is { } picture)
+		{
+			DrawPicture(_clip, picture, Vector2.Zero, _clip.Size.X, _clip.Size.Y, type.BorderSize.X, type.BorderSize.Y);
+		}
 		(int width, int height) = FontSize();
 		bool fits = Fits();
 		float top = CTextBoxPlacement.Top(fits, _background is not null, height, type.BorderSize.Y, _lines.Count, _font.LineHeight);

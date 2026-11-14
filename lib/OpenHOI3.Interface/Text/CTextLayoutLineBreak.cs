@@ -26,32 +26,48 @@ public static class CTextLayoutLineBreak
 	/// <param name="measure">How wide a text is drawn, its colour escapes taken out.</param>
 	public static List<string> Break(string text, float room, Func<string, float> measure)
 	{
-		float spare = measure(Spare);
-		float Width(string run) => measure(CColouredText.Strip(run));
 		var lines = new List<string>();
-		string rest = text;
-		while (rest.Length > 0)
+		foreach ((int start, int length) in Ranges(text, room, run => measure(CColouredText.Strip(run))))
 		{
+			lines.Add(text.Substring(start, length));
+		}
+		return lines;
+	}
+
+	/// <summary>
+	/// The same lines as <see cref="Break"/>, each by where it starts in the text and how long it is: a newline that ends
+	/// a line and a space a line was cut at belong to neither line, the next starting after them. What an edit box keeps
+	/// its caret against (<c>docs/mechanics/interface.md</c>, section 8).
+	/// </summary>
+	/// <param name="width">How wide a run of the text is drawn, as it stands.</param>
+	public static List<(int Start, int Length)> Ranges(string text, float room, Func<string, float> width)
+	{
+		float spare = width(Spare);
+		var lines = new List<(int, int)>();
+		int at = 0;
+		while (at < text.Length)
+		{
+			string rest = text[at..];
 			int newline = rest.IndexOf('\n');
 			string first = newline < 0 ? rest : rest[..newline];
-			if (Width(first) + spare <= room)
+			if (width(first) + spare <= room)
 			{
-				lines.Add(first);
-				rest = newline < 0 ? "" : rest[(newline + 1)..];
+				lines.Add((at, first.Length));
+				at = newline < 0 ? text.Length : at + newline + 1;
 				continue;
 			}
-			int reaching = FirstReaching(rest, room - spare, Width);
+			int reaching = FirstReaching(rest, room - spare, width);
 			int space = rest.IndexOf(' ');
-			if (space >= 0 && Width(rest[..space]) + spare <= room)
+			if (space >= 0 && width(rest[..space]) + spare <= room)
 			{
 				int cut = LastSpaceBefore(rest, space, reaching);
-				lines.Add(rest[..cut]);
-				rest = rest[(cut + 1)..];
+				lines.Add((at, cut));
+				at += cut + 1;
 			}
 			else
 			{
-				lines.Add(rest[..reaching]);
-				rest = rest[reaching..];
+				lines.Add((at, reaching));
+				at += reaching;
 			}
 		}
 
@@ -59,7 +75,7 @@ public static class CTextLayoutLineBreak
 		// newline, has an empty piece last.
 		if (text.Length == 0 || text[^1] == '\n')
 		{
-			lines.Add("");
+			lines.Add((text.Length, 0));
 		}
 		return lines;
 	}

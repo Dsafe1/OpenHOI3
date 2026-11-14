@@ -56,4 +56,23 @@ public class TextLayoutLineBreakTests
 		string shorter = new string('a', 300) + " " + new string('b', 39);
 		Assert.Single(CTextLayoutLineBreak.Break(shorter, 352f, text => text == CTextLayoutLineBreak.Spare ? 8f : text.Length));
 	}
+
+	[Fact]
+	public void TheLinesByPlaceLeaveOutTheSpaceAndTheNewlineALineEndsAt()
+	{
+		Assert.Equal(new[] { (0, 3), (4, 7) }, CTextLayoutLineBreak.Ranges("aaa bbbbb c", 10f, Measure));
+		Assert.Equal(new[] { (0, 2), (3, 2), (6, 0) }, CTextLayoutLineBreak.Ranges("ab\ncd\n", 10f, Measure));
+		Assert.Equal(new[] { (0, 0) }, CTextLayoutLineBreak.Ranges("", 10f, Measure));
+		Assert.Equal(new[] { (0, 9), (9, 3) }, CTextLayoutLineBreak.Ranges("abcdefghijkl", 10f, Measure));
+	}
+
+	[Fact]
+	public void TheLobbysChatIsLaidOutAtItsRowsTextBoxLessTen()
+	{
+		// temp_frontend.gui's messagelogtext is 750 wide, so the chat is laid out at 740: a line of 735 and an O of 8 is
+		// cut, one of 730 is not.
+		float Wide(string text) => text == CTextLayoutLineBreak.Spare ? 8f : text.Length;
+		Assert.Equal(2, CTextLayoutLineBreak.Break(new string('a', 700) + " " + new string('b', 34), 740f, Wide).Count);
+		Assert.Single(CTextLayoutLineBreak.Break(new string('a', 700) + " " + new string('b', 29), 740f, Wide));
+	}
 }

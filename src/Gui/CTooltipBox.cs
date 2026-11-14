@@ -53,28 +53,14 @@ public partial class CTooltipBox : Control
 			CDiagnostics.Warn($"interface: '{type.Name}' names the font '{type.Font}', which could not be loaded");
 		}
 
-		// How the original draws a text box's picture was not read. This one is an even
-		// panel inside a narrow frame, so its corners are taken to be the box's border and
-		// the rest repeated between them.
-		if (type.TextureFile.Length > 0 && context.Textures.LoadFromGamePath(type.TextureFile) is { } texture)
+		// Its picture, drawn behind the text in nine parts as the original's font draws a textBoxType's (_Draw).
+		if (type.TextureFile.Length > 0)
 		{
-			var background = new NinePatchRect
-			{
-				Name = "Background",
-				Texture = texture,
-				PatchMarginLeft = type.BorderSize.X,
-				PatchMarginRight = type.BorderSize.X,
-				PatchMarginTop = type.BorderSize.Y,
-				PatchMarginBottom = type.BorderSize.Y,
-				AxisStretchHorizontal = NinePatchRect.AxisStretchMode.Tile,
-				AxisStretchVertical = NinePatchRect.AxisStretchMode.Tile,
-				MouseFilter = MouseFilterEnum.Ignore,
-				ShowBehindParent = true,
-			};
-			background.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-			AddChild(background);
+			_picture = context.Textures.LoadFromGamePath(type.TextureFile);
 		}
 	}
+
+	private Texture2D? _picture;
 
 	/// <summary>
 	/// Shows a text, or hides the box for an empty one. The text it shows already is left
@@ -127,6 +113,12 @@ public partial class CTooltipBox : Control
 
 	public override void _Draw()
 	{
+		// The box does not fit - its text is set with no height - so what it shows is its text and the border all round,
+		// which is its size, and the picture is drawn over that less two each way (interface.md, section 6).
+		if (_picture is { } picture)
+		{
+			CGuiTextBox.DrawPicture(this, picture, Vector2.Zero, Size.X, Size.Y, _type.BorderSize.X, _type.BorderSize.Y);
+		}
 		if (_font is null)
 		{
 			return;

@@ -449,9 +449,10 @@ files, with nothing in it placed by hand.
   the border added once more whichever way it is set. **A box measured from the centre**, set centred, starts at the border, plus half the box, less half the
   **widest** line, less half the line (2026-11-08, `reversing/findings/FINDINGS-textdraw.md`), so a single line ends at the middle of the box; set left or right it starts at the border. The other four
   orientations have rules of their own that were not all worked through; *ours* treats them as the upper left.
-  **That is an `instantTextBoxType`'s rule, and a button caption's.** A `textBoxType` is placed by another routine of
-  the font, which draws it into a picture of its own (read 2026-11-14, `reversing/findings/FINDINGS-textdraw.md`,
-  section 2.2.1; `CTextBoxPlacement`):
+  **That is an `instantTextBoxType`'s rule, and the caption's of a button that names no sprite** (below). A
+  `textBoxType` is placed by another routine of the font, which draws it into a picture of its own (read 2026-11-14,
+  `reversing/findings/FINDINGS-textdraw.md`, section 2.2.1; `CTextBoxPlacement`) - and so are an edit box's line
+  (section 8) and the caption of a button on a text sprite (below):
   - **A box fits where it says `fixedsize = yes`, or gives both a `maxWidth` and a `maxHeight`.** Then its picture is
     the box's size - 320 across where it gives no width - and
 
@@ -469,8 +470,16 @@ files, with nothing in it placed by hand.
   - The first line's top is the border's height down, the next a line's height under it - **except in a box that fits
     and has a picture behind its text**, its `textureFile`, where the lines start half of what the box's height leaves
     them down, cut to a whole number towards nought, with no border in it: the console's `console_text`, 16 high in
-    `garamond_16`, whose line is 16, starts at its top, where its border would put it 1 down. The original draws that
-    picture into the same picture, behind the text, as nine parts; *ours* draws only an edit box's (section 8).
+    `garamond_16`, whose line is 16, starts at its top, where its border would put it 1 down.
+  - **The picture behind the text is drawn into the same picture first, in nine parts** (read 2026-11-14,
+    `reversing/findings/FINDINGS-textdraw.md`, section 2.2.2; `CTextBoxPicture`): cut by the box's `borderSize`, its
+    four corners the border's size in the file and on the screen, its edges stretched along their length and its middle
+    both ways - **stretched, not repeated**. It covers what the box shows from its upper left corner, **less two pixels
+    across where the border across is not nought, and less two down where the border down is not**. So the tooltip's
+    `tiles_dialog` ends two short of the box's right and bottom edges, and an edit box's picture two short of its own
+    (section 8). Four `textBoxType`s of the base game and Their Finest Hour have a picture, the same four in BlackICE:
+    `console_text` and `ChatMemberText`, whose `transparency.dds` is clear, and `ToolTip` and `FPS_Counter`, on
+    `tiles_dialog.dds`.
   - **Only part of the picture is shown, and the text outside it is cut off**: in a box that fits, its width less the
     border on the right and its height less the border at the bottom - or where it gives no height, its lines and the
     border above and below; in a box that does not, all of it. So a `textBoxType`'s lines past its height are cut off,
@@ -479,7 +488,25 @@ files, with nothing in it placed by hand.
     dimension from the picture, less the border once.
 
   *Ours:* the original's picture is drawn on screen one unit narrower and lower than the texels it shows, each way -
-  a squeeze of a pixel over the box - which is not followed, nor is it known whether its pictures do the same.
+  a squeeze of a pixel over the box - which is not followed, nor is it known whether its pictures do the same. The
+  original samples the picture behind the text nearest, a texel to a pixel; the canvas here is scaled, and it is
+  sampled as the interface's other pictures are. A part that comes out of no size, the box narrower than its border
+  twice, is left out.
+- **A button's caption is laid out one of two ways** (read 2026-11-14, `reversing/findings/FINDINGS-textdraw.md`,
+  section 1; `CButtonCaption`, `CGuiCaption`):
+  - **On a button that names a sprite**, as a `textBoxType`'s text in the sprite's picture: of fixed size, its box the
+    picture less the button's `borderSize` once, so the text is first cut to the lines the picture holds and ends
+    " ..." where it holds fewer than it needs; then broken as a `textBoxType` is, **each line centred in the picture
+    with no border** - whatever the button's `format` says - and **the lines centred up and down**, half of what the
+    picture's height leaves them, cut to a whole number; what falls outside the picture less the border is cut off. A
+    caption too wide for its button therefore no longer runs past it, as it did here before the reading. A plain `spriteType` draws no caption at all. A sheet of more than one frame is laid out at a quarter
+    of its width, uncut (`docs/enhanced.md`, *Interface*); none has one.
+  - **On a button that names none**, as an `instantTextBoxType` at the button's place: its `size` the box, 200 where it
+    gives none, **no border**, its `format` and its orientation - the line's top at the button's. Two buttons of the
+    base game are such, `bg_button` and `messagelogbutton`, both with blank words.
+
+  No button of the base game or of BlackICE gives a `borderSize`, though the original's grammar takes one; it is read
+  here for the caption.
 - **Every glyph is then drawn one unit right and one up of that.** The original adds
   half a pixel to both coordinates of every corner of a glyph, in a space whose second
   axis points up (`confirmed`), and beside its pictures that comes out as a whole pixel
@@ -492,7 +519,7 @@ files, with nothing in it placed by hand.
   1 and 2.1 to 2.4). **Every text box breaks its text at its `maxWidth`, whatever its height**,
   each line a line's height under the last and placed as the first is - set centre, each centred
   by its own width. **The two kinds of box are broken by two routines of the font, near alike**:
-  - **An `instantTextBoxType`** - and a button's caption - is drawn straight to the screen
+  - **An `instantTextBoxType`** - and the caption of a button with no sprite - is drawn straight to the screen
     (`CFontLineBreak`). Its width is 200 where its file gives none (the object that draws it sets
     that; no file of the base game has one), and its height plays no part, so its lines run on
     down past it. A word is taken with the space after it: at each space, where the line, that
@@ -501,7 +528,7 @@ files, with nothing in it placed by hand.
     space left; a word over 50 that runs past the edge, once something has been laid out, is
     broken where it reaches it; the last word is tested without a space, and not at all where it
     alone is wider than the box; a newline ends a line; past 55 lines the rest is dropped.
-  - **A `textBoxType`** is drawn into a picture of its own (`CTextBoxLineBreak`), 320 wide where
+  - **A `textBoxType`** - and the caption of a button on a text sprite - is drawn into a picture of its own (`CTextBoxLineBreak`), 320 wide where
     its file gives no width. The text is read a character at a time, and **before each one - a
     space among them - a line that has reached the box**, twice the border in, breaks before the
     word being gathered, the word so far beginning the next line: a word goes down at the
@@ -518,15 +545,19 @@ files, with nothing in it placed by hand.
     dots** - "Magdeburg" in the province view's list of towns is "Magd ...", where it was
     "Magdeb..." before the reading. An `instantTextBoxType` is cut
     whatever its height, a `textBoxType` only where it has one.
-  - **A tooltip, a row of the message log, a line of the diplomacy screen's status list and a
-    row of the technology panel's effects are laid out by the original's text layout** before
-    their text reaches a box (`CTextLayoutLineBreak`; `reversing/findings/FINDINGS-editbox.md`,
-    section 6): a line is cut where it and one `O` are wider than the room - the tooltip's box
-    less three borders, the log's button less 10, the status list's and the effects' text box's
-    `maxWidth` - at the last space before the first character at which it reaches the room less
-    the `O`, the space dropped, or, where the first word and an `O` do not fit, after that
-    character, the word split. So a line standing whole may be the room less an `O` wide, and a
-    line broken off is narrower. What that gives is never broken again by the box.
+  - **A tooltip, a row of the message log, a line of the lobby's chat, a line of the diplomacy
+    screen's status list, a row of the technology panel's effects and an edit box's text are laid
+    out by the original's text layout** before their text reaches a box (`CTextLayoutLineBreak`;
+    `reversing/findings/FINDINGS-editbox.md`, section 6; `reversing/findings/FINDINGS-textdraw.md`,
+    section 2.3): a line is cut where it and one `O` are wider than the room - the tooltip's box
+    less three borders, the log's button less 10, **the chat row's `messagelogtext` less 10**, 740,
+    the status list's and the effects' text box's `maxWidth`, an edit box's `size` less twice its
+    border - at the last space before the first character at which it reaches the room less the
+    `O`, the space dropped, or, where the first word and an `O` do not fit, after that character,
+    the word split. So a line standing whole may be the room less an `O` wide, and a line broken
+    off is narrower. What that gives is never broken again by the box. A row of the chat, like a
+    row of the log, is drawn alone, so a colour does not run on into the next row (2026-11-14; until
+    then the chat was broken at its spaces to the row's whole width and a colour carried over).
 
   A first word too wide for the box, a space after it, leaves the first line empty in both
   kinds of box; in a `textBoxType` so does a first word that fills the box, and a word wider than
@@ -538,12 +569,11 @@ files, with nothing in it placed by hand.
   than the box makes the whole line's width that word's for its placing - and the one-short width
   a `textBoxType` keeps for a line broken inside a word are not followed: a line is placed by its
   own measured width. **A `textBoxType`'s lines are cut off past its height less its border** and
-  placed by a rule of their own, above (read and built 2026-11-14). **An edit box** keeps the rule
-  from before the reading - broken at its spaces where it is high enough for a second line - since
-  which line of its layout it shows when a screen sets its text was not read (section 8); **a
-  button's caption** stays one line, the box the original gives it not read; and **the lobby's
-  chat** is broken as before, its rule not read. `¤`, which the original's `textBoxType` counts 16
-  wide, is a letter here.
+  placed by a rule of their own, above (read and built 2026-11-14). **An edit box** shows one line
+  of its layout, the caret's - the last where a screen set its text, which leaves the caret at its
+  end - placed where section 8 measured it; **a button's caption** is laid out as the item above
+  says; **the lobby's chat** as the message log is. All three since 2026-11-14. `¤`, which the
+  original's `textBoxType` counts 16 wide, is a letter here.
 - **A font is a texture of glyphs and a descriptor**, `gfx/fonts/<name>.fnt` and `.tga`.
   `confirmed` The original reads the descriptor's numbers by position and never its key
   names, and a descriptor that says it has a page and does not name it is normal.
@@ -689,10 +719,10 @@ scalable canvas of section 3 could not survive. So:
 - **A window can be made many times over.** A line of a list, an entry of the technology
   tree and a slider are each a top-level window type the code makes one of for each
   thing it has to show, and puts where it wants it.
-- **A caption is one line in the middle of its button**, in the button's font. Captions
-  and text boxes both draw their own glyphs: a text box because its colour changes in
-  the middle of a line, and both because a typeface of other widths is narrowed as it is
-  drawn.
+- **A caption is laid out as section 6 says**, in the button's font - ~~one line in the middle of its button~~ until
+  2026-11-14, which a scrollbar's end buttons still are, how the original draws theirs not read. Captions and text
+  boxes both draw their own glyphs: a text box because its colour changes in the middle of a line, and both because a
+  typeface of other widths is narrowed as it is drawn.
 - **The typefaces are in `fonts/`, with their licences**, and `fonts/readme.md` says where
   each came from. Which stands for which is one table in the client.
 - **A button's shortcut is read** for function keys, `ESCAPE`, `ENTER` and single letters
@@ -756,19 +786,30 @@ Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/
   the last edit left it**, which after the caret has moved to another line is that other line's.
 - **A typed `'` also moves the caret right**, and a `%` typed without Shift left: the original's key test takes
   their codes for the arrows' (on a US layout `'` always, `%` never).
-- **The box shows only the line the caret is on**: its text is wrapped to its `size` across less twice its
-  `borderSize`, a line breaking where it and one `O` more would be wider - at the last space that fits, else after
-  the most characters that fit (*likely*) - so typing past the box's width jumps it to a new line. There is no
-  scrolling sideways.
+- **The box shows only the line the caret is on**: its text is laid out by the original's text layout
+  (`CTextLayoutLineBreak`, section 6) to its `size` across less twice its `borderSize` - a line cut where it and one
+  `O` more are wider, at the last space before the first character at which it reaches the room less the `O`, the
+  space belonging to neither line, else after that character (read 2026-11-14, `reversing/findings/FINDINGS-textdraw.md`,
+  section 2.3; until then the last space that fits, else the most characters, *likely*) - so typing past the box's width
+  jumps it to a new line. There is no scrolling sideways. **A text a screen sets leaves the caret at its end**, so a
+  box shows that text's last line (`CTextLayout::SetText`, the insert putting the caret after what it inserted).
+- **The line is drawn by the same object as a `textBoxType`'s text** (`reversing/findings/FINDINGS-textdraw.md`,
+  section 2.2.2): handed the box's whole `size`, its border, format left and not of fixed size, so it fits, and put
+  the border in from the box's corner. A line of the layout is narrower than that object's room, so it is never broken
+  again.
 - **The caret** is the `cursor` sprite [mod: `interface/core.gfx`, `gfx/interface/textcursor`], past the box's border
   by the width of its line before it and 3, and a line's height down for each line above its own. **It is on for half
   a second and off for half a second**, and a key taken hides it until it next comes on - up to a second.
-- **A box's `textureFile` is drawn behind its text** [mod: the `.gui`], its corners kept to the box's `borderSize` and
-  the rest repeated between them, **from the border to 2 short of the box's right and bottom edges**. *Measured*, not
-  read, on the maintainer's screenshot of the save dialog (2026-11-05): `game_name`, 260 by 32 with a border of 8 by 6,
-  shows `small_tiles_dialog`'s rim 246 by 20 at 10 and 8 in - the picture has 2 clear all round - and set beside it ours
-  lies on it to the pixel, the text and the caret with it. Every edit box of the base game's with a picture is drawn so;
-  the unit panel's name has none. Until then no edit box's picture was drawn.
+- **A box's `textureFile` is drawn behind its text** [mod: the `.gui`], in the nine parts of section 6 - its corners
+  kept to the box's `borderSize` and the rest **stretched** between them - **from the border to 2 short of the box's
+  right and bottom edges**, where the border that way is not nought. *Measured* first on the maintainer's screenshot
+  of the save dialog (2026-11-05): `game_name`, 260 by 32 with a border of 8 by 6, shows `small_tiles_dialog`'s rim 246
+  by 20 at 10 and 8 in - the picture has 2 clear all round - and set beside it ours lies on it to the pixel, the text
+  and the caret with it. **Read on 2026-11-14** (`reversing/findings/FINDINGS-textdraw.md`, section 2.2.2), and the
+  reading gives exactly that: the object that draws the line stands the border in and shows the box less the border,
+  and the picture is that less two each way. Until then it was repeated between the corners, which on these even panels
+  looks the same, and an edit box with no border down - the lobby's in a game, the metaserver's - was 2 short at the
+  bottom too. Every edit box of the base game's with a picture is drawn so; the unit panel's name has none.
 
 *Ours*:
 
@@ -780,12 +821,18 @@ Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/
 - **A character Windows-1252 has no byte for is not taken** and goes on; the original's window would be handed the
   code page's own stand-in. Text set by code puts the caret at its end, where the original's was not read.
 - **The text stands where section 7 measured it**, 15 across and 9 down in the unit panel's box, and the caret where
-  it was read; how the original's box draws its line was not read. On the maintainer's screenshot of the save dialog
-  both lie on the original's to within a pixel, the caret's bar two units past the character before it.
+  it was read. On the maintainer's screenshot of the save dialog both lie on the original's to within a pixel, the
+  caret's bar two units past the character before it. **The reading disagrees in one case**: the object that draws the
+  line places it as a `textBoxType` that fits (section 6) - the border across, twice from the box's corner, and down
+  the border twice, or, with a picture, the border and half of what the box's height leaves the line. For the unit
+  panel's name, with no picture, that is 16 and 8, which is the measured 15 and 9 once the glyph's own unit right and
+  up here is counted; for `game_name`, with a picture, it is 6 + (32 - 14) / 2 = 15 down, three below where ours stands
+  and the screenshot was matched. Kept as measured until a screenshot settles it
+  (`reversing/findings/FINDINGS-textdraw.md`, *What is not established*).
 
 Not established: how a button matches its shortcut, so whether the original lets an Escape typed into the box insert
 its character before `cancel` takes it, and whether a box with the keyboard keeps Enter from a button whose shortcut it
-is; the wrap's exact break.
+is; where the caret goes across a space a line was cut at.
 
 ## What is not established, in one place
 
@@ -793,11 +840,11 @@ is; the wrap's exact break.
    with what.
 2. **How a text box lays its text out**, beyond section 6 (where a line breaks, the cut of a
    `fixedsize` box, how the two kinds of text box differ in breaking, and where a `textBoxType`
-   places its lines and cuts them off are read since 2026-11-14): which line an edit box
-   shows when a screen sets its text, the box a button's caption is given, the five orientations
-   other than the upper left and right, why the pictures sit half a pixel the other
-   way from the text, and how a `textBoxType`'s picture lays out the nine parts of its
-   background and which container crops it.
+   places its lines and cuts them off are read since 2026-11-14, and so are the line an edit box
+   shows, the box a button's caption is given and the nine parts of a `textBoxType`'s picture): the
+   five orientations other than the upper left and right, why the pictures sit half a pixel the other
+   way from the text, which container crops a `textBoxType`'s picture, and where an edit box with a
+   picture puts its line up and down (section 8).
 3. **Where the position is measured to** - that it is the upper left corner is a fit on
    the files - and how `rotation` and `scale` turn and size an icon. A quarter turn is applied
    as section 7 says - one way for a bar and another for a flag - and **where an edit box
