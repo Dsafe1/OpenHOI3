@@ -174,8 +174,21 @@ public class UnitPanelTextTests
 		weak.SubUnits[0].Strength = CFixedPoint.Parse("10.05");
 		Assert.Equal("1,005", CUnitPanelText.Strength(weak));            // the last three digits padded
 
+	}
+
+	[Fact]
+	public void AFleetsAndAnAirUnitsStrengthIsItsCountOfShipsOrWingsWhateverTheirStrength()
+	{
+		State(out CCountry country);
 		CUnit fleet = Unit(country, EUnitKind.Navy, Berlin, Type("destroyer", EUnitBranch.Naval));
-		Assert.Equal("", CUnitPanelText.Strength(fleet));
+		Assert.Equal("1", CUnitPanelText.Strength(fleet));
+		fleet = Unit(country, EUnitKind.Navy, Berlin, Type("destroyer", EUnitBranch.Naval),
+			Type("destroyer", EUnitBranch.Naval), Type("light_cruiser", EUnitBranch.Naval));
+		fleet.SubUnits[0].Strength = CFixedPoint.Parse("0.5");           // a ship nearly sunk still counts
+		Assert.Equal("3", CUnitPanelText.Strength(fleet));
+
+		CUnit air = Unit(country, EUnitKind.Air, Berlin, Type("interceptor", EUnitBranch.Air), Type("interceptor", EUnitBranch.Air));
+		Assert.Equal("2", CUnitPanelText.Strength(air));
 	}
 
 	[Fact]

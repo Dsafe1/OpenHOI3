@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
@@ -183,5 +184,55 @@ public static class CTransportText
 			}
 		}
 		return aircraft;
+	}
+
+	/// <summary><c>select_land</c> may be pressed where anything is aboard - a fleet's panel or an air unit's.</summary>
+	public static bool MaySelectLand(CUnit carrier)
+	{
+		return carrier.Passengers.Count > 0;
+	}
+
+	/// <summary><c>select_air</c> is shown on a fleet's panel alone, and may be pressed where any of its carriers has aircraft aboard.</summary>
+	public static bool ShowsSelectAir(CUnit carrier)
+	{
+		return carrier.Kind == EUnitKind.Navy;
+	}
+
+	/// <inheritdoc cref="ShowsSelectAir"/>
+	public static bool MaySelectAir(CUnit carrier)
+	{
+		return ShowsSelectAir(carrier) && Aircraft(carrier).Count > 0;
+	}
+
+	/// <summary>
+	/// What a press of <c>select_land</c> selects in place of everything selected: a fleet's passengers, in the order they
+	/// boarded. **Null for an air unit, whose press does nothing at all** though the button may be pressed - the original's
+	/// click asks first whether the carrier is a fleet (<c>transport.md</c>, section 12, and oddity 21).
+	/// </summary>
+	public static List<CUnit>? SelectedByLand(CUnit carrier)
+	{
+		return carrier.Kind == EUnitKind.Navy ? new List<CUnit>(carrier.Passengers) : null;
+	}
+
+	/// <summary>
+	/// What a press of <c>select_air</c> selects in place of everything selected: every air unit aboard the fleet's
+	/// carriers, ship by ship in the fleet's order. Null for anything but a fleet.
+	/// </summary>
+	public static List<CUnit>? SelectedByAir(CUnit carrier)
+	{
+		return carrier.Kind == EUnitKind.Navy ? Aircraft(carrier) : null;
+	}
+
+	/// <summary>
+	/// A press's change of the selection: everything selected let go - the fleet among it - and the units selected in
+	/// their order, whatever their kind, as the original's own call to select takes them. Nothing centres the map.
+	/// </summary>
+	public static void SelectOnly(CSelection selection, IEnumerable<CUnit> units)
+	{
+		selection.Clear();
+		foreach (CUnit unit in units)
+		{
+			selection.Force(unit);
+		}
 	}
 }

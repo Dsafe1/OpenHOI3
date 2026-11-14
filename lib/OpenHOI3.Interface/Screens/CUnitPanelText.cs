@@ -145,14 +145,14 @@ public static class CUnitPanelText
 
 	/// <summary>
 	/// The header's strength: a land unit's men, whole under a thousand and with a comma
-	/// before the last three digits above. Nothing for a fleet or an air unit, whose
-	/// figure was not read.
+	/// before the last three digits above; a fleet's or an air unit's count of its own ships
+	/// or wings, plain - "3" - with no colour and no separator (<c>unitpanel.md</c>, section 3).
 	/// </summary>
 	public static string Strength(CUnit unit)
 	{
 		if (!CMovementSpeed.IsLand(unit))
 		{
-			return "";
+			return unit.SubUnits.Count.ToString(CultureInfo.InvariantCulture);
 		}
 		long men = Men(unit);
 		if (men < 1000)

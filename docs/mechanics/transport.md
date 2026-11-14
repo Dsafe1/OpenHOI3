@@ -330,9 +330,18 @@ hours before anyone is ashore. A change of player empties the list.
   first brigade's counter where the player's intelligence of it is 3 or more, the size by the unit's level, its name,
   its order, its objective, and its organisation and strength bars - no strength figure. Pressing a row selects that
   unit and centres the map on it;
-- `select_land` - "Select all attached land units." (`UW_SELECT_LAND`) - selects every passenger, pressable where any is
-  aboard; `select_air` - "Select all CAG's attached to this fleet." (`UW_SELECT_AIR`) - every aircraft aboard the
-  carriers, pressable where any is, hidden for an air unit.
+- `select_land` - "Select all attached land units." (`UW_SELECT_LAND`, shortcut `.`) - pressable where anything is
+  aboard, on a fleet's panel or an air unit's; `select_air` - "Select all CAG's attached to this fleet." (`UW_SELECT_AIR`,
+  shortcut `,`) - shown on a fleet's panel alone and pressable where any of its carriers (a ship with a `carrier_size`
+  above nought, *units file*) has aircraft aboard.
+- **A press** (read 2026-11-14, `reversing/findings/FINDINGS-transport.md`, section C.2): **nothing at all unless the
+  carrier is a fleet** - so an air unit's `select_land`, pressable over its paratroopers, does nothing (oddity 21).
+  For a fleet, everything selected - the fleet among it - is let go at the end of the frame's panel pass, and
+  `select_land` selects every passenger in the order they boarded, `select_air` every air unit aboard each carrier, ship
+  by ship in the fleet's order and each carrier's in its own. Each goes through the screen's own call to select, which
+  asks neither owner nor kind; the selection then shows the single panel for one unit and the panel of several for more.
+  **Nothing else happens**: the map is not moved, no province is chosen, nothing is posted; each unit selected sounds as
+  any selection does (`sound.md`, section 7). Built so, and tried with `--click` (section 14).
 - **The list is made when the fleet is selected and not again while it stays selected**: a unit that gets off stays in
   it until the fleet is selected anew (the maintainer, 2026-10-15). An air unit's list is made again when its count
   changes.
@@ -605,6 +614,14 @@ plane or a paratrooper: `OpenHOI3.SaveCheck airborne <install> [paradrop|carrier
   delivers at 4:00 and loads again at 9:00, and over five days carries 13.6 supplies there, about 1.5 a load - what
   Garmisch went short of, under the cap of 15.
 
+**The two select buttons, tried with `--click`** on 2026-11-14 (section 12). France played in `Germany1936_01_07_22`, the
+French transport fleet selected: its panel lists the Division de Tonkin, `select_land` pressable and `select_air` greyed;
+`select_land` pressed, the Division de Tonkin's panel stands alone, the map where it was; `select_air` pressed instead,
+nothing - and a press of the Diplomacy button after it opens the screen, the run's positive control. The United Kingdom
+in a new game, the Home Fleet selected: two air wings aboard HMS Furious, `select_land` greyed and `select_air`
+pressable; `select_land` pressed changes nothing, then `select_air` gives the panel of several with the two wings,
+each row's strength 1.
+
 ## What looks wrong and is built so
 
 1. **Nothing asks where a unit boards**: the command puts a unit aboard a fleet wherever the two are.
@@ -639,6 +656,8 @@ plane or a paratrooper: `OpenHOI3.SaveCheck airborne <install> [paradrop|carrier
 19. **Only one's own carriers are taken**, an ally's never.
 20. **Carrier protection is never done by itself**, and fights in the air wherever a battle is going on in the
     carrier's province, of any kind.
+21. **An air unit's `select_land` may be pressed and does nothing**: the panel's update enables it wherever anything is
+    aboard, a fleet or an air unit, and the click asks first whether the carrier is a fleet. Listed in `enhanced.md`.
 
 ## Ours
 
@@ -651,8 +670,6 @@ plane or a paratrooper: `OpenHOI3.SaveCheck airborne <install> [paradrop|carrier
   is given here; the original notes it wherever any path is set.
 - **The selection goes to the fleet once the load command has run**, where the original moves it inside the command, so
   that the fleet's list is made with the unit in it.
-- **The two buttons that select every passenger or every aircraft aboard cannot be pressed**: selecting several units at
-  once is not built.
 - **A land unit boarding an air unit has its path taken away**, and one aboard is not sent anywhere. The original's
   command leaves a path alone, and whether a passenger aboard an air unit then walks was not read; the panel offers a
   plane only where the unit stands, so a unit on the march is the one case.

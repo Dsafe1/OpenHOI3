@@ -196,4 +196,44 @@ public class AirTransportTextTests
 		plane.Order = EUnitOrder.CarrierProtection;
 		Assert.Equal("CAG Duty (Flying)", CUnitPanelText.Order(Localise, state, plane));
 	}
+
+	[Fact]
+	public void AFleetsTwoSelectButtonsPutWhatIsAboardInPlaceOfTheFleetAndAnAirUnitsSelectLandDoesNothing()
+	{
+		CGameState state = State(out CCountry germany);
+		CUnit fleet = Unit(state, germany, EUnitKind.Navy, Kiel, 2, false,
+			(CShipCensus.CarrierSize, "2"), (CTransport.TransportCapability, "40"));
+		// Nothing aboard: neither may be pressed, and select_air is a fleet's alone.
+		Assert.False(CTransportText.MaySelectLand(fleet));
+		Assert.True(CTransportText.ShowsSelectAir(fleet));
+		Assert.False(CTransportText.MaySelectAir(fleet));
+
+		CUnit first = Paratroops(state, germany);
+		CUnit second = Paratroops(state, germany);
+		CTransport.Board(fleet, first);
+		CTransport.Board(fleet, second);
+		CUnit group = Unit(state, germany, EUnitKind.Air, Kiel, 1, true, (CAirMissions.AirAttack, "2"));
+		CUnit other = Unit(state, germany, EUnitKind.Air, Kiel, 1, true, (CAirMissions.AirAttack, "2"));
+		CCarriers.BaseOn(state, group, fleet.SubUnits[1]);
+		CCarriers.BaseOn(state, other, fleet.SubUnits[0]);
+		Assert.True(CTransportText.MaySelectLand(fleet));
+		Assert.True(CTransportText.MaySelectAir(fleet));
+
+		// The fleet is let go and what is aboard selected in its order: the passengers as they boarded, the aircraft ship by ship.
+		var selection = new CSelection();
+		selection.Add(fleet, Ger);
+		CTransportText.SelectOnly(selection, CTransportText.SelectedByLand(fleet)!);
+		Assert.Equal(new[] { first, second }, selection.Units);
+		CTransportText.SelectOnly(selection, CTransportText.SelectedByAir(fleet)!);
+		Assert.Equal(new[] { other, group }, selection.Units);
+
+		// An air unit carrying paratroops: select_land may be pressed and the press does nothing; select_air is hidden.
+		CUnit plane = Plane(state, germany);
+		plane.Base = Kiel;
+		CAirTransport.Board(plane, Paratroops(state, germany));
+		Assert.True(CTransportText.MaySelectLand(plane));
+		Assert.Null(CTransportText.SelectedByLand(plane));
+		Assert.False(CTransportText.ShowsSelectAir(plane));
+		Assert.False(CTransportText.MaySelectAir(plane));
+	}
 }

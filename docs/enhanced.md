@@ -301,6 +301,7 @@ All of these are risk-free but for what the entry says.
 - **The second-target hint is backwards.** `fleetsandair.md`, "The air window". *Display.*
 - **Script text errors.** REMOVE_SPIES_EFFECT says "Add", SPIES_INFILTRATED says "Grk", about fifty keys show as their names. `scripttext.md`, 5. *Display.* Mods may ship their own.
 - **A fleet's passenger list goes stale.** `transport.md`, "What looks wrong", 2. *Display.*
+- **An air unit's `select_land` may be pressed and does nothing**: the panel enables it where paratroopers are aboard, and the click asks first whether the carrier is a fleet. `transport.md`, "What looks wrong", 21. *Bug.*
 - **Effects of nothing are red,** and more encirclement bonus is red. `leaders.md`, oddity 27. *Display.*
 - **The elections line says `YEARS` though it counts months.** `politics.md`, 11. *Display.*
 - **Sliders with nothing needed show a hundred times the IC.** `sliders.md`. *Display.*

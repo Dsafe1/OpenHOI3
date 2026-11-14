@@ -2463,14 +2463,22 @@ None of these blocks the list above.
   are ours and listed in the spec's *Ours*: the nearest air base a carrier's groups go to and the
   order the planes' load button looks in - a paradrop's start is held every frame while its row is ticked since
   2026-11-14, as the original's (`transport.md`, section 13.4).
-- **A fleet's `select_land` and `select_air` buttons do nothing** (found by the maintainer, 2026-11-14): the panel of
-  a fleet or an air unit carrying others (`CLoadedUnitsEntry`) finds both and greys them always, where the original's
-  select every land unit aboard and every carrier air group aboard its carriers, each pressable where any is
-  (`transport.md`, section 12; `UW_SELECT_LAND`, `UW_SELECT_AIR`). What a press does beyond selecting -
-  whether it centres the map, and what becomes of the fleet's own selection - was not read.
-- **A fleet's and an air unit's strength figure is empty** (found by the maintainer, 2026-11-14): the unit panel's
-  `unitstrength` shows a land unit's men and nothing for a fleet or an air unit (`CUnitPanelText.Strength`), where the
-  original shows their count of ships or wings - the figure for those was not read (`unitpanel.md`, section 3).
+- ~~**A fleet's `select_land` and `select_air` buttons do nothing**~~ (found by the maintainer, 2026-11-14) - **built
+  the same day**, the two clicks read whole (`transport.md`, section 12): pressable where anything is aboard and where a
+  carrier has aircraft, each lets go of everything selected, the fleet among it, and selects the passengers or the
+  carriers' air groups in order, the map left where it is. **An air unit's `select_land` may be pressed and does
+  nothing**, as the original's (oddity 21, `enhanced.md`). Tried with `--click` on the French transport fleet of the
+  7 January save and the Home Fleet of 1936; the maintainer has not looked at it.
+- ~~**A fleet's and an air unit's strength figure is empty**~~ (found by the maintainer, 2026-11-14) - **built the same
+  day**: the count of its own ships or wings, plain - the Home Fleet's 19 - read out of the original (`unitpanel.md`,
+  section 3) and looked at with `--click`.
+- **A carrier air group's panel lists no units above it** (found by the maintainer, 2026-11-14, on a screenshot of the
+  original): there the 5th Air wing aboard USS Ranger shows "USS Ranger Taskforce" and above it "CONUS East Theater" as
+  its units above, as though it stood in the order of battle under its carrier's fleet; here the panel walks only the
+  unit's own superiors (`CUnitPanel.Above`, `unit.Parent`), and an air group aboard a carrier has none. How the
+  original makes that chain - the carrier's fleet as the group's parent in the tree, or the panel walking the carrier
+  - and whether the order of battle browser and a click on the row treat it so, was not read (`unitpanel.md`,
+  section 2; `transport.md`, section 13.1).
 - ~~**A raid from the air is not built**, nor any message about a raid~~ - **built 2026-11-14**: the raid on convoys
   from the air, its pick of a province and its bombing of a convoy's ships, and the three messages of a raid,
   read out of the original and tried with `OpenHOI3.SaveCheck raid ... air` (`navalmissions.md`, sections 8.1 to 8.3).

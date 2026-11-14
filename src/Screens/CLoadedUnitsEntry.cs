@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Gui;
+using OpenHOI3.Interface.Map;
 using OpenHOI3.Interface.Screens;
 using OpenHOI3.Interface.Tooltips;
 using OpenHOI3.Sim;
@@ -35,6 +36,9 @@ public sealed class CLoadedUnitsEntry : CUnitPanelEntry
 	/// <summary>Raised with the unit of a row that was clicked.</summary>
 	public event Action<CUnit>? Selected;
 
+	/// <summary>Raised with a change of the selection, by <c>select_land</c> and <c>select_air</c>.</summary>
+	public event Action<Action<CSelection>>? SelectionChanging;
+
 	private CLoadedUnitsEntry(CGuiWindow window, CGuiContext context, CGameState state, CCountry owner, CUnit carrier)
 		: base(window)
 	{
@@ -48,10 +52,18 @@ public sealed class CLoadedUnitsEntry : CUnitPanelEntry
 		// As high as its rows, as the brigades' and the children's are: what is above the list, and the rows.
 		_label = (int)(_list?.Position.Y ?? 0f);
 		_fileHeight = (int)window.Size.Y;
-		// The two buttons select every passenger or every aircraft aboard; selecting several
-		// units at once is not built, so neither may be pressed.
+		// The two buttons select every passenger, or every aircraft aboard the carriers, in place of the fleet; an air
+		// unit's select_land may be pressed and does nothing, as the original's (transport.md, section 12).
 		_selectLand = window.FindButton("select_land");
 		_selectAir = window.FindButton("select_air");
+		if (_selectLand is not null)
+		{
+			_selectLand.Pressed += () => SelectOnly(CTransportText.SelectedByLand(_carrier));
+		}
+		if (_selectAir is not null)
+		{
+			_selectAir.Pressed += () => SelectOnly(CTransportText.SelectedByAir(_carrier));
+		}
 		AnswerFor(name => name switch
 		{
 			"select_land" => new CTooltip { Text = context.Localisation.Localise("UW_SELECT_LAND") },
@@ -82,12 +94,21 @@ public sealed class CLoadedUnitsEntry : CUnitPanelEntry
 		}
 		if (_selectLand is not null)
 		{
-			_selectLand.Disabled = true;
+			_selectLand.Disabled = !CTransportText.MaySelectLand(_carrier);
 		}
 		if (_selectAir is not null)
 		{
-			_selectAir.Visible = _carrier.Kind == EUnitKind.Navy;
-			_selectAir.Disabled = true;
+			_selectAir.Visible = CTransportText.ShowsSelectAir(_carrier);
+			_selectAir.Disabled = !CTransportText.MaySelectAir(_carrier);
+		}
+	}
+
+	/// <summary>A press: the units in place of everything selected, or nothing where the press does nothing.</summary>
+	private void SelectOnly(List<CUnit>? units)
+	{
+		if (units is not null)
+		{
+			SelectionChanging?.Invoke(selection => CTransportText.SelectOnly(selection, units));
 		}
 	}
 

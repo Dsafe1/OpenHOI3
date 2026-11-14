@@ -573,6 +573,8 @@ public partial class CUnitPanel : Control
 				ChooseRow(aboard);
 				ProvinceWanted?.Invoke(aboard.Location);
 			};
+			// select_land and select_air: what is aboard in place of the fleet, the map left where it is.
+			loaded.SelectionChanging += change => SelectionChanging?.Invoke(change);
 			Add(loaded);
 		}
 		// Last, a row for each battle the unit is in, and after them one for its bombing.

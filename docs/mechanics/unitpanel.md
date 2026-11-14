@@ -75,7 +75,7 @@ of the list of several selected units. `confirmed`
 | `counter_type` | the sprite `GFX_counter_` + the type of the unit's first brigade | built |
 | `counter_size` | the mark of its rank, as on a line of the deploy menu (`mapunits.md`, section 6) | built |
 | `unit_activity` | what it is doing, below | built in part |
-| `unitstrength` | its men, below | built |
+| `unitstrength` | a land unit's men; a fleet's or an air unit's count of ships or wings, below | built |
 | `unitleader` | its leader's name, in red where he has not the rank (`leaders.md`, section 4); `NO_LEADER` with none | built |
 | `leader_photo` | `gfx/pictures/portraits/`, the leader's `picture`, `.tga`; made again only when the leader changes | built; the file's picture with no leader, or with a portrait the install has not got |
 | `leader_types` | his kind and one more: a general 1, an admiral 2, an air marshal 3 - a general's with none | built |
@@ -106,14 +106,21 @@ whose unit it is**, and the original's refusal of an expeditionary force is undo
 last test. **The portrait is registered with the same handler and never disabled**, so a click on
 it opens the window where the button cannot be pressed (`inferred`; `leaders.md`, oddity 20).
 
-**The strength is men**: `confirmed`
+**The strength is a land unit's men**: `confirmed`
 
     men = the sum over the brigades of  strength x 100        (each brigade cut to a whole man)
 
 written whole under 1000 and with a comma before the last three digits above: `8,997`. The
 original writes it in red where the unit's strength is under the share at which it
-shatters; shattering is not built. A fleet's and an air unit's figure was not read, and
-theirs is empty here.
+shatters; shattering is not built.
+
+**A fleet's and an air unit's is its count of ships or wings** (read 2026-11-14,
+`reversing/findings/FINDINGS-unitpanel.md`, section 4): `confirmed`. Fleets and air units share
+one routine for the figure, which writes the number of the unit's own sub-units in plain decimal -
+`19` for the Home Fleet of 1936, `3` for the French transport fleet - with no colour, no
+separator, and nothing asked of a ship's or a wing's strength: a ship nearly sunk counts as one.
+The row of each unit in the panel of several shows the same. Built, and looked at with `--click`
+(`transport.md`, section 14).
 
 **The two bars** are whole hundredths, cut: `confirmed`
 
