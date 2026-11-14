@@ -603,8 +603,9 @@ public static class CLandAttack
 	}
 
 	/// <summary>
-	/// The land units beside a province whose next step is into it, of its holder or a friend of the holder's: the original's
-	/// <c>CollectUnitsMovingIntoProvince</c> asked for friends.
+	/// The land units beside a province whose way ends in it, of its holder or a friend of the holder's: the original's
+	/// <c>CollectUnitsMovingIntoProvince</c> asked for friends, which asks the path's last province and not its next step - so
+	/// a headquarters passing through on a longer way is not counted (<c>moving.md</c>, section 11).
 	/// </summary>
 	private static int SteppingIn(CGameState state, CProvince province)
 	{
@@ -617,7 +618,7 @@ public static class CLandAttack
 		{
 			foreach (CUnit other in state.Positions.Of(edge.To))
 			{
-				if (CTheatres.IsLand(other) && other.IsMoving && other.Path[0] == province.Id
+				if (CTheatres.IsLand(other) && other.Path.Count > 0 && other.Path[^1] == province.Id
 					&& CCountryLists.IsFriend(state, holder, other.Owner, withAccess: false))
 				{
 					count++;

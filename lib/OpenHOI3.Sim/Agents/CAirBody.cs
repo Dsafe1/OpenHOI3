@@ -299,7 +299,7 @@ public static class CAirBody
 
 	/// <summary>
 	/// The original's <c>CollectUnitsMovingIntoProvince</c> with enemies only: a land unit of a country at war with this one,
-	/// standing in a land province beside it, whose next step is into it.
+	/// standing in a land province beside it, whose way ends in it - the path's last province, not its next step.
 	/// </summary>
 	private static bool IsMarchedOn(CGameState state, CCountry country, int province)
 	{
@@ -311,7 +311,7 @@ public static class CAirBody
 			}
 			foreach (CUnit unit in state.Positions.Of(edge.To))
 			{
-				if (CTheatres.IsLand(unit) && unit.Path.Count > 0 && unit.Path[0] == province
+				if (CTheatres.IsLand(unit) && unit.Path.Count > 0 && unit.Path[^1] == province
 					&& CMovementRules.IsEnemy(state, country.Tag, unit.Owner))
 				{
 					return true;

@@ -393,7 +393,11 @@ more than 5 provinces, not shared, and p is defended or the stance under 3, stre
 under 0.75/0.5/0.6 (stance 2/4/else). It **must stay** - and supports rather than marches - where something beside it is
 **uncovered**, where it stands draws on a depot, nobody there can stand in for it, and it does not stand in a target
 province. **Uncovered** neighbours of its province, by edges not impassable, in a real area and held by an enemy - **p
-itself left out** - are those where anybody stands or the holder's friends are stepping in (any, where the unit's area is
+itself left out** - are those where anybody stands or a land unit of the holder's or a friend's beside it is **bound there - its way ending
+in it, not merely its next step**, as the original's collector asks the path's last province (`confirmed` on the listing,
+`reversing/findings/FINDINGS-liveread.md`, section 94: at 21:00 on 16 July 1941 the Soviet 5th Army passing through 1351
+on its way to 1530 leaves 1351 covered, and the 5th H Arm Division goes into 1395 by a plain move, as in all three runs,
+where ours had given it a support attack and so its way an hour later) (any, where the unit's area is
 one province and the neighbour's more than five) that no land unit of the country standing in the unit's province is bound
 for - at stance 4, none of the country's at all (*read* on the listing, `reversing/findings/FINDINGS-liveread.md`,
 section 85: at 21:00 on 6 September 1939 the 36. Infanterie-Division (mot) beside nothing but its target goes in). A stand-in is a land unit there that is not a headquarters, in no battle, bound
@@ -765,7 +769,7 @@ Each group, not retreating:
    country at war's (*measured* in a new game's first days, `reversing/findings/FINDINGS-liveread.md`, section 56: Japan's
    bombers, landed at half their organisation, merge at its next full pass; Italy's Aeronautica AOI, tired in the war on
    Ethiopia, rests and merges with nobody).
-3. **At war, its airfield marched on** - an enemy land unit beside it whose next step is into it: phase 2 is forced; a
+3. **At war, its airfield marched on** - an enemy land unit beside it whose way ends in it (section 94 of the same): phase 2 is forced; a
    busy group not rebasing has its order dropped; it is a **candidate** whatever its state.
 4. **Unfit** - a wing under 0.5 of its strength or of its organisation at air stance 2, else 0.7: under any order it is
    called off - a carrier's group of only CAG put on **carrier protection**, any other's order dropped. **Wanting rest** - a

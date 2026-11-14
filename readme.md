@@ -233,6 +233,10 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    75 to 58; at the war's start 110 to 113 the same, 9 to 6 missed and 45 to 42 alone. The same save's first odds on a
    loaded battle differ from load to load in the original - section 46's uninitialised cache - so 2390's attack is
    called off at entering in one recorded run of three.
+   **A province is covered against a unit merely passing through** (section 94; `moving.md`, section 11): the original's
+   count of units moving into a province asks where each one's way ends, not its next step, so the Soviet 5th Army
+   crossing 1351 for 1530 leaves it covered and the 5th H Arm Division goes into 1395 at 21:00 by a plain move, as in all
+   three runs. July: 216 the same, 57 alone, 4 none; the war's start 114, 5 missed, 43 alone.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
