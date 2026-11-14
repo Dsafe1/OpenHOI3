@@ -65,9 +65,18 @@ screen: the text of `OPT_NORMAL` or of `OPT_AICONTROL`, and on the technology sc
 The screen fills its elements on every pass while it is up, and a box set to what it
 already shows does nothing.
 
-*Not read:* what the top bar's buttons do. **Ours**, from how the game is remembered:
-`topbarbutton_prod` and `topbarbutton_tech` each bring their screen up, or take it down if
-it is up already, and only one screen is up at a time - the one that was up comes down.
+**One toggle opens and shuts every country screen** - the top bar's six buttons, a screen's own
+`close_button`, the alerts, a message's Goto and the rest all call it. `confirmed` (read
+2026-11-14, `reversing/findings/FINDINGS-countryviews.md`, section 7): every screen that is up
+comes down; the side menus close - the deploy menu among them; then, where the screen asked for
+was the one up, nothing more opens, and otherwise it comes up. **Either way the selection is
+cleared last** - every selected unit and province let go, so the unit panels and the province
+view close, as Escape lets them go. So only one screen is up at a time, and a screen never stands
+over a selection. The Statistics screen, opened over a country screen, shuts it through the same
+toggle, and so clears the selection then; opened over the map it leaves the selection alone
+(`statistics.md`; `reversing/findings/FINDINGS-topscreens.md`, section B.1). Built so since
+2026-11-14, on the maintainer's report that the selection stayed; until then a screen opened over
+it and the deploy menu stayed open.
 
 **A screen stands over an event's window and a message's popup**, as the maintainer saw the original do on
 2026-10-14: they come up under it, over the map and the panels, and the top bar stands over all of them. Not read:

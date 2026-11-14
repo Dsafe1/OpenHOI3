@@ -256,11 +256,16 @@ public partial class CFrontEnd : Node
 		return true;
 	}
 
-	/// <summary>The political map of a world, a new view for each world, under the interface.</summary>
+	/// <summary>
+	/// The political map of a world, a new view for each world, under the interface - its camera where the last view's
+	/// stood: the original keeps one camera for the front end, so a save loaded leaves the lobby's fixed zoom as it was.
+	/// </summary>
 	private void ShowOnMap(CGameState state)
 	{
+		(Vector2 Centre, float Zoom)? kept = null;
 		if (_mapView is not null)
 		{
+			kept = _mapView.View;
 			RemoveChild(_mapView);
 			_mapView.QueueFree();
 		}
@@ -280,6 +285,10 @@ public partial class CFrontEnd : Node
 		_mapView.IsLobby = true;
 		_mapView.Mode = CMapView.MapMode.Political;
 		MoveChild(_mapView, 0);
+		if (kept is { } view)
+		{
+			_mapView.View = view;
+		}
 		_mapView.ProvinceSelected += province =>
 		{
 			_lobby?.ProvinceClicked(province);
