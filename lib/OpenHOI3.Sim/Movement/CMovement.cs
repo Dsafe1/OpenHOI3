@@ -501,6 +501,7 @@ public static class CMovement
 			Enter(state, unit, next.Id);
 			Cancel(unit);
 			AnnounceIfDone(state, unit);
+			Agents.CSealiftSailing.OnBoarded(state, unit);
 			return false;
 		}
 		// A passenger stepping off - ashore from the sea, or out of its port - gets off first,
@@ -518,6 +519,12 @@ public static class CMovement
 			CSupplyCarry.Bring(state, country, unit, unit.Previous, next.Id);
 		}
 		Enter(state, unit, next.Id);
+		// A land unit's own agent is told at once: the sealift's look at a unit come into its target's area or its embark
+		// port (moving.md, section 15).
+		if (isLand)
+		{
+			Agents.CSealiftArrival.OnEntered(state, unit);
+		}
 		if (unit.Kind == EUnitKind.Navy)
 		{
 			// New water ends a fleet's wait after its last battle.

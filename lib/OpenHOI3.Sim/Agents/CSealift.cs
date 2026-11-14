@@ -237,6 +237,10 @@ public static class CSealift
 				? stranded
 				: 0;
 			long want = System.Math.Max(d, extra);
+			if (state.AiTrace is { } fillTrace && fillTrace.Country == country.Tag)
+			{
+				fillTrace.Write($"    sealift fill {area.Provinces[0]} ({area.Controller}): need {need[area]}, have {have.GetValueOrDefault(area)}, extra {extra}, next {(index + 1 < ours.Count ? ours[index + 1].Deficit : 0)}");
+			}
 			if (want < 1)
 			{
 				continue;
@@ -453,7 +457,9 @@ public static class CSealift
 		{
 			return false;
 		}
-		return own is null || CSealiftPickers.SeaRouteOpen(state, country, own, area);
+		// A unit standing in no area - at sea, aboard - has no port to sail from, so its route is open only at peace, as the
+		// original's null area answers (FINDINGS-liveread.md, section 89).
+		return own is null ? !state.IsAtWar(country.Tag) : CSealiftPickers.SeaRouteOpen(state, country, own, area);
 	}
 
 	/// <summary>A headquarters whose land children stand mostly in another area is given that area's port, no move.</summary>
@@ -631,24 +637,21 @@ public static class CSealift
 		}
 		// Those boarded now count as aboard for the sailing below: the load and the order to sail go out in one pass, and the
 		// load runs first, as the original's (reversing/findings/FINDINGS-liveread.md, section 63).
-		var boarding = new HashSet<CUnit>();
-		int left = 0;
+		var boarding = new Dictionary<CUnit, List<CUnit>>();
 		foreach (CUnit unit in waiting)
 		{
-			bool loaded = false;
 			foreach (CUnit fleet in present)
 			{
 				if (CTransport.CanCarry(fleet, unit))
 				{
 					state.Outbox.Add(new CLoadUnitCommand(country.Tag, unit.Id, fleet.Id));
-					boarding.Add(fleet);
-					loaded = true;
+					if (!boarding.TryGetValue(fleet, out List<CUnit>? aboard))
+					{
+						boarding[fleet] = aboard = new List<CUnit>();
+					}
+					aboard.Add(unit);
 					break;
 				}
-			}
-			if (!loaded)
-			{
-				left++;
 			}
 		}
 		while (troops > capacity)
@@ -688,16 +691,12 @@ public static class CSealift
 			// pass sees the fleet under way (FINDINGS-liveread.md, section 57).
 			CAiMoves.Move(state, country, best, embark, safe: false);
 		}
-		// Ours: a fleet at embark carrying troops, or taking them aboard now, with nobody left waiting there unboarded, sails them
-		// to debark.
-		if (left == 0)
+		// A fleet at embark carrying troops, or taking them aboard now, asks the sailing step.
+		foreach (CUnit fleet in present)
 		{
-			foreach (CUnit fleet in present)
+			if (fleet.Location == embark && fleet.Order == EUnitOrder.None)
 			{
-				if (fleet.Location == embark && (fleet.Passengers.Count > 0 || boarding.Contains(fleet)) && fleet.Order == EUnitOrder.None)
-				{
-					state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Transport, debark, ai: true));
-				}
+				CSealiftSailing.Run(state, country, agent, fleet, boarding.GetValueOrDefault(fleet));
 			}
 		}
 	}

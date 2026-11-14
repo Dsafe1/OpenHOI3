@@ -284,6 +284,48 @@ public class MovingTests
 		Assert.True(CSealiftPickers.IsSeaRouteOpen(state, state.Country(Ger)!, 1, 30));
 	}
 
+	[Fact]
+	public void A_division_reaching_the_embark_port_boards_the_agents_transport_there_and_the_sail_goes_out_behind_the_load()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		var headquarters = new CUnit(EUnitKind.Theatre, Ger) { Id = ++_nextId, Location = 6, Name = "hq" };
+		headquarters.Plan.Embark = 2;
+		headquarters.Plan.Debark = 30;
+		var agent = new CAgent(Ger, 1) { Unit = headquarters };
+		headquarters.Agent = agent;
+		germany.Units.Add(headquarters);
+		CUnit division = Division(state, Ger, 2, "infantry_brigade", brigades: 1);
+		division.Parent = headquarters;
+		headquarters.Children.Add(division);
+		division.SealiftTarget = 30;
+		agent.Land.Add(division);
+		var transport = new CSubUnitType("transport_ship", EUnitBranch.Naval);
+		transport.Stats.Values.Set(OpenHOI3.Sim.Transport.CTransport.TransportCapability, CFixedPoint.FromInt(10));
+		var fleet = new CUnit(EUnitKind.Navy, Ger) { Id = ++_nextId, Location = 2, Name = "fleet" };
+		var ship = new CSubUnit(transport) { Id = ++_nextId, Unit = fleet };
+		CUnits.RebuildStats(ship);
+		fleet.SubUnits.Add(ship);
+		fleet.Parent = headquarters;
+		headquarters.Children.Add(fleet);
+		germany.Units.Add(fleet);
+		agent.TransportFleets.Add(fleet);
+		state.ForgetPositions();
+
+		// Stepped into the embark port with its way done: aboard the transport lying there, and - everyone bound for debark
+		// being aboard then - the order to sail right behind it, so that both run in one drain.
+		CSealiftArrival.OnEntered(state, division);
+		Assert.Collection(state.Outbox,
+			command => Assert.IsType<CLoadUnitCommand>(command),
+			command => Assert.IsType<CSetUnitOrderCommand>(command));
+
+		// Somewhere else, or with no sealift target, nothing.
+		state.Outbox.Clear();
+		division.SealiftTarget = 0;
+		CSealiftArrival.OnEntered(state, division);
+		Assert.Empty(state.Outbox);
+	}
+
 	/// <summary>Germany and Poland put at war with each other.</summary>
 	private static void CWarDeclarations(CGameState state)
 	{

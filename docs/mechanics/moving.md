@@ -582,7 +582,10 @@ troops**, else nothing at all:
    falling back, or that the may-leave test does not let go strictly with a unit defending a battle held (7.6,
    `FINDINGS-moving.md` A.4e); not into an enemy's area a headquarters or a garrison; not armour or
    fast troops to a friendly area with no neighbour but the capital's, or from an area bordering an enemy; and then only
-   where the sea between them is open (`CCountry_IsSeaRouteOpen`: at peace always; at war shut into or out of the
+   where the sea between them is open - **a unit standing in no area, at sea aboard, has no port to sail from, so at war
+   never** (the original's null area; seen on the running game: Britain's 1st 'London' Division, aboard for Lerwick and at
+   sea at 09:00 on 7 September 1939, refused and its target released, so Lerwick is filled again;
+   `reversing/findings/FINDINGS-liveread.md`, section 89) (`CCountry_IsSeaRouteOpen`: at peace always; at war shut into or out of the
    Mediterranean where Gibraltar and Suez are both held by enemies, into or out of the Black Sea where its blocker is).
 4. **The short areas**, the country's own in descending order of shortage - one with the head's shortage and more
    provinces than the head's area put in front - others' before them in ascending order: each
@@ -619,6 +622,20 @@ troops**, else nothing at all:
    troops, each by the AI's own move (section 10), so its destination is written at once and the naval body after it in
    the pass finds the fleet under way and does not split it (`reversing/findings/FINDINGS-liveread.md`, section 57: New
    Zealand's five transports sent to 7990 in a new game's second hour, kept whole).
+   **The sailing** (`CAIUnit_SailTransportOrWait`): a transport at embark carrying troops - or taking them aboard in the
+   same pass, counted aboard - sails them to debark when everyone bound for debark in embark's area is aboard; with one
+   still to come that the transports have room for, only where the fleet may stand in debark and the nearest such is more
+   than 50 hours off; with none that fits, where it may stand in debark. It sails under a transport order, an invasion
+   where debark is enemy-held. *Ours*: the original asks it as each unit boards (`CAIUnit` slot 69, from
+   `CNavy::AddCarried`, which also clears the unit's held-back and garrison marks) and its order runs in the boarding's
+   hour; here it is asked as the AI posts the load, so the order goes out right behind it, the drain here running a command
+   posted by another command only at the next.
+   **On arrival** (`CAIUnit` slot 71, from `CUnit::AdvanceMovement`): as a land unit with a sealift target steps into a
+   province, its agent is told at once - where it now stands in its target's area, the areas are looked at again the next
+   hour; where its way is done, not aboard, at the plan's embark port, it boards the first transport of the agent's lying
+   there that can take it, and the sailing is asked. Britain's 1st 'London' Division reaches Newcastle at 06:00 on 7
+   September 1939 and is aboard the 4th Navy in that hour, which sails at 07:00 - both as the original's
+   (`reversing/findings/FINDINGS-liveread.md`, section 89). Ours had boarded only at the agent's next daily pass.
 
 ## 16. Invasions (`FINDINGS-moving.md` E, `FINDINGS-invasion.md`)
 
@@ -631,12 +648,22 @@ war with it (Germany, with its capital's area bordering land held against it, on
 Denmark's; in two real factions never Finland's, nor the capital areas of Romania, Bulgaria and Yugoslavia). **Failed for
 the month**: an area touching the country's own coast, one it may not invade (below), one no port of which reaches a port
 of the country's or - its capital's area bordering no hostile land - its fellow fighters' within 5000 by sea (2000 with
-it bordering) by an open sea. **Score**: 100001 with a priority province; a small island (ports, under 5 provinces, no
+it bordering) by an open sea. **Touching it** is its own side's coast beside it, and also - the candidate being its holder's capital
+area - a neighbour held by a friend at war with that holder, not played, of its faction where both have one, not in its
+capital's group of areas, its subject or (not Japan) nobody's subject and not Japan, Poland or Denmark: so Germany's
+capital area, beside France's, is failed for Britain. Each such neighbour, and its own beside it but the capital's, is a
+**staging area**, gathered before the failed list is looked at. **Score**: 100001 with a priority province; a small island (ports, under 5 provinces, no
 neighbour) 10 a port level + 51, or -99 for Germany before 1944; an enemy's capital area its provinces + 1, at most 101,
 halved for a subject's; else 1 - plus, over its first 60 provinces, 8 a naval base level, 40 for victory points, 40 for a
 strategic resource, 5 for one the country owns, scaled to 20 provinces; plus a draw on the AI's generator below a fifth
-of it (at least 5); over its least port distance to the capital's area / 200. The ten best, those under a tenth of the
-best dropped.
+of it (at least 5); over its least port distance to the capital's area / 200; kept by descending score, an equal after its
+equals. The ten best. Then the **staging areas**: the areas of its priority provinces held by a country on its side or
+fighting beside it and not its enemy added; each not failed, its sea route from the capital's area open (else failed), one
+of its own only with 40 provinces of enemy-held land beside it (25 where one is a capital area), scored 500 - 10500 for a
+priority area - and a draw on the AI's generator below a fifth of that, less 5 a province, doubled for its holder's capital
+area, in single precision rounded half to even: France's area, 309 provinces, -1926 in the original and -1938 here at the
+war's start (`reversing/findings/FINDINGS-liveread.md`, section 89). Last, from the tail while more than one is left, those
+under a tenth of the head's score dropped.
 
 **May invade** (`CEU3AI_MayInvadeArea`): its own land always; a faction member not its leader not under 50 IC nor
 without transports; and a member of the faction keyed `allies` not the capital area of a great power of a real faction
@@ -645,14 +672,23 @@ other than Japan - until a neighbour of it fights it.
 **Planning**, while the country has fewer than 2 invasions (Japan 8, the United States 4), prepares no war, and some
 ranked area is not invaded: the **divisions** are those of two brigades or more, ashore, ready (organisation 0.8,
 strength 0.75), not garrisons or airborne, in an area with a port that is the capital's or in land bordering no enemy,
-and spare - more there than the area needs, the capital's need halved where it borders no hostile land - or marines;
+and spare - more there than the area needs, the capital's need halved where it borders no hostile land and is not well
+ported (`COwnerArea_IsWellPorted`: its naval bases' working levels over its provinces more than half a level a province) -
+or marines;
 the **fleets** those carrying nothing; the **lift** their carrying. For each ranked area, best first, while the lift
 holds four infantry brigades: dominions skip every area before 1942 and Germany London's before 1943; N = its enemy land
 units, at least 1, tripled at a great power's capital - passed over where N brigades' weight is over twice the lift or
 fewer divisions are free; the **landing** (below); the divisions nearest by sea - marines at half the distance, fast
 troops at twice, no armour or garrisons, none bound there already, none past what is left of the lift - while fewer than
 N and their supplies under what the landing's ports land a day and 2; with twice the lift's weight the area fails; with
-fewer than N, nothing. Then transports until they carry them and escorts until their power is half their weight - each
+fewer than N, nothing. **A friend's area** - or, for Britain and its dominions up to 1941, one holding Paris, Brugge or
+Amsterdam, whoever holds it - is **reinforced**: N is one and one for each enemy land unit in the enemy areas beside it,
+less one for each of the country's land units not a headquarters already in its group of areas, each it lent the holder
+there and each of its invasions' bound there, at most 5 for those three areas and 20 otherwise, their supplies what the
+force's start from; it lands at its port nearest the country's true capital, the distance times 3000 over the working
+naval base level, its capacity the area's ports'; armour and garrisons may go; nothing is tripled, no area failed for
+weight, one division enough. Britain at the war's start sends the 1st Royal Marines alone from Pembroke to Newcastle for
+Cherbourg, as the original does (`reversing/findings/FINDINGS-liveread.md`, section 89). Then transports until they carry them and escorts until their power is half their weight - each
 fit, the nearest of each a round, an escort with a submarine a hundred times as far, a carrier a third, a capital ship a
 half. With a transport and room for the smallest division, the **invasion** is made with them all.
 

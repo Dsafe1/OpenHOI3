@@ -45,6 +45,7 @@ public static class CInvasionPlanner
 		ai.RankedAreas.Clear();
 		if (CSealift.SumCapacity(country) < 4 * InfantryWeight(state))
 		{
+			Trace(state, country, $"invasions: lift {CSealift.SumCapacity(country)} under four infantry brigades' {4 * InfantryWeight(state)}");
 			return;
 		}
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
@@ -60,7 +61,8 @@ public static class CInvasionPlanner
 				reach.Add(area);
 			}
 		}
-		var scored = new List<(CSupplyArea, long)>();
+		var scored = new List<(CSupplyArea Area, long Score)>();
+		var staging = new List<CSupplyArea>();
 		foreach (CCountry enemy in CCountryLists.Enemies(state, country))
 		{
 			if (country.Tag.Value == "GER" && capitalThreatened && enemy.Tag.Value is not ("NOR" or "SWE" or "FIN" or "DEN"))
@@ -73,7 +75,7 @@ public static class CInvasionPlanner
 			}
 			foreach (CSupplyArea area in network.Areas)
 			{
-				if (area.Controller != enemy.Tag || area.IsLandlocked || ai.FailedAreas.Contains(area))
+				if (area.Controller != enemy.Tag || area.IsLandlocked)
 				{
 					continue;
 				}
@@ -82,37 +84,225 @@ public static class CInvasionPlanner
 				{
 					continue;
 				}
-				if (TouchesUs(country, area) || !MayInvade(state, country, area)
-					|| !Reachable(state, country, area, reach, range))
+				// Its neighbours first, which gather the staging areas whether or not it is failed already.
+				bool touches = Touches(state, country, network, enemy, area, capitalArea, staging);
+				if (ai.FailedAreas.Contains(area))
+				{
+					continue;
+				}
+				if (touches || !MayInvade(state, country, area) || !Reachable(state, country, area, reach, range))
 				{
 					ai.FailedAreas.Add(area);
 					continue;
 				}
-				scored.Add((area, Score(state, country, network, enemy, area, capitalArea)));
+				Insert(scored, area, Score(state, country, network, enemy, area, capitalArea));
 			}
 		}
-		scored.Sort((a, b) => b.Item2.CompareTo(a.Item2));
 		foreach ((CSupplyArea area, long score) in scored.Take(Kept))
 		{
 			ai.RankedAreas.Add((area, score));
 		}
-		if (ai.RankedAreas.Count > 0)
+		AddStaging(state, country, network, capitalArea, staging);
+		// The final cut: from the tail, while more than one is left, those under a tenth of the head's score.
+		if (ai.RankedAreas.Count > 1)
 		{
 			long floor = ai.RankedAreas[0].Score / 10;
-			ai.RankedAreas.RemoveAll(entry => entry.Score < floor);
+			while (ai.RankedAreas.Count > 1 && ai.RankedAreas[^1].Score < floor)
+			{
+				ai.RankedAreas.RemoveAt(ai.RankedAreas.Count - 1);
+			}
+		}
+		Trace(state, country, $"invasions ranked: {string.Join(", ", ai.RankedAreas.Select(entry => $"{entry.Area.Provinces[0]}={entry.Score}"))}; failed {ai.FailedAreas.Count}");
+	}
+
+	private static void Trace(CGameState state, CCountry country, string line)
+	{
+		if (state.AiTrace is { } trace && trace.Country == country.Tag)
+		{
+			trace.Write("  " + line);
 		}
 	}
 
-	private static bool TouchesUs(CCountry country, CSupplyArea area)
+	/// <summary>
+	/// Whether a candidate area touches us, gathering staging areas on the way: a neighbour with a port that is ours touches
+	/// us, and goes on the staging list unless it is our capital's area; and, where the candidate is its holder's capital
+	/// area, a neighbour with a port held by a friend of ours at war with that holder - not played, of our faction where
+	/// both have one, not in our capital's group of areas, our subject or (we not Japan) nobody's subject and not Japan,
+	/// Poland or Denmark - touches us and is a staging area too (<c>docs/mechanics/moving.md</c>, section 16).
+	/// </summary>
+	private static bool Touches(CGameState state, CCountry country, CSupplyNetwork network, CCountry holder, CSupplyArea area,
+		CSupplyArea? capitalArea, List<CSupplyArea> staging)
 	{
+		bool touches = false;
+		bool holdersCapital = ReferenceEquals(area, network.AreaOf(holder.ActingCapital));
 		foreach (CSupplyArea beside in area.Neighbours)
 		{
-			if (beside.Controller == country.Tag && !beside.IsLandlocked)
+			if (beside.IsLandlocked)
 			{
-				return true;
+				continue;
+			}
+			if (beside.Controller == country.Tag)
+			{
+				touches = true;
+				if (!ReferenceEquals(beside, capitalArea) && !staging.Contains(beside))
+				{
+					staging.Add(beside);
+				}
+				continue;
+			}
+			if (!holdersCapital || beside.Controller == holder.Tag || state.Country(beside.Controller) is not { } friend
+				|| beside.Provinces.Count == 0)
+			{
+				continue;
+			}
+			if (!CCountryLists.IsFriend(state, country, friend.Tag, withAccess: false)
+				|| !Movement.CMovementRules.IsEnemyIn(state, friend.Tag, holder.Tag, beside.Provinces[0])
+				|| state.Played.Contains(friend.Tag)
+				|| (country.Faction.Length > 0 && friend.Faction.Length > 0 && friend.Faction != country.Faction)
+				|| (beside.RegionGroup is not null && ReferenceEquals(beside.RegionGroup, capitalArea?.RegionGroup)))
+			{
+				continue;
+			}
+			bool subject = friend.Overlord == country.Tag
+				|| (country.Tag.Value != "JAP" && friend.Tag.Value is not ("JAP" or "POL" or "DEN") && friend.Overlord is null);
+			if (!subject)
+			{
+				continue;
+			}
+			touches = true;
+			if (!staging.Contains(beside))
+			{
+				staging.Add(beside);
 			}
 		}
-		return false;
+		return touches;
+	}
+
+	/// <summary>
+	/// The staging areas, added after the cut to ten: first the areas of the priority provinces held by a country on our
+	/// side or fighting beside us and not our enemy; then each not failed, its sea route open from our capital's area (or
+	/// it is failed), and one of our own only with 40 provinces of enemy-held land beside it (25 where one is its holder's
+	/// capital area), scored 500 - 10500 for a priority area - and a draw on the AI's generator below a fifth of that, less
+	/// 5 a province, doubled for its holder's capital area, in single precision and rounded half to even; distance nought
+	/// (<c>docs/mechanics/moving.md</c>, section 16; <c>reversing/findings/FINDINGS-liveread.md</c>, section 89).
+	/// </summary>
+	private static void AddStaging(CGameState state, CCountry country, CSupplyNetwork network, CSupplyArea? capitalArea,
+		List<CSupplyArea> staging)
+	{
+		CUnitAi ai = country.UnitAi;
+		var priority = new List<CSupplyArea>();
+		foreach (int id in ai.PriorityProvinces)
+		{
+			if (network.AreaOf(id) is { } area && !priority.Contains(area))
+			{
+				priority.Add(area);
+			}
+		}
+		foreach (CSupplyArea area in priority)
+		{
+			CCountryTag holder = area.Controller;
+			if (area.Provinces.Count == 0 || holder.Value == Revolts.CRebelFactions.Rebels || state.Country(holder) is null)
+			{
+				continue;
+			}
+			if ((IsSameSide(state, country, holder)
+					|| (CCountryLists.FightingTogether(state, country.Tag, holder) && !CCountryLists.IsEnemy(state, country, holder)))
+				&& !staging.Contains(area))
+			{
+				staging.Add(area);
+			}
+		}
+		foreach (CSupplyArea area in staging)
+		{
+			if (ai.FailedAreas.Contains(area))
+			{
+				continue;
+			}
+			bool open = capitalArea is not null
+				? CSealiftPickers.SeaRouteOpen(state, country, capitalArea, area)
+				: !state.IsAtWar(country.Tag);
+			if (!open)
+			{
+				ai.FailedAreas.Add(area);
+				continue;
+			}
+			if (area.Controller == country.Tag && !BesideEnoughEnemyLand(state, country, network, area))
+			{
+				continue;
+			}
+			float s = priority.Contains(area) ? 10500f : 500f;
+			long k = System.Math.Max(RoundEven((float)(s / 5.0)), 5);
+			s = (float)(s + (double)(state.AiRandom.Next() % k));
+			s = (float)(s - (double)(5 * area.Provinces.Count));
+			if (state.Country(area.Controller) is { } holder && ReferenceEquals(network.AreaOf(holder.ActingCapital), area))
+			{
+				s = (float)(s * 2.0);
+			}
+			long score = RoundEven(s);
+			Trace(state, country, $"staging area {area.Provinces[0]} ({area.Controller}, {area.Provinces.Count} provinces): {score}");
+			int at = ai.RankedAreas.Count;
+			while (at > 0 && ai.RankedAreas[at - 1].Score < score)
+			{
+				at--;
+			}
+			ai.RankedAreas.Insert(at, (area, score));
+		}
+	}
+
+	/// <summary>One of our own areas staged from only with 40 provinces of enemy-held land beside it, 25 where one is its holder's capital area.</summary>
+	private static bool BesideEnoughEnemyLand(CGameState state, CCountry country, CSupplyNetwork network, CSupplyArea area)
+	{
+		int provinces = 0;
+		bool capital = false;
+		foreach (CSupplyArea beside in area.Neighbours)
+		{
+			if (beside.Controller == country.Tag || beside.Provinces.Count == 0
+				|| !Movement.CMovementRules.IsEnemyIn(state, country.Tag, beside.Controller, beside.Provinces[0]))
+			{
+				continue;
+			}
+			provinces += beside.Provinces.Count;
+			if (state.Country(beside.Controller) is { } holder && ReferenceEquals(network.AreaOf(holder.ActingCapital), beside))
+			{
+				capital = true;
+			}
+		}
+		return provinces >= (capital ? 25 : 40);
+	}
+
+	/// <summary>
+	/// The original's <c>CCountry::IsSameSide</c>: not the rebels; itself, or one the other's overlord, or the two under one
+	/// overlord.
+	/// </summary>
+	private static bool IsSameSide(CGameState state, CCountry country, CCountryTag tag)
+	{
+		if (tag.Value == Revolts.CRebelFactions.Rebels)
+		{
+			return false;
+		}
+		if (tag == country.Tag || country.Overlord == tag)
+		{
+			return true;
+		}
+		CCountry? other = state.Country(tag);
+		return other?.Overlord == country.Tag || (country.Overlord is { } overlord && other?.Overlord == overlord);
+	}
+
+	/// <summary>Into a list kept by descending score, an equal score after its equals.</summary>
+	private static void Insert(List<(CSupplyArea Area, long Score)> list, CSupplyArea area, long score)
+	{
+		int at = list.Count;
+		while (at > 0 && list[at - 1].Score < score)
+		{
+			at--;
+		}
+		list.Insert(at, (area, score));
+	}
+
+	/// <summary>A single-precision figure rounded as the original's <c>fistp</c> rounds it: to the nearest, half to even.</summary>
+	private static long RoundEven(float value)
+	{
+		return (long)System.Math.Round((double)value, System.MidpointRounding.ToEven);
 	}
 
 	/// <summary>Some port of the area reaches a port of the land the country may sail from, within the range, by an open sea.</summary>
@@ -255,6 +445,7 @@ public static class CInvasionPlanner
 		int cap = country.Tag.Value switch { "JAP" => 8, "USA" => 4, _ => 2 };
 		if (ai.Invasions.Count >= cap || ai.RankedAreas.Count == 0 || Ai.CWarTargets.IsPreparingWar(state, country))
 		{
+			Trace(state, country, $"invasions planned none: {ai.Invasions.Count} of {cap}, {ai.RankedAreas.Count} ranked, preparing war {Ai.CWarTargets.IsPreparingWar(state, country)}");
 			return;
 		}
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
@@ -273,6 +464,7 @@ public static class CInvasionPlanner
 		List<CUnit> divisions = Divisions(state, country, network);
 		if (divisions.Count == 0)
 		{
+			Trace(state, country, "invasions planned none: no division free");
 			return;
 		}
 		var fleets = new List<CUnit>();
@@ -296,40 +488,57 @@ public static class CInvasionPlanner
 			{
 				continue;
 			}
-			int enemies = 0;
-			foreach (int id in area.Provinces)
+			bool enemyHeld = CCountryLists.IsEnemy(state, country, area.Controller);
+			bool special = IsSpecial(state, country, area);
+			int n;
+			long supply = 0;
+			if (enemyHeld && !special)
 			{
-				foreach (CUnit unit in state.Positions.Of(id))
+				int enemies = 0;
+				foreach (int id in area.Provinces)
 				{
-					if (CTheatres.IsLand(unit) && CCountryLists.IsEnemy(state, country, unit.Owner))
+					foreach (CUnit unit in state.Positions.Of(id))
 					{
-						enemies++;
+						if (CTheatres.IsLand(unit) && CCountryLists.IsEnemy(state, country, unit.Owner))
+						{
+							enemies++;
+						}
 					}
 				}
+				n = System.Math.Max(enemies, 1);
+				Trace(state, country, $"invasion of {area.Provinces[0]}: enemies {n}, lift {lift}, divisions free {divisions.Count}");
+				if (n * reference > 2 * lift || divisions.Count < n)
+				{
+					continue;
+				}
 			}
-			int n = System.Math.Max(enemies, 1);
-			if (n * reference > 2 * lift || divisions.Count < n)
+			else
 			{
-				continue;
+				n = Reinforcement(state, country, network, area, special, out supply);
+				Trace(state, country, $"reinforcement of {area.Provinces[0]}{(special ? " (special)" : "")}: wanted {n}, supply there {supply}, lift {lift}, divisions free {divisions.Count}");
+				if (n < 1)
+				{
+					continue;
+				}
 			}
-			int landing = CLandingPicker.Pick(state, country, area, null);
+			int landing = enemyHeld || area.Ports.Count == 0 ? CLandingPicker.Pick(state, country, area, null) : NearestPort(state, country, area);
 			if (landing <= 0)
 			{
+				Trace(state, country, "  no landing");
 				continue;
 			}
-			long capacity = Capacity(state, area, landing);
-			if (state.Country(area.Controller) is { } holder && Ai.CWarTargets.Prunes(holder)
+			long capacity = enemyHeld || area.Ports.Count == 0 ? Capacity(state, area, landing) : PortsCapacity(state, area);
+			if (enemyHeld && !special && state.Country(area.Controller) is { } holder && Ai.CWarTargets.Prunes(holder)
 				&& ReferenceEquals(network.AreaOf(holder.ActingCapital), area))
 			{
 				n *= 3;
 			}
 			var picked = new List<CUnit>();
-			long supply = 0;
 			long weight = 0;
 			long smallest = long.MaxValue;
 			while (picked.Count < n && supply <= capacity + SupplyMargin * Whole)
 			{
-				CUnit? best = NearestDivision(state, country, network, divisions, picked, area, landing, lift - weight);
+				CUnit? best = NearestDivision(state, country, network, divisions, picked, area, landing, lift - weight, enemyHeld);
 				if (best is null)
 				{
 					break;
@@ -340,17 +549,19 @@ public static class CInvasionPlanner
 				weight += mine;
 				smallest = System.Math.Min(smallest, mine);
 			}
-			if (weight > 2 * lift)
+			if (enemyHeld && weight > 2 * lift)
 			{
 				ai.FailedAreas.Add(area);
 				continue;
 			}
-			if (picked.Count < n || picked.Count == 0)
+			Trace(state, country, $"  landing {landing}, capacity {capacity}, picked {picked.Count} of {n} [{string.Join("; ", picked.Select(unit => unit.Name))}], weight {weight}");
+			if (picked.Count == 0 || (enemyHeld && picked.Count < n))
 			{
 				continue;
 			}
 			(List<CUnit> transports, List<CUnit> escorts) = Fleets(state, fleets, landing, weight);
 			long chosen = transports.Sum(CTransport.Capacity);
+			Trace(state, country, $"  transports {transports.Count} carrying {chosen}, escorts {escorts.Count}");
 			if (transports.Count == 0 || chosen < smallest)
 			{
 				continue;
@@ -369,6 +580,133 @@ public static class CInvasionPlanner
 			ai.Invasions.Add(invasion);
 			invaded.Add(area);
 		}
+	}
+
+	/// <summary>
+	/// The original's <c>COwnerArea_IsWellPorted</c>: its ports' naval bases' working levels, summed, over its provinces, more
+	/// than half a level a province.
+	/// </summary>
+	private static bool IsWellPorted(CGameState state, CSupplyArea area)
+	{
+		if (area.Provinces.Count == 0 || CTheatreFigures.NavalBase(state) is not { } naval)
+		{
+			return false;
+		}
+		long levels = 0;
+		foreach (int port in area.Ports)
+		{
+			levels += state.Province(port).BuildingLevel(naval).Raw;
+		}
+		return levels / area.Provinces.Count > 500;
+	}
+
+	/// <summary>
+	/// Britain and its dominions up to 1941 treat the areas of Paris, Brugge and Amsterdam as a friend's to reinforce,
+	/// whoever holds them, five divisions at most.
+	/// </summary>
+	private static bool IsSpecial(CGameState state, CCountry country, CSupplyArea area)
+	{
+		return country.Tag.Value is "ENG" or "NZL" or "CAN" or "SAF" or "AST" && state.Date.Year <= 1941
+			&& (area.Provinces.Contains(Paris) || area.Provinces.Contains(Brugge) || area.Provinces.Contains(Amsterdam));
+	}
+
+	private const int Paris = 2613;
+	private const int Brugge = 2137;
+	private const int Amsterdam = 1910;
+
+	/// <summary>
+	/// How many divisions a friend's area - or a special one - wants sent: one, and one for each enemy land unit in the enemy
+	/// areas beside it, less one for each land unit of ours that is no headquarters already in its group of areas, each we
+	/// lent its holder there and each of our invasions' bound for it; at most 5 for a special area, 20 otherwise. The
+	/// supplies those units of ours use are what the force's supplies start from.
+	/// </summary>
+	private static int Reinforcement(CGameState state, CCountry country, CSupplyNetwork network, CSupplyArea area, bool special,
+		out long supply)
+	{
+		supply = 0;
+		int n = 1;
+		foreach (CSupplyArea beside in area.Neighbours)
+		{
+			if (!CCountryLists.IsEnemy(state, country, beside.Controller))
+			{
+				continue;
+			}
+			foreach (int id in beside.Provinces)
+			{
+				foreach (CUnit unit in state.Positions.Of(id))
+				{
+					if (CTheatres.IsLand(unit) && CCountryLists.IsEnemy(state, country, unit.Owner))
+					{
+						n++;
+					}
+				}
+			}
+		}
+		CSupplyGroup? group = area.RegionGroup;
+		foreach (CUnit unit in country.UnitsInOrder())
+		{
+			if (unit.IsRemoved || !CTheatres.IsLand(unit) || CArmyRole.Of(unit) == CArmyRole.Headquarters)
+			{
+				continue;
+			}
+			bool there = group is not null && ReferenceEquals(network.AreaOf(unit.Location)?.RegionGroup, group);
+			bool bound = unit.Invasion is { } invasion && group is not null
+				&& ReferenceEquals(network.AreaOf(invasion.Objective)?.RegionGroup, group);
+			if (there || bound)
+			{
+				n--;
+				supply += Supply(unit);
+			}
+		}
+		if (state.Country(area.Controller) is { } holder && holder.Tag != country.Tag)
+		{
+			foreach (CUnit unit in holder.UnitsInOrder())
+			{
+				if (!unit.IsRemoved && CTheatres.IsLand(unit) && unit.Lender == country.Tag && group is not null
+					&& ReferenceEquals(network.AreaOf(unit.Location)?.RegionGroup, group))
+				{
+					n--;
+					supply += Supply(unit);
+				}
+			}
+		}
+		return System.Math.Min(n, special ? 5 : 20);
+	}
+
+	/// <summary>
+	/// A friend's area is landed at its port nearest our true capital, the distance times 3000 over the working level of
+	/// its naval base - the plain distance at none; the first of equals.
+	/// </summary>
+	private static int NearestPort(CGameState state, CCountry country, CSupplyArea area)
+	{
+		CBuilding? naval = CTheatreFigures.NavalBase(state);
+		CProvince? capital = country.Capital > 0 ? state.Province(country.Capital) : null;
+		int best = 0;
+		double least = double.MaxValue;
+		foreach (int port in area.Ports)
+		{
+			CProvince p = state.Province(port);
+			double distance = capital is null ? 0 : CMapDistance.Between(capital, p, state.MapWidth);
+			long level = naval is null ? 0 : p.BuildingLevel(naval).Raw / Whole;
+			double score = level > 0 ? distance * 3000 / level : distance;
+			if (score < least)
+			{
+				least = score;
+				best = port;
+			}
+		}
+		return best;
+	}
+
+	/// <summary>What a friend's area's ports land in a day between them.</summary>
+	private static long PortsCapacity(CGameState state, CSupplyArea area)
+	{
+		long capacity = 0;
+		foreach (int port in area.Ports)
+		{
+			capacity += CConvoyRules.PortCapacity(state, state.Province(port));
+		}
+		return capacity;
 	}
 
 	/// <summary>The year rules: Britain's dominions before 1942, Germany's London before 1943.</summary>
@@ -431,7 +769,8 @@ public static class CInvasionPlanner
 			if (!spare.TryGetValue(area, out long left))
 			{
 				long need = CPlanPowers.NeedOf(state, country, agent, area);
-				if (ReferenceEquals(area, capitalArea) && !CAreaHostility.TouchesHostileArea(state, area))
+				// Halved in the capital's area, unless it borders hostile land or is well ported.
+				if (ReferenceEquals(area, capitalArea) && !CAreaHostility.TouchesHostileArea(state, area) && !IsWellPorted(state, area))
 				{
 					need /= 2;
 				}
@@ -456,7 +795,7 @@ public static class CInvasionPlanner
 	}
 
 	private static CUnit? NearestDivision(CGameState state, CCountry country, CSupplyNetwork network, List<CUnit> divisions,
-		List<CUnit> picked, CSupplyArea target, int landing, long liftLeft)
+		List<CUnit> picked, CSupplyArea target, int landing, long liftLeft, bool enemyHeld)
 	{
 		CUnit? best = null;
 		long least = long.MaxValue;
@@ -467,7 +806,8 @@ public static class CInvasionPlanner
 				continue;
 			}
 			int role = CArmyRole.Of(unit);
-			if (role is CArmyRole.Armour or CArmyRole.Garrison
+			// Armour and garrisons stay out of a landing on enemy ground, and go to a friend's.
+			if ((enemyHeld && role is CArmyRole.Armour or CArmyRole.Garrison)
 				|| ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit))?.RegionGroup, target.RegionGroup))
 			{
 				continue;

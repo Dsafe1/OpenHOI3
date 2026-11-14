@@ -217,6 +217,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    move asks the click's test first, so a unit marching into a battle is neither halted nor pulled back - Poland's Armia
    Modlin kept on its attack. With both, ours gives 105 of the runs' shared ways, misses 14 and gives 26 of its own
    alone, where it was 94, 24 and 36; entering, 4 January and the July series are unchanged by them.
+   **Britain's Royal Marines are the original's since** (section 89): the invasion ranking's staging areas - Germany's
+   capital area failed for touching France's, France's ranked at -1926 - and the planner's friendly branch send the 1st to
+   Newcastle for Cherbourg; a division boards at the embark port the hour it arrives and the transport sails behind the
+   load; a unit at sea may not be shipped at war, so the 2nd fills Lerwick. The July 1941 series' shared ways went 186 to
+   215 and its own alone 114 to 78. At the war's start the staging draw shifts the AI's generator, a German diplomacy
+   change remakes Germany's theatres and a western one neither run makes moves its divisions: Germany's ways alone 17 to
+   46 - whether the original's own remake would make that theatre is the next thing to read.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

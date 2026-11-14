@@ -39,6 +39,8 @@ public sealed class CLoadUnitCommand : CCommand
 		}
 		CTransport.Board(Find(country, _fleet)!, unit);
 		CUnitOrders.Clear(unit);
+		// Its agent is told, and may sail the fleet (moving.md, section 15).
+		Agents.CSealiftSailing.OnBoarded(state, unit);
 	}
 
 	private static CUnit? Find(CCountry country, int id)
