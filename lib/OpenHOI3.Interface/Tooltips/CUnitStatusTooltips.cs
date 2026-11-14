@@ -19,8 +19,8 @@ namespace OpenHOI3.Interface.Tooltips;
 
 /// <summary>
 /// What the status of a selected unit says in a tooltip: where it is and is supplied from,
-/// its weight and width, the marks of what holds for it, its speed and how far its
-/// headquarters are. Attrition's breakdown, supply and fuel are not built and say nothing. See
+/// its attrition broken into its causes, its supply and fuel, its weight and width, the marks
+/// of what holds for it, its speed and how far its headquarters are. See
 /// <c>docs/mechanics/unitpanel.md</c>, section 10.
 /// </summary>
 public static class CUnitStatusTooltips
@@ -53,6 +53,10 @@ public static class CUnitStatusTooltips
 	{
 		switch (element)
 		{
+			case "unitattrition":
+				return unit.SubUnits.Count == 0 || unit.Location <= 0
+					? CTooltip.Empty
+					: new CTooltip { Text = Attrition(localise, state, state.Province(unit.Location), unit.SubUnits[0]) };
 			case "supply_status":
 				return Supplied(localise, state, owner, unit, EGoods.Supplies, "UW_SUPPLY_STATUS2", unit.SuppliesReceived);
 			case "fuel_status":
@@ -97,6 +101,71 @@ public static class CUnitStatusTooltips
 				return CTooltip.Empty;
 		}
 	}
+
+	/// <summary>
+	/// <c>unitattrition</c>: a brigade's attrition in a province broken into its causes. Nothing for a brigade that is not
+	/// land; in a friend's province away from the front, <c>IN_FRIENDLY_FOR_ATT</c> alone. Otherwise the front's or the enemy's
+	/// line - the front's counting each cause at a tenth - then the province's own sources of attrition, what its
+	/// infrastructure lacks, the weather where above nothing, the ground where above nothing under the terrain's name, the
+	/// technology's cut as a percentage, and last the brigade's whole figure. The weather here is not held at nothing, as
+	/// the figure's is.
+	/// </summary>
+	public static string Attrition(Func<string, string> localise, CGameState state, CProvince province, CSubUnit brigade)
+	{
+		if (brigade.Type.Branch != EUnitBranch.Land || brigade.Unit is not { } unit || state.Country(unit.Owner) is not { } owner)
+		{
+			return "";
+		}
+		var text = new StringBuilder();
+		long scale = Scale;
+		if (CAttrition.IsFriendsGround(state, province, unit.Owner))
+		{
+			if (!Sim.Theatres.CTheatreFigures.IsFrontProvince(state, province, false))
+			{
+				return localise("IN_FRIENDLY_FOR_ATT");
+			}
+			text.Append(localise("IN_FRONT_PROV_ONLY_10"));
+			scale = Scale / 10;
+		}
+		else
+		{
+			text.Append(localise("IN_HOSTILE_FOR_ATT"));
+		}
+		text.Append('\n').Append(Modifiers.CModifierText.Contributors(localise, province.Modifier, province.ModifierSources,
+			CAttrition.Modifier, scale));
+		if (text.Length > 0 && text[^1] != '\n')
+		{
+			text.Append('\n');
+		}
+		long infrastructure = (Scale - CAttrition.InfrastructureShare(province)) * scale / Scale;
+		if (infrastructure != 0)
+		{
+			text.Append(localise("ATTR_INFRA")).Append(": §R").Append(infrastructure > 0 ? "+" : "")
+				.Append(Two(infrastructure)).Append("§!\n");
+		}
+		long weather = CAttrition.WeatherBeforeFloor(state, province, owner, unit) * scale / Scale;
+		if (weather > 0)
+		{
+			text.Append(localise("ATTR_WEATHER")).Append(": §R+").Append(Two(weather)).Append("§!\n");
+		}
+		long ground = CAttrition.Ground(province, brigade) * scale / Scale;
+		if (ground > 0 && province.Terrain is { } terrain)
+		{
+			text.Append(localise(terrain.Name)).Append(": §R+").Append(Two(ground)).Append("§!\n");
+		}
+		long technology = owner.Technology[CAttrition.Technology].Raw;
+		if (technology != 0)
+		{
+			text.Append('\n').Append(localise("ATTR_TECH")).Append(": ").Append(technology < 0 ? "§G" : "§R+")
+				.Append(Two(technology * 100)).Append("%§!\n");
+		}
+		long figure = CAttrition.Of(state, province, brigade);
+		text.Append("\n§Y").Append(localise("TERRAIN_ATTRITION")).Append("§!").Append(figure > 0 ? "§R+" : "")
+			.Append(Two(figure)).Append("%§!");
+		return text.ToString();
+	}
+
+	private static string Two(long thousandths) => CNumberText.Format(new CFixedPoint(thousandths), 2);
 
 	/// <summary>A width's line: <c>UNIT_COMBAT_WIDTH: §Y1.0§W</c> and a line break.</summary>
 	public static string Width(Func<string, string> localise, CFixedPoint width)

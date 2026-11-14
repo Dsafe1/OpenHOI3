@@ -726,9 +726,10 @@ In order:
       headquarters' row, and **a leader's own tooltip** - his rank, command, skill, how far to
       the next and his traits. A text box over a button now answers first where the mouse is
       over it and leaves the button its clicks (`CGuiObject.PassiveTooltip`). Tried with
-      `--click`; the maintainer has not looked at it. Attrition, supply and fuel, a base's
-      supply, the speed's terms and the hourly regain wait for what they describe (*Loose
-      ends*). Reading for it corrected the fact base: the order of the radio lines' text and
+      `--click`; the maintainer has not looked at it. Supply and fuel came later, and the
+      attrition breakdown on 2026-11-14 (section 10.2, tried with `--click` at Edd and
+      Vercelli); a base's supply, the speed's terms and the hourly regain wait for what they
+      describe (*Loose ends*). Reading for it corrected the fact base: the order of the radio lines' text and
       line break, and that a headquarters out of reach is yellow;
    6. **a unit's other windows - built** (2026-10-12, `mapunits.md` section 10,
       `fleetsandair.md` section 8): read whole - **the deploy menu's lines** list their unit's
@@ -2187,7 +2188,7 @@ None of these blocks the list above.
   row in a unit's panel adds. A ship's positioning is scaled by `targeting_chance`, taken to be
   the figure the original names `naval_positioning_bonus`.
 - **The unit panel's tooltips leave out what is not built under them** (2026-10-12,
-  `unitpanel.md` section 10): the attrition breakdown, a fleet's
+  `unitpanel.md` section 10): a fleet's
   or an air unit's base and how well it supplies, the terms of the speed's multiplier one by one,
   the organisation a brigade regains an hour, what technology adds to the digging-in cap, the
   `+*` on a model the country no longer builds and a faction leader's name for a model. A leader's traits on the way are in the traits file's order, where
@@ -2257,9 +2258,8 @@ None of these blocks the list above.
   air mode's are built (`airmap.md`), the naval mode's of convoys sunk and raiders fought are
   not (`combatview.md`, *What is not built*).
 - **The retreat button sends a land or an air unit where a beaten one goes, as the original's**, since 2026-11-14
-  (`combatview.md`, sections 2 and 11). A fleet is set breaking away with nowhere named; the original's move order also
-  notes the fleet's retreat province as where it is to go once out, which is not built (`reversing/findings/FINDINGS-movement.md`,
-  section 2).
+  (`combatview.md`, sections 2 and 11), and a fleet where a beaten one runs, once its count to break away has run (section
+  10, since the same day).
 - **A battle in the air has been set beside the running game for one hour and never watched.** Its window and its
   row in a unit's panel were tried with real clicks and the maintainer has not looked at them
   (`combatview.md`, section 11); an hour of one over a province came out the original's, every draw and figure, on
@@ -2342,7 +2342,7 @@ None of these blocks the list above.
 - **The provinces a unit may be placed in are tinted green our way**, over the mode's colours, which the maintainer
   has seen and passed; the original paints the same grey and green for a unit as for a building, left so until he has
   looked (`buildinglines.md`, *Ours*; `mapunits.md`, section 6).
-- **Loading runs under the loading screen** since 2026-11-11, on a thread of its own where it touches no engine object; making the front end's map still holds the screen still in two pieces, about 1.1 s and 0.8 s with a frame drawn between, where it was one of 3.2 s until 2026-11-14 (`docs/mechanics/loadingscreen.md`, *Loose ends*).
+- **Loading runs under the loading screen** since 2026-11-11, on a thread of its own where it touches no engine object; making the front end's map still holds the screen still in two pieces, about 1.1 s and 0.8 s with a frame drawn between, where it was one of 3.2 s until 2026-11-14 (`docs/mechanics/loadingscreen.md`, *Loose ends*) - on the first front end of a run alone since the same day, a return to the menu keeping the files no game changes and so the surface: read in about 1 s where it was 4, its map made in 20 ms (section 3).
 - **Things the savegame shows that are not explained**: home production for three countries, governments for
   countries that do not exist yet (`docs/mechanics/resources.md`, section 5), what sets a
   country's shares of IC at the start, and why nine untouched countries make 10% more

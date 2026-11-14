@@ -43,16 +43,25 @@ public sealed class CFrontEndContent
 	{
 		var clock = Stopwatch.StartNew();
 		CUserSettings settings = CUserSettingsReader.Read(CUserSettingsReader.DefaultPath());
+		// What no game changes is read once a run and kept for every front end after the first: each line is still
+		// shown, as the steps the pictures are timed by (loadingscreen.md, section 3). What a game takes as its own - the
+		// countries, the AI's Lua and the world - is read anew every time.
+		CKeptFiles? kept = _kept is { } held && held.Root == directories.GameRoot ? held : null;
 		// The localisation before any line, which is written from it: the picture alone until then.
-		CLocalisation localisation = await screen.Work("", () => CLocalisation.Load(directories));
+		CLocalisation localisation = kept?.Localisation ?? await screen.Work("", () => CLocalisation.Load(directories));
 		screen.Localisation = localisation;
 		// The original's order where the work is the same, each line stepping the pictures as the original's does with it.
-		CGuiContext gui = null!;
-		await screen.OnMain(CLoadingSteps.MapSprites, () => gui = CGuiContext.Load(directories, localisation), steps: 1);
+		CGuiContext gui = kept?.Gui!;
+		await screen.OnMain(CLoadingSteps.MapSprites, () => gui ??= CGuiContext.Load(directories, localisation), steps: 1);
+		gui.KeyboardFocus = null;
 		CCountries countries = await screen.Work(CLoadingSteps.Databases, () => CCountries.Load(directories, localisation));
 		// The map's cache with the map logic, as the original checks and builds it there, the checksum reading two of its files.
 		(CMap map, CMapCache cache) = await screen.Work(CLoadingSteps.MapLogic, () =>
 		{
+			if (kept is not null)
+			{
+				return (kept.Map, kept.Cache);
+			}
 			CMap loaded = CMap.Load(directories);
 			return (loaded, CMapView.OpenCache(directories, loaded));
 		});
@@ -66,9 +75,10 @@ public sealed class CFrontEndContent
 		IReadOnlyList<CQuadTile> tiles = await screen.Work(CLoadingSteps.Graphics, () =>
 		{
 			surfaces.PrepareCorners(cache, map);
-			return CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
+			return kept?.Tiles ?? CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
 		});
-		GD.Print($"Front end read in {clock.ElapsedMilliseconds} ms.");
+		_kept = new CKeptFiles(directories.GameRoot, localisation, gui, map, cache, tiles);
+		GD.Print($"Front end read in {clock.ElapsedMilliseconds} ms{(kept is null ? "" : ", its unchanging files kept")}.");
 		return new CFrontEndContent
 		{
 			Settings = settings,
@@ -84,6 +94,13 @@ public sealed class CFrontEndContent
 			Checksum = checksum,
 		};
 	}
+
+	/// <summary>What no game changes, read by the first front end of a run and kept for the install it was read from.</summary>
+	private static CKeptFiles? _kept;
+
+	/// <summary>The localisation, the interface's files, the map with its cache and the cache's quads.</summary>
+	private sealed record CKeptFiles(string Root, CLocalisation Localisation, CGuiContext Gui, CMap Map, CMapCache Cache,
+		IReadOnlyList<CQuadTile> Tiles);
 
 	/// <summary>The install whose checksum was worked out, and the figure: once a run, as the original does it at startup.</summary>
 	private static (string Root, int Checksum)? _checksum;

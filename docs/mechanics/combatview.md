@@ -258,9 +258,13 @@ a ship's guns and its type do not come into it.
 - its background is `combat_naval_bg`, and it has no picture of the ground;
 - the arrow between the two tactics is hidden: nobody at sea has one;
 - **the retreat button cannot be pressed in the battle's first four rounds**, when no fleet can
-  leave (`navalcombat.md`, section 6). Pressed, it sets every fleet of the player's in the
-  battle breaking away, with nowhere named to go: its ships open the distance, and it is out
-  when the battle's own roll to break off next passes with its count run;
+  leave (`navalcombat.md`, section 6). Pressed, it gives every fleet of the player's in the
+  battle the original's move order to "retreat": the province a beaten fleet would run for
+  (`navalcombat.md`, section 6, *Falling back*), and nothing where there is none. A fleet that has not
+  counted long enough keeps it and starts its count, its ships opening the distance, and
+  sets off for it once the count has run - four hours with no trait; one already counted
+  out, by the battle's own roll, is given its way at once (since 2026-11-14,
+  `reversing/findings/FINDINGS-movement.md`, section 2; `FINDINGS-seabattle.md`, section 5);
 - the icons of what the hour holds for the ships are the same ones, of every ship on either
   side: mission efficiency, poor screens and the submarines' surprise have theirs;
 - its two halves are `naval_l_combat_side` for the attacker and `naval_r_combat_side` for the

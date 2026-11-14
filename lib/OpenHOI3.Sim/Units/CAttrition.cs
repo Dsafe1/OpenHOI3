@@ -55,21 +55,34 @@ public static class CAttrition
 			return 0;
 		}
 		long sum = province.Modifier[Modifier].Raw + (Scale - InfrastructureShare(province)) + Weather(state, province, owner, unit);
-		if (province.Terrain is { } terrain)
+		long ground = Ground(province, brigade);
+		if (ground > 0)
 		{
-			long ground = terrain.Attrition.Raw
-				+ (brigade.Stats.Adjusters.TryGetValue(terrain.Name, out Modifiers.CModifier? adjuster) ? adjuster[Modifier].Raw : 0);
-			if (ground > 0)
-			{
-				sum += ground;
-			}
+			sum += ground;
 		}
-		if (province.Owner is { } holder && state.Country(holder) is { } ownerOfGround
-			&& CCountryLists.IsFriend(state, ownerOfGround, unit.Owner, withAccess: true))
+		if (IsFriendsGround(state, province, unit.Owner))
 		{
 			sum = CTheatreFigures.IsFrontProvince(state, province, false) ? sum * Scale / (10 * Scale) : 0;
 		}
 		return Math.Max(0, (Scale + owner.Technology[Technology].Raw) * sum / Scale);
+	}
+
+	/// <summary>Whether the province's owner is a friend of the country, military access counting: no owner is no friend.</summary>
+	public static bool IsFriendsGround(CGameState state, CProvince province, CCountryTag country)
+	{
+		return province.Owner is { } holder && state.Country(holder) is { } ownerOfGround
+			&& CCountryLists.IsFriend(state, ownerOfGround, country, withAccess: true);
+	}
+
+	/// <summary>The ground's part, whatever its sign: the terrain's own and the brigade's adjuster for it; nothing with no terrain.</summary>
+	public static long Ground(CProvince province, CSubUnit brigade)
+	{
+		if (province.Terrain is not { } terrain)
+		{
+			return 0;
+		}
+		return terrain.Attrition.Raw
+			+ (brigade.Stats.Adjusters.TryGetValue(terrain.Name, out Modifiers.CModifier? adjuster) ? adjuster[Modifier].Raw : 0);
 	}
 
 	/// <summary>How much of its infrastructure a province has standing, between a hundredth and whole.</summary>
@@ -86,6 +99,12 @@ public static class CAttrition
 	/// trait added, the whole never below nothing.
 	/// </summary>
 	public static long Weather(CGameState state, CProvince province, CCountry owner, CUnit unit)
+	{
+		return Math.Max(0, WeatherBeforeFloor(state, province, owner, unit));
+	}
+
+	/// <summary>The weather's part before it is held at nothing, which is what the tooltip writes.</summary>
+	public static long WeatherBeforeFloor(CGameState state, CProvince province, CCountry owner, CUnit unit)
 	{
 		OpenHOI3.Sim.Weather.CWeather weather = province.Weather;
 		long temperature = weather.Temperature.Raw;
@@ -110,7 +129,7 @@ public static class CAttrition
 		{
 			effect += CCommandReach.Effect(state, unit, ETraitEffect.WinterAttrition);
 		}
-		return Math.Max(0, effect);
+		return effect;
 	}
 
 	/// <summary>

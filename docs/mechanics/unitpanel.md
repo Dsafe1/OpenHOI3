@@ -428,6 +428,7 @@ the original asks was not read.
 | element | what it says |
 | --- | --- |
 | `unitlocation` | `UW_LOC_IRO`, and `SHORTCUT` and the key of the button that finds the unit after a moment |
+| `unitattrition` | the first brigade's attrition by its causes, below |
 | `unitbase` | a land unit `UW_SUPPLIES_FROM` and, after a moment, what the element itself shows; a fleet or an air unit `UW_BASED_FROM` |
 | `unit_weight` | `TRANSPORT_WEIGHT` |
 | `unit_cw_strip` | `UNIT_COMBAT_WIDTH`, `: ` and the width to one place in yellow |
@@ -442,10 +443,26 @@ the original asks was not read.
 **A headquarters out of reach is yellow, never red**: the original's red is for a reach under
 nothing, and a reach is never under nothing. Kept as read.
 
-*Not built*: the attrition breakdown, which has no attrition to break down; supply and fuel,
-which ask how many days a depot's stock lasts its units; a fleet's or an air unit's base and
-how well it supplies; the terms of the speed's multiplier one by one; and what the country's
-technology adds to the digging-in cap, whose figure is not known.
+*Not built*: a fleet's or an air unit's base and how well it supplies; the terms of the speed's
+multiplier one by one; and what the country's technology adds to the digging-in cap, whose
+figure is not known.
+
+**`unitattrition`** breaks the first brigade's attrition into its causes (since 2026-11-14,
+`CUnitStatusTooltips.Attrition`; `reversing/findings/FINDINGS-unitpaneltooltips.md`, section 11).
+Nothing for a brigade that is not land, and nothing for a unit with no brigades. In a friend's
+province away from the front, `IN_FRIENDLY_FOR_ATT` alone. Otherwise `IN_FRONT_PROV_ONLY_10` at
+the front, each cause then counted at a tenth, or `IN_HOSTILE_FOR_ATT`; a line break and the
+province's sources of `attrition`, each times that base (`modifiers.md`, section 8), and a line
+break where the text does not end in one. Then, each times the base and to two places:
+`ATTR_INFRA: §R` and what the infrastructure lacks, a `+` above nothing, where it lacks any;
+`ATTR_WEATHER: §R+` and the weather's, where above nothing; the terrain's name, `: §R+` and the
+ground's - its own and the brigade's adjuster - where above nothing; each closed by `§!` and a
+line break. Where the technologies' `maximum_attrition` is not nothing, a blank line,
+`ATTR_TECH: `, green below nothing or `§R+` above, a hundred times it to two places and `%§!`
+with a line break. Last a blank line, `§Y`, `TERRAIN_ATTRITION`, `§!`, `§R+` above nothing and
+the whole figure to two places with `%§!`. **The weather written is the weather before the figure
+holds it at nothing**, so a cold that winter effects take past nothing writes no line and adds
+nothing - the original's. All hardcoded but the words and the defines the causes read [mod].
 
 **The two bars** say `UW_SUPPLY_STATUS2` and `UW_SUPPLY_FUEL2`: `CON` what the unit uses a day, two places; `VAL` the share it got last day, whole; `FROM` the province it draws on - the one it stands in, or a fleet's or air unit's base; `DAYS` what lies there over what **all the units standing there** use a day, whole, and 0 where they use none. Hardcoded but the words [mod].
 

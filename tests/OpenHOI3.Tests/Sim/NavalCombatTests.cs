@@ -537,6 +537,48 @@ public class NavalCombatTests
 	}
 
 	[Fact]
+	public void TheRetreatButtonSendsAFleetWhereABeatenOneWouldGo()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit ours = Fleet(state, germany, Bight, Transport);
+		CUnit theirs = Fleet(state, poland, Bight, Transport);
+		CCombat combat = Battle(state, ours, theirs);
+		combat.Duration = 10;
+
+		// The province is kept and the count started, as a move order there would.
+		var retreat = new CBreakAwayCommand(Ger, ours.Id);
+		Assert.True(retreat.MayExecute(state));
+		retreat.Execute(state);
+		Assert.Equal(Kiel, ours.DisengageTo);
+		Assert.Equal(1, ours.Disengage);
+		Assert.False(ours.IsMoving);
+
+		// Once the count has run it sets off there.
+		for (int hour = 0; hour < 4; hour++)
+		{
+			CNavalFire.Attack(state, combat, combat.Attacker);
+		}
+		Assert.Equal(new[] { Kiel }, ours.Path);
+		Assert.Empty(ours.Combats);
+	}
+
+	[Fact]
+	public void AFleetThatHasCountedLongEnoughIsGivenItsWayAtOnce()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit ours = Fleet(state, germany, Bight, Transport);
+		CUnit theirs = Fleet(state, poland, Bight, Transport);
+		CCombat combat = Battle(state, ours, theirs);
+		combat.Duration = 10;
+		// The battle's own roll has had it counting, with nowhere named.
+		ours.Disengage = CNavalDisengage.CountToLeave;
+
+		new CBreakAwayCommand(Ger, ours.Id).Execute(state);
+		Assert.Equal(new[] { Kiel }, ours.Path);
+		Assert.Empty(ours.Combats);
+	}
+
+	[Fact]
 	public void NoFleetLeavesABattleAtSeaInItsFirstFourRounds()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);
