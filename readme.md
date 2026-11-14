@@ -178,7 +178,10 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    as the enemy's (section 78), the plans' `min` 105 of 106 and 106 of 106 against the played save - the one left, Japan's
    Kwantung Army, is the hourly run's own: run B and a third run have ours. With a unit lent out counted by neither country
    for its officers (section 79), the plans' own power 96 of 106; with the AI's promotions for its leaderless headquarters
-   (section 80), the enemy power 99 of 106.
+   (section 80), the enemy power 99 of 106. **What is left of the 4 January check is accounted for** (section 81): the
+   sealift plans apart are the original's run-to-run order of areas, Italy's intercepts an hour early are the played run's
+   own, Japan's air groups' fuel is the province's pool (about 0.05 fuel less at 4986 before the midnight draws, the daily
+   pass's), and the last own and enemy power figures are organisation a fraction of a percent apart.
    **The plans' embark and debark that still differ vary with the original's own run**: two runs of the same new game gave
    Australia, Republican Spain and the Dutch East Indies other targets or another order of votes, and Japan another port;
    a third run, watched live, gave Australia a third order of its sealift's areas and a third debark (section 71) - so its
