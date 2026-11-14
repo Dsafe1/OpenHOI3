@@ -649,6 +649,53 @@ public class LandCombatTests
 	// --- falling back ---
 
 	[Fact]
+	public void TheRetreatButtonSendsEachSideWhereABeatenUnitGoesOutOfTheBattle()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit attacker = Division(state, germany, Berlin);
+		CUnit defender = Division(state, poland, Posen);
+		CCombat combat = Fight(state, attacker, Posen);
+
+		// The defender to the best province beside Posen, falling back: the attackers are still there.
+		new CFallBackCommand(Pol, defender.Id).Execute(state);
+		Assert.Equal(Warsaw, defender.Path[^1]);
+		Assert.DoesNotContain(combat, defender.Combats);
+		Assert.True(defender.IsRetreating);
+
+		// The attacker, fighting from Berlin, goes to the best province beside Berlin - not stopped where it stands, as a
+		// beaten attacker is - and leaves the battle with no order; with nobody left against it, not falling back.
+		var attackers = new CFallBackCommand(Ger, attacker.Id);
+		Assert.True(attackers.MayExecute(state));
+		attackers.Execute(state);
+		Assert.Equal(Breslau, attacker.Path[^1]);
+		Assert.DoesNotContain(combat, attacker.Combats);
+		Assert.Equal(EUnitOrder.None, attacker.Order);
+		Assert.False(attacker.IsRetreating);
+		Assert.False(attackers.MayExecute(state));                      // it is in no battle now
+	}
+
+	[Fact]
+	public void TheRetreatButtonLeavesAUnitWithNowhereToGoWhereItIs()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit attacker = Division(state, germany, Berlin);
+		CUnit defender = Division(state, poland, Posen);
+		Division(state, germany, Warsaw);
+		Division(state, germany, Lodz);
+		CCombat combat = Fight(state, attacker, Posen);
+		foreach (CSubUnit brigade in defender.SubUnits)
+		{
+			brigade.Organisation = CFixedPoint.Parse("0.9");
+		}
+
+		// Nowhere to fall back to: nothing happens, where a beaten unit with nowhere is removed from the game.
+		new CFallBackCommand(Pol, defender.Id).Execute(state);
+		Assert.Contains(combat, defender.Combats);
+		Assert.Contains(defender, poland.Units);
+		Assert.Empty(defender.Path);
+	}
+
+	[Fact]
 	public void AUnitFallsBackToTheNeighbourWorthMostAndNotToOneAnEnemyStandsIn()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

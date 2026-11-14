@@ -142,7 +142,7 @@ The window `sup_unit_status`. `confirmed` for what each element is given:
 | --- | --- | --- |
 | `unitlocation` | the name of the province it is in | built |
 | `unit_location_button` | takes the map there | built |
-| `unitattrition` | what the province wears it down by, whole percent; `?%` with no brigades | `0%`: attrition is not built |
+| `unitattrition` | what the province wears it down by, whole percent; `?%` with no brigades | its first brigade's figure, whole, since 2026-11-14 (`upkeep.md`, section 3a) |
 | `unitbase` | `SUPPLIED_FROM`, a space, and the capital its province is supplied from; ` ???` where no friend holds that. A fleet or an air unit: its base, then `(`, its range and `km)` - or ` ???` with no base | a land unit: its country's capital. A fleet and an air unit: built; the range is written whole, *ours* |
 | `speed` | below | built |
 | `unit_cw_strip` | a land unit's width: frame 1 under 2, then 2, 3, 4 for under 4, 6, 8, and 5 beyond | built |

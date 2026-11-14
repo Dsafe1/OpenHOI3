@@ -1996,7 +1996,8 @@ None of these blocks the list above.
   scaffolding readout under the top bar is put away behind the debug menu's switch, Shift and 4** (`src/Debug`), by
   his choice: it alone shows the supply and the country's figures.
 - **Weather leaves out** (2026-10-15, `docs/mechanics/weather.md`, *Ours*, *Not built* and *Not established*):
-  **attrition**, which is not built at all and reads the temperature and wind. The maintainer's screenshots of
+  nothing of the weather's own now - **attrition**, which reads the temperature and wind, is built since 2026-11-14
+  (`upkeep.md`, section 3a). The maintainer's screenshots of
   2026-10-15 settled the pictures' size and place, that they draw at every zoom, and the tooltip without the province's
   name; and **only the `_simple` pictures are drawn**, `alwaysCounters` off being unsupported by his word that day
   (`docs/compatibility.md`, entry 12). **The player's settings are read from the original's `settings.txt` in the
@@ -2228,10 +2229,10 @@ None of these blocks the list above.
   on the map is in its **air and naval map modes** - icons of the battles that are over: the
   air mode's are built (`airmap.md`), the naval mode's of convoys sunk and raiders fought are
   not (`combatview.md`, *What is not built*).
-- **The retreat button of a battle on land is not the original's.** The original gives every
-  unit of the player's the one order, to go where a beaten unit goes; here that is so for an
-  air unit, a fleet is set breaking away, and a land unit is only halted
-  (`combatview.md`, sections 2 and 11).
+- **The retreat button sends a land or an air unit where a beaten one goes, as the original's**, since 2026-11-14
+  (`combatview.md`, sections 2 and 11). A fleet is set breaking away with nowhere named; the original's move order also
+  notes the fleet's retreat province as where it is to go once out, which is not built (`reversing/findings/FINDINGS-movement.md`,
+  section 2).
 - **A battle in the air has been set beside the running game for one hour and never watched.** Its window and its
   row in a unit's panel were tried with real clicks and the maintainer has not looked at them
   (`combatview.md`, section 11); an hour of one over a province came out the original's, every draw and figure, on
@@ -2289,9 +2290,9 @@ None of these blocks the list above.
 - **Where an edit box puts its text and how a rotated icon is placed are measured and not read**, both from the
   unit panel alone (`docs/mechanics/interface.md`, section 7). A unit is renamed from its name box since 2026-11-12
   (`unitpanel.md`, section 3).
-- **The unit panel's attrition figure is always nought**: nothing wears a unit down for
-  where it stands yet. Its supply and fuel bars are real since the supply pass was built.
-  `unitpanel.md`, section 4.
+- **Attrition is built since 2026-11-14** (`upkeep.md`, section 3a): a land unit out of battle wears down each day by its
+  province, the weather and the ground, and the panel shows its figure. The panel's tooltip breaking the figure into its
+  causes is not built.
 - **The hierarchy of a selected unit is on the map, less the ring an AI's command adds.** A
   selected land unit is joined to its commander and everything under it to theirs, in the
   original's picture and colours, a unit out of radio range by a broken dark red line
@@ -2314,7 +2315,7 @@ None of these blocks the list above.
 - **The provinces a unit may be placed in are tinted green our way**, over the mode's colours, which the maintainer
   has seen and passed; the original paints the same grey and green for a unit as for a building, left so until he has
   looked (`buildinglines.md`, *Ours*; `mapunits.md`, section 6).
-- **Loading runs under the loading screen** since 2026-11-11, on a thread of its own where it touches no engine object; making the front end's map still holds the screen still for about three seconds (`docs/mechanics/loadingscreen.md`, *Loose ends*).
+- **Loading runs under the loading screen** since 2026-11-11, on a thread of its own where it touches no engine object; making the front end's map still holds the screen still in two pieces, about 1.1 s and 0.8 s with a frame drawn between, where it was one of 3.2 s until 2026-11-14 (`docs/mechanics/loadingscreen.md`, *Loose ends*).
 - **Things the savegame shows that are not explained**: home production for three countries, governments for
   countries that do not exist yet (`docs/mechanics/resources.md`, section 5), what sets a
   country's shares of IC at the start, and why nine untouched countries make 10% more
@@ -2437,7 +2438,7 @@ None of these blocks the list above.
   (`agents.md`, section 2.1).
 - **Leaders in battle are built whole since 2026-10-11** (`docs/mechanics/leaders.md`,
   sections 9 to 11) but for two things: the aggressiveness a tactic is picked with, built since 2026-11-09 and until then
-  the AI's, and `winter_attrition`, which waits for attrition. Nothing of a leader's
+  the AI's, and `winter_attrition`, which counts in attrition since 2026-11-14 (`upkeep.md`, section 3a). Nothing of a leader's
   experience or progress towards a trait is set against a save: saves hold battles since 2026-11-05, but not the
   generator's state, so none can be played forward (`landcombat.md`, section 8).
 - **An order of battle that names a leader no file declares** has him ignored; what the

@@ -268,10 +268,11 @@ public class UnitPanelTextTests
 	[Fact]
 	public void AUnitWithNoBrigadesHasNoAttritionFigure()
 	{
-		State(out CCountry country);
+		CGameState state = State(out CCountry country);
 
-		Assert.Equal("0%", CUnitPanelText.Attrition(Unit(country, EUnitKind.Division, Berlin, Infantry())));
-		Assert.Equal("?%", CUnitPanelText.Attrition(Unit(country, EUnitKind.Division, Berlin)));
+		// At home and away from any front: nothing.
+		Assert.Equal("0%", CUnitPanelText.Attrition(state, Unit(country, EUnitKind.Division, Berlin, Infantry())));
+		Assert.Equal("?%", CUnitPanelText.Attrition(state, Unit(country, EUnitKind.Division, Berlin)));
 	}
 
 	// --- the order ---

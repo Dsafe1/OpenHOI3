@@ -485,6 +485,11 @@ public partial class CMapView : Node2D
 				_counters.ResourceMode = value == MapMode.Resources;
 				_counters.WeatherMode = value == MapMode.Weather;
 			}
+			// Before the view is in the tree the mode is only noted: it enters drawing it, its surface made in that style alone.
+			if (!IsInsideTree())
+			{
+				return;
+			}
 			if (_surface is not null)
 			{
 				_surface.Style = _theatreEditor is null ? Style(value) : EditorStyle;

@@ -140,6 +140,37 @@ public static class CWarfareTally
 		}
 	}
 
+	/// <summary>
+	/// A day's attrition off a brigade, as the original tallies it: the player's own brigade, where the province it stands in
+	/// is held by another than its owner and that owner is the player's enemy, on the owner's record; else a brigade in a
+	/// province the player owns, its owner his enemy, on that owner's record - with no look at who holds the province on this
+	/// arm. Nothing otherwise (<c>strategicwarfare.md</c>, section 3).
+	/// </summary>
+	public static void Attrition(CGameState state, Provinces.CProvince province, CSubUnit brigade, long amount)
+	{
+		if (Player(state) is not { } player || brigade.Unit is not { } unit || province.Owner is not { } owner)
+		{
+			return;
+		}
+		if (unit.Owner == player)
+		{
+			if (province.Controller != owner && CMovementRules.IsEnemy(state, player, owner))
+			{
+				(long ic, long men) = CWarfareCosts.LandDamage(state, brigade, amount);
+				CWarfareRecord? record = state.Warfare.Of(owner);
+				Add(record, CWarfareRecord.Land, 0, ic);
+				Add(record, CWarfareRecord.Land, 2, men);
+			}
+		}
+		else if (owner == player && CMovementRules.IsEnemy(state, unit.Owner, player))
+		{
+			(long ic, long men) = CWarfareCosts.LandDamage(state, brigade, amount);
+			CWarfareRecord? record = state.Warfare.Of(unit.Owner);
+			Add(record, CWarfareRecord.Land, 1, ic);
+			Add(record, CWarfareRecord.Land, 3, men);
+		}
+	}
+
 	/// <summary>A land unit lost whole, every brigade at its full price - on top of what its battle has already counted hour by hour, as in the original.</summary>
 	public static void UnitLost(CGameState state, CCountryTag? killer, CUnit unit)
 	{

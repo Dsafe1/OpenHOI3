@@ -41,7 +41,7 @@ Fix(x) is thousandths as 15-place fixed point, cut toward nought.
 | land | 0 / 2 | ours, IC and men | each hour of a land battle, after both sides have fired and before it is settled: **what the player lost goes whole onto every enemy's record** |
 | | 1 / 3 | theirs, IC and men | the same, each enemy's own |
 
-Also on land: a brigade aboard a transport that was hit; and a unit lost whole, every brigade at the full price, on top of what its hours counted - no retreat province or no way there, or killed falling back. **Attrition (`TallyAttrition`) waits on attrition, which is not built.**
+Also on land: a brigade aboard a transport that was hit; and a unit lost whole, every brigade at the full price, on top of what its hours counted - no retreat province or no way there, or killed falling back. **And attrition** (`TallyAttrition`, since 2026-11-14; `upkeep.md`, section 3a): a day's loss off the player's own brigade where the province it stands in is held by another than its owner and the owner is his enemy, on the owner's record, columns 0 and 2; else a brigade in a province the player owns, its owner his enemy, on that owner's record, columns 1 and 3 - with no look at who holds the province on that arm, as the original's.
 
 ## 4. The window
 

@@ -541,7 +541,7 @@ public class BombingTests
 		bombers.Mission.Destination = Warsaw;
 		CUnit division = Unit(state, poland, EUnitKind.Division, Warsaw, Infantry);
 		CCombat bombing = Assert.IsType<CCombat>(CBombing.Start(state, state.Province(Warsaw), bombers));
-		Assert.False(new CFallBackCommand(Pol, division.Id).MayExecute(state));     // an air unit's alone
+		Assert.False(new CFallBackCommand(Pol, division.Id).MayExecute(state));     // a land unit only out of a battle
 
 		var command = new CFallBackCommand(Ger, bombers.Id);
 		Assert.True(command.MayExecute(state));

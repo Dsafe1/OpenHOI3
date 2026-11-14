@@ -120,6 +120,56 @@ which is 0.002 once the fraction is dropped, and a reserve held to 15 loses 0.00
 days in the save has them at 29.996 and 14.998, and so has every other supplied brigade
 in it: 3,638 of 3,638.
 
+## 3a. Attrition
+
+Read whole on 2026-11-14 (`reversing/findings/FINDINGS-manpower.md`, Attrition) and built the same day
+(`Sim/Units/CAttrition`). `confirmed` throughout, every figure in thousandths and every step cut to the thousandth.
+
+**A brigade's attrition in a province**, which the original asks per brigade:
+
+    nought for a brigade that is not land
+    base     = the province's attrition modifier                             [mod: the province's modifiers -
+                                                                               Their Finest Hour's land_province gives 1]
+    infra    = infrastructure x (1 + local_infrastructure + global_infrastructure), held between 0.010 and 1
+    weather  = the first that holds:
+                 temperature >= HIGHTEMPERATUREATTRITIONTHRESHOLD  1, times (1 - the country's jungle_effects)
+                                                                      where the terrain's humidity is above 0
+                 temperature <= LOWTEMPERATUREATTRITIONTHRESHOLD   1 - the country's winter_effects
+                 windspeed >= WINDATTRITIONTHRESHOLD               1
+                 else                                              0
+               + the unit's commanders' winter_attrition trait where the province is below 0 degrees
+               never below 0                                         [mod: defines.lua, the weather block; traits.txt]
+    sum      = base + (1 - infra) + weather
+             + the terrain's attrition and the brigade's adjuster for that terrain, where the two are above 0
+                                                                     [mod: terrain.txt; the unit's file]
+    where the province's owner counts the brigade's country a friend, military access counting:
+             sum = a tenth of it at the front (a neighbour held by an enemy at war), nought elsewhere
+    figure   = sum x (1 + the country's technology maximum_attrition), never below 0     [mod: the technologies]
+
+So **an army at home and away from the front takes nothing**, a tenth at a front of its own or a friend's, and the whole
+on an enemy's or a neutral's ground. The infrastructure term grows as infrastructure falls - 0.990 more at none.
+
+**The day's loss** [exe the figures]: each day, after its supplies are drawn, every land unit **in no battle** - moving or
+standing - loses from each brigade
+
+    lost     = figure x 0.010 x the brigade's full strength / 30            each step cut to the thousandth
+    strength = strength - lost, not below nothing, not above most
+
+a month's rate taken daily. A brigade of 30 at a figure of 1 loses 0.010 a day. **Not while a game is being made**: the
+original runs it only with a game on screen, so the two days a new game runs first take nothing. The loss is counted on the
+played country's strategic warfare records (`strategicwarfare.md`, section 3).
+
+**The unit panel's `unitattrition`** is the first brigade's figure, whole: the figure is a percentage as it stands, so 1
+reads `1%` (`unitpanel.md`, section 4).
+
+(measured) Four hours across the midnight of 7 to 8 January 1936, set beside the original's save of 02:00
+(`OpenHOI3.SaveCheck load`): a brigade's strength the save's in 3,977 of 4,072, where without attrition 3,933. Of the rest,
+Italy's five in East Africa differ by 0.001 to 0.006, not explained - a division standing at that midnight in another
+province than the original's would do it.
+
+*Not built*: the panel's attrition tooltip, the original's breakdown of the figure into its causes, whose arithmetic was
+not followed into every term (`reversing/findings/FINDINGS-unitpaneltooltips.md`, section 11).
+
 ## 4. Reinforcement
 
 The fifth share of a country's IC. `confirmed` throughout unless marked.

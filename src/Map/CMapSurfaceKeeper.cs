@@ -42,13 +42,7 @@ public sealed class CMapSurfaceKeeper
 	/// </summary>
 	public CBorderCache? Corners(CMapCache cache, CMap map)
 	{
-		if (_cornersFrom is not { } from || !ReferenceEquals(from.Cache, cache) || !ReferenceEquals(from.Map, map))
-		{
-			_cornersRead = CBorderCache.Load(cache, map.Width, map.Height, problem => GD.PushWarning($"map: {problem}"),
-				map.IsWaterPixel);
-			_cornersFrom = (cache, map);
-			_spareCorners = null;
-		}
+		Read(cache, map);
 		if (_cornersRead is not { } read)
 		{
 			return null;
@@ -56,6 +50,32 @@ public sealed class CMapSurfaceKeeper
 		CBorderCache taken = _spareCorners?.Result ?? read.Copy();
 		_spareCorners = System.Threading.Tasks.Task.Run(read.Copy);
 		return taken;
+	}
+
+	/// <summary>
+	/// The corners read and the first view's copy started, for the loading screen's thread to call before the first view is
+	/// made: then the main thread only takes a copy already made, where it read the files and copied them itself, some
+	/// 0.4 s of a still window (<c>docs/mechanics/loadingscreen.md</c>, section 3). Not beside a call of <see cref="Corners"/>.
+	/// </summary>
+	public void PrepareCorners(CMapCache cache, CMap map)
+	{
+		Read(cache, map);
+		if (_cornersRead is { } read && _spareCorners is null)
+		{
+			_spareCorners = System.Threading.Tasks.Task.Run(read.Copy);
+		}
+	}
+
+	/// <summary>The three files read once for a cache and a map, the copy made ahead forgotten for another.</summary>
+	private void Read(CMapCache cache, CMap map)
+	{
+		if (_cornersFrom is not { } from || !ReferenceEquals(from.Cache, cache) || !ReferenceEquals(from.Map, map))
+		{
+			_cornersRead = CBorderCache.Load(cache, map.Width, map.Height, problem => GD.PushWarning($"map: {problem}"),
+				map.IsWaterPixel);
+			_cornersFrom = (cache, map);
+			_spareCorners = null;
+		}
 	}
 
 	/// <summary>How many surfaces were made and how many handed over, for a look at the log.</summary>

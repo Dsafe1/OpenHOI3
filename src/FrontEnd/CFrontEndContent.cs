@@ -38,7 +38,8 @@ public sealed class CFrontEndContent
 	public int Checksum { get; private init; }
 
 	/// <summary>Everything read, each step's line on the loading screen as it runs.</summary>
-	public static async Task<CFrontEndContent> Load(CLoadingScreen screen, CDirectorySettings directories)
+	/// <param name="surfaces">The keeper of the map's surface, whose borders' corners are read here, off the main thread.</param>
+	public static async Task<CFrontEndContent> Load(CLoadingScreen screen, CDirectorySettings directories, CMapSurfaceKeeper surfaces)
 	{
 		var clock = Stopwatch.StartNew();
 		CUserSettings settings = CUserSettingsReader.Read(CUserSettingsReader.DefaultPath());
@@ -62,8 +63,11 @@ public sealed class CFrontEndContent
 			return (made, CBookmarkReader.ReadStart(directories, countries, made.StartDate));
 		}, steps: 1);
 		int checksum = await screen.Work(CLoadingSteps.Checksum, () => WorkOutChecksum(directories), steps: 1);
-		IReadOnlyList<CQuadTile> tiles = await screen.Work(CLoadingSteps.Graphics,
-			() => CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}")));
+		IReadOnlyList<CQuadTile> tiles = await screen.Work(CLoadingSteps.Graphics, () =>
+		{
+			surfaces.PrepareCorners(cache, map);
+			return CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
+		});
 		GD.Print($"Front end read in {clock.ElapsedMilliseconds} ms.");
 		return new CFrontEndContent
 		{
