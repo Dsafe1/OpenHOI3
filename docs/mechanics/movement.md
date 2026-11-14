@@ -353,6 +353,15 @@ the move:
   in frost and in neither, with fuel and without. The maintainer's own division, the
   SS-Verfügungstruppe out of Berlin, gains 0.405 an hour in the saves and here: its
   brigades' 8 with the 0.1 Germany's technology adds, on dry plains, times 0.05.
+- **`loaded`** after the saves loads the earlier save as a game (`savegame.md`) and takes each division as it
+  loads - its own brigades, their technology, its leader and whether it is falling back - where without it a
+  division is put together out of a new game's brigades and the start date's technology, which only a save of
+  early 1936 answers. *Measured* 2026-11-14 on the war start of 6 September 1939 (`Ireland1939_09_06_18`, two
+  of the maintainer's runs saved hourly): seven single hours, 57 to 60 of 55 to 61 divisions an hour to the
+  thousandth with it, 40 to 45 without - the misses without it Poland's retreating divisions, a tenth faster,
+  and the 1939 brigades and technology. Those left with it are a Hungarian cavalry division in mountain mud
+  (0.032 an hour in the saves, 0.072 here), a German division of a headquarters brigade alone (0.019, 0.150)
+  and one single hour of a German infantry division, none of them read.
 - **A unit that got no fuel on one day and some the next** showed the day's fuel arriving
   between 22:00 and 02:00: its four hours came to two at each speed.
 - In every one of the 1,482 cases the next province of a moving division is one its own

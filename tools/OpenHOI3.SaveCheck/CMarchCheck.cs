@@ -18,13 +18,17 @@ using OpenHOI3.Sim.Weather;
 /// <summary>
 /// Checks the march of land units against two savegames of one game, hours apart:
 ///
-///   OpenHOI3.SaveCheck march &lt;install folder&gt; &lt;earlier save&gt; &lt;later save&gt; [examples]
+///   OpenHOI3.SaveCheck march &lt;install folder&gt; &lt;earlier save&gt; &lt;later save&gt; [examples] [loaded]
 ///
 /// Every division that has the same province, the same path and no other business in both
 /// saves is given the brigades, the fuel and the weather the earlier save shows, and what an
 /// hour adds to its progress here, times the hours between the two, is set against what the
 /// saves say it gained. Where the weather over its province is not the same in both, the gain
 /// has only to lie between the two speeds. See <c>docs/mechanics/movement.md</c>, section 5.
+///
+/// With <c>loaded</c> the earlier save is loaded as a game (<c>CSaveLoader</c>) and each division is the unit it
+/// loads - its own brigades, technology, leader and retreat - which a save later than the start needs: without it a
+/// division is put together out of a new game's brigades and the country's start-date technology.
 /// </summary>
 internal static class CMarchCheck
 {
@@ -40,6 +44,8 @@ internal static class CMarchCheck
 			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck march <install folder> <earlier save> <later save> [examples]");
 			return 2;
 		}
+		bool loaded = args.Skip(4).Contains("loaded");
+		args = args.Where(arg => arg != "loaded").ToArray();
 		int examples = args.Length > 4 && int.TryParse(args[4], out int wanted) ? wanted : 5;
 
 		var warnings = new List<string>();
@@ -47,7 +53,12 @@ internal static class CMarchCheck
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false);
+		CGameState state = loaded
+			? OpenHOI3.Content.Saves.CSaveLoader.Load(directories, map, localisation, countries, args[2], warn: warnings.Add).State
+			: CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false);
+		Dictionary<int, CUnit> loadedUnits = loaded
+			? state.Countries.SelectMany(country => country.AllUnits()).GroupBy(unit => unit.Id).ToDictionary(group => group.Key, group => group.First())
+			: new Dictionary<int, CUnit>();
 
 		ClausewitzNode earlier = ClausewitzParser.ParseFile(args[2]);
 		ClausewitzNode later = ClausewitzParser.ParseFile(args[3]);
@@ -85,6 +96,16 @@ internal static class CMarchCheck
 			{
 				continue;
 			}
+			if (loaded)
+			{
+				var later1 = new CWeather();
+				if (later.Get(node.Key!) is { } laterNode1)
+				{
+					ReadWeather(laterNode1, later1);
+				}
+				laterWeather[province.Id] = later1;
+				continue;
+			}
 			if (CCountryTag.TryParse(node.GetString("controller"), out CCountryTag controller))
 			{
 				province.Controller = controller;
@@ -97,11 +118,11 @@ internal static class CMarchCheck
 			}
 			laterWeather[province.Id] = then;
 		}
-		foreach (CCountry country in state.Countries)
+		foreach (CCountry country in loaded ? new List<CCountry>() : state.Countries)
 		{
 			country.Faction = "";
 		}
-		foreach (ClausewitzNode faction in earlier.Get("faction")?.Children ?? new List<ClausewitzNode>())
+		foreach (ClausewitzNode faction in loaded ? new List<ClausewitzNode>() : earlier.Get("faction")?.Children ?? new List<ClausewitzNode>())
 		{
 			foreach (ClausewitzNode member in faction.Children)
 			{
@@ -112,11 +133,14 @@ internal static class CMarchCheck
 				}
 			}
 		}
-		CProvinceModifiers.Rebuild(state);
-		CCountryModifiers.Rebuild(state);
-		CIndustrialCapacity.Update(state);
-		CStrategicResources.Update(state);
-		CCountryModifiers.Rebuild(state);
+		if (!loaded)
+		{
+			CProvinceModifiers.Rebuild(state);
+			CCountryModifiers.Rebuild(state);
+			CIndustrialCapacity.Update(state);
+			CStrategicResources.Update(state);
+			CCountryModifiers.Rebuild(state);
+		}
 
 		var brigades = new Dictionary<int, CSubUnit>();
 		foreach (CCountry country in state.Countries)
@@ -149,15 +173,28 @@ internal static class CMarchCheck
 			CProvince here = state.Province(division.Location);
 			CProvince next = state.Province(division.Path[0]);
 
-			var unit = new CUnit(EUnitKind.Division, division.Country.Tag)
-			{
-				Id = id,
-				Location = division.Location,
-				FuelReceived = Number(division.Node.GetString("fuel")),
-			};
-			unit.Path.AddRange(division.Path);
+			CUnit unit;
 			bool known = true;
-			foreach (ClausewitzNode regiment in division.Node.All("regiment"))
+			if (loaded)
+			{
+				if (!loadedUnits.TryGetValue(id, out CUnit? found) || found.SubUnits.Count == 0)
+				{
+					unknownBrigades++;
+					continue;
+				}
+				unit = found;
+			}
+			else
+			{
+				unit = new CUnit(EUnitKind.Division, division.Country.Tag)
+				{
+					Id = id,
+					Location = division.Location,
+					FuelReceived = Number(division.Node.GetString("fuel")),
+				};
+				unit.Path.AddRange(division.Path);
+			}
+			foreach (ClausewitzNode regiment in loaded ? new List<ClausewitzNode>() : division.Node.All("regiment"))
 			{
 				if (brigades.TryGetValue(regiment.Get("id")?.GetInt("id") ?? 0, out CSubUnit? brigade))
 				{
