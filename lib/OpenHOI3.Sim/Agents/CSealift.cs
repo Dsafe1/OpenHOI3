@@ -467,10 +467,13 @@ public static class CSealift
 	{
 		foreach (CUnit unit in agent.NonDivisions)
 		{
-			if (unit.SealiftTarget > 0 || unit.Kind == EUnitKind.Theatre || network.AreaOf(unit.Location) is not { } own)
+			if (unit.SealiftTarget > 0 || unit.Kind == EUnitKind.Theatre)
 			{
 				continue;
 			}
+			// One standing in no area - aboard at sea - has none of its own, and any area its children stand in will do: a corps
+			// at sea released by the keep-or-release is given its port again in the same pass (FINDINGS-liveread.md, section 92).
+			CSupplyArea? own = network.AreaOf(unit.Location);
 			var counts = new Dictionary<CSupplyArea, int>();
 			foreach (CUnit child in unit.Children)
 			{
@@ -479,8 +482,8 @@ public static class CSealift
 					counts[area] = counts.GetValueOrDefault(area) + 1;
 				}
 			}
-			CSupplyArea best = own;
-			int most = counts.GetValueOrDefault(own);
+			CSupplyArea? best = own;
+			int most = own is null ? 0 : counts.GetValueOrDefault(own);
 			foreach ((CSupplyArea area, int count) in counts)
 			{
 				if (count > most)
@@ -489,7 +492,7 @@ public static class CSealift
 					best = area;
 				}
 			}
-			if (!ReferenceEquals(best, own) && CSealiftPickers.PortNearObjectives(state, agent, best) is var port and > 0)
+			if (best is not null && !ReferenceEquals(best, own) && CSealiftPickers.PortNearObjectives(state, agent, best) is var port and > 0)
 			{
 				unit.SealiftTarget = port;
 				state.Outbox.Add(new CSetAiParamCommand(country.Tag, unit.Id, port, 0));

@@ -85,6 +85,11 @@ public static class CCommandProvince
 				continue;
 			}
 			int target = AmongSubordinates(state, country, unit);
+			if (state.AiTrace is { } pickTrace && pickTrace.Country == country.Tag)
+			{
+				pickTrace.Write($"  pick {unit.Name}#{unit.Id} at {unit.Location} to {CAgentUnits.DestinationOrPlace(unit)}: children " + string.Join(" ",
+					System.Linq.Enumerable.Select(unit.Children, child => $"{state.OriginalSerial(child.Id)}:{child.Location}>{CAgentUnits.Destination(child)}:g{(child.IsGarrison ? 1 : 0)}")) + $" chose {target}");
+			}
 			if (target <= 0 || target == CAgentUnits.DestinationOrPlace(unit) || !CAiMoves.ReachesByLand(state, country, unit, target))
 			{
 				continue;

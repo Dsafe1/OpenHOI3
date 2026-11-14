@@ -611,7 +611,9 @@ troops**, else nothing at all:
    missing until 2026-11-12, `reversing/findings/FINDINGS-liveread.md`, section 59: in a new game's second hour Italy's
    targets were seven divisions for Somaliland, where the original's are 23 Marzo for Rodos and an Eritrean division for
    the Dodecanese, and Sardinia and Dalmatia's two divisions swapped.) It is given the target and marched where it can walk, else listed for the sea.
-5. **Headquarters** whose land children stand mostly in another area are given that area's port, and not moved.
+5. **Headquarters** whose land children stand mostly in another area are given that area's port, and not moved. **One standing in no area - aboard at sea - has no area of its own**, so any area its children stand in will do:
+   Canada's 4th Corps, at sea in July 1941 with its target released by the keep-or-release (3), is given its port again in the
+   same pass, and its divisions stay under it, as in the original (`reversing/findings/FINDINGS-liveread.md`, section 92).
 6. **Embark and debark**: cleared where only one is set or nobody listed for debark is **bound for, or stands bound nowhere
    in,** embark's area (the original's tally asks the destination; section 43). With no
    debark, troops listed and transports: each listed unit votes for its target - 1, 4 from an area with no need, +10 for
