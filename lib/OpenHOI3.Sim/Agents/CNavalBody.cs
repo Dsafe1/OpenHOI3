@@ -134,11 +134,13 @@ public static class CNavalBody
 			switch (fleet.Order)
 			{
 				case EUnitOrder.JoinFleet:
-					handled.Add(fleet);
+					// The fleet it joins goes on the list first, then the joiner - the order the removal below takes them out in
+					// (reversing/findings/FINDINGS-liveread.md, section 77).
 					if (fleet.Mission.LiveTarget is { } target)
 					{
 						handled.Add(target);
 					}
+					handled.Add(fleet);
 					continue;
 				case EUnitOrder.Transport when fleet.Passengers.Count == 0:
 				case EUnitOrder.ConvoyRaid or EUnitOrder.ConvoyEscort when !atWar:

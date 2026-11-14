@@ -79,11 +79,36 @@ public static class CJoinOrders
 		{
 			return true;
 		}
+		// A fleet's way is aimed again only in its day, at midnight (RunDaily); its hour does nothing more
+		// (reversing/findings/FINDINGS-liveread.md, section 77).
+		if (!air)
+		{
+			return true;
+		}
 		if (!unit.IsMoving || unit.Path[^1] != target.Location)
 		{
 			Head(state, country, unit, target.Location);
 		}
 		return true;
+	}
+
+	/// <summary>
+	/// A fleet's join in its day: where its way does not end where the fleet it joins stands, a new way there - the original's
+	/// <c>CJoinFleetOrder::RunDaily</c>, slot 23, which <c>CUnit::UpdateDaily</c> asks at midnight. So a fleet chasing another
+	/// keeps the way it was given for a day, and two that sail past each other need not meet (Britain's 47th Navy and 1st
+	/// Transport Ship Squadron; reversing/findings/FINDINGS-liveread.md, section 77).
+	/// </summary>
+	public static void RunDaily(CGameState state, CCountry country, CUnit unit)
+	{
+		CUnit? target = unit.Mission.LiveTarget;
+		if (target is null || target.IsRemoved || target.Location <= 0)
+		{
+			return;
+		}
+		if (!unit.IsMoving || unit.Path[^1] != target.Location)
+		{
+			Head(state, country, unit, target.Location);
+		}
 	}
 
 	private static void Head(CGameState state, CCountry country, CUnit unit, int province)

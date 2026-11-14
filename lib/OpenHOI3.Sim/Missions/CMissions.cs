@@ -329,6 +329,10 @@ public static class CMissions
 				{
 					CReserve.RunDaily(state, country, unit);
 				}
+				else if (unit.Order == EUnitOrder.JoinFleet && !unit.IsRemoved)
+				{
+					Agents.CJoinOrders.RunDaily(state, country, unit);
+				}
 			}
 		}
 	}

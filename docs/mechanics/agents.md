@@ -238,7 +238,12 @@ joined at its third).
   receiving unit with no name is named `NAVY_NAME` or `AIR_NAME` numbered, the first number free; its leader is chosen where
   the country assigns its own and the unit has none; an emptied unit loses its leader; a carrier brings the air groups
   based on it.
-- **Join** (`join_fleet`, `join_air`): the unit sails or flies to the other's province; arrived - **as soon as the two
+- **Join** (`join_fleet`, `join_air`): the unit sails or flies to the other's province - **a fleet's way aimed again only
+  in its day**, at midnight, where it no longer ends where the other stands (`CJoinFleetOrder::RunDaily`, slot 23, asked by
+  `CUnit::UpdateDaily`), so a fleet chasing another keeps its way for a day and two that sail past each other need not
+  meet: Britain's 47th Navy, joining the 1st Transport Ship Squadron, is aimed at 11323 at 2 January 00:00 and at Madras at
+  3 January 00:00, and merges there (`confirmed` on the running game, `reversing/findings/FINDINGS-liveread.md`, section
+  77); an air unit's each hour; arrived - **as soon as the two
   share a province, the other under way or not** (`CJoinFleetOrder::IsActive`, `CJoinAirOrder::IsActive`; a fleet chasing
   one at sea otherwise never caught it, `reversing/findings/FINDINGS-liveread.md`, section 65) - it is merged into the other
   as the merge button merges (`selection.md`, section 5.4) - its ships or wings and what it carries go over, the

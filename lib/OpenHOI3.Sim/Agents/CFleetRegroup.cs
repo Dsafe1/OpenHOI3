@@ -231,11 +231,12 @@ public static class CFleetRegroup
 		{
 			if (fleet.Order == EUnitOrder.JoinFleet)
 			{
-				handled.Add(fleet);
+				// The fleet joined first, then the joiner (reversing/findings/FINDINGS-liveread.md, section 77).
 				if (fleet.Mission.LiveTarget is { } target)
 				{
 					handled.Add(target);
 				}
+				handled.Add(fleet);
 			}
 		}
 		var counts = new Dictionary<CUnit, CShipCensus>();
@@ -274,8 +275,8 @@ public static class CFleetRegroup
 					continue;
 				}
 				state.Outbox.Add(new CJoinUnitCommand(country.Tag, fleet.Id, partner.Id));
-				handled.Add(fleet);
 				handled.Add(partner);
+				handled.Add(fleet);
 				break;
 			}
 		}

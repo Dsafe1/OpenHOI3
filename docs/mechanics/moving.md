@@ -501,7 +501,10 @@ makes nobody at war (`war.md`, section 1).
    - a raid or an escort at peace, a
    patrol at peace (a war nobody declared counting as war), and any other order of a fleet standing still at its base or an intercept standing still, are
    cancelled - the order taken away and the fleet sent to its base by a plain move, so it sails on with no order.
-5. *(the regrouping's split and merge, whose joins - the fleet and the one it joins - are handled too)*
+5. *(the regrouping's split and merge, whose joins - the fleet and the one it joins - are handled too)*. **On the
+   handled list the fleet joined goes first and the joiner after it**, in phase 4 and in the merge alike, which the removal
+   below follows: Britain's eight light cruisers split off the Home Fleet are then sent to the original's ports, 27th,
+   26th, 24th, 22nd, 28th, 25th, 23rd and 21st in turn (`confirmed`, `reversing/findings/FINDINGS-liveread.md`, section 77).
 6. **The handled fleets are taken off the ready list**, and nothing below touches them this pass - each in the order it
    went on the handled list, by the original's swap with the last entry, so the fleets left are not in their first order
    and the ports below are handed out in the new one: Japan's Imperial General Headquarters at the second hour of a new
