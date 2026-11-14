@@ -88,7 +88,7 @@ public class TransportTests
 		return type;
 	}
 
-	private static CGameState State(out CCountry germany, out CCountry poland)
+	private static CGameState State(out CCountry germany, out CCountry poland, IReadOnlyList<CRegion>? regions = null)
 	{
 		germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "" };
 		poland = new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "" };
@@ -121,6 +121,7 @@ public class TransportTests
 		{
 			MapWidth = 1000,
 			MapHeight = 1000,
+			Regions = regions ?? System.Array.Empty<CRegion>(),
 		}.Paved();
 	}
 
@@ -565,5 +566,77 @@ public class TransportTests
 		// Given its path again, it clears what was new.
 		CInvasionWarnings.Note(state, division);
 		Assert.False(state.InvasionWarnings[0].IsNew);
+	}
+
+	// --- the click's test of a unit at sea, and of a fleet (movement.md, section 1) ---
+
+	[Fact]
+	public void ALandUnitAtSeaIsSentToLandOnlyWhereAnEdgeLeadsFromItsSea()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit fleet = Fleet(state, germany, Bight, TransportShip);
+		CUnit division = Division(state, germany, Bight);
+		CTransport.Board(fleet, division);
+
+		Assert.True(CMovementRules.MayMoveTo(state, germany, division, state.Province(Kiel)));
+		Assert.True(CMovementRules.MayMoveTo(state, germany, division, state.Province(Hela)));
+		// Gdynia lies on the Deep, not on the Bight: the click refuses it, and the command, which the original's does not
+		// ask, lets the route decide.
+		Assert.False(CMovementRules.MayMoveTo(state, germany, division, state.Province(Gdynia)));
+		Assert.True(CMovementRules.MayCommandMoveTo(state, germany, division, state.Province(Gdynia)));
+
+		// On land the edge is not asked: Kiel has none to Hela.
+		CUnit ashore = Division(state, germany, Kiel);
+		Assert.True(CMovementRules.MayMoveTo(state, germany, ashore, state.Province(Hela)));
+	}
+
+	/// <summary>The Deep the Baltic, its strait the Bight, closed while Poland holds Hela and is at war with the fleet's country.</summary>
+	private static CGameState Baltic(out CCountry germany, out CCountry poland)
+	{
+		var regions = new[] { new CRegion("baltic_sea_region", new[] { Deep }, false), new CRegion("north_sea", new[] { Bight }, false) };
+		CGameState state = State(out germany, out poland, regions);
+		state.Province(Deep).Regions.Add(0);
+		state.Province(Bight).Regions.Add(1);
+		state.Defines.Set(CMovementRules.MapSection, "BALTIC", CFixedPoint.FromInt(Bight));
+		state.Defines.Set(CMovementRules.MapSection, "BALTIC_BLOCKER", CFixedPoint.FromInt(Hela));
+		return state;
+	}
+
+	[Fact]
+	public void AFleetIsNotSentOutOfTheBalticOrIntoItWhileTheStraitIsClosedToIt()
+	{
+		CGameState state = Baltic(out CCountry germany, out _);
+		CUnit north = Fleet(state, germany, Kiel, Destroyer);
+		CUnit east = Fleet(state, germany, Deep, Destroyer);
+
+		// One way out of the Baltic is shut, and SeaConnected asks both.
+		Assert.True(CMovementRules.SeaRegionsConnected(state, germany, state.Province(Bight), state.Province(Deep)));
+		Assert.False(CMovementRules.SeaRegionsConnected(state, germany, state.Province(Deep), state.Province(Bight)));
+		Assert.False(CMovementRules.MayMoveTo(state, germany, north, state.Province(Deep)));
+		Assert.False(CMovementRules.MayMoveTo(state, germany, east, state.Province(Kiel)));
+		// A port stands for the sea it opens onto: Kiel's is the Bight.
+		Assert.False(CMovementRules.SeaConnected(state, germany, state.Province(Kiel), state.Province(Deep)));
+		Assert.True(CMovementRules.SeaConnected(state, germany, state.Province(Kiel), state.Province(Bight)));
+		// Within one region nothing is asked.
+		Assert.True(CMovementRules.SeaConnected(state, germany, state.Province(Deep), state.Province(Deep)));
+
+		// At peace the strait is open.
+		state.Wars.Clear();
+		Assert.True(CMovementRules.MayMoveTo(state, germany, north, state.Province(Deep)));
+		Assert.True(CMovementRules.MayMoveTo(state, germany, east, state.Province(Bight)));
+	}
+
+	[Fact]
+	public void AFleetIsNotSentWhileWhatItCarriesHasAWayOfItsOwn()
+	{
+		CGameState state = State(out CCountry germany, out _);
+		CUnit fleet = Fleet(state, germany, Bight, TransportShip);
+		CUnit division = Division(state, germany, Bight);
+		CTransport.Board(fleet, division);
+		Assert.True(CMovementRules.MayMoveTo(state, germany, fleet, state.Province(Deep)));
+
+		division.Path.Add(Hela);
+		Assert.False(CMovementRules.MayMoveTo(state, germany, fleet, state.Province(Deep)));
+		Assert.False(CMovementRules.MayCommandMoveTo(state, germany, fleet, state.Province(Deep)));
 	}
 }

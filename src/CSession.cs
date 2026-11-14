@@ -1657,6 +1657,11 @@ public partial class CSession : Node
 		}
 		int unitId = unit.Id;
 		CCommand command;
+		// A unit in a battle is never added to (movement.md, section 1).
+		if (unit.IsFighting)
+		{
+			append = false;
+		}
 		// A headquarters' own agent takes the click for its plan; a unit under an agent above it takes no order at all
 		// (mapunits.md, section 12).
 		if (CPlanRowsText.AgentAboveItsOwn(unit))
@@ -1702,7 +1707,7 @@ public partial class CSession : Node
 			{
 				// A coast the sea does not reach opens the window too where what the fleet
 				// carries may land there (transport.md, section 12).
-				if (CMovementRules.SeaEnd(State, State.Province(province)) is null
+				if (!CMovementRules.SeaConnected(State, Player, State.Province(province), CMovementRules.OwnSea(State, unit))
 					&& !CTransportText.OpensOrdersOnCoast(State, Player, unit, State.Province(province)))
 				{
 					GD.Print($"{unit.Name} cannot reach {State.Province(province).Name} by sea.");
@@ -1727,7 +1732,11 @@ public partial class CSession : Node
 				: new CMoveUnitCommand(Player.Tag, unitId, province, append);
 		}
 		bool land = unit.Kind != EUnitKind.Navy;
-		if (!command.MayExecute(State))
+		// A land unit's click asks the original's whole test of where it may be sent, a unit in a battle sent only where it
+		// may fall back among it; the command asks less (movement.md, section 1).
+		bool refused = land && command is CMoveUnitCommand
+			&& !CMovementRules.MayMoveTo(State, Player, unit, State.Province(province));
+		if (refused || !command.MayExecute(State))
 		{
 			GD.Print($"{unit.Name} may not go to {State.Province(province).Name}.");
 			// A land unit refused errs; a fleet has sounded its move already.

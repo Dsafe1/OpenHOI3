@@ -146,25 +146,57 @@ public static class CCombatRetreat
 	}
 
 	/// <summary>
-	/// Whether a unit may fall back into a province: no enemy land unit is there, and
-	/// either an enemy does not hold it or the unit still has an organisation of one.
+	/// Whether a unit may fall back into a province, the original's <c>CUnit::CanRetreatToProvince</c> whole: the province
+	/// it stands in or one an edge of its province leads to, of any kind, and then <see cref="MayRetreatTo"/>. An air unit
+	/// asks only that no enemy air unit's wings there add up to a whole point of strength (<see cref="CAirRetreat"/>).
+	/// It is the test a unit in a battle is sent by, and what the map's tooltip says of one
+	/// (<c>reversing/findings/FINDINGS-movement.md</c>, section 12.2).
+	/// </summary>
+	public static bool CanRetreatTo(CGameState state, CCountry country, CUnit unit, CProvince province)
+	{
+		if (unit.Kind == EUnitKind.Air)
+		{
+			return CAirRetreat.MayRetreatTo(state, unit, province);
+		}
+		if (province.Id != unit.Location && state.Province(unit.Location).EdgeTo(province.Id) is null)
+		{
+			return false;
+		}
+		return MayRetreatTo(state, country, unit, province);
+	}
+
+	/// <summary>
+	/// Whether a unit may fall back into a province beside it: the enemy land units standing there add up to less than a
+	/// whole point of strength, and either the province is not held by a country at war with the unit's - a war nobody
+	/// declared counting where it covers the province - or the unit still has an organisation of one.
 	/// </summary>
 	public static bool MayRetreatTo(CGameState state, CCountry country, CUnit unit, CProvince province)
 	{
-		if (CMovementRules.IsEnemy(state, province.Controller, country.Tag)
+		if (CMovementRules.IsEnemyIn(state, province.Controller, country.Tag, province.Id)
 			&& CUnitTotals.AverageOrganisation(unit) < CUnitTotals.LeastOrganisationToFight)
 		{
 			return false;
 		}
-		foreach (CUnit other in state.UnitsIn(province.Id))
+		return EnemyStrengthIn(state, country.Tag, province.Id, air: false) < 1;
+	}
+
+	/// <summary>
+	/// The strength of the land units - or of the air units - in a province whose countries are at war with the asking
+	/// one there, rebels counted and a war nobody declared where it covers the province: their brigades' strength added up
+	/// in thousandths and cut to whole points (the original's <c>EnemyLandStrengthIn</c> and <c>EnemyAirStrengthIn</c>).
+	/// </summary>
+	public static long EnemyStrengthIn(CGameState state, CCountryTag asking, int province, bool air)
+	{
+		long sum = 0;
+		foreach (CUnit other in state.UnitsIn(province))
 		{
-			if (CMovementRules.IsLandUnit(other) && CMovementRules.IsEnemy(state, other.Owner, country.Tag)
-				&& CUnitTotals.Strength(other) > CFixedPoint.Zero)
+			bool kind = air ? other.Kind == EUnitKind.Air : CMovementRules.IsLandUnit(other);
+			if (kind && CMovementRules.IsEnemyIn(state, other.Owner, asking, other.Location))
 			{
-				return false;
+				sum += CUnitTotals.Strength(other).Raw;
 			}
 		}
-		return true;
+		return sum / CFixedPoint.Scale;
 	}
 
 	/// <summary>

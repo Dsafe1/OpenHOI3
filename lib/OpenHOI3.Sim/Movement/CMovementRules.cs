@@ -209,15 +209,35 @@ public static class CMovementRules
 	}
 
 	/// <summary>
-	/// Whether a unit may be ordered to a province at all. It has to be able to stand
-	/// there. An air unit is not sent under too much cloud; a fleet goes only where there
-	/// is sea at both ends, and not while something it carries is on the move itself. A
-	/// land unit is not sent onto ground held by a country at war with it there - a war
-	/// nobody declared counting where it covers the province - when it is too weak, or was
-	/// given no supplies and uses some (not asked of one aboard a fleet), or no fuel and
-	/// burns some (<c>CUnit::CanMoveTo</c>; <c>docs/mechanics/movement.md</c>, section 1).
+	/// Whether a unit may be sent to a province at all, the original's <c>CUnit::CanMoveTo</c> whole. It has to be able
+	/// to stand there. An air unit is not sent under too much cloud. A land unit at sea is sent to land only where an edge
+	/// leads there from its sea. A unit in a battle is sent only where it may fall back
+	/// (<see cref="Combat.CCombatRetreat.CanRetreatTo"/>). A land unit is not sent onto ground held by a country at war
+	/// with it there - a war nobody declared counting where it covers the province - when it is too weak, or was given no
+	/// supplies and uses some (not asked of one aboard a fleet), or no fuel and burns some. No unit is sent anywhere while
+	/// it has a way, is in a battle and has a battle in the next province of its way. A fleet goes only where the sea
+	/// joins its own (<see cref="SeaConnected"/>), and not while something it carries has a way of its own
+	/// (<c>docs/mechanics/movement.md</c>, section 1). It is the click's test and every test the original makes with it;
+	/// <c>CMoveUnitCommand</c> asks <see cref="MayCommandMoveTo"/>.
 	/// </summary>
 	public static bool MayMoveTo(CGameState state, CCountry country, CUnit unit, CProvince province)
+	{
+		return MayMoveTo(state, country, unit, province, whole: true);
+	}
+
+	/// <summary>
+	/// What a move command asks before it runs: <see cref="MayMoveTo"/> less its three tests of where the unit is and what
+	/// it is fighting - the edge from a sea, a battle's way out and a battle ahead. Ours: the original's command asks
+	/// nothing; the whole test is asked before a command is posted - by the click, and by the AI's <c>CEU3AI::MoveUnit</c>
+	/// as its second gate (<c>reversing/findings/FINDINGS-liveread.md</c>, section 88), which is the AI's own to ask
+	/// (<c>docs/mechanics/movement.md</c>, section 1).
+	/// </summary>
+	public static bool MayCommandMoveTo(CGameState state, CCountry country, CUnit unit, CProvince province)
+	{
+		return MayMoveTo(state, country, unit, province, whole: false);
+	}
+
+	private static bool MayMoveTo(CGameState state, CCountry country, CUnit unit, CProvince province, bool whole)
 	{
 		if (unit.Kind == EUnitKind.Air && state.Defines.Has(CWeatherEffects.WeatherSection, AllowedToFlyThreshold)
 			&& province.Weather.CloudCoverage >= state.Defines[CWeatherEffects.WeatherSection, AllowedToFlyThreshold])
@@ -225,6 +245,15 @@ public static class CMovementRules
 			return false;
 		}
 		if (!MayStandIn(state, country, unit, province))
+		{
+			return false;
+		}
+		CProvince here = state.Province(unit.Location);
+		if (whole && IsLandUnit(unit) && here.IsSea && !province.IsSea && province.EdgeTo(here.Id) is null)
+		{
+			return false;
+		}
+		if (whole && unit.IsFighting && !Combat.CCombatRetreat.CanRetreatTo(state, country, unit, province))
 		{
 			return false;
 		}
@@ -250,11 +279,15 @@ public static class CMovementRules
 				return false;
 			}
 		}
+		if (whole && unit.IsMoving && unit.IsFighting && HasCombatIn(unit, unit.Path[0]))
+		{
+			return false;
+		}
 		if (unit.Kind != EUnitKind.Navy)
 		{
 			return true;
 		}
-		if (SeaEnd(state, province) is null || SeaEnd(state, state.Province(unit.Location)) is null)
+		if (!SeaConnected(state, country, province, OwnSea(state, unit)))
 		{
 			return false;
 		}
@@ -266,6 +299,116 @@ public static class CMovementRules
 			}
 		}
 		return true;
+	}
+
+	/// <summary>Whether one of the unit's battles is in the province.</summary>
+	private static bool HasCombatIn(CUnit unit, int province)
+	{
+		foreach (Combat.CCombat combat in unit.Combats)
+		{
+			if (combat.Province == province)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// A fleet's own sea: the province it is in where that is sea, otherwise the sea its port opens onto - the province
+	/// itself where it has none.
+	/// </summary>
+	public static CProvince OwnSea(CGameState state, CUnit unit)
+	{
+		CProvince here = state.Province(unit.Location);
+		return here.IsSea || here.PortSea <= 0 || here.PortSea >= state.Provinces.Count ? here : state.Province(here.PortSea);
+	}
+
+	/// <summary>
+	/// Whether a country's fleet can get from one province to the other at all, the original's <c>SeaConnected</c>: each
+	/// end that is land with a port stands for the sea the port opens onto, both have then to be sea, and
+	/// <see cref="SeaRegionsConnected"/> has to agree both ways (<c>docs/mechanics/fleetsandair.md</c>, section 1).
+	/// </summary>
+	public static bool SeaConnected(CGameState state, CCountry country, CProvince a, CProvince b)
+	{
+		if (SeaEnd(state, a) is not { } first || SeaEnd(state, b) is not { } second)
+		{
+			return false;
+		}
+		return SeaRegionsConnected(state, country, second, first) && SeaRegionsConnected(state, country, first, second);
+	}
+
+	/// <summary>
+	/// Whether closed waters cut one sea off from another for a country, by the first region of each in
+	/// <c>map/region.txt</c> and the three it names <c>black_sea_region</c>, <c>baltic_sea_region</c> and
+	/// <c>mediterranean_region</c> (<c>docs/mechanics/fleetsandair.md</c>, section 1). Two in one region are joined. Out
+	/// of the Black Sea: not with <c>BLACKSEA</c> closed, and to anywhere but the Mediterranean not with both
+	/// <c>GIBRALTAR</c> and <c>SUEZ</c> closed. Out of the Baltic: not with <c>BALTIC</c> closed. Out of the
+	/// Mediterranean: into the Black Sea not with <c>BLACKSEA</c> closed, elsewhere not with both <c>GIBRALTAR</c> and
+	/// <c>SUEZ</c> closed. Anything else is joined. One way only: <see cref="SeaConnected"/> asks it both ways.
+	/// </summary>
+	public static bool SeaRegionsConnected(CGameState state, CCountry country, CProvince from, CProvince to)
+	{
+		int start = FirstRegion(from);
+		int end = FirstRegion(to);
+		if (start == end)
+		{
+			return true;
+		}
+		int blackSea = RegionNamed(state, "black_sea_region");
+		int mediterranean = RegionNamed(state, "mediterranean_region");
+		if (start == blackSea)
+		{
+			if (IsWaterClosed(state, country, "BLACKSEA"))
+			{
+				return false;
+			}
+			return end == mediterranean || end == blackSea
+				|| !IsWaterClosed(state, country, "GIBRALTAR") || !IsWaterClosed(state, country, "SUEZ");
+		}
+		if (start == RegionNamed(state, "baltic_sea_region") && IsWaterClosed(state, country, "BALTIC"))
+		{
+			return false;
+		}
+		if (start != mediterranean)
+		{
+			return true;
+		}
+		if (end == blackSea)
+		{
+			return !IsWaterClosed(state, country, "BLACKSEA");
+		}
+		return end == mediterranean || !IsWaterClosed(state, country, "GIBRALTAR") || !IsWaterClosed(state, country, "SUEZ");
+	}
+
+	/// <summary>The number of a province's first region, or -1 where it is in none.</summary>
+	private static int FirstRegion(CProvince province)
+	{
+		return province.Regions.Count > 0 ? province.Regions[0] : -1;
+	}
+
+	/// <summary>The number of the region of that name, or -1 where the map has none - which is what a province in no region has.</summary>
+	private static int RegionNamed(CGameState state, string name)
+	{
+		for (int index = 0; index < state.Regions.Count; index++)
+		{
+			if (state.Regions[index].Name == name)
+			{
+				return index;
+			}
+		}
+		return -1;
+	}
+
+	/// <summary>Whether one of the five waters, by its define's name, is closed to a country.</summary>
+	private static bool IsWaterClosed(CGameState state, CCountry country, string water)
+	{
+		if (!state.Defines.Has(MapSection, water))
+		{
+			return false;
+		}
+		long id = state.Defines[MapSection, water].Raw / CFixedPoint.Scale;
+		return id > 0 && id < state.Provinces.Count && IsClosedWater(state, country, state.Province((int)id));
 	}
 
 	/// <summary>

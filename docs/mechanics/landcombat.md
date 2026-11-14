@@ -436,8 +436,10 @@ unit on it gave way and no reserve came up. **Reserves do not save a side by bei
   loses its path and its order, and it is not marked as falling back;
 - **a defender** goes to the province next to it that is worth most:
 
-      a province it may stand in, by a way that is not closed, holding no enemy land unit,
-      and - where an enemy holds it - only for a unit with an organisation of one or more
+      a province it may stand in, by a way that is not closed, whose enemy land units add up
+      to less than one whole point of strength (summed in thousandths, cut to whole points),
+      and - where an enemy holds it, a war nobody declared counting where it covers the
+      province - only for a unit with an organisation of one or more
       worth = 1000 for each of its neighbours held by the unit's country or a friend
             +  500 for each held by a country that is neither friend nor enemy
             halved if any neighbour is held by an enemy

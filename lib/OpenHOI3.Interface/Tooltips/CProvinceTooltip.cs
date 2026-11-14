@@ -140,7 +140,7 @@ public static class CProvinceTooltip
 			return CMovementRules.MayEnter(state, owner, province) ? "UTM_NO_INFRA" : "UTM_NO_ACCESS";
 		}
 		bool enemy = CMovementRules.IsEnemy(state, province.Controller, unit.Owner);
-		if (unit.IsFighting && !CCombatRetreat.MayRetreatTo(state, owner, unit, province))
+		if (unit.IsFighting && !CCombatRetreat.CanRetreatTo(state, owner, unit, province))
 		{
 			return "UTM_NOT_LEGAL_RETREAT";
 		}

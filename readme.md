@@ -2327,11 +2327,15 @@ None of these blocks the list above.
   is right, so it rests on the reading. `docs/mechanics/map.md`, section 9.
 - ~~**A unit too weak is not kept off an enemy's ground**, as the original's route keeps it, nor a
   country from attacking out of a neutral that merely lets it through; and no message says a unit
-  has arrived.~~ All three built 2026-11-14 (`movement.md`, sections 1, 3 and 6). Left: the rest of the
-  click's test of a province - a unit in a battle sent only where it may fall back - and the click's
-  sounds and marks. ~~`EXPRETURNED`'s Goto, whose message carries no unit~~ - built 2026-11-14, the message
-  carrying the unit and its Goto selecting it whoever holds it (`messages.md`, section 4.1).
-  `docs/mechanics/movement.md`, *What is not built*.
+  has arrived.~~ All three built 2026-11-14 (`movement.md`, sections 1, 3 and 6). ~~Left: the rest of the
+  click's test of a province - a unit in a battle sent only where it may fall back~~ - built 2026-11-14 whole
+  (`CMovementRules.MayMoveTo`, `movement.md` section 1): a land unit at sea sent only to land beside its sea, a unit in a
+  battle only where it may fall back, none with a battle in the next province of its way, a fleet only where the sea joins
+  its own past closed waters. Left: **the AI's `CEU3AI::MoveUnit` asks the same test as its second gate**
+  (`reversing/findings/FINDINGS-liveread.md`, section 88), which `CAiMoves` does not yet; the route not asking a fleet's
+  goal whether closed waters cut it off (`fleetsandair.md`, section 1); and the click's marks. ~~`EXPRETURNED`'s Goto,
+  whose message carries no unit~~ - built 2026-11-14, the message carrying the unit and its Goto selecting it whoever
+  holds it (`messages.md`, section 4.1). `docs/mechanics/movement.md`, *What is not built*.
 - **The march's speed is checked against savegames and its arrival is not.** The
   distances agree with the original's cache exactly and what an hour adds agrees with
   saves hours apart, division by division; the hour a unit arrives and what it keeps are

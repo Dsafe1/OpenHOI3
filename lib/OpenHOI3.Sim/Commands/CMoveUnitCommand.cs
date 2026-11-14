@@ -58,7 +58,9 @@ public sealed class CMoveUnitCommand : CCommand
 		{
 			return false;
 		}
-		return CMovementRules.MayMoveTo(state, country, unit, state.Province(_province));
+		// Not the whole test of CMovementRules.MayMoveTo: the original's command asks none of it; whoever posts the command
+		// - the click, the AI's MoveUnit - asks the whole of it first.
+		return CMovementRules.MayCommandMoveTo(state, country, unit, state.Province(_province));
 	}
 
 	public override void Execute(CGameState state)

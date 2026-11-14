@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using OpenHOI3.Sim;
+using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
@@ -873,5 +874,101 @@ public class MovementTests
 		Assert.Equal(Potsdam, unit.Location);
 		Assert.False(unit.IsMoving);
 		Assert.Equal(new[] { Potsdam }, told);
+	}
+
+	// --- the click's test of a unit in a battle (section 1) ---
+
+	/// <summary>A division of three points of strength, which it has had, and some organisation.</summary>
+	private static CUnit Fighter(CGameState state, CCountry country, int province, string organisation = "30")
+	{
+		CUnit unit = Division(state, country, province, Infantry());
+		unit.SubUnits[0].Strength = CFixedPoint.FromInt(3);
+		unit.SubUnits[0].Highest = CFixedPoint.FromInt(3);
+		unit.SubUnits[0].Organisation = CFixedPoint.Parse(organisation);
+		state.ForgetPositions();
+		return unit;
+	}
+
+	[Fact]
+	public void AUnitInABattleIsSentOnlyWhereItMayFallBack()
+	{
+		CCountry germany = Germany();
+		CGameState state = State(germany, new[] { GermanyAgainstPoland() });
+		CCountry poland = state.Country(Pol)!;
+		CUnit unit = Fighter(state, germany, Potsdam);
+		unit.Combats.Add(new CCombat(Potsdam));
+
+		// Only where it stands or next door: Leipzig is two provinces off. The command asks none of it.
+		Assert.True(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Dessau)));
+		Assert.True(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Berlin)));
+		Assert.False(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Leipzig)));
+		Assert.True(CMovementRules.MayCommandMoveTo(state, germany, unit, state.Province(Leipzig)));
+
+		// Into the enemy's ground beside it while it has an organisation of one and no enemy stands there.
+		Assert.True(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Posen)));
+		unit.SubUnits[0].Organisation = CFixedPoint.Parse("0.999");
+		Assert.False(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Posen)));
+		Assert.True(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Dessau)));
+		unit.SubUnits[0].Organisation = CFixedPoint.One;
+
+		// An enemy standing there with a whole point of strength between its units shuts it; under one point does not.
+		CUnit polish = Fighter(state, poland, Posen);
+		polish.SubUnits[0].Strength = CFixedPoint.Parse("0.999");
+		Assert.True(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Posen)));
+		Assert.Equal(0, CCombatRetreat.EnemyStrengthIn(state, Ger, Posen, air: false));
+		polish.SubUnits[0].Strength = CFixedPoint.One;
+		Assert.Equal(1, CCombatRetreat.EnemyStrengthIn(state, Ger, Posen, air: false));
+		Assert.False(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Posen)));
+
+		// Out of the battle, none of it is asked.
+		unit.Combats.Clear();
+		Assert.True(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Leipzig)));
+	}
+
+	[Fact]
+	public void NoUnitIsSentWhileItHasAWayAndABattleInTheNextProvinceOfIt()
+	{
+		CCountry germany = Germany();
+		CGameState state = State(germany, new[] { GermanyAgainstPoland() });
+		CUnit unit = Fighter(state, germany, Potsdam);
+		unit.Path.Add(Posen);
+		unit.Combats.Add(new CCombat(Posen));
+
+		Assert.False(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Dessau)));
+		Assert.False(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Potsdam)));
+		Assert.True(CMovementRules.MayCommandMoveTo(state, germany, unit, state.Province(Dessau)));
+
+		// A battle where it stands, its way going elsewhere, does not: it is sent where it may fall back.
+		unit.Combats.Clear();
+		unit.Combats.Add(new CCombat(Potsdam));
+		Assert.True(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Dessau)));
+		// Nor does the battle ahead with no way: it is fought from where it stands.
+		unit.Combats.Clear();
+		unit.Combats.Add(new CCombat(Posen));
+		unit.Path.Clear();
+		Assert.True(CMovementRules.MayMoveTo(state, germany, unit, state.Province(Dessau)));
+	}
+
+	[Fact]
+	public void AnAirUnitInABattleIsSentAnywhereButWhereEnemyAircraftAre()
+	{
+		CCountry germany = Germany();
+		CGameState state = State(germany, new[] { GermanyAgainstPoland() });
+		CCountry poland = state.Country(Pol)!;
+		var air = new CUnit(EUnitKind.Air, Ger) { Id = ++state.LastUnitId, Location = Potsdam };
+		air.SubUnits.Add(new CSubUnit(Type("interceptor", "300")) { Id = ++state.LastUnitId, Unit = air });
+		germany.Units.Add(air);
+		air.Combats.Add(new CCombat(Potsdam, ECombatKind.Air));
+
+		// No edge is asked of an air unit: Leipzig is two provinces off.
+		Assert.True(CMovementRules.MayMoveTo(state, germany, air, state.Province(Leipzig)));
+		Assert.True(CMovementRules.MayMoveTo(state, germany, air, state.Province(Posen)));
+
+		var polish = new CUnit(EUnitKind.Air, Pol) { Id = ++state.LastUnitId, Location = Posen };
+		polish.SubUnits.Add(new CSubUnit(Type("interceptor", "300")) { Id = ++state.LastUnitId, Unit = polish, Strength = CFixedPoint.FromInt(100) });
+		poland.Units.Add(polish);
+		state.ForgetPositions();
+		Assert.False(CMovementRules.MayMoveTo(state, germany, air, state.Province(Posen)));
+		Assert.True(CMovementRules.MayMoveTo(state, germany, air, state.Province(Leipzig)));
 	}
 }

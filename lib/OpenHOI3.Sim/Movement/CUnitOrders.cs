@@ -118,22 +118,26 @@ public static class CUnitOrders
 		{
 			return CBombingOrders.MayGive(state, country, unit, order, province);
 		}
+		// The window's rows ask the original's whole test of a move; the AI's own order, which no window gives, is held to
+		// what a move command asks (movement.md, section 1).
+		bool MayMove() => anyRange
+			? CMovementRules.MayCommandMoveTo(state, country, unit, province)
+			: CMovementRules.MayMoveTo(state, country, unit, province);
 		switch (order)
 		{
 			case EUnitOrder.Move:
 				if (CMovementRules.IsLandUnit(unit))
 				{
 					// The land orders window's: a neighbour only (landorders.md, section 6).
-					return !unit.IsFighting && IsBeside(state, unit, province)
-						&& CMovementRules.MayMoveTo(state, country, unit, province);
+					return !unit.IsFighting && IsBeside(state, unit, province) && MayMove();
 				}
 				return unit.Kind == EUnitKind.Navy
 					&& IsInRange(state, unit, order, province)
-					&& CMovementRules.MayMoveTo(state, country, unit, province);
+					&& MayMove();
 			case EUnitOrder.Rebase:
 				return unit.Kind == EUnitKind.Navy
 					&& CMovementRules.BuildingLevel(state, province, CMovementRules.NavalBase) > CFixedPoint.Zero
-					&& CMovementRules.MayMoveTo(state, country, unit, province)
+					&& MayMove()
 					&& state.Country(province.Controller) is { } controller && CCountryLists.IsFriend(state, controller, country.Tag, withAccess: true);
 			case EUnitOrder.RebaseAir:
 				return unit.Kind == EUnitKind.Air && !province.IsSea

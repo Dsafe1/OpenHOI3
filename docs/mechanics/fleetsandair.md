@@ -36,7 +36,27 @@ add to "where a unit may go": `confirmed`
 - out of a port it may no longer lie in - one that has changed hands - always.
 
 **A fleet is sent somewhere** only where there is sea at both ends - the province itself, or
-the sea its port opens onto - and not while something it carries is on the move itself.
+the sea its port opens onto - joined by closed waters (below), and not while something it carries is on the move itself.
+
+**Seas closed waters cut off** (`SeaConnected`, `confirmed`, read whole 2026-11-14 for `movement.md`, section 1): each end
+that is land with a port stands for the sea the port opens onto; both must then be sea; and the test below must hold
+**both ways**. It goes by each sea's **first region** in `map/region.txt` and the three regions named
+`black_sea_region`, `baltic_sea_region` and `mediterranean_region` - by name, so a mod changes which seas they are; a sea in
+no region counts as in the region of a name the map lacks. From one sea to another, one way:
+
+    the same first region                                                   -> joined
+    from the Black Sea:   BLACKSEA closed                                   -> not
+                          to the Mediterranean                              -> joined
+                          GIBRALTAR and SUEZ both closed                    -> not
+    from the Baltic:      BALTIC closed                                     -> not
+    from anywhere but the Mediterranean                                     -> joined
+    from the Mediterranean: to the Black Sea                                -> joined unless BLACKSEA is closed
+                          GIBRALTAR and SUEZ both closed                    -> not
+    otherwise                                                               -> joined
+
+"Closed" is the closed water below, asked of the define's sea province. The click asks it of a fleet first, and the whole
+test of where a unit may be sent asks it last (`movement.md`, section 1). *Ours:* the route does not ask it of a fleet's
+goal, which the original's does (it only saves a search that would fail anyway).
 
 **The five waters a country can close.** The defines' `map` section names five pairs, a sea
 province and a land one: `SUEZ`, `PANAMA`, `BALTIC`, `BLACKSEA` and `GIBRALTAR`, each with its
@@ -53,7 +73,7 @@ neutral's**. It is not sent to a province whose sky is as much cloud as
 section 3). The original also asks a province's owner area one thing that was not read, and
 before any search asks whether the two ends lie in seas that closed waters cut off from each
 other - the Black Sea, the Baltic, the Mediterranean - which only saves a search that would
-fail anyway and is not built.
+fail anyway: the test is built since 2026-11-14 (above), and the route does not ask it.
 
 ## 2. Ports
 

@@ -35,10 +35,30 @@ march's own are here.
   declared counting where its regions take the province in - **when the unit is too weak**
   (section 3), **or was given no supplies on its last day and uses some** - not asked of a
   unit aboard a fleet - **or no fuel and burns some**. `confirmed` (`CUnit::CanMoveTo`,
-  `reversing/findings/FINDINGS-movement.md`, section 12); built 2026-11-14 in `CMovementRules.MayMoveTo`,
-  which the command asks before it runs. The original's command does not ask it - the click
-  does - but the route then refuses the same unit by the same tests (section 3), so the
-  order comes to nothing either way.
+  `reversing/findings/FINDINGS-movement.md`, section 12); built 2026-11-14 in `CMovementRules.MayMoveTo`.
+- **The rest of the click's test** (`CUnit::CanMoveTo` whole, `confirmed`, built 2026-11-14 in the same place), in its
+  order after the unit's stand-in test and before the land tests above:
+  - **a land unit at sea** - aboard a fleet - **is sent to land only where an edge leads from that land to its sea**:
+    the landing's own province, not one further inland;
+  - **a unit in a battle is sent only where it may fall back** - the original's `CanRetreatToProvince`: the province it
+    stands in or one an edge of its province leads to, of any kind; then the enemy land units standing there must add up
+    to less than one whole point of strength (their brigades' strength summed in thousandths and cut to whole points),
+    and the province must not be held by a country at war with the unit's there - a war nobody declared counting where it
+    covers the province - unless the unit's organisation averages one or more. **An air unit** asks only that the enemy
+    air units in the province add up to less than a point, and no edge: it may be sent anywhere else;
+  - and after the land tests, **no unit is sent anywhere while it has a way, is in a battle, and one of its battles is in
+    the next province of that way**;
+  - **a fleet only where the sea joins its own** - its province, or the sea its port opens onto - by `SeaConnected`
+    (`fleetsandair.md`, section 1), **and not while anything it carries has a way of its own**.
+- **What asks it.** The click of a land unit, before the command is posted; a refusal is the error sound and nothing else
+  (*ours*: the mark on the province is not built). The orders window's move and change of base (`fleetsandair.md`,
+  `landorders.md`), the fleet's missions, an air mission's area and the AI's landing ask it as the original does. **The
+  AI's `CEU3AI::MoveUnit` asks it as its second gate** (`reversing/findings/FINDINGS-liveread.md`, section 88) - not
+  built here yet; it is the AI's moving's own to add. **The command does not ask it** (`CMoveCommand::Execute` asks
+  nothing): `CMoveUnitCommand` asks `MayCommandMoveTo`, the test less the edge from a sea, the battle's way out and the
+  battle ahead (*ours*), so that what the original's command does with a unit in a battle it does here. Its land tests
+  the route asks again of every step (section 3).
+- **A unit in a battle is never added to**: the shift key is let go of for it (`confirmed`, section 1 of the findings).
 - Nothing happens for a unit with no brigades. `confirmed`. The original also refuses a
   retreating unit and one under an AI's command.
 - **That is a land unit's click.** A fleet's and an air unit's bring up a window of orders,
@@ -532,9 +552,11 @@ with what is left over carried into the next leg as the march itself carries it.
 - ~~**A unit too weak is not routed onto an enemy's ground** in the original (one with no
   supplies or no fuel is not, here either: section 3). Nor is a country kept from
   attacking out of a neutral that merely lets it through.~~ Both built 2026-11-14 (section 3),
-  and the click's own tests of a land unit sent onto an enemy's ground (section 1). The rest of
+  and the click's own tests of a land unit sent onto an enemy's ground (section 1). ~~The rest of
   the click's test of a province - a unit in a battle sent only where it may fall back, and none
-  while it has a battle in the next province of its path - is not.
+  while it has a battle in the next province of its path - is not.~~ Built 2026-11-14 with the land
+  unit at sea and the fleet's sea connection (section 1). **The AI's `MoveUnit` asking it** is not built:
+  the AI's moving's to add.
 - ~~**Coordinated arrival**: the original keeps two hours on a unit, one before which it does
   not move and one before which it does not arrive, waiting at full progress.~~ Built
   2026-11-04 with the land orders window (`landorders.md`, section 5).

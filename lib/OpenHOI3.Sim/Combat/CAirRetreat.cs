@@ -50,6 +50,15 @@ public static class CAirRetreat
 		unit.IsRetreating = true;
 	}
 
+	/// <summary>
+	/// Whether an air unit may fall back into a province: no enemy air units there with a whole point of strength between
+	/// them. The original's <c>CAir::CanRetreatToProvince</c>, which the retreat asks of nothing it chooses by.
+	/// </summary>
+	public static bool MayRetreatTo(CGameState state, CUnit unit, CProvince province)
+	{
+		return CCombatRetreat.EnemyStrengthIn(state, unit.Owner, province.Id, air: true) < 1;
+	}
+
 	/// <summary>The province a beaten air unit falls back to, or 0.</summary>
 	public static int FindRetreatProvince(CGameState state, CUnit unit)
 	{
