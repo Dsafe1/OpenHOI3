@@ -76,7 +76,10 @@ technologies. **A range is in quarters of a pixel of the map.** `confirmed`
 
 **An order is out of range** where the province is further from **the unit's base** than its
 range. Not from where the unit is. Two things are never out of range: **a change of base**,
-and anything for a unit that has no base.
+and anything for a unit that has no base. **Range is asked where the player orders** - the right click and the orders
+window - **and not by the commands themselves**, so the AI's own moves and orders go anywhere: France's transport fleet,
+based at Bordeaux with a range of 2000, is sent to Alger 2375 away and sails its passengers on to Nice
+(`reversing/findings/FINDINGS-liveread.md`, section 84).
 
 - **An air unit's distance is a straight line**: four times the pixels between the centres of
   the two provinces' bounding boxes, the short way round the map, rounded down. Its reach is

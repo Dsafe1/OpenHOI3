@@ -98,8 +98,9 @@ public static class CUnitOrders
 	/// the province within reach.
 	/// </summary>
 	/// <param name="convoy">The number of the convoy an escort is to sail with.</param>
+	/// <param name="anyRange">The AI's own order: a fleet's mission is not held to its range.</param>
 	public static bool MayGive(CGameState state, CCountry country, CUnit unit, EUnitOrder order, CProvince province,
-		int convoy = 0)
+		int convoy = 0, bool anyRange = false)
 	{
 		if (unit.SubUnits.Count == 0 || unit.Location <= 0 || province.Id == 0)
 		{
@@ -107,7 +108,7 @@ public static class CUnitOrders
 		}
 		if (CMissions.IsMission(order))
 		{
-			return CMissions.MayGive(state, country, unit, order, province, convoy);
+			return CMissions.MayGive(state, country, unit, order, province, convoy, anyRange);
 		}
 		if (CAirMissions.IsAirMission(order))
 		{

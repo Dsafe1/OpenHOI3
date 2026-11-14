@@ -657,7 +657,11 @@ public static class CSealift
 			long least = long.MaxValue;
 			foreach (CUnit fleet in agent.TransportFleets)
 			{
-				if (fleet.Location == embark || present.Contains(fleet) || CCommandLadder.IsBlocked(fleet))
+				// Bound for embark or there already, or kept busy: the original asks its blocking test only of a fleet whose order
+				// is a busy one, so a fleet on a plain way - home from a change of base, say - is sent (FINDINGS-liveread.md,
+				// section 84).
+				if (CAgentUnits.DestinationOrPlace(fleet) == embark || present.Contains(fleet)
+					|| (fleet.Order is not (EUnitOrder.None or EUnitOrder.Move) && CCommandLadder.IsBlocked(fleet)))
 				{
 					continue;
 				}
@@ -692,7 +696,7 @@ public static class CSealift
 			{
 				if (fleet.Location == embark && (fleet.Passengers.Count > 0 || boarding.Contains(fleet)) && fleet.Order == EUnitOrder.None)
 				{
-					state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Transport, debark));
+					state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Transport, debark, ai: true));
 				}
 			}
 		}

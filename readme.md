@@ -198,6 +198,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    is left is mostly downstream of a battle at 2390 that ours wins at hour 45 (an attack at hour 5 at odds just over the
    bar) and of Sinkiang joining the Comintern at 18:00 on the second day, which is the install's Lua drawing its
    invitation (`math.random(10)`) where none of the original's three runs drew it.
+   **A new game's first month is set beside two runs of the original saved daily since 2026-11-14** (section 84): they
+   agree on 902 of 908 divisions' places on day 7, 889 on day 14 and 856 of 892 on day 30. The first shared difference
+   was France's two sealifts, which waited at their ports: a fleet on a plain way is sent to embark, and the AI's moves
+   and fleet missions are held to no range - the original asks range only where the player orders. Divisions placed as
+   the runs' on day 14 went 857 to 869, on day 30 825 to 831 and 834 to 850; Italy's divisions in Italy are now the most
+   of what both runs share and ours misses. The agents check's `places=FILE` writes every division's place and way for
+   setting two runs beside ours.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

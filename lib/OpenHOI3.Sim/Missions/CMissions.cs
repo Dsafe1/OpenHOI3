@@ -38,7 +38,7 @@ public static class CMissions
 	/// and it is in range.
 	/// </summary>
 	public static bool MayGive(CGameState state, CCountry country, CUnit unit, EUnitOrder order, CProvince province,
-		int convoy = 0)
+		int convoy = 0, bool anyRange = false)
 	{
 		if (unit.Kind != EUnitKind.Navy || unit.IsFighting)
 		{
@@ -50,18 +50,18 @@ public static class CMissions
 			case EUnitOrder.Intercept:
 			case EUnitOrder.Sortie:
 			case EUnitOrder.ConvoyRaid:
-				return province.IsSea && CUnitOrders.IsInRange(state, unit, order, province);
+				return province.IsSea && (anyRange || CUnitOrders.IsInRange(state, unit, order, province));
 			case EUnitOrder.Reserve:
 				return CMovementRules.BuildingLevel(state, province, CMovementRules.NavalBase) > CFixedPoint.Zero
 					&& province.Controller == unit.Owner
-					&& CUnitOrders.IsInRange(state, unit, order, province);
+					&& (anyRange || CUnitOrders.IsInRange(state, unit, order, province));
 			case EUnitOrder.ConvoyEscort:
 				return province.IsSea && CConvoyEscort.Find(state, convoy) is { } run
 					&& CConvoyEscort.FindBeat(state, unit, run).First != 0;
 			case EUnitOrder.Transport:
-				return CTransportMission.MayGive(state, country, unit, province);
+				return CTransportMission.MayGive(state, country, unit, province, anyRange);
 			case EUnitOrder.Invasion:
-				return CInvasionMission.MayGive(state, country, unit, province);
+				return CInvasionMission.MayGive(state, country, unit, province, anyRange);
 			default:
 				return false;
 		}

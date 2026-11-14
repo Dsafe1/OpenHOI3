@@ -601,8 +601,10 @@ troops**, else nothing at all:
    `reversing/findings/FINDINGS-liveread.md`, section 62) - and the **embark** the port nearest by sea to those
    bound for it in the area where most of them stand, with a way by sea to it - the area's provinces walked in their order,
    each with a naval base built, the first of equals kept (section 43). With both: those standing at embark are
-   boarded, the others in its area marched there; transports - not busy, fit, the nearest by
-   ((1 - strength) + (1 - organisation)) x 2 + 1 times the distance by sea - are sent there until they can carry the
+   boarded, the others in its area marched there; transports - neither bound for embark nor there already, not busy (a
+   fleet whose order is a busy one and which is under way or held by it; **one on a plain way, home from a change of base,
+   is sent**: France's at sea for Bordeaux, sent to Alger on 2 January in both of the original's runs; section 84), fit,
+   the nearest by ((1 - strength) + (1 - organisation)) x 2 + 1 times the distance by sea - are sent there until they can carry the
    troops, each by the AI's own move (section 10), so its destination is written at once and the naval body after it in
    the pass finds the fleet under way and does not split it (`reversing/findings/FINDINGS-liveread.md`, section 57: New
    Zealand's five transports sent to 7990 in a new game's second hour, kept whole).
@@ -800,7 +802,9 @@ months on) - at least three hours left, and the order ends then.
   by their calls only, so here a fleet at embark carrying troops, or taking them aboard in the same pass, with nobody
   left waiting there unboarded, is given the transport mission to debark - boarded and sent in one pass, as the running
   game's Ceylon Command was on 3 January at 09:00, where ours waited a pass for the troops to be aboard and sailed a day
-  late (`reversing/findings/FINDINGS-liveread.md`, section 63); a division's fitness for an enemy's area is its strength share, the original weighing it by its
+  late (`reversing/findings/FINDINGS-liveread.md`, section 63) - the mission held to no range, as the AI's orders are
+  not (section 84, where the original's step is read in part: it sails at once with everyone bound for debark aboard,
+  and waits while another could still fit and is near); a division's fitness for an enemy's area is its strength share, the original weighing it by its
   type as well; the embark port's way to debark is any distance by sea; a tie in the embark area, which the
   original breaks by a hash map's order of areas by their address, goes to the first found; and a unit trespassing in another country's land - a
   flag nothing here holds - is not looked for.

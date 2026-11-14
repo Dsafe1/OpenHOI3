@@ -14,11 +14,11 @@ namespace OpenHOI3.Sim.Missions;
 public static class CTransportMission
 {
 	/// <summary>Where the fleet is in no battle, the province has a naval base, is in range, and the fleet may lie there.</summary>
-	public static bool MayGive(CGameState state, CCountry country, CUnit unit, CProvince province)
+	public static bool MayGive(CGameState state, CCountry country, CUnit unit, CProvince province, bool anyRange = false)
 	{
 		return !unit.IsFighting
 			&& CMovementRules.BuildingLevel(state, province, CMovementRules.NavalBase) > CFixedPoint.Zero
-			&& CUnitOrders.IsInRange(state, unit, EUnitOrder.Transport, province)
+			&& (anyRange || CUnitOrders.IsInRange(state, unit, EUnitOrder.Transport, province))
 			&& CMovementRules.MayStandIn(state, country, unit, province);
 	}
 

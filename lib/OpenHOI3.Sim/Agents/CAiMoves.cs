@@ -61,7 +61,7 @@ public static class CAiMoves
 		}
 		else
 		{
-			state.Outbox.Add(new CMoveUnitCommand(country.Tag, unit.Id, province, landSafety: safety));
+			state.Outbox.Add(new CMoveUnitCommand(country.Tag, unit.Id, province, landSafety: safety, ai: true));
 		}
 		return true;
 	}

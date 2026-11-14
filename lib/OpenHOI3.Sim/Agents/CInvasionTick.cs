@@ -264,7 +264,7 @@ public static class CInvasionTick
 		if (rendezvous != invasion.EmbarkationPort)
 		{
 			invasion.Rendezvous = invasion.EmbarkationPort;
-			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleetAll.Id, EUnitOrder.Transport, invasion.EmbarkationPort));
+			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleetAll.Id, EUnitOrder.Transport, invasion.EmbarkationPort, ai: true));
 			return;
 		}
 		if (fleetAll.Location != invasion.EmbarkationPort || fleetAll.IsMoving)
@@ -288,7 +288,7 @@ public static class CInvasionTick
 			return;
 		}
 		invasion.Objective = landing;
-		state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleetAll.Id, EUnitOrder.Invasion, landing));
+		state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleetAll.Id, EUnitOrder.Invasion, landing, ai: true));
 		foreach (CAgent agent in country.UnitAi.Agents)
 		{
 			agent.ReplanSubordinates = true;

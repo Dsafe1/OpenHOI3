@@ -13,8 +13,9 @@ namespace OpenHOI3.Sim.Commands;
 /// unit with no way there keeps what it had. See <c>docs/mechanics/movement.md</c>,
 /// section 1.
 ///
-/// A land unit and a fleet take it; a fleet only within its range. It leaves the unit
-/// with no order. An air unit is sent by an order of its own: see
+/// A land unit and a fleet take it; a fleet a player orders only within its range - the original asks it where the player
+/// orders (<c>CUnit::OrderToProvince</c>, the orders window), not in the command, so the AI's own move asks none
+/// (<c>reversing/findings/FINDINGS-liveread.md</c>, section 84). It leaves the unit with no order. An air unit is sent by an order of its own: see
 /// <c>CSetUnitOrderCommand</c>.
 /// </summary>
 public sealed class CMoveUnitCommand : CCommand
@@ -24,17 +25,20 @@ public sealed class CMoveUnitCommand : CCommand
 	private readonly int _province;
 	private readonly bool _append;
 	private readonly ERouteSafety _landSafety;
+	private readonly bool _ai;
 
 	/// <param name="landSafety">How a land unit's way keeps clear of the enemy: the original command's two flags, which the
 	/// AI sets and a player's click does not.</param>
+	/// <param name="ai">The AI's own move, the original's <c>CEU3AI::MoveUnit</c>: a fleet's range is not asked.</param>
 	public CMoveUnitCommand(CCountryTag country, int unit, int province, bool append = false,
-		ERouteSafety landSafety = ERouteSafety.Plain)
+		ERouteSafety landSafety = ERouteSafety.Plain, bool ai = false)
 	{
 		_country = country;
 		_unit = unit;
 		_province = province;
 		_append = append;
 		_landSafety = landSafety;
+		_ai = ai;
 	}
 
 	public override string ToString() => $"move unit {_unit} to {_province}";
@@ -50,7 +54,7 @@ public sealed class CMoveUnitCommand : CCommand
 		{
 			return false;
 		}
-		if (unit.Kind == EUnitKind.Navy && !CUnitOrders.IsInRange(state, unit, unit.Order, state.Province(_province)))
+		if (unit.Kind == EUnitKind.Navy && !_ai && !CUnitOrders.IsInRange(state, unit, unit.Order, state.Province(_province)))
 		{
 			return false;
 		}

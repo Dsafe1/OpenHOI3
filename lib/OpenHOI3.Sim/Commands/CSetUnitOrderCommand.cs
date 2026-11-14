@@ -27,6 +27,7 @@ public sealed class CSetUnitOrderCommand : CCommand
 	private readonly long? _startHour;
 	private readonly long? _arriveHour;
 	private readonly int _target;
+	private readonly bool _ai;
 
 	/// <param name="stance">0 aggressive, which is what the orders window starts at; 1 defensive; 2 passive.</param>
 	/// <param name="priority">From 0 to 4.</param>
@@ -43,11 +44,16 @@ public sealed class CSetUnitOrderCommand : CCommand
 	/// The number of the unit the order names as its target, or nought: the enemy fleet the AI sends an intercept at
 	/// (<c>docs/mechanics/moving.md</c>, section 14). One no longer in the game when the command runs is named by none.
 	/// </param>
+	/// <param name="ai">
+	/// The AI's own order, the original's <c>CEU3AI::IssueUnitOrder</c>: a fleet's mission is not refused for its range, which
+	/// the original asks only where the player orders (<c>reversing/findings/FINDINGS-liveread.md</c>, section 84).
+	/// </param>
 	public CSetUnitOrderCommand(CCountryTag country, int unit, EUnitOrder order, int province,
 		int stance = CMission.Aggressive, int priority = 0, int convoy = 0,
 		System.Collections.Generic.IReadOnlyList<int>? provinces = null, int time = CMission.DayAndNight,
-		long endHour = CMission.NoEnd, long? startHour = null, long? arriveHour = null, int target = 0)
+		long endHour = CMission.NoEnd, long? startHour = null, long? arriveHour = null, int target = 0, bool ai = false)
 	{
+		_ai = ai;
 		_target = target;
 		_startHour = startHour;
 		_arriveHour = arriveHour;
@@ -73,7 +79,7 @@ public sealed class CSetUnitOrderCommand : CCommand
 		{
 			return false;
 		}
-		return CUnitOrders.MayGive(state, country, unit, _order, state.Province(_province), _convoy);
+		return CUnitOrders.MayGive(state, country, unit, _order, state.Province(_province), _convoy, anyRange: _ai);
 	}
 
 	public override void Execute(CGameState state)

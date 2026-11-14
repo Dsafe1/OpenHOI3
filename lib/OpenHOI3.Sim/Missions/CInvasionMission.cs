@@ -19,10 +19,10 @@ public static class CInvasionMission
 	/// Where the fleet is in no battle, the province is land and in range, the fleet carries something and its first
 	/// passenger may stand there. Neither a war nor a coast is asked for.
 	/// </summary>
-	public static bool MayGive(CGameState state, CCountry country, CUnit unit, CProvince province)
+	public static bool MayGive(CGameState state, CCountry country, CUnit unit, CProvince province, bool anyRange = false)
 	{
 		return !unit.IsFighting && !province.IsSea
-			&& CUnitOrders.IsInRange(state, unit, EUnitOrder.Invasion, province)
+			&& (anyRange || CUnitOrders.IsInRange(state, unit, EUnitOrder.Invasion, province))
 			&& unit.Passengers.Count > 0
 			&& CMovementRules.MayStandIn(state, country, unit.Passengers[0], province);
 	}

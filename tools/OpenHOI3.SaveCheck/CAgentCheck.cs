@@ -62,19 +62,23 @@ internal static class CAgentCheck
 		if (args.Length < 4)
 		{
 			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck agents <install folder> <start-date savegame> <later savegame> " +
-				"[tag] [examples] [player=TAG]");
+				"[tag] [examples] [player=TAG] [places=FILE]");
 			return 2;
 		}
 		string? player = args.Skip(4).FirstOrDefault(a => a.StartsWith("player=", StringComparison.Ordinal))?["player=".Length..];
 		string? trace = args.Skip(4).FirstOrDefault(a => a.StartsWith("trace=", StringComparison.Ordinal))?["trace=".Length..];
 		string? ready = args.Skip(4).FirstOrDefault(a => a.StartsWith("ready=", StringComparison.Ordinal))?["ready=".Length..];
 		string? follow = args.Skip(4).FirstOrDefault(a => a.StartsWith("unit=", StringComparison.Ordinal))?["unit=".Length..];
+		// places=FILE: every division compared, a line each - country, number, name, its first place, ours and the save's
+		// place and end - for setting two runs of the original beside ours.
+		string? placesFile = args.Skip(4).FirstOrDefault(a => a.StartsWith("places=", StringComparison.Ordinal))?["places=".Length..];
+		_places = placesFile is null ? null : new System.IO.StreamWriter(placesFile);
 		// tracedays=N: the trace only over the run's last N days, for a run too long to trace whole.
 		int traceDays = args.Skip(4).Where(a => a.StartsWith("tracedays=", StringComparison.Ordinal))
 			.Select(a => int.Parse(a["tracedays=".Length..], CultureInfo.InvariantCulture)).FirstOrDefault(int.MaxValue);
 		args = args.Where(a => !a.StartsWith("player=", StringComparison.Ordinal) && !a.StartsWith("trace=", StringComparison.Ordinal)
 			&& !a.StartsWith("ready=", StringComparison.Ordinal) && !a.StartsWith("unit=", StringComparison.Ordinal)
-			&& !a.StartsWith("tracedays=", StringComparison.Ordinal)).ToArray();
+			&& !a.StartsWith("tracedays=", StringComparison.Ordinal) && !a.StartsWith("places=", StringComparison.Ordinal)).ToArray();
 		string? only = args.Length > 4 && args[4].Length == 3 && !int.TryParse(args[4], out _) ? args[4] : null;
 		int examples = args.Skip(4).Select(a => int.TryParse(a, out int n) ? n : -1).FirstOrDefault(n => n >= 0, 5);
 		var warnings = new List<string>();
@@ -365,6 +369,8 @@ internal static class CAgentCheck
 				Console.WriteLine($"    {miss}");
 			}
 		}
+		_places?.Dispose();
+		_places = null;
 		return 0;
 	}
 
@@ -372,6 +378,8 @@ internal static class CAgentCheck
 	/// Each division of a country nobody plays found by its number in both saves: whether it stands where the later save
 	/// has it, and whether it has left its first place - or is on its way - as the save's has.
 	/// </summary>
+	private static System.IO.StreamWriter? _places;
+
 	private static void ComparePlaces(CCountry country, List<CUnit> ours, List<CSavedUnit> theirs, Dictionary<int, int>? start,
 		Action<string, bool, string> count)
 	{
@@ -391,6 +399,7 @@ internal static class CAgentCheck
 			bool ourMoved = unit.Location != first || unit.IsMoving;
 			int ourEnd = unit.IsMoving ? unit.Path[^1] : unit.Location;
 			int savedEnd = saved.Bound > 0 ? saved.Bound : saved.Location;
+			_places?.WriteLine($"{country.Tag}	{unit.Id}	{unit.Name}	{first}	{unit.Location}	{ourEnd}	{saved.Location}	{savedEnd}");
 			count("division place", unit.Location == saved.Location,
 				$"{where}: ours {unit.Location}{(unit.IsMoving ? $" to {ourEnd}" : "")}, save {saved.Location}" +
 				$"{(saved.Bound > 0 ? $" to {saved.Bound}" : "")}, from {first}");
