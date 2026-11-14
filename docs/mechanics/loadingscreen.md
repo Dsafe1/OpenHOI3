@@ -82,8 +82,14 @@ world the lobby shows and the game Play makes draw the same map through the same
 surface the lobby drew - its meshes, its materials and every way and sea technique already made - and only what the last
 view drew on it is wiped: the selection, the hierarchy's lines, the fronts, the air bases' rings, the battle plans and the
 trees' snow, the borders' corners being the new view's own. A surface made from another map, other interface files or
-other `waves` and `renderTrees` settings is made anew and the old one freed; a return to the menu reads the front end's
-files again, and so makes it anew. Measured on 2026-11-12 with the optimised build, from Play on a new game as Germany:
+other `waves` and `renderTrees` settings is made anew and the old one freed. A return to the menu keeps it too, since
+2026-11-14: **what no game changes is read by the first front end of a run and kept** (`CFrontEndContent`, *ours*) - the
+localisation, the interface's files, the map with its cache and the cache's quads - and every loading line is still shown,
+as the steps the pictures are timed by. What a game takes as its own is read anew each time: the countries' database, whose
+countries the world is made of, the AI's Lua, whose state and generator a game carries on, and the world itself. Measured
+in the Debug build on 2026-11-14: the front end read in 4.2 to 4.4 s the first time, 1.6 s of it the checksum kept before,
+and **0.9 to 1.0 s on a return**; its map made in 1.1 s and then **17 to 21 ms**; and a game played from the second front
+end the same on screen. Measured on 2026-11-12 with the optimised build, from Play on a new game as Germany:
 the main thread held under `LOAD_GFX` **2.34 s before, 1.06 s after**, the map modes **1.14 s before, 58 ms after**, and
 from `LOAD_GFX` to the screen going **4.34 s before, 1.27 s after**; the console's `tag`, making the session again around
 the same game, 0.70 s. The game's first picture was the same as before but for the rivers' and the surf's flow, whose clock
@@ -123,5 +129,5 @@ can, the other switches coming after it.
     two pieces are apart.
 
   What is left: the meshes handed to the engine and the water borders, rivers and surf, 1.1 s; the political style's land
-  materials of both heights as the view takes its first height, 0.65 s; the front end's windows, 0.16 s. Every return to the
-  menu pays them again, reading the front end's files anew; keeping those files would spare it.
+  materials of both heights as the view takes its first height, 0.65 s; the front end's windows, 0.16 s. A return to the
+  menu no longer pays them, its unchanging files and so its surface being kept (section 3).

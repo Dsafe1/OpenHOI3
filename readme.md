@@ -2315,7 +2315,7 @@ None of these blocks the list above.
 - **The provinces a unit may be placed in are tinted green our way**, over the mode's colours, which the maintainer
   has seen and passed; the original paints the same grey and green for a unit as for a building, left so until he has
   looked (`buildinglines.md`, *Ours*; `mapunits.md`, section 6).
-- **Loading runs under the loading screen** since 2026-11-11, on a thread of its own where it touches no engine object; making the front end's map still holds the screen still in two pieces, about 1.1 s and 0.8 s with a frame drawn between, where it was one of 3.2 s until 2026-11-14 (`docs/mechanics/loadingscreen.md`, *Loose ends*).
+- **Loading runs under the loading screen** since 2026-11-11, on a thread of its own where it touches no engine object; making the front end's map still holds the screen still in two pieces, about 1.1 s and 0.8 s with a frame drawn between, where it was one of 3.2 s until 2026-11-14 (`docs/mechanics/loadingscreen.md`, *Loose ends*) - on the first front end of a run alone since the same day, a return to the menu keeping the files no game changes and so the surface: read in about 1 s where it was 4, its map made in 20 ms (section 3).
 - **Things the savegame shows that are not explained**: home production for three countries, governments for
   countries that do not exist yet (`docs/mechanics/resources.md`, section 5), what sets a
   country's shares of IC at the start, and why nine untouched countries make 10% more
