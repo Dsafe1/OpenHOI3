@@ -25,7 +25,8 @@ owner must be able to build one more of the target. Neither the men nor the IC a
 
 Carried out (`CUpgradeRegimentCommand`), in order, **the brigade ceasing to exist at the end of it**:
 
-1. A line of one, with the numbers any line takes, aimed at the unit, a reserve where the brigade was.
+1. A line of one, with the numbers any line takes, aimed at the unit, a reserve where the brigade was, its builder the owner
+   (saved as the line's `builder`; `units.md`, section 5).
 2. Its share of strength: its strength over its most, in thousandths, truncated and held to 1000.
 3. One item of the target type: **a level of each of the target's technologies as the owner has now**; the old brigade's
    name; its experience, at least nought, and `PRIDE_BONUS_EXP` (**mod-able**) for a pride.

@@ -251,7 +251,11 @@ every time.
 
 The sixth share. `confirmed` throughout unless marked.
 
-**Which units, in what order.** As for reinforcement, with the unit's other switch.
+**Which units, in what order.** As for reinforcement, with the unit's other switch - but **the units the country has
+lent out (`expeditions.md`) come before its own**, where reinforcement takes them after: a unit is upgraded by its
+lender, at the lender's levels and out of the lender's share, and never by its host. A unit marked as a priority still
+goes to the front, the last such first. (read 2026-11-14, `reversing/findings/FINDINGS-unitdaily.md`, section 5; until
+then this took them after, as reinforcement does, which mattered only where the share ran out.)
 
 **Which technologies.** Each technology a brigade lists (`units.md`, section 2) in which the
 country's level is above the brigade's own - **unless the technology says
@@ -277,7 +281,8 @@ technology a brigade is behind in moves at once, each one level at a time.
         progress = rate                         and daily is paid
 
     the level's progress goes up by that; at a whole level it starts again from nothing
-    and the brigade has the level
+    and the brigade has the level - and, for a technology that changes a unit (not a doctrine),
+    its builder becomes its owner, unless the unit is one this country lent out (units.md, section 5)
 
     the country's need goes up by daily
 

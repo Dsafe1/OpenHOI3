@@ -34,6 +34,27 @@ public class BrigadeUpgradeTests
 		Assert.Contains(a, a.UpgradeTargets);
 	}
 
+	[Fact]
+	public void TheLineThatBringsTheNewBrigadeNamesItsOwnerItsBuilder()
+	{
+		var country = new CCountry { Tag = new CCountryTag("GER"), Name = "Germany", DefinitionFile = "", Capital = 1 };
+		CSubUnitType to = Priced("to", "4", "100"), from = Priced("from", "2", "50");
+		var state = new CGameState(new CDate(1936, 1, 1),
+			new[] { new OpenHOI3.Sim.Provinces.CProvince(0, "", isSea: false), new OpenHOI3.Sim.Provinces.CProvince(1, "Berlin", isSea: false) },
+			new[] { country })
+		{
+			SubUnitTypes = new System.Collections.Generic.Dictionary<string, CSubUnitType> { ["to"] = to, ["from"] = from },
+		};
+		var unit = new CUnit(EUnitKind.Division, country.Tag) { Id = 1, Location = 1 };
+		var brigade = new CSubUnit(from) { Id = 2, Unit = unit, Name = "1st" };
+		unit.SubUnits.Add(brigade);
+		country.Units.Add(unit);
+
+		new CUpgradeRegimentCommand(country.Tag, brigade.Id, "to").Execute(state);
+
+		Assert.Equal(country.Tag, country.Constructions.Single().Builder);
+	}
+
 	private static CConstruction Line(CCountry country, CSubUnitType to, CSubUnitType from, long strength, string cost, string time, string practical)
 	{
 		var line = new CConstruction(country.Tag);

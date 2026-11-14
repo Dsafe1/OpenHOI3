@@ -169,12 +169,15 @@ public static class CUnits
 
 	/// <summary>
 	/// The units a share of IC works through, in the order it reaches them: those marked
-	/// to go first, the last of them first, and then the rest in the order they were made.
+	/// to go first, the last of them first, and then the rest in the order they were made. The units
+	/// the country has lent out come after its own, or before them where <paramref name="lentFirst"/>
+	/// is set - the upgrade share's order (<c>docs/mechanics/upkeep.md</c>, section 5).
 	/// </summary>
-	public static List<CUnit> InWorkingOrder(CCountry country, System.Predicate<CUnit> wanted)
+	public static List<CUnit> InWorkingOrder(CCountry country, System.Predicate<CUnit> wanted, bool lentFirst = false)
 	{
 		var order = new List<CUnit>();
-		foreach (CUnit unit in country.UnitsInOrder().Where(unit => unit.Lender is null).Concat(country.LentUnits))
+		IEnumerable<CUnit> own = country.UnitsInOrder().Where(unit => unit.Lender is null);
+		foreach (CUnit unit in lentFirst ? country.LentUnits.Concat(own) : own.Concat(country.LentUnits))
 		{
 			if (!wanted(unit))
 			{

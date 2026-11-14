@@ -668,6 +668,90 @@ public class UpkeepTests
 		Assert.True(country.ReinforcementCost > CFixedPoint.Zero);
 	}
 
+	// ---- the builder an upgrade names
+
+	[Fact]
+	public void AWholeLevelOfEquipmentNamesTheBrigadesOwnerItsBuilder()
+	{
+		CCountry country = Country();
+		CSubUnitType type = LightArmour();
+		CTechnology gun = Technology("lighttank_gun", type);
+		CTechnology engine = Technology("lighttank_engine", type);
+		CGameState state = State(country, new[] { gun, engine });
+		CSubUnit armour = Brigade(type, Unit(country));
+		armour.TechnologyProgress["lighttank_gun"] = CFixedPoint.Parse("0.98");
+		country.TechnologyLevels["lighttank_gun"] = 1;
+		country.TechnologyLevels["lighttank_engine"] = 1;
+
+		// A day's 0.012 short of the whole level: still nobody's.
+		CUpgrades.Run(state, country, CFixedPoint.FromInt(10), apply: true);
+		Assert.Null(armour.Builder);
+
+		CUpgrades.Run(state, country, CFixedPoint.FromInt(10), apply: true);
+		Assert.Equal(1, armour.TechnologyLevels["lighttank_gun"]);
+		Assert.Equal(Ger, armour.Builder);
+	}
+
+	[Fact]
+	public void ADoctrineGainedNamesNobody()
+	{
+		CCountry country = Country();
+		CSubUnitType type = Infantry();
+		CTechnology doctrine = Technology("infantry_warfare", type, change: false);
+		CGameState state = State(country, new[] { doctrine });
+		CSubUnit brigade = Brigade(type, Unit(country));
+		country.TechnologyLevels["infantry_warfare"] = 1;
+
+		CUpgrades.Run(state, country, CFixedPoint.Zero, apply: true);
+
+		Assert.Equal(1, brigade.TechnologyLevels["infantry_warfare"]);
+		Assert.Null(brigade.Builder);
+	}
+
+	[Fact]
+	public void ALicencedBrigadeUpgradedIsNamedItsOwnersAfterwards()
+	{
+		CCountry country = Country();
+		CSubUnitType type = LightArmour();
+		CTechnology gun = Technology("lighttank_gun", type);
+		CGameState state = State(country, new[] { gun });
+		CSubUnit armour = Brigade(type, Unit(country));
+		armour.Builder = new CCountryTag("ITA");
+		armour.TechnologyProgress["lighttank_gun"] = CFixedPoint.Parse("0.995");
+		country.TechnologyLevels["lighttank_gun"] = 1;
+
+		CUpgrades.Run(state, country, CFixedPoint.FromInt(10), apply: true);
+
+		Assert.Equal(Ger, armour.Builder);
+	}
+
+	[Fact]
+	public void AUnitLentOutIsUpgradedByItsLenderFirstAndKeepsItsBuilder()
+	{
+		CCountry country = Country();
+		var france = new CCountry { Tag = new CCountryTag("FRA"), Name = "France", DefinitionFile = "", Capital = 1 };
+		CSubUnitType type = LightArmour();
+		CTechnology gun = Technology("lighttank_gun", type);
+		CDefines defines = State(country).Defines;
+		var state = new CGameState(new CDate(1936, 1, 1),
+			new[] { new CProvince(0, "", isSea: false), new CProvince(1, "Berlin", isSea: false) { Owner = Ger, Controller = Ger } },
+			new[] { country, france }, technologies: new[] { gun }, defines: defines);
+		CSubUnit own = Brigade(type, Unit(country, id: 1));
+		var lent = new CUnit(EUnitKind.Division, france.Tag) { Id = 2, Location = 1, Base = 1, Lender = Ger };
+		france.Units.Add(lent);
+		country.LentUnits.Add(lent);
+		CSubUnit away = Brigade(type, lent);
+		away.TechnologyProgress["lighttank_gun"] = CFixedPoint.Parse("0.995");
+		country.TechnologyLevels["lighttank_gun"] = 1;
+
+		// Enough for one brigade's day: the lent unit's comes first, though its number is the higher.
+		CUpgrades.Run(state, country, CFixedPoint.Parse("4.1"), apply: true);
+
+		Assert.Equal(1, away.TechnologyLevels["lighttank_gun"]);
+		Assert.Null(away.Builder);                                                          // its owner is France, the host
+		Assert.False(own.TechnologyProgress.ContainsKey("lighttank_gun"));
+	}
+
 	// ---- a whole day
 
 	[Fact]

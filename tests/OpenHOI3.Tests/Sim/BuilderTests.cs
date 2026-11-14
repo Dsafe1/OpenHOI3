@@ -380,6 +380,9 @@ public class BuilderTests
 		Assert.Equal("1st DD", flotilla.Brigades[0].Name);
 		Assert.Contains("44. Infanterie-Division", country.UnitNamesInUse);
 		Assert.Contains("1st DD", country.UnitNamesInUse);
+		// A line ordered in play names its builder, the country itself where no licence names another.
+		Assert.Equal(Ger, division.Builder);
+		Assert.Equal(Ger, flotilla.Builder);
 	}
 
 	[Fact]

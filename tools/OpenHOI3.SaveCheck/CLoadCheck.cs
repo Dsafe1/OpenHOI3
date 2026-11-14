@@ -802,6 +802,19 @@ public static class CLoadCheck
 						Same("a brigade's strength", ourBrigade.Strength, "strength");
 						Same("a brigade's organisation", ourBrigade.Organisation, "organisation");
 						Same("a brigade's experience", ourBrigade.Experience, "experience");
+						string ourBuilder = ourBrigade.Builder?.Value ?? "";
+						string savedBuilder = child.Get("builder")?.Value?.Trim('"') ?? "";
+						Count("a brigade's builder", ourBuilder == savedBuilder,
+							() => $"{brigade}: ours '{ourBuilder}', save '{savedBuilder}'");
+						// An upgrade names it, so where the hours brought its levels where the save has them the builder
+						// should agree too (units.md, section 5).
+						bool sameLevels = ourBrigade.TechnologyLevels.All(pair => child.Get(pair.Key) is not { IsBlock: true } entry
+							|| entry.Children.Count < 2 || (int)CSaveValues.Whole(entry.Children[0].Value) == pair.Value);
+						if (sameLevels)
+						{
+							Count("a brigade's builder, where its levels are the save's", ourBuilder == savedBuilder,
+								() => $"{brigade}: ours '{ourBuilder}', save '{savedBuilder}'");
+						}
 					}
 					foreach (ClausewitzNode air in child.All("air").Where(air => air.IsBlock))
 					{

@@ -24,8 +24,9 @@ public sealed class CConstruction
 	public CCountryTag Country { get; }
 
 	/// <summary>
-	/// The country whose levels it is built at, where one is named - a licence's seller, or what a save says; nobody
-	/// otherwise. A brigade it delivers is given it where it is not <see cref="Country"/> (<c>buildqueue.md</c>, section 4).
+	/// The country whose levels it is built at: a licence's seller, else the country itself on every line ordered in play
+	/// or to change a brigade's type, or what a save says; nobody on a line out of the history files. A brigade it delivers
+	/// is given it where it is not <see cref="Country"/> (<c>buildqueue.md</c>, section 4; <c>units.md</c>, section 5).
 	/// </summary>
 	public CCountryTag? Builder { get; set; }
 

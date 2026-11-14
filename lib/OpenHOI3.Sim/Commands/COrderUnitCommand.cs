@@ -185,7 +185,7 @@ public sealed class COrderUnitCommand : CCommand
 		CCountry levels = Builder(state, country);
 		var construction = new CConstruction(country.Tag)
 		{
-			Name = _name, Size = _size, IsReserve = _isReserve, Target = _target, Builder = ReferenceEquals(levels, country) ? null : levels.Tag,
+			Name = _name, Size = _size, IsReserve = _isReserve, Target = _target, Builder = levels.Tag,
 		};
 		if (_isReserve)
 		{

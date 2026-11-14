@@ -67,7 +67,7 @@ public static class CUpgrades
 		long cost = 0;
 		int upgrading = 0;
 
-		foreach (CUnit unit in CUnits.InWorkingOrder(country, unit => unit.MayUpgrade))
+		foreach (CUnit unit in CUnits.InWorkingOrder(country, unit => unit.MayUpgrade, lentFirst: true))
 		{
 			foreach (CSubUnit subUnit in unit.SubUnits)
 			{
@@ -118,6 +118,13 @@ public static class CUpgrades
 							done = 0;
 							subUnit.TechnologyLevels[technology.Name] = held + 1;
 							gained = true;
+
+							// Its equipment is now its owner's, so it is named by its owner's models - but not a
+							// unit this country has lent out, whose owner is the host. A doctrine changes nothing.
+							if (technology.Change && unit.Lender != country.Tag)
+							{
+								subUnit.Builder = unit.Owner;
+							}
 						}
 						subUnit.TechnologyProgress[technology.Name] = new CFixedPoint(done);
 						spent += paid;

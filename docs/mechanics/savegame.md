@@ -145,7 +145,8 @@ with everything under it:
   levels' and nothing else, and the strength and organisation are as written. **What it is shown as needs none**: the
   original works it out from those levels wherever it shows it, its builder's models where `builder` names one
   (`units.md`, section 5; read 2026-11-14), and so does this. A brigade's and a line's `builder` are read and written
-  back since the same day.
+  back since the same day, and given in play as the original gives them: a brigade's its owner at its first whole level
+  of equipment, a line's its country where no licence names another (`units.md`, section 5).
 
 **The rest of a country's military part:**
 
@@ -171,6 +172,10 @@ game, runs to its hour and does it again, counting what differs by country. On 2
   its fresh AI makes in the first hour (the save's theatres are in its `ai` block, not read), which raises the officers
   it needs; Britain's 219 are each a brigade reaching the ceiling the night's officers raise an hour after the save's
   does (*Not established*).
+- **A brigade's `builder`** since 2026-11-14: read, 4,075 of 4,075 in `Ireland1936_02_06_02`; run on to `_03_11_04`,
+  34 days in which the original's upgrade share names 390 brigades' owners, **3,819 of 3,819 where the hours left the brigade's
+  levels the save's** and 3,885 of 4,075 in all - the rest a level the AI's other research or share brought a day or more
+  apart. Before the upgrade share named anyone, 3,666 of 4,075.
 
 The first run found one fault, mended: the officer ratio is made in the hour, so a loaded game's first hour held every
 brigade to its type's own organisation until the ratio was made as the game is entered.
@@ -356,8 +361,8 @@ first for the finished unit's deployment - the original's own lines do so, from 
 going on to the next of a series here passes them over too now, and a finished unit's deployment takes the first
 (`buildqueue.md`, section 4); a deployment with no number could be found by nothing in the original, and never placed.
 
-**Not held, so not written**: a brigade's `home`, and its `builder` but where a save named one or its line was
-another's (since 2026-11-14; the original names the owner itself on most brigades, by a rule not read), a unit's `country_intel` and a lent unit's
+**Not held, so not written**: a brigade's `home` (its `builder` is held since 2026-11-14 and given as the original
+gives it, `units.md` section 5), a unit's `country_intel` and a lent unit's
 `expeditionary_owner` and `expeditionary_date`; a paradrop's `message` and a rebase to a carrier's `carrier_target`, in
 no save.
 
@@ -420,8 +425,8 @@ and `SovietJapaneseWar.txt`, all commented out - are **the two nameless `previou
 holds**, and a new game here holds them too since 2026-11-05 (`CWarReader.Read`); they had been missing.
 
 **Not held, so not written**: a `casus_belli` pact (`type`,
-`first`, `second`, `start_date`; two in the 16 July 1941 saves); an `undeclared_war`; a sunk ship's `home` and
-`builder`, as in the unit tree.
+`first`, `second`, `start_date`; two in the 16 July 1941 saves); an `undeclared_war`; a sunk ship's `home`, as in the
+unit tree (its `builder` is held since 2026-11-14, the ship keeping it as it sinks).
 
 **Checked** with `OpenHOI3.SaveCheck write` and each block set beside the save's as text. On 2026-11-05, in
 `Germany1936_01_07_22`, `_03_31_19` (lend-lease convoys) and `_09_02_21`, `Ireland1936_02_02_04`, `1937_07_05_02`,

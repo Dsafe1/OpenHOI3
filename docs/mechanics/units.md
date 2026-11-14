@@ -273,10 +273,28 @@ exactly, and is marked wherever it is shown. Whose models: `confirmed`
 | its summary, its card's label, a sunk ship's row | its builder's, else its owner's | name and `+*`; the type's name for none (the summary leaves the line out) |
 | its card's picture | its builder's, else its owner's | `<TAG>_<type>_<n>.tga`, `<type>_<n>.tga`, `<type>_0.tga` |
 
-**A builder** is the country a save's `builder` names, or a line's builder where it is not the line's country - a
-licence's seller (`buildqueue.md`, section 4): `confirmed`. The original writes `builder` on most brigades, naming the
-owner itself on nearly all (3,195 of 3,201 in a save of July 1941, Manchukuo's from Japan the rest); here one is held
-where a save names one or a line gives one, and written back where held. Who else sets it was not read.
+**A builder** is given a brigade at two moments, and a save keeps it (read 2026-11-14,
+`reversing/findings/FINDINGS-unitdaily.md`, section 5, and `reversing/findings/FINDINGS-unitpaneltooltips.md`,
+section 13): `confirmed`
+
+    a finished line delivers the brigade:   builder = the line's builder, only where that is not the line's country
+    the upgrade share brings it a whole level of a technology that changes a unit (change, not a doctrine):
+                                            builder = its owner, unless its unit is one the country lent out
+
+**A line's builder** is a licence's seller (`buildqueue.md`, section 4), else the ordering country itself - on every
+line ordered in play and every line that changes a brigade's type (`upgrades.md`); a line out of the history files has
+none. So a new brigade of the country's own line has none, and **its first whole level of equipment names its owner** -
+which is where nearly every `builder` in a save comes from: none in the start save; 1,262 brigades by 20 April 1936, each
+of which had a level of equipment rise since 1 January and none that had not; 3,732 of 5,457 in a save of July 1941,
+3,519 of them naming the owner. The rest name another because a licence built them and no level has been added since
+(Manchukuo's from Japan, Slovakia's from Germany), or because the brigade changed hands after its last upgrade (China's
+from Guangxi, which it annexed): its owner is set again when it changes hands, its builder never. A doctrine, which
+moves a level a day and costs nothing, names nobody. A lent unit is upgraded by its lender, at its lender's levels, and
+keeps its builder: its brigades' owner is its host. (measured: in six stretches of two games, from 1 January to 20
+April 1936 and in the Ireland game to July 1941, every brigade that gained `builder` had a level of a technology with
+`change` rise, but for a few the matching by number paired with another brigade; and every one whose level of equipment
+rose without gaining it stood in a lent unit - 17 from May 1940 to July 1941, Manchukuo's and Mengkukuo's from Japan and
+Slovakia's from Germany, and 5 from August 1938 to September 1939, the Philippines' among them - but for the same few.)
 
 **A model's name**: the country's text `GER_infantry_brigade_1` - the set's own country, the builder's or the owner's;
 for a member of a faction that does not lead it, the faction leader's - Hungary in the Axis taking

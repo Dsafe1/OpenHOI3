@@ -72,8 +72,9 @@ public sealed class CSubUnit
 	public int HistoricalModel { get; set; } = NoModel;
 
 	/// <summary>
-	/// The country that built it, where a save names one or its line was another's - a licence's seller; nobody
-	/// otherwise. Its models are the ones it is named by.
+	/// The country that built it, where a save names one or its line was another's - a licence's seller - and its
+	/// owner once the upgrade share has brought it a whole level of a technology that changes a unit; nobody
+	/// otherwise. Its models are the ones it is named by. See <c>docs/mechanics/units.md</c>, section 5.
 	/// </summary>
 	public Countries.CCountryTag? Builder { get; set; }
 

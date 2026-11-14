@@ -1933,6 +1933,12 @@ numeral, the reorganise window's, the summary, the brigade card's label and pict
 nearest the levels the brigade carries, as the original does everywhere, marked `+*` where its levels match none
 exactly, and a faction member's model takes its leader's name before the game's. So a save loaded shows its brigades as
 they were - II and III where all had shown as I - and a brigade's and a line's `builder` are held, read and written.
+**And given as the original gives them** (2026-11-14, `units.md`, section 5): a brigade's names its owner from the
+first whole level of equipment the upgrade share brings it - which is where nearly every `builder` in a save comes from -
+and every line ordered in play, or to change a brigade's type, names its country where no licence names another.
+`OpenHOI3.SaveCheck load` from `Ireland1936_02_06_02` to `_03_11_04` gives every brigade whose levels the hours left as
+the save's the save's `builder`, 3,819 of 3,819 (3,885 of 4,075 in all, where 3,666 did before); a new game run to 20
+April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ### Loose ends
 
@@ -2141,7 +2147,7 @@ None of these blocks the list above.
     which made a pair's dates and debt, the offers waiting, the casus belli, a province's
     underground and last convoy attack, the AI strategy's scalars and the null technology's level
     read and written both ways - and `out_of_supply_days` and the ledger's graphs since - only keys
-    of systems not built: a province's `capital` and `history`, a brigade's `home` and `builder`
+    of systems not built: a province's `capital` and `history`, a brigade's `home`
     and a few more, each of which the original reads. Which hour first sees the officers
     a day adds is not settled; and the first midnight after a load drops two supply convoys the
     original keeps;

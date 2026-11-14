@@ -38,7 +38,7 @@ public sealed class CUpgradeRegimentCommand : CCommand
 		CUnit unit = brigade.Unit!;
 		CCountry owner = state.Country(unit.Owner)!;
 
-		var line = new CConstruction(owner.Tag) { Size = 1, Target = unit.Id, IsReserve = brigade.IsReserve };
+		var line = new CConstruction(owner.Tag) { Size = 1, Target = unit.Id, IsReserve = brigade.IsReserve, Builder = owner.Tag };
 		line.Id = ++state.LastUnitId;
 		line.UnitId = ++state.LastUnitId;
 		state.LastUnitId += 2;
