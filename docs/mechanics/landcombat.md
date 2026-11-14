@@ -686,7 +686,13 @@ declaration; what the original does with the second was not read.
 **When.** At the top of a battle's hour, before the round is counted: where either side has
 no tactic, and again whenever the rounds fought so far are a whole number of
 `TACTIC_SWAP_FREQUENCEY` hours - 24 in the base game. So both sides pick in the first hour
-and afresh every day of the battle. Only where both sides still have a country.
+and afresh every day of the battle. Only where both sides still have a country **in the fight** - a
+side's list made again from its units as one leaves, not the countries it ever fought as - and the
+tactics' effects are summed on the same terms, so a battle whose defenders have all gone gives the
+attacker no tactic and only the plain combat pace. `confirmed` on the listing and in the original's
+saves (`reversing/findings/FINDINGS-liveread.md`, section 88); ours had asked the kept list, so a
+division walking into a province its defender had left took a tactic, walked at its speed and ran its
+delay down seven times as fast as the saves have it.
 
 **Who picks first.** Each side's highest ranked leader has a skill. The side with the
 **lower** skill picks first, favouring nothing; the other then picks **favouring the tactic

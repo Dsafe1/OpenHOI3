@@ -70,7 +70,9 @@ public static class CCombatTactics
 
 	public static void Pick(CGameState state, CCombat combat)
 	{
-		if (combat.Attacker.Countries.Count > 0 && combat.Defender.Countries.Count > 0)
+		// Only while both sides still have a country in the fight: a side whose units have all gone picks nothing, and nor
+		// does the other (FINDINGS-liveread.md, section 88).
+		if (combat.Attacker.Standing.Count > 0 && combat.Defender.Standing.Count > 0)
 		{
 			int attack = LeaderSkill(combat.Attacker);
 			int defence = LeaderSkill(combat.Defender);
@@ -171,7 +173,7 @@ public static class CCombatTactics
 	/// <summary>
 	/// What the two tactics make of the battle: its width, the damage of each side's
 	/// hits and the attackers' pace. A tactic the other side's counters adds nothing,
-	/// and nothing is added once a side has no country left.
+	/// and nothing is added once a side has no country left in the fight.
 	/// </summary>
 	public static void SumEffects(CCombat combat)
 	{
@@ -179,7 +181,7 @@ public static class CCombatTactics
 		combat.TacticAttacker = CFixedPoint.Zero;
 		combat.TacticDefender = CFixedPoint.Zero;
 		combat.TacticSpeed = CFixedPoint.Zero;
-		if (combat.Attacker.Countries.Count == 0 || combat.Defender.Countries.Count == 0)
+		if (combat.Attacker.Standing.Count == 0 || combat.Defender.Standing.Count == 0)
 		{
 			return;
 		}

@@ -163,6 +163,24 @@ public class CombatTacticTests
 	}
 
 	[Fact]
+	public void A_battle_whose_defenders_have_all_left_picks_no_tactic_and_sums_no_speed()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland,
+			Tactic(1, "tactic_attack", attacker: true, speed: "0.5"), Tactic(2, "tactic_defend", attacker: false));
+		CCombat combat = Battle(state, germany, poland);
+		combat.Defender.Remove(state, combat.Defender.Units[0]);
+		long before = state.Random.Draws;
+
+		CCombatTactics.Pick(state, combat);
+
+		// The defender still counts Poland among the countries it fought as, but none is in the fight any more.
+		Assert.Contains(Pol, combat.Defender.Countries);
+		Assert.Null(combat.Attacker.Tactic);
+		Assert.Equal(CFixedPoint.Zero, combat.TacticSpeed);
+		Assert.Equal(before, state.Random.Draws);
+	}
+
+	[Fact]
 	public void A_side_with_nothing_to_pick_has_no_tactic()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland, Tactic(1, "tactic_attack", attacker: true));
