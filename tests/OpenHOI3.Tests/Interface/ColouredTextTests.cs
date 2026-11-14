@@ -37,6 +37,14 @@ public class ColouredTextTests
 	}
 
 	[Fact]
+	public void AColourRunsOnOverALineBreakUntilTheNextEscape()
+	{
+		Assert.Equal(new[] { "§Raa", "§Rbb", "§Gcc", "§Gdd" }, CColouredText.CarryColour(new[] { "§Raa", "bb", "§Gcc", "dd" }));
+		Assert.Equal(new[] { "aa §Yb", "§Ycc§!", "§!dd" }, CColouredText.CarryColour(new[] { "aa §Yb", "cc§!", "dd" }));
+		Assert.Equal(new[] { "aa", "bb" }, CColouredText.CarryColour(new[] { "aa", "bb" }));
+	}
+
+	[Fact]
 	public void KnowsTheLettersAndSaysWhenItDoesNot()
 	{
 		Assert.True(CTextColours.TryGet('R', out _));

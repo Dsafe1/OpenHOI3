@@ -25,7 +25,7 @@ public sealed class CMessageLog
 	private readonly float _width;
 	private readonly Func<string, float> _measure;
 
-	/// <param name="width">How wide a row's text may be: its button's width less 10.</param>
+	/// <param name="width">The room a row's text is laid out in: its button's width less 10.</param>
 	/// <param name="measure">How wide a text is drawn, without its colour escapes.</param>
 	public CMessageLog(Func<string, string> localise, float width, Func<string, float> measure)
 	{
@@ -88,12 +88,11 @@ public sealed class CMessageLog
 
 	private void AddRows(CMessage message)
 	{
-		foreach (string paragraph in CMessageText.Log(_localise, message).Split('\n'))
+		// Laid out by the original's text layout and split at its breaks, every piece a row as it is: a colour does not run
+		// on into the next row, each row's button drawing its own text.
+		foreach (string piece in CTextLayoutLineBreak.Break(CMessageText.Log(_localise, message), _width, _measure))
 		{
-			foreach (string piece in CWordWrap.Wrap(paragraph, _width, _measure))
-			{
-				_rows.Add((message, piece));
-			}
+			_rows.Add((message, piece));
 		}
 	}
 }

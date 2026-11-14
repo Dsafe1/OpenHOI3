@@ -45,7 +45,17 @@ public class TechDetailsRowsTests
 	[Fact]
 	public void A_continuation_keeps_what_followed_the_dropped_space()
 	{
-		// Two spaces, only the first of them with room before it: it is dropped at the break, the other starts the next row.
-		Assert.Equal(new[] { "aaa bbbbb", " c" }, CTechDetailsRows.Rows("aaa bbbbb  c", 10, Measure));
+		// Two spaces, only the first of them before the character that reaches nine: it is dropped at the break, the other
+		// starts the next row.
+		Assert.Equal(new[] { "aaa bbbb", " c" }, CTechDetailsRows.Rows("aaa bbbb  c", 10, Measure));
+	}
+
+	[Fact]
+	public void A_line_broken_off_stays_under_the_room_less_the_O_where_a_whole_line_may_reach_it()
+	{
+		// "aaa bbbbb" and an O make ten, which a line standing alone may be; but a line is cut at the last space before the
+		// ninth character, the first to reach nine.
+		Assert.Equal(new[] { "aaa bbbbb" }, CTechDetailsRows.Rows("aaa bbbbb", 10, Measure));
+		Assert.Equal(new[] { "aaa", "bbbbb c" }, CTechDetailsRows.Rows("aaa bbbbb c", 10, Measure));
 	}
 }

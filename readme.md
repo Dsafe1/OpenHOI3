@@ -2242,14 +2242,22 @@ None of these blocks the list above.
   under the large ones; the large pictures and their frames are worked out once a day; a
   ring's range is the shortest of the unit's wings'; and the rings and icons show from any
   height.
-- **The air orders window's map rests on one inference, and only its hint breaks lines as the original's font does**
-  (2026-11-14; `fleetsandair.md`, section 4): a province out of the unit's reach is handed to the shaders as the
-  original's "nothing", alpha nought, in map style 16, and comes out the ground greyed and darkened and the sea near black
-  - which holds only if the original's land is drawn with the alpha test off, *inferred* and not watched in the running
-  game (`mapdraw.md`, section 4). The font's line breaking is read and built (`CFontLineBreak`; `interface.md`, section 6),
-  but only `second_target` opts into it: every other text box keeps the rule from before the reading until the screens
-  are looked at again. The paradrop's start held every frame is built and was not tried on screen - no 1936 order of
-  battle has a transport plane.
+- **The air orders window's map rests on one inference** (2026-11-14; `fleetsandair.md`, section 4): a province out of
+  the unit's reach is handed to the shaders as the original's "nothing", alpha nought, in map style 16, and comes out the
+  ground greyed and darkened and the sea near black - which holds only if the original's land is drawn with the alpha
+  test off, *inferred* and not watched in the running game (`mapdraw.md`, section 4). The paradrop's start held every
+  frame is built and was not tried on screen - no 1936 order of battle has a transport plane.
+- **Every text box breaks its lines as the original's font does since 2026-11-14** (`interface.md`, section 6): an
+  `instantTextBoxType` by `CFontLineBreak`, a `textBoxType` by `CTextBoxLineBreak` - the original draws the two through
+  different routines of its font - a box of fixed size cut first to the original's " ..." (`CFixedSizeCut`), and a
+  tooltip, a row of the message log, the diplomacy status list and the technology panel's effects laid out by the
+  original's text layout (`CTextLayoutLineBreak`). Left as they were, the original's rule not read for them: **an edit
+  box** (which line of its layout it shows when a screen sets its text), **a button's caption** (drawn by the
+  instantTextBoxType's routine, but with what box was not read - here one line, centred), and **the lobby's chat**. Not
+  built of what was read: **a `textBoxType` cuts off lines past its height** in the original, likely - it draws into a
+  picture of its own size - and **places a centred line without its border, and vertically centres its text where it has
+  a picture behind it** (`reversing/findings/FINDINGS-textdraw.md`, section 2.2); here its lines run on past it and it is
+  placed as an instantTextBoxType is. The maintainer has not looked at the screens since.
 - **Four rules of how the interface draws are measured on screenshots and not read**: a
   bar's picture upside down, where a turned flag stands, where a round shield puts its
   flag, and where a name too long for its box is cut - the last of which ends ten pixels
@@ -2559,7 +2567,7 @@ None of these blocks the list above.
   stand-in and are drawn in Liberation Sans, with a line in the log. `docs/mechanics/interface.md`, section 6.
 - **How scrollbars and boxes of overlapping elements lay themselves out is ours.**
   Neither was read out of the original; each is the plain reading of what the files
-  declare. So is where a line of text breaks. **The list box was the third, and when it
+  declare. ~~So is where a line of text breaks.~~ That was read on 2026-11-14 (`interface.md`, section 6). **The list box was the third, and when it
   was read on 2026-10-09 the plain reading turned out wrong** - the original spaces
   nothing and cuts nothing off - so the other two are worth less than they look.
   `docs/mechanics/interface.md`, sections 2 and 6.

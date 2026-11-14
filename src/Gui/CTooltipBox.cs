@@ -12,8 +12,9 @@ namespace OpenHOI3.Gui;
 
 /// <summary>
 /// The one box every tooltip is shown in: the <c>ToolTip</c> text box of
-/// <c>interface/core.gui</c>, its picture behind it. It grows to its text, which is broken
-/// into lines at its most less three borders. See <c>docs/mechanics/tooltips.md</c>,
+/// <c>interface/core.gui</c>, its picture behind it. It grows to its text, which is laid
+/// out at its most less three borders by the original's text layout
+/// (<see cref="CTextLayoutLineBreak"/>). See <c>docs/mechanics/tooltips.md</c>,
 /// sections 1 and 3.
 /// </summary>
 public partial class CTooltipBox : Control
@@ -88,17 +89,16 @@ public partial class CTooltipBox : Control
 		}
 		_text = text;
 		_lines.Clear();
+		// The original lays the text out at the box's most less three borders and sets what that gives into the box, whose
+		// font draws it as one text: no line is broken again there, and a colour runs on over a break.
 		float wrap = CTooltipText.WrapWidth(_type.MaxWidth, _type.BorderSize.X);
+		IEnumerable<string> laidOut = _font is null ? text.Split('\n') : CTextLayoutLineBreak.Break(text, wrap, Measure);
 		float widest = 0f;
-		foreach (string paragraph in text.Split('\n'))
+		foreach (string line in CColouredText.CarryColour(laidOut))
 		{
-			IEnumerable<string> lines = _font is null ? new[] { paragraph } : CWordWrap.Wrap(paragraph, wrap, Measure);
-			foreach (string line in lines)
-			{
-				List<CTextRun> runs = CColouredText.Parse(line);
-				_lines.Add(runs);
-				widest = Mathf.Max(widest, Width(runs));
-			}
+			List<CTextRun> runs = CColouredText.Parse(line);
+			_lines.Add(runs);
+			widest = Mathf.Max(widest, Width(runs));
 		}
 
 		// Ours: the box is its text with the border all round. Where the original puts the

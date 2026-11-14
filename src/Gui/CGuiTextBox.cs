@@ -217,51 +217,53 @@ public partial class CGuiTextBox : CGuiObject
 				Editor.Text = value;
 			}
 			_lines.Clear();
-			foreach (string paragraph in value.Split('\n'))
+			foreach (string line in CColouredText.CarryColour(Lines(value)))
 			{
-				foreach (string line in Wrap(paragraph))
-				{
-					_lines.Add(CColouredText.Parse(Cut(line)));
-				}
+				_lines.Add(CColouredText.Parse(line));
 			}
 			QueueRedraw();
 		}
 	}
 
-	/// <summary>What a line too long for a box of fixed size ends in.</summary>
-	private const string CutMark = "...";
-
-	/// <summary>
-	/// A line too wide for a box that says <c>fixedsize = yes</c> is cut, and ends in
-	/// three dots: as many of its letters as leave the dots room. Seen on a screenshot
-	/// of the original's battle window, where a division's name ends that way in the
-	/// middle of a word; the routine was not read, so how the original measures the room
-	/// is not known. A line with a colour escape in it is left alone.
-	/// </summary>
 	/// <summary>The width a screen that lays a box out itself gives it, for breaking and cutting its lines, in place of its file's: the Statistics screen's cells.</summary>
 	public float? LaidOutWidth { get; set; }
 
-	private string Cut(string line)
+	/// <summary>
+	/// The width an <c>instantTextBoxType</c> of no <c>maxWidth</c> is given by the object that draws it, after the cut
+	/// of a box of fixed size and before its font breaks the text (<c>reversing/findings/FINDINGS-textdraw.md</c>,
+	/// section 1). No file in the base game has one.
+	/// </summary>
+	public const float InstantDefaultWidth = 200f;
+
+	/// <summary>
+	/// The text as the original's font lays it out (<c>docs/mechanics/interface.md</c>, section 6): a box of fixed size
+	/// cut first (<see cref="CFixedSizeCut"/>), then broken at its width whatever its height, the lines running on down
+	/// past it - an <c>instantTextBoxType</c>'s by <see cref="CFontLineBreak"/>, a <c>textBoxType</c>'s by
+	/// <see cref="CTextBoxLineBreak"/>. An edit box keeps the rule from before the reading (<see cref="EditLines"/>).
+	/// </summary>
+	private List<string> Lines(string text)
 	{
 		var type = (CGuiTextBoxType)GuiType;
-		float inside = (LaidOutWidth ?? type.MaxWidth) - 2f * type.BorderSize.X;
-		if (!type.FixedSize || _font is null || inside <= 0f || line.Contains(CColouredText.Escape))
+		if (_font is null)
 		{
-			return line;
+			return new List<string>(text.Split('\n'));
 		}
-		// A flag or a counter in the text is as wide as its picture, and not as its code.
+		if (type.IsEdit)
+		{
+			return EditLines(text);
+		}
 		CGuiFont font = _font;
-		float Measured(string text) => CTextIcons.Measure(text, font.Width);
-		if (Measured(line) <= inside)
+		float Measure(string run) => CTextIcons.Measure(run, font.Width);
+		float width = LaidOutWidth ?? type.MaxWidth;
+
+		// A textBoxType is cut only where it has a height; an instantTextBoxType whatever it has.
+		if (type.FixedSize && (type.IsInstant || type.MaxHeight != 0))
 		{
-			return line;
+			text = CFixedSizeCut.Cut(text, width, type.MaxHeight, type.BorderSize.X, font.LineHeight, Measure);
 		}
-		int kept = line.Length;
-		while (kept > 0 && Measured(line[..kept] + CutMark) > inside)
-		{
-			kept--;
-		}
-		return line[..kept] + CutMark;
+		return type.IsInstant
+			? CFontLineBreak.Break(text, width == 0f ? InstantDefaultWidth : width, type.BorderSize.X, Measure)
+			: CTextBoxLineBreak.Break(text, width, type.BorderSize.X, Measure);
 	}
 
 	/// <summary>
@@ -271,35 +273,22 @@ public partial class CGuiTextBox : CGuiObject
 	public float DrawnHeight => _font is null ? 0f : _lines.Count * _font.LineHeight + 2f * ((CGuiTextBoxType)GuiType).BorderSize.Y;
 
 	/// <summary>
-	/// Whether the box breaks its text where the original's font does, whatever its height - its lines running on down past
-	/// it (<c>CFontLineBreak</c>; <c>docs/mechanics/interface.md</c>, section 6). Set by a screen before its text, for a box
-	/// known to wrap in the original: the air orders window's <c>second_target</c>. Every box of the original's breaks so;
-	/// here the others keep the rule below.
+	/// An edit box's text when it shows it all: each paragraph broken at its spaces, but only in a box tall enough for a
+	/// second line. The original's edit box shows one line of its text layout, the caret's (<c>interface.md</c>, section
+	/// 8); which line that is when a screen sets a text was not read, so this is ours.
 	/// </summary>
-	public bool BreaksAsTheFont { get; set; }
-
-	/// <summary>
-	/// Breaks a line that is too wide for the box at its spaces - but only in a box tall
-	/// enough for a second line, so that a figure a little wider than its box is not
-	/// pushed out of sight, or in one of no height, which grows with its text - or, where
-	/// <see cref="BreaksAsTheFont"/> is set, as the original's font does.
-	/// </summary>
-	private IEnumerable<string> Wrap(string paragraph)
+	private List<string> EditLines(string text)
 	{
 		var type = (CGuiTextBoxType)GuiType;
-		if (BreaksAsTheFont && _font is not null)
-		{
-			CGuiFont font = _font;
-			return CFontLineBreak.Break(paragraph, LaidOutWidth ?? type.MaxWidth, type.BorderSize.X,
-				text => CTextIcons.Measure(text, font.Width));
-		}
+		var lines = new List<string>();
+		CGuiFont font = _font!;
 		float inside = (LaidOutWidth ?? type.MaxWidth) - 2f * type.BorderSize.X;
-		if (_font is null || inside <= 0f || (type.MaxHeight != 0 && type.MaxHeight < 2f * _font.LineHeight))
+		bool wraps = inside > 0f && (type.MaxHeight == 0 || type.MaxHeight >= 2f * font.LineHeight);
+		foreach (string paragraph in text.Split('\n'))
 		{
-			return new[] { paragraph };
+			lines.AddRange(wraps ? CWordWrap.Wrap(paragraph, inside, run => CTextIcons.Measure(run, font.Width)) : new[] { paragraph });
 		}
-		CGuiFont measured = _font;
-		return CWordWrap.Wrap(paragraph, inside, text => CTextIcons.Measure(text, measured.Width));
+		return lines;
 	}
 
 	/// <summary>The box's <c>maxWidth</c> as its file gives it, border and all.</summary>
@@ -309,19 +298,19 @@ public partial class CGuiTextBox : CGuiObject
 	public float Measure(string text) => _font is null ? 0f : CTextIcons.Measure(text, _font.Width);
 
 	/// <summary>
-	/// A paragraph broken at its spaces to the box's width in its font, however tall the box: for a list
-	/// that makes a row of each piece, as the diplomacy screen's status list does.
+	/// A paragraph laid out by the original's text layout in the box's font at the box's <c>maxWidth</c>, however tall the
+	/// box (<see cref="CTextLayoutLineBreak"/>): for a list that makes a row of each piece, as the diplomacy screen's
+	/// status list does.
 	/// </summary>
 	public IEnumerable<string> Pieces(string paragraph)
 	{
 		var type = (CGuiTextBoxType)GuiType;
-		float inside = type.MaxWidth - 2f * type.BorderSize.X;
-		if (_font is null || inside <= 0f)
+		if (_font is null || type.MaxWidth <= 0)
 		{
 			return new[] { paragraph };
 		}
 		CGuiFont font = _font;
-		return CWordWrap.Wrap(paragraph, inside, text => CTextIcons.Measure(CColouredText.Strip(text), font.Width));
+		return CTextLayoutLineBreak.Break(paragraph, type.MaxWidth, text => CTextIcons.Measure(text, font.Width));
 	}
 
 	public override void _Draw()

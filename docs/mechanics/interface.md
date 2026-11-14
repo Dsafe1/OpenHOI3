@@ -457,27 +457,64 @@ files, with nothing in it placed by hand.
   arithmetic). *Ours:* all text is drawn so. With it the figure's stem is in the same
   two columns as the original's and its top and bottom on the same rows; what differs
   is the letter, which here has a foot the original's has not.
-- **Where a line breaks** (read 2026-11-14, `reversing/findings/FINDINGS-textdraw.md`):
-  **at the box's `maxWidth` - 320 where it gives none - and its `maxHeight` plays no part**,
-  so a text wider than its box goes on to further lines, each a line's height under the last,
-  running on down past the box; each line is placed as the first is, so set centre each is
-  centred by its own width. A word is taken with the space after it: at each space, where the
-  line, that word and its space and twice the border are wider than the box, the line breaks
-  before the word, keeping its own trailing space - which is measured with it, so a centred
-  line stands half a space left; a word over 50 that runs past the edge, once something has
-  been laid out, is broken where it reaches it; the last word is tested without a space, and
-  not at all where it alone is wider than the box; a newline ends a line; past 55 lines the
-  rest is dropped. A first word too wide for the box, a space after it, leaves the first line
-  empty - kept (`docs/enhanced.md`, *Interface*). `CFontLineBreak` is that rule.
-  *Ours:* **only a box a screen opts into breaks so** (`CGuiTextBox.BreaksAsTheFont`) - the air
-  orders window's `second_target` (`fleetsandair.md`, section 4) since 2026-11-14. Every other
-  box keeps the rule from before the reading: broken at its spaces, measured without trailing
-  spaces, and only in a box high enough for a second line or of no height, so that a figure a
-  little wider than a one-line box - in a typeface of other widths than the original's - is not
-  pushed onto a line of its own. Moving every box to the original's rule waits on the screens
-  being looked at again. The original's oddity at the end - a last word wider than the box
-  makes the whole line's width that word's for its placing - is not followed: a line is placed
-  by its own measured width. A colour that is on when a line breaks is on for the next.
+- **Where a line breaks** (read 2026-11-14, `reversing/findings/FINDINGS-textdraw.md`, sections
+  1 and 2.1 to 2.4). **Every text box breaks its text at its `maxWidth`, whatever its height**,
+  each line a line's height under the last and placed as the first is - set centre, each centred
+  by its own width. **The two kinds of box are broken by two routines of the font, near alike**:
+  - **An `instantTextBoxType`** - and a button's caption - is drawn straight to the screen
+    (`CFontLineBreak`). Its width is 200 where its file gives none (the object that draws it sets
+    that; no file of the base game has one), and its height plays no part, so its lines run on
+    down past it. A word is taken with the space after it: at each space, where the line, that
+    word and its space and twice the border are **wider** than the box, the line breaks before
+    the word, keeping its own trailing space - measured with it, so a centred line stands half a
+    space left; a word over 50 that runs past the edge, once something has been laid out, is
+    broken where it reaches it; the last word is tested without a space, and not at all where it
+    alone is wider than the box; a newline ends a line; past 55 lines the rest is dropped.
+  - **A `textBoxType`** is drawn into a picture of its own (`CTextBoxLineBreak`), 320 wide where
+    its file gives no width. The text is read a character at a time, and **before each one - a
+    space among them - a line that has reached the box**, twice the border in, breaks before the
+    word being gathered, the word so far beginning the next line: a word goes down at the
+    character the line reaches the box, with no floor of 50 and no test of anything laid out. At a
+    space, a line that the word and its space bring **to** the box (not only past it) breaks
+    before the word - but never while nothing has been laid out. At the end the last word goes
+    down where the line has reached the box, however wide the word. A newline ends a line; past
+    55 lines the rest is dropped. A colour escape takes no room; a flag, a counter and a strength
+    bar are as wide as their pictures and count for the line and not the word.
+  - **A box that says `fixedsize = yes` is cut first** (`CFixedSizeCut`), and then broken: lines
+    are counted a character at a time to the box's width less twice the border, and where they
+    are more than its height less twice the border **across** holds, the text is cut before the
+    character that started the line too many, **its last four characters made a space and three
+    dots** - "Magdeburg" in the province view's list of towns is "Magd ...", where it was
+    "Magdeb..." before the reading. An `instantTextBoxType` is cut
+    whatever its height, a `textBoxType` only where it has one.
+  - **A tooltip, a row of the message log, a line of the diplomacy screen's status list and a
+    row of the technology panel's effects are laid out by the original's text layout** before
+    their text reaches a box (`CTextLayoutLineBreak`; `reversing/findings/FINDINGS-editbox.md`,
+    section 6): a line is cut where it and one `O` are wider than the room - the tooltip's box
+    less three borders, the log's button less 10, the status list's and the effects' text box's
+    `maxWidth` - at the last space before the first character at which it reaches the room less
+    the `O`, the space dropped, or, where the first word and an `O` do not fit, after that
+    character, the word split. So a line standing whole may be the room less an `O` wide, and a
+    line broken off is narrower. What that gives is never broken again by the box.
+
+  A first word too wide for the box, a space after it, leaves the first line empty in both
+  kinds of box; in a `textBoxType` so does a first word that fills the box, and a word wider than
+  the box goes on there a character to a line, the original's count of the word never set back
+  after a break inside it - all kept (`docs/enhanced.md`, *Interface*). **A colour runs on over a
+  line break and a newline** until the next escape, in a box and in a tooltip, the font keeping
+  it; a row of the log or of a list does not take the last row's colour, each being drawn alone.
+  *Ours:* the original's oddity at the end of an `instantTextBoxType`'s text - a last word wider
+  than the box makes the whole line's width that word's for its placing - and the one-short width
+  a `textBoxType` keeps for a line broken inside a word are not followed: a line is placed by its
+  own measured width. **A `textBoxType`'s lines run on past its height** here; the original's,
+  drawn into a picture of the box's size, are likely cut off there (not read), and it places a
+  centred line without its border and centres its text up and down where it has a picture behind
+  it (read, not built - section 3's rule is used for both kinds). **An edit box** keeps the rule
+  from before the reading - broken at its spaces where it is high enough for a second line - since
+  which line of its layout it shows when a screen sets its text was not read (section 8); **a
+  button's caption** stays one line, the box the original gives it not read; and **the lobby's
+  chat** is broken as before, its rule not read. `¤`, which the original's `textBoxType` counts 16
+  wide, is a letter here.
 - **A font is a texture of glyphs and a descriptor**, `gfx/fonts/<name>.fnt` and `.tga`.
   `confirmed` The original reads the descriptor's numbers by position and never its key
   names, and a descriptor that says it has a page and does not name it is normal.
@@ -604,9 +641,13 @@ scalable canvas of section 3 could not survive. So:
   them too. A button of any other picture is not turned.
 - **A line too wide for a text box that says `fixedsize = yes` is cut, and ends in three
   dots.** *Measured* on the same screenshot, where a division's name ends "CCN ..." in the
-  middle of a word. *Ours:* as many letters are kept as leave the dots room in the box's
+  middle of a word. ~~*Ours:* as many letters are kept as leave the dots room in the box's
   `maxWidth`; the original's name ends ten pixels short of that, so it measures the room
-  some other way, which was not read. A line with a colour in it is left alone.
+  some other way, which was not read. A line with a colour in it is left alone.~~ **Read on
+  2026-11-14** (section 6, `CFixedSizeCut`): the text is cut before the character that brings
+  a line to the box, and its last four characters before the cut become a space and three dots
+  - the space before the dots on the screenshot is that, and the character it gives up for the
+  space likely the ten pixels short (not measured again). A colour in the text is counted as nothing and kept.
 - **A window whose file says `moveable = 1` is dragged with the left button held anywhere
   on it but on a button, a scrollbar or a list** - a picture or a text lying over a button
   counts as the button - and a window that is the screen is never dragged. The maintainer's
@@ -721,9 +762,10 @@ is; the wrap's exact break.
 
 1. **The table of colours a font with no `colorcodes` falls back to**: who fills it, and
    with what.
-2. **How a text box lays its text out**, beyond section 6 (where a line breaks is read since 2026-11-14): how a
-   `fixedsize` box measures a line it cuts (section 7), what the two kinds of text box
-   differ in, the five orientations
+2. **How a text box lays its text out**, beyond section 6 (where a line breaks, the cut of a
+   `fixedsize` box and how the two kinds of text box differ in breaking are read since
+   2026-11-14): whether a `textBoxType` cuts off lines past its height, which line an edit box
+   shows when a screen sets its text, the box a button's caption is given, the five orientations
    other than the upper left and right, and why the pictures sit half a pixel the other
    way from the text.
 3. **Where the position is measured to** - that it is the upper left corner is a fit on

@@ -52,6 +52,17 @@ public class FontLineBreakTests
 	}
 
 	[Fact]
+	public void TheBreakAtASpaceThatMakes55LinesIsTheLastRead()
+	{
+		// Every word goes down in a box of 15, the first leaving an empty line. At the 55th the text is no longer read;
+		// the end then puts the last word down, and the line after it is empty.
+		var lines = CFontLineBreak.Break(string.Concat(System.Linq.Enumerable.Repeat("a ", 100)), 15f, 0f, Measure);
+		Assert.Equal(57, lines.Count);
+		Assert.Equal("a ", lines[55]);
+		Assert.Equal("", lines[56]);
+	}
+
+	[Fact]
 	public void ABoxOfNoWidthBreaksAt320()
 	{
 		string text = new string('a', 20) + " " + new string('b', 20);

@@ -55,6 +55,30 @@ public static class CColouredText
 		return runs;
 	}
 
+	/// <summary>
+	/// Lines drawn one after another as one text, each after the first given the colour in force where the one before it
+	/// ended: the original's font keeps the colour an escape set until the next escape, across a line break and a newline
+	/// alike. A line that begins with an escape of its own is left as it is.
+	/// </summary>
+	public static List<string> CarryColour(IEnumerable<string> lines)
+	{
+		var carried = new List<string>();
+		char colour = NoColour;
+		foreach (string line in lines)
+		{
+			bool own = line.Length > 1 && line[0] == Escape;
+			carried.Add(colour == NoColour || own ? line : In(colour) + line);
+			for (int index = 0; index + 1 < line.Length; index++)
+			{
+				if (line[index] == Escape)
+				{
+					colour = line[++index];
+				}
+			}
+		}
+		return carried;
+	}
+
 	/// <summary>The text with its escapes taken out.</summary>
 	public static string Strip(string text)
 	{

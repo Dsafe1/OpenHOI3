@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Content.Clausewitz;
 using OpenHOI3.Content.Messages;
 using OpenHOI3.Interface.Messages;
@@ -138,6 +139,16 @@ public class MessageTests
 
 		Assert.Equal(200, log.Messages.Count);
 		Assert.Equal(CMessageLog.MostRows, log.Rows.Count);
+	}
+
+	[Fact]
+	public void A_log_line_is_laid_out_as_the_text_layout_lays_it_out_a_row_for_each_piece()
+	{
+		// Each row is cut at the last space before the character that reaches 12 less the O's 1, the space dropped.
+		var log = new CMessageLog(Localise, 12f, text => text.Length);
+		log.Add(new CMessage(new CMessageType("LONG"), " d"));
+
+		Assert.Equal(new[] { " d one two", "three four", "five six" }, log.Rows.Select(row => row.Text));
 	}
 
 	[Fact]

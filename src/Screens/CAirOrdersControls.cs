@@ -109,12 +109,8 @@ public sealed class CAirOrdersControls
 		{
 			_continuous.Pressed += SwitchDates;
 		}
+		// Its hint is wider than its 172 and broken onto lines down past its 18, as the original's font breaks every box.
 		_secondTarget = window.FindTextBox(CAirOrdersText.SecondTargetText);
-		if (_secondTarget is not null)
-		{
-			// Its hint is wider than its 172 and broken onto lines down past its 18, as the original's font breaks it.
-			_secondTarget.BreaksAsTheFont = true;
-		}
 
 		// The start is now, the end a month on.
 		long now = state.TotalHours;
