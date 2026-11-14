@@ -302,7 +302,11 @@ more than 3 provinces is stood down, a division cut to its next step.
 
 ## 10. Moving a unit (`CEU3AI::MoveUnit`)
 
-To a province: a retreating unit is not moved; where it is the province the unit stands in while it moves, a
+To a province: a retreating unit is not moved; **nor one the click's test refuses there** (`movement.md`, section
+1) - so a unit marching into a battle is neither halted nor sent anywhere, and the pull-in of a headquarters attacking
+(6) does nothing: Poland's Armia Modlin, attacking 1749 from 1809 at the war's start, is picked 1809 and kept on its
+attack, where ours had halted it (`confirmed` on the running game, `reversing/findings/FINDINGS-liveread.md`, section
+88); where it is the province the unit stands in while it moves, a
 **stand-down** - no order, no way, out of the battles it attacks in, where it stands (`CCancelMovementCommand`); where it
 is going there already and not fighting, nothing - **in a battle it is ordered again, which takes it out of the battle**,
 so a caller that does not want that skips it (11.2); otherwise the march (`CMoveUnitCommand`), or a strategic

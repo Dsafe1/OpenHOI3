@@ -233,6 +233,24 @@ public class MovingTests
 	}
 
 	[Fact]
+	public void A_unit_marching_into_a_battle_is_neither_halted_nor_sent_anywhere_by_the_AI()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		CUnit division = Division(state, Ger, 3, "infantry_brigade");
+		CMovement.SetPath(division, new[] { 4, 5 }, clear: true);
+		var combat = new OpenHOI3.Sim.Combat.CCombat(4);
+		state.Combats.Add(combat);
+		combat.Attacker.Add(division);
+
+		// The click's test refuses every province to it, its own included, and the AI's move asks that first.
+		Assert.False(CAiMoves.Move(state, germany, division, 3, safe: true));
+		Assert.False(CAiMoves.Move(state, germany, division, 2, safe: false));
+		Assert.Empty(state.Outbox);
+		Assert.Equal(new[] { 4, 5 }, division.Path);
+	}
+
+	[Fact]
 	public void A_beach_counts_its_enemy_brigades_by_strength_a_headquarters_a_third_and_a_fifth_more_a_coastal_fort_level()
 	{
 		CGameState state = World();

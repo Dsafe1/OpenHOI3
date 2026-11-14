@@ -53,8 +53,8 @@ march's own are here.
 - **What asks it.** The click of a land unit, before the command is posted; a refusal is the error sound and nothing else
   (*ours*: the mark on the province is not built). The orders window's move and change of base (`fleetsandair.md`,
   `landorders.md`), the fleet's missions, an air mission's area and the AI's landing ask it as the original does. **The
-  AI's `CEU3AI::MoveUnit` asks it as its second gate** (`reversing/findings/FINDINGS-liveread.md`, section 88) - not
-  built here yet; it is the AI's moving's own to add. **The command does not ask it** (`CMoveCommand::Execute` asks
+  AI's `CEU3AI::MoveUnit` asks it as its second gate** (`reversing/findings/FINDINGS-liveread.md`, section 88) - and
+  `CAiMoves.Move` asks it so since 2026-11-14 (`moving.md`, section 10). **The command does not ask it** (`CMoveCommand::Execute` asks
   nothing): `CMoveUnitCommand` asks `MayCommandMoveTo`, the test less the edge from a sea, the battle's way out and the
   battle ahead (*ours*), so that what the original's command does with a unit in a battle it does here. Its land tests
   the route asks again of every step (section 3).

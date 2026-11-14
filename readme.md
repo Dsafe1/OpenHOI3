@@ -211,6 +211,12 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    46 of its own alone where 52 - still the furthest of the three tests from the original, and the next place to look.
    With a change of stance scoring the area at the stance it leaves (section 86), as a load's entering does it, ours'
    ways alone fall to 37 there and to 77 in the July 1941 series, where they were 102.
+   **Its march speeds were never the difference** (section 88): the `march` check's `loaded` switch takes each division
+   as the save loads it, and 57 to 60 of about 60 an hour agree where a new game's brigades gave 45. Two things were:
+   a battle whose defenders have all gone picks no tactic, so its attacker walks at the plain combat pace; and the AI's
+   move asks the click's test first, so a unit marching into a battle is neither halted nor pulled back - Poland's Armia
+   Modlin kept on its attack. With both, ours gives 105 of the runs' shared ways, misses 14 and gives 26 of its own
+   alone, where it was 94, 24 and 36; entering, 4 January and the July series are unchanged by them.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

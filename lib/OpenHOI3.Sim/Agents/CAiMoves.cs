@@ -32,6 +32,12 @@ public static class CAiMoves
 		{
 			return false;
 		}
+		// Nothing where the click's test refuses the province, asked before the stand-down: so a unit marching into a battle
+		// is neither halted nor sent anywhere (FINDINGS-liveread.md, section 88).
+		if (!CMovementRules.MayMoveTo(state, country, unit, state.Province(province)))
+		{
+			return false;
+		}
 		if (province == unit.Location)
 		{
 			if (CAgentUnits.Destination(unit) > 0)
