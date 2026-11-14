@@ -345,6 +345,20 @@ public sealed class CProvince
 	/// </summary>
 	public bool BuildingMoved { get; set; }
 
+	/// <summary>
+	/// Whether its port is blockaded: an enemy unit, neither fighting nor falling back, in the port's sea province as its
+	/// controller was last set - worked out then and at no other time, and not saved (<c>docs/mechanics/modifiers.md</c>,
+	/// section 3; <see cref="CBlockade"/>).
+	/// </summary>
+	public bool Blockaded { get; set; }
+
+	/// <summary>
+	/// The <c>radar_level</c> of its modifier as its radar was last told to its controller's list of radar provinces,
+	/// by the rebuild's step 13 or a change of controller; nought on a new or loaded game, and not saved
+	/// (<c>docs/mechanics/modifiers.md</c>, section 3; <see cref="Intelligence.CRadarProvinces"/>).
+	/// </summary>
+	public CFixedPoint RadarLevelApplied { get; set; }
+
 	/// <summary>Every province within two edges, as <see cref="CNearProvinces"/> worked it out; null until asked for.</summary>
 	internal List<int>? NearProvinces { get; set; }
 

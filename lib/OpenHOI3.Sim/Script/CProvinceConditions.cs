@@ -28,6 +28,10 @@ public static class CProvinceConditions
 			case "port":
 				answer = !none && CConditions.Is(trigger, here.PortSea != 0);
 				return true;
+			case "is_blockaded":
+				// Its port's blockade as its controller was last set, compared with the value (modifiers.md, section 3).
+				answer = !none && CConditions.Is(trigger, here.Blockaded);
+				return true;
 			case "is_capital":
 				answer = CConditions.Is(trigger, state.Country(here.Owner) is { } owner && owner.Capital == here.Id);
 				return true;

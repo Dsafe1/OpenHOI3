@@ -45,7 +45,6 @@ public sealed class CRadarIntel
 		_radio = state.Defines.Has(CManpower.MilitarySection, BaseRadioStrength)
 			? state.Defines[CManpower.MilitarySection, BaseRadioStrength].Raw
 			: 0;
-		AddRadarProvinces(state);
 		CCountryFacts facts = CCountryFacts.Of(state);
 		foreach (CCountry country in state.Countries)
 		{
@@ -120,21 +119,5 @@ public sealed class CRadarIntel
 		}
 		long technology = Math.Max(controller.Technology[CCommandReach.RadioStrength].Raw * 1000 / 100000, LeastRadio);
 		return radio * technology / 1000 * baseRadio / 1000 + 1000;
-	}
-
-	/// <summary>
-	/// Each country's radar provinces brought up to what it controls: one with a radar level is added, and none ever taken
-	/// off. Ours: found at the rebuild, where the original adds one as it changes hands or its level comes to a whole one.
-	/// </summary>
-	private static void AddRadarProvinces(CGameState state)
-	{
-		foreach (CProvince province in state.Provinces)
-		{
-			if (province.Modifier[CRadarCover.RadarLevel].Raw > 0 && state.Country(province.Controller) is { } controller
-				&& !controller.RadarProvinces.Contains(province.Id))
-			{
-				controller.RadarProvinces.Add(province.Id);
-			}
-		}
 	}
 }

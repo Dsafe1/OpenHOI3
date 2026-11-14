@@ -269,6 +269,8 @@ public static class CTick
 		CManpower.UpdateMost(state);
 		CManpower.Update(state);
 		CIndustrialCapacity.Update(state);
+		// Each country's share of its home ports cut off, after its IC as the original's entry has it (modifiers.md, section 3).
+		Provinces.CBlockade.UpdateLevels(state);
 		CResources.UpdateHomeProduction(state);
 		CProduction.Estimate(state);
 		COfficers.Update(state);
@@ -327,7 +329,8 @@ public static class CTick
 		// a new game's relations the same both ways (docs/mechanics/diplomacy.md, section 2).
 		Step(state, CRelations.RunMonth);
 		Step(state, CManpower.UpdateMost);
-		Step(state, Espionage.CSpyMissions.ResetCaught);          // the spies caught this month, back to nought
+		Step(state, Provinces.CBlockade.UpdateLevels);            // the share of home ports cut off (modifiers.md, section 3)
+		Step(state, Espionage.CSpyMissions.ResetCaught);         // the spies caught this month, back to nought
 		Step(state, CEventPass.RebuildCandidates);
 		// Last, each rebel faction's month: its independence (rebels.md, section 12).
 		Step(state, Revolts.CRebelFactionMonth.RunMonthly);

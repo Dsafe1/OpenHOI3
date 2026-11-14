@@ -25,7 +25,8 @@ public static class CProvinceHands
 	/// each building an enemy takes may lose <c>COMBAT_PUSHBACK_DAMAGE</c> on a draw under
 	/// <c>COMBAT_PUSHBACK_CHANCE_FOR_DAMAGE</c>, the province's production of money and the four resources is
 	/// nought, and where it is the old controller's capital a quarter of the old controller's money and resources
-	/// go to the new one's stockpile.
+	/// go to the new one's stockpile. With <paramref name="consequences"/>, peaceful or not, its radar moves from the old
+	/// controller's list of radar provinces to the new one's. Whatever the flags, its port's blockade is worked out again.
 	/// </summary>
 	public static void SetController(CGameState state, CProvince province, CCountryTag controller, bool consequences = false,
 		bool peaceful = false)
@@ -50,6 +51,12 @@ public static class CProvinceHands
 				Loot(state.Stockpile(fallen), state.Stockpile(taker));
 			}
 		}
+		// With consequences, peaceful or not, its radar goes from the old holder's list to the new one's (intelligence.md,
+		// section 4).
+		if (consequences)
+		{
+			Intelligence.CRadarProvinces.ControllerChanged(state, province, old, controller);
+		}
 		// The new controller's policy towards the old, where it has none yet (occupation.md, section 2).
 		Occupation.COccupationPolicies.Capture(state, controller, old);
 		province.Controller = controller;
@@ -59,6 +66,8 @@ public static class CProvinceHands
 		Revolts.CRebelSiege.ControllerChanged(state, province, old, controller, consequences);
 		// Its underground goes where the new holder owns it or is no enemy of its owner (undergrounds.md, section 7).
 		Revolts.CUndergrounds.ControllerChanged(state, province, controller);
+		// Whether its port is blockaded, worked out now and at no other time, and its owner's share (modifiers.md, section 3).
+		CBlockade.UpdateProvince(state, province);
 		// The old holder's government moves at once where this was its seat.
 		if (consequences && state.Country(old) is { } former)
 		{

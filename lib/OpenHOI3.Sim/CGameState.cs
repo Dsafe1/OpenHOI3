@@ -793,6 +793,13 @@ public sealed class CGameState
 	public long IntelFingerprint { get; set; }
 
 	/// <summary>
+	/// Whether something in the hour has asked for the whole of what countries know to be made again at its end, as the
+	/// original's request of the whole does: a radar province added or taken off, or a province's <c>radar_level</c> moved
+	/// in its rebuild (<c>intelligence.md</c>, section 5). It lasts the hour.
+	/// </summary>
+	public bool IntelWholeAsked { get; set; }
+
+	/// <summary>
 	/// How many times a province has changed owner or controller in this game. Whatever shows who
 	/// holds what watches it to know when to look again. The provinces count it themselves
 	/// (<see cref="CHandChanges"/>), so no writer of an owner or a controller can forget to.

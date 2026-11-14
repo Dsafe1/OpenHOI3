@@ -143,12 +143,13 @@ public class IntelligenceTests
 	}
 
 	[Fact]
-	public void Radar_sees_at_its_near_level_where_a_station_reaches_and_never_forgets_a_station()
+	public void Radar_sees_at_its_near_level_where_a_station_on_its_list_reaches()
 	{
 		CGameState state = ScriptWorld.State();
 		state.Defines.Set("military", CRadarIntel.RadarRange, CFixedPoint.Parse("0.18"));
 		state.Defines.Set("military", CRadarIntel.BaseRadioStrength, CFixedPoint.FromInt(10));
 		state.Province(Posen).Modifier.Add("radar_level", CFixedPoint.One);
+		CRadarProvinces.ProvinceMade(state, state.Province(Posen));
 		CProvinceIntel.Rebuild(state);
 		Assert.Equal(0, Known(state, Wilds, Ger));   // no listening station yet
 
@@ -159,6 +160,66 @@ public class IntelligenceTests
 		Assert.Equal(2, Known(state, Wilds, Ger));
 		Assert.Contains(Posen, C(state, Ger).RadarProvinces);
 		Assert.Equal(1000, CRadarIntel.Visibility(state, state.Province(Wilds), 10000));
+
+		// A station that is not on the list sees nothing, whatever its level.
+		C(state, Ger).RadarProvinces.Clear();
+		CProvinceIntel.Rebuild(state);
+		Assert.Equal(0, Known(state, Wilds, Ger));
+	}
+
+	private static void Radar(CGameState state, int province, string level)
+	{
+		CProvince here = state.Province(province);
+		here.Modifier.Set("radar_level", CFixedPoint.Parse(level));
+		CRadarProvinces.ProvinceMade(state, here);
+	}
+
+	[Fact]
+	public void A_province_s_rebuild_adds_its_radar_from_under_a_level_and_takes_it_off_on_a_fall_from_above_nought()
+	{
+		CGameState state = ScriptWorld.State();
+
+		Radar(state, Posen, "0.5");                      // from nought under a level to above nought: added
+		Assert.Equal(new[] { Posen }, C(state, Ger).RadarProvinces);
+		Assert.True(state.IntelWholeAsked);
+		Radar(state, Posen, "0.7");                      // under a level still: added again, and once only
+		Assert.Equal(new[] { Posen }, C(state, Ger).RadarProvinces);
+		Radar(state, Posen, "1.5");                      // from under a level: added again
+		Radar(state, Posen, "0.5");                      // from above nought to under a level: taken off
+		Assert.Empty(C(state, Ger).RadarProvinces);
+		Radar(state, Posen, "0.7");                      // and back, from under a level
+		Assert.Equal(new[] { Posen }, C(state, Ger).RadarProvinces);
+		Assert.Equal(CFixedPoint.Parse("0.7"), state.Province(Posen).RadarLevelApplied);
+
+		// Unchanged, it asks for nothing.
+		CProvinceIntel.Rebuild(state);
+		Radar(state, Posen, "0.7");
+		Assert.False(state.IntelWholeAsked);
+	}
+
+	[Fact]
+	public void A_province_nobody_owns_tells_no_list()
+	{
+		CGameState state = ScriptWorld.State();
+		Radar(state, Wilds, "2");
+		Assert.All(state.Countries, country => Assert.Empty(country.RadarProvinces));
+		Assert.Equal(CFixedPoint.Zero, state.Province(Wilds).RadarLevelApplied);
+	}
+
+	[Fact]
+	public void A_change_of_hands_with_consequences_moves_the_radar_and_a_plain_one_leaves_it_with_the_old_holder()
+	{
+		CGameState state = ScriptWorld.State();
+		Radar(state, Posen, "1");
+
+		CProvinceHands.SetController(state, state.Province(Posen), Pol);
+		Assert.Equal(new[] { Posen }, C(state, Ger).RadarProvinces);   // a plain change: the old holder goes on seeing
+		Assert.Empty(C(state, Pol).RadarProvinces);
+
+		CProvinceHands.SetController(state, state.Province(Posen), Ger, consequences: true, peaceful: true);
+		CProvinceHands.SetController(state, state.Province(Posen), Pol, consequences: true, peaceful: true);
+		Assert.Empty(C(state, Ger).RadarProvinces);
+		Assert.Equal(new[] { Posen }, C(state, Pol).RadarProvinces);
 	}
 
 	[Fact]

@@ -12,8 +12,8 @@ namespace OpenHOI3.Sim.Modifiers;
 /// <summary>
 /// Rebuilds every province's modifier from what currently applies to it, in the original's order: its buildings,
 /// <c>overseas</c> and <c>blockaded</c>, <c>non_core</c>, the coast, <c>no_adjacent_controlled</c>, the occupation
-/// policy, land or sea, its manpower, its nationalism and what events gave it. See
-/// <c>docs/mechanics/modifiers.md</c>, section 3.
+/// policy, its own port's blockade, land or sea, its manpower, its nationalism, what events gave it and its revolt risk -
+/// telling its controller's list of radar provinces on the way. See <c>docs/mechanics/modifiers.md</c>, section 3.
 ///
 /// The total is cleared and summed again every time, like a country's, and every static modifier added is kept as
 /// one of its sources. When it is made again is the original's: every province each month and as a game is entered,
@@ -148,7 +148,7 @@ public static class CProvinceModifiers
 		if (!province.IsSea && !context.IsJoined(province) && IsOnAnotherContinent(state, province))
 		{
 			Add(province, context.Overseas);
-			if (!HasOpenPort(state, province) && !AreaHasOpenPort(state, province, context.OpenPorts))
+			if (!IsPort(state, province) && !AreaHasOpenPort(state, province, context.OpenPorts))
 			{
 				Add(province, context.Blockaded);
 			}
@@ -172,7 +172,11 @@ public static class CProvinceModifiers
 		{
 			Add(province, policy.Modifier);
 		}
-		// 8. Its own port blockaded: no port is held blockaded here (modifiers.md, section 7).
+		// 8. Its own port blockaded, as its controller was last set - whether or not step 2 added it.
+		if (province.Blockaded)
+		{
+			Add(province, context.Blockaded);
+		}
 		// 9. Land or sea.
 		Add(province, province.IsSea ? context.Sea : context.Land);
 		// 10. Its manpower.
@@ -194,7 +198,8 @@ public static class CProvinceModifiers
 		{
 			Add(province, given.Modifier);
 		}
-		// 13. Radar keeps no list here (modifiers.md, section 7).
+		// 13. Its radar told to its controller's list where its radar_level has moved (intelligence.md, section 4).
+		Intelligence.CRadarProvinces.ProvinceMade(state, province);
 		// 14. The revolt risk shown, from what the province holds so far, times `revolt_risk`, where it is above nought.
 		long shown = Revolts.CRevoltRisk.Shown(state, province);
 		if (shown > 0 && context.RevoltRisk is { } revoltRisk)
@@ -233,7 +238,7 @@ public static class CProvinceModifiers
 			return known;
 		}
 		List<int> area = CSupplyNetworks.AreaAround(state, province.Id);
-		bool open = area.Exists(id => HasOpenPort(state, state.Province(id)));
+		bool open = area.Exists(id => IsPort(state, state.Province(id)) && !state.Province(id).Blockaded);
 		foreach (int id in area)
 		{
 			found[id] = open;
@@ -242,8 +247,11 @@ public static class CProvinceModifiers
 		return open;
 	}
 
-	/// <summary>An owner, a port and a naval base: the province that spares itself <c>blockaded</c>.</summary>
-	private static bool HasOpenPort(CGameState state, CProvince province)
+	/// <summary>
+	/// An owner, a port and a naval base: the province that spares itself <c>blockaded</c> in step 2, blockaded or not, and
+	/// an open port of its area where it is not blockaded.
+	/// </summary>
+	private static bool IsPort(CGameState state, CProvince province)
 	{
 		return province.Owner is not null && province.PortSea != 0
 			&& CMovementRules.BuildingLevel(state, province, CMovementRules.NavalBase) > CFixedPoint.Zero;

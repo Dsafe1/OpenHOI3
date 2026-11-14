@@ -462,4 +462,134 @@ public class CountryModifierTests
 		}
 		Assert.Equal(new[] { "state_type", "armament_type", "naval_type" }, names);
 	}
+
+	// --- the laws' order, a puppet's master's faction, a government in exile (section 4, steps 4, 15 and 17) ---
+
+	/// <summary>A world with the Axis's corner, two law groups in laws.txt's order and the statics the steps ask for.</summary>
+	private static CGameState Steps(params CCountry[] countries)
+	{
+		var all = new List<CProvince> { new(0, "", isSea: false) };
+		for (int index = 0; index < countries.Length; index++)
+		{
+			all.Add(Land(index + 1, countries[index].Tag.Value));
+		}
+		var statics = new[]
+		{
+			Modifier("align_towards_axis", ("align_towards", "20")),
+			Modifier("government_in_exile", ("global_ic", "-0.5")),
+		};
+		return new CGameState(new CDate(1936, 1, 10), all, countries, new[] { Infra, Industry, Ruin, NavalBase },
+			staticModifiers: statics)
+		{
+			IdeologyGroups = new[] { new OpenHOI3.Sim.Diplomacy.CIdeologyGroup("fascism", 0, 0) { Faction = "axis", Influence = "align_towards_axis" } },
+			LawGroups = new[] { new CLawGroup("civil_law", 0), new CLawGroup("economic_law", 1) },
+		};
+	}
+
+	private static List<string> SourceNames(CCountry country)
+	{
+		var names = new List<string>();
+		foreach (CModifierSource source in country.ModifierSources)
+		{
+			names.Add(source.Heading ?? source.Modifier.Name);
+		}
+		return names;
+	}
+
+	[Fact]
+	public void TheLawsComeAmongTheSourcesInTheirGroupsOrderWhateverOrderTheHistoryGaveThem()
+	{
+		CCountry germany = Country("GER", 1);
+		// Germany's history gives its economic law before its civil law; laws.txt has civil_law first.
+		germany.Laws["economic_law"] = new CLaw("economic_law", Modifier("war_economy", ("global_ic", "0.1")));
+		germany.Laws["civil_law"] = new CLaw("civil_law", Modifier("totalitarian_system", ("dissent", "-0.1")));
+		CGameState state = Steps(germany);
+
+		CCountryModifiers.RebuildOne(state, germany);
+
+		Assert.Equal(new[] { "totalitarian_system", "war_economy" }, SourceNames(germany));
+	}
+
+	[Fact]
+	public void APuppetInNoFactionTakesItsMastersFactionsInfluenceModifierAfterItsTriggeredModifiers()
+	{
+		CCountry germany = Country("GER", 1, faction: "axis");
+		CCountry austria = Country("AUS", 2);
+		austria.Overlord = germany.Tag;
+		CGameState state = Steps(germany, austria);
+
+		CCountryModifiers.RebuildOne(state, austria);
+
+		Assert.Equal("align_towards_axis", SourceNames(austria)[^1]);
+		Assert.Equal(CFixedPoint.FromInt(20), austria.Modifier["align_towards"]);
+		Assert.Same(state.FindStaticModifier("align_towards_axis"), CCountryModifiers.SubjectInfluence(state, austria));
+	}
+
+	[Fact]
+	public void APuppetTakesNothingFromItsMasterWhenEitherIsOutOfFactionsOrItHasTheModifierFromAnInfluence()
+	{
+		CCountry germany = Country("GER", 1);
+		CCountry austria = Country("AUS", 2);
+		austria.Overlord = germany.Tag;
+		CGameState state = Steps(germany, austria);
+		Assert.Null(CCountryModifiers.SubjectInfluence(state, austria));          // its master is in no faction
+
+		germany.Faction = "axis";
+		austria.Faction = "axis";
+		Assert.Null(CCountryModifiers.SubjectInfluence(state, austria));          // it is in one itself
+
+		austria.Faction = "";
+		CModifier influence = state.FindStaticModifier("align_towards_axis")!;
+		austria.EventModifiers.Add(CTimedModifier.Given(state, influence, 30));
+		Assert.Null(CCountryModifiers.SubjectInfluence(state, austria));          // an influence has given it already
+		CCountryModifiers.RebuildOne(state, austria);
+		Assert.Equal(CFixedPoint.FromInt(20), austria.Modifier["align_towards"]); // once, not twice
+	}
+
+	[Fact]
+	public void AnOverseasAreaWhosePortsAreAllBlockadedIsBlockadedButThePortSparesItself()
+	{
+		CCountry germany = Country("GER", 1);
+		var tag = new CCountryTag("GER");
+		var port = new CProvince(2, "P2", isSea: false) { Owner = tag, Controller = tag, Continent = "east", PortSea = 4 };
+		port.Cores.Add(tag);
+		port.SetBuildingMaxLevel(Infra, CFixedPoint.FromInt(5));
+		port.SetBuildingLevel(Infra, CFixedPoint.FromInt(5));
+		port.SetBuildingMaxLevel(NavalBase, CFixedPoint.One);
+		port.SetBuildingLevel(NavalBase, CFixedPoint.One);
+		CProvince inland = Land(3, "GER", continent: "east");
+		inland.SetBuildingMaxLevel(Infra, CFixedPoint.FromInt(5));
+		port.Edges = new[]
+		{
+			new CProvinceEdge(3, EProvinceEdgeKind.Plain, 0, CFixedPoint.Zero), new CProvinceEdge(4, EProvinceEdgeKind.Plain, 0, CFixedPoint.Zero),
+		};
+		inland.Edges = new[] { new CProvinceEdge(2, EProvinceEdgeKind.Plain, 0, CFixedPoint.Zero) };
+		var all = new List<CProvince> { new(0, "", isSea: false), Land(1, "GER"), port, inland, Sea(4) };
+		var state = new CGameState(new CDate(1936, 1, 10), all, new[] { germany }, new[] { Infra, Industry, Ruin, NavalBase },
+			staticModifiers: new[] { Modifier("overseas", ("local_manpower_modifier", "-0.75")), Modifier("blockaded", ("local_ic", "-0.5")) });
+
+		CProvinceModifiers.Rebuild(state);
+		Assert.Equal(CFixedPoint.Zero, inland.Modifier["local_ic"]);          // the area has an open port
+
+		port.Blockaded = true;
+		CProvinceModifiers.Rebuild(state);
+		Assert.Equal(CFixedPoint.Parse("-0.5"), inland.Modifier["local_ic"]); // its one port is blockaded
+		// The port spares itself step 2's, and has step 8's for its own blockade.
+		Assert.Equal(CFixedPoint.Parse("-0.5"), port.Modifier["local_ic"]);
+		Assert.Single(port.ModifierSources, source => source.Modifier.Name == "blockaded");
+	}
+
+	[Fact]
+	public void AGovernmentInExileHasItsStaticModifier()
+	{
+		CCountry poland = Country("POL", 1);
+		CGameState state = Steps(poland);
+		CCountryModifiers.RebuildOne(state, poland);
+		Assert.DoesNotContain("government_in_exile", SourceNames(poland));
+
+		poland.InExile = true;
+		CCountryModifiers.RebuildOne(state, poland);
+		Assert.Equal("government_in_exile", SourceNames(poland)[^1]);
+		Assert.Equal(CFixedPoint.Parse("-0.5"), poland.Modifier["global_ic"]);
+	}
 }

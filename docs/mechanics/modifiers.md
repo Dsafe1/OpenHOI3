@@ -148,7 +148,31 @@ unless said; the scaled ones are kept as their scaled copies.
    occupied province's IC, resources, manpower or leadership. Where nobody has set one,
    `no_occupation` is added, which holds nothing.
 8. **`blockaded` again**, where the province's own port is blockaded - whether or not step 2
-   added it.
+   added it, so an overseas port in an area with no open port and blockaded itself has it twice.
+   **When a port is blockaded** (read 2026-11-14, `reversing/findings/FINDINGS-modifiersources.md`,
+   section 2; `confirmed`):
+
+       a port is blockaded where it has an owner, a port and a naval base built above level 0,
+       and the units in its port's sea province - those fighting no battle and not falling
+       back, enemies of its controller (an undeclared war over it counting), each with at
+       least one brigade or ship - hold one brigade or ship between them
+
+   - **It is worked out only as the province's controller is set**, whoever sets it and with or
+     without consequences, after the new controller is written: a fleet sailing in, sitting
+     outside a port or sailing away tells it nothing. So a port that never changes hands is
+     never blockaded, and one taken while the enemy's ships lie off it stays blockaded until it
+     changes hands again - an oversight, kept (`docs/enhanced.md`).
+   - A province without the owner, the port or the naval base is cleared and goes no further;
+     one with them then works out its owner's share (below).
+   - **Nothing saves it**: a loaded game has no port blockaded until a controller is set.
+   - Besides this step and step 2's open port, `is_blockaded` reads it (`triggers.md`), and
+     **a country's share of home ports cut off**, which `blockade = N` tests: of the provinces it
+     owns that are in its acting capital's area or on its continent and have a port and a naval
+     base built above level 0, those blockaded or held by somebody else, as thousandths of them
+     all, truncated - nought with none. Worked out each month after the most manpower, as a game
+     is entered after IC, and for a port's owner whenever that port is worked out.
+   - The country's rebuild also asks it, in its walk of the provinces it controls, at war and of
+     a province it owns in its capital's area - and does nothing with the answer (section 4).
 9. **`land_province`** for land, **`sea_zone`** for sea. Their Finest Hour's
    `land_province` is `attrition = 1`.
 10. **`manpower` times the province's manpower**, where that is above nought: each value
@@ -161,8 +185,24 @@ unless said; the scaled ones are kept as their scaled copies.
     given: one whose time has passed, and whose year is above 1, is dropped; the rest are
     added. Its year is the original's count of years from its epoch, so a negative
     duration, which gives year 1, never passes - the country's rule.
-13. **Radar.** Where the province's `radar_level` has risen from below 1 or fallen below 1
-    since the last time, its controller's list of radar provinces is told.
+13. **Radar.** Nothing is added; the controller's list of radar provinces, which what a country
+    knows sees from (`intelligence.md`, section 4), is told. For a province with an owner whose
+    `radar_level`, as this rebuild made it, is not the level last applied:
+
+        last below 1 and new above 0:   put on its controller's list, unless it is there
+        else last above 0 and new below 1:   taken off its controller's list
+        the new level kept as the last applied, and the whole of what countries know asked for
+        at the hour's end
+
+    So it is not a crossing of 1 either way: a rise from 0.5 to 0.7 adds it again (it is there
+    already), and a fall from 1.5 to 0.5 takes it off, where 0.5 reached from nought would have
+    put it on. **A change of controller made with consequences** moves it too, before the new
+    controller is written: on the new controller's list where its `radar_level` is not nought,
+    off the old one's whatever it is, and that level kept as the last applied. A plain change of
+    controller leaves it on the old holder's list, still seeing for him. The last level applied
+    and the lists are not saved: a loaded game starts every province at nought and its entry's
+    rebuild puts every province with radar on its controller's list (read 2026-11-14,
+    `reversing/findings/FINDINGS-modifiersources.md`, section 3; `confirmed`).
 14. **`revolt_risk` times the province's revolt risk as shown**, in points, where that is
     above nought - asked of the province's figures as the rebuild has them at this step
     (`revolt.md`, section 4). A mod that puts `local_ic = -0.02` in that block has said
@@ -208,14 +248,22 @@ order**; `confirmed` throughout.
    the ministers come among a modifier's sources, which the tooltips list, in that order
    however the government was seated (`reversing/findings/FINDINGS-countrymodifier.md`, the
    record's `CCountry::RebuildStaticModifiers`, step 5).
-4. **Each of its laws.**
+4. **Each of its laws**, **in `common/laws.txt`'s order of law groups**: the original keeps one
+   law to a group, in a vector indexed by the group's place in that file, and walks it - so the
+   laws come among the sources in that order whatever order the history or a save gave them
+   (read 2026-11-14, the record's `CCountry::laws`). Germany's history gives its education law
+   before its economic law; the manpower tooltip lists War Economy first.
 5. **Its government**, which is a modifier too. In Their Finest Hour no government declares
    anything but which ideologies and positions it allows, so this adds nothing there.
 6. **Each strategic resource it has the use of, multiplied by how much of it it has**
    (section 6).
 7. **The whole modifier of every province it controls**, value for value. So anything a
    province's modifier holds reaches its controller's, once for each province. The local
-   kinds come along too; nothing reads them off a country.
+   kinds come along too; nothing reads them off a country. The walk also asks, for a country
+   at war, whether each province is blockaded, owned by it and in its capital's area - and
+   **does nothing with the answer**: it only fetches the capital twice and goes on to the next
+   province. A dead rule, listed in `docs/enhanced.md` (read 2026-11-14,
+   `reversing/findings/FINDINGS-modifiersources.md`, section 1).
 8. **`war` if it is at war with anybody, otherwise `peace`.**
 9. **Espionage**: another country's spies on the "lower national unity" and "raise national
    unity" missions each contribute a static modifier scaled by their level and then by the
@@ -225,15 +273,29 @@ order**; `confirmed` throughout.
     point: `global_ic = -0.01` there is 1% of IC for each point of dissent.
 12. **`neutrality`, multiplied by its effective neutrality over 100** - its neutrality less
     the threat it feels from the country that threatens it most, never below nothing.
+    - *Between this and the next*, the original adds a modifier the country holds of its own,
+      which **nothing fills**: every reference to it in the image is its construction, its
+      destruction and this addition. It adds nothing, and is not built (`likely`; a scan of the
+      image's references to it and to its values, `FINDINGS-countrymodifier.md` and
+      `FINDINGS-modifiersources.md`, section 1; not watched in a running game).
 13. **Its event modifiers**: what an event or a decision gave it, each with a date it lasts
     until. One whose date has passed is dropped here; one dated in year 1 never ends.
 14. **Its triggered modifiers** (section 5).
-15. For a subject that is in no faction while its overlord is: the overlord's faction's
-    `align_towards_...` modifier.
+15. **A puppet's master's faction's influence modifier**: for a country with an overlord, in
+    no faction itself, whose overlord is in one - the static modifier its faction's group
+    names as its `influence` in `common/ideologies.txt` (`align_towards_axis`,
+    `align_towards_allies`, `align_towards_comintern`: `align_towards = 20` each in Their
+    Finest Hour, mod-able) - **unless that very modifier is among its event modifiers**, as an
+    influence or an alignment puts it there (`agreements.md`). So a puppet drifts towards its
+    master's faction as an influenced country does (`alignment.md`), and an influence on it
+    adds nothing more. Read 2026-11-14 (`reversing/findings/FINDINGS-modifiersources.md`,
+    section 1; `confirmed`). *Ours*: where the file has no modifier of the name, nothing is
+    added; the original adds through the missing modifier and faults.
 16. **A difficulty block**: `very_easy_player`, `easy_player`, nothing, `hard_player` or
     `very_hard_player` for a country somebody plays, and the four `..._ai` blocks for one
     nobody does. Normal adds nothing either way.
-17. `government_in_exile`, for one.
+17. `government_in_exile`, for a government in exile (`war.md`, section 14). Empty in Their
+    Finest Hour.
 18. `fractured_government`, where a party of another ideology group than the ruling party's holds a cabinet seat
     (`politics.md`, section 4).
 
@@ -373,15 +435,17 @@ the first day is run, which is why a new game's starting manpower leaves black s
 - **A modifier is a set of named values**, holding only the kinds that are not zero. The
   kinds are the closed list of section 2 since 2026-11-14, and a misspelt one is reported and
   dropped - a building's too, which the original drops in silence.
-- **A country's modifier is steps 1 to 9, 11 to 14 and 18 of section 4**: `base_values`,
+- **A country's modifier is every step of section 4** since 2026-11-14: `base_values`,
   its faction's (since 2026-10-13, with `factions.md`), its ministers, its laws, its government
   and `fractured_government` (since 2026-10-14, with `politics.md`), its strategic resources, its
   provinces' modifiers, `war` or `peace`, the spies' two unity modifiers (since 2026-10-14, with
   `espionage.md`), `dissent`, `neutrality` by its effective neutrality (since 2026-10-12, with
   `diplomacy.md`), its event modifiers and its triggered modifiers (since 2026-10-14, section 5).
-  War exhaustion since 2026-11-07 (`warexhaustion.md`). The rest wait for what they need: subjects and governments in
-  exile. The
-  difficulty's block is built since 2026-11-06 (`frontend.md`, section 4.3).
+  War exhaustion since 2026-11-07 (`warexhaustion.md`), the difficulty's block since 2026-11-06
+  (`frontend.md`, section 4.3), and a puppet's master's faction's influence and a government in
+  exile's since 2026-11-14, with the laws walked in their groups' order, where they had been
+  walked in the order they were given. The modifier nothing fills, between steps 12 and 13, is
+  not built: it would add nothing.
 - **A triggered modifier's conditions answer as every condition does** (`triggers.md`): one
   about what the simulation does not hold answers false. In Their Finest Hour's file that is
   `lost_national` alone, so `desperate_defence` stays off until it is built.
@@ -407,14 +471,22 @@ the first day is run, which is why a new game's starting manpower leaves black s
   cheap, and doing it on a schedule cannot be forgotten at a call site. The cost is that a
   change takes effect at midnight rather than at once; when something needs it sooner,
   that thing's command rebuilds it.
-- **A province's modifier is every step of section 3 but radar's** since 2026-10-14
-  (`occupation.md`), revolt risk's step 14 since 2026-10-15 (`revolt.md`, section 4): radar
-  keeps no list here - what reads radar reads the provinces' own `radar_level` (`bombing.md`,
-  section 9; `intelligence.md`). **No port is held blockaded**, as the flag
-  `is_blockaded` reads is not built: step 8 never adds `blockaded`, and in step 2 a port is
-  open where it has an owner and a naval base. A province in no area counts as having no open
-  port (*ours*: what the original does with no area was not read). `blockaded` is empty in
-  Their Finest Hour.
+- **A province's modifier is every step of section 3** since 2026-11-14: since 2026-10-14
+  (`occupation.md`), revolt risk's step 14 since 2026-10-15 (`revolt.md`, section 4), and radar's
+  list and the blockaded port since 2026-11-14 (`CRadarProvinces`, `CBlockade`). Until then a
+  country's radar provinces were every province with radar it controlled at the day's rebuild of
+  what it knows, never taken off; and no port was blockaded. A province in no area counts as
+  having no open port (*ours*: what the original does with no area was not read). `blockaded`
+  is empty in Their Finest Hour and BlackICE, so the blockade shows only in `is_blockaded`,
+  `blockade` and a mod's own block.
+- *Ours, inferred*: a unit fighting no battle is one with no battle of its own - a bombing is
+  kept apart here (`bombing.md`) and does not count; and the units in the port's sea province are
+  the hour's table of who stands where (`CUnitPositions`), whatever it holds of passengers and
+  aircraft passing over. Neither was read against the original's list of a province's units;
+  an enemy fleet satisfies both, which is the case that matters.
+- *Ours*: the share's "in the acting capital's area" is the capital's supply area, as step 2's
+  area is; where the capital is in no area nothing counts as in it, where the original would
+  compare two empty areas as one.
 - **A province's modifier is made again on the original's schedule** (section 3) since
   2026-10-15, on the maintainer's word; until then every province was made again once a day,
   a country's reason carried over to provinces and never decided for them. What is ours in it:
@@ -486,4 +558,8 @@ province's own sources with the name, and what those are was not read.
   as a modifier (section 2); what more the faction's loader does with it was not read;
 - which script key sets the value added to a province's resource efficiency;
 - what marks the edge of an **area**: whether it is land a country owns or controls, and
-  whether a strait joins two.
+  whether a strait joins two;
+- whether the country's modifier that nothing fills (section 4, after step 12) is ever filled
+  in a running game - a static scan says not, and no game has been watched;
+- whether the original's list of a sea province's units, which a blockade counts, holds a
+  fleet's passengers and aircraft passing over (section 7).

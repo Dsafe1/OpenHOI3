@@ -64,13 +64,31 @@ public class ConditionTests
 		var report = new CScriptReport();
 
 		Assert.False(Holds(state, "lost_ic = 0", CEventScope.Start(Ger), report));
-		Assert.False(Holds(state, "blockade = 1", CEventScope.Start(Ger), report));
+		Assert.False(Holds(state, "total_sea_battles = 1", CEventScope.Start(Ger), report));
 		Assert.True(Holds(state, "not = { lost_ic = 0 }", CEventScope.Start(Ger), report));
 		Assert.False(Holds(state, "is_attacker = yes", CEventScope.Start(Ger), report));
 
 		Assert.Equal((EScriptGap.Unbuilt, 2), report.Gaps["lost_ic"]);
-		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["blockade"].Why);
+		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["total_sea_battles"].Why);
 		Assert.Equal(EScriptGap.BattleOnly, report.Gaps["is_attacker"].Why);
+	}
+
+	[Fact]
+	public void A_blockade_is_the_share_of_home_ports_cut_off_and_a_port_is_blockaded_as_last_worked_out()
+	{
+		CGameState state = State();
+		state.Country(Ger)!.Blockade = CFixedPoint.Parse("0.5");
+
+		Assert.True(Holds(state, "blockade = 0.5", CEventScope.Start(Ger)));
+		Assert.False(Holds(state, "blockade = 0.6", CEventScope.Start(Ger)));
+		Assert.True(Holds(state, "blockade = 0", CEventScope.Start(Pol)));
+
+		var scope = CEventScope.Start(Ger, 1, null);
+		Assert.True(Holds(state, "is_blockaded = no", scope));
+		state.Province(1).Blockaded = true;
+		Assert.True(Holds(state, "is_blockaded = yes", scope));
+		Assert.False(Holds(state, "is_blockaded = no", scope));
+		Assert.False(Holds(state, "is_blockaded = no", CEventScope.Start(Ger)));   // no province: false either way
 	}
 
 	[Fact]

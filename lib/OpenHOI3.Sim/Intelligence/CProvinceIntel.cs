@@ -113,12 +113,13 @@ public static class CProvinceIntel
 			}
 		}
 		state.IntelRequests.Clear();
+		state.IntelWholeAsked = false;
 		state.IntelFingerprint = Fingerprint(state);
 	}
 
 	/// <summary>
 	/// The hour's end, section 5: the provinces units have left or entered asked for, and raised - or, where the hour
-	/// changed who holds a province or a pact, the whole rebuilt.
+	/// changed who holds a province or a pact, or asked for the whole by radar, the whole rebuilt.
 	/// </summary>
 	public static void RaiseHourly(CGameState state)
 	{
@@ -135,7 +136,7 @@ public static class CProvinceIntel
 				unit.IntelSeenAt = unit.Location;
 			}
 		}
-		if (Fingerprint(state) != state.IntelFingerprint)
+		if (state.IntelWholeAsked || Fingerprint(state) != state.IntelFingerprint)
 		{
 			Rebuild(state);
 			return;

@@ -572,10 +572,16 @@ public sealed class CCountry
 	public List<Construction.CBuildingDeployment> BuildingDeployments { get; } = new();
 
 	/// <summary>
-	/// The provinces its radar sees from, by id: each added as it comes to control one with radar, and none ever taken
-	/// off (<c>docs/mechanics/intelligence.md</c>, section 4).
+	/// The provinces its radar sees from, by id, in the order they were added: kept by a province's rebuild and a change
+	/// of controller, and not saved (<c>docs/mechanics/intelligence.md</c>, section 4; <see cref="Intelligence.CRadarProvinces"/>).
 	/// </summary>
 	public List<int> RadarProvinces { get; } = new();
+
+	/// <summary>
+	/// The share of its home ports that are cut off, in thousandths, which <c>blockade</c> tests: worked out each month,
+	/// on entering a game and when one of its ports' controller is set, and not saved (<see cref="Provinces.CBlockade"/>).
+	/// </summary>
+	public CFixedPoint Blockade { get; set; }
 
 	/// <summary>The IC a full day's work on everything in its queue takes: the production share's need.</summary>
 	public CFixedPoint ProductionCost { get; set; }

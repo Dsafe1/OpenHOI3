@@ -2688,14 +2688,16 @@ None of these blocks the list above.
   original logs it, or drops it in silence (`docs/mechanics/modifiers.md`, section 2). The base game, Their Finest
   Hour and BlackICE use none. On the way, a mission's efficiency modifier is read by the mission's own key, as files
   write it; it had been read as `<mission>_eff`, which no file can set (`navalmissions.md`, section 10).
-- **A country's modifier is not yet all of the original's eighteen sources**: `base_values`, its
-  faction's, its ministers, its laws, its government, its strategic resources, its provinces' modifiers,
-  `war` or `peace`, the spies' two unity modifiers, `dissent`, neutrality, its event modifiers, its triggered
-  modifiers, the difficulty's, `fractured_government` and war exhaustion are in. A subject's and a government in
-  exile's are not, though both are built since (`war.md`, sections 13 and 14). `docs/mechanics/modifiers.md`, section 4.
-- **A province's modifier is every step of the original's but radar's list** (2026-10-15,
-  `docs/mechanics/modifiers.md`, sections 3 and 7), and no port is held blockaded, the flag `is_blockaded` reads not
-  being built.
+- ~~**A country's modifier is not yet all of the original's eighteen sources.**~~ Since 2026-11-14 it is every one, a
+  puppet's master's faction's influence and a government in exile's the last, and its laws come among the sources in
+  `laws.txt`'s order of groups as the original's, where they had come in the order the history gave them - so the
+  top bar's manpower tooltip lists War Economy before Massive Education Investment. The one step not built is a
+  modifier of the country's own that nothing in the original fills (`docs/mechanics/modifiers.md`, sections 4 and 7).
+- ~~**A province's modifier is every step of the original's but radar's list, and no port is held blockaded.**~~ Since
+  2026-11-14 it is every step: radar's list kept as the original keeps it, by a province's rebuild and a change of hands
+  with consequences, and taken off as well as put on (`intelligence.md`, section 4, corrected); and a port blockaded as
+  its controller is set, with `is_blockaded`, `blockade` and a country's share of home ports cut off
+  (`docs/mechanics/modifiers.md`, section 3, steps 8 and 13). `blockaded` is empty in Their Finest Hour and BlackICE.
 - **Of the rebels, what is left out** (2026-10-15, `rebels.md`, *Ours*): a resilient
   faction's weighing of the odds, which asks a unit's power, no type of either install being resilient; what the
   original does with a rebel army of under 0.1 strength, a routine not read; a brigade's home province; and the

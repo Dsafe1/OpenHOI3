@@ -79,6 +79,10 @@ public static class CCountryConditions
 			case "dissent":
 				answer = (country?.Dissent ?? CFixedPoint.Zero) >= value.Amount;
 				return true;
+			case "blockade":
+				// The share of its home ports cut off, as last worked out (modifiers.md, section 3).
+				answer = (country?.Blockade ?? CFixedPoint.Zero) >= value.Amount;
+				return true;
 			case "war_exhaustion":
 				answer = (country?.WarExhaustion ?? CFixedPoint.Zero) >= value.Amount;
 				return true;

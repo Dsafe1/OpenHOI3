@@ -13,7 +13,8 @@ namespace OpenHOI3.Sim.Modifiers;
 /// government, each of whom counts as the minister type he has for the seat he holds,
 /// its laws, the strategic resources it has the use of, the modifier of every province
 /// it controls, the modifier for being at war or at peace, the one for its dissent, and the
-/// rest of section 4 that is built - its event modifiers and its triggered modifiers among them.
+/// rest of section 4 - its event modifiers, its triggered modifiers, a puppet's master's faction's influence and a
+/// government in exile's among them.
 /// See <c>docs/mechanics/modifiers.md</c>, sections 4, 5 and 7.
 ///
 /// The total is cleared and summed again every time. Nothing is ever added to it and
@@ -26,6 +27,7 @@ public static class CCountryModifiers
 	public const string Peace = "peace";
 	public const string Dissent = "dissent";
 	public const string Neutrality = "neutrality";
+	public const string GovernmentInExile = "government_in_exile";
 
 	public static void Rebuild(CGameState state)
 	{
@@ -62,7 +64,8 @@ public static class CCountryModifiers
 		CModifier? war = state.FindStaticModifier(War);
 		CModifier? peace = state.FindStaticModifier(Peace);
 		CModifier? dissent = state.FindStaticModifier(Dissent);
-		Rebuild(country, baseValues, Diplomacy.CAlignment.FactionGroup(state, country)?.FactionModifier, state.GovernmentPositions);
+		Rebuild(country, baseValues, Diplomacy.CAlignment.FactionGroup(state, country)?.FactionModifier, state.GovernmentPositions,
+			state.LawGroups);
 		// Its government, after its laws (step 5).
 		if (state.GovernmentOf(country) is { } government)
 		{
@@ -134,11 +137,24 @@ public static class CCountryModifiers
 			AddSource(country, triggered.Modifier);
 		}
 
+		// A puppet in no faction whose master is in one: that faction's influence modifier, unless an influence or an
+		// alignment has given it already (step 15).
+		if (SubjectInfluence(state, country) is { } influence)
+		{
+			AddSource(country, influence);
+		}
+
 		// The difficulty's block - a played country's level's _player one, any other's _ai one, none on normal - before
 		// the government in exile and a fractured government, as the original's step 20 (frontend.md, section 4).
 		if (Settings.CDifficulty.BlockName(state, country) is { } block && state.FindStaticModifier(block) is { } difficulty)
 		{
 			AddSource(country, difficulty);
+		}
+
+		// A government in exile (step 17; war.md, section 14).
+		if (country.InExile && state.FindStaticModifier(GovernmentInExile) is { } exile)
+		{
+			AddSource(country, exile);
 		}
 
 		// A fractured government, where a party of another group than the ruling party's holds a seat (step 18;
@@ -149,6 +165,30 @@ public static class CCountryModifiers
 		}
 
 		RebuildTechnology(state, country);
+	}
+
+	/// <summary>
+	/// What a puppet takes from its master's faction (<c>modifiers.md</c>, section 4, step 15): where it is nobody's
+	/// faction member and its master is in a faction, the static modifier the faction's group names for its influence -
+	/// <c>align_towards_axis</c> and its like - unless the very modifier is among its event modifiers, as an influence or an
+	/// alignment gives it. Null otherwise, and where the file has no modifier of that name, where the original faults.
+	/// </summary>
+	public static CModifier? SubjectInfluence(CGameState state, CCountry country)
+	{
+		if (state.Country(country.Overlord) is not { } overlord || Diplomacy.CAlignment.FactionGroup(state, country) is not null
+			|| Diplomacy.CAlignment.FactionGroup(state, overlord) is not { } group || group.Influence.Length == 0
+			|| state.FindStaticModifier(group.Influence) is not { } modifier)
+		{
+			return null;
+		}
+		foreach (CTimedModifier given in country.EventModifiers)
+		{
+			if (ReferenceEquals(given.Modifier, modifier))
+			{
+				return null;
+			}
+		}
+		return modifier;
 	}
 
 	/// <summary>The provinces each country controls that have a modifier at all, by tag, in their order.</summary>
@@ -222,8 +262,13 @@ public static class CCountryModifiers
 	/// in, so that the ministers come among the modifier's sources in the same order whether the government was given
 	/// by the history or by a save (<c>modifiers.md</c>, section 4). Without it, the government's own order.
 	/// </param>
+	/// <param name="lawGroups">
+	/// The law groups in <c>laws.txt</c>'s order, which the original keeps a country's laws in, one to a group - so its
+	/// laws come among the sources in that order and not in the order its history or a save gave them. Without it, the
+	/// order they were given.
+	/// </param>
 	public static void Rebuild(CCountry country, CModifier? baseValues = null, CModifier? faction = null,
-		IReadOnlyList<Politics.CGovernmentPosition>? posts = null)
+		IReadOnlyList<Politics.CGovernmentPosition>? posts = null, IReadOnlyList<CLawGroup>? lawGroups = null)
 	{
 		country.Modifier.Clear();
 		country.ModifierSources.Clear();
@@ -257,9 +302,22 @@ public static class CCountryModifiers
 				}
 			}
 		}
-		foreach (CLaw law in country.Laws.Values)
+		if (lawGroups is { Count: > 0 })
 		{
-			AddSource(country, law.Modifier);
+			foreach (CLawGroup group in lawGroups)
+			{
+				if (country.Laws.TryGetValue(group.Name, out CLaw? law))
+				{
+					AddSource(country, law.Modifier);
+				}
+			}
+		}
+		else
+		{
+			foreach (CLaw law in country.Laws.Values)
+			{
+				AddSource(country, law.Modifier);
+			}
 		}
 	}
 

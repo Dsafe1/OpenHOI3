@@ -109,9 +109,20 @@ controller's `radio_strength` technology `x 1000 / 100000`, never below 100. No 
 gives `radio_strength`, so **ground with troops on it is seen from twice as far**: a level-1 station sees 90 km of it
 and 45 km of empty ground.
 
-**A country's radar provinces** are a list it adds to and never takes from: a province is added where the country
-comes to control it while it has a `radar_level`, and where it controls it as its `radar_level` comes to a whole
-level. One it loses stays on its list and goes on seeing for it.
+**A country's radar provinces** are a list kept by two things (`modifiers.md`, section 3, step 13; read whole
+2026-11-14, `reversing/findings/FINDINGS-modifiersources.md`, section 3, which corrects this section):
+
+- **a province's rebuild**, for a province with an owner whose `radar_level` is not the level last applied: put on
+  its controller's list where the last was below 1 and the new is above 0, else taken off where the last was above 0
+  and the new is below 1; the new level then kept as the last applied;
+- **a change of controller made with consequences**: put on the new controller's list where its `radar_level` is not
+  nought, taken off the old one's whatever it is, the level kept as the last applied.
+
+A province is on a list once. **A plain change of controller moves nothing**, so land handed back by the day's return
+or taken by an effect goes on seeing for its old holder until its level next moves; and a radar bombed from 1.5 to
+0.5 comes off the list while one built up from nought to 0.5 is on it. Neither the lists nor the levels applied are
+saved: a loaded game puts every owned province with radar on its controller's list as it is entered. This section said
+until 2026-11-14 that a province was never taken off; the original takes it off as above.
 
 ## 5. The hour's raise
 
@@ -128,7 +139,8 @@ lowered - as the day does it, without the radar:
 
 **What asks for a province**: a unit leaving it or entering it, and `local_intel_boost` (section 6). **What asks for
 the whole rebuild instead**, that hour: a province changing owner or controller, an alliance made or ended, a faction
-joined or left, military access, a NAP, an expeditionary force, a radar province added. Every request lasts the hour.
+joined or left, military access, a NAP, an expeditionary force, a radar province added or taken off, and a
+province's rebuild that finds its `radar_level` moved. Every request lasts the hour.
 
 So **a fleet that has sailed into a sea province knows it at 2 by the end of the hour**, and land at 9 - and a fleet
 that sails into a sea province at war knows nothing of the coast beside it at the day's turn, where the hour had given
@@ -152,7 +164,8 @@ The original's, kept, none put to the maintainer:
 - a country's own units on its own ground give it nothing beyond the controller's 3 on the land beside;
 - the hour gives a fleet at sea 2 to 4 on the coast beside it, which the day's rebuild takes away;
 - the hour's step from decryption is unscaled, at most 4, where the day's goes up to 9;
-- a radar province lost is never taken off the list;
+- a radar province lost by a plain change of controller stays on the old holder's list, and one whose level falls
+  from above a whole level to below it comes off while one that rises to the same level from nought is on;
 - the AI's uncertainty floor is 0.2 and the screen's 0.1;
 - `peace_offmap_intel` and `offmap_political_intel` do nothing.
 
@@ -162,8 +175,10 @@ The original's, kept, none put to the maintainer:
   last one, and what asks for the whole rebuild from the count of provinces that changed hands and the pacts as they
   stand against the last hour's - where the original files each request where it happens. Every raise is a "9" or an
   "at least", so the order they come in changes nothing.
-- **The original also asks for the whole rebuild from a province's modifier being made again**; when it does that
-  was not read, and it is not done here.
+- **A request for the whole from radar** - a radar province added or taken off, a province's `radar_level` found
+  moved in its rebuild - is a flag the hour's end reads (`CGameState.IntelWholeAsked`), cleared by every whole rebuild;
+  the original's request is a mark at the head of the hour's list, freed at the hour's end. Since 2026-11-14; until
+  then it was not done.
 - **The original's map figure for the screen's country and its friends** (`stack_intel`), which only draws counters,
   is not kept: nothing draws a fog of war yet.
 

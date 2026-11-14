@@ -274,7 +274,10 @@ impacts answer since 2026-10-14: `politics.md`, section 8. `spies` and `spy_miss
 | the AI's missions | `active_mission`, `last_mission`, `is_mission_country`, `is_mission_province` |
 | a country's war record | `lost_IC`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
 | the last battles | `last_battle_winner_losses` and the five others |
-| blockades | `blockade`, `is_blockaded` |
+
+**`is_blockaded` and `blockade`** answer since 2026-11-14: the scope's province's port blockaded as its controller was
+last set, compared with the value and false with no province; and the country's share of its home ports cut off, at
+least the figure (`modifiers.md`, section 3, step 8).
 
 **`out_of_supply_days`** answers since 2026-11-14: strictly more days out of supply than its figure, of the scope's
 province, false with none (`supply.md`, section 18).

@@ -709,5 +709,7 @@ weather and the last convoy attack (`savegame.md`).
   original does.
 - **A second pool of the original's** that the pass and the unit's draw both add to, and
   nothing read explained.
-- **A second flag on a port** that one of the original's port tests skips a province for; it
-  is behind `blockaded` (`modifiers.md`) and not behind anything here.
+- ~~**A second flag on a port** that one of the original's port tests skips a province for.~~
+  Read on 2026-11-14: it is the port's blockade, and the one test that skips a port for it is
+  the open port of the `blockaded` modifier's step 2 (`modifiers.md`, section 3) - nothing in
+  supply.
