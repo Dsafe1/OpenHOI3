@@ -34,6 +34,32 @@ public sealed class CAiStrategy
 
 	public CStrategyList<CCountryTag> Vassal { get; } = new();
 
+	/// <summary>Whose land it wants to march through, by weight: kept as a save holds it, made by nothing here yet.</summary>
+	public CStrategyList<CCountryTag> MilitaryAccess { get; } = new();
+
+	/// <summary>
+	/// The original's <c>consolidate</c> and <c>static</c>, which scripts set: kept as a save holds them and acted on by
+	/// nothing here yet (<c>docs/mechanics/aistrategy.md</c>, section 12).
+	/// </summary>
+	public bool Consolidate { get; set; }
+
+	public bool IsStatic { get; set; }
+
+	/// <summary>
+	/// The production shares the original's AI works out - its land, air and naval shares, its armour bias and the most
+	/// brigades it means to have: kept as a save holds them, worked out by nothing here yet
+	/// (<c>reversing/findings/FINDINGS-aistrategy.md</c>, section C).
+	/// </summary>
+	public int MaxSubunits { get; set; }
+
+	public CFixedPoint LandShare { get; set; }
+
+	public CFixedPoint AirShare { get; set; }
+
+	public CFixedPoint NavalShare { get; set; }
+
+	public CFixedPoint ArmorBias { get; set; }
+
 	public bool IsMilitarist => Personality == EAiPersonality.Military;
 
 	/// <summary>
@@ -56,5 +82,6 @@ public sealed class CAiStrategy
 		Protect.Clear();
 		Rival.Clear();
 		Vassal.Clear();
+		MilitaryAccess.Clear();
 	}
 }

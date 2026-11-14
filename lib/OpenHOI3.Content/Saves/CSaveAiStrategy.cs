@@ -25,18 +25,20 @@ public static class CSaveAiStrategy
 
 	private static readonly string[] Personalities = { "balanced", "military", "capital", "diplomacy", "balanced" };
 
-	/// <summary>The keys an <c>ai</c> block has that nothing here holds, which a load passes over without a report.</summary>
-	private static readonly HashSet<string> NotHeld = new(StringComparer.Ordinal)
+	/// <summary>The scalars every strategy block holds, which a strategy nothing gave holds at nought or no.</summary>
+	private static readonly string[] Scalars =
 	{
-		"consolidate", "static", "max_subunits", "land_perc", "air_perc", "naval_perc", "armor_bias", "military_access",
+		"consolidate", "static", "max_subunits", "land_perc", "air_perc", "naval_perc", "armor_bias",
 	};
 
 	public static void Read(CGameState state, CCountry country, ClausewitzNode node, CSaveIds ids, CSaveReport report)
 	{
-		// The two strategies scripts give are not built: one that says anything is reported.
+		// The two strategies scripts give are not built: one that says anything - made, a list, or a scalar not at its
+		// nought - is reported.
 		foreach (string key in new[] { "ai_hard_strategy", "ai_event_strategy" })
 		{
-			if (node.Get(key) is { } given && (given.GetBool("initialized") || given.Children.Any(child => child.IsBlock)))
+			if (node.Get(key) is { } given && (given.GetBool("initialized") || given.Children.Any(child => child.IsBlock)
+				|| Scalars.Any(scalar => given.Get(scalar)?.Value is { } value && value != "no" && CSaveValues.Fixed(value).Raw != 0)))
 			{
 				report.Unread("country", key);
 			}
@@ -52,6 +54,13 @@ public static class CSaveAiStrategy
 		strategy.IsMade = ai.GetBool("initialized");
 		int personality = Array.IndexOf(Personalities, ai.GetString("personality"), 1);
 		strategy.Personality = personality > 0 ? (EAiPersonality)personality : EAiPersonality.None;
+		strategy.Consolidate = ai.GetBool("consolidate");
+		strategy.IsStatic = ai.GetBool("static");
+		strategy.MaxSubunits = (int)CSaveValues.Whole(ai, "max_subunits");
+		strategy.LandShare = CSaveValues.Fixed(ai, "land_perc");
+		strategy.AirShare = CSaveValues.Fixed(ai, "air_perc");
+		strategy.NavalShare = CSaveValues.Fixed(ai, "naval_perc");
+		strategy.ArmorBias = CSaveValues.Fixed(ai, "armor_bias");
 		foreach (ClausewitzNode entry in ai.Children)
 		{
 			switch (entry.Key)
@@ -80,6 +89,9 @@ public static class CSaveAiStrategy
 				case "vassal":
 					AddCountry(state, strategy.Vassal, entry, report);
 					break;
+				case "military_access":
+					AddCountry(state, strategy.MilitaryAccess, entry, report);
+					break;
 				case "area_theatre" when entry.IsBlock:
 					strategy.Theatres.Add(ReadTheatre(state, country, entry, ids));
 					break;
@@ -87,7 +99,7 @@ public static class CSaveAiStrategy
 				case "personality":
 					break;
 				default:
-					if (entry.Key is { } key && !NotHeld.Contains(key))
+					if (entry.Key is { } key && Array.IndexOf(Scalars, key) < 0)
 					{
 						report.Unread("ai", key);
 					}
@@ -155,7 +167,8 @@ public static class CSaveAiStrategy
 		CAiStrategy strategy = country.Strategy;
 		writer.Begin("ai");
 		writer.Bool("initialized", strategy.IsMade);
-		writer.Word("personality", Personalities[(int)strategy.Personality]);
+		WriteScalars(writer, strategy.Consolidate, strategy.IsStatic, Personalities[(int)strategy.Personality], strategy.MaxSubunits,
+			strategy.LandShare, strategy.AirShare, strategy.NavalShare, strategy.ArmorBias);
 		WriteList(writer, "conquer_prov", strategy.ConquerProvinces, id => id.ToString(System.Globalization.CultureInfo.InvariantCulture));
 		WriteList(writer, "defend_prov", strategy.DefendProvinces, id => id.ToString(System.Globalization.CultureInfo.InvariantCulture));
 		WriteList(writer, "threat", strategy.Threat, Quoted);
@@ -164,6 +177,7 @@ public static class CSaveAiStrategy
 		WriteList(writer, "protect", strategy.Protect, Quoted);
 		WriteList(writer, "rival", strategy.Rival, Quoted);
 		WriteList(writer, "vassal", strategy.Vassal, Quoted);
+		WriteList(writer, "military_access", strategy.MilitaryAccess, Quoted);
 		foreach (CTheatre theatre in strategy.Theatres)
 		{
 			WriteTheatre(writer, state, theatre);
@@ -173,13 +187,27 @@ public static class CSaveAiStrategy
 
 	private static string Quoted(CCountryTag tag) => "\"" + tag.Value + "\"";
 
-	/// <summary>A strategy nothing gave: never made, balanced, no list.</summary>
+	/// <summary>A strategy nothing gave: never made, balanced, every scalar at nought or no, no list.</summary>
 	private static void WriteEmpty(CSaveTextWriter writer, string key)
 	{
 		writer.Begin(key);
 		writer.Bool("initialized", false);
-		writer.Word("personality", Personalities[0]);
+		WriteScalars(writer, false, false, Personalities[0], 0, CFixedPoint.Zero, CFixedPoint.Zero, CFixedPoint.Zero, CFixedPoint.Zero);
 		writer.End();
+	}
+
+	/// <summary>What follows <c>initialized</c> in every strategy block, in the original's order, the personality among it.</summary>
+	private static void WriteScalars(CSaveTextWriter writer, bool consolidate, bool isStatic, string personality, int maxSubunits,
+		CFixedPoint land, CFixedPoint air, CFixedPoint naval, CFixedPoint armor)
+	{
+		writer.Bool("consolidate", consolidate);
+		writer.Bool("static", isStatic);
+		writer.Word("personality", personality);
+		writer.Int("max_subunits", maxSubunits);
+		writer.Fixed("land_perc", land);
+		writer.Fixed("air_perc", air);
+		writer.Fixed("naval_perc", naval);
+		writer.Fixed("armor_bias", armor);
 	}
 
 	private static void WriteList<TKey>(CSaveTextWriter writer, string key, CStrategyList<TKey> list, Func<TKey, string> text)

@@ -25,6 +25,7 @@ public static class CTradeActionClass
 				CLuaTradeAction action = Of(call);
 				CTradeRoute route = call.Object<CTradeRoute>(2, RouteName);
 				action.Route = new CTradeRoute(route.From, route.To, route.Terms, action.Date);
+				action.RouteStart = route.Start;
 				return 0;
 			})
 			.Method("SetTrading", call =>

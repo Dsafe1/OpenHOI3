@@ -2125,7 +2125,12 @@ None of these blocks the list above.
     of units falling back is not held - the original's is filled by nothing but a load, so it is
     always empty (`FINDINGS-savedbattle.md`, A.11) - and the two
     conditions that count sunk ships stay unanswered, their bodies unread (section 7).
-    `OpenHOI3.SaveCheck load` lists every key left. Which hour first sees the officers
+    `OpenHOI3.SaveCheck load` lists every key left - since the sweep of 2026-11-14 (section 19),
+    which made a pair's dates and debt, the offers waiting, the casus belli, a province's
+    underground and last convoy attack, the AI strategy's scalars and the null technology's level
+    read and written both ways, only keys of systems not built: a province's `capital`, `history`
+    and `out_of_supply_days`, a brigade's `home` and `builder`, the ledger's graphs and a few
+    more, each of which the original reads. Which hour first sees the officers
     a day adds is not settled; and the first midnight after a load drops two supply convoys the
     original keeps;
   - **whose officer ratio holds a lent unit's organisation is not settled** (`savegame.md`, *Not

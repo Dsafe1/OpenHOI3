@@ -73,7 +73,7 @@ public sealed partial class CTradeCancelDialog : Control
 		_simulation.Post(new COfferCommand(new COffer(EOfferKind.Trade, _player, CTradeListText.Partner(route, _player),
 			EOfferStage.Proposed, false, _simulation.State.TotalHours)
 		{
-			Deal = new CTradeDeal(route.From, route.To, route.Terms),
+			Deal = new CTradeDeal(route.From, route.To, route.Terms) { Start = route.Start },
 		}));
 		Close();
 	}

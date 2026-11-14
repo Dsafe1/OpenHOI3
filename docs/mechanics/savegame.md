@@ -599,13 +599,15 @@ Both ways (`CSaveAiStrategy`), after the templates [exe] (`FINDINGS-savegame.md`
 `reversing/findings/FINDINGS-aistrategy.md`, A and B; `reversing/findings/FINDINGS-theatres.md`):
 
 - **`ai_hard_strategy` and `ai_event_strategy`**, the strategies scripts give, are not built (`aistrategy.md`, section
-  12): written empty - `initialized=no`, `personality=balanced` - as every save of the maintainer's has them, and one
-  that says anything is reported.
-- **`ai`**: `initialized`, the `personality` (`military`, `capital`, `diplomacy`, `balanced` - a strategy never made
-  `balanced`), then the eight lists in the original's order - `conquer_prov`, `defend_prov`, `threat`, `antagonize`,
-  `befriend`, `protect`, `rival`, `vassal` - each entry an `id` (a province's number or a quoted tag) and a `value`, in
-  the list's order; **read back as they stand**, an entry the scaling left at nought among them, which the lists' own
-  add would drop (`CStrategyList.Append`).
+  12): written empty - `initialized=no`, then `consolidate=no`, `static=no`, `personality=balanced`, `max_subunits=0`
+  and the four shares at nought - as every save of the maintainer's has them, and one that says anything, a scalar off
+  its nought among it, is reported.
+- **`ai`**: `initialized`, `consolidate`, `static`, the `personality` (`military`, `capital`, `diplomacy`, `balanced` - a
+  strategy never made `balanced`), `max_subunits`, `land_perc`, `air_perc`, `naval_perc`, `armor_bias`, then the nine
+  lists in the original's order - `conquer_prov`, `defend_prov`, `threat`, `antagonize`, `befriend`, `protect`, `rival`,
+  `vassal`, `military_access` - each entry an `id` (a province's number or a quoted tag) and a `value`, in the list's
+  order; **read back as they stand**, an entry the scaling left at nought among them, which the lists' own add would
+  drop (`CStrategyList.Append`).
 - **Each `area_theatre`**: its `id` (type 45); each `front` - its `provinces`, `local_enemy` where it faces anyone,
   `front` (hot) and `sea=no`, every front here being a land one; its own `provinces` and its `key` provinces, each left
   out where empty; its headquarters as `unit`, an id pair; `country`; `hot`. Read under its own number, its provinces
@@ -619,14 +621,17 @@ loaded ones (`theatres.md`, section 8) - their fronts made again, their headquar
 made every strategy and every theatre again at once**, the theatres from nothing under new numbers - Japan gained a
 headquarters at P'yongyang the save does not have, four hours on from `Germany1936_01_07_22`; it does not now.
 
-**Not held, so not written**: `consolidate` and `static`, which the strategies scripts give would set; `max_subunits`,
-`land_perc`, `air_perc`, `naval_perc` and `armor_bias`, which the original works out with the strategy and nothing here
-reads (`FINDINGS-aistrategy.md`, C, read and not built); and `military_access`, read in part (section I). `war_with` and
-`building_prov` are in no save of the maintainer's.
+**Kept as the save holds them, and acted on by nothing here** (since 2026-11-14; until then a load passed over them
+without a word and the writer left them out): `consolidate` and `static`, which the strategies scripts give would set;
+`max_subunits`, `land_perc`, `air_perc`, `naval_perc` and `armor_bias`, which the original works out with the strategy and
+which are not built (`FINDINGS-aistrategy.md`, C), so they stand as loaded - a new game's at nought - when a strategy
+is made again here; and `military_access`, read in part (section I), which a making here empties with the other lists.
+`war_with` and `building_prov` are in no save of the maintainer's.
 
-**Checked** on 2026-11-06 with each country's three blocks set beside the save's, the keys not held taken out of the
+**Checked** on 2026-11-06 with each country's three blocks set beside the save's, the keys not held then taken out of the
 save's: in the eleven saves of section 12 and `olderautosave.hoi3`, **every country's strategies, lists and theatres
-the save's byte for byte**.
+the save's byte for byte**. Since 2026-11-14 with nothing taken out: no key of the three blocks is left out of the
+writing in the six saves of section 19.
 
 ## 17. The player's automation and the game's difficulty
 
@@ -695,7 +700,8 @@ Play (`frontend.md`, section 4).
   fourth hour after a load; whether its message and its last-battle figures come again was not traced
   (`FINDINGS-savedbattle.md`, A.8); a side with no units loads here as it is written, and was not followed further.
 - **Expeditionary forces** - a unit one country has lent another, saved in the receiver's tree with
-  `expeditionary_owner` (the lender) and `expeditionary_date` - are not built, and the two keys are reported. In the
+  `expeditionary_owner` (the lender) and `expeditionary_date` - were not built when this was written; they are since, and
+  the two keys are read (`expeditions.md`; the sweep of 2026-11-14 found neither reported). In the
   Ireland game's saves of 6 September 1939, Japan has lent 20 divisions to Manchukuo and 6 to Mengjiang, and the United
   States one to the Philippines; one hour on from `_18`, 540 of Japan's brigades' organisation differs from `_19`. The
   saves' brigades are full at Japan's officer ratio of 1.024 where ours is 1.237, Manchukuo's and Mengjiang's lent ones at
@@ -730,3 +736,52 @@ Play (`frontend.md`, section 4).
 ## 18. The strategic warfare manager's records
 
 The last block of the file, `strategic_warfare`, is read and written whole (`CSaveWarfare`; `strategicwarfare.md`, section 6): byte for byte on `Germany1936_03_31_19`, whose 8 enemies carry whole rings. A game saved before its first day writes the played country as its `player`, as the original, which sets it as a game is entered.
+
+## 19. The sweep of 2026-11-14: what two countries hold, the offers waiting, the casus belli and the rest
+
+Found by setting six saves of 1936 to 1941 beside both the loader's own report and a save read and written straight back
+(`OpenHOI3.SaveCheck load` and `write ... keys=`), every key left over then looked up in the original's loaders
+(`reversing/findings/FINDINGS-savegame.md`, B.4): **the original reads every key the saves hold**, and throws away only a
+technology's third figure, the leadership put into it, which its loader sets to nought (`docs/enhanced.md` lists it).
+Each of these was dropped here, most with no report, and is read and written both ways since:
+
+- **A pair block** (`CSaveStatus`), in the original's order: `value`, `threat`, `military_access`, then
+  `last_send_diplomat` - **the last hour of the diplomat's way, the offer's hour and 168**, which is what the original
+  stores - `next_wargoal_date` and `last_war`, each only where it is a date; `occupation_policy`; `debtaction_action`,
+  debts allowed; `debt` and `dailyrepay`, each only where it is not nought. A key the loader names nothing for is reported
+  under `pair`. Every pair at war is stamped `last_war` at the hour of the load as a game is entered (`war.md`, section 4), so a
+  save written at once has that hour for them; the pairs at peace keep theirs, and with it the truce after a peace.
+- **The offers on a country's list** (`CSaveOffers`) - a proposal on its recipient's, an answer on its actor's - each a key
+  of the country block after the pair blocks and before `ministers`, named for its kind as the original's action classes
+  are (`FINDINGS-diploaction.md`, section 3): `allianceaction`, `nap`, `guaranteeaction`, `milaccess`, `offermilaccess`,
+  `embargo_action`, `influence`, `influence_leaders`, `trade_action`, `debtaction_action`, `share_technology`,
+  `request_lendlease`, `offer_lendlease`, `licence_technology`, `send_expedition`, `declarewar`, `callaction`,
+  `add_war_goal`, `peace_action`, `faction_action`. Each holds `type` (0 proposed, 1 declined, 2 accepted), `actor`,
+  `recipient`, `date`, `value` and `last_command_date`, the hour it was put on the list that the 96 hours count from;
+  then what its kind carries - a trade's route as `trade`, its `start_date` that of the route a cancellation copies and
+  the null date for a new one; a call's `versus`; a declaration's `war_goal`; a licence's `definition`, `serial`,
+  `parallel` and `money`; an expedition's `action` (0 a lender taking it back, else 1) and `unit`; a shared theory's
+  `technology`. Only `trade_action` and `influence` are in any of the 45 saves, the AI answering its list each hour; the
+  other kinds' keys are their loaders', and where each writes them is inferred. **`add_war_goal` is written and not read
+  back**, as the original's country loader does not name it (`docs/enhanced.md`).
+- **A casus belli** in `diplomacy`: `type` - the null type as `nocasusbelli`, the original's first type's key - `first`,
+  `second`, `end_date` where it has one and `start_date`, among the pacts in the order it was given, as the original keeps
+  it on the one list of relations. One given in play is dated the hour (`CCasusBellis.Give`). One run out by the save's
+  hour is left out, the original filing it on no record. Two in `Ireland1941_07_16_07`.
+- **A province's underground** - `underground_owner` after the controller, and `underground_action` where it is not 2,
+  build up strength, whether or not an underground stands - and **`last_convoy_attack`** after the weather, where it is a
+  date.
+- **The AI strategy's scalars and its `military_access`** (section 16).
+- **The null technology's level**, `notech`, first in the technology block (`research.md`, section 9). Any other name the
+  install has no technology for is reported, where it was passed over.
+
+**Still read by nothing here, each reported**: a province's `capital`, `history` and `out_of_supply_days` (the last is
+the days a province has been out of supply, which `on_encirclement` and the condition of that name read - not built);
+a country's `human`, `prov_vp`, `offmap_vp` (worked out again as a game is entered), `last_mission_cancel` (the null date
+in every save) and the three `lend_lease_*_yesterday`; `nocategory`; a brigade's, ship's and wing's `home` and `builder`
+and a line's `builder`; a unit's `country_intel` (section *Not established*); and the top level's three graph
+statistics. The original reads all of them.
+
+**Checked** on 2026-11-14 on `Germany1936_01_01_00`, `Germany1936_09_02_21`, `Ireland1938_08_03_14`,
+`Ireland1940_05_23_15`, `Ireland1941_07_16_07` and `autosave_prewar`: nothing the save holds of the above is left out of
+the writing, and the only figure written otherwise is `last_war` for the pairs at war, by the stamp above.

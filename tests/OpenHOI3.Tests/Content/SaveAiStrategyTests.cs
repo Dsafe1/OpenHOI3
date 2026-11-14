@@ -29,6 +29,12 @@ public class SaveAiStrategyTests
 		strategy.Personality = EAiPersonality.Military;
 		strategy.DefendProvinces.Append(2613, 220);
 		strategy.Threat.Append(new CCountryTag("FRA"), 0);
+		strategy.MilitaryAccess.Append(new CCountryTag("SOV"), 3035);
+		strategy.MaxSubunits = 920;
+		strategy.LandShare = CFixedPoint.Parse("0.797");
+		strategy.AirShare = CFixedPoint.Parse("0.05");
+		strategy.NavalShare = CFixedPoint.Parse("0.153");
+		strategy.ArmorBias = CFixedPoint.Parse("0.33");
 		var theatre = new CTheatre(5, germany.Tag) { Headquarters = 0 };
 		var front = new CFront { Enemy = new CCountryTag("FRA") };
 		front.Provinces.AddRange(new[] { 2490, 2553 });
@@ -43,13 +49,18 @@ public class SaveAiStrategyTests
 		CSaveAiStrategy.Write(writer, state, germany);
 		writer.End();
 
-		// An entry the scaling left at nought is written; a front facing nobody has no local_enemy; no key provinces, no key.
+		// Every block's scalars after initialized, the personality among them; military_access after the other lists; an
+		// entry the scaling left at nought is written; a front facing nobody has no local_enemy; no key provinces, no key.
+		const string Nothing = "\t\tconsolidate=no\r\n\t\tstatic=no\r\n\t\tpersonality=balanced\r\n\t\tmax_subunits=0\r\n" +
+			"\t\tland_perc=0.000\r\n\t\tair_perc=0.000\r\n\t\tnaval_perc=0.000\r\n\t\tarmor_bias=0.000\r\n";
 		Assert.Equal(
-			"GER=\r\n{\r\n\tai_hard_strategy=\r\n\t{\r\n\t\tinitialized=no\r\n\t\tpersonality=balanced\r\n\t}\r\n" +
-			"\tai_event_strategy=\r\n\t{\r\n\t\tinitialized=no\r\n\t\tpersonality=balanced\r\n\t}\r\n" +
-			"\tai=\r\n\t{\r\n\t\tinitialized=yes\r\n\t\tpersonality=military\r\n" +
+			"GER=\r\n{\r\n\tai_hard_strategy=\r\n\t{\r\n\t\tinitialized=no\r\n" + Nothing + "\t}\r\n" +
+			"\tai_event_strategy=\r\n\t{\r\n\t\tinitialized=no\r\n" + Nothing + "\t}\r\n" +
+			"\tai=\r\n\t{\r\n\t\tinitialized=yes\r\n\t\tconsolidate=no\r\n\t\tstatic=no\r\n\t\tpersonality=military\r\n" +
+			"\t\tmax_subunits=920\r\n\t\tland_perc=0.797\r\n\t\tair_perc=0.050\r\n\t\tnaval_perc=0.153\r\n\t\tarmor_bias=0.330\r\n" +
 			"\t\tdefend_prov=\r\n\t\t{\r\n\t\t\tid=2613\r\n\t\t\tvalue=220\r\n\t\t}\r\n" +
 			"\t\tthreat=\r\n\t\t{\r\n\t\t\tid=\"FRA\"\r\n\t\t\tvalue=0\r\n\t\t}\r\n" +
+			"\t\tmilitary_access=\r\n\t\t{\r\n\t\t\tid=\"SOV\"\r\n\t\t\tvalue=3035\r\n\t\t}\r\n" +
 			"\t\tarea_theatre=\r\n\t\t{\r\n\t\t\tid=\r\n\t\t\t{\r\n\t\t\t\tid=5\r\n\t\t\t\ttype=45\r\n\t\t\t}\r\n" +
 			"\t\t\tfront=\r\n\t\t\t{\r\n\t\t\t\tprovinces=\r\n\t\t\t\t{\r\n2490 2553 \t\t\t\t}\r\n\t\t\t\tlocal_enemy=\"FRA\"\r\n" +
 			"\t\t\t\tfront=no\r\n\t\t\t\tsea=no\r\n\t\t\t}\r\n" +

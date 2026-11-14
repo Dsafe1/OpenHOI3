@@ -18,6 +18,9 @@ namespace OpenHOI3.Content.Saves;
 /// </summary>
 public static class CSaveWriter
 {
+	/// <summary>The key of the original's built-in null technology, which no file declares.</summary>
+	public const string NullTechnology = "notech";
+
 	/// <summary>A province's goods in the order a save writes them, which is not the game's own.</summary>
 	private static readonly EGoods[] PoolOrder =
 	{
@@ -135,6 +138,15 @@ public static class CSaveWriter
 		{
 			writer.Quoted("controller", controller.Value);
 		}
+		if (province.UndergroundOwner is { } underground)
+		{
+			writer.Quoted("underground_owner", underground.Value);
+		}
+		// Left out where it is to build up strength, whether or not an underground stands here.
+		if (province.UndergroundAction != Sim.Revolts.CUndergrounds.BuildUp)
+		{
+			writer.Int("underground_action", province.UndergroundAction);
+		}
 		foreach (CCountryTag core in province.Cores)
 		{
 			writer.Quoted("core", core.Value);
@@ -177,6 +189,10 @@ public static class CSaveWriter
 		WritePoolIfAny(writer, "current_producing", province.CurrentProducing);
 		WritePoolIfAny(writer, "max_producing", province.MaxProducing);
 		WriteWeather(writer, state, province.Weather);
+		if (province.LastConvoyAttackHour != CProvince.NoConvoyAttack)
+		{
+			writer.Date("last_convoy_attack", province.LastConvoyAttackHour);
+		}
 		WriteEventModifiers(writer, province.EventModifiers);
 		writer.End();
 	}
@@ -294,6 +310,9 @@ public static class CSaveWriter
 		}
 
 		writer.Begin("technology");
+		// The original's built-in null technology stands first in its database.
+		writer.Key(NullTechnology);
+		writer.Line("{" + country.NullTechnologyLevel.ToString(System.Globalization.CultureInfo.InvariantCulture) + " 0.00000 0.000}");
 		foreach (string technology in state.Technologies.Keys)
 		{
 			int level = country.TechnologyLevels.GetValueOrDefault(technology);
@@ -360,20 +379,10 @@ public static class CSaveWriter
 			{
 				continue;
 			}
-			CDiplomacyStatus status = CGameState.Status(country, other);
-			writer.Begin(other.Tag.Value);
-			writer.Int("value", status.Relation.Raw / CFixedPoint.Scale);
-			writer.Fixed("threat", status.Threat);
-			if (status.HasMilitaryAccess)
-			{
-				writer.Bool("military_access", true);
-			}
-			if (status.OccupationPolicy != 0 && status.OccupationPolicy < state.OccupationPolicies.Count)
-			{
-				writer.Quoted("occupation_policy", state.OccupationPolicies[status.OccupationPolicy].Name);
-			}
-			writer.End();
+			CSaveStatus.Write(writer, state, CGameState.Status(country, other), other.Tag.Value);
 		}
+		// The offers on its list, each under its kind's key (savegame.md, section 19).
+		CSaveOffers.Write(writer, state, country);
 		CSavePolitics.WriteMinisters(writer, country);
 		CSaveLines.WriteTemplates(writer, country);
 		// Its AI's strategies and theatres (savegame.md, section 16).

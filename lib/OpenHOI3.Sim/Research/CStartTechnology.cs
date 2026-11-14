@@ -108,6 +108,7 @@ public static class CStartTechnology
 			{
 				nullBought = true;
 				budget -= NullTechnologyPrice / 100;
+				country.NullTechnologyLevel = 1;
 			}
 			else
 			{
