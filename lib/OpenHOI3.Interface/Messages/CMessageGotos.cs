@@ -24,6 +24,15 @@ public static class CMessageGotos
 
 	private static readonly HashSet<string> Invasions = new(StringComparer.Ordinal) { "INVADEDUS", "PARATROOPEDUS" };
 
+	/// <summary>
+	/// The original's <c>GotoUnitForMessage</c>: the three arrivals. <c>EXPRETURNED</c> and <c>EXPRETURNEDWE</c> have it too,
+	/// and are left out while their message carries no unit.
+	/// </summary>
+	private static readonly HashSet<string> Units = new(StringComparer.Ordinal)
+	{
+		Sim.Movement.CArrival.Land, Sim.Movement.CArrival.Naval, Sim.Movement.CArrival.Air,
+	};
+
 	private static readonly HashSet<string> Screens = new(StringComparer.Ordinal)
 	{
 		BuildingDone, AgreementExpired, "ELECTIONRESULTS", "NUKE_ON_OTHER", "NUKE_ON_US", "OTHER_DEMOBILIZE", "OTHER_MOBILIZE",
@@ -73,6 +82,10 @@ public static class CMessageGotos
 		if (Capitals.Contains(type))
 		{
 			return EMessageGoto.Capital;
+		}
+		if (Units.Contains(type))
+		{
+			return EMessageGoto.Unit;
 		}
 		return Invasions.Contains(type) ? EMessageGoto.Invasion : EMessageGoto.None;
 	}

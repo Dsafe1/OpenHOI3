@@ -717,6 +717,13 @@ public partial class CSession : Node
 					Tell(message);
 				}
 			};
+			_simulation.State.UnitArrived += unit =>
+			{
+				if (CMessages.UnitArrived(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, unit) is { } message)
+				{
+					Tell(message);
+				}
+			};
 			_simulation.State.PactMessaged += pact =>
 			{
 				if (CMessages.Pact(gui.Localisation.Localise, gui.MessageTypes, _simulation.State, player, pact) is { } message)
@@ -949,6 +956,15 @@ public partial class CSession : Node
 				return true;
 			case EMessageGoto.Invasion:
 				return CentreOnMessage(message);
+			case EMessageGoto.Unit:
+				// The original's GotoUnitForMessage answers false whatever it found, so the popup closes.
+				if (State.Country(message.FirstCountry)?.AllUnits().FirstOrDefault(unit => unit.Id == message.Unit) is { } found)
+				{
+					_mapView.ClearSelection();
+					_mapView.SelectUnit(found);
+					_mapView.CentreOn(found.Location);
+				}
+				return false;
 			case EMessageGoto.Screen:
 				_orders?.Close();
 				_mapView.SelectUnit(null);

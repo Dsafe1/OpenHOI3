@@ -97,6 +97,36 @@ public class MessageTests
 	}
 
 	[Fact]
+	public void A_units_arrival_is_its_kinds_type_about_where_it_stands_with_its_name_and_its_kinds_word()
+	{
+		CGameState state = ScriptWorld.State();
+		var division = new OpenHOI3.Sim.Units.CUnit(OpenHOI3.Sim.Units.EUnitKind.Division, ScriptWorld.Ger) { Id = 7, Location = 1, Name = "1. Division" };
+		var fleet = new OpenHOI3.Sim.Units.CUnit(OpenHOI3.Sim.Units.EUnitKind.Navy, ScriptWorld.Ger) { Id = 8, Location = 1 };
+		var air = new OpenHOI3.Sim.Units.CUnit(OpenHOI3.Sim.Units.EUnitKind.Air, ScriptWorld.Ger) { Id = 9, Location = 1 };
+		CMessageTypes types = CMessageTypes.Read(ClausewitzParser.Parse(
+			"UNITARRIVED_LAND = { log = yes }\nUNITARRIVED_NAVAL = { log = yes }\nUNITARRIVED_AIR = { log = yes }\n"), _ => { });
+
+		CMessage message = CMessages.UnitArrived(Localise, types, state, ScriptWorld.Ger, division)!;
+		Assert.Equal("UNITARRIVED_LAND", message.Type.Name);
+		Assert.Equal(1, message.Province);
+		Assert.Equal(7, message.Unit);
+		Assert.Equal(ScriptWorld.Ger, message.FirstCountry);
+		Assert.Equal(ScriptWorld.Ger, message.SecondCountry);
+		Assert.Equal("COUNTRY", message.Variables[0].Key);
+		Assert.Contains(("MESSENGER", "MESSAGE_HEAD_MARS"), message.Variables);
+		Assert.Contains(("NAME", "1. Division"), message.Variables);
+		Assert.Contains(("PROV", "p1"), message.Variables);
+		Assert.Equal(("TYPE", "ARMY"), message.Variables[^1]);
+
+		Assert.Contains(("TYPE", "NAVY"), CMessages.UnitArrived(Localise, types, state, ScriptWorld.Ger, fleet)!.Variables);
+		CMessage flown = CMessages.UnitArrived(Localise, types, state, ScriptWorld.Ger, air)!;
+		Assert.Equal("UNITARRIVED_AIR", flown.Type.Name);
+		Assert.Contains(("TYPE", "EXP_SQUADRON"), flown.Variables);
+		Assert.Null(CMessages.UnitArrived(Localise, types, state, ScriptWorld.Pol, division));   // not the player's unit
+		Assert.Equal(EMessageGoto.Unit, CMessageGotos.Of(message.Type.Name));
+	}
+
+	[Fact]
 	public void The_log_keeps_200_messages_and_cuts_one_row_for_each_added()
 	{
 		var log = new CMessageLog(Localise, 1000f, text => text.Length);

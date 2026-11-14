@@ -31,6 +31,14 @@ march's own are here.
   added to a path, when it is one more leg. `confirmed`
 - A click on a province the unit **may not go to** does nothing but play the error sound
   and mark the province as refused. `confirmed`; *ours:* nothing is played or marked yet.
+  **For a land unit that includes ground held by a country at war with it** - a war nobody
+  declared counting where its regions take the province in - **when the unit is too weak**
+  (section 3), **or was given no supplies on its last day and uses some** - not asked of a
+  unit aboard a fleet - **or no fuel and burns some**. `confirmed` (`CUnit::CanMoveTo`,
+  `reversing/findings/FINDINGS-movement.md`, section 12); built 2026-11-14 in `CMovementRules.MayMoveTo`,
+  which the command asks before it runs. The original's command does not ask it - the click
+  does - but the route then refuses the same unit by the same tests (section 3), so the
+  order comes to nothing either way.
 - Nothing happens for a unit with no brigades. `confirmed`. The original also refuses a
   retreating unit and one under an AI's command.
 - **That is a land unit's click.** A fleet's and an air unit's bring up a window of orders,
@@ -154,17 +162,41 @@ Asked of the destination before anything, and of every step: `confirmed` unless 
 - **not over a crossing that is closed**: one through a land province an enemy holds, or
   through a sea province an enemy fleet stands in. An air unit is never stopped. *Ours:*
   the first; the second waits for fleets that fight;
-- **not onto an enemy's ground without supplies or fuel**: a step into a province held by
-  a country at war with it is refused to a unit that was given no supplies on its last day
-  and uses some, or no fuel and burns some (`CPathFind::MayStep` in the fact base's record;
-  built 2026-10-19). A unit cut off is routed round the enemy's land or not at all;
+- a fleet between land and sea only by its port (`fleetsandair.md`, section 1);
 - **only into a province the unit may stand in**: one held by whoever holds the ground
   under it now, or one its country may walk on - and **for a land unit, only land that is in an area**: held by somebody
   and with more than one level of infrastructure built (`supply.md`, section 2). Land with one level or none is closed to
   every land unit, the goal of a route as well as a step on it. `confirmed` on the running game, 2026-11-10: its own search
   never added such a province, and with the rule 57 of 60 of its searches set beside ours give its road
   (`reversing/findings/FINDINGS-liveread.md`, section 32). It is what keeps a long march or a strategic redeployment on the
-  railways, where the shortest road would cross poor land.
+  railways, where the shortest road would cross poor land;
+- and last, **for a land unit stepping into a province its own country does not hold**, four
+  tests, each by the unit's owner (`CPathFind::MayStep`; `reversing/findings/FINDINGS-movement.md`, section 12,
+  all read on the listing 2026-11-14 and built that day, `CMovementRules.MayLandUnitStep`):
+  1. **not onto ground held by a country at war with it when it is too weak**: its strength
+     over the most its brigades have had together, in thousandths, below its **shatter
+     threshold** - `min(1000 - 500 x officer ratio, 500)`, less 10 for each point of its
+     leader's skill and 3 for each point of its average experience, all in thousandths
+     (`landcombat.md`, section 6; the officers are a lender's for a unit lent). A unit whose brigades have never had any
+     strength counts as -1, and is always too weak. So a full-strength division of a country
+     with all its officers goes anywhere and one at half strength goes nowhere an enemy holds,
+     **player's and AI's alike**: every finder asks it, the plain and both careful ones;
+  2. **not onto ground held by a country at war with it that was given no supplies on its
+     last day and uses some**, and
+  3. **not when given no fuel and it burns some** (built 2026-10-19). A unit cut off is routed
+     round the enemy's land or not at all;
+  4. **not into a country it is at war with out of a neutral that merely lets it through**:
+     refused where the owner has military access through the country holding the province it
+     leaves, that country is not at war with the one holding the province entered - rebels
+     counted - and the owner is in a declared war with that one. So a march through a
+     neutral by access stops at the enemy's border; the same march through a co-belligerent's
+     or an ally's ground - no access, or access to a country at war with the enemy itself - goes
+     on into it.
+
+  "At war" in the first three is the original's tag test, rebels on either side counting; the
+  fourth asks the declared war of the pair. **Only a land unit is asked any of the four**: the
+  supply and fuel tests were asked of every kind of unit here until 2026-11-14, so an air unit
+  given no fuel was kept off an enemy's ground it may fly over in the original.
 
 **Whose ground a country may walk on:** its own and a friend's, ground that belongs to
 nobody, and the ground of anyone it is at war with. In full, ground is closed only when all
@@ -370,6 +402,33 @@ wrong caller, which the reading for fleets found.
    was in is remembered, it is in the next, and **a land unit looks at the province it has
    entered** (`landcombat.md`, section 1): that is where it meets an enemy, or takes the
    ground.
+10. **The message that it has arrived**: when it is in no battle and its path is empty after
+    the arrival - `UNITARRIVED_LAND`, `UNITARRIVED_NAVAL` or `UNITARRIVED_AIR` by its kind
+    (`CUnit::AnnounceArrival`, `reversing/findings/FINDINGS-movement.md`, section 12; built 2026-11-14,
+    `CArrival`): `confirmed`
+    - **only for the player's own unit**; a land unit and a fleet wherever they arrive, **an air
+      unit only at its own base**, and **never a fleet on patrol, escorting convoys or raiding
+      them** - whose order sends them round and round. A strategic redeployment, a retreat and
+      the AI's own orders for a delegated unit are told like any other;
+    - about **the province it stands in**, both flags the player's, with the player's own values
+      (`messages.md`, section 3) and then `MESSENGER` the general staff (`MESSAGE_HEAD_MARS`),
+      `NAME` the unit's, `PROV` the province's and `TYPE` its kind's word - `ARMY`, `NAVY` or
+      `EXP_SQUADRON`;
+    - **its Goto** clears the selection, selects the unit and centres the map on it, and the
+      popup closes (`messages.md`, section 4.1);
+    - **a unit halted on arrival because it may no longer stand in the province ahead is told
+      it has arrived too**, in the province it was halted in - the halt empties its path and the
+      test comes after it. Not a land unit that found no fleet to board: that one leaves without
+      a word;
+    - **a land unit boarding a fleet** is told once the path is emptied, in the sea; and once
+      more before, still on the shore, where what is left of its path after this step ends in
+      that same sea.
+
+    Their Finest Hour ships all three types with `log`, `popup` and `onmap` off, so a player
+    sees nothing until he ticks them in the message settings. Checked on screen 2026-11-14 with
+    the popup ticked: the 3. Panzer-Division sent from Berlin to Frankfurt an der Oder, "Army
+    Arrived! ... our Army of 3. Panzer-Division has safely arrived in Frankfurt an der Oder",
+    its line in the log, and its Goto closing the popup with the division selected.
 
 A halt by the march itself - the way gone, the ground no longer its to stand on - also takes
 the unit out of the battles it was attacking in.
@@ -461,9 +520,12 @@ with what is left over carried into the next leg as the march itself carries it.
 
 ## What is not built
 
-- **A unit too weak is not routed onto an enemy's ground** in the original (one with no
+- ~~**A unit too weak is not routed onto an enemy's ground** in the original (one with no
   supplies or no fuel is not, here either: section 3). Nor is a country kept from
-  attacking out of a neutral that merely lets it through.
+  attacking out of a neutral that merely lets it through.~~ Both built 2026-11-14 (section 3),
+  and the click's own tests of a land unit sent onto an enemy's ground (section 1). The rest of
+  the click's test of a province - a unit in a battle sent only where it may fall back, and none
+  while it has a battle in the next province of its path - is not.
 - ~~**Coordinated arrival**: the original keeps two hours on a unit, one before which it does
   not move and one before which it does not arrive, waiting at full progress.~~ Built
   2026-11-04 with the land orders window (`landorders.md`, section 5).
@@ -474,7 +536,8 @@ with what is left over carried into the next leg as the march itself carries it.
   hours apart still gives 301 of 301.
 - ~~**Walking on a puppet's, an overlord's or an ally's ground, or with military access.**~~
   Built 2026-11-11, with every other friend test the original's (section 3).
-- **The message** that a unit has arrived, and the sounds and the marks of the click.
+- ~~**The message** that a unit has arrived~~ - built 2026-11-14 (section 6) - and the sounds
+  and the marks of the click.
 - **The tooltip** that says when a unit will arrive.
 
 ## What is not established, in one place

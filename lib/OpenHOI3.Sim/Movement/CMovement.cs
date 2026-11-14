@@ -475,6 +475,11 @@ public static class CMovement
 		if (!CMovementRules.MayStandIn(state, country, unit, next))
 		{
 			Halt(state, unit);
+			// Halted where it was, it is told it has arrived there - but not one with no fleet to board.
+			if (!(isLand && next.IsSea))
+			{
+				AnnounceIfDone(state, unit);
+			}
 			return false;
 		}
 		// A land unit marching into the sea boards the first fleet there that may take it,
@@ -486,10 +491,16 @@ public static class CMovement
 				Halt(state, unit);
 				return false;
 			}
+			// Where what is left of its way ends in this sea it is told once more, still on the shore it leaves.
+			if (unit.Path.Count > 0 && unit.Path[^1] == next.Id)
+			{
+				CArrival.Announce(state, unit);
+			}
 			Transport.CTransport.Board(fleet, unit);
 			unit.Previous = unit.Location;
 			Enter(state, unit, next.Id);
 			Cancel(unit);
+			AnnounceIfDone(state, unit);
 			return false;
 		}
 		// A passenger stepping off - ashore from the sea, or out of its port - gets off first,
@@ -517,9 +528,22 @@ public static class CMovement
 		{
 			CCombats.CheckForCombat(state, unit, next.Id);
 		}
+		AnnounceIfDone(state, unit);
 
 		return !unit.IsRemoved && unit.IsMoving && !unit.IsFighting
 			&& unit.MovementProgress >= Distance(state, unit);
+	}
+
+	/// <summary>
+	/// The end of an arrival: a unit in no battle whose way has run out is told it has arrived, where it is told
+	/// (<see cref="CArrival"/>; <c>docs/mechanics/movement.md</c>, section 6).
+	/// </summary>
+	private static void AnnounceIfDone(CGameState state, CUnit unit)
+	{
+		if (!unit.IsRemoved && !unit.IsFighting && unit.Path.Count == 0)
+		{
+			CArrival.Announce(state, unit);
+		}
 	}
 
 	/// <summary>

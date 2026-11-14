@@ -31,6 +31,9 @@ public sealed class CMessage
 
 	public int Province { get; init; }
 
+	/// <summary>The unit it is about, by its number, for a Goto that selects it; 0 for none.</summary>
+	public int Unit { get; init; }
+
 	/// <summary>An election's parties' scores, by ideology.</summary>
 	public long[]? Scores { get; init; }
 

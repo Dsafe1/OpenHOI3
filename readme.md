@@ -2315,9 +2315,12 @@ None of these blocks the list above.
   read on 2026-10-09, counts only a square of twenty pixels around the province's name. It
   changes 384 of the base game's 10,621 land provinces. Nothing in a savegame says which
   is right, so it rests on the reading. `docs/mechanics/map.md`, section 9.
-- **A unit too weak is not kept off an enemy's ground**, as the original's route keeps it, nor a
+- ~~**A unit too weak is not kept off an enemy's ground**, as the original's route keeps it, nor a
   country from attacking out of a neutral that merely lets it through; and no message says a unit
-  has arrived. `docs/mechanics/movement.md`, *What is not built*.
+  has arrived.~~ All three built 2026-11-14 (`movement.md`, sections 1, 3 and 6). Left: the rest of the
+  click's test of a province - a unit in a battle sent only where it may fall back - and the click's
+  sounds and marks; and `EXPRETURNED`'s Goto, whose message carries no unit (`messages.md`, section 4.1).
+  `docs/mechanics/movement.md`, *What is not built*.
 - **The march's speed is checked against savegames and its arrival is not.** The
   distances agree with the original's cache exactly and what an hour adds agrees with
   saves hours apart, division by division; the hour a unit arrives and what it keeps are

@@ -21,6 +21,9 @@ public class MessageGotoTests
 	[InlineData("BUILDING_DONE", EMessageGoto.Screen)]
 	[InlineData("DIPLOEXPIRE", EMessageGoto.Screen)]
 	[InlineData("INVADEDUS", EMessageGoto.Invasion)]
+	[InlineData("UNITARRIVED_LAND", EMessageGoto.Unit)]
+	[InlineData("UNITARRIVED_NAVAL", EMessageGoto.Unit)]
+	[InlineData("UNITARRIVED_AIR", EMessageGoto.Unit)]
 	[InlineData("EVENTHAPPENUS", EMessageGoto.None)]
 	[InlineData("NOT_A_TYPE", EMessageGoto.None)]
 	public void AMessageHasTheGotoItsRaiseGivesIt(string type, EMessageGoto expected)

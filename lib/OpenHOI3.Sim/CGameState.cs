@@ -365,6 +365,7 @@ public sealed class CGameState
 		CombatBegan = null;
 		DecisionTaken = null;
 		SoundCued = null;
+		UnitArrived = null;
 	}
 
 	/// <summary>
@@ -711,6 +712,17 @@ public sealed class CGameState
 	internal void RaiseSound(string sound, CCountryTag heardBy)
 	{
 		SoundCued?.Invoke(sound, heardBy);
+	}
+
+	/// <summary>
+	/// Raised as a played country's unit arrives at the end of its way, for its message
+	/// (<see cref="Movement.CArrival"/>; <c>docs/mechanics/movement.md</c>, section 6). Never for anything that changes the game.
+	/// </summary>
+	public event Action<Units.CUnit>? UnitArrived;
+
+	internal void RaiseUnitArrived(Units.CUnit unit)
+	{
+		UnitArrived?.Invoke(unit);
 	}
 
 	/// <summary>Raised as a decision is taken, before its effects, for its message.</summary>

@@ -212,8 +212,10 @@ public static class CMovementRules
 	/// Whether a unit may be ordered to a province at all. It has to be able to stand
 	/// there. An air unit is not sent under too much cloud; a fleet goes only where there
 	/// is sea at both ends, and not while something it carries is on the move itself. A
-	/// land unit too weak, or with nothing to eat or to burn, is not sent onto an enemy's
-	/// ground in the original, which waits for an enemy to meet.
+	/// land unit is not sent onto ground held by a country at war with it there - a war
+	/// nobody declared counting where it covers the province - when it is too weak, or was
+	/// given no supplies and uses some (not asked of one aboard a fleet), or no fuel and
+	/// burns some (<c>CUnit::CanMoveTo</c>; <c>docs/mechanics/movement.md</c>, section 1).
 	/// </summary>
 	public static bool MayMoveTo(CGameState state, CCountry country, CUnit unit, CProvince province)
 	{
@@ -230,6 +232,23 @@ public static class CMovementRules
 		if (unit.Plane is not null)
 		{
 			return false;
+		}
+		if (IsLandUnit(unit) && state.Country(unit.Owner) is { } owner
+			&& IsEnemyIn(state, province.Controller, unit.Owner, province.Id))
+		{
+			if (IsTooWeak(state, unit))
+			{
+				return false;
+			}
+			if (unit.Transport is null && unit.SuppliesReceived == CFixedPoint.Zero
+				&& Units.CUnitSupply.SupplyConsumption(state, owner, unit) > CFixedPoint.Zero)
+			{
+				return false;
+			}
+			if (Units.CUnitSupply.FuelConsumption(state, owner, unit) > CFixedPoint.Zero && unit.FuelReceived == CFixedPoint.Zero)
+			{
+				return false;
+			}
 		}
 		if (unit.Kind != EUnitKind.Navy)
 		{
@@ -253,7 +272,8 @@ public static class CMovementRules
 	/// Whether a unit may take one step of a route. In the original's order: not over
 	/// an impassable edge; not over a crossing through a province an enemy holds; a fleet
 	/// between land and sea only through a port and the one sea province it opens onto,
-	/// and never from land to land; and then only into a province it may stand in.
+	/// and never from land to land; only into a province it may stand in; and a land unit,
+	/// into ground its own country does not hold, past <see cref="MayLandUnitStep"/>.
 	/// </summary>
 	public static bool MayStep(CGameState state, CCountry country, CUnit unit, CProvince from, CProvince to,
 		CProvinceEdge edge)
@@ -263,13 +283,6 @@ public static class CMovementRules
 			return false;
 		}
 		if (IsCrossingBlocked(state, country, unit, edge))
-		{
-			return false;
-		}
-		// Nobody is routed onto an enemy's ground who was given no supplies, or no fuel, and uses some.
-		if (IsEnemy(state, country.Tag, to.Controller) && state.Country(unit.Owner) is { } owner
-			&& ((unit.SuppliesReceived == CFixedPoint.Zero && Units.CUnitSupply.SupplyConsumption(state, owner, unit) > CFixedPoint.Zero)
-				|| (unit.FuelReceived == CFixedPoint.Zero && Units.CUnitSupply.FuelConsumption(state, owner, unit) > CFixedPoint.Zero)))
 		{
 			return false;
 		}
@@ -296,7 +309,61 @@ public static class CMovementRules
 				}
 			}
 		}
-		return MayStandIn(state, country, unit, to);
+		if (!MayStandIn(state, country, unit, to))
+		{
+			return false;
+		}
+		return !IsLandUnit(unit) || to.Controller == unit.Owner || MayLandUnitStep(state, unit, from, to);
+	}
+
+	/// <summary>
+	/// The original's last four tests of a land unit's step into ground its own country does not hold
+	/// (<c>CPathFind::MayStep</c>; <c>docs/mechanics/movement.md</c>, section 3), all by the unit's owner. Onto ground
+	/// held by a country at war with it, rebels counted: not a unit under its shatter threshold - too weak, its strength
+	/// over the most its brigades have had - nor one given no supplies on its last day that uses some, nor one given no
+	/// fuel that burns some. And not into a country it is at war with out of a province held by a country it has
+	/// military access through that is not itself at war with that country: nobody attacks out of a neutral that merely
+	/// lets it through.
+	/// </summary>
+	public static bool MayLandUnitStep(CGameState state, CUnit unit, CProvince from, CProvince to)
+	{
+		if (state.Country(unit.Owner) is not { } owner)
+		{
+			return true;
+		}
+		bool enemy = IsEnemy(state, to.Controller, unit.Owner);
+		if (enemy && IsTooWeak(state, unit))
+		{
+			return false;
+		}
+		if (enemy && unit.SuppliesReceived == CFixedPoint.Zero
+			&& Units.CUnitSupply.SupplyConsumption(state, owner, unit) > CFixedPoint.Zero)
+		{
+			return false;
+		}
+		if (enemy && Units.CUnitSupply.FuelConsumption(state, owner, unit) > CFixedPoint.Zero
+			&& unit.FuelReceived == CFixedPoint.Zero)
+		{
+			return false;
+		}
+		// The owner's own record of the country holding the province it leaves, and a declared war with the one holding
+		// the province it enters - the rebels not counted there, as they are in the tests before.
+		return from.Controller is not { } through || state.Country(through) is not { } passage
+			|| !CGameState.Status(owner, passage).HasMilitaryAccess
+			|| IsEnemy(state, through, to.Controller)
+			|| to.Controller is not { } holder || !CCountryLists.AtWar(state, unit.Owner, holder);
+	}
+
+	/// <summary>
+	/// Whether a unit is under its shatter threshold: its strength over the most its brigades have had together, in
+	/// thousandths - -1 where that is nothing - below <see cref="Combat.CCombatDamage.ShatterThreshold"/>. Such a land
+	/// unit is neither sent nor routed onto ground held by a country at war with it. The threshold is by the officers of
+	/// the country whose figures it has, a lender's for a unit lent.
+	/// </summary>
+	public static bool IsTooWeak(CGameState state, CUnit unit)
+	{
+		return state.Country(unit.FiguresOwner) is { } figures
+			&& Combat.CCombatDamage.StrengthShare(unit) < Combat.CCombatDamage.ShatterThreshold(state, figures, unit);
 	}
 
 	/// <summary>

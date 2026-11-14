@@ -124,6 +124,41 @@ public static class CMessages
 	private const int DetailedUnits = 6;
 
 	/// <summary>
+	/// The message that one of the player's units has arrived: <c>UNITARRIVED_LAND</c>, <c>_NAVAL</c> or <c>_AIR</c> by its
+	/// kind, about the province it stands in, both flags the player's, with the player's own values and then MESSENGER the
+	/// general staff, NAME the unit's, PROV the province's and TYPE its kind's word - ARMY, NAVY or EXP_SQUADRON. Nothing
+	/// for another country's unit. See <c>docs/mechanics/movement.md</c>, section 6.
+	/// </summary>
+	public static CMessage? UnitArrived(Func<string, string> localise, CMessageTypes types, CGameState state, CCountryTag? player,
+		Sim.Units.CUnit unit)
+	{
+		if (player is not { } own || unit.Owner != own || state.Country(own) is not { } country)
+		{
+			return null;
+		}
+		var message = new CMessage(types.Find(Sim.Movement.CArrival.TypeOf(unit)), CMessageText.Date(localise, state.Date, state.Hour))
+		{
+			FirstCountry = own,
+			SecondCountry = own,
+			Province = unit.Location,
+			Unit = unit.Id,
+		};
+		message.Variables.Add(("COUNTRY", country.Name));
+		message.Variables.Add(("MONARCHTITLE", RulerTitle(country)));
+		Government(localise, state, player, message);
+		message.Variables.Add(("MESSENGER", "MESSAGE_HEAD_MARS"));
+		message.Variables.Add(("NAME", unit.Name));
+		message.Variables.Add(("PROV", state.Province(unit.Location).Name));
+		message.Variables.Add(("TYPE", unit.Kind switch
+		{
+			Sim.Units.EUnitKind.Navy => "NAVY",
+			Sim.Units.EUnitKind.Air => "EXP_SQUADRON",
+			_ => "ARMY",
+		}));
+		return message;
+	}
+
+	/// <summary>
 	/// The sound a pact's message makes for the player: its own where the player is the one told its first key - the actor,
 	/// or the country it names as told - and nothing for the recipient or anybody else (<c>docs/mechanics/sound.md</c>, section
 	/// 7). Asked only where the message itself was told, so a trade's, hidden from a player who automated his trade, is silent.

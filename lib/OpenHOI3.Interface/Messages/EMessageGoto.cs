@@ -23,4 +23,7 @@ public enum EMessageGoto
 
 	/// <summary>The province's bombing shown; with none the popup closes.</summary>
 	Bombing,
+
+	/// <summary>The selection cleared, the message's unit selected and the map centred on it; the popup closes.</summary>
+	Unit,
 }

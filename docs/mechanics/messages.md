@@ -108,13 +108,14 @@ cross the screen's right or bottom edge is moved to the screen's size less 10.
 | centres on the first country's acting capital | stays | `INDEPENDANCE`, `GIESWAPOTHER` |
 | centres as the first row | stays; closes with nowhere to go | `INVADEDUS`, `PARATROOPEDUS` |
 | closes the orders window and clears the selection, and then by type | stays | the 21 of `CMessageGotos.Screens` |
+| clears the selection, selects the message's unit and centres on it | closes, whatever it found | the three `UNITARRIVED` (`movement.md`, section 6, step 10) |
 | nothing | closes | events, decisions, laws and ministers, triggered modifiers and the like |
 
-The third-from-last row's "then by type": `DIPLOEXPIRE` selects the capital of the agreement's other side and opens the diplomacy screen on it; `TECH_ONCE` and `TECH_REPEAT` turn the technology screen on or off - **with it already up a Goto shuts it**, the original's; `BUILDING_DONE` centres as the first row; the others do nothing more.
+The fourth-from-last row's "then by type": `DIPLOEXPIRE` selects the capital of the agreement's other side and opens the diplomacy screen on it; `TECH_ONCE` and `TECH_REPEAT` turn the technology screen on or off - **with it already up a Goto shuts it**, the original's; `BUILDING_DONE` centres as the first row; the others do nothing more.
 
 Which province a message is about is `CPactMessage.Province`, set where it names one. `INVADEDUS` takes the first landing unit's province: *inferred*, the raise was not read for it.
 
-**Not raised here**: `EXPRETURNED`, `EXPRETURNEDWE` and the three `UNITARRIVED`, whose Goto selects the unit and closes the popup. `TECH_ONCE` and `TECH_REPEAT` are in the table and nothing raises them yet. `LEADERDIED`, `SHIPSUNK`, `MINISTER_DEATH`, `REINFORCE` and `RETURN_EXILE_US` are declared and raised by no code in the original either.
+**`EXPRETURNED` and `EXPRETURNEDWE` have the unit's Goto too** in the original; here their message carries no unit, so they are left out of that row and close doing nothing. The three `UNITARRIVED` are raised since 2026-11-14. `TECH_ONCE` and `TECH_REPEAT` are in the table and nothing raises them yet. `LEADERDIED`, `SHIPSUNK`, `MINISTER_DEATH`, `REINFORCE` and `RETURN_EXILE_US` are declared and raised by no code in the original either.
 
 ### 4.2 The settings of a type
 

@@ -659,4 +659,219 @@ public class MovementTests
 		Assert.False(new CMoveUnitCommand(Ger, 9999, Berlin).MayExecute(state));
 		Assert.True(new CMoveUnitCommand(Ger, unit.Id, Leipzig).MayExecute(state));
 	}
+
+	// --- too weak, and out of a neutral ---
+
+	private static CWar GermanyAgainstPoland()
+	{
+		var war = new CWar("a war");
+		war.Attackers.Add(Ger);
+		war.Defenders.Add(Pol);
+		return war;
+	}
+
+	/// <summary>A division at its full strength, which it has had: its strength over its most is the whole.</summary>
+	private static CUnit FullDivision(CGameState state, CCountry country, int province)
+	{
+		CUnit unit = Division(state, country, province, Infantry());
+		unit.SubUnits[0].Highest = unit.SubUnits[0].Strength;
+		return unit;
+	}
+
+	[Fact]
+	public void ALandUnitUnderItsShatterThresholdIsNeitherRoutedNorSentOntoGroundAnEnemyHolds()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country, new[] { GermanyAgainstPoland() });
+		CUnit unit = FullDivision(state, country, Berlin);
+		Assert.Equal(new[] { Potsdam, Posen }, Route(state, country, unit, Posen));
+
+		// A half is the threshold for a country with all its officers, no leader and no experience; under it, not onto
+		// Poland's ground - whether the goal or a step - while its own ground is open to it as before.
+		unit.SubUnits[0].Strength = CFixedPoint.Parse("49.9");
+		Assert.True(CMovementRules.IsTooWeak(state, unit));
+		Assert.Null(Route(state, country, unit, Posen));
+		Assert.False(CMovementRules.MayMoveTo(state, country, unit, state.Province(Posen)));
+		Assert.Equal(new[] { Potsdam, Dessau, Leipzig }, Route(state, country, unit, Leipzig));
+
+		unit.SubUnits[0].Strength = CFixedPoint.Parse("50");
+		Assert.False(CMovementRules.IsTooWeak(state, unit));
+		Assert.NotNull(Route(state, country, unit, Posen));
+
+		// A unit that has never had any strength is too weak.
+		unit.SubUnits[0].Highest = CFixedPoint.Zero;
+		unit.SubUnits[0].Strength = CFixedPoint.Zero;
+		Assert.True(CMovementRules.IsTooWeak(state, unit));
+	}
+
+	[Fact]
+	public void AnAirUnitOrAFleetIsNotHeldBackByTheLandUnitsTestsOfAStep()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country, new[] { GermanyAgainstPoland() });
+		var air = new CUnit(EUnitKind.Air, Ger) { Id = ++state.LastUnitId, Location = Potsdam };
+		air.SubUnits.Add(new CSubUnit(Type("interceptor", "300", fuel: "1")) { Id = ++state.LastUnitId, Unit = air });
+		country.Units.Add(air);
+		air.FuelReceived = CFixedPoint.Zero;
+		CProvince posen = state.Province(Posen);
+		CProvinceEdge edge = state.Province(Potsdam).EdgeTo(Posen)!.Value;
+
+		Assert.True(CMovementRules.IsTooWeak(state, air));                     // it has never had any strength
+		Assert.True(CMovementRules.MayStep(state, country, air, state.Province(Potsdam), posen, edge));
+	}
+
+	/// <summary>
+	/// The strip with Potsdam held by a third country, the Netherlands, which Germany may have military access through:
+	/// Berlin - Potsdam (Dutch) - Posen (Polish), and Dessau and Leipzig beyond Potsdam.
+	/// </summary>
+	private static (CGameState State, CCountry Germany, CCountry Holland) ThroughANeutral(bool hollandAtWar)
+	{
+		CCountry germany = Germany();
+		var holland = new CCountry { Tag = new CCountryTag("HOL"), Name = "Holland", DefinitionFile = "" };
+		var poland = new CCountry { Tag = Pol, Name = "Poland", DefinitionFile = "" };
+		CWar war = GermanyAgainstPoland();
+		if (hollandAtWar)
+		{
+			war.Attackers.Add(holland.Tag);
+		}
+		var defines = new CDefines();
+		defines.Set(CManpower.MilitarySection, CMovementSpeed.LandSpeedModifier, CFixedPoint.Parse("0.05"));
+		var state = new CGameState(new CDate(1936, 1, 1),
+			new[]
+			{
+				new CProvince(0, "", isSea: false),
+				Land(Berlin, "Berlin", Ger, Plains, Edge(Potsdam, "1")),
+				Land(Potsdam, "Potsdam", holland.Tag, Plains, Edge(Berlin, "2"), Edge(Dessau, "1"), Edge(Posen, "1")),
+				Land(Dessau, "Dessau", Ger, Forest, Edge(Potsdam, "1"), Edge(Leipzig, "1")),
+				Land(Leipzig, "Leipzig", Ger, Plains, Edge(Dessau, "1")),
+				Land(Posen, "Posen", Pol, Plains, Edge(Potsdam, "1")),
+			},
+			new[] { germany, holland, poland }, CTestRoads.With(), defines: defines, wars: new[] { war }).Paved();
+		CGameState.Status(germany, holland).HasMilitaryAccess = true;
+		return (state, germany, holland);
+	}
+
+	[Fact]
+	public void ACountryDoesNotAttackOutOfANeutralThatOnlyLetsItThrough()
+	{
+		(CGameState state, CCountry germany, CCountry holland) = ThroughANeutral(hollandAtWar: false);
+		CUnit unit = FullDivision(state, germany, Berlin);
+
+		// Through the Dutch province to German ground, and onto it, as before; into Poland out of it, not.
+		Assert.Equal(new[] { Potsdam, Dessau }, Route(state, germany, unit, Dessau));
+		Assert.Equal(new[] { Potsdam }, Route(state, germany, unit, Potsdam));
+		Assert.Null(Route(state, germany, unit, Posen));
+		Assert.False(CMovementRules.MayLandUnitStep(state, unit, state.Province(Potsdam), state.Province(Posen)));
+
+		// A unit already standing there is refused the step as well.
+		unit.Location = Potsdam;
+		Assert.Null(Route(state, germany, unit, Posen));
+	}
+
+	[Fact]
+	public void OutOfAProvinceHeldByAnAllyAtWarWithTheEnemyOrWithoutAccessTheStepIsOpen()
+	{
+		(CGameState atWar, CCountry germany, _) = ThroughANeutral(hollandAtWar: true);
+		CUnit unit = FullDivision(atWar, germany, Berlin);
+		Assert.Equal(new[] { Potsdam, Posen }, Route(atWar, germany, unit, Posen));
+
+		// Without access the rule does not apply - here it is a faction that lets Germany in.
+		(CGameState faction, CCountry germany2, CCountry holland) = ThroughANeutral(hollandAtWar: false);
+		CGameState.Status(germany2, holland).HasMilitaryAccess = false;
+		germany2.Faction = "axis";
+		holland.Faction = "axis";
+		CUnit other = FullDivision(faction, germany2, Berlin);
+		Assert.Equal(new[] { Potsdam, Posen }, Route(faction, germany2, other, Posen));
+	}
+
+	// --- the message that a unit has arrived ---
+
+	[Fact]
+	public void APlayedCountrysUnitIsToldItHasArrivedAtTheEndOfItsWayAndNotBefore()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		state.Played.Add(Ger);
+		var told = new List<(int Unit, int Where)>();
+		state.UnitArrived += arrived => told.Add((arrived.Id, arrived.Location));
+		CUnit unit = Division(state, country, Berlin, Type("fast", "6"));
+		unit.Path.AddRange(new[] { Potsdam, Dessau });
+		unit.MovementProgress = CFixedPoint.Parse("0.9");
+
+		CMovement.RunHourly(state);                                            // into Potsdam, Dessau still ahead
+		Assert.Equal(Potsdam, unit.Location);
+		Assert.Empty(told);
+
+		for (int hour = 0; hour < 3 && unit.IsMoving; hour++)
+		{
+			CMovement.RunHourly(state);
+		}
+		Assert.Equal(Dessau, unit.Location);
+		Assert.Equal(new[] { (unit.Id, Dessau) }, told);
+	}
+
+	[Fact]
+	public void AnUnplayedCountrysUnitIsToldNothing()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		int told = 0;
+		state.UnitArrived += _ => told++;
+		CUnit unit = Division(state, country, Berlin, Type("fast", "6"));
+		unit.Path.Add(Potsdam);
+		unit.MovementProgress = CFixedPoint.Parse("0.9");
+
+		CMovement.RunHourly(state);
+		Assert.Equal(Potsdam, unit.Location);
+		Assert.Equal(0, told);
+	}
+
+	[Fact]
+	public void AnAirUnitIsToldOnlyAtItsBaseAndAFleetOnPatrolOrAtConvoysNever()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		state.Played.Add(Ger);
+		var air = new CUnit(EUnitKind.Air, Ger) { Location = Potsdam, Base = Berlin };
+		var fleet = new CUnit(EUnitKind.Navy, Ger) { Location = Potsdam };
+		var division = new CUnit(EUnitKind.Division, Ger) { Location = Potsdam };
+
+		Assert.False(CArrival.IsTold(state, air));
+		air.Location = Berlin;
+		Assert.True(CArrival.IsTold(state, air));
+		Assert.True(CArrival.IsTold(state, fleet));
+		foreach (EUnitOrder order in new[] { EUnitOrder.Patrol, EUnitOrder.ConvoyEscort, EUnitOrder.ConvoyRaid })
+		{
+			fleet.Order = order;
+			Assert.False(CArrival.IsTold(state, fleet));
+		}
+		fleet.Order = EUnitOrder.Sortie;
+		Assert.True(CArrival.IsTold(state, fleet));
+		division.Order = EUnitOrder.StrategicRedeployment;
+		Assert.True(CArrival.IsTold(state, division));
+
+		Assert.Equal(CArrival.Land, CArrival.TypeOf(division));
+		Assert.Equal(CArrival.Naval, CArrival.TypeOf(fleet));
+		Assert.Equal(CArrival.Air, CArrival.TypeOf(air));
+	}
+
+	[Fact]
+	public void AUnitHaltedOnArrivalWhereItMayNoLongerStandIsToldItHasArrivedWhereItWas()
+	{
+		CCountry country = Germany();
+		CGameState state = State(country);
+		state.Played.Add(Ger);
+		var told = new List<int>();
+		state.UnitArrived += arrived => told.Add(arrived.Location);
+		CUnit unit = Division(state, country, Potsdam, Type("fast", "6"));
+		unit.Path.Add(Dessau);
+		unit.MovementProgress = CFixedPoint.Parse("0.9");
+		state.Province(Dessau).Owner = Pol;                                     // a neutral's now: it may not stand there
+		state.Province(Dessau).Controller = Pol;
+
+		CMovement.RunHourly(state);
+		Assert.Equal(Potsdam, unit.Location);
+		Assert.False(unit.IsMoving);
+		Assert.Equal(new[] { Potsdam }, told);
+	}
 }

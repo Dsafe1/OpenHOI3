@@ -151,6 +151,8 @@ public class TransportTests
 			{
 				Id = ++state.LastUnitId, Unit = division, Strength = CFixedPoint.FromInt(3), Organisation = CFixedPoint.FromInt(30),
 				Name = "brigade " + i,
+				// The most it has had: a brigade that never had any is under its shatter threshold, and lands nowhere an enemy holds.
+				Highest = CFixedPoint.FromInt(3),
 			};
 			brigade.Stats.CopyFrom(Infantry.Stats);
 			division.SubUnits.Add(brigade);
