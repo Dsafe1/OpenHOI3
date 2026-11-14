@@ -169,6 +169,7 @@ public static class CUnitAiPass
 		}
 		if (hour == (number + 16) % CGameState.HoursPerDay)
 		{
+			CAgentProfile.Time(state, "the promotions", () => CLeaderPromotion.Run(state, country));
 			CAgentProfile.Time(state, "the fleet movers", () => CFleetMovers.Distribute(state, country));
 			CAirDistribution.Run(state, country);
 		}

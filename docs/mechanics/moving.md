@@ -477,6 +477,14 @@ out-of-supply where it is short, for winter attrition where it stands in a weath
 supply and fuel use) for supply consumption, x1.1 otherwise; half for a police or garrison division. The leader is put on
 with both costs - his banked hours and the unit's organisation. **A leader in place is never changed.**
 
+**Promotions**, for a country the AI runs, at hour (number + 16) % 24: its headquarters with no leader counted by level,
+divisions left out; then from the corps up to the theatre, one each, the first free land leader in service is promoted
+by (4 - his rank) - (the level - 1, or nought) ranks where that is one or more - a theatre or an army group to rank 4, an
+army to 3, a corps to 2 - so that the leader pass can put him in command; fleets and air units are never promoted for.
+Luxembourg's theatre, Force Publique, has Felix Bourbon-Parma raised from rank 2 to 4 on a new game's first day and given
+him on the second, its organisation halved by his coming - the enemy power Paris and Strasbourg see falls with it
+(`confirmed` on the running game, `reversing/findings/FINDINGS-liveread.md`, section 80; `CEU3AI_PromoteLeadersForCommands`).
+
 **Stranded units**, for a country the AI runs, at its first pass and at hour (number + 16) % 24: each land unit standing,
 not aboard, not fighting or retreating, in a province another country holds - not an enemy - in an area it may not widen
 its fronts into, and not bound for its own land, an enemy's or such an area, is sent home: the nearest of its own

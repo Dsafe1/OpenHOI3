@@ -16,11 +16,18 @@ public sealed class CPromoteLeaderCommand : CCommand
 
 	private readonly int _leader;
 	private readonly bool _down;
+	private readonly int _steps;
 
-	public CPromoteLeaderCommand(int leader, bool down)
+	public CPromoteLeaderCommand(int leader, bool down) : this(leader, down, 1)
+	{
+	}
+
+	/// <summary>A move of several ranks at once, as the AI's promotion gives it (FINDINGS-liveread.md, section 80).</summary>
+	public CPromoteLeaderCommand(int leader, bool down, int steps)
 	{
 		_leader = leader;
 		_down = down;
+		_steps = steps;
 	}
 
 	public override bool MayExecute(CGameState state)
@@ -40,6 +47,6 @@ public sealed class CPromoteLeaderCommand : CCommand
 
 	private int NewRank(CLeader leader)
 	{
-		return _down ? leader.Rank - 1 : leader.Rank + 1;
+		return _down ? leader.Rank - _steps : leader.Rank + _steps;
 	}
 }

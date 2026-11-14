@@ -177,7 +177,8 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    in three runs. With a ship weighed once in the naval score and a country's own fleets handed out within the same reach
    as the enemy's (section 78), the plans' `min` 105 of 106 and 106 of 106 against the played save - the one left, Japan's
    Kwantung Army, is the hourly run's own: run B and a third run have ours. With a unit lent out counted by neither country
-   for its officers (section 79), the plans' own power 96 of 106.
+   for its officers (section 79), the plans' own power 96 of 106; with the AI's promotions for its leaderless headquarters
+   (section 80), the enemy power 99 of 106.
    **The plans' embark and debark that still differ vary with the original's own run**: two runs of the same new game gave
    Australia, Republican Spain and the Dutch East Indies other targets or another order of votes, and Japan another port;
    a third run, watched live, gave Australia a third order of its sealift's areas and a third debark (section 71) - so its
