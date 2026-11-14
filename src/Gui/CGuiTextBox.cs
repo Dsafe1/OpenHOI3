@@ -437,28 +437,36 @@ public partial class CGuiTextBox : CGuiObject
 			DrawPicture(this, picture, new Vector2(type.BorderSize.X, type.BorderSize.Y), shownWidth, shownHeight,
 				type.BorderSize.X, type.BorderSize.Y);
 		}
-		float y = type.BorderSize.Y + _font.Ascent;
-		// An edit box's text starts further in than a text box's: nearly a second border
-		// across, and a little more than one down. Measured against a screenshot of the
-		// original's unit panel, whose name box has a border of 8 by 4 and its text 15
-		// across and 9 down from its corner; the routine that draws an edit box was not
-		// read, so the one case is all the rule there is.
-		Vector2 inset = type.IsEdit ? new Vector2(type.BorderSize.X - 1, type.BorderSize.Y + 1) : Vector2.Zero;
-		y += inset.Y;
-
-		// A box that takes typing shows the line its caret is on and only that, and the caret while it has the keyboard:
-		// the `cursor` sprite past the border by the width before it and 3, a line's height down for each line above.
-		if (Editor is not null)
+		// An edit box's line stands as the original's object that draws it places a textBoxType's line that fits: the
+		// border in twice across, and down the border twice or, with a picture behind it, the border and half of what the
+		// box's height leaves the line - a unit lower here where there is no picture (CEditLinePlacement; interface.md,
+		// section 8). It shows one line, set left whatever the box's format.
+		if (type.IsEdit)
 		{
-			string shown = Editor.ShownLine;
-			float x = inset.X + CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, _font.Width(shown));
-			_context?.TextIcons.Draw(this, _font, shown, x, y - _font.Ascent, Colour ?? _font.Color);
-			if (HasKeyboard && Editor.CaretShown && _context?.Sprites.Find("cursor") is { } sprite
-				&& _context.Textures.Load(sprite) is { } caret)
+			bool hasPicture = _picture is not null;
+			float left = CEditLinePlacement.Left(type.BorderSize.X);
+			float top = CEditLinePlacement.Top(type.MaxWidth, type.MaxHeight, type.BorderSize.Y, _font.LineHeight, hasPicture);
+
+			// A box that takes typing shows the line its caret is on and only that, and the caret while it has the
+			// keyboard: the `cursor` sprite past the border by the width before it and 3, a line's height down for each
+			// line above.
+			if (Editor is not null)
 			{
-				float across = type.BorderSize.X + _font.Width(shown[..Editor.CaretColumn]) + 3f;
-				float down = type.BorderSize.Y + _font.LineHeight * Editor.CaretRow;
-				DrawTexture(caret, new Vector2(across, down));
+				string shown = Editor.ShownLine;
+				_context?.TextIcons.Draw(this, _font, shown, left, top, Colour ?? _font.Color);
+				if (HasKeyboard && Editor.CaretShown && _context?.Sprites.Find("cursor") is { } sprite
+					&& _context.Textures.Load(sprite) is { } caret)
+				{
+					float across = type.BorderSize.X + _font.Width(shown[..Editor.CaretColumn]) + 3f;
+					float down = CEditLinePlacement.CaretTop(type.BorderSize.Y, _font.LineHeight, Editor.CaretRow, hasPicture);
+					DrawTexture(caret, new Vector2(across, down));
+				}
+				return;
+			}
+			foreach (List<CTextRun> line in _lines)
+			{
+				DrawLine(this, line, left, top);
+				top += _font.LineHeight;
 			}
 			return;
 		}
@@ -468,11 +476,12 @@ public partial class CGuiTextBox : CGuiObject
 		{
 			return;
 		}
+		float y = type.BorderSize.Y;
 		float widest = Widest();
 		foreach (List<CTextRun> line in _lines)
 		{
-			float x = inset.X + CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, LineWidth(line), widest);
-			DrawLine(this, line, x, y - _font.Ascent);
+			float x = CGuiLayout.TextStart(type.Format, type.Orientation, type.BorderSize.X, type.MaxWidth, LineWidth(line), widest);
+			DrawLine(this, line, x, y);
 			y += _font.LineHeight;
 		}
 	}

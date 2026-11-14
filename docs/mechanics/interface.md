@@ -670,12 +670,15 @@ scalable canvas of section 3 could not survive. So:
   children are all there in their order and their names are known. A window counts how
   many it could not draw.
 - **An edit box is shown as the box of text it holds**, found by its name like any text
-  box, with the `size` it declares for room; typing into one is section 8. Its text starts
-  **further in than a text box's**: one less than a second border across, and one more
-  than a second border down. *Measured* on the same screenshot, from the one edit box
-  drawn so far - the unit's name, whose box has a border of 8 by 4 and its text 15 across
-  and 9 down from its corner. The routine that draws an edit box was not read, so that
-  one case is all the rule there is.
+  box, with the `size` it declares for room; typing into one is section 8. **Where its line
+  stands is section 8 since 2026-11-14** (`CEditLinePlacement`): the border in twice across,
+  and down the border twice, or with a picture behind it the border and half of what the
+  box's height leaves the line - read, and set beside two screenshots of the original
+  glyph row for glyph row. ~~Its text starts further in than a text box's: one less than a
+  second border across, and one more than a second border down, *measured* on the same
+  screenshot from the unit's name, 15 across and 9 down from its corner~~ - the 9 holds
+  (section 8); the 15 was one short, the original's `5` of "5th Air wing" standing 17 in
+  where 15 put a letter of no side bearing 16 in.
 - **An icon's `rotation` turns it about the middle of its lower left pixel, and a positive
   quarter stands it on its end, running upwards.** So an icon `w` long and `h` high at
   `(x, y)`, turned a quarter, covers `x - h + 1` to `x + 1` across and `y + h - w` to
@@ -797,15 +800,34 @@ Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/
   section 2.2.2): handed the box's whole `size`, its border, format left and not of fixed size, so it fits, and put
   the border in from the box's corner. A line of the layout is narrower than that object's room, so it is never broken
   again.
+- **So the line stands as a `textBoxType`'s that fits** (section 6; `CEditLinePlacement`): its pen **the border in
+  twice** across, set left whatever the box's `format`; and its top **the border down twice** - or, where the box's
+  `textureFile` gives a picture behind it, **the border and half of what the box's height leaves the line**, cut
+  towards nought, the line's height being the font descriptor's `lineHeight` (the font's loader takes it positionally
+  from the `common` line, `reversing/findings/FINDINGS-textdraw.md`, section 2.2.1 as amended 2026-11-14). [exe] for the
+  rule, [mod] for the sizes, border, font and picture. Each glyph is then drawn as section 6 draws every glyph, a unit
+  right - and up and down as *measured* below.
+  *Measured* on two screenshots of the original, glyph row for glyph row (2026-11-14): **the save dialog's `game_name`**
+  (260 by 32, border 8 by 6, `small_tiles_dialog`, `Arial12_bold` of line 14 and capitals 3 to 10 down it), a name typed
+  - its capitals stand 17 to 24 below the box's top, its `_` 26, its first letter's ink 17 in and every later one where
+  its pen puts it, 6 + (32 - 14) / 2 = 15 and a unit up; and **the unit panel's `unitname`** (235 by 24, border 8 by 4,
+  no picture, the same font) - its figures 11 to 18 below the box's top and its first letter 17 in, 4 + 4 = 8 and **not**
+  a unit up. So with a picture the line's glyphs are a unit higher than without one, which the reading's arithmetic does
+  not give; why was not found (`reversing/findings/FINDINGS-textdraw.md`, *What is not established*). Here a line with no
+  picture is put a unit lower to cancel the unit up every glyph is drawn with. Set so, both lie on the original's row
+  for row; across, each letter is within a unit of the original's, the typeface here being another (section 6).
 - **The caret** is the `cursor` sprite [mod: `interface/core.gfx`, `gfx/interface/textcursor`], past the box's border
-  by the width of its line before it and 3, and a line's height down for each line above its own. **It is on for half
-  a second and off for half a second**, and a key taken hides it until it next comes on - up to a second.
+  by the width of its line before it and 3, and a line's height down for each line above its own - **and a unit higher
+  where a picture is behind the line**, as the line is: `game_name`'s bar, rows 5 to 20 of its picture, stands 10 to
+  25 below the box's top on the screenshot, where the border's 6 puts it 11 to 26 (*measured*; no caret was seen in a
+  box without a picture). **It is on for half a second and off for half a second**, and a key taken
+  hides it until it next comes on - up to a second.
 - **A box's `textureFile` is drawn behind its text** [mod: the `.gui`], in the nine parts of section 6 - its corners
   kept to the box's `borderSize` and the rest **stretched** between them - **from the border to 2 short of the box's
   right and bottom edges**, where the border that way is not nought. *Measured* first on the maintainer's screenshot
   of the save dialog (2026-11-05): `game_name`, 260 by 32 with a border of 8 by 6, shows `small_tiles_dialog`'s rim 246
-  by 20 at 10 and 8 in - the picture has 2 clear all round - and set beside it ours lies on it to the pixel, the text
-  and the caret with it. **Read on 2026-11-14** (`reversing/findings/FINDINGS-textdraw.md`, section 2.2.2), and the
+  by 20 at 10 and 8 in - the picture has 2 clear all round - and set beside it ours lies on it to the pixel (the text
+  and the caret were said to as well, and were two and one pixels off - the bullets above). **Read on 2026-11-14** (`reversing/findings/FINDINGS-textdraw.md`, section 2.2.2), and the
   reading gives exactly that: the object that draws the line stands the border in and shows the box less the border,
   and the picture is that less two each way. Until then it was repeated between the corners, which on these even panels
   looks the same, and an edit box with no border down - the lobby's in a game, the metaserver's - was 2 short at the
@@ -820,15 +842,11 @@ Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/
   box given a most (`CEditText.MaxLines`) is held so, the unit panel's name to one line.
 - **A character Windows-1252 has no byte for is not taken** and goes on; the original's window would be handed the
   code page's own stand-in. Text set by code puts the caret at its end, where the original's was not read.
-- **The text stands where section 7 measured it**, 15 across and 9 down in the unit panel's box, and the caret where
-  it was read. On the maintainer's screenshot of the save dialog both lie on the original's to within a pixel, the
-  caret's bar two units past the character before it. **The reading disagrees in one case**: the object that draws the
-  line places it as a `textBoxType` that fits (section 6) - the border across, twice from the box's corner, and down
-  the border twice, or, with a picture, the border and half of what the box's height leaves the line. For the unit
-  panel's name, with no picture, that is 16 and 8, which is the measured 15 and 9 once the glyph's own unit right and
-  up here is counted; for `game_name`, with a picture, it is 6 + (32 - 14) / 2 = 15 down, three below where ours stands
-  and the screenshot was matched. Kept as measured until a screenshot settles it
-  (`reversing/findings/FINDINGS-textdraw.md`, *What is not established*).
+- ~~**The text stands where section 7 measured it**, 15 across and 9 down in the unit panel's box~~ - until
+  2026-11-14, when the maintainer's screenshot of the save dialog with a name typed showed `game_name`'s line two
+  pixels lower than that and its caret one higher, and the reading's placing (above) was taken with the one unit
+  measured. The caret's bar on that screenshot stands a unit right of ours, the line before it being a unit wider in
+  the original's font than in the typeface here.
 
 Not established: how a button matches its shortcut, so whether the original lets an Escape typed into the box insert
 its character before `cancel` takes it, and whether a box with the keyboard keeps Enter from a button whose shortcut it
@@ -843,13 +861,14 @@ is; where the caret goes across a space a line was cut at.
    places its lines and cuts them off are read since 2026-11-14, and so are the line an edit box
    shows, the box a button's caption is given and the nine parts of a `textBoxType`'s picture): the
    five orientations other than the upper left and right, why the pictures sit half a pixel the other
-   way from the text, which container crops a `textBoxType`'s picture, and where an edit box with a
-   picture puts its line up and down (section 8).
+   way from the text, which container crops a `textBoxType`'s picture, and why an edit box's line with
+   a picture behind it stands a unit higher than the reading's arithmetic and one without does not
+   (section 8) - which may mean a `textBoxType` with no picture is drawn a unit too high here, since
+   both lines go through the one routine; no screenshot has shown one.
 3. **Where the position is measured to** - that it is the upper left corner is a fit on
    the files - and how `rotation` and `scale` turn and size an icon. A quarter turn is applied
-   as section 7 says - one way for a bar and another for a flag - and **where an edit box
-   puts its text** likewise: all measured on screenshots of the original, none read. Nor is
-   why a bar's picture is drawn upside down (section 5).
+   as section 7 says - one way for a bar and another for a flag - all measured on screenshots of
+   the original, none read. Nor is why a bar's picture is drawn upside down (section 5).
 4. **The keys each kind takes, other than a window's.**
 5. **Which of two buttons or icons of one name is found.**
 6. **What frame 0 draws**, and whether an icon's frames are counted from nought.

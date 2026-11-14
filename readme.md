@@ -2296,9 +2296,13 @@ None of these blocks the list above.
   centred up and down where it has a picture behind it, and **cut off past its height and width less its border** -
   and **the picture behind its text is drawn**, nine parts stretched, two short of the shown part's far edges where its
   border is not nought (`CTextBoxPicture`, section 2.2.2), the tooltip's and an edit box's alike. Not built: the one-unit
-  squeeze of that picture on screen, the original's nearest sampling of it, and - **a disagreement to settle** - where an
-  edit box with a picture puts its line up and down: the reading puts `game_name`'s three pixels lower than the measured
-  placing kept here (`interface.md`, section 8). The maintainer has not looked at the screens since these changes.
+  squeeze of that picture on screen and the original's nearest sampling of it. **Where an edit box puts its line is
+  settled since the same day** (`CEditLinePlacement`; `interface.md`, section 8): as that routine places a line that
+  fits - the border in twice across, and down the border twice or, with a picture, centred in the box's height - set
+  beside the maintainer's screenshot of the original's save dialog with a name typed and his of the unit panel, glyph
+  row for glyph row; `game_name`'s line is two lower than before and its caret one higher, and every edit box's text
+  one further right. Measured and not read: the line with a picture stands a unit higher than the one without, against the
+  reading's arithmetic - why was not found. The maintainer has not looked at the screens since these changes.
 - **Four rules of how the interface draws are measured on screenshots and not read**: a
   bar's picture upside down, where a turned flag stands, where a round shield puts its
   flag, and where a name too long for its box is cut - the last of which ends ten pixels
@@ -2399,8 +2403,9 @@ None of these blocks the list above.
   its tip is whole all the same, which was not made out. Where a moving unit's counter
   stands is from one screenshot, by a stack whose depth had to be counted off its edges.
   `docs/mechanics/movement.md`, section 7, and `mapunits.md`, sections 1 and 2.
-- **Where an edit box puts its text and how a rotated icon is placed are measured and not read**, both from the
-  unit panel alone (`docs/mechanics/interface.md`, section 7). A unit is renamed from its name box since 2026-11-12
+- **How a rotated icon is placed is measured and not read**, from the unit panel alone (`docs/mechanics/interface.md`,
+  section 7). Where an edit box puts its text is read since 2026-11-14 but for one unit up and down that differs with a
+  picture behind the line, measured on two screenshots (section 8). A unit is renamed from its name box since 2026-11-12
   (`unitpanel.md`, section 3).
 - **Attrition is built since 2026-11-14** (`upkeep.md`, section 3a): a land unit out of battle wears down each day by its
   province, the weather and the ground, and the panel shows its figure. The panel's tooltip breaking the figure into its
