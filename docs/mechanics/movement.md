@@ -62,7 +62,9 @@ march's own are here.
 - Nothing happens for a unit with no brigades. `confirmed`. The original also refuses a
   retreating unit and one under an AI's command.
 - **That is a land unit's click.** A fleet's and an air unit's bring up a window of orders,
-  and only a fleet with shift held is sent straight there: `fleetsandair.md`, section 4.
+  and only a fleet with shift held, or either in a battle, is sent straight there: `fleetsandair.md`, section 4. **An air
+  unit in a battle is asked nothing** - none of the test above, not its range - is marked sent and is given the plain
+  move whatever comes of it. `confirmed` (`reversing/findings/FINDINGS-movement.md`, section 13.2).
 
 The click posts a **command**, and the way is worked out when the command runs, so that
 every machine works out the same one: `CMoveUnitCommand(country, unit, province, append)`,
@@ -559,8 +561,9 @@ with what is left over carried into the next leg as the march itself carries it.
     **neither the mark nor the sound where no way leads to the axis**. A fleet sent straight there,
     the sent mark, or the refused mark where its range refuses it; **a province no sea of its
     reaches, the refused mark and `error`, with Shift as without** - the sea's test is asked before
-    anything else - unless the coast opens the orders window for what it carries. The orders
-    window, opened, leaves none;
+    anything else - unless the coast opens the orders window for what it carries. An air unit in a
+    battle, sent straight on, the sent mark, never the refused one. The orders window, opened, leaves
+    none;
   - **how it plays out** [mod: the declaration's figures, exe: the rules], on the process's clock
     and not the game's, so a paused game's marks play out too: it grows from 0.1 of a unit to
     `size` over `expanding` seconds at full alpha; then, where `pulsating`, its alpha is
@@ -631,9 +634,10 @@ with what is left over carried into the next leg as the march itself carries it.
 - ~~**Walking on a puppet's, an overlord's or an ally's ground, or with military access.**~~
   Built 2026-11-11, with every other friend test the original's (section 3).
 - ~~**The message** that a unit has arrived~~ - built 2026-11-14 (section 6) - ~~and the sounds
-  and the marks of the click~~ - built, the marks 2026-11-14 (section 7). **Left of the click**: an air
+  and the marks of the click~~ - built, the marks 2026-11-14 (section 7). ~~**Left of the click**: an air
   unit in a battle the original sends straight on with the sent mark and nothing asked, where this
-  project opens the orders window for every air unit (`sound.md`, section 7). ~~And `selection_projection`~~ -
+  project opens the orders window for every air unit (`sound.md`, section 7).~~ Built 2026-11-14 (section 1;
+  `fleetsandair.md`, section 4). ~~And `selection_projection`~~ -
   read 2026-11-14 and the original's only without counters, so not drawn here (section 7).
 - **The tooltip** that says when a unit will arrive.
 

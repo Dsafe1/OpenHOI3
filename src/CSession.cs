@@ -1656,7 +1656,8 @@ public partial class CSession : Node
 	/// <summary>
 	/// A right click on the map with units selected: each is given it in turn, in the order selected. A fleet or an
 	/// air unit that would bring the orders window up finds it up already for the first and does nothing, so without
-	/// Shift several of them move nobody (selection.md, section 3).
+	/// Shift several fleets move nobody and several air units never do - but one in a battle is still sent straight
+	/// there, wherever it comes in the selection (selection.md, section 3).
 	/// </summary>
 	private void OrderUnits(IReadOnlyList<CUnit> units, int province, bool append)
 	{
@@ -1673,11 +1674,20 @@ public partial class CSession : Node
 		}
 		foreach (CUnit unit in units)
 		{
-			if (_orders is { IsOpen: true })
-			{
-				continue;
-			}
 			OrderUnit(unit, province, append);
+		}
+	}
+
+	/// <summary>
+	/// The orders window brought up for a unit - nothing where the click has brought it up already for a unit before
+	/// this one, as the original's <c>CInGameIdler::OpenOrdersView</c> does nothing where a window of that kind is up
+	/// (selection.md, section 3).
+	/// </summary>
+	private void OpenOrders(CUnit unit, int province)
+	{
+		if (_orders is { IsOpen: false })
+		{
+			_orders.Open(unit, province);
 		}
 	}
 
@@ -1725,16 +1735,25 @@ public partial class CSession : Node
 		}
 		if (unit.Kind == EUnitKind.Air)
 		{
-			// An air unit is always asked what it is to do there, and sounds its move whatever comes of it (sound.md,
-			// section 7).
-			_orders?.Open(unit, province);
+			// An air unit in no battle is asked what it is to do there, Shift or not; one in a battle is sent straight
+			// there, marked sent with nothing asked. Either sounds its move (fleetsandair.md, section 4; sound.md, section 7).
+			if (!unit.IsFighting)
+			{
+				OpenOrders(unit, province);
+			}
+			else
+			{
+				_mapView.ShowOrderMark(unit, province, legal: true);
+				_simulation.Post(new CMoveUnitCommand(Player.Tag, unitId, province, append));
+				_ordered = true;
+			}
 			Sounds?.PlayUnlessPlaying(CSelectionSounds.Moved(unit));
 			return;
 		}
 		// A land unit with Ctrl held is asked too, in the land window (landorders.md, section 1).
 		if (CMovementRules.IsLandUnit(unit) && Input.IsKeyPressed(Key.Ctrl))
 		{
-			_orders?.Open(unit, province);
+			OpenOrders(unit, province);
 			return;
 		}
 		if (unit.Kind == EUnitKind.Navy)
@@ -1759,7 +1778,7 @@ public partial class CSession : Node
 			}
 			else if (!append && !unit.IsFighting)
 			{
-				_orders?.Open(unit, province);
+				OpenOrders(unit, province);
 				return;
 			}
 			else

@@ -324,7 +324,7 @@ public class FleetsAndAirTests
 	}
 
 	[Fact]
-	public void AFleetSentStraightThereGoesOnlyWithinItsRangeAndAnAirUnitNotAtAll()
+	public void AFleetSentStraightThereGoesOnlyWithinItsRangeAndAnAirUnitOnlyByAPlayer()
 	{
 		CGameState state = State(out CCountry country);
 		CUnit fleet = Fleet(state, country, Kiel, range: "160");
@@ -334,7 +334,10 @@ public class FleetsAndAirTests
 		Assert.True(new CMoveUnitCommand(Ger, fleet.Id, Baltic).MayExecute(state));
 		Assert.False(new CMoveUnitCommand(Ger, fleet.Id, Danzig).MayExecute(state));
 		Assert.False(new CMoveUnitCommand(Ger, fleet.Id, Hamburg).MayExecute(state));
-		Assert.False(new CMoveUnitCommand(Ger, wing.Id, Hamburg).MayExecute(state));
+		// An air unit a player sends straight there - from a battle - is asked nothing, beyond its range too; the AI's move
+		// takes none.
+		Assert.True(new CMoveUnitCommand(Ger, wing.Id, Hamburg).MayExecute(state));
+		Assert.False(new CMoveUnitCommand(Ger, wing.Id, Hamburg, ai: true).MayExecute(state));
 
 		// It takes the place of whatever order the fleet had.
 		CUnitOrders.Give(state, country, fleet, EUnitOrder.Rebase, Danzig);

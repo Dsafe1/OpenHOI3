@@ -15,8 +15,11 @@ namespace OpenHOI3.Sim.Commands;
 ///
 /// A land unit and a fleet take it; a fleet a player orders only within its range - the original asks it where the player
 /// orders (<c>CUnit::OrderToProvince</c>, the orders window), not in the command, so the AI's own move asks none
-/// (<c>reversing/findings/FINDINGS-liveread.md</c>, section 84). It leaves the unit with no order. An air unit is sent by an order of its own: see
-/// <c>CSetUnitOrderCommand</c>.
+/// (<c>reversing/findings/FINDINGS-liveread.md</c>, section 84). It leaves the unit with no order. An air unit takes it
+/// from a player's right click while it is in a battle, which sends it straight there with nothing asked
+/// (<c>CUnit::OrderToProvince</c>; <c>docs/mechanics/fleetsandair.md</c>, section 4): the route alone decides, and the
+/// unit leaves its battle as any unit given a way does. Otherwise an air unit is sent by an order of its own - see
+/// <c>CSetUnitOrderCommand</c> - and the AI's move takes none (ours: the AI sends its air units by orders).
 /// </summary>
 public sealed class CMoveUnitCommand : CCommand
 {
@@ -49,10 +52,16 @@ public sealed class CMoveUnitCommand : CCommand
 		{
 			return false;
 		}
-		if (unit.Kind == EUnitKind.Air || unit.Location <= 0 || unit.SubUnits.Count == 0
+		if ((unit.Kind == EUnitKind.Air && _ai) || unit.Location <= 0 || unit.SubUnits.Count == 0
 			|| _province <= 0 || _province >= state.Provinces.Count)
 		{
 			return false;
+		}
+		// An air unit's click asks nothing, and neither does the original's command: whether it may stand there is the
+		// route's to ask (movement.md, section 1).
+		if (unit.Kind == EUnitKind.Air)
+		{
+			return true;
 		}
 		if (unit.Kind == EUnitKind.Navy && !_ai && !CUnitOrders.IsInRange(state, unit, unit.Order, state.Province(_province)))
 		{

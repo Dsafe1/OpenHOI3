@@ -138,7 +138,7 @@ only ever made by the check. Nothing is cached on disk.
 
 ## 4. The window of orders
 
-**A right click with a fleet or an air unit selected does not send it: it asks.** `confirmed`
+**A right click with a fleet or an air unit selected does not send it: it asks** - unless it is in a battle. `confirmed`
 
 | | |
 | --- | --- |
@@ -146,7 +146,21 @@ only ever made by the check. Nothing is cached on disk.
 | a fleet, **shift** held | it is sent straight there, if the province is in range: a move with no order |
 | a fleet under way, clicked where it is | it halts |
 | a fleet, a province it cannot reach by sea | nothing, and the error sound |
-| an air unit, shift or none | the window `air_unit_order` |
+| a fleet in a battle | as with shift |
+| an air unit in no battle, shift or none | the window `air_unit_order` |
+| **an air unit in a battle**, shift or none | **sent straight there**: the sent mark and a move with no order |
+
+**An air unit in a battle is sent with nothing asked** (`confirmed`, `reversing/findings/FINDINGS-movement.md`, section
+13.2, read whole on 2026-11-14): not the click's test of the province (`movement.md`, section 1) - so not the clouds
+either - nor its range. It is never marked refused; it is marked sent (`movement.md`, section 7) and given the plain move
+(`CMoveUnitCommand`) that replaces whatever way it had, Shift being let go of for a unit in a battle. Whether it gets there
+is the route's alone, when the move runs; with no way there it keeps what it had. Given its way it leaves the battle,
+falling back where the other side still has somebody, and is left with no order (`landcombat.md`, section 7): where it
+ends up with no order, the hourly look sends it home as any air unit away from its base (`aircombat.md`, section 1). It sounds
+`air_move` as the window does (`sound.md`, section 7). **Several air units selected** are each given the click in turn
+(`selection.md`, section 3): one in no battle after the first finds the window up and is left alone, one in a battle is
+sent wherever it comes. Built 2026-11-14 (`src/CSession.cs`, `OrderUnit`). That the AI's own move takes no air unit is
+ours: its air units go by orders.
 
 The window is headed with **the province's name** and lists orders, one to a row - an
 `order_entry` with a box and a name. **One box is ticked at a time**; `accept` gives that
@@ -172,7 +186,8 @@ whether the province is land:
 | Naval Strike, Convoy Raiding | sea, and `sea_attack` |
 | Reserve, **Rebase** | land |
 
-**An air unit has no plain move.** It goes somewhere to stay only by changing its base.
+**An air unit's window has no plain move.** It goes somewhere to stay only by changing its base; the plain move is a
+right click's alone, and only from a battle (above).
 
 **The row ticked when the window comes up**: the change of base, where the unit may be in
 the province, whoever holds it is not at war with the unit's country, it has the base for it
@@ -442,8 +457,10 @@ play no part (`tooltips.md`, section 9).
   country's by sea, then of its faction's, and removes it where its country has no port
   left; and gives an air unit with no base the nearest of its country's.
 - **An air unit sent home**: away from its base and worn down, the original orders it back.
-- **Several units selected** given one order together.
-- **The sounds of the click**, and the mark it leaves on the province. The window's tooltips
+- ~~**Several units selected** given one order together.~~ Built: each is given the click in turn, as the original gives
+  it, and the window's order goes to every one (`selection.md`, sections 3 and 6).
+- ~~**The sounds of the click**, and the mark it leaves on the province.~~ Built (`sound.md`, section 7; `movement.md`,
+  section 7), and the air unit in a battle sent straight on since 2026-11-14 (section 4). The window's tooltips
   are built since 2026-10-12 (section 8).
 - ~~**The land window**, `land_unit_order` (the original's `CLandOrdersView`), which a land unit's right click brings
   up with **Ctrl** held - the maintainer's word, 2026-10-19 - and which is the only way a player gives a land unit a

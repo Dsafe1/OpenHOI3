@@ -543,6 +543,31 @@ public class AirBattleTests
 		Assert.Equal(new[] { raid }, combat.Defender.Units);
 	}
 
+	[Fact]
+	public void AUnitInABattleSentStraightOnByAPlayerLeavesItFallingBackWithNoOrder()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit fighters = Air(state, germany, Field, Fighter);
+		Air(state, poland, Field, Bomber);
+		Give(state, germany, fighters, EUnitOrder.AirSuperiority, Field);
+		fighters.Mission.ReturnToBase = false;
+		CMovement.Cancel(fighters);
+		CCombats.CheckForCombat(state, fighters, Field);
+		CCombat combat = Assert.Single(state.Combats);
+		Assert.True(fighters.IsFighting);
+
+		// The right click's move: nothing asked of the province, the way found when it runs.
+		var move = new CMoveUnitCommand(Ger, fighters.Id, Warsaw);
+		Assert.True(move.MayExecute(state));
+		move.Execute(state);
+
+		Assert.False(fighters.IsFighting);
+		Assert.DoesNotContain(fighters, combat.Attacker.Units);
+		Assert.True(fighters.IsRetreating);                           // it was holding ground: the other side has somebody
+		Assert.Equal(EUnitOrder.None, fighters.Order);
+		Assert.Equal(new[] { Warsaw }, fighters.Path);
+	}
+
 	// --- the battle ---
 
 	[Fact]

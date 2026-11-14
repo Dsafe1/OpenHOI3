@@ -135,6 +135,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 - **A wing with no strategic attack still bombs,** one run an hour. `bombing.md`, 12. *Oversight.* Risk: small.
 - **Installation strike bombs radar only.** `bombing.md`, 12. *Unfinished.* Risk: moderate if widened.
 - **Interdiction takes the last province of its list** its country sees into, whether anybody is there or not. `bombing.md`, 12. *Oversight.* Risk: small.
+- **An air unit in a battle is sent by a right click with nothing asked** - not its range, not the clouds, not the click's test of the province - while one out of a battle may go only where the orders window allows. So a unit in an air battle can be sent beyond its range. `fleetsandair.md`, 4. *Oversight.* Risk: small; only the player's click.
 - **The air orders' priority is never sent,** though the window shows, steps and remembers it. `fleetsandair.md`, "The air window". *Dead.* Risk: only if honoured.
 - **Transport planes wrecked by a drop,** left at a hundredth of their organisation, on an enemy or not. `transport.md`, "What looks wrong", 15. *Oversight.* Risk: small.
 - **Air supply's accounting.** It counts its load before capping by what lies there, picks the last short province and not the neediest, and delivers whether the target is still a friend's or not. `transport.md`, "What looks wrong", 18. *Oversight.* Risk: small.

@@ -135,7 +135,8 @@ nothing.
   asked, so a fleet sent out of range sounds it too; a province no sea of its reaches sounds `error` and no `navy_move`,
   with Shift as without, unless the coast opens the orders window for what it carries (the sea's test asked first, since
   2026-11-14);
-- an air unit sounds `air_move` after its order, whatever comes of it - the orders window opened as a rule.
+- an air unit sounds `air_move` after its order, whatever comes of it - the orders window opened in no battle, and in a
+  battle the move it is sent straight on with (since 2026-11-14, `fleetsandair.md`, section 4).
 
 `buzzbeep`, `nuke` and `unit_upgraded` are in `sound.sfx` and **never played** [exe]. The settings window plays no sound to
 try the volume, and **messages make no sound** [exe].

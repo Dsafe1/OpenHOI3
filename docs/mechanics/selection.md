@@ -88,9 +88,15 @@ units in a battle and units aboard an air unit; it leaves land units aboard a fl
 (`movement.md`, `fleetsandair.md`): each land unit is sent there, or halted where it stands, or refused. With the
 orders window up the click is the window's, as with one unit. `confirmed`
 
-**Fleets and air units without Shift: the window comes up for the first selected unit, and no unit moves** - each later
-unit finds the window already up and does nothing. With Shift every fleet is sent straight there and every air unit
-moved. `confirmed`
+**Fleets and air units without Shift: the window comes up for the first selected unit that asks for it, and no unit
+out of a battle moves** - each later one finds the window already up and does nothing, the window keeping its first unit.
+**A unit in a battle is still sent**, wherever it comes in the selection: a fleet in a battle as with Shift, an air unit
+in a battle straight there (`fleetsandair.md`, section 4). With Shift every fleet is sent straight there; **an air unit
+is not** - its click never reads Shift, and one in no battle brings the window up all the same. `confirmed`
+(`reversing/findings/FINDINGS-movement.md`, section 13.2). *Corrected 2026-11-14*: this said every air unit was moved with
+Shift, after the fact base's selection write-up, which its own `FINDINGS-seaair.md` section 1 contradicted; the client
+had built the window for every air unit and so never followed it. Until the same day a later unit was skipped once the
+window was up, a fleet or an air unit in a battle with it.
 
 The map's tooltip with several selected reads only the first: its warning line and its distance (`tooltips.md`,
 section 7).
