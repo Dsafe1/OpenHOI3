@@ -15,3 +15,6 @@ export/
 
 # A typeface whose licence forbids publishing it: each builder downloads it (fonts/readme.md)
 fonts/BreitkopfFraktur.ttf
+
+# A machine-local Godot override: the window opens without taking focus
+override.cfg
