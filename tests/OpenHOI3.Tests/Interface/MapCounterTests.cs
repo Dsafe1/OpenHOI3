@@ -8,6 +8,7 @@ using OpenHOI3.Interface.Screens;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Leaders;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -94,13 +95,58 @@ public class MapCounterTests
 
 		division.Name = "1. Panzer-Division";
 		empty.Name = "Stab";
-		Assert.Equal("1. Panze", CCounterText.Name(division));         // the first eight letters
-		Assert.Equal("Stab", CCounterText.Name(empty));
+		Assert.Equal("1. Panze", CCounterText.Name(division, true));   // the first eight letters
+		Assert.Equal("Stab", CCounterText.Name(empty, true));
 
 		Assert.Equal("2 - 2", CCounterText.Figures(division));         // 12 over 6, and 32 over 16
 		Assert.Equal("0 - 0", CCounterText.Figures(empty));
 		Assert.Equal("? - 3", CCounterText.Figures(-1, 3));
 		Assert.Equal("Berlin", CDeployMenuText.Location(state, division));
+	}
+
+	[Fact]
+	public void ACountersNameIsItsUnitsOrItsLeadersByTheShowUnitNamesSetting()
+	{
+		CGameState state = State(out CCountry country);
+		CUnit led = Unit(country, 1, EUnitKind.Division, Berlin, Infantry, Infantry);
+		CUnit unled = Unit(country, 2, EUnitKind.Division, Kiel, Infantry, Infantry);
+		led.Name = "1. Panzer-Division";
+		unled.Name = "2. Infanterie-Division";
+		led.Leader = new CLeader(7) { Name = "Guderian, Heinz" };
+
+		// On: the unit's own, cut to eight letters.
+		Assert.Equal("1. Panze", CCounterText.Name(led, true));
+		Assert.Equal("2. Infan", CCounterText.Name(unled, true));
+		// Off: its leader's, cut the same, and nothing for a unit with none.
+		Assert.Equal("Guderian", CCounterText.Name(led, false));
+		Assert.Equal("", CCounterText.Name(unled, false));
+
+		// The counters take the setting, off unless told.
+		Assert.Equal("Guderian", CMapCounters.Build(state).Single(stack => stack.Province == Berlin).Top.Name);
+		Assert.Equal("", CMapCounters.Build(state).Single(stack => stack.Province == Kiel).Top.Name);
+		Assert.Equal("1. Panze", CMapCounters.Build(state, null, true).Single(stack => stack.Province == Berlin).Top.Name);
+	}
+
+	[Fact]
+	public void BelowIntelligenceFiveACountersNameIsQuestionMarksWhateverTheSetting()
+	{
+		var germany = new CCountry { Tag = Ger, Name = "Germany", DefinitionFile = "", Capital = Berlin, Color = new CColor(0.4f, 0.5f, 0.6f) };
+		var poland = new CCountry { Tag = new CCountryTag("POL"), Name = "Poland", DefinitionFile = "", Capital = Kiel, Color = new CColor(0.9f, 0.1f, 0.1f) };
+		var state = new CGameState(new CDate(1936, 1, 1), new[]
+		{
+			new CProvince(0, "", isSea: false), new CProvince(Berlin, "Berlin", isSea: false),
+			new CProvince(Kiel, "Kiel", isSea: false), new CProvince(Baltic, "Baltic", isSea: true),
+		}, new[] { germany, poland });
+		CUnit polish = Unit(poland, 1, EUnitKind.Division, Kiel, Infantry, Infantry);
+		polish.Name = "1 Dywizja";
+		polish.Leader = new CLeader(9) { Name = "Rydz-Smigly" };
+		state.Province(Kiel).Intel[germany.Index] = 4;
+
+		Assert.Equal("???", CMapCounters.Build(state, Ger, true).Single(stack => stack.Province == Kiel).Top.Name);
+		Assert.Equal("???", CMapCounters.Build(state, Ger, false).Single(stack => stack.Province == Kiel).Top.Name);
+		state.Province(Kiel).Intel[germany.Index] = 5;
+		Assert.Equal("1 Dywizj", CMapCounters.Build(state, Ger, true).Single(stack => stack.Province == Kiel).Top.Name);
+		Assert.Equal("Rydz-Smi", CMapCounters.Build(state, Ger, false).Single(stack => stack.Province == Kiel).Top.Name);
 	}
 
 	private static HashSet<CUnit> Set(params CUnit[] units)

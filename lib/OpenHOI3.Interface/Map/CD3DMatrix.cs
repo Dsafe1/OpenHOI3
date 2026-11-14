@@ -6,7 +6,7 @@ namespace OpenHOI3.Interface.Map;
 /// <summary>
 /// The D3DX matrices the original hands its map's effects, row-major as D3DX keeps them and as HLSL's
 /// <c>mul(row vector, M)</c> reads them - <c>D3DXMatrixTranslation</c>, <c>D3DXMatrixLookAtLH</c>,
-/// <c>D3DXMatrixPerspectiveFovLH</c> and the product - each sixteen floats, row after row. See
+/// <c>D3DXMatrixPerspectiveFovLH</c>, <c>D3DXMatrixOrthoLH</c> and the product - each sixteen floats, row after row. See
 /// <c>docs/mechanics/mapdraw.md</c>, section 3.
 /// </summary>
 public static class CD3DMatrix
@@ -41,6 +41,18 @@ public static class CD3DMatrix
 			0, yScale, 0, 0,
 			0, 0, far / (far - near), 1,
 			0, 0, -near * far / (far - near), 0,
+		};
+	}
+
+	/// <summary>A left-handed orthographic projection, as <c>D3DXMatrixOrthoLH</c>: the width and height seen, the near and far planes.</summary>
+	public static float[] OrthoLH(float width, float height, float near, float far)
+	{
+		return new float[]
+		{
+			2f / width, 0, 0, 0,
+			0, 2f / height, 0, 0,
+			0, 0, 1f / (far - near), 0,
+			0, 0, near / (near - far), 1,
 		};
 	}
 

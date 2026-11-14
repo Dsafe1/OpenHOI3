@@ -2358,7 +2358,11 @@ None of these blocks the list above.
   battle only where it may fall back, none with a battle in the next province of its way, a fleet only where the sea joins
   its own past closed waters. Left: **the AI's `CEU3AI::MoveUnit` asks the same test as its second gate**
   (`reversing/findings/FINDINGS-liveread.md`, section 88), which `CAiMoves` does not yet; the route not asking a fleet's
-  goal whether closed waters cut it off (`fleetsandair.md`, section 1); and the click's marks. ~~`EXPRETURNED`'s Goto,
+  goal whether closed waters cut it off (`fleetsandair.md`, section 1); ~~and the click's marks~~ - built 2026-11-14,
+  `legal_selection_projection` and `illegal_selection_projection` through the install's `project.fx`, cut to a land
+  province's own triangles (`movement.md`, section 7; `reversing/findings/FINDINGS-movement.md`, section 13) - leaving
+  `selection_projection`, the mark under a selected unit, whose maker was not read, and an air unit in a battle, which the
+  original sends straight on where this project opens the orders window. ~~`EXPRETURNED`'s Goto,
   whose message carries no unit~~ - built 2026-11-14, the message carrying the unit and its Goto selecting it whoever
   holds it (`messages.md`, section 4.1). `docs/mechanics/movement.md`, *What is not built*.
 - **The march's speed is checked against savegames and its arrival is not.** The
@@ -2514,11 +2518,14 @@ None of these blocks the list above.
   above its ceiling. **Left**: that the Lua's changes run after the days rests on the command route and the save, not
   on the queue's drain read off the bytes (`inferred`); a breakpoint on the law command while a new game is entered
   would settle it (`reversing/findings/FINDINGS-startshares.md`, section 2).
-- **A counter always carries its unit's name**, where the original reads the player's `show_unit_names`: on, a near
+- ~~**A counter always carries its unit's name**, where the original reads the player's `show_unit_names`: on, a near
   counter carries the unit's name cut to eight letters, and `???` below intelligence 5; off - a new install's default -
   its leader's name, and nothing for a unit with none (`docs/compatibility.md`, entry 7, which ended with the settings;
   `reversing/findings/FINDINGS-unitrename.md`, section 4). The setting is read and written (`CUserSettings.ShowUnitNames`,
-  the game options' box) and the counters do not ask it. Put back as open by the maintainer, 2026-11-12.
+  the game options' box) and the counters do not ask it. Put back as open by the maintainer, 2026-11-12.~~ Built
+  2026-11-14: the counters follow the setting as read, from the start and from Apply at once, a change of leader shown
+  the moment it is made while it is off, and `--unitnames=no|yes` overrides it for a run (`mapunits.md`, section 2);
+  compatibility entry 7 undone.
 - **Starting a game takes about eleven seconds**, measured 2026-11-12 with the optimised build and `--country=GER`:
   1.8 before the first loading line; **4.8 making the world** on the loading screen's thread - 2.2 of it the two first
   days (the supply filling 1.0, the first day 0.8 with the first convoys' routes about 0.5 of it), the opening laws,

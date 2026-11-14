@@ -30,7 +30,7 @@ march's own are here.
 - A click on **the province the unit stands in** halts it - unless the order is being
   added to a path, when it is one more leg. `confirmed`
 - A click on a province the unit **may not go to** does nothing but play the error sound
-  and mark the province as refused. `confirmed`; *ours:* nothing is played or marked yet.
+  and mark the province as refused; one it is sent to is marked as sent (section 7). `confirmed`; both built.
   **For a land unit that includes ground held by a country at war with it** - a war nobody
   declared counting where its regions take the province in - **when the unit is too weak**
   (section 3), **or was given no supplies on its last day and uses some** - not asked of a
@@ -50,8 +50,8 @@ march's own are here.
     the next province of that way**;
   - **a fleet only where the sea joins its own** - its province, or the sea its port opens onto - by `SeaConnected`
     (`fleetsandair.md`, section 1), **and not while anything it carries has a way of its own**.
-- **What asks it.** The click of a land unit, before the command is posted; a refusal is the error sound and nothing else
-  (*ours*: the mark on the province is not built). The orders window's move and change of base (`fleetsandair.md`,
+- **What asks it.** The click of a land unit, before the command is posted; a refusal is the error sound and the refused
+  mark (section 7). The orders window's move and change of base (`fleetsandair.md`,
   `landorders.md`), the fleet's missions, an air mission's area and the AI's landing ask it as the original does. **The
   AI's `CEU3AI::MoveUnit` asks it as its second gate** (`reversing/findings/FINDINGS-liveread.md`, section 88) - and
   `CAiMoves.Move` asks it so since 2026-11-14 (`moving.md`, section 10). **The command does not ask it** (`CMoveCommand::Execute` asks
@@ -539,6 +539,55 @@ with what is left over carried into the next leg as the march itself carries it.
   the arrow's reading; built 2026-11-04 with the land orders window, `landorders.md`, at the
   maintainer's word that its colour differs in the original) - its picture, `stratarrow.tga`,
   is the colour.
+- **The click leaves a mark on the province ordered**: `legal_selection_projection` where the
+  unit was sent - a blue ring - and `illegal_selection_projection` where it was refused - a red
+  cross. Read out of the original on 2026-11-14 (`reversing/findings/FINDINGS-movement.md`, section
+  13), `confirmed` unless marked; built the same day and set on screen with `--click` (below):
+
+  - **what it is**: a `projectionType` of `interface/mapitems.gfx` [mod], ten keys with the
+    original's defaults for what a declaration leaves out - `size` 1, `pulseLowest` 0.4,
+    `pulseSpeed` 3, the rest nought - drawn through **`gfx/FX/project.fx`, whatever the
+    declaration says** [exe: the file and that it has no key for one; mod: the file's content],
+    which lays the picture flat on the map from above (`CProjectionType`, `CProjectionTypes`);
+  - **where**: where the unit would stand in that province - the province's unit point
+    [mod: `map/positions.txt`], a fleet's naval base in a land province, an air unit's air base
+    where it is at its own base there - one mark for each selected unit the click is given to;
+    only a selected unit leaves one [exe];
+  - **which** (`reversing/findings/FINDINGS-movement.md`, section 13.2): a land unit sent, the
+    sent mark with `army_move`, refused, the refused mark with `error`; halted where it stands,
+    none. A headquarters under its own plan, the sent mark with an objective or an axis, and
+    **neither the mark nor the sound where no way leads to the axis**. A fleet sent straight there,
+    the sent mark, or the refused mark where its range refuses it; **a province no sea of its
+    reaches, the refused mark and `error`, with Shift as without** - the sea's test is asked before
+    anything else - unless the coast opens the orders window for what it carries. The orders
+    window, opened, leaves none;
+  - **how it plays out** [mod: the declaration's figures, exe: the rules], on the process's clock
+    and not the game's, so a paused game's marks play out too: it grows from 0.1 of a unit to
+    `size` over `expanding` seconds at full alpha; then, where `pulsating`, its alpha is
+    `pulseLowest + (1 − pulseLowest) × (sin((t − t₀) × 3.14 × pulseSpeed) + 1) / 2`, t₀ the last
+    frame of growing; after `duration` seconds that pulse is faded linearly to nothing over
+    `fadeout` seconds - **pulsing whether or not the type does** - and the mark is gone, at once
+    where `fadeout` is nought; with no `duration` it stays. It turns `spin` × 3.14 radians a
+    second. The install's two: `size` 4, `expanding` 0.3, `pulseLowest` 0.8, `pulseSpeed` 1,
+    `duration` 1, `fadeout` 1, no spin - grown in 0.3 s, gone at 2 s (`CProjectionMark`);
+  - **how it is drawn** (`reversing/findings/FINDINGS-movement.md`, section 13.4) [exe]: the picture
+    covers a square `size` map units a side about the mark, north up, turned by its angle - a look
+    straight down from 50 above at a point 49 above, an orthographic view of the square from 1 to
+    70 and the original's bias into the picture's coordinates, as `TextureMatrix`. **On a land
+    province it is laid on that province's own triangles of the quad cache, so it is cut to the
+    province's shape**; on a sea zone on a square 20 units a side about the mark, whose sea anchor
+    stands at 0.3. Blended by alpha - or added, where `additative` - and drawn over everything
+    without the depth test, as the original's map pictures are before the counters
+    (`CProjectionMarks`, `CMapSurface.AddMark`).
+
+  *Ours:* the mark is drawn on the map's 3D surface alone - with no quad cache the map is flat and
+  shows no mark; a land unit's mark also follows the command's own refusal, which the original's
+  click does not ask. **Checked with `--click` on 2026-11-14**: a division of Potsdam sent to Zerbst
+  leaves a blue ring at Zerbst's unit point, about the size of a counter, with the way's arrow and
+  the panel's "Move to" as the positive control; one of Köslin sent into the Southern Baltic a red
+  cross at the sea zone's point, the panel saying "No Order". Nobody has set it beside the original's
+  on screen. `selection_projection`, the mark under a selected unit, is not built: what makes it was
+  not read.
 - **The unit panel** (`unitpanel.md`) says what a selected unit is doing - "Move to" the
   next province of its way - shows its speed, marks it as on the march, and has the
   button that halts it.
@@ -567,8 +616,10 @@ with what is left over carried into the next leg as the march itself carries it.
   hours apart still gives 301 of 301.
 - ~~**Walking on a puppet's, an overlord's or an ally's ground, or with military access.**~~
   Built 2026-11-11, with every other friend test the original's (section 3).
-- ~~**The message** that a unit has arrived~~ - built 2026-11-14 (section 6) - and the sounds
-  and the marks of the click.
+- ~~**The message** that a unit has arrived~~ - built 2026-11-14 (section 6) - ~~and the sounds
+  and the marks of the click~~ - built, the marks 2026-11-14 (section 7). **Left of the click**: an air
+  unit in a battle the original sends straight on with the sent mark and nothing asked, where this
+  project opens the orders window for every air unit (`sound.md`, section 7); and `selection_projection`.
 - **The tooltip** that says when a unit will arrive.
 
 ## What is not established, in one place

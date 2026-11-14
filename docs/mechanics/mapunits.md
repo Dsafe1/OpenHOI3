@@ -169,9 +169,19 @@ has it.
 - **The flag** is on the near counter only, which is the one with a `shieldtype`: its
   middle at `offset`, `shieldtype`'s two numbers wide and high in `scale`s.
 - **The two figures** start at `offset2`, at the size `size`.
-- **A name** starts at `offset3` on the near counter, at the size 3.5: the unit's leader's,
-  or with the `show_unit_names` setting the unit's own, cut to its first eight letters.
-  `confirmed` for the rule, `likely` for the size.
+- **A name** starts at `offset3` on the near counter, at the size 3.5, by the player's
+  `show_unit_names` [mod: the player's settings.txt, the game options' box]: **off - a new
+  install's default - the unit's leader's, and nothing for a unit with none; on, the unit's
+  own**; cut to its first eight letters either way, and `???` where the player knows the unit
+  under 5 whatever the setting (section 3). `confirmed` for the rule
+  (`reversing/findings/FINDINGS-counters.md`, section 4; `CUnit_RefreshCounterName`), `likely`
+  for the size. **It is written again the moment it changes**: a rename and a change of leader
+  write that counter's (`reversing/findings/FINDINGS-unitrename.md`, section 4;
+  `reversing/findings/FINDINGS-leaderassign.md`, section 9), and Apply with the box changed every
+  counter's the next frame (`reversing/findings/FINDINGS-settingswindow.md`). Built 2026-11-14
+  (`CCounterText.Name`, `CUnitCounters.ShowUnitNames`): read at the start and taken from Apply at
+  once, and a change of leader is looked for each frame while the setting is off. `--unitnames=no`
+  or `=yes` gives the counters the other setting for a run, the file left alone.
 - **Only the top counter of a stack carries a flag, figures and a name.** `confirmed`
 
 **Measured on a screenshot of the original's near counter**, which the maintainer gave on
@@ -199,10 +209,14 @@ So north is the way it was taken to be, and three things the reading did not giv
   there is to go by.
 - **The flag has a dark frame**, about a fortieth of `scale` wide.
 
-*Ours:* **the name is the unit's own**, as with
+~~*Ours:* **the name is the unit's own**, as with
 `show_unit_names` on - which is how the maintainer's game is set, and there are no
 leaders to name and no settings to choose by. The maintainer, 2026-10-09: "It can stay
-that way until we implement the settings" (`docs/compatibility.md`, entry 7). A unit type
+that way until we implement the settings" (`docs/compatibility.md`, entry 7).~~ The setting
+is followed since 2026-11-14, as above. **Checked with `--click` that day**, near Berlin: with
+the maintainer's `show_unit_names=yes` the counters say `12. Infa`, `23. Infa` and `Ob.kdo.`;
+with `--unitnames=no` `Böhme`, `Busch`, `Guderian` and `von Böhm` - the selected division's
+`Busch` the unit panel's leader, the positive control. A unit type
 with no counter sprite of its
 own is shown by the `unknown` one of the same family.
 

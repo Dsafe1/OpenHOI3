@@ -312,6 +312,7 @@ All of these are risk-free but for what the entry says.
 - **The organisation bar's hourly regain is not the hour's.** It counts the roads at sea too, so a fleet at sea is shown a hundredth of what it regains, and shows a unit given no supplies regaining nothing where the hour takes organisation away. `unitpanel.md`, 10.1; `organisation.md`, 3. *Display.*
 - **A base with nothing based there is shown doing a quarter of its work**, where the hour's crowding counts it whole. `unitpanel.md`, 10.2. *Display.*
 - **A model out of a file that leaves a technology out is marked `+*` wherever it shows**, being matched exactly by nothing, though it is the model the brigade was raised as. `units.md`, 5. *Display.*
+- **A projection that does not pulse pulses as it fades.** The fade multiplies the pulse's alpha whether or not the type says `pulsating`, so a plain mark with a `fadeout` flickers at the defaults' 0.4 and 3 as it goes. None of the install's three is touched - the two that fade pulse anyway - but a mod's would be. `movement.md`, 7. *Oversight.* Risk: none.
 
 ## Script, events and weather
 

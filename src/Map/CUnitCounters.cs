@@ -320,12 +320,35 @@ public partial class CUnitCounters : Node2D
 		set => _hierarchy.Shown = value;
 	}
 
+	/// <summary>
+	/// The player's <c>show_unit_names</c>: whether a near counter carries its unit's name or its leader's
+	/// (mapunits.md, section 2). Read from settings.txt and changed by the game options' Apply, every counter written again
+	/// at once - the original's next frame.
+	/// </summary>
+	public bool ShowUnitNames
+	{
+		get => _showUnitNames;
+		set
+		{
+			if (value != _showUnitNames)
+			{
+				_showUnitNames = value;
+				if (IsInsideTree())
+				{
+					Refresh();
+				}
+			}
+		}
+	}
+
+	private bool _showUnitNames;
+
 	/// <summary>Works out again which units are where. Call it when one has been placed, made or moved.</summary>
 	public void Refresh()
 	{
 		// In the original's order of a province's stacks - standing, moving, a battle's two sides, air - so that one drawn
 		// over another is drawn later and is the one a click there finds.
-		_stacks = CMapCounters.Build(_state, Player).OrderBy(stack => stack.Kind).ToList();
+		_stacks = CMapCounters.Build(_state, Player, _showUnitNames).OrderBy(stack => stack.Kind).ToList();
 		_listPlaces.Clear();
 		foreach (CMapStack stack in _stacks)
 		{

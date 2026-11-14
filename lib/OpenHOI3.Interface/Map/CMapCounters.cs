@@ -142,9 +142,10 @@ public static class CMapCounters
 	/// Every stack on the map the player may see. Within one the first of the province's list is on top - the player's own,
 	/// then the higher rank (<see cref="CProvinceUnitOrder"/>) - until a unit is selected (<see cref="TopDown"/>). What the player knows of a unit (<see cref="CUnitIntel"/>) decides what its counter shows - under 3 the unknown
 	/// picture, under 5 the name <c>???</c>, under 7 the figures <c>?</c> - and of its top unit whether the stack shows at
-	/// all, under 2 not (mapunits.md, section 3).
+	/// all, under 2 not (mapunits.md, section 3). A known unit's name is its own or its leader's by the player's
+	/// <c>show_unit_names</c>, off unless the settings say otherwise (<see cref="CCounterText.Name"/>).
 	/// </summary>
-	public static List<CMapStack> Build(CGameState state, CCountryTag? player = null)
+	public static List<CMapStack> Build(CGameState state, CCountryTag? player = null, bool showUnitNames = false)
 	{
 		var byPlace = new Dictionary<(int, EMapStack), CMapStack>();
 		var stacks = new List<CMapStack>();
@@ -172,7 +173,7 @@ public static class CMapCounters
 					TypeKey = intel >= CUnitIntel.TypeShown && typeKey.Length > 0 ? typeKey : CUnitIntel.UnknownType,
 					Size = CCounterText.Size(unit),
 					Figures = intel >= CUnitIntel.FiguresShown ? CCounterText.Figures(unit) : CCounterText.Figures(-1, -1),
-					Name = intel >= CUnitIntel.NameShown ? CCounterText.Name(unit) : CUnitIntel.UnknownName,
+					Name = intel >= CUnitIntel.NameShown ? CCounterText.Name(unit, showUnitNames) : CUnitIntel.UnknownName,
 					Intel = intel,
 				});
 			}

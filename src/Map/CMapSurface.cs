@@ -613,7 +613,8 @@ public partial class CMapSurface : Node3D
 
 	/// <summary>
 	/// The surface given to another view of the same map: what the last view drew on it wiped - the selection, the
-	/// hierarchy's lines, the fronts, the air bases' rings, the battle plans and the trees' snow - every layer shown again, and
+	/// hierarchy's lines, the fronts, the air bases' rings, the click's marks, the battle plans and the trees' snow - every
+	/// layer shown again, and
 	/// the corners of this view's own borders taken, since their bytes carry over from one change of hands to the next of one
 	/// game alone. The meshes, the materials and every way and sea technique already made are kept, which is the point.
 	/// </summary>
@@ -631,6 +632,7 @@ public partial class CMapSurface : Node3D
 		SetSelection(_ => false);
 		ClearHierarchy();
 		SetRings(new List<CAirBaseCircle>());
+		ClearMarks();
 		foreach (int unit in _fronts.Keys.ToList())
 		{
 			ClearFront(unit);
@@ -660,6 +662,7 @@ public partial class CMapSurface : Node3D
 		FreeTreeSlots();
 		ClearHierarchy();
 		SetRings(new List<CAirBaseCircle>());
+		ClearMarks();
 		foreach (Node node in GetChildren().Concat(_borders.GetChildren()).Concat(_waterBorders.GetChildren()).Concat(_rivers.GetChildren()))
 		{
 			if (node is MeshInstance3D instance && instance.Mesh is { } mesh)
@@ -750,6 +753,7 @@ public partial class CMapSurface : Node3D
 		// The rivers' and the surf's vTime: the original's clock, whose unit was not read - seconds here, ours. Its wrap at a
 		// hundred moves the rivers' flow 30 repeats and the surf's 20, whole, so nothing jumps.
 		RenderingServer.GlobalShaderParameterSet(SharedTime, (float)_clock);
+		StepMarks();
 		// The trees shown the frame their planting is done, where the camera already wants them.
 		if (_planting is { IsCompleted: true } && !_plantingSeen)
 		{
@@ -1703,6 +1707,197 @@ public partial class CMapSurface : Node3D
 		{
 			float shift = camera.Shift(circle.X);
 			Set(material, _ringTranslations, "WorldMatrix", Matrix(CD3DMatrix.Translation(circle.X + shift, RingHeight, circle.Y)));
+		}
+	}
+
+	// ---------------------------------------------------------------------------------------------------- the click's marks
+
+	/// <summary>
+	/// Each mark on the map: the mark, its instance and material, and the middle of the tile whose land it is drawn on - the
+	/// sea's square needing none.
+	/// </summary>
+	private readonly List<(CProjectionMark Mark, MeshInstance3D Instance, ShaderMaterial Material, int MiddleX, int MiddleY)> _marks = new();
+
+	/// <summary>The effect's two translations, mixed by alpha and added, made on first use.</summary>
+	private readonly Dictionary<bool, (Shader Shader, CGodotShader?[] Translations)?> _markShaders = new();
+
+	/// <summary>Each land province's first tile and its group of triangles there, worked out on the first mark on land.</summary>
+	private Dictionary<int, (int Tile, int Start, int End)>? _provinceGroups;
+
+	/// <summary>The clock a mark plays out by: the process's seconds, as the original's platform clock - not the game's.</summary>
+	public static float MarkClock => (float)(Time.GetTicksUsec() / 1e6);
+
+	/// <summary>
+	/// Puts a mark on the map, drawn through the install's project.fx as the original draws a projection
+	/// (<c>reversing/findings/FINDINGS-movement.md</c>, section 13.4): on a land province the province's own triangles of its
+	/// tile, so the picture is cut to the province; at sea a square 20 a side about the mark. Each frame then sets its scale,
+	/// alpha and angle until it is over (<see cref="CProjectionMark.Step"/>). Nothing where the effect or the province's
+	/// land cannot be had.
+	/// </summary>
+	public void AddMark(CProjectionMark mark)
+	{
+		if (!IsInsideTree() || MarkShader(mark.Type.Additive) is not { } effect)
+		{
+			return;
+		}
+		ArrayMesh mesh;
+		int middleX = 0, middleY = 0;
+		if (mark.OnLand)
+		{
+			if (ProvinceGroup(mark.Province) is not { } group)
+			{
+				return;
+			}
+			CQuadTile tile = _tiles[group.Tile];
+			(middleX, middleY) = tile.Middle(_columns);
+			// The group's vertices made a mesh of their own, numbered afresh in the order the triangles name them.
+			var numbers = new Dictionary<ushort, ushort>();
+			var used = new List<ushort>();
+			var indices = new ushort[group.End - group.Start];
+			for (int i = group.Start; i < group.End; i++)
+			{
+				ushort vertex = tile.LandIndices[i];
+				if (!numbers.TryGetValue(vertex, out ushort number))
+				{
+					number = (ushort)used.Count;
+					numbers[vertex] = number;
+					used.Add(vertex);
+				}
+				indices[i - group.Start] = number;
+			}
+			// The land's SHORT2 positions read as the effect's float2: the plain numbers, tile-local [exe].
+			mesh = BuildMesh(indices, used.Count, effect.Translations[0], (semantic, v) => semantic == "POSITION"
+				? new Vector4(tile.LandPositions[2 * used[v]], tile.LandPositions[2 * used[v] + 1], 0, 1)
+				: null);
+		}
+		else
+		{
+			mesh = BuildMesh(CProjectionMarks.SeaTriangles, CProjectionMarks.SeaCorners.Length, effect.Translations[0],
+				(semantic, v) => semantic == "POSITION"
+					? new Vector4(CProjectionMarks.SeaCorners[v].X, CProjectionMarks.SeaCorners[v].Y, 0, 1)
+					: null);
+		}
+		var material = new ShaderMaterial { Shader = effect.Shader, RenderPriority = MarkPriority };
+		SetTexture(material, effect.Translations, "tex0", MarkPicture(mark.Type.TextureFile));
+		MeshInstance3D instance = Instance($"Mark{mark.Province}", mesh, material);
+		instance.Visible = false;
+		_overlays.AddChild(instance);
+		_marks.Add((mark, instance, material, middleX, middleY));
+	}
+
+	/// <summary>Drawn with the rings, after the map and before the counters, the 2D layer over the surface.</summary>
+	private const int MarkPriority = RingPriority;
+
+	/// <summary>The device as the original sets it for a projection: blended by alpha, or added, and no depth [exe].</summary>
+	private static Dictionary<string, string> MarkStates(bool additive) => Baseline(("ALPHABLENDENABLE", "1"),
+		("SRCBLEND", additive ? "ONE" : "SRCALPHA"), ("DESTBLEND", additive ? "ONE" : "INVSRCALPHA"), ("ZENABLE", "0"),
+		("ZWRITEENABLE", "0"));
+
+	private (Shader Shader, CGodotShader?[] Translations)? MarkShader(bool additive)
+	{
+		if (!_markShaders.TryGetValue(additive, out var made))
+		{
+			var effect = _gui.Effects.Get(CProjectionType.EffectFile, CProjectionType.Technique, EShaderTarget.Spatial,
+				device: MarkStates(additive), shared: Shared);
+			made = effect.Shader is null ? null : (effect.Shader, new[] { effect.Translation });
+			_markShaders[additive] = made;
+		}
+		return made;
+	}
+
+	private readonly Dictionary<string, Texture2D?> _markPictures = new(StringComparer.OrdinalIgnoreCase);
+
+	private Texture2D? MarkPicture(string file)
+	{
+		if (!_markPictures.TryGetValue(file, out Texture2D? picture))
+		{
+			picture = file.Length == 0 ? null : _gui.Textures.LoadFromGamePath(file);
+			_markPictures[file] = picture;
+		}
+		return picture;
+	}
+
+	/// <summary>
+	/// A land province's group of triangles in the first tile that holds it, as the original finds it: every province's
+	/// whole mesh is in one tile (<c>reversing/findings/FINDINGS-mapdraw.md</c>, A.1). Null for one with none.
+	/// </summary>
+	private (int Tile, int Start, int End)? ProvinceGroup(int province)
+	{
+		if (_provinceGroups is null)
+		{
+			_provinceGroups = new Dictionary<int, (int, int, int)>();
+			for (int t = 0; t < _tiles.Count; t++)
+			{
+				CQuadTile tile = _tiles[t];
+				for (int g = 0; g < tile.GroupStarts.Count; g++)
+				{
+					int start = tile.GroupStarts[g];
+					int end = g + 1 < tile.GroupStarts.Count ? tile.GroupStarts[g + 1] : tile.LandIndices.Length;
+					if (end > start)
+					{
+						_provinceGroups.TryAdd(tile.LandProvinces[tile.LandIndices[start]], (t, start, end));
+					}
+				}
+			}
+		}
+		return _provinceGroups.TryGetValue(province, out var group) ? group : null;
+	}
+
+	/// <summary>
+	/// Each mark's frame: its alpha and its picture's coordinates set, its world matrix given the copy of the map nearest
+	/// the camera, and those that are over taken off.
+	/// </summary>
+	private void StepMarks()
+	{
+		if (_marks.Count == 0)
+		{
+			return;
+		}
+		float now = MarkClock;
+		for (int i = _marks.Count - 1; i >= 0; i--)
+		{
+			(CProjectionMark mark, MeshInstance3D instance, ShaderMaterial material, int middleX, int middleY) = _marks[i];
+			if (mark.Step(now) is not { } frame)
+			{
+				RemoveMark(i);
+				continue;
+			}
+			if (_camera is null || MarkShader(mark.Type.Additive) is not { } effect)
+			{
+				instance.Visible = false;
+				continue;
+			}
+			// The mark and what it is drawn on both moved to the copy of the map nearest the camera, by the mark's place.
+			float shift = _camera.Shift(mark.X);
+			float[] world = mark.OnLand
+				? CD3DMatrix.Translation(middleX + shift, 0f, middleY)
+				: CD3DMatrix.Translation(mark.X + shift, mark.Height, mark.Z);
+			Set(material, effect.Translations, "WorldMatrix", Matrix(world));
+			Set(material, effect.Translations, "TextureMatrix",
+				Matrix(CProjectionMarks.TextureMatrix(world, mark.X + shift, mark.Height, mark.Z, frame)));
+			Set(material, effect.Translations, "Alpha", frame.Alpha);
+			instance.Visible = true;
+		}
+	}
+
+	private void RemoveMark(int index)
+	{
+		(CProjectionMark _, MeshInstance3D instance, ShaderMaterial material, int _, int _) = _marks[index];
+		_marks.RemoveAt(index);
+		Mesh? mesh = instance.Mesh;
+		instance.Mesh = null;
+		instance.MaterialOverride = null;
+		_overlays.RemoveChild(instance);
+		instance.QueueFree();
+		mesh?.Dispose();
+		material.Dispose();
+	}
+
+	private void ClearMarks()
+	{
+		for (int i = _marks.Count - 1; i >= 0; i--)
+		{
+			RemoveMark(i);
 		}
 	}
 

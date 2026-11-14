@@ -224,6 +224,7 @@ public partial class CSession : Node
 		{
 			drawn.CounterScale = Settings.CounterScale;
 			drawn.HierarchyShown = Settings.RenderHierarchy;
+			drawn.ShowUnitNames = UnitNamesShown(Settings);
 		}
 		CMapCache cache = _mapCache ??= CMapView.OpenCache(_directories, Map);
 		_quadTiles ??= CQuadCache.Load(cache, problem => GD.PushWarning($"map: {problem}"));
@@ -870,8 +871,8 @@ public partial class CSession : Node
 	}
 
 	/// <summary>
-	/// What of the player's settings takes effect at once: the gamma, the water, the counters' scale and the hierarchy's lines
-	/// on the map.
+	/// What of the player's settings takes effect at once: the gamma, the water, the counters' scale and names and the
+	/// hierarchy's lines on the map.
 	/// </summary>
 	private void ApplySettings(Content.Settings.CUserSettings settings)
 	{
@@ -881,7 +882,15 @@ public partial class CSession : Node
 		{
 			counters.HierarchyShown = settings.RenderHierarchy;
 			counters.CounterScale = settings.CounterScale;
+			counters.ShowUnitNames = UnitNamesShown(settings);
 		}
+	}
+
+	/// <summary>The settings' <c>show_unit_names</c>, unless <c>--unitnames=</c> says otherwise for the run.</summary>
+	private static bool UnitNamesShown(Content.Settings.CUserSettings settings)
+	{
+		IEnumerable<string> arguments = UserArguments();
+		return arguments.Contains("--unitnames=no") ? false : arguments.Contains("--unitnames=yes") || settings.ShowUnitNames;
 	}
 
 	/// <summary>The game options' resolutions: <see cref="CGameOptionsWindow.DisplayModes"/>.</summary>
@@ -1579,6 +1588,17 @@ public partial class CSession : Node
 				_mapView.RefreshColours();
 			}
 		}
+		// With show_unit_names off a near counter carries its leader's name, and the original writes it again the moment a
+		// leader is put on or taken off (mapunits.md, section 2): so a change of leader counts, paused or not.
+		if (_mapView.Counters is { ShowUnitNames: false })
+		{
+			long leaders = Leaders();
+			if (leaders != _leaders)
+			{
+				_leaders = leaders;
+				_unitsMoved = true;
+			}
+		}
 		if (_unitsMoved || waiting != _waiting)
 		{
 			_unitsMoved = false;
@@ -1586,6 +1606,22 @@ public partial class CSession : Node
 			_mapView.Counters?.Refresh();
 			ShowProvince(_shownProvince);
 		}
+	}
+
+	private long _leaders;
+
+	/// <summary>A figure that changes when any unit has another leader than it had.</summary>
+	private long Leaders()
+	{
+		long figure = 17;
+		foreach (CCountry country in State.Countries)
+		{
+			foreach (CUnit unit in country.AllUnits())
+			{
+				figure = unchecked(figure * 31 + unit.Id * 7919L + (unit.Leader?.Id ?? 0));
+			}
+		}
+		return figure;
 	}
 
 	/// <summary>A figure that changes when any unit is in another province than it was.</summary>
@@ -1678,7 +1714,13 @@ public partial class CSession : Node
 			{
 				_simulation.Post(new CSetPlanAxisCommand(Player.Tag, unitId, route, new List<int>()));
 			}
+			else
+			{
+				// An axis with no way to it: the original's click ends there, unheard and unmarked (movement.md, section 7).
+				return;
+			}
 			Sounds?.PlayUnlessPlaying(CSelectionSounds.Moved(unit));
+			_mapView.ShowOrderMark(unit, province, legal: true);
 			return;
 		}
 		if (unit.Kind == EUnitKind.Air)
@@ -1699,21 +1741,24 @@ public partial class CSession : Node
 		{
 			// A fleet where it is, while under way, halts. Otherwise a plain click asks
 			// what it is to do there, and one with shift sends it straight there.
+			bool connected = CMovementRules.SeaConnected(State, Player, State.Province(province), CMovementRules.OwnSea(State, unit));
 			if (unit.IsMoving && province == unit.Location)
 			{
 				command = new CCancelMovementCommand(Player.Tag, unitId);
 			}
+			else if (!connected && (append || unit.IsFighting
+				|| !CTransportText.OpensOrdersOnCoast(State, Player, unit, State.Province(province))))
+			{
+				// Where the sea does not reach, refused before anything else - the window coming up only for a coast what the
+				// fleet carries may land on, without shift and out of a battle (transport.md, section 12): marked and erring,
+				// its move unheard (movement.md, section 7).
+				GD.Print($"{unit.Name} cannot reach {State.Province(province).Name} by sea.");
+				_mapView.ShowOrderMark(unit, province, legal: false);
+				Sounds?.PlayUnlessPlaying(CSelectionSounds.Refused);
+				return;
+			}
 			else if (!append && !unit.IsFighting)
 			{
-				// A coast the sea does not reach opens the window too where what the fleet
-				// carries may land there (transport.md, section 12).
-				if (!CMovementRules.SeaConnected(State, Player, State.Province(province), CMovementRules.OwnSea(State, unit))
-					&& !CTransportText.OpensOrdersOnCoast(State, Player, unit, State.Province(province)))
-				{
-					GD.Print($"{unit.Name} cannot reach {State.Province(province).Name} by sea.");
-					Sounds?.PlayUnlessPlaying(CSelectionSounds.Refused);
-					return;
-				}
 				_orders?.Open(unit, province);
 				return;
 			}
@@ -1739,17 +1784,26 @@ public partial class CSession : Node
 		if (refused || !command.MayExecute(State))
 		{
 			GD.Print($"{unit.Name} may not go to {State.Province(province).Name}.");
-			// A land unit refused errs; a fleet has sounded its move already.
+			// A land unit refused errs; a fleet has sounded its move already. Either is marked refused (movement.md,
+			// section 7).
+			if (command is CMoveUnitCommand)
+			{
+				_mapView.ShowOrderMark(unit, province, legal: false);
+			}
 			if (land)
 			{
 				Sounds?.PlayUnlessPlaying(CSelectionSounds.Refused);
 			}
 			return;
 		}
-		// A land unit halted where it stands is silent; one sent sounds its move.
-		if (land && command is CMoveUnitCommand)
+		// A land unit halted where it stands is silent and unmarked; one sent sounds its move, and is marked sent.
+		if (command is CMoveUnitCommand)
 		{
-			Sounds?.PlayUnlessPlaying(CSelectionSounds.Moved(unit));
+			_mapView.ShowOrderMark(unit, province, legal: true);
+			if (land)
+			{
+				Sounds?.PlayUnlessPlaying(CSelectionSounds.Moved(unit));
+			}
 		}
 		_simulation.Post(command);
 		_ordered = true;
@@ -2079,6 +2133,8 @@ public partial class CSession : Node
 	/// clock stopping where the recording ends (<c>docs/replay.md</c>, sections 6 and 8; both read as the session loads,
 	/// not here), <c>--hash</c> prints the game's hash each midnight,
 	/// <c>--trees</c> plants the map's trees whatever settings.txt's <c>renderTrees</c> says (read as the map is made, not here),
+	/// <c>--unitnames=no</c> or <c>--unitnames=yes</c> gives the counters that <c>show_unit_names</c> for the run, the file
+	/// left as it is (read as the map is made, not here),
 	/// <c>--zoom=4</c> sets the zoom, <c>--mode=terrain</c> starts on the terrain map (<c>--mode=weather</c> on the weather map)
 	/// (<c>supply</c>, <c>air</c> and <c>revolt</c> on those),
 	/// <c>--screen=production</c> or <c>--screen=technology</c> opens that screen and

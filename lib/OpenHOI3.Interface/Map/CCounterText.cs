@@ -59,13 +59,16 @@ public static class CCounterText
 	public const int MostNameLetters = 8;
 
 	/// <summary>
-	/// The name a counter carries: the unit's own, cut to its first eight letters. The
-	/// original writes that with its <c>show_unit_names</c> setting on, and the unit's
-	/// leader's name with it off.
+	/// The name a near counter carries, by the player's <c>show_unit_names</c> setting: on, the unit's own; off - a new
+	/// install's default - its leader's, and nothing for a unit with none. Cut to its first eight letters either way
+	/// (<c>docs/mechanics/mapunits.md</c>, section 2; <c>reversing/findings/FINDINGS-counters.md</c>, section 4). What
+	/// the player knows of the unit comes first: under 5 the name is <c>???</c> whatever the setting
+	/// (<see cref="CUnitIntel.NameShown"/>), which the caller asks.
 	/// </summary>
-	public static string Name(CUnit unit)
+	public static string Name(CUnit unit, bool showUnitNames)
 	{
-		return unit.Name.Length > MostNameLetters ? unit.Name[..MostNameLetters] : unit.Name;
+		string name = showUnitNames ? unit.Name : unit.Leader?.Name ?? "";
+		return name.Length > MostNameLetters ? name[..MostNameLetters] : name;
 	}
 
 	/// <summary>The two figures as a counter writes them.</summary>

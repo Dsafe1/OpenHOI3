@@ -157,6 +157,8 @@ each brigade to its new ceiling. As Germany, the original's AI countries' brigad
 
 **Ended 2026-11-12**: the settings are built, so by its own terms this decision is over, and the maintainer put it back
 among the readme's *Loose ends* as work to do - the counter to follow `show_unit_names` as the original's does.
+**Undone 2026-11-14**: it does - on, the unit's name; off, its leader's, or nothing - so nothing of this entry stands
+(`docs/mechanics/mapunits.md`, section 2). The table below is as it was when the entry ended.
 
 **Decided** 2026-10-09 by the maintainer, told that the original writes the unit's name
 on a counter only with a setting on: "It can stay that way until we implement the

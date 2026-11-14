@@ -129,9 +129,12 @@ nothing.
 **A right-click order** (`movement.md`, section 1; `fleetsandair.md`) [exe]:
 
 - a land unit sent to a province it may go to sounds `army_move`; one refused sounds `error`; one halted where it stands is
-  silent; a headquarters under the AI's plan sounds `army_move` for an objective or an axis set;
+  silent; a headquarters under the AI's plan sounds `army_move` for an objective or an axis set, and nothing where no way
+  leads to the axis (since 2026-11-14, `reversing/findings/FINDINGS-movement.md`, section 13.2);
 - a fleet sounds `navy_move` only where it is sent straight there - with Shift, or from a battle - and **before** its range is
-  asked, so a fleet sent out of range sounds it too; a coast no sea reaches, with nothing aboard to land, sounds `error`;
+  asked, so a fleet sent out of range sounds it too; a province no sea of its reaches sounds `error` and no `navy_move`,
+  with Shift as without, unless the coast opens the orders window for what it carries (the sea's test asked first, since
+  2026-11-14);
 - an air unit sounds `air_move` after its order, whatever comes of it - the orders window opened as a rule.
 
 `buzzbeep`, `nuke` and `unit_upgraded` are in `sound.sfx` and **never played** [exe]. The settings window plays no sound to

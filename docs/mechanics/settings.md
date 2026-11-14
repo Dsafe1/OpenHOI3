@@ -31,7 +31,8 @@ defaults are the original's constructors' [exe]. A number is a figure, not thous
 | `mapRenderingOptions = { render_hierarchy }` | yes | **applied**, as it is read and from Apply on (as read only since 2026-11-07): a selected unit's hierarchy drawn on the map (the `H` key turns it too) |
 | `mapRenderingOptions = { simpleWater }` | no | **applied**: the sea by water.fx's simple techniques where yes (`mapdraw.md`), as it is read and from Apply on, the next frame (since 2026-11-07; a restart until then) |
 | `mapRenderingOptions = { renderTrees waves }` | yes, yes | applied as they are read - the trees and the surf (`mapdraw.md`); a change by Apply waits for the next game |
-| `mapRenderingOptions = { onmap show_unit_names }` | yes, no | read and written; nothing here draws names on counters |
+| `mapRenderingOptions = { onmap }` | yes | read and written |
+| `mapRenderingOptions = { show_unit_names }` | no | **applied** since 2026-11-14: a near counter carries its unit's name where yes, its leader's where no, as it is read and from Apply on (`mapunits.md`, section 2) |
 | `mapRenderingOptions = { counter_distance }` | 100 | read and written; the height under which units are seen from near (`reversing/findings/FINDINGS-camera.md`) - the original's figures, or with `alwaysCounters` the near counter, and here always the near counter and the near battle marker, the far ones from it up to 500 (`mapunits.md`, section 7). Until 2026-11-12 the near counter went by a new install's 100 whatever the setting said |
 | `mapRenderingOptions = { counter_scale }` | 1 | **applied** since 2026-11-07: it multiplies a far counter's growth with rank, as it is read and from Apply on (`mapunits.md`, section 2) |
 | `lastplayer`, `lasthost`, `serveradress` | "", "", "diplomacy.valkyrienet.com" | read and written; there is no game of several players |

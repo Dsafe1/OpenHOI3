@@ -242,9 +242,31 @@ public partial class CMapView : Node2D
 		_names.Setup(_map, _state, gui.Fonts);
 		_provinceNames = new CProvinceNames { Name = "ProvinceNames" };
 		_provinceNames.Setup(_map, _state, gui.Fonts);
+		_projectionTypes = CProjectionTypes.Load(directories);
 	}
 
 	private CProvinceNames? _provinceNames;
+
+	/// <summary>The interface's projection types, which the click's marks are: read with the surface they are drawn on.</summary>
+	private CProjectionTypes? _projectionTypes;
+
+	/// <summary>
+	/// The mark a right click leaves on the province a unit was ordered to (<c>docs/mechanics/movement.md</c>, section 7):
+	/// <c>legal_selection_projection</c> where it was sent, <c>illegal_selection_projection</c> where it was refused, lying
+	/// where that unit would stand in the province. One for each unit the click is given to. Drawn on the map's surface
+	/// alone; without one, nothing.
+	/// </summary>
+	public void ShowOrderMark(CUnit unit, int province, bool legal)
+	{
+		if (_surface is not { } surface || province <= 0 || province >= _map.ProvinceCount
+			|| _projectionTypes?.Find(legal ? CProjectionTypes.Legal : CProjectionTypes.Illegal) is not { } type)
+		{
+			return;
+		}
+		bool sea = _map.IsSea(province);
+		(float x, float z) = CProjectionMarks.PointOf(_map, unit, province);
+		surface.AddMark(new CProjectionMark(type, province, !sea, x, CProjectionMarks.AnchorHeight(sea), z, CMapSurface.MarkClock));
+	}
 
 	/// <summary>The surface this view was given, which another view of the map may have taken since.</summary>
 	private CMapSurface? _held;
