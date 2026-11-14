@@ -53,6 +53,7 @@ public sealed class CMap
 		ProvinceLabels = positions.Labels;
 		NavalBasePositions = positions.NavalBase;
 		BuildingPositions = positions.Buildings;
+		CityPositions = positions.City;
 		Edges = edges;
 		SourceFiles = sourceFiles;
 
@@ -143,6 +144,13 @@ public sealed class CMap
 	/// file's order. A building the file does not place is not in the list.
 	/// </summary>
 	public IReadOnlyList<CBuildingPosition[]> BuildingPositions { get; }
+
+	/// <summary>
+	/// Per province id, its city: <c>city</c> as <c>positions.txt</c> writes it, not cut, or the centre of its bounding box.
+	/// The one thing that stands there is the capital marker (<c>docs/mechanics/mapunits.md</c>, section 9). Empty where
+	/// the map was made without the positions file's reader.
+	/// </summary>
+	public IReadOnlyList<CMapPoint> CityPositions { get; }
 
 	/// <summary>
 	/// Per province id, the sea province its port opens onto, or 0 for a province with

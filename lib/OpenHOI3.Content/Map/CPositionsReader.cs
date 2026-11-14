@@ -19,7 +19,8 @@ namespace OpenHOI3.Content.Map;
 /// which is <c>text_position</c> on any province, and where its port is drawn, which
 /// is <c>naval_base</c> inside <c>building_position</c>. Both start at the centre too.
 /// And every building <c>building_position</c> places, as the file gives it, with the
-/// ports once more in the order the file names them.
+/// ports once more in the order the file names them; and the province's <c>city</c>, as the file
+/// gives it or the plain centre, which is where its capital marker stands.
 ///
 /// The file is six megabytes of which those keys are a small part, so it is walked
 /// once by a reader of its own that keeps nothing else: the general parser would build
@@ -33,6 +34,7 @@ public static class CPositionsReader
 	private const string TextScale = "text_scale";
 	private const string BuildingPosition = "building_position";
 	private const string NavalBase = "naval_base";
+	private const string City = "city";
 
 	public static CMapPositions Read(string path, IReadOnlyList<CProvinceShape> shapes,
 		Func<int, bool> isSea, Action<string> warn)
@@ -59,10 +61,16 @@ public static class CPositionsReader
 		{
 			labels[id] = CProvinceLabel.Default with { X = unit[id].X, Y = unit[id].Y - CProvinceLabel.FallbackSouth };
 		}
+		// A city the file does not place is the plain centre, with none of the name's two pixels (FINDINGS-citypoint.md).
+		var city = new CMapPoint[shapes.Count];
+		for (int id = 0; id < shapes.Count; id++)
+		{
+			city[id] = new CMapPoint(unit[id].X, unit[id].Y);
+		}
 		if (!File.Exists(path))
 		{
 			warn($"no positions: '{path}' is missing, and every province is at the centre of its bounding box");
-			return new CMapPositions(unit, text, navalBase, buildings, Array.Empty<CPortPlacement>()) { Labels = labels };
+			return new CMapPositions(unit, text, navalBase, buildings, Array.Empty<CPortPlacement>()) { Labels = labels, City = city };
 		}
 		var placed = new List<CBuildingPosition>?[shapes.Count];
 		var ports = new List<CPortPlacement>();
@@ -111,6 +119,10 @@ public static class CPositionsReader
 						{
 							unit[province] = point;
 						}
+					}
+					else if (depth == 2 && key == City)
+					{
+						city[province] = new CMapPoint(x, y);
 					}
 					else if (depth == 3 && key == BuildingPosition)
 					{
@@ -167,7 +179,7 @@ public static class CPositionsReader
 					building = word;
 				}
 			}
-			else if ((depth == 2 && (key == Unit || key == TextPosition))
+			else if ((depth == 2 && (key == Unit || key == TextPosition || key == City))
 				|| (depth == 3 && key == BuildingPosition))
 			{
 				if (!afterEquals)
@@ -202,7 +214,7 @@ public static class CPositionsReader
 				buildings[id] = list.ToArray();
 			}
 		}
-		return new CMapPositions(unit, text, navalBase, buildings, ports.ToArray()) { Labels = labels };
+		return new CMapPositions(unit, text, navalBase, buildings, ports.ToArray()) { Labels = labels, City = city };
 	}
 
 	/// <summary>

@@ -20,7 +20,7 @@ Where this project deliberately does something else, the paragraph is marked **O
 | `definitions` | `definition.csv` | one row per province: id, colour, a name nobody reads |
 | `provinces` | `provinces.bmp` | the raster: every pixel is one province's colour |
 | `adjacencies` | `adjacencies.csv` | connections the raster cannot show: straits, canals, river crossings |
-| `positions` | `positions.txt` | hand-placed points per province: unit, text, city |
+| `positions` | `positions.txt` | hand-placed points per province: unit, text, buildings, city |
 | `terrain`, `terrain_definition` | `terrain.bmp`, `terrain.txt` | terrain per pixel, and what each terrain does |
 | `rivers`, `climate` | `rivers.bmp`, `climate.bmp` | rivers, and the climate index per pixel |
 | `continent`, `region`, `coastlines`, `tree_definition` | text files | groupings and decoration |
@@ -112,10 +112,18 @@ And **a place for each of its buildings**: every other entry of `building_positi
 as the file writes it, which is where that building's picture stands on the map
 (`mapunits.md`, section 9).
 
+And **its city**: `city = { x y }`, kept as the file writes it, not cut; **where the file gives none, the centre of the
+bounding box as it stands, with none of the name's 2.0** [exe] (`reversing/findings/FINDINGS-citypoint.md`, section 1).
+**The one thing in a game that reads it is the capital marker**, which stands there on the province that is its owner's
+acting capital (`mapunits.md`, section 9) - no distance, no camera and no tooltip asks it; the original's hidden map
+editor nudges it (`FINDINGS-citypoint.md`, section 4). The files hardly use it: Their Finest Hour gives one province a `city`,
+Lisbon, (2541.856, 1475.007) against a centre of (2541, 1478); the base game's own file one, London; BlackICE none.
+(measured)
+
 *Ours:* the file is read since 2026-10-09, when units came to be drawn at the first of these
 (`mapunits.md`). It is six megabytes of which these keys are a small part, so it has a
-reader of its own that keeps nothing else; the rest of it - where a city is drawn, and how
-a name is turned and sized - is not read. The original's default
+reader of its own that keeps nothing else; the name's turn and size are read since 2026-11-07 (`mapdraw.md`, section 4),
+and the city since 2026-11-14. The original's default
 for a port the file does not place was not read; the base game places every one that
 matters.
 

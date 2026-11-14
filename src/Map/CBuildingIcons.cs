@@ -14,8 +14,9 @@ namespace OpenHOI3.Map;
 /// declared to show there - its airfield, its port, its forts and the rest - each where
 /// <c>positions.txt</c> puts it. The port's and the airfield's are how a fleet in port
 /// and an air unit at its base are seen and picked: their pictures change when
-/// something is there, and a click on one goes through the units in it. See
-/// <c>docs/mechanics/mapunits.md</c>, section 9.
+/// something is there, and a click on one goes through the units in it. And, under them, the
+/// capital marker on every country's acting capital, at the province's city point, which a click
+/// goes through. See <c>docs/mechanics/mapunits.md</c>, section 9.
 /// </summary>
 public partial class CBuildingIcons : Node2D
 {
@@ -33,6 +34,7 @@ public partial class CBuildingIcons : Node2D
 	private CBillboardTypes _billboards = null!;
 	private readonly Dictionary<string, Picture?> _pictures = new(StringComparer.OrdinalIgnoreCase);
 	private List<CMapBuilding> _buildings = new();
+	private List<CMapCapital> _capitals = new();
 	private Rect2 _view;
 
 	public void Setup(CMap map, CGameState state, CGuiContext gui, CBillboardTypes billboards)
@@ -50,10 +52,11 @@ public partial class CBuildingIcons : Node2D
 	/// <summary>The country playing, whose knowledge of each province decides what of its buildings shows.</summary>
 	public CCountryTag? Player { get; set; }
 
-	/// <summary>Works out again which buildings there are and which bases have something in them.</summary>
+	/// <summary>Works out again which buildings there are, which bases have something in them and where the capitals are.</summary>
 	public void Refresh()
 	{
 		_buildings = CMapBuildings.Build(_state, _map, Player);
+		_capitals = CMapCapitals.Build(_state, _map);
 		QueueRedraw();
 	}
 
@@ -69,11 +72,16 @@ public partial class CBuildingIcons : Node2D
 	/// </summary>
 	private Picture? PictureOf(string building)
 	{
+		return PictureNamed(CMapBuildings.PicturePrefix + building);
+	}
+
+	/// <summary>The billboard of that name, or null where there is none - and for everything in the far view.</summary>
+	private Picture? PictureNamed(string name)
+	{
 		if (!Visible)
 		{
 			return null;
 		}
-		string name = CMapBuildings.PicturePrefix + building;
 		if (!_pictures.TryGetValue(name, out Picture? picture))
 		{
 			picture = _billboards.Find(name) is { TextureFile.Length: > 0 } type && _gui.Textures.Exists(type.TextureFile)
@@ -91,26 +99,47 @@ public partial class CBuildingIcons : Node2D
 		return new Vector2(building.X, _map.Height - building.Y);
 	}
 
+	/// <summary>
+	/// The middle of a capital marker in this node's coordinates: its city point, a world point, where the 2D map draws
+	/// one - half a pixel east and south of it (mapdraw.md, section 3).
+	/// </summary>
+	private Vector2 PlaceOf(CMapCapital capital)
+	{
+		return new Vector2(capital.X + 0.5f, _map.Height - 0.5f - capital.Y);
+	}
+
 	public override void _Draw()
 	{
+		// The capital markers first, so that a building's picture on the same point lies over one (mapunits.md, section 9).
+		if (PictureNamed(CMapCapitals.Picture) is { } marker)
+		{
+			foreach (CMapCapital capital in _capitals)
+			{
+				DrawPicture(marker, PlaceOf(capital), 0);
+			}
+		}
 		foreach (CMapBuilding building in _buildings)
 		{
-			if (PictureOf(building.Building) is not { } picture)
+			if (PictureOf(building.Building) is { } picture)
 			{
-				continue;
+				DrawPicture(picture, PlaceOf(building), building.Frame);
 			}
-			float half = picture.Type.Scale;
-			Vector2 place = PlaceOf(building);
-			float frameWidth = picture.Texture.GetWidth() / (float)picture.Type.Frames;
-			int frame = Math.Min(building.Frame, picture.Type.Frames - 1);
-			var source = new Rect2(frame * frameWidth, 0f, frameWidth, picture.Texture.GetHeight());
-			for (int copy = -1; copy <= 1; copy++)
+		}
+	}
+
+	/// <summary>A picture's frame as a square of twice its type's scale a side, on each copy of the map that is in view.</summary>
+	private void DrawPicture(Picture picture, Vector2 place, int frame)
+	{
+		float half = picture.Type.Scale;
+		float frameWidth = picture.Texture.GetWidth() / (float)picture.Type.Frames;
+		frame = Math.Min(frame, picture.Type.Frames - 1);
+		var source = new Rect2(frame * frameWidth, 0f, frameWidth, picture.Texture.GetHeight());
+		for (int copy = -1; copy <= 1; copy++)
+		{
+			var here = new Vector2(place.X + copy * _map.Width, place.Y);
+			if (_view.Grow(half).HasPoint(here))
 			{
-				var here = new Vector2(place.X + copy * _map.Width, place.Y);
-				if (_view.Grow(half).HasPoint(here))
-				{
-					DrawTextureRectRegion(picture.Texture, new Rect2(here.X - half, here.Y - half, 2f * half, 2f * half), source);
-				}
+				DrawTextureRectRegion(picture.Texture, new Rect2(here.X - half, here.Y - half, 2f * half, 2f * half), source);
 			}
 		}
 	}

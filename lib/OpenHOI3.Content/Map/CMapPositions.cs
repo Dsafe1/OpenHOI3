@@ -14,4 +14,10 @@ public sealed record CMapPositions(CMapPosition[] Unit, CMapPosition[] Text, CMa
 {
 	/// <summary>Per province id, where and how its name is written on the near map; empty where the file was not read.</summary>
 	public CProvinceLabel[] Labels { get; init; } = System.Array.Empty<CProvinceLabel>();
+
+	/// <summary>
+	/// Per province id, its city: <c>city</c> as written, not cut, or the centre of its bounding box - where the capital
+	/// marker stands (<c>docs/mechanics/mapunits.md</c>, section 9). Empty where nothing set it.
+	/// </summary>
+	public CMapPoint[] City { get; init; } = System.Array.Empty<CMapPoint>();
 }

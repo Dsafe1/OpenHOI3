@@ -237,6 +237,25 @@ public class MapLoadingTests : IDisposable
 	}
 
 	[Fact]
+	public void AProvincesCityIsKeptAsWrittenOrIsThePlainCentre()
+	{
+		// Alpha's city is given; Beta's unit and text are moved and its city is not.
+		Write("map/positions.txt",
+			"1 = { unit = { x=0 y=1 } city = { x=0.25 y=1.75 } }\n" +
+			"2 = { unit = { x=2 y=1 } text_position = { x=2.5 y=1.5 } }\n");
+		CMap map = Load();
+
+		Assert.Equal(new CMapPoint(0.25f, 1.75f), map.CityPositions[1]);   // as written, not cut
+		Assert.Equal(new CMapPosition(0, 1), map.Positions[1]);            // and the unit point its own
+		// Nothing said: the centre of its bounding box, (2, 2) - neither the unit's point nor the name's two pixels south.
+		Assert.Equal(new CMapPoint(2f, 2f), map.CityPositions[2]);
+		Assert.Equal(new CMapPoint(1f, 0f), map.CityPositions[3]);
+
+		File.Delete(Path.Combine(_root, "map", "positions.txt"));
+		Assert.Equal(new CMapPoint(1f, 2f), Load().CityPositions[1]);      // no file: the centres
+	}
+
+	[Fact]
 	public void APositionForNoProvinceIsReportedAndAMissingFileLeavesTheCentres()
 	{
 		Write("map/positions.txt", "9 = { unit = { x=1 y=1 } }\n2 = { unit = { x=2 y=2 } }\n");

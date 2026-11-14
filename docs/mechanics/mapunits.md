@@ -565,7 +565,8 @@ there is no AI.
 
 Read out of the original on 2026-10-09 for the port and the airfield, which are how a fleet
 in port and an air unit at its base are seen and picked:
-`reversing/findings/FINDINGS-seaair.md`, section 6. `confirmed` unless marked.
+`reversing/findings/FINDINGS-seaair.md`, section 6, and for the capital marker
+`reversing/findings/FINDINGS-citypoint.md`. `confirmed` unless marked.
 
 **Every plain `billboardType` is drawn through the install's own `billboard.fx`** since
 2026-11-07, translated for the canvas (`reversing/findings/FINDINGS-billboardfx.md`): the
@@ -614,6 +615,28 @@ province and the bombing icon south-west of it in one and north-west in the othe
 - The original has a second picture for three of them - `large_air_base`,
   `large_naval_base`, `large_anti_air` - which a province keeps beside the first and asks
   about a click at any height.
+
+**The capital marker** (`reversing/findings/FINDINGS-citypoint.md`, section 3), read 2026-11-14 and built the same day:
+
+- **It stands on the province that is the acting capital of the province's owner** [exe] - the owner and not the
+  controller, so an occupied capital keeps its owner's marker, and a government in exile sitting in a host's province
+  shows none there, the province being the host's. A province with no owner or no controller shows none. **No test of
+  what the player knows**: every country's capital shows, the buildings' intelligence test is theirs alone.
+- **It stands at the province's city point** (`map.md`, section 4) - `positions.txt`'s `city`, or the centre of the
+  bounding box - as a building's picture stands at its building's place: the original works it out as the city less the
+  label point in double precision, narrows it to single and adds the label point back, which comes to the city point.
+  So Portugal's stands 0.86 east and 3 south of Lisbon's centre and every other capital's on its centre, in Their Finest
+  Hour [mod: the files].
+- **It is the `billboardType` named `capital`** of `interface/mapitems.gfx` [mod; the name exe], drawn as a building's
+  picture is - through `billboard.fx`, a square of twice its `scale` a side (5 map units in the base game, 3 in BlackICE),
+  frame 0 - in the buildings' group, so **in the close view alone** like them (section 7). The original makes one for
+  every province and shows or hides it every fifteenth frame by the rule above, so it follows a moved capital at once;
+  here the pictures are worked out again whenever the counters are (section 7), which is every day and every move.
+- **A click goes through it** [exe]: the original's hit test of a province's pictures never asks the marker.
+
+*Inferred*: the order the original draws one group's pictures in was not read; a province's marker is made before its
+buildings' pictures in the one call, and here every marker is drawn before every building, so a building on the same
+point lies over it.
 
 **A building `positions.txt` gives no place stands in the middle of its province** - its label point, the centre of its
 box, which nothing in the file moves (`CMap.LabelPositions`) - and so do the fleets in its port and the air units at its
