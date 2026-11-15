@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using OpenHOI3.Sim;
@@ -177,6 +178,55 @@ public class ReplayTests
 		CReplay playback = CReplay.Replaying(recording.Entries);
 
 		Assert.Throws<InvalidOperationException>(() => playback.RunStep(replayed, "trade", _ => { }));
+	}
+
+	[Fact]
+	public void A_decision_the_game_calls_is_kept_where_it_posted_and_played_back_by_its_name()
+	{
+		// As a land unit enters a province the march asks the sealift what to do: a decision of the AI's, reading what only
+		// its steps make. Kept where it posted, it comes back for the same name in the same hour; where it posted nothing,
+		// nothing is kept and the replay passes it by - in memory and on disk alike (docs/replay.md, section 3).
+		void Record(CReplay recording, CGameState state)
+		{
+			recording.RunCalledStep(state, "arrival #1", _ => { });
+			recording.RunCalledStep(state, "arrival #2", s => s.Outbox.Add(new CMoveUnitCommand(Germany, 2, 5)));
+			recording.RunStep(state, "agents", s => s.Outbox.Add(new CMoveUnitCommand(Germany, 7, 1)));
+		}
+		void Play(CReplay playback, CGameState state)
+		{
+			playback.RunCalledStep(state, "arrival #1", _ => throw new InvalidOperationException("a replayed decision does not run"));
+			playback.RunCalledStep(state, "arrival #2", _ => throw new InvalidOperationException("a replayed decision does not run"));
+			playback.RunStep(state, "agents", _ => throw new InvalidOperationException("a replayed step does not run"));
+		}
+
+		CGameState recorded = State();
+		CReplay recording = CReplay.Recording();
+		Record(recording, recorded);
+		Assert.Equal(2, recording.Entries.Count);
+
+		CGameState replayed = State();
+		Play(CReplay.Replaying(recording.Entries), replayed);
+		Assert.Equal(recorded.Outbox.Select(Json), replayed.Outbox.Select(Json));
+
+		string path = Path.Combine(Path.GetTempPath(), $"openhoi3-replay-{Guid.NewGuid():N}.gz");
+		try
+		{
+			CGameState onDisk = State();
+			using (CReplayFile file = CReplayFile.Create(path, new CReplayHeader(Array.Empty<CCountryTag>(), onDisk.Seed)))
+			{
+				Record(CReplay.Recording(file.Write), onDisk);
+			}
+			CGameState fromDisk = State();
+			using (CReplayFile file = CReplayFile.Open(path, fromDisk))
+			{
+				Play(CReplay.Replaying(file), fromDisk);
+			}
+			Assert.Equal(onDisk.Outbox.Select(Json), fromDisk.Outbox.Select(Json));
+		}
+		finally
+		{
+			File.Delete(path);
+		}
 	}
 
 	[Fact]

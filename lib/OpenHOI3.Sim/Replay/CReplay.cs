@@ -19,6 +19,9 @@ public sealed class CReplay
 	private readonly Func<int, CReplayEntry?>? _source;
 	private int _next;
 
+	/// <summary>The next entry, read and not yet taken: a file is read once an entry, so a look ahead is kept here.</summary>
+	private CReplayEntry? _peeked;
+
 	private CReplay(Action<CReplayEntry>? sink, Func<int, CReplayEntry?>? source)
 	{
 		_sink = sink;
@@ -103,6 +106,48 @@ public sealed class CReplay
 			state.AiRandom.Draws - aiDraws));
 	}
 
+	/// <summary>
+	/// Runs a decision of the AI's that a pass of the game itself calls - as a land unit enters a province in the march -
+	/// or plays it back. Such a decision reads the AI's own state, which a replay does not make, so it is kept like a step:
+	/// recording, only where it posted, drew or numbered anything, under its name, which says whose it was; replaying, the
+	/// kept entry is taken where the next one is this hour's of that name, and nothing is done where it is not - the
+	/// decision having done nothing when recorded. The game's pass calls it in the same order both times, so the entries
+	/// come in that order (<c>docs/replay.md</c>, section 3).
+	/// </summary>
+	public void RunCalledStep(CGameState state, string name, Action<CGameState> step)
+	{
+		if (IsReplaying)
+		{
+			if (Peek() is CReplayStep kept && kept.Hour == state.TotalHours && kept.Step == name)
+			{
+				Take(state);
+				state.Outbox.AddRange(kept.Commands);
+				state.Random.Skip(kept.Draws);
+				state.AiRandom.Skip(kept.AiDraws);
+				state.LastUnitId += kept.UnitIds;
+			}
+			return;
+		}
+
+		int posted = state.Outbox.Count;
+		long draws = state.Random.Draws;
+		long aiDraws = state.AiRandom.Draws;
+		int unitIds = state.LastUnitId;
+		step(state);
+		if (state.Outbox.Count == posted && state.Random.Draws == draws && state.AiRandom.Draws == aiDraws
+			&& state.LastUnitId == unitIds)
+		{
+			return;
+		}
+		var commands = new List<CCommand>(state.Outbox.Count - posted);
+		for (int i = posted; i < state.Outbox.Count; i++)
+		{
+			commands.Add(state.Outbox[i]);
+		}
+		Keep(new CReplayStep(state.TotalHours, name, commands, state.Random.Draws - draws, state.LastUnitId - unitIds,
+			state.AiRandom.Draws - aiDraws));
+	}
+
 	/// <summary>Recording: a command posted from outside the game, after that many drains of the queue.</summary>
 	public void Posted(int turn, CCommand command)
 	{
@@ -156,6 +201,15 @@ public sealed class CReplay
 
 	private CReplayEntry Take(CGameState state)
 	{
-		return _source!(_next++) ?? throw new CReplayEndedException($"the recording ends before {state.Date} {state.Hour}h");
+		CReplayEntry? next = Peek();
+		_peeked = null;
+		_next++;
+		return next ?? throw new CReplayEndedException($"the recording ends before {state.Date} {state.Hour}h");
+	}
+
+	/// <summary>The next entry without taking it, or null where the recording has ended.</summary>
+	private CReplayEntry? Peek()
+	{
+		return _peeked ??= _source!(_next);
 	}
 }

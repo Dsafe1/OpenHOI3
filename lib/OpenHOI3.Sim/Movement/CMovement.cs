@@ -536,10 +536,19 @@ public static class CMovement
 		}
 		Enter(state, unit, next.Id);
 		// A land unit's own agent is told at once: the sealift's look at a unit come into its target's area or its embark
-		// port (moving.md, section 15).
+		// port (moving.md, section 15). The AI's decision, made in the march: recorded and played back as a step, since it
+		// reads what only the AI's own steps make (docs/replay.md, section 3).
 		if (isLand)
 		{
-			Agents.CSealiftArrival.OnEntered(state, unit);
+			if (state.Replay is { } replay)
+			{
+				replay.RunCalledStep(state, "CSealiftArrival.OnEntered #" + unit.Id,
+					s => Agents.CSealiftArrival.OnEntered(s, unit));
+			}
+			else
+			{
+				Agents.CSealiftArrival.OnEntered(state, unit);
+			}
 		}
 		if (unit.Kind == EUnitKind.Navy)
 		{

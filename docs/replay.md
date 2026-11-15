@@ -65,6 +65,17 @@ be the hour and the step the game has reached; where it is not, the run stops an
 **What the AI keeps for itself does not move in a replay** - its agents, plans, prepared wars and the Lua's own memory -
 so a tool that reads them in a replay reads them as they stood at the first hour. Nothing of the game reads them.
 
+**A decision of the AI's that the game's own pass calls** reads them all the same, and so is kept as a step is, through
+`CReplay.RunCalledStep`: the sealift's look as a land unit enters a province in the march (`CSealiftArrival.OnEntered`;
+`mechanics/moving.md`, section 15), which boards it onto a waiting transport and sails the fleet, reading the agent's
+transports, its plan's embark and debark and the unit's sealift target. It is kept **only where it posted, drew or numbered
+anything**, under a name that carries the unit's number; replaying, the march calls it in the same order, and it takes the
+next entry where that is this hour's of its name and does nothing where it is not - so it looks at the next entry without
+taking it, one entry read ahead, since a recording on disk is read an entry at a time. *Found 2026-11-15*: from 2026-11-14
+the decision ran in the replay as in the game, deciding there on the first hour's agents, and a recording and its replay
+parted on 5 January 1936 - Italy's 22a Divisione and its 4a Squadra - 3 of 31 days the same, until it was kept so. **A new
+call from the game into the AI must go the same way**, or be worked out from the game alone.
+
 ## 4. On disk
 
 `CReplayFile`, compressed with gzip: a line naming the format (`OpenHOI3 replay 2`); a line of what the game has to be
