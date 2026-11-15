@@ -256,7 +256,7 @@ public class ProductionTests
 		CTick.RunEntryPass(state);
 
 		Assert.Equal(201, germany.TotalIc);
-		Assert.Equal(CFixedPoint.Parse("283.84"), germany.HomeProduced[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Parse("283.84"), CProduction.SuppliesMade(state, germany));
 	}
 
 	[Fact]
@@ -270,7 +270,7 @@ public class ProductionTests
 		CTick.RunEntryPass(state);
 
 		// Ten IC at 7 each, doubled: 140. Multiplied it would be 157.5.
-		Assert.Equal(CFixedPoint.FromInt(140), germany.HomeProduced[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.FromInt(140), CProduction.SuppliesMade(state, germany));
 	}
 
 	[Fact]
@@ -285,6 +285,29 @@ public class ProductionTests
 
 		Assert.Equal(CFixedPoint.FromInt(35), state.Province(1).Pool[EGoods.Supplies]);
 		Assert.Equal(CFixedPoint.FromInt(35), germany.HomeProduced[EGoods.Supplies]);
+	}
+
+	[Fact]
+	public void EnteringAGameLeavesWhatWasMadeAtHomeAsTheLastDayLeftIt()
+	{
+		// The original's entering collects no production: a new game's first screen shows its second day's, made with the
+		// shares as they stood that day, whatever the Lua's laws or the AI move afterwards - and a loaded game the save's.
+		CCountry germany = Country("GER", 1);
+		CGameState state = State(new[] { germany }, new[] { Land(1, "GER", industry: 5) });
+		SetShares(germany, 0, 0, 0, CFixed15.Scale / 2, 0, 0);
+		Stock(state.Province(1).Pool);
+		RunADay(state);
+		CFixedPoint money = germany.HomeProduced[EGoods.Money];
+		CFixedPoint metal = germany.HomeProduced[EGoods.Metal];
+
+		SetShares(germany, 0, 0, 0, CFixed15.Scale, 0, 0);
+		germany.HomeProduced[EGoods.Fuel] = CFixedPoint.Parse("1.5");   // as a save may hold it
+		CTick.RunEntryPass(state);
+
+		Assert.Equal(CFixedPoint.FromInt(35), germany.HomeProduced[EGoods.Supplies]);   // not the 70 the new share makes
+		Assert.Equal(money, germany.HomeProduced[EGoods.Money]);
+		Assert.Equal(metal, germany.HomeProduced[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.Parse("1.5"), germany.HomeProduced[EGoods.Fuel]);
 	}
 
 	// --- what spending IC costs ---

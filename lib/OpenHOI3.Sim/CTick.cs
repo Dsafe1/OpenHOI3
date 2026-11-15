@@ -286,7 +286,9 @@ public static class CTick
 		CIndustrialCapacity.Update(state);
 		// Each country's share of its home ports cut off, after its IC as the original's entry has it (modifiers.md, section 3).
 		Provinces.CBlockade.UpdateLevels(state);
-		CResources.UpdateHomeProduction(state);
+		// What each country made at home is left as its last day left it - a new game's second day, or the save's: nothing
+		// the original's entering does writes it, the day's production being collected in a country's own day alone
+		// (resources.md, section 3; reversing/findings/FINDINGS-savegame.md, A.5).
 		CProduction.Estimate(state);
 		COfficers.Update(state);
 		// Every battle's sides given the hour's circumstances again, whatever its kind, attacker first, as the original's

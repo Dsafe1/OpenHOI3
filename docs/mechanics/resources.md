@@ -96,6 +96,31 @@ Piece by piece:
   and 2.5. Until 2026-11-15 this said a country not holding its capital made nothing.
 - **Money is home production too**, and has its own formula: `stockpile.md`, section 4.
 
+**The pool a day leaves, and what entering does to it.** `confirmed` [exe]: the pool of what
+a country made at home is cleared, and its resources collected into it, only in the day of a
+country that owns a province or is in exile (`CCountry::CollectDailyProduction`,
+`reversing/findings/FINDINGS-supplyconvoys.md`, section 8); the shares of IC, which run for
+every country but the rebels, **add** the day's money (`CDistributeConsumerGoods::Distribute`)
+and supplies (`CDistributeSupply::Distribute`) to it. So a country that does not exist **keeps
+adding to it** - two days into a new game it holds two days' money and supplies, as the start
+saves' non-existent countries do (`stockpile.md`, section 6) - while its stockpile gets each
+day's once. And **entering a game writes nothing to it**: nothing the original runs as a game
+is entered collects production, a new game's entering after its two days included
+(`reversing/findings/FINDINGS-savegame.md`, A.5; `reversing/findings/FINDINGS-laterstart.md`,
+sections 2 and 10 - the shares run there with nothing to spend). A new game's first screen
+shows its second day's - made with the shares and laws of that day, before the Lua's changes
+of law - and a loaded game the save's, which the load keeps. (measured, `firstdays` and
+`write ... new`, 2026-11-15: the supplies and the money made of every country the save's in the
+1936 start save - Germany 283.840, Britain 91.756 and Ireland 9.971 supplies - and of every
+country but one each in the 1939.9.1, 1941.6.22 and 1941.12.11 start saves: the Soviet Union's
+supplies at 1939, 161.813 to 163.604, and non-existent Estonia's at 1941, 20.050 to 22.914, not
+chased. The resources of Germany at 1941 and China at 1939 differ on the second day itself,
+Germany's 312.093 metal to the save's 332.084 at 1941.6.22.) Until 2026-11-15 entering made the
+pool again after the days and put an estimate of the day's money and supplies in it, taken
+after the Lua's laws: Germany 262.005, Britain 161.033 and Ireland 0.728 supplies at 1936,
+Ireland's less than the 3.98 it makes away from its capital, and every non-existent country's
+money one day's where the save has two.
+
 **"Joined to the capital" is "in the capital's area"**, and an area was read on 2026-10-09:
 the capital and every province the country controls that touches it through such provinces,
 **each with more than one level of infrastructure** (`supply.md`, section 2). `confirmed`,

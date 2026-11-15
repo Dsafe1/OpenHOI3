@@ -319,7 +319,7 @@ public class StockpileTests
 
 		CTick.RunEntryPass(state);
 
-		Assert.Equal(CFixedPoint.Parse("3.6"), germany.HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Parse("3.6"), CResources.MoneyPerDay(state, germany));
 	}
 
 	[Fact]
@@ -334,7 +334,7 @@ public class StockpileTests
 
 		CTick.RunEntryPass(state);
 
-		Assert.Equal(CFixedPoint.Parse("0.212"), afghanistan.HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Parse("0.212"), CResources.MoneyPerDay(state, afghanistan));
 	}
 
 	[Fact]
@@ -346,12 +346,32 @@ public class StockpileTests
 		CStockpile.FillAtStart(state);
 		var simulation = new CSimulation(state);
 
-		Assert.Equal(CFixedPoint.Parse("0.25"), eastGermany.HomeProduced[EGoods.Money]);
-		Assert.Equal(CFixedPoint.Zero, eastGermany.HomeProduced[EGoods.Metal]);   // but it produces nothing
-
 		// Germany starts with 1.125 and earns a quarter a day; so does East Germany.
 		simulation.RunHours(24);
 		Assert.Equal(CFixedPoint.Parse("1.625"), state.Province(1).Pool[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Parse("0.25"), eastGermany.HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Zero, eastGermany.HomeProduced[EGoods.Metal]);   // but it produces nothing
+	}
+
+	[Fact]
+	public void WhatACountryThatDoesNotExistMadeAtHomeIsNeverClearedAndReachesTheStockpileOnce()
+	{
+		// The original's day clears what a country made at home only where the country owns a province or is in exile, and
+		// its shares add their money and supplies to it whatever it holds - so East Germany's grows by a day's each day,
+		// as two days into a new game the start save's non-existent countries hold two days' worth (resources.md,
+		// section 3). Germany's is the one day's.
+		CCountry germany = Country("GER", 1);
+		CCountry eastGermany = Country("DDR", 1);
+		CGameState state = State(new[] { germany, eastGermany }, new[] { Land(1, "GER") });
+		CStockpile.FillAtStart(state);
+		var simulation = new CSimulation(state);
+
+		simulation.RunHours(48);
+
+		Assert.Equal(CFixedPoint.Parse("0.5"), eastGermany.HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Parse("0.25"), germany.HomeProduced[EGoods.Money]);
+		// Each day's quarter reached Berlin once: 1.125 to start, and two quarters each.
+		Assert.Equal(CFixedPoint.Parse("2.125"), state.Province(1).Pool[EGoods.Money]);
 	}
 
 	[Fact]
@@ -380,7 +400,7 @@ public class StockpileTests
 
 		CTick.RunEntryPass(state);
 
-		Assert.Equal(CFixedPoint.Zero, germany.HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Zero, CResources.MoneyPerDay(state, germany));
 	}
 
 	[Fact]

@@ -59,8 +59,18 @@ public static class CResources
 		}
 	}
 
+	/// <summary>
+	/// A country's day's production collected: what it made at home cleared and made again from its provinces. Only a
+	/// country with a day of its own has it - one owning a province, or a government in exile - as the original's
+	/// <c>CCountry::CollectDailyProduction</c> runs only for those [exe]. One that does not exist keeps its pool as it
+	/// stands, and the money and supplies its shares make are added to it day after day (resources.md, section 3).
+	/// </summary>
 	public static void UpdateHomeProduction(CGameState state, CCountry country)
 	{
+		if (!HasOwnDay(state, country))
+		{
+			return;
+		}
 		CGoodsPool home = country.HomeProduced;
 		home.Clear();
 
@@ -88,14 +98,11 @@ public static class CResources
 
 		// What base_values' IC needs is made by every country that has a day of its own - one owning a province, or a
 		// government in exile - whatever it holds: an exile seated in its host's capital makes it into its own pool
-		// (war.md, section 14). A country that does not exist makes none.
-		if (HasOwnDay(state, country))
+		// (war.md, section 14).
+		CFixedPoint baseIc = state.StaticModifier(CIndustrialCapacity.BaseValues, CIndustrialCapacity.BaseValuesIc);
+		foreach ((EGoods goods, CFixedPoint perIc) in NeededPerIc)
 		{
-			CFixedPoint baseIc = state.StaticModifier(CIndustrialCapacity.BaseValues, CIndustrialCapacity.BaseValuesIc);
-			foreach ((EGoods goods, CFixedPoint perIc) in NeededPerIc)
-			{
-				home[goods] += baseIc * perIc;
-			}
+			home[goods] += baseIc * perIc;
 		}
 	}
 

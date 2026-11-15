@@ -1401,7 +1401,7 @@ public class MapLoadingTests : IDisposable
 
 		// Ten IC at 0.05, the law's +15%, and the workhorse's +5%: the empty head of state's post is filled with him, the
 		// first minister who may take it (politics.md, section 7).
-		Assert.Equal(CFixedPoint.Parse("0.6"), Germany(state).HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Parse("0.6"), CResources.MoneyPerDay(state, Germany(state)));
 	}
 
 	[Fact]
@@ -1562,7 +1562,7 @@ public class MapLoadingTests : IDisposable
 		// 0.05, and a third more for the gold - each with the 5% of the workhorse the empty head of state's post is
 		// filled with (politics.md, section 7) and the 15% of full_civilian_economy, the law a new game gives a country
 		// with none in the group (politics.md, section 13).
-		Assert.Equal(CFixedPoint.Parse("0.300"), Germany(state).HomeProduced[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Parse("0.300"), CResources.MoneyPerDay(state, Germany(state)));
 		simulation.RunHours(24);
 		Assert.Equal(CFixedPoint.Parse("0.382"), Germany(state).HomeProduced[EGoods.Money]);
 	}

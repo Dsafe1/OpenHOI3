@@ -628,6 +628,17 @@ foreach ((ClausewitzNode node, CCountry country) in savedCountries)
 CTick.RunEntryPass(state);
 CStrategicResources.Update(state);
 CTick.RunEntryPass(state);
+// No day is run here, and entering a game leaves what was made at home alone, so the day's home production is worked out
+// for the comparison: the provinces' yield, and the money and supplies the shares make, one day's worth.
+CResources.UpdateHomeProduction(state);
+foreach (CCountry country in state.Countries)
+{
+	if (CProduction.TakesPart(state, country))
+	{
+		country.HomeProduced[EGoods.Money] = CResources.MoneyPerDay(state, country);
+		country.HomeProduced[EGoods.Supplies] = CProduction.SuppliesMade(state, country);
+	}
+}
 
 // A share is written with five decimals; the nearest value with fifteen binary places is it.
 static CFixed15 Share(string? text)

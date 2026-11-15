@@ -144,8 +144,14 @@ records of its enemies (`strategicwarfare.md`); rebel-held provinces begin their
   country at war reads the original's deficit - Germany at 1941.12.11 a supplies balance of -720 a day where it read +55,
   against the save's pools' -638, the rest being Berlin's throughput. A first screen shows its second day's usage, no
   longer an estimate: the 1936 start save's for Germany, Britain and Ireland to the thousandth, Britain's 178.246 against
-  178.293 at 1941.12.11. Home production on the first screen is still an estimate made after the days (Ireland 0.728
-  against 9.971 at 1936).
+  178.293 at 1941.12.11.
+- **What a country made at home is its second day's** (`resources.md`, section 3): entering collects no production, so
+  the first screen shows the pool the second day left, and a non-existent country's holds two days' money and supplies,
+  the original's shares adding to a pool only a country's own day clears. Supplies and money made are every country's
+  the save's at 1936 and all but one country's at each later start - Ireland's 9.971 at 1936, 11.465, 21.840 and 26.208
+  after, where an estimate taken after the days had given 0.728 at 1936 - and with them the day's balance on the top
+  bar, its tooltip, the production screen and the Lua: Ireland's +8.23 a day at 1936 against the save's pools' 8.233,
+  where it read -1.01. Germany's resources at 1941 differ on the second day itself, 312.093 metal to 332.084 at 1941.6.22.
 
 ### 3.1 Set beside the start saves
 

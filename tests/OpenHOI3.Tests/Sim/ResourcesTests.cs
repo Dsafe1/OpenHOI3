@@ -83,6 +83,7 @@ public class ResourcesTests
 			Yielding(Land(4, Ger), EGoods.Metal, "100"));         // an island: it touches nothing
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.FromInt(14), Home(state, EGoods.Metal));    // the island's hundred has to be shipped
 		Assert.Equal(CFixedPoint.FromInt(20), Home(state, EGoods.Energy));
@@ -98,6 +99,7 @@ public class ResourcesTests
 			Yielding(Land(3, Ger, 2), EGoods.Metal, "4"));
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.FromInt(10), Home(state, EGoods.Metal));
 	}
@@ -112,6 +114,7 @@ public class ResourcesTests
 			Yielding(Land(3, Ger, 2), EGoods.Metal, "4"));
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.FromInt(10), Home(state, EGoods.Metal));
 	}
@@ -124,6 +127,7 @@ public class ResourcesTests
 			Modifier("full_civilian_economy", "global_resources", "-0.45"));
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.FromInt(22), Home(state, EGoods.CrudeOil));
 	}
@@ -141,6 +145,7 @@ public class ResourcesTests
 		germany.TechnologyLevels["steel_production"] = 2;
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.Parse("167.140"), Home(state, EGoods.Metal));
 	}
@@ -155,6 +160,7 @@ public class ResourcesTests
 		germany.TechnologyLevels["steel_production"] = 2;
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.FromInt(55), Home(state, EGoods.Metal));    // 100 * 0.5 * 1.1, not 100 * 0.6
 	}
@@ -172,6 +178,7 @@ public class ResourcesTests
 		germany.TechnologyLevels["steel_production"] = 1;
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.Parse("3.464"), Home(state, EGoods.Metal));
 	}
@@ -199,6 +206,7 @@ public class ResourcesTests
 		germany.TechnologyLevels["oil_refinning"] = 4;
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.FromInt(105), Home(state, EGoods.Metal));
 		Assert.Equal(CFixedPoint.FromInt(110), Home(state, EGoods.Energy));
@@ -213,6 +221,7 @@ public class ResourcesTests
 		state.Country(Ger)!.Laws["economic_law"] = new CLaw("economic_law", Modifier("law", "global_resources", "-0.5"));
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		// 1 metal, 2 energy and half a rare material for each of the five IC, and the laws do not touch it.
 		Assert.Equal(CFixedPoint.FromInt(5), Home(state, EGoods.Metal));
@@ -230,6 +239,7 @@ public class ResourcesTests
 			Yielding(Land(2, Ger, 1), EGoods.Metal, "10"));
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		// Its own province is cut off from a capital it does not hold, and owning it gives it a day of its own, in which the
 		// original's CollectDailyProduction adds base_values' needs whatever it holds (war.md, section 14).
@@ -239,6 +249,7 @@ public class ResourcesTests
 		// A country owning nothing and in no exile makes nothing.
 		CGameState without = State("5", null, Land(1, Ger), Land(2, Ger, 1));
 		CTick.RunEntryPass(without);
+		CResources.UpdateHomeProduction(without);
 		Assert.Equal(CFixedPoint.Zero, without.Country(Fra)!.HomeProduced[EGoods.Metal]);
 	}
 
@@ -248,8 +259,10 @@ public class ResourcesTests
 		CProvince mine = Yielding(Land(2, Ger, 1), EGoods.Metal, "7");
 		CGameState state = State(null, null, Yielding(Land(1, Ger, 2), EGoods.Metal, "10"), mine);
 		var simulation = new CSimulation(state);
-		Assert.Equal(CFixedPoint.FromInt(17), Home(state, EGoods.Metal));
+		Assert.Equal(CFixedPoint.Zero, Home(state, EGoods.Metal));           // entering collects nothing
 
+		simulation.RunHours(24);
+		Assert.Equal(CFixedPoint.FromInt(17), Home(state, EGoods.Metal));
 		simulation.RunHours(48);
 		Assert.Equal(CFixedPoint.FromInt(17), Home(state, EGoods.Metal));    // two days on, still one day's worth
 
@@ -272,6 +285,7 @@ public class ResourcesTests
 		CGameState state = State("5", null, WithIndustry(Land(1, Ger), 139));
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(144, state.Country(Ger)!.BaseIc);          // its provinces' 139 and the 5 everyone has
 		Assert.Equal(5, state.Country(Fra)!.BaseIc);            // a country that holds nothing still has the 5
@@ -285,6 +299,7 @@ public class ResourcesTests
 		state.Country(Ger)!.Laws["economic_law"] = new CLaw("economic_law", Modifier("law", "global_ic", "-0.45"));
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(9, state.Country(Ger)!.TotalIc);           // (13 + 5) * 0.55 is 9.9
 	}
@@ -299,6 +314,7 @@ public class ResourcesTests
 		germany.TechnologyLevels["industral_production"] = 4;
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.Parse("0.1"), germany.Technology["ic_modifier"]);
 		Assert.Equal(CFixedPoint.Zero, germany.Modifier["ic_modifier"]);    // kept apart from the laws
@@ -315,6 +331,7 @@ public class ResourcesTests
 		germany.TechnologyLevels["perpetual_motion"] = 9;
 
 		CTick.RunEntryPass(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Empty(germany.Technology.Values);
 		Assert.Equal(100, germany.TotalIc);

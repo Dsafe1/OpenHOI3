@@ -182,11 +182,19 @@ public static class CStockpile
 		}
 	}
 
+	/// <summary>
+	/// The day's production, just collected, put in the stockpile - by a country with a day of its own alone, whose pool
+	/// holds nothing else yet. One that does not exist collects nothing, and what its pool has gathered of money and
+	/// supplies over the days has reached its stockpile already, a day at a time (resources.md, section 3).
+	/// </summary>
 	public static void AddHomeProduction(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			state.Stockpile(country)?.Add(country.HomeProduced);
+			if (CResources.HasOwnDay(state, country))
+			{
+				state.Stockpile(country)?.Add(country.HomeProduced);
+			}
 		}
 	}
 

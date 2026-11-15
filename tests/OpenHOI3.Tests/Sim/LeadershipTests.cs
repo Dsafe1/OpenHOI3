@@ -205,6 +205,7 @@ public class LeadershipTests
 		unclaimed.CurrentProducing[EGoods.Metal] = CFixedPoint.FromInt(10);
 		CGameState state = State(new[] { poland }, Land(1, "POL", "1", neighbours: 2), unclaimed);
 		Refresh(state);
+		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.Parse("4.7"), poland.TotalLeadership);    // 1 + a fifth of 1 + 3.5
 		Assert.Equal(7, poland.BaseIc);                                    // half of four, and the five

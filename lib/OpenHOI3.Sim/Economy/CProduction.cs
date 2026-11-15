@@ -237,9 +237,9 @@ public static class CProduction
 	}
 
 	/// <summary>
-	/// What the day would bring, without moving anything: the money and the supplies each
-	/// country makes, put beside the rest of its home production so that there are
-	/// figures to show before the first midnight.
+	/// What the units would ask for and what seeing to them would cost, without moving anything, so that three of the
+	/// sliders have a need to show before the first midnight. What a country made at home is not touched: a new game's
+	/// first screen shows its second day's, and a loaded game the save's (resources.md, section 3).
 	/// </summary>
 	public static void Estimate(CGameState state)
 	{
@@ -247,9 +247,6 @@ public static class CProduction
 		{
 			if (TakesPart(state, country))
 			{
-				country.HomeProduced[EGoods.Money] = CResources.MoneyPerDay(state, country);
-				country.HomeProduced[EGoods.Supplies] = SuppliesMade(state, country);
-
 				// What the units would ask for and what seeing to them would cost, so
 				// that three of the sliders have a need to show.
 				(CFixedPoint supplies, CFixedPoint _) = CUnitSupply.DailyUse(state, country);
@@ -387,11 +384,12 @@ public static class CProduction
 
 	private static void RunConsumerGoods(CGameState state, CCountry country, CGoodsPool stockpile)
 	{
-		// Money comes of having IC at all, not of the share.
+		// Money comes of having IC at all, not of the share. It is added to what was made at home, which only the day of a
+		// country that exists clears first - so one that does not keeps adding to it (resources.md, section 3) [exe].
 		if (country.TotalIc != 0)
 		{
 			CFixedPoint money = CResources.MoneyPerDay(state, country);
-			country.HomeProduced[EGoods.Money] = money;
+			country.HomeProduced[EGoods.Money] += money;
 			stockpile[EGoods.Money] += money;
 		}
 
@@ -496,7 +494,8 @@ public static class CProduction
 		// They are made whatever the stockpile holds, and charged for afterwards - and
 		// made where the factories are, so only part of them is in the stockpile at once.
 		CFixedPoint made = SuppliesMade(state, country);
-		country.HomeProduced[EGoods.Supplies] = made;
+		// Added, as money is: a country that does not exist never has the pool cleared (resources.md, section 3) [exe].
+		country.HomeProduced[EGoods.Supplies] += made;
 		Supply.CSupplyMaking.ShareOut(state, country, stockpile, EGoods.Supplies, made);
 
 		Charge(country, stockpile, Spent(country, EProductionCategory.Supplies) - FreePart(country, EProductionCategory.Supplies),
