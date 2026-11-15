@@ -101,13 +101,14 @@ compile glob for the matching reason - `Godot.NET.Sdk` would otherwise compile t
 
 Nothing should be designed around these coming back.
 
-- **One canonical start.** No custom game starts, no bookmarked starts, no isolated scenarios.
-  The original offers all four; collapsing them to one means one set of starting conditions to
-  balance, one code path into the simulation, and one start state to build from the history
-  files. Every extra entry point is a permanent tax on all three. It also means nothing here
-  reads `scenarios/`, and `common/bookmarks.txt` only for the start's own look in the lobby - its picture, name and
-  shortcut countries - which offers that start alone, with no Quick Start, scenarios or custom games
-  (`docs/mechanics/frontend.md`; `docs/compatibility.md`, entry 17; 2026-11-06).
+- **The campaign is the one way into a game: no custom game starts, no isolated scenarios.** The original
+  also offers both; leaving them out means one kind of start to balance and one code path into the simulation, and a
+  scenario's own map extent and victory conditions would be a second simulation to keep. So nothing here reads
+  `scenarios/` (`docs/compatibility.md`, entries 1 and 17). ~~No bookmarked starts~~ - **bookmarks are planned** since
+  2026-11-15, by the maintainer's word ("put the bookmark support on the loose end. Scenarios should still be
+  considered out of scope"): until they are built the lobby offers the defines' `start_date` alone, with
+  `common/bookmarks.txt` read only for that start's look - its picture, name and shortcut countries - and no Quick Start
+  (`docs/mechanics/frontend.md`; the readme's *Loose ends*).
 - **An install is read as it is. There is no converter and no format of ours to author in.**
   - *Script is loaded natively* - events, decisions, triggers, effects, technologies, units,
     laws, ministers, history - in the original's syntax with the original's keywords, so a

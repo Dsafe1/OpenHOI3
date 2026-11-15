@@ -2729,30 +2729,40 @@ None of these blocks the list above.
   theirs: `reversing/findings/FINDINGS-counters.md` and
   `reversing/findings/FINDINGS-deploymenu.md`.
   The rest have not been filed in its work queue.
+- **Bookmarked starts are planned, not built** (the maintainer's word, 2026-11-15, taking them out of the settled
+  decisions below). The original offers eight dated entry points in `common/bookmarks.txt`, from 1936 to 1944, each
+  with its own suggested countries and text, and its Quick Start panel's four buttons start four of them - Germany in
+  1939, the United States in 1936, Japan and the Soviet Union in 1941. Here only the defines' `start_date` is offered
+  (`docs/mechanics/frontend.md`; `docs/compatibility.md`, entries 1 and 17). What a later start needs: every country,
+  province, unit and diplomatic state made from the history files at its date - their dated entries and each
+  country's order of battle for that year - the lobby's list of every bookmark and its choice of country, the Quick
+  Start panel, and a reading of what the original's new-game pass does differently at a later date (its laws,
+  technology and AI passes were read at 1936). Not read: how the original's lobby and new game pick a bookmark's date
+  and files.
 
 A replacement for the engine still leaves a few things of the original's out. These are settled
 decisions rather than things merely unbuilt, so nothing should be designed around them
 coming back later. **Every place where a file that is valid in the original is
 deliberately treated differently here is listed in `docs/compatibility.md`**, with who
-decided it, what a mod loses by it and what would undo it: these three, and the ones
+decided it, what a mod loses by it and what would undo it: these two, and the ones
 about the interface and its text.
 
 - **Custom game starts.** No screen for assembling a game from arbitrary settings
   before it begins.
-- **Bookmarked starts.** The original offers eight dated entry points, from 1936 to
-  1944, each with its own suggested countries and flavour text. There is one starting
-  point here.
+- ~~**Bookmarked starts.**~~ Taken out of this list on 2026-11-15 by the maintainer's word and put among the *Loose
+  ends* above as planned work.
 - **Isolated scenarios.** The original ships nine self-contained battles - Fall Blau,
   the Bulge, Operation Downfall and so on - each with its own dates, map extent and
-  victory conditions, living apart from the campaign. There are none.
+  victory conditions, living apart from the campaign. There are none, and none are planned (the maintainer's word,
+  2026-11-15: "Scenarios should still be considered out of scope").
 
-Together these collapse the original's four ways into a game down to one. That is the
-point: a single canonical start is one set of starting conditions to balance, one code
-path into the simulation, and one start state to build from the history files. Every
-extra entry point is a permanent tax on all three.
+Together these leave the campaign as the one way into a game, from the start until bookmarks are built. A campaign
+start is one set of starting conditions to balance and one code path into the simulation; a scenario, with its own
+map extent and victory conditions, would be a second simulation to keep.
 
 It also means nothing here reads `scenarios/`, and `common/bookmarks.txt` only for the one start's look in the lobby,
-which is pared down to that start (`docs/mechanics/frontend.md`; `docs/compatibility.md`, entry 17).
+which is pared down to that start until bookmarks are built (`docs/mechanics/frontend.md`; `docs/compatibility.md`,
+entry 17).
 
 ## Where things stand
 

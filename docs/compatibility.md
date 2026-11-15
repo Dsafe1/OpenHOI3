@@ -27,20 +27,25 @@ next person to wonder finds that it was wondered before.
 
 ---
 
-## 1. One start
+## 1. The campaign alone: no scenarios, no custom games ~~, no bookmarks~~
 
-**Decided** 2026-10-07, with the plan.
+**Decided** 2026-10-07, with the plan, as one start. **Amended 2026-11-15 by the maintainer**: "put the bookmark support
+on the loose end. Scenarios should still be considered out of scope." So the bookmarks are no longer part of this
+decision: they are planned work, in the readme's *Loose ends* - until they are built the lobby offers the defines'
+`start_date` alone (entry 17), which is a thing not built and not a departure. The scenarios, and the custom games,
+which the amendment did not touch, stay out.
 
 | | |
 | --- | --- |
-| the original | offers eight bookmarked dates, nine self-contained scenarios, a custom game assembled from settings, and the campaign |
-| here | one start: the campaign's first date |
-| not read | `common/bookmarks.txt` and everything under `scenarios/`. The front end's and the lobby's windows are read with the rest of the interface files and nothing shows them |
-| a mod loses | its own bookmarks and scenarios. Its history files are read as before, and it is their state on the start date that is played |
-| why | one set of starting conditions to balance, one way into the simulation, one start state to build |
-| to undo | nothing in `lib/` assumes a single date, but a lobby to choose in would have to exist |
+| the original | offers ~~eight bookmarked dates,~~ nine self-contained scenarios, a custom game assembled from settings, and the campaign - from any of eight bookmarked dates |
+| here | the campaign; ~~one start: the campaign's first date~~ its first date until bookmarks are built |
+| not read | everything under `scenarios/` |
+| a mod loses | its own scenarios and its custom game settings. Its history files are read as before |
+| why | a scenario has its own dates, map extent and victory conditions, apart from the campaign - a second simulation to keep beside the first; a custom game is a start assembled from settings, a second set of starting conditions to balance |
+| to undo | read `scenarios/` and build each scenario's map extent and victory conditions, or the custom game's settings screen |
 
-`readme.md`, under *Loose ends*, has the reasoning at length.
+`readme.md`, under *Loose ends*, has the reasoning at length and the bookmarks' entry; the front end is
+`docs/mechanics/frontend.md`.
 
 ## 2. The interface is scaled as a whole
 
@@ -79,7 +84,7 @@ pc installs."
 | --- | --- |
 | the original | has no such question: its glyphs are in its textures |
 | here | every typeface drawn is a file in `fonts/` or in a mod's own `gfx/fonts`. No installed font is looked up, and a character a typeface lacks is left out rather than borrowed |
-| a mod loses | nothing it had. But a descriptor that names a typeface this project has no stand-in for - three display faces in the base game - is drawn in Liberation Sans, and says so in the log |
+| a mod loses | nothing it had. But a descriptor that names a typeface this project has no stand-in for is drawn in Liberation Sans, and says so in the log; and the Axis names' Fraktur, whose licence forbids passing the file on, is drawn only where whoever builds the game has downloaded it (`fonts/readme.md`) |
 | why | the same text on every machine; and the original's typefaces are commercial and cannot be passed on, so open ones stand for them |
 | to undo | nothing to undo; a mod that wants a face supplies it (entry 3) |
 
@@ -201,7 +206,7 @@ day and was told it looks like an accident of ordering and not a rule: "I agree"
 | --- | --- |
 | the original | groups its areas for supply when land changes hands, which on a release is before the new country is anybody's puppet; so for some days each released country draws on its own capital, and only when something else has the groups made again does it join its master's network |
 | here | the network is made whole whenever it is asked for, so a puppet is in its master's group, on the group's depot, from the hour it is one |
-| the difference today | none that can be reached: nothing releases a country or makes a puppet during a game yet. When something does, the depot moves at once where the original's moves some days later - Manchukuo and a released North Korea go to Pusan the same day |
+| the difference today | a country released or made a puppet during a game - by the politics screen's puppet or liberation, an event's `release` or `release_vassal`, or a rebels' independence - is on its master's depot the hour it is one, where the original's moves some days later: Manchukuo and a released North Korea go to Pusan the same day |
 | a mod loses | nothing of its files. An event chain timed around those days of a puppet standing on its own supplies would find them missing |
 | why | the delay is what is left over from the order two things happen in, it is not written anywhere a mod could read or set, and keeping it would mean keeping the network up to date piece by piece as the original does only to be late in the same places |
 | to undo | make the groups again only when a province changes hands and on whatever else the original does it on - which was not read (`docs/mechanics/supply.md`, *Not established*) |
@@ -231,10 +236,10 @@ well was not looked at.
 | --- | --- |
 | the original | writes an `allow` block's conditions with three spaces a level, but gets the depth wrong inside an "all of" and a "one of": a block's header indents a line its parent placed, its conditions sit level with the header, a block inside a block starts again at one level, a block inside a scope has no asterisk, a country scope's conditions none either, and a "none of" indents its condition into the middle of its parent's line |
 | here | the same lines, words and order, with the corrected arithmetic the mod's DLL patches in: no header indents itself, each condition of a block one level deeper than the block, a block in a block at its real depth, a block's asterisk drawn, and a "none of" on its parent's line |
-| the difference today | only the spaces before a line and an asterisk on a block inside a scope. No base game technology nests deeper than three levels, and nothing here has a country scope yet |
+| the difference today | only the spaces before a line and an asterisk on a block inside a scope or a country scope. No base game technology nests deeper than three levels; a decision's `allow` and, since 2026-11-14, a technology's take every condition, country scopes among them, so a mod's deeper blocks show it most |
 | a mod loses | nothing of its files; a mod that worked round the original's indentation in its texts would see its own spaces added to correct ones |
 | why | the original's is a bug that makes a nested block unreadable, and the mod already plays with it mended |
-| to undo | the three sums in `CConditionText` - which draws a technology's `allow` since 2026-11-14, as it draws a decision's, `CRequirementText` having been folded into it - back to the original's - `reversing/findings/FINDINGS-techtext.md`, section 2 has them |
+| to undo | put the three sums in `CConditionText` back to the original's (`reversing/findings/FINDINGS-techtext.md`, section 2 has them). Since 2026-11-14 that one class draws a technology's `allow` as well as a decision's, `CRequirementText` having been folded into it |
 
 `docs/mechanics/technologyscreen.md`, section 9; `reversing/findings/FINDINGS-techtext.md`,
 sections 2 and 4.
@@ -288,8 +293,6 @@ documents folder, not the one next to the exe."
 
 `docs/mechanics/settings.md`.
 
----
-
 ## 14. The right-click menu and the five side menus are not built
 
 **Decided** 2026-11-04 by the maintainer, on the leftovers wave's reading: "Yeah dont build them."
@@ -303,8 +306,6 @@ documents folder, not the one next to the exe."
 | why | nothing in the original reaches them; building them would mean inventing a way in |
 | to undo | build them from `reversing/findings/FINDINGS-leftovermenus.md`, which has every row, click and figure |
 
----
-
 ## 15. A loaded save goes on with its own generator
 
 **Decided** 2026-11-04 by the maintainer, asked whether a load should restore the save's `seed` and `count`: "Yes".
@@ -317,8 +318,6 @@ documents folder, not the one next to the exe."
 | a mod loses | nothing; no file can tell the two apart |
 | why | a game here is replayable from its seed and its commands (entry 11), and a load should not end that |
 | to undo | leave the generator as it stands and take neither key, as the original does |
-
----
 
 ## 16. An autosave holds the turn of the day, whatever the speed
 
@@ -334,20 +333,23 @@ lands on 0. I guess we should fix that for OpenHoi3."
 | why | a save should not hang on how fast the game was running when it was made |
 | to undo | keep the decision and write it on the frame after the next, after that frame's hours (`CSession.DecideAutosave`) |
 
-## 17. The front end offers the one start: no Quick Start, no other bookmarks, scenarios or custom games
+## 17. The front end greys the scenarios and the custom games ~~, and offers one bookmark~~
 
 **Decided** 2026-11-06 by the maintainer, choosing a "Pared-down lobby" - the original's main menu and its lobby "as far
-as one start needs" - which follows from the settled decision of one canonical start (`CLAUDE.md`). Read in
-`reversing/findings/FINDINGS-frontend.md`; the screens are `docs/mechanics/frontend.md`.
+as one start needs" - which follows from entry 1. Read in `reversing/findings/FINDINGS-frontend.md`; the screens are
+`docs/mechanics/frontend.md`. **Amended 2026-11-15** with entry 1: the other bookmarks and the Quick Start panel, whose
+four buttons start bookmarks, are no longer part of this decision but planned work (the readme's *Loose ends*); until
+they are built the lobby offers the defines' `start_date` alone and `toggle_quick_normal` stays greyed. The Scenarios and
+Custom Games tabs stay greyed as decided.
 
 | | |
 | --- | --- |
 | the original | opens on the Quick Start panel where `settings.txt` says `simple=yes` - four buttons starting Germany in 1939, the United States in 1936, Japan in 1941 and the Soviet Union in 1941 - and on the main menu where `simple=no`; its lobby offers every bookmark of `common/bookmarks.txt`, the scenarios and the custom games |
 | here | the main menu always comes first and `simple` is not read for it; `toggle_quick_normal` is greyed; the lobby offers only the bookmark of the defines' `start_date`, and its Scenarios and Custom Games tabs are greyed - each of the three with a tooltip of ours saying why (the maintainer's word, 2026-11-06: "add them but grey them out with a tooltip that explains it") |
-| the difference today | a player whose `settings.txt` says `simple=yes` sees the main menu where the original shows Quick Start |
-| a mod loses | its other bookmarks, scenarios and custom games, and the Quick Start panel's buttons |
-| why | one start: one set of starting conditions, one code path into the simulation |
-| to undo | the settled decision of one start first |
+| the difference today | a player whose `settings.txt` says `simple=yes` sees the main menu where the original shows Quick Start; a player cannot start at a later bookmark or open a scenario or custom game |
+| a mod loses | its scenarios and custom games; ~~its other bookmarks and the Quick Start panel's buttons~~ - until bookmarks are built, those too |
+| why | entry 1: the campaign is the one way into a game. The bookmarks wait only on being built |
+| to undo | for the bookmarks, build them (the readme's *Loose ends*) and take the greying off `toggle_quick_normal`; for the two tabs, entry 1 first |
 
 ## 18. Arcade cannot be chosen
 
@@ -424,43 +426,64 @@ section 3.
 | why | the maintainer's word |
 | to undo | have `CMapCache.OpenOrBuild` take `Open`'s answer first, and pass `askInstall: true` |
 
----
-
 ## 23. A lent unit's leader cannot be changed
 
-**The original**: the panel's `leader_button` on a lent unit is first disabled and then enabled again by a later test in the same routine, so the host may open the leader window, which lists the host's own leaders (the maintainer saw this on 2026-11-09).
-**Here**: the button and the portrait are greyed for a lent unit, and the command is refused. Chosen by the maintainer, 2026-11-09.
-**What a mod loses**: nothing; this is the engine's rule. **To undo**: drop the `Lender` tests in `CUnitPanelText.MayChangeLeader`, `CUnitHeaderEntry` and `CAssignLeaderCommand`.
+**Decided** 2026-11-09 by the maintainer, who had seen the original let the host do it.
 
----
+| | |
+| --- | --- |
+| the original | the panel's `leader_button` on a lent unit is first disabled and then enabled again by a later test in the same routine, so the host may open the leader window, which lists the host's own leaders |
+| here | the button and the portrait are greyed for a lent unit, and the command is refused |
+| the difference today | the host cannot give a unit lent to it one of its own leaders |
+| a mod loses | nothing; this is the engine's rule |
+| why | the maintainer's choice: a lent unit is the lender's |
+| to undo | drop the `Lender` tests in `CUnitPanelText.MayChangeLeader`, `CUnitHeaderEntry` and `CAssignLeaderCommand` |
+
+`docs/mechanics/expeditions.md`.
 
 ## 24. A loaded unit's first attack estimate counts its whole modifier
 
-**The original**: the AI's attack odds keep the part of each unit's modifier that hangs on the unit alone - combined arms, experience, the leader, dissent, supplies, the difficulty, and for a defender its dig-in, ground and encirclement - in a cache that nothing initialises, so a loaded unit's first estimate counts that part or nought by what memory held, differently from run to run (`reversing/findings/FINDINGS-liveread.md`, section 46; `docs/mechanics/moving.md`, section 11.4).
-**Here**: the part is always counted, as the original counts it after the unit's first hour. Ours, 2026-11-11, not put to the maintainer: uninitialised memory cannot be reproduced, and counting the part matches the most units. Tried the other way - nought for every loaded unit - entering the August 1938 save gave 110 of 110 land orders and the July 1941 save 16 the original did not give, where this gives 107 of 110 and 1.
-**What a mod loses**: nothing; this is the engine's arithmetic. **To undo**: there is no faithful undo; a run's nought units are not knowable.
+**Decided** 2026-11-11, ours, not put to the maintainer: uninitialised memory cannot be reproduced.
 
----
+| | |
+| --- | --- |
+| the original | the AI's attack odds keep the part of each unit's modifier that hangs on the unit alone - combined arms, experience, the leader, dissent, supplies, the difficulty, and for a defender its dig-in, ground and encirclement - in a cache that nothing initialises, so a loaded unit's first estimate counts that part or nought by what memory held, differently from run to run |
+| here | the part is always counted, as the original counts it after the unit's first hour |
+| the difference today | a loaded game's first AI estimates: tried the other way - nought for every loaded unit - entering the August 1938 save gave 110 of 110 land orders and the July 1941 save 16 the original did not give, where this gives 107 of 110 and 1 |
+| a mod loses | nothing; this is the engine's arithmetic |
+| why | counting the part matches the most units, and the original's own answer is not reproducible |
+| to undo | there is no faithful undo; a run's nought units are not knowable |
+
+`reversing/findings/FINDINGS-liveread.md`, section 46; `docs/mechanics/moving.md`, section 11.4.
 
 ## 25. BiceLib's Lua functions are not provided
 
-**The original**: with BlackICE, `script/bicelib_lua.lua` calls functions that BiceLib - the mod's DLL, injected into the original's process - registers with the game's Lua, for its overlay, autosaves, map modes and commands.
-**Here**: nothing provides them, so a call to one fails where the mod is played. An accepted break, by the maintainer's word on 2026-11-11: BiceLib's features are to come back later as a native interface of this engine's own that the mod can call, built from the fact base's prose, never from BiceLib's code or offsets.
-**What a mod loses**: every BiceLib feature, until that interface exists. **To undo**: build the interface; nothing here is to be removed.
+**Decided** 2026-11-11 by the maintainer: an accepted break.
+
+| | |
+| --- | --- |
+| the original | with BlackICE, `script/bicelib_lua.lua` calls functions that BiceLib - the mod's DLL, injected into the original's process - registers with the game's Lua, for its overlay, autosaves, map modes and commands |
+| here | nothing provides them, so a call to one fails where the mod is played |
+| the difference today | none in Their Finest Hour alone; with BlackICE, every BiceLib feature is missing |
+| a mod loses | every BiceLib feature, until the interface below exists |
+| why | BiceLib's features are to come back as a native interface of this engine's own that the mod can call, built from the fact base's prose, never from BiceLib's code or offsets |
+| to undo | build that interface; nothing here is to be removed |
 
 ## 26. A click with a docked fleet or a based air unit selected goes where it is aimed
 
-**The original**: while exactly one unit is selected that has no counter on the map - a fleet lying in port, an air unit at
-its own base - its click test offers no building picture and no counter but those of the same owner's units in that unit's
-own province, and otherwise answers nothing (`reversing/findings/FINDINGS-seaair.md`, section 6, read off the bytes on
-2026-11-13). The maintainer tried it in the running game the same day: clicking a port with fleets in it goes *fleet,
-nothing changes, fleet* - every second click is lost.
-**Here**: the click goes to what is under it as it does with anything else selected - a port's or an airfield's picture to
-the next of the player's units there, a counter to its unit - so a port goes *fleet, fleet*. By the maintainer's word on
-2026-11-13: "in this case we can make an exception and implement the fixed Fleet -> Fleet right away".
-**What a mod loses**: nothing; no file says anything about it. **To undo**: in `CMapView.Click`, while the one unit
-selected has no counter, ask no building picture and take a counter only of the same owner's units in that unit's
-province, falling to nothing otherwise.
+**Decided** 2026-11-13 by the maintainer, having tried the original's in the running game: "in this case we can make an
+exception and implement the fixed Fleet -> Fleet right away".
+
+| | |
+| --- | --- |
+| the original | while exactly one unit is selected that has no counter on the map - a fleet lying in port, an air unit at its own base - its click test offers no building picture and no counter but those of the same owner's units in that unit's own province, and otherwise answers nothing; so clicking a port with fleets in it goes *fleet, nothing changes, fleet* - every second click is lost |
+| here | the click goes to what is under it as it does with anything else selected - a port's or an airfield's picture to the next of the player's units there, a counter to its unit - so a port goes *fleet, fleet* |
+| the difference today | no click is lost going round a port's or an airfield's units |
+| a mod loses | nothing; no file says anything about it |
+| why | the maintainer's word: the original's lost click is a fault |
+| to undo | in `CMapView.Click`, while the one unit selected has no counter, ask no building picture and take a counter only of the same owner's units in that unit's province, falling to nothing otherwise |
+
+`reversing/findings/FINDINGS-seaair.md`, section 6.
 
 ## Stricter, with the same meaning
 
@@ -470,8 +493,19 @@ are listed.
 - **A key nothing recognises is reported.** The original drops it without a word; this
   reads the rest of the file the same way and says which key it did not know. So far in
   the interface files (`docs/mechanics/interface.md`, section 2), in unit types, historical
-  models and orders of battle (`docs/mechanics/units.md`), and wherever a loader knows the
-  whole of what a block may hold.
+  models and orders of battle (`docs/mechanics/units.md`), in events and decisions
+  (`docs/mechanics/script.md`), and wherever a loader knows the whole of what a block may hold.
+- **A modifier block's keys are the original's closed list** - its 107 engine keys, the 32 mission efficiencies under
+  each order's own key and a `suseptibility_<tag>` for each faction, 142 in Their Finest Hour - and a key outside it is
+  reported and dropped wherever a modifier is read: laws, ministers, policies, static, event and triggered modifiers,
+  strategic resources, governments, factions and buildings. The original logs it, or for a building drops it in
+  silence (`docs/mechanics/modifiers.md`, section 2; since 2026-11-14). The base game, Their Finest Hour and BlackICE
+  use none.
+- **A theory or a practical named in a technology's `allow`** is reported and left out, as the original leaves it out
+  silently: it is no condition there (`docs/mechanics/research.md`, section 5; since 2026-11-14). Neither Their Finest
+  Hour nor BlackICE writes one.
+- **An order of battle's `leader` naming no declared leader** is reported and passed over, where the original passes
+  over it in silence (`docs/mechanics/leaders.md`, section 5; since 2026-11-14).
 - **A brigade of a type nobody declares is left out**, and said to be. The original keeps
   it with no type, which nothing can then use. It is still given its number, so the units
   after it are numbered as the original numbers them.

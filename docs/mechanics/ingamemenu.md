@@ -18,7 +18,7 @@ Three ways, all the same opening [exe]:
 - **`topbar_menubutton`** on the top bar [mod: topbar.gui]: a press opens the menu. The code would shut it on a second,
   which the menu's hold on the screen never lets through (below).
 - *The custom game bar's `menupause`*, which opens it the same way with a custom game's extra step. **There is no custom
-  game here** (`CLAUDE.md`, *One canonical start*).
+  game here** (`CLAUDE.md`, *The campaign is the one way into a game*; `compatibility.md`, entry 1).
 
 Opening it, in order:
 
