@@ -208,7 +208,12 @@ public static class CAiDeployment
 		}
 		int? best = null;
 		long bestScore = -CFixedPoint.Scale;
-		foreach (int id in CSupplyNetworks.AreaAround(state, country.ActingCapital))
+		// The area in the network's own order, which is the original's list: the first of equals wins (ministers.md, section 6).
+		if (CSupplyNetworks.Refresh(state).AreaOf(country.ActingCapital) is not { } area)
+		{
+			return null;
+		}
+		foreach (int id in area.Provinces)
 		{
 			CProvince province = state.Province(id);
 			long score = province.Modifier[LocalIc].Raw

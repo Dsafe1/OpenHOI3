@@ -195,7 +195,11 @@ practice the acting capital's area (`buildqueue.md`, section 7).
 
 **Otherwise, and for anything larger**, it goes to the province of the acting capital's area with the strictly highest
 `LOCAL_IC/1000 + 2 x whole forts + 2 x whole coastal forts`, +10 for the acting capital itself, from -1, where it may be
-placed - a fleet needs a naval base, an air unit an air base. A carrier's air group goes to the province of the first fleet
+placed - a fleet needs a naval base, an air unit an air base. **The area is walked in its own order**, the supply
+network's (`supply.md`, section 2), so of equals the first found wins: Germany's 214. Infanterie-Division, waiting in the
+July 1941 save, goes to Danzig, its land fort of 5 tying Berlin's 10 as the capital, Danzig being found first - as in all
+three runs (`confirmed` on the listing, `reversing/findings/FINDINGS-liveread.md`, section 97). Ours had walked the area
+outwards from the capital, which put Berlin first. A carrier's air group goes to the province of the first fleet
 with a carrier that has none aboard. A unit nothing suits waits for the next day. *Hardcoded*: every figure here.
 
 ## 7. What the scripts reach
