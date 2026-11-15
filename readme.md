@@ -287,10 +287,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    Against that one run: 267 the same, 59 alone, 21 none, 6 other end, where without the draws 186, 128, 27 and 81 -
    Italy's join gone with the roll. The kit's series against the earlier runs still drifts with every commit; measure
    against the recorded run with its draws from here.
-   **Open, in order**: (a) ours rolls the hourly trading for every country every hour, about 180 draws, where the original
-   made 4 to 8 - something before its roll returns for most countries, not read (section 103). (b) The July list against
-   the recorded run with its draws: the Soviet Union's 40 alone, 14 none and 6 at another end, Germany's 19 alone and 7 none, and the 21.
-   Infanterie-Division at hour 29 if it is still there.
+   **Each country trades once a day** (section 104; `trade.md`, section 9): the original hands the hour's trading a 24th of
+   its list of countries by the hour of the day, so each trades at one hour, where ours rolled for every country every hour
+   - about 180 draws an hour where the original makes 4 to 8, and the scripts' trading some 25 times an hour. Built: the
+   draws line up with the recording's, the units' orders unmoved, and the trading's share of an ordinary hour 11.3 ms to
+   2.5 (`CLAUDE.md`, the profile).
+   **Open, in order**: the July list against the recorded run with its draws: the Soviet Union's 40 alone, 14 none and 6 at
+   another end, Germany's 19 alone and 7 none, and the 21. Infanterie-Division at hour 29 if it is still there.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

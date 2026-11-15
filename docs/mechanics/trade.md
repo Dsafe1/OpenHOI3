@@ -194,11 +194,16 @@ money alone, so they may trade goods for goods, or for nothing.
 
 ## 9. The AI's trading
 
-**The AI trades by the install's Lua** (`confirmed`): every country with an AI - the player's own only
-while his automate-trade is on, or his foreign policy handed over - **each hour**, while a game is
-running, draws on the game's generator: **one in six, `ProposeTrades(ai, tag)`**; otherwise a second
-draw, **one in ten, `EvalutateExistingTrades(ai, tag)`** - so one hour in twelve. A Lua error ends that
-country's hour. The scripts make an offer with `CTradeAction(actor, recipient)`, set its amounts with
+**The AI trades by the install's Lua** (`confirmed`): **each country once a day, at the hour its place
+in the countries' list gives it** - the list the original keeps, its null country first and then the file's, cut into
+24 runs of a 24th of their number (102 countries: four an hour, the last hour the ten left), the hour of the day picking
+the run, the rebels and a country owning nothing passed over (`confirmed` on the listing and the running game,
+`reversing/findings/FINDINGS-liveread.md`, section 104; until 2026-11-16 this said each hour, which the record had too, and
+ours rolled for every country every hour - about 180 draws an hour where the original makes 4 to 8, and a script's
+trading run some 25 times an hour where the original runs it less than once). Every country with an AI - the player's
+own only while his automate-trade is on, or his foreign policy handed over - while a game is running, draws on the game's
+generator: **one in six, `ProposeTrades(ai, tag)`**; otherwise a second draw, **one in ten,
+`EvalutateExistingTrades(ai, tag)`** - so one day in twelve. A Lua error ends that country's turn. The scripts make an offer with `CTradeAction(actor, recipient)`, set its amounts with
 `SetTrading`, test it with `IsValid`, `IsSelectable` and `GetAIAcceptance` - which asks the
 recipient's `DiploScore_OfferTrade`, re-entering the Lua - and post it with `ai:PostAction`, which is
 an offer as in `agreements.md`, section 1: **the script's own construction hour is its date**. They cancel
@@ -252,7 +257,8 @@ offer only where the score less it is above 50.
 The diplomacy screen's checkbox `trade_automate_checkbox`, "Automate Trade" (`confirmed`,
 `FINDINGS-tradeui.md` A.7), with no tooltip. While a player has it ticked:
 
-- **the trades offered to him are not put to him** but kept on his list, and **answered each hour**:
+- **the trades offered to him are not put to him** but kept on his list, and **answered at his country's trading hour,
+  once a day** (section 9 - the answers are the first part of that country's turn):
   every proposal that makes a route is scored as the AI scores one (section 2) and rolled, the roll
   `(r1 * r2) % 100` of two draws of **the C runtime's `rand()`, seeded to 1 at every hour** - `x = x *
   214013 + 2531011`, `r = (x >> 16) & 0x7FFF` - so the rolls are the same every hour: 47, 0, 56, 24, 68,

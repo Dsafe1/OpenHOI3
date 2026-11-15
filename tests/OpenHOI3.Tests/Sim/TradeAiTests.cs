@@ -9,10 +9,10 @@ using OpenHOI3.Sim.Trade;
 namespace OpenHOI3.Tests.Sim;
 
 /// <summary>
-/// The hour's trading against <c>docs/mechanics/trade.md</c>, section 9, on <see cref="ScriptWorld"/>: the draws
-/// in the countries' order, one in six proposing and then one in ten reviewing, the scripts handed over
-/// together, and a played country's automate-trade answered in its place between the countries before it
-/// and those after.
+/// The hour's trading against <c>docs/mechanics/trade.md</c>, section 9, on <see cref="ScriptWorld"/>: the countries whose
+/// hour of the day it is - a 24th of the list, the null country first, the last hour taking the rest - the draws in the
+/// countries' order, one in six proposing and then one in ten reviewing, the scripts handed over together, and a played
+/// country's automate-trade answered in its place between the countries before it and those after.
 /// </summary>
 public class TradeAiTests
 {
@@ -43,9 +43,16 @@ public class TradeAiTests
 		var random = new CRandom();
 		random.Restore(state.AiRandom.Snapshot());
 		var runs = new List<(CCountryTag, bool)>();
+		int total = state.Countries.Count + 1;
+		int share = total / CGameState.HoursPerDay;
+		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
+		int first = share * hour;
+		int end = hour == CGameState.HoursPerDay - 1 ? total : first + share;
+		COwnedCounts owned = COwnedCounts.Of(state);
 		foreach (CCountry country in state.Countries)
 		{
-			if (skipped.Contains(country.Tag))
+			if (skipped.Contains(country.Tag) || country.Index + 1 < first || country.Index + 1 >= end
+				|| owned.Count(country.Tag) <= 0)
 			{
 				continue;
 			}
@@ -69,7 +76,7 @@ public class TradeAiTests
 		state.AiScripts = scripts;
 		state.Played.Add(ScriptWorld.Ger);
 		int handed = 0;
-		for (int hour = 0; hour < 200; hour++)
+		for (int hour = 0; hour < 2400; hour++)
 		{
 			state.AdvanceOneHour();
 			state.SeedHour();
@@ -79,7 +86,31 @@ public class TradeAiTests
 			Assert.Equal(expected, scripts.Batches.Skip(before).SelectMany(b => b));
 			handed += expected.Count;
 		}
-		Assert.True(handed > 50);
+		// The world's few countries all fall in the last hour's run, Italy the one that owns land and is not played: a
+		// quarter of its hundred days.
+		Assert.True(handed > 10);
+	}
+
+	[Fact]
+	public void Each_country_trades_at_the_hour_its_place_in_the_list_gives_it()
+	{
+		// Five countries and the null country: a 24th of six is nothing, so every hour's run is empty but the last's.
+		CGameState state = ScriptWorld.State();
+		var scripts = new Recorded();
+		state.AiScripts = scripts;
+		var hours = new HashSet<long>();
+		for (int hour = 0; hour < 2400; hour++)
+		{
+			state.AdvanceOneHour();
+			state.SeedHour();
+			int before = scripts.Batches.Count;
+			CTradeAi.RunHourly(state);
+			if (scripts.Batches.Skip(before).Any(b => b.Count > 0))
+			{
+				hours.Add(state.TotalHours % CGameState.HoursPerDay);
+			}
+		}
+		Assert.Equal(new HashSet<long> { CGameState.HoursPerDay - 1 }, hours);
 	}
 
 	[Fact]
@@ -91,12 +122,16 @@ public class TradeAiTests
 		state.AiScripts = scripts;
 		state.Played.Add(ScriptWorld.Pol);
 		state.AutomateTrade.Add(ScriptWorld.Pol);
-		for (int hour = 0; hour < 200; hour++)
+		for (int hour = 0; hour < 2400; hour++)
 		{
 			state.AdvanceOneHour();
 			state.SeedHour();
-			// A trade that is no longer a proposal, which the answering drops.
-			poland.PendingOffers.Add(new COffer(EOfferKind.Trade, ScriptWorld.Ger, ScriptWorld.Pol, EOfferStage.Declined, true, 0));
+			// A trade that is no longer a proposal, which the answering drops - at Poland's trading hour, the last of the
+			// day in this world, when its offers are answered.
+			if (state.TotalHours % CGameState.HoursPerDay == CGameState.HoursPerDay - 1)
+			{
+				poland.PendingOffers.Add(new COffer(EOfferKind.Trade, ScriptWorld.Ger, ScriptWorld.Pol, EOfferStage.Declined, true, 0));
+			}
 			List<(CCountryTag Tag, bool Propose)> expected = Expected(state, new HashSet<CCountryTag>());
 			int before = scripts.Batches.Count;
 			CTradeAi.RunHourly(state);

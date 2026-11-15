@@ -49,7 +49,7 @@ internal sealed class CDrawPlayback
 		var playback = new CDrawPlayback(folder);
 		long tick = -1;
 		var entries = new List<(long Esp, string Tag)>();
-		var aiDraws = new List<(string? Tag, string? Kind, int Index)>();
+		var aiDraws = new List<(string? Tag, string? Kind, int Index, int? Value)>();
 		Hour? hour = null;
 		void Close()
 		{
@@ -84,10 +84,13 @@ internal sealed class CDrawPlayback
 				}
 				case "A" when hour is not null:
 				{
-					// `A <esp> <index> <caller>`, and `... trade <tag>` for a draw of the hourly trading, which the probe marks.
+					// `A <esp> <index> <caller>`, `... trade <tag>` for a draw of the hourly trading, which the probe marks, and
+					// last `=<value>`, what the draw returned, where the probe logged it: the AI's generator is drawn on unlocked
+					// from several threads, and two draws at one index need not give the same.
 					bool trade = p.Length > 5 && p[4] == CRandom.TradeKind;
 					string? tag = trade ? (p[5] == "?" ? null : p[5]) : Owner(entries, long.Parse(p[1], NumberStyles.HexNumber));
-					aiDraws.Add((tag, trade ? CRandom.TradeKind : null, int.Parse(p[2], CultureInfo.InvariantCulture)));
+					int? value = p[^1].StartsWith('=') ? int.Parse(p[^1][1..], CultureInfo.InvariantCulture) : null;
+					aiDraws.Add((tag, trade ? CRandom.TradeKind : null, int.Parse(p[2], CultureInfo.InvariantCulture), value));
 					break;
 				}
 				case "R" when hour is not null:
@@ -133,11 +136,26 @@ internal sealed class CDrawPlayback
 	}
 
 	/// <summary>
-	/// The AI generator's draws of an hour, their values worked out from the hour's dump: each was logged with the index it
-	/// drew at, so a draw the probe did not see moves no other.
+	/// The AI generator's draws of an hour: the value the probe logged, or in a recording that logged only the index, worked
+	/// out from the hour's dump at that index - so a draw the probe did not see moves no other.
 	/// </summary>
-	private void Fill(long tick, Hour hour, List<(string? Tag, string? Kind, int Index)> draws)
+	private void Fill(long tick, Hour hour, List<(string? Tag, string? Kind, int Index, int? Value)> draws)
 	{
+		if (draws.All(d => d.Value is not null))
+		{
+			foreach ((string? tag, string? kind, _, int? logged) in draws)
+			{
+				if (tag is null)
+				{
+					hour.UnfiledAi++;
+				}
+				else
+				{
+					Queue(hour.Ai, (tag, kind)).Enqueue(logged!.Value);
+				}
+			}
+			return;
+		}
 		if (ReadGenerator(Path.Combine(_folder, $"ai_{tick}.txt"), indexFirst: true) is not { } dump)
 		{
 			return;
@@ -150,7 +168,7 @@ internal sealed class CDrawPlayback
 		{
 			values[i] = generator.Next();
 		}
-		foreach ((string? tag, string? kind, int index) in draws)
+		foreach ((string? tag, string? kind, int index, _) in draws)
 		{
 			if (tag is null)
 			{

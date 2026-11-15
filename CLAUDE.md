@@ -1070,7 +1070,8 @@ beside the repository.
   `OpenHOI3.SaveCheck trade <install> [days] [tag] [quiet|timed]` is a look too: it plays a new
   game with nobody playing and the install's Lua trading for every country, and tells the offers,
   the answers, the routes made and ended and every Lua error - `quiet` the hour with the scripts' trading left out, for timing - so no trade is offered at all - `timed` the
-  time each Lua method took. On 2026-10-13 ten days made 285 offers, 264 accepted and 194 routes
+  time each Lua method took. On 2026-11-16, each country trading once a day at its hour (`trade.md`, section 9), ten days
+  made 48 offers, 45 accepted and 45 routes standing. On 2026-10-13 ten days made 285 offers, 264 accepted and 194 routes
   standing, with no Lua error, under half a second a day; on 2026-11-07 142, 138 and 71 - 145, 142 and 76 under the
   generator's old seeding, so the fall came before it - and the trial asks each command `MayExecute` before it runs it,
   as the simulation does, where it had crashed on a unit gone (`docs/mechanics/trade.md`). **The trading runs
@@ -1198,7 +1199,11 @@ beside the repository.
   `CGameState.Profile` set, so the tick times each of its steps; it tells an ordinary hour, an hour that turns a
   day, the slowest hours and every step by its time. Build it in Release for figures worth comparing. On
   2026-10-13 a day took 0.43 s, an ordinary hour 15 ms - 11 of them the AI's trading in the install's Lua, run
-  side by side - and an hour that turns a day 90 ms. Run it after anything that may have made the hour slower.
+  side by side - and an hour that turns a day 90 ms. On 2026-11-16, 760 ms a day before each country traded once a day
+  at its hour and 530 to 570 after: an ordinary hour's median 22.6 ms to 14 ms, the trading 11.3 ms an hour to 2.5, an
+  hour that turns a day about 120 ms either way. The original, at its fastest on the July 1941 save, plays an hour a frame,
+  35 ms, 0.84 s a day with no step at midnight; ours on that save, headless, 62 ms an hour (74 before). Run it after
+  anything that may have made the hour slower.
   `OpenHOI3.SaveCheck headless <install> [until year or date] [savegame ...] [inspect=TAG]` is stage 2's run: a new game
   with the install's Lua and nobody playing, run hour by hour to the year given (1948 by default) with nothing given by
   hand. Twice a year it writes the great powers' figures and the world's, each day it looks for goods or manpower below
