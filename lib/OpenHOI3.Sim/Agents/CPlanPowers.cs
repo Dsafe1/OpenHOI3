@@ -126,7 +126,7 @@ public static class CPlanPowers
 		CProvince first = state.Province(area.Provinces[0]);
 		if (first.Controller is { } firstHolder && CCountryLists.IsEnemy(state, country, firstHolder))
 		{
-			return EnemyUnits(state, country, area);
+			return CAreaEnemies.Count(state, country, area);
 		}
 		if (country.Tag.Value == "ITA" && first.Controller?.Value == "ETH")
 		{
@@ -436,21 +436,5 @@ public static class CPlanPowers
 	{
 		int months = (int)(COfferRules.Define(state, "NAP_UNBREAKABLE_MONTHS").Raw * 2 / 3 / Whole);
 		return state.TotalHours < COfferRules.AddMonths(nap.Start, months);
-	}
-
-	private static long EnemyUnits(CGameState state, CCountry country, CSupplyArea area)
-	{
-		long count = 0;
-		foreach (int id in area.Provinces)
-		{
-			foreach (CUnit unit in state.Positions.Of(id))
-			{
-				if (CTheatres.IsLand(unit) && unit.Kind == EUnitKind.Division && CCountryLists.IsEnemy(state, country, unit.Owner))
-				{
-					count++;
-				}
-			}
-		}
-		return count;
 	}
 }

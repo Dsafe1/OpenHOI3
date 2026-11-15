@@ -672,10 +672,17 @@ capital's group of areas, its subject or (not Japan) nobody's subject and not Ja
 capital area, beside France's, is failed for Britain. Each such neighbour, and its own beside it but the capital's, is a
 **staging area**, gathered before the failed list is looked at. **Score**: 100001 with a priority province; a small island (ports, under 5 provinces, no
 neighbour) 10 a port level + 51, or -99 for Germany before 1944; an enemy's capital area its provinces + 1, at most 101,
-halved for a subject's; else 1 - plus, over its first 60 provinces, 8 a naval base level, 40 for victory points, 40 for a
-strategic resource, 5 for one the country owns, scaled to 20 provinces; plus a draw on the AI's generator below a fifth
-of it (at least 5); over its least port distance to the capital's area / 200; kept by descending score, an equal after its
-equals. The ten best. Then the **staging areas**: the areas of its priority provinces held by a country on its side or
+halved for a subject's (the half kept); else 1; +900 for Germany's capital area with the Soviet Union owning land and past
+300 of surrender or under 90 manpower and the country a great power or of more than 100 IC; for the United States against
+Japan +200 unless that holds, and +600 more for an area of under 5 provinces with no neighbour; for Japan against the
+United States +600 for such an area, against the Netherlands +200 and the Philippines +100 - plus, for Britain and the
+United States, 120 for each of Gibraltar's and Suez's blocker provinces in it; plus, over its first 60 provinces, 8 a
+whole naval base level, 40 for victory points, 30 for one yielding crude oil, metal, energy or rare materials now, 40 for a
+strategic resource, 5 for one the country owns, **shared by the provinces walked in whole twenties only where those are
+more than one** (an area of 21 to 39 provinces not at all, one of 60 or more by 3); plus a draw on the AI's generator below
+a fifth of it rounded half to even (at least 5), the remainder signed; over its least port distance to the capital's area /
+200 as a whole number; in single precision, rounded half to even at the end (`reversing/findings/FINDINGS-liveread.md`,
+section 100); kept by descending score, an equal after its equals. The ten best. Then the **staging areas**: the areas of its priority provinces held by a country on its side or
 fighting beside it and not its enemy added; each not failed, its sea route from the capital's area open (else failed), one
 of its own only with 40 provinces of enemy-held land beside it (25 where one is a capital area), scored 500 - 10500 for a
 priority area - and a draw on the AI's generator below a fifth of that, less 5 a province, doubled for its holder's capital
@@ -692,15 +699,18 @@ ranked area is not invaded: the **divisions** are those of two brigades or more,
 strength 0.75), not garrisons or airborne, in an area with a port that is the capital's or in land bordering no enemy,
 and spare - more there than the area needs, the capital's need halved where it borders no hostile land and is not well
 ported (`COwnerArea_IsWellPorted`: its naval bases' working levels over its provinces more than half a level a province) -
-or marines;
+or marines; **the count and the need are kept for the area of the unit before alone**, made again by this unit's agent
+whenever the area changes, and those taken from the area so far are counted off each time - so an area met again after
+another is worked out again, by the agent its next division answers to (`reversing/findings/FINDINGS-liveread.md`,
+section 100);
 the **fleets** those carrying nothing; the **lift** their carrying. For each ranked area, best first, while the lift
-holds four infantry brigades: dominions skip every area before 1942 and Germany London's before 1943; N = its enemy land
-units, at least 1, tripled at a great power's capital - passed over where N brigades' weight is over twice the lift or
+holds four infantry brigades: dominions skip every area before 1942 and Germany London's before 1943; N = its **enemy
+strength** (below), at least 1, tripled at a great power's capital - passed over where N brigades' weight is over twice the lift or
 fewer divisions are free; the **landing** (below); the divisions nearest by sea - marines at half the distance, fast
 troops at twice, no armour or garrisons, none bound there already, none past what is left of the lift - while fewer than
 N and their supplies under what the landing's ports land a day and 2; with twice the lift's weight the area fails; with
 fewer than N, nothing. **A friend's area** - or, for Britain and its dominions up to 1941, one holding Paris, Brugge or
-Amsterdam, whoever holds it - is **reinforced**: N is one and one for each enemy land unit in the enemy areas beside it,
+Amsterdam, whoever holds it - is **reinforced**: N is one and the enemy strength of each enemy area beside it, not held to 10,
 less one for each of the country's land units not a headquarters already in its group of areas, each it lent the holder
 there and each of its invasions' bound there, at most 5 for those three areas and 20 otherwise, their supplies what the
 force's start from; it lands at its port nearest the country's true capital, the distance times 3000 over the working
@@ -709,6 +719,16 @@ weight, one division enough. Britain at the war's start sends the 1st Royal Mari
 Cherbourg, as the original does (`reversing/findings/FINDINGS-liveread.md`, section 89). Then transports until they carry them and escorts until their power is half their weight - each
 fit, the nearest of each a round, an escort with a submarine a hundred times as far, a carrier a third, a capital ship a
 half. With a transport and room for the smallest division, the **invasion** is made with them all.
+
+**An area's enemy strength** (`CountEnemyUnitsInArea`, `CAreaEnemies`) is brigades, not units: the brigades of the units
+there at war with the country (or rebels) that can fight - a headquarters' brigade cannot - in thirds, at least 1 where
+there are any; less a quarter, rounded half to even, of the brigades of the country's friends fighting the area's holder,
+there and in the areas beside it held by the holder's enemies; **twice the thirds instead, with nothing taken off, in an
+area of under 4 provinces and one port**; a figure above nought at least 5 where the area is its holder's capital's and
+the thirds reach 5, at least 1 otherwise; nought at the least, and 10 at the most unless the caller asks otherwise. The
+Soviet Union on 17 July 1941: Bornholm 2, Tromsø's area 1 and Hammerfest's 1, each holding a German division beside
+headquarters (`reversing/findings/FINDINGS-liveread.md`, section 100). The same figure is an enemy-held area's need
+(`agents.md`, 7.5).
 
 **The landing** (`CEU3AI::PickInvasionLandingProvince`): of the area's provinces, the least score among those with a naval
 base, beside real sea not the Black Sea's or the Baltic's, held lightly enough (or near a priority province) where the

@@ -335,59 +335,145 @@ public static class CInvasionPlanner
 		{
 			ports += naval is null ? 0 : state.Province(port).BuildingMaxLevel(naval).Raw / Whole;
 		}
-		bool island = ports >= 1 && area.Provinces.Count < 5 && area.Neighbours.Count == 0;
-		long f;
+		// Single precision throughout, each step worked in double and kept as a float, as the original's.
+		bool small = area.Provinces.Count < 5 && area.Neighbours.Count == 0;
+		float f = 1f;
 		if (area.Provinces.Exists(country.UnitAi.PriorityProvinces.Contains))
 		{
-			f = 100001;
+			f = 100001f;
 		}
-		else if (island)
+		else if (ports >= 1 && small)
 		{
-			f = country.Tag.Value == "GER" && state.Date.Year < 1944 ? -99 : 10 * ports + 51;
+			f = country.Tag.Value == "GER" && state.Date.Year < 1944 ? -99f : (float)(ports * 10.0 + 50.0 + 1.0);
 		}
 		else if (ReferenceEquals(area, network.AreaOf(enemy.ActingCapital)))
 		{
-			f = System.Math.Min(area.Provinces.Count, 100) + 1;
+			f = (float)(System.Math.Min(area.Provinces.Count, 100) + 1.0);
 			if (enemy.Overlord is not null)
 			{
-				f /= 2;
+				f = (float)(f * 0.5);
 			}
 		}
-		else
+		bool sovietsBeaten = SovietsBeaten(state);
+		string us = country.Tag.Value;
+		string them = enemy.Tag.Value;
+		if (them == "GER" && sovietsBeaten && Agreements.COfferRules.IsMajor(country)
+			&& ReferenceEquals(area, network.AreaOf(enemy.ActingCapital)))
 		{
-			f = 1;
+			f = (float)(f + 900.0);
 		}
-		long g = 0;
-		int counted = 0;
+		if (us == "USA" && them == "JAP" && !sovietsBeaten)
+		{
+			f = (float)(f + 200.0);
+			if (small)
+			{
+				f = (float)(f + 600.0);
+			}
+		}
+		if (us == "JAP")
+		{
+			if (them == "USA" && small)
+			{
+				f = (float)(f + 600.0);
+			}
+			if (them == "HOL")
+			{
+				f = (float)(f + 200.0);
+			}
+			if (them == "PHI")
+			{
+				f = (float)(f + 100.0);
+			}
+		}
+		float g = 0f;
+		if (us is "ENG" or "USA")
+		{
+			if (Blocker(state, CSealiftPickers.GibraltarBlocker) is { } gibraltar && ReferenceEquals(network.AreaOf(gibraltar), area))
+			{
+				g = 120f;
+			}
+			if (Blocker(state, CSealiftPickers.SuezBlocker) is { } suez && ReferenceEquals(network.AreaOf(suez), area))
+			{
+				g = (float)(g + 120.0);
+			}
+		}
+		// The first 60 provinces; the count walked stops at 61, and a sum over 40 or more is shared by its whole twenties.
+		int walked = 0;
 		foreach (int id in area.Provinces)
 		{
-			if (counted++ >= 60)
+			if (++walked > 60)
 			{
 				break;
 			}
 			CProvince p = state.Province(id);
-			g += 8 * (naval is null ? 0 : p.BuildingMaxLevel(naval).Raw / Whole);
-			g += p.Points > 0 ? 40 : 0;
-			g += p.StrategicResource.Length > 0 ? 40 : 0;
-			g += p.Owner == country.Tag ? 5 : 0;
+			g = (float)(g + (double)(8 * (naval is null ? 0 : p.BuildingMaxLevel(naval).Raw / Whole)));
+			if (p.Points > 0)
+			{
+				g = (float)(g + 40.0);
+			}
+			if (YieldsResource(p))
+			{
+				g = (float)(g + 30.0);
+			}
+			if (p.StrategicResource.Length > 0)
+			{
+				g = (float)(g + 40.0);
+			}
+			if (p.Owner == country.Tag)
+			{
+				g = (float)(g + 5.0);
+			}
 		}
-		if (area.Provinces.Count > 20)
+		int twenties = walked / 20;
+		if (twenties > 1)
 		{
-			g = g * 20 / area.Provinces.Count;
+			g = (float)(g / (double)twenties);
 		}
-		long total = g + f;
-		long k = System.Math.Max((total + 2) / 5, 5);
-		long score = total + state.AiRandom.Next() % k;
+		float total = (float)((double)g + f);
+		long k = RoundEven((float)(total / 5.0));
+		if (k <= 5)
+		{
+			k = 5;
+		}
+		float score = (float)((double)(state.AiRandom.Next() % k) + total);
 		if (capitalArea is not null)
 		{
 			long distance = PortDistance(state, area, capitalArea) / 200;
 			if (distance > 0)
 			{
-				score = score / distance;
+				score = (float)(score / (double)distance);
 			}
 		}
-		return score;
+		return RoundEven(score);
 	}
+
+	/// <summary>The Soviet Union owning land and past 300 of surrender or under 90 manpower: what turns the AI's eyes on Berlin.</summary>
+	private static bool SovietsBeaten(CGameState state)
+	{
+		if (state.Country(new CCountryTag("SOV")) is not { } soviets || CCountryFacts.Of(state).OwnedCount(soviets.Tag) <= 0)
+		{
+			return false;
+		}
+		return Wars.CSurrender.Progress(state, soviets) > 300 || (float)((double)(float)soviets.Manpower.Raw / 1000.0) < 90f;
+	}
+
+	/// <summary>A province yielding crude oil, metal, energy or rare materials now.</summary>
+	private static bool YieldsResource(CProvince province)
+	{
+		return province.CurrentProducing[Economy.EGoods.CrudeOil].Raw != 0 || province.CurrentProducing[Economy.EGoods.Metal].Raw != 0
+			|| province.CurrentProducing[Economy.EGoods.Energy].Raw != 0 || province.CurrentProducing[Economy.EGoods.RareMaterials].Raw != 0;
+	}
+
+	private static int? Blocker(CGameState state, string name)
+	{
+		if (!state.Defines.Has(Movement.CMovementRules.MapSection, name))
+		{
+			return null;
+		}
+		int id = (int)(state.Defines[Movement.CMovementRules.MapSection, name].Raw / Whole);
+		return id > 0 && id < state.Provinces.Count ? id : null;
+	}
+
 
 	private static long PortDistance(CGameState state, CSupplyArea a, CSupplyArea b)
 	{
@@ -494,18 +580,7 @@ public static class CInvasionPlanner
 			long supply = 0;
 			if (enemyHeld && !special)
 			{
-				int enemies = 0;
-				foreach (int id in area.Provinces)
-				{
-					foreach (CUnit unit in state.Positions.Of(id))
-					{
-						if (CTheatres.IsLand(unit) && CCountryLists.IsEnemy(state, country, unit.Owner))
-						{
-							enemies++;
-						}
-					}
-				}
-				n = System.Math.Max(enemies, 1);
+				n = System.Math.Max(CAreaEnemies.Count(state, country, area), 1);
 				Trace(state, country, $"invasion of {area.Provinces[0]}: enemies {n}, lift {lift}, divisions free {divisions.Count}");
 				if (n * reference > 2 * lift || divisions.Count < n)
 				{
@@ -627,19 +702,9 @@ public static class CInvasionPlanner
 		int n = 1;
 		foreach (CSupplyArea beside in area.Neighbours)
 		{
-			if (!CCountryLists.IsEnemy(state, country, beside.Controller))
+			if (CCountryLists.IsEnemy(state, country, beside.Controller))
 			{
-				continue;
-			}
-			foreach (int id in beside.Provinces)
-			{
-				foreach (CUnit unit in state.Positions.Of(id))
-				{
-					if (CTheatres.IsLand(unit) && CCountryLists.IsEnemy(state, country, unit.Owner))
-					{
-						n++;
-					}
-				}
+				n += CAreaEnemies.Count(state, country, beside, uncapped: true);
 			}
 		}
 		CSupplyGroup? group = area.RegionGroup;
@@ -743,7 +808,12 @@ public static class CInvasionPlanner
 	{
 		var list = new List<CUnit>();
 		CSupplyArea? capitalArea = network.AreaOf(country.ActingCapital);
-		var spare = new Dictionary<CSupplyArea, long>();
+		// The count and the need are kept for the area of the unit before alone, made again with this unit's agent
+		// whenever the area changes; those taken from the area so far are counted off each time (FINDINGS-liveread.md,
+		// section 100).
+		CSupplyArea? lastArea = null;
+		long have = 0;
+		long need = 0;
 		foreach (CUnit unit in country.UnitsInOrder())
 		{
 			if (unit.Kind != EUnitKind.Division || unit.IsRemoved || unit.SubUnits.Count < 2 || unit.Transport is not null
@@ -766,15 +836,11 @@ public static class CInvasionPlanner
 			{
 				continue;
 			}
-			if (!spare.TryGetValue(area, out long left))
+			if (!ReferenceEquals(area, lastArea))
 			{
-				long need = CPlanPowers.NeedOf(state, country, agent, area);
-				// Halved in the capital's area, unless it borders hostile land or is well ported.
-				if (ReferenceEquals(area, capitalArea) && !CAreaHostility.TouchesHostileArea(state, area) && !IsWellPorted(state, area))
-				{
-					need /= 2;
-				}
-				long have = 0;
+				lastArea = area;
+				need = CPlanPowers.NeedOf(state, country, agent, area);
+				have = 0;
 				foreach (CUnit other in agent.Land)
 				{
 					if (other.Kind == EUnitKind.Division && ReferenceEquals(network.AreaOf(other.Location), area))
@@ -782,14 +848,22 @@ public static class CInvasionPlanner
 						have++;
 					}
 				}
-				left = have - need;
 			}
+			long left = have;
+			foreach (CUnit taken in list)
+			{
+				if (ReferenceEquals(network.AreaOf(taken.Location), area))
+				{
+					left--;
+				}
+			}
+			// The need halved in the capital's area, unless it borders hostile land or is well ported.
+			left -= ReferenceEquals(area, capitalArea) && !CAreaHostility.TouchesHostileArea(state, area) && !IsWellPorted(state, area)
+				? need / 2 : need;
 			if (left > 0 || role == CArmyRole.Marine)
 			{
 				list.Add(unit);
-				left--;
 			}
-			spare[area] = left;
 		}
 		return list;
 	}

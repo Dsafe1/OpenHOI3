@@ -369,6 +369,39 @@ public class MovingTests
 		Assert.True(CAttackOdds.Of(state, attackers, defenders, target) > 1_000);
 	}
 
+	[Fact]
+	public void An_areas_enemy_strength_is_its_fighting_brigades_in_thirds_less_a_quarter_of_its_enemies_brigades_held_to_ten()
+	{
+		CGameState state = World();
+		CWarDeclarations(state);
+		state.SubUnitTypes["infantry_brigade"].Stats.Values.Set(CSubUnitType.CombatWidth, CFixedPoint.One);
+		CCountry germany = state.Country(Ger)!;
+		var poland = OpenHOI3.Sim.Supply.CSupplyNetworks.Refresh(state).AreaOf(25)!;
+
+		// Two Polish divisions of three brigades: two thirds of six. A headquarters' brigade holds no frontage and is no count.
+		Division(state, Pol, 23, "infantry_brigade");
+		Division(state, Pol, 24, "infantry_brigade");
+		Division(state, Pol, 25, "hq_brigade", brigades: 1);
+		Assert.Equal(2, CAreaEnemies.Count(state, germany, poland));
+
+		// Three German brigades there take off a quarter of three, rounded to one.
+		Division(state, Ger, 22, "infantry_brigade");
+		Assert.Equal(1, CAreaEnemies.Count(state, germany, poland));
+
+		// Six more beside it, in land Poland's enemy holds: a quarter of nine is two, and the figure goes to nought.
+		Division(state, Ger, 11, "infantry_brigade");
+		Division(state, Ger, 12, "infantry_brigade");
+		Assert.Equal(0, CAreaEnemies.Count(state, germany, poland));
+
+		// Thirty-three Polish brigades more: 13 thirds less 2, held to 10 unless the caller asks for the whole.
+		for (int index = 0; index < 11; index++)
+		{
+			Division(state, Pol, 26, "infantry_brigade");
+		}
+		Assert.Equal(10, CAreaEnemies.Count(state, germany, poland));
+		Assert.Equal(11, CAreaEnemies.Count(state, germany, poland, uncapped: true));
+	}
+
 	private static CUnit AirGroup(CGameState state, CCountryTag owner, int airBase, string typeKey)
 	{
 		var type = new CSubUnitType(typeKey, EUnitBranch.Air);

@@ -374,7 +374,8 @@ Read whole on 2026-10-19 (`FINDINGS-moving.md`, section C). A theatre's need is 
 each area's need, **relaxed**, one list of visited areas shared by them all. One area's need, for the agent's country C,
 all division toward nought:
 
-0. **An area the enemy holds** (its first province's controller C's enemy): its enemy divisions, and nothing else.
+0. **An area the enemy holds** (its first province's controller C's enemy): its enemy strength, held to 10 (`moving.md`,
+   section 16 - brigades in thirds, weighed against C's friends'), and nothing else.
 1. **Italy and Ethiopia**: C Italy and the area's first province held by Ethiopia - nought.
 2. **Objectives**: the plan's objectives lying in the area and in this theatre (the province's theatre stamp; with no
    theatre, in the plan's area).

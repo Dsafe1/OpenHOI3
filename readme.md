@@ -244,6 +244,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    July 216 the same and 59 alone, the war's start 109, 12 missed and 45 alone - the misses a battle at 2213 that ours
    still fights at its 28th hour where the original's was over before its 18th, so 2213 falls later and Poland's
    agents redo their area six hours late.
+   **An invasion planned for an hour takes its division out of its theatre's lists** (section 100; `moving.md`, section
+   16): the Soviet Union lands the 195. Strelkovaya Diviziya at Trondheim at 04:00 on 17 July, which keeps it out of
+   Smolensk HQ's split at 06:00, so the 173. is not dropped and sent to 1577. Ours planned nothing, for three reasons now
+   mended: a candidate's spare is worked out again whenever its area differs from the unit before's, by that unit's
+   agent; an area's enemy strength is brigades in thirds weighed against our friends' (`CAreaEnemies`, also an
+   enemy-held area's need), where ours counted units, headquarters too; and the ranking's score is the original's in
+   single precision, with its 30 for a resource and its twenties. July 219 the same, 1 missed, 53 alone.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
