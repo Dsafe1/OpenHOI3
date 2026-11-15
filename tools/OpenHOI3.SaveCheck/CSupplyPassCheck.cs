@@ -48,7 +48,8 @@ internal static class CSupplyPassCheck
 		CMap map = CMap.Load(directories, warnings.Add);
 		var clock = System.Diagnostics.Stopwatch.StartNew();
 		// Not filled: the original's own sequence is run over it below.
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, fill: false);
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, fill: false,
+			date: CStartSave.Date(args[2]));
 		Console.WriteLine($"a new game made in {clock.ElapsedMilliseconds} ms");
 		ClausewitzNode save = ClausewitzParser.ParseFile(args[2]);
 		Console.WriteLine($"savegame: date {save.GetString("date")}, player {save.GetString("player")}");

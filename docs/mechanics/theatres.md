@@ -240,8 +240,12 @@ theatre-level unit that was removed - is put under it.
   them its fronts, can be in another order than the original's.
 - **"The first of equals" by the order things were made** where the original goes by memory address: the area a hot
   front faces (3.3), a theatre's areas and its largest (6), and the theatre most of a province's neighbours are in (8).
-- **The theatres are looked after as a step of the hour after every country's units**; the original does each country's
-  right after its own units.
+- ~~**The theatres are looked after as a step of the hour after every country's units**; the original does each country's
+  right after its own units.~~ Each country's since 2026-11-15, right after its own units and before the next country's
+  move, as the original's country hour has them: at the Day of Infamy Japan takes Wake Island in the first hour, after the
+  United States' theatres are made with it, which the start save of that bookmark has - the island in a theatre of 31
+  provinces of Alaska and the Pacific, numbered 76 - where it was made after the island had gone and the rest went into the
+  mainland's (**measured**, `Ireland1941_12_11_00.hoi3`).
 - **Not built**: the fronts by the sea (section 2); the AI's unit agents, which the original tells of every theatre made,
   kept or dropped and which put the history's other top-level units under a theatre - the next piece; and what the
   original does for a played country at war in section 6.

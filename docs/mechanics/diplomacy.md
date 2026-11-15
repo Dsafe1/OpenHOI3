@@ -164,6 +164,24 @@ original's, kept.
 | a war goal enforced at a surrender | 5.2 from the winner's acting capital | the casus belli's `threat` | the winner | with war and peace |
 | an annexation | between the annexed and every other, both ways, -9999.000, floored at 0 | | | with war and peace |
 
+**The history's threat at a new game, in turn** (`reversing/findings/FINDINGS-laterstart.md`, section 2; built 2026-11-15,
+*measured* on the bookmarks' start saves - no country of Their Finest Hour has history threat before 1938, so the 1936 start
+never shows it). The original's entry sets the countries up one at a time in the countries' order, and a country spreads
+its history threat **at the end of its own turn**. So:
+
+- a controller whose turn has not come **resists none of it** - its modifier is not made yet with its ministers, the
+  `pig_headed_isolationist`'s `threat_resistance = 0.1` among them: the United States feels Germany's threat whole at 1939.9.1
+  and Japan's less a tenth, its turn coming between theirs - **unless the history's wars mobilised it**, which made its
+  modifier then (`war.md`, section 4): Slovakia, Bhutan, Nationalist Spain and Mengkukuo resist all of it;
+- a country whose turn comes later **reads its effective neutrality with the threat of those before it**, against the
+  lobby's most-threatening country (section 5.4, elected with nobody threatened), which its laws read (`politics.md`,
+  section 13).
+
+With it every pair's threat is the save's - 7,575 of 7,575 at 1939.9.1 and 7,373 of 7,373 at both 1941 dates - and every
+country's effective neutrality, 101 of 101 at each (7,529, 7,258 and 7,258 pairs, and 88, 67 and 74 countries, before).
+*Inferred* for the side of a war that was there first, which the saves' threat shows mobilised and their `last_war` does
+not stamp.
+
 ### 5.4 The most-threatening country
 
 Each country keeps the one it feels the most threat from: the countries in the order they were

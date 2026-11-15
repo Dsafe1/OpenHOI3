@@ -68,7 +68,10 @@ public sealed record CSwitchedGame(CGameState State, CMap Map, CLocalisation Loc
 		}
 		else
 		{
-			state = CGameStateLoader.LoadStart(directories, map, localisation, countries, aiScripts: aiScripts, played: played);
+			// --date=1939.9.1 begins the game at that date, as a bookmark of it chosen in the lobby does (bookmarks.md).
+			CDate? date = CSession.Argument("--date=") is { } dateText && CDate.TryParse(dateText, out CDate at) ? at : null;
+			state = CGameStateLoader.LoadStart(directories, map, localisation, countries, aiScripts: aiScripts, played: played,
+				date: date);
 		}
 		GD.Print($"Loaded {map.ProvinceCount - 1} provinces and {countries.Count} countries " +
 			$"for {state.Date} in {clock.ElapsedMilliseconds} ms.");

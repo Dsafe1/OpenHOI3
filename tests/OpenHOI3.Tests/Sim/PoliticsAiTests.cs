@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Ai;
 using OpenHOI3.Sim.Commands;
@@ -43,6 +44,40 @@ public class PoliticsAiTests
 		}
 
 		public void RunPolitics(CGameState state, CCountry country) => Ticks.Add(country.Tag);
+	}
+
+	/// <summary>A script that writes down every country's IC as each country is asked about its laws.</summary>
+	private sealed class SeesIc : IAiScripts
+	{
+		public List<(CCountryTag Asked, int[] Ic)> Seen { get; } = new();
+
+		public int? NonHistoricalRelation(CGameState state, CCountry country, CCountry other) => null;
+
+		public int DiploScore(CGameState state, string function, CCountry actor, CCountry recipient, CCountry observer) => 0;
+
+		public void RunLaws(CGameState state, CCountry country) =>
+			Seen.Add((country.Tag, state.Countries.Select(each => each.MaxIc).ToArray()));
+
+		public void RunPolitics(CGameState state, CCountry country)
+		{
+		}
+	}
+
+	[Fact]
+	public void ANewGamesLookAtTheLawsSeesNoIcInACountryWhoseTurnIsStillToCome()
+	{
+		CGameState state = World();
+		var scripts = new SeesIc();
+		state.AiScripts = scripts;
+		state.Country(Ger)!.MaxIc = 100;
+		state.Country(Ita)!.MaxIc = 50;
+
+		CPoliticsAi.SetUpAtStart(state);
+
+		// Germany is asked first and sees no IC in Italy; Italy, asked second, sees Germany's (politics.md, section 13).
+		Assert.Equal(new[] { 100, 0 }, scripts.Seen[0].Ic);
+		Assert.Equal(new[] { 100, 50 }, scripts.Seen[1].Ic);
+		Assert.Equal(50, state.Country(Ita)!.MaxIc);
 	}
 
 	private static CGameState World()
@@ -99,23 +134,22 @@ public class PoliticsAiTests
 	}
 
 	[Fact]
-	public void ANewGamesLawsMoveUntilTheyStopThePlayersToo()
+	public void ANewGamesLawsMoveOneLookThePlayersToo()
 	{
 		CGameState state = World();
 		state.Played.Add(Ger);
 		state.AiScripts = new StepUp();
-		// The first look posts each country's first step and nothing changes until the days are run: the original's queue
+		// The look posts each country's first step and nothing changes until the days are run: the original's queue
 		// runs what the script posted after them.
 		CPoliticsAi.SetUpAtStart(state);
 		Assert.Equal(2, state.NewGameLaws.Count);
 		Assert.Equal("free_press", state.Country(Ita)!.Laws["press_laws"].Name);
 		Assert.Equal("free_press", state.Country(Ger)!.Laws["press_laws"].Name);
-		// Then the held changes, a second look that moves each country's press law again and a third that posts nothing -
-		// the player's as the AI's, as the original asks the script for every country (docs/compatibility.md, entry 6,
-		// reversed 2026-11-02).
-		Assert.Equal(3, CPoliticsAi.RunNewGameLaws(state));
-		Assert.Equal("propaganda_press", state.Country(Ita)!.Laws["press_laws"].Name);
-		Assert.Equal("propaganda_press", state.Country(Ger)!.Laws["press_laws"].Name);
+		// Then the held changes, and no second look - the original asks the script once in each country's set-up, the
+		// player's as the AI's (docs/compatibility.md, entry 6, reversed 2026-11-02; politics.md, section 12).
+		Assert.Equal(1, CPoliticsAi.RunNewGameLaws(state));
+		Assert.Equal("censored_press", state.Country(Ita)!.Laws["press_laws"].Name);
+		Assert.Equal("censored_press", state.Country(Ger)!.Laws["press_laws"].Name);
 		Assert.Empty(state.Outbox);
 		Assert.Empty(state.NewGameLaws);
 		Assert.Equal(0, CPoliticsAi.RunNewGameLaws(state));
@@ -134,7 +168,7 @@ public class PoliticsAiTests
 		// Every look is made with the game being made, so no command it posts tells the player, though they are run
 		// with the game under way.
 		Assert.False(state.IsBeingMade);
-		Assert.Equal("propaganda_press", state.Country(Ger)!.Laws["press_laws"].Name);
+		Assert.Equal("censored_press", state.Country(Ger)!.Laws["press_laws"].Name);
 		Assert.Equal(0, told);
 	}
 

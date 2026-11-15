@@ -104,6 +104,11 @@ years of what it gets.**
   the war.** The months are the ones its starting stockpile counts (`stockpile.md`, section
   2): calendar months since the oldest war it is still in. Italy and Ethiopia, three months
   into theirs, each start with 8.64 years' worth. The 0.12 is built into the original.
+  **At a later start the war's months are counted from its first dated history entry, not
+  from the day the country joined it** (`reversing/findings/FINDINGS-laterstart.md`, section
+  5): (measured) at 1941.6.22 the Soviet Union, Romania and Finland, which join World War II
+  that day, are each 21 months into it and keep 0.648 of their most - all three the save's,
+  under the save's laws.
 - The year here is the most divided by `MAX_MANPOWER` again.
 - **Whatever manpower a country's history file gives is thrown away**: the pool is set, not
   added to. No history file in Their Finest Hour gives any.
@@ -122,6 +127,18 @@ years of what it gets.**
   provinces with black soil, worth 10% more manpower, and the United Kingdom is given
   France's. All three start with a most worked out without it and gain manpower with it
   from the first day.
+- **The countries are set up one after another, each working out its most in its turn**, in
+  the order `countries.txt` declares them (`likely`: the new game's per-country set-up is one
+  loop, `reversing/findings/FINDINGS-savegame.md` A.5; measured). A province is weighed by its
+  owner's law (section 1), so **land a country holds of a country set up after it is weighed
+  by that country's law as its history left it**, not as its own set-up later brings it
+  forward. Nothing at 1936 shows it; at a later start it decides every occupier's most.
+  (measured) Japan, set up before China, holds 130 Chinese provinces at 1941.6.22: weighed by
+  China's history law, the volunteer army, they give it nothing, and Japan starts with
+  558.603 - by the three-year draft China's set-up then gives itself, under Japan's total
+  exploitation, they would give it 39.9 a year before technology, and it would start with 773. Under the save's laws and occupation policies, every country's manpower at
+  both 1941 starts is the save's this way, 72 of 72 - Germany's, Italy's, Hungary's and
+  Bulgaria's among them.
 
 ## 5. Ours
 
@@ -132,9 +149,16 @@ years of what it gets.**
   once the laws are brought forward, the decisions of the history run and the triggered
   modifiers tested, as the original does: 882 for Germany, and every country of the start
   save's 78 of 78 (`OpenHOI3.SaveCheck firstdays`).
+- **The set-up's turns** (section 4) are reproduced without running the countries one by
+  one: each country's `global_manpower_modifier` is taken before any laws are brought
+  forward (`CManpower.BeforeSetUp`), and the most a new game starts with weighs a province
+  owned by a country later in the order by that figure (since 2026-11-15).
 - **Only reinforcement spends manpower** (`upkeep.md`, section 4). Nothing is built, so
   the pool mostly grows.
-- **A government in exile is treated as any other country.** There are none yet.
+- ~~**A government in exile is treated as any other country.** There are none yet.~~ An exile
+  is cut to a tenth as it goes (`war.md`, section 14), and a new game's set-up then starts it
+  at its most like anyone else, losing for its war where it still owns a province: (measured)
+  Norway's 36.318 and France's 57.072 at 1941.6.22, France's population crisis off in exile.
 
 ## 6. What the savegame does and does not confirm
 

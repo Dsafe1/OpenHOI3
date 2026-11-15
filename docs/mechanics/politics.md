@@ -414,10 +414,14 @@ over - `likely` from the reading, which has the posts go to that queue and the q
 supplies under the industrial policy before the change, and 74 countries' brigades are held to the running game's
 ceilings, which only a change of law after the days does. So the days are run under the laws the engine brought forward
 (section 13), and then the changes are made, each holding its country's brigades to the running game's ceilings and
-pricing its build queue again (section 9). Then the look is made again, and its changes, until a pass posts nothing - at
-most ten (*ours*: the start save holds the point repeating it reaches, three passes for Germany, and what repeats it in
-the original was not found). Each such country is given a politics minister as the look is first made, which first
-works after `draw mod 3 + 1` hours, a draw on the game's generator each.
+pricing its build queue again (section 9). **The look is made once** - the original asks the script once in each
+country's set-up, and each law the script moves goes one step: the 1939.9.1 start save's Soviet Union is one step from
+`volunteer_army`, at `one_year_draft`, where a second look would take it on (*measured*, 2026-11-15). Until then the look
+was repeated until it posted nothing, at most ten times, which gives the 1936 start save the same laws. Each country is
+asked **in its turn of the set-up** (section 13): a country whose turn is still to come has no IC worked out, so the
+script's `ValidFor` of a law with `enemy_ic_ratio` is false while any enemy comes later. Each such country is given a
+politics minister as the look is made, which first works after `draw mod 3 + 1` hours, a draw on the game's generator
+each.
 
 Until 2026-11-14 the changes were made at once, before the days. Made after them - with a new game's shares
 (`production.md`, section 1), its manpower (`manpower.md`, section 4) and a minister's first type for a post (section 7)
@@ -498,9 +502,35 @@ A country with no law in a group takes the latest it is allowed. *Exe-hardcoded*
 **Not set against a save**: the Lua's look runs after it, and the start save shows the two together. With both, the
 laws are section 10's.
 
+**Each country in its turn** (`reversing/findings/FINDINGS-laterstart.md`, section 2; *measured* on the bookmarks' start
+saves, built 2026-11-15). The original's entry sets the countries up one at a time, in the countries' order, and a country's
+turn begins with its IC, its war and its effective neutrality worked out and then moves its laws. So what a law's `allow`
+reads of the world is what the turns before it have made:
+
+- **`enemy_ic_ratio` is false while any enemy's turn is still to come**: until its turn a country's IC is nought, never
+  worked out since the constructor (`UpdateIC`'s three callers are the day, the new-game set-up and the entry, `confirmed`),
+  and one enemy with none makes the condition false. So at 1939.9.1 Germany, Britain, France and Poland take
+  `three_year_draft` and `war_economy` where every enemy's IC would allow `service_by_requirement` and
+  `total_economic_mobilisation` - each has an enemy later in the order. The Lua's look (section 12) is made in the same turn
+  and sees the same.
+- **Effective neutrality** is written for the country in its turn as its neutrality less the threat it feels from its most
+  threatening country - **the lobby's, elected with nobody threatened, so the first country it may fear in the countries'
+  order**, mostly Germany - and the history's threat of every country whose turn came before has been spread by then
+  (`diplomacy.md`, section 5.3). So at 1941.6.22 Sweden, with 90 neutrality and Germany's 41 threat, takes
+  `three_year_draft` and `war_economy` in the walk.
+- **A party's popularity is the history's**, which the lobby's replay left; a democracy at war takes the civil law its ruling
+  party's popularity allows (New Zealand's `legalistic_restrictions` at 1939.9.1).
+
+With these and the single look, the laws are 704 of 707 at 1939.9.1 and 707 of 707 at both 1941 dates (674, 635 and 617
+before), and the 1936 start save's 707 of 707 as before (`OpenHOI3.SaveCheck politics`). China's three at 1939.9.1 come of
+its surrender on the two days and the laws it gives up after, not settled.
+
 ## Not established
 
-- What repeats a new game's look at the laws (section 12): built as a pass repeated until nothing is posted.
+- Whether anything repeats a new game's look at the laws (section 12): one look since 2026-11-15, which the 1939 start
+  save's Soviet Union asks for.
+- The changes of law the two days post - China's after its surrender on the 1939 bookmark's days - and whether the
+  original's queue runs them after the entry: ours drops them with the queue's other posts of the days.
 - What laws a country starts with that its history gives none - the rebels' conscription, economy and press (section
   10). Section 13's pass gives such a group the latest law it is allowed, where the original's country holds no law of
   it; whether it holds a null law there that the walk meets first was not read.

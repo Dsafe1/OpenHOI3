@@ -197,6 +197,22 @@ public class AiStrategyTests
 	}
 
 	[Fact]
+	public void A_capital_another_country_holds_is_not_defended_and_the_provinces_held_go_in_the_order_they_were_taken()
+	{
+		CGameState state = World();
+		// Poland's capital, 11, held by Germany: the adder takes no province Poland does not hold. Germany lost 2 and took it
+		// back, so 2 is on the end of its list and its resource goes on the strategy's after 3's.
+		state.Province(11).Controller = Ger;
+		state.Province(2).StrategicResource = "steel";
+		state.Province(3).StrategicResource = "steel";
+		state.Province(2).Controller = Lux;
+		state.Province(2).Controller = Ger;
+
+		Assert.Equal("", Text(Made(state, Pol).DefendProvinces));
+		Assert.Equal("1 200 3 50 2 50", Text(Made(state, Ger).DefendProvinces));
+	}
+
+	[Fact]
 	public void The_faction_term_weighs_a_fascist_leader_400_a_communist_member_100_and_a_democracy_by_its_viewer()
 	{
 		CGameState state = World();

@@ -731,4 +731,29 @@ public class OrderOfBattleTests : IDisposable
 		Assert.Empty(second.Units);
 		Assert.Equal(2, last);
 	}
+
+	[Fact]
+	public void AUnitWrittenWithoutItsEqualsSignIsReadAsThoughItHadOne()
+	{
+		// Their Finest Hour's SWE_DayOfInfamy.txt opens its army so, and JAP_DayOfInfamy.txt two theatres: the original reads
+		// the key, throws the token after it away for not being "=", and the unit's block is read whole all the same.
+		(CCountry country, _, int last) = Read("""
+			last_election = 1936.9.15
+			army {
+				name = "Field Army"
+				location = 12
+				regiment = { type = staff_brigade historical_model = 0 }
+				corps = { name = "I Corps" location = 12 regiment = { type = staff_brigade historical_model = 0 } }
+			}
+			division = { name = "After" location = 13 regiment = { type = foot_brigade historical_model = 0 } }
+			""");
+
+		Assert.Equal(new[] { "Field Army", "After" }, country.Units.Select(unit => unit.Name));
+		CUnit army = country.Units[0];
+		Assert.Equal(EUnitKind.Army, army.Kind);
+		Assert.Single(army.Children);
+		Assert.Equal(4, army.Id);
+		Assert.Equal(6, last);
+		Assert.DoesNotContain(_warnings, warning => warning.Contains("not understood"));
+	}
 }

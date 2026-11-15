@@ -138,6 +138,27 @@ none**. A new game stamps nobody: its history's wars have no truce until somethi
 `MOBILIZATION_BONUS_DAYS` (30), and is mobilised. One that is at war with nobody is taken off it, and
 is no longer mobilised, **only where nobody plays it**.
 
+**A new game, at the start date or a later one** (`reversing/findings/FINDINGS-laterstart.md`, section 2; *measured* on
+the bookmarks' start saves of 1939.9.1, 1941.6.22 and 1941.12.11 and the 1936 one):
+
+- **The history's wars were replayed with the game's clock at the defines' `start_date`**, whatever the bookmark, and
+  each country an entry adds to a side was brought up to date there: its record towards each country then on the other
+  side stamps `last_war` at the start date, and every country then on either side is mobilised, its `initial_mobilization`
+  counted from the start date. So at 1936 Italy and Ethiopia have thirty days of it, and **at a later start every country
+  at war is mobilised with none left** - no later save has the modifier - and so has no reinforcement bonus over the two
+  days (the United States' damaged battleships at 1941.12.11 are the save's to the thousandth only so). The saves'
+  `last_war = "1936.1.1.0"` pairs bear the stamp out - `SPR -> SPA`, `CSX -> JAP`, `IRQ -> ENG`, the joiner's side only;
+  10 of the 1941.12.11 save's 13 are made, the other three (`ITA -> ETH`, `JAP -> VIC`, `VIC -> SIA`) by a rule not found.
+  Giving a timed modifier makes the country's modifier again, so every country so mobilised has its modifier made with
+  its ministers before the new game's set-up reaches it (`diplomacy.md`, section 5.3; *inferred* for the side that was
+  there first, from the saves' threat). (`CWarSides.SetFromHistory`.)
+- **Then each country, in its turn of the set-up, is brought up to date** - before its laws and its order of battle, so
+  its units are made mobilised (`CWarSides.BringUpToDate`, in the loader's turn loop).
+- **The entry ends by taking every country that owns no province and is not in exile off each war it is on**, and out of a
+  real faction, its modifier made again (`RemoveLandlessCountriesFromWars`; `CWarSides.RemoveLandless`, after the two
+  days). A side left empty leaves the war standing: the 1941 saves' Invasion of the Baltic States has Germany alone, and
+  World War II no Luxembourg. Ours: only a new game runs it; the original's entry runs it for a loaded one too.
+
 ## 5. Declaring a war
 
 Declaring is an offer (`agreements.md`) whose kind is a declaration: **`value` set is a war, unset a
@@ -565,8 +586,10 @@ trade, threat spread, alignment, strategic resources, `overseas`, unit placement
 `$CAPITAL$`, the diplomacy screen's continents, the neutrality ceiling's and lend-lease's continent tests, a NAP
 broken, a trade convoy's reference harbour and the possible vassals.
 
-**Going into exile** (`SetGovernmentInExile`, C.2), from a capitulation's `po_annex` or `form_government_in_exile =
-yes`, in order - nothing for one in exile already: its own money is nought and **its stockpile is its own pool from
+**Going into exile** (`SetGovernmentInExile`, C.2), from a capitulation's `po_annex`, `form_government_in_exile =
+yes` or **a country history's `government_in_exile = yes`** (`CExileStatusChange::Apply`, every line replayed in turn
+where it is dated before a later start - Poland's 1939.9.28, Denmark's, Norway's, Belgium's, Greece's, Yugoslavia's and
+France's among the base game's by 1941.6.22; `no` is a coming back, below), in order - nothing for one in exile already: its own money is nought and **its stockpile is its own pool from
 now on** (`pool_in_exile`), what lay in its seat's pool staying there; **manpower and officers cut to a tenth**; its
 building queue deleted; every unit standing on ground held by a country not its friend - itself, its overlord or
 puppet, a puppet of its overlord, its faction, an ally, a country fighting beside it, one giving it access - taken
@@ -574,6 +597,14 @@ out of the game, **at sea none** - but a unit lent to it, set aside and, after t
 both sides told, and shattered there (`expeditions.md`, section 5); where it led its faction, the member of greatest
 IC, not in exile, put at the front; where another leads, **its government sits in that leader's seat**; and where it
 then does not own its seat, every trade route it has ends. Nothing but the lent units' going home is told.
+
+*Ours* for the history's line: it is read for its last value by the date, and the exile entered once the world stands
+at it, in the countries' order (`CGameStateLoader.BuildWorld`), where the original enters it at the line's place in
+the history; so the faction a country's government follows is the one it is in at the date. (measured) At 1941.6.22
+it seats Denmark, Norway, Poland, Greece and Yugoslavia in London, as the save has them, and their days of IC go there
+(`stockpile.md`, section 2); with it the 1941 starts' relations, threat, neutrality and the AI's lists of threats,
+rivals and friends came out nearer the saves' (`OpenHOI3.SaveCheck diplomacy` and `aistrategy`). An exile's daily
+income into its own pool - two days of it in each save, Denmark's 7.725 metal - is not made here.
 
 **An exile** never surrenders - its progress is 0; has its occupied land returned by no day; **anything it takes in
 battle goes to its faction's leader**, where the faction has two or more and it is not the leader; ground freed whose
@@ -591,6 +622,15 @@ that was cut comes back. `government_in_exile = yes|no` asks it, and Lua's `IsGo
 
 `form_government_in_exile` with a FROM first hands the land the scope holds on FROM's capital's continent, or
 beside FROM's ground, to FROM where FROM is at war with its owner, and otherwise back to the owner.
+
+**The history's line** (`CExileStatusChange::Apply`, `FINDINGS-laterstart.md`; built 2026-11-15) is made as the lobby
+replays the history, so at a later start every exile of its date has gone into exile before the new game is set up - its
+acting capital its faction leader's, its stockpile its own pool, the history's goods given before it lying in its old
+seat's pool, and **its surrender progress 0**. Their Finest Hour's base histories give it to ten countries, not only
+France and Poland: at 1941.12.11 France, Denmark, Norway, Belgium, Poland, Greece and Yugoslavia are exiles, as the save
+has them. Until it was built Greece, holding none of its land on 1941.12.11, surrendered on the two days and was annexed
+by Germany - its 45 provinces given nationalism, Germany's policy towards it reset - where the save has it in exile and at
+war. Ours: the lines are made once the world stands, each country's in turn, after its history goods.
 
 ## Kept as read, though they look odd
 

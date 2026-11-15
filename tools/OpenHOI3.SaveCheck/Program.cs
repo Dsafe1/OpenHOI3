@@ -341,7 +341,8 @@ CMap map = CMap.Load(directories, warnings.Add);
 // What the history files give a game, filled: the two days a game then runs before its first
 // hour are reasoned about below one system at a time. `firstdays` sets a game that has run
 // them beside the save.
-CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false);
+CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false,
+	date: CStartSave.Date(args[1]));
 
 ClausewitzNode save = ClausewitzParser.ParseFile(args[1]);
 Console.WriteLine($"savegame: date {save.GetString("date")}, player {save.GetString("player")}");

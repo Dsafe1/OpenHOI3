@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Commands;
@@ -323,6 +324,22 @@ public class MovementTests
 		Assert.Equal(Berlin, unit.Previous);
 		Assert.Equal(CFixedPoint.Parse("0.2"), unit.MovementProgress);
 		Assert.Equal(new[] { Dessau }, unit.Path);
+	}
+
+	[Fact]
+	public void WhatTheHourRunsForACountryAfterItsUnitsComesOnceForEachCountryWithItsUnitsMoved()
+	{
+		// The original's country hour: its units, then its theatres, before the next country's units (theatres.md, section 1).
+		CCountry country = Germany();
+		CGameState state = State(country);
+		CUnit unit = Division(state, country, Berlin, Type("rocket", "50"));
+		unit.Path.AddRange(new[] { Potsdam, Dessau });
+		var seen = new List<(string Tag, int Where)>();
+
+		CMovement.RunHourly(state, after => seen.Add((after.Tag.Value, unit.Location)));
+
+		Assert.Equal(state.Countries.Select(c => c.Tag.Value), seen.Select(s => s.Tag));
+		Assert.Equal(Dessau, seen.Single(s => s.Tag == "GER").Where);
 	}
 
 	[Fact]

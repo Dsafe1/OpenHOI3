@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
 
@@ -167,17 +168,18 @@ public static class CSupplyNetworks
 
 		public void MakeAreas()
 		{
-			// What each country holds, in the order of the provinces.
-			var held = new Dictionary<CCountryTag, List<int>>();
+			// What each country holds, in the order of its list of the provinces it controls - as it took them, which at a new
+			// game of 1936 is the order of the provinces' numbers (supply.md, section 2).
+			var held = new Dictionary<CCountryTag, List<CProvince>>();
 			foreach (CProvince province in _state.Provinces)
 			{
 				if (province.Id > 0 && province.Controller is { } holder)
 				{
-					if (!held.TryGetValue(holder, out List<int>? list))
+					if (!held.TryGetValue(holder, out List<CProvince>? list))
 					{
-						held[holder] = list = new List<int>();
+						held[holder] = list = new List<CProvince>();
 					}
-					list.Add(province.Id);
+					list.Add(province);
 				}
 			}
 
@@ -185,11 +187,12 @@ public static class CSupplyNetworks
 			{
 				var areas = new List<CSupplyArea>();
 				_areasOf[country.Tag] = areas;
-				if (!held.TryGetValue(country.Tag, out List<int>? provinces))
+				if (!held.TryGetValue(country.Tag, out List<CProvince>? provinces))
 				{
 					continue;
 				}
-				foreach (int id in provinces)
+				CCountryLists.SortByControlOrder(provinces);
+				foreach (int id in provinces.Select(province => province.Id))
 				{
 					if (_network.AreaOf(id) is null && Counts(_state.Province(id)))
 					{

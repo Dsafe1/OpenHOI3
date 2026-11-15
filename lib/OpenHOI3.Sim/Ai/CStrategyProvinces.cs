@@ -44,16 +44,20 @@ public static class CStrategyProvinces
 		}
 	}
 
-	/// <summary>The capital, 200; then each province the country holds, 50 for a strategic resource and 20 for an air base built.</summary>
+	/// <summary>
+	/// The capital, 200, where the country holds it - the original's adder takes no province another holds, so a
+	/// government in exile has no capital on its list; then each province the country holds, 50 for a strategic resource and
+	/// 20 for an air base built.
+	/// </summary>
 	public static void Defend(CGameState state, CCountry country, CAiStrategy strategy)
 	{
-		strategy.DefendProvinces.Add(country.Capital, CapitalWeight, DefendCap);
-		foreach (CProvince province in state.Provinces)
+		if (country.Capital > 0 && country.Capital < state.Provinces.Count && state.Province(country.Capital).Controller == country.Tag)
 		{
-			if (province.Controller != country.Tag)
-			{
-				continue;
-			}
+			strategy.DefendProvinces.Add(country.Capital, CapitalWeight, DefendCap);
+		}
+		// In the order of its list of the provinces it controls (aistrategy.md, section 5).
+		foreach (CProvince province in CCountryLists.Controlled(state, country.Tag))
+		{
 			int weight = province.StrategicResource.Length > 0 ? ResourceWeight : 0;
 			if (CMovementRules.BuildingLevel(state, province, CMovementRules.AirBase) > CFixedPoint.Zero)
 			{

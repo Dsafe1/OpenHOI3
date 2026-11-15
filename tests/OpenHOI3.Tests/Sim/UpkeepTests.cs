@@ -603,6 +603,27 @@ public class UpkeepTests
 	}
 
 	[Fact]
+	public void EnteringAGameMovesEveryDoctrineOnALevelAndNoEquipment()
+	{
+		// The original's entry runs the shares with nothing to share out: a doctrine costs nothing, so a brigade three
+		// levels behind at a later start is level with its country after that and the two days.
+		CCountry country = Country();
+		CSubUnitType type = Infantry();
+		CTechnology doctrine = Technology("infantry_warfare", type, change: false);
+		CTechnology rifles = Technology("smallarms_technology", type);
+		CGameState state = State(country, new[] { doctrine, rifles });
+		CSubUnit brigade = Brigade(type, Unit(country));
+		country.TechnologyLevels["infantry_warfare"] = 3;
+		country.TechnologyLevels["smallarms_technology"] = 1;
+
+		CUpgrades.RunAtEntry(state);
+
+		Assert.Equal(1, brigade.TechnologyLevels["infantry_warfare"]);
+		Assert.Equal(0, brigade.TechnologyLevels["smallarms_technology"]);
+		Assert.Equal(CFixedPoint.Zero, brigade.TechnologyProgress.GetValueOrDefault("smallarms_technology"));
+	}
+
+	[Fact]
 	public void ATechnologyThatCannotBeUpgradedToIsLeftWhereItIs()
 	{
 		CCountry country = Country();

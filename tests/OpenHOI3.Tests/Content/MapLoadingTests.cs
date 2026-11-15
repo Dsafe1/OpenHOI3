@@ -11,6 +11,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Modifiers;
+using OpenHOI3.Sim.Occupation;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Script;
@@ -692,14 +693,49 @@ public class MapLoadingTests : IDisposable
 			}");
 	}
 
-	private CGameState LoadStart()
+	private CGameState LoadStart(CDate? date = null)
 	{
 		CDirectorySettings directories = CDirectorySettings.At(_root);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: _warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, _warnings.Add);
 		// What the files give a game: the two days a game then runs before its first hour
 		// are not what these tests are about.
-		return CGameStateLoader.LoadStart(directories, Load(), localisation, countries, _warnings.Add, firstDays: false);
+		return CGameStateLoader.LoadStart(directories, Load(), localisation, countries, _warnings.Add, firstDays: false,
+			date: date);
+	}
+
+	[Fact]
+	public void AChangeOfControllerTheHistoryMakesTakesTheNewControllersPolicyTowardsTheOld()
+	{
+		WriteStartFiles();
+		Write("common/occupation_policies.txt", @"
+			collaboration_government = { local_ic = -0.95 }
+			civil_war = { allow = { tag = ITA } }");
+		Write("history/provinces/west/1 - Alpha.txt", "owner = FRA\ncontroller = FRA\n1940.6.1 = { controller = GER }");
+		Write("history/provinces/east/2 - Beta.txt", "owner = FRA\ncontroller = FRA\n1940.6.1 = { controller = ITA }");
+
+		CGameState state = LoadStart(new CDate(1941, 6, 22));
+		CCountry france = state.Country(new CCountryTag("FRA"))!;
+
+		// The file's first policy, and civil_war where its allow holds (occupation.md, section 2).
+		Assert.Equal("collaboration_government",
+			COccupationPolicies.Of(state, state.Country(new CCountryTag("GER"))!, france).Name);
+		Assert.Equal("civil_war", COccupationPolicies.Of(state, state.Country(new CCountryTag("ITA"))!, france).Name);
+		// Nothing the first undated owner and controller took, and nothing before the change.
+		Assert.Equal("no_occupation", COccupationPolicies.Of(state, france, france).Name);
+		CGameState before = LoadStart();
+		Assert.Equal("no_occupation",
+			COccupationPolicies.Of(before, before.Country(new CCountryTag("GER"))!, before.Country(new CCountryTag("FRA"))!).Name);
+	}
+
+	[Fact]
+	public void AHistorysGovernmentInExileIsAnExileOnceItsDateHasCome()
+	{
+		WriteStartFiles();
+		Write("history/countries/FRA - France.txt", "capital = 4\n1940.6.22 = { government_in_exile = yes }");
+
+		Assert.True(LoadStart(new CDate(1941, 6, 22)).Country(new CCountryTag("FRA"))!.InExile);
+		Assert.False(LoadStart().Country(new CCountryTag("FRA"))!.InExile);
 	}
 
 	[Fact]
@@ -744,6 +780,48 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal(new[] { "FRA" }, alpha.Cores.Select(core => core.Value));
 		Assert.Null(state.Province(2).Owner);                 // no file, no owner
 		Assert.Equal("countries/France.txt", state.Country(alpha.Owner)?.DefinitionFile);
+	}
+
+	[Fact]
+	public void OnlyACountryOwningAProvinceHasItsOrderOfBattleRead()
+	{
+		// France keeps the file its history names but owns nothing, as Austria does at a later start: no unit is made, and
+		// no number is given to one.
+		WriteStartFiles();
+		Write("units/foot.txt", "foot_brigade = { type = land max_strength = 30 default_organisation = 30 officers = 100 }\n");
+		Write("history/units/g.txt", "division = { name = \"G\" location = 1 regiment = { type = foot_brigade historical_model = 0 } }\n");
+		Write("history/units/f.txt", "division = { name = \"F\" location = 2 regiment = { type = foot_brigade historical_model = 0 } }\n");
+		Write("history/countries/GER - Germany.txt", "oob = \"g.txt\"\n");
+		Write("history/countries/FRA - France.txt", "oob = \"f.txt\"\n");
+		Write("history/provinces/west/1 - Alpha.txt", "owner = GER controller = GER");
+		CGameState state = LoadStart();
+
+		Assert.Equal(new[] { "G" }, state.Country(new CCountryTag("GER"))!.Units.Select(unit => unit.Name));
+		Assert.Empty(state.Country(new CCountryTag("FRA"))!.Units);
+		Assert.Equal(2, state.LastUnitId);
+	}
+
+	[Fact]
+	public void AControllersListOfItsProvincesIsInTheOrderTheHistorysPassesGaveThemToIt()
+	{
+		// The original replays the history to year 2, then to the defines' start date, then on to a bookmark's, each pass
+		// province by province, and a country puts a province on the end of its list as it takes it.
+		WriteStartFiles();
+		Write("history/provinces/west/1 - Alpha.txt", "owner = FRA controller = FRA  1937.1.1 = { controller = GER }");
+		Write("history/provinces/west/2 - Beta.txt", "owner = GER controller = GER");
+		Write("history/provinces/west/3 - Gamma.txt", "owner = FRA controller = FRA  1935.1.1 = { controller = GER }");
+		CDirectorySettings directories = CDirectorySettings.At(_root);
+		CLocalisation localisation = CLocalisation.Load(directories, warn: _warnings.Add);
+		CGameState state = CGameStateLoader.LoadStart(directories, Load(), localisation,
+			CCountries.Load(directories, localisation, _warnings.Add), _warnings.Add, firstDays: false, date: new CDate(1938, 1, 1));
+		CCountryTag germany = new("GER");
+
+		Assert.Equal(new[] { 2, 3, 1 }, CCountryLists.Controlled(state, germany).Select(province => province.Id));
+
+		// A change of hands in the game puts the province on the end of its new controller's list.
+		CProvinceHands.SetController(state, state.Province(2), new CCountryTag("FRA"));
+		CProvinceHands.SetController(state, state.Province(2), germany);
+		Assert.Equal(new[] { 3, 1, 2 }, CCountryLists.Controlled(state, germany).Select(province => province.Id));
 	}
 
 	// --- laws and governments ---
@@ -1019,7 +1097,8 @@ public class MapLoadingTests : IDisposable
 		CGameState state = LoadStart();
 
 		Assert.Equal("GER", state.Province(2).Owner?.Value);  // east/ sorts after asia/
-		Assert.Equal("FRA", state.Province(2).Controller?.Value);
+		// A change of owner takes control first, as the original's does (occupation.md, section 5).
+		Assert.Equal("GER", state.Province(2).Controller?.Value);
 		Assert.Contains(_warnings, warning => warning.Contains("1 provinces have more than one history file"));
 	}
 
@@ -1188,12 +1267,12 @@ public class MapLoadingTests : IDisposable
 		Write("history/wars/First.txt", "name = \"A War\"\n1935.10.3 = { add_attacker = ITA add_defender = ENG }");
 		CGameState state = LoadStart();
 
-		// Germany: ten IC at peace, and what its history gives by the start date on top.
+		// Germany: ten IC at peace, and on top what its history's last line of a good by the start date sets.
 		CGoodsPool berlin = state.Stockpile(Germany(state))!;
 		Assert.Same(state.Province(1).Pool, berlin);
 		Assert.Equal(CFixedPoint.FromInt(900), berlin[EGoods.Metal]);
 		Assert.Equal(CFixedPoint.FromInt(1800), berlin[EGoods.Energy]);
-		Assert.Equal(CFixedPoint.FromInt(600), berlin[EGoods.RareMaterials]);
+		Assert.Equal(CFixedPoint.FromInt(500), berlin[EGoods.RareMaterials]);
 		Assert.Equal(CFixedPoint.Parse("2.25"), berlin[EGoods.Money]);
 
 		// Italy: the five IC every country has, and seventy-five days of it for being at war.
@@ -1203,6 +1282,25 @@ public class MapLoadingTests : IDisposable
 		// Britain is at war too, but has no capital to keep anything in.
 		Assert.Null(state.Stockpile(state.Country(new CCountryTag("ENG"))!));
 		Assert.DoesNotContain(_warnings, warning => warning.Contains("history") || warning.Contains("defines"));
+	}
+
+	[Fact]
+	public void ACountryItsHistorySendsIntoExileIsInExileAndItsDaysOfIcGoToItsSeat()
+	{
+		WriteStartFiles();
+		Write("history/provinces/west/1 - Alpha.txt", "owner = GER\ncontroller = GER");
+		Write("history/provinces/west/2 - Beta.txt", "owner = GER\ncontroller = GER");
+		Write("history/countries/GER - Germany.txt", "capital = 1");
+		Write("history/countries/FRA - France.txt", "capital = 2\n1935.6.1 = { government_in_exile = yes }");
+		CGameState state = LoadStart();
+
+		// France in exile with no faction: its government stays in Paris, which Germany holds, and its five IC's ninety
+		// days lie there while its own pool keeps none of them.
+		CCountry france = state.Country(new CCountryTag("FRA"))!;
+		Assert.True(france.InExile);
+		Assert.Same(france.PoolInExile, state.Stockpile(france));
+		Assert.Equal(CFixedPoint.Zero, france.PoolInExile[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.FromInt(450), state.Province(2).Pool[EGoods.Metal]);
 	}
 
 	[Fact]

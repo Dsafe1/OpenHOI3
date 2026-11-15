@@ -38,7 +38,6 @@ public partial class CLobby : Control
 	private CGuiWindow? _saves;
 	private CGuiWindow? _panel;
 	private CGuiButton? _play;
-	private CGuiButton? _bookmarkButton;
 	private Control _shields = null!;
 	private readonly List<CGuiButton> _saveBoxes = new();
 	private bool _savesShown;
@@ -140,20 +139,25 @@ public partial class CLobby : Control
 		{
 			shield.Pressed += () => CentreOnCapital(_chosen);
 		}
-		MakeStartRow();
+		MakeBookmarkRows();
 	}
 
-	/// <summary>The lobby shown on the start's tab, the start chosen and no country, as the original opens it.</summary>
+	/// <summary>
+	/// The lobby shown on the Historical Start tab, the file's first bookmark chosen and no country, as the original opens it
+	/// (<c>docs/mechanics/bookmarks.md</c>, section 2).
+	/// </summary>
 	public void Open()
 	{
 		Visible = true;
 		_chosen = null;
 		_frontEnd.LookAtStart();
 		_window?.FindListBox("chatlog")?.Clear();
-		// The chat as the original's opens: connected, the start chosen, the player joined (FINDINGS-frontend.md, B.1).
+		// The chat as the original's opens: connected, the first bookmark chosen, the player joined (FINDINGS-frontend.md, B.1).
 		Say(Localise("CONNECTED"));
 		FillPlayers();
-		ShowStartTab();
+		_savesShown = false;
+		SetTabs();
+		ChooseBookmark(_frontEnd.Bookmarks.Count > 0 ? _frontEnd.Bookmarks[0] : null);
 		Say(Interface.Text.CTextTemplate.Fill(Localise("PLR_CONNECT"), ("NAME", _frontEnd.PlayerName)));
 	}
 
@@ -259,7 +263,7 @@ public partial class CLobby : Control
 	private string? WhyNot()
 	{
 		return CLobbyText.WhyNotPlay(Localise, World, _chosen is { } tag ? World.Country(tag) : null, _savesShown,
-			_frontEnd.SaveLoaded);
+			_frontEnd.SaveLoaded, _startChosen);
 	}
 
 	private void Play()
@@ -270,12 +274,29 @@ public partial class CLobby : Control
 		}
 	}
 
-	/// <summary>The start's tab: its list shown, frame 2 on its tab; a world from a save let go for the start's.</summary>
+	/// <summary>
+	/// The Historical Start tab: its list shown, frame 2 on its tab. A world from a save is let go for the defines' start
+	/// date with no bookmark chosen, so Play waits for a row to be clicked, as the original's reset leaves it; otherwise the
+	/// bookmark chosen stays (<c>docs/mechanics/bookmarks.md</c>, section 2).
+	/// </summary>
 	private void ShowStartTab()
 	{
 		_savesShown = false;
 		SetTabs();
-		ChooseStart();
+		if (!_frontEnd.SaveLoaded)
+		{
+			return;
+		}
+		_frontEnd.MakeWorld();
+		_chosen = null;
+		_startChosen = false;
+		foreach (CGuiButton box in _saveBoxes)
+		{
+			box.Checked = false;
+		}
+		LightRow(null);
+		ClearShields();
+		RefreshPanel();
 	}
 
 	/// <summary>The saved games' tab: its list made again, newest first, nothing ticked and nothing loaded.</summary>
@@ -300,44 +321,66 @@ public partial class CLobby : Control
 		}
 	}
 
-	/// <summary>The one row of the start: its bookmark's picture, name and date, or the start date alone.</summary>
-	private void MakeStartRow()
+	/// <summary>
+	/// A row of <c>bookmark_entry</c> for each historical bookmark, in the file's order: its picture, its name and its date
+	/// (<c>reversing/findings/FINDINGS-frontend.md</c>, B.2). With no bookmark read, one row of the defines' start date alone,
+	/// which is ours - the original's lobby would offer nothing to press.
+	/// </summary>
+	private void MakeBookmarkRows()
 	{
-		if (_bookmarks?.FindListBox("bookmarks_list") is not { } list
-			|| CGuiWindow.CreateEntry(_context, BookmarkRowName) is not { } row)
+		if (_bookmarks?.FindListBox("bookmarks_list") is not { } list)
 		{
 			return;
 		}
-		CBookmark? start = _frontEnd.Start;
-		_bookmarkButton = row.TryFindButton("bookmark");
-		if (_bookmarkButton is not null)
+		IReadOnlyList<CBookmark?> rows = _frontEnd.Bookmarks.Count > 0 ? _frontEnd.Bookmarks.ToList<CBookmark?>() : new CBookmark?[] { null };
+		foreach (CBookmark? bookmark in rows)
 		{
-			if (start is not null)
+			if (CGuiWindow.CreateEntry(_context, BookmarkRowName) is not { } row)
 			{
-				_bookmarkButton.SetSprite(start.Icon);
+				return;
 			}
-			_bookmarkButton.Pressed += ChooseStart;
+			if (row.TryFindButton("bookmark") is { } button)
+			{
+				if (bookmark is not null)
+				{
+					button.SetSprite(bookmark.Icon);
+				}
+				button.Pressed += () => ChooseBookmark(bookmark);
+				_bookmarkRows.Add((bookmark, button));
+			}
+			if (row.FindTextBox("title") is { } title)
+			{
+				title.Text = bookmark is null ? "" : Localise(bookmark.Name);
+			}
+			if (row.FindTextBox("date") is { } date)
+			{
+				date.Text = CLobbyText.Date(Localise, bookmark?.Hours ?? (long)World.StartDate.DayNumber * CGameState.HoursPerDay);
+			}
+			list.Add(row);
 		}
-		if (row.FindTextBox("title") is { } title)
-		{
-			title.Text = start is null ? "" : Localise(start.Name);
-		}
-		if (row.FindTextBox("date") is { } date)
-		{
-			date.Text = CLobbyText.Date(Localise, (long)World.StartDate.DayNumber * CGameState.HoursPerDay);
-		}
-		list.Add(row);
 	}
 
+	/// <summary>Each bookmark's row with its button, in the list's order; a null bookmark is the start date's row.</summary>
+	private readonly List<(CBookmark? Bookmark, CGuiButton Button)> _bookmarkRows = new();
+
 	/// <summary>
-	/// The start chosen: a save's world let go for the start's, the row's frame 2, a shield for each of the bookmark's
-	/// countries, and the year label.
+	/// A bookmark chosen: the world made at its date - a save's let go - the save rows unticked, its row's frame 2, a shield
+	/// for each of its countries, its name and description in the chat, and the year label (<c>docs/mechanics/bookmarks.md</c>,
+	/// section 2; <c>reversing/findings/FINDINGS-frontend.md</c>, B.2). The country chosen stays chosen, where it still is one.
 	/// </summary>
-	private void ChooseStart()
+	private void ChooseBookmark(CBookmark? bookmark)
 	{
-		if (_frontEnd.SaveLoaded)
+		bool fromSave = _frontEnd.SaveLoaded;
+		if (bookmark is not null)
+		{
+			_frontEnd.ChooseBookmark(bookmark);
+		}
+		else if (fromSave)
 		{
 			_frontEnd.MakeWorld();
+		}
+		if (fromSave)
+		{
 			_chosen = null;
 		}
 		foreach (CGuiButton box in _saveBoxes)
@@ -345,15 +388,24 @@ public partial class CLobby : Control
 			box.Checked = false;
 		}
 		_startChosen = true;
-		_bookmarkButton?.SetFrame(2);
+		LightRow(bookmark);
 		MakeShields();
 		// Its name in yellow and its description in the chat, each time it is chosen (FINDINGS-frontend.md, B.2).
-		if (_frontEnd.Start is { } start)
+		if (bookmark is not null)
 		{
-			Say("§Y" + Localise(start.Name) + "§W");
-			Say(Localise(start.Description));
+			Say("§Y" + Localise(bookmark.Name) + "§W");
+			Say(Localise(bookmark.Description));
 		}
 		RefreshPanel();
+	}
+
+	/// <summary>The chosen bookmark's row at frame 2, every other at frame 1; with none chosen, every row at frame 1.</summary>
+	private void LightRow(CBookmark? chosen)
+	{
+		foreach ((CBookmark? bookmark, CGuiButton button) in _bookmarkRows)
+		{
+			button.SetFrame(_startChosen && ReferenceEquals(bookmark, chosen) ? 2 : 1);
+		}
 	}
 
 	/// <summary>
@@ -408,7 +460,7 @@ public partial class CLobby : Control
 	private void MakeShields()
 	{
 		ClearShields();
-		if (_frontEnd.Start is not { } start || _context.Types.Find(ShieldName) is not CGuiButtonType type)
+		if (_frontEnd.Bookmark is not { } start || _context.Types.Find(ShieldName) is not CGuiButtonType type)
 		{
 			return;
 		}
@@ -513,7 +565,7 @@ public partial class CLobby : Control
 			other.Checked = ReferenceEquals(other, box);
 		}
 		_startChosen = false;
-		_bookmarkButton?.SetFrame(1);
+		LightRow(null);
 		ClearShields();
 		_chosen = null;
 		if (!_frontEnd.LoadSave(path))
@@ -551,7 +603,7 @@ public partial class CLobby : Control
 		if (_window?.FindTextBox("year_label") is { } year)
 		{
 			string name = _frontEnd.SaveLoaded || !_startChosen ? Localise(CLobbyText.SavedGameKey)
-				: _frontEnd.Start is { } start ? Localise(start.Name) : "";
+				: _frontEnd.Bookmark is { } start ? Localise(start.Name) : "";
 			year.Text = CLobbyText.YearLabel(Localise, name, World.Date);
 		}
 		if (_panel is null)

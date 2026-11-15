@@ -2161,7 +2161,8 @@ public partial class CSession : Node
 	/// driving it by hand - each of them only in a game one of <c>--country=</c>, <c>--load=</c> or <c>--replay=</c>
 	/// started, the main menu coming up without (<c>Main.SaysWhatToPlay</c>):
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
-	/// <c>--country=ENG</c> plays that country and not Germany,
+	/// <c>--country=ENG</c> plays that country and not Germany, <c>--date=1939.9.1</c> begins its game at that date as the
+	/// lobby's bookmark of it would (read as the game is made, not here),
 	/// <c>--record=path.gz</c> records the game played - the player's orders and the AI's - and <c>--replay=path.gz</c>
 	/// plays a recording back, played by whoever played it and taking no orders, the map alone shown where nobody did, the
 	/// clock stopping where the recording ends (<c>docs/replay.md</c>, sections 6 and 8; both read as the session loads,

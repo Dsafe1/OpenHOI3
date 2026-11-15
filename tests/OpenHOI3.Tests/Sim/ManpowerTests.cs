@@ -169,6 +169,44 @@ public class ManpowerTests
 	}
 
 	[Fact]
+	public void ANewGameWeighsALaterCountrysLandByItsLawAsTheHistoryLeftIt()
+	{
+		// Japan and China at 1941.6.22: Japan is set up before China, so China's land Japan holds is weighed by China's
+		// history law, volunteer army, and gives nothing; China's three-year draft, brought forward after, is not asked.
+		CCountry japan = Country("JAP", 1, law: "0.25");
+		CCountry china = Country("CHI", 2, law: "-1");
+		CProvince taken = Land(3, "JAP", "10", owner: "CHI", neighbours: 1);
+		CGameState state = State(new[] { japan, china },
+			new[] { Land(1, "JAP", "0", neighbours: 3), Land(2, "CHI", "0"), taken });
+		Dictionary<string, CFixedPoint> before = CManpower.BeforeSetUp(state);
+		china.Laws["conscription_law"] = Conscription("0.25");
+
+		CManpower.SetAtStart(state, before);
+
+		Assert.Equal(CFixedPoint.FromInt(40), japan.MaxManpower);
+		// Played on, the month weighs it by the law China holds: 10 x 1.25 + 4.
+		CManpower.UpdateMost(state);
+		Assert.Equal(CFixedPoint.FromInt(165), japan.MaxManpower);
+	}
+
+	[Fact]
+	public void ANewGameWeighsAnEarlierCountrysLandByItsLawBroughtForward()
+	{
+		// Turned round: the owner set up first has its law brought forward when the holder's turn comes.
+		CCountry china = Country("CHI", 2, law: "-1");
+		CCountry japan = Country("JAP", 1, law: "0.25");
+		CProvince taken = Land(3, "JAP", "10", owner: "CHI", neighbours: 1);
+		CGameState state = State(new[] { china, japan },
+			new[] { Land(1, "JAP", "0", neighbours: 3), Land(2, "CHI", "0"), taken });
+		Dictionary<string, CFixedPoint> before = CManpower.BeforeSetUp(state);
+		china.Laws["conscription_law"] = Conscription("0.25");
+
+		CManpower.SetAtStart(state, before);
+
+		Assert.Equal(CFixedPoint.FromInt(165), japan.MaxManpower);
+	}
+
+	[Fact]
 	public void NoCountrysMostIsLessThanOne()
 	{
 		CCountry tiny = Country("LUX", 0);

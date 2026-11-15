@@ -35,6 +35,11 @@ public class StockpileTests
 	/// <summary>Every country gets five IC from <c>base_values</c>, as in the original, and money at 0.05 an IC.</summary>
 	private static CGameState State(CCountry[] countries, CProvince[] provinces, params CWar[] wars)
 	{
+		return StateAt(new CDate(1936, 1, 1), countries, provinces, wars);
+	}
+
+	private static CGameState StateAt(CDate date, CCountry[] countries, CProvince[] provinces, params CWar[] wars)
+	{
 		var all = new List<CProvince> { new(0, "", isSea: false) };
 		all.AddRange(provinces);
 
@@ -43,7 +48,7 @@ public class StockpileTests
 		var defines = new CDefines();
 		defines.Set("economy", "IC_TO_MONEY", CFixedPoint.Parse("0.05"));
 		TestRoads.Pave(all);
-		return new CGameState(new CDate(1936, 1, 1), all, countries, new[] { Industry, TestRoads.Infra }, null,
+		return new CGameState(date, all, countries, new[] { Industry, TestRoads.Infra }, null,
 			new[] { baseValues }, defines, wars);
 	}
 
@@ -56,11 +61,9 @@ public class StockpileTests
 		return war;
 	}
 
-	private static CGoodsPool Goods(EGoods goods, string amount)
+	private static Dictionary<EGoods, CFixedPoint> Goods(EGoods goods, string amount)
 	{
-		var pool = new CGoodsPool();
-		pool[goods] = CFixedPoint.Parse(amount);
-		return pool;
+		return new Dictionary<EGoods, CFixedPoint> { [goods] = CFixedPoint.Parse(amount) };
 	}
 
 	private static void AssertHolds(CGoodsPool pool, string metal, string energy, string rares, string crudeOil, string money)
@@ -211,7 +214,7 @@ public class StockpileTests
 	{
 		// Germany's 40000 rare materials sit on top of what its IC gives it.
 		CGameState state = State(new[] { Country("GER", 1) }, new[] { Land(1, "GER", industry: 5) });
-		var given = new Dictionary<string, CGoodsPool> { ["GER"] = Goods(EGoods.RareMaterials, "40000") };
+		var given = new Dictionary<string, Dictionary<EGoods, CFixedPoint>> { ["GER"] = Goods(EGoods.RareMaterials, "40000") };
 
 		CStockpile.FillAtStart(state, given);
 
@@ -223,11 +226,73 @@ public class StockpileTests
 	{
 		// 256 IC would be worth 57.6. The save has the history file's 1.
 		CGameState state = State(new[] { Country("USA", 1) }, new[] { Land(1, "USA", industry: 251) });
-		var given = new Dictionary<string, CGoodsPool> { ["USA"] = Goods(EGoods.Money, "1") };
+		var given = new Dictionary<string, Dictionary<EGoods, CFixedPoint>> { ["USA"] = Goods(EGoods.Money, "1") };
 
 		CStockpile.FillAtStart(state, given);
 
 		AssertHolds(state.Province(1).Pool, metal: "23040", energy: "46080", rares: "11520", crudeOil: "23040", money: "1");
+	}
+
+	[Fact]
+	public void AHistoryLineSetsItsGoodWhereTheResourcesAreAdded()
+	{
+		// Germany's history says 40000 rare materials, 15000 at 1938.9.1 and 5000 at 1939.9.1: the reader keeps the last
+		// line of a good, and the line sets the pool, so what lay there is gone and the IC's half is added on top.
+		CGameState state = State(new[] { Country("GER", 1) }, new[] { Land(1, "GER", industry: 5) });
+		state.Province(1).Pool[EGoods.RareMaterials] = CFixedPoint.FromInt(40000);
+		var given = new Dictionary<string, Dictionary<EGoods, CFixedPoint>> { ["GER"] = Goods(EGoods.RareMaterials, "5000") };
+
+		CStockpile.FillAtStart(state, given);
+
+		AssertHolds(state.Province(1).Pool, metal: "900", energy: "1800", rares: "5450", crudeOil: "900", money: "2.25");
+	}
+
+	[Fact]
+	public void OfTwoCountriesSharingACapitalTheLatersHistoryLineStands()
+	{
+		CGameState state = State(new[] { Country("GER", 1), Country("DDR", 1) }, new[] { Land(1, "GER") });
+		var given = new Dictionary<string, Dictionary<EGoods, CFixedPoint>>
+		{
+			["GER"] = Goods(EGoods.Metal, "100"),
+			["DDR"] = Goods(EGoods.Metal, "30"),
+		};
+
+		CStockpile.SetFromHistory(state, given);
+
+		Assert.Equal(CFixedPoint.FromInt(30), state.Province(1).Pool[EGoods.Metal]);
+	}
+
+	[Fact]
+	public void AnExilesDaysOfIcGoToItsHostsCapitalAndNotToItsOwnPool()
+	{
+		// Norway in London at 1941.6.22: five IC, at war, forty days - the save's London holds every exile's.
+		CCountry england = Country("ENG", 1);
+		CCountry norway = Country("NOR", 2);
+		CWar war = War("GER", "ENG", 1939, 9, 1);
+		war.Defenders.Add(new CCountryTag("NOR"));
+		CGameState state = StateAt(new CDate(1941, 6, 22), new[] { england, norway }, new[] { Land(1, "ENG"), Land(2, "GER") }, war);
+		norway.InExile = true;
+		norway.ActingCapital = 1;
+
+		CStockpile.FillAtStart(state);
+
+		// England's five IC and Norway's five, forty days each; the money England's alone, the pool having it by then.
+		Assert.Equal(CFixedPoint.FromInt(400), state.Province(1).Pool[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.Parse("0.5"), state.Province(1).Pool[EGoods.Money]);
+		Assert.Equal(CFixedPoint.Zero, norway.PoolInExile[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.Zero, state.Province(2).Pool[EGoods.Metal]);
+	}
+
+	[Fact]
+	public void MoneyAlreadyInThePoolLeavesTheCountryNoneForItsIc()
+	{
+		// France at 1939.9.1: the Popular Front's effect has put 35 in Paris before the stockpile is filled.
+		CGameState state = State(new[] { Country("FRA", 1) }, new[] { Land(1, "FRA", industry: 5) });
+		state.Province(1).Pool[EGoods.Money] = CFixedPoint.FromInt(35);
+
+		CStockpile.FillAtStart(state);
+
+		AssertHolds(state.Province(1).Pool, metal: "900", energy: "1800", rares: "450", crudeOil: "900", money: "35");
 	}
 
 	[Fact]

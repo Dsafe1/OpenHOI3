@@ -49,8 +49,14 @@ public partial class CFrontEnd : Node
 	/// <summary>Whether <see cref="World"/> came from a save.</summary>
 	public bool SaveLoaded { get; private set; }
 
-	/// <summary>The start's bookmark, for its look; null where the file has none of the start date.</summary>
-	public CBookmark? Start { get; private set; }
+	/// <summary>The historical bookmarks of <c>common/bookmarks.txt</c>, in its order: the lobby's Historical Start rows.</summary>
+	public System.Collections.Generic.IReadOnlyList<CBookmark> Bookmarks { get; private set; } = Array.Empty<CBookmark>();
+
+	/// <summary>The bookmark chosen, whose date the world stands at; null with none chosen (docs/mechanics/bookmarks.md).</summary>
+	public CBookmark? Bookmark { get; private set; }
+
+	/// <summary>The Quick Start pressed, whose game <see cref="Prepare"/> makes in place of the lobby's; null for Play.</summary>
+	private CQuickStart? _quickStart;
 
 	/// <summary>
 	/// The difficulty and game mode the Options panel has chosen: the world's as it is made or loaded, the panel's after,
@@ -116,7 +122,8 @@ public partial class CFrontEnd : Node
 		World = _content.World;
 		SaveLoaded = false;
 		ShowOnMap(World);
-		Start = _content.Start;
+		Bookmarks = _content.Bookmarks;
+		Bookmark = null;
 		GD.Print($"Front end's map made in {clock.ElapsedMilliseconds} ms.");
 	}
 
@@ -130,6 +137,11 @@ public partial class CFrontEnd : Node
 		AddChild(layer);
 		_menu = new CMainMenu();
 		_menu.Setup(_gui, VersionLabel);
+		// The Quick Start panel first where the settings say simple, as the original picks its first view (bookmarks.md,
+		// section 4); the toggle keeps simple in step.
+		_menu.Begin(Settings.Simple);
+		_menu.Switched += quick => Settings = Settings with { Simple = quick };
+		_menu.QuickStartPressed += QuickStart;
 		layer.AddChild(_menu);
 		_lobby = new CLobby();
 		_lobby.Setup(this);
@@ -143,9 +155,11 @@ public partial class CFrontEnd : Node
 			new[] { 2, 4, 8 }, (Settings.Width, Settings.Height, Settings.RefreshRate), CGameOptionsWindow.FrontEndWindowName);
 		layer.AddChild(_options);
 		_options.HideWindow();
+		// Closing the settings window clears simple and comes back to the main menu, as the original's does.
 		_options.CloseRequested += () =>
 		{
 			_options.HideWindow();
+			_menu.ShowMainMenu();
 			_menu.ShowPanel(true);
 		};
 		// The player's settings are written as Apply stores them, so the game the front end hands over reads them so.
@@ -248,12 +262,85 @@ public partial class CFrontEnd : Node
 		}
 	}
 
-	/// <summary>The world at the start date, made as for a new game up to its setting-up, and shown on the map.</summary>
+	/// <summary>
+	/// The world at the defines' start date, made as for a new game up to its setting-up, and shown on the map, no bookmark
+	/// chosen: what the start's tab makes of a save's world, as the original's reset does (bookmarks.md, section 2).
+	/// </summary>
 	public void MakeWorld()
 	{
-		World = CGameStateLoader.BuildWorld(_directories, _map, _localisation, _countries, CDiagnostics.Warn, _aiScripts);
+		MakeWorldAt(null);
+		Bookmark = null;
+	}
+
+	/// <summary>
+	/// A bookmark chosen: the world made at its date, held between the defines' start and end dates, as the original's
+	/// lobby holds it, and shown on the map - unless the world from no save stands at that hour already (bookmarks.md,
+	/// section 2).
+	/// </summary>
+	public void ChooseBookmark(CBookmark bookmark)
+	{
+		long first = (long)World.StartDate.DayNumber * CGameState.HoursPerDay;
+		long last = (long)World.EndDate.DayNumber * CGameState.HoursPerDay;
+		long hours = Math.Clamp(bookmark.Hours, first, Math.Max(first, last));
+		Bookmark = bookmark;
+		if (!SaveLoaded && World.TotalHours == hours)
+		{
+			return;
+		}
+		MakeWorldAt(hours);
+	}
+
+	/// <summary>
+	/// The world made as for a new game up to its setting-up, at an hour or the defines' start date, from countries read
+	/// afresh - the history is written onto them, so a world at another date cannot be made on the last one's - and shown.
+	/// </summary>
+	private void MakeWorldAt(long? hours)
+	{
+		var clock = Stopwatch.StartNew();
+		World = BuildWorldAt(hours);
 		SaveLoaded = false;
 		ShowOnMap(World);
+		GD.Print($"World made at {World.Date}.{World.Hour} in {clock.ElapsedMilliseconds} ms.");
+	}
+
+	/// <summary>The world at an hour, or at the defines' start date, on countries read afresh, which become the front end's.</summary>
+	private CGameState BuildWorldAt(long? hours)
+	{
+		_countries = CCountries.Load(_directories, _localisation);
+		CDate? date = hours is { } at ? CDate.FromDayNumber((int)(at / CGameState.HoursPerDay)) : null;
+		CGameState world = CGameStateLoader.BuildWorld(_directories, _map, _localisation, _countries, CDiagnostics.Warn, _aiScripts, date);
+		if (hours is { } exact)
+		{
+			world.SetClock(exact);
+		}
+		return world;
+	}
+
+	/// <summary>
+	/// A Quick Start pressed: a game at its hour for its country, with no lobby - made by <see cref="Prepare"/> on the loading
+	/// screen, as Play's is, with the five areas handed to the AI and the tech minister on sliders and research
+	/// (<c>docs/mechanics/bookmarks.md</c>, section 4).
+	/// </summary>
+	private void QuickStart(CQuickStart start)
+	{
+		if (_aiScripts is null)
+		{
+			return;
+		}
+		_quickStart = start;
+		var automation = new Sim.Settings.CPlayerAutomation();
+		foreach (Sim.Settings.EAutomation area in new[]
+		{
+			Sim.Settings.EAutomation.Diplomacy, Sim.Settings.EAutomation.Production, Sim.Settings.EAutomation.Technology,
+			Sim.Settings.EAutomation.Politics, Sim.Settings.EAutomation.Intelligence,
+		})
+		{
+			automation.Flags[(int)area] = 1;
+		}
+		automation.Technology = 1;
+		ChosenAutomation.CopyFrom(automation);
+		_handedOver = true;
+		PlayRequested?.Invoke(start.Tag);
 	}
 
 	/// <summary>A save loaded at once into the lobby's world, as the original's row loads it; answers whether it loaded.</summary>
@@ -261,9 +348,12 @@ public partial class CFrontEnd : Node
 	{
 		try
 		{
-			(CGameState state, CSaveReport _) = CSaveLoader.Load(_directories, _map, _localisation, _countries, path,
+			// On countries read afresh, as every world the front end makes is.
+			CCountries countries = CCountries.Load(_directories, _localisation);
+			(CGameState state, CSaveReport _) = CSaveLoader.Load(_directories, _map, _localisation, countries, path,
 				aiScripts: _aiScripts);
 			World = state;
+			_countries = countries;
 		}
 		catch (Exception failed) when (failed is IOException or InvalidDataException or FormatException)
 		{
@@ -372,6 +462,19 @@ public partial class CFrontEnd : Node
 	/// </summary>
 	public CPreparedGame Prepare(CCountryTag chosen)
 	{
+		if (_quickStart is { } quick)
+		{
+			// A Quick Start's world at its own hour, with no hold to the defines' range; its game chooses no victory conditions
+			// and takes the lobby's options at a fresh world's, the automation its own (bookmarks.md, section 4).
+			var clock = Stopwatch.StartNew();
+			CGameState world = BuildWorldAt(quick.Hours);
+			world.Automation.CopyFrom(ChosenAutomation);
+			CGameState made = CGameStateLoader.StartNewGame(_directories, world, _countries, new[] { chosen },
+				chooseVictoryConditions: false);
+			GD.Print($"Quick Start as {chosen} at {made.Date}.{made.Hour} set up in {clock.ElapsedMilliseconds} ms.");
+			_handedOver = true;
+			return new CPreparedGame(made, _map, _localisation, _gui, _aiScripts!, _mapCache, _quadTiles);
+		}
 		CGameState state = World;
 		// The Options panel's choices are the game's from Play, a loaded save's too (frontend.md, section 4).
 		state.GamePlay.CopyFrom(ChosenPlay);

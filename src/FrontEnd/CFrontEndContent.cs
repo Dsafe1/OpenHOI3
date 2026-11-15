@@ -30,7 +30,7 @@ public sealed class CFrontEndContent
 	public CAiScripts AiScripts { get; private init; } = null!;
 	public CGuiContext Gui { get; private init; } = null!;
 	public CGameState World { get; private init; } = null!;
-	public CBookmark? Start { get; private init; }
+	public IReadOnlyList<CBookmark> Bookmarks { get; private init; } = System.Array.Empty<CBookmark>();
 	public CMapCache Cache { get; private init; } = null!;
 	public IReadOnlyList<CQuadTile> Tiles { get; private init; } = null!;
 
@@ -66,10 +66,10 @@ public sealed class CFrontEndContent
 			return (loaded, CMapView.OpenCache(directories, loaded));
 		});
 		CAiScripts aiScripts = await screen.Work(CLoadingSteps.SecondDatabases, () => new CAiScripts(directories));
-		(CGameState world, CBookmark? start) = await screen.Work(CLoadingSteps.History, () =>
+		(CGameState world, IReadOnlyList<CBookmark> bookmarks) = await screen.Work(CLoadingSteps.History, () =>
 		{
 			CGameState made = CGameStateLoader.BuildWorld(directories, map, localisation, countries, CDiagnostics.Warn, aiScripts);
-			return (made, CBookmarkReader.ReadStart(directories, countries, made.StartDate));
+			return (made, CBookmarkReader.Read(directories, countries));
 		}, steps: 1);
 		int checksum = await screen.Work(CLoadingSteps.Checksum, () => WorkOutChecksum(directories), steps: 1);
 		IReadOnlyList<CQuadTile> tiles = await screen.Work(CLoadingSteps.Graphics, () =>
@@ -88,7 +88,7 @@ public sealed class CFrontEndContent
 			AiScripts = aiScripts,
 			Gui = gui,
 			World = world,
-			Start = start,
+			Bookmarks = bookmarks,
 			Cache = cache,
 			Tiles = tiles,
 			Checksum = checksum,

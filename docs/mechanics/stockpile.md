@@ -86,8 +86,30 @@ country is set up once, in turn. `confirmed` throughout unless marked.
 - **What the history file gives is there first.** A country's history file can name a good
   with an amount, and the history is applied before any of this. Their Finest Hour does it
   twice on the start date: the United States' `money = 1`, which is why they get no other,
-  and Germany's `rare_materials = 40000`, which Berlin has on top of its 149 x 45. That a
-  history file's own amount is added rather than set is `inferred` from Germany alone.
+  and Germany's `rare_materials = 40000`, which Berlin has on top of its 149 x 45. **A line
+  sets the good, it does not add to it** (`confirmed`, `CGoodsChange::Apply` -
+  `reversing/findings/FINDINGS-capitalreaders.md`, section 3): its country's stockpile at
+  the time, an exile's own pool, and where two countries' lines land in one capital the later
+  stands. So of a good given in more than one dated block the last by the date counts:
+  Germany's history gives 40000 rare materials, then 15000 in its 1938.9.1 block and 5000 in
+  its 1939.9.1 block, and a 1939 start has the 5000 and Germany's 180 IC's 8100 - (measured)
+  13,297.932 in the 1939.9.1 start save, 13,292.768 here, two days' drift apart, where the
+  three added made 68,292.
+- **It goes into the pool of the province the government sits in**, the acting capital's,
+  each good added - not through the stockpile's own test of exile. So **a government in
+  exile's days go to its host's capital**, not to its own pool (`confirmed` - the set-up adds
+  into the acting capital's pool; measured): at 1941.6.22 London has, besides England's own
+  161 IC's 40 days, the 40 days of Denmark's, Norway's, Poland's, Greece's and Yugoslavia's
+  five IC, Belgium's six and France's seven, all of them exiles seated there - 1,520 metal and
+  760 rare materials more, which is exactly what the save's London holds over England's; the
+  exiles' own pools hold only their two days' income. A seat that moves later leaves them
+  where they were: the Netherlands' 13 IC's 40 days lie in Amsterdam in the save, its
+  government sitting in Batavia by then.
+- **The days of IC come after the effects of the decisions the history has taken**
+  (`events.md`, section 13), which the set-up runs first. So a decision that gives money
+  leaves the country none for its IC: France's Popular Front, taken 1936.5.3, gives it 35,
+  and a 1939 start gives it no other - (measured) 43.134 two days in, where 22.05 more for its
+  98 IC made 65.18.
 
 **Supplies and fuel** are the same number of days of what the country's **units** use:
 
@@ -237,9 +259,12 @@ country's usage every day and its home production never, so that is what the sav
 
 ## What is not established, in one place
 
-- whether a history file's goods are **added or set**;
-- what decides the day **a war began** for this purpose, where its file has more than one
-  dated entry;
+- ~~whether a history file's goods are **added or set**~~ - set (section 2);
+- ~~what decides the day **a war began** for this purpose, where its file has more than one
+  dated entry~~ - its first dated entry, whenever the country joined it
+  (`reversing/findings/FINDINGS-laterstart.md`, section 5): (measured) at 1941.6.22 the Soviet
+  Union, Romania and Finland, joining World War II that day, start with 40 days and 21 months'
+  loss of manpower (`manpower.md`, section 4);
 - ~~what takes the starting **war exhaustion** off again~~ - BiceLib's patch in the executable the saves were made
   with (`warexhaustion.md`);
 - ~~how the original runs **two days before the first screen**~~ (section 3); what else those

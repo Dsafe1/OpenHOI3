@@ -19,7 +19,7 @@ A ring has `offset`, `is_full` and its elements; the day ring starts one on. **A
 
 So a month's element is a rolling thirty days and a first month has 29 days of tallies. `start_date` is the first day it was found at war. A record whose war is over is marked ended and stops; a war that comes back zeroes it and starts it again. Set against two saves: offsets by the date, every year element the sum of its months.
 
-*Ours:* a new game's first enemies get their records at the first day here, where the original makes them as the game is entered.
+**A new game** names the played country and makes a record for each enemy it is at war with as its entry ends, after the two days (`GameStrategicWarfare_SetUpForNewGame`, `reversing/findings/FINDINGS-laterstart.md`, section 2; `CWarfareLedger.SetUpForNewGame`, built 2026-11-15) - at a later bookmark a played country at war starts with them. Checked only for a country at peace: Ireland in the three bookmarks' start saves, `player="IRE"` and no record, as ours writes it. Until then ours made them at the first day.
 
 ## 3. What goes in each column
 

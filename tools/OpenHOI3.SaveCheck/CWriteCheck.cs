@@ -69,7 +69,8 @@ public static class CWriteCheck
 			using var scripts = new OpenHOI3.Lua.CAiScripts(directories, warnings.Add);
 			ClausewitzNode start = ClausewitzParser.ParseFile(savePath);
 			state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
-				played: new[] { new OpenHOI3.Sim.Countries.CCountryTag(start.GetString("player")) });
+				played: new[] { new OpenHOI3.Sim.Countries.CCountryTag(start.GetString("player")) },
+				date: CStartSave.Date(savePath));
 		}
 		else
 		{

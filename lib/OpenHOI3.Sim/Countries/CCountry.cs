@@ -134,6 +134,12 @@ public sealed class CCountry
 	public CFixedPoint HistoryThreat { get; set; }
 
 	/// <summary>
+	/// Its history's <c>government_in_exile</c> lines to the start, yes or no each, in the order written: each a going into
+	/// exile or a coming back, made once the world stands (<c>docs/mechanics/war.md</c>, section 14).
+	/// </summary>
+	public List<bool> HistoryExile { get; } = new();
+
+	/// <summary>
 	/// The occupation policies its history sets, each by name towards a country, in the order written: put on its records
 	/// once they exist (<c>docs/mechanics/occupation.md</c>, section 2).
 	/// </summary>

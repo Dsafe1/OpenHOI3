@@ -633,6 +633,13 @@ public sealed class CGameState
 	/// </summary>
 	public List<Commands.CCommand> NewGameLaws { get; } = new();
 
+	/// <summary>
+	/// The countries the history's wars mobilised as they were replayed, so whose modifiers were made then and resist the
+	/// threat of a country set up before them in a new game; empty once its set-up is over
+	/// (<c>docs/mechanics/diplomacy.md</c>, section 5.3).
+	/// </summary>
+	public HashSet<CCountryTag> MobilisedByHistory { get; } = new();
+
 	/// <summary>The battle plans a save held, waiting for the interface that keeps them; nothing simulated reads them.</summary>
 	public List<Plans.CBattlePlan> LoadedBattlePlans { get; } = new();
 

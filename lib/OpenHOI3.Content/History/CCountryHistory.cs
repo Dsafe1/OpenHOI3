@@ -24,14 +24,16 @@ public static class CCountryHistory
 {
 	private const string HistoryDirectory = "history/countries";
 
-	/// <returns>The goods each country's history file gives it by the start date, by tag.</returns>
-	public static Dictionary<string, CGoodsPool> Apply(CDirectorySettings directories, CCountries countries, CDate start,
+	/// <returns>
+	/// What each country's history sets of each good by the start date, by tag: the last line of a good stands.
+	/// </returns>
+	public static Dictionary<string, Dictionary<EGoods, CFixedPoint>> Apply(CDirectorySettings directories, CCountries countries, CDate start,
 		Action<string>? warn = null, IReadOnlyCollection<CTechnology>? technologies = null,
 		IReadOnlyCollection<CTechnologyCategory>? categories = null,
 		Dictionary<string, Dictionary<string, CLaw>>? lawBook = null, IReadOnlySet<string>? occupationPolicies = null)
 	{
 		warn ??= CDiagnostics.Warn;
-		var goodsGiven = new Dictionary<string, CGoodsPool>(StringComparer.OrdinalIgnoreCase);
+		var goodsGiven = new Dictionary<string, Dictionary<EGoods, CFixedPoint>>(StringComparer.OrdinalIgnoreCase);
 		int badAmounts = 0;
 		var categoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		foreach (CTechnologyCategory category in categories ?? Array.Empty<CTechnologyCategory>())
@@ -242,6 +244,11 @@ public static class CCountryHistory
 						country.Faction = "";
 					}
 				}
+				else if (entry.Key.Equals("government_in_exile", StringComparison.OrdinalIgnoreCase))
+				{
+					// Into exile or back, made once the world stands (war.md, section 14).
+					country.HistoryExile.Add(entry.Value.Equals("yes", StringComparison.OrdinalIgnoreCase));
+				}
 				else if (entry.Key.Equals("oob", StringComparison.OrdinalIgnoreCase))
 				{
 					// The file is read once the country is otherwise set up; a later line replaces an earlier one.
@@ -260,14 +267,15 @@ public static class CCountryHistory
 				}
 				else if (CGoodsPool.TryParseKey(entry.Key, out EGoods goods))
 				{
-					// Each line gives that much more, so two lines for one good add up.
+					// Each line sets the good, so of two lines for one good the later stands: Germany's 40000 rare
+					// materials, then 15000 at 1938.9.1 and 5000 at 1939.9.1 (stockpile.md, section 2).
 					if (CFixedPoint.TryParse(entry.Value, out CFixedPoint amount))
 					{
-						if (!goodsGiven.TryGetValue(tag.Value, out CGoodsPool? given))
+						if (!goodsGiven.TryGetValue(tag.Value, out Dictionary<EGoods, CFixedPoint>? given))
 						{
-							goodsGiven[tag.Value] = given = new CGoodsPool();
+							goodsGiven[tag.Value] = given = new Dictionary<EGoods, CFixedPoint>();
 						}
-						given[goods] += amount;
+						given[goods] = amount;
 					}
 					else
 					{

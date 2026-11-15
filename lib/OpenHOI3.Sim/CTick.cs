@@ -68,13 +68,13 @@ public static class CTick
 		Step(state, Weather.CWeatherFronts.RunHourly);
 		// Each country's units look at their orders, look for an enemy and move, one
 		// after another; only then is every unit's own hour run, which is where its
-		// organisation comes back.
-		Step(state, CMovement.RunHourly);
+		// organisation comes back. Right after each country's units, its theatres: made where marked, looked after where
+		// not, before the next country's units move (theatres.md, section 1).
+		// Ours: the theatres run in a replay too, being cheap and making and disbanding headquarters units of the game's
+		// (docs/replay.md).
+		Step(state, s => CMovement.RunHourly(s, country => Theatres.CTheatres.RunCountryHour(s, country)),
+			"CMovement.RunHourly and CTheatres.RunCountryHour");
 		Step(state, Units.CEmptyUnits.RunHourly);
-		// After its units, each country's theatres: made where marked, looked after where not (theatres.md, section 1;
-		// ours: the original does each country's right after its own units).
-		// Ours: run in a replay too, being cheap and making and disbanding headquarters units of the game's (docs/replay.md).
-		Step(state, Theatres.CTheatres.RunHourly);
 		// The units go before their countries, so an hour's organisation is worked out
 		// with the officer ratio the hour before left.
 		Step(state, COrganisation.RunHourly);
@@ -227,6 +227,9 @@ public static class CTick
 		bool was = state.IsBeingMade;
 		state.IsBeingMade = true;
 		RunEntryPass(state);
+		// The shares run once with nothing to spend, as the original's entry runs them for every country: so every brigade
+		// a doctrine behind its country gains a level before the first day (upkeep.md, section 5).
+		CUpgrades.RunAtEntry(state);
 		// As the original enters a new game, before its first day: every province with no revolt risk given its
 		// partisan support, and made again (revolt.md, section 3); then the revolts the province history gives (rebels.md,
 		// section 8).
@@ -247,6 +250,10 @@ public static class CTick
 		RunDailyPass(state);
 		RunMonthlyPass(state);
 		RunHourlyPass(state);
+		// The entry's end: every country owning no province and not in exile taken off its wars and out of its faction, and
+		// the played country's records of strategic warfare begun (war.md, section 4; strategicwarfare.md).
+		Wars.CWarSides.RemoveLandless(state);
+		state.Warfare.SetUpForNewGame(state);
 		state.IsBeingMade = was;
 		// Then the changes of law the install's Lua posted as the game was set up, which the original's queue runs once
 		// its entry is over - after the days, and before the AI's first pass posts anything (politics.md, section 12).

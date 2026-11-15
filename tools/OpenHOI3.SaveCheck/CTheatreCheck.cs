@@ -46,7 +46,8 @@ internal static class CTheatreCheck
 		string? traced = args.Skip(3).FirstOrDefault(a => a.StartsWith("trace=", StringComparison.Ordinal))?["trace=".Length..];
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
 			played: new[] { new CCountryTag(save.GetString("player")) },
-			beforeFirstDays: traced is null ? null : made => made.TheatreTrace = (new CCountryTag(traced), Console.WriteLine));
+			beforeFirstDays: traced is null ? null : made => made.TheatreTrace = (new CCountryTag(traced), Console.WriteLine),
+			date: CStartSave.Date(args[2]));
 		Console.WriteLine($"a new game made in {clock.ElapsedMilliseconds} ms; savegame {save.GetString("date")}, player {save.GetString("player")}");
 		Console.WriteLine($"next theatre number: ours {state.NextTheatreId}, save {save.GetString("theatre")}; " +
 			$"last unit number: ours {state.LastUnitId}, save's next {save.GetString("unit")}");

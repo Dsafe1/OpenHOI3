@@ -157,6 +157,11 @@ One army a rising, made for the faction:
   support (`revolt.md`, section 3), each province with a type rises: **the size times its manpower, at least the
   size**, in the faction of that type it would join or a new one, and where the rebels then hold it, the faction
   takes it (section 10). No file of Their Finest Hour or BlackICE has one.
+- **Land the rebels hold as a new game is entered** has its history's taking by them dated to the game's hour, so the
+  month's `defect_delay` (section 9) counts from the start, at a later bookmark too, not from the history's date
+  (`reversing/findings/FINDINGS-laterstart.md`, section 7; the date stored being the hour is *inferred* there; built
+  2026-11-15 as `RebelsTook` set for every province the rebels hold, in `CRisings.AtNewGame`). No province of Their Finest
+  Hour's history is the rebels' at any bookmark.
 - **`release = TAG`**: every core of TAG the scope's country owns is released to TAG (section 12). TAG need not exist:
   this is how a country comes back. Nothing where it owns none.
 

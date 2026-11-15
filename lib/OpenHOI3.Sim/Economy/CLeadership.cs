@@ -116,6 +116,19 @@ public static class CLeadership
 		foreach (CCountry country in state.Countries)
 		{
 			Array.Fill(country.LeadershipShares, quarter);
+		}
+		SetInfluenceAtStart(state);
+	}
+
+	/// <summary>
+	/// A point of diplomatic influence for every five of a country's base IC, in whole points, as last worked out. A new
+	/// game sets it again with its stockpile, from the base IC the stockpile is filled by (<c>stockpile.md</c>, section
+	/// 2), as the original's set-up of a country does.
+	/// </summary>
+	public static void SetInfluenceAtStart(CGameState state)
+	{
+		foreach (CCountry country in state.Countries)
+		{
 			country.DiplomaticInfluence = CFixedPoint.FromInt(country.BaseIc / BaseIcPerInfluenceAtStart);
 		}
 	}

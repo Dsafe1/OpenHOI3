@@ -109,8 +109,13 @@ unit type also report in the original, into lists the military AI keeps; they ar
 country is `military` or at war with its owner, and its owner is the country or the province's area of the supply
 network touches an area the country holds, and the province has a strategic resource: **50**.
 
-**`defend_prov`**: the capital, 200; then each province the country holds, 50 for a strategic resource and 20 for an air
-base built, where that is anything.
+**`defend_prov`**: the capital, 200, where the country holds it; then each province the country holds, 50 for a strategic
+resource and 20 for an air base built, where that is anything. **The adder takes no province the country does not hold**
+(`CAIStrategy::AddDefendProv` tests the province's controller), so a government in exile has no capital on its list: at
+the Day of Infamy France, Denmark, Norway, Belgium and the Netherlands, as the bookmark's start save has them (**measured**,
+`Ireland1941_12_11_00.hoi3`). In the order of the country's list of the provinces it controls, which is the order
+it took them (`supply.md`, section 2): at a new game of 1936 the provinces' numbers, at a later start the land the
+history gave it after 1936 at the end.
 
 ## 6. `threat`
 

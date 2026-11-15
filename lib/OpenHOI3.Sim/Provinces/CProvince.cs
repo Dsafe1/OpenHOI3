@@ -67,11 +67,28 @@ public sealed class CProvince
 			if (_controller != value)
 			{
 				_controller = value;
-				_handChanges?.Add();
 				ControllerChanged = true;
+				if (_handChanges is { } changes)
+				{
+					changes.Add();
+					ControlOrder = InGameControlOrder + changes.Count;
+				}
 			}
 		}
 	}
+
+	/// <summary>Where the places a game's own changes of controller give begin, past every place the history gives.</summary>
+	public const long InGameControlOrder = 1L << 40;
+
+	/// <summary>
+	/// Its place in its controller's list of the provinces it controls, the least first: the original's country keeps that
+	/// list and puts a province on its end as it takes it, so its areas, theatres and every walk of "the provinces a
+	/// country controls" go in the order the land was taken (<c>docs/mechanics/supply.md</c>, section 2). The history
+	/// gives a province its place by the pass of the history's replay it last changed hands in, and its number within it;
+	/// a change in the game, the next place after every other. Equal places - a
+	/// game loaded from a save - fall back on the province's number.
+	/// </summary>
+	public long ControlOrder { get; set; }
 
 	/// <summary>
 	/// Its controller changed since its days out of supply were last counted for it: the hour's end counts them, as the

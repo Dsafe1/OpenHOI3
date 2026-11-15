@@ -57,7 +57,7 @@ internal static class CFirstDaysCheck
 		using var scripts = new OpenHOI3.Lua.CAiScripts(directories, warnings.Add);
 		var clock = System.Diagnostics.Stopwatch.StartNew();
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
-			played: new[] { new CCountryTag(save.GetString("player")) });
+			played: new[] { new CCountryTag(save.GetString("player")) }, date: CStartSave.Date(args[2]));
 		Console.WriteLine($"a new game, its two days run: made in {clock.ElapsedMilliseconds} ms");
 
 		Console.WriteLine($"savegame: date {save.GetString("date")}, player {save.GetString("player")}");
@@ -110,17 +110,21 @@ internal static class CFirstDaysCheck
 		foreach (ClausewitzNode node in save.Children)
 		{
 			if (node.Key is null || !node.IsBlock || !CCountryTag.TryParse(node.Key, out CCountryTag tag)
-				|| state.Country(tag) is not { } country || !CResources.HoldsCapital(state, country))
+				|| state.Country(tag) is not { } country || !(CResources.HoldsCapital(state, country) || country.InExile))
 			{
 				continue;
 			}
 			bool isPlayers = tag.Value == player;
 			string who = tag.Value;
 
-			// The stockpile, where it is the country's own and nobody shares its capital.
-			bool shared = state.Countries.Any(other => other != country && other.Capital == country.Capital
-				&& CResources.HoldsCapital(state, other));
-			ClausewitzNode? pool = save.Get(country.Capital.ToString(CultureInfo.InvariantCulture))?.Get("pool");
+			// The stockpile, where it is the country's own and nobody shares its seat: the pool of the province its
+			// government sits in, the save's acting capital, or an exile's own pool (stockpile.md, section 1).
+			bool shared = !country.InExile && state.Countries.Any(other => other != country && !other.InExile
+				&& other.ActingCapital == country.ActingCapital && CResources.HoldsCapital(state, other));
+			ClausewitzNode? pool = node.GetBool("government_in_exile")
+				? node.Get("pool")
+				: save.Get(node.GetString("acting_capital") is { Length: > 0 } seat ? seat
+					: country.ActingCapital.ToString(CultureInfo.InvariantCulture))?.Get("pool");
 			if (!shared && pool is not null && state.Stockpile(country) is { } stockpile)
 			{
 				foreach (EGoods goods in Enum.GetValues<EGoods>())

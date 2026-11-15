@@ -13,10 +13,13 @@ namespace OpenHOI3.Sim.Politics;
 public static class CPoliticsAi
 {
 	/// <summary>
-	/// How many times a new game's laws are looked at, at most. The start save holds where repeating it stops - three
-	/// passes for Germany - and what repeats it was not found; ours.
+	/// How many times a new game's laws are looked at: once, as the original asks the script once in each country's
+	/// set-up. Measured on the 1939 bookmark's start save, whose Soviet Union the look takes one step, from
+	/// <c>volunteer_army</c> to <c>one_year_draft</c>, where a second would take it on; until 2026-11-15 the look was
+	/// repeated until it posted nothing, at most ten times, which gives the 1936 start save's laws the same, 707 of 707
+	/// either way (politics.md, section 12).
 	/// </summary>
-	public const int MostLawPasses = 10;
+	public const int MostLawPasses = 1;
 
 	/// <summary>
 	/// A new game's politics: <c>Laws(country)</c> for every country, the player's too, in the countries' order - the
@@ -41,8 +44,8 @@ public static class CPoliticsAi
 	/// <summary>
 	/// The changes of law a new game's look posted, run once its two first days are, as the original's queue runs them
 	/// after the days - so the days are run under the laws the new game brought forward, and each change then holds the
-	/// country's brigades to the running game's ceilings. Then the look again, and its changes, until a look posts
-	/// nothing (ours: what repeats it in the original was not found). Answers how many looks there were, the one
+	/// country's brigades to the running game's ceilings. Then the look again, and its changes, while a look posts
+	/// something and <see cref="MostLawPasses"/> allows - which is once. Answers how many looks there were, the one
 	/// <see cref="SetUpAtStart"/> made among them; none where nothing was held.
 	/// </summary>
 	public static int RunNewGameLaws(CGameState state)
@@ -87,8 +90,17 @@ public static class CPoliticsAi
 		}
 		bool was = state.IsBeingMade;
 		state.IsBeingMade = true;
+		// Each country is asked in its turn of the original's set-up, when a country whose turn is still to come has no IC
+		// worked out - so a law's enemy_ic_ratio the script asks is false while any enemy comes later (section 13).
+		int[] worked = new int[state.Countries.Count];
 		foreach (CCountry country in state.Countries)
 		{
+			worked[country.Index] = country.MaxIc;
+			country.MaxIc = 0;
+		}
+		foreach (CCountry country in state.Countries)
+		{
+			country.MaxIc = worked[country.Index];
 			scripts.RunLaws(state, country);
 			posted.AddRange(state.Outbox);
 			state.Outbox.Clear();

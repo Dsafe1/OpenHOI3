@@ -15,12 +15,27 @@ namespace OpenHOI3.Content.History;
 public static class CHistory
 {
 	/// <summary>
+	/// The original's last date of its first pass over the history: everything undated and everything dated up to it is
+	/// applied at once, before the rest (<c>reversing/findings/FINDINGS-bookmarks.md</c>, section 2.1).
+	/// </summary>
+	public static readonly CDate FirstPassEnd = new(2, 1, 1);
+
+	/// <summary>
 	/// The entries in force on a date, in the order they take effect: the undated ones
 	/// as written, then the contents of every block dated on or before
 	/// <paramref name="date"/>, earliest first. A block dated exactly on the date
 	/// counts. Blocks sharing a date keep their order in the file.
 	/// </summary>
-	public static List<ClausewitzNode> Fold(ClausewitzNode root, CDate date)
+	public static List<ClausewitzNode> Fold(ClausewitzNode root, CDate date) => FoldBetween(root, null, date);
+
+	/// <summary>
+	/// The entries one pass of the original's replay applies: those of every block dated after <paramref name="after"/> and
+	/// on or before <paramref name="until"/>, earliest first, blocks sharing a date in the file's order - and, with no
+	/// <paramref name="after"/>, the undated ones as written before them. The original replays the history from nothing to
+	/// <see cref="FirstPassEnd"/>, from there to the defines' start date, and as a bookmark is chosen on to its date
+	/// (<c>reversing/findings/FINDINGS-bookmarks.md</c>, sections 1.3 and 2.1).
+	/// </summary>
+	public static List<ClausewitzNode> FoldBetween(ClausewitzNode root, CDate? after, CDate until)
 	{
 		var entries = new List<ClausewitzNode>();
 		var dated = new List<(CDate When, int Order, ClausewitzNode Block)>();
@@ -29,13 +44,16 @@ public static class CHistory
 		{
 			if (child.IsBlock && CDate.TryParse(child.Key, out CDate when))
 			{
-				if (when.CompareTo(date) <= 0)
+				if (when.CompareTo(until) <= 0 && (after is not { } from || when.CompareTo(from) > 0))
 				{
 					dated.Add((when, dated.Count, child));
 				}
 				continue;
 			}
-			entries.Add(child);
+			if (after is null)
+			{
+				entries.Add(child);
+			}
 		}
 
 		dated.Sort((a, b) =>

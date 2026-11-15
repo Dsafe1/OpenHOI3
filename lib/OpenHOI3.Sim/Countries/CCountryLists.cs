@@ -330,4 +330,32 @@ public static class CCountryLists
 	{
 		return country is { } tag ? COwnedCounts.Of(state).Count(tag) : 0;
 	}
+
+	/// <summary>
+	/// The provinces a country controls, in the order of the original's list of them: as it took them
+	/// (<see cref="CProvince.ControlOrder"/>), the province's number between equals.
+	/// </summary>
+	public static List<CProvince> Controlled(CGameState state, CCountryTag? country)
+	{
+		var controlled = new List<CProvince>();
+		if (country is not { } tag)
+		{
+			return controlled;
+		}
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.Controller == tag)
+			{
+				controlled.Add(province);
+			}
+		}
+		SortByControlOrder(controlled);
+		return controlled;
+	}
+
+	/// <summary>Puts provinces into the order of their controllers' lists, the province's number between equals.</summary>
+	public static void SortByControlOrder(List<CProvince> provinces)
+	{
+		provinces.Sort((a, b) => a.ControlOrder != b.ControlOrder ? a.ControlOrder.CompareTo(b.ControlOrder) : a.Id.CompareTo(b.Id));
+	}
 }

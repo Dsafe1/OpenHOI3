@@ -294,6 +294,16 @@ the end.
 - **A doctrine costs nothing and reaches a brigade a level a day**, whatever the share is
   given. (measured: every one of the 10,235 doctrine levels in the save is where a day a
   level puts it.)
+- **And a level more as a game is entered.** The original's `CInGameIdler::Enter` runs every country's six shares of IC
+  and four of leadership once, with nothing to share out (`confirmed`, read 2026-11-15: the call passes an allocation of
+  0 and a flag of 1, and `CDistributeUpgrade::Distribute` never reads the flag), so no equipment moves on but every
+  brigade behind its country in a doctrine gains a level - before a new game's two days. A 1936 start, its default
+  models a level or two behind, cannot tell; at a later start a model-1 brigade three levels behind is level with its
+  country two days in, which the start saves of all three later bookmarks have (**measured**: without it 48, 775 and 856
+  doctrine levels were a level short of the save's, and at a gap of four a level short of the country, as the save is),
+  and its organisation's first hour runs off the higher figure - Germany's 44 reserves and headquarters of 1939 that
+  were a few hundredths low now agree, 35.077 where they were 35.053 (`CUpgrades.RunAtEntry`). *Ours, not built*: the original's entry
+  does the same for a **loaded** game, a doctrine a level on at every load.
 - **Being further behind costs no more a day.** The cost of a technology is divided by the
   levels it is behind, so a brigade pays half its build cost a day over its whole list at
   most, for as long as it takes.

@@ -37,6 +37,19 @@ public class HistoryFoldTests
 	}
 
 	[Fact]
+	public void APassOfTheReplayTakesTheBlocksDatedInItsRangeAndTheFirstTheUndatedOnes()
+	{
+		ClausewitzNode root = ClausewitzParser.Parse(
+			"owner = GER  1.1.1 = { owner = SOV }  1936.1.1 = { owner = FRA }  1937.1.1 = { owner = ENG }  1939.9.1 = { owner = ITA }");
+		string Pass(CDate? after, CDate until) =>
+			string.Join(" ", CHistory.FoldBetween(root, after, until).Select(entry => entry.Value));
+
+		Assert.Equal("GER SOV", Pass(null, CHistory.FirstPassEnd));
+		Assert.Equal("FRA", Pass(CHistory.FirstPassEnd, new CDate(1936, 1, 1)));
+		Assert.Equal("ENG ITA", Pass(new CDate(1936, 1, 1), new CDate(1939, 9, 1)));
+	}
+
+	[Fact]
 	public void BlocksSharingADateKeepFileOrder()
 	{
 		const string text = "1936.1.1 = { owner = FRA }  1936.1.1 = { owner = ENG }";

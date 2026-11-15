@@ -44,7 +44,8 @@ internal static class CDiplomacyCheck
 		using var scripts = new CAiScripts(directories, warnings.Add);
 		if (args.Length > 3 && args[3].StartsWith("explain=", StringComparison.Ordinal))
 		{
-			return Explain(directories, map, localisation, countries, scripts, new CCountryTag(args[3]["explain=".Length..]));
+			return Explain(directories, map, localisation, countries, scripts, new CCountryTag(args[3]["explain=".Length..]),
+				CStartSave.Date(args[2]));
 		}
 		if (args.Length > 3 && args[3].StartsWith("screen=", StringComparison.Ordinal))
 		{
@@ -54,7 +55,7 @@ internal static class CDiplomacyCheck
 		clock.Restart();
 		bool saveLaws = args.Skip(3).Contains("laws=save");
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add,
-			fill: !saveLaws, firstDays: !saveLaws, aiScripts: scripts);
+			fill: !saveLaws, firstDays: !saveLaws, aiScripts: scripts, date: CStartSave.Date(args[2]));
 		if (saveLaws)
 		{
 			// The laws the save has, before the two days: what the original's AI moved as the game
@@ -189,10 +190,10 @@ internal static class CDiplomacyCheck
 	/// day, each group's terms, and the inputs they are made of.
 	/// </summary>
 	private static int Explain(CDirectorySettings directories, CMap map, CLocalisation localisation, CCountries countries,
-		CAiScripts scripts, CCountryTag tag)
+		CAiScripts scripts, CCountryTag tag, CDate date)
 	{
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, _ => { },
-			firstDays: false, aiScripts: scripts);
+			firstDays: false, aiScripts: scripts, date: date);
 		CTick.RunEntryPass(state);
 		OpenHOI3.Sim.Modifiers.CCountryModifiers.Rebuild(state);
 		if (state.Country(tag) is not { } country)

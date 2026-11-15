@@ -91,7 +91,7 @@ internal static class CAgentCheck
 		using var scripts = new OpenHOI3.Lua.CAiScripts(directories, warnings.Add);
 		var clock = System.Diagnostics.Stopwatch.StartNew();
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
-			played: new[] { new CCountryTag(player ?? later.GetString("player")) });
+			played: new[] { new CCountryTag(player ?? later.GetString("player")) }, date: CStartSave.Date(args[2]));
 		state.IsRunning = true;
 		if (trace is not null && traceDays == int.MaxValue)
 		{

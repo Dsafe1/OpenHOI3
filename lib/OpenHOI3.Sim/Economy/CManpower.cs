@@ -47,12 +47,14 @@ public static class CManpower
 	/// </summary>
 	public static CFixedPoint OfProvince(CGameState state, CProvince province)
 	{
+		return OfProvince(province, state.Country(province.Owner)?.Modifier[GlobalManpowerModifier] ?? CFixedPoint.Zero);
+	}
+
+	/// <summary>As <see cref="OfProvince(CGameState, CProvince)"/>, given the owner's <c>global_manpower_modifier</c>.</summary>
+	private static CFixedPoint OfProvince(CProvince province, CFixedPoint ownersModifier)
+	{
 		long manpower = province.Manpower.Raw + province.Modifier[LocalManpower].Raw;
-		long factor = CFixedPoint.Scale + province.Modifier[LocalManpowerModifier].Raw;
-		if (state.Country(province.Owner) is { } owner)
-		{
-			factor += owner.Modifier[GlobalManpowerModifier].Raw;
-		}
+		long factor = CFixedPoint.Scale + province.Modifier[LocalManpowerModifier].Raw + ownersModifier.Raw;
 		if (factor < 0)
 		{
 			factor = 0;                                      // a province cannot be made worth less than nothing
@@ -65,8 +67,22 @@ public static class CManpower
 	/// controls give, each scaled by its own modifier and its owner's laws, plus what
 	/// every country is given, all scaled by the country's technology.
 	/// </summary>
-	private static Dictionary<string, long> InAYear(CGameState state)
+	/// <param name="setUpBefore">
+	/// A new game's set-up only: each country's <c>global_manpower_modifier</c> before its own set-up moved its laws. The
+	/// original sets the countries up one after another, each working out its most in its turn, so a province owned by a
+	/// country later in the order is weighed by that country's law as its history left it (<c>manpower.md</c>, section 4).
+	/// </param>
+	private static Dictionary<string, long> InAYear(CGameState state, IReadOnlyDictionary<string, CFixedPoint>? setUpBefore = null)
 	{
+		Dictionary<string, int>? order = null;
+		if (setUpBefore is not null)
+		{
+			order = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+			foreach (CCountry country in state.Countries)
+			{
+				order[country.Tag.Value] = order.Count;
+			}
+		}
 		var sums = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
 		foreach (CProvince province in state.Provinces)
 		{
@@ -75,7 +91,11 @@ public static class CManpower
 				continue;
 			}
 
-			long contribution = OfProvince(state, province).Raw;
+			long contribution = setUpBefore is not null && order is not null && province.Owner is { } owner
+				&& order.TryGetValue(owner.Value, out int owners) && order.TryGetValue(controller.Value, out int controllers)
+				&& owners > controllers && setUpBefore.TryGetValue(owner.Value, out CFixedPoint before)
+				? OfProvince(province, before).Raw
+				: OfProvince(state, province).Raw;
 			if (contribution <= 0)
 			{
 				continue;
@@ -113,8 +133,13 @@ public static class CManpower
 	/// </summary>
 	public static void UpdateMost(CGameState state)
 	{
+		UpdateMost(state, null);
+	}
+
+	private static void UpdateMost(CGameState state, IReadOnlyDictionary<string, CFixedPoint>? setUpBefore)
+	{
 		long years = state.Defines[MilitarySection, MaxManpower].Raw;
-		Dictionary<string, long> inAYear = InAYear(state);
+		Dictionary<string, long> inAYear = InAYear(state, setUpBefore);
 		foreach (CCountry country in state.Countries)
 		{
 			long most = inAYear[country.Tag.Value] * years / CFixedPoint.Scale;
@@ -185,14 +210,33 @@ public static class CManpower
 	}
 
 	/// <summary>
+	/// Each country's <c>global_manpower_modifier</c> by tag, its modifier made again first: taken as a new game is
+	/// entered, before any country's set-up brings its laws forward, for <see cref="SetAtStart"/>.
+	/// </summary>
+	public static Dictionary<string, CFixedPoint> BeforeSetUp(CGameState state)
+	{
+		CCountryModifiers.Rebuild(state);
+		var factors = new Dictionary<string, CFixedPoint>(StringComparer.OrdinalIgnoreCase);
+		foreach (CCountry country in state.Countries)
+		{
+			factors[country.Tag.Value] = country.Modifier[GlobalManpowerModifier];
+		}
+		return factors;
+	}
+
+	/// <summary>
 	/// Gives every country the manpower a new game starts with. No country has the use
 	/// of a strategic resource yet: those are first worked out when the first day is run.
 	/// </summary>
-	public static void SetAtStart(CGameState state)
+	/// <param name="setUpBefore">
+	/// A new game only: what <see cref="BeforeSetUp"/> gave before the laws were brought forward, so that each country's
+	/// most is worked out in its turn, with a later country's land weighed by its law as its history left it.
+	/// </param>
+	public static void SetAtStart(CGameState state, IReadOnlyDictionary<string, CFixedPoint>? setUpBefore = null)
 	{
 		CProvinceModifiers.Rebuild(state);
 		CCountryModifiers.Rebuild(state);
-		UpdateMost(state);
+		UpdateMost(state, setUpBefore);
 		Update(state);
 
 		HashSet<string> owners = Landowners(state);

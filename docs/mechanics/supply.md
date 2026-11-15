@@ -70,9 +70,19 @@ march over. So an island joined to the mainland by a crossing is one area with i
 - A province with too little infrastructure is not in the area **and cuts it**: land behind a
   belt of such provinces is an area of its own.
 - The areas are found country by country in the order of the countries, each from its
-  provinces in the order of their numbers, and an area's provinces are kept in the order the
+  **list of the provinces it controls**, and an area's provinces are kept in the order the
   walk finds them: a province, then at once everything reached through its first edge, then
   its second. That order is what settles a tie in section 4.
+- **A country's list is in the order it took the provinces** (`confirmed`: `CCountry_AddControlledProvince` puts a
+  province on its end, and the history's `controller` entries go through the same setter as a capture). The original
+  replays the history in passes - to year 2, to the defines' start date, and as a bookmark is chosen on to its date -
+  each province by province in the order of their numbers; so at a new game of 1936 the list is in the order of the
+  provinces' numbers, and at a later start the land the history gave a country after 1936 comes after the rest
+  (`CProvince.ControlOrder`). At both bookmarks of 1941 Norway is the last of Germany's areas, and its theatre the last
+  of Germany's three, as their start saves have them; with the provinces' numbers it was the first (**measured**,
+  `Ireland1941_06_22_00.hoi3` and `Ireland1941_12_11_00.hoi3`). A change of hands in a game puts the province on the end of
+  its new controller's list. *Ours*: a save keeps no such order, so a loaded game's lists are in the order of the
+  provinces' numbers (`docs/enhanced.md`).
 
 **A port** is a province of the area that has an owner, a port onto the sea - which only a
 province whose naval base stands on the sea has (`fleetsandair.md`, section 2) - and a naval

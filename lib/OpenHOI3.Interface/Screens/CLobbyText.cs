@@ -19,26 +19,22 @@ public static class CLobbyText
 	public const string SavedGameKey = "SAVED_GAMES";
 
 	/// <summary>
-	/// The tooltip of the main menu's Quick Start button, greyed - ours, the original having no such text: one start is
-	/// offered (<c>docs/compatibility.md</c>, entry 17).
-	/// </summary>
-	public const string QuickStartNotOffered =
-		"Quick Start is not offered: OpenHOI3 plays one start, the historical one, chosen through Single Player.";
-
-	/// <summary>
 	/// The tooltip of the main menu's "Buy Bonus Items" button, greyed - ours: the original's opens the GamersGate store,
 	/// which OpenHOI3 does not reach.
 	/// </summary>
 	public const string StoreNotOffered =
 		"Buying bonus items is not offered: OpenHOI3 opens no store. What is installed, a DLC's content among it, is read as it is.";
 
-	/// <summary>The tooltip of the lobby's Scenarios tab, greyed - ours, as <see cref="QuickStartNotOffered"/>.</summary>
+	/// <summary>
+	/// The tooltip of the lobby's Scenarios tab, greyed - ours, the original having no such text: the historical starts alone
+	/// are offered (<c>docs/compatibility.md</c>, entries 1 and 17).
+	/// </summary>
 	public const string ScenariosNotOffered =
-		"Scenarios are not offered: OpenHOI3 plays one start, the historical one on the start date.";
+		"Scenarios are not offered: OpenHOI3 plays the historical starts, the bookmarks of Historical Start.";
 
-	/// <summary>The tooltip of the lobby's Custom Games tab, greyed - ours, as <see cref="QuickStartNotOffered"/>.</summary>
+	/// <summary>The tooltip of the lobby's Custom Games tab, greyed - ours, as <see cref="ScenariosNotOffered"/>.</summary>
 	public const string CustomGamesNotOffered =
-		"Custom games are not offered: OpenHOI3 plays one start, the historical one on the start date.";
+		"Custom games are not offered: OpenHOI3 plays the historical starts, the bookmarks of Historical Start.";
 
 	private static readonly string[] Months =
 	{
@@ -91,10 +87,11 @@ public static class CLobbyText
 	/// <summary>
 	/// Why Play may not be pressed, the first that fails, or null where it may: NOT_SELECT with no country, NOT_EXIST with
 	/// one owning no land, then on the saved games' tab CANT_START_REASON_SELECT_SAVE_GAME with no save loaded, and on the
-	/// start's tab CANT_START_REASON_SELECT_BOOKMARK with one loaded.
+	/// start's tab CANT_START_REASON_SELECT_BOOKMARK with one loaded or with no bookmark chosen - as after a save is let go for
+	/// the start (<c>docs/mechanics/bookmarks.md</c>, section 2).
 	/// </summary>
 	public static string? WhyNotPlay(Func<string, string> localise, CGameState state, CCountry? chosen, bool savesShown,
-		bool saveLoaded)
+		bool saveLoaded, bool bookmarkChosen = true)
 	{
 		if (chosen is null)
 		{
@@ -108,7 +105,7 @@ public static class CLobbyText
 		{
 			return localise("CANT_START_REASON_SELECT_SAVE_GAME");
 		}
-		if (!savesShown && saveLoaded)
+		if (!savesShown && (saveLoaded || !bookmarkChosen))
 		{
 			return localise("CANT_START_REASON_SELECT_BOOKMARK");
 		}

@@ -1762,8 +1762,8 @@ the lobby of `lobby.gui` pared down to the one start, by the maintainer's choice
 picture and shortcut shields, the world on the map behind it, a country chosen by a click on the map, the saved games
 newest first with a row loading its save the moment it is chosen and its player chosen, the chosen country's panel, and
 Play making the new game or going on with the save; Options opens the front end's settings window, Exit ends the
-program, and Resign comes back to the main menu. The Quick Start panel, the other bookmarks, the scenarios and the custom
-games are not offered (`docs/compatibility.md`, entry 17). Tried with `--click`, which the front end plays where no switch
+program, and Resign comes back to the main menu. The scenarios and the custom games are not offered
+(`docs/compatibility.md`, entry 17); **every bookmark and the Quick Start panel are, since 2026-11-15** (below). Tried with `--click`, which the front end plays where no switch
 starts a game; the maintainer looked at it on 2026-11-06 - "Our main menu looks perfect imo" - and the lobby's shields
 were turned and placed by his screenshot of the original's. **The lobby's options are built too** (2026-11-06,
 `frontend.md`, section 4, a second wave of two readers): the panel of `options.gui` with the difficulty, the game mode -
@@ -2747,16 +2747,13 @@ None of these blocks the list above.
   theirs: `reversing/findings/FINDINGS-counters.md` and
   `reversing/findings/FINDINGS-deploymenu.md`.
   The rest have not been filed in its work queue.
-- **Bookmarked starts are planned, not built** (the maintainer's word, 2026-11-15, taking them out of the settled
-  decisions below). The original offers eight dated entry points in `common/bookmarks.txt`, from 1936 to 1944, each
-  with its own suggested countries and text, and its Quick Start panel's four buttons start four of them - Germany in
-  1939, the United States in 1936, Japan and the Soviet Union in 1941. Here only the defines' `start_date` is offered
-  (`docs/mechanics/frontend.md`; `docs/compatibility.md`, entries 1 and 17). What a later start needs: every country,
-  province, unit and diplomatic state made from the history files at its date - their dated entries and each
-  country's order of battle for that year - the lobby's list of every bookmark and its choice of country, the Quick
-  Start panel, and a reading of what the original's new-game pass does differently at a later date (its laws,
-  technology and AI passes were read at 1936). Not read: how the original's lobby and new game pick a bookmark's date
-  and files.
+- ~~**Bookmarked starts are planned, not built**~~ - **built 2026-11-15** (`docs/mechanics/bookmarks.md`, read in
+  `reversing/findings/FINDINGS-bookmarks.md` and `FINDINGS-laterstart.md`): the lobby lists every historical bookmark
+  and a click makes the world at its date, the Quick Start panel's four buttons start their games, and the start
+  checks of `OpenHOI3.SaveCheck` make their game at a start save's date. What a later start does not yet give as the
+  maintainer's saves of its first hour have it is `bookmarks.md`, section 3.1: alignment above all (35 to 54 of 101
+  countries where everything else it reads agrees), an exile's own pool, `protect` towards Belgium, New Zealand's
+  posts and China's laws in the two days, Japan's and China's fronts at 1939.
 
 A replacement for the engine still leaves a few things of the original's out. These are settled
 decisions rather than things merely unbuilt, so nothing should be designed around them
@@ -2767,20 +2764,19 @@ about the interface and its text.
 
 - **Custom game starts.** No screen for assembling a game from arbitrary settings
   before it begins.
-- ~~**Bookmarked starts.**~~ Taken out of this list on 2026-11-15 by the maintainer's word and put among the *Loose
-  ends* above as planned work.
+- ~~**Bookmarked starts.**~~ Taken out of this list on 2026-11-15 by the maintainer's word, and built the same day
+  (`docs/mechanics/bookmarks.md`).
 - **Isolated scenarios.** The original ships nine self-contained battles - Fall Blau,
   the Bulge, Operation Downfall and so on - each with its own dates, map extent and
   victory conditions, living apart from the campaign. There are none, and none are planned (the maintainer's word,
   2026-11-15: "Scenarios should still be considered out of scope").
 
-Together these leave the campaign as the one way into a game, from the start until bookmarks are built. A campaign
+Together these leave the campaign as the one way into a game, from any of its bookmarked dates. A campaign
 start is one set of starting conditions to balance and one code path into the simulation; a scenario, with its own
 map extent and victory conditions, would be a second simulation to keep.
 
-It also means nothing here reads `scenarios/`, and `common/bookmarks.txt` only for the one start's look in the lobby,
-which is pared down to that start until bookmarks are built (`docs/mechanics/frontend.md`; `docs/compatibility.md`,
-entry 17).
+It also means nothing here reads `scenarios/`, nor a bookmark of `common/bookmarks.txt` marked `is_cgm`
+(`docs/mechanics/bookmarks.md`; `docs/compatibility.md`, entry 17).
 
 ## Where things stand
 
@@ -3056,7 +3052,7 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Messages/           the message types of interface/messagetypes.txt
     Saves/              the original's .hoi3 saves: the loader, a save's values, its ids, units, orders, leaders and lines, wars, pacts and convoys, battles, what a load left unread, the writer and its layout
     Settings/           the player's settings.txt, from the original's folder under Documents
-    Frontend/           the start's bookmark, for its look in the lobby
+    Frontend/           the bookmarks of common/bookmarks.txt, the lobby's Historical Start
     Music/              the songs of music/*.txt
     Sound/              the sound effects of interface/sound.sfx
     Shaders/            the original's effect files: the preprocessor, the parser, the syntax tree and the writer

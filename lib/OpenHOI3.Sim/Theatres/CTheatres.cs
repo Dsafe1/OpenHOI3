@@ -19,24 +19,34 @@ public static class CTheatres
 	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
-		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.Strategy.TheatresDirty)
+			RunCountryHour(state, country);
+		}
+	}
+
+	/// <summary>
+	/// One country's part of that, which the hour runs straight after the country's own units and before the next
+	/// country's: so a province the next country takes in the hour is still this one's as its theatres are made - Wake
+	/// Island, which Japan takes in the first hour of the Day of Infamy, among the United States' (section 1).
+	/// </summary>
+	public static void RunCountryHour(CGameState state, CCountry country)
+	{
+		int hour = (int)(state.TotalHours % CGameState.HoursPerDay);
+		if (country.Strategy.TheatresDirty)
+		{
+			if (state.IsRunning && country.Strategy.Theatres.Count > 0)
 			{
-				if (state.IsRunning && country.Strategy.Theatres.Count > 0)
-				{
-					CTheatreRefresh.Refresh(state, country);
-				}
-				else
-				{
-					CTheatreBuilder.Build(state, country);
-				}
+				CTheatreRefresh.Refresh(state, country);
 			}
 			else
 			{
-				CTheatreUpkeep.Maintain(state, country, isMyHour: hour == (country.Index + 1) % CGameState.HoursPerDay);
+				CTheatreBuilder.Build(state, country);
 			}
+		}
+		else
+		{
+			CTheatreUpkeep.Maintain(state, country, isMyHour: hour == (country.Index + 1) % CGameState.HoursPerDay);
 		}
 	}
 

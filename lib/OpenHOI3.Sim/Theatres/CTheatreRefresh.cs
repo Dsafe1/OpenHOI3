@@ -36,12 +36,9 @@ public static class CTheatreRefresh
 	private static void Refresh(CGameState state, CCountry country, bool ofLoad, bool place = true)
 	{
 		List<CTheatre> theatres = country.Strategy.Theatres;
-		foreach (CProvince province in state.Provinces)
+		// In the order of its list of the provinces it controls, as the original walks it.
+		foreach (CProvince province in place ? CCountryLists.Controlled(state, country.Tag) : new List<CProvince>())
 		{
-			if (!place || province.Controller != country.Tag)
-			{
-				continue;
-			}
 			if (CTheatreProvinces.Of(state, province.Id) is not { } theatre || theatre.Country != country.Tag)
 			{
 				Place(state, country, province);

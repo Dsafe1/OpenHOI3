@@ -212,6 +212,16 @@ public static class CRisings
 				CRebelSiege.Take(state, faction, province);
 			}
 		}
+		// And every province the rebels hold has its history's taking by them dated now: the rebels' clock on land they
+		// hold as a game begins starts with the game, not at the history's date (rebels.md, section 8;
+		// reversing/findings/FINDINGS-laterstart.md, section 7). No province of Their Finest Hour's is the rebels' then.
+		foreach (CProvince province in state.Provinces)
+		{
+			if (CRebelFactions.IsRebels(province.Controller))
+			{
+				province.RebelsTook = state.Date;
+			}
+		}
 	}
 
 	/// <summary>The first faction of the type whose country is the underground's.</summary>

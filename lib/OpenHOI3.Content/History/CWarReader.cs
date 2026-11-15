@@ -91,8 +91,12 @@ public static class CWarReader
 	/// (<c>reversing/findings/FINDINGS-war.md</c>, C.13.1). So the base game's two files with no war in them are the two
 	/// nameless finished wars every save of the original holds.
 	/// </summary>
+	/// <param name="joins">
+	/// Given, each country an entry adds to a side, with each country on the other side at that moment, in the order
+	/// replayed - what the original's adding brings up to date (<c>docs/mechanics/war.md</c>, section 4).
+	/// </param>
 	public static List<CWar> Read(CDirectorySettings directories, CCountries countries, CDate date,
-		Action<string>? warn = null, List<CWar>? finished = null)
+		Action<string>? warn = null, List<CWar>? finished = null, List<(CCountryTag Joiner, CCountryTag Enemy)>? joins = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var wars = new List<CWar>();
@@ -148,6 +152,10 @@ public static class CWarReader
 					if (!side.Contains(tag))
 					{
 						side.Add(tag);
+					}
+					foreach (CCountryTag enemy in ReferenceEquals(side, war.Attackers) ? war.Defenders : war.Attackers)
+					{
+						joins?.Add((tag, enemy));
 					}
 				}
 				else

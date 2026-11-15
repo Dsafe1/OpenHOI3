@@ -12,22 +12,11 @@ public static class CPolitics
 {
 	public static void SetUpAtStart(CGameState state, Action<string>? warn = null)
 	{
-		int count = state.Ideologies.Count;
 		int unknown = 0;
 		foreach (CCountry country in state.Countries)
 		{
-			country.Popularity = new CPartyFigures(count);
-			country.Organisation = new CPartyFigures(count);
-			country.Cabinet = new int[count];
-			unknown += FromHistory(state, country.HistoryPopularity, country.Popularity);
-			unknown += FromHistory(state, country.HistoryOrganisation, country.Organisation);
-			// Measured, not read: the start save has an existing country's figures normalised twice and one that owns
-			// nothing once - one drift's and this (politics.md, section 2).
-			if (Countries.CCountryLists.OwnedCount(state, country.Tag) > 0)
-			{
-				country.Popularity.NormaliseToHundred();
-				country.Organisation.NormaliseToHundred();
-			}
+			unknown += SetPartiesFromHistory(state, country);
+			country.Cabinet = new int[state.Ideologies.Count];
 
 			CMinisterPosts.SetUpPool(state, country);
 			CMinisterPosts.Fill(state, country, refillAll: false, electedOnly: false);
@@ -44,6 +33,28 @@ public static class CPolitics
 		{
 			warn?.Invoke($"country histories give {unknown} party figures for ideologies that are not defined");
 		}
+	}
+
+	/// <summary>
+	/// Each party's two figures from the history - what the original's history replay has left on a country by the time a
+	/// new game's laws are moved, whose <c>popularity</c> conditions read them (section 13); answers how many named no
+	/// ideology.
+	/// </summary>
+	public static int SetPartiesFromHistory(CGameState state, CCountry country)
+	{
+		int count = state.Ideologies.Count;
+		country.Popularity = new CPartyFigures(count);
+		country.Organisation = new CPartyFigures(count);
+		int unknown = FromHistory(state, country.HistoryPopularity, country.Popularity);
+		unknown += FromHistory(state, country.HistoryOrganisation, country.Organisation);
+		// Measured, not read: the start save has an existing country's figures normalised twice and one that owns
+		// nothing once - one drift's and this (politics.md, section 2).
+		if (Countries.CCountryLists.OwnedCount(state, country.Tag) > 0)
+		{
+			country.Popularity.NormaliseToHundred();
+			country.Organisation.NormaliseToHundred();
+		}
+		return unknown;
 	}
 
 	/// <summary>The history's figures by number, raw and unnormalised; answers how many named no ideology.</summary>

@@ -161,39 +161,54 @@ public static class CMovement
 	/// </summary>
 	public static void RunHourly(CGameState state)
 	{
+		RunHourly(state, afterCountry: null);
+	}
+
+	/// <summary>
+	/// The same, with something run for each country straight after its own units - the original's country hour, which makes
+	/// or looks after the country's theatres there, before the next country's units have moved (theatres.md, section 1).
+	/// </summary>
+	public static void RunHourly(CGameState state, System.Action<CCountry>? afterCountry)
+	{
 		state.ForgetPositions();
 		foreach (CCountry country in state.Countries)
 		{
-			bool atWar = state.IsAtWar(country.Tag);
-			List<CUnit>? busy = null;
-			// The units in the order of the country's own list: a unit earlier in it looks at its order before a later one's
-			// look ahead can begin a battle that hour (movement.md, section 6).
-			foreach (CUnit unit in country.UnitsInOrder())
+			RunCountryUnits(state, country);
+			afterCountry?.Invoke(country);
+		}
+	}
+
+	private static void RunCountryUnits(CGameState state, CCountry country)
+	{
+		bool atWar = state.IsAtWar(country.Tag);
+		List<CUnit>? busy = null;
+		// The units in the order of the country's own list: a unit earlier in it looks at its order before a later one's
+		// look ahead can begin a battle that hour (movement.md, section 6).
+		foreach (CUnit unit in country.UnitsInOrder())
+		{
+			if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.Bombing is not null
+				|| unit.IsRetreating
+				|| unit.AttackDelay > CFixedPoint.Zero || unit.HoursAttacking > 0
+				|| unit.EngageWait > 0 || unit.NoBattleHours > 0 || unit.NoBombingHours > 0
+				|| (atWar && (CMovementRules.IsLandUnit(unit) || unit.Kind == EUnitKind.Navy))
+				// An air unit away from its base has its hour whatever it is doing:
+				// with no order, that hour is what sends it home.
+				|| (unit.Kind == EUnitKind.Air && unit.Base != 0 && !Missions.CAirMissions.IsAtOwnBase(unit))
+				// And one aboard a carrier with no order, whose hour gives it the carrier's duty.
+				|| (unit.Kind == EUnitKind.Air && unit.CarriedBy is not null))
 			{
-				if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.Bombing is not null
-					|| unit.IsRetreating
-					|| unit.AttackDelay > CFixedPoint.Zero || unit.HoursAttacking > 0
-					|| unit.EngageWait > 0 || unit.NoBattleHours > 0 || unit.NoBombingHours > 0
-					|| (atWar && (CMovementRules.IsLandUnit(unit) || unit.Kind == EUnitKind.Navy))
-					// An air unit away from its base has its hour whatever it is doing:
-					// with no order, that hour is what sends it home.
-					|| (unit.Kind == EUnitKind.Air && unit.Base != 0 && !Missions.CAirMissions.IsAtOwnBase(unit))
-					// And one aboard a carrier with no order, whose hour gives it the carrier's duty.
-					|| (unit.Kind == EUnitKind.Air && unit.CarriedBy is not null))
-				{
-					(busy ??= new List<CUnit>()).Add(unit);
-				}
+				(busy ??= new List<CUnit>()).Add(unit);
 			}
-			if (busy is null)
+		}
+		if (busy is null)
+		{
+			return;
+		}
+		foreach (CUnit unit in busy)
+		{
+			if (!unit.IsRemoved)
 			{
-				continue;
-			}
-			foreach (CUnit unit in busy)
-			{
-				if (!unit.IsRemoved)
-				{
-					RunUnitHour(state, country, unit);
-				}
+				RunUnitHour(state, country, unit);
 			}
 		}
 	}

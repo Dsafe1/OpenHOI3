@@ -33,19 +33,20 @@ next person to wonder finds that it was wondered before.
 on the loose end. Scenarios should still be considered out of scope." So the bookmarks are no longer part of this
 decision: they are planned work, in the readme's *Loose ends* - until they are built the lobby offers the defines'
 `start_date` alone (entry 17), which is a thing not built and not a departure. The scenarios, and the custom games,
-which the amendment did not touch, stay out.
+which the amendment did not touch, stay out. **Bookmarks are built since 2026-11-15** (`docs/mechanics/bookmarks.md`):
+the lobby offers every historical bookmark and the Quick Start panel its four starts.
 
 | | |
 | --- | --- |
 | the original | offers ~~eight bookmarked dates,~~ nine self-contained scenarios, a custom game assembled from settings, and the campaign - from any of eight bookmarked dates |
-| here | the campaign; ~~one start: the campaign's first date~~ its first date until bookmarks are built |
+| here | the campaign, ~~one start: the campaign's first date~~ ~~its first date until bookmarks are built~~ from any of the bookmarked dates and the Quick Start panel's four |
 | not read | everything under `scenarios/` |
 | a mod loses | its own scenarios and its custom game settings. Its history files are read as before |
 | why | a scenario has its own dates, map extent and victory conditions, apart from the campaign - a second simulation to keep beside the first; a custom game is a start assembled from settings, a second set of starting conditions to balance |
 | to undo | read `scenarios/` and build each scenario's map extent and victory conditions, or the custom game's settings screen |
 
-`readme.md`, under *Loose ends*, has the reasoning at length and the bookmarks' entry; the front end is
-`docs/mechanics/frontend.md`.
+`readme.md`, under *Loose ends*, has the reasoning at length; the front end is `docs/mechanics/frontend.md`, the
+bookmarks `docs/mechanics/bookmarks.md`.
 
 ## 2. The interface is scaled as a whole
 
@@ -340,16 +341,18 @@ as one start needs" - which follows from entry 1. Read in `reversing/findings/FI
 `docs/mechanics/frontend.md`. **Amended 2026-11-15** with entry 1: the other bookmarks and the Quick Start panel, whose
 four buttons start bookmarks, are no longer part of this decision but planned work (the readme's *Loose ends*); until
 they are built the lobby offers the defines' `start_date` alone and `toggle_quick_normal` stays greyed. The Scenarios and
-Custom Games tabs stay greyed as decided.
+Custom Games tabs stay greyed as decided. **Built 2026-11-15** (`docs/mechanics/bookmarks.md`): the lobby offers every
+historical bookmark, `simple` picks the first panel and the Quick Start panel's four buttons start their games, so what is
+left of this entry is the two tabs.
 
 | | |
 | --- | --- |
 | the original | opens on the Quick Start panel where `settings.txt` says `simple=yes` - four buttons starting Germany in 1939, the United States in 1936, Japan in 1941 and the Soviet Union in 1941 - and on the main menu where `simple=no`; its lobby offers every bookmark of `common/bookmarks.txt`, the scenarios and the custom games |
-| here | the main menu always comes first and `simple` is not read for it; `toggle_quick_normal` is greyed; the lobby offers only the bookmark of the defines' `start_date`, and its Scenarios and Custom Games tabs are greyed - each of the three with a tooltip of ours saying why (the maintainer's word, 2026-11-06: "add them but grey them out with a tooltip that explains it") |
-| the difference today | a player whose `settings.txt` says `simple=yes` sees the main menu where the original shows Quick Start; a player cannot start at a later bookmark or open a scenario or custom game |
-| a mod loses | its scenarios and custom games; ~~its other bookmarks and the Quick Start panel's buttons~~ - until bookmarks are built, those too |
-| why | entry 1: the campaign is the one way into a game. The bookmarks wait only on being built |
-| to undo | for the bookmarks, build them (the readme's *Loose ends*) and take the greying off `toggle_quick_normal`; for the two tabs, entry 1 first |
+| here | ~~the main menu always comes first and `simple` is not read for it; `toggle_quick_normal` is greyed; the lobby offers only the bookmark of the defines' `start_date`, and~~ its Scenarios and Custom Games tabs are greyed - each ~~of the three~~ with a tooltip of ours saying why (the maintainer's word, 2026-11-06: "add them but grey them out with a tooltip that explains it") |
+| the difference today | ~~a player whose `settings.txt` says `simple=yes` sees the main menu where the original shows Quick Start; a player cannot start at a later bookmark or~~ a player cannot open a scenario or custom game |
+| a mod loses | its scenarios and custom games; ~~its other bookmarks and the Quick Start panel's buttons - until bookmarks are built, those too~~ |
+| why | entry 1: the campaign is the one way into a game. ~~The bookmarks wait only on being built~~ |
+| to undo | ~~for the bookmarks, build them (the readme's *Loose ends*) and take the greying off `toggle_quick_normal`;~~ for the two tabs, entry 1 first |
 
 ## 18. Arcade cannot be chosen
 
@@ -484,6 +487,21 @@ exception and implement the fixed Fleet -> Fleet right away".
 | to undo | in `CMapView.Click`, while the one unit selected has no counter, ask no building picture and take a counter only of the same owner's units in that unit's province, falling to nothing otherwise |
 
 `reversing/findings/FINDINGS-seaair.md`, section 6.
+
+## 27. A bookmark chosen makes the world afresh at its date
+
+**Decided** 2026-11-15: proposed by the session building bookmarks and taken by the maintainer's "Ok" before the build.
+Read in `reversing/findings/FINDINGS-bookmarks.md`, sections 1.3, 2.1 and 4; the spec is `docs/mechanics/bookmarks.md`,
+section 2.
+
+| | |
+| --- | --- |
+| the original | keeps one world in the lobby and moves it: a later bookmark replays the history from the clock to its date; an earlier one **rewinds to the defines' `start_date`** - each entry's undo - and replays forwards. An undo is not always exact: a dated `manpower` undone writes the officers into the manpower, a `revolt_risk` comes back cut to whole points, a land leader's `rank` undone takes him off his unit - so a later bookmark chosen and then an earlier one may leave a world unlike the earlier one chosen at once |
+| here | every bookmark chosen makes the world afresh at its date, from countries read anew: the same world whatever was chosen before |
+| the difference | only after a later bookmark and then an earlier one, and only where an undo is inexact - the manpower is set again by every new game, and the lobby has no units for a leader to leave |
+| a mod loses | nothing a file says |
+| why | one way to make a world at a date - the one a first choice takes - and no undo to keep for every kind of history entry |
+| to undo | keep the lobby's world and move it, giving every history entry an undo as the original's, the rewind with them |
 
 ## Stricter, with the same meaning
 

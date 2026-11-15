@@ -240,21 +240,10 @@ public static class CEffectSets
 		return owned;
 	}
 
+	/// <summary>The country's list of the provinces it controls, in its order (<see cref="CCountryLists.Controlled"/>).</summary>
 	private static List<int> Controlled(CGameState state, CCountryTag? country)
 	{
-		var controlled = new List<int>();
-		if (country is null)
-		{
-			return controlled;
-		}
-		foreach (CProvince province in state.Provinces)
-		{
-			if (province.Controller == country)
-			{
-				controlled.Add(province.Id);
-			}
-		}
-		return controlled;
+		return CCountryLists.Controlled(state, country).ConvertAll(province => province.Id);
 	}
 
 	/// <summary>The province's neighbours that have an owner, in the order of its edges.</summary>

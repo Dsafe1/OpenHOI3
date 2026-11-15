@@ -71,6 +71,10 @@ public class LobbyTextTests
 			CLobbyText.WhyNotPlay(Localise, state, state.Country(new CCountryTag("AUS")), false, false));
 		Assert.Equal("Please select the Save Game first.", CLobbyText.WhyNotPlay(Localise, state, germany, true, false));
 		Assert.Equal("Select a bookmark.", CLobbyText.WhyNotPlay(Localise, state, germany, false, true));
+		// A save let go for the start leaves no bookmark chosen until a row is clicked.
+		Assert.Equal("Select a bookmark.", CLobbyText.WhyNotPlay(Localise, state, germany, false, false, bookmarkChosen: false));
+		Assert.Equal("Please select the Save Game first.",
+			CLobbyText.WhyNotPlay(Localise, state, germany, true, false, bookmarkChosen: false));
 		Assert.Null(CLobbyText.WhyNotPlay(Localise, state, germany, false, false));
 		Assert.Null(CLobbyText.WhyNotPlay(Localise, state, germany, true, true));
 	}

@@ -56,6 +56,21 @@ public static class CUpgrades
 	}
 
 	/// <summary>
+	/// What entering a game does with the share: every country's run once, as the original's entry runs the six shares of
+	/// IC and the four of leadership with nothing to share out. Nothing is spent and no equipment moves on, but a doctrine
+	/// costs nothing, so every brigade behind its country in one gains a level - which is how a brigade three levels behind
+	/// at a later start is level with its country two days in (<c>docs/mechanics/upkeep.md</c>, section 5;
+	/// <c>reversing/findings/FINDINGS-unitdaily.md</c>, section 5). The original's entry does it for a loaded game too.
+	/// </summary>
+	public static void RunAtEntry(CGameState state)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			Run(state, country, CFixedPoint.Zero, apply: true);
+		}
+	}
+
+	/// <summary>
 	/// One day of the share. Works out what a day of everything outstanding costs - the
 	/// share's need - and, when <paramref name="apply"/> is set, moves each level on as
 	/// far as the allocation reaches, in the units' own order. Answers the IC it spent.

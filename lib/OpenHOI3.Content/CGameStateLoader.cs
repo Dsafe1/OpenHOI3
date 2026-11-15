@@ -61,13 +61,17 @@ public static class CGameStateLoader
 	/// <param name="beforeFirstDays">
 	/// Told the game just before its two days are run, for a tool that wants to follow them - a trace set. Changes nothing.
 	/// </param>
+	/// <param name="date">
+	/// The hour the game begins at, a bookmark's - the defines' <c>start_date</c> where none is given
+	/// (<c>docs/mechanics/bookmarks.md</c>).
+	/// </param>
 	public static CGameState LoadStart(CDirectorySettings directories, CMap map,
 		CLocalisation localisation, CCountries countries, Action<string>? warn = null, bool fill = true,
 		bool firstDays = true, IAiScripts? aiScripts = null, IEnumerable<CCountryTag>? played = null,
-		Action<CGameState>? beforeFirstDays = null)
+		Action<CGameState>? beforeFirstDays = null, CDate? date = null)
 	{
 		warn ??= CDiagnostics.Warn;
-		CGameState state = BuildWorld(directories, map, localisation, countries, warn, aiScripts);
+		CGameState state = BuildWorld(directories, map, localisation, countries, warn, aiScripts, date);
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes = state.SubUnitTypes;
 		return SetUpNewGame(directories, state, countries, unitTypes, warn, fill, firstDays, played, beforeFirstDays);
 	}
@@ -79,10 +83,17 @@ public static class CGameStateLoader
 	/// on from it (<see cref="SetUpNewGame"/>); a loaded one fills its every dynamic figure from the save over it, as the
 	/// original refills the objects its startup made (<c>docs/mechanics/savegame.md</c>, section 2).
 	/// </summary>
+	/// <param name="date">
+	/// The hour the history is folded to and the game's clock set at: a bookmark's, or the defines' <c>start_date</c> where
+	/// none is given. The defines' date stays <see cref="CGameState.StartDate"/> whatever the bookmark, as the original
+	/// keeps it for the technology head start and the date widgets (<c>docs/mechanics/bookmarks.md</c>, section 2).
+	/// <paramref name="countries"/> must be freshly read: the history is written onto them.
+	/// </param>
 	public static CGameState BuildWorld(CDirectorySettings directories, CMap map, CLocalisation localisation,
-		CCountries countries, Action<string> warn, IAiScripts? aiScripts)
+		CCountries countries, Action<string> warn, IAiScripts? aiScripts, CDate? date = null)
 	{
 		CDate start = ReadStartDate(directories);
+		CDate at = date ?? start;
 
 		var provinces = new CProvince[map.ProvinceCount];
 		for (int id = 0; id < provinces.Length; id++)
@@ -124,20 +135,23 @@ public static class CGameStateLoader
 		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn, categories, unitTypes, terrainNames);
 		Dictionary<string, Dictionary<string, CLaw>> lawBook = CModifierReader.ReadLaws(directories, warn);
 		List<COccupationPolicy> occupationPolicies = CModifierReader.ReadOccupationPolicies(directories, warn);
-		Dictionary<string, CGoodsPool> goodsGiven = CCountryHistory.Apply(directories, countries, start, warn, technologies,
+		Dictionary<string, Dictionary<EGoods, CFixedPoint>> goodsGiven = CCountryHistory.Apply(directories, countries, at, warn, technologies,
 			categories, lawBook, occupationPolicies.Select(policy => policy.Name).ToHashSet());
 
 		CDefines defines = CDefinesReader.Read(directories, warn);
 		CBuilding[] buildings = CBuildingReader.Read(directories, warn);
-		ApplyProvinceHistory(directories, provinces, start, countries, map.Terrains, buildings, warn,
-			defines.Has(CNationalism.Section, CNationalism.Years) ? defines[CNationalism.Section, CNationalism.Years] : CFixedPoint.Zero);
+		var captures = new List<(CCountryTag Taker, CCountryTag From)>();
+		ApplyProvinceHistory(directories, provinces, at, countries, map.Terrains, buildings, warn,
+			defines.Has(CNationalism.Section, CNationalism.Years) ? defines[CNationalism.Section, CNationalism.Years] : CFixedPoint.Zero,
+			definesStart: start, captures: captures);
 		// One table by name, as the original looks both files' names up in one; the first of a name wins.
 		List<CModifier> staticModifiers = CModifierReader.ReadStaticModifiers(directories, warn);
 		staticModifiers.AddRange(CModifierReader.ReadEventModifiers(directories, warn));
 		List<CModifier> strategicResources = CModifierReader.ReadStrategicResources(directories, warn);
 		var finishedWars = new List<CWar>();
-		List<CWar> wars = CWarReader.Read(directories, countries, start, warn, finishedWars);
-		CDiplomacyHistory diplomacy = CDiplomacyReader.Apply(directories, countries, start, warn);
+		var joins = new List<(CCountryTag Joiner, CCountryTag Enemy)>();
+		List<CWar> wars = CWarReader.Read(directories, countries, at, warn, finishedWars, joins);
+		CDiplomacyHistory diplomacy = CDiplomacyReader.Apply(directories, countries, at, warn);
 
 		List<CTrait> traits = CTraitReader.Read(directories, warn);
 		List<CIdeologyGroup> ideologyGroups = CIdeologyReader.Read(directories, warn);
@@ -148,7 +162,7 @@ public static class CGameStateLoader
 			ideologyNames.AddRange(group.IdeologyOrder);
 		}
 		CUnitUpgradeReader.Read(directories, unitTypes, warn);
-		var state = new CGameState(start, provinces, countries.Declared, buildings, technologies, staticModifiers,
+		var state = new CGameState(at, provinces, countries.Declared, buildings, technologies, staticModifiers,
 			defines, wars, strategicResources, categories)
 		{
 			TechnologyFolders = CTechnologyReader.ReadFolders(directories),
@@ -181,17 +195,51 @@ public static class CGameStateLoader
 		NumberHistoryPacts(state);
 		state.FinishedWars.AddRange(finishedWars);
 		state.AiScripts = aiScripts;
-		CRelations.SetFromHistory(state, diplomacy.Relations, start);
+		CRelations.SetFromHistory(state, diplomacy.Relations, at);
+		// The policies the history's changes of controller took, every province's before any country's history line, as
+		// the original replays the provinces' history before the countries' (occupation.md, section 2). The policies' allow
+		// blocks, which a capture asks of civil_war, are read for it ahead of the rest of the script; the script's own
+		// reading below reads them again and reports what is wrong with them.
+		COccupationPolicyAllowReader.Read(directories, state, new CScriptContext(CScriptNamesReader.Read(directories, state, _ => { })));
+		foreach ((CCountryTag taker, CCountryTag from) in captures)
+		{
+			COccupationPolicies.Capture(state, taker, from);
+		}
 		COccupationPolicies.SetFromHistory(state);
+		// What the history's wars left as they were replayed: who is mobilised, and the last_war of each who joined (war.md,
+		// section 4).
+		CWarSides.SetFromHistory(state, joins);
 		ReportUnknownStrategicResources(state, warn);
-		CStockpile.FillAtStart(state, goodsGiven);
+		// Each country's going into exile or coming back that its history says, every line in turn, in the countries' order,
+		// its government to its faction leader's seat (war.md, section 14). Ours: once the history stands, where the
+		// original goes at the line's place in the history.
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (bool exile in country.HistoryExile)
+			{
+				if (exile)
+				{
+					CExile.Enter(state, country);
+				}
+				else
+				{
+					CExile.Leave(state, country);
+				}
+			}
+		}
+		// The goods the history sets, in the pool of the seat each government sits in - an exile's its host's, as the start
+		// saves have London holding the exiles' (stockpile.md, section 2); the stockpile's days of IC are added as a new game
+		// is set up (SetUpNewGame).
+		Sim.Modifiers.CProvinceModifiers.Rebuild(state);
+		CIndustrialCapacity.Update(state);
+		CStockpile.SetFromHistory(state, goodsGiven);
 		CProduction.SetStartingShares(state);
 		// What each country starts with of war exhaustion, by how long it has been at war or at peace (warexhaustion.md,
 		// section 3).
 		Sim.Wars.CWarExhaustion.SetAtStart(state);
 		CLeadership.SetAtStart(state);
 		CManpower.SetAtStart(state);
-		CLeaderReader.Read(directories, state, start, warn);
+		CLeaderReader.Read(directories, state, at, warn);
 
 		// Events and decisions name nearly everything above, so they are read once it is there.
 		CScriptProblems scriptProblems = CScriptLoader.Load(directories, state, warn);
@@ -213,20 +261,25 @@ public static class CGameStateLoader
 	/// A new game from a world <see cref="BuildWorld"/> made, as the lobby's Play makes one of the world it shows
 	/// (<c>docs/mechanics/frontend.md</c>, section 3): the played countries, then the rest of a new game.
 	/// </summary>
+	/// <param name="chooseVictoryConditions">
+	/// Whether the victory conditions are chosen: as a bookmark chosen in the lobby chooses them, and not for a Quick Start,
+	/// which chooses none (<c>docs/mechanics/bookmarks.md</c>, section 4).
+	/// </param>
 	public static CGameState StartNewGame(CDirectorySettings directories, CGameState world, CCountries countries,
-		IEnumerable<CCountryTag> played, Action<string>? warn = null)
+		IEnumerable<CCountryTag> played, Action<string>? warn = null, bool chooseVictoryConditions = true)
 	{
 		return SetUpNewGame(directories, world, countries, world.SubUnitTypes, warn ?? CDiagnostics.Warn, fill: true,
-			firstDays: true, played, beforeFirstDays: null);
+			firstDays: true, played, beforeFirstDays: null, chooseVictoryConditions);
 	}
 
 	/// <summary>A new game from the world: the start's victory conditions, laws, technology, units, politics, AI and two days.</summary>
 	private static CGameState SetUpNewGame(CDirectorySettings directories, CGameState state, CCountries countries,
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes, Action<string> warn, bool fill, bool firstDays,
-		IEnumerable<CCountryTag>? played, Action<CGameState>? beforeFirstDays)
+		IEnumerable<CCountryTag>? played, Action<CGameState>? beforeFirstDays, bool chooseVictoryConditions = true)
 	{
 		// A new game's victory conditions: each faction's primaries (factions.md, section 8).
-		foreach (string faction in Sim.Wars.CVictoryConditions.ChooseAtStart(state))
+		IEnumerable<string> shortOf = chooseVictoryConditions ? Sim.Wars.CVictoryConditions.ChooseAtStart(state) : Array.Empty<string>();
+		foreach (string faction in shortOf)
 		{
 			warn($"victory conditions: {faction} has fewer primaries than NUMBER_OF_VICTORY_CONDITIONS; the original fills the rest " +
 				"by draws of a generator of its own, which is not built");
@@ -243,11 +296,34 @@ public static class CGameStateLoader
 			// set-up - so France's population crisis is in the most manpower it starts with (manpower.md, section 4).
 			Sim.Modifiers.CTriggeredModifiers.Update(state, country);
 		}
+		// Each country's manpower law as the history left it, which the countries set up after it are weighed by when
+		// the original works out its most in its turn (manpower.md, section 4).
+		Dictionary<string, CFixedPoint> manpowerLawsBefore = CManpower.BeforeSetUp(state);
+		// The original sets each country up in its turn (politics.md, section 13; diplomacy.md, section 5.3). Its most
+		// threatening country is the lobby's, elected with nobody threatened - the first that may be, in the countries'
+		// order. In a country's turn its IC is worked out - one whose turn has not come has none yet, so a law's
+		// enemy_ic_ratio is false while any enemy comes later - and its effective neutrality, against the threat of the
+		// countries set up before it; then its laws and technology; and its turn ends with the threat its history gives.
+		// The parties' figures are the history's by then, which a law's popularity reads.
+		Sim.Diplomacy.CThreat.UpdateMostThreatening(state);
+		int[] worked = new int[state.Countries.Count];
 		foreach (CCountry country in state.Countries)
 		{
+			CPolitics.SetPartiesFromHistory(state, country);
+			worked[country.Index] = country.MaxIc;
+			country.MaxIc = 0;
+		}
+		foreach (CCountry country in state.Countries)
+		{
+			country.MaxIc = worked[country.Index];
+			// Brought up to date with its wars, as the entry does each country: mobilised where at war (war.md, section 4).
+			Sim.Wars.CWarSides.BringUpToDate(state, country, allowDemobilise: true);
+			Sim.Diplomacy.CNeutrality.UpdateEffective(state, country);
 			Sim.Politics.CStartLaws.Move(state, country);
 			Sim.Research.CStartTechnology.Buy(state, country);
+			Sim.Diplomacy.CDiplomacy.SpreadHistoryThreat(state, country);
 		}
+		state.MobilisedByHistory.Clear();
 		Sim.Modifiers.CCountryModifiers.Rebuild(state);
 
 		// The units come last, as they do in the original: a brigade is made by a country
@@ -265,7 +341,12 @@ public static class CGameStateLoader
 		{
 			warn(unknown);
 		}
-		CManpower.SetAtStart(state);
+		// Then the stockpile's days of base IC, once those decisions' effects are in it: money only where there is none,
+		// so France, which the Popular Front has given 35 by 1939, is given none for its IC (stockpile.md, section 2).
+		// And its diplomatic influence from the same base IC.
+		CStockpile.FillAtStart(state);
+		CLeadership.SetInfluenceAtStart(state);
+		CManpower.SetAtStart(state, manpowerLawsBefore);
 		CBuildQueue.SetUpAtStart(state);
 		// The shares of IC a new game starts with, once the units are read and counted and before any empty post is
 		// filled: so under the laws brought forward, with the standing army's term, and without the ministers the
@@ -300,14 +381,10 @@ public static class CGameStateLoader
 		// the provinces filled along the supply network between them, so that no army
 		// starts hungry. The changes of law the Lua posted above are run after the days, as the original's queue runs
 		// them (politics.md, section 12).
-		int lawPasses;
 		if (fill && firstDays)
 		{
 			beforeFirstDays?.Invoke(state);
-			lawPasses = CTick.RunFirstDays(state);
-			// Then the game is entered, and every country is brought up to date with its wars: Italy and
-			// Ethiopia are mobilised for thirty days, as the start save has them (war.md, section 4).
-			Sim.Wars.CWarSides.BringAllUpToDate(state);
+			CTick.RunFirstDays(state);
 		}
 		else
 		{
@@ -315,16 +392,12 @@ public static class CGameStateLoader
 			// at once, while it is still being made, so that nobody is held to a ceiling a running game would have.
 			bool was = state.IsBeingMade;
 			state.IsBeingMade = true;
-			lawPasses = CPoliticsAi.RunNewGameLaws(state);
+			CPoliticsAi.RunNewGameLaws(state);
 			state.IsBeingMade = was;
 			if (fill)
 			{
 				CSupplyStart.FillNewGame(state);
 			}
-		}
-		if (lawPasses == CPoliticsAi.MostLawPasses)
-		{
-			warn($"politics: the AI's laws were still moving after {CPoliticsAi.MostLawPasses} passes");
 		}
 		// And the game runs from here. What was made until now, its two days' too, is numbered as the history's and
 		// what is made from here on as the player's: the original's start save has the one count up to here, type 41,
@@ -374,7 +447,12 @@ public static class CGameStateLoader
 		}
 		state.LoadOrderOfBattle = (country, file) => COrderOfBattleReader.ReadInto(directories, state, country, file);
 		var unnamed = new List<(CCountry Country, CUnit Unit)>();
-		state.LastUnitId = COrderOfBattleReader.Read(directories, state.Countries, state.SubUnitTypes,
+		// Only a country that owns a province, or the rebels, has its order of battle read, as the original's new game reads
+		// it: at a later start Austria keeps its undated file and gets no units (bookmarks.md; FINDINGS-bookmarks.md, 2.4).
+		COwnedCounts owned = COwnedCounts.Of(state);
+		IEnumerable<CCountry> reading = state.Countries.Where(country =>
+			country.Tag.Value == "REB" || owned.Count(country.Tag) > 0);
+		state.LastUnitId = COrderOfBattleReader.Read(directories, reading, state.SubUnitTypes,
 			state.Technologies, state.Provinces.Count, warn,
 			(country, type) => CUnitNames.ForSubUnit(state, country, type), unnamed, state.Leaders);
 		RegisterUnitNames(state);
@@ -570,10 +648,17 @@ public static class CGameStateLoader
 	/// <c>YEARS_OF_NATIONALISM</c>: what an owner line gives a province that already has an owner, as a change of owner
 	/// does (<c>docs/mechanics/occupation.md</c>, section 5).
 	/// </param>
+	/// <param name="definesStart">The defines' <c>start_date</c>, which a bookmark's replay begins from; the date folded to where none.</param>
+	/// <param name="captures">
+	/// Given, every change of controller the history makes, in the order made: the new controller and the old, which the
+	/// original's controller setter takes an occupation policy by (<c>docs/mechanics/occupation.md</c>, section 2).
+	/// </param>
 	public static void ApplyProvinceHistory(CDirectorySettings directories, CProvince[] provinces,
 		CDate start, CCountries countries, IReadOnlyList<CTerrain> terrains,
-		IReadOnlyList<CBuilding> buildings, Action<string> warn, CFixedPoint nationalism = default)
+		IReadOnlyList<CBuilding> buildings, Action<string> warn, CFixedPoint nationalism = default, CDate? definesStart = null,
+		List<(CCountryTag Taker, CCountryTag From)>? captures = null)
 	{
+		var lastPass = new int[provinces.Length];
 		var buildingByKey = new Dictionary<string, CBuilding>(StringComparer.OrdinalIgnoreCase);
 		foreach (CBuilding building in buildings)
 		{
@@ -612,8 +697,34 @@ public static class CGameStateLoader
 			}
 
 			filesRead[id]++;
-			badLevels += Apply(provinces[id], CHistory.Fold(root, start), countries, unknownTags,
-				terrainByName, unknownTerrains, buildingByKey, nationalism);
+			// In the original's three passes - to year 2, to the defines' start date, to the bookmark's - each province's
+			// controller taken from one country and put on the end of the other's list of the provinces it controls as the pass
+			// reaches it, provinces in the order of their numbers (CProvince.ControlOrder; supply.md, section 2).
+			CProvince province = provinces[id];
+			CDate defines = definesStart ?? start;
+			CDate second = defines.CompareTo(start) < 0 ? defines : start;
+			var passes = new[]
+			{
+				CHistory.FoldBetween(root, null, CHistory.FirstPassEnd),
+				CHistory.FoldBetween(root, CHistory.FirstPassEnd, second),
+				CHistory.FoldBetween(root, second, start),
+			};
+			for (int pass = 0; pass < passes.Length; pass++)
+			{
+				bool changedBefore = province.ControllerChanged;
+				province.ControllerChanged = false;
+				badLevels += Apply(province, passes[pass], countries, unknownTags,
+					terrainByName, unknownTerrains, buildingByKey, nationalism, captures);
+				if (province.ControllerChanged)
+				{
+					lastPass[id] = pass + 1;
+				}
+				province.ControllerChanged |= changedBefore;
+			}
+		}
+		for (int id = 1; id < provinces.Length; id++)
+		{
+			provinces[id].ControlOrder = (long)lastPass[id] * provinces.Length + id;
 		}
 
 		if (unreadable > 0)
@@ -656,7 +767,8 @@ public static class CGameStateLoader
 	/// <summary>Applies one province's folded history and returns how many building levels were unreadable.</summary>
 	private static int Apply(CProvince province, List<ClausewitzNode> entries, CCountries countries,
 		SortedSet<string> unknownTags, Dictionary<string, CTerrain> terrainByName,
-		SortedSet<string> unknownTerrains, Dictionary<string, CBuilding> buildingByKey, CFixedPoint nationalism)
+		SortedSet<string> unknownTerrains, Dictionary<string, CBuilding> buildingByKey, CFixedPoint nationalism,
+		List<(CCountryTag Taker, CCountryTag From)>? captures)
 	{
 		int badLevels = 0;
 		foreach (ClausewitzNode entry in entries)
@@ -800,17 +912,19 @@ public static class CGameStateLoader
 
 			if (isOwner)
 			{
-				// An owner where there was one already is a change of owner, the same one included: it sets the
-				// province's nationalism (occupation.md, section 5; inferred from the start save).
-				if (province.Owner is { } before && countries.Find(before) is not null)
+				// The original's change of owner: the new owner takes control first, then owns it; and where there was an
+				// owner already, the same one included, the province's nationalism is set (occupation.md, section 5).
+				CCountryTag? before = province.Owner;
+				TakeControl(province, tag, countries, captures);
+				province.Owner = tag;
+				if (before is { } old && countries.Find(old) is not null)
 				{
 					province.Nationalism = nationalism;
 				}
-				province.Owner = tag;
 			}
 			else if (isController)
 			{
-				province.Controller = tag;
+				TakeControl(province, tag, countries, captures);
 			}
 			else if (isAddCore)
 			{
@@ -825,6 +939,30 @@ public static class CGameStateLoader
 			}
 		}
 		return badLevels;
+	}
+
+	/// <summary>
+	/// The history's change of controller, as the original's controller setter makes it with no consequences: nothing
+	/// where the controller is the same; otherwise the change noted for the occupation policy it takes - the new
+	/// controller's towards the old - and the controller set; and an unowned province given to a country but the rebels
+	/// owned by it as well (<c>docs/mechanics/occupation.md</c>, section 2).
+	/// </summary>
+	private static void TakeControl(CProvince province, CCountryTag tag, CCountries countries,
+		List<(CCountryTag Taker, CCountryTag From)>? captures)
+	{
+		if (province.Controller == tag)
+		{
+			return;
+		}
+		if (province.Controller is { } old)
+		{
+			captures?.Add((tag, old));
+		}
+		province.Controller = tag;
+		if (province.Owner is null && tag.Value != "REB" && countries.Find(tag) is not null)
+		{
+			province.Owner = tag;
+		}
 	}
 
 	private static bool TryReadLeadingId(string fileName, out int id)

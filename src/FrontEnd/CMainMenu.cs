@@ -66,10 +66,12 @@ public partial class CMainMenu : Control
 		{
 			return;
 		}
-		menuPanel.Visible = true;
 		Bind(menuPanel, "single_player_button", () => SinglePlayerPressed?.Invoke());
 		Bind(menuPanel, "settings_button", () => SettingsPressed?.Invoke());
 		Bind(menuPanel, "exit_button", () => ExitPressed?.Invoke());
+		Bind(menuPanel, QuickToggleName, () => Switch(quick: true));
+		BindQuickStart();
+		ShowPanel(true);
 		// Hidden as the original always hides it; then what is not built greyed, and what is not offered hidden.
 		foreach (string hidden in new[]
 		{
@@ -88,27 +90,89 @@ public partial class CMainMenu : Control
 				button.Disabled = true;
 			}
 		}
-		// Quick Start and the DLC store are shown, greyed, saying why they are not offered (docs/compatibility.md, entry 17;
-		// frontend.md, Ours).
-		foreach ((string name, string why) in new[]
+		// The DLC store is shown, greyed, saying why it is not offered (docs/compatibility.md, entry 17; frontend.md, Ours).
+		if (menuPanel.TryFindButton("gg_micro_button") is { } store)
 		{
-			("toggle_quick_normal", CLobbyText.QuickStartNotOffered), ("gg_micro_button", CLobbyText.StoreNotOffered),
-		})
-		{
-			if (menuPanel.TryFindButton(name) is { } button)
-			{
-				button.Disabled = true;
-				button.Tooltip = () => new CTooltip { Text = why };
-			}
+			store.Disabled = true;
+			store.Tooltip = () => new CTooltip { Text = CLobbyText.StoreNotOffered };
 		}
 	}
 
-	/// <summary>The main menu's panel shown or hidden on its backdrop, as the original hides it for another view.</summary>
+	/// <summary>
+	/// The Quick Start panel, <c>easymode_panel</c>: each of its four buttons starts its game with no lobby, Custom Start
+	/// goes back to the main menu, Exit ends the program, and the tutorial is greyed as on the main menu
+	/// (<c>docs/mechanics/bookmarks.md</c>, section 4).
+	/// </summary>
+	private void BindQuickStart()
+	{
+		if (_window?.FindWindow(QuickPanelName) is not { } quickPanel)
+		{
+			return;
+		}
+		foreach (CQuickStart start in CQuickStart.All)
+		{
+			CQuickStart pressed = start;
+			Bind(quickPanel, start.ButtonName, () => QuickStartPressed?.Invoke(pressed));
+		}
+		Bind(quickPanel, QuickToggleName, () => Switch(quick: false));
+		Bind(quickPanel, "exit_button", () => ExitPressed?.Invoke());
+		if (quickPanel.TryFindButton("tutorial_button") is { } tutorial)
+		{
+			tutorial.Disabled = true;
+		}
+	}
+
+	private const string QuickPanelName = "easymode_panel";
+	private const string QuickToggleName = "toggle_quick_normal";
+
+	/// <summary>
+	/// Whether the Quick Start panel is the one shown, in place of the main menu: the settings' <c>simple</c> at the start, and
+	/// kept in step with it as the toggle moves between the two (<c>reversing/findings/FINDINGS-frontend.md</c>, A.1).
+	/// </summary>
+	public bool QuickShown { get; private set; }
+
+	/// <summary>A Quick Start button pressed, with the start it names.</summary>
+	public event Action<CQuickStart>? QuickStartPressed;
+
+	/// <summary>The toggle moved the menu to the Quick Start panel or back: the settings' <c>simple</c> follows it.</summary>
+	public event Action<bool>? Switched;
+
+	/// <summary>The panel the front end opens on, by the settings' <c>simple</c>; has to be set before the node enters the tree.</summary>
+	public void Begin(bool simple)
+	{
+		QuickShown = simple;
+	}
+
+	/// <summary>The main menu, not the Quick Start panel, next time a panel is shown: what closing the settings window does.</summary>
+	public void ShowMainMenu()
+	{
+		if (QuickShown)
+		{
+			QuickShown = false;
+			Switched?.Invoke(false);
+		}
+	}
+
+	private void Switch(bool quick)
+	{
+		QuickShown = quick;
+		Switched?.Invoke(quick);
+		ShowPanel(true);
+	}
+
+	/// <summary>
+	/// The panel the menu is on - the main menu's or the Quick Start's - shown or hidden on its backdrop, as the original
+	/// hides it for another view; the other of the two hidden either way.
+	/// </summary>
 	public void ShowPanel(bool shown)
 	{
 		if (_window?.FindWindow(PanelName) is { } panel)
 		{
-			panel.Visible = shown;
+			panel.Visible = shown && !QuickShown;
+		}
+		if (_window?.FindWindow(QuickPanelName) is { } quickPanel)
+		{
+			quickPanel.Visible = shown && QuickShown;
 		}
 	}
 

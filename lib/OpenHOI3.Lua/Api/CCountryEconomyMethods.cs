@@ -134,13 +134,11 @@ public static class CCountryEconomyMethods
 			.Method("GetControlledProvinces", call =>
 			{
 				CCountry country = Of(call);
+				// The country's list of them, in its order: as it took them.
 				var provinces = new List<object?>();
-				foreach (CProvince province in api.State.Provinces)
+				foreach (CProvince province in Sim.Countries.CCountryLists.Controlled(api.State, country.Tag))
 				{
-					if (province.Controller == country.Tag)
-					{
-						provinces.Add(province.Id);
-					}
+					provinces.Add(province.Id);
 				}
 				return call.ReturnIterator(provinces);
 			})

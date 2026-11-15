@@ -104,11 +104,13 @@ Nothing should be designed around these coming back.
 - **The campaign is the one way into a game: no custom game starts, no isolated scenarios.** The original
   also offers both; leaving them out means one kind of start to balance and one code path into the simulation, and a
   scenario's own map extent and victory conditions would be a second simulation to keep. So nothing here reads
-  `scenarios/` (`docs/compatibility.md`, entries 1 and 17). ~~No bookmarked starts~~ - **bookmarks are planned** since
-  2026-11-15, by the maintainer's word ("put the bookmark support on the loose end. Scenarios should still be
-  considered out of scope"): until they are built the lobby offers the defines' `start_date` alone, with
-  `common/bookmarks.txt` read only for that start's look - its picture, name and shortcut countries - and no Quick Start
-  (`docs/mechanics/frontend.md`; the readme's *Loose ends*).
+  `scenarios/` (`docs/compatibility.md`, entries 1 and 17). ~~No bookmarked starts~~ - **bookmarks are built** since
+  2026-11-15, by the maintainer's word that morning ("put the bookmark support on the loose end. Scenarios should
+  still be considered out of scope"): the lobby lists every historical bookmark of `common/bookmarks.txt` and a click
+  makes the world afresh at its date, and the Quick Start panel's four buttons start their games
+  (`docs/mechanics/bookmarks.md`; `docs/compatibility.md`, entry 27). **The defines' `start_date` stays
+  `CGameState.StartDate` at any bookmark** - the clock is the bookmark's - so a rule that means "the game's first day"
+  asks the clock, and only the technology head start and the date widgets ask the defines' date.
 - **An install is read as it is. There is no converter and no format of ours to author in.**
   - *Script is loaded natively* - events, decisions, triggers, effects, technologies, units,
     laws, ministers, history - in the original's syntax with the original's keywords, so a

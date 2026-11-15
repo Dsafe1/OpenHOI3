@@ -40,7 +40,8 @@ internal static class CTechGapCheck
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false);
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, firstDays: false,
+			date: CStartSave.Date(args[2]));
 		ClausewitzNode save = ClausewitzParser.ParseFile(args[2]);
 
 		var kinds = new SortedDictionary<string, List<string>>(StringComparer.Ordinal);

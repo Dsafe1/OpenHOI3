@@ -43,6 +43,15 @@ Nothing resets it at peace, on a change of owner or when a war ends.
 3. **The history**: a country's history line `<policy> = <TAG>` sets its record towards that country, with no
    `allow` asked. Their Finest Hour's three (`GER total_exploitation = POL`, `BUL full_occupation = GRE`,
    `JAP total_exploitation = CHI`) are dated 1939 and after.
+4. **The province history's changes of hands**, which are captures as any other: a `controller` line is the controller
+   setter (`CControllerChange::Apply`) and an `owner` line the change of owner (`COwnerChange::Apply`, whose new owner takes
+   control first), both with no consequences - and the policy step is outside the consequences, so each takes the new
+   controller's policy towards the old (`confirmed`, read 2026-11-15, `reversing/findings/FINDINGS-laterstart.md`). The lobby
+   replays every province's history before every country's, so a country's own line (3) is laid over what its captures
+   took. An undated first owner and controller replace nobody and take nothing. **This is what a later start's policies
+   are made of** - the 1939.9.1 start save's `GER -> LIT` (Memel), `TUR -> FRA` (Hatay) and `MEN -> CHI` `civil_war`, the
+   1941.6.22 one's 39 and the 1941.12.11 one's 48, all of them the save's (*measured*); the 1936 one has none, no change
+   of controller being dated before it. Ours: the policies' `allow` blocks are read ahead of the rest of the script for it.
 
 **Nobody else sets one.** No AI chooses a policy, neither the executable nor the install's Lua, and no condition or
 effect names one. **So an AI keeps whatever its captures set.**
@@ -121,11 +130,16 @@ A province's **nationalism** is a count of years, in thousandths.
   thousandth of a year in twelve months. That is done in every month's pass, the one a new game runs before its first
   hour included, straight after the pass has made every province's modifier again - so a province's modifier carries
   the figure from before the decay until something next makes it again (`modifiers.md`, section 3).
-- **The history.** A province's `owner` line where the province already has an owner counts as a change of owner.
-  *Inferred* from the start save: Their Finest Hour has five provinces with two history files that each set an owner
-  (3948, 3949, 4592, 4647, 4905 - two files of one name in two folders, or two layers with two names), and those
-  five, and only those, hold nationalism 19.917 on 1 January 1936: twenty years, less the month the new game ran.
-  How the history applies an owner line was not read.
+- **The history.** A province's `owner` line is the change of owner itself (`COwnerChange::Apply` calls
+  `CMapProvince::ChangeOwner`, `confirmed`, read 2026-11-15), so it sets nationalism where the province already had an
+  owner, and takes control first (section 2). The start save bears it out: Their Finest Hour has five provinces with two
+  history files that each set an owner (3948, 3949, 4592, 4647, 4905 - two files of one name in two folders, or two layers
+  with two names), and those five, and only those, hold nationalism 19.917 on 1 January 1936: twenty years, less the
+  month the new game ran. **At a later start** every province whose owner a dated line changed before the date has it,
+  less the month the new game runs - all 560 of the 1939.9.1 start save's, 1,337 of the 1941.6.22 one's and 1,383 of the
+  1941.12.11 one's (*measured*). A province held by another and still owned by its country has none: the 1941 saves'
+  Norwegian and Greek provinces, whose countries are in exile (`war.md`, section 14) - until the history's exile was built,
+  Greece surrendered on the two days and was annexed, its provinces changing owner and taking twenty years.
 
 What it does is in the province's modifier (`modifiers.md`, section 3, step 11): the `nationalism` static modifier,
 times the years, where the province's owner holds it and has no core on it. Their Finest Hour's is
@@ -143,6 +157,9 @@ against N's whole part times 1000, strictly greater. On a country it reads no pr
 - **The capture's key**: from 1 February `ITA -> ETH` and `ETH -> ITA` both hold `collaboration_government`. The
   second is Ethiopia retaking a province Italy held - Ethiopia's record towards the old controller. From 1 April
   `CHI -> CGX` holds `civil_war`, which its `allow` names.
+- **The later bookmarks' start saves** (1939.9.1, 1941.6.22, 1941.12.11): every policy 9 of 9, 39 of 39 and 48 of 48 -
+  the history's captures and lines (section 2) - and nationalism 560 of 560, 1,337 of 1,337 and 1,383 of 1,383
+  (`OpenHOI3.SaveCheck firstdays`, 2026-11-15).
 
 ## What looks wrong and is built so
 
@@ -164,7 +181,6 @@ against N's whole part times 1000, strictly greater. On a country it reads no pr
 
 ## Not established
 
-- How the history applies an `owner` line - section 5 rests on the save.
 - That the row's policy name is rewritten every frame.
 - What the `allow` block's account says for a policy with none.
 - Whether a capture ever hands an owner's province to a third party in play.

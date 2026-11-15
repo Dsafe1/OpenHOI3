@@ -74,6 +74,22 @@ public class ThreatTests
 	}
 
 	[Fact]
+	public void A_controller_whose_modifier_is_not_made_yet_resists_none_of_the_walk()
+	{
+		CGameState state = AlignmentTests.State();
+		C(state, Pol).Modifier.Add(CThreat.ResistanceModifier, CFixedPoint.Parse("0.1"));
+
+		// Poland resists a tenth: 610 to 549, by democracy's 133.
+		CThreat.SpreadOverMap(state, C(state, Ger), 1000, CThreat.Adds, state.Province(1));
+		Assert.Equal(N("0.073"), Felt(state, Pol, Ger));
+
+		// As a new game is made, before Poland's turn, it resists nothing (diplomacy.md, section 5.3).
+		CGameState.Status(C(state, Pol), C(state, Ger)).Threat = CFixedPoint.Zero;
+		CThreat.SpreadOverMap(state, C(state, Ger), 1000, CThreat.Adds, state.Province(1), holder => holder.Tag != Pol);
+		Assert.Equal(N("0.081"), Felt(state, Pol, Ger));
+	}
+
+	[Fact]
 	public void The_most_threatening_country_is_the_first_one_may_fear_even_at_nought_and_then_the_most()
 	{
 		CGameState state = AlignmentTests.State();

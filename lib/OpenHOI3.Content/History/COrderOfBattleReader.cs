@@ -103,7 +103,7 @@ public static class COrderOfBattleReader
 		var reading = new CReading(state.SubUnitTypes, state.Technologies, state.Provinces.Count) { Leaders = state.Leaders };
 		reading.StartAfter(state.LastUnitId);
 		var made = new List<CUnit>();
-		foreach (ClausewitzNode entry in root.Children)
+		foreach (ClausewitzNode entry in Entries(root))
 		{
 			if (entry.Key is null)
 			{
@@ -185,7 +185,7 @@ public static class COrderOfBattleReader
 				continue;
 			}
 
-			foreach (ClausewitzNode entry in root.Children)
+			foreach (ClausewitzNode entry in Entries(root))
 			{
 				if (entry.Key is null)
 				{
@@ -238,6 +238,34 @@ public static class COrderOfBattleReader
 		Report(warn, reading.NotApplied, "keys of the country's own in orders of battle are not applied from there");
 		Report(warn, reading.UnknownLeaders, UnknownLeadersReport);
 		return reading.LastId;
+	}
+
+	/// <summary>
+	/// A block's entries as the original's reader takes them, where a key written without its <c>=</c> - <c>army {</c> - is
+	/// read as though it had one: the original reads a key and the next token, throws that token away where it is not
+	/// <c>=</c>, and a unit's loader then reads the block's contents up to its closing brace whatever the value was
+	/// (<c>reversing/findings/FINDINGS-effectgrammar.md</c>, section 1; <c>FINDINGS-oob.md</c>). Our parser makes the key a
+	/// bare word and the block one with no key, so the two are put back together here. Their Finest Hour's
+	/// <c>JAP_DayOfInfamy.txt</c> opens two theatres so and <c>SWE_DayOfInfamy.txt</c> its army, which the start save of the
+	/// Day of Infamy bookmark has (<c>docs/mechanics/units.md</c>, section 3).
+	/// </summary>
+	internal static IEnumerable<ClausewitzNode> Entries(ClausewitzNode block)
+	{
+		List<ClausewitzNode> children = block.Children;
+		for (int i = 0; i < children.Count; i++)
+		{
+			ClausewitzNode entry = children[i];
+			if (entry.Key is null && entry.Value is { Length: > 0 } word && !entry.IsQuoted && i + 1 < children.Count
+				&& children[i + 1] is { Key: null, IsBlock: true } unkeyed)
+			{
+				var keyed = new ClausewitzNode { Key = word };
+				keyed.Children.AddRange(unkeyed.Children);
+				yield return keyed;
+				i++;
+				continue;
+			}
+			yield return entry;
+		}
 	}
 
 	/// <summary>Ours: the original passes them over in silence.</summary>
@@ -436,7 +464,7 @@ public static class COrderOfBattleReader
 		public CUnit ReadUnit(ClausewitzNode block, EUnitKind kind, CCountry owner, CUnit? parent, CSubUnit? carriedBy)
 		{
 			var unit = new CUnit(kind, owner.Tag) { Parent = parent, CarriedBy = carriedBy };
-			foreach (ClausewitzNode entry in block.Children)
+			foreach (ClausewitzNode entry in Entries(block))
 			{
 				if (entry.Key is null)
 				{

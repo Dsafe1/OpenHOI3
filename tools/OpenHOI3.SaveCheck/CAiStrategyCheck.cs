@@ -43,7 +43,7 @@ internal static class CAiStrategyCheck
 		using var scripts = new OpenHOI3.Lua.CAiScripts(directories, warnings.Add);
 		var clock = System.Diagnostics.Stopwatch.StartNew();
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
-			played: new[] { new CCountryTag(save.GetString("player")) });
+			played: new[] { new CCountryTag(save.GetString("player")) }, date: CStartSave.Date(args[2]));
 		Console.WriteLine($"a new game made in {clock.ElapsedMilliseconds} ms; savegame {save.GetString("date")}, player {save.GetString("player")}");
 
 		var strategies = new Dictionary<string, ClausewitzNode>();

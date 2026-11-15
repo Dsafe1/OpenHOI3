@@ -27,7 +27,7 @@ whole of the map, the engine's logo and `version_label` - with `mainmenu_panel` 
 | `multi_player_button`, `tutorial_button`, `credits_button` | greyed: not built |
 | `gg_micro_button` "Buy Bonus Items" | greyed, its tooltip ours: no store is opened (*Ours*) |
 | the four link buttons | hidden (*Ours*) |
-| `toggle_quick_normal` | greyed, its tooltip ours: Quick Start is not offered (*Ours*) |
+| `toggle_quick_normal` | the Quick Start panel in the main menu's place, `simple` kept in step (`bookmarks.md`, section 4) |
 
 No button has a tooltip [exe]. A click on the map does nothing here; the map is under the backdrop and not seen (A.3).
 
@@ -54,15 +54,16 @@ name, and the maintainer's screenshot and file both say "Player").
 **The tabs**: `newgame_tab` shows `bookmarks`, `savedgame_tab` `save_games`; a pressed tab takes frame 2 and the other
 frame 1. `scenario_tab` and `cgm_tab` are hidden (*Ours*).
 
-**The start** (B.2): one row of `temp_frontend.gui`'s `bookmark_entry`, made from the bookmark of `common/bookmarks.txt`
-[mod] whose date is the defines' `start_date` [mod: defines.lua] - its `icon` the button's sprite, its localised `name` as
-`title`, the date as ` 0:00, 1 January, 1936` (B.2) as `date`, frame 2 while it is chosen. Choosing it: the world at the
-start date (a loaded save thrown away), and **a `shield` for each of the bookmark's `country` entries** [mod: lobby.gui]:
+**The bookmarks** (B.2; `bookmarks.md`, sections 1 and 2): a row of `temp_frontend.gui`'s `bookmark_entry` for each
+historical bookmark of `common/bookmarks.txt` [mod], in its order - its `icon` the button's sprite, its localised `name`
+as `title`, its date as ` 0:00, 1 January, 1936` (B.2) as `date`, frame 2 while it is chosen. The lobby opens with the
+first chosen. Choosing one: the world at its date held to the defines' range (a loaded save thrown away), and **a
+`shield` for each of the bookmark's `country` entries** [mod: lobby.gui]:
 each unturned shield's corner `shield_offset` from the last, the row centred on `shield_position` from the bottom middle,
 and each turned a quarter about its middle by its type's `rotation`, so that the flags stand upright and apart (the
 middle one's middle at x 960 and all at y 845, as on the maintainer's screenshot - *measured*); each with SHORTCUT_SHIELD
-and choosing its country, the map going to its capital. With no bookmark of that date the row is the start date alone,
-and no shields.
+and choosing its country, the map going to its capital. With no bookmark read the list is one row of the defines'
+start date alone, and no shields (*Ours*).
 
 **The saved games** (B.3): the player's `save games` folder and the install's, newest first, made afresh as the tab is
 pressed - as the save dialog lists them (`savegame.md`, section 11). A row is `savegameentry`: checkbox `save_game`,
@@ -199,10 +200,12 @@ says the lines.
 
 ## Ours
 
-- **The Quick Start panel is not offered**, whatever `settings.txt`'s `simple` says, and the main menu always comes
-  first: its four buttons start other dates than the one start (`CLAUDE.md`, *Settled decisions*;
-  `docs/compatibility.md`, entry 17).
-- **Only the start's bookmark is offered**, and the Scenarios and Custom Games tabs are greyed, each with a tooltip of ours saying why - one start (entry 17); so is the main menu's Quick Start.
+- ~~**The Quick Start panel is not offered**~~ - offered since 2026-11-15, `simple` picking the first panel
+  (`bookmarks.md`, section 4).
+- ~~**Only the start's bookmark is offered**~~ - every historical bookmark since 2026-11-15 (`bookmarks.md`); **the Scenarios
+  and Custom Games tabs are greyed**, each with a tooltip of ours saying why (`docs/compatibility.md`, entries 1 and 17).
+- **With no bookmark read, the list is one row of the defines' start date**, where the original's would offer nothing to
+  press.
 - **The GamersGate store's button, "Buy Bonus Items", is greyed** with a tooltip of ours saying no store is opened (the maintainer's word, 2026-11-06), **and the four links to the publisher's pages are hidden.**
 - **`version_label`** says `OpenHOI3` where the original writes its version name, then in brackets the four letters of its
   file checksum, the original's for the same files - `OpenHOI3 (GSKH)` for Their Finest Hour (`checksum.md`, since

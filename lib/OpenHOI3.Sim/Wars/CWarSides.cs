@@ -172,6 +172,73 @@ public static class CWarSides
 		}
 	}
 
+	/// <summary>
+	/// What the history's wars did as they were replayed, before a new game is entered: each country added to a side was
+	/// brought up to date there, with the game's clock at the defines' <c>start_date</c> - so every country at war on the
+	/// date is mobilised already, its <c>initial_mobilization</c> counted from the start date and gone by a later start, and
+	/// each joiner's record towards the countries then on the other side has <c>last_war</c> at the start date
+	/// (war.md, section 4; measured, the bookmarks' start saves). Every country on either side of such a meeting was
+	/// mobilised there and had its modifier made, as giving a timed modifier makes it - the other side's too, which the
+	/// saves' threat shows and their <c>last_war</c> does not (inferred) - and <see cref="CGameState.MobilisedByHistory"/>
+	/// keeps them for the new game's spreading of history threat (diplomacy.md, section 5.3).
+	/// </summary>
+	/// <param name="joins">Each country added to a side by the history, and each country then on the other side, in turn.</param>
+	public static void SetFromHistory(CGameState state, IEnumerable<(CCountryTag Joiner, CCountryTag Enemy)> joins)
+	{
+		long start = state.StartDate.DayNumber * (long)CGameState.HoursPerDay;
+		state.MobilisedByHistory.Clear();
+		foreach ((CCountryTag joiner, CCountryTag enemy) in joins)
+		{
+			if (state.Country(joiner) is { } country && state.Country(enemy) is { } other && country != other)
+			{
+				CGameState.Status(country, other).LastWar = start;
+				state.MobilisedByHistory.Add(joiner);
+				state.MobilisedByHistory.Add(enemy);
+			}
+		}
+		int days = (state.Defines.Has("country", "MOBILIZATION_BONUS_DAYS")
+			? (int)(state.Defines["country", "MOBILIZATION_BONUS_DAYS"].Raw / 1000) : 0)
+			- (state.Date.DayNumber - state.StartDate.DayNumber);
+		foreach (CCountry country in state.Countries)
+		{
+			if (!state.IsAtWar(country.Tag) || country.Mobilised)
+			{
+				continue;
+			}
+			if (days > 0 && state.FindStaticModifier(Mobilisation) is { } modifier)
+			{
+				country.EventModifiers.Add(CTimedModifier.Given(state, modifier, days));
+			}
+			country.Mobilised = true;
+		}
+	}
+
+	/// <summary>
+	/// The original's <c>RemoveLandlessCountriesFromWars</c>, as a new game's entry ends: every country owning no province
+	/// and not in exile taken off each war it is on - a side left empty leaves the war standing - and, in a real faction,
+	/// out of it, its modifier made again (war.md, section 4; measured, the 1941 bookmarks' start saves, whose Invasion of the
+	/// Baltic States has Germany alone).
+	/// </summary>
+	public static void RemoveLandless(CGameState state)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			if (country.InExile || CCountryLists.OwnedCount(state, country.Tag) > 0)
+			{
+				continue;
+			}
+			foreach (CWar war in state.Wars.ToArray())
+			{
+				Leave(state, war, country.Tag);
+			}
+			if (COfferRules.RealFaction(country))
+			{
+				CFactionMembership.Leave(state, country);
+				CCountryModifiers.RebuildOne(state, country);
+			}
+		}
+	}
+
 	/// <summary>The war the two are on opposite sides of, or none.</summary>
 	public static CWar? Between(CGameState state, CCountryTag one, CCountryTag other)
 	{

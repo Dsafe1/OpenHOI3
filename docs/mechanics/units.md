@@ -99,6 +99,13 @@ Where the history has several, the one in force on the start date is the one rea
 in the order `countries.txt` declares them, by a country that already has its laws, its
 technology levels and its modifiers and already knows whether it is at war. `confirmed`
 
+**Only a country that owns a province, or the rebels, has its file read** (`CCountry::LoadOobFile`;
+`reversing/findings/FINDINGS-bookmarks.md`, section 2.4). At a later start a country the history has left with no land
+keeps the file its history named and gets no unit, and gives no number to one: at 1939 Austria, Czechoslovakia and the
+Spanish Republic, whose files would have made 315 numbers more - with them left out the next unit number is the start
+save's at all three later bookmarks, 7201, 7875 and 8098 (**measured**, `Ireland1939_09_01_00.hoi3`,
+`Ireland1941_06_22_00.hoi3`, `Ireland1941_12_11_00.hoi3`).
+
 The history's `officers_ratio` is kept for section 7.
 
 ### The shape
@@ -135,6 +142,13 @@ Seven keywords declare a unit, and a unit may hold units: `theatre`, `armygroup`
 **Ours**: a key outside those lists is reported. The original does worse than drop it:
 its reader takes one word for the value, so an unknown key with a block is followed by the
 block's contents being read as keys of the unit around it.
+
+**A unit written without its `=` is read as though it had one** - `army {`: the reader takes the key and the token after
+it, throws that token away for not being `=`, and the unit's loader reads the block's contents to its closing brace
+whatever the value was (`reversing/findings/FINDINGS-effectgrammar.md`, section 1). Their Finest Hour's
+`SWE_DayOfInfamy.txt` opens its army so and `JAP_DayOfInfamy.txt` two theatres, 232 numbers between them, which the
+Day of Infamy's start save has (**measured**, `Ireland1941_12_11_00.hoi3`); our parser makes the word and the block two
+entries, and the reader puts them back together (`COrderOfBattleReader.Entries`).
 
 `military_construction` at the top of the file is a unit being built when the game starts:
 a line of its country's build queue. It takes `country`, `cost`, `progress`, `duration`,

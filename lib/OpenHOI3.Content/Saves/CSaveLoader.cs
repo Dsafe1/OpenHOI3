@@ -321,6 +321,9 @@ public static class CSaveLoader
 	{
 		province.Owner = Tag(node.Get("owner")?.Value);
 		province.Controller = Tag(node.Get("controller")?.Value);
+		// Its place in its controller's list: a save keeps no such order, so a loaded game's lists are in the order of the
+		// provinces' numbers, the same place for every province ('CProvince.ControlOrder'; ours, not read).
+		province.ControlOrder = 0;
 		// Its underground's country, and what an underground here does - build up strength where none is written, as the
 		// original leaves that one out (undergrounds.md, section 6).
 		province.UndergroundOwner = Tag(node.Get("underground_owner")?.Value);

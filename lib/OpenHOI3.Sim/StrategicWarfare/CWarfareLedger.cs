@@ -30,6 +30,27 @@ public sealed class CWarfareLedger
 		return Math.Max(1, state.EndDate.Year - start.Year + 1);
 	}
 
+	/// <summary>
+	/// The original's <c>GameStrategicWarfare_SetUpForNewGame</c>, as a new game's entry ends: the played country's records,
+	/// a record for each enemy it is at war with - none at peace (<c>docs/mechanics/strategicwarfare.md</c>).
+	/// </summary>
+	public void SetUpForNewGame(CGameState state)
+	{
+		Clear();
+		Player = state.Played.Count == 0 ? null : state.Played.First();
+		if (state.Country(Player) is not { } country)
+		{
+			return;
+		}
+		foreach (CCountry enemy in CCountryLists.Enemies(state, country))
+		{
+			if (Of(enemy.Tag) is null)
+			{
+				Add(state, enemy.Tag);
+			}
+		}
+	}
+
 	/// <summary>A new record for an enemy, placed by the country's order.</summary>
 	public CWarfareRecord Add(CGameState state, CCountryTag enemy)
 	{

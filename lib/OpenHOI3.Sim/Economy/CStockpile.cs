@@ -65,10 +65,51 @@ public static class CStockpile
 	}
 
 	/// <summary>
-	/// Fills every stockpile for the first day of a new game.
+	/// The pool of the province a country's government sits in, its acting capital's, whoever holds it - an exile's
+	/// included, where its stockpile is its own pool: what a new game starts a country with goes there, as the
+	/// original's set-up adds it to the acting capital's pool without asking about exile. Null for a country with no
+	/// capital.
 	/// </summary>
-	/// <param name="fromHistory">What each country's history file gives it on the start date, by tag.</param>
-	public static void FillAtStart(CGameState state, IReadOnlyDictionary<string, CGoodsPool>? fromHistory = null)
+	public static CGoodsPool? SeatPool(CGameState state, CCountry country)
+	{
+		Provinces.CProvince seat = state.Province(country.ActingCapital);
+		return seat.Id == 0 ? null : seat.Pool;
+	}
+
+	/// <summary>
+	/// What the history files give, as the world is made at its date: a line sets the good of the country's stockpile -
+	/// an exile's own pool - rather than adding to it, in the countries' order, so where two countries share a capital
+	/// the later's line stands (stockpile.md, section 2). It comes before <see cref="FillAtStart"/>, and decides who is
+	/// given money there.
+	/// </summary>
+	/// <param name="fromHistory">
+	/// What each country's history file sets of each good by the start date, by tag - the last line of a good.
+	/// </param>
+	public static void SetFromHistory(CGameState state, IReadOnlyDictionary<string, Dictionary<EGoods, CFixedPoint>> fromHistory)
+	{
+		foreach (CCountry country in state.Countries)
+		{
+			if (fromHistory.TryGetValue(country.Tag.Value, out Dictionary<EGoods, CFixedPoint>? given)
+				&& state.Stockpile(country) is { } pool)
+			{
+				foreach ((EGoods goods, CFixedPoint amount) in given)
+				{
+					pool[goods] = amount;
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Fills every stockpile for the first day of a new game: what the history gives, where given, then the resources
+	/// and money of so many days of base IC. A new game does the second once the effects of the decisions a country's
+	/// history has taken have run, as the original's set-up does - so France, whose decisions give it 35 money, is
+	/// given none for its IC (stockpile.md, section 2).
+	/// </summary>
+	/// <param name="fromHistory">
+	/// What each country's history file sets of each good by the start date, by tag - the last line of a good.
+	/// </param>
+	public static void FillAtStart(CGameState state, IReadOnlyDictionary<string, Dictionary<EGoods, CFixedPoint>>? fromHistory = null)
 	{
 		// It is the base that counts, which no law or minister changes.
 		CProvinceModifiers.Rebuild(state);
@@ -77,13 +118,7 @@ public static class CStockpile
 		// What the history files give comes first, because it decides who gets money.
 		if (fromHistory is not null)
 		{
-			foreach (CCountry country in state.Countries)
-			{
-				if (fromHistory.TryGetValue(country.Tag.Value, out CGoodsPool? given))
-				{
-					state.Stockpile(country)?.Add(given);
-				}
-			}
+			SetFromHistory(state, fromHistory);
 		}
 
 		long icToMoney = state.Defines[CResources.EconomySection, CResources.IcToMoney].Raw;
@@ -91,9 +126,10 @@ public static class CStockpile
 		// In the order the countries are declared, which matters where two share a capital.
 		foreach (CCountry country in state.Countries)
 		{
-			// The capital's pool, whoever holds the province: a country that does not exist
-			// yet is given its share all the same, in somebody else's province.
-			if (state.Stockpile(country) is not { } stockpile)
+			// The pool of the province its government sits in, whoever holds it - an exile's too, which is not its
+			// stockpile: a country that does not exist yet is given its share all the same, in somebody else's
+			// province, and an exile in its host's capital (stockpile.md, section 2).
+			if (SeatPool(state, country) is not { } stockpile)
 			{
 				continue;
 			}
@@ -134,7 +170,8 @@ public static class CStockpile
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (state.Stockpile(country) is not { } stockpile)
+			// Into the seat's pool, as the resources are (FillAtStart).
+			if (SeatPool(state, country) is not { } stockpile)
 			{
 				continue;
 			}

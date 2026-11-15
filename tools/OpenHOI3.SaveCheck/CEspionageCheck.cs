@@ -66,7 +66,7 @@ internal static class CEspionageCheck
 		string player = save.GetString("player");
 		using var scripts = new CAiScripts(directories, warnings.Add);
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
-			played: new[] { new CCountryTag(player) });
+			played: new[] { new CCountryTag(player) }, date: CStartSave.Date(args[2]));
 		Console.WriteLine($"start save: {save.GetString("date")}, player {player}; {state.CovertOperations.Count} covert operations read");
 
 		bool all = Compare(state, save, examples, everyone: true);

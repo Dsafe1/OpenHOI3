@@ -61,7 +61,7 @@ internal static class CPoliticsCheck
 		using var scripts = new CAiScripts(directories, warnings.Add);
 		bool saveLaws = args.Skip(3).Contains("laws=save");
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add,
-			fill: !saveLaws, firstDays: !saveLaws, aiScripts: scripts);
+			fill: !saveLaws, firstDays: !saveLaws, aiScripts: scripts, date: CStartSave.Date(args[2]));
 		ClausewitzNode save = ClausewitzParser.ParseFile(args[2]);
 		if (saveLaws)
 		{

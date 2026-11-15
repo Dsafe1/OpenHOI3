@@ -74,7 +74,12 @@ public static class CThreat
 	/// first in first out, the amount falling with every step, each controller charged once at the first
 	/// of its provinces the walk reaches (section 5.2).
 	/// </summary>
-	public static void SpreadOverMap(CGameState state, CCountry feared, long amount, long scale, CProvince origin)
+	/// <param name="resists">
+	/// As a new game is made, whether a controller's modifier has been made yet: one that has not resists nothing
+	/// (section 5.3). Every controller resists, otherwise.
+	/// </param>
+	public static void SpreadOverMap(CGameState state, CCountry feared, long amount, long scale, CProvince origin,
+		Func<CCountry, bool>? resists = null)
 	{
 		long whole = Whole(state, amount, feared);
 		long floor = whole * 50 / 1000;
@@ -99,7 +104,8 @@ public static class CThreat
 				long left = Math.Max(whole - FallPerStep * far, floor);
 				if (state.Country(next.Controller) is { } controller && !marked[controller.Index] && left > 0)
 				{
-					left = left * (1000 - controller.Modifier[ResistanceModifier].Raw) / 1000;
+					long resistance = resists is null || resists(controller) ? controller.Modifier[ResistanceModifier].Raw : 0;
+					left = left * (1000 - resistance) / 1000;
 					Add(controller, feared,
 						left * scale / 1000 * CAlignment.ThreatFactor(state, feared, CAlignment.GroupOf(state, controller)) / 1000);
 					marked[controller.Index] = true;
