@@ -103,11 +103,8 @@ public static class CRebelChoice
 		return freed;
 	}
 
-	/// <summary>The original's <c>GetOriginalCapital</c>: the history's capital, else the country's capital.</summary>
-	public static int OriginalCapital(CCountry country)
-	{
-		return country.OriginalCapital != 0 ? country.OriginalCapital : country.Capital;
-	}
+	/// <summary>The original's <c>GetOriginalCapital</c>: the first capital declared in play, else the country's capital.</summary>
+	public static int OriginalCapital(CCountry country) => country.OriginalCapitalOrDeclared;
 
 	private static bool Candidate(CGameState state, CCountry country, List<CCountry> listed)
 	{

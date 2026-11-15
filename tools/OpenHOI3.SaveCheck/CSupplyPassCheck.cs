@@ -196,11 +196,10 @@ internal static class CSupplyPassCheck
 				unit.FuelReceived = CFixedPoint.One;
 			}
 		}
-		// As a new game does it: the stockpile reckoned with only the leaders the files
-		// name, and the rest chosen after.
+		// As a new game does it, a country at a time: the stockpile reckoned with only the
+		// leaders the files name, and the rest chosen after.
 		CLeaders.SetAtStart(state);
-		CStockpile.AddUnitGoodsAtStart(state);
-		CLeaders.AssignAtStart(state);
+		CLeaders.AssignAtStart(state, country => CStockpile.AddUnitGoodsAtStart(state, country));
 
 		// The original runs a day, then fills the provinces, then runs another day. What
 		// the first day makes away from a capital is on its way there while the filling

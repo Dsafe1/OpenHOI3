@@ -250,9 +250,9 @@ public static class CTick
 		{
 			Weather.CWeatherPass.AtNewGame(state);
 		}
-		// Entering gives every province still without one a depot, before the days run, the history's controllers having
+		// Entering gives every province still without one a depot, before the days run, the history's changes of controller having
 		// counted theirs once already (supply.md, section 18).
-		Supply.COutOfSupplyDays.Enter(state, newGame: true);
+		Supply.COutOfSupplyDays.Enter(state);
 		RunDailyPass(state);
 		CSupplyStart.Fill(state);
 		RunDailyPass(state);
@@ -289,8 +289,9 @@ public static class CTick
 		// What each country made at home is left as its last day left it - a new game's second day, or the save's: nothing
 		// the original's entering does writes it, the day's production being collected in a country's own day alone
 		// (resources.md, section 3; reversing/findings/FINDINGS-savegame.md, A.5). So is what the units asked for, nothing in
-		// entering writing it, and a new game's reinforcement and upgrade needs, its entry's run of the shares having come
-		// before its days; a loaded game's two needs are that run's (supply.md, section 11; upkeep.md, section 8).
+		// entering writing it, and a new game's production, reinforcement and upgrade needs, its entry's run of the shares
+		// having come before its days; a loaded game's three needs are that run's (supply.md, section 11; upkeep.md,
+		// section 8; buildqueue.md, section 4).
 		if (state.LoadedFromSave)
 		{
 			CProduction.RunNeedsAtLoad(state);

@@ -255,6 +255,26 @@ public static class CPactPasses
 	}
 
 	/// <summary>
+	/// What its influences cost it a day: <c>INFLUENCE_UPKEEP</c> for each country it is influencing, counted as the
+	/// day's upkeep counts them - the original's <c>GetInfluenceUpkeep</c>, worked out whenever it is asked (an align
+	/// has none). The diplomacy slider's need over <c>LEADERSHIP_TO_DIPLOMACY</c>, and the upkeep its tooltip and the top
+	/// bar's write (<c>sliders.md</c>, section 2; <c>agreements.md</c>, section 6).
+	/// </summary>
+	public static CFixedPoint InfluenceUpkeep(CGameState state, CCountry country)
+	{
+		CFixedPoint upkeep = COfferRules.Define(state, "INFLUENCE_UPKEEP");
+		long count = 0;
+		foreach (CInfluence influence in state.Influences)
+		{
+			if (influence.Influencer == country.Tag && state.Country(influence.Influenced) is not null)
+			{
+				count++;
+			}
+		}
+		return new CFixedPoint(upkeep.Raw * count);
+	}
+
+	/// <summary>
 	/// Each influence the country runs costs it <c>INFLUENCE_UPKEEP</c> a day; one it cannot pay leaves
 	/// it at nought and ends the influence.
 	/// </summary>

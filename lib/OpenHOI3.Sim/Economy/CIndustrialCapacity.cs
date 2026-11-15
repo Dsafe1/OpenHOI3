@@ -109,7 +109,24 @@ public static class CIndustrialCapacity
 			country.MaxIc = (int)total;
 			// What lend-lease adds comes later in the day, after the resource cap (docs/mechanics/aid.md, section 3).
 			country.LendLeaseIc = 0;
+			// What a day of that IC would cost, before the cap and the lend-lease, as the original's IC fills it.
+			FillResourcesNeeded(country, (int)total);
 		}
+	}
+
+	/// <summary>
+	/// What a full day of so much IC would cost in resources, which the economy ledger shows as "Used by Industry": the
+	/// pool emptied, then the IC times 1.000 of metal, 2.000 of energy and 0.500 of rare materials, the last cut toward
+	/// nought. The IC is the total as worked out, before a shortage cuts it and lend-lease is added - the original
+	/// fills the pool between the two (<c>docs/mechanics/ic.md</c>, section 4).
+	/// </summary>
+	public static void FillResourcesNeeded(CCountry country, int ic)
+	{
+		country.ResourcesNeeded.Clear();
+		long thousandths = (long)ic * CFixedPoint.Scale;
+		country.ResourcesNeeded[EGoods.Metal] = new CFixedPoint(thousandths);
+		country.ResourcesNeeded[EGoods.Energy] = new CFixedPoint(ic * 2000L);
+		country.ResourcesNeeded[EGoods.RareMaterials] = new CFixedPoint(thousandths * CFixedPoint.Scale / 2000);
 	}
 
 }

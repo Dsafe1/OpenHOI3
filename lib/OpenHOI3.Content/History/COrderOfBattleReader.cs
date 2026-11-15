@@ -358,6 +358,9 @@ public static class COrderOfBattleReader
 
 		public int LastId { get; private set; }
 
+		/// <summary>The <c>leader</c> lines taken so far, which places each in the order of the reading (CUnit.LeaderLine).</summary>
+		private int _leaderLines;
+
 		/// <summary>What an unnamed ship or wing is called, for a new game; with it, every name read is registered as read.</summary>
 		public Func<CCountry, CSubUnitType, string>? NameSubUnit { get; init; }
 
@@ -561,6 +564,7 @@ public static class COrderOfBattleReader
 					if (Leaders is null || Leaders.ContainsKey(leader))
 					{
 						unit.LeaderId = leader;
+						unit.LeaderLine = ++_leaderLines;
 					}
 					else
 					{

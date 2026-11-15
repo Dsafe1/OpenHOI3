@@ -3,6 +3,7 @@ using System.Linq;
 using OpenHOI3.Interface.Ledger;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
 
 namespace OpenHOI3.Tests.Interface;
@@ -144,6 +145,26 @@ public class LedgerTests
 		CLedgerRow row = Assert.Single(page.Rows);
 		Assert.Equal("Germany", row.Cells[0].Text);
 		Assert.Equal("7.0", row.Cells[2].Text);
+	}
+
+	[Fact]
+	public void UsedByIndustryIsWhatADayOfTheCountrysIcWouldCostInResources()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(new CCountryTag("GER"))!;
+		CIndustrialCapacity.FillResourcesNeeded(germany, 201);
+		germany.Usage[EGoods.Metal] = CFixedPoint.FromInt(3);
+
+		CLedgerPage page = new CLedgerPages(state, germany, key => key).Build(CLedgerPages.Economy + 2);
+
+		CLedgerRow industry = page.Rows.Single(row => row.Cells[0].Text == "LEDGER_USED_INDUSTRY");
+		string Cell(CLedgerRow row, EGoods goods) => row.Cells[1 + (int)goods].Text;
+		Assert.Equal("201.0", Cell(industry, EGoods.Metal));
+		Assert.Equal("402.0", Cell(industry, EGoods.Energy));
+		Assert.Equal("100.5", Cell(industry, EGoods.RareMaterials));
+		Assert.Equal("0.0", Cell(industry, EGoods.Supplies));
+		// What left the stockpile is the row beside it, and not a share of this one.
+		Assert.Equal("3.0", Cell(page.Rows.Single(row => row.Cells[0].Text == "LEDGER_USED_TROOPS"), EGoods.Metal));
 	}
 
 	[Fact]

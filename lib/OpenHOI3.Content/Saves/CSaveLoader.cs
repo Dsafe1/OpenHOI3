@@ -231,7 +231,7 @@ public static class CSaveLoader
 		}
 		// Entering a loaded game gives every province a depot, none being saved, and counts its days out of supply once more
 		// (supply.md, section 18).
-		Sim.Supply.COutOfSupplyDays.Enter(state, newGame: false);
+		Sim.Supply.COutOfSupplyDays.Enter(state);
 		Sim.Wars.CSurrender.CountVictoryPoints(state);
 		// The original has run its AI passes by the time a loaded game stands paused at its hour: two of them, every agent
 		// made before the first (measured in the running game, reversing/findings/FINDINGS-liveread.md, section 12). Entering

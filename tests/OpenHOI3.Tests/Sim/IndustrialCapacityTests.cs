@@ -63,6 +63,29 @@ public class IndustrialCapacityTests
 	}
 
 	[Fact]
+	public void TheResourcesNeededAreADayOfTheTotalBeforeTheCapAndTheLendLease()
+	{
+		// The original's IC fills them between working out the total and cutting it to what the stockpile supports: one
+		// of metal, two of energy and a half of rare materials an IC, emptied first (ic.md, section 4).
+		CGameState state = State(Province(1, Ger, "5"), Province(2, Ger, "2"));
+		CCountry germany = state.Country(Ger)!;
+		germany.ResourcesNeeded[EGoods.Supplies] = CFixedPoint.FromInt(9);
+		germany.Modifier.Set("global_ic", CFixedPoint.Parse("0.5"));
+
+		CProvinceModifiers.Rebuild(state);
+		CIndustrialCapacity.Update(state);
+
+		Assert.Equal(10, germany.TotalIc);                           // 7 x 1.5, cut
+		Assert.Equal(CFixedPoint.FromInt(10), germany.ResourcesNeeded[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.FromInt(20), germany.ResourcesNeeded[EGoods.Energy]);
+		Assert.Equal(CFixedPoint.FromInt(5), germany.ResourcesNeeded[EGoods.RareMaterials]);
+		Assert.Equal(CFixedPoint.Zero, germany.ResourcesNeeded[EGoods.Supplies]);
+
+		CIndustrialCapacity.FillResourcesNeeded(germany, 7);
+		Assert.Equal(CFixedPoint.Parse("3.5"), germany.ResourcesNeeded[EGoods.RareMaterials]);
+	}
+
+	[Fact]
 	public void FractionsAddUpBeforeTheyAreDropped()
 	{
 		CGameState state = State(Province(1, Ger, "0.5"), Province(2, Ger, "0.5"), Province(3, Ger, "0.9"));

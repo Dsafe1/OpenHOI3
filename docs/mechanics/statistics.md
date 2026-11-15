@@ -29,7 +29,9 @@ The top bar's button toggles it, and it and a country screen shut each other. **
 | 22 | four pies of the player's units by land, air and sea: numbers, supplies, fuel, reinforcement |
 | 23, 24, 25 | the same by type, for land, air and sea |
 
-*Ours*: the original's page 12 and the rest of the politicians' columns are as read. Page 0's points off the map (`Offmap VP`), and of page 8 what is paid and owed in debts, what passes between puppets and overlord and what industry uses, are kept in no pool here and read nought; the `Order` column of the unit pages and a brigade's model on the figures pages are left empty, how the original writes them not having been read.
+Page 8's `LEDGER_USED_INDUSTRY` ("Used by Industry") is **what a day of the country's IC would cost in resources** - its IC before the shortage cap and lend-lease times 1 metal, 2 energy and 0.5 rare materials, a need and not a use (`ic.md`, section 4) - and `LEDGER_USED_TROOPS` ("Usage") beside it is everything that left the stockpile, industry's metal, energy and rare materials among it. `confirmed` (`reversing/findings/FINDINGS-supplypass.md`, section 11; `FINDINGS-uinumbers2.md`, section 2). Built 2026-11-15 and looked at with `--click` through the top bar's button: Germany's first screen at 1936 has 201.0, 402.0 and 100.5 there, beside a usage of 121.2, 242.4 and 60.6.
+
+*Ours*: the original's page 12 and the rest of the politicians' columns are as read. Page 0's points off the map (`Offmap VP`), and of page 8 what is paid and owed in debts and what passes between puppets and overlord, are kept in no pool here and read nought; the `Order` column of the unit pages and a brigade's model on the figures pages are left empty, how the original writes them not having been read.
 
 ## 3. Tables
 

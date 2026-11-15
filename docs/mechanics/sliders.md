@@ -76,18 +76,31 @@ shares that have one:
 | share | its need |
 | --- | --- |
 | consumer goods | the fraction of its IC at which the country's dissent stands still - what it demands, and what its dissent modifier adds - times its IC. `confirmed` |
-| production | what the things being built want: a full day of every line in the queue (`buildqueue.md`, section 4). `confirmed` |
-| reinforcement, upgrades | what reinforcing and upgrading currently cost. `confirmed` |
-| supplies | not read |
+| production | what the things being built want: a full day of every line in the queue, **as last counted** - at the end of the day's share, of entering's run with nothing to spend, and when a line is ordered or cancelled, and not when a change of law prices the lines again (`buildqueue.md`, section 4). `confirmed` |
+| reinforcement, upgrades | what reinforcing and upgrading cost, as their shares last counted it (`upkeep.md`, section 8). `confirmed` |
+| supplies | what the units asked for today, in IC (`upkeep.md`, section 8). `confirmed` |
 | research | **the number of projects on the queue.** `confirmed` |
-| diplomacy | the upkeep of the country's diplomatic influence. `confirmed` |
+| diplomacy | the leadership that pays the upkeep of the influences it runs: `INFLUENCE_UPKEEP` [mod: common/defines.lua] for each country it influences, times a thousand over `LEADERSHIP_TO_DIPLOMACY` [mod], cut toward nought - a thousandth below nought where that define is nought. [exe] `confirmed`, read 2026-11-15 |
+
+**When each is worked out.** Consumer goods, research and diplomacy are worked out each time the
+slider is drawn, from what the country holds then; production, reinforcement and upgrades are
+figures their shares keep, counted at the moments above; supplies is what the day has counted of
+the units' asks. So on any game's first screen the first three are the game as it stands, and the
+others are as `upkeep.md`, section 8, and `buildqueue.md`, section 4, have them. [exe] *Measured* on
+our first screen at 1936, nothing keeping them: production 13.984 for Germany and 13.573 for Britain,
+consumer goods 12.864 and 16.100, research and diplomacy nought for every country, none having a
+project or an influence before its first hour. In the Ireland game's saves of 1939 to 1941 loaded,
+Germany's and Britain's diplomacy needs are 2.000 - one influence each, at an upkeep of 1 over
+`LEADERSHIP_TO_DIPLOMACY` 0.5 - and their research needs 26 to 60 projects.
 | lend-lease | none: the line reads the text of `DISTRIBUTE`, and its button opens a window of its own. `confirmed` |
 | espionage, officers | none, and no line. `confirmed` |
 
 *Ours:* supplies, reinforcement and upgrades need what their units ask for
 (`upkeep.md`, section 8) - on a new game's first screen the second day's, and on a loaded game's
-nought for supplies until the first midnight, as the original's (2026-11-15); production needs nothing until there is a build queue, and
-diplomacy nothing until there is diplomacy.
+nought for supplies until the first midnight, as the original's (2026-11-15). Production's is the
+original's since 2026-11-15, the change of law no longer counting it, and diplomacy's too: it was
+nought, "nothing influencing anybody", long after influence was built, and so was the upkeep the
+diplomacy slider's tooltip and the top bar's write.
 
 `confirmed` **`limit`** is hidden unless the share gives a figure above nought to put it at
 (`ja`; "nought or more" here until 2026-11-12), and only lend-lease does. *Ours:* it stays hidden.

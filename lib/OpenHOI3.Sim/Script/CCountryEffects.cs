@@ -61,8 +61,8 @@ public static class CCountryEffects
 				{
 					// Both capitals at once, and no test of whose the province is.
 					int id = (int)CConditions.WholeOf(value);
-					// Both capitals, as the original's effect sets them.
-					country.Capital = id >= state.Provinces.Count ? 0 : id;
+					// Both capitals, as the original's effect sets them, the declared one logged in the country's own record.
+					country.DeclareCapital(id >= state.Provinces.Count ? 0 : id);
 					country.ActingCapital = country.Capital;
 				}
 				return true;

@@ -611,8 +611,17 @@ The **acting** capital is where the government sits, and so **whose pool is the 
 declared one until that province is held by somebody else; then, **at once** where it changes hands with
 consequences, and otherwise within the hour:
 
-- held by the country: the government goes back to **the history's first capital** where that differs and is
-  held again, otherwise stays;
+- held by the country: the government goes back to **the original capital** where that differs and is held again,
+  otherwise stays. The original capital (`GetOriginalCapital`) is the first `capital` entry of the country's own record
+  of its changes, else the declared capital - and that record holds only what was declared in play: a declared capital
+  moved for want of owning it and the `capital` effect write to it, the history's own entries being kept apart
+  (`HistoryDatabase_LoadFiles` makes a container of its own for each country) and no save writing it. So in a new game
+  and after a load the original capital is the declared one until the country first declares another. (`confirmed`,
+  `reversing/findings/FINDINGS-laterstart.md`) *Measured*: China at the 1939.9.1 bookmark, its capital moved by the
+  history from Nanjing to Chongqing and Nanjing back in its control as Japan's puppet on the first day, keeps its
+  government in Chongqing through the first hour, as the save has it - and so its stockpile, 771.250 crude oil, 837.034
+  metal and 3.200 money, the save's to the thousandth; going back to the history's first capital had left it Nanjing's
+  pool and nought of every resource;
 - lost, the country holding nothing: it sits in its faction leader's seat, where a real faction is led by another;
 - otherwise the best province the country owns and holds - victory points and IC, times the provinces of its supply
   area, three times on the seat's continent - the first of equals; failing any, the best it holds whoever owns it;
@@ -736,8 +745,8 @@ war. Ours: the lines are made once the world stands, each country's in turn, aft
     without a word; nobody is told it is one.
 26. An exile's units at sea always survive; a factionless exile is never swapped to a factionless holder; the
     puppet swap needs no truce; coming home restores nothing.
-27. The government goes back to the history's first capital, not the declared one; a country owning nothing keeps
-    its declared capital for good; occupation never moves it.
+27. The government goes back to the first capital declared in play, not the declared one where the two differ; a
+    country owning nothing keeps its declared capital for good; occupation never moves it.
 28. `create_vassal` and `inherit` refuse no country on both sides.
 
 ## 15. A war nobody declared

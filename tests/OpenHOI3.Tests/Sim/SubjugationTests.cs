@@ -142,6 +142,47 @@ public class SubjugationTests
 	}
 
 	[Fact]
+	public void With_no_capital_declared_in_play_a_government_holding_its_seat_stays_whatever_the_history_had_first()
+	{
+		// China at the 1939 bookmark: the history moved its capital from Nanjing to Chongqing, and Nanjing comes back to its
+		// control as Japan's puppet. The original capital is the declared one, so the government stays in Chongqing.
+		CGameState state = WarTests.World();
+		CCountry poland = C(state, Pol);
+		state.Province(3).Owner = Pol;
+		state.Province(3).Controller = Pol;
+		poland.Capital = 3;
+		poland.ActingCapital = 3;
+		Assert.Equal(0, poland.OriginalCapital);
+
+		CActingCapital.RunHourly(state);
+		Assert.Equal(3, poland.ActingCapital);
+		Assert.Same(state.Province(3).Pool, state.Stockpile(poland));
+	}
+
+	[Fact]
+	public void The_first_capital_declared_in_play_is_the_original_capital()
+	{
+		CGameState state = WarTests.World();
+		CCountry poland = C(state, Pol);
+		state.Province(3).Owner = Pol;
+		state.Province(3).Controller = Pol;
+		state.Province(3).Cores.Add(Pol);
+
+		// Warsaw lost for good: the next day's head declares Rome, and that is logged as the original capital; the seat
+		// is not moved.
+		state.Province(2).Owner = Ger;
+		CActingCapital.EnsureCapitals(state);
+		Assert.Equal(3, poland.Capital);
+		Assert.Equal(3, poland.OriginalCapital);
+		Assert.Equal(2, poland.ActingCapital);
+
+		// A later declaration leaves the first in place.
+		poland.DeclareCapital(2);
+		Assert.Equal(2, poland.Capital);
+		Assert.Equal(3, poland.OriginalCapitalOrDeclared);
+	}
+
+	[Fact]
 	public void A_puppet_is_allied_joins_its_overlords_faction_at_the_back_and_its_leaders_wars()
 	{
 		CGameState state = WarTests.World();

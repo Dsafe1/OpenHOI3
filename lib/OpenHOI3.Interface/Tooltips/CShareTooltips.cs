@@ -96,10 +96,9 @@ public static class CShareTooltips
 				return sources.Length > 2 ? text + "\n" + sources : text;
 			}
 			case ELeadershipCategory.Diplomacy:
-				// Nothing here influences anybody, so nothing is spent on it.
 				return CTextTemplate.Fill(localise("DCG_DIPLOMACY"),
 					("VAL", Rounded(leadership * Define(state, CLeadership.LeadershipToDiplomacy), 2)),
-					("UPKEEP", Rounded(CFixed15.Zero, 2)));
+					("UPKEEP", Rounded(CFixed15.FromThousandths(Sim.Agreements.CPactPasses.InfluenceUpkeep(state, country)), 2)));
 			case ELeadershipCategory.Espionage:
 				return CTextTemplate.Fill(localise("DCG_ESPIONAGE"),
 					("VAL", Rounded(leadership * Define(state, CLeadership.LeadershipToSpies), 2)));

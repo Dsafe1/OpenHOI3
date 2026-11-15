@@ -6,6 +6,7 @@ using OpenHOI3.Sim;
 using OpenHOI3.Sim.Agreements;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Theatres;
 using OpenHOI3.Sim.Units;
@@ -46,6 +47,29 @@ public class SmallBatchTests
 		Assert.Equal("@FRA France", Assert.Single(rows).Name);
 		Assert.Equal("--", rows[0].Influence);
 		Assert.Single(CDiplomacyPanelLists.Drift(key => key, state, state.Country(Fra)!));
+	}
+
+	[Fact]
+	public void TheDiplomacySlidersNeedIsTheUpkeepOfItsInfluencesInLeadership()
+	{
+		// INFLUENCE_UPKEEP for each country influenced, over LEADERSHIP_TO_DIPLOMACY - the original's slider asks it each
+		// time it is drawn (sliders.md, section 2); its tooltip and the top bar's write the upkeep itself.
+		CGameState state = World();
+		state.Defines.Set(COfferRules.Section, "INFLUENCE_UPKEEP", CFixedPoint.One);
+		state.Defines.Set(CResources.EconomySection, CLeadership.LeadershipToDiplomacy, CFixedPoint.Parse("0.3"));
+		CCountry england = state.Country(Eng)!;
+		Assert.Equal(CFixedPoint.Zero, CLeadership.Needed(state, england, ELeadershipCategory.Diplomacy));
+
+		state.Influences.Add(new CInfluence(Eng, Fra, "", 0));
+		state.Influences.Add(new CInfluence(Eng, Ger, "", 0));
+		state.Influences.Add(new CInfluence(Fra, Ger, "", 0));
+
+		Assert.Equal(CFixedPoint.FromInt(2), CPactPasses.InfluenceUpkeep(state, england));
+		Assert.Equal(CFixedPoint.Parse("6.666"), CLeadership.Needed(state, england, ELeadershipCategory.Diplomacy));
+		Assert.EndsWith("|2.00", CShareTooltips.Leadership(key => "$VAL$|$UPKEEP$", state, england,
+			ELeadershipCategory.Diplomacy, CFixed15.Zero));
+		england.ResearchQueue.Add("a");
+		Assert.Equal(CFixedPoint.One, CLeadership.Needed(state, england, ELeadershipCategory.Research));
 	}
 
 	[Fact]

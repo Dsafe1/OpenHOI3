@@ -274,7 +274,9 @@ public sealed class CLedgerPages
 		{
 			("LEDGER_HOME_PRODUCED", _player.HomeProduced), ("LEDGER_CONVOYED_IN", _player.ConvoyedIn), ("LEDGER_CONVOYED_OUT", _player.ConvoyedOut),
 			("LEDGER_REPAID_DEBT", null), ("LEDGER_INCOMING_DEBT", null), ("LEDGER_CONVERTED_TO", _player.ConversionMade), ("LEDGER_CONVERTED_FROM", _player.ConversionUsed),
-			("LEDGER_PUPPET_FROM", null), ("LEDGER_PUPPET_TO", null), ("LEDGER_USED_INDUSTRY", null), ("LEDGER_USED_TROOPS", _player.Usage),
+			// Used by Industry is what a day of the country's IC would cost in resources, a need and not a use, beside what
+			// left the stockpile (ic.md, section 4).
+			("LEDGER_PUPPET_FROM", null), ("LEDGER_PUPPET_TO", null), ("LEDGER_USED_INDUSTRY", _player.ResourcesNeeded), ("LEDGER_USED_TROOPS", _player.Usage),
 			("Into Network", _player.SentTo), ("LEDGER_STOCKPILE", _player.SentBack), ("LEDGER_FROM_EXILES", _player.ReceivedFromExiles),
 			("LEDGER_TRADED_FOR", _player.TradedFor), ("LEDGER_TRADED_AWAY", _player.TradedAway),
 		};

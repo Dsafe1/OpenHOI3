@@ -287,8 +287,7 @@ public static class CTopBarTooltips
 	{
 		var produced = new CFixedPoint(Made(state, country, ELeadershipCategory.Diplomacy, CLeadership.LeadershipToDiplomacy));
 
-		// Nothing here influences anybody, so nothing is spent on it.
-		CFixedPoint upkeep = CFixedPoint.Zero;
+		CFixedPoint upkeep = Sim.Agreements.CPactPasses.InfluenceUpkeep(state, country);
 		CFixedPoint daily = produced - upkeep;
 		string colour = daily.Raw < 0 ? Red : daily.Raw == 0 ? CColouredText.In(CColouredText.Yellow) : GreenPlus;
 		return CTextTemplate.Fill(localise("DIPDETAILS_IRO"),

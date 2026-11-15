@@ -385,6 +385,34 @@ public class UnitTests
 	}
 
 	[Fact]
+	public void ABrigadeOfAUnitTheFileSaysWasLentTakesItsLendersDoctrines()
+	{
+		// Germany's corps lent by Romania at 1941.12.11: the start save's headquarters has Romania's mobile_warfare of
+		// nought, not Germany's five (expeditions.md, section 4).
+		CSubUnitType type = Infantry();
+		CTechnology doctrine = Technology("mobile_warfare", type, change: false);
+		CCountry germany = Country();
+		germany.TechnologyLevels["mobile_warfare"] = 5;
+		var romania = new CCountry { Tag = new CCountryTag("ROM"), Name = "Romania", DefinitionFile = "" };
+		romania.TechnologyLevels["mobile_warfare"] = 1;
+		var defines = new CDefines();
+		defines.Set(CHistoricalModels.MilitarySection, CHistoricalModels.MaxDefine, CFixedPoint.FromInt(10));
+		var state = new CGameState(new CDate(1941, 12, 11), new[] { new CProvince(0, "", isSea: false) },
+			new[] { germany, romania }, technologies: new[] { doctrine }, defines: defines);
+		var lent = new CUnit(EUnitKind.Corps, Ger) { Lender = romania.Tag };
+		var own = new CUnit(EUnitKind.Corps, Ger);
+		germany.Units.Add(lent);
+		germany.Units.Add(own);
+		CSubUnit lentBrigade = Brigade(type, lent);
+		CSubUnit ownBrigade = Brigade(type, own);
+
+		CUnits.SetAtStart(state);
+
+		Assert.Equal(1, lentBrigade.TechnologyLevels["mobile_warfare"]);
+		Assert.Equal(5, ownBrigade.TechnologyLevels["mobile_warfare"]);
+	}
+
+	[Fact]
 	public void AStrengthTheLineGaveIsKeptWhereItIsLess()
 	{
 		CSubUnitType type = Infantry();

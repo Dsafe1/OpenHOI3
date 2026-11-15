@@ -61,8 +61,9 @@ public static class CActingCapital
 					bestScore = score;
 				}
 			}
+			// Logged in the country's own record, so the first capital so declared is its original capital.
 			int seat = country.ActingCapital;
-			country.Capital = best;
+			country.DeclareCapital(best);
 			country.ActingCapital = seat;
 		}
 	}
@@ -79,10 +80,13 @@ public static class CActingCapital
 		CProvince seat = state.Province(country.ActingCapital);
 		if (seat.Controller == country.Tag)
 		{
-			if (country.OriginalCapital != country.ActingCapital && country.OriginalCapital != 0
-				&& state.Province(country.OriginalCapital).Controller == country.Tag)
+			// The original capital is the first declared in play, else the declared one - never the history's first, which
+			// the original keeps apart: so China, back in Nanjing's control as Japan's puppet on the 1939 bookmark's first
+			// day, keeps its government in Chongqing (war.md, section 14).
+			int original = country.OriginalCapitalOrDeclared;
+			if (original != country.ActingCapital && original != 0 && state.Province(original).Controller == country.Tag)
 			{
-				country.ActingCapital = country.OriginalCapital;
+				country.ActingCapital = original;
 			}
 			return;
 		}

@@ -174,6 +174,29 @@ public class BuildingLineTests
 	}
 
 	[Fact]
+	public void Entering_a_loaded_game_takes_a_line_in_lost_land_out_and_counts_the_queue_without_moving_the_rest()
+	{
+		// The original's entry runs the production share with nothing to spend: the lines that may no longer be built go,
+		// nothing is paid, and the need is counted (buildqueue.md, section 4).
+		CGameState state = World();
+		CCountry germany = state.Country(RebelWorld.Ger)!;
+		var lost = new CConstruction(germany.Tag) { Building = AirBase, Size = 1, Location = 4 };
+		var kept = new CConstruction(germany.Tag) { Building = AirBase, Size = 1, Location = 2 };
+		CBuildingLines.Price(germany, lost);
+		CBuildingLines.Price(germany, kept);
+		germany.Constructions.Add(lost);
+		germany.Constructions.Add(kept);
+		state.Province(4).Controller = RebelWorld.Pol;
+
+		CBuildQueue.RunAtEntry(state, germany);
+
+		Assert.Equal(new[] { kept }, germany.Constructions);
+		Assert.Equal(CFixedPoint.Zero, kept.Progress);
+		Assert.Equal(CFixed15.FromThousandths(kept.Cost).ToThousandths(), germany.ProductionCost);
+		Assert.True(germany.ProductionCost > CFixedPoint.Zero);
+	}
+
+	[Fact]
 	public void A_building_is_available_by_the_technology_that_names_it()
 	{
 		CGameState state = World();

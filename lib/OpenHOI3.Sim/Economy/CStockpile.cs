@@ -170,16 +170,25 @@ public static class CStockpile
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			// Into the seat's pool, as the resources are (FillAtStart).
-			if (SeatPool(state, country) is not { } stockpile)
-			{
-				continue;
-			}
-			int days = DaysAtStart(state, country);
-			(CFixedPoint supplies, CFixedPoint fuel) = CUnitSupply.DailyUse(state, country);
-			stockpile[EGoods.Supplies] += supplies * days;
-			stockpile[EGoods.Fuel] += fuel * days;
+			AddUnitGoodsAtStart(state, country);
 		}
+	}
+
+	/// <summary>
+	/// One country's days of what its units use, as the original adds them in that country's turn of the making, just
+	/// before its leaders are chosen (<see cref="Leaders.CLeaders.AssignAtStart"/>).
+	/// </summary>
+	public static void AddUnitGoodsAtStart(CGameState state, CCountry country)
+	{
+		// Into the seat's pool, as the resources are (FillAtStart).
+		if (SeatPool(state, country) is not { } stockpile)
+		{
+			return;
+		}
+		int days = DaysAtStart(state, country);
+		(CFixedPoint supplies, CFixedPoint fuel) = CUnitSupply.DailyUse(state, country);
+		stockpile[EGoods.Supplies] += supplies * days;
+		stockpile[EGoods.Fuel] += fuel * days;
 	}
 
 	/// <summary>

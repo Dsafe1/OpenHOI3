@@ -183,13 +183,11 @@ public static class CCountryHistory
 				{
 					if (int.TryParse(entry.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int capital))
 					{
+						// Both capitals, as the original's history entry sets them, and no original capital: the history's
+						// entries are kept apart from the country's own record of its changes, which a new game starts
+						// with nothing in (war.md, section 14).
 						country.Capital = capital;
 						country.ActingCapital = capital;
-						if (country.OriginalCapital == 0)
-						{
-							// The history's first capital is where a government goes back to (war.md, section 14).
-							country.OriginalCapital = capital;
-						}
 					}
 				}
 				else if (entry.Key.Equals("national_unity", StringComparison.OrdinalIgnoreCase))

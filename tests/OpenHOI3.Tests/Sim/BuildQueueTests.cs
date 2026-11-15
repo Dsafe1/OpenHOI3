@@ -863,6 +863,7 @@ public class BuildQueueTests
 		CConstruction construction = GrafSpee(country, HeavyCruiser());
 		CBuildQueue.Recalculate(country, construction);
 		construction.Progress = CFixedPoint.FromInt(307);
+		CBuildQueue.UpdateCost(country);
 
 		country.Modifier.Set(CBuildCosts.RecruitmentTime, CFixedPoint.Parse("0.2"));
 		CBuildQueue.RecalculateAll(country);
@@ -870,5 +871,41 @@ public class BuildQueueTests
 		Assert.Equal(CFixedPoint.FromInt(369), construction.Duration);      // 280 x 1.32
 		Assert.Equal(CFixedPoint.FromInt(307), construction.Progress);
 		Assert.Equal(CFixedPoint.Parse("6.719"), country.ProductionCost);      // through the shares' kind of number
+	}
+
+	[Fact]
+	public void AChangeOfLawLeavesTheProductionNeedAsLastCountedUntilTheShareCountsItAgain()
+	{
+		// The original's change of law prices every line again and counts nothing: the need is counted at the end of the
+		// day's share, of entering's run with nothing to spend, and when a line is ordered or cancelled (buildqueue.md,
+		// section 4).
+		CCountry country = Germany();
+		CConstruction construction = GrafSpee(country, HeavyCruiser());
+		CBuildQueue.Recalculate(country, construction);
+		CBuildQueue.UpdateCost(country);
+		CFixedPoint before = country.ProductionCost;
+
+		country.Modifier.Set(CBuildCosts.IndustrialEfficiency, CFixedPoint.Parse("-0.5"));
+		CBuildQueue.RecalculateAll(country);
+
+		Assert.NotEqual(before, CFixed15.FromThousandths(construction.Cost).ToThousandths());
+		Assert.Equal(before, country.ProductionCost);
+		CBuildQueue.UpdateCost(country);
+		Assert.Equal(CFixed15.FromThousandths(construction.Cost).ToThousandths(), country.ProductionCost);
+	}
+
+	[Fact]
+	public void EnteringALoadedGameCountsTheQueueAgain()
+	{
+		CCountry country = Germany();
+		CConstruction construction = GrafSpee(country, HeavyCruiser());
+		CGameState state = State(country, HeavyCruiser());
+		CBuildQueue.Recalculate(country, construction);
+		Assert.Equal(CFixedPoint.Zero, country.ProductionCost);
+
+		CBuildQueue.RunAtEntry(state, country);
+
+		Assert.Equal(CFixedPoint.Parse("6.719"), country.ProductionCost);
+		Assert.Single(country.Constructions);
 	}
 }

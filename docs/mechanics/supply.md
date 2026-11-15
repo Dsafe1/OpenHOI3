@@ -315,7 +315,16 @@ arrives (section 12). On arriving in a province, a load loses
                 x (1 - suppression, held between 0 and 1)           only where its holder is
                                                                     at war with its owner
 
-*Ours:* suppression is not built and counts as none, so the partisans take their whole share.
+~~*Ours:* suppression is not built and counts as none, so the partisans take their whole share.~~ **The suppression is
+built since 2026-11-15** (`confirmed`, `SupplyLoss` read on the listing): the province's own figure, the suppression in
+and around it its last day made (`revolt.md`, section 2) - so a new game's first day and a loaded game's first day read
+nought - held between 0 and 1. Each product is truncated in turn: the partisans' share is
+`PARTISAN_EFFECT_ON_SUPPLY_TAX x local_partisan_support`, then times `1 - suppression`, then added to the multiplier.
+*Measured*, with no save to set the loss beside - none keeps it: the first screen's supply need (section 11 and
+`FINDINGS-laterstart.md` section 18) is Germany's 12.288 at 1936 as before, 59.371 at 1941.6.22 where it was 64.716,
+and 77.882 at 1941.12.11 where it was 129.496, its divisions deep in the Soviet Union standing on ground its garrisons
+suppress; with it every brigade's strength of the 1941.12.11 start save is ours, 5513 of 5513 where 5505 were, and
+Germany's fuel used there the save's to the thousandth.
 ~~There is no weather yet, so the mud is nothing.~~ The mud is the province's own since 2026-10-15 (`weather.md`).
 
 ## 9. Checked against savegames
@@ -775,11 +784,19 @@ one. A province nobody owns draws on none, so the sea counts every day from the 
 - **once a day on the one province farthest from its depot, where that is over 500** - not built: one province, and
   the distance it hangs on is the original's own.
 
-**A new game's history counts each province it gives a controller once already**, as it sets the controller: so as a
-game is made, land with a controller is counted twice and the sea once, before the two days - which gives the start
+**A new game's history counts one day for every change of controller it makes**, as the controller setter gives the
+province a depot and none is there yet - the first controller it is given included, a line naming the controller it
+has already not counting, and every pass of the replay alike (the loader's `TakeControl`): so as a game is made, land
+the history gave one controller is counted twice and the sea once, before the two days - which gives the 1936 start
 save's every figure, **3,547 provinces at 3 and 853 at 4** (`OpenHOI3.SaveCheck write ... new ...`, 2026-11-14;
 *measured*, the history's call itself not read). The seven days to `Germany1936_01_07_22` make them 9 and 10, as that
-save has them.
+save has them. **A later start shows it is a count of changes**: land out of supply stands at three and one for each
+change the history made by the date - Norway's Karesuando, Norway's and then Germany's on 1941.6.22, at 5; Kovdor,
+Finland's, the Soviet Union's and Finland's again by 1941.12.11, at 6; Gallabat, Britain's, Italy's, Britain's and
+Italy's by 1941.6.22, at 7 - and a province named in two files counts the changes of both. The count is the save's in
+every province of the three later start saves but two at 1941.12.11, whose controller the original changes as the game
+is made and ours does not (Cyp and Wadi al Hamim, the save's Finland's and Britain's; not followed). It differed in 6
+provinces at 1939, 139 at 1941.6.22 and 152 at 1941.12.11 (2026-11-15).
 
 **`on_encirclement`** [exe] fires in the province's day where the count is exactly 1 and the province's area has no
 working port: one draw of the game's generator seeds a scope of the province and no country, so its owner answers,
@@ -799,7 +816,7 @@ weather and the last convoy attack (`savegame.md`).
 - **A unit on loan**, **arcade mode**, and **units carried by aircraft** (sections 13 and 14).
   Units carried by ships are built since 2026-10-15 (`transport.md`).
 - **Leaders**, which change what a unit uses.
-- **Suppression** and **the faction leader's capital** (sections 8 and 4).
+- ~~**Suppression**~~ (built 2026-11-15, section 8) and **the faction leader's capital** (section 4).
 - **A puppet made or freed during a game**, and an alliance likewise.
 
 ## Not established

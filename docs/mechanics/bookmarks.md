@@ -194,11 +194,22 @@ records of its enemies (`strategicwarfare.md`); rebel-held provinces begin their
   cores come back on its first day, where ours makes them whole (`theatres.md`, section 12).
 - **What a written game shows that the checks above do not** (`OpenHOI3.SaveCheck write <install> new <start save>`, set
   beside the 1936 start's own differences, 2026-11-15): a NAP's history end date is written since (the German-Soviet
-  pact's 1941.6.22 at 1939) and the finished wars stand in the save's order (`war.md`, section 1); still differing - the
-  two active wars of 1941.12.11 above, `out_of_supply_days` of 4 where the save has 5 in some 140 provinces at 1941 (6 at
-  1939, none at 1936), leaders on some Soviet and German divisions the save leaves unled at 1941, eight Japanese cruisers
-  of another class at 1939, a province `history` block the save writes for 144 provinces at 1939 and 8 at 1941.12.11, and
-  keys inside 18 to 32 country blocks in another order.
+  pact's 1941.6.22 at 1939) and the finished wars stand in the save's order (`war.md`, section 1). **Since 2026-11-16**
+  `out_of_supply_days` is the save's in every province at all four dates but two at 1941.12.11 (Cyp and Wadi al Hamim,
+  whose controller differs), the history counting a day for each change of controller (`supply.md`, section 18); every
+  unit's leader is the save's but one fleet a later date, which the AI regroups before the first screen - order-of-battle
+  leaders put on in file order, a country at a time, and a lent unit made with its lender's brigades (`leaders.md`, section
+  5; `expeditions.md`, section 4); and the 1939 "Japanese cruisers" were no class at all - every ship has the save's type
+  and keys, the save keeping 19 of Japan's 28 fleets under a theatre, the placement the 1936 start's `theatre/navy`
+  difference shows. Still differing: the two active wars of 1941.12.11 above, a province `history` block the save writes
+  for 144 provinces at 1939 and 8 at 1941.12.11, and keys inside 18 to 32 country blocks in another order.
+- **China keeps its government in Chongqing at 1939.9.1**, and so its stockpile (837.034 metal, 415.163 rare materials, 3.200
+  money, the save's): the original capital a government goes back to is the first declared in play, else the declared one,
+  never the history's first (`war.md`, section 14). **The supply loss has its suppression term** (`supply.md`, section 8):
+  Germany's first-screen supply need 59.371 at 1941.6.22 and 77.882 at 1941.12.11, and every brigade's strength of the
+  1941.12.11 start save the save's. **The production need is the second day's**, a change of law repricing the queue without
+  counting it (Germany 13.984 at 1936, `buildqueue.md` section 4); the diplomacy slider's need is influence's upkeep; and the
+  ledger's Used by Industry is a day's IC in resources before the cap (`sliders.md`, section 2).
 - **A guarantee a new puppet had**: China's of the Chinese Communists at 1939.9.1, which the original keeps as a dead
   object written in the save, and a game here deletes (`war.md`, *Ours*).
 - ~~**Each faction's members in another order**~~ - settled: those of the defines' start date first, the bookmark pass's

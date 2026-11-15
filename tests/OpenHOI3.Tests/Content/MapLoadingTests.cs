@@ -738,6 +738,30 @@ public class MapLoadingTests : IDisposable
 	}
 
 	[Fact]
+	public void EveryChangeOfControllerTheHistoryMakesCountsADayOutOfSupplyTheFirstIncluded()
+	{
+		WriteStartFiles();
+		// Norway's, Germany's from 1940 and again in 1941, which is no change; and given back in 1942.
+		Write("history/provinces/west/1 - Alpha.txt",
+			"owner = NOR\ncontroller = NOR\n1940.5.10 = { controller = GER }\n1941.6.22 = { controller = GER }\n" +
+			"1942.1.1 = { controller = NOR }");
+		// An owner with no controller of its own: the owner takes control as it is given the province.
+		Write("history/provinces/east/2 - Beta.txt", "owner = FRA\n1940.6.22 = { owner = VIC controller = VIC }");
+
+		// Each change counted as the setter makes it, no depot being given yet (supply.md, section 18; measured on the
+		// later start saves, where land out of supply stands at three and one for each change).
+		CGameState start = LoadStart();
+		Assert.Equal(1, start.Province(1).OutOfSupplyDays);
+		Assert.Equal(1, start.Province(2).OutOfSupplyDays);
+		CGameState later = LoadStart(new CDate(1941, 6, 22));
+		Assert.Equal(2, later.Province(1).OutOfSupplyDays);
+		Assert.Equal(2, later.Province(2).OutOfSupplyDays);
+		Assert.Equal(3, LoadStart(new CDate(1942, 1, 1)).Province(1).OutOfSupplyDays);
+		// No file, no controller and nothing counted.
+		Assert.Equal(0, later.Province(3).OutOfSupplyDays);
+	}
+
+	[Fact]
 	public void AHistorysGovernmentInExileIsAnExileOnceItsDateHasCome()
 	{
 		WriteStartFiles();

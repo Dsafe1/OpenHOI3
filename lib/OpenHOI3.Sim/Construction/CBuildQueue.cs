@@ -220,7 +220,10 @@ public static class CBuildQueue
 
 	/// <summary>
 	/// Every line of a country's queue priced again, as it is after a change of law. The
-	/// work done on each stays as it was.
+	/// work done on each stays as it was, and so does the production share's need: the
+	/// original's change of law counts nothing again, so the need is the queue at its old
+	/// prices until the day's share, or a line ordered or cancelled, counts it
+	/// (<c>docs/mechanics/buildqueue.md</c>, section 4; <see cref="UpdateCost"/>).
 	/// </summary>
 	public static void RecalculateAll(CCountry country)
 	{
@@ -228,6 +231,16 @@ public static class CBuildQueue
 		{
 			Recalculate(country, construction);
 		}
+	}
+
+	/// <summary>
+	/// What entering a loaded game does with a country's queue, the production share being run with nothing to spend:
+	/// each building line asked whether it may still be built and taken out where not, silently, as at the head of the
+	/// day's share, and the need counted again. Nothing is paid and nothing moves on (<c>buildqueue.md</c>, section 4).
+	/// </summary>
+	public static void RunAtEntry(CGameState state, CCountry country)
+	{
+		country.Constructions.RemoveAll(line => line.IsBuilding && !CBuildingLines.MayStillBeBuilt(state, country, line));
 		UpdateCost(country);
 	}
 
@@ -289,7 +302,12 @@ public static class CBuildQueue
 		}
 	}
 
-	/// <summary>The production share's need: a full day of every line.</summary>
+	/// <summary>
+	/// The production share's need: a full day of every line, at the price each has now. Counted only where the
+	/// original's production share counts it - at the end of each day's share and of entering's run with nothing to
+	/// spend, and when a line is ordered or cancelled - so a line priced again in between, by a change of law, leaves it
+	/// as last counted (<c>docs/mechanics/buildqueue.md</c>, section 4).
+	/// </summary>
 	public static void UpdateCost(CCountry country)
 	{
 		// Each line's cost is turned into the shares' kind of number before it is added.

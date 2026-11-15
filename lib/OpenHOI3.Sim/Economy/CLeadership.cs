@@ -161,6 +161,33 @@ public static class CLeadership
 		return country.LeadershipShares[(int)category] * CFixed15.FromThousandths(country.TotalLeadership);
 	}
 
+	/// <summary>
+	/// What a share of leadership wants, in leadership: what its slider shows as its need, worked out whenever it is
+	/// asked, so the first screen of any game shows it as the game then stands (<c>sliders.md</c>, section 2). Research
+	/// wants a point for each project on its queue; diplomacy the leadership whose influence pays the upkeep of its
+	/// influences - the upkeep times a thousand over <c>LEADERSHIP_TO_DIPLOMACY</c>, cut toward nought, and a thousandth
+	/// below nought where the define is nought. Officers and espionage have no need.
+	/// </summary>
+	public static CFixedPoint Needed(CGameState state, CCountry country, ELeadershipCategory category)
+	{
+		switch (category)
+		{
+			case ELeadershipCategory.Research:
+				return CFixedPoint.FromInt(country.ResearchQueue.Count);
+			case ELeadershipCategory.Diplomacy:
+			{
+				long rate = state.Defines[CResources.EconomySection, LeadershipToDiplomacy].Raw;
+				if (rate == 0)
+				{
+					return new CFixedPoint(-1);
+				}
+				return new CFixedPoint(Agreements.CPactPasses.InfluenceUpkeep(state, country).Raw * CFixedPoint.Scale / rate);
+			}
+			default:
+				return CFixedPoint.Zero;
+		}
+	}
+
 	/// <summary>The officers a day's officer share trains. The conscription law scales it.</summary>
 	public static CFixedPoint OfficersMade(CGameState state, CCountry country)
 	{

@@ -151,7 +151,34 @@ given (`production.md`, section 1) in the shares' kind of number. For each line 
   for the line after it.
 - **A line the stockpile cannot pay for is skipped that day, and a cheaper line after it
   can still be paid.**
-- **The share's need** - what its slider shows - is the sum of every line's cost.
+- **The share's need** - what its slider shows - is the sum of every line's cost, each
+  turned into the shares' kind of number before it is added.
+
+**When the need is counted** (`confirmed`, read 2026-11-15; `reversing/findings/FINDINGS-production.md`;
+`FINDINGS-laterstart.md`, section 18). The share keeps the figure and counts it again in exactly these
+places: at the end of each day's share, after anything finished has had the queue priced again; when a
+line is ordered - a unit, a single unit, a building, a convoy, a brigade's change of type - or cancelled;
+and at the end of entering's run of the shares with nothing to spend (`upkeep.md`, section 8). [exe]
+**Nothing else counts it.** So a line priced again without one of those - by a change of law (section 2)
+- leaves the need at the queue's old prices until the next midnight or the next order, and a queue
+emptied by annexation or exile leaves the need as it was. Entering's run, for every country and for a
+new game and a loaded one alike, takes out the building lines that may no longer be built, as the head of
+a day's share does, and counts the queue; nothing is paid and nothing moves on, a line with nothing to
+spend being passed over before it could be paid or finish. [exe]
+
+So **a new game's first screen shows the second day's need**, the entry's own count having come before
+the days - or a later order's - at the second day's prices, and the changes of law the install's Lua
+made as the game was set up, run after the days (`politics.md`, section 12), price the lines again
+without counting them. *Measured* (`firstdays country=`, no save keeping the need): at 1936 Germany's
+need is 13.984 and Britain's 13.573 on the first screen, where the queue at the prices the start save
+writes - every line's price the save's, 30 of 30 - is 16.159 and 15.523; until 2026-11-15 the change
+of law counted it, and the first screen showed those. At the three later starts every country's need
+is its queue at the save's prices, no change of law there moving a price (55, 61 and 45 lines of 55,
+61 and 45 priced as the save). **A loaded game's** need is its queue as the save prices it, less any
+building line its entry takes out: the Ireland game's saves of 6 September 1939, 23 May 1940 and 16 July
+1941 give Germany 203.881, 228.526 and 272.038, and Britain 175.828, 207.889 and 243.138, no line taken
+out (`load ... needs=GER,ENG,IRE`). That a change of law leaves the need stale is the original's and
+kept (`docs/enhanced.md`).
 
 **Being paid** `amount` of a day, in thousandths:
 

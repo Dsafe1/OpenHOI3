@@ -398,6 +398,10 @@ not explained: see the end.
 | reinforcement | section 4 |
 | upgrades | section 5 |
 
+Production's need is counted the same way - at the end of its share's every run, entering's with
+nothing to spend among them, and when a line is ordered or cancelled - and is in `buildqueue.md`,
+section 4; on a new game's first screen it is the second day's too, and on a loaded game's entering's.
+
 `confirmed`. "The units" are the ones drawing on the country's ground, whoever they belong
 to (`supply.md`, section 13). The original adds the supplies traded away and takes off those
 traded for and tribute; here the only trade is what a country pays a friend for its units on

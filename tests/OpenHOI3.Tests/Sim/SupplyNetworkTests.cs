@@ -545,6 +545,40 @@ public class SupplyNetworkTests
 		Assert.Equal(CFixedPoint.Parse("0.105"), CSupplyFigures.Loss(state, state.Province(taken)));
 	}
 
+	[Fact]
+	public void Suppression_takes_its_share_off_the_partisans_held_between_nothing_and_one()
+	{
+		int berlin = Land(Ger, industry: 5);
+		int taken = Land(Ger, owner: Pol);
+		int own = Land(Ger);
+		Join(berlin, taken, own);
+		Country(Ger, berlin);
+		Country(Pol, 0);
+		var war = new CWar("war");
+		war.Attackers.Add(Ger);
+		war.Defenders.Add(Pol);
+		_wars.Add(war);
+
+		CGameState state = State();
+		CProvince province = state.Province(taken);
+		province.Modifier.Set(CSupplyFigures.PartisanSupport, CFixedPoint.Parse("3"));
+
+		// 0.1 x (1 + 0.1 x 3 x (1 - 0.4)): the partisans' 0.3 cut to 0.18.
+		province.Suppression = CFixedPoint.Parse("0.4");
+		Assert.Equal(CFixedPoint.Parse("0.118"), CSupplyFigures.Loss(state, province));
+		// Each product truncated in turn: 0.3 x 0.667 is 0.2001, kept as 0.200.
+		province.Suppression = CFixedPoint.Parse("0.333");
+		Assert.Equal(CFixedPoint.Parse("0.12"), CSupplyFigures.Loss(state, province));
+		// More than one takes it all, and less than nothing none.
+		province.Suppression = CFixedPoint.Parse("1.7");
+		Assert.Equal(CFixedPoint.Parse("0.1"), CSupplyFigures.Loss(state, province));
+		province.Suppression = CFixedPoint.Parse("-0.5");
+		Assert.Equal(CFixedPoint.Parse("0.13"), CSupplyFigures.Loss(state, province));
+		// Without a war with its owner neither the partisans nor the suppression are asked.
+		state.Province(own).Suppression = CFixedPoint.Parse("0.4");
+		Assert.Equal(CFixedPoint.Parse("0.05"), CSupplyFigures.Loss(state, state.Province(own)));
+	}
+
 	// --- keeping it ---
 
 	[Fact]
@@ -614,7 +648,7 @@ public class SupplyNetworkTests
 		Country(Pol, warsaw);
 		CGameState state = State();
 		CProvince taken = state.Province(posen);
-		COutOfSupplyDays.Enter(state, newGame: false);
+		COutOfSupplyDays.Enter(state);
 		Assert.Equal(0, taken.OutOfSupplyDays);                        // Poland's, beside its capital
 
 		// Taken by a country with no land beside it: a pocket, counted at the hour's end.
@@ -632,17 +666,20 @@ public class SupplyNetworkTests
 	}
 
 	[Fact]
-	public void A_new_game_counts_land_with_a_controller_twice_as_it_is_entered_and_the_sea_once()
+	public void Entering_counts_every_province_once_more_on_what_the_history_counted()
 	{
 		int roma = Land(Ita, industry: 5);
 		int oasis = Land(Ita, infra: 4);
 		int nobody = Land(null, infra: 4);
 		Country(Ita, roma);
 		CGameState state = State();
+		// The history's replay counted one for each change of controller it made (the loader's; supply.md, section 18).
+		state.Province(oasis).OutOfSupplyDays = 2;
+		state.Province(roma).OutOfSupplyDays = 1;
 
-		COutOfSupplyDays.Enter(state, newGame: true);
+		COutOfSupplyDays.Enter(state);
 
-		Assert.Equal(2, state.Province(oasis).OutOfSupplyDays);
+		Assert.Equal(3, state.Province(oasis).OutOfSupplyDays);
 		Assert.Equal(1, state.Province(nobody).OutOfSupplyDays);
 		Assert.Equal(0, state.Province(roma).OutOfSupplyDays);
 	}

@@ -108,12 +108,22 @@ its money, officers, influence and spies stopped agreeing.
 
 ## 4. What follows the total, each day
 
+**What the industry needs** is worked out in both: per point of total IC, per day, **1 metal, 2
+energy, 0.5 rare materials**, for every country without exception, into a pool emptied first -
+the total as it stands here, after its floor of one and before the shortage cap and lend-lease
+below. A need and not a use: nothing is taken for it, and **the economy ledger's "Used by
+Industry" row shows it** beside "Usage", which is what left the stockpile (`statistics.md`,
+section 2). Not saved, and made again on entering a game. `confirmed` (corrected 2026-11-15: this
+section had it among the steps entering leaves out, but the calculation's test for the daily
+steps jumps straight to it; `reversing/findings/FINDINGS-supplypass.md`, section 11). *Measured*
+on our first screen, nothing keeping it: Germany 201, 402 and 100.5 at 1936 and 317, 634 and 158.5
+at 1941.12.11; Ireland 7, 14 and 3.5 at 1936. Built 2026-11-15 (`CCountry.ResourcesNeeded`,
+`CIndustrialCapacity.FillResourcesNeeded`).
+
 These run in the daily calculation but not in the one made on entering a game - which is
 why, in the original, a freshly loaded game shows IC without its lend-lease share or its
 shortage cap until the first midnight. `confirmed`
 
-- **What the industry needs.** Per point of total IC, per day: **1 metal, 2 energy, 0.5 rare
-  materials**, for every country without exception.
 - **Energy into crude oil.** A unit of energy makes `0.1 + the technology bonus` units of
   crude oil - the technology's `energy_to_oil_conversion`; the tenth is built into the
   original. Three things limit how much energy is converted in a day, and the smallest

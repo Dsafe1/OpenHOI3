@@ -272,6 +272,13 @@ public sealed class CUnit
 	/// </summary>
 	public int LeaderId { get; set; }
 
+	/// <summary>
+	/// Where its order of battle's <c>leader</c> line came in the reading, counted over every line read: the leaders go on
+	/// in that order, a headquarters' own line before those of the units under it, where the units' numbers put the units
+	/// under it first. Not saved: only the making of a new game asks it.
+	/// </summary>
+	public int LeaderLine { get; set; }
+
 	/// <summary>Who commands it, or null. See <c>docs/mechanics/leaders.md</c>, sections 4 and 5.</summary>
 	public CLeader? Leader { get; set; }
 

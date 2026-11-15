@@ -363,8 +363,10 @@ public static class CGameStateLoader
 		// filling gives (production.md, section 1).
 		CIndustrialCapacity.Update(state);
 		CProduction.SetStartingShares(state);
-		CStockpile.AddUnitGoodsAtStart(state);
-		CLeaders.AssignAtStart(state);
+		// A country at a time: its order of battle's leaders, its stockpile's days of what its units use, and its leaders
+		// chosen, so that a later country's file takes a leader off an earlier one's unit after its choosing (leaders.md,
+		// section 5).
+		CLeaders.AssignAtStart(state, country => CStockpile.AddUnitGoodsAtStart(state, country));
 		// The parties from the history, the pool and the empty posts, the elections' dates and the seats, as the
 		// original sets a country up for a new game once its order of battle is read (politics.md, section 2).
 		CPolitics.SetUpAtStart(state, warn);
@@ -973,6 +975,9 @@ public static class CGameStateLoader
 		{
 			province.Owner = tag;
 		}
+		// The setter gives the province a depot and counts its days out of supply, and as the history is replayed it is
+		// given none: one day for every change, the first included (supply.md, section 18).
+		province.OutOfSupplyDays++;
 	}
 
 	private static bool TryReadLeadingId(string fileName, out int id)

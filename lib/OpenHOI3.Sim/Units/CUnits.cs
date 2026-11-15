@@ -40,7 +40,9 @@ public static class CUnits
 			{
 				foreach (CSubUnit subUnit in unit.SubUnits)
 				{
-					AfterLoad(state, country, subUnit);
+					// A unit the file says was lent is its lender's in its figures: its brigades take the lender's
+					// models and doctrines (expeditions.md, section 4; the 1941 start saves' lent brigades, every one).
+					AfterLoad(state, state.Country(unit.Lender) ?? country, subUnit);
 				}
 			}
 

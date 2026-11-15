@@ -77,8 +77,8 @@ A modifier of factor nought whose condition holds vetoes a type: Their Finest Ho
 owner does not hold the province, the others only where it does.
 
 **The country an independence type frees** in a province: none where the province is in no real area. The candidates
-are each country with a core on it, then each country of the game in order whose **original capital** - its history's
-`capital`, else its capital - is the province or a neighbour of it; each must not be the rebels, must own nothing, and
+are each country with a core on it, then each country of the game in order whose **original capital** - the first
+capital it declared in play, else its capital (`war.md`, section 14) - is the province or a neighbour of it; each must not be the rebels, must own nothing, and
 is taken once. Each scores 1000, **+200000 for a core on the province**, **+300000 where its original capital is the
 province**; the first strictly highest wins.
 

@@ -210,6 +210,10 @@ public static class CLoadCheck
 		// the original's for it (docs/replay.md, section 9). It wants a trace, which is what gives the game the Lua.
 		string? drawsFolder = args.FirstOrDefault(arg => arg.StartsWith("draws=", StringComparison.Ordinal))?["draws=".Length..];
 		args = args.Where(arg => !arg.StartsWith("draws=", StringComparison.Ordinal)).ToArray();
+		// needs=TAG,...: what the first screen of the loaded game shows of those countries' needs - the sliders' and the
+		// resources a day of the IC needs, none of which a save keeps - and stop (upkeep.md, section 8; buildqueue.md, section 4).
+		string? needs = args.FirstOrDefault(arg => arg.StartsWith("needs=", StringComparison.Ordinal))?["needs=".Length..];
+		args = args.Where(arg => !arg.StartsWith("needs=", StringComparison.Ordinal)).ToArray();
 		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal) && !arg.StartsWith("trace=", StringComparison.Ordinal)
 			&& !arg.StartsWith("generator=", StringComparison.Ordinal) && !arg.StartsWith("battles=", StringComparison.Ordinal)
 			&& !arg.StartsWith("watch=", StringComparison.Ordinal)).ToArray();
@@ -239,6 +243,23 @@ public static class CLoadCheck
 		foreach (string line in report.Lines())
 		{
 			Console.WriteLine("  " + line);
+		}
+
+		if (needs is not null)
+		{
+			// Entered as the client enters a load, so what is printed is the first screen's.
+			var loaded = state.Countries.ToDictionary(country => country.Tag, country => (country.Constructions.Count, country.ProductionCost));
+			_ = new CSimulation(state);
+			foreach (string asked in needs.Split(','))
+			{
+				if (state.Country(new CCountryTag(asked)) is { } country)
+				{
+					Console.WriteLine($"{asked}: as loaded {loaded[country.Tag].Count} lines needing {loaded[country.Tag].ProductionCost},"
+						+ $" as entered {country.Constructions.Count}");
+					CFirstDaysCheck.Needs(state, country);
+				}
+			}
+			return 0;
 		}
 
 		// garrison=UNIT,...: what ours weighs a division as a garrison by - its rating and its organisation share - and stop.

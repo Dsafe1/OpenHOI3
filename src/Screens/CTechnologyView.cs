@@ -287,15 +287,10 @@ public partial class CTechnologyView : CCountryView
 		}
 	}
 
-	/// <summary>
-	/// What a share wants, in leadership. Research wants a point for each project on
-	/// the queue; diplomacy would want its influence's upkeep, and nothing has any yet.
-	/// </summary>
+	/// <summary>What a share wants, in leadership: see <see cref="CLeadership.Needed"/>.</summary>
 	private CFixedPoint Need(ELeadershipCategory category)
 	{
-		return category == ELeadershipCategory.Research
-			? CFixedPoint.FromInt(Player.ResearchQueue.Count)
-			: CFixedPoint.Zero;
+		return CLeadership.Needed(Simulation.State, Player, category);
 	}
 
 	/// <summary>The queue's lines, made again when the queue is not the one shown and filled every frame.</summary>

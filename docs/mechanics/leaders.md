@@ -143,11 +143,38 @@ A country at a time, once its units are read: `confirmed`
    earlier `leader` line gave it, or none, so that step 4 gives it one
    (`reversing/findings/FINDINGS-modifierkinds.md`, section 5). `confirmed`. **Ours**: such a line
    is reported. No order of battle of Their Finest Hour has one; BlackICE has 33, none in a start file.
+   **The lines go on in the order the file reads them**, each as it is read, and putting a leader
+   on takes him off whatever unit holds him - another country's included. So a leader named twice
+   ends on the unit whose line is read later, and a headquarters' own line is read before those of
+   the units under it, though their numbers - each unit numbered as its block closes - put them
+   first: Finland's file of 1941.12.11 names Heinrichs on its army group and again on the army
+   under it, and the army keeps him. *Measured* (`CLeaders.SetAtStart`).
 3. **Its starting stockpile is worked out** (`stockpile.md`, section 2) - so the days of
    supplies and fuel in it are of what its units use with only the leaders of step 2
    (section 8).
 4. **Every unit still without one is given the best of the country's free leaders**, in the
    order the units were made. This is not asked of the country's setting below.
+
+**The countries go one after another, all four steps each**, in the countries' order. So a later
+country's file that names a leader takes him off an earlier country's unit only after that
+country has chosen, and the unit is left with none - its choosing passed it over as led, and the
+next best went to the unit after it, and so on down. Italy's file names Rommel, Germany's, on its
+Afrika Korps: at 1941.6.22 Germany's choosing gives him to 9. Armee, its first army without one,
+Italy takes him, and the save's 9. Armee has no leader with every other army's leader one place
+on; at 1941.12.11 Italy's and Finland's files, naming German generals, leave Wbf. Norwegen and
+three German divisions without one, and Romania's file takes back Ionescu, whom Germany's names on
+a division Romania lent it. *Measured*: with the countries taken in turn, every unit of the three
+later start saves has the save's leader but one fleet at each, below (2026-11-15; 6 units differed at
+1941.6.22 and 118 at 1941.12.11);
+the 1936 start's 1,555 are unchanged. Ours keeps the steps apart - every country's step 2 first,
+then everything between, then a country at a time its stockpile and its choosing
+(`CLeaders.AssignAtStart`) - and holds back only the lines that could take a leader from an
+earlier country, his being an earlier country's or an earlier country's file naming him, to that
+country's turn; the rest go on as the units are read. **Not ours**: a fleet's leader at a later
+start where the AI regroups the fleet before the first screen - France's Escadre de Mediterrean at
+1941 and the Soviet 10ya Flote at 1939 hold Abrial and Isakov in the save, the more skilled leader
+a merge keeps, where the choosing gave Decoux and Arushanyan for their `seawolf`, the first ship
+being a submarine (`agents.md`).
 
 **The best** is worked out over the country's leaders in service, in the order it put them in
 service, leaving out any with a unit and any the first test of section 4 refuses: `confirmed`

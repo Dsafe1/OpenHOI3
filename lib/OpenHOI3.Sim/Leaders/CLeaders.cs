@@ -136,25 +136,78 @@ public static class CLeaders
 		}
 		foreach (CCountry country in state.Countries)
 		{
-			foreach (CUnit unit in country.UnitsInOrder())
-			{
-				if (unit.LeaderId != 0 && state.Leaders.TryGetValue(unit.LeaderId, out CLeader? named))
-				{
-					SetLeader(state, unit, named, false, false);
-				}
-			}
+			PutOnNamed(state, country, waiting: false);
 		}
 	}
 
 	/// <summary>
-	/// The rest of a game being made, a country at a time: every unit with no leader is
-	/// given the best of its country's free leaders, in the order the units were made.
-	/// Nothing else is put to a leader then.
+	/// The leaders a country's order of battle names put on its units in the order the file reads the lines, as the
+	/// original's reader puts each on as it reads it: a leader named twice ends on the unit whose line comes later in the
+	/// file - a headquarters' own line coming before the units under it - and a leader another unit holds is taken off it.
+	/// The original reads each country's file in its own turn of the making, after the countries before it have chosen
+	/// their leaders. So a line that could take a leader from a country before this one - his being that country's, or a
+	/// line of a country before this one naming him - waits for this one's turn (<paramref name="waiting"/>,
+	/// <see cref="AssignAtStart"/>), and the rest go on as the units are read (<c>docs/mechanics/leaders.md</c>,
+	/// section 5).
 	/// </summary>
-	public static void AssignAtStart(CGameState state)
+	private static void PutOnNamed(CGameState state, CCountry country, bool waiting)
+	{
+		// The first country in the countries' order whose file names each leader.
+		var firstNamer = new Dictionary<int, int>();
+		foreach (CCountry namer in state.Countries)
+		{
+			if (namer.Index >= country.Index)
+			{
+				break;
+			}
+			foreach (CUnit unit in namer.AllUnits())
+			{
+				if (unit.LeaderId != 0)
+				{
+					firstNamer.TryAdd(unit.LeaderId, namer.Index);
+				}
+			}
+		}
+		var named = new List<CUnit>();
+		foreach (CUnit unit in country.AllUnits())
+		{
+			if (unit.LeaderId == 0 || !state.Leaders.TryGetValue(unit.LeaderId, out CLeader? leader))
+			{
+				continue;
+			}
+			bool waits = OfEarlierCountry(state, leader, country) || firstNamer.ContainsKey(leader.Id);
+			if (waits == waiting)
+			{
+				named.Add(unit);
+			}
+		}
+		named.Sort((a, b) => a.LeaderLine != b.LeaderLine ? a.LeaderLine.CompareTo(b.LeaderLine) : a.Id.CompareTo(b.Id));
+		foreach (CUnit unit in named)
+		{
+			SetLeader(state, unit, state.Leaders[unit.LeaderId], false, false);
+		}
+	}
+
+	/// <summary>Whether a leader is a country's that comes before this one in the countries' order.</summary>
+	private static bool OfEarlierCountry(CGameState state, CLeader leader, CCountry country)
+	{
+		return leader.Country is { } tag && state.Country(tag) is { } home && home.Index < country.Index;
+	}
+
+	/// <summary>
+	/// The rest of a game being made, a country at a time, as the original makes each country in turn: the lines of its
+	/// order of battle that could take a leader from a country before it put on (<see cref="PutOnNamed"/>), taking him off
+	/// whatever unit of theirs he was given - which is left with none, its country's choosing having passed; then
+	/// <paramref name="beforeChoosing"/> - the stockpile's days of what its units use, which so sees only the leaders its
+	/// own file named; then every unit with no leader given the best of its country's free leaders, in the order the units
+	/// were made. Nothing else is put to a leader then (<c>docs/mechanics/leaders.md</c>, section 5).
+	/// </summary>
+	public static void AssignAtStart(CGameState state, Action<CCountry>? beforeChoosing = null)
 	{
 		foreach (CCountry country in state.Countries)
 		{
+			PutOnNamed(state, country, waiting: true);
+			beforeChoosing?.Invoke(country);
 			foreach (CUnit unit in country.UnitsInOrder())
 			{
 				if (unit.Leader is null)
@@ -397,8 +450,7 @@ public static class CLeaders
 		if (leader == unit.Leader)
 		{
 			return;
-		}
-		if (unit.Leader is { } old)
+		}		if (unit.Leader is { } old)
 		{
 			if (old.Unit is { } oldUnit && oldUnit != unit)
 			{

@@ -355,6 +355,80 @@ public class LeaderTests
 	}
 
 	[Fact]
+	public void ALeaderTheFileNamesTwiceEndsOnTheUnitWhoseLineIsReadLaterAHeadquartersOwnLineFirst()
+	{
+		// Finland's file of 1941.12.11 names Heinrichs on its army group and again on the army under it; the army is
+		// numbered first, its block closing first, but its line is read after its army group's (leaders.md, section 5).
+		CGameState state = State(out CCountry germany, out _);
+		CUnit army = Unit(state, germany, EUnitKind.Army, Infantry);
+		CUnit armyGroup = Unit(state, germany, EUnitKind.ArmyGroup, Infantry);
+		CLeader named = Leader(state, germany, 7, 3, 4);
+		CLeader other = Leader(state, germany, 8, 3, 1);
+		armyGroup.LeaderId = 7;
+		armyGroup.LeaderLine = 1;
+		army.LeaderId = 7;
+		army.LeaderLine = 2;
+
+		CLeaders.SetAtStart(state);
+		CLeaders.AssignAtStart(state);
+
+		Assert.Same(named, army.Leader);
+		Assert.Null(armyGroup.Leader);                      // an army group asks for rank 4, and none is free
+		Assert.Null(other.Unit);
+	}
+
+	[Fact]
+	public void ALaterCountrysFileTakesALeaderOnlyAfterTheEarlierCountryHasChosenLeavingItsUnitWithNone()
+	{
+		// Italy's file names Rommel, Germany's, on its Afrika Korps: Germany's choosing gives him to its first army and
+		// the next best to the second, and Italy then takes him - so the save's 9. Armee has none at 1941.6.22.
+		CGameState state = State(out CCountry germany, out CCountry italy);
+		CUnit first = Unit(state, germany, EUnitKind.Army, Infantry);
+		CUnit second = Unit(state, germany, EUnitKind.Army, Infantry);
+		CUnit afrika = Unit(state, italy, EUnitKind.Corps, Infantry);
+		CLeader rommel = Leader(state, germany, 230, 3, 5);
+		CLeader good = Leader(state, germany, 85, 3, 3);
+		Leader(state, germany, 351, 3, 1);
+		afrika.LeaderId = 230;
+		afrika.LeaderLine = 1;
+
+		CLeaders.SetAtStart(state);
+		Assert.Null(rommel.Unit);                           // his line waits for Italy's turn
+		CLeaders.AssignAtStart(state);
+
+		Assert.Same(rommel, afrika.Leader);
+		Assert.Null(first.Leader);
+		Assert.Same(good, second.Leader);
+	}
+
+	[Fact]
+	public void ALeaderAnEarlierCountrysFileNamedIsTakenByALaterOnesOnlyAtItsTurn()
+	{
+		// Germany's file names Ionescu, Romania's, on a division Romania lent it, and Romania's names him on its own
+		// corps: Germany's choosing passes the division over, and Romania then takes him (1941.12.11).
+		CGameState state = State(out CCountry germany, out CCountry italy);
+		CUnit lent = Unit(state, germany, EUnitKind.Division, Infantry, Infantry);
+		CUnit other = Unit(state, germany, EUnitKind.Division, Infantry, Infantry);
+		CUnit corps = Unit(state, italy, EUnitKind.Corps, Infantry);
+		CLeader ionescu = Leader(state, italy, 4346, 1, 1);
+		CLeader best = Leader(state, germany, 806, 1, 2);
+		lent.LeaderId = 4346;
+		lent.LeaderLine = 1;
+		corps.LeaderId = 4346;
+		corps.LeaderLine = 2;
+		long stockpiled = 0;
+
+		CLeaders.SetAtStart(state);
+		// Germany's stockpile is reckoned at its turn with the leader its own file named still on.
+		CLeaders.AssignAtStart(state, country => stockpiled += country == germany && lent.Leader == ionescu ? 1 : 0);
+
+		Assert.Equal(1, stockpiled);
+		Assert.Same(ionescu, corps.Leader);
+		Assert.Null(lent.Leader);
+		Assert.Same(best, other.Leader);
+	}
+
+	[Fact]
 	public void TheStartPutsInServiceEveryLeaderWithARankInTheOrderTheyWereRead()
 	{
 		CGameState state = State(out CCountry germany, out _);

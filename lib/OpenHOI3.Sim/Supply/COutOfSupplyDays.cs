@@ -52,10 +52,11 @@ public static class COutOfSupplyDays
 
 	/// <summary>
 	/// A game entered: every province counted once more, as the original's entering gives a depot to each province still
-	/// without one - after a load every province, none being saved. A new game's history has counted each province it gave
-	/// a controller once already, so those are counted twice. Every change of hands the making left marked is forgotten.
+	/// without one - after a load every province, none being saved. A new game's history has counted each of its changes
+	/// of controller already, as the loader's replay of the province history made it. Every change of hands the making
+	/// left marked is forgotten.
 	/// </summary>
-	public static void Enter(CGameState state, bool newGame)
+	public static void Enter(CGameState state)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state, force: true);
 		foreach (CProvince province in state.Provinces)
@@ -64,10 +65,6 @@ public static class COutOfSupplyDays
 			if (province.Id == 0)
 			{
 				continue;
-			}
-			if (newGame && province.Controller is not null)
-			{
-				Count(network, province);
 			}
 			Count(network, province);
 		}

@@ -107,8 +107,8 @@ internal static class CReloadCheck
 
 	/// <summary>
 	/// What the check leaves out, as noise in the check itself and not anything later play hangs on (<c>docs/enhanced.md</c>,
-	/// the section's opening): the numbers a unit's file or a save names its leader by and a unit line's <c>is_reserve</c>,
-	/// read only as a game is made or loaded - the leader himself and the brigades' reserve are compared; whether a game was
+	/// the section's opening): the numbers a unit's file or a save names its leader by, where its file's line came, and a
+	/// unit line's <c>is_reserve</c>, read only as a game is made or loaded - the leader himself and the brigades' reserve are compared; whether a game was
 	/// loaded; caches made again on demand to the same figures - the distances by sea, the route finder's arrays, the land
 	/// within two edges of a province, the air bases each country holds; and the count of changes of hands since a game
 	/// began, with the stamps of the caches that watch it, which counts events and not state - each game's caches agree
@@ -118,7 +118,7 @@ internal static class CReloadCheck
 	/// </summary>
 	private static readonly string[] Skipped =
 	{
-		"CUnit.LeaderId", "CUnit.IsReserve", "CGameState.LoadedFromSave",
+		"CUnit.LeaderId", "CUnit.LeaderLine", "CUnit.IsReserve", "CGameState.LoadedFromSave",
 		"CGameState._navalDistances", "CGameState.RouteScratch", "CProvince.NearProvinces", "CGameState.AirBaseHolders",
 		"CGameState._handChanges", "CProvince._handChanges", "CGameState._controlledCounts", "CGameState._controlledCountsAt",
 		"CGameState.IntelFingerprint", "CCountryFacts.ControlChanges", "COwnedCounts.ControlChanges",

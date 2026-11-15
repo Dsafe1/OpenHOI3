@@ -776,6 +776,26 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
+	public void AHistorysCapitalSetsBothCapitalsAndNoOriginalCapital()
+	{
+		// China's: Nanjing at the top, Chongqing from 1937.11.21. The original keeps the history's entries apart from the
+		// country's own record of its changes, which is where its original capital is looked for.
+		Write("history/countries/AAA - Aland.txt", """
+			capital = 1
+			1937.11.21 = { capital = 2 }
+			""");
+		CCountries countries = CCountries.Load(Directories, CLocalisation.Load(Directories), _warnings.Add);
+
+		CCountryHistory.Apply(Directories, countries, new CDate(1939, 9, 1), _ => { });
+
+		CCountry country = countries.Find("AAA")!;
+		Assert.Equal(2, country.Capital);
+		Assert.Equal(2, country.ActingCapital);
+		Assert.Equal(0, country.OriginalCapital);
+		Assert.Equal(2, country.OriginalCapitalOrDeclared);
+	}
+
+	[Fact]
 	public void ACountryWithNoOrderOfBattleHasNoUnits()
 	{
 		(_, CCountry second, int last) = Read(

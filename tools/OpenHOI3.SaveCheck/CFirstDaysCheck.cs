@@ -201,6 +201,10 @@ internal static class CFirstDaysCheck
 				CFixedPoint saved = Number(line.GetString("progress"));
 				Compare("the build queue: how far each line has got", isPlayers, saved == construction.Progress,
 					() => $"{who} {construction.Id}: save {saved}, ours {construction.Progress}");
+				// And its price, which the production need counts: a day's cost and the days it takes.
+				CFixedPoint cost = Number(line.GetString("cost")), days = Number(line.GetString("duration"));
+				Compare("the build queue: each line's price", isPlayers, cost == construction.Cost && days == construction.Duration,
+					() => $"{who} {construction.Id}: save {cost} a day for {days}, ours {construction.Cost} for {construction.Duration}");
 			}
 
 			// Every brigade, ship and wing: what it has left of its strength and its organisation.
@@ -322,11 +326,15 @@ internal static class CFirstDaysCheck
 	{
 		ClausewitzNode? node = save.Get(country.Tag.Value);
 		Console.WriteLine($"{country.Tag}: ours / the save's");
+		Console.WriteLine($"   {"the seat",-30} acting capital {country.ActingCapital} / {node?.GetString("acting_capital")}"
+			+ $"   capital {country.Capital} / {node?.GetString("capital")}   in exile {country.InExile} / {node?.GetBool("government_in_exile")}"
+			+ $"   its holder {state.Province(country.ActingCapital).Controller}");
 		foreach ((string name, CGoodsPool? ours, string key) in new (string, CGoodsPool?, string)[]
 		{
 			("made", country.HomeProduced, "home"), ("used", country.Usage, "usage"), ("turned into another", country.ConversionUsed, "-"),
 			("made by turning", country.ConversionMade, "-"),
 			("made away from the capital", country.SentTo, "to"), ("come back", country.SentBack, "back"),
+			("convoyed out", country.ConvoyedOut, "convoyed_out"),
 			("paid for its units", country.TradedAway, "traded_away"), ("paid it for friends'", country.TradedFor, "traded_for"),
 			("the stockpile", state.Stockpile(country), "pool"),
 		})
@@ -389,12 +397,40 @@ internal static class CFirstDaysCheck
 		Console.WriteLine($"   {"production screen, supplies",-30} {OpenHOI3.Interface.Screens.CProductionScreenText.Goods(state, country, EGoods.Supplies)}");
 		// What the units asked for and the three sliders' needs the first screen shows, which a save does not keep
 		// (supply.md, section 11; sliders.md).
+		Needs(state, country);
+		Console.WriteLine();
+	}
+
+	/// <summary>
+	/// What the units asked for, the sliders' needs and the resources a day of the IC needs, as the first screen shows
+	/// them - none of which a save keeps (supply.md, section 11; sliders.md; ic.md, section 4).
+	/// </summary>
+	public static void Needs(CGameState state, CCountry country)
+	{
 		Console.WriteLine($"   {"the units asked for",-30} supplies {country.UnitDemand[EGoods.Supplies]}   fuel {country.UnitDemand[EGoods.Fuel]}");
 		Console.WriteLine($"   {"the sliders' needs",-30} supplies {CProduction.Needed(state, country, EProductionCategory.Supplies)}"
 			+ $"   reinforcement {CProduction.Needed(state, country, EProductionCategory.Reinforcement)}"
 			+ $" (men {country.ReinforcementManpowerNeeded})"
 			+ $"   upgrades {CProduction.Needed(state, country, EProductionCategory.Upgrades)} ({country.SubUnitsUpgrading} brigades)");
-		Console.WriteLine();
+		Console.WriteLine($"   {"",-30} production {CProduction.Needed(state, country, EProductionCategory.Production)}"
+			+ $" (the queue at today's prices {QueueCost(country)})"
+			+ $"   consumer goods {CProduction.Needed(state, country, EProductionCategory.ConsumerGoods)}"
+			+ $"   research {CLeadership.Needed(state, country, ELeadershipCategory.Research)}"
+			+ $"   diplomacy {CLeadership.Needed(state, country, ELeadershipCategory.Diplomacy)}");
+		Console.WriteLine($"   {"used by industry",-30} metal {country.ResourcesNeeded[EGoods.Metal]}"
+			+ $"   energy {country.ResourcesNeeded[EGoods.Energy]}   rare materials {country.ResourcesNeeded[EGoods.RareMaterials]}"
+			+ $"   (IC {country.MaxIc}, {country.TotalIc} after the cap and lend-lease)");
+	}
+
+	/// <summary>A full day of every line of the queue at its price now - what the production need is when it is counted.</summary>
+	private static CFixedPoint QueueCost(CCountry country)
+	{
+		long cost = 0;
+		foreach (OpenHOI3.Sim.Construction.CConstruction construction in country.Constructions)
+		{
+			cost += CFixed15.FromThousandths(construction.Cost).Raw;
+		}
+		return new CFixed15(cost).ToThousandths();
 	}
 
 	private static CFixedPoint Number(string? text)

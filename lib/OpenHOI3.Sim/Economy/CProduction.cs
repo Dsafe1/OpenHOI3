@@ -237,18 +237,20 @@ public static class CProduction
 	}
 
 	/// <summary>
-	/// What entering a loaded game makes of the reinforcement and upgrade shares' needs. The original's entry runs every
-	/// country's six shares of IC with nothing to spend, and those two count a day of their work whether or not anything
-	/// is spent, so a loaded game's first screen shows the need as the save stands - neither is in the save. Every
-	/// country, as the entry has no test. Nothing else here: what the units asked for is written by nothing in entering
-	/// and stays at nought until the first midnight, and what was made at home stays the save's (upkeep.md,
-	/// section 8; supply.md, section 11; resources.md, section 3). A new game's two needs are its second day's, its
-	/// entry's run having come before its days.
+	/// What entering a loaded game makes of the production, reinforcement and upgrade shares' needs. The original's entry
+	/// runs every country's six shares of IC with nothing to spend, in their order: production takes out the building
+	/// lines that may no longer be built and counts its queue again, and reinforcement and upgrades count a day of their
+	/// work whether or not anything is spent, so a loaded game's first screen shows the needs as the save stands - none
+	/// is in the save. Every country, as the entry has no test. Nothing else here: what the units asked for is written by
+	/// nothing in entering and stays at nought until the first midnight, and what was made at home stays the save's
+	/// (upkeep.md, section 8; buildqueue.md, section 4; supply.md, section 11; resources.md, section 3). A new game's
+	/// three needs are its second day's, its entry's run having come before its days.
 	/// </summary>
 	public static void RunNeedsAtLoad(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
+			Construction.CBuildQueue.RunAtEntry(state, country);
 			CReinforcement.Run(state, country, CFixedPoint.Zero, apply: false);
 			// Nothing to spend moves no equipment; the doctrine a level on that the original's run gives a loaded game
 			// is not built (upkeep.md, section 5; docs/enhanced.md), so the share is only asked its need.

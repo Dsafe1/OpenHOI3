@@ -71,8 +71,28 @@ public sealed class CCountry
 	/// <summary>Leaves it with no acting capital of its own, so that it follows its declared capital: a save that gives none.</summary>
 	public void FollowCapital() => _actingCapital = null;
 
-	/// <summary>The history's first capital, where a government whose capital fell goes back to once it holds it again.</summary>
+	/// <summary>
+	/// The first capital the country declared in play, or 0 for none: the first <c>capital</c> entry of the original's
+	/// own record of the country's changes, which a declared capital moved for want of owning it and the <c>capital</c>
+	/// effect write to, and which neither the history files nor a save fill. See <see cref="OriginalCapitalOrDeclared"/>.
+	/// </summary>
 	public int OriginalCapital { get; set; }
+
+	/// <summary>
+	/// The original's <c>GetOriginalCapital</c>: the first capital declared in play, else the declared capital - where a
+	/// government whose seat fell goes back to once it holds it again (<c>docs/mechanics/war.md</c>, section 14).
+	/// </summary>
+	public int OriginalCapitalOrDeclared => OriginalCapital != 0 ? OriginalCapital : Capital;
+
+	/// <summary>Declares a capital as the original logs one in play: the first so declared is the original capital.</summary>
+	public void DeclareCapital(int province)
+	{
+		Capital = province;
+		if (OriginalCapital == 0)
+		{
+			OriginalCapital = province;
+		}
+	}
 
 	/// <summary>Whether its own file calls it a major power.</summary>
 	public bool IsMajor { get; init; }
@@ -311,6 +331,14 @@ public sealed class CCountry
 	/// before a day's shortage cuts it. Written by <see cref="CIndustrialCapacity"/>.
 	/// </summary>
 	public int MaxIc { get; set; }
+
+	/// <summary>
+	/// What a full day of its IC would cost in resources - not what was used: <see cref="MaxIc"/> times one of metal, two
+	/// of energy and a half of rare materials, made again with the IC each day and on entering a game, and not saved.
+	/// The economy ledger's "Used by Industry" row (<c>docs/mechanics/ic.md</c>, section 4;
+	/// <see cref="CIndustrialCapacity.FillResourcesNeeded"/>).
+	/// </summary>
+	public CGoodsPool ResourcesNeeded { get; } = new();
 
 	/// <summary>
 	/// The IC of its own ground at home, in thousandths: the provinces it owns, holds

@@ -148,11 +148,13 @@ public static class CSupplyFigures
 		{
 			times += province.Weather.Muddyness.Raw * state.Defines[WeatherSection, MudTax].Raw / CFixedPoint.Scale;
 		}
-		// Held by a country at war with its owner, partisans take their share. What
-		// suppression takes off that again waits for suppression.
+		// Held by a country at war with its owner, partisans take their share, less what the suppression in and around the
+		// province takes off it - the figure its last day made, held between nothing and one (supply.md, section 8).
 		if (CMovementRules.IsEnemy(state, province.Controller, province.Owner))
 		{
-			times += state.Defines[Military, PartisanTax].Raw * province.Modifier[PartisanSupport].Raw / CFixedPoint.Scale;
+			long partisans = state.Defines[Military, PartisanTax].Raw * province.Modifier[PartisanSupport].Raw / CFixedPoint.Scale;
+			long suppression = Math.Clamp(province.Suppression.Raw, 0, CFixedPoint.Scale);
+			times += partisans * (CFixedPoint.Scale - suppression) / CFixedPoint.Scale;
 		}
 		tax = tax * times / CFixedPoint.Scale;
 

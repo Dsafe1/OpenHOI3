@@ -52,7 +52,8 @@ public static class CRelease
 			{
 				province.Cores.Add(released);
 			}
-			if (country.OriginalCapital == province.Id && country.Capital != province.Id)
+			// Its original capital declared again, not logged as a change of the country's own.
+			if (country.OriginalCapitalOrDeclared == province.Id && country.Capital != province.Id)
 			{
 				country.Capital = province.Id;
 			}
