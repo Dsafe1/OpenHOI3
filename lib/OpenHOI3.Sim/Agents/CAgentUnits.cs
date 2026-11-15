@@ -111,21 +111,24 @@ public static class CAgentUnits
 	/// <summary>Where a unit is going, or else where it is: the original's destination-or-province.</summary>
 	public static int DestinationOrPlace(CUnit unit)
 	{
-		if (unit.AiBound >= 0)
-		{
-			return unit.AiBound > 0 ? unit.AiBound : unit.Location;
-		}
-		return unit.Path.Count > 0 ? unit.Path[^1] : unit.Location;
+		int destination = Destination(unit);
+		return destination > 0 ? destination : unit.Location;
 	}
 
-	/// <summary>Where it is going, or 0: what the AI sent it to in this pass, else its way's end.</summary>
+	/// <summary>
+	/// Where it is going, or 0: what the AI sent it to in this pass, else its way's end - and with neither, the province of
+	/// an order still under way. A stand-down posts its "no order" as a command, so a division the AI has just halted on a
+	/// strategic redeployment still answers that redeployment's province for the rest of the pass
+	/// (FINDINGS-liveread.md, section 101).
+	/// </summary>
 	public static int Destination(CUnit unit)
 	{
-		if (unit.AiBound >= 0)
+		int destination = unit.AiBound >= 0 ? unit.AiBound : unit.Path.Count > 0 ? unit.Path[^1] : 0;
+		if (destination == 0 && unit.Order is not (EUnitOrder.None or EUnitOrder.Move) && unit.OrderProvince > 0)
 		{
-			return unit.AiBound;
+			return unit.OrderProvince;
 		}
-		return unit.Path.Count > 0 ? unit.Path[^1] : 0;
+		return destination;
 	}
 
 	/// <summary>The country's agent working the theatre, or null.</summary>

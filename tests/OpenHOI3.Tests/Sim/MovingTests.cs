@@ -402,6 +402,28 @@ public class MovingTests
 		Assert.Equal(11, CAreaEnemies.Count(state, germany, poland, uncapped: true));
 	}
 
+	[Fact]
+	public void A_halted_division_still_answers_the_province_of_the_order_it_is_under()
+	{
+		CGameState state = World();
+		CUnit division = Division(state, Ger, 6, "infantry_brigade");
+		division.Order = EUnitOrder.StrategicRedeployment;
+		division.OrderProvince = 11;
+
+		// Halted this pass: no destination of its own, so the redeployment's province until the order is taken away.
+		division.AiBound = 0;
+		Assert.Equal(11, CAgentUnits.Destination(division));
+		Assert.Equal(11, CAgentUnits.DestinationOrPlace(division));
+
+		// Sent somewhere this pass, that is where it goes; and with no order, nowhere.
+		division.AiBound = 9;
+		Assert.Equal(9, CAgentUnits.Destination(division));
+		division.AiBound = 0;
+		division.Order = EUnitOrder.None;
+		Assert.Equal(0, CAgentUnits.Destination(division));
+		Assert.Equal(6, CAgentUnits.DestinationOrPlace(division));
+	}
+
 	private static CUnit AirGroup(CGameState state, CCountryTag owner, int airBase, string typeKey)
 	{
 		var type = new CSubUnitType(typeKey, EUnitBranch.Air);

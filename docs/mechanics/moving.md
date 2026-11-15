@@ -322,6 +322,15 @@ unit already redeploying and sent it a plain march, which left it standing a day
 the United States' 43rd and 1st Cavalry Divisions re-aimed at 11:00 on 1 January (`confirmed` on the listing,
 `reversing/findings/FINDINGS-liveread.md`, section 75).
 
+**Where a unit is bound** (`CUnit::GetMovementDestinationProvince`, `CAgentUnits.Destination`): nowhere under a support
+attack (not built); else where the AI sent it this pass, or its way's end; **with neither, the province of an order still
+under way** - anything but none, a plain move, a support attack or carrier protection. A stand-down clears the first at
+once and posts its "no order" as a command, so a division the AI halts on a strategic redeployment answers the
+redeployment's province for the rest of the pass: the second ring "halts" the Soviet 99. Strelkovaya Diviziya where it
+stands at 144 at 06:00 on 17 July 1941, and the pull, seeing it bound for 1589 and so for no position, takes it to 619
+without the fullness test, in all three runs (`confirmed` on the listing and the running game,
+`reversing/findings/FINDINGS-liveread.md`, section 101).
+
 **The way.** A move asked for safely - the line's, the garrisons', the rear's and the reserves' - takes the **very safe**
 way: short of the goal, a land unit does not step into a province held by a country at war with it or the rebels, nor
 into one with a land battle in it. The line's reach tests (7.3) - the send's and the pull's - ask what the original's
@@ -926,6 +935,8 @@ months on) - at least three hours left, and the order ends then.
   ranked - are made again whenever the supply network is (`supply.md`; at any change of hands, and daily), and each kept
   area is carried over to the new area holding its first province under the same holder, or dropped. How the original's
   areas outlive a change of hands was not read; kept as they were, they went stale and a block's positions with them.
+- **Where a unit is bound** (section 10): the original's reader answers nowhere for a unit under a support attack; ours
+  answers its way's end, the exception not yet set against the comparisons.
 - **The pull** (7.3, step 7): two of its tests were not read - a destination the original takes from another helper,
   and a test of a division bound for its own depot - and are left out.
 
