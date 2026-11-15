@@ -39,13 +39,17 @@ public static class CSupplyPass
 		Run(state, day);
 	}
 
-	/// <summary>What every country counts afresh each day.</summary>
+	/// <summary>
+	/// What every country counts afresh each day, the original's <c>CCountry::ClearDailyPools</c> at the head of the day:
+	/// the usage among them, which the pass and the units' draw add to before industry does
+	/// (<c>reversing/findings/FINDINGS-supplypass.md</c>, section 2).
+	/// </summary>
 	public static void ClearCounts(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
 			country.UnitDemand.Clear();
-			country.UnitDrawn.Clear();
+			country.Usage.Clear();
 			country.SentTo.Clear();
 			country.SentBack.Clear();
 			country.TradedAway.Clear();
@@ -264,9 +268,10 @@ public static class CSupplyPass
 		{
 			return 0;
 		}
+		// Taken out of a capital, it is taken out of the stockpile: the country's usage, as the original books it.
 		if (stockpileOf is not null)
 		{
-			Add(stockpileOf.UnitDrawn, goods, taken);
+			Add(stockpileOf.Usage, goods, taken);
 		}
 		Add(from.SupplyDrawn, goods, taken);
 		Add(from.SupplyThroughput, goods, taken);

@@ -255,8 +255,8 @@ public static class CProduction
 				(CFixedPoint supplies, CFixedPoint _) = CUnitSupply.DailyUse(state, country);
 				country.UnitDemand.Clear();
 				country.UnitDemand[EGoods.Supplies] = supplies;
-				country.UnitDrawn.Clear();
-				country.UnitDrawn[EGoods.Supplies] = supplies;
+				// The usage is left as the day left it, or as a save gave it: the original's first screen shows the second
+				// day's, which a new game has run by now (supply.md, section 11).
 				CReinforcement.Run(state, country, CFixedPoint.Zero, apply: false);
 				CUpgrades.Run(state, country, CFixedPoint.Zero, apply: false);
 			}
@@ -272,9 +272,10 @@ public static class CProduction
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			// The usage is counted afresh each day from its head, the original's ClearDailyPools, so the conversions find
-			// nothing of today's in it yet (ic.md, section 4); the conversions' own pools are cleared as the IC is worked out.
-			country.Usage.Clear();
+			// The usage was cleared at the head of the day, the original's ClearDailyPools before the supply pass
+			// (CSupplyPass.ClearCounts), and holds only the supplies and fuel the pass and the units took out of the capital
+			// since - so the conversions find nothing of today's energy or crude oil in it yet (ic.md, section 4); the
+			// conversions' own pools are cleared as the IC is worked out.
 			country.ConversionUsed.Clear();
 			country.ConversionMade.Clear();
 			country.ReinforcementSpent = CFixedPoint.Zero;

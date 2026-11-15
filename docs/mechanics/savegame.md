@@ -584,7 +584,7 @@ Both ways, each where the original writes it in a country block [exe] (`FINDINGS
 | `government_in_exile` | `yes` while in exile | whether it is (`war.md`, section 14) | after `acting_capital`, only while in exile |
 | `strategic_warfare` | `alliance`, `convoy` and `ground_bombing`, each entry `"hour"="value"` at column 0, an empty line after each list | the three lists; each impact their sum, **nothing pruned** - an entry over a week old stays until the day's prune, as the saves hold them | then |
 | `pool` | an exile's own stockpile | it | then these ten, **each written whatever it holds** (`CSaveLedgers`) |
-| `home`, `usage`, `to`, `back`, `convoyed_out` | the day's ledgers so far: made at home, used by industry, supplies and fuel sent out and come back, carried out by convoy | each | |
+| `home`, `usage`, `to`, `back`, `convoyed_out` | the day's ledgers so far: made at home, used - by industry, and the supplies and fuel the network and the units took out of the capital (`supply.md`, section 11; one pool since 2026-11-15) - supplies and fuel sent out and come back, carried out by convoy | each | |
 | `traded_for`, `traded_for_sans_allied`, `traded_away`, `traded_away_sans_allied` | paid and paid for, with and without allied supply | each | |
 | `land_battles_fought`, `air_battles_fought`, `naval_battles_fought` | the battles it has fought | each | then, each only above nought |
 | `alignment` | `position = { x y }`, an empty line after it | where it stands on the triangle | after `mobilize` |

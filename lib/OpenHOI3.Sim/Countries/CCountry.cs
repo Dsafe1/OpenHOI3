@@ -335,7 +335,13 @@ public sealed class CCountry
 	/// </summary>
 	public int[] SliderLocks { get; set; } = new int[CProduction.CategoryCount];
 
-	/// <summary>The resources its industry used today. Cleared and counted again each day.</summary>
+	/// <summary>
+	/// What left its stockpile today to be used, the original's one pool of it, saved as <c>usage</c>: the resources its
+	/// industry was charged, and the supplies and fuel that left its capital - what the provinces beside its acting
+	/// capital took out of it in the supply pass, and what a unit standing in the capital was given (fuel only where it
+	/// burnt it). Cleared at the head of the day, before the supply pass (<c>docs/mechanics/supply.md</c>, sections 11 to
+	/// 13; <c>reversing/findings/FINDINGS-supplypass.md</c>, sections 2 to 4).
+	/// </summary>
 	public CGoodsPool Usage { get; } = new();
 
 	/// <summary>What turning one good into another used today: energy, and crude oil.</summary>
@@ -607,13 +613,6 @@ public sealed class CCountry
 	/// in. Cleared and counted again each day.
 	/// </summary>
 	public CGoodsPool UnitDemand { get; } = new();
-
-	/// <summary>
-	/// The supplies and fuel that left its stockpile for units today: what the units
-	/// standing in its capital were given, what the provinces beside the capital took
-	/// out of it, and what went to a depot across the sea.
-	/// </summary>
-	public CGoodsPool UnitDrawn { get; } = new();
 
 	/// <summary>
 	/// The supplies and fuel it made today in provinces other than its capital. They are

@@ -62,6 +62,18 @@ public class ProductionScreenTextTests
 	}
 
 	[Fact]
+	public void TheDayIsEveryLedgerTheTopBarReadsWithWhatWasTradedForComingIn()
+	{
+		// Out: 3 used - the capital's takes among it - 4 made away from the capital, 2 paid away; in: 10 made and 5
+		// paid for friends' units. The original's expense less its income: a rise of 6.
+		_country.SentTo[EGoods.Supplies] = CFixedPoint.FromInt(4);
+		_country.TradedAway[EGoods.Supplies] = CFixedPoint.FromInt(2);
+		_country.TradedFor[EGoods.Supplies] = CFixedPoint.FromInt(5);
+
+		Assert.Equal("100 (§G+6§W)", Goods(EGoods.Supplies, "100", "10", "3"));
+	}
+
+	[Fact]
 	public void IcIsAPlainWholeNumber()
 	{
 		_country.TotalIc = 129;

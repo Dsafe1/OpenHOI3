@@ -57,7 +57,10 @@ the colour of the way it goes.
 The stock is the capital's pool, or the country's own for a government in exile, as on
 the top bar. There is no `K` here: the figure is written in full.
 
-*Ours:* as on the top bar, four of the thirteen ledgers move anything yet.
+*Ours:* since 2026-11-15 the bracket is the top bar's own sums - the day's expense less its income with what was
+traded for, every ledger the top bar reads (`CTopBarText.DayOut` and `DayIn`) - where until then it summed five
+ledgers out and four in and left trade, debt, tribute and what exiles hand over out of it. The supplies and fuel taken
+out of the capital are in the usage (`supply.md`, section 11).
 
 ## 3. IC, bombs and convoys
 

@@ -104,13 +104,15 @@ public class TopBarTooltipTests
 	}
 
 	[Fact]
-	public void A_loss_on_the_day_is_red_and_into_the_network_is_both_of_our_pools()
+	public void A_loss_on_the_day_is_red_into_the_network_is_what_was_made_away_and_the_capitals_takes_are_used()
 	{
 		(CGameState state, CCountry germany) = State();
-		germany.UnitDrawn[EGoods.Supplies] = CFixedPoint.FromInt(3);
+		// What the network and the units took out of the capital is the usage, as the original books it.
+		germany.Usage[EGoods.Supplies] = CFixedPoint.FromInt(3);
 		germany.SentTo[EGoods.Supplies] = CFixedPoint.FromInt(2);
 
-		Assert.Equal("Changes by §R-5.00§W every day.\n§R-5.00§W into network.\n\n", For(state, germany, "supplies_number").Text);
+		Assert.Equal("Changes by §R-5.00§W every day.\n§R-2.00§W into network.\n§R-3.00§W used.\n\n",
+			For(state, germany, "supplies_number").Text);
 	}
 
 	[Fact]

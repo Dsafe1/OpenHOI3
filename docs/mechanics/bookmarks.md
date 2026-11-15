@@ -138,6 +138,14 @@ records of its enemies (`strategicwarfare.md`); rebel-held provinces begin their
   it**, and **the finished wars stand in the save's order** (`war.md`, sections 1 and 13; `savegame.md`, section 10).
 - **The Lua's `GetPossiblePuppets`**, which our binding had under another name, so that `ITA.lua` failed from the first
   hour at 1939 with Ethiopia's capital Italy's; mended, Italy releases Ethiopia within a month (`lua.md`).
+- **A country's `usage` is one pool, the original's** (`supply.md`, section 11): what the provinces beside the capital took
+  out of the stockpile in the supply pass and what units in the capital drew, then industry's charge. The Lua's
+  `GetDailyExpense` and `GetDailyBalance`, the top bar, its tooltip, the production screen and the save read it, so a
+  country at war reads the original's deficit - Germany at 1941.12.11 a supplies balance of -720 a day where it read +55,
+  against the save's pools' -638, the rest being Berlin's throughput. A first screen shows its second day's usage, no
+  longer an estimate: the 1936 start save's for Germany, Britain and Ireland to the thousandth, Britain's 178.246 against
+  178.293 at 1941.12.11. Home production on the first screen is still an estimate made after the days (Ireland 0.728
+  against 9.971 at 1936).
 
 ### 3.1 Set beside the start saves
 

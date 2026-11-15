@@ -170,7 +170,10 @@ repaid to it + conversion made + traded for, less sent to -
 repaid away + used + conversion used + convoyed out + traded away - **the day's debt repaid taken off
 the spending**, as the original writes it; the debts move money alone (`aid.md`, section 1).
 `GetDailyExpense(g)` is traded away - repaid away + convoyed out + conversion used + sent to + used.
-Tribute's columns are in each too (`stockpile.md`, section 7).
+Tribute's columns are in each too (`stockpile.md`, section 7). **"Used" is the whole usage**: for supplies and fuel,
+what the network and the units took out of the capital (`supply.md`, section 11) - since 2026-11-15, when it was left
+out, a country at war read a balance of supplies above nought where the original's is far below: Germany at the
+1941.12.11 start, the save's pools giving about -638 a day, read +55 and reads -720 (*measured*, `firstdays`).
 
 `GetResourceValues(country, g)` fills `vDailyExpense` (below), `vDailyHome`, `vConvoyedIn`, `vPool`,
 `vDailyIncome` (the income side of the balance) and `vDailyBalance`, each thousandths over 1000 as a

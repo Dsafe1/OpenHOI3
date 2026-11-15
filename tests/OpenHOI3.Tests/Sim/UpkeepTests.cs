@@ -214,7 +214,7 @@ public class UpkeepTests
 		Assert.Equal(CFixedPoint.Zero, stockpile[EGoods.Supplies]);
 		Assert.Equal(CFixedPoint.Parse("0.5"), unit.SuppliesReceived);
 		Assert.Equal(CFixedPoint.Parse("0.67"), country.UnitDemand[EGoods.Supplies]);     // what it asked for
-		Assert.Equal(CFixedPoint.Parse("0.335"), country.UnitDrawn[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Parse("0.335"), country.Usage[EGoods.Supplies]);       // given in the capital: used
 	}
 
 	[Fact]

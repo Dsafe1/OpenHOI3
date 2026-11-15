@@ -122,7 +122,6 @@ public static class CTopBarTooltips
 	public static string Ledger(Func<string, string> localise, CCountry country, EGoods goods)
 	{
 		CFixedPoint convoyedIn = ConvoyedIn(country, goods);
-		CFixedPoint intoNetwork = IntoNetwork(country, goods);
 		CFixedPoint change = DayChange(country, goods);
 
 		var text = new StringBuilder();
@@ -143,7 +142,9 @@ public static class CTopBarTooltips
 		{
 			text.Append(Line(localise, "RES_SENT_TO_MASTER", GreenPlus + CNumberText.Format(-country.TributeSent[goods], 2)));
 		}
-		Loss(text, localise, "RES_INTO_NET", intoNetwork);
+		// Into the network is what was made away from the capital, and used is all that left the stockpile to be used -
+		// industry's, and the supplies and fuel the network and the units took out of the capital (topbar.md, section 14).
+		Loss(text, localise, "RES_INTO_NET", country.SentTo[goods]);
 		Loss(text, localise, "RES_USED", country.Usage[goods]);
 		Gain(text, localise, "RES_SHIPPED_BACK", country.SentBack[goods]);
 		text.Append('\n').Append(CModifierText.Sources(localise, country.ModifierSources, GlobalKind(goods)));
@@ -161,9 +162,6 @@ public static class CTopBarTooltips
 
 	private static CFixedPoint ConvoyedIn(CCountry country, EGoods goods) =>
 		goods is EGoods.Supplies or EGoods.Fuel ? CFixedPoint.Zero : country.ConvoyedIn[goods];
-
-	/// <summary>Our two pools of what went to the units are the original's one.</summary>
-	private static CFixedPoint IntoNetwork(CCountry country, EGoods goods) => country.SentTo[goods] + country.UnitDrawn[goods];
 
 	private static string Red => CColouredText.In(CColouredText.Red);
 

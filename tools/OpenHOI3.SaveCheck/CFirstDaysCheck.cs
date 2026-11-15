@@ -71,7 +71,7 @@ internal static class CFirstDaysCheck
 			if (argument.StartsWith("country=", StringComparison.Ordinal)
 				&& CCountryTag.TryParse(argument["country=".Length..], out CCountryTag asked) && state.Country(asked) is { } country)
 			{
-				Ledger(state, save, country);
+				Ledger(state, save, country, localisation.Localise);
 			}
 		}
 		CStrategicResourceLook.Print(state);
@@ -314,17 +314,17 @@ internal static class CFirstDaysCheck
 
 	/// <summary>
 	/// The second day's counts of a country's goods, ours beside the save's, each good the save or ours has a figure of:
-	/// what was made at home, what left the stockpile for units, what was made away from the capital and what came back,
-	/// what was paid and was paid for friends' units, and the stockpile itself.
+	/// what was made at home, what was used - by industry, and the supplies and fuel the network and the units took out of
+	/// the capital - what was made away from the capital and what came back, what was paid and was paid for friends'
+	/// units, the day's expense, and the stockpile itself.
 	/// </summary>
-	private static void Ledger(CGameState state, ClausewitzNode save, CCountry country)
+	private static void Ledger(CGameState state, ClausewitzNode save, CCountry country, Func<string, string> localise)
 	{
 		ClausewitzNode? node = save.Get(country.Tag.Value);
 		Console.WriteLine($"{country.Tag}: ours / the save's");
 		foreach ((string name, CGoodsPool? ours, string key) in new (string, CGoodsPool?, string)[]
 		{
-			("made", country.HomeProduced, "home"), ("used by industry", country.Usage, "usage"),
-			("left the stockpile for units", country.UnitDrawn, "usage"), ("turned into another", country.ConversionUsed, "-"),
+			("made", country.HomeProduced, "home"), ("used", country.Usage, "usage"), ("turned into another", country.ConversionUsed, "-"),
 			("made by turning", country.ConversionMade, "-"),
 			("made away from the capital", country.SentTo, "to"), ("come back", country.SentBack, "back"),
 			("paid for its units", country.TradedAway, "traded_away"), ("paid it for friends'", country.TradedFor, "traded_for"),
@@ -346,6 +346,47 @@ internal static class CFirstDaysCheck
 			}
 			Console.WriteLine($"   {name,-30} {string.Join("   ", parts)}");
 		}
+		// The day's expense, the Lua's GetDailyExpense, beside the four of its pools the save keeps - what converting used,
+		// debt repaid and tribute sent it does not keep.
+		// The balance of supplies likewise, the Lua's GetDailyBalance, beside the save's home, back and traded_for less
+		// those four - what exiles handed over and tribute received it does not keep either.
+		var expense = new List<string>();
+		var balance = new List<string>();
+		foreach (EGoods goods in new[] { EGoods.Supplies, EGoods.Fuel })
+		{
+			string key = CGoodsPool.KeyOf(goods);
+			CFixedPoint theirs = CFixedPoint.Zero;
+			foreach (string pool in new[] { "usage", "to", "convoyed_out", "traded_away" })
+			{
+				theirs += Number(node?.Get(pool)?.GetString(key));
+			}
+			CFixedPoint theirsIn = CFixedPoint.Zero;
+			foreach (string pool in new[] { "home", "back", "traded_for" })
+			{
+				theirsIn += Number(node?.Get(pool)?.GetString(key));
+			}
+			expense.Add($"{key} {new CFixedPoint(CDailyLedger.Expense(country, goods))} / {theirs}");
+			// Fuel's balance has the refining in it, which the save does not keep.
+			if (goods == EGoods.Supplies)
+			{
+				balance.Add($"{key} {new CFixedPoint(CDailyLedger.Net(country, goods))} / {theirsIn - theirs}");
+			}
+		}
+		Console.WriteLine($"   {"the day's expense",-30} {string.Join("   ", expense)}");
+		Console.WriteLine($"   {"the day's balance",-30} {string.Join("   ", balance)}");
+		// What the provinces beside the capital took out of it, the rest of the usage being what units in it were given.
+		if (country.ActingCapital != 0)
+		{
+			OpenHOI3.Sim.Provinces.CProvince capital = state.Province(country.ActingCapital);
+			ClausewitzNode? passed = save.Get(country.ActingCapital.ToString(CultureInfo.InvariantCulture))?.Get("throughput");
+			Console.WriteLine($"   {"passed by the capital",-30} supplies {capital.SupplyThroughput[EGoods.Supplies]} / "
+				+ $"{Number(passed?.GetString("supplies"))}   fuel {capital.SupplyThroughput[EGoods.Fuel]} / {Number(passed?.GetString("fuel"))}");
+		}
+		// What the first screen shows of supplies: the top bar's figure, its ledger tooltip and the production screen's line.
+		Console.WriteLine($"   {"top bar, supplies",-30} {OpenHOI3.Interface.Screens.CTopBarText.Goods(state, country, EGoods.Supplies)}");
+		Console.WriteLine($"   {"its tooltip",-30} "
+			+ OpenHOI3.Interface.Tooltips.CTopBarTooltips.Ledger(localise, country, EGoods.Supplies).TrimEnd('\n').Replace("\n", " | "));
+		Console.WriteLine($"   {"production screen, supplies",-30} {OpenHOI3.Interface.Screens.CProductionScreenText.Goods(state, country, EGoods.Supplies)}");
 		Console.WriteLine();
 	}
 

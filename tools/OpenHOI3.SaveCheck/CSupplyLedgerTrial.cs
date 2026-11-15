@@ -173,7 +173,7 @@ internal static class CSupplyLedgerTrial
 		static string P(CGoodsPool pool) => W(pool[EGoods.Supplies].Raw) + "/" + W(pool[EGoods.Fuel].Raw);
 		Console.WriteLine($"{state.Date} {tag} stock {W(totals.Stockpile)}/{W(totals.StockpileFuel)} provinces {W(totals.Provinces)}/{W(totals.ProvincesFuel)} " +
 			$"{change}  home {P(country.HomeProduced)} to {P(country.SentTo)} back {P(country.SentBack)} demand {P(country.UnitDemand)} " +
-			$"drawn {P(country.UnitDrawn)} tradedFor {P(country.TradedFor)} tradedAway {P(country.TradedAway)} convoyedOut {P(country.ConvoyedOut)}");
+			$"usage {P(country.Usage)} tradedFor {P(country.TradedFor)} tradedAway {P(country.TradedAway)} convoyedOut {P(country.ConvoyedOut)}");
 		// The day's pass over its ground: what its units ask for, what was asked of its provinces in all, and the most asked.
 		var held = state.Provinces.Where(p => p.Controller == country.Tag).ToList();
 		var top = held.OrderByDescending(p => p.SupplyDrawn[EGoods.Supplies].Raw).Take(4)

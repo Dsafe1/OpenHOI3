@@ -402,8 +402,25 @@ then, country by country, each unit loses its rotated men and draws (`upkeep.md`
 and 3) and the country makes its supplies and fuel; and what was made is carried tomorrow.
 
 Before the pass every country's counts of the day start from nothing: what its ground's units
-asked for, what left its stockpile for units, what it made away from its capital, what came
-back, and what it paid and was paid for friends' units.
+asked for, **its usage**, what it made away from its capital, what came back, and what it paid
+and was paid for friends' units.
+
+**The usage is one pool, the original's `usage`** (`reversing/findings/FINDINGS-supplypass.md`,
+sections 2 to 4): cleared here, at the head of the day, it takes **what the provinces beside a
+capital take out of it** in the pass (section 12) and **what a unit standing in the capital is
+given** (section 13), and then, in the country's own day, what its industry is charged
+(`production.md`). So the supplies and fuel that leave the stockpile for the network are in it,
+and with them in the day's expense - the Lua's `GetDailyExpense` and `GetDailyBalance` (`lua.md`,
+section 4.2), the top bar's colour and ledger (`topbar.md`, sections 2 and 14), the production
+screen's bracket (`productionscreen.md`, section 2) - and in a save's `usage`. Nothing else is
+kept of them. A new game's first screen shows the second day's usage, and a loaded game the
+save's: entering a game puts nothing into it. **Measured**, `firstdays` with a new game's two days
+run: the 1936 start save's `usage` supplies for Germany 92.666, Britain 75.262 and Ireland 0.300,
+the save's each, and `write ... new` 52 of 70 countries' `usage` supplies the save's (the rest
+not chased: the network's own differences, section 17, reach the capital's takes); at 1941.12.11 Britain's 178.246 to the
+save's 178.293 and Germany's 775.131 to 697.444. Until 2026-11-15 this project kept the capital's
+takes in a pool of its own, left them out of the expense and the save, and put an estimate of the
+units' daily use in their place as a game was entered.
 
 **Measured once, before the pass**, for every province of land somebody holds:
 
@@ -452,7 +469,8 @@ where supplies come from. Any other:
            offered = offered x (asked / what was asked of it yesterday)     at most all
 
    What is taken counts as asked of that province and as passed by it, and arrives **less the
-   loss**.
+   loss**. Taken out of a province that is its controller's acting capital, it is taken out of
+   that country's stockpile and **counted in its usage** (section 11).
 2. **What it still wants is asked** of the nearer provinces in equal shares, each as far as it
    has room to pass more today.
 3. **What is left after that** is asked of them one after another, each up to all it can pass
@@ -562,7 +580,8 @@ supplies too many at 1941.6.22 once the exiles had any to pay with.
     given     = the least of that and what the unit asks
     received  = given / asked                                    kept by the unit until it next draws
 
-A capital counts no need of its own, so a unit in one is given what it asks while there is any. **Where its pool has
+What a unit standing in the holder's acting capital is given - its fuel only where it burns it, below - is counted in
+the holder's **usage** (section 11). A capital counts no need of its own, so a unit in one is given what it asks while there is any. **Where its pool has
 gone below nought** - a capital's pool is its country's stockpile, charged whatever it holds during the day - the need
 of nought makes the share's division the original's fixed-point division by nought, which answers -1: the unit's share
 is the pool's size over a thousand, truncated, so it gets nearly nothing, and nothing fails. Read 2026-10-16 after the

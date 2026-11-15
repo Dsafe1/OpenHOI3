@@ -57,12 +57,13 @@ public static class CTopBarText
 	/// What went out of a good today, as the original sums it (<c>topbar.md</c>, section 2): what went to the units,
 	/// less what was repaid on debts and less tribute sent, and what was used, converted, convoyed and traded away.
 	/// Tribute sent is held below nought, so taking it away adds it; a repayment is held above nought and is taken
-	/// away all the same - the original's, kept (<c>docs/enhanced.md</c>). Our two pools of what went to the units
-	/// are the original's one.
+	/// away all the same - the original's, kept (<c>docs/enhanced.md</c>). "What went to the units" is the supplies and
+	/// fuel made away from the capital; what left the capital for the network and its units is in what was used.
+	/// It is the original's daily expense (<see cref="CDailyLedger.Expense"/>).
 	/// </summary>
 	public static CFixedPoint DayOut(CCountry country, EGoods goods)
 	{
-		return country.SentTo[goods] + country.UnitDrawn[goods] - RepaidAway(country, goods) - country.TributeSent[goods]
+		return country.SentTo[goods] - RepaidAway(country, goods) - country.TributeSent[goods]
 			+ country.Usage[goods] + country.ConversionUsed[goods] + country.ConvoyedOut[goods] + country.TradedAway[goods];
 	}
 

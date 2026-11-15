@@ -562,7 +562,7 @@ public class BuildQueueTests
 		Assert.Equal(CFixedPoint.FromInt(100), COfficers.Needed(country));
 		// It asks and is given out of the capital, though it does not stand there.
 		Assert.Equal(CFixedPoint.Parse("0.500"), country.UnitDemand[EGoods.Supplies]);
-		Assert.Equal(CFixedPoint.Zero, country.UnitDrawn[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Zero, country.Usage[EGoods.Supplies]);
 		Assert.Equal(CFixedPoint.Parse("9.500"), state.Province(Berlin).Pool[EGoods.Supplies]);
 		Assert.Equal(CFixedPoint.FromInt(30), country.Deployments[0].SubUnits[0].Strength);    // and no men go home from it
 	}

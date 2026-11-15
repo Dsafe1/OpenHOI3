@@ -357,6 +357,42 @@ public class ProductionTests
 		Assert.Equal(CFixedPoint.Parse("1.795"), croatia.Usage[EGoods.Metal]);
 	}
 
+	[Fact]
+	public void IndustryAddsToTheUsageTheSupplyPassBeganAndDoesNotClearIt()
+	{
+		// The original clears the usage at the head of the day, before the supply pass, which books into it what the
+		// network and the units took out of the capital; industry's charge comes on top (supply.md, section 11).
+		CCountry croatia = Country("CRO", 1);
+		CGameState state = State(new[] { croatia }, new[] { Land(1, "CRO") });
+		SetShares(croatia, 5243, 6553, 5243, 5243, 5243, 5243);
+		Stock(state.Province(1).Pool);
+		CIndustrialCapacity.Update(state);
+		croatia.Usage[EGoods.Supplies] = CFixedPoint.FromInt(7);
+		croatia.Usage[EGoods.Fuel] = CFixedPoint.FromInt(2);
+
+		CProduction.RunDaily(state);
+
+		Assert.Equal(CFixedPoint.FromInt(7), croatia.Usage[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.FromInt(2), croatia.Usage[EGoods.Fuel]);
+		Assert.Equal(CFixedPoint.Parse("1.795"), croatia.Usage[EGoods.Metal]);
+		// And the day's expense, the Lua's GetDailyExpense, counts both.
+		Assert.Equal(7000, CDailyLedger.Expense(croatia, EGoods.Supplies));
+	}
+
+	[Fact]
+	public void EnteringAGameLeavesTheUsageAsTheDayOrTheSaveLeftIt()
+	{
+		// The original's first screen shows the second day's usage, and a loaded game the save's: entering estimates the
+		// units' need for the sliders, and puts nothing into the usage.
+		CCountry croatia = Country("CRO", 1);
+		CGameState state = State(new[] { croatia }, new[] { Land(1, "CRO") });
+		croatia.Usage[EGoods.Supplies] = CFixedPoint.Parse("697.444");
+
+		CProduction.Estimate(state);
+
+		Assert.Equal(CFixedPoint.Parse("697.444"), croatia.Usage[EGoods.Supplies]);
+	}
+
 	// --- running short ---
 
 	[Fact]

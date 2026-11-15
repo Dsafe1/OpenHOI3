@@ -158,12 +158,32 @@ public class SupplyPassTests
 		CSupplyPass.RunDaily(state);
 		Assert.Equal(CFixedPoint.Parse("2.05"), Supplies(state, near));
 		Assert.Equal(CFixedPoint.Parse("97.9"), Supplies(state, berlin));
-		Assert.Equal(CFixedPoint.Parse("2.1"), germany.UnitDrawn[EGoods.Supplies]);
+		// What is taken out of the capital is taken out of the stockpile, and booked as the country's usage.
+		Assert.Equal(CFixedPoint.Parse("2.1"), germany.Usage[EGoods.Supplies]);
 		Assert.Equal(CFixedPoint.Parse("2.1"), state.Province(berlin).SupplyThroughput[EGoods.Supplies]);
 
 		// And the third day it reaches the division's province.
 		CSupplyPass.RunDaily(state);
 		Assert.Equal(CFixedPoint.Parse("2"), Supplies(state, far));
+	}
+
+	[Fact]
+	public void The_usage_starts_from_nothing_at_the_head_of_the_day()
+	{
+		int berlin = Land(Ger, industry: 5);
+		int near = Land(Ger);
+		Join(berlin, near);
+		CCountry germany = Country(Ger, berlin);
+		CGameState state = State();
+		state.Province(berlin).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+		// Yesterday's industry and capital takes are gone before the pass: the original's ClearDailyPools.
+		germany.Usage[EGoods.Metal] = CFixedPoint.FromInt(9);
+		germany.Usage[EGoods.Supplies] = CFixedPoint.FromInt(9);
+
+		CSupplyPass.RunDaily(state);
+
+		Assert.Equal(CFixedPoint.Zero, germany.Usage[EGoods.Metal]);
+		Assert.Equal(CFixedPoint.Zero, germany.Usage[EGoods.Supplies]);
 	}
 
 	[Fact]

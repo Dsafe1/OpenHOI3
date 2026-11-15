@@ -93,6 +93,7 @@ public static class CSupplyDraw
 		}
 
 		CCountry? holder = state.Country(here.Controller);
+		// What a unit standing in the holder's capital is given leaves the holder's stockpile, and is booked as its usage.
 		bool inCapital = holder is not null && holder.ActingCapital != 0 && holder.ActingCapital == unit.Location;
 
 		if (supplies < 1)
@@ -106,7 +107,7 @@ public static class CSupplyDraw
 			unit.SuppliesReceived = new CFixedPoint(share);
 			if (inCapital)
 			{
-				CSupplyPass.Add(holder!.UnitDrawn, EGoods.Supplies, given);
+				CSupplyPass.Add(holder!.Usage, EGoods.Supplies, given);
 			}
 			CSupplyPass.Add(here.Pool, EGoods.Supplies, -given);
 		}
@@ -126,7 +127,7 @@ public static class CSupplyDraw
 				CSupplyPass.Add(here.Pool, EGoods.Fuel, -given);
 				if (inCapital)
 				{
-					CSupplyPass.Add(holder!.UnitDrawn, EGoods.Fuel, given);
+					CSupplyPass.Add(holder!.Usage, EGoods.Fuel, given);
 				}
 			}
 		}

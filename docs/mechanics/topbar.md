@@ -266,9 +266,12 @@ its own.** Each key ends in its own newline. Last, a newline and the sources
 of the good's global kind - `global_energy`, `global_metal`, `global_rare_materials`,
 `global_crude_oil`, `global_fuel`, `global_supplies`, `global_money`.
 
-*Ours:* the ledgers section 2 has, all of its lines since 2026-11-13, debt's and tribute's among them;
-`RES_INTO_NET` is what left the stockpile for units and what was made away from the capital, the two pools this
-project keeps of what the original keeps as one.
+*Ours:* the ledgers section 2 has, all of its lines since 2026-11-13, debt's and tribute's among them.
+**`RES_INTO_NET` is `sent_to`, what was made away from the capital, and `RES_USED` is the whole `usage`** - industry's,
+and the supplies and fuel the network and the units took out of the capital (`supply.md`, section 11), which the
+original books into `usage` (`reversing/findings/FINDINGS-supplypass.md`, sections 3 and 4; the record names the pool
+each line loads). Until 2026-11-15 this project kept the capital's takes in a pool of its own and wrote them under
+`RES_INTO_NET`; the change and the colour came out the same, the two lines did not.
 
 **IC.** `IC_NUMBER_IRO` with `WASTED`, `BASE` and `AVAILABLE` - section 3's three figures, whole;
 where technology adds to IC, `FROM_TECHNOLOGY` + `": §G+"` + it x 100 to two places + `"%§W\n"`;

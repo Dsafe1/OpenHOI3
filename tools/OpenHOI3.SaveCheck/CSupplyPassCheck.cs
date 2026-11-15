@@ -308,7 +308,7 @@ internal static class CSupplyPassCheck
 			foreach ((string name, CGoodsPool ours, string key) in new[]
 			{
 				("made", country.HomeProduced, "home"), ("made away from the capital", country.SentTo, "to"),
-				("come back", country.SentBack, "back"), ("left the stockpile for units", country.UnitDrawn, "usage"),
+				("come back", country.SentBack, "back"), ("used, the capital's takes among it", country.Usage, "usage"),
 			})
 			{
 				Console.WriteLine($"   {name,-30} supplies {ours[EGoods.Supplies]} / {Number(node?.Get(key)?.GetString("supplies"))}"
@@ -389,7 +389,7 @@ internal static class CSupplyPassCheck
 					}
 					Console.WriteLine($"{country.Tag} day {day + 3}: stockpile {stockpile[EGoods.Supplies]}, in its provinces {inProvinces}, "
 						+ $"made {country.HomeProduced[EGoods.Supplies]} (away {country.SentTo[EGoods.Supplies]}), "
-						+ $"back {country.SentBack[EGoods.Supplies]}, out to units {country.UnitDrawn[EGoods.Supplies]}, "
+						+ $"back {country.SentBack[EGoods.Supplies]}, used {country.Usage[EGoods.Supplies]}, "
 						+ $"asked by units {country.UnitDemand[EGoods.Supplies]}");
 				}
 			}
