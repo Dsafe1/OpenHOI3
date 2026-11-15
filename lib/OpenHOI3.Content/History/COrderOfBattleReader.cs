@@ -26,6 +26,9 @@ public static class COrderOfBattleReader
 	private const string Directory = "history/units";
 	private const string Regiment = "regiment";
 
+	/// <summary>The line naming the country that lent a unit.</summary>
+	private const string ExpeditionaryOwner = "expeditionary_owner";
+
 	/// <summary>The keywords that declare a unit, and what each makes.</summary>
 	private static readonly Dictionary<string, EUnitKind> UnitKinds = new(StringComparer.OrdinalIgnoreCase)
 	{
@@ -118,6 +121,10 @@ public static class COrderOfBattleReader
 					made.Add(unit);
 				}
 			}
+			else if (ReadPairBlock(state, country, entry, reading))
+			{
+				// What the country holds of another, as the file gives it - as a new game's reading takes it.
+			}
 			else if (entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
 			{
 				warn($"{country.Tag}: '{file}' has a line of the build queue, which a game under way does not take from such a file");
@@ -125,6 +132,10 @@ public static class COrderOfBattleReader
 		}
 		state.LastUnitId = reading.LastId;
 		Report(warn, reading.UnknownLeaders, UnknownLeadersReport);
+		foreach (CUnit unit in made)
+		{
+			AddLent(unit, tag => state.Country(tag));
+		}
 		var waiting = new Stack<CUnit>(made);
 		while (waiting.Count > 0)
 		{
@@ -156,10 +167,15 @@ public static class COrderOfBattleReader
 	/// Where a new game is told each unit the file leaves unnamed that the original names as a game is entered - an air
 	/// group aboard a carrier as its block closes, a unit at the top of the file as it is added - in that order.
 	/// </param>
+	/// <param name="state">
+	/// The game the files are read into, for a block under another country's tag (<see cref="ReadPairBlock"/>); none
+	/// reports such a block as not understood.
+	/// </param>
 	public static int Read(CDirectorySettings directories, IEnumerable<CCountry> countries,
 		IReadOnlyDictionary<string, CSubUnitType> unitTypes, IReadOnlyDictionary<string, CTechnology> technologies,
 		int provinceCount, Action<string>? warn = null, Func<CCountry, CSubUnitType, string>? nameSubUnit = null,
-		List<(CCountry Country, CUnit Unit)>? unnamed = null, IReadOnlyDictionary<int, Sim.Leaders.CLeader>? leaders = null)
+		List<(CCountry Country, CUnit Unit)>? unnamed = null, IReadOnlyDictionary<int, Sim.Leaders.CLeader>? leaders = null,
+		CGameState? state = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var reading = new CReading(unitTypes, technologies, provinceCount)
@@ -222,10 +238,24 @@ public static class COrderOfBattleReader
 				{
 					reading.NotApplied.Add(entry.Key);
 				}
-				else
+				else if (!ReadPairBlock(state, country, entry, reading))
 				{
 					reading.UnknownKeys.Add(entry.Key);
 				}
+			}
+		}
+
+		// Each lent unit on its lender's list, in the order the files were read, as a save's reader puts them.
+		var byTag = new Dictionary<CCountryTag, CCountry>();
+		foreach (CCountry country in countries)
+		{
+			byTag.TryAdd(country.Tag, country);
+		}
+		foreach (CCountry country in countries)
+		{
+			foreach (CUnit unit in country.Units)
+			{
+				AddLent(unit, tag => byTag.GetValueOrDefault(tag));
 			}
 		}
 
@@ -268,6 +298,24 @@ public static class COrderOfBattleReader
 		}
 	}
 
+	/// <summary>
+	/// A block under another country's tag, which the original's reader - the country's own loader, an order of battle being
+	/// read as a piece of a country's save block - takes as what the country holds of that one, key by key: so Their Finest
+	/// Hour's German files of 1941 and after, opening with <c>SWE = { military_access = yes }</c>, give Germany leave to
+	/// pass through Sweden, as the 1941 bookmarks' start saves hold (<c>docs/mechanics/units.md</c>, section 3). Answers
+	/// whether the entry was such a block.
+	/// </summary>
+	private static bool ReadPairBlock(CGameState? state, CCountry country, ClausewitzNode entry, CReading reading)
+	{
+		if (state is null || !entry.IsBlock || entry.Key is not { Length: CCountryTag.Length } key
+			|| !CCountryTag.TryParse(key, out CCountryTag tag) || state.Country(tag) is not { } other)
+		{
+			return false;
+		}
+		Saves.CSaveStatus.Apply(state, CGameState.Status(country, other), entry, unknown => reading.UnknownKeys.Add($"{key}/{unknown}"));
+		return true;
+	}
+
 	/// <summary>Ours: the original passes them over in silence.</summary>
 	private const string UnknownLeadersReport =
 		"leaders named in orders of battle are declared by no file and were passed over, as the original passes them over";
@@ -277,6 +325,19 @@ public static class COrderOfBattleReader
 		if (found.Count > 0)
 		{
 			warn($"{found.Count} {what}: {string.Join("; ", found)}");
+		}
+	}
+
+	/// <summary>A unit and every one under it that a file says was lent, put on its lender's list, the unit first.</summary>
+	private static void AddLent(CUnit unit, Func<CCountryTag, CCountry?> country)
+	{
+		if (unit.Lender is { } lender && country(lender) is { } owner)
+		{
+			owner.LentUnits.Add(unit);
+		}
+		foreach (CUnit child in unit.Children)
+		{
+			AddLent(child, country);
 		}
 	}
 
@@ -509,6 +570,14 @@ public static class COrderOfBattleReader
 				else if (key.Equals("is_reserve", StringComparison.OrdinalIgnoreCase))
 				{
 					unit.IsReserve = IsYes(entry.Value);
+				}
+				else if (key.Equals(ExpeditionaryOwner, StringComparison.OrdinalIgnoreCase)
+					&& CCountryTag.TryParse(entry.Value, out CCountryTag lender))
+				{
+					// A unit the file says another country lent: its lender's in its figures and in what it draws, the
+					// original's unit loader taking the line from a history file as from a save - Their Finest Hour's
+					// German, British and Finnish files of 1940 on (expeditions.md, section 4; supply.md, section 13).
+					unit.Lender = lender;
 				}
 				else if (!UnitKeysNotKept.Contains(key))
 				{

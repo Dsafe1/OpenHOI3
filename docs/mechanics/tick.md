@@ -107,6 +107,15 @@ landing on one hour. `confirmed` A second per-country gate fires at the hour equ
    alignment, and the rebels' dissent being held at zero. **Its convoys sail early in it,
    before its units draw, and are made, unmade and given their ships late in it**, after the
    day's production. Built: `convoys.md`, section 10.
+
+   **Here each step runs for every country in turn**, where the original runs every step of one
+   country's day before the next country's. That is the same wherever a country's day reads only
+   itself; **where it reads another country, the countries after it in the order have not had their
+   day yet**. The alignment's step is the one built so (`alignment.md`, section 3): it is taken beside
+   the surrender, a country at a time, reading the IC and the factions the earlier countries' days have
+   left and the IC from before the day for itself and the later ones. And the most-threatening country
+   (step 2's, with the neighbours) is worked out before any country's modifier is made, as the original's
+   pass before the countries' days has it - the `neutrality` static reads the threat from it.
 4. Per province: the province's daily work.
 5. **Events**: every country's candidate events are tried against their mean time to
    happen. See the note below - this is not where the candidates come from.

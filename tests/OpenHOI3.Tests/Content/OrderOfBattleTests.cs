@@ -218,6 +218,37 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
+	public void ABlockUnderAnotherCountrysTagIsWhatTheCountryHoldsOfIt()
+	{
+		Dictionary<string, CSubUnitType> types = Types();
+		Dictionary<string, CTechnology> technologies = Technologies(types);
+		CCountries countries = CCountries.Load(Directories, CLocalisation.Load(Directories), _warnings.Add);
+		CCountry a = countries.Find("AAA")!;
+		CCountry b = countries.Find("BBB")!;
+		var state = new CGameState(new CDate(1941, 6, 22), new[] { new OpenHOI3.Sim.Provinces.CProvince(0, "", isSea: false) },
+			new[] { a, b });
+		CGameState.Status(a, b).Relation = CFixedPoint.FromInt(10);
+		Write("history/units/a.txt", """
+			BBB = { military_access = yes threat = 4 shininess = 1 }
+			division = { name = "Known" location = 12 regiment = { type = foot_brigade historical_model = 1 } }
+			""");
+		a.OrderOfBattleFile = "a.txt";
+
+		COrderOfBattleReader.Read(Directories, countries.Declared, types, technologies, provinceCount: 100, _warnings.Add,
+			state: state);
+
+		// As the original's country loader reads a save's pair block, key by key: Their Finest Hour's German files of 1941
+		// and after open with SWE = { military_access = yes }. What the block does not name is left as it was.
+		Assert.True(CGameState.Status(a, b).HasMilitaryAccess);
+		Assert.False(CGameState.Status(b, a).HasMilitaryAccess);
+		Assert.Equal(CFixedPoint.FromInt(4), CGameState.Status(a, b).Threat);
+		Assert.Equal(CFixedPoint.FromInt(10), CGameState.Status(a, b).Relation);
+		Assert.Single(a.Units);
+		string warning = Assert.Single(_warnings, w => w.Contains("not understood"));
+		Assert.Contains("BBB/shininess", warning);
+	}
+
+	[Fact]
 	public void AKeyNothingKnowsIsReported()
 	{
 		Write("units/odd.txt", "odd_brigade = { type = land max_strength = 30 shininess = 4 swamp = { attack = 1 } }\n");
@@ -468,6 +499,28 @@ public class OrderOfBattleTests : IDisposable
 		Assert.Equal(4, second.Units[0].Id);
 		Assert.Equal(4, last);
 		Assert.Equal(new CCountryTag("BBB"), second.Units[0].Owner);
+	}
+
+	[Fact]
+	public void AUnitTheFileSaysAnotherCountryLentIsItsLendersAndOnItsLendersList()
+	{
+		(CCountry first, CCountry second, _) = Read("""
+			corps = {
+				name = "Corps" location = 1
+				regiment = { type = foot_brigade historical_model = 0 }
+				division = { expeditionary_owner = BBB name = "Lent" location = 1 regiment = { type = foot_brigade historical_model = 0 } }
+				division = { name = "Own" location = 1 regiment = { type = foot_brigade historical_model = 0 } }
+			}
+			""");
+
+		CUnit corps = Assert.Single(first.Units);
+		Assert.Null(corps.Lender);
+		Assert.Equal(new CCountryTag("BBB"), corps.Children[0].Lender);
+		Assert.Equal(new CCountryTag("BBB"), corps.Children[0].FiguresOwner);
+		Assert.Equal(new CCountryTag("AAA"), corps.Children[0].Owner);
+		Assert.Null(corps.Children[1].Lender);
+		Assert.Same(corps.Children[0], Assert.Single(second.LentUnits));
+		Assert.DoesNotContain(_warnings, warning => warning.Contains("expeditionary_owner"));
 	}
 
 	[Fact]

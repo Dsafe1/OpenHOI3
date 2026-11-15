@@ -23,6 +23,62 @@ public static class CSaveStatus
 	};
 
 	/// <summary>
+	/// A pair block laid over what the record already holds, as the original's <c>CDiplomacyStatus::LoadKey</c> takes each key
+	/// it meets and leaves the rest: how an order of battle's block under a country's tag - Their Finest Hour's German files
+	/// of 1941 and after open with <c>SWE = { military_access = yes }</c> - is read, the file going through the country's own
+	/// loader (<c>docs/mechanics/units.md</c>, section 3). The relation held to +-200; military access <c>yes</c> or not; a
+	/// policy only where it names one; any other key handed to <paramref name="unknown"/>.
+	/// </summary>
+	public static void Apply(CGameState state, CDiplomacyStatus status, ClausewitzNode node, Action<string> unknown)
+	{
+		foreach (ClausewitzNode entry in node.Children)
+		{
+			switch (entry.Key)
+			{
+				case "value":
+					status.Relation = CRelations.Clamp(CSaveValues.Fixed(entry.Value));
+					break;
+				case "threat":
+					status.Threat = CSaveValues.Fixed(entry.Value);
+					break;
+				case "military_access":
+					status.HasMilitaryAccess = entry.Value == "yes";
+					break;
+				case "last_send_diplomat":
+					status.DiplomatUntil = CSaveOrders.Hour(entry.Value) ?? long.MinValue;
+					break;
+				case "next_wargoal_date":
+					status.NextWarGoal = CSaveOrders.Hour(entry.Value) ?? long.MinValue;
+					break;
+				case "last_war":
+					status.LastWar = CSaveOrders.Hour(entry.Value);
+					break;
+				case "occupation_policy":
+					if (COccupationPolicies.Find(state, entry.Value?.Trim('"') ?? "") is { } policy)
+					{
+						status.OccupationPolicy = policy.Index;
+					}
+					break;
+				case "debtaction_action":
+					status.AllowDebts = entry.Value == "yes";
+					break;
+				case "debt":
+					status.Debt = CSaveValues.Fixed(entry.Value).Raw;
+					break;
+				case "dailyrepay":
+					status.DailyRepay = CSaveValues.Fixed(entry.Value).Raw;
+					break;
+				default:
+					if (entry.Key is { } key)
+					{
+						unknown(key);
+					}
+					break;
+			}
+		}
+	}
+
+	/// <summary>
 	/// A pair block read: the relation a whole number; military access where written; each date where it is one, else
 	/// none; the policy, none written <c>no_occupation</c>; any other key reported.
 	/// </summary>

@@ -19,11 +19,11 @@ using OpenHOI3.Sim.Units;
 /// Stage 2's run: a new game with the install's Lua and nobody playing, run hour by hour from the start to a year's
 /// first day, with nothing given to it by hand:
 ///
-///   OpenHOI3.SaveCheck headless &lt;install folder&gt; [until year] [savegame ...]
+///   OpenHOI3.SaveCheck headless &lt;install folder&gt; [until year or date] [from=DATE] [savegame ...]
 ///
-/// 1948 with none given. Twice a year it writes each great power's figures and the world's; every day it looks for a
-/// stockpile or a manpower below nought; at the end it tells how long each year took, what fired, what the Lua failed
-/// and what of the script met something not built. Given savegames of the same start, it sets every country's
+/// 1948 with none given; from= makes the game at a later bookmark's date. Twice a year it writes each great power's
+/// figures and the world's; every day it looks for a stockpile or a manpower below nought; at the end it tells how
+/// long each year took, what fired, what the Lua failed and what of the script met something not built. Given savegames of the same start, it sets every country's
 /// stockpile, manpower, officers, influence and technology beside each save as the run reaches its hour. A run that
 /// throws stops there and says where. See <c>docs/mechanics/headless.md</c>.
 /// </summary>
@@ -35,15 +35,33 @@ internal static class CHeadlessTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck headless <install folder> [until year] [savegame ...] [inspect=TAG] [hash] [record=FILE | replay=FILE]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck headless <install folder> [until year or date] [from=DATE] [savegame ...] [inspect=TAG] [hash] [record=FILE | replay=FILE]");
 			return 2;
+		}
+		// from=1941.6.22: the new game made at that date, as the lobby's bookmark of it makes it (bookmarks.md, section 3).
+		CDate? from = null;
+		if (args.FirstOrDefault(a => a.StartsWith("from=", StringComparison.Ordinal)) is { } fromArgument)
+		{
+			if (!CDate.TryParse(fromArgument["from=".Length..], out CDate fromDate))
+			{
+				Console.Error.WriteLine($"'{fromArgument}' is not a date");
+				return 2;
+			}
+			from = fromDate;
 		}
 		CDate end = args.Length > 2 && int.TryParse(args[2], out int year) ? new CDate(year, 1, 1)
 			: args.Length > 2 && CDate.TryParse(args[2], out CDate given) ? given : new CDate(1948, 1, 1);
+		if (from is { } start && end <= start)
+		{
+			Console.Error.WriteLine($"the run would end on {end}, not after its start on {start}: give an end after it");
+			return 2;
+		}
 		string lastInspected = "";
 		var armySeen = new Dictionary<int, string>();
 		// Each midnight, the state's hash part by part (docs/replay.md): two runs of one game should agree on every line.
 		bool hash = args.Contains("hash");
+		// monthly: the snapshot on every month's first day, for a run of a few months.
+		bool monthly = args.Contains("monthly");
 		var armyMarks = new Dictionary<int, (bool Retreating, int Destination)>();
 		string? inspect = args.FirstOrDefault(a => a.StartsWith("inspect=", StringComparison.Ordinal))?["inspect=".Length..];
 		var saves = new List<(long Hour, string Path)>();
@@ -65,7 +83,7 @@ internal static class CHeadlessTrial
 		CMap map = CMap.Load(directories, warnings.Add);
 		var luaReports = new List<string>();
 		using var scripts = new CAiScripts(directories, luaReports.Add);
-		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts);
+		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts, date: from);
 		state.Played.Clear();
 		state.ScriptReport = new CScriptReport();
 		// seed=N: another game of the same start. watch=TAG,TAG: those countries' hold on their land each midnight.
@@ -89,6 +107,20 @@ internal static class CHeadlessTrial
 		var simulation = new CSimulation(state);
 		Console.WriteLine($"a new game, {state.Date}, nobody playing, loaded in {loading.ElapsedMilliseconds} ms; " +
 			$"the Lua with {scripts.Failures} errors, {warnings.Count} warnings while loading");
+		foreach (string warning in warnings.Take(20))
+		{
+			Console.WriteLine($"  warning: {Shorten(warning)}");
+		}
+		// The wars a later start begins with, and its exiles.
+		foreach (var war in state.Wars)
+		{
+			Console.WriteLine($"  war '{war.Name}': {string.Join(" ", war.Attackers)} against {string.Join(" ", war.Defenders)}");
+		}
+		string exiles = string.Join(" ", state.Countries.Where(country => country.InExile).Select(country => country.Tag.Value));
+		if (exiles.Length > 0)
+		{
+			Console.WriteLine($"  in exile: {exiles}");
+		}
 		// The AI recorded to a file as the game runs, or a recording played back in its place, from the first hour
 		// (docs/replay.md). A recording holds only while the rules are the same; a run that adds only what it tells may
 		// replay one.
@@ -117,6 +149,8 @@ internal static class CHeadlessTrial
 		var wars = state.Wars.ToDictionary(war => war, war => $"{string.Join(" ", war.Attackers)} against {string.Join(" ", war.Defenders)}");
 		var living = new HashSet<string>(state.Countries.Where(c => CResources.HoldsCapital(state, c)).Select(c => c.Tag.Value));
 		var happenings = new List<string>();
+		// tell=TAG,TAG: every message whose actor or recipient is one of them, printed as it is raised.
+		string[] told = args.FirstOrDefault(a => a.StartsWith("tell=", StringComparison.Ordinal))?["tell=".Length..].Split(',') ?? Array.Empty<string>();
 		// What ends a country or a war, as it is told: who and to whom.
 		state.PactMessaged += pact =>
 		{
@@ -124,9 +158,20 @@ internal static class CHeadlessTrial
 			{
 				happenings.Add($"{state.Date} {state.Hour}h: {pact.We} {pact.Actor} -> {pact.Recipient}");
 			}
+			if (told.Contains(pact.Actor.Value) || told.Contains(pact.Recipient.Value))
+			{
+				Console.WriteLine($"TELL {state.Date} {state.Hour}h: {pact.We}/{pact.They}/{pact.Other} {pact.Actor} -> {pact.Recipient}");
+			}
 		};
 		// Who took which decision, and when - the AI's foreign minister takes them all, nobody playing.
 		state.DecisionTaken += (decision, scope) => happenings.Add($"{state.Date} {state.Hour}h: {scope.Country} takes {decision.Name}");
+		state.EventFired += (event_, scope) =>
+		{
+			if (scope.Country is { } firedFor && told.Contains(firedFor.Value))
+			{
+				Console.WriteLine($"TELL {state.Date} {state.Hour}h: event {event_.Id} for {firedFor}");
+			}
+		};
 		int luaFailuresBefore = scripts.Failures;
 
 		Snapshot(state);
@@ -134,6 +179,7 @@ internal static class CHeadlessTrial
 		var yearClock = Stopwatch.StartNew();
 
 		int saveIndex = 0;
+		var toldStates = new Dictionary<string, string>(StringComparer.Ordinal);
 		try
 		{
 			while (state.Date < end)
@@ -144,6 +190,22 @@ internal static class CHeadlessTrial
 				{
 					CompareWithSave(state, saves[saveIndex].Path);
 					saveIndex++;
+				}
+				// For tell=: each hour a told country's whole national unity, capital, exile, faction or enemies change, what they
+				// now are.
+				foreach (string tag in told)
+				{
+					if (state.Country(new CCountryTag(tag)) is { } toldCountry)
+					{
+						string now = $"unity {toldCountry.NationalUnity.ToInt()}, capital {toldCountry.Capital}, exile {toldCountry.InExile}, " +
+							$"faction '{toldCountry.Faction}', enemies " + string.Join(" ", state.Countries
+							.Where(other => OpenHOI3.Sim.Countries.CCountryLists.AtWar(state, toldCountry.Tag, other.Tag)).Select(other => other.Tag.Value));
+						if (toldStates.GetValueOrDefault(tag) != now)
+						{
+							Console.WriteLine($"TELL {state.Date} {state.Hour}h: {tag} {now}");
+							toldStates[tag] = now;
+						}
+					}
 				}
 				if (inspect is not null && state.Country(new CCountryTag(inspect)) is { } looked)
 				{
@@ -159,7 +221,9 @@ internal static class CHeadlessTrial
 					if (state.Country(new CCountryTag(tag)) is { } held)
 					{
 						Console.WriteLine($"HOLD {state.Date} {tag} owned {state.Provinces.Count(p => p.Owner == held.Tag)} held {state.Provinces.Count(p => p.Controller == held.Tag)} " +
-							$"unity {held.NationalUnity.Raw} occupied {OpenHOI3.Sim.Wars.CSurrender.Occupied(held)} progress {OpenHOI3.Sim.Wars.CSurrender.Progress(state, held)} war {(state.IsAtWar(held.Tag) ? 1 : 0)}");
+							$"unity {held.NationalUnity.Raw} occupied {OpenHOI3.Sim.Wars.CSurrender.Occupied(held)} progress {OpenHOI3.Sim.Wars.CSurrender.Progress(state, held)} war {(state.IsAtWar(held.Tag) ? 1 : 0)} " +
+							$"supplies {(state.Stockpile(held) is { } heldPool ? Whole(heldPool[EGoods.Supplies]) + " fuel " + Whole(heldPool[EGoods.Fuel]) : "-")} " +
+							$"IC {held.TotalIc} shares {string.Join(" ", held.ProductionShares.Select(share => share.ToThousandths().ToString()))}");
 					}
 				}
 				if (hash)
@@ -170,7 +234,7 @@ internal static class CHeadlessTrial
 				}
 				Below(state, below);
 				Happenings(state, factions, wars, living, happenings);
-				if (state.Date.Day == 1 && state.Date.Month is 1 or 7)
+				if (state.Date.Day == 1 && (monthly || state.Date.Month is 1 or 7))
 				{
 					Snapshot(state);
 				}
@@ -183,7 +247,7 @@ internal static class CHeadlessTrial
 				}
 			}
 			// And where the run ends, unless that was a snapshot's day.
-			if (!(state.Date.Day == 1 && state.Date.Month is 1 or 7))
+			if (!(state.Date.Day == 1 && (monthly || state.Date.Month is 1 or 7)))
 			{
 				Snapshot(state);
 			}

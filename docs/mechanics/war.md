@@ -27,6 +27,15 @@ country** - the original's own flag, which `UpdateAtWarAndEnemies` makes pair by
 not merely while it stands on a side of a war: Italy, alone in its war once Ethiopia has capitulated, is at
 peace. Until 2026-10-20 ours asked the second, and Italy stayed at war for good (`moving.md`, section 21).
 
+**The history's wars stand in the order its passes left them** (`CWarReader.Read`; `FINDINGS-bookmarks.md`, section
+2.2): the original sorts its wars between a standing list and an other list once at the end of each pass, each in the
+files' order, so at a later bookmark a war standing at the defines' start date comes before the bookmark's pass's own,
+and one standing then and ended by the bookmark goes to the back of the finished. *Measured*: the finished wars of all
+four start saves - the Second Italo-Abyssinian War after the Spanish Civil War from 1939 on. The active wars of
+1941.12.11 differ in one pair: the save has `WorldWarII.txt`, which Their Finest Hour overrides, in its alphabetical
+place before `WorldWarIIPacific.txt`, where the layers' listing here puts an expansion's file after the base game's -
+how the original lists the history's folder was not read (events read the base-only files first, as ours does).
+
 **Joining a side** (`CWar::AddAttacker` / `AddDefender`): nothing where the country is there already;
 otherwise it goes **to the front** of the attackers where it leads a real faction, or where it is let
 take the lead (only a call to arms does) and the side's first is a subject; to the front of the defenders
@@ -112,6 +121,21 @@ the type's `on_add` in the actor's scope and **spend one casus belli the actor h
 the goal's type**, silently - where there is one; the `war` effect's further goals and `add_wargoal` are
 only added.
 
+**A history's `war_goal`** (`history/wars`) is added the same way - its entry's Apply is `CWarGoal::AddToWar` itself
+(`CAddWarGoalChange::Apply`, `reversing/findings/FINDINGS-laterstart.md`, section 13) - as the history is replayed, which
+goes through every country's history before the wars' (`reversing/findings/FINDINGS-bookmarks.md`, section 2.2). So **a goal
+whose `is_valid` fails at the date is never added**: at a later start every country already in exile by then has none
+against it (`conquer`'s `government_in_exile = no`), nor one that owns nothing (`exists = yes`), nor France the
+`vichy_war_goal` once its history has set `fr_signs_peace` - a history's `set_country_flag` and `clr_country_flag` are
+read for it. Each goal added stamps the actor's cooldown against the recipient **a month on from the defines' start
+date**, the lobby's hour, at any bookmark; a war over by the date keeps no goal and its stamps all the same. (measured)
+World War II at 1941.6.22 keeps only Germany's `conquer` on the Netherlands and its `barbarossa_war_goal`, of the nine
+its file gives by then, and the four start saves' `next_wargoal_date` are ours pair for pair - Italy's on Ethiopia stamped
+at 1941 and not at 1939, Ethiopia owning nothing then. Until 2026-11-15 every goal was filed unasked, and Germany's on
+Belgium made `has_cb = { type = conquer }` hold for Belgium, which kept `puppet` from France and Britain and cost their
+`protect` of it (`aistrategy.md`, section 13). *Ours*: every goal is asked of the world at the date; how the original's
+three passes of the history come to the same for a goal dated by the defines' start date was not read.
+
 **The text of a goal being set up** (`CWarGoal::BuildSetupText`): `<type>_setup`, ACTOR and RECIPIENT
 as "§Y name §W"; where the text asks for THIRD and none is set, the whole text is
 `WARDIALOG_SELECT_COUNTRY` (which has no text); where it asks for STATE and none is set,
@@ -143,15 +167,23 @@ the bookmarks' start saves of 1939.9.1, 1941.6.22 and 1941.12.11 and the 1936 on
 
 - **The history's wars were replayed with the game's clock at the defines' `start_date`**, whatever the bookmark, and
   each country an entry adds to a side was brought up to date there: its record towards each country then on the other
-  side stamps `last_war` at the start date, and every country then on either side is mobilised, its `initial_mobilization`
+  side stamps `last_war` at the start date, and theirs towards it, and every country then on either side is mobilised, its `initial_mobilization`
   counted from the start date. So at 1936 Italy and Ethiopia have thirty days of it, and **at a later start every country
   at war is mobilised with none left** - no later save has the modifier - and so has no reinforcement bonus over the two
   days (the United States' damaged battleships at 1941.12.11 are the save's to the thousandth only so). The saves'
-  `last_war = "1936.1.1.0"` pairs bear the stamp out - `SPR -> SPA`, `CSX -> JAP`, `IRQ -> ENG`, the joiner's side only;
-  10 of the 1941.12.11 save's 13 are made, the other three (`ITA -> ETH`, `JAP -> VIC`, `VIC -> SIA`) by a rule not found.
+  `last_war = "1936.1.1.0"` pairs bear the stamp out, both ways - `ITA <-> ETH`, `JAP <-> VIC`, `VIC <-> SIA` - and the
+  joiner's side alone where the other side's country owns nothing by the date, `SPR -> SPA`, `CSX -> JAP`, `IRQ -> ENG`:
+  **a save writes no record towards a country owning no province**, so `JAP -> CSX` is held and not written (the
+  original's `AddAttacker` and `AddDefender` bring the joiner and each country on the other side up to date,
+  `FINDINGS-war.md`; *measured*: every `last_war` of all four start saves, 52, 336, 503 and 2 pairs, the saves' own with
+  `OpenHOI3.SaveCheck write <install> new <save> keys=last_war`, since 2026-11-15; 10 of the 1941.12.11 save's 13 before).
   Giving a timed modifier makes the country's modifier again, so every country so mobilised has its modifier made with
-  its ministers before the new game's set-up reaches it (`diplomacy.md`, section 5.3; *inferred* for the side that was
-  there first, from the saves' threat). (`CWarSides.SetFromHistory`.)
+  its ministers before the new game's set-up reaches it (`diplomacy.md`, section 5.3; for the side that was there first
+  shown by the saves' threat and its `last_war`). (`CWarSides.SetFromHistory`.)
+- **The entry's end tells nobody of a change of diplomacy**: `RemoveLandlessCountriesFromWars` calls the war's own removal,
+  which leaves that to its callers, so neither a landless country nor its enemies give up laws a war allowed - the Baltic
+  states keep theirs at both 1941 bookmarks (*measured*; `CWarSides.Leave(..., diplomacyChanged: false)`). Nor does a
+  puppet's leaving its wars: `MakeVassal` tells the overlord and then the vassal once it is all done (section 13).
 - **Then each country, in its turn of the set-up, is brought up to date** - before its laws and its order of battle, so
   its units are made mobilised (`CWarSides.BringUpToDate`, in the loader's turn loop).
 - **The entry ends by taking every country that owns no province and is not in exile off each war it is on**, and out of a
@@ -555,11 +587,18 @@ overlord and stands where the overlord stands on the triangle; **where the overl
 the back, and with it every war the faction's leader fights** - beside the leader, as an attacker only where the war
 is not limited, its relation with each enemy falling by `WARDEC_WAR_DIPLOMACY_HIT` - so **a puppet joins its
 faction leader's wars, not its overlord's**, and with no faction none at all; it becomes a puppet; the relation
-both ways is the overlord's raised by 500, held to 200; and it takes the overlord's government. Nobody is told.
+both ways is the overlord's raised by 500, held to 200; and it takes the overlord's government. Nobody is told. Last,
+the overlord's diplomacy and then the vassal's are changed (`politics.md`, section 9) - the vassal's leaving its wars
+told nobody before - so a vassal now at peace gives up the laws only a war allowed: China, made Japan's puppet on the 1939
+bookmark's first day, ends on `legalistic_restrictions`, `volunteer_army` and `basic_mobilisation` (*measured*).
 `create_vassal` does nothing where TAG is already the scope's puppet or owns nothing.
 
 A faction's members are kept in the order they joined, the history's in the countries' order: the first leads
-(`CFactionMembership`).
+(`CFactionMembership`). **At a later start the history's members stand as its passes reached them**: those of the
+defines' start date in the countries' order, then those the bookmark's own pass made members, in the countries' order
+too (`CHistory.FoldInPasses`, `CCountry.HistoryJoinedLate`; `reversing/findings/FINDINGS-alignment.md`, section 2.5).
+*Measured*: every faction of the 1939.9.1, 1941.6.22 and 1941.12.11 start saves - Poland after Nepal at 1939, the
+United States after Nepal at 1941.12.11.
 
 ## 14. The government in exile and the acting capital
 
@@ -603,15 +642,38 @@ at it, in the countries' order (`CGameStateLoader.BuildWorld`), where the origin
 the history; so the faction a country's government follows is the one it is in at the date. (measured) At 1941.6.22
 it seats Denmark, Norway, Poland, Greece and Yugoslavia in London, as the save has them, and their days of IC go there
 (`stockpile.md`, section 2); with it the 1941 starts' relations, threat, neutrality and the AI's lists of threats,
-rivals and friends came out nearer the saves' (`OpenHOI3.SaveCheck diplomacy` and `aistrategy`). An exile's daily
-income into its own pool - two days of it in each save, Denmark's 7.725 metal - is not made here.
+rivals and friends came out nearer the saves' (`OpenHOI3.SaveCheck diplomacy` and `aistrategy`).
 
 **An exile** never surrenders - its progress is 0; has its occupied land returned by no day; **anything it takes in
 battle goes to its faction's leader**, where the faction has two or more and it is not the leader; ground freed whose
 owner is an exile stays with whoever freed it; may not offer an alliance or be offered one, give or take leave to run
-a debt, lend-lease, or trade unless it owns its seat. Each day **it hands its supplies and fuel to whoever holds its
-seat**, into that country's ledger and the seat's pool; every hour where an enemy holds its seat it moves to its
+a debt, lend-lease, or trade unless it owns its seat; every hour where an enemy holds its seat it moves to its
 leader's.
+
+**An exile's day** (C.5 and C.7; built 2026-11-15) is a country's day, run against its own pool - a country owning a
+province **or in exile** has one, a country owning nothing and in no exile has none:
+
+1. **Its production is collected**: what `base_values`' IC needs - 5 metal, 10 energy, 2.5 rare materials - **whatever
+   it holds**, and the yield of each province it holds in its seat's area or drawing on a depot there, which for an
+   exile seated in its host's capital is none (`resources.md`, section 3). Then its trade, its IC - `base_values`' and
+   the provinces it holds, under its laws, held to what its pool can pay for - and its two conversions.
+2. **Then its supplies and fuel go to whoever holds its seat**, into that country's ledger and the seat's pool, even an
+   enemy holding it - the fuel just converted with them.
+3. **Then its shares**: money from its base IC, consumer goods, supplies made into its own pool - where they wait for
+   the next day's hand-over - reinforcement and upgrades. **Its brigades are upgraded towards its faction leader's
+   level of each technology where that is higher than its own** (`CDistributeUpgrade::Distribute`; `upkeep.md`, section 5),
+   which a new brigade it orders is built at too (`CConstructUnitCommand`, not built here - its queue was deleted).
+4. **Its units draw on a friend's depot for nothing** - no price, nothing traded - the friend counting what they ask as
+   its own units' (`supply.md`, section 13).
+5. **Its pool is held between nothing and 999,999** of each good, after its shares and before its spies [exe]; no
+   province's day touches it.
+
+(measured) Two days of it are each later start save's exile pools: at 1941.6.22 Denmark's and Poland's 7.725 metal,
+9.518 energy, 3.864 rare materials and 0.25 money, and Norway's, Greece's, Yugoslavia's, France's and Belgium's - the last
+two seated in provinces of their own - likewise: every good of all seven at both 1941 dates but France's and Belgium's
+supplies, which miss by the 2.010 that the countries holding their own seat miss by (Ireland at each later start, and
+Denmark, Poland and Greece at 1936; not the exiles'). Belgium's needed the leader's levels: its brigades were brought up
+at its own until then and spent 1.284 IC less on the first day.
 
 **An exile ends**: by `form_government_in_exile = no`; where it leads its faction, at the day's end, leaving the
 faction; and by **the puppet swap**, early in its day - where a country not its enemy, of another faction (two
@@ -703,13 +765,15 @@ The two are enemies **only in its regions**: fleets and air units there fight, a
 - **A pact is one object for both countries**, so when a country is annexed its NAPs, embargoes, influences and
   alignments go for both sides; the original resets the other country's side alone and leaves the annexed one's
   pointing at them, which a later `release` would find. A guarantee a new puppet had is deleted where the original
-  nulls its pointers and keeps the object, which comes back after a save and a load.
+  nulls its pointers and keeps the object, which comes back after a save and a load - and which a save written then
+  holds: the 1939.9.1 start save keeps China's guarantee of the Chinese Communists after China became Japan's puppet in
+  the two days, where a game here writes none (`bookmarks.md`, section 3.1).
 - **The surrender's place in a country's day** beside its convoys, the exile's hand-over beside its conversions,
   and the seat's hourly look beside lend-lease are ours: the original's order of those was not compared.
 - **The ledger of supplies from exiles is made anew each day before the hand-over**; where the original's daily
   reset of its pools falls was not compared. It is kept and shown nowhere yet.
-- **A history goods line is added to the stockpile**, where the original's sets the good: the same where nothing
-  was there, different where two countries' histories share a capital.
+- ~~**A history goods line is added to the stockpile**~~ - set since 2026-11-15, as the original's sets it
+  (`stockpile.md`, section 2).
 - **A unit's place a shattered unit goes to** is its country's seat, where the original also takes the depot of
   the unit's province when that depot's holder is no enemy - which comes first was not read.
 

@@ -80,7 +80,13 @@ public static class CWarSides
 	/// side the pair's war cleared and both brought up to date - which stamps no truce, the two being at peace
 	/// by then. Nothing where it is on neither side.
 	/// </summary>
-	public static void Leave(CGameState state, CWar war, CCountryTag tag)
+	/// <param name="diplomacyChanged">
+	/// Whether each country is then told its diplomacy changed (<see cref="Politics.CLaws.OnDiplomacyChanged"/>), which the
+	/// original's <c>RemoveAttacker</c> and <c>RemoveDefender</c> never do themselves: their callers do it, and two do not at
+	/// all - the end of a new game's entry taking a landless country off its wars, and a puppet made, which tells only the
+	/// overlord and the vassal once it is done (politics.md, section 9).
+	/// </param>
+	public static void Leave(CGameState state, CWar war, CCountryTag tag, bool diplomacyChanged = true)
 	{
 		bool attacking = war.Attackers.Remove(tag);
 		if (!attacking && !war.Defenders.Remove(tag))
@@ -97,10 +103,13 @@ public static class CWarSides
 				BringUpToDate(state, leaver);
 				BringUpToDate(state, enemy);
 				// A change of diplomacy: a country now at peace loses the laws only a war allowed (politics.md, section 9).
-				Politics.CLaws.OnDiplomacyChanged(state, enemy);
+				if (diplomacyChanged)
+				{
+					Politics.CLaws.OnDiplomacyChanged(state, enemy);
+				}
 			}
 		}
-		if (leaver is not null)
+		if (leaver is not null && diplomacyChanged)
 		{
 			Politics.CLaws.OnDiplomacyChanged(state, leaver);
 		}
@@ -176,11 +185,13 @@ public static class CWarSides
 	/// What the history's wars did as they were replayed, before a new game is entered: each country added to a side was
 	/// brought up to date there, with the game's clock at the defines' <c>start_date</c> - so every country at war on the
 	/// date is mobilised already, its <c>initial_mobilization</c> counted from the start date and gone by a later start, and
-	/// each joiner's record towards the countries then on the other side has <c>last_war</c> at the start date
-	/// (war.md, section 4; measured, the bookmarks' start saves). Every country on either side of such a meeting was
-	/// mobilised there and had its modifier made, as giving a timed modifier makes it - the other side's too, which the
-	/// saves' threat shows and their <c>last_war</c> does not (inferred) - and <see cref="CGameState.MobilisedByHistory"/>
-	/// keeps them for the new game's spreading of history threat (diplomacy.md, section 5.3).
+	/// each joiner's record towards the countries then on the other side, and theirs towards it, has <c>last_war</c> at the
+	/// start date - the original's <c>AddAttacker</c> and <c>AddDefender</c> bring both up to date (war.md, section 4;
+	/// measured, the bookmarks' start saves, whose writer leaves out every record towards a country owning nothing, which is
+	/// why only the joiner's side of a war against a country since gone shows). Every country on either side of such a
+	/// meeting was mobilised there and had its modifier made, as giving a timed modifier makes it, and
+	/// <see cref="CGameState.MobilisedByHistory"/> keeps them for the new game's spreading of history threat (diplomacy.md,
+	/// section 5.3).
 	/// </summary>
 	/// <param name="joins">Each country added to a side by the history, and each country then on the other side, in turn.</param>
 	public static void SetFromHistory(CGameState state, IEnumerable<(CCountryTag Joiner, CCountryTag Enemy)> joins)
@@ -192,6 +203,7 @@ public static class CWarSides
 			if (state.Country(joiner) is { } country && state.Country(enemy) is { } other && country != other)
 			{
 				CGameState.Status(country, other).LastWar = start;
+				CGameState.Status(other, country).LastWar = start;
 				state.MobilisedByHistory.Add(joiner);
 				state.MobilisedByHistory.Add(enemy);
 			}
@@ -227,9 +239,11 @@ public static class CWarSides
 			{
 				continue;
 			}
+			// The original's walk calls the war's own removal, which tells nobody of a change of diplomacy: so the laws a
+			// war allowed stay (measured: the Baltic states' and Luxembourg's at both 1941 bookmarks).
 			foreach (CWar war in state.Wars.ToArray())
 			{
-				Leave(state, war, country.Tag);
+				Leave(state, war, country.Tag, diplomacyChanged: false);
 			}
 			if (COfferRules.RealFaction(country))
 			{

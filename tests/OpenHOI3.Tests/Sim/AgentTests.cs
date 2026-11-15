@@ -265,6 +265,33 @@ public class AgentTests
 	}
 
 	[Fact]
+	public void A_new_command_brings_its_days_out_of_the_stockpile_and_holds_no_level_of_its_countrys_technology()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		CSubUnitType type = state.SubUnitTypes[CTheatreHeadquarters.HqBrigade];
+		type.Stats.Values.Set(CUnitSupply.SupplyStatistic, CFixedPoint.One);
+		type.Technologies.Add(new OpenHOI3.Sim.Research.CTechnology("mass_assault", 12, new OpenHOI3.Sim.Modifiers.CModifier("mass_assault")));
+		germany.TechnologyLevels["mass_assault"] = 2;
+		state.Defines.Set(OpenHOI3.Sim.Supply.CSupplyFigures.Military, OpenHOI3.Sim.Supply.CSupplyDay.PoolDays, CFixedPoint.FromInt(15));
+		(CAgent _, CUnit headquarters) = Bound(state);
+		CUnit division = Unit(state, EUnitKind.Division, 2, "infantry_brigade", parent: headquarters);
+		state.Province(6).Pool[OpenHOI3.Sim.Economy.EGoods.Supplies] = CFixedPoint.FromInt(100);
+
+		var command = new CCreateHigherCommand(state, Ger, division.Id);
+		Assert.True(command.MayExecute(state));
+		command.Execute(state);
+
+		// A twentieth of a brigade using one a day, fifteen days of it out of the capital's pool into the division's
+		// province, at no level of mass_assault.
+		CUnit corps = division.Parent!;
+		Assert.Equal(EUnitKind.Corps, corps.Kind);
+		Assert.Equal(0, Assert.Single(corps.SubUnits).TechnologyLevels.GetValueOrDefault("mass_assault"));
+		Assert.Equal(CFixedPoint.Parse("0.75"), state.Province(2).Pool[OpenHOI3.Sim.Economy.EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Parse("99.25"), state.Province(6).Pool[OpenHOI3.Sim.Economy.EGoods.Supplies]);
+	}
+
+	[Fact]
 	public void A_division_goes_under_the_nearest_corps_with_room_for_five()
 	{
 		CGameState state = World();

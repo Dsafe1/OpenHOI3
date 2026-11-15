@@ -215,8 +215,13 @@ front. The least wins, the first of equals. No such province: no headquarters th
 
 **What.** A theatre-level army with the next unit number, and one `hq_brigade` with the number after; the unit counter
 moves on by two. The brigade's home is the province, its experience `unit_start_experience / 5` (at most 100), its
-strength **a fifth of its most** and its highest that; its figures from the country's technology, its name by
-`REGIMENT_NAME`. The army stands in the province and is named `NAMED_THEATHRE` with the name of the theatre's province of
+strength **a fifth of its most** and its highest that; its technologies applied **at nought**, every one - the type is
+set and the technologies applied with nothing between, so the start saves' new headquarters hold no doctrine where their
+countries hold several, and the upgrades bring them up later (corrected 2026-11-15: this said "its figures from the
+country's technology", and the levels were the country's) - its name by `REGIMENT_NAME`. The army is put in the province
+as any land unit entering one is, so **it brings its fifteen days of supplies and fuel out of the stockpile**
+(`supply.md`, section 14): 2.010 supplies for a fifth of an `hq_brigade`, which every country given one in a new game's
+first hour has less on the first screen. It stands in the province and is named `NAMED_THEATHRE` with the name of the theatre's province of
 most `victory points x 10000 + 5000 for a naval base + its IC` (the first of equals) - or, where that name is taken,
 `THEATRE_NAME` numbered as a division is; it is given the best leader where the country assigns them, and looks for a
 battle. The theatre takes it as its headquarters. **Every unit of the country left an orphan** - the units under a
@@ -237,7 +242,13 @@ theatre-level unit that was removed - is put under it.
 
 - **Areas are the supply network's, made whole when a province changes hands** (`supply.md`; `compatibility.md`, entry
   9): the original keeps them and their fronts province by province, so in a running game an area's provinces, and with
-  them its fronts, can be in another order than the original's.
+  them its fronts, can be in another order than the original's. A new game shows it once, at 1939.9.1 (fronts 104 of
+  106): China, made Japan's puppet on the first of the two days, is handed back its cores Japan held (Beiping, Jinan,
+  Pizhou and Shanghai are China's in the save), and the original's `UpdateOwnerAreaOfProvince` takes each out of Japan's
+  area - **flooding what is left again from scratch** where more than a province is left - and puts it into an area of
+  China's. Japan's North China front facing China runs 5272 to 5111 in the save, ours 5111 to 5272, and China's own
+  provinces have runs in ascending order, which a flood cannot make; *likely* this, not built - it would mean keeping
+  the areas province by province - and where the re-flood starts was not read (`FINDINGS-supplynetwork.md`, section 2).
 - **"The first of equals" by the order things were made** where the original goes by memory address: the area a hot
   front faces (3.3), a theatre's areas and its largest (6), and the theatre most of a province's neighbours are in (8).
 - ~~**The theatres are looked after as a step of the hour after every country's units**; the original does each country's

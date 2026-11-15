@@ -64,9 +64,11 @@ public class LaterStartTests
 		Assert.False(C(state, Lit).Mobilised);
 		// Given at the start date as the history was replayed, for thirty days: long gone.
 		Assert.Empty(C(state, Ger).EventModifiers);
-		// The joiner's record towards the other side has last_war at the start date; the other's has none.
+		// The joiner's record towards the other side has last_war at the start date, and the other's towards it: the
+		// original's AddDefender brings both up to date. Nobody else's.
 		Assert.Equal(new CDate(1936, 1, 1).DayNumber * 24L, CGameState.Status(C(state, Pol), C(state, Ger)).LastWar);
-		Assert.Null(CGameState.Status(C(state, Ger), C(state, Pol)).LastWar);
+		Assert.Equal(new CDate(1936, 1, 1).DayNumber * 24L, CGameState.Status(C(state, Ger), C(state, Pol)).LastWar);
+		Assert.Null(CGameState.Status(C(state, Ger), C(state, Lit)).LastWar);
 		// Both sides had their modifiers made then.
 		Assert.Contains(Ger, state.MobilisedByHistory);
 		Assert.Contains(Pol, state.MobilisedByHistory);

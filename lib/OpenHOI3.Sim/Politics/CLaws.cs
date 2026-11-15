@@ -62,8 +62,9 @@ public static class CLaws
 
 	/// <summary>
 	/// After a change of diplomacy, for a country not at war: each group's law that its <c>allow</c> no longer permits
-	/// gives way to the first other law of the group that it does, posted free with its message - the player's
-	/// country too. A group where none is allowed keeps its law.
+	/// gives way to the <b>last</b> other law of the group, in the file's order, that it does, posted free with its
+	/// message - the player's country too, and silent while the game is being made. A group where none is allowed keeps
+	/// its law.
 	/// </summary>
 	public static void OnDiplomacyChanged(CGameState state, CCountry country)
 	{
@@ -79,9 +80,13 @@ public static class CLaws
 			{
 				continue;
 			}
-			if (group.Laws.Find(law => law != current && IsAllowed(state, country, law)) is { } allowed)
+			// The group's list runs in the reverse of the file's order - each law read is linked in front of the last - so
+			// the walk meets the file's last law first. And a command made while the game is still being made keeps neither
+			// flag: free and silent, as every command the original makes before its game is under way (section 9).
+			if (group.Laws.FindLast(law => law != current && IsAllowed(state, country, law)) is { } allowed)
 			{
-				state.Outbox.Add(new Commands.CChangeLawCommand(country.Tag, allowed.Name, group.Name, payCost: false, postMessage: true));
+				state.Outbox.Add(new Commands.CChangeLawCommand(country.Tag, allowed.Name, group.Name, payCost: false,
+					postMessage: !state.IsBeingMade));
 			}
 		}
 	}

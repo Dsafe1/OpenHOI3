@@ -160,7 +160,7 @@ public class ConversionTests
 	}
 
 	[Fact]
-	public void YesterdaysUsageAndTodaysProductionCountTowardsTheBalance()
+	public void TheDaysFlowsOfEveryPoolCountTowardsTheBalance()
 	{
 		CCountry germany = Country("GER", 1);
 		CGameState state = State(new[] { germany }, Land(1, "GER", industry: 100));
@@ -174,6 +174,30 @@ public class ConversionTests
 		germany.Usage.Clear();
 		germany.HomeProduced[EGoods.CrudeOil] = CFixedPoint.FromInt(3);   // oil coming in counts double against it
 		Assert.Equal(CFixedPoint.FromInt(5), CConversions.EnergyToConvert(germany, pool));
+
+		// Convoyed in and traded for count as home production does, convoyed out and traded away as usage does.
+		germany.HomeProduced.Clear();
+		germany.ConvoyedIn[EGoods.CrudeOil] = CFixedPoint.FromInt(3);
+		Assert.Equal(CFixedPoint.FromInt(5), CConversions.EnergyToConvert(germany, pool));
+		germany.TradedAway[EGoods.CrudeOil] = CFixedPoint.FromInt(3);
+		Assert.Equal(CFixedPoint.FromInt(10), CConversions.EnergyToConvert(germany, pool));
+		germany.TradedFor[EGoods.Energy] = CFixedPoint.FromInt(12);
+		Assert.Equal(CFixedPoint.FromInt(20), CConversions.EnergyToConvert(germany, pool));
+	}
+
+	[Fact]
+	public void TheDayClearsItsUsageBeforeTheConversionReadsItSoYesterdaysIndustryHoldsNothingBack()
+	{
+		// Bhutan's 900 energy against 400 crude oil, and yesterday's industry having used more than the hundred over:
+		// had the usage still stood, nothing would be converted.
+		CCountry bhutan = Country("BHU", 1);
+		CGameState state = State(new[] { bhutan }, Land(1, "BHU", industry: 2));
+		Stock(state.Province(1).Pool, energy: "900", crudeOil: "400");
+		bhutan.Usage[EGoods.Energy] = CFixedPoint.FromInt(200);
+
+		RunADay(state);
+
+		Assert.Equal(CFixedPoint.FromInt(10), bhutan.ConversionUsed[EGoods.Energy]);
 	}
 
 	// --- crude oil into fuel ---
@@ -242,6 +266,12 @@ public class ConversionTests
 		Assert.Equal(CFixedPoint.FromInt(50), CConversions.CrudeOilToRefine(germany, pool));
 		Stock(pool, energy: "0", crudeOil: "300", fuel: "730");
 		Assert.Equal(CFixedPoint.FromInt(50), CConversions.CrudeOilToRefine(germany, pool));
+
+		// What comes in is the day's whole income of crude oil: convoyed in counts beside home production.
+		germany.HomeProduced[EGoods.CrudeOil] = CFixedPoint.One;
+		germany.ConvoyedIn[EGoods.CrudeOil] = CFixedPoint.One;
+		Stock(pool, energy: "0", crudeOil: "300", fuel: "731");
+		Assert.Equal(CFixedPoint.Zero, CConversions.CrudeOilToRefine(germany, pool));
 	}
 
 	[Fact]

@@ -22,8 +22,10 @@ using OpenHOI3.Sim.Economy;
 ///
 /// Every pair block of the save - <c>TAG = { value threat }</c> inside a country's - against the
 /// pair here: the relation as the save writes it, whole and cut toward nought, and the threat to the
-/// thousandth; and each country's neutrality and effective neutrality. See
-/// <c>docs/mechanics/diplomacy.md</c>, section 2.
+/// thousandth; and each country's neutrality and effective neutrality, its place on the alignment triangle and
+/// each faction's members in order. With <c>drifts</c> after the rest a country whose place differs is told as its
+/// first step - where it stood before the two days, the step here and the save's - which is the drift the first
+/// day gave. See <c>docs/mechanics/diplomacy.md</c>, section 2, and <c>alignment.md</c>.
 /// </summary>
 internal static class CDiplomacyCheck
 {
@@ -54,8 +56,18 @@ internal static class CDiplomacyCheck
 		Console.WriteLine($"the install's Lua loaded in {clock.ElapsedMilliseconds} ms, {scripts.Failures} errors");
 		clock.Restart();
 		bool saveLaws = args.Skip(3).Contains("laws=save");
+		// drifts: where each country stood before the two days, so that a miss is told as its step here beside the save's.
+		var starts = new Dictionary<CCountryTag, (long X, long Y)>();
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add,
-			fill: !saveLaws, firstDays: !saveLaws, aiScripts: scripts, date: CStartSave.Date(args[2]));
+			fill: !saveLaws, firstDays: !saveLaws, aiScripts: scripts, date: CStartSave.Date(args[2]),
+			beforeFirstDays: made =>
+			{
+				foreach (CCountry country in made.Countries)
+				{
+					starts[country.Tag] = (country.AlignmentX, country.AlignmentY);
+				}
+			});
+		bool drifts = args.Skip(3).Contains("drifts");
 		if (saveLaws)
 		{
 			// The laws the save has, before the two days: what the original's AI moved as the game
@@ -109,6 +121,13 @@ internal static class CDiplomacyCheck
 			if (savedX == country.AlignmentX && savedY == country.AlignmentY)
 			{
 				alignmentAgrees++;
+			}
+			else if (drifts && starts.TryGetValue(country.Tag, out (long X, long Y) start))
+			{
+				alignmentMisses.Add($"{country.Tag} from ({start.X}, {start.Y}) moved ({country.AlignmentX - start.X}, " +
+					$"{country.AlignmentY - start.Y}) here, ({savedX - start.X}, {savedY - start.Y}) saved; missing " +
+					$"({savedX - country.AlignmentX}, {savedY - country.AlignmentY}); faction '{country.Faction}', " +
+					$"owns {CCountryLists.OwnedCount(state, country.Tag)}{(country.InExile ? " exile" : "")}, base IC {country.BaseIc}");
 			}
 			else
 			{
@@ -182,6 +201,18 @@ internal static class CDiplomacyCheck
 		Show(alignmentMisses, examples);
 		Console.WriteLine($"most-threatening country: {mostAgrees} of {countriesSeen} agree");
 		Show(mostMisses, examples);
+		// Each faction's members in order beside the save's, which every member's place and every outsider's drift hang on.
+		if (save.Get("faction") is { } factions)
+		{
+			foreach (ClausewitzNode faction in factions.Children.Where(child => child.IsBlock && child.Key is not null))
+			{
+				string saved = string.Join(" ", faction.Children.Where(child => child.Key == "country").Select(child => child.Value));
+				string here = string.Join(" ", CCountryLists.FactionMembers(state, faction.Key!).Select(member => member.Tag.Value));
+				Console.WriteLine(saved == here
+					? $"faction {faction.Key}: the save's members, {here}"
+					: $"faction {faction.Key}: {here} here, {saved} saved");
+			}
+		}
 		return relationsAgree == pairs ? 0 : 1;
 	}
 
@@ -204,6 +235,8 @@ internal static class CDiplomacyCheck
 		Console.WriteLine($"{tag} at ({country.AlignmentX}, {country.AlignmentY}), ruling {country.RulingIdeology}, " +
 			$"base IC {country.BaseIc}, total IC {country.TotalIc}, effective neutrality {country.EffectiveNeutrality}");
 		Console.WriteLine($"  drift_speed {country.Modifier[CAlignment.DriftSpeed]}, suseptibility {country.Modifier[CAlignment.Susceptibility]}");
+		Console.WriteLine($"  capital {country.Capital}, acting {country.ActingCapital}, centre ({state.Province(country.ActingCapital).CentreX}, {state.Province(country.ActingCapital).CentreY})");
+		Console.WriteLine("  event modifiers: " + string.Join(", ", country.EventModifiers.Select(given => given.Modifier.Name)));
 		foreach ((CIdeologyGroup group, long[] terms) in CAlignment.Explain(state, country))
 		{
 			Console.WriteLine($"  {group.Name,-10} relation {terms[0]} ideology {terms[1]} proximity {terms[2]} revanchism {terms[3]} " +

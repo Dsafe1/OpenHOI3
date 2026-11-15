@@ -153,6 +153,12 @@ public sealed class CCountry
 	public List<string> HistoryDecisions { get; } = new();
 
 	/// <summary>
+	/// Whether the faction its history put it in it joined in the bookmark's own pass, dated after the defines' start
+	/// date: it is seated behind the members of that date (<c>docs/mechanics/war.md</c>, section 13).
+	/// </summary>
+	public bool HistoryJoinedLate { get; set; }
+
+	/// <summary>
 	/// Where it stands on the alignment triangle, thousandths: its history's point, then where its
 	/// drift takes it. See <c>docs/mechanics/alignment.md</c>.
 	/// </summary>

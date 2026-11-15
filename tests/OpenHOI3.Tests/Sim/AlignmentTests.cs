@@ -1,6 +1,8 @@
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Modifiers;
 
 namespace OpenHOI3.Tests.Sim;
 
@@ -133,5 +135,46 @@ public class AlignmentTests
 		poland.AlignmentY = 150000;
 		Assert.Equal("communism", CAlignment.GroupOf(state, poland)!.Name);
 		Assert.Equal("fascism", CAlignment.GroupOf(state, C(state, ScriptWorld.Ita))!.Name);
+	}
+
+	[Fact]
+	public void A_step_reads_the_days_IC_of_a_country_before_it_and_the_IC_from_before_the_day_of_itself_and_those_after()
+	{
+		CGameState state = State();
+		state.Defines.Set(CAlignment.Section, CAlignment.ProximityWeight, CFixedPoint.Parse("0.03"));
+		CCountry germany = C(state, ScriptWorld.Ger);   // first in the countries' order
+		CCountry poland = C(state, ScriptWorld.Pol);    // second
+		CCountry italy = C(state, ScriptWorld.Ita);     // third
+		germany.BaseIc = 100;
+		poland.BaseIc = 5;
+		italy.BaseIc = 10;
+		var before = CIcAtDayStart.Take(state);
+		germany.BaseIc = 50;
+		poland.BaseIc = 10;
+		italy.BaseIc = 200;
+
+		// Every capital is nought apart, so a member's proximity is its IC over Poland's, whole, x 10 x 0.03: Germany's
+		// day's 50 over Poland's 5 from before the day gives 10, Italy's 10 from before it 2 - the best is 3000. Read at
+		// their present figures it would be Italy's 200 over 10, 6000.
+		Assert.Equal(3000L, CAlignment.Explain(state, poland, before)[0].Terms[2]);
+		Assert.Equal(6000L, CAlignment.Explain(state, poland)[0].Terms[2]);
+	}
+
+	[Fact]
+	public void Influence_counts_only_the_static_among_the_event_modifiers_and_not_a_puppets_from_its_master()
+	{
+		var influence = new CModifier("align_towards_axis");
+		influence.Set(CAlignment.AlignTowards, CFixedPoint.FromInt(20));
+		CGameState state = ScriptWorld.State(groups: Groups(), statics: new[] { influence });
+		CCountry poland = C(state, ScriptWorld.Pol);
+		poland.Overlord = ScriptWorld.Ger;
+		CCountryModifiers.RebuildOne(state, poland);
+		Assert.Contains(poland.ModifierSources, source => source.Modifier.Name == "align_towards_axis");
+
+		Assert.Equal(0L, CAlignment.Explain(state, poland)[0].Terms[6]);
+
+		poland.EventModifiers.Add(CTimedModifier.Given(state, state.FindStaticModifier("align_towards_axis")!, 30));
+		// With both effective neutralities nought: (1000 + 250) x (1000 x 20000 / 1000) / 1000.
+		Assert.Equal(25000L, CAlignment.Explain(state, poland)[0].Terms[6]);
 	}
 }

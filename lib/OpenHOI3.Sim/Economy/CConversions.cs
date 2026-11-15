@@ -49,9 +49,10 @@ public static class CConversions
 			return CFixedPoint.Zero;
 		}
 
-		// Yesterday's usage and today's home production are the flows there are so far.
-		long energyNet = country.HomeProduced[EGoods.Energy].Raw - country.Usage[EGoods.Energy].Raw;
-		long crudeNet = country.HomeProduced[EGoods.CrudeOil].Raw;
+		// The day's flows of each, as the fifteen pools hold them so far: the usage was cleared at the head of the day and
+		// nothing of either is used yet, the conversions' own pools were cleared just now, today's home production is in.
+		long energyNet = CDailyLedger.Net(country, EGoods.Energy);
+		long crudeNet = CDailyLedger.Net(country, EGoods.CrudeOil);
 		long wanted = (stockpile[EGoods.Energy].Raw + energyNet - 2 * (stockpile[EGoods.CrudeOil].Raw + crudeNet))
 			* CFixedPoint.Scale / (CFixedPoint.Scale + rate * 2);
 		if (wanted <= 0)
@@ -94,7 +95,7 @@ public static class CConversions
 			return CFixedPoint.Zero;
 		}
 
-		CFixedPoint comingIn = country.HomeProduced[EGoods.CrudeOil] + country.ConversionMade[EGoods.CrudeOil];
+		CFixedPoint comingIn = new(CDailyLedger.Income(country, EGoods.CrudeOil));
 		if (fuel > comingIn * DaysOfFuel && fuel / 2 > crudeOil)
 		{
 			return CFixedPoint.Zero;

@@ -149,11 +149,11 @@ public static class CTick
 		// Supplies go out along the network before any country's own day, so a unit
 		// draws on what reached its province this morning.
 		Step(state, CSupplyPass.RunDaily);
+		Step(state, CThreat.UpdateMostThreatening);               // before any country's day, as its neighbours are
+		Step(state, Wars.CSurrender.CountVictoryPoints);          // and with them its cores' victory points
 		Step(state, CCountryModifiers.RebuildDaily);           // each country's triggered modifiers tested first
 		Step(state, Politics.CNationalUnity.RunDaily);           // right after a country's modifier (politics.md, section 6)
 		Step(state, Politics.CMinisterPosts.JoinDaily);          // a minister whose start date is today joins the pool
-		Step(state, CThreat.UpdateMostThreatening);               // before any country's day, as its neighbours are
-		Step(state, Wars.CSurrender.CountVictoryPoints);          // and with them its cores' victory points
 		AiStep(state, Ai.CAiStrategies.RunDaily);                   // before a country's day: its strategy, ten days old (aistrategy.md, 1)
 		Step(state, Agreements.CNapBalance.UpdateDaily);          // before a country's day: its pacts' borders
 		Step(state, Countries.CActingCapital.EnsureCapitals);     // at the head of a country's day: a capital it owns,
@@ -162,7 +162,10 @@ public static class CTick
 		Step(state, Agreements.CExpeditions.RunDaily);           // a lent unit past its date goes home (expeditions.md, section 3)
 		Step(state, Agreements.CPactPasses.RunDaily);            // its pacts that have run their course, and influence's upkeep
 		Step(state, Aid.CTechnologySharing.CheckDaily);           // ours: where in the country's day was not placed exactly
-		Step(state, CAlignment.RunDaily);                         // later in it: a step every interval and a day
+		// Later in it, the alignment's step every interval and a day - run below, beside the surrender, because it reads
+		// other countries' IC and factions as a day run a whole country at a time leaves them (alignment.md, section 3):
+		// here every country's IC is noted before the day works it out.
+		CIcAtDayStart icAtDayStart = CIcAtDayStart.Take(state);
 		Step(state, CManpower.RunDaily);
 		Step(state, CLeaders.ActivateDaily);                      // just after its manpower grows
 		Step(state, CLeadership.Update);
@@ -180,15 +183,20 @@ public static class CTick
 		Step(state, Aid.CDebts.RepayDaily);                       // the end of a country's production
 		Step(state, Trade.CTradeRoutes.RunDaily);                 // then each country's trade, before its IC
 		Step(state, CIndustrialCapacity.Update);
-		Step(state, Wars.CExile.HandOverDaily);                   // an exile's supplies to its host, before the shares
+		Step(state, Wars.CExile.HandOverDaily);                   // the ledger of what exiles hand over, made anew (each
+		                                                           // hands its supplies over in its own day, CProduction)
 		Step(state, CProduction.RunDaily);
+		Step(state, Wars.CExile.HoldPoolsDaily);                  // an exile's own pool held within bounds (war.md, 14;
+		                                                           // ours: before its shares of leadership, which take none)
 		Step(state, CLeadership.RunDaily);                        // spies placed with the espionage share,
 		Step(state, Espionage.CSpyMissions.RunDaily);             // and at work after the alignment's step (espionage.md, 5)
 		Step(state, Revolts.CUndergrounds.RunDaily);              // its undergrounds (undergrounds.md, 3),
 		Step(state, Revolts.CRevoltRoll.RunDaily);                // then the roll for a rising, before the elections (rebels.md, 3)
 		Step(state, Politics.CElections.RunDaily);               // an election where one is due, then the seats
 		Step(state, Politics.CCabinet.RunDaily);                 // where the ruling party holds none (politics.md, 4-5)
-		Step(state, Wars.CSurrender.RunDaily);                    // late in a country's day: the surrender,
+		// Late in a country's day: the surrender. Each country's alignment step is taken just before its own surrender,
+		// country by country, so that it sees the surrenders and the IC of the countries before it and not those after.
+		Step(state, s => RunAlignmentAndSurrender(s, icAtDayStart), "CAlignment.RunDaily and CSurrender.RunDaily");
 		Step(state, Wars.CExile.ReturnDaily);                     // and an exile leading its faction coming home
 		Step(state, CConvoyDay.Maintain);                         // late in a country's day
 		Step(state, Economy.CSpareManpower.UpdateDaily);          // at the very end of it, what it has to spare,
@@ -365,6 +373,31 @@ public static class CTick
 			return;
 		}
 		replay.RunStep(state, name, s => Step(s, step, name));
+	}
+
+	/// <summary>
+	/// Each country in turn, in the countries' order: its alignment step, where one is due, and then its surrender. The
+	/// original runs a whole day for one country before the next, so a country's step reads the factions as the
+	/// surrenders of the countries before it left them, and their IC as their day worked it out, while the countries
+	/// after it still have what they had before the day; a surrender that puts a country into a faction on a step's day
+	/// moves every later country's drift and no earlier one's. And a country whose day comes after a surrender of the
+	/// day made its modifier and its effective neutrality at the head of that day with the threat the surrender's war
+	/// goal spread: both are made again for it here, before its step (<c>alignment.md</c>, section 3).
+	/// </summary>
+	private static void RunAlignmentAndSurrender(CGameState state, CIcAtDayStart icAtDayStart)
+	{
+		bool surrendered = false;
+		for (int i = 0; i < state.Countries.Count; i++)
+		{
+			Countries.CCountry country = state.Countries[i];
+			if (surrendered)
+			{
+				CCountryModifiers.RebuildOne(state, country);
+				CNeutrality.UpdateEffective(state, country);
+			}
+			CAlignment.RunDaily(state, country, icAtDayStart);
+			surrendered |= Wars.CSurrender.RunDaily(state, country);
+		}
 	}
 
 	/// <summary>Runs one step of a pass, timed where a tool has asked for a profile.</summary>

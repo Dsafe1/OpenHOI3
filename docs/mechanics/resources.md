@@ -86,8 +86,14 @@ Piece by piece:
   `static_modifiers.txt` gives every country `ic = 5`. That the one follows from the other
   is `inferred`: nothing else in the files is five of anything, and a mod that changes
   `base_values` would settle it.
-- **A country that does not hold its capital produces nothing at home**, not even the fixed
-  amount. (measured: the countries that do not exist yet in 1936 all read zero.)
+- **A country that owns no province and is in no exile produces nothing at home**, not even
+  the fixed amount: it has no day of its own in which production is collected. (measured: the
+  countries that do not exist yet in 1936 all read zero.) **One that owns land or is in exile
+  makes the fixed amount whatever it holds** - `CCountry::CollectDailyProduction` adds it before
+  any province - and a capital it does not hold leaves its provinces cut off, so that is all it
+  makes at home. `confirmed` (`reversing/findings/FINDINGS-surrender.md`, C.5; `war.md`, section
+  14); (measured) every government in exile's `home` in the 1941 start saves is exactly 5, 10
+  and 2.5. Until 2026-11-15 this said a country not holding its capital made nothing.
 - **Money is home production too**, and has its own formula: `stockpile.md`, section 4.
 
 **"Joined to the capital" is "in the capital's area"**, and an area was read on 2026-10-09:

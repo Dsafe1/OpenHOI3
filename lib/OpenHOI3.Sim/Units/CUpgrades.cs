@@ -56,6 +56,32 @@ public static class CUpgrades
 	}
 
 	/// <summary>
+	/// The level of a technology a country's brigades are brought up to, and a new one is built at: its own - or, for a
+	/// government in exile, its faction's first member's where that is higher (<c>docs/mechanics/war.md</c>, section 14;
+	/// <c>reversing/findings/FINDINGS-surrender.md</c>, C.7).
+	/// </summary>
+	public static int EquipmentLevel(CGameState state, CCountry country, string technology) =>
+		EquipmentLevel(country, ExileLeader(state, country), technology);
+
+	/// <summary>The same, with the exile's faction leader looked up beforehand (<see cref="ExileLeader"/>).</summary>
+	public static int EquipmentLevel(CCountry country, CCountry? exileLeader, string technology)
+	{
+		int level = country.TechnologyLevels.GetValueOrDefault(technology);
+		return exileLeader is null ? level : Math.Max(level, exileLeader.TechnologyLevels.GetValueOrDefault(technology));
+	}
+
+	/// <summary>Whose levels a government in exile builds at where they are higher: its real faction's first member, not itself; else none.</summary>
+	public static CCountry? ExileLeader(CGameState state, CCountry country)
+	{
+		if (!country.InExile || !Agreements.COfferRules.RealFaction(country))
+		{
+			return null;
+		}
+		CCountry? leader = state.Country(Agreements.COfferRules.Leader(state, country.Faction));
+		return leader == country ? null : leader;
+	}
+
+	/// <summary>
 	/// What entering a game does with the share: every country's run once, as the original's entry runs the six shares of
 	/// IC and the four of leadership with nothing to share out. Nothing is spent and no equipment moves on, but a doctrine
 	/// costs nothing, so every brigade behind its country in one gains a level - which is how a brigade three levels behind
@@ -81,6 +107,7 @@ public static class CUpgrades
 		long spent = 0;
 		long cost = 0;
 		int upgrading = 0;
+		CCountry? exileLeader = ExileLeader(state, country);
 
 		foreach (CUnit unit in CUnits.InWorkingOrder(country, unit => unit.MayUpgrade, lentFirst: true))
 		{
@@ -96,7 +123,7 @@ public static class CUpgrades
 						continue;
 					}
 					int held = subUnit.TechnologyLevels.GetValueOrDefault(technology.Name);
-					int reached = country.TechnologyLevels.GetValueOrDefault(technology.Name);
+					int reached = EquipmentLevel(country, exileLeader, technology.Name);
 					if (reached <= held)
 					{
 						continue;

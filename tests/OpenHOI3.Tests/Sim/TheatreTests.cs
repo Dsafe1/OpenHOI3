@@ -5,7 +5,10 @@ using OpenHOI3.Sim.Ai;
 using OpenHOI3.Sim.Commands;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Diplomacy;
+using OpenHOI3.Sim.Economy;
+using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
+using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Theatres;
 using OpenHOI3.Sim.Units;
@@ -250,6 +253,29 @@ public class TheatreTests
 
 		Assert.Equal(50, germany.Strategy.Theatres[0].Headquarters);
 		Assert.Single(germany.Units);
+	}
+
+	[Fact]
+	public void A_new_headquarters_brings_its_days_out_of_the_stockpile_and_holds_no_level_of_its_countrys_technology()
+	{
+		CGameState state = World();
+		CCountry germany = state.Country(Ger)!;
+		CSubUnitType type = state.SubUnitTypes[CTheatreHeadquarters.HqBrigade];
+		type.Stats.Values.Set(CUnitSupply.SupplyStatistic, CFixedPoint.Parse("0.67"));
+		type.Technologies.Add(new CTechnology("mass_assault", 12, new CModifier("mass_assault")));
+		germany.TechnologyLevels["mass_assault"] = 3;
+		state.Defines.Set(CSupplyFigures.Military, CSupplyDay.PoolDays, CFixedPoint.FromInt(15));
+		CTheatreBuilder.Build(state, germany);
+		state.Province(6).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+
+		CUnit? made = CTheatreHeadquarters.Make(state, germany, germany.Strategy.Theatres[0], state.Province(3));
+
+		// Fifteen days of a fifth of 0.67, at no level of mass_assault - which would make it a hundredth more a level -
+		// out of the capital's pool, which is the stockpile, into the province.
+		CSubUnit brigade = Assert.Single(made!.SubUnits);
+		Assert.Equal(0, brigade.TechnologyLevels.GetValueOrDefault("mass_assault"));
+		Assert.Equal(CFixedPoint.Parse("2.01"), state.Province(3).Pool[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Parse("97.99"), state.Province(6).Pool[EGoods.Supplies]);
 	}
 
 	[Fact]

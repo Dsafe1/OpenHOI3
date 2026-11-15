@@ -39,9 +39,23 @@ public static class CStrategyProvinces
 			}
 			if (province.StrategicResource.Length > 0)
 			{
-				strategy.ConquerProvinces.Add(province.Id, ConquerWeight, ConquerCap(strategy));
+				AddConquer(state, country, strategy, province.Id, ConquerWeight);
 			}
 		}
+	}
+
+	/// <summary>
+	/// The original's <c>CAIStrategy::AddConquerProv</c>, which everything that adds to the list goes through: nothing
+	/// for a province the country owns itself - so its own land held by an enemy is never on it, whatever the rule that
+	/// asked (aistrategy.md, section 5) - else the weight added and the list cut to its cap.
+	/// </summary>
+	public static void AddConquer(CGameState state, CCountry country, CAiStrategy strategy, int province, int weight)
+	{
+		if (province > 0 && province < state.Provinces.Count && state.Province(province).Owner == country.Tag)
+		{
+			return;
+		}
+		strategy.ConquerProvinces.Add(province, weight, ConquerCap(strategy));
 	}
 
 	/// <summary>

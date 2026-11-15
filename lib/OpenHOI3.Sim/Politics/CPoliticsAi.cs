@@ -44,19 +44,21 @@ public static class CPoliticsAi
 	/// <summary>
 	/// The changes of law a new game's look posted, run once its two first days are, as the original's queue runs them
 	/// after the days - so the days are run under the laws the new game brought forward, and each change then holds the
-	/// country's brigades to the running game's ceilings. Then the look again, and its changes, while a look posts
-	/// something and <see cref="MostLawPasses"/> allows - which is once. Answers how many looks there were, the one
-	/// <see cref="SetUpAtStart"/> made among them; none where nothing was held.
+	/// country's brigades to the running game's ceilings - and after them, in the order they were posted, <b>everything
+	/// else the entry posted</b>, the days' among it: the original's queue holds them behind the look's, and its drain
+	/// asks each whether it may still run before running it. So a country leaving a war in the two days gives up the
+	/// laws only a war allowed (China at the 1939 bookmark), and the AI's sliders set in the days stand on the first
+	/// screen. Then the look again, and its changes, while a look posts something and <see cref="MostLawPasses"/>
+	/// allows - which is once. Answers how many looks there were, the one <see cref="SetUpAtStart"/> made among them;
+	/// none where nothing was held.
 	/// </summary>
 	public static int RunNewGameLaws(CGameState state)
 	{
-		if (state.NewGameLaws.Count == 0)
-		{
-			return 0;
-		}
 		var posted = new List<CCommand>(state.NewGameLaws);
+		int passes = posted.Count > 0 ? 1 : 0;
 		state.NewGameLaws.Clear();
-		int passes = 1;
+		posted.AddRange(state.Outbox);
+		state.Outbox.Clear();
 		while (true)
 		{
 			foreach (CCommand command in posted)
@@ -67,7 +69,7 @@ public static class CPoliticsAi
 				}
 			}
 			state.Outbox.Clear();
-			if (posted.Count == 0 || passes == MostLawPasses || state.AiScripts is null)
+			if (passes == 0 || posted.Count == 0 || passes == MostLawPasses || state.AiScripts is null)
 			{
 				return passes;
 			}

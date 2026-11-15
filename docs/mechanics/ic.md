@@ -162,8 +162,25 @@ IC (`production.md`, section 1) and converts nothing. `confirmed`
 *Ours:* both conversions and the cap are applied each day, in that order around each
 other - energy into crude oil, the cap, crude oil into fuel - before the shares are run.
 
-- The day's net flows are what this project tracks so far: today's home production, less
-  yesterday's usage for energy. The original sums fifteen pools.
+- **The day's net flows are the original's fifteen pools as they stand when the conversion
+  reads them** (`CDailyLedger`; read 2026-11-15): income is home production - and convoyed in,
+  but not for supplies or fuel - what came back, what exiles handed over, debt repaid to it, what
+  was made by turning, traded for and came as tribute; expense is what was sent from the capital,
+  used, turned into another good, convoyed out and traded away, less debt it repaid and the
+  tribute it sent, held below nought. At that moment **the usage holds nothing of either good**:
+  `CCountry::ClearDailyPools` zeroes it, with `sent_to`, `sent_back`, the tribute received and the
+  exiles' hand-over, at the head of the day before the supply pass, and industry uses nothing
+  until the shares run after the conversion; the IC calculation zeroes the conversions' own pools
+  as it begins; and today's home production is in, `CollectDailyProduction` running just before.
+  So yesterday's industry holds nothing back - until 2026-11-15 it did, this project taking
+  yesterday's usage of energy off the balance. The refining's "crude oil coming in" is the same
+  income of crude oil. **Measured:** with it, the 1936 start save's crude oil and energy are 77 of
+  77 countries the save's, where 69 were (the United States had converted on one day of the two
+  where the original converts on both); at the three later starts crude oil is 72, 69 and 69 of
+  the countries the save's where it was 67, 66 and 65, and energy 71, 64 and 62 where it was 65,
+  61 and 58 (`bookmarks.md`, section 3.1). *Ours:* each other pool
+  holds what this project's own day has written by then - convoys, trade, tribute and debts all
+  come earlier in it - which the original's clearing of those pools was not read to confirm.
 - All the fuel goes to the stockpile, as all the supplies do.
 - The original rounds the energy through single-precision floats. Whole thousandths go
   through that unchanged up to about 16,000 units, which the smallest of the three limits
@@ -179,6 +196,8 @@ lower bound, and every country clears it.
 
 ## What is not established, in one place
 
-- which of a country's pools hold **yesterday's figures and which today's** at the moment
-  the energy conversion reads them, which decides the balance term on a day it binds;
+- ~~which of a country's pools hold **yesterday's figures and which today's** at the moment
+  the energy conversion reads them~~ - the usage, the conversions' pools and home production
+  settled 2026-11-15 (section 4); when convoyed, traded, repaid and tribute-sent goods are
+  cleared, not read;
 - whether a history line **sets or adds to** a building level.

@@ -159,6 +159,15 @@ of home production less usage on from the start - and the first daily pass playe
 first midnight, the third. `tick.md`, section 6, has the order, what is different while
 those days run, and the check.
 
+**Two things more leave the stockpile before the first screen** (2026-11-15): every
+headquarters the AI makes in the first hour brings its fifteen days of supplies out of it -
+2.010 for a fifth of an `hq_brigade` (`supply.md`, section 14; `theatres.md`, section 10) - and
+a lent unit's lender pays its host for what it draws (`supply.md`, section 13). And the energy
+conversion balances on the day's own flows, the usage cleared at the head of the day, so a
+country converts on both days where the original does (`ic.md`, section 4). With the three, the
+1936 start save's stockpiles are the save's in every good for every country but supplies in 20
+and fuel in 2 (`firstdays`, **measured**).
+
 ## 4. What a day does to it
 
 The original keeps 23 pools on each country that record a day's movements, and its figures
@@ -213,8 +222,8 @@ Three things about it that matter now:
 - **Supplies and fuel start as section 2 says**, once the units have been made: so many
   days of what they use (`upkeep.md`, sections 1 and 7). War exhaustion is set as the
   original sets it since 2026-11-07 (`warexhaustion.md`).
-- Each day a country that holds its capital has what its provinces produced added to its
-  stockpile. Then every country's shares of IC are run (`production.md`): money and
+- Each day a country that owns a province or is in exile has what it produced at home added to
+  its stockpile - an exile's to its own pool (`resources.md`, section 3; `war.md`, section 14). Then every country's shares of IC are run (`production.md`): money and
   supplies come in, and what consumer goods and supplies cost in metal, energy and rare
   materials goes out.
 - A country that exists also turns energy into crude oil and crude oil into fuel each

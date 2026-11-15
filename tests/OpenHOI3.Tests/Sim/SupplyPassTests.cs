@@ -317,6 +317,32 @@ public class SupplyPassTests
 	}
 
 	[Fact]
+	public void A_government_in_exile_pays_a_friend_nothing_for_what_its_units_draw()
+	{
+		int berlin = Land(Ger, industry: 5);
+		int far = Land(Ger);
+		Join(berlin, far);
+		int rome = Land(Ita, industry: 5);
+		CCountry germany = Country(Ger, berlin, faction: "axis");
+		CCountry italy = Country(Ita, rome, faction: "axis");
+		CUnit division = Division(italy, far);
+		CGameState state = State();
+		italy.InExile = true;
+		italy.PoolInExile[EGoods.Supplies] = CFixedPoint.FromInt(50);
+		state.Province(far).Pool[EGoods.Supplies] = CFixedPoint.FromInt(15);
+		CSupplyPass.RunDaily(state);
+
+		CSupplyDraw.Draw(state, italy, division);
+
+		// Given what it asked, its own pool untouched and nothing booked as traded; the friend counts it as its units' own.
+		Assert.Equal(CFixedPoint.One, division.SuppliesReceived);
+		Assert.Equal(CFixedPoint.FromInt(50), italy.PoolInExile[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Zero, italy.TradedAway[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Zero, germany.TradedFor[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.One, germany.UnitDemand[EGoods.Supplies]);
+	}
+
+	[Fact]
 	public void On_a_depot_held_by_nobodys_friend_a_unit_is_given_nothing()
 	{
 		int berlin = Land(Ger, industry: 5);
@@ -372,6 +398,71 @@ public class SupplyPassTests
 		// No more than there is.
 		Assert.Equal(CFixedPoint.Zero, Supplies(state, berlin));
 		Assert.Equal(CFixedPoint.FromInt(10), Supplies(state, near));
+	}
+
+	[Fact]
+	public void A_unit_from_nowhere_in_a_running_game_on_ground_its_country_owns_brings_its_days_out_of_the_stockpile_whoever_holds_it()
+	{
+		int berlin = Land(Ger, industry: 5);
+		int danzig = Land(Ger);
+		int warsaw = Land(Pol, industry: 5);
+		Join(berlin, danzig, warsaw);
+		_provinces[danzig].Controller = Pol;
+		CCountry germany = Country(Ger, berlin);
+		Country(Pol, warsaw);
+		CUnit division = Division(germany, danzig);
+		CGameState state = State();
+		state.Province(berlin).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+		state.Province(warsaw).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+
+		CSupplyCarry.Bring(state, germany, division, from: 0, into: danzig);
+
+		Assert.Equal(CFixedPoint.FromInt(85), Supplies(state, berlin));
+		Assert.Equal(CFixedPoint.FromInt(100), Supplies(state, warsaw));
+		Assert.Equal(CFixedPoint.FromInt(15), Supplies(state, danzig));
+	}
+
+	[Fact]
+	public void A_unit_from_nowhere_in_a_running_game_on_ground_its_country_holds_and_another_owns_brings_its_days_out_of_the_depot()
+	{
+		int berlin = Land(Ger, industry: 5);
+		int poznan = Land(Pol);
+		Join(berlin, poznan);
+		_provinces[poznan].Controller = Ger;
+		CCountry germany = Country(Ger, berlin);
+		CUnit division = Division(germany, poznan);
+		CGameState state = State();
+		int depot = CSupplyNetworks.Refresh(state).DepotOf(poznan);
+		state.Province(depot).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+
+		CSupplyCarry.Bring(state, germany, division, from: 0, into: poznan);
+
+		Assert.Equal(berlin, depot);
+		Assert.Equal(CFixedPoint.FromInt(15), Supplies(state, poznan));
+		Assert.Equal(CFixedPoint.FromInt(85), Supplies(state, depot));
+	}
+
+	[Fact]
+	public void A_unit_from_nowhere_in_a_running_game_on_ground_neither_its_country_owns_nor_holds_comes_with_nothing()
+	{
+		int berlin = Land(Ger, industry: 5);
+		int warsaw = Land(Pol, industry: 5);
+		Join(berlin, warsaw);
+		CCountry germany = Country(Ger, berlin);
+		Country(Pol, warsaw);
+		CUnit division = Division(germany, warsaw);
+		CGameState state = State();
+		state.Province(berlin).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+		state.Province(warsaw).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+
+		CSupplyCarry.Bring(state, germany, division, from: 0, into: warsaw);
+		Assert.Equal(CFixedPoint.FromInt(100), Supplies(state, berlin));
+		Assert.Equal(CFixedPoint.FromInt(100), Supplies(state, warsaw));
+
+		// Before a game is under way the stockpile pays wherever it stands.
+		CSupplyCarry.Bring(state, germany, division, from: 0, into: warsaw, beforeGame: true);
+		Assert.Equal(CFixedPoint.FromInt(85), Supplies(state, berlin));
+		Assert.Equal(CFixedPoint.FromInt(115), Supplies(state, warsaw));
 	}
 
 	// --- where supplies are made ---

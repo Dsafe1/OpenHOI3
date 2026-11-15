@@ -243,9 +243,21 @@ how the original describes it was not read.
 
 **The peace-time revert.** After any change of diplomacy - here, a country leaving a war (it and each of its enemies
 there), a country joining or leaving a faction, and a puppet made - a country **not at war** has each group's law
-whose `allow` no longer holds replaced by **the first other law of the group whose `allow` does**, posted free and
-with its message, the player's country included; where none holds the law stays. `allow` is asked with the country
-as the scope, no FROM, no province and no chance.
+whose `allow` no longer holds replaced by **the last other law of the group, in the file's order, whose `allow`
+does**, posted free and with its message, the player's country included; where none holds the law stays. `allow` is
+asked with the country as the scope, no FROM, no province and no chance. *Corrected 2026-11-15*: the walk goes down the
+group's own list, which each law read is linked in front of, so it runs from the file's last law back - the list the new
+game's walk of section 13 goes down too (`reversing/findings/FINDINGS-starttech.md`, section 3); this said "the first"
+until then. (measured) China, made Japan's puppet on the 1939 bookmark's first day, gives up `repression`,
+`three_year_draft` and `war_economy` for `legalistic_restrictions`, `volunteer_army` and `basic_mobilisation`, as the
+start save has them, where the file's first allowed would be `limited_restrictions` and `full_civilian_economy`. Made
+while a new game is being made the command keeps neither flag, as every command the original makes before its game is
+under way: free and silent. **Not every leaving of a war is a change of diplomacy**: the original's removal from a side
+leaves that to its caller, and two callers make none - the end of a new game's entry taking a landless country off its
+wars, and a puppet made, which changes the overlord's diplomacy and then the vassal's once it is all done (`war.md`,
+sections 4 and 13). Annexation and the `leave_faction` effect also leave wars by that removal, and the record has no
+change of diplomacy in annexation and one, the country's, in `leave_faction`; ours still tells both sides there, not
+set against anything.
 
 ## 10. Against the start save
 
@@ -393,7 +405,7 @@ A row's flag opens a `DefaultDialog` at its own place and (150, 150), the target
 
 `CCreateVassalCommand` (a country with no land): its cores given by `CRelease`, as `release` does - armies, technology and the news - then the bond, the overlord's place on the triangle, the relation raised 500 both ways and held to 200, the overlord's government where a new country may have it, every post filled, and its faction with its wars where it has a real one. `CLiberateCountryCommand`: every province the exile owns whose holder is in the liberator's faction goes back to it, no owner changing; across factions the same bond, relation, government and faction; `WE_RETURN_EXILE` or `RETURN_EXILE`; and it is no longer in exile. Two countries with no faction count as one.
 
-**Ours**: a list's order follows the provinces' numbers, where the original's follows the owner's list of provinces. **Not built**: the original gives a further alliance where one already stands, not traced as reachable; and the AI's own liberating and puppets, which stay reported as unbuilt (`CLiberateCountryCommand` from Lua, `MayLiberateCountries`, `CanCreatePuppet`).
+**Ours**: a list's order follows the provinces' numbers, where the original's follows the owner's list of provinces. **Not built**: the original gives a further alliance where one already stands, not traced as reachable; ~~and the AI's own liberating and puppets, which stay reported as unbuilt (`CLiberateCountryCommand` from Lua, `MayLiberateCountries`, `CanCreatePuppet`)~~ - built since: Lua's `MayLiberateCountries` and `GetPossibleLiberations`, `CanCreatePuppet` and `GetPossiblePuppets` (the original's name, `lua.md`, section 4) answer the two lists, and `CLiberateCountryCommand` and `CCreateVassalCommand` post these commands. `ITA.lua`'s `HandlePuppets` releases Ethiopia so, which a later start reaches in its first hour, Italy owning Ethiopia's capital (`headless.md`, section 5).
 
 ## 12. The AI's politics
 
@@ -414,7 +426,12 @@ over - `likely` from the reading, which has the posts go to that queue and the q
 supplies under the industrial policy before the change, and 74 countries' brigades are held to the running game's
 ceilings, which only a change of law after the days does. So the days are run under the laws the engine brought forward
 (section 13), and then the changes are made, each holding its country's brigades to the running game's ceilings and
-pricing its build queue again (section 9). **The look is made once** - the original asks the script once in each
+pricing its build queue again (section 9). **Behind them on the queue is everything else the entry posted**, the two days'
+among it, run in the order it was posted, each asked first whether it may still run - the drain asks every command so
+(`CPoliticsAi.RunNewGameLaws`). It was dropped until 2026-11-15. So a country leaving a war in the days gives up the laws
+only the war allowed after the look's changes (China at 1939.9.1: the laws 707 of 707, from 704), and the AI's sliders
+set in the days stand on the first screen (the start save's shares, a look: 34 of 101 countries to five places, from 24 -
+the rest set at the same point from figures that differ). **The look is made once** - the original asks the script once in each
 country's set-up, and each law the script moves goes one step: the 1939.9.1 start save's Soviet Union is one step from
 `volunteer_army`, at `one_year_draft`, where a second look would take it on (*measured*, 2026-11-15). Until then the look
 was repeated until it posted nothing, at most ten times, which gives the 1936 start save the same laws. Each country is
@@ -432,7 +449,19 @@ country's dissent (101 of 101, from 85), national unity (101 of 101, from 99) an
 **Its hour.** Each hour, after the trading, every politics minister in the countries' order: one whose country owns
 land or is in exile counts down to its first work, and from then on is asked every hour, but does something only in
 its country's hour of the day, `(number + 17) mod 24` - *ours*: the number is its place among the countries plus one,
-the original's numbering not read. In that hour, on the 1st, 8th, 15th, 22nd and 29th of the month, it first fills the
+the original's numbering not read; borne out by New Zealand, 79 so, whose minister alone works at hour 0 of both 1941
+bookmarks' start saves (below).
+
+**The hour before the first (not built).** The original's first AI pass runs at the new game's hour 0, the frame after
+its entry, before the first hour is played (`reversing/findings/FINDINGS-government.md`, E.1; `FINDINGS-aisched.md`), so
+a minister whose first countdown is one and whose hour is 0 - Italy's, Portugal's, Guangxi's and New Zealand's by the
+numbering - works then. Both 1941 start saves hold New Zealand's foreign minister, minister of security, chiefs of staff,
+army and navy other than its history's - 55004, 55062, 55007, 55082, 55085, where the history names 55040, 55061, 55059,
+55007 and 55009 - and each is exactly the pick of the script's `OfficeManagement` at war (*measured*: all eight posts it
+manages, scored on the ministers' personalities): the script's one-in-eleven branch, drawn on the AI's own generator.
+Here the ministers first work in the first hour, so the six posts are the history's, 1004 of 1010; building the pass would
+run every minister at hour 0 - next to the units' entry pass of `agents.md`, section 2.1 - and what it posts would hang on
+draws whose seeding is ours. In that hour, on the 1st, 8th, 15th, 22nd and 29th of the month, it first fills the
 empty posts; and then it runs the Lua's `PoliticsMinister_Tick(minister)`. Nothing while a game is being made. A failure
 of the Lua is reported, and ends that day's work.
 
@@ -459,9 +488,10 @@ none**, which is how the rebels are given their laws - whether it is mobilised a
 another by his number, his ideology, his posts and his personality in each; the posts by number; a law's `ValidFor`,
 its `allow`; `CAI:Post` and `CCurrentGameState.Post`; the three commands; and the AI's war plans (`IsPreparingWar`,
 `IsPreparingWarWith`), the wars its foreign minister has prepared since 2026-10-16 (`foreignminister.md`, section 4).
-**Not built, and answering false, each reported once**: its own declarations of war
+~~**Not built, and answering false, each reported once**: its own declarations of war
 (`CanDeclareWar`), its personality (`IsMilitarist`), liberating a country (`MayLiberateCountries`,
-`IsCapitalSafeToLiberate`, and `CLiberateCountryCommand` posts nothing) and releasing a puppet (`CanCreatePuppet`).
+`IsCapitalSafeToLiberate`, and `CLiberateCountryCommand` posts nothing) and releasing a puppet (`CanCreatePuppet`).~~
+All built since (section 11.1; `lua.md`, section 4).
 
 **Kept as the original does them** - do not tidy: each test of the tick draws afresh, and a mobilised country still
 spends its one in seven; at peace every country without its own rule heads for consumer goods; one man may hold two
@@ -521,9 +551,10 @@ reads of the world is what the turns before it have made:
 - **A party's popularity is the history's**, which the lobby's replay left; a democracy at war takes the civil law its ruling
   party's popularity allows (New Zealand's `legalistic_restrictions` at 1939.9.1).
 
-With these and the single look, the laws are 704 of 707 at 1939.9.1 and 707 of 707 at both 1941 dates (674, 635 and 617
+With these and the single look, the laws are 707 of 707 at 1939.9.1 and at both 1941 dates (674, 635 and 617
 before), and the 1936 start save's 707 of 707 as before (`OpenHOI3.SaveCheck politics`). China's three at 1939.9.1 come of
-its surrender on the two days and the laws it gives up after, not settled.
+its surrender on the first day - made Japan's puppet by the war's `puppet` goal - and the laws it gives up with that,
+run behind the look's changes (section 9, the peace-time revert; section 12); 704 of 707 until 2026-11-15.
 
 ## Not established
 

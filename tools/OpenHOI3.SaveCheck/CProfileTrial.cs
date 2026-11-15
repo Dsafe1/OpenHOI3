@@ -13,9 +13,9 @@ using OpenHOI3.Sim.Countries;
 /// A look, not a check: makes a new game as the client does, with the install's Lua and one country
 /// played, runs it as the top speed would and says where the time went:
 ///
-///   OpenHOI3.SaveCheck profile &lt;install folder&gt; [days] [tag]
+///   OpenHOI3.SaveCheck profile &lt;install folder&gt; [days] [tag] [from=DATE]
 ///
-/// Thirty days as Germany with none given. It tells how long the loading took, how long an hour takes
+/// Thirty days as Germany with none given; from= makes the game at a later bookmark's date. It tells how long the loading took, how long an hour takes
 /// on an ordinary hour and on one that turns a day, the slowest hours, and every step of the tick by
 /// the time it took in all. The figures are this machine's and this build's.
 /// </summary>
@@ -25,11 +25,14 @@ internal static class CProfileTrial
 	{
 		if (args.Length < 2)
 		{
-			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag]");
+			Console.Error.WriteLine("usage: OpenHOI3.SaveCheck profile <install folder> [days] [tag] [from=DATE]");
 			return 2;
 		}
 		int days = args.Length > 2 && int.TryParse(args[2], out int given) ? given : 30;
 		string tag = args.Skip(2).FirstOrDefault(a => a.Length == 3 && !int.TryParse(a, out _)) ?? "GER";
+		// from=1941.6.22: the new game made at a later bookmark's date (bookmarks.md, section 3).
+		CDate? from = args.FirstOrDefault(a => a.StartsWith("from=", StringComparison.Ordinal)) is { } fromArgument
+			&& CDate.TryParse(fromArgument["from=".Length..], out CDate fromDate) ? fromDate : null;
 
 		var loading = Stopwatch.StartNew();
 		var warnings = new List<string>();
@@ -39,7 +42,7 @@ internal static class CProfileTrial
 		CMap map = CMap.Load(directories, warnings.Add);
 		using var scripts = new CAiScripts(directories);
 		CGameState state = CGameStateLoader.LoadStart(directories, map, localisation, countries, warnings.Add, aiScripts: scripts,
-			played: new[] { new CCountryTag(tag) });
+			played: new[] { new CCountryTag(tag) }, date: from);
 		state.Played.Clear();
 		state.Played.Add(new CCountryTag(tag));
 		var simulation = new CSimulation(state);

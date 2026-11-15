@@ -272,6 +272,9 @@ public static class CProduction
 	{
 		foreach (CCountry country in state.Countries)
 		{
+			// The usage is counted afresh each day from its head, the original's ClearDailyPools, so the conversions find
+			// nothing of today's in it yet (ic.md, section 4); the conversions' own pools are cleared as the IC is worked out.
+			country.Usage.Clear();
 			country.ConversionUsed.Clear();
 			country.ConversionMade.Clear();
 			country.ReinforcementSpent = CFixedPoint.Zero;
@@ -279,13 +282,11 @@ public static class CProduction
 			country.ProductionSpent = CFixedPoint.Zero;
 			if (state.Stockpile(country) is not { } stockpile || !TakesPart(state, country))
 			{
-				country.Usage.Clear();
 				continue;
 			}
 
 			// The conversions are part of a country's own day, which only a country that
-			// exists has - one owning a province, or a government in exile. The first still
-			// has yesterday's usage to go by.
+			// exists has - one owning a province, or a government in exile.
 			bool exists = Countries.CCountryLists.OwnedCount(state, country.Tag) > 0 || country.InExile;
 			if (exists)
 			{
@@ -310,8 +311,13 @@ public static class CProduction
 			{
 				CConversions.CrudeOilIntoFuel(state, country, stockpile);
 			}
+			// Then an exile's supplies and fuel go to whoever holds its seat - the fuel just made with them - before its
+			// shares make the day's supplies, which wait for the next day (war.md, section 14).
+			if (country.InExile)
+			{
+				Wars.CExile.HandOverSupplies(state, country);
+			}
 
-			country.Usage.Clear();
 			// Lend-lease is the first of the six.
 			Aid.CLendLeaseIc.Give(state, country, stockpile, ic => Charge(country, stockpile, ic, whateverItHolds: true));
 			RunConsumerGoods(state, country, stockpile);

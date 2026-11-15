@@ -234,6 +234,11 @@ public sealed class LuaApiTests : IDisposable
 		CGameState state = World();
 		using CAiScripts scripts = Load();
 		Assert.Equal(false, scripts.Ask(state, $"{Pol}:GetCountry():CanCreatePuppet()"));
+		// Slovakia owns nothing and its capital, with its core, is Germany's: the list goes by the original's Lua name,
+		// GetPossiblePuppets, which ITA.lua's HandlePuppets calls - reached at once at a later start, Ethiopia Italy's.
+		Assert.Equal(true, scripts.Ask(state, $"{Ger}:GetCountry():CanCreatePuppet()"));
+		Assert.Equal("SLO", scripts.Ask(state,
+			$"(function() local s = '' for t in {Ger}:GetCountry():GetPossiblePuppets() do s = s .. tostring(t) end return s end)()"));
 		Assert.Equal(false, scripts.Ask(state, $"{Ger}:GetCountry():IsGovernmentInExile()"));
 		Assert.Empty(_reports);
 		// Germany has no spies in Poland here, so the factor is Poland's counter-intelligence turned round - none - and

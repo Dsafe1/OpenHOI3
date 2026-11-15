@@ -8,6 +8,12 @@ public sealed record CNap(CCountryTag First, CCountryTag Second, long Start)
 	/// <summary>Its number among the pacts (<see cref="CGameState.NextPact"/>).</summary>
 	public long Made { get; init; }
 
+	/// <summary>
+	/// The end the history gave it, as hours, which nothing acts on and a save writes back - the German-Soviet pact's
+	/// 1941.6.22 at the 1939.9.1 bookmark (<c>docs/mechanics/savegame.md</c>, section 10).
+	/// </summary>
+	public long? End { get; init; }
+
 	/// <summary>The first party's brigades along the border to the second's, in thousandths (<see cref="CNapBalance"/>).</summary>
 	public long Balance { get; set; } = CNapBalance.Unmeasured;
 

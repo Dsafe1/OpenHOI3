@@ -192,7 +192,8 @@ public static class CCountryClass
 			.Method("MayLiberateCountries", call => call.Return(CCountryLists.PossibleLiberations(api.State, Of(call)).Count != 0))
 			.Method("GetPossibleLiberations", call => call.ReturnIterator(Tags(api, CCountryLists.PossibleLiberations(api.State, Of(call)))))
 			.Method("CanCreatePuppet", call => call.Return(CCountryLists.PossibleVassals(api.State, Of(call)).Count != 0))
-			.Method("GetPossibleVassals", call => call.ReturnIterator(Tags(api, CCountryLists.PossibleVassals(api.State, Of(call)))));
+			// The original registers the list of possible vassals under this name, which ITA.lua's HandlePuppets calls.
+			.Method("GetPossiblePuppets", call => call.ReturnIterator(Tags(api, CCountryLists.PossibleVassals(api.State, Of(call)))));
 		// What the tech and production scripts reach (docs/mechanics/ministers.md, section 7).
 		return CCountryEconomyMethods.Add(luaClass, api);
 	}

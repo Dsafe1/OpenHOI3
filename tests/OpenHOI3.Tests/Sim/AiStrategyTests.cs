@@ -197,6 +197,21 @@ public class AiStrategyTests
 	}
 
 	[Fact]
+	public void A_province_with_a_strategic_resource_is_to_be_taken_but_never_one_the_country_owns_itself()
+	{
+		// Province 5, Germany's own, held by Poland - as Norway's Vemork is held by Germany at 1941.6.22 - and Poland's 11,
+		// beside Germany's land, both with a resource.
+		CGameState state = World();
+		state.Province(5).Controller = Pol;
+		state.Province(5).StrategicResource = "heavy_water";
+		state.Province(11).StrategicResource = "rubber";
+
+		CAiStrategy germany = Made(state, Ger);
+
+		Assert.Equal("11 50", Text(germany.ConquerProvinces));
+	}
+
+	[Fact]
 	public void A_capital_another_country_holds_is_not_defended_and_the_provinces_held_go_in_the_order_they_were_taken()
 	{
 		CGameState state = World();

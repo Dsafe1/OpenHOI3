@@ -165,10 +165,13 @@ Over unit T (a corps, an army or a division):
 1. A new id - the game's last unit id + 1 for the headquarters, + 2 for its brigade, **+ 3 reserved and unused**.
 2. Where T stands; a T aboard a fleet at sea uses the fleet's base; not on land, nothing is made.
 3. A headquarters **one level above T**, with **one `hq_brigade`** at **a twentieth of its strength**, no experience, its
-   technologies the country's, named by `REGIMENT_NAME`; the country is charged a twentieth of the type's manpower (by
-   the technologies' `build_cost_mp`, at least 50 thousandths, floored at nought).
+   technologies applied **at nought** - the type set and the technologies applied with nothing between; this said "the
+   country's" until 2026-11-15 (`theatres.md`, section 10) - named by `REGIMENT_NAME`; the country is charged a twentieth
+   of the type's manpower (by the technologies' `build_cost_mp`, at least 50 thousandths, floored at nought).
 4. Under T's parent - or its grandparent, where the parent is already of the new level - if that ranks above it; T leaves
-   its parent and goes under the new headquarters.
+   its parent and goes under the new headquarters. Then it is put in the province as any land unit entering one is, and
+   **brings its fifteen days of supplies and fuel out of the stockpile** (`supply.md`, section 14), worked out with no
+   commander's reach coming down to it - the original works the figure out before the unit's province is written.
 5. Named `ARMYGROUP_NAME`, `ARMY_NAME` or `CORPS_NAME` numbered, the first number free in the country; its leader chosen
    where the country assigns its own; a battle checked for where it stands.
 

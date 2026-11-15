@@ -14,6 +14,26 @@ public class HistoryFoldTests
 	}
 
 	[Fact]
+	public void The_bookmarks_own_pass_marks_what_is_dated_after_the_defines_start_date()
+	{
+		// At a later start the passes to the defines' start date come first, the bookmark's own after: the same entries
+		// in the same order as one fold, each marked by its pass (bookmarks.md, section 3).
+		const string text = @"
+			join_faction = allies
+			1939.9.1 = { join_faction = axis }
+			1936.1.1 = { owner = FRA }
+			1941.6.22 = { leave_faction = axis }";
+		ClausewitzNode root = ClausewitzParser.Parse(text);
+
+		var passes = CHistory.FoldInPasses(root, new CDate(1936, 1, 1), new CDate(1941, 6, 22)).ToList();
+
+		Assert.Equal(CHistory.Fold(root, new CDate(1941, 6, 22)), passes.Select(pass => pass.Entry));
+		Assert.Equal(new[] { false, false, true, true }, passes.Select(pass => pass.Late));
+		// With the date no later than the defines', nothing is late.
+		Assert.All(CHistory.FoldInPasses(root, new CDate(1936, 1, 1), new CDate(1936, 1, 1)), pass => Assert.False(pass.Late));
+	}
+
+	[Fact]
 	public void UndatedEntriesComeFirstThenDatedOnesInDateOrder()
 	{
 		// The 1935 block is written after the 1936 one and still applies before it.

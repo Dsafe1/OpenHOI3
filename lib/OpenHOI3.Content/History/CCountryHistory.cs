@@ -30,7 +30,8 @@ public static class CCountryHistory
 	public static Dictionary<string, Dictionary<EGoods, CFixedPoint>> Apply(CDirectorySettings directories, CCountries countries, CDate start,
 		Action<string>? warn = null, IReadOnlyCollection<CTechnology>? technologies = null,
 		IReadOnlyCollection<CTechnologyCategory>? categories = null,
-		Dictionary<string, Dictionary<string, CLaw>>? lawBook = null, IReadOnlySet<string>? occupationPolicies = null)
+		Dictionary<string, Dictionary<string, CLaw>>? lawBook = null, IReadOnlySet<string>? occupationPolicies = null,
+		CDate? definesStart = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var goodsGiven = new Dictionary<string, Dictionary<EGoods, CFixedPoint>>(StringComparer.OrdinalIgnoreCase);
@@ -93,7 +94,9 @@ public static class CCountryHistory
 				continue;
 			}
 
-			foreach (ClausewitzNode entry in CHistory.Fold(root, start))
+			// In the original's passes: the bookmark's own, past the defines' start date, after the rest - which a faction's
+			// order of members shows (war.md, section 13).
+			foreach ((ClausewitzNode entry, bool late) in CHistory.FoldInPasses(root, definesStart ?? start, start))
 			{
 				// Where it stands on the alignment triangle, set as written: the original clamps
 				// nothing here (alignment.md, section 2).
@@ -224,6 +227,17 @@ public static class CCountryHistory
 						badAmounts++;
 					}
 				}
+				else if (entry.Key.Equals("set_country_flag", StringComparison.OrdinalIgnoreCase))
+				{
+					// A flag the history sets, as the original's replay of a country's history sets it - before the wars'
+					// history, whose goals' is_valid reads it: France's fr_signs_peace keeps Germany's vichy_war_goal off
+					// a later start (war.md, section 1).
+					country.Flags.Set(entry.Value);
+				}
+				else if (entry.Key.Equals("clr_country_flag", StringComparison.OrdinalIgnoreCase))
+				{
+					country.Flags.Clear(entry.Value);
+				}
 				else if (entry.Key.Equals("decision", StringComparison.OrdinalIgnoreCase))
 				{
 					// Onto the list of decisions taken, whose effects a new game runs (events.md, section 13).
@@ -236,6 +250,7 @@ public static class CCountryHistory
 				else if (entry.Key.Equals("join_faction", StringComparison.OrdinalIgnoreCase))
 				{
 					country.Faction = entry.Value;
+					country.HistoryJoinedLate = late;
 				}
 				else if (entry.Key.Equals("leave_faction", StringComparison.OrdinalIgnoreCase))
 				{

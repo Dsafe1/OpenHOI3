@@ -143,7 +143,7 @@ public static class CStrategyWalk
 				if (!negated && scope.Country == country.Tag && !CConditions.Holds(state, trigger, scope))
 				{
 					int province = trigger.Argument.IsThis || trigger.Argument.IsFrom ? 0 : (int)CConditions.WholeOf(trigger.Argument.Amount);
-					strategy.ConquerProvinces.Add(province, weight, CStrategyProvinces.ConquerCap(strategy));
+					CStrategyProvinces.AddConquer(state, country, strategy, province, weight);
 				}
 				return;
 			case "owned_by":
@@ -226,7 +226,7 @@ public static class CStrategyWalk
 		int province = scope.Province != 0 ? scope.Province : scope.Root.Province;
 		if (province != 0)
 		{
-			walker.Strategy.ConquerProvinces.Add(province, weight, CStrategyProvinces.ConquerCap(walker.Strategy));
+			CStrategyProvinces.AddConquer(walker.State, country, walker.Strategy, province, weight);
 		}
 		else if (scope.Country is { } other)
 		{
@@ -248,7 +248,7 @@ public static class CStrategyWalk
 		bool holds = CConditions.Holds(walker.State, trigger, scope);
 		if (negated ? !ours && holds : ours && !holds)
 		{
-			walker.Strategy.ConquerProvinces.Add(scope.Province, weight, CStrategyProvinces.ConquerCap(walker.Strategy));
+			CStrategyProvinces.AddConquer(walker.State, walker.Country, walker.Strategy, scope.Province, weight);
 		}
 	}
 

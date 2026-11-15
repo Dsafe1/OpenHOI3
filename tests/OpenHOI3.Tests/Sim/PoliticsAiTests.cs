@@ -173,6 +173,37 @@ public class PoliticsAiTests
 	}
 
 	[Fact]
+	public void WhatTheDaysPostedRunsAfterTheLooksChangesInTheOrderItWasPosted()
+	{
+		CGameState state = World();
+		state.AiScripts = new StepUp();
+		CPoliticsAi.SetUpAtStart(state);
+		// The two days post their own: Italy's press brought back to free, then on to propaganda. The original's queue holds
+		// them behind the look's and runs them after it, each asked first whether it may run; one that may not is passed by.
+		state.Outbox.Add(new CChangeLawCommand(Ita, "free_press", "press_laws", payCost: false, postMessage: false));
+		state.Outbox.Add(new CChangeLawCommand(Ita, "no_such_law", "press_laws", payCost: false, postMessage: false));
+		state.Outbox.Add(new CChangeLawCommand(Ita, "propaganda_press", "press_laws", payCost: false, postMessage: false));
+
+		Assert.Equal(1, CPoliticsAi.RunNewGameLaws(state));
+
+		Assert.Equal("propaganda_press", state.Country(Ita)!.Laws["press_laws"].Name);
+		Assert.Equal("censored_press", state.Country(Ger)!.Laws["press_laws"].Name);
+		Assert.Empty(state.Outbox);
+	}
+
+	[Fact]
+	public void WhatTheDaysPostedRunsThoughTheLookPostedNothing()
+	{
+		CGameState state = World();
+		state.Outbox.Add(new CChangeLawCommand(Ita, "censored_press", "press_laws", payCost: false, postMessage: false));
+
+		// No script, so no look: none counted, and the days' change runs all the same.
+		Assert.Equal(0, CPoliticsAi.RunNewGameLaws(state));
+		Assert.Equal("censored_press", state.Country(Ita)!.Laws["press_laws"].Name);
+		Assert.Empty(state.Outbox);
+	}
+
+	[Fact]
 	public void AMinisterIsTheFirstTypeHisBlockGivesForAPost()
 	{
 		// Honduras's armament minister of 1936: a laissez-faire capitalist, then a resource industrialist.

@@ -150,6 +150,25 @@ whatever the value was (`reversing/findings/FINDINGS-effectgrammar.md`, section 
 Day of Infamy's start save has (**measured**, `Ireland1941_12_11_00.hoi3`); our parser makes the word and the block two
 entries, and the reader puts them back together (`COrderOfBattleReader.Entries`).
 
+**A block under another country's tag is what the country holds of that one.** The original reads an order of battle
+through the country's own save loader (`CCountry::LoadKey`), whose last resort for a key is a country's tag: the block
+then goes, key by key, to the country's record towards that one - the pair block of a save (`savegame.md`, section 19):
+the relation held to +-200, the threat, `military_access`, the three dates, an occupation policy found by name, debts
+allowed, the debt and its repayment - and leaves what it does not name as it was (`reversing/findings/FINDINGS-laterstart.md`).
+Their Finest Hour's German files of 1941 and after (`GER_1941.txt`, `GER_DayOfInfamy.txt`, `GER_TheTideHasTurned.txt`,
+`GER_1944.txt`) open with `SWE = { military_access = yes }`, so **Germany may pass through Sweden** from the 1941
+bookmarks on, which both 1941 start saves hold and no diplomacy history gives (**measured**, `Ireland1941_06_22_00.hoi3`
+and `Ireland1941_12_11_00.hoi3`; `COrderOfBattleReader.ReadPairBlock`, `CSaveStatus.Apply`). A key the pair block does not
+know is reported. *Mod-able*: the files; *exe-hardcoded*: that a tag reads so. The other keys of a country's own the
+loader would take from such a file - a technology's level, a law - are not built, and are reported.
+
+**A unit's `expeditionary_owner` line makes it lent by that country**, the unit loader (`CUnit::LoadKey`) taking the
+line from a history file as from a save: its figures and what it draws are its lender's, and it is on the lender's
+list (`expeditions.md`, section 4). Read since 2026-11-15, the line having been passed over until then. Their Finest
+Hour's files of 1940 and after lend Germany, Britain, Finland and others 20 units by 1941.6.22 and 69 by the Day of
+Infamy - each start save's count of `expeditionary_owner` lines (**measured**) - and the lenders now pay for what they draw on their hosts' depots
+(`supply.md`, section 13). *Mod-able*: the files.
+
 `military_construction` at the top of the file is a unit being built when the game starts:
 a line of its country's build queue. It takes `country`, `cost`, `progress`, `duration`,
 `size`, `status`, `is_reserve`, `manpower`, `factor`, `name`, and a block named after a

@@ -152,20 +152,27 @@ public static class CSurrender
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (CCountryLists.OwnedCount(state, country.Tag) == 0 || Progress(state, country) < Brink || !state.IsAtWar(country.Tag)
-				|| state.TotalHours - country.LastSurrender < DaysBetween * CGameState.HoursPerDay)
-			{
-				continue;
-			}
-			if (Victor(state, country) is not { } victor)
-			{
-				continue;
-			}
-			var scope = Script.CEventScope.Start(country.Tag, 0, fromCountry: victor.Tag, randomState: (uint)state.Random.Next());
-			Events.COnActions.Fire(state, "on_surrender", scope);
-			CCapitulation.Capitulate(state, country, victor);
-			country.LastSurrender = state.TotalHours;
+			RunDaily(state, country);
 		}
+	}
+
+	/// <summary>One country's surrender, in its own day (<see cref="RunDaily(CGameState)"/>). Answers whether it surrendered.</summary>
+	public static bool RunDaily(CGameState state, CCountry country)
+	{
+		if (CCountryLists.OwnedCount(state, country.Tag) == 0 || Progress(state, country) < Brink || !state.IsAtWar(country.Tag)
+			|| state.TotalHours - country.LastSurrender < DaysBetween * CGameState.HoursPerDay)
+		{
+			return false;
+		}
+		if (Victor(state, country) is not { } victor)
+		{
+			return false;
+		}
+		var scope = Script.CEventScope.Start(country.Tag, 0, fromCountry: victor.Tag, randomState: (uint)state.Random.Next());
+		Events.COnActions.Fire(state, "on_surrender", scope);
+		CCapitulation.Capitulate(state, country, victor);
+		country.LastSurrender = state.TotalHours;
+		return true;
 	}
 
 	/// <summary>

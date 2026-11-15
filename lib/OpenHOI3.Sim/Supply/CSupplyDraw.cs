@@ -60,11 +60,12 @@ public static class CSupplyDraw
 		long fuelNeed = CSupplyPass.Held(here.SupplyNeed, EGoods.Fuel);
 
 		// On a friend's depot the unit's country pays the friend for what it asks, the
-		// more the emptier the province it draws in.
+		// more the emptier the province it draws in - but a government in exile pays nothing
+		// (reversing/findings/FINDINGS-supplypass.md, section 4).
 		bool pays = false;
 		long price = Scale;
 		long fuelPrice = Scale;
-		if (depot.Controller != owner.Tag && depotHolder is not null
+		if (depot.Controller != owner.Tag && depotHolder is not null && !owner.InExile
 			&& CSupplyRelations.IsFriendly(state, depotHolder, owner))
 		{
 			pays = true;

@@ -99,9 +99,45 @@ numbers, so the next unit number is each start save's - 7201, 7875 and 8098. A u
 nearer its country before the two days (`upkeep.md`, section 5). Each country's theatres are made right after its own
 units in the hour, so Wake Island, taken in the Day of Infamy's first hour, stays in the USA's theatre.
 
-**The end of the entry** takes every country owning no land and in no exile off its wars and out of its faction, and starts
-the played country's strategic warfare records of its enemies (`strategicwarfare.md`); rebel-held provinces begin their
-rebels' clock at the start.
+**The end of the entry** takes every country owning no land and in no exile off its wars and out of its faction - telling
+nobody of a change of diplomacy, so the landless keep their war laws - and starts the played country's strategic warfare
+records of its enemies (`strategicwarfare.md`); rebel-held provinces begin their rebels' clock at the start.
+
+**A second round of 2026-11-15** (`FINDINGS-laterstart.md`, sections 13 to 16; `FINDINGS-alignment.md`, section 2.5):
+
+- **A history war goal is added only where its `is_valid` holds at the date**, the countries' histories having been
+  replayed before the wars', and stamps its cooldown a month on from the defines' start date (`war.md`, section 3): so no
+  exile of the date has a goal against it, and France's and Britain's `protect` of Belgium is the save's 50. A history's
+  `set_country_flag` and `clr_country_flag` are read.
+- **A government in exile has a day of its own** (`war.md`, section 14): base production whatever it holds, its IC and
+  conversions, its supplies and fuel handed to whoever holds its seat, then its shares, into its own pool; its brigades
+  upgraded towards its faction leader's levels, and its units drawing on friends' depots for free.
+- **The day is run a whole country at a time** (`alignment.md`, section 3; `tick.md`): a country's alignment step reads the
+  IC and the surrenders of the countries before it and the day's most-threatening country, so at 1939.9.1 China's
+  first-day capitulation puts it in the Axis for every country after it. A puppet's automatic `align_towards_*` gives no
+  influence, and the rebels measure from province 0's centre at (1, 1).
+- **What the two days post runs after the look's laws**, in the order posted (`politics.md`, section 12), and the
+  peace-time revert takes the last allowed law in the file's order (section 9): China, Japan's puppet on the first day at
+  1939, gives up its war laws.
+- **The history's wars stamp `last_war` on both sides** at the start date (`war.md`, section 4); a save omits a record
+  towards a country owning nothing.
+- **An order of battle's `TAG = { ... }` block is the country's record towards that one** (`units.md`, section 3): Germany
+  may pass through Sweden from the 1941 bookmarks on.
+- **`conquer_prov` never holds a province the country owns** (`aistrategy.md`, section 5).
+
+**A third round of the same day** (`FINDINGS-laterstart.md`, section 17):
+
+- **Every theatre headquarters the AI makes as a game is entered brings fifteen days of its use out of its owner's
+  stockpile**, being put on the map as a unit entering a province is - the 2.010 supplies a country with one had too many
+  on the first screen, at 1936 as at every later start (`supply.md`, section 14; `theatres.md`, section 10). A new command
+  over a unit and a rebel army do the same, and their brigades hold every technology at nought.
+- **The energy conversion balances on the day's own pools**, usage cleared at the head of the day (`ic.md`, section 4):
+  crude oil and energy agree at 1936 for 77 of 77 countries.
+- **An order of battle's `expeditionary_owner` makes its unit lent** (`units.md`, section 3; `expeditions.md`, section 4).
+- **A faction's members stand as the history's passes reached them**, and **a NAP keeps the end date its history gave
+  it**, and **the finished wars stand in the save's order** (`war.md`, sections 1 and 13; `savegame.md`, section 10).
+- **The Lua's `GetPossiblePuppets`**, which our binding had under another name, so that `ITA.lua` failed from the first
+  hour at 1939 with Ethiopia's capital Italy's; mended, Italy releases Ethiopia within a month (`lua.md`).
 
 ### 3.1 Set beside the start saves
 
@@ -113,31 +149,46 @@ rebels' clock at the start.
 | occupation policies | 9 of 9 | 39 of 39 | 48 of 48 |
 | nationalism | 560 of 560 | 1,337 of 1,337 | 1,383 of 1,383 |
 | manpower, officers, influence | 73, 74, 74 of 74 | 72 of 72 each | 72 of 72 each |
+| the stockpile's supplies | 38 of 74 | 45 of 71 | 43 of 71 |
+| crude oil, energy | 72, 71 of 74 | 69, 66 of 71 | 69, 67 of 71 |
 | the build queue | 54 of 55 | 61 of 61 | 45 of 45 |
 | brigades' strength | 4,644 of 4,823 | 5,347 of 5,357 | 5,505 of 5,513 |
 | brigades' organisation | 4,778 of 4,823 | 4,848 of 5,357 | 4,737 of 5,513 |
-| laws | 704 of 707 | 707 of 707 | 707 of 707 |
+| laws | 707 of 707 | 707 of 707 | 707 of 707 |
 | relation, threat | every pair | every pair | every pair |
 | neutrality, effective | 101 of 101 | 101 of 101 | 101 of 101 |
-| alignment | 54 of 101 | 35 of 101 | 47 of 101 |
+| alignment | 101 of 101 | 101 of 101 | 101 of 101 |
 | spies abroad | 10,052 of 10,100 | 10,051 of 10,100 | 10,054 of 10,100 |
 | theatres (number, headquarters, fronts) | 106, 106, 104 of 106 | 96 of 96 each | 97 of 97 each |
-| AI strategy lists | 74 to 75 of 75 | 70 to 73 of 73 | 69 to 73 of 73 |
+| AI strategy lists | 74 to 75 of 75 | 73 of 73 each | 73 of 73 each |
 
 **What still differs, and where it was left** (the readme's *Loose ends*):
 
-- **Alignment**, misses of 0.001 to 1 a country; threat and neutrality agree, so another drift term (relations with the
-  members, proximity, member IC). `diplomacy`'s `explain=` works at the save's date for it.
-- **An exile's own pool**: the saves' hold two days of an exile's income, ours none - the running exile day is not built.
-- **The stockpiles' smaller drifts** of the two days, of the kind the 1936 start has; and supplies.
+- ~~**Alignment**~~ and ~~**an exile's own pool**~~ - settled in the second round (above): alignment 101 of 101 at every
+  date, the 1936 start's one miss with it, and every exile's pool the save's in every good but France's and Belgium's
+  supplies.
+- **The stockpiles' smaller drifts** of the two days, of the kind the 1936 start has; and **2.010 supplies** that a
+  country holding its own seat misses by - Ireland at every later start, France and Belgium, and Denmark, Poland and Greece
+  at 1936.
 - **Brigades' organisation** held to a running ceiling by a law changed (Australia, Canada, Italy), supplies received,
   and lent units at their lender's officer ratio.
-- **`protect` towards Belgium** (France 25 against 50; Britain drops it): the save implies a usable casus belli on an exile
-  the reading says has none.
-- **New Zealand's six posts at 1941**, and **China's three laws at 1939**, which its surrender in the two days reverts in
-  the original and the posts made in the days are dropped here.
-- **Japan's and China's fronts in another order at 1939**; three of the 13 `last_war` pairs of 1941.12.11; a
-  `military_access` line opening `GER_DayOfInfamy.txt`, reported as unknown.
+- ~~**`protect` towards Belgium**~~, ~~**China's three laws at 1939**~~, ~~**three `last_war` pairs**~~ and ~~**the
+  `military_access` line**~~ - settled in the second round (above).
+- **New Zealand's six posts at 1941**: `OfficeManagement`'s picks at war, made in the AI's pass at hour 0, the frame after
+  the entry and before the first hour - a chance draw of a pass not built (`politics.md`, section 12).
+- **Japan's and China's fronts in another order at 1939**: the original keeps areas up province by province as China's
+  cores come back on its first day, where ours makes them whole (`theatres.md`, section 12).
+- **What a written game shows that the checks above do not** (`OpenHOI3.SaveCheck write <install> new <start save>`, set
+  beside the 1936 start's own differences, 2026-11-15): a NAP's history end date is written since (the German-Soviet
+  pact's 1941.6.22 at 1939) and the finished wars stand in the save's order (`war.md`, section 1); still differing - the
+  two active wars of 1941.12.11 above, `out_of_supply_days` of 4 where the save has 5 in some 140 provinces at 1941 (6 at
+  1939, none at 1936), leaders on some Soviet and German divisions the save leaves unled at 1941, eight Japanese cruisers
+  of another class at 1939, a province `history` block the save writes for 144 provinces at 1939 and 8 at 1941.12.11, and
+  keys inside 18 to 32 country blocks in another order.
+- **A guarantee a new puppet had**: China's of the Chinese Communists at 1939.9.1, which the original keeps as a dead
+  object written in the save, and a game here deletes (`war.md`, *Ours*).
+- ~~**Each faction's members in another order**~~ - settled: those of the defines' start date first, the bookmark pass's
+  joiners after, each in the countries' order (`war.md`, section 13); every faction of the three saves agrees.
 
 ## 4. Quick Start
 
@@ -177,6 +228,14 @@ start save of that bookmark. The maintainer's, of 2026-11-15, Ireland played in 
 `Ireland1939_09_01_00.hoi3`, `Ireland1941_06_22_00.hoi3`, `Ireland1941_12_11_00.hoi3`.
 
 The client's `--date=1939.9.1` beside `--country=` begins a game at that date, as the lobby's bookmark of it would.
+
+**A later start runs forward**: `OpenHOI3.SaveCheck headless <install> <end> from=<bookmark>` (`headless.md`, section 5).
+On 2026-11-15 each of the three bookmarks ran four months with nobody playing - nothing thrown, no goods below nought, no
+script key met that is not built. Poland falls in a month, as the original's does; the war in the east moves, slowly;
+Japan's December war moves on China and the Philippines but hardly on the Indies; at 1941.6.22 the United States is in the
+war within days, by Britain's invitation and the original's script on the save's neutrality. Germany's supplies fall from
+some 29,600 to 2,000 within three weeks of 1941.12.11, all of it in the daily carrying of supplies - not looked into
+(`headless.md`, section 5). A day takes about 3 s at the 1941 starts, against 1.1 s at 1936.
 
 ## 6. Not established
 

@@ -82,7 +82,7 @@ public class LawChangeTests
 	}
 
 	[Fact]
-	public void At_peace_a_law_no_longer_allowed_gives_way_to_the_first_of_its_group_that_is_and_never_at_war()
+	public void At_peace_a_law_no_longer_allowed_gives_way_to_the_last_of_its_group_that_is_and_never_at_war()
 	{
 		(CGameState state, CLawGroup press) = World();
 		CCountry germany = state.Country(Ger)!;
@@ -95,12 +95,53 @@ public class LawChangeTests
 		CLaws.OnDiplomacyChanged(state, germany);
 		Assert.Empty(state.Outbox);
 
+		// The group's list runs backwards from the file's order, so the walk meets state press before free press: the last
+		// allowed in the file's order (measured: China's three laws at the 1939 bookmark).
 		state.Wars.Clear();
 		CLaws.OnDiplomacyChanged(state, germany);
 		var command = Assert.IsType<CChangeLawCommand>(Assert.Single(state.Outbox));
-		Assert.Equal("free_press", command.Law);
+		Assert.Equal("state_press", command.Law);
 		Assert.False(command.PayCost);
 		Assert.True(command.PostMessage);
+	}
+
+	[Fact]
+	public void The_peace_time_revert_is_silent_while_the_game_is_being_made()
+	{
+		(CGameState state, CLawGroup press) = World();
+		CCountry germany = state.Country(Ger)!;
+		germany.Laws["press_laws"] = press.Laws[2];
+		state.IsBeingMade = true;
+
+		CLaws.OnDiplomacyChanged(state, germany);
+
+		// The original's command keeps neither flag before its game is under way.
+		var command = Assert.IsType<CChangeLawCommand>(Assert.Single(state.Outbox));
+		Assert.False(command.PayCost);
+		Assert.False(command.PostMessage);
+	}
+
+	[Fact]
+	public void A_country_leaving_a_war_by_the_end_of_a_new_games_entry_keeps_the_laws_the_war_allowed()
+	{
+		(CGameState state, CLawGroup press) = World();
+		CCountry germany = state.Country(Ger)!;
+		germany.Laws["press_laws"] = press.Laws[2];
+		var war = new CWar("war");
+		war.Attackers.Add(Ger);
+		war.Defenders.Add(Eng);
+		state.Wars.Add(war);
+
+		// Britain owns nothing and is in no exile: taken off the war by the war's own removal, which tells nobody of a change
+		// of diplomacy - so Germany, at peace now, is not reverted (measured: the Baltic states at both 1941 bookmarks).
+		CWarSides.RemoveLandless(state);
+		Assert.Empty(war.Defenders);
+		Assert.Empty(state.Outbox);
+
+		// A war left otherwise does tell it.
+		war.Defenders.Add(Eng);
+		CWarSides.Leave(state, war, Eng);
+		Assert.Contains(state.Outbox, posted => posted is CChangeLawCommand { Law: "state_press" });
 	}
 
 	[Fact]

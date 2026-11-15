@@ -30,27 +30,9 @@ public static class CCountryGoods
 	/// The income side of the balance: home production - and convoyed in, but not for supplies or fuel - with
 	/// what came back, was handed over by governments in exile, was repaid to it, was made and was traded for.
 	/// </summary>
-	public static long Income(CGameApi api, CCountry country, EGoods goods)
-	{
-		long home = country.HomeProduced[goods].Raw;
-		if (goods is not (EGoods.Fuel or EGoods.Supplies))
-		{
-			home += country.ConvoyedIn[goods].Raw;
-		}
-		return home + country.SentBack[goods].Raw + country.ReceivedFromExiles[goods].Raw
-			+ Repaid(country.IncomeFromDebt, goods) + country.ConversionMade[goods].Raw
-			+ country.TradedFor[goods].Raw + country.TributeReceived[goods].Raw;
-	}
+	public static long Income(CGameApi api, CCountry country, EGoods goods) => CDailyLedger.Income(country, goods);
 
-	private static long Spending(CCountry country, EGoods goods)
-	{
-		return country.SentTo[goods].Raw - Repaid(country.RepaidAway, goods) + country.Usage[goods].Raw
-			+ country.ConversionUsed[goods].Raw + country.ConvoyedOut[goods].Raw + country.TradedAway[goods].Raw
-			- country.TributeSent[goods].Raw;
-	}
-
-	/// <summary>A debt's money, which is the only good it moves.</summary>
-	private static long Repaid(CFixedPoint money, EGoods goods) => goods == EGoods.Money ? money.Raw : 0;
+	private static long Spending(CCountry country, EGoods goods) => CDailyLedger.Expense(country, goods);
 
 	/// <summary>
 	/// <c>AICalculateExpense</c>: for metal, energy and rare materials, the base IC raised by the

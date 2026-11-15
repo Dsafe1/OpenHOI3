@@ -95,11 +95,24 @@ public static class CWarReader
 	/// Given, each country an entry adds to a side, with each country on the other side at that moment, in the order
 	/// replayed - what the original's adding brings up to date (<c>docs/mechanics/war.md</c>, section 4).
 	/// </param>
+	/// <param name="definesStart">
+	/// The defines' start date, where a bookmark's later date is folded to: the original sorts its wars between its
+	/// standing and its other list once at the end of each pass of the history, the pass to the defines' start date before
+	/// the bookmark's, so a war standing after the first stays ahead of the bookmark's own and one that has ended by the
+	/// bookmark goes to the back of the finished (<c>docs/mechanics/war.md</c>, section 1;
+	/// <c>reversing/findings/FINDINGS-bookmarks.md</c>, section 2.2).
+	/// </param>
 	public static List<CWar> Read(CDirectorySettings directories, CCountries countries, CDate date,
-		Action<string>? warn = null, List<CWar>? finished = null, List<(CCountryTag Joiner, CCountryTag Enemy)>? joins = null)
+		Action<string>? warn = null, List<CWar>? finished = null, List<(CCountryTag Joiner, CCountryTag Enemy)>? joins = null,
+		CDate? definesStart = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var wars = new List<CWar>();
+		// The wars standing after the pass to the defines' start date, and those of the bookmark's pass; the finished wars
+		// that stood after that pass and ended in the bookmark's, which the original moves to the back of its other list.
+		var standingEarly = new List<CWar>();
+		var endedLate = new List<CWar>();
+		CDate early = definesStart is { } defines && defines.CompareTo(date) < 0 ? defines : date;
 		var unknownKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		var unknownTags = new SortedSet<string>(StringComparer.Ordinal);
 
@@ -164,9 +177,10 @@ public static class CWarReader
 				}
 			}
 
+			bool stoodEarly = early.CompareTo(date) < 0 && StandsAt(root, countries, early);
 			if (war.Attackers.Count > 0 && war.Defenders.Count > 0)
 			{
-				wars.Add(war);
+				(stoodEarly ? standingEarly : wars).Add(war);
 			}
 			else if (BeganBy(root, date))
 			{
@@ -174,9 +188,11 @@ public static class CWarReader
 				// dated entry (warexhaustion.md, section 3).
 				war.Action = 0;
 				war.Ended = LastDate(root, date);
-				finished?.Add(war);
+				(stoodEarly ? endedLate : finished)?.Add(war);
 			}
 		}
+		wars.InsertRange(0, standingEarly);
+		finished?.AddRange(endedLate);
 
 		if (unknownKeys.Count > 0)
 		{
@@ -189,13 +205,44 @@ public static class CWarReader
 		return wars;
 	}
 
+	/// <summary>Whether the war has somebody on both sides with its history folded to the date.</summary>
+	private static bool StandsAt(ClausewitzNode root, CCountries countries, CDate date)
+	{
+		var attackers = new HashSet<CCountryTag>();
+		var defenders = new HashSet<CCountryTag>();
+		foreach (ClausewitzNode entry in CHistory.Fold(root, date))
+		{
+			if (entry.Key is null || !CCountryTag.TryParse(entry.Value, out CCountryTag tag) || countries.Find(tag) is null)
+			{
+				continue;
+			}
+			switch (entry.Key.ToLowerInvariant())
+			{
+				case "add_attacker": attackers.Add(tag); break;
+				case "rem_attacker": attackers.Remove(tag); break;
+				case "add_defender": defenders.Add(tag); break;
+				case "rem_defender": defenders.Remove(tag); break;
+			}
+		}
+		return attackers.Count > 0 && defenders.Count > 0;
+	}
+
 	/// <summary>
-	/// Each fought war's goals, out of its file's <c>war_goal</c> blocks dated on or before the game's day:
-	/// filed under the actor with no test of the goal, as the original's loader files them. A war is found
-	/// by its name.
+	/// Each war's goals, out of its file's <c>war_goal</c> blocks dated on or before the game's day, as the original's
+	/// history replay adds them - through <c>CWarGoal::AddToWar</c>, after every country's history to the date
+	/// (<c>docs/mechanics/war.md</c>, section 1): a goal is added only where its type is real and its <c>is_valid</c>
+	/// holds for the recipient with THIS the actor, so a goal on a country already in exile at the date, or one that
+	/// owns nothing, is never added; and each one added stamps the actor's cooldown against the recipient a
+	/// <c>WARGOAL_ADD_COOLDOWN</c> on from the defines' start date, the lobby's own hour - a war over by the date
+	/// keeping no goal and its stamps all the same. A war is found by its name.
+	/// Ours: every goal is asked of the world at the game's day - which gives the four start saves' goals and stamps
+	/// exactly, Italy's on Ethiopia stamped at 1941 and not at 1939, when Ethiopia owns nothing; how the original's three
+	/// passes of the history come to the same was not read.
 	/// </summary>
 	public static void ReadGoals(CDirectorySettings directories, CGameState state)
 	{
+		long lobbyHour = state.StartDate.DayNumber * (long)CGameState.HoursPerDay;
+		int months = (int)(state.Defines["diplomacy", CWarGoals.Cooldown].Raw / 1000);
 		foreach (string file in directories.ListFiles(WarsDirectory, "*.txt"))
 		{
 			ClausewitzNode root;
@@ -209,7 +256,8 @@ public static class CWarReader
 			}
 			string name = root.GetString("name");
 			CWar? war = state.Wars.Find(w => w.MadeName is null && w.Name == name);
-			if (war is null)
+			bool over = war is null && state.FinishedWars.Exists(w => w.MadeName is null && w.Name == name);
+			if (war is null && !over)
 			{
 				continue;
 			}
@@ -226,11 +274,22 @@ public static class CWarReader
 					Country = CCountryTag.TryParse(entry.GetString("country"), out CCountryTag third) ? third : null,
 					Region = state.Regions.FirstOrDefault(r => r.Name == entry.GetString("region")),
 				};
-				if (!war.Goals.TryGetValue(actor, out List<CWarGoal>? goals))
+				if (!goal.Type.IsReal || !CCasusBellis.IsValid(state, actor, receiver, goal.Type))
 				{
-					war.Goals[actor] = goals = new List<CWarGoal>();
+					continue;
 				}
-				goals.Add(goal);
+				if (war is not null)
+				{
+					if (!war.Goals.TryGetValue(actor, out List<CWarGoal>? goals))
+					{
+						war.Goals[actor] = goals = new List<CWarGoal>();
+					}
+					goals.Add(goal);
+				}
+				if (state.Country(actor) is { } holder && state.Country(receiver) is { } recipient)
+				{
+					CGameState.Status(holder, recipient).NextWarGoal = Sim.Agreements.COfferRules.AddMonths(lobbyHour, months);
+				}
 			}
 		}
 	}

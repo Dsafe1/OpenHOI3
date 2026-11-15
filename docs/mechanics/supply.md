@@ -508,6 +508,11 @@ friend's,
 
 of supplies and of fuel apart - so a quarter over on an empty province and a little under on a
 full one. What is paid is the friend's to supply: it counts as asked for by the friend's units.
+**A government in exile pays nothing**: its unit draws as on its own side's depot, and what it asks
+is counted as asked by the province's holder (`reversing/findings/FINDINGS-supplypass.md`, section 4;
+`war.md`, section 14). Until 2026-11-15 an exile paid, and at a new game's filling of the provinces,
+which puts each stockpile back after every pass, the exiles' payments piled up in London - 2,000
+supplies too many at 1941.6.22 once the exiles had any to pay with.
 
 **How much.** The province holds what it holds:
 
@@ -529,17 +534,37 @@ headless run met it as a division by zero on 29 April 1938 (`FINDINGS-supplypass
   province keeps it. So a province holds fifteen days of fuel for the tanks standing in it.
 - A fleet ordered to another port is seen to out of its country's capital on the way.
 
-*Ours:* a unit on loan to another country, which the original bills to the lender, is not
-built. The original's arcade mode, where every unit draws on its country's stockpile and none
-of this runs, is not built either.
+**A unit on loan to another country is billed to its lender**: the lender is the one that pays a
+friend's depot, so a Romanian division lent to Germany pays Germany for what it draws on a
+German depot (`expeditions.md`, section 4). Built with the expeditions; and since 2026-11-15 an
+order of battle's `expeditionary_owner` line makes its unit lent, so the 1941 bookmarks' lent
+divisions are paid for - **measured** at 1941.12.11, Canada pays 11.872 supplies where the save
+has 11.886 and Hungary 12.103 where it has 11.588, both nothing before. *Ours:* the original's arcade mode, where
+every unit draws on its country's stockpile and none of this runs, is not built.
 
 ## 14. What a unit brings
 
 `confirmed`. **A land unit entering a land province takes fifteen days of what it uses with
 it**, supplies and fuel, out of the province it is leaving - as much of that as the province
 has. Coming off the sea, or out of nowhere - a unit just placed - it takes them out of its
-country's stockpile; but a unit from nowhere on ground it owns and another holds takes from
-that ground's depot, and on anybody else's it comes with nothing.
+country's stockpile; but in a game under way a unit from nowhere on ground **another owns and
+it holds** takes from that ground's depot, and on ground it neither owns nor holds it comes with
+nothing. On ground it owns it takes from the stockpile whoever holds it. **Corrected
+2026-11-15** off the listing of `CUnit::CarrySupplies` (`reversing/findings/FINDINGS-supplypass.md`,
+section 5): the owner is tested first, and the depot is the one of ground held and not owned -
+this said the other way round until then.
+
+**Every land unit put in a province from nowhere brings its days**, because the original puts it
+there the way a marching unit enters one, before its province is written: a unit placed from the
+deploy menu, **a new theatre headquarters** the AI makes (`theatres.md`, section 10), **a new
+command over a unit** (`agents.md`, section 4.4; `attaching.md`) and **a rebel army** as it rises
+(`rebels.md`) - all read 2026-11-15. What it uses is worked out with no commander's reach coming
+down to it, the unit being nowhere yet. **Measured:** a new headquarters of a fifth of an
+`hq_brigade` brings fifteen days of 0.134 - **2.010 supplies** - and that is what a country given
+one in a new game's first hour has less in its stockpile on the first screen (1.800, 1.335 and
+1.140 where a law or a minister cuts what units use, and twice for a country given two): with it,
+27 more of the 1936 start save's countries have its supplies to the thousandth, and 16, 17 and 20
+more of the three later starts' (`bookmarks.md`, section 3.1).
 
 That, and not the network, is what feeds an army that has walked beyond its supply lines: it
 eats what it carried, for a fortnight, and then it starves.

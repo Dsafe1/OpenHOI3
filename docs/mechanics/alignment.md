@@ -7,7 +7,11 @@ diplomacy's first piece on the maintainer's word on 2026-10-12, because threat i
 Sources: `reversing/findings/FINDINGS-alignment.md` (the start, the schedule, the terms' gaps, the
 clamp, read 2026-10-12; the start save reproduced for 93 countries of 101 with its inputs given) and
 `reversing/findings/FINDINGS-politics.md`, sections 1 to 3 (the classes, the distances, the seven
-terms). Thousandths throughout; every division cuts toward nought.
+terms). The country day's order is `FINDINGS-politics.md`, section 4, and `FINDINGS-alignment.md`, section 3;
+what an influence counts is `CountryHasModifier` in the record, which walks the event modifiers
+(`reversing/findings/FINDINGS-countrymodifier.md`); province 0's centre is `CMap::ComputeProvinceGeometry` and the
+raster pass before it (`reversing/findings/FINDINGS-mapcache.md`; the pass that grows the boxes skips id 0, read
+2026-11-15). Thousandths throughout; every division cuts toward nought.
 
 ## 1. The corners
 
@@ -35,6 +39,32 @@ is due at once, so **every country takes one step on the first of the two days a
 (`tick.md`, section 6), and the second day, the clock not having moved, takes none. The original does
 not save when the next is due, so a loaded game would step everyone at once; no game is saved here.
 
+**A step is taken in the country's own day, and the original runs a whole day for one country before the
+next**, in the countries' order (`reversing/findings/FINDINGS-alignment.md`, section 3; `FINDINGS-politics.md`,
+section 4). So what a step reads of the other countries is what their day has left them so far:
+
+- **their IC** - a member's base IC in the proximity and repulsion terms - is the day's for a country before
+  the stepping one, whose IC was worked out later in its own day, and the figure from before the day for the
+  stepping country itself, whose IC comes after its step, and for every country after it. The new game's first
+  day moves the base IC of a conqueror's provinces as the start's revolt risk is made, so at a later start it is
+  this that decides most of the step: Germany's 217 of the entry against its day's 202 at 1941.6.22;
+- **the factions** are as the surrenders of the countries before it left them - a country surrenders late in
+  its day - so a surrender on a step's day moves every later country's drift and no earlier one's. At 1939.9.1
+  Nationalist China capitulates to Japan on the first day and joins the Axis as its puppet: the Americas, which
+  come after China, step with China in the Axis; Europe, which comes before it, without;
+- **a country's own modifier and effective neutrality** were made at the head of its day with the threat the
+  earlier countries' surrenders had spread - a war goal enforced at a surrender spreads the winner's threat
+  (`diplomacy.md`, 5.3) - so its `drift_speed` and its susceptibilities are those of a modifier made after them;
+- and its modifier, made at the head of its day, reads **the most-threatening country as worked out for the day**
+  - the original's pass before the countries' days - so the `neutrality` static's share of `drift_speed` is
+  neutrality less today's threat: 79.983 for Argentina at 1939.9.1, a `drift_speed` of 0.039 where the entry's
+  80.000 gave 0.040.
+
+Here the daily pass runs each step for every country in turn (`tick.md`), so the step is taken beside the
+surrender, a country at a time - its step, then its surrender - with every country's IC noted before the day's IC
+step (`CIcAtDayStart`), a country after a surrender of the day given its modifier and effective neutrality again
+before its step, and the day's most-threatening country worked out before the modifiers are made.
+
 ## 4. A step
 
 - **A country in a faction**: its leader - the first of its members - stays where it is; every other
@@ -58,11 +88,11 @@ IC of its provinces before any of its own bonuses**, `base_values`' 5 included (
 | --- | --- |
 | Relation | the mean of the country's relation with each member, x `RELATION_WEIGHT`, susceptible; nought with no members |
 | Ideology | where its ruling ideology is g's: `IDEOLOGY_WEIGHT` x (1000 + `drift_speed`) / 1000 |
-| Proximity | the best over the members of `r x 1000 x t / 1000`, `t = max((5000000 - 1000 x d) x 1000 / 500000, 100)` - 10 less a five-hundredth of the distance between the two capitals, at least 0.1 - and `r` **the member's base IC divided by the country's, a whole number**; x `PROXIMITY_WEIGHT`, susceptible |
+| Proximity | the best over the members of `r x 1000 x t / 1000`, `t = max((5000000 - 1000 x d) x 1000 / 500000, 100)` - 10 less a five-hundredth of the distance between the two acting capitals' centres, at least 0.1 - and `r` **the member's base IC divided by the country's, a whole number** (each as section 3 says the step reads it); x `PROXIMITY_WEIGHT`, susceptible. **A country with no capital - the rebels - measures from province 0, whose centre is (1, 1)**: the original counts no pixel of id 0 towards a box, so province 0's is nought, and a centre with a part at nought is put at (1, 1). So the rebels are far from every capital but those near the map's south-west corner, which the wrap brings to the east: Australia's and New Zealand's, once they are in the Allies |
 | Revanchism | the country's cores held by a member of g's faction, x (1000 - s) x 5 each, s the faction's share of the world's victory points in thousandths - nought from half; x `REVANCHISM_WEIGHT`, susceptible |
 | Threat | the most threat it feels from a member, where any is above nought, x `THREAT_WEIGHT`, susceptible, x min(total IC x 1000 x 1000 / `LARGE_COUNTRY_IC`, 1000) / 1000 |
 | Repulsion | `max(200000 - 1000 x r, 0) x REPULSION_WEIGHT / 1000`, r the whole distance by Newton's root; where its ruling ideology is of another group, x f / 1000 if f is over 1000, `f = (base IC x 1000 x REPULSION_IC_FACTOR / 1000) x 1000 / (w x 1000)`, w the faction leader's base IC and a quarter of the rest's, f 100000 where w is nought |
-| Influence | where it has the static modifier g's faction's `influence` names: `b x (a x v / 1000) / 1000`, v that modifier's `align_towards`, `a = (100000 - max(leader's effective neutrality, 0)) x 1000 / 100000`, `b = max((100000 - its effective neutrality) x 1000 / 100000 + 250, 250)` |
+| Influence | where g's faction has members and the country has the static modifier its `influence` names **among its event modifiers** - where an influence or an alignment puts it: `b x (a x v / 1000) / 1000`, v that modifier's `align_towards`, `a = (100000 - max(leader's effective neutrality, 0)) x 1000 / 100000`, `b = max((100000 - its effective neutrality) x 1000 / 100000 + 250, 250)`. The same static a puppet in no faction takes from its master's faction (`modifiers.md`, section 4) is added to its modifier and never to that list, so **it does not count**: Iran, Britain's puppet, and Siam, Japan's, at 1941.6.22 |
 
 **The vector**: for each group the country does not stand exactly on, the length of the line in single
 precision - `floor(float(float(sqrtf(float(float(s) / 1000.0)) + 0.0005) x 1000.0))`, s the squared
@@ -86,19 +116,24 @@ over `FACTION_THREAT_DIST` squared, x 1000, uncapped.
 
 ## Ours
 
-- **Faction progress is not kept**, so its share of the victory points is nought and revanchism weighs
-  every held core in full - which is what the original's first step has, and not what its later ones do.
-- **No influence is built**, so no country has an `align_towards_*` modifier and the influence term is
-  nought.
+- **Revanchism takes a faction's share of the victory points as nought**, though faction progress is kept
+  (`factions.md`), so it weighs every held core in full - which is what the original's first step has at
+  every date, and not what its later steps do.
 - **A capital is its acting capital**: the two differ in the original only for a government in exile.
-- **The AI's opening laws and the cabinet's filling are not made** - the original's `Laws(country)` and
-  its filling of empty posts as a game is entered (`lua.md`, section 5). They change many countries'
-  drift speed and susceptibility before the first step, so **the first step agrees with the start save
-  for 50 countries of 101**, the 11 of the factions among them, and for 67 with the save's laws given
-  (`OpenHOI3.SaveCheck diplomacy`); the misses are of those inputs, not of the drift.
+- **The step is taken beside the surrender**, a country at a time, and not where the original's country day
+  has it, before its IC (section 3): nothing read between the two places reads a country's place on the
+  triangle.
+
+**Measured** (`OpenHOI3.SaveCheck diplomacy`, 2026-11-15): every country's first step, and so its place, is
+the start save's for **101 of 101 countries** at 1936.1.1, 1939.9.1, 1941.6.22 and 1941.12.11, where it was 100,
+54, 35 and 47. What sections 3 and 5 settle: the rebels' capital, the one miss at 1936 and one at each later
+date; the day's IC of the countries before, some 50 at 1941 - the countries owning nothing above all, which a
+conqueror's IC weighs most; the surrender of China the Americas' and much of Asia's at 1939; the influence a
+puppet does not feel Iran's and Siam's; the day's most-threatening country and the surrender's threat the
+last differences of a thousandth or two, the `neutrality` static's share of `drift_speed` cut a step lower.
+With `drifts` after the save the check tells a miss as the step here beside the save's.
 
 ## Not established
 
 - When the original's faction progress is first worked out, and by what.
-- Which list a country's `align_towards_*` is looked for in.
 - What the original's AI changes before the first step and what after (`FINDINGS-alignment.md`, 2.2).

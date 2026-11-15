@@ -58,11 +58,12 @@ public static class CSaveDiplomacy
 					state.Naps.Add(new CNap(first.Tag, second.Tag, start)
 					{
 						Made = state.NextPact(),
+						End = end,
 						Balance = pact.Get("balance") is null ? CNapBalance.Unmeasured : CSaveValues.Fixed(pact, "balance").Raw,
 						OurPower = pact.GetInt("our_power"),
 						TheirPower = pact.GetInt("their_power"),
 					});
-					Unread(pact, report, "balance", "our_power", "their_power", "first", "second", "start_date");
+					Unread(pact, report, "balance", "our_power", "their_power", "first", "second", "start_date", "end_date");
 					break;
 				case "embargo":
 					state.Embargoes.Add(new CEmbargo(first.Tag, second.Tag) { Made = state.NextPact(), Start = start });
@@ -178,6 +179,10 @@ public static class CSaveDiplomacy
 				writer.Int("their_power", nap.TheirPower);
 				writer.Quoted("first", nap.First.Value);
 				writer.Quoted("second", nap.Second.Value);
+				if (nap.End is { } ends)
+				{
+					writer.Date("end_date", ends);
+				}
 				writer.DateOrNull("start_date", nap.Start);
 				writer.End();
 			}));

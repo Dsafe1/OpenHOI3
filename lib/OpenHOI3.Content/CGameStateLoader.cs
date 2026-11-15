@@ -104,9 +104,10 @@ public static class CGameStateLoader
 				Continent = map.Continents[id],
 				Terrain = map.Terrain[id],
 				Edges = map.Edges[id],
-				CentreX = map.Shapes[id].IsEmpty ? 0 : map.Shapes[id].CentreX,
-				CentreY = map.Shapes[id].IsEmpty ? 0 : map.Shapes[id].CentreY,
-				Span = map.Shapes[id].IsEmpty ? 0
+				// The centre the original measures distances from: province 0's at (1, 1) (alignment.md, section 5).
+				CentreX = map.Shapes[id].GameCentre(id).X,
+				CentreY = map.Shapes[id].GameCentre(id).Y,
+				Span = map.Shapes[id].IsEmpty || id == 0 ? 0
 					: map.Shapes[id].MaxX - map.Shapes[id].MinX + 1 + map.Shapes[id].MaxY - map.Shapes[id].MinY + 1,
 				PositionX = map.Positions[id].X,
 				PositionY = map.Positions[id].Y,
@@ -136,7 +137,7 @@ public static class CGameStateLoader
 		Dictionary<string, Dictionary<string, CLaw>> lawBook = CModifierReader.ReadLaws(directories, warn);
 		List<COccupationPolicy> occupationPolicies = CModifierReader.ReadOccupationPolicies(directories, warn);
 		Dictionary<string, Dictionary<EGoods, CFixedPoint>> goodsGiven = CCountryHistory.Apply(directories, countries, at, warn, technologies,
-			categories, lawBook, occupationPolicies.Select(policy => policy.Name).ToHashSet());
+			categories, lawBook, occupationPolicies.Select(policy => policy.Name).ToHashSet(), definesStart: start);
 
 		CDefines defines = CDefinesReader.Read(directories, warn);
 		CBuilding[] buildings = CBuildingReader.Read(directories, warn);
@@ -150,7 +151,7 @@ public static class CGameStateLoader
 		List<CModifier> strategicResources = CModifierReader.ReadStrategicResources(directories, warn);
 		var finishedWars = new List<CWar>();
 		var joins = new List<(CCountryTag Joiner, CCountryTag Enemy)>();
-		List<CWar> wars = CWarReader.Read(directories, countries, at, warn, finishedWars, joins);
+		List<CWar> wars = CWarReader.Read(directories, countries, at, warn, finishedWars, joins, definesStart: start);
 		CDiplomacyHistory diplomacy = CDiplomacyReader.Apply(directories, countries, at, warn);
 
 		List<CTrait> traits = CTraitReader.Read(directories, warn);
@@ -187,6 +188,15 @@ public static class CGameStateLoader
 			EndDate = ReadEndDate(directories, warn),
 		};
 		AssignRegions(state);
+		// A faction's members as the original's history passes reached them: those of the defines' start date in the
+		// countries' order, then those the bookmark's pass made members, in the countries' order too (war.md, section 13).
+		foreach (CCountry country in state.Countries)
+		{
+			if (country.HistoryJoinedLate && country.Faction.Length > 0)
+			{
+				country.FactionSeat = ++state.LastFactionSeat;
+			}
+		}
 		state.Weather.LowPressureZones = map.LowPressureZones;
 		state.Weather.HighPressureZones = map.HighPressureZones;
 		state.Alliances.AddRange(diplomacy.Alliances);
@@ -454,7 +464,7 @@ public static class CGameStateLoader
 			country.Tag.Value == "REB" || owned.Count(country.Tag) > 0);
 		state.LastUnitId = COrderOfBattleReader.Read(directories, reading, state.SubUnitTypes,
 			state.Technologies, state.Provinces.Count, warn,
-			(country, type) => CUnitNames.ForSubUnit(state, country, type), unnamed, state.Leaders);
+			(country, type) => CUnitNames.ForSubUnit(state, country, type), unnamed, state.Leaders, state);
 		RegisterUnitNames(state);
 		NameUnnamedUnits(state, unnamed);
 	}

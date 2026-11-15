@@ -134,7 +134,9 @@ One army a rising, made for the faction:
      target has none - one draw for each technology the target has above nought;
    - **at full strength and full organisation**.
 6. **No leader.** The army stands in the province and looks for a battle there at once - **a rising where an enemy
-   stands starts fighting**.
+   stands starts fighting**. Put there as any land unit entering a province is, it brings its fifteen days of supplies
+   and fuel out of its owner's stockpile - of which the rebels have none, so only an exile's or an underground's
+   partisans bring any (`supply.md`, section 14; read 2026-11-15).
 
 **Who is told**, the holder being taken before the battle:
 

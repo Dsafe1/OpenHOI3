@@ -86,8 +86,10 @@ public static class CResources
 			}
 		}
 
-		// A country that does not hold its capital produces nothing at home, not even this.
-		if (joined.Count > 0)
+		// What base_values' IC needs is made by every country that has a day of its own - one owning a province, or a
+		// government in exile - whatever it holds: an exile seated in its host's capital makes it into its own pool
+		// (war.md, section 14). A country that does not exist makes none.
+		if (HasOwnDay(state, country))
 		{
 			CFixedPoint baseIc = state.StaticModifier(CIndustrialCapacity.BaseValues, CIndustrialCapacity.BaseValuesIc);
 			foreach ((EGoods goods, CFixedPoint perIc) in NeededPerIc)
@@ -214,6 +216,13 @@ public static class CResources
 		money = money * (CFixedPoint.Scale + country.Modifier[GlobalMoney].Raw) / CFixedPoint.Scale;
 		return new CFixedPoint(money);
 	}
+
+	/// <summary>
+	/// Whether the country has a day of its own, in which its production is collected, its IC worked out again and its
+	/// conversions run: it owns a province, or it is a government in exile (war.md, section 14).
+	/// </summary>
+	public static bool HasOwnDay(CGameState state, CCountry country) =>
+		country.InExile || CCountryLists.OwnedCount(state, country.Tag) > 0;
 
 	/// <summary>Whether the country holds the province its government sits in, its acting capital.</summary>
 	public static bool HoldsCapital(CGameState state, CCountry country)

@@ -12,6 +12,15 @@ history read, the install's Lua loaded, the two days a new game runs first - wit
 tick hour by hour to the first day of the year given, 1948 by default. Nothing is given to it by hand: no war, no
 order, no mission.
 
+**`from=1941.6.22` begins it at a later bookmark** (2026-11-15): the new game is made at that date as the lobby's
+bookmark of it makes it (`bookmarks.md`, section 3), and the end - a year or a date, `1941.10.22` - must lie after it.
+**Run it a few months at a time** (the maintainer's word on headless runs). `monthly` writes the great powers'
+figures on every month's first day instead of twice a year, which a run of a few months wants; `watch=TAG,TAG` writes
+those countries' hold on their land each midnight, with their supplies, fuel, IC and shares of IC; and `tell=TAG,TAG`
+prints every message whose actor or recipient is one of them and every event fired for one of them as it happens, and
+each hour that one's national unity, capital, exile, faction or enemies change, what they now are. The same `from=`
+is taken by `OpenHOI3.SaveCheck profile`.
+
 What acts on its own is what is built: the tick's hourly, daily, monthly and yearly passes; the events and decisions
 of the base game, the AI's choice of an option on the game's generator; the AI's answers to offers and the install's
 Lua for every country nobody plays - trading, its politics minister and its intelligence minister, and since the same
@@ -22,6 +31,7 @@ or declares a war but by script. So the run tests the economy, politics, diploma
 
 ## 2. What it tells
 
+- As it starts, the warnings of the loading, the wars standing and the countries in exile - which a later start has.
 - Twice a year, on 1 January and 1 July, the eight great powers' figures - IC, manpower, leadership, officers, the
   seven goods, units, brigades, the build queue, the technology levels summed, national unity, dissent, neutrality,
   the ruling ideology and the faction - and the world's: countries holding their capital, IC, units, wars, trade
@@ -249,7 +259,58 @@ research 74% of its leadership to 77% - and **its technology is not: 32 levels s
 the speed. The Lua: 149 errors, all the misspelt faction of `JAP.lua` line 699, which starts once China is out of the
 war.
 
-## 5. Not established
+## 5. From a later bookmark (2026-11-15)
+
+Each of the three later bookmarks run forward with `from=`, four months each and nobody playing, Their Finest Hour
+unmodded, a Release build, beside the 1936 start run three months as a control. A later start has from its first hour
+what a 1936 game reaches only years in - wars standing, seven exiles at 1941, puppets, occupied land, fronts.
+
+| | 1936.1.1 to 1936.4.1 | 1939.9.1 to 1940.1.1 | 1941.6.22 to 1941.10.22 | 1941.12.11 to 1942.4.1 |
+| --- | --- | --- | --- | --- |
+| time | 100 s | 147 s | 363 s | 325 s |
+| thrown | nothing | nothing | nothing | nothing |
+| goods or manpower below nought | none | none | none | none |
+| the Lua's errors | 0 | 26, all `JAP.lua` 699 | 2, `JAP.lua` 699 | 0 |
+| script keys not built | 0 | 0 | 0 | 0 |
+
+With `seed=12345` the three later runs again threw nothing and went below nought nowhere (204, 434 and 493 s), and the
+same things happened a few days apart.
+
+**One fault was a later start's own, and is mended**: Lua's list of possible puppets went by `GetPossibleVassals`, a name
+the original has not; its registration is `GetPossiblePuppets`, which `ITA.lua`'s `HandlePuppets` calls whenever Italy
+`CanCreatePuppet` - from the first hour at 1939.9.1, Italy owning Ethiopia's capital, and from whatever Italy holds at
+1941. It failed 10, 8 and 11 times in the three runs; since, Italy releases Ethiopia on 1 October 1939 and it joins the
+Axis (`lua.md`, section 4; `politics.md`, section 11.1). A 1936 game reaches it once Italy has annexed Ethiopia.
+
+`JAP.lua` line 699 is the misspelt faction of section 4, which starts once Japan has no war with a great power: at 1939
+from Guangxi's annexation on 15 October. Not a later start's own.
+
+What the runs did, as a look and not a check - nothing is tuned to it, and the seed of the run decides much:
+
+- **1939.9.1**: **Poland falls in a month** - surrendering to Germany and annexed on 2 October (5 October with
+  `seed=12345`; before the mend, with other draws, it surrendered on 3 October and went into exile), the Soviet Union
+  taking `MR_pact` the same day. The original's Poland capitulated on 6 October 1939. Then Germany declares on Denmark
+  on 8 October and it surrenders on the 24th; the Soviet Union takes `finnish_winter_war` on 30 November, the Winter
+  War's own date. France and Britain hold all their land.
+- **1941.6.22**: **the war in the east moves**, slowly: Germany holds 905 provinces on 23 June and 1,328 on 21 October,
+  the Soviet Union 2,950 and 2,553 of the 2,936 it owns, its surrender progress 348. The United States takes
+  `undeclared_war_one` in the first hour and on 24 June is taken into the Allies by Britain's invitation and so into the
+  war - the invitation's Lua score is 100 from its neutrality of 23 (`ai_diplomacy.lua`, `USA.lua`), the original's
+  script on the save's figures - and with it `day_of_infamy` six months early, Japan joining Germany's war the next day.
+  The Netherlands' event 1751, *The Fall of Holland*, fires on its first check and sends it into exile, its history
+  giving no `fall_of_holland` flag - the script's.
+- **1941.12.11**: **Japan's war moves on China and the Philippines, hardly on the Indies**: China holds 207 provinces and
+  then 95, the Philippines 78 and then 46 of its 85 (progress 903), the British Empire 1,014 and then 970, the
+  Netherlands 203 and then 200. The Netherlands goes into exile on 13 December by its event 1751. Polish and Yugoslav
+  partisans take their capitals for weeks at a time. Britain's metal is gone by 1 March, and its IC with it - 126 of
+  284 - Italy's energy by April (80 of 115), and the Soviet Union's stockpile is all but empty by 1 February.
+- **Germany's supplies** fall from 29,621 to 2,009 by 1 January 1942 at the third bookmark, and swing by up to 8,000 in a
+  day, all of it inside the day's supply pass - carried out to the provinces and back. The original's Germany keeps
+  over 30,000 throughout the Ireland game's war, which is not the same game. Not looked into.
+- **Speed**: a day takes 1.1 s at 1936 and 1.2 s at 1939, about 3 s at either 1941 bookmark, with every unit at war;
+  the unit agents' sea targets are the largest step (`profile <install> 2 IRE from=1941.12.11`).
+
+## 6. Not established
 
 - ~~What keeps the original's Spanish Civil War going past its first day~~ - the AI, by the maintainer's account: it
   has moved the Republic's units away from the Nationalists' victory points by the time the event fires. Since the

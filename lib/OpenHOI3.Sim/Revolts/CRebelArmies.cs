@@ -82,6 +82,9 @@ public static class CRebelArmies
 			SetFull(state, ownerCountry, brigade);
 			army.SubUnits.Add(brigade);
 		}
+		// Put in its province from nowhere, it brings its days of supplies and fuel - out of its owner's stockpile, which
+		// the rebels have none of (supply.md, section 14).
+		Supply.CSupplyCarry.Bring(state, ownerCountry, army, from: 0, province.Id, beforeGame: state.IsBeingMade);
 		state.ForgetPositions();
 		CCountryTag? holder = province.Controller;
 		CCombats.CheckForCombat(state, army, province.Id);

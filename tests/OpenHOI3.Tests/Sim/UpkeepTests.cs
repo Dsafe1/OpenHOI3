@@ -747,6 +747,35 @@ public class UpkeepTests
 	}
 
 	[Fact]
+	public void AGovernmentInExileUpgradesTowardsItsFactionLeadersLevelWhereThatIsHigher()
+	{
+		CCountry country = Country();
+		var england = new CCountry { Tag = new CCountryTag("ENG"), Name = "England", DefinitionFile = "", Capital = 1, Faction = "allies" };
+		CSubUnitType type = LightArmour();
+		CTechnology gun = Technology("lighttank_gun", type);
+		CDefines defines = State(country).Defines;
+		var state = new CGameState(new CDate(1941, 6, 22),
+			new[] { new CProvince(0, "", isSea: false), new CProvince(1, "London", isSea: false) { Owner = england.Tag, Controller = england.Tag } },
+			new[] { england, country }, technologies: new[] { gun }, defines: defines);
+		CSubUnit armour = Brigade(type, Unit(country));
+		armour.TechnologyProgress["lighttank_gun"] = CFixedPoint.Parse("0.995");
+		england.TechnologyLevels["lighttank_gun"] = 2;
+		country.Faction = "allies";
+
+		// Not in exile: its own level, nought, leaves nothing to do.
+		CUpgrades.Run(state, country, CFixedPoint.FromInt(10), apply: true);
+		Assert.Equal(0, armour.TechnologyLevels.GetValueOrDefault("lighttank_gun"));
+		Assert.Equal(0, CUpgrades.EquipmentLevel(state, country, "lighttank_gun"));
+
+		// In exile, England leading its faction: brought up towards England's two, two levels behind.
+		country.InExile = true;
+		Assert.Equal(2, CUpgrades.EquipmentLevel(state, country, "lighttank_gun"));
+		CUpgrades.Run(state, country, CFixedPoint.FromInt(10), apply: true);
+		Assert.Equal(1, armour.TechnologyLevels["lighttank_gun"]);
+		Assert.Equal(1, country.SubUnitsUpgrading);
+	}
+
+	[Fact]
 	public void AUnitLentOutIsUpgradedByItsLenderFirstAndKeepsItsBuilder()
 	{
 		CCountry country = Country();

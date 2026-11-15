@@ -68,9 +68,10 @@ public static class CPuppets
 		{
 			CFactionMembership.Leave(state, vassal);
 		}
+		// Leaving its wars tells nobody of a change of diplomacy; the overlord and the vassal are told once it is all done.
 		foreach (CWar war in state.Wars.ToArray())
 		{
-			CWarSides.Leave(state, war, vassal.Tag);
+			CWarSides.Leave(state, war, vassal.Tag, diplomacyChanged: false);
 		}
 		EndAgreements(state, vassal);
 
@@ -91,6 +92,9 @@ public static class CPuppets
 		// The overlord's government, and every post filled again for it (politics.md, section 7).
 		vassal.GovernmentType = overlord.GovernmentType;
 		Politics.CMinisterPosts.Fill(state, vassal, refillAll: true, electedOnly: false);
+		// The change of diplomacy, the overlord's and then the vassal's: so a vassal at peace gives up the laws only a war
+		// allowed (politics.md, section 9; measured: China's three at the 1939 bookmark).
+		Politics.CLaws.OnDiplomacyChanged(state, overlord);
 		Politics.CLaws.OnDiplomacyChanged(state, vassal);
 	}
 

@@ -441,6 +441,15 @@ public class MapLoadingTests : IDisposable
 	}
 
 	[Fact]
+	public void TheCentreDistancesAreMeasuredFromLeavesProvinceZeroAndAnyCentreOnAnAxisAtOneOne()
+	{
+		Assert.Equal((5, 7), new CProvinceShape(4, 6, 5, 7, 4).GameCentre(3));
+		Assert.Equal((1, 1), new CProvinceShape(2860, 1190, 2870, 1210, 100).GameCentre(0));   // id 0's pixels never count
+		Assert.Equal((1, 1), new CProvinceShape(0, 0, 0, 0, 0).GameCentre(9));                 // no pixels: a box of nought
+		Assert.Equal((1, 1), new CProvinceShape(0, 4, 0, 6, 3).GameCentre(9));                 // x at nought
+	}
+
+	[Fact]
 	public void ProvincesTouchAcrossAnEdgeButNotACorner()
 	{
 		CMap map = Load();
@@ -736,6 +745,50 @@ public class MapLoadingTests : IDisposable
 
 		Assert.True(LoadStart(new CDate(1941, 6, 22)).Country(new CCountryTag("FRA"))!.InExile);
 		Assert.False(LoadStart().Country(new CCountryTag("FRA"))!.InExile);
+	}
+
+	[Fact]
+	public void AHistoryWarGoalOnACountryInExileByTheDateIsNeverAddedAndOneAddedStampsItsCooldownFromTheStart()
+	{
+		// As World War II's goals on Poland, Denmark, Norway, Belgium and the rest are missing from the 1941 start saves,
+		// where Germany's on the Netherlands, no exile yet, is there.
+		WriteStartFiles();
+		Write("common/cb_types.txt", @"
+			conquer = { always = yes is_valid = { exists = yes government_in_exile = no } po_annex = yes }");
+		Write("history/provinces/west/1 - Alpha.txt", "owner = FRA\ncontroller = FRA");
+		Write("history/provinces/east/2 - Beta.txt", "owner = ENG\ncontroller = ENG");
+		Write("history/countries/FRA - France.txt",
+			"capital = 1\n1940.6.18 = { set_country_flag = fr_signs_peace set_country_flag = gone }\n" +
+			"1940.6.20 = { clr_country_flag = gone }\n1940.6.22 = { government_in_exile = yes }");
+		Write("history/countries/ENG - Britain.txt", "capital = 2");
+		Write("history/wars/WorldWarII.txt", @"
+			name = ""World War II""
+			1939.9.1 = {
+				add_attacker = GER
+				add_defender = FRA
+				add_defender = ENG
+				war_goal = { casus_belli = conquer actor = ""GER"" receiver = ""FRA"" }
+				war_goal = { casus_belli = conquer actor = ""GER"" receiver = ""ENG"" }
+			}");
+		var ger = new CCountryTag("GER");
+		var fra = new CCountryTag("FRA");
+		var eng = new CCountryTag("ENG");
+
+		CGameState later = LoadStart(new CDate(1941, 6, 22));
+		CWar war = Assert.Single(later.Wars);
+		Assert.Equal(new[] { eng }, war.GoalsOf(ger).Select(goal => goal.Recipient));
+		// The lobby's own hour is the defines' start date; with no WARGOAL_ADD_COOLDOWN here, no month on from it.
+		long start = later.StartDate.DayNumber * (long)CGameState.HoursPerDay;
+		Assert.Equal(start, CGameState.Status(later.Country(ger)!, later.Country(eng)!).NextWarGoal);
+		Assert.Equal(long.MinValue, CGameState.Status(later.Country(ger)!, later.Country(fra)!).NextWarGoal);
+
+		// The history's flags, set and cleared in turn by the date, which a goal's is_valid may read.
+		Assert.True(later.Country(fra)!.Flags.IsSet("fr_signs_peace"));
+		Assert.False(later.Country(fra)!.Flags.IsSet("gone"));
+
+		CGameState earlier = LoadStart(new CDate(1939, 9, 1));
+		Assert.Equal(new[] { fra, eng }, Assert.Single(earlier.Wars).GoalsOf(ger).Select(goal => goal.Recipient));
+		Assert.False(earlier.Country(fra)!.Flags.IsSet("fr_signs_peace"));
 	}
 
 	[Fact]
@@ -1232,6 +1285,31 @@ public class MapLoadingTests : IDisposable
 		Assert.Equal(0, over.Action);
 		CWar nothing = finished.Single(war => war.Name == "");
 		Assert.Empty(nothing.Attackers.Concat(nothing.Defenders));
+	}
+
+	[Fact]
+	public void At_a_later_bookmark_a_war_standing_at_the_defines_start_goes_first_and_one_ended_since_goes_last()
+	{
+		// The original sorts its wars once at the end of each pass of the history: a war standing after the pass to the
+		// defines' start date stays ahead of the bookmark's pass's own, and one that stood then and has ended by the
+		// bookmark goes to the back of the finished - the 1939.9.1 start save's Second Italo-Abyssinian War after the
+		// Spanish Civil War (war.md, section 1).
+		WriteStartFiles();
+		Write("history/wars/A_Old.txt", "name = \"Old\"\n1935.10.3 = { add_attacker = ITA add_defender = ENG }\n1936.5.9 = { rem_attacker = ITA }");
+		Write("history/wars/B_Long.txt", "name = \"Long\"\n1935.1.1 = { add_attacker = GER add_defender = FRA }");
+		Write("history/wars/C_New.txt", "name = \"New\"\n1937.7.7 = { add_attacker = ITA add_defender = FRA }");
+		Write("history/wars/D_Short.txt", "name = \"Short\"\n1936.7.17 = { add_attacker = GER add_defender = ENG }\n1937.4.1 = { rem_attacker = GER }");
+		Write("history/wars/0_Early.txt", "name = \"Early\"\n1938.1.1 = { add_attacker = ENG add_defender = ITA }");
+		CDirectorySettings directories = CDirectorySettings.At(_root);
+		CLocalisation localisation = CLocalisation.Load(directories, warn: _warnings.Add);
+		CCountries countries = CCountries.Load(directories, localisation, _warnings.Add);
+		var finished = new List<CWar>();
+
+		List<CWar> fought = CWarReader.Read(directories, countries, new CDate(1939, 9, 1), _warnings.Add, finished,
+			definesStart: new CDate(1936, 1, 1));
+
+		Assert.Equal(new[] { "Long", "Early", "New" }, fought.Select(war => war.Name));
+		Assert.Equal(new[] { "Short", "Old" }, finished.Select(war => war.Name));
 	}
 
 	[Fact]

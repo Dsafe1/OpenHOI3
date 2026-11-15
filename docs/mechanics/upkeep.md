@@ -260,7 +260,11 @@ then this took them after, as reinforcement does, which mattered only where the 
 **Which technologies.** Each technology a brigade lists (`units.md`, section 2) in which the
 country's level is above the brigade's own - **unless the technology says
 `can_upgrade = no`**, which is never brought up: 19 of Their Finest Hour's do. Every
-technology a brigade is behind in moves at once, each one level at a time.
+technology a brigade is behind in moves at once, each one level at a time. **For a government in
+exile the level is its faction's first member's where that is higher** than its own
+(`reversing/findings/FINDINGS-surrender.md`, C.7; `war.md`, section 14). (measured) Belgium's
+brigades at 1941.6.22, brought up towards Britain's levels, spend the 0.989 IC on the first day
+that its stockpile in the save shows; at its own levels they spent 0.248.
 
 **What a day does to one technology of one brigade:**
 

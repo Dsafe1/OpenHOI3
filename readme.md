@@ -2758,9 +2758,10 @@ None of these blocks the list above.
   `reversing/findings/FINDINGS-bookmarks.md` and `FINDINGS-laterstart.md`): the lobby lists every historical bookmark
   and a click makes the world at its date, the Quick Start panel's four buttons start their games, and the start
   checks of `OpenHOI3.SaveCheck` make their game at a start save's date. What a later start does not yet give as the
-  maintainer's saves of its first hour have it is `bookmarks.md`, section 3.1: alignment above all (35 to 54 of 101
-  countries where everything else it reads agrees), an exile's own pool, `protect` towards Belgium, New Zealand's
-  posts and China's laws in the two days, Japan's and China's fronts at 1939.
+  maintainer's saves of its first hour have it is `bookmarks.md`, section 3.1 - after a second round the same day,
+  which brought alignment to 101 of 101 at every date and built an exile's day: New Zealand's posts at 1941 (the AI's
+  hour-0 pass, not built), Japan's and China's fronts at 1939 (areas kept province by province), the order of a
+  faction's members, and 2.010 supplies a country holding its own seat misses by.
 
 A replacement for the engine still leaves a few things of the original's out. These are settled
 decisions rather than things merely unbuilt, so nothing should be designed around them

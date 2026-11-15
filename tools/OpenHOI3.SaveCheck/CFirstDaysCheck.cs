@@ -65,6 +65,15 @@ internal static class CFirstDaysCheck
 		Console.WriteLine();
 		Compare(state, save, examples);
 		Console.WriteLine();
+		// One country's day of goods beside the save's, for looking into: "country=<tag>" after the save.
+		foreach (string argument in args.Skip(3))
+		{
+			if (argument.StartsWith("country=", StringComparison.Ordinal)
+				&& CCountryTag.TryParse(argument["country=".Length..], out CCountryTag asked) && state.Country(asked) is { } country)
+			{
+				Ledger(state, save, country);
+			}
+		}
 		CStrategicResourceLook.Print(state);
 		Console.WriteLine();
 
@@ -301,6 +310,43 @@ internal static class CFirstDaysCheck
 			}
 			Collect(child, subUnits);                         // a carrier's air group is written inside the ship
 		}
+	}
+
+	/// <summary>
+	/// The second day's counts of a country's goods, ours beside the save's, each good the save or ours has a figure of:
+	/// what was made at home, what left the stockpile for units, what was made away from the capital and what came back,
+	/// what was paid and was paid for friends' units, and the stockpile itself.
+	/// </summary>
+	private static void Ledger(CGameState state, ClausewitzNode save, CCountry country)
+	{
+		ClausewitzNode? node = save.Get(country.Tag.Value);
+		Console.WriteLine($"{country.Tag}: ours / the save's");
+		foreach ((string name, CGoodsPool? ours, string key) in new (string, CGoodsPool?, string)[]
+		{
+			("made", country.HomeProduced, "home"), ("used by industry", country.Usage, "usage"),
+			("left the stockpile for units", country.UnitDrawn, "usage"), ("turned into another", country.ConversionUsed, "-"),
+			("made by turning", country.ConversionMade, "-"),
+			("made away from the capital", country.SentTo, "to"), ("come back", country.SentBack, "back"),
+			("paid for its units", country.TradedAway, "traded_away"), ("paid it for friends'", country.TradedFor, "traded_for"),
+			("the stockpile", state.Stockpile(country), "pool"),
+		})
+		{
+			ClausewitzNode? saved = key == "pool" && !country.InExile
+				? save.Get(node?.GetString("acting_capital") ?? country.ActingCapital.ToString(CultureInfo.InvariantCulture))?.Get("pool")
+				: node?.Get(key);
+			var parts = new List<string>();
+			foreach (EGoods goods in Enum.GetValues<EGoods>())
+			{
+				CFixedPoint mine = ours?[goods] ?? CFixedPoint.Zero;
+				CFixedPoint theirs = Number(saved?.GetString(CGoodsPool.KeyOf(goods)));
+				if (mine != CFixedPoint.Zero || theirs != CFixedPoint.Zero)
+				{
+					parts.Add($"{CGoodsPool.KeyOf(goods)} {mine} / {theirs}");
+				}
+			}
+			Console.WriteLine($"   {name,-30} {string.Join("   ", parts)}");
+		}
+		Console.WriteLine();
 	}
 
 	private static CFixedPoint Number(string? text)

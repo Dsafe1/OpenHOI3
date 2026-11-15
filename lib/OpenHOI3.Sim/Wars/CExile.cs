@@ -176,22 +176,42 @@ public static class CExile
 	}
 
 	/// <summary>
-	/// After an exile's production and before its shares: its supplies and fuel go to whoever holds its seat, into
-	/// that country's ledger and the seat's pool.
+	/// Before the countries' shares run: the day's ledger of what exiles handed over made anew, for each exile to hand
+	/// its supplies and fuel over in its own day (<see cref="HandOverSupplies"/>).
 	/// </summary>
 	public static void HandOverDaily(CGameState state)
 	{
-		// The day's ledger made anew (ours: where the original's daily reset of its pools falls against this was not
-		// compared).
+		// Ours: where the original's daily reset of its pools falls against this was not compared.
 		foreach (CCountry country in state.Countries)
 		{
 			country.ReceivedFromExiles.Clear();
 		}
+	}
+
+	/// <summary>The most of any good a country's day leaves in its stockpile, in thousandths: 999,999 [exe].</summary>
+	public const long MostHeld = 999_999 * CFixedPoint.Scale;
+
+	/// <summary>
+	/// In a country's day, after its shares and before its spies: every good of its stockpile held between nothing and
+	/// 999,999 [exe] - for an exile its own pool, which no province's day holds afterwards (<c>war.md</c>, section 14).
+	/// A land province's own end of day holds tighter, so another country's is not done here. Ours: the original holds it
+	/// after the shares of leadership too, which touch no good.
+	/// </summary>
+	public static void HoldPoolsDaily(CGameState state)
+	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (country.InExile)
+			if (!country.InExile)
 			{
-				HandOverSupplies(state, country);
+				continue;
+			}
+			for (int goods = 0; goods < CGoodsPool.Count; goods++)
+			{
+				long held = country.PoolInExile[(EGoods)goods].Raw;
+				if (held < 0 || held > MostHeld)
+				{
+					country.PoolInExile[(EGoods)goods] = new CFixedPoint(System.Math.Clamp(held, 0, MostHeld));
+				}
 			}
 		}
 	}
@@ -209,7 +229,12 @@ public static class CExile
 		}
 	}
 
-	private static void HandOverSupplies(CGameState state, CCountry exile)
+	/// <summary>
+	/// In an exile's day, after its production, its IC and its conversions and before its shares: its supplies and fuel
+	/// go to whoever holds its seat, into that country's ledger and the seat's pool, even an enemy's
+	/// (<c>war.md</c>, section 14).
+	/// </summary>
+	public static void HandOverSupplies(CGameState state, CCountry exile)
 	{
 		CProvince seat = state.Province(exile.ActingCapital);
 		if (state.Country(seat.Controller) is not { } host)

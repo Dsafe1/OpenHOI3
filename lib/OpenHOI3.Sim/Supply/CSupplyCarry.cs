@@ -39,12 +39,17 @@ public static class CSupplyCarry
 		CProvince left = state.Province(from);
 		if (left.Id == 0)
 		{
-			if (!beforeGame && !fromStockpile && province.Controller != owner.Tag)
+			if (!beforeGame && !fromStockpile && province.Owner != owner.Tag)
 			{
-				// On ground it owns and another holds it takes from the depot; on
-				// anybody else's it comes with nothing.
+				// On ground it owns it takes from the stockpile whoever holds it; on ground it holds
+				// and another owns, from the depot; on anybody else's it comes with nothing
+				// (reversing/findings/FINDINGS-supplypass.md, section 5).
+				if (province.Controller != owner.Tag)
+				{
+					return;
+				}
 				int depot = CSupplyNetworks.Refresh(state).DepotOf(into);
-				if (province.Owner != owner.Tag || depot < 1)
+				if (depot < 1)
 				{
 					return;
 				}

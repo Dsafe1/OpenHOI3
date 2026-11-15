@@ -103,7 +103,8 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | | `GetCurrentAtWarWith()`, `GetNeighbours()`, `GetDiplomacy()` | iterators: the countries at war with it, its neighbours, one status for every country (4.1) |
 | | `IsEnemy(tag)` | not itself, and at war with it or either is `REB` |
 | | `IsFriend(tag, b)` | itself; either is the other's overlord; one overlord over both; one faction; an alliance; fighting a war together and not enemies; with `b`, military access towards it - this country may pass through its land |
-| | `IsGovernmentInExile()` | **false - not built**, reported |
+| | `IsGovernmentInExile()` | whether it is in exile (`war.md`, section 14) |
+| | `CanCreatePuppet()`, `GetPossiblePuppets()` | whether it may make a puppet; an iterator over the tags it may (`politics.md`, section 11.1). **`GetPossiblePuppets` is the original's name for it** [exe: its registration string]; ours was `GetPossibleVassals`, a name the original has not, until 2026-11-15, so `ITA.lua`'s `HandlePuppets` failed - which a later start reaches in its first hour, Ethiopia's capital being Italy's |
 | | `IsLandSafeToJoin(faction)` | false for the null faction; true where the faction's leader is at peace; **otherwise false**, whatever the land - the original's |
 | | `IsMajor()` | `major = yes` in its file, or `GetMaxIC()` over 100 |
 | | `IsNonExileNeighbour(tag)` | a country touching the land this one **controls**, owned by somebody and neither owned nor controlled by this one, and not in exile |

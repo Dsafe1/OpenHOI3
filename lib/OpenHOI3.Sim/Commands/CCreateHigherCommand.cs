@@ -5,7 +5,7 @@ using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Construction;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Leaders;
-using OpenHOI3.Sim.Research;
+using OpenHOI3.Sim.Supply;
 using OpenHOI3.Sim.Theatres;
 using OpenHOI3.Sim.Units;
 
@@ -93,11 +93,9 @@ public sealed class CCreateHigherCommand : CCommand
 			state.LastUnitId += 3;
 		}
 		var unit = new CUnit((EUnitKind)((int)top.Kind - 1), country.Tag) { Id = id, Location = place };
+		// Its technologies at the levels a new brigade is given - every one at nought - and not its country's: the
+		// original sets the type and applies the technologies with nothing between (theatres.md, section 10).
 		var brigade = new CSubUnit(type) { Id = id + 1, Unit = unit, Experience = CFixedPoint.Zero };
-		foreach (CTechnology technology in type.Technologies)
-		{
-			brigade.TechnologyLevels[technology.Name] = country.TechnologyLevels.GetValueOrDefault(technology.Name);
-		}
 		CUnits.RebuildStats(brigade);
 		long most = brigade.Stats[CSubUnitType.MaxStrength].Raw;
 		brigade.Strength = new CFixedPoint(Math.Max(0, most * Twentieth / CFixedPoint.Scale));
@@ -108,6 +106,10 @@ public sealed class CCreateHigherCommand : CCommand
 		unit.SubUnits.Add(brigade);
 		brigade.Name = CUnitNames.ForSubUnit(state, country, type);
 		CUnitNames.Register(country, brigade.Name);
+		// Put in its province from nowhere, it brings its days of supplies and fuel (supply.md, section 14). The original
+		// places it after giving it its place in the order of battle, but works out what it uses before its province is
+		// written, when no commander's reach comes down to it - as it is here, before it is attached to anything.
+		CSupplyCarry.Bring(state, country, unit, from: 0, place, beforeGame: state.IsBeingMade);
 
 		CUnit? above = top.Parent;
 		if (above is not null && above.Kind == unit.Kind)

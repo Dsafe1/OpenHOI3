@@ -223,7 +223,7 @@ public class ResourcesTests
 	}
 
 	[Fact]
-	public void ACountryThatDoesNotHoldItsCapitalProducesNothingAtHome()
+	public void ACountryThatDoesNotHoldItsCapitalMakesOnlyWhatItsBaseIcNeeds()
 	{
 		CGameState state = State("5", null,
 			Yielding(Land(1, Fra), EGoods.Metal, "10"),            // Germany's capital, in French hands
@@ -231,9 +231,15 @@ public class ResourcesTests
 
 		CTick.RunEntryPass(state);
 
-		Assert.Equal(CFixedPoint.Zero, Home(state, EGoods.Metal));
-		Assert.Equal(CFixedPoint.Zero, Home(state, EGoods.Energy));
+		// Its own province is cut off from a capital it does not hold, and owning it gives it a day of its own, in which the
+		// original's CollectDailyProduction adds base_values' needs whatever it holds (war.md, section 14).
+		Assert.Equal(CFixedPoint.FromInt(5), Home(state, EGoods.Metal));
+		Assert.Equal(CFixedPoint.FromInt(10), Home(state, EGoods.Energy));
 		Assert.Empty(CResources.ProvincesJoinedToCapital(state, state.Country(Ger)!));
+		// A country owning nothing and in no exile makes nothing.
+		CGameState without = State("5", null, Land(1, Ger), Land(2, Ger, 1));
+		CTick.RunEntryPass(without);
+		Assert.Equal(CFixedPoint.Zero, without.Country(Fra)!.HomeProduced[EGoods.Metal]);
 	}
 
 	[Fact]

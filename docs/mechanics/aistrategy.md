@@ -107,7 +107,12 @@ unit type also report in the original, into lists the military AI keeps; they ar
 
 **`conquer_prov`**: every land province, in the map's order, that somebody owns and the country does not hold, where the
 country is `military` or at war with its owner, and its owner is the country or the province's area of the supply
-network touches an area the country holds, and the province has a strategic resource: **50**.
+network touches an area the country holds, and the province has a strategic resource: **50**. **Nothing the country
+owns is ever added**, though the rule names it: the adder every rule goes through, the walk's included,
+`CAIStrategy::AddConquerProv`, refuses a province the country owns (`reversing/findings/FINDINGS-laterstart.md`, section
+14). So a country's own land held by an enemy is never on its list - (measured) Norway's Vemork and Poland's 2096 at both
+1941 starts, China's 5420 at 1939, the Soviet Union's three at 1941.12.11, none on the saves' lists, where ours had them
+until 2026-11-15; the 1936 start has no such case. `docs/enhanced.md` lists the dead half.
 
 **`defend_prov`**: the capital, 200, where the country holds it; then each province the country holds, 50 for a strategic
 resource and 20 for an air base built, where that is anything. **The adder takes no province the country does not hold**
@@ -277,6 +282,14 @@ countries that do not exist on the start date. Germany's leave the walk out, the
 were found by the check rather than by the reading, and then read: the region scope, without which the Soviet Union's,
 Mongolia's and Tannu Tuva's `antagonize` lacked Germany, and `protect`'s cap, which the fact base had at seven and
 fourteen.
+
+**At the later starts, 2026-11-15** (`docs/mechanics/bookmarks.md`): the personality and all eight lists agree for **all
+73 countries at both 1941 dates**, and at 1939.9.1 for 74 to 75 of 75, China the one left. The last two of 1941 were
+found where the AI did not look: `protect` of Belgium - France's 25 where the save has 50, Britain's missing - was a
+history war goal, Germany's `conquer` on Belgium, filed though Belgium was in exile by then; it made `has_cb = { type =
+conquer }` hold in Belgium's scope, so `puppet`, France's and Britain's one usable casus belli on it, did not. The
+original's replay never adds a goal whose `is_valid` fails at the date (`war.md`, section 3). And `conquer_prov` lost
+the occupied countries' own land (section 5).
 
 **With the foreign minister** (`OpenHOI3.SaveCheck foreignai`, 180 days): no Lua error; fifteen influences, three
 alignments and eleven licences, and still no non-aggression pact, guarantee or alliance offered - which is what the

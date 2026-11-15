@@ -29,6 +29,27 @@ public static class CHistory
 	public static List<ClausewitzNode> Fold(ClausewitzNode root, CDate date) => FoldBetween(root, null, date);
 
 	/// <summary>
+	/// The entries in force on a date, as <see cref="Fold"/> gives them, each marked whether the bookmark's own pass applies
+	/// it - dated after the defines' start date - where the passes to that date come first
+	/// (<c>reversing/findings/FINDINGS-bookmarks.md</c>, section 2.1; <c>docs/mechanics/bookmarks.md</c>, section 3).
+	/// </summary>
+	public static IEnumerable<(ClausewitzNode Entry, bool Late)> FoldInPasses(ClausewitzNode root, CDate definesStart, CDate date)
+	{
+		CDate early = definesStart.CompareTo(date) < 0 ? definesStart : date;
+		foreach (ClausewitzNode entry in FoldBetween(root, null, early))
+		{
+			yield return (entry, false);
+		}
+		if (definesStart.CompareTo(date) < 0)
+		{
+			foreach (ClausewitzNode entry in FoldBetween(root, definesStart, date))
+			{
+				yield return (entry, true);
+			}
+		}
+	}
+
+	/// <summary>
 	/// The entries one pass of the original's replay applies: those of every block dated after <paramref name="after"/> and
 	/// on or before <paramref name="until"/>, earliest first, blocks sharing a date in the file's order - and, with no
 	/// <paramref name="after"/>, the undated ones as written before them. The original replays the history from nothing to

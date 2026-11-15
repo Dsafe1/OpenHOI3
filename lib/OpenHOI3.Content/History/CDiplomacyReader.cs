@@ -123,7 +123,7 @@ public static class CDiplomacyReader
 					history.Alliances.Add(new CAlliance(first.Tag, second.Tag) { Made = read, Start = startHour, End = endHour });
 					break;
 				case "nap":
-					history.Naps.Add(new CNap(first.Tag, second.Tag, startHour) { Made = read });
+					history.Naps.Add(new CNap(first.Tag, second.Tag, startHour) { Made = read, End = endHour });
 					break;
 				default:
 					history.Guarantees.Add(new CGuarantee(first.Tag, second.Tag, startHour) { Made = read, End = endHour });

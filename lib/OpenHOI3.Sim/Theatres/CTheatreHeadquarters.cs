@@ -148,16 +148,19 @@ public static class CTheatreHeadquarters
 		long strength = Math.Max(0, Math.Min(most * CFixedPoint.Scale / Fifth, most));
 		brigade.Strength = new CFixedPoint(strength);
 		brigade.Highest = CFixedPoint.Max(brigade.Highest, brigade.Strength);
-		foreach (Research.CTechnology technology in type.Technologies)
-		{
-			brigade.TechnologyLevels[technology.Name] = country.TechnologyLevels.GetValueOrDefault(technology.Name);
-		}
+		// Its technologies are applied at the levels its type gives a new brigade - every one at nought - and not at its
+		// country's: the start saves' new headquarters hold no doctrine where their countries hold several, and the
+		// upgrades bring them up later (theatres.md, section 10; upkeep.md, section 5).
 		Revolts.CRebelArmies.SetFull(state, country, brigade);
 
 		country.Units.Add(unit);
 		unit.SubUnits.Add(brigade);
 		brigade.Name = CUnitNames.ForSubUnit(state, country, type);
 		CUnitNames.Register(country, brigade.Name);
+		// Put in its province as any land unit entering one, it brings its days of supplies and fuel with it, having come
+		// from nowhere: out of the stockpile on its country's own ground (supply.md, section 14) - 2.010 supplies, fifteen
+		// days of a fifth of an hq_brigade, which every country given a new headquarters has less on the first screen.
+		CSupplyCarry.Bring(state, country, unit, from: 0, province.Id, beforeGame: state.IsBeingMade);
 		state.ForgetPositions();
 		unit.Name = CUnitNames.ForTheatre(state, country, NamingProvince(state, province)?.Name);
 		CUnitNames.Register(country, unit.Name);

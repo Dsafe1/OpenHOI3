@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
+using OpenHOI3.Sim.Economy;
 using OpenHOI3.Sim.Provinces;
 
 namespace OpenHOI3.Sim.Diplomacy;
@@ -41,15 +42,25 @@ public static class CAlignment
 	/// </summary>
 	public static void RunDaily(CGameState state)
 	{
-		long now = state.TotalHours;
-		long interval = state.Defines[Section, Interval].Raw / 1000 * 24;
 		foreach (CCountry country in state.Countries)
 		{
-			if (now > country.NextAlignmentStep)
-			{
-				Step(state, country);
-				country.NextAlignmentStep = now + interval;
-			}
+			RunDaily(state, country, null);
+		}
+	}
+
+	/// <summary>
+	/// One country's step, where its time has come, in its own day. <paramref name="before"/> is every country's IC as
+	/// it stood before the day's was worked out: the step reads it for itself and for every country after it in the
+	/// countries' order, whose day has not come, and the day's figure for the countries before it, as the original's
+	/// day, a whole country at a time, has them (section 3). Null reads every country's present figure.
+	/// </summary>
+	public static void RunDaily(CGameState state, CCountry country, CIcAtDayStart? before)
+	{
+		long now = state.TotalHours;
+		if (now > country.NextAlignmentStep)
+		{
+			Step(state, country, before);
+			country.NextAlignmentStep = now + state.Defines[Section, Interval].Raw / 1000 * 24;
 		}
 	}
 
@@ -57,7 +68,7 @@ public static class CAlignment
 	/// One step: a faction's leader stays, a member is put on its leader, and a country in no faction
 	/// moves by its drift, kept inside the triangle.
 	/// </summary>
-	public static void Step(CGameState state, CCountry country)
+	public static void Step(CGameState state, CCountry country, CIcAtDayStart? before = null)
 	{
 		if (FactionGroup(state, country) is not null)
 		{
@@ -69,7 +80,7 @@ public static class CAlignment
 			}
 			return;
 		}
-		(long driftX, long driftY) = Drift(state, country);
+		(long driftX, long driftY) = Drift(state, country, before);
 		(long moveX, long moveY) = ClampMove(state, country.AlignmentX, country.AlignmentY, driftX, driftY);
 		country.AlignmentX += moveX;
 		country.AlignmentY += moveY;
@@ -152,10 +163,11 @@ public static class CAlignment
 	/// order relation, ideology, proximity, revanchism, threat, repulsion, influence; the three in the
 	/// middle are nought where the group is 200 or more away.
 	/// </summary>
-	public static List<(CIdeologyGroup Group, long[] Terms)> Explain(CGameState state, CCountry country)
+	public static List<(CIdeologyGroup Group, long[] Terms)> Explain(CGameState state, CCountry country, CIcAtDayStart? before = null)
 	{
 		var explained = new List<(CIdeologyGroup, long[])>();
 		CIdeologyGroup? ruling = IdeologyGroup(state, country);
+		var ic = new IcView(country, before);
 		foreach (CIdeologyGroup group in state.IdeologyGroups)
 		{
 			List<CCountry> members = CCountryLists.FactionMembers(state, group.Faction);
@@ -166,10 +178,10 @@ public static class CAlignment
 			{
 				RelationTerm(state, country, group, members),
 				IdeologyTerm(state, country, group, ruling),
-				ProximityTerm(state, country, group, members),
+				ProximityTerm(state, country, group, members, ic),
 				near ? RevanchismTerm(state, country, group) : 0,
-				near ? ThreatTerm(state, country, group, members) : 0,
-				near ? RepulsionTerm(state, country, group, members, ruling, dx, dy) : 0,
+				near ? ThreatTerm(state, country, group, members, ic) : 0,
+				near ? RepulsionTerm(state, country, group, members, ruling, dx, dy, ic) : 0,
 				InfluenceTerm(state, country, group, members),
 			}));
 		}
@@ -177,10 +189,11 @@ public static class CAlignment
 	}
 
 	/// <summary>The drift: a weight for each group, each pulling along the line to it.</summary>
-	public static (long X, long Y) Drift(CGameState state, CCountry country)
+	public static (long X, long Y) Drift(CGameState state, CCountry country, CIcAtDayStart? before = null)
 	{
 		long outX = 0, outY = 0;
 		CIdeologyGroup? ruling = IdeologyGroup(state, country);
+		var ic = new IcView(country, before);
 		foreach (CIdeologyGroup group in state.IdeologyGroups)
 		{
 			List<CCountry> members = CCountryLists.FactionMembers(state, group.Faction);
@@ -188,12 +201,12 @@ public static class CAlignment
 			long dy = group.Y - country.AlignmentY;
 			long weight = RelationTerm(state, country, group, members)
 				+ IdeologyTerm(state, country, group, ruling)
-				+ ProximityTerm(state, country, group, members);
+				+ ProximityTerm(state, country, group, members, ic);
 			if (Squared(dx, dy) / 1000 < NearSquared)
 			{
 				weight -= RevanchismTerm(state, country, group)
-					+ ThreatTerm(state, country, group, members)
-					+ RepulsionTerm(state, country, group, members, ruling, dx, dy);
+					+ ThreatTerm(state, country, group, members, ic)
+					+ RepulsionTerm(state, country, group, members, ruling, dx, dy, ic);
 			}
 			weight += InfluenceTerm(state, country, group, members);
 
@@ -278,7 +291,7 @@ public static class CAlignment
 			: 0;
 	}
 
-	private static long ProximityTerm(CGameState state, CCountry country, CIdeologyGroup group, List<CCountry> members)
+	private static long ProximityTerm(CGameState state, CCountry country, CIdeologyGroup group, List<CCountry> members, IcView ic)
 	{
 		long best = 0;
 		CProvince home = state.Province(country.ActingCapital);
@@ -286,7 +299,7 @@ public static class CAlignment
 		{
 			long distance = CMapDistance.Between(state.Province(member.ActingCapital), home, state.MapWidth);
 			long near = Math.Max((5000000 - 1000 * distance) * 1000 / 500000, ProximityFloor);
-			long ratio = country.BaseIc != 0 ? member.BaseIc / country.BaseIc : member.BaseIc;
+			long ratio = ic.BaseIc(country) != 0 ? ic.BaseIc(member) / ic.BaseIc(country) : ic.BaseIc(member);
 			best = Math.Max(best, ratio * 1000 * near / 1000);
 		}
 		return Susceptible(country, group, best * state.Defines[Section, ProximityWeight].Raw / 1000);
@@ -316,7 +329,7 @@ public static class CAlignment
 		return Susceptible(country, group, held * each * state.Defines[Section, RevanchismWeight].Raw / 1000);
 	}
 
-	private static long ThreatTerm(CGameState state, CCountry country, CIdeologyGroup group, List<CCountry> members)
+	private static long ThreatTerm(CGameState state, CCountry country, CIdeologyGroup group, List<CCountry> members, IcView ic)
 	{
 		long most = 0;
 		foreach (CCountry member in members)
@@ -329,12 +342,12 @@ public static class CAlignment
 		}
 		long weighed = Susceptible(country, group, most * state.Defines[Section, ThreatWeight].Raw / 1000);
 		long large = state.Defines[Section, LargeCountryIc].Raw;
-		long size = large != 0 ? Math.Min(country.TotalIc * 1000L * 1000 / large, 1000) : 1000;
+		long size = large != 0 ? Math.Min(ic.TotalIc(country) * 1000L * 1000 / large, 1000) : 1000;
 		return weighed * size / 1000;
 	}
 
 	private static long RepulsionTerm(CGameState state, CCountry country, CIdeologyGroup group, List<CCountry> members,
-		CIdeologyGroup? ruling, long dx, long dy)
+		CIdeologyGroup? ruling, long dx, long dy, IcView ic)
 	{
 		long root = CMapDistance.WholeRoot(Squared(dx, dy) / 1000);
 		long repulsion = Math.Max(200000 - 1000 * root, 0) * state.Defines[Section, RepulsionWeight].Raw / 1000;
@@ -342,41 +355,45 @@ public static class CAlignment
 		{
 			return repulsion;
 		}
-		long lead = members.Count > 0 ? members[0].BaseIc : 0;
+		long lead = members.Count > 0 ? ic.BaseIc(members[0]) : 0;
 		long all = 0;
 		foreach (CCountry member in members)
 		{
-			all += member.BaseIc;
+			all += ic.BaseIc(member);
 		}
 		long weight = lead + (all - lead) / 4;
 		long factor = weight <= 0
 			? 100000
-			: (long)MathF.Floor((country.BaseIc + 0.0005f) * 1000f) * state.Defines[Section, RepulsionIcFactor].Raw / 1000 * 1000
+			: (long)MathF.Floor((ic.BaseIc(country) + 0.0005f) * 1000f) * state.Defines[Section, RepulsionIcFactor].Raw / 1000 * 1000
 				/ (weight * 1000);
 		return factor > 1000 ? repulsion * factor / 1000 : repulsion;
 	}
 
-	/// <summary>The faction's influence, where the country has the modifier it puts on.</summary>
+	/// <summary>
+	/// The faction's influence, where the faction has members and the country has the modifier it puts on among its event
+	/// modifiers - where an influence or an alignment gives it. The same static a puppet takes from its master's faction
+	/// does not count: it is added to the country's modifier and never put in that list.
+	/// </summary>
 	private static long InfluenceTerm(CGameState state, CCountry country, CIdeologyGroup group, List<CCountry> members)
 	{
-		if (group.Influence.Length == 0 || !HasModifier(country, group.Influence)
-			|| state.FindStaticModifier(group.Influence) is not { } modifier)
+		if (group.Influence.Length == 0 || members.Count == 0 || state.FindStaticModifier(group.Influence) is not { } modifier
+			|| !HasEventModifier(country, modifier))
 		{
 			return 0;
 		}
 		long value = modifier[AlignTowards].Raw;
-		long leader = members.Count > 0 ? Math.Max(members[0].EffectiveNeutrality.Raw, 0) : 0;
+		long leader = Math.Max(members[0].EffectiveNeutrality.Raw, 0);
 		long a = (100000 - leader) * 1000 / 100000;
 		long b = Math.Max((100000 - country.EffectiveNeutrality.Raw) * 1000 / 100000 + InfluenceFloor, InfluenceFloor);
 		return b * (a * value / 1000) / 1000;
 	}
 
-	/// <summary>Whether a modifier of that name is among what the country's modifier was summed from.</summary>
-	private static bool HasModifier(CCountry country, string name)
+	/// <summary>Whether that very modifier is among the country's event modifiers, as the original's test walks them.</summary>
+	private static bool HasEventModifier(CCountry country, Modifiers.CModifier modifier)
 	{
-		foreach (Modifiers.CModifierSource source in country.ModifierSources)
+		foreach (Modifiers.CTimedModifier given in country.EventModifiers)
 		{
-			if (source.Modifier.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+			if (ReferenceEquals(given.Modifier, modifier))
 			{
 				return true;
 			}
@@ -418,5 +435,26 @@ public static class CAlignment
 			maxY = Math.Max(maxY, group.Y);
 		}
 		return (minX, minY, maxX, maxY);
+	}
+
+	/// <summary>
+	/// The IC a step reads of a country: the day's figure for a country before the stepping one in the countries' order,
+	/// whose day is over, and the figure from before the day for the stepping one and every country after it - or every
+	/// country's present figure where no day's start was given.
+	/// </summary>
+	private readonly struct IcView
+	{
+		private readonly CCountry _stepping;
+		private readonly CIcAtDayStart? _before;
+
+		public IcView(CCountry stepping, CIcAtDayStart? before)
+		{
+			_stepping = stepping;
+			_before = before;
+		}
+
+		public long BaseIc(CCountry of) => _before is null || of.Index < _stepping.Index ? of.BaseIc : _before.BaseIc(of);
+
+		public long TotalIc(CCountry of) => _before is null || of.Index < _stepping.Index ? of.TotalIc : _before.TotalIc(of);
 	}
 }
