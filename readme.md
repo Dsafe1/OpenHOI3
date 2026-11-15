@@ -257,14 +257,19 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    position and pulled to 619, as in all three runs. The 78. and 117. Strelkovaya Diviziya at 10:00, next on the list,
    follow from 06:00, where the original's own runs part over the 176. Strelkovaya's way (1395, 2636 or 2390); no rule of
    ours was found wrong there.
-   **Open, in order**: (a) **the later-starts commit (`11cd4cf7`) moved the July series** from 219 the same and 53 alone
-   to 189 and 104, alone of the commits since - Italy's Cdo. Sup. Metropolitana counts its frontier at war at 17:00 on 17
-   July, its 17 positions along the Soviet front, and sends its reserves east, which neither run does; before that
-   commit it ran with no line. The war's start, entering and 4 January are unmoved by it. Since the 99.'s fix: July 190
-   the same, 25 other end, 109 alone; the war's start 109, 12 missed, 45 alone. (b) The destination reader's answer for
-   a unit under a support attack - nowhere - is not built (`moving.md`, *Ours*). (c) The rest of the July list: the
-   Iraqi 1. Infantry Division, the 1. Gebirgsjäger-Division and the 21. Infanterie-Division at hour 29, then the Soviet
-   64., 140. and 182. Strelkovaya around 1809 and the 95. Infanterie-Division at hours 32 to 34.
+   **The later-starts commit (`11cd4cf7`) moved the July series by a draw, not a rule**: from 219 the same and 53 alone
+   to 189 and 104, through Italy's Cdo. Sup. Metropolitana sending its reserves to the Soviet front from 17:00 on 17
+   July. At 15:00 Germany's foreign minister calls Italy into its war - against Mongolia, Their Finest Hour's `GER.lua`
+   calling Italy against anyone but the Soviet Union once Paris is the Axis's - and Italy, of its faction, joins; its
+   strategy made again takes Germany's eastern front into its home theatre's area. That step runs on the script's
+   `math.random(6)`, which every script here draws on in turn (`lua.md`, section 3); the commit changed how often the
+   scripts draw before that hour, and the roll that missed now hits. The original's three runs miss it, as two days'
+   rolls at one in six will two times in three, and its rolls cannot be set beside ours. Nothing to mend; the series is
+   set beside main from here: July 190 the same, 25 other end, 109 alone; the war's start 109, 12 missed, 45 alone.
+   **Open, in order**: (a) The destination reader's answer for a unit under a support attack - nowhere - is not built
+   (`moving.md`, *Ours*). (b) The rest of the July list: the Iraqi 1. Infantry Division, the 1. Gebirgsjäger-Division
+   and the 21. Infanterie-Division at hour 29, then the Soviet 64., 140. and 182. Strelkovaya around 1809 and the 95.
+   Infanterie-Division at hours 32 to 34.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
