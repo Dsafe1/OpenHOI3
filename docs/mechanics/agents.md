@@ -127,8 +127,11 @@ Run at hour A3 by an agent with a unit and a theatre, of a country the AI runs.
 
 ### 4.2 Filling commands
 
-Each unit's **promised** count starts at nought each time. The agent's land units, but its own, any aboard a fleet, are
-sorted: army groups, armies, corps, and the rest - **garrisons** where the first brigade is a `garrison_brigade`, else
+Each unit's **promised** count starts at nought each time. The agent's land units, but its own, any aboard a fleet and
+**any the sea lift or a drop has claimed** (`moving.md`, section 2), are sorted - so Germany's 1. Fallschirmjäger Division,
+aboard an air wing with a staging province in the July 1941 save, stays under the 26th Corps where ours had moved it to the
+14th, whose reach it then failed and which ours pulled towards 1485 (`confirmed` on the running game and the listing,
+`reversing/findings/FINDINGS-liveread.md`, section 98): army groups, armies, corps, and the rest - **garrisons** where the first brigade is a `garrison_brigade`, else
 **divisions**. Each garrison whose parent is not the headquarters is attached under it (its old parent's promised count
 down one, the headquarters' up one); so is each of the agent's fleets (5.1) whose parent is not. Then divisions to corps,
 corps to armies, armies to army groups, each unit U with parent P in order:

@@ -54,7 +54,11 @@ public static class CCommandLadder
 		}
 		foreach (CUnit unit in agent.Land)
 		{
-			if (ReferenceEquals(unit, headquarters) || unit.IsRemoved || unit.Transport is not null)
+			// The original skips its own unit, one carried by a fleet and one the sea lift or a drop has claimed (slot 86):
+			// Germany's 1. Fallschirmjäger Division, aboard an air wing with a staging province, stays under its corps
+			// (FINDINGS-liveread.md, section 98).
+			if (ReferenceEquals(unit, headquarters) || unit.IsRemoved || unit.Transport is not null
+				|| CTransportReservation.IsReserved(state, unit))
 			{
 				continue;
 			}
