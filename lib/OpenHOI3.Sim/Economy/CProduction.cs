@@ -237,26 +237,22 @@ public static class CProduction
 	}
 
 	/// <summary>
-	/// What the units would ask for and what seeing to them would cost, without moving anything, so that three of the
-	/// sliders have a need to show before the first midnight. What a country made at home is not touched: a new game's
-	/// first screen shows its second day's, and a loaded game the save's (resources.md, section 3).
+	/// What entering a loaded game makes of the reinforcement and upgrade shares' needs. The original's entry runs every
+	/// country's six shares of IC with nothing to spend, and those two count a day of their work whether or not anything
+	/// is spent, so a loaded game's first screen shows the need as the save stands - neither is in the save. Every
+	/// country, as the entry has no test. Nothing else here: what the units asked for is written by nothing in entering
+	/// and stays at nought until the first midnight, and what was made at home stays the save's (upkeep.md,
+	/// section 8; supply.md, section 11; resources.md, section 3). A new game's two needs are its second day's, its
+	/// entry's run having come before its days.
 	/// </summary>
-	public static void Estimate(CGameState state)
+	public static void RunNeedsAtLoad(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
-			if (TakesPart(state, country))
-			{
-				// What the units would ask for and what seeing to them would cost, so
-				// that three of the sliders have a need to show.
-				(CFixedPoint supplies, CFixedPoint _) = CUnitSupply.DailyUse(state, country);
-				country.UnitDemand.Clear();
-				country.UnitDemand[EGoods.Supplies] = supplies;
-				// The usage is left as the day left it, or as a save gave it: the original's first screen shows the second
-				// day's, which a new game has run by now (supply.md, section 11).
-				CReinforcement.Run(state, country, CFixedPoint.Zero, apply: false);
-				CUpgrades.Run(state, country, CFixedPoint.Zero, apply: false);
-			}
+			CReinforcement.Run(state, country, CFixedPoint.Zero, apply: false);
+			// Nothing to spend moves no equipment; the doctrine a level on that the original's run gives a loaded game
+			// is not built (upkeep.md, section 5; docs/enhanced.md), so the share is only asked its need.
+			CUpgrades.Run(state, country, CFixedPoint.Zero, apply: false);
 		}
 	}
 

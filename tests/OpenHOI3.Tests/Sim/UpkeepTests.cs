@@ -602,6 +602,58 @@ public class UpkeepTests
 		Assert.Equal(1, country.SubUnitsUpgrading);
 	}
 
+	// ---- the two needs on entering
+
+	[Fact]
+	public void EnteringANewGameLeavesTheReinforcementAndUpgradeNeedsAsItsSecondDayLeftThem()
+	{
+		// The original's entry runs the shares with nothing to spend before a new game's days, which count both needs
+		// again; nothing after the days writes them, so the first screen shows the second day's (upkeep.md, section 8).
+		CCountry country = Country();
+		CSubUnitType type = LightArmour();
+		CTechnology gun = Technology("lighttank_gun", type);
+		CGameState state = State(country, new[] { gun });
+		Brigade(type, Unit(country), strength: "15");
+		country.TechnologyLevels["lighttank_gun"] = 1;
+		country.ReinforcementCost = CFixedPoint.Parse("0.5");
+		country.ReinforcementManpowerNeeded = CFixedPoint.Parse("4.2");
+		country.UpgradeCost = CFixedPoint.Parse("7.25");
+
+		CTick.RunEntryPass(state);
+
+		Assert.Equal(CFixedPoint.Parse("0.5"), country.ReinforcementCost);
+		Assert.Equal(CFixedPoint.Parse("4.2"), country.ReinforcementManpowerNeeded);
+		Assert.Equal(CFixedPoint.Parse("7.25"), country.UpgradeCost);
+	}
+
+	[Fact]
+	public void EnteringALoadedGameCountsBothNeedsAsTheSaveStandsAndMovesNothing()
+	{
+		// Neither need is in a save: the entry's run with nothing to spend counts a day of each share's work, and nothing
+		// is reinforced, upgraded or charged - the doctrine it moves on in the original is not built for a load.
+		CCountry country = Country();
+		CSubUnitType type = LightArmour();
+		CTechnology gun = Technology("lighttank_gun", type);
+		CTechnology doctrine = Technology("armoured_spearhead", type, change: false);
+		CGameState state = State(country, new[] { gun, doctrine });
+		CSubUnit armour = Brigade(type, Unit(country), strength: "15");
+		country.TechnologyLevels["lighttank_gun"] = 1;
+		country.TechnologyLevels["armoured_spearhead"] = 2;
+		state.LoadedFromSave = true;
+
+		CProduction.RunNeedsAtLoad(state);
+
+		Assert.Equal(CFixedPoint.Parse("2.05"), country.UpgradeCost);                     // 8.2 over two technologies, halved
+		Assert.True(country.ReinforcementCost.Raw > 0);
+		Assert.True(country.ReinforcementManpowerNeeded.Raw > 0);
+		Assert.Equal(CFixedPoint.Zero, country.ReinforcementManpowerUsed);
+		Assert.Equal(CFixedPoint.FromInt(15), armour.Strength);
+		Assert.Equal(CFixedPoint.FromInt(500), country.Manpower);
+		Assert.Equal(0, armour.TechnologyLevels.GetValueOrDefault("lighttank_gun"));
+		Assert.Equal(0, armour.TechnologyLevels.GetValueOrDefault("armoured_spearhead"));
+		Assert.Equal(CFixedPoint.Zero, country.UnitDemand[EGoods.Supplies]);
+	}
+
 	[Fact]
 	public void EnteringAGameMovesEveryDoctrineOnALevelAndNoEquipment()
 	{

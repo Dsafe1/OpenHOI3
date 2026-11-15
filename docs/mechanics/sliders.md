@@ -85,7 +85,8 @@ shares that have one:
 | espionage, officers | none, and no line. `confirmed` |
 
 *Ours:* supplies, reinforcement and upgrades need what their units ask for
-(`upkeep.md`, section 8); production needs nothing until there is a build queue, and
+(`upkeep.md`, section 8) - on a new game's first screen the second day's, and on a loaded game's
+nought for supplies until the first midnight, as the original's (2026-11-15); production needs nothing until there is a build queue, and
 diplomacy nothing until there is diplomacy.
 
 `confirmed` **`limit`** is hidden unless the share gives a figure above nought to put it at

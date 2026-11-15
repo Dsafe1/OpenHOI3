@@ -387,6 +387,13 @@ internal static class CFirstDaysCheck
 		Console.WriteLine($"   {"its tooltip",-30} "
 			+ OpenHOI3.Interface.Tooltips.CTopBarTooltips.Ledger(localise, country, EGoods.Supplies).TrimEnd('\n').Replace("\n", " | "));
 		Console.WriteLine($"   {"production screen, supplies",-30} {OpenHOI3.Interface.Screens.CProductionScreenText.Goods(state, country, EGoods.Supplies)}");
+		// What the units asked for and the three sliders' needs the first screen shows, which a save does not keep
+		// (supply.md, section 11; sliders.md).
+		Console.WriteLine($"   {"the units asked for",-30} supplies {country.UnitDemand[EGoods.Supplies]}   fuel {country.UnitDemand[EGoods.Fuel]}");
+		Console.WriteLine($"   {"the sliders' needs",-30} supplies {CProduction.Needed(state, country, EProductionCategory.Supplies)}"
+			+ $"   reinforcement {CProduction.Needed(state, country, EProductionCategory.Reinforcement)}"
+			+ $" (men {country.ReinforcementManpowerNeeded})"
+			+ $"   upgrades {CProduction.Needed(state, country, EProductionCategory.Upgrades)} ({country.SubUnitsUpgrading} brigades)");
 		Console.WriteLine();
 	}
 

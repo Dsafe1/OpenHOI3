@@ -26,6 +26,7 @@ public static class CUnitUpkeep
 	/// <summary>Every country's units, in the order the countries are declared and then in the units' own.</summary>
 	public static void RunDaily(CGameState state)
 	{
+		var carriage = new CSupplyCarriage(state);
 		foreach (CCountry country in state.Countries)
 		{
 			foreach (CUnit unit in country.UnitsInOrder())
@@ -42,6 +43,10 @@ public static class CUnitUpkeep
 			{
 				CSupplyDraw.Draw(state, country, unit);
 			}
+
+			// Then what carrying supplies out to the provinces it holds adds to what its units asked for (supply.md,
+			// section 11).
+			carriage.AddTo(country);
 		}
 	}
 

@@ -288,8 +288,13 @@ public static class CTick
 		Provinces.CBlockade.UpdateLevels(state);
 		// What each country made at home is left as its last day left it - a new game's second day, or the save's: nothing
 		// the original's entering does writes it, the day's production being collected in a country's own day alone
-		// (resources.md, section 3; reversing/findings/FINDINGS-savegame.md, A.5).
-		CProduction.Estimate(state);
+		// (resources.md, section 3; reversing/findings/FINDINGS-savegame.md, A.5). So is what the units asked for, nothing in
+		// entering writing it, and a new game's reinforcement and upgrade needs, its entry's run of the shares having come
+		// before its days; a loaded game's two needs are that run's (supply.md, section 11; upkeep.md, section 8).
+		if (state.LoadedFromSave)
+		{
+			CProduction.RunNeedsAtLoad(state);
+		}
 		COfficers.Update(state);
 		// Every battle's sides given the hour's circumstances again, whatever its kind, attacker first, as the original's
 		// entering does (reversing/findings/FINDINGS-savegame.md, A.5): what the AI's odds read before the battle's next

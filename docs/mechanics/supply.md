@@ -405,6 +405,23 @@ Before the pass every country's counts of the day start from nothing: what its g
 asked for, **its usage**, what it made away from its capital, what came back, and what it paid
 and was paid for friends' units.
 
+**What its ground's units asked for** (the original's `unit_demand`, which the supply slider's need
+is made from, `upkeep.md` section 8) is added to by every unit's draw, whatever it was given
+(section 13), by every finished unit waiting to be placed, and then - `confirmed`, read 2026-11-15
+(`reversing/findings/FINDINGS-laterstart.md`, section 18) - by **the carriage**: in the country's own
+day, straight after its units and its waiting units have drawn, every province it controls
+
+    with a unit in it, anybody's,
+    or, with none, a naval base built and nothing of supplies passed through it today,
+
+adds its hops to its depot (section 6) times what a load loses crossing it (section 8). Nothing else
+writes it, and **entering a game does not**: a new game's first screen shows the second day's, and a
+loaded game none until its first midnight, since no save keeps it (`upkeep.md`, section 8). *Built*
+(`CSupplyCarriage`), and not set beside anything - no save keeps the figure; it moved no share of the
+four start saves' first screens but made the writer's `distribution` the save's for 7 more countries at
+1936 (`write ... new`, 67 written otherwise where 74). Until 2026-11-15 there was no carriage, and an
+estimate of the units' daily use was laid over the second day's as a game was entered.
+
 **The usage is one pool, the original's `usage`** (`reversing/findings/FINDINGS-supplypass.md`,
 sections 2 to 4): cleared here, at the head of the day, it takes **what the provinces beside a
 capital take out of it** in the pass (section 12) and **what a unit standing in the capital is

@@ -403,17 +403,22 @@ public class ProductionTests
 	}
 
 	[Fact]
-	public void EnteringAGameLeavesTheUsageAsTheDayOrTheSaveLeftIt()
+	public void EnteringAGameLeavesTheUsageAndWhatTheUnitsAskedForAsTheDayOrTheSaveLeftThem()
 	{
-		// The original's first screen shows the second day's usage, and a loaded game the save's: entering estimates the
-		// units' need for the sliders, and puts nothing into the usage.
+		// The original's first screen shows the second day's usage, and a loaded game the save's; and what the units
+		// asked for is written by nothing in entering either, the supply slider's need being the second day's
+		// (supply.md, section 11).
 		CCountry croatia = Country("CRO", 1);
 		CGameState state = State(new[] { croatia }, new[] { Land(1, "CRO") });
 		croatia.Usage[EGoods.Supplies] = CFixedPoint.Parse("697.444");
+		croatia.UnitDemand[EGoods.Supplies] = CFixedPoint.Parse("12.5");
+		croatia.UnitDemand[EGoods.Fuel] = CFixedPoint.Parse("3.25");
 
-		CProduction.Estimate(state);
+		CTick.RunEntryPass(state);
 
 		Assert.Equal(CFixedPoint.Parse("697.444"), croatia.Usage[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Parse("12.5"), croatia.UnitDemand[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Parse("3.25"), croatia.UnitDemand[EGoods.Fuel]);
 	}
 
 	// --- running short ---

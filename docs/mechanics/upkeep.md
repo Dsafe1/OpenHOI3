@@ -402,10 +402,27 @@ not explained: see the end.
 to (`supply.md`, section 13). The original adds the supplies traded away and takes off those
 traded for and tribute; here the only trade is what a country pays a friend for its units on
 the friend's depots, and that is added and taken off the same way. There is no tribute.
+What the units asked for also carries **the carriage out to the country's provinces** -
+each it holds with a unit in it adds its hops to its depot times a load's loss there
+(`supply.md`, section 11).
 
-*Ours:* a new game has run its two days by the first screen, as the original has
-(`tick.md`, section 6), and the three are then worked out once more without moving
-anything, so that the first screen has them for the day to come.
+**On the first screen** (`confirmed`, read 2026-11-15; `reversing/findings/FINDINGS-laterstart.md`,
+section 18): the three needs are **the second day's**, at every start. What the units asked for is
+written only in a day - cleared at its head and added to by the units' draws and the carriage - and
+by nothing in entering a game; the reinforcement and upgrade needs are counted by those two shares
+each time they run, spending or not, and entering runs every share with nothing to spend - but for a
+new game **before** its two days, whose own runs count them again, and nothing after the days does.
+A **loaded** game is the other way round: neither figure is in a save, so its supply need is nought
+until the first midnight - nothing in entering writes what the units asked for - and its
+reinforcement and upgrade needs are what entering's run with nothing to spend counts as the save
+stands (`CProduction.RunNeedsAtLoad`; the doctrine level that run moves on is not built for a load,
+section 5). Until 2026-11-15 all three were estimated over the second day's on entering, the supply
+need from a day's use alone; the reinforcement need of the new headquarters the AI makes in the
+first hour, which the second day never saw, was in it (Britain's and Ireland's 0.200 and 0.100 at
+every start, nought now). *Measured* (`firstdays country=`, no save keeps them): the supply need at
+1936 for Germany 12.288, Britain 20.871 and Ireland 0.148, where the estimate gave 10.817, 17.424
+and 0.110; at 1941.12.11 Germany's 129.496 where the estimate gave 55.737, its divisions far into
+the Soviet Union adding the hops of the carriage.
 
 ## 9. Against the savegames
 

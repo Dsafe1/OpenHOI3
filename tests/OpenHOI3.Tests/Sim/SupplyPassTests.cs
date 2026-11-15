@@ -297,6 +297,44 @@ public class SupplyPassTests
 	}
 
 	[Fact]
+	public void Carrying_out_to_a_held_province_with_a_unit_or_an_idle_harbour_adds_its_hops_times_its_loss_to_what_was_asked()
+	{
+		// After its units have drawn, each province a country holds with anybody's unit in it, or with a naval base and
+		// nothing of supplies through it today, adds its hops to the depot times what a load loses crossing it - here
+		// 0.05, its owner holding it (supply.md, section 11).
+		int berlin = Land(Ger, industry: 5);
+		int near = Land(Ger);
+		int far = Land(Ger);
+		int harbour = Land(Ger, port: 1);
+		int empty = Land(Ger);
+		Join(berlin, near, far);
+		Join(near, harbour);
+		Join(berlin, empty);
+		CCountry germany = Country(Ger, berlin);
+		CCountry italy = Country(Ita, 0);
+		Division(germany, far);
+		Division(italy, near);
+		CGameState state = State();
+		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		Assert.Equal(2, network.HopsOf(far));
+		Assert.Equal(1, network.HopsOf(near));
+		Assert.Equal(2, network.HopsOf(harbour));
+
+		new CSupplyCarriage(state).AddTo(germany);
+
+		// far 2 x 0.05, near (Italy's unit) 1 x 0.05, the harbour 2 x 0.05; the empty province nothing.
+		Assert.Equal(CFixedPoint.Parse("0.25"), germany.UnitDemand[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Zero, germany.UnitDemand[EGoods.Fuel]);
+		Assert.Equal(CFixedPoint.Zero, italy.UnitDemand[EGoods.Supplies]);
+
+		// A harbour supplies passed through today does not count.
+		germany.UnitDemand.Clear();
+		state.Province(harbour).SupplyThroughput[EGoods.Supplies] = CFixedPoint.One;
+		new CSupplyCarriage(state).AddTo(germany);
+		Assert.Equal(CFixedPoint.Parse("0.15"), germany.UnitDemand[EGoods.Supplies]);
+	}
+
+	[Fact]
 	public void Units_in_a_province_that_holds_too_little_share_what_there_is()
 	{
 		int berlin = Land(Ger, industry: 5);

@@ -248,10 +248,13 @@ in that order and with the game "being made" throughout. Three things about it:
   division sent to attack before the first hour, which kept its own figure for that battle -
   35 for a German reserve, where its ceiling is 14 - is held as the original holds it.
 - **The figures of the first screen are worked out afterwards for a running game**, by the
-  pass that is run on entering one - its IC, leadership, manpower and the sliders' needs. **What
-  a country made at home and used are not**: they are what the second day left, as the original's
-  first screen shows them (`resources.md`, section 3; `supply.md`, section 11), so the top bar's
-  ledger is the second day's. Until 2026-11-15 the home production was estimated here.
+  pass that is run on entering one - its IC, leadership and manpower. **What a country made at
+  home and used are not, nor what its units asked for and its reinforcement and upgrade needs**:
+  they are what the second day left, as the original's first screen shows them (`resources.md`,
+  section 3; `supply.md`, section 11; `upkeep.md`, section 8), so the top bar's ledger and the
+  sliders' needs are the second day's. A loaded game's two needs are counted on entering, by the
+  original's run of the shares with nothing to spend, and what its units asked for is nought until
+  its first midnight. Until 2026-11-15 the home production and the three needs were estimated here.
 - **It costs nothing to speak of**: two days at about a tenth of a second each. What a new
   game takes to make - six seconds or so - is the first convoys' routes, about four, and the
   filling, about two, and both were there before.
