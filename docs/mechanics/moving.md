@@ -322,14 +322,27 @@ unit already redeploying and sent it a plain march, which left it standing a day
 the United States' 43rd and 1st Cavalry Divisions re-aimed at 11:00 on 1 January (`confirmed` on the listing,
 `reversing/findings/FINDINGS-liveread.md`, section 75).
 
-**Where a unit is bound** (`CUnit::GetMovementDestinationProvince`, `CAgentUnits.Destination`): nowhere under a support
-attack (not built); else where the AI sent it this pass, or its way's end; **with neither, the province of an order still
-under way** - anything but none, a plain move, a support attack or carrier protection. A stand-down clears the first at
-once and posts its "no order" as a command, so a division the AI halts on a strategic redeployment answers the
-redeployment's province for the rest of the pass: the second ring "halts" the Soviet 99. Strelkovaya Diviziya where it
-stands at 144 at 06:00 on 17 July 1941, and the pull, seeing it bound for 1589 and so for no position, takes it to 619
-without the fullness test, in all three runs (`confirmed` on the listing and the running game,
-`reversing/findings/FINDINGS-liveread.md`, section 101).
+**Where a unit is bound** is asked two ways, by two readers of the original's. **The pending destination**
+(`CUnit_GetPendingDestinationProvince`, `CAgentUnits.Destination`): where the AI sent it this pass, or its way's end;
+**with neither, the province of an order still under way** - anything but none or a plain move, a support attack's
+among them. A stand-down clears the first at once and posts its "no order" as a command, so a division the AI halts on a
+strategic redeployment answers the redeployment's province for the rest of the pass: the second ring "halts" the Soviet
+99. Strelkovaya Diviziya where it stands at 144 at 06:00 on 17 July 1941, and the pull, seeing it bound for 1589 and so
+for no position, takes it to 619 without the fullness test, in all three runs (`confirmed` on the listing and the
+running game, `reversing/findings/FINDINGS-liveread.md`, section 101). The attack (11) asks this one, and so does the
+line's look at each committed division (7.3, step 6) (`reversing/findings/FINDINGS-aiconsumer.md`,
+`reversing/findings/FINDINGS-moving.md`, A.4b): so a division waiting beside a province on a support attack counts among
+its attackers - Poland's 30 Dywizja Piechoty at 1808 at the war's start keeps the odds on 1749 at 1.5 and the attack
+going, as in both runs, where without it they fall to 0.04 and the 13 Dywizja Piechoty is halted. **The movement
+destination** (`CUnit::GetMovementDestinationProvince`, `CAgentUnits.MovementDestination`): **nowhere under a support
+attack**, whatever its way; otherwise the same. The pull and the count of a line's positions ask it (7.3), as do the
+headquarters' places (`agents.md`, section 6), the detach (2), a unit's anchor and the embark tally of the sealift (15) and an
+invasion's march to its port (16) (`reversing/findings/FINDINGS-liveread.md`, sections 14 and 101;
+`reversing/findings/FINDINGS-power.md`; `reversing/findings/FINDINGS-subdivide.md`;
+`reversing/findings/FINDINGS-theatre2.md`) - a division on a support attack counts at the province it waits in. Which
+reader the rest of the original's callers use was not looked up; they ask the pending one here. Set against the July
+1941 series' three runs: 102 alone where there were 109, the 1. Gebirgsjäger-Division at hour 29 among them; the war's
+start, entering and 4 January unchanged.
 
 **The way.** A move asked for safely - the line's, the garrisons', the rear's and the reserves' - takes the **very safe**
 way: short of the goal, a land unit does not step into a province held by a country at war with it or the rebels, nor
@@ -935,8 +948,9 @@ months on) - at least three hours left, and the order ends then.
   ranked - are made again whenever the supply network is (`supply.md`; at any change of hands, and daily), and each kept
   area is carried over to the new area holding its first province under the same holder, or dropped. How the original's
   areas outlive a change of hands was not read; kept as they were, they went stale and a block's positions with them.
-- **Where a unit is bound** (section 10): the original's reader answers nowhere for a unit under a support attack; ours
-  answers its way's end, the exception not yet set against the comparisons.
+- ~~**Where a unit is bound** (section 10): the original's reader answers nowhere for a unit under a support attack; ours
+  answers its way's end, the exception not yet set against the comparisons.~~ Built 2026-11-15 as the original's two
+  readers; which one each of the original's other callers uses was not looked up, and those ask the pending one here.
 - **The pull** (7.3, step 7): two of its tests were not read - a destination the original takes from another helper,
   and a test of a division bound for its own depot - and are left out.
 

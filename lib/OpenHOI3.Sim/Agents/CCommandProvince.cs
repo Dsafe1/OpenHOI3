@@ -55,7 +55,7 @@ public static class CCommandProvince
 	public static void March(CGameState state, CCountry country, CAgent agent)
 	{
 		if (agent.Unit is not { } unit || agent.CommandProvince <= 0 || unit.IsRetreating || unit.IsFighting
-			|| unit.Location <= 0 || CAgentUnits.DestinationOrPlace(unit) == agent.CommandProvince)
+			|| unit.Location <= 0 || CAgentUnits.MovementDestinationOrPlace(unit) == agent.CommandProvince)
 		{
 			return;
 		}
@@ -87,10 +87,10 @@ public static class CCommandProvince
 			int target = AmongSubordinates(state, country, unit);
 			if (state.AiTrace is { } pickTrace && pickTrace.Country == country.Tag)
 			{
-				pickTrace.Write($"  pick {unit.Name}#{unit.Id} at {unit.Location} to {CAgentUnits.DestinationOrPlace(unit)}: children " + string.Join(" ",
-					System.Linq.Enumerable.Select(unit.Children, child => $"{state.OriginalSerial(child.Id)}:{child.Location}>{CAgentUnits.Destination(child)}:g{(child.IsGarrison ? 1 : 0)}")) + $" chose {target}");
+				pickTrace.Write($"  pick {unit.Name}#{unit.Id} at {unit.Location} to {CAgentUnits.MovementDestinationOrPlace(unit)}: children " + string.Join(" ",
+					System.Linq.Enumerable.Select(unit.Children, child => $"{state.OriginalSerial(child.Id)}:{child.Location}>{CAgentUnits.MovementDestination(child)}:g{(child.IsGarrison ? 1 : 0)}")) + $" chose {target}");
 			}
-			if (target <= 0 || target == CAgentUnits.DestinationOrPlace(unit) || !CAiMoves.ReachesByLand(state, country, unit, target))
+			if (target <= 0 || target == CAgentUnits.MovementDestinationOrPlace(unit) || !CAiMoves.ReachesByLand(state, country, unit, target))
 			{
 				continue;
 			}
@@ -133,7 +133,7 @@ public static class CCommandProvince
 	private static int AmongSubordinates(CGameState state, CCountry country, CUnit unit)
 	{
 		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
-		int from = CAgentUnits.DestinationOrPlace(unit);
+		int from = CAgentUnits.MovementDestinationOrPlace(unit);
 		if (unit.IsMoving && IsTrespassing(state, country, unit))
 		{
 			return from;
@@ -151,7 +151,7 @@ public static class CCommandProvince
 				continue;
 			}
 			anyNotGarrison |= !child.IsGarrison;
-			int place = CAgentUnits.DestinationOrPlace(child);
+			int place = CAgentUnits.MovementDestinationOrPlace(child);
 			if (place <= 0 || network.AreaOf(place) is not { } area || state.Province(place).IsSea)
 			{
 				continue;
@@ -173,7 +173,7 @@ public static class CCommandProvince
 		{
 			if (!child.IsRemoved && CTheatres.IsLand(child) && !(anyNotGarrison && child.IsGarrison))
 			{
-				places.Add(CAgentUnits.DestinationOrPlace(child));
+				places.Add(CAgentUnits.MovementDestinationOrPlace(child));
 			}
 		}
 		int best = unit.Location;

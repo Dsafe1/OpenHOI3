@@ -209,7 +209,7 @@ public static class CCommitment
 		float bestScore = -100_000f;
 		foreach (CUnit unit in agent.Committed)
 		{
-			int place = CAgentUnits.DestinationOrPlace(unit);
+			int place = CAgentUnits.MovementDestinationOrPlace(unit);
 			if (place <= 0)
 			{
 				continue;

@@ -266,10 +266,15 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    scripts draw before that hour, and the roll that missed now hits. The original's three runs miss it, as two days'
    rolls at one in six will two times in three, and its rolls cannot be set beside ours. Nothing to mend; the series is
    set beside main from here: July 190 the same, 25 other end, 109 alone; the war's start 109, 12 missed, 45 alone.
-   **Open, in order**: (a) The destination reader's answer for a unit under a support attack - nowhere - is not built
-   (`moving.md`, *Ours*). (b) The rest of the July list: the Iraqi 1. Infantry Division, the 1. Gebirgsjäger-Division
-   and the 21. Infanterie-Division at hour 29, then the Soviet 64., 140. and 182. Strelkovaya around 1809 and the 95.
-   Infanterie-Division at hours 32 to 34.
+   **Where a unit is bound is two readers** (`moving.md`, section 10): the pending one, which the attack and the line's
+   look at its committed divisions ask, counts a division waiting on a support attack as bound for the province it
+   supports; the movement one, which the pull, the count of positions, the headquarters, the detach, the sealift and an
+   invasion's march ask, answers nowhere for it. Ours had one reader; given the support attack's nowhere alone, Poland's
+   attack on 1749 lost its 30 Dywizja Piechoty, fell to odds of 0.04 and was called off at the war's start, which neither
+   run does. July 102 alone, the 1. Gebirgsjäger-Division at hour 29 gone; the war's start, entering and 4 January
+   unchanged.
+   **Open, in order**: the rest of the July list - the Iraqi 1. Infantry Division and the 21. Infanterie-Division at hour
+   29, then the Soviet 64., 140. and 182. Strelkovaya around 1809 and the 95. Infanterie-Division at hours 32 to 34.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

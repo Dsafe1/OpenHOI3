@@ -193,7 +193,7 @@ public static class CInvasionTick
 				unit.Staging = invasion.Rendezvous;
 				continue;
 			}
-			if (CAgentUnits.Destination(unit) == invasion.Rendezvous)
+			if (CAgentUnits.MovementDestination(unit) == invasion.Rendezvous)
 			{
 				continue;
 			}

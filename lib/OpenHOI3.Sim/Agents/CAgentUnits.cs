@@ -108,18 +108,27 @@ public static class CAgentUnits
 		return count;
 	}
 
-	/// <summary>Where a unit is going, or else where it is: the original's destination-or-province.</summary>
+	/// <summary>Where a unit is going, or else where it is, by <see cref="Destination"/>.</summary>
 	public static int DestinationOrPlace(CUnit unit)
 	{
 		int destination = Destination(unit);
 		return destination > 0 ? destination : unit.Location;
 	}
 
+	/// <summary>Where a unit is going, or else where it is, by <see cref="MovementDestination"/>.</summary>
+	public static int MovementDestinationOrPlace(CUnit unit)
+	{
+		int destination = MovementDestination(unit);
+		return destination > 0 ? destination : unit.Location;
+	}
+
 	/// <summary>
-	/// Where it is going, or 0: what the AI sent it to in this pass, else its way's end - and with neither, the province of
-	/// an order still under way. A stand-down posts its "no order" as a command, so a division the AI has just halted on a
-	/// strategic redeployment still answers that redeployment's province for the rest of the pass
-	/// (FINDINGS-liveread.md, section 101).
+	/// Where it is going, or 0, by the original's <c>CUnit_GetPendingDestinationProvince</c>: what the AI sent it to in this
+	/// pass, else its way's end - and with neither, the province of an order still under way, a support attack's among them.
+	/// A stand-down posts its "no order" as a command, so a division the AI has just halted on a strategic redeployment still
+	/// answers that redeployment's province for the rest of the pass (FINDINGS-liveread.md, section 101). The attack asks this
+	/// one, so a division waiting on a support attack counts among a province's attackers (FINDINGS-aiconsumer.md), and so does
+	/// the line's look at where each committed division is heading (FINDINGS-moving.md, A.4b).
 	/// </summary>
 	public static int Destination(CUnit unit)
 	{
@@ -129,6 +138,17 @@ public static class CAgentUnits
 			return unit.OrderProvince;
 		}
 		return destination;
+	}
+
+	/// <summary>
+	/// Where it is going, or 0, by the original's <c>CUnit::GetMovementDestinationProvince</c>: nowhere under a support
+	/// attack, whatever its way or what the AI sent it to; else as <see cref="Destination"/> (FINDINGS-liveread.md, section
+	/// 101). The pull and the count of a line's positions ask this one, as do the headquarters' places, the reserve's detach,
+	/// a unit's anchor for the sealift, the sealift's embark tally and an invasion's march to its port.
+	/// </summary>
+	public static int MovementDestination(CUnit unit)
+	{
+		return unit.Order == EUnitOrder.SupportAttack ? 0 : Destination(unit);
 	}
 
 	/// <summary>The country's agent working the theatre, or null.</summary>

@@ -469,7 +469,7 @@ public static class CLineFill
 					{
 						continue;
 					}
-					int bound = CAgentUnits.DestinationOrPlace(unit);
+					int bound = CAgentUnits.MovementDestinationOrPlace(unit);
 					if (network.DepotOf(bound) == bound && CCommandLadder.IsBlocked(unit))
 					{
 						continue;
@@ -532,7 +532,7 @@ public static class CLineFill
 					break;
 				}
 				// Where it was going, read before the order changes it; the original counts it sent whatever the order answers.
-				int leaving = CAgentUnits.DestinationOrPlace(best);
+				int leaving = CAgentUnits.MovementDestinationOrPlace(best);
 				CAiMoves.Move(state, country, best, position.Province, safe: true);
 				moved = true;
 				if (byProvince.TryGetValue(leaving, out CPosition? left) && !ReferenceEquals(left, position))

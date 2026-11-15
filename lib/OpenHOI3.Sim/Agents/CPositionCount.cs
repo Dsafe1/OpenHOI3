@@ -74,7 +74,7 @@ public static class CPositionCount
 					continue;
 				}
 			}
-			int bound = CAgentUnits.Destination(unit);
+			int bound = CAgentUnits.MovementDestination(unit);
 			for (int index = 0; index < positions.Count; index++)
 			{
 				int position = positions[index];

@@ -72,7 +72,7 @@ public static class CSealift
 	}
 
 	/// <summary>Where a unit counts for: its sealift target, else where it is bound, else where it is.</summary>
-	public static int Anchor(CUnit unit) => unit.SealiftTarget > 0 ? unit.SealiftTarget : CAgentUnits.DestinationOrPlace(unit);
+	public static int Anchor(CUnit unit) => unit.SealiftTarget > 0 ? unit.SealiftTarget : CAgentUnits.MovementDestinationOrPlace(unit);
 
 	/// <summary>Each unit's carrying, whole units cut: the original's <c>UnitList_SumTransportCapacity</c>.</summary>
 	public static long SumCapacity(CCountry country)
@@ -515,7 +515,7 @@ public static class CSealift
 		{
 			// Where it is bound, or stands bound nowhere: the original counts the area of its destination (FINDINGS-liveread.md, section 43).
 			if (unit.SealiftTarget == debark && embarkArea is not null
-				&& ReferenceEquals(network.AreaOf(CAgentUnits.DestinationOrPlace(unit)), embarkArea))
+				&& ReferenceEquals(network.AreaOf(CAgentUnits.MovementDestinationOrPlace(unit)), embarkArea))
 			{
 				atEmbark++;
 			}
