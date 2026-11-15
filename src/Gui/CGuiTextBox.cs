@@ -48,7 +48,11 @@ public partial class CGuiTextBox : CGuiObject
 	/// <summary>The picture behind the text - a textBoxType's or an edit box's textureFile - where it could be loaded.</summary>
 	private Texture2D? _picture;
 
-	/// <summary>What a textBoxType's lines are drawn on, cut off where the original's picture of them ends; none for the other kinds.</summary>
+	/// <summary>
+	/// What a textBoxType's lines are drawn on, cut off where the original's picture of them ends; none for the other kinds.
+	/// An instantTextBoxType's letters are drawn whole wherever they fall, past its box and its list as the original's
+	/// (<c>interface.md</c>, sections 2 and 6).
+	/// </summary>
 	private Control? _clip;
 
 	/// <summary>Draws the text again, wherever it is drawn.</summary>

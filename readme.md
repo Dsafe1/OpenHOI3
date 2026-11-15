@@ -2694,10 +2694,14 @@ None of these blocks the list above.
   established.
 - **What the production screen's queue lines show was read out of the original and has not been looked at beside
   it**; what their buttons post is ours. `docs/mechanics/productionscreen.md`, section 6.
-- **How the technology panel's `effects` list draws a row wider than 180 or than the list** was not read; here nothing
-  is cut. The rows are the original's since 2026-11-13 - the tooltip's text at its level, laid out and cut as it cuts
-  it - and since 2026-11-14 a filled row is 180 wide and its text's height, so the rows stand 14 apart
-  (`docs/mechanics/technologyscreen.md`, section 7).
+- ~~**How the technology panel's `effects` list draws a row wider than 180 or than the list** was not read; here nothing
+  is cut.~~ Read 2026-11-15: **nothing clips it** - the original's interface clips no object to another, its draw
+  list's scissor cutting to a rectangle that is only ever zeroed for an object nothing flags, and an
+  `instantTextBoxType` draws every letter it laid out - so a line stands whole up to about 11 units past the 310-wide
+  list, as here (`docs/mechanics/technologyscreen.md`, section 7; `interface.md`, section 2). The rows are the
+  original's since 2026-11-13 - the tooltip's text at its level, laid out and cut as it cuts it - and since 2026-11-14
+  a filled row is 180 wide and its text's height, so the rows stand 14 apart. Left: where the list's scrollbar stands,
+  and so whether a long line runs under it or over it (`interface.md`, *What is not established*, item 11).
 - ~~**A misspelt modifier is not reported.** The modifier kinds are not a closed list here,
   so any key a block does not own is taken as one.~~ Since 2026-11-14 the kinds are the original's closed list -
   its 107 keys, the 32 missions by their orders' keys and a `suseptibility_` for each faction, 142 in Their Finest

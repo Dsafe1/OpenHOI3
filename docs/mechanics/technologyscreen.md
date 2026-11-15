@@ -227,9 +227,16 @@ counts its rows by the 16 of the file - five in the box's 82 - and then lays the
 where they were 16 apart before; `spacing` plays no part, so the empty row last is 14 below the last line, not 2.
 `confirmed` from the two readings together; nothing measured on the original's screen. Built 2026-11-14
 (`CTechDetailsRows.RowSize`) and tried with `--click`: Small Arms pressed in the tree, its rows 14 apart, two presses of
-the list's down arrow moving it two rows. *Not read:* how a row wider than 180 or than the list (310) is drawn - the
-original's draw list has a scissor flag, but the one rectangle it would cut to is written nowhere but the graphics'
-constructor, which zeroes it, so nothing seems to set it (`inferred`); here nothing is cut.
+the list's down arrow moving it two rows. **A line wider than its row (180) or than the list (310) is drawn whole**,
+past both (read 2026-11-15, `reversing/findings/FINDINGS-listbox.md`, section 4; `interface.md`, section 2): the row's
+text box is an `instantTextBoxType`, whose letters are drawn with no test against any rectangle, and nothing in the
+original's interface clips - its draw list's scissor cuts to a rectangle that is only ever zeroed, for an object no
+code flags. So a line laid out to 330 less an `O` - 321 units for "SS: Sea Defence +2.00 , Convoy Attack +4.00 , Sea
+Attack +2.00" of Acoustic Torpedo (`electric_powered_torpedo`), Arial12 - stands 11 past the list's right edge,
+inside the 1120-wide panel. `inferred` as a whole (a store through a computed pointer cannot be ruled out by a scan);
+nothing measured on the original's screen. Here nothing is cut either, as before the reading, and tried with `--click`
+on 2026-11-15 - the top bar's Technology, the Secret tab, Acoustic Torpedo: that line whole past the list's edge, and
+cut at it after "+2." with the list box made to clip for the trial, as a control.
 
 ## 8. Ours
 
@@ -375,7 +382,8 @@ efficiency has no `%` and radio strength one; a building under `any_owned_provin
    four priority buttons, `start`, the panel's `close`.
 3. ~~**The panel's `effects` list.** The original makes it from the text section 9 gives an
    entry's tooltip, cut into rows and for a level of its own, and neither was read; its rows are
-   ours (section 7).~~ Read 2026-11-13 and built (section 7); how a wide row is clipped is still open.
+   ours (section 7).~~ Read 2026-11-13 and built (section 7); ~~how a wide row is clipped is still open~~ - it is
+   not clipped, read 2026-11-15 (section 7).
 4. **Whether an icon's frames count from nought.**
 5. **The separator in a level's name key.**
 6. **Sharing.** A category another country shares shows green, and an entry's input icons

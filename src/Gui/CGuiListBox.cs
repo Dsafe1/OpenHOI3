@@ -14,7 +14,9 @@ namespace OpenHOI3.Gui;
 /// straight under the other with nothing between them, and a line that does not fit is
 /// not drawn at all - nothing is cut off. When there are more lines than rows the
 /// scrollbar the box names appears, and it and the wheel move the list a line at a
-/// time. The box's <c>spacing</c> has no part in it.
+/// time. The box's <c>spacing</c> has no part in it. Nor is anything cut across: a line
+/// wider than the box is drawn whole past its edge, as nothing in the original clips one
+/// object to another - so the box leaves Godot's <c>ClipContents</c> off.
 ///
 /// See <c>docs/mechanics/interface.md</c>, section 2, and
 /// <c>reversing/findings/FINDINGS-listbox.md</c>.

@@ -159,6 +159,15 @@ does neither.
   - **A box shows a whole number of lines.** One with no row is not drawn at all.
     Nothing is cut off at the box's edge, top, bottom or side, and there is never half
     a line at the bottom.
+  - **A line wider than the box is drawn whole, past its edge** - and past its window's: nothing in the original's
+    interface clips one object to another (read 2026-11-15, `reversing/findings/FINDINGS-listbox.md`, section 4).
+    Its draw list can scissor an object, but the rectangle it would cut to is only ever zeroed and no object is
+    ever flagged for it; a list box hides and shows whole lines and makes no picture of its own; and an
+    `instantTextBoxType` draws every glyph it has laid out with no test against any rectangle (section 6). The one
+    cut there is is a `textBoxType`'s own picture (section 6), which is the box's and not its list's. So the
+    technology panel's effect lines, laid out to 330 less an `O`, stand up to about 11 units past their 310-wide
+    list (`technologyscreen.md`, section 7). `inferred` as a whole: every direct store to the flag is accounted
+    for, and one through a computed pointer cannot be ruled out by a scan.
   - **`spacing` plays no part.** Lines touch. The files are written to it: the build
     queue's box is 280 high and its lines 40, the needs' 176 and 44, the convoys' 132
     and 22 - seven, four and six lines exactly, each with `spacing = 2` beside it.
@@ -522,7 +531,9 @@ files, with nothing in it placed by hand.
   - **An `instantTextBoxType`** - and the caption of a button with no sprite - is drawn straight to the screen
     (`CFontLineBreak`). Its width is 200 where its file gives none (the object that draws it sets
     that; no file of the base game has one), and its height plays no part, so its lines run on
-    down past it. A word is taken with the space after it: at each space, where the line, that
+    down past it - **and nothing is cut across either**: a line wider than the box, as a last word or a line laid
+    out elsewhere can be, is drawn to its last letter, past the box and whatever holds it (read 2026-11-15,
+    `reversing/findings/FINDINGS-listbox.md`, section 4; section 2 above). A word is taken with the space after it: at each space, where the line, that
     word and its space and twice the border are **wider** than the box, the line breaks before
     the word, keeping its own trailing space - measured with it, so a centred line stands half a
     space left; a word over 50 that runs past the edge, once something has been laid out, is
