@@ -91,9 +91,12 @@ public static class CLineFill
 		{
 			foreach (CPosition position in agent.Positions)
 			{
+				// 1 each: the original's 2 is for a position where a unit standing there has an entry on a list of its own,
+				// which no unit in the running game was seen to hold and which nothing here keeps - not where it is dug in
+				// (FINDINGS-liveread.md, section 102).
 				if (position.Want != ShutOut)
 				{
-					position.Want = DugIn(state, position.Province) ? 2 : 1;
+					position.Want = 1;
 				}
 			}
 		}
@@ -158,18 +161,6 @@ public static class CLineFill
 			any = true;
 		}
 		return any;
-	}
-
-	private static bool DugIn(CGameState state, int province)
-	{
-		foreach (CUnit unit in state.Positions.Of(province))
-		{
-			if (unit.DigIn.Raw > 0)
-			{
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/// <summary>The position with the least want, one at its cap sorted after; the first of equals.</summary>

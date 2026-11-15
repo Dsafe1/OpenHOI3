@@ -273,8 +273,16 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    attack on 1749 lost its 30 Dywizja Piechoty, fell to odds of 0.04 and was called off at the war's start, which neither
    run does. July 102 alone, the 1. Gebirgsjäger-Division at hour 29 gone; the war's start, entering and 4 January
    unchanged.
-   **Open, in order**: the rest of the July list - the Iraqi 1. Infantry Division and the 21. Infanterie-Division at hour
-   29, then the Soviet 64., 140. and 182. Strelkovaya around 1809 and the 95. Infanterie-Division at hours 32 to 34.
+   **The usage commit (`0490179f`) moved the series** to July 212 the same, 5 other end, 125 alone, 4 none; the war's
+   start, entering and 4 January unmoved.
+   **The line's rest gives every position one** (section 102; `moving.md`, section 7.3): where the share gives nothing
+   out, the original gives two only where a unit there holds an entry on a list of its own, which no unit in the running
+   game held - not where it is dug in, as ours had it. So Iraq's 1. Infantry Division is no longer pulled to 5463 at noon
+   on 17 July: July 124 alone, nothing else moved.
+   **Open, in order**: the rest of the July list - the 21. Infanterie-Division at hour 29, whose attack on 2275 ours calls
+   off at odds 0.63 once the 6th H Arm Division leaves, which no run does (its battle is over in one run and goes on in
+   the other two, so the odds may be the rolls'); then the Soviet 64., 140. and 182. Strelkovaya around 1809 and the 95.
+   Infanterie-Division at hours 32 to 34.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

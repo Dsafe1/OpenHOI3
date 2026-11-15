@@ -207,8 +207,14 @@ is cleared.
    bound takes it - standing there it counts as standing and heading unless it is on its way to a province no enemy holds, when it is
    counted nowhere; bound there, as heading. One falling back with under half its organisation is not counted. **For the line**, with focus areas and the frontier at
    war, every land unit of each country fighting on our side that holds a focus area's first province is counted the same way.
-4. **The rest**: nothing given out - every position wants 1, or 2 where its units are dug in; otherwise while the carry is
+4. **The rest**: nothing given out - every position wants 1; otherwise while the carry is
    over 0.1, +1 to the position with the least want (an over-cap one sorted after), one scoring under 1 left out where the scores come to 1 or more.
+   The original gives 2 where a unit standing there has an entry on a list of the unit's own, **not where it is dug in**
+   as this said until 2026-11-15: not one of the 2,588 units in the running game at noon on 17 July 1941 held one, and
+   nothing here keeps it, so every position wants 1 (`confirmed` on the listing and the running game,
+   `reversing/findings/FINDINGS-liveread.md`, section 102). Iraq's Baghdad HQ, its positions made again at 12:00 on 17 July
+   as 5463, 5485 and 5552, wanted 2, 1 and 2 by dig-in and pulled the 1. Iraqi Infantry Division off its way to 5485; by
+   ones none is short and it marches on, as in both runs.
 5. **Supply cut**: where want > trunc(3.5 x cap) and the province's supplies are nought, or its need is five times its
    supplies, want is cut to that and the rest goes to the others under their own 3.5 x cap.
 6. **Each committed division** (not a garrison, not airborne with transports), d where it is bound or stands. **Bound
