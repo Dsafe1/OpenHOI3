@@ -724,8 +724,9 @@ remainder by the whole. A side for which nothing weighs anything has no tactic.
   original takes for judging the conditions, and the pick itself.
 - **What a technology adds**: a technology names a tactic at its own top level,
   `tactic_assault = 3`, among its other effects, and a country's tactics weigh that much more
-  for each level it has. `inferred` for "each level": it is what every other figure of a
-  technology does, and how these reach the country was not read.
+  for each level it has. `confirmed` on the running game: the weights the original stored for
+  the war-start battle at 2213 were ours to the thousandth, every tactic of both sides
+  (`reversing/findings/FINDINGS-liveread.md`, section 96).
 - **A side's leader** is the one of highest rank among its units' leaders - the first of
   equals, and none of rank 0; with none, its skill is nothing. `confirmed`
 - **The leader's aggressiveness** comes from the stance of an active plan on a headquarters
