@@ -2330,10 +2330,13 @@ None of these blocks the list above.
   owner's acting capital (`docs/mechanics/map.md`, section 4, and `mapunits.md`, section 9;
   `reversing/findings/FINDINGS-citypoint.md`). Checked with `--click` on Lisbon, Their Finest Hour's one province with a
   `city`, and not set beside a picture of the original's. Left: **the order the original draws a group's pictures in**
-  was not read, so whether a building on the marker's point lies over it or under is the reading's guess; and **a building
-  the file places is drawn half a pixel west and south of where the 2D map draws a world point** (`CBuildingIcons.PlaceOf`
-  takes the file's x and y as they are, where the marker and the buildings the file does not place carry the half pixel
-  of `mapdraw.md`, section 3) - found 2026-11-14 and left as it was.
+  was not read, so whether a building on the marker's point lies over it or under is the reading's guess. ~~**A building
+  the file places is drawn half a pixel west and south of where the 2D map draws a world point**~~ - **mended 2026-11-15**:
+  the original stands every picture it hangs on a province at the file's point exactly, a world point, so
+  `CMapBuildings.PlaceOf` answers world points, placed or not, and the 2D layers - the buildings, the capital marker, the
+  air and naval modes' large bases and rings, the resource icons - draw them through `CWorldPoint` (`mapdraw.md`,
+  section 3; `mapunits.md`, section 9). Checked with `--click` at Kiel and Berlin against main: every building picture
+  half a pixel east and north of where it was, and a click on the port's and the airfield's still picking their units.
 - **Of an air unit's orders seventeen are built**: air superiority, the intercept, the eight
   bombing missions, the change of base, and since 2026-10-16 carrier protection, the paradrop,
   the rebase to carrier and the air supply (`transport.md`, section 13), the nuclear bomb

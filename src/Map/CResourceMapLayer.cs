@@ -40,7 +40,9 @@ public partial class CResourceMapLayer : Node2D
 	{
 		foreach (CResourceMapIcon icon in _icons)
 		{
-			_pictures.Draw(this, icon.Picture, new Vector2(icon.X, _map.Height - icon.Y), 1f, 0, _view, _map.Width);
+			// A world point, drawn half a pixel east and south of it as a building's picture is (mapdraw.md, section 3).
+			_pictures.Draw(this, icon.Picture, CWorldPoint.ToMap(icon.X, icon.Y, _map.Height).ToGodot(), 1f, 0, _view,
+				_map.Width);
 		}
 	}
 }

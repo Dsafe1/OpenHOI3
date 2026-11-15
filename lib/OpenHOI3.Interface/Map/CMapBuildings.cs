@@ -98,9 +98,11 @@ public static class CMapBuildings
 	}
 
 	/// <summary>
-	/// Where a building's picture stands: where positions.txt puts that building in the
-	/// province, or where the file says nothing the middle of the province, its label point -
-	/// the maintainer's word, 2026-11-07.
+	/// Where a building's picture stands, a world point - x east, y north, a pixel's middle on whole coordinates, as
+	/// positions.txt writes it: where the file puts that building in the province, as it is, or where the file says
+	/// nothing the middle of the province, its label point - the maintainer's word, 2026-11-07. The original hangs the
+	/// picture on the province's anchor moved by the building's place less the label point, which comes to the place
+	/// itself (mapunits.md, section 9); the 2D map draws it through <see cref="CWorldPoint"/>, half a pixel east and south.
 	/// </summary>
 	public static (float X, float Y) PlaceOf(IReadOnlyList<CBuildingPosition[]> placed, IReadOnlyList<CMapPosition> labels,
 		int province, string building)
@@ -112,7 +114,7 @@ public static class CMapBuildings
 				return (position.X, position.Y);
 			}
 		}
-		return (labels[province].X + 0.5f, labels[province].Y + 0.5f);
+		return (labels[province].X, labels[province].Y);
 	}
 
 	/// <summary>Whether a unit is a fleet lying in a port.</summary>

@@ -161,10 +161,13 @@ public partial class CAirMapLayer : Node2D
 		return _ring;
 	}
 
-	/// <summary>A point of positions.txt, which counts y north, in this node's coordinates.</summary>
+	/// <summary>
+	/// A point of positions.txt, a world point counting y north, in this node's coordinates: half a pixel east and south of
+	/// it (mapdraw.md, section 3).
+	/// </summary>
 	private Vector2 PlaceOf(float x, float y)
 	{
-		return new Vector2(x, _map.Height - y);
+		return CWorldPoint.ToMap(x, y, _map.Height).ToGodot();
 	}
 
 	public override void _Draw()
@@ -177,7 +180,7 @@ public partial class CAirMapLayer : Node2D
 		for (int id = 1; id < _counts.Length && id < _map.Positions.Count; id++)
 		{
 			CAirMapCount count = _counts[id];
-			Vector2 point = PlaceOf(_map.Positions[id].X + 0.5f, _map.Positions[id].Y + 0.5f);
+			Vector2 point = PlaceOf(_map.Positions[id].X, _map.Positions[id].Y);
 			float step = CAirMapIcons.IconOffset;
 			if (count.BombedUs > 0)
 			{

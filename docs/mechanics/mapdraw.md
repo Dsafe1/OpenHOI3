@@ -61,6 +61,16 @@ coordinates; the land at y 0.35, the sea at −0.32 [mod: the effect files]. Thi
 pixel spanning [x, x+1] and display rows counting down, so **a 2D point (X, Y) is the world's (X − 0.5, H − 0.5 − Y)**, H the
 map's height in pixels.
 
+**The points of `positions.txt` are world points.** Every picture the original hangs on a province - a building's, the
+capital marker, the large air and naval base pictures, a ring of range, a resource icon - is hung on the province's anchor,
+which stands at the label point, after a translation by its point less the label point [exe]
+(`reversing/findings/FINDINGS-citypoint.md`, section 3; `FINDINGS-seaair.md`, section 6; `FINDINGS-airmap.md`, section 8):
+so it stands at the file's x and y exactly, a pixel's middle on whole figures, and a building the file does not place at
+the label point (`mapunits.md`, section 9). The 2D map draws every one of them half a pixel east and south of its figures,
+by the rule above (`Interface/Map/CWorldPoint`); the 3D surface takes them as they are - a ring's `WorldMatrix`. *Corrected
+2026-11-15*: until then a building the file placed was drawn at its figures as they are, half a pixel west and south of the
+original's, while one it did not place, the capital marker and the counters carried the half pixel.
+
 The camera is the original's: field of view 0.785, near 8 [exe], left-handed (`D3DXMatrixLookAtLH`,
 `D3DXMatrixPerspectiveFovLH`), hanging at (0, h, 0) over the origin with the map moved to it - each tile's `WorldMatrix` its
 middle less the camera's (x, z), `AbsoluteWorldMatrix` its middle [exe]. Its height is what makes the 2D view's zoom: from

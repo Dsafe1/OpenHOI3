@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using OpenHOI3.Content.Map;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Sim;
@@ -81,7 +82,44 @@ public class MapBuildingsTests
 		List<CMapBuilding> buildings = CMapBuildings.Build(state, Placed, Own);
 
 		Assert.Equal((12.5f, 8.25f), (buildings[1].X, buildings[1].Y));        // as the file has it
-		Assert.Equal((10.5f, 10.5f), (buildings[0].X, buildings[0].Y));        // the middle of its label point's pixel
+		Assert.Equal((10f, 10f), (buildings[0].X, buildings[0].Y));            // its label point, as it is
+	}
+
+	[Fact]
+	public void APlacedBuildingAndAnUnplacedOneAreBothWorldPointsAndDrawnHalfAPixelEastAndSouthOfThem()
+	{
+		// Both are world points: the original stands a building's picture at its place less the label point, hung on an
+		// anchor at the label point, which comes to the place itself - and the label point where the file gives none.
+		Assert.Equal((12.5f, 8.25f), CMapBuildings.PlaceOf(Placed, Own, Kiel, "naval_base"));
+		Assert.Equal((10f, 10f), CMapBuildings.PlaceOf(Placed, Own, Kiel, "air_base"));
+		Assert.Equal((20f, 5f), CMapBuildings.PlaceOf(Placed, Own, Hamburg, "NAVAL_BASE"));     // the name without case
+
+		// The 2D map draws a world point - a pixel's middle on whole coordinates - half a pixel east and, its rows counting
+		// down from the top, half a pixel south (mapdraw.md, section 3): on a map 100 pixels high, the world's (10, 10) is
+		// the middle of the 2D map's pixel (10, 89), and the placed (12.5, 8.25) half a pixel off the file's figures.
+		Assert.Equal(new Vector2(10.5f, 89.5f), CWorldPoint.ToMap(10f, 10f, 100));
+		Assert.Equal(new Vector2(13f, 91.25f), CWorldPoint.ToMap(12.5f, 8.25f, 100));
+		Assert.Equal(new Vector2(0.5f, 99.5f), CWorldPoint.ToMap(0f, 0f, 100));     // the south-west pixel's middle
+	}
+
+	[Fact]
+	public void ABuildingPlacedOnItsLabelPointStandsWhereOneTheFileDoesNotPlaceStands()
+	{
+		CGameState state = State(out _, out _);
+		var onTheLabel = new[]
+		{
+			Array.Empty<CBuildingPosition>(),
+			new[] { new CBuildingPosition("naval_base", 10f, 10f) },
+			Array.Empty<CBuildingPosition>(),
+			Array.Empty<CBuildingPosition>(),
+		};
+
+		List<CMapBuilding> buildings = CMapBuildings.Build(state, onTheLabel, Own);
+
+		// Kiel's air base has no place and its naval base is placed on Kiel's label point: one point, drawn at one place.
+		Assert.Equal((Kiel, "air_base"), (buildings[0].Province, buildings[0].Building));
+		Assert.Equal((Kiel, "naval_base"), (buildings[1].Province, buildings[1].Building));
+		Assert.Equal((buildings[0].X, buildings[0].Y), (buildings[1].X, buildings[1].Y));
 	}
 
 	[Fact]

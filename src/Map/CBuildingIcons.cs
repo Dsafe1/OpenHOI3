@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using OpenHOI3.Content.Map;
+using OpenHOI3.Gfx;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
 using OpenHOI3.Sim;
@@ -93,19 +94,19 @@ public partial class CBuildingIcons : Node2D
 		return picture;
 	}
 
-	/// <summary>The middle of a building's picture in this node's coordinates, on the middle copy of the map.</summary>
+	/// <summary>
+	/// The middle of a building's picture in this node's coordinates, on the middle copy of the map: its place, a world
+	/// point, where the 2D map draws one - half a pixel east and south of it (mapdraw.md, section 3).
+	/// </summary>
 	private Vector2 PlaceOf(CMapBuilding building)
 	{
-		return new Vector2(building.X, _map.Height - building.Y);
+		return CWorldPoint.ToMap(building.X, building.Y, _map.Height).ToGodot();
 	}
 
-	/// <summary>
-	/// The middle of a capital marker in this node's coordinates: its city point, a world point, where the 2D map draws
-	/// one - half a pixel east and south of it (mapdraw.md, section 3).
-	/// </summary>
+	/// <summary>The middle of a capital marker in this node's coordinates: its city point, a world point, drawn as a building's.</summary>
 	private Vector2 PlaceOf(CMapCapital capital)
 	{
-		return new Vector2(capital.X + 0.5f, _map.Height - 0.5f - capital.Y);
+		return CWorldPoint.ToMap(capital.X, capital.Y, _map.Height).ToGodot();
 	}
 
 	public override void _Draw()

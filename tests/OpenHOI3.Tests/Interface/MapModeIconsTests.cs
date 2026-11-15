@@ -109,10 +109,11 @@ public class MapModeIconsTests
 		Assert.Equal(new[]
 		{
 			// Crude oil on the 3rd building of the file, coastal_fort; rare materials on the 6th, radar_station, with no point of
-			// its own, on the middle of the province's box, as the strategic resource always is.
+			// its own, on the middle of the province's box, as the strategic resource always is - all three world points, which
+			// the 2D map draws half a pixel east and south of them alike.
 			new CResourceMapIcon(Berlin, "resource_oil", 10f, 20f),
-			new CResourceMapIcon(Berlin, "resource_raremat", 100.5f, 50.5f),
-			new CResourceMapIcon(Berlin, "STRATEGIC_rubber", 100.5f, 50.5f),
+			new CResourceMapIcon(Berlin, "resource_raremat", 100f, 50f),
+			new CResourceMapIcon(Berlin, "STRATEGIC_rubber", 100f, 50f),
 		}, icons);
 	}
 }

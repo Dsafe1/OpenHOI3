@@ -594,7 +594,15 @@ province and the bombing icon south-west of it in one and north-west in the othe
   at 2 or more [exe] (`reversing/findings/FINDINGS-seaair.md`, section 6). Since 2026-11-07.
 - **It stands where `positions.txt` puts that building** in the province -
   `building_position = { air_base = { x y } }` - and is a square of twice the type's `scale`
-  a side, 5 map units for all of them in the base game.
+  a side, 5 map units for all of them in the base game. The original translates the picture by
+  the building's point less the label point, each half in single precision, and hangs it on the
+  province's anchor at the label point [exe], which comes to the point itself: **a world point**,
+  a pixel's middle on whole figures, as the capital marker's city point is - so the 2D map draws
+  it half a pixel east and south of the file's figures (`mapdraw.md`, section 3). So do the large
+  base pictures, the rings of range and the resource icons, which stand on the same points.
+  *Corrected 2026-11-15*: a placed building had been drawn at the file's figures as they are, half
+  a pixel west and south of the original's and of everything else on the map, and a click on its
+  picture asked of the same wrong place.
 - **A naval base's and an air base's pictures have two frames.** The second shows for a port
   **with a fleet lying in it**, and for an airfield **with an air unit at home** - one whose
   base it is and which is there. The first is the dim badge of an empty base.

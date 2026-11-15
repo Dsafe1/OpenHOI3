@@ -77,8 +77,11 @@ public partial class CNavalMapLayer : Node2D
 		QueueRedraw();
 	}
 
-	/// <summary>A point of positions.txt, which counts y north, in this node's coordinates.</summary>
-	private Vector2 PlaceOf(float x, float y) => new(x, _map.Height - y);
+	/// <summary>
+	/// A point of positions.txt, a world point counting y north, in this node's coordinates: half a pixel east and south of
+	/// it (mapdraw.md, section 3).
+	/// </summary>
+	private Vector2 PlaceOf(float x, float y) => CWorldPoint.ToMap(x, y, _map.Height).ToGodot();
 
 	public override void _Draw()
 	{
@@ -91,7 +94,7 @@ public partial class CNavalMapLayer : Node2D
 		for (int id = 1; id < _flags.Length && id < _map.Positions.Count; id++)
 		{
 			CNavalMapFlags flags = _flags[id];
-			Vector2 point = PlaceOf(_map.Positions[id].X + 0.5f, _map.Positions[id].Y + 0.5f);
+			Vector2 point = PlaceOf(_map.Positions[id].X, _map.Positions[id].Y);
 			// East, west, north and south of the point, as the original's vectors are read.
 			if (flags.ConvoysRaided)
 			{

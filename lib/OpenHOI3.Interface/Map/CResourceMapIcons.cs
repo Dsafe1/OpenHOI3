@@ -53,7 +53,7 @@ public static class CResourceMapIcons
 		return icons;
 	}
 
-	/// <summary>A building's point in a province, or null where positions.txt gives it none.</summary>
+	/// <summary>A building's point in a province, a world point as the file writes it, or null where positions.txt gives it none.</summary>
 	public static (float X, float Y)? PlaceOf(CBuildingPosition[] placed, string building)
 	{
 		foreach (CBuildingPosition position in placed)
@@ -66,6 +66,9 @@ public static class CResourceMapIcons
 		return null;
 	}
 
-	/// <summary>The middle of the province's box, which positions.txt does not move.</summary>
-	private static (float X, float Y) LabelPoint(CProvince province) => (province.CentreX + 0.5f, province.CentreY + 0.5f);
+	/// <summary>
+	/// The middle of the province's box, which positions.txt does not move: a world point, as a building's place is, which the
+	/// 2D map draws through <see cref="CWorldPoint"/>.
+	/// </summary>
+	private static (float X, float Y) LabelPoint(CProvince province) => (province.CentreX, province.CentreY);
 }
