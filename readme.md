@@ -237,6 +237,13 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    count of units moving into a province asks where each one's way ends, not its next step, so the Soviet 5th Army
    crossing 1351 for 1530 leaves it covered and the 5th H Arm Division goes into 1395 at 21:00 by a plain move, as in all
    three runs. July: 216 the same, 57 alone, 4 none; the war's start 114, 5 missed, 43 alone.
+   **The hour walks a country's units in the order of its own list** (section 95; `movement.md`, section 6): the save's
+   tree children first, as ours already kept for reinforcement, where the hour had gone by number - so the 181.
+   Infanterie-Division, 31st, looks at its support attack on 1750 before the divisions that start that battle and gets
+   its way an hour later, as in both runs. Every battle's rolls fall otherwise after it, and the series moved with them:
+   July 216 the same and 59 alone, the war's start 109, 12 missed and 45 alone - the misses a battle at 2213 that ours
+   still fights at its 28th hour where the original's was over before its 18th, so 2213 falls later and Poland's
+   agents redo their area six hours late.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

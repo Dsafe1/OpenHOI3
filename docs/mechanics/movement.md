@@ -471,10 +471,15 @@ the province it stands in. A unit of a country at peace that is going nowhere ha
 do in it.
 
 **The units move one after another, country by country**, on the one thread that runs the
-hour: the countries in their order, each country's units in the order of its own list.
-`confirmed`. *Ours:* a country's units go in the order of their numbers; the order of the
-original's list was not read, and none matters until two units' marches can affect each
-other.
+hour: the countries in their order, each country's units in the order of its own list -
+the order they were made in, and on a load the save's tree walked children first, those made
+since after them (`savegame.md`, section 5). `confirmed`: Germany's list read on the running
+game at 21:00 on 16 July 1941 is that order unit for unit, all 253 loaded units
+(`reversing/findings/FINDINGS-liveread.md`, section 95). It matters wherever one unit's hour
+changes what another's finds: the 181. Infanterie-Division, 31st in Germany's list, looks at
+its support attack on 1750 before the 81., 57. and 11. - 99th, 120th and 46th - start the
+battle there, and so is given its way an hour later, as in both runs. Ours went by number
+until then, which put it after them.
 
 **How long a march takes** is not kept; it is worked out when asked: for each leg, what is
 left of its distance over the speed the unit would have on it, rounded up to whole hours,

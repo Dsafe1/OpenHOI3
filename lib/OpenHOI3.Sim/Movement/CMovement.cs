@@ -166,7 +166,9 @@ public static class CMovement
 		{
 			bool atWar = state.IsAtWar(country.Tag);
 			List<CUnit>? busy = null;
-			foreach (CUnit unit in country.AllUnits())
+			// The units in the order of the country's own list: a unit earlier in it looks at its order before a later one's
+			// look ahead can begin a battle that hour (movement.md, section 6).
+			foreach (CUnit unit in country.UnitsInOrder())
 			{
 				if (unit.IsMoving || unit.Order != EUnitOrder.None || unit.IsFighting || unit.Bombing is not null
 					|| unit.IsRetreating
@@ -186,7 +188,6 @@ public static class CMovement
 			{
 				continue;
 			}
-			busy.Sort((a, b) => a.Id.CompareTo(b.Id));
 			foreach (CUnit unit in busy)
 			{
 				if (!unit.IsRemoved)
