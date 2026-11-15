@@ -64,7 +64,9 @@ ally, or a country at peace, that holds somebody's province puts its own policy 
 
 This is the whole of what occupation costs a province. There is no separate cut to an occupied province's IC,
 resources, manpower or leadership: the policy's `local_ic`, `local_resources`, `local_manpower_modifier` and
-`local_leadership_modifier` go into its modifier, which is where those figures read it. Its
+`local_leadership_modifier` go into its modifier, which is where those figures read it - its resources with
+`local_resources` **added** to `non_core`'s and the holder's `global_resources`, one sum scaling the yield
+(`resources.md`, section 3; measured on Germany's and China's occupied land at the later start saves). Its
 `local_partisan_support` is revolt risk's ceiling (`revolt.md`, section 3).
 
 Because a capture keys by the old controller while a province reads controller towards owner, the two disagree

@@ -12,7 +12,7 @@ namespace OpenHOI3.Sim.Economy;
 /// section 3. Money and supplies are home production too, and come of the country's
 /// shares of IC: <see cref="CProduction"/>.
 ///
-/// The rule was measured from a savegame of the original rather than read out of it.
+/// The rule was measured from a savegame of the original, and a province's yield read out of it since 2026-11-15.
 /// </summary>
 public static class CResources
 {
@@ -181,22 +181,52 @@ public static class CResources
 	}
 
 	/// <summary>
-	/// What a province yields of a good in a day as its holder gets it: scaled by the province's own modifier, the
-	/// country's laws and its technology, each multiplication truncated in turn. Also the province view's figure
-	/// (<c>provinceview.md</c>, section 2).
+	/// What a province yields of a good in a day as its holder gets it, as the original's
+	/// <c>CMapProvince::ResourceYield</c> works it [exe]: what it yields now, times one plus the holder's technology for
+	/// the good, truncated; then times one plus the <b>sum</b> of four modifiers - the province's of the good
+	/// (<c>local_metal</c>), the holder's of the good (<c>global_metal</c>), the province's <c>local_resources</c> and
+	/// the holder's <c>global_resources</c> - that sum never below nothing, truncated. The modifiers add, so a province
+	/// at <c>non_core</c>'s and a policy's -0.5 each still yields the laws' share (resources.md, section 3). Also the
+	/// province view's figure (<c>provinceview.md</c>, section 2).
 	/// </summary>
 	public static CFixedPoint Yield(CCountry country, CProvince province, EGoods goods)
 	{
 		long yield = province.CurrentProducing[goods].Raw;
-		long localFactor = Math.Max(0, CFixedPoint.Scale + province.Modifier[LocalResources].Raw);
-		long scaled = yield * localFactor / CFixedPoint.Scale;
-		scaled = scaled * (CFixedPoint.Scale + country.Modifier[GlobalResources].Raw) / CFixedPoint.Scale;
 		if (TechnologyKey(goods) is { Length: > 0 } technologyKey)
 		{
-			scaled = scaled * (CFixedPoint.Scale + country.Technology[technologyKey].Raw) / CFixedPoint.Scale;
+			yield = yield * (CFixedPoint.Scale + country.Technology[technologyKey].Raw) / CFixedPoint.Scale;
 		}
-		return new CFixedPoint(scaled);
+		long factor = CFixedPoint.Scale + province.Modifier[LocalKey(goods)].Raw + country.Modifier[GlobalKey(goods)].Raw
+			+ province.Modifier[LocalResources].Raw + country.Modifier[GlobalResources].Raw;
+		return new CFixedPoint(yield * Math.Max(0, factor) / CFixedPoint.Scale);
 	}
+
+	/// <summary>The province's modifier of one good, as the original's table of them names it.</summary>
+	private static string LocalKey(EGoods goods) => goods switch
+	{
+		EGoods.Supplies => "local_supplies",
+		EGoods.Fuel => "local_fuel",
+		EGoods.Money => "local_money",
+		EGoods.CrudeOil => "local_crude_oil",
+		EGoods.Metal => "local_metal",
+		EGoods.Energy => "local_energy",
+		_ => "local_rare_materials",
+	};
+
+	/// <summary>
+	/// The holder's modifier of one good, as the original's table of them names it - which has fuel's and money's the
+	/// wrong way round (docs/enhanced.md); no province yields either.
+	/// </summary>
+	private static string GlobalKey(EGoods goods) => goods switch
+	{
+		EGoods.Supplies => "global_supplies",
+		EGoods.Fuel => "global_money",
+		EGoods.Money => "global_fuel",
+		EGoods.CrudeOil => "global_crude_oil",
+		EGoods.Metal => "global_metal",
+		EGoods.Energy => "global_energy",
+		_ => "global_rare_materials",
+	};
 
 	/// <summary>The technology effect that scales a good a province yields, or nothing.</summary>
 	public static string TechnologyKey(EGoods goods)

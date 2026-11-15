@@ -42,8 +42,14 @@ price of the other six, recomputed whenever a trade changes. `confirmed`
 Each day, for metal, energy, rare materials and crude oil:
 
     home = sum over the provinces joined to the capital of
-               yield  *  (1 + GLOBAL_RESOURCES)  *  (1 + the technology bonus for that good)
+               yield  *  (1 + the technology bonus for that good)
+                      *  max(0, 1 + LOCAL_good + GLOBAL_good + LOCAL_RESOURCES + GLOBAL_RESOURCES)
          + what the base IC needs
+
+`confirmed` [exe] for the yield since 2026-11-15 (`CMapProvince::ResourceYield`,
+`reversing/findings/FINDINGS-supplyconvoys.md`, section 8); it was measured until then, as
+`yield x (1 + GLOBAL_RESOURCES) x (1 + technology)`, and the two agree wherever a province has
+no modifier of its own - every province joined to a capital in 1936.
 
 (measured) The savegame's figure for every country is reproduced **to the thousandth for
 251 of 254 country-and-good pairs** - all 78 for rare materials and all 20 for crude oil.
@@ -66,19 +72,30 @@ Piece by piece:
 - **Straits join.** A crossing listed in `adjacencies.csv` connects two provinces for this
   purpose: Japan's islands, Denmark's and Sicily all count as joined, and their figures
   match only if they do. (measured)
-- **`GLOBAL_RESOURCES`** is the country's modifier of that name - its laws and ministers.
+- **`GLOBAL_RESOURCES`** is the holder's modifier of that name - its laws and ministers.
 - **`LOCAL_RESOURCES`** is the province's own modifier of that name, which `non_core` and
-  the occupation policies set (`modifiers.md`, section 3). *Ours:* each province's yield
-  is scaled by one plus it, never below nothing, before the country's factors. Where the
-  original applies it has not been read, and nothing in the 1936 savegame shows it: no
-  province joined to a capital there is without its owner's core.
+  the occupation policies set (`modifiers.md`, section 3; `occupation.md`, section 3).
+- **The four modifiers add, and the sum scales the yield once**: the province's of the good
+  (`local_metal`, `local_energy`, `local_rare_materials`, `local_crude_oil`), the holder's of
+  the good (`global_metal` and so on), `LOCAL_RESOURCES` and `GLOBAL_RESOURCES`, one plus their
+  sum never below nothing. `confirmed` [exe]. So an occupied province at `non_core`'s -0.5
+  under laws worth +10% yields 0.6 of itself, not 0.55, and one at `non_core`'s and a
+  collaboration government's -1.25 together yields nothing whatever the laws. (measured,
+  `firstdays` and `write ... new`, 2026-11-15: every country's metal, energy, rare materials and
+  crude oil made at home the save's in all four start saves - Germany's metal 332.084 at
+  1941.6.22 and 382.316 at 1941.12.11, and China's 44.990 at 1939.9.1, where multiplying gave
+  312.093, 353.181 and 41.399.) Until 2026-11-15 `LOCAL_RESOURCES` was *Ours*, a factor of
+  its own before the country's.
 - **The technology bonus is per good**, and multiplies rather than adds:
   `metal_production`, `energy_production` and `rares_production`, each worth 5% a level in
   Their Finest Hour. **Crude oil has none**; `refinery_efficiency` is about turning oil into
   fuel, not about producing it. (measured)
-- **Each province is scaled on its own and truncated**, first by the laws and then by the
-  technology, and the truncated results are summed. Scaling the sum instead is out by a few
-  thousandths for a large country. (measured: the United States matches only this way.)
+- **Each province is scaled on its own and truncated**, first by the technology and then by
+  the modifiers' sum, and the truncated results are summed. Scaling the sum instead is out by a
+  few thousandths for a large country. (measured: the United States matches only this way.)
+  `confirmed` [exe] for the order since 2026-11-15; until then this said the laws came first,
+  which gave the same figures in 1936 and was a few tenths out for four countries besides
+  Germany at 1941.6.22 - the Soviet Union's crude oil 96.324 to the save's 96.510 among them.
 - **"What the base IC needs"** is a fixed amount every country gets whatever it holds, and
   no modifier touches it: **5 metal, 10 energy and 2.5 rare materials**, and no crude oil.
   (measured) That is exactly what five IC consume in a day -
@@ -114,8 +131,8 @@ of law - and a loaded game the save's, which the load keeps. (measured, `firstda
 1936 start save - Germany 283.840, Britain 91.756 and Ireland 9.971 supplies - and of every
 country but one each in the 1939.9.1, 1941.6.22 and 1941.12.11 start saves: the Soviet Union's
 supplies at 1939, 161.813 to 163.604, and non-existent Estonia's at 1941, 20.050 to 22.914, not
-chased. The resources of Germany at 1941 and China at 1939 differ on the second day itself,
-Germany's 312.093 metal to the save's 332.084 at 1941.6.22.) Until 2026-11-15 entering made the
+chased. The resources made of every country are the save's in all four, since the modifiers'
+sum above.) Until 2026-11-15 entering made the
 pool again after the days and put an estimate of the day's money and supplies in it, taken
 after the Lua's laws: Germany 262.005, Britain 161.033 and Ireland 0.728 supplies at 1936,
 Ireland's less than the 3.98 it makes away from its capital, and every non-existent country's

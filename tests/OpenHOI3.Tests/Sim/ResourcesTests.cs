@@ -168,7 +168,7 @@ public class ResourcesTests
 	[Fact]
 	public void EachProvinceIsScaledAndTruncatedOnItsOwn()
 	{
-		// 3 * 0.55 is 1.65, and 1.65 * 1.05 is 1.7325, which is 1.732. Twice that is 3.464;
+		// 3 * 1.05 is 3.15, and 3.15 * 0.55 is 1.7325, which is 1.732. Twice that is 3.464;
 		// scaling the six together would give 3.465.
 		CGameState state = State(null, new[] { Technology("steel_production", "metal_production", "0.05") },
 			Yielding(Land(1, Ger, 2), EGoods.Metal, "3"),
@@ -181,6 +181,58 @@ public class ResourcesTests
 		CResources.UpdateHomeProduction(state);
 
 		Assert.Equal(CFixedPoint.Parse("3.464"), Home(state, EGoods.Metal));
+	}
+
+	/// <summary>A province with the given modifiers on it and a holder with the given ones, for <see cref="CResources.Yield"/>.</summary>
+	private static (CCountry Holder, CProvince Province) Held(string amount, params (bool Local, string Kind, string Value)[] modifiers)
+	{
+		CCountry holder = Country("GER", 1);
+		CProvince province = Yielding(Land(1, Ger), EGoods.Metal, amount);
+		foreach ((bool local, string kind, string value) in modifiers)
+		{
+			(local ? province.Modifier : holder.Modifier).Set(kind, CFixedPoint.Parse(value));
+		}
+		return (holder, province);
+	}
+
+	[Fact]
+	public void TheProvincesAndTheHoldersModifiersAddRatherThanMultiply()
+	{
+		// An occupied province at non_core's -0.5, its holder's laws +10%: the original's ResourceYield sums the two, 1 - 0.5
+		// + 0.1, where multiplying would give 0.5 x 1.1 - Germany's metal at the 1941.6.22 start, 332.084, only so.
+		(CCountry holder, CProvince province) = Held("100", (true, "local_resources", "-0.5"), (false, "global_resources", "0.1"));
+
+		Assert.Equal(CFixedPoint.FromInt(60), CResources.Yield(holder, province, EGoods.Metal));
+	}
+
+	[Fact]
+	public void TheGoodsOwnModifiersGoIntoTheSameSum()
+	{
+		(CCountry holder, CProvince province) = Held("100",
+			(true, "local_metal", "0.2"), (false, "global_metal", "0.1"), (true, "local_energy", "5"),
+			(true, "local_resources", "-0.25"), (false, "global_resources", "0.05"));
+
+		Assert.Equal(CFixedPoint.FromInt(110), CResources.Yield(holder, province, EGoods.Metal));    // 1 + 0.2 + 0.1 - 0.25 + 0.05
+	}
+
+	[Fact]
+	public void ASumBelowNothingYieldsNothing()
+	{
+		// non_core's -0.5 and a collaboration government's -0.75 under laws worth +10%.
+		(CCountry holder, CProvince province) = Held("100", (true, "local_resources", "-1.25"), (false, "global_resources", "0.1"));
+
+		Assert.Equal(CFixedPoint.Zero, CResources.Yield(holder, province, EGoods.Metal));
+	}
+
+	[Fact]
+	public void TechnologyComesFirstAndIsTruncatedBeforeTheModifiers()
+	{
+		// 0.019 x 1.05 is 0.01995, which is 0.019, and that x 1.5 is 0.0285, which is 0.028. The modifiers first would give
+		// 0.028 and then 0.029.
+		(CCountry holder, CProvince province) = Held("0.019", (false, "global_resources", "0.5"));
+		holder.Technology.Set("metal_production", CFixedPoint.Parse("0.05"));
+
+		Assert.Equal(CFixedPoint.Parse("0.028"), CResources.Yield(holder, province, EGoods.Metal));
 	}
 
 	[Fact]
