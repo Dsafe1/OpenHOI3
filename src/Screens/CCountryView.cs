@@ -21,7 +21,7 @@ public abstract partial class CCountryView : Control
 	private const string SkinIcon = "bg_countryskin";
 
 	private CGuiWindow? _topColour;
-	private CCountry? _skinned;
+	private bool _skinned;
 
 	protected CGuiContext Context { get; private set; } = null!;
 	protected CSimulation Simulation { get; private set; } = null!;
@@ -31,6 +31,13 @@ public abstract partial class CCountryView : Control
 
 	/// <summary>The country the screen is about.</summary>
 	public CCountry Player { get; set; } = null!;
+
+	/// <summary>
+	/// The country whose picture stands behind the screen, given once: the one played unless set after
+	/// <see cref="Setup"/>. The session sets the country the game was entered with, which a <c>tag</c> does not change
+	/// (<c>countryviews.md</c>, section 2); null leaves the sprite's own.
+	/// </summary>
+	public CCountryTag? SkinCountry { get; set; }
 
 	/// <summary>The names of the two windows: the main one, and the one behind it.</summary>
 	protected abstract string WindowName { get; }
@@ -48,6 +55,7 @@ public abstract partial class CCountryView : Control
 		Context = context;
 		Simulation = simulation;
 		Player = player;
+		SkinCountry = player.Tag;
 	}
 
 	public override void _Ready()
@@ -235,20 +243,21 @@ public abstract partial class CCountryView : Control
 	/// <summary>
 	/// The picture behind the screen is the country's own when the install has one:
 	/// <c>gfx/interface/skins/country_bg_TAG.dds</c>. Otherwise whatever the icon's
-	/// sprite names.
+	/// sprite names. Given once, by <see cref="SkinCountry"/>: the original gives it as the game
+	/// is entered and never again.
 	/// </summary>
 	private void ShowSkin()
 	{
-		if (ReferenceEquals(Player, _skinned) || Window is null)
+		if (_skinned || Window is null)
 		{
 			return;
 		}
-		_skinned = Player;
-		if (Window.TryFindIcon(SkinIcon) is not { } icon)
+		_skinned = true;
+		if (SkinCountry is not { } tag || Window.TryFindIcon(SkinIcon) is not { } icon)
 		{
 			return;
 		}
-		string file = SkinFolder + Player.Tag + ".dds";
+		string file = SkinFolder + tag + ".dds";
 		if (Context.Textures.Exists(file) && Context.Textures.LoadFromGamePath(file) is { } skin)
 		{
 			icon.SetTexture(skin);

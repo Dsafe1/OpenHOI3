@@ -35,6 +35,9 @@ public sealed class CGuiFonts
 	private readonly Dictionary<string, CGuiFont> _fonts = new(StringComparer.OrdinalIgnoreCase);
 	private readonly Dictionary<string, CGuiFont?> _files = new(StringComparer.OrdinalIgnoreCase);
 
+	/// <summary>The <c>font = { }</c> entries, by name: fonts the original makes from an installed typeface.</summary>
+	private readonly Dictionary<string, CTrueTypeFont> _trueType = new(StringComparer.Ordinal);
+
 	private CGuiFonts(CDirectorySettings directories)
 	{
 		_directories = directories;
@@ -74,14 +77,16 @@ public sealed class CGuiFonts
 					}
 				}
 			}
+			CTrueTypeFontReader.Read(root, registry._trueType);
 		}
 		return registry;
 	}
 
 	/// <summary>
-	/// Resolves a font as named by the GUI. Names without a <c>bitmapfont</c> entry are
-	/// treated as direct file names, which is how several of the original's fonts are
-	/// written.
+	/// Resolves a font as named by the GUI. A name with a <c>bitmapfont</c> entry is that; one with a <c>font = { }</c>
+	/// entry instead is the typeface it names at its height (<see cref="MakeTrueType"/>); any other is treated as a direct
+	/// file name, which is how several of the original's fonts are written. Which of the two entries the original asks
+	/// first for an interface element was not read - no name of the base game's has both.
 	/// </summary>
 	public CGuiFont? Find(string name)
 	{
@@ -91,6 +96,11 @@ public sealed class CGuiFonts
 		}
 		if (!_fonts.TryGetValue(name, out CGuiFont? font))
 		{
+			if (_trueType.TryGetValue(name, out CTrueTypeFont? entry) && MakeTrueType(entry) is { } trueType)
+			{
+				_fonts[name] = trueType;
+				return trueType;
+			}
 			font = new CGuiFont { Name = name, FontName = name };
 			_fonts[name] = font;
 		}
@@ -112,6 +122,33 @@ public sealed class CGuiFonts
 			font.LineHeight = made.LineHeight;
 		}
 		return font;
+	}
+
+	/// <summary>
+	/// A <c>font = { }</c> entry as a font to draw with: the shipped typeface that stands for its <c>fontname</c>, at the
+	/// size whose cell - from the top of its tallest letter to the foot of its lowest - is the entry's <c>height</c>, as
+	/// Windows takes a positive height and the original hands it to Direct3D (<c>reversing/findings/FINDINGS-loadingscreen.md</c>,
+	/// section 2), a line being that cell. Its colour is the entry's own. Null where no typeface stands for it.
+	/// </summary>
+	private CGuiFont? MakeTrueType(CTrueTypeFont entry)
+	{
+		Font? face = _shipped.For(entry.FontName, bold: false, italic: false, out _);
+		if (face is null || entry.Height <= 0)
+		{
+			return null;
+		}
+		int size = Mathf.Max(1, Mathf.RoundToInt(ProbeSize * entry.Height / face.GetHeight(ProbeSize)));
+		return new CGuiFont
+		{
+			Name = entry.Name,
+			FontName = entry.FontName,
+			TrueType = true,
+			Font = face,
+			Color = entry.Color.ToGodot(),
+			Size = size,
+			Ascent = face.GetAscent(size),
+			LineHeight = entry.Height,
+		};
 	}
 
 	/// <summary>A font file's descriptor, <c>gfx/fonts/&lt;name&gt;.fnt</c> in whichever layer has it, or null.</summary>

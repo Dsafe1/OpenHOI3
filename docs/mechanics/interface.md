@@ -816,6 +816,21 @@ Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/
   not give; why was not found (`reversing/findings/FINDINGS-textdraw.md`, *What is not established*). Here a line with no
   picture is put a unit lower to cancel the unit up every glyph is drawn with. Set so, both lie on the original's row
   for row; across, each letter is within a unit of the original's, the typeface here being another (section 6).
+- **All of that is the bitmap font's. A box whose font is a `font = { }` entry** [mod: `interface/*.gfx`] - the
+  console's `console_edit`, in `FPS_Font` - is handed to that font's own routine, which draws with Direct3D's text
+  drawing (read 2026-11-15, `reversing/findings/FINDINGS-textdraw.md`, section 2.5): into a rectangle from the border,
+  **set left and never centred up and down** - a box asks for centring only where it is `fixedsize`, and an edit box
+  never is - so **the line's cell stands the border in twice each way**, whatever the box's height and whether a picture
+  is behind it (`CEditLinePlacement.TrueTypeTop`). Its glyphs have no unit right and up: that is the bitmap font's half
+  pixel. [exe], `likely`: whether Direct3D's own drawing would centre without a single-line flag is Direct3D's, and no
+  screenshot of the original's console has been set beside ours. *Ours:* such a font is drawn as the shipped typeface
+  that stands for its `fontname`, at the size whose cell - top of the tallest letter to foot of the lowest - is the
+  entry's `height`, as Windows takes a positive height; a line is that cell, and the colour the entry's
+  (`CGuiFonts.MakeTrueType`). The original asks the `font = { }` entries before the bitmap fonts for the loading
+  screen; which it asks first for an interface element was not read - no name of the base game's is both. Before this
+  reading, the same day, the console's line was centred by the bitmap font's rule and drawn in a stand-in of line 16 for
+  want of a descriptor: its cell stood 22 down, and its letters three units lower and a size larger than now (measured on
+  screenshots of ours, the window at 1920 by 1080).
 - **The caret** is the `cursor` sprite [mod: `interface/core.gfx`, `gfx/interface/textcursor`], past the box's border
   by the width of its line before it and 3, and a line's height down for each line above its own - **and a unit higher
   where a picture is behind the line**, as the line is: `game_name`'s bar, rows 5 to 20 of its picture, stands 10 to

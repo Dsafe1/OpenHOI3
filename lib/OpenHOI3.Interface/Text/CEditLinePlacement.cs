@@ -18,6 +18,11 @@ namespace OpenHOI3.Interface.Text;
 /// below. So a line with no picture is put a unit lower here, against the unit up the drawing adds. Why the two differ
 /// was not read. The caret stands where it was read, past the border by the line before it and 3, a line's height down
 /// for each line above its own - and with a picture behind the line a unit higher, as the line is.
+///
+/// All of that is the bitmap font's. <b>A box whose font is a <c>font = { }</c> entry</b> - the console's line, in
+/// <c>FPS_Font</c> - is handed to that font's own routine instead, which draws the line with Direct3D's text drawing, set
+/// left, from the border's corner of the object and never centred (<see cref="TrueTypeTop"/>;
+/// <c>reversing/findings/FINDINGS-textdraw.md</c>, section 2.5).
 /// </summary>
 public static class CEditLinePlacement
 {
@@ -36,6 +41,18 @@ public static class CEditLinePlacement
 		bool fits = CTextBoxPlacement.Fits(maxWidth, maxHeight, false);
 		float arithmetic = borderY + CTextBoxPlacement.Top(fits, picture, maxHeight, borderY, 1, lineHeight);
 		return picture ? arithmetic : arithmetic + 1f;
+	}
+
+	/// <summary>
+	/// Where the line's cell stands down in a font made from a <c>font = { }</c> entry: the border twice, whatever the
+	/// box's height and whether a picture is behind it. The original's routine for such a font draws the line into a
+	/// rectangle from the border with its text set left and not centred up and down - a box of no fixed size never asks
+	/// for that - and puts the object the border in, as for a bitmap font. Its glyphs have no unit to cancel: the text
+	/// drawing adds none for such a font.
+	/// </summary>
+	public static float TrueTypeTop(int borderY)
+	{
+		return 2f * borderY;
 	}
 
 	/// <summary>Where the caret's picture stands down, its line <paramref name="row"/> lines below the first.</summary>

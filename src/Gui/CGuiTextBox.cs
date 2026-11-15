@@ -440,12 +440,14 @@ public partial class CGuiTextBox : CGuiObject
 		// An edit box's line stands as the original's object that draws it places a textBoxType's line that fits: the
 		// border in twice across, and down the border twice or, with a picture behind it, the border and half of what the
 		// box's height leaves the line - a unit lower here where there is no picture (CEditLinePlacement; interface.md,
-		// section 8). It shows one line, set left whatever the box's format.
+		// section 8). A font = { } entry's routine never centres it: the border twice down too. It shows one line, set left
+		// whatever the box's format.
 		if (type.IsEdit)
 		{
 			bool hasPicture = _picture is not null;
 			float left = CEditLinePlacement.Left(type.BorderSize.X);
-			float top = CEditLinePlacement.Top(type.MaxWidth, type.MaxHeight, type.BorderSize.Y, _font.LineHeight, hasPicture);
+			float top = _font.TrueType ? CEditLinePlacement.TrueTypeTop(type.BorderSize.Y)
+				: CEditLinePlacement.Top(type.MaxWidth, type.MaxHeight, type.BorderSize.Y, _font.LineHeight, hasPicture);
 
 			// A box that takes typing shows the line its caret is on and only that, and the caret while it has the
 			// keyboard: the `cursor` sprite past the border by the width before it and 3, a line's height down for each

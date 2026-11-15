@@ -44,6 +44,13 @@ public partial class CTopBar : Control
 	/// <summary>The country the bar is about; none where nobody is played, and only the date and the clock are written.</summary>
 	public CCountry? Player { get; set; }
 
+	/// <summary>
+	/// The country whose picture the bar takes, once, as it is made: the one played unless set after <see cref="Setup"/>.
+	/// The session sets the country the game was entered with, which a <c>tag</c> does not change (<c>topbar.md</c>,
+	/// section 1).
+	/// </summary>
+	public CCountryTag? SkinCountry { get; set; }
+
 	/// <summary>Raised when the buttons that open the production and technology screens are pressed.</summary>
 	public event System.Action? ProductionPressed;
 	public event System.Action? TechnologyPressed;
@@ -88,6 +95,7 @@ public partial class CTopBar : Control
 		_context = context;
 		_simulation = simulation;
 		Player = player;
+		SkinCountry = player?.Tag;
 	}
 
 	public override void _Ready()
@@ -142,6 +150,7 @@ public partial class CTopBar : Control
 		Bind(_outlinerButton, () => OutlinerPressed?.Invoke());
 		Bind(_window.FindButton("topbar_menubutton"), () => MenuPressed?.Invoke());
 
+		ShowSkin();
 		// The bar answers for its elements by name, as the original's does. With nobody played it is all there, its
 		// figures and name empty - the file's own sample text would name Germany - and nothing said of them.
 		if (Player is null)
@@ -155,7 +164,6 @@ public partial class CTopBar : Control
 		else
 		{
 			CCountry player = Player;
-			ShowSkin(player);
 			foreach (string name in CTopBarTooltips.Elements())
 			{
 				if (_window.TryFindElement(name) is { } element)
@@ -219,13 +227,18 @@ public partial class CTopBar : Control
 
 	/// <summary>
 	/// The bar's picture is the country's own where the install has one - <c>gfx/interface/skins/topbar_TAG.dds</c> - and
-	/// otherwise what its sprite names, set once as the game is entered (<c>docs/mechanics/topbar.md</c>, section 1). The
-	/// icon is asked for only where the file is there, as the original asks for it; one the window lacks is named in the
-	/// log, where the original's would fail.
+	/// otherwise what its sprite names, set once as the game is entered (<c>docs/mechanics/topbar.md</c>, section 1) - by
+	/// <see cref="SkinCountry"/>, so a bar made again for a <c>tag</c> keeps the first country's. The icon is asked for only
+	/// where the file is there, as the original asks for it; one the window lacks is named in the log, where the original's
+	/// would fail.
 	/// </summary>
-	private void ShowSkin(CCountry player)
+	private void ShowSkin()
 	{
-		string file = CTopBarText.SkinFile(player.Tag);
+		if (SkinCountry is not { } tag)
+		{
+			return;
+		}
+		string file = CTopBarText.SkinFile(tag);
 		if (!_context.Textures.Exists(file) || _window?.FindIcon(CTopBarText.SkinIcon) is not { } icon)
 		{
 			return;

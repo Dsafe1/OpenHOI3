@@ -24,6 +24,13 @@ public sealed class CGuiFont
 	/// with it on refuses seven characters (<c>docs/mechanics/interface.md</c>, section 8).
 	/// </summary>
 	public bool Effect { get; init; } = true;
+
+	/// <summary>
+	/// Whether it is made from a <c>font = { }</c> entry - an installed typeface the original draws with Direct3D's text
+	/// drawing at the entry's <c>height</c> - and not from a <c>bitmapfont</c>. Such a font's glyphs are not moved the unit
+	/// right and up a bitmap font's are, that being the bitmap font's own half pixel (<c>interface.md</c>, section 6).
+	/// </summary>
+	public bool TrueType { get; init; }
 	/// <summary>
 	/// The colour to draw it in: the one its declaration gives, times the colour the
 	/// original's glyphs were painted in. Some of those are white and take their colour
@@ -76,7 +83,7 @@ public sealed class CGuiFont
 
 	/// <summary>
 	/// Draws a text on a canvas item with its letters standing on the point given -
-	/// and then one unit right and one up of it, as the original draws every glyph.
+	/// and then one unit right and one up of it, as the original draws every glyph of a bitmap font.
 	/// </summary>
 	public void Draw(CanvasItem item, Vector2 baseline, string text, Color colour)
 	{
@@ -84,7 +91,10 @@ public sealed class CGuiFont
 		{
 			return;
 		}
-		baseline += new Vector2(CGuiLayout.GlyphShiftX, CGuiLayout.GlyphShiftY);
+		if (!TrueType)
+		{
+			baseline += new Vector2(CGuiLayout.GlyphShiftX, CGuiLayout.GlyphShiftY);
+		}
 		// The text is held as its Windows-1252 bytes; its curly quotes and dashes are drawn as themselves.
 		string shown = Interface.Text.CWindows1252.ToDisplay(text);
 		if (FixedAdvance > 0)

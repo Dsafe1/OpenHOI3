@@ -2309,7 +2309,11 @@ None of these blocks the list above.
   beside the maintainer's screenshot of the original's save dialog with a name typed and his of the unit panel, glyph
   row for glyph row; `game_name`'s line is two lower than before and its caret one higher, and every edit box's text
   one further right. Measured and not read: the line with a picture stands a unit higher than the one without, against the
-  reading's arithmetic - why was not found. The maintainer has not looked at the screens since these changes.
+  reading's arithmetic - why was not found. **A box whose font is a `font = { }` entry is another routine's** (read
+  2026-11-15, `reversing/findings/FINDINGS-textdraw.md`, section 2.5): the console's line, in `FPS_Font`, has its cell
+  the border twice in each way and is never centred, and such a font is drawn at the size whose cell is its `height`, in
+  its own colour (`CGuiFonts.MakeTrueType`); its two background routines were not read, and no screenshot of the
+  original's console has been set beside ours. The maintainer has not looked at the screens since these changes.
 - **Four rules of how the interface draws are measured on screenshots and not read**: a
   bar's picture upside down, where a turned flag stands, where a round shield puts its
   flag, and where a name too long for its box is cut - the last of which ends ten pixels

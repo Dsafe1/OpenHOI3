@@ -41,6 +41,17 @@ public class EditLinePlacementTests
 	}
 
 	[Fact]
+	public void AFontEntrysLineIsTheBorderInTwiceDownAndNeverCentred()
+	{
+		// The console's console_edit: 500 by 40, a border of 10 and a picture, in FPS_Font, a font = { } entry of height
+		// 14. The bitmap font's routine would centre it, 10 + (40 - 14) / 2 = 23; the entry's own sets it at the
+		// rectangle's top, the border into an object the border in.
+		Assert.Equal(20f, CEditLinePlacement.TrueTypeTop(10));
+		Assert.Equal(23f, CEditLinePlacement.Top(500, 40, 10, 14f, true));
+		Assert.Equal(20f, CEditLinePlacement.Left(10));
+	}
+
+	[Fact]
 	public void TheCaretStandsAUnitHigherWithAPicture()
 	{
 		Assert.Equal(5f, CEditLinePlacement.CaretTop(6, 14f, 0, true));

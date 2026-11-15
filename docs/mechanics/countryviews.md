@@ -48,8 +48,12 @@ The install has such a file for many countries.
 
 The top bar does the same with `topbar_TAG.dds` from the same folder, in the same step - read
 2026-11-14 (`topbar.md`, section 1): as the original enters a game it asks each country screen
-for its picture and then sets the bar's. *Ours:* a screen takes its picture when it is first
-opened and again whenever the country played is another.
+for its picture and then sets the bar's. **Nothing asks again**: the console's `tag` gives
+none, and no other caller of a screen's picture was found (read 2026-11-15, `console.md`,
+section 3), so after a `tag` the six screens keep the first country's - here too, by the
+country the game was entered with (`CCountryView.SkinCountry`). The ledger is not one of the
+six: its picture is made each time it opens, for the country played. *Ours:* a screen takes its
+picture when it is first opened, where the original's are given as the game is entered.
 
 ## 3. The line that says who runs it
 

@@ -38,9 +38,11 @@ the tag alone - not the faction, not the government. Their Finest Hour has 46 su
 `ENG`, `SOV` and `USA` among them, Siam among the minors; Ireland has none and keeps the generic
 picture. The same step gives the country screens theirs (`countryviews.md`, section 2).
 
-- **Nothing sets it again**: the step's one caller is the entering of the game, so a played
-  country changed in play would keep the first one's picture - listed in `docs/enhanced.md`.
-  *Ours:* the console's `tag` makes every screen again (`console.md`), so here the bar follows.
+- **Nothing sets it again**: the step's one caller is the entering of the game, and the
+  console's `tag` does not reach it - its command was read whole on 2026-11-15 and gives no
+  picture (`console.md`, section 3) - so a played country changed in play keeps the first one's
+  picture, here too: the session made again for a `tag` takes the country the game was entered
+  with (`CSessionCarry.EnteredAs`, `CTopBar.SkinCountry`). Listed in `docs/enhanced.md`.
 - **The original does not ask whether the window has `topbar_bg`**: a mod with the file and no
   such icon would fail. *Ours:* the icon is asked for only where the file is there, as the
   original asks, and one the window lacks is named in the log.

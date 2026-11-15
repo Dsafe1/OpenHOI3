@@ -198,10 +198,18 @@ public partial class CSession : Node
 		State = prepared.State;
 		_simulation = new CSimulation(State);
 		Player = State.Played.Count > 0 ? State.Country(State.Played.First()) : null;
+		_enteredAs = _carried is { } carried ? carried.EnteredAs : Player?.Tag;
 		_mapCache = prepared.Cache;
 		_quadTiles = prepared.Tiles;
 		ShowGame(prepared.Gui);
 	}
+
+	/// <summary>
+	/// The country the game was entered with. The original gives the top bar and the country screens its pictures once, as
+	/// the game is entered, and the console's <c>tag</c> does not give them again (<c>docs/mechanics/console.md</c>,
+	/// section 3), so a session made again around the game keeps the first one's.
+	/// </summary>
+	private CCountryTag? _enteredAs;
 
 	/// <summary>The map cache and its quad tiles as read before the session, handed on to the next session made around the game.</summary>
 	private CMapCache? _mapCache;
@@ -306,7 +314,8 @@ public partial class CSession : Node
 		CGuiContext gui = _readInterfaceAgain ? CGuiContext.Load(_directories, _localisation) : _gui;
 		(Vector2 centre, float zoom) = _mapView.View;
 		var carried = new Debug.CSessionCarry(_console?.Lines.ToList() ?? new List<string>(), _console?.History.ToList() ?? new List<string>(),
-			_console?.IsOpen == true, centre, zoom, _mapView.RenderLayers, _simulation.Clock.Paused, _simulation.Clock.Speed, _replayFile, _wireframe);
+			_console?.IsOpen == true, centre, zoom, _mapView.RenderLayers, _simulation.Clock.Paused, _simulation.Clock.Speed, _replayFile, _wireframe,
+			_enteredAs);
 		Replaced?.Invoke(new FrontEnd.CPreparedGame(State, Map, _localisation, gui, _aiScripts, _mapCache, _quadTiles), carried);
 	}
 
@@ -426,6 +435,11 @@ public partial class CSession : Node
 			_statistics.UnitChosen += ChooseUnit;
 			_statistics.Opening += CloseCountryViews;
 			layer.AddChild(_statistics);
+			// The six screens' pictures are the country's the game was entered with, a tag giving none (console.md, section 3).
+			foreach (CCountryView view in new CCountryView[] { _production, _technology, _diplomacy, _politics, _espionage, _theatres })
+			{
+				view.SkinCountry = _enteredAs;
+			}
 			_warfare = new CWarfareView();
 			_warfare.Setup(gui, _simulation);
 			layer.AddChild(_warfare);
@@ -542,6 +556,7 @@ public partial class CSession : Node
 		// With nobody played the bar has no country, and its buttons no screens to open.
 		_topBar = new CTopBar();
 		_topBar.Setup(gui, _simulation, Player);
+		_topBar.SkinCountry = _enteredAs;
 		layer.AddChild(_topBar);
 		// The alert icons stand from 63 down, inside the top bar's window, which is 100 high: over the bar, or their upper
 		// halves would not take a click. Only the icons take one; the rest of the row lets the mouse through.

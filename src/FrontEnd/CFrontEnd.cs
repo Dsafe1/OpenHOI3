@@ -191,13 +191,17 @@ public partial class CFrontEnd : Node
 	/// <summary>The localisation the front end was made with, which the loading screen writes its lines from.</summary>
 	public CLocalisation Localisation => _localisation;
 
-	/// <summary>The Lua goes with the front end unless a game took it.</summary>
+	/// <summary>
+	/// The Lua goes with the front end unless a game took it. Play takes the front end out of the tree before
+	/// <see cref="Prepare"/> hands the Lua to the game, so a front end that has handed it over keeps hold of it till then.
+	/// </summary>
 	public override void _ExitTree()
 	{
-		if (!_handedOver)
+		if (_handedOver)
 		{
-			_aiScripts?.Dispose();
+			return;
 		}
+		_aiScripts?.Dispose();
 		_aiScripts = null;
 	}
 
