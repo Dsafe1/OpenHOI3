@@ -17,6 +17,12 @@ internal sealed class CLuaRandom
 
 	private CRuntimeRand _rand = new(1);
 
+	/// <summary>
+	/// Where a draw is answered from instead - a value the original's <c>rand()</c> gave, or null to leave the draw this
+	/// state's own: the measuring instrument of <c>docs/replay.md</c>, section 9. The state's own generator moves on either way.
+	/// </summary>
+	public Func<int?>? Feed { get; set; }
+
 	/// <summary>Puts the two in the state's <c>math</c> table in place of the library's own.</summary>
 	public void Install(CLuaState lua)
 	{
@@ -28,8 +34,10 @@ internal sealed class CLuaRandom
 
 	private int Random(CLuaCall call)
 	{
+		int drawn = _rand.Next();
+		drawn = Feed?.Invoke() ?? drawn;
 		// The remainder avoids r == 1.
-		double r = (double)(_rand.Next() % RandMax) / RandMax;
+		double r = (double)(drawn % RandMax) / RandMax;
 		switch (call.ArgumentCount)
 		{
 			case 0:

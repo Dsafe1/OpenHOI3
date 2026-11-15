@@ -285,6 +285,18 @@ public sealed class CGameApi
 	/// <summary>The generator a script draws on.</summary>
 	public CRandom Random => WorkerRandom ?? State.AiRandom;
 
+	/// <summary>
+	/// The country whose AI the running script works for - the outermost call's, as the original's draws belong to the
+	/// country whose pass runs on the thread - or null outside one. Set by <see cref="CAiScripts"/>.
+	/// </summary>
+	public Sim.Countries.CCountryTag? Drawer { get; set; }
+
+	/// <summary>One draw a script makes: on the worker's generator, else on the AI's, made for <see cref="Drawer"/>.</summary>
+	public int Draw()
+	{
+		return WorkerRandom?.Next() ?? State.AiRandom.Next(Drawer ?? default);
+	}
+
 	/// <summary>A command a script gives, which reaches the game's outbox.</summary>
 	public void Post(Sim.Commands.CCommand command)
 	{

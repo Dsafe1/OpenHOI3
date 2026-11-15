@@ -50,11 +50,11 @@ public static class CTradeAi
 			{
 				continue;
 			}
-			if (state.AiRandom.Next(6) == 0)
+			if (state.AiRandom.Next(6, country.Tag, CRandom.TradeKind) == 0)
 			{
 				runs.Add((country, true));
 			}
-			else if (state.AiRandom.Next(10) == 0)
+			else if (state.AiRandom.Next(10, country.Tag, CRandom.TradeKind) == 0)
 			{
 				runs.Add((country, false));
 			}

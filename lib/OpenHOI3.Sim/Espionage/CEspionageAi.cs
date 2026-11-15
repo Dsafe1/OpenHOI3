@@ -15,7 +15,7 @@ public static class CEspionageAi
 		foreach (CCountry country in state.Countries)
 		{
 			country.IntelligenceCountdown = Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Intelligence)
-				? state.AiRandom.Next() % 10 + 1 : 0;
+				? state.AiRandom.Next(country.Tag) % 10 + 1 : 0;
 		}
 	}
 

@@ -57,7 +57,7 @@ public static class CAutomation
 		{
 			return 0;
 		}
-		return countdown > 0 ? countdown : state.AiRandom.Next() % hours + 1;
+		return countdown > 0 ? countdown : state.AiRandom.Next(country.Tag) % hours + 1;
 	}
 
 	/// <summary>The tech minister's two halves for the country: the leadership sliders and the research.</summary>

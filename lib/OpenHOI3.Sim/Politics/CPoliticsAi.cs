@@ -37,7 +37,7 @@ public static class CPoliticsAi
 		foreach (CCountry country in state.Countries)
 		{
 			country.PoliticsCountdown = Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Politics)
-				? state.AiRandom.Next() % 3 + 1 : 0;
+				? state.AiRandom.Next(country.Tag) % 3 + 1 : 0;
 		}
 	}
 

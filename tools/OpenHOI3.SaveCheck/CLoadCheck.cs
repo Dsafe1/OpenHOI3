@@ -205,6 +205,11 @@ public static class CLoadCheck
 		// agents=FILE: every agent's hold list and committed and held-back divisions after the hours, to set beside the running game's.
 		string? agentsFile = args.FirstOrDefault(arg => arg.StartsWith("agents=", StringComparison.Ordinal))?["agents=".Length..];
 		args = args.Where(arg => !arg.StartsWith("agents=", StringComparison.Ordinal)).ToArray();
+		// draws=FOLDER: a run of the original's recorded by the fact base's probes/hoidraws.lua, played back draw for draw in
+		// the series - the game's generator put back as each hour begins and every draw a country's AI makes answered with
+		// the original's for it (docs/replay.md, section 9). It wants a trace, which is what gives the game the Lua.
+		string? drawsFolder = args.FirstOrDefault(arg => arg.StartsWith("draws=", StringComparison.Ordinal))?["draws=".Length..];
+		args = args.Where(arg => !arg.StartsWith("draws=", StringComparison.Ordinal)).ToArray();
 		args = args.Where(arg => !arg.StartsWith("examples=", StringComparison.Ordinal) && !arg.StartsWith("trace=", StringComparison.Ordinal)
 			&& !arg.StartsWith("generator=", StringComparison.Ordinal) && !arg.StartsWith("battles=", StringComparison.Ordinal)
 			&& !arg.StartsWith("watch=", StringComparison.Ordinal)).ToArray();
@@ -425,15 +430,26 @@ public static class CLoadCheck
 		}
 		if (series is not null)
 		{
+			CDrawPlayback? playback = null;
+			if (drawsFolder is not null && scripts is not null)
+			{
+				playback = CDrawPlayback.Load(drawsFolder);
+				playback.Attach(state, scripts);
+			}
 			ClausewitzNode earlier = ClausewitzParser.ParseFile(series[0]);
 			for (int step = 1; step < series.Length; step++)
 			{
 				var before = CAiOrderCheck.Snapshot(state);
 				var holders = state.Provinces.ToDictionary(province => province.Id, province => province.Controller?.Value);
+				playback?.BeginHour(state, state.TotalHours + 1 + OriginalTickOffset);
 				simulation.RunHours(1);
 				simulation.Pump();
 				ClausewitzNode next = ClausewitzParser.ParseFile(series[step]);
 				Console.WriteLine($"hour {step} of the series, {state.Date} {state.Hour}:00:");
+				if (playback is not null)
+				{
+					Console.WriteLine("  " + playback.Summary());
+				}
 				var changes = state.Provinces.Where(province => province.Controller?.Value != holders[province.Id])
 					.Select(province => $"{province.Id}:{holders[province.Id]}>{province.Controller?.Value}").ToList();
 				var theirs = next.Children.Where(node => node.IsBlock && int.TryParse(node.Key, out _))

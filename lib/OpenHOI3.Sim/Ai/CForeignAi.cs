@@ -36,7 +36,7 @@ public static class CForeignAi
 		foreach (CCountry country in state.Countries)
 		{
 			bool played = !Settings.CAutomation.AiRuns(state, country, Settings.EAutomation.Diplomacy);
-			country.ForeignCountdown = played ? 0 : state.AiRandom.Next() % 3 + 1;
+			country.ForeignCountdown = played ? 0 : state.AiRandom.Next(country.Tag) % 3 + 1;
 			country.ForeignMinister.SkipOnce = !played;
 		}
 		// The original's AI, when it starts, tells its ministers of every war already being fought.
@@ -114,7 +114,7 @@ public static class CForeignAi
 		{
 			return null;
 		}
-		CEventScope scope = CEventScope.Start(country.Tag, randomState: (uint)state.AiRandom.Next());
+		CEventScope scope = CEventScope.Start(country.Tag, randomState: (uint)state.AiRandom.Next(country.Tag));
 		foreach (CDecision decision in state.Decisions)
 		{
 			if (decision.Group != EDecisionGroup.Diplomatic
@@ -279,7 +279,7 @@ public static class CForeignAi
 			}
 			if (entry.Decision is { } decision)
 			{
-				CEventScope scope = CEventScope.Start(country.Tag, randomState: (uint)state.AiRandom.Next());
+				CEventScope scope = CEventScope.Start(country.Tag, randomState: (uint)state.AiRandom.Next(country.Tag));
 				if (CConditions.Holds(state, decision.Potential, scope) && CConditions.Holds(state, decision.Allow, scope))
 				{
 					state.Outbox.Add(new CExecuteDecisionCommand(decision.Name, scope.Detached()));

@@ -94,6 +94,32 @@ public sealed class CRandom
 		return sides <= 0 ? 0 : Next() % sides;
 	}
 
+	/// <summary>
+	/// Where a draw made for a country is answered from instead, a value the original drew for it, or null to leave the
+	/// draw this generator's own: a measuring instrument that plays a run of the original's back draw for draw
+	/// (<c>docs/replay.md</c>, section 9). Nothing in a game sets it; the generator moves on by the draw either way.
+	/// </summary>
+	public System.Func<Countries.CCountryTag, string?, int?>? Feed { get; set; }
+
+	/// <summary>The kind of a draw the hourly trading makes, which the original makes inside the hour's pass.</summary>
+	public const string TradeKind = "trade";
+
+	/// <summary>
+	/// The next draw, made for that country: <see cref="Next()"/>, unless <see cref="Feed"/> answers it. A draw made apart
+	/// from the country's pass in the original - its hourly trading's - names its <paramref name="kind"/>.
+	/// </summary>
+	public int Next(Countries.CCountryTag who, string? kind = null)
+	{
+		int own = Next();
+		return Feed?.Invoke(who, kind) ?? own;
+	}
+
+	/// <summary>A draw from 0 to one less than <paramref name="sides"/>, made for that country.</summary>
+	public int Next(int sides, Countries.CCountryTag who, string? kind = null)
+	{
+		return sides <= 0 ? 0 : Next(who, kind) % sides;
+	}
+
 	private void Twist()
 	{
 		for (int i = 0; i < Size; i++)

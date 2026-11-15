@@ -279,10 +279,18 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    out, the original gives two only where a unit there holds an entry on a list of its own, which no unit in the running
    game held - not where it is dug in, as ours had it. So Iraq's 1. Infantry Division is no longer pulled to 5463 at noon
    on 17 July: July 124 alone, nothing else moved.
-   **Open, in order**: the rest of the July list - the 21. Infanterie-Division at hour 29, whose attack on 2275 ours calls
-   off at odds 0.63 once the 6th H Arm Division leaves, which no run does (its battle is over in one run and goes on in
-   the other two, so the odds may be the rolls'); then the Soviet 64., 140. and 182. Strelkovaya around 1809 and the 95.
-   Infanterie-Division at hours 32 to 34.
+   **The home production commit (`2f833e87`) moved the series by the draw again** - Germany's call of Italy came up at its
+   first tick instead of its second, July 143 the same and 118 alone - and so **a run of the original's is now played back
+   draw for draw** (`docs/replay.md`, section 9; section 103): recorded on the running game with the fact base's
+   `probes/hoidraws.lua`, and `OpenHOI3.SaveCheck load ... series=... draws=FOLDER` puts the original's generator back each
+   hour and answers every country's AI draws, on the AI's generator and in `math.random`, with the original's for it.
+   Against that one run: 267 the same, 59 alone, 21 none, 6 other end, where without the draws 186, 128, 27 and 81 -
+   Italy's join gone with the roll. The kit's series against the earlier runs still drifts with every commit; measure
+   against the recorded run with its draws from here.
+   **Open, in order**: (a) ours rolls the hourly trading for every country every hour, about 180 draws, where the original
+   made 4 to 8 - something before its roll returns for most countries, not read (section 103). (b) The July list against
+   the recorded run with its draws: the Soviet Union's 40 alone, 14 none and 6 at another end, Germany's 19 alone and 7 none, and the 21.
+   Infanterie-Division at hour 29 if it is still there.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces

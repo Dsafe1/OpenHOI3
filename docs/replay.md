@@ -180,6 +180,38 @@ strategy lists (the `area_theatre` and `ai` blocks). **Not the Lua's state**: th
 game starts its scripts afresh, and Their Finest Hour's keep nothing between calls - their only assignments at the top of a
 file are three tables of functions (`Utils`, `Support_Trade`, `Support_License`).
 
+## 9. A run of the original's, played back draw for draw
+
+The other way round from the rest of this file: not our game recorded, but **the original's draws put into ours**, so that a
+difference between the two in the series of the original's hourly saves is a rule and not a roll. Built 2026-11-15, when
+Germany's one-in-six call of Italy into its war against Mongolia (`readme.md`, *Next up*, item 5) moved the July 1941
+series by half each time an unrelated commit shifted the scripts' shared `math.random`. It is a measuring instrument of the
+savegame tool and nothing of it is in the game.
+
+**Recording**, on the running original with the fact base's `probes/hoidraws.lua` (`reversing/findings/FINDINGS-liveread.md`,
+section 103), beside the hourly saves `hoiseries.lua` takes: each hour, the game's generator and the AI's dumped as the
+hour's pass begins; every draw on the AI's generator with the index it drew at and its caller; every value Lua's
+`math.random` was given by the C runtime's `rand()`; and each country's AI pass as it begins on a thread. The original runs
+the 102 passes side by side on worker threads in a different order every hour, so a draw is filed under the country whose
+pass runs on its thread; the hourly trading, which runs inside the pass, under the country it trades for.
+
+**Playing back**, `OpenHOI3.SaveCheck load ... series=... draws=FOLDER` (`CDrawPlayback`): as each hour begins the game's
+generator is put where the original's stood (`CRandom.Restore`), and every draw a country's AI makes is answered with the
+original's for that country that hour, in order - on the AI's generator through `CRandom.Feed`, which the AI's draw sites
+reach by naming the country they draw for (`CRandom.Next(who)`, the trading's with its kind), and in the Lua's
+`math.random` through `CAiScripts.RandFeed`, the country being the outermost script call's (`CGameApi.Drawer`). A value of
+the AI's generator is worked out from the hour's dump and the index it drew at, so a draw the probe missed moves no other.
+Where ours draws more than the original did that hour, the draw is ours and counted ("ours beyond"); where less, what is
+left is counted. Each hour of the series says so in one line.
+
+**What it showed first**, the July series against one recorded run: 267 ways the same, 59 ours alone, 21 none and 6 at
+another end, where the same run without the draws gave 186, 128, 27 and 81 (the first recording, its trading unfiled: 252, 62, 27 and 14 against 167, 140, 38 and 88). And that ours rolls the hourly trading for
+every country every hour, about 180 draws, where the original made 4 to 8 - an order of its own for the queue.
+
+**What it does not do**: the trading's states (`CTradeWorkers`) keep their own generators and are not fed; draws made as a
+game is entered, before the first hour, are not recorded; and only one run is followed, so whether the original agrees with
+itself still wants its other runs.
+
 ## Not established
 
 - **What else of the AI writes the game directly** in what the checks so far have not reached; the hash names it the day it

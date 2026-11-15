@@ -232,7 +232,7 @@ public static class CInvasionPlanner
 			}
 			float s = priority.Contains(area) ? 10500f : 500f;
 			long k = System.Math.Max(RoundEven((float)(s / 5.0)), 5);
-			s = (float)(s + (double)(state.AiRandom.Next() % k));
+			s = (float)(s + (double)(state.AiRandom.Next(country.Tag) % k));
 			s = (float)(s - (double)(5 * area.Provinces.Count));
 			if (state.Country(area.Controller) is { } holder && ReferenceEquals(network.AreaOf(holder.ActingCapital), area))
 			{
@@ -435,7 +435,7 @@ public static class CInvasionPlanner
 		{
 			k = 5;
 		}
-		float score = (float)((double)(state.AiRandom.Next() % k) + total);
+		float score = (float)((double)(state.AiRandom.Next(country.Tag) % k) + total);
 		if (capitalArea is not null)
 		{
 			long distance = PortDistance(state, area, capitalArea) / 200;

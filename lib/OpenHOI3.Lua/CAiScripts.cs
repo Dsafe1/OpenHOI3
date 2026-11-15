@@ -39,6 +39,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	private readonly Action<string> _report;
 	private readonly CLuaState _lua = new();
 	private readonly CGameApi _api;
+	private readonly CLuaRandom _random = new();
 	private CGameState? _state;
 	private int _failures;
 	private CTradeWorkers? _workers;
@@ -56,7 +57,8 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		_lua.OpenLibraries("base", "package", "table", "io", "os", "string", "math", "debug");
 		// Every state draws math.random on a generator of its own, seeded 1 as a new thread's is - the tech and
 		// production scripts' picks among them (ministers.md, Ours).
-		new CLuaRandom().Install(_lua);
+		_random.Install(_lua);
+		_random.Feed = () => RandFeed is { } feed && _api.Drawer is { } drawer ? feed(drawer) : null;
 		foreach (CLuaClass luaClass in _api.Classes)
 		{
 			_lua.DefineClass(luaClass);
@@ -72,6 +74,32 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	/// <summary>The state, for a check or a test that asks it something directly.</summary>
 	public CLuaState Lua => _lua;
 
+	/// <summary>
+	/// Where this state's <c>math.random</c> is answered from instead, for the country whose AI the running script works
+	/// for: a value the original's <c>rand()</c> gave that country's pass, or null to leave the draw the state's own. The
+	/// measuring instrument of <c>docs/replay.md</c>, section 9; nothing in a game sets it.
+	/// </summary>
+	public Func<CCountryTag, int?>? RandFeed { get; set; }
+
+	/// <summary>
+	/// The country a call works for, made the drawer of the draws inside it where no outer call has made one, and put back
+	/// as it was when the call ends.
+	/// </summary>
+	private readonly struct DrawerScope : IDisposable
+	{
+		private readonly CGameApi _api;
+		private readonly CCountryTag? _outer;
+
+		public DrawerScope(CGameApi api, CCountryTag tag)
+		{
+			_api = api;
+			_outer = api.Drawer;
+			api.Drawer ??= tag;
+		}
+
+		public void Dispose() => _api.Drawer = _outer;
+	}
+
 	/// <summary>How many calls failed and were reported.</summary>
 	public int Failures => _failures;
 
@@ -81,6 +109,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public int? NonHistoricalRelation(CGameState state, CCountry country, CCountry other)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		try
 		{
 			object? value = _lua.Call("AI_GenerateNonHistoricalRelation", 1, _api.Of(country), _api.Tag(other.Tag))[0];
@@ -109,6 +138,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 			return YesScore;
 		}
 		_state = state;
+		using DrawerScope drawing = new(_api, recipient.Tag);
 		try
 		{
 			// The AI handed over is the recipient's, which every country has.
@@ -140,6 +170,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		}
 		CGameState? asked = _state;
 		_state = state;
+		using DrawerScope drawing = new(_api, recipient.Tag);
 		try
 		{
 			var action = new CLuaTradeAction(offer.Actor, offer.Recipient, offer.Date)
@@ -185,6 +216,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		}
 		CGameState? asked = _state;
 		_state = state;
+		using DrawerScope drawing = new(_api, recipient.Tag);
 		try
 		{
 			object? value = _lua.Call("DiploScore_LicenceTechnology", 1, new CLuaObject(_api.Ai, new CLuaAi(recipient)),
@@ -210,6 +242,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public void RunTrade(CGameState state, CCountry country, bool propose)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		string function = propose ? "ProposeTrades" : "EvalutateExistingTrades";
 		try
 		{
@@ -228,6 +261,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public void RunLaws(CGameState state, CCountry country)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		try
 		{
 			_lua.Call("Laws", 0, _api.Of(country));
@@ -242,6 +276,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public void RunPolitics(CGameState state, CCountry country)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		try
 		{
 			_lua.Call("PoliticsMinister_Tick", 0, new CLuaObject(_api.PoliticsMinister, new CLuaAi(country)));
@@ -256,6 +291,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public void RunIntelligence(CGameState state, CCountry country)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		try
 		{
 			_lua.Call("IntelligenceMinister_Tick", 0, new CLuaObject(_api.IntelligenceMinister, new CLuaAi(country)));
@@ -270,6 +306,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public void RunForeign(CGameState state, CCountry country)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		try
 		{
 			_lua.Call("ForeignMinister_Tick", 0, new CLuaObject(_api.ForeignMinister, new CLuaAi(country)));
@@ -289,6 +326,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		Sim.Script.CEventScope scope, out string? error)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		error = null;
 		try
 		{
@@ -316,6 +354,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	{
 		CGameState? asked = _state;
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		try
 		{
 			_lua.Call("ForeignMinister_OnWar", 0, new CLuaObject(_api.ForeignMinister, new CLuaAi(country)),
@@ -338,6 +377,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public void RunTech(CGameState state, CCountry country, bool sliders = true, bool research = true)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		try
 		{
 			_lua.Call("TechMinister_Tick", 0, new CLuaObject(_api.TechMinister, new CLuaAi(country)), sliders, research);
@@ -352,6 +392,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public void RunProduction(CGameState state, CCountry country)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		try
 		{
 			_lua.Call("ProductionMinister_Tick", 0, new CLuaObject(_api.ProductionMinister, new CLuaAi(country)));
@@ -371,6 +412,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public bool BalanceProductionSliders(CGameState state, CCountry country, int level = 0, double lendLease = 0)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		float ic = country.TotalIc;
 		object Need(EProductionCategory category)
 		{
@@ -399,6 +441,7 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 	public void BalanceLendLeaseSliders(CGameState state, CCountry country)
 	{
 		_state = state;
+		using DrawerScope drawing = new(_api, country.Tag);
 		var tags = new List<object?>();
 		var values = new List<object?>();
 		foreach (Sim.Aid.CLendLeaseGift gift in country.LendLeaseGiving)
