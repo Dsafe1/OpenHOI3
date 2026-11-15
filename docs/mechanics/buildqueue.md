@@ -311,6 +311,15 @@ a belt of bad roads may not. *Ours:* a country that does not hold its own capita
 nowhere. A fleet or an air unit placed takes the province as its base. A unit
 placed answers to nothing above it.
 
+**A unit placed starts at no organisation**: every brigade, ship or wing of it goes to nought as
+it is put on the map, joining a unit or not, and climbs back by the hour from there - the waiting
+unit's own figure is thrown away. The original sets each to its most instead where a byte of its
+custom-game settings is set (`CUnitDeployment::DeployAt`), which nothing here can set, there being
+no custom games. `confirmed` on the listing and the running game: Germany's 214.
+Infanterie-Division, waiting at 50 in the July 1941 save, is at nought at 10:00 when the AI places
+it and 0.186 an hour later, in every run - and so is held back at noon, where ours, placing it at
+50, had committed it and sent it to 1306 (`reversing/findings/FINDINGS-liveread.md`, section 99).
+
 **Or it joins a unit already in the field**, by the same command given that unit as its
 target. `confirmed`, from `reversing/findings/FINDINGS-deploymenu.md`:
 

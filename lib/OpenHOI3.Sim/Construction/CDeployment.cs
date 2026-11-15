@@ -64,6 +64,12 @@ public static class CDeployment
 		country.Deployments.Remove(unit);
 		unit.DeploymentId = 0;
 		unit.Location = provinceId;
+		// Put on the map, every brigade starts at no organisation - the original's, where its custom-game setting for
+		// placing at full organisation is off, which it always is here (buildqueue.md, section 7).
+		foreach (CSubUnit brigade in unit.SubUnits)
+		{
+			brigade.Organisation = CFixedPoint.Zero;
+		}
 		if (unit.Kind == EUnitKind.Navy || unit.Kind == EUnitKind.Air)
 		{
 			unit.Base = provinceId;

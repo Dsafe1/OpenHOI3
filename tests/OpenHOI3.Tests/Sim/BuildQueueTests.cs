@@ -692,6 +692,10 @@ public class BuildQueueTests
 		Assert.False(CDeployment.MayPlace(state, country, division, Baltic));
 		Assert.False(CDeployment.MayPlace(state, country, division, 0));
 
+		foreach (CSubUnit brigade in fleet.SubUnits.Concat(division.SubUnits))
+		{
+			brigade.Organisation = new CFixedPoint(50_000);
+		}
 		var simulation = new CSimulation(state);
 		simulation.Post(new CDeployUnitCommand(Ger, fleet.Id, Kiel));
 		simulation.Post(new CDeployUnitCommand(Ger, division.Id, Lodz));           // refused
@@ -701,6 +705,9 @@ public class BuildQueueTests
 		Assert.Same(fleet, Assert.Single(country.Units));
 		Assert.Equal(Kiel, fleet.Location);
 		Assert.Equal(Kiel, fleet.Base);
+		// Put on the map, it starts at no organisation; the one still waiting keeps its own.
+		Assert.All(fleet.SubUnits, ship => Assert.Equal(CFixedPoint.Zero, ship.Organisation));
+		Assert.All(division.SubUnits, brigade => Assert.Equal(new CFixedPoint(50_000), brigade.Organisation));
 	}
 
 	private static CUnit InTheField(CGameState state, CCountry country, EUnitKind kind, int province, params CSubUnitType[] types)
