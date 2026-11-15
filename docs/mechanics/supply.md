@@ -490,6 +490,47 @@ its own garrison's fifteen days, and goes inward a province a day. **Measured:**
 capital, which draws on Japan's Hamhung, holds 7.8 supplies two days in, where a stockpile
 starts with ninety days of what all its units use.
 
+### 12.1 A narrow road in a long war: the stockpile parked in the provinces
+
+`confirmed` off the bytes (the second step's share is taken off what is wanted with its sign,
+`reversing/findings/FINDINGS-supplypass.md`, section 3), and **measured** in the original's own
+saves. Two of the rules above together **empty a stockpile into its provinces** once the demand
+behind a road is more than the road can pass:
+
+- **a province asked for more than it can pass throws the difference back** on each asker, once
+  for itself and once more for every nearer province after it, the share staying cut - and the
+  asker asks all of that again, one nearer province after another, up to all each can pass. So
+  demand grows on its way in, and the provinces beside a capital, which pass without limit, take
+  it all;
+- **each province keeps what was asked of it**, and sends inward only what it holds beyond that
+  and its own fifteen days. So every province on the way in keeps the swollen demand behind it
+  as goods.
+
+Nothing is lost - the stockpile and the provinces together hold what they did, less what the
+units eat - but it lies in the provinces nearest the capital, and **the stockpile, which the
+units in the capital, a friend's payments, trade and a new unit's days are paid out of, runs
+dry**. It goes up and down by thousands from one day to the next as the throwing back comes
+and goes. A test sets it out on six provinces: 30.20 asked where 22.10 is wanted.
+
+**Measured, in the original's own game** - the maintainer's Ireland game from 1936: Japan's
+provinces held 6,026 supplies in July 1937, 27,713 that December, 65,844 in September 1939 and
+**112,729 in May 1940, with 527 in its stockpile**, one province 60,414; in September 1939 forty
+of Japan's provinces were asked for up to eight times what they can pass. Britain's network at
+the 1941.6.22 bookmark's save has 97 such provinces. Germany's has none in any save of that game
+and holds over 30,000 throughout: its road east was wide enough for what was asked of it.
+
+**Here**, as a look (`OpenHOI3.SaveCheck supplyledger`, which tells a country's stockpile, its
+provinces' supplies and the day's ledgers each midnight): at the 1941.12.11 bookmark Germany's
+eastern armies stand 30 to 39 provinces out, behind occupied Polish provinces that pass 473 a
+day; within two days they are asked for more, and **Germany's stockpile goes from 29,674 to
+1,996 by 31 December while its provinces go from 29,571 to 66,676**, Berlin asked for up to
+8,887 in a day. Loaded from the original's own save of that bookmark the game does the same,
+from 26 December. At the 1939.9.1 and 1941.6.22 bookmarks Germany holds - 27,867 on 10 October
+1939, 25,048 on 21 July 1941 - and Japan empties as the original's did: 9,076 to 3,698 by 10
+October 1939 and 11,742 to 53 by 21 July 1941. **Whether the original's own Germany does so
+from the 1941.12.11 bookmark was not seen**: only its first hour is saved. It is the original's
+rule and is kept (`docs/enhanced.md`, *Economy and production*).
+
 ## 13. What a unit draws
 
 `confirmed`. Once a day, after its men are rotated (`upkeep.md`, section 3).

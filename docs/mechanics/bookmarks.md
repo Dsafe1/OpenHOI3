@@ -234,8 +234,12 @@ On 2026-11-15 each of the three bookmarks ran four months with nobody playing - 
 script key met that is not built. Poland falls in a month, as the original's does; the war in the east moves, slowly;
 Japan's December war moves on China and the Philippines but hardly on the Indies; at 1941.6.22 the United States is in the
 war within days, by Britain's invitation and the original's script on the save's neutrality. Germany's supplies fall from
-some 29,600 to 2,000 within three weeks of 1941.12.11, all of it in the daily carrying of supplies - not looked into
-(`headless.md`, section 5). A day takes about 3 s at the 1941 starts, against 1.1 s at 1936.
+some 29,600 to 2,000 within three weeks of 1941.12.11 - **parked, not lost**: the provinces rise from 29,571 to 66,676 as
+the original's throw-back of demand swells what a narrow road east is asked for and the provinces beside Berlin keep it
+(`supply.md`, section 12.1; `docs/enhanced.md`). A game loaded from the original's own start save does the same, and the
+original's Japan emptied so in the Ireland game (527 left in its stockpile in May 1940, 112,729 in its provinces); whether
+the original's Germany empties from this bookmark is not seen, its first hour alone being saved. A day takes about 3 s at
+the 1941 starts, against 1.1 s at 1936.
 
 ## 6. Not established
 

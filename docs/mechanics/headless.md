@@ -306,7 +306,12 @@ What the runs did, as a look and not a check - nothing is tuned to it, and the s
   284 - Italy's energy by April (80 of 115), and the Soviet Union's stockpile is all but empty by 1 February.
 - **Germany's supplies** fall from 29,621 to 2,009 by 1 January 1942 at the third bookmark, and swing by up to 8,000 in a
   day, all of it inside the day's supply pass - carried out to the provinces and back. The original's Germany keeps
-  over 30,000 throughout the Ireland game's war, which is not the same game. Not looked into.
+  over 30,000 throughout the Ireland game's war, which is not the same game. **Looked into on 2026-11-15**: nothing is
+  lost - Germany's provinces go from 29,571 to 66,676 as its stockpile empties - and it is the original's own rule, a
+  province asked for more than it can pass throwing the difference back on the asker, which swells the demand on its
+  way in to Berlin while every province keeps what it was asked; the original's own Japan had 112,729 in its provinces
+  and 527 in its stockpile in May 1940. Loaded from the original's save of the bookmark it does the same; at 1939.9.1
+  and 1941.6.22 Germany holds and Japan empties (`supply.md`, section 12.1; `enhanced.md`).
 - **Speed**: a day takes 1.1 s at 1936 and 1.2 s at 1939, about 3 s at either 1941 bookmark, with every unit at war;
   the unit agents' sea targets are the largest step (`profile <install> 2 IRE from=1941.12.11`).
 

@@ -204,6 +204,53 @@ public class SupplyPassTests
 		Assert.Equal(CFixedPoint.FromInt(5), Supplies(state, berlin));
 	}
 
+	[Fact]
+	public void A_province_asked_for_more_than_it_can_pass_throws_the_difference_back_and_what_is_asked_is_kept()
+	{
+		// Berlin, the province beside it, and two beyond that: a road of one level, which passes 8 a day, and one of
+		// two, which passes 32 - both a step of 3 (section 6), so equally far. Two provinces further out take from both,
+		// the road first; the road and the other hold 100 to begin.
+		int berlin = Land(Ger, industry: 5);
+		int beside = Land(Ger);
+		int road = Land(Ger);
+		int wide = Land(Ger);
+		int first = Land(Ger);
+		int second = Land(Ger);
+		Join(berlin, beside, road, first);
+		Join(beside, wide, first);
+		Join(road, second);
+		Join(wide, second);
+		CCountry germany = Country(Ger, berlin);
+		// Which of the two the pass comes to first is the original's sort's (section 11); the first is given ten
+		// divisions and the second one.
+		_provinces[road].Modifier.Set(CSupplyFigures.Infrastructure, CFixedPoint.Parse("0.1"));
+		_provinces[wide].Modifier.Set(CSupplyFigures.Infrastructure, CFixedPoint.Parse("0.2"));
+		int[] order = CSupplyOrder.FarthestFirst(CSupplyNetworks.Build(State()));
+		(int many, int one) = System.Array.IndexOf(order, first) < System.Array.IndexOf(order, second) ? (first, second) : (second, first);
+		for (int i = 0; i < 10; i++)
+		{
+			Division(germany, many);
+		}
+		Division(germany, one);
+		CGameState state = State();
+		state.Province(road).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+		state.Province(wide).Pool[EGoods.Supplies] = CFixedPoint.FromInt(100);
+
+		CSupplyPass.RunDaily(state);
+
+		// The first asks 20.05 - two days of ten, and the loss - in equal shares, each cut to the road's 8 and the cut
+		// kept, and the rest of the road: 12.05 of it and 8 of the wide one. The second wants 2.05, but the road is
+		// already asked 4.05 over what it can pass, and that is thrown back on the second, twice - once for the road and
+		// once more for the wide one, the share staying cut - so it asks 10.15: 8 more of the road and 2.15 of the wide
+		// one. 30.20 is asked where 22.10 is wanted (reversing/findings/FINDINGS-supplypass.md, section 3, sweep 2).
+		Assert.Equal(CFixedPoint.Parse("20.05"), state.Province(road).SupplyDrawn[EGoods.Supplies]);
+		Assert.Equal(CFixedPoint.Parse("10.15"), state.Province(wide).SupplyDrawn[EGoods.Supplies]);
+		// And each keeps what it was asked and sends only the rest inward, so what is thrown back stays out on the road.
+		Assert.Equal(CFixedPoint.Parse("20.05"), Supplies(state, road));
+		Assert.Equal(CFixedPoint.Parse("10.15"), Supplies(state, wide));
+		Assert.Equal(CFixedPoint.Parse("169.8"), Supplies(state, beside));
+	}
+
 	// --- what a unit draws ---
 
 	[Fact]

@@ -177,6 +177,9 @@ public static class CSupplyPass
 				{
 					Add(asked, EGoods.Fuel, shareOfFuel);
 				}
+				// Whatever its sign: a share made negative by a province already asked for more than it can pass makes
+				// what is wanted grow, and that is asked of the rest in the next step - which, in a long war behind a
+				// narrow road, parks the stockpile in the provinces (supply.md, section 12.1).
 				wantedFuel -= shareOfFuel;
 				wantedSupplies -= shareOfSupplies;
 			}

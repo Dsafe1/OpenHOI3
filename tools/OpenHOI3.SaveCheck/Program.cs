@@ -308,6 +308,12 @@ if (args.Length > 0 && args[0] == "headless")
 	return CHeadlessTrial.Run(args);
 }
 
+// Where a country's supplies and fuel go, day by day.
+if (args.Length > 0 && args[0] == "supplyledger")
+{
+	return CSupplyLedgerTrial.Run(args);
+}
+
 // Whether a game plays back from a recording of its AI, and how much faster (docs/replay.md).
 if (args.Length > 0 && args[0] == "replaycheck")
 {
