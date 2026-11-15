@@ -251,6 +251,20 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    agent; an area's enemy strength is brigades in thirds weighed against our friends' (`CAreaEnemies`, also an
    enemy-held area's need), where ours counted units, headquarters too; and the ranking's score is the original's in
    single precision, with its 30 for a resource and its twenties. July 219 the same, 1 missed, 53 alone.
+   **A halted division still answers its order's province** (section 101; `moving.md`, section 10): the AI's halt posts
+   its "no order" as a command, so until it runs the original's destination reader answers the old order's province -
+   the Soviet 99. Strelkovaya Diviziya, halted at 144 at 06:00 on 17 July on its way to 1589, is seen bound for no
+   position and pulled to 619, as in all three runs. The 78. and 117. Strelkovaya Diviziya at 10:00, next on the list,
+   follow from 06:00, where the original's own runs part over the 176. Strelkovaya's way (1395, 2636 or 2390); no rule of
+   ours was found wrong there.
+   **Open, in order**: (a) **the later-starts commit (`11cd4cf7`) moved the July series** from 219 the same and 53 alone
+   to 189 and 104, alone of the commits since - Italy's Cdo. Sup. Metropolitana counts its frontier at war at 17:00 on 17
+   July, its 17 positions along the Soviet front, and sends its reserves east, which neither run does; before that
+   commit it ran with no line. The war's start, entering and 4 January are unmoved by it. Since the 99.'s fix: July 190
+   the same, 25 other end, 109 alone; the war's start 109, 12 missed, 45 alone. (b) The destination reader's answer for
+   a unit under a support attack - nowhere - is not built (`moving.md`, *Ours*). (c) The rest of the July list: the
+   Iraqi 1. Infantry Division, the 1. Gebirgsjäger-Division and the 21. Infanterie-Division at hour 29, then the Soviet
+   64., 140. and 182. Strelkovaya around 1809 and the 95. Infanterie-Division at hours 32 to 34.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
