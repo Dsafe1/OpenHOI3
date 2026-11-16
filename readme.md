@@ -298,10 +298,12 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    a fellow fighter's port counting only where an own port reaches it (`moving.md`, sections 14 and 16). **The war's
    start is recorded too** (`wz`): with its draws, 128 the same, 10 alone, 6 none, before and after; without them the
    patrol's change had moved it by a roll.
-   **Open, in order**: (a) what ours still draws beyond the original - the ranking's staging step a draw a day for Italy,
-   Britain, South Africa and Canada, a few answers to offers, some of Japan's Lua. (b) The July list against the third
-   recording with its draws: 242 the same, 63 alone, 34 none, 19 other end - the Soviet Union's 35 alone and 15 none,
-   Germany's 27 alone and 19 none.
+   **The ranking's staging step was right**: the original draws it inline, past the recorder, which now logs that one too
+   (section 105); a July recording with it (`wr4`) has every draw of the AI's generator, and ours's staging draws match.
+   **Open, in order**: (a) what ours still draws beyond the original - a few answers to offers, the Soviet Union's raid,
+   some Lua - and what the original's Lua drew that ours did not: `math.random` for Cuba, Bulgaria, Yugoslavia, Finland
+   and others. (b) The July list against `wr4` with its draws: 233 the same, 74 alone, 43 none, 24 other end - the Soviet
+   Union's 43 alone, 22 none and 18 other end, Germany's 31 alone and 21 none.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
