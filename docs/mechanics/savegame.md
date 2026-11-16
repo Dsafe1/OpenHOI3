@@ -46,11 +46,19 @@ As the original's [exe], but where *Ours* says otherwise:
    (`docs/compatibility.md`, entry 15). The generator is then moved on by the save's `count`, so a game saved here goes on with the draws it would have made.
    **The AI's own generator is not saved**, as in the original: a load seeds it from the save's `seed` at its first draw,
    so the AI's rolls after a load are not the saved game's, and a save loaded twice still plays the same (`enhanced.md`).
+   The original seeds it once, as its game state is made at start-up, with the whole seconds its process has run, and no
+   save holds the `ai_seed` its loader would read [exe, `reversing/findings/FINDINGS-liveread.md`, section 106] - so its
+   draws after a load hang on how long the player took to load; **ours** seeds it from the save's `seed`, which a load
+   cannot change.
 5. **What the original works out again**, before the first hour: the provinces' and countries' modifiers, the strategic
    resources, IC, manpower, leadership, every country's effective neutrality, every country brought up to date with its
    wars - each pair at war stamping `last_war` the hour loaded, so a peace in the next hundred days leaves a truce
    (`war.md`, section 4; built 2026-11-12, found by `OpenHOI3.SaveCheck reload`) - and **a fresh AI for every country** - the
-   ministers' first hours; the strategy a save gave is kept until its ten days are up, and one never made is made
+   ministers' first hours, made as the original's load makes them: its list's placeholder country's five ministers first,
+   then each country's foreign, production, intelligence, technology and politics minister in turn, one draw each on the
+   AI's generator, the intelligence minister's of ten hours and the rest of three, a played country's only for an area
+   handed over, and every foreign minister's first work skipped [exe, measured on the running game: all 505 of the load's
+   draws of July 1941 in that order, `reversing/findings/FINDINGS-liveread.md`, section 106] (`CAutomation.MakeMinistersOfLoad`); the strategy a save gave is kept until its ten days are up, and one never made is made
    (section 16). With the
    units (section 5): each unit's leader put on, each brigade's figures made from its type and its levels, the queue's
    cost, the officer ratio, and what an intercept watches. Every province's season and night for the saved hour
@@ -71,6 +79,15 @@ at the save's hour, before its first hour** [exe, counted in the running game, 2
 is there when the first begins, each agent ticks in both and runs its land block once - **in the second**: the agents tick in the first with no
 unit, that pass binds them, and they tick bound with their full pass pending in the second, whatever the hour (read live 2026-11-11, `reversing/findings/FINDINGS-liveread.md`,
 section 39). Here the agents are made unbound first (`CUnitAiPass.MakeAgentsOfLoad`), a pass runs and its orders are carried out, and a second pass the same (`CSimulation`). So a save the original writes straight after entering already holds those orders.
+**Each of the two is a country's whole AI pass**, its ministers with its agents [exe, `reversing/findings/FINDINGS-liveread.md`, section 106]:
+the first runs on the main thread, every country in the list's order, the second on the worker threads, and in both every minister counts
+down and a foreign minister's skip is spent where it reaches its first work - so a minister drawn one or two hours at the load first works in the
+first or second hour played, not the second or third - and one whose hour of the day is the save's works in entering: at 07:00 on
+16 July 1941 Holland's foreign minister took its decisions and Greece's politics minister drew four through the Lua, in the second pass. Here
+both passes are the hour's AI pass entire - the offers answered, the five ministers, the placing of finished units, the agents
+(`CTick.RunLoadAiPass`), outside the replay's steps, a recording taking the AI's place from the first hour. Played back against two recorded
+runs it takes every first-day difference of a foreign minister's away - Tanganyika's in July 1941, Nepal's, Switzerland's, New Zealand's,
+Canada's and Italy's at the war's start.
 Where the original makes the agents was not read. **Each theatre is refreshed as it enters** - the provinces its country holds that no theatre of its has placed, those it lost dropped, and its fronts made again: a save written straight after has the fronts in another order, and the positions of one score follow that order, and China's Beiping theatre of July 1941 grows from 124 provinces to 134, the one its headquarters stands in among them - its agents' and headquarters' upkeep left out (`CTheatreRefresh.FrontsOfLoad`; `reversing/findings/FINDINGS-liveread.md`, sections 18 and 44; which routine does it was not read). So a theatre headquarters is picked its own province by the theatre's chooser, and does not march.
 
 ## 3. How a save writes its values

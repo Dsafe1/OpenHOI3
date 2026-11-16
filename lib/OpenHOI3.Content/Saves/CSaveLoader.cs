@@ -728,15 +728,9 @@ public static class CSaveLoader
 		}
 		// Every province's season and night for the saved hour, as entering a loaded game makes them (weather.md, section 4).
 		Sim.Weather.CWeatherPass.AtLoad(state);
-		// A fresh AI for every country, as the original makes one: the ministers' first hours.
-		foreach (CCountry country in state.Countries)
-		{
-			country.PoliticsCountdown = Sim.Settings.CAutomation.AiRuns(state, country, Sim.Settings.EAutomation.Politics)
-				? state.AiRandom.Next() % 3 + 1 : 0;
-		}
-		Sim.Espionage.CEspionageAi.SetUpAtStart(state);
-		CForeignAi.SetUpAtStart(state);
-		Sim.Research.CResearchAi.SetUpAtStart(state);
+		// A fresh AI for every country, as the original makes one: the ministers' first hours, in its order.
+		Sim.Settings.CAutomation.MakeMinistersOfLoad(state);
+		CForeignAi.TellOfWars(state);
 		// The strategy the save gave is kept until the game is entered, which makes every one again; one never made is
 		// made now (savegame.md, section 16).
 		long madeHour = (long)state.StartDate.DayNumber * CGameState.HoursPerDay;

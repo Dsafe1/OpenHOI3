@@ -51,6 +51,33 @@ public static class CAutomation
 		}
 	}
 
+	/// <summary>
+	/// Every country's ministers made afresh as a saved game is loaded, as the original's load makes them: the list's
+	/// placeholder country first, whose five draw too, then each country in the list's order, its foreign, production,
+	/// intelligence, technology and politics minister in turn, each a draw on the AI's generator - a played country's only
+	/// for the areas handed over - and a foreign minister's first work skipped. See <c>docs/mechanics/savegame.md</c>,
+	/// section 2; <c>reversing/findings/FINDINGS-liveread.md</c>, section 106.
+	/// </summary>
+	public static void MakeMinistersOfLoad(CGameState state)
+	{
+		for (int i = 0; i < PlaceholderMinisters; i++)
+		{
+			state.AiRandom.Next();
+		}
+		foreach (CCountry country in state.Countries)
+		{
+			country.ForeignCountdown = Made(state, country, EAutomation.Diplomacy, 0, 3);
+			country.ForeignMinister.SkipOnce = country.ForeignCountdown > 0;
+			country.ProductionCountdown = Made(state, country, EAutomation.Production, 0, 3);
+			country.IntelligenceCountdown = Made(state, country, EAutomation.Intelligence, 0, 10);
+			country.TechCountdown = Made(state, country, EAutomation.Technology, 0, 3);
+			country.PoliticsCountdown = Made(state, country, EAutomation.Politics, 0, 3);
+		}
+	}
+
+	/// <summary>The ministers of the original's placeholder country, which comes before every other in its list.</summary>
+	private const int PlaceholderMinisters = 5;
+
 	private static int Made(CGameState state, CCountry country, EAutomation area, int countdown, int hours)
 	{
 		if (!AiRuns(state, country, area))

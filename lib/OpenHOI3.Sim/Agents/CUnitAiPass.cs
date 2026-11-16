@@ -70,14 +70,16 @@ public static class CUnitAiPass
 		}
 	}
 
-	/// <summary>A loaded game's second pass before its first hour: the running original makes two, at the one hour.</summary>
-	public static void RunSecondOfLoad(CGameState state)
+	/// <summary>
+	/// Every country's pass forgotten, for a loaded game's second pass before its first hour: the running original makes
+	/// two, at the one hour (<c>CTick.RunSecondOfLoad</c>).
+	/// </summary>
+	public static void ForgetLastPass(CGameState state)
 	{
 		foreach (CCountry country in state.Countries)
 		{
 			country.UnitAi.LastPassHour = -1;
 		}
-		RunHourly(state);
 	}
 
 	private static void Run(CGameState state, CCountry country, int hour)

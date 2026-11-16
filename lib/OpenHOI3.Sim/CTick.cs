@@ -321,7 +321,38 @@ public static class CTick
 				Ai.CAiStrategies.Make(state, country);
 			}
 			Agents.CUnitAiPass.MakeAgentsOfLoad(state);
+			RunLoadAiPass(state);
+			return;
 		}
+		Agents.CUnitAiPass.RunHourly(state);
+	}
+
+	/// <summary>
+	/// A loaded game's second AI pass before its first hour, at the save's hour as the first: the running original makes
+	/// two (<c>docs/mechanics/savegame.md</c>, section 2).
+	/// </summary>
+	public static void RunSecondOfLoad(CGameState state)
+	{
+		Agents.CUnitAiPass.ForgetLastPass(state);
+		RunLoadAiPass(state);
+	}
+
+	/// <summary>
+	/// One of a loaded game's two AI passes before its first hour: the whole of the hour's AI pass, each country's offers
+	/// answered, its ministers counting down and working where the save's hour is theirs, its finished units placed and its
+	/// agents, as the original's pass is the whole of a country's AI (savegame.md, section 2; FINDINGS-liveread.md,
+	/// section 106). Run outside the replay's steps: a recording takes the AI's place from the first hour, entering running
+	/// again as it ran.
+	/// </summary>
+	private static void RunLoadAiPass(CGameState state)
+	{
+		Agreements.CPactPasses.AnswerOffers(state);
+		Politics.CPoliticsAi.RunHourly(state);
+		Espionage.CEspionageAi.RunHourly(state);
+		Ai.CForeignAi.RunHourly(state);
+		Economy.CProductionAi.RunHourly(state);
+		Research.CResearchAi.RunHourly(state);
+		Construction.CAiDeployment.RunHourly(state);
 		Agents.CUnitAiPass.RunHourly(state);
 	}
 

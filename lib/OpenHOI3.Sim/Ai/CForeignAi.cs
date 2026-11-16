@@ -39,7 +39,12 @@ public static class CForeignAi
 			country.ForeignCountdown = played ? 0 : state.AiRandom.Next(country.Tag) % 3 + 1;
 			country.ForeignMinister.SkipOnce = !played;
 		}
-		// The original's AI, when it starts, tells its ministers of every war already being fought.
+		TellOfWars(state);
+	}
+
+	/// <summary>The original's AI, when it starts, tells its ministers of every war already being fought.</summary>
+	public static void TellOfWars(CGameState state)
+	{
 		foreach (CWar war in state.Wars)
 		{
 			foreach (CCountryTag attacker in war.Attackers)

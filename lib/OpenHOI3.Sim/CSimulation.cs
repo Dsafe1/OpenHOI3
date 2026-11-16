@@ -38,7 +38,7 @@ public sealed class CSimulation
 		// A loaded game runs a second AI pass before its first hour, and that one's orders run as well.
 		if (state.LoadedFromSave)
 		{
-			Agents.CUnitAiPass.RunSecondOfLoad(state);
+			CTick.RunSecondOfLoad(state);
 			if (discardEntryOrders)
 			{
 				state.Outbox.Clear();
