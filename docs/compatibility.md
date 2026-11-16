@@ -467,7 +467,7 @@ section 3.
 functions as `OpenHOI3.BiceLib` was taken back off main: compatibility patches for a DLL made for another binary are not
 for the normal engine, which is finished first, with BlackICE testing the original's own modding API; BiceLib's patches and
 mechanics, and an API for mod-defined native interface elements, belong to the enhanced engine (`docs/enhanced.md`, *Asked
-for by the maintainer*; the attempt is parked on the branch `enhanced-bicelib`). The one fix BlackICE cannot play without is
+for by the maintainer*; the attempt was discarded, and the enhanced engine starts afresh). The one fix BlackICE cannot play without is
 made for every game: entry 29. BlackICE's `bicelib_lua.lua` passes over the DLL where the global `OpenHOI3` is set.
 
 | | |
@@ -536,7 +536,7 @@ but for this one fix, which the normal engine keeps for every game - "Keep the f
 | the difference today | none in Their Finest Hour, which has one infrastructure building; BlackICE's areas as with its DLL |
 | a mod loses | a second infrastructure building's figure standing in for the first's, which no mod is known to want |
 | why | so that BlackICE plays without its DLL, the normal engine giving none of BiceLib (`docs/enhanced.md`, *Asked for by the maintainer*) |
-| to undo | store the last building written's figure, as the parked branch `enhanced-bicelib` does behind BiceLib's switch |
+| to undo | store the last building written's figure in `CSupplyFigures.MostInfrastructure` |
 
 ## Stricter, with the same meaning
 
