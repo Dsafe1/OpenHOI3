@@ -297,6 +297,10 @@ public static class CTick
 		if (state.LoadedFromSave)
 		{
 			CProduction.RunNeedsAtLoad(state);
+			// And the manpower each country has to spare, the one set-up a loaded game's entering gives every country, which
+			// the production script's first day asks for (reversing/findings/FINDINGS-savegame.md, A.5;
+			// FINDINGS-liveread.md, section 108). A save holds none of it.
+			Economy.CSpareManpower.UpdateDaily(state);
 		}
 		COfficers.Update(state);
 		// Every battle's sides given the hour's circumstances again, whatever its kind, attacker first, as the original's

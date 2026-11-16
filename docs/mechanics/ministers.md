@@ -217,6 +217,9 @@ constructions C.7, its provinces and buildings D.1. The ones a reimplementation 
   whole queue; `GetICPart(category)` the share times **all** the IC, whatever it was paid.
 - `HasExtraManpowerLeft()`: the spare manpower, made each day - manpower, plus half a year's, less a quarter of build
   manpower for every brigade on the map on top of what it lacks, less each reserve line's men once (C.5) - above nought.
+  **And as a saved game is entered**, which no save holds (`savegame.md`, section 2): until 2026-11-16 a loaded game's
+  first day read nought, so Yugoslavia's minister in July 1941, with 2.768 to spare, built buildings and not units
+  (`reversing/findings/FINDINGS-liveread.md`, section 108).
 - `CountMaxUnitsStillBuildable(type)`: 1,000,000 for a type with no `minimum_of_type` or `max_percentage_of_type`.
 - `GetNumOfPorts()`: the ports **in the acting capital's area** only.
 - `CProvinceBuilding:GetMax()`, `HasBuilding()`: the level built, not the level working.

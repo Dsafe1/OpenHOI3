@@ -51,7 +51,9 @@ As the original's [exe], but where *Ours* says otherwise:
    draws after a load hang on how long the player took to load; **ours** seeds it from the save's `seed`, which a load
    cannot change.
 5. **What the original works out again**, before the first hour: the provinces' and countries' modifiers, the strategic
-   resources, IC, manpower, leadership, every country's effective neutrality, every country brought up to date with its
+   resources, IC, manpower, leadership, the manpower each country has to spare once its brigades are refilled - which the
+   production script's first day asks, built since 2026-11-16 (`ministers.md`, section 7) - every country's effective
+   neutrality, every country brought up to date with its
    wars - each pair at war stamping `last_war` the hour loaded, so a peace in the next hundred days leaves a truce
    (`war.md`, section 4; built 2026-11-12, found by `OpenHOI3.SaveCheck reload`) - and **a fresh AI for every country** - the
    ministers' first hours, made as the original's load makes them: its list's placeholder country's five ministers first,
