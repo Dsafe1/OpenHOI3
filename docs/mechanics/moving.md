@@ -598,9 +598,14 @@ makes nobody at war (`war.md`, section 1).
 7. **Each ready fleet**, not retreating: **a wolfpack** - all submarines, not busy, at war, the naval
    stance not 0 - raids: over the enemy convoys handed to the agent, each step of a way but its ends, in its range, weighs
    the convoy's transports x |its place + 1 - the way's length / 2| - heaviest near the ends, nothing at the middle; one
-   is drawn on the AI's generator by weight and the fleet given a **convoy raid** there for 504 hours. Fewer candidates
-   than half the steps seen, it **relocates**: to the port with the most raidable tonnage - 10 a transport whose step is
-   within its range of the port, less 20 a ship based there over its level, half again for its own base. **A fleet not
+   is drawn on the AI's generator by weight and the fleet given a **convoy raid** there for 504 hours. With no candidate,
+   or fewer than half the steps seen **by whole division** (10 of 21 is not fewer), it **relocates**: to the port with the
+   most raidable tonnage - 10 a transport whose step is within its range of the port, less 20 a ship over the port's
+   level, the ships being those based there, those sent there earlier in the pass less those sent away (the tally the
+   rebase below keeps, which this joins) and the fleet's own where the port is not its base; half again for its own base.
+   **Where no port scores above nought or the best is its own base, it raids all the same** (`reversing/findings/
+   FINDINGS-liveread.md`, section 114). Which of two equal ports wins is the original's hash map's order of addresses,
+   which nothing here can repeat. **A fleet not
    busy is rebased** - **whatever it holds where its base lies outside the theatre** (the base province's theatre not the
    agent's), otherwise only with no submarine, where its base lies in another area than its commander's or is crowded past
    its level and two - to the theatre's port in its commander's area with the least distance from the commander + 10,

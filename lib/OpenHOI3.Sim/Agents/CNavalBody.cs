@@ -245,7 +245,7 @@ public static class CNavalBody
 			bool wolfpack = census.Submarines == fleet.SubUnits.Count;
 			if (wolfpack && !IsBusy(fleet) && atWar && headquarters.Plan.NavalStance != 0)
 			{
-				Raid(state, country, agent, fleet);
+				Raid(state, country, agent, fleet, arriving);
 			}
 			Rebase(state, country, agent, fleet, arriving, census.Submarines);
 			// A fleet carrying a transport is neither counted nor free: it patrols and intercepts nothing
@@ -266,7 +266,7 @@ public static class CNavalBody
 	}
 
 	/// <summary>A raid on the waters of an enemy convoy, drawn by its transports, nearer its ends the heavier; or, with few in reach, a better port.</summary>
-	private static void Raid(CGameState state, CCountry country, CAgent agent, CUnit fleet)
+	private static void Raid(CGameState state, CCountry country, CAgent agent, CUnit fleet, Dictionary<int, int> arriving)
 	{
 		var candidates = new List<(int Province, long Weight)>();
 		int seen = 0;
@@ -305,12 +305,13 @@ public static class CNavalBody
 				}
 			}
 		}
-		if (candidates.Count == 0 || candidates.Count * 2 < seen)
+		// No candidate, or fewer than half the seen count by whole division: a better port is looked for, and where one is found
+		// the fleet goes there; where none is, it raids all the same (FINDINGS-liveread.md, section 114).
+		if ((candidates.Count == 0 || candidates.Count < seen / 2) && Relocate(state, country, fleet, tonnage, arriving))
 		{
-			Relocate(state, country, fleet, tonnage);
 			return;
 		}
-		if (total <= 0)
+		if (candidates.Count == 0 || total <= 0)
 		{
 			return;
 		}
@@ -332,14 +333,21 @@ public static class CNavalBody
 		}
 	}
 
-	/// <summary>To the port with the most raidable tonnage, less 20 a berth over its room, half again for its own base.</summary>
-	private static void Relocate(CGameState state, CCountry country, CUnit fleet, Dictionary<int, long> tonnage)
+	/// <summary>
+	/// To the port with the most raidable tonnage, less 20 a berth over its room, half again for its own base; whether the
+	/// fleet was sent anywhere - not where none scores above nought or the best is its own base. A port's berths are the
+	/// ships based there, those sent to it earlier in the pass less those sent away, and the fleet's own where it is not
+	/// its base - the tally the surface rebase keeps, which a fleet sent here joins (FINDINGS-liveread.md, section 114).
+	/// </summary>
+	private static bool Relocate(CGameState state, CCountry country, CUnit fleet, Dictionary<int, long> tonnage,
+		Dictionary<int, int> arriving)
 	{
 		int best = 0;
 		long most = 0;
 		foreach ((int port, long tons) in tonnage)
 		{
-			long score = tons * 10 * Whole - 20 * Whole * System.Math.Max(0, Berths(state, port) - Level(state, port));
+			long load = Berths(state, port) + arriving.GetValueOrDefault(port) + (port == fleet.Base ? 0 : fleet.SubUnits.Count);
+			long score = tons * 10 * Whole - 20 * Whole * System.Math.Max(0, load - Level(state, port));
 			if (port == fleet.Base)
 			{
 				score = score * 3 / 2;
@@ -352,8 +360,15 @@ public static class CNavalBody
 		}
 		if (best > 0 && best != fleet.Base)
 		{
+			arriving[best] = arriving.GetValueOrDefault(best) + fleet.SubUnits.Count;
+			if (fleet.Base > 0)
+			{
+				arriving[fleet.Base] = arriving.GetValueOrDefault(fleet.Base) - fleet.SubUnits.Count;
+			}
 			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Rebase, best));
+			return true;
 		}
+		return false;
 	}
 
 	/// <summary>
