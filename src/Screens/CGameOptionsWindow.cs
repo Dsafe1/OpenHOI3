@@ -27,6 +27,12 @@ public sealed partial class CGameOptionsWindow : Control
 	/// <summary>Which of the two windows this is.</summary>
 	private string _windowName = WindowName;
 
+	/// <summary>
+	/// Where Apply writes settings that were read from no file: the player's folder of what is played
+	/// (<see cref="CUserSettingsReader.DefaultPath"/>).
+	/// </summary>
+	public string SettingsPath { get; set; } = "";
+
 	private CGuiContext _context = null!;
 	private Func<CUserSettings> _settings = null!;
 	private Action<CUserSettings> _setSettings = null!;
@@ -328,7 +334,7 @@ public sealed partial class CGameOptionsWindow : Control
 		_savedVolumes = (stored.MasterVolume, stored.SoundFxVolume, stored.MusicVolume);
 		GammaPreviewed?.Invoke(CGameOptions.Brightness(stored.Gamma));
 		Applied?.Invoke(stored);
-		if (!CUserSettingsWriter.WriteFile(stored, stored.Path ?? CUserSettingsReader.DefaultPath()))
+		if (!CUserSettingsWriter.WriteFile(stored, stored.Path ?? SettingsPath))
 		{
 			Inform("SM_ALERT", "SM_WP");
 			return;

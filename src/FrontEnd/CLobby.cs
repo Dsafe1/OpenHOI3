@@ -663,8 +663,6 @@ public partial class CLobby : Control
 	/// <summary>The player's folder of saves, then the install's, as the save dialog lists them.</summary>
 	private List<string> SaveFolders()
 	{
-		var folders = new List<string> { Path.Combine(CUserSettingsReader.UserFolder(), CSaveFiles.FolderName) };
-		folders.AddRange(_frontEnd.Directories.LayerFolders(CSaveFiles.FolderName));
-		return folders;
+		return _frontEnd.Directories.UserAndLayerFolders(CSaveFiles.FolderName).ToList();
 	}
 }

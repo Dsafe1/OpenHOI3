@@ -39,11 +39,13 @@ files give the same letters here as in the original, and a player can set this g
 
 ## 3. Which copy of a file
 
-The original reads through one file system laid over several folders, the last mounted first: a mod's user folder and the
-mod, then `tfh/`, then the install's root, then the player's folder, `Documents\Paradox Interactive\Hearts of Iron III`.
+The original reads through one file system laid over several folders, the last mounted first: without a mod the player's
+folder, `Documents\Paradox Interactive\Hearts of Iron III`, then `tfh/`, then the install's root; with one, the mod's
+own player folder below it and the mod, then `tfh/` and the root - **the plain Documents folder not at all**
+(`mods.md`, section 2; `reversing/findings/FINDINGS-modlayer.md`, which corrects this section's first reading of it).
 A folder's names are all of theirs, each once, and a name is read from the first folder that has it. **In a folder a
-mod's `replace_path` names, only the files the mod's two folders hold are listed** - the base game's beside them are not
-summed at all.
+mod's `replace_path` names, a file is listed only where its first copy is the mod's, or the player's folder's** - the
+base game's beside them are not summed at all.
 
 So the map's three files come from wherever they are first found, and **the map cache's two are the player's folder's**,
 the one the original builds and the one this game builds the same byte for byte (`mapcache.md`). The checksum is
@@ -51,8 +53,10 @@ therefore worked out after the cache is current: here the cache is opened, and b
 map at `INIT_MAP_LOGIC`, where the original checks it too, and the checksum runs at `CREATING_CHKSUM` after the history
 (`loadingscreen.md`, section 3).
 
-*Ours*: no mod is played yet, so the client's search path is `tfh/`, the root and the player's folder;
-`CChecksumSearchPath` takes a mod's folders and replaced folders, and the savegame tool uses them (section 6).
+*Ours*: the client's search path is the played game's (`CDirectorySettings.SearchPath`, `CChecksumSearchPath.For`): the
+player's folder, a mod's folder where one is played, `tfh/` and the root, a replaced folder by the first copy's place -
+the savegame tool's the same (section 6). Until 2026-11-16 it put the player's folder last, which gave the same figure
+for Their Finest Hour because the player's map cache is the shipped `tfh/map/cache` byte for byte (`mapcache.md`).
 
 ## 4. When
 
@@ -67,16 +71,17 @@ the checksum as a signed 32-bit figure, the letters are the figure, then the fig
 keeping its sign, each C's remainder by 26 made positive and added to `A`. The original adds its version's `executable`
 figure to the checksum first; that is nought in every run logged, and nothing here sets it.
 
-*Ours*: the name is `OpenHOI3` where the original's is `HoI3 v4.02` (`CVersionText`), and the original's
-`    Mod: <name>` after it waits for mods.
+*Ours*: the name is `OpenHOI3` where the original's is `HoI3 v4.02` (`CVersionText`); where a mod is played the original's
+`    Mod: ` and its localised name follow, since 2026-11-16 (`mods.md`, section 3).
 
 ## 6. Checked
 
 `OpenHOI3.SaveCheck checksum <install> [mod name]` works the figure out and sets it beside the last `Checksum is` line of
 the player's `logs/setup.log`, the mod's user folder's where a mod is named. On 2026-11-13: Their Finest Hour
 `1499173604 (GSKH)`, 11,824 files, the same as the original's log of that day; BlackICE 15.1 `-410340735 (ZAUD)`, 14,177
-files, the same as its log of 9 November, no file of the mod newer. A log written before a summed file last changed
-differs, and says nothing.
+files, the same as its log of 9 November, no file of the mod newer. On 2026-11-16, with the search path of section 3 as
+the mod layer reads it: Their Finest Hour again, BlackICE GitHub `1599539514 (OXLS)` and BlackICE 16.0rc1
+`-1864650988 (SDXE)`, each its log's. A log written before a summed file last changed differs, and says nothing.
 
 ## 7. What it does not guard
 

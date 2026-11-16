@@ -26,9 +26,13 @@ public static class CQuadCheck
 			return 2;
 		}
 		var problems = new List<string>();
-		var directories = CDirectorySettings.At(args[1]);
+		CDirectorySettings? directories = CToolDirectories.Make(args[1], ref args);
+		if (directories is null)
+		{
+			return 2;
+		}
 		var watch = System.Diagnostics.Stopwatch.StartNew();
-		CMapCache cache = CMapCache.Open(directories, CUserSettingsReader.UserFolder(), problems.Add);
+		CMapCache cache = CMapCache.Open(directories, directories.UserFolder, problems.Add);
 		Console.WriteLine($"cache {(cache.IsCurrent ? "current" : "stale")}, the stamp {CMapCache.Stamp(directories):X8} "
 			+ $"checked in {watch.ElapsedMilliseconds} ms; the index from {cache.Find(CQuadCache.IndexFile) ?? "nowhere"}");
 		IReadOnlyList<CQuadTile> tiles = CQuadCache.Load(cache, problems.Add);

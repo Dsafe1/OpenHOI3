@@ -13,31 +13,38 @@ namespace OpenHOI3.Content.Checksum;
 public sealed class CChecksumSearchPath
 {
 	private readonly string[] _mounts;
-	private readonly HashSet<string> _replaced;
-	private readonly int _replaceLimit;
+	private readonly IReadOnlyDictionary<string, int> _replaceLimits;
 
 	/// <param name="mounts">Absolute folders, highest priority first.</param>
 	/// <param name="replaced">Game-relative folders a mod's <c>replace_path</c> names, written with '/'.</param>
 	/// <param name="replaceLimit">The last of <paramref name="mounts"/> a replaced folder may list a file from.</param>
 	public CChecksumSearchPath(IEnumerable<string> mounts, IEnumerable<string>? replaced = null, int replaceLimit = -1)
+		: this(mounts, (replaced ?? Array.Empty<string>()).Distinct(OpenHOI3.Content.Mods.CModRules.Comparer)
+			.ToDictionary(folder => folder, _ => replaceLimit, OpenHOI3.Content.Mods.CModRules.Comparer))
+	{
+	}
+
+	/// <param name="mounts">Absolute folders, highest priority first.</param>
+	/// <param name="replaceLimits">
+	/// For each game-relative folder a mod's <c>replace_path</c> names, written with '/', the last of
+	/// <paramref name="mounts"/> a listed file's first copy may be in.
+	/// </param>
+	public CChecksumSearchPath(IEnumerable<string> mounts, IReadOnlyDictionary<string, int> replaceLimits)
 	{
 		_mounts = mounts.ToArray();
-		_replaced = new HashSet<string>(replaced ?? Array.Empty<string>(), StringComparer.Ordinal);
-		_replaceLimit = replaceLimit;
+		_replaceLimits = replaceLimits;
 	}
 
 	/// <summary>
-	/// The install's layers - Their Finest Hour's <c>tfh/</c> before the root - then the player's folder, which holds the
-	/// map cache: the base game's search path.
+	/// The search path of what a set of directory settings plays (<see cref="CDirectorySettings.SearchPath"/>): the
+	/// player's folder, which holds the map cache, each mod's folder, then the install's layers - Their Finest Hour's
+	/// <c>tfh/</c> before the root; a replaced folder listing a file only where its first copy is in the replacing mod or
+	/// in front of it.
 	/// </summary>
-	public static CChecksumSearchPath ForInstall(CDirectorySettings directories, string? userFolder)
+	public static CChecksumSearchPath For(CDirectorySettings directories)
 	{
-		var mounts = directories.LayerFolders("").Select(Path.GetFullPath).ToList();
-		if (userFolder is not null)
-		{
-			mounts.Add(userFolder);
-		}
-		return new CChecksumSearchPath(mounts);
+		(string[] mounts, IReadOnlyDictionary<string, int> limits) = directories.SearchPath();
+		return new CChecksumSearchPath(mounts.Select(Path.GetFullPath), limits);
 	}
 
 	/// <summary>The index of the first folder holding the path, file or folder, or -1.</summary>
@@ -88,7 +95,7 @@ public sealed class CChecksumSearchPath
 	/// <summary>Whether a file of the folder may be listed: in a replaced folder, only from the mod's folders.</summary>
 	public bool MayList(string folder, string relative)
 	{
-		return !_replaced.Contains(folder) || First(relative) <= _replaceLimit;
+		return !_replaceLimits.TryGetValue(folder, out int limit) || First(relative) <= limit;
 	}
 
 	/// <summary>The bytes of the first copy of a file, or null where no folder holds it as a file.</summary>

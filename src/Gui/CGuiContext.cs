@@ -22,9 +22,11 @@ public sealed class CGuiContext
 	/// <summary>The message types of <c>interface/messagetypes.txt</c>: <c>docs/mechanics/messages.md</c>.</summary>
 	public required CMessageTypes MessageTypes { get; init; }
 
-	/// <summary>The player's own message settings, <c>messagetypes_custom.txt</c> in the player's folder.</summary>
-	public static string MessageTypesPath => System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(),
-		CMessageTypes.CustomFile);
+	/// <summary>
+	/// The player's own message settings, <c>messagetypes_custom.txt</c> in the player's folder of what is played - the
+	/// base game's or a mod's (<see cref="CDirectorySettings.UserFolder"/>).
+	/// </summary>
+	public required string MessageTypesPath { get; init; }
 
 	/// <summary>
 	/// The edit box that has the keyboard: the last one clicked or given it, kept until another is - hiding it, Enter and
@@ -57,8 +59,10 @@ public sealed class CGuiContext
 	{
 		var textures = new CTextureManager(directories);
 		var effects = new CEffectShaders(directories);
+		string messageTypesPath = System.IO.Path.Combine(directories.UserFolder, CMessageTypes.CustomFile);
 		return new CGuiContext
 		{
+			MessageTypesPath = messageTypesPath,
 			Localisation = localisation,
 			Types = CGuiTypes.Load(directories),
 			Sprites = CSpriteTypes.Load(directories),
@@ -66,7 +70,7 @@ public sealed class CGuiContext
 			Fonts = CGuiFonts.Load(directories),
 			Shields = new CShields(textures, effects),
 			// The player's choices over the install's, as the original reads them at every start (ingamemenu.md, section 5).
-			MessageTypes = CMessageTypes.Load(directories, MessageTypesPath),
+			MessageTypes = CMessageTypes.Load(directories, messageTypesPath),
 			Effects = effects,
 		};
 	}

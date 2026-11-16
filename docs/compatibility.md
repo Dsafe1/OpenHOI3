@@ -289,6 +289,7 @@ documents folder, not the one next to the exe."
 | the difference today | ~~a setting changed here is not kept; nothing here changes one yet~~ none: the game options window writes it since 2026-11-04 (`mechanics/gameoptions.md`), and a session writes it as it ends |
 | amended | **2026-11-04** by the maintainer, asked whether the game options window's Apply should write that same file as the original does: "Write the original's file". So it is written there, in the original's format, and a change made here is the original's next time too - as the message settings' `messagetypes_custom.txt` already is (`mechanics/ingamemenu.md`, section 5) |
 | a mod loses | nothing; a mod has no `settings.txt` of its own |
+| with a mod | **2026-11-16**, the mod layer (`mechanics/mods.md`): the file is the mod's player folder's, `Documents\...\Hearts of Iron III\<user_dir>\settings.txt`, as the original writes it. Where that folder has none, the original reads `settings.txt` over its search path - the mod's folder, then `tfh/`, then the install's root, which ships one - and never the plain Documents folder's (`reversing/findings/FINDINGS-modlayer.md`); this reads the player's folder alone and takes the defaults, by the maintainer's word above, given again for a mod on 2026-11-16: "User folder only". Without a mod the original falls through the same way when the Documents folder has none; this does not |
 | why | the player's settings are where the original keeps them, and one file serves both |
 | to undo | settings of our own, in our own file |
 
@@ -426,6 +427,7 @@ section 3.
 | here | the game asks `Documents\Paradox Interactive\Hearts of Iron III\map\cache` and nothing else, and builds the cache there where it is not the map's |
 | the difference today | the first start after that folder is emptied takes about 2.3 seconds longer and writes about 220 MB to it; what it draws is the same, every file being the shipped one byte for byte |
 | a mod loses | nothing: a cache is derived data |
+| with a mod | **2026-11-16**: the folder is the mod's player folder's `map\cache`, the original's write folder with a mod, and nothing else - where the original would also find a cache in the mod's folder or the install (*likely*, `reversing/findings/FINDINGS-modlayer.md`); the maintainer's word, 2026-11-16: "User folder only" |
 | why | the maintainer's word |
 | to undo | have `CMapCache.OpenOrBuild` take `Open`'s answer first, and pass `askInstall: true` |
 
@@ -503,11 +505,28 @@ section 2.
 | why | one way to make a world at a date - the one a first choice takes - and no undo to keep for every kind of history entry |
 | to undo | keep the lobby's world and move it, giving every history entry an undo as the original's, the rewind with them |
 
+## 28. The player's folder is not a layer of game files
+
+**Decided** 2026-11-16 by the maintainer, shown the original's search path with the player's folder in front and its
+`music` folder of `.mp3`s: "Keep entry 28". The switch is `CModRules.UserFolderIsLayer`.
+
+| | |
+| --- | --- |
+| the original | reads every file through a search path whose front is the player's folder - `Documents\Paradox Interactive\Hearts of Iron III` without a mod, `...\<user_dir>` with one - so a file put there stands in for the mod's and the install's (`reversing/findings/FINDINGS-modlayer.md`) |
+| here | the player's folder is asked by name only for what the game writes there - the settings, the saves, the message settings, the map cache, the logs, the battle plans; a game file is looked for in the mods' folders, `tfh/` and the install (`mechanics/mods.md`, section 2) |
+| the difference today | the base game's player folder holds a `music` folder of `.mp3`s, which the original's search path puts in front of the install's music folder and this does not look in; nothing else in it is a game file. The file checksum walks the original's whole search path, the player's folder first, and is the original's figure |
+| a mod loses | nothing it ships: a mod's own files are in its folder. A player's own file dropped into the player's folder to override one is not read |
+| why | so that the base game reads what it read before the mod layer, and a stray file in the Documents folder does not change a game |
+| to undo | set `CModRules.UserFolderIsLayer`, which puts the player's folder in front of the layers with a mod; without one it would need the Documents folder added too |
+
 ## Stricter, with the same meaning
 
 Not departures - a file means what it meant - but a mod's author will see them, so they
 are listed.
 
+- **A mod named that is not there is said**, and a `.mod` file's key the original does not read - the old `extend` and
+  `replace` among them - is reported. The original plays without the mod, and drops the key, in silence; so does this
+  (`docs/mechanics/mods.md`, sections 1 and 3; since 2026-11-16).
 - **A key nothing recognises is reported.** The original drops it without a word; this
   reads the rest of the file the same way and says which key it did not know. So far in
   the interface files (`docs/mechanics/interface.md`, section 2), in unit types, historical

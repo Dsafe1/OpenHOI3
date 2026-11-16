@@ -129,7 +129,7 @@ public sealed partial class CInGameMenu : Control
 					box.Tooltip = () => new CTooltip { Text = text };
 				}
 			}
-			Bind(_settings.FindButton("reset"), () => _context.MessageTypes.Reset(_directories, CGuiContext.MessageTypesPath));
+			Bind(_settings.FindButton("reset"), () => _context.MessageTypes.Reset(_directories, _context.MessageTypesPath));
 			Bind(_settings.FindButton("close"), CloseMessageSettings);
 		}
 	}
@@ -341,15 +341,10 @@ public sealed partial class CInGameMenu : Control
 	/// <summary>The player's folder of saves, where a save is written, then the install's, where one is also looked for.</summary>
 	private IEnumerable<string> SaveFolders()
 	{
-		yield return SaveFolder;
-		foreach (string folder in _directories.LayerFolders(CSaveFiles.FolderName))
-		{
-			yield return folder;
-		}
+		return _directories.UserAndLayerFolders(CSaveFiles.FolderName);
 	}
 
-	private static string SaveFolder =>
-		System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(), CSaveFiles.FolderName);
+	private string SaveFolder => System.IO.Path.Combine(_directories.UserFolder, CSaveFiles.FolderName);
 
 	/// <summary>
 	/// <c>save</c>: nothing for an empty box; a file of the name in any of the folders is asked about first, and written
@@ -406,7 +401,7 @@ public sealed partial class CInGameMenu : Control
 	/// <summary>The window's Close: the player's file written, and back to the six buttons.</summary>
 	private void CloseMessageSettings()
 	{
-		_context.MessageTypes.WriteCustom(CGuiContext.MessageTypesPath);
+		_context.MessageTypes.WriteCustom(_context.MessageTypesPath);
 		Toggle();
 	}
 

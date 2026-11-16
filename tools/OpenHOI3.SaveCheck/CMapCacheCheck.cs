@@ -11,9 +11,10 @@ using OpenHOI3.Content.Settings;
 /// <summary>
 /// Builds the map cache from the map files and sets every file beside a cache the original wrote:
 ///
-///   OpenHOI3.SaveCheck mapcache &lt;install or mod folder&gt; [cache folder] [calls of rand before the first beach] [out=folder]
+///   OpenHOI3.SaveCheck mapcache &lt;install or mod folder&gt; [cache folder] [calls of rand before the first beach] [out=folder] [mod=name]
 ///
-/// <c>out=</c> keeps what was built in a folder. The cache folder is the player's in Documents with none given. The last figure is the original run's and not the map's: 292 for
+/// <c>out=</c> keeps what was built in a folder. The cache folder is the player's in Documents with none given - with
+/// <c>mod=</c>, the mod laid over the install, the mod's player folder's. The last figure is the original run's and not the map's: 292 for
 /// Their Finest Hour's shipped cache. A map with another count differs only in the beaches' vertices and indices.
 /// See <c>docs/mechanics/mapcache.md</c>.
 /// </summary>
@@ -27,11 +28,15 @@ public static class CMapCacheCheck
 			return 2;
 		}
 		var warnings = new List<string>();
-		CDirectorySettings directories = CDirectorySettings.At(args[1]);
+		CDirectorySettings? directories = CToolDirectories.Make(args[1], ref args);
+		if (directories is null)
+		{
+			return 2;
+		}
 		CMap map = CMap.Load(directories, warnings.Add);
 		string? keep = args.FirstOrDefault(arg => arg.StartsWith("out=", StringComparison.Ordinal))?[4..];
 		args = args.Where(arg => !arg.StartsWith("out=", StringComparison.Ordinal)).ToArray();
-		string shipped = args.Length > 2 ? args[2] : Path.Combine(CUserSettingsReader.UserFolder(), "map", "cache");
+		string shipped = args.Length > 2 ? args[2] : Path.Combine(directories.UserFolder, "map", "cache");
 		int calls = args.Length > 3 ? int.Parse(args[3]) : CBeachNoise.DefaultCallsBefore;
 		CMapCacheSource? source = CMapCacheSource.From(map, warnings.Add);
 		if (source is null)
@@ -70,7 +75,7 @@ public static class CMapCacheCheck
 	/// <summary>A file of the original's cache: the player's in Documents, or else the install's.</summary>
 	public static string FileOf(CDirectorySettings directories, string name)
 	{
-		string user = Path.Combine(CUserSettingsReader.UserFolder(), "map", "cache", name);
+		string user = Path.Combine(directories.UserFolder, "map", "cache", name);
 		return File.Exists(user) ? user : directories.Resolve("map/cache/" + name);
 	}
 

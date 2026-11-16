@@ -77,6 +77,12 @@ if (args.Length > 0 && args[0] == "settings")
 	return CSettingsCheck.Run(args);
 }
 
+// What a mod asks of this game that it does not answer, read and not played (docs/mechanics/mods.md, section 5).
+if (args.Length > 0 && args[0] == "modsurvey")
+{
+	return CModSurvey.Run(args);
+}
+
 // The file checksum against the figure the original logs (docs/mechanics/checksum.md, section 6).
 if (args.Length > 0 && args[0] == "checksum")
 {

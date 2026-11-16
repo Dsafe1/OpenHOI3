@@ -210,7 +210,7 @@ public partial class CMapView : Node2D
 	/// </summary>
 	public static CMapCache OpenCache(CDirectorySettings directories, CMap map)
 	{
-		return CMapCache.OpenOrBuild(directories, Content.Settings.CUserSettingsReader.UserFolder(), map,
+		return CMapCache.OpenOrBuild(directories, directories.UserFolder, map,
 			problem => GD.PushWarning($"map: {problem}"));
 	}
 

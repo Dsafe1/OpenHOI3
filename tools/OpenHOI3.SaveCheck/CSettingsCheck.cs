@@ -17,7 +17,7 @@ public static class CSettingsCheck
 {
 	public static int Run(string[] args)
 	{
-		string path = args.Length > 1 ? args[1] : CUserSettingsReader.DefaultPath();
+		string path = args.Length > 1 ? args[1] : Path.Combine(OpenHOI3.Content.CDirectorySettings.DefaultDocumentsFolder(), CUserSettingsReader.FileName);
 		if (!File.Exists(path))
 		{
 			Console.Error.WriteLine($"settings: there is no '{path}'");

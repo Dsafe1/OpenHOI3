@@ -53,7 +53,7 @@ public class FileChecksumTests : IDisposable
 
 	private (int Checksum, int Files) Compute()
 	{
-		return CFileChecksum.Compute(CChecksumSearchPath.ForInstall(CDirectorySettings.At(_root), _user));
+		return CFileChecksum.Compute(CChecksumSearchPath.For(CDirectorySettings.At(_root, null, _user)));
 	}
 
 	private static int Expected(params string[] contents)

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OpenHOI3.Content;
+using OpenHOI3.Content.Mods;
 using OpenHOI3.Content.Music;
 using OpenHOI3.Loading;
 using OpenHOI3.Sim.Countries;
@@ -90,12 +91,13 @@ public partial class Main : Control
 		{
 			return;
 		}
-
 		GD.Print($"Install: {directories.GameRoot}");
+		// The mod is known before anything is read: the main menu is the mod's interface too (docs/mechanics/mods.md).
+		directories = WithModsNamed(directories);
 		_directories = directories;
 		// The title theme from the load's first moment, as the original starts it before its first loading frame
 		// (docs/mechanics/music.md, section 3). The settings it is played by are the screen's that has them, else the file's.
-		_startSettings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath());
+		_startSettings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath(directories));
 		_music = new Audio.CMusic { Name = "Music" };
 		_music.Setup(directories, () => _session?.Settings ?? _frontEnd?.Settings ?? _startSettings);
 		AddChild(_music);
@@ -113,7 +115,8 @@ public partial class Main : Control
 		{
 			// The game's switches want a game, which nothing has said to play; the front end plays only the clicks.
 			string[] unused = CSession.UserArguments()
-				.Where(argument => argument.StartsWith("--") && !FrontEndSwitches.Any(argument.StartsWith)).ToArray();
+				.Where(argument => argument.StartsWith("--") && !FrontEndSwitches.Any(argument.StartsWith) && !CModSwitch.Is(argument))
+				.ToArray();
 			if (unused.Length > 0)
 			{
 				GD.Print($"No --country=, --load= or --replay=, so the main menu; left aside: {string.Join(" ", unused)}");
@@ -160,6 +163,39 @@ public partial class Main : Control
 				string.Join("\n", CDirectorySettings.SearchedLocations(projectDirectory)));
 		}
 		return directories;
+	}
+
+	/// <summary>
+	/// The install with the mods the command line selects laid over it (docs/mechanics/mods.md, section 3): the original's
+	/// own reading of the engine's arguments - the original launcher starts it with <c>-mod=mod/&lt;file&gt;.mod</c>, and
+	/// <c>-userdir=</c> moves the player's folder - and the developer's <c>--mod=&lt;name&gt;</c> after <c>--</c>. A mod
+	/// named that is not there, or not valid, is played without, as the original plays it; here it is said.
+	/// </summary>
+	private static CDirectorySettings WithModsNamed(CDirectorySettings directories)
+	{
+		// The engine's own arguments, up to the user's after "--", joined back into the line the launcher wrote.
+		string commandLine = string.Join(" ", OS.GetCmdlineArgs().TakeWhile(argument => argument != "--"));
+		(List<string> values, string? userDir) = CModSwitch.Parse(commandLine);
+		if (userDir is not null)
+		{
+			directories = directories.WithDocumentsFolder(userDir);
+		}
+		values.AddRange(CModSwitch.DeveloperNames(CSession.UserArguments())
+			.Select(name => CModReader.VirtualPathFor(directories.GameRoot, directories.DocumentsFolder, name)));
+		if (values.Count == 0)
+		{
+			return directories;
+		}
+		IReadOnlyList<CMod> mods = CModReader.Select(directories.GameRoot, directories.DocumentsFolder, values, CDiagnostics.Warn);
+		if (mods.Count == 0)
+		{
+			CDiagnostics.Warn("No mod is selected, so the install is played as it is");
+			return directories;
+		}
+		CDirectorySettings modded = directories.WithMods(mods);
+		GD.Print($"Mods: {string.Join(", ", mods.Select(mod => mod.Name))} - {string.Join(", ", modded.Layers)}; "
+			+ $"the player's folder {modded.UserFolder}");
+		return modded;
 	}
 
 	/// <summary>The switches the front end plays itself, and the empty <c>--country=</c> that brought it up.</summary>

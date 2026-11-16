@@ -142,7 +142,7 @@ public partial class CSession : Node
 		// The player's settings, from the original's own settings.txt in the Documents folder (settings.md); what of them
 		// is not supported is reported as it is read. Read here and not as the node enters the tree, because the music asks
 		// for them from the moment the session is made, and the defaults would have it play at full volume until then.
-		Settings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath());
+		Settings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath(_directories));
 	}
 
 	private Debug.CSessionCarry? _carried;
@@ -659,7 +659,7 @@ public partial class CSession : Node
 			_mapView.PlanSigns?.Setup(Map, gui.Fonts, planTypes);
 			var plans = new CBattlePlanWindow();
 			plans.Setup(gui, _simulation.State, Player, _directories,
-				System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(), "battle plans"), _mapView,
+				System.IO.Path.Combine(_directories.UserFolder, "battle plans"), _mapView,
 				Content.BattlePlans.CBattlePlanSettings.Load(_directories), planTypes);
 			layer.AddChild(plans);
 			foreach (Sim.Plans.CBattlePlan loaded in _simulation.State.LoadedBattlePlans)
@@ -831,6 +831,7 @@ public partial class CSession : Node
 		var options = new CGameOptionsWindow();
 		options.Setup(gui, () => Settings, settings => Settings = settings, DisplayModes(), new[] { 2, 4, 8 },
 			(Settings.Width, Settings.Height, Settings.RefreshRate));
+		options.SettingsPath = Content.Settings.CUserSettingsReader.DefaultPath(_directories);
 		options.GammaPreviewed += scale => _brightness?.SetBrightness(scale);
 		options.Applied += ApplySettings;
 		_menu = new CInGameMenu();
@@ -1335,7 +1336,7 @@ public partial class CSession : Node
 	/// </summary>
 	public override void _ExitTree()
 	{
-		Content.Settings.CUserSettingsWriter.WriteFile(Settings, Settings.Path ?? Content.Settings.CUserSettingsReader.DefaultPath());
+		Content.Settings.CUserSettingsWriter.WriteFile(Settings, Settings.Path ?? Content.Settings.CUserSettingsReader.DefaultPath(_directories));
 		if (_handedOver)
 		{
 			return;
@@ -1410,7 +1411,7 @@ public partial class CSession : Node
 		{
 			return;
 		}
-		string folder = System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(), Content.Saves.CSaveFiles.FolderName);
+		string folder = System.IO.Path.Combine(_directories.UserFolder, Content.Saves.CSaveFiles.FolderName);
 		try
 		{
 			Content.Saves.CAutosave.Write(State, _localisation.Localise, folder);
@@ -2160,6 +2161,9 @@ public partial class CSession : Node
 	/// Arguments after <c>--</c> on the command line, for looking at the map without
 	/// driving it by hand - each of them only in a game one of <c>--country=</c>, <c>--load=</c> or <c>--replay=</c>
 	/// started, the main menu coming up without (<c>Main.SaysWhatToPlay</c>):
+	/// <c>--mod=BlackICE GitHub</c> lays that mod of the install's <c>tfh/mod</c> over the install - and so does the original
+	/// launcher's own <c>-mod=</c> - the main menu included, a game or none (read before anything is, by <c>Main</c>, not
+	/// here; <c>docs/mechanics/mods.md</c>, section 3),
 	/// <c>--centre=1861</c> puts a province in the middle and selects it,
 	/// <c>--country=ENG</c> plays that country and not Germany, <c>--date=1939.9.1</c> begins its game at that date as the
 	/// lobby's bookmark of it would (read as the game is made, not here),
@@ -2829,7 +2833,7 @@ public partial class CSession : Node
 
 		public void WriteDetailedLog(string name)
 		{
-			string path = System.IO.Path.Combine(Content.Settings.CUserSettingsReader.UserFolder(), "logs", name + ".log");
+			string path = System.IO.Path.Combine(_session._directories.UserFolder, "logs", name + ".log");
 			System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
 			Content.Saves.CSaveFiles.Write(_session.State, _session._localisation.Localise, path);
 		}

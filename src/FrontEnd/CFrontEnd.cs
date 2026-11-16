@@ -96,8 +96,12 @@ public partial class CFrontEnd : Node
 	private bool _first;
 	private CFrontEndContent _content = null!;
 
-	/// <summary>The main menu's version label and the lobby's checksum: ours, with the original's four letters.</summary>
-	public string VersionLabel => Interface.Screens.CVersionText.Label(_content.Checksum);
+	/// <summary>
+	/// The main menu's version label and the lobby's checksum: ours, with the original's four letters, and the frontmost
+	/// mod's localised name where one is played (which of several the original names is not read).
+	/// </summary>
+	public string VersionLabel => Interface.Screens.CVersionText.Label(_content.Checksum,
+		_directories.Mods.Count > 0 ? _content.Localisation.Localise(_directories.Mods[0].Name) : null);
 
 	/// <summary>
 	/// The world and its map made, its surface's meshes with it, before the front end enters the tree: a step of the loading
@@ -153,6 +157,7 @@ public partial class CFrontEnd : Node
 		_options = new CGameOptionsWindow();
 		_options.Setup(_gui, () => Settings, settings => Settings = settings, CGameOptionsWindow.DisplayModes(Settings),
 			new[] { 2, 4, 8 }, (Settings.Width, Settings.Height, Settings.RefreshRate), CGameOptionsWindow.FrontEndWindowName);
+		_options.SettingsPath = CUserSettingsReader.DefaultPath(_directories);
 		layer.AddChild(_options);
 		_options.HideWindow();
 		// Closing the settings window clears simple and comes back to the main menu, as the original's does.
@@ -165,7 +170,7 @@ public partial class CFrontEnd : Node
 		// The player's settings are written as Apply stores them, so the game the front end hands over reads them so.
 		_options.Applied += settings =>
 		{
-			CUserSettingsWriter.WriteFile(settings, settings.Path ?? CUserSettingsReader.DefaultPath());
+			CUserSettingsWriter.WriteFile(settings, settings.Path ?? CUserSettingsReader.DefaultPath(_directories));
 			_brightness?.SetBrightness(CGameOptions.Brightness(settings.Gamma));
 		};
 		_options.GammaPreviewed += scale => _brightness?.SetBrightness(scale);

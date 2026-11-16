@@ -775,7 +775,9 @@ switch that says what to play, `--country=`, `--load=` or `--replay=`, starts th
 front end alone plays `--click=` and `--screenshot=` where none is given - *Play OpenHOI3 (choose
 country)*, which asks for a tag and whether to have every unit type, the prompt empty by default and an empty one
 bringing up the main menu (the maintainer's word, 2026-11-06: a launch "without specifying a country" goes to the main
-menu; an empty `--country=` says nothing, and any other switch then is printed as left aside), *Play OpenHOI3 (ask
+menu; an empty `--country=` says nothing, and any other switch then is printed as left aside), *Play OpenHOI3 (mod)*,
+which asks for a mod by the name of its `.mod` file - `BlackICE GitHub` by default - and brings up the main menu with
+it laid over the install (`--mod=`; the original launcher's `-mod=mod/<file>.mod` works too; `docs/mechanics/mods.md`), *Play OpenHOI3 (ask
 for arguments)*, which asks for the developer switches themselves in one box - the game
 cuts an argument wherever a space is followed by `--`, so the box may hold several -
 *Play OpenHOI3 (headless)* and *Open Godot Editor*. The switches are listed above
@@ -932,7 +934,21 @@ beside the repository.
   `OpenHOI3.SaveCheck checksum <install> [mod name]` works out the original's file checksum and sets it beside the last
   `Checksum is` line of the player's `logs/setup.log`, the mod's user folder's with a mod: on 2026-11-13 Their Finest Hour
   `1499173604 (GSKH)` and BlackICE 15.1 `-410340735 (ZAUD)`, the original's both (`docs/mechanics/checksum.md`). A log older
-  than a summed file says nothing. Run it after touching `Content/Checksum` or how the map cache is found.
+  than a summed file says nothing. Run it after touching `Content/Checksum` or how the map cache is found. On 2026-11-16,
+  with the mod layer's search path, BlackICE GitHub `1599539514 (OXLS)` and BlackICE 16.0rc1 `-1864650988 (SDXE)` too.
+  `OpenHOI3.SaveCheck modsurvey <install> [mod name]` is a look: it lays the mod over the install as the original does
+  (`docs/mechanics/mods.md`) and reads everything a new game reads - localisation, countries, map, the `.gui` and `.gfx`
+  with each texture and sprite they name, `autoexec.lua` and, where it stops, each later require on a state of its own, the
+  world, the script - then makes a new game as far as it goes, and lists every problem by section, kind and file, the
+  largest first, as **ours** (unbuilt keywords, Lua errors, native modules, the original's Lua classes, statics and methods
+  nobody provides) or **files** (what the original passes over too). With no mod it is the control: on 2026-11-16 ours 0,
+  and the script's thirteen problems among the files' 59. BlackICE GitHub the same day: the new game made in 9 s, ours
+  about 27,000 from a handful of causes - `lfs`, which stops `autoexec.lua` at its second require so that none of
+  BlackICE's AI loads; `remove_brigade` 6,919 times; wxLua; BiceLib's 42 functions, read from the mod's Lua and never from
+  BiceLib; the original's country variables in Lua. Run it from a scratch folder - the mod's Lua writes `lua_output.txt`
+  into the working folder - and after touching `CDirectorySettings`, `Content/Mods` or a reader a mod's files reach. Every
+  other command takes `mod=<name>` after the rest the same way where it reads through `CToolDirectories`: `checksum`,
+  `quads`, `mapcache`, `shaders`.
   `OpenHOI3.SaveCheck settings [settings.txt]` reads the player's settings - the Documents folder's with none given - and
   writes them again in memory beside the file: on 2026-11-04 the maintainer's base game file and BlackICE's came out byte
   for byte (`docs/mechanics/settings.md`, section 2). Run it after touching `Content/Settings`.

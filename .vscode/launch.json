@@ -38,6 +38,24 @@
 			"stopAtEntry": false
 		},
 		{
+			// Asks for a mod by the name of its .mod file in the install's tfh/mod, and brings up
+			// the main menu with that mod laid over the install (docs/mechanics/mods.md).
+			"name": "Play OpenHOI3 (mod)",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build",
+			"program": "${config:godotTools.editorPath.godot4}",
+			"args": [
+				"--path",
+				"${workspaceFolder}",
+				"--",
+				"--mod=${input:mod}"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "internalConsole",
+			"stopAtEntry": false
+		},
+		{
 			// Asks for the switches themselves, all in one box with spaces between:
 			//     --country=GER --war=GER:ENG --sail=ENG:10531 --run
 			// The box is handed over as one argument and the game cuts it at each " --".
@@ -119,6 +137,12 @@
 			"type": "promptString",
 			"description": "The tag of the country to play: GER, ENG, FRA, ITA, SOV, USA, JAP, or any other - or nothing, for the main menu. One the game does not have plays Germany.",
 			"default": ""
+		},
+		{
+			"id": "mod",
+			"type": "promptString",
+			"description": "The mod to play: the name of its .mod file in the install's tfh/mod, with or without .mod.",
+			"default": "BlackICE GitHub"
 		},
 		{
 			"id": "units",

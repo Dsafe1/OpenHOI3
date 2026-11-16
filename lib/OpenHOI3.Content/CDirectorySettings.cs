@@ -1,12 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using OpenHOI3.Content.Mods;
 
 namespace OpenHOI3.Content;
 
 /// <summary>
 /// Locates the player's Hearts of Iron 3 installation and turns the game-relative,
-/// backslash-separated paths found in script files into absolute ones.
+/// backslash-separated paths found in script files into absolute ones - through the
+/// mod played, where one is, laid over the install as the original lays it
+/// (<c>docs/mechanics/mods.md</c>).
+///
+/// The mod is part of the settings a game is made with and not of the process: a
+/// session is made with one of these, and another may be made with another mod.
 /// </summary>
 public sealed class CDirectorySettings
 {
@@ -29,15 +36,75 @@ public sealed class CDirectorySettings
 	/// lookup walks the layers and takes the first hit. The install root holds For the
 	/// Motherland; Their Finest Hour lives in <c>tfh/</c> and is what this project
 	/// targets, so reading the root alone silently produces the previous expansion's
-	/// interface.
+	/// interface. A mod's folder goes in front of them.
 	/// </summary>
-	private static readonly string[] Layers = { "tfh", "" };
+	private static readonly string[] InstallLayers = { "tfh", "" };
+
+	/// <summary>The player's folder of the base game, below the Documents folder.</summary>
+	private static readonly string[] DocumentsGameFolder = { "Paradox Interactive", "Hearts of Iron III" };
 
 	public string GameRoot { get; }
 
-	private CDirectorySettings(string gameRoot)
+	/// <summary>The mods laid over the install, front first - the order a lookup walks them; none for the base game.</summary>
+	public IReadOnlyList<CMod> Mods { get; }
+
+	/// <summary>
+	/// The base game's player folder, <c>Documents\Paradox Interactive\Hearts of Iron III</c> - or what <c>-userdir=</c>
+	/// gave - mod or none: the folder a mod's own is made below.
+	/// </summary>
+	public string DocumentsFolder { get; }
+
+	/// <summary>
+	/// The player's folder of what is played: the base game's <see cref="DocumentsFolder"/>, or below it the selected mods'
+	/// <c>user_dir</c>s joined with '_' where any has one. It is the original's write folder - the settings, the saves,
+	/// the message settings, the map cache, the logs - so everything that reads or writes one of those asks here.
+	/// </summary>
+	public string UserFolder { get; }
+
+	/// <summary>Every folder a game file is looked for in, highest priority first, absolute.</summary>
+	private readonly string[] _layers;
+
+	/// <summary>
+	/// For each folder a selected mod's <c>replace_path</c> names, exactly as written but '\' made '/': the last layer a
+	/// listed file's first copy may be in - the frontmost of the mods that name it.
+	/// </summary>
+	private readonly Dictionary<string, int> _replaceLimit;
+
+	private CDirectorySettings(string gameRoot, IReadOnlyList<CMod>? mods = null, string? documentsFolder = null)
 	{
 		GameRoot = gameRoot;
+		Mods = mods ?? Array.Empty<CMod>();
+		DocumentsFolder = documentsFolder ?? DefaultDocumentsFolder();
+		// Joined in the order they are mounted, the back first.
+		string joined = string.Join(CModRules.UserDirJoiner, Mods.Reverse().Select(m => m.UserDir).Where(d => d is { Length: > 0 }));
+		UserFolder = joined.Length > 0 ? Path.Combine(DocumentsFolder, joined.Replace('/', Path.DirectorySeparatorChar)) : DocumentsFolder;
+		var layers = new List<string>();
+		if (Mods.Count > 0 && CModRules.UserFolderIsLayer)
+		{
+			layers.Add(UserFolder);
+		}
+		_replaceLimit = new Dictionary<string, int>(CModRules.Comparer);
+		foreach (CMod mod in Mods)
+		{
+			if (mod.Folder is null)
+			{
+				continue;
+			}
+			layers.Add(mod.Folder);
+			if (CModRules.BackslashedPathDisablesReplace && mod.PathAsWritten?.Contains('\\') == true)
+			{
+				continue;
+			}
+			foreach (string replaced in mod.ReplacePaths)
+			{
+				_replaceLimit.TryAdd(replaced, layers.Count - 1);          // the frontmost mod naming it
+			}
+		}
+		foreach (string layer in InstallLayers)
+		{
+			layers.Add(layer.Length == 0 ? gameRoot : Path.Combine(gameRoot, layer));
+		}
+		_layers = layers.ToArray();
 	}
 
 	/// <summary>
@@ -48,6 +115,47 @@ public sealed class CDirectorySettings
 	public static CDirectorySettings At(string gameRoot)
 	{
 		return new CDirectorySettings(Path.GetFullPath(gameRoot));
+	}
+
+	/// <summary>
+	/// The install at a directory with mods laid over it, front first, or none; and the player's folder of the base game
+	/// somewhere else than the Documents folder's - <c>-userdir=</c>'s, or a fixture's.
+	/// </summary>
+	public static CDirectorySettings At(string gameRoot, IReadOnlyList<CMod>? mods, string? documentsFolder = null)
+	{
+		return new CDirectorySettings(Path.GetFullPath(gameRoot), mods, documentsFolder);
+	}
+
+	/// <summary>The same install with mods laid over it, front first - or with none.</summary>
+	public CDirectorySettings WithMods(IReadOnlyList<CMod> mods)
+	{
+		return new CDirectorySettings(GameRoot, mods, DocumentsFolder);
+	}
+
+	/// <summary>The same install with another base game's player folder: <c>-userdir=</c>'s.</summary>
+	public CDirectorySettings WithDocumentsFolder(string documentsFolder)
+	{
+		return new CDirectorySettings(GameRoot, Mods, documentsFolder);
+	}
+
+	/// <summary>
+	/// The same install with the mod a developer's name means laid over it - the file name of its <c>.mod</c>, with or
+	/// without the extension (<see cref="CModReader.VirtualPathFor"/>) - or null with the reason reported where no mod is
+	/// selected by it.
+	/// </summary>
+	public CDirectorySettings? WithMod(string name, Action<string>? warn = null)
+	{
+		IReadOnlyList<CMod> mods = CModReader.Select(GameRoot, DocumentsFolder,
+			new[] { CModReader.VirtualPathFor(GameRoot, DocumentsFolder, name) }, warn);
+		return mods.Count > 0 ? WithMods(mods) : null;
+	}
+	/// The base game's player folder on this machine, where the original keeps its settings, the message types the player
+	/// chose, the map cache and the saves (<c>docs/mechanics/ingamemenu.md</c>, section 5).
+	/// </summary>
+	public static string DefaultDocumentsFolder()
+	{
+		string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+		return Path.Combine(documents, Path.Combine(DocumentsGameFolder));
 	}
 
 	/// <summary>
@@ -117,22 +225,46 @@ public sealed class CDirectorySettings
 	}
 
 	/// <summary>Absolute path in a specific layer, without checking existence.</summary>
-	private string InLayer(string layer, string normalised)
+	private string InLayer(int layer, string normalised)
 	{
-		return layer.Length == 0
-			? Path.Combine(GameRoot, normalised)
-			: Path.Combine(GameRoot, layer, normalised);
+		return Path.Combine(_layers[layer], normalised);
+	}
+
+	/// <summary>
+	/// A listed folder as the original compares it with a <c>replace_path</c>: '\' made '/' and nothing else - no slash
+	/// trimmed, no case folded (<i>confirmed</i>).
+	/// </summary>
+	private static string AsListed(string gameRelativeFolder)
+	{
+		return gameRelativeFolder.Replace('\\', '/');
+	}
+
+	/// <summary>
+	/// Whether a listed file whose first copy is in a layer is passed over: in a folder a selected mod's
+	/// <c>replace_path</c> names, a file is listed only where its first copy is in that mod or in front of it.
+	/// </summary>
+	private bool Hidden(int layer, string gameRelativeFolder)
+	{
+		return _replaceLimit.Count > 0 && _replaceLimit.TryGetValue(AsListed(gameRelativeFolder), out int limit) && layer > limit;
+	}
+
+	/// <summary>Whether a game-relative folder is one a selected mod's <c>replace_path</c> names, exactly.</summary>
+	public bool IsReplaced(string gameRelativeFolder)
+	{
+		return _replaceLimit.ContainsKey(AsListed(gameRelativeFolder));
 	}
 
 	/// <summary>
 	/// Absolute path for a game-relative one, preferring the highest priority layer
 	/// that actually has the file. Falls back to the base install path so callers can
-	/// still report a sensible location when nothing exists.
+	/// still report a sensible location when nothing exists. A file opened by its name
+	/// is never kept from the install by a <c>replace_path</c>: that rule is a listing's
+	/// alone, as in the original.
 	/// </summary>
 	public string Resolve(string gameRelative)
 	{
 		string normalised = Normalise(gameRelative);
-		foreach (string layer in Layers)
+		for (int layer = 0; layer < _layers.Length; layer++)
 		{
 			string candidate = InLayer(layer, normalised);
 			if (File.Exists(candidate) || Directory.Exists(candidate))
@@ -164,7 +296,7 @@ public sealed class CDirectorySettings
 		{
 			string preferred = normalised[..swapped] + PreferredExtension
 				+ normalised[(swapped + SwappedExtension.Length)..];
-			foreach (string layer in Layers)
+			for (int layer = 0; layer < _layers.Length; layer++)
 			{
 				string candidate = InLayer(layer, preferred);
 				if (File.Exists(candidate))
@@ -173,7 +305,7 @@ public sealed class CDirectorySettings
 				}
 			}
 		}
-		foreach (string layer in Layers)
+		for (int layer = 0; layer < _layers.Length; layer++)
 		{
 			string direct = InLayer(layer, normalised);
 			if (File.Exists(direct))
@@ -194,32 +326,95 @@ public sealed class CDirectorySettings
 	}
 
 	/// <summary>
-	/// Files matching a pattern across every layer.
-	///
-	/// A name present in more than one layer resolves to the highest priority copy, so
-	/// an expansion replacing a script does not leave the base version to be loaded as
-	/// well. The results are ordered base layer first, because the registries built
-	/// from them resolve conflicts by load order and the expansion has to win.
+	/// A game-relative folder in each layer, highest priority first, whether or not it exists. A caller that lists one
+	/// asks <see cref="MayList"/> of each file's first copy, so that a folder a mod replaces lists as it should.
 	/// </summary>
-	/// <summary>A game-relative folder in each layer, highest priority first, whether or not it exists.</summary>
 	public IEnumerable<string> LayerFolders(string gameRelativeDirectory)
 	{
 		string normalised = Normalise(gameRelativeDirectory);
-		foreach (string layer in Layers)
+		for (int layer = 0; layer < _layers.Length; layer++)
 		{
 			yield return InLayer(layer, normalised);
 		}
 	}
 
+	/// <summary>
+	/// The player's folder, then the same folder in each layer: where the saves are listed from - the original's whole
+	/// search path - the first being where one is written (<c>docs/mechanics/ingamemenu.md</c>, section 5). With a mod the
+	/// player's folder is the mod's.
+	/// </summary>
+	public IEnumerable<string> UserAndLayerFolders(string gameRelativeDirectory)
+	{
+		yield return Path.Combine(UserFolder, Normalise(gameRelativeDirectory));
+		foreach (string folder in LayerFolders(gameRelativeDirectory))
+		{
+			yield return folder;
+		}
+	}
+
+	/// <summary>
+	/// Whether a file whose first copy is in one of <see cref="LayerFolders"/>'s folders, by its index there, may be listed.
+	/// </summary>
+	public bool MayList(int layerIndex, string gameRelativeDirectory)
+	{
+		return !Hidden(layerIndex, gameRelativeDirectory);
+	}
+
+	/// <summary>
+	/// The original's whole search path, front first (<c>docs/mechanics/mods.md</c>, section 2): with mods, the player's
+	/// folder, each mod's folder and the install's layers - the base game's Documents folder not at all; without, the
+	/// Documents folder and then the install's layers. And for each folder a mod replaces, the last of them a listed file's
+	/// first copy may be in.
+	/// </summary>
+	public (string[] Mounts, IReadOnlyDictionary<string, int> ReplaceLimits) SearchPath()
+	{
+		var mounts = new List<string> { UserFolder };
+		var limits = new Dictionary<string, int>(CModRules.Comparer);
+		foreach (CMod mod in Mods)
+		{
+			if (mod.Folder is null)
+			{
+				continue;
+			}
+			mounts.Add(mod.Folder);
+			if (CModRules.BackslashedPathDisablesReplace && mod.PathAsWritten?.Contains('\\') == true)
+			{
+				continue;
+			}
+			foreach (string replaced in mod.ReplacePaths)
+			{
+				limits.TryAdd(replaced, mounts.Count - 1);
+			}
+		}
+		foreach (string layer in InstallLayers)
+		{
+			mounts.Add(layer.Length == 0 ? GameRoot : Path.Combine(GameRoot, layer));
+		}
+		return (mounts.ToArray(), limits);
+	}
+
+	/// <summary>Every selected mod's <c>replace_path</c> folders, front first, or none.</summary>
+	public IReadOnlyList<string> ReplacedFolders => Mods.SelectMany(m => m.ReplacePaths).ToList();
+
+	/// <summary>
+	/// Files matching a pattern across every layer.
+	///
+	/// A name present in more than one layer resolves to the highest priority copy, so
+	/// an expansion replacing a script does not leave the base version to be loaded as
+	/// well. The results are ordered base layer first, because the registries built
+	/// from them resolve conflicts by load order and the expansion has to win. In a
+	/// folder a mod replaces, a file is listed only where its first copy is that mod's
+	/// or in front of it.
+	/// </summary>
 	public string[] ListFiles(string gameRelativeDirectory, string searchPattern)
 	{
 		string normalised = Normalise(gameRelativeDirectory);
 		var chosen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		var layerOf = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-		for (int layerIndex = 0; layerIndex < Layers.Length; layerIndex++)
+		for (int layerIndex = 0; layerIndex < _layers.Length; layerIndex++)
 		{
-			string dir = InLayer(Layers[layerIndex], normalised);
+			string dir = InLayer(layerIndex, normalised);
 			if (!Directory.Exists(dir))
 			{
 				continue;
@@ -230,6 +425,16 @@ public sealed class CDirectorySettings
 				if (chosen.TryAdd(name, file))
 				{
 					layerOf[name] = layerIndex;
+				}
+			}
+		}
+		if (_replaceLimit.Count > 0)
+		{
+			foreach (string name in new List<string>(chosen.Keys))
+			{
+				if (Hidden(layerOf[name], gameRelativeDirectory))
+				{
+					chosen.Remove(name);
 				}
 			}
 		}
@@ -262,15 +467,21 @@ public sealed class CDirectorySettings
 	/// folders are free to hold files of the same name. The results are ordered by
 	/// that relative path, compared without regard to case, so the order does not
 	/// depend on which layer a file came from or on how the disk lists a folder.
+	///
+	/// Each folder is listed by its own <c>replace_path</c>: the original lists a folder's
+	/// subfolders with no replace test and then lists each, so replacing a folder does
+	/// not replace the folders inside it - which is why BlackICE names
+	/// <c>history\provinces</c> and each of its subfolders.
 	/// </summary>
 	public LayeredFile[] ListFilesRecursive(string gameRelativeDirectory, string searchPattern)
 	{
 		string normalised = Normalise(gameRelativeDirectory);
-		var chosen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		string listed = AsListed(gameRelativeDirectory);
+		var chosen = new Dictionary<string, (string File, int Layer)>(StringComparer.OrdinalIgnoreCase);
 
-		foreach (string layer in Layers)
+		for (int layerIndex = 0; layerIndex < _layers.Length; layerIndex++)
 		{
-			string dir = InLayer(layer, normalised);
+			string dir = InLayer(layerIndex, normalised);
 			if (!Directory.Exists(dir))
 			{
 				continue;
@@ -278,18 +489,35 @@ public sealed class CDirectorySettings
 			foreach (string file in Directory.GetFiles(dir, searchPattern, SearchOption.AllDirectories))
 			{
 				string relative = Path.GetRelativePath(dir, file).Replace('\\', '/');
-				chosen.TryAdd(relative, file);            // the first layer to have it wins
+				chosen.TryAdd(relative, (file, layerIndex));            // the first layer to have it wins
 			}
 		}
 
-		var relatives = new List<string>(chosen.Keys);
+		var relatives = new List<string>();
+		foreach ((string relative, (string _, int layer)) in chosen)
+		{
+			int slash = relative.LastIndexOf('/');
+			if (!Hidden(layer, slash < 0 ? listed : listed + "/" + relative[..slash]))
+			{
+				relatives.Add(relative);
+			}
+		}
 		relatives.Sort(StringComparer.OrdinalIgnoreCase);
 
 		var result = new LayeredFile[relatives.Count];
 		for (int i = 0; i < relatives.Count; i++)
 		{
-			result[i] = new LayeredFile(relatives[i], chosen[relatives[i]]);
+			result[i] = new LayeredFile(relatives[i], chosen[relatives[i]].File);
 		}
 		return result;
 	}
+
+	/// <summary>A file's path relative to the install, written with '/', for a report: a mod's file begins with its folder.</summary>
+	public string Relative(string absolutePath)
+	{
+		return Path.GetRelativePath(GameRoot, absolutePath).Replace('\\', '/');
+	}
+
+	/// <summary>The layers' folders, highest priority first, for a report.</summary>
+	public IReadOnlyList<string> Layers => _layers;
 }

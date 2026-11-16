@@ -30,34 +30,18 @@ public static class CChecksumCheck
 			Console.Error.WriteLine("checksum: OpenHOI3.SaveCheck checksum <install> [mod name]");
 			return 2;
 		}
-		CDirectorySettings directories = CDirectorySettings.At(args[1]);
-		string userFolder = CUserSettingsReader.UserFolder();
-		string logFolder = userFolder;
-		CChecksumSearchPath search;
-		if (args.Length > 2)
+		// The mod as the second argument, as this command has always taken it, or as mod=<name> like the others.
+		CDirectorySettings? directories = CToolDirectories.Make(args[1], ref args);
+		if (directories is not null && args.Length > 2)
 		{
-			string modFile = Path.Combine(directories.GameRoot, "tfh", "mod", args[2] + ".mod");
-			if (!File.Exists(modFile))
-			{
-				Console.Error.WriteLine($"checksum: there is no '{modFile}'");
-				return 2;
-			}
-			(string? modPath, string? modUser, List<string> replaced) = ReadMod(directories.GameRoot, userFolder, modFile);
-			if (modPath is null || modUser is null)
-			{
-				Console.Error.WriteLine($"checksum: '{modFile}' gives no path or no user_dir");
-				return 2;
-			}
-			var mounts = new List<string> { modUser, modPath };
-			mounts.AddRange(directories.LayerFolders("").Select(Path.GetFullPath));
-			mounts.Add(userFolder);
-			search = new CChecksumSearchPath(mounts, replaced, replaceLimit: 1);
-			logFolder = modUser;
+			directories = CToolDirectories.WithMod(directories, args[2]);
 		}
-		else
+		if (directories is null)
 		{
-			search = CChecksumSearchPath.ForInstall(directories, userFolder);
+			return 2;
 		}
+		CChecksumSearchPath search = CChecksumSearchPath.For(directories);
+		string logFolder = directories.UserFolder;
 
 		var clock = Stopwatch.StartNew();
 		(int checksum, int files) = CFileChecksum.Compute(search);
@@ -89,36 +73,5 @@ public static class CChecksumCheck
 		bool same = theirs == ours.Trim();
 		Console.WriteLine(same ? "the same" : "they differ - a summed file may have changed since the original last started");
 		return same ? 0 : 1;
-	}
-
-	/// <summary>A .mod file's folder, its user folder and the folders it replaces, '/' for '\'.</summary>
-	private static (string? Path, string? User, List<string> Replaced) ReadMod(string gameRoot, string userFolder, string modFile)
-	{
-		string? path = null;
-		string? user = null;
-		var replaced = new List<string>();
-		foreach (string line in File.ReadLines(modFile, Encoding.Latin1))
-		{
-			int equals = line.IndexOf('=');
-			if (equals < 0)
-			{
-				continue;
-			}
-			string key = line[..equals].Trim();
-			string value = line[(equals + 1)..].Trim().Trim('"');
-			switch (key)
-			{
-				case "path":
-					path = System.IO.Path.Combine(gameRoot, value.Replace('/', System.IO.Path.DirectorySeparatorChar));
-					break;
-				case "user_dir":
-					user = System.IO.Path.Combine(userFolder, value);
-					break;
-				case "replace_path":
-					replaced.Add(value.Replace('\\', '/'));
-					break;
-			}
-		}
-		return (path, user, replaced);
 	}
 }

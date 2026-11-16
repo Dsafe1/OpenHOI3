@@ -7,27 +7,20 @@ namespace OpenHOI3.Content.Settings;
 
 /// <summary>
 /// Reads the player's <c>settings.txt</c> from <c>Documents\Paradox Interactive\Hearts of Iron III</c> - the one the
-/// original writes, and not the one beside its executable. <see cref="CUserSettingsWriter"/> writes it back. See
-/// <c>docs/mechanics/settings.md</c>.
+/// original writes, and not the one beside its executable - or from a mod's own folder below it, where a mod is played.
+/// <see cref="CUserSettingsWriter"/> writes it back. See <c>docs/mechanics/settings.md</c>.
 /// </summary>
 public static class CUserSettingsReader
 {
 	public const string FileName = "settings.txt";
 
-	/// <summary>Where the original keeps the player's settings: its folder under the Documents folder.</summary>
-	public static string DefaultPath()
-	{
-		return System.IO.Path.Combine(UserFolder(), FileName);
-	}
-
 	/// <summary>
-	/// The player's folder of the base game, where the original keeps its settings, the message types the player chose
-	/// and the saves (<c>docs/mechanics/ingamemenu.md</c>, section 5). A mod's is its own; no mod is played yet.
+	/// Where the original keeps the player's settings: the player's folder of what is played
+	/// (<see cref="CDirectorySettings.UserFolder"/>), the base game's or a mod's.
 	/// </summary>
-	public static string UserFolder()
+	public static string DefaultPath(CDirectorySettings directories)
 	{
-		string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-		return System.IO.Path.Combine(documents, "Paradox Interactive", "Hearts of Iron III");
+		return System.IO.Path.Combine(directories.UserFolder, FileName);
 	}
 
 	/// <summary>The settings in a file, or the defaults where there is none; anything not supported is reported.</summary>

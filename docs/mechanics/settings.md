@@ -6,7 +6,9 @@ file the original writes as it is played - **not** the one shipped beside its ex
 it** by his word of 2026-11-04 (`docs/compatibility.md`, entry 13): by the game options window's Apply (`gameoptions.md`)
 and as a session ends, the original writing it every time a game is left (`CUserSettingsWriter`). With no file, the
 original's defaults stand. The same folder holds the player's message settings, `messagetypes_custom.txt`, which the
-in-game menu writes too (`ingamemenu.md`, section 5). Read out of the original
+in-game menu writes too (`ingamemenu.md`, section 5). **With a mod both are the mod's player folder's**,
+`...\Hearts of Iron III\<user_dir>`, the original's write folder then (`mods.md`, section 2; compatibility entry 13 says
+where the original's reading falls through and this does not). Read out of the original
 (`reversing/findings/FINDINGS-settingswindow.md`, sections B and C) and set against the maintainer's file.
 
 ## 1. What is read

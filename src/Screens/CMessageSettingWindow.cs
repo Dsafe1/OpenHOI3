@@ -83,7 +83,7 @@ public sealed partial class CMessageSettingWindow : Control
 		_type.Popup = Ticked("popup_button", _type.Popup);
 		_type.OnMap = Ticked("onmap_button", _type.OnMap);
 		_type.PausePopup = Ticked("pause_button", _type.PausePopup);
-		_context.MessageTypes.WriteCustom(CGuiContext.MessageTypesPath);
+		_context.MessageTypes.WriteCustom(_context.MessageTypesPath);
 		QueueFree();
 	}
 }

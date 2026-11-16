@@ -42,7 +42,7 @@ public sealed class CFrontEndContent
 	public static async Task<CFrontEndContent> Load(CLoadingScreen screen, CDirectorySettings directories, CMapSurfaceKeeper surfaces)
 	{
 		var clock = Stopwatch.StartNew();
-		CUserSettings settings = CUserSettingsReader.Read(CUserSettingsReader.DefaultPath());
+		CUserSettings settings = CUserSettingsReader.Read(CUserSettingsReader.DefaultPath(directories));
 		// What no game changes is read once a run and kept for every front end after the first: each line is still
 		// shown, as the steps the pictures are timed by (loadingscreen.md, section 3). What a game takes as its own - the
 		// countries, the AI's Lua and the world - is read anew every time.
@@ -113,7 +113,7 @@ public sealed class CFrontEndContent
 			return kept.Checksum;
 		}
 		var clock = Stopwatch.StartNew();
-		(int checksum, int files) = CFileChecksum.Compute(CChecksumSearchPath.ForInstall(directories, CUserSettingsReader.UserFolder()));
+		(int checksum, int files) = CFileChecksum.Compute(CChecksumSearchPath.For(directories));
 		GD.Print($"Checksum is {CFileChecksum.VersionName} ({CFileChecksum.Letters(checksum)})    {checksum}, "
 			+ $"{files} files in {clock.ElapsedMilliseconds} ms.");
 		_checksum = (directories.GameRoot, checksum);
