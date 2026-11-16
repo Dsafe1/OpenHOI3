@@ -85,6 +85,13 @@ public partial class Main : Control
 			Debug.CShaderCompileCheck.Run(shaderCheck[Debug.CShaderCompileCheck.Switch.Length..], GetTree());
 			return;
 		}
+		if (CSession.UserArguments().FirstOrDefault(a => a.StartsWith(Debug.CTextureCheck.Switch)) is { } textureCheck)
+		{
+			string? textureOut = CSession.UserArguments().FirstOrDefault(a => a.StartsWith(Debug.CTextureCheck.OutSwitch));
+			Debug.CTextureCheck.Run(textureCheck[Debug.CTextureCheck.Switch.Length..],
+				textureOut?[Debug.CTextureCheck.OutSwitch.Length..], GetTree());
+			return;
+		}
 
 		CDirectorySettings? directories = FindInstall();
 		if (directories is null)

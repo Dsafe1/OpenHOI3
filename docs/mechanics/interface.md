@@ -288,6 +288,61 @@ files, with nothing in it placed by hand.
 
   *Ours:* a name no layer has under either extension is then tried with the others,
   `.png` among them, where the original reports the file missing and draws nothing.
+- **A file found is read by what it holds, not by its name.** `likely`: the original
+  loads its textures through D3DX, which goes by a file's content, and draws every picture
+  of BlackICE's below - kinds Their Finest Hour has none of but two small odd-sized DXT3s,
+  so they were not met before BlackICE was played (2026-11-16). BlackICE names 11 TGAs `.dds` - the SS small counters
+  and one leader counter - and three JPEGs `.tga`. So `CTextureSniffer`
+  (`lib/OpenHOI3.Content/Textures`) tells a DDS, a PNG, a JPEG and a BMP by the mark each
+  begins with, and a TGA, which has none, by a header whose every field a TGA can have;
+  anything else is reported and drawn as nothing. **Which decoder reads it is then decided
+  from its header, before any is asked**, so that Godot's own is never handed a file it
+  would refuse or misread and has nothing to warn of (`CTextureManager`):
+  - *Godot's own*, as it always was, for a DDS in DXT1, DXT3 or DXT5 of whole 4 by 4
+    blocks or of 24 or 32 bits a pixel, a TGA, a PNG, a JPEG and a BMP - with the three
+    things done to a DDS before or after it that the map needed: a DXT1 with see-through
+    texels decoded here (`mapdraw.md`, section 6), a DDS whose chain of smaller copies is
+    short read for its full size alone, and a compressed picture whose size is not a power
+    of two set to its nearest colours of five, six and five bits (`CRecompression`; ibid.).
+    Every texture of Their Finest Hour's but two goes this way, and comes out as before.
+  - *Ours*, `OpenHOI3.Content.Textures`, the image handed to Godot whole and its smaller
+    copies made again where the file had a chain:
+    - **an uncompressed DDS of 8 or 16 bits a pixel** (`CMaskedPixels`), by the masks its
+      pixel format gives and never a guess at the layout - BlackICE's 995 counters and
+      icons are A1R5G5B5 and its 16 cut-unit counters A4R4G4B4, and 565, X1R5G5B5 and
+      X4R4G4B4 are read the same way. A channel of fewer than eight bits is widened by
+      repeating its bits from the top, as Direct3D widens one; grey comes from the red
+      mask, a format of alpha alone is black, and alpha comes from its mask only where the
+      format says it has alpha, so an X format is solid. Godot read the 1555 files short,
+      "Reading less data than requested", and the 4444 ones itself;
+    - **an 8-bit palette** - BlackICE's `intel_tab_ministers` and `intel_tab_production`:
+      256 entries after the header, red, green, blue and a fourth byte taken for alpha, as
+      Direct3D 9 takes a palette entry's flags; the one entry of each of the two with a
+      nought there is white and clear;
+    - **a DXT1 to DXT5 picture whose width or height is not a whole number of blocks**
+      (`CDxtBlocks`) - 32 of BlackICE's: 23 DXT1s, every one with see-through texels and
+      so decoded here already, and 9 DXT3s, `selected_brigade_red1` (291 by 27) and
+      `cgm_diplo_bg` (431 by 250) among them, two of them Their Finest Hour's own
+      `combat_divider` (2 by 128) and `tech_level_circle` (1 by 1). The header's linear
+      size is right for the real size; Godot works it out otherwise, refused five of the
+      nine and warned over the other four. Decoded block by block, the texels past the edge left out, rather than the
+      header widened to the next whole block and the picture cropped back: that would
+      still hand Godot a file outside the format's rule and a crop of a compressed image
+      unpacks it anyway, where a decoder of our own is a few lines beside the see-through
+      DXT1's, takes nothing from Godot and is tested as plain .NET. A colour is widened
+      and the thirds worked as for the see-through DXT1; DXT3's and DXT5's colour blocks
+      always have four colours. One whose size is not a power of two is then set to its
+      nearest colours as Godot's are - the same reasoning, D3DX compressing it afresh;
+    - **a colour-mapped TGA whose map is not of 24 bits** (`CTgaDecoder`) - BlackICE's
+      portrait `L600780`, whose map is of 32, which Godot's loader refuses.
+  `--texturecheck=folder` reads every `.dds`, `.tga` and `.png` under a folder this way and
+  prints each that fails, with the reason, each that Godot logs anything over, and the
+  counts; `--textureout=folder` beside it writes each picture read as a PNG to look at. On
+  2026-11-16 BlackICE's 45,846 were read, where 22 had failed and 999 had Godot warn, and
+  the install's 22,089 and Their Finest Hour's 374 as before, the two odd DXT3s with no
+  warning now. *Inferred*, not measured: that our thirds give the GPU's colours to the
+  unit in the two Their Finest Hour DXT3s, which Godot left compressed for the GPU - 27 of
+  `combat_divider`'s 256 texels are thirds.
 - **A frame is the texture's width divided by `noOfFrames`.** `confirmed` as the
   declaration; so a sharper texture needs no change to any file. *Ours:* frames are worked
   in fractions of the texture throughout.

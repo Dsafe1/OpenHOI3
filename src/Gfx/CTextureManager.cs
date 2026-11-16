@@ -3,16 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using Godot;
 using OpenHOI3.Content;
+using OpenHOI3.Content.Textures;
 
 namespace OpenHOI3.Gfx;
 
 /// <summary>
 /// Loads game textures on demand and keeps them cached by absolute path.
 ///
-/// The art ships as DDS, so this depends on Godot's runtime DDS decoder. A hand
-/// written reader covers uncompressed 32-bit DDS as a fallback, because that variant
-/// has historically been the patchiest part of DDS support and roughly every front
-/// end texture uses it.
+/// A file is read by what it holds, whatever its name says, as the original's D3DX reads it (<see cref="CTextureSniffer"/>),
+/// and which decoder takes it is decided from its header before any is asked: Godot's own for what it reads - a DDS in
+/// DXT1, DXT3 or DXT5 of whole blocks or of 24 or 32 bits a pixel, a TGA, a PNG, a JPEG, a BMP - and
+/// <c>OpenHOI3.Content.Textures</c> for the rest, the image then handed to Godot: a DDS of fewer bits, a palette or blocks
+/// running past its edge, and a TGA whose colour map is not of 24 bits (<c>docs/mechanics/interface.md</c>, section 5).
+/// A hand written reader covers uncompressed 32-bit DDS as a fallback where Godot's refuses one.
 /// </summary>
 public sealed class CTextureManager
 {
@@ -105,20 +108,15 @@ public sealed class CTextureManager
 
 	private static bool IsDxt1OrDxt5(string absolutePath)
 	{
-		if (!absolutePath.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
-		{
-			return false;
-		}
 		try
 		{
 			using FileStream stream = File.OpenRead(absolutePath);
-			var header = new byte[88];
+			var header = new byte[CDdsHeader.Size];
 			if (stream.Read(header, 0, header.Length) < header.Length)
 			{
 				return false;
 			}
-			uint fourCc = BitConverter.ToUInt32(header, 84);
-			return fourCc is 0x31545844 or 0x35545844;   // the file's format code, "DXT1" or "DXT5"
+			return CDdsHeader.Parse(header)?.FourCc is "DXT1" or "DXT5";
 		}
 		catch (IOException)
 		{
@@ -141,6 +139,12 @@ public sealed class CTextureManager
 		return LoadImageAbsolute(absolute);
 	}
 
+	/// <summary>
+	/// A file read as a texture is read, with no cache and nothing looked for through the layers; null with the reason
+	/// warned where it cannot be. For <c>--texturecheck=</c> (<see cref="Debug.CTextureCheck"/>).
+	/// </summary>
+	public static Image? DecodeFile(string absolutePath) => LoadImageAbsolute(absolutePath);
+
 	private static Image? LoadImageAbsolute(string absolutePath)
 	{
 		byte[] bytes;
@@ -154,36 +158,126 @@ public sealed class CTextureManager
 			return null;
 		}
 
+		switch (CTextureSniffer.Sniff(bytes))
+		{
+			case ETextureFormat.Dds:
+				return LoadDds(bytes, absolutePath);
+			case ETextureFormat.Tga:
+				return CTgaHeader.Parse(bytes) is { IsColourMapped: true, ColourMapEntryBits: not 24 }
+					? Decoded(() => CTgaDecoder.Decode(bytes), absolutePath, mipmaps: false)
+					: ByGodot(image => image.LoadTgaFromBuffer(bytes), absolutePath);
+			case ETextureFormat.Png:
+				return ByGodot(image => image.LoadPngFromBuffer(bytes), absolutePath);
+			case ETextureFormat.Jpeg:
+				return ByGodot(image => image.LoadJpgFromBuffer(bytes), absolutePath);
+			case ETextureFormat.Bmp:
+				return ByGodot(image => image.LoadBmpFromBuffer(bytes), absolutePath);
+			default:
+				CDiagnostics.Warn($"Could not decode '{absolutePath}': it is not a DDS, TGA, PNG, JPEG or BMP");
+				return null;
+		}
+	}
+
+	/// <summary>A picture Godot's own loader reads, or null with the error warned.</summary>
+	private static Image? ByGodot(Func<Image, Error> load, string absolutePath)
+	{
 		var image = new Image();
-		string extension = Path.GetExtension(absolutePath).ToLowerInvariant();
-		if (extension == ".dds" && LoadSeeThroughDxt1(bytes) is { } seeThrough)
-		{
-			return seeThrough;
-		}
-		if (extension == ".dds" && ShortMipChain(bytes) && LoadTopLevelDds(bytes) is { } top)
-		{
-			return top;
-		}
-		Error error = extension switch
-		{
-			".dds" => image.LoadDdsFromBuffer(bytes),
-			".tga" => image.LoadTgaFromBuffer(bytes),
-			".png" => image.LoadPngFromBuffer(bytes),
-			_ => Error.FileUnrecognized,
-		};
-
-		if (error != Error.Ok && absolutePath.EndsWith(".dds", StringComparison.OrdinalIgnoreCase))
-		{
-			image = LoadUncompressedDds(bytes) ?? LoadTopLevelDds(bytes) ?? image;
-			error = image.IsEmpty() ? error : Error.Ok;
-		}
-
+		Error error = load(image);
 		if (error != Error.Ok || image.IsEmpty())
 		{
 			CDiagnostics.Warn($"Could not decode '{absolutePath}' ({error})");
 			return null;
 		}
-		return extension == ".dds" ? AsRecompressed(image) : image;
+		return image;
+	}
+
+	/// <summary>
+	/// A picture decoded by <c>OpenHOI3.Content.Textures</c>, handed to Godot as an image, its smaller copies made where the
+	/// file had a chain of them; null with the reason warned where it cannot be decoded.
+	/// </summary>
+	private static Image? Decoded(Func<CDecodedImage> decode, string absolutePath, bool mipmaps, bool recompressed = false)
+	{
+		CDecodedImage decoded;
+		try
+		{
+			decoded = decode();
+		}
+		catch (InvalidDataException e)
+		{
+			CDiagnostics.Warn($"Could not decode '{absolutePath}': {e.Message}");
+			return null;
+		}
+		if (recompressed)
+		{
+			CRecompression.ToNearest565(decoded.Rgba);
+		}
+		Image image = Image.CreateFromData(decoded.Width, decoded.Height, false, Image.Format.Rgba8, decoded.Rgba);
+		if (mipmaps)
+		{
+			image.GenerateMipmaps();
+		}
+		return image;
+	}
+
+	/// <summary>
+	/// A DDS file. A DXT1 with see-through texels, and every format Godot's decoder does not read - a block compression
+	/// whose size is not a whole number of blocks, an uncompressed picture of fewer than 24 bits a pixel, a palette - are
+	/// decoded here, the odd-sized compressed ones set to their nearest colours where their size is not a power of two as
+	/// <see cref="AsRecompressed"/> sets Godot's. The rest go to Godot's decoder as they always have, so that a file Godot
+	/// would refuse or misread is never handed to it and it has nothing to warn of (<c>docs/mechanics/interface.md</c>,
+	/// section 5).
+	/// </summary>
+	private static Image? LoadDds(byte[] bytes, string absolutePath)
+	{
+		if (CDdsHeader.Parse(bytes) is not { } header)
+		{
+			CDiagnostics.Warn($"Could not decode '{absolutePath}': the file ends inside its DDS header");
+			return null;
+		}
+		if (LoadSeeThroughDxt1(bytes, header) is { } seeThrough)
+		{
+			return seeThrough;
+		}
+		if (!GodotReads(header))
+		{
+			return Decoded(() => CDdsDecoder.Decode(bytes, header), absolutePath, header.HasMipmaps,
+				recompressed: header.IsBlockCompressed && CRecompression.Applies(header.Width, header.Height));
+		}
+		if (ShortMipChain(bytes) && LoadTopLevelDds(bytes) is { } top)
+		{
+			return top;
+		}
+		var image = new Image();
+		Error error = image.LoadDdsFromBuffer(bytes);
+		if (error != Error.Ok)
+		{
+			image = LoadUncompressedDds(bytes) ?? LoadTopLevelDds(bytes) ?? image;
+			error = image.IsEmpty() ? error : Error.Ok;
+		}
+		if (error != Error.Ok || image.IsEmpty())
+		{
+			CDiagnostics.Warn($"Could not decode '{absolutePath}' ({error})");
+			return null;
+		}
+		return AsRecompressed(image);
+	}
+
+	/// <summary>
+	/// Whether a DDS goes to Godot's own decoder: DXT1, DXT3 or DXT5 of whole blocks, an uncompressed picture of 24 or 32
+	/// bits a pixel, and whatever this project does not read - a cube map, a volume, another compression. Every texture
+	/// of Their Finest Hour's but two of its own odd-sized DXT3s.
+	/// </summary>
+	private static bool GodotReads(CDdsHeader header)
+	{
+		if (!CDdsDecoder.Reads(header))
+		{
+			return true;
+		}
+		if (header.IsBlockCompressed)
+		{
+			return header.FourCc is "DXT1" or "DXT3" or "DXT5" && header.IsWholeBlocks;
+		}
+		return (header.PixelFlags & CDdsHeader.PaletteIndexed8) == 0 && header.RgbBitCount >= 24;
 	}
 
 	/// <summary>
@@ -198,8 +292,7 @@ public sealed class CTextureManager
 	/// </summary>
 	private static Image AsRecompressed(Image image)
 	{
-		static bool PowerOfTwo(int n) => n > 0 && (n & (n - 1)) == 0;
-		if (!image.IsCompressed() || PowerOfTwo(image.GetWidth()) && PowerOfTwo(image.GetHeight()))
+		if (!image.IsCompressed() || !CRecompression.Applies(image.GetWidth(), image.GetHeight()))
 		{
 			return image;
 		}
@@ -211,126 +304,43 @@ public sealed class CTextureManager
 		image.ClearMipmaps();
 		image.Convert(Image.Format.Rgba8);
 		byte[] pixels = image.GetData();
-		for (int at = 0; at + 3 < pixels.Length; at += 4)
-		{
-			pixels[at] = Nearest(pixels[at], 5);
-			pixels[at + 1] = Nearest(pixels[at + 1], 6);
-			pixels[at + 2] = Nearest(pixels[at + 2], 5);
-		}
+		CRecompression.ToNearest565(pixels);
 		var recompressed = Image.CreateFromData(image.GetWidth(), image.GetHeight(), false, Image.Format.Rgba8, pixels);
 		if (mipmaps)
 		{
 			recompressed.GenerateMipmaps();
 		}
 		return recompressed;
+	}
 
-		// A channel to the nearest value of so many bits, widened again by repeating its high bits, as a decoder widens it.
-		static byte Nearest(byte value, int bits)
+	/// <summary>
+	/// A DXT1 file some of whose texels are see-through - a block of three colours whose fourth code is "nothing" - decoded
+	/// as Direct3D decodes it, those texels black with no alpha, where Godot's decoder takes DXT1 as colour alone and makes
+	/// every texel solid (<see cref="CDxtBlocks"/>). The map's <c>stripes.dds</c> is one: what the province shaders read as
+	/// how much of the second colour a point takes is that alpha (<c>docs/mechanics/mapdraw.md</c>, section 6). Null for any
+	/// other file, which goes on to the other decoders.
+	/// </summary>
+	private static Image? LoadSeeThroughDxt1(byte[] bytes, CDdsHeader header)
+	{
+		if (header.FourCc != "DXT1" || header.Width <= 0 || header.Height <= 0
+			|| bytes.Length < CDdsHeader.Size + CDxtBlocks.LevelBytes(header.Width, header.Height, 8)
+			|| !CDxtBlocks.HasSeeThroughTexels(bytes.AsSpan(CDdsHeader.Size), header.Width, header.Height))
 		{
-			int levels = (1 << bits) - 1;
-			int q = (value * levels + 127) / 255;
-			return (byte)(q << (8 - bits) | q >> (2 * bits - 8));
+			return null;
 		}
+		CDecodedImage decoded = CDxtBlocks.Decode(bytes.AsSpan(CDdsHeader.Size), header.Width, header.Height, "DXT1");
+		Image image = Image.CreateFromData(decoded.Width, decoded.Height, false, Image.Format.Rgba8, decoded.Rgba);
+		if (header.HasMipmaps)
+		{
+			image.GenerateMipmaps();
+		}
+		return image;
 	}
 
 	/// <summary>
 	/// A DDS whose chain of smaller copies stops short of one pixel - the original's map/terrain/base.dds keeps five of
 	/// ten, which Godot's decoder refuses - read for its full-size picture alone, its smaller copies made again here.
 	/// </summary>
-	/// <summary>
-	/// A DXT1 file some of whose texels are see-through - a block of three colours whose fourth code is "nothing" - decoded
-	/// as Direct3D decodes it, those texels black with no alpha, where Godot's decoder takes DXT1 as colour alone and makes
-	/// every texel solid. The map's <c>stripes.dds</c> is one: what the province shaders read as how much of the second
-	/// colour a point takes is that alpha (<c>docs/mechanics/mapdraw.md</c>, section 6). Null for any other file, which
-	/// Godot's decoder takes as it is.
-	/// </summary>
-	private static Image? LoadSeeThroughDxt1(byte[] bytes)
-	{
-		const int HeaderSize = 128;
-		if (bytes.Length <= HeaderSize || BitConverter.ToUInt32(bytes, 0) != 0x20534444
-			|| System.Text.Encoding.ASCII.GetString(bytes, 84, 4) != "DXT1")
-		{
-			return null;
-		}
-		int height = BitConverter.ToInt32(bytes, 12);
-		int width = BitConverter.ToInt32(bytes, 16);
-		int across = Math.Max(1, (width + 3) / 4), down = Math.Max(1, (height + 3) / 4);
-		if (width <= 0 || height <= 0 || bytes.Length < HeaderSize + across * down * 8)
-		{
-			return null;
-		}
-		bool seeThrough = false;
-		for (int block = 0; block < across * down && !seeThrough; block++)
-		{
-			int at = HeaderSize + block * 8;
-			if (BitConverter.ToUInt16(bytes, at) > BitConverter.ToUInt16(bytes, at + 2))
-			{
-				continue;
-			}
-			uint codes = BitConverter.ToUInt32(bytes, at + 4);
-			for (int texel = 0; texel < 16 && !seeThrough; texel++)
-			{
-				seeThrough = (codes >> (2 * texel) & 3) == 3;
-			}
-		}
-		if (!seeThrough)
-		{
-			return null;
-		}
-		var pixels = new byte[width * height * 4];
-		Span<uint> palette = stackalloc uint[4];
-		for (int by = 0; by < down; by++)
-		{
-			for (int bx = 0; bx < across; bx++)
-			{
-				int at = HeaderSize + (by * across + bx) * 8;
-				ushort c0 = BitConverter.ToUInt16(bytes, at), c1 = BitConverter.ToUInt16(bytes, at + 2);
-				(int r0, int g0, int b0) = Expand(c0);
-				(int r1, int g1, int b1) = Expand(c1);
-				palette[0] = Pack(r0, g0, b0, 255);
-				palette[1] = Pack(r1, g1, b1, 255);
-				if (c0 > c1)
-				{
-					palette[2] = Pack((2 * r0 + r1) / 3, (2 * g0 + g1) / 3, (2 * b0 + b1) / 3, 255);
-					palette[3] = Pack((r0 + 2 * r1) / 3, (g0 + 2 * g1) / 3, (b0 + 2 * b1) / 3, 255);
-				}
-				else
-				{
-					palette[2] = Pack((r0 + r1) / 2, (g0 + g1) / 2, (b0 + b1) / 2, 255);
-					palette[3] = 0;
-				}
-				uint codes = BitConverter.ToUInt32(bytes, at + 4);
-				for (int texel = 0; texel < 16; texel++)
-				{
-					int x = bx * 4 + texel % 4, y = by * 4 + texel / 4;
-					if (x >= width || y >= height)
-					{
-						continue;
-					}
-					uint colour = palette[(int)(codes >> (2 * texel) & 3)];
-					int o = (y * width + x) * 4;
-					pixels[o] = (byte)colour;
-					pixels[o + 1] = (byte)(colour >> 8);
-					pixels[o + 2] = (byte)(colour >> 16);
-					pixels[o + 3] = (byte)(colour >> 24);
-				}
-			}
-		}
-		Image image = Image.CreateFromData(width, height, false, Image.Format.Rgba8, pixels);
-		if (BitConverter.ToInt32(bytes, 28) > 1)
-		{
-			image.GenerateMipmaps();
-		}
-		return image;
-
-		static (int R, int G, int B) Expand(ushort c)
-		{
-			int r = c >> 11 & 31, g = c >> 5 & 63, b = c & 31;
-			return (r << 3 | r >> 2, g << 2 | g >> 4, b << 3 | b >> 2);
-		}
-
-		static uint Pack(int r, int g, int b, int a) => (uint)(r | g << 8 | b << 16 | a << 24);
-	}
 
 	private static bool ShortMipChain(byte[] bytes)
 	{

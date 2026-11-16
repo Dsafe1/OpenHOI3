@@ -3149,6 +3149,8 @@ lib/OpenHOI3.Content/   reading an install: finding and layering it, localisatio
     Sound/              the sound effects of interface/sound.sfx
     Shaders/            the original's effect files: the preprocessor, the parser, the syntax tree and the writer
                         that translates each pass of a technique into a Godot shader
+    Textures/           a picture's file told by its content; DDS and TGA headers, and the decoders for what
+                        Godot's do not read - 8- and 16-bit and palette DDS, odd-sized DXT, colour-mapped TGA
 lib/OpenHOI3.Interface/ what the screens show, with no engine: sliders and placement at its root
     BattlePlans/        the plans kept, the tools and the mouse, an arrow's mesh, what the window says
     Text/               colour escapes, number formats, templates, breaking and placing lines
