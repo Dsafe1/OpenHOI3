@@ -83,20 +83,38 @@ public static class COfficers
 	}
 
 	/// <summary>
-	/// The units a country's count takes, the original's <c>CCountry::RecountUnitTotals</c>: its own with no lender, and those
-	/// lent to it by a member of its own faction - so a unit lent to a country outside the lender's faction is counted by
-	/// neither. The United States, lending the Phillippine Force to the Philippines at a new game's third hour, needs 300
-	/// officers fewer until its three new armies' headquarters bring the need back (reversing/findings/FINDINGS-liveread.md,
-	/// section 79).
+	/// The units a country's count takes, the original's <c>CCountry::RecountUnitTotals</c>: those in its own list that are not
+	/// on loan to it, and those it has lent to another member of its own faction, which stand in that member's list - so a
+	/// host counts nothing it holds on loan, and a unit lent outside the lender's faction is counted by neither. The United
+	/// States, lending the Phillippine Force to the Philippines at a new game's third hour, needs 300 officers fewer until its
+	/// three new armies' headquarters bring the need back; Japan, having lent 52 units to Manchukuo and Mengkukuo by July
+	/// 1941, counts their 18,090 (reversing/findings/FINDINGS-liveread.md, sections 79 and 107).
 	/// </summary>
 	private static System.Collections.Generic.IEnumerable<CUnit> Counted(CCountry country, CGameState? state)
 	{
 		foreach (CUnit unit in country.AllUnits())
 		{
-			if (unit.Lender is not { } lender
-				|| (state?.Country(lender) is { } from && country.Faction.Length > 0 && from.Faction == country.Faction))
+			if (unit.Lender is null)
 			{
 				yield return unit;
+			}
+		}
+		if (state is null || country.Faction.Length == 0)
+		{
+			yield break;
+		}
+		foreach (CCountry member in state.Countries)
+		{
+			if (member == country || member.Faction != country.Faction)
+			{
+				continue;
+			}
+			foreach (CUnit unit in member.AllUnits())
+			{
+				if (unit.Lender == country.Tag)
+				{
+					yield return unit;
+				}
 			}
 		}
 	}

@@ -38,13 +38,19 @@ hour - so an hour's organisation is worked out with the ratio the hour before le
 `confirmed`
 
 **A unit finished and not yet placed is counted too** (`buildqueue.md`, section 6).
-`confirmed`, and built. **A unit lent out is counted by neither country**, unless the two share a
-faction, when the one it is lent to counts it: the count takes a country's own units with no lender,
-then those lent to it by a member of its faction, then those waiting to be placed (`CCountry::RecountUnitTotals`).
-The United States lends the Phillippine Force to the Philippines at a new game's third hour and needs 300 officers
-fewer until its three new armies' headquarters bring the need back - its divisions' organisation in the hourly saves
-rises and falls back so, and does so here since 2026-11-14 (`confirmed` on the running game,
-`reversing/findings/FINDINGS-liveread.md`, section 79). This said the lender went on counting it.
+`confirmed`, and built. **A unit lent out is counted by its lender where the two share a faction, and by
+nobody where they do not**; the country it is lent to never counts it. The count takes the units in a country's own
+list that are not on loan to it, then those it has lent to the other members of its faction - which stand in their
+lists - then those waiting to be placed (`CCountry::RecountUnitTotals`). The United States lends the Phillippine Force
+to the Philippines, in no faction with it, at a new game's third hour and needs 300 officers fewer until its three new
+armies' headquarters bring the need back - its divisions' organisation in the hourly saves rises and falls back so
+(`confirmed` on the running game, `reversing/findings/FINDINGS-liveread.md`, section 79). And Japan, having lent 52
+units to Manchukuo and Mengkukuo by 16 July 1941, all three of the Axis, needs 56,360 officers, 18,090 of them for those
+units, where Manchukuo needs 2,460 and Mengkukuo 500 for their own alone - every one of the 102 countries' figures read
+on the running game the count's by this rule, and the listing's (`confirmed`, `reversing/findings/FINDINGS-liveread.md`,
+section 107). This said the lender went on counting it everywhere, and from 2026-11-14 to 2026-11-16 that the host
+counted it within a faction; so Japan stood at 1.400 where the original's is 1.188, and its tech minister, taking no
+leadership for officers above 1.39, asked for five more research slots.
 
 **Measured.** Taking each country's officers from the save over what its saved brigades
 call for gives the ratio every figure in section 7 is right with: 0.985 for Britain

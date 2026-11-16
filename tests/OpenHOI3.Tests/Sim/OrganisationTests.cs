@@ -171,6 +171,28 @@ public class OrganisationTests
 		Assert.Equal(CFixedPoint.Parse("0.75"), country.OfficerRatio);
 	}
 
+	[Fact]
+	public void ALentUnitIsCountedByItsLenderWithinItsFactionAndByNobodyOutsideIt()
+	{
+		// Japan's units lent to Manchukuo in July 1941 are Japan's to officer, and the Philippine Force lent by the
+		// United States, in no faction with it, nobody's (FINDINGS-liveread.md, sections 79 and 107).
+		CCountry lender = Germany();
+		lender.Faction = "axis";
+		var member = new CCountry { Tag = new CCountryTag("SLO"), Name = "Slovakia", DefinitionFile = "", Faction = "axis" };
+		var outsider = new CCountry { Tag = new CCountryTag("PHI"), Name = "Philippines", DefinitionFile = "" };
+		Brigade(Infantry(), Unit(lender));
+		Brigade(Infantry(), Unit(member)).Unit!.Lender = lender.Tag;
+		Brigade(Infantry(), Unit(member));
+		Brigade(Infantry(), Unit(outsider)).Unit!.Lender = lender.Tag;
+		CGameState state = State(new[] { lender, member, outsider });
+
+		COfficers.Update(state);
+
+		Assert.Equal(CFixedPoint.FromInt(200), lender.OfficersNeeded);
+		Assert.Equal(CFixedPoint.FromInt(100), member.OfficersNeeded);
+		Assert.Equal(CFixedPoint.Zero, outsider.OfficersNeeded);
+	}
+
 	// ---- the most organisation a brigade may have
 
 	[Fact]

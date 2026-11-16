@@ -733,19 +733,14 @@ Play (`frontend.md`, section 4).
   (`FINDINGS-savedbattle.md`, A.8); a side with no units loads here as it is written, and was not followed further.
 - **Expeditionary forces** - a unit one country has lent another, saved in the receiver's tree with
   `expeditionary_owner` (the lender) and `expeditionary_date` - were not built when this was written; they are since, and
-  the two keys are read (`expeditions.md`; the sweep of 2026-11-14 found neither reported). In the
-  Ireland game's saves of 6 September 1939, Japan has lent 20 divisions to Manchukuo and 6 to Mengjiang, and the United
-  States one to the Philippines; one hour on from `_18`, 540 of Japan's brigades' organisation differs from `_19`. The
-  saves' brigades are full at Japan's officer ratio of 1.024 where ours is 1.237, Manchukuo's and Mengjiang's lent ones at
-  that same 1.024, and the receivers' own at ratios of about 1.39 where ours are 0.33 and 0.56. Counting a lent
-  division's officers to its lender gives Japan 1.022, near but not the save's, and does not fit the United States, so how
-  the original counts a lent unit, and whose ratio holds its organisation, needs reading. The six saves of 23 May 1940,
-  an hour apart, add Britain's 2 divisions lent to France and Germany's 1 to Slovakia: in every hour from one to the
-  next, Germany's 531, Britain's 372 and France's about 300 brigades are held a little higher than the save's. `reversing/findings/FINDINGS-organisation.md`, section 1, has the
-  count's two words on it.
-  The twelve saves of 16 July 1941, an hour apart, have Germany's 7 divisions lent to Slovakia, and there Germany's
-  brigades stand a little *above* our ceiling (62.895 to 62.000 for its army's headquarters), where Japan's stand below
-  it - so neither "the lender counts them" nor "the receiver does" fits every case.
+  the two keys are read (`expeditions.md`; the sweep of 2026-11-14 found neither reported). ~~How the original counts a
+  lent unit's officers needs reading~~ - **read on 2026-11-16**: the lender counts it where the two share a faction, nobody
+  where they do not, and the host never (`organisation.md`, section 1; `reversing/findings/FINDINGS-liveread.md`, section
+  107). In the Ireland game's saves Japan has lent divisions to Manchukuo and Mengjiang, the United States one to the
+  Philippines, Britain two to France and Germany some to Slovakia; the host counting them within a faction, as built until
+  then, held Japan at 1.237 where the save's is 1.024, and one hour on from each save the brigades' organisation agreed
+  4,877 of 5,607 (6 September 1939), 4,142 of 6,024 (23 May 1940) and 2,027 of 2,932 (16 July 1941); with the lender
+  counting them, 5,533, 5,986 and 2,757.
 - ~~**Italy's ceiling of organisation in July 1941 is the officer ratio's times 1.05.**~~ It is the triggered modifier
   `veteran_army`, 250 land battles and more being +5% land organisation, the save giving Italy 251 (read in the running game,
   2026-11-10, `reversing/findings/FINDINGS-liveread.md`, section 5). Ours gives Italy that modifier on a load.
