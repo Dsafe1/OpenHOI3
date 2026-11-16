@@ -347,8 +347,10 @@ public static class CSaveLoader
 		province.Nationalism = CSaveValues.Fixed(node, "nationalism");
 		province.StrategicResource = node.Get("strategic_resource")?.Value?.Trim('"') ?? "";
 		ReadPool(province.Pool, node.Get("pool"));
-		// What it held when the pass last came to it is not saved; what it holds now stands for it (savegame.md, Ours).
-		province.LastPool.CopyFrom(province.Pool);
+		// What it held when the pass last came to it is not saved, and a loaded game starts with nothing there, as the
+		// original's does: the first midnight's carrying hands nothing on from one province to the next, so supplies reach
+		// the far end of a network a day after a load (savegame.md, section 4; FINDINGS-liveread.md, section 116).
+		province.LastPool.Clear();
 		ReadPool(province.CurrentProducing, node.Get("current_producing"));
 		ReadPool(province.MaxProducing, node.Get("max_producing"));
 		// What was asked of it and what passed through it, today and yesterday: the day's carrying works from yesterday's

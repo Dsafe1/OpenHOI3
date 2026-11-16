@@ -694,9 +694,15 @@ Play (`frontend.md`, section 4).
 - The top level's `id` is the game's own count of what it minted, where the original gathers the highest of what it
   holds (section 9).
 - The save's empty `PW_TEMPLATE_` templates are left out, as a new game here has none.
-- **What a province held when the supply pass last came to it is not saved**; a loaded province's is set to what it
-  holds now. With none, nothing passes on the first midnight; with this, organisation four hours on gains 50 brigades
-  (section 6).
+- **What a province held when the supply pass last came to it is not saved, and a loaded game starts with nothing
+  there, as the original's does**: the first midnight after a load hands nothing on from one province to the next, so a
+  network's far end gets its first delivery a night late. Seen 2026-11-16 on a recording of the original loading the July
+  1941 save (`reversing/findings/FINDINGS-liveread.md`, section 116): the Narvik network's northern provinces get
+  nothing the first night and the second night's deliveries are the ones OpenHOI3 had made a night early, and with
+  nothing there every one of its provinces is the original's on both nights. Until 2026-11-16 what a province holds
+  stood in for it. That was the better guess against two saves of one game played on without a load - organisation
+  four hours on from `Germany1936_01_07_22` to `_01_08_02` gives 3,490 brigades with it against 3,442 without (section
+  6) - because there the original had the real figures; a load here is the original's load.
 - **A side's `retreat` list is not held.** The original has one and saves it, but nothing in it puts a unit there but
   the loader (`reversing/findings/FINDINGS-savedbattle.md`, A.11): a unit falling back, by hand or beaten, leaves its
   side at once and marches with its own `retreat`, as here, so the list is empty in every game and no save holds one.
