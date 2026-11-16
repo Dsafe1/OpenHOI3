@@ -176,33 +176,34 @@ public static class CSeaTargets
 		(enemyLoad ? best?.EnemyFleets : best?.FriendlyFleets)?.Add(fleet);
 	}
 
-	/// <summary>Ours: the sea provinces on its side's convoys' ways last raided within a month, to every agent with a port near.</summary>
+	/// <summary>
+	/// The provinces of the finished battles that were raids on a convoy of our side - its defender a real country, not the
+	/// rebels, ourselves or under the same overlord, or fighting beside us and no enemy - ended within the month, each to every
+	/// agent with a port near it by an open way, once. The original's step 4 of <c>CEU3AI_AssignSeaTargetsToAgents</c>
+	/// (FINDINGS-moving.md, D.1; FINDINGS-liveread.md, section 115): a country whose own convoys nobody raided has none, so a
+	/// neutral's fleets do not go out on patrol over another's raided waters.
+	/// </summary>
 	private static void Raided(CGameState state, CCountry country, List<(CAgent Agent, CTheatre Theatre)> agents)
 	{
-		var waters = new List<int>();
-		foreach (CCountry friend in Fighters(state, country))
+		foreach (Combat.CFinishedCombat entry in state.CombatHistory.Entries)
 		{
-			foreach (CConvoy convoy in friend.Convoys)
+			if (entry.Kind != Combat.ECombatKind.Naval || !entry.IsConvoy || entry.Defender is not { } defender
+				|| defender.Value == Revolts.CRebelFactions.Rebels || entry.Hour + RaidMemory < state.TotalHours
+				|| !OnOurSide(state, country, defender))
 			{
-				foreach (int step in convoy.Path)
-				{
-					CProvince province = state.Province(step);
-					if (province.IsSea && province.LastConvoyAttackHour > CProvince.NoConvoyAttack
-						&& province.LastConvoyAttackHour + RaidMemory >= state.TotalHours && !waters.Contains(step))
-					{
-						waters.Add(step);
-					}
-				}
+				continue;
 			}
-		}
-		foreach (int water in waters)
-		{
+			int water = entry.Province;
 			foreach ((CAgent agent, CTheatre theatre) in agents)
 			{
+				if (agent.RaidedWaters.Contains(water))
+				{
+					continue;
+				}
 				foreach (int port in theatre.Ports)
 				{
 					long distance = Sea(state, water, port);
-					if (distance >= 0 && distance < FleetReach)
+					if (distance >= 0 && distance < FleetReach && CSealiftPickers.IsSeaRouteOpen(state, country, port, water))
 					{
 						agent.RaidedWaters.Add(water);
 						break;
@@ -210,6 +211,21 @@ public static class CSeaTargets
 				}
 			}
 		}
+	}
+
+	/// <summary>Ourselves, our overlord, its other subjects or ours; or a country fighting beside us that is no enemy.</summary>
+	private static bool OnOurSide(CGameState state, CCountry country, CCountryTag tag)
+	{
+		if (tag == country.Tag || country.Overlord == tag)
+		{
+			return true;
+		}
+		CCountry? other = state.Country(tag);
+		if (other?.Overlord == country.Tag || (country.Overlord is { } overlord && other?.Overlord == overlord))
+		{
+			return true;
+		}
+		return CCountryLists.FightingTogether(state, country.Tag, tag) && !CCountryLists.IsEnemy(state, country, tag);
 	}
 
 	/// <summary>The country and those fighting beside it.</summary>

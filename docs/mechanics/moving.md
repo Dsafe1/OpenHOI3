@@ -528,8 +528,11 @@ Once a day, at the country's hour (its number % 24), for the played country too,
 4. **Their fleets**, wherever they are: over each agent's ports within 2000 by sea of the fleet, the distances, the levels
    and their number, a level or more needed; the least `max((the ships handed it so far + the fleet's) / levels, 1) x
    distances / number` - a fifth where the theatre holds the country's capital - is handed the fleet.
-5. **The raided waters**: each sea province where the country's or a fellow fighter's convoy was raided within the last
-   month goes to every agent with a port within 2000 by sea.
+5. **The raided waters**: the province of each finished battle that was a raid on a convoy, its defender a real country
+   other than the rebels and on our side (ourselves, our overlord or its subjects, or fighting beside us and no enemy),
+   ended within the month, goes to every agent with a port within 2000 by sea and an open way to it, once
+   (`reversing/findings/FINDINGS-liveread.md`, section 115). A neutral whose convoys nobody raided has none, so it sends
+   no patrol over another country's raided waters.
 6. **Its own fleets** and its fellow fighters': each to the agent with the least mean distance from its ports - a fifth for
    the capital's theatre - **over its ports within 2000 by sea, with a naval base level or more among them**, as the enemy's
    (and 2000 itself within reach for both; `confirmed` on the listing, `reversing/findings/FINDINGS-liveread.md`, section 78).
@@ -960,8 +963,9 @@ months on) - at least three hours left, and the order ends then.
   lesser one it prepares war on a month after the plan; an invasion is over where the objective is held by someone the
   country is neither at war with nor fighting beside, the original asking whether it may enter it; the empty fleets
   merge by the join command; and the ranges and the port radius are in the map's own units throughout.
-- **The raided waters** (section 12, step 5) are the sea provinces on the side's convoys' ways whose last raid was within
-  a month: the list of finished battles here keeps a week and not whose convoy a raid was on.
+- ~~**The raided waters** (section 12, step 5) are the sea provinces on the side's convoys' ways whose last raid was within
+  a month: the list of finished battles here keeps a week and not whose convoy a raid was on.~~ Built as the original's
+  on 2026-11-16, from the list of finished battles, which keeps each raid's defender (section 12, step 5).
 - **The hold list** (section 5) holds a province once.
 - ~~**The second ring's draw** (7.3) is the game's own generator seeded with the unit's number; the original seeds an
   MT19937 the same way, its seeding not read.~~ Read on 2026-11-14: the game's own seeding and twist, seeded with the unit's
