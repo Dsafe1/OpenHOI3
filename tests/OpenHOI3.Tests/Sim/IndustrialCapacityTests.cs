@@ -227,6 +227,108 @@ public class IndustrialCapacityTests
 		Assert.Equal(2, state.Country(Ger)!.BaseIc);
 	}
 
+	// --- a country that owns nothing (ic.md, section 3) ---
+
+	private static CGameState StateWithBase(params CProvince[] provinces)
+	{
+		var all = new List<CProvince> { new(0, "", isSea: false) };
+		all.AddRange(provinces);
+		var baseValues = new CModifier(CIndustrialCapacity.BaseValues);
+		baseValues.Set(CIndustrialCapacity.BaseValuesIc, CFixedPoint.FromInt(5));
+		return new CGameState(new CDate(1941, 6, 22), all,
+			new[] { Country("GER"), Country("FRA"), Country("EST") }, Buildings, staticModifiers: new[] { baseValues });
+	}
+
+	/// <summary>An armament minister worth a tenth more IC, seated, and in the country's modifier as a rebuild puts him.</summary>
+	private static void SeatGenius(CCountry country, string laws)
+	{
+		var type = new CMinisterType(new CModifier("administrative_genius"));
+		type.Modifier.Set("global_ic", CFixedPoint.Parse("0.1"));
+		var minister = new CMinister(26001, "Konstantin Päts");
+		minister.SetType("armament_minister", type);
+		country.Government["armament_minister"] = minister;
+		country.Modifier.Set("global_ic", CFixedPoint.Parse(laws) + CFixedPoint.Parse("0.1"));
+	}
+
+	[Fact]
+	public void ANewGamesSetUpCountsAHistorysMinisterInTheIcOfACountryOwningNothing()
+	{
+		// Estonia at 1941.6.22: no province, laws worth half again and the minister its history seats - 5 x 1.6 is 8, as the
+		// start saves have it, where leaving him out gives 7.
+		CGameState state = StateWithBase(Province(1, Ger, "3"));
+		CCountry estonia = state.Country(new CCountryTag("EST"))!;
+		SeatGenius(estonia, "0.5");
+
+		CProvinceModifiers.Rebuild(state);
+		CIndustrialCapacity.UpdateAtSetUp(state);
+		Assert.Equal(8, estonia.TotalIc);
+		Assert.True(estonia.IcWorkedOut);
+
+		// The filling of an empty post comes later and never reaches its IC, which no day works out again.
+		estonia.Modifier.Set("global_ic", CFixedPoint.Parse("0.85"));
+		CIndustrialCapacity.Update(state);
+		Assert.Equal(8, estonia.TotalIc);
+		Assert.Equal(8, estonia.MaxIc);
+		Assert.Equal(CFixedPoint.FromInt(8), estonia.ResourcesNeeded[EGoods.Metal]);
+	}
+
+	[Fact]
+	public void WhereNothingHasWorkedItOutALandlessCountrysIcLeavesItsMinistersOut()
+	{
+		// A loaded game: the save keeps no IC.
+		CGameState state = StateWithBase(Province(1, Ger, "3"));
+		CCountry estonia = state.Country(new CCountryTag("EST"))!;
+		SeatGenius(estonia, "0.5");
+
+		CProvinceModifiers.Rebuild(state);
+		CIndustrialCapacity.Update(state);
+
+		Assert.Equal(7, estonia.TotalIc);                            // 5 x 1.5, cut
+		Assert.False(estonia.IcWorkedOut);
+	}
+
+	[Fact]
+	public void ACountryThatOwnsLandOrIsInExileIsWorkedOutEveryDayWithItsMinisters()
+	{
+		// France owns its province and controls none: its day still works its IC out, from what it controls.
+		CGameState state = StateWithBase(Province(1, Ger, "3", owner: Fra));
+		CCountry france = state.Country(Fra)!;
+		CCountry estonia = state.Country(new CCountryTag("EST"))!;
+		SeatGenius(france, "0.5");
+		SeatGenius(estonia, "0.5");
+		estonia.InExile = true;
+
+		CProvinceModifiers.Rebuild(state);
+		CIndustrialCapacity.UpdateAtSetUp(state);
+		france.Modifier.Set("global_ic", CFixedPoint.Parse("0.9"));
+		estonia.Modifier.Set("global_ic", CFixedPoint.Parse("0.9"));
+		CIndustrialCapacity.Update(state);
+
+		Assert.Equal(9, france.TotalIc);                             // 5 x 1.9, cut
+		Assert.Equal(9, estonia.TotalIc);
+	}
+
+	[Fact]
+	public void ACountryThatLosesItsLastProvinceKeepsTheIcItLastHad()
+	{
+		CProvince home = Province(1, Fra, "5");
+		CGameState state = StateWithBase(home);
+		CCountry france = state.Country(Fra)!;
+
+		CProvinceModifiers.Rebuild(state);
+		CIndustrialCapacity.UpdateAtSetUp(state);
+		Assert.Equal(10, france.TotalIc);
+
+		home.Owner = Ger;
+		home.Controller = Ger;
+		CProvinceModifiers.Rebuild(state);
+		CIndustrialCapacity.Update(state);
+
+		Assert.Equal(10, france.TotalIc);                            // not 5: no day of its own works it out
+		Assert.Equal(5, france.BaseIc);                              // base_values' alone, worked out all the same
+		Assert.Equal(10, state.Country(Ger)!.TotalIc);                // who now holds it is worked out again
+	}
+
 	[Fact]
 	public void IsWorkedOutOnEnteringAGameAndAgainEveryMidnight()
 	{

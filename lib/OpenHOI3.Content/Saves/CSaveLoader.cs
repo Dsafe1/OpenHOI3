@@ -705,6 +705,12 @@ public static class CSaveLoader
 		CProvinceModifiers.Rebuild(state);
 		CCountryModifiers.Rebuild(state);
 		CIndustrialCapacity.Update(state);
+		// Ours: the save keeps no IC, so a country owning no province keeps the figure worked out here, without its
+		// ministers, as the IC a new game's set-up gives one that never had any (ic.md, section 3).
+		foreach (CCountry country in state.Countries)
+		{
+			country.IcWorkedOut = true;
+		}
 		CStrategicResources.Update(state);
 		CCountryModifiers.Rebuild(state);
 		// What a triggered modifier's `lost_national` asks: worked out before they are tested, or a country that has lost its

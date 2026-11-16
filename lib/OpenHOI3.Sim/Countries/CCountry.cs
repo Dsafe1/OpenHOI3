@@ -333,6 +333,14 @@ public sealed class CCountry
 	public int MaxIc { get; set; }
 
 	/// <summary>
+	/// Whether the game's own calculation has worked its IC out - a new game's set-up does, at its head, for every country
+	/// (<c>docs/mechanics/ic.md</c>, section 3), and so does a load. From then a country that owns no province and is in
+	/// no exile keeps the <see cref="TotalIc"/> and <see cref="MaxIc"/> it last had, the daily calculation being run only
+	/// for the others. Not saved: a load works a landless country's IC out without its ministers.
+	/// </summary>
+	public bool IcWorkedOut { get; set; }
+
+	/// <summary>
 	/// What a full day of its IC would cost in resources - not what was used: <see cref="MaxIc"/> times one of metal, two
 	/// of energy and a half of rare materials, made again with the IC each day and on entering a game, and not saved.
 	/// The economy ledger's "Used by Industry" row (<c>docs/mechanics/ic.md</c>, section 4;

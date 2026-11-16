@@ -63,6 +63,18 @@ the two days (`politics.md`, section 12) - **with the standing army's term**, th
 ministers the filling of empty posts gives**, who are put in after. *Exe-hardcoded*: when, and the five-way split;
 *mod-able*: the demand's figures, through `base_values`, the laws and the history's ministers.
 
+**And the IC the standing army's term divides by is the one the set-up worked out at its head**, before the effects of
+the decisions its history has taken (`events.md`, section 13): `confirmed` - the set-up calls the IC calculation and
+only then walks the taken decisions, and nothing works the IC out again before the shares
+(`reversing/findings/FINDINGS-startshares.md`, section 1; the record's account of `SetUpCountryForNewGame`). So a
+decision's dissent, which costs IC through the `dissent` static modifier, is not in it; it reaches the IC on the first
+day. (measured, `firstdays` and `write ... new`, 2026-11-16) The Soviet Union at 1939.9.1: its purge of 1937 gives it 5
+dissent, and its 388 brigades in service at an effective neutrality of 17.11 are over 132 IC and not 124 - a term of
+0.125 and not 0.133, consumer goods 0.275 and five shares of 4751/32768, and supplies made at home 163.604 as the save
+has them where 161.813 were; its build queue's line, its metal, energy and rare materials became the save's with it.
+*Exe-hardcoded*: the order. That figure stands until the first day, and for good for a country that owns no province
+(`ic.md`, section 3).
+
 (measured) Every country nobody has touched in the start save - the 23 that do not exist, and Germany, which the player
 had not played - has these shares: East Germany 0.09998 and five of 0.17999, from mixed industry and a full civilian
 economy; Germany 0.22400 and five of 0.15518 - 0.200 under the war economy and mixed industry the new game brought it

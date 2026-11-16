@@ -155,7 +155,8 @@ records of its enemies (`strategicwarfare.md`); rebel-held provinces begin their
 
 ### 3.1 Set beside the start saves
 
-`OpenHOI3.SaveCheck` on 2026-11-15, the three later saves and the 1936 start save (whose figures are unchanged):
+`OpenHOI3.SaveCheck` on 2026-11-15, the three later saves and the 1936 start save (whose figures are unchanged); the
+stockpile, the build queue and the brigades' rows again on 2026-11-16:
 
 | | 1939.9.1 | 1941.6.22 | 1941.12.11 |
 | --- | --- | --- | --- |
@@ -163,11 +164,11 @@ records of its enemies (`strategicwarfare.md`); rebel-held provinces begin their
 | occupation policies | 9 of 9 | 39 of 39 | 48 of 48 |
 | nationalism | 560 of 560 | 1,337 of 1,337 | 1,383 of 1,383 |
 | manpower, officers, influence | 73, 74, 74 of 74 | 72 of 72 each | 72 of 72 each |
-| the stockpile's supplies | 38 of 74 | 45 of 71 | 43 of 71 |
-| crude oil, energy | 72, 71 of 74 | 69, 66 of 71 | 69, 67 of 71 |
-| the build queue | 54 of 55 | 61 of 61 | 45 of 45 |
-| brigades' strength | 4,644 of 4,823 | 5,347 of 5,357 | 5,505 of 5,513 |
-| brigades' organisation | 4,778 of 4,823 | 4,848 of 5,357 | 4,737 of 5,513 |
+| the stockpile's supplies | 39 of 74 | 46 of 71 | 45 of 71 |
+| crude oil, energy | 73, 72 of 74 | 71, 71 of 71 | 71, 71 of 71 |
+| the build queue | 55 of 55 | 61 of 61 | 45 of 45 |
+| brigades' strength | 4,644 of 4,823 | 5,349 of 5,357 | 5,513 of 5,513 |
+| brigades' organisation | 4,778 of 4,823 | 4,862 of 5,357 | 4,795 of 5,513 |
 | laws | 707 of 707 | 707 of 707 | 707 of 707 |
 | relation, threat | every pair | every pair | every pair |
 | neutrality, effective | 101 of 101 | 101 of 101 | 101 of 101 |
@@ -195,8 +196,10 @@ records of its enemies (`strategicwarfare.md`); rebel-held provinces begin their
 - **What a written game shows that the checks above do not** (`OpenHOI3.SaveCheck write <install> new <start save>`, set
   beside the 1936 start's own differences, 2026-11-15): a NAP's history end date is written since (the German-Soviet
   pact's 1941.6.22 at 1939) and the finished wars stand in the save's order (`war.md`, section 1). **Since 2026-11-16**
-  `out_of_supply_days` is the save's in every province at all four dates but two at 1941.12.11 (Cyp and Wadi al Hamim,
-  whose controller differs), the history counting a day for each change of controller (`supply.md`, section 18); every
+  `out_of_supply_days` is the save's in every province at all four dates, the history counting a day for each change of
+  controller (`supply.md`, section 18), and the two provinces at 1941.12.11 whose controller differed - Cyp and Wadi al
+  Hamim - the save's too since land in no area goes to the enemy around it each hour, a new game's first included
+  (`war.md`, section 11): with it every province's owner and controller is the save's at all eight start dates; every
   unit's leader is the save's but one fleet a later date, which the AI regroups before the first screen - order-of-battle
   leaders put on in file order, a country at a time, and a lent unit made with its lender's brigades (`leaders.md`, section
   5; `expeditions.md`, section 4); and the 1939 "Japanese cruisers" were no class at all - every ship has the save's type
@@ -210,6 +213,18 @@ records of its enemies (`strategicwarfare.md`); rebel-held provinces begin their
   1941.12.11 start save the save's. **The production need is the second day's**, a change of law repricing the queue without
   counting it (Germany 13.984 at 1936, `buildqueue.md` section 4); the diplomacy slider's need is influence's upkeep; and the
   ledger's Used by Industry is a day's IC in resources before the cap (`sliders.md`, section 2).
+- **The IC a country's set-up works out at its head** (2026-11-16; `production.md`, section 1; `ic.md`, section 3), before
+  its history's decisions and before its empty posts are filled: the starting shares divide the standing army by it, so
+  the Soviet Union's purge dissent stays out of them (supplies made 163.604 at 1939.9.1, the save's; 1938.9.1 likewise),
+  and a country owning no province keeps it, its history's ministers counted - Estonia from 1941 at IC 8, making 22.914.
+  With both, every country's home production is the save's at every start but Italy's supplies at 1944.6.20, IC 6 in the
+  save and 7 here, not explained. The 0.001 of two brigades of the 717. Infanterie-Division at 1941.6.22 is the Berlin
+  network's starved Yugoslav end with the units where the AI has them, not a rule.
+- **What the four saves of 2026-11-16 show that the three before them do not** (`firstdays`, a look for later): at
+  1938.9.1 Spain's `civil_war` policy towards the Spanish Republic where the save has none; at 1943.2.1 and 1944.6.20
+  brigades' organisation far below the earlier dates (3,849 of 5,444 and 4,818 of 6,693), British lines of the build queue
+  about 0.85 the save's speed and American lines' progress short, and at 1944.6.20 Britain's supplies 4,723 over and
+  France's fuel; Spain's, France's and the United States' smaller stockpile drifts. 1940.5.10 shows nothing new.
 - **A guarantee a new puppet had**: China's of the Chinese Communists at 1939.9.1, which the original keeps as a dead
   object written in the save, and a game here deletes (`war.md`, *Ours*).
 - ~~**Each faction's members in another order**~~ - settled: those of the defines' start date first, the bookmark pass's

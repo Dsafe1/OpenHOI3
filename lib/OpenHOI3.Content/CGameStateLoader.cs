@@ -344,9 +344,20 @@ public static class CGameStateLoader
 			CHistoricalModels.DefaultCount(state), warn);
 		ReadUnits(directories, state, warn);
 		CUnits.SetAtStart(state);
-		// Each country's set-up for a new game, once its order of battle is read: the effects of the decisions its history
-		// says it has taken (events.md, section 13), and its manpower started at its most under the laws and technology
-		// brought forward and what those decisions gave (manpower.md, section 4).
+		// Each country's set-up for a new game begins by working out its IC, before the effects of its history's
+		// decisions: so the dissent the Soviet Union's purge gives it is not in the IC its shares are set by
+		// (production.md, section 1). That figure stands until its first day - and for good for a country that owns no
+		// province, under its history's ministers and without those the filling of empty posts gives (ic.md, section 3).
+		CProvinceModifiers.Rebuild(state);
+		CIndustrialCapacity.UpdateAtSetUp(state);
+		var icAtSetUp = new (int Total, int Max)[state.Countries.Count];
+		foreach (CCountry country in state.Countries)
+		{
+			icAtSetUp[country.Index] = (country.TotalIc, country.MaxIc);
+		}
+		// Then the effects of the decisions its history says it has taken (events.md, section 13), and its manpower
+		// started at its most under the laws and technology brought forward and what those decisions gave (manpower.md,
+		// section 4).
 		foreach (string unknown in Sim.Events.CDecisions.TakeHistoryAtNewGame(state))
 		{
 			warn(unknown);
@@ -360,8 +371,11 @@ public static class CGameStateLoader
 		CBuildQueue.SetUpAtStart(state);
 		// The shares of IC a new game starts with, once the units are read and counted and before any empty post is
 		// filled: so under the laws brought forward, with the standing army's term, and without the ministers the
-		// filling gives (production.md, section 1).
-		CIndustrialCapacity.Update(state);
+		// filling gives (production.md, section 1) - and by the IC the set-up's head worked out.
+		foreach (CCountry country in state.Countries)
+		{
+			(country.TotalIc, country.MaxIc) = icAtSetUp[country.Index];
+		}
 		CProduction.SetStartingShares(state);
 		// A country at a time: its order of battle's leaders, its stockpile's days of what its units use, and its leaders
 		// chosen, so that a later country's file takes a leader off an earlier one's unit after its choosing (leaders.md,

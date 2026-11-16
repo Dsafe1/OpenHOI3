@@ -129,10 +129,13 @@ shows its second day's - made with the shares and laws of that day, before the L
 of law - and a loaded game the save's, which the load keeps. (measured, `firstdays` and
 `write ... new`, 2026-11-15: the supplies and the money made of every country the save's in the
 1936 start save - Germany 283.840, Britain 91.756 and Ireland 9.971 supplies - and of every
-country but one each in the 1939.9.1, 1941.6.22 and 1941.12.11 start saves: the Soviet Union's
-supplies at 1939, 161.813 to 163.604, and non-existent Estonia's at 1941, 20.050 to 22.914, not
-chased. The resources made of every country are the save's in all four, since the modifiers'
-sum above.) Until 2026-11-15 entering made the
+country in the 1938.9.1, 1939.9.1, 1940.5.10, 1941.6.22, 1941.12.11 and 1943.2.1 start saves, and of
+every country but Italy in the 1944.6.20 one (18.816 in the save, 21.952 here: an IC of 6 where ours
+is 7, `ic.md`, section 3). The Soviet Union's supplies at 1939 were 161.813 to the save's 163.604
+until 2026-11-16 - its shares set by an IC its purge's dissent had already cut (`production.md`,
+section 1) - and non-existent Estonia's at 1941 20.050 to 22.914, an IC of 7 for 8 that left out
+the minister its history seats (`ic.md`, section 3). The resources made of every country are the
+save's in all of them, since the modifiers' sum above.) Until 2026-11-15 entering made the
 pool again after the days and put an estimate of the day's money and supplies in it, taken
 after the Lua's laws: Germany 262.005, Britain 161.033 and Ireland 0.728 supplies at 1936,
 Ireland's less than the 3.98 it makes away from its capital, and every non-existent country's

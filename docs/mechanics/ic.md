@@ -93,16 +93,33 @@ So IC is a whole number, and every country has at least one - including a countr
 provinces at all. The country's `GLOBAL_IC` comes from its laws, ministers and so on; the
 technology bonus is kept apart from it and added beside it.
 
-**A country that holds no province keeps the IC it was given when the game was made, and its
-ministers have no part in that figure.** The daily calculation is run only for a country that
-holds something or is in exile (`production.md`, section 2) - `confirmed` - so such a
-country's IC is never worked out again; that the figure it keeps is its laws' without its
-ministers' is **measured** and the reason `inferred`: Guyana, with the law that halves IC and
-an armament minister who adds a tenth, uses resources as for an IC of 2 and not 3, and the
-Italian Social Republic, with a minister who takes a twentieth off, as for 5 and not 4. With
-it, what every one of the 22 countries that do not exist uses in a day agrees with the save.
-**It is the IC alone**: leaving such a country's ministers out of everything was tried, and
-its money, officers, influence and spies stopped agreeing.
+**A country that owns no province keeps the IC it was given when the game was made: the figure
+its new-game set-up worked out at its head, under its history's ministers and without those the
+filling of empty posts gives.** The daily calculation is run only for a country that owns a
+province or is in exile (`production.md`, section 2) - `confirmed` - so such a country's IC is
+never worked out again. The set-up works it out before anything else of its own - before its
+history's decisions take effect, and long before `CCountry_FillMinisterPosts` fills its empty
+posts - `confirmed` from the order of `SetUpCountryForNewGame` (`reversing/findings/FINDINGS-startshares.md`,
+section 1, and the record's account of the function); that nothing works it out again before the
+first day is `inferred` from the figures. **Measured:** Guyana, with the law that halves IC and an
+armament minister who adds a tenth, uses resources as for an IC of 2 and not 3, and the Italian
+Social Republic, with a minister who takes a twentieth off, as for 5 and not 4 - at 1936 neither
+history names a minister, so both were filled after; and Estonia, owning nothing in 1941, has the
+armament minister its history seats - an administrative genius - and uses resources as for 8 and
+not 7 in the 1941.6.22, 1941.12.11, 1943.2.1 and 1944.6.20 start saves, its supplies made 22.914
+as the save's where they were 20.050 (2026-11-16). Every other country owning nothing in the
+eight start saves gives the same figure either way, and all but one agree with their save - Italy
+at 1944.6.20, 7 where the save has 6, which neither rule explains (`bookmarks.md`). Until
+2026-11-16 this said its ministers had no part in the figure at all. **It is the IC alone**:
+leaving such a country's ministers out of everything was tried, and its money, officers,
+influence and spies stopped agreeing. And **a country that loses its last province keeps the IC
+its last day gave it**, by the same gate; one that owns a province and controls none is worked
+out every day, from what it controls. *Exe-hardcoded*.
+
+*Ours:* a loaded game has no such figure - the save keeps no IC - so a country owning nothing is
+worked out on loading without its ministers, as one that never had any is, and keeps that
+(`CCountry.IcWorkedOut`); Estonia's 8 is 7 after a load (`docs/enhanced.md`, *A whole game's
+replay*).
 
 **Nothing else computes IC.** Everything that spends or shows it reads what this wrote.
 

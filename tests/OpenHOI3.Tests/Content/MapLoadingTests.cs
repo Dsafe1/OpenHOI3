@@ -879,6 +879,32 @@ public class MapLoadingTests : IDisposable
 	}
 
 	[Fact]
+	public void ANewGamesSharesAreSetByTheIcWorkedOutBeforeItsHistorysDecisionsTakeEffect()
+	{
+		// The Soviet Union at 1939.9.1: its history's purge gives it dissent, which costs IC - but the set-up works its IC
+		// out first, and the standing army's term in the demand its shares start from is over that figure
+		// (production.md, section 1). Here a base of 10 under a full civilian economy, 5 IC, and one brigade at neutrality
+		// 100: 250 + 50 thousandths, where the purge's 25 dissent would leave 2 IC and make it 250 + 125.
+		WriteStartFiles();
+		Write("common/static_modifiers.txt", @"
+			dissent = { global_ic = -0.01 }
+			base_values = { peace_consumer_goods_demand = 0.25 global_manpower = 4 ic = 5 }");
+		Write("decisions/test.txt", "political_decisions = { purge = { potential = { } allow = { } effect = { dissent = 25 } } }");
+		Write("units/foot.txt", "foot_brigade = { type = land max_strength = 30 default_organisation = 30 officers = 100 }\n");
+		Write("history/units/g.txt", "division = { name = \"G\" location = 1 regiment = { type = foot_brigade historical_model = 0 } }\n");
+		Write("history/countries/GER - Germany.txt",
+			"capital = 1\nneutrality = 100\neconomic_law = full_civilian_economy\noob = \"g.txt\"\ndecision = purge\n");
+		Write("history/provinces/west/1 - Alpha.txt", "owner = GER\ncontroller = GER\nindustry = 5");
+		CGameState state = LoadStart();
+		CCountry germany = Germany(state);
+
+		Assert.Equal(CFixedPoint.FromInt(25), germany.Dissent);
+		Assert.Equal(1, germany.LandBrigadesInService);
+		Assert.Equal(CFixed15.FromThousandths(CFixedPoint.Parse("0.3")),
+			germany.ProductionShares[(int)EProductionCategory.ConsumerGoods]);
+	}
+
+	[Fact]
 	public void AControllersListOfItsProvincesIsInTheOrderTheHistorysPassesGaveThemToIt()
 	{
 		// The original replays the history to year 2, then to the defines' start date, then on to a bookmark's, each pass
