@@ -172,8 +172,10 @@ The original's search is an A\* in outline and differs from one in a way that sh
   always the cheapest one.
 - A province's neighbours are tried in the order of its edges (section 2).
 - A step costs the edge's distance - a tenth more into ground an enemy holds, and double
-  where the country knows of enemy units standing there. *Ours:* the tenth; knowing of
-  units waits for intelligence.
+  where the country knows that ground at intelligence 2 or more and units stand in it
+  (the two factors 1100.5 and 2000.5, truncated). Built 2026-11-16, intelligence being
+  built: the Soviet 7th Air wing's way home from 1306 on 16 July 1941 goes round German-held
+  1440 as the original's does (`reversing/findings/FINDINGS-liveread.md`, section 113).
 - The route handed back leaves out where it starts and ends with where it goes.
 
 ### Where a unit may go

@@ -168,13 +168,20 @@ public static class CRouteFinder
 	}
 
 	/// <summary>
-	/// What a step costs the search: the edge's distance - a tenth more into ground an
-	/// enemy holds. The original doubles it instead where it knows of enemy units there.
+	/// What a step costs the search: the edge's distance - a tenth more into ground an enemy holds, and twice as much
+	/// where the country knows that ground at intelligence 2 or more and units stand in it. The original's
+	/// <c>CPathFind::StepCost</c> (<c>docs/mechanics/movement.md</c>, section 3): so a way home keeps round an enemy's
+	/// stack, as the Soviet 7th Air wing's from 1306 does on 16 July 1941.
 	/// </summary>
 	public static long StepCost(CGameState state, CCountry country, CProvince to, CProvinceEdge edge)
 	{
 		long distance = edge.Distance.Raw;
-		return CMovementRules.IsEnemy(state, country.Tag, to.Controller) ? distance * 1100 / 1000 : distance;
+		if (!CMovementRules.IsEnemy(state, country.Tag, to.Controller))
+		{
+			return distance;
+		}
+		bool seen = Intelligence.CProvinceIntel.Level(state, to, country.Tag) >= 2 && state.UnitsIn(to.Id).Count > 0;
+		return distance * (seen ? 2000 : 1100) / 1000;
 	}
 
 	/// <summary>What a step beside an enemy's base costs a fleet that keeps to safe water, in thousandths.</summary>
