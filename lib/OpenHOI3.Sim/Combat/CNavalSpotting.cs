@@ -27,6 +27,12 @@ public static class CNavalSpotting
 	private const int FleetRoll = 10000;
 
 	/// <summary>
+	/// What an air unit's roll is out of: a tenth of a fleet's, so it sees ten times as readily
+	/// (reversing/findings/FINDINGS-liveread.md, section 109).
+	/// </summary>
+	private const int AirRoll = 1000;
+
+	/// <summary>
 	/// Whether a fleet found in a province may be made the defender of a battle, by its
 	/// order: one on patrol always when it is aggressive, never when passive, and
 	/// otherwise only by a fleet weaker than itself; a raider and a transport never
@@ -79,7 +85,8 @@ public static class CNavalSpotting
 		}
 		// A fleet nobody plays that has been told nothing, or is carrying troops, waits to be found.
 		if (!state.Played.Contains(ours.Owner)
-			&& (ours.Order == EUnitOrder.None || ours.Order == EUnitOrder.Rebase || ours.Order == EUnitOrder.Transport))
+			&& (ours.Order == EUnitOrder.None || ours.Order == EUnitOrder.Rebase || ours.Order == EUnitOrder.Transport
+				|| ours.Order == EUnitOrder.Invasion))
 		{
 			return false;
 		}
@@ -130,13 +137,16 @@ public static class CNavalSpotting
 		long weather = CFixedPoint.Scale
 			- province.Weather.Precipitation.Raw * state.Defines[CWeatherEffects.WeatherSection, SpottingRainModifier].Raw / CFixedPoint.Scale
 			- province.Weather.CloudCoverage.Raw * state.Defines[CWeatherEffects.WeatherSection, SpottingCloudModifier].Raw / CFixedPoint.Scale;
+		// An air unit looks with its surface detection whatever it looks at, and rolls out of a tenth as much as a fleet.
+		bool fromTheAir = ours.Kind == EUnitKind.Air;
+		int roll = fromTheAir ? AirRoll : FleetRoll;
 		foreach (CSubUnit their in theirs.SubUnits)
 		{
 			long visibility = System.Math.Max(CFixedPoint.Scale, their.Stats[Visibility].Raw);
 			bool isSubmarine = CShipCensus.IsSubmarine(their);
 			foreach (CSubUnit our in ours.SubUnits)
 			{
-				long seen = isSubmarine ? our.Stats[SubDetection].Raw / 2 : our.Stats[SurfaceDetection].Raw;
+				long seen = !fromTheAir && isSubmarine ? our.Stats[SubDetection].Raw / 2 : our.Stats[SurfaceDetection].Raw;
 				long figure = seen * visibility / CFixedPoint.Scale;
 				figure = figure * spotting / CFixedPoint.Scale;
 				figure = figure * efficiency / CFixedPoint.Scale;
@@ -162,7 +172,7 @@ public static class CNavalSpotting
 				{
 					figure = CFixedPoint.Scale;
 				}
-				if (state.Random.Next(FleetRoll) < figure / CFixedPoint.Scale)
+				if (state.Random.Next(roll) < figure / CFixedPoint.Scale)
 				{
 					return true;
 				}

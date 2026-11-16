@@ -47,8 +47,8 @@ that one**: a failed sighting of it ends the look, whoever else is there. Then, 
 
     the other fleet has no ship                                         -> no
     the fleet's wait after its last battle is still running (section 6) -> no
-    its country is played by no person, and its order is none or a
-        change of base                                                  -> no
+    its country is played by no person, and its order is none, a
+        change of base, a transport or an invasion                      -> no
     it has submarines, and the other has more screens than a third
         of them, cut to a whole number                                  -> no
     its country knows the sea province at level 9                       -> a battle
@@ -56,7 +56,9 @@ that one**: a failed sighting of it ends the look, whoever else is there. Then, 
     otherwise a roll for each pair of ships, theirs outside and its
     own inside, the first that passes -> a battle:
         seen    = its ship's surface_detection
-                  - against a submarine half its sub_detection
+                  - against a submarine half its sub_detection, unless the
+                    looker is an air unit, whose wing looks with its
+                    surface_detection at anything
         figure  = seen x the greater of 1 and the other ship's visibility
                   / 2,  or / 3 where the other fleet is under way
                   x 1.25 for knowing the province at level 2 or more, and twice
@@ -64,6 +66,14 @@ that one**: a failed sighting of it ends the look, whoever else is there. Then, 
                   x (1 - rain x SPOTTINGRAINMODIFIER - cloud x SPOTTINGCLOUDMODIFIER)
                   and never under 1
         passes if  roll(10000) < the whole part of the figure
+                   - roll(1000) where the looker is an air unit
+
+**An air unit looks ten times as readily** (a bomber after ships, `bombing.md`): the roll is out of 1,000 and not 10,000,
+and its detection is never halved against a submarine [exe, `ShouldStartNavalCombat`'s two places that ask `IsAir`;
+`reversing/findings/FINDINGS-liveread.md`, section 109]. Until 2026-11-16 this rolled out of 10,000 for every looker, so a
+bomber looking for ships drew on through its pairs where the original's had seen them: set beside the original's own run
+draw for draw, every hour's draws before its first battle were the original's but for these, 7 to 29 too many an hour,
+and with it rolled out of 1,000 eleven of twelve hours agree to the draw and every battle's dice are the original's.
 
 - **An idle fleet of a country nobody plays never starts a battle.** It waits to be found; an
   idle fleet of a player's looks every hour. That is the original's, and with no AI to give
