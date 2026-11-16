@@ -21,7 +21,17 @@ public static class CFactionClass
 			.Method("GetTag", call => call.Return(api.String(call.Object<CLuaNamed>(1, Name).Name)))
 			.Method("GetFactionLeader", call => call.Return(api.Tag(Leader(api, call.Object<CLuaNamed>(1, Name).Name))))
 			.Method("GetNumberOfMembers", call =>
-				call.Return(CCountryLists.FactionMembers(api.State, call.Object<CLuaNamed>(1, Name).Name).Count));
+				call.Return(CCountryLists.FactionMembers(api.State, call.Object<CLuaNamed>(1, Name).Name).Count))
+			// Its members' tags in its own order, the leader first (lua.md, section 4).
+			.Method("GetMembers", call =>
+			{
+				var members = new List<object?>();
+				foreach (Sim.Countries.CCountry member in CCountryLists.FactionMembers(api.State, call.Object<CLuaNamed>(1, Name).Name))
+				{
+					members.Add(api.Tag(member.Tag));
+				}
+				return call.ReturnIterator(members);
+			});
 	}
 
 	/// <summary>A faction's leader, its first member; the null tag for a faction with none.</summary>

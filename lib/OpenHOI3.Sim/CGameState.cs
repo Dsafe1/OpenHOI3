@@ -513,6 +513,12 @@ public sealed class CGameState
 	public IReadOnlyList<Politics.CGovernmentPosition> GovernmentPositions { get; init; } =
 		Array.Empty<Politics.CGovernmentPosition>();
 
+	/// <summary>
+	/// What a minister can be, in <c>common/minister_types.txt</c>'s order - the objects the ministers hold. The original's
+	/// database puts its null type, <c>noMinisterType</c>, before them, which is not here (<c>lua.md</c>, section 4).
+	/// </summary>
+	public IReadOnlyList<CMinisterType> MinisterTypes { get; init; } = Array.Empty<CMinisterType>();
+
 	/// <summary>The law groups of <c>common/laws.txt</c> in its order, each with its laws (<c>politics.md</c>, section 9).</summary>
 	public IReadOnlyList<CLawGroup> LawGroups { get; init; } = Array.Empty<CLawGroup>();
 

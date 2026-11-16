@@ -5,9 +5,10 @@ using OpenHOI3.Sim.Countries;
 namespace OpenHOI3.Lua.Api;
 
 /// <summary>
-/// <c>CModifier</c>, a country's global modifier, read by its kind's number - of which the scripts ask
-/// only <c>_MODIFIER_GLOBAL_IC_</c> - handed over as the country it belongs to. See
-/// <c>docs/mechanics/trade.md</c>, section 9. <c>CTechnologyStatus</c> is <see cref="CTechnologyStatusClass"/>.
+/// <c>CModifier</c>, a country's global modifier - <c>country:GetGlobalModifier()</c>, handed over as the country it belongs
+/// to - read by a kind's number with <c>GetValue</c>, and the 82 constants that name the numbers (<see cref="CModifierTypes"/>).
+/// See <c>docs/mechanics/lua.md</c>, section 4.7, and <c>docs/mechanics/trade.md</c>, section 9. <c>CTechnologyStatus</c> is
+/// <see cref="CTechnologyStatusClass"/>.
 /// </summary>
 public static class CCountryModifiersClass
 {
@@ -18,18 +19,25 @@ public static class CCountryModifiersClass
 
 	public static CLuaClass DefineModifier(CGameApi api)
 	{
-		return new CLuaClass(ModifierName)
+		CLuaClass luaClass = new CLuaClass(ModifierName)
 			.Method("GetValue", call =>
 			{
 				CCountry country = call.Object<CCountry>(1, ModifierName);
-				int kind = call.Integer(2);
-				if (kind != GlobalIc)
+				int number = call.Integer(2);
+				if (CModifierTypes.KeyOf(number) is not { } key)
 				{
-					api.ReportUnbuilt($"CModifier:GetValue of the kind numbered {kind}: only the global IC's is known, so 0");
+					api.ReportUnbuilt($"CModifier:GetValue of the kind numbered {number}: no kind of the original's is known by it, so 0");
 					return call.Return(api.Fixed(CFixedPoint.Zero));
 				}
-				return call.Return(api.Fixed(country.Modifier["global_ic"]));
-			})
-			.Constant("_MODIFIER_GLOBAL_IC_", GlobalIc);
+				return call.Return(api.Fixed(country.Modifier[key]));
+			});
+		for (int number = 0; number < CModifierTypes.All.Length; number++)
+		{
+			if (CModifierTypes.All[number].Constant is { } constant)
+			{
+				luaClass.Constant(constant, number);
+			}
+		}
+		return luaClass;
 	}
 }

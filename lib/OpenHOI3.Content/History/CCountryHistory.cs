@@ -31,7 +31,7 @@ public static class CCountryHistory
 		Action<string>? warn = null, IReadOnlyCollection<CTechnology>? technologies = null,
 		IReadOnlyCollection<CTechnologyCategory>? categories = null,
 		Dictionary<string, Dictionary<string, CLaw>>? lawBook = null, IReadOnlySet<string>? occupationPolicies = null,
-		CDate? definesStart = null)
+		CDate? definesStart = null, List<CMinisterType>? ministerTypeOrder = null)
 	{
 		warn ??= CDiagnostics.Warn;
 		var goodsGiven = new Dictionary<string, Dictionary<EGoods, CFixedPoint>>(StringComparer.OrdinalIgnoreCase);
@@ -49,7 +49,7 @@ public static class CCountryHistory
 
 		// The game's own law objects where it gives them, so that a country holds the laws the game knows.
 		Dictionary<string, Dictionary<string, CLaw>> laws = lawBook ?? CModifierReader.ReadLaws(directories, warn);
-		Dictionary<string, CMinisterType> ministerTypes = CModifierReader.ReadMinisterTypes(directories, warn);
+		Dictionary<string, CMinisterType> ministerTypes = CModifierReader.ReadMinisterTypes(directories, warn, ministerTypeOrder);
 		HashSet<string> positions = CModifierReader.ReadGovernmentPositions(directories, warn);
 
 		var unknownTypes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);

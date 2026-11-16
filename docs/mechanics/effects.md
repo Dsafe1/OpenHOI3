@@ -91,7 +91,8 @@ flag in a country's scope is province 0's.
 `set_variable = { which = X value = N }` sets it, `change_variable` adds to it - each making it at
 nought where missing - and **neither does anything in a scope with no country**.
 `check_variable = { which = X value = N }` holds where X is **at least** N; asking for a variable that
-is not there **makes it, at nought**, and answers whether nought is at least N.
+is not there **makes it, at nought**, and answers whether nought is at least N. A mod's Lua reads the same variables with
+`country:GetVariables():GetVariable(name)` and sets them with the command `CSetVariableCommand` (`lua.md`, section 4.4).
 
 ## 4. A country's figures and goods
 

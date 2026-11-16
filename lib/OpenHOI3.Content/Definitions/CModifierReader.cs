@@ -168,9 +168,12 @@ public static class CModifierReader
 		return policies;
 	}
 
-	/// <summary><c>common/minister_types.txt</c>: what a minister can be, each a modifier.</summary>
+	/// <summary>
+	/// <c>common/minister_types.txt</c>: what a minister can be, each a modifier. <paramref name="order"/>, where given, is
+	/// filled with them in the file's order, a type declared again keeping its first place.
+	/// </summary>
 	public static Dictionary<string, CMinisterType> ReadMinisterTypes(CDirectorySettings directories,
-		Action<string> warn)
+		Action<string> warn, List<CMinisterType>? order = null)
 	{
 		var types = new Dictionary<string, CMinisterType>(StringComparer.OrdinalIgnoreCase);
 		ClausewitzNode? root = ParseIfPresent(directories, "common/minister_types.txt", "minister types",
@@ -206,6 +209,17 @@ public static class CModifierReader
 					{
 						unreadable++;
 					}
+				}
+			}
+			if (order is not null)
+			{
+				if (types.TryGetValue(type.Key, out CMinisterType? earlier))
+				{
+					order[order.IndexOf(earlier)] = read;
+				}
+				else
+				{
+					order.Add(read);
 				}
 			}
 			types[type.Key] = read;

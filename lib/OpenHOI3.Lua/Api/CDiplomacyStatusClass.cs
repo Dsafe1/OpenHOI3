@@ -52,6 +52,12 @@ public static class CDiplomacyStatusClass
 				return call.Return(CCountryLists.FightingTogether(api.State, status.Holder, status.Other));
 			})
 			.Method("HasFriendlyAgreement", call => call.Return(HasFriendlyAgreement(api, Of(call))))
+			// The friendly agreements, or a war between the two (lua.md, section 4).
+			.Method("HasAnyAgreement", call =>
+			{
+				CDiplomacyStatus status = Of(call);
+				return call.Return(HasFriendlyAgreement(api, status) || CCountryLists.AtWar(api.State, status.Holder, status.Other));
+			})
 			.Method("HasMilitaryAccess", call => call.Return(Of(call).HasMilitaryAccess))
 			// An embargo between the two, either way; and whether the other influences the holder (foreignminister.md, I).
 			.Method("HasEmbargo", call =>

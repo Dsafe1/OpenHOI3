@@ -175,7 +175,11 @@ more of the world and the map.
 5. The original's Lua API not provided: **country variables** - `CSetVariableCommand` (80 uses) and the methods
    `GetVariable` (81) and `GetVariables` (38) - `CMinisterTypeDataBase`, nine `CModifier._MODIFIER_*_` constants, and 29
    methods more (`GetProductionDistributionAt` 13, `GetPercentage` 11, `GetUnits` 6, ...), a few of them wx's objects in
-   files that do not name `wx`.
+   files that do not name `wx`. **Built 2026-11-16** (`lua.md`, sections 4 to 5.1): the variables and the command, the unit
+   list, the shares and `CFixedPoint64`, the free spies, allies, owned provinces, subject flag and cabinet, every modifier
+   kind, the minister type database, a building's working level, a transport, any agreement, a faction's members, and every
+   minister's `GetCountry`. What the survey still lists as missing methods - 61 calls of 15 - are wx's widgets' (`Clear`,
+   `Freeze`, `GetSelection` and the like), the old utility's `UI` objects, in files that do not name `wx` themselves.
 6. `last_battle_loser_losses` and `last_battle_winner_losses`, conditions not built: 96 uses, most in `event test.txt`.
 
 Of the files' 834: 333 `remove_country_modifier`s of modifiers BlackICE does not declare, 197 events with no title or
@@ -208,6 +212,11 @@ folder: the survey's ours from about 27,040 to 13,594 - `autoexec.lua` loads who
 scripts now run, the first of them to fail on `GetUnits`, a method of the AI's Lua classes not built (374 times,
 `ai_politics_minister.lua`). The survey's static list still shows `lfs.dir` and `lfs.attributes`, which it reads without
 the test around them.
+
+*Measured*, 2026-11-16, the same way, once the Lua API of section 5's item 5 was built: the survey's ours 6,578 to 5,837,
+none of it the calls of the game into the scripts; and `headless` to 1 February 1936 under BlackICE, the AI's Lua **7,626
+errors to 39** - every one `IsUnitAvailable` handed nil for a unit type BlackICE's scripts name and its `units` folder
+does not declare, which the original's process would not survive (`lua.md`, *Ours*).
 
 ## Not established
 

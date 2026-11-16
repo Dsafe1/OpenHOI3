@@ -11,7 +11,8 @@ second, on 2026-10-13, what the AI answers an offer with (section 6).
 Sources: `reversing/findings/FINDINGS-luahost.md` (the state, the files, the two calls of a new game,
 the methods, `==`, the x87; read 2026-10-12), `reversing/findings/FINDINGS-diplostate.md`, A;
 `reversing/findings/FINDINGS-luaapi.md` (the offer's call, what the scripts reach of the API and what
-each part answers; read 2026-10-13), `reversing/findings/FINDINGS-diplomacy.md` and
+each part answers; read 2026-10-13; section 11, what BlackICE's scripts reach besides, read 2026-11-16),
+`reversing/findings/FINDINGS-diplomacy.md` and
 `reversing/findings/FINDINGS-survivors.md` (which offers ask which function). The interpreter's
 source and what was changed in it: `native/lua/readme.md`.
 
@@ -108,6 +109,12 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | | `IsLandSafeToJoin(faction)` | false for the null faction; true where the faction's leader is at peace; **otherwise false**, whatever the land - the original's |
 | | `IsMajor()` | `major = yes` in its file, or `GetMaxIC()` over 100 |
 | | `IsNonExileNeighbour(tag)` | a country touching the land this one **controls**, owned by somebody and neither owned nor controlled by this one, and not in exile |
+| | `GetVariables()`, `GetUnits()`, `GetProductionDistributionAt(i)`, `GetLeadershipDistributionAt(i)` | its variables (4.4), its units (4.6), one of its shares (4.5) |
+| | `GetNumberOfFreeSpies()` | the spies bought and not placed, **whole, cut toward nought** - 2.999 is 2 |
+| | `GetNumOfAllies()` | how many allies it has, as `num_of_allies` counts them (`triggers.md`) |
+| | `GetOwnedProvinces()` | an iterator over the **numbers** of the provinces it owns, in the provinces' order |
+| | `IsSubject()` | **the same function as `IsPuppet()`**, registered under both names: it has an overlord |
+| | `GetMinisters()` | an iterator over its cabinet by the post's number: the null post's null minister first, then each post's holder, the null minister where nobody holds it |
 | `CCountryTag` | `GetCountry()`, `IsValid()` | the country; not the null tag |
 | | `IsReal()` | a tag of the game's countries and not the null one (`trade.md`, section 9) |
 | | `==`, `tostring` | the same tag; its three letters |
@@ -117,14 +124,17 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | | `HasMilitaryAccess()` | the holder may pass through the other's land (`agreements.md`, section 5) |
 | | `AllowDebts()` | whether the holder may run a debt with the other (`aid.md`); nothing sets it yet |
 | | `HasTruce()` | **false - not built**, reported |
+| | `HasAnyAgreement()` | `HasFriendlyAgreement()`'s five tests **or a war between the two** - a pair at war has an agreement |
 | `CFaction` | `==`, `IsValid()` | the same faction; not the null faction |
 | | `GetTag()`, `GetFactionLeader()`, `GetNumberOfMembers()` | its name as a `CString` - `axis`; its first member's tag, the null tag for none; how many it has |
+| | `GetMembers()` | an iterator over its members' tags in its own order, the leader first |
 | `CGovernment` | `==` | the same government |
 | `CIdeology` | `GetGroup()`, `GetKey()` | its group (`CIdeologyGroup`); its name |
 | `CIdeologyGroup` | `==`, `GetKey()`, `GetFaction()` | the same group; its name; its faction, nil for none |
 | `CProvince` | `GetContinent()`, `GetController()`, `GetOwner()`, `GetProvinceID()`, `GetNumberOfUnits()` | its continent; the tags; its number; how many units stand in it, whoever owns them - the count of its own list (2026-10-16, `FINDINGS-effectrun.md` 1.12; `FIN.lua` and `JAP.lua` sum it over borders) |
 | `CContinent` | `==`, `GetTag()` | the same name; its name |
 | `CString` | `tostring`, `==`, `GetString()` | its text |
+| | `CString(text)` | one made of a Lua string - **only a string**: the original's one constructor takes a `char const*`, and a number or nothing is the error `No matching overload found` |
 | `CGoodsPool` | `Get(g)`, `GetFloat(g)` | one good, as a `CFixedPoint`; as a float |
 | `CAIStrategy` | `GetFriendliness(tag)`, `GetAntagonism(tag)`, `GetThreat(tag)`, `GetProtectionism(tag)`, `IsMilitarist()` | the weight the strategy's `befriend`, `antagonize`, `threat` and `protect` lists hold for the country, nought where it is not listed, and whether its personality is `military` (`aistrategy.md`) |
 | | `GetCountry()`, `GetCountryTag()` | whose it is |
@@ -134,11 +144,15 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | | `AlreadyTradingDisabledResource(route)`, `HasTradeGoneStale(route)`, `GetSpamPenalty(tag)`, `PostAction(action)` | `trade.md`, sections 2 and 9: a good of the route traded on a pair's route not running; failing for a fortnight; ten a day to 24 days past the last diplomat's arrival, for a played country only; the offer posted as the screen posts one, dated when it was made |
 | `CLicenceTechnologyAction` | `CLicenceTechnologyAction(buyer, seller)`, `GetSubunit()`, `SetSubunit(type)`, `GetSerial()`, `SetSerial(n)`, `GetParalell()`, `SetParallel(n)`, `GetMoney()`, `SetMoney(fp)`, `SetValue(b)`, `IsValid()`, `IsSelectable()`, `GetAIAcceptance()` | `aid.md`, section 4; the getter `GetParalell` and setter `SetParallel` are the game's spellings. `DiploScore_LicenceTechnology(ai, buyer, seller, seller, action)` is handed the licence itself |
 | `CSubUnitDefinition` | `GetBuildCostIC()`, `GetBuildCostMP()`, `GetBuildTime()`, `IsCapitalShip()`, `GetKey()` | a unit type's own figures, without a country's technology |
+| | `IsTransport()` | its file's `transport = yes` |
+| `CProvinceBuilding` | `GetCurrent()` | **the level working**, what bombs have left; `GetMax()` is the level built (`ministers.md`, section 7) |
 | `CSubUnitDataBase` | `GetSubUnit(name)` | the type by its key, or nil |
 | `CTradeAction` | `CTradeAction(actor, recipient)`, `SetTrading(fp, g)`, `GetTrading(g, tag)`, `GetRoute()`, `SetRoute(route)`, `SetValue(b)`, `IsValid()`, `IsSelectable()`, `GetAIAcceptance()` | `trade.md`, section 9; asking the score re-enters the Lua for `DiploScore_OfferTrade` |
 | `CTradeRoute` | `GetFrom()`, `GetTo()`, `GetTradedFromOf(g)`, `GetTradedToOf(g)`, `IsInactive()` | its two ends; what each hands over a day; whether it ran today |
 | `CGoodsValues` | `vMoney`, `vFuel`, `vCrudeOil`, `vMetal`, `vEnergy`, `vRareMaterials`, `vSupplies` | a block of a route's terms, single precision, read with `.` |
-| `CModifier`, `CTechnologyStatus` | `GetValue(_MODIFIER_GLOBAL_IC_)`; `GetIcModifier()` | the country's global IC, other kinds 0 reported; its technology's IC |
+| `CModifier`, `CTechnologyStatus` | `GetValue(kind)`; `GetIcModifier()` | the country's global modifier of the kind numbered (4.7); its technology's IC |
+| `CMinisterTypeDataBase` | `GetMinisterTypeList()`, `GetNumberOfMinisterTypes()`, `GetMinisterType(name)` | an iterator over the minister types, **the null type `noMinisterType` first**, then `common/minister_types.txt`'s in order; how many, the null type counted; a type by its exact name, case and all, nil for none |
+| `CSetVariableCommand` | `CSetVariableCommand(tag, name, value)` | 4.4 |
 | `CEU3Date` | `GetYear()`, `GetMonthOfYear()` | the year; the month from 0 |
 | `CResourceValues` | `CResourceValues()`, `GetResourceValues(country, g)` | six fields, read with `.`: section 4.2 |
 | `CCurrentGameState` | `GetFaction(name)`, `GetFactions()` | the faction of that name, case and all, the null faction for none; an iterator over the factions in `common/ideologies.txt`'s order |
@@ -148,6 +162,8 @@ Built so far, on the simulation. A `CFixedPoint` is section 5; an iterator is se
 | constants | `CGoodsPool` | `_SUPPLIES_` 0, `_FUEL_` 1, `_MONEY_` 2, `_CRUDE_OIL_` 3, `_METAL_` 4, `_ENERGY_` 5, `_RARE_MATERIALS_` 6, `_GC_NUMOF_` 7 |
 | | `SpyMission` | `SPYMISSION_COUNTER_ESPIONAGE` 0 to `SPYMISSION_COVERT_OPS` 8, `SPYMISSION_MAX` 9 |
 | | `CAIStrategy`, `CDiplomaticAction`, `CRule`, `CAI`, `CSpyPresence` | their enums as the original registers them (`FINDINGS-luaapi.md`) |
+| | `CDistributionSetting` | `_PRODUCTION_LENDLEASE_` 0 to `_PRODUCTION_UPGRADE_` 5, `_PRODUCTION_numof_` 6; `_LEADERSHIP_NCO_` 0 to `_LEADERSHIP_RESEARCH_` 3, `_LEADERSHIP_numof_` 4 |
+| | `CModifier` | the 82 kinds' numbers, 4.7 |
 
 **`CAIIntel(us, them)` is not built**: what it knows comes out of espionage, which is unbuilt here,
 and its perceived strength rolls the AI's own generator once for every unit. Making one is the Lua
@@ -197,6 +213,59 @@ national unity.
 
 `dx`, `dy` the two countries' places on the triangle, thousandths.
 
+### 4.4 A country's variables
+
+What BlackICE's scripts keep between days - `BaseIC`, `puppet_focus_variable`, its trade AI's figures - are a country's
+variables, the ones script's `set_variable` and `check_variable` keep (`effects.md`, section 3): one table, names matched
+without case. `country:GetVariables()` hands it over as a `CVariables`; **`GetVariable(name)`** takes a `CString`, as the
+original's does - a plain Lua string is the error `bad argument` - and answers the value as a `CFixedPoint`, **nought where
+there is none**. The original's makes a missing variable at nought as it reads, as `check_variable` does; a variable at
+nought is never written to a save and reads as one that is not there, so nothing tells the two apart, and here a read
+changes nothing.
+
+**`CSetVariableCommand(tag, name, value)`** - exactly a tag, a `CString` and a `CFixedPoint` - is the original's command, and
+is posted with `CCurrentGameState.Post` as the others are: it sets the variable, making it where it is missing, and does
+nothing for a tag nobody has. It goes into a recording field by field like every command (`docs/replay.md`), and the
+variables are in the save (`savegame.md`, sections 4 and 8), so a game saved and loaded plays on with them.
+
+### 4.5 A country's shares
+
+`country:GetProductionDistributionAt(i)` and `GetLeadershipDistributionAt(i)`, `i` by the constants above, answer a
+`CDistributionSetting`; an index outside them is a Lua error here, where the original reads its vector unchecked. Each
+answers in the second kind of number (5.1):
+
+- **`GetPercentage()`** the share as its slider sets it;
+- **`GetNeeded()`** what the share's slider shows as its need (`sliders.md`, section 2) - the share's own virtual: consumer
+  goods, production, supplies, reinforcement, upgrades, diplomacy and research as there, **lend-lease, officers and
+  espionage nought** - each made of thousandths as the original makes them, `x * 32768 / 1000` cut toward nought; research's
+  is its count of projects whole.
+
+### 4.6 A country's units
+
+`country:GetUnits()` is a `CUnitList`: **every unit the country has at every level** - army groups, armies, corps and
+divisions, fleets, air units - the original's own list, read as each method is asked. Each count asks a unit only its kind
+and its own brigades, ships or wings, never those of the units under it:
+
+| method | answers |
+| --- | --- |
+| `GetTotalAmountOfDivisions()` | the land units holding **more than one** brigade - so a division of one brigade is not counted, and a headquarters of more is |
+| `GetTotalAmountOfArmies()` | **every land unit**, whatever its level, whatever the name says |
+| `GetTotalNumOfRegiments()`, `GetTotalNumOfShips()`, `GetTotalNumOfPlanes()` | the brigades of the land units, the ships of the fleets, the wings of the air units |
+| `GetTotalNumOfWarShips()`, `GetTotalNumOfTransports()` | a fleet's naval ships whose type is not, or is, a transport |
+| `GetCount(type)` | the brigades, ships and wings of that type in every unit |
+| `GetTotalStrength()` | every one of them's strength, a `CFixedPoint` |
+
+A unit waiting to be placed is in none of them - the original keeps those apart; a lent unit is in its host's.
+
+### 4.7 Modifier kinds
+
+`CModifier:GetValue(kind)` reads the country's global modifier (`modifiers.md`) by a kind's number, which is the kind's
+place in the original's list of modifier kinds: `CModifier._MODIFIER_MINIMUM_REVOLT_RISK_` 0 to
+`_MODIFIER_OFFICER_RECRUITMENT_` 82, each constant the kind's key in capitals - **but 57, `threat_resistance`, which has a
+place and no constant**, and 79, `partisan_efficiency`, whose constant is spelled `_MODIFIER_PARTISAN_EFFICENCY_`
+(`CModifierTypes`). The original reads by any number unchecked; a number past 82 names no kind here and answers nought,
+reported.
+
 ## 5. `CFixedPoint`
 
 A figure the original keeps in thousandths reaches a script as a `CFixedPoint`, never as a number.
@@ -213,6 +282,14 @@ A figure the original keeps in thousandths reaches a script as a `CFixedPoint`, 
   way round**: `n - fp` is `fp - n` and `n / fp` is `fp / n`, the original's.
 - `fp == 0.5` is false and `fp < 0.5` an error (section 4).
 - `tostring` of one is not built: how the original writes one was not read.
+
+### 5.1 `CFixedPoint64`
+
+A share of IC or of leadership reaches a script as a `CFixedPoint64`, the original's 48.15 number (`numbers.md`, section
+2): **`Get()`** is the value times 2^-15 worked in double and rounded to a float; **`GetTruncated()` and `GetRounded()`** are
+one function under two names, the value shifted down 15 places - **toward minus infinity**, so `GetRounded` does not round
+and a share a 32768th below nought reads -1. Its arithmetic, its comparisons, its `tostring` and its constructors are not
+built: no script of the base game's or BlackICE's uses them.
 
 ## 6. The calls a game makes
 
@@ -232,6 +309,10 @@ comes back through `CCurrentGameState.Post` and `CAI:Post`; a failure is reporte
 The classes they reach - `CLaw`, `CLawGroup`, `CLawDataBase`, `CMinister`, `CMinisterType`,
 `CGovernmentPosition`, `CGovernmentPositionDataBase` and the three commands - are in `politics.md`,
 section 12, with what of them is not built.
+
+**Every minister a script is handed answers `GetCountry()`** - the politics, intelligence, tech, production and foreign
+ministers alike, each the original's `CAIAgent` - its own country (since 2026-11-16; BlackICE's `HandleMobilization` asks
+the politics minister's).
 
 **`IntelligenceMinister_Tick(minister)`**, handed a `CAIEspionageMinister`, is each such country's intelligence
 minister's day, in its own hour (since 2026-10-14). The classes it reaches - `CSpyPresence`, `CIdeologyData`, the two
@@ -340,6 +421,16 @@ whatever the odds", from a signed draw, was corrected by this reading.
   one a thread and take countries as they come; so a game runs the same on every machine
   (`trade.md`, *Ours*). A script that keeps something in a global between calls keeps it in its
   country's state.
+- **A script that hands a method nil for a unit type gets a Lua error** - `bad argument #2 (CSubUnitDefinition expected,
+  got nil)` - and the call it is part of fails, reported. The original passes nil on as a null pointer, and
+  `IsUnitAvailable`, `CountMaxUnitsStillBuildable` and `country:GetBuildCostIC` each read through it at once, which is an
+  access violation in its process: nothing it does can be followed. BlackICE's production scripts do it - they name
+  `armored_engineers_brigade`, `ss_armored_engineers_brigade`, `improved_police_brigade` and `mot_aa_brigade`, which its
+  `units` folder does not declare, and `CSubUnitDataBase.GetSubUnit` answers nil for each - 39 times in a month of a new
+  game, all of them `IsUnitAvailable` (*measured* 2026-11-16, `headless` to 1 February 1936).
+- **`GetMinisters()` begins with the null minister** for the null post: the original's first element was not read, and a
+  null one would end its iterator before any post, which BlackICE's `ai_variable.lua` - skipping the first as
+  `noMinisterType` - shows it does not.
 - **A class with fields finds a method in Lua** and asks C# only for a field, and a call that reads a value
   or a type crosses into native code without the runtime's full transition - both for speed, and neither
   seen by a script.

@@ -76,6 +76,8 @@ public static class CLicenceActionClass
 			.Method("GetBuildCostMP", call => call.Return(api.Fixed(Type(call).Stats[CSubUnitStats.BuildCostManpower])))
 			.Method("GetBuildTime", call => call.Return(api.Fixed(Type(call).Stats[CSubUnitStats.BuildTime])))
 			.Method("IsCapitalShip", call => call.Return(Type(call).Flag("capital")))
+			// Its transport flag, the type's own (lua.md, section 4.6).
+			.Method("IsTransport", call => call.Return(Type(call).Flag(Sim.Combat.CShipCensus.TransportFlag)))
 			.Method("GetKey", call => call.Return(api.String(Type(call).Key)))
 			// The production script's (ministers.md, section 7).
 			.Method("GetIndex", call => call.Return(IndexOf(api, Type(call))))

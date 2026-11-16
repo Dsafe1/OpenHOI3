@@ -58,6 +58,12 @@ public sealed class CGameApi
 		GoodsValues = CGoodsValuesClass.Define();
 		Modifier = CCountryModifiersClass.DefineModifier(this);
 		TechnologyStatus = CTechnologyStatusClass.Define(this);
+		FixedPoint64 = CFixedPoint64Class.Define();
+		Variables = CVariablesClass.Define(this);
+		SetVariableCommand = CVariablesClass.DefineCommand(this);
+		UnitList = CUnitListClass.Define(this);
+		DistributionSetting = CDistributionSettingClass.Define(this);
+		MinisterTypeDataBase = CMinisterClass.DefineTypeDataBase(this);
 		SubUnit = CLicenceActionClass.DefineSubUnit(this);
 		SubUnitDataBase = CLicenceActionClass.DefineSubUnitDataBase(this);
 		LicenceAction = CLicenceActionClass.DefineAction(this);
@@ -252,8 +258,22 @@ public sealed class CGameApi
 
 	public CLuaClass Date { get; }
 
+	/// <summary>What BlackICE's scripts reach besides (docs/mechanics/lua.md, sections 4.4 to 4.7 and 5.1).</summary>
+	public CLuaClass FixedPoint64 { get; }
+
+	public CLuaClass Variables { get; }
+
+	public CLuaClass SetVariableCommand { get; }
+
+	public CLuaClass UnitList { get; }
+
+	public CLuaClass DistributionSetting { get; }
+
+	public CLuaClass MinisterTypeDataBase { get; }
+
 	public IEnumerable<CLuaClass> Classes => new[]
 	{
+		FixedPoint64, Variables, SetVariableCommand, UnitList, DistributionSetting, MinisterTypeDataBase,
 		Country, CountryTag, DiplomacyStatus, Government, Faction, Ideology, IdeologyGroup, Province, Continent,
 		GoodsPool, Strategy, Ai, ResourceValues, GameState, CountryDataBase, Intel, FixedPoint, Text, Date,
 		TradeAction, TradeRoute, GoodsValues, Modifier, TechnologyStatus, SubUnit, SubUnitDataBase, LicenceAction,

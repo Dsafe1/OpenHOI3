@@ -136,8 +136,10 @@ public static class CGameStateLoader
 		List<CTechnology> technologies = CTechnologyReader.Read(directories, warn, categories, unitTypes, terrainNames);
 		Dictionary<string, Dictionary<string, CLaw>> lawBook = CModifierReader.ReadLaws(directories, warn);
 		List<COccupationPolicy> occupationPolicies = CModifierReader.ReadOccupationPolicies(directories, warn);
+		var ministerTypes = new List<CMinisterType>();
 		Dictionary<string, Dictionary<EGoods, CFixedPoint>> goodsGiven = CCountryHistory.Apply(directories, countries, at, warn, technologies,
-			categories, lawBook, occupationPolicies.Select(policy => policy.Name).ToHashSet(), definesStart: start);
+			categories, lawBook, occupationPolicies.Select(policy => policy.Name).ToHashSet(), definesStart: start,
+			ministerTypeOrder: ministerTypes);
 
 		CDefines defines = CDefinesReader.Read(directories, warn);
 		CBuilding[] buildings = CBuildingReader.Read(directories, warn);
@@ -181,6 +183,7 @@ public static class CGameStateLoader
 			Continents = map.ContinentNames,
 			IdeologyGroups = ideologyGroups,
 			GovernmentPositions = positions,
+			MinisterTypes = ministerTypes,
 			LawGroups = LawGroups(lawBook),
 			OccupationPolicies = occupationPolicies,
 			Governments = CGovernmentReader.Read(directories, ideologyNames, positions, warn),

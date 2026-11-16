@@ -95,8 +95,8 @@ public sealed class LuaPoliticsTests : IDisposable
 			$"(function() for m in {Italy}:GetPossibleMinisters() do return m == {Italy}:GetMinister({Foreign}) end end)()"));
 		Assert.Equal("great_compromiser", scripts.Ask(state,
 			$"tostring({Italy}:GetMinister({Foreign}):GetPersonality({Foreign}):GetKey())"));
-		// A post he has no posting for: the null type.
-		Assert.Equal("", scripts.Ask(state, $"tostring({Italy}:GetMinister({Foreign}):GetPersonality({HeadOfState}):GetKey())"));
+		// A post he has no posting for: the null type, noMinisterType.
+		Assert.Equal("noMinisterType", scripts.Ask(state, $"tostring({Italy}:GetMinister({Foreign}):GetPersonality({HeadOfState}):GetKey())"));
 		Assert.Equal(false, scripts.Ask(state, $"{Italy}:GetMinister({Foreign}):CanTakePosition({HeadOfState})"));
 	}
 

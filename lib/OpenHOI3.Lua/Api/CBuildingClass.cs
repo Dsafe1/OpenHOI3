@@ -43,7 +43,10 @@ public static class CBuildingClass
 			});
 	}
 
-	/// <summary>The level built, not the level working after bombs.</summary>
+	/// <summary>
+	/// <c>GetMax()</c> the level built; <c>GetCurrent()</c> the level working, what bombs have left of it
+	/// (<c>docs/mechanics/bombing.md</c>, section 6).
+	/// </summary>
 	public static CLuaClass DefineProvinceBuilding(CGameApi api)
 	{
 		return new CLuaClass(ProvinceBuildingName)
@@ -51,6 +54,11 @@ public static class CBuildingClass
 			{
 				CLuaProvinceBuilding held = call.Object<CLuaProvinceBuilding>(1, ProvinceBuildingName);
 				return call.Return(api.Fixed(held.Province.BuildingMaxLevel(held.Building)));
+			})
+			.Method("GetCurrent", call =>
+			{
+				CLuaProvinceBuilding held = call.Object<CLuaProvinceBuilding>(1, ProvinceBuildingName);
+				return call.Return(api.Fixed(held.Province.BuildingLevel(held.Building)));
 			});
 	}
 }

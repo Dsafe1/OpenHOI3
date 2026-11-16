@@ -485,7 +485,9 @@ What the script is handed is the original's: a law database numbered from the nu
 `noLawgroup` first; a country's law of a group, its minister of a post - **the null minister where the post is empty,
 never nil** - its pool, its ruling party - **the null ideology `noIdeology`, in a group of no name, for a country with
 none**, which is how the rebels are given their laws - whether it is mobilised and its manpower; a minister equal to
-another by his number, his ideology, his posts and his personality in each; the posts by number; a law's `ValidFor`,
+another by his number, his ideology, his posts and his personality in each - **the null type `noMinisterType` in a post
+he has no posting for** (its key was empty here until 2026-11-16; `reversing/findings/FINDINGS-countrymodifier.md`) - the
+minister type database and the cabinet as a list (`lua.md`, section 4); the posts by number; a law's `ValidFor`,
 its `allow`; `CAI:Post` and `CCurrentGameState.Post`; the three commands; and the AI's war plans (`IsPreparingWar`,
 `IsPreparingWarWith`), the wars its foreign minister has prepared since 2026-10-16 (`foreignminister.md`, section 4).
 ~~**Not built, and answering false, each reported once**: its own declarations of war

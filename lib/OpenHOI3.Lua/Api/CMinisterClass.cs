@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using OpenHOI3.Lua.Native;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Modifiers;
@@ -20,8 +22,14 @@ public static class CMinisterClass
 	/// <summary>The null minister, number 0, whom an empty post holds.</summary>
 	public static readonly CMinister NullMinister = new(0, "");
 
-	/// <summary>The null minister type, a minister's personality in a post he has no posting for.</summary>
-	public static readonly CMinisterType NullType = new(new CModifier(""));
+	/// <summary>The null minister type's name.</summary>
+	public const string NullTypeName = "noMinisterType";
+
+	/// <summary>
+	/// The null minister type, <c>noMinisterType</c>, which is empty: a minister's personality in a post he has no posting
+	/// for, and the first of the minister type database (reversing/findings/FINDINGS-countrymodifier.md).
+	/// </summary>
+	public static readonly CMinisterType NullType = new(new CModifier(NullTypeName));
 
 	/// <summary>The null post, number 0.</summary>
 	public static readonly CGovernmentPosition NullPosition = new("", 0, false);
@@ -41,6 +49,41 @@ public static class CMinisterClass
 	{
 		return new CLuaClass(TypeName)
 			.Method("GetKey", call => call.Return(api.String(call.Object<CMinisterType>(1, TypeName).Name)));
+	}
+
+	/// <summary>
+	/// <c>CMinisterTypeDataBase</c>: the types in their database's order - the null type, then
+	/// <c>common/minister_types.txt</c>'s - their number, and a type by its exact name, case and all, nil for none.
+	/// </summary>
+	public static CLuaClass DefineTypeDataBase(CGameApi api)
+	{
+		return new CLuaClass("CMinisterTypeDataBase")
+			.Static("GetMinisterTypeList", call =>
+			{
+				var types = new List<object?> { new CLuaObject(api.MinisterType, NullType) };
+				foreach (CMinisterType type in api.State.MinisterTypes)
+				{
+					types.Add(new CLuaObject(api.MinisterType, type));
+				}
+				return call.ReturnIterator(types);
+			})
+			.Static("GetMinisterType", call =>
+			{
+				string name = call.String(1);
+				if (name == NullTypeName)
+				{
+					return call.Return(new CLuaObject(api.MinisterType, NullType));
+				}
+				foreach (CMinisterType type in api.State.MinisterTypes)
+				{
+					if (string.Equals(type.Name, name, StringComparison.Ordinal))
+					{
+						return call.Return(new CLuaObject(api.MinisterType, type));
+					}
+				}
+				return call.Return(null);
+			})
+			.Static("GetNumberOfMinisterTypes", call => call.Return(api.State.MinisterTypes.Count + 1));
 	}
 
 	public static CLuaClass DefinePosition(CGameApi api)

@@ -2052,9 +2052,10 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   and 22); the version label names the frontmost of several mods, which the original's choice is not read. BlackICE's
   `autoexec.lua` loads whole since 2026-11-16 - its `lfs` taken by the global `OpenHOI3` and the install made the working
   folder (`mods.md`, section 6) - but its old utility needs `wx` (wxLua) and its overlay BiceLib, neither of them here.
-  The original's Lua API it calls that ours lacks -
-  `CSetVariableCommand`, `GetVariable`, `GetVariables`, `CMinisterTypeDataBase`, nine `CModifier` constants - is the AI's
-  (`modsurvey`'s list).
+  The original's Lua API it called that ours lacked - the variables and `CSetVariableCommand`, the unit list, the shares,
+  `CMinisterTypeDataBase`, the `CModifier` constants and the rest of `modsurvey`'s list - is built since 2026-11-16 (`lua.md`,
+  sections 4 to 5.1); a month of its AI leaves 39 Lua errors, each `IsUnitAvailable` handed nil for a unit type its scripts
+  name and its files do not declare, which the original would not survive (`lua.md`, *Ours*).
 
 - **Script still unbuilt**: `add_division` (unused by TFH and BlackICE, its starting strength not read through), `remove_fow`, the four mission conditions (an Europa Universalis III leftover, no mission file in either install), `has_hostile_spy_mission` (the original compares against an unset byte) and the AI's `add_ai_strategy` / `fixed_ai_strategy`. Built on 2026-11-16, for BlackICE's layer above all: `remove_brigade` with the original's end-of-hour removal queue, `military_construction` in a running game's `load_oob`, `total_of_ours_sunk`, `total_sunk_by_us`, `surrender_inherit`'s surrender mode and `release_vassal = REB` (`effects.md`, section 8), and `lost_IC`, the four war-record counters and the six `last_*_losses` (`triggers.md`, sections 5.1 and 5.2). **The undeclared war's** hostility is asked at battles, convoy raids and air and fleet targets, not at the AI's war-time gates or the land's movement (`war.md`, section 15).
 - **A unit taken out of the game, everywhere but the new paths**: the original's `RemoveUnit` leaves the removed unit's

@@ -16,6 +16,8 @@ public static class CPoliticsMinisterClass
 	{
 		return new CLuaClass(Name)
 			.Method("GetCountryTag", call => call.Return(api.Tag(Of(call).Tag)))
+			// Every minister's, from the original's CAIAgent (lua.md, section 6).
+			.Method("GetCountry", call => call.Return(api.Of(Of(call))))
 			.Method("GetOwnerAI", call => call.Return(new CLuaObject(api.Ai, new CLuaAi(Of(call)))))
 			.Method("IsCapitalSafeToLiberate", call =>
 			{
