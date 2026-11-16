@@ -292,8 +292,16 @@ base's `CANDIDATES.md`, *Live probes queued*. In order:
    - about 180 draws an hour where the original makes 4 to 8, and the scripts' trading some 25 times an hour. Built: the
    draws line up with the recording's, the units' orders unmoved, and the trading's share of an ordinary hour 11.3 ms to
    2.5 (`CLAUDE.md`, the profile).
-   **Open, in order**: the July list against the recorded run with its draws: the Soviet Union's 40 alone, 14 none and 6 at
-   another end, Germany's 19 alone and 7 none, and the 21. Infanterie-Division at hour 29 if it is still there.
+   **Where ours drew beyond the original** (section 105), the playback naming each extra draw's caller: a patrol's centre,
+   drawn on the AI's generator where the original draws on a thread's C runtime `rand()` - now a `rand()` of its own,
+   its lists swap-removed as the original's - and Italy's invasion ranking, 24 areas scored where the original scores 5,
+   a fellow fighter's port counting only where an own port reaches it (`moving.md`, sections 14 and 16). **The war's
+   start is recorded too** (`wz`): with its draws, 128 the same, 10 alone, 6 none, before and after; without them the
+   patrol's change had moved it by a roll.
+   **Open, in order**: (a) what ours still draws beyond the original - the ranking's staging step a draw a day for Italy,
+   Britain, South Africa and Canada, a few answers to offers, some of Japan's Lua. (b) The July list against the third
+   recording with its draws: 242 the same, 63 alone, 34 none, 19 other end - the Soviet Union's 35 alone and 15 none,
+   Germany's 27 alone and 19 none.
 
 **Noticed in the maintainer's testing, 2026-11-12, and all mended the same day**: held keys, the number pad's Enter, the
 right button, the opening view, the alert icons, the counter distance, a held arrow key's lag, the names of provinces
