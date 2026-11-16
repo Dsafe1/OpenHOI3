@@ -794,9 +794,9 @@ save has them. **A later start shows it is a count of changes**: land out of sup
 change the history made by the date - Norway's Karesuando, Norway's and then Germany's on 1941.6.22, at 5; Kovdor,
 Finland's, the Soviet Union's and Finland's again by 1941.12.11, at 6; Gallabat, Britain's, Italy's, Britain's and
 Italy's by 1941.6.22, at 7 - and a province named in two files counts the changes of both. The count is the save's in
-every province of the three later start saves but two at 1941.12.11, whose controller the original changes as the game
-is made and ours does not (Cyp and Wadi al Hamim, the save's Finland's and Britain's; not followed). It differed in 6
-provinces at 1939, 139 at 1941.6.22 and 152 at 1941.12.11 (2026-11-15).
+every province of all seven later start saves since 2026-11-16, when the hour's handing over of land in no area
+(`war.md`, section 11) gave Cyp and Wadi al Hamim at 1941.12.11, and the provinces like them at 1943 and 1944, the
+saves' controllers. It differed in 6 provinces at 1939, 139 at 1941.6.22 and 152 at 1941.12.11 (2026-11-15).
 
 **`on_encirclement`** [exe] fires in the province's day where the count is exactly 1 and the province's area has no
 working port: one draw of the game's generator seeds a scope of the province and no country, so its owner answers,

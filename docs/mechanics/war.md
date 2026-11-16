@@ -493,6 +493,30 @@ a province held by a country its owner is not at war with goes back to its owner
 not peacefully - so production stops for the day and a capital is looted - except where either is the
 rebels or the owner is a government in exile.
 
+**Land in no area goes to the enemy around it, every hour** (`RunHourlyProvincePass`, read 2026-11-16,
+`FINDINGS-laterstart.md` section 20; `CStrandedLand`). In each province's hour, after its points are added to its
+holder's faction and before a moved building's modifier is made again: an owned land province **in no real area** - one
+level of infrastructure or none, so in none of the supply network's areas (`supply.md`, section 2) - walks its land
+neighbours in the order of its ways out, an impassable way left out and the sea not counted.
+
+- **Where any neighbour is in a real area**: the province stays where one such neighbour's holder is ground its holder
+  may operate in (`CanOperateIn` - its own, its side's, or a country's fighting beside it that is no enemy); otherwise
+  it goes to the holder of **the last** such neighbour that is an enemy of its holder - nobody, where its holder is the
+  rebels. Neighbours in no area are not looked at.
+- **Where none is**: it goes to the enemy holding **the first** neighbour, if every enemy among them is that one; it
+  stays where any of them is held by its holder's side, or by a country fighting beside it that is no enemy, or where
+  an enemy is not the first neighbour's holder.
+
+The change has its consequences and is **peaceful** (`Province_SetController`'s flags 1, 1, 1): nothing is damaged,
+production goes on, no capital is looted; the occupation policy, radar and acting capital follow as at any change.
+Nothing is told. Being of the hour, it runs in a new game's hour before its first screen too: **at a later start it is
+what gives the start saves' controllers where the history does not** (*measured*, `OpenHOI3.SaveCheck write ... new`,
+2026-11-16) - Cyp (32) Finland's at 1941.12.11, 1943.2.1 and 1944.6.20, its two neighbours Finland's ground of two
+levels; Wadi al Hamim (5554) Britain's at 1941.12.11 beside Britain's Bahi; four Algerian desert provinces Germany's,
+Daraj (9307) given back to Italy and Apamama Japan's at 1943.2.1; Munda and Buala Japan's and three of New Guinea the
+United States' at 1944.6.20 - every one of the 15, each with the `history` entry at the hour the save writes for it, and
+every province's owner and controller the save's at all eight start dates.
+
 ## 12. The surrender progress
 
 How near a country is to surrendering (`CCountry::GetSurrenderProgress`, `FINDINGS-war.md` D.2), 0 to
@@ -748,6 +772,9 @@ war. Ours: the lines are made once the world stands, each country's in turn, aft
 27. The government goes back to the first capital declared in play, not the declared one where the two differ; a
     country owning nothing keeps its declared capital for good; occupation never moves it.
 28. `create_vassal` and `inherit` refuse no country on both sides.
+29. Land in no area changes hands with no unit anywhere near it (section 11): beside an area the last enemy
+    neighbour takes it and a neutral beside it is passed over; with no area beside it, a neutral holding the first
+    neighbour keeps it where it is.
 
 ## 15. A war nobody declared
 

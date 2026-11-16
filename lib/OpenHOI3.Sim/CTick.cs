@@ -89,9 +89,11 @@ public static class CTick
 		Step(state, Weather.CWeatherPass.RunHourly);
 		// Each province's hour: a faction's progress is the points its members hold (docs/mechanics/factions.md, section 7).
 		Step(state, Wars.CFactionProgress.RunHourly);
-		// And, at the end of the same look, one a building of which has moved has its modifier made again (modifiers.md,
-		// section 3).
-		Step(state, CProvinceModifiers.RebuildMoved);
+		// Then, in the same look, an owned province in no area whose holder has no ground of its own or a friend's beside it
+		// goes to the enemy around it (war.md, section 11), and at its end one a building of which has moved has its
+		// modifier made again (modifiers.md, section 3).
+		Step(state, s => CProvinceModifiers.RebuildMoved(s, province => Wars.CStrandedLand.Run(s, province)),
+			"CStrandedLand.Run and CProvinceModifiers.RebuildMoved");
 		// The battles are fought last, each in turn.
 		Step(state, CCombats.RunHourly);
 		// An event left unanswered past its time answers itself (ours: the original's window counts

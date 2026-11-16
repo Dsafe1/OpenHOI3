@@ -54,9 +54,23 @@ public static class CProvinceModifiers
 	/// <summary>The hour's look at every province: one a building of which has moved is made again.</summary>
 	public static void RebuildMoved(CGameState state)
 	{
+		RebuildMoved(state, _ => false);
+	}
+
+	/// <summary>
+	/// The hour's look at every province with what comes before it in each province's own hour: <paramref name="before"/>,
+	/// which answers whether the province changed hands - and with that what the making worked out is worked out again -
+	/// and then the province made again where a building of it has moved.
+	/// </summary>
+	public static void RebuildMoved(CGameState state, Func<CProvince, bool> before)
+	{
 		Context? context = null;
 		foreach (CProvince province in state.Provinces)
 		{
+			if (before(province))
+			{
+				context = null;
+			}
 			if (province.BuildingMoved)
 			{
 				Make(context ??= new Context(state), province);

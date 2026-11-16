@@ -65,7 +65,9 @@ A change of month always comes with a change of day, and a change of year with b
 2. Every collected unit's **hourly update**.
 3. Every country's hourly update.
 4. The AI's trade work.
-5. Every province's hourly update.
+5. Every province's hourly update: its points to its holder's faction (`factions.md`, section 7), an owned province in
+   no area handed to the enemy around it (`war.md`, section 11), and a moved building's modifier made again
+   (`modifiers.md`, section 3) - each province all three before the next.
 6. **Combat**: every battle in progress is advanced one step.
 7. The AI is then released to think, once the hourly pass can no longer be disturbed by it.
 

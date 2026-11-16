@@ -170,6 +170,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 
 ## Diplomacy and war
 
+- **Land in no area is handed over unevenly.** An owned province of one level of infrastructure or none goes to the enemy around it every hour with no unit near: beside an area to the last enemy neighbour, a neutral beside it passed over; with no area beside it, a neutral holding the first neighbour keeps it where it is. `war.md`, 11 and oddity 29. *Oversight.* Risk: small; fronts in the desert, the Arctic and on islands.
 - **Casus belli made in play do nothing.** Each is of the null type, and the condition answers by the types' `is_valid`. `war.md`, 9 and oddity 6. *Dead.* Risk: war goals.
 - **Casus belli fields unused:** `months`, `truce_months`, `peace_cost_factor`, `penalty_factor`, `prerequisites`, `is_valid_join`, `mutual`, `war_name` and others. `war.md`, 2. *Dead.* Risk: only if brought to life.
 - **`call_ally` is read and does nothing.** `war.md`, 9. *Dead.* Risk: small.
