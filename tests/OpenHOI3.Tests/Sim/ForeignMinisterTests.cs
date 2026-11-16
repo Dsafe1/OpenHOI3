@@ -336,7 +336,7 @@ public class ForeignMinisterTests
 	{
 		CGameState state = World();
 		CCountry germany = state.Country(Ger)!;
-		state.Country(Pol)!.MaxIc = 50;
+		state.Country(Pol)!.BaseIc = 50;
 
 		CWarTargets.Prepare(state, germany, Pol, 0, null, false);
 		Advance(state, 24 * 31 * 4);

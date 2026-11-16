@@ -22,7 +22,7 @@ public static class CLaws
 		{
 			return CFixedPoint.Zero;
 		}
-		long money = country.MaxIc * 1000L * 30000 / 1000;
+		long money = country.BaseIc * 1000L * 30000 / 1000;
 		money = money * state.Defines[CResources.EconomySection, CResources.IcToMoney].Raw / 1000;
 		money = money * (1000 + country.Modifier["global_money"].Raw) / 1000;
 		return new CFixedPoint(law.Cost.Raw * money / 1000);

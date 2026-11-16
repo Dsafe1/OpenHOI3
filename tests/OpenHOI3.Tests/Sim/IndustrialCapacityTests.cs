@@ -268,7 +268,7 @@ public class IndustrialCapacityTests
 		estonia.Modifier.Set("global_ic", CFixedPoint.Parse("0.85"));
 		CIndustrialCapacity.Update(state);
 		Assert.Equal(8, estonia.TotalIc);
-		Assert.Equal(8, estonia.MaxIc);
+		Assert.Equal(8, estonia.IcBeforeCap);
 		Assert.Equal(CFixedPoint.FromInt(8), estonia.ResourcesNeeded[EGoods.Metal]);
 	}
 

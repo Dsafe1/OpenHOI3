@@ -73,10 +73,10 @@ public static class CExile
 				long most = 0;
 				foreach (CCountry member in members)
 				{
-					if (member != country && !member.InExile && member.MaxIc * 1000L > most)
+					if (member != country && !member.InExile && member.BaseIc * 1000L > most)
 					{
 						best = member;
-						most = member.MaxIc * 1000L;
+						most = member.BaseIc * 1000L;
 					}
 				}
 				if (best is not null)

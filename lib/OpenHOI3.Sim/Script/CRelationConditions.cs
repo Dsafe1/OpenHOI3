@@ -262,7 +262,7 @@ public static class CRelationConditions
 		long sum = 0;
 		foreach (CCountry enemy in CCountryLists.Enemies(state, country))
 		{
-			long theirs = enemy.MaxIc * (long)CFixedPoint.Scale;
+			long theirs = enemy.BaseIc * (long)CFixedPoint.Scale;
 			if (theirs == 0)
 			{
 				return null;
@@ -273,7 +273,7 @@ public static class CRelationConditions
 		{
 			return 0;
 		}
-		return country.MaxIc * (long)CFixedPoint.Scale * CFixedPoint.Scale / sum;
+		return country.BaseIc * (long)CFixedPoint.Scale * CFixedPoint.Scale / sum;
 	}
 
 	/// <summary><c>faction</c>: we are a country, and in that faction - or in THIS's.</summary>

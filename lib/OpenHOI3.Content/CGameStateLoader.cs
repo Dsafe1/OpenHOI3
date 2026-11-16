@@ -320,12 +320,12 @@ public static class CGameStateLoader
 		foreach (CCountry country in state.Countries)
 		{
 			CPolitics.SetPartiesFromHistory(state, country);
-			worked[country.Index] = country.MaxIc;
-			country.MaxIc = 0;
+			worked[country.Index] = country.BaseIc;
+			country.BaseIc = 0;
 		}
 		foreach (CCountry country in state.Countries)
 		{
-			country.MaxIc = worked[country.Index];
+			country.BaseIc = worked[country.Index];
 			// Brought up to date with its wars, as the entry does each country: mobilised where at war (war.md, section 4).
 			Sim.Wars.CWarSides.BringUpToDate(state, country, allowDemobilise: true);
 			Sim.Diplomacy.CNeutrality.UpdateEffective(state, country);
@@ -353,7 +353,7 @@ public static class CGameStateLoader
 		var icAtSetUp = new (int Total, int Max)[state.Countries.Count];
 		foreach (CCountry country in state.Countries)
 		{
-			icAtSetUp[country.Index] = (country.TotalIc, country.MaxIc);
+			icAtSetUp[country.Index] = (country.TotalIc, country.IcBeforeCap);
 		}
 		// Then the effects of the decisions its history says it has taken (events.md, section 13), and its manpower
 		// started at its most under the laws and technology brought forward and what those decisions gave (manpower.md,
@@ -374,7 +374,7 @@ public static class CGameStateLoader
 		// filling gives (production.md, section 1) - and by the IC the set-up's head worked out.
 		foreach (CCountry country in state.Countries)
 		{
-			(country.TotalIc, country.MaxIc) = icAtSetUp[country.Index];
+			(country.TotalIc, country.IcBeforeCap) = icAtSetUp[country.Index];
 		}
 		CProduction.SetStartingShares(state);
 		// A country at a time: its order of battle's leaders, its stockpile's days of what its units use, and its leaders

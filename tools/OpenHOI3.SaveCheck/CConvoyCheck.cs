@@ -115,7 +115,7 @@ internal static class CConvoyCheck
 			if ((freeTransports != country.Transports || freeEscorts != country.Escorts) && show)
 			{
 				notes.Add($"  {country.Tag}: {country.Transports} transports free for the save's {freeTransports}, "
-					+ $"{country.Escorts} escorts for {freeEscorts} (base IC {country.BaseIc}, before the resource cap {country.MaxIc})");
+					+ $"{country.Escorts} escorts for {freeEscorts} (base IC {country.BaseIc}, before the resource cap {country.IcBeforeCap})");
 			}
 		}
 

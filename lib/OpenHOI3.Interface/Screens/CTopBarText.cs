@@ -115,9 +115,9 @@ public static class CTopBarText
 		int wasted = CProduction.Wasted(country);
 		string first = CColouredText.In(wasted > 0 ? CColouredText.Red : CColouredText.Green)
 			+ wasted.ToString(CultureInfo.InvariantCulture);
-		string second = CColouredText.In(country.MaxIc > country.TotalIc ? CColouredText.Red : CColouredText.Green)
+		string second = CColouredText.In(country.BaseIc > country.TotalIc ? CColouredText.Red : CColouredText.Green)
 			+ country.TotalIc.ToString(CultureInfo.InvariantCulture);
-		return first + "/" + second + "/" + country.MaxIc.ToString(CultureInfo.InvariantCulture);
+		return first + "/" + second + "/" + country.BaseIc.ToString(CultureInfo.InvariantCulture);
 	}
 
 	/// <summary>The hour and the date: <c>0:00 1, January 1936</c>.</summary>

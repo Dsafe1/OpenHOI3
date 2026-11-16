@@ -56,7 +56,7 @@ public class PoliticsAiTests
 		public int DiploScore(CGameState state, string function, CCountry actor, CCountry recipient, CCountry observer) => 0;
 
 		public void RunLaws(CGameState state, CCountry country) =>
-			Seen.Add((country.Tag, state.Countries.Select(each => each.MaxIc).ToArray()));
+			Seen.Add((country.Tag, state.Countries.Select(each => each.BaseIc).ToArray()));
 
 		public void RunPolitics(CGameState state, CCountry country)
 		{
@@ -69,15 +69,15 @@ public class PoliticsAiTests
 		CGameState state = World();
 		var scripts = new SeesIc();
 		state.AiScripts = scripts;
-		state.Country(Ger)!.MaxIc = 100;
-		state.Country(Ita)!.MaxIc = 50;
+		state.Country(Ger)!.BaseIc = 100;
+		state.Country(Ita)!.BaseIc = 50;
 
 		CPoliticsAi.SetUpAtStart(state);
 
 		// Germany is asked first and sees no IC in Italy; Italy, asked second, sees Germany's (politics.md, section 13).
 		Assert.Equal(new[] { 100, 0 }, scripts.Seen[0].Ic);
 		Assert.Equal(new[] { 100, 50 }, scripts.Seen[1].Ic);
-		Assert.Equal(50, state.Country(Ita)!.MaxIc);
+		Assert.Equal(50, state.Country(Ita)!.BaseIc);
 	}
 
 	private static CGameState World()

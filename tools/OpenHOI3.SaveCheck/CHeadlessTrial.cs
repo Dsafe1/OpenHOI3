@@ -489,7 +489,7 @@ internal static class CHeadlessTrial
 			string Goods(EGoods goods) => pool is null ? "-" : Whole(pool[goods]);
 			List<CUnit> units = country.AllUnits().ToList();
 			int technology = country.TechnologyLevels.Values.Sum();
-			Console.WriteLine($"  {tag} {country.TotalIc,5} {country.MaxIc,6} {Whole(country.Manpower),12} {Tenth(country.TotalLeadership),11} " +
+			Console.WriteLine($"  {tag} {country.TotalIc,5} {country.IcBeforeCap,6} {Whole(country.Manpower),12} {Tenth(country.TotalLeadership),11} " +
 				$"{Whole(country.Officers),9} {Goods(EGoods.Money),8} {Goods(EGoods.Supplies),9} {Goods(EGoods.Fuel),8} " +
 				$"{Goods(EGoods.Metal),8} {Goods(EGoods.Energy),8} {Goods(EGoods.RareMaterials),8} {Goods(EGoods.CrudeOil),8} " +
 				$"{units.Count,6} {units.Sum(unit => unit.SubUnits.Count),8} {country.Constructions.Count,5} {technology,4} " +

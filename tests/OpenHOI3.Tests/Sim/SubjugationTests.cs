@@ -93,7 +93,7 @@ public class SubjugationTests
 		CCountry france = C(state, Fra);
 		CCountry britain = C(state, Eng);
 		britain.Faction = "allies";
-		britain.MaxIc = 200;
+		britain.BaseIc = 200;
 		france.Faction = "allies";
 		// A puppet whose overlord owns land goes into exile whatever the draw.
 		france.Overlord = Eng;

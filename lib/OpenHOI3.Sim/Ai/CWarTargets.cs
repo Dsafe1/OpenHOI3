@@ -115,7 +115,7 @@ public static class CWarTargets
 	}
 
 	/// <summary>Whether the pruning runs for a country: a major, or more than 100 whole IC of its provinces.</summary>
-	public static bool Prunes(CCountry country) => country.IsMajor || country.MaxIc > GreatIc;
+	public static bool Prunes(CCountry country) => country.IsMajor || country.BaseIc > GreatIc;
 
 	private static bool IsGreat(CGameState state, CCountryTag tag) => state.Country(tag) is { } other && Prunes(other);
 

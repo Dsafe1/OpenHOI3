@@ -534,7 +534,7 @@ public static class CInvasionPlanner
 		List<CCountry> members = CCountryLists.FactionMembers(state, country.Faction);
 		if (members.Count > 0 && !ReferenceEquals(members[0], country))
 		{
-			if (country.MaxIc < 50 || CSealift.SumCapacity(country) <= 0)
+			if (country.TotalIc < 50 || CSealift.SumCapacity(country) <= 0)
 			{
 				return false;
 			}

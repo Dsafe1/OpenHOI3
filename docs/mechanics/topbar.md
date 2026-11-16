@@ -99,16 +99,21 @@ since 2026-11-13, what exiles hand over since 2026-11-14 - and the same sum is t
 
 `confirmed` Three whole numbers and two colours:
 
-    {§R if wasted > 0, else §G} wasted / {§R if before the cap > used, else §G} used / before the cap
+    {§R if wasted > 0, else §G} wasted / {§R if base > used, else §G} used / base
 
 - **wasted** is the IC the country has given a share that the share does not need: what
   each of the five shares but lend-lease was given beyond what it spent, added up, and
   the fraction dropped.
 - **used** is the IC the country has to spend today (`ic.md`).
-- **before the cap** is what it would have with resources enough.
+- **base** is its provinces' IC summed, whole and unscaled - the original's maximum IC
+  (`CCountry +0x60C` in the fact base), which its tooltip calls "Base IC" too.
 
-So the first number is red whenever anything is going to waste, and the second whenever a
-shortage has cost IC. The original's: `§R10/§G21/21`.
+So the first number is red whenever anything is going to waste, and the second whenever the
+country spends less than its provinces' bare IC. The original's: `§R10/§G21/21`. **This said
+"before the cap" until 2026-11-16** and showed the scaled total before the resource cap,
+which agrees with the base only where nothing scales a country's IC - a 1936 minor, as in that
+example; in July 1941 Germany's base is 197 and its total 334
+(`reversing/findings/FINDINGS-liveread.md`, section 108).
 
 *Ours:* lend-lease spends nothing, and production, reinforcement and upgrades spend only
 what their queue and their units take (`production.md`, `buildqueue.md`, `upkeep.md`), so

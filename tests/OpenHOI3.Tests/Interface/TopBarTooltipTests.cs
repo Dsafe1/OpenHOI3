@@ -162,7 +162,7 @@ public class TopBarTooltipTests
 	{
 		(CGameState state, CCountry germany) = State();
 		germany.TotalIc = 21;
-		germany.MaxIc = 23;
+		germany.BaseIc = 23;
 		germany.Technology.Set("ic_modifier", CFixedPoint.Parse("0.12"));
 		germany.ModifierSources.Add(new CModifierSource(Modifier("war_economy", ("global_ic", "0.1"))));
 

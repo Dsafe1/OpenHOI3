@@ -114,7 +114,7 @@ public static class CIndustrialCapacity
 			if (!setUp && !daily && country.IcWorkedOut)
 			{
 				country.LendLeaseIc = 0;
-				FillResourcesNeeded(country, country.MaxIc);
+				FillResourcesNeeded(country, country.IcBeforeCap);
 				continue;
 			}
 
@@ -136,7 +136,7 @@ public static class CIndustrialCapacity
 			}
 
 			country.TotalIc = (int)total;
-			country.MaxIc = (int)total;
+			country.IcBeforeCap = (int)total;
 			if (setUp)
 			{
 				country.IcWorkedOut = true;

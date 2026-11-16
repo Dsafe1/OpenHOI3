@@ -41,7 +41,7 @@ public class LawChangeTests
 		propaganda.Allow = CTrigger.All();
 		propaganda.Allow.Children.Add(new CTrigger(ETriggerKind.Keyword, "tag", new CScriptArgument("ENG", false) { Tag = Eng }));
 
-		CCountry germany = new() { Tag = Ger, Name = "Germany", DefinitionFile = "", Capital = 1, ActingCapital = 1, MaxIc = 100 };
+		CCountry germany = new() { Tag = Ger, Name = "Germany", DefinitionFile = "", Capital = 1, ActingCapital = 1, BaseIc = 100 };
 		germany.Laws["press_laws"] = free;
 		CCountry britain = new() { Tag = Eng, Name = "Britain", DefinitionFile = "" };
 		var state = new CGameState(new CDate(1936, 1, 1),

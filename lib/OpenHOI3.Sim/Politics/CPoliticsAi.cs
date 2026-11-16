@@ -97,12 +97,12 @@ public static class CPoliticsAi
 		int[] worked = new int[state.Countries.Count];
 		foreach (CCountry country in state.Countries)
 		{
-			worked[country.Index] = country.MaxIc;
-			country.MaxIc = 0;
+			worked[country.Index] = country.BaseIc;
+			country.BaseIc = 0;
 		}
 		foreach (CCountry country in state.Countries)
 		{
-			country.MaxIc = worked[country.Index];
+			country.BaseIc = worked[country.Index];
 			scripts.RunLaws(state, country);
 			posted.AddRange(state.Outbox);
 			state.Outbox.Clear();

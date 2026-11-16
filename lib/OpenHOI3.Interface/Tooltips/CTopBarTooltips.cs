@@ -219,7 +219,7 @@ public static class CTopBarTooltips
 		var text = new StringBuilder(CTextTemplate.Fill(localise("IC_NUMBER_IRO"),
 			("WASTED", CProduction.Wasted(country).ToString(CultureInfo.InvariantCulture)),
 			("AVAILABLE", country.TotalIc.ToString(CultureInfo.InvariantCulture)),
-			("BASE", country.MaxIc.ToString(CultureInfo.InvariantCulture))));
+			("BASE", country.BaseIc.ToString(CultureInfo.InvariantCulture))));
 		text.Append(FromTechnology(localise, country.Technology[TechnologyIc]));
 		text.Append(CModifierText.Sources(localise, country.ModifierSources, GlobalIc));
 		return text.ToString();

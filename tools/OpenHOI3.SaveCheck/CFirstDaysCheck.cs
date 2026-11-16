@@ -419,7 +419,7 @@ internal static class CFirstDaysCheck
 			+ $"   diplomacy {CLeadership.Needed(state, country, ELeadershipCategory.Diplomacy)}");
 		Console.WriteLine($"   {"used by industry",-30} metal {country.ResourcesNeeded[EGoods.Metal]}"
 			+ $"   energy {country.ResourcesNeeded[EGoods.Energy]}   rare materials {country.ResourcesNeeded[EGoods.RareMaterials]}"
-			+ $"   (IC {country.MaxIc}, {country.TotalIc} after the cap and lend-lease)");
+			+ $"   (IC {country.IcBeforeCap}, {country.TotalIc} after the cap and lend-lease)");
 	}
 
 	/// <summary>A full day of every line of the queue at its price now - what the production need is when it is counted.</summary>

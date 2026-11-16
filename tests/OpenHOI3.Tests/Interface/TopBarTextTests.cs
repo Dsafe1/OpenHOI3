@@ -181,7 +181,7 @@ public class TopBarTextTests
 		// The original's string for a country wasting 10 of 21: half its IC on a queue
 		// with nothing in it, the rest on consumer goods and supplies, which use all of it.
 		_country.TotalIc = 21;
-		_country.MaxIc = 21;
+		_country.BaseIc = 21;
 		_country.ProductionShares[(int)EProductionCategory.ConsumerGoods] = new CFixed15(CFixed15.Scale / 4);
 		_country.ProductionShares[(int)EProductionCategory.Supplies] = new CFixed15(CFixed15.Scale / 4);
 		_country.ProductionShares[(int)EProductionCategory.Production] = new CFixed15(CFixed15.Scale / 2);
@@ -193,7 +193,7 @@ public class TopBarTextTests
 	public void NothingWastedIsGreenAndAShortageOfResourcesIsRed()
 	{
 		_country.TotalIc = 15;
-		_country.MaxIc = 21;
+		_country.BaseIc = 21;
 		_country.ProductionShares[(int)EProductionCategory.ConsumerGoods] = new CFixed15(CFixed15.Scale / 2);
 		_country.ProductionShares[(int)EProductionCategory.Supplies] = new CFixed15(CFixed15.Scale / 2);
 
@@ -204,7 +204,7 @@ public class TopBarTextTests
 	public void LendLeaseIsNotCountedAsWaste()
 	{
 		_country.TotalIc = 20;
-		_country.MaxIc = 20;
+		_country.BaseIc = 20;
 		_country.ProductionShares[(int)EProductionCategory.LendLease] = new CFixed15(CFixed15.Scale);
 
 		Assert.Equal(0, CProduction.Wasted(_country));

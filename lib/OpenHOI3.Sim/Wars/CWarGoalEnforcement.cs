@@ -145,7 +145,7 @@ public static class CWarGoalEnforcement
 		}
 		foreach (CCountry member in CCountryLists.FactionMembers(state, country.Faction))
 		{
-			if (member != country && member.Tag.Value != Rebels && (member.IsMajor || member.MaxIc > HostIc)
+			if (member != country && member.Tag.Value != Rebels && (member.IsMajor || member.BaseIc > HostIc)
 				&& CCountryLists.OwnedCount(state, member.Tag) > 0 && !member.InExile)
 			{
 				return member;

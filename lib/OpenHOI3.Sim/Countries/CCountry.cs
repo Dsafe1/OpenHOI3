@@ -322,8 +322,10 @@ public sealed class CCountry
 	public Dictionary<string, CFixedPoint> Variables { get; } = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
-	/// The IC of its provinces, in whole IC, before any of the country's own bonuses.
-	/// Written by <see cref="CIndustrialCapacity"/>.
+	/// The IC of its provinces, in whole IC, before any of the country's own bonuses: what the original calls its maximum
+	/// IC (<c>GetMaxIC</c>) and every rule of "above 100 IC", the top bar's third figure, a law's price, exile and
+	/// <c>enemy_ic_ratio</c> read - Germany's 197 in July 1941 where its total is 334
+	/// (reversing/findings/FINDINGS-liveread.md, section 108). Written by <see cref="CIndustrialCapacity"/>.
 	/// </summary>
 	public int BaseIc { get; set; }
 
@@ -335,20 +337,22 @@ public sealed class CCountry
 
 	/// <summary>
 	/// The IC it would have with resources enough: <see cref="TotalIc"/> as calculated,
-	/// before a day's shortage cuts it. Written by <see cref="CIndustrialCapacity"/>.
+	/// before a day's shortage cuts it, which a day's bill of resources is worked out from. Not the original's maximum IC,
+	/// which is <see cref="BaseIc"/> (until 2026-11-16 this was called <c>MaxIc</c> and read where that was meant).
+	/// Written by <see cref="CIndustrialCapacity"/>.
 	/// </summary>
-	public int MaxIc { get; set; }
+	public int IcBeforeCap { get; set; }
 
 	/// <summary>
 	/// Whether the game's own calculation has worked its IC out - a new game's set-up does, at its head, for every country
 	/// (<c>docs/mechanics/ic.md</c>, section 3), and so does a load. From then a country that owns no province and is in
-	/// no exile keeps the <see cref="TotalIc"/> and <see cref="MaxIc"/> it last had, the daily calculation being run only
+	/// no exile keeps the <see cref="TotalIc"/> and <see cref="IcBeforeCap"/> it last had, the daily calculation being run only
 	/// for the others. Not saved: a load works a landless country's IC out without its ministers.
 	/// </summary>
 	public bool IcWorkedOut { get; set; }
 
 	/// <summary>
-	/// What a full day of its IC would cost in resources - not what was used: <see cref="MaxIc"/> times one of metal, two
+	/// What a full day of its IC would cost in resources - not what was used: <see cref="IcBeforeCap"/> times one of metal, two
 	/// of energy and a half of rare materials, made again with the IC each day and on entering a game, and not saved.
 	/// The economy ledger's "Used by Industry" row (<c>docs/mechanics/ic.md</c>, section 4;
 	/// <see cref="CIndustrialCapacity.FillResourcesNeeded"/>).
