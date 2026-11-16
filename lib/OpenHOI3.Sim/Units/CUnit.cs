@@ -122,6 +122,12 @@ public sealed class CUnit
 	/// </summary>
 	public int AiBound { get; set; } = -1;
 
+	/// <summary>
+	/// <see cref="AiBound"/> as it stood when the hour's AI passes began: what another country's pass reads of this unit, the
+	/// original's passes running side by side (<c>docs/mechanics/moving.md</c>, section 7.3).
+	/// </summary>
+	public int AiBoundAtHour { get; set; } = -1;
+
 	public bool IsMoving => Path.Count > 0;
 
 	/// <summary>

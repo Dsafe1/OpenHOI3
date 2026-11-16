@@ -207,6 +207,14 @@ is cleared.
    bound takes it - standing there it counts as standing and heading unless it is on its way to a province no enemy holds, when it is
    counted nowhere; bound there, as heading. One falling back with under half its organisation is not counted. **For the line**, with focus areas and the frontier at
    war, every land unit of each country fighting on our side that holds a focus area's first province is counted the same way.
+   **Ours: an ally's unit is counted by where its country's AI had it bound as the hour's passes began.** The original
+   runs the countries' passes side by side on worker threads (`reversing/findings/FINDINGS-ai.md`), and the AI writes a
+   unit's destination the moment it sends it, so whether one country's count sees another's orders of that hour is a
+   race. A small country's pass is usually done before a great power's orders are given: at 09:00 on 16 July 1941
+   Tannu Tuva's pass began 43rd and the Soviet Union's 98th, so Kyzyl HQ counted the three Soviet divisions in 2390
+   standing and gave no order. Here the passes run one after another and the Soviet Union's comes first, so its orders of
+   that hour sent them away first and Tuva marched its army into 2390. Both July 1941 recordings agree with the hour's
+   start (`reversing/findings/FINDINGS-liveread.md`, section 111). A country's own units are read as they are.
 4. **The rest**: nothing given out - every position wants 1; otherwise while the carry is
    over 0.1, +1 to the position with the least want (an over-cap one sorted after), one scoring under 1 left out where the scores come to 1 or more.
    The original gives 2 where a unit standing there has an entry on a list of the unit's own, **not where it is dug in**

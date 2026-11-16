@@ -26,6 +26,15 @@ public static class CUnitAiPass
 				revolting.Add(owner);
 			}
 		}
+		// The original runs the countries' passes side by side, and a small country's is done before a great power's orders
+		// are given; so what one pass reads of another country's units is where the AI had them bound as the hour began.
+		foreach (CCountry country in state.Countries)
+		{
+			foreach (Units.CUnit unit in country.AllUnits())
+			{
+				unit.AiBoundAtHour = unit.AiBound;
+			}
+		}
 		foreach (CCountry country in state.Countries)
 		{
 			country.UnitAi.InRevolt = revolting.Contains(country.Tag);

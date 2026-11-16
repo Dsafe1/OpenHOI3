@@ -30,7 +30,7 @@ public static class CPositionCount
 	public static void CountAt(CGameState state, CCountry country, IEnumerable<CUnit> units, IReadOnlyList<int> positions,
 		Action<int> heading, Action<int> standing, bool divisionsOnly, CAgent? withAllies = null)
 	{
-		CountOwn(state, country, units, positions, heading, standing, divisionsOnly);
+		CountOwn(state, country, units, positions, heading, standing, divisionsOnly, ally: false);
 		if (withAllies is null || withAllies.FocusAreas.Count == 0 || !withAllies.FrontierAtWar)
 		{
 			return;
@@ -40,7 +40,7 @@ public static class CPositionCount
 			if (other.Tag != country.Tag && CCountryLists.FightingTogether(state, country.Tag, other.Tag)
 				&& !CCountryLists.IsEnemy(state, country, other.Tag) && HoldsAFocusArea(state, withAllies, other))
 			{
-				CountOwn(state, country, other.AllUnits(), positions, heading, standing, divisionsOnly);
+				CountOwn(state, country, other.AllUnits(), positions, heading, standing, divisionsOnly, ally: true);
 			}
 		}
 	}
@@ -58,7 +58,7 @@ public static class CPositionCount
 	}
 
 	private static void CountOwn(CGameState state, CCountry country, IEnumerable<CUnit> units, IReadOnlyList<int> positions,
-		Action<int> heading, Action<int> standing, bool divisionsOnly)
+		Action<int> heading, Action<int> standing, bool divisionsOnly, bool ally)
 	{
 		foreach (CUnit unit in units)
 		{
@@ -74,7 +74,9 @@ public static class CPositionCount
 					continue;
 				}
 			}
-			int bound = CAgentUnits.MovementDestination(unit);
+			// An ally's unit where its country's AI had it bound as the hour began: the original's passes run side by side,
+			// and a smaller country's count is done before a great power's orders of the hour are given.
+			int bound = ally ? CAgentUnits.MovementDestinationAtHour(unit) : CAgentUnits.MovementDestination(unit);
 			for (int index = 0; index < positions.Count; index++)
 			{
 				int position = positions[index];

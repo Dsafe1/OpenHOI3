@@ -132,7 +132,12 @@ public static class CAgentUnits
 	/// </summary>
 	public static int Destination(CUnit unit)
 	{
-		int destination = unit.AiBound >= 0 ? unit.AiBound : unit.Path.Count > 0 ? unit.Path[^1] : 0;
+		return Destination(unit, unit.AiBound);
+	}
+
+	private static int Destination(CUnit unit, int aiBound)
+	{
+		int destination = aiBound >= 0 ? aiBound : unit.Path.Count > 0 ? unit.Path[^1] : 0;
 		if (destination == 0 && unit.Order is not (EUnitOrder.None or EUnitOrder.Move) && unit.OrderProvince > 0)
 		{
 			return unit.OrderProvince;
@@ -149,6 +154,15 @@ public static class CAgentUnits
 	public static int MovementDestination(CUnit unit)
 	{
 		return unit.Order == EUnitOrder.SupportAttack ? 0 : Destination(unit);
+	}
+
+	/// <summary>
+	/// <see cref="MovementDestination"/> as another country's pass sees it: with where the AI had it bound as the hour's
+	/// passes began, the original's running side by side (<c>docs/mechanics/moving.md</c>, section 7.3).
+	/// </summary>
+	public static int MovementDestinationAtHour(CUnit unit)
+	{
+		return unit.Order == EUnitOrder.SupportAttack ? 0 : Destination(unit, unit.AiBoundAtHour);
 	}
 
 	/// <summary>The country's agent working the theatre, or null.</summary>
