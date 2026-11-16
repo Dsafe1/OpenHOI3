@@ -385,6 +385,14 @@ public static class CLoadCheck
 			// generator=FOLDER: the original's generator as dumped as each battle's hour began, mt_<its tick>_<province>.txt.
 			state.BeforeBattle = combat => PutGenerator(state, generator, combat);
 		}
+		// A run of the original's to play back is attached before the game is entered: the ministers' first hours it puts
+		// are the load's, which entering counts down (docs/replay.md, section 9).
+		CDrawPlayback? playback = null;
+		if (drawsFolder is not null && scripts is not null && series is not null)
+		{
+			playback = CDrawPlayback.Load(drawsFolder);
+			playback.Attach(state, scripts);
+		}
 		// Through the simulation, as the client plays a load: entering the game runs the AI's pass and what it posts.
 		var simulation = new CSimulation(state, discardEntryOrders: skipEntry);
 		// What entering made of each battle's modifiers, by kind: how many of its holders - a land battle's units, every
@@ -451,12 +459,6 @@ public static class CLoadCheck
 		}
 		if (series is not null)
 		{
-			CDrawPlayback? playback = null;
-			if (drawsFolder is not null && scripts is not null)
-			{
-				playback = CDrawPlayback.Load(drawsFolder);
-				playback.Attach(state, scripts);
-			}
 			ClausewitzNode earlier = ClausewitzParser.ParseFile(series[0]);
 			for (int step = 1; step < series.Length; step++)
 			{

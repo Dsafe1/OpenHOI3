@@ -208,9 +208,17 @@ left is counted. Each hour of the series says so in one line.
 another end, where the same run without the draws gave 186, 128, 27 and 81 (the first recording, its trading unfiled: 252, 62, 27 and 14 against 167, 140, 38 and 88). And that ours rolls the hourly trading for
 every country every hour, about 180 draws, where the original made 4 to 8 - an order of its own for the queue.
 
+**The load's draws are made again** (2026-11-16): the original seeds its AI generator once, at start-up, with the whole
+seconds its process has run, and its load makes every country's ministers on it, one draw each (`mechanics/savegame.md`,
+section 2). The playback finds that seed as the one whose generator, twisted once, holds the first hour's dumped words - 5
+in all the recordings so far, the save loaded about five seconds after launch - seeds ours's AI generator with it and makes
+the ministers again (`CAutomation.MakeMinistersOfLoad`), so every first hour of a minister's is the original's run's and
+entering draws on from where the original's did.
+
 **What it does not do**: the trading's states (`CTradeWorkers`) keep their own generators and are not fed; draws made as a
-game is entered, before the first hour, are not recorded; and only one run is followed, so whether the original agrees with
-itself still wants its other runs.
+game is entered, before the first hour, are not recorded, so entering's own - Holland's foreign minister's decisions and
+Greece's politics minister in July 1941, the save's hour being theirs - are ours; and only one run is followed, so whether
+the original agrees with itself still wants its other runs.
 
 ## Not established
 

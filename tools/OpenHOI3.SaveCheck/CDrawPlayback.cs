@@ -39,6 +39,7 @@ internal sealed class CDrawPlayback
 		public int UnfiledRand;
 		public int FedAi;
 		public int FedRand;
+		public readonly Dictionary<string, int> FedRandBy = new();
 		public readonly Dictionary<string, int> MissedAi = new();
 		public readonly Dictionary<string, int> MissedRand = new();
 	}
@@ -204,6 +205,44 @@ internal sealed class CDrawPlayback
 		state.AiRandom.Feed = (who, kind) => Take(_current?.Ai, (who.Value, kind), _current?.MissedAi,
 			kind is null ? who.Value : $"{who.Value}:{kind}", fed: true);
 		scripts.RandFeed = who => Take(_current?.Rand, who.Value, _current?.MissedRand, who.Value, fed: false);
+		PutMinisterCountdowns(state);
+	}
+
+	/// <summary>
+	/// The ministers' first hours as the original drew them on loading the save, before the recording began: its AI
+	/// generator is seeded at start-up with the seconds the process has run, rounded, and drawn on first by the load, which
+	/// makes every country's ministers in the list's order - the null country first - each country's foreign, production,
+	/// intelligence, technology and politics minister in turn, one draw each, a third of them % 3 + 1 and the intelligence
+	/// minister's % 10 + 1, a played country's only for what it hands over (FINDINGS-liveread.md, section 106). The seed is
+	/// found as the one whose twisted words are the first hour's dump's.
+	/// </summary>
+	private void PutMinisterCountdowns(CGameState state)
+	{
+		long first = _hours.Keys.DefaultIfEmpty(-1).Min();
+		if (ReadGenerator(Path.Combine(_folder, $"ai_{first}.txt"), indexFirst: true) is not { } dump)
+		{
+			return;
+		}
+		uint? found = null;
+		for (uint seed = 0; seed < 3600 && found is null; seed++)
+		{
+			var probe = new CRandom(seed);
+			probe.Next();
+			if (probe.Snapshot().Words[0] == dump.Words[0] && probe.Snapshot().Words[623] == dump.Words[623])
+			{
+				found = seed;
+			}
+		}
+		if (found is not { } start)
+		{
+			Console.WriteLine("draws: the load's seed not found; the ministers' first hours are ours");
+			return;
+		}
+		// The load made again on the original's generator: entering then draws on from where the original's did.
+		state.AiRandom.Seed(start);
+		OpenHOI3.Sim.Settings.CAutomation.MakeMinistersOfLoad(state);
+		Console.WriteLine($"draws: the ministers' first hours put as the original's load drew them, its seed {start}, " +
+			$"{state.AiRandom.Draws} draws");
 	}
 
 	private int? Take<TKey>(Dictionary<TKey, Queue<int>>? queues, TKey key, Dictionary<string, int>? missed, string tag, bool fed)
@@ -222,6 +261,7 @@ internal sealed class CDrawPlayback
 			else
 			{
 				_current.FedRand++;
+				_current.FedRandBy[tag] = _current.FedRandBy.GetValueOrDefault(tag) + 1;
 			}
 			return queue.Dequeue();
 		}
@@ -289,7 +329,7 @@ internal sealed class CDrawPlayback
 		string leftRandWho = Left(hour.Rand, k => k);
 		return $"draws: AI generator fed {hour.FedAi}, ours beyond {hour.MissedAi.Values.Sum()}{Who(hour.MissedAi)}, " +
 			$"left {leftAi}{(leftAiWho.Length > 0 ? $" ({leftAiWho})" : "")}, nobody's {hour.UnfiledAi}; " +
-			$"math.random fed {hour.FedRand}, ours beyond {hour.MissedRand.Values.Sum()}{Who(hour.MissedRand)}, " +
+			$"math.random fed {hour.FedRand}{Who(hour.FedRandBy)}, ours beyond {hour.MissedRand.Values.Sum()}{Who(hour.MissedRand)}, " +
 			$"left {leftRand}{(leftRandWho.Length > 0 ? $" ({leftRandWho})" : "")}, nobody's {hour.UnfiledRand}";
 	}
 }
