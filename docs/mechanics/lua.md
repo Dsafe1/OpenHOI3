@@ -306,6 +306,8 @@ whatever the odds", from a signed draw, was corrected by this reading.
 
 ## Ours
 
+- **Every state has a global `OpenHOI3`**, which the original's does not: the engine's mark, and in its `Files` a folder's
+  file names for a mod's script that would list a folder through LuaFileSystem (`mods.md`, section 6; `CLuaFiles`).
 - **The state lives as long as a session**, where the original's lives as long as the process and
   carries a script's globals from one game into the next. Nothing in the base game relies on that.
 - **Lua's arithmetic is in full double precision.** The original's main thread ran its Lua under the

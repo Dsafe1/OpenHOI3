@@ -95,6 +95,10 @@ public partial class Main : Control
 		// The mod is known before anything is read: the main menu is the mod's interface too (docs/mechanics/mods.md).
 		directories = WithModsNamed(directories);
 		_directories = directories;
+		// The install is the working folder, as the original's launcher starts it: a mod's script opens its files by paths
+		// written against it (docs/mechanics/mods.md, section 6). A path switch is kept against the folder started in.
+		CSession.LaunchFolder = System.IO.Directory.GetCurrentDirectory();
+		System.IO.Directory.SetCurrentDirectory(directories.GameRoot);
 		// The title theme from the load's first moment, as the original starts it before its first loading frame
 		// (docs/mechanics/music.md, section 3). The settings it is played by are the screen's that has them, else the file's.
 		_startSettings = Content.Settings.CUserSettingsReader.Read(Content.Settings.CUserSettingsReader.DefaultPath(directories));

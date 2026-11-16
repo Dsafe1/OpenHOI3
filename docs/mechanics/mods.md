@@ -159,7 +159,8 @@ more of the world and the map.
 
 1. **`lfs`, LuaFileSystem**, a native module the original loads from `tfh/mod/lfs.dll`: `script/file-io.lua` requires it on
    its first line, so `autoexec.lua` stops at its second require, and **none of BlackICE's AI is loaded** - every call of
-   the game into the scripts fails, `AI_GenerateNonHistoricalRelation` 6,988 times in the new game alone.
+   the game into the scripts fails, `AI_GenerateNonHistoricalRelation` 6,988 times in the new game alone. **Settled
+   2026-11-16** by the global `OpenHOI3` (section 6): BlackICE's `file-io.lua` requires `lfs` only where it is absent.
 2. **`remove_brigade`**, an effect not built: 6,919 uses, the order-of-battle events above all (Soviet, Spanish Civil War,
    German).
 3. **`wx`, wxLua**, the native GUI library of BlackICE's old utility: 3,988 uses of 73 fields in 14 files, and 1,824 calls of
@@ -177,7 +178,33 @@ more of the world and the map.
 Of the files' 834: 333 `remove_country_modifier`s of modifiers BlackICE does not declare, 197 events with no title or
 description, 84 counter textures in no folder, four tags whose history the base game ships and BlackICE's countries do not
 declare, and 21 colours of BlackICE's `provinces.bmp` that `definition.csv` does not list - each what the original passes
-over too. The mod's Lua writes `lua_output.txt` into the working folder as it loads; run the survey from a scratch folder.
+over too. The mod's Lua writes `lua_output.txt` into the working folder as it loads (section 6).
+
+## 6. A mod's script under this engine
+
+**The working folder is the install.** The original's process runs in the install - the launcher starts it there, and
+`tfh` and a mod's `path` are mounted relative to it (`reversing/findings/FINDINGS-modlayer.md`, section 3) - and a mod's
+script opens its files, and writes its `package.path`, against it: BlackICE's `"tfh\\mod\\BlackICE " .. G_MOD_VERSION ..
+"\\technologies"`. So the client makes the install its working folder as it starts, once the install is found. The folder
+it started in is kept first, and a path switch's relative value - `--screenshot=`, `--loadingshot=`, `--record=`,
+`--replay=`, `--load=` - is taken against that; from the editor it is the project folder, as before. The savegame tool
+keeps its own working folder, since its commands take relative file arguments, but for `modsurvey`, which moves to the
+install - or to the folder `OPENHOI3_WORKDIR` names, one whose `tfh` is a link to the install's, for a run that is not to
+write into the install. A mod's script writes where the original's does: BlackICE's `lua_output.txt` in the install.
+
+**The global `OpenHOI3`** (*ours*, `CLuaFiles`) is in every Lua state, and the original has no such global, so a script
+that finds it knows which engine runs it. Its `Files[path]` is the names of a folder's files - its subfolders left out, in
+the order the file system lists them, as LuaFileSystem's `lfs.dir` gives them on Windows - or nil where there is no such
+folder; a relative path is taken against the working folder, and a folder is listed the first time it is asked for and
+kept. It stands in for the one thing BlackICE asks of `lfs`, a native module this engine cannot load (a 32-bit DLL built
+for the original's interpreter); the maintainer's design, 2026-11-16. BlackICE's `script/file-io.lua` requires `lfs` only
+where `OpenHOI3` is nil and lists a folder through `OpenHOI3.Files` where it is not, so the original is untouched.
+
+*Measured*, 2026-11-16, with the BlackICE repository's `file-io.lua` laid over an install linked together in a scratch
+folder: the survey's ours from about 27,040 to 13,594 - `autoexec.lua` loads whole, and the calls of the game into the
+scripts now run, the first of them to fail on `GetUnits`, a method of the AI's Lua classes not built (374 times,
+`ai_politics_minister.lua`). The survey's static list still shows `lfs.dir` and `lfs.attributes`, which it reads without
+the test around them.
 
 ## Not established
 

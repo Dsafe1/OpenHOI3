@@ -55,6 +55,8 @@ public sealed class CAiScripts : IAiScripts, IDisposable
 		_report = report ?? CDiagnostics.Warn;
 		_api = new CGameApi(() => _state ?? throw new CLuaError("no game is being asked"), _report) { Scripts = this };
 		_lua.OpenLibraries("base", "package", "table", "io", "os", "string", "math", "debug");
+		// The engine's mark and the folder structure, for a mod's script that would list a folder (mods.md, section 6).
+		CLuaFiles.Install(_lua, Directory.GetCurrentDirectory);
 		// Every state draws math.random on a generator of its own, seeded 1 as a new thread's is - the tech and
 		// production scripts' picks among them (ministers.md, Ours).
 		_random.Install(_lua);

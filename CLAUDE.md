@@ -943,10 +943,12 @@ beside the repository.
   largest first, as **ours** (unbuilt keywords, Lua errors, native modules, the original's Lua classes, statics and methods
   nobody provides) or **files** (what the original passes over too). With no mod it is the control: on 2026-11-16 ours 0,
   and the script's thirteen problems among the files' 59. BlackICE GitHub the same day: the new game made in 9 s, ours
-  about 27,000 from a handful of causes - `lfs`, which stops `autoexec.lua` at its second require so that none of
-  BlackICE's AI loads; `remove_brigade` 6,919 times; wxLua; BiceLib's 42 functions, read from the mod's Lua and never from
-  BiceLib; the original's country variables in Lua. Run it from a scratch folder - the mod's Lua writes `lua_output.txt`
-  into the working folder - and after touching `CDirectorySettings`, `Content/Mods` or a reader a mod's files reach. Every
+  about 27,000 from a handful of causes - `lfs`, which stopped `autoexec.lua` at its second require so that none of
+  BlackICE's AI loaded (13,594 since its `file-io.lua` asks the global `OpenHOI3` instead, `mods.md` section 6);
+  `remove_brigade` 6,919 times; wxLua; BiceLib's 42 functions, read from the mod's Lua and never from BiceLib; the
+  original's country variables in Lua. It runs in the install as its working folder, where the mod's Lua writes
+  `lua_output.txt` as the original's does - set `OPENHOI3_WORKDIR` to a scratch folder whose `tfh` links to the install's
+  for a run that is not to write there - and after touching `CDirectorySettings`, `Content/Mods` or a reader a mod's files reach. Every
   other command takes `mod=<name>` after the rest the same way where it reads through `CToolDirectories`: `checksum`,
   `quads`, `mapcache`, `shaders`.
   `OpenHOI3.SaveCheck settings [settings.txt]` reads the player's settings - the Documents folder's with none given - and

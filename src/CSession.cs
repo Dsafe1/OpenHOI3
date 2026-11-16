@@ -1911,10 +1911,33 @@ public partial class CSession : Node
 			{
 				if (one.Length > 0)
 				{
-					yield return one;
+					yield return WithFullPath(one);
 				}
 			}
 		}
+	}
+
+	/// <summary>The switches whose value is a file, which a relative path names in the folder the game was started in.</summary>
+	private static readonly string[] PathSwitches = { "--screenshot=", "--loadingshot=", "--record=", "--replay=", "--load=" };
+
+	/// <summary>
+	/// The folder the game was started in, kept before the working folder is made the install's (<c>Main</c>;
+	/// docs/mechanics/mods.md, section 6), or null while it has not been changed.
+	/// </summary>
+	internal static string? LaunchFolder { get; set; }
+
+	/// <summary>A path switch's relative value made whole against the folder the game was started in.</summary>
+	private static string WithFullPath(string argument)
+	{
+		foreach (string name in PathSwitches)
+		{
+			if (LaunchFolder is not null && argument.StartsWith(name, System.StringComparison.Ordinal) && argument.Length > name.Length)
+			{
+				string value = argument[name.Length..];
+				return System.IO.Path.IsPathRooted(value) ? argument : name + System.IO.Path.GetFullPath(value, LaunchFolder);
+			}
+		}
+		return argument;
 	}
 
 	/// <summary>

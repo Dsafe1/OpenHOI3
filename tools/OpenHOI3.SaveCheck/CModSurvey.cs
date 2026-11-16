@@ -114,6 +114,12 @@ internal static class CModSurvey
 		Console.WriteLine($"modsurvey: {dirs.GameRoot}, {(dirs.Mods.Count > 0 ? "the mods " + string.Join(", ", dirs.Mods.Select(m => $"'{m.Name}' ({m.File})")) : "no mod: the base game's control")}");
 		Console.WriteLine($"layers:   {string.Join(", ", dirs.Layers)}");
 		Console.WriteLine($"player:   {dirs.UserFolder}; {dirs.ReplacedFolders.Count} replaced folders");
+		// The mod's Lua opens its files by paths written against the working folder, which the original's is the install
+		// (docs/mechanics/mods.md, section 6). OPENHOI3_WORKDIR names another, for a run that is not to write into the
+		// install: one whose tfh is a link to the install's.
+		string workingFolder = Environment.GetEnvironmentVariable("OPENHOI3_WORKDIR") is { Length: > 0 } other ? other : dirs.GameRoot;
+		Directory.SetCurrentDirectory(workingFolder);
+		Console.WriteLine($"working:  {workingFolder}");
 		var timings = new List<string>();
 		var clock = Stopwatch.StartNew();
 		T? Timed<T>(string name, Func<T> work) where T : class

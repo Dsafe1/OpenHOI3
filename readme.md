@@ -2050,9 +2050,9 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   `-exclude_dlc=` and `-dlcmod` are not taken; the player's folder is not a layer of game files (`docs/compatibility.md`,
   entry 28), and `settings.txt` and the map cache are read from it alone, with no fall through the search path (entries 13
   and 22); the version label names the frontmost of several mods, which the original's choice is not read. BlackICE's
-  `autoexec.lua` needs the native modules `lfs` (LuaFileSystem) and `wx` (wxLua) and BiceLib, none of them here; its
-  utilities find `stats` and the like only on a `package.path` written relative to the working folder, which is the
-  install's for an exported build and the repository's from the editor. The original's Lua API it calls that ours lacks -
+  `autoexec.lua` loads whole since 2026-11-16 - its `lfs` taken by the global `OpenHOI3` and the install made the working
+  folder (`mods.md`, section 6) - but its old utility needs `wx` (wxLua) and its overlay BiceLib, neither of them here.
+  The original's Lua API it calls that ours lacks -
   `CSetVariableCommand`, `GetVariable`, `GetVariables`, `CMinisterTypeDataBase`, nine `CModifier` constants - is the AI's
   (`modsurvey`'s list).
 
