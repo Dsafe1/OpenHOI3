@@ -77,6 +77,8 @@ public static class CLandFire
 		{
 			shots++;
 		}
+		state.CombatTrace?.Invoke($"SHOTS u={attacker.Id} target={target.Id} shots={shots} attack={attack} soft={soft} hard={hard} " +
+			$"mod={owner.Modifier[CUnitTotals.SoftAttack].Raw}/{owner.Modifier[CUnitTotals.HardAttack].Raw} events={owner.EventModifiers.Count}");
 
 		CDefines defines = state.Defines;
 		for (; shots > 0 && !CCombatDamage.IsOutOfTheFight(target); shots--)
