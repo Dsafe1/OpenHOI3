@@ -226,7 +226,7 @@ public static class CCountryEconomyMethods
 				candidates.Add((province.Id, weight * times));
 			}
 		}
-		if (country.IsMajor || country.MaxIc * 1000L > 100)
+		if (CUndergrounds.IsLarge(country))
 		{
 			foreach (CCountry ally in CCountryLists.Allies(api.State, country))
 			{

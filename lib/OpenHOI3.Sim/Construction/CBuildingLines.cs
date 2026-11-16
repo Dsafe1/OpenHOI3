@@ -134,7 +134,7 @@ public static class CBuildingLines
 	/// <summary>
 	/// The original's <c>CCountry_CanTrainUnderground</c>, which the production screen's underground button and an
 	/// unplaced underground line ask: at war, not in exile, and one province with no underground held by an enemy that
-	/// is not the rebels and owned by a friend - an ally's, for a major or a country with industry, and then its own.
+	/// is not the rebels and owned by a friend - an ally's, for a major or a country of over 100 IC, and then its own.
 	/// </summary>
 	public static bool MayTrainUnderground(CGameState state, CCountry country)
 	{
@@ -142,7 +142,7 @@ public static class CBuildingLines
 		{
 			return false;
 		}
-		bool large = country.IsMajor || country.MaxIc * 1000L > 100;
+		bool large = Revolts.CUndergrounds.IsLarge(country);
 		var allies = CCountryLists.Allies(state, country);
 		foreach (CProvince province in state.Provinces)
 		{

@@ -63,6 +63,19 @@ public class UndergroundTests
 	}
 
 	[Theory]
+	[InlineData(false, 26, false)]
+	[InlineData(false, 100, false)]
+	[InlineData(false, 101, true)]
+	[InlineData(true, 5, true)]
+	public void A_country_builds_in_its_allies_land_as_a_major_or_above_a_hundred_whole_IC(bool major, int maxIc, bool large)
+	{
+		// Bulgaria, 26 IC in July 1941, builds only in its own land; the original keeps the figure in whole IC
+		// (FINDINGS-liveread.md, section 108).
+		var country = new CCountry { Tag = new CCountryTag("BUL"), Name = "Bulgaria", DefinitionFile = "", IsMajor = major, BaseIc = maxIc };
+		Assert.Equal(large, CUndergrounds.IsLarge(country));
+	}
+
+	[Theory]
 	[InlineData(0, 0)]
 	[InlineData(249, 0)]
 	[InlineData(250, 0)]

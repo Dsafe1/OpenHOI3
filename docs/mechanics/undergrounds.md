@@ -50,8 +50,12 @@ What an underground built through production gets when it is finished, or when i
 
 **Where one may be built**, by a country at war that is not in exile (the production screen's button): a province
 with none; **whose holder is at war with the builder**; whose owner is the builder's friend, military access counted;
-and - unless the builder is a major or has any IC to speak of, above 0.1 - **whose owner is the builder**: a minor with no
-industry builds only in its own occupied land (*inferred*: the figure taken as IC in thousandths).
+and - unless the builder is a major or its provinces' IC, summed and unscaled, is above 100 - **whose owner is the
+builder**: a minor of 100 base IC or less builds only in its own occupied land [exe: the original compares that figure,
+kept in whole IC (`CCountry.BaseIc` here), with 100 - Germany's 197, Bulgaria's 26 read on the running game,
+2026-11-16, `reversing/findings/FINDINGS-liveread.md`, section 108]. This took the figure as thousandths until then, 0.1 IC, so
+every minor with industry built in its allies' land, and Bulgaria's production minister in July 1941 built an
+underground on its first day where the original's found nowhere to build one.
 
 ## 3. The day
 

@@ -78,10 +78,20 @@ public static class CUndergrounds
 		return found;
 	}
 
+	/// <summary>The most base IC, whole, a country may have and still build undergrounds only in its own land.</summary>
+	public const int LargeIc = 100;
+
+	/// <summary>
+	/// Whether a country builds undergrounds in its allies' land as well as its own: a major, or one whose provinces' IC,
+	/// summed and unscaled, is above a hundred - whole IC, as the original keeps it, Bulgaria's 26 in July 1941
+	/// (reversing/findings/FINDINGS-liveread.md, section 108).
+	/// </summary>
+	public static bool IsLarge(CCountry country) => country.IsMajor || country.BaseIc > LargeIc;
+
 	/// <summary>
 	/// The original's <c>Underground_CanPlaceIn</c>: none there already where asked; the holder at war with the builder;
-	/// the owner the builder's friend, military access counted; and the owner the builder unless the builder is a major
-	/// or has some industry.
+	/// the owner the builder's friend, military access counted; and the owner the builder unless the builder is large
+	/// (<see cref="IsLarge"/>).
 	/// </summary>
 	public static bool CanPlaceIn(CGameState state, CProvince province, CCountry builder, bool requireEmpty = true)
 	{
@@ -97,7 +107,7 @@ public static class CUndergrounds
 		{
 			return false;
 		}
-		return builder.IsMajor || builder.MaxIc * 1000L > 100 || owner == builder.Tag;
+		return IsLarge(builder) || owner == builder.Tag;
 	}
 
 	/// <summary>
