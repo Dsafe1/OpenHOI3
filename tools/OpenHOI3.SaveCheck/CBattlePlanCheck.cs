@@ -13,7 +13,7 @@ public static class CBattlePlanCheck
 {
 	public static int Run(string install)
 	{
-		CDirectorySettings directories = CDirectorySettings.At(install);
+		CDirectorySettings directories = CToolDirectories.At(install);
 		int empty = 0, same = 0, different = 0;
 		foreach (string folder in directories.LayerFolders("battleplans/historical").Where(Directory.Exists))
 		{

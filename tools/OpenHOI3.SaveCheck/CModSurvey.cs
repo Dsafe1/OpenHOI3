@@ -84,10 +84,9 @@ internal static class CModSurvey
 			findings.Add(new Finding(section, kind ?? KindOf(message), file ?? "", message));
 		}
 
-		// The mod named as the second argument, or as mod=<name>.
+		// The mod named as the second argument, or as mod=<name>, which Program has already taken out (CToolDirectories).
 		CDirectorySettings? directories = CDirectorySettings.At(args[1]);
-		string? modName = args.FirstOrDefault(a => a.StartsWith(CToolDirectories.Switch, StringComparison.Ordinal))?[CToolDirectories.Switch.Length..]
-			?? (args.Length > 2 ? args[2] : null);
+		string? modName = CToolDirectories.Mod ?? (args.Length > 2 ? args[2] : null);
 		if (modName is not null)
 		{
 			directories = directories.WithMod(modName, message => Add("mod file", message));

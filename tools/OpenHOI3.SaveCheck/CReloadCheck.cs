@@ -37,7 +37,7 @@ internal static class CReloadCheck
 		s_examples = int.TryParse(Option(rest, "examples="), out int e) ? e : 1;
 
 		var warnings = new List<string>();
-		CDirectorySettings directories = CDirectorySettings.At(install);
+		CDirectorySettings directories = CToolDirectories.At(install);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		// Each game its own countries: a game holds the definitions' country objects and changes them.
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);

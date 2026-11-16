@@ -90,7 +90,7 @@ internal static class CReplayCheck
 	private static (CGameState State, CSimulation Simulation, IDisposable Scripts) Load(string install)
 	{
 		var warnings = new List<string>();
-		CDirectorySettings directories = CDirectorySettings.At(install);
+		CDirectorySettings directories = CToolDirectories.At(install);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);

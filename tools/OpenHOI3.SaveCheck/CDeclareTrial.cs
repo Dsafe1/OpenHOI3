@@ -38,7 +38,7 @@ internal static class CDeclareTrial
 		int hours = args.Skip(2).Select(a => int.TryParse(a, out int h) ? h : -1).FirstOrDefault(h => h >= 0, 48);
 
 		var warnings = new List<string>();
-		CDirectorySettings directories = CDirectorySettings.At(args[1]);
+		CDirectorySettings directories = CToolDirectories.At(args[1]);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);

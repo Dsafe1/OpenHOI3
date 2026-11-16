@@ -36,7 +36,7 @@ internal static class CTheatreCheck
 		string? only = args.Length > 3 && args[3].Length == 3 && !int.TryParse(args[3], out _) ? args[3] : null;
 		int examples = args.Skip(3).Select(a => int.TryParse(a, out int n) ? n : -1).FirstOrDefault(n => n >= 0, 5);
 		var warnings = new List<string>();
-		CDirectorySettings directories = CDirectorySettings.At(args[1]);
+		CDirectorySettings directories = CToolDirectories.At(args[1]);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);

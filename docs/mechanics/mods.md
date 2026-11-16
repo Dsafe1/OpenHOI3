@@ -110,9 +110,12 @@ which of several the original names not being read.
 
 *Not built*: `userdir.txt`, `-settings=`, `-logpostfix=`, `-exclude_dlc=` and `-dlcmod`.
 
-**The savegame tool**: `mod=<name>` after a command's other arguments lays that mod over the install for it
-(`CToolDirectories`), taken out before the command reads its own; `checksum <install> <mod name>` keeps its second
-argument too. `modsurvey`, `checksum`, `quads`, `mapcache` and `shaders` take it.
+**The savegame tool**: `mod=<name>` anywhere among the arguments lays that mod over the install for **every command**
+(`CToolDirectories`), taken out before the command reads its own; `checksum <install> <mod name>` and `modsurvey <install>
+<mod name>` keep their second argument too. Under a mod the tool works in the install, as the original does (section 6) -
+or in the folder `OPENHOI3_WORKDIR` names, one whose `tfh` links to the install's, so that a run writes nothing into the
+install - and every argument naming a relative file or folder (a path, or a name ending `.hoi3`, `.txt`, `.gz`, `.csv` and
+the like, or a `key=` whose value is one) is made whole against where it was started first. Since 2026-11-16.
 
 ## 4. Checked
 

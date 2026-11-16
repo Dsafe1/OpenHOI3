@@ -35,7 +35,7 @@ internal static class CFactionTrial
 		CCountryTag recipientTag = new(tags.Length > 1 ? tags[1] : "GER");
 
 		var warnings = new List<string>();
-		CDirectorySettings directories = CDirectorySettings.At(args[1]);
+		CDirectorySettings directories = CToolDirectories.At(args[1]);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);

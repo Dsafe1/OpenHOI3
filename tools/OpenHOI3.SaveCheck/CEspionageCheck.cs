@@ -58,7 +58,7 @@ internal static class CEspionageCheck
 		int examples = args.Skip(3).Select(arg => int.TryParse(arg, out int n) ? n : -1).FirstOrDefault(n => n >= 0, 5);
 
 		var warnings = new List<string>();
-		CDirectorySettings directories = CDirectorySettings.At(args[1]);
+		CDirectorySettings directories = CToolDirectories.At(args[1]);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);

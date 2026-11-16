@@ -948,9 +948,11 @@ beside the repository.
   `remove_brigade` 6,919 times; wxLua; BiceLib's 42 functions, read from the mod's Lua and never from BiceLib; the
   original's country variables in Lua. It runs in the install as its working folder, where the mod's Lua writes
   `lua_output.txt` as the original's does - set `OPENHOI3_WORKDIR` to a scratch folder whose `tfh` links to the install's
-  for a run that is not to write there - and after touching `CDirectorySettings`, `Content/Mods` or a reader a mod's files reach. Every
-  other command takes `mod=<name>` after the rest the same way where it reads through `CToolDirectories`: `checksum`,
-  `quads`, `mapcache`, `shaders`.
+  for a run that is not to write there - and after touching `CDirectorySettings`, `Content/Mods` or a reader a mod's files reach. **Every
+  command takes `mod=<name>`** anywhere among its arguments since 2026-11-16 (`CToolDirectories`): the mod laid over the
+  install, the working folder moved to the install - or to `OPENHOI3_WORKDIR` - and a relative file argument made whole
+  first. A BlackICE new game runs under `events` and the start-save checks so: `events <linked install> GER 30
+  mod="BlackICE GitHub"` fired 493 times in 54 s on 2026-11-16.
   `OpenHOI3.SaveCheck settings [settings.txt]` reads the player's settings - the Documents folder's with none given - and
   writes them again in memory beside the file: on 2026-11-04 the maintainer's base game file and BlackICE's came out byte
   for byte (`docs/mechanics/settings.md`, section 2). Run it after touching `Content/Settings`.

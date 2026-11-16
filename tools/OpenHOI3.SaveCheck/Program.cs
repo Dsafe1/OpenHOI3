@@ -24,6 +24,9 @@ using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Research;
 using OpenHOI3.Sim.Units;
 
+// mod=<name> anywhere lays that mod of tfh/mod over the install for whatever command runs (CToolDirectories).
+args = CToolDirectories.TakeMod(args);
+
 // Research is checked against two later saves of one game: see CResearchCheck.
 if (args.Length > 0 && args[0] == "research")
 {
@@ -346,7 +349,7 @@ if (args.Length < 2)
 int examples = args.Length > 2 && int.TryParse(args[2], out int wanted) ? wanted : 5;
 
 var warnings = new List<string>();
-CDirectorySettings directories = CDirectorySettings.At(args[0]);
+CDirectorySettings directories = CToolDirectories.At(args[0]);
 CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 CMap map = CMap.Load(directories, warnings.Add);

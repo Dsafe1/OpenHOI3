@@ -38,7 +38,7 @@ internal static class CDiplomacyCheck
 		}
 		int examples = args.Length > 3 && int.TryParse(args[3], out int wanted) ? wanted : 10;
 		var warnings = new List<string>();
-		CDirectorySettings directories = CDirectorySettings.At(args[1]);
+		CDirectorySettings directories = CToolDirectories.At(args[1]);
 		CLocalisation localisation = CLocalisation.Load(directories, warn: warnings.Add);
 		CCountries countries = CCountries.Load(directories, localisation, warnings.Add);
 		CMap map = CMap.Load(directories, warnings.Add);

@@ -28,7 +28,7 @@ public static class CAdjacencyCheck
 			return 2;
 		}
 		var warnings = new List<string>();
-		CDirectorySettings directories = CDirectorySettings.At(args[1]);
+		CDirectorySettings directories = CToolDirectories.At(args[1]);
 		CMap map = CMap.Load(directories, warnings.Add);
 		string path = args.Length > 2 ? args[2] : CMapCacheCheck.FileOf(directories, "adjacencies.bin");
 		byte[] bytes = File.ReadAllBytes(path);
