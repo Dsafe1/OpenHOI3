@@ -34,6 +34,16 @@ public class ButtonCaptionTests
 	}
 
 	[Fact]
+	public void AButtonOnATextSpriteWithNoFontDrawsNothing()
+	{
+		// BlackICE's faction sort button: GFX_sort_axis is a textSpriteType and its buttonFont is "".
+		Assert.False(CButtonCaption.DrawsPicture(isTextSprite: true, font: ""));
+		// The base game's, with Arial12_bold_black, draws; so does any plain sprite, font or none.
+		Assert.True(CButtonCaption.DrawsPicture(isTextSprite: true, font: "Arial12_bold_black"));
+		Assert.True(CButtonCaption.DrawsPicture(isTextSprite: false, font: ""));
+	}
+
+	[Fact]
 	public void ALongCaptionOnASpriteIsCutToTheLinesItsPictureHoldsAndCentred()
 	{
 		// A picture of 120 by 24 holds one line of 14: a caption of two lines' width is cut to one, ending " ...".

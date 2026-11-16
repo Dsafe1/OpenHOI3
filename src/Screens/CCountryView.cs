@@ -260,7 +260,7 @@ public abstract partial class CCountryView : Control
 		string file = SkinFolder + tag + ".dds";
 		if (Context.Textures.Exists(file) && Context.Textures.LoadFromGamePath(file) is { } skin)
 		{
-			icon.SetTexture(skin);
+			icon.ShowPicture(skin);
 		}
 	}
 

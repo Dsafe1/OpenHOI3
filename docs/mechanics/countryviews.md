@@ -44,7 +44,12 @@ not read.
 `confirmed` The icon `bg_countryskin` is given the picture
 `gfx/interface/skins/country_bg_TAG.dds`, with the played country's tag, **if the install
 has that file**. If it has not, the icon keeps what its sprite names - the generic one.
-The install has such a file for many countries.
+The install has such a file for many countries. **The picture is drawn in the sprite's box**,
+`GFX_country_bg`'s own file size, with that sprite's texture coordinates laid on it (the picture
+sprite; `interface.md`, section 5; read 2026-11-16): in the base game every skin is the generic's
+1024 by 680 and fills it exactly, while under BlackICE, whose generic is 1280 by 736 and which ships
+no country's own, the base game's German skin is stretched across the whole 1280 from its first 640
+columns - which is what covers the right-hand column of BlackICE's diplomacy and politics screens.
 
 The top bar does the same with `topbar_TAG.dds` from the same folder, in the same step - read
 2026-11-14 (`topbar.md`, section 1): as the original enters a game it asks each country screen

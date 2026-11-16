@@ -245,7 +245,7 @@ public partial class CTopBar : Control
 		}
 		if (_context.Textures.LoadFromGamePath(file) is { } skin)
 		{
-			icon.SetTexture(skin);
+			icon.ShowPicture(skin);
 		}
 	}
 

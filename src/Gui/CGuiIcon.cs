@@ -201,15 +201,55 @@ public partial class CGuiIcon : CGuiObject
 		// which matters where the sprite's own picture is missing and has none.
 		var type = (CGuiIconType)GuiType;
 		Place(type, FrameSize(texture, 1) * type.Scale);
+		FillBox();
 		if (_rect is not null)
 		{
 			_rect.Texture = texture;
 		}
 	}
 
+	/// <summary>
+	/// Shows a picture as the original's picture sprite draws one - here the country screens', the ledger's and the top
+	/// bar's skins: in its sprite's own box, the sprite's file size times the icon's scale, with the sprite's texture
+	/// coordinates laid on the picture (<see cref="Interface.Text.CPictureSprite"/>; <c>docs/mechanics/interface.md</c>,
+	/// section 5). A picture the size of the sprite's file looks as <see cref="SetTexture"/> shows it; one of another size
+	/// is stretched or cut. Where the sprite has no picture of its own to measure, as <see cref="SetTexture"/>.
+	/// </summary>
+	public void ShowPicture(Texture2D picture)
+	{
+		var type = (CGuiIconType)GuiType;
+		int frames = _sprite?.FrameCount ?? 1;
+		if (_texture is null || _rect is null || _sprite is { IsProgressBar: true } or { IsPieChart: true })
+		{
+			SetTexture(picture);
+			return;
+		}
+		Place(type, FrameSize(_texture, frames) * type.Scale);
+		if (Interface.Text.CPictureSprite.Place(_texture.GetWidth(), _texture.GetHeight(), frames, type.Scale,
+			picture.GetWidth(), picture.GetHeight()) is not { } part)
+		{
+			FillBox();
+			_rect.Texture = null;
+			return;
+		}
+		_rect.SetAnchorsPreset(LayoutPreset.TopLeft);
+		_rect.Position = new Vector2(part.X, part.Y);
+		_rect.Size = new Vector2(part.Width, part.Height);
+		_rect.Texture = part.SourceWidth == picture.GetWidth() && part.SourceHeight == picture.GetHeight()
+			? picture
+			: new AtlasTexture { Atlas = picture, Region = new Rect2(part.SourceX, part.SourceY, part.SourceWidth, part.SourceHeight) };
+	}
+
+	/// <summary>The picture over the whole of the icon again, after <see cref="ShowPicture"/> put it in a part of it.</summary>
+	private void FillBox()
+	{
+		_rect?.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+	}
+
 	/// <summary>Goes back to the sprite's own picture after <see cref="SetTexture"/>.</summary>
 	public void ShowSprite()
 	{
+		FillBox();
 		var type = (CGuiIconType)GuiType;
 		Place(type, _texture is null ? Vector2.Zero : FrameSize(_texture, _sprite?.FrameCount ?? 1) * type.Scale);
 		ShowTexture(_texture);
@@ -217,6 +257,7 @@ public partial class CGuiIcon : CGuiObject
 
 	private void Use(CSpriteType? sprite, string name)
 	{
+		FillBox();
 		_sprite = sprite;
 		if (sprite is null && name.Length > 0)
 		{

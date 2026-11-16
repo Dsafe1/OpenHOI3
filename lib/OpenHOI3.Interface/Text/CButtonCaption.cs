@@ -30,6 +30,19 @@ public static class CButtonCaption
 		return (pictureWidth - borderX, pictureHeight - borderY, true);
 	}
 
+	/// <summary>
+	/// Whether a button draws its picture at all. One whose sprite is a <c>textSpriteType</c> and whose <c>buttonFont</c>
+	/// is empty draws nothing and is never under the mouse: the original makes its picture from the sprite alone, and a
+	/// text sprite's picture is the texture its text is rendered into, which with no font named is never made - so nothing
+	/// is drawn and the picture's shown size stays nought. BlackICE's faction sort buttons on the diplomacy screen are the
+	/// one such button in the base game and the mod together - "effectively disables it without a trace", its file says
+	/// (<c>docs/mechanics/interface.md</c>, section 2; <c>reversing/findings/FINDINGS-guistatic.md</c>, section 6).
+	/// </summary>
+	public static bool DrawsPicture(bool isTextSprite, string font)
+	{
+		return !isTextSprite || font.Length > 0;
+	}
+
 	/// <summary>The width a button with no sprite lays its caption out in: its <c>size</c> across, 200 where nought.</summary>
 	public static int TextWidth(int sizeX)
 	{

@@ -73,6 +73,12 @@ public sealed class CSpriteType
 	/// </summary>
 	public bool IsPlain => Kind.Equals("spriteType", StringComparison.OrdinalIgnoreCase);
 
+	/// <summary>
+	/// A <c>textSpriteType</c>: its picture is the texture a text is rendered into, so a button on one with no font draws
+	/// nothing (<c>docs/mechanics/interface.md</c>, section 2).
+	/// </summary>
+	public bool IsTextSprite => Kind.Equals("textSpriteType", StringComparison.OrdinalIgnoreCase);
+
 	/// <summary>Draws a country's flag, not a picture of its own.</summary>
 	public bool IsMaskedShield => Kind.Equals("maskedShieldType", StringComparison.OrdinalIgnoreCase);
 

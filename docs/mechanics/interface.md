@@ -72,6 +72,18 @@ Finest Hour's file has the button's text sprite commented out. Of Their Finest H
 sprites and 26 on plain ones; of the screens built, the plain ones are those two and diplomacy's `select_button`. The
 routine was not read; the rule is the screenshots'.
 
+**A button on a text sprite with no font draws nothing at all, and is never under the mouse.** `confirmed` for the
+drawing, `inferred` for the mouse (read 2026-11-16, `reversing/findings/FINDINGS-guistatic.md`, section 6). A text
+sprite's picture is the texture its text is rendered into. A button whose text or font is empty makes its picture from
+the sprite alone, and passes its `buttonFont` as the font to render it with; an empty one renders nothing, so the object
+has no texture, draws nothing, and its shown size stays nought, which is what the mouse is tested against. Setting the
+button's text afterwards renders only with a font, and the button's is none. In the base game and Their Finest Hour no
+button is so (309 on text sprites, every one with a font); **BlackICE's `faction_symbol_big_button` is the one**, its
+`GFX_sort_axis` a `textSpriteType` and its `buttonFont = ""` - "effectively disables it without a trace", its file says -
+so its three faction sort buttons on the diplomacy screen, which it moves over the country list's columns, are not
+there in the original, and a click there reaches the row. *Ours:* `CButtonCaption.DrawsPicture`, by the type's font;
+what the original does where code gives such a button a sprite of another kind or a font later was not read.
+
 **What a window takes.** `confirmed` Fifteen keys of its own - `size`, `position`,
 `fullScreen`, `parent`, `priority`, `background`, `moveable`, `verticalScrollbar`,
 `horizontalScrollbar`, `horizontalBorder`, `verticalBorder`, `click_to_front`,
@@ -222,8 +234,23 @@ does neither.
 - **An icon, a button and a checkbox have no size in the file: they are the size of their
   texture**, or of one frame of it. `measured` About 1,900 elements.
 - **A text box is `maxWidth` by `maxHeight`.** `inferred`
-- **Children are drawn in the order the file declares them.** `confirmed` The original
-  keeps one list of a window's children in declaration order across all kinds.
+- **A window draws its background, then the children its file declares in the order it declares them, all kinds
+  together - child windows among them - and then whatever code attaches to it, in the order attached, each over
+  everything before it.** `confirmed` (read 2026-11-16, `reversing/findings/FINDINGS-guistatic.md`, section 6). What
+  draws is a tree of drawn objects, each window's under its own node, walked a parent before its children and children
+  first to last; attaching an object puts it last among its parent's children, and attaching it again moves it to the
+  end. The window's constructor attaches its background and then each declared child, in declared order; a window or
+  element code attaches later (`AttachChild`, `AttachSubWindow` - the diplomacy screen's faction sort windows and faction
+  boxes) goes after all of them. The original's two lists of children - declared elements and attached ones - are what
+  it finds and shows children by, not the draw order. A list box's rows and then its scrollbar are drawn under the
+  box's own node, so where the box was declared, the scrollbar over the rows; bringing a child to the front, as the
+  diplomacy triangle does with the chosen country's marker, attaches it again. A window code makes by name with no
+  parent is a window of its own over every window made before it. `click_to_front`, which no file of the base game, Their
+  Finest Hour or BlackICE sets, only gives the background button a handler. **Nothing is cut at a window's edge**
+  (`reversing/findings/FINDINGS-listbox.md`, section 4), so BlackICE's diplomacy picture, 1280 wide at -85 in a window
+  of 1120, is drawn whole. *Ours:* Godot draws a control's children in order, so a window built from its file and then
+  given children by a screen is already the original's. Until 2026-11-16 this said the original kept one list of
+  children; that gave the same order for what a file declares and was wrong as a reason.
 - **The child a window names as its `background` stands at the window's corner, whatever
   position it declares.** It is always a button, usually one named `Background`. **A
   cornered-tile sprite fills the window, repeating; a plain picture keeps its own size and
@@ -380,6 +407,20 @@ files, with nothing in it placed by hand.
 - **A sprite can be chosen by a name the code makes up** - `icon_` and a category,
   `GFX_` and a strategic resource. `confirmed` Where there is no sprite of that name
   the icon keeps the one its file gave it, and nothing is said.
+- **A picture code gives an icon from a file - a country's skin, a portrait, a terrain or technology picture - is
+  drawn in its sprite's box, not its own.** `confirmed` (`reversing/findings/FINDINGS-guistatic.md`, section 6; the
+  picture sprite, `PictureSprite_Render`). The original makes a picture sprite over the icon's sprite with the file as
+  its texture, and draws it with the sprite's quad: the sprite's own file size, a frame of it, times the scale, and the
+  sprite's texture coordinates - its file's size over the next power of two - laid on the picture, which the texture
+  handler pads to its own power of two with nothing in the padding. A picture the size of its sprite's file fills the
+  box exactly, which every country skin and top bar of the base game is (1024 by 680 and 1024 by 80, the generic ones
+  too). One of another size is stretched or cut: BlackICE's skin sprite, `country_bg_generic`, is 1280 by 736, the base
+  game's German skin 1024 by 680, so the German skin is drawn 1280 across from its first 640 columns, 680 rows down, and
+  the 56 rows below are the padding - the whole width of BlackICE's diplomacy and politics screens behind their right
+  column, where the picture at its own size stopped at 939. *Ours:* `CPictureSprite` and `CGuiIcon.ShowPicture`, used
+  for the country screens', the ledger's and the top bar's skins; the portraits, the terrain, tactic, ship and
+  technology pictures go through the same object in the original and still through `CGuiIcon.SetTexture` here, which
+  takes the picture's own size - right wherever a picture is its sprite's size, not checked where it is not.
 - **Hover, press and disabling do not change the frame; a shader does it.** `confirmed`,
   from `gfx/FX/buttonstate.fx`, which is plain text in the install and names four
   techniques. `up` draws the picture as it is. `over` adds a tenth to red, green and

@@ -2046,6 +2046,15 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
 
 ### Loose ends
 
+- **Pictures code gives an icon** (`docs/mechanics/interface.md`, section 5): the original draws every one through its
+  picture sprite, in the icon's sprite's box with the sprite's texture coordinates; here only the country screens', the
+  ledger's and the top bar's skins do since 2026-11-16 (`CGuiIcon.ShowPicture`), which mended BlackICE's diplomacy and
+  politics screens. The portraits (`GFX_empty_position`), the terrain, tactic, ship-model and technology pictures still
+  go through `CGuiIcon.SetTexture` at the picture's own size, which is the same wherever a picture is its sprite's size
+  and was not checked where it is not. And a button on a text sprite with no font draws nothing (section 2), by its
+  type's font alone: what the original does where code later gives such a button another kind of sprite or a font was
+  not read.
+
 - **The mod layer's** (`docs/mechanics/mods.md`): an `archive` is not read; `userdir.txt`, `-settings=`, `-logpostfix=`,
   `-exclude_dlc=` and `-dlcmod` are not taken; the player's folder is not a layer of game files (`docs/compatibility.md`,
   entry 28), and `settings.txt` and the map cache are read from it alone, with no fall through the search path (entries 13

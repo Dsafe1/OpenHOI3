@@ -118,7 +118,33 @@ public partial class CGuiButton : CGuiObject
 		Place(GuiType, FrameSize(texture, sprite.FrameCount));
 		ShowFrame();
 		RemakeCaption();
+		ShowBlank();
 		return true;
+	}
+
+	/// <summary>
+	/// A button on a text sprite with no font draws nothing and is never under the mouse, as the original's: its picture is
+	/// never rendered (<see cref="Interface.Text.CButtonCaption.DrawsPicture"/>). The rule is the button's type's font;
+	/// what the original does where code gives such a button a font afterwards was not read, and nothing here does.
+	/// </summary>
+	private bool IsBlank => _sprite is { IsTextSprite: true }
+		&& !Interface.Text.CButtonCaption.DrawsPicture(true, ((CGuiButtonType)GuiType).Font);
+
+	private void ShowBlank()
+	{
+		bool blank = IsBlank;
+		if (_rect is not null)
+		{
+			_rect.Visible = !blank;
+		}
+		if (!blank)
+		{
+			MouseFilter = MouseFilterEnum.Stop;
+			return;
+		}
+		_caption?.QueueFree();
+		_caption = null;
+		MouseFilter = MouseFilterEnum.Ignore;
 	}
 
 	public void Initialise(CGuiButtonType type, CGuiContext context)
@@ -158,6 +184,7 @@ public partial class CGuiButton : CGuiObject
 
 		_font = context.Fonts.Find(type.Font);
 		SetText(context.Localisation.Localise(type.Text));
+		ShowBlank();
 
 		MouseEntered += () => SetHovered(true);
 		MouseExited += () => SetHovered(false);
@@ -171,7 +198,7 @@ public partial class CGuiButton : CGuiObject
 	public void SetText(string text)
 	{
 		_captionText = text;
-		if (_sprite is { IsPlain: true })
+		if (_sprite is { IsPlain: true } || IsBlank)
 		{
 			text = "";
 		}
@@ -363,7 +390,7 @@ public partial class CGuiButton : CGuiObject
 	/// </summary>
 	public override bool _HasPoint(Vector2 point)
 	{
-		if (point.X < 0f || point.Y < 0f || point.X >= Size.X || point.Y >= Size.Y)
+		if (point.X < 0f || point.Y < 0f || point.X >= Size.X || point.Y >= Size.Y || IsBlank)
 		{
 			return false;
 		}

@@ -209,7 +209,7 @@ public sealed partial class CLedgerView : Control
 		string file = SkinFolder + _player.Tag + ".dds";
 		if (_window?.TryFindIcon("bg_countryskin") is { } icon && _context.Textures.Exists(file) && _context.Textures.LoadFromGamePath(file) is { } skin)
 		{
-			icon.SetTexture(skin);
+			icon.ShowPicture(skin);
 		}
 	}
 
