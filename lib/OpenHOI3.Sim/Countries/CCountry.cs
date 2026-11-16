@@ -130,6 +130,13 @@ public sealed class CCountry
 	public int Index { get; internal set; }
 
 	/// <summary>
+	/// The original's placeholder country, <c>---</c>, first in its list of countries and so the country of the null tag: a
+	/// script's <c>GetCountry</c> on that tag is handed it and not nil (reversing/findings/FINDINGS-liveread.md, section
+	/// 108). No game holds it; its place is -1, so nothing kept by a country's place answers for it.
+	/// </summary>
+	public static CCountry Placeholder() => new() { Tag = new CCountryTag("---"), Name = "", DefinitionFile = "", Index = -1 };
+
+	/// <summary>
 	/// What it holds towards each country, by that country's <see cref="Index"/> - itself included.
 	/// See <c>docs/mechanics/diplomacy.md</c>, section 1.
 	/// </summary>

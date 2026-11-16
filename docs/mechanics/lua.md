@@ -321,10 +321,15 @@ whatever the odds", from a signed draw, was corrected by this reading.
 - **An iterator walks a copy of its container** taken when the loop starts; the original walks the
   container itself. Nothing in the scripts changes a container while walking it.
 - **The factions' order** is their file's; the original keeps them in a list of its own, not read.
-- **There is no country for the null tag.** The original keeps a placeholder country, `---`, as its
-  number 0: `GetCountry()` on the null tag answers it, and `GetDiplomacy()` begins with a status
-  towards it. Here the first is nil and the second has no such entry; the scripts test `IsValid()`
-  before either matters.
+- **The null tag's country is a placeholder of its own.** The original keeps a placeholder country, `---`, as its
+  number 0: `GetCountry()` on the null tag answers it, and `GetDiplomacy()` begins with a status towards it. Here
+  `GetCountry()` answers a placeholder no game holds (`CCountry.Placeholder`, `CGameApi.NullCountry`), and a relation
+  of it, or towards the null tag, is a fresh record of nothing - at war with nobody - since 2026-11-16; `GetDiplomacy()`
+  still has no entry for it. Until then the first was nil, on the reading that the scripts test `IsValid()` first:
+  Their Finest Hour's `JAP.lua` does not - it asks `GetFaction("cominterm")`, misspelt, for its leader's country and
+  that for a relation, so Japan's foreign minister failed there each time its one-in-four war roll came up and made
+  none of its later rolls (`reversing/findings/FINDINGS-liveread.md`, section 108). What else of the placeholder a
+  script might ask answers as a country in no game does.
 - **The lists of neighbours and enemies are worked out when asked**, as `CCountryLists` does
   everywhere, where the original keeps them and rebuilds them once a day. It costs about a third of
   a millisecond a call.

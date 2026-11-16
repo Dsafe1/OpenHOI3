@@ -26,11 +26,9 @@ public static class CAiClass
 			.Method("GetRelation", call =>
 			{
 				call.Object<CLuaAi>(1, AiName);
-				CCountry? holder = api.CountryOf(call, 2);
-				CCountry? other = api.CountryOf(call, 3);
-				return call.Return(holder is not null && other is not null
-					? new CLuaObject(api.DiplomacyStatus, CGameState.Status(holder, other))
-					: null);
+				CCountryTag holderTag = call.Object<CCountryTag>(2, "CCountryTag");
+				CCountry? holder = api.State.Country(holderTag) ?? (holderTag.Value == CGameApi.NullTag.Value ? api.NullCountry : null);
+				return call.Return(api.Status(holder, call, 3) is { } status ? new CLuaObject(api.DiplomacyStatus, status) : null);
 			})
 			.Method("GetNumberOfOwnedProvinces", call =>
 			{

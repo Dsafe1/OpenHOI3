@@ -315,8 +315,35 @@ public sealed class CGameApi
 	/// <summary>A country, as a script is handed one.</summary>
 	public CLuaObject Of(CCountry country) => new(Country, country);
 
-	/// <summary>The country of a tag, or null for the null tag and a tag nobody has.</summary>
-	public CLuaObject? OfTag(CCountryTag tag) => State.Country(tag) is { } country ? Of(country) : null;
+	/// <summary>
+	/// The original's placeholder country, which the null tag names: its <c>GetCountry</c> answers it, the original's list
+	/// of countries beginning with it (reversing/findings/FINDINGS-liveread.md, section 108). Japan's script asks the
+	/// leader of a faction it misspells - the null tag - for its country, and that for a relation.
+	/// </summary>
+	public CCountry NullCountry { get; } = CCountry.Placeholder();
+
+	/// <summary>The country of a tag - the placeholder for the null tag - or null for a tag nobody has.</summary>
+	public CLuaObject? OfTag(CCountryTag tag) =>
+		State.Country(tag) is { } country ? Of(country) : tag.Value == NullTag.Value ? Of(NullCountry) : null;
+
+	/// <summary>
+	/// What one country holds towards another, a script's two tags given: a fresh record of nothing where either is the
+	/// placeholder or the null tag, which no game keeps records for; null for a tag nobody has.
+	/// </summary>
+	public Sim.Diplomacy.CDiplomacyStatus? Status(CCountry? holder, CLuaCall call, int argument)
+	{
+		CCountryTag tag = call.Object<CCountryTag>(argument, "CCountryTag");
+		CCountry? other = State.Country(tag);
+		if (holder is null)
+		{
+			return null;
+		}
+		if (holder == NullCountry || tag.Value == NullTag.Value)
+		{
+			return new Sim.Diplomacy.CDiplomacyStatus(holder.Tag, other?.Tag ?? NullTag);
+		}
+		return other is null ? null : CGameState.Status(holder, other);
+	}
 
 	/// <summary>A tag, as a script is handed one: a fresh copy each time, as the original pushes it.</summary>
 	public CLuaObject Tag(CCountryTag? tag) => new(CountryTag, tag ?? NullTag);

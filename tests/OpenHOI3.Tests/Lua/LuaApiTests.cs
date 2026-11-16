@@ -151,6 +151,19 @@ public sealed class LuaApiTests : IDisposable
 	}
 
 	[Fact]
+	public void The_null_tags_country_is_the_placeholder_at_war_with_nobody()
+	{
+		// Japan's script asks a misspelt faction's leader for its country and that for a relation; the original's list of
+		// countries begins with the placeholder, so the answer is no war and not an error (FINDINGS-liveread.md, section 108).
+		CGameState state = World();
+		using CAiScripts scripts = Load();
+		Assert.Equal(false, scripts.Ask(state,
+			$"CCurrentGameState.GetFaction('cominterm'):GetFactionLeader():GetCountry():GetRelation({Ger}):HasWar()"));
+		Assert.Equal("---", scripts.Ask(state, "tostring(CCurrentGameState.GetFaction('cominterm'):GetFactionLeader():GetCountry():GetCountryTag())"));
+		Assert.Equal(false, scripts.Ask(state, $"{Ger}:GetCountry():GetRelation(CCurrentGameState.GetFaction('cominterm'):GetFactionLeader()):HasWar()"));
+	}
+
+	[Fact]
 	public void An_ideology_has_its_group_and_two_groups_are_equal_where_they_are_one()
 	{
 		CGameState state = World();

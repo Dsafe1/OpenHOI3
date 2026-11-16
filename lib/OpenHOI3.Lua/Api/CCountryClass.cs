@@ -25,10 +25,7 @@ public static class CCountryClass
 			.Method("GetCountryTag", call => call.Return(api.Tag(Of(call).Tag)))
 			.Method("GetRelation", call =>
 			{
-				CCountry country = Of(call);
-				return call.Return(api.CountryOf(call, 2) is { } other
-					? new CLuaObject(api.DiplomacyStatus, CGameState.Status(country, other))
-					: null);
+				return call.Return(api.Status(Of(call), call, 2) is { } status ? new CLuaObject(api.DiplomacyStatus, status) : null);
 			})
 			.Method("IsAtWar", call => call.Return(api.State.IsAtWar(Of(call).Tag)))
 			.Method("Exists", call => call.Return(CCountryFacts.Of(api.State).OwnedCount(Of(call).Tag) > 0))
