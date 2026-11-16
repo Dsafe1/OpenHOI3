@@ -24,13 +24,24 @@ public static class CAiCombatModel
 
 	private const int EnvelopedPast = 2;
 
+	/// <summary>
+	/// A half handed over as not a number (<see cref="CGameState.FirstLookModel"/>): the whole term is then not a number,
+	/// which <see cref="CAttackOdds"/> takes as the original's floats take it.
+	/// </summary>
+	public const long NotANumber = long.MinValue;
+
 	public static long Attack(CGameState state, CUnit unit, CProvince target, long brigades, long provinces)
 	{
 		if (state.Country(unit.FiguresOwner) is not { } owner)
 		{
 			return 0;
 		}
-		long v = Common(state, owner, unit, attacking: true);
+		// The half that hangs on the unit alone, which the original caches: everything before the crowding.
+		long v = state.FirstLookModel?.Invoke(unit, true) ?? Common(state, owner, unit, attacking: true);
+		if (v == NotANumber)
+		{
+			return NotANumber;
+		}
 		v -= Crowding(state, owner, unit, brigades - PerProvince * provinces);
 		v -= CWeatherEffects.LandCombat(state, target.Weather, target.Terrain, owner);
 		bool landing = false;
@@ -76,16 +87,11 @@ public static class CAiCombatModel
 			return 0;
 		}
 		CDefines defines = state.Defines;
-		long v = CCombatModifiers.Trait(state, unit, ETraitEffect.FortDefence);
-		v += Common(state, owner, unit, attacking: false);
-		if (unit.DigIn > CFixedPoint.Zero)
+		// The half that hangs on the unit alone, which the original caches: everything but the crowding and the envelopment.
+		long v = state.FirstLookModel?.Invoke(unit, false) ?? UnitDefence(state, owner, unit);
+		if (v == NotANumber)
 		{
-			long dug = unit.DigIn.Raw * defines[CManpower.MilitarySection, CCombatModifiers.DigInFactor].Raw / Scale;
-			v += CCombatModifiers.Scaled(dug, CCombatModifiers.Trait(state, unit, ETraitEffect.DiginBonus));
-		}
-		if (unit.Location > 0 && state.Province(unit.Location).Terrain is { } terrain)
-		{
-			v += terrain.Defence.Raw + CUnitTotals.Adjuster(unit, terrain.Name, CCombatModifiers.DefenceOf);
+			return NotANumber;
 		}
 		v -= Crowding(state, owner, unit, System.Math.Min(crowd, 100));
 		if (enemyProvinces > EnvelopedPast && unit.Location > 0
@@ -96,6 +102,27 @@ public static class CAiCombatModel
 			envelopment = CCombatModifiers.Scaled(envelopment, CCombatModifiers.Trait(state, unit, ETraitEffect.EnvelopmentBonus));
 			// The original clamps a negative penalty to nought and so never takes it off.
 			v -= System.Math.Max(envelopment, 0);
+		}
+		return v;
+	}
+
+	/// <summary>
+	/// A defender's half that hangs on the unit alone: the fort defence trait, the terms both sides share, its dig-in, the
+	/// ground it stands on and its being encircled.
+	/// </summary>
+	private static long UnitDefence(CGameState state, CCountry owner, CUnit unit)
+	{
+		CDefines defines = state.Defines;
+		long v = CCombatModifiers.Trait(state, unit, ETraitEffect.FortDefence);
+		v += Common(state, owner, unit, attacking: false);
+		if (unit.DigIn > CFixedPoint.Zero)
+		{
+			long dug = unit.DigIn.Raw * defines[CManpower.MilitarySection, CCombatModifiers.DigInFactor].Raw / Scale;
+			v += CCombatModifiers.Scaled(dug, CCombatModifiers.Trait(state, unit, ETraitEffect.DiginBonus));
+		}
+		if (unit.Location > 0 && state.Province(unit.Location).Terrain is { } terrain)
+		{
+			v += terrain.Defence.Raw + CUnitTotals.Adjuster(unit, terrain.Name, CCombatModifiers.DefenceOf);
 		}
 		// Encircled, as in a battle (reversing/findings/FINDINGS-aihelpers.md).
 		if (unit.Location > 0 && CCombatModifiers.IsEncircled(state, state.Province(unit.Location), unit.Owner))

@@ -50,12 +50,14 @@ public static class CAttackOdds
 			theirProvinces.Add(unit.Location);
 		}
 		Side(state, ours, attacking: true, target, followCombats, ourBrigades, provinces.Count,
-			out long softOurs, out long hardOurs, out long softnessOurs, out long toughOurs);
+			out long softOurs, out long hardOurs, out long softnessOurs, out long toughOurs, out _);
 		Side(state, theirs, attacking: false, target, followCombats, theirBrigades - 3 * provinces.Count, provinces.Count,
-			out long softTheirs, out long hardTheirs, out long softnessTheirs, out long toughTheirs);
+			out long softTheirs, out long hardTheirs, out long softnessTheirs, out long toughTheirs, out bool theirsNotANumber);
 		long theirDamage = (Scale - toughOurs / 100) * (softTheirs * softnessOurs + hardTheirs * (Scale - softnessOurs)) / Scale / Scale;
 		long ourDamage = (Scale - toughTheirs / 100) * (softOurs * softnessTheirs + hardOurs * (Scale - softnessTheirs)) / Scale / Scale;
-		if (theirDamage <= 0)
+		// A defender's half that is not a number makes their damage none either, and the original's test of it against nought
+		// (comiss, jbe) takes an unordered answer for "not above": the odds of no damage (moving.md, section 11.4).
+		if (theirDamage <= 0 || theirsNotANumber)
 		{
 			return NoDamage;
 		}
@@ -64,18 +66,24 @@ public static class CAttackOdds
 
 	/// <summary>One side's soft and hard attack, mean softness and mean toughness (defensiveness for defenders), in thousandths.</summary>
 	private static void Side(CGameState state, IReadOnlyList<CUnit> units, bool attacking, CProvince target, bool followCombats,
-		long crowd, int enemyProvinces, out long soft, out long hard, out long softness, out long tough)
+		long crowd, int enemyProvinces, out long soft, out long hard, out long softness, out long tough, out bool notANumber)
 	{
 		soft = 0;
 		hard = 0;
 		softness = 0;
 		tough = 0;
+		notANumber = false;
 		foreach (CUnit unit in units)
 		{
 			long engagement = attacking ? Pinned(unit, followCombats) : Elsewhere(state, unit, target, followCombats);
 			long model = attacking
 				? CAiCombatModel.Attack(state, unit, target, crowd, enemyProvinces)
 				: CAiCombatModel.Defence(state, unit, crowd, enemyProvinces);
+			if (model == CAiCombatModel.NotANumber)
+			{
+				notANumber = true;
+				model = 0;
+			}
 			long weight = MeanMillionths(unit, strength: true) * MeanMillionths(unit, strength: false) / Million * (engagement + model) / Scale;
 			CCountry? owner = state.Country(unit.Owner);
 			long softBonus = owner?.Modifier[CUnitTotals.SoftAttack].Raw ?? 0;

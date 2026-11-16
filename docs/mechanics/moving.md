@@ -481,7 +481,12 @@ cache**: after a load each unit's first look counts the real half or nought, by 
 in one run of the 1941 save and others in the next (*measured*, section 46). **Ours** counts the real half always - it
 cannot do otherwise and it is what most units used - and works it out at each look rather than once an hour
 (`docs/compatibility.md`, entry 24). Entering a loaded game can therefore attack where the original happened not to: Japan's
-11\. Hoheishidan on 9381 in August 1938, whose half was nought that run.
+11\. Hoheishidan on 9381 in August 1938, whose half was nought that run. **The savegame tool's playback hands over a
+recorded run's halves** for entering alone (`CGameState.FirstLookModel`, `docs/replay.md`, section 9), memory's float
+where the dirty byte was nought - nought nearly always, now and then leftover bits, and now and then not a number: a
+defender's NaN makes the original's damage not a number, which its test against nought (`comiss`, `jbe`) takes as no
+damage, so **the odds are 50** and the attack goes in (`CAiCombatModel.NotANumber`; *measured*, the Soviet attack on 2701
+on entering July 1941, `reversing/findings/FINDINGS-liveread.md`, section 109).
 
 ### 11.6 The axis (`CAIUnit::UpdatePlanAxis`, `FINDINGS-agents.md` E.5)
 

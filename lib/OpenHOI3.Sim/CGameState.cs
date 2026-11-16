@@ -877,6 +877,15 @@ public sealed class CGameState
 	/// </summary>
 	public CRandom AiRandom { get; } = new();
 
+	/// <summary>
+	/// Where the AI's estimate of a battle takes the half of a unit's modifier that hangs on the unit alone - its attacking
+	/// half, or with false its defending half - from instead of working it out, or null to work it out; in thousandths. The
+	/// original never initialises the cache it keeps that half in, so after a load a unit's first looks take what memory held
+	/// (<c>docs/mechanics/moving.md</c>, section 11.4). Nothing in the game sets it: the savegame tool's playback of a run of
+	/// the original's hands over that run's, for entering alone (<c>docs/replay.md</c>, section 9). A measuring instrument.
+	/// </summary>
+	public Func<Units.CUnit, bool, long?>? FirstLookModel { get; set; }
+
 	/// <summary>The weather's own state: the pressure zones and the fronts (<c>docs/mechanics/weather.md</c>).</summary>
 	public Weather.CWeatherManager Weather { get; } = new();
 
