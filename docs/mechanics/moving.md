@@ -695,8 +695,12 @@ the invasions planned.
 war with it (Germany, with its capital's area bordering land held against it, only Norway's, Sweden's, Finland's and
 Denmark's; in two real factions never Finland's, nor the capital areas of Romania, Bulgaria and Yugoslavia). **Failed for
 the month**: an area touching the country's own coast, one it may not invade (below), one no port of which reaches a port
-of the country's or - its capital's area bordering no hostile land - its fellow fighters' within 5000 by sea (2000 with
-it bordering) by an open sea. **Touching it** is its own side's coast beside it, and also - the candidate being its holder's capital
+of the country's or - its capital's area bordering no hostile land - its fellow fighters' under 5000 by sea (2000 with
+it bordering) by an open sea, **a fellow fighter's port counting only where one of the country's own ports reaches it
+under that range, or it is in Britain's capital area** (`FINDINGS-moving.md`, E, step 5) - built 2026-11-16: until then
+any fellow fighter's port served, and Italy, its ports and Germany's to reach from, scored 24 areas at 08:00 on 16 July
+1941 where the original scores 5, Gibraltar's, Malta's, another of Britain's and two of Greece's, the same five now
+(`reversing/findings/FINDINGS-liveread.md`, section 105). **Touching it** is its own side's coast beside it, and also - the candidate being its holder's capital
 area - a neighbour held by a friend at war with that holder, not played, of its faction where both have one, not in its
 capital's group of areas, its subject or (not Japan) nobody's subject and not Japan, Poland or Denmark: so Germany's
 capital area, beside France's, is failed for Britain. Each such neighbour, and its own beside it but the capital's, is a

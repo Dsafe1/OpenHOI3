@@ -63,6 +63,7 @@ public static class CInvasionPlanner
 		}
 		var scored = new List<(CSupplyArea Area, long Score)>();
 		var staging = new List<CSupplyArea>();
+		Trace(state, country, $"invasions: capital's area {capitalArea?.Provinces[0]} touching a hostile area {capitalThreatened}, range {range}, {reach.Count} areas to reach from");
 		foreach (CCountry enemy in CCountryLists.Enemies(state, country))
 		{
 			if (country.Tag.Value == "GER" && capitalThreatened && enemy.Tag.Value is not ("NOR" or "SWE" or "FIN" or "DEN"))
@@ -95,7 +96,9 @@ public static class CInvasionPlanner
 					ai.FailedAreas.Add(area);
 					continue;
 				}
-				Insert(scored, area, Score(state, country, network, enemy, area, capitalArea));
+				long score = Score(state, country, network, enemy, area, capitalArea);
+				Trace(state, country, $"  invasion candidate {area.Provinces[0]} of {enemy.Tag} ({area.Provinces.Count} provinces): {score}");
+				Insert(scored, area, score);
 			}
 		}
 		foreach ((CSupplyArea area, long score) in scored.Take(Kept))
@@ -305,20 +308,53 @@ public static class CInvasionPlanner
 		return (long)System.Math.Round((double)value, System.MidpointRounding.ToEven);
 	}
 
-	/// <summary>Some port of the area reaches a port of the land the country may sail from, within the range, by an open sea.</summary>
+	/// <summary>
+	/// Some port of the area reaches a port of the land the country may sail from, under the range, by an open sea - a port
+	/// in a friend's area only where one of the country's own ports reaches it under the range, or it is in Britain's
+	/// capital area (FINDINGS-moving.md, E, step 5; FINDINGS-liveread.md, section 105).
+	/// </summary>
 	private static bool Reachable(CGameState state, CCountry country, CSupplyArea area, List<CSupplyArea> reach, long range)
 	{
+		CSupplyNetwork network = CSupplyNetworks.Refresh(state);
+		CSupplyArea? britain = state.Country(new CCountryTag("ENG")) is { } england ? network.AreaOf(england.ActingCapital) : null;
 		foreach (int port in area.Ports)
 		{
 			foreach (CSupplyArea from in reach)
 			{
+				bool friends = from.Controller != country.Tag && !ReferenceEquals(from, britain);
 				foreach (int home in from.Ports)
 				{
-					long distance = CSeaTargets.Sea(state, port, home);
-					if (distance >= 0 && distance <= range && CSealiftPickers.IsSeaRouteOpen(state, country, port, home))
+					if (Reaches(state, country, port, home, range) && (!friends || OwnReach(state, country, reach, home, range)))
 					{
 						return true;
 					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/// <summary>Under the range by sea, the original's whole distance strictly below it, and by an open sea.</summary>
+	private static bool Reaches(CGameState state, CCountry country, int from, int to, long range)
+	{
+		long distance = CSeaTargets.Sea(state, from, to);
+		return distance >= 0 && distance < range && CSealiftPickers.IsSeaRouteOpen(state, country, from, to);
+	}
+
+	/// <summary>Whether one of the country's own ports reaches that port under the range.</summary>
+	private static bool OwnReach(CGameState state, CCountry country, List<CSupplyArea> reach, int port, long range)
+	{
+		foreach (CSupplyArea own in reach)
+		{
+			if (own.Controller != country.Tag)
+			{
+				continue;
+			}
+			foreach (int home in own.Ports)
+			{
+				if (Reaches(state, country, home, port, range))
+				{
+					return true;
 				}
 			}
 		}
