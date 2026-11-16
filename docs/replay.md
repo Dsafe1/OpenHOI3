@@ -215,10 +215,29 @@ in all the recordings so far, the save loaded about five seconds after launch - 
 the ministers again (`CAutomation.MakeMinistersOfLoad`), so every first hour of a minister's is the original's run's and
 entering draws on from where the original's did.
 
-**What it does not do**: the trading's states (`CTradeWorkers`) keep their own generators and are not fed; draws made as a
-game is entered, before the first hour, are not recorded, so entering's own - Holland's foreign minister's decisions and
-Greece's politics minister in July 1941, the save's hour being theirs - are ours; and only one run is followed, so whether
-the original agrees with itself still wants its other runs.
+**Entering is recorded too** (2026-11-16): armed between the load and Play (`hoiBeforePlay` in the fact base's `hoi.lua`),
+the recorder logs entering's two passes, and the playback hands what comes before its first hour marker to entering -
+Holland's foreign minister's decisions and Greece's politics minister in July 1941, the save's hour being theirs. **And
+the units' first looks**: the original never initialises the cache of the half of a unit's modifier that hangs on the unit
+alone, so a loaded unit's first estimates take what memory held where its dirty byte is nought (`mechanics/moving.md`,
+section 11.4). `probes/hoimodelcache.lua` dumps every unit's two caches before Play (`caches.txt`), and the playback hands
+them to entering through `CGameState.FirstLookModel`, a defender's that is not a number as such - the original's
+"their damage is not above nought" then takes it, and the odds are 50: so the original's Soviet attack on 2701 on entering
+the July 1941 save of one run, which a German division's NaN half gave, is ours too, and with it two Slovak re-routings.
+Against such a recording (`wr5`) the July series gave 278 the same, 20 none, 4 at another end, and about 26 ours alone
+outside its last hour.
+
+**Where the game's generator stands at each battle** (2026-11-16): the playback restores the game's generator each hour,
+but within the hour ours's draws must come in the original's number and order for a battle's dice to be the original's.
+`battles=FILE` now writes, for each battle each hour, the generator's draws so far, and the fact base's
+`probes/hoibattlegen.lua` - or `hoidraws.lua` with `hoiDrawsGameCallers` set, which also logs the caller of every draw on
+the game's generator from a watchpoint on its index - gives the original's. Set beside each other they found the bomber's
+naval sighting roll out of the wrong figure (`mechanics/navalcombat.md`, section 1); with that mended every draw before the
+first battle and every battle's dice are the original's for eight hours of July 1941, after which one battle fires two
+shots fewer in ours, not yet followed.
+
+**What it does not do**: the trading's states (`CTradeWorkers`) keep their own generators and are not fed; and only one run
+is followed, so whether the original agrees with itself still wants its other runs.
 
 ## Not established
 

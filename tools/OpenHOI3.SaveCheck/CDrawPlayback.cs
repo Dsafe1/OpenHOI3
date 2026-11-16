@@ -25,6 +25,19 @@ internal sealed class CDrawPlayback
 	private readonly Dictionary<long, Hour> _hours = new();
 	private Hour? _current;
 
+	/// <summary>What the recording holds before its first hour: entering's draws, where the recorder was armed before Play.</summary>
+	private Hour _entering = new();
+
+	/// <summary>
+	/// Each unit's AI model caches as the original's load left them (the fact base's <c>probes/hoimodelcache.lua</c>, file
+	/// <c>caches.txt</c>), by owner and name: its province, and for defence and attack the dirty byte and the float.
+	/// </summary>
+	private readonly Dictionary<(string Tag, string Name), List<(int Province, int DefenceDirty, float Defence, int AttackDirty,
+		float Attack)>> _caches = new();
+
+	private int _cacheLooks;
+	private int _cacheHanded;
+
 	private CDrawPlayback(string folder)
 	{
 		_folder = folder;
@@ -51,7 +64,8 @@ internal sealed class CDrawPlayback
 		long tick = -1;
 		var entries = new List<(long Esp, string Tag)>();
 		var aiDraws = new List<(string? Tag, string? Kind, int Index, int? Value)>();
-		Hour? hour = null;
+		// Lines before the first hour are entering's.
+		Hour? hour = playback._entering;
 		void Close()
 		{
 			if (hour is not null)
@@ -110,7 +124,62 @@ internal sealed class CDrawPlayback
 			}
 		}
 		Close();
+		playback.LoadCaches();
 		return playback;
+	}
+
+	private void LoadCaches()
+	{
+		string path = Path.Combine(_folder, "caches.txt");
+		if (!File.Exists(path))
+		{
+			return;
+		}
+		foreach (string line in File.ReadLines(path, System.Text.Encoding.Latin1))
+		{
+			// <tag> <id> <province> <defence dirty> <defence> <attack dirty> <attack> <name...>
+			string[] p = line.Split(' ', 8);
+			if (p.Length < 8)
+			{
+				continue;
+			}
+			static float Read(string text) =>
+				float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out float value) ? value : float.NaN;
+			var key = (p[0], p[7]);
+			if (!_caches.TryGetValue(key, out var list))
+			{
+				list = new();
+				_caches[key] = list;
+			}
+			list.Add((int.Parse(p[2], CultureInfo.InvariantCulture), int.Parse(p[3], CultureInfo.InvariantCulture), Read(p[4]),
+				int.Parse(p[5], CultureInfo.InvariantCulture), Read(p[6])));
+		}
+	}
+
+	/// <summary>
+	/// A unit's half for the AI's first looks as the original's memory held it: null where the dirty byte was set, so the
+	/// original worked it out; else the float, in thousandths - a defender's not a number as such, which the odds take as
+	/// the original's floats do, and an attacker's as nought, none having been seen.
+	/// </summary>
+	private long? FirstLook(CGameState state, OpenHOI3.Sim.Units.CUnit unit, bool attacking)
+	{
+		_cacheLooks++;
+		if (!_caches.TryGetValue((unit.Owner.Value, unit.Name), out var list))
+		{
+			return null;
+		}
+		var entry = list.Count == 1 ? list[0] : list.FirstOrDefault(e => e.Province == unit.Location, list[0]);
+		(int dirty, float value) = attacking ? (entry.AttackDirty, entry.Attack) : (entry.DefenceDirty, entry.Defence);
+		if (dirty != 0)
+		{
+			return null;
+		}
+		_cacheHanded++;
+		if (float.IsNaN(value))
+		{
+			return attacking ? 0 : OpenHOI3.Sim.Agents.CAiCombatModel.NotANumber;
+		}
+		return float.IsFinite(value) ? (long)Math.Round(value * 1000.0, MidpointRounding.AwayFromZero) : 0;
 	}
 
 	/// <summary>The country of the latest job whose thread's stack holds that point, or null.</summary>
@@ -206,6 +275,13 @@ internal sealed class CDrawPlayback
 			kind is null ? who.Value : $"{who.Value}:{kind}", fed: true);
 		scripts.RandFeed = who => Take(_current?.Rand, who.Value, _current?.MissedRand, who.Value, fed: false);
 		PutMinisterCountdowns(state);
+		// Entering draws what the recording holds before its first hour, and its units look with the halves the original's
+		// memory left them (moving.md, section 11.4), until the first hour, when the original's units have worked theirs out.
+		_current = _entering;
+		if (_caches.Count > 0)
+		{
+			state.FirstLookModel = (unit, attacking) => FirstLook(state, unit, attacking);
+		}
 	}
 
 	/// <summary>
@@ -303,6 +379,16 @@ internal sealed class CDrawPlayback
 	/// </summary>
 	public bool BeginHour(CGameState state, long tick)
 	{
+		if (ReferenceEquals(_current, _entering))
+		{
+			Console.WriteLine("entering " + Summary());
+			if (state.FirstLookModel is not null)
+			{
+				Console.WriteLine($"entering: the original's cached halves handed over {_cacheHanded} of {_cacheLooks} looks, " +
+					$"{_caches.Count} units recorded");
+				state.FirstLookModel = null;
+			}
+		}
 		_current = _hours.GetValueOrDefault(tick);
 		if (ReadGenerator(Path.Combine(_folder, $"gen_{tick}.txt"), indexFirst: false) is { } game)
 		{

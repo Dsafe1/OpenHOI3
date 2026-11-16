@@ -379,11 +379,25 @@ public static class CLoadCheck
 		if (battleLog is not null)
 		{
 			state.CombatTrace = battleLog.WriteLine;
+			// Where the game's generator stands as each battle's hour begins, as the fact base's probes/hoibattlegen.lua logs
+			// the original's: its draws run on from the hour's, where a playback puts the original's at each hour.
+			state.BeforeBattle = combat =>
+			{
+				var standing = state.Random.Snapshot();
+				battleLog.WriteLine($"B {state.TotalHours + OriginalTickOffset} {combat.Province} " +
+					$"{(combat.Kind == ECombatKind.Land ? "L" : combat.Kind == ECombatKind.Air ? "A" : combat.Kind == ECombatKind.Naval ? "N" : "B")} " +
+					$"draws {standing.Draws} index {standing.Index}");
+			};
 		}
 		if (generator is not null)
 		{
 			// generator=FOLDER: the original's generator as dumped as each battle's hour began, mt_<its tick>_<province>.txt.
-			state.BeforeBattle = combat => PutGenerator(state, generator, combat);
+			Action<CCombat>? logged = state.BeforeBattle;
+			state.BeforeBattle = combat =>
+			{
+				logged?.Invoke(combat);
+				PutGenerator(state, generator, combat);
+			};
 		}
 		// A run of the original's to play back is attached before the game is entered: the ministers' first hours it puts
 		// are the load's, which entering counts down (docs/replay.md, section 9).
@@ -444,7 +458,11 @@ public static class CLoadCheck
 			{
 				WriteProvince(state, battleLog, int.Parse(text));
 			}
-			battleLog.Dispose();
+			// A series writes them again after each of its hours, and closes the file at its end.
+			if (series is null)
+			{
+				battleLog.Dispose();
+			}
 		}
 		Console.WriteLine($"ran {hours} hours in {clock.ElapsedMilliseconds} ms, to {state.Date} {state.Hour}:00");
 		if (later is not null)
@@ -482,8 +500,14 @@ public static class CLoadCheck
 					.Where(change => change.Holder != change.Was).Select(change => $"{change.Id}:{change.Was?.Trim('"')}>{change.Holder?.Trim('"')}").ToList();
 				Console.WriteLine($"  hands: ours {string.Join(' ', changes)} | the original {string.Join(' ', theirs)}");
 				CAiOrderCheck.Report(state, earlier, next, "  ", ExampleCountry, ordersFile is null ? null : $"{ordersFile}.h{step}", before);
+				if (battleLog is not null)
+				{
+					battleLog.WriteLine($"HOUR {step} {state.Date} {state.Hour}:00");
+					WriteBattles(state, battleLog);
+				}
 				earlier = next;
 			}
+			battleLog?.Dispose();
 		}
 		Console.WriteLine($"{warnings.Count} warnings; the first few:");
 		foreach (string warning in warnings.Take(8))
