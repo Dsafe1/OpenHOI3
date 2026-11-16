@@ -48,6 +48,8 @@ said is defensive.
 **The hour.** Each mission's hour begins the same way:
 
     the fleet has no base                    -> the order is over
+    the hour has reached its last date,      -> the order is over
+      its two dates differing
     it is in a battle                        -> nothing this hour
     it is too worn to go on                  -> it heads for a harbour, and nothing else this hour
     then the mission's own hour
@@ -641,8 +643,11 @@ gives the air unit with the most sea attack that reaches the province the raid f
 - Whether the intelligence levels are in practice worked out daily or hourly (section 9).
   The maintainer thinks daily, which is what is built.
 - What the original's list of a country's naval bases holds, and in what order (section 1).
-- What an order's two dates are set to by anything but the orders window; an order from the
-  window never ends by date, and none is built.
+- ~~What an order's two dates are set to by anything but the orders window~~: the AI's patrol is given the hour and a
+  week on, its raid three weeks (`moving.md`, section D), and the order ends when the hour reaches the second. An order
+  from the window carries two equal dates and never ends by date. Built 2026-11-16: the United States' 18th Navy and
+  Cruiser Fleet 7 come off patrol at 11:00 on 16 July 1941 in the Ireland game, go home and are given a new week, as
+  the original's do (`reversing/findings/FINDINGS-liveread.md`, section 112).
 - One byte on a fleet that keeps it out of a reserve's exchange, and one answer every naval
   order gives that nothing was found to ask.
 - **Whether a fleet may be sent to a province** (`CMovementRules.MayMoveTo` against the original's own test): the Soviet

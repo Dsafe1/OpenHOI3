@@ -102,6 +102,14 @@ public static class CMissions
 	/// </summary>
 	public static bool RunHour(CGameState state, CCountry country, CUnit unit)
 	{
+		// An order with two dates ends when the hour reaches the second - the AI's week of patrol, its three of raiding; one
+		// whose two dates are the same, as the orders window gives, never ends by date. The original's
+		// CNavalOrder::IsActive, asked before the AI's pass of the hour (docs/mechanics/navalmissions.md, section 1).
+		CMission mission = unit.Mission;
+		if (mission.EndHour != CMission.NoEnd && mission.EndHour != mission.StartHour && state.TotalHours >= mission.EndHour)
+		{
+			return false;
+		}
 		return unit.Order switch
 		{
 			EUnitOrder.Reserve => CReserve.RunHour(state, country, unit),
