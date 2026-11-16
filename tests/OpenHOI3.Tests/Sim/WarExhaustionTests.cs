@@ -88,6 +88,28 @@ public class WarExhaustionTests
 	}
 
 	[Fact]
+	public void WithBiceLibsSwitchEveryCountrysWarExhaustionGoesBackToNoughtAndNothingReachesNeutrality()
+	{
+		CGameState state = State(new CDate(1936, 2, 1));
+		state.BiceLib.TurnOn(OpenHOI3.Sim.Mods.CBiceLibSwitches.WarExhaustionNeutralityReset);
+		CCountry italy = state.Country(Ita)!, germany = state.Country(Ger)!;
+		foreach (CCountry country in new[] { italy, germany })
+		{
+			country.Modifier.Set(CWarExhaustion.MaxModifier, CFixedPoint.FromInt(100));
+			country.Modifier.Set(CWarExhaustion.Modifier, CFixedPoint.Parse("0.041"));
+		}
+		italy.WarExhaustion = CFixedPoint.Parse("0.15");
+		germany.WarExhaustion = CFixedPoint.Parse("1.5");
+		germany.Neutrality = CFixedPoint.FromInt(70);
+
+		CWarExhaustion.RunMonthly(state);
+
+		Assert.Equal(CFixedPoint.Zero, italy.WarExhaustion);
+		Assert.Equal(CFixedPoint.Zero, germany.WarExhaustion);
+		Assert.Equal(CFixedPoint.FromInt(70), germany.Neutrality);
+	}
+
+	[Fact]
 	public void TheEffectAddsAndNeverGoesBelowNothing()
 	{
 		var france = new CCountry { Tag = new CCountryTag("FRA"), Name = "France", DefinitionFile = "" };

@@ -232,6 +232,8 @@ rank today, and who is not in service, is put in service at rank 1** - whatever 
 history gives. `confirmed`. "First" is the earliest dated `rank` in his history: in the base
 game that is always the first written, which is what the original takes; which it means where
 they differ was not read. A leader whose history has no `rank` is never put in service.
+With BlackICE's Lua, which turns on BiceLib's `activateHistoryLeaderRanks`, at the rank that line names, held to 1 to 4;
+and its `activateOobLeaderRanks` fits the rank of a file's leader to his unit (`bicelib.md`, sections 3.1 and 3.2).
 
 ## 6. What the save says
 

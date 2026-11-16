@@ -231,9 +231,10 @@ public class OobBrowserTests
 		CCountry england = England();
 		CUnit corps = Unit(england, EUnitKind.Corps);
 		CUnit division = Unit(england, EUnitKind.Division);
-		Assert.True(COobBrowserText.MayTakeUnit(corps, division));
-		Assert.False(COobBrowserText.MayTakeUnit(division, corps));
-		Assert.False(COobBrowserText.MayTakeUnit(corps, corps));
+		CGameState state = World(england);
+		Assert.True(COobBrowserText.MayTakeUnit(state, corps, division));
+		Assert.False(COobBrowserText.MayTakeUnit(state, division, corps));
+		Assert.False(COobBrowserText.MayTakeUnit(state, corps, corps));
 	}
 
 	[Fact]

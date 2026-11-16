@@ -461,18 +461,21 @@ section 3.
 
 `reversing/findings/FINDINGS-liveread.md`, section 46; `docs/mechanics/moving.md`, section 11.4.
 
-## 25. BiceLib's Lua functions are not provided
+## 25. ~~BiceLib's Lua functions are not provided~~ BiceLib's Lua functions are given by the engine, some not built yet
 
-**Decided** 2026-11-11 by the maintainer: an accepted break.
+**Decided** 2026-11-11 by the maintainer: an accepted break. **Turned** 2026-11-16 by the maintainer: the engine gives the
+functions itself, as `OpenHOI3.BiceLib` (`docs/mechanics/bicelib.md`), and BlackICE's `bicelib_lua.lua` takes it in the DLL's
+place where the global `OpenHOI3` exists; BiceLib's README and source may be read for what a function does, nothing
+build-specific (`CLAUDE.md`, *What this repository may not do*).
 
 | | |
 | --- | --- |
-| the original | with BlackICE, `script/bicelib_lua.lua` calls functions that BiceLib - the mod's DLL, injected into the original's process - registers with the game's Lua, for its overlay, autosaves, map modes and commands |
-| here | nothing provides them, so a call to one fails where the mod is played |
-| the difference today | none in Their Finest Hour alone; with BlackICE, every BiceLib feature is missing |
-| a mod loses | every BiceLib feature, until the interface below exists |
-| why | BiceLib's features are to come back as a native interface of this engine's own that the mod can call, built from the fact base's prose, never from BiceLib's code or offsets |
-| to undo | build that interface; nothing here is to be removed |
+| the original | with BlackICE, `script/bicelib_lua.lua` calls functions that BiceLib - the mod's DLL, injected into the original's process - registers with the game's Lua, for its patches, its tooltips, its overlay and its commands, and the DLL calls back into the mod's Lua once a day |
+| here | ~~nothing provides them, so a call to one fails where the mod is played~~ every one of the DLL's 58 functions is in `OpenHOI3.BiceLib`. Those about the injection, the DLL's console, its command registry and its probes are no-ops; four are fixes this engine already makes for every game; the leaders' two rank switches, the headquarters' limits, war exhaustion's reset and the queued historical model are built, each only while the mod's Lua turns it on; the daily call back is made. The rest do nothing, answer nil and are reported once by name (`bicelib.md`, section 2) |
+| the difference today | none in Their Finest Hour alone; with BlackICE, the 21 functions it calls that are not built - four tooltips, three effect texts, the leader list's maximum skill twice and Ctrl's unassign, the model a brigade is shown as and the sea in the simplified terrain mode, placing a building not researched, off-map IC and its own resource conversion, five of the overlay's getters, and the AI's switch - and the overlay and the DLL's own autosaves, crash save, map modes and combat log, which no Lua function switches |
+| a mod loses | what those do, until each is built; the AI's switch, `disableInterAiExpeditionaries`, waits on the AI's work |
+| why | BiceLib's features come back as this engine's own, called by the mod as it calls the DLL; offsets and hooks stay out |
+| to undo | nothing here is to be removed; build what `bicelib.md` lists as not built |
 
 ## 26. A click with a docked fleet or a based air unit selected goes where it is aimed
 

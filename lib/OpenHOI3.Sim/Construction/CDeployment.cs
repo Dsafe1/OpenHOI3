@@ -135,7 +135,7 @@ public static class CDeployment
 			{
 				return IsLand(target) && target.SubUnits.Count < CUnitAvailability.MostBrigades(state, country);
 			}
-			return MayTakeSubordinate(target, unit);
+			return MayTakeSubordinate(state, target, unit);
 		}
 		if (unit.Kind == EUnitKind.Air)
 		{
@@ -148,9 +148,10 @@ public static class CDeployment
 
 	/// <summary>
 	/// Whether one unit may be put under another: the commander has to be of a higher
-	/// rank, and anything but a theatre takes no more than five land units.
+	/// rank, and anything but a theatre takes no more than five land units - or, where a mod's Lua has set the limits as
+	/// BiceLib's <c>Units</c> do, the limit of <see cref="LandSubordinateLimit"/>.
 	/// </summary>
-	public static bool MayTakeSubordinate(CUnit commander, CUnit subordinate)
+	public static bool MayTakeSubordinate(CGameState state, CUnit commander, CUnit subordinate)
 	{
 		if ((int)commander.Kind >= (int)subordinate.Kind)
 		{
@@ -172,8 +173,49 @@ public static class CDeployment
 				land++;
 			}
 		}
-		return land < MostLandSubordinates;
+		if (!state.BiceLib.IsOn(Mods.CBiceLibSwitches.UnitLimits))
+		{
+			return land < MostLandSubordinates;
+		}
+		// A one-brigade division is always taken, and a commander with nothing under it takes anything.
+		if (IsLoneBrigade(subordinate) || commander.Children.Count == 0)
+		{
+			return true;
+		}
+		return land < LandSubordinateLimit(state, commander, subordinate.Owner);
 	}
+
+	/// <summary>
+	/// The most land units a headquarters takes under the limits a mod's Lua set (BiceLib's <c>Units</c>,
+	/// <c>docs/mechanics/bicelib.md</c>, section 3): an army group's, an army's or a corps' limit for the country whose unit is
+	/// put under it - its own, else the default, else five - plus what each trait of its leader adds, plus the one-brigade
+	/// divisions it already has, which are not to count.
+	/// </summary>
+	public static int LandSubordinateLimit(CGameState state, CUnit commander, CCountryTag owner)
+	{
+		Mods.CBiceLibSwitches switches = state.BiceLib;
+		int limit = commander.Kind is EUnitKind.ArmyGroup or EUnitKind.Army or EUnitKind.Corps
+			? switches.UnitLimit(commander.Kind, owner)
+			: MostLandSubordinates;
+		if (commander.Leader is { } leader && switches.HasCommandLimitTraits)
+		{
+			foreach (CTrait trait in leader.Traits)
+			{
+				limit += switches.CommandLimitTrait(trait.Key);
+			}
+		}
+		foreach (CUnit child in commander.Children)
+		{
+			if (IsLoneBrigade(child))
+			{
+				limit++;
+			}
+		}
+		return limit;
+	}
+
+	/// <summary>A brigade on its own, held as a division of one.</summary>
+	private static bool IsLoneBrigade(CUnit unit) => unit.Kind == EUnitKind.Division && unit.SubUnits.Count == 1;
 
 	/// <summary>
 	/// Puts a waiting unit with one in the field. It is placed where that one stands,
@@ -221,7 +263,7 @@ public static class CDeployment
 	public static void JoinOrdered(CGameState state, CCountry country, CUnit unit, CUnit target)
 	{
 		bool mayTake = unit.SubUnits.Count != 0 && CSubUnitTransfer.MayTake(state, country, target, unit.SubUnits[0], sameProvince: false);
-		if (!mayTake && !(target.Kind == EUnitKind.Theatre && MayTakeSubordinate(target, unit)))
+		if (!mayTake && !(target.Kind == EUnitKind.Theatre && MayTakeSubordinate(state, target, unit)))
 		{
 			return;
 		}

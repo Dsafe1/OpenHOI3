@@ -121,7 +121,10 @@ the order of their dependencies - by `--mod=<name>`, by the original launcher's 
 OpenHOI3 (mod)* and by the savegame tool's `mod=`; the file checksum is the original's for Their Finest Hour and for two
 BlackICE builds; and `OpenHOI3.SaveCheck modsurvey`, which on BlackICE GitHub makes a new game and finds what the mod asks
 that is not answered - LuaFileSystem first, without which none of BlackICE's AI loads, then `remove_brigade`, wxLua,
-BiceLib's 42 functions and the original's country variables in Lua. **Next: stage 2**, a BlackICE new game set beside a
+BiceLib's 42 functions and the original's country variables in Lua. BiceLib's functions are given since the same day as
+`OpenHOI3.BiceLib` (`docs/mechanics/bicelib.md`) - the no-ops, the leaders' ranks, the headquarters' limits, war
+exhaustion's reset, the queued historical model and the daily call back built, the rest reported by name - and the
+survey sets apart the Lua behind a test of `OpenHOI3` that this engine never passes, the wxWidgets utility's. **Next: stage 2**, a BlackICE new game set beside a
 BlackICE save, and **stage 3**, playing it; the survey's list is where stage 2 starts. Left to the maintainer's word:
 `docs/compatibility.md`, entry 28.
 
@@ -2051,11 +2054,26 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   entry 28), and `settings.txt` and the map cache are read from it alone, with no fall through the search path (entries 13
   and 22); the version label names the frontmost of several mods, which the original's choice is not read. BlackICE's
   `autoexec.lua` loads whole since 2026-11-16 - its `lfs` taken by the global `OpenHOI3` and the install made the working
-  folder (`mods.md`, section 6) - but its old utility needs `wx` (wxLua) and its overlay BiceLib, neither of them here.
+  folder (`mods.md`, section 6) - its old utility, which needs `wx` (wxLua), gated off under this engine, and BiceLib's
+  functions given as `OpenHOI3.BiceLib` (next item).
   The original's Lua API it calls that ours lacks -
   `CSetVariableCommand`, `GetVariable`, `GetVariables`, `CMinisterTypeDataBase`, nine `CModifier` constants - is the AI's
   (`modsurvey`'s list).
 
+- **BiceLib's functions not built** (`docs/mechanics/bicelib.md`, section 2): each answers nil and is reported once by
+  name. To batch with the maintainer: the **tooltips and texts** - `Tooltips.*` (four), `EffectTexts.activateKillLeaderVariables`,
+  `activateLoadOobDetails` (medium), `activateTriggerScroll`, `Leaders.activateLeaderListShowMaxSkill` and its `Selected`,
+  `activateCtrlUnassignSelected`, `BytePatches.historicalModelLogicFix`, `seaTerrainColourInSimplifiedMapMode`,
+  `Messages.show`; the **economy** - `ComplexPatches.fixOffMapIC` (medium, the original's figure not established),
+  `customResourceConversion` (medium; the country variables it reads are script state, built), `enablePlacingNonResearchedBuildings`,
+  and the two getters after them; the **rest of the simulation** - `Navy.*`, `Leaders.addTraitToLeader`, the rank-specific
+  traits (kept off by the maintainer); the **overlay's getters** - `GameInfo.*`, `Leaders.getLeaderDetails`,
+  `Inspector.getSelectedEntity`, read by nothing without an overlay; and the overlay itself, its 75 `BiceLibGui.*` call
+  backs (large, the maintainer's to decide). `BytePatches.disableInterAiExpeditionaries` waits on the AI's work. Four are
+  fixes this engine makes for every game already, departures without a switch for the maintainer to rule on: ministers'
+  technology decay, the infrastructure of `extra_infra`, a loaded game's candidate events, and the requirement
+  tooltip's indentation (`docs/compatibility.md`, entry 10, the one decided). A limit set in play is not in a save, as in
+  the original (`docs/enhanced.md`, *A whole game's replay*).
 - **Script still unbuilt**: `add_division` (unused by TFH and BlackICE, its starting strength not read through), `remove_fow`, the four mission conditions (an Europa Universalis III leftover, no mission file in either install), `has_hostile_spy_mission` (the original compares against an unset byte) and the AI's `add_ai_strategy` / `fixed_ai_strategy`. Built on 2026-11-16, for BlackICE's layer above all: `remove_brigade` with the original's end-of-hour removal queue, `military_construction` in a running game's `load_oob`, `total_of_ours_sunk`, `total_sunk_by_us`, `surrender_inherit`'s surrender mode and `release_vassal = REB` (`effects.md`, section 8), and `lost_IC`, the four war-record counters and the six `last_*_losses` (`triggers.md`, sections 5.1 and 5.2). **The undeclared war's** hostility is asked at battles, convoy raids and air and fleet targets, not at the AI's war-time gates or the land's movement (`war.md`, section 15).
 - **A unit taken out of the game, everywhere but the new paths**: the original's `RemoveUnit` leaves the removed unit's
   children at the top of the order of battle (a theatre's marked orphans) and, with its first flag clear, charges the
@@ -3077,6 +3095,8 @@ lib/OpenHOI3.Sim/       our own data model and the simulation: the game state, t
                         air - air bases chosen and missions given
     Replay/             ours: the AI's steps recorded and played back in their place, the
                         commands' written form and the state's hash (docs/replay.md)
+    Mods/               what a mod's Lua has turned on of the rules BiceLib changes in the
+                        original, and the day's call into it (docs/mechanics/bicelib.md)
     Modifiers/          what a modifier is, and the rebuilding of a province's and a country's
     Economy/            goods, resources, IC, the stockpile, the six shares, manpower, leadership
     Research/           technologies, their categories, the queue and the decay
@@ -3177,6 +3197,8 @@ lib/OpenHOI3.Lua/       the install's Lua, run on the simulation: the state the 
                         makes, its searcher and autoexec, and what the game asks it
     Native/             the interpreter's C API, the trampoline, a state, a call, a class
     Api/                the classes the original hands its scripts, on the simulation
+    BiceLib/            OpenHOI3.BiceLib: the functions BlackICE's DLL gives the original's
+                        Lua, as this engine gives them (docs/mechanics/bicelib.md)
 native/lua/             Lua 5.1.4's source, its licence, our trampoline and the build of
                         openhoi3_lua.dll, which the Lua project runs
 tools/OpenHOI3.SaveCheck/   checks the libraries against a savegame the original wrote

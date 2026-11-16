@@ -160,6 +160,7 @@ public static class CLeaderReader
 				&& (leader.FirstRankDate is not { } first || when.CompareTo(first) < 0))
 			{
 				leader.FirstRankDate = when;
+				leader.FirstRank = Whole(block.Get("rank")!.Value);
 			}
 		}
 		foreach (ClausewitzNode entry in CHistory.Fold(history, start))

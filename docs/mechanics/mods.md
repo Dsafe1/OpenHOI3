@@ -130,8 +130,9 @@ argument too. `modsurvey`, `checksum`, `quads`, `mapcache` and `shaders` take it
 `OpenHOI3.SaveCheck modsurvey <install> [mod name]` lays the mod over the install and reads everything a new game reads:
 the localisation, the countries, the map, the interface's `.gui` and `.gfx` - each texture a `.gfx` names looked for, and
 each sprite a `.gui` names looked for among the `.gfx` names - the install's `autoexec.lua` and what it requires, the world
-with every database, the history, the events and decisions, and then a new game as a player gets it, as far as it goes;
-the AI is run no further than making a game runs it. Nothing in the simulation changes for it. It gathers every problem
+with every database, the history, the events and decisions, and then a new game as a player gets it, as far as it goes,
+with the day's call into the mod's Lua that its first one o'clock makes (`bicelib.md`, section 4); the AI is run no further
+than making a game runs it. Nothing in the simulation changes for it. It gathers every problem
 the readers report, by section, kind and file, and sorts the sections into **ours** - what this game does not answer -
 and **files** - what the files say that the original passes over as well:
 
@@ -143,13 +144,16 @@ and **files** - what the files say that the original passes over as well:
 | `lua, each require on its own` | ours | where `autoexec.lua` stopped, each later module it names required on its own, on a state of its own, and what fails; a module only on the `package.path` the mod writes relative to the working folder is told apart |
 | `lua, asked in the world/new game` | ours | the Lua's errors and its unbuilt reports as the game is made |
 | `lua native` | ours | a module required that is no Lua file anywhere - a DLL beside the original - with every field used under it |
+| `bicelib` | ours | a function of `OpenHOI3.BiceLib` a script uses that is not built, or a name under `BiceLib` it does not have, counted by name (`bicelib.md`, section 6) |
 | `lua class`, `lua static`, `lua method` | ours | a class of the original's API nobody provides, a static of one of ours it lacks, a method called with `:` that no class of ours has and no script defines |
 | `script`, `interface`, `world`, `map`, `lua undefined` | files | the script's problems, the readers' reports, a texture or sprite in no file, a global no file defines |
+| `gated off: ...` | gated | any of the above found only in Lua this engine never comes to: a module reached from `autoexec.lua` only through a `require` inside `if OpenHOI3 == nil` or the `else` of `if OpenHOI3 ~= nil`, and a native module required only there, with every use of its fields; and those requires themselves, `gated off: require`, which are not tried on their own. Left out of both ours and files |
 
 The Lua's globals are read from the text (`CLuaGlobalScan`): every name that is no field, keyword or local of a block it
 stands in, set against what the state holds once everything has loaded that would and what any file defines. It reads
 `autoexec.lua`, every module loaded and every Lua file of the layered `script` folder and of `common`. A name made through
-`_G[...]` is not seen, and a method is matched against every class's names, not its receiver's.
+`_G[...]` is not seen, and a method is matched against every class's names, not its receiver's. The gate is read from the
+text too, as written: a test of `OpenHOI3` against `nil` with `==` or `~=` in an `if` or `elseif`.
 
 **On 2026-11-16, Their Finest Hour alone** (the control): ours 0; files 59 - the script's thirteen problems, the same as
 `SaveCheck script`, 43 in the interface (33 of them the tutorial's textures, which the install does not have) and three
@@ -168,7 +172,8 @@ more of the world and the map.
 4. **BiceLib**, the mod's DLL (`docs/compatibility.md`, entry 25): 42 functions, 47 uses, in `bicelib_lua.lua` and the
    utilities - `BiceLib.Leaders` (6), `BiceLib.Units` (3), `BiceLib.GameInfo` (7), `BiceLib.ComplexPatches` (5),
    `BiceLib.BytePatches` (5), `BiceLib.Tooltips` (4), `BiceLib.EffectTexts` (4), `Commands`, `Events`, `Inspector`,
-   `Overlay` and the console. Read from the mod's own Lua; nothing was read out of BiceLib.
+   `Overlay` and the console. Read from the mod's own Lua; nothing was read out of BiceLib. **Given since 2026-11-16 as
+   `OpenHOI3.BiceLib`** (`bicelib.md`), the survey counting what of it is not built by name.
 5. The original's Lua API not provided: **country variables** - `CSetVariableCommand` (80 uses) and the methods
    `GetVariable` (81) and `GetVariables` (38) - `CMinisterTypeDataBase`, nine `CModifier._MODIFIER_*_` constants, and 29
    methods more (`GetProductionDistributionAt` 13, `GetPercentage` 11, `GetUnits` 6, ...), a few of them wx's objects in
@@ -205,6 +210,15 @@ folder: the survey's ours from about 27,040 to 13,594 - `autoexec.lua` loads who
 scripts now run, the first of them to fail on `GetUnits`, a method of the AI's Lua classes not built (374 times,
 `ai_politics_minister.lua`). The survey's static list still shows `lfs.dir` and `lfs.attributes`, which it reads without
 the test around them.
+
+*Measured* again on 2026-11-16, with `OpenHOI3.BiceLib` (`bicelib.md`), BlackICE's `bicelib_lua.lua` taking it where
+`OpenHOI3` exists and its `autoexec.lua` requiring the wxWidgets utility only where it does not, over the same linked
+install: **ours 6,579 to 750, files 834 to 820, and 5,840 gated** - 33 files only that gate reaches, `wx`'s 3,988 uses and
+its objects' 1,706 methods among them, and `lfs`'s two. Of ours: `bicelib`, **21 functions not built** - 16 of them called
+as the scripts load, each reported once at run time too (`lua`, `LuaUnbuilt`), the five others getters the overlay's data
+providers would ask; the day's call, `BiceLibDailyPeriodics(1)`, runs without a Lua error and posts 237 limits. The rest is
+the original's API not provided: `GetVariable` (109), `GetVariables` (63), `CSetVariableCommand` (79), `GetUnits` - which
+still fails 374 times as the world and the new game are made - and 18 methods more, with `CMinisterTypeDataBase`. Files fell by 14: wxaui's, gated.
 
 ## Not established
 

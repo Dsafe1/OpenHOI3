@@ -124,7 +124,7 @@ public sealed class CCreateHigherCommand : CCommand
 		CAgentUnits.Attach(state, top, unit);
 		foreach (CUnit other in units)
 		{
-			if (!ReferenceEquals(other, top) && CDeployment.MayTakeSubordinate(unit, other))
+			if (!ReferenceEquals(other, top) && CDeployment.MayTakeSubordinate(state, unit, other))
 			{
 				CAgentUnits.Attach(state, other, unit);
 			}

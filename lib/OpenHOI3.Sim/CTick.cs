@@ -49,6 +49,9 @@ public static class CTick
 		// The AI comes after all of the hour's passes, the day's among them, every country reading the same world: what it
 		// posts runs when the queue is next drained, before the next hour (read in the running game, tick.md, section 3).
 		RunAiPass(state);
+		// A mod's Lua told the day, as BiceLib tells it in the original once the scheduled scripts of one o'clock have run
+		// (docs/mechanics/bicelib.md, section 4; ours: its place in the hour). Nothing without a mod that asks for it.
+		Step(state, Mods.CBiceLibDaily.RunHourly);
 
 		// Last of all the original removes the units queued for removal during the hour, so that nothing is freed in the
 		// middle of a pass - remove_brigade's among them (effects.md, section 9).

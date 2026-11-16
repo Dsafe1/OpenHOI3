@@ -163,7 +163,7 @@ public static class COrderOfBattleReader
 				}
 				if (part.LeaderId != 0 && state.Leaders.TryGetValue(part.LeaderId, out Sim.Leaders.CLeader? leader))
 				{
-					Sim.Leaders.CLeaders.SetLeader(state, part, leader, false, false);
+					Sim.Leaders.CLeaders.PutOnFromFile(state, part, leader);
 				}
 			}
 		}

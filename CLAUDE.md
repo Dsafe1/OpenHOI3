@@ -713,6 +713,12 @@ wrong before the font's own arithmetic was read. What follows is the reasoning, 
 - **Never read anything out of BiceLib.** That is the mod's injected DLL. Its headers are full
   of exactly the offsets above, and "the DLL already worked this out" is the tempting shortcut
   that imports them.
+  **One exception, the maintainer's word of 2026-11-16:** to build into this engine the BiceLib
+  functions BlackICE calls (`OpenHOI3.BiceLib`, `docs/mechanics/bicelib.md`), BiceLib's README
+  and source may be read for **what a function does** - its rule, its text, its switch - and
+  nothing else: no address, offset, vftable index, structure layout or hook comes across, in
+  code, comments or docs, and a rule of the original's own that a patch changes is still read
+  from the fact base. Grep the diff for `0x` as always.
 
 ## Where knowledge about the original comes from
 

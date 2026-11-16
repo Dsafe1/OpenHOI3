@@ -308,6 +308,12 @@ whatever the odds", from a signed draw, was corrected by this reading.
 
 - **Every state has a global `OpenHOI3`**, which the original's does not: the engine's mark, and in its `Files` a folder's
   file names for a mod's script that would list a folder through LuaFileSystem (`mods.md`, section 6; `CLuaFiles`).
+- **And under it `OpenHOI3.BiceLib`**: every function BlackICE's DLL registers with the original's Lua, which this engine
+  cannot load, under the DLL's tables and names (`bicelib.md`; `CBiceLibApi`). A function not built answers nothing and
+  is reported once by name as `LUA unbuilt: BiceLib.<table>.<name>`; one that sets a rule writes the scripts' own switches
+  while they load, which each game made with them copies, and posts a command while a game is asked. The game calls the
+  scripts' `BiceLibDailyPeriodics(firstDay)` at one o'clock each day where they define it, as the DLL does
+  (`bicelib.md`, section 4).
 - **The state lives as long as a session**, where the original's lives as long as the process and
   carries a script's globals from one game into the next. Nothing in the base game relies on that.
 - **Lua's arithmetic is in full double precision.** The original's main thread ran its Lua under the

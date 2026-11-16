@@ -48,6 +48,13 @@ internal sealed class CLuaGlobalScan
 	/// <summary>Every module a literal <c>require</c> names, with its line.</summary>
 	public List<(string Module, int Line)> Requires { get; } = new();
 
+	/// <summary>
+	/// The requires of <see cref="Requires"/> that this engine never comes to: inside the block of an
+	/// <c>if OpenHOI3 == nil then</c>, or the <c>else</c> of an <c>if OpenHOI3 ~= nil then</c> - the global this engine sets
+	/// and the original does not (<c>docs/mechanics/mods.md</c>, section 6).
+	/// </summary>
+	public List<(string Module, int Line)> GatedRequires { get; } = new();
+
 	public static CLuaGlobalScan Read(string text)
 	{
 		var scan = new CLuaGlobalScan();
@@ -59,6 +66,9 @@ internal sealed class CLuaGlobalScan
 	{
 		// The blocks open, each with its locals; and the brackets open, to tell a table's key from an assignment.
 		var scopes = new List<HashSet<string>> { new(StringComparer.Ordinal) };
+		// Beside each block: whether this engine never comes into it, and whether it would not come into the block's else.
+		var gates = new List<(bool Gated, bool ElseGated)> { (false, false) };
+		(bool Then, bool Else) pendingGate = (false, false);
 		var brackets = new Stack<char>();
 		bool Local(string name)
 		{
@@ -71,13 +81,37 @@ internal sealed class CLuaGlobalScan
 			}
 			return false;
 		}
-		void Push() => scopes.Add(new HashSet<string>(StringComparer.Ordinal));
+		void Push()
+		{
+			scopes.Add(new HashSet<string>(StringComparer.Ordinal));
+			gates.Add((gates[^1].Gated, false));
+		}
 		void Pop()
 		{
 			if (scopes.Count > 1)
 			{
 				scopes.RemoveAt(scopes.Count - 1);
+				gates.RemoveAt(gates.Count - 1);
 			}
+		}
+		// An if's condition up to its then: OpenHOI3 == nil gates the then, OpenHOI3 ~= nil the else.
+		(bool Then, bool Else) Gate(int from)
+		{
+			for (int at = from; at + 2 < tokens.Count && !Is(at, "then"); at++)
+			{
+				if (tokens[at].Kind == TokenKind.Name && tokens[at].Text == "OpenHOI3" && Is(at + 2, "nil"))
+				{
+					if (Is(at + 1, "=="))
+					{
+						return (true, false);
+					}
+					if (Is(at + 1, "~="))
+					{
+						return (false, true);
+					}
+				}
+			}
+			return (false, false);
 		}
 		bool Is(int at, string symbol) => at >= 0 && at < tokens.Count && tokens[at].Kind is TokenKind.Symbol or TokenKind.Name
 			&& tokens[at].Text == symbol;
@@ -243,18 +277,33 @@ internal sealed class CLuaGlobalScan
 						Push();
 					}
 					continue;
+				case "if":
+					pendingGate = Gate(i + 1);
+					continue;
 				case "repeat":
+					Push();
+					continue;
 				case "then":
 					Push();
+					gates[^1] = (gates[^1].Gated || pendingGate.Then, pendingGate.Else);
+					pendingGate = (false, false);
 					continue;
 				case "elseif":
 				case "else":
+				{
+					bool elseGated = gates[^1].ElseGated;
 					Pop();
 					if (token.Text == "else")
 					{
 						Push();
+						gates[^1] = (gates[^1].Gated || elseGated, false);
+					}
+					else
+					{
+						pendingGate = Gate(i + 1);
 					}
 					continue;
+				}
 				case "end":
 				case "until":
 					Pop();
@@ -313,6 +362,10 @@ internal sealed class CLuaGlobalScan
 				if (at < tokens.Count && tokens[at].Kind == TokenKind.String && tokens[at].Text.Length > 0)
 				{
 					Requires.Add((tokens[at].Text, token.Line));
+					if (gates[^1].Gated)
+					{
+						GatedRequires.Add((tokens[at].Text, token.Line));
+					}
 				}
 			}
 			if (Local(token.Text))

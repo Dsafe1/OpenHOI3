@@ -28,9 +28,9 @@ public static class CAttachText
 	}
 
 	/// <summary>Whether <c>attach_button</c> may be pressed: some unit of the country may take this one.</summary>
-	public static bool MayAttach(CCountry country, CUnit unit)
+	public static bool MayAttach(CGameState state, CCountry country, CUnit unit)
 	{
-		return !IsAllCarrierGroups(unit) && country.AllUnits().Any(other => CDeployment.MayTakeSubordinate(other, unit));
+		return !IsAllCarrierGroups(unit) && country.AllUnits().Any(other => CDeployment.MayTakeSubordinate(state, other, unit));
 	}
 
 	/// <summary>Whether <c>detach_button</c> shows, for a unit with a commander.</summary>
@@ -46,7 +46,7 @@ public static class CAttachText
 		var list = new List<CUnit>();
 		foreach (CUnit candidate in country.UnitsInOrder())
 		{
-			if (!CDeployment.MayTakeSubordinate(candidate, unit))
+			if (!CDeployment.MayTakeSubordinate(state, candidate, unit))
 			{
 				continue;
 			}
@@ -120,7 +120,7 @@ public static class CAttachText
 	/// Which of several selected units a new headquarters takes: all but a theatre - or none, where the highest ranked, the
 	/// first of equals, has a commander's commander who could not take it.
 	/// </summary>
-	public static List<CUnit> ForHigher(IEnumerable<CUnit> units)
+	public static List<CUnit> ForHigher(CGameState state, IEnumerable<CUnit> units)
 	{
 		List<CUnit> taken = Detachable(units);
 		if (taken.Count == 0)
@@ -135,7 +135,7 @@ public static class CAttachText
 				top = unit;
 			}
 		}
-		if (top.Parent?.Parent is { } grand && !CDeployment.MayTakeSubordinate(grand, top))
+		if (top.Parent?.Parent is { } grand && !CDeployment.MayTakeSubordinate(state, grand, top))
 		{
 			taken.Clear();
 		}

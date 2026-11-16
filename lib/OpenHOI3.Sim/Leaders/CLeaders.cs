@@ -184,7 +184,7 @@ public static class CLeaders
 		named.Sort((a, b) => a.LeaderLine != b.LeaderLine ? a.LeaderLine.CompareTo(b.LeaderLine) : a.Id.CompareTo(b.Id));
 		foreach (CUnit unit in named)
 		{
-			SetLeader(state, unit, state.Leaders[unit.LeaderId], false, false);
+			PutOnFromFile(state, unit, state.Leaders[unit.LeaderId]);
 		}
 	}
 
@@ -221,7 +221,8 @@ public static class CLeaders
 	/// <summary>
 	/// The day's putting in service: a leader whose history first gives him a rank today,
 	/// and who is not in service already, is put in service at rank 1, whatever rank the
-	/// history gives. Nothing later in his history is ever applied.
+	/// history gives - or, where a mod's Lua has turned on BiceLib's <c>activateHistoryLeaderRanks</c>, at the rank it gives,
+	/// held between 1 and 4 (<c>docs/mechanics/bicelib.md</c>, section 3). Nothing later in his history is ever applied.
 	/// </summary>
 	public static void ActivateDaily(CGameState state)
 	{
@@ -229,18 +230,57 @@ public static class CLeaders
 		{
 			return;
 		}
+		bool historyRanks = state.BiceLib.IsOn(Mods.CBiceLibSwitches.HistoryLeaderRanks);
 		foreach (CCountry country in state.Countries)
 		{
 			foreach (CLeader leader in country.Leaders)
 			{
 				if (leader.FirstRankDate == state.Date && !country.ActiveLeaders.Contains(leader))
 				{
-					leader.Rank = 1;
+					leader.Rank = historyRanks ? Math.Clamp(leader.FirstRank, LowestRank, HighestRank) : LowestRank;
 					country.ActiveLeaders.Add(leader);
 				}
 			}
 		}
 	}
+
+	/// <summary>
+	/// Puts on a unit the leader an order of battle file names for it - a new game's history or <c>load_oob</c>, never a
+	/// save. Where a mod's Lua has turned on BiceLib's <c>activateOobLeaderRanks</c>, a leader of the unit's own country
+	/// and of the land put on a land unit is first given the rank it takes - a division 1, a corps 2, an army 3, an army
+	/// group and a theatre 4 - raised or lowered to it, and put in service where he is not yet; a fleet, an air unit, a
+	/// leader of the wrong kind and another country's are left as they are (<c>docs/mechanics/bicelib.md</c>, section 3).
+	/// </summary>
+	public static void PutOnFromFile(CGameState state, CUnit unit, CLeader leader)
+	{
+		if (state.BiceLib.IsOn(Mods.CBiceLibSwitches.OobLeaderRanks) && RankFor(unit) is var rank and > 0
+			&& leader.Type == ELeaderType.Land && leader.Country is { } tag && tag.Equals(unit.Owner)
+			&& state.Country(tag) is { } country)
+		{
+			leader.Rank = rank;
+			if (!country.ActiveLeaders.Contains(leader))
+			{
+				country.ActiveLeaders.Add(leader);
+			}
+		}
+		SetLeader(state, unit, leader, false, false);
+	}
+
+	/// <summary>The rank a land unit takes of its leader, 0 for a fleet or an air unit.</summary>
+	public static int RankFor(CUnit unit)
+	{
+		return unit.Kind switch
+		{
+			EUnitKind.Division => 1,
+			EUnitKind.Corps => 2,
+			EUnitKind.Army => 3,
+			EUnitKind.ArmyGroup or EUnitKind.Theatre => 4,
+			_ => 0,
+		};
+	}
+
+	private const int LowestRank = 1;
+	private const int HighestRank = 4;
 
 	/// <summary>
 	/// Whether a leader may take a unit: he is in service, he is of its kind, and - when

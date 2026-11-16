@@ -114,11 +114,12 @@ internal static class CReloadCheck
 	/// began, with the stamps of the caches that watch it, which counts events and not state - each game's caches agree
 	/// with its own count; and a unit's and a brigade's figures of a battle's hour - its circumstances and the defences it
 	/// has used - which each battle hour makes again before anything reads them, and which stay on a unit, read by
-	/// nothing, once its battle is over.
+	/// nothing, once its battle is over; and whether the day's call into a mod's Lua has been made in this game, which a
+	/// load starts again as the original's DLL does (<c>docs/mechanics/bicelib.md</c>, section 4).
 	/// </summary>
 	private static readonly string[] Skipped =
 	{
-		"CUnit.LeaderId", "CUnit.LeaderLine", "CUnit.IsReserve", "CGameState.LoadedFromSave",
+		"CUnit.LeaderId", "CUnit.LeaderLine", "CUnit.IsReserve", "CGameState.LoadedFromSave", "CBiceLibSwitches.DailyCalled",
 		"CGameState._navalDistances", "CGameState.RouteScratch", "CProvince.NearProvinces", "CGameState.AirBaseHolders",
 		"CGameState._handChanges", "CProvince._handChanges", "CGameState._controlledCounts", "CGameState._controlledCountsAt",
 		"CGameState.IntelFingerprint", "CCountryFacts.ControlChanges", "COwnedCounts.ControlChanges",

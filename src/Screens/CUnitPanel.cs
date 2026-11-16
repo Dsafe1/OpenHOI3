@@ -720,7 +720,7 @@ public partial class CUnitPanel : Control
 				_creating = null;
 				SelectionChanging?.Invoke(selection => selection.Add(created, created.Owner));
 				ReorganiseWanted?.Invoke(old, created);
-				if (old.Parent is { } parent && Sim.Construction.CDeployment.MayTakeSubordinate(parent, old))
+				if (old.Parent is { } parent && Sim.Construction.CDeployment.MayTakeSubordinate(_simulation.State, parent, old))
 				{
 					Post(new CAttachUnitCommand(old.Owner, created.Id, parent.Id), old);
 				}

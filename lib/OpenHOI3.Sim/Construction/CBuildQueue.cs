@@ -77,7 +77,9 @@ public static class CBuildQueue
 	/// <summary>
 	/// The equipment a historical model gives: for each technology of the type, in the
 	/// type's order, the model's level - and nothing at all for one the model does not
-	/// list, so that what follows moves up a place. That is the original's.
+	/// list, so that what follows moves up a place. That is the original's. Where a mod's Lua has turned on BiceLib's
+	/// <c>fixQueuedHistoricalModel</c>, a level of nought for one it does not list, as the same model gives a unit placed
+	/// on the map (<c>docs/mechanics/bicelib.md</c>, section 3).
 	/// </summary>
 	public static void SetModelToHistorical(CGameState state, CCountry country, CBrigadeOrder order, int model)
 	{
@@ -85,12 +87,17 @@ public static class CBuildQueue
 		{
 			return;
 		}
+		bool unlistedAtNought = state.BiceLib.IsOn(Mods.CBiceLibSwitches.QueuedHistoricalModel);
 		order.Model.Clear();
 		foreach (CTechnology technology in order.Type.Technologies)
 		{
 			if (CHistoricalModels.Level(state, country, order.Type, model, technology) is { } level)
 			{
 				order.Model.Add(level);
+			}
+			else if (unlistedAtNought)
+			{
+				order.Model.Add(0);
 			}
 		}
 	}

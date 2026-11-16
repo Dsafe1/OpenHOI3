@@ -49,7 +49,7 @@ A press on a row's `drag_button` picks its unit up, on its portrait its leader. 
 
 | dragged | test | posted |
 | --- | --- | --- |
-| a unit | the commander ranks above it, a land commander short of a theatre holding under five land units, a fleet or air unit only under a corps or above | `CAttachUnitCommand` |
+| a unit | the commander ranks above it, a land commander short of a theatre holding under five land units - or the limit a mod's Lua set through BiceLib's `Units` (`bicelib.md`, section 3.3) - a fleet or air unit only under a corps or above | `CAttachUnitCommand` |
 | a brigade, ship or wing | the row's unit is not its own, and the transfer's eleven tests | `CTransferSubUnitCommand` |
 | a leader | may command the row's unit; where it has one, he may command the dragged leader's | `CAssignLeaderCommand`, and a second the other way - a swap |
 

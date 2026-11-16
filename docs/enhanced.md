@@ -35,6 +35,7 @@ What the enhanced engine's own save would have to hold, and what its load would 
 **The game's own state that the save leaves out**
 - **The event candidates**, made again on entering - **one draw of the game's generator**, so even with entry 15's `seed` and `count` restored it is a draw ahead of the saved game's.
 - **A relation's fraction**: `value` is written as a whole number.
+- **The headquarters' limits a mod's Lua set in play** (`bicelib.md`, sections 3.3 and 5): BlackICE's daily look sets each country's from its technology, the original's DLL holds them in memory, and a load has the defaults the scripts set as they loaded until the first day's call at one o'clock sets them all again - where it may also catch a technology the five-day rhythm had not yet, the first call taking every country at once. A headquarters filled in that window differs.
 - **A war's history**: a loaded war has no start, so the Lua's `GetCurrentRunningTimeInMonths` answers 0 (`reversing/findings/FINDINGS-war.md`, C.13).
 - **`last_war`** is stamped the hour of the load for every pair at war, so a peace in the next hundred days leaves a truce the saved game's would not (`war.md`, 4).
 - **The pacts' numbers and the order of their lists**, made again in the save's order - the order the hour's work goes through them in.
