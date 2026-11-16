@@ -547,6 +547,29 @@ public class ResearchTests
 		Assert.Equal(CFixedPoint.FromInt(10), country.Ability("infantry_theory"));
 	}
 
+	[Fact]
+	public void ATechnologysDecayIsStoredOverAMinisters()
+	{
+		CCountry country = Country();
+		var school = new CTechnology("school", 12, new CModifier("school"))
+		{
+			Decay = new[] { ("infantry_theory", CFixedPoint.Parse("-0.1")) },
+		};
+		CGameState state = State(country, school);
+		country.TechnologyLevels["school"] = 2;
+		var type = new CMinisterType(new CModifier("reformer"));
+		type.Decay["infantry_theory"] = CFixedPoint.Parse("-0.25");
+		var minister = new CMinister(1, "A Minister");
+		minister.SetType("chief_of_army", type);
+		country.Government["chief_of_army"] = minister;
+
+		// The original: the technologies' -0.2 stored over the minister's -0.25.
+		Assert.Equal(-200, CResearch.DecayModifier(state, country, "infantry_theory"));
+		country.Abilities["infantry_theory"] = CFixedPoint.FromInt(10);
+		CResearch.DecayMonthly(state);
+		Assert.Equal(CFixedPoint.Parse("9.8"), country.Ability("infantry_theory"));          // eight tenths of 2.5%
+	}
+
 	// --- in a game ---
 
 	[Fact]

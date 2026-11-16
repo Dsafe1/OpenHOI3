@@ -406,7 +406,7 @@ public class CountryModifierTests
 	// --- ministers and what a country forgets ---
 
 	[Fact]
-	public void AMinisterAddsToTheDecayOfTheCategoryHisTypeNames()
+	public void AMinistersDecayIsAddedForTheCategoryHisTypeNamesAndThenStoredOver()
 	{
 		var type = new CMinisterType(Modifier("naval_reformer"));
 		type.Decay["naval_engineering"] = CFixedPoint.Parse("-0.25");
@@ -418,17 +418,18 @@ public class CountryModifierTests
 		germany.Abilities["naval_engineering"] = CFixedPoint.FromInt(10);
 		CGameState state = State(new[] { germany }, new[] { Land(1, "GER") });
 
-		// In the seat he was not declared a reformer for, he changes nothing.
+		// In the seat he was not declared a reformer for, he adds nothing.
 		germany.Government["chief_of_staff"] = minister;
-		Assert.Equal(0, CResearch.DecayModifier(state, germany, "naval_engineering"));
+		Assert.Equal(0, CCountryModifiers.MinisterDecay(germany, "naval_engineering"));
 
 		germany.Government.Clear();
 		germany.Government["chief_of_navy"] = minister;
-		Assert.Equal(-250, CResearch.DecayModifier(state, germany, "naval_engineering"));
+		Assert.Equal(-250, CCountryModifiers.MinisterDecay(germany, "naval_engineering"));
 
-		// 10 x (1 - 0.025 x 0.75), with what does not fit dropped at each step
+		// The rebuild stores the technologies' figure over what the ministers added - none here - so his decay does nothing.
+		Assert.Equal(0, CResearch.DecayModifier(state, germany, "naval_engineering"));
 		CResearch.DecayMonthly(state);
-		Assert.Equal(CFixedPoint.Parse("9.82"), germany.Abilities["naval_engineering"]);
+		Assert.Equal(CFixedPoint.Parse("9.75"), germany.Abilities["naval_engineering"]);
 	}
 
 	[Fact]

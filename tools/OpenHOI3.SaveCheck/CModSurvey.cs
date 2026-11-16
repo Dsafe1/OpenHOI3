@@ -205,15 +205,6 @@ internal static class CModSurvey
 						message => { if (!said.Contains(message)) { again(message); } },
 						aiScripts: scripts, beforeFirstDays: state => state.ScriptReport = report));
 					newGame = game is null ? "threw - see 'new game' below" : $"made in {made.ElapsedMilliseconds} ms, {game.Date}.{game.Hour}";
-					// And the day's call into the mod's Lua, as the first one o'clock makes it - what BiceLib calls back
-					// (bicelib.md, section 4): its errors are the new game's, and what it would post is told.
-					if (game is not null && scripts is not null)
-					{
-						int before = game.Outbox.Count;
-						Timed("new game", () => { scripts.RunBiceLibDaily(game, firstDay: true); return ""; });
-						findings.Add(new Finding("lua globals", "Read", "", $"the day's call into the mod's Lua, BiceLibDailyPeriodics(1), "
-							+ $"posted {game.Outbox.Count - before} commands"));
-					}
 					foreach ((string key, (EScriptGap why, int times)) in report.Gaps)
 					{
 						for (int t = 0; t < times; t++)
@@ -386,10 +377,7 @@ internal static class CModSurvey
 			.GroupBy(f => Path.GetFileNameWithoutExtension(f.RelativePath), StringComparer.Ordinal)
 			.ToDictionary(g => g.Key, g => g.First().RelativePath, StringComparer.Ordinal);
 		int tried = 0;
-		// A require this engine never comes to is not tried: it is listed under its own heading below.
-		var gatedInAutoexec = new HashSet<(string, int)>(autoexecScan.GatedRequires);
-		foreach (string module in autoexecScan.Requires.Where(r => !gatedInAutoexec.Contains(r)).Select(r => r.Module)
-			.Distinct(StringComparer.Ordinal))
+		foreach (string module in autoexecScan.Requires.Select(r => r.Module).Distinct(StringComparer.Ordinal))
 		{
 			if (loadedByAutoexec.Contains(module) || Read().Modules.Contains(module))
 			{
@@ -441,65 +429,37 @@ internal static class CModSurvey
 		}
 		findings.Add(new Finding("lua globals", "Read", "", $"{scans.Count} Lua files read for their globals"));
 
-		// What this engine never comes to: a module only an `if OpenHOI3 == nil` - or the else of an `if OpenHOI3 ~= nil` -
-		// requires, and what only such modules require in turn. Their files are set apart under a heading of their own and
-		// left out of ours, and so is a native module required only there - with every use of its fields, which code this
-		// engine runs reaches only behind the same test (mods.md, section 5).
-		HashSet<string> gatedFiles = GatedFiles(scans, relative(autoexec), modules);
-		foreach ((string file, CLuaGlobalScan scan) in scans.Where(s => !gatedFiles.Contains(s.File)))
-		{
-			foreach ((string module, int line) in scan.GatedRequires)
-			{
-				findings.Add(new Finding(GatedPrefix + "require", "GatedOff", file, $"{module}|require('{module}')|{file}:{line}"));
-			}
-		}
-		findings.Add(new Finding("lua globals", "Read", "", $"{gatedFiles.Count} Lua files only reached behind a test of OpenHOI3 "
-			+ "that this engine never passes, set apart"));
-
-		// The native modules: required, never loaded, and no Lua file of the name anywhere. BiceLib is not one: this engine
-		// gives its functions as OpenHOI3.BiceLib, each checked against what is built below.
+		// The native modules: required, never loaded, and no Lua file of the name anywhere.
 		var natives = new HashSet<string>(StringComparer.Ordinal);
-		var gatedNatives = new HashSet<string>(StringComparer.Ordinal);
 		foreach ((string file, CLuaGlobalScan scan) in scans)
 		{
-			var gatedHere = new HashSet<(string, int)>(scan.GatedRequires);
 			foreach ((string module, int line) in scan.Requires)
 			{
-				if (module != BiceLibModule && !modules.Contains(module) && !luaFileNames.Contains(module.Replace('.', '/').Split('/')[^1]))
+				if (!modules.Contains(module) && !luaFileNames.Contains(module.Replace('.', '/').Split('/')[^1]))
 				{
-					bool gated = gatedFiles.Contains(file) || gatedHere.Contains((module, line));
-					(gated ? gatedNatives : natives).Add(module);
-					findings.Add(new Finding(Gated("lua native", gated), "Required", file, $"{module}|require('{module}')|{file}:{line}"));
+					natives.Add(module);
+					findings.Add(new Finding("lua native", "Required", file, $"{module}|require('{module}')|{file}:{line}"));
 				}
 			}
 		}
-		gatedNatives.ExceptWith(natives);
-		bool IsNative(string root) => natives.Contains(root) || gatedNatives.Contains(root);
 		foreach ((string file, CLuaGlobalScan scan) in scans)
 		{
 			foreach (CLuaGlobalScan.Use use in scan.Paths)
 			{
 				string root = use.Path.Split('.', ':')[0];
-				if (IsNative(root) && use.Path.Length > root.Length)
+				if (natives.Contains(root) && use.Path.Length > root.Length)
 				{
-					findings.Add(new Finding(Gated("lua native", gatedNatives.Contains(root) || gatedFiles.Contains(file)), root, file,
-						$"{use.Path}|{file}:{use.Line}"));
+					findings.Add(new Finding("lua native", root, file, $"{use.Path}|{file}:{use.Line}"));
 				}
 			}
 		}
 
 		foreach ((string file, CLuaGlobalScan scan) in scans)
 		{
-			bool fileGated = gatedFiles.Contains(file);
 			foreach (CLuaGlobalScan.Use use in scan.Uses)
 			{
 				string root = use.Path.Split('.')[0];
-				if (root == BiceLibModule)
-				{
-					CheckBiceLib(use, file, fileGated, findings);
-					continue;
-				}
-				if (IsNative(root))
+				if (natives.Contains(root))
 				{
 					continue;
 				}
@@ -509,128 +469,26 @@ internal static class CModSurvey
 					if (lua.Classes.TryGetValue(root, out CLuaClass? luaClass) && use.Path.Split('.') is { Length: > 1 } parts
 						&& !luaClass.Statics.ContainsKey(parts[1]) && !luaClass.Constants.ContainsKey(parts[1]))
 					{
-						findings.Add(new Finding(Gated("lua static", fileGated), "MissingStatic", file, $"{root}.{parts[1]}|{file}:{use.Line}"));
+						findings.Add(new Finding("lua static", "MissingStatic", file, $"{root}.{parts[1]}|{file}:{use.Line}"));
 					}
 					continue;
 				}
 				// One of the original's classes - CSetVariableCommand - is ours to provide; any other name nothing defines is
 				// the scripts' own slip, a local used out of its block, or something a native module would have made.
 				bool isClass = root.Length > 1 && root[0] == 'C' && char.IsUpper(root[1]);
-				findings.Add(new Finding(Gated(isClass ? "lua class" : "lua undefined", fileGated), use.Called ? "Called" : "Read", file,
+				findings.Add(new Finding(isClass ? "lua class" : "lua undefined", use.Called ? "Called" : "Read", file,
 					$"{root}|{use.Path}|{file}:{use.Line}"));
 			}
 			// A file that uses a native module's fields - wx's windows - calls that module's objects' methods too.
-			bool native = scan.Paths.Any(use => IsNative(use.Path.Split('.', ':')[0]) && use.Path.Contains('.'));
+			bool native = scan.Paths.Any(use => natives.Contains(use.Path.Split('.', ':')[0]) && use.Path.Contains('.'));
 			foreach ((string name, int line) in scan.MethodCalls)
 			{
 				if (!members.Contains(name))
 				{
-					findings.Add(new Finding(Gated("lua method", fileGated), native ? "InAFileUsingANativeModule" : "MissingMethod", file,
-						$"{name}|{file}:{line}"));
+					findings.Add(new Finding("lua method", native ? "InAFileUsingANativeModule" : "MissingMethod", file, $"{name}|{file}:{line}"));
 				}
 			}
 		}
-	}
-
-	/// <summary>The module BlackICE's DLL is required as, whose functions this engine gives as <c>OpenHOI3.BiceLib</c>.</summary>
-	private const string BiceLibModule = "BiceLib";
-
-	/// <summary>What a section of findings this engine never comes to begins with.</summary>
-	private const string GatedPrefix = "gated off: ";
-
-	private static string Gated(string section, bool gated) => gated ? GatedPrefix + section : section;
-
-	/// <summary>A section without the gated mark.</summary>
-	private static string Ungated(string section) => section.StartsWith(GatedPrefix, StringComparison.Ordinal) ? section[GatedPrefix.Length..] : section;
-
-	/// <summary>
-	/// A use of <c>BiceLib.*</c> against <c>OpenHOI3.BiceLib</c>: a function not built, or none of that name, is ours; a
-	/// table of it - <c>BiceLib.Overlay</c> - or a function built or with nothing to do here says nothing
-	/// (<c>docs/mechanics/bicelib.md</c>).
-	/// </summary>
-	private static void CheckBiceLib(CLuaGlobalScan.Use use, string file, bool gated, List<Finding> findings)
-	{
-		string[] parts = use.Path.Split('.');
-		if (parts.Length < 2)
-		{
-			return;
-		}
-		string path = string.Join('.', parts.Skip(1));
-		if (OpenHOI3.Lua.BiceLib.CBiceLibFunctions.Find(path) is not { } function)
-		{
-			if (parts.Length == 2 && OpenHOI3.Lua.BiceLib.CBiceLibFunctions.All.Any(f => f.Path.StartsWith(path + ".", StringComparison.Ordinal)))
-			{
-				return;
-			}
-			findings.Add(new Finding(Gated("bicelib", gated), "Missing", file, $"BiceLib.{path}|{file}:{use.Line}"));
-			return;
-		}
-		if (function.Unbuilt)
-		{
-			findings.Add(new Finding(Gated("bicelib", gated), "Unbuilt", file, $"{function.Name}|{file}:{use.Line}"));
-		}
-	}
-
-	/// <summary>
-	/// The Lua files this engine never comes to: those of the modules reached from <c>autoexec.lua</c> only through a
-	/// require behind <c>if OpenHOI3 == nil</c> or the else of <c>if OpenHOI3 ~= nil</c>, and the modules only those
-	/// require in turn - anything the state loaded, or reached without the gate, being left out. A module is a file's name
-	/// without its folder or extension.
-	/// </summary>
-	private static HashSet<string> GatedFiles(List<(string File, CLuaGlobalScan Scan)> scans, string autoexec, HashSet<string> loaded)
-	{
-		static string Leaf(string module) => module.Replace('.', '/').Split('/')[^1];
-		var byModule = scans.GroupBy(s => Path.GetFileNameWithoutExtension(s.File), StringComparer.OrdinalIgnoreCase)
-			.ToDictionary(g => g.Key, g => g.Select(s => s.Scan).ToList(), StringComparer.OrdinalIgnoreCase);
-		var open = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		var gatedRoots = new List<string>();
-		var walk = new Stack<string>(loaded.Select(Leaf));
-		walk.Push(Path.GetFileNameWithoutExtension(autoexec));
-		while (walk.Count > 0)
-		{
-			string module = walk.Pop();
-			if (!open.Add(module) || !byModule.TryGetValue(module, out List<CLuaGlobalScan>? found))
-			{
-				continue;
-			}
-			foreach (CLuaGlobalScan scan in found)
-			{
-				var gated = new HashSet<(string, int)>(scan.GatedRequires);
-				foreach ((string Module, int Line) require in scan.Requires)
-				{
-					if (gated.Contains(require))
-					{
-						gatedRoots.Add(Leaf(require.Module));
-					}
-					else
-					{
-						walk.Push(Leaf(require.Module));
-					}
-				}
-			}
-		}
-		var closed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		foreach (string root in gatedRoots)
-		{
-			walk.Push(root);
-		}
-		while (walk.Count > 0)
-		{
-			string module = walk.Pop();
-			if (open.Contains(module) || !closed.Add(module) || !byModule.TryGetValue(module, out List<CLuaGlobalScan>? found))
-			{
-				continue;
-			}
-			foreach (CLuaGlobalScan scan in found)
-			{
-				foreach ((string required, int _) in scan.Requires)
-				{
-					walk.Push(Leaf(required));
-				}
-			}
-		}
-		return scans.Where(s => closed.Contains(Path.GetFileNameWithoutExtension(s.File))).Select(s => s.File)
-			.ToHashSet(StringComparer.OrdinalIgnoreCase);
 	}
 
 	/// <summary>Where the original's searcher finds a module: <c>script/</c>, <c>script/country/</c>, <c>common/</c>.</summary>
@@ -699,10 +557,9 @@ internal static class CModSurvey
 	private static void Print(List<Finding> findings, List<string> timings, string? newGame, int examples)
 	{
 		// Lua globals, methods and statics group by their name; the keywords by theirs; everything else by its shape.
-		static string GroupKey(Finding f) => Ungated(f.Section) switch
+		static string GroupKey(Finding f) => f.Section switch
 		{
-			"lua class" or "lua undefined" or "lua method" or "lua static" or "lua native" or "bicelib" or "require"
-				=> f.Message.Split('|')[0],
+			"lua class" or "lua undefined" or "lua method" or "lua static" or "lua native" => f.Message.Split('|')[0],
 			"unbuilt condition" or "unbuilt effect" => f.Message,
 			_ => ShapeOf(f.Message),
 		};
@@ -717,19 +574,16 @@ internal static class CModSurvey
 		Console.WriteLine($"new game: {newGame}");
 		Console.WriteLine();
 		Console.WriteLine("counts, by section and kind (problems, and how many different ones) - 'ours' what this game does not answer,");
-		Console.WriteLine("'files' what the files say that the original passes over too, 'gated' what only Lua this engine never");
-		Console.WriteLine("comes to asks - behind a test of the global OpenHOI3 - which is left out of the other two:");
-		static int Whose(string section) => section.StartsWith(GatedPrefix, StringComparison.Ordinal) ? 2 : FilesSections.Contains(section) ? 1 : 0;
-		foreach (var section in gaps.GroupBy(g => g.Section).OrderBy(s => Whose(s.Key)).ThenByDescending(s => s.Sum(g => g.Count)))
+		Console.WriteLine("'files' what the files say that the original passes over too:");
+		foreach (var section in gaps.GroupBy(g => g.Section).OrderBy(s => FilesSections.Contains(s.Key)).ThenByDescending(s => s.Sum(g => g.Count)))
 		{
-			string whose = Whose(section.Key) switch { 2 => "gated", 1 => "files", _ => "ours " };
+			string whose = FilesSections.Contains(section.Key) ? "files" : "ours ";
 			Console.WriteLine($"  {whose} {section.Key,-30} {section.Sum(g => g.Count),7} in {section.Count(),5}   "
 				+ string.Join(", ", section.GroupBy(g => g.Kind).OrderByDescending(k => k.Sum(g => g.Count))
 					.Select(k => $"{k.Key} {k.Sum(g => g.Count)} ({k.Count()})")));
 		}
-		Console.WriteLine($"  {"",5} {"ours",-30} {gaps.Where(g => Whose(g.Section) == 0).Sum(g => g.Count),7}");
-		Console.WriteLine($"  {"",5} {"files",-30} {gaps.Where(g => Whose(g.Section) == 1).Sum(g => g.Count),7}");
-		Console.WriteLine($"  {"",5} {"gated",-30} {gaps.Where(g => Whose(g.Section) == 2).Sum(g => g.Count),7}");
+		Console.WriteLine($"  {"",5} {"ours",-30} {gaps.Where(g => !FilesSections.Contains(g.Section)).Sum(g => g.Count),7}");
+		Console.WriteLine($"  {"",5} {"files",-30} {gaps.Where(g => FilesSections.Contains(g.Section)).Sum(g => g.Count),7}");
 		Console.WriteLine();
 		// For the headline a native module is one gap however many of its fields are used, and so are the methods of its
 		// objects; the details below keep every field.
@@ -745,16 +599,7 @@ internal static class CModSurvey
 		{
 			headline.Add((methods.Sum(g => g.Count), $"lua method / {methods.Key}: {methods.Count()} methods of a native module's objects"));
 		}
-		// OpenHOI3.BiceLib's functions not built are one gap, counted by name; none of the gated is a headline.
-		foreach (var biceLib in gaps.Where(g => g.Section == "bicelib").GroupBy(g => g.Kind))
-		{
-			int files = biceLib.SelectMany(g => g.Findings).Select(f => f.File).Distinct(StringComparer.OrdinalIgnoreCase).Count();
-			headline.Add((biceLib.Sum(g => g.Count), biceLib.Key == "Unbuilt"
-				? $"bicelib / Unbuilt: {biceLib.Count()} functions of OpenHOI3.BiceLib not built, used in {files} files"
-				: $"bicelib / {biceLib.Key}: {biceLib.Count()} names under BiceLib that OpenHOI3.BiceLib does not have"));
-		}
-		headline.AddRange(gaps.Where(g => g.Section != "lua native" && g.Section != "bicelib" && g.Kind != "InAFileUsingANativeModule"
-				&& Whose(g.Section) != 2)
+		headline.AddRange(gaps.Where(g => g.Section != "lua native" && g.Kind != "InAFileUsingANativeModule")
 			.Select(g => (g.Count, $"{g.Section} / {g.Kind}: {g.Shape}")));
 		Console.WriteLine("the twenty largest gaps:");
 		foreach ((int count, string text) in headline.OrderByDescending(h => h.Count).Take(20))
@@ -784,13 +629,12 @@ internal static class CModSurvey
 				Console.WriteLine($"  {gap.Count,6}  {gap.Kind}: {gap.Shape}");
 				foreach (Finding finding in gap.Findings.Take(examples))
 				{
-					string text = Ungated(finding.Section) is "lua class" or "lua undefined" or "lua method" or "lua static" or "lua native"
-							or "bicelib" or "require"
+					string text = finding.Section is "lua class" or "lua undefined" or "lua method" or "lua static" or "lua native"
 						? string.Join("  ", finding.Message.Split('|').Skip(1))
 						: finding.Section is "unbuilt condition" or "unbuilt effect" ? finding.File : finding.Message;
 					Console.WriteLine($"            {text}");
 				}
-				if (Ungated(section.Key) is "lua class" or "lua undefined")
+				if (section.Key is "lua class" or "lua undefined")
 				{
 					// Every path of fields used under a missing global, with how often.
 					foreach (var path in gap.Findings.GroupBy(f => f.Message.Split('|')[1]).OrderByDescending(p => p.Count()).ThenBy(p => p.Key))

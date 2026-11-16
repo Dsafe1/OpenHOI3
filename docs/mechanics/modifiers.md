@@ -104,7 +104,8 @@ the same man is a different modifier as head of state than as head of government
 `confirmed`; and one seated where he was declared no type for adds nothing.
 
 **A minister type has one key of its own, `decay`**: a block naming technology categories,
-each with how much the type adds to that category's monthly decay (section 4).
+each with how much the type adds to that category's monthly decay (section 4) - which the original's rebuild then stores
+the technologies' figure over, so it does nothing (`research.md`, section 6).
 
 **Factions.** A country's history file puts it in one with `join_faction = <name>` and takes
 it out with `leave_faction`. (measured) **Majors.** A country's own file under
@@ -306,11 +307,15 @@ manpower.
 **`base_values` is also read directly by the IC calculation**, which takes its `ic`
 straight from it and adds it before the base is truncated (`ic.md`, section 3).
 
-**A minister also changes how fast a country forgets.** A minister type may carry
-`decay = { a_category = -0.25 }`. The rebuild adds that, for each sitting minister's type
-in his seat, to the country's figure for the category, which the monthly decay of theories
-and practicals multiplies by (`research.md`, section 7). `confirmed`, and (measured): 140
-more monthly ability figures in the savegames agree once it is counted.
+**A minister would change how fast a country forgets, and does not.** A minister type may
+carry `decay = { a_category = -0.25 }`. The rebuild adds that, for each sitting minister's
+type in his seat, to the country's figure for the category, which the monthly decay of
+theories and practicals multiplies by - and then stores the technologies' own figure over
+it, so the ministers' is lost (`research.md`, section 6;
+`reversing/findings/FINDINGS-bicelibsites.md`, section 4). `confirmed`. *Measured*, and
+corrected on 2026-11-16: 140 more monthly ability figures in the savegames agreed once the
+ministers' was counted - because those saves were made by an executable carrying BiceLib's
+patch for it on disk (`research.md`, section 8).
 
 ## 5. Triggered modifiers
 

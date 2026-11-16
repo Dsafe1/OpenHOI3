@@ -166,9 +166,6 @@ public static class CGameStateLoader
 		var state = new CGameState(at, provinces, countries.Declared, buildings, technologies, staticModifiers,
 			defines, wars, strategicResources, categories)
 		{
-			// What a mod's Lua turned on of BiceLib's rules as it loaded, before anything of the game is read: the leaders'
-			// ranks are given as the history is (docs/mechanics/bicelib.md, section 3).
-			BiceLib = (aiScripts as Sim.Mods.IBiceLibScripts)?.BiceLibSwitches.Copy() ?? new Sim.Mods.CBiceLibSwitches(),
 			TechnologyFolders = CTechnologyReader.ReadFolders(directories),
 			SubUnitTypes = unitTypes,
 			CombinedArmsGroups = CCombinedArmsReader.Read(directories, warn),

@@ -68,12 +68,6 @@ public sealed class CLeader
 	/// </summary>
 	public CDate? FirstRankDate { get; set; }
 
-	/// <summary>
-	/// The rank his history names on <see cref="FirstRankDate"/>, which the original never applies - he comes into service
-	/// at rank 1 - and BlackICE's switch does (<c>docs/mechanics/bicelib.md</c>, section 3); 0 where there is none.
-	/// </summary>
-	public int FirstRank { get; set; }
-
 	/// <summary>The unit he commands, or null.</summary>
 	public CUnit? Unit { get; set; }
 

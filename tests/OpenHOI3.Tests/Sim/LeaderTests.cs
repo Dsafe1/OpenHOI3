@@ -468,59 +468,6 @@ public class LeaderTests
 	}
 
 	[Fact]
-	public void WithBiceLibsHistoryRanksALeaderComesIntoServiceAtTheRankHisHistoryNamesHeldToFour()
-	{
-		CGameState state = State(out CCountry germany, out _);
-		state.BiceLib.TurnOn(OpenHOI3.Sim.Mods.CBiceLibSwitches.HistoryLeaderRanks);
-		CLeader general = Leader(state, germany, 1, 0, 2);
-		general.FirstRankDate = new CDate(1936, 1, 2);
-		general.FirstRank = 3;
-		CLeader marshal = Leader(state, germany, 2, 0, 2);
-		marshal.FirstRankDate = new CDate(1936, 1, 2);
-		marshal.FirstRank = 6;
-
-		for (int hour = 0; hour < 24; hour++)
-		{
-			CTick.RunHour(state);
-		}
-
-		Assert.Equal(new[] { general, marshal }, germany.ActiveLeaders);
-		Assert.Equal(3, general.Rank);
-		Assert.Equal(4, marshal.Rank);
-	}
-
-	[Fact]
-	public void WithBiceLibsOrderOfBattleRanksAFilesLeaderTakesHisUnitsRankAndComesIntoService()
-	{
-		CGameState state = State(out CCountry germany, out CCountry italy);
-		CUnit corps = Unit(state, germany, EUnitKind.Corps, Infantry);
-		CUnit army = Unit(state, germany, EUnitKind.Army, Infantry);
-		CUnit fleet = Unit(state, germany, EUnitKind.Navy, Destroyer);
-		CLeader waiting = Leader(state, germany, 1, 0, 2);
-		CLeader colonel = Leader(state, germany, 2, 4, 2);
-		CLeader foreigner = Leader(state, italy, 3, 1, 2);
-		CLeader admiral = Leader(state, germany, 4, 1, 2, ELeaderType.Sea);
-
-		// Off, the original's: the file's leader goes on whoever he is.
-		CLeaders.PutOnFromFile(state, corps, waiting);
-		Assert.Equal(0, waiting.Rank);
-		Assert.DoesNotContain(waiting, germany.ActiveLeaders);
-
-		state.BiceLib.TurnOn(OpenHOI3.Sim.Mods.CBiceLibSwitches.OobLeaderRanks);
-		CLeaders.PutOnFromFile(state, corps, waiting);
-		CLeaders.PutOnFromFile(state, army, colonel);
-		CLeaders.PutOnFromFile(state, army, foreigner);
-		CLeaders.PutOnFromFile(state, fleet, admiral);
-
-		Assert.Equal(2, waiting.Rank);
-		Assert.Contains(waiting, germany.ActiveLeaders);
-		Assert.Equal(3, colonel.Rank);
-		Assert.Equal(1, foreigner.Rank);
-		Assert.Equal(1, admiral.Rank);
-		Assert.Same(foreigner, army.Leader);
-	}
-
-	[Fact]
 	public void ALeaderWithNoRankInHisHistoryIsNeverPutInService()
 	{
 		CGameState state = State(out CCountry germany, out _);

@@ -122,12 +122,6 @@ public sealed class CGameState
 	/// </summary>
 	public IAiScripts? AiScripts { get; set; }
 
-	/// <summary>
-	/// What a mod's Lua has turned on of the rules BiceLib changes in the original, this game's own: a copy of what the
-	/// scripts set as they loaded, and what they set since by command. All off without a mod (<c>docs/mechanics/bicelib.md</c>).
-	/// </summary>
-	public Mods.CBiceLibSwitches BiceLib { get; set; } = new();
-
 	/// <summary>Where the tick writes how long each of its steps took, or null, as it is but for tools.</summary>
 	public CTickProfile? Profile { get; set; }
 

@@ -196,12 +196,16 @@ On the first of each month every ability of every country shrinks: `confirmed`
     ability = ability * (1 + step)
 
 - `BASE_TECH_DECAY` is a define, -0.025 in Their Finest Hour: 2.5% a month.
-- **The category's decay modifier** is two things added together: what the `decay` of each
-  sitting minister's type gives the category - 24 minister types have one, most taking a
-  quarter off one category - and what the country's technologies' `decay` entries add up
-  to for it - fourteen technologies have one, each taking a tenth off a category's decay a
-  level. It is worked out when the country's modifier is rebuilt (`modifiers.md`, section
-  4). A modifier of -1 or less stops the decay; it cannot turn it into a gain.
+- **The category's decay modifier** is what the country's technologies' `decay` entries add
+  up to for it - fourteen technologies have one, each taking a tenth off a category's decay
+  a level. It is worked out when the country's modifier is rebuilt (`modifiers.md`, section
+  4), and **the ministers' `decay` does nothing**: the rebuild sets every category's figure
+  to nought, adds what the `decay` of each sitting minister's type gives it - 24 minister
+  types have one, most taking a quarter off one category - and then **stores** the
+  technologies' figure over it, so the ministers' is thrown away (`confirmed`,
+  `reversing/findings/FINDINGS-bicelibsites.md`, section 4; `FINDINGS-techdecay.md`, section
+  4). *Exe-hardcoded*; a fault of the original, kept (`docs/enhanced.md`, *Economy and
+  production*). A modifier of -1 or less stops the decay; it cannot turn it into a gain.
 - **`slack` is the reinforcement share plus the upgrade share** of the country's IC
   (`production.md`, section 1): the positions of the two sliders, whether or not anything
   is spent through them. A country with a tenth of its IC on each loses a fifth less.
@@ -247,7 +251,8 @@ the five decimals the save prints.
 | 1 March | 1 April | 31 | 273 of 280 |
 | 1 April | 20 April | 19 | 375 of 376 |
 
-The first two rows compared 158 and 131 technologies before ministers' `decay` was counted:
+The first two rows compared 158 and 131 technologies before ministers' `decay` was counted
+(as the patch the saves were made under counts it - below, *The decay*):
 a technology is left out where an ability its cost depends on does not match the save, and
 many more abilities match now.
 
@@ -267,7 +272,18 @@ are left out and counted.
   gave the same 70 of 85 - 160 technologies left out for leadership the AI moved.
 - **The rough square root is needed**: with a true one in its place, ten of the 375 stop
   agreeing.
-- **The decay** agrees to the thousandth for 1067 of 1123 abilities over February and 1042
+- **Those saves, and every save of the maintainer's before 2026-11-07, were made by an
+  executable carrying BiceLib's minister decay patch on disk** (and its war exhaustion
+  patch), which the fact base found that day by setting the installed executable beside an
+  untouched copy (`reversing/findings/FINDINGS-bicelibsites.md`, section 1). So the
+  ministers' `decay` they bore out is the patch's, not the original's, which throws it away
+  (section 6). *Measured* on 2026-11-16 on the Ireland game's monthly saves of 1937, which
+  the same executable wrote: 5 July to 4 August, 1,025 abilities the same without the
+  ministers and 1,152 with them, of 1,173 and 1,321 compared; 4 August to 3 September, 986
+  and 1,118 of 1,138 and 1,285. No save of the vanilla executable spans a month's end yet:
+  one would show the original's rule where these show the patch's. The figures below were
+  taken with the ministers counted, as the patch counts them.
+- **The decay** agreed to the thousandth for 1067 of 1123 abilities over February and 1042
   of 1240 over March, with the slack taken from the later save's shares of IC and each
   minister's `decay` counted. What does not agree is whole countries at a time - the Soviet
   Union, France - whose shares the AI is taken to have moved in the hour between the decay

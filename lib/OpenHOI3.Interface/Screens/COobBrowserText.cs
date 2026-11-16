@@ -165,9 +165,9 @@ public static class COobBrowserText
 	}
 
 	/// <summary>Whether a dragged unit may go under the row's.</summary>
-	public static bool MayTakeUnit(CGameState state, CUnit row, CUnit dragged)
+	public static bool MayTakeUnit(CUnit row, CUnit dragged)
 	{
-		return !ReferenceEquals(row, dragged) && CDeployment.MayTakeSubordinate(state, row, dragged);
+		return !ReferenceEquals(row, dragged) && CDeployment.MayTakeSubordinate(row, dragged);
 	}
 
 	/// <summary>

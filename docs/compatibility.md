@@ -461,21 +461,23 @@ section 3.
 
 `reversing/findings/FINDINGS-liveread.md`, section 46; `docs/mechanics/moving.md`, section 11.4.
 
-## 25. ~~BiceLib's Lua functions are not provided~~ BiceLib's Lua functions are given by the engine, some not built yet
+## 25. BiceLib's Lua functions are not provided
 
-**Decided** 2026-11-11 by the maintainer: an accepted break. **Turned** 2026-11-16 by the maintainer: the engine gives the
-functions itself, as `OpenHOI3.BiceLib` (`docs/mechanics/bicelib.md`), and BlackICE's `bicelib_lua.lua` takes it in the DLL's
-place where the global `OpenHOI3` exists; BiceLib's README and source may be read for what a function does, nothing
-build-specific (`CLAUDE.md`, *What this repository may not do*).
+**Decided** 2026-11-11 by the maintainer: an accepted break. **Confirmed 2026-11-16**, after a first attempt at giving the
+functions as `OpenHOI3.BiceLib` was taken back off main: compatibility patches for a DLL made for another binary are not
+for the normal engine, which is finished first, with BlackICE testing the original's own modding API; BiceLib's patches and
+mechanics, and an API for mod-defined native interface elements, belong to the enhanced engine (`docs/enhanced.md`, *Asked
+for by the maintainer*; the attempt is parked on the branch `enhanced-bicelib`). The one fix BlackICE cannot play without is
+made for every game: entry 29. BlackICE's `bicelib_lua.lua` passes over the DLL where the global `OpenHOI3` is set.
 
 | | |
 | --- | --- |
-| the original | with BlackICE, `script/bicelib_lua.lua` calls functions that BiceLib - the mod's DLL, injected into the original's process - registers with the game's Lua, for its patches, its tooltips, its overlay and its commands, and the DLL calls back into the mod's Lua once a day |
-| here | ~~nothing provides them, so a call to one fails where the mod is played~~ every one of the DLL's 58 functions is in `OpenHOI3.BiceLib`. Those about the injection, the DLL's console, its command registry and its probes are no-ops; four are fixes this engine already makes for every game; the leaders' two rank switches, the headquarters' limits, war exhaustion's reset and the queued historical model are built, each only while the mod's Lua turns it on; the daily call back is made. The rest do nothing, answer nil and are reported once by name (`bicelib.md`, section 2) |
-| the difference today | none in Their Finest Hour alone; with BlackICE, the 21 functions it calls that are not built - four tooltips, three effect texts, the leader list's maximum skill twice and Ctrl's unassign, the model a brigade is shown as and the sea in the simplified terrain mode, placing a building not researched, off-map IC and its own resource conversion, five of the overlay's getters, and the AI's switch - and the overlay and the DLL's own autosaves, crash save, map modes and combat log, which no Lua function switches |
-| a mod loses | what those do, until each is built; the AI's switch, `disableInterAiExpeditionaries`, waits on the AI's work |
-| why | BiceLib's features come back as this engine's own, called by the mod as it calls the DLL; offsets and hooks stay out |
-| to undo | nothing here is to be removed; build what `bicelib.md` lists as not built |
+| the original | with BlackICE, `script/bicelib_lua.lua` calls functions that BiceLib - the mod's DLL, injected into the original's process - registers with the game's Lua, for its overlay, autosaves, map modes and commands |
+| here | nothing provides them, so a call to one fails where the mod is played |
+| the difference today | none in Their Finest Hour alone; with BlackICE, every BiceLib feature is missing |
+| a mod loses | every BiceLib feature, until the interface below exists |
+| why | BiceLib's features are to come back as a native interface of this engine's own that the mod can call, built from the fact base's prose, never from BiceLib's code or offsets |
+| to undo | build that interface; nothing here is to be removed |
 
 ## 26. A click with a docked fleet or a based air unit selected goes where it is aimed
 
@@ -521,6 +523,20 @@ section 2.
 | a mod loses | nothing it ships: a mod's own files are in its folder. A player's own file dropped into the player's folder to override one is not read |
 | why | so that the base game reads what it read before the mod layer, and a stray file in the Documents folder does not change a game |
 | to undo | set `CModRules.UserFolderIsLayer`, which puts the player's folder in front of the layers with a mod; without one it would need the Documents folder added too |
+
+## 29. A province's most infrastructure is its `infra` building's
+
+**Decided** 2026-11-16 by the maintainer, setting BiceLib aside for the normal engine: BlackICE runs without its DLL
+but for this one fix, which the normal engine keeps for every game - "Keep the fix, record it".
+
+| | |
+| --- | --- |
+| the original | stores the figure of whichever infrastructure building it writes last - a plain store, a level built writing a tenth of its level whatever the building's figure - so a mod adding a second one puts provinces out of every supply area once a game is loaded: BlackICE's `extra_infra` left 1,603 provinces in none, and the original's AI crashed on them (`reversing/findings/FINDINGS-extrainfra.md`, sections 2 and 6) |
+| here | the first building of the infrastructure kind, `infra`: what was built of it, damaged or not (`CSupplyFigures.MostInfrastructure`; `mechanics/supply.md`, section 2) - what BlackICE's DLL makes it with `fixMaxInfrastructure` |
+| the difference today | none in Their Finest Hour, which has one infrastructure building; BlackICE's areas as with its DLL |
+| a mod loses | a second infrastructure building's figure standing in for the first's, which no mod is known to want |
+| why | so that BlackICE plays without its DLL, the normal engine giving none of BiceLib (`docs/enhanced.md`, *Asked for by the maintainer*) |
+| to undo | store the last building written's figure, as the parked branch `enhanced-bicelib` does behind BiceLib's switch |
 
 ## Stricter, with the same meaning
 

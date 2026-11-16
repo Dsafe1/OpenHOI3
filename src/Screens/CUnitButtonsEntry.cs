@@ -185,7 +185,7 @@ public sealed class CUnitButtonsEntry : CUnitPanelEntry
 		Show(_detach, CAttachText.ShowsDetach(_unit));
 		if (_attach is not null)
 		{
-			_attach.Disabled = !_mayOrder || !CAttachText.MayAttach(_state, _owner, _unit);
+			_attach.Disabled = !_mayOrder || !CAttachText.MayAttach(_owner, _unit);
 		}
 		if (_detach is not null)
 		{

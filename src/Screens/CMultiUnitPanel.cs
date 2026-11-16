@@ -234,7 +234,7 @@ public partial class CMultiUnitPanel : Control
 		{
 			return;
 		}
-		List<CUnit> units = CAttachText.ForHigher(_simulation.State, _units);
+		List<CUnit> units = CAttachText.ForHigher(_units);
 		CGameState state = _simulation.State;
 		if (units.Count == 0 || !CAttachText.HasMenFor(state, _player, units.Count))
 		{
@@ -440,7 +440,7 @@ public partial class CMultiUnitPanel : Control
 		}
 		if (_higher is not null)
 		{
-			_higher.Disabled = _player is null || CAttachText.ForHigher(_simulation.State, _units).Count == 0;
+			_higher.Disabled = _player is null || CAttachText.ForHigher(_units).Count == 0;
 		}
 		if (_desc is not null)
 		{

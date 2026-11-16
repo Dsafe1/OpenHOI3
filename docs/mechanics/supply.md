@@ -50,7 +50,8 @@ of the provinces on the way and the state of their roads.
 
 **A province is in an area when somebody controls it and it has more than one level of
 infrastructure.** Not the level it has left under damage: the most it can have. Exactly one
-level is not enough.
+level is not enough. The figure is the `infra` building's, where the original keeps that of whichever infrastructure
+building it wrote last - a deliberate departure for BlackICE's `extra_infra` (`docs/compatibility.md`, entry 29).
 
 - The sea is in none, and neither is land nobody holds.
 - **It is who controls a province that counts, not who owns it.** Land taken from an enemy is in

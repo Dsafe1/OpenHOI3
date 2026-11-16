@@ -210,68 +210,6 @@ public class BuildQueueTests
 		Assert.Equal(2, ship.TechnologyLevels["cruiser_technology_1"]);
 	}
 
-	[Fact]
-	public void WithBiceLibsFixAHistoricalModelGivesNoughtForWhatItLeavesOutAndNothingMoves()
-	{
-		CSubUnitType type = HeavyCruiser();
-		CCountry country = Germany();
-		country.HistoricalModels[type.Key] = new SortedDictionary<int, Dictionary<string, int>>
-		{
-			[0] = new Dictionary<string, int> { ["cruiser_technology_1"] = 4, ["cruiser_technology_3"] = 2 },
-		};
-		CGameState state = State(country, type);
-		state.BiceLib.TurnOn(OpenHOI3.Sim.Mods.CBiceLibSwitches.QueuedHistoricalModel);
-		var order = new CBrigadeOrder(type);
-
-		CBuildQueue.SetModelToHistorical(state, country, order, 0);
-
-		Assert.Equal(0, order.Model[0]);
-		Assert.Equal(4, order.Model[1]);
-		CSubUnit ship = CBuildQueue.AsBuilt(order, isReserve: false, out long _);
-		Assert.Equal(0, ship.TechnologyLevels["cruiser_technology_0"]);
-		Assert.Equal(4, ship.TechnologyLevels["cruiser_technology_1"]);
-	}
-
-	[Fact]
-	public void WithBiceLibsLimitsAHeadquartersTakesItsLevelsLimitForTheCountryWithTraitsAndLoneBrigadesAside()
-	{
-		CCountry country = Germany();
-		CSubUnitType infantry = Infantry();
-		CGameState state = State(country, infantry);
-		CUnit corps = InTheField(state, country, EUnitKind.Corps, Berlin, infantry);
-		CUnit division = Finished(state, country, infantry, infantry);
-		CUnit brigade = new(EUnitKind.Division, Ger);
-		brigade.SubUnits.Add(new CSubUnit(infantry) { Unit = brigade });
-		state.BiceLib.SetUnitLimit(EUnitKind.Corps, null, 3);
-		state.BiceLib.SetUnitLimit(EUnitKind.Corps, new CCountryTag("ITA"), 6);
-
-		for (int count = 0; count < 3; count++)
-		{
-			Assert.True(CDeployment.MayTakeSubordinate(state, corps, division));
-			corps.Children.Add(new CUnit(EUnitKind.Division, Ger) { Parent = corps });
-		}
-		Assert.False(CDeployment.MayTakeSubordinate(state, corps, division));
-		Assert.True(CDeployment.MayTakeSubordinate(state, corps, brigade));       // a lone brigade, always
-
-		// A lone brigade already under it does not count.
-		CUnit lone = new(EUnitKind.Division, Ger) { Parent = corps };
-		lone.SubUnits.Add(new CSubUnit(infantry) { Unit = lone });
-		corps.Children.Add(lone);
-		Assert.False(CDeployment.MayTakeSubordinate(state, corps, division));
-		corps.Children.Remove(lone);
-
-		// The country's own, and a leader's trait.
-		state.BiceLib.SetUnitLimit(EUnitKind.Corps, Ger, 4);
-		Assert.True(CDeployment.MayTakeSubordinate(state, corps, division));
-		state.BiceLib.SetUnitLimit(EUnitKind.Corps, Ger, 0);                       // back to the default
-		Assert.False(CDeployment.MayTakeSubordinate(state, corps, division));
-		var trait = new OpenHOI3.Sim.Leaders.CTrait("organiser");
-		corps.Leader = new OpenHOI3.Sim.Leaders.CLeader(1) { Country = Ger, Rank = 2 };
-		corps.Leader.Traits.Add(trait);
-		state.BiceLib.AddCommandLimitTrait("organiser", 1);
-		Assert.True(CDeployment.MayTakeSubordinate(state, corps, division));
-	}
-
 	// ---- a new game
 
 	[Fact]
@@ -896,14 +834,14 @@ public class BuildQueueTests
 
 		for (int count = 0; count < CDeployment.MostLandSubordinates; count++)
 		{
-			Assert.True(CDeployment.MayTakeSubordinate(state, corps, division));
+			Assert.True(CDeployment.MayTakeSubordinate(corps, division));
 			corps.Children.Add(new CUnit(EUnitKind.Division, Ger) { Parent = corps });
 			theatre.Children.Add(new CUnit(EUnitKind.Corps, Ger) { Parent = theatre });
 		}
-		Assert.False(CDeployment.MayTakeSubordinate(state, corps, division));
-		Assert.True(CDeployment.MayTakeSubordinate(state, theatre, division));            // a theatre takes any number
-		Assert.False(CDeployment.MayTakeSubordinate(state, full, division));              // not of a higher rank
-		Assert.False(CDeployment.MayTakeSubordinate(state, division, corps));
+		Assert.False(CDeployment.MayTakeSubordinate(corps, division));
+		Assert.True(CDeployment.MayTakeSubordinate(theatre, division));            // a theatre takes any number
+		Assert.False(CDeployment.MayTakeSubordinate(full, division));              // not of a higher rank
+		Assert.False(CDeployment.MayTakeSubordinate(division, corps));
 	}
 
 	[Fact]

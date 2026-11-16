@@ -72,15 +72,12 @@ public static class CWarExhaustion
 	/// The month's pass, for every country, those that do not exist included: the rebels' figure back to nought; every other
 	/// country's grown by its modifier, held between nothing and its maximum, and where it is at peace and has any, all of it
 	/// added to its neutrality and the figure back to nought. It runs in the month before a new game's first hour too.
-	/// Where a mod's Lua has turned on BiceLib's <c>disableWarExhaustionNeutralityReset</c>, every country's figure is put
-	/// back to nought instead of grown, so nothing is ever added to a neutrality (<c>docs/mechanics/bicelib.md</c>, section 3).
 	/// </summary>
 	public static void RunMonthly(CGameState state)
 	{
-		bool zeroed = state.BiceLib.IsOn(Mods.CBiceLibSwitches.WarExhaustionNeutralityReset);
 		foreach (CCountry country in state.Countries)
 		{
-			if (zeroed || country.Tag.Value == Rebels)
+			if (country.Tag.Value == Rebels)
 			{
 				country.WarExhaustion = CFixedPoint.Zero;
 				continue;

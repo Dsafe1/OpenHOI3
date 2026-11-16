@@ -123,6 +123,30 @@ public class EventTests
 	}
 
 	[Fact]
+	public void Entering_a_loaded_game_makes_no_candidates_until_the_month_turns()
+	{
+		CGameState state = ScriptWorld.State();
+		CEvent german = Event(1, "tag = GER");
+		state.Events = new[] { german };
+		state.LoadedFromSave = true;
+
+		CTick.RunEntryPass(state);
+		Assert.Empty(state.Country(Ger)!.EventCandidates);
+	}
+
+	[Fact]
+	public void A_new_games_candidates_are_made_by_the_month_among_its_first_days()
+	{
+		CGameState state = ScriptWorld.State();
+		CEvent german = Event(1, "tag = GER");
+		state.Events = new[] { german };
+
+		CTick.RunFirstDays(state);
+
+		Assert.Equal(new[] { german }, state.Country(Ger)!.EventCandidates);
+	}
+
+	[Fact]
 	public void An_AI_country_posts_its_answer_and_its_immediate_block_runs_first()
 	{
 		CGameState state = ScriptWorld.State();

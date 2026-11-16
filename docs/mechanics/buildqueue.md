@@ -233,8 +233,7 @@ duration is taken as the days it still has to go:** `confirmed`
   model does not list, so that the levels after it move up a place. `confirmed`, and it is
   not what the original does for a unit in the field (`units.md`, section 4), where an
   unlisted technology is left alone. No model of the base game's thirty lines leaves one
-  out. With BiceLib's `fixQueuedHistoricalModel` turned on by a mod's Lua, as BlackICE's does, a level of nought in its
-  place (`bicelib.md`, section 3.5).
+  out.
 - **A file's line of reserves is not given its law's share of a brigade**: it is queued
   before its `is_reserve` is read, so it is priced as reserves, and gathers experience and
   teaches its practical as regulars would - unless the file gives `factor`. `confirmed`,

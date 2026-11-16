@@ -56,7 +56,8 @@ public static class CSupplyFigures
 		{
 			if (building.ModifierKey.Equals(Infrastructure, StringComparison.OrdinalIgnoreCase))
 			{
-				// What was built, damaged or not: the original keeps this figure by the maximum.
+				// What was built, damaged or not: the original keeps this figure by the maximum. The first building of the
+				// kind, infra, where the original keeps the last one written - a departure (compatibility.md, entry 29).
 				return province.BuildingMaxLevel(building).Raw * building.ModifierValue.Raw / CFixedPoint.Scale;
 			}
 		}

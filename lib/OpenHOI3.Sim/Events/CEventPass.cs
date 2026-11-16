@@ -6,8 +6,8 @@ using OpenHOI3.Sim.Script;
 namespace OpenHOI3.Sim.Events;
 
 /// <summary>
-/// The events a country's days ask: the candidates made again each month and when a game is
-/// entered, the day's roll on each, and the hour's look at what has waited too long for a person.
+/// The events a country's days ask: the candidates made again each month - and nowhere else, so a loaded game has none
+/// until its month turns - the day's roll on each, and the hour's look at what has waited too long for a person.
 /// See <c>docs/mechanics/events.md</c>, sections 1, 2 and 7.
 /// </summary>
 public static class CEventPass

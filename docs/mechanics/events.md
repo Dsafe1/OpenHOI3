@@ -11,8 +11,23 @@ windows, read 2026-10-12). Nothing here was tried in a running game.
 
 ## 1. Which events are asked: each country's candidates
 
-A country's **candidates** are the events its daily pass asks. They are made again **once a month**
-- in the month's pass, which runs **after** the day's on the 1st - and **when a game is entered**.
+A country's **candidates** are the events its daily pass asks. They are made again **once a month**,
+in the month's pass, which runs **after** the day's on the 1st, **and nowhere else** in an ordinary
+game: the one other caller, a function of entering, runs only where the session's lobby has been
+reopened - a multiplayer lobby's or a hot join's - which no single-player path sets
+(`reversing/findings/FINDINGS-events.md`, *The load path*; `FINDINGS-weathersim.md`, A.4 and A.8).
+`likely`: the link rests on that byte's writers and on the symptom players saw, not on a trace of
+the loader; the other session's recordings of loads (2026-11-16) see no draw of the game's generator
+for them between the lobby and the first hour.
+
+- **A new game's** are made by the month's pass among the days it runs before its first hour
+  (`tick.md`, section 6), with the date of its first day.
+- **A loaded game has none until its month turns**: the lists are not in the save, a load does not
+  make them, and a loaded game's entering runs none of a new game's days. So no event with a mean
+  time to happen fires until the 2nd of the next month, and then every candidate has its first roll
+  at once. Triggered-only events, fired by others, are not touched. *Exe-hardcoded*; a fault of the
+  original, kept (`docs/enhanced.md`, *Script, events and weather*). BlackICE's DLL mends it, which
+  this engine does not give (`docs/enhanced.md`, *Asked for by the maintainer*).
 Making them throws every country's away and then, for each event in the order the files were read
 and each country **that owns a province** in the order the countries were declared, keeps the event
 for that country where:
@@ -44,8 +59,8 @@ Every scope a pass makes - this one and the candidates' - takes **one draw of th
 the start of the pass** as its seed and its state of chance, shared by all of them.
 
 *Ours*: no event is asked in the two days a new game runs before its first hour (`tick.md`,
-section 6); whether the original's are was not read. The candidates are made as the game is
-entered, after them.
+section 6); whether the original's are was not read. The candidates are made by their month's pass,
+on the second of them.
 
 ## 3. The chance of a day
 

@@ -17,7 +17,7 @@ namespace OpenHOI3.Lua;
 /// a searcher over the install's layers ahead of Lua's own, and <c>script/autoexec.lua</c> run once.
 /// What the simulation asks of it, it answers here. See <c>docs/mechanics/lua.md</c>.
 /// </summary>
-public sealed class CAiScripts : IAiScripts, Sim.Mods.IBiceLibScripts, IDisposable
+public sealed class CAiScripts : IAiScripts, IDisposable
 {
 	private const string Autoexec = "script/autoexec.lua";
 
@@ -39,7 +39,6 @@ public sealed class CAiScripts : IAiScripts, Sim.Mods.IBiceLibScripts, IDisposab
 	private readonly Action<string> _report;
 	private readonly CLuaState _lua = new();
 	private readonly CGameApi _api;
-	private readonly BiceLib.CBiceLibApi _biceLib;
 	private readonly CLuaRandom _random = new();
 	private CGameState? _state;
 	private int _failures;
@@ -58,9 +57,6 @@ public sealed class CAiScripts : IAiScripts, Sim.Mods.IBiceLibScripts, IDisposab
 		_lua.OpenLibraries("base", "package", "table", "io", "os", "string", "math", "debug");
 		// The engine's mark and the folder structure, for a mod's script that would list a folder (mods.md, section 6).
 		CLuaFiles.Install(_lua, Directory.GetCurrentDirectory);
-		// And under it what BlackICE's DLL gives the original's Lua, as this engine gives it (bicelib.md).
-		_biceLib = new BiceLib.CBiceLibApi(_api, () => _state);
-		_biceLib.Install(_lua);
 		// Every state draws math.random on a generator of its own, seeded 1 as a new thread's is - the tech and
 		// production scripts' picks among them (ministers.md, Ours).
 		_random.Install(_lua);
@@ -495,30 +491,6 @@ public sealed class CAiScripts : IAiScripts, Sim.Mods.IBiceLibScripts, IDisposab
 					_report(line);
 				}
 			}
-		}
-	}
-
-	/// <summary>What the scripts turned on of BiceLib's rules as they loaded (<c>docs/mechanics/bicelib.md</c>).</summary>
-	public Sim.Mods.CBiceLibSwitches BiceLibSwitches => _biceLib.Switches;
-
-	/// <summary>
-	/// <c>BiceLibDailyPeriodics(firstDay)</c>, where the scripts define it - BlackICE does in <c>bicelib_lua.lua</c>; the
-	/// install's do not. What it answers is left: the original's DLL shows it on an overlay page. A failure is reported.
-	/// </summary>
-	public void RunBiceLibDaily(CGameState state, bool firstDay)
-	{
-		_state = state;
-		if (_lua.GetGlobal("BiceLibDailyPeriodics") is not ELuaType.Function)
-		{
-			return;
-		}
-		try
-		{
-			_lua.Call("BiceLibDailyPeriodics", 0, firstDay ? 1 : 0);
-		}
-		catch (CLuaException e)
-		{
-			Fail(e.Message);
 		}
 	}
 

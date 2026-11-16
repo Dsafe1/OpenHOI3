@@ -29,9 +29,7 @@ In the country's monthly pass, after technology decays, for every country - thos
 The modifiers come from `common/static_modifiers.txt` [mod]: Their Finest Hour's `war` gives `war_exhaustion = 0.041`
 ("about 1/24 increase each month") and `max_war_exhaustion = 100`, `peace` the same maximum. **So a country banks 0.041
 a month at war, and the first month of peace adds all of it to its neutrality at once** - two years of war is about a
-point of neutrality. Neutrality is held at 100 only by the next day's pass (`diplomacy.md`, section 6). With BiceLib's
-`disableWarExhaustionNeutralityReset` turned on by a mod's Lua, as BlackICE's does, every country's figure is put back to
-nought instead each month (`bicelib.md`, section 3.4). BlackICE's
+point of neutrality. Neutrality is held at 100 only by the next day's pass (`diplomacy.md`, section 6). BlackICE's
 `war` gives `war_exhaustion = 0` and both maxima 1, so there only events move it.
 
 The month before a new game's first hour runs it too, where technology's decay is held back (`tick.md`, section 6).
