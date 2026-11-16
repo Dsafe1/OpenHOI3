@@ -242,7 +242,12 @@ is cleared.
    otherwise, and k - the division itself - 1 unless this one is its own depot, or has nobody and the other more than
    one; a division bound for no position, or one that wants none, or standing here while nobody else does, is taken
    without asking. At war below stance 2 a division whose position is not over-filled moves only two steps. A pull
-   takes one off the other position's count, and off those standing there where it stood in it. **Never pulled**: one retreating, a garrison, one
+   takes one off the other position's count, and off those standing there where it stood in it. **The pull counts its
+   picks on a count of its own** - the position's have as the pull begins, one more for each pick - and stops when that
+   reaches the want; "has nobody" in k is that count. **A division already bound here is not passed over**: its other
+   position is this one, so picking it takes one off this position and puts one back, and the pick is spent. At 10:00 on
+   16 July 1941 Smolensk HQ's pull for 2390 took the 124., the 111. and the 31., then the 124. again, which left the
+   176. Strelkovaya free (`reversing/findings/FINDINGS-liveread.md`, section 110). **Never pulled**: one retreating, a garrison, one
    airborne with transports about, **one bound for land of a country at war with it beside where it stands** - an
    attack under way - and **one in a battle whose own province is a position that wants divisions** (A.4b). Also never pulled: bound for its own depot under a blocking order, and with the allied-soil budget spent, onto a friend's soil from the capital's area (the soil test).
    **The soil test** (`CAIUnit_IsMoveFromHomeAreaToAlliedSoil`, `reversing/findings/FINDINGS-liveread.md`, section 37): the
@@ -251,7 +256,7 @@ is cleared.
    country holds that; bound for enemy ground, by where it stands, the country holding that. A division standing on a
    neighbour's land and bound home is in the capital's area; it is the send's and the pull's alone. Finding none, with the frontier at war, the nearest fit held-back division (strength 0.75, organisation 0.9, off the front,
    within 80) is sent, one at a time while the position is short, to a position with nobody, or to one with somebody only beside a hostile route or under an attack going against it, and is no
-   longer held back.
+   longer held back - "short" and "nobody" by the pull's own count.
 
 ### 7.4 The garrisons
 

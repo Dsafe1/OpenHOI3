@@ -449,7 +449,11 @@ public static class CLineFill
 			// Worked out once for the position, before anybody is pulled to it (FINDINGS-liveread.md, section 17).
 			int notDepot = network.DepotOf(position.Province) == position.Province ? 0 : 1;
 			float fill = (float)((double)(float)(position.Have + notDepot) / (float)position.Want);
-			while (position.Have < position.Want)
+			// The pull counts its picks on a count of its own, from the position's have as the pull begins, one up for each
+			// pick whatever the pick does to the records - so a division pulled here already, still a candidate, can be picked
+			// again and the pick is spent (FINDINGS-liveread.md, section 110).
+			int counted = position.Have;
+			while (counted < position.Want)
 			{
 				CProvince here = state.Province(position.Province);
 				var keyed = new List<(float Key, CUnit Unit)>();
@@ -469,7 +473,7 @@ public static class CLineFill
 					{
 						continue;
 					}
-					if (bound == position.Province || AttacksBeside(state, country, unit, bound)
+					if (AttacksBeside(state, country, unit, bound)
 						|| (CCombats.IsHoldingGround(unit) && byProvince.TryGetValue(unit.Location, out CPosition? holding)
 							&& holding.Want > 0))
 					{
@@ -481,7 +485,7 @@ public static class CLineFill
 					if (!bypass)
 					{
 						int count = unit.Location == bound ? from!.Standing : from!.Have;
-						int k = notDepot == 0 ? 0 : position.Have != 0 ? 1 : count <= 1 ? 1 : 0;
+						int k = notDepot == 0 ? 0 : counted != 0 ? 1 : count <= 1 ? 1 : 0;
 						if (fill >= (float)((double)(float)(count - k) / (float)from.Want))
 						{
 							continue;
@@ -519,14 +523,16 @@ public static class CLineFill
 				}
 				if (best is null)
 				{
-					moved |= SendReserve(state, country, agent, position);
+					moved |= SendReserve(state, country, agent, position, counted);
 					break;
 				}
-				// Where it was going, read before the order changes it; the original counts it sent whatever the order answers.
+				// Where it was going, read before the order changes it; the original counts it sent whatever the order answers,
+				// and takes it off that record even where the record is this position's own.
 				int leaving = CAgentUnits.MovementDestinationOrPlace(best);
 				CAiMoves.Move(state, country, best, position.Province, safe: true);
 				moved = true;
-				if (byProvince.TryGetValue(leaving, out CPosition? left) && !ReferenceEquals(left, position))
+				counted++;
+				if (byProvince.TryGetValue(leaving, out CPosition? left))
 				{
 					left.Have--;
 					if (leaving == best.Location)
@@ -549,16 +555,16 @@ public static class CLineFill
 	/// short, the nearest first; to one that has anybody only beside a hostile route or under an attack going against it.
 	/// The original's <c>CAIUnit_SendReservesToPosition</c>.
 	/// </summary>
-	private static bool SendReserve(CGameState state, CCountry country, CAgent agent, CPosition position)
+	private static bool SendReserve(CGameState state, CCountry country, CAgent agent, CPosition position, int have)
 	{
 		if (!agent.FrontierAtWar || agent.HeldBack.Count == 0
-			|| (position.Have > 0 && !BesideRoute(state, agent, position.Province) && !UnderLosingAttack(state, position.Province)))
+			|| (have > 0 && !BesideRoute(state, agent, position.Province) && !UnderLosingAttack(state, position.Province)))
 		{
 			return false;
 		}
 		CProvince here = state.Province(position.Province);
 		bool sent = false;
-		for (int short_ = position.Want - position.Have; short_ > 0; short_--)
+		for (int short_ = position.Want - have; short_ > 0; short_--)
 		{
 			CUnit? best = null;
 			long least = long.MaxValue;
