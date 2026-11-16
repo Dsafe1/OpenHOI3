@@ -233,9 +233,12 @@ public static class CCombatRetreat
 
 	/// <summary>
 	/// Takes a unit out of the game: out of its battles, off the map and out of its
-	/// country's order of battle. What it commanded goes to whatever commanded it.
+	/// country's order of battle. What it commanded goes to whatever commanded it - or, with
+	/// <paramref name="childrenToTop"/>, as the original's <c>CGameState::RemoveUnit</c> leaves them, to the top of the
+	/// order of battle with nobody above them, those of a theatre-level unit marked orphans
+	/// (<c>reversing/findings/FINDINGS-transport.md</c>, section D.1).
 	/// </summary>
-	public static void RemoveFromGame(CGameState state, CUnit unit)
+	public static void RemoveFromGame(CGameState state, CUnit unit, bool childrenToTop = false)
 	{
 		if (unit.IsRemoved)
 		{
@@ -293,6 +296,16 @@ public static class CCombatRetreat
 				if (child.CarriedBy is null)
 				{
 					country?.Units.Add(child);
+				}
+				continue;
+			}
+			if (childrenToTop)
+			{
+				child.Parent = null;
+				country?.Units.Add(child);
+				if (unit.Kind == EUnitKind.Theatre)
+				{
+					child.IsOrphaned = true;
 				}
 				continue;
 			}

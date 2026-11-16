@@ -602,6 +602,39 @@ has its threat both ways fall by 9999, to no less than nought, and forgets it - 
 relation, access, debt, truce and casus belli. **Nothing marks the country dead**: it keeps its stockpile, manpower,
 technology, leaders, capital and laws, and owning nothing is what being dead is. Nobody's cores change.
 
+**A unit taken out of the game by an annexation** goes as the original's `RemoveUnit` with its flags 0 and 1 takes it
+(built 2026-11-16, `effects.md`, section 9): its country loses its share of officers - so a country revived by a later
+`release` has fewer - whatever it carries goes with it, and what it commanded is left at the top with nobody above it.
+
+**The surrender mode** - `surrender_inherit = TAG` and the console's `surrender` - built 2026-11-16, read in
+`FINDINGS-surrender.md` A.3, steps 2, 4 and 8, and checked on the listing that day
+(`reversing/findings/FINDINGS-effectrun.md`, section 3.11). Everything above, and three things more:
+
+- **The candidates**, made before the country leaves its faction: the annexed country's `non_hostile_countries` -
+  those fighting beside it in some war and at war with it in none, the rebels never, in the countries' order - but
+  the annexer, that are at war with the annexer, or all of them where the annexer is the rebels. With none, the mode
+  is `inherit`'s exactly - so Their Finest Hour's one use, France taking Vichy at peace, is a plain annexation.
+- **A province the annexer takes** - one the annexed held itself or the rebels held - is owned by the annexer and,
+  where a candidate holds an area beside the province's own area, **held by that candidate**: each area beside it in
+  the areas' order is held by the controller of its first province as it stands now, so control handed out earlier in
+  the same walk counts; of the candidates holding one, one is chosen, or of several the one whose area comes nearest
+  the province - the least straight-line distance from the province to any of its provinces, from a million, the
+  first of equals. A province the annexed owned and somebody else held goes to its holder as before, whoever it is.
+- **Each unit**, every level, in the order kept, is judged: anything but an air unit standing on a candidate's ground
+  - which by now takes in the annexed's own land handed out above - has that candidate; else an air unit whose base's
+  province, its carrier's where it is aboard one, is a candidate's has that one; else a fleet at sea has **the first
+  candidate**, wherever it is. A unit with a candidate takes **one draw of the game's generator**: even, it goes over -
+  out of its place, the units under it left at the top of the annexed's order of battle to be judged in their turn,
+  onto the end of the candidate's list, its leader with it; odd, it is taken out as above. A unit with no candidate
+  takes no draw and is taken out.
+
+*Ours*: the original reads the candidates off the list its day made and the areas as they stood when it last changed
+them; here both are made as they stand when the annexation begins, and no area is made again during the walk - as the
+original's are not. The two differ only where the day has gone by since a war or a peace changed who fights beside whom,
+and in which province of an area is its first (`docs/compatibility.md`, entry 9, for the network made whole each time).
+The annexed country's provinces are walked in the provinces' order, not the order it came to own them in, as in the
+plain annexation (*Ours* below) - which in this mode decides which candidate a later province sees beside it.
+
 **The puppet** (`MakeVassal`, `FINDINGS-surrender.md` B) - `create_vassal = TAG`, `po_puppet` and the exile's
 swap - in order: the vassal's provinces carrying an overlord's core that either holds go to the overlord,
 peacefully; its own cores the overlord's side holds come back to its control; it leaves its faction and **every
@@ -775,6 +808,10 @@ war. Ours: the lines are made once the world stands, each country's in turn, aft
 29. Land in no area changes hands with no unit anywhere near it (section 11): beside an area the last enemy
     neighbour takes it and a neutral beside it is passed over; with no area beside it, a neutral holding the first
     neighbour keeps it where it is.
+30. In the surrender mode (section 13) the annexer owns land its enemy holds; the candidate chosen for a province is
+    read off areas' first provinces mid-walk, so control can spread from one of the annexed's areas to the next; a
+    fleet at sea goes to the first candidate wherever it is; a unit going over leaves its subordinates behind, each
+    drawing for itself, and keeps a leader of the dead country's.
 
 ## 15. A war nobody declared
 
@@ -838,9 +875,10 @@ The two are enemies **only in its regions**: fleets and air units there fight, a
   sets are built since 2026-10-14 (`occupation.md`, sections 2 and 5), and what the rebels' factions make of land
   they take and lose since 2026-10-15 (`rebels.md`, section 10) - of the history, the last day the rebels took it -
   and the underground's dissolution since the same day (`undergrounds.md`, section 7).
-- **`surrender_inherit`** - annexation's surrender mode, where a neighbouring co-belligerent takes control and a
-  unit goes over on an even draw - and `release_vassal`. `release` is built since 2026-10-15 (`rebels.md`,
-  section 12).
+- ~~**`surrender_inherit`** - annexation's surrender mode, where a neighbouring co-belligerent takes control and a
+  unit goes over on an even draw - and `release_vassal`.~~ Built: `release_vassal` since 2026-11-09 and its `REB`
+  since 2026-11-16 (`rebels.md`, section 12), the surrender mode since 2026-11-16 (section 13). `release` is built
+  since 2026-10-15 (`rebels.md`, section 12).
 - **The cabinet refilled** when a puppet takes its overlord's government; the government's type alone is taken.
 - **What else an exile is**: its units drawing on friends' depots for free, its brigades built at its leader's
   technology, liberation, and its partisans turned to militia when it comes home. Organized Revolt, its undergrounds

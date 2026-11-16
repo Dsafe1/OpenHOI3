@@ -161,6 +161,8 @@ A leaf that takes a country reads `this` and `from` in one of four ways:
 | `total_amount_of_divisions` | our land units **of more than one brigade** - a corps of one headquarters is none | |
 | `total_amount_of_brigades` | the brigades of our land units **but their headquarters brigades** | |
 | `total_amount_of_ships`, `total_amount_of_planes` | our ships, our wings - not fleets, not air units | the value cut to a whole number |
+| `total_of_ours_sunk` | the ships on the game's list of those that left it whose owner is ours - **sunk, finished by bombs, disbanded or removed with a fleet alike** (built 2026-11-16, `FINDINGS-triggerleaves.md` section 1's table, `FINDINGS-savedbattle.md` B.4) | the value cut to a whole number; with no country in the scope, the ships of nobody |
+| `total_sunk_by_us` | the ships on that list whose sinker can still be found and is **ours now**: a brigade, ship or wing of one of our units, or a ship of ours on the list itself (*inferred*: the list's ships stay registered) - a sinker gone from the game, a wing disbanded, is nobody's, so the figure can fall | as above |
 | `has_leader` | a leader **in service** has exactly that name | case and all |
 | `brigade_exist` | a brigade of ours has exactly that name | case and all |
 | `brigade_in_combat` | the unit holding the **first** brigade of that name is fighting | the others of that name are not asked |
@@ -218,6 +220,74 @@ having one.
 | `unit_has_leader` | a unit here has a leader | the value is not read: `= no` asks the same |
 | `unit_in_battle` | a unit here **of the province's owner** is fighting | the value is not read |
 
+### 5.1 The war record and `lost_IC`
+
+Built 2026-11-16 from `reversing/findings/FINDINGS-triggerleaves.md`, section 4 [exe]; `CWarRecord`.
+
+| leaf | answers | |
+| --- | --- | --- |
+| `total_offensives` | the land battles our units are fighting **on ground an enemy holds** - its controller at war with us, or either of us the rebels - each battle once however many of our units fight it | whole: the value cut |
+| `total_defensives` | the land battles our units are fighting on any other ground - ours, a friend's, a neutral's - each once | whole |
+| `total_sea_battles` | **our fleets in a battle** - one a fleet, not one a battle | whole |
+| `total_we_bomb` | **our air units under an order that bombs** - the eight bombing missions and carrier protection, not the raid on convoys from the air - flying or at their base: the order alone is asked | whole |
+| `lost_IC` | **the share of our owned provinces' local IC modifier on those we hold - held, not lost** - or, where that whole is nought or less, the held part itself (below) | a number |
+
+**When.** All five are counted afresh, never added to, in the original's rebuild of a country's neighbours: **at the
+head of the day, before any country's own** (beside `lost_national`), and **as a game is entered**, a new one or a
+loaded one, so a load answers as the save's hour stands. Nothing saves them. Between counts they answer as last
+counted: a battle begun or ended in the day is not seen until the next midnight.
+
+**What is walked.** Every unit of ours at every level - headquarters, passengers, a carrier's air groups among them
+(the original walks the country's list of all its units; that passengers and carried groups are on it is *inferred*,
+the list being the save's tree).
+An air unit is asked only its order, and then is done; a fleet only whether it is in a battle; any other unit counts
+each battle on its list once for the country, by **the controller of the battle's province** as the count finds it.
+
+**`lost_IC`.** Each province we own weighs its `local_ic` modifier times one and our technology IC bonus
+(`ic_modifier`), cut to thousandths; the weights of all are the whole, of those we also hold the part. With the whole
+above nought the figure is the part over the whole, in thousandths, cut; otherwise the part. **Two faults of the
+original, kept** (`docs/enhanced.md`, *Script*): it keeps the provinces we **hold** where `lost_national` beside it
+counts those we do not, and it weighs the **modifier**, not the IC. Their Finest Hour's every `local_ic` is a penalty -
+`non_core`, `revolt_risk`, the occupation policies - so the whole is never above nought and the figure is the summed
+penalties on the owned provinces we hold: `lost_IC = 0` holds only with none of them, and `lost_IC = 0.1` never.
+BlackICE gives a positive `local_ic` too, and there the share can come out.
+
+**Who asks.** Their Finest Hour's own `music/songs.txt` asks the four counts 20 times in its songs' chances, and
+BlackICE's music 4 more (`music.md`, section 2.1); the chances see them since this was built.
+
+*Ours:* the original rebuilds a country's neighbours, and these with them, also at each change of hands and in some
+thirty diplomatic commands and effects and console commands, and on worker threads; here at the day's head and on
+entering only, as `lost_national` already is - so within a day in which a province changed hands, or a war or pact
+began, a count can lag the original's until midnight.
+
+### 5.2 The last battles
+
+Built 2026-11-16 from `reversing/findings/FINDINGS-triggerleaves.md`, sections 1.1, 3.1 and 4.3 [exe];
+`CLastBattleLosses`, `CBattleConditions`.
+
+`last_battle_winner_losses`, `last_battle_loser_losses`, and the `last_air_` and `last_naval_` pairs ask **one figure
+of the whole world each**: what the winner or the loser of the last land, air or sea battle decided **anywhere** lost,
+whoever fought it - **strictly more** than the whole number written (the value cut). The scope is not read, so the
+leaf answers alike in every country's scope.
+
+**Set** as a battle is decided, **before** its relation change and its on_actions, so `on_battle_won` and
+`on_battle_lost` events see their own battle's figures: each side's figure is its `losses` cut to whole numbers - **men
+on land** (a brigade's strength lost times a hundred), **strength in the air** (a wing's men per point being one),
+**ships at sea** (a ship whose notes passed its strength, `navalcombat.md` section 5) - the loser's the side that lost,
+the winner's the other. A bombing, a raid on a convoy and a battle with a side that has no country left write nothing,
+and the other kinds' figures stand.
+
+**The original's "lost outright" term is dead.** Its decision adds, for a side whose byte says it lost outright, its
+standing strength times a hundred, its ships or its wings - and nothing in the executable sets that byte but the side's
+constructor, which zeroes it. So the figure is the losses alone (`docs/enhanced.md`, *Script*).
+
+**The event text** gives the same six always, as whole numbers: `$LAND_LOSER_LOSSES$`, `$LAND_WINNER_LOSSES$`,
+`$AIR_LOSER_LOSSES$`, `$AIR_WINNER_LOSSES$`, `$NAVAL_LOSER_LOSSES$`, `$NAVAL_WINNER_LOSSES$` (`events.md`, section 11).
+
+**Not saved, and nought at a new game and after a load** - the original saves them nowhere and never sets them but in
+a battle's decision; its load leaves whatever the session's last battle left, even a game's before (`docs/enhanced.md`,
+*A whole game's replay*).
+
 ## 6. Lists the original keeps
 
 The original rebuilds these once a day and answers from the day's lists; here they are worked out
@@ -264,16 +334,19 @@ The government, the parties and the ministers - `government`, `ideology`, `ideol
 impacts answer since 2026-10-14: `politics.md`, section 8. `spies` and `spy_mission_count` answer since the same day:
 `espionage.md`, section 13. `nationalism` answers since 2026-10-14: `occupation.md`, section 5. `revolt_risk`,
 `pure_revolt_risk`, `num_of_revolts` and `revolt_percentage` answer since 2026-10-15: `revolt.md`, section 5.
+`truce_with`, `casus_belli`, `has_cb` and `has_wargoal` answer with war's first piece: `war.md`, section 9
+(`CRelationConditions`; this table listed them as unbuilt until 2026-11-16). `total_of_ours_sunk` and
+`total_sunk_by_us` answer since 2026-11-16: section 5.
 
 **Unbuilt - what the simulation does not hold yet:**
 
 | waits for | conditions |
 | --- | --- |
-| diplomacy | `truce_with`, `casus_belli`, `has_cb`, `has_wargoal` |
 | the fog of war's switch | `remove_fow` |
 | the AI's missions | `active_mission`, `last_mission`, `is_mission_country`, `is_mission_province` |
-| a country's war record | `lost_IC`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb`, `total_sunk_by_us`, `total_of_ours_sunk` |
-| the last battles | `last_battle_winner_losses` and the five others |
+
+**`lost_IC`, `total_sea_battles`, `total_offensives`, `total_defensives`, `total_we_bomb` and the six `last_*_losses`**
+answer since 2026-11-16: sections 5.1 and 5.2.
 
 **`is_blockaded` and `blockade`** answer since 2026-11-14: the scope's province's port blockaded as its controller was
 last set, compared with the value and false with no province; and the country's share of its home ports cut off, at

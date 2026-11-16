@@ -84,7 +84,8 @@ public sealed class CCheatCommand : CCommand
 				}
 				break;
 			case ECheat.Surrender when country is not null && other is not null:
-				CAnnexation.Annex(state, other, country);
+				// The console's surrender annexes in the surrender mode, as surrender_inherit does (war.md, section 13).
+				CAnnexation.Annex(state, other, country, surrender: true);
 				break;
 			case ECheat.ToggleGuarantee when country is not null && other is not null:
 				ToggleGuarantee(state, country.Tag, other.Tag);

@@ -97,7 +97,8 @@ public static class CConditions
 			|| CEspionageConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CRelationConditions.TryAnswer(state, trigger, scope, out answer)
 			|| CProvinceConditions.TryAnswer(state, trigger, scope, out answer)
-			|| CRevoltConditions.TryAnswer(state, trigger, scope, out answer))
+			|| CRevoltConditions.TryAnswer(state, trigger, scope, out answer)
+			|| CBattleConditions.TryAnswer(state, trigger, out answer))
 		{
 			return answer;
 		}

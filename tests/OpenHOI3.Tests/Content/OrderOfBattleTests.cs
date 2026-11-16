@@ -585,6 +585,56 @@ public class OrderOfBattleTests : IDisposable
 	}
 
 	[Fact]
+	public void ALineInAFileReadAsAGameRunsGoesOnTheQueuesEndAsTheFileHasItWithItsModelTurned()
+	{
+		Write("units/models/aaa - land.txt", "foot_brigade.1 = { drill = 2 }\n");
+		Dictionary<string, CSubUnitType> types = Types();
+		Dictionary<string, CTechnology> technologies = Technologies(types);
+		CCountries countries = ReadModels(types, technologies);
+		CCountry a = countries.Find("AAA")!;
+		var earlier = new CConstruction(a.Tag) { Id = 3 };
+		a.Constructions.Add(earlier);
+		var provinces = new List<OpenHOI3.Sim.Provinces.CProvince>();
+		for (int id = 0; id < 10; id++)
+		{
+			provinces.Add(new OpenHOI3.Sim.Provinces.CProvince(id, $"p{id}", isSea: false));
+		}
+		var state = new CGameState(new CDate(1943, 2, 1), provinces, countries.Declared, technologies: technologies.Values)
+		{
+			SubUnitTypes = types,
+			LastUnitId = 40,
+		};
+		Write("history/units/late.txt", """
+			military_construction = {
+				country = AAA
+				name = "Late"
+				foot_brigade = { name = "Late Foot" historical_model = 1 }
+				cost = 32.5
+				duration = 157
+				progress = 86.35
+			}
+			""");
+
+		COrderOfBattleReader.ReadInto(Directories, state, a, "late.txt", _warnings.Add);
+
+		Assert.Equal(2, a.Constructions.Count);
+		Assert.Same(earlier, a.Constructions[0]);
+		CConstruction line = a.Constructions[1];
+		// Numbered after the game's last: the line, its unit, two passed over and its brigade.
+		Assert.Equal(41, line.Id);
+		Assert.Equal(42, line.UnitId);
+		Assert.Equal(45, line.Brigades[0].Id);
+		Assert.Equal(45, state.LastUnitId);
+		// Its cost, duration and progress the file's: nothing is priced again in a game under way.
+		Assert.Equal(CFixedPoint.Parse("32.5"), line.Cost);
+		Assert.Equal(CFixedPoint.FromInt(157), line.Duration);
+		Assert.Equal(CFixedPoint.Parse("86.35"), line.Progress);
+		// The model names drill alone, so its level takes rifles' place, the first of the type's technologies.
+		Assert.Equal(new[] { 2 }, line.Brigades[0].Model);
+		Assert.Empty(_warnings);
+	}
+
+	[Fact]
 	public void ADivisionsReserveLineMakesReservesOfTheRegimentsAfterIt()
 	{
 		(CCountry country, _, _) = Read("""

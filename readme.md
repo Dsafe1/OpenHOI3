@@ -2056,7 +2056,15 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   `CSetVariableCommand`, `GetVariable`, `GetVariables`, `CMinisterTypeDataBase`, nine `CModifier` constants - is the AI's
   (`modsurvey`'s list).
 
-- **Script still unbuilt, for BlackICE's layer**: `remove_brigade`; a `military_construction` in a `load_oob` file; `release_vassal = REB`; `surrender_inherit`'s branches for a country at war with the annexer's enemies, where units go over by a draw; the last-battle loss conditions. **The undeclared war's** hostility is asked at battles, convoy raids and air and fleet targets, not at the AI's war-time gates or the land's movement (`war.md`, section 15).
+- **Script still unbuilt**: `add_division` (unused by TFH and BlackICE, its starting strength not read through), `remove_fow`, the four mission conditions (an Europa Universalis III leftover, no mission file in either install), `has_hostile_spy_mission` (the original compares against an unset byte) and the AI's `add_ai_strategy` / `fixed_ai_strategy`. Built on 2026-11-16, for BlackICE's layer above all: `remove_brigade` with the original's end-of-hour removal queue, `military_construction` in a running game's `load_oob`, `total_of_ours_sunk`, `total_sunk_by_us`, `surrender_inherit`'s surrender mode and `release_vassal = REB` (`effects.md`, section 8), and `lost_IC`, the four war-record counters and the six `last_*_losses` (`triggers.md`, sections 5.1 and 5.2). **The undeclared war's** hostility is asked at battles, convoy raids and air and fleet targets, not at the AI's war-time gates or the land's movement (`war.md`, section 15).
+- **A unit taken out of the game, everywhere but the new paths**: the original's `RemoveUnit` leaves the removed unit's
+  children at the top of the order of battle (a theatre's marked orphans) and, with its first flag clear, charges the
+  country - the lender for a lent unit - the officers of the strength removed
+  (`reversing/findings/FINDINGS-effectrun.md`, section 3.11). `CCombatRetreat.RemoveFromGame` does that only where it is
+  asked to (`childrenToTop`), which the end-of-hour removal of `remove_brigade` and an annexation do since 2026-11-16;
+  every other caller - a beaten unit's removal, merges, the theatres and the AI's agents - still hands the children to
+  the removed unit's superior and charges no officers. Which of those callers the original passes the first flag set for
+  is not read; the theatres' and agents' callers wait for the AI's work to settle.
 
 - **What a load still does not give back**, checked path by path on 2026-11-14 (`OpenHOI3.SaveCheck reload`;
   `savegame.md`, section 20): every path is under an entry of `docs/enhanced.md`'s *A whole game's replay* or is noise
@@ -2251,7 +2259,7 @@ None of these blocks the list above.
   `effects.md`, `events.md`), and much around them waits:
   - **`on_encirclement` fires since 2026-11-14**, a province's days without supply counted as the
     original counts them (`supply.md`, section 18), the start save's every figure given; a battle's
-    `last_*_losses` are not kept, so the six conditions on them answer false;
+    `last_*_losses` are kept since 2026-11-16 (`triggers.md`, section 5.2), not saved, as the original's;
   - **of messages, none is written on the map** (`onmap`, `messages.md`, *Ours*), and of the bottom
     bar the chat is hidden; whether the original's button that opens the log shows only while it
     is shut was not read;
@@ -2289,8 +2297,9 @@ None of these blocks the list above.
   - **the decision list's button's `SELECT` is wider than its 32-pixel picture**, as the files
     have it - not set beside the original;
   - **a condition the simulation cannot answer is false** (`triggers.md`, section 8;
-    `CUnansweredConditions`): `remove_fow`, the AI's missions, a country's war record and the last
-    battles, and blockades - a province's days out of supply answer since 2026-11-14 (`supply.md`, section 18). Inside a
+    `CUnansweredConditions`): `remove_fow` and the AI's missions - a country's war record and the last battles answer since
+    2026-11-16 (`triggers.md`, sections 5.1 and 5.2), blockades and a province's days out of supply since 2026-11-14
+    (`supply.md`, section 18). Inside a
     `not` that makes the `not`
     true, and **such an event fires** - the maintainer's word on 2026-10-12, "Just fire them";
   - **an effect on what the simulation does not hold does nothing** (`effects.md`, section 8;

@@ -78,10 +78,15 @@ public static class CCountryEffects
 			case "practical":
 				if (country is not null && CEffects.Field(effect, "technology_group") is { } group)
 				{
-					// The partner a country shares technology with is not built, so its own level is the base.
+					// The base is the higher of its own level and the level of the country sharing the category with it, where
+					// one does - Ability's reading (aid.md, section 2; reversing/findings/FINDINGS-script.md, "What Execute does").
 					CFixedPoint gain = CEffects.Field(effect, "value")?.Amount ?? CFixedPoint.Zero;
 					CResearch.SetAbility(state, country, group.Text, country.Ability(group.Text).Raw + gain.Raw);
 				}
+				return true;
+			case "remove_brigade":
+				// The first brigade of that name, case and all; its unit's last goes with the unit at the hour's end (section 9).
+				Units.CRemoveBrigade.Run(state, country, effect.Argument.Text);
 				return true;
 			case "kill_leader":
 				if (country is not null)

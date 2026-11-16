@@ -248,6 +248,9 @@ public sealed class CGameState
 
 	public Units.CSubUnit? LastPrideSinker { get; set; }
 
+	/// <summary>What the winner and the loser of the last land, air and sea battle decided lost, whoever fought it: triggers.md, section 5.2.</summary>
+	public Combat.CLastBattleLosses LastBattleLosses { get; } = new();
+
 	/// <summary>
 	/// The defines' <c>start_date</c> and <c>end_date</c>: the first and last days a date
 	/// may be set to - an air mission's, for one. See <c>docs/mechanics/aircombat.md</c>,
@@ -561,6 +564,13 @@ public sealed class CGameState
 
 	/// <summary>Every ship that has left the game, in the order they went. See <see cref="CSunkShips"/>.</summary>
 	public List<CSunkShip> SunkShips { get; } = new();
+
+	/// <summary>
+	/// The numbers of the units to be taken out of the game at the very end of the hour, in the order they were queued -
+	/// the original's <c>pending_unit_removals</c>. Empty between hours but where a command run between them queued one.
+	/// Not saved, as the original's is not. See <see cref="CPendingUnitRemovals"/>.
+	/// </summary>
+	public List<int> PendingUnitRemovals { get; } = new();
 
 	/// <summary>
 	/// <c>nation_size_statistics</c>: each country's provinces owned as each year began, a line a country, kept for the save

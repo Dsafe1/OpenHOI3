@@ -30,6 +30,23 @@ public class EventTextTests
 	}
 
 	[Fact]
+	public void The_last_battles_losses_are_always_given_as_whole_numbers()
+	{
+		CGameState state = ScriptWorld.State();
+		state.LastBattleLosses.LandLoser = 4512;
+		state.LastBattleLosses.NavalWinner = 3;
+
+		var values = CEventText.Variables(Localise, state, CEventScope.Start(null));
+
+		Assert.Equal("4512", values["LAND_LOSER_LOSSES"]);
+		Assert.Equal("0", values["LAND_WINNER_LOSSES"]);
+		Assert.Equal("0", values["AIR_LOSER_LOSSES"]);
+		Assert.Equal("0", values["AIR_WINNER_LOSSES"]);
+		Assert.Equal("0", values["NAVAL_LOSER_LOSSES"]);
+		Assert.Equal("3", values["NAVAL_WINNER_LOSSES"]);
+	}
+
+	[Fact]
 	public void A_scope_without_a_country_takes_its_provinces_controller()
 	{
 		CGameState state = ScriptWorld.State();

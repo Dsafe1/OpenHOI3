@@ -46,6 +46,14 @@ public static class CEventText
 			values["COUNTRY_ADJ"] = Adjective(localise, country);
 			values["CAPITAL"] = state.Province(country.Capital).Name;
 		}
+		// The world's last-battle losses, always, as whole numbers (triggers.md, section 5.2).
+		Sim.Combat.CLastBattleLosses last = state.LastBattleLosses;
+		values["LAND_LOSER_LOSSES"] = Whole(last.LandLoser);
+		values["LAND_WINNER_LOSSES"] = Whole(last.LandWinner);
+		values["AIR_LOSER_LOSSES"] = Whole(last.AirLoser);
+		values["AIR_WINNER_LOSSES"] = Whole(last.AirWinner);
+		values["NAVAL_LOSER_LOSSES"] = Whole(last.NavalLoser);
+		values["NAVAL_WINNER_LOSSES"] = Whole(last.NavalWinner);
 		values["YEAR"] = state.Date.Year.ToString(System.Globalization.CultureInfo.InvariantCulture);
 		// The last pride sunk anywhere and the ship that sank it, read when the text is made.
 		if (state.LastPrideSunk is { } pride)
@@ -66,6 +74,11 @@ public static class CEventText
 			values["OWNERNAME"] = state.Country(here.Owner)?.Name ?? "";
 		}
 		return values;
+	}
+
+	private static string Whole(long figure)
+	{
+		return figure.ToString(System.Globalization.CultureInfo.InvariantCulture);
 	}
 
 	/// <summary>A country's adjective: its tag with <c>_ADJ</c>, localised.</summary>

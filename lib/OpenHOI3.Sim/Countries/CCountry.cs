@@ -312,6 +312,20 @@ public sealed class CCountry
 
 	public int NavalBattlesFought { get; set; }
 
+	/// <summary>
+	/// Its war record as the day's count left it (<see cref="CWarRecord"/>): the land battles its units are fighting on
+	/// ground an enemy holds, and on any other, each battle once; its fleets in a battle; its air units under a bombing
+	/// order. What <c>total_offensives</c>, <c>total_defensives</c>, <c>total_sea_battles</c> and <c>total_we_bomb</c>
+	/// ask. Not saved: entering a game counts them again. See <c>docs/mechanics/triggers.md</c>, section 5.1.
+	/// </summary>
+	public int TotalOffensives { get; set; }
+
+	public int TotalDefensives { get; set; }
+
+	public int TotalSeaBattles { get; set; }
+
+	public int TotalWeBomb { get; set; }
+
 	/// <summary>The flags script has set on it: <c>docs/mechanics/effects.md</c>, section 3.</summary>
 	public Script.CFlags Flags { get; } = new();
 
@@ -418,6 +432,14 @@ public sealed class CCountry
 	/// asks. Nought with none owned. See <c>docs/mechanics/triggers.md</c>, section 5.
 	/// </summary>
 	public CFixedPoint LostNationalProvinces { get; set; }
+
+	/// <summary>
+	/// What <c>lost_IC</c> asks, as the day's count left it (<see cref="CWarRecord"/>): of the local IC modifier of the
+	/// provinces it owns, the part on those it also holds - <b>the share held, not lost</b>, the original's - in
+	/// thousandths, or that part itself where the whole is nought or less. See <c>docs/mechanics/triggers.md</c>,
+	/// section 5.1.
+	/// </summary>
+	public CFixedPoint LostIc { get; set; }
 
 	/// <summary>
 	/// The victory points of its cores it owns, a thousand to a point, as the day's count left them. See

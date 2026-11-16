@@ -91,8 +91,11 @@ public static class COrderOfBattleReader
 	/// <returns>The last number given to a unit or a brigade.</returns>
 	/// <summary>
 	/// A file of units read into a country as a game runs, for <c>load_oob</c>: placed at once, each brigade held to its
-	/// ceiling and its experience left as the file gives it, and no leader chosen. A unit with no place is left out. A line of the build queue in
-	/// such a file is not built, and is reported.
+	/// ceiling and its experience left as the file gives it, and no leader chosen. A unit with no place is left out. A line of
+	/// the build queue in such a file goes on the end of the country's queue as the file gives it - its cost, its duration
+	/// and how far it has got kept, nothing priced again - and numbered in the file's order with the units; a brigade's
+	/// <c>historical_model</c> is turned into its model as it is read (<c>docs/mechanics/units.md</c>, "A file of units as
+	/// a game runs").
 	/// </summary>
 	public static void ReadInto(CDirectorySettings directories, CGameState state, CCountry country, string file, Action<string>? warn = null)
 	{
@@ -125,9 +128,18 @@ public static class COrderOfBattleReader
 			{
 				// What the country holds of another, as the file gives it - as a new game's reading takes it.
 			}
-			else if (entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
+			else if (entry.IsBlock && entry.Key.Equals(Construction, StringComparison.OrdinalIgnoreCase))
 			{
-				warn($"{country.Tag}: '{file}' has a line of the build queue, which a game under way does not take from such a file");
+				// Onto the queue's end as the file has it: a new game's pricing (CBuildQueue.SetUpAtStart) is the entering's,
+				// which a game under way does not run again; the model is the original's loader's (buildqueue.md, section 5).
+				CConstruction line = reading.ReadConstruction(entry, country);
+				foreach (CBrigadeOrder order in line.Brigades)
+				{
+					if (order.HistoricalModel != CSubUnit.NoModel)
+					{
+						CBuildQueue.SetModelToHistorical(state, country, order, order.HistoricalModel);
+					}
+				}
 			}
 		}
 		state.LastUnitId = reading.LastId;
@@ -390,7 +402,7 @@ public static class COrderOfBattleReader
 		/// It takes numbers as it closes: one for the line, one for the unit it will
 		/// make, two that are passed over, and one for each of its brigades.
 		/// </summary>
-		public void ReadConstruction(ClausewitzNode block, CCountry owner)
+		public CConstruction ReadConstruction(ClausewitzNode block, CCountry owner)
 		{
 			var construction = new CConstruction(owner.Tag);
 			foreach (ClausewitzNode entry in block.Children)
@@ -469,6 +481,7 @@ public static class COrderOfBattleReader
 				construction.Size = 1;
 			}
 			owner.Constructions.Add(construction);
+			return construction;
 		}
 
 		private CBrigadeOrder ReadBrigadeOrder(ClausewitzNode block, CSubUnitType type)

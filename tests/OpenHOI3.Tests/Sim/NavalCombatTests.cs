@@ -492,6 +492,24 @@ public class NavalCombatTests
 		Assert.Empty(combat.Attacker.Units);
 	}
 
+	[Fact]
+	public void AShipCountsOnItsSidesLossesOnlyWhereItsNotesPassItsStrength()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit ours = Fleet(state, germany, Bight, Destroyer, Destroyer, Destroyer);
+		CUnit theirs = Fleet(state, poland, Bight, Destroyer);
+		CCombat combat = Battle(state, ours, theirs);
+		ours.SubUnits[0].PendingStrengthDamage = 99950;       // sunk with a little left, and not counted
+		ours.SubUnits[1].PendingStrengthDamage = 100000;      // to nothing exactly, not counted
+		ours.SubUnits[2].PendingStrengthDamage = 100001;      // past it: one
+
+		CNavalLosses.Settle(state, combat.Attacker);
+		CNavalLosses.Settle(state, combat.Defender);
+
+		Assert.Equal(CFixedPoint.One, combat.Attacker.Losses);
+		Assert.Equal(CFixedPoint.Zero, combat.Defender.Losses);
+	}
+
 	// --- the end ---
 
 	[Fact]

@@ -511,9 +511,9 @@ public static class CCombats
 	}
 
 	/// <summary>
-	/// A battle is decided, once, and its on_actions fire: each side's countries' battles counted
-	/// and their events picked, the winners' first (<c>docs/mechanics/events.md</c>, section 8). The
-	/// original's message goes here too, and its losses figures, neither built.
+	/// A battle is decided, once: the world's last-battle losses are set (<c>docs/mechanics/triggers.md</c>,
+	/// section 5.2), and its on_actions fire - each side's countries' battles counted and their events picked, the
+	/// winners' first (<c>docs/mechanics/events.md</c>, section 8). The original's message goes here too, not built.
 	/// </summary>
 	public static void Conclude(CGameState state, CCombat combat, bool attackerLost)
 	{
@@ -523,6 +523,7 @@ public static class CCombats
 		}
 		combat.IsConcluded = true;
 		combat.AttackerLost = attackerLost;
+		state.LastBattleLosses.Record(combat, attackerLost);
 		Diplomacy.CRelations.LandBattleWon(state, combat, attackerLost);
 		Events.COnActions.Battle(state, combat, attackerLost);
 	}

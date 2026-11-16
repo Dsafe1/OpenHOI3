@@ -23,7 +23,7 @@ public static class CIndustrialCapacity
 	public const string ProvinceIc = "ic";
 	public const string ProvinceLocalIc = "local_ic";
 	private const string CountryGlobalIc = "global_ic";
-	private const string TechnologyIc = "ic_modifier";
+	public const string TechnologyIc = "ic_modifier";
 
 	/// <summary>The static modifier every country's province sum starts from, and the kind read from it.</summary>
 	public const string BaseValues = "base_values";

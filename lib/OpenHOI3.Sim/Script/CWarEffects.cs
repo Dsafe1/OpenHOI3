@@ -53,10 +53,11 @@ public static class CWarEffects
 				return true;
 			case "inherit":
 			case "surrender_inherit":
-				// The scope annexes TAG, unguarded: itself not refused (war.md, section 13).
+				// The scope annexes TAG, unguarded: itself not refused - surrender_inherit in the surrender mode, its partners at
+				// war with the scope taking land and units (war.md, section 13).
 				if (state.Country(scope.Country) is { } annexer && state.Country(Inline(state, effect, scope)) is { } annexed)
 				{
-					CAnnexation.Annex(state, annexer, annexed);
+					CAnnexation.Annex(state, annexer, annexed, surrender: effect.Keyword == "surrender_inherit");
 				}
 				return true;
 			case "form_government_in_exile":
@@ -174,8 +175,9 @@ public static class CWarEffects
 	/// </summary>
 	/// <summary>
 	/// <c>release_vassal</c>: a country the scope's may release, by name or drawn from the list, given its cores the scope's
-	/// owns and holds but for its capital, and made its puppet, in its faction. A rebel faction's release is not read, and
-	/// does nothing here (<c>docs/mechanics/effects.md</c>, section 8).
+	/// owns and holds but for its capital, and made its puppet, in its faction. <c>REB</c> is not refused: the scope's
+	/// rebel faction wins its independence from the scope's country, with no war, and nothing else is done
+	/// (<c>docs/mechanics/rebels.md</c>, section 12).
 	/// </summary>
 	private static void ReleaseVassal(CGameState state, CEffect effect, CEventScope scope)
 	{
@@ -192,6 +194,14 @@ public static class CWarEffects
 		else
 		{
 			vassal = state.Country(Inline(state, effect, scope));
+		}
+		if (vassal?.Tag.Value == Revolts.CRebelFactions.Rebels)
+		{
+			if (scope.RebelFaction is { } faction && state.RebelFactions.Contains(faction))
+			{
+				Revolts.CRebelFactionMonth.GrantIndependence(state, faction, liberator);
+			}
+			return;
 		}
 		if (vassal is null || !possible.Contains(vassal))
 		{

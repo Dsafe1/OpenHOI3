@@ -28,7 +28,10 @@ original in silence and reported here. A song's path is `music/` and its `name`,
 A song's `chance` is a **mean time to happen** [music], read as an event's is (`script.md`, section 4): its days are 1
 where neither `days`, `months`, `years` nor a top-level `factor` sets them, and each `modifier = { factor = F ... }`
 whose conditions hold multiplies them by `F`, in thousandths, in order - the original's `GetDays`, `CEventChance.Days`
-here. The conditions are asked **in the played country's scope** [exe].
+here. The conditions are asked **in the played country's scope** [exe]. Their Finest Hour's chances ask
+`total_offensives`, `total_defensives`, `total_sea_battles` and `total_we_bomb` 20 times, and BlackICE's music
+`total_offensives` and `total_defensives` 4 more: they see the played country's war record since 2026-11-16, as the
+day last counted it (`triggers.md`, section 5.1) - until then they answered false.
 
 ### 2.2 The pick
 

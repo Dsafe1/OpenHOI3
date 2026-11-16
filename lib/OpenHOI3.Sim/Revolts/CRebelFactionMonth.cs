@@ -71,15 +71,7 @@ public static class CRebelFactionMonth
 		foreach (int id in faction.Provinces)
 		{
 			CProvince province = state.Province(id);
-			if (state.Country(province.Owner) is { } owner && owner.Capital == province.Id)
-			{
-				continue;
-			}
-			if (!CRebelFactions.IsHostile(state, faction, province))
-			{
-				continue;
-			}
-			if (faction.Type.Defection || (faction.Independence is { } freed && province.Cores.Contains(freed)))
+			if (IsIndependenceProvince(state, faction, province))
 			{
 				found.Add(province);
 			}
@@ -88,17 +80,60 @@ public static class CRebelFactionMonth
 	}
 
 	/// <summary>
+	/// The original's <c>RebelFaction_CollectIndependenceProvinces</c> for a country: the provinces it owns, in the map's
+	/// order, whose area is the faction's province's or one beside it, that pass the same test. None where the faction's
+	/// province is in no area.
+	/// </summary>
+	public static List<CProvince> Candidates(CGameState state, CRebelFaction faction, CCountry country)
+	{
+		var found = new List<CProvince>();
+		Supply.CSupplyNetwork areas = Supply.CSupplyNetworks.Refresh(state);
+		if (areas.AreaOf(faction.Province) is not { } home)
+		{
+			return found;
+		}
+		foreach (CProvince province in state.Provinces)
+		{
+			if (province.Owner != country.Tag || areas.AreaOf(province.Id) is not { } area
+				|| (area != home && !home.Neighbours.Contains(area)))
+			{
+				continue;
+			}
+			if (IsIndependenceProvince(state, faction, province))
+			{
+				found.Add(province);
+			}
+		}
+		return found;
+	}
+
+	/// <summary>Not its owner's capital, wanted, and a core of the country to be freed - or any, with <c>defection</c>.</summary>
+	private static bool IsIndependenceProvince(CGameState state, CRebelFaction faction, CProvince province)
+	{
+		if (state.Country(province.Owner) is { } owner && owner.Capital == province.Id)
+		{
+			return false;
+		}
+		if (!CRebelFactions.IsHostile(state, faction, province))
+		{
+			return false;
+		}
+		return faction.Type.Defection || (faction.Independence is { } freed && province.Cores.Contains(freed));
+	}
+
+	/// <summary>
 	/// The faction's provinces released to the country it frees; every army of the faction that country's, out of its
 	/// battles; the faction's government the country's; a revolutionary war on each country that owned any of them; and
-	/// the faction gone.
+	/// the faction gone. Given a country - <c>release_vassal = REB</c> in its scope - the provinces are that country's
+	/// beside the faction's (<see cref="Candidates(CGameState, CRebelFaction, CCountry)"/>) and no war is declared.
 	/// </summary>
-	public static bool GrantIndependence(CGameState state, CRebelFaction faction)
+	public static bool GrantIndependence(CGameState state, CRebelFaction faction, CCountry? by = null)
 	{
 		if (faction.Independence is not { } freed || state.Country(freed) is not { } country)
 		{
 			return false;
 		}
-		List<CProvince> provinces = Candidates(state, faction);
+		List<CProvince> provinces = by is null ? Candidates(state, faction) : Candidates(state, faction, by);
 		if (provinces.Count == 0)
 		{
 			return false;
@@ -126,7 +161,7 @@ public static class CRebelFactionMonth
 		}
 		foreach (CCountryTag owner in owners)
 		{
-			if (state.Country(owner) is { } former)
+			if (by is null && state.Country(owner) is { } former)
 			{
 				CDeclarations.Revolution(state, country, former);
 			}

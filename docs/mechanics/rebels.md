@@ -268,6 +268,15 @@ original's choice was compiled to an empty loop. **No province ever defects.**
      `NORMAL_WAR_NAME` "$ORDER$$FIRST$-$SECOND$ War";
    - the faction goes.
 
+**`release_vassal = REB`** - built 2026-11-16, read in `FINDINGS-effectrun.md`, section 3.7 step 2, and the record's
+`RebelFaction_GrantIndependence` and `RebelFaction_CollectIndependenceProvinces` - is the same independence asked by
+script, with three differences [exe]: the faction is **the scope's own rebel faction** (an event's from a rebel scope),
+and with none the effect does nothing; **the provinces are the scope country's own** whose area is the area of the
+faction's province or one beside it, each passing step 1's test - not the faction's list; and **no war is declared**.
+No roll and no delay are asked. Nothing refuses `REB`, which corrects the old record. *Ours*: the areas are the network
+as it stands (`docs/compatibility.md`, entry 9); a faction's province in no area gives no provinces, the original's
+answer there not read.
+
 **Releasing a country** (`release`, independence; `FINDINGS-occupation.md` D.9) - the oppressor is the first province's
 owner:
 

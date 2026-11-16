@@ -105,7 +105,7 @@ is not there **makes it, at nought**, and answers whether nought is at least N.
 | `money`, `supplies`, `fuel` | **in a province's scope, that province's pool**; otherwise the country's stockpile | += v, no bound |
 | `crude_oil`, `metal`, `energy`, `rare_materials` | **in a province's scope, what the province can yield** (`max_producing`) - not goods; otherwise the stockpile | += v, no bound |
 | `<technology> = N` | **one step of research** on it, as though N leadership had been given - at most one level, its effects applied when one is reached | the progress carried as research's own is |
-| `practical = { technology_group = G value = N }` | its ability in G, practical or theory | += N, held between nought and `MAX_TECH_ABILITY`; **its effects inside are never run** |
+| `practical = { technology_group = G value = N }` | its ability in G, practical or theory | its own = **the higher of its own and the level of the country sharing G with it**, where one does (`aid.md`, section 2), + N, held between nought and `MAX_TECH_ABILITY` - so a sharer's level is taken over and added to (`reversing/findings/FINDINGS-script.md`, "What Execute does"); **its effects inside are never run** |
 | `<position> = id` | puts the minister of that id in the post, where he was declared for it and the post's holder has another id | no test of whether the post may be changed or whether he holds another |
 | `kill_leader = id` | takes the leader of that id out of service where he is the country's, and off the unit he commands, if any | no cost in organisation; he stays among the country's leaders |
 | `leave_alliance = X` | ends the alliance between it and X | a faction is not touched |
@@ -195,9 +195,9 @@ never reads from the file (`espionage.md`, section 13).
 | diplomacy | the war and pact effects run (`war.md`, `agreements.md`), `release` since 2026-10-15 (`rebels.md`, section 8), `split_troops` since 2026-10-16 (section 9) |
 | the fog of war's switch | `remove_fow` |
 | the AI | `add_ai_strategy`, `fixed_ai_strategy` |
-| units an event gives or takes | `add_division`, `remove_brigade` - `load_oob` is `units.md`'s since 2026-11-09, and a unit type's name is built since 2026-10-16 (section 9) |
+| units an event gives or takes | `add_division` - nothing in Their Finest Hour or BlackICE uses it, and the strength its brigade starts at is not read through (`reversing/findings/FINDINGS-effectrun.md`, section 3.11). `remove_brigade` is built since 2026-11-16 (section 9), `load_oob` is `units.md`'s since 2026-11-09 - its `military_construction` lines since 2026-11-16 - and a unit type's name is built since 2026-10-16 (section 9) |
 
-`create_alliance`, `release_vassal`, `surrender_inherit` and `undeclared_war` are built since 2026-11-09 (`reversing/findings/FINDINGS-scriptgaps.md`).
+`create_alliance`, `release_vassal`, `surrender_inherit` and `undeclared_war` are built since 2026-11-09 (`reversing/findings/FINDINGS-scriptgaps.md`), `surrender_inherit`'s surrender mode and `release_vassal = REB` since 2026-11-16 (`war.md`, section 13; `rebels.md`, section 12).
 
 *Ours*: where the original faults - `strategic_resource` with a name no resource has, `organisation`
 on a country with no ruling party - nothing happens, and the first is reported when read.
@@ -259,6 +259,36 @@ units to the border with Portugal by then, so the Nationalists' victory points s
 units of their own in their capital. With no AI here the divisions stand where the history put them, the Nationalists
 hold none of their victory points, and they capitulate the next midnight (`headless.md`, section 4). Nothing to mend
 in the effects: it waits for the AI.
+
+**`remove_brigade = "name"`** - built 2026-11-16 (`reversing/findings/FINDINGS-effectrun.md`, sections 3.6 and 3.11;
+`FINDINGS-effects.md`, section 5; `FINDINGS-negatives.md`, section 8) - takes a brigade, ship or wing out of the scope's
+country by its **name**, never its type:
+
+    the walk      the country's units in the order the original keeps them (CCountry.UnitsInOrder), every level, and
+                  each unit's brigades in theirs; the first whose name is the text, case and all, and no further
+    others in its unit  it is taken out at once and disposed of: a ship goes on the list of the sunk (so it counts
+                  for total_of_ours_sunk) with its air groups let go to the nearest air base of theirs; a brigade or
+                  a wing is gone
+    its unit's only one  it stays, and the unit's number is queued; at the very end of the hour, after the AI's
+                  pass, every queued unit still in the game is taken out of it, in the order queued
+    taking a unit out   the original's RemoveUnit with its flags 0 and 1: its country - the lender's for a unit on
+                  loan - loses officers = its brigades' officers x (their strength x 1000 / their most, cut to whole
+                  thousandths) / 1000 x the officer ratio, never below nought, and the same for whatever it carries,
+                  which goes with it; what it commanded is left at the top of the order of battle with nobody above
+                  it - a theatre's marked orphans for the next headquarters - and not handed to its superior
+
+`brigade_exist` walks the same way, so the last brigade of a unit still answers yes for the rest of the hour, and a
+second line of the same name the same hour finds it again and queues its unit twice - the end of the hour passes over
+a number whose unit is gone. Nothing gives back the men or the officers of a brigade taken from a unit of several
+(*confirmed*: the arm holds no such call). **The queue is not saved**, as the original's is not: a unit queued by a
+command run between two hours - a player's answer to an event - is still in the game after a load
+(`docs/enhanced.md`, *A whole game's replay*).
+
+*Measured* on BlackICE (`OpenHOI3.SaveCheck modsurvey`), 6,919 uses before, none unbuilt after. **Fifteen of its
+lines can never match**, differing from a declared name by case alone - fourteen `Kampfgruppe ...` in
+`events/KampfGruppen.txt` for `KampfGruppe ...`, and `Thomas Mcguire` in `events/battlecommanders.txt` - and 963
+names match no declared brigade at all, most in `events/SpanishCivilWar.txt` (`FINDINGS-negatives.md`, section 8).
+They do nothing in the original too, and nothing here; they are the mod's.
 
 ## Not established
 

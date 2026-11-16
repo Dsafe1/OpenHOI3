@@ -483,5 +483,18 @@ hourly return of organisation were on this list until 2026-10-08. They are built
 
 `load_oob` reads a file under `history/units` into the scope's country [exe]: nothing where the name is empty, or where the country owns no land and is not the rebels. Its units are on the map at once at the file's `location`, and one with no location is left out. Numbers follow the game's last. Each brigade takes what the file gives, held to its ceiling as it stands now; **experience the file does not give is not filled in**, and a unit with no `leader` line has no leader, where a new game fills both [exe]. `reversing/findings/FINDINGS-scriptgaps.md`, section 6.
 
-**Ours**: a `military_construction` in such a file is reported and not taken. Neither of the base game's two files has one.
+**A `military_construction` in such a file** - built 2026-11-16, read in `FINDINGS-scriptgaps.md`, section 6, and
+`FINDINGS-buildqueue.md`, sections 1 and 10 - goes **on the end of the country's build queue as the file gives it** [exe]:
+its `cost`, `duration` and `progress` are kept as written, since the pricing a new game gives its lines
+(`buildqueue.md`, section 5) is the entering's and a game under way does not run it again; a line of reserves keeps a
+factor of 1 unless the file gives one, as a new game's does; it builds one unit whatever its `size`; it takes its numbers
+in the file's order among the units - one for the line, one for its unit, two passed over, one a brigade; and **a
+brigade's `historical_model` is turned into its model as it is read**, the same list a new game makes of it, a technology
+the model leaves out taking no place. Neither of the base game's two files has one; **834 of BlackICE's 4,396 order of
+battle files** do, the Soviet tank brigades of `Tank_Corps_1_1943_Feb_build.txt` among them. *Ours*: a `country` key in
+the line is read as a new game reads it, the line staying the running country's, and its brigades' models are the
+running country's - the original gives the brigades after the key that country's models (`FINDINGS-buildqueue.md`,
+section 10). A handful of BlackICE's files name a country other than their folder's - `history/units/ENG` files naming
+GER, POL or SOV among them - whose brigades would here take the loading country's models where the original takes the
+named country's. A new game's reading has the same gap.
 

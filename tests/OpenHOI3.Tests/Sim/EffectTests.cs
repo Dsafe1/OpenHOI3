@@ -353,6 +353,24 @@ public class EffectTests
 	}
 
 	[Fact]
+	public void Practical_adds_to_the_higher_of_its_own_level_and_its_sharers()
+	{
+		CGameState state = State();
+		state.Defines.Set(OpenHOI3.Sim.Research.CResearch.CountrySection, OpenHOI3.Sim.Research.CResearch.MostAbility, CFixedPoint.FromInt(20));
+		Country(state, Ger).Abilities["infantry_theory"] = CFixedPoint.FromInt(2);
+		Country(state, ScriptWorld.Ita).Abilities["infantry_theory"] = CFixedPoint.FromInt(5);
+		const string effect = "practical = { technology_group = infantry_theory value = 1.5 }";
+
+		Run(state, effect);
+		Assert.Equal(CFixedPoint.Parse("3.5"), Country(state, Ger).OwnAbility("infantry_theory"));
+
+		// Italy shares the category: its 5 is the base, and what is added is Germany's own from then on.
+		OpenHOI3.Sim.Aid.CTechnologySharing.Start(Country(state, ScriptWorld.Ita), Country(state, Ger), "infantry_theory");
+		Run(state, effect);
+		Assert.Equal(CFixedPoint.Parse("6.5"), Country(state, Ger).OwnAbility("infantry_theory"));
+	}
+
+	[Fact]
 	public void Release_vassal_does_nothing_for_a_nation_that_could_not_be_released()
 	{
 		CGameState state = State();
@@ -368,9 +386,9 @@ public class EffectTests
 		CGameState state = State();
 		var report = new CScriptReport();
 
-		Run(state, "remove_fow = 5 remove_brigade = \"x\"", CEventScope.Start(Ger), report);
+		Run(state, "remove_fow = 5 add_division = { name = \"x\" where = 1 }", CEventScope.Start(Ger), report);
 
-		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["remove_brigade"].Why);
+		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["add_division"].Why);
 		Assert.Equal(2, report.Gaps.Count);
 	}
 

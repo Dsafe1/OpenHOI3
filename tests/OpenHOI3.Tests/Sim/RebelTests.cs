@@ -243,6 +243,36 @@ public class RebelTests
 	}
 
 	[Fact]
+	public void Release_vassal_REB_frees_the_scopes_rebel_faction_from_the_scopes_country_with_no_war()
+	{
+		CGameState state = RebelWorld.State();
+		state.Country(RebelWorld.Slo)!.EveryUnitUnlocked = true;
+		var faction = new CRebelFaction(1, TypeOf(state, "nationalist_rebels"), 3, RebelWorld.Ger)
+		{
+			Independence = RebelWorld.Slo,
+		};
+		faction.Targets.Add(RebelWorld.Ger);
+		faction.Provinces.Add(3);
+		state.RebelFactions.Add(faction);
+		state.Province(3).Controller = RebelWorld.Reb;
+		CUnit army = Garrison(state, RebelWorld.Reb, 3);
+		faction.Armies.Add(army.Id);
+
+		// With no rebel faction in the scope it does nothing.
+		CEffects.Run(state, ScriptWorld.Effects("release_vassal = REB"), CEventScope.Start(RebelWorld.Ger));
+		Assert.Equal(RebelWorld.Ger, state.Province(3).Owner);
+
+		Assert.Single(CRebelFactionMonth.Candidates(state, faction, state.Country(RebelWorld.Ger)!));
+		CEffects.Run(state, ScriptWorld.Effects("release_vassal = REB"),
+			CEventScope.Start(RebelWorld.Ger).WithRebelFaction(faction));
+
+		Assert.Equal(RebelWorld.Slo, state.Province(3).Owner);
+		Assert.Equal(RebelWorld.Slo, army.Owner);
+		Assert.DoesNotContain(state.Wars, war => war.IsRevolutionary);
+		Assert.True(faction.WantsRemoval);
+	}
+
+	[Fact]
 	public void The_month_frees_nobody_before_the_land_has_been_held_its_delay()
 	{
 		CGameState state = RebelWorld.State();

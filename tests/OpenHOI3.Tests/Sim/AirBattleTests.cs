@@ -698,6 +698,35 @@ public class AirBattleTests
 	}
 
 	[Fact]
+	public void AnHoursStrengthTakenOffTheWingsGoesOnTheSidesLossesAndTheDecidedBattleSetsTheWorldsAirFigures()
+	{
+		CGameState state = State(out CCountry germany, out CCountry poland);
+		CUnit fighters = Air(state, germany, Field, Fighter, Fighter);
+		CUnit raid = Air(state, poland, Field, Bomber, Bomber);
+		raid.SubUnits[0].Organisation = CFixedPoint.Parse("0.5");
+		raid.SubUnits[1].Organisation = CFixedPoint.Parse("0.5");
+		var combat = new CCombat(Field, ECombatKind.Air);
+		state.Combats.Add(combat);
+		CAirBattle.Join(combat.Attacker, fighters);
+		CAirBattle.Join(combat.Defender, raid);
+		combat.Duration = 3;
+		combat.Hour = 3;
+		raid.SubUnits[0].PendingStrengthDamage = 150000;     // a hundredth comes off: 1.5
+		raid.SubUnits[1].PendingStrengthDamage = 20000000;   // more than it has: all of it
+		state.SeedHour();
+		long before = raid.SubUnits.Sum(wing => wing.Strength.Raw);
+
+		Assert.True(CAirBattle.RunHour(state, combat));
+
+		long after = raid.SubUnits.Sum(wing => wing.Strength.Raw);
+		Assert.Equal(before - after, combat.Defender.Losses.Raw);
+		Assert.True(combat.Defender.Losses >= CFixedPoint.Parse("101.5"));
+		Assert.False(combat.AttackerLost);
+		Assert.Equal(combat.Defender.Losses.Raw / 1000, state.LastBattleLosses.AirLoser);
+		Assert.Equal(combat.Attacker.Losses.Raw / 1000, state.LastBattleLosses.AirWinner);
+	}
+
+	[Fact]
 	public void ASideWornToNothingLosesAtTheFourthHourAndFallsBackOutToSeaWhereThereIsAny()
 	{
 		CGameState state = State(out CCountry germany, out CCountry poland);

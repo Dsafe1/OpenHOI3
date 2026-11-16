@@ -292,7 +292,9 @@ transport runs in at its whole speed** until it is at 1; that is the original's.
 
 **At the end of the round**, each side:
 
-- a ship whose notes pass its strength is counted as lost;
+- a ship whose notes pass its strength is counted as lost - strictly more, so one taken to nothing exactly, or left
+  under 0.1 and sunk below, is not: a whole one on the side's `losses`, which a decided battle's figures read
+  (`triggers.md`, section 5.2; counted since 2026-11-16, `reversing/findings/FINDINGS-triggerleaves.md`, section 4.3);
 - every ship's notes are taken off it **whole** - a brigade's are divided by a hundred, a
   ship's are not - and neither more than it has;
 - **every ship under 0.1 strength is sunk**: out of its fleet, and onto its side's list.

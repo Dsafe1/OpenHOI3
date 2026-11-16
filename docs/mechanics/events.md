@@ -165,7 +165,8 @@ files, so none of the 545 ids its `on_actions.txt` names for them is an event (`
 **Built** (2026-10-12): the reading of the file, the pick, the battles and the pride of the fleet; and the two
 coups (2026-10-14, `espionage.md`, section 11), though only the intelligence screen posts one.
 `on_encirclement` fires since 2026-11-14, the days without supply being counted (`supply.md`, section 18).
-**Not built**: a battle's `last_*_losses` are not kept. `on_surrender` is `war.md`'s and `on_nuke_dropped` `nukes.md`'s.
+A battle's `last_*_losses` are kept since 2026-11-16, set before its on_actions (`triggers.md`, section 5.2).
+`on_surrender` is `war.md`'s and `on_nuke_dropped` `nukes.md`'s.
 
 ## 9. Decisions
 
@@ -244,7 +245,7 @@ controller of its province where it has none.
 | `CONTINENTNAME` | its continent's name **as the map writes it, not localised** | a province |
 | `OWNERNAME` | its owner's name | a province |
 | `PRIDE_SUNK`, `PRIDE_SINKER` | the name of the last pride of the fleet sunk, and of the ship that sank it (section 8) | one has been |
-| the last battles' losses | not built: left as written | |
+| `LAND_LOSER_LOSSES`, `LAND_WINNER_LOSSES`, and the `AIR_` and `NAVAL_` pairs | the world's last-battle figures, whole numbers (`triggers.md`, section 5.2) | always |
 
 *Ours*: a country's adjective is the localisation of its tag with `_ADJ`, for both. The original
 reads them out of a table nobody has read the filling of, and passes `FROMCOUNTRY_ADJ`'s through the

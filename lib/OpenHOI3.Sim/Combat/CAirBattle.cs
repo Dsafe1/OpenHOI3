@@ -193,16 +193,23 @@ public static class CAirBattle
 		combat.Defender.Dice = state.Random.Next(10);
 	}
 
-	/// <summary>Takes every wing's notes off it: a hundredth of each, and neither more than it has.</summary>
+	/// <summary>
+	/// Takes every wing's notes off it: a hundredth of each, and neither more than it has. The strength taken goes on the
+	/// side's losses as it is, a wing's men per point of strength being one (<c>triggers.md</c>, section 5.2).
+	/// </summary>
 	private static void Settle(CCombatSide side)
 	{
+		long taken = 0;
 		foreach (CUnit unit in side.Units)
 		{
 			foreach (CSubUnit wing in unit.SubUnits)
 			{
+				long before = wing.Strength.Raw;
 				CCombatDamage.Settle(wing);
+				taken += before - wing.Strength.Raw;
 			}
 		}
+		side.Losses += new CFixedPoint(taken);
 	}
 
 	private static void RetreatAll(CGameState state, CCombatSide side)

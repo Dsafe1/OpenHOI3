@@ -33,7 +33,7 @@ public static class CUndoneEffects
 		Add(EScriptGap.Unbuilt, "remove_fow");
 		Add(EScriptGap.Unbuilt, "add_ai_strategy", "fixed_ai_strategy");
 		// Units an event gives or takes.
-		Add(EScriptGap.Unbuilt, "add_division", "remove_brigade");
+		Add(EScriptGap.Unbuilt, "add_division");
 		return reasons;
 	}
 }

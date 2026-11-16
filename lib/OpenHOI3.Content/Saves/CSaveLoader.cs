@@ -716,6 +716,8 @@ public static class CSaveLoader
 		// What a triggered modifier's `lost_national` asks: worked out before they are tested, or a country that has lost its
 		// land would go without its modifier until the next midnight (seen in the running game, desperate_defence).
 		Sim.Wars.CSurrender.CountVictoryPoints(state);
+		// And the war record and lost_IC, which no save keeps: entering counts them again (triggers.md, section 5.1).
+		Sim.Countries.CWarRecord.CountDaily(state);
 		CCountryModifiers.RebuildDaily(state);
 		CManpower.Update(state);
 		CLeadership.Update(state);

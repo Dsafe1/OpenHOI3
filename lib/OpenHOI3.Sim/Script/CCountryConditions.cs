@@ -90,6 +90,24 @@ public static class CCountryConditions
 				// The share of its owned cores it does not hold, as the day counted it (triggers.md, section 5).
 				answer = (country?.LostNationalProvinces ?? CFixedPoint.Zero) >= value.Amount;
 				return true;
+			case "lost_ic":
+				// The share of its owned provinces' local IC modifier on those it holds, as the day counted it - in thousandths
+				// against the value's thousandths (triggers.md, section 5.1).
+				answer = (country?.LostIc ?? CFixedPoint.Zero) >= value.Amount;
+				return true;
+			case "total_offensives":
+				// The war record, as the day counted it: whole counts against the value cut to whole (triggers.md, 5.1).
+				answer = (country?.TotalOffensives ?? 0) >= whole;
+				return true;
+			case "total_defensives":
+				answer = (country?.TotalDefensives ?? 0) >= whole;
+				return true;
+			case "total_sea_battles":
+				answer = (country?.TotalSeaBattles ?? 0) >= whole;
+				return true;
+			case "total_we_bomb":
+				answer = (country?.TotalWeBomb ?? 0) >= whole;
+				return true;
 			case "national_unity":
 				answer = (country?.NationalUnity ?? CFixedPoint.Zero) >= value.Amount;
 				return true;
@@ -133,6 +151,12 @@ public static class CCountryConditions
 			case "total_amount_of_ships":
 				answer = SubUnitsOf(country, EUnitKind.Navy) >= whole;
 				return true;
+			case "total_of_ours_sunk":
+				answer = CSunkShips.OursSunk(state, scope.Country) >= whole;
+				return true;
+			case "total_sunk_by_us":
+				answer = CSunkShips.SunkBy(state, scope.Country) >= whole;
+				return true;
 			case "land_battles_fought":
 				answer = (country?.LandBattlesFought ?? 0) >= whole;
 				return true;
@@ -149,10 +173,10 @@ public static class CCountryConditions
 				answer = HasLeader(country, value.Text);
 				return true;
 			case "brigade_exist":
-				answer = FirstBrigade(country, value.Text) is not null;
+				answer = CRemoveBrigade.First(country, value.Text) is not null;
 				return true;
 			case "brigade_in_combat":
-				answer = FirstBrigade(country, value.Text)?.Unit is { } unit && unit.Combats.Count > 0;
+				answer = CRemoveBrigade.First(country, value.Text)?.Unit is { } unit && unit.Combats.Count > 0;
 				return true;
 			default:
 				answer = false;
@@ -254,25 +278,5 @@ public static class CCountryConditions
 			}
 		}
 		return false;
-	}
-
-	/// <summary>The first brigade of the country with exactly that name, its units taken in the order they were made.</summary>
-	private static CSubUnit? FirstBrigade(CCountry? country, string name)
-	{
-		if (country is null)
-		{
-			return null;
-		}
-		foreach (CUnit unit in country.UnitsInOrder())
-		{
-			foreach (CSubUnit brigade in unit.SubUnits)
-			{
-				if (brigade.Name.Equals(name, StringComparison.Ordinal))
-				{
-					return brigade;
-				}
-			}
-		}
-		return null;
 	}
 }

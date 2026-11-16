@@ -50,8 +50,9 @@ public static class CTick
 		// posts runs when the queue is next drained, before the next hour (read in the running game, tick.md, section 3).
 		RunAiPass(state);
 
-		// Last of all the original removes the units queued for removal during the
-		// hour, so that nothing is freed in the middle of a pass. There are no units yet.
+		// Last of all the original removes the units queued for removal during the hour, so that nothing is freed in the
+		// middle of a pass - remove_brigade's among them (effects.md, section 9).
+		Step(state, CPendingUnitRemovals.Drain);
 	}
 
 	/// <summary>
@@ -153,6 +154,7 @@ public static class CTick
 		Step(state, CSupplyPass.RunDaily);
 		Step(state, CThreat.UpdateMostThreatening);               // before any country's day, as its neighbours are
 		Step(state, Wars.CSurrender.CountVictoryPoints);          // and with them its cores' victory points
+		Step(state, Countries.CWarRecord.CountDaily);             // and its war record and lost_IC (triggers.md, section 5.1)
 		Step(state, CCountryModifiers.RebuildDaily);           // each country's triggered modifiers tested first
 		Step(state, Politics.CNationalUnity.RunDaily);           // right after a country's modifier (politics.md, section 6)
 		Step(state, Politics.CMinisterPosts.JoinDaily);          // a minister whose start date is today joins the pool

@@ -346,7 +346,10 @@ the critical one - the last three only for a hit.
 - Settled, a wing takes **a hundredth** of what was rolled against it, like a brigade
   (`landcombat.md`, section 6). With the base game's figures an interceptor fires four shots
   an hour, about half hit, and a hit costs 0.125 to 1.125 organisation and 0.1 to 0.4 strength
-  - a critical one 1 to 4.
+  - a critical one 1 to 4. The strength taken goes on the side's `losses` as it is - a wing's men
+  per point of strength are one, where a brigade's are a hundred - which a decided battle's figures
+  read (`triggers.md`, section 5.2; since 2026-11-16, `reversing/findings/FINDINGS-triggerleaves.md`,
+  section 4.3).
 
 **A new target.** The other side's wings are gathered in the order of its units and their
 wings - each whose strength less what is already against it is not under nothing. Then one

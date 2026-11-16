@@ -63,13 +63,13 @@ public class ConditionTests
 		CGameState state = State();
 		var report = new CScriptReport();
 
-		Assert.False(Holds(state, "lost_ic = 0", CEventScope.Start(Ger), report));
-		Assert.False(Holds(state, "total_sea_battles = 1", CEventScope.Start(Ger), report));
-		Assert.True(Holds(state, "not = { lost_ic = 0 }", CEventScope.Start(Ger), report));
+		Assert.False(Holds(state, "last_mission = attack", CEventScope.Start(Ger), report));
+		Assert.False(Holds(state, "is_mission_country = yes", CEventScope.Start(Ger), report));
+		Assert.True(Holds(state, "not = { last_mission = attack }", CEventScope.Start(Ger), report));
 		Assert.False(Holds(state, "is_attacker = yes", CEventScope.Start(Ger), report));
 
-		Assert.Equal((EScriptGap.Unbuilt, 2), report.Gaps["lost_ic"]);
-		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["total_sea_battles"].Why);
+		Assert.Equal((EScriptGap.Unbuilt, 2), report.Gaps["last_mission"]);
+		Assert.Equal(EScriptGap.Unbuilt, report.Gaps["is_mission_country"].Why);
 		Assert.Equal(EScriptGap.BattleOnly, report.Gaps["is_attacker"].Why);
 	}
 

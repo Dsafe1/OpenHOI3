@@ -18,10 +18,22 @@ public static class CNavalLosses
 	/// Takes every ship's notes off it and clears them: neither more strength nor more
 	/// organisation than it has. A ship's notes are not divided by a hundred as a
 	/// brigade's are. What the fleet's transports took is laid on the land units aboard
-	/// (<c>transport.md</c>, section 6).
+	/// (<c>transport.md</c>, section 6). The side's losses go up a whole one for each ship whose notes are more than the
+	/// strength it has, before anything is taken off - not for one left with a little strength and sunk all the same
+	/// (<c>triggers.md</c>, section 5.2).
 	/// </summary>
 	public static void Settle(CGameState state, CCombatSide side)
 	{
+		foreach (CUnit fleet in side.Units)
+		{
+			foreach (CSubUnit ship in fleet.SubUnits)
+			{
+				if (ship.PendingStrengthDamage > ship.Strength.Raw)
+				{
+					side.Losses += CFixedPoint.One;
+				}
+			}
+		}
 		foreach (CUnit fleet in side.Units)
 		{
 			long transportDamage = 0;
