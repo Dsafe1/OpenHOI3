@@ -594,6 +594,8 @@ makes nobody at war (`war.md`, section 1).
 8. **Patrol**, with the naval stance not 0 and at war or with raided waters: the raided waters, or else the sea of each of
    the theatre's ports; while any are left, a centre is drawn and the four nearest to it taken with it; the nearest free
    fleet with no order, no submarine and a screen is given a **patrol** over them for 168 hours. None left: the phase ends.
+   Each sea taken, and each fleet sent, leaves its list by the original's swap with the last, so which of two equally near
+   comes first after it is the original's (`FINDINGS-moving.md`, D.2) - until 2026-11-16 the rest closed up in order.
 9. **Intercept**, for each surveyed enemy fleet at sea: passed over where the enemy's power is over 1.5 times the own (2
    at naval stance 1) unless it carries troops; the nearest free fleets, reachable, with power, not on patrol unless the
    enemy carries troops, with a screen against all submarines, are gathered until they hold twice its power; holding its
@@ -904,7 +906,10 @@ months on) - at least three hours left, and the order ends then.
 - **The threatened provinces** (section 6): the warning the original gives as a landing's way is set is taken in the hour.
 - **The axis** (11.6): the original also asks a test of each pair that was not read; here the nearest pair is
   taken, and with no way between them the path is empty.
-- **The fleets** (section 14): a patrol's centre is drawn on the AI's generator, where the original draws on the C
+- **The fleets** (section 14): a patrol's centre is drawn on a C runtime `rand()` of its own, made afresh for each
+  patrol phase and seeded 1 as a new thread's is - until 2026-11-16 on the AI's generator, which took a draw the
+  original never takes there and moved every later AI draw of that country, the invasion ranking's among them (seen
+  with the original's draws played back, `docs/replay.md`, section 9). The original draws on the C
   runtime's `rand` of whichever worker thread ran the country, which nothing here could repeat - a fresh worker's stream
   starting at 41, 18467, 6334, the main thread's carrying on from every draw since the process began (*measured* on the
   running game, 2026-11-12, entering July 1941: Germany, Britain, the Soviet Union and the United States drew on the main

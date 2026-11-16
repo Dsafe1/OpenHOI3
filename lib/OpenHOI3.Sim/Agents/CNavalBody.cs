@@ -425,7 +425,12 @@ public static class CNavalBody
 		}
 	}
 
-	/// <summary>Phase 8: screens round the raided waters, or round the theatre's own ports' seas, five provinces a patrol.</summary>
+	/// <summary>
+	/// Phase 8: screens round the raided waters, or round the theatre's own ports' seas, five provinces a patrol - the centre
+	/// drawn on a C runtime <c>rand()</c> of its own, seeded 1 as a fresh thread's is, where the original draws on its worker
+	/// thread's, never on the AI's generator (<c>docs/mechanics/moving.md</c>, *Ours*); each taken out of its list, and the
+	/// fleet out of the free ones, by the original's swap with the last (FINDINGS-moving.md, D.2).
+	/// </summary>
 	private static void Patrol(CGameState state, CCountry country, CAgent agent, CUnit headquarters, List<CUnit> free)
 	{
 		if (headquarters.Plan.NavalStance == 0 || (!state.IsAtWar(country.Tag) && !Wars.CUndeclaredWars.Involves(state, country.Tag)
@@ -445,11 +450,12 @@ public static class CNavalBody
 				}
 			}
 		}
+		var rand = new CRuntimeRand(1);
 		while (waters.Count > 0)
 		{
-			int centre = waters[(int)(state.AiRandom.Next(country.Tag) % waters.Count)];
+			int centre = waters[rand.Next() % waters.Count];
 			var area = new List<int> { centre };
-			waters.Remove(centre);
+			CStdVector.SwapRemove(waters, centre);
 			while (area.Count < PatrolArea && waters.Count > 0)
 			{
 				int nearest = waters[0];
@@ -464,14 +470,14 @@ public static class CNavalBody
 					}
 				}
 				area.Add(nearest);
-				waters.Remove(nearest);
+				CStdVector.SwapRemove(waters, nearest);
 			}
 			CUnit? fleet = Nearest(state, free, centre, f => !IsBusy(f) && CShipCensus.Of(f) is { Submarines: 0, Screens: > 0 });
 			if (fleet is null)
 			{
 				return;
 			}
-			free.Remove(fleet);
+			CStdVector.SwapRemove(free, fleet);
 			state.Outbox.Add(new CSetUnitOrderCommand(country.Tag, fleet.Id, EUnitOrder.Patrol, centre, provinces: area,
 				endHour: state.TotalHours + PatrolHours));
 		}
@@ -523,7 +529,7 @@ public static class CNavalBody
 			}
 			foreach (CUnit fleet in group)
 			{
-				free.Remove(fleet);
+				CStdVector.SwapRemove(free, fleet);
 				ownPower -= CUnitPower.Of(fleet);
 				need -= CUnitPower.Of(fleet);
 				if (need < 0)

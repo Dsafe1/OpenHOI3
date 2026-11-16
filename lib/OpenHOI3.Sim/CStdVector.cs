@@ -22,4 +22,17 @@ public static class CStdVector
 		list.RemoveAt(list.Count - 1);
 		return true;
 	}
+
+	/// <summary>The same for a vector of numbers - provinces: the first entry equal to the value overwritten by the last.</summary>
+	public static bool SwapRemove(List<int> list, int value)
+	{
+		int at = list.IndexOf(value);
+		if (at < 0)
+		{
+			return false;
+		}
+		list[at] = list[^1];
+		list.RemoveAt(list.Count - 1);
+		return true;
+	}
 }

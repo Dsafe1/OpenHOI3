@@ -225,8 +225,36 @@ internal sealed class CDrawPlayback
 			}
 			return queue.Dequeue();
 		}
-		missed![tag] = missed.GetValueOrDefault(tag) + 1;
+		string who = $"{tag}@{Site()}";
+		missed![who] = missed.GetValueOrDefault(who) + 1;
 		return null;
+	}
+
+	/// <summary>
+	/// The method that made a draw the original did not: the first frame of the stack outside the generator, the Lua's
+	/// random, the scripts' and this class - a miss being rare, the stack is walked only then.
+	/// </summary>
+	private static string Site()
+	{
+		foreach (System.Diagnostics.StackFrame frame in new System.Diagnostics.StackTrace(2).GetFrames())
+		{
+			if (frame.GetMethod() is not { DeclaringType: { } type } method)
+			{
+				continue;
+			}
+			string name = type.Name;
+			if (name.Contains('<'))
+			{
+				name = type.DeclaringType?.Name ?? name;
+			}
+			if (name is nameof(CDrawPlayback) or nameof(CRandom) or "CLuaRandom" or "CGameApi" or "CAiIntelClass"
+				or "CGameStateClass" or "CLuaState" or "CLuaCall" or "CLuaNative")
+			{
+				continue;
+			}
+			return name.StartsWith("CAiScripts", StringComparison.Ordinal) ? "Lua" : $"{name}.{method.Name}";
+		}
+		return "?";
 	}
 
 	/// <summary>
