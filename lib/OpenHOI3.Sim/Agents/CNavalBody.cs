@@ -48,6 +48,12 @@ public static class CNavalBody
 			return;
 		}
 		agent.ReplanNaval = false;
+		// An agent with no fleet does nothing more - no patrol phase, so no draw of its centre (FINDINGS-liveread.md,
+		// section 112).
+		if (agent.Fleets.Count == 0)
+		{
+			return;
+		}
 		Withdraw(state, country, agent);
 		IdleHome(state, country, agent, headquarters);
 		List<CUnit> ready = CFleetRegroup.Ready(state, country, agent);
@@ -453,7 +459,7 @@ public static class CNavalBody
 		var rand = new CRuntimeRand(1);
 		while (waters.Count > 0)
 		{
-			int centre = waters[rand.Next() % waters.Count];
+			int centre = waters[(state.PatrolRandFeed?.Invoke(country.Tag) ?? rand.Next()) % waters.Count];
 			var area = new List<int> { centre };
 			CStdVector.SwapRemove(waters, centre);
 			while (area.Count < PatrolArea && waters.Count > 0)

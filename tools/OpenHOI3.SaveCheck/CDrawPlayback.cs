@@ -36,6 +36,9 @@ internal sealed class CDrawPlayback
 		float Attack)>> _caches = new();
 
 	private int _cacheLooks;
+
+	/// <summary>Whether the recording logged the patrols' draws (`P` lines); older ones did not.</summary>
+	private bool _hasPatrolDraws;
 	private int _cacheHanded;
 
 	private CDrawPlayback(string folder)
@@ -55,6 +58,12 @@ internal sealed class CDrawPlayback
 		public readonly Dictionary<string, int> FedRandBy = new();
 		public readonly Dictionary<string, int> MissedAi = new();
 		public readonly Dictionary<string, int> MissedRand = new();
+		public readonly Dictionary<string, Queue<int>> Patrol = new();
+		public int UnfiledPatrol;
+		public int FedPatrol;
+		public int MissedPatrol;
+		public readonly Dictionary<string, int> FedPatrolBy = new();
+		public readonly Dictionary<string, int> MissedPatrolBy = new();
 	}
 
 	/// <summary>Reads a recording; its hours are keyed by the original's tick.</summary>
@@ -118,6 +127,22 @@ internal sealed class CDrawPlayback
 					else
 					{
 						Queue(hour.Rand, tag).Enqueue(int.Parse(p[2], CultureInfo.InvariantCulture));
+					}
+					break;
+				}
+				case "P" when hour is not null:
+				{
+					// `P <esp> <rand> <list size>`: the C runtime rand() a naval patrol's centre was drawn with, on the thread
+					// of the country whose pass drew it.
+					playback._hasPatrolDraws = true;
+					string? tag = Owner(entries, long.Parse(p[1], NumberStyles.HexNumber));
+					if (tag is null)
+					{
+						hour.UnfiledPatrol++;
+					}
+					else
+					{
+						Queue(hour.Patrol, tag).Enqueue(int.Parse(p[2], CultureInfo.InvariantCulture));
 					}
 					break;
 				}
@@ -274,6 +299,7 @@ internal sealed class CDrawPlayback
 		state.AiRandom.Feed = (who, kind) => Take(_current?.Ai, (who.Value, kind), _current?.MissedAi,
 			kind is null ? who.Value : $"{who.Value}:{kind}", fed: true);
 		scripts.RandFeed = who => Take(_current?.Rand, who.Value, _current?.MissedRand, who.Value, fed: false);
+		state.PatrolRandFeed = who => TakePatrol(who.Value);
 		PutMinisterCountdowns(state);
 		// Entering draws what the recording holds before its first hour, and its units look with the halves the original's
 		// memory left them (moving.md, section 11.4), until the first hour, when the original's units have worked theirs out.
@@ -319,6 +345,27 @@ internal sealed class CDrawPlayback
 		OpenHOI3.Sim.Settings.CAutomation.MakeMinistersOfLoad(state);
 		Console.WriteLine($"draws: the ministers' first hours put as the original's load drew them, its seed {start}, " +
 			$"{state.AiRandom.Draws} draws");
+	}
+
+	/// <summary>
+	/// A patrol centre's draw for the country as the original made it, or null - ours's own stream - where the recording has
+	/// no patrol draws at all (older recordings) or none left for it this hour.
+	/// </summary>
+	private int? TakePatrol(string tag)
+	{
+		if (_current is null || !_hasPatrolDraws)
+		{
+			return null;
+		}
+		if (_current.Patrol.TryGetValue(tag, out Queue<int>? queue) && queue.Count > 0)
+		{
+			_current.FedPatrol++;
+			_current.FedPatrolBy[tag] = _current.FedPatrolBy.GetValueOrDefault(tag) + 1;
+			return queue.Dequeue();
+		}
+		_current.MissedPatrol++;
+		_current.MissedPatrolBy[tag] = _current.MissedPatrolBy.GetValueOrDefault(tag) + 1;
+		return null;
 	}
 
 	private int? Take<TKey>(Dictionary<TKey, Queue<int>>? queues, TKey key, Dictionary<string, int>? missed, string tag, bool fed)
@@ -416,6 +463,9 @@ internal sealed class CDrawPlayback
 		return $"draws: AI generator fed {hour.FedAi}, ours beyond {hour.MissedAi.Values.Sum()}{Who(hour.MissedAi)}, " +
 			$"left {leftAi}{(leftAiWho.Length > 0 ? $" ({leftAiWho})" : "")}, nobody's {hour.UnfiledAi}; " +
 			$"math.random fed {hour.FedRand}{Who(hour.FedRandBy)}, ours beyond {hour.MissedRand.Values.Sum()}{Who(hour.MissedRand)}, " +
-			$"left {leftRand}{(leftRandWho.Length > 0 ? $" ({leftRandWho})" : "")}, nobody's {hour.UnfiledRand}";
+			$"left {leftRand}{(leftRandWho.Length > 0 ? $" ({leftRandWho})" : "")}, nobody's {hour.UnfiledRand}" +
+			(_hasPatrolDraws ? $"; patrols fed {hour.FedPatrol}{Who(hour.FedPatrolBy)}, ours beyond {hour.MissedPatrol}{Who(hour.MissedPatrolBy)}, " +
+				$"left {hour.Patrol.Values.Sum(q => q.Count)}{(Left(hour.Patrol, k => k) is { Length: > 0 } leftPatrol ? $" ({leftPatrol})" : "")}, " +
+				$"nobody's {hour.UnfiledPatrol}" : "");
 	}
 }

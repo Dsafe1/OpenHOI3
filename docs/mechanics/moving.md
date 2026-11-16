@@ -936,7 +936,9 @@ months on) - at least three hours left, and the order ends then.
   starting at 41, 18467, 6334, the main thread's carrying on from every draw since the process began (*measured* on the
   running game, 2026-11-12, entering July 1941: Germany, Britain, the Soviet Union and the United States drew on the main
   thread, Britain's Middle East Command 1229 for 10582 and Moskva HQ 20857 for 10508, behind the closed Baltic strait, so
-  the Baltic Fleet stands; `FINDINGS-liveread.md`, section 53); a fleet leaving a losing
+  the Baltic Fleet stands; `FINDINGS-liveread.md`, section 53). A playback of a run recorded with the patrols' draws hands
+  them over (`docs/replay.md`, section 9). An agent with no fleet stops before phase 1, as the original's does, so it
+  makes no patrol draw (`FINDINGS-liveread.md`, section 112); a fleet leaving a losing
   sea battle is sent home, the reading saying only that it disengages; an empty transport's order is always cancelled,
   the flag that spares one not being read.
 - **The sealift** (section 15): the original's steps after boarding - unloading, merging and sailing a transport - are named

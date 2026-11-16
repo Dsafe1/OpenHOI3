@@ -896,6 +896,15 @@ public sealed class CGameState
 	/// </summary>
 	public Func<Units.CUnit, bool, long?>? FirstLookModel { get; set; }
 
+	/// <summary>
+	/// Where the AI's naval patrol takes the C runtime <c>rand()</c> its centre is drawn with, for a country, instead of its
+	/// own stream, or null for its own. The original draws on the <c>rand()</c> of whichever thread runs the country's pass,
+	/// and the main thread's has run since the process began, so no game state gives it back (<c>docs/mechanics/moving.md</c>,
+	/// sections 14 and 19). Nothing in the game sets it: the savegame tool's playback of a run of the original's hands over that run's
+	/// (<c>docs/replay.md</c>, section 9). A measuring instrument.
+	/// </summary>
+	public Func<Countries.CCountryTag, int?>? PatrolRandFeed { get; set; }
+
 	/// <summary>The weather's own state: the pressure zones and the fronts (<c>docs/mechanics/weather.md</c>).</summary>
 	public Weather.CWeatherManager Weather { get; } = new();
 

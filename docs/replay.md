@@ -204,6 +204,13 @@ the AI's generator is worked out from the hour's dump and the index it drew at, 
 Where ours draws more than the original did that hour, the draw is ours and counted ("ours beyond"); where less, what is
 left is counted. Each hour of the series says so in one line.
 
+**The naval patrol's centre** is drawn on the C runtime's `rand()` of the thread that runs the country's pass, which no game
+state gives back. Recorded with `hoiDrawsPatrol` set (the hour's pass on a software breakpoint, its debug register given to
+the patrol's `rand()`; it cannot be set together with `hoiDrawsGameCallers`), each draw is a `P` line, filed to its country
+like Lua's, and handed to the patrol through `CGameState.PatrolRandFeed`; a recording without `P` lines leaves the patrol
+its own stream (`reversing/findings/FINDINGS-liveread.md`, section 112). On wr13, 2026-11-16, every one of the original's
+39 patrol draws was handed over and ours made one more, and the fleets' orders agreed, 29 of 29.
+
 **What it showed first**, the July series against one recorded run: 267 ways the same, 59 ours alone, 21 none and 6 at
 another end, where the same run without the draws gave 186, 128, 27 and 81 (the first recording, its trading unfiled: 252, 62, 27 and 14 against 167, 140, 38 and 88). And that ours rolls the hourly trading for
 every country every hour, about 180 draws, where the original made 4 to 8 - an order of its own for the queue.
