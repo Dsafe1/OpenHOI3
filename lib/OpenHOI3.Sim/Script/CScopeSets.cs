@@ -18,9 +18,10 @@ public static class CScopeSets
 		{
 			return false;
 		}
-		foreach (CProvince province in state.Provinces)
+		// The country's provinces in the provinces' order, as walking them all and passing the others over gives them.
+		foreach (CProvince province in COwnedCounts.Of(state).Provinces(country))
 		{
-			if (province.Owner == country && CConditions.All(state, block, scope.With(scope.Country, province.Id), report))
+			if (CConditions.All(state, block, scope.With(scope.Country, province.Id), report))
 			{
 				return true;
 			}

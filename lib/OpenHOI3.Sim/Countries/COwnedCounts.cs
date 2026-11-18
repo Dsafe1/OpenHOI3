@@ -1,16 +1,18 @@
+using System;
 using System.Collections.Generic;
 using OpenHOI3.Sim.Provinces;
 
 namespace OpenHOI3.Sim.Countries;
 
 /// <summary>
-/// How many provinces each country owns, counted in one walk of the provinces and kept until one
-/// changes hands. It is asked for every country every hour - whether it still exists - and counting
-/// afresh each time was a seventh of a game's time.
+/// The provinces each country owns, in the provinces' order, gathered in one walk of the provinces and
+/// kept until one changes hands. How many is asked for every country every hour - whether it still
+/// exists - and counting afresh each time was a seventh of a game's time; which, by the scripts'
+/// <c>any_owned_province</c>, a hundred thousand times a day under BlackICE's triggered modifiers.
 /// </summary>
 public sealed class COwnedCounts
 {
-	private readonly Dictionary<CCountryTag, int> _owned = new();
+	private readonly Dictionary<CCountryTag, List<CProvince>> _owned = new();
 
 	private COwnedCounts(int controlChanges, int provinceCount)
 	{
@@ -22,7 +24,7 @@ public sealed class COwnedCounts
 
 	private int ProvinceCount { get; }
 
-	/// <summary>The counts for the state as it stands, counted again where a province has changed hands.</summary>
+	/// <summary>The provinces for the state as it stands, gathered again where a province has changed hands.</summary>
 	public static COwnedCounts Of(CGameState state)
 	{
 		if (state.OwnedCounts is { } counts && counts.ControlChanges == state.ControlChanges
@@ -35,12 +37,23 @@ public sealed class COwnedCounts
 		{
 			if (province.Owner is { } owner)
 			{
-				counts._owned[owner] = counts._owned.GetValueOrDefault(owner) + 1;
+				if (!counts._owned.TryGetValue(owner, out List<CProvince>? list))
+				{
+					counts._owned[owner] = list = new List<CProvince>();
+				}
+				list.Add(province);
 			}
 		}
 		state.OwnedCounts = counts;
 		return counts;
 	}
 
-	public int Count(CCountryTag country) => _owned.GetValueOrDefault(country);
+	public int Count(CCountryTag country) => _owned.TryGetValue(country, out List<CProvince>? list) ? list.Count : 0;
+
+	/// <summary>
+	/// The provinces the country owns, in the provinces' order. Never changed once gathered - a change of hands gathers a
+	/// new set - so it may be walked while what is asked of each province is answered.
+	/// </summary>
+	public IReadOnlyList<CProvince> Provinces(CCountryTag country) =>
+		_owned.TryGetValue(country, out List<CProvince>? list) ? list : Array.Empty<CProvince>();
 }
