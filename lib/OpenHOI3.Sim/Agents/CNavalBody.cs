@@ -501,11 +501,6 @@ public static class CNavalBody
 				CStdVector.SwapRemove(waters, nearest);
 			}
 			CUnit? fleet = Nearest(state, free, centre, f => !IsBusy(f) && CShipCensus.Of(f) is { Submarines: 0, Screens: > 0 });
-			if (System.Environment.GetEnvironmentVariable("OHDBG_PATROL") == country.Tag.Value) // DBGPATROL
-			{
-				System.Console.WriteLine($"DBGPATROL {state.Date}.{state.Hour} centre {centre} picked {fleet?.Name}: " + string.Join("; ",
-					free.ConvertAll(f => $"{f.Name}@{f.Location} order {f.Order} subs {CShipCensus.Of(f).Submarines} screens {CShipCensus.Of(f).Screens} sea {CSeaTargets.Sea(state, f.Location, centre)}")));
-			}
 			if (fleet is null)
 			{
 				return;
