@@ -137,6 +137,12 @@ public sealed class CSimulation
 	/// commands ran. A command posted while this is running waits for the next call,
 	/// which is what makes a drain a turn.
 	/// </summary>
+	/// <summary>
+	/// How many commands have run since the game was made: a figure a screen can watch to show the game as a command left
+	/// it at once - a unit renamed or reorganised while paused - where it would otherwise wait for the next hour.
+	/// </summary>
+	public long Executed { get; private set; }
+
 	public int Pump()
 	{
 		// The turn moves on as the drain begins, so a command posted from inside one
@@ -155,6 +161,7 @@ public sealed class CSimulation
 			CDate before = State.Date;
 			command.Execute(State);
 			executed++;
+			Executed++;
 
 			// What the game posted while the command ran waits for the next turn.
 			foreach (CCommand posted in State.Outbox)

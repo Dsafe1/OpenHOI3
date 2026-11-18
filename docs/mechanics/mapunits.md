@@ -488,6 +488,9 @@ asked.
 - **The counters are worked out again** once a day, whenever a unit of the player's is
   placed or ordered, and each hour that a unit is on the march or has just come off it -
   the hour it arrives is the one its counter has to change province in - not every frame.
+  **And in the frame after any command has run, paused or not** (`CSimulation.Executed`): a unit renamed,
+  reorganised, merged or split shows on its counter at once, as in the original - the maintainer's word, 2026-11-18,
+  when ours waited for the next hour.
 
 ## 8. The hierarchy of a selected unit
 

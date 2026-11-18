@@ -50,6 +50,24 @@ public class SimulationTests
 	}
 
 	[Fact]
+	public void TheCountOfCommandsRunGoesUpForEachThatRanAndNotForOneRefused()
+	{
+		// What the client watches to work the counters out again the moment a command has changed the game (mapunits.md,
+		// section 7): a rename or a reorganisation shows at once, paused or not.
+		CSimulation simulation = StartAt(1936, 1, 1);
+		var log = new List<string>();
+		simulation.Post(new Probe(log, "ran"));
+		simulation.Post(new Probe(log, "refused") { Allowed = false });
+		simulation.Post(new Probe(log, "ran too"));
+
+		Assert.Equal(0, simulation.Executed);
+		simulation.Pump();
+		Assert.Equal(2, simulation.Executed);
+		simulation.Pump();
+		Assert.Equal(2, simulation.Executed);
+	}
+
+	[Fact]
 	public void CommandsRunInTheOrderTheyWerePosted()
 	{
 		CSimulation simulation = StartAt(1936, 1, 1);

@@ -1504,6 +1504,13 @@ public partial class CSession : Node
 		// player's has been placed or ordered, or an hour has gone by with a unit on the
 		// march - and once a frame at most.
 		int waiting = Player?.Deployments.Count ?? 0;
+		// And whenever a command has run, paused or not: a unit renamed, reorganised, merged or split changes its counter at
+		// once in the original, not at the next hour (mapunits.md, section 3).
+		if (_simulation.Executed != _executedSeen)
+		{
+			_executedSeen = _simulation.Executed;
+			_unitsMoved = true;
+		}
 		// The weather's pictures follow the hour; its colours do not (weather.md, section 6).
 		if (_hourPassed)
 		{
@@ -1626,6 +1633,9 @@ public partial class CSession : Node
 	}
 
 	private long _leaders;
+
+	/// <summary>How many commands had run when the counters last looked (<c>CSimulation.Executed</c>).</summary>
+	private long _executedSeen;
 
 	/// <summary>A figure that changes when any unit has another leader than it had.</summary>
 	private long Leaders()

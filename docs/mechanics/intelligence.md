@@ -44,7 +44,8 @@ thresholds its readers ask:
 | 9 | a sighting with no roll |
 
 The original's map draws a unit by it too - hidden under 2, a picture of the unknown under 3, its name `???` under
-5, its figures `?` under 7 - and shows a province's buildings from 6; **nothing draws a fog of war here yet**.
+5, its figures `?` under 7 - and shows a province's buildings from 6; **so does this one since 2026-11-07**
+(`mapunits.md`, sections 3 and 9), the debug menu's switch turning the fog of war off.
 The map modes ask the player's level of each province for their colours and their tooltip lines - the supply mode a
 half brightness under 2, grey under 6, a flat green at 6 and 7, its figures from 8, and in its tooltip the roads and
 the depot above 5 and the figures above 8 (`supplymap.md`); the others in `mapmodes.md`, `airmap.md` and `weather.md`.
@@ -183,7 +184,8 @@ The original's, kept, none put to the maintainer:
   the original's request is a mark at the head of the hour's list, freed at the hour's end. Since 2026-11-14; until
   then it was not done.
 - **The original's map figure for the screen's country and its friends** (`stack_intel`), which only draws counters,
-  is not kept: nothing draws a fog of war yet.
+  is not kept as a figure: the counters work it out as they are made - 9 for the player's own and his friends' units,
+  else his level of the province (`mapunits.md`, section 3).
 
 ## Not established
 
