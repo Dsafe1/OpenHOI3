@@ -322,14 +322,18 @@ destroyers have their country's technologies and the transport ships have none**
 fills both from a loop bounded by the destroyer's list.
 
 **The battle.** The raider attacks and the convoy's fleet defends, in a battle at sea
-(`navalcombat.md`) with four differences:
+(`navalcombat.md`) with five differences:
 
 - every ship of both starts at a distance of 1, as near as ships get;
 - **five rounds are fought at once**, in the hour of the try, and then the battle is gone -
   nobody joins it and it is on nobody's list;
 - the raider shoots with **`convoy_attack`** in place of `sea_attack`;
 - a ship of the convoy's does **an eightieth** of its strength damage and **twice** its
-  organisation damage, and neither side is asked whether it has lost.
+  organisation damage, and neither side is asked whether it has lost;
+- **a ship of the convoy's fleet is never remembered as a target**: the fleet is made for the raid and never put among the
+  game's objects, so the raider's ships find no remembered target each round and pick one afresh, with the draws a fresh
+  pick makes (`reversing/findings/FINDINGS-liveread.md`, section 119). Seen on a recording of July 1941: Italy's 3rd Navy
+  raiding a French convoy at 10571 picks afresh in all five rounds.
 
 Everything else is as at sea: the dice, the positioning, who a ship shoots at - a raider's ships
 that lose the enemy shoot at their own last ship seven times in a hundred here too, and with

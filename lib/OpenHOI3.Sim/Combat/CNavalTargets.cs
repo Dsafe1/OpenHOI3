@@ -42,6 +42,12 @@ public static class CNavalTargets
 		int pNight = isNight ? p / 2 : p;
 
 		CSubUnit? target = Remembered(side, other, ship);
+		// A raid's convoy fleet is made for the raid and never registered, so a ship of it is never found again: whoever
+		// shot at one picks afresh every round (FINDINGS-liveread.md, section 119).
+		if (target?.Unit is { } held && combat.IsConvoyBattle && combat.Defender.Units.Contains(held))
+		{
+			target = null;
+		}
 		bool keep = false;
 		if (target is not null)
 		{
