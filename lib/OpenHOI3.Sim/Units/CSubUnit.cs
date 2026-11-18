@@ -39,7 +39,8 @@ public sealed class CSubUnit
 
 	public string Name { get; set; } = "";
 
-	public CSubUnitType Type { get; }
+	/// <summary>Its type, changed only by <see cref="CUnits.ConvertType"/>.</summary>
+	public CSubUnitType Type { get; internal set; }
 
 	/// <summary>The unit it belongs to.</summary>
 	public CUnit? Unit { get; set; }

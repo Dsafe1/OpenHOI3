@@ -748,6 +748,15 @@ owns, it is made that country's puppet and comes home, everybody told `GIESWAP` 
 puppet of the $FACTION$." or its kin. **Coming home** sets the government back in the declared capital; nothing
 that was cut comes back. `government_in_exile = yes|no` asks it, and Lua's `IsGovernmentInExile`.
 
+**Its partisans become militia as it comes home**, first: `confirmed` (`reversing/findings/FINDINGS-surrender.md`, C.2;
+the brigade's test read 2026-11-18). For every land unit of the country, at every level, every brigade whose own
+`supply_consumption` - its figure with its technologies in - is nothing or less becomes the type the defines' top-level
+`base_militia` names (`militia_brigade` in Their Finest Hour, where only `partisan_brigade` uses nothing), where a type
+of exactly that name exists. It keeps the level of each technology the new type shares and its progress towards the
+next, holds the new type's others at nothing, and keeps its experience; its figures are made again. Then every brigade of the unit, converted or not, has its
+strength held to its most and its organisation to its figure for it, and its highest strength raised to its strength.
+Nothing is told. Built 2026-11-18 (`CExile.Leave`, `CUnits.ConvertType`).
+
 `form_government_in_exile` with a FROM first hands the land the scope holds on FROM's capital's continent, or
 beside FROM's ground, to FROM where FROM is at war with its owner, and otherwise back to the owner.
 

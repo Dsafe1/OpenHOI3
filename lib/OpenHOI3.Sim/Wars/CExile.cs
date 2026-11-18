@@ -99,8 +99,8 @@ public static class CExile
 	}
 
 	/// <summary>
-	/// The country's exile ends - nothing for one not in exile: its government goes back to its capital. Nothing that
-	/// was cut comes back.
+	/// The country's exile ends - nothing for one not in exile: its partisans become militia and its government goes
+	/// back to its capital. Nothing that was cut comes back.
 	/// </summary>
 	public static void Leave(CGameState state, CCountry country)
 	{
@@ -108,8 +108,42 @@ public static class CExile
 		{
 			return;
 		}
+		ConvertPartisans(state, country);
 		country.ActingCapital = country.Capital;
 		country.InExile = false;
+	}
+
+	/// <summary>The top level of the defines that names the type a coming-home exile's partisans become.</summary>
+	public const string MilitiaDefine = "base_militia";
+
+	/// <summary>
+	/// Every brigade of every land unit of the country that uses no supplies by its own figure becomes the type the
+	/// defines' <c>base_militia</c> names, where one is of exactly that name; then every brigade of the unit is held to
+	/// its figures (<c>war.md</c>, section 14).
+	/// </summary>
+	public static void ConvertPartisans(CGameState state, CCountry country)
+	{
+		string name = state.Defines.Text("", MilitiaDefine);
+		CSubUnitType? militia = state.SubUnitTypes.TryGetValue(name, out CSubUnitType? found)
+			&& string.Equals(found.Key, name, System.StringComparison.Ordinal) ? found : null;
+		foreach (CUnit unit in country.AllUnits())
+		{
+			if (!Movement.CMovementRules.IsLandUnit(unit))
+			{
+				continue;
+			}
+			foreach (CSubUnit brigade in unit.SubUnits)
+			{
+				if (militia is not null && brigade.Stats[CUnitSupply.SupplyStatistic] <= CFixedPoint.Zero)
+				{
+					CUnits.ConvertType(brigade, militia);
+				}
+			}
+			foreach (CSubUnit brigade in unit.SubUnits)
+			{
+				CUnits.HoldToFigures(brigade);
+			}
+		}
 	}
 
 	/// <summary>

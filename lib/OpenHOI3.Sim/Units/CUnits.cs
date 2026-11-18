@@ -110,6 +110,43 @@ public static class CUnits
 	}
 
 	/// <summary>
+	/// A brigade becomes another type: it holds each technology of the new type at the level and the progress towards the
+	/// next it held before, where it held it, and at nothing otherwise; its figures are made again and held to their most
+	/// (<see cref="HoldToFigures"/>). Its experience is kept. The one use is an exile's coming home
+	/// (<c>docs/mechanics/war.md</c>, section 14).
+	/// </summary>
+	public static void ConvertType(CSubUnit subUnit, CSubUnitType type)
+	{
+		var held = new Dictionary<string, int>(subUnit.TechnologyLevels, System.StringComparer.OrdinalIgnoreCase);
+		var progress = new Dictionary<string, CFixedPoint>(subUnit.TechnologyProgress, System.StringComparer.OrdinalIgnoreCase);
+		subUnit.Type = type;
+		subUnit.TechnologyLevels.Clear();
+		subUnit.TechnologyProgress.Clear();
+		foreach (CTechnology technology in type.Technologies)
+		{
+			subUnit.TechnologyLevels[technology.Name] = held.GetValueOrDefault(technology.Name);
+			if (progress.TryGetValue(technology.Name, out CFixedPoint made))
+			{
+				subUnit.TechnologyProgress[technology.Name] = made;
+			}
+		}
+		RebuildStats(subUnit);
+		HoldToFigures(subUnit);
+	}
+
+	/// <summary>
+	/// What the original does after a brigade's figures are made again, unless it is told to keep its strength: its
+	/// strength held to its most and its organisation to its figure for it, and the most it has ever had raised to its
+	/// strength.
+	/// </summary>
+	public static void HoldToFigures(CSubUnit subUnit)
+	{
+		subUnit.Strength = CFixedPoint.Min(subUnit.Strength, subUnit.Stats.MaxStrength);
+		subUnit.Organisation = CFixedPoint.Min(subUnit.Organisation, subUnit.Stats[CSubUnitType.DefaultOrganisation]);
+		subUnit.Highest = CFixedPoint.Max(subUnit.Highest, subUnit.Strength);
+	}
+
+	/// <summary>
 	/// Puts a brigade's figures back to its type's and adds each of its technologies,
 	/// as many times over as the level it holds.
 	/// </summary>

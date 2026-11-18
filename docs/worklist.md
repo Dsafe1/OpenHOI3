@@ -2006,8 +2006,10 @@ April 1936 writes it on 1,540 brigades and 84 lines, where it wrote none.
   once it is free (one session uses it at a time). The probe is the fact base's `probes/hoidefwatch.lua`, queued in its
   `CANDIDATES.md`, *Live probes queued*. Any field found read becomes a mechanic to build here.
 
-- **Three defines gaps that need a reading or a save question first** (2026-11-18; items 1-4 of the same survey are
-  built on branch `defines-gaps`). A lend-lease convoy's efficiency (`LL_CONVOY_EFF_IMPACT`, `LL_CONVOY_EFF_REGAIN`;
+- **Three defines gaps that need a reading or a save question first** (2026-11-18). The same survey's other four are
+  built that day: a strategic redeployment's supplies (`upkeep.md`, section 1), the practicals a battle teaches
+  (`research.md`, section 10), shore bombardment (`landcombat.md`, section 4) and an exile's partisans becoming militia
+  as it comes home (`war.md`, section 14). A lend-lease convoy's efficiency (`LL_CONVOY_EFF_IMPACT`, `LL_CONVOY_EFF_REGAIN`;
   `reversing/findings/FINDINGS-convoys.md`): read whole, but no save holds the figure, so whether the original writes
   it only when not one or never is to be settled before it is built. Strategic warfare's allies term
   (`STRAT_ALLIES_HELP`, `STRAT_NO_ALLIES_HELP_PENALTY`; `politics.md`, section 6): which allies count as strong is not
