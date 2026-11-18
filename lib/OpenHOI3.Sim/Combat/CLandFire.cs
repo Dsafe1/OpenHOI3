@@ -33,7 +33,8 @@ public static class CLandFire
 
 	/// <summary>
 	/// One side's hour: its front is seen to, its countries gain the land practical, one
-	/// draw of the game's generator starts its own rolls, and every unit on its front fires.
+	/// draw of the game's generator starts its own rolls, and every unit on its front fires;
+	/// at midnight, then, the allies' part of strategic warfare (<c>politics.md</c>, section 6).
 	/// </summary>
 	public static void Attack(CGameState state, CCombat combat, CCombatSide side)
 	{
@@ -45,6 +46,10 @@ public static class CLandFire
 		foreach (CUnit unit in new List<CUnit>(side.Front))
 		{
 			Fire(state, combat, side, rolls, unit, enemy);
+		}
+		if (state.Hour == 0)
+		{
+			Politics.CStrategicWarfareImpacts.AlliesFought(state, combat, side);
 		}
 	}
 

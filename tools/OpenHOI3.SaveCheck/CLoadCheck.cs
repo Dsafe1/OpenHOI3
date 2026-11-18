@@ -476,6 +476,8 @@ public static class CLoadCheck
 			CompareDiplomacy(state, later, "  ");
 			Console.WriteLine("the practicals battles teach, beside the later save:");
 			CPracticalCheck.Report(state, save, later, "  ");
+			Console.WriteLine("strategic warfare's allies entries since the save, beside the later save:");
+			CAlliesCheck.Report(state, save, later, "  ");
 		}
 		if (series is not null)
 		{

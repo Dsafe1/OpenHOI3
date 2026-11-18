@@ -126,6 +126,27 @@ public static class CCountryLists
 		return allies;
 	}
 
+	/// <summary>
+	/// The allies a country can count on, the original's list after its allies (<c>strong_allies_at_war</c>): of
+	/// <see cref="Allies"/>, in its order, each not a government in exile, whose acting capital is on the continent of
+	/// the country's, whose maximum IC is at least half the country's - halved toward nought - and which is at war.
+	/// See <c>docs/mechanics/politics.md</c>, section 6.
+	/// </summary>
+	public static List<CCountry> StrongAlliesAtWar(CGameState state, CCountry country)
+	{
+		var strong = new List<CCountry>();
+		string continent = state.Province(country.ActingCapital).Continent;
+		foreach (CCountry ally in Allies(state, country))
+		{
+			if (!ally.InExile && state.Province(ally.ActingCapital).Continent == continent
+				&& ally.BaseIc >= country.BaseIc / 2 && state.IsAtWar(ally.Tag))
+			{
+				strong.Add(ally);
+			}
+		}
+		return strong;
+	}
+
 	/// <summary>Whether either guarantees the other.</summary>
 	public static bool HasGuarantee(CGameState state, CCountryTag one, CCountryTag other)
 	{

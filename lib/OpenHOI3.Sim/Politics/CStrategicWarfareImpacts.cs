@@ -39,6 +39,57 @@ public static class CStrategicWarfareImpacts
 		warfare.BombingImpact = Add(state, warfare.Bombing, scaled, warfare.BombingImpact);
 	}
 
+	/// <summary>
+	/// A land battle's side, once a day at the end of its hour: the allies' list of a country C. C is the battle
+	/// province's controller - or, for an attacking side whose first unit's owner is a friend of the province's owner,
+	/// the controller of the province that unit stands in. Only where that province is in the supply area of C's acting
+	/// capital, C is a friend of its owner, and C has allies it can count on (<see cref="CCountryLists.StrongAlliesAtWar"/>):
+	/// each of the side's units of C's own adds its brigades times <c>STRAT_NO_ALLIES_HELP_PENALTY</c>, and each of those
+	/// allies' its brigades times <c>STRAT_ALLIES_HELP</c>, to C's list, in the side's order. See
+	/// <c>docs/mechanics/politics.md</c>, section 6.
+	/// </summary>
+	public static void AlliesFought(CGameState state, Combat.CCombat combat, Combat.CCombatSide side)
+	{
+		Provinces.CProvince province = state.Province(combat.Province);
+		CCountryTag? holder = province.Controller;
+		if (side.Units.Count > 0 && side.IsAttacker && state.Country(province.Owner) is { } owner
+			&& CCountryLists.IsFriend(state, owner, side.Units[0].Owner, withAccess: true))
+		{
+			province = state.Province(side.Units[0].Location);
+			holder = province.Controller;
+		}
+		if (state.Country(holder) is not { } country)
+		{
+			return;
+		}
+		Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
+		if (!ReferenceEquals(network.AreaOf(province.Id), network.AreaOf(country.ActingCapital))
+			|| state.Country(province.Owner) is not { } provinceOwner
+			|| !CCountryLists.IsFriend(state, provinceOwner, country.Tag, withAccess: true))
+		{
+			return;
+		}
+		List<CCountry> strong = CCountryLists.StrongAlliesAtWar(state, country);
+		if (strong.Count == 0)
+		{
+			return;
+		}
+		long alone = state.Defines[Section, "STRAT_NO_ALLIES_HELP_PENALTY"].Raw;
+		long helped = state.Defines[Section, "STRAT_ALLIES_HELP"].Raw;
+		foreach (Units.CUnit unit in new List<Units.CUnit>(side.Units))
+		{
+			long brigades = unit.SubUnits.Count;
+			if (unit.Owner == country.Tag)
+			{
+				AddAllies(state, country, brigades * alone);
+			}
+			else if (strong.Exists(ally => ally.Tag == unit.Owner))
+			{
+				AddAllies(state, country, brigades * helped);
+			}
+		}
+	}
+
 	/// <summary>A raid beaten off by a convoy's escorts: <c>-(STRAT_CONVOY_DAMAGE / its convoys) / 10</c> to the convoy's owner.</summary>
 	public static void RaidBeatenOff(CGameState state, CCountry? owner)
 	{

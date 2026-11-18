@@ -152,14 +152,33 @@ a negative bombing entry also by `1 + sw_national_unity_effect`. The writers:
 | bombing | a strategic bombing starting | `STRAT_BOMBING_PENALTY`, to the target unit's owner, else the province's controller |
 | allies | a land battle, once a day a side | below |
 
-The allies' writer: C is the battle province's controller - or, for an attacking side whose first unit's
-owner is a friend of the province's owner, the controller of the province that unit stands in. It acts
-only where the province is in the area of C's acting capital, C is a friend of the province's owner, and C
-has strong allies at war; then each of C's units adds `brigades x STRAT_NO_ALLIES_HELP_PENALTY` and each of
-those allies' `brigades x STRAT_ALLIES_HELP`.
+The allies' writer, at the end of each land side's hour at midnight, after its units have fired: C is the battle
+province's controller - or, for an attacking side whose first unit's owner is a friend of the province's owner, the
+controller of the province that unit stands in, **and that province is then the one the rest asks of**. It acts only
+where that province is in the supply area of C's acting capital, C is a friend of its owner (military access
+counting), and C has strong allies at war; then, in the side's order, each of the side's units owned by C adds
+`brigades x STRAT_NO_ALLIES_HELP_PENALTY` (-0.001) to C's list and each one owned by one of those allies
+`brigades x STRAT_ALLIES_HELP` (0.1) - both scaled by C's IC as every entry is. A lent unit counts for its owner,
+not its lender. `confirmed` (`reversing/findings/FINDINGS-definesuse.md`, section 9).
 
-**Not built**: the allies' writer - what "strong allies" is was not read. The other six are; the air raider's
-since 2026-11-14, with the raid on convoys from the air (`navalmissions.md`, 8.1 and 8.3).
+**Strong allies at war** are the original's list made of a country's allies (`reversing/findings/FINDINGS-factbase.md`;
+`FINDINGS-scopetriggers.md`), in their order: each ally that is not a government in exile, whose acting capital is on
+the continent of the country's, whose maximum IC is at least half the country's - halved toward nought, so at half
+exactly it counts - and which is at war. The original keeps the list and makes it again with its other lists of
+countries; it is worked out here when asked for (`CCountryLists.StrongAlliesAtWar`), as those lists are (`triggers.md`,
+section 2).
+
+(measured, 2026-11-18, a look) `OpenHOI3.SaveCheck load` with a later save sets each country's entries made since the
+earlier save beside the later save's `alliance` list. `Ireland1939_09_01_00.hoi3` played to `_09_06_18`: Poland alone
+has entries in both, small charges at midnight and no credit - nobody fights in Poland beside it that week - 23
+summing to -0.020 in the save and 32 summing to -0.016 in ours. Ours has more Polish units in battles at midnight, which
+is the AI's moves, and more entries of 0.000 - 14 to the save's 3 - which at Poland's 52 IC is a unit of one brigade;
+whether ours puts more such units into battles, or something else, was not looked into.
+
+So a country fighting in its own land with nobody to count on gets no entry at all, good or bad; one with an ally to
+count on is charged a little for each of its own brigades and credited a great deal for each of the ally's. Built
+2026-11-18 (`CStrategicWarfareImpacts.AlliesFought`). The other six are built; the air raider's since 2026-11-14, with
+the raid on convoys from the air (`navalmissions.md`, 8.1 and 8.3).
 
 ## 7. Ministers: the pool and the filling of posts
 
