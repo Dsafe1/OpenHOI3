@@ -33,19 +33,34 @@ public static class CAircraftWants
 
 	/// <summary>
 	/// The unit types in the original's order: the unit files as the folder lists them, which on NTFS is by their names
-	/// folded to capitals - taken here as the types' keys so ordered (inferred).
+	/// folded to capitals - taken here as the types' keys so ordered (inferred). Made once a game, the types never
+	/// changing in one, each key folded once and not at every comparison.
 	/// </summary>
-	public static List<CSubUnitType> Order(CGameState state)
+	public static IReadOnlyList<CSubUnitType> Order(CGameState state)
 	{
-		var types = new List<CSubUnitType>(state.SubUnitTypes.Values);
-		types.Sort((a, b) => string.CompareOrdinal(a.Key.ToUpperInvariant(), b.Key.ToUpperInvariant()));
+		if (state.PlanTypeOrder is { } made)
+		{
+			return made;
+		}
+		var folded = new List<(string Key, CSubUnitType Type)>(state.SubUnitTypes.Count);
+		foreach (CSubUnitType type in state.SubUnitTypes.Values)
+		{
+			folded.Add((type.Key.ToUpperInvariant(), type));
+		}
+		folded.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
+		var types = new List<CSubUnitType>(folded.Count);
+		foreach ((_, CSubUnitType type) in folded)
+		{
+			types.Add(type);
+		}
+		state.PlanTypeOrder = types;
 		return types;
 	}
 
 	/// <summary>A type's place in the plan's counts: one past its place in the order.</summary>
 	public static int IndexOf(CGameState state, string key)
 	{
-		List<CSubUnitType> types = Order(state);
+		IReadOnlyList<CSubUnitType> types = Order(state);
 		for (int index = 0; index < types.Count; index++)
 		{
 			if (types[index].Key.Equals(key, StringComparison.OrdinalIgnoreCase))

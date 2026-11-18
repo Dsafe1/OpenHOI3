@@ -181,8 +181,21 @@ public static class CPlanWants
 		}
 	}
 
-	/// <summary>The representative of a type's group, which a surplus of one type cancels a shortage of another within.</summary>
+	/// <summary>
+	/// The representative of a type's group, which a surplus of one type cancels a shortage of another within. Worked out
+	/// once a type a game: it asks only the type's own figures, flags and key and the types there are, none of which change.
+	/// </summary>
 	public static CSubUnitType GroupOf(CGameState state, CSubUnitType type)
+	{
+		state.PlanGroups ??= new Dictionary<CSubUnitType, CSubUnitType>();
+		if (!state.PlanGroups.TryGetValue(type, out CSubUnitType? group))
+		{
+			state.PlanGroups[type] = group = FindGroup(state, type);
+		}
+		return group;
+	}
+
+	private static CSubUnitType FindGroup(CGameState state, CSubUnitType type)
 	{
 		CSubUnitType ByKey(string key) => state.SubUnitTypes.TryGetValue(key, out CSubUnitType? found) ? found : type;
 		if (type.Branch == EUnitBranch.Naval)

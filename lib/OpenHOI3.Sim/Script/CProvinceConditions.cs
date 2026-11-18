@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
@@ -108,14 +109,25 @@ public static class CProvinceConditions
 			CCountryTag? whose = value.IsThis ? scope.Root.Country : scope.FromCountry;
 			return state.Province(state.Country(whose)?.Capital ?? 0).Continent;
 		}
+		return ContinentNames(state).Contains(value.Text) ? value.Text : "";
+	}
+
+	/// <summary>
+	/// Every continent a province is on, gathered once a game - a province's continent never changes - where walking the
+	/// provinces for each <c>continent</c> asked was a twentieth of the hour under BlackICE's triggered modifiers.
+	/// </summary>
+	private static HashSet<string> ContinentNames(CGameState state)
+	{
+		if (state.ContinentNames is { } known)
+		{
+			return known;
+		}
+		var names = new HashSet<string>(StringComparer.Ordinal);
 		foreach (CProvince province in state.Provinces)
 		{
-			if (province.Continent.Equals(value.Text, StringComparison.Ordinal))
-			{
-				return value.Text;
-			}
+			names.Add(province.Continent);
 		}
-		return "";
+		return state.ContinentNames = names;
 	}
 
 	private static bool InRegion(CGameState state, CProvince here, string name)

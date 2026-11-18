@@ -860,6 +860,18 @@ public sealed class CGameState
 	/// <summary>What the map says of each country this hour, kept by <see cref="Countries.CCountryFacts"/>.</summary>
 	public Countries.CCountryFacts? CountryFacts { get; set; }
 
+	/// <summary>
+	/// The unit types in the order the AI's plans count them, made once by <see cref="Agents.CAircraftWants.Order"/>:
+	/// <see cref="SubUnitTypes"/> never changes in a game. Derived, and never saved.
+	/// </summary>
+	internal List<Units.CSubUnitType>? PlanTypeOrder { get; set; }
+
+	/// <summary>Every continent a province is on, gathered once by the <c>continent</c> condition. Derived, and never saved.</summary>
+	internal HashSet<string>? ContinentNames { get; set; }
+
+	/// <summary>Each unit type's group in the AI's plans, kept by <see cref="Agents.CPlanWants.GroupOf"/>. Derived, and never saved.</summary>
+	internal Dictionary<Units.CSubUnitType, Units.CSubUnitType>? PlanGroups { get; set; }
+
 	/// <summary>The route finder's working arrays, kept from one search to the next by <see cref="Movement.CRouteScratch"/>.</summary>
 	internal Movement.CRouteScratch? RouteScratch { get; set; }
 
