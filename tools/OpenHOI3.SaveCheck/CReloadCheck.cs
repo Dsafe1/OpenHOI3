@@ -110,8 +110,8 @@ internal static class CReloadCheck
 	/// the section's opening): the numbers a unit's file or a save names its leader by, where its file's line came, and a
 	/// unit line's <c>is_reserve</c>, read only as a game is made or loaded - the leader himself and the brigades' reserve are compared; whether a game was
 	/// loaded; caches made again on demand to the same figures - the distances by sea, the route finder's arrays, the land
-	/// within two edges of a province, the air bases each country holds; and the count of changes of hands since a game
-	/// began, with the stamps of the caches that watch it, which counts events and not state - each game's caches agree
+	/// within two edges of a province, the air bases each country holds, the provinces each holds; and the count of
+	/// changes of hands since a game began, with the stamps of the caches that watch it, which counts events and not state - each game's caches agree
 	/// with its own count; and a unit's and a brigade's figures of a battle's hour - its circumstances and the defences it
 	/// has used - which each battle hour makes again before anything reads them, and which stay on a unit, read by
 	/// nothing, once its battle is over; and what is worked out of a brigade's figures and levels to be asked every hour,
@@ -128,7 +128,7 @@ internal static class CReloadCheck
 		"CModifier.Version", "CSubUnitLevels.Version", "CSubUnitStats._takenAt", "CSubUnitStats._defaultOrganisation",
 		"CSubUnitStats._morale", "CSubUnitStats._officers", "CSubUnitStats._maxStrength", "CSubUnit._levelsAddedAt",
 		"CSubUnit._levelsHeld", "CAdjusters._byKey", "CCountryFacts.BuiltChanges", "CTrigger.Answerer",
-		"CTrigger.Keyword",
+		"CTrigger.Keyword", "CGameState.HeldProvinces",
 		"CUnit.CombatAttack", "CUnit.CombatModifiers", "CUnit.DefencesUsed",
 		"CSubUnit.CombatAttack", "CSubUnit.CombatDefence", "CSubUnit.CombatModifiers",
 	};

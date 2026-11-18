@@ -19,6 +19,12 @@ public static class CProvinceRepair
 	public const string LocalInfrastructure = "local_infrastructure";
 	public const string GlobalInfrastructure = "global_infrastructure";
 
+	/// <summary>The keys of the four, asked of a province that is being mended (<see cref="Modifiers.CModifierKey"/>).</summary>
+	private static readonly Modifiers.CModifierKey RepairRateKey = Modifiers.CModifierKey.Of(RepairRate);
+	private static readonly Modifiers.CModifierKey InfrastructureKey = Modifiers.CModifierKey.Of(Infrastructure);
+	private static readonly Modifiers.CModifierKey LocalInfrastructureKey = Modifiers.CModifierKey.Of(LocalInfrastructure);
+	private static readonly Modifiers.CModifierKey GlobalInfrastructureKey = Modifiers.CModifierKey.Of(GlobalInfrastructure);
+
 	/// <summary>The least and the most the roads count for, in thousandths.</summary>
 	private const long LeastRoads = 10;
 	private const long MostRoads = 1000;
@@ -54,7 +60,10 @@ public static class CProvinceRepair
 		{
 			return false;
 		}
-		long rate = Rate(state, province);
+		// The day's rate is worked out only where something is short of what it could be - most days nothing is, and
+		// nothing it is made of moves while the province is mended.
+		long rate = 0;
+		bool rated = false;
 		for (int index = 0; index < CGoodsPool.Count; index++)
 		{
 			var goods = (EGoods)index;
@@ -62,11 +71,15 @@ public static class CProvinceRepair
 			long most = province.MaxProducing[goods].Raw;
 			if (made != most)
 			{
+				if (!rated)
+				{
+					rate = Rate(state, province);
+					rated = true;
+				}
 				province.CurrentProducing[goods] = new CFixedPoint(Math.Min(most, made + rate));
 			}
 		}
 
-		long mend = speed * rate / CFixedPoint.Scale;
 		bool wholeLevel = false;
 		foreach (CBuilding building in state.Buildings)
 		{
@@ -74,6 +87,12 @@ public static class CProvinceRepair
 			CFixedPoint most = province.BuildingMaxLevel(building);
 			if (building.IsRepaired && current != most)
 			{
+				if (!rated)
+				{
+					rate = Rate(state, province);
+					rated = true;
+				}
+				long mend = speed * rate / CFixedPoint.Scale;
 				province.SetBuildingCurrentLevel(building, new CFixedPoint(current.Raw + mend));
 				wholeLevel |= province.BuildingLevel(building).Raw / CFixedPoint.Scale != current.Raw / CFixedPoint.Scale;
 			}
@@ -88,11 +107,11 @@ public static class CProvinceRepair
 	/// </summary>
 	public static long Rate(CGameState state, CProvince province)
 	{
-		long roads = province.Modifier[Infrastructure].Raw
-			* (CFixedPoint.Scale + province.Modifier[LocalInfrastructure].Raw + province.Modifier[GlobalInfrastructure].Raw)
+		long roads = province.Modifier[InfrastructureKey].Raw
+			* (CFixedPoint.Scale + province.Modifier[LocalInfrastructureKey].Raw + province.Modifier[GlobalInfrastructureKey].Raw)
 			/ CFixedPoint.Scale;
 		roads = Math.Clamp(roads, LeastRoads, MostRoads);
-		long technology = state.Country(province.Controller) is { } holder ? holder.Technology[RepairRate].Raw : 0;
+		long technology = state.Country(province.Controller) is { } holder ? holder.Technology[RepairRateKey].Raw : 0;
 		return (BaseRate + roads) * (CFixedPoint.Scale + technology) / CFixedPoint.Scale;
 	}
 }

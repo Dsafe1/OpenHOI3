@@ -866,6 +866,9 @@ public sealed class CGameState
 	/// <summary>What the map says of each country, kept by <see cref="Countries.CCountryFacts"/> until the map moves on.</summary>
 	public Countries.CCountryFacts? CountryFacts { get; set; }
 
+	/// <summary>The provinces each country holds, kept by <see cref="Countries.CHeldProvinces"/> until one changes hands.</summary>
+	public Countries.CHeldProvinces? HeldProvinces { get; set; }
+
 	/// <summary>
 	/// The unit types in the order the AI's plans count them, made once by <see cref="Agents.CAircraftWants.Order"/>:
 	/// <see cref="SubUnitTypes"/> never changes in a game. Derived, and never saved.

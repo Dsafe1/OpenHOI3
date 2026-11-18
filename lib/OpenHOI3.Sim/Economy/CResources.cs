@@ -86,7 +86,8 @@ public static class CResources
 		{
 			Supply.CSupplyNetwork network = Supply.CSupplyNetworks.Refresh(state);
 			Supply.CSupplyArea? homeArea = network.AreaOf(country.ActingCapital);
-			foreach (CProvince province in state.Provinces)
+			// The provinces it holds, by the tag's letters as Holds matches them, in the map's order (CHeldProvinces.Walk).
+			foreach (CProvince province in Countries.CHeldProvinces.Walk(state, country.Tag, ignoringCase: true))
 			{
 				if (Holds(country, province) && network.AreaOf(province.Id) != homeArea
 					&& IsHome(network, country, province))

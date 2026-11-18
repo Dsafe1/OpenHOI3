@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenHOI3.Sim.Combat;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Missions;
+using OpenHOI3.Sim.Modifiers;
 using OpenHOI3.Sim.Provinces;
 using OpenHOI3.Sim.Units;
 
@@ -26,6 +27,10 @@ public static class CProvinceIntel
 
 	public const string Encryption = "encryption";
 	public const string Decryption = "decryption";
+
+	/// <summary>The keys of the two, asked for every edge with a unit beside it (<see cref="CModifierKey"/>).</summary>
+	private static readonly CModifierKey EncryptionKey = CModifierKey.Of(Encryption);
+	private static readonly CModifierKey DecryptionKey = CModifierKey.Of(Decryption);
 
 	public static int Level(CGameState state, CProvince province, CCountryTag country)
 	{
@@ -61,14 +66,19 @@ public static class CProvinceIntel
 				{
 					RaiseWithList(beside, controller.Index, Beside, lists);
 				}
-				long encryption = state.Country(beside.Controller)?.Technology[Encryption].Raw ?? 0;
+				// The beside province's encryption only where a unit stands here to be weighed against it.
+				if (units.Count == 0)
+				{
+					continue;
+				}
+				long encryption = state.Country(beside.Controller)?.Technology[EncryptionKey].Raw ?? 0;
 				foreach (CUnit unit in units)
 				{
 					if (unit.Owner == province.Controller || state.Country(unit.Owner) is not { } owner)
 					{
 						continue;
 					}
-					Raise(beside, owner.Index, Math.Min(2 + DayStep(owner.Technology[Decryption].Raw - encryption), Most));
+					Raise(beside, owner.Index, Math.Min(2 + DayStep(owner.Technology[DecryptionKey].Raw - encryption), Most));
 				}
 			}
 		}
@@ -239,8 +249,8 @@ public static class CProvinceIntel
 				{
 					continue;
 				}
-				long encryption = state.Country(beside.Controller)?.Technology[Encryption].Raw ?? 0;
-				long lead = owner.Technology[Decryption].Raw - encryption;
+				long encryption = state.Country(beside.Controller)?.Technology[EncryptionKey].Raw ?? 0;
+				long lead = owner.Technology[DecryptionKey].Raw - encryption;
 				Raise(beside, owner.Index, lead < 0 ? 2 : lead == 0 ? 3 : 4);
 			}
 		}

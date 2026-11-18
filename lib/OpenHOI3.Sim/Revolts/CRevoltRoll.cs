@@ -45,7 +45,9 @@ public static class CRevoltRoll
 			return;
 		}
 		int range = state.Played.Contains(country.Tag) ? PlayedRange : AiRange;
-		foreach (CProvince province in state.Provinces)
+		// The provinces it holds, in the map's order - as a walk of the whole map gives them, a rising that changes hands
+		// on the way among them (CHeldProvinces.Walk).
+		foreach (CProvince province in CHeldProvinces.Walk(state, country.Tag))
 		{
 			if (province.Controller != country.Tag || CRebelFactions.AreaOf(state, province.Id) is null)
 			{

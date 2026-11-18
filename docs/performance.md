@@ -50,6 +50,14 @@ As measured, with `OpenHOI3.SaveCheck profile` and the headless run, both in Rel
   level an upgrade gives - copy their figures by key and reuse the brigade's own adjusters: the day's production 12 per
   cent less. Each the state's hash the same every midnight, base game and BlackICE, and the `conditions` and
   `scripttext` looks line for line.
+- **The hour that turns a day was then made shorter by making its steps faster, and not by spreading them over the
+  hours**, which would have moved what happens when, away from the original's order - by decision, 2026-11-18. What a
+  day walked the whole map for, country by country, walks each country's own provinces (`CHeldProvinces`, kept until
+  a province changes hands, its walk going on over the rest of the map as before where one changes hands on the way):
+  home production 71 per cent less, the roll for a rising with it. The day's look at what countries know weighs a
+  beside province's encryption only where a unit stands to be weighed against it, and a province's repair works out
+  its rate only where something is short. The midnight hour's median about 215 ms to 201 under BlackICE, against an
+  ordinary hour's 30; what is left in it is spread over many steps of a few milliseconds each, and the AI's.
 - **Drawing is already C++** - it is Godot's renderer. The client's C# builds and sets nodes.
 
 ## 3. What C++ would buy, part by part
