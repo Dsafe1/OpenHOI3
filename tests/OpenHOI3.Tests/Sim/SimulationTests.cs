@@ -219,7 +219,7 @@ public class SimulationTests
 	{
 		CSimulation simulation = StartAt(1936, 1, 1);
 		simulation.Clock.Paused = false;
-		simulation.Clock.Speed = 0;                             // half a second an hour
+		simulation.Clock.Speed = 3;                             // half a second an hour
 
 		Assert.Equal(0, simulation.Advance(0.3));
 		Assert.Equal(1, simulation.Advance(0.3));
@@ -227,14 +227,15 @@ public class SimulationTests
 	}
 
 	[Fact]
-	public void TheTopSpeedRunsAtLeastAnHourAFrame()
+	public void TheTopSpeedRunsAnHourAFrameAndNoMore()
 	{
 		CSimulation simulation = StartAt(1936, 1, 1);
 		simulation.Clock.Paused = false;
 		simulation.Clock.Speed = CClock.SpeedCount - 1;
 
-		Assert.True(simulation.Advance(0.016) >= 1);
-		Assert.True(simulation.State.TotalHours > new CDate(1936, 1, 1).DayNumber * 24L);
+		Assert.Equal(1, simulation.Advance(0.016));
+		Assert.Equal(1, simulation.Advance(10));
+		Assert.Equal(2, simulation.State.TotalHours - new CDate(1936, 1, 1).DayNumber * 24L);
 	}
 
 	[Fact]

@@ -3,31 +3,24 @@ using System;
 namespace OpenHOI3.Sim;
 
 /// <summary>
-/// Turns real time into hours owed. It paces a game and is no part of one: nothing
+/// Turns real time into hours due. It paces a game and is no part of one: nothing
 /// here is saved, and two machines running the same commands agree whatever their
 /// clocks say. That is why this is the one place a <c>double</c> appears.
 ///
-/// The original keeps an accumulator and a table of five thresholds, one per speed.
-/// The thresholds here are our own, as are the separate pause and the cap on time owed.
+/// The original's: each frame's real seconds are added up, and once they reach the
+/// current speed's threshold they are set back to nought and one hour is due - the
+/// excess dropped, and never more than one hour a frame. The pause is our own.
 /// See <c>docs/mechanics/tick.md</c>, section 2.
 /// </summary>
 public sealed class CClock
 {
 	public const int SpeedCount = 5;
 
-	/// <summary>Returned for the top speed: as many hours as the caller has time for.</summary>
-	public const int Unlimited = int.MaxValue;
-
-	/// <summary>Real seconds for one game hour at each speed. Zero means no waiting at all.</summary>
-	private static readonly double[] SecondsPerHour = { 0.5, 0.25, 0.1, 0.04, 0.0 };
-
 	/// <summary>
-	/// The most real time that may be owed. Without it a stall - a long load, a window
-	/// being dragged - would be repaid as a burst of hours the moment it ended. At the
-	/// slow speeds the cap is two hours' worth instead, because a cap of less than that
-	/// would swallow the remainder an ordinary frame carries over.
+	/// Real seconds for one game hour at each speed, the original's five: 5, 2, 1 and half a second, and at the top
+	/// speed a ten-thousandth - an hour every frame (<c>reversing/findings/FINDINGS-tick.md</c>).
 	/// </summary>
-	private const double MostOwed = 0.5;
+	private static readonly double[] SecondsPerHour = { 5.0, 2.0, 1.0, 0.5, 0.0001 };
 
 	private int _speed = 2;
 	private double _owed;
@@ -43,27 +36,24 @@ public sealed class CClock
 	public bool Paused { get; set; } = true;
 
 	/// <summary>
-	/// How many hours have come due after another stretch of real time. Time left over
-	/// is carried to the next call, so a slow frame is caught up and not lost.
+	/// Whether an hour has come due after another frame of real time: the frame's seconds added up until they reach the
+	/// speed's threshold, then set back to nought. So a slow frame brings its hour at once and no more, and what passed
+	/// beyond the threshold is not carried over - the original's.
 	/// </summary>
-	public int HoursDue(double realSeconds)
+	public bool HourDue(double realSeconds)
 	{
 		if (Paused)
 		{
 			_owed = 0;
-			return 0;
+			return false;
 		}
 
-		double perHour = SecondsPerHour[_speed];
-		if (perHour <= 0)
+		_owed += Math.Max(realSeconds, 0);
+		if (_owed < SecondsPerHour[_speed])
 		{
-			_owed = 0;
-			return Unlimited;
+			return false;
 		}
-
-		_owed = Math.Min(_owed + Math.Max(realSeconds, 0), Math.Max(MostOwed, perHour * 2));
-		int due = (int)(_owed / perHour);
-		_owed -= due * perHour;
-		return due;
+		_owed = 0;
+		return true;
 	}
 }

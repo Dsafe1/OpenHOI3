@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using OpenHOI3.Sim.Commands;
 
 namespace OpenHOI3.Sim;
@@ -15,9 +14,6 @@ namespace OpenHOI3.Sim;
 /// </summary>
 public sealed class CSimulation
 {
-	/// <summary>At the top speed, how much of a frame may be spent running hours.</summary>
-	private static readonly TimeSpan FrameBudget = TimeSpan.FromMilliseconds(12);
-
 	private readonly Queue<CCommand> _queue = new();
 	private long _nextSerial;
 	private int _turn;
@@ -196,13 +192,13 @@ public sealed class CSimulation
 	}
 
 	/// <summary>
-	/// Called once a frame with the frame's length. Runs the hours the clock says have
-	/// come due, and everything else waiting in the queue, and returns the hours run.
+	/// Called once a frame with the frame's length. Runs the hour the clock says has come
+	/// due - at most one a frame, as the original's - and everything else waiting in the
+	/// queue, and returns the hours run.
 	/// </summary>
 	public int Advance(double realSeconds)
 	{
-		int due = Clock.HoursDue(realSeconds);
-		if (due == 0)
+		if (!Clock.HourDue(realSeconds))
 		{
 			// Orders given while paused still happen; a replay drains the queue only as its recording did, before each hour.
 			if (State.Replay is not { IsReplaying: true })
@@ -212,14 +208,8 @@ public sealed class CSimulation
 			return 0;
 		}
 
-		var spent = Stopwatch.StartNew();
-		int run = 0;
-		while (run < due && (run == 0 || spent.Elapsed < FrameBudget))
-		{
-			RunOneHour();
-			run++;
-		}
-		return run;
+		RunOneHour();
+		return 1;
 	}
 
 	/// <summary>Runs hours with no regard to real time or to the pause: for tests and tools.</summary>

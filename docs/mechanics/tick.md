@@ -28,17 +28,25 @@ earlier. Nothing depends on the epoch.
 - **Every frame adds the frame's length to an accumulator.** When the accumulator reaches
   the threshold for the current speed, it is set to zero and one hour is due. `confirmed`
 - **There are five speeds, each with its own threshold** - a table of five, not one number
-  scaled. `confirmed` for the table; the five values are **not established**.
+  scaled: **5, 2, 1 and 0.5 real seconds an hour, and 0.0001 at the top speed**, which is an
+  hour every frame. They are fixed in the executable; no define or file sets them. Read
+  2026-11-18, and the live run of 2026-11-10 agreed. `confirmed`
+- **Reaching the threshold sets the accumulator back to nought** - the excess over it is
+  dropped, not carried. So at most one hour comes due a frame, at every speed, and a long
+  stall brings one hour and no burst. `confirmed`
 - **Only one hour is ever in flight.** While an hour is being processed no further hour can
   be queued, however long the processing takes; time keeps accumulating meanwhile, so a
   slow hour is caught up afterwards rather than lost. `confirmed`
 - **The hour is not advanced directly: a command is posted that advances it** - see
   section 4. `confirmed`
 
-*Ours:* the five thresholds are our own - half a second, a quarter, a tenth and a
-twenty-fifth of a second per hour, and at the top speed as many hours as fit in a frame's
-time budget. Pause is a separate switch rather than a speed. Like the original, time owed is
-carried over, but it is capped so that a long stall does not turn into a burst.
+The thresholds, the reset and the one hour a frame are the original's (`CClock`,
+`CSimulation.Advance`). Until 2026-11-18 they were our own - half a second, a quarter, a tenth
+and a twenty-fifth an hour, as many as a frame's budget held at the top speed, and time owed
+carried over under a cap - which played eight to twelve times the original's pace.
+
+*Ours:* pause is a separate switch rather than a speed, and time that passes while paused is
+not owed when it ends.
 
 ## 3. What an hour does
 
@@ -305,7 +313,6 @@ same run.
 
 - **what the AI does around those days**, law by law, and in which order - only that some
   of its changes come before them and some after (section 6);
-- the **five speed thresholds**;
 - the **month lengths**, value by value;
 - the **yearly pass**;
 - **several steps of the daily pass**, and the province's own monthly work;

@@ -1,8 +1,8 @@
-
 using OpenHOI3.Sim;
 
 namespace OpenHOI3.Tests.Sim;
 
+/// <summary>The clock against <c>docs/mechanics/tick.md</c>, section 2: the original's five thresholds and its one hour a frame.</summary>
 public class ClockTests
 {
 	[Fact]
@@ -11,57 +11,64 @@ public class ClockTests
 		var clock = new CClock();
 
 		Assert.True(clock.Paused);
-		Assert.Equal(0, clock.HoursDue(10));
+		Assert.False(clock.HourDue(10));
 
 		// Time that passed during the pause is not repaid when it ends.
 		clock.Paused = false;
-		clock.Speed = 0;
-		Assert.Equal(0, clock.HoursDue(0.1));
+		clock.Speed = 3;
+		Assert.False(clock.HourDue(0.25));
 	}
 
 	[Fact]
-	public void AnHourComesDueWhenEnoughRealTimeHasBuiltUp()
+	public void AnHourComesDueWhenTheSpeedsSecondsHaveBuiltUp()
 	{
-		var clock = new CClock { Paused = false, Speed = 0 };   // half a second an hour
+		var clock = new CClock { Paused = false, Speed = 3 };   // half a second an hour
 
-		// Quarters and eighths, which a double holds exactly, so the test is about the
-		// clock and not about rounding.
-		Assert.Equal(0, clock.HoursDue(0.25));
-		Assert.Equal(0, clock.HoursDue(0.125));
-		Assert.Equal(1, clock.HoursDue(0.25));                  // 0.625 built up; 0.125 carried over
-		Assert.Equal(0, clock.HoursDue(0.25));
-		Assert.Equal(1, clock.HoursDue(0.125));
+		// Quarters and eighths, which a double holds exactly, so the test is about the clock and not about rounding.
+		Assert.False(clock.HourDue(0.25));
+		Assert.False(clock.HourDue(0.125));
+		Assert.True(clock.HourDue(0.125));                      // 0.5 reached: due, and back to nought
+		Assert.False(clock.HourDue(0.25));
 	}
 
 	[Fact]
-	public void FasterSpeedsOweMoreHoursForTheSameTime()
+	public void TheExcessOverTheThresholdIsDropped()
 	{
-		var slow = new CClock { Paused = false, Speed = 1 };
-		var fast = new CClock { Paused = false, Speed = 3 };
+		var clock = new CClock { Paused = false, Speed = 3 };
 
-		Assert.Equal(1, slow.HoursDue(0.25));
-		Assert.Equal(6, fast.HoursDue(0.25));
+		Assert.True(clock.HourDue(0.75));                       // a quarter past the threshold, and not carried
+		Assert.False(clock.HourDue(0.25));
+		Assert.True(clock.HourDue(0.25));
 	}
 
 	[Fact]
-	public void TheTopSpeedHasNoWaitAtAll()
+	public void TheFiveSpeedsAreTheOriginals()
+	{
+		double[] seconds = { 5.0, 2.0, 1.0, 0.5, 0.0001 };
+		for (int speed = 0; speed < CClock.SpeedCount; speed++)
+		{
+			var clock = new CClock { Paused = false, Speed = speed };
+			Assert.False(clock.HourDue(seconds[speed] * 0.9));
+			Assert.True(clock.HourDue(seconds[speed] * 0.1 + 1e-9));
+		}
+	}
+
+	[Fact]
+	public void ALongStallBringsOneHourAndNoMore()
+	{
+		var clock = new CClock { Paused = false, Speed = 4 };
+
+		Assert.True(clock.HourDue(60));
+		Assert.False(clock.HourDue(0));
+	}
+
+	[Fact]
+	public void TheTopSpeedIsAnHourEveryFrame()
 	{
 		var clock = new CClock { Paused = false, Speed = CClock.SpeedCount - 1 };
 
-		Assert.Equal(CClock.Unlimited, clock.HoursDue(0.0001));
-	}
-
-	[Fact]
-	public void ALongStallIsNotRepaidAsABurst()
-	{
-		var clock = new CClock { Paused = false, Speed = 2 };   // a tenth of a second an hour
-
-		Assert.Equal(5, clock.HoursDue(60));                    // capped at half a second owed
-
-		// At the slowest speed half a second is a single hour, and a cap that tight
-		// would swallow what an ordinary frame carries over. It is two hours there.
-		var slow = new CClock { Paused = false, Speed = 0 };
-		Assert.Equal(2, slow.HoursDue(60));
+		Assert.True(clock.HourDue(1.0 / 60));
+		Assert.True(clock.HourDue(1.0 / 60));
 	}
 
 	[Fact]
