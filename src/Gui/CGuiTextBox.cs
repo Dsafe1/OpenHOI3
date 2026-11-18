@@ -458,12 +458,14 @@ public partial class CGuiTextBox : CGuiObject
 			// line above.
 			if (Editor is not null)
 			{
+				// The line is drawn by the font as a textBoxType's text is, its colour escapes obeyed and taking no room - a
+				// brigade's name of BlackICE's, `§RBenito Mussolini§W`, red on the brigade card (section 8).
 				string shown = Editor.ShownLine;
-				_context?.TextIcons.Draw(this, _font, shown, left, top, Colour ?? _font.Color);
+				DrawLine(this, CColouredText.Parse(shown), left, top);
 				if (HasKeyboard && Editor.CaretShown && _context?.Sprites.Find("cursor") is { } sprite
 					&& _context.Textures.Load(sprite) is { } caret)
 				{
-					float across = type.BorderSize.X + _font.Width(shown[..Editor.CaretColumn]) + 3f;
+					float across = type.BorderSize.X + LineWidth(CColouredText.Parse(shown[..Editor.CaretColumn])) + 3f;
 					float down = CEditLinePlacement.CaretTop(type.BorderSize.Y, _font.LineHeight, Editor.CaretRow, hasPicture);
 					DrawTexture(caret, new Vector2(across, down));
 				}

@@ -968,7 +968,9 @@ Read out of the original on 2026-11-05 for the save dialog (`reversing/findings/
   towards nought, the line's height being the font descriptor's `lineHeight` (the font's loader takes it positionally
   from the `common` line, `reversing/findings/FINDINGS-textdraw.md`, section 2.2.1 as amended 2026-11-14). [exe] for the
   rule, [mod] for the sizes, border, font and picture. Each glyph is then drawn as section 6 draws every glyph, a unit
-  right - and up and down as *measured* below.
+  right - and up and down as *measured* below. **Being the font's, the line obeys its colour escapes**, which take no
+  room - and so does the caret's place along it: BlackICE's brigade named `§RBenito Mussolini§W` is red on the brigade
+  card. Until 2026-11-18 a box being typed into drew its line plain, the section sign and the letter with it.
   *Measured* on two screenshots of the original, glyph row for glyph row (2026-11-14): **the save dialog's `game_name`**
   (260 by 32, border 8 by 6, `small_tiles_dialog`, `Arial12_bold` of line 14 and capitals 3 to 10 down it), a name typed
   - its capitals stand 17 to 24 below the box's top, its `_` 26, its first letter's ink 17 in and every later one where

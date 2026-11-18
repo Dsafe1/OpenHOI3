@@ -6,6 +6,7 @@ using OpenHOI3.Content.Map;
 using OpenHOI3.Gfx;
 using OpenHOI3.Gui;
 using OpenHOI3.Interface.Map;
+using OpenHOI3.Interface.Text;
 using OpenHOI3.Sim;
 using OpenHOI3.Sim.Countries;
 using OpenHOI3.Sim.Movement;
@@ -739,7 +740,16 @@ public partial class CUnitCounters : Node2D
 		}
 		float scale = lineHeight / kind.Font.LineHeight;
 		RenderingServer.CanvasItemAddSetTransform(item, new Transform2D(turned, new Vector2(scale * kind.Font.Narrowing, scale), 0f, start));
-		typeface.DrawString(item, Vector2.Zero, text, HorizontalAlignment.Left, -1f, kind.Font.Size, kind.Font.Color);
+		// Through the font, as the original's: a colour escape changes the colour of what follows and draws nothing, so
+		// BlackICE's `§Y7th Cavalry Brigade (Mechanized)§W` is a yellow "7th Cava" on its counter.
+		float x = 0f;
+		foreach (CTextRun run in CColouredText.Parse(text))
+		{
+			Color colour = CTextColours.TryGet(run.Colour, out CColor named) ? named.ToGodot() : kind.Font.Color;
+			string shown = CWindows1252.ToDisplay(run.Text);
+			typeface.DrawString(item, new Vector2(x, 0f), shown, HorizontalAlignment.Left, -1f, kind.Font.Size, colour);
+			x += typeface.GetStringSize(shown, HorizontalAlignment.Left, -1f, kind.Font.Size).X;
+		}
 		RenderingServer.CanvasItemAddSetTransform(item, Transform2D.Identity);
 	}
 

@@ -177,7 +177,10 @@ has it.
   `show_unit_names` [mod: the player's settings.txt, the game options' box]: **off - a new
   install's default - the unit's leader's, and nothing for a unit with none; on, the unit's
   own**; cut to its first eight letters either way, and `???` where the player knows the unit
-  under 5 whatever the setting (section 3). `confirmed` for the rule
+  under 5 whatever the setting (section 3). **The eight count a colour escape's two characters**, and
+  the name is drawn through the counter's font, which obeys the escape as every text does
+  (`interface.md`, section 6): BlackICE's `§Y7th Cavalry Brigade (Mechanized)§W` is a yellow `7th Ca`.
+  Until 2026-11-18 the counter drew its name plain, the section sign and the letter with it. `confirmed` for the rule
   (`reversing/findings/FINDINGS-counters.md`, section 4; `CUnit_RefreshCounterName`), `likely`
   for the size. **It is written again the moment it changes**: a rename and a change of leader
   write that counter's (`reversing/findings/FINDINGS-unitrename.md`, section 4;
