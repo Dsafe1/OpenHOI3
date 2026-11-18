@@ -277,6 +277,8 @@ public static class CNavalBody
 		int seen = 0;
 		long total = 0;
 		var tonnage = new Dictionary<int, long>();
+		CTheatre? theatre = CAgents.TheatreOf(state, country, agent);
+		long range = CUnitOrders.RangeOf(fleet).Raw;
 		foreach (CConvoy convoy in agent.EnemyConvoys)
 		{
 			int transports = CConvoyRules.DesiredTransports(state, convoy);
@@ -284,25 +286,28 @@ public static class CNavalBody
 			for (int index = 0; index < count; index++)
 			{
 				int id = convoy.Path[index];
-				if (id == convoy.Start || id == convoy.End || candidates.Exists(c => c.Province == id))
+				if (id == convoy.Start || id == convoy.End)
 				{
 					continue;
 				}
-				seen++;
-				CProvince province = state.Province(id);
-				if (!province.IsSea || !CUnitOrders.IsInRange(state, fleet, EUnitOrder.ConvoyRaid, province))
+				// Every province of the way but its ends counts towards the ports' tonnage - one already a candidate and one
+				// out of the fleet's reach as much as a new candidate (FINDINGS-liveread.md, section 132).
+				if (!candidates.Exists(c => c.Province == id))
 				{
-					continue;
+					seen++;
+					CProvince province = state.Province(id);
+					if (province.IsSea && CUnitOrders.IsInRange(state, fleet, EUnitOrder.ConvoyRaid, province))
+					{
+						long weight = transports * (long)System.Math.Abs(index + 1 - count / 2);
+						candidates.Add((id, weight));
+						total += weight;
+					}
 				}
-				long weight = transports * (long)System.Math.Abs(index + 1 - count / 2);
-				candidates.Add((id, weight));
-				total += weight;
-				if (CAgents.TheatreOf(state, country, agent) is { } theatre)
+				if (theatre is not null)
 				{
 					foreach (int port in theatre.Ports)
 					{
-						if (CSeaTargets.Sea(state, id, port) is var distance and >= 0
-							&& distance <= CUnitOrders.RangeOf(fleet).Raw / Whole)
+						if (CSeaTargets.Sea(state, id, port) is var distance and >= 0 && distance * Whole < range)
 						{
 							tonnage[port] = tonnage.GetValueOrDefault(port) + transports;
 						}

@@ -684,7 +684,10 @@ makes nobody at war (`war.md`, section 1).
    the convoy's transports x |its place + 1 - the way's length / 2| - heaviest near the ends, nothing at the middle; one
    is drawn on the AI's generator by weight and the fleet given a **convoy raid** there for 504 hours. With no candidate,
    or fewer than half the steps seen **by whole division** (10 of 21 is not fewer), it **relocates**: to the port with the
-   most raidable tonnage - 10 a transport whose step is within its range of the port, less 20 a ship over the port's
+   most raidable tonnage - 10 a transport whose step is strictly within its range of the port, **every step of the way
+   but its ends counting, one already a candidate and one out of the fleet's reach as much as a new candidate**
+   (`reversing/findings/FINDINGS-liveread.md`, section 132: the Soviet submarines of 17 July 1941, 10 at 906 and 986 and
+   8 at 820 where until then 3 at each) - less 20 a ship over the port's
    level, the ships being those based there, those sent there earlier in the pass less those sent away (the tally the
    rebase below keeps, which this joins) and the fleet's own where the port is not its base; half again for its own base.
    **Where no port scores above nought or the best is its own base, it raids all the same** (`reversing/findings/
