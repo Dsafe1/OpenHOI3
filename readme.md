@@ -1,5 +1,7 @@
 # OpenHOI3
 
+![OpenHOI3 - a new engine for Hearts of Iron 3. HMS Repulse leading a line of Royal Navy capital ships, late 1920s, coloured as at sunset](tools/icon/banner.png)
+
 **An open-source engine for Hearts of Iron 3: Their Finest Hour.** Point it at an install of the
 game and it plays that game - its content and its mods as they are written, by the original's own
 rules - on new technology: Godot 4 and C#.
@@ -182,7 +184,7 @@ rebuilt on Godot from 2026.
   ([`native/lua/COPYRIGHT`](native/lua/COPYRIGHT)).
 - The typefaces in [`fonts/`](fonts/), each under its own licence, listed in
   [`fonts/readme.md`](fonts/readme.md).
-- The icon is made from a public-domain photograph of HMS *Repulse*
+- The icon and the picture above are made from a public-domain photograph of HMS *Repulse*
   ([`tools/icon/readme.md`](tools/icon/readme.md)).
 
 ## Licence

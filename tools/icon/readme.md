@@ -2,7 +2,10 @@
 
 `icon.png` and `icon.ico` at the repository's root - the exe's icon, and the window's and the taskbar's - are made by
 `make_icon.py` from `battleships.webp`: the leading ship of a line of capital ships, HMS *Repulse*, bow on, cut square and coloured as at
-sunset (an orange sky, a copper sea, the ships dark against them), with rounded corners. Made again with
+sunset (an orange sky, a copper sea, the ships dark against them), with rounded corners. The same script writes
+`banner.png` beside itself, the picture at the head of the repository's `readme.md`: the whole photograph in that
+colouring, 800 x 641, with "OPENHOI3" and "A NEW ENGINE FOR HEARTS OF IRON 3" on a dark band along its foot, in
+`fonts/BarlowCondensed-SemiBold.ttf`. All three are made again with
 
     python tools/icon/make_icon.py .
 

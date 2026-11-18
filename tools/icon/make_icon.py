@@ -1,14 +1,18 @@
 """Makes OpenHOI3's icon from the public-domain photograph of a line of battleships beside this script: the leading ship,
 bow on, in a sunset colouring - an orange sky and copper sea, the ships dark against them - cut square with rounded corners.
 Writes icon.png (512) and icon.ico (16 to 256) into the folder given; the repository's two are this script's, made by
-`python tools/icon/make_icon.py .` from the repository's root. See readme.md beside it for the photograph's source."""
+`python tools/icon/make_icon.py .` from the repository's root. Also writes banner.png beside this script: the whole
+photograph in the same colouring with the title on a dark band along its foot, the picture at the head of the
+repository's readme. See readme.md beside it for the photograph's source."""
 import os
 import sys
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PHOTO = os.path.join(HERE, "battleships.webp")
+TITLE_FONT = os.path.join(HERE, "..", "..", "fonts", "BarlowCondensed-SemiBold.ttf")
+TITLE, SUBTITLE = "OPENHOI3", "A NEW ENGINE FOR HEARTS OF IRON 3"
 CROP = (40, 40, 530, 530)      # the leading ship, in the 800 x 641 photograph
 HORIZON = 0.585                # where the sea meets the sky, as a share of the photograph's height
 
@@ -60,8 +64,35 @@ def rounded(img):
     return result
 
 
+def spaced(draw, x, y, text, font, fill, spacing):
+    """Text with extra space between its letters."""
+    for ch in text:
+        draw.text((x, y), ch, font=font, fill=fill)
+        x += draw.textlength(ch, font=font) + spacing
+
+
+def spaced_width(draw, text, font, spacing):
+    return sum(draw.textlength(ch, font=font) for ch in text) + spacing * (len(text) - 1)
+
+
+def banner(img):
+    """The title, widely spaced in cream, and the subtitle under it, on a dark band below the leading ship's bow."""
+    width, height = img.size
+    top, bottom = height - 92, height - 6
+    band = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(band).rectangle([0, top, width, bottom], fill=(36, 16, 14, 170))
+    img = Image.alpha_composite(img.convert("RGBA"), band)
+    draw = ImageDraw.Draw(img)
+    title, subtitle = ImageFont.truetype(TITLE_FONT, 60), ImageFont.truetype(TITLE_FONT, 18)
+    spaced(draw, (width - spaced_width(draw, TITLE, title, 14)) / 2, top - 2, TITLE, title, (255, 238, 214), 14)
+    spaced(draw, (width - spaced_width(draw, SUBTITLE, subtitle, 5)) / 2, bottom - 26, SUBTITLE, subtitle, (240, 190, 140), 5)
+    return img.convert("RGB")
+
+
 def main(out):
-    square = sunset(Image.open(PHOTO).convert("L")).crop(CROP)
+    coloured = sunset(Image.open(PHOTO).convert("L"))
+    banner(coloured).save(os.path.join(HERE, "banner.png"), optimize=True)
+    square = coloured.crop(CROP)
     rounded(square.resize((512, 512), Image.LANCZOS)).save(os.path.join(out, "icon.png"))
     # Each size of the .ico made from the crop itself, not from a smaller copy.
     sizes = [16, 24, 32, 48, 64, 128, 256]
